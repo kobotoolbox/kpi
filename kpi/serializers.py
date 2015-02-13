@@ -19,7 +19,7 @@ class Paginated(PaginationSerializer):
 class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     ownerName = serializers.ReadOnlyField(source='owner.username')
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', read_only=True)
-    highlight = serializers.HyperlinkedIdentityField(view_name='survey-asset-highlight')
+    highlight = serializers.HyperlinkedIdentityField(view_name='surveyasset-highlight')
     parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
     collectionId = serializers.ReadOnlyField(read_only=True, source='collection_id')
     collectionName = serializers.ReadOnlyField(read_only=True, source='collection.name')
@@ -33,11 +33,11 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_parent_url(self, obj):
         request = self.context.get('request', None)
-        return reverse_lazy('survey-asset-list', request=request)
+        return reverse_lazy('surveyasset-list', request=request)
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     survey_assets = serializers.HyperlinkedRelatedField(many=True,
-                 view_name='survey-asset-detail', read_only=True)
+                 view_name='surveyasset-detail', read_only=True)
 
     class Meta:
         model = User

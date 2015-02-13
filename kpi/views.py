@@ -15,7 +15,7 @@ from rest_framework.reverse import reverse
 def api_root(request, format=None):
     return Response({
         'users': reverse('user-list', request=request, format=format),
-        'survey_drafts': reverse('survey-asset-list', request=request, format=format),
+        'survey_assets': reverse('surveyasset-list', request=request, format=format),
         'collections': reverse('collection-list', request=request, format=format),
     })
 

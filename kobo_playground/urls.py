@@ -39,9 +39,9 @@ collection_detail = CollectionViewSet.as_view({
 urlpatterns = format_suffix_patterns([
     url(r'^$', api_root, name='api-root'),
 
-    url(r'^survey_assets/$', survey_asset_list, name='survey-asset-list'),
-    url(r'^survey_assets/(?P<pk>[0-9]+)/$', survey_asset_detail, name='survey-asset-detail'),
-    url(r'^survey_assets/(?P<pk>[0-9]+)/highlight/$', survey_asset_highlight, name='survey-asset-highlight'),
+    url(r'^survey_assets/$', survey_asset_list, name='surveyasset-list'),
+    url(r'^survey_assets/(?P<pk>[0-9]+)/$', survey_asset_detail, name='surveyasset-detail'),
+    url(r'^survey_assets/(?P<pk>[0-9]+)/highlight/$', survey_asset_highlight, name='surveyasset-highlight'),
 
     url(r'^collections/$', collection_list, name='collection-list'),
     url(r'^collections/(?P<pk>[0-9]+)/$', collection_detail, name='collection-detail'),
