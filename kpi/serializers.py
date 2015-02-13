@@ -28,7 +28,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = SurveyAsset
         fields = ('url', 'parent', 'highlight', 'owner', 'ownerName', 'collectionLink',
-                    'collectionName',
+                    'collectionName', 'uuid',
                   'title', 'code', 'linenos', 'language', 'style', 'collectionId')
 
     def get_parent_url(self, obj):
@@ -48,4 +48,4 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Collection
-        fields = ('name', 'url', 'survey_assets', 'collections', 'owner')
+        fields = ('name', 'url', 'survey_assets', 'collections', 'uuid', 'owner')

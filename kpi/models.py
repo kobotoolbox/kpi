@@ -3,6 +3,7 @@ from pygments.lexers import get_all_lexers, get_lexer_by_name
 from pygments.styles import get_all_styles
 from pygments.formatters.html import HtmlFormatter
 from pygments import highlight
+from shortuuidfield import ShortUUIDField
 
 LEXERS = [item for item in get_all_lexers() if item[1]]
 LANGUAGE_CHOICES = sorted([(item[1][0], item[0]) for item in LEXERS])
@@ -18,6 +19,7 @@ class SurveyAsset(models.Model):
     language = models.CharField(choices=LANGUAGE_CHOICES, default='python', max_length=100, null=True)
     style = models.CharField(choices=STYLE_CHOICES, default='friendly', max_length=100, null=True)
     owner = models.ForeignKey('auth.User', related_name='survey_assets')
+    uuid = ShortUUIDField()
     highlighted = models.TextField()
 
     class Meta:
@@ -40,3 +42,4 @@ class Collection(models.Model):
     name = models.CharField(max_length=30)
     parent = models.ForeignKey('Collection', null=True, related_name='collections')
     owner = models.ForeignKey('auth.User', related_name='collections')
+    uuid = ShortUUIDField()
