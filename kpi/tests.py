@@ -16,11 +16,10 @@ class SurveyAssetsTests(APITestCase):
         Ensure we can create a new account object.
         """
         url = reverse('surveyasset-list')
-        data = {'code': 'print 123', 'language': 'rb'}
+        data = {'body': 'print 123'}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['code'], 'print 123')
-        self.assertEqual(response.data['language'], 'rb')
+        self.assertEqual(response.data['body'], 'print 123')
 
 class CollectionsTests(APITestCase):
     fixtures = ['test_data']
@@ -44,12 +43,12 @@ class ObjectRelationshipsTests(APITestCase):
     def setUp(self):
         self.client.login(username='admin', password='pass')
         self.user = User.objects.get(id=1)
-        self.surv = SurveyAsset.objects.create(code='print type({})', owner=self.user)
+        self.surv = SurveyAsset.objects.create(body='print type({})', owner=self.user)
         self.fold = Collection.objects.create(name='sample collection', owner=self.user)
 
     def test_list_survey_asset(self):
         req = self.client.get(reverse('surveyasset-list'))
-        self.assertEqual(req.data['results'][0]['code'], 'print type({})')
+        self.assertEqual(req.data['results'][0]['body'], 'print type({})')
 
         req = self.client.get(reverse('collection-list'))
         self.assertEqual(req.data['results'][0]['name'], 'sample collection')
@@ -60,7 +59,7 @@ class ObjectRelationshipsTests(APITestCase):
         self.surv.save()
 
         req = self.client.get(reverse('surveyasset-detail', args=[self.surv.id]))
-        self.assertEqual(req.data['collectionId'], 1)
+        self.assertTrue('collection' in req.data)
         self.assertEqual(req.data['collectionName'], 'sample collection')
 
         req2 = self.client.get(reverse('collection-detail', args=[self.fold.id]))
