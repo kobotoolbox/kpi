@@ -1,0 +1,15 @@
+Django==1.7.4
+Pygments==2.0.2
+argparse==1.2.1
+dj-database-url==0.3.0
+dj-static==0.0.6
+django-extensions==1.5.0
+django-toolbelt==0.0.1
+djangorestframework==3.0.5
+gunicorn==19.2.1
+psycopg2==2.6
+requests==2.5.1
+six==1.9.0
+static3==0.5.1
+whitenoise==1.0.6
+wsgiref==0.1.2
