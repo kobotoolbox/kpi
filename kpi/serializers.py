@@ -2,7 +2,7 @@ from django.forms import widgets
 from rest_framework import serializers
 from rest_framework.pagination import PaginationSerializer
 from rest_framework.reverse import reverse_lazy
-from kpi.models import SurveyAsset, LANGUAGE_CHOICES, STYLE_CHOICES
+from kpi.models import SurveyAsset
 from kpi.models import Collection
 
 from django.contrib.auth.models import User
@@ -17,19 +17,30 @@ class Paginated(PaginationSerializer):
 
 
 class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
+    '''
+    title = models.CharField(max_length=100, blank=True, default='')
+    created = models.DateTimeField(auto_now_add=True)
+    body = models.TextField()
+    settings = JSONField(null=True)
+    asset_type = models.CharField(choices=SURVEY_ASSET_TYPES, max_length=20, default='text')
+    collection = models.ForeignKey('Collection', related_name='survey_assets', null=True)
+    owner = models.ForeignKey('auth.User', related_name='survey_assets', null=True)
+    uuid = ShortUUIDField()
+
+    '''
     ownerName = serializers.ReadOnlyField(source='owner.username')
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', read_only=True)
     highlight = serializers.HyperlinkedIdentityField(view_name='surveyasset-highlight')
     parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
-    collectionId = serializers.ReadOnlyField(read_only=True, source='collection_id')
+    assetType = serializers.ReadOnlyField(read_only=True, source='asset_type')
     collectionName = serializers.ReadOnlyField(read_only=True, source='collection.name')
-    collectionLink = serializers.HyperlinkedRelatedField(view_name='collection-detail', read_only=True, source='collection')
+    collection = serializers.HyperlinkedRelatedField(view_name='collection-detail', read_only=True)
 
     class Meta:
         model = SurveyAsset
-        fields = ('url', 'parent', 'highlight', 'owner', 'ownerName', 'collectionLink',
-                    'collectionName', 'uuid',
-                  'title', 'code', 'linenos', 'language', 'style', 'collectionId')
+        fields = ('url', 'parent', 'highlight', 'owner', 'ownerName', 'collection',
+                    'settings', 'assetType',
+                    'collectionName', 'uuid', 'title', 'body')
 
     def get_parent_url(self, obj):
         request = self.context.get('request', None)

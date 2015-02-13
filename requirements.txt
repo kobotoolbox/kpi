@@ -14,3 +14,4 @@ static3==0.5.1
 whitenoise==1.0.6
 wsgiref==0.1.2
 django-shortuuidfield==0.1.2
+jsonfield==1.0.2
