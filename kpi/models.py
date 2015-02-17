@@ -5,6 +5,8 @@ from pygments.formatters.html import HtmlFormatter
 from pygments import highlight
 from shortuuidfield import ShortUUIDField
 from jsonfield import JSONField
+import json
+
 
 
 SURVEY_ASSET_TYPES = [
@@ -32,6 +34,17 @@ class SurveyAsset(models.Model):
         Use the `pygments` library to create a highlighted HTML
         representation of the code survey_asset.
         """
+        try:
+            body_content = json.loads(self.body)
+            if 'settings' in body_content:
+                self.settings = body_content['settings']
+                del body_content['settings']
+                self.asset_type = 'survey'
+            else:
+                self.asset_type = 'block'
+            self.body = json.dumps(body_content)
+        except ValueError, e:
+            self.asset_type = 'text'
         super(SurveyAsset, self).save(*args, **kwargs)
 
 class Collection(models.Model):

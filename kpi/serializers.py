@@ -34,12 +34,13 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
     assetType = serializers.ReadOnlyField(read_only=True, source='asset_type')
     collectionName = serializers.ReadOnlyField(read_only=True, source='collection.name')
-    collection = serializers.HyperlinkedRelatedField(view_name='collection-detail', read_only=True)
+    collection = serializers.PrimaryKeyRelatedField(queryset=Collection.objects.all(), allow_null=True, required=False)
+    collectionLink = serializers.HyperlinkedRelatedField(source='collection', view_name='collection-detail', read_only=True)
 
     class Meta:
         model = SurveyAsset
         fields = ('url', 'parent', 'highlight', 'owner', 'ownerName', 'collection',
-                    'settings', 'assetType',
+                    'settings', 'assetType', 'collectionLink',
                     'collectionName', 'uuid', 'title', 'body')
 
     def get_parent_url(self, obj):

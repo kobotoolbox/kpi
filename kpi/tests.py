@@ -67,6 +67,9 @@ class ObjectRelationshipsTests(APITestCase):
 
     def test_add_survey_asset_to_collection(self):
         self.assertEqual(self.surv.collection, None)
-        # req = self.client.get(reverse('surveyasset-detail'))
         surv_url = reverse('surveyasset-detail', args=[self.surv.id])
+        patch_req = self.client.patch(surv_url, data={'collection': self.fold.id})
+        self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
+        req = self.client.get(surv_url)
+        print req.data
         # self.assertEqual(req.data['results'][0]['name'], 'sample collection')
