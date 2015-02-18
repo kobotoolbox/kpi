@@ -21,6 +21,13 @@ def api_root(request, format=None):
 
 
 
+from kpi.renderers import AssetJsonRenderer
+from kpi.renderers import SSJsonRenderer
+from kpi.renderers import XFormRenderer
+from kpi.renderers import MdTableRenderer
+from kpi.renderers import XlsRenderer
+from kpi.renderers import EnketoPreviewLinkRenderer
+
 from rest_framework import viewsets
 from rest_framework import renderers
 from rest_framework.decorators import detail_route
@@ -53,6 +60,14 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
     serializer_class = SurveyAssetSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly,)
+
+    renderer_classes = (AssetJsonRenderer,
+                        SSJsonRenderer,
+                        MdTableRenderer,
+                        # XFormRenderer,
+                        # XlsRenderer,
+                        # EnketoPreviewLinkRenderer,
+                        )
 
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def highlight(self, request, *args, **kwargs):

@@ -35,14 +35,25 @@ collection_detail = CollectionViewSet.as_view({
     'delete': 'destroy',
 })
 
-
-urlpatterns = format_suffix_patterns([
+urlpatterns = []
+urlpatterns += format_suffix_patterns([
     url(r'^$', api_root, name='api-root'),
+])
 
+urlpatterns += format_suffix_patterns([
     url(r'^survey_assets/$', survey_asset_list, name='surveyasset-list'),
     url(r'^survey_assets/(?P<pk>[0-9]+)/$', survey_asset_detail, name='surveyasset-detail'),
     url(r'^survey_assets/(?P<pk>[0-9]+)/highlight/$', survey_asset_highlight, name='surveyasset-highlight'),
+], allowed=[
+    'json',
+    'ssJson',
+    'mdTable',
+    # 'xml',
+    # 'xls',
+    # 'enketoPreviewLink',
+])
 
+urlpatterns += format_suffix_patterns([
     url(r'^collections/$', collection_list, name='collection-list'),
     url(r'^collections/(?P<pk>[0-9]+)/$', collection_detail, name='collection-detail'),
 
