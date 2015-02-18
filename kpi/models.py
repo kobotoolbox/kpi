@@ -12,11 +12,9 @@ from reversion.models import Revision
 import json
 
 
-
 SURVEY_ASSET_TYPES = [
     ('text', 'text'),
-    ('survey', 'survey'),
-    ('block', 'block'),
+    ('survey_block', 'survey_block'),
     ('choice_list', 'choice list'),
 ]
 
@@ -30,7 +28,10 @@ class SurveyAsset(models.Model):
     collection = models.ForeignKey('Collection', related_name='survey_assets', null=True)
     owner = models.ForeignKey('auth.User', related_name='survey_assets', null=True)
     uid = models.CharField(max_length=8, default='')# lambda: ShortUUID().random(8), editable=False)
-    revision_uid = models.CharField(max_length=5, default='')# lambda: ShortUUID().random(5))
+    version_uid = models.CharField(max_length=5, default='')# lambda: ShortUUID().random(5))
+
+    def asset_version_uid(self):
+        return "%s@%s" % (self.uid, self.version_uid)
 
     def update_asset_type(self, ast):
         self.asset_type = ast
@@ -42,47 +43,61 @@ class SurveyAsset(models.Model):
     def versions(self):
         return reversion.get_for_object(self)
 
-    def save(self, *args, **kwargs):
-        """
-        Use the `pygments` library to create a highlighted HTML
-        representation of the code survey_asset.
-        """
+    def get_revision(self, version_uid):
+        return SurveyAssetRevision.objects.get(asset_uid=self.uid, version_uid=version_uid).revision
+    def get_versions_for_revision(self, version_uid):
+        return SurveyAssetRevision.objects.get(asset_uid=self.uid, version_uid=version_uid).get_versions()
+    def get_version_data(self, version_uid):
+        return self.get_versions_for_revision(version_uid)[0].field_dict
+
+    def _populate_uid(self):
         if self.uid == '':
             self.uid = ShortUUID().random(8)
 
-        self.revision_uid = ShortUUID().random(5)
+    def _update_version_uid(self):
+        self.version_uid = ShortUUID().random(5)
 
-        try:
-            body_content = json.loads(self.body)
+    def _extract_settings(self):
+        if self.asset_type in ['survey_block']:
+            try:
+                body_content = json.loads(self.body)
+            except ValueError, e:
+                self.asset_type = 'text'
 
             if 'settings' in body_content:
                 self.settings = body_content['settings']
                 del body_content['settings']
-                self.asset_type = 'survey'
-            else:
-                self.asset_type = 'block'
-            self.body = json.dumps(body_content)
-            self.revision_uid = ShortUUID().random(5)
+                self.body = json.dumps(body_content)
 
-        except ValueError, e:
-            self.asset_type = 'text'
+    def save(self, *args, **kwargs):
+        # populate uid field if it's empty
+        self._populate_uid()
 
+        # populate version_uid field if it's empty
+        if self.version_uid == '':
+            self._update_version_uid()
+
+        self._extract_settings()
+
+        self._update_version_uid()
         with transaction.atomic(), reversion.create_revision():
-            reversion.add_meta(SurveyAssetRevision, asset_uid=self.uid, version_uid=self.revision_uid)
+            reversion.add_meta(SurveyAssetRevision, asset_uid=self.uid, version_uid=self.version_uid)
             super(SurveyAsset, self).save(*args, **kwargs)
 
-from reversion.models import Revision
 class SurveyAssetRevision(models.Model):
     asset_uid = models.CharField(max_length=20)
     version_uid = models.CharField(max_length=20)
-    revision = models.ForeignKey(Revision)
+    revision = models.ForeignKey(Revision, related_name='asset_version_uid')
 
     class Meta:
         index_together = [["asset_uid", "version_uid"],]
 
+    def get_versions(self):
+        return self.revision.version_set.all()
+
     @classmethod
     def get_asset_at_version(kls, asset_uid, version_uid):
-        kls.objects.get()
+        return kls.objects.get(asset_uid=asset_uid, version_uid=version_uid)
 
 class Collection(models.Model):
     name = models.CharField(max_length=30)

@@ -1,126 +1,6 @@
 [
     {
         "fields": {
-            "app_label": "admin",
-            "model": "logentry",
-            "name": "log entry"
-        },
-        "model": "contenttypes.contenttype",
-        "pk": 1
-    },
-    {
-        "fields": {
-            "app_label": "auth",
-            "model": "permission",
-            "name": "permission"
-        },
-        "model": "contenttypes.contenttype",
-        "pk": 2
-    },
-    {
-        "fields": {
-            "app_label": "auth",
-            "model": "group",
-            "name": "group"
-        },
-        "model": "contenttypes.contenttype",
-        "pk": 3
-    },
-    {
-        "fields": {
-            "app_label": "auth",
-            "model": "user",
-            "name": "user"
-        },
-        "model": "contenttypes.contenttype",
-        "pk": 4
-    },
-    {
-        "fields": {
-            "app_label": "contenttypes",
-            "model": "contenttype",
-            "name": "content type"
-        },
-        "model": "contenttypes.contenttype",
-        "pk": 5
-    },
-    {
-        "fields": {
-            "app_label": "sessions",
-            "model": "session",
-            "name": "session"
-        },
-        "model": "contenttypes.contenttype",
-        "pk": 6
-    },
-    {
-        "fields": {
-            "app_label": "kpi",
-            "model": "surveyasset",
-            "name": "survey asset"
-        },
-        "model": "contenttypes.contenttype",
-        "pk": 7
-    },
-    {
-        "fields": {
-            "app_label": "kpi",
-            "model": "collection",
-            "name": "collection"
-        },
-        "model": "contenttypes.contenttype",
-        "pk": 8
-    },
-    {
-        "fields": {
-            "expire_date": "2015-03-03T19:04:49.704Z",
-            "session_data": "NmU5MzhhYTMxM2I2YTZkYjhmNzcyODg2Mzc4ZTFiZDM1NWNlMjE3Zjp7Il9hdXRoX3VzZXJfaGFzaCI6Ijg5NjY0NTI3YzJiMDljMmQwN2Q2YjZhZmRkNWFmNmQwZTU4Nzg0OTAiLCJfYXV0aF91c2VyX2JhY2tlbmQiOiJkamFuZ28uY29udHJpYi5hdXRoLmJhY2tlbmRzLk1vZGVsQmFja2VuZCIsIl9hdXRoX3VzZXJfaWQiOjF9"
-        },
-        "model": "sessions.session",
-        "pk": "76nqrwfpatnvj4og34ypvdbs94n6qnxs"
-    },
-    {
-        "fields": {
-            "expire_date": "2015-02-27T05:54:00.598Z",
-            "session_data": "MmYyOWNmZDRhNDVjNDZjMmFlNWVmMWExODg3MWEyZTdlZGFjYWJlZjp7fQ=="
-        },
-        "model": "sessions.session",
-        "pk": "979e1onsrgc5h8b5regq3mw7q75t7w63"
-    },
-    {
-        "fields": {
-            "expire_date": "2015-02-27T05:53:58.729Z",
-            "session_data": "MmYyOWNmZDRhNDVjNDZjMmFlNWVmMWExODg3MWEyZTdlZGFjYWJlZjp7fQ=="
-        },
-        "model": "sessions.session",
-        "pk": "9se7xc1mvuonfbxvujpy49pjk8s8xmfn"
-    },
-    {
-        "fields": {
-            "expire_date": "2015-02-27T05:53:40.658Z",
-            "session_data": "MmYyOWNmZDRhNDVjNDZjMmFlNWVmMWExODg3MWEyZTdlZGFjYWJlZjp7fQ=="
-        },
-        "model": "sessions.session",
-        "pk": "wtpv6safu3fntlqo68ou8uf4nwnitl8w"
-    },
-    {
-        "fields": {
-            "expire_date": "2015-02-27T05:54:00.097Z",
-            "session_data": "MmYyOWNmZDRhNDVjNDZjMmFlNWVmMWExODg3MWEyZTdlZGFjYWJlZjp7fQ=="
-        },
-        "model": "sessions.session",
-        "pk": "x5o3co27m4bt6hah0fn6p1uxo2wfuqu9"
-    },
-    {
-        "fields": {
-            "expire_date": "2015-02-27T05:54:10.605Z",
-            "session_data": "MmYyOWNmZDRhNDVjNDZjMmFlNWVmMWExODg3MWEyZTdlZGFjYWJlZjp7fQ=="
-        },
-        "model": "sessions.session",
-        "pk": "xnxrmxy49h4fnfgwu2pi9pdi24iwybx8"
-    },
-    {
-        "fields": {
             "codename": "add_logentry",
             "content_type": 1,
             "name": "Can add log entry"
@@ -337,6 +217,87 @@
     },
     {
         "fields": {
+            "codename": "add_surveyasset",
+            "content_type": 9,
+            "name": "Can add survey asset"
+        },
+        "model": "auth.permission",
+        "pk": 25
+    },
+    {
+        "fields": {
+            "codename": "change_surveyasset",
+            "content_type": 9,
+            "name": "Can change survey asset"
+        },
+        "model": "auth.permission",
+        "pk": 26
+    },
+    {
+        "fields": {
+            "codename": "delete_surveyasset",
+            "content_type": 9,
+            "name": "Can delete survey asset"
+        },
+        "model": "auth.permission",
+        "pk": 27
+    },
+    {
+        "fields": {
+            "codename": "add_surveyassetrevision",
+            "content_type": 10,
+            "name": "Can add survey asset revision"
+        },
+        "model": "auth.permission",
+        "pk": 28
+    },
+    {
+        "fields": {
+            "codename": "change_surveyassetrevision",
+            "content_type": 10,
+            "name": "Can change survey asset revision"
+        },
+        "model": "auth.permission",
+        "pk": 29
+    },
+    {
+        "fields": {
+            "codename": "delete_surveyassetrevision",
+            "content_type": 10,
+            "name": "Can delete survey asset revision"
+        },
+        "model": "auth.permission",
+        "pk": 30
+    },
+    {
+        "fields": {
+            "codename": "add_collection",
+            "content_type": 11,
+            "name": "Can add collection"
+        },
+        "model": "auth.permission",
+        "pk": 31
+    },
+    {
+        "fields": {
+            "codename": "change_collection",
+            "content_type": 11,
+            "name": "Can change collection"
+        },
+        "model": "auth.permission",
+        "pk": 32
+    },
+    {
+        "fields": {
+            "codename": "delete_collection",
+            "content_type": 11,
+            "name": "Can delete collection"
+        },
+        "model": "auth.permission",
+        "pk": 33
+    },
+    {
+        "fields": {
             "date_joined": "2015-02-13T05:51:08.316Z",
             "email": "admin@admin.com",
             "first_name": "",
@@ -355,16 +316,6 @@
     },
     {
         "fields": {
-            "name": "example xlsforms",
-            "owner": 1,
-            "parent": null,
-            "uuid": "YS3DuZ7GuhN7ZcP2jFNGBH"
-        },
-        "model": "kpi.collection",
-        "pk": 1
-    },
-    {
-        "fields": {
             "asset_type": "block",
             "body": "{\"survey\": [[\"name\", \"type\", \"label\", \"required\"], [\"group1\", \"begin group\", \"Group 1\", \"false\"], [\"Enter_a_number_001\", \"decimal\", \"Enter a number\", \"false\"], [\"Enter_a_date\", \"date\", \"Enter a date\", \"false\"], [null, \"end group\", null, null], [\"new_question\", \"select_multiple od8ai33\", \"new question\", \"false\"], [\"group2\", \"begin group\", \"Group 2\", \"false\"], [\"new_question_001\", \"text\", \"new question\", \"false\"], [\"Enter_a_number\", \"integer\", \"Enter a number\", \"false\"], [null, \"end group\", null, null], [\"start\", \"start\", null, null], [\"end\", \"end\", null, null]], \"choices\": [[\"list name\", \"name\", \"label\"], [\"od8ai33\", \"option_1\", \"Option 1\"], [\"od8ai33\", \"option_2\", \"Option 2\"]]}",
             "collection": 1,
@@ -372,7 +323,8 @@
             "owner": 1,
             "settings": null,
             "title": "",
-            "uuid": "9PbohLhXHa4Y2qVmvmo9Va"
+            "uid": "hjQm4PCz",
+            "version_uid": "Mo4iE"
         },
         "model": "kpi.surveyasset",
         "pk": 1
@@ -380,15 +332,26 @@
     {
         "fields": {
             "asset_type": "survey",
-            "body": "{\"choices\": [[\"list name\", \"name\", \"label\", \"image\", \"country\", \"city\"], [\"list\", \"a\", \"option a\", null, null, null], [\"list\", \"b\", \"option b\", null, null, null], [\"list\", \"c\", \"option c\", null, null, null], [\"list\", \"d\", \"option d\", null, null, null], [\"list1\", \"king\", \"kingfisher\", \"kingfisher.png\", null, null], [\"list1\", \"pig\", \"pigeon\", \"pigeon.png\", null, null], [\"list1\", \"nut\", \"nuthatch\", \"nuthatch.png\", null, null], [\"list2\", \"1\", \"option 1\", null, null, null], [\"list2\", \"2\", \"option 2\", null, null, null], [\"list2\", \"3\", \"option 3\", null, null, null], [\"list2\", \"4\", \"option 4\", null, null, null], [\"list2\", \"5\", \"option 5\", null, null, null], [\"list2\", \"6\", \"option 6\", null, null, null], [\"list2\", \"7\", \"option 7\", null, null, null], [\"list2\", \"8\", \"option 8\", null, null, null], [\"yes_no\", \"yes\", \"Yes\", null, null, null], [\"yes_no\", \"no\", \"No\", null, null, null], [\"yes_no\", \"dk\", \"Don't Know\", null, null, null], [\"yes_no\", \"na\", \"Not Applicable\", null, null, null], [\"agree5\", \"1\", \"strongly disagree\", null, null, null], [\"agree5\", \"2\", \"disagree\", null, null, null], [\"agree5\", \"3\", \"neither agree nor disagree\", null, null, null], [\"agree5\", \"4\", \"agree\", null, null, null], [\"agree5\", \"5\", \"strongly agree\", null, null, null], [\"a_b\", \"a\", null, \"a.jpg\", null, null], [\"a_b\", \"b\", null, \"b.jpg\", null, null], [\"happy_sad\", \"happy\", null, \"happy.jpg\", null, null], [\"happy_sad\", \"sad\", null, \"sad.jpg\", null, null], [\"countries\", \"nl\", \"The Netherlands\", null, null, null], [\"countries\", \"usa\", \"United States\", null, null, null], [\"cities\", \"ams\", \"Amsterdam\", null, \"nl\", null], [\"cities\", \"den\", \"Denver\", null, \"usa\", null], [\"cities\", \"nyc\", \"New York City\", null, \"usa\", null], [\"cities\", \"la\", \"Los Angeles\", null, \"usa\", null], [\"cities\", \"rot\", \"Rotterdam\", null, \"nl\", null], [\"cities\", \"dro\", \"Dronten\", null, \"nl\", null], [\"neighborhoods\", \"bronx\", \"Bronx\", null, \"usa\", \"nyc\"], [\"neighborhoods\", \"harlem\", \"Harlem\", null, \"usa\", \"nyc\"], [\"neighborhoods\", \"belair\", \"Bel Air\", null, \"usa\", \"la\"], [\"neighborhoods\", \"wes\", \"Westerpark\", null, \"nl\", \"ams\"], [\"neighborhoods\", \"parkhill\", \"Park Hill\", null, \"usa\", \"den\"], [\"neighborhoods\", \"haven\", \"Harbor\", null, \"nl\", \"rot\"], [\"neighborhoods\", \"dam\", \"Dam\", null, \"nl\", \"ams\"], [\"neighborhoods\", \"centrum\", \"Downtown\", null, \"nl\", \"rot\"], [\"neighborhoods\", \"haven\", \"Harbor\", null, \"nl\", \"dro\"]], \"survey\": [[\"type\", \"name\", \"label\", \"audio\", \"hint\", \"appearance\", \"choice_filter\", \"constraint\", \"bind:jr:constraintMsg\", \"constraint-msg\", \"default\", \"readonly\", \"relevant\", \"required\"], [\"note\", \"intro\", \"This form showcases the different available _widgets_. \\\\n\\\\nThe hints explain how these widgets were created. The form logo was added by simply uploading a file called form_logo.png in the Media section of the form settings page in formhub.\\\\n\\\\nThe XLS Form source is [here](https://docs.google.com/spreadsheet/ccc?key=0Al3Mw5sknZoPdEpPa29tamFCc1o2bmFVR3RaemlSRXc&usp=sharing).\", null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"text_widgets\", \"Text widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"text\", \"my_string\", \"Text widget\", null, \"Can be short or long but always one line (type = text)\", null, null, null, null, null, null, null, null, null], [\"text\", \"my_long_text\", \"Multiline Text widget in enketo (in ODK collect this a normal text field)\", null, \"Can be multiple lines (type=text, appearance = multiline)\", \"multiline\", null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"number_widgets\", \"Number widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"integer\", \"my_int\", \"Integer widget (try entering a number > 10)\", null, \"This field has a constraint (type=integer, constraint=.<10)\", null, null, \". < 10\", \"number must be less than 10\", \"Requires a number less than 10\", null, null, null, null], [\"decimal\", \"my_decimal\", \"Decimal widget (allows only number > 10.51 and < 18.39)\", null, \"This field has a constraint (type=decimal, constraint=. > 10.51 and . < 18.39)\", null, null, \". > 10.51 and . < 18.39\", \"number must be between 10.51 and 18.39\", \"Requires a number between 10.51 and 18.39\", \"18.31\", null, null, null], [\"integer\", \"my_distress\", \"Distress widget\", null, \"A highly specific widget to measure distress\", \"distress\", null, \". >= 0 and . <= 10\", null, \"Requires a number between 0 and 10\", null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"date_time_widgets\", \"Date and time widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"date\", \"my_date\", \"Date widget (this one allows only future dates and has a default value)\", null, \"This field has a constraint (type=date, constraint=.>= today())\", null, null, \". >= today()\", \"only future dates allowed\", \"Requires a date that is not before today\", \"2010-06-15\", null, null, null], [\"date\", \"my_date_month_year\", \"Month-year widget\", null, \"Simply specify an appearance style (type=date, appearance=month-year)\", \"month-year\", null, null, null, null, null, null, null, null], [\"date\", \"my_date_year\", \"Year widget (year only)\", null, \"Simply specify and appearance style (type=date, appearance=year)\", \"year\", null, null, null, null, null, null, null, null], [\"time\", \"my_time\", \"Time widget\", null, \"Times are easy! (type=time)\", null, null, null, null, null, null, null, null, null], [\"dateTime\", \"dateTime\", \"Date and time widget\", null, \"For exact times, will be converted to UTC/GMT (type=dateTime)\", null, null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"select_widgets\", \"Basic Select widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"select_multiple list\", \"my_select\", \"Select multiple widget (don't pick c and d together)\", null, \"Using a list specified in the choices worksheet (type=select_multiple list)\", null, null, \"not(selected(., 'c') and selected(., 'd'))\", \"option c and d cannot be selected together\", \"You cannot select c and d both\", \"a c\", null, null, null], [\"select_multiple list\", \"select_horizontal_compact\", \"Select multiple widget displaying horizontally (in Enketo)\", null, \"(type = select_multiple, appearance=horizontal-compact)\", \"horizontal-compact\", null, null, null, null, null, null, null, null], [\"select_multiple list2\", \"select_horizontal\", \"Select one displaying horizontally but in columns (in Enketo)\", null, \"(type=select_multiple, appearance=horizontal)\", \"horizontal\", null, null, null, null, null, null, null, null], [\"select_one list2\", \"my_select1\", \"Select one widget\", null, \"Scroll down to see default selection (type=select_one list2, default=8)\", null, null, null, null, null, \"8\", null, null, null], [\"select_one yes_no\", \"select1_horizontal_compact\", \"Select one displaying compactly and horizontally  (in Enketo)\", null, \"(type=select_one, appearance=horizontal-compact)\", \"horizontal-compact\", null, null, null, null, null, null, null, null], [\"select_one list2\", \"select1_horizontal\", \"Select one displaying horizontally but in columns (in Enketo)\", null, \"(type=select_one, appearance=horizontal)\", \"horizontal\", null, null, null, null, null, null, null, null], [\"select one agree5\", \"select1_likert\", \"Likert widget\", null, \"(type=select_one, appearance=likert)\", \"likert\", null, null, null, null, null, null, null, null], [\"select_one list\", \"spinner\", \"Spinner widget: select one\", null, \"Showing a pull-down list of options (type=select_one list, appearance=minimal)\", \"minimal\", null, null, null, null, null, null, null, null], [\"select_multiple list\", \"spinner_all\", \"Spinner widget: select multiple\", null, \"Showing a pull-down list of options (type=select_multiple list, appearance=minimal)\", \"minimal\", null, null, null, null, null, null, null, null], [\"select_one list\", \"selectadvance\", \"Select widget - auto advance\", null, \"Advance to the next question immediate after selection in ODK Collect. (type=select_one list, appearance=quick)\", \"quick\", null, null, null, null, null, null, null, null], [\"select_one a_b\", \"grid_test\", \"Grid select one widget\", null, \"Make sure to put a.jpg and b.jpg in the form-media folder to see images here. (type=select_one a_b, appearance=compact)\", \"compact\", null, null, null, null, null, null, null, null], [\"select_one a_b\", \"grid_test_audio\", \"Grid auto-advance widget\", null, \"Same as previous but this one advances to the next question automatically in ODK Collect. (type=select_one a_b, appearance=quickcompact)\", \"quickcompact\", null, null, null, null, null, null, null, null], [\"begin_group\", \"table_list_test\", \"List group\", null, \"Shows all questions on one page in ODK Collect (appearance=field-list)\", \"field-list\", null, null, null, null, null, null, null, null], [\"select_one yes_no\", \"table_list_test_label\", \"Table\", null, \"Show only the labels of these options and not the inputs (type=select_one yes_no, appearance=label)\", \"label\", null, null, null, null, null, null, null, null], [\"select_one yes_no\", \"table_list_1\", \"Q1\", null, \"Show only the inputs of these options and not the labels (type=select_one yes_no, appearance=list-nolabel)\", \"list-nolabel\", null, null, null, null, null, null, null, null], [\"select_one yes_no\", \"table_list_2\", \"Question 2\", null, \"Show only the inputs of these options and not the labels (type=select_one yes_no, appearance=list-nolabel)\", \"list-nolabel\", null, null, null, null, null, null, null, null], [\"end group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin group\", \"table_list_test2\", \"Table (made with an easier method)\", null, \"A much easier way to do the same (appearance=table-list) but it may slow down your form a bit.\", \"table-list\", null, null, null, null, null, null, null, null], [\"select_one yes_no\", \"table_list_3\", \"Q1\", null, \"No need to do anything special here\", null, null, null, null, null, null, null, null, null], [\"select_one yes_no\", \"table_list_4\", \"Question 2\", null, \"No need to do anything special here\", null, null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin group\", \"happy_sad_table_2\", \"Table with image labels\", null, \"Shows all questions on one page in ODK Collect (appearance=field-list)\", \"field-list\", null, null, null, null, null, null, null, null], [\"select_multiple  happy_sad\", \"happy_sad_second_method\", \"Select mood\", null, \"Show only the labels of these options and not the inputs (type=select_one yes_no, appearance=label)\", \"label\", null, null, null, null, null, null, null, null], [\"select_multiple  happy_sad\", \"happy_sad_brian2\", \"Brian\", null, \"Show only the inputs of these options and not the labels (type=select_one yes_no, appearance=list-nolabel)\", \"list-nolabel\", null, null, null, null, null, null, null, null], [\"select_multiple happy_sad\", \"happy_sad_michael2\", \"Michael\", null, \"Show only the inputs of these options and not the labels (type=select_one yes_no, appearance=list-nolabel)\", \"list-nolabel\", null, null, null, null, null, null, null, null], [\"end group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin group\", \"happy_sad_table\", \"Table with image labels (made using an easier method)\", null, \"A much easier way to do the same (appearance=table-list)\", \"table-list\", null, null, null, null, null, null, null, null], [\"select_multiple  happy_sad\", \"happy_sad_brian\", \"Brian\", null, null, null, null, null, null, null, null, null, null, null], [\"select_multiple happy_sad\", \"happy_sad_michael\", \"Michael\", null, null, null, null, null, null, null, null, null, null, null], [\"end group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"cascading_widgets\", \"Cascading Select widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"group1\", \"Cascading Selects with Radio Buttons\", null, null, null, null, null, null, null, null, null, null, null], [\"select_one countries\", \"country\", \"Country\", null, null, null, null, null, null, null, null, null, null, null], [\"select_one cities\", \"city\", \"City\", null, \"Using a choice filter to update options based on a previous answer (choice_filter: country = ${country})\", null, \"country=${country}\", null, null, null, null, null, null, null], [\"select_one neighborhoods\", \"neighborhood\", \"Neighborhood\", null, \"Using a choice filter to update options based on previous answers (choice_filter: country = ${country} and city = ${city})\", null, \"country=${country} and city=${city}\", null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"group2\", \"Cascading Selects with Pulldowns\", null, null, null, null, null, null, null, null, null, null, null], [\"select_one countries\", \"country2\", \"Country\", null, \"(appearance: minimal)\", \"minimal\", null, null, null, null, null, null, null, null], [\"select_one cities\", \"city2\", \"City\", null, \"Using a choice filter to update options based on a previous answer (choice_filter: country = ${country2},  appearance: minimal)\", \"minimal\", \"country=${country2}\", null, null, null, null, null, null, null], [\"select_one neighborhoods\", \"neighborhood2\", \"Neighborhood\", null, \"Using a choice filter to update options based on previous answers (choice_filter: country = ${country2} and city = ${city2}, appearance = minimal)\", \"minimal\", \"country=${country2} and city=${city2}\", null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"geopoint_widgets\", \"GPS widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"geopoint\", \"my_geopoint\", \"Geopoint widget\", null, \"This will record the gps location. In enketo it also shows a map. (type=geopoint)\", null, null, null, null, null, null, null, null, null], [\"geopoint\", \"my_geopoint_m\", \"Geopoint with map Widget\", null, \"This will record the gps location. In enketo is is the same as the previous.  (type=geopoint, appearance=maps)\", \"maps\", null, null, null, null, null, null, null, null], [\"geopoint\", \"my_geopoint_hide\", \"Geopoint widget that hides input fields by default\", null, \"To show a larger map (on desktop screens), you can hide the input fields. (appearance = hide-input)\", \"maps hide-input\", null, null, null, null, null, null, null, null], [\"geotrace\", \"my_geotrace\", \"Geotrace widget\", null, \"This will record a sequence/line of geopoints (type=geotrace, appearance=maps hide-input)\", \"maps hide-input\", null, null, null, null, null, null, null, null], [\"geoshape\", \"my_geoshape\", \"Geoshape widget\", null, \"This will record a closed sequence/polygon of geopoints (type=geoshape, appearance=maps hide-input)\", \"maps hide-input\", null, null, null, null, \"7.9377 -11.5845 0 0;7.9324 -11.5902 0 0;7.927 -11.5857 0 0;7.925 -11.578 0 0;7.9267 -11.5722 0 0;7.9325 -11.5708 0 0;7.9372 -11.5737 0 0;7.9393 -11.579 0 0;7.9377 -11.5845 0 0\", null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"media_widgets\", \"Media input widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"image\", \"my_image\", \"Image widget\", null, \"This will launch the camera. Not supported in enketo at the moment (type=image)\", null, null, null, null, null, null, null, null, null], [\"audio\", \"my_audio\", \"Audio widget\", null, \"This will launch the audio recorder. Not supported in enketo at the moment (type=audio)\", null, null, null, null, null, null, null, null, null], [\"video\", \"my_video\", \"Video widget\", null, \"This will launch the video recorder. Not supported in enketo at the moment (type=video)\", null, null, null, null, null, null, null, null, null], [\"barcode\", \"my_barcode\", \"Barcode widget\", null, \"Scans multi-format 1d/2d barcodes. In enketo it allows manual entry (type=barcode)\", null, null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"display_widgets\", \"Display widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"note\", \"my_output\", \"Note widget. In notes you can emphasize _words_ or _multiple words_ or __strongly emphasize something__.\\\\nYou can also use a line break to start a new sentence.\\\\n\\\\nThe decimal number you entered was ${my_decimal}.\", null, \"This is a note and it uses a value of another field in its label (type=note)\", null, null, null, null, null, null, \"yes\", null, null], [\"text\", \"text_media\", \"You can add a sound recording, an image and a video to any input label or to a note.\", \"goldeneagle.mp3\", \"Add the file name in the audio column on your survey sheet. Make sure you upload this file when you publish your form.\", null, null, null, null, null, null, null, null, null], [\"select_one list1\", \"select_media\", \"You can also add media to choices. Choose your favorite bird.\", null, \"Add the file name in the image column on your choices sheet. Make sure you upload this file when you publish your form.\", null, null, null, null, null, null, null, null, null], [\"trigger\", \"my_trigger\", \"Acknowledge widget\", null, \"Prompts for confirmation. Useful to combine with required or relevant. (type=trigger)\", null, null, null, null, null, null, null, null, \"yes\"], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null]]}",
+            "body": "{\"survey\": [[\"type\", \"name\", \"label\", \"audio\", \"hint\", \"appearance\", \"choice_filter\", \"constraint\", \"bind:jr:constraintMsg\", \"constraint-msg\", \"default\", \"readonly\", \"relevant\", \"required\"], [\"note\", \"intro\", \"This form showcases the different available _widgets_. \\\\n\\\\nThe hints explain how these widgets were created. The form logo was added by simply uploading a file called form_logo.png in the Media section of the form settings page in formhub.\\\\n\\\\nThe XLS Form source is [here](https://docs.google.com/spreadsheet/ccc?key=0Al3Mw5sknZoPdEpPa29tamFCc1o2bmFVR3RaemlSRXc&usp=sharing).\", null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"text_widgets\", \"Text widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"text\", \"my_string\", \"Text widget\", null, \"Can be short or long but always one line (type = text)\", null, null, null, null, null, null, null, null, null], [\"text\", \"my_long_text\", \"Multiline Text widget in enketo (in ODK collect this a normal text field)\", null, \"Can be multiple lines (type=text, appearance = multiline)\", \"multiline\", null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"number_widgets\", \"Number widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"integer\", \"my_int\", \"Integer widget (try entering a number > 10)\", null, \"This field has a constraint (type=integer, constraint=.<10)\", null, null, \". < 10\", \"number must be less than 10\", \"Requires a number less than 10\", null, null, null, null], [\"decimal\", \"my_decimal\", \"Decimal widget (allows only number > 10.51 and < 18.39)\", null, \"This field has a constraint (type=decimal, constraint=. > 10.51 and . < 18.39)\", null, null, \". > 10.51 and . < 18.39\", \"number must be between 10.51 and 18.39\", \"Requires a number between 10.51 and 18.39\", \"18.31\", null, null, null], [\"integer\", \"my_distress\", \"Distress widget\", null, \"A highly specific widget to measure distress\", \"distress\", null, \". >= 0 and . <= 10\", null, \"Requires a number between 0 and 10\", null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"date_time_widgets\", \"Date and time widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"date\", \"my_date\", \"Date widget (this one allows only future dates and has a default value)\", null, \"This field has a constraint (type=date, constraint=.>= today())\", null, null, \". >= today()\", \"only future dates allowed\", \"Requires a date that is not before today\", \"2010-06-15\", null, null, null], [\"date\", \"my_date_month_year\", \"Month-year widget\", null, \"Simply specify an appearance style (type=date, appearance=month-year)\", \"month-year\", null, null, null, null, null, null, null, null], [\"date\", \"my_date_year\", \"Year widget (year only)\", null, \"Simply specify and appearance style (type=date, appearance=year)\", \"year\", null, null, null, null, null, null, null, null], [\"time\", \"my_time\", \"Time widget\", null, \"Times are easy! (type=time)\", null, null, null, null, null, null, null, null, null], [\"dateTime\", \"dateTime\", \"Date and time widget\", null, \"For exact times, will be converted to UTC/GMT (type=dateTime)\", null, null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"select_widgets\", \"Basic Select widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"select_multiple list\", \"my_select\", \"Select multiple widget (don't pick c and d together)\", null, \"Using a list specified in the choices worksheet (type=select_multiple list)\", null, null, \"not(selected(., 'c') and selected(., 'd'))\", \"option c and d cannot be selected together\", \"You cannot select c and d both\", \"a c\", null, null, null], [\"select_multiple list\", \"select_horizontal_compact\", \"Select multiple widget displaying horizontally (in Enketo)\", null, \"(type = select_multiple, appearance=horizontal-compact)\", \"horizontal-compact\", null, null, null, null, null, null, null, null], [\"select_multiple list2\", \"select_horizontal\", \"Select one displaying horizontally but in columns (in Enketo)\", null, \"(type=select_multiple, appearance=horizontal)\", \"horizontal\", null, null, null, null, null, null, null, null], [\"select_one list2\", \"my_select1\", \"Select one widget\", null, \"Scroll down to see default selection (type=select_one list2, default=8)\", null, null, null, null, null, \"8\", null, null, null], [\"select_one yes_no\", \"select1_horizontal_compact\", \"Select one displaying compactly and horizontally  (in Enketo)\", null, \"(type=select_one, appearance=horizontal-compact)\", \"horizontal-compact\", null, null, null, null, null, null, null, null], [\"select_one list2\", \"select1_horizontal\", \"Select one displaying horizontally but in columns (in Enketo)\", null, \"(type=select_one, appearance=horizontal)\", \"horizontal\", null, null, null, null, null, null, null, null], [\"select one agree5\", \"select1_likert\", \"Likert widget\", null, \"(type=select_one, appearance=likert)\", \"likert\", null, null, null, null, null, null, null, null], [\"select_one list\", \"spinner\", \"Spinner widget: select one\", null, \"Showing a pull-down list of options (type=select_one list, appearance=minimal)\", \"minimal\", null, null, null, null, null, null, null, null], [\"select_multiple list\", \"spinner_all\", \"Spinner widget: select multiple\", null, \"Showing a pull-down list of options (type=select_multiple list, appearance=minimal)\", \"minimal\", null, null, null, null, null, null, null, null], [\"select_one list\", \"selectadvance\", \"Select widget - auto advance\", null, \"Advance to the next question immediate after selection in ODK Collect. (type=select_one list, appearance=quick)\", \"quick\", null, null, null, null, null, null, null, null], [\"select_one a_b\", \"grid_test\", \"Grid select one widget\", null, \"Make sure to put a.jpg and b.jpg in the form-media folder to see images here. (type=select_one a_b, appearance=compact)\", \"compact\", null, null, null, null, null, null, null, null], [\"select_one a_b\", \"grid_test_audio\", \"Grid auto-advance widget\", null, \"Same as previous but this one advances to the next question automatically in ODK Collect. (type=select_one a_b, appearance=quickcompact)\", \"quickcompact\", null, null, null, null, null, null, null, null], [\"begin_group\", \"table_list_test\", \"List group\", null, \"Shows all questions on one page in ODK Collect (appearance=field-list)\", \"field-list\", null, null, null, null, null, null, null, null], [\"select_one yes_no\", \"table_list_test_label\", \"Table\", null, \"Show only the labels of these options and not the inputs (type=select_one yes_no, appearance=label)\", \"label\", null, null, null, null, null, null, null, null], [\"select_one yes_no\", \"table_list_1\", \"Q1\", null, \"Show only the inputs of these options and not the labels (type=select_one yes_no, appearance=list-nolabel)\", \"list-nolabel\", null, null, null, null, null, null, null, null], [\"select_one yes_no\", \"table_list_2\", \"Question 2\", null, \"Show only the inputs of these options and not the labels (type=select_one yes_no, appearance=list-nolabel)\", \"list-nolabel\", null, null, null, null, null, null, null, null], [\"end group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin group\", \"table_list_test2\", \"Table (made with an easier method)\", null, \"A much easier way to do the same (appearance=table-list) but it may slow down your form a bit.\", \"table-list\", null, null, null, null, null, null, null, null], [\"select_one yes_no\", \"table_list_3\", \"Q1\", null, \"No need to do anything special here\", null, null, null, null, null, null, null, null, null], [\"select_one yes_no\", \"table_list_4\", \"Question 2\", null, \"No need to do anything special here\", null, null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin group\", \"happy_sad_table_2\", \"Table with image labels\", null, \"Shows all questions on one page in ODK Collect (appearance=field-list)\", \"field-list\", null, null, null, null, null, null, null, null], [\"select_multiple  happy_sad\", \"happy_sad_second_method\", \"Select mood\", null, \"Show only the labels of these options and not the inputs (type=select_one yes_no, appearance=label)\", \"label\", null, null, null, null, null, null, null, null], [\"select_multiple  happy_sad\", \"happy_sad_brian2\", \"Brian\", null, \"Show only the inputs of these options and not the labels (type=select_one yes_no, appearance=list-nolabel)\", \"list-nolabel\", null, null, null, null, null, null, null, null], [\"select_multiple happy_sad\", \"happy_sad_michael2\", \"Michael\", null, \"Show only the inputs of these options and not the labels (type=select_one yes_no, appearance=list-nolabel)\", \"list-nolabel\", null, null, null, null, null, null, null, null], [\"end group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin group\", \"happy_sad_table\", \"Table with image labels (made using an easier method)\", null, \"A much easier way to do the same (appearance=table-list)\", \"table-list\", null, null, null, null, null, null, null, null], [\"select_multiple  happy_sad\", \"happy_sad_brian\", \"Brian\", null, null, null, null, null, null, null, null, null, null, null], [\"select_multiple happy_sad\", \"happy_sad_michael\", \"Michael\", null, null, null, null, null, null, null, null, null, null, null], [\"end group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"cascading_widgets\", \"Cascading Select widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"group1\", \"Cascading Selects with Radio Buttons\", null, null, null, null, null, null, null, null, null, null, null], [\"select_one countries\", \"country\", \"Country\", null, null, null, null, null, null, null, null, null, null, null], [\"select_one cities\", \"city\", \"City\", null, \"Using a choice filter to update options based on a previous answer (choice_filter: country = ${country})\", null, \"country=${country}\", null, null, null, null, null, null, null], [\"select_one neighborhoods\", \"neighborhood\", \"Neighborhood\", null, \"Using a choice filter to update options based on previous answers (choice_filter: country = ${country} and city = ${city})\", null, \"country=${country} and city=${city}\", null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"group2\", \"Cascading Selects with Pulldowns\", null, null, null, null, null, null, null, null, null, null, null], [\"select_one countries\", \"country2\", \"Country\", null, \"(appearance: minimal)\", \"minimal\", null, null, null, null, null, null, null, null], [\"select_one cities\", \"city2\", \"City\", null, \"Using a choice filter to update options based on a previous answer (choice_filter: country = ${country2},  appearance: minimal)\", \"minimal\", \"country=${country2}\", null, null, null, null, null, null, null], [\"select_one neighborhoods\", \"neighborhood2\", \"Neighborhood\", null, \"Using a choice filter to update options based on previous answers (choice_filter: country = ${country2} and city = ${city2}, appearance = minimal)\", \"minimal\", \"country=${country2} and city=${city2}\", null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"geopoint_widgets\", \"GPS widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"geopoint\", \"my_geopoint\", \"Geopoint widget\", null, \"This will record the gps location. In enketo it also shows a map. (type=geopoint)\", null, null, null, null, null, null, null, null, null], [\"geopoint\", \"my_geopoint_m\", \"Geopoint with map Widget\", null, \"This will record the gps location. In enketo is is the same as the previous.  (type=geopoint, appearance=maps)\", \"maps\", null, null, null, null, null, null, null, null], [\"geopoint\", \"my_geopoint_hide\", \"Geopoint widget that hides input fields by default\", null, \"To show a larger map (on desktop screens), you can hide the input fields. (appearance = hide-input)\", \"maps hide-input\", null, null, null, null, null, null, null, null], [\"geotrace\", \"my_geotrace\", \"Geotrace widget\", null, \"This will record a sequence/line of geopoints (type=geotrace, appearance=maps hide-input)\", \"maps hide-input\", null, null, null, null, null, null, null, null], [\"geoshape\", \"my_geoshape\", \"Geoshape widget\", null, \"This will record a closed sequence/polygon of geopoints (type=geoshape, appearance=maps hide-input)\", \"maps hide-input\", null, null, null, null, \"7.9377 -11.5845 0 0;7.9324 -11.5902 0 0;7.927 -11.5857 0 0;7.925 -11.578 0 0;7.9267 -11.5722 0 0;7.9325 -11.5708 0 0;7.9372 -11.5737 0 0;7.9393 -11.579 0 0;7.9377 -11.5845 0 0\", null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"media_widgets\", \"Media input widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"image\", \"my_image\", \"Image widget\", null, \"This will launch the camera. Not supported in enketo at the moment (type=image)\", null, null, null, null, null, null, null, null, null], [\"audio\", \"my_audio\", \"Audio widget\", null, \"This will launch the audio recorder. Not supported in enketo at the moment (type=audio)\", null, null, null, null, null, null, null, null, null], [\"video\", \"my_video\", \"Video widget\", null, \"This will launch the video recorder. Not supported in enketo at the moment (type=video)\", null, null, null, null, null, null, null, null, null], [\"barcode\", \"my_barcode\", \"Barcode widget\", null, \"Scans multi-format 1d/2d barcodes. In enketo it allows manual entry (type=barcode)\", null, null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"display_widgets\", \"Display widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"note\", \"my_output\", \"Note widget. In notes you can emphasize _words_ or _multiple words_ or __strongly emphasize something__.\\\\nYou can also use a line break to start a new sentence.\\\\n\\\\nThe decimal number you entered was ${my_decimal}.\", null, \"This is a note and it uses a value of another field in its label (type=note)\", null, null, null, null, null, null, \"yes\", null, null], [\"text\", \"text_media\", \"You can add a sound recording, an image and a video to any input label or to a note.\", \"goldeneagle.mp3\", \"Add the file name in the audio column on your survey sheet. Make sure you upload this file when you publish your form.\", null, null, null, null, null, null, null, null, null], [\"select_one list1\", \"select_media\", \"You can also add media to choices. Choose your favorite bird.\", null, \"Add the file name in the image column on your choices sheet. Make sure you upload this file when you publish your form.\", null, null, null, null, null, null, null, null, null], [\"trigger\", \"my_trigger\", \"Acknowledge widget\", null, \"Prompts for confirmation. Useful to combine with required or relevant. (type=trigger)\", null, null, null, null, null, null, null, null, \"yes\"], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null]], \"choices\": [[\"list name\", \"name\", \"label\", \"image\", \"country\", \"city\"], [\"list\", \"a\", \"option a\", null, null, null], [\"list\", \"b\", \"option b\", null, null, null], [\"list\", \"c\", \"option c\", null, null, null], [\"list\", \"d\", \"option d\", null, null, null], [\"list1\", \"king\", \"kingfisher\", \"kingfisher.png\", null, null], [\"list1\", \"pig\", \"pigeon\", \"pigeon.png\", null, null], [\"list1\", \"nut\", \"nuthatch\", \"nuthatch.png\", null, null], [\"list2\", \"1\", \"option 1\", null, null, null], [\"list2\", \"2\", \"option 2\", null, null, null], [\"list2\", \"3\", \"option 3\", null, null, null], [\"list2\", \"4\", \"option 4\", null, null, null], [\"list2\", \"5\", \"option 5\", null, null, null], [\"list2\", \"6\", \"option 6\", null, null, null], [\"list2\", \"7\", \"option 7\", null, null, null], [\"list2\", \"8\", \"option 8\", null, null, null], [\"yes_no\", \"yes\", \"Yes\", null, null, null], [\"yes_no\", \"no\", \"No\", null, null, null], [\"yes_no\", \"dk\", \"Don't Know\", null, null, null], [\"yes_no\", \"na\", \"Not Applicable\", null, null, null], [\"agree5\", \"1\", \"strongly disagree\", null, null, null], [\"agree5\", \"2\", \"disagree\", null, null, null], [\"agree5\", \"3\", \"neither agree nor disagree\", null, null, null], [\"agree5\", \"4\", \"agree\", null, null, null], [\"agree5\", \"5\", \"strongly agree\", null, null, null], [\"a_b\", \"a\", null, \"a.jpg\", null, null], [\"a_b\", \"b\", null, \"b.jpg\", null, null], [\"happy_sad\", \"happy\", null, \"happy.jpg\", null, null], [\"happy_sad\", \"sad\", null, \"sad.jpg\", null, null], [\"countries\", \"nl\", \"The Netherlands\", null, null, null], [\"countries\", \"usa\", \"United States\", null, null, null], [\"cities\", \"ams\", \"Amsterdam\", null, \"nl\", null], [\"cities\", \"den\", \"Denver\", null, \"usa\", null], [\"cities\", \"nyc\", \"New York City\", null, \"usa\", null], [\"cities\", \"la\", \"Los Angeles\", null, \"usa\", null], [\"cities\", \"rot\", \"Rotterdam\", null, \"nl\", null], [\"cities\", \"dro\", \"Dronten\", null, \"nl\", null], [\"neighborhoods\", \"bronx\", \"Bronx\", null, \"usa\", \"nyc\"], [\"neighborhoods\", \"harlem\", \"Harlem\", null, \"usa\", \"nyc\"], [\"neighborhoods\", \"belair\", \"Bel Air\", null, \"usa\", \"la\"], [\"neighborhoods\", \"wes\", \"Westerpark\", null, \"nl\", \"ams\"], [\"neighborhoods\", \"parkhill\", \"Park Hill\", null, \"usa\", \"den\"], [\"neighborhoods\", \"haven\", \"Harbor\", null, \"nl\", \"rot\"], [\"neighborhoods\", \"dam\", \"Dam\", null, \"nl\", \"ams\"], [\"neighborhoods\", \"centrum\", \"Downtown\", null, \"nl\", \"rot\"], [\"neighborhoods\", \"haven\", \"Harbor\", null, \"nl\", \"dro\"]]}",
             "collection": 1,
             "created": "2015-02-13T19:05:12.486Z",
             "owner": 1,
             "settings": "[[\"title\",\"id_string\",\"style\"],[\"Widgets\",\"widgets\",\"theme-formhub\"]]",
             "title": "Enketo Widgets",
-            "uuid": "2KtZDpSSyBRfi43b3535HD"
+            "uid": "jWa7nubC",
+            "version_uid": "sctuu"
         },
         "model": "kpi.surveyasset",
         "pk": 2
+    },
+    {
+        "fields": {
+            "name": "example xlsforms",
+            "owner": 1,
+            "parent": null,
+            "uid": "YS3DuZ7GuhN7ZcP2jFNGBH"
+        },
+        "model": "kpi.collection",
+        "pk": 1
     }
 ]

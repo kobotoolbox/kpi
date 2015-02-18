@@ -22,20 +22,24 @@ class SurveyAssetsTests(TestCase):
 
     def test_create_survey_asset(self):
         xlf_body = self.sample_inmemory_xlsform.to_ss_json()
-        survey_asset = SurveyAsset.objects.create(body=xlf_body, owner=User.objects.all()[0])
+        survey_asset = SurveyAsset.objects.create(body=xlf_body, owner=User.objects.all()[0], asset_type='survey_block')
         self.assertEqual(survey_asset.versions().count(), 1)
+        asset_uid = survey_asset.uid
+        v1_uid = survey_asset.version_uid
+
         survey_asset.update_asset_type('text')
         self.assertEqual(survey_asset.body, '{"survey": [{"type": "text", "name": "q1", "label": "Question 1"}, {"type": "text", "name": "q2", "label": "Quesiton 2"}]}')
         self.assertEqual(survey_asset.versions().count(), 2)
-        sv0 = survey_asset.versions()[0]
-        sv1 = survey_asset.versions()[1]
-        v_uid1 = (sv0.field_dict['uid'], sv0.field_dict['revision_uid'],)
-        v_uid2 = (sv1.field_dict['uid'], sv1.field_dict['revision_uid'],)
-        self.assertEqual(SurveyAssetRevision.objects.filter(asset_uid=v_uid1[0], version_uid=v_uid1[1]).count(), 1)
-        self.assertEqual(SurveyAssetRevision.objects.filter(asset_uid=v_uid2[0], version_uid=v_uid2[1]).count(), 1)
-        self.assertNotEqual('@'.join(v_uid1), '@'.join(v_uid2))
-        # self.assertEqual(survey_asset.versions().first().field_dict['asset_type'], 'block')
-        # self.assertEqual(survey_asset.versions().last().field_dict['asset_type'], 'text')
+
+        v2_uid = survey_asset.version_uid
+        self.assertNotEqual(v1_uid, v2_uid)
+
+
+        self.assertEqual(SurveyAssetRevision.objects.filter(asset_uid=asset_uid, version_uid=v1_uid).count(), 1)
+        self.assertEqual(SurveyAssetRevision.objects.filter(asset_uid=asset_uid, version_uid=v2_uid).count(), 1)
+
+        self.assertEqual(survey_asset.get_version_data(v1_uid)['asset_type'], 'survey_block')
+        self.assertEqual(survey_asset.get_version_data(v2_uid)['asset_type'], 'text')
 
 class SurveyAssetsApiTests(APITestCase):
     fixtures = ['test_data']

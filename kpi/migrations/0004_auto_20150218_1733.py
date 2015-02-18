@@ -39,7 +39,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='surveyasset',
-            name='revision_uid',
+            name='version_uid',
             field=models.CharField(default=b'', max_length=5),
             preserve_default=True,
         ),
