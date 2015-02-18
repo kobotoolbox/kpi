@@ -25,7 +25,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     asset_type = models.CharField(choices=SURVEY_ASSET_TYPES, max_length=20, default='text')
     collection = models.ForeignKey('Collection', related_name='survey_assets', null=True)
     owner = models.ForeignKey('auth.User', related_name='survey_assets', null=True)
-    uuid = ShortUUIDField()
+    uid = ShortUUIDField()
 
     '''
     ownerName = serializers.ReadOnlyField(source='owner.username')
@@ -41,7 +41,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
         model = SurveyAsset
         fields = ('url', 'parent', 'highlight', 'owner', 'ownerName', 'collection',
                     'settings', 'assetType', 'collectionLink',
-                    'collectionName', 'uuid', 'title', 'body')
+                    'collectionName', 'uid', 'title', 'body')
 
     def get_parent_url(self, obj):
         request = self.context.get('request', None)
@@ -50,7 +50,6 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     survey_assets = serializers.HyperlinkedRelatedField(many=True,
                  view_name='surveyasset-detail', read_only=True)
-
     class Meta:
         model = User
         fields = ('url', 'username', 'survey_assets', 'collections')
@@ -60,4 +59,4 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Collection
-        fields = ('name', 'url', 'survey_assets', 'collections', 'uuid', 'owner')
+        fields = ('name', 'url', 'survey_assets', 'collections', 'uid', 'owner')

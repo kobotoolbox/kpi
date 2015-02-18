@@ -2,14 +2,50 @@ from django.core.urlresolvers import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 from kpi.models import SurveyAsset
+from kpi.models import SurveyAssetRevision
 from kpi.models import Collection
 from django.contrib.auth.models import User
 
-class SurveyAssetsTests(APITestCase):
+from kpi.xlsform import InMemoryXlsform
+
+from django.test import TestCase
+import reversion
+
+class SurveyAssetsTests(TestCase):
+    fixtures = ['test_data']
+
+    def setUp(self):
+        self.sample_inmemory_xlsform = InMemoryXlsform([
+                {'type': 'text', 'label': 'Question 1', 'name': 'q1'},
+                {'type': 'text', 'label': 'Quesiton 2', 'name': 'q2'},
+            ])
+
+    def test_create_survey_asset(self):
+        xlf_body = self.sample_inmemory_xlsform.to_ss_json()
+        survey_asset = SurveyAsset.objects.create(body=xlf_body, owner=User.objects.all()[0])
+        self.assertEqual(survey_asset.versions().count(), 1)
+        survey_asset.update_asset_type('text')
+        self.assertEqual(survey_asset.body, '{"survey": [{"type": "text", "name": "q1", "label": "Question 1"}, {"type": "text", "name": "q2", "label": "Quesiton 2"}]}')
+        self.assertEqual(survey_asset.versions().count(), 2)
+        sv0 = survey_asset.versions()[0]
+        sv1 = survey_asset.versions()[1]
+        v_uid1 = (sv0.field_dict['uid'], sv0.field_dict['revision_uid'],)
+        v_uid2 = (sv1.field_dict['uid'], sv1.field_dict['revision_uid'],)
+        self.assertEqual(SurveyAssetRevision.objects.filter(asset_uid=v_uid1[0], version_uid=v_uid1[1]).count(), 1)
+        self.assertEqual(SurveyAssetRevision.objects.filter(asset_uid=v_uid2[0], version_uid=v_uid2[1]).count(), 1)
+        self.assertNotEqual('@'.join(v_uid1), '@'.join(v_uid2))
+        # self.assertEqual(survey_asset.versions().first().field_dict['asset_type'], 'block')
+        # self.assertEqual(survey_asset.versions().last().field_dict['asset_type'], 'text')
+
+class SurveyAssetsApiTests(APITestCase):
     fixtures = ['test_data']
 
     def setUp(self):
         self.client.login(username='admin', password='pass')
+        self.sample_inmemory_xlsform = InMemoryXlsform([
+                {'type': 'text', 'label': 'Question 1', 'name': 'q1'},
+                {'type': 'text', 'label': 'Quesiton 2', 'name': 'q2'},
+            ])
 
     def test_create_survey_asset(self):
         """
@@ -20,6 +56,16 @@ class SurveyAssetsTests(APITestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['body'], 'print 123')
+
+    def test_inmemory_xlsform(self):
+        data = self.sample_inmemory_xlsform._req_data()
+        response = self.client.post(reverse('surveyasset-list'), data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['settings'], None)
+        created_xlsform = InMemoryXlsform._parse_req(response.data)
+        self.assertEqual(len(created_xlsform._rows), 2)
+        self.assertEqual(created_xlsform._rows[0]['type'], 'text')
+
 
 class CollectionsTests(APITestCase):
     fixtures = ['test_data']
@@ -71,5 +117,5 @@ class ObjectRelationshipsTests(APITestCase):
         patch_req = self.client.patch(surv_url, data={'collection': self.fold.id})
         self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
         req = self.client.get(surv_url)
-        print req.data
+        # print req.data
         # self.assertEqual(req.data['results'][0]['name'], 'sample collection')
