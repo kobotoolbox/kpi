@@ -70,6 +70,22 @@ class SurveyAssetsApiTests(APITestCase):
         self.assertEqual(len(created_xlsform._rows), 2)
         self.assertEqual(created_xlsform._rows[0]['type'], 'text')
 
+# class CreateSurveyAssetsApiTests(APITestCase):
+#     fixtures = ['test_data']
+
+#     def setUp(self):
+#         self.client.login(username='admin', password='pass')
+
+#     def test_create_survey_asset(self):
+#         """
+#         Ensure we can create a new account object.
+#         """
+#         url = reverse('surveyasset-list')
+#         with open('kpi/fixtures/mini_text_integer.xls') as f:
+#             data = {'body': f}
+#             response = self.client.post(url, data)
+#         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+#         self.assertEqual(response.data['body'][0:10], '{"survey":')
 
 class CollectionsTests(APITestCase):
     fixtures = ['test_data']

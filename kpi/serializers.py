@@ -29,7 +29,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     '''
     ownerName = serializers.ReadOnlyField(source='owner.username')
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', read_only=True)
-    highlight = serializers.HyperlinkedIdentityField(view_name='surveyasset-highlight')
+    tableView = serializers.HyperlinkedIdentityField(view_name='surveyasset-tableview')
     parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
     assetType = serializers.ReadOnlyField(read_only=True, source='asset_type')
     collectionName = serializers.ReadOnlyField(read_only=True, source='collection.name')
@@ -38,7 +38,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = SurveyAsset
-        fields = ('url', 'parent', 'highlight', 'owner', 'ownerName', 'collection',
+        fields = ('url', 'parent', 'tableView', 'owner', 'ownerName', 'collection',
                     'settings', 'assetType', 'collectionLink', 'asset_version_uid',
                     'collectionName', 'uid', 'title', 'body')
 

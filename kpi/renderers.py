@@ -8,22 +8,28 @@ class AssetJsonRenderer(renderers.JSONRenderer):
     pass
 
 class SSJsonRenderer(renderers.JSONRenderer):
-    format = 'ssJson'
+    media_type = 'application/json'
+    format = 'ssjson'
     charset = 'utf-8'
     def render(self, data, media_type=None, renderer_context=None):
         return data['body']
 
 class XFormRenderer(renderers.BaseRenderer):
-    media_type = 'application/xml'
-    format = 'xml'
+    media_type = 'application/xform' # not the right content type
+    format = 'xform'
+    charset = 'utf-8'
 
     def render(self, data, media_type=None, renderer_context=None):
-        return self.__class__.__name__
-
+        return """
+                <?xml version="1.0" encoding="utf-8"?>
+                <h:html xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+                    <!-- dummy xform in renderers.py -->
+                </h:html>
+                """.encode(self.charset)
 
 class MdTableRenderer(renderers.BaseRenderer):
     media_type = 'text/plain'
-    format = 'mdTable'
+    format = 'mdtable'
     charset = 'utf-8'
 
     def render(self, data, media_type=None, renderer_context=None):
@@ -38,7 +44,7 @@ class XlsRenderer(renderers.BaseRenderer):
 
 class EnketoPreviewLinkRenderer(renderers.BaseRenderer):
     media_type = 'text/plain'
-    format = 'enketoPreviewLink'
+    format = 'enketopreviewlink'
 
     def render(self, data, media_type=None, renderer_context=None):
         return self.__class__.__name__

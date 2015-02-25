@@ -13,8 +13,9 @@ survey_asset_detail = SurveyAssetViewSet.as_view({
     'patch': 'partial_update',
     'delete': 'destroy'
 })
-survey_asset_highlight = SurveyAssetViewSet.as_view({
-    'get': 'highlight'
+
+survey_asset_table_view = SurveyAssetViewSet.as_view({
+    'get': 'table_view'
 }, renderer_classes=[renderers.StaticHTMLRenderer])
 
 user_list = UserViewSet.as_view({
@@ -43,15 +44,16 @@ urlpatterns += format_suffix_patterns([
 urlpatterns += format_suffix_patterns([
     url(r'^survey_assets/$', survey_asset_list, name='surveyasset-list'),
     url(r'^survey_assets/(?P<pk>[0-9]+)/$', survey_asset_detail, name='surveyasset-detail'),
-    url(r'^survey_assets/(?P<pk>[0-9]+)/highlight/$', survey_asset_highlight, name='surveyasset-highlight'),
 ], allowed=[
     'json',
-    'ssJson',
-    'mdTable',
-    # 'xml',
+    'ssjson',
+    'mdtable',
+    'xml',
     # 'xls',
-    # 'enketoPreviewLink',
+    # 'enketopreviewlink',
 ])
+
+urlpatterns += [url(r'^survey_assets/(?P<pk>[0-9]+)/table_view/$', survey_asset_table_view, name='surveyasset-tableview'),]
 
 urlpatterns += format_suffix_patterns([
     url(r'^collections/$', collection_list, name='collection-list'),

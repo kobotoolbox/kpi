@@ -9,6 +9,23 @@ from kpi.permissions import IsOwnerOrReadOnly
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+import markdown
+import json
+from rest_framework import (
+    viewsets,
+    renderers,
+)
+from rest_framework.decorators import detail_route
+
+from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
+from kpi.renderers import (
+    AssetJsonRenderer,
+    SSJsonRenderer,
+    XFormRenderer,
+    MdTableRenderer,
+    XlsRenderer,
+    EnketoPreviewLinkRenderer,
+)
 
 
 @api_view(('GET',))
@@ -19,18 +36,6 @@ def api_root(request, format=None):
         'collections': reverse('collection-list', request=request, format=format),
     })
 
-
-
-from kpi.renderers import AssetJsonRenderer
-from kpi.renderers import SSJsonRenderer
-from kpi.renderers import XFormRenderer
-from kpi.renderers import MdTableRenderer
-from kpi.renderers import XlsRenderer
-from kpi.renderers import EnketoPreviewLinkRenderer
-
-from rest_framework import viewsets
-from rest_framework import renderers
-from rest_framework.decorators import detail_route
 
 class CollectionViewSet(viewsets.ModelViewSet):
     queryset = Collection.objects.all()
@@ -70,9 +75,9 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
                         )
 
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
-    def highlight(self, request, *args, **kwargs):
+    def table_view(self, request, *args, **kwargs):
         survey_draft = self.get_object()
-        return Response(survey_draft.highlighted)
+        return Response("<html><body><code><pre>%s</pre></code></body></html>" % ss_structure_to_mdtable(json.loads(survey_draft.body)))
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)

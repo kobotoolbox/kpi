@@ -27,8 +27,8 @@ class SurveyAsset(models.Model):
     asset_type = models.CharField(choices=SURVEY_ASSET_TYPES, max_length=20, default='text')
     collection = models.ForeignKey('Collection', related_name='survey_assets', null=True)
     owner = models.ForeignKey('auth.User', related_name='survey_assets', null=True)
-    uid = models.CharField(max_length=8, default='')# lambda: ShortUUID().random(8), editable=False)
-    version_uid = models.CharField(max_length=5, default='')# lambda: ShortUUID().random(5))
+    uid = models.CharField(max_length=8, default='')
+    version_uid = models.CharField(max_length=5, default='')
 
     def asset_version_uid(self):
         return "%s@%s" % (self.uid, self.version_uid)
@@ -52,10 +52,13 @@ class SurveyAsset(models.Model):
 
     def _populate_uid(self):
         if self.uid == '':
-            self.uid = ShortUUID().random(8)
-
+            self.uid = self._generate_uid()
+    def _generate_uid(self):
+        return ShortUUID().random(8)
     def _update_version_uid(self):
         self.version_uid = ShortUUID().random(5)
+    def _generate_version_uid(self):
+        return ShortUUID().random(5)
 
     def _extract_settings(self):
         if self.asset_type in ['survey_block']:
@@ -65,7 +68,7 @@ class SurveyAsset(models.Model):
                 self.asset_type = 'text'
 
             if 'settings' in body_content:
-                self.settings = body_content['settings']
+                self.settings = json.dumps(body_content['settings'])
                 del body_content['settings']
                 self.body = json.dumps(body_content)
 
