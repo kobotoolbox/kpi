@@ -9,6 +9,23 @@ from kpi.permissions import IsOwnerOrReadOnly
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+import markdown
+import json
+from rest_framework import (
+    viewsets,
+    renderers,
+)
+from rest_framework.decorators import detail_route
+
+from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
+from kpi.renderers import (
+    AssetJsonRenderer,
+    SSJsonRenderer,
+    XFormRenderer,
+    MdTableRenderer,
+    XlsRenderer,
+    EnketoPreviewLinkRenderer,
+)
 
 
 @api_view(('GET',))
@@ -19,11 +36,6 @@ def api_root(request, format=None):
         'collections': reverse('collection-list', request=request, format=format),
     })
 
-
-
-from rest_framework import viewsets
-from rest_framework import renderers
-from rest_framework.decorators import detail_route
 
 class CollectionViewSet(viewsets.ModelViewSet):
     queryset = Collection.objects.all()
@@ -42,6 +54,12 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+from rest_framework.parsers import MultiPartParser
+
+class XlsFormParser(MultiPartParser):
+    pass
+
+from rest_framework import status
 class SurveyAssetViewSet(viewsets.ModelViewSet):
     """
     This viewset automatically provides `list`, `create`, `retrieve`,
@@ -54,10 +72,25 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly,)
 
+    renderer_classes = (AssetJsonRenderer,
+                        SSJsonRenderer,
+                        MdTableRenderer,
+                        # XFormRenderer,
+                        # XlsRenderer,
+                        # EnketoPreviewLinkRenderer,
+                        )
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
-    def highlight(self, request, *args, **kwargs):
+    def table_view(self, request, *args, **kwargs):
         survey_draft = self.get_object()
-        return Response(survey_draft.highlighted)
+        return Response("<html><body><code><pre>%s</pre></code></body></html>" % ss_structure_to_mdtable(json.loads(survey_draft.body)))
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)

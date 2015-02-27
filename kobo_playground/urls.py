@@ -13,8 +13,9 @@ survey_asset_detail = SurveyAssetViewSet.as_view({
     'patch': 'partial_update',
     'delete': 'destroy'
 })
-survey_asset_highlight = SurveyAssetViewSet.as_view({
-    'get': 'highlight'
+
+survey_asset_table_view = SurveyAssetViewSet.as_view({
+    'get': 'table_view'
 }, renderer_classes=[renderers.StaticHTMLRenderer])
 
 user_list = UserViewSet.as_view({
@@ -35,14 +36,26 @@ collection_detail = CollectionViewSet.as_view({
     'delete': 'destroy',
 })
 
-
-urlpatterns = format_suffix_patterns([
+urlpatterns = []
+urlpatterns += format_suffix_patterns([
     url(r'^$', api_root, name='api-root'),
+])
 
+urlpatterns += format_suffix_patterns([
     url(r'^survey_assets/$', survey_asset_list, name='surveyasset-list'),
     url(r'^survey_assets/(?P<pk>[0-9]+)/$', survey_asset_detail, name='surveyasset-detail'),
-    url(r'^survey_assets/(?P<pk>[0-9]+)/highlight/$', survey_asset_highlight, name='surveyasset-highlight'),
+], allowed=[
+    'json',
+    'ssjson',
+    'mdtable',
+    'xml',
+    # 'xls',
+    # 'enketopreviewlink',
+])
 
+urlpatterns += [url(r'^survey_assets/(?P<pk>[0-9]+)/table_view/$', survey_asset_table_view, name='surveyasset-tableview'),]
+
+urlpatterns += format_suffix_patterns([
     url(r'^collections/$', collection_list, name='collection-list'),
     url(r'^collections/(?P<pk>[0-9]+)/$', collection_detail, name='collection-detail'),
 

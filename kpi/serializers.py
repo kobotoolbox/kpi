@@ -17,19 +17,9 @@ class Paginated(PaginationSerializer):
 
 
 class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
-    '''
-    title = models.CharField(max_length=100, blank=True, default='')
-    created = models.DateTimeField(auto_now_add=True)
-    body = models.TextField()
-    settings = JSONField(null=True)
-    asset_type = models.CharField(choices=SURVEY_ASSET_TYPES, max_length=20, default='text')
-    collection = models.ForeignKey('Collection', related_name='survey_assets', null=True)
-    owner = models.ForeignKey('auth.User', related_name='survey_assets', null=True)
-    uid = ShortUUIDField()
-    '''
     ownerName = serializers.ReadOnlyField(source='owner.username')
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', read_only=True)
-    highlight = serializers.HyperlinkedIdentityField(view_name='surveyasset-highlight')
+    tableView = serializers.HyperlinkedIdentityField(view_name='surveyasset-tableview')
     parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
     assetType = serializers.ReadOnlyField(read_only=True, source='asset_type')
     collectionName = serializers.ReadOnlyField(read_only=True, source='collection.name')
@@ -38,9 +28,9 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = SurveyAsset
-        fields = ('url', 'parent', 'highlight', 'owner', 'ownerName', 'collection',
-                    'settings', 'assetType', 'collectionLink', 'asset_version_uid',
-                    'collectionName', 'uid', 'title', 'body')
+        fields = ('url', 'parent', 'tableView', 'owner', 'ownerName', 'collection',
+                    'settings', 'assetType', 'collectionLink',
+                    'collectionName', 'uid', 'title', 'content')
 
     def get_parent_url(self, obj):
         request = self.context.get('request', None)
