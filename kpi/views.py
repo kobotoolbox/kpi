@@ -54,6 +54,12 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+from rest_framework.parsers import MultiPartParser
+
+class XlsFormParser(MultiPartParser):
+    pass
+
+from rest_framework import status
 class SurveyAssetViewSet(viewsets.ModelViewSet):
     """
     This viewset automatically provides `list`, `create`, `retrieve`,
@@ -73,6 +79,12 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
                         # XlsRenderer,
                         # EnketoPreviewLinkRenderer,
                         )
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def table_view(self, request, *args, **kwargs):
