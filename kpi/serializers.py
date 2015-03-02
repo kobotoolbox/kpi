@@ -30,7 +30,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
         model = SurveyAsset
         fields = ('url', 'parent', 'tableView', 'owner', 'ownerName', 'collection',
                     'settings', 'assetType', 'collectionLink',
-                    'collectionName', 'uid', 'title', 'content')
+                    'collectionName', 'uid', 'name', 'content')
 
     def get_parent_url(self, obj):
         request = self.context.get('request', None)

@@ -15,7 +15,7 @@ SURVEY_ASSET_TYPES = [
 
 @reversion.register
 class SurveyAsset(models.Model):
-    title = models.CharField(max_length=100, blank=True, default='')
+    name = models.CharField(max_length=100, blank=True, default='')
     created = models.DateTimeField(auto_now_add=True)
     content = JSONField(null=True)
     additional_sheets = JSONField(null=True)
