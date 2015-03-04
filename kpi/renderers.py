@@ -3,6 +3,15 @@ from rest_framework import renderers
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from kpi.serializers import UserSerializer
 import json
+import copy
+
+
+def _data_to_ss_structure(data):
+    obj = copy.copy(data.get('additional_sheets', {}))
+    obj[data['assetType']] = data['content']
+    if 'settings' in data and data['settings']:
+        obj['settings'] = data.get('settings')
+    return obj
 
 class AssetJsonRenderer(renderers.JSONRenderer):
     pass
@@ -12,7 +21,7 @@ class SSJsonRenderer(renderers.JSONRenderer):
     format = 'ssjson'
     charset = 'utf-8'
     def render(self, data, media_type=None, renderer_context=None):
-        return data['body']
+        return json.dumps(_data_to_ss_structure(data))
 
 class XFormRenderer(renderers.BaseRenderer):
     media_type = 'application/xform' # not the right content type
@@ -33,7 +42,7 @@ class MdTableRenderer(renderers.BaseRenderer):
     charset = 'utf-8'
 
     def render(self, data, media_type=None, renderer_context=None):
-        return ss_structure_to_mdtable(json.loads(data['body']))
+        return ss_structure_to_mdtable(_data_to_ss_structure(data))
 
 class XlsRenderer(renderers.BaseRenderer):
     media_type = 'application/xls'

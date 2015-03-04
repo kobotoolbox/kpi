@@ -41,9 +41,13 @@ urlpatterns += format_suffix_patterns([
     url(r'^$', api_root, name='api-root'),
 ])
 
+#  from django.http import HttpResponse
+#  url(r'^xyz/(?P<uid>[A-Za-z0-9]{8})@(?P<vid>\d+)/$', abc, name='abc-version'),
+
 urlpatterns += format_suffix_patterns([
     url(r'^survey_assets/$', survey_asset_list, name='surveyasset-list'),
-    url(r'^survey_assets/(?P<pk>[0-9]+)/$', survey_asset_detail, name='surveyasset-detail'),
+    url(r'^survey_assets/(?P<pk>[A-Za-z0-9]+)/$', survey_asset_detail, name='surveyasset-detail'),
+    url(r'^survey_assets/(?P<vuid>[A-Za-z0-9]{8})/$', survey_asset_detail, name='surveyasset-detail'),
 ], allowed=[
     'json',
     'ssjson',
