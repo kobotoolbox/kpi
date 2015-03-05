@@ -1,7 +1,7 @@
 from django.forms import widgets
 from rest_framework import serializers
 from rest_framework.pagination import PaginationSerializer
-from rest_framework.reverse import reverse_lazy
+from rest_framework.reverse import reverse_lazy, reverse
 from kpi.models import SurveyAsset
 from kpi.models import Collection
 
@@ -28,18 +28,16 @@ class WritableJSONField(serializers.Field):
 class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     ownerName = serializers.ReadOnlyField(source='owner.username')
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', read_only=True)
-    tableView = serializers.HyperlinkedIdentityField(view_name='surveyasset-tableview')
+    # fix this to link to the tableview
+    tableView = serializers.HyperlinkedIdentityField(view_name='surveyasset-detail')
     parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
     assetType = serializers.ReadOnlyField(read_only=True, source='asset_type')
     content = WritableJSONField()
     collectionName = serializers.ReadOnlyField(read_only=True, source='collection.name')
     collection = serializers.PrimaryKeyRelatedField(queryset=Collection.objects.all(), allow_null=True, required=False)
     collectionLink = serializers.HyperlinkedRelatedField(source='collection', view_name='collection-detail', read_only=True)
+    # collectionLink = serializers.SerializerMethodField('_get_collection_route', read_only=True)
     additional_sheets = WritableJSONField()
-    uid = serializers.HyperlinkedIdentityField(
-        view_name='surveyasset-detail',
-        lookup_field='uid',
-    )
 
     class Meta:
         model = SurveyAsset
@@ -52,6 +50,13 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     def get_parent_url(self, obj):
         request = self.context.get('request', None)
         return reverse_lazy('surveyasset-list', request=request)
+
+    # def _get_collection_route(self, obj):
+    #     '''
+    #     it would be nice to get these urls routing to the uid, instead of the numeric id
+    #     '''
+    #     request = self.context.get('request', None)
+    #     return reverse('collection-detail', args=(obj.collection.uid,), request=request)
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     survey_assets = serializers.HyperlinkedRelatedField(many=True,
