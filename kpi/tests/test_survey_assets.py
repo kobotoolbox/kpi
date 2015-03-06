@@ -21,7 +21,6 @@ class SurveyAssetsTests(SurveyAssetsTestCase):
         self.assertEqual(len(sans_kuid), 2)
         self.assertTrue('kuid' not in sans_kuid[0].keys())
 
-
 class CreateSurveyAssetVersions(SurveyAssetsTests):
     def test_survey_asset_with_versions(self):
         sa = self.survey_asset

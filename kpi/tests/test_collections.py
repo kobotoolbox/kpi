@@ -53,3 +53,16 @@ class CreateCollectionTests(TestCase):
             ])
         self.assertEqual(SurveyAsset.objects.count(), 2)
         self.assertEqual(Collection.objects.count(), 2)
+
+    def test_create_child_collection(self):
+        phaile = User.objects.last()
+        print self.user, phaile
+        self.assertEqual(Collection.objects.count(), 1)
+        child = Collection.objects.create(name='test_child_collection',
+            owner=phaile, parent=self.coll)
+        self.assertEqual(Collection.objects.count(), 2)
+        self.assertEqual(self.coll.get_children()[0], child)
+        self.assertEqual(child.get_ancestors()[0], self.coll)
+        ''' '''
+        print child.can_view(self.user)
+        print child.get_all_user_privileges()
