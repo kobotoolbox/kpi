@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'reversion',
     'kpi',
+    'django_extensions',
 )
 
 MIDDLEWARE_CLASSES = (

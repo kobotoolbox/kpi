@@ -17,3 +17,4 @@ django-shortuuidfield==0.1.2
 jsonfield==1.0.3
 django-reversion==1.8.5
 Markdown==2.6
+django-extensions==1.5.0
