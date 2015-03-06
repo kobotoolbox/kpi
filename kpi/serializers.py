@@ -28,8 +28,8 @@ class WritableJSONField(serializers.Field):
 class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     ownerName = serializers.ReadOnlyField(source='owner.username')
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', read_only=True)
-    # fix this to link to the tableview
-    tableView = serializers.HyperlinkedIdentityField(view_name='surveyasset-detail')
+    # tableView = serializers.HyperlinkedIdentityField(view_name='surveyasset-table-view', read_only=True)
+    tableView = serializers.SerializerMethodField('_table_url', read_only=True)
     parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
     assetType = serializers.ReadOnlyField(read_only=True, source='asset_type')
     content = WritableJSONField()
@@ -41,6 +41,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = SurveyAsset
+        lookup_field = 'uid'
         fields = ('url', 'parent', 'tableView', 'owner', 'ownerName', 'collection',
                     'settings', 'assetType', 'collectionLink', 'additional_sheets',
                     'collectionName', 'uid', 'name', 'content')
@@ -50,6 +51,10 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     def get_parent_url(self, obj):
         request = self.context.get('request', None)
         return reverse_lazy('surveyasset-list', request=request)
+
+    def _table_url(self, obj):
+        request = self.context.get('request', None)
+        return reverse('surveyasset-table-view', args=(obj.uid,), request=request)
 
     # def _get_collection_route(self, obj):
     #     '''
@@ -71,3 +76,9 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Collection
         fields = ('name', 'url', 'survey_assets', 'collections', 'uid', 'owner')
+        extra_kwargs = {
+            'survey_assets': {
+                'lookup_field': 'uid',
+                'view_name': 'surveyasset-detail'
+            }
+        }
