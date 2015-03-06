@@ -71,7 +71,7 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
     serializer_class = SurveyAssetSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly,)
-
+    lookup_field = 'uid'
     renderer_classes = (AssetJsonRenderer,
                         SSJsonRenderer,
                         MdTableRenderer,
@@ -88,8 +88,11 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
 
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def table_view(self, request, *args, **kwargs):
-        survey_draft = self.get_object()
-        return Response("<html><body><code><pre>%s</pre></code></body></html>" % ss_structure_to_mdtable(json.loads(survey_draft.body)))
+        sa = self.get_object()
+        return Response("<html><body><code><pre>%s</pre></code></body></html>" % ss_structure_to_mdtable(sa.to_ss_structure()))
+
+    # def retrieve_version(self):
+    #     return Response('ok')
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
