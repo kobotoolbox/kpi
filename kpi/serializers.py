@@ -21,28 +21,29 @@ from rest_framework import serializers
 class WritableJSONField(serializers.Field):
     """ Serializer for JSONField -- required to make field writable"""
     def to_internal_value(self, data):
-        return data
+        return json.loads(data)
     def to_representation(self, value):
         return value
 
 class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     ownerName = serializers.ReadOnlyField(source='owner.username')
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', read_only=True)
-    # tableView = serializers.HyperlinkedIdentityField(view_name='surveyasset-table-view', read_only=True)
-    tableView = serializers.SerializerMethodField('_table_url', read_only=True)
+    # table_view = serializers.HyperlinkedIdentityField(view_name='surveyasset-table-view', read_only=True)
+    # tableView = serializers.SerializerMethodField('_table_url', read_only=True)
     parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
     assetType = serializers.ReadOnlyField(read_only=True, source='asset_type')
     content = WritableJSONField()
+    settings = WritableJSONField(required=False)
     collectionName = serializers.ReadOnlyField(read_only=True, source='collection.name')
     collection = serializers.PrimaryKeyRelatedField(queryset=Collection.objects.all(), allow_null=True, required=False)
     collectionLink = serializers.HyperlinkedRelatedField(source='collection', view_name='collection-detail', read_only=True)
     # collectionLink = serializers.SerializerMethodField('_get_collection_route', read_only=True)
-    additional_sheets = WritableJSONField()
+    additional_sheets = WritableJSONField(required=False)
 
     class Meta:
         model = SurveyAsset
         lookup_field = 'uid'
-        fields = ('url', 'parent', 'tableView', 'owner', 'ownerName', 'collection',
+        fields = ('url', 'parent', 'owner', 'ownerName', 'collection',
                     'settings', 'assetType', 'collectionLink', 'additional_sheets',
                     'collectionName', 'uid', 'name', 'content')
     def _content(self, obj):
@@ -79,6 +80,5 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
         extra_kwargs = {
             'survey_assets': {
                 'lookup_field': 'uid',
-                'view_name': 'surveyasset-detail'
             }
         }

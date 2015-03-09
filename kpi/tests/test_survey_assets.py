@@ -29,3 +29,12 @@ class CreateSurveyAssetVersions(SurveyAssetsTests):
         self.assertEqual(self.survey_asset.content[0]['type'], 'integer')
         self.survey_asset.save()
         self.assertEqual(len(self.survey_asset.versions()), 2)
+
+class UpdateSurveyAssetsTest(SurveyAssetsTestCase):
+    def test_add_settings(self):
+        self.assertEqual(self.survey_asset.settings, None)
+        self.survey_asset.settings = {'style':'grid-theme'}
+        # self.assertEqual(self.survey_asset.settings, {'style':'grid-theme'})
+        self.assertEqual(self.survey_asset._to_ss_structure()['settings'], {
+                'style': 'grid-theme',
+            })

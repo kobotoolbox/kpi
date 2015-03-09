@@ -15,6 +15,7 @@ from rest_framework import (
     viewsets,
     renderers,
 )
+from rest_framework import status
 from rest_framework.decorators import detail_route
 
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
@@ -59,7 +60,6 @@ from rest_framework.parsers import MultiPartParser
 class XlsFormParser(MultiPartParser):
     pass
 
-from rest_framework import status
 class SurveyAssetViewSet(viewsets.ModelViewSet):
     """
     This viewset automatically provides `list`, `create`, `retrieve`,
@@ -89,7 +89,8 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def table_view(self, request, *args, **kwargs):
         sa = self.get_object()
-        return Response("<html><body><code><pre>%s</pre></code></body></html>" % ss_structure_to_mdtable(sa.to_ss_structure()))
+        ss_structure_to_mdtable(sa._to_ss_structure())
+        return Response("<html><body><code><pre>%s</pre></code></body></html>" % json.dumps(sa._to_ss_structure(), indent=4))
 
     # def retrieve_version(self):
     #     return Response('ok')

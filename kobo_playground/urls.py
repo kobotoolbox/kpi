@@ -1,10 +1,10 @@
 from rest_framework.urlpatterns import format_suffix_patterns
 from kpi.views import SurveyAssetViewSet, UserViewSet, api_root, CollectionViewSet
-from kpi.routers import SurveyAssetRouter
+from rest_framework.routers import DefaultRouter
 from rest_framework import renderers
 from django.conf.urls import url, include
 
-router = SurveyAssetRouter()
+router = DefaultRouter()
 router.register(r'survey_assets', SurveyAssetViewSet)
 router.register(r'collections', CollectionViewSet)
 router.register(r'users', UserViewSet)
