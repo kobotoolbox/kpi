@@ -12,12 +12,13 @@ SURVEY_ASSET_TYPES = [
     ('survey_block', 'survey_block'),
     ('choice_list', 'choice list'),
 ]
-SURVEY_ASSET_UID_LENGTH = 8
+SURVEY_ASSET_UID_LENGTH = 22
 
 @reversion.register
 class SurveyAsset(models.Model):
-    name = models.CharField(max_length=100, blank=True, default='')
-    created = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=255, blank=True, default='')
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
     content = JSONField(null=True)
     additional_sheets = JSONField(null=True)
     settings = JSONField(null=True)
@@ -27,7 +28,7 @@ class SurveyAsset(models.Model):
     uid = models.CharField(max_length=SURVEY_ASSET_UID_LENGTH, default='')
 
     class Meta:
-        ordering = ('created',)
+        ordering = ('date_created',)
 
     def versions(self):
         return reversion.get_for_object(self)
@@ -64,7 +65,7 @@ class SurveyAsset(models.Model):
             self.uid = self._generate_uid()
 
     def _generate_uid(self):
-        return ShortUUID().random(SURVEY_ASSET_UID_LENGTH)
+        return 'a' + ShortUUID().random(SURVEY_ASSET_UID_LENGTH-1)
 
     def save(self, *args, **kwargs):
         # populate uid field if it's empty

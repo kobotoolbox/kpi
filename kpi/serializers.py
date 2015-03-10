@@ -28,24 +28,24 @@ class WritableJSONField(serializers.Field):
 class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     ownerName = serializers.ReadOnlyField(source='owner.username')
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', read_only=True)
-    # table_view = serializers.HyperlinkedIdentityField(view_name='surveyasset-table-view', read_only=True)
-    # tableView = serializers.SerializerMethodField('_table_url', read_only=True)
     parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
     assetType = serializers.ReadOnlyField(read_only=True, source='asset_type')
     content = WritableJSONField()
     settings = WritableJSONField(required=False)
     collectionName = serializers.ReadOnlyField(read_only=True, source='collection.name')
-    collection = serializers.PrimaryKeyRelatedField(queryset=Collection.objects.all(), allow_null=True, required=False)
-    collectionLink = serializers.HyperlinkedRelatedField(source='collection', view_name='collection-detail', read_only=True)
-    # collectionLink = serializers.SerializerMethodField('_get_collection_route', read_only=True)
     additional_sheets = WritableJSONField(required=False)
 
     class Meta:
         model = SurveyAsset
         lookup_field = 'uid'
         fields = ('url', 'parent', 'owner', 'ownerName', 'collection',
-                    'settings', 'assetType', 'collectionLink', 'additional_sheets',
-                    'collectionName', 'uid', 'name', 'content')
+                    'settings', 'assetType', 'additional_sheets',
+                    'uid', 'name', 'content', 'collectionName', )
+        extra_kwargs = {
+            'collection': {
+                'lookup_field': 'uid',
+            }
+        }
     def _content(self, obj):
         return json.dumps(obj.content)
 
@@ -74,9 +74,11 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 class CollectionSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', read_only=True)
 
+
     class Meta:
         model = Collection
-        fields = ('name', 'url', 'survey_assets', 'collections', 'uid', 'owner')
+        fields = ('name', 'url', 'survey_assets', 'uid', 'owner',)
+        lookup_field = 'uid'
         extra_kwargs = {
             'survey_assets': {
                 'lookup_field': 'uid',

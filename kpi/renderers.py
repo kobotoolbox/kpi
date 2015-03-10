@@ -14,7 +14,8 @@ def _data_to_ss_structure(data):
     return obj
 
 class AssetJsonRenderer(renderers.JSONRenderer):
-    pass
+    media_type = 'application/json'
+    format = 'json'
 
 class SSJsonRenderer(renderers.JSONRenderer):
     media_type = 'application/json'
@@ -49,11 +50,12 @@ class XlsRenderer(renderers.BaseRenderer):
     format = 'xls'
 
     def render(self, data, media_type=None, renderer_context=None):
-        return self.__class__.__name__
+        raise NotImplementedError("%s not yet implemented" % (self.__class__.__name__))
 
 class EnketoPreviewLinkRenderer(renderers.BaseRenderer):
     media_type = 'text/plain'
     format = 'enketopreviewlink'
 
     def render(self, data, media_type=None, renderer_context=None):
-        return self.__class__.__name__
+        raise NotImplementedError("%s not yet implemented" % (self.__class__.__name__))
+

@@ -43,6 +43,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
     serializer_class = CollectionSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly,)
+    lookup_field = 'uid'
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -72,12 +73,15 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly,)
     lookup_field = 'uid'
-    renderer_classes = (AssetJsonRenderer,
+
+    renderer_classes = (
+                        renderers.BrowsableAPIRenderer,
+                        AssetJsonRenderer,
                         SSJsonRenderer,
                         MdTableRenderer,
-                        # XFormRenderer,
-                        # XlsRenderer,
-                        # EnketoPreviewLinkRenderer,
+                        XFormRenderer,
+                        XlsRenderer,
+                        EnketoPreviewLinkRenderer,
                         )
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -91,9 +95,6 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
         sa = self.get_object()
         ss_structure_to_mdtable(sa._to_ss_structure())
         return Response("<html><body><code><pre>%s</pre></code></body></html>" % json.dumps(sa._to_ss_structure(), indent=4))
-
-    # def retrieve_version(self):
-    #     return Response('ok')
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
