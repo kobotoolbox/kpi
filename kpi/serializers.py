@@ -27,7 +27,8 @@ class WritableJSONField(serializers.Field):
 
 class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     ownerName = serializers.ReadOnlyField(source='owner.username')
-    owner = serializers.HyperlinkedRelatedField(view_name='user-detail', read_only=True)
+    owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username', \
+                                                read_only=True)
     parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
     assetType = serializers.ReadOnlyField(read_only=True, source='asset_type')
     content = WritableJSONField()
@@ -44,7 +45,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
         extra_kwargs = {
             'collection': {
                 'lookup_field': 'uid',
-            }
+            },
         }
     def _content(self, obj):
         return json.dumps(obj.content)
@@ -67,12 +68,21 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     survey_assets = serializers.HyperlinkedRelatedField(many=True,
                  view_name='surveyasset-detail', read_only=True)
+
     class Meta:
         model = User
         fields = ('url', 'username', 'survey_assets', 'collections')
+        # list_serializer_class = UserListSerializer
+        lookup_field = 'username'
+        extra_kwargs = {
+            'collections': {
+                'lookup_field': 'uid',
+            },
+        }
 
 class CollectionSerializer(serializers.HyperlinkedModelSerializer):
-    owner = serializers.HyperlinkedRelatedField(view_name='user-detail', read_only=True)
+    owner = serializers.HyperlinkedRelatedField(view_name='user-detail', \
+                lookup_field='username', read_only=True)
 
 
     class Meta:
@@ -82,5 +92,5 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
         extra_kwargs = {
             'survey_assets': {
                 'lookup_field': 'uid',
-            }
+            },
         }

@@ -28,6 +28,7 @@ class SurveyAssetsListApiTests(APITestCase):
         data = {'content': '[]'}
         response = self.client.post(url, data, format='json')
 
+
 class SurveyAssetsDetailApiTests(APITestCase):
     fixtures = ['test_data']
 
@@ -87,13 +88,13 @@ class ObjectRelationshipsTests(APITestCase):
         self.assertTrue('collection' in req.data)
         self.assertEqual(req.data['collectionName'], 'sample collection')
 
-        req2 = self.client.get(reverse('collection-detail', args=[self.fold.id]))
+        req2 = self.client.get(reverse('collection-detail', args=[self.fold.uid]))
         self.assertEqual(len(req2.data['survey_assets']), 1)
 
     def test_add_survey_asset_to_collection(self):
         self.assertEqual(self.surv.collection, None)
         surv_url = reverse('surveyasset-detail', args=[self.surv.uid])
-        patch_req = self.client.patch(surv_url, data={'collection': self.fold.id})
+        patch_req = self.client.patch(surv_url, data={'collection': reverse('collection-detail', args=[self.fold.uid])})
         self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
         req = self.client.get(surv_url)
 
