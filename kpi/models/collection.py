@@ -1,7 +1,8 @@
 from django.db import models
-from shortuuidfield import ShortUUIDField
 from shortuuid import ShortUUID
 from kpi.models.survey_asset import SurveyAsset
+
+COLLECTION_UID_LENGTH = 22
 
 class CollectionManager(models.Manager):
     def create(self, *args, **kwargs):
@@ -20,8 +21,17 @@ class CollectionManager(models.Manager):
         return created
 
 class Collection(models.Model):
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=255)
     parent = models.ForeignKey('Collection', null=True, related_name='collections')
     owner = models.ForeignKey('auth.User', related_name='collections')
-    uid = ShortUUIDField()
+    uid = models.CharField(max_length=COLLECTION_UID_LENGTH, default='')
     objects = CollectionManager()
+
+    def _generate_uid(self):
+        return 'c' + ShortUUID().random(COLLECTION_UID_LENGTH-1)
+
+    def save(self, *args, **kwargs):
+        # populate uid field if it's empty
+        if self.uid == '':
+            self.uid = self._generate_uid()
+        super(Collection, self).save(*args, **kwargs)

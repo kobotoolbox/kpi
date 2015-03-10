@@ -1,6 +1,6 @@
 from kpi.models import SurveyAsset
 from kpi.models import Collection
-from kpi.serializers import SurveyAssetSerializer
+from kpi.serializers import SurveyAssetSerializer, SurveyAssetListSerializer
 from kpi.serializers import CollectionSerializer
 from kpi.serializers import UserSerializer
 from django.contrib.auth.models import User
@@ -15,6 +15,7 @@ from rest_framework import (
     viewsets,
     renderers,
 )
+from rest_framework import status
 from rest_framework.decorators import detail_route
 
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
@@ -42,6 +43,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
     serializer_class = CollectionSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly,)
+    lookup_field = 'uid'
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -53,13 +55,13 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    lookup_field = 'username'
 
 from rest_framework.parsers import MultiPartParser
 
 class XlsFormParser(MultiPartParser):
     pass
 
-from rest_framework import status
 class SurveyAssetViewSet(viewsets.ModelViewSet):
     """
     This viewset automatically provides `list`, `create`, `retrieve`,
@@ -71,14 +73,23 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
     serializer_class = SurveyAssetSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly,)
+    lookup_field = 'uid'
 
-    renderer_classes = (AssetJsonRenderer,
+    renderer_classes = (
+                        renderers.BrowsableAPIRenderer,
+                        AssetJsonRenderer,
                         SSJsonRenderer,
                         MdTableRenderer,
-                        # XFormRenderer,
-                        # XlsRenderer,
-                        # EnketoPreviewLinkRenderer,
+                        XFormRenderer,
+                        XlsRenderer,
+                        EnketoPreviewLinkRenderer,
                         )
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return SurveyAssetListSerializer
+        else:
+            return SurveyAssetSerializer
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -88,8 +99,9 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
 
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def table_view(self, request, *args, **kwargs):
-        survey_draft = self.get_object()
-        return Response("<html><body><code><pre>%s</pre></code></body></html>" % ss_structure_to_mdtable(json.loads(survey_draft.body)))
+        sa = self.get_object()
+        md_table = ss_structure_to_mdtable(sa._to_ss_structure())
+        return Response("<html><body><code><pre>%s</pre></code></body></html>" % md_table)
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)

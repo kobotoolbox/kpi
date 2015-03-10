@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'reversion',
     'kpi',
+    'django_extensions',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -86,7 +87,7 @@ STATIC_ROOT = 'staticfiles'
 STATIC_URL = '/static/'
 
 REST_FRAMEWORK = {
-    'PAGINATE_BY': 10000000,
+    'PAGINATE_BY': 25,
     'URL_FIELD_NAME': 'url',
     'DEFAULT_PAGINATION_SERIALIZER_CLASS': 'kpi.serializers.Paginated',
 }
