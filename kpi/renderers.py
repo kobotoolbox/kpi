@@ -22,7 +22,9 @@ class SSJsonRenderer(renderers.JSONRenderer):
     format = 'ssjson'
     charset = 'utf-8'
     def render(self, data, media_type=None, renderer_context=None):
-        return json.dumps(_data_to_ss_structure(data))
+        # this accessing of the model might be frowned upon, but I'd prefer to avoid
+        # re-building the SS structure outside of the model for now.
+        return json.dumps(renderer_context['view'].get_object()._to_ss_structure())
 
 class XFormRenderer(renderers.BaseRenderer):
     media_type = 'application/xform' # not the right content type
@@ -43,7 +45,8 @@ class MdTableRenderer(renderers.BaseRenderer):
     charset = 'utf-8'
 
     def render(self, data, media_type=None, renderer_context=None):
-        return ss_structure_to_mdtable(_data_to_ss_structure(data))
+        _ss_struct = renderer_context['view'].get_object()._to_ss_structure()
+        return ss_structure_to_mdtable(_ss_struct)
 
 class XlsRenderer(renderers.BaseRenderer):
     media_type = 'application/xls'

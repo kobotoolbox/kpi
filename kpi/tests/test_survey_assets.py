@@ -35,6 +35,8 @@ class UpdateSurveyAssetsTest(SurveyAssetsTestCase):
         self.assertEqual(self.survey_asset.settings, None)
         self.survey_asset.settings = {'style':'grid-theme'}
         # self.assertEqual(self.survey_asset.settings, {'style':'grid-theme'})
-        self.assertEqual(self.survey_asset._to_ss_structure()['settings'], {
+        ss_struct = self.survey_asset._to_ss_structure()['settings']
+        self.assertEqual(len(ss_struct), 1)
+        self.assertEqual(ss_struct[0], {
                 'style': 'grid-theme',
             })

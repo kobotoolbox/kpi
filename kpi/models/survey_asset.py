@@ -45,7 +45,7 @@ class SurveyAsset(models.Model):
             obj.update(copy.copy(self.additional_sheets))
 
         if self.settings:
-            obj.update({'settings': copy.copy(self.settings)})
+            obj.update({'settings': [copy.copy(self.settings)]})
 
         return obj
 

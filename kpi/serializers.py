@@ -4,6 +4,7 @@ from rest_framework.pagination import PaginationSerializer
 from rest_framework.reverse import reverse_lazy, reverse
 from kpi.models import SurveyAsset
 from kpi.models import Collection
+import urllib
 
 from django.contrib.auth.models import User
 import json
@@ -25,23 +26,29 @@ class WritableJSONField(serializers.Field):
     def to_representation(self, value):
         return value
 
+class TaggedHyperlinkedRelatedField(serializers.HyperlinkedRelatedField):
+    def get_url(self, *args, **kwargs):
+        url = super(TaggedHyperlinkedRelatedField, self).get_url(*args, **kwargs)
+        obj = args[0]
+        if obj.name == '':
+            return url
+        return '%s#%s' % (url, urllib.quote_plus(obj.name))
 
 class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
-    ownerName = serializers.ReadOnlyField(source='owner.username')
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username', \
                                                 read_only=True)
     parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
     assetType = serializers.ReadOnlyField(read_only=True, source='asset_type')
     settings = WritableJSONField(read_only=True)
-    collectionName = serializers.ReadOnlyField(read_only=True, source='collection.name')
+    collection = TaggedHyperlinkedRelatedField(lookup_field='uid', queryset=Collection.objects.all(), view_name='collection-detail')
     ss_json = serializers.SerializerMethodField('_to_ss_json', read_only=True)
 
     class Meta:
         model = SurveyAsset
         lookup_field = 'uid'
-        fields = ('url', 'parent', 'owner', 'ownerName', 'collection',
+        fields = ('url', 'parent', 'owner', 'collection',
                     'settings', 'assetType', 'ss_json',
-                    'uid', 'name', 'collectionName', )
+                    'name', )
         extra_kwargs = {
             'collection': {
                 'lookup_field': 'uid',
@@ -71,13 +78,13 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
 
 class SurveyAssetListSerializer(SurveyAssetSerializer):
     class Meta(SurveyAssetSerializer.Meta):
-        fields = ('url', 'owner', 'ownerName', 'collection',
-                    'assetType', 'uid', 'name', 'collectionName', )
+        fields = ('url', 'owner', 'collection',
+                    'assetType', 'name', )
 
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
-    survey_assets = serializers.HyperlinkedRelatedField(many=True,
+    survey_assets = TaggedHyperlinkedRelatedField(many=True,
                  view_name='surveyasset-detail', read_only=True)
 
     class Meta:
@@ -94,11 +101,12 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 class CollectionSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', \
                 lookup_field='username', read_only=True)
-
+    survey_assets = TaggedHyperlinkedRelatedField(many=True, lookup_field='uid',
+                 view_name='surveyasset-detail', read_only=True)
 
     class Meta:
         model = Collection
-        fields = ('name', 'url', 'survey_assets', 'uid', 'owner',)
+        fields = ('name', 'url', 'survey_assets', 'owner',)
         lookup_field = 'uid'
         extra_kwargs = {
             'survey_assets': {
