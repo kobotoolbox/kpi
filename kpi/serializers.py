@@ -25,28 +25,32 @@ class WritableJSONField(serializers.Field):
     def to_representation(self, value):
         return value
 
+
 class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     ownerName = serializers.ReadOnlyField(source='owner.username')
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username', \
                                                 read_only=True)
     parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
     assetType = serializers.ReadOnlyField(read_only=True, source='asset_type')
-    content = WritableJSONField()
-    settings = WritableJSONField(required=False)
+    settings = WritableJSONField(read_only=True)
     collectionName = serializers.ReadOnlyField(read_only=True, source='collection.name')
-    additional_sheets = WritableJSONField(required=False)
+    ss_json = serializers.SerializerMethodField('_to_ss_json', read_only=True)
 
     class Meta:
         model = SurveyAsset
         lookup_field = 'uid'
         fields = ('url', 'parent', 'owner', 'ownerName', 'collection',
-                    'settings', 'assetType', 'additional_sheets',
-                    'uid', 'name', 'content', 'collectionName', )
+                    'settings', 'assetType', 'ss_json',
+                    'uid', 'name', 'collectionName', )
         extra_kwargs = {
             'collection': {
                 'lookup_field': 'uid',
             },
         }
+
+    def _to_ss_json(self, obj):
+        return obj._to_ss_structure()
+
     def _content(self, obj):
         return json.dumps(obj.content)
 
@@ -64,6 +68,13 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     #     '''
     #     request = self.context.get('request', None)
     #     return reverse('collection-detail', args=(obj.collection.uid,), request=request)
+
+class SurveyAssetListSerializer(SurveyAssetSerializer):
+    class Meta(SurveyAssetSerializer.Meta):
+        fields = ('url', 'owner', 'ownerName', 'collection',
+                    'assetType', 'uid', 'name', 'collectionName', )
+
+
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     survey_assets = serializers.HyperlinkedRelatedField(many=True,

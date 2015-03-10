@@ -1,6 +1,6 @@
 from kpi.models import SurveyAsset
 from kpi.models import Collection
-from kpi.serializers import SurveyAssetSerializer
+from kpi.serializers import SurveyAssetSerializer, SurveyAssetListSerializer
 from kpi.serializers import CollectionSerializer
 from kpi.serializers import UserSerializer
 from django.contrib.auth.models import User
@@ -84,6 +84,12 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
                         XlsRenderer,
                         EnketoPreviewLinkRenderer,
                         )
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return SurveyAssetListSerializer
+        else:
+            return SurveyAssetSerializer
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
