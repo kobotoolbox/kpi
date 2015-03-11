@@ -39,3 +39,16 @@ class UpdateSurveyAssetsTest(SurveyAssetsTestCase):
         self.assertEqual(ss_struct[0], {
                 'style': 'grid-theme',
             })
+
+class ShareSurveyAssetsTest(SurveyAssetsTestCase):
+    # TODO!
+    def test_user_view_permission(self): pass
+    def test_user_edit_permission(self): pass
+    def test_user_inherited_view_permission(self): pass
+    def test_user_inherited_edit_permission(self): pass
+    def test_user_permission_conflict_resolution(self): pass
+    def test_url_view_permission(self): pass
+    def test_url_edit_permission(self): pass
+    def test_url_inherited_view_permission(self): pass
+    def test_url_inherited_edit_permission(self): pass
+    def test_url_permission_conflict_resolution(self): pass
