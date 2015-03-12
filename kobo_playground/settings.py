@@ -56,6 +56,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
+AUTHENTICATION_BACKENDS = ('kpi.backends.ObjectPermissionBackend',)
+
 ROOT_URLCONF = 'kobo_playground.urls'
 
 WSGI_APPLICATION = 'kobo_playground.wsgi.application'

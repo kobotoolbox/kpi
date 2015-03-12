@@ -10,7 +10,9 @@ from django.conf import settings
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('auth', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+        ('contenttypes', '0001_initial'),
     ]
 
     operations = [
@@ -29,16 +31,17 @@ class Migration(migrations.Migration):
                 ('parent', mptt.fields.TreeForeignKey(related_name='children', blank=True, to='kpi.Collection', null=True)),
             ],
             options={
-                'abstract': False,
+                'permissions': (('view_collection', 'Can view collection'), ('share_collection', "Can change this collection's sharing settings"), ('deny_view_collection', 'Blocks view privilege inherited from ancestor'), ('deny_change_collection', 'Blocks change privilege inherited from ancestor')),
             },
             bases=(models.Model,),
         ),
         migrations.CreateModel(
-            name='CollectionUser',
+            name='ObjectPermission',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('role_type', models.CharField(default=b'denied', max_length=20, choices=[(b'denied', b'No access'), (b'viewer', b'Can view'), (b'editor', b'Can edit')])),
-                ('collection', models.ForeignKey(to='kpi.Collection')),
+                ('object_id', models.PositiveIntegerField()),
+                ('content_type', models.ForeignKey(to='contenttypes.ContentType')),
+                ('permission', models.ForeignKey(to='auth.Permission')),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -63,31 +66,8 @@ class Migration(migrations.Migration):
             ],
             options={
                 'ordering': ('date_created',),
+                'permissions': (('view_surveyasset', 'Can view survey asset'), ('share_surveyasset', "Can change this survey asset's sharing settings"), ('deny_view_surveyasset', 'Blocks view privilege inherited from ancestor'), ('deny_change_surveyasset', 'Blocks change privilege inherited from ancestor')),
             },
             bases=(models.Model,),
-        ),
-        migrations.CreateModel(
-            name='SurveyAssetUser',
-            fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('role_type', models.CharField(default=b'denied', max_length=20, choices=[(b'denied', b'No access'), (b'viewer', b'Can view'), (b'editor', b'Can edit')])),
-                ('survey_asset', models.ForeignKey(to='kpi.SurveyAsset')),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
-            ],
-            options={
-            },
-            bases=(models.Model,),
-        ),
-        migrations.AddField(
-            model_name='surveyasset',
-            name='users',
-            field=models.ManyToManyField(related_name='+', through='kpi.SurveyAssetUser', to=settings.AUTH_USER_MODEL),
-            preserve_default=True,
-        ),
-        migrations.AddField(
-            model_name='collection',
-            name='users',
-            field=models.ManyToManyField(related_name='+', through='kpi.CollectionUser', to=settings.AUTH_USER_MODEL),
-            preserve_default=True,
         ),
     ]

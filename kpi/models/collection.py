@@ -2,7 +2,8 @@ from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
 from shortuuid import ShortUUID
 from kpi.models.survey_asset import SurveyAsset
-from role_types import ROLE_TYPES, get_role_privileges
+from object_permission import ObjectPermission
+from django.contrib.auth.models import Permission
 
 COLLECTION_UID_LENGTH = 22
 
@@ -26,40 +27,72 @@ class Collection(MPTTModel):
     name = models.CharField(max_length=255)
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children')
     owner = models.ForeignKey('auth.User', related_name='owned_collections')
-    users = models.ManyToManyField('auth.User', through='CollectionUser', related_name='+')
     editors_can_change_permissions = models.BooleanField(default=True)
     uid = models.CharField(max_length=COLLECTION_UID_LENGTH, default='')
     objects = CollectionManager()
 
-    def get_user_privileges(self, user):
+    class Meta:
+        permissions = (
+            # change_collection and delete_collection are provided automatically
+            # by Django
+            ('view_collection', 'Can view collection'),
+            ('share_collection', "Can change this collection's sharing settings"),
+            ('deny_view_collection', 'Blocks view privilege inherited from '
+                'ancestor'),
+            ('deny_change_collection', 'Blocks change privilege inherited from '
+                'ancestor'),
+        )
+
+    def _generate_uid(self):
+        return 'c' + ShortUUID().random(COLLECTION_UID_LENGTH-1)
+
+    def save(self, *args, **kwargs):
+        # populate uid field if it's empty
+        if self.uid == '':
+            self.uid = self._generate_uid()
+        super(Collection, self).save(*args, **kwargs)
+                    
+    def __unicode__(self):
+        return self.name
+
+    def has_perm(self, user_obj, perm):
         ''' Starting from this collection, walk toward the root of the tree
-        until a permissions record is found for the given user. Return the
-        user's permissions as a tuple of (can_view, can_edit). '''
+        until a permissions record is found for the given user. '''
         collection = self
+        split_perm = perm.split('.')
+        try:
+            app_label = split_perm[0]
+            codename = split_perm[1]
+        except IndexError:
+            # django.contrib.auth.backends.ModelBackend doesn't raise an
+            # exception in this case. If user doesn't have perm because perm is
+            # formatted invalidly, so be it.
+            return False
         while collection is not None:
-            if user is collection.owner:
-                # The owner has full access.
-                return (True, True)
+            if user_obj.pk is collection.owner.pk:
+                # The owner has full access, so long as perm is a permission
+                # that applies to this object.
+                return Permission.objects.filter(
+                    content_type__app_label=app_label,
+                    codename=codename
+                ).exists()
             try:
-                self.collectionuser_set.get(user=user)
-                return get_role_privileges(collection_user.role_type)
-            except CollectionUser.DoesNotExist:
+                ObjectPermission.objects.get_for_object(
+                    self,
+                    user=user_obj,
+                    permission__content_type__app_label=app_label,
+                    permission__codename=codename
+                )
+                # If we got this far, we found a matching permissions record!
+                return True
+            except ObjectPermission.DoesNotExist:
                 pass
             collection = collection.parent
-        return (False, False)
+        # We got to the root of the tree without finding any matching
+        # permissions.
+        return False
 
-    def can_view(self, user):
-        return self.get_user_privileges(user)[0]
-
-    def can_edit(self, user):
-        return self.get_user_privileges(user)[1]
-
-    def can_delete(self, user):
-        return user is self.owner
-
-    def can_change_permissions(self, user):
-        return user is self.owner or (
-            self.can_edit(user) and self.editors_can_change_permissions)
+    """ Adios.
 
     def get_all_user_privileges(self):
         ''' Return all inherited and directly-assigned privileges in the format
@@ -77,23 +110,4 @@ class Collection(MPTTModel):
             user_privileges[collection.owner_id] = (True, True)
         return user_privileges
 
-    def _generate_uid(self):
-        return 'c' + ShortUUID().random(COLLECTION_UID_LENGTH-1)
-
-    def save(self, *args, **kwargs):
-        # populate uid field if it's empty
-        if self.uid == '':
-            self.uid = self._generate_uid()
-        super(Collection, self).save(*args, **kwargs)
-                    
-    def __unicode__(self):
-        return self.name
-
-class CollectionUser(models.Model):
-    collection = models.ForeignKey(Collection)
-    user = models.ForeignKey('auth.User')
-    role_type = models.CharField(
-        choices=ROLE_TYPES,
-        max_length=20,
-        default='denied'
-    )
+    """

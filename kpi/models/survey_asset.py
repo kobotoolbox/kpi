@@ -5,7 +5,8 @@ from jsonfield import JSONField
 import reversion
 import json
 import copy
-from role_types import ROLE_TYPES, get_role_privileges
+from object_permission import ObjectPermission
+from django.contrib.auth.models import Permission
 
 SURVEY_ASSET_TYPES = [
     ('text', 'text'),
@@ -25,12 +26,21 @@ class SurveyAsset(models.Model):
     asset_type = models.CharField(choices=SURVEY_ASSET_TYPES, max_length=20, default='text')
     collection = models.ForeignKey('Collection', related_name='survey_assets', null=True)
     owner = models.ForeignKey('auth.User', related_name='survey_assets', null=True)
-    users = models.ManyToManyField('auth.User', through='SurveyAssetUser', related_name='+')
     editors_can_change_permissions = models.BooleanField(default=True)
     uid = models.CharField(max_length=SURVEY_ASSET_UID_LENGTH, default='')
 
     class Meta:
         ordering = ('date_created',)
+        permissions = (
+            # change_surveyasset and delete_surveyasset are provided
+            # automatically by Django
+            ('view_surveyasset', 'Can view survey asset'),
+            ('share_surveyasset', "Can change this survey asset's sharing settings"),
+            ('deny_view_surveyasset', 'Blocks view privilege inherited from '
+                'ancestor'),
+            ('deny_change_surveyasset', 'Blocks change privilege inherited from '
+                'ancestor'),
+        )
 
     def versions(self):
         return reversion.get_for_object(self)
@@ -75,33 +85,46 @@ class SurveyAsset(models.Model):
         with transaction.atomic(), reversion.create_revision():
             super(SurveyAsset, self).save(*args, **kwargs)
 
-    def get_user_privileges(self, user):
-        ''' Return the given user's permissions, either directly applied or
-        inherited from a collection, as a tuple of (can_view, can_edit). '''
-        if user is self.owner:
-            return (True, True)
+    def has_perm(self, user_obj, perm):
+        ''' Determine of user_obj has perm on this survey asset. Considers both
+        directly applied permissions as well as those inherited from a 
+        collection. '''
+        split_perm = perm.split('.')
         try:
-            sa_user = self.surveyassetuser_set.get(user=user)
-            return get_role_privileges(sa_user.role_type)
-        except SurveyAssetUser.DoesNotExist:
+            app_label = split_perm[0]
+            codename = split_perm[1]
+        except IndexError:
+            # django.contrib.auth.backends.ModelBackend doesn't raise an
+            # exception in this case. If user doesn't have perm because perm is
+            # formatted invalidly, so be it.
+            return False
+        if user_obj.pk is self.owner.pk:
+            # The owner has full access, so long as perm is a permission that
+            # applies to this object.
+            return Permission.objects.filter(
+                content_type__app_label=app_label,
+                codename=codename
+            ).exists()
+        try:
+            ObjectPermission.objects.get_for_object(
+                self,
+                user=user_obj,
+                permission__content_type__app_label=app_label,
+                permission__codename=codename
+            )
+            # If we got this far, we found a matching permissions record!
+            return True
+        except ObjectPermission.DoesNotExist:
+            # No directly applied permissions match; check the collection
             pass
-        if self.collection is None:
-            return (False, False)
-        else:
-            return self.collection.get_user_privileges(user)
+        if self.collection is not None:
+            # Rewrite the perm string so it references collection instead of
+            # surveyasset
+            mangled_perm = perm.replace('_surveyasset', '_collection', 1)
+            return self.collection.has_perm(user_obj, mangled_perm)
+        return False
 
-    def can_view(self, user):
-        return self.get_user_privileges(user)[0]
-
-    def can_edit(self, user):
-        return self.get_user_privileges(user)[1]
-
-    def can_delete(self, user):
-        return user is self.owner
-
-    def can_change_permissions(self, user):
-        return user is self.owner or (
-            self.can_edit(user) and self.editors_can_change_permissions)
+    """ The wet head is dead.
 
     def get_all_user_privileges(self):
         ''' Return all inherited and directly-assigned privileges in the format
@@ -117,11 +140,4 @@ class SurveyAsset(models.Model):
         user_privileges[self.owner_id] = (True, True)
         return user_privileges
 
-class SurveyAssetUser(models.Model):
-    survey_asset = models.ForeignKey(SurveyAsset)
-    user = models.ForeignKey('auth.User')
-    role_type = models.CharField(
-        choices=ROLE_TYPES,
-        max_length=20,
-        default='denied'
-    )
+    """
