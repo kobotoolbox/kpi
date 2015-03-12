@@ -138,3 +138,6 @@ class ShareCollectionTests(TestCase):
     def test_url_view_permission_on_child_collection(self): pass
     def test_url_edit_permission_on_child_collection(self): pass
     def test_url_permission_conflict_resolution(self): pass
+
+    # [AD suggests] We'll want to be able to list all collections a given user can access/edit/etc
+    def test_query_all_collections_user_can_access(self): pass
