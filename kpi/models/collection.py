@@ -1,6 +1,7 @@
 from django.db import models
 from shortuuid import ShortUUID
 from kpi.models.survey_asset import SurveyAsset
+from taggit.managers import TaggableManager
 
 COLLECTION_UID_LENGTH = 22
 
@@ -26,6 +27,7 @@ class Collection(models.Model):
     owner = models.ForeignKey('auth.User', related_name='collections')
     uid = models.CharField(max_length=COLLECTION_UID_LENGTH, default='')
     objects = CollectionManager()
+    tags = TaggableManager()
 
     def _generate_uid(self):
         return 'c' + ShortUUID().random(COLLECTION_UID_LENGTH-1)

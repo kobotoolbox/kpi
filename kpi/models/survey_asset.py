@@ -2,6 +2,7 @@ from django.db import models
 from django.db import transaction
 from shortuuid import ShortUUID
 from jsonfield import JSONField
+from taggit.managers import TaggableManager
 import reversion
 import json
 import copy
@@ -26,6 +27,7 @@ class SurveyAsset(models.Model):
     collection = models.ForeignKey('Collection', related_name='survey_assets', null=True)
     owner = models.ForeignKey('auth.User', related_name='survey_assets', null=True)
     uid = models.CharField(max_length=SURVEY_ASSET_UID_LENGTH, default='')
+    tags = TaggableManager()
 
     class Meta:
         ordering = ('date_created',)

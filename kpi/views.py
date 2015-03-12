@@ -1,8 +1,8 @@
 from kpi.models import SurveyAsset
 from kpi.models import Collection
 from kpi.serializers import SurveyAssetSerializer, SurveyAssetListSerializer
-from kpi.serializers import CollectionSerializer
-from kpi.serializers import UserSerializer
+from kpi.serializers import CollectionSerializer, CollectionListSerializer
+from kpi.serializers import UserSerializer, UserListSerializer
 from django.contrib.auth.models import User
 from rest_framework import permissions
 from kpi.permissions import IsOwnerOrReadOnly
@@ -48,6 +48,12 @@ class CollectionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return CollectionListSerializer
+        else:
+            return CollectionSerializer
+
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -56,6 +62,13 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return UserListSerializer
+        else:
+            return UserSerializer
+
 
 from rest_framework.parsers import MultiPartParser
 
