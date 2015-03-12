@@ -1,23 +1,21 @@
 from django.forms import widgets
+from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework.pagination import PaginationSerializer
 from rest_framework.reverse import reverse_lazy, reverse
 from kpi.models import SurveyAsset
 from kpi.models import Collection
 import urllib
-
-from django.contrib.auth.models import User
 import json
 
+
 class Paginated(PaginationSerializer):
+    """ Adds 'root' to the wrapping response object. """
     root = serializers.SerializerMethodField('get_parent_url', read_only=True)
 
     def get_parent_url(self, obj):
-        request = self.context.get('request', None)
-        return reverse_lazy('api-root', request=request)
+        return reverse_lazy('api-root', request=self.context.get('request'))
 
-import json
-from rest_framework import serializers
 
 class WritableJSONField(serializers.Field):
     """ Serializer for JSONField -- required to make field writable"""
@@ -39,8 +37,10 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
                                                 read_only=True)
     parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
     assetType = serializers.ReadOnlyField(read_only=True, source='asset_type')
-    settings = WritableJSONField(read_only=True)
-    collection = TaggedHyperlinkedRelatedField(lookup_field='uid', queryset=Collection.objects.all(), view_name='collection-detail')
+    settings = WritableJSONField(required=False)
+    collection = TaggedHyperlinkedRelatedField(lookup_field='uid', queryset=Collection.objects.all(),
+                                                view_name='collection-detail', required=False)
+    content = WritableJSONField(write_only=True)
     ss_json = serializers.SerializerMethodField('_to_ss_json', read_only=True)
 
     class Meta:
@@ -48,7 +48,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
         lookup_field = 'uid'
         fields = ('url', 'parent', 'owner', 'collection',
                     'settings', 'assetType', 'ss_json',
-                    'name', )
+                    'name', 'content',)
         extra_kwargs = {
             'collection': {
                 'lookup_field': 'uid',

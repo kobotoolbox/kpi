@@ -11,6 +11,14 @@ class CreateCollectionTests(TestCase):
         self.user = User.objects.all()[0]
         self.coll = Collection.objects.create(owner=self.user)
 
+    def test_collections_can_be_owned(self):
+        self.assertEqual(self.coll.owner, self.user)
+
+    def test_collections_cannot_be_anonymous(self):
+        def _create_collection_with_no_owner():
+            Collection.objects.create()
+        self.assertRaises(_create_collection_with_no_owner)
+
     def test_import_survey_assets_to_collection(self):
         self.assertEqual(self.coll.survey_assets.count(), 0)
         self.coll.survey_assets.create(name='test', content=[
