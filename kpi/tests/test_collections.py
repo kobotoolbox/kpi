@@ -35,9 +35,18 @@ class CreateCollectionTests(TestCase):
         self.assertEqual(SurveyAsset.objects.count(), 0)
 
     def test_descendants_are_deleted_with_collection(self):
-        # TODO
-        # also assets of descendants
-        pass
+        self.assertEqual(Collection.objects.count(), 1)
+        child = Collection.objects.create(name='test_child_collection',
+            owner=User.objects.first(), parent=self.coll)
+        grandchild = Collection.objects.create(name='test_child_collection',
+            owner=User.objects.first(), parent=child)
+        self.assertEqual(Collection.objects.count(), 3)
+        child_sa = child.survey_assets.create()
+        grandchild_sa = grandchild.survey_assets.create()
+        self.assertEqual(SurveyAsset.objects.count(), 2)
+        self.coll.delete()
+        self.assertEqual(Collection.objects.count(), 0)
+        self.assertEqual(SurveyAsset.objects.count(), 0)
 
     def test_create_collection_with_survey_assets(self):
         self.assertEqual(Collection.objects.count(), 1)
@@ -71,16 +80,47 @@ class CreateCollectionTests(TestCase):
 
     # Leave in this class or create a new one?
     def test_move_standalone_collection_into_collection(self):
-        # TODO
-        pass
+        self.assertEqual(Collection.objects.count(), 1)
+        standalone = Collection.objects.create(name='move_me',
+            owner=User.objects.first())
+        self.assertEqual(Collection.objects.count(), 2)
+        self.assertEqual(standalone.parent, None)
+        standalone.parent = self.coll
+        standalone.save()
+        self.assertEqual(self.coll.get_children()[0], standalone)
+        self.assertEqual(self.coll.get_children().count(), 1)
+        self.assertEqual(standalone.get_ancestors()[0], self.coll)
+        self.assertEqual(standalone.get_ancestors().count(), 1)
 
     def test_move_collection_from_collection_to_standalone(self):
-        # TODO
-        pass
+        self.assertEqual(Collection.objects.count(), 1)
+        child = Collection.objects.create(name='move_me_too',
+            owner=User.objects.first(), parent=self.coll)
+        self.assertEqual(Collection.objects.count(), 2)
+        self.assertEqual(child.parent, self.coll)
+        child.parent = None
+        child.save()
+        self.assertEqual(self.coll.get_children().count(), 0)
+        self.assertEqual(child.get_ancestors().count(), 0)
 
     def test_move_collection_between_collections(self):
-        # TODO
-        pass
+        self.assertEqual(Collection.objects.count(), 1)
+        adoptive_parent = Collection.objects.create(name='adoptive_parent',
+            owner=User.objects.first())
+        child = Collection.objects.create(name='on_the_move',
+            owner=User.objects.first(), parent=self.coll)
+        self.assertEqual(Collection.objects.count(), 3)
+        self.assertEqual(self.coll.get_children()[0], child)
+        self.assertEqual(self.coll.get_children().count(), 1)
+        self.assertEqual(child.get_ancestors()[0], self.coll)
+        self.assertEqual(child.get_ancestors().count(), 1)
+        child.parent = adoptive_parent
+        child.save()
+        self.assertEqual(self.coll.get_children().count(), 0)
+        self.assertEqual(adoptive_parent.get_children()[0], child)
+        self.assertEqual(adoptive_parent.get_children().count(), 1)
+        self.assertEqual(child.get_ancestors()[0], adoptive_parent)
+        self.assertEqual(child.get_ancestors().count(), 1)
 
 class ShareCollectionTests(TestCase):
     fixtures = ['test_data']
