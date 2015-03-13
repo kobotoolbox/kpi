@@ -3,6 +3,7 @@ from django.db import transaction
 from shortuuid import ShortUUID
 from jsonfield import JSONField
 from taggit.managers import TaggableManager
+from taggit.models import Tag
 import reversion
 import json
 import copy
@@ -14,6 +15,14 @@ SURVEY_ASSET_TYPES = [
     ('choice_list', 'choice list'),
 ]
 SURVEY_ASSET_UID_LENGTH = 22
+
+class SurveyAssetManager(models.Manager):
+    def filter_by_tag_name(self, tag_name):
+        try:
+            tag = Tag.objects.get(name=tag_name)
+        except Tag.DoesNotExist, e:
+            return self.none()
+        return self.filter(tags=tag)
 
 @reversion.register
 class SurveyAsset(models.Model):
@@ -28,6 +37,8 @@ class SurveyAsset(models.Model):
     owner = models.ForeignKey('auth.User', related_name='survey_assets', null=True)
     uid = models.CharField(max_length=SURVEY_ASSET_UID_LENGTH, default='')
     tags = TaggableManager()
+
+    objects = SurveyAssetManager()
 
     class Meta:
         ordering = ('date_created',)

@@ -25,6 +25,19 @@ class CreateSurveyAssetVersions(SurveyAssetsTestCase):
     def test_asset_can_be_owned(self):
         self.assertEqual(self.survey_asset.owner, self.user)
 
+    def test_asset_can_be_tagged(self):
+        def _list_tag_names():
+            return sorted(list(self.survey_asset.tags.names()))
+        self.assertEqual(_list_tag_names(), [])
+        self.survey_asset.tags.add('tag1')
+        self.assertEqual(_list_tag_names(), ['tag1'])
+        # duplicate tags ignored
+        self.survey_asset.tags.add('tag1')
+        self.assertEqual(_list_tag_names(), ['tag1'])
+        self.survey_asset.tags.add('tag2')
+        self.assertEqual(_list_tag_names(), ['tag1', 'tag2'])
+
+
     def test_asset_can_be_anonymous(self):
         anon_asset = SurveyAsset.objects.create(content=[])
         self.assertEqual(anon_asset.owner, None)

@@ -2,6 +2,7 @@ from django.db import models
 from shortuuid import ShortUUID
 from kpi.models.survey_asset import SurveyAsset
 from taggit.managers import TaggableManager
+from taggit.models import Tag
 
 COLLECTION_UID_LENGTH = 22
 
@@ -20,6 +21,13 @@ class CollectionManager(models.Manager):
             # bulk_create comes with a number of caveats
             # SurveyAsset.objects.bulk_create(new_assets)
         return created
+
+    def filter_by_tag_name(self, tag_name):
+        try:
+            tag = Tag.objects.get(name=tag_name)
+        except Tag.DoesNotExist, e:
+            return self.none()
+        return self.filter(tags=tag)
 
 class Collection(models.Model):
     name = models.CharField(max_length=255)

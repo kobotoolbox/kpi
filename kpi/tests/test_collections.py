@@ -19,6 +19,18 @@ class CreateCollectionTests(TestCase):
             Collection.objects.create()
         self.assertRaises(_create_collection_with_no_owner)
 
+    def test_collection_can_be_tagged(self):
+        def _list_tag_names():
+            return sorted(list(self.coll.tags.names()))
+        self.assertEqual(_list_tag_names(), [])
+        self.coll.tags.add('tag1')
+        self.assertEqual(_list_tag_names(), ['tag1'])
+        # duplicate tags ignored
+        self.coll.tags.add('tag1')
+        self.assertEqual(_list_tag_names(), ['tag1'])
+        self.coll.tags.add('tag2')
+        self.assertEqual(_list_tag_names(), ['tag1', 'tag2'])
+
     def test_import_survey_assets_to_collection(self):
         self.assertEqual(self.coll.survey_assets.count(), 0)
         self.coll.survey_assets.create(name='test', content=[
