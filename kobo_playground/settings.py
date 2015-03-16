@@ -40,6 +40,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'rest_framework',
     'reversion',
+    'debug_toolbar',
+    'mptt',
     'kpi',
     'django_extensions',
     'taggit',
@@ -54,6 +56,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
+
+AUTHENTICATION_BACKENDS = ('kpi.backends.ObjectPermissionBackend',)
 
 ROOT_URLCONF = 'kobo_playground.urls'
 
