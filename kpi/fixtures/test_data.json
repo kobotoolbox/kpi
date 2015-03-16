@@ -17,4 +17,31 @@
         "model": "auth.user",
         "pk": 1
     }
+    ,
+    {
+        "model": "kpi.collection",
+        "pk": 1,
+        "fields": {
+            "name": "fixture collection",
+            "owner": 1,
+            "uid": "cifPmxrj2AAjWAWBJzTYPU"
+        }
+    }
+    ,
+    {
+        "model": "kpi.surveyasset",
+        "pk": 1,
+        "collection": 1,
+        "fields": {
+            "name": "fixture sa",
+            "content": [
+                {"type": "text", "label": "fixture q1", "name": "q1"},
+                {"type": "text", "label": "fixture q2", "name": "q2"}
+            ],
+            "date_created": "2015-02-12T19:52:14.406Z",
+            "date_modified": "2015-02-12T19:52:14.406Z",
+            "owner": 1,
+            "uid": "aPEANgNgTH3xzhJGcctURs"
+        }
+    }
 ]
