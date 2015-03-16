@@ -5,6 +5,7 @@ from kpi.serializers import CollectionSerializer, CollectionListSerializer
 from kpi.serializers import UserSerializer, UserListSerializer
 from kpi.serializers import TagSerializer, TagListSerializer
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 from rest_framework import permissions
 from kpi.permissions import IsOwnerOrReadOnly
 from rest_framework.decorators import api_view
@@ -16,6 +17,7 @@ from rest_framework import (
     viewsets,
     renderers,
 )
+from itertools import chain
 from rest_framework import status
 from rest_framework.decorators import detail_route
 from taggit.models import Tag
@@ -37,6 +39,9 @@ class CollectionViewSet(viewsets.ModelViewSet):
                           IsOwnerOrReadOnly,)
     lookup_field = 'uid'
 
+    def get_queryset(self, *args, **kwargs):
+        return Collection.objects.filter(owner=self.request.user)
+
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
@@ -46,7 +51,6 @@ class CollectionViewSet(viewsets.ModelViewSet):
         else:
             return CollectionSerializer
 
-
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
@@ -55,8 +59,19 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
         if user.is_authenticated():
-            ids = user.collections.all().values_list('id', flat=True)
-            return Tag.objects.filter(taggit_taggeditem_items__object_id__in=ids).distinct()
+            def _get_tags_on_items(content_type_name, avail_items):
+                '''
+                return all ids of tags which are tagged to items of the given content_type
+                '''
+                content_type_id = ContentType.objects.get(model=content_type_name).id
+                ids = avail_items.values_list('id', flat=True)
+                return Tag.objects.filter(taggit_taggeditem_items__object_id__in=ids,
+                                        taggit_taggeditem_items__content_type_id=content_type_id).filter().distinct().values_list('id', flat=True)
+            all_tag_ids = list(chain(
+                                    _get_tags_on_items('collection', user.collections.all()),
+                                    _get_tags_on_items('surveyasset', user.survey_assets.all()),
+                                    ))
+            return Tag.objects.filter(id__in=all_tag_ids)
         else:
             return Tag.objects.none()
 
@@ -113,6 +128,9 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
             return SurveyAssetListSerializer
         else:
             return SurveyAssetSerializer
+
+    def get_queryset(self, *args, **kwargs):
+        return SurveyAsset.objects.filter(owner=self.request.user)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
