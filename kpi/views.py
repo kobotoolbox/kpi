@@ -3,6 +3,7 @@ from kpi.models import Collection
 from kpi.serializers import SurveyAssetSerializer, SurveyAssetListSerializer
 from kpi.serializers import CollectionSerializer, CollectionListSerializer
 from kpi.serializers import UserSerializer, UserListSerializer
+from kpi.serializers import TagSerializer, TagListSerializer
 from django.contrib.auth.models import User
 from rest_framework import permissions
 from kpi.permissions import IsOwnerOrReadOnly
@@ -17,7 +18,7 @@ from rest_framework import (
 )
 from rest_framework import status
 from rest_framework.decorators import detail_route
-
+from taggit.models import Tag
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from kpi.renderers import (
     AssetJsonRenderer,
@@ -27,15 +28,6 @@ from kpi.renderers import (
     XlsRenderer,
     EnketoPreviewLinkRenderer,
 )
-
-
-@api_view(('GET',))
-def api_root(request, format=None):
-    return Response({
-        'users': reverse('user-list', request=request, format=format),
-        'survey_assets': reverse('surveyasset-list', request=request, format=format),
-        'collections': reverse('collection-list', request=request, format=format),
-    })
 
 
 class CollectionViewSet(viewsets.ModelViewSet):
@@ -54,6 +46,25 @@ class CollectionViewSet(viewsets.ModelViewSet):
         else:
             return CollectionSerializer
 
+
+class TagViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    lookup_field = 'name'
+
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if user.is_authenticated():
+            ids = user.collections.all().values_list('id', flat=True)
+            return Tag.objects.filter(taggit_taggeditem_items__object_id__in=ids).distinct()
+        else:
+            return Tag.objects.none()
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return TagListSerializer
+        else:
+            return TagSerializer
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     """

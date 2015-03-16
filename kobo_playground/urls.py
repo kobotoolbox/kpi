@@ -1,5 +1,5 @@
 from rest_framework.urlpatterns import format_suffix_patterns
-from kpi.views import SurveyAssetViewSet, UserViewSet, api_root, CollectionViewSet
+from kpi.views import SurveyAssetViewSet, UserViewSet, CollectionViewSet, TagViewSet
 from rest_framework.routers import DefaultRouter
 from rest_framework import renderers
 from django.conf.urls import url, include
@@ -8,9 +8,9 @@ router = DefaultRouter()
 router.register(r'survey_assets', SurveyAssetViewSet)
 router.register(r'collections', CollectionViewSet)
 router.register(r'users', UserViewSet)
+router.register(r'tags', TagViewSet)
 
 urlpatterns = [
-    url(r'^$', api_root, name='api-root'),
     url(r'^', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls',
                                namespace='rest_framework')),

@@ -32,6 +32,43 @@ class TaggedHyperlinkedRelatedField(serializers.HyperlinkedRelatedField):
             return url
         return '%s#%s' % (url, urllib.quote_plus(obj.name))
 
+from taggit.models import Tag
+
+class TagSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField('_get_tag_url', read_only=True)
+    survey_assets = serializers.SerializerMethodField('_get_survey_assets', read_only=True)
+    collections = serializers.SerializerMethodField('_get_collections', read_only=True)
+    parent = serializers.SerializerMethodField('_get_parent_url', read_only=True)
+
+    class Meta:
+        model = Tag
+        fields = ('name', 'url', 'survey_assets', 'collections', 'parent')
+
+    def _get_parent_url(self, obj):
+        return reverse('tag-list', request=self.context.get('request', None))
+
+    def _get_survey_assets(self, obj):
+        request = self.context.get('request', None)
+        user = request.user
+        return [reverse('surveyasset-detail', args=(sa.uid,), request=request) \
+                for sa in SurveyAsset.objects.filter(tags=obj, owner=user).all()]
+
+    def _get_collections(self, obj):
+        request = self.context.get('request', None)
+        user = request.user
+        return [reverse('collection-detail', args=(coll.uid,), request=request) \
+                for coll in Collection.objects.filter(tags=obj, owner=user).all()]
+
+    def _get_tag_url(self, obj):
+        request = self.context.get('request', None)
+        return reverse('tag-detail', args=(obj.name,), request=request)
+
+class TagListSerializer(TagSerializer):
+    class Meta:
+        model = Tag
+        fields = ('name', 'url', )
+
+
 class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username', \
                                                 read_only=True)
