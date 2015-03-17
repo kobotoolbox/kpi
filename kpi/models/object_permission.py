@@ -41,6 +41,15 @@ class ObjectPermissionManager(models.Manager):
             content_object, **kwargs
         )
 
+    def get_or_create_for_object(self, content_object, **kwargs):
+        ''' Wrapper to allow get_or_create() calls using a generic foreign
+        key. '''
+        return self._rewrite_query_args(
+            super(ObjectPermissionManager, self).get_or_create,
+            content_object, **kwargs
+        )
+
+
 class ObjectPermission(models.Model):
     ''' An application of an auth.Permission instance to a specific
     content_object. Call ObjectPermission.objects.get_for_object() or

@@ -97,8 +97,8 @@ class Collection(MPTTModel):
         content_type = ContentType.objects.get_for_model(self)
         for perm in Permission.objects.filter(content_type=content_type):
             # Use get_or_create in case the owner already has permissions
-            ObjectPermission.objects.get_or_create(
-                content_object=self,
+            ObjectPermission.objects.get_or_create_for_object(
+                self,
                 user=self.owner,
                 permission=perm,
                 inherited=True
