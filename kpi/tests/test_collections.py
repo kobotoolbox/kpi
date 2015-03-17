@@ -126,10 +126,17 @@ class ShareCollectionTests(TestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        # TODO
-        pass
+        self.superuser = User.objects.get(username='admin')
+        self.someuser = User.objects.get(username='someuser')
+        self.anotheruser = User.objects.get(username='anotheruser')
+        self.standalone_coll = Collection.objects.create(owner=self.superuser)
+        self.parent_coll = Collection.objects.create(owner=self.superuser)
+        self.child_coll = Collection.objects.create(owner=self.superuser,
+            parent=self.parent_coll)
 
     def test_user_view_permission_on_standalone_collection(self):
+        # assign perm
+        # remove perm
         # TODO
         # Grant and revoke for all of these
         pass

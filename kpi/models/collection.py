@@ -2,7 +2,7 @@ from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
 from shortuuid import ShortUUID
 from kpi.models.survey_asset import SurveyAsset
-from object_permission import ObjectPermission
+from object_permission import ObjectPermission, perm_parse
 from django.contrib.auth.models import Permission
 
 COLLECTION_UID_LENGTH = 22
@@ -37,10 +37,6 @@ class Collection(MPTTModel):
             # by Django
             ('view_collection', 'Can view collection'),
             ('share_collection', "Can change this collection's sharing settings"),
-            ('deny_view_collection', 'Blocks view privilege inherited from '
-                'ancestor'),
-            ('deny_change_collection', 'Blocks change privilege inherited from '
-                'ancestor'),
         )
 
     def _generate_uid(self):
@@ -50,64 +46,91 @@ class Collection(MPTTModel):
         # populate uid field if it's empty
         if self.uid == '':
             self.uid = self._generate_uid()
+        # Do the heavy lifting
         super(Collection, self).save(*args, **kwargs)
+        # Our parent may have changed; recalculate inherited permissions
+        self._recalculate_inherited_perms()
+        # Recalculate all descendants
+        for descendant in self.get_descendants():
+            descendant._recalculate_inherited_perms()
                     
     def __unicode__(self):
         return self.name
 
+    def _effective_perms(self, **kwargs):
+        grant_perms = set(ObjectPermission.objects.filter_for_object(self,
+            deny=False, **kwargs).values_list('user_id', 'permission_id'))
+        deny_perms = set(ObjectPermission.objects.filter_for_object(self,
+            deny=True, **kwargs).values_list('user_id', 'permission_id'))
+        return grant_perms.difference(deny_perms)
+
+    def _recalculate_inherited_perms(self):
+        # Start with a clean slate
+        ObjectPermission.objects.filter_for_object(
+            self,
+            inherited=True
+        ).delete()
+        if self.parent is None:
+            return
+        for user_id, permission_id in self.parent._effective_perms():
+            ObjectPermission.objects.create(
+                content_object=self,
+                user_id=user_id,
+                permission_id=permission_id,
+                inherited=True
+            )
+
+    def assign_perm(self, user_obj, perm, deny=False):
+        app_label, codename = perm_parse(perm, self)
+        perm_model = Permission.objects.get(
+            content_type__app_label=app_label,
+            codename=codename
+        )
+        existing_perms = ObjectPermission.objects.filter_for_object(
+            self,
+            user=user_obj,
+        )
+        if existing_perms.filter(
+            inherited=False,
+            permission_id=perm_model.pk,
+            deny=deny,
+        ):
+            # The user already has this permission directly applied
+            return
+        # Remove any explicitly-defined contradictory grants or denials
+        existing_perms.filter(user=user_obj,
+            permission_id=perm_model.pk,
+            deny=not deny,
+            inherited=False
+        ).delete()
+        # Create the new permission
+        ObjectPermission.objects.create(
+            content_object=self,
+            user=user_obj,
+            permission_id=perm_model.pk,
+            deny=deny,
+            inherited=False
+        )
+        # Recalculate all descendants
+        for descendant in self.get_descendants():
+            descendant._recalculate_inherited_perms()
+
+    def remove_perm(self, user_obj, perm, deny=False):
+        app_label, codename = perm_parse(perm, self)
+        ObjectPermission.objects.filter_for_object(
+            self,
+            user=user_obj,
+            permission__codename=codename,
+            deny=deny,
+            inherited=False
+        ).delete()
+        # Recalculate all descendants
+        for descendant in self.get_descendants():
+            descendant._recalculate_inherited_perms()
+
     def has_perm(self, user_obj, perm):
-        ''' Starting from this collection, walk toward the root of the tree
-        until a permissions record is found for the given user. '''
-        collection = self
-        split_perm = perm.split('.')
-        try:
-            app_label = split_perm[0]
-            codename = split_perm[1]
-        except IndexError:
-            # django.contrib.auth.backends.ModelBackend doesn't raise an
-            # exception in this case. If user doesn't have perm because perm is
-            # formatted invalidly, so be it.
-            return False
-        while collection is not None:
-            if user_obj.pk is collection.owner.pk:
-                # The owner has full access, so long as perm is a permission
-                # that applies to this object.
-                return Permission.objects.filter(
-                    content_type__app_label=app_label,
-                    codename=codename
-                ).exists()
-            try:
-                ObjectPermission.objects.get_for_object(
-                    self,
-                    user=user_obj,
-                    permission__content_type__app_label=app_label,
-                    permission__codename=codename
-                )
-                # If we got this far, we found a matching permissions record!
-                return True
-            except ObjectPermission.DoesNotExist:
-                pass
-            collection = collection.parent
-        # We got to the root of the tree without finding any matching
-        # permissions.
-        return False
-
-    """ Adios.
-
-    def get_all_user_privileges(self):
-        ''' Return all inherited and directly-assigned privileges in the format
-        {user_id: (can_view, can_edit)}. '''
-        user_privileges = {}
-        collections = list(self.get_ancestors().only('owner'))
-        collections.append(self)
-        for collection in collections:
-            for col_user in collection.collectionuser_set.all():
-                # More distant permissions are simply overwritten with
-                # nearer ones.
-                user_privileges[col_user.user_id] = get_role_privileges(
-                    col_user.role_type)
-            # The owner has full access.
-            user_privileges[collection.owner_id] = (True, True)
-        return user_privileges
-
-    """
+        app_label, codename = perm_parse(perm, self)
+        return len(self._effective_perms(
+            user_id=user_obj.pk,
+            permission__codename=codename
+        )) == 1

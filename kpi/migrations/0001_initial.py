@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
                 ('parent', mptt.fields.TreeForeignKey(related_name='children', blank=True, to='kpi.Collection', null=True)),
             ],
             options={
-                'permissions': (('view_collection', 'Can view collection'), ('share_collection', "Can change this collection's sharing settings"), ('deny_view_collection', 'Blocks view privilege inherited from ancestor'), ('deny_change_collection', 'Blocks change privilege inherited from ancestor')),
+                'permissions': (('view_collection', 'Can view collection'), ('share_collection', "Can change this collection's sharing settings")),
             },
             bases=(models.Model,),
         ),
@@ -39,6 +39,8 @@ class Migration(migrations.Migration):
             name='ObjectPermission',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('deny', models.BooleanField(default=False)),
+                ('inherited', models.BooleanField(default=False)),
                 ('object_id', models.PositiveIntegerField()),
                 ('content_type', models.ForeignKey(to='contenttypes.ContentType')),
                 ('permission', models.ForeignKey(to='auth.Permission')),
@@ -69,5 +71,9 @@ class Migration(migrations.Migration):
                 'permissions': (('view_surveyasset', 'Can view survey asset'), ('share_surveyasset', "Can change this survey asset's sharing settings"), ('deny_view_surveyasset', 'Blocks view privilege inherited from ancestor'), ('deny_change_surveyasset', 'Blocks change privilege inherited from ancestor')),
             },
             bases=(models.Model,),
+        ),
+        migrations.AlterUniqueTogether(
+            name='objectpermission',
+            unique_together=set([('user', 'permission', 'deny', 'inherited', 'object_id', 'content_type')]),
         ),
     ]

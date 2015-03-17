@@ -3,6 +3,21 @@ from django.core.exceptions import ValidationError
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 
+def perm_parse(perm, obj=None):
+    if obj is not None:
+        obj_app_label = ContentType.objects.get_for_model(obj).app_label
+    else:
+        obj_app_label = None
+    try:
+        app_label, codename = perm.split('.', 1)
+        if app_label != obj_app_label:
+            raise Exception('The app specified in the permission string does '
+                'not contain the given object.')
+    except ValueError:
+        app_label = obj_app_label
+        codename = perm
+    return app_label, codename
+
 class ObjectPermissionManager(models.Manager):
     def _rewrite_query_args(self, method, content_object, **kwargs):
         ''' Rewrite content_object into object_id and content_type, then pass
@@ -30,15 +45,20 @@ class ObjectPermission(models.Model):
     ''' An application of an auth.Permission instance to a specific
     content_object. Call ObjectPermission.objects.get_for_object() or
     filter_for_object() to run queries using the content_object field. '''
+    user = models.ForeignKey('auth.User')
     permission = models.ForeignKey('auth.Permission')
-    objects = ObjectPermissionManager()
+    deny = models.BooleanField(default=False)
+    inherited = models.BooleanField(default=False)
     object_id = models.PositiveIntegerField()
     # We can't do something like GenericForeignKey('permission__content_type'),
     # so duplicate the content_type field here.
     content_type = models.ForeignKey(ContentType)
     content_object = GenericForeignKey('content_type', 'object_id')
-    # This whole model keeps looking worse and worse.
-    user = models.ForeignKey('auth.User')
+    objects = ObjectPermissionManager()
+
+    class Meta:
+        unique_together = ('user', 'permission', 'deny', 'inherited',
+            'object_id', 'content_type')
     
     def save(self, *args, **kwargs):
         self.content_type = self.permission.content_type
