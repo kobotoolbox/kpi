@@ -68,7 +68,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'ordering': ('date_created',),
-                'permissions': (('view_surveyasset', 'Can view survey asset'), ('share_surveyasset', "Can change this survey asset's sharing settings"), ('deny_view_surveyasset', 'Blocks view privilege inherited from ancestor'), ('deny_change_surveyasset', 'Blocks change privilege inherited from ancestor')),
+                'permissions': (('view_surveyasset', 'Can view survey asset'), ('share_surveyasset', "Can change this survey asset's sharing settings")),
             },
             bases=(models.Model,),
         ),

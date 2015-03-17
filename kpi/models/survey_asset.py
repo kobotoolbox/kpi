@@ -5,8 +5,9 @@ from jsonfield import JSONField
 import reversion
 import json
 import copy
-from object_permission import ObjectPermission
+from object_permission import ObjectPermission, perm_parse
 from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 
 SURVEY_ASSET_TYPES = [
     ('text', 'text'),
@@ -36,10 +37,6 @@ class SurveyAsset(models.Model):
             # automatically by Django
             ('view_surveyasset', 'Can view survey asset'),
             ('share_surveyasset', "Can change this survey asset's sharing settings"),
-            ('deny_view_surveyasset', 'Blocks view privilege inherited from '
-                'ancestor'),
-            ('deny_change_surveyasset', 'Blocks change privilege inherited from '
-                'ancestor'),
         )
 
     def versions(self):
@@ -52,7 +49,7 @@ class SurveyAsset(models.Model):
         # by default, the content is assigned to a 'sheet' with the asset_type
         # as a name
         obj = { self.asset_type: self.content }
- 
+
         if self.additional_sheets:
             obj.update(copy.copy(self.additional_sheets))
 
@@ -84,60 +81,116 @@ class SurveyAsset(models.Model):
         self._populate_uid()
         with transaction.atomic(), reversion.create_revision():
             super(SurveyAsset, self).save(*args, **kwargs)
+        # Apply the owner's implicit permissions
+        self._recalculate_inherited_perms()
+
+    def _recalculate_inherited_perms(self):
+        ''' Copy all of our parent's effective permissions to ourself,
+        marking the copies as inherited permissions. The owner's rights are
+        also made explicit as "inherited" permissions. '''
+        # Start with a clean slate
+        ObjectPermission.objects.filter_for_object(
+            self,
+            inherited=True
+        ).delete()
+        # Is there anything to inherit?
+        if self.collection is None:
+            return
+        # All our parent's effective permissions become our inherited
+        # permissions
+        mangle_perm = lambda x: x.replace('_collection', '_surveyasset', 1)
+        # Store translations in a dictionary here to minimize invocations of
+        # the Django machinery
+        translate_perm = {}
+        for user_id, permission_id in self.collection._effective_perms():
+            try:
+                translated_id = translate_perm[permission_id]
+            except KeyError:
+                collection_perm = Permission.objects.get(
+                    pk=permission_id)
+                translated_id = Permission.objects.get(
+                    content_type__app_label=collection_perm.app_label,
+                    codename=mangle_perm(collection_perm.codename)
+                ).pk
+                translate_perm[permission_id] = translated_id
+            ObjectPermission.objects.create(
+                content_object=survey_asset,
+                user_id=user_id,
+                permission_id=translated_id,
+                inherited=True
+            )
+        # The owner gets every possible permission
+        content_type = ContentType.objects.get_for_model(self)
+        for perm in Permission.objects.filter(content_type=content_type):
+            # Use get_or_create in case the owner already has permissions
+            ObjectPermission.objects.get_or_create(
+                content_object=self,
+                user=self.owner,
+                permission=perm,
+                inherited=True
+            )
+
+    def _effective_perms(self, **kwargs):
+        ''' Reconcile all grant and deny permissions, and return an
+        authoritative set of grant permissions (i.e. deny=False) for the
+        current survey asset. '''
+        grant_perms = set(ObjectPermission.objects.filter_for_object(self,
+            deny=False, **kwargs).values_list('user_id', 'permission_id'))
+        deny_perms = set(ObjectPermission.objects.filter_for_object(self,
+            deny=True, **kwargs).values_list('user_id', 'permission_id'))
+        return grant_perms.difference(deny_perms)
 
     def has_perm(self, user_obj, perm):
-        ''' Determine of user_obj has perm on this survey asset. Considers both
-        directly applied permissions as well as those inherited from a 
-        collection. '''
-        split_perm = perm.split('.')
-        try:
-            app_label = split_perm[0]
-            codename = split_perm[1]
-        except IndexError:
-            # django.contrib.auth.backends.ModelBackend doesn't raise an
-            # exception in this case. If user doesn't have perm because perm is
-            # formatted invalidly, so be it.
-            return False
-        if user_obj.pk is self.owner.pk:
-            # The owner has full access, so long as perm is a permission that
-            # applies to this object.
-            return Permission.objects.filter(
-                content_type__app_label=app_label,
-                codename=codename
-            ).exists()
-        try:
-            ObjectPermission.objects.get_for_object(
-                self,
-                user=user_obj,
-                permission__content_type__app_label=app_label,
-                permission__codename=codename
-            )
-            # If we got this far, we found a matching permissions record!
-            return True
-        except ObjectPermission.DoesNotExist:
-            # No directly applied permissions match; check the collection
-            pass
-        if self.collection is not None:
-            # Rewrite the perm string so it references collection instead of
-            # surveyasset
-            mangled_perm = perm.replace('_surveyasset', '_collection', 1)
-            return self.collection.has_perm(user_obj, mangled_perm)
-        return False
+        ''' Does user_obj have perm on this survey asset? (True/False) '''
+        app_label, codename = perm_parse(perm, self)
+        return len(self._effective_perms(
+            user_id=user_obj.pk,
+            permission__codename=codename
+        )) == 1
 
-    """ The wet head is dead.
+    def assign_perm(self, user_obj, perm, deny=False):
+        ''' Assign user_obj the given perm on this survey asset. To break
+        inheritance from a parent collection, use deny=True. '''
+        app_label, codename = perm_parse(perm, self)
+        perm_model = Permission.objects.get(
+            content_type__app_label=app_label,
+            codename=codename
+        )
+        existing_perms = ObjectPermission.objects.filter_for_object(
+            self,
+            user=user_obj,
+        )
+        if existing_perms.filter(
+            inherited=False,
+            permission_id=perm_model.pk,
+            deny=deny,
+        ):
+            # The user already has this permission directly applied
+            return
+        # Remove any explicitly-defined contradictory grants or denials
+        existing_perms.filter(user=user_obj,
+            permission_id=perm_model.pk,
+            deny=not deny,
+            inherited=False
+        ).delete()
+        # Create the new permission
+        ObjectPermission.objects.create(
+            content_object=self,
+            user=user_obj,
+            permission_id=perm_model.pk,
+            deny=deny,
+            inherited=False
+        )
+        self._recalculate_inherited_perms()
 
-    def get_all_user_privileges(self):
-        ''' Return all inherited and directly-assigned privileges in the format
-        {user_id: (can_view, can_edit)}. '''
-        user_privileges = {}
-        if self.collection is not None:
-            user_privileges = self.collection.get_all_user_privileges()
-        # Directly applied permissions override those inherited from a
-        # collection.
-        for sa_user in self.surveyassetuser_set.all():
-            user_privileges[sa_user.id] = get_role_privileges(sa_user.role_type)
-        # The owner has full access.
-        user_privileges[self.owner_id] = (True, True)
-        return user_privileges
-
-    """
+    def remove_perm(self, user_obj, perm, deny=False):
+        ''' Revoke perm on this collection from user_obj. '''
+        app_label, codename = perm_parse(perm, self)
+        ObjectPermission.objects.filter_for_object(
+            self,
+            user=user_obj,
+            permission__codename=codename,
+            deny=deny,
+            inherited=False
+        ).delete()
+        self._recalculate_inherited_perms()

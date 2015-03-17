@@ -59,7 +59,7 @@ class ObjectPermission(models.Model):
     class Meta:
         unique_together = ('user', 'permission', 'deny', 'inherited',
             'object_id', 'content_type')
-    
+
     def save(self, *args, **kwargs):
         self.content_type = self.permission.content_type
         if self.content_type.pk is not ContentType.objects.get_for_model(

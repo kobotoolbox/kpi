@@ -4,6 +4,7 @@ from shortuuid import ShortUUID
 from kpi.models.survey_asset import SurveyAsset
 from object_permission import ObjectPermission, perm_parse
 from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 
 COLLECTION_UID_LENGTH = 22
 
@@ -50,14 +51,21 @@ class Collection(MPTTModel):
         super(Collection, self).save(*args, **kwargs)
         # Our parent may have changed; recalculate inherited permissions
         self._recalculate_inherited_perms()
+        for survey_asset in self.survey_assets.all():
+            suvey_asset._recalculate_inherited_perms()
         # Recalculate all descendants
         for descendant in self.get_descendants():
             descendant._recalculate_inherited_perms()
-                    
+            for survey_asset in descendant.survey_assets.all():
+                suvey_asset._recalculate_inherited_perms()
+
     def __unicode__(self):
         return self.name
 
     def _effective_perms(self, **kwargs):
+        ''' Reconcile all grant and deny permissions, and return an
+        authoritative set of grant permissions (i.e. deny=False) for the
+        current collection. '''
         grant_perms = set(ObjectPermission.objects.filter_for_object(self,
             deny=False, **kwargs).values_list('user_id', 'permission_id'))
         deny_perms = set(ObjectPermission.objects.filter_for_object(self,
@@ -65,13 +73,19 @@ class Collection(MPTTModel):
         return grant_perms.difference(deny_perms)
 
     def _recalculate_inherited_perms(self):
+        ''' Copy all of our parent's effective permissions to ourself,
+        marking the copies as inherited permissions. The owner's rights are
+        also made explicit as "inherited" permissions. '''
         # Start with a clean slate
         ObjectPermission.objects.filter_for_object(
             self,
             inherited=True
         ).delete()
+        # Is there anything to inherit?
         if self.parent is None:
             return
+        # All our parent's effective permissions become our inherited
+        # permissions
         for user_id, permission_id in self.parent._effective_perms():
             ObjectPermission.objects.create(
                 content_object=self,
@@ -79,8 +93,20 @@ class Collection(MPTTModel):
                 permission_id=permission_id,
                 inherited=True
             )
+        # The owner gets every possible permission
+        content_type = ContentType.objects.get_for_model(self)
+        for perm in Permission.objects.filter(content_type=content_type):
+            # Use get_or_create in case the owner already has permissions
+            ObjectPermission.objects.get_or_create(
+                content_object=self,
+                user=self.owner,
+                permission=perm,
+                inherited=True
+            )
 
     def assign_perm(self, user_obj, perm, deny=False):
+        ''' Assign user_obj the given perm on this collection. To break
+        inheritance from a parent collection, use deny=True. '''
         app_label, codename = perm_parse(perm, self)
         perm_model = Permission.objects.get(
             content_type__app_label=app_label,
@@ -111,11 +137,17 @@ class Collection(MPTTModel):
             deny=deny,
             inherited=False
         )
-        # Recalculate all descendants
+        # Recalculate our own child survey assets
+        for survey_asset in self.survey_assets.all():
+            suvey_asset._recalculate_inherited_perms()
+        # Recalculate all descendants and their child survey assets
         for descendant in self.get_descendants():
             descendant._recalculate_inherited_perms()
+            for survey_asset in descendant.survey_assets.all():
+                suvey_asset._recalculate_inherited_perms()
 
     def remove_perm(self, user_obj, perm, deny=False):
+        ''' Revoke perm on this collection from user_obj. '''
         app_label, codename = perm_parse(perm, self)
         ObjectPermission.objects.filter_for_object(
             self,
@@ -124,11 +156,17 @@ class Collection(MPTTModel):
             deny=deny,
             inherited=False
         ).delete()
-        # Recalculate all descendants
+        # Recalculate our own child survey assets
+        for survey_asset in self.survey_assets.all():
+            suvey_asset._recalculate_inherited_perms()
+        # Recalculate all descendants and their child survey assets
         for descendant in self.get_descendants():
             descendant._recalculate_inherited_perms()
+            for survey_asset in descendant.survey_assets.all():
+                suvey_asset._recalculate_inherited_perms()
 
     def has_perm(self, user_obj, perm):
+        ''' Does user_obj have perm on this collection? (True/False) '''
         app_label, codename = perm_parse(perm, self)
         return len(self._effective_perms(
             user_id=user_obj.pk,
