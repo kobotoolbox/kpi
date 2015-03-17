@@ -17,3 +17,11 @@ class CollectionsTests(APITestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['name'], 'my collection')
+
+class AnonymousCollectionsTest(APITestCase):
+    def test_cannot_create_collection(self):
+        url = reverse('collection-list')
+        data = {'name': 'my collection', 'collections': [], 'survey_assets': []}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, msg=\
+                    "anonymous user cannot create a collection")
