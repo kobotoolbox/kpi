@@ -33,14 +33,17 @@ from kpi.renderers import (
 
 
 class CollectionViewSet(viewsets.ModelViewSet):
-    queryset = Collection.objects.all()
+    queryset = Collection.objects.none()
     serializer_class = CollectionSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly,)
     lookup_field = 'uid'
 
     def get_queryset(self, *args, **kwargs):
-        return Collection.objects.filter(owner=self.request.user)
+        if self.request.user.is_authenticated():
+            return Collection.objects.filter(owner=self.request.user)
+        else:
+            return Collection.objects.none()
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -68,7 +71,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
                 return Tag.objects.filter(taggit_taggeditem_items__object_id__in=ids,
                                         taggit_taggeditem_items__content_type_id=content_type_id).filter().distinct().values_list('id', flat=True)
             all_tag_ids = list(chain(
-                                    _get_tags_on_items('collection', user.collections.all()),
+                                    _get_tags_on_items('collection', user.owned_collections.all()),
                                     _get_tags_on_items('surveyasset', user.survey_assets.all()),
                                     ))
             return Tag.objects.filter(id__in=all_tag_ids)
@@ -123,6 +126,7 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
                         XlsRenderer,
                         EnketoPreviewLinkRenderer,
                         )
+
     def get_serializer_class(self):
         if self.action == 'list':
             return SurveyAssetListSerializer
@@ -130,7 +134,10 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
             return SurveyAssetSerializer
 
     def get_queryset(self, *args, **kwargs):
-        return SurveyAsset.objects.filter(owner=self.request.user)
+        if self.request.user.is_authenticated():
+            return SurveyAsset.objects.filter(owner=self.request.user)
+        else:
+            return SurveyAsset.objects.none()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

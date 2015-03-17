@@ -129,10 +129,10 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = User
-        fields = ('url', 'username', 'survey_assets', 'collections')
+        fields = ('url', 'username', 'survey_assets', 'owned_collections')
         lookup_field = 'username'
         extra_kwargs = {
-            'collections': {
+            'owned_collections': {
                 'lookup_field': 'uid',
             },
         }
@@ -142,7 +142,7 @@ class UserListSerializer(UserSerializer):
     collections_count = serializers.SerializerMethodField('_collections_count')
 
     def _collections_count(self, obj):
-        return obj.collections.count()
+        return obj.owned_collections.count()
     def _survey_assets_count(self, obj):
         return obj.survey_assets.count()
 
