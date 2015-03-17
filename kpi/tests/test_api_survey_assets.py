@@ -13,6 +13,13 @@ class SurveyAssetsListApiTests(APITestCase):
     def setUp(self):
         self.client.login(username='admin', password='pass')
 
+    def test_login_as_other_users(self):
+        self.client.logout()
+        self.client.login(username='someuser', password='someuser')
+        self.client.logout()
+        self.client.login(username='anotheruser', password='anotheruser')
+        self.client.logout()
+
     def test_create_survey_asset(self):
         """
         Ensure we can create a new account object.
