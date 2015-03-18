@@ -71,17 +71,17 @@ class TagListSerializer(TagSerializer):
 
 
 class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
-    owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username', \
-                                                read_only=True)
+    owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username',
+                                                read_only=True,)
     parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
     assetType = serializers.ReadOnlyField(read_only=True, source='asset_type')
     settings = WritableJSONField(required=False)
-    collection = TaggedHyperlinkedRelatedField(lookup_field='uid', queryset=Collection.objects.all(),
-                                                view_name='collection-detail', required=False)
     content = WritableJSONField(write_only=True)
     ss_json = serializers.SerializerMethodField('_to_ss_json', read_only=True)
-    tags = serializers.SerializerMethodField('get_tag_names')
+    tags = serializers.SerializerMethodField('_get_tag_names')
     version_count = serializers.SerializerMethodField('_version_count')
+    collection = TaggedHyperlinkedRelatedField(lookup_field='uid', queryset=Collection.objects.all(),
+                                                view_name='collection-detail', required=False)
 
     class Meta:
         model = SurveyAsset
@@ -96,6 +96,12 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
             },
         }
 
+    def get_fields(self, *args, **kwargs):
+        fields = super(SurveyAssetSerializer, self).get_fields(*args, **kwargs)
+        user = self.context['request'].user
+        fields['collection'].queryset = fields['collection'].queryset.filter(owner=user)
+        return fields
+
     def _version_count(self, obj):
         return reversion.get_for_object(obj).count()
 
@@ -109,19 +115,13 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
         request = self.context.get('request', None)
         return reverse_lazy('surveyasset-list', request=request)
 
-    def get_tag_names(self, obj):
+    def _get_tag_names(self, obj):
         return obj.tags.names()
 
     def _table_url(self, obj):
         request = self.context.get('request', None)
         return reverse('surveyasset-table-view', args=(obj.uid,), request=request)
 
-    # def _get_collection_route(self, obj):
-    #     '''
-    #     it would be nice to get these urls routing to the uid, instead of the numeric id
-    #     '''
-    #     request = self.context.get('request', None)
-    #     return reverse('collection-detail', args=(obj.collection.uid,), request=request)
 
 class SurveyAssetListSerializer(SurveyAssetSerializer):
     class Meta(SurveyAssetSerializer.Meta):
@@ -161,7 +161,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
                 lookup_field='username', read_only=True)
     survey_assets = TaggedHyperlinkedRelatedField(many=True, lookup_field='uid',
                  view_name='surveyasset-detail', read_only=True)
-    tags = serializers.SerializerMethodField('get_tag_names')
+    tags = serializers.SerializerMethodField('_get_tag_names')
 
     class Meta:
         model = Collection
@@ -173,7 +173,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
             },
         }
 
-    def get_tag_names(self, obj):
+    def _get_tag_names(self, obj):
         return obj.tags.names()
 
 class CollectionListSerializer(CollectionSerializer):
