@@ -146,6 +146,11 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+    @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
+    def koboform(self, request, *args, **kwargs):
+        survey_asset = self.get_object()
+        return Response({'survey_asset': survey_asset,}, template_name='koboform.html')
+
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def table_view(self, request, *args, **kwargs):
         sa = self.get_object()

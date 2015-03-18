@@ -38,13 +38,13 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
     'reversion',
     'debug_toolbar',
     'mptt',
     'kpi',
     'django_extensions',
     'taggit',
+    'rest_framework',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -90,6 +90,11 @@ USE_TZ = True
 
 STATIC_ROOT = 'staticfiles'
 STATIC_URL = '/static/'
+
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'dkobo', 'jsapp'),
+    os.path.join(BASE_DIR, 'dkobo', 'dkobo', 'static'),
+)
 
 REST_FRAMEWORK = {
     'PAGINATE_BY': 25,

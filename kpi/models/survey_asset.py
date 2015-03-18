@@ -61,11 +61,13 @@ class SurveyAsset(models.Model):
     def versioned_data(self):
         return [v.field_dict for v in self.versions()]
 
-    def _to_ss_structure(self, content_tag='survey'):
+    def _to_ss_structure(self, content_tag=None):
         # by default, the content is assigned to a 'sheet' with the asset_type
         # as a name
-        obj = { self.asset_type: self.content }
- 
+        if not content_tag:
+            content_tag = self.asset_type
+        obj = { content_tag: self.content }
+
         if self.additional_sheets:
             obj.update(copy.copy(self.additional_sheets))
 
