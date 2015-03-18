@@ -92,17 +92,16 @@ class Collection(MPTTModel):
             inherited=True
         ).delete()
         # Is there anything to inherit?
-        if self.parent is None:
-            return
-        # All our parent's effective permissions become our inherited
-        # permissions
-        for user_id, permission_id in self.parent._effective_perms():
-            ObjectPermission.objects.create(
-                content_object=self,
-                user_id=user_id,
-                permission_id=permission_id,
-                inherited=True
-            )
+        if self.parent is not None:
+            # All our parent's effective permissions become our inherited
+            # permissions
+            for user_id, permission_id in self.parent._effective_perms():
+                ObjectPermission.objects.create(
+                    content_object=self,
+                    user_id=user_id,
+                    permission_id=permission_id,
+                    inherited=True
+                )
         # The owner gets every possible permission
         content_type = ContentType.objects.get_for_model(self)
         for perm in Permission.objects.filter(content_type=content_type):
@@ -182,3 +181,31 @@ class Collection(MPTTModel):
             user_id=user_obj.pk,
             permission__codename=codename
         )) == 1
+
+    def get_perms(self, user_obj):
+        ''' Return a list of codenames of all effective grant permissions that
+        user_obj has on this collection. '''
+        user_perm_ids = self._effective_perms(user=user_obj)
+        perm_ids = [x[1] for x in user_perm_ids]
+        return Permission.objects.filter(pk__in=perm_ids).values_list(
+            'codename', flat=True)
+
+    def get_users_with_perms(self, attach_perms=False):
+        ''' Return a QuerySet of all users with any effective grant permission
+        on this collection. If attach_perms=True, then return a dict with
+        users as the keys and lists of their permissions as the values. '''
+        user_perm_ids = self._effective_perms()
+        if attach_perms:
+            user_perm_dict = {}
+            for user_id, perm_id in user_perm_ids:
+                perm_list = user_perm_dict.get(user_id, [])
+                perm_list.append(Permission.objects.get(pk=perm_id).codename)
+                user_perm_dict[user_id] = perm_list
+            # Resolve user ids into actual user objects
+            user_perm_dict = {User.objects.get(pk=key): value for (key, value)
+                in user_perm_dict.iteritems()}
+            return user_perm_dict
+        else:
+            # Use a set to avoid duplicate users
+            user_ids = {x[0] for x in user_perm_ids}
+            return User.objects.filter(pk__in=user_ids)

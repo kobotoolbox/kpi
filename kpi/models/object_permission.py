@@ -11,12 +11,20 @@ def perm_parse(perm, obj=None):
     try:
         app_label, codename = perm.split('.', 1)
         if app_label != obj_app_label:
-            raise Exception('The app specified in the permission string does '
-                'not contain the given object.')
+            raise ValidationError('The app specified in the permission string '
+                'does not contain the given object.')
     except ValueError:
         app_label = obj_app_label
         codename = perm
     return app_label, codename
+
+def get_all_objects_for_user(user, klass):
+    ''' Return all objects of type klass on which user has been assigned any
+    permission. '''
+    return klass.objects.filter(pk__in=ObjectPermission.objects.filter(
+        user=user,
+        content_type=ContentType.objects.get_for_model(klass)
+    ).values_list('object_id', flat=True))
 
 class ObjectPermissionManager(models.Manager):
     def _rewrite_query_args(self, method, content_object, **kwargs):
@@ -70,9 +78,7 @@ class ObjectPermission(models.Model):
             'object_id', 'content_type')
 
     def save(self, *args, **kwargs):
-        self.content_type = self.permission.content_type
-        if self.content_type.pk is not ContentType.objects.get_for_model(
-            self.content_object).pk:
+        if self.permission.content_type_id is not self.content_type_id: 
             raise ValidationError('The content type of the permission does '
                 'not match that of the object.')
         super(ObjectPermission, self).save(*args, **kwargs)
