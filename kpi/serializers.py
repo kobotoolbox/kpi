@@ -5,6 +5,7 @@ from rest_framework.pagination import PaginationSerializer
 from rest_framework.reverse import reverse_lazy, reverse
 from kpi.models import SurveyAsset
 from kpi.models import Collection
+import reversion
 import urllib
 import json
 
@@ -80,18 +81,23 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     content = WritableJSONField(write_only=True)
     ss_json = serializers.SerializerMethodField('_to_ss_json', read_only=True)
     tags = serializers.SerializerMethodField('get_tag_names')
+    version_count = serializers.SerializerMethodField('_version_count')
 
     class Meta:
         model = SurveyAsset
         lookup_field = 'uid'
         fields = ('url', 'parent', 'owner', 'collection',
                     'settings', 'assetType', 'ss_json',
+                    'version_count',
                     'name', 'content', 'tags', )
         extra_kwargs = {
             'collection': {
                 'lookup_field': 'uid',
             },
         }
+
+    def _version_count(self, obj):
+        return reversion.get_for_object(obj).count()
 
     def _to_ss_json(self, obj):
         return obj._to_ss_structure()
