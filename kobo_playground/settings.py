@@ -91,10 +91,13 @@ USE_TZ = True
 STATIC_ROOT = 'staticfiles'
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'dkobo', 'jsapp'),
-    os.path.join(BASE_DIR, 'dkobo', 'dkobo', 'static'),
-)
+STATICFILES_DIRS = tuple()
+
+if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
+    STATICFILES_DIRS = STATICFILES_DIRS + (
+        os.path.join(BASE_DIR, 'dkobo', 'jsapp'),
+        os.path.join(BASE_DIR, 'dkobo', 'dkobo', 'static'),
+    )
 
 REST_FRAMEWORK = {
     'PAGINATE_BY': 25,
