@@ -102,4 +102,5 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_SERIALIZER_CLASS': 'kpi.serializers.Paginated',
 }
 
-STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+if not DEBUG:
+    STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
