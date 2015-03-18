@@ -10,6 +10,7 @@ import copy
 from object_permission import ObjectPermission, perm_parse
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
+import re
 
 SURVEY_ASSET_TYPES = [
     ('text', 'text'),
@@ -109,8 +110,8 @@ class SurveyAsset(models.Model):
         # Is there anything to inherit?
         if self.collection is not None:
             # All our parent's effective permissions become our inherited
-            # permissions
-            mangle_perm = lambda x: x.replace('_collection', '_surveyasset', 1)
+            # permissions.
+            mangle_perm = lambda x: re.sub('_collection$', '_surveyasset', x)
             # Store translations in a dictionary here to minimize invocations of
             # the Django machinery
             translate_perm = {}
@@ -121,7 +122,8 @@ class SurveyAsset(models.Model):
                     collection_perm = Permission.objects.get(
                         pk=permission_id)
                     translated_id = Permission.objects.get(
-                        content_type__app_label=collection_perm.content_type.app_label,
+                        content_type__app_label=\
+                            collection_perm.content_type.app_label,
                         codename=mangle_perm(collection_perm.codename)
                     ).pk
                     translate_perm[permission_id] = translated_id
@@ -162,7 +164,7 @@ class SurveyAsset(models.Model):
             permission__codename=codename
         )) == 1
 
-    def assign_perm(self, user_obj, perm, deny=False):
+    def assign_perm(self, user_obj, perm, deny=False, defer_recalc=False):
         ''' Assign user_obj the given perm on this survey asset. To break
         inheritance from a parent collection, use deny=True. '''
         app_label, codename = perm_parse(perm, self)
@@ -195,6 +197,19 @@ class SurveyAsset(models.Model):
             deny=deny,
             inherited=False
         )
+        # Granting change implies granting view
+        if codename.startswith('change_') and not deny:
+            change_codename = re.sub('^change_', 'view_', codename)
+            self.assign_perm(user_obj, change_codename, defer_recalc=True)
+        # Denying view implies denying change
+        if deny and codename.startswith('view_'):
+            change_codename = re.sub('^view_', 'change_', codename)
+            self.assign_perm(user_obj, change_codename,
+                             deny=True, defer_recalc=True)
+        # We might have been called by ourself to assign a related
+        # permission. In that case, don't recalculate here.
+        if defer_recalc:
+            return
         self._recalculate_inherited_perms()
 
     def remove_perm(self, user_obj, perm, deny=False):

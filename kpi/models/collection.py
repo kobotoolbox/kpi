@@ -7,6 +7,7 @@ from taggit.models import Tag
 from object_permission import ObjectPermission, perm_parse
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+import re
 
 COLLECTION_UID_LENGTH = 22
 
@@ -113,7 +114,7 @@ class Collection(MPTTModel):
                 inherited=True
             )
 
-    def assign_perm(self, user_obj, perm, deny=False):
+    def assign_perm(self, user_obj, perm, deny=False, defer_recalc=False):
         ''' Assign user_obj the given perm on this collection. To break
         inheritance from a parent collection, use deny=True. '''
         app_label, codename = perm_parse(perm, self)
@@ -146,6 +147,19 @@ class Collection(MPTTModel):
             deny=deny,
             inherited=False
         )
+        # Granting change implies granting view
+        if codename.startswith('change_') and not deny:
+            change_codename = re.sub('^change_', 'view_', codename)
+            self.assign_perm(user_obj, change_codename, defer_recalc=True)
+        # Denying view implies denying change
+        if deny and codename.startswith('view_'):
+            change_codename = re.sub('^view_', 'change_', codename)
+            self.assign_perm(user_obj, change_codename,
+                             deny=True, defer_recalc=True)
+        # We might have been called by ourself to assign a related
+        # permission. In that case, don't recalculate here.
+        if defer_recalc:
+            return
         # Recalculate our own child survey assets
         for survey_asset in self.survey_assets.all():
             suvey_asset._recalculate_inherited_perms()
