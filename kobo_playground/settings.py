@@ -44,6 +44,7 @@ INSTALLED_APPS = (
     'mptt',
     'kpi',
     'django_extensions',
+    'taggit',
 )
 
 MIDDLEWARE_CLASSES = (

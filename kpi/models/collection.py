@@ -2,6 +2,8 @@ from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
 from shortuuid import ShortUUID
 from kpi.models.survey_asset import SurveyAsset
+from taggit.managers import TaggableManager
+from taggit.models import Tag
 from object_permission import ObjectPermission, perm_parse
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
@@ -24,6 +26,13 @@ class CollectionManager(models.Manager):
             # SurveyAsset.objects.bulk_create(new_assets)
         return created
 
+    def filter_by_tag_name(self, tag_name):
+        try:
+            tag = Tag.objects.get(name=tag_name)
+        except Tag.DoesNotExist, e:
+            return self.none()
+        return self.filter(tags=tag)
+
 class Collection(MPTTModel):
     name = models.CharField(max_length=255)
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children')
@@ -31,6 +40,7 @@ class Collection(MPTTModel):
     editors_can_change_permissions = models.BooleanField(default=True)
     uid = models.CharField(max_length=COLLECTION_UID_LENGTH, default='')
     objects = CollectionManager()
+    tags = TaggableManager()
 
     class Meta:
         permissions = (

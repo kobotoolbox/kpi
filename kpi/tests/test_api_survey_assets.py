@@ -25,10 +25,14 @@ class SurveyAssetsListApiTests(APITestCase):
         Ensure we can create a new account object.
         """
         url = reverse('surveyasset-list')
-        data = {'content': '[]'}
+        data = {
+            'content': json.dumps([]),
+        }
         response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['content'], [])
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED,
+                            msg=response.data)
+        sa = SurveyAsset.objects.last()
+        self.assertEqual(sa.content, [])
 
     def test_query_table_view(self):
         url = reverse('surveyasset-list')
@@ -44,14 +48,12 @@ class SurveyAssetsDetailApiTests(APITestCase):
         url = reverse('surveyasset-list')
         data = {'content': '[]'}
         self.r = self.client.post(url, data, format='json')
-        self.asset_uid = self.r.data['uid']
         self.asset_url = self.r.data['url']
         self.assertEqual(self.r.status_code, status.HTTP_201_CREATED)
 
     def test_survey_asset_exists(self):
         resp = self.client.get(self.asset_url, format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(resp.data['uid'], self.asset_uid)
 
     def test_can_update_survey_asset_settings(self):
         data = {

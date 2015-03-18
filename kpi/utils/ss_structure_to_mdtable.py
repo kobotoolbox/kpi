@@ -1,6 +1,26 @@
 from collections import defaultdict
 import string
 
+def _convert_sheets_to_lists(content):
+    if isinstance(content[0], list):
+        cols = set(content[0])
+    else:
+        cols = set()
+    for row in content:
+        if isinstance(row, dict):
+            for key, val in row.items():
+                cols.add(key)
+    out_content = [list(cols)]
+    for row in content:
+        if isinstance(row, list):
+            out_content.append(row)
+        else:
+            out_row = []
+            for col in cols:
+                out_row.append(row.get(col, ''))
+            out_content.append(out_row)
+    return out_content
+
 def ss_structure_to_mdtable(content):
     """
     receives a dict or OrderedDict with arrays of arrays representing
@@ -14,7 +34,8 @@ def ss_structure_to_mdtable(content):
 
     for (key, contents) in content.items():
         out_sheets[key] = output
-        for row in contents:
+        list_of_lists = _convert_sheets_to_lists(contents)
+        for row in list_of_lists:
             output.append(['' if cell is None else unicode(cell) for cell in row])
         output = []
 

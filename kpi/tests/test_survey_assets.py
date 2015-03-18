@@ -8,26 +8,45 @@ class SurveyAssetsTestCase(TestCase):
     fixtures = ['test_data']
 
     def setUp(self):
+        self.user = User.objects.all()[0]
         self.survey_asset = SurveyAsset.objects.create(content=[
             {'type': 'text', 'label': 'Question 1', 'name': 'q1', 'kuid': 'abc'},
             {'type': 'text', 'label': 'Question 2', 'name': 'q2', 'kuid': 'def'},
-        ])
+        ], owner = self.user)
         self.sa = self.survey_asset
-        self.user = User.objects.all()[0]
 
-class SurveyAssetsTests(SurveyAssetsTestCase):
-    def test_strip_kuids(self):
-        sans_kuid = self.sa.to_ss_structure(content_tag='survey', strip_kuids=True)['survey']
-        self.assertEqual(len(sans_kuid), 2)
-        self.assertTrue('kuid' not in sans_kuid[0].keys())
-
-class CreateSurveyAssetVersions(SurveyAssetsTests):
+class CreateSurveyAssetVersions(SurveyAssetsTestCase):
     def test_survey_asset_with_versions(self):
-        sa = self.survey_asset
         self.survey_asset.content[0]['type'] = 'integer'
         self.assertEqual(self.survey_asset.content[0]['type'], 'integer')
         self.survey_asset.save()
         self.assertEqual(len(self.survey_asset.versions()), 2)
+
+    def test_asset_can_be_owned(self):
+        self.assertEqual(self.survey_asset.owner, self.user)
+
+    def test_asset_can_be_tagged(self):
+        def _list_tag_names():
+            return sorted(list(self.survey_asset.tags.names()))
+        self.assertEqual(_list_tag_names(), [])
+        self.survey_asset.tags.add('tag1')
+        self.assertEqual(_list_tag_names(), ['tag1'])
+        # duplicate tags ignored
+        self.survey_asset.tags.add('tag1')
+        self.assertEqual(_list_tag_names(), ['tag1'])
+        self.survey_asset.tags.add('tag2')
+        self.assertEqual(_list_tag_names(), ['tag1', 'tag2'])
+
+
+    def test_asset_can_be_anonymous(self):
+        anon_asset = SurveyAsset.objects.create(content=[])
+        self.assertEqual(anon_asset.owner, None)
+
+class ReadSurveyAssetsTests(SurveyAssetsTestCase):
+    def test_strip_kuids(self):
+        sans_kuid = self.sa.to_ss_structure(content_tag='survey', strip_kuids=True)['survey']
+        self.assertEqual(len(sans_kuid), 2)
+        self.assertTrue('kuid' not in sans_kuid[0].keys())
 
 class UpdateSurveyAssetsTest(SurveyAssetsTestCase):
     def test_add_settings(self):
