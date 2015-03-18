@@ -6,6 +6,7 @@ from kpi.serializers import UserSerializer, UserListSerializer
 from kpi.serializers import TagSerializer, TagListSerializer
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
 from rest_framework import permissions
 from kpi.permissions import IsOwnerOrReadOnly
 from rest_framework.decorators import api_view
@@ -54,6 +55,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
         else:
             return CollectionSerializer
 
+
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
@@ -66,15 +68,15 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
                 '''
                 return all ids of tags which are tagged to items of the given content_type
                 '''
-                content_type_id = ContentType.objects.get(model=content_type_name).id
-                ids = avail_items.values_list('id', flat=True)
-                return Tag.objects.filter(taggit_taggeditem_items__object_id__in=ids,
-                                        taggit_taggeditem_items__content_type_id=content_type_id).filter().distinct().values_list('id', flat=True)
+                same_content_type = Q(taggit_taggeditem_items__content_type__model=content_type_name)
+                same_id = Q(taggit_taggeditem_items__object_id__in=avail_items.values_list('id'))
+                return Tag.objects.filter(same_content_type & same_id).distinct().values_list('id', flat=True)
             all_tag_ids = list(chain(
                                     _get_tags_on_items('collection', user.owned_collections.all()),
                                     _get_tags_on_items('surveyasset', user.survey_assets.all()),
                                     ))
-            return Tag.objects.filter(id__in=all_tag_ids)
+
+            return Tag.objects.filter(id__in=all_tag_ids).distinct()
         else:
             return Tag.objects.none()
 
