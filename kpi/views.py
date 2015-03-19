@@ -6,6 +6,7 @@ from kpi.serializers import UserSerializer, UserListSerializer
 from kpi.serializers import TagSerializer, TagListSerializer
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
 from rest_framework import permissions
 from kpi.permissions import IsOwnerOrReadOnly
 from rest_framework.decorators import api_view
@@ -22,25 +23,28 @@ from rest_framework import status
 from rest_framework.decorators import detail_route
 from taggit.models import Tag
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
+from kpi.highlighters import highlight_xform
 from kpi.renderers import (
     AssetJsonRenderer,
     SSJsonRenderer,
     XFormRenderer,
-    MdTableRenderer,
     XlsRenderer,
     EnketoPreviewLinkRenderer,
 )
 
 
 class CollectionViewSet(viewsets.ModelViewSet):
-    queryset = Collection.objects.all()
+    queryset = Collection.objects.none()
     serializer_class = CollectionSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly,)
     lookup_field = 'uid'
 
     def get_queryset(self, *args, **kwargs):
-        return Collection.objects.filter(owner=self.request.user)
+        if self.request.user.is_authenticated():
+            return Collection.objects.filter(owner=self.request.user)
+        else:
+            return Collection.objects.none()
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -50,6 +54,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
             return CollectionListSerializer
         else:
             return CollectionSerializer
+
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
@@ -63,15 +68,15 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
                 '''
                 return all ids of tags which are tagged to items of the given content_type
                 '''
-                content_type_id = ContentType.objects.get(model=content_type_name).id
-                ids = avail_items.values_list('id', flat=True)
-                return Tag.objects.filter(taggit_taggeditem_items__object_id__in=ids,
-                                        taggit_taggeditem_items__content_type_id=content_type_id).filter().distinct().values_list('id', flat=True)
+                same_content_type = Q(taggit_taggeditem_items__content_type__model=content_type_name)
+                same_id = Q(taggit_taggeditem_items__object_id__in=avail_items.values_list('id'))
+                return Tag.objects.filter(same_content_type & same_id).distinct().values_list('id', flat=True)
             all_tag_ids = list(chain(
-                                    _get_tags_on_items('collection', user.collections.all()),
+                                    _get_tags_on_items('collection', user.owned_collections.all()),
                                     _get_tags_on_items('surveyasset', user.survey_assets.all()),
                                     ))
-            return Tag.objects.filter(id__in=all_tag_ids)
+
+            return Tag.objects.filter(id__in=all_tag_ids).distinct()
         else:
             return Tag.objects.none()
 
@@ -101,6 +106,7 @@ from rest_framework.parsers import MultiPartParser
 class XlsFormParser(MultiPartParser):
     pass
 
+
 class SurveyAssetViewSet(viewsets.ModelViewSet):
     """
     This viewset automatically provides `list`, `create`, `retrieve`,
@@ -118,11 +124,11 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
                         renderers.BrowsableAPIRenderer,
                         AssetJsonRenderer,
                         SSJsonRenderer,
-                        MdTableRenderer,
                         XFormRenderer,
                         XlsRenderer,
                         EnketoPreviewLinkRenderer,
                         )
+
     def get_serializer_class(self):
         if self.action == 'list':
             return SurveyAssetListSerializer
@@ -130,7 +136,10 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
             return SurveyAssetSerializer
 
     def get_queryset(self, *args, **kwargs):
-        return SurveyAsset.objects.filter(owner=self.request.user)
+        if self.request.user.is_authenticated():
+            return SurveyAsset.objects.filter(owner=self.request.user)
+        else:
+            return SurveyAsset.objects.none()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -139,11 +148,39 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+    @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
+    def koboform(self, request, *args, **kwargs):
+        survey_asset = self.get_object()
+        return Response({'survey_asset': survey_asset,}, template_name='koboform.html')
+
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def table_view(self, request, *args, **kwargs):
         sa = self.get_object()
         md_table = ss_structure_to_mdtable(sa._to_ss_structure())
-        return Response("<html><body><code><pre>%s</pre></code></body></html>" % md_table)
+        return Response(_wrap_html_pre(md_table))
+
+    @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
+    def xls(self, request, *args, **kwargs):
+        return self.table_view(self, request, *args, **kwargs)
+
+    @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
+    def xform(self, request, *args, **kwargs):
+        survey_asset = self.get_object()
+        export = survey_asset.export
+        title = '[%s] %s' % (self.request.user.username, reverse('surveyasset-detail', args=(survey_asset.uid,), request=self.request),)
+        header = '\n<!-- kpi/views.py#header -->\n'
+        footer = '\n<!-- kpi/views.py#footer -->\n'
+        options = {
+            'linenos': True,
+            'full': True,
+            'title': title,
+            'header': header,
+            'footer': footer,
+        }
+        return Response(highlight_xform(export.xml, **options))
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+def _wrap_html_pre(content):
+    return "<!doctype html><html><body><code><pre>%s</pre></code></body></html>" % content

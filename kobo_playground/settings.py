@@ -38,13 +38,13 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
     'reversion',
     'debug_toolbar',
     'mptt',
     'kpi',
     'django_extensions',
     'taggit',
+    'rest_framework',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -91,10 +91,19 @@ USE_TZ = True
 STATIC_ROOT = 'staticfiles'
 STATIC_URL = '/static/'
 
+STATICFILES_DIRS = tuple()
+
+if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
+    STATICFILES_DIRS = STATICFILES_DIRS + (
+        os.path.join(BASE_DIR, 'dkobo', 'jsapp'),
+        os.path.join(BASE_DIR, 'dkobo', 'dkobo', 'static'),
+    )
+
 REST_FRAMEWORK = {
     'PAGINATE_BY': 25,
     'URL_FIELD_NAME': 'url',
     'DEFAULT_PAGINATION_SERIALIZER_CLASS': 'kpi.serializers.Paginated',
 }
 
-STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+if not DEBUG:
+    STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
