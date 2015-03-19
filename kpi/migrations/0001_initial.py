@@ -5,14 +5,16 @@ from django.db import models, migrations
 import mptt.fields
 import jsonfield.fields
 from django.conf import settings
+import taggit.managers
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('auth', '0001_initial'),
+        ('taggit', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('contenttypes', '0001_initial'),
+        ('auth', '0001_initial'),
     ]
 
     operations = [
@@ -29,6 +31,7 @@ class Migration(migrations.Migration):
                 ('level', models.PositiveIntegerField(editable=False, db_index=True)),
                 ('owner', models.ForeignKey(related_name='owned_collections', to=settings.AUTH_USER_MODEL)),
                 ('parent', mptt.fields.TreeForeignKey(related_name='children', blank=True, to='kpi.Collection', null=True)),
+                ('tags', taggit.managers.TaggableManager(to='taggit.Tag', through='taggit.TaggedItem', help_text='A comma-separated list of tags.', verbose_name='Tags')),
             ],
             options={
                 'permissions': (('view_collection', 'Can view collection'), ('share_collection', "Can change this collection's sharing settings")),
@@ -65,6 +68,7 @@ class Migration(migrations.Migration):
                 ('uid', models.CharField(default=b'', max_length=22)),
                 ('collection', models.ForeignKey(related_name='survey_assets', to='kpi.Collection', null=True)),
                 ('owner', models.ForeignKey(related_name='survey_assets', to=settings.AUTH_USER_MODEL, null=True)),
+                ('tags', taggit.managers.TaggableManager(to='taggit.Tag', through='taggit.TaggedItem', help_text='A comma-separated list of tags.', verbose_name='Tags')),
             ],
             options={
                 'ordering': ('date_created',),

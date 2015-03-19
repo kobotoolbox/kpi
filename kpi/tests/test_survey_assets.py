@@ -3,6 +3,7 @@ from kpi.models import Collection
 from django.contrib.auth.models import User
 from django.test import TestCase
 import json
+import re
 
 class SurveyAssetsTestCase(TestCase):
     fixtures = ['test_data']
@@ -12,7 +13,7 @@ class SurveyAssetsTestCase(TestCase):
         self.survey_asset = SurveyAsset.objects.create(content=[
             {'type': 'text', 'label': 'Question 1', 'name': 'q1', 'kuid': 'abc'},
             {'type': 'text', 'label': 'Question 2', 'name': 'q2', 'kuid': 'def'},
-        ], owner = self.user)
+        ], owner=self.user)
         self.sa = self.survey_asset
 
 class CreateSurveyAssetVersions(SurveyAssetsTestCase):
@@ -60,14 +61,53 @@ class UpdateSurveyAssetsTest(SurveyAssetsTestCase):
             })
 
 class ShareSurveyAssetsTest(SurveyAssetsTestCase):
-    # TODO!
-    def test_user_view_permission(self): pass
-    def test_user_edit_permission(self): pass
-    def test_user_inherited_view_permission(self): pass
-    def test_user_inherited_edit_permission(self): pass
+    def setUp(self):
+        super(ShareSurveyAssetsTest, self).setUp()
+        self.someuser = User.objects.get(username='someuser')
+        self.anotheruser = User.objects.get(username='anotheruser')
+        self.coll = Collection.objects.create(owner=self.user)
+        # Make a copy of self.survey_asset and put it inside self.coll
+        self.sa_in_coll = self.survey_asset
+        self.sa_in_coll.pk = None
+        self.sa_in_coll.collection = self.coll
+        self.sa_in_coll.save()
+
+    def grant_and_revoke_standalone(self, user, perm):
+        self.assertEqual(user.has_perm(perm, self.survey_asset), False)
+        # Grant
+        self.survey_asset.assign_perm(user, perm)
+        self.assertEqual(user.has_perm(perm, self.survey_asset), True)
+        # Revoke
+        self.survey_asset.remove_perm(user, perm)
+        self.assertEqual(user.has_perm(perm, self.survey_asset), False)
+
+    def test_user_view_permission(self):
+        self.grant_and_revoke_standalone(self.someuser, 'view_surveyasset')
+
+    def test_user_change_permission(self):
+        self.grant_and_revoke_standalone(self.someuser, 'change_surveyasset')
+
+    def grant_and_revoke_parent(self, user, perm):
+        # Collection permissions have different suffixes
+        coll_perm = re.sub('_surveyasset$', '_collection', perm)
+        self.assertEqual(user.has_perm(perm, self.sa_in_coll), False)
+        # Grant
+        self.coll.assign_perm(user, coll_perm)
+        self.assertEqual(user.has_perm(perm, self.sa_in_coll), True)
+        # Revoke
+        self.coll.remove_perm(user, coll_perm)
+        self.assertEqual(user.has_perm(perm, self.sa_in_coll), False)
+
+    def test_user_inherited_view_permission(self):
+        self.grant_and_revoke_parent(self.someuser, 'view_surveyasset')
+
+    def test_user_inherited_change_permission(self):
+        self.grant_and_revoke_parent(self.someuser, 'change_surveyasset')
+
+    # TODO
     def test_user_permission_conflict_resolution(self): pass
     def test_url_view_permission(self): pass
-    def test_url_edit_permission(self): pass
+    def test_url_change_permission(self): pass
     def test_url_inherited_view_permission(self): pass
-    def test_url_inherited_edit_permission(self): pass
+    def test_url_inherited_change_permission(self): pass
     def test_url_permission_conflict_resolution(self): pass

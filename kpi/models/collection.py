@@ -162,12 +162,12 @@ class Collection(MPTTModel):
             return
         # Recalculate our own child survey assets
         for survey_asset in self.survey_assets.all():
-            suvey_asset._recalculate_inherited_perms()
+            survey_asset._recalculate_inherited_perms()
         # Recalculate all descendants and their child survey assets
         for descendant in self.get_descendants():
             descendant._recalculate_inherited_perms()
             for survey_asset in descendant.survey_assets.all():
-                suvey_asset._recalculate_inherited_perms()
+                survey_asset._recalculate_inherited_perms()
 
     def remove_perm(self, user_obj, perm, deny=False):
         ''' Revoke perm on this collection from user_obj. '''
@@ -181,12 +181,12 @@ class Collection(MPTTModel):
         ).delete()
         # Recalculate our own child survey assets
         for survey_asset in self.survey_assets.all():
-            suvey_asset._recalculate_inherited_perms()
+            survey_asset._recalculate_inherited_perms()
         # Recalculate all descendants and their child survey assets
         for descendant in self.get_descendants():
             descendant._recalculate_inherited_perms()
             for survey_asset in descendant.survey_assets.all():
-                suvey_asset._recalculate_inherited_perms()
+                survey_asset._recalculate_inherited_perms()
 
     def has_perm(self, user_obj, perm):
         ''' Does user_obj have perm on this collection? (True/False) '''
