@@ -23,11 +23,11 @@ from rest_framework import status
 from rest_framework.decorators import detail_route
 from taggit.models import Tag
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
+from kpi.highlighters import highlight_xform
 from kpi.renderers import (
     AssetJsonRenderer,
     SSJsonRenderer,
     XFormRenderer,
-    MdTableRenderer,
     XlsRenderer,
     EnketoPreviewLinkRenderer,
 )
@@ -106,6 +106,7 @@ from rest_framework.parsers import MultiPartParser
 class XlsFormParser(MultiPartParser):
     pass
 
+
 class SurveyAssetViewSet(viewsets.ModelViewSet):
     """
     This viewset automatically provides `list`, `create`, `retrieve`,
@@ -123,7 +124,6 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
                         renderers.BrowsableAPIRenderer,
                         AssetJsonRenderer,
                         SSJsonRenderer,
-                        MdTableRenderer,
                         XFormRenderer,
                         XlsRenderer,
                         EnketoPreviewLinkRenderer,
@@ -157,7 +157,30 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
     def table_view(self, request, *args, **kwargs):
         sa = self.get_object()
         md_table = ss_structure_to_mdtable(sa._to_ss_structure())
-        return Response("<html><body><code><pre>%s</pre></code></body></html>" % md_table)
+        return Response(_wrap_html_pre(md_table))
+
+    @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
+    def xls(self, request, *args, **kwargs):
+        return self.table_view(self, request, *args, **kwargs)
+
+    @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
+    def xform(self, request, *args, **kwargs):
+        survey_asset = self.get_object()
+        export = survey_asset.export
+        title = '[%s] %s' % (self.request.user.username, reverse('surveyasset-detail', args=(survey_asset.uid,), request=self.request),)
+        header = '\n<!-- kpi/views.py#header -->\n'
+        footer = '\n<!-- kpi/views.py#footer -->\n'
+        options = {
+            'linenos': True,
+            'full': True,
+            'title': title,
+            'header': header,
+            'footer': footer,
+        }
+        return Response(highlight_xform(export.xml, **options))
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+def _wrap_html_pre(content):
+    return "<!doctype html><html><body><code><pre>%s</pre></code></body></html>" % content

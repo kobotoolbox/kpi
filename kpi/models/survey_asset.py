@@ -25,6 +25,7 @@ class SurveyAssetManager(models.Manager):
             return self.none()
         return self.filter(tags=tag)
 
+
 @reversion.register
 class SurveyAsset(models.Model):
     name = models.CharField(max_length=255, blank=True, default='')
@@ -139,6 +140,14 @@ class SurveyAsset(models.Model):
             return self.collection.has_perm(user_obj, mangled_perm)
         return False
 
+    @property
+    def export(self):
+        version_id = reversion.get_for_object(self).last().id
+        # SurveyAssetExport.objects.filter(survey_asset=self).delete()
+        (model, created,) = SurveyAssetExport.objects.get_or_create(survey_asset=self,
+                                survey_asset_version_id=version_id)
+        return model
+
     """ The wet head is dead.
 
     def get_all_user_privileges(self):
@@ -156,3 +165,51 @@ class SurveyAsset(models.Model):
         return user_privileges
 
     """
+
+class SurveyAssetExport(models.Model):
+    '''
+    This model serves as a cache of the XML that was exported by the installed
+    version of pyxform.
+
+    If the database gets heavy, we will want to clear this out.
+    '''
+    xml = models.TextField()
+    source = JSONField(default='{}')
+    details = JSONField(default='{}')
+    survey_asset = models.ForeignKey(SurveyAsset)
+    survey_asset_version_id = models.IntegerField()
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    def generate_xml_from_source(self):
+        import pyxform
+        import tempfile
+        summary = {}
+        warnings = []
+        default_name = None
+        default_language = u'default'
+        try:
+            dict_repr = pyxform.xls2json.workbook_to_json(self.source, default_name, default_language, warnings)
+            dict_repr[u'name'] = dict_repr[u'id_string']
+            survey = pyxform.builder.create_survey_element_from_dict(dict_repr)
+            with tempfile.NamedTemporaryFile(suffix='.xml') as named_tmp:
+                survey.print_xform_to_file(path=named_tmp.name, validate=True, warnings=warnings)
+                named_tmp.seek(0)
+                self.xml = named_tmp.read()
+            summary.update({
+                u'default_name': default_name,
+                u'default_language': default_language,
+                u'warnings': warnings,
+                })
+            summary['status'] = 'success'
+        except Exception, e:
+            summary.update({
+                u'error': unicode(e),
+                u'warnings': warnings,
+            })
+
+    def save(self, *args, **kwargs):
+        version = reversion.get_for_object(self.survey_asset).get(id=self.survey_asset_version_id)
+        survey_asset = version.object
+        self.source = survey_asset._to_ss_structure(content_tag='survey')
+        self.generate_xml_from_source()
+        return super(SurveyAssetExport, self).save(*args, **kwargs)
