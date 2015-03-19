@@ -85,7 +85,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     content_link = serializers.SerializerMethodField()
     xls_link = serializers.SerializerMethodField()
     xform_link = serializers.SerializerMethodField()
-    content = SurveyAssetContentField(style={'base_template': 'content_field.html'})
+    content = SurveyAssetContentField(style={'base_template': 'muted_readonly_content_field.html'})
     tags = serializers.SerializerMethodField('_get_tag_names')
     version_count = serializers.SerializerMethodField('_version_count')
     collection = TaggedHyperlinkedRelatedField(lookup_field='uid', queryset=Collection.objects.all(),
