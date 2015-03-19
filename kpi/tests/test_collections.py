@@ -2,6 +2,7 @@ from rest_framework import status
 from django.test import TestCase
 from kpi.models.collection import Collection
 from kpi.models.survey_asset import SurveyAsset
+from kpi.models.object_permission import get_all_objects_for_user
 from django.contrib.auth.models import User
 
 class CreateCollectionTests(TestCase):
@@ -148,58 +149,219 @@ class ShareCollectionTests(TestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        # TODO
-        pass
+        self.superuser = User.objects.get(username='admin')
+        self.someuser = User.objects.get(username='someuser')
+        self.anotheruser = User.objects.get(username='anotheruser')
+        self.standalone_coll = Collection.objects.create(owner=self.superuser)
+        self.grandparent_coll = Collection.objects.create(owner=self.superuser)
+        self.parent_coll = Collection.objects.create(
+            owner=self.superuser,
+            parent=self.grandparent_coll
+        )
+        self.child_coll = Collection.objects.create(
+            owner=self.superuser,
+            parent=self.parent_coll
+        )
+
+    def grant_and_revoke_standalone(self, user, perm):
+        coll = self.standalone_coll
+        self.assertEqual(user.has_perm(perm, coll), False)
+        # Grant
+        coll.assign_perm(user, perm)
+        self.assertEqual(user.has_perm(perm, coll), True)
+        # Revoke
+        coll.remove_perm(user, perm)
+        self.assertEqual(user.has_perm(perm, coll), False)
 
     def test_user_view_permission_on_standalone_collection(self):
-        # TODO
-        # Grant and revoke for all of these
-        pass
+        self.grant_and_revoke_standalone(self.someuser, 'view_collection')
 
-    def test_user_edit_permission_on_standalone_collection(self):
-        # TODO
-        pass
+    def test_user_change_permission_on_standalone_collection(self):
+        self.grant_and_revoke_standalone(self.someuser, 'change_collection')
+
+    def grant_and_revoke_parent(self, user, perm):
+        self.assertEqual(user.has_perm(perm, self.parent_coll), False)
+        self.assertEqual(user.has_perm(perm, self.child_coll), False)
+        # Grant
+        self.parent_coll.assign_perm(user, perm)
+        self.assertEqual(user.has_perm(perm, self.parent_coll), True)
+        self.assertEqual(user.has_perm(perm, self.child_coll), True)
+        # Revoke
+        self.parent_coll.remove_perm(user, perm)
+        self.assertEqual(user.has_perm(perm, self.parent_coll), False)
+        self.assertEqual(user.has_perm(perm, self.child_coll), False)
 
     def test_user_view_permission_on_parent_collection(self):
-        # TODO
-        # Child with no direct permissions must be affected accordingly
-        pass
+        self.grant_and_revoke_parent(self.someuser, 'view_collection')
 
-    def test_user_edit_permission_on_parent_collection(self):
-        # TODO
-        pass
+    def test_user_change_permission_on_parent_collection(self):
+        self.grant_and_revoke_parent(self.someuser, 'change_collection')
+
+    def grant_and_revoke_child(self, user, perm):
+        self.assertEqual(user.has_perm(perm, self.parent_coll), False)
+        self.assertEqual(user.has_perm(perm, self.child_coll), False)
+        # Grant
+        self.child_coll.assign_perm(user, perm)
+        self.assertEqual(user.has_perm(perm, self.parent_coll), False)
+        self.assertEqual(user.has_perm(perm, self.child_coll), True)
+        # Revoke
+        self.child_coll.remove_perm(user, perm)
+        self.assertEqual(user.has_perm(perm, self.parent_coll), False)
+        self.assertEqual(user.has_perm(perm, self.child_coll), False)
 
     def test_user_view_permission_on_child_collection(self):
-        # TODO
-        # Parent must remain unaffected
-        pass
+        self.grant_and_revoke_child(self.someuser, 'view_collection')
 
-    def test_user_edit_permission_on_child_collection(self):
-        # TODO
-        pass
+    def test_user_change_permission_on_child_collection(self):
+        self.grant_and_revoke_child(self.someuser, 'change_collection')
 
-    def test_user_permission_conflict_resolution(self):
-        # TODO
-        '''
-        User has:
-        * View on parent, edit on child
-        * Edit on parent, view on child
-        * Edit on parent, deny on child
-        * Deny on parent, edit on child
-           ? Should this scenario exist? Maybe permit->deny->permit could
-             happen. A top-level deny isn't different than abscence and should
-             probably not be allowed.
+    def assign_parent_child_perms(self, user, parent_perm, child_perm,
+                                  parent_deny=False, child_deny=False,
+                                  child_first=False):
+        self.assertEqual(user.has_perm(parent_perm, self.parent_coll), False)
+        self.assertEqual(user.has_perm(child_perm, self.child_coll), False)
+        if child_first:
+            self.child_coll.assign_perm(user, child_perm, deny=child_deny)
+            self.parent_coll.assign_perm(user, parent_perm, deny=parent_deny)
+        else:
+            self.parent_coll.assign_perm(user, parent_perm, deny=parent_deny)
+            self.child_coll.assign_perm(user, child_perm, deny=child_deny)
+        self.assertEqual(user.has_perm(parent_perm, self.parent_coll),
+                         not parent_deny)
+        self.assertEqual(user.has_perm(child_perm, self.child_coll),
+                         not child_deny)
+        
+    def test_user_view_parent_change_child(self, child_first=False):
+        user = self.someuser
+        self.assign_parent_child_perms(
+            user,
+            'view_collection',
+            'change_collection',
+            child_first=child_first
+        )
+        # assign_parent_child_perms verifies the assignments, but make sure
+        # that the change permission hasn't applied to the parent
+        self.assertEqual(user.has_perm('change_collection', self.parent_coll),
+                         False)
 
-        '''
-        pass
+    def test_user_change_parent_view_child(self, child_first=False):
+        user = self.someuser
+        self.assign_parent_child_perms(
+            user,
+            'change_collection',
+            'change_collection',
+            child_deny=True,
+            child_first=child_first
+        )
+        # assign_parent_child_perms verifies the assignments, but make sure
+        # that the user can still view the child
+        self.assertEqual(user.has_perm('view_collection', self.child_coll),
+                         True)
+
+    def test_user_change_parent_deny_child(self, child_first=False):
+        user = self.someuser
+        self.assign_parent_child_perms(
+            user,
+            'change_collection',
+            'view_collection',
+            child_deny=True,
+            child_first=child_first
+        )
+        # Verify that denying view_collection denies change_collection as well
+        self.assertEqual(user.has_perm('change_collection', self.child_coll),
+                                       False)
+
+    def test_user_deny_parent_change_child(self, child_first=False):
+        # A deny at the root level doesn't make sense, so start by granting
+        # on the grandparent collection
+        user = self.someuser
+        self.assertEqual(len(self.grandparent_coll.get_perms(user)), 0)
+        self.grandparent_coll.assign_perm(user, 'change_collection')
+        self.assertEqual(
+            self.grandparent_coll.has_perm(user, 'change_collection'),
+            True
+        )
+        self.assertEqual(self.parent_coll.has_perm(user, 'change_collection'),
+                         True)
+        self.assertEqual(self.child_coll.has_perm(user, 'change_collection'),
+                         True)
+        # Don't use assign_parent_child_perms because it expects that the
+        # parent won't have any existing permissions
+        parent_perm = 'view_collection'
+        parent_deny = True
+        child_perm = 'change_collection'
+        child_deny = False
+        if child_first:
+            self.child_coll.assign_perm(user, child_perm, deny=child_deny)
+            self.parent_coll.assign_perm(user, parent_perm, deny=parent_deny)
+        else:
+            self.parent_coll.assign_perm(user, parent_perm, deny=parent_deny)
+            self.child_coll.assign_perm(user, child_perm, deny=child_deny)
+        self.assertEqual(user.has_perm(parent_perm, self.parent_coll),
+                         not parent_deny)
+        self.assertEqual(user.has_perm(child_perm, self.child_coll),
+                         not child_deny)
+        # Verify that denying view_collection denies change_collection as well
+        self.assertEqual(user.has_perm('change_collection', self.parent_coll),
+                                       False)
+        # Make sure that the deny permission hasn't applied to the grandparent
+        self.assertEqual(
+            self.grandparent_coll.has_perm(user, 'change_collection'),
+            True
+        )
+
+    ''' Try the previous tests again, but this time assign permissions to the
+    child before assigning permissions to the parent. '''
+    def test_user_change_child_view_parent(self):
+        self.test_user_view_parent_change_child(child_first=True)
+    def test_user_view_child_change_parent(self):
+        self.test_user_change_parent_view_child(child_first=True)
+    def test_user_deny_child_change_parent(self):
+        self.test_user_change_parent_deny_child(child_first=True)
+    def test_user_change_child_deny_parent(self):
+        self.test_user_deny_parent_change_child(child_first=True)
+
+    def test_query_all_collections_user_can_access(self):
+        # The owner should have access to all owned collections
+        self.assertEqual(
+            get_all_objects_for_user(self.superuser, Collection).count(),
+            4
+        )
+        # The other users should have nothing yet
+        self.assertEqual(
+            get_all_objects_for_user(self.someuser, Collection).count(),
+            0
+        )
+        self.assertEqual(
+            get_all_objects_for_user(self.anotheruser, Collection).count(),
+            0
+        )
+        # Grant some access and verify the result
+        self.grandparent_coll.assign_perm(self.someuser, 'view_collection')
+        self.standalone_coll.assign_perm(self.anotheruser, 'change_collection')
+        someuser_objects = get_all_objects_for_user(self.someuser, Collection)
+        anotheruser_objects = get_all_objects_for_user(self.anotheruser,
+                                                       Collection)
+        someuser_expected = [
+            self.grandparent_coll.pk,
+            self.parent_coll.pk,
+            self.child_coll.pk
+        ]
+        self.assertItemsEqual(
+            someuser_objects.values_list('pk', flat=True),
+            someuser_expected
+        )
+        self.assertEqual(
+            # django.db.models.query.ValuesListQuerySet isn't a real list
+            # and will fail the comparison!
+            list(anotheruser_objects.values_list('pk', flat=True)),
+            [self.standalone_coll.pk]
+        )
 
     def test_url_view_permission_on_standalone_collection(self): pass
-    def test_url_edit_permission_on_standalone_collection(self): pass
+    def test_url_change_permission_on_standalone_collection(self): pass
     def test_url_view_permission_on_parent_collection(self): pass
-    def test_url_edit_permission_on_parent_collection(self): pass
+    def test_url_change_permission_on_parent_collection(self): pass
     def test_url_view_permission_on_child_collection(self): pass
-    def test_url_edit_permission_on_child_collection(self): pass
+    def test_url_change_permission_on_child_collection(self): pass
     def test_url_permission_conflict_resolution(self): pass
-
-    # [AD suggests] We'll want to be able to list all collections a given user can access/edit/etc
-    def test_query_all_collections_user_can_access(self): pass
