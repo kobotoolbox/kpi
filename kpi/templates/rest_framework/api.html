@@ -1,0 +1,15 @@
+{% extends "rest_framework/base.html" %}
+
+{# Override this template in your own templates directory to customize #}
+{% block title %}KoBoForm API{% endblock %}
+
+{% block branding %}
+    <a class='navbar-brand' rel="nofollow" href='http://kobotoolbox.org/'>
+        KoBoForm API <span class="version">0.1</span>
+    </a>
+{% endblock %}
+
+{% block bootstrap_theme %}
+    {% load staticfiles %}
+    <link rel="stylesheet" href="{% static 'css/bootstrap-paper.min.css' %}">
+{% endblock %}
