@@ -33,6 +33,13 @@ class TaggedHyperlinkedRelatedField(serializers.HyperlinkedRelatedField):
             return url
         return '%s#%s' % (url, urllib.quote_plus(obj.name))
 
+class SurveyAssetContentField(serializers.Field):
+    '''
+    not sure if this custom field will survive.
+    '''
+    def to_representation(self, value):
+        return {'redirect': 'content_link'}
+
 from taggit.models import Tag
 
 class TagSerializer(serializers.ModelSerializer):
@@ -69,15 +76,16 @@ class TagListSerializer(TagSerializer):
         model = Tag
         fields = ('name', 'url', )
 
-
 class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username',
                                                 read_only=True,)
     parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
     assetType = serializers.ReadOnlyField(read_only=True, source='asset_type')
-    settings = WritableJSONField(required=False)
-    content = WritableJSONField(write_only=True)
-    ss_json = serializers.SerializerMethodField('_to_ss_json', read_only=True)
+    settings = WritableJSONField(required=False, style={'base_template': 'json_field.html'})
+    content_link = serializers.SerializerMethodField()
+    xls_link = serializers.SerializerMethodField()
+    xform_link = serializers.SerializerMethodField()
+    content = SurveyAssetContentField(style={'base_template': 'muted_readonly_content_field.html'})
     tags = serializers.SerializerMethodField('_get_tag_names')
     version_count = serializers.SerializerMethodField('_version_count')
     collection = TaggedHyperlinkedRelatedField(lookup_field='uid', queryset=Collection.objects.all(),
@@ -87,9 +95,13 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
         model = SurveyAsset
         lookup_field = 'uid'
         fields = ('url', 'parent', 'owner', 'collection',
-                    'settings', 'assetType', 'ss_json',
+                    'settings', 'assetType', # 'ss_json',
                     'version_count',
-                    'name', 'content', 'tags', )
+                    'content_link',
+                    'content',
+                    'xform_link',
+                    'xls_link',
+                    'name', 'tags', )
         extra_kwargs = {
             'collection': {
                 'lookup_field': 'uid',
@@ -105,8 +117,12 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     def _version_count(self, obj):
         return reversion.get_for_object(obj).count()
 
-    def _to_ss_json(self, obj):
-        return obj._to_ss_structure()
+    def get_content_link(self, obj):
+        return reverse('surveyasset-content', args=(obj.uid,), request=self.context.get('request', None))
+    def get_xls_link(self, obj):
+        return reverse('surveyasset-xls', args=(obj.uid,), request=self.context.get('request', None))
+    def get_xform_link(self, obj):
+        return reverse('surveyasset-xform', args=(obj.uid,), request=self.context.get('request', None))
 
     def _content(self, obj):
         return json.dumps(obj.content)
