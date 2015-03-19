@@ -1,8 +1,7 @@
-from kpi.models import SurveyAsset
-from kpi.models import Collection
 from django.contrib.auth.models import User
 from django.test import TestCase
-import json
+
+from kpi.models import SurveyAsset
 
 class SurveyAssetsTestCase(TestCase):
     fixtures = ['test_data']

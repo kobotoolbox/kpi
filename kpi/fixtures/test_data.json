@@ -41,7 +41,7 @@
         "pk": 1,
         "collection": 1,
         "fields": {
-            "name": "fixture asset",
+            "name": "fixture admin asset",
             "content": [
                 {"type": "text", "label": "fixture q1", "name": "q1", "kuid": "abc"},
                 {"type": "text", "label": "fixture q2", "name": "q2", "kuid": "def"}

@@ -1,11 +1,12 @@
+import json
+
+from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
-from kpi.models import SurveyAsset
+
 from kpi.models import Collection
-from django.contrib.auth.models import User
-from django.test import TestCase
-import json
+from kpi.models import SurveyAsset
 
 class SurveyAssetsListApiTests(APITestCase):
     fixtures = ['test_data']

@@ -1,8 +1,8 @@
-from rest_framework import status
+from django.contrib.auth.models import User
 from django.test import TestCase
+
 from kpi.models.collection import Collection
 from kpi.models.survey_asset import SurveyAsset
-from django.contrib.auth.models import User
 
 class CreateCollectionTests(TestCase):
     fixtures = ['test_data']
@@ -10,7 +10,7 @@ class CreateCollectionTests(TestCase):
     def setUp(self):
         self.user = User.objects.get(username='admin')
         self.coll = Collection.objects.create(owner=self.user)
-        self.survey_asset= SurveyAsset.objects.get(name='fixture asset')
+        self.survey_asset= SurveyAsset.objects.get(name='fixture admin asset')
         self.initial_asset_count= SurveyAsset.objects.count()
         self.initial_collection_count= Collection.objects.count()
 
