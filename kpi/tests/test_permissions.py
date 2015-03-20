@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 from django.contrib.auth.models import User
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
@@ -21,82 +19,144 @@ class PermissionsTestCase(TestCase):
             {'type': 'text', 'label': 'Question 2', 'name': 'q2', 'kuid': 'def'},
         ], owner=self.admin)
 
-    def _get_perm_name_from_prefix(self, perm_name_prefix, obj):
+    def _get_perm_name(self, perm_name_prefix, model_instance):
+        '''
+        Get the type-specific permission name for a model from a permission name
+        prefix and a model instance.
+
+        Example:
+            >>>self._get_perm_name('view_', my_survey_asset)
+            'view_surveyasset'
+
+        :param perm_name_prefix: Prefix of the desired permission name (i.e.
+            "view_", "change_", or "delete_").
+        :type perm_name_prefix: str
+        :param model_instance: An instance of the model for which the permission
+            name is desired.
+        :type model_instance: :py:class:`Collection` or :py:class:`SurveyAsset`
+        '''
         perm_name= Permission.objects.get(
-            content_type= ContentType.objects.get_for_model(obj),
+            content_type= ContentType.objects.get_for_model(model_instance),
             codename__startswith=perm_name_prefix
         ).natural_key()[0]
         return perm_name
 
-    def _test_add_permission(self, assign_perm_object, perm_name_prefix, user, has_perm_object=None):
+    def _test_add_perm(self, obj, perm_name_prefix, user):
         '''
         Test that a permission can be added and that the permission successfully
         takes effect.
 
-        :param assign_perm_object: Object to assign the permission to.
-        :param str perm_name_prefix: The prefix of the permission to be added
-            (e.g. "view_" or "change_")
-        :param user: The user who will be receiving the permission.
-        :param has_perm_object: Optional parameter. The object to check for the
-            new permission (e.g. an asset contained in the altered collection).
-            Defaults to `assign_perm_object` if not provided.
+        :param obj: Object to manipulate permissions on.
+        :type obj: :py:class:`Collection` or :py:class:`SurveyAsset`
+        :param perm_name_prefix: The prefix of the permission to be used (i.e.
+            "view_", "change_", or "delete_").
+        :type perm_name_prefix: str
+        :param user: The user for whom permissions on `obj` will be manipulated.
+        :type user: :py:class:`User`
         '''
+        assign_perm_name= self._get_perm_name(perm_name_prefix, obj)
+        self.assertFalse(user.has_perm(assign_perm_name, obj))
+        obj.assign_perm(user, assign_perm_name)
+        self.assertTrue(user.has_perm(assign_perm_name, obj))
 
-        if not has_perm_object:
-            has_perm_object= assign_perm_object
-        assign_perm_name= self._get_perm_name_from_prefix(perm_name_prefix, assign_perm_object)
-        has_perm_name= self._get_perm_name_from_prefix(perm_name_prefix, has_perm_object)
-        self.assertFalse(user.has_perm(assign_perm_name, has_perm_object))
-        assign_perm_object.assign_perm(user, assign_perm_name)
-        self.assertTrue(user.has_perm(has_perm_name, has_perm_object))
+    def _test_add_inherited_perm(self, ancestor_collection, perm_name_prefix,
+                                 user, descendant_obj):
+        '''
+        Test that a permission can be added to a collection and that the
+        permission successfully propagates to a descendant.
 
-    def _test_remove_permission(self, remove_perm_object, perm_name_prefix, user, has_perm_object=None):
+        :param obj: Object to manipulate permissions on.
+        :type obj: :py:class:`Collection` or :py:class:`SurveyAsset`
+        :param perm_name_prefix: The prefix of the permission to be used (i.e.
+            "view_", "change_", or "delete_").
+        :type perm_name_prefix: str
+        :param user: The user for whom permissions on `obj` will be manipulated.
+        :type user: :py:class:`User`
+        :param descendant_obj: The descendant object to check for the
+            changed permission (i.e. an asset/collection contained in
+            `ancestor_collection`).
+        :type descendant_obj: :py:class:`Collection` or :py:class:`SurveyAsset`
+        '''
+        descendant_perm_name= self._get_perm_name(perm_name_prefix, descendant_obj)
+        self.assertFalse(user.has_perm(descendant_perm_name, descendant_obj))
+        self._test_add_perm(ancestor_collection, perm_name_prefix, user)
+        self.assertTrue(user.has_perm(descendant_perm_name, descendant_obj))
+
+
+    def _test_add_remove_perm(self, obj, perm_name_prefix, user):
+        '''
+        Test that a permission can be removed after being added and that the
+        removal successfully takes effect.
+
+        :param obj: Object to manipulate permissions on.
+        :type obj: :py:class:`Collection` or :py:class:`SurveyAsset`
+        :param perm_name_prefix: The prefix of the permission to be used (i.e.
+            "view_", "change_", or "delete_").
+        :type perm_name_prefix: str
+        :param user: The user for whom permissions on `obj` will be manipulated.
+        :type user: :py:class:`User`
+        '''
+        self._test_add_perm(obj, perm_name_prefix, user)
+        remove_perm_name= self._get_perm_name(perm_name_prefix, obj)
+        obj.remove_perm(user, remove_perm_name)
+        self.assertFalse(user.has_perm(remove_perm_name, obj))
+
+    def _test_add_remove_inherited_perm(self, ancestor_collection,
+                                        perm_name_prefix, user, descendant_obj):
         '''
         Test that a permission can be added and removed, and that the removal
         successfully takes effect.
 
-        :param assign_perm_object: Object to remove the permission from.
-        :param str perm_name_prefix: The prefix of the permission to be remove
-            (e.g. "view_" or "change_")
-        :param user: The user whose permission will be revoked.
-        :param has_perm_object: Optional parameter. The object to check for the
-            removed permission (e.g. an asset contained in the altered
-            collection). Defaults to `assign_perm_object` if not provided.
+        :param ancestor_collection: Object to manipulate permissions on.
+        :type ancestor_collection: :py:class:`Collection`
+        :param perm_name_prefix: The prefix of the permission to be used (i.e.
+            "view_", "change_", or "delete_").
+        :type perm_name_prefix: str
+        :param user: The user for whom permissions on `ancestor_collection` will
+            be manipulated.
+        :type user: :py:class:`User`
+        :param descendant_obj: The descendant object to check for the
+            changed permission (i.e. an asset/collection contained in
+            `ancestor_collection`).
+        :type descendant_obj: :py:class:`Collection` or :py:class:`SurveyAsset`
         '''
-
-        if not has_perm_object:
-            has_perm_object= remove_perm_object
-        remove_perm_name= self._get_perm_name_from_prefix(perm_name_prefix, remove_perm_object)
-        has_perm_name= self._get_perm_name_from_prefix(perm_name_prefix, has_perm_object)
-        self._test_add_permission(remove_perm_object, perm_name_prefix, user, has_perm_object)
-        remove_perm_object.remove_perm(user, remove_perm_name)
-        self.assertFalse(user.has_perm(has_perm_name, has_perm_object))
+        self._test_add_inherited_perm(ancestor_collection,
+                                            perm_name_prefix, user,
+                                            descendant_obj)
+        descendant_perm_name= self._get_perm_name(perm_name_prefix, descendant_obj)
+        ancestor_perm_name= self._get_perm_name(perm_name_prefix, ancestor_collection)
+        ancestor_collection.remove_perm(user, ancestor_perm_name)
+        self.assertFalse(user.has_perm(descendant_perm_name, descendant_obj))
 
     def test_add_asset_permission(self):
-        self._test_add_permission(self.admin_asset, 'view_', self.someuser)
-        self._test_add_permission(self.admin_asset, 'change_', self.someuser)
+        self._test_add_perm(self.admin_asset, 'view_', self.someuser)
+        self._test_add_perm(self.admin_asset, 'change_', self.someuser)
 
     def test_remove_asset_permission(self):
-        self._test_remove_permission(self.admin_asset, 'view_', self.someuser)
-        self._test_remove_permission(self.admin_asset, 'change_', self.someuser)
+        self._test_add_remove_perm(self.admin_asset, 'view_', self.someuser)
+        self._test_add_remove_perm(self.admin_asset, 'change_', self.someuser)
 
     def test_add_collection_permission(self):
-        self._test_add_permission(self.admin_collection, 'view_', self.someuser)
-        self._test_add_permission(self.admin_collection, 'change_', self.someuser)
+        self._test_add_perm(self.admin_collection, 'view_', self.someuser)
+        self._test_add_perm(self.admin_collection, 'change_', self.someuser)
 
     def test_remove_collection_permission(self):
-        self._test_remove_permission(self.admin_collection, 'view_', self.someuser)
-        self._test_remove_permission(self.admin_collection, 'change_', self.someuser)
+        self._test_add_remove_perm(self.admin_collection, 'view_', self.someuser)
+        self._test_add_remove_perm(self.admin_collection, 'change_', self.someuser)
 
     def test_add_asset_inherited_permission(self):
         self.admin_collection.survey_assets.add(self.admin_asset)
-        self._test_add_permission(self.admin_collection, 'view_', self.someuser, has_perm_object=self.admin_asset)
-        self._test_add_permission(self.admin_collection, 'change_', self.someuser, has_perm_object=self.admin_asset)
+        self._test_add_inherited_perm(self.admin_collection, 'view_',
+                                            self.someuser, self.admin_asset)
+        self._test_add_inherited_perm(self.admin_collection, 'change_',
+                                            self.someuser, self.admin_asset)
 
     def test_remove_collection_inherited_permission(self):
         self.admin_collection.survey_assets.add(self.admin_asset)
-        self._test_remove_permission(self.admin_collection, 'view_', self.someuser, has_perm_object=self.admin_asset)
-        self._test_remove_permission(self.admin_collection, 'change_', self.someuser, has_perm_object=self.admin_asset)
+        self._test_add_remove_inherited_perm(self.admin_collection, 'view_',
+                                     self.someuser, self.admin_asset)
+        self._test_add_remove_inherited_perm(self.admin_collection, 'change_',
+                                     self.someuser, self.admin_asset)
 
     def test_get_objects_for_user(self):
         admin_assets= get_all_objects_for_user(self.admin, SurveyAsset)
