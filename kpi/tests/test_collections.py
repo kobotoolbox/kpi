@@ -352,8 +352,8 @@ class ShareCollectionTests(TestCase):
             someuser_expected
         )
         self.assertEqual(
-            # django.db.models.query.ValuesListQuerySet isn't a real list
-            # and will fail the comparison!
+            # Without coercion, django.db.models.query.ValuesListQuerySet isn't
+            # a real list and will fail the comparison.
             list(anotheruser_objects.values_list('pk', flat=True)),
             [self.standalone_coll.pk]
         )
