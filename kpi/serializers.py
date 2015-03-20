@@ -95,7 +95,11 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
         model = SurveyAsset
         lookup_field = 'uid'
         fields = ('url', 'parent', 'owner', 'collection',
-                    'settings', 'assetType', # 'ss_json',
+                    'settings',
+                    'assetType',
+                    'date_created',
+                    'date_modified',
+                    'tags',
                     'version_count',
                     'content_link',
                     'content',

@@ -1,5 +1,6 @@
 from kpi.models import SurveyAsset
 from kpi.models import Collection
+from kpi.models import object_permission
 from kpi.serializers import SurveyAssetSerializer, SurveyAssetListSerializer
 from kpi.serializers import CollectionSerializer, CollectionListSerializer
 from kpi.serializers import UserSerializer, UserListSerializer
@@ -125,8 +126,7 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
     serializer_class = SurveyAssetSerializer
     lookup_field = 'uid'
 
-    renderer_classes = (
-                        renderers.BrowsableAPIRenderer,
+    renderer_classes = (renderers.BrowsableAPIRenderer,
                         AssetJsonRenderer,
                         SSJsonRenderer,
                         XFormRenderer,
@@ -142,7 +142,8 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self, *args, **kwargs):
         if self.request.user.is_authenticated():
-            return SurveyAsset.objects.filter(owner=self.request.user)
+            user = self.request.user
+            return object_permission.get_all_objects_for_user(user, SurveyAsset)
         else:
             return SurveyAsset.objects.none()
 
