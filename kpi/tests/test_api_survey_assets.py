@@ -23,7 +23,7 @@ class SurveyAssetsListApiTests(APITestCase):
 
     def test_create_survey_asset(self):
         """
-        Ensure we can create a new account object.
+        Ensure we can create a new survey asset
         """
         url = reverse('surveyasset-list')
         data = {
@@ -34,12 +34,6 @@ class SurveyAssetsListApiTests(APITestCase):
                             msg=response.data)
         sa = SurveyAsset.objects.last()
         self.assertEqual(sa.content, [])
-
-    def test_query_table_view(self):
-        url = reverse('surveyasset-list')
-        data = {'content': '[]'}
-        response = self.client.post(url, data, format='json')
-
 
 class SurveyAssetsDetailApiTests(APITestCase):
     fixtures = ['test_data']
@@ -65,11 +59,6 @@ class SurveyAssetsDetailApiTests(APITestCase):
         resp = self.client.patch(self.asset_url, data, format='json')
         self.assertEqual(resp.data['settings'], {'mysetting': "value"})
 
-    # def test_can_query_table_view(self):
-    #     resp = self.client.get(self.asset_url, format='json')
-    #     resp2 = self.client.get(resp.data['tableView'], format='json')
-    #     self.assertEqual(resp2.status_code, status.HTTP_200_OK)
-
 
 class ObjectRelationshipsTests(APITestCase):
     fixtures = ['test_data']
@@ -78,50 +67,40 @@ class ObjectRelationshipsTests(APITestCase):
         self.client.login(username='admin', password='pass')
         self.user = User.objects.get(id=1)
         self.surv = SurveyAsset.objects.create(content='[{"type":"text","name":"q1"}]', owner=self.user)
-        self.fold = Collection.objects.create(name='sample collection', owner=self.user)
+        self.coll = Collection.objects.create(name='sample collection', owner=self.user)
 
     def test_list_survey_asset(self):
         pass
-        # req = self.client.get(reverse('surveyasset-list'))
-        # self.assertEqual(req.data['results'][0]['content'], '[{"type":"text","name":"q1"}]')
-        # req = self.client.get(reverse('collection-list'))
-        # self.assertEqual(req.data['results'][0]['name'], 'sample collection')
 
     def test_collection_can_have_survey_asset(self):
-        # req = self.client.get(reverse('surveyasset-detail'))
+        '''
+        * after assigning a survey asset, self.surv, to a collection (self.coll) [via the ORM]
+            the survey asset is now listed in the collection's list of assets.
+        '''
         req = self.client.get(reverse('surveyasset-detail', args=[self.surv.uid]))
-        # self.assertEqual(req.data['collectionName'], None)
+        coll_req1 = self.client.get(reverse('collection-detail', args=[self.coll.uid]))
+        self.assertEqual(len(coll_req1.data['survey_assets']), 0)
 
-        self.surv.collection = self.fold
+        self.surv.collection = self.coll
         self.surv.save()
 
-        req = self.client.get(reverse('surveyasset-detail', args=[self.surv.uid]))
-        self.assertTrue('collection' in req.data)
-        # self.assertEqual(req.data['collectionName'], 'sample collection')
+        surv_req2 = self.client.get(reverse('surveyasset-detail', args=[self.surv.uid]))
+        self.assertIn('collection', surv_req2.data)
+        self.assertIn(self.coll.uid, surv_req2.data['collection'])
 
-        req2 = self.client.get(reverse('collection-detail', args=[self.fold.uid]))
-        self.assertEqual(len(req2.data['survey_assets']), 1)
+        coll_req2 = self.client.get(reverse('collection-detail', args=[self.coll.uid]))
+        self.assertEqual(len(coll_req2.data['survey_assets']), 1)
+        self.assertIn(self.surv.uid, coll_req2.data['survey_assets'][0])
 
     def test_add_survey_asset_to_collection(self):
+        '''
+        * a survey starts out with no collection.
+        * assigning a collection to the survey returns a HTTP 200 code.
+        * a follow up query on the asset shows that the collection is now set
+        '''
         self.assertEqual(self.surv.collection, None)
         surv_url = reverse('surveyasset-detail', args=[self.surv.uid])
-        patch_req = self.client.patch(surv_url, data={'collection': reverse('collection-detail', args=[self.fold.uid])})
+        patch_req = self.client.patch(surv_url, data={'collection': reverse('collection-detail', args=[self.coll.uid])})
         self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
         req = self.client.get(surv_url)
-
-# class CreateSurveyAssetsApiTests(APITestCase):
-#     fixtures = ['test_data']
-
-#     def setUp(self):
-#         self.client.login(username='admin', password='pass')
-
-#     def test_create_survey_asset_with_file(self):
-#         """
-#         Ensure we can create a new account object.
-#         """
-#         url = reverse('surveyasset-list')
-#         with open('kpi/fixtures/mini_text_integer.xls') as f:
-#             data = {'body': f}
-#             response = self.client.post(url, data)
-#         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-#         self.assertEqual(response.data['body'][0:10], '{"survey":')
+        self.assertIn('/collections/%s' % (self.coll.uid), req.data['collection'])
