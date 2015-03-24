@@ -35,6 +35,14 @@ class TaggedHyperlinkedRelatedField(serializers.HyperlinkedRelatedField):
         # approx matches in case the asset of the form builder has been deleted or 404s?
         return u'%s?n=~%s' % (url, urllib.quote_plus(obj.name.encode('utf-8')))
 
+class TaggedHyperlinkedIdentityField(serializers.HyperlinkedIdentityField):
+    def get_url(self, *args, **kwargs):
+        url = super(TaggedHyperlinkedIdentityField, self).get_url(*args, **kwargs)
+        obj = args[0]
+        if obj.name == '':
+            return url
+        return u'%s?n=~%s' % (url, urllib.quote_plus(obj.name.encode('utf-8')))
+
 class SurveyAssetContentField(serializers.Field):
     '''
     not sure if this custom field will survive.
@@ -84,6 +92,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username',
                                                 read_only=True,)
     parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
+    url = TaggedHyperlinkedIdentityField(lookup_field='uid', view_name='surveyasset-detail')
     assetType = serializers.ReadOnlyField(read_only=True, source='asset_type')
     settings = WritableJSONField(required=False, style={'base_template': 'json_field.html'})
     content_link = serializers.SerializerMethodField()
