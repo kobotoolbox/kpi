@@ -195,17 +195,23 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
                 lookup_field='username', read_only=True)
     survey_assets = TaggedHyperlinkedRelatedField(many=True, lookup_field='uid',
                  view_name='surveyasset-detail', read_only=True)
-    # parent = TaggedHyperlinkedRelatedField(lookup_field='uid',
-    #              view_name='collection-detail', read_only=True)
+    parent = TaggedHyperlinkedRelatedField(lookup_field='uid',
+                 view_name='collection-detail', read_only=True)
+    children = TaggedHyperlinkedRelatedField(many=True, lookup_field='uid',
+                 view_name='collection-detail', read_only=True)
     tags = serializers.SerializerMethodField('_get_tag_names')
 
     class Meta:
         model = Collection
         fields = ('name',
                     'url',
+                    'parent',
+                    'children',
                     'survey_assets',
                     'owner',
                     'tags',
+                    'date_created',
+                    'date_modified',
                 )
         lookup_field = 'uid'
         extra_kwargs = {
