@@ -1,5 +1,6 @@
 from kpi.models import SurveyAsset
 from kpi.models import Collection
+from kpi.models import object_permission
 from kpi.serializers import SurveyAssetSerializer, SurveyAssetListSerializer
 from kpi.serializers import CollectionSerializer, CollectionListSerializer
 from kpi.serializers import UserSerializer, UserListSerializer
@@ -106,22 +107,26 @@ from rest_framework.parsers import MultiPartParser
 class XlsFormParser(MultiPartParser):
     pass
 
-
 class SurveyAssetViewSet(viewsets.ModelViewSet):
     """
-    This viewset automatically provides `list`, `create`, `retrieve`,
-    `update` and `destroy` actions.
-
-    Additionally we also provide an extra `highlight` action.
+    * Access a summary list of all survey assets available to your user. <span class='label label-success'>complete</span>
+    * Inspect individual survey assets <span class='label label-success'>complete</span>
+    * Download a survey asset in a `.xls` or `.xml` format <span class='label label-success'>complete</span>
+    * Tag a survey asset <span class='label label-success'>complete</span>
+    * View a survey asset in a markdown spreadsheet or XML preview format <span class='label label-success'>complete</span>
+    * Assign a survey asset to a collection <span class='label label-warning'>partially implemented</span>
+    * View and manage permissions of a survey asset <span class='label label-danger'>TODO</span>
+    * View previous versions of a survey asset <span class='label label-danger'>TODO</span>
+    * Update all content of a survey asset <span class='label label-danger'>TODO</span>
+    * Run a partial update of a survey asset <span class='label label-danger'>TODO</span>
+    * Generate a link to a preview in enketo-express <span class='label label-danger'>TODO</span>
+    * Create anonymous survey assets <span class='label label-danger'>TODO</span>
     """
     queryset = SurveyAsset.objects.all()
     serializer_class = SurveyAssetSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
-                          IsOwnerOrReadOnly,)
     lookup_field = 'uid'
 
-    renderer_classes = (
-                        renderers.BrowsableAPIRenderer,
+    renderer_classes = (renderers.BrowsableAPIRenderer,
                         AssetJsonRenderer,
                         SSJsonRenderer,
                         XFormRenderer,
@@ -137,7 +142,8 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self, *args, **kwargs):
         if self.request.user.is_authenticated():
-            return SurveyAsset.objects.filter(owner=self.request.user)
+            user = self.request.user
+            return object_permission.get_all_objects_for_user(user, SurveyAsset)
         else:
             return SurveyAsset.objects.none()
 
@@ -148,6 +154,11 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+    @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
+    def content(self, request, *args, **kwargs):
+        survey_asset = self.get_object()
+        return Response(json.dumps(survey_asset._to_ss_structure('survey')))
+
     @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
     def koboform(self, request, *args, **kwargs):
         survey_asset = self.get_object()
@@ -157,7 +168,9 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
     def table_view(self, request, *args, **kwargs):
         sa = self.get_object()
         md_table = ss_structure_to_mdtable(sa._to_ss_structure())
-        return Response(_wrap_html_pre(md_table))
+        header_links = '''
+        <a href="../">Back</a> | <a href="../.xls">Download XLS file</a><br>'''
+        return Response(_wrap_html_pre(header_links + md_table.strip()))
 
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def xls(self, request, *args, **kwargs):
@@ -168,13 +181,14 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
         survey_asset = self.get_object()
         export = survey_asset.export
         title = '[%s] %s' % (self.request.user.username, reverse('surveyasset-detail', args=(survey_asset.uid,), request=self.request),)
-        header = '\n<!-- kpi/views.py#header -->\n'
+        header_links = '''
+        <a href="../">Back</a> | <a href="../.xml">Download XML file</a><br>'''
         footer = '\n<!-- kpi/views.py#footer -->\n'
         options = {
             'linenos': True,
             'full': True,
             'title': title,
-            'header': header,
+            'header': header_links,
             'footer': footer,
         }
         return Response(highlight_xform(export.xml, **options))
