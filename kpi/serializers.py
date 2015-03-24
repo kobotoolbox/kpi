@@ -31,12 +31,16 @@ class TaggedHyperlinkedRelatedField(serializers.HyperlinkedRelatedField):
         obj = args[0]
         if obj.name == '':
             return url
-        return '%s#%s' % (url, urllib.quote_plus(obj.name))
+        # what if ?n=~form_title at the end of the url redirected to (or suggested a list)
+        # approx matches in case the asset of the form builder has been deleted or 404s?
+        return u'%s?n=~%s' % (url, urllib.quote_plus(obj.name.encode('utf-8')))
 
 class SurveyAssetContentField(serializers.Field):
     '''
     not sure if this custom field will survive.
     '''
+    def to_internal_value(self, data):
+        return json.loads(data)
     def to_representation(self, value):
         return {'redirect': 'content_link'}
 
@@ -181,6 +185,8 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
                 lookup_field='username', read_only=True)
     survey_assets = TaggedHyperlinkedRelatedField(many=True, lookup_field='uid',
                  view_name='surveyasset-detail', read_only=True)
+    # parent = TaggedHyperlinkedRelatedField(lookup_field='uid',
+    #              view_name='collection-detail', read_only=True)
     tags = serializers.SerializerMethodField('_get_tag_names')
 
     class Meta:
