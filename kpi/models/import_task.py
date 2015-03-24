@@ -8,7 +8,6 @@ import requests
 import json
 import re
 from pyxform import xls2json_backends
-from ipdb import set_trace as debug
 from kpi.models import SurveyAsset
 from kpi.models import Collection
 import os
@@ -45,28 +44,32 @@ class ImportTask(models.Model):
 
     def run(self):
         '''
-        this is a synchronous operation that could take a while.
+        this could take a while.
         '''
         if self.data['url']:
             self._load_assets_from_url(self.data['url'])
 
     def _load_assets_from_url(self, url):
-        print 'Loading from url: ', url
         req = requests.get(url, allow_redirects=True)
         fif = HttpContentParse(request=req).parse()
         fif.remove_invalid_assets()
         fif.remove_empty_collections()
-        # print fif.warnings
-        fif.print_names()
+
         collections_to_assign = []
         for item in fif._parsed:
             kwargs = {
                 'owner': self.user,
-                'name': item.own_name,
+                'name': item._name_base,
             }
             if item.get_type() == 'collection':
                 item._orm = Collection.objects.create(**kwargs)
             elif item.get_type() == 'asset':
+                kontent = xls2json_backends.xls_to_dict(item.readable)
+                content = {}
+                for key, val in kontent.items():
+                    if not key.endswith('_header'):
+                        content[key] = val
+                kwargs['content'] = content
                 item._orm = SurveyAsset.objects.create(**kwargs)
             if item.parent:
                 collections_to_assign.append([
@@ -74,46 +77,15 @@ class ImportTask(models.Model):
                     item.parent,
                 ])
         for (orm_obj, parent_item) in collections_to_assign:
-            # print item.parent._orm.uid
             if hasattr(orm_obj, 'parent'):
                 orm_obj.parent = parent_item._orm
             else:
                 orm_obj.collection = parent_item._orm
             orm_obj.save()
 
-    def _load_zipfile(self, req, messages):
-        with zipfile.ZipFile(BytesIO(req.content)) as zfile:
-            if '[Content_Types].xml' in zfile.namelist():
-                # file is likely an xlsx file...
-                return self._load_xls_workbook(open_workbook(zfile))
-            nonempty_files = [
-                zf for zf in zfile.filelist if zf.file_size > 0
-            ]
-            for zipinfo in zfile.filelist:
-                try:
-                    zf = zfile.open(zipinfo)
-                    wb = open_workbook(file_contents=self.read())
-                    zf = zfile.open(zipinfo)
-                    content = self._load_xls_workbook(zf)
-                    settings = content.get('settings')[0]
-                    additional_sheets = {
-                        'choices': content.get('choices', [])
-                    }
-                    SurveyAsset.objects.create(content=content['survey'],
-                            settings=settings,
-                            additional_sheets=additional_sheets,
-                            owner=self.user)
-                except XLRDError as e:
-                    messages.append({
-                        'error': 'could not load %s as an xls' % zipinfo.filename
-                        })
-        print messages
 
-    def _load_xls_workbook(self, ff, parent_collection=None):
-        import time
-        time.sleep(1)
-        return xls2json_backends.xls_to_dict(ff)
-
+class ImportAssetException(Exception):
+    pass
 
 class ImportFile(object):
     '''
@@ -128,10 +100,9 @@ class ImportFile(object):
             )
     '''
     def __init__(self, readable=False, name=None, root=False, parent=False):
-        self.readable = readable
+        self._readable = readable
         self.parent = parent
         self.name = name
-        # self.zfile = zfile
         name_without_trailing_slash = re.sub(r'/$', '', self.name)
 
         name_split = name_without_trailing_slash.split('/')
@@ -147,20 +118,26 @@ class ImportFile(object):
             self.own_path = self.own_name
         else:
             self.own_path = self.dirname + '/' + self.own_name
+
+        (self._name_base, self._name_ext) = os.path.splitext(self.own_name)
+
         if self.own_path not in self.root.files_by_path:
             self.root.files_by_path[self.own_path] = self
         self.root._parsed.append(self)
 
-    def directory_structure(self):
-        return self.root._parsed
-
-    # def get_full_path(self):
-    #     return '/'.join([
-    #         a.own_name for a in self._ancestors(include_self=True)
-    #         ])
-
     def __str__(self):
         return "<%s(type=%s) '%s'>" % (self.__class__.__name__, self._type, self.own_path,)
+
+    def warn(self, message):
+        self.root.warnings.append(message)
+
+    @property
+    def is_root(self):
+        return self is self.root
+
+    @property
+    def readable(self):
+        return self._readable
 
     def _ancestors(self, include_self=False):
         items = []
@@ -168,16 +145,11 @@ class ImportFile(object):
         if include_self:
             items.append(item)
         while not item.is_root:
+            if item in items:
+                raise ImportAssetException("invalid link to parent causing loop")
             item = item.parent
             items.append(item)
         return list(reversed(items))
-
-    @property
-    def is_root(self):
-        return self is self.root
-
-    def read(self):
-        return self.readable.read()
 
     def parse(self):
         '''
@@ -195,6 +167,7 @@ class ImportFile(object):
                     infs.append(ImportZipSubfile(readable=fileinfo, name=fileinfo.filename, zfile=zfile, root=self.root, parent=self))
                 for inf in infs:
                     inf.parse()
+                self.store()
                 # self._remove_empty_collections()
         else:
             if self.is_dir():
@@ -226,36 +199,31 @@ class ImportFile(object):
     def is_xls(self):
         if not hasattr(self, '_is_xls'):
             try:
-                if zipfile.is_zipfile(self._readable):
-                    with zipfile.ZipFile(self._readable) as tmp_zf:
+                if zipfile.is_zipfile(self.readable):
+                    with zipfile.ZipFile(self.readable) as tmp_zf:
                         has_xlsx_contentfile = '[Content_Types].xml' in tmp_zf.namelist()
                     self._is_xls = has_xlsx_contentfile
                     return self._is_xls
-                self.wb = open_workbook(file_contents=self._readable.read())
+                self.wb = open_workbook(file_contents=self.readable.read())
                 self._is_xls = True
             except Exception as e:
                 self._is_xls = False
         return self._is_xls
 
-    def warn(self, message):
-        self.root.warnings.append(message)
 
     def is_zip(self):
         if not hasattr(self, '_is_zip'):
-            if isinstance(self.readable, zipfile.ZipInfo):
+            if isinstance(self._readable, zipfile.ZipInfo):
                 self._is_zip = False
             else:
-                self._is_zip = zipfile.is_zipfile(self.readable) and not self.is_xls()
+                self._is_zip = zipfile.is_zipfile(self._readable) and not self.is_xls()
         return self._is_zip
 
-    @property
-    def _readable(self):
-        return self.readable
 
     def is_dir(self):
         if not hasattr(self, '_is_dir'):
-            if isinstance(self.readable, zipfile.ZipInfo):
-                self._is_dir = self.readable.file_size == 0 and self.readable.filename.endswith('/')
+            if isinstance(self._readable, zipfile.ZipInfo):
+                self._is_dir = self._readable.file_size == 0 and self._readable.filename.endswith('/')
             else:
                 self._is_dir = False
         return self._is_dir
@@ -267,11 +235,14 @@ class ImportZipSubfile(ImportFile):
         super( ImportZipSubfile, self ).__init__(*args, **kwargs)
 
     @property
-    def _readable(self):
-        return self.zfile.open(self.readable)
+    def readable(self):
+        if hasattr(self, '_bytesio'):
+            return self._bytesio
+        else:
+            return self.zfile.open(self._readable)
 
-    def read(self):
-        return self.zfile.open(self.readable).read()
+    def store(self):
+        self._bytesio = BytesIO(self.readable.read())
 
 class RootFileImport(ImportFile):
     def __init__(self, *args, **kwargs):
@@ -283,9 +254,10 @@ class RootFileImport(ImportFile):
         self._parsed = []
         super( RootFileImport, self ).__init__(*args, **kwargs)
 
-    def print_names(self):
-        for fif in self._parsed:
-            print str(fif)
+    def store(self):
+        for item in self._parsed:
+            if item != self:
+                item.store()
 
     def remove_empty_collections(self):
         while self._remove_empty_collections():
