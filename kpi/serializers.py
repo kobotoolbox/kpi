@@ -190,6 +190,7 @@ class UserListSerializer(UserSerializer):
 
 
 class CollectionSerializer(serializers.HyperlinkedModelSerializer):
+    url = TaggedHyperlinkedIdentityField(lookup_field='uid', view_name='collection-detail')
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', \
                 lookup_field='username', read_only=True)
     survey_assets = TaggedHyperlinkedRelatedField(many=True, lookup_field='uid',
@@ -200,7 +201,12 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Collection
-        fields = ('name', 'url', 'survey_assets', 'owner', 'tags',)
+        fields = ('name',
+                    'url',
+                    'survey_assets',
+                    'owner',
+                    'tags',
+                )
         lookup_field = 'uid'
         extra_kwargs = {
             'survey_assets': {
