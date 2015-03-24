@@ -49,16 +49,16 @@ class CreateSurveyAssetVersions(SurveyAssetsTestCase):
 #         self.assertEqual(len(sans_kuid), 2)
 #         self.assertTrue('kuid' not in sans_kuid[0].keys())
 
-class UpdateSurveyAssetsTest(SurveyAssetsTestCase):
-    def test_add_settings(self):
-        self.assertEqual(self.survey_asset.settings, None)
-        self.survey_asset.settings = {'style':'grid-theme'}
-        # self.assertEqual(self.survey_asset.settings, {'style':'grid-theme'})
-        ss_struct = self.survey_asset.to_ss_structure()['settings']
-        self.assertEqual(len(ss_struct), 1)
-        self.assertEqual(ss_struct[0], {
-                'style': 'grid-theme',
-            })
+# class UpdateSurveyAssetsTest(SurveyAssetsTestCase):
+#     def test_add_settings(self):
+#         self.assertEqual(self.survey_asset.settings, None)
+#         self.survey_asset.settings = {'style':'grid-theme'}
+#         # self.assertEqual(self.survey_asset.settings, {'style':'grid-theme'})
+#         ss_struct = self.survey_asset.to_ss_structure()['settings']
+#         self.assertEqual(len(ss_struct), 1)
+#         self.assertEqual(ss_struct[0], {
+#                 'style': 'grid-theme',
+#             })
 
 class ShareSurveyAssetsTest(SurveyAssetsTestCase):
     def setUp(self):
