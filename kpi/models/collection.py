@@ -7,6 +7,7 @@ from taggit.models import Tag
 from object_permission import ObjectPermission, perm_parse
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from django.dispatch import receiver
 import re
 
 COLLECTION_UID_LENGTH = 22
@@ -63,12 +64,12 @@ class Collection(MPTTModel):
         # Our parent may have changed; recalculate inherited permissions
         self._recalculate_inherited_perms()
         for survey_asset in self.survey_assets.all():
-            suvey_asset._recalculate_inherited_perms()
+            survey_asset._recalculate_inherited_perms()
         # Recalculate all descendants
         for descendant in self.get_descendants():
             descendant._recalculate_inherited_perms()
             for survey_asset in descendant.survey_assets.all():
-                suvey_asset._recalculate_inherited_perms()
+                survey_asset._recalculate_inherited_perms()
 
     def __unicode__(self):
         return self.name
@@ -191,6 +192,15 @@ class Collection(MPTTModel):
     def has_perm(self, user_obj, perm):
         ''' Does user_obj have perm on this collection? (True/False) '''
         app_label, codename = perm_parse(perm, self)
+        # share_collection is a special case
+        if codename == 'share_collection':
+            if user_obj.pk == self.owner.pk:
+                # The owner can always edit permissions
+                return True
+            # Non-owners can edit permissions if they have change_collection
+            # AND the editors_can_change_permissions flag is set.
+            return self.editors_can_change_permissions and self.has_perm(
+                user_obj, 'change_collection')
         return len(self._effective_perms(
             user_id=user_obj.pk,
             permission__codename=codename
@@ -223,3 +233,9 @@ class Collection(MPTTModel):
             # Use a set to avoid duplicate users
             user_ids = {x[0] for x in user_perm_ids}
             return User.objects.filter(pk__in=user_ids)
+
+@receiver(models.signals.post_delete, sender=Collection)
+def post_delete_collection(sender, instance, **kwargs):
+    # Remove all permissions associated with this object
+    ObjectPermission.objects.filter_for_object(instance).delete()
+    # No recalculation is necessary since children will also be deleted

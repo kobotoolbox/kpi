@@ -10,6 +10,7 @@ import copy
 from object_permission import ObjectPermission, perm_parse
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
+from django.dispatch import receiver
 import re
 
 SURVEY_ASSET_TYPES = [
@@ -162,6 +163,15 @@ class SurveyAsset(models.Model):
     def has_perm(self, user_obj, perm):
         ''' Does user_obj have perm on this survey asset? (True/False) '''
         app_label, codename = perm_parse(perm, self)
+        # share_surveyasset is a special case
+        if codename == 'share_surveyasset':
+            if user_obj.pk == self.owner.pk:
+                # The owner can always edit permissions
+                return True
+            # Non-owners can edit permissions if they have change_surveyasset
+            # AND the editors_can_change_permissions flag is set.
+            return self.editors_can_change_permissions and self.has_perm(
+                user_obj, 'change_surveyasset')
         return len(self._effective_perms(
             user_id=user_obj.pk,
             permission__codename=codename
@@ -310,3 +320,9 @@ class SurveyAssetExport(models.Model):
         self.source = survey_asset._to_ss_structure(content_tag='survey')
         self.generate_xml_from_source()
         return super(SurveyAssetExport, self).save(*args, **kwargs)
+
+@receiver(models.signals.post_delete, sender=SurveyAsset)
+def post_delete_surveyasset(sender, instance, **kwargs):
+    # Remove all permissions associated with this object
+    ObjectPermission.objects.filter_for_object(instance).delete()
+    # No recalculation is necessary since children will also be deleted

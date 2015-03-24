@@ -2,8 +2,11 @@ from rest_framework import status
 from django.test import TestCase
 from kpi.models.collection import Collection
 from kpi.models.survey_asset import SurveyAsset
+from kpi.models.object_permission import ObjectPermission
 from kpi.models.object_permission import get_all_objects_for_user
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import Permission
 
 class CreateCollectionTests(TestCase):
     fixtures = ['test_data']
@@ -357,6 +360,79 @@ class ShareCollectionTests(TestCase):
             list(anotheruser_objects.values_list('pk', flat=True)),
             [self.standalone_coll.pk]
         )
+
+    def test_object_permissions_are_deleted_with_collection(self):
+        # The owner of the collection gets all permissions by default,
+        # so we expect those to be present.
+        content_type = ContentType.objects.get_for_model(self.standalone_coll)
+        expected_perms = sorted(Permission.objects.filter(
+            content_type=content_type).values_list('pk', flat=True))
+        self.assertEqual(
+            sorted(ObjectPermission.objects.filter_for_object(
+                self.standalone_coll,
+                user=self.standalone_coll.owner
+            ).values_list('permission_id', flat=True)),
+            expected_perms
+        )
+        # Assign some new permissions
+        self.standalone_coll.assign_perm(self.someuser, 'view_collection')
+        self.standalone_coll.assign_perm(self.anotheruser, 'change_collection')
+        # change_collection also provides view_collection, so expect 3 more
+        # permissions, not 2
+        self.assertEqual(
+            ObjectPermission.objects.filter_for_object(
+                self.standalone_coll
+            ).count(),
+            len(expected_perms) + 3
+        )
+        # Delete the collection and make sure all associated permissions
+        # are gone
+        self.standalone_coll.delete()
+        self.assertEqual(
+            ObjectPermission.objects.filter_for_object(
+                self.standalone_coll
+            ).count(),
+            0
+        )
+
+    def test_owner_can_edit_permissions(self):
+        self.assertTrue(self.standalone_coll.owner.has_perm(
+            'share_collection',
+            self.standalone_coll
+        ))
+
+    def test_share_collection_permission_is_not_inherited(self):
+        # Change self.standalone_coll so that its owner isn't a superuser
+        self.standalone_coll.owner = self.someuser
+        self.standalone_coll.save()
+        # Make a child collection whose owner is different than its parent's
+        coll = Collection.objects.create(
+            name="anotheruser's collection",
+            owner=self.anotheruser,
+            parent=self.standalone_coll,
+            # The change permission is inherited; prevent it from allowing
+            # users to edit permissions
+            editors_can_change_permissions=False
+        )
+        # Ensure the parent's owner can't change permissions on the child
+        self.assertFalse(self.standalone_coll.owner.has_perm(
+            'share_collection',
+            coll
+        ))
+
+    def test_change_permission_provides_share_permission(self):
+        self.assertFalse(self.someuser.has_perm(
+            'change_collection', self.standalone_coll))
+        # Grant the change permission and make sure it provides
+        # share_collection
+        self.standalone_coll.assign_perm(self.someuser, 'change_collection')
+        self.assertTrue(self.someuser.has_perm(
+            'share_collection', self.standalone_coll))
+        # Restrict share_collection to the owner and make sure someuser loses
+        # share_collection
+        self.standalone_coll.editors_can_change_permissions = False
+        self.assertFalse(self.someuser.has_perm(
+            'share_collection', self.standalone_coll))
 
     def test_url_view_permission_on_standalone_collection(self): pass
     def test_url_change_permission_on_standalone_collection(self): pass

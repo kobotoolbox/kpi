@@ -191,6 +191,43 @@ class ShareSurveyAssetsTest(SurveyAssetsTestCase):
             [self.survey_asset.pk]
         )
 
+    def test_owner_can_edit_permissions(self):
+        self.assertTrue(self.survey_asset.owner.has_perm(
+            'share_surveyasset',
+            self.survey_asset
+        ))
+
+    def test_share_surveyasset_permission_is_not_inherited(self):
+        # Change self.coll so that its owner isn't a superuser
+        self.coll.owner = User.objects.get(username='someuser')
+        self.coll.save()
+        # Give the child survey asset a different owner
+        self.asset_in_coll.owner = User.objects.get(username='anotheruser')
+        # The change permission is inherited; prevent it from allowing
+        # users to edit permissions
+        self.asset_in_coll.editors_can_change_permissions = False
+        self.asset_in_coll.save()
+        # Ensure the parent's owner can't change permissions on the child
+        self.assertFalse(self.coll.owner.has_perm(
+            'share_surveyasset',
+            self.asset_in_coll
+        ))
+
+    def test_change_permission_provides_share_permission(self):
+        someuser = User.objects.get(username='someuser')
+        self.assertFalse(someuser.has_perm(
+            'change_surveyasset', self.survey_asset))
+        # Grant the change permission and make sure it provides
+        # share_surveyasset
+        self.survey_asset.assign_perm(someuser, 'change_surveyasset')
+        self.assertTrue(someuser.has_perm(
+            'share_surveyasset', self.survey_asset))
+        # Restrict share_surveyasset to the owner and make sure someuser loses
+        # the permission
+        self.survey_asset.editors_can_change_permissions = False
+        self.assertFalse(someuser.has_perm(
+            'share_surveyasset', self.survey_asset))
+
     # TODO
     def test_url_view_permission(self): pass
     def test_url_change_permission(self): pass
