@@ -40,7 +40,7 @@
         </div>
         <hr>
         <code>
-          <pre class='survey-asset-url'>{% url 'surveyasset-detail' survey_asset.uid %}</pre>
+          <pre class='survey-asset-url'>{% url 'surveyasset-content' survey_asset.uid %}</pre>
         </code>
       </div> <!-- #main -->
     </div> <!-- #main-container -->
@@ -91,12 +91,7 @@
     function init(xlform) {
       var saUrl = $('.survey-asset-url').eq(0).text();
       $.getJSON(saUrl).done(function(data){
-        var ssJson = data.ss_json;
-        if ('text' in ssJson) {
-          ssJson.survey = ssJson.text;
-          delete ssJson.text;
-        }
-        displaySurvey(xlform, ssJson);
+        displaySurvey(xlform, data);
       })
     }
     function init_(xlform) {
