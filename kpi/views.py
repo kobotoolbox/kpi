@@ -157,7 +157,7 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def content(self, request, *args, **kwargs):
         survey_asset = self.get_object()
-        return Response(json.dumps(survey_asset._to_ss_structure('survey')))
+        return Response(json.dumps(survey_asset.to_ss_structure()))
 
     @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
     def koboform(self, request, *args, **kwargs):
@@ -167,7 +167,7 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def table_view(self, request, *args, **kwargs):
         sa = self.get_object()
-        md_table = ss_structure_to_mdtable(sa._to_ss_structure())
+        md_table = ss_structure_to_mdtable(sa.to_ss_structure())
         header_links = '''
         <a href="../">Back</a> | <a href="../.xls">Download XLS file</a><br>'''
         return Response(_wrap_html_pre(header_links + md_table.strip()))
