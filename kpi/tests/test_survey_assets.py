@@ -69,7 +69,7 @@ class ShareSurveyAssetsTest(SurveyAssetsTestCase):
         # Make a copy of self.survey_asset and put it inside self.coll
         self.sa_in_coll = self.survey_asset
         self.sa_in_coll.pk = None
-        self.sa_in_coll.collection = self.coll
+        self.sa_in_coll.parent = self.coll
         self.sa_in_coll.save()
 
     def grant_and_revoke_standalone(self, user, perm):
