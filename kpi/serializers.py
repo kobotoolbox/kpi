@@ -88,13 +88,13 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     content = SurveyAssetContentField(style={'base_template': 'muted_readonly_content_field.html'})
     tags = serializers.SerializerMethodField('_get_tag_names')
     version_count = serializers.SerializerMethodField('_version_count')
-    collection = TaggedHyperlinkedRelatedField(lookup_field='uid', queryset=Collection.objects.all(),
+    parent = TaggedHyperlinkedRelatedField(lookup_field='uid', queryset=Collection.objects.all(),
                                                 view_name='collection-detail', required=False)
 
     class Meta:
         model = SurveyAsset
         lookup_field = 'uid'
-        fields = ('url', 'parent', 'owner', 'collection',
+        fields = ('url', 'parent', 'owner', 'parent',
                     'settings',
                     'assetType',
                     'date_created',
@@ -107,7 +107,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
                     'xls_link',
                     'name', 'tags', )
         extra_kwargs = {
-            'collection': {
+            'parent': {
                 'lookup_field': 'uid',
             },
         }
@@ -115,7 +115,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     def get_fields(self, *args, **kwargs):
         fields = super(SurveyAssetSerializer, self).get_fields(*args, **kwargs)
         user = self.context['request'].user
-        fields['collection'].queryset = fields['collection'].queryset.filter(owner=user)
+        fields['parent'].queryset = fields['parent'].queryset.filter(owner=user)
         return fields
 
     def _version_count(self, obj):
@@ -145,7 +145,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
 
 class SurveyAssetListSerializer(SurveyAssetSerializer):
     class Meta(SurveyAssetSerializer.Meta):
-        fields = ('url', 'owner', 'collection',
+        fields = ('url', 'owner', 'parent',
                     'assetType', 'name', 'tags',)
 
 

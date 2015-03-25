@@ -16,8 +16,8 @@ HTML_HEADER = '''\
 class XFormFormatter(HtmlFormatter):
     def _wrap_full(self, inner, outfile):
         yield 0, (HTML_HEADER %
-                  dict(title= self.options.get('title', ''),
-                       styledefs= self.get_style_defs('body'),))
+                  dict(title=self.options.get('title', ''),
+                       styledefs=self.get_style_defs('body'),))
         yield 0, self.options.get('header', '')
         for t, line in inner:
             yield t, line
