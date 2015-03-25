@@ -35,7 +35,7 @@ class SurveyAsset(models.Model):
     date_modified = models.DateTimeField(auto_now=True)
     content = JSONField(null=True)
     asset_type = models.CharField(choices=SURVEY_ASSET_TYPES, max_length=20, default='text')
-    collection = models.ForeignKey('Collection', related_name='survey_assets', null=True)
+    parent = models.ForeignKey('Collection', related_name='survey_assets', null=True)
     owner = models.ForeignKey('auth.User', related_name='survey_assets', null=True)
     editors_can_change_permissions = models.BooleanField(default=True)
     uid = models.CharField(max_length=SURVEY_ASSET_UID_LENGTH, default='')
@@ -86,14 +86,14 @@ class SurveyAsset(models.Model):
             inherited=True
         ).delete()
         # Is there anything to inherit?
-        if self.collection is not None:
+        if self.parent is not None:
             # All our parent's effective permissions become our inherited
             # permissions.
             mangle_perm = lambda x: re.sub('_collection$', '_surveyasset', x)
             # Store translations in a dictionary here to minimize invocations of
             # the Django machinery
             translate_perm = {}
-            for user_id, permission_id in self.collection._effective_perms():
+            for user_id, permission_id in self.parent._effective_perms():
                 try:
                     translated_id = translate_perm[permission_id]
                 except KeyError:

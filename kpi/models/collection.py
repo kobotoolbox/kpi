@@ -21,7 +21,7 @@ class CollectionManager(models.Manager):
         if assets:
             new_assets = []
             for asset in assets:
-                asset['collection'] = created
+                asset['parent'] = created
                 new_assets.append(SurveyAsset.objects.create(**asset))
             # bulk_create comes with a number of caveats
             # SurveyAsset.objects.bulk_create(new_assets)
