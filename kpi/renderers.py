@@ -5,13 +5,6 @@ import json
 import copy
 
 
-def _data_to_ss_structure(data):
-    obj = copy.copy(data.get('additional_sheets', {}))
-    obj[data['assetType']] = data['content']
-    if 'settings' in data and data['settings']:
-        obj['settings'] = data.get('settings')
-    return obj
-
 class AssetJsonRenderer(renderers.JSONRenderer):
     media_type = 'application/json'
     format = 'json'
@@ -24,7 +17,7 @@ class SSJsonRenderer(renderers.JSONRenderer):
     def render(self, data, media_type=None, renderer_context=None):
         # this accessing of the model might be frowned upon, but I'd prefer to avoid
         # re-building the SS structure outside of the model for now.
-        return json.dumps(renderer_context['view'].get_object()._to_ss_structure())
+        return json.dumps(renderer_context['view'].get_object().to_ss_structure())
 
 class XFormRenderer(renderers.BaseRenderer):
     media_type = 'application/xml'
