@@ -45,6 +45,7 @@ INSTALLED_APPS = (
     'django_extensions',
     'taggit',
     'rest_framework',
+    'djcelery',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -107,3 +108,6 @@ REST_FRAMEWORK = {
 
 if not DEBUG:
     STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+
+import djcelery
+djcelery.setup_loader()

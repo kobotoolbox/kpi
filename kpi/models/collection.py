@@ -22,7 +22,7 @@ class CollectionManager(models.Manager):
         if assets:
             new_assets = []
             for asset in assets:
-                asset['collection'] = created
+                asset['parent'] = created
                 new_assets.append(SurveyAsset.objects.create(**asset))
             # bulk_create comes with a number of caveats
             # SurveyAsset.objects.bulk_create(new_assets)
@@ -41,6 +41,8 @@ class Collection(MPTTModel):
     owner = models.ForeignKey('auth.User', related_name='owned_collections')
     editors_can_change_permissions = models.BooleanField(default=True)
     uid = models.CharField(max_length=COLLECTION_UID_LENGTH, default='')
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
     objects = CollectionManager()
     tags = TaggableManager()
 

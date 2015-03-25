@@ -48,7 +48,7 @@ class CreateCollectionTests(TestCase):
         right now, this does make it easy to delete survey_assets within a
         collection.
         '''
-        initial_asset_count= SurveyAsset.objects.count()
+        initial_asset_count = SurveyAsset.objects.count()
         asset = self.coll.survey_assets.create(name='test', content=[
                 {'type': 'text', 'label': 'Q1', 'name': 'q1'},
                 {'type': 'text', 'label': 'Q2', 'name': 'q2'},
@@ -74,8 +74,8 @@ class CreateCollectionTests(TestCase):
         self.assertEqual(SurveyAsset.objects.count(), 0)
 
     def test_create_collection_with_survey_assets(self):
-        initial_asset_count= SurveyAsset.objects.count()
-        initial_collection_count= Collection.objects.count()
+        initial_asset_count = SurveyAsset.objects.count()
+        initial_collection_count = Collection.objects.count()
         self.assertTrue(Collection.objects.count() >= 1)
         Collection.objects.create(name='test_collection', owner=self.user, survey_assets=[
                 {
