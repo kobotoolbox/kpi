@@ -1,7 +1,8 @@
 from kpi.models import SurveyAsset
 from kpi.models import Collection
 from kpi.models.object_permission import get_all_objects_for_user
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 import json
 import re
@@ -229,10 +230,42 @@ class ShareSurveyAssetsTest(SurveyAssetsTestCase):
         self.assertFalse(someuser.has_perm(
             'share_surveyasset', self.survey_asset))
 
-    # TODO
-    def test_user_permission_conflict_resolution(self): pass
-    def test_url_view_permission(self): pass
-    def test_url_change_permission(self): pass
-    def test_url_inherited_view_permission(self): pass
-    def test_url_inherited_change_permission(self): pass
-    def test_url_permission_conflict_resolution(self): pass
+    def test_anonymous_view_permission_on_standalone_asset(self):
+        # Grant
+        self.assertFalse(AnonymousUser().has_perm(
+            'view_surveyasset', self.survey_asset))
+        self.survey_asset.assign_perm(AnonymousUser(), 'view_surveyasset')
+        self.assertTrue(AnonymousUser().has_perm(
+            'view_surveyasset', self.survey_asset))
+        # Revoke
+        self.survey_asset.remove_perm(AnonymousUser(), 'view_surveyasset')
+        self.assertFalse(AnonymousUser().has_perm(
+            'view_surveyasset', self.survey_asset))
+
+    def test_anoymous_change_permission_on_standalone_asset(self):
+        # TODO: behave properly if ALLOWED_ANONYMOUS_PERMISSIONS actually
+        # includes change_surveyasset
+        try:
+            # This is expected to fail since only real users can have any
+            # permissions beyond view
+            self.survey_asset.assign_perm(
+                AnonymousUser(), 'change_surveyasset')
+        except ValidationError:
+            pass
+        # Make sure the assignment failed
+        self.assertFalse(AnonymousUser().has_perm(
+            'change_surveyasset', self.survey_asset))
+
+    def test_anonymous_as_baseline_for_authenticated(self):
+        ''' If the public can view an object, then all users should be able
+        to do the same. '''
+        # No one should have any permission yet
+        for user_obj in AnonymousUser(), self.someuser:
+            self.assertFalse(user_obj.has_perm(
+                'view_surveyasset', self.survey_asset))
+        # Grant to anonymous
+        self.survey_asset.assign_perm(AnonymousUser(), 'view_surveyasset')
+        # Check that both anonymous and someuser can view
+        for user_obj in AnonymousUser(), self.someuser:
+            self.assertTrue(user_obj.has_perm(
+                'view_surveyasset', self.survey_asset))

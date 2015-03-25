@@ -4,9 +4,11 @@ from shortuuid import ShortUUID
 from kpi.models.survey_asset import SurveyAsset
 from taggit.managers import TaggableManager
 from taggit.models import Tag
-from object_permission import ObjectPermission, perm_parse
-from django.contrib.auth.models import Permission
+from object_permission import ObjectPermission, perm_parse, get_anonymous_user
+from django.contrib.auth.models import User, AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
+from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.dispatch import receiver
 import re
 
@@ -121,6 +123,15 @@ class Collection(MPTTModel):
         ''' Assign user_obj the given perm on this collection. To break
         inheritance from a parent collection, use deny=True. '''
         app_label, codename = perm_parse(perm, self)
+        if isinstance(user_obj, AnonymousUser):
+            # Is an anonymous user allowed to have this permission?
+            if not codename in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
+                raise ValidationError(
+                    'Anonymous users cannot have the permission {}.'.format(
+                        codename)
+                )
+            # Get the User database representation for AnonymousUser
+            user_obj = get_anonymous_user()
         perm_model = Permission.objects.get(
             content_type__app_label=app_label,
             codename=codename
@@ -174,6 +185,9 @@ class Collection(MPTTModel):
 
     def remove_perm(self, user_obj, perm, deny=False):
         ''' Revoke perm on this collection from user_obj. '''
+        if isinstance(user_obj, AnonymousUser):
+            # Get the User database representation for AnonymousUser
+            user_obj = get_anonymous_user()
         app_label, codename = perm_parse(perm, self)
         ObjectPermission.objects.filter_for_object(
             self,
@@ -194,6 +208,11 @@ class Collection(MPTTModel):
     def has_perm(self, user_obj, perm):
         ''' Does user_obj have perm on this collection? (True/False) '''
         app_label, codename = perm_parse(perm, self)
+        is_anonymous = False
+        if isinstance(user_obj, AnonymousUser):
+            # Get the User database representation for AnonymousUser
+            user_obj = get_anonymous_user()
+            is_anonymous = True
         # share_collection is a special case
         if codename == 'share_collection':
             if user_obj.pk == self.owner.pk:
@@ -203,10 +222,19 @@ class Collection(MPTTModel):
             # AND the editors_can_change_permissions flag is set.
             return self.editors_can_change_permissions and self.has_perm(
                 user_obj, 'change_collection')
-        return len(self._effective_perms(
+        # Look for matching permissions
+        result = len(self._effective_perms(
             user_id=user_obj.pk,
             permission__codename=codename
         )) == 1
+        if not result and not is_anonymous:
+            # The user-specific test failed, but does the public have access?
+            result =  self.has_perm(AnonymousUser(), perm)
+        if result and is_anonymous:
+            # Is an anonymous user allowed to have this permission?
+            if not codename in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
+                return False
+        return result
 
     def get_perms(self, user_obj):
         ''' Return a list of codenames of all effective grant permissions that

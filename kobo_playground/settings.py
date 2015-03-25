@@ -64,6 +64,11 @@ ROOT_URLCONF = 'kobo_playground.urls'
 
 WSGI_APPLICATION = 'kobo_playground.wsgi.application'
 
+# What User object should be mapped to AnonymousUser?
+ANONYMOUS_USER_ID = -1
+# Permissions assigned to AnonymousUser are restricted to the following
+ALLOWED_ANONYMOUS_PERMISSIONS = ('view_collection', 'view_surveyasset')
+
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases

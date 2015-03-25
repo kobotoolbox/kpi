@@ -4,9 +4,9 @@ from kpi.models.collection import Collection
 from kpi.models.survey_asset import SurveyAsset
 from kpi.models.object_permission import ObjectPermission
 from kpi.models.object_permission import get_all_objects_for_user
-from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import User, AnonymousUser, Permission
+from django.core.exceptions import ValidationError
 
 class CreateCollectionTests(TestCase):
     fixtures = ['test_data']
@@ -434,10 +434,42 @@ class ShareCollectionTests(TestCase):
         self.assertFalse(self.someuser.has_perm(
             'share_collection', self.standalone_coll))
 
-    def test_url_view_permission_on_standalone_collection(self): pass
-    def test_url_change_permission_on_standalone_collection(self): pass
-    def test_url_view_permission_on_parent_collection(self): pass
-    def test_url_change_permission_on_parent_collection(self): pass
-    def test_url_view_permission_on_child_collection(self): pass
-    def test_url_change_permission_on_child_collection(self): pass
-    def test_url_permission_conflict_resolution(self): pass
+    def test_anonymous_view_permission_on_standalone_collection(self):
+        # Grant
+        self.assertFalse(AnonymousUser().has_perm(
+            'view_collection', self.standalone_coll))
+        self.standalone_coll.assign_perm(AnonymousUser(), 'view_collection')
+        self.assertTrue(AnonymousUser().has_perm(
+            'view_collection', self.standalone_coll))
+        # Revoke
+        self.standalone_coll.remove_perm(AnonymousUser(), 'view_collection')
+        self.assertFalse(AnonymousUser().has_perm(
+            'view_collection', self.standalone_coll))
+
+    def test_anoymous_change_permission_on_standalone_collection(self):
+        # TODO: behave properly if ALLOWED_ANONYMOUS_PERMISSIONS actually
+        # includes change_collection
+        try:
+            # This is expected to fail since only real users can have any
+            # permissions beyond view
+            self.standalone_coll.assign_perm(
+                AnonymousUser(), 'change_collection')
+        except ValidationError:
+            pass
+        # Make sure the assignment failed
+        self.assertFalse(AnonymousUser().has_perm(
+            'change_collection', self.standalone_coll))
+
+    def test_anonymous_as_baseline_for_authenticated(self):
+        ''' If the public can view an object, then all users should be able
+        to do the same. '''
+        # No one should have any permission yet
+        for user_obj in AnonymousUser(), self.someuser:
+            self.assertFalse(user_obj.has_perm(
+                'view_collection', self.standalone_coll))
+        # Grant to anonymous
+        self.standalone_coll.assign_perm(AnonymousUser(), 'view_collection')
+        # Check that both anonymous and someuser can view
+        for user_obj in AnonymousUser(), self.someuser:
+            self.assertTrue(user_obj.has_perm(
+                'view_collection', self.standalone_coll))
