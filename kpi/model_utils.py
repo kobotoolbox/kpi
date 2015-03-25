@@ -23,7 +23,7 @@ def _load_library_content(structure):
                 del row[key]
         sub_lib_asset['survey'] = [row]
         sa = SurveyAsset.objects.create(content=sub_lib_asset, asset_type='survey_block',
-                                    owner=structure['owner'], collection=collection)
+                                    owner=structure['owner'], parent=collection)
         sa.tags.add(*row_tags)
     return collection
 

@@ -13,6 +13,11 @@ class Command(BaseCommand):
             dest='destroy',
             default=False,
             help='Delete all collections, assets, and tasks for user'),
+        make_option('--destination',
+            action='store',
+            dest='destination',
+            default=False,
+            help='A uid of a destination collection that will contain the imported asset(s)'),
         make_option('--username',
             action='store',
             dest='username',
@@ -24,13 +29,20 @@ class Command(BaseCommand):
         if not options.get('username'):
             raise Exception("username flag required '--username'")
         user = User.objects.get(username=options.get('username'))
+        destination = options.get('destination', False)
+        if destination:
+            parent_coll = user.owned_collections.get(uid=destination)#.children().all()
+            destination_collection = user.owned_collections.filter(parent=parent_coll)
+        else:
+            destination_collection = user.owned_collections
+
         if options.get('destroy'):
-            user.owned_collections.all().delete()
-            user.survey_assets.all().delete()
+            destination_collection.all().delete()
             ImportTask.objects.filter(user=user).delete()
         url = args[0]
         import_task = ImportTask.objects.create(user=user,
             data={
-                'url': args[0]
+                'url': args[0],
+                'destination': destination
             })
         import_task.run()
