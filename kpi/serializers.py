@@ -225,4 +225,11 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
 
 class CollectionListSerializer(CollectionSerializer):
     class Meta(CollectionSerializer.Meta):
-        fields = ('name', 'url', 'owner', 'tags',)
+        fields = ('name',
+                    'url',
+                    'parent',
+                    'owner',
+                    'tags',
+                    'date_created',
+                    'date_modified',
+                )

@@ -3,8 +3,7 @@ from shortuuid import ShortUUID
 from jsonfield import JSONField
 import requests
 from pyxform import xls2json_backends
-from kpi.models import SurveyAsset
-from kpi.models import Collection
+from kpi.model_utils import create_assets
 from ..zip_importer import HttpContentParse
 
 
@@ -58,15 +57,16 @@ class ImportTask(models.Model):
                 'name': item._name_base,
             }
             if item.get_type() == 'collection':
-                item._orm = Collection.objects.create(**kwargs)
+                item._orm = create_assets(item.get_type(), kwargs)
             elif item.get_type() == 'asset':
                 kontent = xls2json_backends.xls_to_dict(item.readable)
                 content = {}
                 for key, val in kontent.items():
                     if not key.endswith('_header'):
                         content[key] = val
+                kwargs['asset_type'] = 'survey_block'
                 kwargs['content'] = content
-                item._orm = SurveyAsset.objects.create(**kwargs)
+                item._orm = create_assets(item.get_type(), kwargs)
             if item.parent:
                 collections_to_assign.append([
                     item._orm,

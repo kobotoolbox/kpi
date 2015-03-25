@@ -65,12 +65,12 @@ class Collection(MPTTModel):
         # Our parent may have changed; recalculate inherited permissions
         self._recalculate_inherited_perms()
         for survey_asset in self.survey_assets.all():
-            suvey_asset._recalculate_inherited_perms()
+            survey_asset._recalculate_inherited_perms()
         # Recalculate all descendants
         for descendant in self.get_descendants():
             descendant._recalculate_inherited_perms()
             for survey_asset in descendant.survey_assets.all():
-                suvey_asset._recalculate_inherited_perms()
+                survey_asset._recalculate_inherited_perms()
 
     def __unicode__(self):
         return self.name
