@@ -233,7 +233,7 @@ class ShareCollectionTests(TestCase):
                          not parent_deny)
         self.assertEqual(user.has_perm(child_perm, self.child_coll),
                          not child_deny)
-        
+
     def test_user_view_parent_change_child(self, child_first=False):
         user = self.someuser
         self.assign_parent_child_perms(
@@ -366,7 +366,9 @@ class ShareCollectionTests(TestCase):
         # so we expect those to be present.
         content_type = ContentType.objects.get_for_model(self.standalone_coll)
         expected_perms = sorted(Permission.objects.filter(
-            content_type=content_type).values_list('pk', flat=True))
+            content_type=content_type,
+            codename__in=Collection.ASSIGNABLE_PERMISSIONS
+        ).values_list('pk', flat=True))
         self.assertEqual(
             sorted(ObjectPermission.objects.filter_for_object(
                 self.standalone_coll,

@@ -11,6 +11,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.dispatch import receiver
 import re
+import copy
 
 COLLECTION_UID_LENGTH = 22
 
@@ -50,11 +51,14 @@ class Collection(MPTTModel):
 
     class Meta:
         permissions = (
-            # change_collection and delete_collection are provided automatically
+            # change_, add_, and delete_collection are provided automatically
             # by Django
             ('view_collection', 'Can view collection'),
             ('share_collection', "Can change this collection's sharing settings"),
         )
+
+    ASSIGNABLE_PERMISSIONS = ('view_collection', 'change_collection')
+    CALCULATED_PERMISSIONS = ('share_collection', 'delete_collection')
 
     def _generate_uid(self):
         return 'c' + ShortUUID().random(COLLECTION_UID_LENGTH-1)
@@ -78,15 +82,61 @@ class Collection(MPTTModel):
     def __unicode__(self):
         return self.name
 
-    def _effective_perms(self, **kwargs):
+    def _effective_perms(self, user=None, codename=None):
         ''' Reconcile all grant and deny permissions, and return an
         authoritative set of grant permissions (i.e. deny=False) for the
         current collection. '''
+        # Including calculated permissions means we can't just pass kwargs
+        # through to filter(), but we'll map the ones we understand.
+        kwargs = {}
+        if user is not None:
+            kwargs['user'] = user
+        if codename is not None:
+            # share_ requires loading change_ from the database
+            if codename.startswith('share_'):
+                kwargs['permission__codename'] = re.sub(
+                    '^share_', 'change_', codename, 1)
+            else:
+                kwargs['permission__codename'] = codename
         grant_perms = set(ObjectPermission.objects.filter_for_object(self,
             deny=False, **kwargs).values_list('user_id', 'permission_id'))
         deny_perms = set(ObjectPermission.objects.filter_for_object(self,
             deny=True, **kwargs).values_list('user_id', 'permission_id'))
-        return grant_perms.difference(deny_perms)
+        effective_perms = grant_perms.difference(deny_perms)
+        # Add on the calculated permissions
+        content_type = ContentType.objects.get_for_model(self)
+        if codename in self.CALCULATED_PERMISSIONS:
+            # A sepecific query for a calculated permission should not return
+            # any explicitly assigned permissions, e.g. share_ should not
+            # include change_
+            effective_perms_copy = effective_perms
+            effective_perms = set()
+        else:
+            effective_perms_copy = copy.copy(effective_perms)
+        if self.editors_can_change_permissions and (
+            codename is None or codename.startswith('share_')):
+            # Everyone with change_ should also get share_
+            change_permission = Permission.objects.get(
+                content_type=content_type,
+                codename__startswith='change_'
+            )
+            share_permission = Permission.objects.get(
+                content_type=content_type,
+                codename__startswith='share_'
+            )
+            for user_id, permission_id in effective_perms_copy:
+                if permission_id == change_permission.pk:
+                    effective_perms.add((user_id, share_permission.pk))
+        # The owner has the delete_ permission
+        if self.owner is not None and (
+            user is None or user.pk == self.owner.pk) and (
+            codename is None or codename.startswith('delete_')):
+            delete_permission = Permission.objects.get(
+                content_type=content_type,
+                codename__startswith='delete_'
+            )
+            effective_perms.add((self.owner.pk, delete_permission.pk))
+        return effective_perms
 
     def _recalculate_inherited_perms(self):
         ''' Copy all of our parent's effective permissions to ourself,
@@ -108,9 +158,12 @@ class Collection(MPTTModel):
                     permission_id=permission_id,
                     inherited=True
                 )
-        # The owner gets every possible permission
+        # The owner gets every assignable permission
         content_type = ContentType.objects.get_for_model(self)
-        for perm in Permission.objects.filter(content_type=content_type):
+        for perm in Permission.objects.filter(
+            content_type=content_type,
+            codename__in=self.ASSIGNABLE_PERMISSIONS
+        ):
             # Use get_or_create in case the owner already has permissions
             ObjectPermission.objects.get_or_create_for_object(
                 self,
@@ -123,6 +176,11 @@ class Collection(MPTTModel):
         ''' Assign user_obj the given perm on this collection. To break
         inheritance from a parent collection, use deny=True. '''
         app_label, codename = perm_parse(perm, self)
+        if codename not in self.ASSIGNABLE_PERMISSIONS:
+            # Some permissions are calculated and not stored in the database
+            raise ValidationError('{} cannot be assigned explicitly.'.format(
+                codename)
+            )
         if isinstance(user_obj, AnonymousUser):
             # Is an anonymous user allowed to have this permission?
             if not codename in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
@@ -189,6 +247,11 @@ class Collection(MPTTModel):
             # Get the User database representation for AnonymousUser
             user_obj = get_anonymous_user()
         app_label, codename = perm_parse(perm, self)
+        if codename not in self.ASSIGNABLE_PERMISSIONS:
+            # Some permissions are calculated and not stored in the database
+            raise ValidationError('{} cannot be removed explicitly.'.format(
+                codename)
+            )
         ObjectPermission.objects.filter_for_object(
             self,
             user=user_obj,
@@ -213,19 +276,10 @@ class Collection(MPTTModel):
             # Get the User database representation for AnonymousUser
             user_obj = get_anonymous_user()
             is_anonymous = True
-        # share_collection is a special case
-        if codename == 'share_collection':
-            if user_obj.pk == self.owner.pk:
-                # The owner can always edit permissions
-                return True
-            # Non-owners can edit permissions if they have change_collection
-            # AND the editors_can_change_permissions flag is set.
-            return self.editors_can_change_permissions and self.has_perm(
-                user_obj, 'change_collection')
         # Look for matching permissions
         result = len(self._effective_perms(
-            user_id=user_obj.pk,
-            permission__codename=codename
+            user=user_obj,
+            codename=codename
         )) == 1
         if not result and not is_anonymous:
             # The user-specific test failed, but does the public have access?

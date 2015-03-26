@@ -121,7 +121,7 @@ class ShareSurveyAssetsTest(SurveyAssetsTestCase):
                          not collection_deny)
         self.assertEqual(user.has_perm(asset_perm, self.asset_in_coll),
                          not asset_deny)
- 
+
     def test_user_view_collection_change_asset(self, asset_first=False):
         user = self.someuser
         self.assign_collection_asset_perms(
