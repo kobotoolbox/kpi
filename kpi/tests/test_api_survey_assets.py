@@ -81,12 +81,12 @@ class ObjectRelationshipsTests(APITestCase):
         coll_req1 = self.client.get(reverse('collection-detail', args=[self.coll.uid]))
         self.assertEqual(len(coll_req1.data['survey_assets']), 0)
 
-        self.surv.collection = self.coll
+        self.surv.parent = self.coll
         self.surv.save()
 
         surv_req2 = self.client.get(reverse('surveyasset-detail', args=[self.surv.uid]))
-        self.assertIn('collection', surv_req2.data)
-        self.assertIn(self.coll.uid, surv_req2.data['collection'])
+        self.assertIn('parent', surv_req2.data)
+        self.assertIn(self.coll.uid, surv_req2.data['parent'])
 
         coll_req2 = self.client.get(reverse('collection-detail', args=[self.coll.uid]))
         self.assertEqual(len(coll_req2.data['survey_assets']), 1)
@@ -98,9 +98,9 @@ class ObjectRelationshipsTests(APITestCase):
         * assigning a collection to the survey returns a HTTP 200 code.
         * a follow up query on the asset shows that the collection is now set
         '''
-        self.assertEqual(self.surv.collection, None)
+        self.assertEqual(self.surv.parent, None)
         surv_url = reverse('surveyasset-detail', args=[self.surv.uid])
-        patch_req = self.client.patch(surv_url, data={'collection': reverse('collection-detail', args=[self.coll.uid])})
+        patch_req = self.client.patch(surv_url, data={'parent': reverse('collection-detail', args=[self.coll.uid])})
         self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
         req = self.client.get(surv_url)
-        self.assertIn('/collections/%s' % (self.coll.uid), req.data['collection'])
+        self.assertIn('/collections/%s' % (self.coll.uid), req.data['parent'])

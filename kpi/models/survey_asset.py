@@ -34,10 +34,8 @@ class SurveyAsset(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     content = JSONField(null=True)
-    additional_sheets = JSONField(null=True)
-    settings = JSONField(null=True)
     asset_type = models.CharField(choices=SURVEY_ASSET_TYPES, max_length=20, default='text')
-    collection = models.ForeignKey('Collection', related_name='survey_assets', null=True)
+    parent = models.ForeignKey('Collection', related_name='survey_assets', null=True)
     owner = models.ForeignKey('auth.User', related_name='survey_assets', null=True)
     editors_can_change_permissions = models.BooleanField(default=True)
     uid = models.CharField(max_length=SURVEY_ASSET_UID_LENGTH, default='')
@@ -60,31 +58,8 @@ class SurveyAsset(models.Model):
     def versioned_data(self):
         return [v.field_dict for v in self.versions()]
 
-    def _to_ss_structure(self, content_tag=None):
-        # by default, the content is assigned to a 'sheet' with the asset_type
-        # as a name
-        if not content_tag:
-            content_tag = self.asset_type
-        obj = { content_tag: self.content }
-
-        if self.additional_sheets:
-            obj.update(copy.copy(self.additional_sheets))
-
-        if self.settings:
-            obj.update({'settings': [copy.copy(self.settings)]})
-
-        return obj
-
-    def to_ss_structure(self, content_tag='survey', strip_kuids=False):
-        obj = {}
-        rows = []
-        for row in self.content:
-            _r = copy.copy(row)
-            if strip_kuids and 'kuid' in _r:
-                del _r['kuid']
-            rows.append(_r)
-        obj[content_tag] = rows
-        return obj
+    def to_ss_structure(self):
+        return self.content
 
     def _populate_uid(self):
         if self.uid == '':
@@ -111,14 +86,14 @@ class SurveyAsset(models.Model):
             inherited=True
         ).delete()
         # Is there anything to inherit?
-        if self.collection is not None:
+        if self.parent is not None:
             # All our parent's effective permissions become our inherited
             # permissions.
             mangle_perm = lambda x: re.sub('_collection$', '_surveyasset', x)
             # Store translations in a dictionary here to minimize invocations of
             # the Django machinery
             translate_perm = {}
-            for user_id, permission_id in self.collection._effective_perms():
+            for user_id, permission_id in self.parent._effective_perms():
                 try:
                     translated_id = translate_perm[permission_id]
                 except KeyError:
@@ -307,6 +282,6 @@ class SurveyAssetExport(models.Model):
     def save(self, *args, **kwargs):
         version = reversion.get_for_object(self.survey_asset).get(id=self.survey_asset_version_id)
         survey_asset = version.object
-        self.source = survey_asset._to_ss_structure(content_tag='survey')
+        self.source = survey_asset.to_ss_structure()
         self.generate_xml_from_source()
         return super(SurveyAssetExport, self).save(*args, **kwargs)
