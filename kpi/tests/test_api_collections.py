@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import re
 
 from django.contrib.auth.models import User
@@ -43,7 +42,7 @@ class CollectionsTests(APITestCase):
         response= self.client.get(url)
         uid_found= False
         for rslt in response.data['results']:
-            uid= re.match(r'.+/(.+)/$', rslt['url']).groups()[0]
+            uid= re.match(r'.+/(.+)/.*$', rslt['url']).groups()[0]
             if uid == self.coll.uid:
                 uid_found= True
                 break
