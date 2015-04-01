@@ -7,9 +7,12 @@ from taggit.models import Tag
 import reversion
 import json
 import copy
-from object_permission import ObjectPermission, perm_parse
-from django.contrib.auth.models import User, Permission
+from object_permission import ObjectPermission, perm_parse, get_anonymous_user
+from django.contrib.auth.models import User, AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.dispatch import receiver
 import re
 
 SURVEY_ASSET_TYPES = [
@@ -46,11 +49,14 @@ class SurveyAsset(models.Model):
     class Meta:
         ordering = ('date_created',)
         permissions = (
-            # change_surveyasset and delete_surveyasset are provided
-            # automatically by Django
+            # change_, add_, and delete_surveyasset are provided automatically
+            # by Django
             ('view_surveyasset', 'Can view survey asset'),
             ('share_surveyasset', "Can change this survey asset's sharing settings"),
         )
+
+    ASSIGNABLE_PERMISSIONS = ('view_surveyasset', 'change_surveyasset')
+    CALCULATED_PERMISSIONS = ('share_surveyasset', 'delete_surveyasset')
 
     def versions(self):
         return reversion.get_for_object(self)
@@ -111,11 +117,14 @@ class SurveyAsset(models.Model):
                     permission_id=translated_id,
                     inherited=True
                 )
-        # The owner (if there is one!) gets every possible permission
+        # The owner gets every assignable permission
         if self.owner is None:
             return
         content_type = ContentType.objects.get_for_model(self)
-        for perm in Permission.objects.filter(content_type=content_type):
+        for perm in Permission.objects.filter(
+            content_type=content_type,
+            codename__in=self.ASSIGNABLE_PERMISSIONS
+        ):
             # Use get_or_create in case the owner already has permissions
             ObjectPermission.objects.get_or_create_for_object(
                 self,
@@ -124,28 +133,102 @@ class SurveyAsset(models.Model):
                 inherited=True
             )
 
-    def _effective_perms(self, **kwargs):
+    def _effective_perms(self, user=None, codename=None):
         ''' Reconcile all grant and deny permissions, and return an
         authoritative set of grant permissions (i.e. deny=False) for the
         current survey asset. '''
+        # Including calculated permissions means we can't just pass kwargs
+        # through to filter(), but we'll map the ones we understand.
+        kwargs = {}
+        if user is not None:
+            kwargs['user'] = user
+        if codename is not None:
+            # share_ requires loading change_ from the database
+            if codename.startswith('share_'):
+                kwargs['permission__codename'] = re.sub(
+                    '^share_', 'change_', codename, 1)
+            else:
+                kwargs['permission__codename'] = codename
         grant_perms = set(ObjectPermission.objects.filter_for_object(self,
             deny=False, **kwargs).values_list('user_id', 'permission_id'))
         deny_perms = set(ObjectPermission.objects.filter_for_object(self,
             deny=True, **kwargs).values_list('user_id', 'permission_id'))
-        return grant_perms.difference(deny_perms)
+        effective_perms = grant_perms.difference(deny_perms)
+        # Add on the calculated permissions
+        content_type = ContentType.objects.get_for_model(self)
+        if codename in self.CALCULATED_PERMISSIONS:
+            # A sepecific query for a calculated permission should not return
+            # any explicitly assigned permissions, e.g. share_ should not
+            # include change_
+            effective_perms_copy = effective_perms
+            effective_perms = set()
+        else:
+            effective_perms_copy = copy.copy(effective_perms)
+        if self.editors_can_change_permissions and (
+            codename is None or codename.startswith('share_')):
+            # Everyone with change_ should also get share_
+            change_permission = Permission.objects.get(
+                content_type=content_type,
+                codename__startswith='change_'
+            )
+            share_permission = Permission.objects.get(
+                content_type=content_type,
+                codename__startswith='share_'
+            )
+            for user_id, permission_id in effective_perms_copy:
+                if permission_id == change_permission.pk:
+                    effective_perms.add((user_id, share_permission.pk))
+        # The owner has the delete_ permission
+        if self.owner is not None and (
+            user is None or user.pk == self.owner.pk) and (
+            codename is None or codename.startswith('delete_')):
+            delete_permission = Permission.objects.get(
+                content_type=content_type,
+                codename__startswith='delete_'
+            )
+            effective_perms.add((self.owner.pk, delete_permission.pk))
+        return effective_perms
 
     def has_perm(self, user_obj, perm):
         ''' Does user_obj have perm on this survey asset? (True/False) '''
         app_label, codename = perm_parse(perm, self)
-        return len(self._effective_perms(
-            user_id=user_obj.pk,
-            permission__codename=codename
+        is_anonymous = False
+        if isinstance(user_obj, AnonymousUser):
+            # Get the User database representation for AnonymousUser
+            user_obj = get_anonymous_user()
+            is_anonymous = True
+        # Look for matching permissions
+        result = len(self._effective_perms(
+            user=user_obj,
+            codename=codename
         )) == 1
+        if not result and not is_anonymous:
+            # The user-specific test failed, but does the public have access?
+            result = self.has_perm(AnonymousUser(), perm)
+        if result and is_anonymous:
+            # Is an anonymous user allowed to have this permission?
+            if not codename in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
+                return False
+        return result
 
     def assign_perm(self, user_obj, perm, deny=False, defer_recalc=False):
         ''' Assign user_obj the given perm on this survey asset. To break
         inheritance from a parent collection, use deny=True. '''
         app_label, codename = perm_parse(perm, self)
+        if codename not in self.ASSIGNABLE_PERMISSIONS:
+            # Some permissions are calculated and not stored in the database
+            raise ValidationError('{} cannot be assigned explicitly.'.format(
+                codename)
+            )
+        if isinstance(user_obj, AnonymousUser):
+            # Is an anonymous user allowed to have this permission?
+            if not codename in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
+                raise ValidationError(
+                    'Anonymous users cannot have the permission {}.'.format(
+                        codename)
+                )
+            # Get the User database representation for AnonymousUser
+            user_obj = get_anonymous_user()
         perm_model = Permission.objects.get(
             content_type__app_label=app_label,
             codename=codename
@@ -192,7 +275,15 @@ class SurveyAsset(models.Model):
 
     def remove_perm(self, user_obj, perm, deny=False):
         ''' Revoke perm on this collection from user_obj. '''
+        if isinstance(user_obj, AnonymousUser):
+            # Get the User database representation for AnonymousUser
+            user_obj = get_anonymous_user()
         app_label, codename = perm_parse(perm, self)
+        if codename not in self.ASSIGNABLE_PERMISSIONS:
+            # Some permissions are calculated and not stored in the database
+            raise ValidationError('{} cannot be removed explicitly.'.format(
+                codename)
+            )
         ObjectPermission.objects.filter_for_object(
             self,
             user=user_obj,
@@ -285,3 +376,9 @@ class SurveyAssetExport(models.Model):
         self.source = survey_asset.to_ss_structure()
         self.generate_xml_from_source()
         return super(SurveyAssetExport, self).save(*args, **kwargs)
+
+@receiver(models.signals.post_delete, sender=SurveyAsset)
+def post_delete_surveyasset(sender, instance, **kwargs):
+    # Remove all permissions associated with this object
+    ObjectPermission.objects.filter_for_object(instance).delete()
+    # No recalculation is necessary since children will also be deleted

@@ -2,6 +2,8 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import User
+from django.conf import settings
 
 def perm_parse(perm, obj=None):
     if obj is not None:
@@ -25,6 +27,22 @@ def get_all_objects_for_user(user, klass):
         user=user,
         content_type=ContentType.objects.get_for_model(klass)
     ).values_list('object_id', flat=True))
+
+def get_anonymous_user():
+    ''' Return a real User in the database to represent AnonymousUser. '''
+    try:
+        user = User.objects.get(pk=settings.ANONYMOUS_USER_ID)
+    except User.DoesNotExist:
+        username = getattr(
+            settings,
+            'ANONYMOUS_DEFAULT_USERNAME_VALUE',
+            'AnonymousUser'
+        )
+        user = User.objects.create(
+            pk=settings.ANONYMOUS_USER_ID,
+            username=username
+        )
+    return user
 
 class ObjectPermissionManager(models.Manager):
     def _rewrite_query_args(self, method, content_object, **kwargs):
@@ -78,7 +96,7 @@ class ObjectPermission(models.Model):
             'object_id', 'content_type')
 
     def save(self, *args, **kwargs):
-        if self.permission.content_type_id is not self.content_type_id: 
+        if self.permission.content_type_id is not self.content_type_id:
             raise ValidationError('The content type of the permission does '
                 'not match that of the object.')
         super(ObjectPermission, self).save(*args, **kwargs)
