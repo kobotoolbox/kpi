@@ -96,7 +96,7 @@ class ObjectPermission(models.Model):
             'object_id', 'content_type')
 
     def save(self, *args, **kwargs):
-        if self.permission.content_type_id is not self.content_type_id: 
+        if self.permission.content_type_id is not self.content_type_id:
             raise ValidationError('The content type of the permission does '
                 'not match that of the object.')
         super(ObjectPermission, self).save(*args, **kwargs)
