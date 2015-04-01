@@ -7,9 +7,12 @@ from taggit.models import Tag
 import reversion
 import json
 import copy
-from object_permission import ObjectPermission, perm_parse
-from django.contrib.auth.models import User, Permission
+from object_permission import ObjectPermission, perm_parse, get_anonymous_user
+from django.contrib.auth.models import User, AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.dispatch import receiver
 import re
 
 SURVEY_ASSET_TYPES = [
@@ -137,15 +140,47 @@ class SurveyAsset(models.Model):
     def has_perm(self, user_obj, perm):
         ''' Does user_obj have perm on this survey asset? (True/False) '''
         app_label, codename = perm_parse(perm, self)
-        return len(self._effective_perms(
+        is_anonymous = False
+        if isinstance(user_obj, AnonymousUser):
+            # Get the User database representation for AnonymousUser
+            user_obj = get_anonymous_user()
+            is_anonymous = True
+        # share_surveyasset is a special case
+        if codename == 'share_surveyasset':
+            if user_obj.pk == self.owner.pk:
+                # The owner can always edit permissions
+                return True
+            # Non-owners can edit permissions if they have change_surveyasset
+            # AND the editors_can_change_permissions flag is set.
+            return self.editors_can_change_permissions and self.has_perm(
+                user_obj, 'change_surveyasset')
+        # Look for matching permissions
+        result = len(self._effective_perms(
             user_id=user_obj.pk,
             permission__codename=codename
         )) == 1
+        if not result and not is_anonymous:
+            # The user-specific test failed, but does the public have access?
+            result = self.has_perm(AnonymousUser(), perm)
+        if result and is_anonymous:
+            # Is an anonymous user allowed to have this permission?
+            if not codename in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
+                return False
+        return result
 
     def assign_perm(self, user_obj, perm, deny=False, defer_recalc=False):
         ''' Assign user_obj the given perm on this survey asset. To break
         inheritance from a parent collection, use deny=True. '''
         app_label, codename = perm_parse(perm, self)
+        if isinstance(user_obj, AnonymousUser):
+            # Is an anonymous user allowed to have this permission?
+            if not codename in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
+                raise ValidationError(
+                    'Anonymous users cannot have the permission {}.'.format(
+                        codename)
+                )
+            # Get the User database representation for AnonymousUser
+            user_obj = get_anonymous_user()
         perm_model = Permission.objects.get(
             content_type__app_label=app_label,
             codename=codename
@@ -192,6 +227,9 @@ class SurveyAsset(models.Model):
 
     def remove_perm(self, user_obj, perm, deny=False):
         ''' Revoke perm on this collection from user_obj. '''
+        if isinstance(user_obj, AnonymousUser):
+            # Get the User database representation for AnonymousUser
+            user_obj = get_anonymous_user()
         app_label, codename = perm_parse(perm, self)
         ObjectPermission.objects.filter_for_object(
             self,
@@ -285,3 +323,9 @@ class SurveyAssetExport(models.Model):
         self.source = survey_asset.to_ss_structure()
         self.generate_xml_from_source()
         return super(SurveyAssetExport, self).save(*args, **kwargs)
+
+@receiver(models.signals.post_delete, sender=SurveyAsset)
+def post_delete_surveyasset(sender, instance, **kwargs):
+    # Remove all permissions associated with this object
+    ObjectPermission.objects.filter_for_object(instance).delete()
+    # No recalculation is necessary since children will also be deleted
