@@ -94,7 +94,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
     url = TaggedHyperlinkedIdentityField(lookup_field='uid', view_name='surveyasset-detail')
     assetType = serializers.ReadOnlyField(read_only=True, source='asset_type')
-    settings = WritableJSONField(required=False, style={'base_template': 'json_field.html'})
+    settings = WritableJSONField(required=False)#, style={'base_template': 'json_field.html'})
     content_link = serializers.SerializerMethodField()
     xls_link = serializers.SerializerMethodField()
     xform_link = serializers.SerializerMethodField()
