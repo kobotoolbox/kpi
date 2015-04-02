@@ -197,6 +197,9 @@ class SurveyAsset(models.Model):
             # Get the User database representation for AnonymousUser
             user_obj = get_anonymous_user()
             is_anonymous = True
+        # Treat superusers the way django.contrib.auth does
+        if user_obj.is_active and user_obj.is_superuser:
+            return True
         # Look for matching permissions
         result = len(self._effective_perms(
             user=user_obj,
