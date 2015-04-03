@@ -361,8 +361,9 @@ class ApiPermissionsTestCase(APITestCase,
 
     def test_viewable_collection_inheritance_conflict(self):
         grandchild_collection= self._create_collection('grandchild_collection',
-                                        self.admin, self.admin_password,)
-        self._add_to_collection(grandchild_collection, self.child_collection)
+                                        self.admin, self.admin_password)
+        self._add_to_collection(grandchild_collection, self.child_collection,
+                                self.admin, self.admin_password)
 
         # Give "someuser" view permission on 'child_collection'.
         self._add_perm(self.child_collection, self.admin, self.admin_password,
@@ -378,8 +379,9 @@ class ApiPermissionsTestCase(APITestCase,
 
     def test_non_viewable_collection_inheritance_conflict(self):
         grandchild_collection= self._create_collection('grandchild_collection',
-                                        self.admin, self.admin_password,)
-        self._add_to_collection(grandchild_collection, self.child_collection)
+                                        self.admin, self.admin_password)
+        self._add_to_collection(grandchild_collection, self.child_collection,
+                                self.admin, self.admin_password)
 
         # Revoke the view permissions of "someuser" on the child collection.
         self._remove_perm(self.child_collection, self.admin,
