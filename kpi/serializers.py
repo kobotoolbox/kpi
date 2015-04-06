@@ -195,8 +195,8 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
                 lookup_field='username', read_only=True)
     survey_assets = TaggedHyperlinkedRelatedField(many=True, lookup_field='uid',
                  view_name='surveyasset-detail', read_only=True)
-    parent = TaggedHyperlinkedRelatedField(lookup_field='uid',
-                 view_name='collection-detail', read_only=True)
+    parent = TaggedHyperlinkedRelatedField(lookup_field='uid', required=False,
+                 view_name='collection-detail', queryset=Collection.objects.all())
     children = TaggedHyperlinkedRelatedField(many=True, lookup_field='uid',
                  view_name='collection-detail', read_only=True)
     tags = serializers.SerializerMethodField('_get_tag_names')

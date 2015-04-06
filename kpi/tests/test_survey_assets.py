@@ -1,11 +1,11 @@
+import re
 from kpi.models import SurveyAsset
 from kpi.models import Collection
 from kpi.models.object_permission import get_all_objects_for_user
 from django.contrib.auth.models import User, AnonymousUser
 from django.core.exceptions import ValidationError
 from django.test import TestCase
-import json
-import re
+
 
 class SurveyAssetsTestCase(TestCase):
     fixtures = ['test_data']
