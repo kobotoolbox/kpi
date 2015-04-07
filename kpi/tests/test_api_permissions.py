@@ -4,6 +4,22 @@ from rest_framework import status
 
 from .kpi_test_case import KpiTestCase
 
+class ApiAnonymousPermissionsTestCase(KpiTestCase):
+    def setUp(self):
+        self.anon= User(username='anonymous_user', password='pass', pk=-1)
+
+    def test_anon_create_asset(self):
+        self.create_asset('gist')
+
+    def test_anon_list_assets(self):
+        gist= self.create_asset('gist')
+        self.assert_object_in_object_list(gist)
+
+    def test_anon_asset_detail(self):
+        gist= self.create_asset('gist')
+        self.assert_detail_viewable(gist)
+
+
 class ApiPermissionsTestCase(KpiTestCase):
     fixtures = ['test_data']
 
@@ -15,7 +31,7 @@ class ApiPermissionsTestCase(KpiTestCase):
 
         self.assertTrue(self.client.login(username=self.admin.username,
                                           password=self.admin_password))
-        self.admin_asset= self.create_asset('admin_asset', '[]')
+        self.admin_asset= self.create_asset('admin_asset')
         self.admin_collection= self.create_collection('admin_collection')
         self.child_collection= self.create_collection('child_collection')
         self.add_to_collection(self.child_collection, self.admin_collection)
@@ -24,7 +40,7 @@ class ApiPermissionsTestCase(KpiTestCase):
 ################# Asset tests #####################
 
     def test_own_asset_in_asset_list(self):
-        self.assert_viewability(self.admin_asset, self.admin,
+        self.assert_viewable(self.admin_asset, self.admin,
                                self.admin_password)
 
     def test_viewable_asset_in_asset_list(self):
@@ -33,7 +49,7 @@ class ApiPermissionsTestCase(KpiTestCase):
                        self.someuser, self.someuser_password, 'view_')
 
         # Test that "someuser" can now view the asset.
-        self.assert_viewability(self.admin_asset, self.someuser,
+        self.assert_viewable(self.admin_asset, self.someuser,
                                self.someuser_password)
 
     def test_non_viewable_asset_not_in_asset_list(self):
@@ -44,7 +60,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.assertFalse(self.someuser.has_perm(perm_name, self.admin_asset))
 
         # Verify they can't view the asset through the API.
-        self.assert_viewability(self.admin_asset, self.someuser,
+        self.assert_viewable(self.admin_asset, self.someuser,
                                self.someuser_password, viewable=False)
 
     def test_inherited_viewable_assets_in_asset_list(self):
@@ -57,7 +73,7 @@ class ApiPermissionsTestCase(KpiTestCase):
                                 self.admin, self.admin_password)
 
         # Test that "someuser" can now view the asset.
-        self.assert_viewability(self.admin_asset, self.someuser,
+        self.assert_viewable(self.admin_asset, self.someuser,
                                self.someuser_password)
 
     def test_viewable_asset_inheritance_conflict(self):
@@ -76,7 +92,7 @@ class ApiPermissionsTestCase(KpiTestCase):
                           self.someuser_password, 'view_')
 
         # Confirm that "someuser" can view the contents of 'child_collection'.
-        self.assert_viewability(self.admin_asset, self.someuser,
+        self.assert_viewable(self.admin_asset, self.someuser,
                                self.someuser_password)
 
     def test_non_viewable_asset_inheritance_conflict(self):
@@ -94,7 +110,7 @@ class ApiPermissionsTestCase(KpiTestCase):
                        self.someuser, self.someuser_password, 'view_')
 
         # Confirm that "someuser" can't view the contents of 'child_collection'.
-        self.assert_viewability(self.admin_asset, self.someuser,
+        self.assert_viewable(self.admin_asset, self.someuser,
                                self.someuser_password, viewable=False)
 
     def test_viewable_asset_not_deletable(self):
@@ -135,7 +151,7 @@ class ApiPermissionsTestCase(KpiTestCase):
 ############# Collection tests ###############
 
     def test_own_collection_in_collection_list(self):
-        self.assert_viewability(self.admin_collection, self.admin,
+        self.assert_viewable(self.admin_collection, self.admin,
                                self.admin_password)
 
     def test_viewable_collection_in_collection_list(self):
@@ -144,7 +160,7 @@ class ApiPermissionsTestCase(KpiTestCase):
                        self.someuser, self.someuser_password, 'view_')
 
         # Test that "someuser" can now view the collection.
-        self.assert_viewability(self.admin_collection, self.someuser,
+        self.assert_viewable(self.admin_collection, self.someuser,
                                self.someuser_password)
 
     def test_non_viewable_collection_not_in_collection_list(self):
@@ -155,7 +171,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.assertFalse(self.someuser.has_perm(perm_name, self.admin_collection))
 
         # Verify they can't view the collection through the API.
-        self.assert_viewability(self.admin_collection, self.someuser,
+        self.assert_viewable(self.admin_collection, self.someuser,
                                self.someuser_password, viewable=False)
 
     def test_inherited_viewable_collections_in_collection_list(self):
@@ -163,7 +179,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.add_perm(self.admin_collection, self.admin, self.admin_password,
                        self.someuser, self.someuser_password, 'view_')
         # Test that "someuser" can now view the child collection.
-        self.assert_viewability(self.child_collection, self.someuser,
+        self.assert_viewable(self.child_collection, self.someuser,
                                self.someuser_password)
 
     def test_viewable_collection_inheritance_conflict(self):
@@ -182,7 +198,7 @@ class ApiPermissionsTestCase(KpiTestCase):
                           self.someuser_password, 'view_')
 
         # Confirm that "someuser" can view 'grandchild_collection'.
-        self.assert_viewability(grandchild_collection, self.someuser,
+        self.assert_viewable(grandchild_collection, self.someuser,
                                self.someuser_password)
 
     def test_non_viewable_collection_inheritance_conflict(self):
@@ -201,7 +217,7 @@ class ApiPermissionsTestCase(KpiTestCase):
                        self.someuser, self.someuser_password, 'view_')
 
         # Confirm that "someuser" can't view 'grandchild_collection'.
-        self.assert_viewability(grandchild_collection, self.someuser,
+        self.assert_viewable(grandchild_collection, self.someuser,
                                self.someuser_password, viewable=False)
 
     def test_viewable_collection_not_deletable(self):
