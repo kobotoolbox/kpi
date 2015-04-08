@@ -1,4 +1,5 @@
 from django.contrib.auth.backends import ModelBackend
+from django.contrib.auth.models import AnonymousUser
 
 class ObjectPermissionBackend(ModelBackend):
     def get_group_permissions(self, user_obj, obj=None):
@@ -13,8 +14,10 @@ class ObjectPermissionBackend(ModelBackend):
     def has_perm(self, user_obj, perm, obj=None):
         if obj is None or not hasattr(obj, 'has_perm'):
             return super(ObjectPermissionBackend, self
-                ).has_perm(user_obj, obj)
-        if not user_obj.is_active:
+                ).has_perm(user_obj, perm, obj)
+        if not user_obj.is_active and not isinstance(user_obj, AnonymousUser):
+            # Inactive users are denied immediately, except in the case of
+            # AnonymousUsers. They are inactive but require further processing
             return False
         return obj.has_perm(user_obj, perm)
 

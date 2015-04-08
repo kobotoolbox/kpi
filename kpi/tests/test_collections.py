@@ -1,16 +1,22 @@
+
 from rest_framework import status
 from django.test import TestCase
 from kpi.models.collection import Collection
 from kpi.models.survey_asset import SurveyAsset
+from kpi.models.object_permission import ObjectPermission
 from kpi.models.object_permission import get_all_objects_for_user
-from django.contrib.auth.models import User
-
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import User, AnonymousUser, Permission
+from django.core.exceptions import ValidationError
 class CreateCollectionTests(TestCase):
     fixtures = ['test_data']
 
     def setUp(self):
         self.user = User.objects.get(username='admin')
         self.coll = Collection.objects.create(owner=self.user)
+        self.survey_asset= SurveyAsset.objects.get(name='fixture admin asset')
+        self.initial_asset_count= SurveyAsset.objects.count()
+        self.initial_collection_count= Collection.objects.count()
 
     def test_collections_can_be_owned(self):
         self.assertEqual(self.coll.owner, self.user)
@@ -39,40 +45,38 @@ class CreateCollectionTests(TestCase):
                 {'type': 'text', 'label': 'Q2', 'name': 'q2'},
             ])
         self.assertEqual(self.coll.survey_assets.count(), 1)
+        self.coll.survey_assets.add(self.survey_asset)
+        self.assertEqual(self.coll.survey_assets.count(), 2)
 
     def test_assets_are_deleted_with_collection(self):
         '''
         right now, this does make it easy to delete survey_assets within a
         collection.
         '''
-        initial_asset_count = SurveyAsset.objects.count()
         asset = self.coll.survey_assets.create(name='test', content=[
                 {'type': 'text', 'label': 'Q1', 'name': 'q1'},
                 {'type': 'text', 'label': 'Q2', 'name': 'q2'},
             ])
         self.assertEqual(SurveyAsset.objects.filter(id=asset.id).count(), 1)
-        self.assertEqual(SurveyAsset.objects.count(), initial_asset_count + 1)
+        self.assertEqual(SurveyAsset.objects.count(), self.initial_asset_count + 1)
         self.coll.delete()
         self.assertEqual(SurveyAsset.objects.filter(id=asset.id).count(), 0)
-        self.assertEqual(SurveyAsset.objects.count(), initial_asset_count)
+        self.assertEqual(SurveyAsset.objects.count(), self.initial_asset_count)
 
     def test_descendants_are_deleted_with_collection(self):
-        self.assertEqual(Collection.objects.count(), 1)
         child = Collection.objects.create(name='test_child_collection',
             owner=User.objects.first(), parent=self.coll)
         grandchild = Collection.objects.create(name='test_child_collection',
             owner=User.objects.first(), parent=child)
-        self.assertEqual(Collection.objects.count(), 3)
+        self.assertEqual(Collection.objects.count(), self.initial_collection_count + 2)
         child_sa = child.survey_assets.create()
         grandchild_sa = grandchild.survey_assets.create()
-        self.assertEqual(SurveyAsset.objects.count(), 2)
+        self.assertEqual(SurveyAsset.objects.count(), self.initial_asset_count + 2)
         self.coll.delete()
-        self.assertEqual(Collection.objects.count(), 0)
-        self.assertEqual(SurveyAsset.objects.count(), 0)
+        self.assertEqual(Collection.objects.count(), self.initial_collection_count - 1)
+        self.assertEqual(SurveyAsset.objects.count(), self.initial_asset_count)
 
     def test_create_collection_with_survey_assets(self):
-        initial_asset_count = SurveyAsset.objects.count()
-        initial_collection_count = Collection.objects.count()
         self.assertTrue(Collection.objects.count() >= 1)
         Collection.objects.create(name='test_collection', owner=self.user, survey_assets=[
                 {
@@ -88,8 +92,8 @@ class CreateCollectionTests(TestCase):
                     ]
                 },
             ])
-        self.assertEqual(SurveyAsset.objects.count(), initial_asset_count + 2)
-        self.assertEqual(Collection.objects.count(), initial_collection_count + 1)
+        self.assertEqual(SurveyAsset.objects.count(), self.initial_asset_count + 2)
+        self.assertEqual(Collection.objects.count(), self.initial_collection_count + 1)
 
     def test_create_child_collection(self):
         self.assertEqual(Collection.objects.count(), 1)
@@ -230,7 +234,7 @@ class ShareCollectionTests(TestCase):
                          not parent_deny)
         self.assertEqual(user.has_perm(child_perm, self.child_coll),
                          not child_deny)
-        
+
     def test_user_view_parent_change_child(self, child_first=False):
         user = self.someuser
         self.assign_parent_child_perms(
@@ -352,16 +356,123 @@ class ShareCollectionTests(TestCase):
             someuser_expected
         )
         self.assertEqual(
-            # django.db.models.query.ValuesListQuerySet isn't a real list
-            # and will fail the comparison!
+            # Without coercion, django.db.models.query.ValuesListQuerySet isn't
+            # a real list and will fail the comparison.
             list(anotheruser_objects.values_list('pk', flat=True)),
             [self.standalone_coll.pk]
         )
 
-    def test_url_view_permission_on_standalone_collection(self): pass
-    def test_url_change_permission_on_standalone_collection(self): pass
-    def test_url_view_permission_on_parent_collection(self): pass
-    def test_url_change_permission_on_parent_collection(self): pass
-    def test_url_view_permission_on_child_collection(self): pass
-    def test_url_change_permission_on_child_collection(self): pass
-    def test_url_permission_conflict_resolution(self): pass
+    def test_object_permissions_are_deleted_with_collection(self):
+        # The owner of the collection gets all permissions by default,
+        # so we expect those to be present.
+        content_type = ContentType.objects.get_for_model(self.standalone_coll)
+        expected_perms = sorted(Permission.objects.filter(
+            content_type=content_type,
+            codename__in=Collection.ASSIGNABLE_PERMISSIONS
+        ).values_list('pk', flat=True))
+        self.assertEqual(
+            sorted(ObjectPermission.objects.filter_for_object(
+                self.standalone_coll,
+                user=self.standalone_coll.owner
+            ).values_list('permission_id', flat=True)),
+            expected_perms
+        )
+        # Assign some new permissions
+        self.standalone_coll.assign_perm(self.someuser, 'view_collection')
+        self.standalone_coll.assign_perm(self.anotheruser, 'change_collection')
+        # change_collection also provides view_collection, so expect 3 more
+        # permissions, not 2
+        self.assertEqual(
+            ObjectPermission.objects.filter_for_object(
+                self.standalone_coll
+            ).count(),
+            len(expected_perms) + 3
+        )
+        # Delete the collection and make sure all associated permissions
+        # are gone
+        self.standalone_coll.delete()
+        self.assertEqual(
+            ObjectPermission.objects.filter_for_object(
+                self.standalone_coll
+            ).count(),
+            0
+        )
+
+    def test_owner_can_edit_permissions(self):
+        self.assertTrue(self.standalone_coll.owner.has_perm(
+            'share_collection',
+            self.standalone_coll
+        ))
+
+    def test_share_collection_permission_is_not_inherited(self):
+        # Change self.standalone_coll so that its owner isn't a superuser
+        self.standalone_coll.owner = self.someuser
+        self.standalone_coll.save()
+        # Make a child collection whose owner is different than its parent's
+        coll = Collection.objects.create(
+            name="anotheruser's collection",
+            owner=self.anotheruser,
+            parent=self.standalone_coll,
+            # The change permission is inherited; prevent it from allowing
+            # users to edit permissions
+            editors_can_change_permissions=False
+        )
+        # Ensure the parent's owner can't change permissions on the child
+        self.assertFalse(self.standalone_coll.owner.has_perm(
+            'share_collection',
+            coll
+        ))
+
+    def test_change_permission_provides_share_permission(self):
+        self.assertFalse(self.someuser.has_perm(
+            'change_collection', self.standalone_coll))
+        # Grant the change permission and make sure it provides
+        # share_collection
+        self.standalone_coll.assign_perm(self.someuser, 'change_collection')
+        self.assertTrue(self.someuser.has_perm(
+            'share_collection', self.standalone_coll))
+        # Restrict share_collection to the owner and make sure someuser loses
+        # share_collection
+        self.standalone_coll.editors_can_change_permissions = False
+        self.assertFalse(self.someuser.has_perm(
+            'share_collection', self.standalone_coll))
+
+    def test_anonymous_view_permission_on_standalone_collection(self):
+        # Grant
+        self.assertFalse(AnonymousUser().has_perm(
+            'view_collection', self.standalone_coll))
+        self.standalone_coll.assign_perm(AnonymousUser(), 'view_collection')
+        self.assertTrue(AnonymousUser().has_perm(
+            'view_collection', self.standalone_coll))
+        # Revoke
+        self.standalone_coll.remove_perm(AnonymousUser(), 'view_collection')
+        self.assertFalse(AnonymousUser().has_perm(
+            'view_collection', self.standalone_coll))
+
+    def test_anoymous_change_permission_on_standalone_collection(self):
+        # TODO: behave properly if ALLOWED_ANONYMOUS_PERMISSIONS actually
+        # includes change_collection
+        try:
+            # This is expected to fail since only real users can have any
+            # permissions beyond view
+            self.standalone_coll.assign_perm(
+                AnonymousUser(), 'change_collection')
+        except ValidationError:
+            pass
+        # Make sure the assignment failed
+        self.assertFalse(AnonymousUser().has_perm(
+            'change_collection', self.standalone_coll))
+
+    def test_anonymous_as_baseline_for_authenticated(self):
+        ''' If the public can view an object, then all users should be able
+        to do the same. '''
+        # No one should have any permission yet
+        for user_obj in AnonymousUser(), self.someuser:
+            self.assertFalse(user_obj.has_perm(
+                'view_collection', self.standalone_coll))
+        # Grant to anonymous
+        self.standalone_coll.assign_perm(AnonymousUser(), 'view_collection')
+        # Check that both anonymous and someuser can view
+        for user_obj in AnonymousUser(), self.someuser:
+            self.assertTrue(user_obj.has_perm(
+                'view_collection', self.standalone_coll))

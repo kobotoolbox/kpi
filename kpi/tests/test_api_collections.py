@@ -1,10 +1,9 @@
-from __future__ import absolute_import
-import json
+import re
 
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-from rest_framework.test import APITestCase
 from rest_framework import status
+from rest_framework.test import APITestCase
 
 from ..models.collection import Collection
 
@@ -37,6 +36,17 @@ class CollectionsTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_collection_list(self):
+        url= reverse('collection-list')
+        response= self.client.get(url)
+        uid_found= False
+        for rslt in response.data['results']:
+            uid= re.match(r'.+/(.+)/.*$', rslt['url']).groups()[0]
+            if uid == self.coll.uid:
+                uid_found= True
+                break
+        self.assertTrue(uid_found)
 
 class AnonymousCollectionsTest(APITestCase):
     def test_cannot_create_collection(self):
