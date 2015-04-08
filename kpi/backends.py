@@ -14,7 +14,7 @@ class ObjectPermissionBackend(ModelBackend):
     def has_perm(self, user_obj, perm, obj=None):
         if obj is None or not hasattr(obj, 'has_perm'):
             return super(ObjectPermissionBackend, self
-                ).has_perm(user_obj, obj)
+                ).has_perm(user_obj, perm, obj)
         if not user_obj.is_active and not isinstance(user_obj, AnonymousUser):
             # Inactive users are denied immediately, except in the case of
             # AnonymousUsers. They are inactive but require further processing
