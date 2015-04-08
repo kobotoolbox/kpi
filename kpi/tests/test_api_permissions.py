@@ -1,12 +1,18 @@
 from django.core.urlresolvers import reverse
-from django.contrib.auth.models import User
+from django.contrib.auth.models import (
+    Permission,
+    User,)
 from rest_framework import status
 
 from .kpi_test_case import KpiTestCase
+from ..models.object_permission import get_anonymous_user
 
 class ApiAnonymousPermissionsTestCase(KpiTestCase):
     def setUp(self):
-        self.anon= User(username='anonymous_user', password='pass', pk=-1)
+        self.anon= get_anonymous_user()
+
+        permission= Permission.objects.get(codename='add_surveyasset')
+        self.anon.user_permissions.add(permission)
 
     def test_anon_create_asset(self):
         self.create_asset('gist')
@@ -17,7 +23,15 @@ class ApiAnonymousPermissionsTestCase(KpiTestCase):
 
     def test_anon_asset_detail(self):
         gist= self.create_asset('gist')
+        import ipdb; ipdb.set_trace()
         self.assert_detail_viewable(gist)
+
+    def test_cannot_create_collection(self):
+        url = reverse('collection-list')
+        data = {'name': 'my collection', 'collections': [], 'survey_assets': []}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, msg=\
+                    "anonymous user cannot create a collection")
 
 
 class ApiPermissionsTestCase(KpiTestCase):

@@ -1,13 +1,13 @@
-
-from rest_framework import status
-from django.test import TestCase
-from kpi.models.collection import Collection
-from kpi.models.survey_asset import SurveyAsset
-from kpi.models.object_permission import ObjectPermission
-from kpi.models.object_permission import get_all_objects_for_user
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User, AnonymousUser, Permission
 from django.core.exceptions import ValidationError
+from django.test import TestCase
+
+from ..models.collection import Collection
+from ..models.survey_asset import SurveyAsset
+from ..models.object_permission import ObjectPermission
+from ..models.object_permission import get_all_objects_for_user
+
 class CreateCollectionTests(TestCase):
     fixtures = ['test_data']
 

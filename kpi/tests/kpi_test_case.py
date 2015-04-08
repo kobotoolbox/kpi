@@ -161,7 +161,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
     def remove_perm(self, obj, owner, owner_password, other_user,
                      other_user_password, perm_name_prefix):
         '''
-        Add a permission.
+        Remove a permission.
 
         :param obj: Object to manipulate permissions on.
         :type obj: :py:class:`Collection` or :py:class:`SurveyAsset`
@@ -181,7 +181,8 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         # FIXME: Do this through the API once the interface has stabilized.
         self._test_add_and_remove_perm(obj, perm_name_prefix, other_user)
 
-    def object_in_object_list(self, obj, user=None, password=None):
+    def assert_object_in_object_list(self, obj, user=None, password=None,
+                                     in_list=True):
         view_name= obj._meta.model_name + '-list'
         url= reverse(view_name)
 
@@ -192,20 +193,23 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         if user and password:
             self.client.logout()
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK,
-                         response.data)
-        uid_found= False
-        for rslt in response.data['results']:
-            uid= self._url_to_uid(rslt['url'])
-            if uid == obj.uid:
-                uid_found= True
-                break
-        return uid_found
+        if response.status_code == status.HTTP_403_FORBIDDEN:
+            uid_found= False
+        else:
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            uid_found= False
+            for rslt in response.data['results']:
+                uid= self._url_to_uid(rslt['url'])
+                if uid == obj.uid:
+                    uid_found= True
+                    break
 
-    def assert_viewability(self, obj, user=None, password=None, viewable=True):
+        self.assertEqual(uid_found, in_list)
 
-        view_name= obj._meta.model_name + '-list'
-        url= reverse(view_name)
+
+    def assert_detail_viewable(self, obj, user=None, password=None, viewable=True):
+        view_name= obj._meta.model_name + '-detail'
+        url= reverse(view_name, kwargs={'uid': obj.uid})
 
         if user and password:
             self.assertTrue(self.client.login(username=user.username,
@@ -214,15 +218,12 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         if user and password:
             self.client.logout()
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK,
-                         response.data)
-        uid_found= False
-        for rslt in response.data['results']:
-            uid= self._url_to_uid(rslt['url'])
-            if uid == obj.uid:
-                uid_found= True
-                break
+        if viewable:
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+        else:
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertEqual(uid_found, viewable)
-        self.client.logout()
+    def assert_viewable(self, obj, user=None, password=None, viewable=True):
+        self.assert_object_in_object_list(obj, user, password, in_list=viewable)
+        self.assert_detail_viewable(obj, user, password, viewable)
 

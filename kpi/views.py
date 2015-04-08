@@ -1,44 +1,43 @@
-from kpi.models import SurveyAsset
-from kpi.models import Collection
-from kpi.models import object_permission
-from kpi.serializers import SurveyAssetSerializer, SurveyAssetListSerializer
-from kpi.serializers import CollectionSerializer, CollectionListSerializer
-from kpi.serializers import UserSerializer, UserListSerializer
-from kpi.serializers import TagSerializer, TagListSerializer
-from django.contrib.auth.models import User
-from django.contrib.contenttypes.models import ContentType
-from django.db.models import Q
-from rest_framework import permissions
-from kpi.permissions import IsOwnerOrReadOnly
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework.reverse import reverse
-import markdown
 import json
+from itertools import chain
+
+from django.contrib.auth.models import User
+from django.db.models import Q
 from rest_framework import (
     viewsets,
     renderers,
+    permissions,
+    status,
 )
-from itertools import chain
-from rest_framework import status
 from rest_framework.decorators import detail_route
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
 from taggit.models import Tag
-from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
-from kpi.highlighters import highlight_xform
-from kpi.renderers import (
+
+from .models import (
+    Collection,
+    object_permission,
+    SurveyAsset,)
+from .permissions import IsOwnerOrReadOnly
+from .highlighters import highlight_xform
+from .renderers import (
     AssetJsonRenderer,
     SSJsonRenderer,
     XFormRenderer,
     XlsRenderer,
-    EnketoPreviewLinkRenderer,
-)
+    EnketoPreviewLinkRenderer,)
+from .serializers import (
+    SurveyAssetSerializer, SurveyAssetListSerializer,
+    CollectionSerializer, CollectionListSerializer,
+    UserSerializer, UserListSerializer,
+    TagSerializer, TagListSerializer)
+from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 
 class CollectionViewSet(viewsets.ModelViewSet):
     queryset = Collection.objects.none()
     serializer_class = CollectionSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
-                          IsOwnerOrReadOnly,)
+    permission_classes = (IsOwnerOrReadOnly,)
     lookup_field = 'uid'
 
     def get_queryset(self, *args, **kwargs):
@@ -125,6 +124,7 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
     queryset = SurveyAsset.objects.all()
     serializer_class = SurveyAssetSerializer
     lookup_field = 'uid'
+    permission_classes = (IsOwnerOrReadOnly,)
 
     renderer_classes = (renderers.BrowsableAPIRenderer,
                         AssetJsonRenderer,

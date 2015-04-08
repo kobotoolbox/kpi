@@ -1,7 +1,10 @@
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import User
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import permissions
+
+from .models.object_permission import get_anonymous_user
 
 def _get_perm_name(perm_name_prefix, model_instance):
     '''
@@ -29,33 +32,25 @@ def _get_perm_name(perm_name_prefix, model_instance):
 
 
 # FIXME: Name is no longer accurate.
-class IsOwnerOrReadOnly(permissions.BasePermission):
+class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
     """
     Custom permission to only allow owners of an object to edit it.
     """
 
+    perms_map = permissions.DjangoObjectPermissions.perms_map
+    perms_map['GET']= ['%(app_label)s.view_%(model_name)s']
+    perms_map['OPTIONS']= perms_map['GET']
+    perms_map['HEAD']= perms_map['GET']
+
+    def has_permission(self, request, view):
+        if isinstance(request.user, AnonymousUser):
+            request.user= get_anonymous_user()
+
+        return super(IsOwnerOrReadOnly, self).has_permission(request, view)
+
     def has_object_permission(self, request, view, obj):
-        if not request.user:
-            import ipdb; ipdb.set_trace()
-            request.user= AnonymousUser
+        if isinstance(request.user, AnonymousUser):
+            request.user= get_anonymous_user()
 
-        # Allow the owner any permission (even if the permission has been
-        #   explicitly revoked).
-        if obj.owner == request.user:
-            return True
+        return super(IsOwnerOrReadOnly, self).has_object_permission(request, view, obj)
 
-        import ipdb; ipdb.set_trace()
-        # Read permissions are allowed to any request,
-        # so we'll always allow GET, HEAD or OPTIONS requests.
-        view_perm_name= _get_perm_name('view_', obj)
-        if (request.method in permissions.SAFE_METHODS) and \
-                request.user.has_perm(view_perm_name, obj):
-            return True
-
-        # Write permissions.
-        edit_perm_name= _get_perm_name('edit_', obj)
-        if (request.method in ['POST', 'PATCH', 'PUT']) and \
-                request.user.has_perm(edit_perm_name, obj):
-            return True
-
-        return False
