@@ -19,6 +19,7 @@ from .models import (
     object_permission,
     SurveyAsset,)
 from .permissions import IsOwnerOrReadOnly
+from .filters import KpiObjectPermissionsFilter
 from .highlighters import highlight_xform
 from .renderers import (
     AssetJsonRenderer,
@@ -38,6 +39,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
     queryset = Collection.objects.none()
     serializer_class = CollectionSerializer
     permission_classes = (IsOwnerOrReadOnly,)
+    filter_backends = (KpiObjectPermissionsFilter,)
     lookup_field = 'uid'
 
     def get_queryset(self, *args, **kwargs):
@@ -125,6 +127,7 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
     serializer_class = SurveyAssetSerializer
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
+    filter_backends = (KpiObjectPermissionsFilter, )
 
     renderer_classes = (renderers.BrowsableAPIRenderer,
                         AssetJsonRenderer,
