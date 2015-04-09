@@ -4,6 +4,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User, AnonymousUser, Permission
 from django.conf import settings
+from django.shortcuts import _get_queryset
 import copy
 import re
 
@@ -15,8 +16,8 @@ def perm_parse(perm, obj=None):
     try:
         app_label, codename = perm.split('.', 1)
         if app_label != obj_app_label:
-            raise ValidationError('The app specified in the permission string '
-                'does not contain the given object.')
+            raise ValidationError('The given object does not belong to the app '
+                'specified in the permission string.')
     except ValueError:
         app_label = obj_app_label
         codename = perm
@@ -29,6 +30,95 @@ def get_all_objects_for_user(user, klass):
         user=user,
         content_type=ContentType.objects.get_for_model(klass)
     ).values_list('object_id', flat=True))
+
+def get_objects_for_user(user, perms, klass=None):
+    """
+    A simplified version of django-guardian's get_objects_for_user shortcut.
+    Returns queryset of objects for which a given ``user`` has *all*
+    permissions present at ``perms``.
+    :param user: ``User`` or ``AnonymousUser`` instance for which objects would
+      be returned.
+    :param perms: single permission string, or sequence of permission strings
+      which should be checked.
+      If ``klass`` parameter is not given, those should be full permission
+      names rather than only codenames (i.e. ``auth.change_user``). If more than
+      one permission is present within sequence, their content type **must** be
+      the same or ``MixedContentTypeError`` exception would be raised.
+    :param klass: may be a Model, Manager or QuerySet object. If not given
+      this parameter would be computed based on given ``params``.
+    """
+    if isinstance(perms, basestring):
+        perms = [perms]
+    ctype = None
+    app_label = None
+    codenames = set()
+
+    # Compute codenames set and ctype if possible
+    for perm in perms:
+        if '.' in perm:
+            new_app_label, codename = perm.split('.', 1)
+            if app_label is not None and app_label != new_app_label:
+                raise ValidationError("Given perms must have same app "
+                    "label (%s != %s)" % (app_label, new_app_label))
+            else:
+                app_label = new_app_label
+        else:
+            codename = perm
+        codenames.add(codename)
+        if app_label is not None:
+            new_ctype = ContentType.objects.get(app_label=app_label,
+                permission__codename=codename)
+            if ctype is not None and ctype != new_ctype:
+                raise ValidationError("Computed ContentTypes do not match "
+                    "(%s != %s)" % (ctype, new_ctype))
+            else:
+                ctype = new_ctype
+
+    # Compute queryset and ctype if still missing
+    if ctype is None and klass is None:
+        raise ValidationError("Cannot determine content type")
+    elif ctype is None and klass is not None:
+        queryset = _get_queryset(klass)
+        ctype = ContentType.objects.get_for_model(queryset.model)
+    elif ctype is not None and klass is None:
+        queryset = _get_queryset(ctype.model_class())
+    else:
+        queryset = _get_queryset(klass)
+        if ctype.model_class() != queryset.model:
+            raise ValidationError("Content type for given perms and "
+                "klass differs")
+
+    # At this point, we should have both ctype and queryset and they should
+    # match which means: ctype.model_class() == queryset.model
+    # we should also have ``codenames`` list
+
+    # First check if user is superuser and if so, return queryset immediately
+    if user.is_superuser:
+        return queryset
+
+    # Check if the user is anonymous. The
+    # django.contrib.auth.models.AnonymousUser object doesn't work for queries
+    # and it's nice to be able to pass in request.user blindly.
+    if user.is_anonymous():
+        user = get_anonymous_user()
+
+    # Now we should extract list of pk values for which we would filter queryset
+    user_obj_perms_queryset = (ObjectPermission.objects
+        .filter(user=user)
+        .filter(permission__content_type=ctype)
+        .filter(permission__codename__in=codenames))
+    fields = ['object_id', 'permission__codename']
+
+    if len(codenames) > 1:
+        counts = user_obj_perms_queryset.values(fields[0]).annotate(
+            object_pk_count=models.Count(fields[0]))
+        user_obj_perms_queryset = counts.filter(object_pk_count__gte=len(codenames))
+
+    values = user_obj_perms_queryset.values_list(fields[0], flat=True)
+    values = list(values)
+    objects = queryset.filter(pk__in=values)
+
+    return objects
 
 def get_anonymous_user():
     ''' Return a real User in the database to represent AnonymousUser. '''
