@@ -15,7 +15,7 @@ def perm_parse(perm, obj=None):
         obj_app_label = None
     try:
         app_label, codename = perm.split('.', 1)
-        if app_label != obj_app_label:
+        if obj_app_label is not None and app_label != obj_app_label:
             raise ValidationError('The given object does not belong to the app '
                 'specified in the permission string.')
     except ValueError:
@@ -224,8 +224,10 @@ class ObjectPermissionMixin(object):
         super(ObjectPermissionMixin, self).save(*args, **kwargs)
         # We may have a differnet parent; recalculate inherited permissions
         self._recalculate_inherited_perms()
-        # Recalculate all descendants
-        for descendant in self.get_descendants_list():
+        # Recalculate all descendants, re-fetching ourself first to guard
+        # against stale MPTT values
+        fresh_self = type(self).objects.get(pk=self.pk)
+        for descendant in fresh_self.get_descendants_list():
             descendant._recalculate_inherited_perms()
 
     def _get_effective_perms(
@@ -415,8 +417,10 @@ class ObjectPermissionMixin(object):
         # permission. In that case, don't recalculate here.
         if defer_recalc:
             return
-        # Recalculate all descendants
-        for descendant in self.get_descendants_list():
+        # Recalculate all descendants, re-fetching ourself first to guard
+        # against stale MPTT values
+        fresh_self = type(self).objects.get(pk=self.pk)
+        for descendant in fresh_self.get_descendants_list():
             descendant._recalculate_inherited_perms()
 
     def get_perms(self, user_obj):
@@ -473,8 +477,16 @@ class ObjectPermissionMixin(object):
                 return False
         return result
 
-    def remove_perm(self, user_obj, perm, deny=False):
-        ''' Revoke perm on this object from user_obj. '''
+    def remove_perm(self, user_obj, perm):
+        ''' Revoke perm on this object from user_obj. May delete granted
+        permissions or add deny permissions as appropriate:
+        Current access      Action
+        ==============      ======
+        None                None
+        Direct              Remove direct permission
+        Inherited           Add deny permission
+        Direct & Inherited  Remove direct permission; add deny permission
+        '''
         if isinstance(user_obj, AnonymousUser):
             # Get the User database representation for AnonymousUser
             user_obj = get_anonymous_user()
@@ -484,13 +496,23 @@ class ObjectPermissionMixin(object):
             raise ValidationError('{} cannot be removed explicitly.'.format(
                 codename)
             )
-        ObjectPermission.objects.filter_for_object(
+        all_permissions = ObjectPermission.objects.filter_for_object(
             self,
             user=user_obj,
             permission__codename=codename,
-            deny=deny,
-            inherited=False
-        ).delete()
-        # Recalculate all descendants
-        for descendant in self.get_descendants_list():
+            deny=False
+        )
+        direct_permissions = all_permissions.filter(inherited=False)
+        inherited_permissions = all_permissions.filter(inherited=True)
+        # Delete directly assigned permissions, if any
+        direct_permissions.delete()
+        if inherited_permissions.exists():
+            # Delete inherited permissions
+            inherited_permissions.delete()
+            # Add a deny permission to block future inheritance
+            self.assign_perm(user_obj, perm, deny=True, defer_recalc=True)
+        # Recalculate all descendants, re-fetching ourself first to guard
+        # against stale MPTT values
+        fresh_self = type(self).objects.get(pk=self.pk)
+        for descendant in fresh_self.get_descendants_list():
             descendant._recalculate_inherited_perms()

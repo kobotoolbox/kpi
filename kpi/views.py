@@ -44,7 +44,9 @@ class CollectionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self, *args, **kwargs):
         if self.request.user.is_authenticated():
-            return Collection.objects.filter(owner=self.request.user)
+            # Don't do any real filtering here since the next stop is
+            # KpiObjectPermissionsFilter.filter_queryset()
+            return Collection.objects.all()
         else:
             return Collection.objects.none()
 
@@ -145,8 +147,9 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self, *args, **kwargs):
         if self.request.user.is_authenticated():
-            user = self.request.user
-            return object_permission.get_all_objects_for_user(user, SurveyAsset)
+            # Don't do any real filtering here since the next stop is
+            # KpiObjectPermissionsFilter.filter_queryset()
+            return SurveyAsset.objects.all()
         else:
             return SurveyAsset.objects.none()
 
