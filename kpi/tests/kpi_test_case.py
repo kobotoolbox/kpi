@@ -179,7 +179,10 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         :type perm_name_prefix: str
         '''
         # FIXME: Do this through the API once the interface has stabilized.
-        self._test_add_and_remove_perm(obj, perm_name_prefix, other_user)
+        #self._test_add_and_remove_perm(obj, perm_name_prefix, other_user)
+        # jnm: _test_add_and_remove expects the permission to not have been
+        # assigned yet and fails when it has.
+        self._test_remove_perm(obj, perm_name_prefix, other_user)
 
     def assert_object_in_object_list(self, obj, user=None, password=None,
                                      in_list=True):
@@ -221,7 +224,9 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         if viewable:
             self.assertEqual(response.status_code, status.HTTP_200_OK)
         else:
-            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+            # 404 expected here; see
+            # https://github.com/tomchristie/django-rest-framework/issues/1439
+            self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def assert_viewable(self, obj, user=None, password=None, viewable=True):
         self.assert_object_in_object_list(obj, user, password, in_list=viewable)

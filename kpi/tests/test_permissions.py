@@ -50,6 +50,24 @@ class BasePermissionsTestCase(TestCase):
         obj.assign_perm(user, perm_name)
         self.assertTrue(user.has_perm(perm_name, obj))
 
+    def _test_remove_perm(self, obj, perm_name_prefix, user):
+        '''
+        Test that a permission can be removed and that the removal successfully
+        takes effect.
+
+        :param obj: Object to manipulate permissions on.
+        :type obj: :py:class:`Collection` or :py:class:`SurveyAsset`
+        :param perm_name_prefix: The prefix of the permission to be used (i.e.
+            "view_", "change_", or "delete_").
+        :type perm_name_prefix: str
+        :param user: The user for whom permissions on `obj` will be manipulated.
+        :type user: :py:class:`User`
+        '''
+        perm_name= self._get_perm_name(perm_name_prefix, obj)
+        self.assertTrue(user.has_perm(perm_name, obj))
+        obj.remove_perm(user, perm_name)
+        self.assertFalse(user.has_perm(perm_name, obj))
+
     def _test_add_inherited_perm(self, ancestor_collection, perm_name_prefix,
                                  user, descendant_obj):
         '''

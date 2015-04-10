@@ -23,7 +23,6 @@ class ApiAnonymousPermissionsTestCase(KpiTestCase):
 
     def test_anon_asset_detail(self):
         gist= self.create_asset('gist')
-        import ipdb; ipdb.set_trace()
         self.assert_detail_viewable(gist)
 
     def test_cannot_create_collection(self):
@@ -100,6 +99,10 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.add_perm(self.child_collection, self.admin, self.admin_password,
                        self.someuser, self.someuser_password, 'view_')
 
+        # Give "someuser" view permission on the parent collection.
+        self.add_perm(self.admin_collection, self.admin, self.admin_password,
+                       self.someuser, self.someuser_password, 'view_')
+
         # Revoke the view permissions of "someuser" on the parent collection.
         self.remove_perm(self.admin_collection, self.admin,
                           self.admin_password, self.someuser,
@@ -115,13 +118,13 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.add_to_collection(self.admin_asset, self.child_collection,
                                 self.admin, self.admin_password)
 
-        # Revoke the view permissions of "someuser" on the child collection.
-        self.remove_perm(self.child_collection, self.admin, self.admin_password,
-                          self.someuser, self.someuser_password, 'view_')
-
         # Give "someuser" view permission on the parent collection.
         self.add_perm(self.admin_collection, self.admin, self.admin_password,
                        self.someuser, self.someuser_password, 'view_')
+
+        # Revoke the view permissions of "someuser" on the child collection.
+        self.remove_perm(self.child_collection, self.admin, self.admin_password,
+                          self.someuser, self.someuser_password, 'view_')
 
         # Confirm that "someuser" can't view the contents of 'child_collection'.
         self.assert_viewable(self.admin_asset, self.someuser,
@@ -206,6 +209,10 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.add_perm(self.child_collection, self.admin, self.admin_password,
                        self.someuser, self.someuser_password, 'view_')
 
+        # Give "someuser" view permission on the parent collection.
+        self.add_perm(self.admin_collection, self.admin, self.admin_password,
+                       self.someuser, self.someuser_password, 'view_')
+
         # Revoke the view permissions of "someuser" on 'parent_collection'.
         self.remove_perm(self.admin_collection, self.admin,
                           self.admin_password, self.someuser,
@@ -221,14 +228,14 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.add_to_collection(grandchild_collection, self.child_collection,
                                 self.admin, self.admin_password)
 
+        # Give "someuser" view permission on the parent collection.
+        self.add_perm(self.admin_collection, self.admin, self.admin_password,
+                       self.someuser, self.someuser_password, 'view_')
+
         # Revoke the view permissions of "someuser" on the child collection.
         self.remove_perm(self.child_collection, self.admin,
                           self.admin_password, self.someuser,
                           self.someuser_password, 'view_')
-
-        # Give "someuser" view permission on the parent collection.
-        self.add_perm(self.admin_collection, self.admin, self.admin_password,
-                       self.someuser, self.someuser_password, 'view_')
 
         # Confirm that "someuser" can't view 'grandchild_collection'.
         self.assert_viewable(grandchild_collection, self.someuser,
@@ -253,6 +260,10 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_inherited_viewable_collection_not_deletable(self):
+        # Give "someuser" view permissions on a collection owned by "admin".
+        self.add_perm(self.admin_collection, self.admin, self.admin_password,
+                       self.someuser, self.someuser_password, 'view_')
+
         # Confirm that "someuser" is not allowed to delete the child collection.
         delete_perm= self._get_perm_name('delete_', self.child_collection)
         self.assertFalse(self.someuser.has_perm(delete_perm, self.child_collection))
