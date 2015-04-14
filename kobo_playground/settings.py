@@ -67,7 +67,11 @@ WSGI_APPLICATION = 'kobo_playground.wsgi.application'
 # What User object should be mapped to AnonymousUser?
 ANONYMOUS_USER_ID = -1
 # Permissions assigned to AnonymousUser are restricted to the following
-ALLOWED_ANONYMOUS_PERMISSIONS = ('view_collection', 'view_surveyasset')
+ALLOWED_ANONYMOUS_PERMISSIONS = (
+    'kpi.view_collection',
+    'kpi.view_surveyasset',
+    'kpi.add_surveyasset',
+)
 
 
 # Database

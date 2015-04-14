@@ -4,6 +4,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User, AnonymousUser, Permission
 from django.conf import settings
+from django.shortcuts import _get_queryset
 import copy
 import re
 
@@ -14,9 +15,9 @@ def perm_parse(perm, obj=None):
         obj_app_label = None
     try:
         app_label, codename = perm.split('.', 1)
-        if app_label != obj_app_label:
-            raise ValidationError('The app specified in the permission string '
-                'does not contain the given object.')
+        if obj_app_label is not None and app_label != obj_app_label:
+            raise ValidationError('The given object does not belong to the app '
+                'specified in the permission string.')
     except ValueError:
         app_label = obj_app_label
         codename = perm
@@ -30,6 +31,95 @@ def get_all_objects_for_user(user, klass):
         content_type=ContentType.objects.get_for_model(klass)
     ).values_list('object_id', flat=True))
 
+def get_objects_for_user(user, perms, klass=None):
+    """
+    A simplified version of django-guardian's get_objects_for_user shortcut.
+    Returns queryset of objects for which a given ``user`` has *all*
+    permissions present at ``perms``.
+    :param user: ``User`` or ``AnonymousUser`` instance for which objects would
+      be returned.
+    :param perms: single permission string, or sequence of permission strings
+      which should be checked.
+      If ``klass`` parameter is not given, those should be full permission
+      names rather than only codenames (i.e. ``auth.change_user``). If more than
+      one permission is present within sequence, their content type **must** be
+      the same or ``MixedContentTypeError`` exception would be raised.
+    :param klass: may be a Model, Manager or QuerySet object. If not given
+      this parameter would be computed based on given ``params``.
+    """
+    if isinstance(perms, basestring):
+        perms = [perms]
+    ctype = None
+    app_label = None
+    codenames = set()
+
+    # Compute codenames set and ctype if possible
+    for perm in perms:
+        if '.' in perm:
+            new_app_label, codename = perm.split('.', 1)
+            if app_label is not None and app_label != new_app_label:
+                raise ValidationError("Given perms must have same app "
+                    "label (%s != %s)" % (app_label, new_app_label))
+            else:
+                app_label = new_app_label
+        else:
+            codename = perm
+        codenames.add(codename)
+        if app_label is not None:
+            new_ctype = ContentType.objects.get(app_label=app_label,
+                permission__codename=codename)
+            if ctype is not None and ctype != new_ctype:
+                raise ValidationError("Computed ContentTypes do not match "
+                    "(%s != %s)" % (ctype, new_ctype))
+            else:
+                ctype = new_ctype
+
+    # Compute queryset and ctype if still missing
+    if ctype is None and klass is None:
+        raise ValidationError("Cannot determine content type")
+    elif ctype is None and klass is not None:
+        queryset = _get_queryset(klass)
+        ctype = ContentType.objects.get_for_model(queryset.model)
+    elif ctype is not None and klass is None:
+        queryset = _get_queryset(ctype.model_class())
+    else:
+        queryset = _get_queryset(klass)
+        if ctype.model_class() != queryset.model:
+            raise ValidationError("Content type for given perms and "
+                "klass differs")
+
+    # At this point, we should have both ctype and queryset and they should
+    # match which means: ctype.model_class() == queryset.model
+    # we should also have ``codenames`` list
+
+    # First check if user is superuser and if so, return queryset immediately
+    if user.is_superuser:
+        return queryset
+
+    # Check if the user is anonymous. The
+    # django.contrib.auth.models.AnonymousUser object doesn't work for queries
+    # and it's nice to be able to pass in request.user blindly.
+    if user.is_anonymous():
+        user = get_anonymous_user()
+
+    # Now we should extract list of pk values for which we would filter queryset
+    user_obj_perms_queryset = (ObjectPermission.objects
+        .filter(user=user)
+        .filter(permission__content_type=ctype)
+        .filter(permission__codename__in=codenames))
+    fields = ['object_id', 'permission__codename']
+
+    if len(codenames) > 1:
+        counts = user_obj_perms_queryset.values(fields[0]).annotate(
+            object_pk_count=models.Count(fields[0]))
+        user_obj_perms_queryset = counts.filter(object_pk_count__gte=len(codenames))
+
+    values = user_obj_perms_queryset.values_list(fields[0], flat=True)
+    values = list(values)
+    objects = queryset.filter(pk__in=values)
+
+    return objects
+
 def get_anonymous_user():
     ''' Return a real User in the database to represent AnonymousUser. '''
     try:
@@ -40,10 +130,23 @@ def get_anonymous_user():
             'ANONYMOUS_DEFAULT_USERNAME_VALUE',
             'AnonymousUser'
         )
+        permissions_to_assign = []
+        # Users must have both model-level and object-level permissions to
+        # satisfy DRF, so assign the anonymous user all allowed permissions at
+        # the model level
+        for p in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
+            app_label, codename = perm_parse(p)
+            permissions_to_assign.append(
+                Permission.objects.get(
+                    content_type__app_label=app_label,
+                    codename=codename
+                )
+            )
         user = User.objects.create(
             pk=settings.ANONYMOUS_USER_ID,
             username=username
         )
+        user.user_permissions = permissions_to_assign
     return user
 
 
@@ -121,8 +224,10 @@ class ObjectPermissionMixin(object):
         super(ObjectPermissionMixin, self).save(*args, **kwargs)
         # We may have a differnet parent; recalculate inherited permissions
         self._recalculate_inherited_perms()
-        # Recalculate all descendants
-        for descendant in self.get_descendants_list():
+        # Recalculate all descendants, re-fetching ourself first to guard
+        # against stale MPTT values
+        fresh_self = type(self).objects.get(pk=self.pk)
+        for descendant in fresh_self.get_descendants_list():
             descendant._recalculate_inherited_perms()
 
     def _get_effective_perms(
@@ -262,7 +367,8 @@ class ObjectPermissionMixin(object):
             )
         if isinstance(user_obj, AnonymousUser):
             # Is an anonymous user allowed to have this permission?
-            if not codename in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
+            fq_permission = '{}.{}'.format(app_label, codename)
+            if not fq_permission in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
                 raise ValidationError(
                     'Anonymous users cannot have the permission {}.'.format(
                         codename)
@@ -311,8 +417,10 @@ class ObjectPermissionMixin(object):
         # permission. In that case, don't recalculate here.
         if defer_recalc:
             return
-        # Recalculate all descendants
-        for descendant in self.get_descendants_list():
+        # Recalculate all descendants, re-fetching ourself first to guard
+        # against stale MPTT values
+        fresh_self = type(self).objects.get(pk=self.pk)
+        for descendant in fresh_self.get_descendants_list():
             descendant._recalculate_inherited_perms()
 
     def get_perms(self, user_obj):
@@ -364,12 +472,21 @@ class ObjectPermissionMixin(object):
             result = self.has_perm(AnonymousUser(), perm)
         if result and is_anonymous:
             # Is an anonymous user allowed to have this permission?
-            if not codename in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
+            fq_permission = '{}.{}'.format(app_label, codename)
+            if not fq_permission in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
                 return False
         return result
 
-    def remove_perm(self, user_obj, perm, deny=False):
-        ''' Revoke perm on this object from user_obj. '''
+    def remove_perm(self, user_obj, perm):
+        ''' Revoke perm on this object from user_obj. May delete granted
+        permissions or add deny permissions as appropriate:
+        Current access      Action
+        ==============      ======
+        None                None
+        Direct              Remove direct permission
+        Inherited           Add deny permission
+        Direct & Inherited  Remove direct permission; add deny permission
+        '''
         if isinstance(user_obj, AnonymousUser):
             # Get the User database representation for AnonymousUser
             user_obj = get_anonymous_user()
@@ -379,13 +496,23 @@ class ObjectPermissionMixin(object):
             raise ValidationError('{} cannot be removed explicitly.'.format(
                 codename)
             )
-        ObjectPermission.objects.filter_for_object(
+        all_permissions = ObjectPermission.objects.filter_for_object(
             self,
             user=user_obj,
             permission__codename=codename,
-            deny=deny,
-            inherited=False
-        ).delete()
-        # Recalculate all descendants
-        for descendant in self.get_descendants_list():
+            deny=False
+        )
+        direct_permissions = all_permissions.filter(inherited=False)
+        inherited_permissions = all_permissions.filter(inherited=True)
+        # Delete directly assigned permissions, if any
+        direct_permissions.delete()
+        if inherited_permissions.exists():
+            # Delete inherited permissions
+            inherited_permissions.delete()
+            # Add a deny permission to block future inheritance
+            self.assign_perm(user_obj, perm, deny=True, defer_recalc=True)
+        # Recalculate all descendants, re-fetching ourself first to guard
+        # against stale MPTT values
+        fresh_self = type(self).objects.get(pk=self.pk)
+        for descendant in fresh_self.get_descendants_list():
             descendant._recalculate_inherited_perms()
