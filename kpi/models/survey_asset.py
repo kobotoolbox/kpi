@@ -4,8 +4,9 @@ from shortuuid import ShortUUID
 from jsonfield import JSONField
 from taggit.managers import TaggableManager
 from taggit.models import Tag
-import reversion
+import re
 import json
+import reversion
 from object_permission import ObjectPermission, ObjectPermissionMixin
 from django.dispatch import receiver
 
