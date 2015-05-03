@@ -37,20 +37,11 @@ class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
     Custom permission to only allow owners of an object to edit it.
     """
 
+    # Setting this to False allows real permission checking on AnonymousUser.
+    # With the default of True, anonymous requests are categorically rejected.
+    authenticated_users_only = False
+
     perms_map = permissions.DjangoObjectPermissions.perms_map
     perms_map['GET']= ['%(app_label)s.view_%(model_name)s']
     perms_map['OPTIONS']= perms_map['GET']
     perms_map['HEAD']= perms_map['GET']
-
-    def has_permission(self, request, view):
-        if isinstance(request.user, AnonymousUser):
-            request.user= get_anonymous_user()
-
-        return super(IsOwnerOrReadOnly, self).has_permission(request, view)
-
-    def has_object_permission(self, request, view, obj):
-        if isinstance(request.user, AnonymousUser):
-            request.user= get_anonymous_user()
-
-        return super(IsOwnerOrReadOnly, self).has_object_permission(request, view, obj)
-

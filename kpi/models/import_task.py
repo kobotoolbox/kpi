@@ -18,13 +18,13 @@ class ImportTask(models.Model):
     CREATED=    'created'
     PROCESSING= 'processing'
     COMPLETE=   'complete'
- 
+
     STATUS_CHOICES = (
         (CREATED, CREATED),
         (PROCESSING, PROCESSING),
         (COMPLETE, COMPLETE),
     )
- 
+
     user = models.ForeignKey('auth.User')
     data = JSONField()
     status = models.CharField(choices=STATUS_CHOICES, max_length=32, default=CREATED)

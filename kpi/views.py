@@ -18,6 +18,7 @@ from .models import (
     Collection,
     object_permission,
     SurveyAsset,)
+from .models.object_permission import get_anonymous_user
 from .permissions import IsOwnerOrReadOnly
 from .filters import KpiObjectPermissionsFilter
 from .highlighters import highlight_xform
@@ -36,19 +37,12 @@ from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 
 class CollectionViewSet(viewsets.ModelViewSet):
-    queryset = Collection.objects.none()
+    # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
+    queryset = Collection.objects.all()
     serializer_class = CollectionSerializer
     permission_classes = (IsOwnerOrReadOnly,)
     filter_backends = (KpiObjectPermissionsFilter,)
     lookup_field = 'uid'
-
-    def get_queryset(self, *args, **kwargs):
-        if self.request.user.is_authenticated():
-            # Don't do any real filtering here since the next stop is
-            # KpiObjectPermissionsFilter.filter_queryset()
-            return Collection.objects.all()
-        else:
-            return Collection.objects.none()
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -67,22 +61,24 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
-        if user.is_authenticated():
-            def _get_tags_on_items(content_type_name, avail_items):
-                '''
-                return all ids of tags which are tagged to items of the given content_type
-                '''
-                same_content_type = Q(taggit_taggeditem_items__content_type__model=content_type_name)
-                same_id = Q(taggit_taggeditem_items__object_id__in=avail_items.values_list('id'))
-                return Tag.objects.filter(same_content_type & same_id).distinct().values_list('id', flat=True)
-            all_tag_ids = list(chain(
-                                    _get_tags_on_items('collection', user.owned_collections.all()),
-                                    _get_tags_on_items('surveyasset', user.survey_assets.all()),
-                                    ))
+        # Check if the user is anonymous. The
+        # django.contrib.auth.models.AnonymousUser object doesn't work for
+        # queries.
+        if user.is_anonymous():
+            user = get_anonymous_user()
+        def _get_tags_on_items(content_type_name, avail_items):
+            '''
+            return all ids of tags which are tagged to items of the given content_type
+            '''
+            same_content_type = Q(taggit_taggeditem_items__content_type__model=content_type_name)
+            same_id = Q(taggit_taggeditem_items__object_id__in=avail_items.values_list('id'))
+            return Tag.objects.filter(same_content_type & same_id).distinct().values_list('id', flat=True)
+        all_tag_ids = list(chain(
+                                _get_tags_on_items('collection', user.owned_collections.all()),
+                                _get_tags_on_items('surveyasset', user.survey_assets.all()),
+                                ))
 
-            return Tag.objects.filter(id__in=all_tag_ids).distinct()
-        else:
-            return Tag.objects.none()
+        return Tag.objects.filter(id__in=all_tag_ids).distinct()
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -125,6 +121,7 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
     * Generate a link to a preview in enketo-express <span class='label label-danger'>TODO</span>
     * Create anonymous survey assets <span class='label label-danger'>TODO</span>
     """
+    # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
     queryset = SurveyAsset.objects.all()
     serializer_class = SurveyAssetSerializer
     lookup_field = 'uid'
@@ -144,14 +141,6 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
             return SurveyAssetListSerializer
         else:
             return SurveyAssetSerializer
-
-    def get_queryset(self, *args, **kwargs):
-        if self.request.user.is_authenticated():
-            # Don't do any real filtering here since the next stop is
-            # KpiObjectPermissionsFilter.filter_queryset()
-            return SurveyAsset.objects.all()
-        else:
-            return SurveyAsset.objects.none()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -200,7 +189,13 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
         return Response(highlight_xform(export.xml, **options))
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        # Check if the user is anonymous. The
+        # django.contrib.auth.models.AnonymousUser object doesn't work for
+        # queries.
+        user = self.request.user
+        if user.is_anonymous():
+            user = get_anonymous_user()
+        serializer.save(owner=user)
 
 def _wrap_html_pre(content):
     return "<!doctype html><html><body><code><pre>%s</pre></code></body></html>" % content
