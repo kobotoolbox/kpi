@@ -3,8 +3,9 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework.pagination import PaginationSerializer
 from rest_framework.reverse import reverse_lazy, reverse
-from kpi.models import SurveyAsset
-from kpi.models import Collection
+from .models import SurveyAsset
+from .models import Collection
+from .models.object_permission import get_anonymous_user
 import reversion
 import urllib
 import json
@@ -70,12 +71,22 @@ class TagSerializer(serializers.ModelSerializer):
     def _get_survey_assets(self, obj):
         request = self.context.get('request', None)
         user = request.user
+        # Check if the user is anonymous. The
+        # django.contrib.auth.models.AnonymousUser object doesn't work for
+        # queries.
+        if user.is_anonymous():
+            user = get_anonymous_user()
         return [reverse('surveyasset-detail', args=(sa.uid,), request=request) \
                 for sa in SurveyAsset.objects.filter(tags=obj, owner=user).all()]
 
     def _get_collections(self, obj):
         request = self.context.get('request', None)
         user = request.user
+        # Check if the user is anonymous. The
+        # django.contrib.auth.models.AnonymousUser object doesn't work for
+        # queries.
+        if user.is_anonymous():
+            user = get_anonymous_user()
         return [reverse('collection-detail', args=(coll.uid,), request=request) \
                 for coll in Collection.objects.filter(tags=obj, owner=user).all()]
 
@@ -128,6 +139,11 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     def get_fields(self, *args, **kwargs):
         fields = super(SurveyAssetSerializer, self).get_fields(*args, **kwargs)
         user = self.context['request'].user
+        # Check if the user is anonymous. The
+        # django.contrib.auth.models.AnonymousUser object doesn't work for
+        # queries.
+        if user.is_anonymous():
+            user = get_anonymous_user()
         fields['parent'].queryset = fields['parent'].queryset.filter(owner=user)
         return fields
 
