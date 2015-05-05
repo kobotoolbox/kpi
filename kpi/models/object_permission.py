@@ -166,6 +166,9 @@ class ObjectPermissionManager(models.Manager):
             content_object, **kwargs
         )
 
+    def filter(self, *args, **kwargs):
+        return super(ObjectPermissionManager, self).filter(*args, **kwargs)
+
     def filter_for_object(self, content_object, **kwargs):
         ''' Wrapper to allow filter() queries using a generic foreign key. '''
         return self._rewrite_query_args(

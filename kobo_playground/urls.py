@@ -1,12 +1,29 @@
 from rest_framework.urlpatterns import format_suffix_patterns
-from kpi.views import SurveyAssetViewSet, UserViewSet, CollectionViewSet, TagViewSet
-from rest_framework.routers import DefaultRouter
+from kpi.views import (
+    SurveyAssetViewSet,
+    UserViewSet,
+    CollectionViewSet,
+    TagViewSet,
+    SurveyAssetObjectPermissionViewSet,
+    CollectionObjectPermissionViewSet,
+)
+from rest_framework_extensions.routers import ExtendedDefaultRouter
 from rest_framework import renderers
 from django.conf.urls import url, include
 
-router = DefaultRouter()
-router.register(r'survey_assets', SurveyAssetViewSet)
-router.register(r'collections', CollectionViewSet)
+router = ExtendedDefaultRouter()
+router.register(r'survey_assets', SurveyAssetViewSet).register(
+    r'permissions',
+    SurveyAssetObjectPermissionViewSet,
+    'surveyasset-permissions',
+    parents_query_lookups=['content_object__uid']
+)
+router.register(r'collections', CollectionViewSet).register(
+    r'permissions',
+    CollectionObjectPermissionViewSet,
+    'collection-permissions',
+    parents_query_lookups=['content_object__uid']
+)
 router.register(r'users', UserViewSet)
 router.register(r'tags', TagViewSet)
 

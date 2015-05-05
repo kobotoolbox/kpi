@@ -5,6 +5,7 @@ from rest_framework.pagination import PaginationSerializer
 from rest_framework.reverse import reverse_lazy, reverse
 from .models import SurveyAsset
 from .models import Collection
+from .models import ObjectPermission
 from .models.object_permission import get_anonymous_user
 import reversion
 import urllib
@@ -249,3 +250,17 @@ class CollectionListSerializer(CollectionSerializer):
                     'date_created',
                     'date_modified',
                 )
+
+class ObjectPermissionSerializer(serializers.HyperlinkedModelSerializer):
+    user = serializers.HyperlinkedRelatedField(
+        view_name='user-detail',
+        lookup_field='username',
+        read_only=True,
+    )
+    permission = serializers.SlugRelatedField(
+        slug_field='codename',
+        read_only=True
+    )
+    class Meta:
+        model = ObjectPermission
+        fields = ('user', 'permission', 'deny', 'inherited')
