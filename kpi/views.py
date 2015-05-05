@@ -36,13 +36,12 @@ from .serializers import (
     CollectionSerializer, CollectionListSerializer,
     UserSerializer, UserListSerializer,
     TagSerializer, TagListSerializer,
-    ObjectPermissionSerializer)
+    ObjectPermissionSerializerFactory)
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 
 class ObjectPermissionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = ObjectPermission.objects.all()
-    serializer_class = ObjectPermissionSerializer
 
     def get_queryset(self):
         return super(ObjectPermissionViewSet, self).get_queryset(
@@ -63,15 +62,18 @@ class ObjectPermissionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             return query_dict
         # Remove the seemingly sensible but unsupported query field
         del query_dict['content_object__uid']
+        # Add the parent's primary key to the query
         parent_pk = self.parent_model.objects.get(uid=parent_uid).pk
         query_dict['object_id'] = parent_pk
         return query_dict
 
 class SurveyAssetObjectPermissionViewSet(ObjectPermissionViewSet):
     parent_model = SurveyAsset
+    serializer_class = ObjectPermissionSerializerFactory(parent_model)
 
 class CollectionObjectPermissionViewSet(ObjectPermissionViewSet):
     parent_model = Collection
+    serializer_class = ObjectPermissionSerializerFactory(parent_model)
 
 class CollectionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()

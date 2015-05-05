@@ -1,5 +1,6 @@
 from django.forms import widgets
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
+from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from rest_framework.pagination import PaginationSerializer
 from rest_framework.reverse import reverse_lazy, reverse
@@ -251,16 +252,29 @@ class CollectionListSerializer(CollectionSerializer):
                     'date_modified',
                 )
 
-class ObjectPermissionSerializer(serializers.HyperlinkedModelSerializer):
-    user = serializers.HyperlinkedRelatedField(
-        view_name='user-detail',
-        lookup_field='username',
-        read_only=True,
-    )
-    permission = serializers.SlugRelatedField(
-        slug_field='codename',
-        read_only=True
-    )
-    class Meta:
-        model = ObjectPermission
-        fields = ('user', 'permission', 'deny', 'inherited')
+def ObjectPermissionSerializerFactory(model):
+    class ObjectPermissionSerializer(serializers.HyperlinkedModelSerializer):
+        user = serializers.HyperlinkedRelatedField(
+            view_name='user-detail',
+            lookup_field='username',
+            queryset=User.objects.all(),
+        )
+        permission = serializers.SlugRelatedField(
+            slug_field='codename',
+            queryset=Permission.objects.filter(
+                # Only show permissions applicable to the model passed to
+                # the factory function
+                content_type=ContentType.objects.get_for_model(model)
+            )
+        )
+
+        class Meta:
+            model = ObjectPermission
+            fields = (
+                'user',
+                'permission',
+                'deny',
+                'inherited',
+            )
+
+    return ObjectPermissionSerializer
