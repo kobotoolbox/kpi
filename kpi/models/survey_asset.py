@@ -1,5 +1,6 @@
 from django.db import models
 from django.db import transaction
+from django.contrib.contenttypes.fields import GenericRelation
 from shortuuid import ShortUUID
 from jsonfield import JSONField
 from taggit.managers import TaggableManager
@@ -37,6 +38,7 @@ class SurveyAsset(ObjectPermissionMixin, models.Model):
     editors_can_change_permissions = models.BooleanField(default=True)
     uid = models.CharField(max_length=SURVEY_ASSET_UID_LENGTH, default='')
     tags = TaggableManager()
+    permissions = GenericRelation(ObjectPermission)
 
     objects = SurveyAssetManager()
 

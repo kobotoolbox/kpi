@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.contenttypes.fields import GenericRelation
 from mptt.models import MPTTModel, TreeForeignKey
 from shortuuid import ShortUUID
 from kpi.models.survey_asset import SurveyAsset
@@ -42,6 +43,7 @@ class Collection(ObjectPermissionMixin, MPTTModel):
     date_modified = models.DateTimeField(auto_now=True)
     objects = CollectionManager()
     tags = TaggableManager()
+    permissions = GenericRelation(ObjectPermission)
 
     class Meta:
         permissions = (

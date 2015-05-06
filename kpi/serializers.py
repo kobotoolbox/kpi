@@ -101,6 +101,32 @@ class TagListSerializer(TagSerializer):
         model = Tag
         fields = ('name', 'url', )
 
+class ObjectPermissionSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        lookup_field='uid',
+        view_name='objectpermission-detail'
+    )
+    user = serializers.HyperlinkedRelatedField(
+        view_name='user-detail',
+        lookup_field='username',
+        queryset=User.objects.all(),
+    )
+    permission = serializers.SlugRelatedField(
+        slug_field='codename',
+        queryset=Permission.objects.all()
+    )
+    inherited = serializers.ReadOnlyField()
+
+    class Meta:
+        model = ObjectPermission
+        fields = (
+            'url',
+            'user',
+            'permission',
+            'deny',
+            'inherited',
+        )
+
 class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username',
                                                 read_only=True,)
@@ -116,6 +142,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     version_count = serializers.SerializerMethodField('_version_count')
     parent = TaggedHyperlinkedRelatedField(lookup_field='uid', queryset=Collection.objects.all(),
                                                 view_name='collection-detail', required=False)
+    permissions = ObjectPermissionSerializer(many=True, read_only=True)
 
     class Meta:
         model = SurveyAsset
@@ -131,7 +158,8 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
                     'content',
                     'xform_link',
                     'xls_link',
-                    'name', 'tags', )
+                    'name', 'tags',
+                    'permissions',)
         extra_kwargs = {
             'parent': {
                 'lookup_field': 'uid',
@@ -218,6 +246,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
     children = TaggedHyperlinkedRelatedField(many=True, lookup_field='uid',
                  view_name='collection-detail', read_only=True)
     tags = serializers.SerializerMethodField('_get_tag_names')
+    permissions = ObjectPermissionSerializer(many=True, read_only=True)
 
     class Meta:
         model = Collection
@@ -230,6 +259,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
                     'tags',
                     'date_created',
                     'date_modified',
+                    'permissions',
                 )
         lookup_field = 'uid'
         extra_kwargs = {
@@ -251,30 +281,3 @@ class CollectionListSerializer(CollectionSerializer):
                     'date_created',
                     'date_modified',
                 )
-
-def ObjectPermissionSerializerFactory(model):
-    class ObjectPermissionSerializer(serializers.HyperlinkedModelSerializer):
-        user = serializers.HyperlinkedRelatedField(
-            view_name='user-detail',
-            lookup_field='username',
-            queryset=User.objects.all(),
-        )
-        permission = serializers.SlugRelatedField(
-            slug_field='codename',
-            queryset=Permission.objects.filter(
-                # Only show permissions applicable to the model passed to
-                # the factory function
-                content_type=ContentType.objects.get_for_model(model)
-            )
-        )
-
-        class Meta:
-            model = ObjectPermission
-            fields = (
-                'user',
-                'permission',
-                'deny',
-                'inherited',
-            )
-
-    return ObjectPermissionSerializer

@@ -13,7 +13,6 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from rest_framework_extensions.mixins import NestedViewSetMixin
 from taggit.models import Tag
 
 from .models import (
@@ -36,46 +35,23 @@ from .serializers import (
     CollectionSerializer, CollectionListSerializer,
     UserSerializer, UserListSerializer,
     TagSerializer, TagListSerializer,
-    ObjectPermissionSerializerFactory)
+    ObjectPermissionSerializer,)
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 
-class ObjectPermissionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+class ObjectPermissionViewSet(viewsets.ModelViewSet):
     queryset = ObjectPermission.objects.all()
+    serializer_class = ObjectPermissionSerializer
+    lookup_field = 'uid'
 
-    def get_queryset(self):
-        return super(ObjectPermissionViewSet, self).get_queryset(
-            ).filter(content_type=ContentType.objects.get_for_model(
-                self.parent_model
-            )
-        )
+    #def get_serializer_class(self):
+    #    if self.action == 'list':
+    #        return CollectionListSerializer
+    #    else:
+    #        return CollectionSerializer
 
-    def get_parents_query_dict(self, *args, **kwargs):
-        ''' A query can't traverse a generic foreign key automatically,
-        so translate content_object__uid to object_id '''
-        query_dict = super(
-            ObjectPermissionViewSet,
-            self).get_parents_query_dict(*args, **kwargs)
-        try:
-            parent_uid = query_dict['content_object__uid']
-        except KeyError:
-            return query_dict
-        # Remove the seemingly sensible but unsupported query field
-        del query_dict['content_object__uid']
-        # Add the parent's primary key to the query
-        parent_pk = self.parent_model.objects.get(uid=parent_uid).pk
-        query_dict['object_id'] = parent_pk
-        return query_dict
 
-class SurveyAssetObjectPermissionViewSet(ObjectPermissionViewSet):
-    parent_model = SurveyAsset
-    serializer_class = ObjectPermissionSerializerFactory(parent_model)
-
-class CollectionObjectPermissionViewSet(ObjectPermissionViewSet):
-    parent_model = Collection
-    serializer_class = ObjectPermissionSerializerFactory(parent_model)
-
-class CollectionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+class CollectionViewSet(viewsets.ModelViewSet):
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
     queryset = Collection.objects.all()
     serializer_class = CollectionSerializer
@@ -145,7 +121,7 @@ from rest_framework.parsers import MultiPartParser
 class XlsFormParser(MultiPartParser):
     pass
 
-class SurveyAssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+class SurveyAssetViewSet(viewsets.ModelViewSet):
     """
     * Access a summary list of all survey assets available to your user. <span class='label label-success'>complete</span>
     * Inspect individual survey assets <span class='label label-success'>complete</span>
