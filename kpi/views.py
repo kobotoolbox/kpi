@@ -13,6 +13,7 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework.exceptions import MethodNotAllowed
 from taggit.models import Tag
 
 from .models import (
@@ -43,12 +44,15 @@ class ObjectPermissionViewSet(viewsets.ModelViewSet):
     queryset = ObjectPermission.objects.all()
     serializer_class = ObjectPermissionSerializer
     lookup_field = 'uid'
+    def destroy(self, request, *args, **kwargs):
+        if self.get_object().inherited:
+            raise MethodNotAllowed(
+                request.method,
+                detail='Cannot delete inherited permissions.'
+            )
+        return super(ObjectPermissionViewSet, self).destroy(
+            request, *args, **kwargs)
 
-    #def get_serializer_class(self):
-    #    if self.action == 'list':
-    #        return CollectionListSerializer
-    #    else:
-    #        return CollectionSerializer
 
 
 class CollectionViewSet(viewsets.ModelViewSet):

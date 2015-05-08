@@ -1,6 +1,9 @@
 from django.forms import widgets
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
+from django.utils.six.moves.urllib import parse as urlparse
+from django.core.urlresolvers import get_script_prefix
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from rest_framework.pagination import PaginationSerializer
 from rest_framework.reverse import reverse_lazy, reverse
@@ -101,6 +104,57 @@ class TagListSerializer(TagSerializer):
         model = Tag
         fields = ('name', 'url', )
 
+class GenericHyperlinkedRelatedField(serializers.HyperlinkedRelatedField):
+    def __init__(self, **kwargs):
+        # These arguments are required by ancestors but meaningless in our
+        # situation. We will override them dynamically.
+        kwargs['view_name'] = '*'
+        kwargs['queryset'] = ObjectPermission.objects.none()
+        return super(GenericHyperlinkedRelatedField, self).__init__(**kwargs)
+
+    def to_representation(self, value):
+        self.view_name = '{}-detail'.format(
+            ContentType.objects.get_for_model(value).model)
+        result = super(GenericHyperlinkedRelatedField, self).to_representation(
+            value)
+        self.view_name = '*'
+        return result
+
+    def to_internal_value(self, data):
+        ''' The vast majority of this method has been copied and pasted from
+        HyperlinkedRelatedField.to_internal_value(). Modifications exist
+        to allow any type of object. '''
+        try:
+            http_prefix = data.startswith(('http:', 'https:'))
+        except AttributeError:
+            self.fail('incorrect_type', data_type=type(data).__name__)
+
+        if http_prefix:
+            # If needed convert absolute URLs to relative path
+            data = urlparse.urlparse(data).path
+            prefix = get_script_prefix()
+            if data.startswith(prefix):
+                data = '/' + data[len(prefix):]
+
+        try:
+            match = self.resolve(data)
+        except Resolver404:
+            self.fail('no_match')
+
+        ''' Begin modifications '''
+        # We're a generic relation; we don't discriminate
+        #if match.view_name != self.view_name:
+        #    self.fail('incorrect_match')
+
+        # Dynamically modify the queryset
+        self.queryset = match.func.cls.queryset
+        ''' End modifications '''
+
+        try:
+            return self.get_object(match.view_name, match.args, match.kwargs)
+        except (ObjectDoesNotExist, TypeError, ValueError):
+            self.fail('does_not_exist')
+
 class ObjectPermissionSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid',
@@ -115,6 +169,10 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
         slug_field='codename',
         queryset=Permission.objects.all()
     )
+    content_object = GenericHyperlinkedRelatedField(
+        lookup_field='uid',
+        style={'base_template': 'input.html'} # Render as a simple text box
+    )
     inherited = serializers.ReadOnlyField()
 
     class Meta:
@@ -123,14 +181,18 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
             'url',
             'user',
             'permission',
+            'content_object',
             'deny',
             'inherited',
         )
 
+    def create(self, validated_data):
+        validated_data['inherited'] = False
+        return super(ObjectPermissionSerializer, self).create(validated_data)
+
 class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username',
                                                 read_only=True,)
-    parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
     url = TaggedHyperlinkedIdentityField(lookup_field='uid', view_name='surveyasset-detail')
     assetType = serializers.ReadOnlyField(read_only=True, source='asset_type')
     settings = WritableJSONField(required=False)#, style={'base_template': 'json_field.html'})
@@ -189,10 +251,6 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def _content(self, obj):
         return json.dumps(obj.content)
-
-    def get_parent_url(self, obj):
-        request = self.context.get('request', None)
-        return reverse_lazy('surveyasset-list', request=request)
 
     def _get_tag_names(self, obj):
         return obj.tags.names()
