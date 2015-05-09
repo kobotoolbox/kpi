@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.core.exceptions import ValidationError, ImproperlyConfigured
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -254,16 +254,37 @@ class ObjectPermissionMixin(object):
     class in your model definition, e.g.
         class MyAwesomeModel(ObjectPermissionMixin, models.Model)
     '''
+    @transaction.atomic
     def save(self, *args, **kwargs):
         # Make sure we exist in the database before proceeding
         super(ObjectPermissionMixin, self).save(*args, **kwargs)
-        # We may have a differnet parent; recalculate inherited permissions
-        self._recalculate_inherited_perms()
-        # Recalculate all descendants, re-fetching ourself first to guard
-        # against stale MPTT values
+        # Recalculate self and all descendants, re-fetching ourself first to
+        # guard against stale MPTT values
         fresh_self = type(self).objects.get(pk=self.pk)
+        fresh_self._recalculate_inherited_perms()
         for descendant in fresh_self.get_descendants_list():
             descendant._recalculate_inherited_perms()
+
+    def _filter_anonymous_perms(self, unfiltered_set):
+        ''' Restrict a set of tuples in the format (user_id, permission_id) to
+        only those permissions that apply to the content_type of this object
+        and are listed in settings.ALLOWED_ANONYMOUS_PERMISSIONS. '''
+        content_type = ContentType.objects.get_for_model(self)
+        # Translate settings.ALLOWED_ANONYMOUS_PERMISSIONS to primary keys
+        codenames = set()
+        for perm in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
+            app_label, codename = perm_parse(perm)
+            if app_label == content_type.app_label:
+                codenames.add(codename)
+        allowed_permissions = Permission.objects.filter(
+            content_type=content_type, codename__in=codenames
+        ).values_list('pk', flat=True)
+        filtered_set = copy.copy(unfiltered_set)
+        for user_id, permission_id in unfiltered_set:
+            if user_id == settings.ANONYMOUS_USER_ID:
+                if permission_id not in allowed_permissions:
+                    filtered_set.remove((user_id, permission_id))
+        return filtered_set
 
     def _get_effective_perms(
         self, user=None, codename=None, include_calculated=True
@@ -291,7 +312,15 @@ class ObjectPermissionMixin(object):
         # Sometimes only the explicitly assigned permissions are wanted,
         # e.g. when calculating inherited permissions
         if not include_calculated:
-            return effective_perms
+            # Double-check that the list includes only permissions for
+            # anonymous users that are allowed by the settings. Other
+            # permissions would be denied by has_perm() anyway.
+            if user is None or user.pk == settings.ANONYMOUS_USER_ID:
+                return self._filter_anonymous_perms(effective_perms)
+            else:
+                # Anonymous users weren't considered; no filtering is necessary
+                return effective_perms
+
         # Add on the calculated permissions
         content_type = ContentType.objects.get_for_model(self)
         if codename in self.CALCULATED_PERMISSIONS:
@@ -325,7 +354,13 @@ class ObjectPermissionMixin(object):
                 codename__startswith='delete_'
             )
             effective_perms.add((self.owner.pk, delete_permission.pk))
-        return effective_perms
+        # We may have calculated more permissions for anonymous users
+        # than they are allowed to have. Remove them.
+        if user is None or user.pk == settings.ANONYMOUS_USER_ID:
+            return self._filter_anonymous_perms(effective_perms)
+        else:
+            # Anonymous users weren't considered; no filtering is necessary
+            return effective_perms
 
     def _recalculate_inherited_perms(self):
         ''' Copy all of our parent's effective permissions to ourself,
