@@ -5,8 +5,9 @@ from shortuuid import ShortUUID
 from jsonfield import JSONField
 from taggit.managers import TaggableManager
 from taggit.models import Tag
-import reversion
+import re
 import json
+import reversion
 from object_permission import ObjectPermission, ObjectPermissionMixin
 from django.dispatch import receiver
 
@@ -91,6 +92,35 @@ class SurveyAsset(ObjectPermissionMixin, models.Model):
             return list(self)
         else:
             return list()
+
+    def to_xls_io(self):
+        import xlwt
+        import StringIO
+        def _add_contents_to_sheet(sheet, contents):
+            cols = []
+            for row in contents:
+                for key in row.keys():
+                    if key not in cols:
+                        cols.append(key)
+            for ci, col in enumerate(cols):
+                sheet.write(0, ci, col)
+            for ri, row in enumerate(contents):
+                for ci, col in enumerate(cols):
+                    val = row.get(col, None)
+                    if val:
+                        sheet.write(ri+1, ci, val)
+        ss_dict = self.content
+        workbook = xlwt.Workbook()
+        for sheet_name in ss_dict.keys():
+            # pyxform.xls2json_backends adds "_header" items for each sheet.....
+            if not re.match(r".*_header$", sheet_name):
+                cur_sheet = workbook.add_sheet(sheet_name)
+                _add_contents_to_sheet(cur_sheet, ss_dict[sheet_name])
+        string_io = StringIO.StringIO()
+        workbook.save(string_io)
+        string_io.seek(0)
+        return string_io
+
 
     @property
     def export(self):

@@ -198,6 +198,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     settings = WritableJSONField(required=False)#, style={'base_template': 'json_field.html'})
     content_link = serializers.SerializerMethodField()
     xls_link = serializers.SerializerMethodField()
+    koboform_link = serializers.SerializerMethodField()
     xform_link = serializers.SerializerMethodField()
     content = SurveyAssetContentField(style={'base_template': 'muted_readonly_content_field.html'})
     tags = serializers.SerializerMethodField('_get_tag_names')
@@ -217,6 +218,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
                     'tags',
                     'version_count',
                     'content_link',
+                    'koboform_link',
                     'content',
                     'xform_link',
                     'xls_link',
@@ -248,6 +250,8 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
         return reverse('surveyasset-xls', args=(obj.uid,), request=self.context.get('request', None))
     def get_xform_link(self, obj):
         return reverse('surveyasset-xform', args=(obj.uid,), request=self.context.get('request', None))
+    def get_koboform_link(self, obj):
+        return reverse('surveyasset-koboform', args=(obj.uid,), request=self.context.get('request', None))
 
     def _content(self, obj):
         return json.dumps(obj.content)
