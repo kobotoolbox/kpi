@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.db.models import Q
 from rest_framework import (
     viewsets,
+    mixins,
     renderers,
     permissions,
     status,
@@ -84,7 +85,15 @@ class SearchViewSetMixin(object):
         return self.queryset.filter(pk__in=matching_pks)
 
 
-class ObjectPermissionViewSet(viewsets.ModelViewSet):
+class ObjectPermissionViewSet(
+        # Inherit from everything that ModelViewSet does, except for
+        # UpdateModelMixin
+        mixins.CreateModelMixin,
+        mixins.RetrieveModelMixin,
+        mixins.DestroyModelMixin,
+        mixins.ListModelMixin,
+        viewsets.GenericViewSet
+    ):
     queryset = ObjectPermission.objects.all()
     serializer_class = ObjectPermissionSerializer
     lookup_field = 'uid'
