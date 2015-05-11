@@ -14,7 +14,7 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from rest_framework.exceptions import MethodNotAllowed
+from rest_framework import exceptions
 from haystack.query import SearchQuerySet
 from haystack.inputs import AutoQuery
 from taggit.models import Tag
@@ -98,15 +98,33 @@ class ObjectPermissionViewSet(
     serializer_class = ObjectPermissionSerializer
     lookup_field = 'uid'
     filter_backends = (KpiAssignedObjectPermissionsFilter, )
-    def destroy(self, request, *args, **kwargs):
-        if self.get_object().inherited:
-            raise MethodNotAllowed(
+
+    def _requesting_user_can_share(self, affected_object):
+        share_permission = 'share_{}'.format(affected_object._meta.model_name)
+        return affected_object.has_perm(self.request.user, share_permission)
+
+    def perform_create(self, serializer):
+        # Make sure the requesting user has the share_ permission on
+        # the affected object
+        affected_object = serializer.validated_data['content_object']
+        if not self._requesting_user_can_share(affected_object):
+            raise exceptions.PermissionDenied()
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        # Only directly-applied permissions may be modified; forbid deleting
+        # permissions inherited from ancestors
+        if instance.inherited:
+            raise exceptions.MethodNotAllowed(
                 request.method,
                 detail='Cannot delete inherited permissions.'
             )
-        return super(ObjectPermissionViewSet, self).destroy(
-            request, *args, **kwargs)
-
+        # Make sure the requesting user has the share_ permission on
+        # the affected object
+        affected_object = instance.content_object
+        if not self._requesting_user_can_share(affected_object):
+            raise exceptions.PermissionDenied()
+        instance.delete()
 
 
 class CollectionViewSet(SearchViewSetMixin, viewsets.ModelViewSet):
