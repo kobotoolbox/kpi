@@ -435,7 +435,9 @@ class ObjectPermissionMixin(object):
             raise ValidationError('{} cannot be assigned explicitly.'.format(
                 codename)
             )
-        if isinstance(user_obj, AnonymousUser):
+        if isinstance(user_obj, AnonymousUser) or (
+            user_obj.pk == settings.ANONYMOUS_USER_ID
+        ):
             # Is an anonymous user allowed to have this permission?
             fq_permission = '{}.{}'.format(app_label, codename)
             if not fq_permission in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
@@ -453,13 +455,14 @@ class ObjectPermissionMixin(object):
             self,
             user=user_obj,
         )
-        if existing_perms.filter(
+        identical_existing_perm = existing_perms.filter(
             inherited=False,
             permission_id=perm_model.pk,
             deny=deny,
-        ):
+        )
+        if identical_existing_perm.exists():
             # The user already has this permission directly applied
-            return
+            return identical_existing_perm.first()
         # Remove any explicitly-defined contradictory grants or denials
         existing_perms.filter(user=user_obj,
             permission_id=perm_model.pk,
@@ -467,7 +470,7 @@ class ObjectPermissionMixin(object):
             inherited=False
         ).delete()
         # Create the new permission
-        ObjectPermission.objects.create(
+        new_permission = ObjectPermission.objects.create(
             content_object=self,
             user=user_obj,
             permission_id=perm_model.pk,
@@ -486,12 +489,13 @@ class ObjectPermissionMixin(object):
         # We might have been called by ourself to assign a related
         # permission. In that case, don't recalculate here.
         if defer_recalc:
-            return
+            return new_permission
         # Recalculate all descendants, re-fetching ourself first to guard
         # against stale MPTT values
         fresh_self = type(self).objects.get(pk=self.pk)
         for descendant in fresh_self.get_descendants_list():
             descendant._recalculate_inherited_perms()
+        return new_permission
 
     def get_perms(self, user_obj):
         ''' Return a list of codenames of all effective grant permissions that
@@ -528,6 +532,7 @@ class ObjectPermissionMixin(object):
         if isinstance(user_obj, AnonymousUser):
             # Get the User database representation for AnonymousUser
             user_obj = get_anonymous_user()
+        if user_obj.pk == settings.ANONYMOUS_USER_ID:
             is_anonymous = True
         # Treat superusers the way django.contrib.auth does
         if user_obj.is_active and user_obj.is_superuser:

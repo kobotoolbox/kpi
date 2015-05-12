@@ -116,7 +116,7 @@ class ObjectPermissionViewSet(
         # permissions inherited from ancestors
         if instance.inherited:
             raise exceptions.MethodNotAllowed(
-                request.method,
+                self.request.method,
                 detail='Cannot delete inherited permissions.'
             )
         # Make sure the requesting user has the share_ permission on
