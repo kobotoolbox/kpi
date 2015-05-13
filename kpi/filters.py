@@ -17,8 +17,8 @@ class KpiObjectPermissionsFilter(object):
 
 class ParentFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
-        if 'parent' in request.QUERY_PARAMS:
-            if not request.QUERY_PARAMS['parent']:
+        if 'parent' in request.query_params:
+            if not request.query_params['parent']:
                 # Query for null parent
                 return queryset.filter(parent=None)
             else:
