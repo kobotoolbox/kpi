@@ -101,7 +101,9 @@ USE_TZ = True
 STATIC_ROOT = 'staticfiles'
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = tuple()
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'jsapp'),
+)
 
 if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
     STATICFILES_DIRS = STATICFILES_DIRS + (
@@ -114,7 +116,9 @@ REST_FRAMEWORK = {
     'URL_FIELD_NAME': 'url',
     'DEFAULT_PAGINATION_SERIALIZER_CLASS': 'kpi.serializers.Paginated',
 }
-
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'kpi.context_processors.dev_mode',
+)
 if not DEBUG:
     STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
