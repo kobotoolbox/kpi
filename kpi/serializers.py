@@ -11,6 +11,7 @@ from .models import SurveyAsset
 from .models import Collection
 from .models import ObjectPermission
 from .models.object_permission import get_anonymous_user
+from taggit.models import Tag
 import reversion
 import urllib
 import json
@@ -23,31 +24,12 @@ class Paginated(PaginationSerializer):
     def get_parent_url(self, obj):
         return reverse_lazy('api-root', request=self.context.get('request'))
 
-
 class WritableJSONField(serializers.Field):
     """ Serializer for JSONField -- required to make field writable"""
     def to_internal_value(self, data):
         return json.loads(data)
     def to_representation(self, value):
         return value
-
-class TaggedHyperlinkedRelatedField(serializers.HyperlinkedRelatedField):
-    def get_url(self, *args, **kwargs):
-        url = super(TaggedHyperlinkedRelatedField, self).get_url(*args, **kwargs)
-        obj = args[0]
-        if obj.name == '':
-            return url
-        # what if ?n=~form_title at the end of the url redirected to (or suggested a list)
-        # approx matches in case the asset of the form builder has been deleted or 404s?
-        return u'%s?n=~%s' % (url, urllib.quote_plus(obj.name.encode('utf-8')))
-
-class TaggedHyperlinkedIdentityField(serializers.HyperlinkedIdentityField):
-    def get_url(self, *args, **kwargs):
-        url = super(TaggedHyperlinkedIdentityField, self).get_url(*args, **kwargs)
-        obj = args[0]
-        if obj.name == '':
-            return url
-        return u'%s?n=~%s' % (url, urllib.quote_plus(obj.name.encode('utf-8')))
 
 class SurveyAssetContentField(serializers.Field):
     '''
@@ -58,7 +40,6 @@ class SurveyAssetContentField(serializers.Field):
     def to_representation(self, value):
         return {'redirect': 'content_link'}
 
-from taggit.models import Tag
 
 class TagSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField('_get_tag_url', read_only=True)
@@ -193,9 +174,10 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
 class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username',
                                                 read_only=True,)
-    url = TaggedHyperlinkedIdentityField(lookup_field='uid', view_name='surveyasset-detail')
-    assetType = serializers.ReadOnlyField(read_only=True, source='asset_type')
-    settings = WritableJSONField(required=False)#, style={'base_template': 'json_field.html'})
+    parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
+    url = serializers.HyperlinkedIdentityField(lookup_field='uid', view_name='surveyasset-detail')
+    asset_type = serializers.ReadOnlyField()
+    settings = WritableJSONField(required=False)
     content_link = serializers.SerializerMethodField()
     xls_link = serializers.SerializerMethodField()
     koboform_link = serializers.SerializerMethodField()
@@ -203,7 +185,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     content = SurveyAssetContentField(style={'base_template': 'muted_readonly_content_field.html'})
     tags = serializers.SerializerMethodField('_get_tag_names')
     version_count = serializers.SerializerMethodField('_version_count')
-    parent = TaggedHyperlinkedRelatedField(lookup_field='uid', queryset=Collection.objects.all(),
+    parent = serializers.HyperlinkedRelatedField(lookup_field='uid', queryset=Collection.objects.all(),
                                                 view_name='collection-detail', required=False)
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
 
@@ -212,7 +194,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
         lookup_field = 'uid'
         fields = ('url', 'parent', 'owner', 'parent',
                     'settings',
-                    'assetType',
+                    'asset_type',
                     'date_created',
                     'date_modified',
                     'tags',
@@ -221,6 +203,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
                     'koboform_link',
                     'content',
                     'xform_link',
+                    'uid',
                     'xls_link',
                     'name', 'tags',
                     'permissions',)
@@ -266,12 +249,19 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
 
 class SurveyAssetListSerializer(SurveyAssetSerializer):
     class Meta(SurveyAssetSerializer.Meta):
-        fields = ('url', 'owner', 'parent',
-                    'assetType', 'name', 'tags',)
+        fields = ('url', 
+                  'date_modified',
+                  'date_created',
+                  'owner',
+                  'parent',
+                  'uid',
+                  'name',
+                  'asset_type',
+                  'tags',)
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
-    survey_assets = TaggedHyperlinkedRelatedField(many=True,
+    survey_assets = serializers.HyperlinkedRelatedField(many=True,
                  view_name='surveyasset-detail', read_only=True)
 
     class Meta:
@@ -298,14 +288,14 @@ class UserListSerializer(UserSerializer):
 
 
 class CollectionSerializer(serializers.HyperlinkedModelSerializer):
-    url = TaggedHyperlinkedIdentityField(lookup_field='uid', view_name='collection-detail')
+    url = serializers.HyperlinkedIdentityField(lookup_field='uid', view_name='collection-detail')
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', \
                 lookup_field='username', read_only=True)
-    survey_assets = TaggedHyperlinkedRelatedField(many=True, lookup_field='uid',
+    survey_assets = serializers.HyperlinkedRelatedField(many=True, lookup_field='uid',
                  view_name='surveyasset-detail', read_only=True)
-    parent = TaggedHyperlinkedRelatedField(lookup_field='uid', required=False,
+    parent = serializers.HyperlinkedRelatedField(lookup_field='uid', required=False,
                  view_name='collection-detail', queryset=Collection.objects.all())
-    children = TaggedHyperlinkedRelatedField(many=True, lookup_field='uid',
+    children = serializers.HyperlinkedRelatedField(many=True, lookup_field='uid',
                  view_name='collection-detail', read_only=True)
     tags = serializers.SerializerMethodField('_get_tag_names')
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
