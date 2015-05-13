@@ -174,6 +174,7 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
 class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username',
                                                 read_only=True,)
+    owner__username = serializers.ReadOnlyField(source='owner.username')
     parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
     url = serializers.HyperlinkedIdentityField(lookup_field='uid', view_name='surveyasset-detail')
     asset_type = serializers.ReadOnlyField()
@@ -192,7 +193,11 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = SurveyAsset
         lookup_field = 'uid'
-        fields = ('url', 'parent', 'owner', 'parent',
+        fields = ('url',
+                    'parent',
+                    'owner',
+                    'owner__username',
+                    'parent',
                     'settings',
                     'asset_type',
                     'date_created',
@@ -257,6 +262,7 @@ class SurveyAssetListSerializer(SurveyAssetSerializer):
                   'uid',
                   'name',
                   'asset_type',
+                  'permissions',
                   'tags',)
 
 
