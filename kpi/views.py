@@ -23,7 +23,7 @@ from .models import (
     ObjectPermission,)
 from .models.object_permission import get_anonymous_user
 from .permissions import IsOwnerOrReadOnly
-from .filters import KpiObjectPermissionsFilter
+from .filters import KpiObjectPermissionsFilter, ParentFilter
 from .highlighters import highlight_xform
 from .renderers import (
     AssetJsonRenderer,
@@ -60,7 +60,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
     queryset = Collection.objects.all()
     serializer_class = CollectionSerializer
     permission_classes = (IsOwnerOrReadOnly,)
-    filter_backends = (KpiObjectPermissionsFilter,)
+    filter_backends = (KpiObjectPermissionsFilter, ParentFilter)
     lookup_field = 'uid'
 
     def perform_create(self, serializer):
@@ -145,7 +145,7 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
     serializer_class = SurveyAssetSerializer
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
-    filter_backends = (KpiObjectPermissionsFilter, )
+    filter_backends = (KpiObjectPermissionsFilter, ParentFilter)
 
     renderer_classes = (renderers.BrowsableAPIRenderer,
                         AssetJsonRenderer,

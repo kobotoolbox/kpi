@@ -1,4 +1,5 @@
 from rest_framework.compat import get_model_name
+from rest_framework import filters
 from .models.object_permission import get_objects_for_user
 
 class KpiObjectPermissionsFilter(object):
@@ -13,3 +14,14 @@ class KpiObjectPermissionsFilter(object):
         }
         permission = self.perm_format % kwargs
         return get_objects_for_user(user, permission, queryset)
+
+class ParentFilter(filters.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        if 'parent' in request.QUERY_PARAMS:
+            if not request.QUERY_PARAMS['parent']:
+                # Query for null parent
+                return queryset.filter(parent=None)
+            else:
+                # Query for a specific parent
+                raise NotImplementedError()
+        return queryset
