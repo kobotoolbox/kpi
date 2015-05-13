@@ -5,7 +5,7 @@ from django.utils.six.moves.urllib import parse as urlparse
 from django.core.urlresolvers import get_script_prefix
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
-from rest_framework.pagination import PaginationSerializer
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.reverse import reverse_lazy, reverse
 from .models import SurveyAsset
 from .models import Collection
@@ -17,7 +17,7 @@ import urllib
 import json
 
 
-class Paginated(PaginationSerializer):
+class Paginated(LimitOffsetPagination):
     """ Adds 'root' to the wrapping response object. """
     root = serializers.SerializerMethodField('get_parent_url', read_only=True)
 
