@@ -106,6 +106,7 @@ def get_objects_for_user(user, perms, klass=None):
         user = get_anonymous_user()
 
     # Now we should extract list of pk values for which we would filter queryset
+    # TODO: omit objects for which the user has only a deny permission
     user_obj_perms_queryset = (ObjectPermission.objects
         .filter(user=user)
         .filter(permission__content_type=ctype)
