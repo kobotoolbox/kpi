@@ -2,7 +2,7 @@ from django.forms import widgets
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.utils.six.moves.urllib import parse as urlparse
-from django.core.urlresolvers import get_script_prefix
+from django.core.urlresolvers import get_script_prefix, resolve, Resolver404
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from rest_framework.pagination import LimitOffsetPagination
@@ -105,6 +105,7 @@ class GenericHyperlinkedRelatedField(serializers.HyperlinkedRelatedField):
         ''' The vast majority of this method has been copied and pasted from
         HyperlinkedRelatedField.to_internal_value(). Modifications exist
         to allow any type of object. '''
+        request = self.context.get('request', None)
         try:
             http_prefix = data.startswith(('http:', 'https:'))
         except AttributeError:
@@ -118,13 +119,20 @@ class GenericHyperlinkedRelatedField(serializers.HyperlinkedRelatedField):
                 data = '/' + data[len(prefix):]
 
         try:
-            match = self.resolve(data)
+            match = resolve(data)
         except Resolver404:
             self.fail('no_match')
 
         ''' Begin modifications '''
         # We're a generic relation; we don't discriminate
-        #if match.view_name != self.view_name:
+        #try:
+        #    expected_viewname = request.versioning_scheme.get_versioned_viewname(
+        #        self.view_name, request
+        #    )
+        #except AttributeError:
+        #    expected_viewname = self.view_name
+
+        #if match.view_name != expected_viewname:
         #    self.fail('incorrect_match')
 
         # Dynamically modify the queryset
