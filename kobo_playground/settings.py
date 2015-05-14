@@ -112,9 +112,9 @@ if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
     )
 
 REST_FRAMEWORK = {
-    'PAGINATE_BY': 25,
     'URL_FIELD_NAME': 'url',
-    'DEFAULT_PAGINATION_SERIALIZER_CLASS': 'kpi.serializers.Paginated',
+    'DEFAULT_PAGINATION_CLASS': 'kpi.serializers.Paginated',
+    'PAGE_SIZE': 100,
 }
 TEMPLATE_CONTEXT_PROCESSORS = (
     'kpi.context_processors.dev_mode',
