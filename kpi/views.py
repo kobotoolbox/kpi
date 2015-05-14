@@ -23,7 +23,8 @@ from .models import (
     ObjectPermission,)
 from .models.object_permission import get_anonymous_user
 from .permissions import IsOwnerOrReadOnly
-from .filters import KpiObjectPermissionsFilter, ParentFilter
+from .filters import KpiObjectPermissionsFilter
+from .filters import KpiAssignedObjectPermissionsFilter, ParentFilter
 from .highlighters import highlight_xform
 from .renderers import (
     AssetJsonRenderer,
@@ -44,6 +45,7 @@ class ObjectPermissionViewSet(viewsets.ModelViewSet):
     queryset = ObjectPermission.objects.all()
     serializer_class = ObjectPermissionSerializer
     lookup_field = 'uid'
+    filter_backends = (KpiAssignedObjectPermissionsFilter, )
     def destroy(self, request, *args, **kwargs):
         if self.get_object().inherited:
             raise MethodNotAllowed(
