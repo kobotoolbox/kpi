@@ -7,6 +7,19 @@ var el = (function(){
   return $d.get(0);
 })();
 
+window.csrftoken = $('input[name=csrfmiddlewaretoken]').eq(0).val();
+function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+}
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        }
+    }
+});
+
 if (window.location.pathname == "/") {
   $('.wrapper').hide();
   runRoutes(el);

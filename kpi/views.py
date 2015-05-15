@@ -40,6 +40,26 @@ from .serializers import (
     ObjectPermissionSerializer,)
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from kpi.utils.gravatar_url import gravatar_url
+
+@api_view(['GET'])
+def current_user(request):
+    user = request.user
+    if user.is_anonymous():
+        return Response({'message': 'user is not logged in'})
+    else:
+        return Response({'username': user.username,
+                            'first_name': user.first_name,
+                            'last_name': user.last_name,
+                            'email': user.email,
+                            'is_superuser': user.is_superuser,
+                            'gravatar': gravatar_url(user.email),
+                            'is_staff': user.is_staff,
+                            'last_login': user.last_login,
+                            })
+
 
 class ObjectPermissionViewSet(viewsets.ModelViewSet):
     queryset = ObjectPermission.objects.all()

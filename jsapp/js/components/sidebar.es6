@@ -68,8 +68,10 @@ export class Sidebar extends React.Component {
   render () {
     return (
         <div className="sidebar-wrapper" id="sidebar-wrapper">
-          <ul className="sidebar" onClick={
-              (evt)=> evt.currentTarget == evt.target && this.props.toggleIntentOpen(evt)
+          <ul className="sidebar" onClick={ (evt)=> {
+                evt.currentTarget == evt.target && this.props.toggleIntentOpen(evt);
+                return;
+              }
             }>
             <SidebarMain onClick={this.props.toggleIntentOpen} label="Kobo API" />
 

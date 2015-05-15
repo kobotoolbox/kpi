@@ -1,3 +1,5 @@
+$permEditorColor: #999;
+
 .asset-collections-table {
   margin-top: -15px;
 }
@@ -28,4 +30,32 @@
   font-style: italic;
   color: #ddd;
   text-align: center;
+}
+
+.permissions-editor {
+  display: inline-block;
+  border: 1px solid lighten($permEditorColor, 20%);
+  color: $permEditorColor;
+  border-radius: 7px;
+  padding: 0 8px 0 22px;
+  text-align: center;
+  position: relative;
+  margin-right: 10px;
+}
+.permissions-editor--unshared {
+  .permissions-editor__icon {
+    color: $permEditorColor;
+    position: absolute;
+    top: 4px;
+    left: 4px;
+  }
+}
+.permissions-editor__list {
+  text-align: left;
+}
+.permissions-editor__icon {
+  color: $permEditorColor;
+  position: absolute;
+  top: 4px;
+  left: 4px;
 }

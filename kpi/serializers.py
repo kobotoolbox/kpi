@@ -266,6 +266,7 @@ class SurveyAssetListSerializer(SurveyAssetSerializer):
                   'date_modified',
                   'date_created',
                   'owner',
+                  'owner__username',
                   'parent',
                   'uid',
                   'name',
@@ -309,6 +310,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
                  view_name='surveyasset-detail', read_only=True)
     parent = serializers.HyperlinkedRelatedField(lookup_field='uid', required=False,
                  view_name='collection-detail', queryset=Collection.objects.all())
+    owner__username = serializers.ReadOnlyField(source='owner.username')
     children = serializers.HyperlinkedRelatedField(many=True, lookup_field='uid',
                  view_name='collection-detail', read_only=True)
     tags = serializers.SerializerMethodField('_get_tag_names')
@@ -317,16 +319,17 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Collection
         fields = ('name',
+                    'uid',
                     'url',
                     'parent',
                     'children',
                     'survey_assets',
                     'owner',
-                    'tags',
+                    'owner__username',
                     'date_created',
                     'date_modified',
                     'permissions',
-                )
+                    'tags',)
         lookup_field = 'uid'
         extra_kwargs = {
             'survey_assets': {
@@ -338,12 +341,24 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
         return obj.tags.names()
 
 class CollectionListSerializer(CollectionSerializer):
+    children_count = serializers.SerializerMethodField()
+    survey_assets_count = serializers.SerializerMethodField()
+
+    def get_children_count(self, obj):
+        return obj.children.count()
+    def get_survey_assets_count(self, obj):
+        return obj.survey_assets.count()
+
     class Meta(CollectionSerializer.Meta):
         fields = ('name',
+                    'uid',
                     'url',
                     'parent',
                     'owner',
-                    'tags',
+                    'children_count',
+                    'survey_assets_count',
+                    'owner__username',
                     'date_created',
                     'date_modified',
-                )
+                    'permissions',
+                    'tags',)
