@@ -6,6 +6,8 @@ $sidebarBaseColor: #2d2d2d;
 $sidebarHeaderColor: darken($sidebarBaseColor, 2%);
 $sidebarTitleColor:  lighten($sidebarBaseColor, 30%); /*#627cb7*/
 $sidebarTextColor: #bbb;
+$barColor: #e99d1a;
+$barColor: #998EFA;
 
 // main.less
 @font-face {
@@ -338,10 +340,10 @@ ul.sidebar {
     }
     a:hover {
       color: #fff;
-      border-left: 3px solid #e99d1a;
+      border-left: 3px solid $barColor;
       text-indent: 22px;
       color: #fff;
-      border-left: 3px solid #e99d1a;
+      border-left: 3px solid $barColor;
       text-indent: 22px;
       .menu-icon {
         text-indent: 25px;
@@ -379,9 +381,9 @@ ul.sidebar {
     .sidebar-list {
       a:hover {
         span {
-          border-left: 3px solid #e99d1a;
+          border-left: 3px solid $barColor;
           text-indent: 22px;
-          border-left: 3px solid #e99d1a;
+          border-left: 3px solid $barColor;
           text-indent: 22px;
         }
       }
