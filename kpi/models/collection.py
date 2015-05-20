@@ -45,6 +45,10 @@ class Collection(ObjectPermissionMixin, MPTTModel):
     tags = TaggableManager()
     permissions = GenericRelation(ObjectPermission)
 
+    @property
+    def kind(self):
+        return self._meta.model_name
+
     class Meta:
         permissions = (
             # change_, add_, and delete_collection are provided automatically
