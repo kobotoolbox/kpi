@@ -217,6 +217,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
                     'content',
                     'xform_link',
                     'uid',
+                    'kind',
                     'xls_link',
                     'name', 'tags',
                     'permissions',)
@@ -320,6 +321,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
         model = Collection
         fields = ('name',
                     'uid',
+                    'kind',
                     'url',
                     'parent',
                     'children',

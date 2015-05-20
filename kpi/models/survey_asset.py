@@ -43,6 +43,10 @@ class SurveyAsset(ObjectPermissionMixin, models.Model):
 
     objects = SurveyAssetManager()
 
+    @property
+    def kind(self):
+        return self._meta.model_name
+
     class Meta:
         ordering = ('date_created',)
         permissions = (
