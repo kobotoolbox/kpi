@@ -69,6 +69,13 @@ class ObjectRelationshipsTests(APITestCase):
         self.surv = SurveyAsset.objects.create(content='[{"type":"text","name":"q1"}]', owner=self.user)
         self.coll = Collection.objects.create(name='sample collection', owner=self.user)
 
+    def _count_children_by_kind(self, children, kind):
+        count = 0
+        for child in children:
+            if child['kind'] == kind:
+                count += 1
+        return count
+
     def test_list_survey_asset(self):
         pass
 
@@ -79,7 +86,8 @@ class ObjectRelationshipsTests(APITestCase):
         '''
         req = self.client.get(reverse('surveyasset-detail', args=[self.surv.uid]))
         coll_req1 = self.client.get(reverse('collection-detail', args=[self.coll.uid]))
-        self.assertEqual(len(coll_req1.data['survey_assets']), 0)
+        self.assertEqual(self._count_children_by_kind(
+            coll_req1.data['children'], self.surv.kind), 0)
 
         self.surv.parent = self.coll
         self.surv.save()
@@ -89,8 +97,9 @@ class ObjectRelationshipsTests(APITestCase):
         self.assertIn(self.coll.uid, surv_req2.data['parent'])
 
         coll_req2 = self.client.get(reverse('collection-detail', args=[self.coll.uid]))
-        self.assertEqual(len(coll_req2.data['survey_assets']), 1)
-        self.assertIn(self.surv.uid, coll_req2.data['survey_assets'][0])
+        self.assertEqual(self._count_children_by_kind(
+            coll_req2.data['children'], self.surv.kind), 1)
+        self.assertEqual(self.surv.uid, coll_req2.data['children'][0]['uid'])
 
     def test_add_survey_asset_to_collection(self):
         '''

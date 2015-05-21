@@ -272,6 +272,7 @@ class SurveyAssetListSerializer(SurveyAssetSerializer):
                   'owner__username',
                   'parent',
                   'uid',
+                  'kind',
                   'name',
                   'asset_type',
                   'permissions',
@@ -305,18 +306,28 @@ class UserListSerializer(UserSerializer):
         fields = ('url', 'username', 'survey_assets_count', 'collections_count',)
 
 
+class CollectionChildrenSerializer(serializers.Serializer):
+    def to_representation(self, value):
+        if isinstance(value, Collection):
+            serializer = CollectionListSerializer
+        elif isinstance(value, SurveyAsset):
+            serializer = SurveyAssetListSerializer
+        else:
+            raise Exception('Unexpected child type {}'.format(type(value)))
+        return serializer(value, context=self.context).data
+
 class CollectionSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(lookup_field='uid', view_name='collection-detail')
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', \
                 lookup_field='username', read_only=True)
-    survey_assets = serializers.HyperlinkedRelatedField(many=True, lookup_field='uid',
-                 view_name='surveyasset-detail', read_only=True)
     parent = serializers.HyperlinkedRelatedField(lookup_field='uid', required=False,
                  view_name='collection-detail', queryset=Collection.objects.all())
     owner__username = serializers.ReadOnlyField(source='owner.username')
-    children = serializers.HyperlinkedRelatedField(many=True, lookup_field='uid',
-                 view_name='collection-detail', read_only=True)
     tags = serializers.SerializerMethodField('_get_tag_names')
+    children = CollectionChildrenSerializer(
+        many=True, read_only=True,
+        source='get_children_and_survey_assets_iterable'
+    )
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
 
     class Meta:
@@ -326,12 +337,11 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
                     'kind',
                     'url',
                     'parent',
-                    'children',
-                    'survey_assets',
                     'owner',
                     'owner__username',
                     'date_created',
                     'date_modified',
+                    'children',
                     'permissions',
                     'tags',)
         lookup_field = 'uid'
@@ -356,6 +366,7 @@ class CollectionListSerializer(CollectionSerializer):
     class Meta(CollectionSerializer.Meta):
         fields = ('name',
                     'uid',
+                    'kind',
                     'url',
                     'parent',
                     'owner',
