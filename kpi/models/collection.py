@@ -1,3 +1,4 @@
+from itertools import chain
 from django.db import models
 from django.contrib.contenttypes.fields import GenericRelation
 from mptt.models import MPTTModel, TreeForeignKey
@@ -88,6 +89,9 @@ class Collection(ObjectPermissionMixin, MPTTModel):
                 # Append each descendant collection's child survey assets
                 mixed_descendants.append(survey_asset)
         return mixed_descendants
+
+    def get_children_and_survey_assets_iterable(self):
+        return chain(self.get_children(), self.survey_assets.all())
 
     def __unicode__(self):
         return self.name
