@@ -94,13 +94,10 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         child_data= child_detail_response.data
         self.assertIn(parent_url, child_data['parent'])
 
-        if type(child) == Collection:
-            child_field= 'children'
-        elif type(child) == SurveyAsset:
-            child_field= 'survey_assets'
+        child_field= 'children'
         child_found= False
-        for c_url in parent_data[child_field]:
-            if child_url in c_url:
+        for child in parent_data[child_field]:
+            if child['url'].endswith(child_url):
                 child_found= True
                 break
         self.assertTrue(child_found)
