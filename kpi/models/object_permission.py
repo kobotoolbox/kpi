@@ -208,6 +208,10 @@ class ObjectPermission(models.Model):
     uid = models.CharField(max_length=OBJECT_PERMISSION_UID_LENGTH, default='')
     objects = ObjectPermissionManager()
 
+    @property
+    def kind(self):
+        return self._meta.model_name
+
     def _populate_uid(self):
         if self.uid == '':
             self.uid = self._generate_uid()

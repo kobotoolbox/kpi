@@ -167,6 +167,8 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = ObjectPermission
         fields = (
+            'uid',
+            'kind',
             'url',
             'user',
             'permission',
