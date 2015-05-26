@@ -11,12 +11,12 @@ import reversion
 from object_permission import ObjectPermission, ObjectPermissionMixin
 from django.dispatch import receiver
 
-SURVEY_ASSET_TYPES = [
+ASSET_TYPES = [
     ('text', 'text'),
     ('survey_block', 'survey_block'),
     ('choice_list', 'choice list'),
 ]
-SURVEY_ASSET_UID_LENGTH = 22
+ASSET_UID_LENGTH = 22
 
 class AssetManager(models.Manager):
     def filter_by_tag_name(self, tag_name):
@@ -33,11 +33,11 @@ class Asset(ObjectPermissionMixin, models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     content = JSONField(null=True)
-    asset_type = models.CharField(choices=SURVEY_ASSET_TYPES, max_length=20, default='text')
+    asset_type = models.CharField(choices=ASSET_TYPES, max_length=20, default='text')
     parent = models.ForeignKey('Collection', related_name='assets', null=True)
     owner = models.ForeignKey('auth.User', related_name='assets', null=True)
     editors_can_change_permissions = models.BooleanField(default=True)
-    uid = models.CharField(max_length=SURVEY_ASSET_UID_LENGTH, default='')
+    uid = models.CharField(max_length=ASSET_UID_LENGTH, default='')
     tags = TaggableManager()
     permissions = GenericRelation(ObjectPermission)
 
@@ -82,7 +82,7 @@ class Asset(ObjectPermissionMixin, models.Model):
             self.uid = self._generate_uid()
 
     def _generate_uid(self):
-        return 'a' + ShortUUID().random(SURVEY_ASSET_UID_LENGTH-1)
+        return 'a' + ShortUUID().random(ASSET_UID_LENGTH-1)
 
     def save(self, *args, **kwargs):
         # populate uid field if it's empty
