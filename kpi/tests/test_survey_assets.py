@@ -203,7 +203,7 @@ class ShareAssetsTest(AssetsTestCase):
         # Change self.coll so that its owner isn't a superuser
         self.coll.owner = User.objects.get(username='someuser')
         self.coll.save()
-        # Give the child survey asset a different owner
+        # Give the child asset a different owner
         self.asset_in_coll.owner = User.objects.get(username='anotheruser')
         # The change permission is inherited; prevent it from allowing
         # users to edit permissions

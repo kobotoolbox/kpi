@@ -80,14 +80,14 @@ class Collection(ObjectPermissionMixin, MPTTModel):
         Collections '''
         mixed_descendants = list()
         if not include_self:
-            # Gather our own child survey assets, since we won't be included
+            # Gather our own child assets, since we won't be included
             # in the main loop
             mixed_descendants.extend(list(self.assets.all()))
         for descendant in self.get_descendants(include_self):
             # Append each of our descendant collections
             mixed_descendants.append(descendant)
             for asset in descendant.assets.all():
-                # Append each descendant collection's child survey assets
+                # Append each descendant collection's child assets
                 mixed_descendants.append(asset)
         return mixed_descendants
 

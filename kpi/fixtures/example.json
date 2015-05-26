@@ -165,7 +165,7 @@
         "fields": {
             "codename": "add_asset",
             "content_type": 7,
-            "name": "Can add survey asset"
+            "name": "Can add asset"
         },
         "model": "auth.permission",
         "pk": 19
@@ -174,7 +174,7 @@
         "fields": {
             "codename": "change_asset",
             "content_type": 7,
-            "name": "Can change survey asset"
+            "name": "Can change asset"
         },
         "model": "auth.permission",
         "pk": 20
@@ -183,7 +183,7 @@
         "fields": {
             "codename": "delete_asset",
             "content_type": 7,
-            "name": "Can delete survey asset"
+            "name": "Can delete asset"
         },
         "model": "auth.permission",
         "pk": 21
@@ -219,7 +219,7 @@
         "fields": {
             "codename": "add_asset",
             "content_type": 9,
-            "name": "Can add survey asset"
+            "name": "Can add asset"
         },
         "model": "auth.permission",
         "pk": 25
@@ -228,7 +228,7 @@
         "fields": {
             "codename": "change_asset",
             "content_type": 9,
-            "name": "Can change survey asset"
+            "name": "Can change asset"
         },
         "model": "auth.permission",
         "pk": 26
@@ -237,7 +237,7 @@
         "fields": {
             "codename": "delete_asset",
             "content_type": 9,
-            "name": "Can delete survey asset"
+            "name": "Can delete asset"
         },
         "model": "auth.permission",
         "pk": 27
@@ -246,7 +246,7 @@
         "fields": {
             "codename": "add_assetrevision",
             "content_type": 10,
-            "name": "Can add survey asset revision"
+            "name": "Can add asset revision"
         },
         "model": "auth.permission",
         "pk": 28
@@ -255,7 +255,7 @@
         "fields": {
             "codename": "change_assetrevision",
             "content_type": 10,
-            "name": "Can change survey asset revision"
+            "name": "Can change asset revision"
         },
         "model": "auth.permission",
         "pk": 29
@@ -264,7 +264,7 @@
         "fields": {
             "codename": "delete_assetrevision",
             "content_type": 10,
-            "name": "Can delete survey asset revision"
+            "name": "Can delete asset revision"
         },
         "model": "auth.permission",
         "pk": 30

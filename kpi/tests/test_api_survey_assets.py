@@ -23,7 +23,7 @@ class AssetsListApiTests(APITestCase):
 
     def test_create_asset(self):
         """
-        Ensure we can create a new survey asset
+        Ensure we can create a new asset
         """
         url = reverse('asset-list')
         data = {
@@ -81,8 +81,8 @@ class ObjectRelationshipsTests(APITestCase):
 
     def test_collection_can_have_asset(self):
         '''
-        * after assigning a survey asset, self.surv, to a collection (self.coll) [via the ORM]
-            the survey asset is now listed in the collection's list of assets.
+        * after assigning a asset, self.surv, to a collection (self.coll) [via the ORM]
+            the asset is now listed in the collection's list of assets.
         '''
         req = self.client.get(reverse('asset-detail', args=[self.surv.uid]))
         coll_req1 = self.client.get(reverse('collection-detail', args=[self.coll.uid]))
