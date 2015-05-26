@@ -13,7 +13,7 @@ from rest_framework import status
 #         Ensure we can create a new collection object.
 #         """
 #         url = reverse('user-list')
-#         data = {'name': 'my collection', 'collections': [], 'survey_assets': []}
+#         data = {'name': 'my collection', 'collections': [], 'assets': []}
 #         # response = self.client.post(url, data, format='json')
 #         # self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 #         # self.assertEqual(response.data['name'], 'my collection')

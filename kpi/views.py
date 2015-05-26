@@ -19,7 +19,7 @@ from taggit.models import Tag
 from .models import (
     Collection,
     object_permission,
-    SurveyAsset,
+    Asset,
     ObjectPermission,)
 from .models.object_permission import get_anonymous_user
 from .permissions import IsOwnerOrReadOnly
@@ -33,7 +33,7 @@ from .renderers import (
     XlsRenderer,
     EnketoPreviewLinkRenderer,)
 from .serializers import (
-    SurveyAssetSerializer, SurveyAssetListSerializer,
+    AssetSerializer, AssetListSerializer,
     CollectionSerializer, CollectionListSerializer,
     UserSerializer, UserListSerializer,
     TagSerializer, TagListSerializer,
@@ -116,7 +116,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
             return Tag.objects.filter(same_content_type & same_id).distinct().values_list('id', flat=True)
         all_tag_ids = list(chain(
                                 _get_tags_on_items('collection', user.owned_collections.all()),
-                                _get_tags_on_items('surveyasset', user.survey_assets.all()),
+                                _get_tags_on_items('asset', user.assets.all()),
                                 ))
 
         return Tag.objects.filter(id__in=all_tag_ids).distinct()
@@ -147,24 +147,10 @@ from rest_framework.parsers import MultiPartParser
 class XlsFormParser(MultiPartParser):
     pass
 
-class SurveyAssetViewSet(viewsets.ModelViewSet):
-    """
-    * Access a summary list of all survey assets available to your user. <span class='label label-success'>complete</span>
-    * Inspect individual survey assets <span class='label label-success'>complete</span>
-    * Download a survey asset in a `.xls` or `.xml` format <span class='label label-success'>complete</span>
-    * Tag a survey asset <span class='label label-success'>complete</span>
-    * View a survey asset in a markdown spreadsheet or XML preview format <span class='label label-success'>complete</span>
-    * Assign a survey asset to a collection <span class='label label-warning'>partially implemented</span>
-    * View and manage permissions of a survey asset <span class='label label-danger'>TODO</span>
-    * View previous versions of a survey asset <span class='label label-danger'>TODO</span>
-    * Update all content of a survey asset <span class='label label-danger'>TODO</span>
-    * Run a partial update of a survey asset <span class='label label-danger'>TODO</span>
-    * Generate a link to a preview in enketo-express <span class='label label-danger'>TODO</span>
-    * Create anonymous survey assets <span class='label label-danger'>TODO</span>
-    """
+class AssetViewSet(viewsets.ModelViewSet):
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
-    queryset = SurveyAsset.objects.all()
-    serializer_class = SurveyAssetSerializer
+    queryset = Asset.objects.all()
+    serializer_class = AssetSerializer
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
     filter_backends = (KpiObjectPermissionsFilter, ParentFilter)
@@ -179,9 +165,9 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'list':
-            return SurveyAssetListSerializer
+            return AssetListSerializer
         else:
-            return SurveyAssetSerializer
+            return AssetSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -192,13 +178,13 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
 
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def content(self, request, *args, **kwargs):
-        survey_asset = self.get_object()
-        return Response(json.dumps(survey_asset.to_ss_structure()))
+        asset = self.get_object()
+        return Response(json.dumps(asset.to_ss_structure()))
 
     @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
     def koboform(self, request, *args, **kwargs):
-        survey_asset = self.get_object()
-        return Response({'survey_asset': survey_asset,}, template_name='koboform.html')
+        asset = self.get_object()
+        return Response({'asset': asset,}, template_name='koboform.html')
 
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def table_view(self, request, *args, **kwargs):
@@ -214,9 +200,9 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
 
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def xform(self, request, *args, **kwargs):
-        survey_asset = self.get_object()
-        export = survey_asset.export
-        title = '[%s] %s' % (self.request.user.username, reverse('surveyasset-detail', args=(survey_asset.uid,), request=self.request),)
+        asset = self.get_object()
+        export = asset.export
+        title = '[%s] %s' % (self.request.user.username, reverse('asset-detail', args=(asset.uid,), request=self.request),)
         header_links = '''
         <a href="../">Back</a> | <a href="../.xml">Download XML file</a><br>'''
         footer = '\n<!-- kpi/views.py#footer -->\n'

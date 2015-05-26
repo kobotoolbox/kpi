@@ -37,11 +37,11 @@
                ["delete_collection", "kpi", "collection"],
                ["share_collection", "kpi", "collection"],
                ["view_collection", "kpi", "collection"],
-               ["add_surveyasset", "kpi", "surveyasset"],
-               ["change_surveyasset", "kpi", "surveyasset"],
-               ["delete_surveyasset", "kpi", "surveyasset"],
-               ["share_surveyasset", "kpi", "surveyasset"],
-               ["view_surveyasset", "kpi", "surveyasset"]
+               ["add_asset", "kpi", "asset"],
+               ["change_asset", "kpi", "asset"],
+               ["delete_asset", "kpi", "asset"],
+               ["share_asset", "kpi", "asset"],
+               ["view_asset", "kpi", "asset"]
             ]
         },
         "model": "auth.user",
@@ -67,11 +67,11 @@
                ["delete_collection", "kpi", "collection"],
                ["share_collection", "kpi", "collection"],
                ["view_collection", "kpi", "collection"],
-               ["add_surveyasset", "kpi", "surveyasset"],
-               ["change_surveyasset", "kpi", "surveyasset"],
-               ["delete_surveyasset", "kpi", "surveyasset"],
-               ["share_surveyasset", "kpi", "surveyasset"],
-               ["view_surveyasset", "kpi", "surveyasset"]
+               ["add_asset", "kpi", "asset"],
+               ["change_asset", "kpi", "asset"],
+               ["delete_asset", "kpi", "asset"],
+               ["share_asset", "kpi", "asset"],
+               ["view_asset", "kpi", "asset"]
             ]
         },
         "model": "auth.user",
@@ -79,7 +79,7 @@
     }
     ,
     {
-        "model": "kpi.surveyasset",
+        "model": "kpi.asset",
         "pk": 1,
         "collection": 1,
         "fields": {

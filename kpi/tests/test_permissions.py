@@ -5,7 +5,7 @@ from django.test import TestCase
 
 from ..models.collection import Collection
 from ..models.object_permission import get_all_objects_for_user
-from ..models.survey_asset import SurveyAsset
+from ..models.asset import Asset
 
 class BasePermissionsTestCase(TestCase):
     def _get_perm_name(self, perm_name_prefix, model_instance):
@@ -14,15 +14,15 @@ class BasePermissionsTestCase(TestCase):
         prefix and a model instance.
 
         Example:
-            >>>self._get_perm_name('view_', my_survey_asset)
-            'view_surveyasset'
+            >>>self._get_perm_name('view_', my_asset)
+            'view_asset'
 
         :param perm_name_prefix: Prefix of the desired permission name (i.e.
             "view_", "change_", or "delete_").
         :type perm_name_prefix: str
         :param model_instance: An instance of the model for which the permission
             name is desired.
-        :type model_instance: :py:class:`Collection` or :py:class:`SurveyAsset`
+        :type model_instance: :py:class:`Collection` or :py:class:`Asset`
         :return: The computed permission name.
         :rtype: str
         '''
@@ -38,7 +38,7 @@ class BasePermissionsTestCase(TestCase):
         takes effect.
 
         :param obj: Object to manipulate permissions on.
-        :type obj: :py:class:`Collection` or :py:class:`SurveyAsset`
+        :type obj: :py:class:`Collection` or :py:class:`Asset`
         :param perm_name_prefix: The prefix of the permission to be used (i.e.
             "view_", "change_", or "delete_").
         :type perm_name_prefix: str
@@ -56,7 +56,7 @@ class BasePermissionsTestCase(TestCase):
         takes effect.
 
         :param obj: Object to manipulate permissions on.
-        :type obj: :py:class:`Collection` or :py:class:`SurveyAsset`
+        :type obj: :py:class:`Collection` or :py:class:`Asset`
         :param perm_name_prefix: The prefix of the permission to be used (i.e.
             "view_", "change_", or "delete_").
         :type perm_name_prefix: str
@@ -75,7 +75,7 @@ class BasePermissionsTestCase(TestCase):
         permission successfully propagates to a descendant.
 
         :param obj: Object to manipulate permissions on.
-        :type obj: :py:class:`Collection` or :py:class:`SurveyAsset`
+        :type obj: :py:class:`Collection` or :py:class:`Asset`
         :param perm_name_prefix: The prefix of the permission to be used (i.e.
             "view_", "change_", or "delete_").
         :type perm_name_prefix: str
@@ -84,7 +84,7 @@ class BasePermissionsTestCase(TestCase):
         :param descendant_obj: The descendant object to check for the
             changed permission (i.e. an asset/collection contained in
             `ancestor_collection`).
-        :type descendant_obj: :py:class:`Collection` or :py:class:`SurveyAsset`
+        :type descendant_obj: :py:class:`Collection` or :py:class:`Asset`
         '''
         descendant_perm_name= self._get_perm_name(perm_name_prefix, descendant_obj)
         self.assertFalse(user.has_perm(descendant_perm_name, descendant_obj))
@@ -97,7 +97,7 @@ class BasePermissionsTestCase(TestCase):
         removal successfully takes effect.
 
         :param obj: Object to manipulate permissions on.
-        :type obj: :py:class:`Collection` or :py:class:`SurveyAsset`
+        :type obj: :py:class:`Collection` or :py:class:`Asset`
         :param perm_name_prefix: The prefix of the permission to be used (i.e.
             "view_", "change_", or "delete_").
         :type perm_name_prefix: str
@@ -126,7 +126,7 @@ class BasePermissionsTestCase(TestCase):
         :param descendant_obj: The descendant object to check for the
             changed permission (i.e. an asset/collection contained in
             `ancestor_collection`).
-        :type descendant_obj: :py:class:`Collection` or :py:class:`SurveyAsset`
+        :type descendant_obj: :py:class:`Collection` or :py:class:`Asset`
         '''
         self._test_add_inherited_perm(ancestor_collection,
                                             perm_name_prefix, user,
@@ -143,7 +143,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
         self.admin= User.objects.get(username='admin')
         self.someuser= User.objects.get(username='someuser')
         self.admin_collection= Collection.objects.create(owner=self.admin)
-        self.admin_asset= SurveyAsset.objects.create(content=[
+        self.admin_asset= Asset.objects.create(content=[
             {'type': 'text', 'label': 'Question 1', 'name': 'q1', 'kuid': 'abc'},
             {'type': 'text', 'label': 'Question 2', 'name': 'q2', 'kuid': 'def'},
         ], owner=self.admin)
@@ -165,23 +165,23 @@ class PermissionsTestCase(BasePermissionsTestCase):
         self._test_add_and_remove_perm(self.admin_collection, 'change_', self.someuser)
 
     def test_add_asset_inherited_permission(self):
-        self.admin_collection.survey_assets.add(self.admin_asset)
+        self.admin_collection.assets.add(self.admin_asset)
         self._test_add_inherited_perm(self.admin_collection, 'view_',
                                             self.someuser, self.admin_asset)
         self._test_add_inherited_perm(self.admin_collection, 'change_',
                                             self.someuser, self.admin_asset)
 
     def test_remove_collection_inherited_permission(self):
-        self.admin_collection.survey_assets.add(self.admin_asset)
+        self.admin_collection.assets.add(self.admin_asset)
         self._test_add_remove_inherited_perm(self.admin_collection, 'view_',
                                      self.someuser, self.admin_asset)
         self._test_add_remove_inherited_perm(self.admin_collection, 'change_',
                                      self.someuser, self.admin_asset)
 
     def test_get_objects_for_user(self):
-        admin_assets= get_all_objects_for_user(self.admin, SurveyAsset)
+        admin_assets= get_all_objects_for_user(self.admin, Asset)
         admin_collections= get_all_objects_for_user(self.admin, Collection)
-        someuser_assets= get_all_objects_for_user(self.someuser, SurveyAsset)
+        someuser_assets= get_all_objects_for_user(self.someuser, Asset)
         someuser_collections= get_all_objects_for_user(self.someuser, Collection)
         self.assertIn(self.admin_asset, admin_assets)
         self.assertIn(self.admin_collection, admin_collections)

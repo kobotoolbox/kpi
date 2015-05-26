@@ -27,19 +27,19 @@ class XFormRenderer(renderers.BaseRenderer):
     charset = 'utf-8'
 
     def render(self, data, media_type=None, renderer_context=None):
-        survey_asset = renderer_context['view'].get_object()
-        return survey_asset.export.xml
+        asset = renderer_context['view'].get_object()
+        return asset.export.xml
 
 class XlsRenderer(renderers.BaseRenderer):
     media_type = 'application/xls'
     format = 'xls'
 
     def render(self, data, media_type=None, renderer_context=None):
-        survey_asset = renderer_context['view'].get_object()
-        xls_io = survey_asset.to_xls_io()
+        asset = renderer_context['view'].get_object()
+        xls_io = asset.to_xls_io()
         resp = StreamingHttpResponse(xls_io, content_type='application/vnd.ms-excel; charset=utf-8')
         # why is this not allowing the filename to be set?
-        resp['Content-Disposition'] = 'attachment; filename=%s.xls' % survey_asset.uid
+        resp['Content-Disposition'] = 'attachment; filename=%s.xls' % asset.uid
         return resp
 
 class EnketoPreviewLinkRenderer(renderers.BaseRenderer):

@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.reverse import reverse_lazy, reverse
-from .models import SurveyAsset
+from .models import Asset
 from .models import Collection
 from .models import ObjectPermission
 from .models.object_permission import get_anonymous_user
@@ -31,7 +31,7 @@ class WritableJSONField(serializers.Field):
     def to_representation(self, value):
         return value
 
-class SurveyAssetContentField(serializers.Field):
+class AssetContentField(serializers.Field):
     '''
     not sure if this custom field will survive.
     '''
@@ -43,18 +43,18 @@ class SurveyAssetContentField(serializers.Field):
 
 class TagSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField('_get_tag_url', read_only=True)
-    survey_assets = serializers.SerializerMethodField('_get_survey_assets', read_only=True)
+    assets = serializers.SerializerMethodField('_get_assets', read_only=True)
     collections = serializers.SerializerMethodField('_get_collections', read_only=True)
     parent = serializers.SerializerMethodField('_get_parent_url', read_only=True)
 
     class Meta:
         model = Tag
-        fields = ('name', 'url', 'survey_assets', 'collections', 'parent')
+        fields = ('name', 'url', 'assets', 'collections', 'parent')
 
     def _get_parent_url(self, obj):
         return reverse('tag-list', request=self.context.get('request', None))
 
-    def _get_survey_assets(self, obj):
+    def _get_assets(self, obj):
         request = self.context.get('request', None)
         user = request.user
         # Check if the user is anonymous. The
@@ -62,8 +62,8 @@ class TagSerializer(serializers.ModelSerializer):
         # queries.
         if user.is_anonymous():
             user = get_anonymous_user()
-        return [reverse('surveyasset-detail', args=(sa.uid,), request=request) \
-                for sa in SurveyAsset.objects.filter(tags=obj, owner=user).all()]
+        return [reverse('asset-detail', args=(sa.uid,), request=request) \
+                for sa in Asset.objects.filter(tags=obj, owner=user).all()]
 
     def _get_collections(self, obj):
         request = self.context.get('request', None)
@@ -181,19 +181,19 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
         validated_data['inherited'] = False
         return super(ObjectPermissionSerializer, self).create(validated_data)
 
-class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
+class AssetSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username',
                                                 read_only=True,)
     owner__username = serializers.ReadOnlyField(source='owner.username')
     parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
-    url = serializers.HyperlinkedIdentityField(lookup_field='uid', view_name='surveyasset-detail')
+    url = serializers.HyperlinkedIdentityField(lookup_field='uid', view_name='asset-detail')
     asset_type = serializers.ReadOnlyField()
     settings = WritableJSONField(required=False)
     content_link = serializers.SerializerMethodField()
     xls_link = serializers.SerializerMethodField()
     koboform_link = serializers.SerializerMethodField()
     xform_link = serializers.SerializerMethodField()
-    content = SurveyAssetContentField(style={'base_template': 'muted_readonly_content_field.html'})
+    content = AssetContentField(style={'base_template': 'muted_readonly_content_field.html'})
     tags = serializers.SerializerMethodField('_get_tag_names')
     version_count = serializers.SerializerMethodField('_version_count')
     parent = serializers.HyperlinkedRelatedField(lookup_field='uid', queryset=Collection.objects.all(),
@@ -201,7 +201,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
 
     class Meta:
-        model = SurveyAsset
+        model = Asset
         lookup_field = 'uid'
         fields = ('url',
                     'parent',
@@ -230,7 +230,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
         }
 
     def get_fields(self, *args, **kwargs):
-        fields = super(SurveyAssetSerializer, self).get_fields(*args, **kwargs)
+        fields = super(AssetSerializer, self).get_fields(*args, **kwargs)
         user = self.context['request'].user
         # Check if the user is anonymous. The
         # django.contrib.auth.models.AnonymousUser object doesn't work for
@@ -244,13 +244,13 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
         return reversion.get_for_object(obj).count()
 
     def get_content_link(self, obj):
-        return reverse('surveyasset-content', args=(obj.uid,), request=self.context.get('request', None))
+        return reverse('asset-content', args=(obj.uid,), request=self.context.get('request', None))
     def get_xls_link(self, obj):
-        return reverse('surveyasset-xls', args=(obj.uid,), request=self.context.get('request', None))
+        return reverse('asset-xls', args=(obj.uid,), request=self.context.get('request', None))
     def get_xform_link(self, obj):
-        return reverse('surveyasset-xform', args=(obj.uid,), request=self.context.get('request', None))
+        return reverse('asset-xform', args=(obj.uid,), request=self.context.get('request', None))
     def get_koboform_link(self, obj):
-        return reverse('surveyasset-koboform', args=(obj.uid,), request=self.context.get('request', None))
+        return reverse('asset-koboform', args=(obj.uid,), request=self.context.get('request', None))
 
     def _content(self, obj):
         return json.dumps(obj.content)
@@ -260,11 +260,11 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def _table_url(self, obj):
         request = self.context.get('request', None)
-        return reverse('surveyasset-table-view', args=(obj.uid,), request=request)
+        return reverse('asset-table-view', args=(obj.uid,), request=request)
 
 
-class SurveyAssetListSerializer(SurveyAssetSerializer):
-    class Meta(SurveyAssetSerializer.Meta):
+class AssetListSerializer(AssetSerializer):
+    class Meta(AssetSerializer.Meta):
         fields = ('url', 
                   'date_modified',
                   'date_created',
@@ -280,12 +280,12 @@ class SurveyAssetListSerializer(SurveyAssetSerializer):
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
-    survey_assets = serializers.HyperlinkedRelatedField(many=True,
-                 view_name='surveyasset-detail', read_only=True)
+    assets = serializers.HyperlinkedRelatedField(many=True,
+                 view_name='asset-detail', read_only=True)
 
     class Meta:
         model = User
-        fields = ('url', 'username', 'survey_assets', 'owned_collections')
+        fields = ('url', 'username', 'assets', 'owned_collections')
         lookup_field = 'username'
         extra_kwargs = {
             'owned_collections': {
@@ -294,24 +294,24 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         }
 
 class UserListSerializer(UserSerializer):
-    survey_assets_count = serializers.SerializerMethodField('_survey_assets_count')
+    assets_count = serializers.SerializerMethodField('_assets_count')
     collections_count = serializers.SerializerMethodField('_collections_count')
 
     def _collections_count(self, obj):
         return obj.owned_collections.count()
-    def _survey_assets_count(self, obj):
-        return obj.survey_assets.count()
+    def _assets_count(self, obj):
+        return obj.assets.count()
 
     class Meta(UserSerializer.Meta):
-        fields = ('url', 'username', 'survey_assets_count', 'collections_count',)
+        fields = ('url', 'username', 'assets_count', 'collections_count',)
 
 
 class CollectionChildrenSerializer(serializers.Serializer):
     def to_representation(self, value):
         if isinstance(value, Collection):
             serializer = CollectionListSerializer
-        elif isinstance(value, SurveyAsset):
-            serializer = SurveyAssetListSerializer
+        elif isinstance(value, Asset):
+            serializer = AssetListSerializer
         else:
             raise Exception('Unexpected child type {}'.format(type(value)))
         return serializer(value, context=self.context).data
@@ -326,7 +326,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
     tags = serializers.SerializerMethodField('_get_tag_names')
     children = CollectionChildrenSerializer(
         many=True, read_only=True,
-        source='get_children_and_survey_assets_iterable'
+        source='get_children_and_assets_iterable'
     )
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
 
@@ -346,7 +346,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
                     'tags',)
         lookup_field = 'uid'
         extra_kwargs = {
-            'survey_assets': {
+            'assets': {
                 'lookup_field': 'uid',
             },
         }
@@ -356,12 +356,12 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
 
 class CollectionListSerializer(CollectionSerializer):
     children_count = serializers.SerializerMethodField()
-    survey_assets_count = serializers.SerializerMethodField()
+    assets_count = serializers.SerializerMethodField()
 
     def get_children_count(self, obj):
         return obj.children.count()
-    def get_survey_assets_count(self, obj):
-        return obj.survey_assets.count()
+    def get_assets_count(self, obj):
+        return obj.assets.count()
 
     class Meta(CollectionSerializer.Meta):
         fields = ('name',
@@ -371,7 +371,7 @@ class CollectionListSerializer(CollectionSerializer):
                     'parent',
                     'owner',
                     'children_count',
-                    'survey_assets_count',
+                    'assets_count',
                     'owner__username',
                     'date_created',
                     'date_modified',

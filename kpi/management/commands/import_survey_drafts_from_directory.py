@@ -16,7 +16,7 @@ import ipdb
 import re
 
 from kpi.models import Collection
-from kpi.models import SurveyAsset
+from kpi.models import Asset
 
 from pyxform.xls2json_backends import csv_to_dict
 from StringIO import StringIO
@@ -56,20 +56,20 @@ def _import_user_drafts(server, username, draft_id, fpath):
     }
 
 
-    _set_auto_field_update(SurveyAsset, "date_created", True)
-    _set_auto_field_update(SurveyAsset, "date_modified", True)
-    (survey_asset, sa_created) = collection.survey_assets.get_or_create(name=obj['name'], owner=owner)
+    _set_auto_field_update(Asset, "date_created", True)
+    _set_auto_field_update(Asset, "date_modified", True)
+    (asset, sa_created) = collection.assets.get_or_create(name=obj['name'], owner=owner)
 
     collection.tags = "server-%s" % server
     survey_dict = _csv_to_dict(sd['body'])
-    survey_asset.content = survey_dict
+    asset.content = survey_dict
 
-    survey_asset.date_created = obj['date_created']
-    survey_asset.date_modified = obj['date_modified']
+    asset.date_created = obj['date_created']
+    asset.date_modified = obj['date_modified']
 
-    _set_auto_field_update(SurveyAsset, "date_created", False)
-    _set_auto_field_update(SurveyAsset, "date_modified", False)
-    survey_asset.save()
+    _set_auto_field_update(Asset, "date_created", False)
+    _set_auto_field_update(Asset, "date_modified", False)
+    asset.save()
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
@@ -78,7 +78,7 @@ class Command(BaseCommand):
         if not os.path.exists(directory):
             raise Exception("directory doesnt exist")
 
-        SurveyAsset.objects.all().delete()
+        Asset.objects.all().delete()
         Collection.objects.all().delete()
 
         n = 0

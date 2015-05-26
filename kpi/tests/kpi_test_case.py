@@ -13,7 +13,7 @@ from rest_framework import status
 # FIXME: Remove the following line when the permissions API is in place.
 from .test_permissions import BasePermissionsTestCase
 from ..models.collection import Collection
-from ..models.survey_asset import SurveyAsset
+from ..models.asset import Asset
 
 class KpiTestCase(APITestCase, BasePermissionsTestCase):
     '''
@@ -30,7 +30,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         if uid.startswith('c'):
             klass= Collection
         elif uid.startswith('a'):
-            klass= SurveyAsset
+            klass= Asset
         else:
             raise NotImplementedError()
         obj= klass.objects.get(uid=uid)
@@ -60,7 +60,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         if content == None:
             content= '[]'
 
-        response= self.client.post(reverse('surveyasset-list'),
+        response= self.client.post(reverse('asset-list'),
                                    {'name': name, 'content': content})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -127,7 +127,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         Add a permission.
 
         :param obj: Object to manipulate permissions on.
-        :type obj: :py:class:`Collection` or :py:class:`SurveyAsset`
+        :type obj: :py:class:`Collection` or :py:class:`Asset`
         :param owner: The owner of `obj`.
         :type owner: :py:class:`User`
         :param owner_password: The password for user 'owner'.
@@ -144,13 +144,13 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         # FIXME: Do this through the API once the interface has stabilized.
         self._test_add_perm(obj, perm_name_prefix, other_user)
 #         self.client.login(username=owner.username, owner_password='pass')
-#         perm_url= reverse('surveyasset-permission',
+#         perm_url= reverse('asset-permission',
 #                           kwargs={'uid': self.admin_asset.uid})
 #         response= self.client.get(perm_url)
 #         self.assertEqual(response.status_code, status.HTTP_200_OK)
 #         permissions= response.data['results']
-#         self.assertNotIn('view_surveyasset', permissions[self.someuser['username']])
-#         permissions[self.someuser['username']].append('view_surveyasset')
+#         self.assertNotIn('view_asset', permissions[self.someuser['username']])
+#         permissions[self.someuser['username']].append('view_asset')
 #         response= self.client.patch(data=permissions)
 #         self.assertEqual(response.status_code, status.HTTP_200_OK)
 #         self.client.logout()
@@ -161,7 +161,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         Remove a permission.
 
         :param obj: Object to manipulate permissions on.
-        :type obj: :py:class:`Collection` or :py:class:`SurveyAsset`
+        :type obj: :py:class:`Collection` or :py:class:`Asset`
         :param owner: The owner of `obj`.
         :type owner: :py:class:`User`
         :param owner_password: The password for user 'owner'.

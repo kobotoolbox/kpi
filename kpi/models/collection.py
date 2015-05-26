@@ -3,7 +3,7 @@ from django.db import models
 from django.contrib.contenttypes.fields import GenericRelation
 from mptt.models import MPTTModel, TreeForeignKey
 from shortuuid import ShortUUID
-from kpi.models.survey_asset import SurveyAsset
+from kpi.models.asset import Asset
 from taggit.managers import TaggableManager
 from taggit.models import Tag
 from object_permission import ObjectPermission, ObjectPermissionMixin
@@ -14,17 +14,17 @@ COLLECTION_UID_LENGTH = 22
 class CollectionManager(models.Manager):
     def create(self, *args, **kwargs):
         assets = False
-        if 'survey_assets' in kwargs:
-            assets = kwargs['survey_assets']
-            del kwargs['survey_assets']
+        if 'assets' in kwargs:
+            assets = kwargs['assets']
+            del kwargs['assets']
         created = super(CollectionManager, self).create(*args, **kwargs)
         if assets:
             new_assets = []
             for asset in assets:
                 asset['parent'] = created
-                new_assets.append(SurveyAsset.objects.create(**asset))
+                new_assets.append(Asset.objects.create(**asset))
             # bulk_create comes with a number of caveats
-            # SurveyAsset.objects.bulk_create(new_assets)
+            # Asset.objects.bulk_create(new_assets)
         return created
 
     def filter_by_tag_name(self, tag_name):
@@ -75,23 +75,23 @@ class Collection(ObjectPermissionMixin, MPTTModel):
 
     def get_descendants_list(self, include_self=False):
         ''' Similar to django-mptt's get_descendants, but returns a list
-        instead of a QuerySet since our descendants are both SurveyAssets and
+        instead of a QuerySet since our descendants are both Assets and
         Collections '''
         mixed_descendants = list()
         if not include_self:
-            # Gather our own child survey assets, since we won't be included
+            # Gather our own child assets, since we won't be included
             # in the main loop
-            mixed_descendants.extend(list(self.survey_assets.all()))
+            mixed_descendants.extend(list(self.assets.all()))
         for descendant in self.get_descendants(include_self):
             # Append each of our descendant collections
             mixed_descendants.append(descendant)
-            for survey_asset in descendant.survey_assets.all():
-                # Append each descendant collection's child survey assets
-                mixed_descendants.append(survey_asset)
+            for asset in descendant.assets.all():
+                # Append each descendant collection's child assets
+                mixed_descendants.append(asset)
         return mixed_descendants
 
-    def get_children_and_survey_assets_iterable(self):
-        return chain(self.get_children(), self.survey_assets.all())
+    def get_children_and_assets_iterable(self):
+        return chain(self.get_children(), self.assets.all())
 
     def __unicode__(self):
         return self.name

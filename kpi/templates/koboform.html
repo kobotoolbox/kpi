@@ -28,8 +28,8 @@
         <h1 class="title">{{ title }}</h1>
         <nav>
           <ul>
-            <li><a href="{% url 'surveyasset-list' %}">{{user.username}} assets</a></li>
-            <li><a href="{% url 'surveyasset-detail' survey_asset.uid %}">{{survey_asset.uid}}</a></li>
+            <li><a href="{% url 'asset-list' %}">{{user.username}} assets</a></li>
+            <li><a href="{% url 'asset-detail' asset.uid %}">{{asset.uid}}</a></li>
           </ul>
         </nav>
       </header>
@@ -41,7 +41,7 @@
         </div>
         <hr>
         <code>
-          <pre class='survey-asset-url'>{% url 'surveyasset-content' survey_asset.uid %}</pre>
+          <pre class='survey-asset-url'>{% url 'asset-content' asset.uid %}</pre>
         </code>
       </div> <!-- #main -->
     </div> <!-- #main-container -->
