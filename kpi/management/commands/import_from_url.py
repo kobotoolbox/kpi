@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth.models import User
 from kpi.models import Collection
-from kpi.models import SurveyAsset
+from kpi.models import Asset
 from kpi.models import ImportTask
 # from pyxform.xls2json_backends import csv_to_dict
 from optparse import make_option

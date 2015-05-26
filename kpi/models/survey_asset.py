@@ -18,7 +18,7 @@ SURVEY_ASSET_TYPES = [
 ]
 SURVEY_ASSET_UID_LENGTH = 22
 
-class SurveyAssetManager(models.Manager):
+class AssetManager(models.Manager):
     def filter_by_tag_name(self, tag_name):
         try:
             tag = Tag.objects.get(name=tag_name)
@@ -28,7 +28,7 @@ class SurveyAssetManager(models.Manager):
 
 
 @reversion.register
-class SurveyAsset(ObjectPermissionMixin, models.Model):
+class Asset(ObjectPermissionMixin, models.Model):
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
@@ -41,7 +41,7 @@ class SurveyAsset(ObjectPermissionMixin, models.Model):
     tags = TaggableManager()
     permissions = GenericRelation(ObjectPermission)
 
-    objects = SurveyAssetManager()
+    objects = AssetManager()
 
     @property
     def kind(self):
@@ -62,7 +62,7 @@ class SurveyAsset(ObjectPermissionMixin, models.Model):
     # Calculated permissions that are neither directly assignable nor stored
     # in the database, but instead implied by assignable permissions
     CALCULATED_PERMISSIONS = ('share_asset', 'delete_asset')
-    # Certain Collection permissions carry over to SurveyAsset
+    # Certain Collection permissions carry over to Asset
     MAPPED_PARENT_PERMISSIONS = {
         'view_collection': 'view_asset',
         'change_collection': 'change_asset'
@@ -88,7 +88,7 @@ class SurveyAsset(ObjectPermissionMixin, models.Model):
         # populate uid field if it's empty
         self._populate_uid()
         with transaction.atomic(), reversion.create_revision():
-            super(SurveyAsset, self).save(*args, **kwargs)
+            super(Asset, self).save(*args, **kwargs)
 
     def get_descendants_list(self, include_self=False):
         ''' A survey asset never has any descendants, but provide this method
@@ -130,12 +130,12 @@ class SurveyAsset(ObjectPermissionMixin, models.Model):
     @property
     def export(self):
         version_id = reversion.get_for_object(self).last().id
-        # SurveyAssetExport.objects.filter(asset=self).delete()
-        (model, created,) = SurveyAssetExport.objects.get_or_create(asset=self,
+        # AssetExport.objects.filter(asset=self).delete()
+        (model, created,) = AssetExport.objects.get_or_create(asset=self,
                                 asset_version_id=version_id)
         return model
 
-class SurveyAssetExport(models.Model):
+class AssetExport(models.Model):
     '''
     This model serves as a cache of the XML that was exported by the installed
     version of pyxform.
@@ -145,7 +145,7 @@ class SurveyAssetExport(models.Model):
     xml = models.TextField()
     source = JSONField(default='{}')
     details = JSONField(default='{}')
-    asset = models.ForeignKey(SurveyAsset)
+    asset = models.ForeignKey(Asset)
     asset_version_id = models.IntegerField()
     date_created = models.DateTimeField(auto_now_add=True)
 
@@ -181,9 +181,9 @@ class SurveyAssetExport(models.Model):
         asset = version.object
         self.source = asset.to_ss_structure()
         self.generate_xml_from_source()
-        return super(SurveyAssetExport, self).save(*args, **kwargs)
+        return super(AssetExport, self).save(*args, **kwargs)
 
-@receiver(models.signals.post_delete, sender=SurveyAsset)
+@receiver(models.signals.post_delete, sender=Asset)
 def post_delete_asset(sender, instance, **kwargs):
     # Remove all permissions associated with this object
     ObjectPermission.objects.filter_for_object(instance).delete()

@@ -1,6 +1,6 @@
 from rest_framework.urlpatterns import format_suffix_patterns
 from kpi.views import (
-    SurveyAssetViewSet,
+    AssetViewSet,
     UserViewSet,
     CollectionViewSet,
     TagViewSet,
@@ -12,7 +12,7 @@ from django.conf.urls import url, include
 from kpi.views import current_user
 
 router = DefaultRouter()
-router.register(r'assets', SurveyAssetViewSet)
+router.register(r'assets', AssetViewSet)
 router.register(r'collections', CollectionViewSet)
 router.register(r'users', UserViewSet)
 router.register(r'tags', TagViewSet)

@@ -19,7 +19,7 @@ from taggit.models import Tag
 from .models import (
     Collection,
     object_permission,
-    SurveyAsset,
+    Asset,
     ObjectPermission,)
 from .models.object_permission import get_anonymous_user
 from .permissions import IsOwnerOrReadOnly
@@ -33,7 +33,7 @@ from .renderers import (
     XlsRenderer,
     EnketoPreviewLinkRenderer,)
 from .serializers import (
-    SurveyAssetSerializer, SurveyAssetListSerializer,
+    AssetSerializer, AssetListSerializer,
     CollectionSerializer, CollectionListSerializer,
     UserSerializer, UserListSerializer,
     TagSerializer, TagListSerializer,
@@ -146,7 +146,7 @@ from rest_framework.parsers import MultiPartParser
 class XlsFormParser(MultiPartParser):
     pass
 
-class SurveyAssetViewSet(viewsets.ModelViewSet):
+class AssetViewSet(viewsets.ModelViewSet):
     """
     * Download a survey asset in a `.xls` or `.xml` format <span class='label label-success'>complete</span>
     * View a survey asset in a markdown spreadsheet or XML preview format <span class='label label-success'>complete</span>
@@ -157,8 +157,8 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
     * Generate a link to a preview in enketo-express <span class='label label-danger'>TODO</span>
     """
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
-    queryset = SurveyAsset.objects.all()
-    serializer_class = SurveyAssetSerializer
+    queryset = Asset.objects.all()
+    serializer_class = AssetSerializer
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
     filter_backends = (KpiObjectPermissionsFilter, ParentFilter)
@@ -173,9 +173,9 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'list':
-            return SurveyAssetListSerializer
+            return AssetListSerializer
         else:
-            return SurveyAssetSerializer
+            return AssetSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

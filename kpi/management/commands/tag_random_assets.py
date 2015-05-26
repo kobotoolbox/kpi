@@ -4,7 +4,7 @@ from django.conf import settings
 from django.forms.models import model_to_dict
 import dateutil.parser
 from kpi.models import Collection
-from kpi.models import SurveyAsset
+from kpi.models import Asset
 from django.contrib.auth.models import Permission
 import random
 
@@ -51,7 +51,7 @@ class Command(BaseCommand):
                 print 'assigning user permission "%s" -> %s' % (perm, user.username)
                 collection.assign_perm(user, perm)
 
-        for sa in SurveyAsset.objects.all():
+        for sa in Asset.objects.all():
             _tags = _rand_tags_list()
             print  'adding tags to asset: '+ repr(_tags)
             for tag in _tags:

@@ -1,6 +1,6 @@
 import copy
 import re
-from .models import SurveyAsset
+from .models import Asset
 from .models import Collection
 
 TAG_RE = r'tag:(.*)'
@@ -22,7 +22,7 @@ def _load_library_content(structure):
                 row_tags.append(re.match(TAG_RE, key).groups()[0])
                 del row[key]
         sub_lib_asset['survey'] = [row]
-        sa = SurveyAsset.objects.create(content=sub_lib_asset, asset_type='survey_block',
+        sa = Asset.objects.create(content=sub_lib_asset, asset_type='survey_block',
                                     owner=structure['owner'], parent=collection)
         sa.tags.add(*row_tags)
     return collection
@@ -34,5 +34,5 @@ def create_assets(kls, structure, **options):
         if 'library' in structure.get('content', {}):
             obj = _load_library_content(structure)
         else:
-            obj = SurveyAsset.objects.create(**structure)
+            obj = Asset.objects.create(**structure)
     return obj
