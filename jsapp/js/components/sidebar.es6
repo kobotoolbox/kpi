@@ -90,7 +90,7 @@ export class Sidebar extends React.Component {
             <SidebarLink label={'settings'} active='true' href={'/'} fa-icon="cog" />
           </ul>
           <div className="sidebar-footer">
-            <SidebarFooterItem label="assets" href="/survey_assets/" />
+            <SidebarFooterItem label="assets" href="/assets/" />
             <SidebarFooterItem label="collections" href="/collections/" />
             <SidebarFooterItem label="me" href="/me/" />
           </div>

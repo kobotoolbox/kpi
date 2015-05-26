@@ -380,7 +380,7 @@ class MomentTime extends React.Component {
 }
 
 var AssetCollectionRow = React.createClass({
-  mixins: [Reflux.connect(sessionStore, "currentUsername")],
+  // mixins: [Reflux.connect(sessionStore, "currentUsername")],
   getInitialState () {
     return {
       permissionsObject: {}
@@ -759,6 +759,12 @@ var sessionDispatch;
       });
       return d.promise();
     },
+    getAsset ({id}) {
+      return $.getJSON(`/assets/${id}/`);
+    },
+    getCollection ({id}) {
+      return $.getJSON(`/collections/${id}/`);
+    },
     login: (creds)=> { return $ajax({ url: '/api-auth/login/?next=/me/', data: creds, method: 'POST'}); }
   });
 }).call(sessionDispatch={});
@@ -1049,7 +1055,7 @@ class Forms extends React.Component {
         <Header title={t('assets')}
                 small={t('start forms and stuff')} />
         <div className="row">
-          <AssetCollectionsContainer source="/survey_assets/?parent=" itemname='assets' />
+          <AssetCollectionsContainer source="/assets/?parent=" itemname='assets' />
         </div>
         <RouteHandler />
       </Panel>
@@ -1224,7 +1230,7 @@ class CollectionAssetItem extends React.Component {
 }
 class CollectionAssetsList extends React.Component {
   render () {
-    var _assets =  this.props.survey_assets;
+    var _assets =  this.props.assets;
     var assets = (_assets).map((sa, i)=> <CollectionAssetItem key={sa.uid} asset={sa} /> )
     return (
       <ul className="list-group collection-asset-list">
@@ -1357,7 +1363,7 @@ class CollectionView extends React.Component {
       owner__username: 'a?b',
       date_created: new Date(),
       date_modified: new Date(),
-      survey_assets: []
+      assets: []
     };
   }
   close () {
@@ -1428,7 +1434,7 @@ class AssetPreview extends React.Component {
       owner__username: 's?basdf',
       date_created: new Date(),
       date_modified: new Date(),
-      survey_assets: []
+      assets: []
     };
   }
   close () {
@@ -1555,15 +1561,15 @@ class FormPreview extends React.Component {
       assetType: assetType,
     });
     if (assetType === 'collection') {
-      $.getJSON(`/collections/${this.props.params.assetid}/`).success((data,status,req)=>{
-        this.setState(assign({}, {loaded: true}, data));
-      }).fail(function fail(a,b,c) {
-        if (a.statusText === 'NOT FOUND') {
-          throw new Error('Not found');
-        }
-      });
+      sessionDispatch.getCollection({id: this.props.params.assetid})
+        .success((data,status,req)=>{ this.setState(assign({}, {loaded: true}, data)); })
+        .fail(function fail(a,b,c) {
+          if (a.statusText === 'NOT FOUND') {
+            throw new Error('Not found');
+          }
+        });
     } else {
-      $.getJSON(`/survey_assets/${this.props.params.assetid}/`).success((data,status,req)=>{
+      sessionDispatch.getAsset({id: this.props.params.assetid}).success((data,status,req)=>{
         this.setState(assign({}, {loaded: true}, data));
       }).fail(function fail(a,b,c) {
         if (a.statusText === 'NOT FOUND') {

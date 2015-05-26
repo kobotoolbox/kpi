@@ -15,7 +15,7 @@ import dateutil.parser
 import re
 
 from kpi.models import Collection
-from kpi.models import SurveyAsset
+from kpi.models import Asset
 
 from pyxform.xls2json_backends import csv_to_dict
 from StringIO import StringIO
@@ -75,16 +75,16 @@ def _import_user_assets(from_user, to_user):
         if parent_collection is not None:
             obj['parent'] = parent_collection
             del obj['name']
-        new_asset = SurveyAsset(**obj)
+        new_asset = Asset(**obj)
 
-        _set_auto_field_update(SurveyAsset, "date_created", False)
-        _set_auto_field_update(SurveyAsset, "date_modified", False)
+        _set_auto_field_update(Asset, "date_created", False)
+        _set_auto_field_update(Asset, "date_modified", False)
         new_asset.content = survey_dict
         new_asset.date_created = obj['date_created']
         new_asset.date_modified = obj['date_modified']
         new_asset.save()
-        _set_auto_field_update(SurveyAsset, "date_created", True)
-        _set_auto_field_update(SurveyAsset, "date_modified", True)
+        _set_auto_field_update(Asset, "date_created", True)
+        _set_auto_field_update(Asset, "date_modified", True)
 
 
     for survey_draft in user_survey_drafts.all():
@@ -97,13 +97,13 @@ def _import_user_assets(from_user, to_user):
         print 'importing qla %s %d' % (qlib_asset.name, qlib_asset.id)
         _import_asset(survey_draft, qlib)
 
-    _set_auto_field_update(SurveyAsset, "date_created", False)
-    _set_auto_field_update(SurveyAsset, "date_modified", False)
+    _set_auto_field_update(Asset, "date_created", False)
+    _set_auto_field_update(Asset, "date_modified", False)
     qlib.date_created = user.date_joined
     qlib.date_modified = user.date_joined
     qlib.save()
-    _set_auto_field_update(SurveyAsset, "date_created", True)
-    _set_auto_field_update(SurveyAsset, "date_modified", True)
+    _set_auto_field_update(Asset, "date_created", True)
+    _set_auto_field_update(Asset, "date_modified", True)
 
 
 class Command(BaseCommand):
@@ -151,9 +151,9 @@ class Command(BaseCommand):
             if not to_user:
                 to_user = from_user
             print "user has %d collections" % to_user.owned_collections.count()
-            print "user has %d survey_assets" % to_user.survey_assets.count()
+            print "user has %d assets" % to_user.assets.count()
             to_user.owned_collections.all().delete()
-            to_user.survey_assets.all().delete()
+            to_user.assets.all().delete()
             print "user has %d collections" % to_user.owned_collections.count()
-            print "user has %d survey_assets" % to_user.survey_assets.count()
+            print "user has %d assets" % to_user.assets.count()
             _import_user_assets(from_user, to_user)
