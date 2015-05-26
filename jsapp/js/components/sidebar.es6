@@ -80,7 +80,7 @@ export class Sidebar extends React.Component {
 
             <SidebarTitle label="API LINKS" separator="true" />
 
-            <SidebarLink label={'survey assets'} href={'/assets/'} />
+            <SidebarLink label={'assets'} href={'/assets/'} />
             <SidebarLink label={'collections'} href={'/collections/'} />
             <SidebarLink label={'users'} href={'/users/'} />
             <SidebarLink label={'tags'} href={'/tags/'} />

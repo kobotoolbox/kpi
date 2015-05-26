@@ -148,20 +148,6 @@ class XlsFormParser(MultiPartParser):
     pass
 
 class AssetViewSet(viewsets.ModelViewSet):
-    """
-    * Access a summary list of all survey assets available to your user. <span class='label label-success'>complete</span>
-    * Inspect individual survey assets <span class='label label-success'>complete</span>
-    * Download a survey asset in a `.xls` or `.xml` format <span class='label label-success'>complete</span>
-    * Tag a survey asset <span class='label label-success'>complete</span>
-    * View a survey asset in a markdown spreadsheet or XML preview format <span class='label label-success'>complete</span>
-    * Assign a survey asset to a collection <span class='label label-warning'>partially implemented</span>
-    * View and manage permissions of a survey asset <span class='label label-danger'>TODO</span>
-    * View previous versions of a survey asset <span class='label label-danger'>TODO</span>
-    * Update all content of a survey asset <span class='label label-danger'>TODO</span>
-    * Run a partial update of a survey asset <span class='label label-danger'>TODO</span>
-    * Generate a link to a preview in enketo-express <span class='label label-danger'>TODO</span>
-    * Create anonymous survey assets <span class='label label-danger'>TODO</span>
-    """
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer

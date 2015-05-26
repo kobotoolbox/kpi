@@ -52,8 +52,8 @@ class Asset(ObjectPermissionMixin, models.Model):
         permissions = (
             # change_, add_, and delete_asset are provided automatically
             # by Django
-            ('view_asset', 'Can view survey asset'),
-            ('share_asset', "Can change this survey asset's sharing settings"),
+            ('view_asset', 'Can view asset'),
+            ('share_asset', "Can change this asset's sharing settings"),
         )
 
     # Assignable permissions that are stored in the database
@@ -90,7 +90,7 @@ class Asset(ObjectPermissionMixin, models.Model):
             super(Asset, self).save(*args, **kwargs)
 
     def get_descendants_list(self, include_self=False):
-        ''' A survey asset never has any descendants, but provide this method
+        ''' A asset never has any descendants, but provide this method
         a la django-mptt to simplify permissions code '''
         if include_self:
             return list(self)

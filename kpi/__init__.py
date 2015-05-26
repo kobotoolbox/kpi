@@ -21,7 +21,7 @@ def assign_default_permissions(sender, instance, created, raw, **kwargs):
         return
     # Users must have both model-level and object-level permissions to
     # satisfy DRF, so assign the newly-created user all available collection
-    # and survey asset permissions at the model level
+    # and asset permissions at the model level
     collection_ctype = ContentType.objects.get_for_model(Collection)
     asset_ctype = ContentType.objects.get_for_model(Asset)
     instance.user_permissions.add(
