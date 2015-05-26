@@ -13,7 +13,7 @@ def _get_perm_name(perm_name_prefix, model_instance):
 
     Example:
         >>>self._get_perm_name('view_', my_survey_asset)
-        'view_surveyasset'
+        'view_asset'
 
     :param perm_name_prefix: Prefix of the desired permission name (i.e.
         "view_", "change_", or "delete_").

@@ -23,10 +23,10 @@ def assign_default_permissions(sender, instance, created, raw, **kwargs):
     # satisfy DRF, so assign the newly-created user all available collection
     # and survey asset permissions at the model level
     collection_ctype = ContentType.objects.get_for_model(Collection)
-    surveyasset_ctype = ContentType.objects.get_for_model(SurveyAsset)
+    asset_ctype = ContentType.objects.get_for_model(SurveyAsset)
     instance.user_permissions.add(
         *Permission.objects.filter(
             Q(content_type=collection_ctype) |
-            Q(content_type=surveyasset_ctype)
+            Q(content_type=asset_ctype)
         )
     )

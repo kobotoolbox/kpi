@@ -62,7 +62,7 @@ class TagSerializer(serializers.ModelSerializer):
         # queries.
         if user.is_anonymous():
             user = get_anonymous_user()
-        return [reverse('surveyasset-detail', args=(sa.uid,), request=request) \
+        return [reverse('asset-detail', args=(sa.uid,), request=request) \
                 for sa in SurveyAsset.objects.filter(tags=obj, owner=user).all()]
 
     def _get_collections(self, obj):
@@ -186,7 +186,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
                                                 read_only=True,)
     owner__username = serializers.ReadOnlyField(source='owner.username')
     parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
-    url = serializers.HyperlinkedIdentityField(lookup_field='uid', view_name='surveyasset-detail')
+    url = serializers.HyperlinkedIdentityField(lookup_field='uid', view_name='asset-detail')
     asset_type = serializers.ReadOnlyField()
     settings = WritableJSONField(required=False)
     content_link = serializers.SerializerMethodField()
@@ -244,13 +244,13 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
         return reversion.get_for_object(obj).count()
 
     def get_content_link(self, obj):
-        return reverse('surveyasset-content', args=(obj.uid,), request=self.context.get('request', None))
+        return reverse('asset-content', args=(obj.uid,), request=self.context.get('request', None))
     def get_xls_link(self, obj):
-        return reverse('surveyasset-xls', args=(obj.uid,), request=self.context.get('request', None))
+        return reverse('asset-xls', args=(obj.uid,), request=self.context.get('request', None))
     def get_xform_link(self, obj):
-        return reverse('surveyasset-xform', args=(obj.uid,), request=self.context.get('request', None))
+        return reverse('asset-xform', args=(obj.uid,), request=self.context.get('request', None))
     def get_koboform_link(self, obj):
-        return reverse('surveyasset-koboform', args=(obj.uid,), request=self.context.get('request', None))
+        return reverse('asset-koboform', args=(obj.uid,), request=self.context.get('request', None))
 
     def _content(self, obj):
         return json.dumps(obj.content)
@@ -260,7 +260,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def _table_url(self, obj):
         request = self.context.get('request', None)
-        return reverse('surveyasset-table-view', args=(obj.uid,), request=request)
+        return reverse('asset-table-view', args=(obj.uid,), request=request)
 
 
 class SurveyAssetListSerializer(SurveyAssetSerializer):
@@ -281,7 +281,7 @@ class SurveyAssetListSerializer(SurveyAssetSerializer):
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     survey_assets = serializers.HyperlinkedRelatedField(many=True,
-                 view_name='surveyasset-detail', read_only=True)
+                 view_name='asset-detail', read_only=True)
 
     class Meta:
         model = User
