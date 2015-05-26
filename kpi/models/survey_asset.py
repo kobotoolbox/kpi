@@ -48,7 +48,8 @@ class SurveyAsset(ObjectPermissionMixin, models.Model):
         return self._meta.model_name
 
     class Meta:
-        ordering = ('date_created',)
+        ordering = ('-date_modified',)
+
         permissions = (
             # change_, add_, and delete_surveyasset are provided automatically
             # by Django

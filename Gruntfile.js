@@ -6,7 +6,7 @@ module.exports = function(grunt) {
     browserify: {
       dist: {
         files: {
-          'jsapp/dist/bundle.js': [
+          'jsapp/compiled/bundle.js': [
             'jsapp/js/main.es6',
           ],
         },
@@ -24,7 +24,7 @@ module.exports = function(grunt) {
     sass: {
       dist: {
         files: {
-          'jsapp/css/bundle.css': 'jsapp/scss/main.scss'
+          'jsapp/compiled/bundle.css': 'jsapp/scss/main.scss'
         }
       }
     },
@@ -66,5 +66,10 @@ module.exports = function(grunt) {
     'watch',
   ]);
   grunt.registerTask('default', ['develop']);
+
+  grunt.registerTask('build', [
+    'browserify:dist',
+    'sass:dist',
+  ]);
 
 };

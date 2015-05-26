@@ -51,6 +51,7 @@ class Collection(ObjectPermissionMixin, MPTTModel):
         return self._meta.model_name
 
     class Meta:
+        ordering = ('-date_modified',)
         permissions = (
             # change_, add_, and delete_collection are provided automatically
             # by Django

@@ -82,7 +82,7 @@ class Command(BaseCommand):
         Collection.objects.all().delete()
 
         n = 0
-        maxn = 30
+        maxn = 300000
         for fpath in glob.glob(os.path.join(directory, '*.json')):
             if random.randint(0, 10) != 10:
                 continue

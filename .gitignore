@@ -3,3 +3,5 @@ db.sqlite3
 exported_survey_drafts
 node_modules
 kpi/static/components
+misc
+jsapp/compiled

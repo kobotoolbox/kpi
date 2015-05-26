@@ -1,13 +1,16 @@
-import React from 'react';
+import React from 'react/addons';
+import Router from 'react-router';
+
+let Link = Router.Link;
 
 class SidebarMain extends React.Component {
   render () {
-    var icon_class = "menu-icon fa fa-fw fa-transfer"
+    var icon_class = "menu-icon kobo-icon"
     return (
         <li className="sidebar-main">
           <a href="#" onClick={this.props.onClick}>
             {this.props.label}
-            <span className={icon_class}></span>
+            <i className={icon_class}></i>
           </a>
         </li>
       )
@@ -32,13 +35,16 @@ class SidebarLink extends React.Component {
     var icon = (<span className={icon_class}></span>);
 
     var link;
-    if (this.props.href) {
+    if (this.props.linkto) {
+      link = <Link to={this.props.linkto}
+                    activeClassName="active">{this.props.label} {icon}</Link>
+    } else if (this.props.href) {
       link = <a href={this.props.href}>{this.props.label} {icon}</a>
     } else {
       link = <Link to="help">{this.props.label} {icon}</Link>
     }
     return (
-        <li className="sidebar-list" id="sidebar-list">{link}</li>
+        <li className="sidebar-list">{link}</li>
       )
   }
 }
@@ -75,21 +81,19 @@ export class Sidebar extends React.Component {
             }>
             <SidebarMain onClick={this.props.toggleIntentOpen} label="Kobo API" />
 
-            <SidebarTitle label="QUICK LINKS" separator="true" />
-            <SidebarLink label={'react'} href={'/'} fa-icon="tachometer" />
+            <SidebarTitle label={'QUICK LINKS'} />
+            <SidebarLink label={'forms'} linkto='forms' fa-icon="files-o" />
+            <SidebarLink label={'question library'} linkto='libraries' fa-icon="book" />
 
-            <SidebarTitle label="API LINKS" separator="true" />
+            <SidebarTitle label={'tools'} separator="true" />
+            <SidebarLink label={'projects'} active='true' href={'/'} fa-icon="globe" />
+            <SidebarLink label={'settings'} active='true' href={'/'} fa-icon="cog" />
 
-            <SidebarLink label={'survey assets'} href={'/survey_assets/'} />
-            <SidebarLink label={'collections'} href={'/collections/'} />
-            <SidebarLink label={'users'} href={'/users/'} />
-            <SidebarLink label={'tags'} href={'/tags/'} />
-            <SidebarLink label={'permissions'} href={'/permissions/'} />
           </ul>
           <div className="sidebar-footer">
-            <SidebarFooterItem label="Github" href="https://github.com/kobotoolbox/" />
-            <SidebarFooterItem label="Support" href="https://support.kobotoolbox.org/" />
-            <SidebarFooterItem label="Info" href="http://www.kobotoolbox.org/" />
+            <SidebarFooterItem label="assets" href="/survey_assets/" />
+            <SidebarFooterItem label="collections" href="/collections/" />
+            <SidebarFooterItem label="me" href="/me/" />
           </div>
         </div>
       )
