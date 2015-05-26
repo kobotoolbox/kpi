@@ -79,7 +79,7 @@ export class Sidebar extends React.Component {
                 return;
               }
             }>
-            <SidebarMain onClick={this.props.toggleIntentOpen} label="Kobo API" />
+            <SidebarMain onClick={this.props.toggleIntentOpen} label="KoBo" />
 
             <SidebarTitle label={'QUICK LINKS'} />
             <SidebarLink label={'forms'} linkto='forms' fa-icon="files-o" />
