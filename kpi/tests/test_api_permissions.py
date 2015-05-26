@@ -11,7 +11,7 @@ class ApiAnonymousPermissionsTestCase(KpiTestCase):
     def setUp(self):
         self.anon= get_anonymous_user()
 
-        permission= Permission.objects.get(codename='add_surveyasset')
+        permission= Permission.objects.get(codename='add_asset')
         self.anon.user_permissions.add(permission)
 
     def test_anon_create_asset(self):
@@ -142,7 +142,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         # Test that "someuser" can't delete the asset.
         self.client.login(username=self.someuser.username,
                           password=self.someuser_password)
-        url= reverse('surveyasset-detail', kwargs={'uid': self.admin_asset.uid})
+        url= reverse('asset-detail', kwargs={'uid': self.admin_asset.uid})
         response= self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -161,7 +161,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         # Test that "someuser" can't delete the asset.
         self.client.login(username=self.someuser.username,
                           password=self.someuser_password)
-        url= reverse('surveyasset-detail', kwargs={'uid': self.admin_asset.uid})
+        url= reverse('asset-detail', kwargs={'uid': self.admin_asset.uid})
         response= self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 

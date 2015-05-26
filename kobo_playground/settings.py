@@ -69,8 +69,8 @@ ANONYMOUS_USER_ID = -1
 # Permissions assigned to AnonymousUser are restricted to the following
 ALLOWED_ANONYMOUS_PERMISSIONS = (
     'kpi.view_collection',
-    'kpi.view_surveyasset',
-    'kpi.add_surveyasset',
+    'kpi.view_asset',
+    'kpi.add_asset',
 )
 
 

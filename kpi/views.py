@@ -116,7 +116,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
             return Tag.objects.filter(same_content_type & same_id).distinct().values_list('id', flat=True)
         all_tag_ids = list(chain(
                                 _get_tags_on_items('collection', user.owned_collections.all()),
-                                _get_tags_on_items('surveyasset', user.survey_assets.all()),
+                                _get_tags_on_items('asset', user.survey_assets.all()),
                                 ))
 
         return Tag.objects.filter(id__in=all_tag_ids).distinct()
@@ -216,7 +216,7 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
     def xform(self, request, *args, **kwargs):
         survey_asset = self.get_object()
         export = survey_asset.export
-        title = '[%s] %s' % (self.request.user.username, reverse('surveyasset-detail', args=(survey_asset.uid,), request=self.request),)
+        title = '[%s] %s' % (self.request.user.username, reverse('asset-detail', args=(survey_asset.uid,), request=self.request),)
         header_links = '''
         <a href="../">Back</a> | <a href="../.xml">Download XML file</a><br>'''
         footer = '\n<!-- kpi/views.py#footer -->\n'

@@ -163,7 +163,7 @@
     },
     {
         "fields": {
-            "codename": "add_surveyasset",
+            "codename": "add_asset",
             "content_type": 7,
             "name": "Can add survey asset"
         },
@@ -172,7 +172,7 @@
     },
     {
         "fields": {
-            "codename": "change_surveyasset",
+            "codename": "change_asset",
             "content_type": 7,
             "name": "Can change survey asset"
         },
@@ -181,7 +181,7 @@
     },
     {
         "fields": {
-            "codename": "delete_surveyasset",
+            "codename": "delete_asset",
             "content_type": 7,
             "name": "Can delete survey asset"
         },
@@ -217,7 +217,7 @@
     },
     {
         "fields": {
-            "codename": "add_surveyasset",
+            "codename": "add_asset",
             "content_type": 9,
             "name": "Can add survey asset"
         },
@@ -226,7 +226,7 @@
     },
     {
         "fields": {
-            "codename": "change_surveyasset",
+            "codename": "change_asset",
             "content_type": 9,
             "name": "Can change survey asset"
         },
@@ -235,7 +235,7 @@
     },
     {
         "fields": {
-            "codename": "delete_surveyasset",
+            "codename": "delete_asset",
             "content_type": 9,
             "name": "Can delete survey asset"
         },
@@ -244,7 +244,7 @@
     },
     {
         "fields": {
-            "codename": "add_surveyassetrevision",
+            "codename": "add_assetrevision",
             "content_type": 10,
             "name": "Can add survey asset revision"
         },
@@ -253,7 +253,7 @@
     },
     {
         "fields": {
-            "codename": "change_surveyassetrevision",
+            "codename": "change_assetrevision",
             "content_type": 10,
             "name": "Can change survey asset revision"
         },
@@ -262,7 +262,7 @@
     },
     {
         "fields": {
-            "codename": "delete_surveyassetrevision",
+            "codename": "delete_assetrevision",
             "content_type": 10,
             "name": "Can delete survey asset revision"
         },
@@ -326,7 +326,7 @@
             "uid": "hjQm4PCz",
             "version_uid": "Mo4iE"
         },
-        "model": "kpi.surveyasset",
+        "model": "kpi.asset",
         "pk": 1
     },
     {
@@ -341,7 +341,7 @@
             "uid": "jWa7nubC",
             "version_uid": "sctuu"
         },
-        "model": "kpi.surveyasset",
+        "model": "kpi.asset",
         "pk": 2
     },
     {

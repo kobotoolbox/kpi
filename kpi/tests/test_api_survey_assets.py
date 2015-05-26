@@ -25,7 +25,7 @@ class SurveyAssetsListApiTests(APITestCase):
         """
         Ensure we can create a new survey asset
         """
-        url = reverse('surveyasset-list')
+        url = reverse('asset-list')
         data = {
             'content': json.dumps([]),
         }
@@ -40,7 +40,7 @@ class SurveyAssetsDetailApiTests(APITestCase):
 
     def setUp(self):
         self.client.login(username='admin', password='pass')
-        url = reverse('surveyasset-list')
+        url = reverse('asset-list')
         data = {'content': '[]'}
         self.r = self.client.post(url, data, format='json')
         self.asset_url = self.r.data['url']
@@ -84,7 +84,7 @@ class ObjectRelationshipsTests(APITestCase):
         * after assigning a survey asset, self.surv, to a collection (self.coll) [via the ORM]
             the survey asset is now listed in the collection's list of assets.
         '''
-        req = self.client.get(reverse('surveyasset-detail', args=[self.surv.uid]))
+        req = self.client.get(reverse('asset-detail', args=[self.surv.uid]))
         coll_req1 = self.client.get(reverse('collection-detail', args=[self.coll.uid]))
         self.assertEqual(self._count_children_by_kind(
             coll_req1.data['children'], self.surv.kind), 0)
@@ -92,7 +92,7 @@ class ObjectRelationshipsTests(APITestCase):
         self.surv.parent = self.coll
         self.surv.save()
 
-        surv_req2 = self.client.get(reverse('surveyasset-detail', args=[self.surv.uid]))
+        surv_req2 = self.client.get(reverse('asset-detail', args=[self.surv.uid]))
         self.assertIn('parent', surv_req2.data)
         self.assertIn(self.coll.uid, surv_req2.data['parent'])
 
@@ -108,7 +108,7 @@ class ObjectRelationshipsTests(APITestCase):
         * a follow up query on the asset shows that the collection is now set
         '''
         self.assertEqual(self.surv.parent, None)
-        surv_url = reverse('surveyasset-detail', args=[self.surv.uid])
+        surv_url = reverse('asset-detail', args=[self.surv.uid])
         patch_req = self.client.patch(surv_url, data={'parent': reverse('collection-detail', args=[self.coll.uid])})
         self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
         req = self.client.get(surv_url)

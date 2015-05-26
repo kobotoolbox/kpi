@@ -58,6 +58,6 @@ class Command(BaseCommand):
                 sa.tags.add(tag)
             for user in _rand_users():
                 perm_code = _rand_perm()
-                perm = _pget('%s_surveyasset' % perm_code)
+                perm = _pget('%s_asset' % perm_code)
                 print 'assigning user permission "%s" -> %s' % (perm, user.username)
                 sa.assign_perm(user, perm)

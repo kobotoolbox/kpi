@@ -50,21 +50,21 @@ class SurveyAsset(ObjectPermissionMixin, models.Model):
     class Meta:
         ordering = ('date_created',)
         permissions = (
-            # change_, add_, and delete_surveyasset are provided automatically
+            # change_, add_, and delete_asset are provided automatically
             # by Django
-            ('view_surveyasset', 'Can view survey asset'),
-            ('share_surveyasset', "Can change this survey asset's sharing settings"),
+            ('view_asset', 'Can view survey asset'),
+            ('share_asset', "Can change this survey asset's sharing settings"),
         )
 
     # Assignable permissions that are stored in the database
-    ASSIGNABLE_PERMISSIONS = ('view_surveyasset', 'change_surveyasset')
+    ASSIGNABLE_PERMISSIONS = ('view_asset', 'change_asset')
     # Calculated permissions that are neither directly assignable nor stored
     # in the database, but instead implied by assignable permissions
-    CALCULATED_PERMISSIONS = ('share_surveyasset', 'delete_surveyasset')
+    CALCULATED_PERMISSIONS = ('share_asset', 'delete_asset')
     # Certain Collection permissions carry over to SurveyAsset
     MAPPED_PARENT_PERMISSIONS = {
-        'view_collection': 'view_surveyasset',
-        'change_collection': 'change_surveyasset'
+        'view_collection': 'view_asset',
+        'change_collection': 'change_asset'
     }
 
     def versions(self):
@@ -183,7 +183,7 @@ class SurveyAssetExport(models.Model):
         return super(SurveyAssetExport, self).save(*args, **kwargs)
 
 @receiver(models.signals.post_delete, sender=SurveyAsset)
-def post_delete_surveyasset(sender, instance, **kwargs):
+def post_delete_asset(sender, instance, **kwargs):
     # Remove all permissions associated with this object
     ObjectPermission.objects.filter_for_object(instance).delete()
     # No recalculation is necessary since children will also be deleted
