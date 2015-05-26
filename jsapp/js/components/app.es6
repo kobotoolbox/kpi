@@ -390,7 +390,7 @@ var AssetCollectionRow = React.createClass({
     log('rendering');
     var perm = parsePermissions(this.props.owner, this.props.permissions);
     var icon_cls = "fa-stack fa-fw fa-lg asset--type-"+this.props.assetType;
-    var inner_icon_cls = this.props.objectType === "survey_asset" ? "fa fa-file fa-lg" : "fa fa-lg fa-folder";
+    var inner_icon_cls = this.props.objectType === "asset" ? "fa fa-file fa-lg" : "fa fa-lg fa-folder";
     let assetid = this.props.url.match(/\/(\w+)\/$/)[1];
     var currentUsername = sessionStore.currentAccount && sessionStore.currentAccount.username
     var selfOwned = this.props.owner__username == currentUsername;

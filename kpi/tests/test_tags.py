@@ -1,7 +1,7 @@
 from rest_framework import status
 from django.test import TestCase
 from kpi.models.collection import Collection
-from kpi.models.survey_asset import SurveyAsset
+from kpi.models.asset import SurveyAsset
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from taggit.models import Tag
@@ -20,7 +20,7 @@ class CreateCollectionTests(TestCase):
         self.coll.tags.add(TAG_NAME)
         self.assertEqual(Tag.objects.count(), 1)
 
-    def test_can_query_all_survey_assets_by_tag(self):
+    def test_can_query_all_assets_by_tag(self):
         TAG_NAME = 'Some Asset Tag'
         self.sa.tags.add(TAG_NAME)
         tag_obj = Tag.objects.get(name=TAG_NAME)

@@ -43,18 +43,18 @@ class SurveyAssetContentField(serializers.Field):
 
 class TagSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField('_get_tag_url', read_only=True)
-    survey_assets = serializers.SerializerMethodField('_get_survey_assets', read_only=True)
+    assets = serializers.SerializerMethodField('_get_assets', read_only=True)
     collections = serializers.SerializerMethodField('_get_collections', read_only=True)
     parent = serializers.SerializerMethodField('_get_parent_url', read_only=True)
 
     class Meta:
         model = Tag
-        fields = ('name', 'url', 'survey_assets', 'collections', 'parent')
+        fields = ('name', 'url', 'assets', 'collections', 'parent')
 
     def _get_parent_url(self, obj):
         return reverse('tag-list', request=self.context.get('request', None))
 
-    def _get_survey_assets(self, obj):
+    def _get_assets(self, obj):
         request = self.context.get('request', None)
         user = request.user
         # Check if the user is anonymous. The
@@ -280,12 +280,12 @@ class SurveyAssetListSerializer(SurveyAssetSerializer):
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
-    survey_assets = serializers.HyperlinkedRelatedField(many=True,
+    assets = serializers.HyperlinkedRelatedField(many=True,
                  view_name='asset-detail', read_only=True)
 
     class Meta:
         model = User
-        fields = ('url', 'username', 'survey_assets', 'owned_collections')
+        fields = ('url', 'username', 'assets', 'owned_collections')
         lookup_field = 'username'
         extra_kwargs = {
             'owned_collections': {
@@ -294,16 +294,16 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         }
 
 class UserListSerializer(UserSerializer):
-    survey_assets_count = serializers.SerializerMethodField('_survey_assets_count')
+    assets_count = serializers.SerializerMethodField('_assets_count')
     collections_count = serializers.SerializerMethodField('_collections_count')
 
     def _collections_count(self, obj):
         return obj.owned_collections.count()
-    def _survey_assets_count(self, obj):
-        return obj.survey_assets.count()
+    def _assets_count(self, obj):
+        return obj.assets.count()
 
     class Meta(UserSerializer.Meta):
-        fields = ('url', 'username', 'survey_assets_count', 'collections_count',)
+        fields = ('url', 'username', 'assets_count', 'collections_count',)
 
 
 class CollectionChildrenSerializer(serializers.Serializer):
@@ -326,7 +326,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
     tags = serializers.SerializerMethodField('_get_tag_names')
     children = CollectionChildrenSerializer(
         many=True, read_only=True,
-        source='get_children_and_survey_assets_iterable'
+        source='get_children_and_assets_iterable'
     )
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
 
@@ -346,7 +346,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
                     'tags',)
         lookup_field = 'uid'
         extra_kwargs = {
-            'survey_assets': {
+            'assets': {
                 'lookup_field': 'uid',
             },
         }
@@ -356,12 +356,12 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
 
 class CollectionListSerializer(CollectionSerializer):
     children_count = serializers.SerializerMethodField()
-    survey_assets_count = serializers.SerializerMethodField()
+    assets_count = serializers.SerializerMethodField()
 
     def get_children_count(self, obj):
         return obj.children.count()
-    def get_survey_assets_count(self, obj):
-        return obj.survey_assets.count()
+    def get_assets_count(self, obj):
+        return obj.assets.count()
 
     class Meta(CollectionSerializer.Meta):
         fields = ('name',
@@ -371,7 +371,7 @@ class CollectionListSerializer(CollectionSerializer):
                     'parent',
                     'owner',
                     'children_count',
-                    'survey_assets_count',
+                    'assets_count',
                     'owner__username',
                     'date_created',
                     'date_modified',

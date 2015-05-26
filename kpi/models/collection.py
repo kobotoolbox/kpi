@@ -3,7 +3,7 @@ from django.db import models
 from django.contrib.contenttypes.fields import GenericRelation
 from mptt.models import MPTTModel, TreeForeignKey
 from shortuuid import ShortUUID
-from kpi.models.survey_asset import SurveyAsset
+from kpi.models.asset import SurveyAsset
 from taggit.managers import TaggableManager
 from taggit.models import Tag
 from object_permission import ObjectPermission, ObjectPermissionMixin
@@ -14,9 +14,9 @@ COLLECTION_UID_LENGTH = 22
 class CollectionManager(models.Manager):
     def create(self, *args, **kwargs):
         assets = False
-        if 'survey_assets' in kwargs:
-            assets = kwargs['survey_assets']
-            del kwargs['survey_assets']
+        if 'assets' in kwargs:
+            assets = kwargs['assets']
+            del kwargs['assets']
         created = super(CollectionManager, self).create(*args, **kwargs)
         if assets:
             new_assets = []
@@ -82,17 +82,17 @@ class Collection(ObjectPermissionMixin, MPTTModel):
         if not include_self:
             # Gather our own child survey assets, since we won't be included
             # in the main loop
-            mixed_descendants.extend(list(self.survey_assets.all()))
+            mixed_descendants.extend(list(self.assets.all()))
         for descendant in self.get_descendants(include_self):
             # Append each of our descendant collections
             mixed_descendants.append(descendant)
-            for survey_asset in descendant.survey_assets.all():
+            for asset in descendant.assets.all():
                 # Append each descendant collection's child survey assets
-                mixed_descendants.append(survey_asset)
+                mixed_descendants.append(asset)
         return mixed_descendants
 
-    def get_children_and_survey_assets_iterable(self):
-        return chain(self.get_children(), self.survey_assets.all())
+    def get_children_and_assets_iterable(self):
+        return chain(self.get_children(), self.assets.all())
 
     def __unicode__(self):
         return self.name

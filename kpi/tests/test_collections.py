@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from ..models.collection import Collection
-from ..models.survey_asset import SurveyAsset
+from ..models.asset import SurveyAsset
 from ..models.object_permission import ObjectPermission
 from ..models.object_permission import get_all_objects_for_user
 
@@ -14,7 +14,7 @@ class CreateCollectionTests(TestCase):
     def setUp(self):
         self.user = User.objects.get(username='admin')
         self.coll = Collection.objects.create(owner=self.user)
-        self.survey_asset= SurveyAsset.objects.get(name='fixture admin asset')
+        self.asset= SurveyAsset.objects.get(name='fixture admin asset')
         self.initial_asset_count= SurveyAsset.objects.count()
         self.initial_collection_count= Collection.objects.count()
 
@@ -38,22 +38,22 @@ class CreateCollectionTests(TestCase):
         self.coll.tags.add('tag2')
         self.assertEqual(_list_tag_names(), ['tag1', 'tag2'])
 
-    def test_import_survey_assets_to_collection(self):
-        self.assertEqual(self.coll.survey_assets.count(), 0)
-        self.coll.survey_assets.create(name='test', content=[
+    def test_import_assets_to_collection(self):
+        self.assertEqual(self.coll.assets.count(), 0)
+        self.coll.assets.create(name='test', content=[
                 {'type': 'text', 'label': 'Q1', 'name': 'q1'},
                 {'type': 'text', 'label': 'Q2', 'name': 'q2'},
             ])
-        self.assertEqual(self.coll.survey_assets.count(), 1)
-        self.coll.survey_assets.add(self.survey_asset)
-        self.assertEqual(self.coll.survey_assets.count(), 2)
+        self.assertEqual(self.coll.assets.count(), 1)
+        self.coll.assets.add(self.asset)
+        self.assertEqual(self.coll.assets.count(), 2)
 
     def test_assets_are_deleted_with_collection(self):
         '''
-        right now, this does make it easy to delete survey_assets within a
+        right now, this does make it easy to delete assets within a
         collection.
         '''
-        asset = self.coll.survey_assets.create(name='test', content=[
+        asset = self.coll.assets.create(name='test', content=[
                 {'type': 'text', 'label': 'Q1', 'name': 'q1'},
                 {'type': 'text', 'label': 'Q2', 'name': 'q2'},
             ])
@@ -69,24 +69,24 @@ class CreateCollectionTests(TestCase):
         grandchild = Collection.objects.create(name='test_child_collection',
             owner=User.objects.first(), parent=child)
         self.assertEqual(Collection.objects.count(), self.initial_collection_count + 2)
-        child_sa = child.survey_assets.create()
-        grandchild_sa = grandchild.survey_assets.create()
+        child_sa = child.assets.create()
+        grandchild_sa = grandchild.assets.create()
         self.assertEqual(SurveyAsset.objects.count(), self.initial_asset_count + 2)
         self.coll.delete()
         self.assertEqual(Collection.objects.count(), self.initial_collection_count - 1)
         self.assertEqual(SurveyAsset.objects.count(), self.initial_asset_count)
 
-    def test_create_collection_with_survey_assets(self):
+    def test_create_collection_with_assets(self):
         self.assertTrue(Collection.objects.count() >= 1)
-        Collection.objects.create(name='test_collection', owner=self.user, survey_assets=[
+        Collection.objects.create(name='test_collection', owner=self.user, assets=[
                 {
-                    'name': 'test_survey_asset',
+                    'name': 'test_asset',
                     'content': [
                         {'type': 'text', 'label': 'Q1', 'name': 'q1'},
                     ]
                 },
                 {
-                    'name': 'test_survey_asset',
+                    'name': 'test_asset',
                     'content': [
                         {'type': 'text', 'label': 'Q2', 'name': 'q2'},
                     ]

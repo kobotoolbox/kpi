@@ -13,7 +13,7 @@ from rest_framework import status
 # FIXME: Remove the following line when the permissions API is in place.
 from .test_permissions import BasePermissionsTestCase
 from ..models.collection import Collection
-from ..models.survey_asset import SurveyAsset
+from ..models.asset import SurveyAsset
 
 class KpiTestCase(APITestCase, BasePermissionsTestCase):
     '''

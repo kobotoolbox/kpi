@@ -12,32 +12,32 @@ class SurveyAssetsTestCase(TestCase):
 
     def setUp(self):
         self.user = User.objects.all()[0]
-        self.survey_asset = SurveyAsset.objects.create(content=[
+        self.asset = SurveyAsset.objects.create(content=[
             {'type': 'text', 'label': 'Question 1', 'name': 'q1', 'kuid': 'abc'},
             {'type': 'text', 'label': 'Question 2', 'name': 'q2', 'kuid': 'def'},
         ], owner=self.user)
-        self.sa = self.survey_asset
+        self.sa = self.asset
 
 class CreateSurveyAssetVersions(SurveyAssetsTestCase):
-    def test_survey_asset_with_versions(self):
-        self.survey_asset.content[0]['type'] = 'integer'
-        self.assertEqual(self.survey_asset.content[0]['type'], 'integer')
-        self.survey_asset.save()
-        self.assertEqual(len(self.survey_asset.versions()), 2)
+    def test_asset_with_versions(self):
+        self.asset.content[0]['type'] = 'integer'
+        self.assertEqual(self.asset.content[0]['type'], 'integer')
+        self.asset.save()
+        self.assertEqual(len(self.asset.versions()), 2)
 
     def test_asset_can_be_owned(self):
-        self.assertEqual(self.survey_asset.owner, self.user)
+        self.assertEqual(self.asset.owner, self.user)
 
     def test_asset_can_be_tagged(self):
         def _list_tag_names():
-            return sorted(list(self.survey_asset.tags.names()))
+            return sorted(list(self.asset.tags.names()))
         self.assertEqual(_list_tag_names(), [])
-        self.survey_asset.tags.add('tag1')
+        self.asset.tags.add('tag1')
         self.assertEqual(_list_tag_names(), ['tag1'])
         # duplicate tags ignored
-        self.survey_asset.tags.add('tag1')
+        self.asset.tags.add('tag1')
         self.assertEqual(_list_tag_names(), ['tag1'])
-        self.survey_asset.tags.add('tag2')
+        self.asset.tags.add('tag2')
         self.assertEqual(_list_tag_names(), ['tag1', 'tag2'])
 
 
@@ -53,10 +53,10 @@ class CreateSurveyAssetVersions(SurveyAssetsTestCase):
 
 # class UpdateSurveyAssetsTest(SurveyAssetsTestCase):
 #     def test_add_settings(self):
-#         self.assertEqual(self.survey_asset.settings, None)
-#         self.survey_asset.settings = {'style':'grid-theme'}
-#         # self.assertEqual(self.survey_asset.settings, {'style':'grid-theme'})
-#         ss_struct = self.survey_asset.to_ss_structure()['settings']
+#         self.assertEqual(self.asset.settings, None)
+#         self.asset.settings = {'style':'grid-theme'}
+#         # self.assertEqual(self.asset.settings, {'style':'grid-theme'})
+#         ss_struct = self.asset.to_ss_structure()['settings']
 #         self.assertEqual(len(ss_struct), 1)
 #         self.assertEqual(ss_struct[0], {
 #                 'style': 'grid-theme',
@@ -68,20 +68,20 @@ class ShareSurveyAssetsTest(SurveyAssetsTestCase):
         self.someuser = User.objects.get(username='someuser')
         self.anotheruser = User.objects.get(username='anotheruser')
         self.coll = Collection.objects.create(owner=self.user)
-        # Make a copy of self.survey_asset and put it inside self.coll
-        self.asset_in_coll = self.survey_asset
+        # Make a copy of self.asset and put it inside self.coll
+        self.asset_in_coll = self.asset
         self.asset_in_coll.pk = None
         self.asset_in_coll.parent = self.coll
         self.asset_in_coll.save()
 
     def grant_and_revoke_standalone(self, user, perm):
-        self.assertEqual(user.has_perm(perm, self.survey_asset), False)
+        self.assertEqual(user.has_perm(perm, self.asset), False)
         # Grant
-        self.survey_asset.assign_perm(user, perm)
-        self.assertEqual(user.has_perm(perm, self.survey_asset), True)
+        self.asset.assign_perm(user, perm)
+        self.assertEqual(user.has_perm(perm, self.asset), True)
         # Revoke
-        self.survey_asset.remove_perm(user, perm)
-        self.assertEqual(user.has_perm(perm, self.survey_asset), False)
+        self.asset.remove_perm(user, perm)
+        self.assertEqual(user.has_perm(perm, self.asset), False)
 
     def test_user_view_permission(self):
         self.grant_and_revoke_standalone(self.someuser, 'view_asset')
@@ -180,7 +180,7 @@ class ShareSurveyAssetsTest(SurveyAssetsTestCase):
             0
         )
         # Grant access and verify the result
-        self.survey_asset.assign_perm(self.someuser, 'view_asset')
+        self.asset.assign_perm(self.someuser, 'view_asset')
         self.assertEqual(
             # Without coercion, django.db.models.query.ValuesListQuerySet isn't
             # a real list and will fail the comparison.
@@ -190,13 +190,13 @@ class ShareSurveyAssetsTest(SurveyAssetsTestCase):
                     SurveyAsset
                 ).values_list('pk', flat=True)
             ),
-            [self.survey_asset.pk]
+            [self.asset.pk]
         )
 
     def test_owner_can_edit_permissions(self):
-        self.assertTrue(self.survey_asset.owner.has_perm(
+        self.assertTrue(self.asset.owner.has_perm(
             'share_asset',
-            self.survey_asset
+            self.asset
         ))
 
     def test_share_asset_permission_is_not_inherited(self):
@@ -218,29 +218,29 @@ class ShareSurveyAssetsTest(SurveyAssetsTestCase):
     def test_change_permission_provides_share_permission(self):
         someuser = User.objects.get(username='someuser')
         self.assertFalse(someuser.has_perm(
-            'change_asset', self.survey_asset))
+            'change_asset', self.asset))
         # Grant the change permission and make sure it provides
         # share_asset
-        self.survey_asset.assign_perm(someuser, 'change_asset')
+        self.asset.assign_perm(someuser, 'change_asset')
         self.assertTrue(someuser.has_perm(
-            'share_asset', self.survey_asset))
+            'share_asset', self.asset))
         # Restrict share_asset to the owner and make sure someuser loses
         # the permission
-        self.survey_asset.editors_can_change_permissions = False
+        self.asset.editors_can_change_permissions = False
         self.assertFalse(someuser.has_perm(
-            'share_asset', self.survey_asset))
+            'share_asset', self.asset))
 
     def test_anonymous_view_permission_on_standalone_asset(self):
         # Grant
         self.assertFalse(AnonymousUser().has_perm(
-            'view_asset', self.survey_asset))
-        self.survey_asset.assign_perm(AnonymousUser(), 'view_asset')
+            'view_asset', self.asset))
+        self.asset.assign_perm(AnonymousUser(), 'view_asset')
         self.assertTrue(AnonymousUser().has_perm(
-            'view_asset', self.survey_asset))
+            'view_asset', self.asset))
         # Revoke
-        self.survey_asset.remove_perm(AnonymousUser(), 'view_asset')
+        self.asset.remove_perm(AnonymousUser(), 'view_asset')
         self.assertFalse(AnonymousUser().has_perm(
-            'view_asset', self.survey_asset))
+            'view_asset', self.asset))
 
     def test_anoymous_change_permission_on_standalone_asset(self):
         # TODO: behave properly if ALLOWED_ANONYMOUS_PERMISSIONS actually
@@ -248,13 +248,13 @@ class ShareSurveyAssetsTest(SurveyAssetsTestCase):
         try:
             # This is expected to fail since only real users can have any
             # permissions beyond view
-            self.survey_asset.assign_perm(
+            self.asset.assign_perm(
                 AnonymousUser(), 'change_asset')
         except ValidationError:
             pass
         # Make sure the assignment failed
         self.assertFalse(AnonymousUser().has_perm(
-            'change_asset', self.survey_asset))
+            'change_asset', self.asset))
 
     def test_anonymous_as_baseline_for_authenticated(self):
         ''' If the public can view an object, then all users should be able
@@ -262,10 +262,10 @@ class ShareSurveyAssetsTest(SurveyAssetsTestCase):
         # No one should have any permission yet
         for user_obj in AnonymousUser(), self.someuser:
             self.assertFalse(user_obj.has_perm(
-                'view_asset', self.survey_asset))
+                'view_asset', self.asset))
         # Grant to anonymous
-        self.survey_asset.assign_perm(AnonymousUser(), 'view_asset')
+        self.asset.assign_perm(AnonymousUser(), 'view_asset')
         # Check that both anonymous and someuser can view
         for user_obj in AnonymousUser(), self.someuser:
             self.assertTrue(user_obj.has_perm(
-                'view_asset', self.survey_asset))
+                'view_asset', self.asset))

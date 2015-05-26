@@ -53,7 +53,7 @@ class Command(BaseCommand):
 
         for sa in SurveyAsset.objects.all():
             _tags = _rand_tags_list()
-            print  'adding tags to survey_asset: '+ repr(_tags)
+            print  'adding tags to asset: '+ repr(_tags)
             for tag in _tags:
                 sa.tags.add(tag)
             for user in _rand_users():

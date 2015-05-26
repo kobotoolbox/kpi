@@ -5,7 +5,7 @@ from django.test import TestCase
 
 from ..models.collection import Collection
 from ..models.object_permission import get_all_objects_for_user
-from ..models.survey_asset import SurveyAsset
+from ..models.asset import SurveyAsset
 
 class BasePermissionsTestCase(TestCase):
     def _get_perm_name(self, perm_name_prefix, model_instance):
@@ -14,7 +14,7 @@ class BasePermissionsTestCase(TestCase):
         prefix and a model instance.
 
         Example:
-            >>>self._get_perm_name('view_', my_survey_asset)
+            >>>self._get_perm_name('view_', my_asset)
             'view_asset'
 
         :param perm_name_prefix: Prefix of the desired permission name (i.e.
@@ -165,14 +165,14 @@ class PermissionsTestCase(BasePermissionsTestCase):
         self._test_add_and_remove_perm(self.admin_collection, 'change_', self.someuser)
 
     def test_add_asset_inherited_permission(self):
-        self.admin_collection.survey_assets.add(self.admin_asset)
+        self.admin_collection.assets.add(self.admin_asset)
         self._test_add_inherited_perm(self.admin_collection, 'view_',
                                             self.someuser, self.admin_asset)
         self._test_add_inherited_perm(self.admin_collection, 'change_',
                                             self.someuser, self.admin_asset)
 
     def test_remove_collection_inherited_permission(self):
-        self.admin_collection.survey_assets.add(self.admin_asset)
+        self.admin_collection.assets.add(self.admin_asset)
         self._test_add_remove_inherited_perm(self.admin_collection, 'view_',
                                      self.someuser, self.admin_asset)
         self._test_add_remove_inherited_perm(self.admin_collection, 'change_',
