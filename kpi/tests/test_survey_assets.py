@@ -1,5 +1,5 @@
 import re
-from kpi.models import SurveyAsset
+from kpi.models import Asset
 from kpi.models import Collection
 from kpi.models.object_permission import get_all_objects_for_user
 from django.contrib.auth.models import User, AnonymousUser
@@ -7,18 +7,18 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 
-class SurveyAssetsTestCase(TestCase):
+class AssetsTestCase(TestCase):
     fixtures = ['test_data']
 
     def setUp(self):
         self.user = User.objects.all()[0]
-        self.asset = SurveyAsset.objects.create(content=[
+        self.asset = Asset.objects.create(content=[
             {'type': 'text', 'label': 'Question 1', 'name': 'q1', 'kuid': 'abc'},
             {'type': 'text', 'label': 'Question 2', 'name': 'q2', 'kuid': 'def'},
         ], owner=self.user)
         self.sa = self.asset
 
-class CreateSurveyAssetVersions(SurveyAssetsTestCase):
+class CreateAssetVersions(AssetsTestCase):
     def test_asset_with_versions(self):
         self.asset.content[0]['type'] = 'integer'
         self.assertEqual(self.asset.content[0]['type'], 'integer')
@@ -42,16 +42,16 @@ class CreateSurveyAssetVersions(SurveyAssetsTestCase):
 
 
     def test_asset_can_be_anonymous(self):
-        anon_asset = SurveyAsset.objects.create(content=[])
+        anon_asset = Asset.objects.create(content=[])
         self.assertEqual(anon_asset.owner, None)
 
-# class ReadSurveyAssetsTests(SurveyAssetsTestCase):
+# class ReadAssetsTests(AssetsTestCase):
 #     def test_strip_kuids(self):
 #         sans_kuid = self.sa.to_ss_structure(content_tag='survey', strip_kuids=True)['survey']
 #         self.assertEqual(len(sans_kuid), 2)
 #         self.assertTrue('kuid' not in sans_kuid[0].keys())
 
-# class UpdateSurveyAssetsTest(SurveyAssetsTestCase):
+# class UpdateAssetsTest(AssetsTestCase):
 #     def test_add_settings(self):
 #         self.assertEqual(self.asset.settings, None)
 #         self.asset.settings = {'style':'grid-theme'}
@@ -62,9 +62,9 @@ class CreateSurveyAssetVersions(SurveyAssetsTestCase):
 #                 'style': 'grid-theme',
 #             })
 
-class ShareSurveyAssetsTest(SurveyAssetsTestCase):
+class ShareAssetsTest(AssetsTestCase):
     def setUp(self):
-        super(ShareSurveyAssetsTest, self).setUp()
+        super(ShareAssetsTest, self).setUp()
         self.someuser = User.objects.get(username='someuser')
         self.anotheruser = User.objects.get(username='anotheruser')
         self.coll = Collection.objects.create(owner=self.user)
@@ -171,12 +171,12 @@ class ShareSurveyAssetsTest(SurveyAssetsTestCase):
     def test_query_all_assets_user_can_access(self):
         # The owner should have access to all owned assets
         self.assertEqual(
-            get_all_objects_for_user(self.user, SurveyAsset).count(),
+            get_all_objects_for_user(self.user, Asset).count(),
             2
         )
         # The other user should have nothing yet
         self.assertEqual(
-            get_all_objects_for_user(self.someuser, SurveyAsset).count(),
+            get_all_objects_for_user(self.someuser, Asset).count(),
             0
         )
         # Grant access and verify the result
@@ -187,7 +187,7 @@ class ShareSurveyAssetsTest(SurveyAssetsTestCase):
             list(
                 get_all_objects_for_user(
                     self.someuser,
-                    SurveyAsset
+                    Asset
                 ).values_list('pk', flat=True)
             ),
             [self.asset.pk]

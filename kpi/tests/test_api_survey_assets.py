@@ -6,9 +6,9 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from kpi.models import Collection
-from kpi.models import SurveyAsset
+from kpi.models import Asset
 
-class SurveyAssetsListApiTests(APITestCase):
+class AssetsListApiTests(APITestCase):
     fixtures = ['test_data']
 
     def setUp(self):
@@ -32,10 +32,10 @@ class SurveyAssetsListApiTests(APITestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED,
                             msg=response.data)
-        sa = SurveyAsset.objects.last()
+        sa = Asset.objects.last()
         self.assertEqual(sa.content, [])
 
-class SurveyAssetsDetailApiTests(APITestCase):
+class AssetsDetailApiTests(APITestCase):
     fixtures = ['test_data']
 
     def setUp(self):
@@ -66,7 +66,7 @@ class ObjectRelationshipsTests(APITestCase):
     def setUp(self):
         self.client.login(username='admin', password='pass')
         self.user = User.objects.get(id=1)
-        self.surv = SurveyAsset.objects.create(content='[{"type":"text","name":"q1"}]', owner=self.user)
+        self.surv = Asset.objects.create(content='[{"type":"text","name":"q1"}]', owner=self.user)
         self.coll = Collection.objects.create(name='sample collection', owner=self.user)
 
     def _count_children_by_kind(self, children, kind):

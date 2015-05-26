@@ -13,7 +13,7 @@ from rest_framework import status
 # FIXME: Remove the following line when the permissions API is in place.
 from .test_permissions import BasePermissionsTestCase
 from ..models.collection import Collection
-from ..models.asset import SurveyAsset
+from ..models.asset import Asset
 
 class KpiTestCase(APITestCase, BasePermissionsTestCase):
     '''
@@ -30,7 +30,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         if uid.startswith('c'):
             klass= Collection
         elif uid.startswith('a'):
-            klass= SurveyAsset
+            klass= Asset
         else:
             raise NotImplementedError()
         obj= klass.objects.get(uid=uid)
@@ -127,7 +127,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         Add a permission.
 
         :param obj: Object to manipulate permissions on.
-        :type obj: :py:class:`Collection` or :py:class:`SurveyAsset`
+        :type obj: :py:class:`Collection` or :py:class:`Asset`
         :param owner: The owner of `obj`.
         :type owner: :py:class:`User`
         :param owner_password: The password for user 'owner'.
@@ -161,7 +161,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         Remove a permission.
 
         :param obj: Object to manipulate permissions on.
-        :type obj: :py:class:`Collection` or :py:class:`SurveyAsset`
+        :type obj: :py:class:`Collection` or :py:class:`Asset`
         :param owner: The owner of `obj`.
         :type owner: :py:class:`User`
         :param owner_password: The password for user 'owner'.

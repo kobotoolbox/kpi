@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.reverse import reverse_lazy, reverse
-from .models import SurveyAsset
+from .models import Asset
 from .models import Collection
 from .models import ObjectPermission
 from .models.object_permission import get_anonymous_user
@@ -31,7 +31,7 @@ class WritableJSONField(serializers.Field):
     def to_representation(self, value):
         return value
 
-class SurveyAssetContentField(serializers.Field):
+class AssetContentField(serializers.Field):
     '''
     not sure if this custom field will survive.
     '''
@@ -63,7 +63,7 @@ class TagSerializer(serializers.ModelSerializer):
         if user.is_anonymous():
             user = get_anonymous_user()
         return [reverse('asset-detail', args=(sa.uid,), request=request) \
-                for sa in SurveyAsset.objects.filter(tags=obj, owner=user).all()]
+                for sa in Asset.objects.filter(tags=obj, owner=user).all()]
 
     def _get_collections(self, obj):
         request = self.context.get('request', None)
@@ -181,7 +181,7 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
         validated_data['inherited'] = False
         return super(ObjectPermissionSerializer, self).create(validated_data)
 
-class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
+class AssetSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username',
                                                 read_only=True,)
     owner__username = serializers.ReadOnlyField(source='owner.username')
@@ -193,7 +193,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     xls_link = serializers.SerializerMethodField()
     koboform_link = serializers.SerializerMethodField()
     xform_link = serializers.SerializerMethodField()
-    content = SurveyAssetContentField(style={'base_template': 'muted_readonly_content_field.html'})
+    content = AssetContentField(style={'base_template': 'muted_readonly_content_field.html'})
     tags = serializers.SerializerMethodField('_get_tag_names')
     version_count = serializers.SerializerMethodField('_version_count')
     parent = serializers.HyperlinkedRelatedField(lookup_field='uid', queryset=Collection.objects.all(),
@@ -201,7 +201,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
 
     class Meta:
-        model = SurveyAsset
+        model = Asset
         lookup_field = 'uid'
         fields = ('url',
                     'parent',
@@ -230,7 +230,7 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
         }
 
     def get_fields(self, *args, **kwargs):
-        fields = super(SurveyAssetSerializer, self).get_fields(*args, **kwargs)
+        fields = super(AssetSerializer, self).get_fields(*args, **kwargs)
         user = self.context['request'].user
         # Check if the user is anonymous. The
         # django.contrib.auth.models.AnonymousUser object doesn't work for
@@ -263,8 +263,8 @@ class SurveyAssetSerializer(serializers.HyperlinkedModelSerializer):
         return reverse('asset-table-view', args=(obj.uid,), request=request)
 
 
-class SurveyAssetListSerializer(SurveyAssetSerializer):
-    class Meta(SurveyAssetSerializer.Meta):
+class AssetListSerializer(AssetSerializer):
+    class Meta(AssetSerializer.Meta):
         fields = ('url', 
                   'date_modified',
                   'date_created',
@@ -310,8 +310,8 @@ class CollectionChildrenSerializer(serializers.Serializer):
     def to_representation(self, value):
         if isinstance(value, Collection):
             serializer = CollectionListSerializer
-        elif isinstance(value, SurveyAsset):
-            serializer = SurveyAssetListSerializer
+        elif isinstance(value, Asset):
+            serializer = AssetListSerializer
         else:
             raise Exception('Unexpected child type {}'.format(type(value)))
         return serializer(value, context=self.context).data

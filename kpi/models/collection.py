@@ -3,7 +3,7 @@ from django.db import models
 from django.contrib.contenttypes.fields import GenericRelation
 from mptt.models import MPTTModel, TreeForeignKey
 from shortuuid import ShortUUID
-from kpi.models.asset import SurveyAsset
+from kpi.models.asset import Asset
 from taggit.managers import TaggableManager
 from taggit.models import Tag
 from object_permission import ObjectPermission, ObjectPermissionMixin
@@ -22,9 +22,9 @@ class CollectionManager(models.Manager):
             new_assets = []
             for asset in assets:
                 asset['parent'] = created
-                new_assets.append(SurveyAsset.objects.create(**asset))
+                new_assets.append(Asset.objects.create(**asset))
             # bulk_create comes with a number of caveats
-            # SurveyAsset.objects.bulk_create(new_assets)
+            # Asset.objects.bulk_create(new_assets)
         return created
 
     def filter_by_tag_name(self, tag_name):
@@ -75,7 +75,7 @@ class Collection(ObjectPermissionMixin, MPTTModel):
 
     def get_descendants_list(self, include_self=False):
         ''' Similar to django-mptt's get_descendants, but returns a list
-        instead of a QuerySet since our descendants are both SurveyAssets and
+        instead of a QuerySet since our descendants are both Assets and
         Collections '''
         mixed_descendants = list()
         if not include_self:

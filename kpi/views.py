@@ -19,7 +19,7 @@ from taggit.models import Tag
 from .models import (
     Collection,
     object_permission,
-    SurveyAsset,
+    Asset,
     ObjectPermission,)
 from .models.object_permission import get_anonymous_user
 from .permissions import IsOwnerOrReadOnly
@@ -33,7 +33,7 @@ from .renderers import (
     XlsRenderer,
     EnketoPreviewLinkRenderer,)
 from .serializers import (
-    SurveyAssetSerializer, SurveyAssetListSerializer,
+    AssetSerializer, AssetListSerializer,
     CollectionSerializer, CollectionListSerializer,
     UserSerializer, UserListSerializer,
     TagSerializer, TagListSerializer,
@@ -147,7 +147,7 @@ from rest_framework.parsers import MultiPartParser
 class XlsFormParser(MultiPartParser):
     pass
 
-class SurveyAssetViewSet(viewsets.ModelViewSet):
+class AssetViewSet(viewsets.ModelViewSet):
     """
     * Access a summary list of all survey assets available to your user. <span class='label label-success'>complete</span>
     * Inspect individual survey assets <span class='label label-success'>complete</span>
@@ -163,8 +163,8 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
     * Create anonymous survey assets <span class='label label-danger'>TODO</span>
     """
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
-    queryset = SurveyAsset.objects.all()
-    serializer_class = SurveyAssetSerializer
+    queryset = Asset.objects.all()
+    serializer_class = AssetSerializer
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
     filter_backends = (KpiObjectPermissionsFilter, ParentFilter)
@@ -179,9 +179,9 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'list':
-            return SurveyAssetListSerializer
+            return AssetListSerializer
         else:
-            return SurveyAssetSerializer
+            return AssetSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

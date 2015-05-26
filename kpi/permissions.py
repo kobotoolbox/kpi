@@ -20,7 +20,7 @@ def _get_perm_name(perm_name_prefix, model_instance):
     :type perm_name_prefix: str
     :param model_instance: An instance of the model for which the permission
         name is desired.
-    :type model_instance: :py:class:`Collection` or :py:class:`SurveyAsset`
+    :type model_instance: :py:class:`Collection` or :py:class:`Asset`
     :return: The computed permission name.
     :rtype: str
     '''

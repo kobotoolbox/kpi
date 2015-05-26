@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from ..models.collection import Collection
-from ..models.asset import SurveyAsset
+from ..models.asset import Asset
 from ..models.object_permission import ObjectPermission
 from ..models.object_permission import get_all_objects_for_user
 
@@ -14,8 +14,8 @@ class CreateCollectionTests(TestCase):
     def setUp(self):
         self.user = User.objects.get(username='admin')
         self.coll = Collection.objects.create(owner=self.user)
-        self.asset= SurveyAsset.objects.get(name='fixture admin asset')
-        self.initial_asset_count= SurveyAsset.objects.count()
+        self.asset= Asset.objects.get(name='fixture admin asset')
+        self.initial_asset_count= Asset.objects.count()
         self.initial_collection_count= Collection.objects.count()
 
     def test_collections_can_be_owned(self):
@@ -57,11 +57,11 @@ class CreateCollectionTests(TestCase):
                 {'type': 'text', 'label': 'Q1', 'name': 'q1'},
                 {'type': 'text', 'label': 'Q2', 'name': 'q2'},
             ])
-        self.assertEqual(SurveyAsset.objects.filter(id=asset.id).count(), 1)
-        self.assertEqual(SurveyAsset.objects.count(), self.initial_asset_count + 1)
+        self.assertEqual(Asset.objects.filter(id=asset.id).count(), 1)
+        self.assertEqual(Asset.objects.count(), self.initial_asset_count + 1)
         self.coll.delete()
-        self.assertEqual(SurveyAsset.objects.filter(id=asset.id).count(), 0)
-        self.assertEqual(SurveyAsset.objects.count(), self.initial_asset_count)
+        self.assertEqual(Asset.objects.filter(id=asset.id).count(), 0)
+        self.assertEqual(Asset.objects.count(), self.initial_asset_count)
 
     def test_descendants_are_deleted_with_collection(self):
         child = Collection.objects.create(name='test_child_collection',
@@ -71,10 +71,10 @@ class CreateCollectionTests(TestCase):
         self.assertEqual(Collection.objects.count(), self.initial_collection_count + 2)
         child_sa = child.assets.create()
         grandchild_sa = grandchild.assets.create()
-        self.assertEqual(SurveyAsset.objects.count(), self.initial_asset_count + 2)
+        self.assertEqual(Asset.objects.count(), self.initial_asset_count + 2)
         self.coll.delete()
         self.assertEqual(Collection.objects.count(), self.initial_collection_count - 1)
-        self.assertEqual(SurveyAsset.objects.count(), self.initial_asset_count)
+        self.assertEqual(Asset.objects.count(), self.initial_asset_count)
 
     def test_create_collection_with_assets(self):
         self.assertTrue(Collection.objects.count() >= 1)
@@ -92,7 +92,7 @@ class CreateCollectionTests(TestCase):
                     ]
                 },
             ])
-        self.assertEqual(SurveyAsset.objects.count(), self.initial_asset_count + 2)
+        self.assertEqual(Asset.objects.count(), self.initial_asset_count + 2)
         self.assertEqual(Collection.objects.count(), self.initial_collection_count + 1)
 
     def test_create_child_collection(self):
