@@ -12,7 +12,7 @@ def _get_perm_name(perm_name_prefix, model_instance):
     prefix and a model instance.
 
     Example:
-        >>>self._get_perm_name('view_', my_survey_asset)
+        >>>self._get_perm_name('view_', my_asset)
         'view_asset'
 
     :param perm_name_prefix: Prefix of the desired permission name (i.e.

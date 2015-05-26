@@ -58,18 +58,18 @@ def _import_user_drafts(server, username, draft_id, fpath):
 
     _set_auto_field_update(SurveyAsset, "date_created", True)
     _set_auto_field_update(SurveyAsset, "date_modified", True)
-    (survey_asset, sa_created) = collection.survey_assets.get_or_create(name=obj['name'], owner=owner)
+    (asset, sa_created) = collection.assets.get_or_create(name=obj['name'], owner=owner)
 
     collection.tags = "server-%s" % server
     survey_dict = _csv_to_dict(sd['body'])
-    survey_asset.content = survey_dict
+    asset.content = survey_dict
 
-    survey_asset.date_created = obj['date_created']
-    survey_asset.date_modified = obj['date_modified']
+    asset.date_created = obj['date_created']
+    asset.date_modified = obj['date_modified']
 
     _set_auto_field_update(SurveyAsset, "date_created", False)
     _set_auto_field_update(SurveyAsset, "date_modified", False)
-    survey_asset.save()
+    asset.save()
 
 class Command(BaseCommand):
     def handle(self, *args, **options):

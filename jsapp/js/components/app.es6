@@ -302,7 +302,7 @@ class AssetCollectionRow extends React.Component {
   render () {
     var perm = parsePermissions(this.props.owner, this.props.permissions);
     var icon_cls = "fa-stack fa-fw fa-lg asset--type-"+this.props.assetType;
-    var inner_icon_cls = this.props.objectType === "survey_asset" ? "fa fa-circle fa-lg" : "fa fa-lg fa-folder";
+    var inner_icon_cls = this.props.objectType === "asset" ? "fa fa-circle fa-lg" : "fa fa-lg fa-folder";
 
     return (
         <tr className="assetcollection__row">

@@ -34,8 +34,8 @@ class SurveyAsset(ObjectPermissionMixin, models.Model):
     date_modified = models.DateTimeField(auto_now=True)
     content = JSONField(null=True)
     asset_type = models.CharField(choices=SURVEY_ASSET_TYPES, max_length=20, default='text')
-    parent = models.ForeignKey('Collection', related_name='survey_assets', null=True)
-    owner = models.ForeignKey('auth.User', related_name='survey_assets', null=True)
+    parent = models.ForeignKey('Collection', related_name='assets', null=True)
+    owner = models.ForeignKey('auth.User', related_name='assets', null=True)
     editors_can_change_permissions = models.BooleanField(default=True)
     uid = models.CharField(max_length=SURVEY_ASSET_UID_LENGTH, default='')
     tags = TaggableManager()
@@ -129,9 +129,9 @@ class SurveyAsset(ObjectPermissionMixin, models.Model):
     @property
     def export(self):
         version_id = reversion.get_for_object(self).last().id
-        # SurveyAssetExport.objects.filter(survey_asset=self).delete()
-        (model, created,) = SurveyAssetExport.objects.get_or_create(survey_asset=self,
-                                survey_asset_version_id=version_id)
+        # SurveyAssetExport.objects.filter(asset=self).delete()
+        (model, created,) = SurveyAssetExport.objects.get_or_create(asset=self,
+                                asset_version_id=version_id)
         return model
 
 class SurveyAssetExport(models.Model):
@@ -144,8 +144,8 @@ class SurveyAssetExport(models.Model):
     xml = models.TextField()
     source = JSONField(default='{}')
     details = JSONField(default='{}')
-    survey_asset = models.ForeignKey(SurveyAsset)
-    survey_asset_version_id = models.IntegerField()
+    asset = models.ForeignKey(SurveyAsset)
+    asset_version_id = models.IntegerField()
     date_created = models.DateTimeField(auto_now_add=True)
 
     def generate_xml_from_source(self):
@@ -176,9 +176,9 @@ class SurveyAssetExport(models.Model):
             })
 
     def save(self, *args, **kwargs):
-        version = reversion.get_for_object(self.survey_asset).get(id=self.survey_asset_version_id)
-        survey_asset = version.object
-        self.source = survey_asset.to_ss_structure()
+        version = reversion.get_for_object(self.asset).get(id=self.asset_version_id)
+        asset = version.object
+        self.source = asset.to_ss_structure()
         self.generate_xml_from_source()
         return super(SurveyAssetExport, self).save(*args, **kwargs)
 

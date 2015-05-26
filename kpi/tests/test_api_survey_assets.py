@@ -21,7 +21,7 @@ class SurveyAssetsListApiTests(APITestCase):
         self.client.login(username='anotheruser', password='anotheruser')
         self.client.logout()
 
-    def test_create_survey_asset(self):
+    def test_create_asset(self):
         """
         Ensure we can create a new survey asset
         """
@@ -46,11 +46,11 @@ class SurveyAssetsDetailApiTests(APITestCase):
         self.asset_url = self.r.data['url']
         self.assertEqual(self.r.status_code, status.HTTP_201_CREATED)
 
-    def test_survey_asset_exists(self):
+    def test_asset_exists(self):
         resp = self.client.get(self.asset_url, format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
-    def test_can_update_survey_asset_settings(self):
+    def test_can_update_asset_settings(self):
         data = {
             'settings': json.dumps({
                 'mysetting': 'value'
@@ -76,10 +76,10 @@ class ObjectRelationshipsTests(APITestCase):
                 count += 1
         return count
 
-    def test_list_survey_asset(self):
+    def test_list_asset(self):
         pass
 
-    def test_collection_can_have_survey_asset(self):
+    def test_collection_can_have_asset(self):
         '''
         * after assigning a survey asset, self.surv, to a collection (self.coll) [via the ORM]
             the survey asset is now listed in the collection's list of assets.
@@ -101,7 +101,7 @@ class ObjectRelationshipsTests(APITestCase):
             coll_req2.data['children'], self.surv.kind), 1)
         self.assertEqual(self.surv.uid, coll_req2.data['children'][0]['uid'])
 
-    def test_add_survey_asset_to_collection(self):
+    def test_add_asset_to_collection(self):
         '''
         * a survey starts out with no collection.
         * assigning a collection to the survey returns a HTTP 200 code.

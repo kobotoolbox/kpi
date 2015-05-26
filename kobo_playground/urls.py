@@ -12,7 +12,7 @@ from django.conf.urls import url, include
 from kpi.views import current_user
 
 router = DefaultRouter()
-router.register(r'survey_assets', SurveyAssetViewSet)
+router.register(r'assets', SurveyAssetViewSet)
 router.register(r'collections', CollectionViewSet)
 router.register(r'users', UserViewSet)
 router.register(r'tags', TagViewSet)

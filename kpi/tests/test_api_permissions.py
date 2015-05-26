@@ -27,7 +27,7 @@ class ApiAnonymousPermissionsTestCase(KpiTestCase):
 
     def test_cannot_create_collection(self):
         url = reverse('collection-list')
-        data = {'name': 'my collection', 'collections': [], 'survey_assets': []}
+        data = {'name': 'my collection', 'collections': [], 'assets': []}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, msg=\
                     "anonymous user cannot create a collection")
