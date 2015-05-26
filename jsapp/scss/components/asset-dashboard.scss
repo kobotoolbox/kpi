@@ -37,12 +37,16 @@ $permEditorColor: #999;
     padding: 0;
     list-style-type: none;
     display: inline-block;
-    &:before {
-      content: ' | ';
-    }
-    &:first-child {
-      &:before {
-        content: '';
+    a {
+      border: 1px solid #eee;
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      margin-right: 4px;
+      &:hover {
+        background-color: #eee;
+        border-color: #bbb;
       }
     }
   }

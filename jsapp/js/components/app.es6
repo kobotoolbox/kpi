@@ -387,7 +387,6 @@ var AssetCollectionRow = React.createClass({
     };
   },
   render () {
-    log('rendering');
     var perm = parsePermissions(this.props.owner, this.props.permissions);
     var icon_cls = "fa-stack fa-fw fa-lg asset--type-"+this.props.assetType;
     var inner_icon_cls = this.props.objectType === "asset" ? "fa fa-file fa-lg" : "fa fa-lg fa-folder";
@@ -658,7 +657,6 @@ class LoginForm extends React.Component {
 
 
 var LiLink = React.createClass({
-  mixins: [Navigation],
   render () {
     var liClass = this.props.active ? 'active' : '';
     var href = this.props.href || '#';
@@ -692,30 +690,43 @@ class LiDropdown extends React.Component {
 }
 
 var Breadcrumb = React.createClass({
-  mixins: [Reflux.ListenerMixin],
+  mixins: [
+    Reflux.ListenerMixin,
+    Navigation,
+    ],
   getInitialState () {
+    var _items = this.context.router.getCurrentRoutes().map(function(r){
+      return {
+        name: r.name,
+        href: r.path
+      };
+    });
     return {
-      items: [],
-      home: {
-        title: t('home'),
-        href: '/'
-      }
+      items: _items
     }
   },
   render () {
-    var items = [this.state.home].concat(this.state.items);
-    items = items.map((item)=> {
-      return <li><a href={item.href}>{item.title}</a></li>;
-      })
     return (
         <ul className="k-breadcrumb">
-          {items}
+          {
+            this.state.items.map((item)=> {
+              return <li><a href={item.href}>{item.name}</a></li>;
+            })
+          }
         </ul>
       );
   }
 });
 
 var actions = {
+  navigation: Reflux.createActions([
+      "transitionStart",
+      "transitionEnd",
+
+      "routeUpdate",
+
+      "documentTitleUpdate"
+    ]),
   auth: Reflux.createActions({
     login: {
       children: [
@@ -735,13 +746,38 @@ var actions = {
         "failed"
       ]
     }
+  }),
+  resources: Reflux.createActions({
+    loadResource: {
+      children: [
+        "success",
+        "fail"
+      ],
+    },
+    createResource: {
+      children: [
+        "success",
+        "fail"
+      ]
+    },
+    updateResource: {
+      children: [
+        "success",
+        "fail"
+      ]
+    },
+    notFound: {}
   })
 };
 
 var sessionDispatch;
 (function(){
   var $ajax = (o)=> $.ajax(assign({}, {dataType: 'json', method: 'GET'}, o));
-
+  const assetMapping = {
+    'a': 'assets',
+    'c': 'collections',
+    'p': 'permissions',
+  }
   assign(this, {
     selfProfile: ()=> $ajax({ url: '/me/' }),
     logout: ()=> {
@@ -764,6 +800,11 @@ var sessionDispatch;
     },
     getCollection ({id}) {
       return $.getJSON(`/collections/${id}/`);
+    },
+    getResource ({id}) {
+      // how can we avoid pulling asset type from the 1st character of the uid?
+      var assetType = assetMapping[id[0]];
+      return $.getJSON(`/${assetType}/${id}/`);
     },
     login: (creds)=> { return $ajax({ url: '/api-auth/login/?next=/me/', data: creds, method: 'POST'}); }
   });
@@ -901,45 +942,7 @@ var PageHeader = React.createClass({
     var _pending = this.state.loginStatus === 'pending';
 
     var buttonKls = classNames("btn", "btn-small", "btn-default");
-    var noop = (
-      <div className='row'>
-          <div className='col-lg-12'>
-            <br />
-            <div className='bs-component'>
-              <nav className='navbar navbar-inverse'>
-                <div className='container-fluid'>
-                  <div className='navbar-header'>
-                    <button data-target='#bs-example-navbar-collapse-2'
-                            data-toggle='collapse'
-                            className='navbar-toggle collapsed'
-                            type='button'>
-                      <span className='sr-only'>Toggle navigation</span>
-                      <span className='icon-bar'></span>
-                      <span className='icon-bar'></span>
-                      <span className='icon-bar'></span>
-                    </button>
-                    <a href='#' className='navbar-brand'>Brand</a>
-                  </div>
 
-                  <div id='bs-example-navbar-collapse-2' className='collapse navbar-collapse'>
-                    <ul className='nav navbar-nav'>
-                      <LiDropdown />
-                      <LiLink active href="#" sr-only={'(current)'}>{t('link')}</LiLink>
-                      <LiLink />
-                    </ul>
-
-                    <ul className='nav navbar-nav navbar-right'>
-                      <li><a href='#'>Link</a></li>
-                    </ul>
-                  </div>
-                </div>
-              </nav>
-            </div>
-            <SearchForm />
-
-          </div>
-        </div>
-      );
     return (
         <div className="row header">
           <div className="col-xs-12">
@@ -948,12 +951,12 @@ var PageHeader = React.createClass({
                 <Breadcrumb />
               </div>
             </div>
+            {/*
             <ul className="nav navbar-nav">
               <LiDropdown sr-only />
               <LiLink active href="#" sr-only={'(current)'}>{t('link')}</LiLink>
-              {/*
-              */}
             </ul>
+            */}
             <div className="pull-right k-user-details">
               {_pending || (this.state.username ? this._userInfo() : this._loginForm()) }
               {_pending ? <NavBarIcon icon="fa-spinner fa-spin fa-2x" title={this.state.loginStats} /> : '' }
@@ -1080,15 +1083,16 @@ class Shared extends React.Component {
   }
 }
 
-class LargeLink extends React.Component {
-  routeTo (arg) {
-    log('route to ', arg);
-  }
+var LargeLink = React.createClass({
+  mixins: [Navigation],
+  routeTo (rtTo) {
+    this.transitionTo(rtTo);
+  },
   render () {
     return (
       <div className={t('col-lg-' + this.props.colspan + ' col-md-6 col-xs-12')}>
         <div className="widget">
-          <div className="widget-body" onClick={(evt)=> this.routeTo(this.props.href) }>
+          <div className="widget-body" onClick={(evt)=> this.routeTo(this.props.to) }>
             <div className={'widget-icon pull-left ' + this.props.color}>
               <i className={'fa fa-' + this.props.icon}></i>
             </div>
@@ -1100,9 +1104,9 @@ class LargeLink extends React.Component {
           </div>
         </div>
       </div>
-      )
+      );
   }
-}
+});
 
 class BuilderBar extends React.Component {
   render () {
@@ -1111,21 +1115,21 @@ class BuilderBar extends React.Component {
         <div className="well">
           <LargeLink big={t('new')}
                       little={t('start new form')}
-                      href={'/'}
+                      to={'new-form'}
                       colspan='4'
                       color='green'
                       icon='file'
             />
           <LargeLink big={t('template')}
                       little={t('load from template')}
-                      href={'/'}
+                      to={'new-template-form'}
                       colspan='4'
                       color='red'
                       icon='files-o'
             />
           <LargeLink big={t('examples')}
                       little={t('browse examples')}
-                      href={'/'}
+                      to={'examples'}
                       colspan='4'
                       color='blue'
                       icon='times'
@@ -1159,13 +1163,34 @@ class Public extends React.Component {
   }
 }
 
-class Builder extends React.Component {
+function stringifyRoutes(contextRouter) {
+  return JSON.stringify(contextRouter.getCurrentRoutes().map(function(r){
+    return {
+      name: r.name,
+      href: r.path
+    };
+  }), null, 4)
+}
+
+var Builder = React.createClass({
+  mixins: [Navigation],
   render () {
+    var _routes = stringifyRoutes(this.context.router);
     return (
-      <p>Builder</p>
+      <Panel>
+        <h1 className="page-header">Builder</h1>
+        <hr />
+        <pre>
+          <code>
+            {_routes}
+            <hr />
+            {JSON.stringify(this.context.router.getCurrentParams(), null, 4)}
+          </code>
+        </pre>
+      </Panel>
       );
   }
-}
+});
 
 class PermissionsUser extends React.Component {
   render () {
@@ -1230,11 +1255,10 @@ class CollectionAssetItem extends React.Component {
 }
 class CollectionAssetsList extends React.Component {
   render () {
-    var _assets =  this.props.assets;
-    var assets = (_assets).map((sa, i)=> <CollectionAssetItem key={sa.uid} asset={sa} /> )
+    var children = (this.props.children || []).map((sa, i)=> <CollectionAssetItem key={sa.uid} asset={sa} /> )
     return (
       <ul className="list-group collection-asset-list">
-        {assets}
+        {children}
       </ul>
       );
   }
@@ -1300,7 +1324,8 @@ class ButtonGroup extends React.Component {
       links = (
           <ul className="dropdown-menu">
             {links.map((lnk, i)=> {
-              return (<li key={'asdfdl'+i}><a href={lnk.url}>{lnk.title || t(`format:${lnk.format}`)}</a></li>);
+              var _key = `download.${this.props.assetType}.${lnk.format}`;
+              return (<li key={_key}><a href={lnk.url}>{t(lnk.title || _key)}</a></li>);
             })}
           </ul>
         );
@@ -1322,6 +1347,7 @@ class DownloadButtons extends React.Component {
     return (
       <ButtonGroup href="#"
                     links={this.props.downloads}
+                    assetType={this.props.assetType}
                     disabled={this.props.downloads.length === 0}
                     icon="cloud-download"
                     title="download" />
@@ -1412,10 +1438,9 @@ class CollectionView extends React.Component {
               <PermissionsList {...this.state} />
             </div>
             <hr />
-            <asdf />
-            <AssetsTable rows={_rows} />
-            {/*
             <CollectionAssetsList {...this.state} />
+            {/*
+            <AssetsTable rows={_rows} />
             */}
           </Panel>
         );
@@ -1456,11 +1481,11 @@ class AssetPreview extends React.Component {
         name: 'PARENT COLLECTION NAME [' + this.props.parent + ']'
       })
     }
-    // <DownloadButtons assetType="collection" uid={this.state.uid} downloads={this.state.downloads} />
     return (
           <Panel>
             <BigIcon color="blue" type="file-o" overlay="users" />
             <div className="btn-toolbar pull-right">
+              <DownloadButtons assetType="asset" uid={this.state.uid} downloads={this.state.downloads} />
               <div className="btn-group">
                 <CloseButton
                     title={t('close')}
@@ -1499,7 +1524,7 @@ class AssetPreview extends React.Component {
       <div className="form-preview row">
         <LargeLink big={t('asset')}
                     little={t('start new form')}
-                    href={'/'}
+                    to={'home'}
                     colspan='12'
                     color='purple'
                     icon='file-o'
@@ -1581,7 +1606,7 @@ class FormPreview extends React.Component {
   componentWillReceiveProps (props) {
     if (this.props.params.assetid !== props.params.assetid) {
       log("replacingstate because assetid changed");
-      this.replaceState(assign({}, this._initialState));
+      this.setState(assign({}, this._initialState));
     }
   }
   render () {
@@ -1603,13 +1628,15 @@ class FormPreview extends React.Component {
   }
 }
 
+window._Navigation = Navigation;
+
 class FormEditor extends React.Component {
   render () {
     return (
       <div className="form-editor">
         <LargeLink big={t('editor')}
                     little={t('start new form')}
-                    href={'/'}
+                    to={'home'}
                     colspan='12'
                     color='purple'
                     icon='pencil'
@@ -1691,6 +1718,15 @@ class UserProfile extends React.Component {
   }
 }
 
+var SelfProfile = React.createClass({
+  render () {
+    return <Panel>
+      Your Profile
+    </Panel>
+  }
+});
+
+
 class SectionNotFound extends React.Component {
   render () {
     return <div>
@@ -1702,12 +1738,12 @@ class SectionNotFound extends React.Component {
 var routes = (
   <Route name="home" path="/" handler={App}>
 
-    <Route name="public" handler={Public}>
-      <Route name="public-builder" handler={Builder} />
-    </Route>
 
     <Route name="forms">
       <Route name="forms-builder" handler={Builder} />
+      <Route name="new-form" handler={Builder} />
+      <Route name="new-template-form" handler={Builder} />
+      <Route name="examples" handler={Builder} />
       <Route name="forms-preview" path="/forms/:assetid" handler={FormPreview} />
       <Route name="forms-editor" path="/forms/:assetid/edit" handler={FormPreview} />
       <DefaultRoute handler={Forms} />
@@ -1719,6 +1755,11 @@ var routes = (
       <Route name="user-profile" handler={UserProfile}
               path="/users/:username" />
     </Route>
+
+    <Route name="public" handler={Public}>
+      <Route name="public-builder" handler={Builder} />
+    </Route>
+    <Route name="profile" handler={SelfProfile} />
 
     <Route name="shared" handler={Shared} />
     <Route name="libraries" handler={Libraries} />
