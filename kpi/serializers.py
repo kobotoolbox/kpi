@@ -196,6 +196,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     content = AssetContentField(style={'base_template': 'muted_readonly_content_field.html'})
     tags = serializers.SerializerMethodField('_get_tag_names')
     version_count = serializers.SerializerMethodField('_version_count')
+    downloads = serializers.SerializerMethodField()
     parent = serializers.HyperlinkedRelatedField(lookup_field='uid', queryset=Collection.objects.all(),
                                                 view_name='collection-detail', required=False)
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
@@ -214,6 +215,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                     'date_modified',
                     'tags',
                     'version_count',
+                    'downloads',
                     'content_link',
                     'koboform_link',
                     'content',
@@ -249,6 +251,18 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return reverse('asset-xls', args=(obj.uid,), request=self.context.get('request', None))
     def get_xform_link(self, obj):
         return reverse('asset-xform', args=(obj.uid,), request=self.context.get('request', None))
+    def get_downloads(self, obj):
+        def _reverse_lookup_format(fmt):
+            request = self.context.get('request', None)
+            href = reverse('asset-%s' % fmt,
+                            args=(obj.uid,),
+                            request=request)
+            return {'format': fmt,
+                    'href': href,}
+        return [
+            _reverse_lookup_format('xls'),
+            _reverse_lookup_format('xform'),
+        ]
     def get_koboform_link(self, obj):
         return reverse('asset-koboform', args=(obj.uid,), request=self.context.get('request', None))
 
@@ -262,10 +276,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         request = self.context.get('request', None)
         return reverse('asset-table-view', args=(obj.uid,), request=request)
 
-
 class AssetListSerializer(AssetSerializer):
     class Meta(AssetSerializer.Meta):
-        fields = ('url', 
+        fields = ('url',
                   'date_modified',
                   'date_created',
                   'owner',
@@ -329,6 +342,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
         source='get_children_and_assets_iterable'
     )
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
+    downloads = serializers.SerializerMethodField()
 
     class Meta:
         model = Collection
@@ -339,6 +353,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
                     'parent',
                     'owner',
                     'owner__username',
+                    'downloads',
                     'date_created',
                     'date_modified',
                     'children',
@@ -353,6 +368,14 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
 
     def _get_tag_names(self, obj):
         return obj.tags.names()
+
+    def get_downloads(self, obj):
+        request = self.context.get('request', None)
+        obj_url = reverse('collection-detail', args=(obj.uid,), request=request)
+        return [
+            {'format': 'zip', 'href': '%s?format=zip' % obj_url},
+        ]
+
 
 class CollectionListSerializer(CollectionSerializer):
     children_count = serializers.SerializerMethodField()
