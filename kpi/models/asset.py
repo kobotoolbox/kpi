@@ -126,7 +126,6 @@ class Asset(ObjectPermissionMixin, models.Model):
         string_io.seek(0)
         return string_io
 
-
     @property
     def export(self):
         version_id = reversion.get_for_object(self).last().id
@@ -134,6 +133,20 @@ class Asset(ObjectPermissionMixin, models.Model):
         (model, created,) = AssetExport.objects.get_or_create(asset=self,
                                 asset_version_id=version_id)
         return model
+
+    def content_terms(self):
+        # TODO: make prettier: strip HTML, etc.
+        terms = set()
+        values = self.content.values()
+        while values:
+            value = values.pop()
+            if isinstance(value, dict):
+                values.extend(value.values())
+            elif isinstance(value, list):
+                values.extend(value)
+            else:
+                terms.add(value)
+        return terms
 
 class AssetExport(models.Model):
     '''

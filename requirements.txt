@@ -23,3 +23,5 @@ django-debug-toolbar==1.2.2
 shortuuid==0.4.2
 django-celery==3.1.16
 djangorestframework==3.1.1
+Whoosh==2.7.0
+django-haystack==2.3.1

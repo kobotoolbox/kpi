@@ -11,6 +11,7 @@ from .models import Asset
 from .models import Collection
 from .models import ObjectPermission
 from .models.object_permission import get_anonymous_user
+from .search_indexes import AssetIndex
 from taggit.models import Tag
 import reversion
 import urllib

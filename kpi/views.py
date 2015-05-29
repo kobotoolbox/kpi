@@ -14,6 +14,8 @@ from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.exceptions import MethodNotAllowed
+from haystack.query import SearchQuerySet
+from haystack.inputs import AutoQuery
 from taggit.models import Tag
 
 from .models import (
@@ -61,6 +63,27 @@ def current_user(request):
                             })
 
 
+class SearchViewSetMixin(object):
+    '''
+    Filters objects by searching with Haystack if the the request includes a
+    query. The MRO is important, so be sure to include this mixin before the
+    base class in your view set definition, e.g.
+        class MyViewSet(SearchViewSetMixin, viewsets.ModelViewSet)
+    '''
+    def get_queryset(self):
+        if 'q' not in self.request.GET:
+            # Not a search
+            return super(SearchViewSetMixin, self).get_queryset()
+        # TODO: Call highlight() on the SearchQuerySet and somehow pass the
+        # highlighted result to the serializer.
+        # http://django-haystack.readthedocs.org/en/latest/searchqueryset_api.html?highlight=highlight#SearchQuerySet.highlight
+        matching_pks = SearchQuerySet().models(self.queryset.model).filter(
+            content=AutoQuery(self.request.GET['q'])
+        ).values_list('pk', flat=True)
+        # Will still be filtered by KpiObjectPermissionsFilter.filter_queryset()
+        return self.queryset.filter(pk__in=matching_pks)
+
+
 class ObjectPermissionViewSet(viewsets.ModelViewSet):
     queryset = ObjectPermission.objects.all()
     serializer_class = ObjectPermissionSerializer
@@ -77,7 +100,7 @@ class ObjectPermissionViewSet(viewsets.ModelViewSet):
 
 
 
-class CollectionViewSet(viewsets.ModelViewSet):
+class CollectionViewSet(SearchViewSetMixin, viewsets.ModelViewSet):
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
     queryset = Collection.objects.all()
     serializer_class = CollectionSerializer
@@ -93,6 +116,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
             return CollectionListSerializer
         else:
             return CollectionSerializer
+
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
@@ -146,7 +170,7 @@ from rest_framework.parsers import MultiPartParser
 class XlsFormParser(MultiPartParser):
     pass
 
-class AssetViewSet(viewsets.ModelViewSet):
+class AssetViewSet(SearchViewSetMixin, viewsets.ModelViewSet):
     """
     * Download a asset in a `.xls` or `.xml` format <span class='label label-success'>complete</span>
     * View a asset in a markdown spreadsheet or XML preview format <span class='label label-success'>complete</span>
