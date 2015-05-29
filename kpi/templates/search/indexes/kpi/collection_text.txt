@@ -2,3 +2,4 @@
 {% for tag in object.tags.all %}
 {{ object.tag }}
 {% endfor %}
+{{ object.uid }}
