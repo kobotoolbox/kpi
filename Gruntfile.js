@@ -41,7 +41,7 @@ module.exports = function(grunt) {
         ]
       },
       css: {
-        files: ['jsapp/css/bundle.css'],
+        files: ['jsapp/compiled/bundle.css'],
         options: {
           livereload: true
         }
