@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="{% static 'css/normalize.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
     <link rel="stylesheet" href="{% static 'kobo.compiled/kobo.css' %}">
+    <link rel="stylesheet" href="{% static 'components/fontawesome/css/font-awesome.css' %}">
 
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -27,8 +28,8 @@
         <h1 class="title">{{ title }}</h1>
         <nav>
           <ul>
-            <li><a href="{% url 'surveyasset-list' %}">{{user.username}} assets</a></li>
-            <li><a href="{% url 'surveyasset-detail' survey_asset.uid %}">{{survey_asset.uid}}</a></li>
+            <li><a href="{% url 'asset-list' %}">{{user.username}} assets</a></li>
+            <li><a href="{% url 'asset-detail' asset.uid %}">{{asset.uid}}</a></li>
           </ul>
         </nav>
       </header>
@@ -40,7 +41,7 @@
         </div>
         <hr>
         <code>
-          <pre class='survey-asset-url'>{% url 'surveyasset-content' survey_asset.uid %}</pre>
+          <pre class='survey-asset-url'>{% url 'asset-content' asset.uid %}</pre>
         </code>
       </div> <!-- #main -->
     </div> <!-- #main-container -->
@@ -92,10 +93,7 @@
       var saUrl = $('.survey-asset-url').eq(0).text();
       $.getJSON(saUrl).done(function(data){
         displaySurvey(xlform, data);
-      })
-    }
-    function init_(xlform) {
-      var surveyContent = JSON.parse($('.survey-asset-url').eq(0).text());
+      });
     }
 
     require.config({baseUrl: '{% static '' %}'});
@@ -107,7 +105,7 @@
         'jquery': 'build_stubs/jquery.js'
       };
       for (k in components.dirPaths) {
-        paths[k] = components.dirPaths[k]
+        paths[k] = components.dirPaths[k];
       }
       for (k in components.libs) {
         paths[k] = components.libs[k].replace(/\.js$/, '');

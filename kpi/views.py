@@ -9,18 +9,24 @@ from rest_framework import (
     permissions,
     status,
 )
+from django.contrib.contenttypes.models import ContentType
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework.exceptions import MethodNotAllowed
+from haystack.query import SearchQuerySet
+from haystack.inputs import AutoQuery
 from taggit.models import Tag
 
 from .models import (
     Collection,
     object_permission,
-    SurveyAsset,)
+    Asset,
+    ObjectPermission,)
 from .models.object_permission import get_anonymous_user
 from .permissions import IsOwnerOrReadOnly
 from .filters import KpiObjectPermissionsFilter
+from .filters import KpiAssignedObjectPermissionsFilter, ParentFilter
 from .highlighters import highlight_xform
 from .renderers import (
     AssetJsonRenderer,
@@ -29,19 +35,77 @@ from .renderers import (
     XlsRenderer,
     EnketoPreviewLinkRenderer,)
 from .serializers import (
-    SurveyAssetSerializer, SurveyAssetListSerializer,
+    AssetSerializer, AssetListSerializer,
     CollectionSerializer, CollectionListSerializer,
     UserSerializer, UserListSerializer,
-    TagSerializer, TagListSerializer)
+    TagSerializer, TagListSerializer,
+    ObjectPermissionSerializer,)
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from kpi.utils.gravatar_url import gravatar_url
 
-class CollectionViewSet(viewsets.ModelViewSet):
+@api_view(['GET'])
+def current_user(request):
+    user = request.user
+    if user.is_anonymous():
+        return Response({'message': 'user is not logged in'})
+    else:
+        return Response({'username': user.username,
+                            'first_name': user.first_name,
+                            'last_name': user.last_name,
+                            'email': user.email,
+                            'is_superuser': user.is_superuser,
+                            'gravatar': gravatar_url(user.email),
+                            'is_staff': user.is_staff,
+                            'last_login': user.last_login,
+                            })
+
+
+class SearchViewSetMixin(object):
+    '''
+    Filters objects by searching with Haystack if the the request includes a
+    query. The MRO is important, so be sure to include this mixin before the
+    base class in your view set definition, e.g.
+        class MyViewSet(SearchViewSetMixin, viewsets.ModelViewSet)
+    '''
+    def get_queryset(self):
+        if 'q' not in self.request.GET:
+            # Not a search
+            return super(SearchViewSetMixin, self).get_queryset()
+        # TODO: Call highlight() on the SearchQuerySet and somehow pass the
+        # highlighted result to the serializer.
+        # http://django-haystack.readthedocs.org/en/latest/searchqueryset_api.html?highlight=highlight#SearchQuerySet.highlight
+        matching_pks = SearchQuerySet().models(self.queryset.model).filter(
+            content=AutoQuery(self.request.GET['q'])
+        ).values_list('pk', flat=True)
+        # Will still be filtered by KpiObjectPermissionsFilter.filter_queryset()
+        return self.queryset.filter(pk__in=matching_pks)
+
+
+class ObjectPermissionViewSet(viewsets.ModelViewSet):
+    queryset = ObjectPermission.objects.all()
+    serializer_class = ObjectPermissionSerializer
+    lookup_field = 'uid'
+    filter_backends = (KpiAssignedObjectPermissionsFilter, )
+    def destroy(self, request, *args, **kwargs):
+        if self.get_object().inherited:
+            raise MethodNotAllowed(
+                request.method,
+                detail='Cannot delete inherited permissions.'
+            )
+        return super(ObjectPermissionViewSet, self).destroy(
+            request, *args, **kwargs)
+
+
+
+class CollectionViewSet(SearchViewSetMixin, viewsets.ModelViewSet):
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
     queryset = Collection.objects.all()
     serializer_class = CollectionSerializer
     permission_classes = (IsOwnerOrReadOnly,)
-    filter_backends = (KpiObjectPermissionsFilter,)
+    filter_backends = (KpiObjectPermissionsFilter, ParentFilter)
     lookup_field = 'uid'
 
     def perform_create(self, serializer):
@@ -75,7 +139,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
             return Tag.objects.filter(same_content_type & same_id).distinct().values_list('id', flat=True)
         all_tag_ids = list(chain(
                                 _get_tags_on_items('collection', user.owned_collections.all()),
-                                _get_tags_on_items('surveyasset', user.survey_assets.all()),
+                                _get_tags_on_items('asset', user.assets.all()),
                                 ))
 
         return Tag.objects.filter(id__in=all_tag_ids).distinct()
@@ -106,27 +170,22 @@ from rest_framework.parsers import MultiPartParser
 class XlsFormParser(MultiPartParser):
     pass
 
-class SurveyAssetViewSet(viewsets.ModelViewSet):
+class AssetViewSet(SearchViewSetMixin, viewsets.ModelViewSet):
     """
-    * Access a summary list of all survey assets available to your user. <span class='label label-success'>complete</span>
-    * Inspect individual survey assets <span class='label label-success'>complete</span>
-    * Download a survey asset in a `.xls` or `.xml` format <span class='label label-success'>complete</span>
-    * Tag a survey asset <span class='label label-success'>complete</span>
-    * View a survey asset in a markdown spreadsheet or XML preview format <span class='label label-success'>complete</span>
-    * Assign a survey asset to a collection <span class='label label-warning'>partially implemented</span>
-    * View and manage permissions of a survey asset <span class='label label-danger'>TODO</span>
-    * View previous versions of a survey asset <span class='label label-danger'>TODO</span>
-    * Update all content of a survey asset <span class='label label-danger'>TODO</span>
-    * Run a partial update of a survey asset <span class='label label-danger'>TODO</span>
+    * Download a asset in a `.xls` or `.xml` format <span class='label label-success'>complete</span>
+    * View a asset in a markdown spreadsheet or XML preview format <span class='label label-success'>complete</span>
+    * Assign a asset to a collection <span class='label label-warning'>partially implemented</span>
+    * View previous versions of a asset <span class='label label-danger'>TODO</span>
+    * Update all content of a asset <span class='label label-danger'>TODO</span>
+    * Run a partial update of a asset <span class='label label-danger'>TODO</span>
     * Generate a link to a preview in enketo-express <span class='label label-danger'>TODO</span>
-    * Create anonymous survey assets <span class='label label-danger'>TODO</span>
     """
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
-    queryset = SurveyAsset.objects.all()
-    serializer_class = SurveyAssetSerializer
+    queryset = Asset.objects.all()
+    serializer_class = AssetSerializer
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
-    filter_backends = (KpiObjectPermissionsFilter, )
+    filter_backends = (KpiObjectPermissionsFilter, ParentFilter)
 
     renderer_classes = (renderers.BrowsableAPIRenderer,
                         AssetJsonRenderer,
@@ -138,9 +197,9 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'list':
-            return SurveyAssetListSerializer
+            return AssetListSerializer
         else:
-            return SurveyAssetSerializer
+            return AssetSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -151,13 +210,13 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
 
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def content(self, request, *args, **kwargs):
-        survey_asset = self.get_object()
-        return Response(json.dumps(survey_asset.to_ss_structure()))
+        asset = self.get_object()
+        return Response(json.dumps(asset.to_ss_structure()))
 
     @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
     def koboform(self, request, *args, **kwargs):
-        survey_asset = self.get_object()
-        return Response({'survey_asset': survey_asset,}, template_name='koboform.html')
+        asset = self.get_object()
+        return Response({'asset': asset,}, template_name='koboform.html')
 
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def table_view(self, request, *args, **kwargs):
@@ -173,9 +232,9 @@ class SurveyAssetViewSet(viewsets.ModelViewSet):
 
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def xform(self, request, *args, **kwargs):
-        survey_asset = self.get_object()
-        export = survey_asset.export
-        title = '[%s] %s' % (self.request.user.username, reverse('surveyasset-detail', args=(survey_asset.uid,), request=self.request),)
+        asset = self.get_object()
+        export = asset.export
+        title = '[%s] %s' % (self.request.user.username, reverse('asset-detail', args=(asset.uid,), request=self.request),)
         header_links = '''
         <a href="../">Back</a> | <a href="../.xml">Download XML file</a><br>'''
         footer = '\n<!-- kpi/views.py#footer -->\n'

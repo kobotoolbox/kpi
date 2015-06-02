@@ -8,6 +8,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.7/ref/settings/
 """
 
+from django.conf import global_settings
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 import dj_database_url
@@ -28,6 +30,7 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
+LOGIN_REDIRECT_URL = '/'
 
 # Application definition
 
@@ -41,6 +44,7 @@ INSTALLED_APPS = (
     'reversion',
     'debug_toolbar',
     'mptt',
+    'haystack',
     'kpi',
     'django_extensions',
     'taggit',
@@ -69,8 +73,8 @@ ANONYMOUS_USER_ID = -1
 # Permissions assigned to AnonymousUser are restricted to the following
 ALLOWED_ANONYMOUS_PERMISSIONS = (
     'kpi.view_collection',
-    'kpi.view_surveyasset',
-    'kpi.add_surveyasset',
+    'kpi.view_asset',
+    'kpi.add_asset',
 )
 
 
@@ -101,7 +105,9 @@ USE_TZ = True
 STATIC_ROOT = 'staticfiles'
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = tuple()
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'jsapp'),
+)
 
 if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
     STATICFILES_DIRS = STATICFILES_DIRS + (
@@ -110,13 +116,22 @@ if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
     )
 
 REST_FRAMEWORK = {
-    'PAGINATE_BY': 25,
     'URL_FIELD_NAME': 'url',
-    'DEFAULT_PAGINATION_SERIALIZER_CLASS': 'kpi.serializers.Paginated',
+    'DEFAULT_PAGINATION_CLASS': 'kpi.serializers.Paginated',
+    'PAGE_SIZE': 100,
 }
-
+TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
+    'kpi.context_processors.dev_mode',
+)
 if not DEBUG:
     STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 import djcelery
 djcelery.setup_loader()
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+        'PATH': os.path.join(os.path.dirname(__file__), 'whoosh_index'),
+    },
+}

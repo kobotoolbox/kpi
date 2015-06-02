@@ -1,5 +1,4 @@
-from collection import Collection
-from survey_asset import SurveyAsset
-from object_permission import ObjectPermission
-from import_task import ImportTask
-
+from kpi.models.collection import Collection
+from kpi.models.asset import Asset
+from kpi.models.object_permission import ObjectPermission, ObjectPermissionMixin
+from kpi.models.import_task import ImportTask

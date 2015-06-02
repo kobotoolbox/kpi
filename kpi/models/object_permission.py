@@ -5,8 +5,11 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User, AnonymousUser, Permission
 from django.conf import settings
 from django.shortcuts import _get_queryset
+from shortuuid import ShortUUID
 import copy
 import re
+
+OBJECT_PERMISSION_UID_LENGTH = 22
 
 def perm_parse(perm, obj=None):
     if obj is not None:
@@ -103,6 +106,7 @@ def get_objects_for_user(user, perms, klass=None):
         user = get_anonymous_user()
 
     # Now we should extract list of pk values for which we would filter queryset
+    # TODO: omit objects for which the user has only a deny permission
     user_obj_perms_queryset = (ObjectPermission.objects
         .filter(user=user)
         .filter(permission__content_type=ctype)
@@ -166,6 +170,9 @@ class ObjectPermissionManager(models.Manager):
             content_object, **kwargs
         )
 
+    def filter(self, *args, **kwargs):
+        return super(ObjectPermissionManager, self).filter(*args, **kwargs)
+
     def filter_for_object(self, content_object, **kwargs):
         ''' Wrapper to allow filter() queries using a generic foreign key. '''
         return self._rewrite_query_args(
@@ -188,14 +195,29 @@ class ObjectPermission(models.Model):
     filter_for_object() to run queries using the content_object field. '''
     user = models.ForeignKey('auth.User')
     permission = models.ForeignKey('auth.Permission')
-    deny = models.BooleanField(default=False)
+    deny = models.BooleanField(
+        default=False,
+        help_text='Blocks inheritance of this permission when set to True'
+    )
     inherited = models.BooleanField(default=False)
     object_id = models.PositiveIntegerField()
     # We can't do something like GenericForeignKey('permission__content_type'),
     # so duplicate the content_type field here.
     content_type = models.ForeignKey(ContentType)
     content_object = GenericForeignKey('content_type', 'object_id')
+    uid = models.CharField(max_length=OBJECT_PERMISSION_UID_LENGTH, default='')
     objects = ObjectPermissionManager()
+
+    @property
+    def kind(self):
+        return self._meta.model_name
+
+    def _populate_uid(self):
+        if self.uid == '':
+            self.uid = self._generate_uid()
+
+    def _generate_uid(self):
+        return 'p' + ShortUUID().random(OBJECT_PERMISSION_UID_LENGTH-1)
 
     class Meta:
         unique_together = ('user', 'permission', 'deny', 'inherited',
@@ -205,7 +227,20 @@ class ObjectPermission(models.Model):
         if self.permission.content_type_id is not self.content_type_id:
             raise ValidationError('The content type of the permission does '
                 'not match that of the object.')
+        # populate uid field if it's empty
+        self._populate_uid()
         super(ObjectPermission, self).save(*args, **kwargs)
+
+    def __unicode__(self):
+        for required_field in ('user', 'permission'):
+            if not hasattr(self, required_field):
+                return u'incomplete ObjectPermission'
+        return u'{}{} {} {}'.format(
+            'inherited ' if self.inherited else '',
+            unicode(self.permission.codename),
+            'denied from' if self.deny else 'granted to',
+            unicode(self.user)
+        )
 
 
 class ObjectPermissionMixin(object):

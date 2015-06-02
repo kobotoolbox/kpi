@@ -1,6 +1,6 @@
 from rest_framework.routers import DefaultRouter, Route, DynamicDetailRoute
 
-# class SurveyAssetRouter(DefaultRouter):
+# class AssetRouter(DefaultRouter):
 #     routes = [
 #         Route(
 #             url=r'^{prefix}/$',

@@ -1,0 +1,177 @@
+$permEditorColor: #999;
+
+.asset-collections-table {
+  margin-top: -15px;
+}
+
+.dropzone {
+  border: 3px solid dashed;
+}
+.dropzone--active {
+  border: 3px dashed red;
+  > * {
+    opacity: 0.3;
+  }
+}
+
+.form-preview {
+  position: relative;
+}
+
+.assetcollection__row--error {
+  td {
+    color: #f25858;
+    font-style: italic;
+    text-align: center;
+    span {
+      line-height: 40px;
+    }
+  }
+}
+/* ul.k-breadcrumb */
+.k-breadcrumb {
+  margin: 0;
+  padding: 0;
+  li {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+    display: inline-block;
+    a {
+      border: 1px solid #eee;
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      margin-right: 4px;
+      &:hover {
+        background-color: #eee;
+        border-color: #bbb;
+      }
+    }
+  }
+}
+.k-user-details {
+  margin: 0 20px 0 0;
+  .a {
+      padding: 20.5px 15px;
+      line-height: 23px;
+      display: inline-block;
+  }
+}
+.k-icon-wrap {
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  text-align: center;
+  vertical-align: middle;
+  margin-right: 15px;
+  background-color: #ddd;
+  position: relative;
+  &.k-icon-wrap--green {
+    background-color: #23ae89;
+  }
+  &.k-icon-wrap--blue {
+    background-color: #2361ae;
+  }
+
+  i {
+    color: #fff;
+    &.k-expanded {
+      font-size: 30px;
+      line-height: 66px;
+    }
+    &.k-icon-overlay {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+    }
+  }
+}
+
+/* a.user-profile-link */
+.user-profile-link {
+  color: #333;
+  text-decoration: none;
+  &:hover {
+    color: #666;
+    text-decoration: underline;
+  }
+  i {
+    margin: 0 8px
+  }
+}
+
+.assetcollection__row--loading {
+	td {
+    color: #aaa;
+    font-style: italic;
+    text-align: center;
+    span {
+      line-height: 40px;
+    }
+  }
+}
+
+.hushed {
+  font-style: italic;
+  color: #ddd;
+  text-align: center;
+}
+
+.permissions-editor {
+  display: inline-block;
+  border: 1px solid lighten($permEditorColor, 20%);
+  color: $permEditorColor;
+  border-radius: 7px;
+  padding: 0 8px 0 22px;
+  text-align: center;
+  position: relative;
+  margin-right: 10px;
+}
+.permissions-editor--unshared {
+  .permissions-editor__icon {
+    color: $permEditorColor;
+    position: absolute;
+    top: 4px;
+    left: 4px;
+  }
+}
+.collection-asset-list {
+  li {
+    padding: 0;
+    a {
+      display: block;
+      background-color: #fff;
+      padding: 12px 18px;
+      color: #888;
+      &:hover {
+        background-color: #E8FAE7;
+        text-decoration: none;
+      }
+    }
+  }
+}
+.permissions-editor__list {
+  text-align: left;
+}
+.permissions-editor__icon {
+  color: $permEditorColor;
+  position: absolute;
+  top: 4px;
+  left: 4px;
+}
+
+.kobo-icon {
+  display: inline-block;
+  width: 70px;
+  height: 60px;
+  text-align: center;
+  background-image: url('/static/img/kobosquare-small.png');
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.3;
+  &:hover {
+    opacity: 0.6;
+  }
+}

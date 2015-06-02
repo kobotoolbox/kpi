@@ -4,7 +4,6 @@ argparse==1.2.1
 dj-database-url==0.3.0
 dj-static==0.0.6
 django-toolbelt==0.0.1
-djangorestframework==3.0.5
 gunicorn==19.2.1
 psycopg2==2.6
 requests==2.5.1
@@ -23,3 +22,6 @@ django-mptt==0.6.1
 django-debug-toolbar==1.2.2
 shortuuid==0.4.2
 django-celery==3.1.16
+djangorestframework==3.1.1
+Whoosh==2.7.0
+django-haystack==2.3.1
