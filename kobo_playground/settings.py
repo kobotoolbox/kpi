@@ -44,6 +44,7 @@ INSTALLED_APPS = (
     'reversion',
     'debug_toolbar',
     'mptt',
+    'haystack',
     'kpi',
     'django_extensions',
     'taggit',
@@ -127,3 +128,10 @@ if not DEBUG:
 
 import djcelery
 djcelery.setup_loader()
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+        'PATH': os.path.join(os.path.dirname(__file__), 'whoosh_index'),
+    },
+}

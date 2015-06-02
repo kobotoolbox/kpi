@@ -1,0 +1,8 @@
+{{ object.name }}
+{% for tag in object.tags.all %}
+{{ object.tag }}
+{% endfor %}
+{{ object.uid }}
+{% for term in object.content_terms %}
+{{ term }}
+{% endfor %}
