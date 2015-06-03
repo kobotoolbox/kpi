@@ -14,8 +14,26 @@ $permEditorColor: #999;
   }
 }
 
+.formdrop--active {
+  .cutout-placeholder {
+    border-color: #f00;
+  }
+}
+.gravatar-img {
+  border: 1px solid #ddd;
+  border-radius: 2px;
+}
 .form-preview {
   position: relative;
+}
+.date--modified {
+  text-decoration: underline;
+}
+
+.tag {
+  font-size: 11px;
+  margin-right: 4px;
+  color: #ddd;
 }
 
 .assetcollection__row--error {
@@ -28,6 +46,52 @@ $permEditorColor: #999;
     }
   }
 }
+.k-modal-dialog {
+  margin-top: 100px;
+}
+.k-history {}
+.k-history--empty {
+  opacity: 0.4;
+  &:hover {
+    opacity: 0.8;
+  }
+}
+.k-col-2-nopadd {
+  width: 15.6%;
+  padding: 0 0 0 1%;
+  float: left;
+}
+.k-col-6-nopadd {
+  width: 49%;
+  padding: 0 0 0 1%;
+  float: left;
+}
+.cutout-placeholder {
+  margin: 30px;
+  border: 3px dashed #ddd;
+  text-align: center;
+  height: 300px;
+  border-radius: 15px;
+  > span {
+    color: #aaa;
+    display: block;
+    font-size: 30px;
+    line-height: 300px;
+  }
+}
+
+.widget .widget-body table tbody {
+  .fa-lg {
+    font-size: 1.33333333em !important;
+    line-height: 0.75em !important;
+    vertical-align: -15% !important;
+  }
+
+  .fa-2x {
+    font-size: 2em !important;
+  }
+}
+
 /* ul.k-breadcrumb */
 .k-breadcrumb {
   margin: 0;
@@ -121,7 +185,6 @@ $permEditorColor: #999;
 
 .permissions-editor {
   display: inline-block;
-  border: 1px solid lighten($permEditorColor, 20%);
   color: $permEditorColor;
   border-radius: 7px;
   padding: 0 8px 0 22px;
@@ -148,6 +211,39 @@ $permEditorColor: #999;
       &:hover {
         background-color: #E8FAE7;
         text-decoration: none;
+      }
+    }
+  }
+}
+.icon--asset {
+  .fa-stack-2x {
+    color: #364F62;
+  }
+}
+.icon--collection {
+  .fa-stack-2x {
+    color: #A165AB;
+  }
+}
+.k-search {
+  width: 300px;
+  margin-top: 15px;
+  float: right;
+}
+.asset-row {
+  a {
+    display: block;
+    &:hover {
+      background-color: #E8FAE7;
+      text-decoration: none;
+    }
+    > div {
+      display: inline-block;
+      &:nth-child(1) {
+        width: 100px;
+      }
+      div:nth-child(2) {
+        width: 300px;
       }
     }
   }

@@ -1,12 +1,35 @@
-import React from 'react/addons';
-import $ from 'jquery';
-import Router from 'react-router';
-import {Sidebar} from './sidebar';
 import {log, t} from './utils';
+
+var $ = require('jquery');
+window.jQuery = $;
+window.$ = $;
+require('jquery.scrollto');
+require('jquery-ui/sortable');
+var select2 = require('select2-browserify');
+
+
+window._ = require('underscore');
+
+window.Backbone = require('backbone');
+window.Backbone.$ = $
+window.BackboneValidation = require('backbone-validation');
+
+import React from 'react/addons';
+import Router from 'react-router';
+import {Sidebar} from './components/sidebar';
 import TagsInput from 'react-tagsinput';
 import moment from 'moment';
 import classNames from 'classnames';
 import alertify from 'alertifyjs';
+import {Sheeted} from './models/sheeted';
+import Dropzone from './libs/dropzone';
+
+import Favicon from 'react-favicon';
+
+var bootstrap = require('./libs/rest_framework/bootstrap.min');
+
+window.dkobo_xlform = require('./libs/xlform')
+
 
 var assign = require('react/lib/Object.assign');
 var Reflux = require('reflux');
@@ -20,10 +43,17 @@ let NotFoundRoute = Router.NotFoundRoute;
 
 
 class SmallInputBox extends React.Component {
+  getValue () {
+    return this.refs.inp.getDOMNode().value;
+  }
+  noteStoreChange (a,b,c) {
+    log('storechange', a,b,c)
+  }
   render () {
+    var valid = false;
     return (
-        <input type="text" placeholder={this.props.placeholder}
-                className="form-control input-sm pull-right" />
+        <input type="text" placeholder={this.props.placeholder} ref='inp'
+                className="form-control input-sm pull-right" onKeyUp={this.props.onKeyUp} />
       );
   }
 }
@@ -74,30 +104,65 @@ var MeViewer = React.createClass({
   }
 });
 
-class AssetCollectionsContainer extends React.Component {
-  constructor () {
-    super();
-    this.state = {
-      loading: t('your assets will load shortly')
-    };
-  }
-  componentDidMount () {
-    $.getJSON(this.props.source).success((result) => {
-      this.setState(assign({}, result, {
-        loading: false
-      }));
-    }).fail((resp, etype, emessage) => {
-      var errorMessage = `(${resp.status}): ${t(emessage)}`;
-      if (resp.responseJSON && resp.responseJSON.detail) {
-        errorMessage = t(resp.responseJSON.detail);
-      }
-      this.setState({
-        loading: false,
-        error: errorMessage
-      });
-    });
-  }
+var AssetNavigator = React.createClass({
+  mixins: [
+    Navigation,
+    // Reflux.connectFilter(assetSearchStore, function (){
 
+    // }),
+    // Reflux.connectFilter(tagSearchStore, function (){
+
+    // }),
+  ],
+  getInitialState () {
+    return {};
+  },
+  searchFieldValue () {
+    return this.refs.headerSearch.refs.inp.getDOMNode().value;
+  },
+  liveSearch () {
+    var queryInput = this.searchFieldValue(),
+      r;
+    if (queryInput && queryInput.length > 2) {
+      if (r = assetSearchStore.getRecentSearch(queryInput)) {
+        this.setState({
+          searchResults: r
+        });
+      } else {
+        actions.search.assets(queryInput);
+      }
+    }
+  },
+  render () {
+    return (
+      <div className="asset-navigator">
+        <SmallInputBox ref="headerSearch" placeholder={t('search keywords or tags')} onKeyUp={this.liveSearch} />
+        <hr />
+        <Dropzone>
+          <p>tags</p>
+          <hr />
+          <p>library</p>
+          <div className='cutout-placeholder'>
+            <span className='indicator indicator--drag-files-here'>
+              <i className={classNames('fa', 'fa-sm', 'fa-file-o')} />
+              &nbsp;
+              &nbsp;
+              {t('upload forms')}
+            </span>
+          </div>
+        </Dropzone>
+      </div>
+      );
+  }
+})
+
+class AssetCollectionsContainer extends React.Component {
+  // constructor () {
+  //   super();
+  //   this.state = {
+  //     loading: t('your assets will load shortly')
+  //   };
+  // }
   focusComponent (el) {
     if (this._focusedComponent) {
       this._focusedComponent.unfocus();
@@ -107,23 +172,22 @@ class AssetCollectionsContainer extends React.Component {
   render () {
     var rows;
     var title = t('Asset Collections');
-    var itemName = this.props.itemname;
-    if (this.state.results && this.state.results.length == 0) {
+    var itemName = this.props.itemname || 'items';
+    if (this.props.results && this.props.results.length == 0) {
       rows = (
         <AssetCollectionPlaceholder notice={t(`there are no ${itemName} to display`)} />
         );
-    } else if (this.state.results && this.state.results.length > 0) {
-      rows = this.state.results.map((asset) => {
+    } else if (this.props.results && this.props.results.length > 0) {
+      rows = this.props.results.map((asset) => {
         asset.objectType = asset.url.match(/http\:\/\/[^\/]+\/(\w+)s/)[1];
         return <AssetCollectionRow key={asset.uid} {...asset} onFocusComponent={this.focusComponent.bind(this)} />;
       });
     } else {
       rows = (
-        <AssetCollectionPlaceholder {...this.state} />
+        <AssetCollectionPlaceholder {...this.props} />
         );
     }
-    var inDrag = this.state.inDrag;
-    var cls = classNames('widget', 'asset-collections-table', inDrag ? 'asset-collections-table--indrag' : '')
+    var cls = classNames('widget', 'asset-collections-table')
     return (
         <div className={cls}>
           <div className="widget-title">
@@ -348,31 +412,38 @@ class PermissionsEditor extends React.Component {
 function parsePermissions(owner, permissions) {
   var users = [];
   var perms = {};
-  permissions.forEach((perm)=> {
-    if(perm.user === owner) {
-      return;
+  permissions.map((perm) => {
+    perm.user__username = perm.user.match(/\/users\/(.*)\//)[1];
+    return perm;
+  }).filter((perm)=> {
+    return ( perm.user__username !== owner );
+  }).forEach((perm)=> {
+    if(users.indexOf(perm.user__username) === -1) {
+      users.push(perm.user__username);
+      perms[perm.user__username] = [];
     }
-    if(users.indexOf(perm.user) === -1) {
-      users.push(perm.user);
-      perms[perm.user] = []
-    }
-    perms[perm.user].push(perm);
+    perms[perm.user__username].push(perm);
   });
-  return users.map((userurl)=>{
+  return users.map((username)=>{
     return {
-      user: userurl,
-      permissions: perms[userurl]
+      username: username,
+      can: perms[username].reduce((cans, perm)=> {
+        var permCode = perm.permission.split('_')[0];
+        cans[permCode] = perm;
+        // log('permCode', permCode)
+        return cans;
+      }, {})
     };
   });
 }
 
 function formatTime(timeStr) {
-  return moment(timeStr).format('MMM-DD-YYYY');
+  return moment(timeStr).format('MMM DD YYYY');
 }
 
 class MomentTime extends React.Component {
   render () {
-    var mtime = formatTime(this.props.time);
+    var mtime = formatTime(this.props.time).toLowerCase();
     return (
         <span className='formatted-time'>{mtime}</span>
       )
@@ -388,20 +459,24 @@ var AssetCollectionRow = React.createClass({
   },
   render () {
     var perm = parsePermissions(this.props.owner, this.props.permissions);
-    var icon_cls = "fa-stack fa-fw fa-lg asset--type-"+this.props.assetType;
-    var inner_icon_cls = this.props.objectType === "asset" ? "fa fa-file fa-lg" : "fa fa-lg fa-folder";
+    var isAsset = this.props.objectType === "asset";
     let assetid = this.props.url.match(/\/(\w+)\/$/)[1];
     var currentUsername = sessionStore.currentAccount && sessionStore.currentAccount.username
     var selfOwned = this.props.owner__username == currentUsername;
+    var icon_stack;
+    if (isAsset) {
+      icon_stack = <i className='fa fa-lg fa-file' />;
+    } else {
+      icon_stack = <i className='fa fa-lg fa-folder' />;
+    }
+
     return (
         <tr className="assetcollection__row">
           <td className="text-center asset-icon-box">
-            <span className={icon_cls}>
-              <i className={inner_icon_cls}></i>
-            </span>
+            {icon_stack}
           </td>
           <td>
-            <Link to="forms-preview" params={{ assetid: assetid }}>
+            <Link to="form-view" params={{ assetid: assetid }}>
               {this.props.name || 'untitled'}
             </Link>
           </td>
@@ -449,40 +524,39 @@ class AssetCollectionPlaceholder extends React.Component {
   }
 }
 
-class AssetTags extends React.Component {
-  constructor () {
-    super();
-    this.state = {
-      tags: []
-    };
-  }
-  saveTags () {
-    console.log('tags: ', this.refs.tags.getTags().join(', '));
-  }
+// var AssetTags = React.createClass({
+//   getInitialState () {
+//     return {tags:[]}
+//   },
+//   saveTags () {
+//     console.log('tags: ', this.refs.tags.getTags().join(', '));
+//   },
+//   componentDidMount () {
+//     this.setState({
+//       tags: this.props.tags || []
+//     });
+//   },
+//   render () {
+//     return (
+//       <div className="assettags">
+//         <TagsInput ref="tags" tags={this.state.tags} />
+//         <button onClick={this.saveTags}>Save</button>
+//       </div>
+//       );
+//   }
+// })
 
-  render () {
-    return (
-      <div className="assettags">
-        <TagsInput />
-        <button onClick={this.saveTags}>Save</button>
-      </div>
-      );
-  }
-}
-
-class App extends React.Component {
-  constructor () {
-    super();
-    this.resize = this.handleResize.bind(this);
-    this.state = {
+var App = React.createClass({
+  getInitialState () {
+    return {
       intentOpen: true,
       isOpen: !this.widthLessThanMin()
-    };
-  }
+    }
+  },
 
   widthLessThanMin () {
     return window.innerWidth < 560;
-  }
+  },
 
   handleResize () {
     if (this.widthLessThanMin()) {
@@ -494,15 +568,18 @@ class App extends React.Component {
         isOpen: true
       });
     }
-  }
+  },
 
   componentDidMount () {
+    if (!this.resize) {
+      this.resize = this.handleResize.bind(this);
+    }
     // can use window.matchMedia(...) here
     window.addEventListener('resize', this.resize);
-  }
+  },
   componentWillUnmount () {
     window.removeEventListener('resize', this.resize);
-  }
+  },
 
   toggleIntentOpen (evt) {
     evt.preventDefault();
@@ -517,19 +594,22 @@ class App extends React.Component {
         isOpen: true
       });
     }
-  }
+  },
 
   render() {
     var activeClass = this.state.isOpen ? 'active' : '';
     return (
-      <div id="page-wrapper" className={activeClass}>
-        <Sidebar toggleIntentOpen={this.toggleIntentOpen.bind(this)} />
-        <PageHeader />
-        <RouteHandler />
-      </div>
+      <DocumentTitle title="KoBo">
+        <div id="page-wrapper" className={activeClass}>
+          <Sidebar toggleIntentOpen={this.toggleIntentOpen.bind(this)} />
+          <PageHeader ref="page-header" />
+          <RouteHandler />
+          <AssetNavigator />
+        </div>
+      </DocumentTitle>
     )
   }
-}
+});
 
 class PublicContentBox extends React.Component {
   render () {
@@ -586,42 +666,108 @@ class UserIcon extends React.Component {
     var imgSrc = this.props.img || defaultGravatarImage;
     return (
         <a href="#" className="dropdown-toggle" data-toggle="dropdown">
-          <img src={imgSrc} />
+          <img src={imgSrc} className="gravatar-img" />
         </a>
       )
   }
 }
-class RecentHistoryDropdown extends React.Component {
-  constructor () {
-    super();
-    this.state = {};
-  }
+var RecentHistoryDropdownBase = React.createClass({
+  mixins: [Reflux.ListenerMixin],
+  getInitialState () {
+    return { items: [] };
+  },
+  render () {}
+});
 
+class ItemDropdown extends React.Component {
   render () {
-    var list;
-    if (this.props.list.length == 0) {
-      list = <li className="dropdown-header">
-              {t('no recent items')}
-            </li>;
-    } else {
-      list = this.props.list.map((n)=> {<li><a href="#">{n}</a></li>})
-    }
     return (
         <div className="item dropdown">
           <a href="#" className="dropdown-toggle" data-toggle="dropdown">
-            <i className="fa fa-clock-o"></i>
+            <i className={this.props.iconKls} />
           </a>
           <ul className="dropdown-menu dropdown-menu-right">
-            <li className="dropdown-header">
-              {t('recent items')}
-            </li>
-            <li className="divider"></li>
-            {list}
+            {this.props.children}
           </ul>
         </div>
-      )
+        );
   }
 }
+
+class RecentHistoryDropdown extends RecentHistoryDropdownBase {
+  componentDidMount () {
+    this.listenTo(historyStore, this.historyStoreChange);
+  }
+
+  historyStoreChange (history) {
+    this.setState({
+      items: history
+    });
+  }
+
+  getList () {
+    return this.state.items;
+  }
+
+  renderEmptyList () {
+    return (
+      <ItemDropdown iconKls={classNames('fa',
+                                        'fa-clock-o',
+                                        'k-history',
+                                        'k-history--empty')}>
+        <li className="dropdown-header">
+          {t('no recent items')}
+        </li>
+      </ItemDropdown>
+    );
+  }
+  render () {
+    var list = this.getList();
+    if (list.length === 0) {
+      return this.renderEmptyList();
+    }
+
+    return (
+      <ItemDropdown iconKls={classNames('fa', 'fa-clock-o', 'k-history')}>
+        <ItemDropdownHeader>{t('recent items')} - ({list.length})</ItemDropdownHeader>
+        <ItemDropdownDivider />
+        {list.map((item)=> {
+          var iconKls = item.kind === 'collection' ? 'fa-folder-o' : 'fa-file-o';
+          return <ItemDropdownItem key={item.uid} faIcon={iconKls} {...item} />
+        })}
+      </ItemDropdown>
+      );
+  }
+}
+
+class ItemDropdownItem extends React.Component {
+  render () {
+    return (
+          <li>
+            <Link to="form-view"
+                  params={{assetid: this.props.uid}}>
+              <i className={classNames('fa', 'fa-sm', this.props.faIcon)} />
+              &nbsp;
+              &nbsp;
+              {this.props.name || t('no name')}
+            </Link>
+          </li>
+      );
+  }
+}
+
+class ItemDropdownHeader extends React.Component {
+  render () {
+    return <li className="dropdown-header">{this.props.children}</li>;
+  }
+}
+
+class ItemDropdownDivider extends React.Component {
+  render () {
+    return <li className="divider" />;
+  }
+}
+
 class LoginForm extends React.Component {
   done (...args) {
     log(args, this)
@@ -696,9 +842,12 @@ var Breadcrumb = React.createClass({
     ],
   getInitialState () {
     var _items = this.context.router.getCurrentRoutes().map(function(r){
+      if (!r.name) {
+        log('noname breadcrumb ', r);
+      }
       return {
         name: r.name,
-        href: r.path
+        href: '#' + r.path
       };
     });
     return {
@@ -718,61 +867,66 @@ var Breadcrumb = React.createClass({
   }
 });
 
-var actions = {
-  navigation: Reflux.createActions([
-      "transitionStart",
-      "transitionEnd",
+var actions = require('./actions')
 
-      "routeUpdate",
+actions.misc.checkUsername.listen(function(username){
+  sessionDispatch.queryUserExistence(username)
+    .done(actions.misc.checkUsername.completed)
+    .fail(actions.misc.checkUsername.failed_);
+});
 
-      "documentTitleUpdate"
-    ]),
-  auth: Reflux.createActions({
-    login: {
-      children: [
-        "completed",
-        "failed"
-      ]
-    },
-    verifyLogin: {
-      children: [
-        "completed",
-        "failed"
-      ]
-    },
-    logout: {
-      children: [
-        "completed",
-        "failed"
-      ]
-    }
-  }),
-  resources: Reflux.createActions({
-    loadResource: {
-      children: [
-        "success",
-        "fail"
-      ],
-    },
-    createResource: {
-      children: [
-        "success",
-        "fail"
-      ]
-    },
-    updateResource: {
-      children: [
-        "success",
-        "fail"
-      ]
-    },
-    notFound: {}
-  })
-};
+actions.resources.updateAsset.listen(function(uid, values){
+  log(uid, values);
+  sessionDispatch.patchAsset(uid, values)
+    .done(actions.resources.updateAsset.completed)
+})
+actions.resources.createResource.listen(function(details){
+  sessionDispatch.createResource(details)
+    .done(actions.resources.createResource.completed)
+    .fail(actions.resources.createResource.failed);
+})
+
+actions.search.assets.listen(function(queryString){
+  function wrap(fn){
+    return function(){}
+  }
+  sessionDispatch.searchAssets(queryString)
+    .done(function(...args){
+      actions.search.assets.completed.apply(this, [queryString, ...args])
+    })
+    .fail(function(...args){
+      actions.search.assets.failed.apply(this, [queryString, ...args])
+    })
+});
+
+actions.permissions.assignPerm.listen(function(creds){
+  sessionDispatch.assignPerm(creds)
+    .done(actions.permissions.assignPerm.completed)
+    .fail(actions.permissions.assignPerm.failed);
+});
+
+var permissionStore = Reflux.createStore({
+  init () {
+    this.assets = {};
+    this.listenTo(actions.permissions.assignPerm.completed, this.onAssignPermissionCompleted);
+    this.listenTo(actions.resources.loadAsset.completed, this.onLoadAsset);
+  },
+  onAssignPermissionCompleted (assetPerms) {
+    this.assets['assetPerms.uid'] = assetPerms;
+    this.trigger(this.assets, 'assetPerms.uid', assetPerms);
+  },
+  onLoadAsset (asset) {
+    var assetPerms = asset.permissions;
+    this.assets[asset.uid] = assetPerms;
+    this.trigger(this.assets, asset.uid, assetPerms);
+  }
+})
 
 var sessionDispatch;
 (function(){
-  var $ajax = (o)=> $.ajax(assign({}, {dataType: 'json', method: 'GET'}, o));
+  var $ajax = (o)=> {
+    return $.ajax(assign({}, {dataType: 'json', method: 'GET'}, o));
+  };
   const assetMapping = {
     'a': 'assets',
     'c': 'collections',
@@ -780,6 +934,13 @@ var sessionDispatch;
   }
   assign(this, {
     selfProfile: ()=> $ajax({ url: '/me/' }),
+    queryUserExistence: (username)=> {
+      var d = new $.Deferred();
+      $ajax({ url: `/users/${username}/` })
+        .done(()=>{ d.resolve(username, true); })
+        .fail(()=>{ d.reject(username, false); });
+      return d.promise();
+    },
     logout: ()=> {
       var d = new $.Deferred();
       $ajax({ url: '/api-auth/logout/' }).done(d.resolve).fail(function (resp, etype, emessage) {
@@ -795,8 +956,57 @@ var sessionDispatch;
       });
       return d.promise();
     },
+    listAllAssets () {
+      var d = new $.Deferred();
+      $.when($.getJSON('/assets/?parent='), $.getJSON('/collections/?parent=')).done(function(assetR, collectionR){
+        var assets = assetR[0],
+            collections = collectionR[0];
+        var r = {results:[]};
+        var pushItem = function (item){r.results.push(item)};
+        assets.results.forEach(pushItem);
+        collections.results.forEach(pushItem);
+        var sortAtt = 'date_modified'
+        r.results.sort(function(a,b){
+          var ad = a[sortAtt], bd = b[sortAtt];
+          return (ad === bd) ? 0 : ((ad > bd) ? -1 : 1);
+        });
+        d.resolve(r);
+      }).fail(d.fail);
+      return d.promise();
+    },
+    assignPerm (creds) {
+      var id = creds.uid || creds.id;
+      var url = `/${creds.kind}/${creds.id}/permissions/`
+      log("sessionDispatch.assignPerm(", creds, ")");
+      return $.getJSON(url);
+    },
+    getAssetContent ({id}) {
+      return $.getJSON(`/assets/${id}/content/`);
+    },
     getAsset ({id}) {
       return $.getJSON(`/assets/${id}/`);
+    },
+    searchAssets (queryString) {
+      return $ajax({
+        url: '/assets/',
+        data: {
+          q: queryString
+        }
+      });
+    },
+    createResource (details) {
+      return $ajax({
+        method: 'POST',
+        url: '/assets/',
+        data: details
+      });
+    },
+    patchAsset (uid, data) {
+      return $ajax({
+        url: `/assets/${uid}/`,
+        method: 'PATCH',
+        data: data
+      });
     },
     getCollection ({id}) {
       return $.getJSON(`/collections/${id}/`);
@@ -806,7 +1016,9 @@ var sessionDispatch;
       var assetType = assetMapping[id[0]];
       return $.getJSON(`/${assetType}/${id}/`);
     },
-    login: (creds)=> { return $ajax({ url: '/api-auth/login/?next=/me/', data: creds, method: 'POST'}); }
+    login: (creds)=> {
+      return $ajax({ url: '/api-auth/login/?next=/me/', data: creds, method: 'POST'});
+    }
   });
 }).call(sessionDispatch={});
 
@@ -833,6 +1045,36 @@ actions.auth.logout.listen(function(){
   });
 })
 
+actions.resources.loadAsset.listen(function(params){
+  var dispatchMethodName = {
+    c: 'getCollection',
+    a: 'getAsset'
+  }[params.id[0]];
+
+  sessionDispatch[dispatchMethodName](params)
+      .done(actions.resources.loadAsset.completed)
+      .fail(actions.resources.loadAsset.failed)
+});
+
+actions.resources.loadAsset.completed.listen(function(asset){
+  actions.navigation.historyPush(asset);
+});
+
+actions.resources.loadAssetContent.listen(function(params){
+  sessionDispatch.getAssetContent(params)
+      .done(function(data, ...args) {
+        // data.sheeted = new Sheeted([['survey', 'choices', 'settings'], data.data])
+        actions.resources.loadAssetContent.completed(data, ...args);
+      })
+      .fail(actions.resources.loadAssetContent.failed)
+});
+
+actions.resources.listAssets.listen(function(){
+  sessionDispatch.listAllAssets()
+      .done(actions.resources.listAssets.completed)
+      .fail(actions.resources.listAssets.failed)
+})
+
 // this didn't work. logins were not consistent from one tab to the next
 // actions.auth.verifyLogin.listen(function(){
 //   sessionDispatch.selfProfile().then(function success(acct){
@@ -843,6 +1085,46 @@ actions.auth.logout.listen(function(){
 //     }
 //   })
 // })
+
+
+var assetContentStore = Reflux.createStore({
+  init: function () {
+    this.data = {};
+    this.surveys = {};
+    this.listenTo(actions.resources.loadAssetContent.completed, this.onLoadAssetContentCompleted);
+  },
+  getSurvey: function (assetId) {
+    return this.surveys[assetId];
+  },
+  onLoadAssetContentCompleted: function(resp, req, jqxhr) {
+    if (!resp.uid) {
+      throw new Error('no uid found in response');
+    }
+    this.data[resp.uid] = resp;
+    try {
+      this.surveys[resp.uid] = dkobo_xlform.model.Survey.loadDict(resp.data)
+    } catch (e) {
+      this.surveys[resp.uid] = {error: e}
+    }
+    this.trigger(this.data, resp.uid);
+  }
+});
+
+var assetStore = Reflux.createStore({
+  init: function () {
+    this.data = {};
+    // log('listening to actions.resources.loadAsset.completed');
+    this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted)
+  },
+  onLoadAssetCompleted: function (resp, req, jqxhr) {
+    log('asset load komplete');
+    if (!resp.uid) {
+      throw new Error('no uid found in response');
+    }
+    this.data[resp.uid] = resp;
+    this.trigger(this.data, resp.uid);
+  }
+});
 
 var sessionStore = Reflux.createStore({
   init () {
@@ -862,8 +1144,49 @@ var sessionStore = Reflux.createStore({
   }
 });
 
+const MAX_SEARCH_AGE = (5 * 60) // seconds
+
+
+var assetSearchStore = Reflux.createStore({
+  init () {
+    this.queries = {};
+    this.listenTo(actions.search.assets.completed, this.onAssetSearch);
+  },
+  getRecentSearch (queryString) {
+    if (queryString in this.queries) {
+      var age = new Date().getTime() - this.queries[queryString][1].getTime();
+      if (age < MAX_SEARCH_AGE * 1000) {
+        return this.queries[queryString][0];
+      }
+    }
+    return false;
+  },
+  onAssetSearch (queryString, results) {
+    results.query=queryString;
+    this.queries[queryString] = [results, new Date()];
+    if(results.count > 0) {
+      this.trigger(results);
+    }
+  }
+});
+
+var tagSearchStore = Reflux.createStore({
+  init () {
+    this.queries = {};
+  }
+});
+
 var PageHeader = React.createClass({
-  mixins: [Reflux.ListenerMixin, Reflux.connect(sessionStore, "isLoggedIn")],
+  mixins: [
+    Navigation,
+    Reflux.ListenerMixin,
+    Reflux.connect(sessionStore, "isLoggedIn"),
+    Reflux.connectFilter(assetSearchStore, 'searchResults', function(results){
+      if (this.searchFieldValue() === results.query) {
+        return results;
+      }
+    })
+  ],
   componentDidMount () {
     this.listenTo(actions.auth.login, this.onAuthLogin);
     this.listenTo(actions.auth.login.completed, this.onAuthLoginCompleted);
@@ -914,7 +1237,9 @@ var PageHeader = React.createClass({
             <UserIcon img={this.state.gravatar} />
             <UserDropdown username={this.state.username} />
           </div>
-          <RecentHistoryDropdown list={[]} />
+          {/*
+          <RecentHistoryDropdown />
+          */}
         </div>
       );
     }
@@ -929,12 +1254,65 @@ var PageHeader = React.createClass({
               <div className='form-group'>
                 <input ref='username' type='text' placeholder='username' className='form-control' />
                 <input ref='password' type='password' placeholder='password' className='form-control' />
-                <button className='k-table-cell btn btn-default' type='submit'>Submit</button>
+                <button className='k-table-cell btn btn-default' type='submit'>{t('submit')}</button>
               </div>
             </form>
         );
     }
     return this.__loginForm;
+  },
+  searchFieldValue () {
+    return this.refs.headerSearch.refs.inp.getDOMNode().value;
+  },
+  liveSearch () {
+    var queryInput = this.searchFieldValue(),
+      r;
+    if (queryInput && queryInput.length > 2) {
+      if (r = assetSearchStore.getRecentSearch(queryInput)) {
+        this.setState({
+          searchResults: r
+        });
+      } else {
+        actions.search.assets(queryInput);
+      }
+    }
+  },
+  renderSearch () {
+    return (
+        <SmallInputBox ref="headerSearch" placeholder={t('search keywords or tags')} onKeyUp={this.liveSearch} />
+      );
+  },
+
+  renderSearchItem (item) {
+    return (
+        <li>
+          <pre>
+            {JSON.stringify(item, null, 4)}
+          </pre>
+        </li>
+        );
+
+  },
+  renderSearchResults () {
+    var res = this.state.searchResults;
+    if (res) {
+      return (
+        <div className="popover fade bottom in" role="tooltip">
+          <div className="arrow"></div>
+          <h3 className="popover-title">
+            Search Results 
+            <em>{res.query}</em>
+            &nbsp;&ndash;&nbsp;
+            ({res.count})
+          </h3>
+          <div className="popover-content">
+            <ul>
+              {res.results.map(this.renderSearchItem)}
+            </ul>
+          </div>
+        </div>
+          );
+    }
   },
   render () {
     var isLoggedIn = this.state.isLoggedIn;
@@ -942,32 +1320,49 @@ var PageHeader = React.createClass({
     var _pending = this.state.loginStatus === 'pending';
 
     var buttonKls = classNames("btn", "btn-small", "btn-default");
+    log("this ", Navigation);
+
+    var headerSearch = false;
 
     return (
         <div className="row header">
           <div className="col-xs-12">
-            <div className="meta pull-left">
-              <div className="page">
-                <Breadcrumb />
+            <div className="meta pull-left" style={{marginTop: '11px'}}>
+              <div className={classNames('btn-group')}>
+                <Link to='new-form' className='btn btn-circle btn-default'>
+                  <i className='fa fa-plus' />
+                </Link>
               </div>
             </div>
             {/*
-            <ul className="nav navbar-nav">
+              <LiLink active href="" sr-only={'(current)'}>{t('link')}</LiLink>
               <LiDropdown sr-only />
-              <LiLink active href="#" sr-only={'(current)'}>{t('link')}</LiLink>
-            </ul>
             */}
             <div className="pull-right k-user-details">
               {_pending || (this.state.username ? this._userInfo() : this._loginForm()) }
               {_pending ? <NavBarIcon icon="fa-spinner fa-spin fa-2x" title={this.state.loginStats} /> : '' }
               <MeViewer />
             </div>
+            { headerSearch ? 
+              <div className="pull-right k-search">
+                {this.renderSearch()}
+                {this.renderSearchResults()}
+              </div>
+            :'' }
           </div>
         </div>
       )
   }
 });
 
+var Icon = React.createClass({
+  render () {
+    var kls = classNames('fa', `fa-${this.props.fa}`, this.props.also);
+    return (
+      <i className={kls} />
+      );
+  }
+})
 class NavBarIcon extends React.Component {
   render () {
     var iconCls = classNames(`fa ${this.props.icon}`)
@@ -1012,76 +1407,199 @@ class ListForms extends React.Component {
   }
 }
 
-class Home extends React.Component {
-  _items () {
-    return _.range(1, 200);
-    return _.range(1, 1000).map((nn)=> {
-      return <div className="vlist">{nn}</div>;
-    })
+const MAX_FILE_SIZE = 2500000;
+
+class UploadFile {
+  constructor (item) {
+    this.item = item;
   }
-  dragover (evt) {
-    window._evt = evt;
-    evt.preventDefault();
-    log(evt);
+  read (callback) {
+    if (this.readerProm) {
+      return this.readerProm;
+    }
+    var p = new $.Deferred()
+    var reader  = new FileReader();
+    var that = this;
+    if (this.item.size > MAX_FILE_SIZE) {
+      p.reject('file too big');
+    }
+    reader.onloadend = function () {
+      typeof callback === 'function' && callback(reader.result);
+      that.data = reader.result;
+      p.resolve(reader.result);
+    }
+
+    if (this.item) {
+      reader.readAsDataURL(this.item);
+    }
+    this.readerProm = p;
+    return this.readerProm.promise();
   }
-  drop (evt) {
-    window._dropevt = evt;
-    evt.preventDefault();
-  }
-  renderItem (x, n) {
-    return <Nn>{x}</Nn>;
-  }
-  _renderedItems () {
-    return this._items().map(function(x){
-      return <Nn>{x}</Nn>;
+}
+
+function processFile(item, n) {
+  return new UploadFile(item);
+}
+var Home = React.createClass({
+  mixins: [
+    Navigation
+  ],
+  componentDidMount () {
+    log(this);
+  },
+  onDrop (fileList) {
+    this.fileList = fileList.map((i) => new UploadFile(i) );
+    this.setState({
+      uploads: this.fileList
     });
-  }
+    window.files = this.fileList;
+  },
   render () {
     return (
       <Panel>
         <h1>Home</h1>
+        <hr />
+        <Dropzone className='formdrop'
+                  activeClassName='formdrop--active'
+                  onDropFiles={this.onDrop.bind(this)}
+                  >
+          <div className='cutout-placeholder'>
+            <span className='indicator indicator--drag-files-here'>
+              {t('drag forms here')}
+            </span>
+          </div>
+        </Dropzone>
       </Panel>
       );
   }
+});
 
-}
-class Forms extends React.Component {
+class StackedIcon extends React.Component {
   render () {
+    var size = this.props.size || 'lg';
+    var backIcon = this.props.backIcon || 'square';
+    var frontIcon = this.props.frontIcon || 'file-o';
+    return (
+        <span className={classNames('fa-stack', `fa-${size}`, this.props.className)}>
+          <i className={`fa fa-${backIcon} fa-stack-2x`}></i>
+          <i className={`fa fa-${frontIcon} fa-stack-1x fa-inverse`}></i>
+        </span>
+      )
+  }
+}
+
+var AssetRow = React.createClass({
+  render () {
+    var icon = <StackedIcon size='lg' frontIcon='question' />;
+    if (this.props.kind === 'collection') {
+      icon = <StackedIcon className='icon--collection' size='2x' frontIcon='folder-o' />;
+    } else if(this.props.kind === 'asset') {
+      icon = <StackedIcon className='icon--asset' size='2x' frontIcon='file-o' />;
+    }
+    var currentUsername = sessionStore.currentAccount && sessionStore.currentAccount.username
+    var selfOwned = this.props.owner__username == currentUsername;
+    var perm = parsePermissions(this.props.owner, this.props.permissions);
+
+    return <li className="list-group-item asset-row">
+        <Link to="form-view" params={{assetid: this.props.uid}}>
+          <div className="pull-left">
+            {icon}
+          </div>
+          <div>
+            {this.props.name || t('no name')}
+            <br />
+            <span className="date date--modified">{formatTime(this.props.date_modified)}</span>
+          </div>
+          <div>
+            {
+              selfOwned ?
+                '' :
+                <UserProfileLink icon='user' iconBefore='true' username={this.props.owner__username} />
+            }
+          </div>
+          <div>
+            <PermissionsEditor perms={perm} />
+          </div>
+        </Link>
+      </li>
+  }
+})
+
+var allAssetsStore = Reflux.createStore({
+  init: function () {
+    this.data = {};
+    this.listenTo(actions.resources.listAssets.completed, this.onListAssetsCompleted);
+  },
+  onListAssetsCompleted: function(resp, req, jqxhr) {
+    this.data = resp.results;
+    this.trigger(this.data);
+  }
+});
+
+var Forms = React.createClass({
+  mixins: [
+    Reflux.connect(allAssetsStore, "results")
+  ],
+  getInitialState () {
+    return {
+      results: false
+    }
+  },
+  statics: {
+    willTransitionTo: function(transition, params, idk, callback) {
+      actions.resources.listAssets();
+      callback();
+    }
+  },
+  render () {
+    if (!this.state.results) {
+      return (
+          <Panel>
+            <i className='fa fa-spinner fa-spin' />
+            &nbsp;
+            {t('loading...')}
+          </Panel>
+        );
+    }
     return (
       <Panel>
-        <BuilderBar />
-        <Header title={t('collections')}
-                small={t('organize and share your assets in folders')} />
-        <div className="row">
-          <AssetCollectionsContainer source="/collections/?parent=" itemname='collections' />
-        </div>
-        <Header title={t('assets')}
-                small={t('start forms and stuff')} />
-        <div className="row">
-          <AssetCollectionsContainer source="/assets/?parent=" itemname='assets' />
-        </div>
+        <ul className="collection-asset-list list-group">
+          {this.state.results.map((resource) => {
+            return <AssetRow key={resource.uid} {...resource} />
+          })}
+        </ul>
         <RouteHandler />
       </Panel>
       );
   }
-}
+});
 
-class Shared extends React.Component {
+// no shown atm
+var CollectionAssetsList = React.createClass({
+  mixins: [
+    Navigation,
+    Reflux.connectFilter(assetStore, 'assett', function(data){
+      log('ok asseet 3 CollectionAssetsList')
+
+      var assetid = this.props.params.assetid;
+      return data[assetid];
+    })
+  ],
+  componentDidMount () {
+    this.transitionTo('forms');
+  },
   render () {
+    // log('collection chilxs', this.state, this.props);
+    // var children = (this.props.children || []).map((sa, i)=> <CollectionAssetItem key={sa.uid} asset={sa} /> )
+
+    var children = <span>blah</span>;
     return (
-      <Panel>
-        <Header title={t('shared collections')} />
-        <p>
-          Item
-        </p>
-        <hr />
-        <Header title={t('shared forms')} />
-        <p>Item</p>
-        <p>Item</p>
-      </Panel>
+      <ul className="list-group collection-asset-list">
+        {children}
+      </ul>
       );
   }
-}
+});
 
 var LargeLink = React.createClass({
   mixins: [Navigation],
@@ -1108,38 +1626,6 @@ var LargeLink = React.createClass({
   }
 });
 
-class BuilderBar extends React.Component {
-  render () {
-    return (
-      <div className="row">
-        <div className="well">
-          <LargeLink big={t('new')}
-                      little={t('start new form')}
-                      to={'new-form'}
-                      colspan='4'
-                      color='green'
-                      icon='file'
-            />
-          <LargeLink big={t('template')}
-                      little={t('load from template')}
-                      to={'new-template-form'}
-                      colspan='4'
-                      color='red'
-                      icon='files-o'
-            />
-          <LargeLink big={t('examples')}
-                      little={t('browse examples')}
-                      to={'examples'}
-                      colspan='4'
-                      color='blue'
-                      icon='times'
-            />
-        </div>
-      </div>
-      );
-  }
-}
-
 class Libraries extends React.Component {
   render () {
     return (
@@ -1152,11 +1638,11 @@ class Libraries extends React.Component {
   }
 }
 
+// <BuilderBar />
 class Public extends React.Component {
   render () {
     return (
       <div>
-        <BuilderBar />
         <p>Public</p>
       </div>
       );
@@ -1246,20 +1732,10 @@ class CollectionAssetItem extends React.Component {
 
     return (
         <li className="list-group-item">
-          <Link to="forms-preview" params={{assetid: asset.uid}}>
-            {asset_icon} - {asset.name}
+          <Link to="form-view" params={{assetid: asset.uid}}>
+            {asset_icon} - {asset.name || <em>no name</em>}
           </Link>
         </li>
-      );
-  }
-}
-class CollectionAssetsList extends React.Component {
-  render () {
-    var children = (this.props.children || []).map((sa, i)=> <CollectionAssetItem key={sa.uid} asset={sa} /> )
-    return (
-      <ul className="list-group collection-asset-list">
-        {children}
-      </ul>
       );
   }
 }
@@ -1272,8 +1748,18 @@ class BigIcon extends React.Component {
                           'k-expanded',
                           `fa-${this.props.type}`)
 
+    if (this.props.to) {
+      return (
+        <Link to={this.props.to} params={this.props.params}>
+          <div className={okls} onClick={this.props.onClick}>
+            <i className={ikls} />
+          </div>
+        </Link>
+        );
+
+    }
     return (
-      <div className={okls}>
+      <div className={okls} onClick={this.props.onClick}>
         <i className={ikls} />
       </div>
       );
@@ -1293,7 +1779,6 @@ class ButtonGroup extends React.Component {
   }
   render () {
     var icon = this.props.icon || false;
-
     var href = this.props.href || '#';
     var title = this.props.title;
     var links = this.props.links || [];
@@ -1314,9 +1799,12 @@ class ButtonGroup extends React.Component {
 
     if (icon) {
       iconEl = <i className={classNames('fa', 'fa-lg', `fa-${icon}`)} />;
-    } 
-    mainLink = <a href={href} className={mainClassnames}>{title}&nbsp;&nbsp;{iconEl}</a>;
+    }
+    mainLink = <a href={href}
+                  onClick={this.toggleExpandGroup.bind(this)}
+                  className={mainClassnames}>{title}&nbsp;&nbsp;{iconEl}</a>;
 
+    var action = this.props.action || 'view';
     if (links.length > 0) {
       openLink = (
         <a href="#" className={caretClassnames} onClick={this.toggleExpandGroup.bind(this)}><span className="caret" /></a>
@@ -1324,8 +1812,8 @@ class ButtonGroup extends React.Component {
       links = (
           <ul className="dropdown-menu">
             {links.map((lnk, i)=> {
-              var _key = `download.${this.props.assetType}.${lnk.format}`;
-              return (<li key={_key}><a href={lnk.url}>{t(lnk.title || _key)}</a></li>);
+              var _key = lnk.code;
+              return (<li key={_key}><a href={lnk.url}>{t(lnk.title || lnk.code)}</a></li>);
             })}
           </ul>
         );
@@ -1341,16 +1829,40 @@ class ButtonGroup extends React.Component {
   }
 }
 
+class PreviewButtons extends React.Component {
+  render () {
+    var title = 'there are no available previews';
+    var links = this.props.embeds.map((link) => {
+      return assign({
+        code: `preview.${this.props.kind}.${link.format}`
+      }, link);
+    })
+    return (
+      <ButtonGroup href="#"
+                    links={links}
+                    kind={this.props.kind}
+                    disabled={links.length === 0}
+                    icon="eye"
+                    title={t('preview')} />
+      );
+  }
+}
+
 class DownloadButtons extends React.Component {
   render () {
     var title = 'there are no available downloads';
+    var links = this.props.downloads.map((link) => {
+      return assign({
+        code: `download.${this.props.kind}.${link.format}`
+      }, link);
+    })
     return (
       <ButtonGroup href="#"
-                    links={this.props.downloads}
-                    assetType={this.props.assetType}
-                    disabled={this.props.downloads.length === 0}
+                    links={links}
+                    kind={this.props.kind}
+                    disabled={links.length === 0}
                     icon="cloud-download"
-                    title="download" />
+                    title={t('download')} />
       );
   }
 }
@@ -1377,274 +1889,404 @@ class UserProfileLink extends React.Component {
   }
 }
 
-class CollectionView extends React.Component {
-  constructor () {
-    super();
-    this.state = {
-      assetType: 'collection',
-      uid: 'this.props.uid',
-      name: 'xx?xx',
-      tags: [],
-      permissions: [],
-      owner__username: 'a?b',
-      date_created: new Date(),
-      date_modified: new Date(),
-      assets: []
-    };
-  }
-  close () {
-    log('close');
-  }
-
-  componentWillMount () {
-    this.setState(this.props);
-  }
-
-  render () {
-    var icon = <i className="fa fa-folder" />;
-    var _rows = [];
-    return (
-          <Panel>
-            <BigIcon color="green" type="folder" overlay="users" />
-            <div className="btn-toolbar pull-right">
-              <DownloadButtons assetType="collection" uid={this.state.uid} downloads={this.state.downloads} />
-              <div className="btn-group">
-                <CloseButton
-                    title={t('close')}
-                    to="forms"
-                    className="btn btn-primary"
-                    onClick={this.close.bind(this)}
-                    />
-              </div>
-            </div>
-            <h4>
-              {this.state.name}
-              <br />
-              <small>
-                <UserProfileLink username={this.state.owner__username}
-                                  icon="user" />
-              </small>
-            </h4>
-            <hr />
-            <p className="col-md-4">
-              <span className="label label-primary">
-                {t('Created')} <MomentTime time={this.state.date_created} />
-              </span> <span className="label label-primary">
-               {t('Modified')} <MomentTime time={this.state.date_modified} />
-              </span>
-            </p>
-
-            <div>
-              <PermissionsList {...this.state} />
-            </div>
-            <hr />
-            <CollectionAssetsList {...this.state} />
-            {/*
-            <AssetsTable rows={_rows} />
-            */}
-          </Panel>
-        );
-  }
-}
-class AssetPreview extends React.Component {
-  constructor () {
-    super();
-
-    this.state = {
-      assetType: 'collection',
-      uid: 'this.props.uid',
-      name: 'a?p',
-      tags: [],
-      permissions: [],
-      owner__username: 's?basdf',
-      date_created: new Date(),
-      date_modified: new Date(),
-      assets: []
-    };
-  }
-  close () {
-    log('close');
-  }
-
-  componentWillMount () {
-    this.setState(this.props);
-  }
-
-  render () {
-    var pencil_icon = (<i className='fa fa-pencil' />);
-    var parents = [];
-    if(this.props.parent) {
-      var parUid = this.props.parent.match(/\/(\w+)\/$/)[1]
-
-      parents.push({
-        uid: parUid,
-        name: 'PARENT COLLECTION NAME [' + this.props.parent + ']'
-      })
-    }
-    return (
-          <Panel>
-            <BigIcon color="blue" type="file-o" overlay="users" />
-            <div className="btn-toolbar pull-right">
-              <DownloadButtons assetType="asset" uid={this.state.uid} downloads={this.state.downloads} />
-              <div className="btn-group">
-                <CloseButton
-                    title={t('close')}
-                    to="forms"
-                    className="btn btn-primary"
-                    onClick={this.close.bind(this)}
-                    />
-              </div>
-            </div>
-            <h4>
-              {this.state.name}
-              <br />
-              <small>
-                <UserProfileLink username={this.state.owner__username}
-                                  icon="user" />
-              </small>
-            </h4>
-            <hr />
-            <p>
-              {parents.length > 0 && 
-                <Link to="forms-preview" params={{ assetid: parents[0].uid }}>
-                  {parents[0].name}
-                </Link>
-              }
-            </p>
-            <p className="col-md-4">
-              <span className="label label-primary">
-                {t('Created')} <MomentTime time={this.state.date_created} />
-              </span> <span className="label label-primary">
-               {t('Modified')} <MomentTime time={this.state.date_modified} />
-              </span>
-            </p>
-          </Panel>
-      );
-    return (
-      <div className="form-preview row">
-        <LargeLink big={t('asset')}
-                    little={t('start new form')}
-                    to={'home'}
-                    colspan='12'
-                    color='purple'
-                    icon='file-o'
-          />
-        <Link to="forms-editor"
-                params={{ assetid: 'this.props.params.assetid' }}
-                className='btn btn-primary'
-          >{pencil_icon} {t('edit')}</Link>
-        <div className="col-md-6 well">
-          <h3>{this.props.name}</h3>
-          <dl>
-            <dt>{t('Owner')}</dt>
-            <dd>{this.props.owner__username}</dd>
-            <dt>{t('Tags')}</dt>
-            <dd>{this.props.tags.join(', ')}</dd>
-            <dt>{t('Permissions')}</dt>
-            <dd>{this.props.permissions.length}</dd>
-            <dt>{t('Date created')}</dt>
-            <dd>
-              <MomentTime time={this.props.date_created} />
-            </dd>
-            <dt>{t('Date modified')}</dt>
-            <dd>
-              <MomentTime time={this.props.date_modified} />
-            </dd>
-          </dl>
-        </div>
-        <code>
-          <pre>
-            {JSON.stringify(this.state, null, 4)}
-          </pre>
-        </code>
-        <div className="permissions">
-          <h3>Permissions</h3>
-        </div>
-      </div>
-      );
-  }
-}
-
-class FormPreview extends React.Component {
-  constructor () {
-    super();
-    this._initialState = {
-      assetType: 'unknown',
-      name: 'formpreview__name',
-      tags: [],
-      loaded: false,
-      permissions: [],
-      owner__username: 'formpreview__owner',
-      date_created: new Date(),
-      date_modified: new Date()
-    };
-    this.state = assign({}, this._initialState);
-  }
+// subclassed, shown
+var AssetCollectionBase = React.createClass({
+  mixins: [
+    Navigation,
+    Reflux.connectFilter(assetStore, function(data){
+      log('ok asseet 1 AssetCollectionBase')
+      return data[this.props.uid];
+    }),
+    React.addons.LinkedStateMixin
+  ],
+  getInitialState () {
+    return {}
+  },
   componentDidMount () {
-    let assetType = (this.props.params.assetid[0] == 'c') ? 'collection' : 'asset';
-    this.setState({
-      assetType: assetType,
-    });
-    if (assetType === 'collection') {
-      sessionDispatch.getCollection({id: this.props.params.assetid})
-        .success((data,status,req)=>{ this.setState(assign({}, {loaded: true}, data)); })
-        .fail(function fail(a,b,c) {
-          if (a.statusText === 'NOT FOUND') {
-            throw new Error('Not found');
-          }
-        });
-    } else {
-      sessionDispatch.getAsset({id: this.props.params.assetid}).success((data,status,req)=>{
-        this.setState(assign({}, {loaded: true}, data));
-      }).fail(function fail(a,b,c) {
-        if (a.statusText === 'NOT FOUND') {
-          throw new Error('Not found');
-        }
-      });
-    }
-  }
-  componentWillReceiveProps (props) {
-    if (this.props.params.assetid !== props.params.assetid) {
-      log("replacingstate because assetid changed");
-      this.setState(assign({}, this._initialState));
-    }
-  }
-  render () {
-    var content;
-    if (this.state.loaded) {
-      if (this.state.assetType === 'collection') {
-        return (<CollectionView key={this.state.uid} {...this.state} />);
-      } else {
-        return (<AssetPreview key={this.state.uid} {...this.state} />);
-      }
-    }
+    log(this.props);
+  },
+  renderLoadingScreen () {
     return (
-      <Panel width="10" offset="1">
-        <i className='fa fa-spinner fa-spin' />
-        &nbsp;
-        {t('loading')}
-      </Panel>
+        <Panel width="10" offset="1">
+          <i className='fa fa-spinner fa-spin' />
+          &nbsp;
+          {t('loading')}
+        </Panel>
+      );
+  },
+  renderHeader () {
+    return (
+          <h4>
+            {this.state.name}
+            &nbsp;
+            <br />
+            <small>
+              <UserProfileLink
+                    username={this.state.owner__username}
+                    icon="user"
+                  />
+            </small>
+          </h4>
+      );
+  },
+  renderIcon (iconProps) {
+    return (
+          <BigIcon to={'form-view'} params={{assetid: this.props.uid}} {...iconProps} />
+      );
+  },
+  renderCloseButton () {
+    return (
+          <div className="btn-group">
+            <CloseButton
+                to="forms"
+                title={t('close')}
+                className="btn btn-default"
+                />
+          </div>
+      );
+  },
+  renderTimes () {
+    return (
+          <p className="col-md-12 text-right">
+            <span className="text-muted date date--created">
+             {t('created')}
+             &nbsp;
+             <MomentTime time={this.state.date_created} />
+            </span>
+            &nbsp;&mdash;&nbsp;
+            <span className="text-muted date date--modified">
+             {t('last edited')}
+             &nbsp;
+             <MomentTime time={this.state.date_modified} />
+            </span>
+          </p>
+      );
+  },
+  renderTag (tag, i) {
+    var kls, _root, _split = tag.split(':');
+    if (_split.length > 1) {
+      [_root, tag] = _split;
+      kls = classNames('tag', 'tag--namespaced', `tag--${_root}`);
+      return <span className={kls}>{tag}</span>;
+    } else {
+      kls = classNames('tag', 'tag--basic');
+      return <span className={kls}>{tag}</span>;
+    }
+  },
+  tagsChanged (tagList) {
+    actions.resources.updateAsset(this.state.uid, {
+      tags: tagList
+    });
+  },
+  renderTags () {
+    var valueLink = this.linkState('tags');
+    var handleChange = (tags)=> {
+      this.tagsChanged(tags);
+      valueLink.requestChange(tags);
+    };
+
+    return (
+        <div className='k-tags-wrap'>
+          <TagsInput ref="tags"
+                      classNamespace="k"
+                      onChange={handleChange}
+                      value={valueLink.value}
+                    />
+        </div>
+      );
+  },
+  render () {
+    if (!this.state.uid) {
+      return this.renderLoadingScreen();
+    } else {
+      return this.renderContent();
+    }
+  }
+});
+
+class CollectionPage extends AssetCollectionBase {
+  renderButtons () {
+    return (
+          <div className="btn-toolbar pull-right">
+            <SharingButton {...{uid: this.state.uid}} />
+            <DownloadButtons kind={this.state.kind} uid={this.state.uid} downloads={this.state.downloads} />
+            {this.renderCloseButton()}
+          </div>
+      );
+  }
+
+  renderContent () {
+    return (
+          <Panel>
+            {this.renderIcon({color: 'green', type: 'folder', overlay: 'users'})}
+            {this.renderButtons()}
+            {this.renderTimes()}
+            {this.renderHeader()}
+            {this.props.children}
+          </Panel>
       );
   }
 }
 
-window._Navigation = Navigation;
-
-class FormEditor extends React.Component {
-  render () {
+class AssetPage extends AssetCollectionBase {
+  renderHeader () {
     return (
-      <div className="form-editor">
-        <LargeLink big={t('editor')}
-                    little={t('start new form')}
-                    to={'home'}
-                    colspan='12'
-                    color='purple'
-                    icon='pencil'
-          />
+          <h4>
+            {this.state.name}
+            &nbsp;
+            {this.renderTags()}
+            <br />
+            <small>
+              <UserProfileLink username={this.state.owner__username}
+                                icon="user" />
+            </small>
+          </h4>
+      );
+  }
+
+  renderButtons () {
+    return (
+          <div className="btn-toolbar pull-right">
+            <EditButton {...{uid: this.state.uid}} />
+            <SharingButton {...{uid: this.state.uid}} />
+            <PreviewButtons {...this.state} />
+            <DownloadButtons {...this.state} /> 
+            <div className="btn-group">
+              <CloseButton
+                  to="forms"
+                  title={t('close')}
+                  className="btn btn-default"
+                  />
+            </div>
+          </div>
+      );
+  }
+  renderContent () {
+    return (
+          <Panel>
+            {this.renderIcon({color: 'blue', type: 'file-o', overlay: 'users'})}
+            {this.renderButtons()}
+            {this.renderTimes()}
+            {this.renderHeader()}
+            <div className='row'>
+              <p className='col-md-12'>
+                {this.renderTags()}
+              </p>
+            </div>
+            { this.props.survey ?
+              <SurveyPreview key={this.props.uid} survey={this.props.survey} />
+            : null }
+
+            {this.props.children}
+          </Panel>
+      );
+  }
+}
+
+var SurveyRow = React.createClass({
+  renderNote () {
+
+  },
+  renderLabel () {
+
+  },
+  renderItem () {
+    var item = this.props.item;
+    return (
+      <div className="cell">
+        <div className="cell__icon">
+          <span>{item.getValue('type')}</span>
+        </div>
+        <div className="cell__label">
+          <span>{item.getValue('label')}</span>
+        </div>
       </div>
       );
+  },
+  render () {
+    return (
+        <div>
+          {this.renderItem()}
+        </div>
+      );
+  }
+});
+
+var SurveyGroup = React.createClass({
+  render () {
+    return (
+        <div>
+          SurveyGroup
+        </div>
+      );
+  }
+});
+
+var SurveyPreview = React.createClass({
+  render () {
+    window._s = this.props.survey;
+    // log(this.props.survey);
+    var survey = this.props.survey;
+    log('here', survey);
+    return (
+        <div>
+          <h3>SurveyPreview</h3>
+          <hr />
+          <div>
+            {this.props.survey.rows.models.map((r, i)=> {
+              return <SurveyRow key={r.cid} item={r} />
+            })}
+          </div>
+        </div>
+      );
+  }
+})
+
+// class PreviewButton extends React.Component {
+//   render () {
+//     return <div className="btn-group">
+//               <Link to="form-preview-enketo"
+//                       params={{assetid: this.props.uid}}
+//                       className="btn btn-default"
+//                       data-toggle="tooltip"
+//                       title=""
+//                       data-placement="bottom"
+//                       data-original-title="tewltip">
+//                 {t('preview')}
+//                 &nbsp;
+//                 &nbsp;
+//                 <i className='fa fa-lg fa-eye' />
+//               </Link>
+//           </div>;
+//   }
+// }
+class EditButton extends React.Component {
+  render () {
+    return <div className="btn-group">
+              <Link to="form-editor"
+                      params={{assetid: this.props.uid}}
+                      className="btn btn-default"
+                      data-toggle="tooltip"
+                      title=""
+                      data-placement="bottom"
+                      data-original-title="tewltip">
+                {t('edit')}
+                &nbsp;
+                &nbsp;
+                <i className='fa fa-lg fa-pencil' />
+              </Link>
+          </div>;
   }
 }
+
+
+class SharingButton extends React.Component {
+  render () {
+    return <div className="btn-group">
+              <Link to="form-sharing" params={{assetid: this.props.uid}} className="btn btn-default">
+                Sharing
+                &nbsp;&nbsp;
+                <i className='fa fa-lg fa-user-plus fa-user' />
+              </Link>
+            </div>;
+  }
+}
+
+var DocumentTitle = require('react-document-title');
+
+var FormView = React.createClass({
+  mixins: [
+    Navigation,
+    Reflux.connectFilter(assetContentStore, function(data){
+      var assetid = this.props.params.assetid;
+      if (assetid in data) {
+        return {
+          survey: assetContentStore.getSurvey(assetid),
+          data: data[assetid]
+        };
+      }
+    })
+  ],
+  getInitialState () {
+    return {};
+  },
+  statics: {
+    willTransitionTo (transition, params, idk, callback) {
+      if (params.assetid[0] == 'a') {
+        actions.resources.loadAssetContent({id: params.assetid});
+      }
+      callback();
+    }
+  },
+  getInitialState () {
+    return {};
+  },
+  componentWillMount () {
+
+  },
+  componentDidMount () {
+
+  },
+  render () {
+    return (
+        <div>
+          asdf
+        </div>
+      )
+  }
+})
+
+var FormPage = React.createClass({
+  mixins: [
+    Navigation
+  ],
+  getInitialState () {
+    return {};
+  },
+  statics: {
+    willTransitionTo: function(transition, params, idk, callback) {
+      actions.resources.loadAsset({id: params.assetid});
+      callback();
+    }
+  },
+  componentWillMount () {
+    var kind = {
+        a: 'asset',
+        c: 'collection'
+      }[this.props.params.assetid[0]];
+    this.setState({
+      kind: kind
+    });
+  },
+  // componentWillReceiveProps (props) {
+  //   log("WILL RECV PROPS");
+  //   if (this.props.params.assetid !== props.params.assetid) {
+  //     log("replacingstate because assetid changed");
+  //     this.setState(this.getInitialState());
+  //   }
+  // },
+  render () {
+    var uid = this.props.params.assetid;
+    return ({
+      collection: () => {
+        return (
+            <CollectionPage key={uid} uid={uid} {...this.state}>
+              <RouteHandler />
+            </CollectionPage>
+          );
+      },
+
+      asset: () => {
+        return (
+            <AssetPage key={uid} uid={uid} {...this.state}>
+              <RouteHandler />
+            </AssetPage>
+          );
+      }
+    }[this.state.kind])();
+  }
+});
+
 class FormNotFound extends React.Component {
   render () {
     return (
@@ -1735,17 +2377,779 @@ class SectionNotFound extends React.Component {
   }
 }
 
+class Modal extends React.Component {
+  backdropClick (evt) {
+    if (evt.currentTarget === evt.target) {
+      this.props.onClose.call(evt);
+    }
+  }
+  renderTitle () {
+    if (this.props.small) {
+      return (
+          <div>
+            <h4 className="modal-title">
+              {this.props.title}
+            </h4>
+            <h6>
+              {this.props.small}
+            </h6>
+          </div>
+        );
+    } else {
+      return (
+          <h4 className="modal-title">
+            {this.props.title}
+          </h4>
+        );
+    }
+  }
+  render () {
+    return <div className='modal-backdrop' style={{backgroundColor: 'rgba(0,0,0,0.3)'}} onClick={this.backdropClick.bind(this)}>
+            <div className={this.props.open ? 'modal-open' : 'modal'}>
+              <div className="modal-dialog k-modal-dialog">
+                <div className="modal-content">
+                  <div className="modal-header">
+                    <button type="button" className="close" data-dismiss="modal" aria-hidden="true" onClick={this.props.onClose}>×</button>
+                    {this.renderTitle()}
+                  </div>
+                  {this.props.children}
+                </div>
+              </div>
+            </div>
+          </div>;
+  }
+}
+class ModalFooter extends React.Component {
+  render () {
+    return <div className="modal-footer">{this.props.children}</div>;
+  }
+}
+Modal.Footer = ModalFooter;
+class ModalBody extends React.Component {
+  render () {
+    return <div className="modal-body">{this.props.children}</div>;
+  }
+}
+Modal.Body = ModalBody;
+
+var PreviewSubresource = React.createClass({
+  mixins: [Navigation],
+  getInitialState () {
+    return {}
+  },
+  loadingMessage () {
+    return t('loading');
+  },
+  render () {
+    if (this.state.htmlContent) {
+      return (
+          <div>{this.state.htmlContent}</div>
+        );
+    } else if (this.state.codeContent) {
+      return (
+          <pre><code>{this.state.codeContent}</code></pre>
+        );
+    } else if (this.state.error) {
+      return (
+          <div>{this.state.error}</div>
+        );
+    } else {
+      return (
+          <div>{this.loadingMessage()}</div>
+        );
+    }
+  }
+});
+
+class FormPreviewXform extends PreviewSubresource {
+  componentDidMount () {
+    if (!this.props.params.assetid) {
+      throw new Error("No asset id")
+    }
+    $.ajax({
+      url: `/assets/${this.props.params.assetid}/xform/`
+    }).done((content)=>{
+      this.setState({
+        htmlContent: content
+      })
+    }).fail((e) => {
+      this.setState({
+        error: 'failed to load xform'
+      })
+    })
+  }
+}
+
+class FormPreviewXls extends PreviewSubresource {
+  componentDidMount () {
+    if (!this.props.params.assetid) {
+      throw new Error("No asset id")
+    }
+    $.ajax({
+      url: `/assets/${this.props.params.assetid}/xls/`
+    }).done((content)=>{
+      this.setState({
+        codeContent: content
+      })
+    }).fail((e) => {
+      this.setState({
+        error: 'failed to load xls'
+      })
+    })
+  }
+}
+
+var FormEnketoPreview = React.createClass({
+  mixins: [Navigation],
+  routeBack () {
+    var params = this.context.router.getCurrentParams();
+    this.transitionTo('form-view', {assetid: params.assetid});
+  },
+  render () {
+    var sharedUsers = [];
+    return <Modal open onClose={this.routeBack} title={t('enketo preview')}>
+        <Modal.Body>
+          <div className='row'>
+            <div className='cutout-placeholder'>
+              <span>
+                Enketo
+                &trade;
+                Preview
+              </span>
+            </div>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <button type="button"
+                    className="btn btn-default"
+                    data-dismiss="modal"
+                    onClick={this.routeBack}>
+            {t('done')}
+          </button>
+        </Modal.Footer>
+      </Modal>;
+  }
+});
+
+var historyStore = Reflux.createStore({
+  __historyKey: 'user.history',
+  init () {
+    if (this.__historyKey in localStorage) {
+      try {
+        this.history = JSON.parse(localStorage.getItem(this.__historyKey));
+      } catch (e) {
+        console.error("could not load history from localStorage", e);
+        this.history = [];
+      }
+    }
+    this.listenTo(actions.navigation.historyPush, this.historyPush);
+    this.listenTo(actions.auth.logout.completed, this.historyClear);
+  },
+  historyClear () {
+    localStorage.removeItem(this.__historyKey);
+  },
+  historyPush (item) {
+    this.history = [
+      item, ...this.history.filter(function(xi){ return item.uid !== xi.uid; })
+    ];
+    localStorage.setItem(this.__historyKey, JSON.stringify(this.history));
+    this.trigger(this.history);
+  }
+});
+
+var userExistsStore = Reflux.createStore({
+  init () {
+    this.checked = {};
+    this.listenTo(actions.misc.checkUsername.completed, this.usernameExists);
+    this.listenTo(actions.misc.checkUsername.failed_, this.usernameDoesntExist);
+  },
+  checkUsername (username) {
+    if (username in this.checked) {
+      return this.checked[username];
+    }
+  },
+  usernameExists (username) {
+    this.checked[username] = true;
+    this.trigger(this.checked, username)
+  },
+  usernameDoesntExist (username) {
+    log('failey');
+    this.checked[username] = false;
+    this.trigger(this.checked, username)
+  }
+});
+
+var FormViewMixin = {};
+
+// shown
+var FormSharing = React.createClass({
+  mixins: [
+    Navigation,
+    Reflux.connectFilter(assetStore, function(data){
+      var uid = this.props.params.assetid,
+        asset = data[uid];
+      if (asset) {
+        return {
+          asset: asset,
+          permissions: asset.permissions,
+          owner: asset.owner__username,
+          pperms: parsePermissions(asset.owner__username, asset.permissions)
+        };
+      }
+    }),
+    Reflux.ListenerMixin
+  ],
+  // render () {
+  //   return (
+  //     <Modal open title={t('manage sharing settings:')}
+  //                 small={t('note: this does not control permissions to the data collected by projects')}>
+  //       <ModalBody>
+  //         <Panel>
+  //           {t('owner')}
+  //           <StackedIcon frontIcon='user' />
+  //         </Panel>
+  //       </ModalBody>
+  //     </Modal>
+  //     );
+  // },
+  // getInitialState() {
+  //   return {};
+  // },
+  statics: {
+    willTransitionTo: function(transition, params, idk, callback) {
+      actions.resources.loadAsset({id: params.assetid});
+      callback();
+    }
+  },
+  componentDidMount () {
+    this.listenTo(assetStore, this.asdf);
+    this.listenTo(userExistsStore, this.userExistsStoreChange);
+    this.listenTo(permissionStore, this.permissionStoreChange);
+  },
+  asdf (abc, def) {
+    log('asset sore changed', abc, def)
+  },
+  routeBack () {
+    var params = this.context.router.getCurrentParams();
+    this.transitionTo('form-view', {assetid: params.assetid});
+  },
+  userExistsStoreChange (checked, result) {
+    var inpVal = this.usernameFieldValue();
+    if (inpVal === result) {
+      var newStatus = checked[result] ? 'success' : 'error';
+      this.setState({
+        userInputStatus: newStatus
+      })
+    }
+  },
+  usernameFieldValue () {
+    return this.refs.usernameInput.refs.inp.getDOMNode().value;
+  },
+  permissionStoreChange (permissions, assetId) {
+    log('permission store change', permissions, assetId)
+    // if (assetId === this.props.params.assetid) {
+    // }
+  },
+  usernameCheck (evt) {
+    var username = evt.target.value;
+    if (username && username.length > 3) {
+      var result = userExistsStore.checkUsername(username);
+      if (result === undefined) {
+        actions.misc.checkUsername(username);
+      } else {
+        log(result ? 'success' : 'error');
+        this.setState({
+          userInputStatus: result ? 'success' : 'error'
+        });
+      }
+    } else {
+      this.setState({
+        userInputStatus: false
+      })
+    }
+  },
+  getInitialState () {
+    return {
+      userInputStatus: false
+    }
+  },
+  userFormSubmit (evt) {
+    evt.preventDefault();
+    var username = this.usernameFieldValue();
+    if (userExistsStore.checkUsername(username)) {
+      actions.permissions.assignPerm({
+        username: username,
+        kind: 'asset',
+        uid: this.props.params.assetid,
+        role: 'view'
+      });
+    }
+  },
+  render () {
+    var sharedUsers = [];
+    var inpStatus = this.state.userInputStatus;
+    if (!this.state.pperms) {
+      return <i className="fa fa-spin" />;
+    }
+    var perms = this.state.pperms;
+    var userInputKls = classNames('form-group',
+                                    (inpStatus !== false) ? `has-${inpStatus}` : '');
+    var btnKls = classNames('btn',
+                            'btn-block',
+                            'btn-sm',
+                            inpStatus === 'success' ? 'btn-success' : 'hidden');
+    var publicPerm = {
+      'username': 'public',
+      'can': {
+        'view': true
+      },
+      icon: 'group'
+    };
+    log(perms);
+    if (!perms) {
+      return <p>loading</p>
+    }
+    return (
+      <Modal open onClose={this.routeBack} title={t('manage sharing settings:') + '[asset name]'}
+                  small={t('note: this does not control permissions to the data collected by projects')}>
+        <ModalBody>
+          <Panel>
+            {t('owner')}
+            &nbsp;
+            <StackedIcon frontIcon='user' />
+            &nbsp;
+            <UserProfileLink username={'tinok4'} />
+          </Panel>
+          <Panel>
+            <form onSubmit={this.userFormSubmit}>
+              <div className='col-sm-9'>
+                <div className={userInputKls}>
+                  <SmallInputBox ref='usernameInput' placeholder={t('username')} onKeyUp={this.usernameCheck} />
+                </div>
+              </div>
+              <div className='col-sm-3'>
+                <button className={btnKls}>
+                  <i className="fa fa-fw fa-lg fa-plus" />
+                </button>
+              </div>
+            </form>
+            <br />
+            <br />
+            <div>
+              {perms.map((perm)=> {
+                return <UserPermDiv ref={perm.username} {...perm} />;
+              })}
+            </div>
+          </Panel>
+          <div className='row'>
+            <PublicPermDiv />
+          </div>
+        </ModalBody>
+      </Modal>
+      );
+  }
+});
+
+var UserPermDiv = React.createClass({
+  mixins: [
+    Navigation
+  ],
+  setPerm (permName, value) {
+    return (evt) => {
+      evt.preventDefault();
+      actions.permissions.assignPerm({
+        user: this.props.username,
+        permName: permName,
+        permission: value
+      });
+    }
+  },
+  renderPerm ([permName, permPermission]) {
+    var btnCls = classNames('btn',
+                            'btn-sm',
+                            `perm-${permName}`,
+                            'btn-block',
+                            ({
+                              "false": "btn-default",
+                              "allow": "btn-primary",
+                              "deny": "btn-danger"
+                            })[permPermission]);
+    var oppositePerm = {
+      "false": "deny",
+      "deny": "allow",
+      "allow": "false"
+    }[permPermission];
+    return (
+        <div className='k-col-2-nopadd'>
+          <button className={btnCls} onClick={this.setPerm(permName, oppositePerm)} data-permission-name={permName}>
+            {permName}
+          </button>
+        </div>
+      );
+  },
+  render () {
+    var hasAnyPerms = false;
+    var cans = this.props.can;
+    var availPerms = ['view', 'edit', 'share'].map((permName) => {
+      if ( permName in cans ) {
+        if (cans[permName].deny) {
+          return [permName, "deny"];
+        } else if (cans[permName]) {
+          return [permName, "allow"];
+        }
+      }
+      return [permName, "false"];
+    });
+    var closeButtonCls = hasAnyPerms ? 'hidden' : classNames('btn', 'btn-block', 'btn-sm', 'btn-default');
+    return (
+      <div className='row'>
+        <div className='col-md-5'>
+          <UserProfileLink icon={this.props.icon || 'user-o'} iconBefore='true' username={this.props.username} />
+        </div>
+        {availPerms.map(this.renderPerm)}
+        <div className='col-md-1'>
+          <button className={closeButtonCls}>
+            <i className='fa fa-times' />
+          </button>
+        </div>
+      </div>
+      );
+  }
+});
+
+class PublicPermDiv extends UserPermDiv {
+  setPublicPerm (val) {
+    return (evt) => {
+      evt.preventDefault();
+      log('setting public perm to ', val);
+    }
+  }
+  render () {
+    var isOn = Math.random() > 0.5;
+
+    var btnCls = classNames('btn',
+                            isOn ? 'btn-primary' : 'btn-default',
+                            'btn-block');
+    return (
+      <div className='row'>
+        <div className='col-md-12'>
+          <button className={btnCls} onClick={this.setPublicPerm(!isOn)}>
+            <i className={`fa fa-group fa-lg`} />
+            &nbsp;&nbsp;
+            {isOn ?
+              t('shared publicly') :
+              t('not shared publicly')}
+          </button>
+        </div>
+        <p className='col-md-12 text-muted text-center'>
+          {isOn ?
+            t('anyone with this link can view the survey') :
+            t('this form is only viewable by the users listed above')}
+        </p>
+      </div>
+      );
+  }
+}
+
+var FormEditor = React.createClass({
+  mixins: [
+    Reflux.connectFilter(assetContentStore, function(data){
+      var assetid = this.props.params.assetid;
+      return data[assetid];
+    })
+  ],
+  statics: {
+    willTransitionTo: function(transition, params, idk, callback) {
+      actions.resources.loadAssetContent({id: params.assetid});
+      callback();
+    },
+    willTransitionFrom (transition, params, callback) {
+      // component.formHasUnsavedData()
+      if (!confirm(t('You have unsaved information, are you sure you want to leave this page?'))) {
+        transition.cancel();
+      }
+    }
+  },
+  getInitialState () {
+    return {
+      dkobo_xlform: !!window.dkobo_xlform,
+      data: false
+    };
+  },
+  renderSurvey () {
+    var xlform = window.dkobo_xlform;
+    var surveyModel = new xlform.model.Survey(this.state.data);
+    this._surveyApp = new xlform.view.SurveyApp({
+      survey: surveyModel,
+      save: function(evt){
+        var survey = this.survey;
+        var p = new Promise(function(resolve, reject){
+          try {
+            var spreadsheetStructure = survey.toSsStructure();
+            resolve()
+          } catch (e) {
+            reject(e)
+          }
+        });
+        p.constructor.prototype.finally = p.constructor.prototype.then;
+        return p;
+      }
+    });
+    $('.form-wrap').html(this._surveyApp.$el);
+    this._surveyApp.render()
+  },
+  componentDidMount () {
+    this.renderSurvey();
+  },
+  componentDidUpdate () {
+    this.renderSurvey();
+  },
+  // componentWillUnmount () {
+  //   log('component will unmount');
+  // },
+  render () {
+    if (!this.state.data) {
+      return (
+          <div>
+            <i className='fa fa-spinner fa-spin' />
+            &nbsp;
+            &nbsp;
+            {t('loading')}
+          </div>
+        );
+    }
+
+    if (!this.state.dkobo_xlform) {
+      return (
+          <div>
+            <i className='fa fa-spinner fa-spin' />
+            &nbsp;
+            &nbsp;
+            {t('loading scripts')}
+          </div>
+        );
+    }
+    var content;
+    return (
+        <div className='form-wrap'>
+        </div>
+      );
+  }
+});
+
+
+class KoBo extends React.Component {
+  render () {
+    return (
+        <span className='kobo'>
+          <span className='ko'>Ko</span>
+          <span className='bo'>Bo</span>
+        </span>
+      )
+  }
+}
+
+var NewForm = React.createClass({
+  mixins: [
+    Navigation
+  ],
+  saveNewForm (evt) {
+    var name = this.refs['new-form-name'].getDOMNode().value;
+    evt.preventDefault();
+    actions.resources.createResource({
+      name: name,
+      content: "{}"
+    })
+  },
+  getInitialState () {
+    return {};
+  },
+  renderSaveAndPreviewButtons () {
+    log('here ', this.state);
+    var disabled = !!this.state.disabled;
+    var saveText = t('create');
+    var saveBtnKls = classNames('btn','btn-default',
+                              'btn-block',
+                              disabled ? 'disabled' : '');
+    var previewDisabled = !!this.state.previewDisabled;
+    var previewBtnKls = classNames('btn',
+                                  'btn-default',
+                                  'btn-block',
+                                  previewDisabled ? 'disabled': '')
+    return (
+          <div className="pull-right k-form-actions">
+            <button className={saveBtnKls} onClick={this.saveNewForm}>
+              <i className={classNames('fa', 'fa-sm', 'fa-save')} />
+              &nbsp;
+              &nbsp;
+              {saveText}
+            </button>
+            <button className={previewBtnKls}>
+              <i className={classNames('fa', 'fa-sm', 'fa-eye')} />
+              &nbsp;
+              &nbsp;
+              {t('preview')}
+            </button>
+          </div>
+        );
+  },
+  renderSubSettingsBar () {
+    var spacer = ''
+    return (
+        <div>
+          <span className="label label-default">
+            form-id
+          </span>
+          &nbsp;|&nbsp;
+          <button className="btn btn-xs btn-default">
+            {t('meta questions')}
+          </button>
+          &nbsp;|&nbsp;
+          <button className="btn btn-xs btn-default">
+            {t('group questions')}
+          </button>
+          &nbsp;|&nbsp;
+          <span className="label label-default">
+            {t('view')}
+            <a href='#' onClick={this.expandLabels}>
+              {t('expanded')}
+            </a>
+            &nbsp;|&nbsp;
+            <a href='#' onClick={this.expandLabels}>
+              {t('minimized')}
+            </a>
+          </span>
+        </div>
+      );
+  },
+  creatingResource () {
+    log('creating resource');
+    this.setState({
+      disabled: true
+    });
+
+  },
+  creatingResourceCompleted (data) {
+    this.transitionTo("form-editor", { assetid: data.uid });
+  },
+  componentDidMount () {
+    actions.resources.createResource.listen(this.creatingResource);
+    actions.resources.createResource.completed.listen(this.creatingResourceCompleted);
+    this._survey = dkobo_xlform.model.Survey.create();
+    var app = new dkobo_xlform.view.SurveyApp({
+      survey: this._surveyr
+    });
+    $('.form-wrap').html(app.$el);
+    app.render()
+    this._app = app
+  },
+  componentWillUnmount () {
+
+  },
+  render () {
+    return (
+        <div style={{paddingRight: "391px"}}>
+          <Panel>
+            {/*
+            <div className="progress">
+              <div className="progress-bar" style={{width: '60%'}}></div>
+            </div>
+            */}
+            <div className="row k-form-header-row">
+              <div className="form-group">
+                <input ref="new-form-name" className="form-control input-lg" type="text" placeholder={t('form name')} />
+              </div>
+              {this.renderSaveAndPreviewButtons()}
+            </div>
+            {this.renderSubSettingsBar()}
+            <div className='form-wrap'>
+            </div>
+          </Panel>
+        </div>
+      );
+  },
+  _render () {
+    return (
+      <Modal open onClose={this.routeBack}>
+        <Modal.Body>
+          <div className='row'>
+            <div className='col-md-12'>
+              <h4 className='page-header'>
+                {t('new form')}
+              </h4>
+            </div>
+          </div>
+          <div className='row'>
+            <div className='col-md-6'>
+              <ul className='nav nav-pills nav-stacked'>
+                <li>
+                  <Link className='btn btn-block btn-primary' to='new-form'>
+                    {t('launch')} <KoBo /> {t('form builder')}
+                  </Link>
+                </li>
+                <li>
+                  <Link to='home' className='btn btn-block btn-default'>
+                    {t('upload xlsform')}
+                  </Link>
+                </li>
+                {/*
+                <li>
+                  <Link className='btn btn-block'>
+                    {t('third option?')}
+                  </Link>
+                </li>
+                */}
+              </ul>
+            </div>
+            <div className='col-md-6'>
+              <ul className='nav nav-pills nav-stacked'>
+                <li>
+                  <Link className='btn btn-block btn-info' to='new-collection'>
+                    <i className='fa fa-folder' />
+                    &nbsp;
+                    {t('new folder')}
+                  </Link>
+                </li>
+                <li>
+                  <Link className='btn btn-block btn-default' to='new-collection'>
+                    {t('upload library')}
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <button type="button"
+                    className="btn btn-default"
+                    data-dismiss="modal"
+                    onClick={this.routeBack}>
+            {t('cancel')}
+          </button>
+        </Modal.Footer>
+      </Modal>
+      );
+  }
+})
+
+      // <Route name="new-form" handler={Builder} />
 var routes = (
   <Route name="home" path="/" handler={App}>
-
-
     <Route name="forms">
+      <Route name="new-form" path="new" handler={NewForm} />
       <Route name="forms-builder" handler={Builder} />
-      <Route name="new-form" handler={Builder} />
       <Route name="new-template-form" handler={Builder} />
       <Route name="examples" handler={Builder} />
-      <Route name="forms-preview" path="/forms/:assetid" handler={FormPreview} />
-      <Route name="forms-editor" path="/forms/:assetid/edit" handler={FormPreview} />
+      <Route name="form-page" path="/forms/:assetid" handler={FormPage}>
+        <Route name="form-sharing" path="sharing" handler={FormSharing} />
+        <Route name="form-preview-enketo" path="preview" handler={FormEnketoPreview} />
+        <Route name="form-preview-xform" path="xform" handler={FormPreviewXform} />
+        <Route name="form-preview-xls" path="xls" handler={FormPreviewXls} />
+        <Route name="form-editor" path="edit" handler={FormEditor} />
+
+        <DefaultRoute name="form-view" handler={FormView} />
+      </Route>
+
       <DefaultRoute handler={Forms} />
       <NotFoundRoute handler={FormNotFound} />
     </Route>
@@ -1761,8 +3165,6 @@ var routes = (
     </Route>
     <Route name="profile" handler={SelfProfile} />
 
-    <Route name="shared" handler={Shared} />
-    <Route name="libraries" handler={Libraries} />
     <DefaultRoute handler={Home} />
     <NotFoundRoute handler={SectionNotFound} />
   </Route>

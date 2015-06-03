@@ -17,7 +17,6 @@
 {% endblock %}
 
 {% block script %}
-    {{ block.super }}
     <script src="{% static "compiled/bundle.js" %}"></script>
     {% if livereload_script %}
         <script src="{{ livereload_script }}"></script>

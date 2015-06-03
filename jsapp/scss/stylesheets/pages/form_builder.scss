@@ -1,0 +1,29 @@
+// All variables are now in kobo.scss
+
+// ==========================================================================
+// General Styling
+// ==========================================================================
+
+// NOTE: className changes
+// (In the html, css classes which are slated for removal are duped with '--depr')
+//   .expanding-spacer-between-rows   ->  .survey__row__spacer
+//   .add-row-btn                     ->  .btn--addrow
+//   .advanced-details                ->  .card__settingswrap
+//   .row-extras                      ->  .card__settings
+//   .group__carat                    ->  .group__caret
+//   .menu-row                        ->  .questiontypelist__row
+//   .menu-item                       ->  .questiontypelist__item
+
+
+@import '../partials/form_builder/common';
+
+@import '../partials/form_builder/survey_header';
+@import '../partials/form_builder/survey_row';
+@import '../partials/form_builder/row_questiontypes';
+@import '../partials/form_builder/card';
+@import '../partials/form_builder/card_settings';
+@import '../partials/form_builder/card_multichoice';
+@import '../partials/form_builder/group';
+@import '../partials/form_builder/form_settings';
+@import '../partials/form_builder/settings_skiplogic';
+@import '../partials/form_builder/misc';

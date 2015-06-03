@@ -211,7 +211,11 @@ class AssetViewSet(SearchViewSetMixin, viewsets.ModelViewSet):
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def content(self, request, *args, **kwargs):
         asset = self.get_object()
-        return Response(json.dumps(asset.to_ss_structure()))
+        return Response(json.dumps({
+            'kind': 'asset.content',
+            'uid': asset.uid,
+            'data': asset.to_ss_structure()
+            }))
 
     @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
     def koboform(self, request, *args, **kwargs):
@@ -222,9 +226,7 @@ class AssetViewSet(SearchViewSetMixin, viewsets.ModelViewSet):
     def table_view(self, request, *args, **kwargs):
         sa = self.get_object()
         md_table = ss_structure_to_mdtable(sa.to_ss_structure())
-        header_links = '''
-        <a href="../">Back</a> | <a href="../.xls">Download XLS file</a><br>'''
-        return Response(_wrap_html_pre(header_links + md_table.strip()))
+        return Response(md_table.strip())
 
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def xls(self, request, *args, **kwargs):

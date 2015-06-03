@@ -16,6 +16,7 @@ ASSET_TYPES = [
     ('survey_block', 'survey_block'),
     ('choice_list', 'choice list'),
 ]
+
 ASSET_UID_LENGTH = 22
 
 class AssetManager(models.Manager):
@@ -34,10 +35,10 @@ class Asset(ObjectPermissionMixin, models.Model):
     date_modified = models.DateTimeField(auto_now=True)
     content = JSONField(null=True)
     asset_type = models.CharField(choices=ASSET_TYPES, max_length=20, default='text')
-    parent = models.ForeignKey('Collection', related_name='assets', null=True)
+    parent = models.ForeignKey('Collection', related_name='assets', null=True, blank=True)
     owner = models.ForeignKey('auth.User', related_name='assets', null=True)
     editors_can_change_permissions = models.BooleanField(default=True)
-    uid = models.CharField(max_length=ASSET_UID_LENGTH, default='')
+    uid = models.CharField(max_length=ASSET_UID_LENGTH, default='', blank=True)
     tags = TaggableManager()
     permissions = GenericRelation(ObjectPermission)
 

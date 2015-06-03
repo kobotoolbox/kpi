@@ -1,0 +1,158 @@
+// ==========================================================================
+// Groups
+// ==========================================================================
+
+
+.group {
+    padding: 4px 10px;
+    margin-bottom: 15px;
+    background-color: rgba(233, 237, 240, 0.8);
+    background-color: #e9edf0;
+    border: 1px solid #c3cfd8;
+    font-size: 13px;
+
+    // make space for the .btn--addrow on the left
+    .card, .row__questiontypes {
+        margin-left: 0px;
+    }
+}
+
+.group__name {
+    font-weight: 600;
+}
+
+.group__header {
+    border-bottom: 1px solid #c3cfd8;
+    position: relative;
+    margin: -4px -10px 0;
+    padding: 12px;
+    min-height: 50px;
+    .group__label {
+        font-size: 16px;
+        font-weight: 600;
+    }
+    input {
+        width: 94%;
+        font-weight: normal;
+        display: inline;
+        border: none;
+        border-radius: none;
+        background: none;
+        font-size: 16px;
+        font-weight: 600;
+        padding:0px;
+        height: auto;
+        vertical-align: inherit;
+    }
+}
+
+.group__rows {
+    margin-top: 6px;
+}
+
+.group__header__buttons {
+    border: $cardBorderStyle;
+    border-width: 0 0 0 2px;
+    position: absolute;
+    top: 0px;
+    right: 2px;
+    width: 26px;
+    height: 100%;
+    cursor: pointer;
+}
+
+.group__header__buttons__button {
+    display: block;
+    font-size: 13px;
+    height: 22px;
+    line-height: 22px;
+    width: 26px;
+    text-align: center;
+
+    &.gray {
+        color: #858F98;
+    }
+    &.red {
+        color: #D08B8C;
+    }
+    &.activated {
+        color: #646D75;
+        background-color: #D9DDE1;
+    }
+}
+
+
+
+
+// Overrides
+// --------------------------------------------------------------------------
+
+.group {
+    // .group is conflicting with .card in this one rule
+    line-height: 1.4;
+
+    // .group__settings displayed only in .group--expanded-settings
+    > .card__settings {
+        display: none;
+    }
+    &.card--expanded-settings {
+        padding:4px 0px;
+        padding-bottom: 0px;
+        > .card__settings {
+            display: block;
+            background-color: white;
+            border:none;
+            margin-top:1px;
+            &:after {
+                content: "";
+                border:none;
+            }
+            &:before {
+                content: "";
+                border:none;
+            }
+        }
+        .group__rows {
+            display: none;
+        }
+        .group__header {
+            margin:-4px 0px 0px;
+        }
+        .group__header__buttons__button--settings {
+            background: #D2D7DC;
+        }
+    }
+
+}
+
+// when inside .group--shrunk, .group__caret is displayed differently
+// when inside .group--shrunk, .group__rows is smaller, .survey__rows are hidden
+.group__caret {
+    cursor: pointer;
+    color: #8595a6;
+    @extend %caret-down;
+}
+.group--shrunk {
+    border-bottom: none;
+    padding-bottom: 0px;
+    .group__caret {
+        @extend %caret-right;
+    }
+    .group__rows {
+        display: none;
+    }
+    .survey__row {
+        display: none;
+    }
+}
+
+.group__rows .group {
+    background: #CBD3D9;
+    margin-bottom: 12px;
+    .group__header {
+        border-bottom: 1px solid #9EA8B0;
+    }
+    .group__header__buttons {
+        border-left-color: #9EA8B0;
+    }
+}

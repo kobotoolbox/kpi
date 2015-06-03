@@ -365,16 +365,10 @@ ul.sidebar {
 #page-wrapper:not(.active) {
   ul.sidebar {
     bottom: 0;
-    bottom: 0;
     .sidebar-title {
-      display: none;
-      display: none;
+      visibility: hidden;
     }
     .sidebar-title.separator {
-      display: block;
-      height: 2px;
-      margin: 13px 0;
-      display: block;
       height: 2px;
       margin: 13px 0;
     }
@@ -383,25 +377,15 @@ ul.sidebar {
         span {
           border-left: 3px solid $barColor;
           text-indent: 22px;
-          border-left: 3px solid $barColor;
-          text-indent: 22px;
         }
       }
     }
   }
   .sidebar-footer {
     display: none;
-    display: none;
   }
 }
 .sidebar-footer {
-  position: absolute;
-  height: 40px;
-  bottom: 0;
-  width: 100%;
-  padding: 0;
-  margin: 0;
-  text-align: center;
   position: absolute;
   height: 40px;
   bottom: 0;

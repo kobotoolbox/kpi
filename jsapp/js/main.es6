@@ -1,5 +1,6 @@
-import {runRoutes} from './components/app';
+import {runRoutes} from './app';
 import $ from 'jquery';
+
 
 var el = (function(){
   var $d = $('<div>', {'class': 'kpiapp'})

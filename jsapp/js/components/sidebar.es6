@@ -1,6 +1,8 @@
 import React from 'react/addons';
 import Router from 'react-router';
 
+import {log, t} from '../utils';
+
 let Link = Router.Link;
 
 class SidebarMain extends React.Component {
@@ -30,6 +32,14 @@ class SidebarTitle extends React.Component {
   }
 }
 class SidebarLink extends React.Component {
+  onClick (evt) {
+    if (!this.props.href) {
+      evt.preventDefault();
+    }
+    if (this.props.onClick) {
+      this.props.onClick(evt);
+    }
+  }
   render () {
     var icon_class = "menu-icon fa fa-fw fa-"+(this.props['fa-icon'] || 'table')
     var icon = (<span className={icon_class}></span>);
@@ -38,16 +48,15 @@ class SidebarLink extends React.Component {
     if (this.props.linkto) {
       link = <Link to={this.props.linkto}
                     activeClassName="active">{this.props.label} {icon}</Link>
-    } else if (this.props.href) {
-      link = <a href={this.props.href}>{this.props.label} {icon}</a>
     } else {
-      link = <Link to="help">{this.props.label} {icon}</Link>
+      link = <a href={this.props.href || "#"} onClick={this.onClick.bind(this)}>{this.props.label} {icon}</a>
     }
     return (
         <li className="sidebar-list">{link}</li>
-      )
+      );
   }
 }
+
 class SidebarFooterItem extends React.Component {
   render () {
     var content;
@@ -70,8 +79,26 @@ class SidebarFooterItem extends React.Component {
   }
 }
 
+var RecentHistory = React.createClass({
+  getInitialState () {
+    return {} 
+  },
+  render () {
+    return (
+        <div>
+          ...
+        </div>
+      );
+  }
+})
+
 export class Sidebar extends React.Component {
   render () {
+    var title = (
+        <span className="kobo">
+          <span className="ko">Ko</span><span className="bo">Bo</span>
+        </span>
+        );
     return (
         <div className="sidebar-wrapper" id="sidebar-wrapper">
           <ul className="sidebar" onClick={ (evt)=> {
@@ -79,15 +106,29 @@ export class Sidebar extends React.Component {
                 return;
               }
             }>
-            <SidebarMain onClick={this.props.toggleIntentOpen} label="KoBo" />
+            <SidebarMain onClick={this.props.toggleIntentOpen} label={title} />
 
-            <SidebarTitle label={'QUICK LINKS'} />
-            <SidebarLink label={'forms'} linkto='forms' fa-icon="files-o" />
-            <SidebarLink label={'question library'} linkto='libraries' fa-icon="book" />
+            <SidebarTitle label={t('drafts in progress')} />
+            <SidebarLink label={t('forms')} linkto='forms' fa-icon="files-o" />
+            <SidebarLink label={t('recent')} fa-icon="clock-o" />
+            <RecentHistory />
 
-            <SidebarTitle label={'tools'} separator="true" />
-            <SidebarLink label={'projects'} active='true' href={'/'} fa-icon="globe" />
-            <SidebarLink label={'settings'} active='true' href={'/'} fa-icon="cog" />
+            <SidebarTitle label={t('deployed projects')} />
+            <SidebarLink label={t('projects')} active='true' href={t('/')} fa-icon="globe" />
+
+            <SidebarTitle label={t('support resources')} />
+            {/*
+              <SidebarLink label={t('question library')} linkto='libraries' fa-icon="book" />
+            */}
+            <SidebarLink label={t('kobo support')} active='true' href={t('https://support.kobotoolbox.org/')} fa-icon="question" />
+            <SidebarLink label={t('source code')} active='true' href={t('https://github.com/kobotoolbox')} fa-icon="code" />
+            <SidebarLink label={t('about kobo')} active='true' href={t('http://kobotoolbox.org/$about')} fa-icon="excel-o" />
+
+            <SidebarTitle label={t('technical resources')} />
+            <SidebarLink label={t('xform documentation')} active='true' href="http://www.xlsform.org/" fa-icon="excel-o" />
+            <SidebarLink label={t('xlsform info')} active='true' href="http://www.xlsform.org/" fa-icon="excel-o" />
+            <SidebarTitle label={t('help')} separator="true" />
+
           </ul>
           <div className="sidebar-footer">
             <SidebarFooterItem label="assets" href="/assets/" />

@@ -1,0 +1,367 @@
+.forms-header {
+    margin-bottom: 30px;
+    background-color: white;
+    padding:20px 0px;
+    padding-top: 70px;
+    position: relative;
+    text-align: left;
+}
+
+.forms-header__title {
+    margin-top: 0;
+}
+
+.forms-header__button,
+.forms-empty__button {
+    margin-left: 10px;
+    margin-right: 10px;
+    padding:5px 20px;
+    font-size: 12px;
+    color: white;
+    text-align: center;
+    font-weight: 600;
+    background: #39BF6E;
+    border:none;
+    border-bottom: 2px solid darken(#39BF6E, 20%);
+    &:hover {
+        background: lighten(#39BF6E, 10%);
+    }
+    i.fa {
+      margin-right: 5px;
+    }
+}
+
+.forms__addform-wrapper {
+    display: block;
+    position: absolute;
+    right: 0px;
+    top: 6px;
+    height: 80px;
+    text-align: center;
+}
+
+.forms__addform__drop {
+    position: relative;
+    border:1px solid #CCC;
+    z-index: 8;
+    max-width: 185px;
+    &:before {
+      content:'';
+      position: absolute;
+      left:50%;
+      transform: translate(-50%, 0%);
+      -webkit-transform: translate(-50%, 0%);
+      top: -6px;
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-bottom:6px solid white;
+    }
+
+}
+.forms__addform__drop--hidden {
+    visibility: hidden;
+}
+
+.forms__addform__drop--bottom-centered {
+    position: absolute;
+    left:50%;
+    transform: translate(-50%, 0%);
+    -webkit-transform: translate(-50%, 0%);
+    border:1px solid #CCC;
+    z-index: 8;
+    &:before {
+      content:'';
+      position: absolute;
+      left:50%;
+      transform: translate(-50%, 0%);
+      top: -6px;
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-bottom:6px solid white;
+    }
+
+}
+
+.forms__addform__button {
+    border:none;
+    background: white;
+    color: #3f3f3f;
+    display: block;
+    // width: 148px;
+    font-size: 14px;
+    text-align: left;
+    padding:5px 5px;
+    &:hover {
+        background: #5DB0EC;
+        color: white;
+    }
+}
+
+.forms__addform__button.forms__addform__template {
+    @extend %incomplete;
+}
+
+// ==========================================================================
+// Fileupload fix
+// ==========================================================================
+
+.forms__addform__xls {
+    /* form */
+    margin-top: -1px;
+    overflow: hidden;
+    position: relative;
+}
+
+.forms__addform__xls input {
+    /* invisible input button above label */
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    opacity: 0;
+    -ms-filter: 'alpha(opacity=0)';
+    width: 150px;
+    height: 30px;
+    cursor: pointer;
+}
+// end fileupload fix
+
+.forms-filter {
+    @extend %incomplete;
+    height: 75px;
+    width: 100%;
+}
+
+.forms-filter__search {
+    position: relative;
+    float: left;
+    width: 220px;
+    .fa-search {
+        position: absolute;
+        z-index: 5;
+        margin-top:8px;
+        margin-left: 8px;
+        color:$linkColor;
+        font-size: 14px;
+    }
+}
+
+.forms-filter__searchbox {
+    width: 200px;
+    padding:8px;
+    padding-left:28px;
+    font-size: 13px;
+    border-radius: 0;
+    border:none;
+    border-bottom: 2px solid #CBD0D7;
+}
+
+.forms-filter__sorter {
+    // border:none;
+    // border-radius: 0;
+    // border-bottom: 2px solid #CBD0D7;
+    // padding:8px;
+    // float: left;
+}
+
+
+.forms__card {
+    border-radius: 0px;
+    font-family: 'Open Sans';
+    margin-bottom: 12px;
+    font-size: 11px;
+    border: $cardBorderStyle;
+    padding: 15px 20px;
+    display: block;
+    background: white;
+    position: relative;
+    .forms__card__title {
+        font-weight: 600;
+        font-size: 16px;
+        line-height: 15px;
+    }
+    .forms__card__description {
+      margin-bottom: 1.5em;
+      margin-top: 0.5em;
+      &.forms__card__description--error {
+        border: 1px solid #faa3a3;
+        background-color: #FFDFDF;
+        margin-right: 42px;
+        padding: 5px;
+        color: #C80909;
+        a {
+          color: #AB0000;
+          text-decoration: underline;
+        }
+      }
+    }
+    .forms__card__date, .forms__card__question-count {
+      margin-bottom: 0em;
+      margin-top: 0em;
+    }
+}
+
+.forms__kobocat__btn {
+    margin-top:5px;
+    color: #30C16B;
+    cursor: pointer;
+    font-weight: 600;
+    i {display: none;margin-left: 5px;}
+    &:hover {
+        color: #43cc7a;
+        i {display: inline-block;}
+    }
+}
+
+.forms__kobocat__publisher__label {
+    display: block;
+    font-family: 'Open Sans';
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.forms__kobocat__publisher__label input {
+    border: medium none;
+    color: #666;
+    font-style: italic;
+    margin: 5px 0 0;
+    padding: 4px 0;
+    width: 100%;
+    &:focus {
+      color: #333;
+      font-style: normal;
+    }
+}
+
+.forms__card__buttons {
+    border: $cardBorderStyle;
+    border-width: 0 0 0 1px;
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 44px;
+    height: 100%;
+    cursor: pointer;
+}
+
+.forms__card__buttons__button.blue {
+}
+
+.forms__card__buttons__button {
+    height: 30px;
+    line-height: 30px;
+    width: 45px;
+    position: absolute;
+    right: -2px;
+    bottom: 0px;
+    text-align: center;
+    font-size: 15px;
+    &.blue {
+      color:$linkColor;
+      top:0px;
+    }
+    &.gray {
+      color: #858F98;
+      top:50%;
+      margin-top:-12px;
+    }
+    &.red {
+      color: #D08B8C;
+    }
+    &:hover {
+      color: #646D75;
+      background-color: #D9DDE1;
+    }
+}
+
+/* ==========================================================================
+   Form Download Dropdown
+   ========================================================================== */
+
+.forms__download__drop {
+    position: absolute;
+    right: -10px;
+    top:65px;
+    width: 64px;
+    border:1px solid #E7E8E9;
+    background: white;
+    z-index: 5;
+    &:before {
+      content:'';
+      position: absolute;
+      left: 23px;
+      top: -8px;
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-bottom:8px solid #E7E8E9;
+    }
+
+}
+
+.forms__download__button {
+    border:none;
+    background: white;
+    color: #3f3f3f;
+    display: block;
+    width: 62px;
+    text-align: left;
+    padding:4px;
+    padding-left: 20px;
+    font-weight: 600;
+    margin-top:2px;
+    &:hover {
+        background: #5DB0EC;
+        color: white;
+    }
+}
+
+.forms__addform__button.forms__addform__template {
+    @extend %incomplete;
+}
+
+// LEGACY
+
+/* ==========================================================================
+   Info list (table rows/cells)
+   ========================================================================== */
+
+.info-list__date, .info-list__links {
+    width: 200px;
+}
+.info-list td {
+    border-bottom: 1px solid #e9ecee;
+    text-align: left;
+}
+.info-list tr:hover td {
+    background-color: #f3f5f6;
+}
+//a.forms__card__title
+.forms__card__title {
+    color: #333333;
+    display: block;
+}
+
+.info-list .info-list__links a {
+    width: 40px;
+    display: inline-block;
+    margin-right: 6px;
+}
+
+/* ==========================================================================
+   Filters (form list only)
+   ========================================================================== */
+
+.filters {
+    margin-bottom: 20px;
+}
+
+.filters__filter {
+    margin-right: 10px;
+}
+

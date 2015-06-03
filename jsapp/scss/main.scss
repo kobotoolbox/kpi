@@ -3,3 +3,50 @@
 @import './components/menus';
 @import './react-tagsinput';
 @import './components/alertify';
+
+.form-wrap {
+  .survey-header,
+    .sub-header-bar {
+    display: none;
+  }
+
+  @import './kobo';
+  background-color: #E9EDF0;
+  border: 1px solid #bbb;
+  border-radius: 7px;
+}
+
+.kpiapp {
+  .asset-navigator {
+    opacity: 0.4;
+  }
+  &.qlibopen {
+    .asset-navigator {
+      opacity: 1;
+    }
+  }
+}
+
+.k-form-actions {
+  width: 120px;
+}
+
+.asset-navigator {
+  position: fixed;
+  right: 0;
+  top: 60px;
+  width: 400px;
+  height: 100%;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  z-index: 5;
+}
+.k-form-header-row {
+  padding-right: 125px;
+  position: relative;
+}
+.k-form-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+}

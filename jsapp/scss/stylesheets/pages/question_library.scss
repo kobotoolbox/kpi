@@ -1,0 +1,612 @@
+%library-button {
+    padding: 5px 15px;
+    color: white;
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;
+    background: #39BF6E;
+    border:none;
+    border-bottom: 2px solid darken(#39BF6E, 20%);
+    display: block;
+    margin-bottom: 15px;
+    cursor: pointer;
+
+    &:hover {
+        background: lighten(#39BF6E, 10%);
+    }
+}
+
+.library__wrapper {
+    background: white;
+    height: 100%;
+}
+
+.library {
+    padding:0 12px;
+    height: 100%;
+    min-width: 750px;
+}
+
+$questionsHeight: 180px;
+$tagsHeight: 176px;
+
+// ==========================================================================
+// Question Library - questions
+// ==========================================================================
+
+.questions {
+    width: 72%;
+    position: relative;
+    float: left;
+    height: 100%;
+    padding-top:$questionsHeight;
+}
+
+.questions__header {
+    height: $questionsHeight;
+    position: absolute;
+    top:0px;
+    width: 100%;
+    // border-bottom: 2px solid #d9dde1;
+}
+.questions__header__upload {
+    @extend %library-button;
+    width: 14em;
+    position: absolute;
+    left: 50%;
+    top:20px;
+}
+
+.items__container {
+    height: 100%;
+    overflow-y: scroll;
+}
+
+.questions__question-count,
+.tags__tag-count {
+    font-size: 13px;
+    color: #888A8B;
+    margin-left: 7px;
+    font-weight: normal;
+}
+
+.question__create {
+    position: absolute;
+    width: 600px;
+    right: 0px;
+    top:20px;
+}
+
+.question__import-library {
+    @extend %library-button;
+    position: absolute;
+    top: 1px;
+    right: 177px;
+    .fileinput-button input {
+        width: 100%;
+    }
+}
+.question__create-new {
+    @extend %library-button;
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+// large form on full questions page
+.question-filter, .tag-filter {
+    height: 93px;
+    background-color: #e3e8ec;
+    width: 100%;
+    padding-top: 12px;
+    padding-right: 10px;
+    padding-left: 10px;
+    margin-bottom: 12px;
+}
+
+.question-filter__filters {
+    float: left;
+    position: relative;
+    width: 70%;
+    .question-filter__search {
+        position: relative;
+        float: left;
+        width: 220px;
+        .fa-search {
+            position: absolute;
+            z-index: 5;
+            margin-top:8px;
+            margin-left: 8px;
+            color:$linkColor;
+            font-size: 14px;
+        }
+    }
+    .question-filter__searchbox {
+        width: 200px;
+        padding:8px;
+        padding-left:28px;
+        font-size: 13px;
+        border-radius: 0;
+        border:none;
+        border-bottom: 2px solid #CBD0D7;
+    }
+    .question-filter__select-all {
+        clear: both;
+        display: block;
+        float: left;
+        width: 220px;
+        margin-top:10px;
+        font-size: 12px;
+        input {
+            margin-right: 5px;
+        }
+    }
+
+    .question-filter__show-responses {
+        float: left;
+        margin-top:10px;
+        font-size: 12px;
+        color: $textColor;
+        .fa {
+            margin-right: 5px;
+        }
+        &:hover {
+            color: #3fa2ee;
+        }
+    }
+}
+
+.question-filter__actions {
+    float: right;
+    font-size: 11px;
+    width: 20%;
+}
+
+.question-filter__selected-count {
+    font-size: 12px;
+    margin-bottom: 5px;
+    text-align: right;
+}
+
+.question-filter__add-to-new, 
+.question-filter__delete, 
+.question-filter__add-to-block {
+    display: block;
+    text-align: right;
+}
+
+.questions__question {
+    min-height: 66px;
+    width: 100%;
+    border-top: 2px solid #d9dde1;
+    position: relative;
+    overflow: hidden;
+    background: white;
+    border-left:2px solid white;
+    border-right:2px solid white;
+    cursor: grab;
+    cursor:-moz-grab;
+    cursor:-webkit-grab;
+    &:hover {
+        background: #F3F5F6;
+    }
+    &.ui-sortable-helper {
+        cursor:grabbing;
+        cursor:-moz-grabbing;
+        cursor:-webkit-grabbing;
+    }
+}
+
+.questions__question__edit-link {
+    padding: 0.3em;
+    position: absolute;
+    top: 0;
+    right: 5px;
+    font-size: 28px;
+    color:#999;
+    display: none;
+    &:hover {
+        color: #59AFEF;
+    }
+}
+
+.questions__question:hover .questions__question__edit-link {
+    display: block;
+}
+.questions__question--selected,
+.questions__question.ui-sortable-helper {
+    border-color:#38a1f1;
+    background-color: #dbeefc;
+    + .questions__question {
+        border-top-color:#38a1f1;
+    }
+}
+
+.questions__question.ui-sortable-helper {
+    border-bottom: 2px solid #38a1f1;
+}
+
+.questions__question.ui-sortable-placeholder {
+    visibility: visible !important;
+    position: relative; 
+    background: transparent;
+    .survey-editor & {
+        border:2px solid #d9dde1;
+        margin-bottom: 4px;
+    }
+}
+
+.questions__question.ui-sortable-placeholder:after {
+    position: absolute;
+    content: "Drag and drop the library question to add it to your form";
+    top:50%;
+    left:10%;
+    width: 80%;
+    text-align: center;
+    margin-top:-8px;
+    font-size: 0.9em;
+    .questions__sidebar--container & {
+        font-size: 0.8em;
+        margin-top: -20px;
+    }
+}
+
+.questions__question__name {
+    font-weight: 600;
+    font-size: 13px;
+    margin-top: 0;
+    margin-bottom: 0;
+    border-bottom: 1px solid #e9ecee;
+    padding: 10px 33px 10px 12px;
+}
+
+.questions__question__name--selected {
+    margin-left: 10px;
+}
+
+.question__type {
+    display: inline-block;
+    min-width: 92px;
+    border-right: 2px solid #e9ecee;
+    color: #555;
+    font-size: 10px;
+    padding: 7px 2px 7px 14px;
+}
+
+.question__type-icon {
+    height: 8px;
+    width: 8px;
+    color: #d9dde1;
+    margin-left: -12px;
+}
+
+.question__type--expanded {
+    background-color: #dbeefc;
+    color: #38a1f1;
+}
+
+.question__type--expanded-icon {
+    color: #38a1f1;
+}
+
+.question__tag {
+    height: 22px;
+    min-width: 107px;
+    color: #3f454c;
+    font-size: 10px;
+    margin-left: 7px;
+    margin-right: 7px;
+    padding-top: 7px;
+}
+
+.question__no-tag {
+    height: 22px;
+    min-width: 107px;
+    color: #3f454c;
+    font-size: 10px;
+    margin-left: 7px;
+    padding-top: 7px;
+}
+
+.question__responses {
+    padding-left: 30px
+}
+
+.question__response-option {
+    margin: 5px 0;
+    color: #3f454c;
+    font-size: 10px;
+}
+.question-filter__add-to-new-icon {}
+.question-filter__add-to-block-icon {}
+.question-filter__delete-icon {}
+
+.question-filter .select2-choice > .select2-chosen, 
+.tag-filter .select2-choice > .select2-chosen {
+    font-weight: 600;
+    &:before {
+        content: "Sort: ";
+        font-weight: normal;
+    }
+}
+
+.tag-filter .select2-drop-active {
+    margin-top:0px;
+}
+
+.question__tags .select2-choices {
+    border:1px solid #cbd0d7;
+    input {
+        font-size: 14px !important;
+    }
+    .select2-search-choice {
+        margin-top:8px !important;
+    }
+}
+// ==========================================================================
+// Question Library Sidebar
+// ==========================================================================
+
+.koboform__questionlibrary {
+    position: fixed;
+    margin-left: 720px;
+    top: 0px;
+    height: 100%;
+    width: 300px;
+    z-index: 5;
+    border: 1px solid #cbd0d7;
+    background-color: #fff;
+}
+
+// when sidebar active, add padding to container divs for form questions
+section.form-builder.active__sidebar .container {
+    padding-right: 300px;
+    transition:all .3s;
+    max-width: 1004px;
+}
+
+// in smaller screen sizes, place question library differently
+@media screen and (max-width: 1003px) {
+    .koboform__questionlibrary {
+        margin-left: 0px;
+        right: 0px;
+    }
+}
+
+.questions__sidebar--container {
+    height: 100%;
+    padding-top: 210px;
+    margin-bottom: -140px;
+}
+
+.questions__sidebar--scrolling {
+    height: 100%;
+    overflow: auto;
+}
+
+.questions__sidebar--short-filters {
+    position: absolute;
+    top: 72px;
+    left: 0;
+    width: 100%;
+    height: 140px;
+    background: white;
+    z-index: 6;
+    padding: 10px 12px;
+    border-bottom: 2px solid #d9dde1;
+    label{
+        font-size: 13px;
+        color: #797F83;
+    }
+    .question-filter__search {
+        position: relative;
+        .fa-search {
+            position: absolute;
+            z-index: 5;
+            margin-top:5px;
+            margin-left: 6px;
+            color:$linkColor;
+            font-size: 14px;
+        }
+    }
+    .question-filter__searchbox {
+        width: 100%;
+        padding:4px;
+        padding-left:24px;
+        font-size: 12px;
+        border-radius: 0;
+        border: 1px solid #DADEE2;
+        position: relative;
+    }
+}
+
+.questions__sidebar--tags-select {
+    position: relative;
+    margin-top: 10px;
+    margin-left: 5px;
+
+    i.fa {
+        color:#3fa2ee;
+        position: absolute;
+        left: 0px;
+        top: 5px;
+    }
+
+    ul.select2-choices {
+        border:none;
+        border-bottom: 2px dotted #797f83;
+        background:none;
+        width: 232px;
+        margin:0px;
+        margin-left:20px;
+        padding:0px;
+        padding-bottom: 3px;
+    }
+
+    .select2-container-multi.select2-container-active ul.select2-choices {
+        box-shadow: none;
+        border:none;
+        border-bottom: 2px dotted #797f83;
+    }
+
+    .select2-choices .select2-search-field input {
+        margin:0px;
+        font-size: 12px;
+        padding:0px;
+        height: 25px;
+        color: #222;
+    }
+}
+
+// switch icon when button is active for library sidebar
+.btn--utility.active__sidebar {
+    background: transparent;
+    color: #5DB0EC;
+    i:before {
+        content: "";
+    }
+}
+
+/* ==========================================================================
+   Question Library - tags
+   ========================================================================== */
+
+.tags {
+    width: 22.5%;
+    float: left;
+    position: relative;
+    margin-right: 4.5%;
+    height: 100%;
+    padding-top:$tagsHeight;
+}
+
+.tags__header {
+    height: $tagsHeight;
+    position: absolute;
+    top:0px;
+    width: 100%;
+    background: white;
+}
+
+.tags__container {
+    background-color: #e3e8ec;
+    height: 100%;
+    overflow-y:scroll;
+}
+
+.tags__empty {
+    border:1px solid #D9DDE1;
+    margin-bottom: 10px;
+    padding: 12px;
+    font-weight: 600;
+    font-style: italic;
+    text-align: center;
+    color: #85909B;
+    font-size: 13px;
+}
+
+.tag-filter {
+    .tag-filter__search {
+        position: relative;
+        .fa-search {
+            position: absolute;
+            z-index: 5;
+            margin-top:8px;
+            margin-left: 8px;
+            color:$linkColor;
+            font-size: 14px;
+        }
+    }
+    .tag-filter__searchbox {
+        width: 100%;
+        padding:8px;
+        padding-left:28px;
+        font-size: 13px;
+        border-radius: 0;
+        border:none;
+        border-bottom: 2px solid #CBD0D7;
+    }
+    .tag-filter__sorter {
+        border:none;
+        border-radius: 0;
+        padding:6px 0px;
+        width: 100%;
+    }
+}
+
+.tag__create-new {
+    @extend %library-button;
+    display: block;
+}
+
+input.tag__create-new__editbox {
+    padding: 2px 6px;
+    font-size: 14px;
+    border:none;
+    border-bottom: 2px solid #CBD0D7;
+    border-radius: 0;
+    display: inline-block;
+    margin: 5px;
+    width: 70%;
+    
+}
+
+.tags__tag__create-new--accept {
+    margin-left: 1%;
+    margin-right: 1%;
+    color: #3DB557;
+    cursor: pointer;
+}
+
+.tags__tag__create-new--cancel {
+    color: #C41B20;
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+.tags__tag {
+    min-height: 62px;
+    padding:10px;
+    border:2px solid #e3e8ec;
+    border-bottom: 1px solid #CCC;
+    position: relative;
+    background: #E3E8EC;
+}
+
+.tags__tag--selected {
+    border-color:#B8D1EA;
+    border-bottom-width: 2px;
+    background: white;
+}
+
+.tags__tag__name {
+    margin:0px;
+    padding:0px;
+    font-size: 14px;
+    line-height: 1em;
+    font-weight: 600;
+}
+
+.tag__question-count {
+    font-size: 12px;
+    color: gray;
+}
+
+input.tags__tag__editbox {
+    border:none;
+    display: block;
+    font-size: 14px;
+}
+
+.tag__delete-button {
+    position: absolute;
+    right:10px;
+    top:20px;
+    color: #C41B20;
+    cursor: pointer;
+}
+
+.tags__addnew {
+    background: none repeat scroll 0 0 #fff;
+    margin-top: -2px;
+}

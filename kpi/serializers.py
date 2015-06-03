@@ -186,7 +186,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username',
                                                 read_only=True,)
     owner__username = serializers.ReadOnlyField(source='owner.username')
-    parent = serializers.SerializerMethodField('get_parent_url', read_only=True)
     url = serializers.HyperlinkedIdentityField(lookup_field='uid', view_name='asset-detail')
     asset_type = serializers.ReadOnlyField()
     settings = WritableJSONField(required=False)
@@ -195,9 +194,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     koboform_link = serializers.SerializerMethodField()
     xform_link = serializers.SerializerMethodField()
     content = AssetContentField(style={'base_template': 'muted_readonly_content_field.html'})
-    tags = serializers.SerializerMethodField('_get_tag_names')
     version_count = serializers.SerializerMethodField('_version_count')
     downloads = serializers.SerializerMethodField()
+    embeds = serializers.SerializerMethodField()
     parent = serializers.HyperlinkedRelatedField(lookup_field='uid', queryset=Collection.objects.all(),
                                                 view_name='collection-detail', required=False)
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
@@ -206,7 +205,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         model = Asset
         lookup_field = 'uid'
         fields = ('url',
-                    'parent',
                     'owner',
                     'owner__username',
                     'parent',
@@ -214,9 +212,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                     'asset_type',
                     'date_created',
                     'date_modified',
-                    'tags',
                     'version_count',
                     'downloads',
+                    'embeds',
                     'content_link',
                     'koboform_link',
                     'content',
@@ -224,7 +222,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                     'uid',
                     'kind',
                     'xls_link',
-                    'name', 'tags',
+                    'name',
                     'permissions',)
         extra_kwargs = {
             'parent': {
@@ -252,26 +250,41 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return reverse('asset-xls', args=(obj.uid,), request=self.context.get('request', None))
     def get_xform_link(self, obj):
         return reverse('asset-xform', args=(obj.uid,), request=self.context.get('request', None))
-    def get_downloads(self, obj):
+    def get_embeds(self, obj):
+        request = self.context.get('request', None)
         def _reverse_lookup_format(fmt):
-            request = self.context.get('request', None)
-            href = reverse('asset-%s' % fmt,
+            url = reverse('asset-%s' % fmt,
                             args=(obj.uid,),
                             request=request)
             return {'format': fmt,
-                    'href': href,}
+                    'url': url,}
+        base_url = reverse('asset-detail',
+                            args=(obj.uid,),
+                            request=request)
+        enkfmt = 'enketopreview'
         return [
+            {'format': enkfmt, 'url': '%s?format=%s' % (base_url, enkfmt)},
             _reverse_lookup_format('xls'),
             _reverse_lookup_format('xform'),
+        ]
+    def get_downloads(self, obj):
+        def _reverse_lookup_format(fmt):
+            request = self.context.get('request', None)
+            url = '%s.%s' % (reverse('asset-detail',
+                            args=(obj.uid,),
+                            request=request), fmt)
+
+            return {'format': fmt,
+                    'url': url,}
+        return [
+            _reverse_lookup_format('xls'),
+            _reverse_lookup_format('xml'),
         ]
     def get_koboform_link(self, obj):
         return reverse('asset-koboform', args=(obj.uid,), request=self.context.get('request', None))
 
     def _content(self, obj):
         return json.dumps(obj.content)
-
-    def _get_tag_names(self, obj):
-        return obj.tags.names()
 
     def _table_url(self, obj):
         request = self.context.get('request', None)
@@ -290,7 +303,7 @@ class AssetListSerializer(AssetSerializer):
                   'name',
                   'asset_type',
                   'permissions',
-                  'tags',)
+                  )
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -374,7 +387,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
         request = self.context.get('request', None)
         obj_url = reverse('collection-detail', args=(obj.uid,), request=request)
         return [
-            {'format': 'zip', 'href': '%s?format=zip' % obj_url},
+            {'format': 'zip', 'url': '%s?format=zip' % obj_url},
         ]
 
 
