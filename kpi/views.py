@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.db.models import Q
 from rest_framework import (
     viewsets,
+    mixins,
     renderers,
     permissions,
     status,
@@ -13,9 +14,10 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from rest_framework.exceptions import MethodNotAllowed
+from rest_framework import exceptions
 from haystack.query import SearchQuerySet
 from haystack.inputs import AutoQuery
+from haystack import connections
 from taggit.models import Tag
 
 from .models import (
@@ -45,6 +47,7 @@ from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from kpi.utils.gravatar_url import gravatar_url
+from .search_indexes import DOUBLE_UNDERSCORE_MAP
 
 @api_view(['GET'])
 def current_user(request):
@@ -71,33 +74,71 @@ class SearchViewSetMixin(object):
         class MyViewSet(SearchViewSetMixin, viewsets.ModelViewSet)
     '''
     def get_queryset(self):
-        if 'q' not in self.request.GET:
+        if not len(self.request.GET):
             # Not a search
             return super(SearchViewSetMixin, self).get_queryset()
+        queryset = SearchQuerySet().models(self.queryset.model)
+        indexed_fields = connections['default'].get_unified_index().get_index(
+            self.queryset.model).fields
+        for k, v in self.request.GET.iteritems():
+            # We want to allow double underscores in the query string, e.g.
+            # `owner__username`, but they're forbidden as index field names.
+            # Use a lookup table to translate the double underscore names
+            # to allowed alternatives
+            k = DOUBLE_UNDERSCORE_MAP.get(k, k)
+            if k == 'q':
+                # 'q' as shorthand for 'document'
+                queryset = queryset.filter(content=AutoQuery(v))
+            elif k in indexed_fields:
+                queryset = queryset.filter(**{k: AutoQuery(v)}) 
         # TODO: Call highlight() on the SearchQuerySet and somehow pass the
         # highlighted result to the serializer.
-        # http://django-haystack.readthedocs.org/en/latest/searchqueryset_api.html?highlight=highlight#SearchQuerySet.highlight
-        matching_pks = SearchQuerySet().models(self.queryset.model).filter(
-            content=AutoQuery(self.request.GET['q'])
-        ).values_list('pk', flat=True)
+        # http://django-haystack.readthedocs.org/en/latest/searchqueryset_api.html#SearchQuerySet.highlight
+        matching_pks = queryset.values_list('pk', flat=True)
         # Will still be filtered by KpiObjectPermissionsFilter.filter_queryset()
         return self.queryset.filter(pk__in=matching_pks)
 
 
-class ObjectPermissionViewSet(viewsets.ModelViewSet):
+class ObjectPermissionViewSet(
+        # Inherit from everything that ModelViewSet does, except for
+        # UpdateModelMixin
+        mixins.CreateModelMixin,
+        mixins.RetrieveModelMixin,
+        mixins.DestroyModelMixin,
+        mixins.ListModelMixin,
+        viewsets.GenericViewSet
+    ):
     queryset = ObjectPermission.objects.all()
     serializer_class = ObjectPermissionSerializer
     lookup_field = 'uid'
     filter_backends = (KpiAssignedObjectPermissionsFilter, )
-    def destroy(self, request, *args, **kwargs):
-        if self.get_object().inherited:
-            raise MethodNotAllowed(
-                request.method,
+
+    def _requesting_user_can_share(self, affected_object):
+        share_permission = 'share_{}'.format(affected_object._meta.model_name)
+        return affected_object.has_perm(self.request.user, share_permission)
+
+    def perform_create(self, serializer):
+        # Make sure the requesting user has the share_ permission on
+        # the affected object
+        affected_object = serializer.validated_data['content_object']
+        if not self._requesting_user_can_share(affected_object):
+            raise exceptions.PermissionDenied()
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        # Only directly-applied permissions may be modified; forbid deleting
+        # permissions inherited from ancestors
+        if instance.inherited:
+            raise exceptions.MethodNotAllowed(
+                self.request.method,
                 detail='Cannot delete inherited permissions.'
             )
-        return super(ObjectPermissionViewSet, self).destroy(
-            request, *args, **kwargs)
-
+        # Make sure the requesting user has the share_ permission on
+        # the affected object
+        affected_object = instance.content_object
+        if not self._requesting_user_can_share(affected_object):
+            raise exceptions.PermissionDenied()
+        instance.delete()
 
 
 class CollectionViewSet(SearchViewSetMixin, viewsets.ModelViewSet):
