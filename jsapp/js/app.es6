@@ -603,7 +603,9 @@ var App = React.createClass({
         <div id="page-wrapper" className={activeClass}>
           <Sidebar toggleIntentOpen={this.toggleIntentOpen.bind(this)} />
           <PageHeader ref="page-header" />
-          <RouteHandler />
+          <div className="panel-wrap--right-spaced">
+            <RouteHandler />
+          </div>
           <AssetNavigator />
         </div>
       </DocumentTitle>
@@ -1485,16 +1487,7 @@ var Home = React.createClass({
       <Panel>
         <h1>Home</h1>
         <hr />
-        <Dropzone className='formdrop'
-                  activeClassName='formdrop--active'
-                  onDropFiles={this.onDrop.bind(this)}
-                  >
-          <div className='cutout-placeholder'>
-            <span className='indicator indicator--drag-files-here'>
-              {t('drag forms here')}
-            </span>
-          </div>
-        </Dropzone>
+        Please log in and click "forms"
       </Panel>
       );
   }
@@ -2304,11 +2297,9 @@ var FormPage = React.createClass({
 
       asset: () => {
         return (
-            <div className="panel-wrap--right-spaced">
-              <AssetPage key={uid} uid={uid} {...this.state}>
-                <RouteHandler />
-              </AssetPage>
-            </div>
+            <AssetPage key={uid} uid={uid} {...this.state}>
+              <RouteHandler />
+            </AssetPage>
           );
       }
     }[this.state.kind])();
@@ -2471,7 +2462,7 @@ var PreviewSubresource = React.createClass({
   render () {
     if (this.state.htmlContent) {
       return (
-          <div>{this.state.htmlContent}</div>
+          <div dangerouslySetInnerHTML={{__html:this.state.htmlContent}} />
         );
     } else if (this.state.codeContent) {
       return (
@@ -3076,24 +3067,22 @@ var NewForm = React.createClass({
   },
   render () {
     return (
-        <div className="panel-wrap--right-spaced">
-          <Panel>
-            {/*
-            <div className="progress">
-              <div className="progress-bar" style={{width: '60%'}}></div>
+        <Panel>
+          {/*
+          <div className="progress">
+            <div className="progress-bar" style={{width: '60%'}}></div>
+          </div>
+          */}
+          <div className="row k-form-header-row">
+            <div className="form-group">
+              <input ref="new-form-name" className="form-control input-lg" type="text" placeholder={t('form name')} />
             </div>
-            */}
-            <div className="row k-form-header-row">
-              <div className="form-group">
-                <input ref="new-form-name" className="form-control input-lg" type="text" placeholder={t('form name')} />
-              </div>
-              {this.renderSaveAndPreviewButtons()}
-            </div>
-            {this.renderSubSettingsBar()}
-            <div className='form-wrap'>
-            </div>
-          </Panel>
-        </div>
+            {this.renderSaveAndPreviewButtons()}
+          </div>
+          {this.renderSubSettingsBar()}
+          <div className='form-wrap'>
+          </div>
+        </Panel>
       );
   },
   _render () {
