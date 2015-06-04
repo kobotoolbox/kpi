@@ -133,23 +133,31 @@ var AssetNavigator = React.createClass({
       }
     }
   },
+  dropFiles (files) {
+    log("dropzone onDropFiles", files);
+  },
   render () {
     return (
       <div className="asset-navigator">
         <SmallInputBox ref="headerSearch" placeholder={t('search keywords or tags')} onKeyUp={this.liveSearch} />
         <hr />
-        <Dropzone>
+        <Dropzone fileInput onDropFiles={this.dropFiles}>
           <p>tags</p>
           <hr />
           <p>library</p>
           <hr />
-          <span className='indicator indicator--drag-files-here'>
+          <br />
+          <br />
+          <br />
+          <br />
+          <br />
+          <br />
+          <p>
             <i className={classNames('fa', 'fa-sm', 'fa-file-o')} />
             &nbsp;
             &nbsp;
             {t('upload forms')}
-          </span>
-          <br />
+          </p>
         </Dropzone>
       </div>
       );
@@ -523,28 +531,6 @@ class AssetCollectionPlaceholder extends React.Component {
       )
   }
 }
-
-// var AssetTags = React.createClass({
-//   getInitialState () {
-//     return {tags:[]}
-//   },
-//   saveTags () {
-//     console.log('tags: ', this.refs.tags.getTags().join(', '));
-//   },
-//   componentDidMount () {
-//     this.setState({
-//       tags: this.props.tags || []
-//     });
-//   },
-//   render () {
-//     return (
-//       <div className="assettags">
-//         <TagsInput ref="tags" tags={this.state.tags} />
-//         <button onClick={this.saveTags}>Save</button>
-//       </div>
-//       );
-//   }
-// })
 
 var App = React.createClass({
   getInitialState () {
@@ -2975,9 +2961,19 @@ var NewForm = React.createClass({
   saveNewForm (evt) {
     var name = this.refs['new-form-name'].getDOMNode().value;
     evt.preventDefault();
+    var surveyDict = this._app.survey.toJSON();
+    var key, choicesArr = [];
+    if (_.isObject(surveyDict.choices)) {
+      for (key in surveyDict.choices) {
+        surveyDict.choices[key].forEach(function(item){
+          choicesArr.push(assign({list_name: key}, item));
+        });
+      }
+      surveyDict.choices = choicesArr;
+    }
     actions.resources.createResource({
       name: name,
-      content: "{}"
+      content: JSON.stringify(surveyDict)
     })
   },
   getInitialState () {

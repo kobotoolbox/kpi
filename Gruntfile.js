@@ -18,6 +18,17 @@ module.exports = function(grunt) {
             replacement: '__req__'
           }]
         }
+      },
+      fixreqjs: {
+        files: {
+          'jsapp/compiled/bundle.js': ['jsapp/compiled/bundle.js']
+        },
+        options: {
+          replacements: [{
+            pattern: /__req__/g,
+            replacement: 'require'
+          }]
+        }
       }
     },
     requirejs: {
@@ -80,7 +91,7 @@ module.exports = function(grunt) {
         options: {
           livereload: true
         },
-        tasks: ['browserify'],
+        tasks: ['browserify', 'string-replace:fixreqjs'],
         files: [
           './jsapp/js/**/*.es6',
           './jsapp/js/**/*.js',
@@ -131,6 +142,7 @@ module.exports = function(grunt) {
     'string-replace:reqjs',
     'browserify:dist',
     'sass:dist',
+    'string-replace:fixreqjs'
   ]);
 
 };
