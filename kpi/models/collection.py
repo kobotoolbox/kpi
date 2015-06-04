@@ -3,11 +3,11 @@ from django.db import models
 from django.contrib.contenttypes.fields import GenericRelation
 from mptt.models import MPTTModel, TreeForeignKey
 from shortuuid import ShortUUID
-from kpi.models.asset import Asset
 from taggit.managers import TaggableManager
 from taggit.models import Tag
 from object_permission import ObjectPermission, ObjectPermissionMixin
 from django.dispatch import receiver
+from asset import Asset
 
 COLLECTION_UID_LENGTH = 22
 
