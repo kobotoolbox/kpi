@@ -121,13 +121,6 @@ export class Sidebar extends React.Component {
               <SidebarLink label={t('question library')} linkto='libraries' fa-icon="book" />
             */}
             <SidebarLink label={t('kobo support')} active='true' href={t('https://support.kobotoolbox.org/')} fa-icon="question" />
-            <SidebarLink label={t('source code')} active='true' href={t('https://github.com/kobotoolbox')} fa-icon="code" />
-            <SidebarLink label={t('about kobo')} active='true' href={t('http://kobotoolbox.org/$about')} fa-icon="excel-o" />
-
-            <SidebarTitle label={t('technical resources')} />
-            <SidebarLink label={t('xform documentation')} active='true' href="http://www.xlsform.org/" fa-icon="excel-o" />
-            <SidebarLink label={t('xlsform info')} active='true' href="http://www.xlsform.org/" fa-icon="excel-o" />
-            <SidebarTitle label={t('help')} separator="true" />
 
           </ul>
           <div className="sidebar-footer">
