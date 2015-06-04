@@ -2,7 +2,7 @@ from haystack import indexes
 from .models import Asset, Collection
 
 class AssetIndex(indexes.ModelSearchIndex, indexes.Indexable):
-    # Double underscores are not allowed in index field names; they
+    # Double underscores are not allowed in index field names; searches
     # fail silently when Haystack's split_expression() throws away everything
     # after the double underscores
     username_of_owner = indexes.CharField(model_attr='owner__username')

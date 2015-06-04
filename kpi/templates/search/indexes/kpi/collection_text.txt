@@ -1,4 +1,5 @@
 {{ object.name }}
+{{ object.owner.username }}
 {% for tag in object.tags.all %}
 {{ object.tag }}
 {% endfor %}
