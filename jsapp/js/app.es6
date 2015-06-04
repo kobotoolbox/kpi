@@ -142,14 +142,14 @@ var AssetNavigator = React.createClass({
           <p>tags</p>
           <hr />
           <p>library</p>
-          <div className='cutout-placeholder'>
-            <span className='indicator indicator--drag-files-here'>
-              <i className={classNames('fa', 'fa-sm', 'fa-file-o')} />
-              &nbsp;
-              &nbsp;
-              {t('upload forms')}
-            </span>
-          </div>
+          <hr />
+          <span className='indicator indicator--drag-files-here'>
+            <i className={classNames('fa', 'fa-sm', 'fa-file-o')} />
+            &nbsp;
+            &nbsp;
+            {t('upload forms')}
+          </span>
+          <br />
         </Dropzone>
       </div>
       );
@@ -477,7 +477,7 @@ var AssetCollectionRow = React.createClass({
           </td>
           <td>
             <Link to="form-view" params={{ assetid: assetid }}>
-              {this.props.name || 'untitled'}
+              {this.props.name || t('untitled form')}
             </Link>
           </td>
           <td>
@@ -887,9 +887,6 @@ actions.resources.createResource.listen(function(details){
 })
 
 actions.search.assets.listen(function(queryString){
-  function wrap(fn){
-    return function(){}
-  }
   sessionDispatch.searchAssets(queryString)
     .done(function(...args){
       actions.search.assets.completed.apply(this, [queryString, ...args])
@@ -897,6 +894,12 @@ actions.search.assets.listen(function(queryString){
     .fail(function(...args){
       actions.search.assets.failed.apply(this, [queryString, ...args])
     })
+});
+
+actions.search.tags.listen(function(queryString){
+  sessionDispatch.searchTags(queryString)
+    .done(actions.search.searchTags.completed)
+    .fail(actions.search.searchTags.failed)
 });
 
 actions.permissions.assignPerm.listen(function(creds){
@@ -1146,6 +1149,24 @@ var sessionStore = Reflux.createStore({
 
 const MAX_SEARCH_AGE = (5 * 60) // seconds
 
+var tagStore = Reflux.createStore({
+  init () {
+    this.queries = {};
+    this.listenTo(actions.search.tags.completed, this.onTagSearch);
+  },
+  getRecentSearch (queryString) {
+    if (queryString in this.queries) {
+      var age = new Date().getTime() - this.queries[queryString][1].getTime();
+      if (age < MAX_SEARCH_AGE * 1000) {
+        return this.queries[queryString][0];
+      }
+    }
+    return false;
+  },
+  onTagSearch (queryString, results) {
+
+  }
+});
 
 var assetSearchStore = Reflux.createStore({
   init () {
@@ -1447,6 +1468,11 @@ var Home = React.createClass({
   componentDidMount () {
     log(this);
   },
+  statics: {
+    willTransitionTo (transition) {
+      transition.redirect('forms')
+    }
+  },
   onDrop (fileList) {
     this.fileList = fileList.map((i) => new UploadFile(i) );
     this.setState({
@@ -1586,7 +1612,7 @@ var CollectionAssetsList = React.createClass({
     })
   ],
   componentDidMount () {
-    this.transitionTo('forms');
+    this.transitionTo('form-list');
   },
   render () {
     // log('collection chilxs', this.state, this.props);
@@ -2278,9 +2304,11 @@ var FormPage = React.createClass({
 
       asset: () => {
         return (
-            <AssetPage key={uid} uid={uid} {...this.state}>
-              <RouteHandler />
-            </AssetPage>
+            <div className="panel-wrap--right-spaced">
+              <AssetPage key={uid} uid={uid} {...this.state}>
+                <RouteHandler />
+              </AssetPage>
+            </div>
           );
       }
     }[this.state.kind])();
@@ -2862,12 +2890,12 @@ var FormEditor = React.createClass({
     willTransitionTo: function(transition, params, idk, callback) {
       actions.resources.loadAssetContent({id: params.assetid});
       callback();
-    },
-    willTransitionFrom (transition, params, callback) {
-      // component.formHasUnsavedData()
-      if (!confirm(t('You have unsaved information, are you sure you want to leave this page?'))) {
-        transition.cancel();
-      }
+    // },
+    // willTransitionFrom (transition, params, callback) {
+    //   // component.formHasUnsavedData()
+    //   if (!confirm(t('You have unsaved information, are you sure you want to leave this page?'))) {
+    //     transition.cancel();
+    //   }
     }
   },
   getInitialState () {
@@ -3048,7 +3076,7 @@ var NewForm = React.createClass({
   },
   render () {
     return (
-        <div style={{paddingRight: "391px"}}>
+        <div className="panel-wrap--right-spaced">
           <Panel>
             {/*
             <div className="progress">
@@ -3137,9 +3165,6 @@ var routes = (
   <Route name="home" path="/" handler={App}>
     <Route name="forms">
       <Route name="new-form" path="new" handler={NewForm} />
-      <Route name="forms-builder" handler={Builder} />
-      <Route name="new-template-form" handler={Builder} />
-      <Route name="examples" handler={Builder} />
       <Route name="form-page" path="/forms/:assetid" handler={FormPage}>
         <Route name="form-sharing" path="sharing" handler={FormSharing} />
         <Route name="form-preview-enketo" path="preview" handler={FormEnketoPreview} />

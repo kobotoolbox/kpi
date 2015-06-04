@@ -39,6 +39,12 @@ actions.search = Reflux.createActions({
       "failed"
     ]
   },
+  tags: {
+    children: [
+      "completed",
+      "failed"
+    ]
+  },
   collections: {
     children: [
       "completed",

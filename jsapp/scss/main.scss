@@ -18,7 +18,7 @@
 
 .kpiapp {
   .asset-navigator {
-    opacity: 0.4;
+    opacity: 0.8;
   }
   &.qlibopen {
     .asset-navigator {
@@ -35,11 +35,15 @@
   position: fixed;
   right: 0;
   top: 60px;
+  padding: 8px 20px;
   width: 400px;
   height: 100%;
   background-color: #fff;
   border: 1px solid #ddd;
   z-index: 5;
+}
+.panel-wrap--right-spaced {
+  padding-right: 391px;
 }
 .k-form-header-row {
   padding-right: 125px;
