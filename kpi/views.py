@@ -15,9 +15,6 @@ from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework import exceptions
-from haystack.query import SearchQuerySet
-from haystack.inputs import AutoQuery
-from haystack import connections
 from taggit.models import Tag
 
 from .models import (
@@ -29,6 +26,7 @@ from .models.object_permission import get_anonymous_user
 from .permissions import IsOwnerOrReadOnly
 from .filters import KpiObjectPermissionsFilter
 from .filters import KpiAssignedObjectPermissionsFilter, ParentFilter
+from .filters import SearchFilter
 from .highlighters import highlight_xform
 from .renderers import (
     AssetJsonRenderer,
@@ -47,7 +45,6 @@ from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from kpi.utils.gravatar_url import gravatar_url
-from .search_indexes import DOUBLE_UNDERSCORE_MAP
 
 @api_view(['GET'])
 def current_user(request):
@@ -64,39 +61,6 @@ def current_user(request):
                             'is_staff': user.is_staff,
                             'last_login': user.last_login,
                             })
-
-
-class SearchViewSetMixin(object):
-    '''
-    Filters objects by searching with Haystack if the the request includes a
-    query. The MRO is important, so be sure to include this mixin before the
-    base class in your view set definition, e.g.
-        class MyViewSet(SearchViewSetMixin, viewsets.ModelViewSet)
-    '''
-    def get_queryset(self):
-        if not len(self.request.GET):
-            # Not a search
-            return super(SearchViewSetMixin, self).get_queryset()
-        queryset = SearchQuerySet().models(self.queryset.model)
-        indexed_fields = connections['default'].get_unified_index().get_index(
-            self.queryset.model).fields
-        for k, v in self.request.GET.iteritems():
-            # We want to allow double underscores in the query string, e.g.
-            # `owner__username`, but they're forbidden as index field names.
-            # Use a lookup table to translate the double underscore names
-            # to allowed alternatives
-            k = DOUBLE_UNDERSCORE_MAP.get(k, k)
-            if k == 'q':
-                # 'q' as shorthand for 'document'
-                queryset = queryset.filter(content=AutoQuery(v))
-            elif k in indexed_fields:
-                queryset = queryset.filter(**{k: AutoQuery(v)}) 
-        # TODO: Call highlight() on the SearchQuerySet and somehow pass the
-        # highlighted result to the serializer.
-        # http://django-haystack.readthedocs.org/en/latest/searchqueryset_api.html#SearchQuerySet.highlight
-        matching_pks = queryset.values_list('pk', flat=True)
-        # Will still be filtered by KpiObjectPermissionsFilter.filter_queryset()
-        return self.queryset.filter(pk__in=matching_pks)
 
 
 class ObjectPermissionViewSet(
@@ -141,12 +105,12 @@ class ObjectPermissionViewSet(
         instance.delete()
 
 
-class CollectionViewSet(SearchViewSetMixin, viewsets.ModelViewSet):
+class CollectionViewSet(viewsets.ModelViewSet):
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
     queryset = Collection.objects.all()
     serializer_class = CollectionSerializer
     permission_classes = (IsOwnerOrReadOnly,)
-    filter_backends = (KpiObjectPermissionsFilter, ParentFilter)
+    filter_backends = (KpiObjectPermissionsFilter, ParentFilter, SearchFilter)
     lookup_field = 'uid'
 
     def perform_create(self, serializer):
@@ -211,7 +175,7 @@ from rest_framework.parsers import MultiPartParser
 class XlsFormParser(MultiPartParser):
     pass
 
-class AssetViewSet(SearchViewSetMixin, viewsets.ModelViewSet):
+class AssetViewSet(viewsets.ModelViewSet):
     """
     * Download a asset in a `.xls` or `.xml` format <span class='label label-success'>complete</span>
     * View a asset in a markdown spreadsheet or XML preview format <span class='label label-success'>complete</span>
@@ -226,7 +190,7 @@ class AssetViewSet(SearchViewSetMixin, viewsets.ModelViewSet):
     serializer_class = AssetSerializer
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
-    filter_backends = (KpiObjectPermissionsFilter, ParentFilter)
+    filter_backends = (KpiObjectPermissionsFilter, ParentFilter, SearchFilter)
 
     renderer_classes = (renderers.BrowsableAPIRenderer,
                         AssetJsonRenderer,
