@@ -124,21 +124,23 @@ class GenericHyperlinkedRelatedField(serializers.HyperlinkedRelatedField):
         except Resolver404:
             self.fail('no_match')
 
-        ''' Begin modifications '''
+        ### Begin modifications ###
         # We're a generic relation; we don't discriminate
-        #try:
-        #    expected_viewname = request.versioning_scheme.get_versioned_viewname(
-        #        self.view_name, request
-        #    )
-        #except AttributeError:
-        #    expected_viewname = self.view_name
+        '''
+        try:
+            expected_viewname = request.versioning_scheme.get_versioned_viewname(
+                self.view_name, request
+            )
+        except AttributeError:
+            expected_viewname = self.view_name
 
-        #if match.view_name != expected_viewname:
-        #    self.fail('incorrect_match')
+        if match.view_name != expected_viewname:
+            self.fail('incorrect_match')
+        '''
 
         # Dynamically modify the queryset
         self.queryset = match.func.cls.queryset
-        ''' End modifications '''
+        ### End modifications ###
 
         try:
             return self.get_object(match.view_name, match.args, match.kwargs)

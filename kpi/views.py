@@ -186,7 +186,12 @@ class AssetViewSet(viewsets.ModelViewSet):
     * Generate a link to a preview in enketo-express <span class='label label-danger'>TODO</span>
     """
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
-    queryset = Asset.objects.all()
+    queryset = Asset.objects.select_related('owner', 'parent').prefetch_related(
+        'permissions',
+        'permissions__permission',
+        'permissions__user',
+        'permissions__content_object',
+    ).all()
     serializer_class = AssetSerializer
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
