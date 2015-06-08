@@ -249,12 +249,21 @@ $highlightedBarColor: rgb(196, 207, 216);
 .k-invisible {
   visibility: hidden;
 }
-
+.k-save--pending {
+  opacity: 0.3;
+}
+.k-save--complete {
+  background-color: green;
+}
+.k-save--needed {
+  color: #AD4444;
+  // background-image: radial-gradient(circle, #FFEFEF 80%, #f0f0f0 81%);
+}
 .app-children-wrap {
   padding: 65px 0;
 
-  .app-children-wrap--right-spaced {
-    padding-right: 391px;
+  .page-wrapper--asset-nav-present & {
+    padding-top: 35px;
   }
 }
 .k-header-formname-text {

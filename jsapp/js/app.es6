@@ -857,9 +857,9 @@ actions.resources.listTags.listen(function(){
 });
 
 actions.resources.updateAsset.listen(function(uid, values){
-  log(uid, values);
   sessionDispatch.patchAsset(uid, values)
     .done(actions.resources.updateAsset.completed)
+    .fail(actions.resources.updateAsset.failed);
 });
 
 actions.resources.createResource.listen(function(details){
@@ -1104,31 +1104,29 @@ var assetContentStore = Reflux.createStore({
     this.surveys = {};
     this.listenTo(actions.resources.loadAssetContent.completed, this.onLoadAssetContentCompleted);
   },
-  getSurvey: function (assetId) {
-    return this.surveys[assetId];
-  },
   onLoadAssetContentCompleted: function(resp, req, jqxhr) {
-    if (!resp.uid) {
-      throw new Error('no uid found in response');
-    }
     this.data[resp.uid] = resp;
-    try {
-      this.surveys[resp.uid] = dkobo_xlform.model.Survey.loadDict(resp.data)
-    } catch (e) {
-      this.surveys[resp.uid] = {error: e}
-    }
     this.trigger(this.data, resp.uid);
-  }
+  },
 });
 
 var assetStore = Reflux.createStore({
   init: function () {
     this.data = {};
     this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted)
+    this.listenTo(actions.resources.updateAsset.completed, this.onUpdateAssetCompleted);
   },
+
+
   _findByUid (uid) {
     return this.data[uid];
   },
+
+  onUpdateAssetCompleted: function (resp, req, jqhr){
+    this.data[resp.uid] = resp;
+    this.trigger(this.data, resp.uid, {asset_updated: true});
+  },
+
   onLoadAssetCompleted: function (resp, req, jqxhr) {
     if (!resp.uid) {
       throw new Error('no uid found in response');
@@ -1589,7 +1587,6 @@ var AssetNavigator = React.createClass({
           :
           this.renderClosedContent()
         }
-        <hr />
         <Dropzone onDropFiles={this.dropFiles}>
         </Dropzone>
       </div>
@@ -3287,7 +3284,7 @@ var FormSettingsBox = React.createClass({
       if (!sd) {
         console.error('could not find ', id);
       } else {
-        newState[category].push(sd.attributes);
+        newState[category].push(assign({}, sd.attributes));
       }
     };
   },
@@ -3353,10 +3350,20 @@ var FormSettingsBox = React.createClass({
 })
 
 var formViewMixin = {
-  renderFormActionButtons () {
-    //...
+  _saveForm (evt) {
+    evt && evt.preventDefault();
+    actions.resources.updateAsset(this.props.params.assetid, {
+      name: this.getNameValue(),
+      content: surveyToValidJson(this.state.survey)
+    });
+    this.setState({
+      asset_updated: false
+    })
   },
   navigateBack (evt) {
+    if (this.needsSave() && confirm(t('you have unsaved changes. would you like to save?'))) {
+      this._saveForm();
+    }
     if (!this.goBack()) {
       this.transitionTo('forms');
     }
@@ -3394,19 +3401,23 @@ var formViewMixin = {
     return this.refs['form-name'].getDOMNode().value;
   },
   nameInputChange (evt) {
-    this.state.survey.settings.set('form_title', this.nameInputValue())
+    var nameVal = this.nameInputValue();
+    this.state.survey.settings.set('form_title', nameVal)
     this.setState({
       survey_name: this.state.survey.settings.get('form_title')
-    })
+    });
   },
   getInitialState () {
     return {
-      'closeable': Math.random() > 0.5
+      'asset_updated': true
     }
+  },
+  needsSave () {
+    return this.state.asset_updated === -1;
   },
   innerRender () {
     var closeButtonKls = classNames('k-form-close-button', {
-      "k-form-close-button--warning": !this.state.closeable
+      "k-form-close-button--warning": this.needsSave()
     });
 
     return (
@@ -3416,16 +3427,18 @@ var formViewMixin = {
               &times;
             </button>
 
-            <div className="form-group col-md-8">
+            <div className="form-group col-md-10">
               {this.renderFormNameInput()}
             </div>
-            <div className="col-md-4">
+            <div className="col-md-2">
               <div className="k-col-padrt25">
                 {this.renderSaveAndPreviewButtons()}
               </div>
             </div>
           </div>
-          {this.renderSubSettingsBar()}
+          { this.state.survey ?
+            this.renderSubSettingsBar()
+          :null}
           <div ref="form-wrap" className='form-wrap'>
           </div>
         </Panel>
@@ -3525,44 +3538,60 @@ class AssetPage extends AssetCollectionBase {
   }
 }
 
-var existingAssetMixin = (function(){
-  var obj = {};
-  obj.refluxConnect = Reflux.connectFilter(assetContentStore, function(data){
-    var assetid = this.props.params.assetid;
-    if (assetid in data) {
-      return {
-        survey_loaded: true,
-        survey: assetContentStore.getSurvey(assetid),
-        data: data[assetid]
-      };
-    }
-  });
-  return obj;
-})();
+// var existingAssetMixin = (function(){
+//   var obj = {};
+//   obj.refluxConnect = Reflux.connectFilter(assetContentStore, function(data){
+//     var assetid = this.props.params.assetid;
+//     if (assetid in data) {
+//       return {
+//         survey_loaded: true,
+//         // survey: assetContentStore.getSurvey(assetid),
+//         data: data[assetid]
+//       };
+//     }
+//   });
+//   return obj;
+// })();
 
 var FormPage = React.createClass({
   mixins: [
     Navigation,
     formViewMixin,
-    existingAssetMixin.refluxConnect,
-    Reflux.connectFilter(assetStore, 'asset', function(data){
-      return data[this.props.params.assetid];
-    })
+    // existingAssetMixin.refluxConnect,
+    // Reflux.connectFilter(assetStore, 'asset', function(data){
+    //   return data[this.props.params.assetid];
+    // }),
+    Reflux.ListenerMixin,
   ],
   getNameValue () {
     return this.refs['form-name'].getDOMNode().value
   },
   saveForm (evt) {
+    evt.preventDefault();
     actions.resources.updateAsset(this.props.params.assetid, {
       name: this.getNameValue(),
       content: surveyToValidJson(this.state.survey)
     });
+    this.setState({
+      asset_updated: false
+    })
+  },
+  onSurveyChange () {
+    this.setState({
+      asset_updated: -1
+    });
   },
   renderSaveAndPreviewButtons () {
     var disabled = !!this.state.disabled;
+    var pendingSave = this.state.asset_updated === false;
     var saveText = t('save');
-    var saveBtnKls = classNames('btn','btn-default',
-                              disabled ? 'disabled' : '');
+    var saveBtnKls = classNames('btn','btn-default', {
+      'disabled': disabled,
+      'k-save': true,
+      'k-save--pending': this.state.asset_updated === false,
+      'k-save--complete': this.state.asset_updated === true,
+      'k-save--needed': this.state.asset_updated === -1
+    });
     var previewDisabled = !!this.state.previewDisabled;
     var previewBtnKls = classNames('btn',
                                   'btn-default',
@@ -3576,12 +3605,14 @@ var FormPage = React.createClass({
               &nbsp;
               {saveText}
             </a>
+            {/*
             <a href="#" className={previewBtnKls}>
               <i className={classNames('fa', 'fa-sm', 'fa-eye')} />
               &nbsp;
               &nbsp;
               {t('preview')}
             </a>
+            */}
           </div>
         </div>
       );
@@ -3589,6 +3620,7 @@ var FormPage = React.createClass({
   getInitialState () {
     return {
       survey_loaded: false,
+      survey_name: '',
       kind: 'asset',
       asset: false
     };
@@ -3598,7 +3630,7 @@ var FormPage = React.createClass({
     var nameInputKls = classNames('form-control',
                                   'input-lg',
                                   nameKls);
-    var nameVal = this.state.asset.name
+    var nameVal = this.state.survey_name;
     var survey = this.state.survey;
     return (
         <input ref="form-name"
@@ -3610,15 +3642,63 @@ var FormPage = React.createClass({
               />
       );
   },
+  assetStoreTriggered (data, uid, stateUpdates) {
+    var s = data[uid],
+      survey,
+      updates = {};
+    if (stateUpdates) {
+      assign(updates, stateUpdates);
+    }
+    if (s) {
+      assign(updates, {
+        survey_name: s.name,
+        asset: s
+      });
+      this.setState(updates);
+    }
+  },
+  assetContentStoreTriggered (data, uid) {
+    var s = data[uid],
+      survey;
+    if (s) {
+      survey = dkobo_xlform.model.Survey.loadDict(s.data);
+      var formId = survey.settings.get('form_id')
+      if (this.state.survey_name) {
+        survey.settings.set('form_title', this.state.survey_name);
+      }
+      window._survey = survey;
+      window.setTimeout(( () => {
+        survey.settings.on('change', this.onSurveyChange);
+        survey.rows.on('change', this.onSurveyChange);
+        survey.rows.on('sort', this.onSurveyChange);
+      } ), 500);
+      this.setState({
+        survey: survey,
+        survey_loaded: true,
+        formId: formId
+      });
+    }
+  },
   componentDidMount () {
-    stores.pageState.setTopPanel(60, false);
+    this.listenTo(assetStore, this.assetStoreTriggered)
+    this.listenTo(assetContentStore, this.assetContentStoreTriggered);
+    stores.pageState.setTopPanel(30, false);
     this._postLoadRenderMounted = false;
+  },
+  surveyChange (a,b,c) {
+    log('survey change' ,a ,b,c)
+  },
+  componentWillUnmount () {
+    if (this.state.survey) {
+      this.state.survey.off('change');
+    }
   },
   postLoadRenderMount () {
     this._postLoadRenderMounted = true;
+    this.state.survey.settings.set('form_title', this.state.asset.name);
     this.app = new dkobo_xlform.view.SurveyApp({
       survey: this.state.survey
-    })
+    });
     var fw = this.refs['form-wrap'].getDOMNode();
     this.app.$el.appendTo(fw);
     this.app.render();
@@ -3626,7 +3706,7 @@ var FormPage = React.createClass({
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
       stores.pageState.setHeaderSearch(false);
-      stores.pageState.setTopPanel(60, false);
+      stores.pageState.setTopPanel(30, false);
       if (params.assetid[0] === 'c') {
         transition.redirect('collection-page', {uid: params.assetid});
       } else {
@@ -3637,13 +3717,13 @@ var FormPage = React.createClass({
     }
   },
   render () {
-    if (this.state.survey_loaded && this.state.asset) {
-      if (!this._postLoadRenderMounted) {
+    if (this.state.asset) {
+      if (!this._postLoadRenderMounted && this.state.survey_loaded) {
         // wish we didnt have to do this...
         window.setTimeout(this.postLoadRenderMount, 100);
       }
       return (
-          <DocumentTitle title={this.state.asset.name}>
+          <DocumentTitle title={this.state.survey_name}>
             {this.innerRender()}
           </DocumentTitle>
         );
@@ -3667,16 +3747,7 @@ var FormPage = React.createClass({
 });
 
 function surveyToValidJson(survey) {
-  var surveyDict = survey.toJSON();
-  var key, choicesArr = [];
-  if (_.isObject(surveyDict.choices)) {
-    for (key in surveyDict.choices) {
-      surveyDict.choices[key].forEach(function(item){
-        choicesArr.push(assign({list_name: key}, item));
-      });
-    }
-    surveyDict.choices = choicesArr;
-  }
+  var surveyDict = survey.toFlatJSON();
   return JSON.stringify(surveyDict);
 }
 
@@ -3724,12 +3795,14 @@ var NewForm = React.createClass({
                   &nbsp;
                   {saveText}
                 </a>
+                {/*
                 <a href="#" className={previewBtnKls}>
                   <i className={classNames('fa', 'fa-sm', 'fa-eye')} />
                   &nbsp;
                   &nbsp;
                   {t('preview')}
                 </a>
+                */}
               </div>
             </div>
           </div>
@@ -3758,7 +3831,7 @@ var NewForm = React.createClass({
     });
   },
   creatingResourceCompleted (data) {
-    this.transitionTo("form-editor", { assetid: data.uid });
+    this.transitionTo("form-view", { assetid: data.uid });
   },
   componentDidMount () {
     actions.resources.createResource.listen(this.creatingResource);
@@ -3770,7 +3843,7 @@ var NewForm = React.createClass({
     $('.form-wrap').html(app.$el);
     app.render()
     this.app = app
-    stores.pageState.setTopPanel(60, false);
+    stores.pageState.setTopPanel(30, false);
     this.setState({
       survey: survey
     });

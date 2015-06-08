@@ -56,7 +56,6 @@ define 'cs!xlform/model.survey', [
       $inputParser.loadChoiceLists(options.choices || [], @choices)
       if options.survey
         if !$inputParser.hasBeenParsed(options.survey)
-          console.log("saying tis has not been parsed: ", JSON.stringify(options.survey))
           options.survey = $inputParser.parseArr(options.survey)
         for r in options.survey
           if r.type in $configs.surveyDetailSchema.typeList()
@@ -100,6 +99,29 @@ define 'cs!xlform/model.survey', [
         @rows.add(row.toJSON(), at: index_incr)
       ``
 
+    toFlatJSON: (stringify=false, spaces=4)->
+      obj = @toJSON()
+
+      obj.survey = for row in obj.survey
+        if _.isObject(row.type)
+          row.type = [
+            _.keys(row.type)[0], _.values(row.type)[0]
+          ].join(' ')
+        row
+      if _.isObject(obj.choices)
+        flattened_choices = []
+        for own key, val of obj.choices
+          for list_item in val
+            flattened_choices.push($.extend({
+                list_name: key
+              }, list_item))
+        obj.choices = flattened_choices
+
+      if stringify
+        JSON.stringify(obj, null, spaces)
+      else
+        obj
+
     toJSON: (stringify=false, spaces=4)->
       obj = {}
 
@@ -115,9 +137,13 @@ define 'cs!xlform/model.survey', [
           if typeof r.export_relevant_values is 'function'
             r.export_relevant_values(out, addlSheets)
           else
-            log 'no r.export_relevant_values', r
+            console.error 'No r.export_relevant_values. Does this survey have non-standard columns?', r
 
         @forEachRow fn, includeGroupEnds: true
+
+        for sd in @surveyDetails.models when sd.get("value")
+          out.push sd.toJSON()
+
         out
 
       for shtName, sheet of addlSheets when sheet.length > 0
