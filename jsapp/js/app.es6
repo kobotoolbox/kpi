@@ -8,10 +8,10 @@ var select2 = require('select2-browserify');
 var actions = require('./actions');
 // import XLSX from 'xlsx';
 
-window._ = require('underscore');
-window.Backbone = require('backbone');
-window.Backbone.$ = $
-window.BackboneValidation = require('backbone-validation');
+// window._ = require('underscore');
+// window.Backbone = require('backbone');
+// window.Backbone.$ = $
+// window.BackboneValidation = require('backbone-validation');
 
 import React from 'react/addons';
 import Router from 'react-router';
@@ -32,7 +32,7 @@ import Favicon from 'react-favicon';
 
 var bootstrap = require('./libs/rest_framework/bootstrap.min');
 
-window.dkobo_xlform = require('./libs/xlform');
+// window.dkobo_xlform = require('./libs/xlform');
 
 var assign = require('react/lib/Object.assign');
 var Reflux = require('reflux');
@@ -1581,7 +1581,7 @@ var AssetNavigator = React.createClass({
             <i className="fa fa-icon fa-book fa-2x" />
           </div>
           <div className="asset-navigator__search">
-            <ui.SmallInputBox ref="navigatorSearchBox" placeholder={t('search keywords or tags')} onKeyUp={this.liveSearch} />
+            <ui.SmallInputBox ref="navigatorSearchBox" placeholder={t('search library')} onKeyUp={this.liveSearch} />
           </div>
         </div>
         {this.state.assetNavIsOpen ? 
@@ -1900,7 +1900,7 @@ var Forms = React.createClass({
     return (
         <div className="row">
           <div className="col-sm-6 k-form-list-search-bar">
-            <ui.SmallInputBox ref="formlist-search" placeholder={t('search')} onChange={this.searchChange} />
+            <ui.SmallInputBox ref="formlist-search" placeholder={t('search drafts')} onChange={this.searchChange} />
           </div>
           <div className="col-sm-6 k-form-list-search-bar">
             <label>
@@ -3205,9 +3205,10 @@ var FormInput = React.createClass({
   render () {
     return (
         <div className="form-group">
-          <label for={this.props.for} className="col-lg-2 control-label">{this.props.label}</label>
+          <label for={this.props.id} className="col-lg-2 control-label">{this.props.label}</label>
           <div className="col-lg-10">
-            <input type="text" className="form-control" id={this.props.id} placeholder={this.props.placeholder} />
+            <input type="text" className="form-control" id={this.props.id} placeholder={this.props.placeholder}
+                  onChange={this.props.onChange} />
           </div>
         </div>
       );
@@ -3218,11 +3219,11 @@ var FormCheckbox = React.createClass({
   render () {
     return (
         <div className="form-group">
-          <label for={this.props.for} className="col-lg-2 control-label">{this.props.label}</label>
-          <div className="col-lg-10">
+          <label for={this.props.name} className="col-lg-8 control-label">{this.props.label}</label>
+          <div className="col-lg-4">
             <div className="checkbox">
               <label>
-                <input type="checkbox" id={this.props.id} checked={this.props.checked} />
+                <input type="checkbox" id={this.props.name} checked={this.props.value} onChange={this.props.onChange} />
               </label>
             </div>
           </div>
@@ -3234,19 +3235,22 @@ var FormCheckbox = React.createClass({
 var FormSettingsEditor = React.createClass({
   render () {
     return (
+      <div className="well">
         <form className="form-horizontal">
-          <FormInput for="form_id" id="form_id" label="form id" placeholder={t('form id')} />
+          <FormInput id="form_id" label="form id" value={this.props.form_id} placeholder={t('form id')} onChange={this.props.onFieldChange} />
           <hr />
-          <FormCheckbox for="start_time" label="start time" checked={true} id="start_time" />
-          <FormCheckbox for="end_time" label="end time" checked={true} id="end_time" />
-          <FormCheckbox for="today" label="today" checked={true} id="today" />
-          <FormCheckbox for="deviceid" label="device id" checked={true} id="deviceid" />
-          <hr />
-          <FormCheckbox for="username" label="username" checked={true} id="username" />
-          <FormCheckbox for="simserial" label="sim serial" checked={true} id="simserial" />
-          <FormCheckbox for="subscriberid" label="subscriber id" checked={true} id="subscriberid" />
-          <FormCheckbox for="phonenumber" label="phone number" checked={true} id="phonenumber" />
-
+          <div className="row">
+            <div className="col-md-6">
+              {this.props.meta.map((mtype) => {
+                return <FormCheckbox for={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
+              })}
+            </div>
+            <div className="col-md-6">
+              {this.props.phoneMeta.map((mtype) => {
+                return <FormCheckbox for={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
+              })}
+            </div>
+          </div>
           <div className="form-group">
             <label for="select" className="col-lg-2 control-label">apperance</label>
             <div className="col-lg-10">
@@ -3256,6 +3260,94 @@ var FormSettingsEditor = React.createClass({
             </div>
           </div>
         </form>
+      </div>
+      );
+  }
+})
+
+var FormSettingsBox = React.createClass({
+  getInitialState () {
+    var formId = this.props.survey.settings.get('form_id');
+    return {
+      formSettingsExpanded: false,
+      formId: formId,
+      meta: [],
+      phoneMeta: []
+    }
+  },
+  getSurveyDetail (sdId) {
+    return this.props.survey.surveyDetails.filter(function(sd){
+      return sd.attributes.name === sdId;
+    })[0];
+  },
+  passValueIntoObj (category, newState) {
+    newState[category] = [];
+    return (id) => {
+      var sd = this.getSurveyDetail(id);
+      if (!sd) {
+        console.error('could not find ', id);
+      } else {
+        newState[category].push(sd.attributes);
+      }
+    };
+  },
+  onCheckboxChange (evt) {
+    this.getSurveyDetail(evt.target.id).set('value', evt.target.checked);
+    this.updateState();
+  },
+  onFieldChange (evt) {
+    var fieldId = evt.target.id,
+        value = evt.target.value;
+    if (fieldId === 'form_id') {
+      this.props.survey.settings.set('form_id', value);
+    }
+    this.setState({
+      formId: this.props.survey.settings.get('form_id')
+    })
+  },
+  updateState () {
+    var newState = {};
+    "start end today deviceid".split(" ").forEach(this.passValueIntoObj('meta', newState));
+    "username simserial subscriberid phonenumber".split(" ").map(this.passValueIntoObj('phoneMeta', newState));
+    this.setState(newState);
+  },
+  componentDidMount () {
+    this.updateState();
+  },
+  toggleSettingsEdit () {
+    this.setState({
+      formSettingsExpanded: !this.state.formSettingsExpanded
+    });
+  },
+  render () {
+    var metaData = [].concat(this.state.meta).concat(this.state.phoneMeta).filter(function(item, a, b, c){
+      return item.value;
+    }).map(function(item){ return item.label; }).join(', ');
+
+    if (metaData === '') {
+      metaData = t('none (0 metadata specified)')
+    }
+    var expandIconKls = classNames('fa', 'fa-icon', 'fa-fw', 
+            this.state.formSettingsExpanded ? 'fa-caret-down' : 'fa-caret-right')
+
+    return (
+        <div className={classNames('row', 'k-sub-settings-bar', {
+          'k-sub-settings-bar--expanded': this.state.formSettingsExpanded
+        })}>
+          <div className="col-md-12" onClick={this.toggleSettingsEdit}>
+            <i className="fa fa-cog" />
+            &nbsp;&nbsp;
+            <i className={expandIconKls} />
+            &nbsp;&nbsp;
+            <span className="settings-preview">{t('form id')}: {this.state.formId}</span>
+            <span className="settings-preview">{t('meta questions')}: {metaData}</span>
+          </div>
+          {this.state.formSettingsExpanded ? 
+            <FormSettingsEditor {...this.state} onCheckboxChange={this.onCheckboxChange}
+                onFieldChange={this.onFieldChange} />
+          :null}
+        </div>
+
       );
   }
 })
@@ -3278,41 +3370,24 @@ var formViewMixin = {
         </p>
       );
   },
-  toggleSettingsEdit () {
-    this.setState({
-      formSettingsExpanded: this.state.formSettingsExpanded
-    });
-  },
   renderSubSettingsBar () {
-    var spacer = '';
-    var formId = '-tbd-';
-    var survey;
-    var metaData = 'abc, def, ghi';
-    if (this.state.survey && this.state.survey.settings) {
-      survey = this.state.survey;
-      formId = survey.settings.get('form_id');
+    // var spacer = '';
+    // var formId = '-tbd-';
+    // var survey;
+    // var metaData = 'abc, def, ghi';
+    // if (this.state.survey && this.state.survey.settings) {
+    //   survey = this.state.survey;
+    //   formId = survey.settings.get('form_id');
       
-      var _m = survey.surveyDetails.models.filter(function(sd){
-        return sd.get('value')
-      }).map(function(sd){
-        return sd.get('label')
-      });
-      metaData = _m.length > 0 ? _m.join(', ') : <em>{t('none (0 meta qs)')}</em>;
-    }
+    //   var _m = survey.surveyDetails.models.filter(function(sd){
+    //     return sd.get('value')
+    //   }).map(function(sd){
+    //     return sd.get('label')
+    //   });
+    //   metaData = _m.length > 0 ? _m.join(', ') : <em>{t('none (0 meta qs)')}</em>;
+    // }
     return (
-        <div className={classNames('row', 'k-sub-settings-bar', {
-          'k-sub-settings-bar--expanded': this.state.formSettingsExpanded
-        })}>
-          <div className="col-md-12" onClick={this.toggleSettingsEdit}>
-            <i className="fa fa-cog" />
-            &nbsp;&nbsp;
-            <span className="settings-preview">{t('form id')}: {formId}</span>
-            <span className="settings-preview">{t('meta questions')}: {metaData}</span>
-          </div>
-          {this.state.formSettingsExpanded ? 
-            <FormSettingsEditor {...this.state} />
-          :null}
-        </div>
+        <FormSettingsBox {...this.state} />
       );
   },
   nameInputValue () {
