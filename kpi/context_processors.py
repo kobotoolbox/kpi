@@ -1,4 +1,6 @@
+from django.conf import settings
+
 def dev_mode(request):
     out = {}
-    out['livereload_script']  = 'http://localhost:35729/livereload.js'
+    out['livereload_script']  = settings.LIVERELOAD_SCRIPT
     return out

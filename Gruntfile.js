@@ -5,32 +5,33 @@ module.exports = function(grunt) {
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
-    'string-replace': {
-      reqjs: {
-        files: {
-            'jsapp/js/libs/xlform.js': [
-              'jsapp/tmp/xlform.js',
-            ]
-        },
-        options: {
-          replacements: [{
-            pattern: /require/g,
-            replacement: '__req__'
-          }]
-        }
-      },
-      fixreqjs: {
-        files: {
-          'jsapp/compiled/bundle.js': ['jsapp/compiled/bundle.js']
-        },
-        options: {
-          replacements: [{
-            pattern: /__req__/g,
-            replacement: 'require'
-          }]
-        }
-      }
-    },
+    // 'string-replace': {
+    //   // reqjs: {
+    //   //   files: {
+    //   //       'jsapp/js/libs/xlform.js': [
+    //   //         'jsapp/tmp/xlform.js',
+    //   //       ]
+    //   //   },
+    //   //   options: {
+    //   //     replacements: [{
+    //   //       pattern: /require/g,
+    //   //       replacement: '__req__'
+    //   //     }]
+    //   //   }
+    //   // },
+    //
+    //   // fixreqjs: {
+    //   //   files: {
+    //   //     'jsapp/compiled/bundle.js': ['jsapp/compiled/bundle.js']
+    //   //   },
+    //   //   options: {
+    //   //     replacements: [{
+    //   //       pattern: /__req__/g,
+    //   //       replacement: 'require'
+    //   //     }]
+    //   //   }
+    //   // }
+    // },
     requirejs: {
       compile_xlform: {
         options: {
@@ -41,7 +42,7 @@ module.exports = function(grunt) {
           exclude: ['coffee-script'],
           name: 'almond',
           include: 'build.js',
-          out: 'jsapp/tmp/xlform.js',
+          out: 'jsapp/js/libs/xlform.js',
           paths: {
               'almond': 'components/almond/almond',
               'jquery': 'components/jquery/dist/jquery.min',
@@ -68,12 +69,22 @@ module.exports = function(grunt) {
           ],
         },
         options: {
+          noParse: [
+            'jsapp/js/libs/xlform.js'
+          ],
+          noparse: [
+            'jsapp/js/libs/xlform.js'
+          ],
           browserifyOptions: {
               debug: true,
-              extensions: ['.es6', '.jsx', '.js', '.coffee']
+              extensions: ['.es6', '.jsx', '.js', '.coffee'],
+              require: [
+                // 'jszip',
+                // 'xlsx'
+              ]
           },
           transform: [
-            [ to5ify ],
+            [ to5ify, { compact: false } ],
             [ coffeeify ]
           ]
         }
@@ -86,12 +97,19 @@ module.exports = function(grunt) {
         }
       }
     },
+    uglify: {
+      main: {
+        files: {
+          'jsapp/compiled/bundle.min.js': ['jsapp/compiled/bundle.js']
+        }
+      }
+    },
     watch: {
       js: {
         options: {
           livereload: true
         },
-        tasks: ['browserify', 'string-replace:fixreqjs'],
+        tasks: ['browserify'],
         files: [
           './jsapp/js/**/*.es6',
           './jsapp/js/**/*.js',
@@ -115,8 +133,7 @@ module.exports = function(grunt) {
       coffee: {
         files: ['jsapp/xlform/src/*.coffee'],
         tasks: [
-          'requirejs:compile_xlform',
-          'string-replace:reqjs:'
+          'requirejs:compile_xlform'
         ],
         options: {
           livereload: false
@@ -129,7 +146,8 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-sass');
   grunt.loadNpmTasks('grunt-contrib-requirejs');
   grunt.loadNpmTasks('grunt-browserify');
-  grunt.loadNpmTasks('grunt-string-replace');
+  // grunt.loadNpmTasks('grunt-string-replace');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.registerTask('develop', [
     'browserify:dist',
     'sass:dist',
@@ -139,10 +157,14 @@ module.exports = function(grunt) {
 
   grunt.registerTask('build', [
     'requirejs:compile_xlform',
-    'string-replace:reqjs',
+    // 'string-replace:reqjs',
     'browserify:dist',
     'sass:dist',
-    'string-replace:fixreqjs'
+    // 'string-replace:fixreqjs'
+  ]);
+  grunt.registerTask('buildall', [
+    'build',
+    'uglify',
   ]);
 
 };

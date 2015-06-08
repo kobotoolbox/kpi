@@ -37,6 +37,8 @@ define 'cs!xlform/model.survey', [
   class Survey extends $surveyFragment.SurveyFragment
     constructor: (options={}, addlOpts)->
       super()
+      if options.error
+        throw new Error("instantiating survey with error parameter")
       @_initialParams = options
 
       @settings = new Settings(options.settings, _parent: @)
@@ -54,7 +56,8 @@ define 'cs!xlform/model.survey', [
       $inputParser.loadChoiceLists(options.choices || [], @choices)
       if options.survey
         if !$inputParser.hasBeenParsed(options.survey)
-          throw new Error("this hasnt been parsed. use Survey.parseDict(...)")
+          console.log("saying tis has not been parsed: ", JSON.stringify(options.survey))
+          options.survey = $inputParser.parseArr(options.survey)
         for r in options.survey
           if r.type in $configs.surveyDetailSchema.typeList()
             @surveyDetails.importDetail(r)

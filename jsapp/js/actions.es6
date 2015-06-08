@@ -66,6 +66,30 @@ actions.resources = Reflux.createActions({
       "failed"
     ]
   },
+  publishAsset: {
+    children: [
+      "completed",
+      "failed"
+    ]
+  },
+  cloneAsset: {
+    children: [
+      "completed",
+      "failed"
+    ]
+  },
+  deleteAsset: {
+    children: [
+      "completed",
+      "failed"
+    ]
+  },
+  listTags: {
+    children: [
+      "completed",
+      "failed"
+    ]
+  },
   loadAssetSubResource: {
     children: [
       "completed",

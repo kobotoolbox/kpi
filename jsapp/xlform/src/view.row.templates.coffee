@@ -62,12 +62,12 @@ define 'cs!xlform/view.row.templates', [], ()->
             <span class="card__header-title js-cancel-select-row js-cancel-sort"></span>
           </div>
           <div class="card__buttons">
-            <span class="card__buttons__button card__buttons__button--settings gray js-toggle-card-settings" data-button-name="settings"><i class="fa fa-cog"></i></span>
-            <span class="card__buttons__button card__buttons__button--delete red js-delete-row" data-button-name="delete"><i class="fa fa-trash-o"></i></span>
+            <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="fa fa-cog"></i></span>
+            <span class="card__buttons__button card__buttons__button--delete card__buttons__button--red js-delete-row" data-button-name="delete"><i class="fa fa-trash-o"></i></span>
       """
       if surveyView.features.multipleQuestions
-        template += """<span class="card__buttons__button card__buttons__button--copy blue js-clone-question" data-button-name="duplicate"><i class="fa fa-copy"></i></span>
-                  <span class="card__buttons__button card__buttons__button--add gray-green js-add-to-question-library" data-button-name="add-to-library"><i class="fa fa-folder-o"><i class="fa fa-plus"></i></i></span>"""
+        template += """<span class="card__buttons__button card__buttons__button--copy card__buttons__button--blue js-clone-question" data-button-name="duplicate"><i class="fa fa-copy"></i></span>
+                  <span class="card__buttons__button card__buttons__button--add card__buttons__button--gray-green js-add-to-question-library" data-button-name="add-to-library"><i class="fa fa-folder-o"><i class="fa fa-plus"></i></i></span>"""
 
       return template + """
           </div>
@@ -83,8 +83,8 @@ define 'cs!xlform/view.row.templates', [], ()->
         <i class="group__caret js-toggle-group-expansion fa fa-fw"></i>
         <span class="group__label js-cancel-select-row js-cancel-sort">#{g.getValue('label')}</span>
           <div class="group__header__buttons">
-            <span class="group__header__buttons__button group__header__buttons__button--settings  gray js-toggle-card-settings"><i class="fa fa-cog"></i></span>
-            <span class="group__header__buttons__button group__header__buttons__button--delete  red js-delete-group"><i class="fa fa-trash-o"></i></span>
+            <span class="group__header__buttons__button group__header__buttons__button--settings js-toggle-card-settings"><i class="fa fa-cog"></i></span>
+            <span class="group__header__buttons__button group__header__buttons__button--delete js-delete-group"><i class="fa fa-trash-o"></i></span>
           </div>
       </header>
       <ul class="group__rows">

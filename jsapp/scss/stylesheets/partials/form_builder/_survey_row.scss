@@ -316,10 +316,11 @@ $nested-btn--addrow-height: 24px;
     background-color: transparent;
     width: 52px;
     height: $btn--addrow-height + (2 * $click-area-btn--addrow-padding-tb);
+    position: absolute;
+    left: -50px;
+    top: -42px;
+
     .no-touch & {
-        position: absolute;
-        left: -40px;
-        top: -42px;
         padding: $click-area-btn--addrow-padding-tb 0 0 11px;
         // z-index: 1;
     }

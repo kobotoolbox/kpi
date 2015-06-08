@@ -9,14 +9,19 @@
     .sub-header-bar {
     display: none;
   }
-
+  input, textarea {
+    box-shadow: none;
+    &:focus {
+      box-shadow: none;
+    }
+  }
   @import './kobo';
-  background-color: #E9EDF0;
-  border: 1px solid #bbb;
-  border-radius: 7px;
+  .btn--addrow .fa {
+    margin-top: 25px;
+  }
 }
 
-.kpiapp {
+.delme-kpiapp {
   .asset-navigator {
     opacity: 0.8;
   }
@@ -27,30 +32,327 @@
   }
 }
 
+$i: 200;
+.bg-fixed-top-panel {
+  position: absolute;
+  width: 100%;
+  top: 0;
+  left: 0;
+  background-color: white;
+  z-index: 1;
+  transition: all .8s ease 0s;
+
+  &.bg--fixed {
+    position: fixed;
+  }
+
+  @while $i > 0 {
+    &.bg--h#{$i} {
+      height: 1px * $i;
+    }
+    $i: $i - 10;
+  }
+}
+
 .k-form-actions {
-  width: 120px;
 }
 
 .asset-navigator {
+  transition: all .4s ease 0s;
+
+
+  -webkit-box-shadow: -5px 0px 5px 0px rgba(50, 50, 50, 0.07);
+  -moz-box-shadow:    -5px 0px 5px 0px rgba(50, 50, 50, 0.07);
+  box-shadow:         -5px 0px 5px 0px rgba(50, 50, 50, 0.07);
+}
+
+.page-wrapper--asset-nav-present {
+  padding-right: 60px;
+}
+.page-wrapper--asset-nav-open {
+  padding-right: 400px;
+}
+.asset-navigator {
   position: fixed;
   right: 0;
-  top: 60px;
-  padding: 8px 20px;
+  top: 0;
+  padding: 68px 20px 8px;
   width: 400px;
   height: 100%;
   background-color: #fff;
   border: 1px solid #ddd;
+  border-top: 0 none;
   z-index: 5;
+}
+.asset-navigator__header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding-left: 60px;
+  width: 100%;
+  height: 60px;
+}
+.asset-navigator__search {
+  margin: 9px 6px;
+  height: 60px;
+}
+.asset-navigator__logo {
+  background-color: rgb(228, 228, 228);
+  width: 60px;
+  height: 60px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 0 none;
+  text-align: center;
+  line-height: 75px;
+}
+.asset-navigator--shrunk {
+  margin-right: -340px;
+}
+.k-panel-body {
+  padding: 7px;
+}
+.k-panel {
+  margin: 11px;
+  position: relative;
 }
 .panel-wrap--right-spaced {
   padding-right: 391px;
 }
-.k-form-header-row {
-  padding-right: 125px;
-  position: relative;
+
+.sidebar-wrapper {
+  -webkit-box-shadow: 5px 0px -5px 0px rgba(50, 50, 50, 0.07);
+  -moz-box-shadow:    5px 0px -5px 0px rgba(50, 50, 50, 0.07);
+  box-shadow:         5px 0px -5px 0px rgba(50, 50, 50, 0.07);
 }
-.k-form-actions {
+.sidebar {
+  .k-form-header-row {
+    padding-right: 125px;
+    position: relative;
+  }
+  .k-form-actions {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+  .k-sidebar-smallitems {
+    margin: 0;
+    padding: 0;
+  }
+  .k-sidebar-smallitems__item {
+    opacity: 0.7;
+    &:hover {
+      opacity: 1;
+    }
+    margin: 0;
+    padding: 0;
+    position: relative;
+    height: 2em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    a {
+      float: none;
+      color: #999;
+      font-size: 12px;
+      font-weight: normal;
+      padding-left: 10px;
+      width: 100%;
+      height: 2em;
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+
+      &:hover {
+        color: lighten(#999, 5%);
+        background-color: darken(#2d2d2d, 2%);
+      }
+
+      i {
+        position: absolute;
+        top: 4px;
+        left: 3px;
+      }
+      span.name {
+        position: absolute;
+        top: 0px;
+        left: 20px;
+      }
+    }
+  }
+}
+.assetnav-search-results {
+  li {
+    position: relative;
+    padding-left: 13px;
+  }
+}
+.k-draggable {
   position: absolute;
+  top: 50%;
+  left: -4px;
+  margin-top: -12px;
+  opacity: 0.4;
+}
+.k-draggable-iconwrap {
+  overflow: hidden;
+  display: inline-block;
+  width: 9px;
+}
+.assetnav-search-results {
+  padding: 0 8px;
+  list-style-type: none;
+}
+$highlightedBarColor: rgb(196, 207, 216);
+.collection-asset-list {
+  li {
+    transition: all 0.9s ease 0s;
+  }
+  li.asset-row--selected {
+
+    background-color: $highlightedBarColor;
+    a, a:hover {
+      background-color: $highlightedBarColor;
+    }
+  }
+}
+.taglist {
+  max-height: 4em;
+  overflow: hidden;
+  scroll: auto;
+}
+.taglist__tag {
+  margin-left: 3px;
+  font-size: 11px;
+  text-decoration: underline;
+  color: #555;
+  cursor: pointer;
+  &:after {
+    content: ' ';
+    text-decoration: none;
+  }
+}
+
+.asset-nav {
+  height: 100%;
+  z-index: 999;
+  width: 250px;
+  background-color: fuchsia;
+}
+
+// .k-sidebar-item-name {
+// }
+
+.k-invisible {
+  visibility: hidden;
+}
+
+.app-children-wrap {
+  padding: 65px 0;
+
+  .app-children-wrap--right-spaced {
+    padding-right: 391px;
+  }
+}
+.k-header-formname-text {
+  border-left: 2px solid lighten(#4caf50, 30%);
+  color: lighten(#4caf50, 20%);
+  padding-left: 5px;
+}
+.k-sub-settings-bar {
+  cursor: pointer;
+  color: #B2B2B2;
+  &:hover {
+    color: #666;
+  }
+  .settings-preview {
+    margin: 0 24px 0 0;
+  }
+
+  transition: all .4s ease 0s;
+}
+.k-form-close-button {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  border: 0 none;
+  background-color: transparent;
+  opacity: 0.6;
+  width: 40px;
+  height: 40px;
+  font-size: 26px;
+  line-height: 40px;
+  color: #666;
+  z-index: 999;
+  &:hover {
+    opacity: 1;
+  }
+  &.k-form-close-button--warning {
+    color: #EA3333;
+  }
+}
+
+.k-btn-wrap--newform {
+  position: absolute;
+  width: 65px;
+  height: 65px;
+  padding: 0;
+  top: 3px;
+  left: 16px;
+  margin: 0;
+}
+$actionButtonColor: #2196F3;
+.k-actbtn {
+              //   padding: "6px 27px",
+              // lineHeight: "3.86em",
+              // borderRadius: "31px"
+  background-color: $actionButtonColor;
+  padding: 17px 18px 13px;
+  font-size: 45px;
+  line-height: 30px;
+  border-radius: 45px;
+  color: #fff;
+  -webkit-box-shadow: 2px 4px 14px 0px rgba(50, 50, 50, 0.2);
+  -moz-box-shadow:    2px 4px 14px 0px rgba(50, 50, 50, 0.2);
+  box-shadow:         2px 4px 14px 0px rgba(50, 50, 50, 0.2);
+  &:hover {
+    -webkit-box-shadow: 2px 4px 14px 0px rgba(50, 50, 50, 0.4);
+    -moz-box-shadow:    2px 4px 14px 0px rgba(50, 50, 50, 0.4);
+    box-shadow:         2px 4px 14px 0px rgba(50, 50, 50, 0.4);
+  }
+
+  &.k-actbtn--muted {
+    background-color: lighten($actionButtonColor, 30%);
+    color: #f4f4f4;
+    opacity: 0.8;
+
+    box-shadow: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
+.k-header-button-row {
+  position: fixed;
   top: 0;
-  right: 0;
+  z-index: 99;
+}
+.k-loading-message-with-padding, .loading-message-with-padding {
+  padding: 40px;
+}
+.k-col-padrt25 {
+  padding-right: 25px;
+}
+.k-form-list-search-bar {
+  padding-top: 5px;
+
+  label {
+    color: #b3b3b3;
+    margin-right: 12px;
+  }
 }

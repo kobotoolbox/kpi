@@ -69,13 +69,13 @@
     width: 26px;
     text-align: center;
 
-    &.gray {
+    &.group__header__buttons__button--gray {
         color: #858F98;
     }
-    &.red {
+    &.group__header__buttons__button--red {
         color: #D08B8C;
     }
-    &.activated {
+    &.group__header__buttons__button--activated {
         color: #646D75;
         background-color: #D9DDE1;
     }

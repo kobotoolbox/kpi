@@ -22,12 +22,13 @@ define [
       _.extend({}, @atts, {type: @type, __rows: arr})
 
   hasBeenParsed = (obj)->
-    if obj.survey
-      for row in obj.survey
-        if row.__rows
-          return true
-    false
-
+    for row in obj
+      if row.__rows
+        return true
+      else if $aliases.q.testGroupable(row.type)
+        return false
+    return true
+  inputParser.hasBeenParsed = hasBeenParsed
 
   parseArr = (type='survey', sArr)->
     counts = {
@@ -60,17 +61,13 @@ define [
       grpStack[_l-1]
 
     for item in sArr
-      console.log item.type, $aliases.q.testGroupable(item.type) 
       _groupAtts = $aliases.q.testGroupable(item.type)
       if _groupAtts
-        console.log JSON.stringify(_groupAtts)
-        # console.log "based on aliases, this is groupable\t", item
         if _groupAtts.begin
           _pushGrp(_groupAtts.type, item)
         else
           _popGrp(_groupAtts, item.type)
       else
-        # console.log("checking\t\t\t\t\t", item)
         _curGrp().push(item)
 
     if grpStack.length isnt 1

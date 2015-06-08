@@ -9,6 +9,10 @@
     </a>
 {% endblock %}
 
+{% block head %}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {{ block.super }}
+{% endblock %}
 {% block bootstrap_theme %}
     {% load staticfiles %}
     <link rel="stylesheet" href="{% static 'css/bootstrap-paper.min.css' %}">
@@ -17,8 +21,34 @@
 {% endblock %}
 
 {% block script %}
-    <script src="{% static "compiled/bundle.js" %}"></script>
+
+<!--     <script src="{% static 'components/jquery/dist/jquery.js' %}"></script>
+    <script src="{% static 'components/jquery-migrate/jquery-migrate.js' %}"></script>
+    <script src="{% static 'components/underscore/underscore.js' %}"></script>
+    <script src="{% static 'components/backbone/backbone.js' %}"></script>
+    <script src="{% static 'components/select2/select2.min.js' %}"></script>
+    <script src="{% static 'js/jquery.poshytip.js' %}"></script>
+    <script src="{% static 'js/jquery-ui-1.10.4.custom.js' %}"></script>
+    <script src="{% static 'components/x-editable/dist/jquery-editable/js/jquery-editable-poshytip.js' %}"></script>
+    <script src="{% static 'components/jquery.scrollTo/jquery.scrollTo.js' %}"></script>
+    <script src="{% static 'js/Backbone.Validation.js' %}"></script>
+    <script>
+    var BackboneValidation = Backbone.Validation;
+    var module = {};
+    </script>
+    <script src="{% static "js/libs/xlform.js" %}"></script>
+    <script type="text/javascript">
+    var dkobo_xlform = module.exports;
+    delete window.module;
+    </script> -->
+     <script src="{% static "compiled/bundle.js" %}"></script>
+<!-- 
+    <script src="{% static "compiled/bundle-xlform.js" %}"></script>
+    <script src="{% static "compiled/bundle-xlsx.js" %}"></script>
+-->
+
     {% if livereload_script %}
         <script src="{{ livereload_script }}"></script>
     {% endif %}
 {% endblock %}
+

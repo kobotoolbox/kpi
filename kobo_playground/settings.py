@@ -120,14 +120,18 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'kpi.serializers.Paginated',
     'PAGE_SIZE': 100,
 }
+
 TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
     'kpi.context_processors.dev_mode',
 )
+
 if not DEBUG:
     STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 import djcelery
 djcelery.setup_loader()
+
+LIVERELOAD_SCRIPT = os.environ.get('LIVERELOAD_SCRIPT', False)
 
 HAYSTACK_CONNECTIONS = {
     'default': {

@@ -2,8 +2,8 @@
 //  : https://github.com/rdash/rdash-jquery.git
 
 // variables
-$sidebarBaseColor: #2d2d2d;
-$sidebarHeaderColor: darken($sidebarBaseColor, 2%);
+$sidebarBaseColor: #282828;
+$sidebarHeaderColor: lighten($sidebarBaseColor, 2%);
 $sidebarTitleColor:  lighten($sidebarBaseColor, 30%); /*#627cb7*/
 $sidebarTextColor: #bbb;
 $barColor: #e99d1a;
@@ -48,11 +48,12 @@ body {
 .alerts-container .alert:last-child {
   margin-bottom: 0;
 }
-#page-wrapper {
+.page-wrapper {
   padding-left: 70px;
   height: 100%
 }
-#sidebar-wrapper {
+
+.sidebar-wrapper {
   margin-left: -150px;
   left: -30px;
   width: 250px;
@@ -60,7 +61,7 @@ body {
   height: 100%;
   z-index: 999;
 }
-#page-wrapper, #sidebar-wrapper {
+.page-wrapper, .sidebar-wrapper {
   transition: all .4s ease 0s;
 }
 .green {
@@ -127,21 +128,21 @@ div.input-mask {
 // end loading.less
 
 // content.less
-#content-wrapper {
+.content-wrapper {
   padding-left: 0;
   margin-left: 0;
   width: 100%;
   height: auto;
 }
-#page-wrapper {
-  &.active {
+.page-wrapper {
+  &.page--activenav {
     @media only screen and (min-width:561px){
       padding-left: 250px;
     }
     @media only screen and (max-width:560px){
       padding-left: 70px;
     }
-    #sidebar-wrapper {
+    .sidebar-wrapper {
       left: 150px;
     }
   }
@@ -249,14 +250,14 @@ div.input-mask {
 
 // sidebar.less
 
-#sidebar-wrapper {
+.sidebar-wrapper {
   background: $sidebarBaseColor;
 }
 
 ul.sidebar .sidebar-main a,
 .sidebar-footer,
 ul.sidebar .sidebar-list a:hover,
-#page-wrapper:not(.active) ul.sidebar .sidebar-title.separator {
+.page-wrapper:not(.page--activenav) ul.sidebar .sidebar-title.separator {
   /* Sidebar header and footer color */
   background: $sidebarHeaderColor;
 }
@@ -362,7 +363,7 @@ ul.sidebar {
     }
   }
 }
-#page-wrapper:not(.active) {
+.page-wrapper:not(.page--activenav) {
   ul.sidebar {
     bottom: 0;
     .sidebar-title {

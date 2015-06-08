@@ -1,15 +1,14 @@
 import {log, t} from './utils';
-
 var $ = require('jquery');
 window.jQuery = $;
 window.$ = $;
 require('jquery.scrollto');
 require('jquery-ui/sortable');
 var select2 = require('select2-browserify');
-
+var actions = require('./actions');
+// import XLSX from 'xlsx';
 
 window._ = require('underscore');
-
 window.Backbone = require('backbone');
 window.Backbone.$ = $
 window.BackboneValidation = require('backbone-validation');
@@ -22,14 +21,18 @@ import moment from 'moment';
 import classNames from 'classnames';
 import alertify from 'alertifyjs';
 import {Sheeted} from './models/sheeted';
+import stores from './stores';
 import Dropzone from './libs/dropzone';
+import icons from './icons';
+import cookie from 'react-cookie';
+var ui = {};
 
 import Favicon from 'react-favicon';
 
+
 var bootstrap = require('./libs/rest_framework/bootstrap.min');
 
-window.dkobo_xlform = require('./libs/xlform')
-
+window.dkobo_xlform = require('./libs/xlform');
 
 var assign = require('react/lib/Object.assign');
 var Reflux = require('reflux');
@@ -42,21 +45,117 @@ let RouteHandler = Router.RouteHandler;
 let NotFoundRoute = Router.NotFoundRoute;
 
 
+function changes(orig_obj, new_obj) {
+  var out = {},
+      any = false;
+  Object.keys(new_obj).forEach(function(key) {
+    if (orig_obj[key] !== new_obj[key]) {
+      out[key] = new_obj[key];
+      any = true;
+    }
+  });
+  if (!any) {
+    return false;
+  }
+  return out;
+}
+
+stores.pageState = Reflux.createStore({
+  init () {
+    this.state = {
+      bgTopPanelHeight: 60,
+      bgTopPanelFixed: false,
+      headerSearch: true,
+      assetNavPresent: false,
+      assetNavIsOpen: true,
+      assetNavIntentOpen: true,
+      sidebarIsOpen: true,
+      sidebarIntentOpen: true
+    }
+  },
+  setTopPanel (height, isFixed) {
+    var changed = changes(this.state, {
+      bgTopPanelHeight: height,
+      bgTopPanelFixed: isFixed
+    });
+    log('changeed ' , changed);
+    if (changed) {
+      assign(this.state, changed);
+      this.trigger(changed);
+    }
+  },
+  toggleSidebarIntentOpen () {
+    var newIntent = !this.state.sidebarIntentOpen,
+        isOpen = this.state.sidebarIsOpen,
+        changes = {
+          sidebarIntentOpen: newIntent
+        };
+    // xor
+    if ( (isOpen || newIntent) && !(isOpen && newIntent) ) {
+      changes.sidebarIsOpen = !isOpen;
+    }
+    assign(this.state, changes);
+    this.trigger(changes);
+  },
+  hideSidebar () {
+    var changes = {};
+    if (this.state.sidebarIsOpen) {
+      changes.sidebarIsOpen = false;
+      assign(this.state, changes)
+      this.trigger(changes);
+    }
+  },
+  showSidebar () {
+    var changes = {};
+    if (!this.state.sidebarIsOpen) {
+      changes.sidebarIsOpen = true;
+      assign(this.state, changes)
+      this.trigger(changes);
+    }
+  },
+  toggleAssetNavIntentOpen () {
+    var newIntent = !this.state.assetNavIntentOpen,
+        isOpen = this.state.assetNavIsOpen,
+        changes = {
+          assetNavIntentOpen: newIntent
+        };
+
+    // xor
+    if ( (isOpen || newIntent) && !(isOpen && newIntent) ) {
+      changes.assetNavIsOpen = !isOpen;
+    }
+    assign(this.state, changes);
+    this.trigger(changes);
+  },
+  setHeaderSearch (tf) {
+    var newVal = !!tf;
+    if (newVal !== this.state.headerSearch) {
+      this.state.headerSearch = !!tf;
+      var changes = {
+        headerSearch: this.state.headerSearch,
+        assetNavPresent: !this.state.headerSearch,
+        assetNavIsOpen: !this.state.headerSearch
+      };
+      assign(this.state, changes);
+      this.trigger(changes);
+    }
+  }
+});
+
+
 class SmallInputBox extends React.Component {
   getValue () {
     return this.refs.inp.getDOMNode().value;
-  }
-  noteStoreChange (a,b,c) {
-    log('storechange', a,b,c)
   }
   render () {
     var valid = false;
     return (
         <input type="text" placeholder={this.props.placeholder} ref='inp'
-                className="form-control input-sm pull-right" onKeyUp={this.props.onKeyUp} />
+                className="form-control input-sm pull-right" onKeyUp={this.props.onKeyUp} onChange={this.props.onChange} />
       );
   }
 }
+ui.SmallInputBox = SmallInputBox;
 
 var MeViewer = React.createClass({
   mixins: [Reflux.ListenerMixin],
@@ -104,79 +203,7 @@ var MeViewer = React.createClass({
   }
 });
 
-var AssetNavigator = React.createClass({
-  mixins: [
-    Navigation,
-    // Reflux.connectFilter(assetSearchStore, function (){
-
-    // }),
-    // Reflux.connectFilter(tagSearchStore, function (){
-
-    // }),
-  ],
-  getInitialState () {
-    return {};
-  },
-  searchFieldValue () {
-    return this.refs.headerSearch.refs.inp.getDOMNode().value;
-  },
-  liveSearch () {
-    var queryInput = this.searchFieldValue(),
-      r;
-    if (queryInput && queryInput.length > 2) {
-      if (r = assetSearchStore.getRecentSearch(queryInput)) {
-        this.setState({
-          searchResults: r
-        });
-      } else {
-        actions.search.assets(queryInput);
-      }
-    }
-  },
-  dropFiles (files) {
-    log("dropzone onDropFiles", files);
-  },
-  render () {
-    return (
-      <div className="asset-navigator">
-        <SmallInputBox ref="headerSearch" placeholder={t('search keywords or tags')} onKeyUp={this.liveSearch} />
-        <hr />
-        <Dropzone fileInput onDropFiles={this.dropFiles}>
-          <p>tags</p>
-          <hr />
-          <p>library</p>
-          <hr />
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-          <p>
-            <i className={classNames('fa', 'fa-sm', 'fa-file-o')} />
-            &nbsp;
-            &nbsp;
-            {t('upload forms')}
-          </p>
-        </Dropzone>
-      </div>
-      );
-  }
-})
-
 class AssetCollectionsContainer extends React.Component {
-  // constructor () {
-  //   super();
-  //   this.state = {
-  //     loading: t('your assets will load shortly')
-  //   };
-  // }
-  focusComponent (el) {
-    if (this._focusedComponent) {
-      this._focusedComponent.unfocus();
-    }
-    this._focusedComponent = el
-  }
   render () {
     var rows;
     var title = t('Asset Collections');
@@ -188,7 +215,7 @@ class AssetCollectionsContainer extends React.Component {
     } else if (this.props.results && this.props.results.length > 0) {
       rows = this.props.results.map((asset) => {
         asset.objectType = asset.url.match(/http\:\/\/[^\/]+\/(\w+)s/)[1];
-        return <AssetCollectionRow key={asset.uid} {...asset} onFocusComponent={this.focusComponent.bind(this)} />;
+        return <AssetCollectionRow key={asset.uid} {...asset} />;
       });
     } else {
       rows = (
@@ -200,7 +227,7 @@ class AssetCollectionsContainer extends React.Component {
         <div className={cls}>
           <div className="widget-title">
             <i className="fa fa-clock" /> {title}
-            <SmallInputBox placeholder={t('Search')} />
+            <ui.SmallInputBox placeholder={t('Search')} />
             <div className="clearfix"></div>
           </div>
           <AssetsTable rows={rows} />
@@ -227,18 +254,18 @@ class AssetsTable extends React.Component {
 }
 
 
-class SearchForm extends React.Component {
-  render () {
-    return (
-          <form role='search' className='navbar-form navbar-left'>
-            <div className='form-group'>
-              <input type='text' placeholder='Search' className='form-control' />
-            </div>
-            <button className='btn btn-default' type='submit'>Submit</button>
-          </form>
-        );
-  }
-}
+// class SearchForm extends React.Component {
+//   render () {
+//     return (
+//           <form role='search' className='navbar-form navbar-left'>
+//             <div className='form-group'>
+//               <input type='text' placeholder='Search' className='form-control' />
+//             </div>
+//             <button className='btn btn-default' type='submit'>Submit</button>
+//           </form>
+//         );
+//   }
+// }
 
 
 function notify(msg, atype='success') {
@@ -368,9 +395,6 @@ class PermissionsEditor extends React.Component {
     if (this.state.expanded) {
       this.setState({expanded: false});
     } else {
-      if (this.props.onFocusComponent) {
-        this.props.onFocusComponent(this);
-      }
       this.setState({expanded: true});
     }
   }
@@ -388,30 +412,16 @@ class PermissionsEditor extends React.Component {
     var klasses = classNames("permissions-editor", {
       "permissions-editor--unshared": !!isEmpty
     });
-    var expanded_content;
+
     icon_classes = classNames("permissions-editor__icon", "fa", "fa-fw",
       !!isEmpty ? "fa-lock" : "fa-users"
       )
 
-    icon = <i className={icon_classes} onClick={this.toggleExpand.bind(this)} />;
-    if (this.state.expanded) {
-      expanded_content = (
-          <table className="permissions-editor__list">
-            {this.props.perms.map((perm_user)=>{
-              perm_user.user_url = perm_user.user;
-              perm_user.username = perm_user.user_url.match(/\/(\w+)\/$/)[1];
-              return <PermissionUserEntry {...perm_user} />;
-            })}
-            <PermissionUserSearch />
-          </table>
-        )
-      user_count = '';
-    }
+    
     return (
         <div className={klasses}>
-          {icon}
+          <i className={icon_classes} onClick={this.toggleExpand.bind(this)} />
           {user_count}
-          {expanded_content}
         </div>
       );
   }
@@ -473,9 +483,9 @@ var AssetCollectionRow = React.createClass({
     var selfOwned = this.props.owner__username == currentUsername;
     var icon_stack;
     if (isAsset) {
-      icon_stack = <i className='fa fa-lg fa-file' />;
+      icon_stack = icons.large.asset;
     } else {
-      icon_stack = <i className='fa fa-lg fa-folder' />;
+      icon_stack = icons.large.collection;
     }
 
     return (
@@ -499,7 +509,7 @@ var AssetCollectionRow = React.createClass({
             {formatTime(this.props.date_modified)}
           </td>
           <td>
-            <PermissionsEditor perms={perm} onFocusComponent={this.props.onFocusComponent} />
+            <PermissionsEditor perms={perm} />
           </td>
         </tr>
       )
@@ -532,67 +542,78 @@ class AssetCollectionPlaceholder extends React.Component {
   }
 }
 
-var App = React.createClass({
-  getInitialState () {
-    return {
-      intentOpen: true,
-      isOpen: !this.widthLessThanMin()
-    }
-  },
+var BgTopPanel = React.createClass({
+  render () {
+    var h = this.props.bgTopPanelHeight;
+    var kls = classNames('bg-fixed-top-panel', `bg--h${h}`, {
+      'bg--fixed': this.props.bgTopPanelFixed
+    });
+    return (<div className={kls} />);
+  }
+});
 
+var App = React.createClass({
+  mixins: [
+    Reflux.ListenerMixin,
+    Navigation
+  ],
+  getInitialState () {
+    return assign({}, stores.pageState.state, {
+      sidebarIsOpen: !this.widthLessThanMin()
+    })
+  },
   widthLessThanMin () {
     return window.innerWidth < 560;
   },
-
   handleResize () {
     if (this.widthLessThanMin()) {
-      this.setState({
-        isOpen: false
-      });
-    } else if (this.state.intentOpen && !this.state.isOpen) {
-      this.setState({
-        isOpen: true
-      });
+      stores.pageState.hideSidebar();
+    } else if (this.state.sidebarIntentOpen && !this.state.sidebarIsOpen) {
+      stores.pageState.showSidebar();
     }
   },
-
+  pageStateChange (state) {
+    this.setState(state);
+  },
   componentDidMount () {
-    if (!this.resize) {
-      this.resize = this.handleResize.bind(this);
-    }
+    this.listenTo(stores.pageState, this.pageStateChange)
+
     // can use window.matchMedia(...) here
-    window.addEventListener('resize', this.resize);
+    window.addEventListener('resize', this.handleResize);
   },
   componentWillUnmount () {
-    window.removeEventListener('resize', this.resize);
+    window.removeEventListener('resize', this.handleResize);
   },
 
-  toggleIntentOpen (evt) {
+  toggleSidebarIntentOpen (evt) {
     evt.preventDefault();
-    if (this.state.intentOpen) {
-      this.setState({
-        intentOpen: false,
-        isOpen: false
-      })
-    } else {
-      this.setState({
-        intentOpen: true,
-        isOpen: true
-      });
-    }
+    stores.pageState.toggleSidebarIntentOpen();
   },
 
   render() {
-    var activeClass = this.state.isOpen ? 'active' : '';
+    var activeClass = classNames('page-wrapper', {
+      'page--activenav': this.state.sidebarIsOpen,
+      'page-wrapper--asset-nav-present': this.state.assetNavPresent,
+      'page-wrapper--asset-nav-open': this.state.assetNavIsOpen && this.state.assetNavPresent,
+      'page-wrapper--header-search': this.state.headerSearch
+    })
+
+    var panelKls = classNames("app-children-wrap", {
+      "app-children-wrap--navigator-open": this.state.assetNavigatorIsOpen,
+      "app-children-wrap--navigator-present": this.state.assetNavigator
+    });
+    // <PageHeader ref="page-header" headerSearch={this.state.headerSearch} />
     return (
       <DocumentTitle title="KoBo">
-        <div id="page-wrapper" className={activeClass}>
-          <Sidebar toggleIntentOpen={this.toggleIntentOpen.bind(this)} />
-          <PageHeader ref="page-header" />
-          <div className="panel-wrap--right-spaced">
-            <RouteHandler />
+        <div className={activeClass}>
+          <Sidebar isOpen={this.state.sidebarIsOpen} toggleIntentOpen={this.toggleSidebarIntentOpen} />
+          <div className={panelKls}>
+            <BgTopPanel {...this.state} />
+            <RouteHandler appstate={this.state} />
           </div>
-          <AssetNavigator />
+          { this.state.assetNavPresent ? 
+            <AssetNavigator />
+          :null}
         </div>
       </DocumentTitle>
     )
@@ -612,7 +633,7 @@ class PublicContentBox extends React.Component {
 class ContentBox extends React.Component {
   render () {
     return (
-        <div id="content-wrapper" className="page-content contentbox row">
+        <div className="content-wrapper page-content contentbox row">
           <div className="row">
             <AssetCollectionsContainer source="/collections/?parent=" itemname='collections' />
           </div>
@@ -682,51 +703,51 @@ class ItemDropdown extends React.Component {
   }
 }
 
-class RecentHistoryDropdown extends RecentHistoryDropdownBase {
-  componentDidMount () {
-    this.listenTo(historyStore, this.historyStoreChange);
-  }
+// class RecentHistoryDropdown extends RecentHistoryDropdownBase {
+//   componentDidMount () {
+//     this.listenTo(historyStore, this.historyStoreChange);
+//   }
 
-  historyStoreChange (history) {
-    this.setState({
-      items: history
-    });
-  }
+//   historyStoreChange (history) {
+//     this.setState({
+//       items: history
+//     });
+//   }
 
-  getList () {
-    return this.state.items;
-  }
+//   getList () {
+//     return this.state.items;
+//   }
 
-  renderEmptyList () {
-    return (
-      <ItemDropdown iconKls={classNames('fa',
-                                        'fa-clock-o',
-                                        'k-history',
-                                        'k-history--empty')}>
-        <li className="dropdown-header">
-          {t('no recent items')}
-        </li>
-      </ItemDropdown>
-    );
-  }
-  render () {
-    var list = this.getList();
-    if (list.length === 0) {
-      return this.renderEmptyList();
-    }
+//   renderEmptyList () {
+//     return (
+//       <ItemDropdown iconKls={classNames('fa',
+//                                         'fa-clock-o',
+//                                         'k-history',
+//                                         'k-history--empty')}>
+//         <li className="dropdown-header">
+//           {t('no recent items')}
+//         </li>
+//       </ItemDropdown>
+//     );
+//   }
+//   render () {
+//     var list = this.getList();
+//     if (list.length === 0) {
+//       return this.renderEmptyList();
+//     }
 
-    return (
-      <ItemDropdown iconKls={classNames('fa', 'fa-clock-o', 'k-history')}>
-        <ItemDropdownHeader>{t('recent items')} - ({list.length})</ItemDropdownHeader>
-        <ItemDropdownDivider />
-        {list.map((item)=> {
-          var iconKls = item.kind === 'collection' ? 'fa-folder-o' : 'fa-file-o';
-          return <ItemDropdownItem key={item.uid} faIcon={iconKls} {...item} />
-        })}
-      </ItemDropdown>
-      );
-  }
-}
+//     return (
+//       <ItemDropdown iconKls={classNames('fa', 'fa-clock-o', 'k-history')}>
+//         <ItemDropdownHeader>{t('recent items')} - ({list.length})</ItemDropdownHeader>
+//         <ItemDropdownDivider />
+//         {list.map((item)=> {
+//           var iconKls = item.kind === 'collection' ? 'fa-folder-o' : 'fa-file-o';
+//           return <ItemDropdownItem key={item.uid} faIcon={iconKls} {...item} />
+//         })}
+//       </ItemDropdown>
+//       );
+//   }
+// }
 
 class ItemDropdownItem extends React.Component {
   render () {
@@ -823,56 +844,43 @@ class LiDropdown extends React.Component {
   }
 }
 
-var Breadcrumb = React.createClass({
-  mixins: [
-    Reflux.ListenerMixin,
-    Navigation,
-    ],
-  getInitialState () {
-    var _items = this.context.router.getCurrentRoutes().map(function(r){
-      if (!r.name) {
-        log('noname breadcrumb ', r);
-      }
-      return {
-        name: r.name,
-        href: '#' + r.path
-      };
-    });
-    return {
-      items: _items
-    }
-  },
-  render () {
-    return (
-        <ul className="k-breadcrumb">
-          {
-            this.state.items.map((item)=> {
-              return <li><a href={item.href}>{item.name}</a></li>;
-            })
-          }
-        </ul>
-      );
-  }
-});
-
-var actions = require('./actions')
-
 actions.misc.checkUsername.listen(function(username){
   sessionDispatch.queryUserExistence(username)
     .done(actions.misc.checkUsername.completed)
     .fail(actions.misc.checkUsername.failed_);
 });
 
+actions.resources.listTags.listen(function(){
+  sessionDispatch.listTags()
+    .done(actions.resources.listTags.completed)
+    .fail(actions.resources.listTags.failed);
+});
+
 actions.resources.updateAsset.listen(function(uid, values){
   log(uid, values);
   sessionDispatch.patchAsset(uid, values)
     .done(actions.resources.updateAsset.completed)
-})
+});
+
 actions.resources.createResource.listen(function(details){
   sessionDispatch.createResource(details)
     .done(actions.resources.createResource.completed)
     .fail(actions.resources.createResource.failed);
-})
+});
+
+actions.resources.deleteAsset.listen(function(details){
+  sessionDispatch.deleteAsset(details)
+    .done(function(result){
+      actions.resources.deleteAsset.completed(details)
+    })
+    .fail(actions.resources.deleteAsset.failed);
+});
+
+actions.resources.cloneAsset.listen(function(details){
+  sessionDispatch.cloneAsset(details)
+    .done(actions.resources.cloneAsset.completed)
+    .fail(actions.resources.cloneAsset.failed);
+});
 
 actions.search.assets.listen(function(queryString){
   sessionDispatch.searchAssets(queryString)
@@ -971,6 +979,12 @@ var sessionDispatch;
       log("sessionDispatch.assignPerm(", creds, ")");
       return $.getJSON(url);
     },
+    deleteAsset ({uid}) {
+      return $ajax({
+        url: `/assets/${uid}/`,
+        method: 'DELETE'
+      });
+    },
     getAssetContent ({id}) {
       return $.getJSON(`/assets/${id}/content/`);
     },
@@ -997,6 +1011,12 @@ var sessionDispatch;
         url: `/assets/${uid}/`,
         method: 'PATCH',
         data: data
+      });
+    },
+    listTags () {
+      return $ajax({
+        url: `/tags/`,
+        method: 'GET'
       });
     },
     getCollection ({id}) {
@@ -1104,11 +1124,12 @@ var assetContentStore = Reflux.createStore({
 var assetStore = Reflux.createStore({
   init: function () {
     this.data = {};
-    // log('listening to actions.resources.loadAsset.completed');
     this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted)
   },
+  _findByUid (uid) {
+    return this.data[uid];
+  },
   onLoadAssetCompleted: function (resp, req, jqxhr) {
-    log('asset load komplete');
     if (!resp.uid) {
       throw new Error('no uid found in response');
     }
@@ -1132,56 +1153,7 @@ var sessionStore = Reflux.createStore({
   },
   onAuthLoginCompleted (acct) {
     this.currentAccount = acct;
-  }
-});
-
-const MAX_SEARCH_AGE = (5 * 60) // seconds
-
-var tagStore = Reflux.createStore({
-  init () {
-    this.queries = {};
-    this.listenTo(actions.search.tags.completed, this.onTagSearch);
-  },
-  getRecentSearch (queryString) {
-    if (queryString in this.queries) {
-      var age = new Date().getTime() - this.queries[queryString][1].getTime();
-      if (age < MAX_SEARCH_AGE * 1000) {
-        return this.queries[queryString][0];
-      }
-    }
-    return false;
-  },
-  onTagSearch (queryString, results) {
-
-  }
-});
-
-var assetSearchStore = Reflux.createStore({
-  init () {
-    this.queries = {};
-    this.listenTo(actions.search.assets.completed, this.onAssetSearch);
-  },
-  getRecentSearch (queryString) {
-    if (queryString in this.queries) {
-      var age = new Date().getTime() - this.queries[queryString][1].getTime();
-      if (age < MAX_SEARCH_AGE * 1000) {
-        return this.queries[queryString][0];
-      }
-    }
-    return false;
-  },
-  onAssetSearch (queryString, results) {
-    results.query=queryString;
-    this.queries[queryString] = [results, new Date()];
-    if(results.count > 0) {
-      this.trigger(results);
-    }
-  }
-});
-
-var tagSearchStore = Reflux.createStore({
-  init () {
-    this.queries = {};
+    this.trigger(acct);
   }
 });
 
@@ -1190,7 +1162,7 @@ var PageHeader = React.createClass({
     Navigation,
     Reflux.ListenerMixin,
     Reflux.connect(sessionStore, "isLoggedIn"),
-    Reflux.connectFilter(assetSearchStore, 'searchResults', function(results){
+    Reflux.connectFilter(stores.assetSearch, 'searchResults', function(results){
       if (this.searchFieldValue() === results.query) {
         return results;
       }
@@ -1271,13 +1243,16 @@ var PageHeader = React.createClass({
     return this.__loginForm;
   },
   searchFieldValue () {
-    return this.refs.headerSearch.refs.inp.getDOMNode().value;
+    if (this.refs.headerSearch) {
+      return this.refs.headerSearch.refs.inp.getDOMNode().value;
+    }
+    return;
   },
   liveSearch () {
     var queryInput = this.searchFieldValue(),
       r;
     if (queryInput && queryInput.length > 2) {
-      if (r = assetSearchStore.getRecentSearch(queryInput)) {
+      if (r = stores.assetSearch.getRecentSearch(queryInput)) {
         this.setState({
           searchResults: r
         });
@@ -1288,7 +1263,7 @@ var PageHeader = React.createClass({
   },
   renderSearch () {
     return (
-        <SmallInputBox ref="headerSearch" placeholder={t('search keywords or tags')} onKeyUp={this.liveSearch} />
+        <ui.SmallInputBox ref="headerSearch" placeholder={t('search for questions to include')} onKeyUp={this.liveSearch} />
       );
   },
 
@@ -1327,15 +1302,13 @@ var PageHeader = React.createClass({
     var isLoggedIn = this.state.isLoggedIn;
     var _li = this.state.isLoggedIn && !this.state.username;
     var _pending = this.state.loginStatus === 'pending';
-
     var buttonKls = classNames("btn", "btn-small", "btn-default");
-    log("this ", Navigation);
-
-    var headerSearch = false;
+    var headerSearch = this.props.headerSearch;
 
     return (
         <div className="row header">
           <div className="col-xs-12">
+            {/*
             <div className="meta pull-left" style={{marginTop: '11px'}}>
               <div className={classNames('btn-group')}>
                 <Link to='new-form' className='btn btn-circle btn-default'>
@@ -1343,7 +1316,6 @@ var PageHeader = React.createClass({
                 </Link>
               </div>
             </div>
-            {/*
               <LiLink active href="" sr-only={'(current)'}>{t('link')}</LiLink>
               <LiDropdown sr-only />
             */}
@@ -1352,7 +1324,7 @@ var PageHeader = React.createClass({
               {_pending ? <NavBarIcon icon="fa-spinner fa-spin fa-2x" title={this.state.loginStats} /> : '' }
               <MeViewer />
             </div>
-            { headerSearch ? 
+            { headerSearch ?
               <div className="pull-right k-search">
                 {this.renderSearch()}
                 {this.renderSearchResults()}
@@ -1363,6 +1335,268 @@ var PageHeader = React.createClass({
       )
   }
 });
+
+
+
+class Import {
+  constructor(f) {
+    this.name = f.name;
+    this.f = f;
+    this.status = 1;
+    this.steps = this.stepSequence().reverse();
+    this.d = new $.Deferred();
+    this.p = this.d.promise();
+  }
+  run () {
+    var nextStep = this.steps.pop().bind(this);
+    if (nextStep) {
+      nextStep().done(this.run.bind(this));
+    } else {
+      this.p.resolve(this);
+    }
+  }
+  stepSequence () {
+    return [
+      this.loadWorkbook,
+      this.parseWorkbook,
+    ]
+  }
+  loadWorkbook () {
+    var d = new $.Deferred()
+    var fr = FileReader();
+    fr.onload = (e)=> {
+      try {
+        var _data = e.target.result;
+        this.workbook = XLSX.read(_data, {type: 'binary'});
+        d.resolve(this.workbook)
+      } catch (err) {
+        d.reject(err);
+      }
+    }
+    return d.promise();
+  }
+  parseWorkbook () {
+    var d = new $.Deferred();
+    debugger;
+    return d.promise();
+  }
+}
+
+var TagList = React.createClass({
+  renderTag (tag, n) {
+    return <span className="taglist__tag" key={tag.name} onClick={(evt)=>{this.props.onTagClick(tag.name, evt)}}>{tag.name}</span>
+  },
+  render () {
+    var tags = this.props.tags || [];
+    return (
+      <div className="taglist">
+        {tags.map(this.renderTag)}
+      </div>
+      )
+  }
+});
+
+// var NavStateStore = Reflux.createStore({
+//   init () {
+//     this.state = {
+//       isOpen: true
+//     };
+//   },
+//   toggleState () {
+//     this.state.isOpen = !this.state.isOpen;
+//     this.trigger(this.state);
+//   }
+// })
+
+var AssetNavigator = React.createClass({
+  mixins: [
+    Navigation,
+    Reflux.ListenerMixin,
+    Reflux.connectFilter(stores.assetSearch, 'searchResults', function(results){
+      if (this.searchFieldValue() === results.query) {
+        return results;
+      }
+    }),
+    Reflux.connect(stores.tags, 'tags')
+  ],
+  componentDidMount() {
+    this.listenTo(stores.pageState, this.handlePageStateStore);
+    actions.resources.listTags()
+  },
+  handlePageStateStore (state) {
+    log('handlePageStateStore', state);
+    this.setState(state);
+  },
+  // handleResize () {
+  //   if (this.widthLessThanMin()) {
+  //     stores.pageState.hideSidebar();
+  //   } else if (this.state.sidebarIntentOpen && !this.state.sidebarIsOpen) {
+  //     stores.pageState.showSidebar();
+  //   }
+  // },
+  getInitialState () {
+    return {
+      searchResults: {},
+      imports: [],
+      assetNavIntentOpen: stores.pageState.state.assetNavIntentOpen,
+      assetNavIsOpen: stores.pageState.state.assetNavIsOpen
+    };
+  },
+  getImportsByStatus (n) {
+    this.imports.filter((i)=> i.status==n )
+  },
+  searchFieldValue () {
+    return this.refs.navigatorSearchBox.refs.inp.getDOMNode().value;
+  },
+  liveSearch () {
+    var queryInput = this.searchFieldValue(),
+      r;
+    if (queryInput && queryInput.length > 2) {
+      if (r = stores.assetSearch.getRecentSearch(queryInput)) {
+        this.setState({
+          searchResults: r
+        });
+      } else {
+        actions.search.assets(queryInput);
+      }
+    }
+  },
+  dropFiles (files) {
+    if (files.length > 1) {
+      notify('cannot load multiple files');
+    } else {
+      files.map(function(file){
+        var reader = new FileReader();
+        var name = file.name;
+        reader.onload = (e)=>{
+          var data = e.target.result;
+          try {
+            var workbook = XLSX.read(data, {type: 'binary'});
+          } catch (e) {
+            console.error('XLSX error', e);
+          }
+        }
+        reader.readAsBinaryString(file);
+        // return $.ajax({
+        //   url: "/imports/",
+        //   type: "POST",
+        //   data: file,
+        //   processData: false
+        // });
+      });
+    }
+  },
+  renderSearchResults () {
+    var draggableIcon = function(){
+      return (
+          <span className='k-draggable'>
+            <span className='k-draggable-iconwrap'>
+              <i className='fa fa-icon fa-th' />
+            </span>
+          </span>
+        )
+    }
+    var sr = this.state.searchResults;
+    var icons;
+    if (!('count' in sr)) {
+      return <p>{t('no search')}</p>
+    } else if (sr.count === 0) {
+      return <p>{t('no search results found')}</p>
+    } else if (sr.count > 0) {
+      icons = {
+        'asset': <i className='fa fa-file-o' />,
+        'collection': <i className='fa fa-folder-o' />,
+        'question': <i className='fa fa-question' />
+      };
+      return (
+          <ul className="assetnav-search-results">
+            {sr.results.map(function(item){
+              return (
+                <li>
+                  {draggableIcon()}
+                  {icons[item.kind] || icons.question}
+                  &nbsp;
+                  {item.name}
+                </li>
+                );
+            })}
+          </ul>
+        )
+      return <p>{t('no search results found')}</p>
+    }
+  },
+  renderRecentAssets () {
+    return (
+      <p>Hi</p>
+      );
+  },
+  onTagClick () {
+    log('tag click; filter search results?')
+  },
+  renderOpenContent () {
+    var activeSearch = true;
+
+    return (
+        <div>
+          <TagList tags={this.state.tags} onTagClick={this.onTagClick} />
+          { activeSearch ?
+            this.renderSearchResults()
+            :
+            this.renderRecentAssets()
+          }
+          <hr />
+          <br />
+          <br />
+          <br />
+          <br />
+          <br />
+          <br />
+          <div className="btn-toolbar">
+            <div className="btn-group">
+              <i className={classNames('fa', 'fa-sm', 'fa-file-o')} />
+              &nbsp;&nbsp;
+              {t('upload forms')}
+            </div>
+          </div>
+        </div>
+      );
+  },
+  renderClosedContent () {
+    return (
+        <div>
+          ...
+        </div>
+      );
+  },
+  toggleOpen () {
+    stores.pageState.toggleAssetNavIntentOpen()
+    // NavStateStore.toggleState()
+  },
+  render () {
+    var navKls = classNames("asset-navigator", this.state.assetNavIsOpen ? "" : "asset-navigator--shrunk")
+    return (
+      <div className={navKls}>
+        <div className="asset-navigator__header">
+          <div className="asset-navigator__logo" onClick={this.toggleOpen}>
+            <i className="fa fa-icon fa-book fa-2x" />
+          </div>
+          <div className="asset-navigator__search">
+            <ui.SmallInputBox ref="navigatorSearchBox" placeholder={t('search keywords or tags')} onKeyUp={this.liveSearch} />
+          </div>
+        </div>
+        {this.state.assetNavIsOpen ? 
+          this.renderOpenContent()
+          :
+          this.renderClosedContent()
+        }
+        <hr />
+        <Dropzone onDropFiles={this.dropFiles}>
+        </Dropzone>
+      </div>
+      );
+  }
+});
+
 
 var Icon = React.createClass({
   render () {
@@ -1401,21 +1635,6 @@ class Header extends React.Component {
   }
 }
 
-class Dashboard extends React.Component {
-  render() {
-    return (
-      <p className="hushed">dashboard</p>
-    );
-  }
-}
-class ListForms extends React.Component {
-  render () {
-    return (
-      <p className="hushed">ListForms</p>
-    );
-  }
-}
-
 const MAX_FILE_SIZE = 2500000;
 
 class UploadFile {
@@ -1446,31 +1665,25 @@ class UploadFile {
   }
 }
 
-function processFile(item, n) {
-  return new UploadFile(item);
-}
 var Home = React.createClass({
   mixins: [
-    Navigation
+    Navigation,
+    Reflux.ListenerMixin
   ],
   componentDidMount () {
-    log(this);
+    this.listenTo(sessionStore, this.sessionStoreChange);
+  },
+  sessionStoreChange (x,y,z) {
+    log('sessionStoreChange ', x, y, z);
   },
   statics: {
     willTransitionTo (transition) {
       transition.redirect('forms')
     }
   },
-  onDrop (fileList) {
-    this.fileList = fileList.map((i) => new UploadFile(i) );
-    this.setState({
-      uploads: this.fileList
-    });
-    window.files = this.fileList;
-  },
   render () {
     return (
-      <Panel>
+      <Panel className="k-div--home">
         <h1>Home</h1>
         <hr />
         Please log in and click "forms"
@@ -1493,7 +1706,32 @@ class StackedIcon extends React.Component {
   }
 }
 
+var selectedAssetStore = Reflux.createStore({
+  init () {
+    this.uid = false;
+  },
+  _findAsset (uid) {
+    return allAssetsStore._findByUid(uid)
+  },
+  toggleSelect (uid) {
+    if (this.uid === uid) {
+      this.uid = false;
+      this.asset = {};
+      return false;
+    } else {
+      this.uid = uid;
+      this.asset = this._findAsset(uid)
+      return true;
+    }
+  }
+});
+
 var AssetRow = React.createClass({
+  clickAsset (evt) {
+    evt.preventDefault();
+    selectedAssetStore.toggleSelect(this.props.uid);
+    this.props.onToggleSelect();
+  },
   render () {
     var icon = <StackedIcon size='lg' frontIcon='question' />;
     if (this.props.kind === 'collection') {
@@ -1504,29 +1742,32 @@ var AssetRow = React.createClass({
     var currentUsername = sessionStore.currentAccount && sessionStore.currentAccount.username
     var selfOwned = this.props.owner__username == currentUsername;
     var perm = parsePermissions(this.props.owner, this.props.permissions);
-
-    return <li className="list-group-item asset-row">
-        <Link to="form-view" params={{assetid: this.props.uid}}>
-          <div className="pull-left">
-            {icon}
-          </div>
-          <div>
-            {this.props.name || t('no name')}
-            <br />
-            <span className="date date--modified">{formatTime(this.props.date_modified)}</span>
-          </div>
-          <div>
-            {
-              selfOwned ?
-                '' :
-                <UserProfileLink icon='user' iconBefore='true' username={this.props.owner__username} />
-            }
-          </div>
-          <div>
-            <PermissionsEditor perms={perm} />
-          </div>
-        </Link>
-      </li>
+    var rowKls = classNames("list-group-item", "asset-row",
+            this.props.isSelected ? "asset-row--selected" : "")
+    return (
+        <li className={rowKls}>
+          <Link to="form-view" params={{assetid: this.props.uid}} onClick={this.clickAsset}>
+            <div className="pull-left">
+              {icon}
+            </div>
+            <div>
+              {this.props.name || t('no name')}
+              <br />
+              <span className="date date--modified">{formatTime(this.props.date_modified)}</span>
+            </div>
+            <div>
+              {
+                selfOwned ?
+                  '' :
+                  <UserProfileLink icon='user' iconBefore='true' username={this.props.owner__username} />
+              }
+            </div>
+            <div>
+              <PermissionsEditor perms={perm} />
+            </div>
+          </Link>
+        </li>
+      );
   }
 })
 
@@ -1534,6 +1775,19 @@ var allAssetsStore = Reflux.createStore({
   init: function () {
     this.data = {};
     this.listenTo(actions.resources.listAssets.completed, this.onListAssetsCompleted);
+    this.listenTo(actions.resources.listAssets.failed, this.onListAssetsFailed);
+  },
+  onListAssetsFailed: function (err) {
+    debugger
+  },
+  _findByUid (uid) {
+    var match = false;
+    this.data.forEach(function(ass){
+      if (ass.uid === uid) {
+        match = ass;
+      }
+    });
+    return match;
   },
   onListAssetsCompleted: function(resp, req, jqxhr) {
     this.data = resp.results;
@@ -1553,88 +1807,229 @@ var Forms = React.createClass({
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
       actions.resources.listAssets();
+      stores.pageState.setHeaderSearch(true);
+      stores.pageState.setTopPanel(60, true);
       callback();
     }
   },
-  render () {
-    if (!this.state.results) {
-      return (
-          <Panel>
-            <i className='fa fa-spinner fa-spin' />
-            &nbsp;
-            {t('loading...')}
-          </Panel>
-        );
-    }
+  clickActionView () {
+
+  },
+  clickActionDownload () {
+
+  },
+  clickActionClone () {
+
+  },
+  clickActionDelete () {
+
+  },
+  renderActionButtons () {
+    var assetIsSelected = this.state.results && selectedAssetStore.uid;
+    var kls = classNames("btn", "btn-default", "btn-sm",
+                  !assetIsSelected ? "disabled" : '')
+
+    // var takeActionIfSelected = (what)=> {
+    //   return (evt) => {
+    //     if (!selectedAssetStore.uid) {
+    //       return;
+    //     }
+    //     if (what === "clone") {
+    //       actions.resources.cloneAsset({uid: selectedAssetStore.uid})
+    //     } else if (what === "delete") {
+    //       if (confirm(t('are you sure you want to delete this asset?'))) {
+    //         actions.resources.deleteAsset({uid: selectedAssetStore.uid})
+    //       }
+    //     }
+    //   }
+    // }
+    var mutedTextClassesIfSelected = classNames("text-muted", assetIsSelected ? "k-invisible" : "")
+    var deployKls = classNames("btn", assetIsSelected ? "" : "disabled", "btn-success", "btn-sm");
+    var aboveButtonKls = classNames({
+      "k-header-formname-text": assetIsSelected,
+      "text-muted": !assetIsSelected,
+      "k-header-select-form": !assetIsSelected
+    });
+    var aboveButtonTxt = assetIsSelected ? selectedAssetStore.asset.name : t('select a form')
+    var btnState = 'muted';
+    var actionButtonKls = classNames('btn', 'btn-primary', 'k-actbtn', {
+      'k-actbtn--flat': btnState === 'flat',
+      'k-actbtn--muted': btnState === 'muted'
+    })
     return (
-      <Panel>
+        <div className="row k-header-button-row">
+          <div className="k-btn-wrap--newform">
+            <Link to="new-form" className={actionButtonKls}>{t('+')}</Link>
+          </div>
+          <div className="col-md-9 col-md-offset-1 k-header-buttons">
+            <span className={aboveButtonKls}>{aboveButtonTxt}</span>
+            <div className="btn-group btn-group-justified">
+              { assetIsSelected ?
+                <Link to="form-view" params={{assetid: selectedAssetStore.uid}} className={kls}>{t('view and edit')}</Link>
+                :
+                <a href="#" onClick={this.clickActionView} className={kls}>{t('view and edit')}</a>
+              }
+              <a href="#" onClick={this.clickActionDownload} className={kls}>{t('download')}</a>
+              <a href="#" onClick={this.clickActionClone} className={kls}>{t('clone')}</a>
+              <a href="#" onClick={this.clickActionDelete} className={kls}>{t('delete')}</a>
+            </div>
+          </div>
+          <div className="col-md-2">
+            { assetIsSelected ?
+              <span className="text-muted">{t('collect data')}</span>
+              :
+              <em className={mutedTextClassesIfSelected}>{t('collect data')}</em>
+            }
+
+            <div className="btn-group btn-group-justified" onMouseOver={this.highlightName}>
+              <a href="#" className={deployKls} title={t('publish')}>{t('publish')}</a>
+            </div>
+          </div>
+        </div>
+      );
+  },
+  onToggleSelect () {
+    this.setState({
+      selectOn: !this.state.selectOn
+    })
+  },
+  searchChange (evt) {
+    log(this.refs);//this.refs['formlist-search'].getDOMNode(), this);
+  },
+  renderFormsSearchBar () {
+    return (
+        <div className="row">
+          <div className="col-sm-6 k-form-list-search-bar">
+            <ui.SmallInputBox ref="formlist-search" placeholder={t('search')} onChange={this.searchChange} />
+          </div>
+          <div className="col-sm-6 k-form-list-search-bar">
+            <label>
+              <input type="radio" name="formlist__search__type" id="formlist__search__type--1" value="type1" checked />
+              {t('my forms')}
+            </label>
+            <label>
+              <input type="radio" name="formlist__search__type" id="formlist__search__type--2" value="type2" />
+              {t('shared with me')}
+            </label>
+          </div>
+        </div>
+      );
+  },
+  renderResults () {
+    return this.state.results.map((resource) => {
+            var isSelected = selectedAssetStore.uid === resource.uid;
+            return <AssetRow key={resource.uid} {...resource} onToggleSelect={this.onToggleSelect} isSelected={isSelected} />
+          });
+  },
+  renderLoadingMessage () {
+    return (
+        <div className='k-loading-message-with-padding'>
+          <i className='fa fa-spinner fa-spin' />
+          &nbsp;
+          {t('loading forms...')}
+        </div>
+      );
+  },
+  renderPanel () {
+    // if (!this.state.results) {
+    // } else if (this.state.results.error) {
+    //   return (
+    //       <Panel>
+    //         <p className='alert alert-error'>
+    //           {this.state.results.error}
+    //         </p>
+    //       </Panel>
+    //     );
+    // }
+    return (
+      <Panel className="k-div--formspanel">
+        {this.renderFormsSearchBar()}
         <ul className="collection-asset-list list-group">
-          {this.state.results.map((resource) => {
-            return <AssetRow key={resource.uid} {...resource} />
-          })}
+          {this.state.results === false ?
+            this.renderLoadingMessage()
+            :
+            this.renderResults()
+          }
         </ul>
         <RouteHandler />
       </Panel>
-      );
-  }
-});
-
-// no shown atm
-var CollectionAssetsList = React.createClass({
-  mixins: [
-    Navigation,
-    Reflux.connectFilter(assetStore, 'assett', function(data){
-      log('ok asseet 3 CollectionAssetsList')
-
-      var assetid = this.props.params.assetid;
-      return data[assetid];
-    })
-  ],
+    );
+  },
   componentDidMount () {
-    this.transitionTo('form-list');
-  },
-  render () {
-    // log('collection chilxs', this.state, this.props);
-    // var children = (this.props.children || []).map((sa, i)=> <CollectionAssetItem key={sa.uid} asset={sa} /> )
-
-    var children = <span>blah</span>;
-    return (
-      <ul className="list-group collection-asset-list">
-        {children}
-      </ul>
-      );
-  }
-});
-
-var LargeLink = React.createClass({
-  mixins: [Navigation],
-  routeTo (rtTo) {
-    this.transitionTo(rtTo);
+    stores.pageState.setTopPanel(60, true);
   },
   render () {
     return (
-      <div className={t('col-lg-' + this.props.colspan + ' col-md-6 col-xs-12')}>
-        <div className="widget">
-          <div className="widget-body" onClick={(evt)=> this.routeTo(this.props.to) }>
-            <div className={'widget-icon pull-left ' + this.props.color}>
-              <i className={'fa fa-' + this.props.icon}></i>
+      <DocumentTitle title={t('KoBo form drafts')}>
+        <div>
+          <div className="row k-div--forms1">
+            <div className="col-md-12">
+              {this.renderActionButtons()}
             </div>
-            <div className="widget-content pull-left">
-              <div className="title">{this.props.big}</div>
-              <div className="comment">{this.props.little}</div>
-            </div>
-            <div className="clearfix"></div>
           </div>
+          {this.renderPanel()}
         </div>
-      </div>
+      </DocumentTitle>
       );
   }
 });
+
+// // no shown atm
+// var CollectionAssetsList = React.createClass({
+//   mixins: [
+//     Navigation,
+//     Reflux.connectFilter(assetStore, 'asset', function(data){
+//       log('ok asseet 3 CollectionAssetsList')
+
+//       var assetid = this.props.params.assetid;
+//       return data[assetid];
+//     })
+//   ],
+//   componentDidMount () {
+//     this.transitionTo('form-list');
+//   },
+//   render () {
+//     // log('collection chilxs', this.state, this.props);
+//     // var children = (this.props.children || []).map((sa, i)=> <CollectionAssetItem key={sa.uid} asset={sa} /> )
+
+//     var children = <span>blah</span>;
+//     return (
+//       <ul className="list-group collection-asset-list">
+//         {children}
+//       </ul>
+//       );
+//   }
+// });
+
+// var LargeLink = React.createClass({
+//   mixins: [Navigation],
+//   routeTo (rtTo) {
+//     this.transitionTo(rtTo);
+//   },
+//   render () {
+//     return (
+//       <div className={t('col-lg-' + this.props.colspan + ' col-md-6 col-xs-12')}>
+//         <div className="widget">
+//           <div className="widget-body" onClick={(evt)=> this.routeTo(this.props.to) }>
+//             <div className={'widget-icon pull-left ' + this.props.color}>
+//               <i className={'fa fa-' + this.props.icon}></i>
+//             </div>
+//             <div className="widget-content pull-left">
+//               <div className="title">{this.props.big}</div>
+//               <div className="comment">{this.props.little}</div>
+//             </div>
+//             <div className="clearfix"></div>
+//           </div>
+//         </div>
+//       </div>
+//       );
+//   }
+// });
 
 class Libraries extends React.Component {
   render () {
     return (
-      <Panel>
+      <Panel className="k-div--libraries">
         <h1 className="page-header">
           Libraries
         </h1>
@@ -1668,7 +2063,7 @@ var Builder = React.createClass({
   render () {
     var _routes = stringifyRoutes(this.context.router);
     return (
-      <Panel>
+      <Panel className="k-div--builder">
         <h1 className="page-header">Builder</h1>
         <hr />
         <pre>
@@ -1720,6 +2115,7 @@ class CloseButton extends React.Component {
       );
   }
 }
+
 class PermissionsList extends React.Component {
   render () {
     var perms = parsePermissions(this.props.owner, this.props.permissions);
@@ -1912,7 +2308,7 @@ var AssetCollectionBase = React.createClass({
   },
   renderLoadingScreen () {
     return (
-        <Panel width="10" offset="1">
+        <Panel className="k-div--assetcollectionsbase">
           <i className='fa fa-spinner fa-spin' />
           &nbsp;
           {t('loading')}
@@ -2009,7 +2405,7 @@ var AssetCollectionBase = React.createClass({
   }
 });
 
-class CollectionPage extends AssetCollectionBase {
+class OriginalCollectionPage extends AssetCollectionBase {
   renderButtons () {
     return (
           <div className="btn-toolbar pull-right">
@@ -2022,66 +2418,11 @@ class CollectionPage extends AssetCollectionBase {
 
   renderContent () {
     return (
-          <Panel>
+          <Panel className="k-div--originalcollectionpage">
             {this.renderIcon({color: 'green', type: 'folder', overlay: 'users'})}
             {this.renderButtons()}
             {this.renderTimes()}
             {this.renderHeader()}
-            {this.props.children}
-          </Panel>
-      );
-  }
-}
-
-class AssetPage extends AssetCollectionBase {
-  renderHeader () {
-    return (
-          <h4>
-            {this.state.name}
-            &nbsp;
-            {this.renderTags()}
-            <br />
-            <small>
-              <UserProfileLink username={this.state.owner__username}
-                                icon="user" />
-            </small>
-          </h4>
-      );
-  }
-
-  renderButtons () {
-    return (
-          <div className="btn-toolbar pull-right">
-            <EditButton {...{uid: this.state.uid}} />
-            <SharingButton {...{uid: this.state.uid}} />
-            <PreviewButtons {...this.state} />
-            <DownloadButtons {...this.state} /> 
-            <div className="btn-group">
-              <CloseButton
-                  to="forms"
-                  title={t('close')}
-                  className="btn btn-default"
-                  />
-            </div>
-          </div>
-      );
-  }
-  renderContent () {
-    return (
-          <Panel>
-            {this.renderIcon({color: 'blue', type: 'file-o', overlay: 'users'})}
-            {this.renderButtons()}
-            {this.renderTimes()}
-            {this.renderHeader()}
-            <div className='row'>
-              <p className='col-md-12'>
-                {this.renderTags()}
-              </p>
-            </div>
-            { this.props.survey ?
-              <SurveyPreview key={this.props.uid} survey={this.props.survey} />
-            : null }
-
             {this.props.children}
           </Panel>
       );
@@ -2199,98 +2540,6 @@ class SharingButton extends React.Component {
 
 var DocumentTitle = require('react-document-title');
 
-var FormView = React.createClass({
-  mixins: [
-    Navigation,
-    Reflux.connectFilter(assetContentStore, function(data){
-      var assetid = this.props.params.assetid;
-      if (assetid in data) {
-        return {
-          survey: assetContentStore.getSurvey(assetid),
-          data: data[assetid]
-        };
-      }
-    })
-  ],
-  getInitialState () {
-    return {};
-  },
-  statics: {
-    willTransitionTo (transition, params, idk, callback) {
-      if (params.assetid[0] == 'a') {
-        actions.resources.loadAssetContent({id: params.assetid});
-      }
-      callback();
-    }
-  },
-  getInitialState () {
-    return {};
-  },
-  componentWillMount () {
-
-  },
-  componentDidMount () {
-
-  },
-  render () {
-    return (
-        <div>
-          asdf
-        </div>
-      )
-  }
-})
-
-var FormPage = React.createClass({
-  mixins: [
-    Navigation
-  ],
-  getInitialState () {
-    return {};
-  },
-  statics: {
-    willTransitionTo: function(transition, params, idk, callback) {
-      actions.resources.loadAsset({id: params.assetid});
-      callback();
-    }
-  },
-  componentWillMount () {
-    var kind = {
-        a: 'asset',
-        c: 'collection'
-      }[this.props.params.assetid[0]];
-    this.setState({
-      kind: kind
-    });
-  },
-  // componentWillReceiveProps (props) {
-  //   log("WILL RECV PROPS");
-  //   if (this.props.params.assetid !== props.params.assetid) {
-  //     log("replacingstate because assetid changed");
-  //     this.setState(this.getInitialState());
-  //   }
-  // },
-  render () {
-    var uid = this.props.params.assetid;
-    return ({
-      collection: () => {
-        return (
-            <CollectionPage key={uid} uid={uid} {...this.state}>
-              <RouteHandler />
-            </CollectionPage>
-          );
-      },
-
-      asset: () => {
-        return (
-            <AssetPage key={uid} uid={uid} {...this.state}>
-              <RouteHandler />
-            </AssetPage>
-          );
-      }
-    }[this.state.kind])();
-  }
-});
 
 class FormNotFound extends React.Component {
   render () {
@@ -2302,14 +2551,18 @@ class FormNotFound extends React.Component {
 
 class Panel extends React.Component {
   render () {
-    var width = this.props.width || "12";
-    var offset = this.props.offset;
-    var widthClassName = classNames(`col-lg-${width}`, offset ? `col-lg-offset-${offset}` : '')
     return (
-      <div className={classNames('row', this.props.className ? this.props.className : '')}>
-        <div className={widthClassName}>
-          <div className="panel panel-default">
-            <div className="panel-body">
+      <div className={"panel panel-default k-panel k-panel-default " + this.props.className }>
+        <div className="panel-body k-panel-body">
+          {this.props.children}
+        </div>
+      </div>
+      );
+    return (
+      <div className={classNames('row', this.props.className)}>
+        <div className="col-lg-12">
+          <div className="panel panel-default k-panel k-panel-default">
+            <div className="panel-body k-panel-body">
               {this.props.children}
             </div>
           </div>
@@ -2325,7 +2578,7 @@ class UserList extends React.Component {
   }
   render () {
     return (
-        <Panel>
+        <Panel className="k-div--userlist">
           <h1>{t('users')}</h1>
           <hr />
           <p>Users</p>
@@ -2351,7 +2604,7 @@ class UserProfile extends React.Component {
   render () {
     var username = this.props.username;
     return (
-        <Panel>
+        <Panel className="k-div--userprofile">
           <h1>{t('user')}: {username}</h1>
           <hr />
           <ProfileSection title={t('my forms shared with user')}>
@@ -2367,7 +2620,7 @@ class UserProfile extends React.Component {
 
 var SelfProfile = React.createClass({
   render () {
-    return <Panel>
+    return <Panel className="k-div--selfprofile">
       Your Profile
     </Panel>
   }
@@ -2536,32 +2789,6 @@ var FormEnketoPreview = React.createClass({
   }
 });
 
-var historyStore = Reflux.createStore({
-  __historyKey: 'user.history',
-  init () {
-    if (this.__historyKey in localStorage) {
-      try {
-        this.history = JSON.parse(localStorage.getItem(this.__historyKey));
-      } catch (e) {
-        console.error("could not load history from localStorage", e);
-        this.history = [];
-      }
-    }
-    this.listenTo(actions.navigation.historyPush, this.historyPush);
-    this.listenTo(actions.auth.logout.completed, this.historyClear);
-  },
-  historyClear () {
-    localStorage.removeItem(this.__historyKey);
-  },
-  historyPush (item) {
-    this.history = [
-      item, ...this.history.filter(function(xi){ return item.uid !== xi.uid; })
-    ];
-    localStorage.setItem(this.__historyKey, JSON.stringify(this.history));
-    this.trigger(this.history);
-  }
-});
-
 var userExistsStore = Reflux.createStore({
   init () {
     this.checked = {};
@@ -2583,8 +2810,6 @@ var userExistsStore = Reflux.createStore({
     this.trigger(this.checked, username)
   }
 });
-
-var FormViewMixin = {};
 
 // shown
 var FormSharing = React.createClass({
@@ -2718,18 +2943,18 @@ var FormSharing = React.createClass({
       <Modal open onClose={this.routeBack} title={t('manage sharing settings:') + '[asset name]'}
                   small={t('note: this does not control permissions to the data collected by projects')}>
         <ModalBody>
-          <Panel>
+          <Panel className="k-div--sharing">
             {t('owner')}
             &nbsp;
             <StackedIcon frontIcon='user' />
             &nbsp;
             <UserProfileLink username={'tinok4'} />
           </Panel>
-          <Panel>
+          <Panel className="k-div--sharing2">
             <form onSubmit={this.userFormSubmit}>
               <div className='col-sm-9'>
                 <div className={userInputKls}>
-                  <SmallInputBox ref='usernameInput' placeholder={t('username')} onKeyUp={this.usernameCheck} />
+                  <ui.SmallInputBox ref='usernameInput' placeholder={t('username')} onKeyUp={this.usernameCheck} />
                 </div>
               </div>
               <div className='col-sm-3'>
@@ -2856,6 +3081,28 @@ class PublicPermDiv extends UserPermDiv {
   }
 }
 
+// var NavStateStore = Reflux.createStore({
+//   init () {
+//     this.navs = ['sitenav', 'assetnav'];
+//     this.states = {};
+//     this.navs.forEach((navtype)=> {
+//       this.states[navtype] = {
+//         intentOpen: currentIntentOpen,
+//         open: currentIntentOpen
+//       };
+//     });
+//   },
+//   changeIntent (type) {
+//     if (!this.states[type]) {
+//       throw new Error(`NavStateStore.states[type] does not exist ${type}`);
+//     }
+//     var state = this.states[type];
+//   },
+//   toggleOpen (type) {
+
+//   }
+// })
+
 var FormEditor = React.createClass({
   mixins: [
     Reflux.connectFilter(assetContentStore, function(data){
@@ -2883,11 +3130,11 @@ var FormEditor = React.createClass({
   },
   renderSurvey () {
     var xlform = window.dkobo_xlform;
-    var surveyModel = new xlform.model.Survey(this.state.data);
-    this._surveyApp = new xlform.view.SurveyApp({
+    var surveyModel = new xlform.model.Survey.loadDict(this.state.data);
+    this.surveyApp = new xlform.view.SurveyApp({
       survey: surveyModel,
       save: function(evt){
-        var survey = this.survey;
+        var survey = this.state.survey;
         var p = new Promise(function(resolve, reject){
           try {
             var spreadsheetStructure = survey.toSsStructure();
@@ -2900,8 +3147,8 @@ var FormEditor = React.createClass({
         return p;
       }
     });
-    $('.form-wrap').html(this._surveyApp.$el);
-    this._surveyApp.render()
+    $('.form-wrap').html(this.surveyApp.$el);
+    this.surveyApp.render()
   },
   componentDidMount () {
     this.renderSurvey();
@@ -2954,95 +3201,486 @@ class KoBo extends React.Component {
   }
 }
 
-var NewForm = React.createClass({
-  mixins: [
-    Navigation
-  ],
-  saveNewForm (evt) {
-    var name = this.refs['new-form-name'].getDOMNode().value;
-    evt.preventDefault();
-    var surveyDict = this._app.survey.toJSON();
-    var key, choicesArr = [];
-    if (_.isObject(surveyDict.choices)) {
-      for (key in surveyDict.choices) {
-        surveyDict.choices[key].forEach(function(item){
-          choicesArr.push(assign({list_name: key}, item));
-        });
-      }
-      surveyDict.choices = choicesArr;
+var FormInput = React.createClass({
+  render () {
+    return (
+        <div className="form-group">
+          <label for={this.props.for} className="col-lg-2 control-label">{this.props.label}</label>
+          <div className="col-lg-10">
+            <input type="text" className="form-control" id={this.props.id} placeholder={this.props.placeholder} />
+          </div>
+        </div>
+      );
+  }
+});
+
+var FormCheckbox = React.createClass({
+  render () {
+    return (
+        <div className="form-group">
+          <label for={this.props.for} className="col-lg-2 control-label">{this.props.label}</label>
+          <div className="col-lg-10">
+            <div className="checkbox">
+              <label>
+                <input type="checkbox" id={this.props.id} checked={this.props.checked} />
+              </label>
+            </div>
+          </div>
+        </div>
+      );
+  }
+})
+
+var FormSettingsEditor = React.createClass({
+  render () {
+    return (
+        <form className="form-horizontal">
+          <FormInput for="form_id" id="form_id" label="form id" placeholder={t('form id')} />
+          <hr />
+          <FormCheckbox for="start_time" label="start time" checked={true} id="start_time" />
+          <FormCheckbox for="end_time" label="end time" checked={true} id="end_time" />
+          <FormCheckbox for="today" label="today" checked={true} id="today" />
+          <FormCheckbox for="deviceid" label="device id" checked={true} id="deviceid" />
+          <hr />
+          <FormCheckbox for="username" label="username" checked={true} id="username" />
+          <FormCheckbox for="simserial" label="sim serial" checked={true} id="simserial" />
+          <FormCheckbox for="subscriberid" label="subscriber id" checked={true} id="subscriberid" />
+          <FormCheckbox for="phonenumber" label="phone number" checked={true} id="phonenumber" />
+
+          <div className="form-group">
+            <label for="select" className="col-lg-2 control-label">apperance</label>
+            <div className="col-lg-10">
+              <select className="form-control">
+                <option>field-list</option>
+              </select>
+            </div>
+          </div>
+        </form>
+      );
+  }
+})
+
+var formViewMixin = {
+  renderFormActionButtons () {
+    //...
+  },
+  navigateBack (evt) {
+    if (!this.goBack()) {
+      this.transitionTo('forms');
     }
-    actions.resources.createResource({
-      name: name,
-      content: JSON.stringify(surveyDict)
+  },
+  loadingNotice () {
+    return (
+        <p>
+          <i className='fa fa-spinner fa-spin' />
+          &nbsp;&nbsp;
+          {t('loading form...')}
+        </p>
+      );
+  },
+  toggleSettingsEdit () {
+    this.setState({
+      formSettingsExpanded: this.state.formSettingsExpanded
+    });
+  },
+  renderSubSettingsBar () {
+    var spacer = '';
+    var formId = '-tbd-';
+    var survey;
+    var metaData = 'abc, def, ghi';
+    if (this.state.survey && this.state.survey.settings) {
+      survey = this.state.survey;
+      formId = survey.settings.get('form_id');
+      
+      var _m = survey.surveyDetails.models.filter(function(sd){
+        return sd.get('value')
+      }).map(function(sd){
+        return sd.get('label')
+      });
+      metaData = _m.length > 0 ? _m.join(', ') : <em>{t('none (0 meta qs)')}</em>;
+    }
+    return (
+        <div className={classNames('row', 'k-sub-settings-bar', {
+          'k-sub-settings-bar--expanded': this.state.formSettingsExpanded
+        })}>
+          <div className="col-md-12" onClick={this.toggleSettingsEdit}>
+            <i className="fa fa-cog" />
+            &nbsp;&nbsp;
+            <span className="settings-preview">{t('form id')}: {formId}</span>
+            <span className="settings-preview">{t('meta questions')}: {metaData}</span>
+          </div>
+          {this.state.formSettingsExpanded ? 
+            <FormSettingsEditor {...this.state} />
+          :null}
+        </div>
+      );
+  },
+  nameInputValue () {
+    return this.refs['form-name'].getDOMNode().value;
+  },
+  nameInputChange (evt) {
+    this.state.survey.settings.set('form_title', this.nameInputValue())
+    this.setState({
+      survey_name: this.state.survey.settings.get('form_title')
     })
   },
   getInitialState () {
-    return {};
+    return {
+      'closeable': Math.random() > 0.5
+    }
+  },
+  innerRender () {
+    var closeButtonKls = classNames('k-form-close-button', {
+      "k-form-close-button--warning": !this.state.closeable
+    });
+
+    return (
+        <Panel className="k-div--formviewmixin--innerrender">
+          <div className="row k-form-header-row">
+            <button className={closeButtonKls} onClick={this.navigateBack}>
+              &times;
+            </button>
+
+            <div className="form-group col-md-8">
+              {this.renderFormNameInput()}
+            </div>
+            <div className="col-md-4">
+              <div className="k-col-padrt25">
+                {this.renderSaveAndPreviewButtons()}
+              </div>
+            </div>
+          </div>
+          {this.renderSubSettingsBar()}
+          <div ref="form-wrap" className='form-wrap'>
+          </div>
+        </Panel>
+      );
+  },
+};
+
+// var FormView = React.createClass({
+//   mixins: [
+//     Navigation,
+//   ],
+//   getInitialState () {
+//     return {};
+//   },
+//   statics: {
+//     willTransitionTo (transition, params, idk, callback) {
+//       if (params.assetid[0] == 'a') {
+//         actions.resources.loadAssetContent({id: params.assetid});
+//       }
+//       callback();
+//     }
+//   },
+//   getInitialState () {
+//     return {};
+//   },
+//   componentWillMount () {
+
+//   },
+//   componentDidMount () {
+
+//   },
+//   render () {
+//     return (
+//         <div>
+//           <h1>FormView</h1>
+//           <RouteHandler />
+//         </div>
+//       );
+//   }
+// });
+
+
+class AssetPage extends AssetCollectionBase {
+  renderHeader () {
+    return (
+          <h4>
+            {this.state.name}
+            &nbsp;
+            {this.renderTags()}
+            <br />
+            <small>
+              <UserProfileLink username={this.state.owner__username}
+                                icon="user" />
+            </small>
+          </h4>
+      );
+  }
+
+  renderButtons () {
+    return (
+          <div className="btn-toolbar pull-right">
+            <EditButton {...{uid: this.state.uid}} />
+            <SharingButton {...{uid: this.state.uid}} />
+            <PreviewButtons {...this.state} />
+            <DownloadButtons {...this.state} /> 
+            <div className="btn-group">
+              <CloseButton
+                  to="forms"
+                  title={t('close')}
+                  className="btn btn-default"
+                  />
+            </div>
+          </div>
+      );
+  }
+  renderContent () {
+    return (
+          <Panel className="k-div--assetpage">
+            {/*
+            this.renderIcon({color: 'blue', type: 'file-o', overlay: 'users'})
+            this.renderButtons()
+            this.renderTimes()
+            this.renderHeader()
+            */}
+            <div className='row'>
+              <p className='col-md-12'>
+                {this.renderTags()}
+              </p>
+            </div>
+            { this.props.survey ?
+              <SurveyPreview key={this.props.uid} survey={this.props.survey} />
+            : null }
+
+            {this.props.children}
+          </Panel>
+      );
+  }
+}
+
+var existingAssetMixin = (function(){
+  var obj = {};
+  obj.refluxConnect = Reflux.connectFilter(assetContentStore, function(data){
+    var assetid = this.props.params.assetid;
+    if (assetid in data) {
+      return {
+        survey_loaded: true,
+        survey: assetContentStore.getSurvey(assetid),
+        data: data[assetid]
+      };
+    }
+  });
+  return obj;
+})();
+
+var FormPage = React.createClass({
+  mixins: [
+    Navigation,
+    formViewMixin,
+    existingAssetMixin.refluxConnect,
+    Reflux.connectFilter(assetStore, 'asset', function(data){
+      return data[this.props.params.assetid];
+    })
+  ],
+  getNameValue () {
+    return this.refs['form-name'].getDOMNode().value
+  },
+  saveForm (evt) {
+    actions.resources.updateAsset(this.props.params.assetid, {
+      name: this.getNameValue(),
+      content: surveyToValidJson(this.state.survey)
+    });
   },
   renderSaveAndPreviewButtons () {
-    log('here ', this.state);
     var disabled = !!this.state.disabled;
-    var saveText = t('create');
+    var saveText = t('save');
     var saveBtnKls = classNames('btn','btn-default',
-                              'btn-block',
                               disabled ? 'disabled' : '');
     var previewDisabled = !!this.state.previewDisabled;
     var previewBtnKls = classNames('btn',
                                   'btn-default',
-                                  'btn-block',
                                   previewDisabled ? 'disabled': '')
     return (
-          <div className="pull-right k-form-actions">
-            <button className={saveBtnKls} onClick={this.saveNewForm}>
+        <div className="k-form-actions">
+          <div className='btn-toolbar'>
+            <a href="#" className={saveBtnKls} onClick={this.saveForm}>
               <i className={classNames('fa', 'fa-sm', 'fa-save')} />
               &nbsp;
               &nbsp;
               {saveText}
-            </button>
-            <button className={previewBtnKls}>
+            </a>
+            <a href="#" className={previewBtnKls}>
               <i className={classNames('fa', 'fa-sm', 'fa-eye')} />
               &nbsp;
               &nbsp;
               {t('preview')}
-            </button>
+            </a>
           </div>
-        );
-  },
-  renderSubSettingsBar () {
-    var spacer = ''
-    return (
-        <div>
-          <span className="label label-default">
-            form-id
-          </span>
-          &nbsp;|&nbsp;
-          <button className="btn btn-xs btn-default">
-            {t('meta questions')}
-          </button>
-          &nbsp;|&nbsp;
-          <button className="btn btn-xs btn-default">
-            {t('group questions')}
-          </button>
-          &nbsp;|&nbsp;
-          <span className="label label-default">
-            {t('view')}
-            <a href='#' onClick={this.expandLabels}>
-              {t('expanded')}
-            </a>
-            &nbsp;|&nbsp;
-            <a href='#' onClick={this.expandLabels}>
-              {t('minimized')}
-            </a>
-          </span>
         </div>
       );
   },
+  getInitialState () {
+    return {
+      survey_loaded: false,
+      kind: 'asset',
+      asset: false
+    };
+  },
+  renderFormNameInput () {
+    var nameKls = this.state.survey_name_valid ? '' : 'has-warning';
+    var nameInputKls = classNames('form-control',
+                                  'input-lg',
+                                  nameKls);
+    var nameVal = this.state.asset.name
+    var survey = this.state.survey;
+    return (
+        <input ref="form-name"
+                className={nameInputKls}
+                type="text"
+                value={nameVal}
+                onChange={this.nameInputChange}
+                placeholder={t('form name')}
+              />
+      );
+  },
+  componentDidMount () {
+    stores.pageState.setTopPanel(60, false);
+    this._postLoadRenderMounted = false;
+  },
+  postLoadRenderMount () {
+    this._postLoadRenderMounted = true;
+    this.app = new dkobo_xlform.view.SurveyApp({
+      survey: this.state.survey
+    })
+    var fw = this.refs['form-wrap'].getDOMNode();
+    this.app.$el.appendTo(fw);
+    this.app.render();
+  },
+  statics: {
+    willTransitionTo: function(transition, params, idk, callback) {
+      stores.pageState.setHeaderSearch(false);
+      stores.pageState.setTopPanel(60, false);
+      if (params.assetid[0] === 'c') {
+        transition.redirect('collection-page', {uid: params.assetid});
+      } else {
+        actions.resources.loadAsset({id: params.assetid});
+        actions.resources.loadAssetContent({id: params.assetid});
+        callback();
+      }
+    }
+  },
+  render () {
+    if (this.state.survey_loaded && this.state.asset) {
+      if (!this._postLoadRenderMounted) {
+        // wish we didnt have to do this...
+        window.setTimeout(this.postLoadRenderMount, 100);
+      }
+      return (
+          <DocumentTitle title={this.state.asset.name}>
+            {this.innerRender()}
+          </DocumentTitle>
+        );
+    }
+    return (
+        <div>
+          {this.loadingNotice()}
+          <RouteHandler />
+        </div>
+      );
+  }
+  // componentWillMount () {
+  //   var kind = {
+  //       a: 'asset',
+  //       c: 'collection'
+  //     }[this.props.params.assetid[0]];
+  //   this.setState({
+  //     kind: kind
+  //   });
+  // }
+});
+
+function surveyToValidJson(survey) {
+  var surveyDict = survey.toJSON();
+  var key, choicesArr = [];
+  if (_.isObject(surveyDict.choices)) {
+    for (key in surveyDict.choices) {
+      surveyDict.choices[key].forEach(function(item){
+        choicesArr.push(assign({list_name: key}, item));
+      });
+    }
+    surveyDict.choices = choicesArr;
+  }
+  return JSON.stringify(surveyDict);
+}
+
+var surveyStore = Reflux.createStore({
+  init() {
+    this.surveysByUid={};
+  }
+})
+
+var NewForm = React.createClass({
+  mixins: [
+    Navigation,
+    formViewMixin,
+  ],
+  renderFormNameInput () {
+    var nameKls = this.state.survey_name_valid ? '' : 'has-warning';
+    var nameInputKls = classNames('form-control',
+                                  'input-lg',
+                                  nameKls);
+    return (
+        <input ref="form-name"
+                className={nameInputKls}
+                type="text"
+                onChange={this.nameInputChange}
+                placeholder={t('form name')}
+              />
+      );
+  },
+  renderSaveAndPreviewButtons () {
+    var disabled = !!this.state.disabled;
+    var saveText = t('create');
+    var saveBtnKls = classNames('btn','btn-default',
+                              disabled ? 'disabled' : '');
+    var previewDisabled = !!this.state.previewDisabled;
+    var previewBtnKls = classNames('btn',
+                                  'btn-default',
+                                  previewDisabled ? 'disabled': '')
+    return (
+          <div className="k-form-actions">
+            <div className='btn-toolbar'>
+              <div className='btn-group btn-group-justified'>
+                <a href="#" className={saveBtnKls} onClick={this.saveNewForm}>
+                  <i className={classNames('fa', 'fa-sm', 'fa-save')} />
+                  &nbsp;
+                  &nbsp;
+                  {saveText}
+                </a>
+                <a href="#" className={previewBtnKls}>
+                  <i className={classNames('fa', 'fa-sm', 'fa-eye')} />
+                  &nbsp;
+                  &nbsp;
+                  {t('preview')}
+                </a>
+              </div>
+            </div>
+          </div>
+        );
+  },
+  saveNewForm (evt) {
+    var name = this.refs['form-name'].getDOMNode().value;
+    evt.preventDefault();
+    actions.resources.createResource({
+      name: name,
+      content: surveyToValidJson(this.state.survey)
+    })
+  },
+  statics: {
+    willTransitionTo: function(transition, params, idk, callback) {
+      stores.pageState.setHeaderSearch(false)
+      callback();
+    }
+  },
+  getInitialState () {
+    return {};
+  },
   creatingResource () {
-    log('creating resource');
     this.setState({
       disabled: true
     });
-
   },
   creatingResourceCompleted (data) {
     this.transitionTo("form-editor", { assetid: data.uid });
@@ -3050,97 +3688,35 @@ var NewForm = React.createClass({
   componentDidMount () {
     actions.resources.createResource.listen(this.creatingResource);
     actions.resources.createResource.completed.listen(this.creatingResourceCompleted);
-    this._survey = dkobo_xlform.model.Survey.create();
+    var survey = dkobo_xlform.model.Survey.create();
     var app = new dkobo_xlform.view.SurveyApp({
-      survey: this._surveyr
+      survey: survey
     });
     $('.form-wrap').html(app.$el);
     app.render()
-    this._app = app
-  },
-  componentWillUnmount () {
-
+    this.app = app
+    stores.pageState.setTopPanel(60, false);
+    this.setState({
+      survey: survey
+    });
   },
   render () {
     return (
-        <Panel>
-          {/*
-          <div className="progress">
-            <div className="progress-bar" style={{width: '60%'}}></div>
-          </div>
-          */}
-          <div className="row k-form-header-row">
-            <div className="form-group">
-              <input ref="new-form-name" className="form-control input-lg" type="text" placeholder={t('form name')} />
-            </div>
-            {this.renderSaveAndPreviewButtons()}
-          </div>
-          {this.renderSubSettingsBar()}
-          <div className='form-wrap'>
-          </div>
-        </Panel>
+        <DocumentTitle title={t('new form')}>
+          {this.innerRender()}
+        </DocumentTitle>
       );
-  },
-  _render () {
+  }
+});
+
+var CollectionPage = React.createClass({
+  render () {
     return (
-      <Modal open onClose={this.routeBack}>
-        <Modal.Body>
-          <div className='row'>
-            <div className='col-md-12'>
-              <h4 className='page-header'>
-                {t('new form')}
-              </h4>
-            </div>
-          </div>
-          <div className='row'>
-            <div className='col-md-6'>
-              <ul className='nav nav-pills nav-stacked'>
-                <li>
-                  <Link className='btn btn-block btn-primary' to='new-form'>
-                    {t('launch')} <KoBo /> {t('form builder')}
-                  </Link>
-                </li>
-                <li>
-                  <Link to='home' className='btn btn-block btn-default'>
-                    {t('upload xlsform')}
-                  </Link>
-                </li>
-                {/*
-                <li>
-                  <Link className='btn btn-block'>
-                    {t('third option?')}
-                  </Link>
-                </li>
-                */}
-              </ul>
-            </div>
-            <div className='col-md-6'>
-              <ul className='nav nav-pills nav-stacked'>
-                <li>
-                  <Link className='btn btn-block btn-info' to='new-collection'>
-                    <i className='fa fa-folder' />
-                    &nbsp;
-                    {t('new folder')}
-                  </Link>
-                </li>
-                <li>
-                  <Link className='btn btn-block btn-default' to='new-collection'>
-                    {t('upload library')}
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <button type="button"
-                    className="btn btn-default"
-                    data-dismiss="modal"
-                    onClick={this.routeBack}>
-            {t('cancel')}
-          </button>
-        </Modal.Footer>
-      </Modal>
+        <div className="collection-page">
+          <h1>Collection page</h1>
+          <hr />
+          {this.props.params.uid}
+        </div>
       );
   }
 })
@@ -3148,16 +3724,19 @@ var NewForm = React.createClass({
       // <Route name="new-form" handler={Builder} />
 var routes = (
   <Route name="home" path="/" handler={App}>
+    <Route name="collections">
+      <Route name="collection-page" path=":uid" handler={CollectionPage} />
+    </Route>
+
     <Route name="forms">
       <Route name="new-form" path="new" handler={NewForm} />
-      <Route name="form-page" path="/forms/:assetid" handler={FormPage}>
+      <Route name="form-view" path="/forms/:assetid" handler={FormPage}>
         <Route name="form-sharing" path="sharing" handler={FormSharing} />
         <Route name="form-preview-enketo" path="preview" handler={FormEnketoPreview} />
         <Route name="form-preview-xform" path="xform" handler={FormPreviewXform} />
         <Route name="form-preview-xls" path="xls" handler={FormPreviewXls} />
-        <Route name="form-editor" path="edit" handler={FormEditor} />
+        <Route name="form-editor" path="edit" handler={FormPage} />
 
-        <DefaultRoute name="form-view" handler={FormView} />
       </Route>
 
       <DefaultRoute handler={Forms} />

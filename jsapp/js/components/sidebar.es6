@@ -1,7 +1,14 @@
 import React from 'react/addons';
 import Router from 'react-router';
-
 import {log, t} from '../utils';
+import icons from '../icons';
+import stores from '../stores';
+import classNames from 'classnames';
+import Reflux from 'reflux';
+
+var actions = require('../actions');
+
+// var Reflux = require('reflux');
 
 let Link = Router.Link;
 
@@ -80,19 +87,53 @@ class SidebarFooterItem extends React.Component {
 }
 
 var RecentHistory = React.createClass({
+  mixins: [
+    Reflux.ListenerMixin
+  ],
   getInitialState () {
-    return {} 
+    return {
+      items: [],
+      expanded: false
+    };
+  },
+  componentDidMount () {
+    this.listenTo(stores.history, this.historyStoreChanged);
+  },
+  historyStoreChanged (history) {
+    this.setState({
+      items: history
+    })
+  },
+  renderLink (item) {
+    return (
+        <li className="k-sidebar-smallitems__item">
+          <Link to='form-view' params={{assetid: item.uid}}>
+            {icons.asset()}
+            <span className='name'>
+              {item.name}
+            </span>
+          </Link>
+        </li>
+      );
   },
   render () {
+    var items = this.state.items;
+    if (items.length > 0) {
+      items = items.slice(1);
+    }
+    items = items.slice(0, 5);
     return (
-        <div>
-          ...
-        </div>
+        <ul className={classNames('k-sidebar-smallitems', this.props.visible ? '' : 'k-invisible')}>
+          {items.map(this.renderLink)}
+        </ul>
       );
   }
 })
 
 export class Sidebar extends React.Component {
+  logout () {
+    actions.auth.logout();
+  }
   render () {
     var title = (
         <span className="kobo">
@@ -100,7 +141,7 @@ export class Sidebar extends React.Component {
         </span>
         );
     return (
-        <div className="sidebar-wrapper" id="sidebar-wrapper">
+        <div className="sidebar-wrapper">
           <ul className="sidebar" onClick={ (evt)=> {
                 evt.currentTarget == evt.target && this.props.toggleIntentOpen(evt);
                 return;
@@ -110,23 +151,16 @@ export class Sidebar extends React.Component {
 
             <SidebarTitle label={t('drafts in progress')} />
             <SidebarLink label={t('forms')} linkto='forms' fa-icon="files-o" />
-            <SidebarLink label={t('recent')} fa-icon="clock-o" />
-            <RecentHistory />
-
+            <RecentHistory visible={this.props.isOpen} />
             <SidebarTitle label={t('deployed projects')} />
             <SidebarLink label={t('projects')} active='true' href={t('/')} fa-icon="globe" />
-
-            <SidebarTitle label={t('support resources')} />
-            {/*
-              <SidebarLink label={t('question library')} linkto='libraries' fa-icon="book" />
-            */}
-            <SidebarLink label={t('kobo support')} active='true' href={t('https://support.kobotoolbox.org/')} fa-icon="question" />
-
+            <SidebarTitle label={t('account actions')} />
+            <SidebarLink label={t('logout')} onClick={this.logout} fa-icon="sign-out" />
           </ul>
           <div className="sidebar-footer">
-            <SidebarFooterItem label="assets" href="/assets/" />
-            <SidebarFooterItem label="collections" href="/collections/" />
-            <SidebarFooterItem label="me" href="/me/" />
+            <SidebarFooterItem label="help" href="https://support.kobotoolbox.org/" />
+            <SidebarFooterItem label="about" href="http://www.kobotoolbox.org/" />
+            <SidebarFooterItem label="source" href="https://github.com/kobotoolbox/" />
           </div>
         </div>
       )
