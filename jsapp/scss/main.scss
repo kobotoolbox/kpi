@@ -39,7 +39,7 @@ $i: 200;
   left: 0;
   background-color: white;
   z-index: 1;
-  transition: all .8s ease 0s;
+  transition: all .2s ease 0s;
 
   &.bg--fixed {
     position: fixed;
@@ -143,7 +143,7 @@ $assetNavFooterHeight: 60px;
 // }
 .asset-navigator__logo {
   background-color: rgb(228, 228, 228);
-  transition: all 0.9s ease 0s;
+  transition: all 0.3s ease 0s;
 
   .asset-navigator__header--deactivated & {
       background-color: rgba(255,255,255,0.2);
@@ -259,7 +259,7 @@ $assetNavFooterHeight: 60px;
 // $highlightedBarColor: #616161;
 .collection-asset-list {
   li {
-    transition: all 0.9s ease 0s;
+    transition: all 0.3s ease 0s;
   }
   li.asset-row--selected {
 
