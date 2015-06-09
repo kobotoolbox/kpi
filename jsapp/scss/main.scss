@@ -347,8 +347,13 @@ $assetNavFooterHeight: 60px;
   line-height: 40px;
   color: #666;
   z-index: 999;
+  cursor: pointer;
+  display: block;
+  text-align: center;
   &:hover {
     opacity: 1;
+    text-decoration: none;
+    color: #666;
   }
   &.k-form-close-button--warning {
     color: $saveNeededColor;

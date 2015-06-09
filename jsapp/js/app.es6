@@ -913,6 +913,10 @@ actions.permissions.assignPerm.listen(function(creds){
     .done(actions.permissions.assignPerm.completed)
     .fail(actions.permissions.assignPerm.failed);
 });
+actions.permissions.assignPerm.completed.listen(function(val){
+  var uid = val.content_object.match(/\/(assets|collections)\/(.*)\//)[2];
+  actions.resources.loadAsset({id: uid});
+})
 
 var permissionStore = Reflux.createStore({
   init () {
@@ -984,10 +988,19 @@ var sessionDispatch;
       return d.promise();
     },
     assignPerm (creds) {
-      var id = creds.uid || creds.id;
-      var url = `/${creds.kind}/${creds.id}/permissions/`
-      log("sessionDispatch.assignPerm(", creds, ")");
-      return $.getJSON(url);
+      // Do we already have these URLs stored somewhere?
+      var objectUrl = creds.objectUrl || `/${creds.kind}s/${creds.uid}/`;
+      var userUrl = `/users/${creds.username}/`;
+      var codename = `${creds.role}_${creds.kind}`;
+      return $ajax({
+        url: '/permissions/',
+        method: 'POST',
+        data: {
+          'user': userUrl,
+          'permission': codename,
+          'content_object': objectUrl
+        }
+      });    
     },
     libraryDefaultSearch () {
       var url = "/assets/?q=example";
@@ -1483,13 +1496,11 @@ var AssetNavigator = React.createClass({
     actions.resources.listTags()
   },
   assetLibraryTrigger (res) {
-    log('assetLibraryItems ', res)
     this.setState({
       assetLibraryItems: res
     });
   },
   handlePageStateStore (state) {
-    log('handlePageStateStore', state);
     this.setState(state);
   },
   // handleResize () {
@@ -1916,7 +1927,7 @@ var CollectionMixins = {
       'k-actbtn--flat': btnState === 'flat',
       'k-actbtn--muted': btnState === 'muted'
     })
-    var activeResourceUrl = assetIsSelected ? selectedAssetStore.asset.url : '#';
+    var activeResourceUrl = assetIsSelected ? `${selectedAssetStore.asset.url}.xls` : '#';
     var assetLink;
     if (assetIsSelected) {
       if (selectedAssetStore.asset.kind === "asset") {
@@ -1942,7 +1953,7 @@ var CollectionMixins = {
             <span className={aboveButtonKls}>{aboveButtonTxt}</span>
             <div className="btn-group btn-group-justified">
               {assetLink}
-              <a href={activeResourceUrl} onClick={this.clickActionDownload} className={kls}>{t('download')}</a>
+              <a href={activeResourceUrl} className={kls}>{t('download')}</a>
               <a href="#" onClick={this.clickActionClone} className={kls}>{t('clone')}</a>
               <a href="#" onClick={this.clickActionDelete} className={kls}>{t('delete')}</a>
             </div>
@@ -2900,10 +2911,12 @@ class FormPreviewXls extends PreviewSubresource {
 }
 
 var FormEnketoPreview = React.createClass({
-  mixins: [Navigation],
+  mixins: [
+    Navigation
+  ],
   routeBack () {
     var params = this.context.router.getCurrentParams();
-    this.transitionTo('form-view', {assetid: params.assetid});
+    this.transitionTo('form-landing', {assetid: params.assetid});
   },
   render () {
     var sharedUsers = [];
@@ -3051,8 +3064,9 @@ var FormSharing = React.createClass({
     if (userExistsStore.checkUsername(username)) {
       actions.permissions.assignPerm({
         username: username,
-        kind: 'asset',
         uid: this.props.params.assetid,
+        kind: this.props.kind,
+        objectUrl: this.props.objectUrl,
         role: 'view'
       });
     }
@@ -3077,7 +3091,10 @@ var FormSharing = React.createClass({
       },
       icon: 'group'
     };
-    log(perms);
+    var uid = this.state.asset.uid;
+    var kind = this.state.asset.kind;
+    var objectUrl = this.state.asset.url;
+
     if (!perms) {
       return <p>loading</p>
     }
@@ -3109,7 +3126,7 @@ var FormSharing = React.createClass({
             <br />
             <div>
               {perms.map((perm)=> {
-                return <UserPermDiv ref={perm.username} {...perm} />;
+                return <UserPermDiv ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
               })}
             </div>
           </Panel>
@@ -3129,10 +3146,13 @@ var UserPermDiv = React.createClass({
   setPerm (permName, value) {
     return (evt) => {
       evt.preventDefault();
+      log("tprops ", this.props);
       actions.permissions.assignPerm({
-        user: this.props.username,
-        permName: permName,
-        permission: value
+        username: this.props.username,
+        uid: this.props.uid,
+        kind: this.props.kind,
+        objectUrl: this.props.objectUrl,
+        role: permName
       });
     }
   },
@@ -3162,7 +3182,7 @@ var UserPermDiv = React.createClass({
   render () {
     var hasAnyPerms = false;
     var cans = this.props.can;
-    var availPerms = ['view', 'edit', 'share'].map((permName) => {
+    var availPerms = ['view', 'change', 'share'].map((permName) => {
       if ( permName in cans ) {
         if (cans[permName].deny) {
           return [permName, "deny"];
@@ -3509,9 +3529,7 @@ var formViewMixin = {
     if (this.needsSave() && confirm(t('you have unsaved changes. would you like to save?'))) {
       this._saveForm();
     }
-    if (!this.goBack()) {
-      this.transitionTo('forms');
-    }
+    this.transitionTo('forms');
   },
   loadingNotice () {
     return (
@@ -3560,17 +3578,18 @@ var formViewMixin = {
   needsSave () {
     return this.state.asset_updated === -1;
   },
-  innerRender () {
-    var closeButtonKls = classNames('k-form-close-button', {
+  renderCloseButton() {
+    var kls = classNames('k-form-close-button', {
       "k-form-close-button--warning": this.needsSave()
     });
+    return <a className={kls} onClick={this.navigateBack}>&times;</a>;
+  },
+  innerRender () {
 
     return (
         <Panel className="k-div--formviewmixin--innerrender">
           <div className="row k-form-header-row">
-            <button className={closeButtonKls} onClick={this.navigateBack}>
-              &times;
-            </button>
+            {this.renderCloseButton()}
             <div className="k-header-name-row form-group col-md-10">
               <div className="k-corner-icon"></div>
               {this.renderFormNameInput()}
@@ -3721,6 +3740,9 @@ var FormLanding = React.createClass({
                 <i className={classNames('fa', 'fa-fw', 'fa-sm', 'fa-eye')} />
               </Link>
               {downloadLink}
+              <Link to="form-sharing" params={{assetid: this.props.params.assetid}} className={saveBtnKls}>
+                {t('sharing')}
+              </Link>
             </div>
           </div>
         </div>
@@ -3948,6 +3970,13 @@ var FormPage = React.createClass({
     }
   },
   componentDidMount () {
+    this.navigateBack = ()=> {
+      if (this.needsSave() && confirm(t('you have unsaved changes. would you like to save?'))) {
+        this._saveForm();
+      }
+      this.transitionTo('form-landing', {assetid: this.props.params.assetid});
+    }
+
     this.listenTo(assetStore, this.assetStoreTriggered)
     this.listenTo(assetContentStore, this.assetContentStoreTriggered);
     stores.pageState.setTopPanel(30, false);
@@ -4087,7 +4116,8 @@ var NewForm = React.createClass({
   },
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setHeaderSearch(false)
+      stores.pageState.setHeaderSearch(false);
+      stores.pageState.setTopPanel(30, false);
       callback();
     }
   },
@@ -4112,7 +4142,6 @@ var NewForm = React.createClass({
     $('.form-wrap').html(app.$el);
     app.render()
     this.app = app
-    stores.pageState.setTopPanel(30, false);
     this.setState({
       survey: survey
     });
