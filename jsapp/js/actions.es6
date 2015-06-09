@@ -165,6 +165,12 @@ actions.permissions = Reflux.createActions({
       "completed",
       "failed"
     ]
+  },
+  assignPublicPerm: {
+    children: [
+      "completed",
+      "failed"
+    ]
   }
 });
 

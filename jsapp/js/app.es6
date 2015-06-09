@@ -427,6 +427,12 @@ class PermissionsEditor extends React.Component {
   }
 }
 
+var anonUsername = 'AnonymousUser';
+function getAnonymousUserPermission(permissions) {
+  return permissions.filter(function(perm){
+    return perm.user__username === anonUsername;
+  })[0];
+}
 function parsePermissions(owner, permissions) {
   var users = [];
   var perms = {};
@@ -434,7 +440,7 @@ function parsePermissions(owner, permissions) {
     perm.user__username = perm.user.match(/\/users\/(.*)\//)[1];
     return perm;
   }).filter((perm)=> {
-    return ( perm.user__username !== owner );
+    return ( perm.user__username !== owner && perm.user__username !== anonUsername);
   }).forEach((perm)=> {
     if(users.indexOf(perm.user__username) === -1) {
       users.push(perm.user__username);
@@ -913,18 +919,25 @@ actions.permissions.assignPerm.listen(function(creds){
     .fail(actions.permissions.assignPerm.failed);
 });
 actions.permissions.assignPerm.completed.listen(function(val){
-  var uid = val.content_object.match(/\/(assets|collections)\/(.*)\//)[2];
-  actions.resources.loadAsset({id: uid});
+  // var uid = val.content_object.match(/\/(assets|collections)\/(.*)\//)[2];
+  actions.resources.loadAsset({url: val.content_object});
+  // var uid = val.content_object.match(/\/(assets|collections)\/(.*)\//)[2];
+  // actions.resources.loadAsset({id: uid});
 });
 
 actions.permissions.removePerm.listen(function(details){
+  if (!details.content_object_uid) {
+    throw new Error('removePerm needs a content_object_uid parameter to be set')
+  }
   sessionDispatch.removePerm(details.permission_url)
-    .done(actions.permissions.removePerm.completed)
+    .done(function(resp){
+      actions.permissions.removePerm.completed(details.content_object_uid, resp);
+    })
     .fail(actions.permissions.removePerm.failed);
 });
 
-actions.permissions.removePerm.completed.listen(function(val){
-  log("now we need to trigger actions.resources.loadAsset({id: assetuid});...");
+actions.permissions.removePerm.completed.listen(function(uid){
+  actions.resources.loadAsset({id: uid});
 });
 
 
@@ -1016,7 +1029,11 @@ var sessionDispatch;
           'permission': codename,
           'content_object': objectUrl
         }
-      });    
+      });
+    },
+    assignPublicPerm (params) {
+      params.username = 'AnonymousUser';
+      return sessionDispatch(params);
     },
     libraryDefaultSearch () {
       var url = "/assets/?q=example";
@@ -1036,8 +1053,12 @@ var sessionDispatch;
     getAssetContent ({id}) {
       return $.getJSON(`/assets/${id}/content/`);
     },
-    getAsset ({id}) {
-      return $.getJSON(`/assets/${id}/`);
+    getAsset (params={}) {
+      if (params.url) {
+        return $.getJSON(params.url);
+      } else  {
+        return $.getJSON(`/assets/${params.id}/`);
+      }
     },
     searchAssets (queryString) {
       return $ajax({
@@ -1068,7 +1089,11 @@ var sessionDispatch;
       });
     },
     getCollection ({id}) {
-      return $.getJSON(`/collections/${id}/`);
+      if (params.url) {
+        return $.getJSON(params.url);
+      } else  {
+        return $.getJSON(`/collections/${params.id}/`);
+      }
     },
     getResource ({id}) {
       // how can we avoid pulling asset type from the 1st character of the uid?
@@ -1105,10 +1130,16 @@ actions.auth.logout.listen(function(){
 })
 
 actions.resources.loadAsset.listen(function(params){
-  var dispatchMethodName = {
-    c: 'getCollection',
-    a: 'getAsset'
-  }[params.id[0]];
+  var dispatchMethodName;
+  if (params.url) {
+    dispatchMethodName = params.url.indexOf('collections') === -1 ? 
+        'getAsset' : 'getCollection';
+  } else {
+    dispatchMethodName = {
+      c: 'getCollection',
+      a: 'getAsset'
+    }[params.id[0]];
+  }
 
   sessionDispatch[dispatchMethodName](params)
       .done(actions.resources.loadAsset.completed)
@@ -1161,12 +1192,31 @@ var assetContentStore = Reflux.createStore({
 var assetStore = Reflux.createStore({
   init: function () {
     this.data = {};
+    this.relatedUsers = {};
     this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted)
     this.listenTo(actions.resources.updateAsset.completed, this.onUpdateAssetCompleted);
   },
 
+  noteRelatedUsers: function (data) {
+    // this preserves usernames in the store so that the list does not
+    // reorder or drop users depending on subsequent server responses
+    if (!this.relatedUsers[data.uid]) {
+      this.relatedUsers[data.uid] = [];
+    }
+
+    var relatedUsers = this.relatedUsers[data.uid];
+    data.permissions.forEach(function (perm) {
+      var username = perm.user.match(/\/users\/(.*)\//)[1];
+      var isOwnerOrAnon = username === data.owner__username || username === 'AnonymousUser';
+      if (!isOwnerOrAnon && relatedUsers.indexOf(username) === -1) {
+        relatedUsers.push(username)
+      }
+    });
+  },
+
   onUpdateAssetCompleted: function (resp, req, jqhr){
     this.data[resp.uid] = resp;
+    this.noteRelatedUsers(resp);
     this.trigger(this.data, resp.uid, {asset_updated: true});
   },
 
@@ -1175,6 +1225,7 @@ var assetStore = Reflux.createStore({
       throw new Error('no uid found in response');
     }
     this.data[resp.uid] = resp;
+    this.noteRelatedUsers(resp);
     this.trigger(this.data, resp.uid);
   }
 });
@@ -2982,6 +3033,29 @@ var userExistsStore = Reflux.createStore({
   }
 });
 
+var PermissionsMixin = {
+  removePerm (permName, permObject, content_object_uid) {
+    return (evt) => {
+      evt.preventDefault();
+      actions.permissions.removePerm({
+        permission_url: permObject.url,
+        content_object_uid: content_object_uid
+      })
+    }
+  },
+  setPerm (permName, props) {
+    return (evt) => {
+      evt.preventDefault();
+      actions.permissions.assignPerm({
+        username: props.username,
+        uid: props.uid,
+        kind: props.kind,
+        objectUrl: props.objectUrl,
+        role: permName
+      });
+    }
+  }
+};
 // shown
 var FormSharing = React.createClass({
   mixins: [
@@ -2994,28 +3068,16 @@ var FormSharing = React.createClass({
           asset: asset,
           permissions: asset.permissions,
           owner: asset.owner__username,
-          pperms: parsePermissions(asset.owner__username, asset.permissions)
+          pperms: parsePermissions(asset.owner__username, asset.permissions),
+          public_permission: getAnonymousUserPermission(asset.permissions),
+          related_users: assetStore.relatedUsers[uid]
         };
       }
     }),
+    PermissionsMixin,
     Reflux.ListenerMixin
   ],
-  // render () {
-  //   return (
-  //     <Modal open title={t('manage sharing settings:')}
-  //                 small={t('note: this does not control permissions to the data collected by projects')}>
-  //       <ModalBody>
-  //         <Panel>
-  //           {t('owner')}
-  //           <StackedIcon frontIcon='user' />
-  //         </Panel>
-  //       </ModalBody>
-  //     </Modal>
-  //     );
-  // },
-  // getInitialState() {
-  //   return {};
-  // },
+
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
       actions.resources.loadAsset({id: params.assetid});
@@ -3023,12 +3085,7 @@ var FormSharing = React.createClass({
     }
   },
   componentDidMount () {
-    this.listenTo(assetStore, this.asdf);
     this.listenTo(userExistsStore, this.userExistsStoreChange);
-    this.listenTo(permissionStore, this.permissionStoreChange);
-  },
-  asdf (abc, def) {
-    log('asset sore changed', abc, def)
   },
   routeBack () {
     var params = this.context.router.getCurrentParams();
@@ -3045,11 +3102,6 @@ var FormSharing = React.createClass({
   },
   usernameFieldValue () {
     return this.refs.usernameInput.refs.inp.getDOMNode().value;
-  },
-  permissionStoreChange (permissions, assetId) {
-    log('permission store change', permissions, assetId)
-    // if (assetId === this.props.params.assetid) {
-    // }
   },
   usernameCheck (evt) {
     var username = evt.target.value;
@@ -3093,20 +3145,25 @@ var FormSharing = React.createClass({
     if (!this.state.pperms) {
       return <i className="fa fa-spin" />;
     }
-    var perms = this.state.pperms;
+    var _perms = this.state.pperms;
+    var perms = this.state.related_users.map(function(username){
+      var currentPerm = _perms.filter(function(p){ return p.username === username })[0];
+      if (currentPerm) {
+        return currentPerm;
+      } else {
+        return {
+          username: username,
+          can: {}
+        }
+      }
+    });
     var userInputKls = classNames('form-group',
                                     (inpStatus !== false) ? `has-${inpStatus}` : '');
     var btnKls = classNames('btn',
                             'btn-block',
                             'btn-sm',
                             inpStatus === 'success' ? 'btn-success' : 'hidden');
-    var publicPerm = {
-      'username': 'public',
-      'can': {
-        'view': true
-      },
-      icon: 'group'
-    };
+
     var uid = this.state.asset.uid;
     var kind = this.state.asset.kind;
     var objectUrl = this.state.asset.url;
@@ -3115,7 +3172,7 @@ var FormSharing = React.createClass({
       return <p>loading</p>
     }
     return (
-      <Modal open onClose={this.routeBack} title={t('manage sharing settings:') + '[asset name]'}
+      <Modal open onClose={this.routeBack} title={t('manage sharing settings: ') + this.state.asset.name }
                   small={t('note: this does not control permissions to the data collected by projects')}>
         <ModalBody>
           <Panel className="k-div--sharing">
@@ -3142,43 +3199,43 @@ var FormSharing = React.createClass({
             <br />
             <div>
               {perms.map((perm)=> {
-                return <UserPermDiv ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
+                return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
               })}
             </div>
           </Panel>
           <div className='row'>
-            <PublicPermDiv />
+            {(() => {
+              if (this.state.public_permission) {
+                return <PublicPermDiv isOn={true} onToggle={this.removePerm('view', this.state.public_permission, uid)} />
+              } else {
+                return <PublicPermDiv isOn={false}
+                            onToggle={this.setPerm('view', {
+                                username: anonUsername,
+                                uid: uid,
+                                kind: kind,
+                                objectUrl: objectUrl
+                              })} />
+              }
+            })()}
           </div>
         </ModalBody>
       </Modal>
       );
+  },
+  removePublicPerm () {
+    log('removing public perm')
+  },
+  addPublicPerm () {
+    log('adding public perm')
   }
 });
 
+
 var UserPermDiv = React.createClass({
   mixins: [
-    Navigation
+    Navigation,
+    PermissionsMixin,
   ],
-  setPerm (permName) {
-    return (evt) => {
-      evt.preventDefault();
-      actions.permissions.assignPerm({
-        username: this.props.username,
-        uid: this.props.uid,
-        kind: this.props.kind,
-        objectUrl: this.props.objectUrl,
-        role: permName
-      });
-    }
-  },
-  removePerm (permName, permObject) {
-    return (evt) => {
-      evt.preventDefault();
-      actions.permissions.removePerm({
-        permission_url: permObject.url
-      })
-    }
-  },
   renderPerm ([permName, permPermission, permissionObject]) {
     var btnCls = classNames('btn',
                             'btn-sm',
@@ -3197,13 +3254,13 @@ var UserPermDiv = React.createClass({
 
     var buttonAction;
     if (permissionObject) {
-      buttonAction = this.removePerm(permName, permissionObject);
+      buttonAction = this.removePerm(permName, permissionObject, this.props.uid);
     } else {
-      buttonAction = this.setPerm(permName);
+      buttonAction = this.setPerm(permName, this.props);
     }
     return (
-        <div className='k-col-2-nopadd'>
-          <button className={btnCls} onClick={buttonAction} data-permission-name={permName}>
+        <div className='k-col-3-nopadd'>
+          <button className={btnCls} onClick={buttonAction}>
             {permName}
           </button>
         </div>
@@ -3222,40 +3279,36 @@ var UserPermDiv = React.createClass({
       }
       return [permName, "false"];
     });
-    var closeButtonCls = hasAnyPerms ? 'hidden' : classNames('btn', 'btn-block', 'btn-sm', 'btn-default');
+    if (!this.props.username) {
+      debugger;
+    }
     return (
       <div className='row'>
         <div className='col-md-5'>
           <UserProfileLink icon={this.props.icon || 'user-o'} iconBefore='true' username={this.props.username} />
         </div>
         {availPerms.map(this.renderPerm)}
-        <div className='col-md-1'>
-          <button className={closeButtonCls}>
-            <i className='fa fa-times' />
-          </button>
-        </div>
       </div>
       );
   }
 });
 
 class PublicPermDiv extends UserPermDiv {
-  setPublicPerm (val) {
-    return (evt) => {
-      evt.preventDefault();
-      log('setting public perm to ', val);
-    }
-  }
+  // setPublicPerm (val) {
+  //   return (evt) => {
+  //     evt.preventDefault();
+  //     log('setting public perm to ', val);
+  //   }
+  // }
   render () {
-    var isOn = Math.random() > 0.5;
-
+    var isOn = this.props.isOn;
     var btnCls = classNames('btn',
                             isOn ? 'btn-primary' : 'btn-default',
                             'btn-block');
     return (
       <div className='row'>
         <div className='col-md-12'>
-          <button className={btnCls} onClick={this.setPublicPerm(!isOn)}>
+          <button className={btnCls} onClick={this.props.onToggle}>
             <i className={`fa fa-group fa-lg`} />
             &nbsp;&nbsp;
             {isOn ?
