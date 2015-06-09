@@ -150,6 +150,7 @@ export class Sidebar extends React.Component {
             <SidebarMain onClick={this.props.toggleIntentOpen} label={title} />
             <SidebarTitle label={t('drafts in progress')} />
             <SidebarLink label={t('forms')} linkto='forms' fa-icon="files-o" />
+            <SidebarLink label={t('recent')} linkto='forms' fa-icon="clock-o" />
             <RecentHistory visible={this.props.isOpen} />
             <SidebarTitle label={t('deployed projects')} />
             <SidebarLink label={t('projects')} active='true' href={t('/')} fa-icon="globe" />

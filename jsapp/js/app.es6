@@ -3704,6 +3704,12 @@ var FormLanding = React.createClass({
     var previewBtnKls = classNames('btn',
                                   'btn-default',
                                   previewDisabled ? 'disabled': '')
+    var downloadLink, xlsLink;
+
+    if (this.state.asset && this.state.asset.downloads) {
+      xlsLink = this.state.asset.downloads.filter((f)=>f.format==="xls")[0]
+      downloadLink = <a href={xlsLink.url} className={saveBtnKls}>{t('xls')}</a>
+    }
     return (
         <div className="k-form-actions" style={{marginLeft:-10}}>
           <div className='btn-toolbar'>
@@ -3714,6 +3720,7 @@ var FormLanding = React.createClass({
               <Link to="form-preview-enketo" params={{assetid: this.props.params.assetid}} className={saveBtnKls}>
                 <i className={classNames('fa', 'fa-fw', 'fa-sm', 'fa-eye')} />
               </Link>
+              {downloadLink}
             </div>
           </div>
         </div>
