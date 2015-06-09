@@ -45,6 +45,12 @@ actions.search = Reflux.createActions({
       "failed"
     ]
   },
+  libraryDefaultQuery: {
+    children: [
+      "completed",
+      "failed"
+    ]
+  },
   collections: {
     children: [
       "completed",
@@ -85,6 +91,30 @@ actions.resources = Reflux.createActions({
     ]
   },
   listTags: {
+    children: [
+      "completed",
+      "failed"
+    ]
+  },
+  createCollection: {
+    children: [
+      "completed",
+      "failed"
+    ]
+  },
+  readCollection: {
+    children: [
+      "completed",
+      "failed"
+    ]
+  },
+  updateCollection: {
+    children: [
+      "completed",
+      "failed"
+    ]
+  },
+  deleteCollection: {
     children: [
       "completed",
       "failed"

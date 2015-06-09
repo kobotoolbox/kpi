@@ -875,7 +875,11 @@ actions.resources.deleteAsset.listen(function(details){
     })
     .fail(actions.resources.deleteAsset.failed);
 });
-
+actions.resources.readCollection.listen(function(details){
+  sessionDispatch.readCollection(details)
+      .done(actions.resources.readCollection.completed)
+      .fail(actions.resources.readCollection.failed);
+})
 actions.resources.cloneAsset.listen(function(details){
   sessionDispatch.cloneAsset(details)
     .done(actions.resources.cloneAsset.completed)
@@ -890,6 +894,12 @@ actions.search.assets.listen(function(queryString){
     .fail(function(...args){
       actions.search.assets.failed.apply(this, [queryString, ...args])
     })
+});
+
+actions.search.libraryDefaultQuery.listen(function(){
+  sessionDispatch.libraryDefaultSearch()
+    .done(actions.search.libraryDefaultQuery.completed)
+    .fail(actions.search.libraryDefaultQuery.failed);
 });
 
 actions.search.tags.listen(function(queryString){
@@ -978,6 +988,15 @@ var sessionDispatch;
       var url = `/${creds.kind}/${creds.id}/permissions/`
       log("sessionDispatch.assignPerm(", creds, ")");
       return $.getJSON(url);
+    },
+    libraryDefaultSearch () {
+      var url = "/assets/?q=example";
+      return $.getJSON(url);
+    },
+    readCollection ({uid}) {
+      return $ajax({
+        url: `/collections/${uid}/`
+      })
     },
     deleteAsset ({uid}) {
       return $ajax({
@@ -1115,11 +1134,6 @@ var assetStore = Reflux.createStore({
     this.data = {};
     this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted)
     this.listenTo(actions.resources.updateAsset.completed, this.onUpdateAssetCompleted);
-  },
-
-
-  _findByUid (uid) {
-    return this.data[uid];
   },
 
   onUpdateAssetCompleted: function (resp, req, jqhr){
@@ -1406,6 +1420,50 @@ var TagList = React.createClass({
 //   }
 // })
 
+var DraggableResult = React.createClass({
+  dragEnd () {
+    log('drag end');
+  },
+  dragStart (evt) {
+    console.dir(evt);
+    log('drag start');
+  },
+  render () {
+    var draggableIcon = (function(){
+          return (
+              <span className='k-draggable'>
+                <span className='k-draggable-iconwrap'>
+                  <i className='fa fa-icon fa-th' />
+                </span>
+              </span>
+            )
+        })();
+
+    return (
+        <li className="library-asset-list__item questions__question"
+            draggable="true"
+            onDragEnd={this.dragEnd}
+            onDragStart={this.dragStart}
+            >
+          <div className="l-a__item__draggable" />
+          <div className="l-a__item__label questions__question__name">Who what where when why?</div>
+          <div className="l-a__item__qtype question__type">Integer</div>
+        </li>
+      );
+  }
+})
+
+stores.assetLibrary = Reflux.createStore({
+  init () {
+    this.results = [];
+    this.listenTo(actions.search.libraryDefaultQuery.completed, this.libraryDefaultDone)
+  },
+  libraryDefaultDone (res) {
+    this.results = res;
+    this.trigger(res);
+  }
+});
+
 var AssetNavigator = React.createClass({
   mixins: [
     Navigation,
@@ -1418,8 +1476,17 @@ var AssetNavigator = React.createClass({
     Reflux.connect(stores.tags, 'tags')
   ],
   componentDidMount() {
+    this.listenTo(stores.assetLibrary, this.assetLibraryTrigger);
+    actions.search.libraryDefaultQuery();
+
     this.listenTo(stores.pageState, this.handlePageStateStore);
     actions.resources.listTags()
+  },
+  assetLibraryTrigger (res) {
+    log('assetLibraryItems ', res)
+    this.setState({
+      assetLibraryItems: res
+    });
   },
   handlePageStateStore (state) {
     log('handlePageStateStore', state);
@@ -1484,6 +1551,27 @@ var AssetNavigator = React.createClass({
       });
     }
   },
+  _displayAssetLibraryItems () {
+    var qresults = this.state.assetLibraryItems;
+    var alItems;
+    var contents;
+    if (qresults && qresults.count > 0) {
+      alItems = qresults.results;
+      return (<ul className="library-asset-list">
+                {qresults.results.map((item)=> {
+                  return <DraggableResult {...item} />;
+                })}
+              </ul>);
+    } else {
+      return (<ul className="library-asset-list">
+                <li>
+                  <i className='fa fa-spinner fa-spin' />
+                  &nbsp;&nbsp;
+                  {t('loading library assets...')}
+                </li>
+              </ul>);
+    }
+  },
   renderSearchResults () {
     var draggableIcon = function(){
       return (
@@ -1495,13 +1583,13 @@ var AssetNavigator = React.createClass({
         )
     }
     var sr = this.state.searchResults;
-    var icons;
-    if (!('count' in sr)) {
-      return <p>{t('no search')}</p>
+    var _icons;
+    if (!sr || !('count' in sr)) {
+      return this._displayAssetLibraryItems();
     } else if (sr.count === 0) {
       return <p>{t('no search results found')}</p>
     } else if (sr.count > 0) {
-      icons = {
+      _icons = {
         'asset': <i className='fa fa-file-o' />,
         'collection': <i className='fa fa-folder-o' />,
         'question': <i className='fa fa-question' />
@@ -1512,7 +1600,7 @@ var AssetNavigator = React.createClass({
               return (
                 <li>
                   {draggableIcon()}
-                  {icons[item.kind] || icons.question}
+                  {_icons[item.kind] || _icons.question}
                   &nbsp;
                   {item.name}
                 </li>
@@ -1531,66 +1619,53 @@ var AssetNavigator = React.createClass({
   onTagClick () {
     log('tag click; filter search results?')
   },
-  renderOpenContent () {
-    var activeSearch = true;
-
+  renderClosedContent () {
+    var navKls = classNames("asset-navigator", this.state.assetNavIsOpen ? "" : "asset-navigator--deactivated")
     return (
-        <div>
-          <TagList tags={this.state.tags} onTagClick={this.onTagClick} />
-          { activeSearch ?
-            this.renderSearchResults()
-            :
-            this.renderRecentAssets()
-          }
-          <hr />
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-          <br />
-          <div className="btn-toolbar">
-            <div className="btn-group">
-              <i className={classNames('fa', 'fa-sm', 'fa-file-o')} />
-              &nbsp;&nbsp;
-              {t('upload forms')}
+        <div className={navKls}>
+          <div className="asset-navigator__header asset-navigator__header--deactivated">
+            <div className="asset-navigator__logo" onClick={this.toggleOpen}>
+              <i className="fa fa-icon fa-book fa-2x" />
             </div>
           </div>
         </div>
       );
   },
-  renderClosedContent () {
-    return (
-        <div>
-          ...
-        </div>
-      );
-  },
   toggleOpen () {
     stores.pageState.toggleAssetNavIntentOpen()
-    // NavStateStore.toggleState()
   },
   render () {
     var navKls = classNames("asset-navigator", this.state.assetNavIsOpen ? "" : "asset-navigator--shrunk")
+    if (!this.state.assetNavIsOpen) {
+      return this.renderClosedContent();
+    }
     return (
-      <div className={navKls}>
-        <div className="asset-navigator__header">
-          <div className="asset-navigator__logo" onClick={this.toggleOpen}>
-            <i className="fa fa-icon fa-book fa-2x" />
+        <div className={navKls}>
+          <div className="asset-navigator__header">
+            <div className="asset-navigator__logo" onClick={this.toggleOpen}>
+              <i className="fa fa-icon fa-book fa-2x" />
+            </div>
+            <div className="asset-navigator__search">
+              <ui.SmallInputBox ref="navigatorSearchBox" placeholder={t('search library')} onKeyUp={this.liveSearch} />
+            </div>
+            <TagList tags={this.state.tags} onTagClick={this.onTagClick} />
           </div>
-          <div className="asset-navigator__search">
-            <ui.SmallInputBox ref="navigatorSearchBox" placeholder={t('search library')} onKeyUp={this.liveSearch} />
+          <div className="asset-navigator__content">
+            {this.renderSearchResults()}
+          </div>
+          <div className="asset-navigator__footer">
+            <div className="btn-toolbar">
+              <div className="btn-group">
+                <i className={classNames('fa', 'fa-sm', 'fa-file-o')} />
+                &nbsp;&nbsp;
+                {t('upload forms')}
+              </div>
+            </div>
           </div>
         </div>
-        {this.state.assetNavIsOpen ? 
-          this.renderOpenContent()
-          :
-          this.renderClosedContent()
-        }
-        <Dropzone onDropFiles={this.dropFiles}>
-        </Dropzone>
-      </div>
       );
+        // <Dropzone onDropFiles={this.dropFiles}>
+        // </Dropzone>
   }
 });
 
@@ -1707,9 +1782,6 @@ var selectedAssetStore = Reflux.createStore({
   init () {
     this.uid = false;
   },
-  _findAsset (uid) {
-    return allAssetsStore._findByUid(uid)
-  },
   toggleSelect (uid) {
     if (this.uid === uid) {
       this.uid = false;
@@ -1717,7 +1789,7 @@ var selectedAssetStore = Reflux.createStore({
       return false;
     } else {
       this.uid = uid;
-      this.asset = this._findAsset(uid)
+      this.asset = allAssetsStore.byUid[uid]
       return true;
     }
   }
@@ -1770,23 +1842,19 @@ var AssetRow = React.createClass({
 
 var allAssetsStore = Reflux.createStore({
   init: function () {
-    this.data = {};
+    this.data = [];
+    this.byUid = {};
     this.listenTo(actions.resources.listAssets.completed, this.onListAssetsCompleted);
     this.listenTo(actions.resources.listAssets.failed, this.onListAssetsFailed);
   },
   onListAssetsFailed: function (err) {
     debugger
   },
-  _findByUid (uid) {
-    var match = false;
-    this.data.forEach(function(ass){
-      if (ass.uid === uid) {
-        match = ass;
-      }
-    });
-    return match;
+  registerAssetOrCollection (asset) {
+    this.byUid[asset.uid] = asset;
   },
   onListAssetsCompleted: function(resp, req, jqxhr) {
+    resp.results.forEach(this.registerAssetOrCollection)
     this.data = resp.results;
     this.trigger(this.data);
   }
@@ -1794,19 +1862,29 @@ var allAssetsStore = Reflux.createStore({
 
 var Forms = React.createClass({
   mixins: [
-    Reflux.connect(allAssetsStore, "results")
+    Navigation
   ],
+  statics: {
+    willTransitionTo: function(transition, params, idk, callback) {
+      if (params.assetid && params.assetid[0]==='c') {
+        transition.redirect("collection-page", {
+          uid: params.assetid
+        });
+      }
+      callback();
+    }
+  },
+  render () {
+    return (
+        <RouteHandler />
+        );
+  }
+})
+
+var CollectionMixins = {
   getInitialState () {
     return {
       results: false
-    }
-  },
-  statics: {
-    willTransitionTo: function(transition, params, idk, callback) {
-      actions.resources.listAssets();
-      stores.pageState.setHeaderSearch(true);
-      stores.pageState.setTopPanel(60, true);
-      callback();
     }
   },
   clickActionView () {
@@ -1825,21 +1903,6 @@ var Forms = React.createClass({
     var assetIsSelected = this.state.results && selectedAssetStore.uid;
     var kls = classNames("btn", "btn-default", "btn-sm",
                   !assetIsSelected ? "disabled" : '')
-
-    // var takeActionIfSelected = (what)=> {
-    //   return (evt) => {
-    //     if (!selectedAssetStore.uid) {
-    //       return;
-    //     }
-    //     if (what === "clone") {
-    //       actions.resources.cloneAsset({uid: selectedAssetStore.uid})
-    //     } else if (what === "delete") {
-    //       if (confirm(t('are you sure you want to delete this asset?'))) {
-    //         actions.resources.deleteAsset({uid: selectedAssetStore.uid})
-    //       }
-    //     }
-    //   }
-    // }
     var mutedTextClassesIfSelected = classNames("text-muted", assetIsSelected ? "k-invisible" : "")
     var deployKls = classNames("btn", assetIsSelected ? "" : "disabled", "btn-success", "btn-sm");
     var aboveButtonKls = classNames({
@@ -1853,6 +1916,23 @@ var Forms = React.createClass({
       'k-actbtn--flat': btnState === 'flat',
       'k-actbtn--muted': btnState === 'muted'
     })
+    var activeResourceUrl = assetIsSelected ? selectedAssetStore.asset.url : '#';
+    var assetLink;
+    if (assetIsSelected) {
+      if (selectedAssetStore.asset.kind === "asset") {
+        assetLink = (
+              <Link to="form-view" params={{assetid: selectedAssetStore.uid}} className={kls}>{t('view and edit')}</Link>
+            );
+      } else if (selectedAssetStore.asset.kind === "collection") {
+        assetLink = (
+              <Link to="collection-page" params={{uid: selectedAssetStore.uid}} className={kls}>{t('view and edit')}</Link>
+            );
+      }
+    } else {
+      assetLink = (
+            <a href="#" onClick={this.clickActionView} className={kls}>{t('view and edit')}</a>
+          );
+    }
     return (
         <div className="row k-header-button-row">
           <div className="k-btn-wrap--newform">
@@ -1861,12 +1941,8 @@ var Forms = React.createClass({
           <div className="col-md-9 col-md-offset-1 k-header-buttons">
             <span className={aboveButtonKls}>{aboveButtonTxt}</span>
             <div className="btn-group btn-group-justified">
-              { assetIsSelected ?
-                <Link to="form-view" params={{assetid: selectedAssetStore.uid}} className={kls}>{t('view and edit')}</Link>
-                :
-                <a href="#" onClick={this.clickActionView} className={kls}>{t('view and edit')}</a>
-              }
-              <a href="#" onClick={this.clickActionDownload} className={kls}>{t('download')}</a>
+              {assetLink}
+              <a href={activeResourceUrl} onClick={this.clickActionDownload} className={kls}>{t('download')}</a>
               <a href="#" onClick={this.clickActionClone} className={kls}>{t('clone')}</a>
               <a href="#" onClick={this.clickActionDelete} className={kls}>{t('delete')}</a>
             </div>
@@ -1879,7 +1955,7 @@ var Forms = React.createClass({
             }
 
             <div className="btn-group btn-group-justified" onMouseOver={this.highlightName}>
-              <a href="#" className={deployKls} title={t('publish')}>{t('publish')}</a>
+              <a href="#" className={deployKls} title={t('deploy')}>{t('deploy')}</a>
             </div>
           </div>
         </div>
@@ -1893,25 +1969,6 @@ var Forms = React.createClass({
   searchChange (evt) {
     log(this.refs);//this.refs['formlist-search'].getDOMNode(), this);
   },
-  renderFormsSearchBar () {
-    return (
-        <div className="row">
-          <div className="col-sm-6 k-form-list-search-bar">
-            <ui.SmallInputBox ref="formlist-search" placeholder={t('search drafts')} onChange={this.searchChange} />
-          </div>
-          <div className="col-sm-6 k-form-list-search-bar">
-            <label>
-              <input type="radio" name="formlist__search__type" id="formlist__search__type--1" value="type1" checked />
-              {t('my forms')}
-            </label>
-            <label>
-              <input type="radio" name="formlist__search__type" id="formlist__search__type--2" value="type2" />
-              {t('shared with me')}
-            </label>
-          </div>
-        </div>
-      );
-  },
   renderResults () {
     return this.state.results.map((resource) => {
             var isSelected = selectedAssetStore.uid === resource.uid;
@@ -1923,24 +1980,14 @@ var Forms = React.createClass({
         <div className='k-loading-message-with-padding'>
           <i className='fa fa-spinner fa-spin' />
           &nbsp;
-          {t('loading forms...')}
+          {this._loadingMessage()}
         </div>
       );
   },
   renderPanel () {
-    // if (!this.state.results) {
-    // } else if (this.state.results.error) {
-    //   return (
-    //       <Panel>
-    //         <p className='alert alert-error'>
-    //           {this.state.results.error}
-    //         </p>
-    //       </Panel>
-    //     );
-    // }
     return (
       <Panel className="k-div--formspanel">
-        {this.renderFormsSearchBar()}
+        {this._renderFormsSearchRow()}
         <ul className="collection-asset-list list-group">
           {this.state.results === false ?
             this.renderLoadingMessage()
@@ -1957,7 +2004,7 @@ var Forms = React.createClass({
   },
   render () {
     return (
-      <DocumentTitle title={t('KoBo form drafts')}>
+      <DocumentTitle title={this._title()}>
         <div>
           <div className="row k-div--forms1">
             <div className="col-md-12">
@@ -1968,6 +2015,104 @@ var Forms = React.createClass({
         </div>
       </DocumentTitle>
       );
+  }
+};
+
+var FormList = React.createClass({
+  mixins: [
+    CollectionMixins,
+    Reflux.connect(allAssetsStore, "results")
+  ],
+  statics: {
+    willTransitionTo: function(transition, params, idk, callback) {
+      actions.resources.listAssets();
+      stores.pageState.setHeaderSearch(true);
+      stores.pageState.setTopPanel(60, true);
+      callback();
+    }
+  },
+  _title () {
+    return t('KoBo form drafts');
+  },
+  _loadingMessage () {
+    return t('loading forms...')
+  },
+  _renderFormsSearchRow () {
+    return (
+      <div className="row">
+        <div className="col-sm-6 k-form-list-search-bar">
+          <ui.SmallInputBox ref="formlist-search" placeholder={t('search drafts')} onChange={this.searchChange} />
+        </div>
+        <div className="col-sm-6 k-form-list-search-bar">
+          <label>
+            <input type="radio" name="formlist__search__type" id="formlist__search__type--1" value="type1" checked />
+            {t('my forms')}
+          </label>
+          <label>
+            <input type="radio" name="formlist__search__type" id="formlist__search__type--2" value="type2" />
+            {t('shared with me')}
+          </label>
+        </div>
+      </div>
+      );
+  }
+})
+
+var collectionAssetsStore = Reflux.createStore({
+  init () {
+    this.collections = {};
+    this.listenTo(actions.resources.readCollection.completed, this.readCollectionCompleted);
+  },
+  readCollectionCompleted (data, x, y) {
+    data.children.forEach((childAsset)=> {
+      allAssetsStore.registerAssetOrCollection(childAsset);
+    });
+    this.collections[data.uid] = data;
+    this.trigger(data, data.uid);
+  }
+})
+
+var CollectionList = React.createClass({
+  mixins: [
+    CollectionMixins,
+    Reflux.connectFilter(collectionAssetsStore, function(data){
+      if (data.uid === this.props.params.uid) {
+        return {
+          results: data.children,
+          collection: data
+        };
+      }
+    })
+  ],
+  statics: {
+    willTransitionTo (transition, params, idk, callback) {
+      stores.pageState.setHeaderSearch(true);
+      stores.pageState.setTopPanel(60, true);
+      actions.resources.readCollection({uid: params.uid})
+      callback();
+    }
+  },
+  _title () {
+    return t('KoBo collection view');
+  },
+  _loadingMessage () {
+    return t('loading forms...');
+  },
+  _renderFormsSearchRow () {
+    var parentLinks = [
+      <Link to="forms" className="btn btn-sm btn-default">{t('forms')}</Link>
+    ];
+    if (this.state.collection) {
+      return (
+          <p>
+            {parentLinks}
+            &raquo;
+            {t(`collection view: ${this.state.collection.name}`)}
+          </p>
+        )
+    } else {
+      return t('collection view');
+    }
   }
 });
 
@@ -2506,7 +2651,7 @@ var SurveyPreview = React.createClass({
 class EditButton extends React.Component {
   render () {
     return <div className="btn-group">
-              <Link to="form-editor"
+              <Link to="form-view"
                       params={{assetid: this.props.uid}}
                       className="btn btn-default"
                       data-toggle="tooltip"
@@ -3426,8 +3571,8 @@ var formViewMixin = {
             <button className={closeButtonKls} onClick={this.navigateBack}>
               &times;
             </button>
-
-            <div className="form-group col-md-10">
+            <div className="k-header-name-row form-group col-md-10">
+              <div className="k-corner-icon"></div>
               {this.renderFormNameInput()}
             </div>
             <div className="col-md-2">
@@ -3445,41 +3590,6 @@ var formViewMixin = {
       );
   },
 };
-
-// var FormView = React.createClass({
-//   mixins: [
-//     Navigation,
-//   ],
-//   getInitialState () {
-//     return {};
-//   },
-//   statics: {
-//     willTransitionTo (transition, params, idk, callback) {
-//       if (params.assetid[0] == 'a') {
-//         actions.resources.loadAssetContent({id: params.assetid});
-//       }
-//       callback();
-//     }
-//   },
-//   getInitialState () {
-//     return {};
-//   },
-//   componentWillMount () {
-
-//   },
-//   componentDidMount () {
-
-//   },
-//   render () {
-//     return (
-//         <div>
-//           <h1>FormView</h1>
-//           <RouteHandler />
-//         </div>
-//       );
-//   }
-// });
-
 
 class AssetPage extends AssetCollectionBase {
   renderHeader () {
@@ -3552,6 +3662,158 @@ class AssetPage extends AssetCollectionBase {
 //   });
 //   return obj;
 // })();
+
+// var changeCounterStore = React.createStore({
+//   init () {
+//     this.count = 0;
+//   },
+//   bump () {
+//     this.count ++;
+//     if (this.count > 15) {
+//       return 3;
+//     } else if (this.count > 7) {
+//       return 2;
+//     } else if (this.count > 0) {
+//       return 1;
+//     }
+//     return 0;
+//   },
+//   reset () {
+//     this.count = 0;
+//   }
+// })
+
+var FormLanding = React.createClass({
+  mixins: [
+    Navigation,
+    formViewMixin,
+    Reflux.ListenerMixin,
+  ],
+  renderSaveAndPreviewButtons () {
+    var disabled = !!this.state.disabled;
+    var pendingSave = this.state.asset_updated === false;
+    var saveText = t('save');
+    var saveBtnKls = classNames('btn','btn-default', {
+      'disabled': disabled,
+      'k-save': true,
+      'k-save--pending': this.state.asset_updated === false,
+      'k-save--complete': this.state.asset_updated === true,
+      'k-save--needed': this.state.asset_updated === -1
+    });
+    var previewDisabled = !!this.state.previewDisabled;
+    var previewBtnKls = classNames('btn',
+                                  'btn-default',
+                                  previewDisabled ? 'disabled': '')
+    return (
+        <div className="k-form-actions" style={{marginLeft:-10}}>
+          <div className='btn-toolbar'>
+            <div className='btn-group'>
+              <Link to="form-view" params={{assetid: this.props.params.assetid}} className={saveBtnKls}>
+                <i className={classNames('fa', 'fa-fw', 'fa-sm', 'fa-pencil')} />
+              </Link>
+              <Link to="form-preview-enketo" params={{assetid: this.props.params.assetid}} className={saveBtnKls}>
+                <i className={classNames('fa', 'fa-fw', 'fa-sm', 'fa-eye')} />
+              </Link>
+            </div>
+          </div>
+        </div>
+      );
+  },
+  getInitialState () {
+    return {
+      survey_loaded: false,
+      survey_name: '',
+      kind: 'asset',
+      asset: false
+    };
+  },
+  // renderFormNameInput () {
+  //   var nameKls = this.state.survey_name_valid ? '' : 'has-warning';
+  //   var nameInputKls = classNames('form-control',
+  //                                 'input-lg',
+  //                                 nameKls);
+  //   var nameVal = this.state.survey_name;
+  //   return (
+  //       <input ref="form-name"
+  //               className={nameInputKls}
+  //               type="text"
+  //               value={nameVal}
+  //               onChange={this.nameInputChange}
+  //               placeholder={t('form name')}
+  //             />
+  //     );
+  // },
+  renderFormNameInput () {
+    var nameVal = this.state.survey_name;
+    return <p>{nameVal}</p>;
+  },
+  assetStoreTriggered (data, uid, stateUpdates) {
+    var s = data[uid],
+      survey,
+      updates = {};
+    if (stateUpdates) {
+      assign(updates, stateUpdates);
+    }
+    if (s) {
+      assign(updates, {
+        survey_name: s.name,
+        asset: s
+      });
+      this.setState(updates);
+    }
+  },
+  assetContentStoreTriggered (data, uid) {
+    var s = data[uid],
+      survey;
+    if (s) {
+      this.setState({
+        survey_data: s.data,
+        survey_loaded: true
+      });
+    }
+  },
+  componentDidMount () {
+    this.listenTo(assetStore, this.assetStoreTriggered)
+    this.listenTo(assetContentStore, this.assetContentStoreTriggered);
+    log('cdm topPanel')
+    stores.pageState.setTopPanel(30, false);
+  },
+  statics: {
+    willTransitionTo: function(transition, params, idk, callback) {
+      stores.pageState.setHeaderSearch(false);
+      stores.pageState.setTopPanel(30, false);
+      log('wtt topPanel');
+      actions.resources.loadAsset({id: params.assetid});
+      actions.resources.loadAssetContent({id: params.assetid});
+      callback();
+    }
+  },
+  render () {
+    if (this.state.asset) {
+      return (
+          <DocumentTitle title={this.state.survey_name}>
+            {this.innerRender()}
+          </DocumentTitle>
+        );
+    }
+    return (
+        <div>
+          {this.loadingNotice()}
+          <RouteHandler />
+        </div>
+      );
+  }
+});
+
+// var FormLanding = React.createClass({
+//   mixins: [
+//     Navigation,
+//     formViewMixin,
+//   ],
+//   render () {
+//     return this.innerRender();
+//   }
+// })
 
 var FormPage = React.createClass({
   mixins: [
@@ -3631,7 +3893,6 @@ var FormPage = React.createClass({
                                   'input-lg',
                                   nameKls);
     var nameVal = this.state.survey_name;
-    var survey = this.state.survey;
     return (
         <input ref="form-name"
                 className={nameInputKls}
@@ -3705,6 +3966,7 @@ var FormPage = React.createClass({
   },
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
+
       stores.pageState.setHeaderSearch(false);
       stores.pageState.setTopPanel(30, false);
       if (params.assetid[0] === 'c') {
@@ -3858,13 +4120,19 @@ var NewForm = React.createClass({
 });
 
 var CollectionPage = React.createClass({
+  statics: {
+    willTransitionTo: function(transition, params, idk, callback) {
+      stores.pageState.setHeaderSearch(true);
+      stores.pageState.setTopPanel(60, true);
+    }
+  },
   render () {
     return (
-        <div className="collection-page">
+        <Panel className="k-collection-page">
           <h1>Collection page</h1>
           <hr />
           {this.props.params.uid}
-        </div>
+        </Panel>
       );
   }
 })
@@ -3872,22 +4140,24 @@ var CollectionPage = React.createClass({
       // <Route name="new-form" handler={Builder} />
 var routes = (
   <Route name="home" path="/" handler={App}>
-    <Route name="collections">
-      <Route name="collection-page" path=":uid" handler={CollectionPage} />
-    </Route>
 
-    <Route name="forms">
+    <Route name="forms" handler={Forms}>
       <Route name="new-form" path="new" handler={NewForm} />
-      <Route name="form-view" path="/forms/:assetid" handler={FormPage}>
+
+      <Route name="collections">
+        <Route name="collection-page" path=":uid" handler={CollectionList} />
+      </Route>
+
+      <Route name="form-landing" path="/forms/:assetid">
         <Route name="form-sharing" path="sharing" handler={FormSharing} />
         <Route name="form-preview-enketo" path="preview" handler={FormEnketoPreview} />
         <Route name="form-preview-xform" path="xform" handler={FormPreviewXform} />
         <Route name="form-preview-xls" path="xls" handler={FormPreviewXls} />
-        <Route name="form-editor" path="edit" handler={FormPage} />
-
+        <Route name="form-view" path="edit" handler={FormPage} />
+        <DefaultRoute handler={FormLanding} />
       </Route>
 
-      <DefaultRoute handler={Forms} />
+      <DefaultRoute handler={FormList} />
       <NotFoundRoute handler={FormNotFound} />
     </Route>
 
