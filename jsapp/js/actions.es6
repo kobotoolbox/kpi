@@ -159,6 +159,12 @@ actions.permissions = Reflux.createActions({
       "completed",
       "failed"
     ]
+  },
+  removePerm: {
+    children: [
+      "completed",
+      "failed"
+    ]
   }
 });
 

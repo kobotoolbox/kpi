@@ -448,7 +448,6 @@ function parsePermissions(owner, permissions) {
       can: perms[username].reduce((cans, perm)=> {
         var permCode = perm.permission.split('_')[0];
         cans[permCode] = perm;
-        // log('permCode', permCode)
         return cans;
       }, {})
     };
@@ -916,7 +915,18 @@ actions.permissions.assignPerm.listen(function(creds){
 actions.permissions.assignPerm.completed.listen(function(val){
   var uid = val.content_object.match(/\/(assets|collections)\/(.*)\//)[2];
   actions.resources.loadAsset({id: uid});
-})
+});
+
+actions.permissions.removePerm.listen(function(details){
+  sessionDispatch.removePerm(details.permission_url)
+    .done(actions.permissions.removePerm.completed)
+    .fail(actions.permissions.removePerm.failed);
+});
+
+actions.permissions.removePerm.completed.listen(function(val){
+  log("now we need to trigger actions.resources.loadAsset({id: assetuid});...");
+});
+
 
 var permissionStore = Reflux.createStore({
   init () {
@@ -986,6 +996,12 @@ var sessionDispatch;
         d.resolve(r);
       }).fail(d.fail);
       return d.promise();
+    },
+    removePerm (permUrl) {
+      return $ajax({
+        method: 'DELETE',
+        url: permUrl
+      });
     },
     assignPerm (creds) {
       // Do we already have these URLs stored somewhere?
@@ -3143,10 +3159,9 @@ var UserPermDiv = React.createClass({
   mixins: [
     Navigation
   ],
-  setPerm (permName, value) {
+  setPerm (permName) {
     return (evt) => {
       evt.preventDefault();
-      log("tprops ", this.props);
       actions.permissions.assignPerm({
         username: this.props.username,
         uid: this.props.uid,
@@ -3156,7 +3171,15 @@ var UserPermDiv = React.createClass({
       });
     }
   },
-  renderPerm ([permName, permPermission]) {
+  removePerm (permName, permObject) {
+    return (evt) => {
+      evt.preventDefault();
+      actions.permissions.removePerm({
+        permission_url: permObject.url
+      })
+    }
+  },
+  renderPerm ([permName, permPermission, permissionObject]) {
     var btnCls = classNames('btn',
                             'btn-sm',
                             `perm-${permName}`,
@@ -3171,9 +3194,16 @@ var UserPermDiv = React.createClass({
       "deny": "allow",
       "allow": "false"
     }[permPermission];
+
+    var buttonAction;
+    if (permissionObject) {
+      buttonAction = this.removePerm(permName, permissionObject);
+    } else {
+      buttonAction = this.setPerm(permName);
+    }
     return (
         <div className='k-col-2-nopadd'>
-          <button className={btnCls} onClick={this.setPerm(permName, oppositePerm)} data-permission-name={permName}>
+          <button className={btnCls} onClick={buttonAction} data-permission-name={permName}>
             {permName}
           </button>
         </div>
@@ -3182,12 +3212,12 @@ var UserPermDiv = React.createClass({
   render () {
     var hasAnyPerms = false;
     var cans = this.props.can;
-    var availPerms = ['view', 'change', 'share'].map((permName) => {
+    var availPerms = ['view', 'change'].map((permName) => {
       if ( permName in cans ) {
         if (cans[permName].deny) {
-          return [permName, "deny"];
+          return [permName, "deny", cans[permName]];
         } else if (cans[permName]) {
-          return [permName, "allow"];
+          return [permName, "allow", cans[permName]];
         }
       }
       return [permName, "false"];
