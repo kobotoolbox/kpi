@@ -297,7 +297,7 @@ class AssetListSerializer(AssetSerializer):
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     assets = serializers.HyperlinkedRelatedField(many=True,
-                 view_name='asset-detail', read_only=True)
+                 view_name='asset-detail', read_only=True, lookup_field='uid')
 
     class Meta:
         model = User
