@@ -205,7 +205,8 @@ class ObjectPermission(models.Model):
     # so duplicate the content_type field here.
     content_type = models.ForeignKey(ContentType)
     content_object = GenericForeignKey('content_type', 'object_id')
-    uid = models.CharField(max_length=OBJECT_PERMISSION_UID_LENGTH, default='')
+    uid = models.CharField(
+        max_length=OBJECT_PERMISSION_UID_LENGTH, default='', blank=True)
     objects = ObjectPermissionManager()
 
     @property
@@ -552,7 +553,7 @@ class ObjectPermissionMixin(object):
                 return False
         return result
 
-    def remove_perm(self, user_obj, perm):
+    def remove_perm(self, user_obj, perm, defer_recalc=False):
         ''' Revoke perm on this object from user_obj. May delete granted
         permissions or add deny permissions as appropriate:
         Current access      Action
@@ -579,6 +580,10 @@ class ObjectPermissionMixin(object):
         )
         direct_permissions = all_permissions.filter(inherited=False)
         inherited_permissions = all_permissions.filter(inherited=True)
+        # Revoking view implies revoking change
+        if codename.startswith('view_'):
+            change_codename = re.sub('^view_', 'change_', codename)
+            self.remove_perm(user_obj, change_codename, defer_recalc=True)
         # Delete directly assigned permissions, if any
         direct_permissions.delete()
         if inherited_permissions.exists():
@@ -586,6 +591,10 @@ class ObjectPermissionMixin(object):
             inherited_permissions.delete()
             # Add a deny permission to block future inheritance
             self.assign_perm(user_obj, perm, deny=True, defer_recalc=True)
+        # We might have been called by ourself to assign a related
+        # permission. In that case, don't recalculate here.
+        if defer_recalc:
+            return
         # Recalculate all descendants, re-fetching ourself first to guard
         # against stale MPTT values
         fresh_self = type(self).objects.get(pk=self.pk)

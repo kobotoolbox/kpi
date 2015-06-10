@@ -102,7 +102,10 @@ class ObjectPermissionViewSet(
         affected_object = instance.content_object
         if not self._requesting_user_can_share(affected_object):
             raise exceptions.PermissionDenied()
-        instance.delete()
+        instance.content_object.remove_perm(
+            instance.user,
+            instance.permission.codename
+        )
 
 
 class CollectionViewSet(viewsets.ModelViewSet):
