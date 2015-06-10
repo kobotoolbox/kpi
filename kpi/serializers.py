@@ -181,8 +181,10 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
         )
 
     def create(self, validated_data):
-        validated_data['inherited'] = False
-        return super(ObjectPermissionSerializer, self).create(validated_data)
+        content_object = validated_data['content_object']
+        user = validated_data['user']
+        perm = validated_data['permission'].codename
+        return content_object.assign_perm(user, perm)
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username',
