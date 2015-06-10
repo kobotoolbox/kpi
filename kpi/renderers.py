@@ -35,12 +35,15 @@ class XlsRenderer(renderers.BaseRenderer):
     format = 'xls'
 
     def render(self, data, media_type=None, renderer_context=None):
+        '''
+        Renderers cannot set headers on the response
+        (https://github.com/tomchristie/django-rest-framework/issues/1041).
+        "The method should return a bytestring, which will be used as the body
+        of the HTTP Response"
+        (http://www.django-rest-framework.org/api-guide/renderers/#custom-renderers).
+        '''
         asset = renderer_context['view'].get_object()
-        xls_io = asset.to_xls_io()
-        resp = StreamingHttpResponse(xls_io, content_type='application/vnd.ms-excel; charset=utf-8')
-        # why is this not allowing the filename to be set?
-        resp['Content-Disposition'] = 'attachment; filename=%s.xls' % asset.uid
-        return resp
+        return asset.to_xls_io()
 
 class EnketoPreviewLinkRenderer(renderers.BaseRenderer):
     media_type = 'text/plain'

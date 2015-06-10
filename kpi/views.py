@@ -266,5 +266,15 @@ class AssetViewSet(viewsets.ModelViewSet):
             user = get_anonymous_user()
         serializer.save(owner=user)
 
+    def finalize_response(self, request, response, *args, **kwargs):
+        ''' Manipulate the headers as appropriate for the requested format.
+        See https://github.com/tomchristie/django-rest-framework/issues/1041#issuecomment-22709658. '''
+        if request.accepted_renderer.format == 'xls':
+            response[
+                'Content-Disposition'
+            ] = 'attachment; filename={}.xls'.format(self.get_object().uid)
+        return super(AssetViewSet, self).finalize_response(
+            request, response, *args, **kwargs)
+
 def _wrap_html_pre(content):
     return "<!doctype html><html><body><code><pre>%s</pre></code></body></html>" % content
