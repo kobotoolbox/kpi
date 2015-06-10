@@ -36,11 +36,7 @@ class XlsRenderer(renderers.BaseRenderer):
 
     def render(self, data, media_type=None, renderer_context=None):
         asset = renderer_context['view'].get_object()
-        xls_io = asset.to_xls_io()
-        resp = StreamingHttpResponse(xls_io, content_type='application/vnd.ms-excel; charset=utf-8')
-        # why is this not allowing the filename to be set?
-        resp['Content-Disposition'] = 'attachment; filename=%s.xls' % asset.uid
-        return resp
+        return asset.to_xls_io()
 
 class EnketoPreviewLinkRenderer(renderers.BaseRenderer):
     media_type = 'text/plain'
