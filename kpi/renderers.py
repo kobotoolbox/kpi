@@ -35,13 +35,6 @@ class XlsRenderer(renderers.BaseRenderer):
     format = 'xls'
 
     def render(self, data, media_type=None, renderer_context=None):
-        '''
-        Renderers cannot set headers on the response
-        (https://github.com/tomchristie/django-rest-framework/issues/1041).
-        "The method should return a bytestring, which will be used as the body
-        of the HTTP Response"
-        (http://www.django-rest-framework.org/api-guide/renderers/#custom-renderers).
-        '''
         asset = renderer_context['view'].get_object()
         return asset.to_xls_io()
 
