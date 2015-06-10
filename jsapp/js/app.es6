@@ -202,7 +202,7 @@ var MeViewer = React.createClass({
     return <div className='a pull-right'>{content}</div>;
   }
 });
-
+/*
 class AssetCollectionsContainer extends React.Component {
   render () {
     var rows;
@@ -235,6 +235,7 @@ class AssetCollectionsContainer extends React.Component {
       )
   }
 }
+*/
 
 class AssetsTable extends React.Component {
   render () {
@@ -383,49 +384,49 @@ class PermissionUserEntry extends React.Component {
   }
 }
 
-class PermissionsEditor extends React.Component {
-  constructor () {
-    super();
-    this.state = {
-      expanded: false
-    }
-  }
+// class PermissionsEditor extends React.Component {
+//   constructor () {
+//     super();
+//     this.state = {
+//       expanded: false
+//     }
+//   }
 
-  toggleExpand () {
-    if (this.state.expanded) {
-      this.setState({expanded: false});
-    } else {
-      this.setState({expanded: true});
-    }
-  }
+//   toggleExpand () {
+//     if (this.state.expanded) {
+//       this.setState({expanded: false});
+//     } else {
+//       this.setState({expanded: true});
+//     }
+//   }
 
-  unfocus () {
-    this.setState({
-      expanded: false
-    });
-  }
+//   unfocus () {
+//     this.setState({
+//       expanded: false
+//     });
+//   }
 
-  render () {
-    var user_count = this.props.perms.length;
-    var isEmpty = user_count === 0;
-    var icon, icon_classes;
-    var klasses = classNames("permissions-editor", {
-      "permissions-editor--unshared": !!isEmpty
-    });
+//   render () {
+//     var user_count = this.props.perms.length;
+//     var isEmpty = user_count === 0;
+//     var icon, icon_classes;
+//     var klasses = classNames("permissions-editor", {
+//       "permissions-editor--unshared": !!isEmpty
+//     });
 
-    icon_classes = classNames("permissions-editor__icon", "fa", "fa-fw",
-      !!isEmpty ? "fa-lock" : "fa-users"
-      )
+//     icon_classes = classNames("permissions-editor__icon", "fa", "fa-fw",
+//       !!isEmpty ? "fa-lock" : "fa-users"
+//       )
 
     
-    return (
-        <div className={klasses}>
-          <i className={icon_classes} onClick={this.toggleExpand.bind(this)} />
-          {user_count}
-        </div>
-      );
-  }
-}
+//     return (
+//         <div className={klasses}>
+//           <i className={icon_classes} onClick={this.toggleExpand.bind(this)} />
+//           {user_count}
+//         </div>
+//       );
+//   }
+// }
 
 var anonUsername = 'AnonymousUser';
 function getAnonymousUserPermission(permissions) {
@@ -473,54 +474,54 @@ class MomentTime extends React.Component {
   }
 }
 
-var AssetCollectionRow = React.createClass({
-  // mixins: [Reflux.connect(sessionStore, "currentUsername")],
-  getInitialState () {
-    return {
-      permissionsObject: {}
-    };
-  },
-  render () {
-    var perm = parsePermissions(this.props.owner, this.props.permissions);
-    var isAsset = this.props.objectType === "asset";
-    let assetid = this.props.url.match(/\/(\w+)\/$/)[1];
-    var currentUsername = sessionStore.currentAccount && sessionStore.currentAccount.username
-    var selfOwned = this.props.owner__username == currentUsername;
-    var icon_stack;
-    if (isAsset) {
-      icon_stack = icons.large.asset;
-    } else {
-      icon_stack = icons.large.collection;
-    }
+// var AssetCollectionRow = React.createClass({
+//   // mixins: [Reflux.connect(sessionStore, "currentUsername")],
+//   getInitialState () {
+//     return {
+//       permissionsObject: {}
+//     };
+//   },
+//   render () {
+//     var perm = parsePermissions(this.props.owner, this.props.permissions);
+//     var isAsset = this.props.objectType === "asset";
+//     let assetid = this.props.url.match(/\/(\w+)\/$/)[1];
+//     var currentUsername = sessionStore.currentAccount && sessionStore.currentAccount.username
+//     var selfOwned = this.props.owner__username == currentUsername;
+//     var icon_stack;
+//     if (isAsset) {
+//       icon_stack = icons.large.asset;
+//     } else {
+//       icon_stack = icons.large.collection;
+//     }
 
-    return (
-        <tr className="assetcollection__row">
-          <td className="text-center asset-icon-box">
-            {icon_stack}
-          </td>
-          <td>
-            <Link to="form-view" params={{ assetid: assetid }}>
-              {this.props.name || t('untitled form')}
-            </Link>
-          </td>
-          <td>
-            {
-              selfOwned ?
-                '' :
-                <UserProfileLink icon='user' iconBefore='true' username={this.props.owner__username} />
-            }
-          </td>
-          <td>
-            {formatTime(this.props.date_modified)}
-          </td>
-          <td>
-            <PermissionsEditor perms={perm} />
-          </td>
-        </tr>
-      )
-  }
-});
-
+//     return (
+//         <tr className="assetcollection__row">
+//           <td className="text-center asset-icon-box">
+//             {icon_stack}
+//           </td>
+//           <td>
+//             <Link to="form-edit" params={{ assetid: assetid }}>
+//               {this.props.name || t('untitled form')}
+//             </Link>
+//           </td>
+//           <td>
+//             {
+//               selfOwned ?
+//                 '' :
+//                 <UserProfileLink icon='user' iconBefore='true' username={this.props.owner__username} />
+//             }
+//           </td>
+//           <td>
+//             {formatTime(this.props.date_modified)}
+//           </td>
+//           <td>
+//             <PermissionsEditor perms={perm} />
+//           </td>
+//         </tr>
+//       )
+//   }
+// });
+/*
 class AssetCollectionPlaceholder extends React.Component {
   render () {
     var icon,
@@ -546,6 +547,7 @@ class AssetCollectionPlaceholder extends React.Component {
       )
   }
 }
+*/
 
 var BgTopPanel = React.createClass({
   render () {
@@ -625,6 +627,7 @@ var App = React.createClass({
   }
 });
 
+/*
 class PublicContentBox extends React.Component {
   render () {
     return (
@@ -634,7 +637,6 @@ class PublicContentBox extends React.Component {
       );
   }
 }
-
 class ContentBox extends React.Component {
   render () {
     return (
@@ -645,7 +647,7 @@ class ContentBox extends React.Component {
         </div>
       )
   }
-}
+}*/
 
 class UserDropdown extends React.Component {
   logout (evt) {
@@ -758,7 +760,7 @@ class ItemDropdownItem extends React.Component {
   render () {
     return (
           <li>
-            <Link to="form-view"
+            <Link to="form-edit"
                   params={{assetid: this.props.uid}}>
               <i className={classNames('fa', 'fa-sm', this.props.faIcon)} />
               &nbsp;
@@ -1889,32 +1891,30 @@ var AssetRow = React.createClass({
     var currentUsername = sessionStore.currentAccount && sessionStore.currentAccount.username
     var selfOwned = this.props.owner__username == currentUsername;
     var perm = parsePermissions(this.props.owner, this.props.permissions);
-    var rowKls = classNames("list-group-item", "asset-row",
-            this.props.isSelected ? "asset-row--selected" : "")
+    var rowKls = classNames('list-group-item', 'asset-row', {
+                                'asset-row--selected': this.props.isSelected
+                              });
+          // <div to="form-edit" params={{assetid: this.props.uid}} onClick={this.clickAsset}>
     return (
         <li className={rowKls}>
-          <Link to="form-view" params={{assetid: this.props.uid}} onClick={this.clickAsset}>
-            <div className="pull-left">
-              {icon}
-            </div>
-            <div>
-              {this.props.name || t('no name')}
-              <br />
-              <span className="date date--modified">{formatTime(this.props.date_modified)}</span>
-            </div>
-            <div>
-              {
-                selfOwned ?
-                  '' :
-                  <UserProfileLink icon='user' iconBefore='true' username={this.props.owner__username} />
-              }
-            </div>
-            <div>
-              <PermissionsEditor perms={perm} />
-            </div>
-          </Link>
+          <div className="pull-left">
+            {icon}
+          </div>
+          <div>
+            {this.props.name || t('no name')}
+            <br />
+            <span className="date date--modified">{formatTime(this.props.date_modified)}</span>
+          </div>
+          <div>
+            {
+              selfOwned ?
+                '' :
+                <UserProfileLink icon='user' iconBefore='true' username={this.props.owner__username} />
+            }
+          </div>
         </li>
       );
+          // </Link>
   }
 })
 
@@ -1999,7 +1999,7 @@ var CollectionMixins = {
     if (assetIsSelected) {
       if (selectedAssetStore.asset.kind === "asset") {
         assetLink = (
-              <Link to="form-view" params={{assetid: selectedAssetStore.uid}} className={kls}>{t('view and edit')}</Link>
+              <Link to="form-edit" params={{assetid: selectedAssetStore.uid}} className={kls}>{t('view and edit')}</Link>
             );
       } else if (selectedAssetStore.asset.kind === "collection") {
         assetLink = (
@@ -2353,7 +2353,7 @@ class CollectionAssetItem extends React.Component {
 
     return (
         <li className="list-group-item">
-          <Link to="form-view" params={{assetid: asset.uid}}>
+          <Link to="form-edit" params={{assetid: asset.uid}}>
             {asset_icon} - {asset.name || <em>no name</em>}
           </Link>
         </li>
@@ -2510,12 +2510,11 @@ class UserProfileLink extends React.Component {
   }
 }
 
-// subclassed, shown
+// is subclassed, but should probably be a mixin
 var AssetCollectionBase = React.createClass({
   mixins: [
     Navigation,
     Reflux.connectFilter(assetStore, function(data){
-      log('ok asseet 1 AssetCollectionBase')
       return data[this.props.uid];
     }),
     React.addons.LinkedStateMixin
@@ -2552,7 +2551,7 @@ var AssetCollectionBase = React.createClass({
   },
   renderIcon (iconProps) {
     return (
-          <BigIcon to={'form-view'} params={{assetid: this.props.uid}} {...iconProps} />
+          <BigIcon to={'form-edit'} params={{assetid: this.props.uid}} {...iconProps} />
       );
   },
   renderCloseButton () {
@@ -2625,6 +2624,7 @@ var AssetCollectionBase = React.createClass({
   }
 });
 
+/* 
 class OriginalCollectionPage extends AssetCollectionBase {
   renderButtons () {
     return (
@@ -2648,6 +2648,7 @@ class OriginalCollectionPage extends AssetCollectionBase {
       );
   }
 }
+*/
 
 var SurveyRow = React.createClass({
   renderNote () {
@@ -2729,7 +2730,7 @@ var SurveyPreview = React.createClass({
 class EditButton extends React.Component {
   render () {
     return <div className="btn-group">
-              <Link to="form-view"
+              <Link to="form-edit"
                       params={{assetid: this.props.uid}}
                       className="btn btn-default"
                       data-toggle="tooltip"
@@ -3089,7 +3090,7 @@ var FormSharing = React.createClass({
   },
   routeBack () {
     var params = this.context.router.getCurrentParams();
-    this.transitionTo('form-view', {assetid: params.assetid});
+    this.transitionTo('form-edit', {assetid: params.assetid});
   },
   userExistsStoreChange (checked, result) {
     var inpVal = this.usernameFieldValue();
@@ -3133,7 +3134,7 @@ var FormSharing = React.createClass({
       actions.permissions.assignPerm({
         username: username,
         uid: this.props.params.assetid,
-        kind: this.props.kind,
+        kind: this.state.asset.kind,
         objectUrl: this.props.objectUrl,
         role: 'view'
       });
@@ -3816,7 +3817,7 @@ var FormLanding = React.createClass({
         <div className="k-form-actions" style={{marginLeft:-10}}>
           <div className='btn-toolbar'>
             <div className='btn-group'>
-              <Link to="form-view" params={{assetid: this.props.params.assetid}} className={saveBtnKls}>
+              <Link to="form-landing" params={{assetid: this.props.params.assetid}} className={saveBtnKls}>
                 <i className={classNames('fa', 'fa-fw', 'fa-sm', 'fa-pencil')} />
               </Link>
               <Link to="form-preview-enketo" params={{assetid: this.props.params.assetid}} className={saveBtnKls}>
@@ -4213,7 +4214,7 @@ var NewForm = React.createClass({
     });
   },
   creatingResourceCompleted (data) {
-    this.transitionTo("form-view", { assetid: data.uid });
+    this.transitionTo("form-edit", { assetid: data.uid });
   },
   componentDidMount () {
     actions.resources.createResource.listen(this.creatingResource);
@@ -4272,7 +4273,7 @@ var routes = (
         <Route name="form-preview-enketo" path="preview" handler={FormEnketoPreview} />
         <Route name="form-preview-xform" path="xform" handler={FormPreviewXform} />
         <Route name="form-preview-xls" path="xls" handler={FormPreviewXls} />
-        <Route name="form-view" path="edit" handler={FormPage} />
+        <Route name="form-edit" path="edit" handler={FormPage} />
         <DefaultRoute handler={FormLanding} />
       </Route>
 
