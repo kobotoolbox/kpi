@@ -25,6 +25,8 @@ import stores from './stores';
 import Dropzone from './libs/dropzone';
 import icons from './icons';
 import cookie from 'react-cookie';
+import bem from './bem';
+
 var ui = {};
 
 import Favicon from 'react-favicon';
@@ -235,7 +237,6 @@ class AssetCollectionsContainer extends React.Component {
       )
   }
 }
-*/
 
 class AssetsTable extends React.Component {
   render () {
@@ -254,6 +255,7 @@ class AssetsTable extends React.Component {
   }
 }
 
+*/
 
 // class SearchForm extends React.Component {
 //   render () {
@@ -273,6 +275,7 @@ function notify(msg, atype='success') {
   alertify.notify(msg, atype);
 }
 
+/*
 class PermissionUserSearch extends React.Component {
   onKeyUp (evt) {
     if (evt.target.value.length > 3) {
@@ -285,7 +288,7 @@ class PermissionUserSearch extends React.Component {
         <td colSpan="3">
           <input type="text"
                 placeholder={t('add user')}
-                onKeyUp={this.onKeyUp.bind(this)}
+                onChange={this.onKeyUp.bind(this)}
           />
         </td>
       </tr>
@@ -323,7 +326,7 @@ class PermissionUserEntry extends React.Component {
     var perms = {};
     var perm, permId;
     this.props.permissions.forEach((perm, i)=>{
-      perms[perm.permission.match(/(\w+)_.*/)[1]] = true;
+      perms[perm.permission.match(/(\w+)_.* /)[1]] = true;
     });
     var viewButton;
     var editButton;
@@ -383,6 +386,7 @@ class PermissionUserEntry extends React.Component {
       );
   }
 }
+*/
 
 // class PermissionsEditor extends React.Component {
 //   constructor () {
@@ -500,7 +504,7 @@ class MomentTime extends React.Component {
 //             {icon_stack}
 //           </td>
 //           <td>
-//             <Link to="form-edit" params={{ assetid: assetid }}>
+//             <Link to='form-edit' params={{ assetid: assetid }}>
 //               {this.props.name || t('untitled form')}
 //             </Link>
 //           </td>
@@ -760,7 +764,7 @@ class ItemDropdownItem extends React.Component {
   render () {
     return (
           <li>
-            <Link to="form-edit"
+            <Link to='form-edit'
                   params={{assetid: this.props.uid}}>
               <i className={classNames('fa', 'fa-sm', this.props.faIcon)} />
               &nbsp;
@@ -1875,46 +1879,111 @@ var selectedAssetStore = Reflux.createStore({
   }
 });
 
+
+var ActionLink = React.createClass({
+  render () {
+    return <bem.AssetRow__actionIcon {...this.props} />
+  }
+})
+var ActionButton = React.createClass({
+  render () {
+    if (this.props.action && !this.props.disabled) {
+      return (
+        <bem.AssetRow__actionIcon
+            m={this.props.m}
+            onClick={this.props.action}>
+          {this.props.children}
+        </bem.AssetRow__actionIcon>
+        );
+    } else {
+      return (
+        <bem.AssetRow__actionIcon
+            m={[this.props.m, this.props.disabled ? 'disabled' : null]}
+            onClick={this.props.action}>
+          {this.props.children}
+        </bem.AssetRow__actionIcon>
+        );
+    }
+  }
+});
+
 var AssetRow = React.createClass({
+  mixins: [
+    Navigation
+  ],
   clickAsset (evt) {
     evt.preventDefault();
     selectedAssetStore.toggleSelect(this.props.uid);
     this.props.onToggleSelect();
   },
+  clickView () {
+    this.transitionTo('form-landing', {assetid: this.props.uid})
+  },
+  clickEdit () {
+    this.transitionTo('form-edit', {assetid: this.props.uid})
+  },
+  clickPreview () {
+    this.transitionTo('form-preview-enketo', {assetid: this.props.uid})
+  },
+  clickDownload () {
+    this.transitionTo('form-landing', {assetid: this.props.uid})
+  },
+  clickDelete () {
+    this.transitionTo('form-landing', {assetid: this.props.uid})
+  },
   render () {
-    var icon = <StackedIcon size='lg' frontIcon='question' />;
+    var icon = <i className="fa fa-icon fa-question" />;
     if (this.props.kind === 'collection') {
-      icon = <StackedIcon className='icon--collection' size='2x' frontIcon='folder-o' />;
+      icon = <i className="fa fa-icon fa-folder-o" />;
     } else if(this.props.kind === 'asset') {
-      icon = <StackedIcon className='icon--asset' size='2x' frontIcon='file-o' />;
+      icon = <i className="fa fa-icon fa-file-o" />;
     }
     var currentUsername = sessionStore.currentAccount && sessionStore.currentAccount.username
     var selfOwned = this.props.owner__username == currentUsername;
     var perm = parsePermissions(this.props.owner, this.props.permissions);
-    var rowKls = classNames('list-group-item', 'asset-row', {
+    var rowKls = classNames('asset-row', 'clearfix', {
                                 'asset-row--selected': this.props.isSelected
                               });
-          // <div to="form-edit" params={{assetid: this.props.uid}} onClick={this.clickAsset}>
+          // <div to='form-edit' params={{assetid: this.props.uid}} onClick={}>
+          // <div className="asset-row__icon">
+          //   {icon}
+          // </div>
     return (
-        <li className={rowKls}>
-          <div className="pull-left">
+        <bem.AssetRow classNames={{ 'asset-row--selected': this.props.isSelected, clearfix: true }}
+                        onClick={this.clickAsset}>
+          <bem.AssetRow__cell m='name'>
             {icon}
-          </div>
-          <div>
             {this.props.name || t('no name')}
-            <br />
+          </bem.AssetRow__cell>
+          <bem.AssetRow__cell m='date-modified'>
             <span className="date date--modified">{formatTime(this.props.date_modified)}</span>
-          </div>
-          <div>
+          </bem.AssetRow__cell>
+          <bem.AssetRow__cell m='userlink'>
             {
               selfOwned ?
                 '' :
                 <UserProfileLink icon='user' iconBefore='true' username={this.props.owner__username} />
             }
-          </div>
-        </li>
+          </bem.AssetRow__cell>
+          <bem.AssetRow__cell m='action-icons'>
+            <ActionButton m='view' action={this.clickView} disabled={!this.props.isSelected}>
+              <i className="fa fa-icon fa-info" />
+            </ActionButton>
+            <ActionButton m='preview' action={this.clickPreview} disabled={!this.props.isSelected}>
+              <i className="fa fa-icon fa-eye" />
+            </ActionButton>
+            <ActionButton m='edit' action={this.clickView} disabled={!this.props.isSelected}>
+              <i className="fa fa-icon fa-pencil" />
+            </ActionButton>
+            <ActionButton m='download' action={this.clickDownload} disabled={!this.props.isSelected}>
+              <i className="fa fa-icon fa-save" />
+            </ActionButton>
+            <ActionButton m='delete' action={this.clickDelete} disabled={!this.props.isSelected}>
+              <i className="fa fa-icon fa-trash-o" />
+            </ActionButton>
+          </bem.AssetRow__cell>
+        </bem.AssetRow>
       );
-          // </Link>
   }
 })
 
@@ -1999,7 +2068,7 @@ var CollectionMixins = {
     if (assetIsSelected) {
       if (selectedAssetStore.asset.kind === "asset") {
         assetLink = (
-              <Link to="form-edit" params={{assetid: selectedAssetStore.uid}} className={kls}>{t('view and edit')}</Link>
+              <Link to='form-edit' params={{assetid: selectedAssetStore.uid}} className={kls}>{t('view and edit')}</Link>
             );
       } else if (selectedAssetStore.asset.kind === "collection") {
         assetLink = (
@@ -2246,17 +2315,17 @@ var CollectionList = React.createClass({
 //   }
 // });
 
-class Libraries extends React.Component {
-  render () {
-    return (
-      <Panel className="k-div--libraries">
-        <h1 className="page-header">
-          Libraries
-        </h1>
-      </Panel>
-      );
-  }
-}
+// class Libraries extends React.Component {
+//   render () {
+//     return (
+//       <Panel className="k-div--libraries">
+//         <h1 className="page-header">
+//           Libraries
+//         </h1>
+//       </Panel>
+//       );
+//   }
+// }
 
 // <BuilderBar />
 class Public extends React.Component {
@@ -2353,7 +2422,7 @@ class CollectionAssetItem extends React.Component {
 
     return (
         <li className="list-group-item">
-          <Link to="form-edit" params={{assetid: asset.uid}}>
+          <Link to='form-edit' params={{assetid: asset.uid}}>
             {asset_icon} - {asset.name || <em>no name</em>}
           </Link>
         </li>
@@ -2730,7 +2799,7 @@ var SurveyPreview = React.createClass({
 class EditButton extends React.Component {
   render () {
     return <div className="btn-group">
-              <Link to="form-edit"
+              <Link to='form-edit'
                       params={{assetid: this.props.uid}}
                       className="btn btn-default"
                       data-toggle="tooltip"
@@ -3028,7 +3097,6 @@ var userExistsStore = Reflux.createStore({
     this.trigger(this.checked, username)
   },
   usernameDoesntExist (username) {
-    log('failey');
     this.checked[username] = false;
     this.trigger(this.checked, username)
   }
@@ -3101,8 +3169,11 @@ var FormSharing = React.createClass({
       })
     }
   },
+  usernameField () {
+    return this.refs.usernameInput.refs.inp.getDOMNode();
+  },
   usernameFieldValue () {
-    return this.refs.usernameInput.refs.inp.getDOMNode().value;
+    return this.usernameField().value;
   },
   usernameCheck (evt) {
     var username = evt.target.value;
@@ -3127,7 +3198,7 @@ var FormSharing = React.createClass({
       userInputStatus: false
     }
   },
-  userFormSubmit (evt) {
+  addInitialUserPermission (evt) {
     evt.preventDefault();
     var username = this.usernameFieldValue();
     if (userExistsStore.checkUsername(username)) {
@@ -3138,6 +3209,7 @@ var FormSharing = React.createClass({
         objectUrl: this.props.objectUrl,
         role: 'view'
       });
+      this.usernameField().value="";
     }
   },
   render () {
@@ -3173,8 +3245,9 @@ var FormSharing = React.createClass({
       return <p>loading</p>
     }
     return (
-      <Modal open onClose={this.routeBack} title={t('manage sharing settings: ') + this.state.asset.name }
-                  small={t('note: this does not control permissions to the data collected by projects')}>
+      <Modal open onClose={this.routeBack} title={this.state.asset.name}
+                  small={t('manage sharing permissions')}
+                  label={t('note: this does not control permissions to the data collected by projects')}>
         <ModalBody>
           <Panel className="k-div--sharing">
             {t('owner')}
@@ -3184,10 +3257,10 @@ var FormSharing = React.createClass({
             <UserProfileLink username={'tinok4'} />
           </Panel>
           <Panel className="k-div--sharing2">
-            <form onSubmit={this.userFormSubmit}>
+            <form onSubmit={this.addInitialUserPermission}>
               <div className='col-sm-9'>
                 <div className={userInputKls}>
-                  <ui.SmallInputBox ref='usernameInput' placeholder={t('username')} onKeyUp={this.usernameCheck} />
+                  <ui.SmallInputBox ref='usernameInput' placeholder={t('share with username')} onKeyUp={this.usernameCheck} />
                 </div>
               </div>
               <div className='col-sm-3'>
@@ -3285,7 +3358,7 @@ var UserPermDiv = React.createClass({
     }
     return (
       <div className='row'>
-        <div className='col-md-5'>
+        <div className='col-md-6'>
           <UserProfileLink icon={this.props.icon || 'user-o'} iconBefore='true' username={this.props.username} />
         </div>
         {availPerms.map(this.renderPerm)}
@@ -3817,7 +3890,7 @@ var FormLanding = React.createClass({
         <div className="k-form-actions" style={{marginLeft:-10}}>
           <div className='btn-toolbar'>
             <div className='btn-group'>
-              <Link to="form-landing" params={{assetid: this.props.params.assetid}} className={saveBtnKls}>
+              <Link to='form-edit' params={{assetid: this.props.params.assetid}} className={saveBtnKls}>
                 <i className={classNames('fa', 'fa-fw', 'fa-sm', 'fa-pencil')} />
               </Link>
               <Link to="form-preview-enketo" params={{assetid: this.props.params.assetid}} className={saveBtnKls}>
@@ -4214,7 +4287,7 @@ var NewForm = React.createClass({
     });
   },
   creatingResourceCompleted (data) {
-    this.transitionTo("form-edit", { assetid: data.uid });
+    this.transitionTo('form-edit', { assetid: data.uid });
   },
   componentDidMount () {
     actions.resources.createResource.listen(this.creatingResource);
@@ -4273,7 +4346,7 @@ var routes = (
         <Route name="form-preview-enketo" path="preview" handler={FormEnketoPreview} />
         <Route name="form-preview-xform" path="xform" handler={FormPreviewXform} />
         <Route name="form-preview-xls" path="xls" handler={FormPreviewXls} />
-        <Route name="form-edit" path="edit" handler={FormPage} />
+        <Route name='form-edit' path="edit" handler={FormPage} />
         <DefaultRoute handler={FormLanding} />
       </Route>
 
@@ -4299,9 +4372,6 @@ var routes = (
 
 export function runRoutes(el) {
   Router.run(routes, function (Handler, state) {
-    // log(state)
-    // --> {"path":"/","action":null,"pathname":"/","routes": [...],"params":{},"query":{}}
-    window._state = state;
     React.render(<Handler />, el);
   });
 };

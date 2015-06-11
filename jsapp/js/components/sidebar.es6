@@ -92,8 +92,7 @@ var RecentHistory = React.createClass({
   ],
   getInitialState () {
     return {
-      items: [],
-      expanded: false
+      items: stores.history.history
     };
   },
   componentDidMount () {
@@ -107,7 +106,7 @@ var RecentHistory = React.createClass({
   renderLink (item) {
     return (
         <li className="k-sidebar-smallitems__item">
-          <Link to='form-view' params={{assetid: item.uid}}>
+          <Link to='form-landing' params={{assetid: item.uid}}>
             {icons.asset()}
             <span className='name'>
               {item.name}
@@ -131,8 +130,23 @@ var RecentHistory = React.createClass({
 })
 
 export class Sidebar extends React.Component {
+  constructor () {
+    super();
+    this.state = {
+      showRecent: true
+    }
+  }
   logout () {
     actions.auth.logout();
+  }
+  toggleRecent () {
+    this.setState({
+      showRecent: !this.state.showRecent
+    });
+  }
+  broadToggleIntent (evt) {
+    evt.currentTarget == evt.target && this.props.toggleIntentOpen(evt)
+    return;
   }
   render () {
     var title = (
@@ -142,16 +156,16 @@ export class Sidebar extends React.Component {
         );
     return (
         <div className="sidebar-wrapper">
-          <ul className="sidebar" onClick={ (evt)=> {
-                evt.currentTarget == evt.target && this.props.toggleIntentOpen(evt);
-                return;
-              }
-            }>
+          <ul className="sidebar" onClick={this.broadToggleIntent.bind(this)}>
             <SidebarMain onClick={this.props.toggleIntentOpen} label={title} />
+            <SidebarTitle label={t('account')} />
+            <hr />
             <SidebarTitle label={t('drafts in progress')} />
             <SidebarLink label={t('forms')} linkto='forms' fa-icon="files-o" />
-            <SidebarLink label={t('recent')} linkto='forms' fa-icon="clock-o" />
-            <RecentHistory visible={this.props.isOpen} />
+            <SidebarLink label={t('recent')} onClick={this.toggleRecent.bind(this)} fa-icon="clock-o" />
+            { this.state.showRecent ?
+              <RecentHistory visible={this.props.isOpen} />
+            : null}
             <SidebarTitle label={t('deployed projects')} />
             <SidebarLink label={t('projects')} active='true' href={t('/')} fa-icon="globe" />
             <SidebarTitle label={t('account actions')} />

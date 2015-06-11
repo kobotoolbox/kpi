@@ -8,7 +8,7 @@
 $muiLight: #616161;
 $muiDark: #9D9D9D;
 $muiBlue: #526CFD;
-$highlightedBarColor: rgb(196, 207, 216);
+$highlightedBarColor: #F5F8FA;
 $saveNeededColor: #9c27b0;
 $assetCornerIconWidth: 45px;
 
@@ -178,6 +178,9 @@ $assetNavFooterHeight: 60px;
   box-shadow:         5px 0px -5px 0px rgba(50, 50, 50, 0.07);
 }
 .sidebar {
+  hr {
+    display: none;
+  }
   .k-form-header-row {
     padding-right: 125px;
     position: relative;
@@ -451,3 +454,81 @@ from SO
     100% {-webkit-transform: scale(1.2, 1.2); opacity: 0.0;}
 }
 */
+.asset-row__action-icon {
+  border-style: solid;
+  border-width: 3px;
+  width: 30px;
+  height: 30px;
+  display: inline-block;
+  margin-right: 4px;
+  text-align: center;
+  line-height: 27px;
+  border-radius: 15px;
+}
+
+$c1: #7B1FA2;
+$c2: #009688;
+$c3: #FFC107;
+$c4: #2196F3;
+$col-delete: #FF5722;
+$col-download: #4CAF50;
+$c7: #FF4081;
+$c8: #00BCD4;
+
+@mixin bt-theme($col) {
+  .asset-row:not(.asset-row--selected) & {
+    // border-color: rgba($col, 0.2);
+    // background-color: rgba($col, 0.05);
+    border-color: rgba(223, 223, 223, 0.8);
+    background-color: rgba(223, 223, 223, 0.3);
+
+    > * {
+      opacity: 0.1;
+    }
+  }
+  .asset-row--selected & {
+    border-color: rgba($col, 0.7);
+    background-color: rgba($col, 0.05);
+    cursor: pointer;
+    > * {
+      color: darken($col, 5%);
+    }
+  }
+}
+.asset-row {
+  list-style-type: none;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+}
+.asset-row__cell {
+  width: 10%;
+  float: left;
+  padding: 6px 3px;
+}
+
+.asset-row__action-icon--view {
+  @include bt-theme($c1);
+}
+.asset-row__action-icon--edit {
+  @include bt-theme($c2);
+}
+.asset-row__action-icon--preview {
+  @include bt-theme($c3);
+}
+.asset-row__action-icon--clone {
+  @include bt-theme($c4);
+}
+.asset-row__action-icon--delete {
+  @include bt-theme($col-delete);
+}
+.asset-row__action-icon--download {
+  @include bt-theme($col-download);
+}
+%rowcell {
+  width: 24%;
+  float: left;
+  margin-left: 1%;
+}
+.asset-row__cell {
+  @extend %rowcell
+}
