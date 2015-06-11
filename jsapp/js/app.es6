@@ -1,7 +1,7 @@
 import {log, t} from './utils';
 var $ = require('jquery');
-window.jQuery = $;
-window.$ = $;
+// window.jQuery = $;
+// window.$ = $;
 require('jquery.scrollto');
 require('jquery-ui/sortable');
 var select2 = require('select2-browserify');
@@ -1607,7 +1607,11 @@ var AssetRow = React.createClass({
     this.props.onToggleSelect();
   },
   clickView () {
-    this.transitionTo('form-landing', {assetid: this.props.uid})
+    if (this.props.kind === 'collection') {
+      this.transitionTo('collection-page', {uid: this.props.uid})
+    } else if (this.props.kind === 'asset') {
+      this.transitionTo('form-landing', {assetid: this.props.uid})
+    }
   },
   clickEdit () {
     this.transitionTo('form-edit', {assetid: this.props.uid})
@@ -1655,23 +1659,38 @@ var AssetRow = React.createClass({
                 <UserProfileLink icon='user' iconBefore='true' username={this.props.owner__username} />
             }
           </bem.AssetRow__cell>
-          <bem.AssetRow__cell m='action-icons'>
-            <ActionButton m='view' action={this.clickView} disabled={!this.props.isSelected}>
-              <i className="fa fa-icon fa-info" />
-            </ActionButton>
-            <ActionButton m='preview' action={this.clickPreview} disabled={!this.props.isSelected}>
-              <i className="fa fa-icon fa-eye" />
-            </ActionButton>
-            <ActionButton m='edit' action={this.clickView} disabled={!this.props.isSelected}>
-              <i className="fa fa-icon fa-pencil" />
-            </ActionButton>
-            <ActionButton m='download' action={this.clickDownload} disabled={!this.props.isSelected}>
-              <i className="fa fa-icon fa-save" />
-            </ActionButton>
-            <ActionButton m='delete' action={this.clickDelete} disabled={!this.props.isSelected}>
-              <i className="fa fa-icon fa-trash-o" />
-            </ActionButton>
-          </bem.AssetRow__cell>
+          { this.props.kind === 'asset' ?
+            <bem.AssetRow__cell m={['action-icons', 'asset-action-icons']}>
+              <ActionButton m='view' action={this.clickView} disabled={!this.props.isSelected}>
+                <i className="fa fa-icon fa-info" />
+              </ActionButton>
+              <ActionButton m='preview' action={this.clickPreview} disabled={!this.props.isSelected}>
+                <i className="fa fa-icon fa-eye" />
+              </ActionButton>
+              <ActionButton m='edit' action={this.clickView} disabled={!this.props.isSelected}>
+                <i className="fa fa-icon fa-pencil" />
+              </ActionButton>
+              <ActionButton m='download' action={this.clickDownload} disabled={!this.props.isSelected}>
+                <i className="fa fa-icon fa-save" />
+              </ActionButton>
+              <ActionButton m='delete' action={this.clickDelete} disabled={!this.props.isSelected}>
+                <i className="fa fa-icon fa-trash-o" />
+              </ActionButton>
+            </bem.AssetRow__cell>
+           : null }
+          { this.props.kind === 'collection' ?
+            <bem.AssetRow__cell m={['action-icons', 'collection-action-icons']}>
+              <ActionButton m='view' action={this.clickView} disabled={!this.props.isSelected}>
+                <i className="fa fa-icon fa-info" />
+              </ActionButton>
+              <ActionButton m='download' action={this.clickDownload} disabled={!this.props.isSelected}>
+                <i className="fa fa-icon fa-save" />
+              </ActionButton>
+              <ActionButton m='delete' action={this.clickDelete} disabled={!this.props.isSelected}>
+                <i className="fa fa-icon fa-trash-o" />
+              </ActionButton>
+            </bem.AssetRow__cell>
+          : null }
         </bem.AssetRow>
       );
   }
