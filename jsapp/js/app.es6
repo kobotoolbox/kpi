@@ -13,9 +13,12 @@ var actions = require('./actions');
 // window.Backbone.$ = $
 // window.BackboneValidation = require('backbone-validation');
 
+import {dataDispatch} from './data';
+var sessionDispatch = dataDispatch;
+
 import React from 'react/addons';
 import Router from 'react-router';
-import {Sidebar} from './components/sidebar';
+import Sidebar from './components/sidebar';
 import TagsInput from 'react-tagsinput';
 import moment from 'moment';
 import classNames from 'classnames';
@@ -45,104 +48,6 @@ let Link = Router.Link;
 let Route = Router.Route;
 let RouteHandler = Router.RouteHandler;
 let NotFoundRoute = Router.NotFoundRoute;
-
-
-function changes(orig_obj, new_obj) {
-  var out = {},
-      any = false;
-  Object.keys(new_obj).forEach(function(key) {
-    if (orig_obj[key] !== new_obj[key]) {
-      out[key] = new_obj[key];
-      any = true;
-    }
-  });
-  if (!any) {
-    return false;
-  }
-  return out;
-}
-
-stores.pageState = Reflux.createStore({
-  init () {
-    this.state = {
-      bgTopPanelHeight: 60,
-      bgTopPanelFixed: false,
-      headerSearch: true,
-      assetNavPresent: false,
-      assetNavIsOpen: true,
-      assetNavIntentOpen: true,
-      sidebarIsOpen: true,
-      sidebarIntentOpen: true
-    }
-  },
-  setTopPanel (height, isFixed) {
-    var changed = changes(this.state, {
-      bgTopPanelHeight: height,
-      bgTopPanelFixed: isFixed
-    });
-    log('changeed ' , changed);
-    if (changed) {
-      assign(this.state, changed);
-      this.trigger(changed);
-    }
-  },
-  toggleSidebarIntentOpen () {
-    var newIntent = !this.state.sidebarIntentOpen,
-        isOpen = this.state.sidebarIsOpen,
-        changes = {
-          sidebarIntentOpen: newIntent
-        };
-    // xor
-    if ( (isOpen || newIntent) && !(isOpen && newIntent) ) {
-      changes.sidebarIsOpen = !isOpen;
-    }
-    assign(this.state, changes);
-    this.trigger(changes);
-  },
-  hideSidebar () {
-    var changes = {};
-    if (this.state.sidebarIsOpen) {
-      changes.sidebarIsOpen = false;
-      assign(this.state, changes)
-      this.trigger(changes);
-    }
-  },
-  showSidebar () {
-    var changes = {};
-    if (!this.state.sidebarIsOpen) {
-      changes.sidebarIsOpen = true;
-      assign(this.state, changes)
-      this.trigger(changes);
-    }
-  },
-  toggleAssetNavIntentOpen () {
-    var newIntent = !this.state.assetNavIntentOpen,
-        isOpen = this.state.assetNavIsOpen,
-        changes = {
-          assetNavIntentOpen: newIntent
-        };
-
-    // xor
-    if ( (isOpen || newIntent) && !(isOpen && newIntent) ) {
-      changes.assetNavIsOpen = !isOpen;
-    }
-    assign(this.state, changes);
-    this.trigger(changes);
-  },
-  setHeaderSearch (tf) {
-    var newVal = !!tf;
-    if (newVal !== this.state.headerSearch) {
-      this.state.headerSearch = !!tf;
-      var changes = {
-        headerSearch: this.state.headerSearch,
-        assetNavPresent: !this.state.headerSearch,
-        assetNavIsOpen: !this.state.headerSearch
-      };
-      assign(this.state, changes);
-      this.trigger(changes);
-    }
-  }
-});
 
 
 class SmallInputBox extends React.Component {
@@ -788,14 +693,14 @@ class ItemDropdownDivider extends React.Component {
   }
 }
 
-class LoginForm extends React.Component {
+var LoginForm = React.createClass({
   done (...args) {
     log(args, this)
-  }
+  },
 
   fail (...args) {
     log(args, this);
-  }
+  },
 
   handleSubmit (evt) {
     evt.preventDefault();
@@ -805,7 +710,7 @@ class LoginForm extends React.Component {
       username: username,
       password: password
     });
-  }
+  },
   render () {
     return (
       <div className="col-md-4 pull-right">
@@ -819,7 +724,7 @@ class LoginForm extends React.Component {
       </div>
       );
   }
-}
+});
 
 
 var LiLink = React.createClass({
@@ -836,24 +741,24 @@ var LiLink = React.createClass({
   }
 })
 
-class LiDropdown extends React.Component {
-  render () {
-    return (
-        <li className='dropdown'>
-          <a aria-expanded='false' role='button' data-toggle='dropdown' className='dropdown-toggle' href='#'>Dropdown <span className='caret'></span></a>
-          <ul role='menu' className='dropdown-menu'>
-            <LiLink>Action</LiLink>
-            <LiLink>Another action</LiLink>
-            <LiLink>Something else here</LiLink>
-            <li className='divider'></li>
-            <LiLink>Separated link</LiLink>
-            <li className='divider'></li>
-            <LiLink>One more separated link</LiLink>
-          </ul>
-        </li>
-      )
-  }
-}
+// class LiDropdown extends React.Component {
+//   render () {
+//     return (
+//         <li className='dropdown'>
+//           <a aria-expanded='false' role='button' data-toggle='dropdown' className='dropdown-toggle' href='#'>Dropdown <span className='caret'></span></a>
+//           <ul role='menu' className='dropdown-menu'>
+//             <LiLink>Action</LiLink>
+//             <LiLink>Another action</LiLink>
+//             <LiLink>Something else here</LiLink>
+//             <li className='divider'></li>
+//             <LiLink>Separated link</LiLink>
+//             <li className='divider'></li>
+//             <LiLink>One more separated link</LiLink>
+//           </ul>
+//         </li>
+//       )
+//   }
+// }
 
 actions.misc.checkUsername.listen(function(username){
   sessionDispatch.queryUserExistence(username)
@@ -964,153 +869,6 @@ var permissionStore = Reflux.createStore({
   }
 })
 
-var sessionDispatch;
-(function(){
-  var $ajax = (o)=> {
-    return $.ajax(assign({}, {dataType: 'json', method: 'GET'}, o));
-  };
-  const assetMapping = {
-    'a': 'assets',
-    'c': 'collections',
-    'p': 'permissions',
-  }
-  assign(this, {
-    selfProfile: ()=> $ajax({ url: '/me/' }),
-    queryUserExistence: (username)=> {
-      var d = new $.Deferred();
-      $ajax({ url: `/users/${username}/` })
-        .done(()=>{ d.resolve(username, true); })
-        .fail(()=>{ d.reject(username, false); });
-      return d.promise();
-    },
-    logout: ()=> {
-      var d = new $.Deferred();
-      $ajax({ url: '/api-auth/logout/' }).done(d.resolve).fail(function (resp, etype, emessage) {
-        // logout request wasn't successful, but may have logged the user out
-        // querying '/me/' can confirm if we have logged out.
-        sessionDispatch.selfProfile().done(function(data){
-          if (data.message == "user is not logged in") {
-            d.resolve(data);
-          } else {
-            d.fail(data);
-          }
-        }).fail(d.fail);
-      });
-      return d.promise();
-    },
-    listAllAssets () {
-      var d = new $.Deferred();
-      $.when($.getJSON('/assets/?parent='), $.getJSON('/collections/?parent=')).done(function(assetR, collectionR){
-        var assets = assetR[0],
-            collections = collectionR[0];
-        var r = {results:[]};
-        var pushItem = function (item){r.results.push(item)};
-        assets.results.forEach(pushItem);
-        collections.results.forEach(pushItem);
-        var sortAtt = 'date_modified'
-        r.results.sort(function(a,b){
-          var ad = a[sortAtt], bd = b[sortAtt];
-          return (ad === bd) ? 0 : ((ad > bd) ? -1 : 1);
-        });
-        d.resolve(r);
-      }).fail(d.fail);
-      return d.promise();
-    },
-    removePerm (permUrl) {
-      return $ajax({
-        method: 'DELETE',
-        url: permUrl
-      });
-    },
-    assignPerm (creds) {
-      // Do we already have these URLs stored somewhere?
-      var objectUrl = creds.objectUrl || `/${creds.kind}s/${creds.uid}/`;
-      var userUrl = `/users/${creds.username}/`;
-      var codename = `${creds.role}_${creds.kind}`;
-      return $ajax({
-        url: '/permissions/',
-        method: 'POST',
-        data: {
-          'user': userUrl,
-          'permission': codename,
-          'content_object': objectUrl
-        }
-      });
-    },
-    assignPublicPerm (params) {
-      params.username = 'AnonymousUser';
-      return sessionDispatch(params);
-    },
-    libraryDefaultSearch () {
-      var url = "/assets/?q=example";
-      return $.getJSON(url);
-    },
-    readCollection ({uid}) {
-      return $ajax({
-        url: `/collections/${uid}/`
-      })
-    },
-    deleteAsset ({uid}) {
-      return $ajax({
-        url: `/assets/${uid}/`,
-        method: 'DELETE'
-      });
-    },
-    getAssetContent ({id}) {
-      return $.getJSON(`/assets/${id}/content/`);
-    },
-    getAsset (params={}) {
-      if (params.url) {
-        return $.getJSON(params.url);
-      } else  {
-        return $.getJSON(`/assets/${params.id}/`);
-      }
-    },
-    searchAssets (queryString) {
-      return $ajax({
-        url: '/assets/',
-        data: {
-          q: queryString
-        }
-      });
-    },
-    createResource (details) {
-      return $ajax({
-        method: 'POST',
-        url: '/assets/',
-        data: details
-      });
-    },
-    patchAsset (uid, data) {
-      return $ajax({
-        url: `/assets/${uid}/`,
-        method: 'PATCH',
-        data: data
-      });
-    },
-    listTags () {
-      return $ajax({
-        url: `/tags/`,
-        method: 'GET'
-      });
-    },
-    getCollection ({id}) {
-      if (params.url) {
-        return $.getJSON(params.url);
-      } else  {
-        return $.getJSON(`/collections/${params.id}/`);
-      }
-    },
-    getResource ({id}) {
-      // how can we avoid pulling asset type from the 1st character of the uid?
-      var assetType = assetMapping[id[0]];
-      return $.getJSON(`/${assetType}/${id}/`);
-    },
-    login: (creds)=> {
-      return $ajax({ url: '/api-auth/login/?next=/me/', data: creds, method: 'POST'});
-    }
-  });
-}).call(sessionDispatch={});
 
 actions.auth.login.listen(function(creds){
   sessionDispatch.login(creds).done(function(){
@@ -1183,77 +941,9 @@ actions.resources.listAssets.listen(function(){
 // })
 
 
-var assetContentStore = Reflux.createStore({
-  init: function () {
-    this.data = {};
-    this.surveys = {};
-    this.listenTo(actions.resources.loadAssetContent.completed, this.onLoadAssetContentCompleted);
-  },
-  onLoadAssetContentCompleted: function(resp, req, jqxhr) {
-    this.data[resp.uid] = resp;
-    this.trigger(this.data, resp.uid);
-  },
-});
-
-var assetStore = Reflux.createStore({
-  init: function () {
-    this.data = {};
-    this.relatedUsers = {};
-    this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted)
-    this.listenTo(actions.resources.updateAsset.completed, this.onUpdateAssetCompleted);
-  },
-
-  noteRelatedUsers: function (data) {
-    // this preserves usernames in the store so that the list does not
-    // reorder or drop users depending on subsequent server responses
-    if (!this.relatedUsers[data.uid]) {
-      this.relatedUsers[data.uid] = [];
-    }
-
-    var relatedUsers = this.relatedUsers[data.uid];
-    data.permissions.forEach(function (perm) {
-      var username = perm.user.match(/\/users\/(.*)\//)[1];
-      var isOwnerOrAnon = username === data.owner__username || username === 'AnonymousUser';
-      if (!isOwnerOrAnon && relatedUsers.indexOf(username) === -1) {
-        relatedUsers.push(username)
-      }
-    });
-  },
-
-  onUpdateAssetCompleted: function (resp, req, jqhr){
-    this.data[resp.uid] = resp;
-    this.noteRelatedUsers(resp);
-    this.trigger(this.data, resp.uid, {asset_updated: true});
-  },
-
-  onLoadAssetCompleted: function (resp, req, jqxhr) {
-    if (!resp.uid) {
-      throw new Error('no uid found in response');
-    }
-    this.data[resp.uid] = resp;
-    this.noteRelatedUsers(resp);
-    this.trigger(this.data, resp.uid);
-  }
-});
-
-var sessionStore = Reflux.createStore({
-  init () {
-    this.listenTo(actions.auth.login.completed, this.onAuthLoginCompleted);
-    var _this = this;
-    sessionDispatch.selfProfile().then(function success(acct){
-      actions.auth.login.completed(acct);
-    });
-  },
-  getInitialState () {
-    return {
-      isLoggedIn: false
-    }
-  },
-  onAuthLoginCompleted (acct) {
-    this.currentAccount = acct;
-    this.trigger(acct);
-  }
-});
+var assetContentStore = stores.assetContent;
+var assetStore = stores.asset;
+var sessionStore = stores.session;
 
 var PageHeader = React.createClass({
   mixins: [
@@ -1952,7 +1642,7 @@ var AssetRow = React.createClass({
         <bem.AssetRow classNames={{ 'asset-row--selected': this.props.isSelected, clearfix: true }}
                         onClick={this.clickAsset}>
           <bem.AssetRow__cell m='name'>
-            {icon}
+            {icon}&nbsp;
             {this.props.name || t('no name')}
           </bem.AssetRow__cell>
           <bem.AssetRow__cell m='date-modified'>
@@ -3767,6 +3457,7 @@ var formViewMixin = {
   },
 };
 
+/*
 class AssetPage extends AssetCollectionBase {
   renderHeader () {
     return (
@@ -3803,12 +3494,12 @@ class AssetPage extends AssetCollectionBase {
   renderContent () {
     return (
           <Panel className="k-div--assetpage">
-            {/*
-            this.renderIcon({color: 'blue', type: 'file-o', overlay: 'users'})
-            this.renderButtons()
-            this.renderTimes()
-            this.renderHeader()
-            */}
+            {
+            // this.renderIcon({color: 'blue', type: 'file-o', overlay: 'users'})
+            // this.renderButtons()
+            // this.renderTimes()
+            // this.renderHeader()
+            }
             <div className='row'>
               <p className='col-md-12'>
                 {this.renderTags()}
@@ -3823,6 +3514,7 @@ class AssetPage extends AssetCollectionBase {
       );
   }
 }
+*/
 
 // var existingAssetMixin = (function(){
 //   var obj = {};
@@ -3897,6 +3589,9 @@ var FormLanding = React.createClass({
                 <i className={classNames('fa', 'fa-fw', 'fa-sm', 'fa-eye')} />
               </Link>
               {downloadLink}
+              <SharingButton uid={this.props.params.assetid}>
+                {t('sharing')}
+              </SharingButton>
               <Link to="form-sharing" params={{assetid: this.props.params.assetid}} className={saveBtnKls}>
                 {t('sharing')}
               </Link>

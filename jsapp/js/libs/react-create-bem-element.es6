@@ -7,10 +7,11 @@
   </ul>
 
  new way:
+  // define the react components in js:
+  var Block = React_createBemElement('block', 'ul');
+  var Block__element   = Block.__('element', 'li');
 
- var Block = React_createBemElement('block', 'ul');
- var Block__element   = Block.__('element', 'li');
-
+  // use them in jsx:
   <Block>
     <Block__element>
       hello
@@ -28,7 +29,7 @@
   <ul className="block">
     <li className="block__element">hello</li>
     <li className="block__element block__element--modifier">world</li>
-    <li className="arbitrary-classname block__element">!</li>
+    <li className="block__element arbitrary-classname">!</li>
   </ul>
 
 */

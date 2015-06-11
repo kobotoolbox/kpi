@@ -5,10 +5,9 @@ import icons from '../icons';
 import stores from '../stores';
 import classNames from 'classnames';
 import Reflux from 'reflux';
+import bem from '../bem';
 
 var actions = require('../actions');
-
-// var Reflux = require('reflux');
 
 let Link = Router.Link;
 
@@ -129,25 +128,37 @@ var RecentHistory = React.createClass({
   }
 })
 
-export class Sidebar extends React.Component {
-  constructor () {
-    super();
-    this.state = {
+var Sidebar = React.createClass({
+  mixins: [
+    Reflux.connect(stores.session)
+  ],
+  getInitialState () {
+    return {
       showRecent: true
     }
-  }
+  },
   logout () {
     actions.auth.logout();
-  }
+  },
   toggleRecent () {
     this.setState({
       showRecent: !this.state.showRecent
     });
-  }
+  },
   broadToggleIntent (evt) {
     evt.currentTarget == evt.target && this.props.toggleIntentOpen(evt)
     return;
-  }
+  },
+  renderAccountBar () {
+    // if (this.state.isLoggedIn) {
+    //   return (
+    //       <div>
+    //         <SidebarTitle label={t('account')} />
+    //       </div>
+    //       );
+    // }
+    return null;
+  },
   render () {
     var title = (
         <span className="kobo">
@@ -158,7 +169,7 @@ export class Sidebar extends React.Component {
         <div className="sidebar-wrapper">
           <ul className="sidebar" onClick={this.broadToggleIntent.bind(this)}>
             <SidebarMain onClick={this.props.toggleIntentOpen} label={title} />
-            <SidebarTitle label={t('account')} />
+            {this.renderAccountBar()}
             <hr />
             <SidebarTitle label={t('drafts in progress')} />
             <SidebarLink label={t('forms')} linkto='forms' fa-icon="files-o" />
@@ -169,7 +180,11 @@ export class Sidebar extends React.Component {
             <SidebarTitle label={t('deployed projects')} />
             <SidebarLink label={t('projects')} active='true' href={t('/')} fa-icon="globe" />
             <SidebarTitle label={t('account actions')} />
-            <SidebarLink label={t('logout')} onClick={this.logout} fa-icon="sign-out" />
+            { this.state.isLoggedIn ? 
+              <SidebarLink label={t('logout')} onClick={this.logout} fa-icon="sign-out" />
+            : 
+              <a href="/api-auth/login/?next=/">LOG IN</a>
+            }
           </ul>
           <div className="sidebar-footer">
             <SidebarFooterItem label="help" href="https://support.kobotoolbox.org/" />
@@ -179,4 +194,6 @@ export class Sidebar extends React.Component {
         </div>
       )
   }
-}
+});
+
+export default Sidebar;
