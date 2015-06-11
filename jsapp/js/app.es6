@@ -1628,7 +1628,7 @@ var AssetRow = React.createClass({
   render () {
     var icon = <i className="fa fa-icon fa-question" />;
     if (this.props.kind === 'collection') {
-      icon = <i className="fa fa-icon fa-folder-o" />;
+      icon = <i className="fa fa-icon fa-folder" />;
     } else if(this.props.kind === 'asset') {
       icon = <i className="fa fa-icon fa-file-o" />;
     }
@@ -1899,7 +1899,7 @@ var FormList = React.createClass({
         <div className="col-sm-6 k-form-list-search-bar">
           <ui.SmallInputBox ref="formlist-search" placeholder={t('search drafts')} onChange={this.searchChange} />
         </div>
-        <div className="col-sm-6 k-form-list-search-bar">
+        <div className="col-sm-3 k-form-list-search-bar">
           <label>
             <input type="radio" name="formlist__search__type" id="formlist__search__type--1" value="type1" checked />
             {t('my forms')}
@@ -1908,6 +1908,15 @@ var FormList = React.createClass({
             <input type="radio" name="formlist__search__type" id="formlist__search__type--2" value="type2" />
             {t('shared with me')}
           </label>
+        </div>
+        <div className="col-sm-3 k-form-list-search-bar">
+          <Dropzone fileInput>
+            <button className="btn btn-default btn-block btn-sm" onClick={(e)=>{alert('not working as of 6/11'); return false}}>
+              <i className='fa fa-icon fa-cloud fa-fw' />
+              &nbsp;&nbsp;
+              {t('upload')}
+            </button>
+          </Dropzone>
         </div>
       </div>
       );
@@ -2867,7 +2876,7 @@ var FormSharing = React.createClass({
   },
   routeBack () {
     var params = this.context.router.getCurrentParams();
-    this.transitionTo('form-edit', {assetid: params.assetid});
+    this.transitionTo('form-landing', {assetid: params.assetid});
   },
   userExistsStoreChange (checked, result) {
     var inpVal = this.usernameFieldValue();
@@ -3407,24 +3416,7 @@ var formViewMixin = {
       );
   },
   renderSubSettingsBar () {
-    // var spacer = '';
-    // var formId = '-tbd-';
-    // var survey;
-    // var metaData = 'abc, def, ghi';
-    // if (this.state.survey && this.state.survey.settings) {
-    //   survey = this.state.survey;
-    //   formId = survey.settings.get('form_id');
-      
-    //   var _m = survey.surveyDetails.models.filter(function(sd){
-    //     return sd.get('value')
-    //   }).map(function(sd){
-    //     return sd.get('label')
-    //   });
-    //   metaData = _m.length > 0 ? _m.join(', ') : <em>{t('none (0 meta qs)')}</em>;
-    // }
-    return (
-        <FormSettingsBox {...this.state} />
-      );
+    return <FormSettingsBox {...this.state} />;
   },
   nameInputValue () {
     return this.refs['form-name'].getDOMNode().value;
@@ -3469,6 +3461,10 @@ var formViewMixin = {
           { this.state.survey ?
             this.renderSubSettingsBar()
           :null}
+
+          { ('renderSubTitle' in this) ? 
+            this.renderSubTitle()
+          : null}
           <div ref="form-wrap" className='form-wrap'>
           </div>
         </Panel>
@@ -3577,6 +3573,9 @@ var FormLanding = React.createClass({
     Reflux.ListenerMixin,
   ],
   renderSaveAndPreviewButtons () {
+    return;
+  },
+  renderSubTitle () {
     var disabled = !!this.state.disabled;
     var pendingSave = this.state.asset_updated === false;
     var saveText = t('save');
@@ -3598,6 +3597,8 @@ var FormLanding = React.createClass({
       downloadLink = <a href={xlsLink.url} className={saveBtnKls}>{t('xls')}</a>
     }
     return (
+      <div className="row">
+      <div className="col-md-12">
         <div className="k-form-actions" style={{marginLeft:-10}}>
           <div className='btn-toolbar'>
             <div className='btn-group'>
@@ -3611,12 +3612,11 @@ var FormLanding = React.createClass({
               <SharingButton uid={this.props.params.assetid}>
                 {t('sharing')}
               </SharingButton>
-              <Link to="form-sharing" params={{assetid: this.props.params.assetid}} className={saveBtnKls}>
-                {t('sharing')}
-              </Link>
             </div>
           </div>
         </div>
+      </div>
+      </div>
       );
   },
   getInitialState () {
