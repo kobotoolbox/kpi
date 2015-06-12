@@ -33,6 +33,13 @@ class WritableJSONField(serializers.Field):
     def to_representation(self, value):
         return value
 
+class TagStringField(serializers.Field):
+    """ return passed values :| """
+    def to_internal_value(self, data):
+        return data
+    def to_representation(self, value):
+        return value
+
 class AssetContentField(serializers.Field):
     '''
     not sure if this custom field will survive.
@@ -203,6 +210,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     parent = serializers.HyperlinkedRelatedField(lookup_field='uid', queryset=Collection.objects.all(),
                                                 view_name='collection-detail', required=False)
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
+    tag_string = TagStringField()
+
 
     class Meta:
         model = Asset
@@ -222,6 +231,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                     'koboform_link',
                     'content',
                     'xform_link',
+                    'tag_string',
                     'uid',
                     'kind',
                     'xls_link',
@@ -312,6 +322,7 @@ class AssetListSerializer(AssetSerializer):
                   'owner__username',
                   'parent',
                   'uid',
+                  'tag_string',
                   'kind',
                   'name',
                   'asset_type',

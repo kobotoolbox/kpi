@@ -40,9 +40,19 @@ class Asset(ObjectPermissionMixin, models.Model):
     editors_can_change_permissions = models.BooleanField(default=True)
     uid = models.CharField(max_length=ASSET_UID_LENGTH, default='', blank=True)
     tags = TaggableManager()
+
     permissions = GenericRelation(ObjectPermission)
 
     objects = AssetManager()
+
+    @property
+    def tag_string(self):
+        return ','.join(self.tags.values_list('name', flat=True))
+
+    @tag_string.setter
+    def tag_string(self, value):
+        intended_tags = value.split(',')
+        self.tags.set(*intended_tags)
 
     @property
     def kind(self):
