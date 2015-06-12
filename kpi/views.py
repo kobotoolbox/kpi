@@ -178,6 +178,11 @@ class XlsFormParser(MultiPartParser):
     pass
 
 import random
+import base64
+from io import BytesIO
+from pyxform.xls2json_backends import xls_to_dict
+
+from django.forms.models import model_to_dict
 
 class ImportTaskViewset(viewsets.ReadOnlyModelViewSet):
     queryset = ImportTask.objects.all()
@@ -192,20 +197,20 @@ class ImportTaskViewset(viewsets.ReadOnlyModelViewSet):
     # date_created = models.DateTimeField(auto_now_add=True)
 
     def create(self, request, *args, **kwargs):
-        rint = random.randint(1000,9999)
+        encoded_str = request.POST['xls']
+        encoded_substr = encoded_str[encoded_str.index('base64')+7:]
+        decoded_str = base64.b64decode(encoded_substr)
         try:
-            with open('test_import%d.xls' % rint, 'wb') as ff:
-                ff.write(unicode(request.POST['xls'], "utf-8"))
+            survey_dict = xls_to_dict(BytesIO(decoded_str))
         except Exception, e:
-            import pdb
-            pdb.set_trace()
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+            raise Exception('could not parse xls submission')
 
-
+        asset = Asset.objects.create(
+            owner=self.request.user,
+            content=survey_dict,
+        )
+        data = model_to_dict(asset)
+        return Response(data, status.HTTP_201_CREATED)
 
 class AssetViewSet(viewsets.ModelViewSet):
     """

@@ -33,23 +33,6 @@ class WritableJSONField(serializers.Field):
     def to_representation(self, value):
         return value
 
-class TagStringField(serializers.Field):
-    """ return passed values :| """
-    def to_internal_value(self, data):
-        return data
-    def to_representation(self, value):
-        return value
-
-class AssetContentField(serializers.Field):
-    '''
-    not sure if this custom field will survive.
-    '''
-    def to_internal_value(self, data):
-        return json.loads(data)
-    def to_representation(self, value):
-        return {'redirect': 'content_link'}
-
-
 class TagSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField('_get_tag_url', read_only=True)
     assets = serializers.SerializerMethodField('_get_assets', read_only=True)
@@ -199,18 +182,16 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(lookup_field='uid', view_name='asset-detail')
     asset_type = serializers.ReadOnlyField()
     settings = WritableJSONField(required=False)
-    content_link = serializers.SerializerMethodField()
     xls_link = serializers.SerializerMethodField()
     koboform_link = serializers.SerializerMethodField()
     xform_link = serializers.SerializerMethodField()
-    content = AssetContentField(style={'base_template': 'muted_readonly_content_field.html'})
     version_count = serializers.SerializerMethodField('_version_count')
     downloads = serializers.SerializerMethodField()
     embeds = serializers.SerializerMethodField()
     parent = serializers.HyperlinkedRelatedField(lookup_field='uid', queryset=Collection.objects.all(),
                                                 view_name='collection-detail', required=False)
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
-    tag_string = TagStringField()
+    tag_string = serializers.CharField()
 
 
     class Meta:
@@ -227,9 +208,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                     'version_count',
                     'downloads',
                     'embeds',
-                    'content_link',
                     'koboform_link',
-                    'content',
                     'xform_link',
                     'tag_string',
                     'uid',
@@ -257,8 +236,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def _version_count(self, obj):
         return reversion.get_for_object(obj).count()
 
-    def get_content_link(self, obj):
-        return reverse('asset-content', args=(obj.uid,), request=self.context.get('request', None))
     def get_xls_link(self, obj):
         return reverse('asset-xls', args=(obj.uid,), request=self.context.get('request', None))
     def get_xform_link(self, obj):

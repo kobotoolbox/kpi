@@ -1266,20 +1266,8 @@ mixins.droppable = {
           }).done(function(...args){
             log(this, args)
           });
-          // var data = e.target.result;
-          // try {
-          //   var workbook = XLSX.read(data, {type: 'binary'});
-          // } catch (e) {
-          //   console.error('XLSX error', e);
-          // }
         }
-        reader.readAsBinaryString(file);
-        // return $.ajax({
-        //   url: "/imports/",
-        //   type: "POST",
-        //   data: file,
-        //   processData: false
-        // });
+        reader.readAsDataURL(file);
       });
     }
   }
