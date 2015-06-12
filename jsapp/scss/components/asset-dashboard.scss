@@ -26,9 +26,6 @@ $permEditorColor: #999;
 .form-preview {
   position: relative;
 }
-.date--modified {
-  text-decoration: underline;
-}
 
 .tag {
   font-size: 11px;
@@ -234,24 +231,6 @@ $permEditorColor: #999;
   width: 300px;
   margin-top: 15px;
   float: right;
-}
-.asset-row {
-  a {
-    display: block;
-    &:hover {
-      background-color: #E8FAE7;
-      text-decoration: none;
-    }
-    > div {
-      display: inline-block;
-      &:nth-child(1) {
-        width: 100px;
-      }
-      div:nth-child(2) {
-        width: 300px;
-      }
-    }
-  }
 }
 .permissions-editor__list {
   text-align: left;

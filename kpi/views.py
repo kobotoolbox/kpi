@@ -21,6 +21,7 @@ from .models import (
     Collection,
     object_permission,
     Asset,
+    ImportTask,
     ObjectPermission,)
 from .models.object_permission import get_anonymous_user
 from .permissions import IsOwnerOrReadOnly
@@ -39,6 +40,7 @@ from .serializers import (
     CollectionSerializer, CollectionListSerializer,
     UserSerializer, UserListSerializer,
     TagSerializer, TagListSerializer,
+    ImportTaskSerializer,
     ObjectPermissionSerializer,)
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
@@ -174,6 +176,36 @@ from rest_framework.parsers import MultiPartParser
 
 class XlsFormParser(MultiPartParser):
     pass
+
+import random
+
+class ImportTaskViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = ImportTask.objects.all()
+    serializer_class = ImportTaskSerializer
+    lookup_field = 'uid'
+
+    # permission_classes = (IsOwnerOrReadOnly,)
+    # user = models.ForeignKey('auth.User')
+    # data = JSONField()
+    # status = models.CharField(choices=STATUS_CHOICES, max_length=32, default=CREATED)
+    # uid = models.CharField(max_length=UID_LENGTH, default='')
+    # date_created = models.DateTimeField(auto_now_add=True)
+
+    def create(self, request, *args, **kwargs):
+        rint = random.randint(1000,9999)
+        try:
+            with open('test_import%d.xls' % rint, 'wb') as ff:
+                ff.write(unicode(request.POST['xls'], "utf-8"))
+        except Exception, e:
+            import pdb
+            pdb.set_trace()
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
 
 class AssetViewSet(viewsets.ModelViewSet):
     """

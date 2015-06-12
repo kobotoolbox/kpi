@@ -9,6 +9,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.reverse import reverse_lazy, reverse
 from .models import Asset
 from .models import Collection
+from .models import ImportTask
 from .models import ObjectPermission
 from .models.object_permission import get_anonymous_user
 from .search_indexes import AssetIndex
@@ -291,6 +292,16 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def _table_url(self, obj):
         request = self.context.get('request', None)
         return reverse('asset-table-view', args=(obj.uid,), request=request)
+
+class ImportTaskSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ImportTask
+        fields = (
+                'data',
+                'status',
+                'uid',
+                'date_created',
+            )
 
 class AssetListSerializer(AssetSerializer):
     class Meta(AssetSerializer.Meta):
