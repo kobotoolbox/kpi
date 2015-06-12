@@ -506,6 +506,9 @@ $c8: #00BCD4;
   padding: 6px 3px;
 }
 
+.asset-row__cell--asset-action-icons {
+  text-align: right;
+}
 .asset-row__action-icon--view {
   @include bt-theme($c1);
 }

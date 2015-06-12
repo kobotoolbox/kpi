@@ -72,7 +72,7 @@ actions.resources = Reflux.createActions({
       "failed"
     ]
   },
-  publishAsset: {
+  deployAsset: {
     children: [
       "completed",
       "failed"

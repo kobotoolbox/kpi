@@ -2,9 +2,8 @@
 
 import {log, t} from './utils';
 
-import {dataDispatch} from './data';
+import {dataInterface} from './data';
 
-var sessionDispatch = dataDispatch;
 var actions = require('./actions');
 var Reflux = require('reflux');
 var assign = require('react/lib/Object.assign');
@@ -215,7 +214,7 @@ var sessionStore = Reflux.createStore({
   init () {
     this.listenTo(actions.auth.login.completed, this.onAuthLoginCompleted);
     var _this = this;
-    sessionDispatch.selfProfile().then(function success(acct){
+    dataInterface.selfProfile().then(function success(acct){
       actions.auth.login.completed(acct);
     });
   },
@@ -253,14 +252,54 @@ var assetContentStore = Reflux.createStore({
   },
 });
 
+var allAssetsStore = Reflux.createStore({
+  init: function () {
+    this.data = [];
+    this.byUid = {};
+    this.listenTo(actions.resources.listAssets.completed, this.onListAssetsCompleted);
+    this.listenTo(actions.resources.listAssets.failed, this.onListAssetsFailed);
+  },
+  onListAssetsFailed: function (err) {
+    debugger
+  },
+  registerAssetOrCollection (asset) {
+    this.byUid[asset.uid] = asset;
+  },
+  onListAssetsCompleted: function(resp, req, jqxhr) {
+    resp.results.forEach(this.registerAssetOrCollection)
+    this.data = resp.results;
+    this.trigger(this.data);
+  }
+});
+
+var selectedAssetStore = Reflux.createStore({
+  init () {
+    this.uid = false;
+  },
+  toggleSelect (uid) {
+    if (this.uid === uid) {
+      this.uid = false;
+      this.asset = {};
+      return false;
+    } else {
+      this.uid = uid;
+      this.asset = allAssetsStore.byUid[uid]
+      return true;
+    }
+  }
+});
+
+
 
 var stores = {
   history: historyStore,
   tags: tagsStore,
   pageState: pageStateStore,
   assetSearch: assetSearchStore,
+  selectedAsset: selectedAssetStore,
   assetContent: assetContentStore,
   asset: assetStore,
+  allAssets: allAssetsStore,
   session: sessionStore,
 };
 

@@ -4,7 +4,7 @@ var $ = require('jquery');
 import assign from 'react/lib/Object.assign';
 
 
-var sessionDispatch;
+var dataInterface;
 (function(){
   var $ajax = (o)=> {
     return $.ajax(assign({}, {dataType: 'json', method: 'GET'}, o));
@@ -28,7 +28,7 @@ var sessionDispatch;
       $ajax({ url: '/api-auth/logout/' }).done(d.resolve).fail(function (resp, etype, emessage) {
         // logout request wasn't successful, but may have logged the user out
         // querying '/me/' can confirm if we have logged out.
-        sessionDispatch.selfProfile().done(function(data){
+        dataInterface.selfProfile().done(function(data){
           if (data.message == "user is not logged in") {
             d.resolve(data);
           } else {
@@ -79,7 +79,7 @@ var sessionDispatch;
     },
     assignPublicPerm (params) {
       params.username = 'AnonymousUser';
-      return sessionDispatch(params);
+      return dataInterface(params);
     },
     libraryDefaultSearch () {
       var url = "/assets/?q=example";
@@ -150,8 +150,8 @@ var sessionDispatch;
       return $ajax({ url: '/api-auth/login/?next=/me/', data: creds, method: 'POST'});
     }
   });
-}).call(sessionDispatch={});
+}).call(dataInterface={});
 
 export default {
-  dataDispatch: sessionDispatch
+  dataInterface: dataInterface
 };

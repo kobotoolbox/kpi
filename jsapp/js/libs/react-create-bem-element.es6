@@ -63,8 +63,7 @@ var React_createBemElement = function(base, el='div'){
       props.className = classNames(base,
                                     modifier,
                                     this.props.classNames,
-                                    this.props.className,
-                                    modifier);
+                                    this.props.className);
       delete props.classNames;
 
       // passes remaining props to the children

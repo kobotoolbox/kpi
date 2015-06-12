@@ -1,5 +1,5 @@
 import {log, t} from './utils';
-var $ = require('jquery');
+var $ = require('jquery').noConflict();
 // window.jQuery = $;
 // window.$ = $;
 require('jquery.scrollto');
@@ -13,8 +13,7 @@ var actions = require('./actions');
 // window.Backbone.$ = $
 // window.BackboneValidation = require('backbone-validation');
 
-import {dataDispatch} from './data';
-var sessionDispatch = dataDispatch;
+import {dataInterface} from './data';
 
 import React from 'react/addons';
 import Router from 'react-router';
@@ -73,7 +72,7 @@ var MeViewer = React.createClass({
   },
   componentDidMount () {
     var _this = this;
-    sessionDispatch.selfProfile().done(function(user){
+    dataInterface.selfProfile().done(function(user){
       var status = user.username ? 'logged in' : 'logged out';
       var newState = assign({}, user, {
         status: status,
@@ -761,49 +760,55 @@ var LiLink = React.createClass({
 // }
 
 actions.misc.checkUsername.listen(function(username){
-  sessionDispatch.queryUserExistence(username)
+  dataInterface.queryUserExistence(username)
     .done(actions.misc.checkUsername.completed)
     .fail(actions.misc.checkUsername.failed_);
 });
 
 actions.resources.listTags.listen(function(){
-  sessionDispatch.listTags()
+  dataInterface.listTags()
     .done(actions.resources.listTags.completed)
     .fail(actions.resources.listTags.failed);
 });
 
 actions.resources.updateAsset.listen(function(uid, values){
-  sessionDispatch.patchAsset(uid, values)
+  dataInterface.patchAsset(uid, values)
     .done(actions.resources.updateAsset.completed)
     .fail(actions.resources.updateAsset.failed);
 });
 
+actions.resources.deployAsset.listen(function(uid){
+  dataInterface.deployAsset(uid)
+    .done(actions.resources.deployAsset.completed)
+    .fail(actions.resources.deployAsset.failed);
+})
+
 actions.resources.createResource.listen(function(details){
-  sessionDispatch.createResource(details)
+  dataInterface.createResource(details)
     .done(actions.resources.createResource.completed)
     .fail(actions.resources.createResource.failed);
 });
 
 actions.resources.deleteAsset.listen(function(details){
-  sessionDispatch.deleteAsset(details)
+  dataInterface.deleteAsset(details)
     .done(function(result){
       actions.resources.deleteAsset.completed(details)
     })
     .fail(actions.resources.deleteAsset.failed);
 });
 actions.resources.readCollection.listen(function(details){
-  sessionDispatch.readCollection(details)
+  dataInterface.readCollection(details)
       .done(actions.resources.readCollection.completed)
       .fail(actions.resources.readCollection.failed);
 })
 actions.resources.cloneAsset.listen(function(details){
-  sessionDispatch.cloneAsset(details)
+  dataInterface.cloneAsset(details)
     .done(actions.resources.cloneAsset.completed)
     .fail(actions.resources.cloneAsset.failed);
 });
 
 actions.search.assets.listen(function(queryString){
-  sessionDispatch.searchAssets(queryString)
+  dataInterface.searchAssets(queryString)
     .done(function(...args){
       actions.search.assets.completed.apply(this, [queryString, ...args])
     })
@@ -813,19 +818,19 @@ actions.search.assets.listen(function(queryString){
 });
 
 actions.search.libraryDefaultQuery.listen(function(){
-  sessionDispatch.libraryDefaultSearch()
+  dataInterface.libraryDefaultSearch()
     .done(actions.search.libraryDefaultQuery.completed)
     .fail(actions.search.libraryDefaultQuery.failed);
 });
 
 actions.search.tags.listen(function(queryString){
-  sessionDispatch.searchTags(queryString)
+  dataInterface.searchTags(queryString)
     .done(actions.search.searchTags.completed)
     .fail(actions.search.searchTags.failed)
 });
 
 actions.permissions.assignPerm.listen(function(creds){
-  sessionDispatch.assignPerm(creds)
+  dataInterface.assignPerm(creds)
     .done(actions.permissions.assignPerm.completed)
     .fail(actions.permissions.assignPerm.failed);
 });
@@ -840,7 +845,7 @@ actions.permissions.removePerm.listen(function(details){
   if (!details.content_object_uid) {
     throw new Error('removePerm needs a content_object_uid parameter to be set')
   }
-  sessionDispatch.removePerm(details.permission_url)
+  dataInterface.removePerm(details.permission_url)
     .done(function(resp){
       actions.permissions.removePerm.completed(details.content_object_uid, resp);
     })
@@ -871,8 +876,8 @@ var permissionStore = Reflux.createStore({
 
 
 actions.auth.login.listen(function(creds){
-  sessionDispatch.login(creds).done(function(){
-    sessionDispatch.selfProfile().done(actions.auth.login.completed)
+  dataInterface.login(creds).done(function(){
+    dataInterface.selfProfile().done(actions.auth.login.completed)
         .fail(function(){
           console.error('login failed what sould we do now?');
         });
@@ -888,7 +893,7 @@ actions.auth.logout.completed.listen(function(){
 });
 
 actions.auth.logout.listen(function(){
-  sessionDispatch.logout().done(actions.auth.logout.completed).fail(function(){
+  dataInterface.logout().done(actions.auth.logout.completed).fail(function(){
     console.error('logout failed for some reason. what should happen now?');
   });
 })
@@ -905,7 +910,7 @@ actions.resources.loadAsset.listen(function(params){
     }[params.id[0]];
   }
 
-  sessionDispatch[dispatchMethodName](params)
+  dataInterface[dispatchMethodName](params)
       .done(actions.resources.loadAsset.completed)
       .fail(actions.resources.loadAsset.failed)
 });
@@ -915,7 +920,7 @@ actions.resources.loadAsset.completed.listen(function(asset){
 });
 
 actions.resources.loadAssetContent.listen(function(params){
-  sessionDispatch.getAssetContent(params)
+  dataInterface.getAssetContent(params)
       .done(function(data, ...args) {
         // data.sheeted = new Sheeted([['survey', 'choices', 'settings'], data.data])
         actions.resources.loadAssetContent.completed(data, ...args);
@@ -924,14 +929,14 @@ actions.resources.loadAssetContent.listen(function(params){
 });
 
 actions.resources.listAssets.listen(function(){
-  sessionDispatch.listAllAssets()
+  dataInterface.listAllAssets()
       .done(actions.resources.listAssets.completed)
       .fail(actions.resources.listAssets.failed)
 })
 
 // this didn't work. logins were not consistent from one tab to the next
 // actions.auth.verifyLogin.listen(function(){
-//   sessionDispatch.selfProfile().then(function success(acct){
+//   dataInterface.selfProfile().then(function success(acct){
 //     if (acct.username) {
 //       log('sessionStore', sessionStore);
 //     } else {
@@ -1240,8 +1245,269 @@ stores.assetLibrary = Reflux.createStore({
   }
 });
 
+var mixins = {};
+mixins.droppable = {
+  dropFiles (files) {
+    if (files.length > 1) {
+      notify('cannot load multiple files');
+    } else {
+      files.map(function(file){
+        var reader = new FileReader();
+        var name = file.name;
+        reader.onload = (e)=>{
+          var fd = new FormData();
+          fd.append('xls', e.target.result);
+          $.ajax({
+            type: 'POST',
+            url: '/imports/',
+            data: fd,
+            processData: false,
+            contentType: false
+          }).done(function(...args){
+            log(this, args)
+          });
+          // var data = e.target.result;
+          // try {
+          //   var workbook = XLSX.read(data, {type: 'binary'});
+          // } catch (e) {
+          //   console.error('XLSX error', e);
+          // }
+        }
+        reader.readAsBinaryString(file);
+        // return $.ajax({
+        //   url: "/imports/",
+        //   type: "POST",
+        //   data: file,
+        //   processData: false
+        // });
+      });
+    }
+  }
+};
+mixins.formView = {
+  _saveForm (evt) {
+    evt && evt.preventDefault();
+    actions.resources.updateAsset(this.props.params.assetid, {
+      name: this.getNameValue(),
+      content: surveyToValidJson(this.state.survey)
+    });
+    this.setState({
+      asset_updated: false
+    })
+  },
+  navigateBack (evt) {
+    if (this.needsSave() && confirm(t('you have unsaved changes. would you like to save?'))) {
+      this._saveForm();
+    }
+    this.transitionTo('forms');
+  },
+  loadingNotice () {
+    return (
+        <p>
+          <i className='fa fa-spinner fa-spin' />
+          &nbsp;&nbsp;
+          {t('loading form...')}
+        </p>
+      );
+  },
+  renderSubSettingsBar () {
+    return <FormSettingsBox {...this.state} />;
+  },
+  nameInputValue () {
+    return this.refs['form-name'].getDOMNode().value;
+  },
+  nameInputChange (evt) {
+    var nameVal = this.nameInputValue();
+    this.state.survey.settings.set('form_title', nameVal)
+    this.setState({
+      survey_name: this.state.survey.settings.get('form_title')
+    });
+  },
+  getInitialState () {
+    return {
+      'asset_updated': true
+    }
+  },
+  needsSave () {
+    return this.state.asset_updated === -1;
+  },
+  renderCloseButton() {
+    var kls = classNames('k-form-close-button', {
+      "k-form-close-button--warning": this.needsSave()
+    });
+    return <a className={kls} onClick={this.navigateBack}>&times;</a>;
+  },
+  innerRender () {
+
+    return (
+        <Panel className="k-div--formview--innerrender">
+          <div className="row k-form-header-row">
+            {this.renderCloseButton()}
+            <div className="k-header-name-row form-group col-md-10">
+              <div className="k-corner-icon"></div>
+              {this.renderFormNameInput()}
+            </div>
+            <div className="col-md-2">
+              <div className="k-col-padrt25">
+                {this.renderSaveAndPreviewButtons()}
+              </div>
+            </div>
+          </div>
+          { this.state.survey ?
+            this.renderSubSettingsBar()
+          :null}
+
+          { ('renderSubTitle' in this) ? 
+            this.renderSubTitle()
+          : null}
+          <div ref="form-wrap" className='form-wrap'>
+          </div>
+        </Panel>
+      );
+  },
+};
+
+mixins.collectionState = {
+  getInitialState () {
+    return {
+      results: false
+    }
+  },
+  clickActionView () {
+
+  },
+  clickActionDownload () {
+
+  },
+  clickActionClone () {
+
+  },
+  clickActionDelete () {
+
+  },
+  renderActionButtons () {
+    var assetIsSelected = this.state.results && stores.selectedAsset.uid;
+    var kls = classNames("btn", "btn-default", "btn-sm",
+                  !assetIsSelected ? "disabled" : '')
+    var mutedTextClassesIfSelected = classNames("text-muted", assetIsSelected ? "k-invisible" : "")
+    var deployKls = classNames("btn", assetIsSelected ? "" : "disabled", "btn-success", "btn-sm");
+    var aboveButtonKls = classNames({
+      "k-header-formname-text": assetIsSelected,
+      "text-muted": !assetIsSelected,
+      "k-header-select-form": !assetIsSelected
+    });
+    var aboveButtonTxt = assetIsSelected ? stores.selectedAsset.asset.name : t('select a form')
+    var btnState = 'muted';
+    var actionButtonKls = classNames('btn', 'btn-primary', 'k-actbtn', {
+      'k-actbtn--flat': btnState === 'flat',
+      'k-actbtn--muted': btnState === 'muted'
+    })
+    var activeResourceUrl = assetIsSelected ? `${stores.selectedAsset.asset.url}.xls` : '#';
+    var assetLink;
+    if (assetIsSelected) {
+      if (stores.selectedAsset.asset.kind === "asset") {
+        assetLink = (
+              <Link to='form-edit' params={{assetid: stores.selectedAsset.uid}} className={kls}>{t('view and edit')}</Link>
+            );
+      } else if (stores.selectedAsset.asset.kind === "collection") {
+        assetLink = (
+              <Link to="collection-page" params={{uid: stores.selectedAsset.uid}} className={kls}>{t('view and edit')}</Link>
+            );
+      }
+    } else {
+      assetLink = (
+            <a href="#" onClick={this.clickActionView} className={kls}>{t('view and edit')}</a>
+          );
+    }
+    var assetIsPublishable = assetIsSelected && stores.selectedAsset.asset.kind === 'asset';
+    return (
+        <div className="row k-header-button-row">
+          <div className="k-btn-wrap--newform">
+            <Link to="new-form" className={actionButtonKls}>{t('+')}</Link>
+          </div>
+          <div className="col-md-9 col-md-offset-1 k-header-buttons">
+            <span className={aboveButtonKls}>{aboveButtonTxt}</span>
+            <div className="btn-group btn-group-justified">
+              {assetLink}
+              <a href={activeResourceUrl} className={kls}>{t('download')}</a>
+              <a href="#" onClick={this.clickActionClone} className={kls}>{t('clone')}</a>
+              <a href="#" onClick={this.clickActionDelete} className={kls}>{t('delete')}</a>
+            </div>
+          </div>
+          <div className="col-md-2">
+            { assetIsPublishable ?
+              <span className="text-muted">{t('collect data')}</span>
+              :
+              <em className={mutedTextClassesIfSelected}>{t('collect data')}</em>
+            }
+
+            <div className="btn-group btn-group-justified" onMouseOver={this.highlightName}>
+              <a href="#" className={deployKls} title={t('deploy')}>{t('deploy')}</a>
+            </div>
+          </div>
+        </div>
+      );
+  },
+  onToggleSelect () {
+    this.setState({
+      selectOn: !this.state.selectOn
+    })
+  },
+  searchChange (evt) {
+    log(this.refs);//this.refs['formlist-search'].getDOMNode(), this);
+  },
+  renderResults () {
+    return this.state.results.map((resource) => {
+            var isSelected = stores.selectedAsset.uid === resource.uid;
+            return <AssetRow key={resource.uid} {...resource} onToggleSelect={this.onToggleSelect} isSelected={isSelected} />
+          });
+  },
+  renderLoadingMessage () {
+    return (
+        <div className='k-loading-message-with-padding'>
+          <i className='fa fa-spinner fa-spin' />
+          &nbsp;
+          {this._loadingMessage()}
+        </div>
+      );
+  },
+  renderPanel () {
+    return (
+      <Panel className="k-div--formspanel">
+        {this._renderFormsSearchRow()}
+        <ul className="collection-asset-list list-group">
+          {this.state.results === false ?
+            this.renderLoadingMessage()
+            :
+            this.renderResults()
+          }
+        </ul>
+        <RouteHandler />
+      </Panel>
+    );
+  },
+  componentDidMount () {
+    stores.pageState.setTopPanel(60, true);
+  },
+  render () {
+    return (
+      <DocumentTitle title={this._title()}>
+        <div>
+          <div className="row k-div--forms1">
+            <div className="col-md-12">
+              {this.renderActionButtons()}
+            </div>
+          </div>
+          {this.renderPanel()}
+        </div>
+      </DocumentTitle>
+      );
+  }
+};
+
 var AssetNavigator = React.createClass({
   mixins: [
+    mixins.droppable,
     Navigation,
     Reflux.ListenerMixin,
     Reflux.connectFilter(stores.assetSearch, 'searchResults', function(results){
@@ -1298,31 +1564,6 @@ var AssetNavigator = React.createClass({
       } else {
         actions.search.assets(queryInput);
       }
-    }
-  },
-  dropFiles (files) {
-    if (files.length > 1) {
-      notify('cannot load multiple files');
-    } else {
-      files.map(function(file){
-        var reader = new FileReader();
-        var name = file.name;
-        reader.onload = (e)=>{
-          var data = e.target.result;
-          try {
-            var workbook = XLSX.read(data, {type: 'binary'});
-          } catch (e) {
-            console.error('XLSX error', e);
-          }
-        }
-        reader.readAsBinaryString(file);
-        // return $.ajax({
-        //   url: "/imports/",
-        //   type: "POST",
-        //   data: file,
-        //   processData: false
-        // });
-      });
     }
   },
   _displayAssetLibraryItems () {
@@ -1552,24 +1793,6 @@ class StackedIcon extends React.Component {
   }
 }
 
-var selectedAssetStore = Reflux.createStore({
-  init () {
-    this.uid = false;
-  },
-  toggleSelect (uid) {
-    if (this.uid === uid) {
-      this.uid = false;
-      this.asset = {};
-      return false;
-    } else {
-      this.uid = uid;
-      this.asset = allAssetsStore.byUid[uid]
-      return true;
-    }
-  }
-});
-
-
 var ActionLink = React.createClass({
   render () {
     return <bem.AssetRow__actionIcon {...this.props} />
@@ -1603,7 +1826,7 @@ var AssetRow = React.createClass({
   ],
   clickAsset (evt) {
     evt.preventDefault();
-    selectedAssetStore.toggleSelect(this.props.uid);
+    stores.selectedAsset.toggleSelect(this.props.uid);
     this.props.onToggleSelect();
   },
   clickView () {
@@ -1638,10 +1861,7 @@ var AssetRow = React.createClass({
     var rowKls = classNames('asset-row', 'clearfix', {
                                 'asset-row--selected': this.props.isSelected
                               });
-          // <div to='form-edit' params={{assetid: this.props.uid}} onClick={}>
-          // <div className="asset-row__icon">
-          //   {icon}
-          // </div>
+
     return (
         <bem.AssetRow classNames={{ 'asset-row--selected': this.props.isSelected, clearfix: true }}
                         onClick={this.clickAsset}>
@@ -1696,25 +1916,7 @@ var AssetRow = React.createClass({
   }
 })
 
-var allAssetsStore = Reflux.createStore({
-  init: function () {
-    this.data = [];
-    this.byUid = {};
-    this.listenTo(actions.resources.listAssets.completed, this.onListAssetsCompleted);
-    this.listenTo(actions.resources.listAssets.failed, this.onListAssetsFailed);
-  },
-  onListAssetsFailed: function (err) {
-    debugger
-  },
-  registerAssetOrCollection (asset) {
-    this.byUid[asset.uid] = asset;
-  },
-  onListAssetsCompleted: function(resp, req, jqxhr) {
-    resp.results.forEach(this.registerAssetOrCollection)
-    this.data = resp.results;
-    this.trigger(this.data);
-  }
-});
+var allAssetsStore = stores.allAssets;
 
 var Forms = React.createClass({
   mixins: [
@@ -1737,146 +1939,10 @@ var Forms = React.createClass({
   }
 })
 
-var CollectionMixins = {
-  getInitialState () {
-    return {
-      results: false
-    }
-  },
-  clickActionView () {
-
-  },
-  clickActionDownload () {
-
-  },
-  clickActionClone () {
-
-  },
-  clickActionDelete () {
-
-  },
-  renderActionButtons () {
-    var assetIsSelected = this.state.results && selectedAssetStore.uid;
-    var kls = classNames("btn", "btn-default", "btn-sm",
-                  !assetIsSelected ? "disabled" : '')
-    var mutedTextClassesIfSelected = classNames("text-muted", assetIsSelected ? "k-invisible" : "")
-    var deployKls = classNames("btn", assetIsSelected ? "" : "disabled", "btn-success", "btn-sm");
-    var aboveButtonKls = classNames({
-      "k-header-formname-text": assetIsSelected,
-      "text-muted": !assetIsSelected,
-      "k-header-select-form": !assetIsSelected
-    });
-    var aboveButtonTxt = assetIsSelected ? selectedAssetStore.asset.name : t('select a form')
-    var btnState = 'muted';
-    var actionButtonKls = classNames('btn', 'btn-primary', 'k-actbtn', {
-      'k-actbtn--flat': btnState === 'flat',
-      'k-actbtn--muted': btnState === 'muted'
-    })
-    var activeResourceUrl = assetIsSelected ? `${selectedAssetStore.asset.url}.xls` : '#';
-    var assetLink;
-    if (assetIsSelected) {
-      if (selectedAssetStore.asset.kind === "asset") {
-        assetLink = (
-              <Link to='form-edit' params={{assetid: selectedAssetStore.uid}} className={kls}>{t('view and edit')}</Link>
-            );
-      } else if (selectedAssetStore.asset.kind === "collection") {
-        assetLink = (
-              <Link to="collection-page" params={{uid: selectedAssetStore.uid}} className={kls}>{t('view and edit')}</Link>
-            );
-      }
-    } else {
-      assetLink = (
-            <a href="#" onClick={this.clickActionView} className={kls}>{t('view and edit')}</a>
-          );
-    }
-    return (
-        <div className="row k-header-button-row">
-          <div className="k-btn-wrap--newform">
-            <Link to="new-form" className={actionButtonKls}>{t('+')}</Link>
-          </div>
-          <div className="col-md-9 col-md-offset-1 k-header-buttons">
-            <span className={aboveButtonKls}>{aboveButtonTxt}</span>
-            <div className="btn-group btn-group-justified">
-              {assetLink}
-              <a href={activeResourceUrl} className={kls}>{t('download')}</a>
-              <a href="#" onClick={this.clickActionClone} className={kls}>{t('clone')}</a>
-              <a href="#" onClick={this.clickActionDelete} className={kls}>{t('delete')}</a>
-            </div>
-          </div>
-          <div className="col-md-2">
-            { assetIsSelected ?
-              <span className="text-muted">{t('collect data')}</span>
-              :
-              <em className={mutedTextClassesIfSelected}>{t('collect data')}</em>
-            }
-
-            <div className="btn-group btn-group-justified" onMouseOver={this.highlightName}>
-              <a href="#" className={deployKls} title={t('deploy')}>{t('deploy')}</a>
-            </div>
-          </div>
-        </div>
-      );
-  },
-  onToggleSelect () {
-    this.setState({
-      selectOn: !this.state.selectOn
-    })
-  },
-  searchChange (evt) {
-    log(this.refs);//this.refs['formlist-search'].getDOMNode(), this);
-  },
-  renderResults () {
-    return this.state.results.map((resource) => {
-            var isSelected = selectedAssetStore.uid === resource.uid;
-            return <AssetRow key={resource.uid} {...resource} onToggleSelect={this.onToggleSelect} isSelected={isSelected} />
-          });
-  },
-  renderLoadingMessage () {
-    return (
-        <div className='k-loading-message-with-padding'>
-          <i className='fa fa-spinner fa-spin' />
-          &nbsp;
-          {this._loadingMessage()}
-        </div>
-      );
-  },
-  renderPanel () {
-    return (
-      <Panel className="k-div--formspanel">
-        {this._renderFormsSearchRow()}
-        <ul className="collection-asset-list list-group">
-          {this.state.results === false ?
-            this.renderLoadingMessage()
-            :
-            this.renderResults()
-          }
-        </ul>
-        <RouteHandler />
-      </Panel>
-    );
-  },
-  componentDidMount () {
-    stores.pageState.setTopPanel(60, true);
-  },
-  render () {
-    return (
-      <DocumentTitle title={this._title()}>
-        <div>
-          <div className="row k-div--forms1">
-            <div className="col-md-12">
-              {this.renderActionButtons()}
-            </div>
-          </div>
-          {this.renderPanel()}
-        </div>
-      </DocumentTitle>
-      );
-  }
-};
-
 var FormList = React.createClass({
   mixins: [
-    CollectionMixins,
+    mixins.droppable,
+    mixins.collectionState,
     Reflux.connect(allAssetsStore, "results")
   ],
   statics: {
@@ -1896,10 +1962,10 @@ var FormList = React.createClass({
   _renderFormsSearchRow () {
     return (
       <div className="row">
-        <div className="col-sm-6 k-form-list-search-bar">
+        <div className="col-sm-4 k-form-list-search-bar">
           <ui.SmallInputBox ref="formlist-search" placeholder={t('search drafts')} onChange={this.searchChange} />
         </div>
-        <div className="col-sm-3 k-form-list-search-bar">
+        <div className="col-sm-6 k-form-list-search-bar">
           <label>
             <input type="radio" name="formlist__search__type" id="formlist__search__type--1" value="type1" checked />
             {t('my forms')}
@@ -1909,9 +1975,9 @@ var FormList = React.createClass({
             {t('shared with me')}
           </label>
         </div>
-        <div className="col-sm-3 k-form-list-search-bar">
-          <Dropzone fileInput>
-            <button className="btn btn-default btn-block btn-sm" onClick={(e)=>{alert('not working as of 6/11'); return false}}>
+        <div className="col-sm-2 k-form-list-search-bar">
+          <Dropzone fileInput onDropFiles={this.dropFiles}>
+            <button className="btn btn-default btn-block btn-sm">
               <i className='fa fa-icon fa-cloud fa-fw' />
               &nbsp;&nbsp;
               {t('upload')}
@@ -1939,7 +2005,7 @@ var collectionAssetsStore = Reflux.createStore({
 
 var CollectionList = React.createClass({
   mixins: [
-    CollectionMixins,
+    mixins.collectionState,
     Reflux.connectFilter(collectionAssetsStore, function(data){
       if (data.uid === this.props.params.uid) {
         return {
@@ -3140,91 +3206,91 @@ class PublicPermDiv extends UserPermDiv {
 //   }
 // })
 
-var FormEditor = React.createClass({
-  mixins: [
-    Reflux.connectFilter(assetContentStore, function(data){
-      var assetid = this.props.params.assetid;
-      return data[assetid];
-    })
-  ],
-  statics: {
-    willTransitionTo: function(transition, params, idk, callback) {
-      actions.resources.loadAssetContent({id: params.assetid});
-      callback();
-    // },
-    // willTransitionFrom (transition, params, callback) {
-    //   // component.formHasUnsavedData()
-    //   if (!confirm(t('You have unsaved information, are you sure you want to leave this page?'))) {
-    //     transition.cancel();
-    //   }
-    }
-  },
-  getInitialState () {
-    return {
-      dkobo_xlform: !!window.dkobo_xlform,
-      data: false
-    };
-  },
-  renderSurvey () {
-    var xlform = window.dkobo_xlform;
-    var surveyModel = new xlform.model.Survey.loadDict(this.state.data);
-    this.surveyApp = new xlform.view.SurveyApp({
-      survey: surveyModel,
-      save: function(evt){
-        var survey = this.state.survey;
-        var p = new Promise(function(resolve, reject){
-          try {
-            var spreadsheetStructure = survey.toSsStructure();
-            resolve()
-          } catch (e) {
-            reject(e)
-          }
-        });
-        p.constructor.prototype.finally = p.constructor.prototype.then;
-        return p;
-      }
-    });
-    $('.form-wrap').html(this.surveyApp.$el);
-    this.surveyApp.render()
-  },
-  componentDidMount () {
-    this.renderSurvey();
-  },
-  componentDidUpdate () {
-    this.renderSurvey();
-  },
-  // componentWillUnmount () {
-  //   log('component will unmount');
-  // },
-  render () {
-    if (!this.state.data) {
-      return (
-          <div>
-            <i className='fa fa-spinner fa-spin' />
-            &nbsp;
-            &nbsp;
-            {t('loading')}
-          </div>
-        );
-    }
+// var FormEditor = React.createClass({
+//   mixins: [
+//     Reflux.connectFilter(assetContentStore, function(data){
+//       var assetid = this.props.params.assetid;
+//       return data[assetid];
+//     })
+//   ],
+//   statics: {
+//     willTransitionTo: function(transition, params, idk, callback) {
+//       actions.resources.loadAssetContent({id: params.assetid});
+//       callback();
+//     // },
+//     // willTransitionFrom (transition, params, callback) {
+//     //   // component.formHasUnsavedData()
+//     //   if (!confirm(t('You have unsaved information, are you sure you want to leave this page?'))) {
+//     //     transition.cancel();
+//     //   }
+//     }
+//   },
+//   getInitialState () {
+//     return {
+//       dkobo_xlform: !!window.dkobo_xlform,
+//       data: false
+//     };
+//   },
+//   renderSurvey () {
+//     var xlform = window.dkobo_xlform;
+//     var surveyModel = new xlform.model.Survey.loadDict(this.state.data);
+//     this.surveyApp = new xlform.view.SurveyApp({
+//       survey: surveyModel,
+//       save: function(evt){
+//         var survey = this.state.survey;
+//         var p = new Promise(function(resolve, reject){
+//           try {
+//             var spreadsheetStructure = survey.toSsStructure();
+//             resolve()
+//           } catch (e) {
+//             reject(e)
+//           }
+//         });
+//         p.constructor.prototype.finally = p.constructor.prototype.then;
+//         return p;
+//       }
+//     });
+//     $('.form-wrap').html(this.surveyApp.$el);
+//     this.surveyApp.render()
+//   },
+//   componentDidMount () {
+//     this.renderSurvey();
+//   },
+//   componentDidUpdate () {
+//     this.renderSurvey();
+//   },
+//   // componentWillUnmount () {
+//   //   log('component will unmount');
+//   // },
+//   render () {
+//     if (!this.state.data) {
+//       return (
+//           <div>
+//             <i className='fa fa-spinner fa-spin' />
+//             &nbsp;
+//             &nbsp;
+//             {t('loading')}
+//           </div>
+//         );
+//     }
 
-    if (!this.state.dkobo_xlform) {
-      return (
-          <div>
-            <i className='fa fa-spinner fa-spin' />
-            &nbsp;
-            &nbsp;
-            {t('loading scripts')}
-          </div>
-        );
-    }
-    var content;
-    return (
-        <div className='form-wrap'>
-        </div>
-      );
-  }
-});
+//     if (!this.state.dkobo_xlform) {
+//       return (
+//           <div>
+//             <i className='fa fa-spinner fa-spin' />
+//             &nbsp;
+//             &nbsp;
+//             {t('loading scripts')}
+//           </div>
+//         );
+//     }
+//     var content;
+//     return (
+//         <div className='form-wrap'>
+//         </div>
+//       );
+//   }
+// });
 
 
 class KoBo extends React.Component {
@@ -3389,89 +3455,6 @@ var FormSettingsBox = React.createClass({
   }
 })
 
-var formViewMixin = {
-  _saveForm (evt) {
-    evt && evt.preventDefault();
-    actions.resources.updateAsset(this.props.params.assetid, {
-      name: this.getNameValue(),
-      content: surveyToValidJson(this.state.survey)
-    });
-    this.setState({
-      asset_updated: false
-    })
-  },
-  navigateBack (evt) {
-    if (this.needsSave() && confirm(t('you have unsaved changes. would you like to save?'))) {
-      this._saveForm();
-    }
-    this.transitionTo('forms');
-  },
-  loadingNotice () {
-    return (
-        <p>
-          <i className='fa fa-spinner fa-spin' />
-          &nbsp;&nbsp;
-          {t('loading form...')}
-        </p>
-      );
-  },
-  renderSubSettingsBar () {
-    return <FormSettingsBox {...this.state} />;
-  },
-  nameInputValue () {
-    return this.refs['form-name'].getDOMNode().value;
-  },
-  nameInputChange (evt) {
-    var nameVal = this.nameInputValue();
-    this.state.survey.settings.set('form_title', nameVal)
-    this.setState({
-      survey_name: this.state.survey.settings.get('form_title')
-    });
-  },
-  getInitialState () {
-    return {
-      'asset_updated': true
-    }
-  },
-  needsSave () {
-    return this.state.asset_updated === -1;
-  },
-  renderCloseButton() {
-    var kls = classNames('k-form-close-button', {
-      "k-form-close-button--warning": this.needsSave()
-    });
-    return <a className={kls} onClick={this.navigateBack}>&times;</a>;
-  },
-  innerRender () {
-
-    return (
-        <Panel className="k-div--formviewmixin--innerrender">
-          <div className="row k-form-header-row">
-            {this.renderCloseButton()}
-            <div className="k-header-name-row form-group col-md-10">
-              <div className="k-corner-icon"></div>
-              {this.renderFormNameInput()}
-            </div>
-            <div className="col-md-2">
-              <div className="k-col-padrt25">
-                {this.renderSaveAndPreviewButtons()}
-              </div>
-            </div>
-          </div>
-          { this.state.survey ?
-            this.renderSubSettingsBar()
-          :null}
-
-          { ('renderSubTitle' in this) ? 
-            this.renderSubTitle()
-          : null}
-          <div ref="form-wrap" className='form-wrap'>
-          </div>
-        </Panel>
-      );
-  },
-};
-
 /*
 class AssetPage extends AssetCollectionBase {
   renderHeader () {
@@ -3569,7 +3552,7 @@ class AssetPage extends AssetCollectionBase {
 var FormLanding = React.createClass({
   mixins: [
     Navigation,
-    formViewMixin,
+    mixins.formView,
     Reflux.ListenerMixin,
   ],
   renderSaveAndPreviewButtons () {
@@ -3708,7 +3691,7 @@ var FormLanding = React.createClass({
 // var FormLanding = React.createClass({
 //   mixins: [
 //     Navigation,
-//     formViewMixin,
+//     mixins.formView,
 //   ],
 //   render () {
 //     return this.innerRender();
@@ -3718,7 +3701,7 @@ var FormLanding = React.createClass({
 var FormPage = React.createClass({
   mixins: [
     Navigation,
-    formViewMixin,
+    mixins.formView,
     // existingAssetMixin.refluxConnect,
     // Reflux.connectFilter(assetStore, 'asset', function(data){
     //   return data[this.props.params.assetid];
@@ -3929,7 +3912,7 @@ var surveyStore = Reflux.createStore({
 var NewForm = React.createClass({
   mixins: [
     Navigation,
-    formViewMixin,
+    mixins.formView,
   ],
   renderFormNameInput () {
     var nameKls = this.state.survey_name_valid ? '' : 'has-warning';
