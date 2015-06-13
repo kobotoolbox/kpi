@@ -22,6 +22,7 @@ from .models import (
     object_permission,
     Asset,
     ImportTask,
+    AssetDeployment,
     ObjectPermission,)
 from .models.object_permission import get_anonymous_user
 from .permissions import IsOwnerOrReadOnly
@@ -40,6 +41,7 @@ from .serializers import (
     CollectionSerializer, CollectionListSerializer,
     UserSerializer, UserListSerializer,
     TagSerializer, TagListSerializer,
+    AssetDeploymentSerializer,
     ImportTaskSerializer,
     ObjectPermissionSerializer,)
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
@@ -123,6 +125,32 @@ class CollectionViewSet(viewsets.ModelViewSet):
             return CollectionListSerializer
         else:
             return CollectionSerializer
+
+class AssetDeploymentViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = AssetDeployment.objects.none()
+    serializer_class = AssetDeploymentSerializer
+    lookup_field = 'uid'
+
+    def get_queryset(self, *args, **kwargs):
+        if self.request.user.is_anonymous():
+            return AssetDeployment.objects.none()
+        else:
+            return AssetDeployment.objects.filter(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        asset_id = request.POST['asset_id']
+        user = self.request.user
+        asset = Asset.objects.get(uid=asset_id)
+
+        RANDOM_FORM_ID_INCREMENTOR = random.randint(1000,9999)
+        deployment = AssetDeployment._create_if_possible(asset,
+                                user, RANDOM_FORM_ID_INCREMENTOR)
+
+        if 'error' in deployment:
+            return Response(deployment, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            serializer = self.get_serializer(data=deployment)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):

@@ -6,6 +6,7 @@ from kpi.views import (
     TagViewSet,
     ImportTaskViewset,
     ObjectPermissionViewSet,
+    AssetDeploymentViewset,
 )
 from rest_framework.routers import DefaultRouter
 from rest_framework import renderers
@@ -19,6 +20,7 @@ router.register(r'users', UserViewSet)
 router.register(r'tags', TagViewSet)
 router.register(r'permissions', ObjectPermissionViewSet)
 router.register(r'imports', ImportTaskViewset)
+router.register(r'deployments', AssetDeploymentViewset)
 
 
 urlpatterns = [

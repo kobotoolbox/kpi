@@ -1385,12 +1385,18 @@ mixins.collectionState = {
   clickActionDelete () {
 
   },
+  deploySelected (evt) {
+    evt.preventDefault();
+    if (this.state.results && stores.selectedAsset.uid) {
+      actions.resources.deployAsset(stores.selectedAsset.uid);
+    }
+  },
   renderActionButtons () {
     var assetIsSelected = this.state.results && stores.selectedAsset.uid;
     var kls = classNames("btn", "btn-default", "btn-sm",
                   !assetIsSelected ? "disabled" : '')
     var mutedTextClassesIfSelected = classNames("text-muted", assetIsSelected ? "k-invisible" : "")
-    var deployKls = classNames("btn", assetIsSelected ? "" : "disabled", "btn-success", "btn-sm");
+    var deployKls = classNames("btn", assetIsSelected ? "" : "disabled", "btn-block", "btn-success", "btn-sm");
     var aboveButtonKls = classNames({
       "k-header-formname-text": assetIsSelected,
       "text-muted": !assetIsSelected,
@@ -1441,9 +1447,7 @@ mixins.collectionState = {
               <em className={mutedTextClassesIfSelected}>{t('collect data')}</em>
             }
 
-            <div className="btn-group btn-group-justified" onMouseOver={this.highlightName}>
-              <a href="#" className={deployKls} title={t('deploy')}>{t('deploy')}</a>
-            </div>
+            <button className={deployKls} title={t('deploy')} onClick={this.deploySelected}>{t('deploy')}</button>
           </div>
         </div>
       );
@@ -1887,7 +1891,7 @@ var AssetRow = React.createClass({
               <ActionButton m='preview' action={this.clickPreview} disabled={!this.props.isSelected}>
                 <i className="fa fa-icon fa-eye" />
               </ActionButton>
-              <ActionButton m='edit' action={this.clickView} disabled={!this.props.isSelected}>
+              <ActionButton m='edit' action={this.clickEdit} disabled={!this.props.isSelected}>
                 <i className="fa fa-icon fa-pencil" />
               </ActionButton>
               <ActionButton m='download' action={this.clickDownload} disabled={!this.props.isSelected}>
@@ -3355,10 +3359,11 @@ var FormSettingsEditor = React.createClass({
             </div>
           </div>
           <div className="form-group">
-            <label for="select" className="col-lg-2 control-label">apperance</label>
+            <label for="select" className="col-lg-2 control-label">{t('form style')}</label>
             <div className="col-lg-10">
-              <select className="form-control">
-                <option>field-list</option>
+              <select className="form-control" onChange={this.props.onStyleChange} value={this.props.styleValue}>
+                <option value=''>{t('-none-')}</option>
+                <option value='field-list'>{t('field-list')}</option>
               </select>
             </div>
           </div>
@@ -3375,7 +3380,8 @@ var FormSettingsBox = React.createClass({
       formSettingsExpanded: false,
       formId: formId,
       meta: [],
-      phoneMeta: []
+      phoneMeta: [],
+      styleValue: 'field-list'
     }
   },
   getSurveyDetail (sdId) {
@@ -3422,6 +3428,13 @@ var FormSettingsBox = React.createClass({
       formSettingsExpanded: !this.state.formSettingsExpanded
     });
   },
+  onStyleChange (evt) {
+    var newStyle = evt.target.value;
+    this.props.survey.settings.set('style', newStyle);
+    this.setState({
+      styleValue: newStyle
+    });
+  },
   render () {
     var metaData = [].concat(this.state.meta).concat(this.state.phoneMeta).filter(function(item, a, b, c){
       return item.value;
@@ -3445,9 +3458,12 @@ var FormSettingsBox = React.createClass({
             <span className="settings-preview">{t('form id')}: {this.state.formId}</span>
             <span className="settings-preview">{t('meta questions')}: {metaData}</span>
           </div>
-          {this.state.formSettingsExpanded ? 
+          {this.state.formSettingsExpanded ?
             <FormSettingsEditor {...this.state} onCheckboxChange={this.onCheckboxChange}
-                onFieldChange={this.onFieldChange} />
+                onFieldChange={this.onFieldChange}
+                onStyleChange={this.onStyleChange}
+                styleValue={this.state.styleValue}
+                />
           :null}
         </div>
 

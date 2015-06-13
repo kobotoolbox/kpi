@@ -49,6 +49,7 @@ INSTALLED_APPS = (
     'django_extensions',
     'taggit',
     'rest_framework',
+    'rest_framework.authtoken',
     'djcelery',
 )
 

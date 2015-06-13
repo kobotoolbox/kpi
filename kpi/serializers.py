@@ -11,6 +11,7 @@ from .models import Asset
 from .models import Collection
 from .models import ImportTask
 from .models import ObjectPermission
+from .models import AssetDeployment
 from .models.object_permission import get_anonymous_user
 from .search_indexes import AssetIndex
 from taggit.models import Tag
@@ -292,6 +293,26 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def _table_url(self, obj):
         request = self.context.get('request', None)
         return reverse('asset-table-view', args=(obj.uid,), request=request)
+
+class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = AssetDeployment
+        fields = (
+                'user',
+                'date_created',
+                'asset',
+                'uid',
+            )
+        lookup_field = 'uid'
+        extra_kwargs = {
+            'user': {
+                'lookup_field': 'username',
+            },
+            'asset': {
+                'lookup_field': 'uid',
+            }
+        }
+
 
 class ImportTaskSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:

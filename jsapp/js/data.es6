@@ -141,6 +141,15 @@ var dataInterface;
         return $.getJSON(`/collections/${params.id}/`);
       }
     },
+    deployAsset (id) {
+      return $ajax({
+        method: 'POST',
+        url: '/deployments/',
+        data: {
+          asset_id: id
+        }
+      });
+    },
     getResource ({id}) {
       // how can we avoid pulling asset type from the 1st character of the uid?
       var assetType = assetMapping[id[0]];
