@@ -2,7 +2,7 @@ import json
 from itertools import chain
 
 from django.contrib.auth.models import User
-from django.db.models import Q
+from django.db.models import Q, Count
 from rest_framework import (
     viewsets,
     mixins,
@@ -213,8 +213,6 @@ import base64
 from io import BytesIO
 from pyxform.xls2json_backends import xls_to_dict
 
-from django.forms.models import model_to_dict
-
 class ImportTaskViewset(viewsets.ReadOnlyModelViewSet):
     queryset = ImportTask.objects.all()
     serializer_class = ImportTaskSerializer
@@ -228,7 +226,6 @@ class ImportTaskViewset(viewsets.ReadOnlyModelViewSet):
     # date_created = models.DateTimeField(auto_now_add=True)
 
     def create(self, request, *args, **kwargs):
-        # this should probably go in the asset's create method
         if 'base64Encoded' in request.POST:
             encoded_str = request.POST['base64Encoded']
             encoded_substr = encoded_str[encoded_str.index('base64')+7:]
@@ -262,7 +259,7 @@ class AssetViewSet(viewsets.ModelViewSet):
         'permissions__permission',
         'permissions__user',
         'permissions__content_object',
-    ).all()
+    ).annotate(Count('assetdeployment')).all()
     serializer_class = AssetSerializer
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)

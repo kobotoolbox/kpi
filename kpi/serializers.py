@@ -316,6 +316,8 @@ class ImportTaskSerializer(serializers.HyperlinkedModelSerializer):
             )
 
 class AssetListSerializer(AssetSerializer):
+    # assetdeployment__count comes from annotate() on the view's queryset
+    deployment_count = serializers.IntegerField(source='assetdeployment__count')
     class Meta(AssetSerializer.Meta):
         fields = ('url',
                   'date_modified',
@@ -329,6 +331,7 @@ class AssetListSerializer(AssetSerializer):
                   'kind',
                   'name',
                   'asset_type',
+                  'deployment_count',
                   'permissions',
                   )
 
