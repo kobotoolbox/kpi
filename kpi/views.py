@@ -176,7 +176,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
             return CollectionSerializer
 
 
-class AssetDeploymentViewset(viewsets.ReadOnlyModelViewSet):
+class AssetDeploymentViewSet(NoUpdateModelViewSet):
     queryset = AssetDeployment.objects.none()
     serializer_class = AssetDeploymentSerializer
     lookup_field = 'uid'
@@ -263,7 +263,7 @@ class XlsFormParser(MultiPartParser):
     pass
 
 
-class ImportTaskViewset(viewsets.ReadOnlyModelViewSet):
+class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ImportTask.objects.all()
     serializer_class = ImportTaskSerializer
     lookup_field = 'uid'
