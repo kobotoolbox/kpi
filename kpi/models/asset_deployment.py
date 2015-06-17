@@ -5,7 +5,7 @@ from kpi.models import Asset
 from rest_framework.authtoken.models import Token
 from pyxform.xls2json_backends import xls_to_dict
 import cStringIO
-import csv
+import unicodecsv
 import re
 
 import requests
@@ -23,8 +23,8 @@ def deploy_asset(user, asset, form_id):
     print json.dumps(asset.content, indent=4)
     xls_dict = xls_to_dict(asset.to_xls_io())
     foo = cStringIO.StringIO()
-    writer = csv.writer(
-        foo, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    writer = unicodecsv.writer(
+        foo, delimiter=',', quotechar='"', quoting=unicodecsv.QUOTE_MINIMAL)
     settings_arr = xls_dict.get('settings', [])
     if len(settings_arr) == 0:
         setting = {}
