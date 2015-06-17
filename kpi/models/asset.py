@@ -220,6 +220,9 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model):
                 terms.add(value)
         return terms
 
+    def __unicode__(self):
+        return u'{} ({})'.format(self.name, self.uid)
+
 
 class AssetExport(models.Model):
 

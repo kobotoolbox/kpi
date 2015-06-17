@@ -19,6 +19,7 @@ def deploy_asset(user, asset, form_id):
     print "deploying asset '%s' for user '%s'" % (asset.name, user.username)
     (token, is_new) = Token.objects.get_or_create(user=user)
     headers = {u'Authorization':'Token ' + token.key}
+    import json
     print json.dumps(asset.content, indent=4)
     xls_dict = xls_to_dict(asset.to_xls_io())
     foo = cStringIO.StringIO()
@@ -60,9 +61,11 @@ def deploy_asset(user, asset, form_id):
         response = requests.post(url, headers=headers, data=payload)
         status_code = response.status_code
         resp = response.json()
-        if resp['type'] == 'alert-error':
+        # Sometimes we don't have a 'type'. What's 'text'? Ask @dorey about this.
+        if 'type' in resp and resp['type'] == 'alert-error':
             print resp
             resp['error'] = resp['text']
+    # Blanket except was masking the KeyError for resp['type']
     except Exception, e:
         resp = {'error': str(e)}
 
@@ -115,8 +118,12 @@ class AssetDeployment(models.Model):
             )
         result = new_ad.deploy_asset(form_id)
         if 'error' in result:
+            # Can we raise an exception instead of returning a dict? Ask @dorey.
             return result
         else:
+            # Would it make sense to have a boolean or something on the model
+            # to indicate whether it was successful instead of doing the
+            # creation conditionally?
             new_ad.data = result
             new_ad.save()
             return new_ad

@@ -185,6 +185,11 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
             'deny',
             'inherited',
         )
+        extra_kwargs = {
+            'uid': {
+                'read_only': True,
+            },
+        }
 
     def create(self, validated_data):
         content_object = validated_data['content_object']
@@ -255,6 +260,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         extra_kwargs = {
             'parent': {
                 'lookup_field': 'uid',
+            },
+            'uid': {
+                'read_only': True,
             },
         }
 
@@ -345,10 +353,14 @@ class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
         extra_kwargs = {
             'user': {
                 'lookup_field': 'username',
+                'read_only': True,
             },
             'asset': {
                 'lookup_field': 'uid',
-            }
+            },
+            'uid': {
+                'read_only': True,
+            },
         }
 
 
@@ -362,6 +374,11 @@ class ImportTaskSerializer(serializers.HyperlinkedModelSerializer):
             'uid',
             'date_created',
         )
+        extra_kwargs = {
+            'uid': {
+                'read_only': True,
+            },
+        }
 
 
 class AssetListSerializer(AssetSerializer):
@@ -469,6 +486,9 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
         extra_kwargs = {
             'assets': {
                 'lookup_field': 'uid',
+            },
+            'uid': {
+                'read_only': True,
             },
         }
 

@@ -78,16 +78,17 @@ def current_user(request):
                          'last_login': user.last_login,
                          })
 
+class NoUpdateModelViewSet(
+        # Inherit from everything that ModelViewSet does, except for
+        # UpdateModelMixin
+        mixins.CreateModelMixin,
+        mixins.RetrieveModelMixin,
+        mixins.DestroyModelMixin,
+        mixins.ListModelMixin,
+        viewsets.GenericViewSet
+    ): pass
 
-class ObjectPermissionViewSet(
-    # Inherit from everything that ModelViewSet does, except for
-    # UpdateModelMixin
-    mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.DestroyModelMixin,
-    mixins.ListModelMixin,
-    viewsets.GenericViewSet
-):
+class ObjectPermissionViewSet(NoUpdateModelViewSet):
     queryset = ObjectPermission.objects.all()
     serializer_class = ObjectPermissionSerializer
     lookup_field = 'uid'
@@ -188,20 +189,34 @@ class AssetDeploymentViewSet(NoUpdateModelViewSet):
             return AssetDeployment.objects.filter(user=self.request.user)
 
     def create(self, request, *args, **kwargs):
-        asset_uid = request.POST.get('asset[uid]')
         user = self.request.user
-        asset = Asset.objects.get(uid=asset_uid)
+        if user.is_anonymous():
+            raise exceptions.NotAuthenticated
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        asset = serializer.validated_data['asset']
 
         RANDOM_FORM_ID_INCREMENTOR = random.randint(1000, 9999)
         deployment = AssetDeployment._create_if_possible(asset,
                                                          user,
                                                          RANDOM_FORM_ID_INCREMENTOR)
 
-        if 'error' in deployment:
+        if not isinstance(deployment, AssetDeployment) and 'error' in deployment:
+            # Probably shouldn't always be a 400, since something like
+            # 'Connection refused' because KC isn't running really deserves
+            # a 500
             return Response(deployment, status=status.HTTP_400_BAD_REQUEST)
         else:
-            serializer = self.get_serializer(data=deployment)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            # Seems ugly. I don't think we'd have to do this serializer
+            # juggling if _create_if_possible() returned only an
+            # AssetDeployment or raised an exception.
+            serializer_for_response = self.serializer_class(
+                deployment,
+                context={'request': self.request}
+            )
+            return Response(
+                serializer_for_response.data, status=status.HTTP_201_CREATED)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
