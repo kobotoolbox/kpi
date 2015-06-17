@@ -12,10 +12,15 @@ from object_permission import ObjectPermission, ObjectPermissionMixin
 from django.dispatch import receiver
 
 ASSET_TYPES = [
-    ('text', 'text'),
-    ('survey_block', 'survey_block'),
-    ('choice_list', 'choice list'),
+    ('text', 'text'),               # uncategorized, misc
+
+    ('question', 'question'),       # has no name
+    ('block', 'block'),             # has a name, but no settings
+    ('survey', 'survey'),           # has name, settings
+
+    ('empty', 'empty'),             # useless, probably should be pruned
 ]
+
 ASSET_UID_LENGTH = 22
 
 class AssetManager(models.Manager):
@@ -33,15 +38,26 @@ class Asset(ObjectPermissionMixin, models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     content = JSONField(null=True)
+    summary = JSONField(null=True, default={})
     asset_type = models.CharField(choices=ASSET_TYPES, max_length=20, default='text')
-    parent = models.ForeignKey('Collection', related_name='assets', null=True)
+    parent = models.ForeignKey('Collection', related_name='assets', null=True, blank=True)
     owner = models.ForeignKey('auth.User', related_name='assets', null=True)
     editors_can_change_permissions = models.BooleanField(default=True)
-    uid = models.CharField(max_length=ASSET_UID_LENGTH, default='')
+    uid = models.CharField(max_length=ASSET_UID_LENGTH, default='', blank=True)
     tags = TaggableManager()
+
     permissions = GenericRelation(ObjectPermission)
 
     objects = AssetManager()
+
+    @property
+    def tag_string(self):
+        return ','.join(self.tags.values_list('name', flat=True))
+
+    @tag_string.setter
+    def tag_string(self, value):
+        intended_tags = value.split(',')
+        self.tags.set(*intended_tags)
 
     @property
     def kind(self):
@@ -81,12 +97,35 @@ class Asset(ObjectPermissionMixin, models.Model):
         if self.uid == '':
             self.uid = self._generate_uid()
 
+    def _populate_summary(self):
+        if self.content == None:
+            self.asset_type = 'empty'
+            self.content = {}
+            self.summary = {}
+            return
+        survey = self.content.get('survey', [])
+        if len(survey) == 0:
+            summary = {}
+            self.asset_type = 'empty'
+        elif 'settings' in self.content:
+            self.asset_type = 'survey'
+        elif len(survey) == 1:
+            self.asset_type = 'question'
+        else:
+            self.asset_type = 'block'
+
+        if self.asset_type in ['question', 'block', 'survey']:
+            summary = {'labels': [l.get('label', {'nolabel':l}) for l in survey[0:5]]}
+        summary['row_count'] = len(survey)
+        self.summary = summary
+
     def _generate_uid(self):
         return 'a' + ShortUUID().random(ASSET_UID_LENGTH-1)
 
     def save(self, *args, **kwargs):
         # populate uid field if it's empty
         self._populate_uid()
+        self._populate_summary()
         with transaction.atomic(), reversion.create_revision():
             super(Asset, self).save(*args, **kwargs)
 

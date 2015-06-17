@@ -1,72 +1,74 @@
-.react-tagsinput {
-  border: 0 none;
-  background: #fff;
-  padding: 2px;
-  overflow-y: auto;
-  border-radius: 3px;
+$tagBorderColor: #a5d24a;
+$tagBgColor: #cde69c;
+$tagTextColor: #638421;
+$innerInputCursorColor: #777;
+// $wrapBorderColor: #ccc;
+$wrapBorderColor: transparent;
+$invalidBgColor: #fbd8db;
+$invalidColor: #90111a;
+
+.k-tagsinput {
+  background-color: #fff;
+  border: 1px solid $wrapBorderColor;
+  overflow: hidden;
+  padding-left: 2px;
+  padding-top: 2px;
   display: inline-block;
-  margin-bottom: -11px;
-  margin-left: 12px;
-}
-
-.react-tagsinput-tag {
-  &:hover {
-    border: 1px solid rgba(165, 210, 74, 0.8);
-    background: rgba(205, 230, 156, 0.8);
-  }
-  display: block;
-  border: 1px solid rgba(165, 210, 74, 0.5);
-  background: rgba(205, 230, 156, 0.5);
-  color: #638421;
-  font-size: 12px;
-  font-family: 'Helvetica Neue', 'Arial', sans-serif;
   float: left;
-  padding: 0 3px 0 4px;
-  margin-right: 5px;
-  margin-bottom: 0px;
-  text-decoration: none;
+}
+
+.k-tagsinput-tag {
+  background-color: $tagBgColor;
   border-radius: 2px;
-  line-height: 1.6em;
-  cursor: default;
+  border: 1px solid $tagBorderColor;
+  color: $tagTextColor;
+  float: left;
+  font-family: sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  margin-bottom: 3px;
+  margin-right: 3px;
+  padding: 0 5px;
 }
 
-.react-tagsinput-invalid {
-  background: #FBD8DB !important;
-  color: #90111A !important;
-}
-
-.react-tagsinput-validating {
-  background: #FFFACD !important;
-}
-
-.react-tagsinput-remove {
-  font-weight: bold;
-  color: #638421;
-  text-decoration: none;
-  font-size: 11px;
+/* a.k-tagsinput-remove */
+.k-tagsinput-remove {
   cursor: pointer;
-}
-
-.react-tagsinput-remove:before {
-  content: " x";
-}
-
-.react-tagsinput-input {
-  visibility: hidden;
-  opacity: 0.5;
-  tr:hover & {
-    visibility: visible;
+  font-weight: bold;
+  color: $tagBorderColor;
+  &:before {
+    content: " ×";
+    text-decoration: none;
   }
   &:hover {
-    opacity: 1;
+    text-decoration: none;
+    color: $tagBorderColor;
   }
+}
+
+.k-tagsinput-input {
   background: transparent;
-  color: #777;
-  border: 0;
+  border: 0 none;
+  color: $innerInputCursorColor;
+  font-family: sans-serif;
   font-size: 13px;
-  font-family: 'Helvetica Neue', 'Arial', sans-serif;
-  padding: 5px;
-  margin: 0;
-  width: 80px;
+  font-weight: 400;
+  margin-bottom: 2px;
+  margin-top: 1px;
   outline: none;
+  padding: 5px;
+  width: 80px;
+}
+
+.k-tagsinput-invalid {
+  background-color: $invalidBgColor;
+  color: $invalidColor;
+}
+
+.k-tagsinput-validating {
+  background: #fffacd;
+}
+
+.k-tags-save-button {
+  float: left;
 }

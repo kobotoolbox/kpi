@@ -9,17 +9,21 @@
     </a>
 {% endblock %}
 
+{% block head %}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {{ block.super }}
+{% endblock %}
 {% block bootstrap_theme %}
     {% load staticfiles %}
-    <link rel="stylesheet" href="{% static 'css/bootstrap-paper.min.css' %}">
     <link rel="stylesheet" href="{% static 'compiled/bundle.css' %}">
-    <link rel="stylesheet" href="{% static 'components/fontawesome/css/font-awesome.css' %}" media="all">
 {% endblock %}
 
 {% block script %}
-    {{ block.super }}
+
     <script src="{% static "compiled/bundle.js" %}"></script>
+
     {% if livereload_script %}
         <script src="{{ livereload_script }}"></script>
     {% endif %}
 {% endblock %}
+

@@ -21,6 +21,8 @@ from .models import (
     Collection,
     object_permission,
     Asset,
+    ImportTask,
+    AssetDeployment,
     ObjectPermission,)
 from .models.object_permission import get_anonymous_user
 from .permissions import IsOwnerOrReadOnly
@@ -39,6 +41,8 @@ from .serializers import (
     CollectionSerializer, CollectionListSerializer,
     UserSerializer, UserListSerializer,
     TagSerializer, TagListSerializer,
+    AssetDeploymentSerializer,
+    ImportTaskSerializer,
     ObjectPermissionSerializer,)
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
@@ -125,6 +129,32 @@ class CollectionViewSet(viewsets.ModelViewSet):
         else:
             return CollectionSerializer
 
+class AssetDeploymentViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = AssetDeployment.objects.none()
+    serializer_class = AssetDeploymentSerializer
+    lookup_field = 'uid'
+
+    def get_queryset(self, *args, **kwargs):
+        if self.request.user.is_anonymous():
+            return AssetDeployment.objects.none()
+        else:
+            return AssetDeployment.objects.filter(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        asset_uid = request.POST.get('asset[uid]')
+        user = self.request.user
+        asset = Asset.objects.get(uid=asset_uid)
+
+        RANDOM_FORM_ID_INCREMENTOR = random.randint(1000,9999)
+        deployment = AssetDeployment._create_if_possible(asset,
+                                user, RANDOM_FORM_ID_INCREMENTOR)
+
+        if 'error' in deployment:
+            return Response(deployment, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            serializer = self.get_serializer(data=deployment)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
@@ -178,6 +208,44 @@ from rest_framework.parsers import MultiPartParser
 class XlsFormParser(MultiPartParser):
     pass
 
+import random
+import base64
+from io import BytesIO
+from pyxform.xls2json_backends import xls_to_dict
+
+from django.forms.models import model_to_dict
+
+class ImportTaskViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = ImportTask.objects.all()
+    serializer_class = ImportTaskSerializer
+    lookup_field = 'uid'
+
+    # permission_classes = (IsOwnerOrReadOnly,)
+    # user = models.ForeignKey('auth.User')
+    # data = JSONField()
+    # status = models.CharField(choices=STATUS_CHOICES, max_length=32, default=CREATED)
+    # uid = models.CharField(max_length=UID_LENGTH, default='')
+    # date_created = models.DateTimeField(auto_now_add=True)
+
+    def create(self, request, *args, **kwargs):
+        # this should probably go in the asset's create method
+        if 'base64Encoded' in request.POST:
+            encoded_str = request.POST['base64Encoded']
+            encoded_substr = encoded_str[encoded_str.index('base64')+7:]
+            decoded_str = base64.b64decode(encoded_substr)
+            try:
+                survey_dict = xls_to_dict(BytesIO(decoded_str))
+            except Exception, e:
+                raise Exception('could not parse xls submission')
+
+            asset = Asset.objects.create(
+                owner=self.request.user,
+                content=survey_dict,
+                name=request.POST.get('name')
+            )
+            data = AssetSerializer(asset, context={'request': request}).data
+            return Response(data, status.HTTP_201_CREATED)
+
 class AssetViewSet(viewsets.ModelViewSet):
     """
     * Download a asset in a `.xls` or `.xml` format <span class='label label-success'>complete</span>
@@ -224,7 +292,11 @@ class AssetViewSet(viewsets.ModelViewSet):
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def content(self, request, *args, **kwargs):
         asset = self.get_object()
-        return Response(json.dumps(asset.to_ss_structure()))
+        return Response(json.dumps({
+            'kind': 'asset.content',
+            'uid': asset.uid,
+            'data': asset.to_ss_structure()
+            }))
 
     @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
     def koboform(self, request, *args, **kwargs):
@@ -235,9 +307,7 @@ class AssetViewSet(viewsets.ModelViewSet):
     def table_view(self, request, *args, **kwargs):
         sa = self.get_object()
         md_table = ss_structure_to_mdtable(sa.to_ss_structure())
-        header_links = '''
-        <a href="../">Back</a> | <a href="../.xls">Download XLS file</a><br>'''
-        return Response(_wrap_html_pre(header_links + md_table.strip()))
+        return Response(md_table.strip())
 
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def xls(self, request, *args, **kwargs):

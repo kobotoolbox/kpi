@@ -1,0 +1,167 @@
+.asset-row {
+  @extend .clearfix;
+  // transition: all 0.3s ease 0s;
+  list-style-type: none;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+  padding: 0;
+  a:not(.asset-row__action-icon) {
+    display: block;
+    background-color: #fff;
+    color: #888;
+    &:hover {
+      background-color: #E8FAE7;
+      text-decoration: none;
+    }
+  }
+}
+.asset-row--selected {
+  background-color: $highlightedBarColor;
+  a, a:hover {
+    background-color: $highlightedBarColor;
+  }
+}
+.asset-row--deleted {
+  opacity: 0.5;
+  background-color: rgba(255, 200, 200, 0.1);
+}
+
+@mixin bt-theme($col) {
+  .asset-row:not(.asset-row--selected) & {
+    // border-color: rgba($col, 0.2);
+    // background-color: rgba($col, 0.05);
+    border-color: lighten(rgb(223, 223, 223), 30%);
+    background-color: lighten(rgb(223, 223, 223), 50%);
+
+    > * {
+      color: lighten(#555, 60%)
+    }
+  }
+  .asset-row--selected & {
+    border-color: rgba($col, 0.7);
+    background-color: rgba($col, 0.05);
+    cursor: pointer;
+    > * {
+      color: darken($col, 5%);
+    }
+  }
+}
+
+@mixin action-faicon ($faClass) {
+  > i {
+    @extend .fa-#{$faClass};
+  }
+}
+%inner-fa-icon {
+  > i {
+    @extend .fa;
+    @extend .fa-fw;
+  }
+}
+.asset-row__action-icon {
+  border-style: solid;
+  border-width: 1px;
+  width: 30px;
+  height: 30px;
+  display: inline;
+  margin-right: 4px;
+  text-align: center;
+  line-height: 27px;
+  border-radius: 15px;
+  padding: 4px;
+
+  @extend %inner-fa-icon;
+
+  &.asset-row__action-icon--view {
+    @include bt-theme($kcol-view);
+    @include action-faicon('file-o')
+  }
+  &.asset-row__action-icon--edit {
+    @include bt-theme($kcol-edit);
+    @include action-faicon('pencil');
+  }
+  &.asset-row__action-icon--preview {
+    @include bt-theme($kcol-preview);
+    @include action-faicon('eye');
+  }
+  &.asset-row__action-icon--clone {
+    @include bt-theme($kcol-clone);
+    @include action-faicon('copy');
+  }
+  &.asset-row__action-icon--delete {
+    @include bt-theme($kcol-delete);
+    @include action-faicon('trash-o');
+  }
+  &.asset-row__action-icon--download {
+    @include bt-theme($kcol-download);
+    @include action-faicon('download');
+  }
+}
+
+.asset-row__sharingIcon {
+  color: lighten(#000, 30%);
+  i {
+    @extend .fa, .fa-fw, .fa-user;
+  }
+  &.asset-row__sharingIcon--multi-user {
+    i {
+      @extend .fa, .fa-fw, .fa-users;
+    }
+  }
+  &.asset-row__sharingIcon--public-owned {
+    span {
+      display: none;
+    }
+    i {
+      @extend .fa, .fa-fw, .fa-question;
+    }
+  }
+}
+// not including the 
+$colcount: 4;
+$colwidth: (100% / $colcount) - 1%;
+%rowcell {
+  width: $colwidth;
+  float: left;
+  margin-left: 1%;
+  padding: 4px 2px;
+}
+// consider extending .col-md-3, etc.
+.asset-row__cell {
+  @extend %rowcell;
+
+  // indicating the asset type
+  &.asset-row__cell--icon {
+    width: 1%;
+    @extend %inner-fa-icon;
+
+    &.asset-row__cell--assettype-empty {
+      @include action-faicon('lemon-o');
+      opacity: 0.5;
+    }
+    &.asset-row__cell--assettype-survey {
+      @include action-faicon('fighter-jet');
+    }
+    // &.asset-row__cell--kind-asset {
+    //  @include action-faicon('file-o');
+    // }
+    // &.asset-row__cell--kind-collection {
+    //   @include action-faicon('folder');
+    // }
+  }
+  &.asset-row__cell--userlink {
+    width: 19%;
+  }
+  &.asset-row__cell--date-modified {
+    width: 14%;
+  }
+  &.asset-row__cell--name {
+    width: 37%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.asset-row__cell--action-icons {
+  text-align: right;
+}
