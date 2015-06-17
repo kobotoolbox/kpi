@@ -1,0 +1,328 @@
+// ==========================================================================
+// Card (incl. Header and Expanded)
+// ==========================================================================
+
+.card {
+    border-radius: 0px;
+    font-family: 'Open Sans';
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 18px;
+    margin-bottom: 4px;
+    position: relative;
+
+    .bleeding-edge & {
+        margin-bottom: 0;
+    }
+    // pseudo-rule used only to increase card hover area to the left of the card
+    .no-touch &:before {
+        content: " ";
+        height: 100%;
+        left: -60px;
+        position: absolute;
+        width: 80px;
+    }
+    &.card--movable {
+      cursor: move;
+    }
+    &.card--error {
+        padding: 12px 20px;
+        background-color: rgb(255, 176, 176);
+    }
+    .card__header {
+        border: $cardBorderStyle;
+        padding: 30px 40px 30px 75px;
+        display: block;
+        background: white;
+        cursor: move;
+        position: relative;
+
+        .bleeding-edge & {
+            padding-top: 5px;
+            padding-bottom: 5px;
+            border-width: 1px;
+        }
+    }
+
+    .card__text {
+        margin:auto;
+        display: inline-block;
+        vertical-align: middle;
+        width: 99%;
+        position: relative;
+        &.activated {
+            color: #8595A5;
+        }
+        .card__buttons__multioptions {
+            cursor: pointer;
+            vertical-align: middle;
+            text-align: right;
+            position: absolute;
+            left:-34px;
+            top:50%;
+            width: 32px;
+            margin-top:-30px;
+            padding-top: 22px;
+            padding-bottom: 22px;
+            .fa {
+                width: 12px;
+                font-size: 15px;
+            }
+        }
+    }
+
+    .card__header-title {
+        cursor:text;
+        // white-space: pre;
+    }
+    &.card--shaded .card__header-title {
+        opacity:0.3;
+    }
+}
+
+.card--placeholder {
+    background-color: transparent;
+    color:#8695A5;
+    border:2px solid #8695A5;
+    text-align: center;
+    font-family: 'Open Sans';
+    font-weight: 600;
+    padding: 20px;
+    margin:20px 0px;
+}
+
+.sortable-active {
+    .card__header {
+        border: $cardInSortBorderStyle;
+        .card__header-title {
+            color: $cardInSortBorderColor;
+        }
+    }
+}
+.card--error {
+    background-color: rgb(255, 176, 176);
+}
+
+// ==========================================================================
+// Card indicator
+// ==========================================================================
+
+$cardIndicatorWidth: 42px;
+$cardIndicatorIconHeight: 21px;
+$cardIndicatorIconWidth: 21px;
+
+.card__indicator {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: $cardIndicatorWidth;
+    height: 100%;
+    border-right: $cardBorderStyle;
+}
+.card--insort {
+    .card__indicator {
+        border-right: $cardInSortThinBorderStyle;
+    }
+}
+.card__indicator__icon {
+    position: absolute;
+    top: 50%;
+    margin-top: -($cardIndicatorIconHeight/2);
+    left: 8px;
+    width: $cardIndicatorIconHeight;
+    height: $cardIndicatorIconHeight;
+    font-size: 20px;
+    line-height: 20px;
+    text-align: center;
+    color: $indicatorColor;
+
+    .fa.invert {
+        padding: 3px 1px;
+        font-size: 0.95em;
+        background-color: #8595A5;
+    }
+    .fa-lato-calculate, .fa-lato-decimal,
+    .fa-lato-integer, .fa-lato-text {
+        font-size: 15px;
+        width: $cardIndicatorIconWidth;
+    }
+    .fa-lato-decimal {
+        margin-left:2px;
+    }
+}
+
+// ==========================================================================
+// Card quick buttons
+// ==========================================================================
+
+.card__buttons {
+    border: $cardBorderStyle;
+    border-width: 0 0 0 1px;
+    position: absolute;
+    top: 0px;
+    right: 2px;
+    width: 25px;
+    height: 100%;
+    cursor: pointer;
+    z-index: 3;
+
+    .card--shaded & {
+        border:none;
+    }
+
+    .bleeding-edge & {
+        width: 169px;
+        right: -181px;
+        background-color: white;
+    }
+}
+
+// ==========================================================================
+// Card Shade (displays on hover above the card header)
+// ==========================================================================
+
+// Displayed when parent .card has .card--shaded
+.card__header--shade {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0px;
+    top: 0px;
+    z-index: 2;
+    text-align: center;
+    vertical-align: middle;
+    display: none;
+    .card--shaded & {
+        display: block;
+    }
+    span {
+        position: relative;
+        top: 35%;
+        font-weight: 600;
+        font-size: 23px;
+    }
+    .card__header.settings & {
+        background: rgba(#858F98, 0.6);
+        span:after {
+            content: "Settings";
+        }
+    }
+    .card__header.delete & {
+        background: rgba(#D08B8C, 0.6);
+        span:after {
+            content: "Delete Question";
+        }
+    }
+    .card__header.duplicate & {
+        background:rgba($linkColor, 0.6);
+        span:after {
+            content: "Duplicate Question";
+        }
+    }
+    .card__header.add-to-library & {
+        background: rgba(#39BF6E, 0.6);
+        span:after {
+            content: "Add Question to Library";
+        }
+    }
+}
+
+.card--insort {
+    .card__buttons {
+        border-left: $cardInSortThinBorderStyle;
+    }
+}
+.card__buttons__button {
+    height: 20px;
+    line-height: 20px;
+    width: 26px;
+    position: absolute;
+    right: -2px;
+    bottom: 0px;
+    text-align: center;
+    &.card__buttons__button--gray {
+        color: #858F98;
+        top:0px;
+    }
+    &.card__buttons__button--red {
+        color: #D08B8C;
+        top:37%;
+        margin-top:-10px;
+    }
+    &.card__buttons__button--blue {
+        color:$linkColor;
+    }
+    &.card__buttons__button--gray-green {
+      bottom: 0px;
+    }
+    &.card__buttons__button--card__buttons__button--copy {
+        bottom: 25%
+    }
+    &.card__buttons__button--activated {
+        // trying to transition this into %activated-card-button
+        color: #646D75;
+        background-color: #D9DDE1;
+    }
+    &:hover, &.card__buttons__button--activated:hover {
+        // @extend %activated-card-button;
+        background: none;
+        color: white;
+    }
+
+    .bleeding-edge & {
+        position: relative;
+        float: left;
+        width: 30px;
+        display: block;
+        margin: 5px;
+        &.card__buttons__button--red,
+          &.card__buttons__button--gray,
+          &.card__buttons__button--blue,
+          &.card__buttons__button--gray-green,
+          &.card__buttons__button--copy {
+            top: 0;
+        }
+    }
+}
+
+// Misc...
+
+.placeholder {
+    height: 80px;
+    margin-bottom: 10px;
+    border: 2px solid #B4C1CD;
+    border-radius: 4px;
+    position: relative;
+    &:before {
+        content: "Drag and drop to reorder. ";
+        position: absolute;
+        font-weight: bold;
+        color: #8595A5;
+        width: 100%;
+        text-align: center;
+        line-height: 75px;
+        font-size: 14px;
+    }
+}
+
+// overrides
+// ---------
+
+.card--shaded {
+    .card__buttons {
+        z-index: 4;
+    }
+    .card__header .card__text .bg {
+        display: block;
+    }
+}
+
+.survey-editor--singlequestion .card__buttons__button--delete {
+    display: none;
+}
+
+.survey-editor__action--multiquestion {
+  .survey-editor--singlequestion & {
+    display: none;
+  }
+}

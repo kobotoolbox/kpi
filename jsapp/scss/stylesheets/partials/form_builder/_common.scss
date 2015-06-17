@@ -1,0 +1,73 @@
+%caret-right {
+    &:before {
+        content: "\f0da";
+    }
+}
+
+%caret-down {
+    &:before {
+        content: "\f0d7";
+    }
+}
+
+%card-expansion {
+    border: $cardBorderStyle;
+    border-top-width: 1px;
+    background: white;
+    margin-top:-2px;
+    position: relative;
+
+    &:after, &:before {
+        bottom: 100%;
+        left: 50%;
+        border: solid transparent;
+        content: " ";
+        height: 0;
+        width: 0;
+        position: absolute;
+        pointer-events: none;
+    }
+    &:after {
+        border-color: rgba(255, 255, 255, 0);
+        border-bottom-color: #FFF;
+        border-width: 8px;
+        margin-left: -8px;
+    }
+    &:before {
+        border-color: rgba(217, 221, 225, 0);
+        border-bottom-color: #d9dde1;
+        border-width: 9px;
+        margin-left: -9px;
+    }
+}
+
+%activated-card-button {
+    color: #646D75;
+    background-color: #D9DDE1;
+}
+
+.form-builder, .main, .content {
+  height: 100%
+}
+.form-builder__message {
+    margin: 20px auto;
+    padding: 10px;
+}
+.form-builder__message--error {
+    border: 1px solid #faa3a3;
+    background-color: #FFDFDF;
+    color: #C80909;
+    a {
+        color: #AB0000;
+        text-decoration: underline;
+    }
+}
+
+.survey-loading {
+  text-align: center;
+  padding:30px 0px;
+  i {
+    color: rgba(29, 174, 227, 0.8);
+  }
+}
+

@@ -1,0 +1,326 @@
+define 'cs!xlform/view.rowDetail', [
+        'cs!xlform/model.utils',
+        'cs!xlform/model.configs',
+        'cs!xlform/view.utils',
+        'cs!xlform/view.icons',
+        'cs!xlform/view.rowDetail.SkipLogic',
+        'cs!xlform/view.templates',
+        ], (
+            $modelUtils,
+            $configs,
+            $viewUtils,
+            $icons,
+            $viewRowDetailSkipLogic,
+            $viewTemplates,
+            )->
+
+  viewRowDetail = {}
+
+  class viewRowDetail.DetailView extends Backbone.View
+    ###
+    The DetailView class is a base class for details
+    of each row of the XLForm. When the view is initialized,
+    a mixin from "DetailViewMixins" is applied.
+    ###
+    className: "card__settings__fields__field  dt-view dt-view--depr"
+    initialize: ({@rowView})->
+      unless @model.key
+        throw new Error "RowDetail does not have key"
+      @extraClass = "xlf-dv-#{@model.key}"
+      _.extend(@, viewRowDetail.DetailViewMixins[@model.key] || viewRowDetail.DetailViewMixins.default)
+      @$el.addClass(@extraClass)
+
+    render: ()->
+      rendered = @html()
+      if rendered
+        @$el.html rendered
+
+      @afterRender && @afterRender()
+      @
+    html: ()->
+      $viewTemplates.$$render('xlfDetailView', @)
+    listenForCheckboxChange: (opts={})->
+      el = opts.el || @$('input[type=checkbox]').get(0)
+      $el = $(el)
+      changing = false
+      reflectValueInEl = ()=>
+        if !changing
+          val = @model.get('value')
+          if val is true or val in $configs.truthyValues
+            $el.prop('checked', true)
+      @model.on 'change:value', reflectValueInEl
+      reflectValueInEl()
+      $el.on 'change', ()=>
+        changing = true
+        @model.set('value', $el.prop('checked'))
+        changing = false
+    listenForInputChange: (opts={})->
+      # listens to checkboxes and input fields and ensures
+      # the model's value is reflected in the element and changes
+      # to the element are reflected in the model (with transformFn
+      # applied)
+      el = opts.el || @$('input').get(0)
+      $el = $(el)
+      transformFn = opts.transformFn || false
+      inputType = opts.inputType
+      inTransition = false
+
+      changeModelValue = ($elVal)=>
+        # preventing race condition
+        if !inTransition
+          inTransition = true
+          @model.set('value', $elVal)
+          reflectValueInEl(true)
+          inTransition = false
+
+      reflectValueInEl = (force=false)=>
+        # This should never change the model value
+        if force || !inTransition
+          modelVal = @model.get('value')
+          if inputType is 'checkbox'
+            if !_.isBoolean(modelVal)
+              modelVal = modelVal in $configs.truthyValues
+            # triggers element change event
+            $el.prop('checked', modelVal)
+          else
+            # triggers element change event
+            $el.val(modelVal)
+
+      reflectValueInEl()
+      @model.on 'change:value', reflectValueInEl
+
+      $el.on 'change', ()=>
+        $elVal = $el.val()
+        if transformFn
+          $elVal = transformFn($elVal)
+        changeModelValue($elVal)
+      return
+
+    _insertInDOM: (where, how) ->
+      where[how || 'append'](@el)
+    insertInDOM: (rowView)->
+      @_insertInDOM rowView.defaultRowDetailParent
+
+  viewRowDetail.Templates = {
+    textbox: (cid, key, key_label = key, input_class = '') ->
+      @field """<input type="text" name="#{key}" id="#{cid}" class="#{input_class}" />""", cid, key_label
+
+    checkbox: (cid, key, key_label = key, input_label = 'Yes') ->
+      @field """<input type="checkbox" name="#{key}" id="#{cid}"/> <label for="#{cid}">#{input_label}</label>""", cid, key_label
+
+    dropdown: (cid, key, values, key_label = key) ->
+      select = """<select id="#{cid}">"""
+
+      for value in values
+        select += """<option value="#{value}">#{value}</option>"""
+
+      select += "</select>"
+
+      @field select, cid, key_label
+    field: (input, cid, key_label) ->
+      """
+      <div class="card__settings__fields__field">
+        <label for="#{cid}">#{key_label}:</label>
+        <span class="settings__input">
+          #{input}
+        </span>
+      </div>
+      """
+  }
+
+  viewRowDetail.DetailViewMixins = {}
+
+  viewRowDetail.DetailViewMixins.type =
+    html: -> false
+    insertInDOM: (rowView)->
+      typeStr = @model.get("typeId")
+      if !(@model._parent.constructor.kls is "Group")
+        faClass = $icons.get(typeStr)?.get("faClass")
+        if !faClass
+          console?.error("could not find icon for type: #{typeStr}")
+          faClass = "fighter-jet"
+        rowView.$el.find(".card__header-icon").addClass("fa-#{faClass}")
+
+
+  viewRowDetail.DetailViewMixins.label =
+    html: -> false
+    insertInDOM: (rowView)->
+      cht = rowView.$label
+      cht.html(@model.get("value")|| new Array(10).join('&nbsp;'))
+      @
+
+  viewRowDetail.DetailViewMixins.hint =
+    html: ->
+      @$el.addClass("card__settings__fields--active")
+      viewRowDetail.Templates.textbox @cid, @model.key, 'Question hint', 'text'
+    afterRender: ->
+      @listenForInputChange()
+
+  viewRowDetail.DetailViewMixins.constraint_message =
+    html: ->
+      @$el.addClass("card__settings__fields--active")
+      viewRowDetail.Templates.textbox @cid, @model.key, 'Error Message', 'text'
+    insertInDOM: (rowView)->
+      @_insertInDOM rowView.cardSettingsWrap.find('.card__settings__fields--validation-criteria').eq(0)
+    afterRender: ->
+      @listenForInputChange()
+
+  viewRowDetail.DetailViewMixins.relevant =
+    html: ->
+      @$el.addClass("card__settings__fields--active")
+      """
+      <div class="card__settings__fields__field relevant__editor">
+      </div>
+      """
+
+    afterRender: ->
+      @$el.find(".relevant__editor").html("""
+        <div class="skiplogic__main"></div>
+        <p class="skiplogic__extras">
+        </p>
+      """)
+
+      @target_element = @$('.skiplogic__main')
+
+      @model.facade.render @target_element
+
+    insertInDOM: (rowView) ->
+      @_insertInDOM rowView.cardSettingsWrap.find('.card__settings__fields--skip-logic').eq(0)
+
+  viewRowDetail.DetailViewMixins.constraint =
+    html: ->
+      @$el.addClass("card__settings__fields--active")
+      """
+      <div class="card__settings__fields__field constraint__editor">
+      </div>
+      """
+    afterRender: ->
+      @$el.find(".constraint__editor").html("""
+        <div class="skiplogic__main"></div>
+        <p class="skiplogic__extras">
+        </p>
+      """)
+
+      @target_element = @$('.skiplogic__main')
+
+      @model.facade.render @target_element
+
+    insertInDOM: (rowView) ->
+      @_insertInDOM rowView.cardSettingsWrap.find('.card__settings__fields--validation-criteria')
+
+  viewRowDetail.DetailViewMixins.name =
+    html: ->
+      @fieldTab = "active"
+      @$el.addClass("card__settings__fields--#{@fieldTab}")
+      viewRowDetail.Templates.textbox @cid, @model.key, 'Data column name', 'text'
+    afterRender: ->
+      @listenForInputChange(transformFn: (value)=>
+        value_chars = value.split('')
+        if !/[\w_]/.test(value_chars[0])
+          value_chars.unshift('_')
+
+        @model.set 'value', value
+        @model.deduplicate @model.getSurvey()
+      )
+      update_view = () => @$el.find('input').eq(0).val(@model.get("value") || $modelUtils.sluggifyLabel @model._parent.getValue('label'))
+      update_view()
+
+      @model._parent.get('label').on 'change:value', update_view
+  # insertInDom: (rowView)->
+    #   # default behavior...
+    #   rowView.defaultRowDetailParent.append(@el)
+
+  viewRowDetail.DetailViewMixins.default =
+    html: ->
+      @fieldTab = "active"
+      @$el.addClass("card__settings__fields--#{@fieldTab}")
+      label = if @model.key == 'default' then 'Default response' else @model.key.replace(/_/g, ' ')
+      viewRowDetail.Templates.textbox @cid, @model.key, label, 'text'
+    afterRender: ->
+      @$el.find('input').eq(0).val(@model.get("value"))
+      @listenForInputChange()
+
+  viewRowDetail.DetailViewMixins.calculation =
+    html: -> false
+    insertInDOM: (rowView)-> return
+
+  viewRowDetail.DetailViewMixins._isRepeat =
+    html: ->
+      @$el.addClass("card__settings__fields--active")
+      viewRowDetail.Templates.checkbox @cid, @model.key, 'Repeat', 'Repeat this group if necessary'
+    afterRender: ->
+      @listenForCheckboxChange()
+
+  viewRowDetail.DetailViewMixins.required =
+    html: ->
+      @$el.addClass("card__settings__fields--active")
+      viewRowDetail.Templates.checkbox @cid, @model.key, 'Mandatory response'
+    afterRender: ->
+      @listenForCheckboxChange()
+
+  viewRowDetail.DetailViewMixins.appearance =
+    getTypes: () ->
+      types =
+        text: ['multiline', 'numbers']
+        select_one: ['minimal', 'quick', 'horizontal-compact', 'horizontal', 'likert', 'compact', 'quickcompact', 'label', 'list-nolabel']
+        select_multiple: ['minimal', 'horizontal-compact', 'horizontal', 'compact', 'label', 'list-nolabel']
+        image: ['signature', 'draw']
+        date: ['month-year', 'year']
+        group: ['select', 'field-list', 'table-list', 'other']
+
+      types[@model._parent.getValue('type').split(' ')[0]]
+    html: ->
+
+      @$el.addClass("card__settings__fields--active")
+      if @model_is_group(@model)
+        return viewRowDetail.Templates.checkbox @cid, @model.key, 'Appearance (advanced)', 'Show all questions in this group on the same screen'
+      else
+        appearances = @getTypes()
+        if appearances?
+          appearances.push 'other'
+          appearances.unshift 'select'
+          return viewRowDetail.Templates.dropdown @cid, @model.key, appearances, 'Appearance (advanced)'
+        else
+          return viewRowDetail.Templates.textbox @cid, @model.key, 'Appearance (advanced)', 'text'
+
+    model_is_group: (model) ->
+      model._parent.constructor.key == 'group'
+
+    afterRender: ->
+      $select = @$('select')
+      modelValue = @model.get 'value'
+      if $select.length > 0
+        $input = $('<input/>', {class:'text', type: 'text', width: 'auto'})
+        if modelValue != ''
+          if @getTypes()? && modelValue in @getTypes()
+            $select.val(modelValue)
+          else
+            $select.val('other')
+            @$('.settings__input').append $input
+            @listenForInputChange el: $input
+
+        $select.change () =>
+          if $select.val() == 'other'
+            @model.set 'value', ''
+            @$('.settings__input').append $input
+            @listenForInputChange el: $input
+          else if $select.val() == 'select'
+            @model.set 'value', ''
+          else
+            @model.set 'value', $select.val()
+            $input.remove()
+      else
+        $input = @$('input')
+        if $input.attr('type') == 'text'
+          @$('input[type=text]').val(modelValue)
+          @listenForInputChange()
+        else if $input.attr('type') == 'checkbox'
+          if @model.get('value') == 'field-list'
+            $input.prop('checked', true)
+          $input.on 'change', () =>
+            if $input.prop('checked')
+              @model.set 'value', 'field-list'
+            else
+              @model.set 'value', ''
+
+  viewRowDetail

@@ -62,7 +62,7 @@ var Dropzone = React.createClass({
     }
 
     files = Array.prototype.slice.call(files);
-    this.props.onDropFiles(files);
+    this.props.onDropFiles(files, this.props.params);
   },
   onClick: function () {
     if (this.props.fileInput) {
@@ -84,6 +84,7 @@ var Dropzone = React.createClass({
     return (
       React.createElement("div", {
           className: kls,
+          title: this.props.title,
           onClick: this.onClick,
           onDragLeave: this.onDragLeave,
           onDragOver: this.onDragOver,

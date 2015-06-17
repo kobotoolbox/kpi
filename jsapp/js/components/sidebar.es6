@@ -1,5 +1,13 @@
 import React from 'react/addons';
 import Router from 'react-router';
+import {log, t} from '../utils';
+import icons from '../icons';
+import stores from '../stores';
+import classNames from 'classnames';
+import Reflux from 'reflux';
+import bem from '../bem';
+
+var actions = require('../actions');
 
 let Link = Router.Link;
 
@@ -30,6 +38,14 @@ class SidebarTitle extends React.Component {
   }
 }
 class SidebarLink extends React.Component {
+  onClick (evt) {
+    if (!this.props.href) {
+      evt.preventDefault();
+    }
+    if (this.props.onClick) {
+      this.props.onClick(evt);
+    }
+  }
   render () {
     var icon_class = "menu-icon fa fa-fw fa-"+(this.props['fa-icon'] || 'table')
     var icon = (<span className={icon_class}></span>);
@@ -38,16 +54,15 @@ class SidebarLink extends React.Component {
     if (this.props.linkto) {
       link = <Link to={this.props.linkto}
                     activeClassName="active">{this.props.label} {icon}</Link>
-    } else if (this.props.href) {
-      link = <a href={this.props.href}>{this.props.label} {icon}</a>
     } else {
-      link = <Link to="help">{this.props.label} {icon}</Link>
+      link = <a href={this.props.href || "#"} onClick={this.onClick.bind(this)}>{this.props.label} {icon}</a>
     }
     return (
         <li className="sidebar-list">{link}</li>
-      )
+      );
   }
 }
+
 class SidebarFooterItem extends React.Component {
   render () {
     var content;
@@ -70,31 +85,150 @@ class SidebarFooterItem extends React.Component {
   }
 }
 
-export class Sidebar extends React.Component {
-  render () {
+var RecentHistory = React.createClass({
+  mixins: [
+    Reflux.ListenerMixin,
+    Router.Navigation,
+  ],
+  getInitialState () {
+    return {
+      items: stores.history.history
+    };
+  },
+  componentDidMount () {
+    this.listenTo(stores.history, this.historyStoreChanged);
+  },
+  historyStoreChanged (history) {
+    this.setState({
+      items: history
+    })
+  },
+  renderLink (item) {
     return (
-        <div className="sidebar-wrapper" id="sidebar-wrapper">
-          <ul className="sidebar" onClick={ (evt)=> {
-                evt.currentTarget == evt.target && this.props.toggleIntentOpen(evt);
-                return;
-              }
-            }>
-            <SidebarMain onClick={this.props.toggleIntentOpen} label="KoBo" />
+        <li className="k-sidebar-smallitems__item">
+          <Link to='form-landing' params={{assetid: item.uid}}>
+            {icons.asset()}
+            <span className='name'>
+              {item.name}
+            </span>
+          </Link>
+        </li>
+      );
+  },
+  render () {
+    var items = this.state.items;
+    var params = this.context.router.getCurrentParams(),
+        hasCurrentAsset = 'assetid' in params || 'uid' in params;
+    if (items.length > 0 && hasCurrentAsset) {
+      items = items.slice(1);
+    }
+    items = items.slice(0, 5);
+    if (this.props.visible) {
+      return (
+          <ul className={classNames('k-sidebar-smallitems', this.props.visible ? '' : 'k-invisible')}>
+            {items.map(this.renderLink)}
+          </ul>
+        );
+    }
+  }
+})
 
-            <SidebarTitle label={'QUICK LINKS'} />
-            <SidebarLink label={'forms'} linkto='forms' fa-icon="files-o" />
-            <SidebarLink label={'question library'} linkto='libraries' fa-icon="book" />
 
-            <SidebarTitle label={'tools'} separator="true" />
-            <SidebarLink label={'projects'} active='true' href={'/'} fa-icon="globe" />
-            <SidebarLink label={'settings'} active='true' href={'/'} fa-icon="cog" />
+var toolTipped = {
+  renderToolTip () {
+    return (
+        <div className="popover fade bottom in" role="tooltip">
+          <div className="arrow"></div>
+          <h3 className="popover-title"></h3>
+          <div className="popover-content">
+            Vivamus sagittis lacus vel augue laoreet rutrum faucibus.
+          </div>
+        </div>
+      );
+  }
+};
+
+var Sidebar = React.createClass({
+  mixins: [
+    Reflux.connect(stores.session),
+    toolTipped,
+  ],
+  getInitialState () {
+    return {
+      showRecent: true
+    }
+  },
+  logout () {
+    actions.auth.logout();
+  },
+  toggleRecent () {
+    this.setState({
+      showRecent: !this.state.showRecent
+    });
+  },
+  broadToggleIntent (evt) {
+    evt.currentTarget == evt.target && this.props.toggleIntentOpen(evt)
+    return;
+  },
+  renderAccountBar () {
+    var accountName = this.state.currentAccount && this.state.currentAccount.username;
+    var defaultGravatarImage = 'http://www.gravatar.com/avatar/64e1b8d34f425d19e1ee2ea7236d3028?s=40';
+    var gravatar = this.state.currentAccount && this.state.currentAccount.gravatar || defaultGravatarImage;
+
+    if (this.state.isLoggedIn) {
+      return (
+          <bem.AccountBox m="loggedin">
+            <bem.AccountBox__name>{accountName}</bem.AccountBox__name>
+            <bem.AccountBox__indicator />
+            <bem.AccountBox__image>
+              <img src={gravatar} />
+            </bem.AccountBox__image>
+            <bem.AccountBox__logout href="#" onClick={this.logout}>{t('logout')}</bem.AccountBox__logout>
+          </bem.AccountBox>
+        );
+    }
+    return (
+        <div>
+          <SidebarTitle label={t('logged out')} />
+        </div>
+        );
+
+  },
+  render () {
+    var title = (
+        <span className="kobo">
+          <span className="ko">Ko</span><span className="bo">Bo</span>
+        </span>
+        );
+    return (
+        <div className="sidebar-wrapper">
+          <ul className="sidebar" onClick={this.broadToggleIntent}>
+            <SidebarMain onClick={this.props.toggleIntentOpen} label={title} />
+            {this.renderAccountBar()}
+            <hr />
+            <SidebarTitle label={t('drafts in progress')} />
+            <SidebarLink label={t('forms')} linkto='forms' fa-icon="files-o" />
+            <SidebarLink label={t('recent')} onClick={this.toggleRecent} fa-icon="clock-o" />
+            { this.state.showRecent ?
+              <RecentHistory visible={this.props.isOpen} />
+            : null}
+            <SidebarTitle label={t('deployed projects')} />
+            <SidebarLink label={t('projects')} active='true' href={t('/')} fa-icon="globe" />
+            <SidebarTitle label={t('account actions')} />
+            { this.state.isLoggedIn ? 
+              <SidebarLink label={t('logout')} onClick={this.logout} fa-icon="sign-out" />
+            : 
+              <SidebarLink label={t('login')} href='/api-auth/login/?next=/' fa-icon="sign-in" />
+            }
           </ul>
           <div className="sidebar-footer">
-            <SidebarFooterItem label="assets" href="/assets/" />
-            <SidebarFooterItem label="collections" href="/collections/" />
-            <SidebarFooterItem label="me" href="/me/" />
+            <SidebarFooterItem label="help" href="https://support.kobotoolbox.org/" />
+            <SidebarFooterItem label="about" href="http://www.kobotoolbox.org/" />
+            <SidebarFooterItem label="source" href="https://github.com/kobotoolbox/" />
           </div>
         </div>
       )
   }
-}
+});
+
+export default Sidebar;

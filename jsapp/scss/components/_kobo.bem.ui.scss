@@ -1,0 +1,45 @@
+/*
+this code was not used because backdrop was opaque, needs some tweaking
+bem.uiModal_wrap = BEM('ui-modal_wrap');
+bem.uiModal = BEM('ui-modal');
+bem.uiModal__dialog = bem.uiModal.__('dialog');
+bem.uiModal__content = bem.uiModal.__('content');
+bem.uiModal__header = bem.uiModal.__('header');
+
+.ui-modal_wrap {
+  @extend .modal-backdrop;
+}
+.ui-modal:not(.ui-modal--open) {
+  @extend .modal;
+}
+.ui-modal--open {
+  @extend .modal-open;
+}
+.ui-modal__header {
+  @extend .modal-header;
+}
+.ui-modal__content {
+  @extend .modal-content;
+}
+.ui-modal__dialog {
+  margin-top: 100px;
+  @extend .modal-dialog;
+}
+
+*/
+
+.ui-panel {
+  @extend .panel, .panel-default;
+  margin: 11px;
+  position: relative;
+}
+.ui-panel__body {
+  @extend .panel-body;
+  padding: 7px;
+}
+
+// <div className={"panel panel-default k-panel k-panel-default " + this.props.className }>
+//   <div className="panel-body k-panel-body">
+//     {this.props.children}
+//   </div>
+// </div>

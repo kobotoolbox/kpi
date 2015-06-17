@@ -1,0 +1,169 @@
+
+// ==========================================================================
+// Card settings tabs
+// ==========================================================================
+
+// ==========================================================================
+// Advanced details
+// ==========================================================================
+
+// .advanced-details BECOMES .card__settingswrap
+// TODO: this element might not be necessary
+
+.card__settings {
+    @extend %card-expansion;
+}
+
+.card--selectquestion__expansion {
+    padding: 23px 10px 23px 60px;
+}
+
+//== ul.card__settings__tabs
+.card__settings__tabs {
+    float: left;
+    width: 20%;
+}
+.card__settings__tab--response-type {
+    @extend %incomplete;
+}
+
+// note: this rule is only used with '@extend'
+%card__settings__tabs__tab {
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+//== ul.card__settings__tabs li.card__settings__tabs__tab
+// proposed: .card__settings__tabs__tab
+.card__settings__tabs li {
+    @extend %card__settings__tabs__tab;
+    &.card__settings__tabs__tab--active {
+        background: #E5E8EB;
+        font-weight: 600;        
+    }
+}
+
+
+//== ul.card__settings__tabs li.card__settings__tabs__heading
+// proposed: .card__settings__tabs__heading
+.card__settings__tabs .heading {
+    @extend %card__settings__tabs__tab;
+
+    border-bottom: $thinBorderStyle;
+    font-size: 13px;
+    padding: 8px 10px;
+    font-weight: 600;
+    margin-bottom: 3px;
+
+    //== i.fa
+    .fa {
+        color: $indicatorColor;
+        margin-right: 5px;
+    }
+}
+
+.card__settings__content {
+    padding: 20px 30px;
+    margin-left: 20%;
+    border-left: $thinBorderStyle;
+    min-height: 152px;
+}
+
+.card__settings__fields {
+    display: none;
+    transition: height .3s;
+    // Temporary
+    &.card__settings__fields--active, &.active {
+        display: block;
+        transition: height .3s;
+    }
+}
+.card__settings__fields__field {
+    padding-top: 4px;
+    padding-bottom: 4px;
+    > label {
+        text-align: right;
+        width: 25%;
+        margin-right: 3%;
+        display: inline-block;
+        font-weight: 600;
+        vertical-align: middle;
+        text-transform: capitalize;
+
+        &.align-top {
+            vertical-align: top;
+            margin-top: 5px;
+        }
+    }
+    // possibly temporary
+    &.xlf-dv-constraint_message {
+        border-top:1px solid #d9dde1;
+        padding-top:15px;
+    }
+}
+
+.card__settings__fields .settings__input {
+    width: 65%;
+    display: inline-block;
+    input.text {
+        display: inline-block;
+    }
+}
+
+.card__settings-close {
+    background: #C5CACF;
+    position: absolute;
+    right: 6px;
+    top:6px;
+    color: white;
+    padding: 3px;
+    border-radius: 3px;
+    cursor: pointer;
+    &:hover {
+        background: $linkColor;
+    }
+}
+
+// ==========================================================================
+// Edit buttons
+// ==========================================================================
+
+.editable-buttons button,
+.card__settingswrap button {
+    height: 28px;
+    margin: 3px 0;
+    border: 1px solid;
+    border-radius: 4px;
+    padding: 0 10px;
+    -webkit-appearance: none;
+    text-transform: capitalize;
+    color: #333;
+    background-color: #f8f8f8;
+    &:hover {
+        background-color: #f0f0f0;
+    }
+}
+
+// ==========================================================================
+
+// Overrides
+// --------------------------------------------------------------------------
+
+// .advanced-details displayed only inside .card--expandedsettings
+.card {
+    .card__settings {
+        display: none;
+    }
+
+    &.card--expanded-settings {
+        .card__settings {
+            display: block;
+        }
+
+        .card__buttons__button--settings {
+            @extend %activated-card-button;
+        }
+    }
+}
