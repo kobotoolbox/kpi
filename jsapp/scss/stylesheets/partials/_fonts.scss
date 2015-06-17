@@ -1,0 +1,60 @@
+/* ==========================================================================
+   Fonts
+   ========================================================================== */
+
+// Open Sans Regular
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: normal;
+  src:  local('Open Sans'), local('OpenSans'), 
+        url('/static/kobo/fonts/open-sans/opensans-regular.woff2') format('woff2'),
+        url('/static/kobo/fonts/open-sans/opensans-regular.woff') format('woff');
+}
+
+// Open Sans Semibold
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 600;
+  src:  local('Open Sans Semibold'), local('OpenSans-Semibold'), 
+        url('/static/kobo/fonts/open-sans/opensans-semibold.woff2') format('woff2'),
+        url('/static/kobo/fonts/open-sans/opensans-semibold.woff') format('woff');
+}
+
+// Open Sans Bold
+// @font-face {
+//   font-family: 'Open Sans';
+//   font-style: normal;
+//   font-weight: 700;
+//   src:  local('Open Sans Bold'), local('OpenSans-Bold'), 
+//         url('/static/kobo/fonts/open-sans/opensans-bold.woff2') format('woff2'),
+//         url('/static/kobo/fonts/open-sans/opensans-bold.woff') format('woff');
+// }
+
+// Open Sans Regular Italic
+@font-face {
+  font-family: 'Open Sans';
+  font-style: italic;
+  font-weight: normal;
+  src:  url('/static/kobo/fonts/open-sans/opensans-italic.woff2') format('woff2'),
+        url('/static/kobo/fonts/open-sans/opensans-italic.woff') format('woff');
+}
+
+// Open Sans Semibold Italic
+@font-face {
+  font-family: 'Open Sans';
+  font-style: italic;
+  font-weight: 600;
+  src:  url('/static/kobo/fonts/open-sans/opensans-semibolditalic.woff2') format('woff2'),
+        url('/static/kobo/fonts/open-sans/opensans-semibolditalic.woff') format('woff');
+}
+
+// Open Sans Bold Italic
+// @font-face {
+//   font-family: 'Open Sans';
+//   font-style: italic;
+//   font-weight: 700;
+//   src:  url('/static/kobo/fonts/open-sans/opensans-bolditalic.woff2') format('woff2'),
+//         url('/static/kobo/fonts/open-sans/opensans-bolditalic.woff') format('woff');
+// }

@@ -1,0 +1,141 @@
+// ==========================================================================
+// Buttons
+// ==========================================================================
+
+.btn {
+    box-shadow: none;
+
+    margin-bottom: 0;
+    display: inline-block;
+    font-weight: normal;
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    background-image: none;
+    border: 1px solid transparent;
+    white-space: nowrap;
+    border-radius: 4px;
+    color: white;
+    background-color: #1daee3;
+    height: 30px;
+    line-height: 30px;
+    padding: 0 20px;
+    font-weight: 500;
+    font-size: 14px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+    position: relative;
+
+    &:hover {
+        background-color: #179dd0;
+        text-decoration: none;
+    }
+
+    &:active, .is-active {
+        outline: 0;
+        background-image: none;
+        box-shadow: none;
+    }
+}
+
+.btn.disabled,
+.btn[disabled],
+fieldset[disabled] .btn {
+    pointer-events: none;
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.btn--l {
+    padding: 10px 16px;
+    font-size: 18px;
+    line-height: 1.33;
+    border-radius: 6px;
+}
+
+.btn--s,
+.btn--xs {
+    height: 30px;
+    padding-right: 10px;
+    padding-left: 10px;
+    font-size: 12px;
+    line-height: 30px;
+    border-radius: 3px;
+}
+
+.btn--xs {
+    padding: 1px 5px;
+}
+
+.btn--block {
+    display: block;
+    width: 100%;
+}
+
+.btn--block + .btn--block {
+    margin-top: 5px;
+}
+
+input[type="submit"].btn--block,
+input[type="reset"].btn--block,
+input[type="button"].btn--block {
+    width: 100%;
+}
+
+.btn--utility {
+    color: #222;
+    background-color: transparent;
+    padding:0px 10px;
+    font-weight: 600;
+    i {
+        margin-right: 5px;
+    }
+    &:hover {
+        background: transparent;
+        color: #5DB0EC;
+    }
+}
+
+.btn--disabled {
+    cursor: default;
+    color: #ddd;
+    font-weight: normal;
+    &.btn--utility:hover {
+        background-color: inherit;
+    }
+}
+
+.btn--create-new-form {
+    padding-right: 20px;
+    padding-left: 20px;
+}
+
+
+// ==========================================================================
+// Fileupload Button fix
+// ==========================================================================
+
+.btn--fileupload {
+    /* form */
+    margin-top: -1px;
+    overflow: hidden;
+    position: relative;
+}
+
+.btn--fileupload input {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    opacity: 0;
+    display: inline-block;
+    width: 77px;
+    height: 33px;
+    -ms-filter: 'alpha(opacity=0)';
+    font-size: 0px;
+    direction: ltr;
+    cursor: pointer;
+}

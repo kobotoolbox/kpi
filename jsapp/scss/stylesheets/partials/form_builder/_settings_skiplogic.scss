@@ -1,0 +1,179 @@
+// ==========================================================================
+// Skip logic
+// ==========================================================================
+
+.skiplogic__button {
+    border: none;
+    width: 100%;
+    display: block;
+    text-align: center;
+    padding: 12px 0px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    i {
+        margin-right: 4px;
+        font-style: normal;
+    }
+    &.skiplogic__select-builder {
+        background: #B3E6C9;
+        border-bottom: 1px solid #54A174;
+        i {
+            color: #54A174;
+        }
+    }
+    &.skiplogic__select-handcode {
+        background: #A3DBFD;
+        border-bottom: 1px solid #4A82A5;
+        i {
+            color: #4A82A5;
+        }
+    }
+}
+
+.skiplogic__criterion {
+    margin-bottom: 12px;
+    position: relative;
+
+    &.skiplogic__criterion--unspecified-question {
+        .skiplogic__expressionselect {
+            display: none;
+        }
+    }
+}
+
+.skiplogic__rowselect {
+    width: 60%;
+    margin-right: 2%;
+    font-weight: normal;
+}
+
+.skiplogic__expressionselect {
+    width: 10%;
+    margin-right: 2%;
+    font-weight: 600;
+    color: #000;
+}
+
+.skiplogic__expressionselect--no-response-value {
+  width: 37%;
+  margin-right: 0%;
+  & + .skiplogic__responseval {
+    display: none;
+  }
+}
+
+.skiplogic__responseval-wrapper {
+    display: inline;
+}
+
+input[type=text].skiplogic__responseval, select.skiplogic__responseval {
+    width: 25%;
+    font-weight: normal;
+    display: inline-block;
+}
+
+input[type=text].skiplogic__responseval {
+    border-radius: 0;
+    border:none;
+    border-bottom: 1px dotted #666;
+    padding:1px;
+    height: 30px;
+}
+
+div.skiplogic__responseval {
+    display:inline-block;
+    width: 25% !important;
+}
+
+.skiplogic__deletecriterion {
+    height: auto;
+    margin: 0;
+    border: 0;
+    padding: 0;
+    position: absolute;
+    top: 3px;
+    right: -16px;
+    color: #D08B8C;
+    background-color: transparent;
+    opacity:0.8;
+    cursor: pointer;
+    &:hover {
+        opacity: 1;
+    }
+}
+
+.skiplogic__handcode-edit {
+    width: 100%;
+    min-height: 70px;
+    padding:6px;
+    margin-top:20px; 
+}
+
+.skiplogic-handcode__cancel {
+    background: none;
+    border: medium none;
+    color: #D08B8C;
+    font-size: 15px;
+    position: absolute;
+    right: -22px;
+    text-align: center;
+    top: 18px;
+    width: 18px;
+}
+
+.skiplogic__main {
+    position: relative;
+}
+
+.skiplogic__addcriterion {
+    width: 160px;
+    padding: 5px;
+    font-size: 12px;
+    color: white;
+    text-align: center;
+    font-weight: 600;
+    background: #39BF6E; 
+    border:none;
+    border-bottom: 2px solid darken(#39BF6E, 20%);
+    position: absolute;
+    left:0px;
+    bottom:0px;
+    &:hover {
+        background: lighten(#39BF6E, 10%);
+    }
+}
+
+.skiplogic__addnew {
+    margin: 0;
+    height: 40px;
+}
+
+select.skiplogic__delimselect {
+    border-radius: 0;
+    border:none;
+    border-bottom: 1px dotted #666;
+    padding:1px;
+    position: absolute;
+    font-size: 13px;
+    right:0px;
+    bottom:-20px;
+    font-weight: 600;
+}
+
+.constraint__editor {
+    padding-top:14px;
+    position: relative;
+}
+
+// Select2 overrides for skip logic
+
+.skiplogic__criterialist {
+    .select2-container .select2-choice {
+        border-bottom: 1px dotted #666;
+    }
+    .select2-dropdown-open.select2-drop-above .select2-choice,
+    .select2-dropdown-open.select2-drop-above .select2-choices {
+        border-bottom: 1px dotted #666;
+        border-radius: 0px;
+    }
+}
