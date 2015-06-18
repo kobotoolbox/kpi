@@ -65,7 +65,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
             self.log_in(owner.username, owner_password)
 
         if content is None:
-            content= '[]'
+            content= ''
 
         kwargs.update({'name': name, 'content': content})
         response= self.client.post(reverse('asset-list'), kwargs)

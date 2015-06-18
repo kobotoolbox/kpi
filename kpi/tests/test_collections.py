@@ -1,12 +1,13 @@
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User, AnonymousUser, Permission
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from ..models.collection import Collection
 from ..models.asset import Asset
+from ..models.collection import Collection
 from ..models.object_permission import ObjectPermission
 from ..models.object_permission import get_all_objects_for_user
+
 
 class CreateCollectionTests(TestCase):
     fixtures = ['test_data']
@@ -40,10 +41,10 @@ class CreateCollectionTests(TestCase):
 
     def test_import_assets_to_collection(self):
         self.assertEqual(self.coll.assets.count(), 0)
-        self.coll.assets.create(name='test', content=[
-                {'type': 'text', 'label': 'Q1', 'name': 'q1'},
-                {'type': 'text', 'label': 'Q2', 'name': 'q2'},
-            ])
+        self.coll.assets.create(name='test', content={'survey': [
+            {'type': 'text', 'label': 'Q1', 'name': 'q1'},
+            {'type': 'text', 'label': 'Q2', 'name': 'q2'},
+        ]})
         self.assertEqual(self.coll.assets.count(), 1)
         self.coll.assets.add(self.asset)
         self.assertEqual(self.coll.assets.count(), 2)
@@ -53,10 +54,10 @@ class CreateCollectionTests(TestCase):
         right now, this does make it easy to delete assets within a
         collection.
         '''
-        asset = self.coll.assets.create(name='test', content=[
-                {'type': 'text', 'label': 'Q1', 'name': 'q1'},
-                {'type': 'text', 'label': 'Q2', 'name': 'q2'},
-            ])
+        asset = self.coll.assets.create(name='test', content={'survey': [
+            {'type': 'text', 'label': 'Q1', 'name': 'q1'},
+            {'type': 'text', 'label': 'Q2', 'name': 'q2'},
+        ]})
         self.assertEqual(Asset.objects.filter(id=asset.id).count(), 1)
         self.assertEqual(Asset.objects.count(), self.initial_asset_count + 1)
         self.coll.delete()
@@ -65,12 +66,12 @@ class CreateCollectionTests(TestCase):
 
     def test_descendants_are_deleted_with_collection(self):
         child = Collection.objects.create(name='test_child_collection',
-            owner=User.objects.first(), parent=self.coll)
+                                          owner=User.objects.first(), parent=self.coll)
         grandchild = Collection.objects.create(name='test_child_collection',
-            owner=User.objects.first(), parent=child)
+                                               owner=User.objects.first(), parent=child)
         self.assertEqual(Collection.objects.count(), self.initial_collection_count + 2)
-        child_sa = child.assets.create()
-        grandchild_sa = grandchild.assets.create()
+        _ = child.assets.create()
+        _ = grandchild.assets.create()
         self.assertEqual(Asset.objects.count(), self.initial_asset_count + 2)
         self.coll.delete()
         self.assertEqual(Collection.objects.count(), self.initial_collection_count - 1)
@@ -79,26 +80,26 @@ class CreateCollectionTests(TestCase):
     def test_create_collection_with_assets(self):
         self.assertTrue(Collection.objects.count() >= 1)
         Collection.objects.create(name='test_collection', owner=self.user, assets=[
-                {
-                    'name': 'test_asset',
-                    'content': [
+            {
+                'name': 'test_asset',
+                'content': {'survey': [
                         {'type': 'text', 'label': 'Q1', 'name': 'q1'},
-                    ]
-                },
-                {
-                    'name': 'test_asset',
-                    'content': [
+                ]}
+            },
+            {
+                'name': 'test_asset',
+                'content': {'survey': [
                         {'type': 'text', 'label': 'Q2', 'name': 'q2'},
-                    ]
-                },
-            ])
+                ]}
+            },
+        ])
         self.assertEqual(Asset.objects.count(), self.initial_asset_count + 2)
         self.assertEqual(Collection.objects.count(), self.initial_collection_count + 1)
 
     def test_create_child_collection(self):
         self.assertEqual(Collection.objects.count(), 1)
         child = Collection.objects.create(name='test_child_collection',
-            owner=User.objects.first(), parent=self.coll)
+                                          owner=User.objects.first(), parent=self.coll)
         self.assertEqual(Collection.objects.count(), 2)
         self.assertEqual(self.coll.get_children()[0], child)
         self.assertEqual(self.coll.get_children().count(), 1)
@@ -109,7 +110,7 @@ class CreateCollectionTests(TestCase):
     def test_move_standalone_collection_into_collection(self):
         self.assertEqual(Collection.objects.count(), 1)
         standalone = Collection.objects.create(name='move_me',
-            owner=User.objects.first())
+                                               owner=User.objects.first())
         self.assertEqual(Collection.objects.count(), 2)
         self.assertEqual(standalone.parent, None)
         standalone.parent = self.coll
@@ -122,7 +123,7 @@ class CreateCollectionTests(TestCase):
     def test_move_collection_from_collection_to_standalone(self):
         self.assertEqual(Collection.objects.count(), 1)
         child = Collection.objects.create(name='move_me_too',
-            owner=User.objects.first(), parent=self.coll)
+                                          owner=User.objects.first(), parent=self.coll)
         self.assertEqual(Collection.objects.count(), 2)
         self.assertEqual(child.parent, self.coll)
         child.parent = None
@@ -133,9 +134,9 @@ class CreateCollectionTests(TestCase):
     def test_move_collection_between_collections(self):
         self.assertEqual(Collection.objects.count(), 1)
         adoptive_parent = Collection.objects.create(name='adoptive_parent',
-            owner=User.objects.first())
+                                                    owner=User.objects.first())
         child = Collection.objects.create(name='on_the_move',
-            owner=User.objects.first(), parent=self.coll)
+                                          owner=User.objects.first(), parent=self.coll)
         self.assertEqual(Collection.objects.count(), 3)
         self.assertEqual(self.coll.get_children()[0], child)
         self.assertEqual(self.coll.get_children().count(), 1)
@@ -148,6 +149,7 @@ class CreateCollectionTests(TestCase):
         self.assertEqual(adoptive_parent.get_children().count(), 1)
         self.assertEqual(child.get_ancestors()[0], adoptive_parent)
         self.assertEqual(child.get_ancestors().count(), 1)
+
 
 class ShareCollectionTests(TestCase):
     fixtures = ['test_data']
@@ -273,7 +275,7 @@ class ShareCollectionTests(TestCase):
         )
         # Verify that denying view_collection denies change_collection as well
         self.assertEqual(user.has_perm('change_collection', self.child_coll),
-                                       False)
+                         False)
 
     def test_user_deny_parent_change_child(self, child_first=False):
         # A deny at the root level doesn't make sense, so start by granting
@@ -307,7 +309,7 @@ class ShareCollectionTests(TestCase):
                          not child_deny)
         # Verify that denying view_collection denies change_collection as well
         self.assertEqual(user.has_perm('change_collection', self.parent_coll),
-                                       False)
+                         False)
         # Make sure that the deny permission hasn't applied to the grandparent
         self.assertEqual(
             self.grandparent_coll.has_perm(user, 'change_collection'),
@@ -316,12 +318,16 @@ class ShareCollectionTests(TestCase):
 
     ''' Try the previous tests again, but this time assign permissions to the
     child before assigning permissions to the parent. '''
+
     def test_user_change_child_view_parent(self):
         self.test_user_view_parent_change_child(child_first=True)
+
     def test_user_view_child_change_parent(self):
         self.test_user_change_parent_view_child(child_first=True)
+
     def test_user_deny_child_change_parent(self):
         self.test_user_change_parent_deny_child(child_first=True)
+
     def test_user_change_child_deny_parent(self):
         self.test_user_deny_parent_change_child(child_first=True)
 

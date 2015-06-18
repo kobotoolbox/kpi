@@ -5,8 +5,9 @@ from django.core.urlresolvers import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from kpi.models import Collection
 from kpi.models import Asset
+from kpi.models import Collection
+
 
 class AssetsListApiTests(APITestCase):
     fixtures = ['test_data']
@@ -27,13 +28,14 @@ class AssetsListApiTests(APITestCase):
         """
         url = reverse('asset-list')
         data = {
-            'content': json.dumps([]),
+            'content': json.dumps({}),
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED,
-                            msg=response.data)
-        sa = Asset.objects.last()
-        self.assertEqual(sa.content, [])
+                         msg=response.data)
+        sa = Asset.objects.order_by('date_created').last()
+        self.assertEqual(sa.content, {})
+
 
 class AssetsDetailApiTests(APITestCase):
     fixtures = ['test_data']
@@ -41,7 +43,7 @@ class AssetsDetailApiTests(APITestCase):
     def setUp(self):
         self.client.login(username='admin', password='pass')
         url = reverse('asset-list')
-        data = {'content': '[]'}
+        data = {'content': '{}'}
         self.r = self.client.post(url, data, format='json')
         self.asset_url = self.r.data['url']
         self.assertEqual(self.r.status_code, status.HTTP_201_CREATED)
@@ -66,7 +68,8 @@ class ObjectRelationshipsTests(APITestCase):
     def setUp(self):
         self.client.login(username='admin', password='pass')
         self.user = User.objects.get(id=1)
-        self.surv = Asset.objects.create(content='[{"type":"text","name":"q1"}]', owner=self.user)
+        self.surv = Asset.objects.create(content={'survey': [{"type": "text", "name": "q1"}]},
+                                         owner=self.user)
         self.coll = Collection.objects.create(name='sample collection', owner=self.user)
 
     def _count_children_by_kind(self, children, kind):
@@ -84,7 +87,7 @@ class ObjectRelationshipsTests(APITestCase):
         * after assigning a asset, self.surv, to a collection (self.coll) [via the ORM]
             the asset is now listed in the collection's list of assets.
         '''
-        req = self.client.get(reverse('asset-detail', args=[self.surv.uid]))
+        _ = self.client.get(reverse('asset-detail', args=[self.surv.uid]))
         coll_req1 = self.client.get(reverse('collection-detail', args=[self.coll.uid]))
         self.assertEqual(self._count_children_by_kind(
             coll_req1.data['children'], self.surv.kind), 0)
@@ -109,7 +112,8 @@ class ObjectRelationshipsTests(APITestCase):
         '''
         self.assertEqual(self.surv.parent, None)
         surv_url = reverse('asset-detail', args=[self.surv.uid])
-        patch_req = self.client.patch(surv_url, data={'parent': reverse('collection-detail', args=[self.coll.uid])})
+        patch_req = self.client.patch(
+            surv_url, data={'parent': reverse('collection-detail', args=[self.coll.uid])})
         self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
         req = self.client.get(surv_url)
         self.assertIn('/collections/%s' % (self.coll.uid), req.data['parent'])

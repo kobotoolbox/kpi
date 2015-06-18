@@ -194,8 +194,7 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
 
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
-    owner = serializers.HyperlinkedRelatedField(view_name='user-detail',
-                                                lookup_field='username',
+    owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username',
                                                 read_only=True,)
     owner__username = serializers.ReadOnlyField(source='owner.username')
     url = serializers.HyperlinkedIdentityField(
@@ -216,7 +215,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     tag_string = serializers.CharField(required=False)
     # assetdeployment__count comes from annotate() on the view's queryset
-    deployment_count = serializers.IntegerField(source='assetdeployment__count')
+    deployment_count = serializers.IntegerField(source='assetdeployment__count', read_only=True)
 
     class Meta:
         model = Asset
@@ -491,4 +490,4 @@ class CollectionListSerializer(CollectionSerializer):
                   'date_created',
                   'date_modified',
                   'permissions',
-                  'tags',)
+                  'tag_string',)
