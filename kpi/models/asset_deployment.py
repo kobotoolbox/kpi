@@ -3,6 +3,7 @@ from shortuuid import ShortUUID
 from jsonfield import JSONField
 from kpi.models import Asset
 from rest_framework.authtoken.models import Token
+from rest_framework import exceptions, status
 from pyxform.xls2json_backends import xls_to_dict
 import cStringIO
 import unicodecsv
@@ -56,39 +57,54 @@ def deploy_asset(user, asset, form_id):
     valid_xlsform_csv_repr = foo.getvalue()
     payload = {u'text_xls_form': valid_xlsform_csv_repr}
 
+    url = kobocat_url('/api/v1/forms', internal=True)
     try:
-        url = kobocat_url('/api/v1/forms', internal=True)
         response = requests.post(url, headers=headers, data=payload)
         status_code = response.status_code
+    except requests.exceptions.RequestException as e:
+        # Failed to access the KC API
+        raise exceptions.APIException(detail=unicode(e))
+    try:
         resp = response.json()
-        # Sometimes we don't have a 'type'. What's 'text'? Ask @dorey about this.
-        if 'type' in resp and resp['type'] == 'alert-error':
-            print resp
-            resp['error'] = resp['text']
-    # Blanket except was masking the KeyError for resp['type']
-    except Exception, e:
-        resp = {'error': str(e)}
+    except ValueError as e:
+        # Unparseable KC API output
+        raise exceptions.APIException(detail=unicode(e))
+    if status_code != 201 or (
+        'type' in resp and resp['type'] == 'alert-error'
+    ) or 'formid' not in resp:
+        if 'text' in resp:
+            # KC API refused us for a specified reason, likely invalid input
+            # Raise a 400 error that includes the reason
+            e = exceptions.APIException(detail=resp['text'])
+            e.status_code = status.HTTP_400_BAD_REQUEST
+            raise e
+        else:
+            # Unspecified failure; raise 500
+            raise exceptions.APIException(
+                detail='Unexpected KoBoCAT error {}'.format(status_code)
+            )
 
-    if 'formid' in resp:
-        # update_params['kobocat_published_form_id'] = resp[u'formid']
-        # survey_draft.kobocat_published_form_id = resp[u'formid']
-        # survey_draft.save()
-        # serializer = DetailSurveyDraftSerializer(survey_draft)
-        resp.update({
-            u'message': 'Successfully published form',
-            u'published_form_url': kobocat_url('/%s/forms/%s' % (user.username, resp.get('id_string')))
-            })
+    # update_params['kobocat_published_form_id'] = resp[u'formid']
+    # survey_draft.kobocat_published_form_id = resp[u'formid']
+    # survey_draft.save()
+    # serializer = DetailSurveyDraftSerializer(survey_draft)
+    resp.update({
+        u'message': 'Successfully published form',
+        u'published_form_url': kobocat_url('/%s/forms/%s' % (user.username, resp.get('id_string')))
+        })
     return resp
 
 class AssetDeployment(models.Model):
     '''
     keeping a record of when a user deploys an individual asset.
     '''
+    MAX_ID_LENGTH = 100 # Copied from KoBoCAT's XForm model
 
     user = models.ForeignKey('auth.User')
     date_created = models.DateTimeField(auto_now_add=True)
     asset = models.ForeignKey('kpi.Asset')
-    xform_id = models.IntegerField(null=True)
+    xform_pk = models.IntegerField(null=True)
+    xform_id_string = models.CharField(max_length=MAX_ID_LENGTH)
     data = JSONField()
     uid = models.CharField(max_length=UID_LENGTH, default='')
 
@@ -111,19 +127,16 @@ class AssetDeployment(models.Model):
         super(AssetDeployment, self).save(*args, **kwargs)
 
     @classmethod
-    def _create_if_possible(kls, asset, user, form_id):
+    def _create_if_possible(kls, asset, user, xform_id_string):
         new_ad = AssetDeployment(
             user=user,
             asset=asset,
             )
-        result = new_ad.deploy_asset(form_id)
-        if 'error' in result:
-            # Can we raise an exception instead of returning a dict? Ask @dorey.
-            return result
-        else:
-            # Would it make sense to have a boolean or something on the model
-            # to indicate whether it was successful instead of doing the
-            # creation conditionally?
-            new_ad.data = result
-            new_ad.save()
-            return new_ad
+        # Might raise exceptions, but they're the caller's obligation to handle
+        result = new_ad.deploy_asset(xform_id_string)
+        new_ad.data = result
+        new_ad.xform_pk = result['formid']
+        # KC might return something different from what we provided
+        new_ad.xform_id_string = result['id_string']
+        new_ad.save()
+        return new_ad

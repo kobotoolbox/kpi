@@ -1,10 +1,11 @@
 import json
+import datetime
 
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import get_script_prefix, resolve, Resolver404
-from rest_framework import serializers
+from rest_framework import serializers, exceptions
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
@@ -340,6 +341,22 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
+    def create(self, validated_data):
+        user = self.context['request'].user
+        if user.is_anonymous():
+            raise exceptions.NotAuthenticated
+
+        asset = validated_data['asset']
+        xform_id_string = ''
+        if 'xform_id_string' in validated_data:
+            xform_id_string = validated_data['xform_id_string']
+        if not len(xform_id_string):
+            # If no id string was provided, use a punctuation-free timestamp
+            xform_id_string = datetime.datetime.utcnow().strftime(
+                '%Y%m%dT%H%M%S%fZ')
+
+        return AssetDeployment._create_if_possible(
+            asset, user, xform_id_string)
 
     class Meta:
         model = AssetDeployment
@@ -348,6 +365,8 @@ class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
             'date_created',
             'asset',
             'uid',
+            'xform_pk',
+            'xform_id_string',
         )
         lookup_field = 'uid'
         extra_kwargs = {
@@ -361,6 +380,12 @@ class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
             'uid': {
                 'read_only': True,
             },
+            'xform_pk': {
+                'read_only': True,
+            },
+            'xform_id_string': {
+                'allow_blank': True,
+            }
         }
 
 

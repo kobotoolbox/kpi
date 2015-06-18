@@ -188,37 +188,6 @@ class AssetDeploymentViewSet(NoUpdateModelViewSet):
         else:
             return AssetDeployment.objects.filter(user=self.request.user)
 
-    def create(self, request, *args, **kwargs):
-        user = self.request.user
-        if user.is_anonymous():
-            raise exceptions.NotAuthenticated
-
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        asset = serializer.validated_data['asset']
-
-        RANDOM_FORM_ID_INCREMENTOR = random.randint(1000, 9999)
-        deployment = AssetDeployment._create_if_possible(asset,
-                                                         user,
-                                                         RANDOM_FORM_ID_INCREMENTOR)
-
-        if not isinstance(deployment, AssetDeployment) and 'error' in deployment:
-            # Probably shouldn't always be a 400, since something like
-            # 'Connection refused' because KC isn't running really deserves
-            # a 500
-            return Response(deployment, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            # Seems ugly. I don't think we'd have to do this serializer
-            # juggling if _create_if_possible() returned only an
-            # AssetDeployment or raised an exception.
-            serializer_for_response = self.serializer_class(
-                deployment,
-                context={'request': self.request}
-            )
-            return Response(
-                serializer_for_response.data, status=status.HTTP_201_CREATED)
-
-
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
