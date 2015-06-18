@@ -1,17 +1,26 @@
 from itertools import chain
-from django.db import models
+
 from django.contrib.contenttypes.fields import GenericRelation
+from django.db import models
+from django.dispatch import receiver
 from mptt.models import MPTTModel, TreeForeignKey
 from shortuuid import ShortUUID
 from taggit.managers import TaggableManager
 from taggit.models import Tag
+
+from asset import (
+    Asset,
+    TaggableModelManager,
+    TagStringMixin,
+)
 from object_permission import ObjectPermission, ObjectPermissionMixin
-from django.dispatch import receiver
-from asset import Asset
+
 
 COLLECTION_UID_LENGTH = 22
 
-class CollectionManager(models.Manager):
+
+class CollectionManager(TaggableModelManager):
+
     def create(self, *args, **kwargs):
         assets = False
         if 'assets' in kwargs:
@@ -30,13 +39,15 @@ class CollectionManager(models.Manager):
     def filter_by_tag_name(self, tag_name):
         try:
             tag = Tag.objects.get(name=tag_name)
-        except Tag.DoesNotExist, e:
+        except Tag.DoesNotExist:
             return self.none()
         return self.filter(tags=tag)
 
-class Collection(ObjectPermissionMixin, MPTTModel):
+
+class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
     name = models.CharField(max_length=255)
-    parent = TreeForeignKey('self', null=True, blank=True, related_name='children')
+    parent = TreeForeignKey(
+        'self', null=True, blank=True, related_name='children')
     owner = models.ForeignKey('auth.User', related_name='owned_collections')
     editors_can_change_permissions = models.BooleanField(default=True)
     uid = models.CharField(max_length=COLLECTION_UID_LENGTH, default='')
@@ -56,7 +67,8 @@ class Collection(ObjectPermissionMixin, MPTTModel):
             # change_, add_, and delete_collection are provided automatically
             # by Django
             ('view_collection', 'Can view collection'),
-            ('share_collection', "Can change this collection's sharing settings"),
+            ('share_collection',
+             "Can change this collection's sharing settings"),
         )
 
     # Assignable permissions that are stored in the database
@@ -66,7 +78,7 @@ class Collection(ObjectPermissionMixin, MPTTModel):
     CALCULATED_PERMISSIONS = ('share_collection', 'delete_collection')
 
     def _generate_uid(self):
-        return 'c' + ShortUUID().random(COLLECTION_UID_LENGTH-1)
+        return 'c' + ShortUUID().random(COLLECTION_UID_LENGTH -1)
 
     def save(self, *args, **kwargs):
         # populate uid field if it's empty
@@ -96,6 +108,7 @@ class Collection(ObjectPermissionMixin, MPTTModel):
 
     def __unicode__(self):
         return self.name
+
 
 @receiver(models.signals.post_delete, sender=Collection)
 def post_delete_collection(sender, instance, **kwargs):

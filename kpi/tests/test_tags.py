@@ -1,10 +1,10 @@
-from rest_framework import status
-from django.test import TestCase
-from kpi.models.collection import Collection
-from kpi.models.asset import Asset
 from django.contrib.auth.models import User
-from django.contrib.contenttypes.models import ContentType
+from django.test import TestCase
 from taggit.models import Tag
+
+from kpi.models.asset import Asset
+from kpi.models.collection import Collection
+
 
 class CreateCollectionTests(TestCase):
     fixtures = ['test_data']
@@ -12,7 +12,7 @@ class CreateCollectionTests(TestCase):
     def setUp(self):
         self.user = User.objects.all()[0]
         self.coll = Collection.objects.create(owner=self.user)
-        self.sa = Asset.objects.create(content=[], owner = self.user)
+        self.sa = Asset.objects.create(owner=self.user)
 
     def test_query_tags(self):
         TAG_NAME = 'Some Tag'
@@ -37,4 +37,3 @@ class CreateCollectionTests(TestCase):
         self.assertEqual(tagged_collections.count(), 1)
         # alternative method to query by tag string
         self.assertEqual(Collection.objects.filter_by_tag_name(TAG_NAME).count(), 1)
-

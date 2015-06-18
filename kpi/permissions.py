@@ -1,18 +1,16 @@
-from django.contrib.auth.models import AnonymousUser
-from django.contrib.auth.models import User
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import permissions
 
-from .models.object_permission import get_anonymous_user
 
-def _get_perm_name(perm_name_prefix, model_instance):
+# FIXME: Move to `object_permissions` module.
+def get_perm_name(perm_name_prefix, model_instance):
     '''
     Get the type-specific permission name for a model from a permission name
     prefix and a model instance.
 
     Example:
-        >>>self._get_perm_name('view_', my_asset)
+        >>>get_perm_name('view', my_asset)
         'view_asset'
 
     :param perm_name_prefix: Prefix of the desired permission name (i.e.
@@ -24,15 +22,21 @@ def _get_perm_name(perm_name_prefix, model_instance):
     :return: The computed permission name.
     :rtype: str
     '''
+
+    if not perm_name_prefix[-1] == '_':
+        perm_name_prefix+= '_'
+
     perm_name= Permission.objects.get(
-        content_type= ContentType.objects.get_for_model(model_instance),
+        content_type=ContentType.objects.get_for_model(model_instance),
         codename__startswith=perm_name_prefix
     ).natural_key()[0]
+
     return perm_name
 
 
 # FIXME: Name is no longer accurate.
 class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
+
     """
     Custom permission to only allow owners of an object to edit it.
     """

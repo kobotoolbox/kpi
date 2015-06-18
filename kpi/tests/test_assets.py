@@ -1,10 +1,12 @@
 import re
-from kpi.models import Asset
-from kpi.models import Collection
-from kpi.models.object_permission import get_all_objects_for_user
+
 from django.contrib.auth.models import User, AnonymousUser
 from django.core.exceptions import ValidationError
 from django.test import TestCase
+
+from kpi.models import Asset
+from kpi.models import Collection
+from kpi.models.object_permission import get_all_objects_for_user
 
 
 class AssetsTestCase(TestCase):
@@ -12,16 +14,18 @@ class AssetsTestCase(TestCase):
 
     def setUp(self):
         self.user = User.objects.all()[0]
-        self.asset = Asset.objects.create(content=[
+        self.asset = Asset.objects.create(content={'survey': [
             {'type': 'text', 'label': 'Question 1', 'name': 'q1', 'kuid': 'abc'},
             {'type': 'text', 'label': 'Question 2', 'name': 'q2', 'kuid': 'def'},
-        ], owner=self.user)
+        ]}, owner=self.user)
         self.sa = self.asset
 
+
 class CreateAssetVersions(AssetsTestCase):
+
     def test_asset_with_versions(self):
-        self.asset.content[0]['type'] = 'integer'
-        self.assertEqual(self.asset.content[0]['type'], 'integer')
+        self.asset.content['survey'][0]['type'] = 'integer'
+        self.assertEqual(self.asset.content['survey'][0]['type'], 'integer')
         self.asset.save()
         self.assertEqual(len(self.asset.versions()), 2)
 
@@ -40,9 +44,8 @@ class CreateAssetVersions(AssetsTestCase):
         self.asset.tags.add('tag2')
         self.assertEqual(_list_tag_names(), ['tag1', 'tag2'])
 
-
     def test_asset_can_be_anonymous(self):
-        anon_asset = Asset.objects.create(content=[])
+        anon_asset = Asset.objects.create(content={})
         self.assertEqual(anon_asset.owner, None)
 
 # class ReadAssetsTests(AssetsTestCase):
@@ -55,14 +58,16 @@ class CreateAssetVersions(AssetsTestCase):
 #     def test_add_settings(self):
 #         self.assertEqual(self.asset.settings, None)
 #         self.asset.settings = {'style':'grid-theme'}
-#         # self.assertEqual(self.asset.settings, {'style':'grid-theme'})
+# self.assertEqual(self.asset.settings, {'style':'grid-theme'})
 #         ss_struct = self.asset.to_ss_structure()['settings']
 #         self.assertEqual(len(ss_struct), 1)
 #         self.assertEqual(ss_struct[0], {
 #                 'style': 'grid-theme',
 #             })
 
+
 class ShareAssetsTest(AssetsTestCase):
+
     def setUp(self):
         super(ShareAssetsTest, self).setUp()
         self.someuser = User.objects.get(username='someuser')
@@ -161,10 +166,13 @@ class ShareAssetsTest(AssetsTestCase):
 
     ''' Try the previous tests again, but this time assign permissions to the
     asset before assigning permissions to the collection. '''
+
     def test_user_change_asset_view_collection(self):
         self.test_user_view_collection_change_asset(asset_first=True)
+
     def test_user_view_asset_change_collection(self):
         self.test_user_change_collection_view_asset(asset_first=True)
+
     def test_user_deny_asset_change_collection(self):
         self.test_user_change_collection_deny_asset(asset_first=True)
 

@@ -1,13 +1,15 @@
-from django.contrib.auth.models import User
 from django.contrib.auth.models import Permission
+from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 
+from ..models.asset import Asset
 from ..models.collection import Collection
 from ..models.object_permission import get_all_objects_for_user
-from ..models.asset import Asset
+
 
 class BasePermissionsTestCase(TestCase):
+
     def _get_perm_name(self, perm_name_prefix, model_instance):
         '''
         Get the type-specific permission name for a model from a permission name
@@ -27,7 +29,7 @@ class BasePermissionsTestCase(TestCase):
         :rtype: str
         '''
         perm_name= Permission.objects.get(
-            content_type= ContentType.objects.get_for_model(model_instance),
+            content_type=ContentType.objects.get_for_model(model_instance),
             codename__startswith=perm_name_prefix
         ).natural_key()[0]
         return perm_name
@@ -129,12 +131,13 @@ class BasePermissionsTestCase(TestCase):
         :type descendant_obj: :py:class:`Collection` or :py:class:`Asset`
         '''
         self._test_add_inherited_perm(ancestor_collection,
-                                            perm_name_prefix, user,
-                                            descendant_obj)
+                                      perm_name_prefix, user,
+                                      descendant_obj)
         descendant_perm_name= self._get_perm_name(perm_name_prefix, descendant_obj)
         ancestor_perm_name= self._get_perm_name(perm_name_prefix, ancestor_collection)
         ancestor_collection.remove_perm(user, ancestor_perm_name)
         self.assertFalse(user.has_perm(descendant_perm_name, descendant_obj))
+
 
 class PermissionsTestCase(BasePermissionsTestCase):
     fixtures= ['test_data']
@@ -143,10 +146,10 @@ class PermissionsTestCase(BasePermissionsTestCase):
         self.admin= User.objects.get(username='admin')
         self.someuser= User.objects.get(username='someuser')
         self.admin_collection= Collection.objects.create(owner=self.admin)
-        self.admin_asset= Asset.objects.create(content=[
+        self.admin_asset= Asset.objects.create(content={'survey': [
             {'type': 'text', 'label': 'Question 1', 'name': 'q1', 'kuid': 'abc'},
             {'type': 'text', 'label': 'Question 2', 'name': 'q2', 'kuid': 'def'},
-        ], owner=self.admin)
+        ]}, owner=self.admin)
 
     def test_add_asset_permission(self):
         self._test_add_perm(self.admin_asset, 'view_', self.someuser)
@@ -167,16 +170,16 @@ class PermissionsTestCase(BasePermissionsTestCase):
     def test_add_asset_inherited_permission(self):
         self.admin_collection.assets.add(self.admin_asset)
         self._test_add_inherited_perm(self.admin_collection, 'view_',
-                                            self.someuser, self.admin_asset)
+                                      self.someuser, self.admin_asset)
         self._test_add_inherited_perm(self.admin_collection, 'change_',
-                                            self.someuser, self.admin_asset)
+                                      self.someuser, self.admin_asset)
 
     def test_remove_collection_inherited_permission(self):
         self.admin_collection.assets.add(self.admin_asset)
         self._test_add_remove_inherited_perm(self.admin_collection, 'view_',
-                                     self.someuser, self.admin_asset)
+                                             self.someuser, self.admin_asset)
         self._test_add_remove_inherited_perm(self.admin_collection, 'change_',
-                                     self.someuser, self.admin_asset)
+                                             self.someuser, self.admin_asset)
 
     def test_get_objects_for_user(self):
         admin_assets= get_all_objects_for_user(self.admin, Asset)
