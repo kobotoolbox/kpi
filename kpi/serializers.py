@@ -214,8 +214,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                                                  required=False)
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     tag_string = serializers.CharField(required=False)
-    # assetdeployment__count comes from annotate() on the view's queryset
-    deployment_count = serializers.IntegerField(source='assetdeployment__count', read_only=True)
+    # assetdeployment__count comes from annotate() in
+    # AssetManager.get_queryset()
+    deployment_count = serializers.IntegerField(
+        source='assetdeployment__count', read_only=True)
 
     class Meta:
         model = Asset

@@ -25,7 +25,6 @@ ASSET_TYPES = [
 
 ASSET_UID_LENGTH = 22
 
-
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
 class TaggableModelManager(models.Manager):
 
@@ -38,7 +37,10 @@ class TaggableModelManager(models.Manager):
 
 
 class AssetManager(TaggableModelManager):
-
+    def get_queryset(self):
+        return super(AssetManager, self).get_queryset().annotate(
+            models.Count('assetdeployment')
+        )
     def filter_by_tag_name(self, tag_name):
         try:
             tag = Tag.objects.get(name=tag_name)

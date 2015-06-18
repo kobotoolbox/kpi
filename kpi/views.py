@@ -311,7 +311,7 @@ class AssetViewSet(viewsets.ModelViewSet):
         'permissions__permission',
         'permissions__user',
         'permissions__content_object',
-    ).annotate(Count('assetdeployment')).all()
+    ).all()
     serializer_class = AssetSerializer
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
