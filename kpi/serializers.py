@@ -239,6 +239,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             user = get_anonymous_user()
         fields['parent'].queryset = fields['parent'].queryset.filter(owner=user)
         # Honor requests to exclude fields
+        # TODO: Actually exclude fields from tha database query! DRF grabs
+        # all columns, even ones that are never named in `fields`
         excludes = self.context['request'].GET.get('exclude', '')
         for exclude in excludes.split(','):
             exclude = exclude.strip()
