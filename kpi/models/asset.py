@@ -25,6 +25,7 @@ ASSET_TYPES = [
 
 ASSET_UID_LENGTH = 22
 
+
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
 class TaggableModelManager(models.Manager):
 
@@ -161,7 +162,8 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model):
         else:
             return list()
 
-    def get_ancestors(self):
+    def get_ancestors_or_none(self):
+        # ancestors are ordered from farthest to nearest
         if self.parent is not None:
             return self.parent.get_ancestors(include_self=True)
         else:

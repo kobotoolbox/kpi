@@ -219,7 +219,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                                                  view_name='collection-detail',
                                                  required=False)
     ancestors = AncestorCollectionsSerializer(
-        many=True, read_only=True, source='get_ancestors')
+        many=True, read_only=True, source='get_ancestors_or_none')
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     tag_string = serializers.CharField(required=False)
     # assetdeployment__count comes from annotate() in
@@ -440,9 +440,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
     owner__username = serializers.ReadOnlyField(source='owner.username')
     # ancestors are ordered from farthest to nearest
     ancestors = AncestorCollectionsSerializer(
-        many=True, read_only=True,
-        source='get_ancestors'
-    )
+        many=True, read_only=True, source='get_ancestors_or_none')
     children = CollectionChildrenSerializer(
         many=True, read_only=True,
         source='get_children_and_assets_iterable'

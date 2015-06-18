@@ -86,6 +86,14 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
             self.uid = self._generate_uid()
         super(Collection, self).save(*args, **kwargs)
 
+    def get_ancestors_or_none(self):
+        # ancestors are ordered from farthest to nearest
+        ancestors = self.get_ancestors()
+        if ancestors.exists():
+            return ancestors
+        else:
+            return None
+
     def get_descendants_list(self, include_self=False):
         ''' Similar to django-mptt's get_descendants, but returns a list
         instead of a QuerySet since our descendants are both Assets and
