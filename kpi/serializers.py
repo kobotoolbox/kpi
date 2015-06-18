@@ -215,6 +215,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                                                  required=False)
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     tag_string = serializers.CharField(required=False)
+    # assetdeployment__count comes from annotate() on the view's queryset
+    deployment_count = serializers.IntegerField(source='assetdeployment__count')
 
     class Meta:
         model = Asset
@@ -238,6 +240,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'kind',
                   'xls_link',
                   'name',
+                  'deployment_count',
                   'permissions',)
         extra_kwargs = {
             'parent': {
@@ -253,8 +256,13 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # queries.
         if user.is_anonymous():
             user = get_anonymous_user()
-        fields['parent'].queryset = fields[
-            'parent'].queryset.filter(owner=user)
+        fields['parent'].queryset = fields['parent'].queryset.filter(owner=user)
+        # Honor requests to exclude fields
+        excludes = self.context['request'].GET.get('exclude', '')
+        for exclude in excludes.split(','):
+            exclude = exclude.strip()
+            if exclude in fields:
+                fields.pop(exclude)
         return fields
 
     def _version_count(self, obj):
@@ -359,6 +367,7 @@ class AssetListSerializer(AssetSerializer):
                   'kind',
                   'name',
                   'asset_type',
+                  'deployment_count',
                   'permissions',
                   )
 

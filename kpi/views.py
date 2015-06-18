@@ -6,7 +6,7 @@ import json
 import random
 
 from django.contrib.auth.models import User
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.forms import model_to_dict
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -276,7 +276,6 @@ class ImportTaskViewset(viewsets.ReadOnlyModelViewSet):
     # date_created = models.DateTimeField(auto_now_add=True)
 
     def create(self, request, *args, **kwargs):
-        # this should probably go in the asset's create method
         if 'base64Encoded' in request.POST:
             encoded_str = request.POST['base64Encoded']
             encoded_substr = encoded_str[encoded_str.index('base64') +7:]
@@ -312,7 +311,7 @@ class AssetViewSet(viewsets.ModelViewSet):
         'permissions__permission',
         'permissions__user',
         'permissions__content_object',
-    ).all()
+    ).annotate(Count('assetdeployment')).all()
     serializer_class = AssetSerializer
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
