@@ -192,6 +192,12 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
         perm = validated_data['permission'].codename
         return content_object.assign_perm(user, perm)
 
+class AncestorCollectionsSerializer(serializers.HyperlinkedModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        lookup_field='uid', view_name='collection-detail')
+    class Meta:
+        model = Collection
+        fields = ('name', 'uid', 'url')
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username',
@@ -212,6 +218,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                                                  queryset=Collection.objects.all(),
                                                  view_name='collection-detail',
                                                  required=False)
+    ancestors = AncestorCollectionsSerializer(
+        many=True, read_only=True, source='get_ancestors')
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     tag_string = serializers.CharField(required=False)
     # assetdeployment__count comes from annotate() in
@@ -226,6 +234,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'owner',
                   'owner__username',
                   'parent',
+                  'ancestors',
                   'settings',
                   'asset_type',
                   'date_created',
@@ -406,13 +415,6 @@ class UserListSerializer(UserSerializer):
         fields = ('url', 'username', 'assets_count', 'collections_count',)
 
 
-class CollectionAncestorsSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.HyperlinkedIdentityField(
-        lookup_field='uid', view_name='collection-detail')
-    class Meta:
-        model = Collection
-        fields = ('name', 'uid', 'url')
-
 class CollectionChildrenSerializer(serializers.Serializer):
 
     def to_representation(self, value):
@@ -437,7 +439,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
                                                  queryset=Collection.objects.all())
     owner__username = serializers.ReadOnlyField(source='owner.username')
     # ancestors are ordered from farthest to nearest
-    ancestors = CollectionAncestorsSerializer(
+    ancestors = AncestorCollectionsSerializer(
         many=True, read_only=True,
         source='get_ancestors'
     )

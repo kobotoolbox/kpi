@@ -161,6 +161,12 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model):
         else:
             return list()
 
+    def get_ancestors(self):
+        if self.parent is not None:
+            return self.parent.get_ancestors(include_self=True)
+        else:
+            return None
+
     def to_xls_io(self):
         import xlwt
         import StringIO
