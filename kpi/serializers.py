@@ -196,7 +196,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                                                 view_name='collection-detail', required=False)
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     tag_string = serializers.CharField(required=False)
-
+    # assetdeployment__count comes from annotate() on the view's queryset
+    deployment_count = serializers.IntegerField(source='assetdeployment__count')
 
     class Meta:
         model = Asset
@@ -220,6 +221,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                     'kind',
                     'xls_link',
                     'name',
+                    'deployment_count',
                     'permissions',)
         extra_kwargs = {
             'parent': {
@@ -316,8 +318,6 @@ class ImportTaskSerializer(serializers.HyperlinkedModelSerializer):
             )
 
 class AssetListSerializer(AssetSerializer):
-    # assetdeployment__count comes from annotate() on the view's queryset
-    deployment_count = serializers.IntegerField(source='assetdeployment__count')
     class Meta(AssetSerializer.Meta):
         fields = ('url',
                   'date_modified',
