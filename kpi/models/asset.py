@@ -1,15 +1,17 @@
+import re
+
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.db import transaction
-from django.contrib.contenttypes.fields import GenericRelation
-from shortuuid import ShortUUID
+from django.dispatch import receiver
 from jsonfield import JSONField
+from shortuuid import ShortUUID
 from taggit.managers import TaggableManager
 from taggit.models import Tag
-import re
-import json
 import reversion
+
 from object_permission import ObjectPermission, ObjectPermissionMixin
-from django.dispatch import receiver
+
 
 ASSET_TYPES = [
     ('text', 'text'),               # uncategorized, misc
@@ -23,32 +25,31 @@ ASSET_TYPES = [
 
 ASSET_UID_LENGTH = 22
 
-class AssetManager(models.Manager):
+
+# TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
+class TaggableModelManager(models.Manager):
+
+    def create(self, *args, **kwargs):
+        tag_string= kwargs.pop('tag_string', None)
+        created= super(TaggableModelManager, self).create(*args, **kwargs)
+        if tag_string:
+            created.tag_string= tag_string
+        return created
+
+
+class AssetManager(TaggableModelManager):
+
     def filter_by_tag_name(self, tag_name):
         try:
             tag = Tag.objects.get(name=tag_name)
-        except Tag.DoesNotExist, e:
+        except Tag.DoesNotExist:
             return self.none()
         return self.filter(tags=tag)
 
 
-@reversion.register
-class Asset(ObjectPermissionMixin, models.Model):
-    name = models.CharField(max_length=255, blank=True, default='')
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_modified = models.DateTimeField(auto_now=True)
-    content = JSONField(null=True)
-    summary = JSONField(null=True, default={})
-    asset_type = models.CharField(choices=ASSET_TYPES, max_length=20, default='text')
-    parent = models.ForeignKey('Collection', related_name='assets', null=True, blank=True)
-    owner = models.ForeignKey('auth.User', related_name='assets', null=True)
-    editors_can_change_permissions = models.BooleanField(default=True)
-    uid = models.CharField(max_length=ASSET_UID_LENGTH, default='', blank=True)
-    tags = TaggableManager()
-
-    permissions = GenericRelation(ObjectPermission)
-
-    objects = AssetManager()
+# TODO: Merge this functionality into the eventual common base class of `Asset`
+# and `Collection`.
+class TagStringMixin:
 
     @property
     def tag_string(self):
@@ -58,6 +59,27 @@ class Asset(ObjectPermissionMixin, models.Model):
     def tag_string(self, value):
         intended_tags = value.split(',')
         self.tags.set(*intended_tags)
+
+
+@reversion.register
+class Asset(ObjectPermissionMixin, TagStringMixin, models.Model):
+    name = models.CharField(max_length=255, blank=True, default='')
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
+    content = JSONField(null=True)
+    summary = JSONField(null=True, default={})
+    asset_type = models.CharField(
+        choices=ASSET_TYPES, max_length=20, default='text')
+    parent = models.ForeignKey(
+        'Collection', related_name='assets', null=True, blank=True)
+    owner = models.ForeignKey('auth.User', related_name='assets', null=True)
+    editors_can_change_permissions = models.BooleanField(default=True)
+    uid = models.CharField(max_length=ASSET_UID_LENGTH, default='', blank=True)
+    tags = TaggableManager()
+
+    permissions = GenericRelation(ObjectPermission)
+
+    objects = AssetManager()
 
     @property
     def kind(self):
@@ -98,7 +120,7 @@ class Asset(ObjectPermissionMixin, models.Model):
             self.uid = self._generate_uid()
 
     def _populate_summary(self):
-        if self.content == None:
+        if self.content is None:
             self.asset_type = 'empty'
             self.content = {}
             self.summary = {}
@@ -115,12 +137,12 @@ class Asset(ObjectPermissionMixin, models.Model):
             self.asset_type = 'block'
 
         if self.asset_type in ['question', 'block', 'survey']:
-            summary = {'labels': [l.get('label', {'nolabel':l}) for l in survey[0:5]]}
+            summary = {'labels': [l.get('label', {'nolabel': l}) for l in survey[0:5]]}
         summary['row_count'] = len(survey)
         self.summary = summary
 
     def _generate_uid(self):
-        return 'a' + ShortUUID().random(ASSET_UID_LENGTH-1)
+        return 'a' + ShortUUID().random(ASSET_UID_LENGTH -1)
 
     def save(self, *args, **kwargs):
         # populate uid field if it's empty
@@ -140,6 +162,7 @@ class Asset(ObjectPermissionMixin, models.Model):
     def to_xls_io(self):
         import xlwt
         import StringIO
+
         def _add_contents_to_sheet(sheet, contents):
             cols = []
             for row in contents:
@@ -152,11 +175,11 @@ class Asset(ObjectPermissionMixin, models.Model):
                 for ci, col in enumerate(cols):
                     val = row.get(col, None)
                     if val:
-                        sheet.write(ri+1, ci, val)
+                        sheet.write(ri +1, ci, val)
         ss_dict = self.content
         workbook = xlwt.Workbook()
         for sheet_name in ss_dict.keys():
-            # pyxform.xls2json_backends adds "_header" items for each sheet.....
+            # pyxform.xls2json_backends adds "_header" items for each sheet....
             if not re.match(r".*_header$", sheet_name):
                 cur_sheet = workbook.add_sheet(sheet_name)
                 _add_contents_to_sheet(cur_sheet, ss_dict[sheet_name])
@@ -169,8 +192,8 @@ class Asset(ObjectPermissionMixin, models.Model):
     def export(self):
         version_id = reversion.get_for_object(self).last().id
         # AssetExport.objects.filter(asset=self).delete()
-        (model, created,) = AssetExport.objects.get_or_create(asset=self,
-                                asset_version_id=version_id)
+        (model, _) = AssetExport.objects.get_or_create(asset=self,
+                                                       asset_version_id=version_id)
         return model
 
     def content_terms(self):
@@ -187,7 +210,9 @@ class Asset(ObjectPermissionMixin, models.Model):
                 terms.add(value)
         return terms
 
+
 class AssetExport(models.Model):
+
     '''
     This model serves as a cache of the XML that was exported by the installed
     version of pyxform.
@@ -209,18 +234,20 @@ class AssetExport(models.Model):
         default_name = None
         default_language = u'default'
         try:
-            dict_repr = pyxform.xls2json.workbook_to_json(self.source, default_name, default_language, warnings)
+            dict_repr = pyxform.xls2json.workbook_to_json(
+                self.source, default_name, default_language, warnings)
             dict_repr[u'name'] = dict_repr[u'id_string']
             survey = pyxform.builder.create_survey_element_from_dict(dict_repr)
             with tempfile.NamedTemporaryFile(suffix='.xml') as named_tmp:
-                survey.print_xform_to_file(path=named_tmp.name, validate=True, warnings=warnings)
+                survey.print_xform_to_file(
+                    path=named_tmp.name, validate=True, warnings=warnings)
                 named_tmp.seek(0)
                 self.xml = named_tmp.read()
             summary.update({
                 u'default_name': default_name,
                 u'default_language': default_language,
                 u'warnings': warnings,
-                })
+            })
             summary['status'] = 'success'
         except Exception, e:
             summary.update({
@@ -229,11 +256,13 @@ class AssetExport(models.Model):
             })
 
     def save(self, *args, **kwargs):
-        version = reversion.get_for_object(self.asset).get(id=self.asset_version_id)
+        version = reversion.get_for_object(
+            self.asset).get(id=self.asset_version_id)
         asset = version.object
         self.source = asset.to_ss_structure()
         self.generate_xml_from_source()
         return super(AssetExport, self).save(*args, **kwargs)
+
 
 @receiver(models.signals.post_delete, sender=Asset)
 def post_delete_asset(sender, instance, **kwargs):
