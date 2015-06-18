@@ -7,20 +7,28 @@ Created on Apr 6, 2015
 import re
 
 from django.core.urlresolvers import reverse
-from rest_framework.test import APITestCase
 from rest_framework import status
+from rest_framework.test import APITestCase
 
+from ..models.asset import Asset
+from ..models.collection import Collection
 # FIXME: Remove the following line when the permissions API is in place.
 from .test_permissions import BasePermissionsTestCase
-from ..models.collection import Collection
-from ..models.asset import Asset
+
 
 class KpiTestCase(APITestCase, BasePermissionsTestCase):
+
     '''
     A base `APITestCase` with helper functions for KPI testing.
     '''
 
     fixtures = ['test_data']
+
+    def log_in(self, username=None, password=None):
+        kwargs= dict()
+        if username and password:
+            kwargs= {'username': username, 'password': password}
+        self.assertTrue(self.client.login(**kwargs))
 
     def _url_to_uid(self, url):
         return re.match(r'.+/(.+)/.*$', url).groups()[0]
@@ -36,13 +44,13 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         obj= klass.objects.get(uid=uid)
         return obj
 
-    def create_collection(self, name, owner=None, owner_password=None):
+    def create_collection(self, name, owner=None, owner_password=None,
+                          **kwargs):
         if owner and owner_password:
-            self.assertTrue(self.client.login(username=owner.username,
-                                              password=owner_password))
+            self.log_in(owner.username, owner_password)
 
-        response= self.client.post(reverse('collection-list'),
-                                   {'name': name})
+        kwargs.update({'name': name})
+        response= self.client.post(reverse('collection-list'), kwargs)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         if owner and owner_password:
@@ -52,16 +60,15 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         return collection
 
     def create_asset(self, name, content=None, owner=None,
-                      owner_password=None):
+                     owner_password=None, **kwargs):
         if owner and owner_password:
-            self.assertTrue(self.client.login(username=owner.username,
-                                              password=owner_password))
+            self.log_in(owner.username, owner_password)
 
-        if content == None:
+        if content is None:
             content= '[]'
 
-        response= self.client.post(reverse('asset-list'),
-                                   {'name': name, 'content': content})
+        kwargs.update({'name': name, 'content': content})
+        response= self.client.post(reverse('asset-list'), kwargs)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         if owner and owner_password:
@@ -71,19 +78,19 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         return asset
 
     def assert_child_of(self, child, parent_collection, owner=None,
-                         owner_password=None):
+                        owner_password=None):
         if owner and owner_password:
-            self.assertTrue(self.client.login(username=owner.username,
-                                              password=owner_password))
+            self.log_in(owner.username, owner_password)
 
         parent_url= reverse('collection-detail',
                             kwargs={'uid': parent_collection.uid})
         parent_detail_response= self.client.get(parent_url)
-        self.assertEqual(parent_detail_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            parent_detail_response.status_code, status.HTTP_200_OK)
 
         child_view_name= child._meta.model_name + '-detail'
         child_url= reverse(child_view_name,
-                            kwargs={'uid': child.uid})
+                           kwargs={'uid': child.uid})
         child_detail_response= self.client.get(child_url)
         self.assertEqual(child_detail_response.status_code, status.HTTP_200_OK)
 
@@ -103,17 +110,16 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         self.assertTrue(child_found)
 
     def add_to_collection(self, child, parent_collection,
-                                 owner=None, owner_password=None):
+                          owner=None, owner_password=None):
         if owner and owner_password:
-            self.assertTrue(self.client.login(username=owner.username,
-                                              password=owner_password))
+            self.log_in(owner.username, owner_password)
 
         parent_url= reverse('collection-detail',
                             kwargs={'uid': parent_collection.uid})
 
         child_view_name= child._meta.model_name + '-detail'
         child_url= reverse(child_view_name,
-                            kwargs={'uid': child.uid})
+                           kwargs={'uid': child.uid})
         response= self.client.patch(child_url, {'parent': parent_url})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assert_child_of(child, parent_collection, owner, owner_password)
@@ -122,7 +128,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
             self.client.logout()
 
     def add_perm(self, obj, owner, owner_password, other_user,
-                  other_user_password, perm_name_prefix):
+                 other_user_password, perm_name_prefix):
         '''
         Add a permission.
 
@@ -156,7 +162,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
 #         self.client.logout()
 
     def remove_perm(self, obj, owner, owner_password, other_user,
-                     other_user_password, perm_name_prefix):
+                    other_user_password, perm_name_prefix):
         '''
         Remove a permission.
 
@@ -187,8 +193,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         url= reverse(view_name)
 
         if user and password:
-            self.assertTrue(self.client.login(username=user.username,
-                                              password=password))
+            self.log_in(user.username, password)
         response= self.client.get(url)
         if user and password:
             self.client.logout()
@@ -206,14 +211,13 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
 
         self.assertEqual(uid_found, in_list)
 
-
-    def assert_detail_viewable(self, obj, user=None, password=None, viewable=True):
+    def assert_detail_viewable(self, obj, user=None, password=None,
+                               viewable=True):
         view_name= obj._meta.model_name + '-detail'
         url= reverse(view_name, kwargs={'uid': obj.uid})
 
         if user and password:
-            self.assertTrue(self.client.login(username=user.username,
-                                              password=password))
+            self.log_in(user.username, password)
         response= self.client.get(url)
         if user and password:
             self.client.logout()
@@ -226,6 +230,6 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
             self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def assert_viewable(self, obj, user=None, password=None, viewable=True):
-        self.assert_object_in_object_list(obj, user, password, in_list=viewable)
+        self.assert_object_in_object_list(
+            obj, user, password, in_list=viewable)
         self.assert_detail_viewable(obj, user, password, viewable)
-

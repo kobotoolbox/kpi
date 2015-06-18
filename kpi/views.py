@@ -1,35 +1,44 @@
-import json
+from io import BytesIO
 from itertools import chain
+from pyxform.xls2json_backends import xls_to_dict
+import base64
+import json
+import random
 
 from django.contrib.auth.models import User
 from django.db.models import Q
+from django.forms import model_to_dict
+from django.http import Http404
+from django.shortcuts import get_object_or_404
 from rest_framework import (
     viewsets,
     mixins,
     renderers,
-    permissions,
     status,
 )
-from django.contrib.contenttypes.models import ContentType
+from rest_framework import exceptions
+from rest_framework.decorators import api_view
 from rest_framework.decorators import detail_route
+from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from rest_framework import exceptions
 from taggit.models import Tag
 
+from .filters import KpiAssignedObjectPermissionsFilter, ParentFilter
+from .filters import KpiObjectPermissionsFilter
+from .filters import SearchFilter
+from .highlighters import highlight_xform
 from .models import (
     Collection,
-    object_permission,
     Asset,
     ImportTask,
     AssetDeployment,
     ObjectPermission,)
 from .models.object_permission import get_anonymous_user
-from .permissions import IsOwnerOrReadOnly
-from .filters import KpiObjectPermissionsFilter
-from .filters import KpiAssignedObjectPermissionsFilter, ParentFilter
-from .filters import SearchFilter
-from .highlighters import highlight_xform
+from .permissions import (
+    IsOwnerOrReadOnly,
+    get_perm_name,
+)
 from .renderers import (
     AssetJsonRenderer,
     SSJsonRenderer,
@@ -44,11 +53,14 @@ from .serializers import (
     AssetDeploymentSerializer,
     ImportTaskSerializer,
     ObjectPermissionSerializer,)
+from .utils.gravatar_url import gravatar_url
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from kpi.utils.gravatar_url import gravatar_url
+
+CLONE_ARG_NAME= 'clone_from'
+ASSET_CLONE_FIELDS= {'name', 'content', 'asset_type'}
+COLLECTION_CLONE_FIELDS= {'name'}
+
 
 @api_view(['GET'])
 def current_user(request):
@@ -57,25 +69,25 @@ def current_user(request):
         return Response({'message': 'user is not logged in'})
     else:
         return Response({'username': user.username,
-                            'first_name': user.first_name,
-                            'last_name': user.last_name,
-                            'email': user.email,
-                            'is_superuser': user.is_superuser,
-                            'gravatar': gravatar_url(user.email),
-                            'is_staff': user.is_staff,
-                            'last_login': user.last_login,
-                            })
+                         'first_name': user.first_name,
+                         'last_name': user.last_name,
+                         'email': user.email,
+                         'is_superuser': user.is_superuser,
+                         'gravatar': gravatar_url(user.email),
+                         'is_staff': user.is_staff,
+                         'last_login': user.last_login,
+                         })
 
 
 class ObjectPermissionViewSet(
-        # Inherit from everything that ModelViewSet does, except for
-        # UpdateModelMixin
-        mixins.CreateModelMixin,
-        mixins.RetrieveModelMixin,
-        mixins.DestroyModelMixin,
-        mixins.ListModelMixin,
-        viewsets.GenericViewSet
-    ):
+    # Inherit from everything that ModelViewSet does, except for
+    # UpdateModelMixin
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
     queryset = ObjectPermission.objects.all()
     serializer_class = ObjectPermissionSerializer
     lookup_field = 'uid'
@@ -120,6 +132,40 @@ class CollectionViewSet(viewsets.ModelViewSet):
     filter_backends = (KpiObjectPermissionsFilter, ParentFilter, SearchFilter)
     lookup_field = 'uid'
 
+    def _clone(self):
+        # Clone an existing collection.
+        original_uid= self.request.data[CLONE_ARG_NAME]
+        original_collection= get_object_or_404(Collection, uid=original_uid)
+        view_perm= get_perm_name('view', original_collection)
+        if not self.request.user.has_perm(view_perm, original_collection):
+            raise Http404
+        else:
+            # Copy the essential data from the original collection.
+            original_data= model_to_dict(original_collection)
+            cloned_data= {keep_field: original_data[keep_field]
+                          for keep_field in COLLECTION_CLONE_FIELDS}
+            if original_collection.tag_string:
+                cloned_data['tag_string']= original_collection.tag_string
+
+            # Pull any additionally provided parameters/overrides from the
+            # request.
+            for param in self.request.data:
+                cloned_data[param]= self.request.data[param]
+            serializer = self.get_serializer(data=cloned_data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED,
+                            headers=headers)
+
+    def create(self, request, *args, **kwargs):
+        if CLONE_ARG_NAME not in request.data:
+            return super(CollectionViewSet, self).create(request, *args,
+                                                         **kwargs)
+        else:
+            return self._clone()
+
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
@@ -128,6 +174,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
             return CollectionListSerializer
         else:
             return CollectionSerializer
+
 
 class AssetDeploymentViewset(viewsets.ReadOnlyModelViewSet):
     queryset = AssetDeployment.objects.none()
@@ -145,9 +192,10 @@ class AssetDeploymentViewset(viewsets.ReadOnlyModelViewSet):
         user = self.request.user
         asset = Asset.objects.get(uid=asset_uid)
 
-        RANDOM_FORM_ID_INCREMENTOR = random.randint(1000,9999)
+        RANDOM_FORM_ID_INCREMENTOR = random.randint(1000, 9999)
         deployment = AssetDeployment._create_if_possible(asset,
-                                user, RANDOM_FORM_ID_INCREMENTOR)
+                                                         user,
+                                                         RANDOM_FORM_ID_INCREMENTOR)
 
         if 'error' in deployment:
             return Response(deployment, status=status.HTTP_400_BAD_REQUEST)
@@ -168,17 +216,23 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
         # queries.
         if user.is_anonymous():
             user = get_anonymous_user()
+
         def _get_tags_on_items(content_type_name, avail_items):
             '''
-            return all ids of tags which are tagged to items of the given content_type
+            return all ids of tags which are tagged to items of the given
+            content_type
             '''
-            same_content_type = Q(taggit_taggeditem_items__content_type__model=content_type_name)
-            same_id = Q(taggit_taggeditem_items__object_id__in=avail_items.values_list('id'))
-            return Tag.objects.filter(same_content_type & same_id).distinct().values_list('id', flat=True)
+            same_content_type = Q(
+                taggit_taggeditem_items__content_type__model=content_type_name)
+            same_id = Q(
+                taggit_taggeditem_items__object_id__in=avail_items.
+                values_list('id'))
+            return Tag.objects.filter(same_content_type & same_id).distinct().\
+                values_list('id', flat=True)
         all_tag_ids = list(chain(
-                                _get_tags_on_items('collection', user.owned_collections.all()),
-                                _get_tags_on_items('asset', user.assets.all()),
-                                ))
+            _get_tags_on_items('collection', user.owned_collections.all()),
+            _get_tags_on_items('asset', user.assets.all()),
+        ))
 
         return Tag.objects.filter(id__in=all_tag_ids).distinct()
 
@@ -188,7 +242,9 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
         else:
             return TagSerializer
 
+
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
+
     """
     This viewset automatically provides `list` and `detail` actions.
     """
@@ -203,17 +259,9 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             return UserSerializer
 
 
-from rest_framework.parsers import MultiPartParser
-
 class XlsFormParser(MultiPartParser):
     pass
 
-import random
-import base64
-from io import BytesIO
-from pyxform.xls2json_backends import xls_to_dict
-
-from django.forms.models import model_to_dict
 
 class ImportTaskViewset(viewsets.ReadOnlyModelViewSet):
     queryset = ImportTask.objects.all()
@@ -231,11 +279,11 @@ class ImportTaskViewset(viewsets.ReadOnlyModelViewSet):
         # this should probably go in the asset's create method
         if 'base64Encoded' in request.POST:
             encoded_str = request.POST['base64Encoded']
-            encoded_substr = encoded_str[encoded_str.index('base64')+7:]
+            encoded_substr = encoded_str[encoded_str.index('base64') +7:]
             decoded_str = base64.b64decode(encoded_substr)
             try:
                 survey_dict = xls_to_dict(BytesIO(decoded_str))
-            except Exception, e:
+            except Exception:
                 raise Exception('could not parse xls submission')
 
             asset = Asset.objects.create(
@@ -246,7 +294,9 @@ class ImportTaskViewset(viewsets.ReadOnlyModelViewSet):
             data = AssetSerializer(asset, context={'request': request}).data
             return Response(data, status.HTTP_201_CREATED)
 
+
 class AssetViewSet(viewsets.ModelViewSet):
+
     """
     * Download a asset in a `.xls` or `.xml` format <span class='label label-success'>complete</span>
     * View a asset in a markdown spreadsheet or XML preview format <span class='label label-success'>complete</span>
@@ -282,12 +332,38 @@ class AssetViewSet(viewsets.ModelViewSet):
         else:
             return AssetSerializer
 
+    def _get_clone_serializer(self):
+        original_uid= self.request.data[CLONE_ARG_NAME]
+        original_asset= get_object_or_404(Asset, uid=original_uid)
+        view_perm= get_perm_name('view', original_asset)
+        if not self.request.user.has_perm(view_perm, original_asset):
+            raise Http404
+        else:
+            # Copy the essential data from the original asset.
+            cloned_data= {keep_field: model_to_dict(original_asset)[keep_field]
+                          for keep_field in ASSET_CLONE_FIELDS}
+            if original_asset.tag_string:
+                cloned_data['tag_string']= original_asset.tag_string
+            # Pull any additionally provided parameters/overrides from the
+            # request.
+            for param in self.request.data:
+                cloned_data[param]= self.request.data[param]
+
+            serializer = self.get_serializer(data=cloned_data)
+
+            return serializer
+
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        if CLONE_ARG_NAME in request.data:
+            serializer= self._get_clone_serializer()
+        else:
+            serializer = self.get_serializer(data=request.data)
+
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(serializer.data, status=status.HTTP_201_CREATED,
+                        headers=headers)
 
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def content(self, request, *args, **kwargs):
@@ -296,12 +372,12 @@ class AssetViewSet(viewsets.ModelViewSet):
             'kind': 'asset.content',
             'uid': asset.uid,
             'data': asset.to_ss_structure()
-            }))
+        }))
 
     @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
     def koboform(self, request, *args, **kwargs):
         asset = self.get_object()
-        return Response({'asset': asset,}, template_name='koboform.html')
+        return Response({'asset': asset, }, template_name='koboform.html')
 
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def table_view(self, request, *args, **kwargs):
@@ -317,7 +393,8 @@ class AssetViewSet(viewsets.ModelViewSet):
     def xform(self, request, *args, **kwargs):
         asset = self.get_object()
         export = asset.export
-        title = '[%s] %s' % (self.request.user.username, reverse('asset-detail', args=(asset.uid,), request=self.request),)
+        title = '[%s] %s' % (self.request.user.username, reverse(
+            'asset-detail', args=(asset.uid,), request=self.request),)
         header_links = '''
         <a href="../">Back</a> | <a href="../.xml">Download XML file</a><br>'''
         footer = '\n<!-- kpi/views.py#footer -->\n'
@@ -341,13 +418,15 @@ class AssetViewSet(viewsets.ModelViewSet):
 
     def finalize_response(self, request, response, *args, **kwargs):
         ''' Manipulate the headers as appropriate for the requested format.
-        See https://github.com/tomchristie/django-rest-framework/issues/1041#issuecomment-22709658. '''
+        See https://github.com/tomchristie/django-rest-framework/issues/1041#issuecomment-22709658.
+        '''
         if request.accepted_renderer.format == 'xls':
             response[
                 'Content-Disposition'
             ] = 'attachment; filename={}.xls'.format(self.get_object().uid)
         return super(AssetViewSet, self).finalize_response(
             request, response, *args, **kwargs)
+
 
 def _wrap_html_pre(content):
     return "<!doctype html><html><body><code><pre>%s</pre></code></body></html>" % content

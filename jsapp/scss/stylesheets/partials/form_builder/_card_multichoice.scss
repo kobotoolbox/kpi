@@ -1,0 +1,158 @@
+// ==========================================================================
+// Multiple choice cards
+// ==========================================================================
+
+// multi-choice expanded
+.caret {
+    &:before {
+        // from fa-caret-right
+        content: "\f0da";
+    }
+}
+
+.card--selectquestion__expansion {
+    @extend %card-expansion;
+}
+
+.survey__row--selected {
+    .card--selectquestion__expansion, 
+    .card__settings {
+        border-left-color: $linkColor;
+        border-right-color: $linkColor;
+        border-bottom-color: $linkColor;
+    }
+}
+
+// ==========================================================================
+// Overrides
+// ==========================================================================
+
+.card--selectquestion {
+    .row__multioptions {
+        display: none;
+    }
+
+    &.card--expandedchoices {
+        .row__multioptions {
+            display: block;
+        }
+
+        .card__buttons__multioptions, 
+        .card__buttons__multioptions + .card__header-title {
+            color: $indicatorColor;
+        }
+
+        .caret {
+            &:before {
+                // from fa-caret-down
+                content: "\f0d7";
+            }
+        }
+    }
+}
+
+
+.option-placeholder {
+    height: 32px;
+    margin-bottom: 10px;
+    border: 2px solid #d9dde1;
+    border-radius: 4px;
+    margin-right: 25px;
+    margin-left: 5px;
+}
+
+
+// ==========================================================================
+// Single/multiple select questions
+// ==========================================================================
+
+// .xlf-option-view BECOMES .multioptions__option
+.multioptions__option {
+    margin-bottom: 4px;
+    margin-left: 4px;
+    position: relative;
+    div.editable-wrapper {
+        font-weight: 600;
+        border-radius: 5px;
+        border:$thinBorderStyle;
+        padding: 5px;
+        font-size: 13px;
+        display: inline-block;
+        width: 72%;
+        vertical-align: top;
+        height: auto;
+        position: relative;
+        min-height: 18px;
+        cursor:move;
+        span {cursor:text;} 
+        .editable-input input {
+            line-height: 1em;
+            vertical-align: middle;
+            margin-top:-3px;
+        }
+    }
+    code {
+        font-family: 'Open Sans';
+        font-weight: 600;
+        font-size: 11px;
+        background-color: #E3E7EC;
+        padding:2px;
+        margin:3px;
+        width: 25%;
+        text-align: left;
+        display: inline-block;
+        margin-left: 2%;
+        overflow: hidden;
+        label {
+            width: 32%;
+            padding-left: 4px;
+            color: #7E858C;
+        }
+        span, .editable-container {
+            display: inline-block;
+            float: right;
+            width: 64%;
+            padding-right: 4px;
+            color: #7E858C;
+            text-align: right;
+            cursor: text;
+        }
+        .editable-unsaved {
+            color: $linkColor;
+        }
+        .editable-buttons {
+            display: none; // TEMPORARY
+        }
+        .editable-container .editable-input input {
+            text-align: right;
+            display: inline-block;
+            float: right;
+            color: $linkColor;
+            line-height: 1em;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+    }
+    i.fa-trash-o {
+        position: absolute;
+        left:-20px;
+        top:8px;
+        color: #D08B8C;
+        font-size: 16px;
+        cursor: pointer;
+    }
+}
+
+.card__addoptions {
+    position: relative;
+}
+
+.card__addoptions__layer {
+    cursor: pointer !important;
+    background: rgba(255, 255, 255, 0.5);
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    z-index: 1;
+}

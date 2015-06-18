@@ -1,44 +1,52 @@
-from django.forms import widgets
+import json
+
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.utils.six.moves.urllib import parse as urlparse
-from django.core.urlresolvers import get_script_prefix, resolve, Resolver404
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import get_script_prefix, resolve, Resolver404
 from rest_framework import serializers
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.reverse import reverse_lazy, reverse
+from taggit.models import Tag
+import reversion
+
+from django.utils.six.moves.urllib import parse as urlparse
+
 from .models import Asset
+from .models import AssetDeployment
 from .models import Collection
 from .models import ImportTask
 from .models import ObjectPermission
-from .models import AssetDeployment
 from .models.object_permission import get_anonymous_user
-from .search_indexes import AssetIndex
-from taggit.models import Tag
-import reversion
-import urllib
-import json
 
 
 class Paginated(LimitOffsetPagination):
+
     """ Adds 'root' to the wrapping response object. """
     root = serializers.SerializerMethodField('get_parent_url', read_only=True)
 
     def get_parent_url(self, obj):
         return reverse_lazy('api-root', request=self.context.get('request'))
 
+
 class WritableJSONField(serializers.Field):
+
     """ Serializer for JSONField -- required to make field writable"""
+
     def to_internal_value(self, data):
         return json.loads(data)
+
     def to_representation(self, value):
         return value
+
 
 class TagSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField('_get_tag_url', read_only=True)
     assets = serializers.SerializerMethodField('_get_assets', read_only=True)
-    collections = serializers.SerializerMethodField('_get_collections', read_only=True)
-    parent = serializers.SerializerMethodField('_get_parent_url', read_only=True)
+    collections = serializers.SerializerMethodField(
+        '_get_collections', read_only=True)
+    parent = serializers.SerializerMethodField(
+        '_get_parent_url', read_only=True)
 
     class Meta:
         model = Tag
@@ -55,7 +63,7 @@ class TagSerializer(serializers.ModelSerializer):
         # queries.
         if user.is_anonymous():
             user = get_anonymous_user()
-        return [reverse('asset-detail', args=(sa.uid,), request=request) \
+        return [reverse('asset-detail', args=(sa.uid,), request=request)
                 for sa in Asset.objects.filter(tags=obj, owner=user).all()]
 
     def _get_collections(self, obj):
@@ -66,19 +74,24 @@ class TagSerializer(serializers.ModelSerializer):
         # queries.
         if user.is_anonymous():
             user = get_anonymous_user()
-        return [reverse('collection-detail', args=(coll.uid,), request=request) \
-                for coll in Collection.objects.filter(tags=obj, owner=user).all()]
+        return [reverse('collection-detail', args=(coll.uid,), request=request)
+                for coll in Collection.objects.filter(tags=obj, owner=user)
+                .all()]
 
     def _get_tag_url(self, obj):
         request = self.context.get('request', None)
         return reverse('tag-detail', args=(obj.name,), request=request)
 
+
 class TagListSerializer(TagSerializer):
+
     class Meta:
         model = Tag
         fields = ('name', 'url', )
 
+
 class GenericHyperlinkedRelatedField(serializers.HyperlinkedRelatedField):
+
     def __init__(self, **kwargs):
         # These arguments are required by ancestors but meaningless in our
         # situation. We will override them dynamically.
@@ -98,7 +111,7 @@ class GenericHyperlinkedRelatedField(serializers.HyperlinkedRelatedField):
         ''' The vast majority of this method has been copied and pasted from
         HyperlinkedRelatedField.to_internal_value(). Modifications exist
         to allow any type of object. '''
-        request = self.context.get('request', None)
+        _ = self.context.get('request', None)
         try:
             http_prefix = data.startswith(('http:', 'https:'))
         except AttributeError:
@@ -139,6 +152,7 @@ class GenericHyperlinkedRelatedField(serializers.HyperlinkedRelatedField):
         except (ObjectDoesNotExist, TypeError, ValueError):
             self.fail('does_not_exist')
 
+
 class ObjectPermissionSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid',
@@ -155,7 +169,7 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
     )
     content_object = GenericHyperlinkedRelatedField(
         lookup_field='uid',
-        style={'base_template': 'input.html'} # Render as a simple text box
+        style={'base_template': 'input.html'}  # Render as a simple text box
     )
     inherited = serializers.ReadOnlyField()
 
@@ -178,11 +192,14 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
         perm = validated_data['permission'].codename
         return content_object.assign_perm(user, perm)
 
+
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
-    owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username',
+    owner = serializers.HyperlinkedRelatedField(view_name='user-detail',
+                                                lookup_field='username',
                                                 read_only=True,)
     owner__username = serializers.ReadOnlyField(source='owner.username')
-    url = serializers.HyperlinkedIdentityField(lookup_field='uid', view_name='asset-detail')
+    url = serializers.HyperlinkedIdentityField(
+        lookup_field='uid', view_name='asset-detail')
     asset_type = serializers.ReadOnlyField()
     settings = WritableJSONField(required=False)
     xls_link = serializers.SerializerMethodField()
@@ -192,35 +209,36 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     version_count = serializers.SerializerMethodField('_version_count')
     downloads = serializers.SerializerMethodField()
     embeds = serializers.SerializerMethodField()
-    parent = serializers.HyperlinkedRelatedField(lookup_field='uid', queryset=Collection.objects.all(),
-                                                view_name='collection-detail', required=False)
+    parent = serializers.HyperlinkedRelatedField(lookup_field='uid',
+                                                 queryset=Collection.objects.all(),
+                                                 view_name='collection-detail',
+                                                 required=False)
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     tag_string = serializers.CharField(required=False)
-
 
     class Meta:
         model = Asset
         lookup_field = 'uid'
         fields = ('url',
-                    'owner',
-                    'owner__username',
-                    'parent',
-                    'settings',
-                    'asset_type',
-                    'date_created',
-                    'summary',
-                    'date_modified',
-                    'version_count',
-                    'downloads',
-                    'embeds',
-                    'koboform_link',
-                    'xform_link',
-                    'tag_string',
-                    'uid',
-                    'kind',
-                    'xls_link',
-                    'name',
-                    'permissions',)
+                  'owner',
+                  'owner__username',
+                  'parent',
+                  'settings',
+                  'asset_type',
+                  'date_created',
+                  'summary',
+                  'date_modified',
+                  'version_count',
+                  'downloads',
+                  'embeds',
+                  'koboform_link',
+                  'xform_link',
+                  'tag_string',
+                  'uid',
+                  'kind',
+                  'xls_link',
+                  'name',
+                  'permissions',)
         extra_kwargs = {
             'parent': {
                 'lookup_field': 'uid',
@@ -235,7 +253,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # queries.
         if user.is_anonymous():
             user = get_anonymous_user()
-        fields['parent'].queryset = fields['parent'].queryset.filter(owner=user)
+        fields['parent'].queryset = fields[
+            'parent'].queryset.filter(owner=user)
         return fields
 
     def _version_count(self, obj):
@@ -243,40 +262,46 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_xls_link(self, obj):
         return reverse('asset-xls', args=(obj.uid,), request=self.context.get('request', None))
+
     def get_xform_link(self, obj):
         return reverse('asset-xform', args=(obj.uid,), request=self.context.get('request', None))
+
     def get_embeds(self, obj):
         request = self.context.get('request', None)
+
         def _reverse_lookup_format(fmt):
             url = reverse('asset-%s' % fmt,
-                            args=(obj.uid,),
-                            request=request)
+                          args=(obj.uid,),
+                          request=request)
             return {'format': fmt,
-                    'url': url,}
+                    'url': url, }
         base_url = reverse('asset-detail',
-                            args=(obj.uid,),
-                            request=request)
+                           args=(obj.uid,),
+                           request=request)
         enkfmt = 'enketopreview'
         return [
             {'format': enkfmt, 'url': '%s?format=%s' % (base_url, enkfmt)},
             _reverse_lookup_format('xls'),
             _reverse_lookup_format('xform'),
         ]
+
     def get_downloads(self, obj):
         def _reverse_lookup_format(fmt):
             request = self.context.get('request', None)
             url = '%s.%s' % (reverse('asset-detail',
-                            args=(obj.uid,),
-                            request=request), fmt)
+                                     args=(obj.uid,),
+                                     request=request), fmt)
 
             return {'format': fmt,
-                    'url': url,}
+                    'url': url, }
         return [
             _reverse_lookup_format('xls'),
             _reverse_lookup_format('xml'),
         ]
+
     def get_koboform_link(self, obj):
-        return reverse('asset-koboform', args=(obj.uid,), request=self.context.get('request', None))
+        return reverse('asset-koboform', args=(obj.uid,), request=self.context
+                       .get('request', None))
 
     def _content(self, obj):
         return json.dumps(obj.content)
@@ -285,15 +310,17 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         request = self.context.get('request', None)
         return reverse('asset-table-view', args=(obj.uid,), request=request)
 
+
 class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
+
     class Meta:
         model = AssetDeployment
         fields = (
-                'user',
-                'date_created',
-                'asset',
-                'uid',
-            )
+            'user',
+            'date_created',
+            'asset',
+            'uid',
+        )
         lookup_field = 'uid'
         extra_kwargs = {
             'user': {
@@ -306,16 +333,19 @@ class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class ImportTaskSerializer(serializers.HyperlinkedModelSerializer):
+
     class Meta:
         model = ImportTask
         fields = (
-                'data',
-                'status',
-                'uid',
-                'date_created',
-            )
+            'data',
+            'status',
+            'uid',
+            'date_created',
+        )
+
 
 class AssetListSerializer(AssetSerializer):
+
     class Meta(AssetSerializer.Meta):
         fields = ('url',
                   'date_modified',
@@ -335,7 +365,9 @@ class AssetListSerializer(AssetSerializer):
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     assets = serializers.HyperlinkedRelatedField(many=True,
-                 view_name='asset-detail', read_only=True, lookup_field='uid')
+                                                 view_name='asset-detail',
+                                                 read_only=True,
+                                                 lookup_field='uid')
 
     class Meta:
         model = User
@@ -347,12 +379,14 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
             },
         }
 
+
 class UserListSerializer(UserSerializer):
     assets_count = serializers.SerializerMethodField('_assets_count')
     collections_count = serializers.SerializerMethodField('_collections_count')
 
     def _collections_count(self, obj):
         return obj.owned_collections.count()
+
     def _assets_count(self, obj):
         return obj.assets.count()
 
@@ -361,6 +395,7 @@ class UserListSerializer(UserSerializer):
 
 
 class CollectionChildrenSerializer(serializers.Serializer):
+
     def to_representation(self, value):
         if isinstance(value, Collection):
             serializer = CollectionListSerializer
@@ -370,36 +405,41 @@ class CollectionChildrenSerializer(serializers.Serializer):
             raise Exception('Unexpected child type {}'.format(type(value)))
         return serializer(value, context=self.context).data
 
+
 class CollectionSerializer(serializers.HyperlinkedModelSerializer):
-    url = serializers.HyperlinkedIdentityField(lookup_field='uid', view_name='collection-detail')
-    owner = serializers.HyperlinkedRelatedField(view_name='user-detail', \
-                lookup_field='username', read_only=True)
-    parent = serializers.HyperlinkedRelatedField(lookup_field='uid', required=False,
-                 view_name='collection-detail', queryset=Collection.objects.all())
+    url = serializers.HyperlinkedIdentityField(
+        lookup_field='uid', view_name='collection-detail')
+    owner = serializers.HyperlinkedRelatedField(view_name='user-detail',
+                                                lookup_field='username',
+                                                read_only=True)
+    parent = serializers.HyperlinkedRelatedField(lookup_field='uid',
+                                                 required=False,
+                                                 view_name='collection-detail',
+                                                 queryset=Collection.objects.all())
     owner__username = serializers.ReadOnlyField(source='owner.username')
-    tags = serializers.SerializerMethodField('_get_tag_names')
     children = CollectionChildrenSerializer(
         many=True, read_only=True,
         source='get_children_and_assets_iterable'
     )
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     downloads = serializers.SerializerMethodField()
+    tag_string = serializers.CharField(required=False)
 
     class Meta:
         model = Collection
         fields = ('name',
-                    'uid',
-                    'kind',
-                    'url',
-                    'parent',
-                    'owner',
-                    'owner__username',
-                    'downloads',
-                    'date_created',
-                    'date_modified',
-                    'children',
-                    'permissions',
-                    'tags',)
+                  'uid',
+                  'kind',
+                  'url',
+                  'parent',
+                  'owner',
+                  'owner__username',
+                  'downloads',
+                  'date_created',
+                  'date_modified',
+                  'children',
+                  'permissions',
+                  'tag_string',)
         lookup_field = 'uid'
         extra_kwargs = {
             'assets': {
@@ -412,7 +452,8 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_downloads(self, obj):
         request = self.context.get('request', None)
-        obj_url = reverse('collection-detail', args=(obj.uid,), request=request)
+        obj_url = reverse(
+            'collection-detail', args=(obj.uid,), request=request)
         return [
             {'format': 'zip', 'url': '%s?format=zip' % obj_url},
         ]
@@ -424,20 +465,21 @@ class CollectionListSerializer(CollectionSerializer):
 
     def get_children_count(self, obj):
         return obj.children.count()
+
     def get_assets_count(self, obj):
         return obj.assets.count()
 
     class Meta(CollectionSerializer.Meta):
         fields = ('name',
-                    'uid',
-                    'kind',
-                    'url',
-                    'parent',
-                    'owner',
-                    'children_count',
-                    'assets_count',
-                    'owner__username',
-                    'date_created',
-                    'date_modified',
-                    'permissions',
-                    'tags',)
+                  'uid',
+                  'kind',
+                  'url',
+                  'parent',
+                  'owner',
+                  'children_count',
+                  'assets_count',
+                  'owner__username',
+                  'date_created',
+                  'date_modified',
+                  'permissions',
+                  'tags',)

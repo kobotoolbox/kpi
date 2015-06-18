@@ -1,0 +1,137 @@
+// form_builder miscellaneous rules
+
+.survey-editor__message {
+    border: $cardBorderStyle;
+    padding: 20px;
+    background: #FFF;
+    color: $wellTextColor;
+    font-weight: 600;
+    font-style: italic;
+    font-size: 13px;
+    a {
+        font-style: normal;
+        font-weight: normal;
+        text-decoration: underline;
+    }
+}
+
+
+// ==========================================================================
+// Editable forms
+// ==========================================================================
+
+// inputs in edit-in-place
+.card__text input, 
+.editable-wrapper input {
+    border:none;
+    padding:0px;
+    margin:0px;
+    font-weight: 600;
+    display: inline;
+    height:auto !important;
+    font-size: 13px;
+}
+
+code input[type="text"] {
+    border:none;
+    padding:0px;
+    padding-right: 4px;
+    margin:0px;
+    font-weight: 600;
+    display: inline;
+    background: none;
+    font-size: 11px;
+    color: $linkColor;
+    float: right;
+    width: 64%;
+    height: auto !important;
+    text-align: right;
+}
+
+//.editable-container is a $.poshytip className
+.editable-container {
+    vertical-align: top;
+    .editable-input input {
+        font-weight: 600;
+        border-radius: 0px;
+        border:none;
+        padding: 0px !important;
+        font-size: 13px;
+        width: 100%;
+        display: inline-block;
+        margin:0px;
+        height: auto;
+        background-color: transparent;
+    }
+    .editable-buttons {
+        position: absolute;
+        top:-20px;
+        right:0px;
+        font-size: 10px;
+    }
+}
+
+// ==========================================================================
+// Survey import warnings
+// ==========================================================================
+
+.survey-warnings {
+    @extend .container;
+    background-color: #fcf8e3;
+    color: #8a6d3b;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    border: 1px solid #cfb98b;
+}
+
+.survey-warnings__warning {
+    margin: 12px 0 0;
+}
+
+.survey-warnings__close-button {
+    color: #8a6d3b;
+    position: absolute;
+    top: 24px;
+    margin-top: -12px;
+    height: 24px;
+    right: 12px;
+    background-color: transparent;
+    border: 0 none;
+}
+
+// ==========================================================================
+// Survey editor
+// ==========================================================================
+
+.survey-editor {
+    padding-bottom: 36px;
+    transition:all .3s;
+}
+
+.survey-editor__null-top-row {
+    position: relative;
+
+    &.expanded {
+        .survey-editor__message {
+            display: none;
+        }
+    }
+
+    &.survey-editor__null-top-row--hidden {
+        .survey-editor__message {
+            display: none;
+        }
+        .survey__row__spacer {
+            opacity: 0;
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
+}
+
+.survey-editor__message {
+    text-align: center;
+    color: #888;
+}
