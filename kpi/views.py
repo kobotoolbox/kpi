@@ -331,6 +331,17 @@ class AssetViewSet(viewsets.ModelViewSet):
         else:
             return AssetSerializer
 
+    def get_queryset(self, *args, **kwargs):
+        ''' Really temporary way to exclude a taxing field from the database
+        query when the request instructs us to do so. '''
+        queryset = super(AssetViewSet, self).get_queryset(*args, **kwargs)
+        # See also AssetSerializer.get_fields()
+        excludes = self.request.GET.get('exclude', '')
+        excludes = excludes.split(',')
+        if 'content' in excludes:
+            queryset = queryset.defer('content')
+        return queryset
+
     def _get_clone_serializer(self):
         original_uid= self.request.data[CLONE_ARG_NAME]
         original_asset= get_object_or_404(Asset, uid=original_uid)
