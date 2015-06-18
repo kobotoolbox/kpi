@@ -78,6 +78,9 @@ class TestCloning(KpiTestCase):
         cloned_collection_tags= set(cloned_collection.tag_string.split(','))
         self.assertSetEqual(cloned_collection_tags, original_collection_tags)
 
+    def test_clone_collection_into_collection(self):
+        raise NotImplementedError
+
     def test_clone_shared_collection(self):
         raise NotImplementedError
 
