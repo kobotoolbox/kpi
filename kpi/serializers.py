@@ -406,6 +406,13 @@ class UserListSerializer(UserSerializer):
         fields = ('url', 'username', 'assets_count', 'collections_count',)
 
 
+class CollectionAncestorsSerializer(serializers.HyperlinkedModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        lookup_field='uid', view_name='collection-detail')
+    class Meta:
+        model = Collection
+        fields = ('name', 'uid', 'url')
+
 class CollectionChildrenSerializer(serializers.Serializer):
 
     def to_representation(self, value):
@@ -429,6 +436,11 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
                                                  view_name='collection-detail',
                                                  queryset=Collection.objects.all())
     owner__username = serializers.ReadOnlyField(source='owner.username')
+    # ancestors are ordered from farthest to nearest
+    ancestors = CollectionAncestorsSerializer(
+        many=True, read_only=True,
+        source='get_ancestors'
+    )
     children = CollectionChildrenSerializer(
         many=True, read_only=True,
         source='get_children_and_assets_iterable'
@@ -449,6 +461,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
                   'downloads',
                   'date_created',
                   'date_modified',
+                  'ancestors',
                   'children',
                   'permissions',
                   'tag_string',)
