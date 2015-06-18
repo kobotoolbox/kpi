@@ -238,6 +238,12 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         if user.is_anonymous():
             user = get_anonymous_user()
         fields['parent'].queryset = fields['parent'].queryset.filter(owner=user)
+        # Honor requests to exclude fields
+        excludes = self.context['request'].GET.get('exclude', '')
+        for exclude in excludes.split(','):
+            exclude = exclude.strip()
+            if exclude in fields:
+                fields.pop(exclude)
         return fields
 
     def _version_count(self, obj):
