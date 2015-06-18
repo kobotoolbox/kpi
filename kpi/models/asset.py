@@ -38,7 +38,10 @@ class TaggableModelManager(models.Manager):
 
 
 class AssetManager(TaggableModelManager):
-
+    def get_queryset(self):
+        return super(AssetManager, self).get_queryset().annotate(
+            models.Count('assetdeployment')
+        )
     def filter_by_tag_name(self, tag_name):
         try:
             tag = Tag.objects.get(name=tag_name)
@@ -158,6 +161,13 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model):
             return list(self)
         else:
             return list()
+
+    def get_ancestors_or_none(self):
+        # ancestors are ordered from farthest to nearest
+        if self.parent is not None:
+            return self.parent.get_ancestors(include_self=True)
+        else:
+            return None
 
     def to_xls_io(self):
         import xlwt

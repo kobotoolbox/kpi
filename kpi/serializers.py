@@ -192,6 +192,12 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
         perm = validated_data['permission'].codename
         return content_object.assign_perm(user, perm)
 
+class AncestorCollectionsSerializer(serializers.HyperlinkedModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        lookup_field='uid', view_name='collection-detail')
+    class Meta:
+        model = Collection
+        fields = ('name', 'uid', 'url')
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username',
@@ -212,10 +218,14 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                                                  queryset=Collection.objects.all(),
                                                  view_name='collection-detail',
                                                  required=False)
+    ancestors = AncestorCollectionsSerializer(
+        many=True, read_only=True, source='get_ancestors_or_none')
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     tag_string = serializers.CharField(required=False)
-    # assetdeployment__count comes from annotate() on the view's queryset
-    deployment_count = serializers.IntegerField(source='assetdeployment__count', read_only=True)
+    # assetdeployment__count comes from annotate() in
+    # AssetManager.get_queryset()
+    deployment_count = serializers.IntegerField(
+        source='assetdeployment__count', read_only=True)
 
     class Meta:
         model = Asset
@@ -224,6 +234,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'owner',
                   'owner__username',
                   'parent',
+                  'ancestors',
                   'settings',
                   'asset_type',
                   'date_created',
@@ -427,6 +438,9 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
                                                  view_name='collection-detail',
                                                  queryset=Collection.objects.all())
     owner__username = serializers.ReadOnlyField(source='owner.username')
+    # ancestors are ordered from farthest to nearest
+    ancestors = AncestorCollectionsSerializer(
+        many=True, read_only=True, source='get_ancestors_or_none')
     children = CollectionChildrenSerializer(
         many=True, read_only=True,
         source='get_children_and_assets_iterable'
@@ -447,6 +461,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
                   'downloads',
                   'date_created',
                   'date_modified',
+                  'ancestors',
                   'children',
                   'permissions',
                   'tag_string',)
