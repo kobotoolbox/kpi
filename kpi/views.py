@@ -78,16 +78,17 @@ def current_user(request):
                          'last_login': user.last_login,
                          })
 
+class NoUpdateModelViewSet(
+        # Inherit from everything that ModelViewSet does, except for
+        # UpdateModelMixin
+        mixins.CreateModelMixin,
+        mixins.RetrieveModelMixin,
+        mixins.DestroyModelMixin,
+        mixins.ListModelMixin,
+        viewsets.GenericViewSet
+    ): pass
 
-class ObjectPermissionViewSet(
-    # Inherit from everything that ModelViewSet does, except for
-    # UpdateModelMixin
-    mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.DestroyModelMixin,
-    mixins.ListModelMixin,
-    viewsets.GenericViewSet
-):
+class ObjectPermissionViewSet(NoUpdateModelViewSet):
     queryset = ObjectPermission.objects.all()
     serializer_class = ObjectPermissionSerializer
     lookup_field = 'uid'
@@ -176,7 +177,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
             return CollectionSerializer
 
 
-class AssetDeploymentViewset(viewsets.ReadOnlyModelViewSet):
+class AssetDeploymentViewSet(NoUpdateModelViewSet):
     queryset = AssetDeployment.objects.none()
     serializer_class = AssetDeploymentSerializer
     lookup_field = 'uid'
@@ -186,23 +187,6 @@ class AssetDeploymentViewset(viewsets.ReadOnlyModelViewSet):
             return AssetDeployment.objects.none()
         else:
             return AssetDeployment.objects.filter(user=self.request.user)
-
-    def create(self, request, *args, **kwargs):
-        asset_uid = request.POST.get('asset[uid]')
-        user = self.request.user
-        asset = Asset.objects.get(uid=asset_uid)
-
-        RANDOM_FORM_ID_INCREMENTOR = random.randint(1000, 9999)
-        deployment = AssetDeployment._create_if_possible(asset,
-                                                         user,
-                                                         RANDOM_FORM_ID_INCREMENTOR)
-
-        if 'error' in deployment:
-            return Response(deployment, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            serializer = self.get_serializer(data=deployment)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
@@ -263,7 +247,7 @@ class XlsFormParser(MultiPartParser):
     pass
 
 
-class ImportTaskViewset(viewsets.ReadOnlyModelViewSet):
+class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ImportTask.objects.all()
     serializer_class = ImportTaskSerializer
     lookup_field = 'uid'

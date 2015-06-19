@@ -1,10 +1,11 @@
 import json
+import datetime
 
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import get_script_prefix, resolve, Resolver404
-from rest_framework import serializers
+from rest_framework import serializers, exceptions
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
@@ -185,6 +186,11 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
             'deny',
             'inherited',
         )
+        extra_kwargs = {
+            'uid': {
+                'read_only': True,
+            },
+        }
 
     def create(self, validated_data):
         content_object = validated_data['content_object']
@@ -255,6 +261,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         extra_kwargs = {
             'parent': {
                 'lookup_field': 'uid',
+            },
+            'uid': {
+                'read_only': True,
             },
         }
 
@@ -332,6 +341,22 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
+    def create(self, validated_data):
+        user = self.context['request'].user
+        if user.is_anonymous():
+            raise exceptions.NotAuthenticated
+
+        asset = validated_data['asset']
+        xform_id_string = ''
+        if 'xform_id_string' in validated_data:
+            xform_id_string = validated_data['xform_id_string']
+        if not len(xform_id_string):
+            # If no id string was provided, use a punctuation-free timestamp
+            xform_id_string = datetime.datetime.utcnow().strftime(
+                '%Y%m%dT%H%M%S%fZ')
+
+        return AssetDeployment._create_if_possible(
+            asset, user, xform_id_string)
 
     class Meta:
         model = AssetDeployment
@@ -339,15 +364,31 @@ class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
             'user',
             'date_created',
             'asset',
+            'asset_version_id',
             'uid',
+            'xform_pk',
+            'xform_id_string',
         )
         lookup_field = 'uid'
         extra_kwargs = {
             'user': {
                 'lookup_field': 'username',
+                'read_only': True,
             },
             'asset': {
                 'lookup_field': 'uid',
+            },
+            'asset_version_id': {
+                'read_only': True,
+            },
+            'uid': {
+                'read_only': True,
+            },
+            'xform_pk': {
+                'read_only': True,
+            },
+            'xform_id_string': {
+                'allow_blank': True,
             }
         }
 
@@ -362,6 +403,11 @@ class ImportTaskSerializer(serializers.HyperlinkedModelSerializer):
             'uid',
             'date_created',
         )
+        extra_kwargs = {
+            'uid': {
+                'read_only': True,
+            },
+        }
 
 
 class AssetListSerializer(AssetSerializer):
@@ -469,6 +515,9 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
         extra_kwargs = {
             'assets': {
                 'lookup_field': 'uid',
+            },
+            'uid': {
+                'read_only': True,
             },
         }
 
