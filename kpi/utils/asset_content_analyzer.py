@@ -1,0 +1,79 @@
+import re
+import json
+
+# possibly pull these aliases from pyxform
+GEO_TYPES = ['gps', 'geopoint', 'geoshape', 'geotrace',]
+
+class AssetContentAnalyzer(object):
+    def __init__(self, *args, **kwargs):
+        self.survey = kwargs.get('survey')
+        self.settings = kwargs.get('settings', False)
+        self.choices = kwargs.get('choices', [])
+        self.summary = self.get_summary()
+
+    def _get_languages_from_column_names(self, cols):
+        langs = set()
+        for col in cols:
+            media_mtch = re.match('^media\:', col)
+            mtch = re.match('.*\:\:?(.+)', col)
+            if mtch and not media_mtch:
+                langs.add(mtch.groups()[0])
+        return list(langs)
+
+    def get_summary(self):
+        row_count = 0
+        languages = set()
+        geo = False
+        labels = []
+        types = set()
+        summary_errors = []
+        keys = set()
+        if not self.survey:
+            self.asset_type = 'empty'
+            return {}
+
+        for row in self.survey:
+            if type(row) == dict:
+                _type = row.get('type')
+                if _type in GEO_TYPES:
+                    geo = True
+                if isinstance(_type, dict):
+                    summary_errors.append(['invalidtype', str(_type)])
+                    _type = _type.keys()[0]
+
+                if not _type:
+                    summary_errors.append(row)
+                    continue
+                if not re.match('^end', _type):
+                    row_count += 1
+                    types.add(_type)
+                keys = keys | set(row.keys())
+
+        if row_count == 0:
+            self.asset_type = 'empty'
+        elif self.settings:
+            self.asset_type = 'survey'
+        elif row_count == 1:
+            self.asset_type = 'question'
+        else:
+            self.asset_type = 'block'
+
+        summary = {
+            'row_count': row_count,
+            'languages': self._get_languages_from_column_names(keys),
+            'geo': geo,
+            'columns': list(keys),
+        }
+        return summary
+
+    def get_asset_type(self):
+        if self.survey == None:
+            return 'empty'
+        elif len(self.survey) == 0:
+            return 'empty'
+        elif self.settings:
+            return 'survey'
+        elif len(self.survey) == 1:
+            return 'question'
+        else:
+            return 'block'
