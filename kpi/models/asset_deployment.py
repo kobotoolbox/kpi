@@ -5,6 +5,7 @@ from kpi.models import Asset
 from rest_framework.authtoken.models import Token
 from rest_framework import exceptions, status
 from pyxform.xls2json_backends import xls_to_dict
+import reversion
 import cStringIO
 import unicodecsv
 import re
@@ -103,6 +104,7 @@ class AssetDeployment(models.Model):
     user = models.ForeignKey('auth.User')
     date_created = models.DateTimeField(auto_now_add=True)
     asset = models.ForeignKey('kpi.Asset')
+    asset_version_id = models.IntegerField()
     xform_pk = models.IntegerField(null=True)
     xform_id_string = models.CharField(max_length=MAX_ID_LENGTH)
     data = JSONField()
@@ -128,9 +130,11 @@ class AssetDeployment(models.Model):
 
     @classmethod
     def _create_if_possible(kls, asset, user, xform_id_string):
+        asset_version_id = reversion.get_for_object(asset).last().id
         new_ad = AssetDeployment(
             user=user,
             asset=asset,
+            asset_version_id=asset_version_id
             )
         # Might raise exceptions, but they're the caller's obligation to handle
         result = new_ad.deploy_asset(xform_id_string)

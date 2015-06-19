@@ -364,6 +364,7 @@ class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
             'user',
             'date_created',
             'asset',
+            'asset_version_id',
             'uid',
             'xform_pk',
             'xform_id_string',
@@ -376,6 +377,9 @@ class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
             },
             'asset': {
                 'lookup_field': 'uid',
+            },
+            'asset_version_id': {
+                'read_only': True,
             },
             'uid': {
                 'read_only': True,
