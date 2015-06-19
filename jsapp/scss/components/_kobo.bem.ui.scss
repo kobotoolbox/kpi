@@ -43,3 +43,25 @@ bem.uiModal__header = bem.uiModal.__('header');
 //     {this.props.children}
 //   </div>
 // </div>
+
+.message {}
+
+.message--error {
+  @extend .alert, .alert-dismissible, .alert-danger;
+  text-decoration: uppercase;
+}
+.message--loading {
+  text-align: center;
+  > i:first-child {
+    @extend .fa, .fa-fw, .fa-spinner, .fa-spin;
+  }
+}
+
+.ui-breadcrumb {
+  @extend .breadcrumb;
+  > li + li:before {
+    content: '>';
+  }
+}
+.ui-breadcrumb__item {
+}

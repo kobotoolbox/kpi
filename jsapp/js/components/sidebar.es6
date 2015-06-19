@@ -8,6 +8,7 @@ import Reflux from 'reflux';
 import bem from '../bem';
 
 var actions = require('../actions');
+var assign = require('react/lib/Object.assign');
 
 let Link = Router.Link;
 
@@ -92,7 +93,7 @@ var RecentHistory = React.createClass({
   ],
   getInitialState () {
     return {
-      items: stores.history.history
+      items: stores.history.history || []
     };
   },
   componentDidMount () {
@@ -129,6 +130,8 @@ var RecentHistory = React.createClass({
             {items.map(this.renderLink)}
           </ul>
         );
+    } else {
+      return <i />;
     }
   }
 })
@@ -151,12 +154,13 @@ var toolTipped = {
 var Sidebar = React.createClass({
   mixins: [
     Reflux.connect(stores.session),
+    Reflux.connect(stores.pageState),
     toolTipped,
   ],
   getInitialState () {
-    return {
+    return assign({
       showRecent: true
-    }
+    }, stores.pageState.state);
   },
   logout () {
     actions.auth.logout();
@@ -168,6 +172,7 @@ var Sidebar = React.createClass({
   },
   broadToggleIntent (evt) {
     evt.currentTarget == evt.target && this.props.toggleIntentOpen(evt)
+    log('broadToggleIntent');
     return;
   },
   renderAccountBar () {
@@ -208,9 +213,11 @@ var Sidebar = React.createClass({
             <hr />
             <SidebarTitle label={t('drafts in progress')} />
             <SidebarLink label={t('forms')} linkto='forms' fa-icon="files-o" />
-            <SidebarLink label={t('recent')} onClick={this.toggleRecent} fa-icon="clock-o" />
-            { this.state.showRecent ?
-              <RecentHistory visible={this.props.isOpen} />
+            { this.state.showRecent && this.state.sidebarIsOpen ?
+              <div>
+                <SidebarLink label={t('recent')} onClick={this.toggleRecent} fa-icon="clock-o" />
+                <RecentHistory />
+              </div>
             : null}
             <SidebarTitle label={t('deployed projects')} />
             <SidebarLink label={t('projects')} active='true' href={t('/')} fa-icon="globe" />

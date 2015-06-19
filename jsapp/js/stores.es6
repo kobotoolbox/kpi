@@ -1,6 +1,6 @@
 'use strict';
 
-import {log, t} from './utils';
+import {log, t, parsePermissions} from './utils';
 
 import {dataInterface} from './dataInterface';
 
@@ -224,12 +224,33 @@ var assetStore = Reflux.createStore({
     this.noteRelatedUsers(resp);
     this.trigger(this.data, resp.uid, {asset_updated: true});
   },
-
+  withParsedPermissions (resp) {
+    var pp = parsePermissions(resp.owner__username, resp.permissions);
+    resp.parsedPermissions = pp;
+    resp.access = (()=>{
+      var viewers = {};
+      var changers = {};
+      var isPublic = false;
+      pp.forEach(function(userPerm){
+        if (userPerm.can.view) {
+          viewers[userPerm.username] = true;
+        }
+        if (userPerm.can.change) {
+          changers[userPerm.username] = true;
+        }
+        if (userPerm.username === 'AnonymousUser') {
+          isPublic = !!userPerm.can.view;
+        }
+      });
+      return {view: viewers, change: changers, ownerUsername: resp.owner__username, isPublic: isPublic};
+    })()
+    return resp
+  },
   onLoadAssetCompleted: function (resp, req, jqxhr) {
     if (!resp.uid) {
       throw new Error('no uid found in response');
     }
-    this.data[resp.uid] = resp;
+    this.data[resp.uid] = this.withParsedPermissions(resp);
     this.noteRelatedUsers(resp);
     this.trigger(this.data, resp.uid);
   }

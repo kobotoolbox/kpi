@@ -1,4 +1,4 @@
-import {notify, getAnonymousUserPermission, anonUsername, parsePermissions, log, t} from './utils';
+import {notify, getAnonymousUserPermission, formatTime, anonUsername, parsePermissions, log, t} from './utils';
 var $ = require('jquery');
 window.jQuery = $;
 window.$ = $;
@@ -17,7 +17,6 @@ import React from 'react/addons';
 import Router from 'react-router';
 import Sidebar from './components/sidebar';
 import TagsInput from 'react-tagsinput';
-import moment from 'moment';
 import classNames from 'classnames';
 import alertify from 'alertifyjs';
 import {Sheeted} from './models/sheeted';
@@ -36,7 +35,7 @@ import Favicon from 'react-favicon';
 
 var bootstrap = require('./libs/rest_framework/bootstrap.min');
 
-window.dkobo_xlform = require('./libs/xlform');
+// window.dkobo_xlform = require('./libs/xlform');
 
 var assign = require('react/lib/Object.assign');
 var Reflux = require('reflux');
@@ -47,27 +46,6 @@ let Link = Router.Link;
 let Route = Router.Route;
 let RouteHandler = Router.RouteHandler;
 let NotFoundRoute = Router.NotFoundRoute;
-
-mixins.droppable = {
-  dropFiles (files, params) {
-    if (files.length > 1) {
-      notify('cannot load multiple files');
-    } else {
-      files.map(function(file){
-        var reader = new FileReader();
-        reader.onload = (e)=>{
-          actions.resources.createAsset({
-            base64Encoded: e.target.result,
-            name: file.name,
-            lastModified: file.lastModified,
-            contentType: file.type
-          });
-        }
-        reader.readAsDataURL(file);
-      });
-    }
-  }
-};
 
 mixins.formView = {
   _saveForm (evt) {
@@ -231,7 +209,6 @@ mixins.collectionState = {
   renderPanel () {
     return (
       <ui.Panel className="k-div--formspanel">
-
         {this._renderFormsSearchRow()}
         <ul className="collection-asset-list list-group">
           {this.state.results === false ?
@@ -285,14 +262,15 @@ mixins.collectionState = {
       clone: function(uid, evt){
         actions.resources.cloneAsset({uid: uid})
       },
-      // download: function(uid, evt){
-      //   this.transitionTo('form-landing', {assetid: uid})
-      // },
+      download: function(uid, evt){
+        this.transitionTo('form-download', {assetid: uid})
+      },
       delete: function(uid, evt){
         actions.resources.deleteAsset({uid: uid})
       },
       deploy: function(uid, evt){
-        actions.resources.deployAsset({uid: uid})
+        var form_id_string = prompt('form_id_string');
+        actions.resources.deployAsset(uid, form_id_string);
       },
     }
   },
@@ -304,7 +282,7 @@ mixins.collectionState = {
         uid = this.state.results && stores.selectedAsset.uid,
         result;
     var click = this.click || mixins.collectionState.click;
-    log('action [action, assetType, disabled] data:', action, assetType, disabled, data);
+
     if (action === 'new') {
       result = this.click.asset.new.call(this);
     } else if (this.click[assetType] && this.click[assetType][action]) {
@@ -375,10 +353,8 @@ mixins.collectionState = {
     return (
       <DocumentTitle title={this._title()}>
         <div>
-          {this._actionButtons()}
           <Dropzone className='dropfiles'
                 activeClassName='dropfiles--active'
-                title={t('drag and drop forms')}
                 onDropFiles={this.dropFiles}
                 params={{destination: false}}
                 >
@@ -389,10 +365,6 @@ mixins.collectionState = {
       );
   }
 };
-
-function formatTime(timeStr) {
-  return moment(timeStr).format('MMM DD YYYY');
-}
 
 var BgTopPanel = React.createClass({
   render () {
@@ -807,7 +779,7 @@ class StackedIcon extends React.Component {
           <i className={`fa fa-${backIcon} fa-stack-2x`}></i>
           <i className={`fa fa-${frontIcon} fa-stack-1x fa-inverse`}></i>
         </span>
-      )
+      );
   }
 }
 
@@ -815,24 +787,29 @@ var ActionLink = React.createClass({
   render () {
     return <bem.AssetRow__actionIcon {...this.props} />
   }
-})
+});
 
 var AssetRow = React.createClass({
   mixins: [
     Navigation
   ],
   clickAsset (evt) {
-    var clickedActionIcon = $(evt.target).closest('.asset-row__action-icon').get(0);
+    var clickedActionIcon = $(evt.target).closest('[data-action]').get(0);
     if (clickedActionIcon && this.props.isSelected) {
       this.props.onActionButtonClick(assign(evt, {
         actionIcon: clickedActionIcon,
       }));
     } else {
+      evt.nativeEvent.preventDefault();
+      evt.nativeEvent.stopImmediatePropagation();
       // this click was not intended for a button
       evt.preventDefault();
       stores.selectedAsset.toggleSelect(this.props.uid);
       this.props.onToggleSelect();
     }
+  },
+  preventDefault (evt) {
+    evt.preventDefault();
   },
   render () {
     var selfowned = this.props.owner__username == this.props.currentUsername;
@@ -851,10 +828,17 @@ var AssetRow = React.createClass({
                 ]}>
             <i />
           </bem.AssetRow__cell>
-          <bem.AssetRow__cell m={['name', {
-                'untitled': !this.props.name
-                }]}>
-            {this.props.name || t('no name')}
+          <bem.AssetRow__cell m={['name', this.props.name ? 'titled' : 'untitled']}
+                data-action='view'
+                data-disabled={true}
+                data-kind={this.props.kind}
+                data-asset-type={this.props.kind}
+              >
+            { this.props.kind === 'collection' ?
+              <Link to='collection-page' onClick={this.preventDefault} params={{ uid: this.props.uid }}>{this.props.name || t('no name')}</Link>
+            :
+              <Link to='form-landing' onClick={this.preventDefault} params={{ assetid: this.props.uid }}>{this.props.name || t('no name')}</Link>
+            }
           </bem.AssetRow__cell>
           <bem.AssetRow__cell m={'date-modified'}>
             <span className="date date--modified">{formatTime(this.props.date_modified)}</span>
@@ -876,7 +860,8 @@ var AssetRow = React.createClass({
             { this.props.kind === 'asset' &&
               ['view',
                     // 'edit', 'preview',
-                    'download', 'clone', 'delete'].map((actn)=>{
+                    'download', 'clone', 'delete',
+                    ].map((actn)=>{
                 return (
                       <bem.AssetRow__actionIcon href="#"
                           m={actn}
@@ -903,6 +888,15 @@ var AssetRow = React.createClass({
                     );
               })
             }
+          </bem.AssetRow__cell>
+          <bem.AssetRow__cell m={'deploy-button'}
+                    data-action='deploy'
+                    data-asset-type='asset'
+                    data-kind='asset'
+                    data-disabled={false}>
+            <button>
+              <i />
+            </button>
           </bem.AssetRow__cell>
         </bem.AssetRow>
       );
@@ -1048,20 +1042,6 @@ class SharingButton extends React.Component {
             </div>;
   }
 }
-
-// ui
-ui.Panel = React.createClass({
-  render () {
-    return (
-        <bem.uiPanel className={this.props.className}>
-          <bem.uiPanel__body>
-            {this.props.children}
-          </bem.uiPanel__body>
-        </bem.uiPanel>
-      );
-  }
-});
-
 
 var UserPermDiv = React.createClass({
   mixins: [
@@ -1384,7 +1364,9 @@ var App = React.createClass({
             'navigator-open': this.state.assetNavigatorIsOpen,
             'navigator-present': this.state.assetNavigator,
               }}>
+            {/*
             <BgTopPanel {...this.state} />
+            */}
             <RouteHandler appstate={this.state} />
           </bem.PageWrapper__content>
           { this.state.assetNavPresent ? 
@@ -1956,98 +1938,11 @@ var FormPage = React.createClass({
 var FormLanding = React.createClass({
   mixins: [
     Navigation,
-    mixins.formView,
-    Reflux.ListenerMixin,
+    mixins.droppable,
+    mixins.dmix,
+    mixins.ancestorBreadcrumb,
+    Reflux.ListenerMixin
   ],
-  renderSaveAndPreviewButtons () {
-    return;
-  },
-  renderSubTitle () {
-    var disabled = !!this.state.disabled;
-    var pendingSave = this.state.asset_updated === false;
-    var saveText = t('save');
-    var saveBtnKls = classNames('btn','btn-default', {
-      'disabled': disabled,
-      'k-save': true,
-      'k-save--pending': this.state.asset_updated === false,
-      'k-save--complete': this.state.asset_updated === true,
-      'k-save--needed': this.state.asset_updated === -1
-    });
-    var previewDisabled = !!this.state.previewDisabled;
-    var previewBtnKls = classNames('btn',
-                                  'btn-default',
-                                  previewDisabled ? 'disabled': '')
-    var downloadLink, xlsLink;
-
-    if (this.state.asset && this.state.asset.downloads) {
-      xlsLink = this.state.asset.downloads.filter((f)=>f.format==="xls")[0]
-      downloadLink = <a href={xlsLink.url} className={saveBtnKls}>{t('xls')}</a>
-    }
-    return (
-      <div className="row">
-      <div className="col-md-12">
-        <div className="k-form-actions" style={{marginLeft:-10}}>
-          <div className='btn-toolbar'>
-            <div className='btn-group'>
-              <Link to='form-edit' params={{assetid: this.props.params.assetid}} className={saveBtnKls}>
-                <i className={classNames('fa', 'fa-fw', 'fa-sm', 'fa-pencil')} />
-              </Link>
-              <Link to="form-preview-enketo" params={{assetid: this.props.params.assetid}} className={saveBtnKls}>
-                <i className={classNames('fa', 'fa-fw', 'fa-sm', 'fa-eye')} />
-              </Link>
-              {downloadLink}
-              <SharingButton uid={this.props.params.assetid}>
-                {t('sharing')}
-              </SharingButton>
-            </div>
-          </div>
-        </div>
-      </div>
-      </div>
-      );
-  },
-  getInitialState () {
-    return {
-      survey_loaded: false,
-      survey_name: '',
-      kind: 'asset',
-      asset: false
-    };
-  },
-  renderFormNameInput () {
-    var nameVal = this.state.survey_name;
-    return <p>{nameVal}</p>;
-  },
-  assetStoreTriggered (data, uid, stateUpdates) {
-    var s = data[uid],
-      survey,
-      updates = {};
-    if (stateUpdates) {
-      assign(updates, stateUpdates);
-    }
-    if (s) {
-      assign(updates, {
-        survey_name: s.name,
-        asset: s
-      });
-      this.setState(updates);
-    }
-  },
-  assetContentStoreTriggered (data, uid) {
-    var s = data[uid],
-      survey;
-    if (s) {
-      this.setState({
-        survey_data: s.data,
-        survey_loaded: true
-      });
-    }
-  },
-  componentDidMount () {
-    this.listenTo(assetStore, this.assetStoreTriggered)
-    this.listenTo(assetContentStore, this.assetContentStoreTriggered);
-    stores.pageState.setTopPanel(30, false);
-  },
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
       stores.pageState.setHeaderSearch(true);
@@ -2058,21 +1953,130 @@ var FormLanding = React.createClass({
     }
   },
   render () {
-    if (this.state.asset) {
-      return (
-          <DocumentTitle title={this.state.survey_name}>
-            {this.innerRender()}
-          </DocumentTitle>
-        );
-    }
-    return (
-        <div>
-          {this.loadingNotice()}
-          <RouteHandler />
-        </div>
-      );
+    return this._createPanel()
   }
 });
+
+// var FormLandingx = React.createClass({
+//   mixins: [
+//     Navigation,
+//     mixins.formView,
+//     Reflux.ListenerMixin,
+//   ],
+//   renderSaveAndPreviewButtons () {
+//     return;
+//   },
+//   renderSubTitle () {
+//     var disabled = !!this.state.disabled;
+//     var pendingSave = this.state.asset_updated === false;
+//     var saveText = t('save');
+//     var saveBtnKls = classNames('btn','btn-default', {
+//       'disabled': disabled,
+//       'k-save': true,
+//       'k-save--pending': this.state.asset_updated === false,
+//       'k-save--complete': this.state.asset_updated === true,
+//       'k-save--needed': this.state.asset_updated === -1
+//     });
+//     var previewDisabled = !!this.state.previewDisabled;
+//     var previewBtnKls = classNames('btn',
+//                                   'btn-default',
+//                                   previewDisabled ? 'disabled': '')
+//     var downloadLink, xlsLink;
+
+//     if (this.state.asset && this.state.asset.downloads) {
+//       xlsLink = this.state.asset.downloads.filter((f)=>f.format==="xls")[0]
+//       downloadLink = <a href={xlsLink.url} className={saveBtnKls}>{t('xls')}</a>
+//     }
+//     return (
+//       <div className="row">
+//       <div className="col-md-12">
+//         <div className="k-form-actions" style={{marginLeft:-10}}>
+//           <div className='btn-toolbar'>
+//             <div className='btn-group'>
+//               <Link to='form-edit' params={{assetid: this.props.params.assetid}} className={saveBtnKls}>
+//                 <i className={classNames('fa', 'fa-fw', 'fa-sm', 'fa-pencil')} />
+//               </Link>
+//               <Link to="form-preview-enketo" params={{assetid: this.props.params.assetid}} className={saveBtnKls}>
+//                 <i className={classNames('fa', 'fa-fw', 'fa-sm', 'fa-eye')} />
+//               </Link>
+//               {downloadLink}
+//               <SharingButton uid={this.props.params.assetid}>
+//                 {t('sharing')}
+//               </SharingButton>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//       </div>
+//       );
+//   },
+//   getInitialState () {
+//     return {
+//       survey_loaded: false,
+//       survey_name: '',
+//       kind: 'asset',
+//       asset: false
+//     };
+//   },
+//   renderFormNameInput () {
+//     var nameVal = this.state.survey_name;
+//     return <p>{nameVal}</p>;
+//   },
+//   assetStoreTriggered (data, uid, stateUpdates) {
+//     var s = data[uid],
+//       survey,
+//       updates = {};
+//     if (stateUpdates) {
+//       assign(updates, stateUpdates);
+//     }
+//     if (s) {
+//       assign(updates, {
+//         survey_name: s.name,
+//         asset: s
+//       });
+//       this.setState(updates);
+//     }
+//   },
+//   assetContentStoreTriggered (data, uid) {
+//     var s = data[uid],
+//       survey;
+//     if (s) {
+//       this.setState({
+//         survey_data: s.data,
+//         survey_loaded: true
+//       });
+//     }
+//   },
+//   componentDidMount () {
+//     this.listenTo(assetStore, this.assetStoreTriggered)
+//     this.listenTo(assetContentStore, this.assetContentStoreTriggered);
+//     stores.pageState.setTopPanel(30, false);
+//   },
+//   statics: {
+//     willTransitionTo: function(transition, params, idk, callback) {
+//       stores.pageState.setHeaderSearch(true);
+//       stores.pageState.setTopPanel(30, false);
+//       actions.resources.loadAsset({id: params.assetid});
+//       actions.resources.loadAssetContent({id: params.assetid});
+//       callback();
+//     }
+//   },
+//   render () {
+//     if (this.state.asset) {
+//       return (
+//           <DocumentTitle title={this.state.survey_name}>
+//             {this.innerRender()}
+//           </DocumentTitle>
+//         );
+//     }
+//     return (
+//         <div>
+//           {this.loadingNotice()}
+//           <RouteHandler />
+//         </div>
+//       );
+//   }
+// });
 
 
 var FormList = React.createClass({
@@ -2092,7 +2096,7 @@ var FormList = React.createClass({
   },
   searchCriteriaChange (evt) {
     this.setState({
-      searchRadio: 'type'+((Math.random()>0.5) ? 1:2)
+      searchRadio: 'type'+(Math.floor(Math.random()*3) ? 1:2)
     })
   },
   _title () {
@@ -2268,12 +2272,64 @@ var SectionNotFound = React.createClass({
   render () {
     return (
         <ui.Panel className="k404">
+          <i />
           <em>section not found</em>
         </ui.Panel>
       );
   }
 });
 
+var Demo = React.createClass({
+  render () {
+    return (
+      <div>
+        <Demo.asset name="d1" uid="aLARjo7WkhpWhe2su4hkcU" />
+        <Demo.asset name="d2" uid="aFH2NwaPdfqYiwPoVsqFHF" />
+        <Demo.asset name="d3" uid="aLJYYUjjYcDSfsFarFPygw" />
+      </div>
+      );
+  }
+});
+var DemoCollections = React.createClass({
+  render () {
+    return (
+        <div>
+          <Demo.collection name="root" 
+                  msg={'loading your surveys'} />
+          <Demo.collection name="random"
+                  msg={'loading a random collection'} />
+          <Demo.collection uid="c5Q4Tg3hVx23PbwgYcApCP"
+                  msg={'loading assets in a question library'} />
+        </div>
+      )
+  }
+})
+
+
+Demo.asset = React.createClass({
+  mixins: [
+    Navigation,
+    mixins.droppable,
+    mixins.dmix,
+    Reflux.ListenerMixin
+  ],
+  render () {
+    return this._createPanel()
+  }
+});
+
+Demo.collection = React.createClass({
+  mixins: [
+    Navigation,
+    mixins.cmix,
+    mixins.ancestorBreadcrumb,
+    mixins.droppable,
+    Reflux.ListenerMixin,
+  ],
+  render () {
+    return this._createPanel()
+  }
+})
 
 var routes = (
   <Route name="home" path="/" handler={App}>
@@ -2286,6 +2342,7 @@ var routes = (
       </Route>
 
       <Route name="form-landing" path="/forms/:assetid">
+        <Route name="form-download" path="download" handler={FormLanding} />
         <Route name="form-sharing" path="sharing" handler={FormSharing} />
         <Route name="form-preview-enketo" path="preview" handler={FormEnketoPreview} />
         <Route name='form-edit' path="edit" handler={FormPage} />
@@ -2295,6 +2352,8 @@ var routes = (
       <DefaultRoute handler={FormList} />
       <NotFoundRoute handler={FormNotFound} />
     </Route>
+    <Route name="demo" handler={Demo} />
+    <Route name="demo2" handler={DemoCollections} />
 
     <Route name="users">
       <DefaultRoute name="users-list" handler={UserList} />

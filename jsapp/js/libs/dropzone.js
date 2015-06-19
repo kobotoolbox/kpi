@@ -22,7 +22,8 @@ var Dropzone = React.createClass({
   getDefaultProps: function () {
     return {
       className: 'dropzone',
-      activeClassName: 'dropzone--active'
+      activeClassName: 'dropzone--active',
+      disabledClassname: 'dropzone--disabled',
     }
   },
 
@@ -70,7 +71,14 @@ var Dropzone = React.createClass({
     }
   },
   render: function() {
-    var kls = classNames(this.props.className, this.state.isDragActive ? this.props.activeClassName : '');
+    var kls;
+    if (this.props.disabled) {
+      kls = classNames(this.props.className, this.props.disabledClassname);
+      return <div className={kls}>{this.props.children}</div>;
+    }
+    kls = classNames(this.props.className, 
+                      this.state.isDragActive ? this.props.activeClassName : '');
+
     var fileInp;
     if (this.props.fileInput) {
       fileInp = React.createElement("input", {

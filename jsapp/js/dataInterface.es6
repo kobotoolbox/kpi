@@ -140,13 +140,17 @@ var dataInterface;
         return $.getJSON(`/collections/${params.id}/`);
       }
     },
-    deployAsset ({uid}) {
+    deployAsset (uid, form_id_string) {
+      var data = {
+        'asset[uid]': uid,
+      };
+      if (form_id_string) {
+        data.form_id_string = form_id_string;
+      }
       return $ajax({
         method: 'POST',
         url: '/deployments/',
-        data: {
-          'asset[uid]': uid
-        }
+        data: data
       });
     },
     postCreateBase64EncodedAsset (contents) {

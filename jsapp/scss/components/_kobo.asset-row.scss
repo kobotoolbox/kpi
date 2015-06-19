@@ -1,24 +1,29 @@
+$assetRowTextColor: #888;
 .asset-row {
-  @extend .clearfix;
   // transition: all 0.3s ease 0s;
+  @extend .clearfix;
   list-style-type: none;
   border-bottom: 1px solid #ddd;
   cursor: pointer;
   padding: 0;
-  a:not(.asset-row__action-icon) {
+  a {
     display: block;
-    background-color: #fff;
-    color: #888;
+    padding: 5px;
+    color: $assetRowTextColor;
     &:hover {
-      background-color: #E8FAE7;
       text-decoration: none;
+    }
+    &.asset-row__action-icon {
+      display: inline-block;
+      padding: 0;
     }
   }
 }
 .asset-row--selected {
+  padding: 8px 0 12px;
   background-color: $highlightedBarColor;
   a, a:hover {
-    background-color: $highlightedBarColor;
+    background-color: transparent;
   }
 }
 .asset-row--deleted {
@@ -137,31 +142,85 @@ $colwidth: (100% / $colcount) - 1%;
 
     &.asset-row__cell--assettype-empty {
       @include action-faicon('lemon-o');
-      opacity: 0.5;
+      > i {
+        @extend .fa-spin;
+      }
+      opacity: 0.8;
+    }
+    &.asset-row__cell--assettype-question {
+      @include action-faicon('circle-o');
+    }
+    &.asset-row__cell--assettype-block {
+      @include action-faicon('square');
     }
     &.asset-row__cell--assettype-survey {
-      @include action-faicon('fighter-jet');
+      @include action-faicon('file');
     }
     // &.asset-row__cell--kind-asset {
     //  @include action-faicon('file-o');
     // }
-    // &.asset-row__cell--kind-collection {
-    //   @include action-faicon('folder');
-    // }
+    &.asset-row__cell--kind-collection {
+      @include action-faicon('folder-o');
+    }
   }
   &.asset-row__cell--userlink {
-    width: 19%;
+    width: 12%;
+  }
+  &.asset-row__cell--deploy-button {
+    width: 6%;
+
+    i {
+      @extend .fa, .fa-fw, .fa-play;
+    }
+    button {
+      @extend .btn;
+    }
+    .asset-row:not(.asset-row--selected) & {
+      button {
+        @extend .btn-default;
+        @extend .disabled;
+      }
+    }
+    .asset-row--selected & {
+      button {
+        opacity: 1;
+        @extend .btn-success;
+      }
+    }
   }
   &.asset-row__cell--date-modified {
     width: 14%;
+    color: #aaa;
   }
   &.asset-row__cell--name {
     width: 37%;
     overflow: hidden;
     text-overflow: ellipsis;
+    &.asset-row__cell--titled {
+      a {
+        font-weight: bold;
+      }
+    }
   }
 }
 
+.asset-row__cell--name {
+  .asset-row--selected & {
+    a {
+      border: 1px solid mix($highlightedBarColor, lighten($kcol-view, 15%), 60%);
+      background-color: mix($highlightedBarColor, lighten($kcol-view, 25%), 90%);
+      border-radius: 6px;
+      cursor: pointer;
+      color: mix($assetRowTextColor, darken($kcol-view, 5%), 50%);
+      text-decoration: none;
+      &:hover {
+        border-color: mix($highlightedBarColor, darken($kcol-view, 15%), 60%);
+        color: mix($assetRowTextColor, darken($kcol-view, 5%), 50%);
+        background-color: mix($highlightedBarColor, lighten($kcol-view, 25%), 80%);
+      }
+    }
+  }
+}
 .asset-row__cell--action-icons {
   text-align: right;
 }

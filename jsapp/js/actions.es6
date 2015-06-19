@@ -223,8 +223,8 @@ actions.resources.updateAsset.listen(function(uid, values){
     .fail(actions.resources.updateAsset.failed);
 });
 
-actions.resources.deployAsset.listen(function(uid){
-  dataInterface.deployAsset(uid)
+actions.resources.deployAsset.listen(function(uid, form_id_string){
+  dataInterface.deployAsset(uid, form_id_string)
     .done(actions.resources.deployAsset.completed)
     .fail(actions.resources.deployAsset.failed);
 })
@@ -245,7 +245,9 @@ actions.resources.deleteAsset.listen(function(details){
 actions.resources.readCollection.listen(function(details){
   dataInterface.readCollection(details)
       .done(actions.resources.readCollection.completed)
-      .fail(actions.resources.readCollection.failed);
+      .fail(function(req, err, message){
+        actions.resources.readCollection.failed(details, req, err, message);
+      });
 })
 actions.resources.cloneAsset.listen(function(details){
   dataInterface.cloneAsset(details)

@@ -30,6 +30,8 @@ $newformCircleWidthHeight: 55px;
 
 @import '../xlform/components/font-awesome/scss/font-awesome';
 @import './components/kobo.collection-header';
+@import './components/kobo.list-view';
+@import './components/kobo.asset-view';
 @import './components/kobo.asset-row';
 @import './components/kobo.form-builder';
 @import './components/kobo.asset-navigator';
@@ -200,10 +202,10 @@ $i: 200;
   // background-image: radial-gradient(circle, #FFEFEF 80%, #f0f0f0 81%);
 }
 .page-wrapper__content {
-  padding: 65px 0;
+  padding: 1px 0;
 
   .page-wrapper--asset-nav-present & {
-    padding-top: 35px;
+    padding-top: 20px;
   }
 }
 .k-header-formname-text {
@@ -405,5 +407,11 @@ from SO
     position: absolute;
     top: 45%;
     left: 45%;
+  }
+}
+
+.k-404 {
+  > i:first-child {
+    @extend .fa, .fa-lg, .fa-question;
   }
 }

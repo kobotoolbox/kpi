@@ -1,4 +1,5 @@
 import React from 'react/addons';
+import bem from './bem';
 
 var ui = {};
 
@@ -7,10 +8,21 @@ ui.SmallInputBox = React.createClass({
     return this.refs.inp.getDOMNode().value;
   },
   render () {
-    var valid = false;
     return (
         <input type="text" placeholder={this.props.placeholder} ref='inp'
                 className="form-control input-sm pull-right" onKeyUp={this.props.onKeyUp} onChange={this.props.onChange} />
+      );
+  }
+});
+
+ui.Panel = React.createClass({
+  render () {
+    return (
+        <bem.uiPanel className={this.props.className} m={this.props.m}>
+          <bem.uiPanel__body>
+            {this.props.children}
+          </bem.uiPanel__body>
+        </bem.uiPanel>
       );
   }
 });
@@ -73,5 +85,25 @@ ui.Modal.Body = React.createClass({
   }
 });
 
+
+ui.Breadcrumb = React.createClass({
+  render () {
+    return (
+        <ul className="ui-breadcrumb">
+          {this.props.children}
+        </ul>
+      );
+  }
+});
+
+ui.BreadcrumbItem = React.createClass({
+  render () {
+    return (
+        <li className="ui-breadcrumb__item">
+          {this.props.children}
+        </li>
+      );
+  }
+});
 
 export default ui;

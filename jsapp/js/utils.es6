@@ -1,5 +1,12 @@
+import moment from 'moment';
+
 export function notify(msg, atype='success') {
   alertify.notify(msg, atype);
+}
+
+export function formatTime(timeStr) {
+  var _m = moment(timeStr);
+  return _m.fromNow();
 }
 
 export var anonUsername = 'AnonymousUser';
