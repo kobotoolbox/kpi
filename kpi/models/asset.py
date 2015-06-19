@@ -10,7 +10,8 @@ from taggit.managers import TaggableManager
 from taggit.models import Tag
 import reversion
 
-from object_permission import ObjectPermission, ObjectPermissionMixin
+from .object_permission import ObjectPermission, ObjectPermissionMixin
+from ..utils.asset_content_analyzer import AssetContentAnalyzer
 
 
 ASSET_TYPES = [
@@ -128,21 +129,9 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model):
             self.content = {}
             self.summary = {}
             return
-        survey = self.content.get('survey', [])
-        if len(survey) == 0:
-            summary = {}
-            self.asset_type = 'empty'
-        elif 'settings' in self.content:
-            self.asset_type = 'survey'
-        elif len(survey) == 1:
-            self.asset_type = 'question'
-        else:
-            self.asset_type = 'block'
-
-        if self.asset_type in ['question', 'block', 'survey']:
-            summary = {'labels': [l.get('label', {'nolabel': l}) for l in survey[0:5]]}
-        summary['row_count'] = len(survey)
-        self.summary = summary
+        analyzer = AssetContentAnalyzer(**self.content)
+        self.asset_type = analyzer.asset_type
+        self.summary = analyzer.summary
 
     def _generate_uid(self):
         return 'a' + ShortUUID().random(ASSET_UID_LENGTH -1)
