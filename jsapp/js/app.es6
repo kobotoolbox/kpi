@@ -35,7 +35,7 @@ import Favicon from 'react-favicon';
 
 var bootstrap = require('./libs/rest_framework/bootstrap.min');
 
-// window.dkobo_xlform = require('./libs/xlform');
+window.dkobo_xlform = require('./libs/xlform');
 
 var assign = require('react/lib/Object.assign');
 var Reflux = require('reflux');
