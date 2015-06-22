@@ -14,6 +14,7 @@ import reversion
 from django.utils.six.moves.urllib import parse as urlparse
 
 from .models import Asset
+from .models import AssetExport
 from .models import AssetDeployment
 from .models import Collection
 from .models import ImportTask
@@ -204,6 +205,38 @@ class AncestorCollectionsSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Collection
         fields = ('name', 'uid', 'url')
+
+
+class AssetExportSerializer(serializers.HyperlinkedModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        lookup_field='uid', view_name='assetexport-detail')
+    xml = serializers.HyperlinkedIdentityField(
+        lookup_field='uid', view_name='assetexport-xml')
+    details = WritableJSONField(required=False)
+    asset = serializers.HyperlinkedRelatedField(queryset=Asset.objects.none(), view_name='asset-detail',
+                                                lookup_field='uid',
+                                                required=False,
+                                                )
+    owner = serializers.HyperlinkedRelatedField(view_name='user-detail',
+                                                lookup_field='username',
+                                                read_only=True)
+    asset_version_id = serializers.IntegerField(required=False)
+    date_created = serializers.DateTimeField(read_only=True)
+    source = WritableJSONField(required=False)
+
+    class Meta:
+        model = AssetExport
+        lookup_field = 'uid'
+        fields = ('xml',
+                  'source',
+                  'details',
+                  'uid',
+                  'url',
+                  'owner',
+                  'asset',
+                  'asset_version_id',
+                  'date_created',
+                  )
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username',

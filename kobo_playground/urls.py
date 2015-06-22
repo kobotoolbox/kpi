@@ -1,6 +1,7 @@
 from rest_framework.urlpatterns import format_suffix_patterns
 from kpi.views import (
     AssetViewSet,
+    AssetExportViewSet,
     UserViewSet,
     CollectionViewSet,
     TagViewSet,
@@ -15,6 +16,7 @@ from kpi.views import current_user
 
 router = DefaultRouter()
 router.register(r'assets', AssetViewSet)
+router.register(r'asset_exports', AssetExportViewSet)
 router.register(r'collections', CollectionViewSet)
 router.register(r'users', UserViewSet)
 router.register(r'tags', TagViewSet)

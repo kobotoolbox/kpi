@@ -31,6 +31,7 @@ from .highlighters import highlight_xform
 from .models import (
     Collection,
     Asset,
+    AssetExport,
     ImportTask,
     AssetDeployment,
     ObjectPermission,)
@@ -47,6 +48,7 @@ from .renderers import (
     EnketoPreviewLinkRenderer,)
 from .serializers import (
     AssetSerializer, AssetListSerializer,
+    AssetExportSerializer,
     CollectionSerializer, CollectionListSerializer,
     UserSerializer, UserListSerializer,
     TagSerializer, TagListSerializer,
@@ -278,6 +280,36 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
             return Response(data, status.HTTP_201_CREATED)
 
 
+class AssetExportViewSet(viewsets.ModelViewSet):
+    serializer_class = AssetExportSerializer
+    lookup_field = 'uid'
+    queryset = AssetExport.objects.none()
+    # permission_classes = (IsOwnerOrReadOnly,)
+    def get_queryset(self):
+        user = self.request.user
+        if not user.is_anonymous():
+            return AssetExport.objects.filter(owner=user)
+        else:
+            return AssetExport.objects.none()
+
+    @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
+    def xml(self, request, uid):
+        asset_export = self.get_object()
+        return Response(asset_export.xml)
+
+    def create(self, request, *args, **kwargs):
+        raise NotImplementedError("need to figure out how to create these for survey previews")
+        if 'asset_uid' in request.data:
+            request.data['asset_id'] = Asset.objects.get(uid=request.data['asset_uid']).id
+        serializer = AssetExportSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED,
+                        headers=headers)
+
+
+
 class AssetViewSet(viewsets.ModelViewSet):
 
     """
@@ -285,7 +317,6 @@ class AssetViewSet(viewsets.ModelViewSet):
     * View a asset in a markdown spreadsheet or XML preview format <span class='label label-success'>complete</span>
     * Assign a asset to a collection <span class='label label-warning'>partially implemented</span>
     * View previous versions of a asset <span class='label label-danger'>TODO</span>
-    * Update all content of a asset <span class='label label-danger'>TODO</span>
     * Run a partial update of a asset <span class='label label-danger'>TODO</span>
     * Generate a link to a preview in enketo-express <span class='label label-danger'>TODO</span>
     """

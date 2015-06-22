@@ -28,6 +28,7 @@ class CreateAssetVersions(AssetsTestCase):
         self.assertEqual(self.asset.content['survey'][0]['type'], 'integer')
         self.asset.save()
         self.assertEqual(len(self.asset.versions()), 2)
+        self.assertEqual(self.asset.asset_type, 'block')
 
     def test_asset_can_be_owned(self):
         self.assertEqual(self.asset.owner, self.user)
@@ -45,7 +46,7 @@ class CreateAssetVersions(AssetsTestCase):
         self.assertEqual(_list_tag_names(), ['tag1', 'tag2'])
 
     def test_asset_can_be_anonymous(self):
-        anon_asset = Asset.objects.create(content={})
+        anon_asset = Asset.objects.create(content=self.asset.content)
         self.assertEqual(anon_asset.owner, None)
 
 # class ReadAssetsTests(AssetsTestCase):
