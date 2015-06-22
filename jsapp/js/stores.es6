@@ -6,6 +6,7 @@ import {dataInterface} from './dataInterface';
 
 var actions = require('./actions');
 var Reflux = require('reflux');
+var Immutable = require('immutable');
 var assign = require('react/lib/Object.assign');
 
 function changes(orig_obj, new_obj) {
@@ -22,6 +23,7 @@ function changes(orig_obj, new_obj) {
   }
   return out;
 }
+var stores = {};
 
 var assetLibraryStore = Reflux.createStore({
   init () {
@@ -194,6 +196,15 @@ var pageStateStore = Reflux.createStore({
   }
 });
 
+stores.assetPreview = Reflux.createStore({
+  init () {
+    this.listenTo(actions.resources.generatePreview.completed, this.previewCreated);
+  },
+  previewCreated (...args) {
+    log('preview created1!', args);
+    this.trigger(args);
+  },
+});
 var assetStore = Reflux.createStore({
   init: function () {
     this.data = {};
@@ -224,10 +235,11 @@ var assetStore = Reflux.createStore({
     this.noteRelatedUsers(resp);
     this.trigger(this.data, resp.uid, {asset_updated: true});
   },
-  withParsedPermissions (resp) {
+  parsePermissions (resp) {
+    var out = {};
     var pp = parsePermissions(resp.owner__username, resp.permissions);
-    resp.parsedPermissions = pp;
-    resp.access = (()=>{
+    out.parsedPermissions = pp;
+    out.access = (()=>{
       var viewers = {};
       var changers = {};
       var isPublic = false;
@@ -244,13 +256,24 @@ var assetStore = Reflux.createStore({
       });
       return {view: viewers, change: changers, ownerUsername: resp.owner__username, isPublic: isPublic};
     })()
-    return resp
+    return out;
+  },
+  parseTags(asset) {
+    return {
+      tags: asset.tag_string.split(',').filter((tg) => { return tg.length > 1; })
+    }
+  },
+  parsed (asset) {
+    return assign(asset,
+        this.parsePermissions(asset),
+        this.parseTags(asset))
   },
   onLoadAssetCompleted: function (resp, req, jqxhr) {
     if (!resp.uid) {
       throw new Error('no uid found in response');
     }
-    this.data[resp.uid] = this.withParsedPermissions(resp);
+    this.data[resp.uid] = this.parsed(resp);
+    log(this.data[resp.uid]);
     this.noteRelatedUsers(resp);
     this.trigger(this.data, resp.uid);
   }
@@ -258,24 +281,45 @@ var assetStore = Reflux.createStore({
 
 var sessionStore = Reflux.createStore({
   init () {
-    this.listenTo(actions.auth.login.completed, this.onAuthLoginCompleted);
-    var _this = this;
-    dataInterface.selfProfile().then(function success(acct){
-      actions.auth.login.completed(acct);
+    this.listenTo(actions.auth.login.loggedin, this.triggerLoggedIn);
+    this.listenTo(actions.auth.login.passwordfail, ()=> {
+
     });
+    this.listenTo(actions.auth.login.failed, () => {
+
+    });
+    this.listenTo(actions.auth.verifyLogin.loggedin, this.triggerLoggedIn);
+    this.listenTo(actions.auth.verifyLogin.anonymous, (data)=>{
+      log('login confirmed anonymous', data.message);
+    });
+    this.listenTo(actions.auth.verifyLogin.failed, (xhr)=> {
+      log('login not verified', xhr.status, xhr.statusText);
+    });
+    actions.auth.verifyLogin();
+    // dataInterface.selfProfile().then(function success(acct){
+    //   actions.auth.login.completed(acct);
+    // });
   },
   getInitialState () {
     return {
-      isLoggedIn: false
+      isLoggedIn: false,
+      sessionIsLoggedIn: false
     }
+  },
+  triggerAnonymous (data) {
+
+  },
+  triggerLoggedIn (acct) {
+    this.currentAccount = acct;
+    this.trigger({
+      isLoggedIn: true,
+      sessionIsLoggedIn: true,
+      sessionAccount: acct,
+      currentAccount: acct
+    });
   },
   onAuthLoginCompleted (acct) {
     if (acct.username) {
-      this.currentAccount = acct;
-      this.trigger({
-        isLoggedIn: true,
-        currentAccount: acct
-      });
     } else {
       this.currentAccount = false;
       this.trigger({
@@ -388,7 +432,7 @@ var userExistsStore = Reflux.createStore({
   }
 });
 
-var stores = {
+assign(stores, {
   history: historyStore,
   tags: tagsStore,
   pageState: pageStateStore,
@@ -401,6 +445,6 @@ var stores = {
   allAssets: allAssetsStore,
   session: sessionStore,
   userExists: userExistsStore,
-};
+});
 
 module.exports = stores

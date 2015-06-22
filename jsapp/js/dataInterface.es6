@@ -55,6 +55,24 @@ var dataInterface;
       }).fail(d.fail);
       return d.promise();
     },
+    createAssetExport ({asset_uid}) {
+      return $ajax({
+        url: '/asset_exports/',
+        method: 'POST',
+        data: {
+          asset_uid: asset_uid
+        }
+      });
+    },
+    createTemporaryAssetExport ({source}) {
+      return $ajax({
+        url: '/asset_exports/',
+        method: 'POST',
+        data: {
+          source: source
+        }
+      })
+    },
     removePerm (permUrl) {
       return $ajax({
         method: 'DELETE',
@@ -140,12 +158,12 @@ var dataInterface;
         return $.getJSON(`/collections/${params.id}/`);
       }
     },
-    deployAsset (uid, form_id_string) {
+    deployAsset (asset_url, xform_id_string) {
       var data = {
-        'asset[uid]': uid,
+        'asset': asset_url,
       };
-      if (form_id_string) {
-        data.form_id_string = form_id_string;
+      if (xform_id_string) {
+        data.xform_id_string = xform_id_string;
       }
       return $ajax({
         method: 'POST',

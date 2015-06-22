@@ -1,0 +1,20 @@
+// bem.CollectionNav = bem('collection-nav');
+// bem.CollectionNav__search = bem.CollectionNav.__('search');
+// bem.CollectionNav__searchcriteria = bem.CollectionNav.__('searchcriteria');
+// bem.CollectionNav__actions = bem.CollectionNav.__('actions');
+
+.collection-nav {
+  @extend .row;
+}
+.collection-nav__search {
+
+}
+.collection-nav__searchcriteria {
+
+}
+.collection-nav__actions {
+
+}
+.collection-nav__action {
+
+}

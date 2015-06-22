@@ -47,6 +47,42 @@ let Route = Router.Route;
 let RouteHandler = Router.RouteHandler;
 let NotFoundRoute = Router.NotFoundRoute;
 
+mixins.taggedAsset = {
+  mixins: [
+    React.addons.LinkedStateMixin
+  ],
+  componentWillUnmount () {
+    if (this._tagsChanged) {
+      var uid = this.props.params.assetid || this.props.params.uid;
+      actions.resources.updateAsset(uid, {
+        tag_string: this.state.tags.join(',')
+      })
+    }
+  },
+  tagChange (tags, changedTag) {
+    this._tagsChanged = true;
+  },
+  linkTagState () {
+    // because onChange doesn't work when valueLink is specified.
+    var that = this, ls = this.linkState('tags'), rc = ls.requestChange;
+    ls.requestChange = function(...args) {
+      that.tagChange(...args);
+      rc.apply(this, args);
+    }
+    return ls;
+  },
+  renderTaggedAssetTags () {
+    return (
+        <bem.AssetView__tags>
+          <i />
+          <div>
+            <TagsInput ref="tags" classNamespace="k" valueLink={this.linkTagState()} />
+          </div>
+        </bem.AssetView__tags>
+      );
+  }
+};
+
 mixins.formView = {
   _saveForm (evt) {
     evt && evt.preventDefault();
@@ -269,8 +305,9 @@ mixins.collectionState = {
         actions.resources.deleteAsset({uid: uid})
       },
       deploy: function(uid, evt){
+        var asset_url = stores.selectedAsset.asset.url;
         var form_id_string = prompt('form_id_string');
-        actions.resources.deployAsset(uid, form_id_string);
+        actions.resources.deployAsset(asset_url, form_id_string);
       },
     }
   },
@@ -815,7 +852,12 @@ var AssetRow = React.createClass({
     var selfowned = this.props.owner__username == this.props.currentUsername;
     var perm = this.props.perm;
     var isPublic = this.props.owner__username === anonUsername;
+    var isCollection = this.props.kind === 'collection',
+        hrefTo = isCollection ? 'collection-page' : 'form-landing',
+        hrefKey = isCollection ? 'uid' : 'assetid',
+        hrefParams = {};
 
+    hrefParams[hrefKey] = this.props.uid;
     return (
         <bem.AssetRow m={{
                             'selected': this.props.isSelected,
@@ -828,18 +870,15 @@ var AssetRow = React.createClass({
                 ]}>
             <i />
           </bem.AssetRow__cell>
-          <bem.AssetRow__cell m={['name', this.props.name ? 'titled' : 'untitled']}
+          <bem.AssetRow__celllink m={['name', this.props.name ? 'titled' : 'untitled']}
                 data-action='view'
                 data-disabled={true}
                 data-kind={this.props.kind}
                 data-asset-type={this.props.kind}
+                href={this.makeHref( hrefTo, hrefParams)}
               >
-            { this.props.kind === 'collection' ?
-              <Link to='collection-page' onClick={this.preventDefault} params={{ uid: this.props.uid }}>{this.props.name || t('no name')}</Link>
-            :
-              <Link to='form-landing' onClick={this.preventDefault} params={{ assetid: this.props.uid }}>{this.props.name || t('no name')}</Link>
-            }
-          </bem.AssetRow__cell>
+            {this.props.name || t('no name')}
+          </bem.AssetRow__celllink>
           <bem.AssetRow__cell m={'date-modified'}>
             <span className="date date--modified">{formatTime(this.props.date_modified)}</span>
           </bem.AssetRow__cell>
@@ -1723,6 +1762,15 @@ var FormEnketoPreview = React.createClass({
   mixins: [
     Navigation
   ],
+  componentDidMount () {
+    var uid = this.props.params.assetid;
+    if (!stores.allAssets.byUid[uid]) {
+      actions.resources.generatePreview({
+        asset_uid: uid
+        // asset: `/assets/${uid}/`
+      });
+    }
+  },
   routeBack () {
     var params = this.context.router.getCurrentParams();
     this.transitionTo('form-landing', {assetid: params.assetid});
@@ -1939,6 +1987,7 @@ var FormLanding = React.createClass({
   mixins: [
     Navigation,
     mixins.droppable,
+    mixins.taggedAsset,
     mixins.dmix,
     mixins.ancestorBreadcrumb,
     Reflux.ListenerMixin
@@ -2105,13 +2154,9 @@ var FormList = React.createClass({
   _loadingMessage () {
     return t('loading forms...')
   },
-  _renderFormsSearchRow () {
+  _renderSearchCriteria () {
     return (
-      <div className="row">
-        <div className="col-sm-4 k-form-list-search-bar">
-          <ui.SmallInputBox ref="formlist-search" placeholder={t('search drafts')} onChange={this.searchChange} />
-        </div>
-        <div className="col-sm-6 k-form-list-search-bar">
+        <bem.CollectionNav__searchcriteria className="col-sm-6 k-form-list-search-bar">
           <label>
             <input type="radio" name="formlist__search__type" id="formlist__search__type--1" value="type1" checked={this.state.searchRadio==='type1'} onChange={this.searchCriteriaChange} />
             {t('my forms')}
@@ -2136,17 +2181,30 @@ var FormList = React.createClass({
               <li><a href="#"><Icon fa='folder-o' />collection</a></li>
              </ul>
           </div>
-        </div>
-        <div className="col-sm-2 k-form-list-search-bar">
+        </bem.CollectionNav__searchcriteria>
+      );
+  },
+  _renderFormsSearchRow () {
+    return (
+      <bem.CollectionNav>
+        <bem.CollectionNav__search className="col-sm-4 k-form-list-search-bar">
+          <ui.SmallInputBox ref="formlist-search" placeholder={t('search drafts')} onChange={this.searchChange} />
+        </bem.CollectionNav__search>
+        {this._renderSearchCriteria()}
+        <bem.CollectionNav__actions className="col-sm-2 k-form-list-search-bar">
+          <bem.CollectionNav__link href={this.makeHref('new-form')}>
+            <i />
+            {t('new form')}
+          </bem.CollectionNav__link>
           <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
-            <button className="btn btn-default btn-block btn-sm">
+            <bem.CollectionNav__button className="btn btn-default btn-block btn-sm">
               <i className='fa fa-icon fa-cloud fa-fw' />
               &nbsp;&nbsp;
               {t('upload')}
-            </button>
+            </bem.CollectionNav__button>
           </Dropzone>
-        </div>
-      </div>
+        </bem.CollectionNav__actions>
+      </bem.CollectionNav>
     );
   }
 });

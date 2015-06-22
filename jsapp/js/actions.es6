@@ -18,13 +18,16 @@ actions.navigation = Reflux.createActions([
 actions.auth = Reflux.createActions({
   login: {
     children: [
-      "completed",
+      "loggedin",
+      "passwordfail",
+      "anonymous",
       "failed"
     ]
   },
   verifyLogin: {
     children: [
-      "completed",
+      "loggedin",
+      "anonymous",
       "failed"
     ]
   },
@@ -83,6 +86,12 @@ actions.resources = Reflux.createActions({
     ]
   },
   deployAsset: {
+    children: [
+      "completed",
+      "failed"
+    ]
+  },
+  generatePreview: {
     children: [
       "completed",
       "failed"
@@ -211,6 +220,14 @@ actions.resources.createAsset.listen(function(contents){
 actions.resources.createResource.failed.listen(function(){
   log('createResourceFailed');
 });
+
+actions.resources.generatePreview.listen(function(details){
+  dataInterface.createAssetExport({
+    asset: details.asset
+  }).done(actions.resources.generatePreview.completed)
+    .fail(actions.resources.generatePreview.failed);
+});
+
 actions.resources.listTags.listen(function(){
   dataInterface.listTags()
     .done(actions.resources.listTags.completed)
@@ -302,13 +319,16 @@ actions.permissions.removePerm.completed.listen(function(uid){
 });
 
 actions.auth.login.listen(function(creds){
-  dataInterface.login(creds).done(function(){
-    dataInterface.selfProfile().done(actions.auth.login.completed)
-        .fail(function(){
-          console.error('login failed what sould we do now?');
-        });
+  dataInterface.login(creds).done(function(resp1){
+    dataInterface.selfProfile().done(function(data){
+        if(data.username) {
+          actions.auth.login.loggedin(data);
+        } else {
+          actions.auth.login.passwordfail(resp1)
+        }
+      }).fail(actions.auth.login.failed);
   })
-    .fail(actions.auth.logout.failed);
+    .fail(actions.auth.login.failed);
 });
 
 // reload so a new csrf token is issued
@@ -322,6 +342,17 @@ actions.auth.logout.listen(function(){
   dataInterface.logout().done(actions.auth.logout.completed).fail(function(){
     console.error('logout failed for some reason. what should happen now?');
   });
+});
+actions.auth.verifyLogin.listen(function(){
+    dataInterface.selfProfile()
+        .done((data, msg, req)=>{
+          if (data.username) {
+            actions.auth.verifyLogin.loggedin(data);
+          } else {
+            actions.auth.verifyLogin.anonymous(data);
+          }
+        })
+        .fail(actions.auth.verifyLogin.failed);
 })
 
 actions.resources.loadAsset.listen(function(params){

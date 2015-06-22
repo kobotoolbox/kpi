@@ -8,10 +8,18 @@ bem.PageWrapper__content = bem.PageWrapper.__('content');
 
 bem.AssetRow = BEM('asset-row', '<li>');
 bem.AssetRow__cell        = bem.AssetRow.__('cell');
+bem.AssetRow__celllink    = bem.AssetRow.__('celllink', '<a>');
 bem.AssetRow__actionIcon  = bem.AssetRow.__('action-icon', '<a>');
 bem.AssetRow__sharingIcon = bem.AssetRow.__('sharingIcon');
-bem.AssetRow__sharingIcon__owner = 
+bem.AssetRow__sharingIcon__owner =
                 bem.AssetRow__sharingIcon.__('owner', '<span>');
+
+bem.CollectionNav = bem('collection-nav');
+bem.CollectionNav__search = bem.CollectionNav.__('search');
+bem.CollectionNav__searchcriteria = bem.CollectionNav.__('searchcriteria');
+bem.CollectionNav__actions = bem.CollectionNav.__('actions');
+bem.CollectionNav__button = bem.CollectionNav.__('button', '<button>');
+bem.CollectionNav__link = bem.CollectionNav.__('link', '<a>');
 
 bem.CollectionHeader = bem('collection-header');
 bem.CollectionHeader__buttonRow = bem('collection-header__button-row')

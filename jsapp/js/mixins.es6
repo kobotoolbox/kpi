@@ -149,15 +149,11 @@ var dmix = {
     return <bem.AssetView__tags__tag>{tag}</bem.AssetView__tags__tag>
   },
   renderTags () {
-    var tags = this.state.tag_string.split(',').filter((s)=>s),
-        tagsEmpty = tags.length === 0;
     return (
-        <bem.AssetView__tags m={{
-          empty: tagsEmpty
-            }}>
+        <bem.AssetView__tags>
           <bem.AssetView__iconwrap><i /></bem.AssetView__iconwrap>
           {
-            tagsEmpty ? t('no tags') : tags.map(this._renderTag)
+            this.renderTaggedAssetTags()
           }
         </bem.AssetView__tags>
       );
@@ -346,21 +342,15 @@ var dmix = {
     var isOwner = currentUsername === ownerUsername;
     var canEdit;
     var canView;
-    if (isOwner) {
-      canEdit = true;
-      canView = true;
-    } else {
-      canEdit = access && access.change[currentUsername];
-      canView = access && access.view[currentUsername];
-    }
-
+    canEdit = isOwner || access && access.change[currentUsername];
+    canView = isOwner || access && access.view[currentUsername];
     return {
       userCanEdit: !!canEdit,
       userCanView: !!canView,
       isOwner: isOwner
     };
   },
-  sessionStoreChange (val) {
+  dmixSessionStoreChange (val) {
     var currentUsername = val && val.currentAccount && val.currentAccount.username;
     this.setState(assign({
         currentUsername: currentUsername
@@ -375,7 +365,7 @@ var dmix = {
       currentUsername: stores.session.currentAccount && stores.session.currentAccount.username,
     };
   },
-  assetStoreChange (data) {
+  dmixAssetStoreChange (data) {
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid,
       asset = data[uid];
     if (asset) {
@@ -394,8 +384,8 @@ var dmix = {
     }
   },
   componentDidMount () {
-    this.listenTo(stores.session, this.sessionStoreChange);
-    this.listenTo(stores.asset, this.assetStoreChange)
+    this.listenTo(stores.session, this.dmixSessionStoreChange);
+    this.listenTo(stores.asset, this.dmixAssetStoreChange)
 
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
     if (this.props.randdelay && uid) {
@@ -454,7 +444,7 @@ mixins.ancestorBreadcrumb = {
 
 mixins.cmix = {
   componentDidMount () {
-    this.listenTo(stores.session, this.sessionStoreChange);
+    this.listenTo(stores.session, this.cmixSessionStoreChange);
     if (this.props.searchParams) {
       this.listenTo(stores.assetSearch, this.assetSearchChange);
     }
@@ -469,7 +459,7 @@ mixins.cmix = {
       actions.resources.listAssets();
     }
   },
-  sessionStoreChange () {
+  cmixSessionStoreChange () {
 
   },
   getInitialState () {
