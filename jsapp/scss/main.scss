@@ -16,20 +16,33 @@ $highlightedBarColor: #F5F8FA;
 $saveNeededColor: #9c27b0;
 $assetCornerIconWidth: 45px;
 
-$kcol-view: #7B1FA2;
-$kcol-edit: #009688;
-$kcol-preview: #FFC107;
-$kcol-clone: #2196F3;
-$kcol-delete: #FF5722;
-$kcol-download: #4CAF50;
-$kcol-7: #FF4081;
-$kcol-8: #00BCD4;
+// $kcol-view: #7B1FA2;
+// $kcol-edit: #009688;
+// $kcol-preview: #FFC107;
+// $kcol-clone: #2196F3;
+// $kcol-delete: #FF5722;
+// $kcol-download: #4CAF50;
+// $kcol-7: #FF4081;
+// $kcol-8: #00BCD4;
+// $newformButtonColor: #2196F3;
 
-$newformButtonColor: #2196F3;
+$kcol-view: mix(#7B1FA2, grayscale(#7B1FA2), 38%);
+$kcol-edit: mix(#009688, grayscale(#009688), 38%);
+$kcol-preview: mix(#FFC107, grayscale(#FFC107), 38%);
+$kcol-clone: mix(#2196F3, grayscale(#2196F3), 38%);
+$kcol-delete: mix(#FF5722, grayscale(#FF5722), 38%);
+$kcol-download: mix(#4CAF50, grayscale(#4CAF50), 38%);
+$kcol-7: mix(#FF4081, grayscale(#FF4081), 38%);
+$kcol-8: mix(#00BCD4, grayscale(#00BCD4), 38%);
+$newformButtonColor: mix(#2196F3, grayscale(#2196F3), 38%);
+
 $newformCircleWidthHeight: 55px;
 
 @import '../xlform/components/font-awesome/scss/font-awesome';
 @import './components/kobo.collection-header';
+@import './components/kobo.collection-nav';
+@import './components/kobo.list-view';
+@import './components/kobo.asset-view';
 @import './components/kobo.asset-row';
 @import './components/kobo.form-builder';
 @import './components/kobo.asset-navigator';
@@ -200,10 +213,10 @@ $i: 200;
   // background-image: radial-gradient(circle, #FFEFEF 80%, #f0f0f0 81%);
 }
 .page-wrapper__content {
-  padding: 65px 0;
+  padding: 1px 0;
 
   .page-wrapper--asset-nav-present & {
-    padding-top: 35px;
+    padding-top: 20px;
   }
 }
 .k-header-formname-text {
@@ -405,5 +418,11 @@ from SO
     position: absolute;
     top: 45%;
     left: 45%;
+  }
+}
+
+.k-404 {
+  > i:first-child {
+    @extend .fa, .fa-lg, .fa-question;
   }
 }

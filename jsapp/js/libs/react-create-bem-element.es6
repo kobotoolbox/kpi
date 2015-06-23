@@ -138,7 +138,8 @@ var logClassNames = assign(function(...args){
 
 // spits out all the empty CSS rules into the log
 React_createBemElement.logClassNames = function(tf){
-  logClassNames.on = !!tf;
+  // no params turns it on, any falsy param turns it off;
+  logClassNames.on = tf === undefined ? true : !!tf;
   return React_createBemElement;
 }
 

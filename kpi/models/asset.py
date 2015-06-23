@@ -10,7 +10,8 @@ from taggit.managers import TaggableManager
 from taggit.models import Tag
 import reversion
 
-from object_permission import ObjectPermission, ObjectPermissionMixin
+from .object_permission import ObjectPermission, ObjectPermissionMixin
+from ..utils.asset_content_analyzer import AssetContentAnalyzer
 
 
 ASSET_TYPES = [
@@ -64,8 +65,40 @@ class TagStringMixin:
         self.tags.set(*intended_tags)
 
 
+class XlsExportable(object):
+    def to_xls_io(self):
+        import xlwt
+        import StringIO
+        try:
+            def _add_contents_to_sheet(sheet, contents):
+                cols = []
+                for row in contents:
+                    for key in row.keys():
+                        if key not in cols:
+                            cols.append(key)
+                for ci, col in enumerate(cols):
+                    sheet.write(0, ci, col)
+                for ri, row in enumerate(contents):
+                    for ci, col in enumerate(cols):
+                        val = row.get(col, None)
+                        if val:
+                            sheet.write(ri +1, ci, val)
+            ss_dict = self.content
+            workbook = xlwt.Workbook()
+            for sheet_name in ss_dict.keys():
+                # pyxform.xls2json_backends adds "_header" items for each sheet....
+                if not re.match(r".*_header$", sheet_name):
+                    cur_sheet = workbook.add_sheet(sheet_name)
+                    _add_contents_to_sheet(cur_sheet, ss_dict[sheet_name])
+        except Exception as e:
+            raise type(e)("asset.content improperly formatted for XLS export: %s" % (e.message))
+        string_io = StringIO.StringIO()
+        workbook.save(string_io)
+        string_io.seek(0)
+        return string_io
+
 @reversion.register
-class Asset(ObjectPermissionMixin, TagStringMixin, models.Model):
+class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
@@ -128,21 +161,9 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model):
             self.content = {}
             self.summary = {}
             return
-        survey = self.content.get('survey', [])
-        if len(survey) == 0:
-            summary = {}
-            self.asset_type = 'empty'
-        elif 'settings' in self.content:
-            self.asset_type = 'survey'
-        elif len(survey) == 1:
-            self.asset_type = 'question'
-        else:
-            self.asset_type = 'block'
-
-        if self.asset_type in ['question', 'block', 'survey']:
-            summary = {'labels': [l.get('label', {'nolabel': l}) for l in survey[0:5]]}
-        summary['row_count'] = len(survey)
-        self.summary = summary
+        analyzer = AssetContentAnalyzer(**self.content)
+        self.asset_type = analyzer.asset_type
+        self.summary = analyzer.summary
 
     def _generate_uid(self):
         return 'a' + ShortUUID().random(ASSET_UID_LENGTH -1)
@@ -169,40 +190,11 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model):
         else:
             return None
 
-    def to_xls_io(self):
-        import xlwt
-        import StringIO
-
-        def _add_contents_to_sheet(sheet, contents):
-            cols = []
-            for row in contents:
-                for key in row.keys():
-                    if key not in cols:
-                        cols.append(key)
-            for ci, col in enumerate(cols):
-                sheet.write(0, ci, col)
-            for ri, row in enumerate(contents):
-                for ci, col in enumerate(cols):
-                    val = row.get(col, None)
-                    if val:
-                        sheet.write(ri +1, ci, val)
-        ss_dict = self.content
-        workbook = xlwt.Workbook()
-        for sheet_name in ss_dict.keys():
-            # pyxform.xls2json_backends adds "_header" items for each sheet....
-            if not re.match(r".*_header$", sheet_name):
-                cur_sheet = workbook.add_sheet(sheet_name)
-                _add_contents_to_sheet(cur_sheet, ss_dict[sheet_name])
-        string_io = StringIO.StringIO()
-        workbook.save(string_io)
-        string_io.seek(0)
-        return string_io
-
     @property
     def export(self):
         version_id = reversion.get_for_object(self).last().id
-        # AssetExport.objects.filter(asset=self).delete()
-        (model, _) = AssetExport.objects.get_or_create(asset=self,
+        # AssetSnapshot.objects.filter(asset=self).delete()
+        (model, _) = AssetSnapshot.objects.get_or_create(asset=self,
                                                        asset_version_id=version_id)
         return model
 
@@ -224,7 +216,7 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model):
         return u'{} ({})'.format(self.name, self.uid)
 
 
-class AssetExport(models.Model):
+class AssetSnapshot(models.Model, XlsExportable):
 
     '''
     This model serves as a cache of the XML that was exported by the installed
@@ -233,22 +225,38 @@ class AssetExport(models.Model):
     If the database gets heavy, we will want to clear this out.
     '''
     xml = models.TextField()
-    source = JSONField(default='{}')
-    details = JSONField(default='{}')
-    asset = models.ForeignKey(Asset)
-    asset_version_id = models.IntegerField()
+    source = JSONField(null=True)
+    details = JSONField(default={})
+    owner = models.ForeignKey('auth.User', related_name='asset_snapshots', null=True)
+    asset = models.ForeignKey(Asset, null=True)
+    asset_version_id = models.IntegerField(null=True)
     date_created = models.DateTimeField(auto_now_add=True)
+    uid = models.CharField(max_length=ASSET_UID_LENGTH, default='', blank=True)
 
-    def generate_xml_from_source(self):
+
+    def __init__(self, *args, **kwargs):
+        if 'asset' in kwargs and 'asset_version_id' not in kwargs:
+            asset = kwargs.get('asset')
+            kwargs['asset_version_id'] = reversion.get_for_object(asset).last().pk
+        return super(AssetSnapshot, self).__init__(*args, **kwargs)
+
+    def generate_xml_from_source(self, source):
         import pyxform
         import tempfile
         summary = {}
         warnings = []
         default_name = None
         default_language = u'default'
+        default_id_string = u'xform_id_string'
+        if 'settings' not in source:
+            raise Exception("Cannot generate XML from a document with no settings")
+        if 'id_string' not in source['settings'][0]:
+            source['settings'][0]['id_string'] = default_id_string
         try:
             dict_repr = pyxform.xls2json.workbook_to_json(
-                self.source, default_name, default_language, warnings)
+                source, default_name, default_language, warnings)
+            if 'id_string' not in dict_repr:
+                dict_repr['id_string'] = 'some_id_string'
             dict_repr[u'name'] = dict_repr[u'id_string']
             survey = pyxform.builder.create_survey_element_from_dict(dict_repr)
             with tempfile.NamedTemporaryFile(suffix='.xml') as named_tmp:
@@ -258,6 +266,7 @@ class AssetExport(models.Model):
                 self.xml = named_tmp.read()
             summary.update({
                 u'default_name': default_name,
+                u'id_string': 'random',
                 u'default_language': default_language,
                 u'warnings': warnings,
             })
@@ -267,14 +276,28 @@ class AssetExport(models.Model):
                 u'error': unicode(e),
                 u'warnings': warnings,
             })
+        self.summary = summary
+
+    def _populate_uid(self):
+        if self.uid == '':
+            self.uid = self._generate_uid()
+
+    def _generate_uid(self):
+        return 'x' + ShortUUID().random(ASSET_UID_LENGTH -1)
+
+    def get_version(self):
+        if self.asset_version_id is None:
+            return None
+        return reversion.get_for_object(
+            self.asset).get(id=self.asset_version_id)
 
     def save(self, *args, **kwargs):
-        version = reversion.get_for_object(
-            self.asset).get(id=self.asset_version_id)
-        asset = version.object
-        self.source = asset.to_ss_structure()
-        self.generate_xml_from_source()
-        return super(AssetExport, self).save(*args, **kwargs)
+        version = self.get_version()
+        self._populate_uid()
+        if self.source is None:
+            self.source = version.object.to_ss_structure()
+        self.generate_xml_from_source(self.source)
+        return super(AssetSnapshot, self).save(*args, **kwargs)
 
 
 @receiver(models.signals.post_delete, sender=Asset)

@@ -1,0 +1,27 @@
+// bem.CollectionNav = bem('collection-nav');
+// bem.CollectionNav__search = bem.CollectionNav.__('search');
+// bem.CollectionNav__searchcriteria = bem.CollectionNav.__('searchcriteria');
+// bem.CollectionNav__actions = bem.CollectionNav.__('actions');
+
+.collection-nav {
+  @extend .row;
+}
+.collection-nav__search {
+
+}
+.collection-nav__searchcriteria {
+
+}
+.collection-nav__actions {
+
+}
+.collection-nav__action {
+
+}
+.collection-nav__link {
+  @extend .btn, .btn-default, .btn-block, .btn-sm;
+  > i:first-child {
+    @extend .fa, .fa-fw, .fa-plus;
+    margin-right: 12px;
+  }
+}

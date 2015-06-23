@@ -55,6 +55,24 @@ var dataInterface;
       }).fail(d.fail);
       return d.promise();
     },
+    createAssetSnapshot ({asset_uid}) {
+      return $ajax({
+        url: '/asset_snapshots/',
+        method: 'POST',
+        data: {
+          asset_uid: asset_uid
+        }
+      });
+    },
+    createTemporaryAssetSnapshot ({source}) {
+      return $ajax({
+        url: '/asset_snapshots/',
+        method: 'POST',
+        data: {
+          source: source
+        }
+      })
+    },
     removePerm (permUrl) {
       return $ajax({
         method: 'DELETE',
@@ -140,13 +158,17 @@ var dataInterface;
         return $.getJSON(`/collections/${params.id}/`);
       }
     },
-    deployAsset ({uid}) {
+    deployAsset (asset_url, xform_id_string) {
+      var data = {
+        'asset': asset_url,
+      };
+      if (xform_id_string) {
+        data.xform_id_string = xform_id_string;
+      }
       return $ajax({
         method: 'POST',
         url: '/deployments/',
-        data: {
-          'asset[uid]': uid
-        }
+        data: data
       });
     },
     postCreateBase64EncodedAsset (contents) {

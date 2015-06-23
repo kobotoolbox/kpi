@@ -14,6 +14,7 @@ import reversion
 from django.utils.six.moves.urllib import parse as urlparse
 
 from .models import Asset
+from .models import AssetSnapshot
 from .models import AssetDeployment
 from .models import Collection
 from .models import ImportTask
@@ -205,6 +206,38 @@ class AncestorCollectionsSerializer(serializers.HyperlinkedModelSerializer):
         model = Collection
         fields = ('name', 'uid', 'url')
 
+
+class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        lookup_field='uid', view_name='assetsnapshot-detail')
+    xml = serializers.HyperlinkedIdentityField(
+        lookup_field='uid', view_name='assetsnapshot-xml')
+    details = WritableJSONField(required=False)
+    asset = serializers.HyperlinkedRelatedField(queryset=Asset.objects.none(), view_name='asset-detail',
+                                                lookup_field='uid',
+                                                required=False,
+                                                )
+    owner = serializers.HyperlinkedRelatedField(view_name='user-detail',
+                                                lookup_field='username',
+                                                read_only=True)
+    asset_version_id = serializers.IntegerField(required=False)
+    date_created = serializers.DateTimeField(read_only=True)
+    source = WritableJSONField(required=False)
+
+    class Meta:
+        model = AssetSnapshot
+        lookup_field = 'uid'
+        fields = ('xml',
+                  'source',
+                  'details',
+                  'uid',
+                  'url',
+                  'owner',
+                  'asset',
+                  'asset_version_id',
+                  'date_created',
+                  )
+
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username',
                                                 read_only=True,)
@@ -213,6 +246,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         lookup_field='uid', view_name='asset-detail')
     asset_type = serializers.ReadOnlyField()
     settings = WritableJSONField(required=False)
+    content = WritableJSONField(required=False)
     xls_link = serializers.SerializerMethodField()
     summary = serializers.ReadOnlyField()
     koboform_link = serializers.SerializerMethodField()
@@ -247,6 +281,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'summary',
                   'date_modified',
                   'version_count',
+                  'content',
                   'downloads',
                   'embeds',
                   'koboform_link',
@@ -341,6 +376,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
+    xform_id_string = serializers.CharField(required=False)
+
     def create(self, validated_data):
         user = self.context['request'].user
         if user.is_anonymous():
@@ -349,7 +386,7 @@ class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
         asset = validated_data['asset']
         xform_id_string = ''
         if 'xform_id_string' in validated_data:
-            xform_id_string = validated_data['xform_id_string']
+            xform_id_string = validated_data.get('xform_id_string')
         if not len(xform_id_string):
             # If no id string was provided, use a punctuation-free timestamp
             xform_id_string = datetime.datetime.utcnow().strftime(

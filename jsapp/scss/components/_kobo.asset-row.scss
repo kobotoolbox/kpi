@@ -1,24 +1,58 @@
+$celllink_hovercolor: #f7f7f7;
+$celllink_hoverbg: #356A8E;
+$assetRowTextColor: #888;
+
+.collection-asset-list.list-group {
+  display: table;
+}
 .asset-row {
-  @extend .clearfix;
+  display: table-row;
   // transition: all 0.3s ease 0s;
+  // @extend .clearfix;
   list-style-type: none;
   border-bottom: 1px solid #ddd;
   cursor: pointer;
   padding: 0;
-  a:not(.asset-row__action-icon) {
-    display: block;
-    background-color: #fff;
-    color: #888;
+  > a {
+    display: table-cell;
+  }
+  a {
+    padding: 5px;
+    text-decoration: none;
+    color: $assetRowTextColor;
     &:hover {
-      background-color: #E8FAE7;
       text-decoration: none;
+    }
+    &.asset-row__action-icon {
+      display: inline-block;
+      padding: 0;
     }
   }
 }
+
+
+.asset-row__tags {
+  > i:first-child {
+    @extend .fa, .fa-fw, .fa-tag;
+    margin-right: 6px;
+    opacity: 0.5;
+  }
+}
+.asset-row__tags__tag {
+  color: #bababa;
+  margin-right: 3px;
+  &:after {
+    content: ',';
+  }
+  &:last-child:after {
+    content: '';
+  }
+}
 .asset-row--selected {
+  padding: 8px 0 12px;
   background-color: $highlightedBarColor;
   a, a:hover {
-    background-color: $highlightedBarColor;
+    background-color: transparent;
   }
 }
 .asset-row--deleted {
@@ -121,10 +155,28 @@
 $colcount: 4;
 $colwidth: (100% / $colcount) - 1%;
 %rowcell {
+  display: table-cell;
   width: $colwidth;
-  float: left;
+
   margin-left: 1%;
   padding: 4px 2px;
+}
+.asset-row__celllink {
+  @extend %rowcell;
+  .asset-row--selected & {
+    &.asset-row__celllink--name {
+      color: $celllink_hovercolor;
+      background-color: $celllink_hoverbg;
+      &:hover {
+        color: lighten($celllink_hovercolor, 5%);
+        background-color: lighten($celllink_hoverbg, 5%);
+      }
+    }
+    cursor: pointer;
+  }
+  &.asset-row__celllink--named {
+    font-weight: bold;
+  }
 }
 // consider extending .col-md-3, etc.
 .asset-row__cell {
@@ -134,34 +186,92 @@ $colwidth: (100% / $colcount) - 1%;
   &.asset-row__cell--icon {
     width: 1%;
     @extend %inner-fa-icon;
+    .asset-row--selected & {
+      background-color: $celllink_hoverbg;
+      color: $celllink_hovercolor;
+    }
 
     &.asset-row__cell--assettype-empty {
       @include action-faicon('lemon-o');
-      opacity: 0.5;
+      > i {
+        @extend .fa-spin;
+      }
+      opacity: 0.8;
+    }
+    &.asset-row__cell--assettype-question {
+      @include action-faicon('circle-o');
+    }
+    &.asset-row__cell--assettype-block {
+      @include action-faicon('square');
     }
     &.asset-row__cell--assettype-survey {
-      @include action-faicon('fighter-jet');
+      @include action-faicon('file');
     }
     // &.asset-row__cell--kind-asset {
     //  @include action-faicon('file-o');
     // }
-    // &.asset-row__cell--kind-collection {
-    //   @include action-faicon('folder');
-    // }
+    &.asset-row__cell--kind-collection {
+      @include action-faicon('folder-o');
+    }
   }
   &.asset-row__cell--userlink {
-    width: 19%;
+    width: 12%;
+  }
+  &.asset-row__cell--deploy-button {
+    width: 6%;
+
+    i {
+      @extend .fa, .fa-fw, .fa-play;
+    }
+    button {
+      @extend .btn;
+    }
+    .asset-row:not(.asset-row--selected) & {
+      button {
+        @extend .btn-default;
+        @extend .disabled;
+      }
+    }
+    .asset-row--selected & {
+      button {
+        opacity: 1;
+        @extend .btn-success;
+      }
+    }
   }
   &.asset-row__cell--date-modified {
     width: 14%;
+    color: #aaa;
   }
   &.asset-row__cell--name {
     width: 37%;
     overflow: hidden;
     text-overflow: ellipsis;
+    // &.asset-row__cell--titled {
+    //   a {
+    //     font-weight: bold;
+    //   }
+    // }
   }
 }
 
+.asset-row__celllink--name {
+  // .asset-row--selected & {
+  //   a {
+  //     border: 1px solid mix($highlightedBarColor, lighten($kcol-view, 15%), 60%);
+  //     background-color: mix($highlightedBarColor, lighten($kcol-view, 25%), 90%);
+  //     border-radius: 6px;
+  //     cursor: pointer;
+  //     color: mix($assetRowTextColor, darken($kcol-view, 5%), 50%);
+  //     text-decoration: none;
+  //     &:hover {
+  //       border-color: mix($highlightedBarColor, darken($kcol-view, 15%), 60%);
+  //       color: mix($assetRowTextColor, darken($kcol-view, 5%), 50%);
+  //       background-color: mix($highlightedBarColor, lighten($kcol-view, 25%), 80%);
+  //     }
+  //   }
+  // }
+}
 .asset-row__cell--action-icons {
   text-align: right;
 }
