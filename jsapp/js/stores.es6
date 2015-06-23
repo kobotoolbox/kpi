@@ -273,7 +273,6 @@ var assetStore = Reflux.createStore({
       throw new Error('no uid found in response');
     }
     this.data[resp.uid] = this.parsed(resp);
-    log(this.data[resp.uid]);
     this.noteRelatedUsers(resp);
     this.trigger(this.data, resp.uid);
   }
@@ -350,9 +349,9 @@ var allAssetsStore = Reflux.createStore({
     this.listenTo(actions.resources.listAssets.failed, this.onListAssetsFailed);
     this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
     this.listenTo(actions.resources.createAsset.completed, this.onCreateAssetCompleted);
-
   },
   onCreateAssetCompleted (asset) {
+    this.registerAssetOrCollection(asset);
     this.byUid[asset.uid] = asset;
     this.data.unshift(asset);
     this.trigger(this.data);
@@ -371,6 +370,7 @@ var allAssetsStore = Reflux.createStore({
     }, 500);
   },
   registerAssetOrCollection (asset) {
+    asset.tags = asset.tag_string.split(',').filter((tg) => { return tg.length > 1; })
     this.byUid[asset.uid] = asset;
   },
   onListAssetsCompleted: function(resp, req, jqxhr) {
