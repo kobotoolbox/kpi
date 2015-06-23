@@ -134,6 +134,8 @@ djcelery.setup_loader()
 
 LIVERELOAD_SCRIPT = os.environ.get('LIVERELOAD_SCRIPT', False)
 
+KOBOCAT_URL = os.environ.get('KOBOCAT_URL', False)
+
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
