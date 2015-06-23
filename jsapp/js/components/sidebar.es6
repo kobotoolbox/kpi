@@ -213,12 +213,13 @@ var Sidebar = React.createClass({
             <hr />
             <SidebarTitle label={t('drafts in progress')} />
             <SidebarLink label={t('forms')} linkto='forms' fa-icon="files-o" />
-            { this.state.showRecent && this.state.sidebarIsOpen ?
+            {/* this.state.showRecent && this.state.sidebarIsOpen ?
               <div>
                 <SidebarLink label={t('recent')} onClick={this.toggleRecent} fa-icon="clock-o" />
                 <RecentHistory />
               </div>
-            : null}
+            : null
+            */}
             <SidebarTitle label={t('deployed projects')} />
             { stores.session.currentAccount ?
                 <SidebarLink label={t('projects')} active='true' href={stores.session.currentAccount.projects_url} fa-icon="globe" />
