@@ -127,7 +127,7 @@ module.exports = function(grunt) {
         options: {
           livereload: true,
         },
-        tasks: ['browserify'],
+        tasks: ['browserify', 'string-replace:fixreqjs'],
         interrupt: true,
         files: [
           './jsapp/js/**/*.es6',
