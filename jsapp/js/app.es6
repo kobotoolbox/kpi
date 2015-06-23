@@ -1805,7 +1805,7 @@ var FormSharing = React.createClass({
             &nbsp;
             <StackedIcon frontIcon='user' />
             &nbsp;
-            <UserProfileLink username={'tinok4'} />
+            <UserProfileLink username={this.state.asset.owner__username} />
           </ui.Panel>
           <ui.Panel className="k-div--sharing2">
             <form onSubmit={this.addInitialUserPermission}>
