@@ -24,15 +24,15 @@
   @extend .btn-success;
 }
 
-$kcol-view: #7B1FA2;
-$kcol-edit: #009688;
-$kcol-preview: #FFC107;
-$kcol-clone: #2196F3;
-$kcol-delete: #FF5722;
-$kcol-download: #4CAF50;
-$kcol-7: #FF4081;
-$kcol-8: #00BCD4;
-$kcol-deploy: #4CAF50;
+// $kcol-view: #7B1FA2;
+// $kcol-edit: #009688;
+// $kcol-preview: #FFC107;
+// $kcol-clone: #2196F3;
+// $kcol-delete: #FF5722;
+// $kcol-download: #4CAF50;
+// $kcol-7: #FF4081;
+// $kcol-8: #00BCD4;
+// $kcol-deploy: #4CAF50;
 
 @mixin headerbutton($col) {
   &:not(.collection-header__button--disabled) {

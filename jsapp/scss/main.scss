@@ -16,16 +16,26 @@ $highlightedBarColor: #F5F8FA;
 $saveNeededColor: #9c27b0;
 $assetCornerIconWidth: 45px;
 
-$kcol-view: #7B1FA2;
-$kcol-edit: #009688;
-$kcol-preview: #FFC107;
-$kcol-clone: #2196F3;
-$kcol-delete: #FF5722;
-$kcol-download: #4CAF50;
-$kcol-7: #FF4081;
-$kcol-8: #00BCD4;
+// $kcol-view: #7B1FA2;
+// $kcol-edit: #009688;
+// $kcol-preview: #FFC107;
+// $kcol-clone: #2196F3;
+// $kcol-delete: #FF5722;
+// $kcol-download: #4CAF50;
+// $kcol-7: #FF4081;
+// $kcol-8: #00BCD4;
+// $newformButtonColor: #2196F3;
 
-$newformButtonColor: #2196F3;
+$kcol-view: mix(#7B1FA2, grayscale(#7B1FA2), 38%);
+$kcol-edit: mix(#009688, grayscale(#009688), 38%);
+$kcol-preview: mix(#FFC107, grayscale(#FFC107), 38%);
+$kcol-clone: mix(#2196F3, grayscale(#2196F3), 38%);
+$kcol-delete: mix(#FF5722, grayscale(#FF5722), 38%);
+$kcol-download: mix(#4CAF50, grayscale(#4CAF50), 38%);
+$kcol-7: mix(#FF4081, grayscale(#FF4081), 38%);
+$kcol-8: mix(#00BCD4, grayscale(#00BCD4), 38%);
+$newformButtonColor: mix(#2196F3, grayscale(#2196F3), 38%);
+
 $newformCircleWidthHeight: 55px;
 
 @import '../xlform/components/font-awesome/scss/font-awesome';
