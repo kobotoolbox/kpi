@@ -1,5 +1,5 @@
 import {dataInterface} from './dataInterface';
-import {log, t} from './utils';
+import {log, t, notify} from './utils';
 
 var Reflux = require('reflux');
 
@@ -218,6 +218,10 @@ actions.resources.createAsset.listen(function(contents){
   }
 });
 
+actions.resources.createAsset.completed.listen(function(contents){
+  notify(t("successfully created"))
+})
+
 actions.resources.createResource.failed.listen(function(){
   log('createResourceFailed');
 });
@@ -269,7 +273,10 @@ actions.resources.readCollection.listen(function(details){
 })
 actions.resources.cloneAsset.listen(function(details){
   dataInterface.cloneAsset(details)
-    .done(actions.resources.cloneAsset.completed)
+    .done(function(...args){
+      actions.resources.createAsset.completed(...args)
+      actions.resources.cloneAsset.completed(...args)
+    })
     .fail(actions.resources.cloneAsset.failed);
 });
 

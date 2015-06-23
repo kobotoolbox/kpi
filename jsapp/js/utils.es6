@@ -1,4 +1,5 @@
 import moment from 'moment';
+import alertify from 'alertifyjs';
 
 export function notify(msg, atype='success') {
   alertify.notify(msg, atype);

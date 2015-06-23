@@ -73,21 +73,21 @@ var dataInterface;
         }
       })
     },
-    cloneAsset ({asset_uid}) {
+    cloneAsset ({uid}) {
       return $ajax({
         method: 'POST',
         url: '/assets/',
         data: {
-          clone_from: asset_uid
+          clone_from: uid
         }
       });
     },
-    cloneCollection ({collection_uid}) {
+    cloneCollection ({uid}) {
       return $ajax({
         method: 'POST',
         url: '/collections/',
         data: {
-          clone_from: collection_uid
+          clone_from: uid
         }
       });
     },

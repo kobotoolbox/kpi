@@ -256,6 +256,12 @@ mixins.collectionState = {
   },
   componentDidMount () {
     stores.pageState.setTopPanel(60, true);
+    this.listenTo(stores.selectedAsset, this.onSelectedAssetChange);
+  },
+  onSelectedAssetChange () {
+    this.setState({
+      selectedAsset: stores.selectedAsset.asset
+    });
   },
   click: {
     collection: {
@@ -1551,6 +1557,7 @@ var CollectionList = React.createClass({
   mixins: [
     mixins.collectionState,
     Navigation,
+    Reflux.ListenerMixin,
     Reflux.connectFilter(collectionAssetsStore, function(data){
       if (data.uid === this.props.params.uid) {
         return {
@@ -2226,6 +2233,7 @@ var FormList = React.createClass({
     mixins.droppable,
     Navigation,
     mixins.collectionState,
+    Reflux.ListenerMixin,
     Reflux.connect(stores.allAssets, "results")
   ],
   statics: {
