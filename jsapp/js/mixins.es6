@@ -18,10 +18,13 @@ var dmix = {
     block: {
       renderTypeHeader () {
         return (
-            <bem.AssetView__assettype m={'type-block'}>
-              <i />
-              {t('reusable question block')}
-            </bem.AssetView__assettype>
+            <bem.AssetView__assetTypeWrap m={'type-block'}>
+              <bem.AssetView__assetType>
+                <i />
+                {t('reusable question block')}
+              </bem.AssetView__assetType>
+              <hr />
+            </bem.AssetView__assetTypeWrap>
           );
       },
       innerRender: function () {
@@ -47,10 +50,13 @@ var dmix = {
     question: {
       renderTypeHeader () {
         return (
-            <bem.AssetView__assettype m={'type-question'}>
-              <i />
-              {t('reusable question')}
-            </bem.AssetView__assettype>
+            <bem.AssetView__assetTypeWrap m={'type-question'}>
+              <bem.AssetView__assetType>
+                <i />
+                {t('reusable question')}
+              </bem.AssetView__assetType>
+              <hr />
+            </bem.AssetView__assetTypeWrap>
           );
       },
       innerRender: function () {
@@ -76,10 +82,13 @@ var dmix = {
     survey: {
       renderTypeHeader () {
         return (
-              <bem.AssetView__assettype m={'type-survey'}>
+            <bem.AssetView__assetTypeWrap m={'type-survey'}>
+              <bem.AssetView__assetType>
                 <i />
                 {t('survey')}
-              </bem.AssetView__assettype>
+              </bem.AssetView__assetType>
+              <hr />
+            </bem.AssetView__assetTypeWrap>
             );
       },
       innerRender: function () {
@@ -171,6 +180,10 @@ var dmix = {
             <bem.AssetView__span m="can-view">
               {viewerCount} {t('can view')}
             </bem.AssetView__span>
+            <bem.AssetView__link m="sharing" href={this.makeHref('form-sharing', {assetid: this.state.uid})}>
+              <i />
+              {t('sharing')}
+            </bem.AssetView__link>
           </bem.AssetView__col>
         </bem.AssetView__users>
       );
@@ -258,9 +271,7 @@ var dmix = {
       );
   },
   deployAsset () {
-    var form_id_string = prompt('form id string');
-    log('deploy asset ', this.state.uid, form_id_string);
-    actions.resources.deployAsset(this.state.uid, form_id_string);
+    actions.resources.deployAsset(this.state.url);
   },
   renderDeployments () {
     return (

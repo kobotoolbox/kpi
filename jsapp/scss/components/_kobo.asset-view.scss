@@ -72,13 +72,36 @@ $mult: 0.5;
   margin-right: 5%;
 }
 
+@mixin assetTypeHeader($col, $iconkls) {
+  color: $col;
+  border-bottom: 6px solid $col;
+  margin: -7px -7px 0;
+  hr {
+    display: none;
+  }
+  font-size: 16px;
+  .asset-view__asset-type {
+    @extend .container;
+    > i:first-child {
+      @extend .fa, .fa-fw, .fa-#{$iconkls};
+    }
+  }
+}
+.asset-view__asset-type-wrap {
+  &.asset-view__asset-type-wrap--type-survey {
+    @include assetTypeHeader($kcol-clone, 'file');
+  }
+  &.asset-view__asset-type-wrap--type-question {
+    @include assetTypeHeader($kcol-7, 'circle-o');
+  }
+  &.asset-view__asset-type-wrap--type-block {
+    @include assetTypeHeader($kcol-8, 'square-o');
+  }
+}
 .asset-view__asset-type {
   text-transform: uppercase;
-  color: #aaa;
   line-height: 10px;
   font-weight: bold;
-  border-bottom: 6px solid #ddd;
-  margin: -7px -7px 0;
   padding-top: 7px;
   padding-left: 4px;
   > i:first-child {
@@ -111,14 +134,15 @@ $mult: 0.5;
   }
 }
 .asset-view__name {
+  font-size: 22px;
   padding: 4px 0 8px;
-  &.asset-view__name--named {
-    font-weight: bold;
-  }
   &.asset-view__name--untitled {
     font-style: italic;
     color: #bbb;
   }
+  // &.asset-view__name--named {
+  //   font-weight: bold;
+  // }
 }
 .asset-view__times {
   @extend %has-icon-col;
@@ -216,7 +240,7 @@ $mult: 0.5;
   }
 }
 .asset-view__button, .asset-view__link {
-  @extend .btn, .btn-block;
+  @extend .btn, .btn-block, .btn-default;
   // &.asset-view__button--disabled, &.asset-view__link--disabled {
   //   opacity: 0.3;
   //   @extend %disabled-button;
@@ -237,6 +261,10 @@ $mult: 0.5;
     @include disableablelink($kcol-8);
     @include action-faicon('upload');
   }
+}
+.asset-view__link--sharing {
+  display: inline;
+  @include action-faicon('users');
 }
 .asset-view__deployments {
   @extend .col-md-12;

@@ -73,12 +73,9 @@ mixins.taggedAsset = {
   },
   renderTaggedAssetTags () {
     return (
-        <bem.AssetView__tags>
-          <i />
-          <div>
-            <TagsInput ref="tags" classNamespace="k" valueLink={this.linkTagState()} />
-          </div>
-        </bem.AssetView__tags>
+        <div>
+          <TagsInput ref="tags" classNamespace="k" valueLink={this.linkTagState()} />
+        </div>
       );
   }
 };
@@ -306,8 +303,8 @@ mixins.collectionState = {
       },
       deploy: function(uid, evt){
         var asset_url = stores.selectedAsset.asset.url;
-        var form_id_string = prompt('form_id_string');
-        actions.resources.deployAsset(asset_url, form_id_string);
+        // var form_id_string = prompt('form_id_string');
+        actions.resources.deployAsset(asset_url);
       },
     }
   },
@@ -551,7 +548,6 @@ var LiLink = React.createClass({
   }
 });
 
-var assetContentStore = stores.assetContent;
 var assetStore = stores.asset;
 var sessionStore = stores.session;
 
@@ -877,7 +873,18 @@ var AssetRow = React.createClass({
                 data-asset-type={this.props.kind}
                 href={this.makeHref( hrefTo, hrefParams)}
               >
-            {this.props.name || t('no name')}
+            <bem.AssetRow__name>
+              {this.props.name || t('no name')}
+            </bem.AssetRow__name>
+            <bem.AssetRow__tags>
+              {
+                this.props.tags.length > 0 ?
+                  <i />
+              :null}
+              {this.props.tags.map((tag)=>{
+                return <bem.AssetRow__tags__tag>{tag}</bem.AssetRow__tags__tag>
+              })}
+            </bem.AssetRow__tags>
           </bem.AssetRow__celllink>
           <bem.AssetRow__cell m={'date-modified'}>
             <span className="date date--modified">{formatTime(this.props.date_modified)}</span>
@@ -1181,7 +1188,7 @@ var FormInput = React.createClass({
   render () {
     return (
         <div className="form-group">
-          <label for={this.props.id} className="col-lg-2 control-label">{this.props.label}</label>
+          <label htmlFor={this.props.id} className="col-lg-2 control-label">{this.props.label}</label>
           <div className="col-lg-10">
             <input type="text" className="form-control" id={this.props.id} placeholder={this.props.placeholder}
                   onChange={this.props.onChange} />
@@ -1195,7 +1202,7 @@ var FormCheckbox = React.createClass({
   render () {
     return (
         <div className="form-group">
-          <label for={this.props.name} className="col-lg-8 control-label">{this.props.label}</label>
+          <label htmlFor={this.props.name} className="col-lg-8 control-label">{this.props.label}</label>
           <div className="col-lg-4">
             <div className="checkbox">
               <label>
@@ -1218,17 +1225,17 @@ var FormSettingsEditor = React.createClass({
           <div className="row">
             <div className="col-md-6">
               {this.props.meta.map((mtype) => {
-                return <FormCheckbox for={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
+                return <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
               })}
             </div>
             <div className="col-md-6">
               {this.props.phoneMeta.map((mtype) => {
-                return <FormCheckbox for={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
+                return <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
               })}
             </div>
           </div>
           <div className="form-group">
-            <label for="select" className="col-lg-2 control-label">{t('form style')}</label>
+            <label htmlFor="select" className="col-lg-2 control-label">{t('form style')}</label>
             <div className="col-lg-10">
               <select className="form-control" onChange={this.props.onStyleChange} value={this.props.styleValue}>
                 <option value=''>{t('-none-')}</option>
@@ -1247,7 +1254,7 @@ var FormSettingsBox = React.createClass({
     var formId = this.props.survey.settings.get('form_id');
     return {
       formSettingsExpanded: false,
-      formId: formId,
+      xform_id_string: formId,
       meta: [],
       phoneMeta: [],
       styleValue: 'field-list'
@@ -1280,7 +1287,7 @@ var FormSettingsBox = React.createClass({
       this.props.survey.settings.set('form_id', value);
     }
     this.setState({
-      formId: this.props.survey.settings.get('form_id')
+      xform_id_string: this.props.survey.settings.get('form_id')
     })
   },
   updateState () {
@@ -1324,7 +1331,7 @@ var FormSettingsBox = React.createClass({
             &nbsp;&nbsp;
             <i className={expandIconKls} />
             &nbsp;&nbsp;
-            <span className="settings-preview">{t('form id')}: {this.state.formId}</span>
+            <span className="settings-preview">{t('form id')}: {this.state.xform_id_string}</span>
             <span className="settings-preview">{t('meta questions')}: {metaData}</span>
           </div>
           {this.state.formSettingsExpanded ?
@@ -1345,6 +1352,11 @@ var FormSettingsBox = React.createClass({
 
 function surveyToValidJson(survey) {
   var surveyDict = survey.toFlatJSON();
+  if ('settings' in surveyDict) {
+    log('has settings');
+  } else {
+    log('no settings');
+  }
   return JSON.stringify(surveyDict);
 }
 
@@ -1883,38 +1895,35 @@ var FormPage = React.createClass({
   assetStoreTriggered (data, uid, stateUpdates) {
     var s = data[uid],
       survey,
+      content,
       updates = {};
     if (stateUpdates) {
       assign(updates, stateUpdates);
     }
     if (s) {
+      content = s.content;
+
+      if (content) {
+        survey = dkobo_xlform.model.Survey.loadDict(content);
+        if (s.survey_name) {
+          survey.settings.set('form_title', this.state.survey_name);
+        }
+        window.setTimeout(( () => {
+          survey.settings.on('change', this.onSurveyChange);
+          survey.rows.on('change', this.onSurveyChange);
+          survey.rows.on('sort', this.onSurveyChange);
+        } ), 500);
+        assign(updates, {
+          survey: survey,
+          survey_loaded: true,
+          xform_id_string: survey.settings.get('form_id')
+        });
+      }
       assign(updates, {
         survey_name: s.name,
         asset: s
       });
       this.setState(updates);
-    }
-  },
-  assetContentStoreTriggered (data, uid) {
-    var s = data[uid],
-      survey;
-    if (s) {
-      survey = dkobo_xlform.model.Survey.loadDict(s.data);
-      var formId = survey.settings.get('form_id')
-      if (this.state.survey_name) {
-        survey.settings.set('form_title', this.state.survey_name);
-      }
-      window._survey = survey;
-      window.setTimeout(( () => {
-        survey.settings.on('change', this.onSurveyChange);
-        survey.rows.on('change', this.onSurveyChange);
-        survey.rows.on('sort', this.onSurveyChange);
-      } ), 500);
-      this.setState({
-        survey: survey,
-        survey_loaded: true,
-        formId: formId
-      });
     }
   },
   componentDidMount () {
@@ -1926,7 +1935,6 @@ var FormPage = React.createClass({
     }
 
     this.listenTo(assetStore, this.assetStoreTriggered)
-    this.listenTo(assetContentStore, this.assetContentStoreTriggered);
     stores.pageState.setTopPanel(30, false);
     this._postLoadRenderMounted = false;
   },
@@ -1957,7 +1965,7 @@ var FormPage = React.createClass({
         transition.redirect('collection-page', {uid: params.assetid});
       } else {
         actions.resources.loadAsset({id: params.assetid});
-        actions.resources.loadAssetContent({id: params.assetid});
+        // actions.resources.loadAssetContent({id: params.assetid});
         callback();
       }
     }
@@ -1997,7 +2005,7 @@ var FormLanding = React.createClass({
       stores.pageState.setHeaderSearch(true);
       stores.pageState.setTopPanel(30, false);
       actions.resources.loadAsset({id: params.assetid});
-      actions.resources.loadAssetContent({id: params.assetid});
+      // actions.resources.loadAssetContent({id: params.assetid});
       callback();
     }
   },
@@ -2169,6 +2177,7 @@ var FormList = React.createClass({
             <input type="radio" name="formlist__search__type" id="formlist__search__type--3" value="type3" checked={this.state.searchRadio==='type3'} onChange={this.searchCriteriaChange} />
             {t('public')}
           </label>
+          {/*
           <div className="btn-group hidden">
             <a href="#" className="btn btn-default dropdown-toggle" data-toggle="dropdown">
               {t('type')}
@@ -2181,6 +2190,7 @@ var FormList = React.createClass({
               <li><a href="#"><Icon fa='folder-o' />collection</a></li>
              </ul>
           </div>
+          */}
         </bem.CollectionNav__searchcriteria>
       );
   },

@@ -117,6 +117,8 @@ define 'cs!xlform/model.survey', [
               }, list_item))
         obj.choices = flattened_choices
 
+      obj.settings = @settings.toCsvJson()
+
       if stringify
         JSON.stringify(obj, null, spaces)
       else

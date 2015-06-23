@@ -8,7 +8,11 @@ bem.PageWrapper__content = bem.PageWrapper.__('content');
 
 bem.AssetRow = BEM('asset-row', '<li>');
 bem.AssetRow__cell        = bem.AssetRow.__('cell');
+
 bem.AssetRow__celllink    = bem.AssetRow.__('celllink', '<a>');
+bem.AssetRow__name        = bem.AssetRow.__('name');
+bem.AssetRow__tags        = bem.AssetRow.__('tags');
+bem.AssetRow__tags__tag   = bem.AssetRow.__('tags__tag', '<span>');
 bem.AssetRow__actionIcon  = bem.AssetRow.__('action-icon', '<a>');
 bem.AssetRow__sharingIcon = bem.AssetRow.__('sharingIcon');
 bem.AssetRow__sharingIcon__owner =
@@ -51,7 +55,8 @@ bem.AssetView = BEM('asset-view');
 bem.AssetView__label = bem.AssetView.__('label', '<label>');
 bem.AssetView__content = bem.AssetView.__('content');
 bem.AssetView__value = bem.AssetView.__('value', '<span>');
-bem.AssetView__assettype = bem.AssetView.__('asset-type');
+bem.AssetView__assetTypeWrap = bem.AssetView.__('asset-type-wrap');
+bem.AssetView__assetType = bem.AssetView.__('asset-type');
 
 bem.AssetView__row = bem.AssetView.__('row');
 bem.AssetView__name = bem.AssetView.__('name');

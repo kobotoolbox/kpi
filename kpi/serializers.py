@@ -246,6 +246,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         lookup_field='uid', view_name='asset-detail')
     asset_type = serializers.ReadOnlyField()
     settings = WritableJSONField(required=False)
+    content = WritableJSONField(required=False)
     xls_link = serializers.SerializerMethodField()
     summary = serializers.ReadOnlyField()
     koboform_link = serializers.SerializerMethodField()
@@ -280,6 +281,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'summary',
                   'date_modified',
                   'version_count',
+                  'content',
                   'downloads',
                   'embeds',
                   'koboform_link',
@@ -374,6 +376,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
+    xform_id_string = serializers.CharField(required=False)
+
     def create(self, validated_data):
         user = self.context['request'].user
         if user.is_anonymous():
@@ -382,7 +386,7 @@ class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
         asset = validated_data['asset']
         xform_id_string = ''
         if 'xform_id_string' in validated_data:
-            xform_id_string = validated_data['xform_id_string']
+            xform_id_string = validated_data.get('xform_id_string')
         if not len(xform_id_string):
             # If no id string was provided, use a punctuation-free timestamp
             xform_id_string = datetime.datetime.utcnow().strftime(
