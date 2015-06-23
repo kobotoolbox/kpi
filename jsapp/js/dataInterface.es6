@@ -55,7 +55,7 @@ var dataInterface;
       }).fail(d.fail);
       return d.promise();
     },
-    createAssetExport ({asset_uid}) {
+    createAssetSnapshot ({asset_uid}) {
       return $ajax({
         url: '/asset_snapshots/',
         method: 'POST',
@@ -64,7 +64,7 @@ var dataInterface;
         }
       });
     },
-    createTemporaryAssetExport ({source}) {
+    createTemporaryAssetSnapshot ({source}) {
       return $ajax({
         url: '/asset_snapshots/',
         method: 'POST',
