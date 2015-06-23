@@ -73,6 +73,24 @@ var dataInterface;
         }
       })
     },
+    cloneAsset ({asset_uid}) {
+      return $ajax({
+        method: 'POST',
+        url: '/assets/',
+        data: {
+          clone_from: asset_uid
+        }
+      });
+    },
+    cloneCollection ({collection_uid}) {
+      return $ajax({
+        method: 'POST',
+        url: '/collections/',
+        data: {
+          clone_from: collection_uid
+        }
+      });
+    },
     removePerm (permUrl) {
       return $ajax({
         method: 'DELETE',
