@@ -36,6 +36,7 @@ from .models import (
     AssetDeployment,
     ObjectPermission,)
 from .models.object_permission import get_anonymous_user
+from .models.asset_deployment import kobocat_url
 from .permissions import (
     IsOwnerOrReadOnly,
     get_perm_name,
@@ -64,6 +65,7 @@ ASSET_CLONE_FIELDS= {'name', 'content', 'asset_type'}
 COLLECTION_CLONE_FIELDS= {'name'}
 
 
+
 @api_view(['GET'])
 def current_user(request):
     user = request.user
@@ -74,6 +76,7 @@ def current_user(request):
                          'first_name': user.first_name,
                          'last_name': user.last_name,
                          'email': user.email,
+                         'projects_url': kobocat_url('/'),
                          'is_superuser': user.is_superuser,
                          'gravatar': gravatar_url(user.email),
                          'is_staff': user.is_staff,

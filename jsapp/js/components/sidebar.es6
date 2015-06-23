@@ -220,7 +220,9 @@ var Sidebar = React.createClass({
               </div>
             : null}
             <SidebarTitle label={t('deployed projects')} />
-            <SidebarLink label={t('projects')} active='true' href={t('/')} fa-icon="globe" />
+            { stores.session.currentAccount ?
+                <SidebarLink label={t('projects')} active='true' href={stores.session.currentAccount.projects_url} fa-icon="globe" />
+            :null }
             <SidebarTitle label={t('account actions')} />
             { this.state.isLoggedIn ? 
               <SidebarLink label={t('logout')} onClick={this.logout} fa-icon="sign-out" />
