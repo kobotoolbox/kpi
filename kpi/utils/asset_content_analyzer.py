@@ -35,6 +35,7 @@ class AssetContentAnalyzer(object):
         for row in self.survey:
             if type(row) == dict:
                 _type = row.get('type')
+                _label = row.get('label')
                 if _type in GEO_TYPES:
                     geo = True
                 if isinstance(_type, dict):
@@ -47,6 +48,8 @@ class AssetContentAnalyzer(object):
                 if not re.match('^end', _type):
                     row_count += 1
                     types.add(_type)
+                if _label != None and len(_label) > 5:
+                    labels.append(_label)
                 keys = keys | set(row.keys())
 
         if row_count == 0:
@@ -62,6 +65,7 @@ class AssetContentAnalyzer(object):
             'row_count': row_count,
             'languages': self._get_languages_from_column_names(keys),
             'geo': geo,
+            'labels': labels[0:5],
             'columns': list(keys),
         }
         return summary
