@@ -83,6 +83,9 @@ define [
     # sorts groups and repeats into groups and repeats (recreates the structure)
     if o.survey
       o.survey = parseArr('survey', o.survey)
+    # settings is sometimes packaged as an array length=1
+    if o.settings and _.isArray(o.settings) and o.settings.length is 1
+      o.settings = o.settings[0]
     o
 
   inputParser.loadChoiceLists = (passedChoices, choices)->

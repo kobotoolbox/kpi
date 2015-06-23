@@ -1592,6 +1592,91 @@ var CollectionList = React.createClass({
   }
 });
 
+var FormDownload = React.createClass({
+  mixins: [
+    Navigation,
+    Reflux.ListenerMixin
+  ],
+  statics: {
+    willTransitionTo: function(transition, params, idk, callback) {
+      actions.resources.loadAsset({id: params.assetid});
+      callback();
+    }
+  },
+  componentDidMount () {
+    this.listenTo(assetStore, this.assetStoreTriggered)
+  },
+  getInitialState () {
+    return {
+      downloads: []
+    };
+  },
+  assetStoreTriggered (data, uid, stateUpdates) {
+    this.setState({
+      downloads: data[uid].downloads
+    })
+  },
+  render () {
+    return (
+        <ui.Panel>
+          <ul>
+            {
+              this.state.downloads.map(function(item){
+                return (
+                    <li>
+                      <a href={item.url}>
+                        {t(`download-format-${item.format}`)}
+                      </a>
+                    </li>
+                  );
+              })
+            }
+          </ul>
+        </ui.Panel>
+      );
+  }
+});
+
+var FormJson = React.createClass({
+  mixins: [
+    Navigation,
+    Reflux.ListenerMixin
+  ],
+  statics: {
+    willTransitionTo: function(transition, params, idk, callback) {
+      actions.resources.loadAsset({id: params.assetid});
+      callback();
+    }
+  },
+  componentDidMount () {
+    this.listenTo(assetStore, this.assetStoreTriggered)
+  },
+  assetStoreTriggered (data, uid, stateUpdates) {
+    this.setState({
+      assetcontent: data[uid].content
+    })
+  },
+  getInitialState () {
+    return {
+      assetcontent: false
+    }
+  },
+  render () {
+    return (
+        <ui.Panel>
+          <pre>
+            <code>
+              {this.state.assetcontent ? 
+                JSON.stringify(this.state.assetcontent, null, 4)
+              :null}
+            </code>
+          </pre>
+        </ui.Panel>
+      );
+  }
+})
+
+
 var FormSharing = React.createClass({
   mixins: [
     Navigation,
@@ -2410,7 +2495,8 @@ var routes = (
       </Route>
 
       <Route name="form-landing" path="/forms/:assetid">
-        <Route name="form-download" path="download" handler={FormLanding} />
+        <Route name="form-download" path="download" handler={FormDownload} />
+        <Route name="form-json" path="json" handler={FormJson} />
         <Route name="form-sharing" path="sharing" handler={FormSharing} />
         <Route name="form-preview-enketo" path="preview" handler={FormEnketoPreview} />
         <Route name='form-edit' path="edit" handler={FormPage} />
