@@ -69,27 +69,29 @@ class XlsExportable(object):
     def to_xls_io(self):
         import xlwt
         import StringIO
-
-        def _add_contents_to_sheet(sheet, contents):
-            cols = []
-            for row in contents:
-                for key in row.keys():
-                    if key not in cols:
-                        cols.append(key)
-            for ci, col in enumerate(cols):
-                sheet.write(0, ci, col)
-            for ri, row in enumerate(contents):
+        try:
+            def _add_contents_to_sheet(sheet, contents):
+                cols = []
+                for row in contents:
+                    for key in row.keys():
+                        if key not in cols:
+                            cols.append(key)
                 for ci, col in enumerate(cols):
-                    val = row.get(col, None)
-                    if val:
-                        sheet.write(ri +1, ci, val)
-        ss_dict = self.content
-        workbook = xlwt.Workbook()
-        for sheet_name in ss_dict.keys():
-            # pyxform.xls2json_backends adds "_header" items for each sheet....
-            if not re.match(r".*_header$", sheet_name):
-                cur_sheet = workbook.add_sheet(sheet_name)
-                _add_contents_to_sheet(cur_sheet, ss_dict[sheet_name])
+                    sheet.write(0, ci, col)
+                for ri, row in enumerate(contents):
+                    for ci, col in enumerate(cols):
+                        val = row.get(col, None)
+                        if val:
+                            sheet.write(ri +1, ci, val)
+            ss_dict = self.content
+            workbook = xlwt.Workbook()
+            for sheet_name in ss_dict.keys():
+                # pyxform.xls2json_backends adds "_header" items for each sheet....
+                if not re.match(r".*_header$", sheet_name):
+                    cur_sheet = workbook.add_sheet(sheet_name)
+                    _add_contents_to_sheet(cur_sheet, ss_dict[sheet_name])
+        except Exception as e:
+            raise type(e)("asset.content improperly formatted for XLS export: %s" % (e.message))
         string_io = StringIO.StringIO()
         workbook.save(string_io)
         string_io.seek(0)
@@ -191,8 +193,8 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
     @property
     def export(self):
         version_id = reversion.get_for_object(self).last().id
-        # AssetExport.objects.filter(asset=self).delete()
-        (model, _) = AssetExport.objects.get_or_create(asset=self,
+        # AssetSnapshot.objects.filter(asset=self).delete()
+        (model, _) = AssetSnapshot.objects.get_or_create(asset=self,
                                                        asset_version_id=version_id)
         return model
 
@@ -214,7 +216,7 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
         return u'{} ({})'.format(self.name, self.uid)
 
 
-class AssetExport(models.Model, XlsExportable):
+class AssetSnapshot(models.Model, XlsExportable):
 
     '''
     This model serves as a cache of the XML that was exported by the installed
@@ -225,7 +227,7 @@ class AssetExport(models.Model, XlsExportable):
     xml = models.TextField()
     source = JSONField(null=True)
     details = JSONField(default={})
-    owner = models.ForeignKey('auth.User', related_name='asset_exports', null=True)
+    owner = models.ForeignKey('auth.User', related_name='asset_snapshots', null=True)
     asset = models.ForeignKey(Asset, null=True)
     asset_version_id = models.IntegerField(null=True)
     date_created = models.DateTimeField(auto_now_add=True)
@@ -236,7 +238,7 @@ class AssetExport(models.Model, XlsExportable):
         if 'asset' in kwargs and 'asset_version_id' not in kwargs:
             asset = kwargs.get('asset')
             kwargs['asset_version_id'] = reversion.get_for_object(asset).last().pk
-        return super(AssetExport, self).__init__(*args, **kwargs)
+        return super(AssetSnapshot, self).__init__(*args, **kwargs)
 
     def generate_xml_from_source(self, source):
         import pyxform
@@ -295,7 +297,7 @@ class AssetExport(models.Model, XlsExportable):
         if self.source is None:
             self.source = version.object.to_ss_structure()
         self.generate_xml_from_source(self.source)
-        return super(AssetExport, self).save(*args, **kwargs)
+        return super(AssetSnapshot, self).save(*args, **kwargs)
 
 
 @receiver(models.signals.post_delete, sender=Asset)

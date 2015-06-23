@@ -57,7 +57,7 @@ var dataInterface;
     },
     createAssetExport ({asset_uid}) {
       return $ajax({
-        url: '/asset_exports/',
+        url: '/asset_snapshots/',
         method: 'POST',
         data: {
           asset_uid: asset_uid
@@ -66,7 +66,7 @@ var dataInterface;
     },
     createTemporaryAssetExport ({source}) {
       return $ajax({
-        url: '/asset_exports/',
+        url: '/asset_snapshots/',
         method: 'POST',
         data: {
           source: source

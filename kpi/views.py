@@ -31,7 +31,7 @@ from .highlighters import highlight_xform
 from .models import (
     Collection,
     Asset,
-    AssetExport,
+    AssetSnapshot,
     ImportTask,
     AssetDeployment,
     ObjectPermission,)
@@ -48,7 +48,7 @@ from .renderers import (
     EnketoPreviewLinkRenderer,)
 from .serializers import (
     AssetSerializer, AssetListSerializer,
-    AssetExportSerializer,
+    AssetSnapshotSerializer,
     CollectionSerializer, CollectionListSerializer,
     UserSerializer, UserListSerializer,
     TagSerializer, TagListSerializer,
@@ -280,28 +280,28 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
             return Response(data, status.HTTP_201_CREATED)
 
 
-class AssetExportViewSet(viewsets.ModelViewSet):
-    serializer_class = AssetExportSerializer
+class AssetSnapshotViewSet(viewsets.ModelViewSet):
+    serializer_class = AssetSnapshotSerializer
     lookup_field = 'uid'
-    queryset = AssetExport.objects.none()
+    queryset = AssetSnapshot.objects.none()
     # permission_classes = (IsOwnerOrReadOnly,)
     def get_queryset(self):
         user = self.request.user
         if not user.is_anonymous():
-            return AssetExport.objects.filter(owner=user)
+            return AssetSnapshot.objects.filter(owner=user)
         else:
-            return AssetExport.objects.none()
+            return AssetSnapshot.objects.none()
 
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def xml(self, request, uid):
-        asset_export = self.get_object()
-        return Response(asset_export.xml)
+        asset_snapshot = self.get_object()
+        return Response(asset_snapshot.xml)
 
     def create(self, request, *args, **kwargs):
         raise NotImplementedError("need to figure out how to create these for survey previews")
         if 'asset_uid' in request.data:
             request.data['asset_id'] = Asset.objects.get(uid=request.data['asset_uid']).id
-        serializer = AssetExportSerializer(data=request.data)
+        serializer = AssetSnapshotSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)

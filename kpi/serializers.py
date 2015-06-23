@@ -14,7 +14,7 @@ import reversion
 from django.utils.six.moves.urllib import parse as urlparse
 
 from .models import Asset
-from .models import AssetExport
+from .models import AssetSnapshot
 from .models import AssetDeployment
 from .models import Collection
 from .models import ImportTask
@@ -207,11 +207,11 @@ class AncestorCollectionsSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('name', 'uid', 'url')
 
 
-class AssetExportSerializer(serializers.HyperlinkedModelSerializer):
+class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(
-        lookup_field='uid', view_name='assetexport-detail')
+        lookup_field='uid', view_name='assetsnapshot-detail')
     xml = serializers.HyperlinkedIdentityField(
-        lookup_field='uid', view_name='assetexport-xml')
+        lookup_field='uid', view_name='assetsnapshot-xml')
     details = WritableJSONField(required=False)
     asset = serializers.HyperlinkedRelatedField(queryset=Asset.objects.none(), view_name='asset-detail',
                                                 lookup_field='uid',
@@ -225,7 +225,7 @@ class AssetExportSerializer(serializers.HyperlinkedModelSerializer):
     source = WritableJSONField(required=False)
 
     class Meta:
-        model = AssetExport
+        model = AssetSnapshot
         lookup_field = 'uid'
         fields = ('xml',
                   'source',
