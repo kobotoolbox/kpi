@@ -77,7 +77,7 @@ def deploy_ref(deployment_name, ref):
     with cd(env.kpi_path):
         run("bower install")
         run("npm install")
-        run("grunt build")
+        run("grunt buildall")
 
         with kobo_workon(env.kpi_virtualenv_name):
             # KPI and KF share a virtualenv but have distinct settings modules
