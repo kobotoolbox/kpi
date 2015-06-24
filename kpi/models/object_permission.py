@@ -134,23 +134,10 @@ def get_anonymous_user():
             'ANONYMOUS_DEFAULT_USERNAME_VALUE',
             'AnonymousUser'
         )
-        permissions_to_assign = []
-        # Users must have both model-level and object-level permissions to
-        # satisfy DRF, so assign the anonymous user all allowed permissions at
-        # the model level
-        for p in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
-            app_label, codename = perm_parse(p)
-            permissions_to_assign.append(
-                Permission.objects.get(
-                    content_type__app_label=app_label,
-                    codename=codename
-                )
-            )
         user = User.objects.create(
             pk=settings.ANONYMOUS_USER_ID,
             username=username
         )
-        user.user_permissions = permissions_to_assign
     return user
 
 

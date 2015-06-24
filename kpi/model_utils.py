@@ -1,7 +1,23 @@
 import copy
 import re
+from django.db.models import Q
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import User, Permission
+from django.conf import settings
 from .models import Asset
 from .models import Collection
+from .models.object_permission import perm_parse
+
+'''
+This circular import will bite you if you don't import kpi.models before
+importing kpi.model_utils:
+  File "kpi/model_utils.py", line 6, in <module>
+    from .models import Asset
+  File "kpi/models/__init__.py", line 5, in <module>
+    from kpi.models.import_task import ImportTask
+  File "kpi/models/import_task.py", line 6, in <module>
+    from kpi.model_utils import create_assets
+'''
 
 TAG_RE = r'tag:(.*)'
 
@@ -36,3 +52,31 @@ def create_assets(kls, structure, **options):
         else:
             obj = Asset.objects.create(**structure)
     return obj
+
+def grant_all_model_level_perms(
+        user, models, permissions_manager=Permission.objects
+    ):
+    ''' Utility function that gives ``user`` unrestricted model-level access
+    to everything listed in ``models``. Without this, actions on individual
+    instances are immediately denied and object-level permissions are never
+    considered.
+    The ``permissions_manager`` argument is for use in data migrations.
+    '''
+    content_types = []
+    try:
+        for model in models:
+            content_types.append(ContentType.objects.get_for_model(model))
+    except TypeError:
+        # models is a single model, not an iterable
+        content_types.append(ContentType.objects.get_for_model(models))
+    permissions_to_assign = permissions_manager.filter(
+        content_type__in=content_types)
+    if user.pk == settings.ANONYMOUS_USER_ID:
+        # The user is anonymous, so pare down the permissions to only those
+        # that the configuration allows for anonymous users
+        q_query = Q()
+        for allowed_permission in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
+            app_label, codename = perm_parse(allowed_permission)
+            q_query |= Q(content_type__app_label=app_label, codename=codename)
+        permissions_to_assign = permissions_to_assign.filter(q_query)
+    user.user_permissions.add(*permissions_to_assign)
