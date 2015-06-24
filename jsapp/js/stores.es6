@@ -383,6 +383,15 @@ var allAssetsStore = Reflux.createStore({
 var selectedAssetStore = Reflux.createStore({
   init () {
     this.uid = false;
+    this.listenTo(actions.resources.createAsset.completed, this.onAssetCreated);
+  },
+  onAssetCreated (asset) {
+    this.uid = asset.uid;
+    this.asset = allAssetsStore.byUid[asset.uid];
+    if (!this.asset) {
+      console.error("selectedAssetStore error")
+    }
+    this.trigger(this.asset);
   },
   toggleSelect (uid) {
     if (this.uid === uid) {

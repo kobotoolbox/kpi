@@ -5,17 +5,19 @@ from kpi.models import Asset
 from rest_framework.authtoken.models import Token
 from rest_framework import exceptions, status
 from pyxform.xls2json_backends import xls_to_dict
+from django.conf import settings
 import reversion
 import cStringIO
 import unicodecsv
+import requests
 import re
 
-import requests
-def kobocat_url(path, internal=False):
-    return "http://localhost:8001%s" % path
-
-
 UID_LENGTH = 22
+
+def kobocat_url(path, internal=False):
+    if settings.KOBOCAT_URL:
+        return ''.join([settings.KOBOCAT_URL, path])
+    return "/kobocat%s" % path
 
 def deploy_asset(user, asset, form_id):
     print "deploying asset '%s' for user '%s'" % (asset.name, user.username)
