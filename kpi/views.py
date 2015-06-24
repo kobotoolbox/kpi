@@ -448,10 +448,13 @@ class AssetViewSet(viewsets.ModelViewSet):
         ''' Manipulate the headers as appropriate for the requested format.
         See https://github.com/tomchristie/django-rest-framework/issues/1041#issuecomment-22709658.
         '''
-        if request.accepted_renderer.format == 'xls':
-            response[
-                'Content-Disposition'
-            ] = 'attachment; filename={}.xls'.format(self.get_object().uid)
+        # If the request fails at an early stage, e.g. the user has no
+        # model-level permissions, accepted_renderer won't be present.
+        if hasattr(request, 'accepted_renderer'):
+            if request.accepted_renderer.format == 'xls':
+                response[
+                    'Content-Disposition'
+                ] = 'attachment; filename={}.xls'.format(self.get_object().uid)
         return super(AssetViewSet, self).finalize_response(
             request, response, *args, **kwargs)
 
