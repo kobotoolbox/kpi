@@ -39,21 +39,6 @@ class Migration(migrations.Migration):
             bases=(ObjectPermissionMixin, models.Model),
         ),
         migrations.CreateModel(
-            name='AssetExport',
-            fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('xml', models.TextField()),
-                ('source', jsonfield.fields.JSONField(default=b'{}')),
-                ('details', jsonfield.fields.JSONField(default=b'{}')),
-                ('asset_version_id', models.IntegerField()),
-                ('date_created', models.DateTimeField(auto_now_add=True)),
-                ('asset', models.ForeignKey(to='kpi.Asset')),
-            ],
-            options={
-            },
-            bases=(models.Model,),
-        ),
-        migrations.CreateModel(
             name='Collection',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
