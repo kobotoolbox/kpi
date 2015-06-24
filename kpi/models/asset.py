@@ -12,6 +12,8 @@ import reversion
 
 from .object_permission import ObjectPermission, ObjectPermissionMixin
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
+from ..utils.kobo_to_xlsform import convert_any_kobo_features_to_xlsform_survey_structure
+
 
 
 ASSET_TYPES = [
@@ -66,6 +68,9 @@ class TagStringMixin:
 
 
 class XlsExportable(object):
+    def valid_xlsform_content(self):
+        return convert_any_kobo_features_to_xlsform_survey_structure(self.content)
+
     def to_xls_io(self):
         import xlwt
         import StringIO
@@ -83,7 +88,7 @@ class XlsExportable(object):
                         val = row.get(col, None)
                         if val:
                             sheet.write(ri +1, ci, val)
-            ss_dict = self.content
+            ss_dict = self.valid_xlsform_content()
             workbook = xlwt.Workbook()
             for sheet_name in ss_dict.keys():
                 # pyxform.xls2json_backends adds "_header" items for each sheet....
@@ -214,7 +219,6 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
 
     def __unicode__(self):
         return u'{} ({})'.format(self.name, self.uid)
-
 
 class AssetSnapshot(models.Model, XlsExportable):
 
