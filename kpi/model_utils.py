@@ -32,7 +32,7 @@ def _load_library_content(structure):
         del sub_lib_asset['library']
         row_tags = []
         for key, val in row.items():
-            if str(val).lower() in ['false', '0', 'no', 'n', '', 'none']:
+            if unicode(val).lower() in ['false', '0', 'no', 'n', '', 'none']:
                 continue
             if re.search(TAG_RE, key):
                 row_tags.append(re.match(TAG_RE, key).groups()[0])
