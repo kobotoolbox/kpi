@@ -15,6 +15,7 @@ window.BackboneValidation = require('backbone-validation');
 
 import React from 'react/addons';
 import Router from 'react-router';
+import Q from 'q';
 import Sidebar from './components/sidebar';
 import TagsInput from 'react-tagsinput';
 import classNames from 'classnames';
@@ -187,16 +188,28 @@ mixins.permissions = {
   }
 };
 
-mixins.collectionState = {
+mixins.collection = {
   getInitialState () {
     return {
       results: false
     }
   },
+  componentDidMount () {
+    stores.pageState.setState({
+      headerSearch: true,
+      assetNavPresent: false,
+      assetNavIsOpen: false,
+      bgTopPanelHeight: 60,
+      bgTopPanelFixed: true
+    });
+    this.initialAction();
+    this.addListeners();
+    this.listenTo(stores.selectedAsset, this.onSelectedAssetChange);
+  },
   onToggleSelect () {
     this.setState({
       selectOn: !this.state.selectOn
-    })
+    });
   },
   collectionSearchFieldValue () {
     return this.refs['formlist-search'].getDOMNode().value;
@@ -253,10 +266,6 @@ mixins.collectionState = {
         <RouteHandler />
       </ui.Panel>
     );
-  },
-  componentDidMount () {
-    stores.pageState.setTopPanel(60, true);
-    this.listenTo(stores.selectedAsset, this.onSelectedAssetChange);
   },
   onSelectedAssetChange () {
     this.setState({
@@ -321,7 +330,7 @@ mixins.collectionState = {
         disabled = data.disabled == "true",
         uid = this.state.results && stores.selectedAsset.uid,
         result;
-    var click = this.click || mixins.collectionState.click;
+    var click = this.click || mixins.collection.click;
 
     if (action === 'new') {
       result = this.click.asset.new.call(this);
@@ -572,41 +581,6 @@ var TagList = React.createClass({
   }
 });
 
-var DraggableResult = React.createClass({
-  dragEnd () {
-    log('drag end');
-  },
-  dragStart (evt) {
-    console.dir(evt);
-    log('drag start');
-  },
-  render () {
-    var draggableIcon = (function(){
-          return (
-              <span className='k-draggable'>
-                <span className='k-draggable-iconwrap'>
-                  <i className='fa fa-icon fa-th' />
-                </span>
-              </span>
-            )
-        })();
-
-    return (
-        <li className="library-asset-list__item questions__question"
-            draggable="true"
-            onDragEnd={this.dragEnd}
-            onDragStart={this.dragStart}
-            >
-          <div className="l-a__item__draggable" />
-          <div className="l-a__item__label questions__question__name">
-            {JSON.stringify(this.props.summary.labels ? this.props.summary.labels : this.props.summary)}
-          </div>
-          <div className="l-a__item__qtype question__type">{t(this.props.asset_type)}</div>
-        </li>
-      );
-  }
-})
-
 var AssetNavigator = React.createClass({
   mixins: [
     mixins.droppable,
@@ -667,58 +641,66 @@ var AssetNavigator = React.createClass({
     var contents;
     if (qresults && qresults.count > 0) {
       alItems = qresults.results;
-      return (<ul className="library-asset-list">
+      return (
+              <bem.LibList>
                 {qresults.results.map((item)=> {
-                  return <DraggableResult {...item} />;
+                  var modifiers = [
+                      item.asset_type
+                    ]
+                  var summ = item.summary;
+                  return (
+                      <bem.LibList__item m={modifiers}>
+                        <bem.LibList__dragbox />
+                        <div className="l-a__item__label questions__question__name">
+                          {JSON.stringify(summ.labels, null, 4)}
+                        </div>
+                        <div className="l-a__item__qtype question__type">{t(item.asset_type)}</div>
+                      </bem.LibList__item>
+                    );
                 })}
-              </ul>);
+              </bem.LibList>
+              );
     } else {
-      return (<ul className="library-asset-list">
-                <li>
-                  <i className='fa fa-spinner fa-spin' />
-                  &nbsp;&nbsp;
-                  {t('loading library assets...')}
-                </li>
-              </ul>);
+      return (
+              <bem.LibList m={'loading'}>
+                <bem.LibList__item m={'message'}>
+                  <i />
+                  {t('loading library assets')}
+                </bem.LibList__item>
+              </bem.LibList>
+              );
     }
   },
   renderSearchResults () {
-    var draggableIcon = function(){
-      return (
-          <span className='k-draggable'>
-            <span className='k-draggable-iconwrap'>
-              <i className='fa fa-icon fa-th' />
-            </span>
-          </span>
-        )
-    }
     var sr = this.state.searchResults;
-    var _icons;
     if (!sr || !('count' in sr)) {
       return this._displayAssetLibraryItems();
     } else if (sr.count === 0) {
-      return <p>{t('no search results found')}</p>
-    } else if (sr.count > 0) {
-      _icons = {
-        'asset': <i className='fa fa-file-o' />,
-        'collection': <i className='fa fa-folder-o' />,
-        'question': <i className='fa fa-question' />
-      };
       return (
-          <ul className="assetnav-search-results">
-            {sr.results.map(function(item){
-              return (
-                <li>
-                  {draggableIcon()}
-                  {_icons[item.kind] || _icons.question}
-                  &nbsp;
-                  {item.name}
-                </li>
-                );
-            })}
-          </ul>
+          <bem.LibList m={'empty'}>
+            <bem.LibList__item m={'message'}>
+              {t('no search results found')}
+            </bem.LibList__item>
+          </bem.LibList>
+        );
+    } else if (sr.count > 0) {
+      return (
+              <bem.LibList m={'search-results'}>
+                {sr.results.map((item)=> {
+                  var modifiers = [item.asset_type];
+                  var summ = item.summary;
+                  return (
+                      <bem.LibList__item m={modifiers}>
+                        <bem.LibList__dragbox />
+                        <div className="l-a__item__label questions__question__name">
+                          {JSON.stringify(summ.labels, null, 4)}
+                        </div>
+                        <div className="l-a__item__qtype question__type">{t(`type-${item.asset_type}`)}</div>
+                      </bem.LibList__item>
+                    );
+                })}
+              </bem.LibList>
         )
-      return <p>{t('no search results found')}</p>
     }
   },
   onTagClick () {
@@ -745,27 +727,23 @@ var AssetNavigator = React.createClass({
       return this.renderClosedContent();
     }
     return (
-        <div className={navKls}>
-          <div className="asset-navigator__header">
-            <div className="asset-navigator__logo" onClick={this.toggleOpen}>
-              <i className="fa fa-icon fa-book fa-2x" />
-            </div>
-            <div className="asset-navigator__search">
+        <bem.LibNav m={{
+              shrunk: this.state.assetNavIsOpen
+            }}>
+          <bem.LibNav__header>
+            <bem.LibNav__logo onClick={this.toggleOpen}>
+              <i />
+            </bem.LibNav__logo>
+            <bem.LibNav__search>
               <ui.SmallInputBox ref="navigatorSearchBox" placeholder={t('search library')} onKeyUp={this.liveSearch} />
-            </div>
+            </bem.LibNav__search>
             <TagList tags={this.state.tags} onTagClick={this.onTagClick} />
-          </div>
-          <div className="asset-navigator__content">
+          </bem.LibNav__header>
+          <bem.LibNav__content>
             {this.renderSearchResults()}
-          </div>
-          <div className="asset-navigator__footer">
-            <div className="btn-toolbar">
-              <div className="btn-group">
-
-              </div>
-            </div>
-          </div>
-        </div>
+          </bem.LibNav__content>
+          <bem.LibNav__footer />
+        </bem.LibNav>
       );
   }
 });
@@ -1555,7 +1533,7 @@ var NewForm = React.createClass({
 
 var CollectionList = React.createClass({
   mixins: [
-    mixins.collectionState,
+    mixins.collection,
     Navigation,
     Reflux.ListenerMixin,
     Reflux.connectFilter(collectionAssetsStore, function(data){
@@ -1567,13 +1545,24 @@ var CollectionList = React.createClass({
       }
     })
   ],
-  statics: {
-    willTransitionTo (transition, params, idk, callback) {
-      stores.pageState.setHeaderSearch(true);
-      stores.pageState.setTopPanel(60, true);
-      actions.resources.readCollection({uid: params.uid})
-      callback();
-    }
+  addListeners () {
+    this.listenTo(stores.allAssets, this.listenChange);
+  },
+  listenChange () {
+    log('listen change');
+  },
+  initialAction () {
+    return ()=> {
+      actions.resources.readCollection({uid: this.props.params.uid})
+    };
+  },
+  dropAction ({file, event}) {
+    actions.resources.createAsset({
+      base64Encoded: event.target.result,
+      name: file.name,
+      lastModified: file.lastModified,
+      contentType: file.type
+    });
   },
   _title () {
     return t('KoBo collection view');
@@ -2227,26 +2216,71 @@ var FormLanding = React.createClass({
 //   }
 // });
 
+var LibraryList = React.createClass({
+  mixins: [
+    mixins.droppable,
+    Navigation,
+    mixins.collection,
+    Reflux.ListenerMixin,
+    Reflux.connect(stores.allAssets, "results")
+  ],
+  addListeners () {
+    this.listenTo(stores.allAssets, this.listenChange);
+  },
+  listenChange () {
+    log('LibraryList listenChange');
+  },
+  initialAction () {
+    return actions.resources.listAssets;
+  },
+  dropAction ({file, event}) {
+    actions.resources.createAsset({
+      base64Encoded: event.target.result,
+      name: file.name,
+      lastModified: file.lastModified,
+      contentType: file.type
+    });
+  },
+  _title () {
+    return 'Library'
+  },
+  _renderFormsSearchRow () {
+    return;
+  },
+  _loadingMessage () {
+    return t('loading library...')
+  },
+
+});
 
 var FormList = React.createClass({
   mixins: [
     mixins.droppable,
     Navigation,
-    mixins.collectionState,
+    mixins.collection,
     Reflux.ListenerMixin,
     Reflux.connect(stores.allAssets, "results")
   ],
-  statics: {
-    willTransitionTo: function(transition, params, idk, callback) {
-      actions.resources.listAssets();
-      stores.pageState.setHeaderSearch(true);
-      stores.pageState.setTopPanel(60, true);
-      callback();
-    }
+  addListeners () {
+    this.listenTo(stores.allAssets, this.listenChange);
+  },
+  listenChange () {
+    log('listen change');
+  },
+  initialAction () {
+    return actions.resources.listAssets;
+  },
+  dropAction ({file, event}) {
+    actions.resources.createAsset({
+      base64Encoded: event.target.result,
+      name: file.name,
+      lastModified: file.lastModified,
+      contentType: file.type
+    });
   },
   searchCriteriaChange (evt) {
     this.setState({
-      searchRadio: 'type'+(Math.floor(Math.random()*3) ? 1:2)
+      searchRadio: 'type'+(Math.floor(Math.random()*3))
     })
   },
   _title () {
@@ -2490,10 +2524,12 @@ Demo.collection = React.createClass({
   render () {
     return this._createPanel()
   }
-})
+});
 
 var routes = (
   <Route name="home" path="/" handler={App}>
+    <Route name="library" handler={LibraryList}>
+    </Route>
 
     <Route name="forms" handler={Forms}>
       <Route name="new-form" path="new" handler={NewForm} />

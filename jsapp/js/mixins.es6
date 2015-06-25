@@ -174,6 +174,13 @@ var dmix = {
         <bem.AssetView__users>
           <bem.AssetView__iconwrap><i /></bem.AssetView__iconwrap>
           <bem.AssetView__col m="users">
+            <bem.AssetView__span m="owner">
+              <i />
+              {t('owner:')} {this.state.owner__username}
+            </bem.AssetView__span>
+            <bem.AssetView__span m="can-edit">
+              {editorCount} {t('can edit')}
+            </bem.AssetView__span>
             <bem.AssetView__span m="can-edit">
               {editorCount} {t('can edit')}
             </bem.AssetView__span>

@@ -213,6 +213,7 @@ var Sidebar = React.createClass({
             <hr />
             <SidebarTitle label={t('drafts in progress')} />
             <SidebarLink label={t('forms')} linkto='forms' fa-icon="files-o" />
+            <SidebarLink label={t('library')} linkto='library' fa-icon="book" />
             {/* this.state.showRecent && this.state.sidebarIsOpen ?
               <div>
                 <SidebarLink label={t('recent')} onClick={this.toggleRecent} fa-icon="clock-o" />

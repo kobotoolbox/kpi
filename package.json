@@ -29,6 +29,7 @@
     "jquery-ui": "^1.10.5",
     "jquery.scrollto": "^2.1.0",
     "moment": "^2.10.3",
+    "q": "^1.4.1",
     "react": "^0.13.3",
     "react-cookie": "^0.2.3",
     "react-document-title": "^1.0.2",

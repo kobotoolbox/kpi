@@ -18,6 +18,17 @@ bem.AssetRow__sharingIcon = bem.AssetRow.__('sharingIcon');
 bem.AssetRow__sharingIcon__owner =
                 bem.AssetRow__sharingIcon.__('owner', '<span>');
 
+bem.LibNav = BEM('asset-navigator');
+bem.LibNav__content = bem.LibNav.__('content');
+bem.LibNav__header = bem.LibNav.__('header');
+bem.LibNav__footer = bem.LibNav.__('footer');
+bem.LibNav__search = bem.LibNav.__('search');
+bem.LibNav__logo = bem.LibNav.__('logo');
+
+bem.LibList = BEM('lib-list', '<ul>')
+bem.LibList__item = bem.LibList.__('item', '<li>');
+bem.LibList__dragbox = bem.LibList.__('dragbox');
+
 bem.CollectionNav = bem('collection-nav');
 bem.CollectionNav__search = bem.CollectionNav.__('search');
 bem.CollectionNav__searchcriteria = bem.CollectionNav.__('searchcriteria');
@@ -67,7 +78,7 @@ bem.AssetView__ancestors = bem.AssetView.__('ancestors');
 bem.AssetView__iconwrap = bem.AssetView.__('iconwrap')
 bem.AssetView__times = bem.AssetView.__('times');
 bem.AssetView__col = bem.AssetView.__('col');
-bem.AssetView__span = bem.AssetView.__('span');
+bem.AssetView__span = bem.AssetView.__('span', '<span>');
 bem.AssetView__colsubtext = bem.AssetView.__('colsubtext');
 bem.AssetView__tags = bem.AssetView.__('tags');
 bem.AssetView__tags__tag = bem.AssetView__tags.__('tag', '<span>');

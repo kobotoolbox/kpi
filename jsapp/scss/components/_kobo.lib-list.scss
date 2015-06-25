@@ -1,3 +1,34 @@
 .lib-list {
   list-style-type: none;
+  padding: 0;
+}
+
+.lib-list__item {
+  border-bottom: 1px solid #ddd;
+  padding-left: 20px;
+  position: relative;
+}
+
+.lib-list__label {
+  padding: 5px;
+}
+
+.lib-list__qtype {
+  padding: 0 5px;
+  width: 25%;
+  font-size: smaller;
+  border-top: 1px solid #ddd;
+  border-right: 1px solid #ddd;
+  border-left: 1px solid #ddd;
+}
+
+.lib-list__dragbox {
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: 12px;
+  height: 12px;
+  margin-top: -8px;
+  background-color: #e8e8e8;
+  border-radius: 6px;
 }

@@ -219,6 +219,7 @@ $colwidth: (100% / $colcount) - 1%;
   }
   &.asset-row__cell--deploy-button {
     width: 6%;
+    text-align: right;
 
     i {
       @extend .fa, .fa-fw, .fa-play;

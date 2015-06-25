@@ -127,6 +127,13 @@ var pageStateStore = Reflux.createStore({
       sidebarIntentOpen: true
     }
   },
+  setState (chz) {
+    var changed = changes(this.state, chz);
+    if (changed) {
+      assign(this.state, changed);
+      this.trigger(changed);
+    }
+  },
   setTopPanel (height, isFixed) {
     var changed = changes(this.state, {
       bgTopPanelHeight: height,
