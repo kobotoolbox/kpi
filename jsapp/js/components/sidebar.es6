@@ -172,7 +172,6 @@ var Sidebar = React.createClass({
   },
   broadToggleIntent (evt) {
     evt.currentTarget == evt.target && this.props.toggleIntentOpen(evt)
-    log('broadToggleIntent');
     return;
   },
   renderAccountBar () {

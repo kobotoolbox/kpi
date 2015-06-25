@@ -84,6 +84,9 @@ $assetNavFooterHeight: 60px;
   .asset-navigator__header--deactivated & {
       background-color: rgba(255,255,255,0.2);
   }
+  > i:first-child {
+    @extend .fa, .fa-2x, .fa-book;
+  }
   width: 60px;
   height: 60px;
   position: absolute;
