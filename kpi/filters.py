@@ -64,7 +64,7 @@ class SearchFilter(filters.BaseFilterBackend):
             queryset.model).fields
         for k, v in request.GET.iteritems():
             if k == 'q':
-                # 'q' as shorthand for 'document'; this is a full-text search
+                # 'q' means do a full-text search of the document fields
                 search_queryset = search_queryset.filter(content=AutoQuery(v))
                 is_search = True
             else:
