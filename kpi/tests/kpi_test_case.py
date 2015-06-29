@@ -25,6 +25,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
     fixtures = ['test_data']
 
     def log_in(self, username=None, password=None):
+        '''Log in, asserting success.'''
         kwargs= dict()
         if username and password:
             kwargs= {'username': username, 'password': password}
@@ -127,22 +128,15 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         if owner and owner_password:
             self.client.logout()
 
-    def add_perm(self, obj, owner, owner_password, other_user,
-                 other_user_password, perm_name_prefix):
+    def add_perm(self, obj, other_user, perm_name_prefix):
         '''
         Add a permission.
 
         :param obj: Object to manipulate permissions on.
         :type obj: :py:class:`Collection` or :py:class:`Asset`
-        :param owner: The owner of `obj`.
-        :type owner: :py:class:`User`
-        :param owner_password: The password for user 'owner'.
-        :type owner_password: str
         :param other_user: The user for whom permissions on `obj` will be
             manipulated.
         :type other_user: :py:class:`User`
-        :param other_user_password: The password for user `other_user`
-        :type other_user_password: str
         :param perm_name_prefix: The prefix of the permission to be used (i.e.
             "view_", "change_", or "delete_").
         :type perm_name_prefix: str

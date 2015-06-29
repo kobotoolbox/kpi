@@ -65,7 +65,6 @@ ASSET_CLONE_FIELDS= {'name', 'content', 'asset_type'}
 COLLECTION_CLONE_FIELDS= {'name'}
 
 
-
 @api_view(['GET'])
 def current_user(request):
     user = request.user
@@ -83,15 +82,18 @@ def current_user(request):
                          'last_login': user.last_login,
                          })
 
+
 class NoUpdateModelViewSet(
         # Inherit from everything that ModelViewSet does, except for
-        # UpdateModelMixin
-        mixins.CreateModelMixin,
-        mixins.RetrieveModelMixin,
-        mixins.DestroyModelMixin,
-        mixins.ListModelMixin,
-        viewsets.GenericViewSet
-    ): pass
+    # UpdateModelMixin
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    pass
+
 
 class ObjectPermissionViewSet(NoUpdateModelViewSet):
     queryset = ObjectPermission.objects.all()
@@ -193,6 +195,7 @@ class AssetDeploymentViewSet(NoUpdateModelViewSet):
         else:
             return AssetDeployment.objects.filter(user=self.request.user)
 
+
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
@@ -288,6 +291,7 @@ class AssetSnapshotViewSet(viewsets.ModelViewSet):
     lookup_field = 'uid'
     queryset = AssetSnapshot.objects.none()
     # permission_classes = (IsOwnerOrReadOnly,)
+
     def get_queryset(self):
         user = self.request.user
         if not user.is_anonymous():
@@ -310,7 +314,6 @@ class AssetSnapshotViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED,
                         headers=headers)
-
 
 
 class AssetViewSet(viewsets.ModelViewSet):
@@ -368,12 +371,15 @@ class AssetViewSet(viewsets.ModelViewSet):
             raise Http404
         else:
             # Copy the essential data from the original asset.
-            cloned_data= {keep_field: model_to_dict(original_asset)[keep_field]
+            original_data= model_to_dict(original_asset)
+            cloned_data= {keep_field: original_data[keep_field]
                           for keep_field in ASSET_CLONE_FIELDS}
             if original_asset.tag_string:
                 cloned_data['tag_string']= original_asset.tag_string
-            # Pull any additionally provided parameters/overrides from the
-            # request.
+            # TODO: Duplicate permissions if a user is cloning their own asset.
+#             if ('permissions' in original_data) and (self.request.user == original_asset.owner):
+#                 raise NotImplementedError
+            # Pull any additionally provided parameters/overrides from therequest.
             for param in self.request.data:
                 cloned_data[param]= self.request.data[param]
 
