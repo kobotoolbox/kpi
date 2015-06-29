@@ -60,8 +60,7 @@ class ApiPermissionsTestCase(KpiTestCase):
 
     def test_viewable_asset_in_asset_list(self):
         # Give "someuser" view permissions on an asset owned by "admin".
-        self.add_perm(self.admin_asset, self.admin, self.admin_password,
-                      self.someuser, self.someuser_password, 'view_')
+        self.add_perm(self.admin_asset, self.someuser, 'view_')
 
         # Test that "someuser" can now view the asset.
         self.assert_viewable(self.admin_asset, self.someuser,
@@ -81,8 +80,7 @@ class ApiPermissionsTestCase(KpiTestCase):
     def test_inherited_viewable_assets_in_asset_list(self):
         # Give "someuser" view permissions on a collection owned by "admin" and
         #   add an asset also owned by "admin" to that collection.
-        self.add_perm(self.admin_asset, self.admin, self.admin_password,
-                      self.someuser, self.someuser_password, 'view_')
+        self.add_perm(self.admin_asset, self.someuser, 'view_')
 
         self.add_to_collection(self.admin_asset, self.admin_collection,
                                self.admin, self.admin_password)
@@ -98,12 +96,10 @@ class ApiPermissionsTestCase(KpiTestCase):
                                self.admin, self.admin_password)
 
         # Give "someuser" view permission on 'child_collection'.
-        self.add_perm(self.child_collection, self.admin, self.admin_password,
-                      self.someuser, self.someuser_password, 'view_')
+        self.add_perm(self.child_collection, self.someuser, 'view_')
 
         # Give "someuser" view permission on the parent collection.
-        self.add_perm(self.admin_collection, self.admin, self.admin_password,
-                      self.someuser, self.someuser_password, 'view_')
+        self.add_perm(self.admin_collection, self.someuser, 'view_')
 
         # Revoke the view permissions of "someuser" on the parent collection.
         self.remove_perm(self.admin_collection, self.admin,
@@ -121,8 +117,7 @@ class ApiPermissionsTestCase(KpiTestCase):
                                self.admin, self.admin_password)
 
         # Give "someuser" view permission on the parent collection.
-        self.add_perm(self.admin_collection, self.admin, self.admin_password,
-                      self.someuser, self.someuser_password, 'view_')
+        self.add_perm(self.admin_collection, self.someuser, 'view_')
 
         # Revoke the view permissions of "someuser" on the child collection.
         self.remove_perm(self.child_collection, self.admin, self.admin_password,
@@ -134,8 +129,7 @@ class ApiPermissionsTestCase(KpiTestCase):
 
     def test_viewable_asset_not_deletable(self):
         # Give "someuser" view permissions on an asset owned by "admin".
-        self.add_perm(self.admin_asset, self.admin, self.admin_password,
-                      self.someuser, self.someuser_password, 'view_')
+        self.add_perm(self.admin_asset, self.someuser, 'view_')
 
         # Confirm that "someuser" is not allowed to delete the asset.
         delete_perm= self._get_perm_name('delete_', self.admin_asset)
@@ -151,8 +145,7 @@ class ApiPermissionsTestCase(KpiTestCase):
     def test_inherited_viewable_asset_not_deletable(self):
         # Give "someuser" view permissions on a collection owned by "admin" and
         #   add an asset also owned by "admin" to that collection.
-        self.add_perm(self.admin_asset, self.admin, self.admin_password,
-                      self.someuser, self.someuser_password, 'view_')
+        self.add_perm(self.admin_asset, self.someuser, 'view_')
         self.add_to_collection(self.admin_asset, self.admin_collection,
                                self.admin, self.admin_password)
 
@@ -175,8 +168,7 @@ class ApiPermissionsTestCase(KpiTestCase):
 
     def test_viewable_collection_in_collection_list(self):
         # Give "someuser" view permissions on a collection owned by "admin".
-        self.add_perm(self.admin_collection, self.admin, self.admin_password,
-                      self.someuser, self.someuser_password, 'view_')
+        self.add_perm(self.admin_collection, self.someuser, 'view_')
 
         # Test that "someuser" can now view the collection.
         self.assert_viewable(self.admin_collection, self.someuser,
@@ -195,8 +187,7 @@ class ApiPermissionsTestCase(KpiTestCase):
 
     def test_inherited_viewable_collections_in_collection_list(self):
         # Give "someuser" view permissions on the parent collection.
-        self.add_perm(self.admin_collection, self.admin, self.admin_password,
-                      self.someuser, self.someuser_password, 'view_')
+        self.add_perm(self.admin_collection, self.someuser, 'view_')
         # Test that "someuser" can now view the child collection.
         self.assert_viewable(self.child_collection, self.someuser,
                              self.someuser_password)
@@ -208,12 +199,10 @@ class ApiPermissionsTestCase(KpiTestCase):
                                self.admin, self.admin_password)
 
         # Give "someuser" view permission on 'child_collection'.
-        self.add_perm(self.child_collection, self.admin, self.admin_password,
-                      self.someuser, self.someuser_password, 'view_')
+        self.add_perm(self.child_collection, self.someuser, 'view_')
 
         # Give "someuser" view permission on the parent collection.
-        self.add_perm(self.admin_collection, self.admin, self.admin_password,
-                      self.someuser, self.someuser_password, 'view_')
+        self.add_perm(self.admin_collection, self.someuser, 'view_')
 
         # Revoke the view permissions of "someuser" on 'parent_collection'.
         self.remove_perm(self.admin_collection, self.admin,
@@ -231,8 +220,7 @@ class ApiPermissionsTestCase(KpiTestCase):
                                self.admin, self.admin_password)
 
         # Give "someuser" view permission on the parent collection.
-        self.add_perm(self.admin_collection, self.admin, self.admin_password,
-                      self.someuser, self.someuser_password, 'view_')
+        self.add_perm(self.admin_collection, self.someuser, 'view_')
 
         # Revoke the view permissions of "someuser" on the child collection.
         self.remove_perm(self.child_collection, self.admin,
@@ -245,8 +233,7 @@ class ApiPermissionsTestCase(KpiTestCase):
 
     def test_viewable_collection_not_deletable(self):
         # Give "someuser" view permissions on a collection owned by "admin".
-        self.add_perm(self.admin_collection, self.admin, self.admin_password,
-                      self.someuser, self.someuser_password, 'view_')
+        self.add_perm(self.admin_collection, self.someuser, 'view_')
 
         # Confirm that "someuser" is not allowed to delete the collection.
         delete_perm= self._get_perm_name('delete_', self.admin_collection)
@@ -263,8 +250,7 @@ class ApiPermissionsTestCase(KpiTestCase):
 
     def test_inherited_viewable_collection_not_deletable(self):
         # Give "someuser" view permissions on a collection owned by "admin".
-        self.add_perm(self.admin_collection, self.admin, self.admin_password,
-                      self.someuser, self.someuser_password, 'view_')
+        self.add_perm(self.admin_collection, self.someuser, 'view_')
 
         # Confirm that "someuser" is not allowed to delete the child collection.
         delete_perm= self._get_perm_name('delete_', self.child_collection)
