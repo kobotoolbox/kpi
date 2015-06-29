@@ -1,12 +1,15 @@
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.db.models import Q
+from django.core.exceptions import FieldError
 from rest_framework.compat import get_model_name
 from rest_framework import filters
 from haystack.query import SearchQuerySet
 from haystack.inputs import AutoQuery
 from haystack import connections
+import unicodecsv
+from cStringIO import StringIO
 from .models.object_permission import get_objects_for_user, get_anonymous_user
-from .search_indexes import DOUBLE_UNDERSCORE_MAP
 
 class KpiObjectPermissionsFilter(object):
     perm_format = '%(app_label)s.view_%(model_name)s'
@@ -37,24 +40,53 @@ class SearchFilter(filters.BaseFilterBackend):
     Filters objects by searching with Haystack if the the request includes a
     query.
     '''
+    def _apply_query_filter(self, queryset, field, and_values):
+        '''
+        ?key=this&key=that shall mean this AND that
+        ?key=this,that shall mean this OR that
+        '''
+        for and_value in and_values:
+            if ',' in and_value:
+                or_values = unicodecsv.reader(
+                    StringIO(and_value), encoding='utf-8').next()
+                q_query = Q()
+                for or_value in or_values:
+                    q_query |= Q(**{field: or_value})
+                queryset = queryset.filter(q_query)
+            else:
+                queryset = queryset.filter(**{field: and_value})
+        return queryset
+
     def filter_queryset(self, request, queryset, view):
         is_search = False
         search_queryset = SearchQuerySet().models(queryset.model)
         indexed_fields = connections['default'].get_unified_index().get_index(
             queryset.model).fields
         for k, v in request.GET.iteritems():
-            # We want to allow double underscores in the query string, e.g.
-            # `owner__username`, but they're forbidden as index field names.
-            # Use a lookup table to translate the double underscore names
-            # to allowed alternatives
-            k = DOUBLE_UNDERSCORE_MAP.get(k, k)
             if k == 'q':
-                # 'q' as shorthand for 'document'
+                # 'q' as shorthand for 'document'; this is a full-text search
                 search_queryset = search_queryset.filter(content=AutoQuery(v))
                 is_search = True
-            elif k in indexed_fields:
-                search_queryset = search_queryset.filter(**{k: AutoQuery(v)})
-                is_search = True
+            else:
+                # Try doing a regular database query
+                if k == 'tag':
+                    # 'tag' as shorthand for 'tags__name'
+                    special_k = 'tags__name'
+                else:
+                    special_k = k
+                try:
+                    queryset = self._apply_query_filter(
+                        queryset, special_k, request.GET.getlist(k))
+                except FieldError:
+                    # Invalid field for a database query; try the search engine
+                    if k in indexed_fields:
+                        search_queryset = search_queryset.filter(
+                            **{k: AutoQuery(v)})
+                        is_search = True
+                    else:
+                        # The field is hopelessly invalid.
+                        # TODO: Warn the client in some way?
+                        pass
         if not is_search:
             return queryset
         # TODO: Call highlight() on the SearchQuerySet and somehow pass the
