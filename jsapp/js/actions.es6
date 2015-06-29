@@ -227,9 +227,7 @@ actions.resources.createResource.failed.listen(function(){
 });
 
 actions.resources.generatePreview.listen(function(details){
-  dataInterface.createAssetSnapshot({
-    asset: details.asset
-  }).done(actions.resources.generatePreview.completed)
+  dataInterface.createAssetSnapshot(details).done(actions.resources.generatePreview.completed)
     .fail(actions.resources.generatePreview.failed);
 });
 

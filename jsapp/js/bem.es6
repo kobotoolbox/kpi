@@ -27,7 +27,9 @@ bem.LibNav__logo = bem.LibNav.__('logo');
 
 bem.LibList = BEM('lib-list', '<ul>')
 bem.LibList__item = bem.LibList.__('item', '<li>');
+bem.LibList__label = bem.LibList.__('label');
 bem.LibList__dragbox = bem.LibList.__('dragbox');
+bem.LibList__qtype = bem.LibList.__('qtype');
 
 bem.CollectionNav = bem('collection-nav');
 bem.CollectionNav__search = bem.CollectionNav.__('search');

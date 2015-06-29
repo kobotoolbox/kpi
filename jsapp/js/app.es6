@@ -20,7 +20,7 @@ import Sidebar from './components/sidebar';
 import TagsInput from 'react-tagsinput';
 import classNames from 'classnames';
 import alertify from 'alertifyjs';
-import {Sheeted} from './models/sheeted';
+// import {Sheeted} from './models/sheeted';
 import stores from './stores';
 import Dropzone from './libs/dropzone';
 import icons from './icons';
@@ -191,7 +191,8 @@ mixins.permissions = {
 mixins.collection = {
   getInitialState () {
     return {
-      results: false
+      results: false,
+      list: false
     }
   },
   componentDidMount () {
@@ -202,6 +203,7 @@ mixins.collection = {
       bgTopPanelHeight: 60,
       bgTopPanelFixed: true
     });
+
     this.initialAction();
     this.addListeners();
     this.listenTo(stores.selectedAsset, this.onSelectedAssetChange);
@@ -227,9 +229,9 @@ mixins.collection = {
       }
     }
   },
-  renderResults () {
+  renderList (items) {
     var currentUsername = sessionStore.currentAccount && sessionStore.currentAccount.username;
-    return this.state.results.map((resource) => {
+    return items.map((resource) => {
             // perm should be cached in the resource upon arrival
             var perm = parsePermissions(resource.owner, resource.permissions)
             var isSelected = stores.selectedAsset.uid === resource.uid;
@@ -257,10 +259,10 @@ mixins.collection = {
       <ui.Panel className="k-div--formspanel">
         {this._renderFormsSearchRow()}
         <ul className="collection-asset-list list-group">
-          {this.state.results === false ?
+          {this.state.list === false ?
             this.renderLoadingMessage()
             :
-            this.renderResults()
+            this.renderList(this.state.list)
           }
         </ul>
         <RouteHandler />
@@ -328,7 +330,7 @@ mixins.collection = {
     var assetType = data.assetType,
         action = data.action,
         disabled = data.disabled == "true",
-        uid = this.state.results && stores.selectedAsset.uid,
+        uid = this.state.list && stores.selectedAsset.uid,
         result;
     var click = this.click || mixins.collection.click;
 
@@ -343,7 +345,7 @@ mixins.collection = {
   },
   _actionButtons () {
     var selectedAsset = stores.selectedAsset.asset;
-    var assetIsSelected = this.state.results && selectedAsset && selectedAsset.uid;
+    var assetIsSelected = this.state.list && selectedAsset && selectedAsset.uid;
     var assetType = selectedAsset && selectedAsset.kind;
     var actionButtonsEnabled = {
       new: true
@@ -644,17 +646,17 @@ var AssetNavigator = React.createClass({
       return (
               <bem.LibList>
                 {qresults.results.map((item)=> {
-                  var modifiers = [
-                      item.asset_type
-                    ]
+                  var modifiers = [item.asset_type];
                   var summ = item.summary;
                   return (
                       <bem.LibList__item m={modifiers}>
                         <bem.LibList__dragbox />
-                        <div className="l-a__item__label questions__question__name">
-                          {JSON.stringify(summ.labels, null, 4)}
-                        </div>
-                        <div className="l-a__item__qtype question__type">{t(item.asset_type)}</div>
+                        <bem.LibList__label>
+                          <ui.AssetName {...item} />
+                        </bem.LibList__label>
+                        <bem.LibList__qtype>
+                          {t(item.asset_type)}
+                        </bem.LibList__qtype>
                       </bem.LibList__item>
                     );
                 })}
@@ -692,10 +694,12 @@ var AssetNavigator = React.createClass({
                   return (
                       <bem.LibList__item m={modifiers}>
                         <bem.LibList__dragbox />
-                        <div className="l-a__item__label questions__question__name">
-                          {JSON.stringify(summ.labels, null, 4)}
-                        </div>
-                        <div className="l-a__item__qtype question__type">{t(`type-${item.asset_type}`)}</div>
+                        <bem.LibList__label>
+                          <ui.AssetName {...item} />
+                        </bem.LibList__label>
+                        <bem.LibList__qtype>
+                          {t(item.asset_type)}
+                        </bem.LibList__qtype>
                       </bem.LibList__item>
                     );
                 })}
@@ -704,7 +708,7 @@ var AssetNavigator = React.createClass({
     }
   },
   onTagClick () {
-    log('tag click; filter search results?')
+    log('tag click; select tag, trigger specific search')
   },
   renderClosedContent () {
     var navKls = classNames("asset-navigator", this.state.assetNavIsOpen ? "" : "asset-navigator--deactivated")
@@ -836,7 +840,7 @@ var AssetRow = React.createClass({
         hrefTo = isCollection ? 'collection-page' : 'form-landing',
         hrefKey = isCollection ? 'uid' : 'assetid',
         hrefParams = {};
-
+    var isDeployable = !isCollection && this.props.asset_type && this.props.asset_type === 'survey';
     hrefParams[hrefKey] = this.props.uid;
     return (
         <bem.AssetRow m={{
@@ -858,7 +862,7 @@ var AssetRow = React.createClass({
                 href={this.makeHref( hrefTo, hrefParams)}
               >
             <bem.AssetRow__name>
-              {this.props.name || t('no name')}
+              <ui.AssetName {...this.props} />
             </bem.AssetRow__name>
             <bem.AssetRow__tags>
               {
@@ -919,14 +923,16 @@ var AssetRow = React.createClass({
               })
             }
           </bem.AssetRow__cell>
-          <bem.AssetRow__cell m={'deploy-button'}
+          <bem.AssetRow__cell m={['deploy-button', isDeployable ? 'deployable':'disabled']}
                     data-action='deploy'
                     data-asset-type='asset'
                     data-kind='asset'
                     data-disabled={false}>
-            <button>
-              <i />
-            </button>
+            { isDeployable ?
+              <button>
+                <i />
+              </button>
+            : null }
           </bem.AssetRow__cell>
         </bem.AssetRow>
       );
@@ -1536,25 +1542,15 @@ var CollectionList = React.createClass({
     mixins.collection,
     Navigation,
     Reflux.ListenerMixin,
-    Reflux.connectFilter(collectionAssetsStore, function(data){
-      if (data.uid === this.props.params.uid) {
-        return {
-          results: data.children,
-          collection: data
-        };
-      }
-    })
   ],
   addListeners () {
-    this.listenTo(stores.allAssets, this.listenChange);
+    this.listenTo(stores.collectionAssets, this.listenChange);
   },
-  listenChange () {
-    log('listen change');
+  listenChange (data) {
+    log('listen change', data);
   },
   initialAction () {
-    return ()=> {
-      actions.resources.readCollection({uid: this.props.params.uid})
-    };
+    actions.resources.readCollection({uid: this.props.params.uid});
   },
   dropAction ({file, event}) {
     actions.resources.createAsset({
@@ -2222,16 +2218,17 @@ var LibraryList = React.createClass({
     Navigation,
     mixins.collection,
     Reflux.ListenerMixin,
-    Reflux.connect(stores.allAssets, "results")
   ],
   addListeners () {
-    this.listenTo(stores.allAssets, this.listenChange);
+    this.listenTo(stores.allAssets, this.allAssetsChange);
   },
-  listenChange () {
-    log('LibraryList listenChange');
+  allAssetsChange () {
+    this.setState({
+      list: stores.allAssets.byAssetType(['block', 'question'])
+    })
   },
   initialAction () {
-    return actions.resources.listAssets;
+    actions.resources.listAssets();
   },
   dropAction ({file, event}) {
     actions.resources.createAsset({
@@ -2244,13 +2241,38 @@ var LibraryList = React.createClass({
   _title () {
     return 'Library'
   },
-  _renderFormsSearchRow () {
+  searchChange () {
+
+  },
+  _renderSearchCriteria () {
     return;
+  },
+  _renderFormsSearchRow () {
+    return (
+      <bem.CollectionNav>
+        <bem.CollectionNav__search className="col-sm-4 k-form-list-search-bar">
+          <ui.SmallInputBox ref="formlist-search" placeholder={t('search drafts')} onChange={this.searchChange} />
+        </bem.CollectionNav__search>
+        {this._renderSearchCriteria()}
+        <bem.CollectionNav__actions className="col-sm-2 col-sm-offset-6 k-form-list-search-bar">
+          <bem.CollectionNav__link m={['new', 'new-block']} ref={this.makeHref('new-form')}>
+            <i />
+            {t('add to library')}
+          </bem.CollectionNav__link>
+          <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
+            <bem.CollectionNav__button m={['upload', 'upload-block']} className="btn btn-default btn-block btn-sm">
+              <i className='fa fa-icon fa-cloud fa-fw' />
+              &nbsp;&nbsp;
+              {t('upload')}
+            </bem.CollectionNav__button>
+          </Dropzone>
+        </bem.CollectionNav__actions>
+      </bem.CollectionNav>
+      );
   },
   _loadingMessage () {
     return t('loading library...')
   },
-
 });
 
 var FormList = React.createClass({
@@ -2259,16 +2281,17 @@ var FormList = React.createClass({
     Navigation,
     mixins.collection,
     Reflux.ListenerMixin,
-    Reflux.connect(stores.allAssets, "results")
   ],
   addListeners () {
     this.listenTo(stores.allAssets, this.listenChange);
   },
-  listenChange () {
-    log('listen change');
+  listenChange (data) {
+    this.setState({
+      list: stores.allAssets.byAssetType('survey')
+    })
   },
   initialAction () {
-    return actions.resources.listAssets;
+    actions.resources.listAssets();
   },
   dropAction ({file, event}) {
     actions.resources.createAsset({
@@ -2328,15 +2351,14 @@ var FormList = React.createClass({
           <ui.SmallInputBox ref="formlist-search" placeholder={t('search drafts')} onChange={this.searchChange} />
         </bem.CollectionNav__search>
         {this._renderSearchCriteria()}
-        <bem.CollectionNav__actions className="col-sm-2 k-form-list-search-bar">
+        <bem.CollectionNav__actions>
           <bem.CollectionNav__link href={this.makeHref('new-form')}>
             <i />
             {t('new form')}
           </bem.CollectionNav__link>
           <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
-            <bem.CollectionNav__button className="btn btn-default btn-block btn-sm">
-              <i className='fa fa-icon fa-cloud fa-fw' />
-              &nbsp;&nbsp;
+            <bem.CollectionNav__button m={'upload'}>
+              <i />
               {t('upload')}
             </bem.CollectionNav__button>
           </Dropzone>

@@ -37,6 +37,11 @@ var dataInterface;
       });
       return d.promise();
     },
+    listBlocks () {
+      return $ajax({
+        url: '/assets/?asset_type=block'
+      })
+    },
     listAllAssets () {
       var d = new $.Deferred();
       $.when($.getJSON('/assets/?parent='), $.getJSON('/collections/?parent=')).done(function(assetR, collectionR){
@@ -117,8 +122,13 @@ var dataInterface;
       return dataInterface(params);
     },
     libraryDefaultSearch () {
-      var url = "/assets/?q=example";
-      return $.getJSON(url);
+      return $ajax({
+        url: '/assets/',
+        data: {
+          asset_type: 'block'
+        },
+        method: 'GET'
+      });
     },
     readCollection ({uid}) {
       return $ajax({

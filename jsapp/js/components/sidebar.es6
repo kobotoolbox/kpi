@@ -201,7 +201,7 @@ var Sidebar = React.createClass({
   render () {
     var title = (
         <span className="kobo">
-          <span className="ko">Ko</span><span className="bo">Bo</span>
+          <span className="ko">Ko</span><span className="bo">Bo</span><span className="toolbox">Toolbox</span>
         </span>
         );
     return (
