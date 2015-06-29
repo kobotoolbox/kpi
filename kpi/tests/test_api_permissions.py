@@ -52,7 +52,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.add_to_collection(self.child_collection, self.admin_collection)
         self.client.logout()
 
-# ################ Asset tests #####################
+################# Asset tests #####################
 
     def test_own_asset_in_asset_list(self):
         self.assert_viewable(self.admin_asset, self.admin,
@@ -160,7 +160,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         response= self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-# ############ Collection tests ###############
+############# Collection tests ###############
 
     def test_own_collection_in_collection_list(self):
         self.assert_viewable(self.admin_collection, self.admin,

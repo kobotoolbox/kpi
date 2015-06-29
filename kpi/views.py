@@ -84,14 +84,16 @@ def current_user(request):
 
 
 class NoUpdateModelViewSet(
-        # Inherit from everything that ModelViewSet does, except for
-    # UpdateModelMixin
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.DestroyModelMixin,
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
+    '''
+    Inherit from everything that ModelViewSet does, except for
+    UpdateModelMixin.
+    '''
     pass
 
 
