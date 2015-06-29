@@ -1,21 +1,21 @@
-import json
 import datetime
+import json
 
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import get_script_prefix, resolve, Resolver404
+from django.utils.six.moves.urllib import parse as urlparse
 from rest_framework import serializers, exceptions
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
 import reversion
 
-from django.utils.six.moves.urllib import parse as urlparse
 
 from .models import Asset
-from .models import AssetSnapshot
 from .models import AssetDeployment
+from .models import AssetSnapshot
 from .models import Collection
 from .models import ImportTask
 from .models import ObjectPermission
@@ -35,8 +35,15 @@ class WritableJSONField(serializers.Field):
 
     """ Serializer for JSONField -- required to make field writable"""
 
+    def __init__(self, **kwargs):
+        self.allow_blank= kwargs.pop('allow_blank', False)
+        super(WritableJSONField, self).__init__(**kwargs)
+
     def to_internal_value(self, data):
-        return json.loads(data)
+        if (not data) and (not self.required):
+            return None
+        else:
+            return json.loads(data)
 
     def to_representation(self, value):
         return value
@@ -199,9 +206,11 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
         perm = validated_data['permission'].codename
         return content_object.assign_perm(user, perm)
 
+
 class AncestorCollectionsSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid', view_name='collection-detail')
+
     class Meta:
         model = Collection
         fields = ('name', 'uid', 'url')
@@ -238,6 +247,7 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
                   'date_created',
                   )
 
+
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username',
                                                 read_only=True,)
@@ -245,7 +255,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid', view_name='asset-detail')
     asset_type = serializers.ReadOnlyField()
-    settings = WritableJSONField(required=False)
+    settings = WritableJSONField(required=False, allow_blank=True)
     content = WritableJSONField(required=False)
     xls_link = serializers.SerializerMethodField()
     summary = serializers.ReadOnlyField()
@@ -261,7 +271,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     ancestors = AncestorCollectionsSerializer(
         many=True, read_only=True, source='get_ancestors_or_none')
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
-    tag_string = serializers.CharField(required=False)
+    tag_string = serializers.CharField(required=False, allow_blank=True)
     # assetdeployment__count comes from annotate() in
     # AssetManager.get_queryset()
     deployment_count = serializers.IntegerField(
