@@ -10,6 +10,7 @@ var Link = Router.Link;
 import bem from './bem';
 import actions from './actions';
 import ui from './ui';
+var ReactTooltip = require('react-tooltip');
 var assign = require('react/lib/Object.assign');
 // var Reflux = require('reflux');
 
@@ -17,13 +18,16 @@ var dmix = {
   assetTypeRenderers: {
     block: {
       renderTypeHeader () {
+        var effect='solid';
+        var atype_tip = t('can be imported into a form from the question library');
         return (
             <bem.AssetView__assetTypeWrap m={'type-block'}>
               <bem.AssetView__assetType>
                 <i />
-                {t('reusable question block')}
+                <span data-tip={atype_tip}>{t('reusable question block')}</span>
               </bem.AssetView__assetType>
               <hr />
+              <ReactTooltip effect={effect} />
             </bem.AssetView__assetTypeWrap>
           );
       },
@@ -85,7 +89,10 @@ var dmix = {
             <bem.AssetView__assetTypeWrap m={'type-survey'}>
               <bem.AssetView__assetType>
                 <i />
-                {t('survey')}
+                {t('form')}
+                <small>
+                  {t('deployable')}
+                </small>
               </bem.AssetView__assetType>
               <hr />
             </bem.AssetView__assetTypeWrap>
@@ -128,7 +135,7 @@ var dmix = {
               this.state.name ? 'named' : 'untitled'
             ]}>
           <i />
-          {this.state.name || t('no name')}
+          <ui.AssetName {...this.state} />
         </bem.AssetView__name>
       );
   },
@@ -178,18 +185,14 @@ var dmix = {
               <i />
               {t('owner:')} {this.state.owner__username}
             </bem.AssetView__span>
-            <bem.AssetView__span m="can-edit">
-              {editorCount} {t('can edit')}
-            </bem.AssetView__span>
-            <bem.AssetView__span m="can-edit">
-              {editorCount} {t('can edit')}
-            </bem.AssetView__span>
             <bem.AssetView__span m="can-view">
-              {viewerCount} {t('can view')}
+              {viewerCount} { viewerCount === 1 ? t('viewer') : t('viewers') }
+            </bem.AssetView__span>
+            <bem.AssetView__span m="can-edit">
+              {editorCount} { editorCount === 1 ? t('editor') : t('editors') }
             </bem.AssetView__span>
             <bem.AssetView__link m="sharing" href={this.makeHref('form-sharing', {assetid: this.state.uid})}>
-              <i />
-              {t('sharing')}
+              {t('edit')}
             </bem.AssetView__link>
           </bem.AssetView__col>
         </bem.AssetView__users>
@@ -292,8 +295,8 @@ var dmix = {
                 t('no deployments')
             }
             <bem.AssetView__deploybutton onClick={this.deployAsset}>
-              <i />
               {t('deploy')}
+              <i />
             </bem.AssetView__deploybutton>
           </bem.AssetView__deployments>
         </bem.AssetView__row>

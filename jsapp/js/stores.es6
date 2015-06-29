@@ -317,6 +317,10 @@ var sessionStore = Reflux.createStore({
   },
   triggerLoggedIn (acct) {
     this.currentAccount = acct;
+    if (acct.system_time) {
+      acct.sysDate = new Date(Date.parse(acct.system_time));
+      acct.curDate = new Date();
+    }
     this.trigger({
       isLoggedIn: true,
       sessionIsLoggedIn: true,
@@ -379,6 +383,12 @@ var allAssetsStore = Reflux.createStore({
   registerAssetOrCollection (asset) {
     asset.tags = asset.tag_string.split(',').filter((tg) => { return tg.length > 1; })
     this.byUid[asset.uid] = asset;
+  },
+  byAssetType (asset_type) {
+    var asset_types = [].concat(asset_type);
+    return this.data.filter(function(asset){
+      return asset_types.indexOf(asset.asset_type) !== -1;
+    });
   },
   onListAssetsCompleted: function(resp, req, jqxhr) {
     resp.results.forEach(this.registerAssetOrCollection)

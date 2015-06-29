@@ -20,6 +20,7 @@ import Sidebar from './components/sidebar';
 import TagsInput from 'react-tagsinput';
 import classNames from 'classnames';
 import alertify from 'alertifyjs';
+var ReactTooltip = require("react-tooltip");
 // import {Sheeted} from './models/sheeted';
 import stores from './stores';
 import Dropzone from './libs/dropzone';
@@ -1853,10 +1854,10 @@ var FormEnketoPreview = React.createClass({
   ],
   componentDidMount () {
     var uid = this.props.params.assetid;
-    if (!stores.allAssets.byUid[uid]) {
+    var asset = stores.asset.data && stores.asset.data[uid];
+    if (asset) {
       actions.resources.generatePreview({
-        asset_uid: uid
-        // asset: `/assets/${uid}/`
+        asset: asset.url
       });
     }
   },
