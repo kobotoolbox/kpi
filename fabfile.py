@@ -89,7 +89,7 @@ def deploy_ref(deployment_name, ref):
     run("sudo service uwsgi reload")
 
 # NOTE non-master branch
-def deploy(deployment_name, branch='wip'):
+def deploy(deployment_name, branch='master'):
     deploy_ref(deployment_name, 'origin/{}'.format(branch))
 
 def deploy_passing(deployment_name, branch='master'):

@@ -1,5 +1,6 @@
 import React from 'react/addons';
 import bem from './bem';
+import {t} from './utils';
 
 var ui = {};
 
@@ -102,6 +103,30 @@ ui.BreadcrumbItem = React.createClass({
         <li className="ui-breadcrumb__item">
           {this.props.children}
         </li>
+      );
+  }
+});
+
+ui.AssetName = React.createClass({
+  render () {
+    var name = this.props.name,
+        extra = false;
+    var summary = this.props.summary;
+    if (!name) {
+      name = summary.labels[0];
+      if (summary.labels.length === 2) {
+        extra = <small>{t('and one other question')}</small>;
+      } else if (summary.labels.length > 2) {
+        extra = <small>{t('and ## other questions').replace('##', summary.labels.length-1)}</small>;
+      }
+    }
+    return (
+        <span className="asset-name">
+          {name}
+          {extra ?
+            extra
+          :null }
+        </span>
       );
   }
 });

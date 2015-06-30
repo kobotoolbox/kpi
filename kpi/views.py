@@ -4,6 +4,7 @@ from pyxform.xls2json_backends import xls_to_dict
 import base64
 import json
 import random
+import datetime
 
 from django.contrib.auth.models import User
 from django.db.models import Q, Count
@@ -75,6 +76,7 @@ def current_user(request):
                          'first_name': user.first_name,
                          'last_name': user.last_name,
                          'email': user.email,
+                         'server_time': str(datetime.datetime.utcnow()),
                          'projects_url': kobocat_url('/'),
                          'is_superuser': user.is_superuser,
                          'gravatar': gravatar_url(user.email),

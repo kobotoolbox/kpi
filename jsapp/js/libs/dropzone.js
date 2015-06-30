@@ -63,7 +63,7 @@ var Dropzone = React.createClass({
     }
 
     files = Array.prototype.slice.call(files);
-    this.props.onDropFiles(files, this.props.params);
+    this.props.onDropFiles(files);
   },
   onClick: function () {
     if (this.props.fileInput) {

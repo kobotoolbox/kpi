@@ -42,10 +42,16 @@ $mult: 0.5;
   padding-bottom: 12px;
   min-height: 1.2em;
   border-top: 1px solid #eee;
+  padding-top: 6px;
 }
 .asset-view__row {
   @extend .row;
   color: #818181 !important;
+}
+.asset-view__span {
+  &.asset-view__span--can-edit, &.asset-view__span--can-view {
+    margin: 0 20px;
+  }
 }
 .asset-view__ancestors {
   @extend .col-md-12;
@@ -85,6 +91,14 @@ $mult: 0.5;
     > i:first-child {
       @extend .fa, .fa-fw, .fa-#{$iconkls};
     }
+    > i[data-tip] {
+      opacity: 0.5;
+      margin-left: 18px;
+      &:hover {
+        opacity: 1;
+      }
+      @extend .fa, .fa-fw, .fa-question;
+    }
   }
 }
 .asset-view__asset-type-wrap {
@@ -102,8 +116,13 @@ $mult: 0.5;
   text-transform: uppercase;
   line-height: 10px;
   font-weight: bold;
-  padding-top: 7px;
-  padding-left: 4px;
+  padding: 7px 4px 4px;
+  small {
+    color: #bbb;
+    font-style: italic;
+    margin-left: 12px;
+    text-transform: none;
+  }
   > i:first-child {
     @extend .fa, .fa-fw, .fa-question;
     margin-right: 2px;
@@ -137,12 +156,13 @@ $mult: 0.5;
   font-size: 22px;
   padding: 4px 0 8px;
   &.asset-view__name--untitled {
-    font-style: italic;
-    color: #bbb;
+    color: #666;
   }
-  // &.asset-view__name--named {
-  //   font-weight: bold;
-  // }
+  small {
+    font-style: italic;
+    font-size: smaller;
+    color: lighten(#666, 2%);
+  }
 }
 .asset-view__times {
   @extend %has-icon-col;
@@ -239,7 +259,7 @@ $mult: 0.5;
     color: mix(#666, $bgcol, 50%);
   }
 }
-.asset-view__button, .asset-view__link {
+.asset-view__button, .asset-view__link:not(.asset-view__link--sharing) {
   @extend .btn, .btn-block, .btn-default;
   // &.asset-view__button--disabled, &.asset-view__link--disabled {
   //   opacity: 0.3;
@@ -264,7 +284,6 @@ $mult: 0.5;
 }
 .asset-view__link--sharing {
   display: inline;
-  @include action-faicon('users');
 }
 .asset-view__deployments {
   @extend .col-md-12;

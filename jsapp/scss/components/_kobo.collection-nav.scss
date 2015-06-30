@@ -13,11 +13,24 @@
 
 }
 .collection-nav__actions {
-
+  @extend .col-sm-2;
+  padding-top: 5px;
+  label {
+    color: #b3b3b3;
+    margin-right: 12px;
+  }
 }
 .collection-nav__action {
 
 }
+.collection-nav__button {
+  @extend .btn, .btn-default, .btn-block, .btn-sm;
+  > i {
+    @extend .fa, .fa-icon, .fa-cloud, .fa-fw;
+    margin-right: 12px;
+  }
+}
+
 .collection-nav__link {
   @extend .btn, .btn-default, .btn-block, .btn-sm;
   > i:first-child {
