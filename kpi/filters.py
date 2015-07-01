@@ -11,6 +11,7 @@ import unicodecsv
 from cStringIO import StringIO
 from .models.object_permission import get_objects_for_user, get_anonymous_user
 
+
 class KpiObjectPermissionsFilter(object):
     perm_format = '%(app_label)s.view_%(model_name)s'
 
@@ -24,6 +25,7 @@ class KpiObjectPermissionsFilter(object):
         permission = self.perm_format % kwargs
         return get_objects_for_user(user, permission, queryset)
 
+
 class ParentFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         if 'parent' in request.query_params:
@@ -35,6 +37,19 @@ class ParentFilter(filters.BaseFilterBackend):
                 raise NotImplementedError()
         return queryset
 
+
+class PipeDialect(unicodecsv.Dialect):
+    delimiter = '|'
+    quotechar = "'"
+    escapechar = '\\'
+    doublequote = False
+    skipinitialspace = False
+    # We don't parse multi-line input; furthermore, `lineterminator` is ignored
+    # by the reader according to https://docs.python.org/2/library/csv.html
+    lineterminator = '\r\n'
+    quoting = unicodecsv.QUOTE_ALL
+
+
 class SearchFilter(filters.BaseFilterBackend):
     '''
     Filters objects by searching with Haystack if the the request includes a
@@ -43,14 +58,21 @@ class SearchFilter(filters.BaseFilterBackend):
     def _apply_query_filter(self, queryset, field, and_values):
         '''
         ?key=this&key=that shall mean this AND that
-        ?key=this,that shall mean this OR that
+        ?key=this|that shall mean this OR that
+
+        We use the pipe character with an eye toward eventual Postgres text
+        search integration:
+        http://www.postgresql.org/docs/9.4/static/functions-textsearch.html
         '''
         for and_value in and_values:
-            if ',' in and_value:
+            if '|' in and_value:
                 or_values = unicodecsv.reader(
-                    StringIO(and_value), encoding='utf-8').next()
+                    StringIO(and_value),
+                    dialect=PipeDialect,
+                    encoding='utf-8').next()
                 q_query = Q()
                 for or_value in or_values:
+                    or_value = or_value.strip()
                     q_query |= Q(**{field: or_value})
                 queryset = queryset.filter(q_query)
             else:
@@ -95,6 +117,7 @@ class SearchFilter(filters.BaseFilterBackend):
         matching_pks = search_queryset.values_list('pk', flat=True)
         # Will still be filtered by KpiObjectPermissionsFilter.filter_queryset()
         return queryset.filter(pk__in=matching_pks)
+
 
 class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
