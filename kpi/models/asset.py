@@ -46,11 +46,7 @@ class AssetManager(TaggableModelManager):
             models.Count('assetdeployment')
         )
     def filter_by_tag_name(self, tag_name):
-        try:
-            tag = Tag.objects.get(name=tag_name)
-        except Tag.DoesNotExist:
-            return self.none()
-        return self.filter(tags=tag)
+        return self.filter(tags__name=tag_name)
 
 
 # TODO: Merge this functionality into the eventual common base class of `Asset`
