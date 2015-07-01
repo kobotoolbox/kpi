@@ -712,15 +712,14 @@ var AssetNavigator = React.createClass({
     log('tag click; select tag, trigger specific search')
   },
   renderClosedContent () {
-    var navKls = classNames("asset-navigator", this.state.assetNavIsOpen ? "" : "asset-navigator--deactivated")
     return (
-        <div className={navKls}>
-          <div className="asset-navigator__header asset-navigator__header--deactivated">
-            <div className="asset-navigator__logo" onClick={this.toggleOpen}>
-              <i className="fa fa-icon fa-book fa-2x" />
-            </div>
-          </div>
-        </div>
+        <bem.LibNav m={'deactivated'}>
+          <bem.LibNav__header m={'deactivated'}>
+            <bem.LibNav__logo onClick={this.toggleOpen}>
+              <i />
+            </bem.LibNav__logo>
+          </bem.LibNav__header>
+        </bem.LibNav>
       );
   },
   toggleOpen () {
