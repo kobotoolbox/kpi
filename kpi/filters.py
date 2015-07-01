@@ -8,7 +8,7 @@ from haystack.query import SearchQuerySet
 from haystack.inputs import AutoQuery
 from haystack import connections
 import unicodecsv
-from cStringIO import StringIO
+from io import BytesIO
 from .models.object_permission import get_objects_for_user, get_anonymous_user
 
 
@@ -66,13 +66,14 @@ class SearchFilter(filters.BaseFilterBackend):
         '''
         for and_value in and_values:
             if '|' in and_value:
+                # "The unicodecsv file reads and decodes byte strings for you,"
+                # not unicode strings (http://stackoverflow.com/a/21479663)!
                 or_values = unicodecsv.reader(
-                    StringIO(and_value),
+                    BytesIO(and_value.encode('utf8')),
                     dialect=PipeDialect,
                     encoding='utf-8').next()
                 q_query = Q()
                 for or_value in or_values:
-                    or_value = or_value.strip()
                     q_query |= Q(**{field: or_value})
                 queryset = queryset.filter(q_query)
             else:
