@@ -46,6 +46,12 @@ actions.search = Reflux.createActions({
       "failed"
     ]
   },
+  assetsWithTags: {
+    children: [
+      "completed",
+      "failed"
+    ]
+  },
   tags: {
     children: [
       "completed",
@@ -293,6 +299,12 @@ actions.search.libraryDefaultQuery.listen(function(){
     .done(actions.search.libraryDefaultQuery.completed)
     .fail(actions.search.libraryDefaultQuery.failed);
 });
+
+actions.search.assetsWithTags.listen(function(queryString){
+  dataInterface.assetSearch(queryString)
+    .done(actions.search.assetsWithTags.completed)
+    .fail(actions.search.assetsWithTags.failed)
+})
 
 actions.search.tags.listen(function(queryString){
   dataInterface.searchTags(queryString)

@@ -226,7 +226,7 @@ mixins.collection = {
           searchResults: r
         });
       } else {
-        actions.search.assets(queryInput);
+        actions.search.assetsWithTags({q: queryInput, tags: this.state.selectedTags});
       }
     }
   },

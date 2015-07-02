@@ -130,10 +130,25 @@ var dataInterface;
         method: 'GET'
       });
     },
+    assetSearch ({tags, q}) {
+      var params = [];
+      if (tags) {
+        tags.forEach(function(tag){
+          params.push(`tag=${tag}`)
+        });
+      }
+      if (q) {
+        params.push(`q=${q}`);
+      }
+      return $ajax({
+        url: `/assets/?${params.join('&')}`,
+        method: 'GET'
+      });
+    },
     readCollection ({uid}) {
       return $ajax({
         url: `/collections/${uid}/`
-      })
+      });
     },
     deleteAsset ({uid}) {
       return $ajax({
