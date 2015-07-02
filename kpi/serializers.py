@@ -178,7 +178,7 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
     )
     content_object = GenericHyperlinkedRelatedField(
         lookup_field='uid',
-        style={'base_template': 'input.html'}  # Render as a simple text box
+        style={'base_template': 'input.html'} # Render as a simple text box
     )
     inherited = serializers.ReadOnlyField()
 
@@ -219,19 +219,93 @@ class AncestorCollectionsSerializer(serializers.HyperlinkedModelSerializer):
 class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid', view_name='assetsnapshot-detail')
-    xml = serializers.HyperlinkedIdentityField(
-        lookup_field='uid', view_name='assetsnapshot-xml')
+    xml = serializers.SerializerMethodField()
     details = WritableJSONField(required=False)
-    asset = serializers.HyperlinkedRelatedField(queryset=Asset.objects.none(), view_name='asset-detail',
-                                                lookup_field='uid',
-                                                required=False,
-                                                )
+    asset = serializers.HyperlinkedRelatedField(
+        queryset=Asset.objects.all(), view_name='asset-detail',
+        lookup_field='uid',
+        required=False,
+        style={'base_template': 'input.html'} # Render as a simple text box
+    )
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail',
                                                 lookup_field='username',
                                                 read_only=True)
     asset_version_id = serializers.IntegerField(required=False)
     date_created = serializers.DateTimeField(read_only=True)
     source = WritableJSONField(required=False)
+
+    def get_xml(self, obj):
+        ''' There's too much magic in HyperlinkedIdentityField. When format is
+        unspecified by the request, HyperlinkedIdentityField.to_representation()
+        refuses to append format to the url. We want to *unconditionally*
+        include the xml format suffix. '''
+        return reverse(
+            viewname='assetsnapshot-detail', format='xml',
+            kwargs={'uid': obj.uid},
+            request=self.context.get('request', None)
+        )
+
+    def create(self, validated_data):
+        '''  specifically, if we could get it so that a POST creates one, and
+        optionally accepts either an asset (url, i presume) or the content of a
+        survey, then it generates the XML and returns a resource that can be
+        accessed by an iframe referencing enketo '''
+        ''' xml for enketo must be public with no csrf ''' 
+        # TODO: Move to a validator?
+        if 'asset' in validated_data and 'source' in validated_data:
+            # The client is confused
+            raise serializers.ValidationError(
+                'Specify either asset or source, not both.')
+        elif 'asset' in validated_data:
+            # The client provided an existing asset; read source from it
+            if 'asset_version_id' not in validated_data:
+                # Require the version; don't just assume the client wanted
+                # the most recent one
+                raise serializers.ValidationError(
+                    'When specifying an asset, its asset_version_id must be '
+                    'provided as well.'
+                )
+            asset = validated_data['asset']
+            if not self.context['request'].user.has_perm('view_asset', asset):
+                # The client is not allowed to snapshot this asset
+                raise exceptions.PermissionDenied
+            if asset.version_id == validated_data['asset_version_id']:
+                # Easy case: the client referenced the current version of the
+                # asset. Use its content as the source for the snapshot
+                validated_data['source'] = asset.content 
+            else:
+                # The client referenced an old version. Get its content from
+                # reversion and use that as the source
+                try:
+                    content_json = asset.versions().get(
+                        pk=validated_data['asset_version_id']
+                    ).field_dict['content']
+                    # Using reversion in this way bypasses JSONField's magic,
+                    # so we have to deserialize manually
+                    validated_data['source'] = json.loads(content_json)
+                except reversion.models.Version.DoesNotExist:
+                    raise serializers.ValidationError(
+                        'Version matching asset_version_id does not exist.')
+        elif 'source' in validated_data:
+            # The client provided source directly
+            if 'asset_version_id' in validated_data:
+                raise serializers.ValidationError(
+                    'asset_version_id cannot be specified when providing '
+                    'source directly.'
+                )
+        else:
+            # The client is confused
+            raise serializers.ValidationError(
+                'Either asset or source must be specified.')
+
+        # Force owner to be the requesting user
+        validated_data['owner'] = self.context['request'].user
+
+        # Create the snapshot and generate XML
+        snapshot = AssetSnapshot(**validated_data)
+        snapshot.generate_xml_from_source(snapshot.source)
+        snapshot.save()
+        return snapshot
 
     class Meta:
         model = AssetSnapshot
@@ -276,6 +350,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     # AssetManager.get_queryset()
     deployment_count = serializers.IntegerField(
         source='assetdeployment__count', read_only=True)
+    version_id = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Asset
@@ -290,6 +365,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'date_created',
                   'summary',
                   'date_modified',
+                  'version_id',
                   'version_count',
                   'content',
                   'downloads',
