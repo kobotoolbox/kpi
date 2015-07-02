@@ -571,16 +571,28 @@ var sessionStore = stores.session;
 
 
 var TagList = React.createClass({
-  renderTag (tag, n) {
-    return <span className="taglist__tag" key={tag.name} onClick={(evt)=>{this.props.onTagClick(tag.name, evt)}}>{tag.name}</span>
+  tagClick (evt) {
+    this.props.onTagClick(evt.currentTarget.dataset.tag, evt);
   },
   render () {
     var tags = this.props.tags || [];
+    var selected = this.props.selected.reduce(function(sel, tagName){
+      sel[tagName] = true;
+      return sel;
+    }, {});
     return (
-      <div className="taglist">
-        {tags.map(this.renderTag)}
-      </div>
-      )
+      <bem.LibNav__tags>
+        {tags.map((tag) => {
+          return (
+              <bem.LibNav__tag key={tag.name} data-tag={tag.name} onClick={this.tagClick} m={{
+                    selected: selected[tag.name]
+                  }}>
+                {tag.name}
+              </bem.LibNav__tag>
+            );
+        })}
+      </bem.LibNav__tags>
+    );
   }
 });
 
@@ -615,6 +627,7 @@ var AssetNavigator = React.createClass({
     return {
       searchResults: {},
       imports: [],
+      selectedTags: [],
       assetNavIntentOpen: stores.pageState.state.assetNavIntentOpen,
       assetNavIsOpen: stores.pageState.state.assetNavIsOpen
     };
@@ -708,8 +721,20 @@ var AssetNavigator = React.createClass({
         )
     }
   },
-  onTagClick () {
-    log('tag click; select tag, trigger specific search')
+  toggleTagSelected (tag) {
+    var tags = this.state.selectedTags,
+        _ti = tags.indexOf(tag);
+    if (_ti === -1) {
+      tags.push(tag);
+    } else {
+      tags.splice(tags.indexOf(_ti), 1);
+    }
+    this.setState({
+      selectedTags: tags
+    });
+  },
+  onTagClick (tag) {
+    this.toggleTagSelected(tag);
   },
   renderClosedContent () {
     return (
@@ -726,7 +751,6 @@ var AssetNavigator = React.createClass({
     stores.pageState.toggleAssetNavIntentOpen()
   },
   render () {
-    var navKls = classNames("asset-navigator", this.state.assetNavIsOpen ? "" : "asset-navigator--shrunk")
     if (!this.state.assetNavIsOpen) {
       return this.renderClosedContent();
     }
@@ -741,7 +765,7 @@ var AssetNavigator = React.createClass({
             <bem.LibNav__search>
               <ui.SmallInputBox ref="navigatorSearchBox" placeholder={t('search library')} onKeyUp={this.liveSearch} />
             </bem.LibNav__search>
-            <TagList tags={this.state.tags} onTagClick={this.onTagClick} />
+            <TagList tags={this.state.tags} onTagClick={this.onTagClick} selected={this.state.selectedTags} />
           </bem.LibNav__header>
           <bem.LibNav__content>
             {this.renderSearchResults()}
