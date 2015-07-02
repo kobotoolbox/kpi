@@ -735,6 +735,7 @@ var AssetNavigator = React.createClass({
   },
   onTagClick (tag) {
     this.toggleTagSelected(tag);
+    this.liveSearch()
   },
   renderClosedContent () {
     return (
