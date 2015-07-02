@@ -308,7 +308,7 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
         asset_snapshot = self.get_object()
         return Response(asset_snapshot.xml)
 
-    def dead_code__create(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
         raise NotImplementedError("need to figure out how to create these for survey previews")
         if 'asset_uid' in request.data:
             request.data['asset_id'] = Asset.objects.get(uid=request.data['asset_uid']).id
