@@ -26,18 +26,6 @@ class KpiObjectPermissionsFilter(object):
         return get_objects_for_user(user, permission, queryset)
 
 
-class ParentFilter(filters.BaseFilterBackend):
-    def filter_queryset(self, request, queryset, view):
-        if 'parent' in request.query_params:
-            if not request.query_params['parent']:
-                # Query for null parent
-                return queryset.filter(parent=None)
-            else:
-                # Query for a specific parent
-                raise NotImplementedError()
-        return queryset
-
-
 class PipeDialect(unicodecsv.Dialect):
     delimiter = '|'
     quotechar = "'"
@@ -65,7 +53,7 @@ class SearchFilter(filters.BaseFilterBackend):
         http://www.postgresql.org/docs/9.4/static/functions-textsearch.html
         '''
         for and_value in and_values:
-            if '|' in and_value:
+            if and_value is not None and '|' in and_value:
                 # "The unicodecsv file reads and decodes byte strings for you,"
                 # not unicode strings (http://stackoverflow.com/a/21479663)!
                 or_values = unicodecsv.reader(
@@ -85,21 +73,23 @@ class SearchFilter(filters.BaseFilterBackend):
         search_queryset = SearchQuerySet().models(queryset.model)
         indexed_fields = connections['default'].get_unified_index().get_index(
             queryset.model).fields
-        for k, v in request.GET.iteritems():
+        for k, v in request.query_params.iteritems():
             if k == 'q':
                 # 'q' means do a full-text search of the document fields
                 search_queryset = search_queryset.filter(content=AutoQuery(v))
                 is_search = True
             else:
                 # Try doing a regular database query
+                v_list = request.query_params.getlist(k)
                 if k == 'tag':
                     # 'tag' as shorthand for 'tags__name'
-                    special_k = 'tags__name'
-                else:
-                    special_k = k
+                    k = 'tags__name'
+                if k == 'parent' and v == '':
+                    # Empty string means query for null parent
+                    # TODO: Support null queries generally?
+                    v_list = [None]
                 try:
-                    queryset = self._apply_query_filter(
-                        queryset, special_k, request.GET.getlist(k))
+                    queryset = self._apply_query_filter(queryset, k, v_list)
                 except FieldError:
                     # Invalid field for a database query; try the search engine
                     if k in indexed_fields:
