@@ -25,7 +25,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from taggit.models import Tag
 
-from .filters import KpiAssignedObjectPermissionsFilter, ParentFilter
+from .filters import KpiAssignedObjectPermissionsFilter
 from .filters import KpiObjectPermissionsFilter
 from .filters import SearchFilter
 from .highlighters import highlight_xform
@@ -141,7 +141,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
     queryset = Collection.objects.all()
     serializer_class = CollectionSerializer
     permission_classes = (IsOwnerOrReadOnly,)
-    filter_backends = (KpiObjectPermissionsFilter, ParentFilter, SearchFilter)
+    filter_backends = (KpiObjectPermissionsFilter, SearchFilter)
     lookup_field = 'uid'
 
     def _clone(self):
@@ -290,7 +290,7 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
             return Response(data, status.HTTP_201_CREATED)
 
 
-class AssetSnapshotViewSet(viewsets.ModelViewSet):
+class AssetSnapshotViewSet(NoUpdateModelViewSet):
     serializer_class = AssetSnapshotSerializer
     lookup_field = 'uid'
     queryset = AssetSnapshot.objects.none()
@@ -308,7 +308,7 @@ class AssetSnapshotViewSet(viewsets.ModelViewSet):
         asset_snapshot = self.get_object()
         return Response(asset_snapshot.xml)
 
-    def create(self, request, *args, **kwargs):
+    def dead_code__create(self, request, *args, **kwargs):
         raise NotImplementedError("need to figure out how to create these for survey previews")
         if 'asset_uid' in request.data:
             request.data['asset_id'] = Asset.objects.get(uid=request.data['asset_uid']).id
@@ -340,7 +340,7 @@ class AssetViewSet(viewsets.ModelViewSet):
     serializer_class = AssetSerializer
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
-    filter_backends = (KpiObjectPermissionsFilter, ParentFilter, SearchFilter)
+    filter_backends = (KpiObjectPermissionsFilter, SearchFilter)
 
     renderer_classes = (renderers.BrowsableAPIRenderer,
                         AssetJsonRenderer,
