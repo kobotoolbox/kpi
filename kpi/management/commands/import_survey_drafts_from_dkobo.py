@@ -1,19 +1,16 @@
-from django.core.management.base import BaseCommand
-from django.contrib.auth.models import User
+from StringIO import StringIO
 from optparse import make_option
+from pyxform.xls2json_backends import csv_to_dict
 import re
 
-from kpi.models import Collection
-from kpi.models import Asset
-
-from pyxform.xls2json_backends import csv_to_dict
-from StringIO import StringIO
-
-
+from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand
+from django.db import models
 from jsonfield import JSONField
 from taggit.managers import TaggableManager
 
-from django.db import models
+from kpi.models import Asset
+from kpi.models import Collection
 
 
 class SurveyDraft(models.Model):
