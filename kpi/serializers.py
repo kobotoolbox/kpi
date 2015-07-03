@@ -6,6 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import get_script_prefix, resolve, Resolver404
 from django.utils.six.moves.urllib import parse as urlparse
+from django.conf import settings
 from rest_framework import serializers, exceptions
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.reverse import reverse_lazy, reverse
@@ -220,6 +221,7 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid', view_name='assetsnapshot-detail')
     xml = serializers.SerializerMethodField()
+    enketopreviewlink = serializers.SerializerMethodField()
     details = WritableJSONField(required=False)
     asset = serializers.HyperlinkedRelatedField(
         queryset=Asset.objects.all(), view_name='asset-detail',
@@ -245,12 +247,18 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
             request=self.context.get('request', None)
         )
 
+    def get_enketopreviewlink(self, obj):
+        return u'{enketo_server}{enketo_preview_uri}?{xml_uri}'.format(
+            enketo_server=settings.ENKETO_SERVER,
+            enketo_preview_uri=settings.ENKETO_PREVIEW_URI,
+            xml_uri=self.get_xml(obj)
+        )
+
     def create(self, validated_data):
-        '''  specifically, if we could get it so that a POST creates one, and
-        optionally accepts either an asset (url, i presume) or the content of a
-        survey, then it generates the XML and returns a resource that can be
-        accessed by an iframe referencing enketo '''
-        ''' xml for enketo must be public with no csrf ''' 
+        ''' Create a snapshot of an asset, either by copying an existing
+        asset's content or by accepting the source directly in the request.
+        Transform the source into XML that's then exposed to Enketo
+        (and the www). ''' 
         # TODO: Move to a validator?
         if 'asset' in validated_data and 'source' in validated_data:
             # The client is confused
@@ -311,6 +319,7 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         model = AssetSnapshot
         lookup_field = 'uid'
         fields = ('xml',
+                  'enketopreviewlink',
                   'source',
                   'details',
                   'uid',
@@ -428,9 +437,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         base_url = reverse('asset-detail',
                            args=(obj.uid,),
                            request=request)
-        enkfmt = 'enketopreview'
         return [
-            {'format': enkfmt, 'url': '%s?format=%s' % (base_url, enkfmt)},
             _reverse_lookup_format('xls'),
             _reverse_lookup_format('xform'),
         ]

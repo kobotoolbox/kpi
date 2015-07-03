@@ -54,11 +54,3 @@ class XlsRenderer(renderers.BaseRenderer):
     def render(self, data, media_type=None, renderer_context=None):
         asset = renderer_context['view'].get_object()
         return asset.to_xls_io()
-
-class EnketoPreviewLinkRenderer(renderers.BaseRenderer):
-    media_type = 'text/plain'
-    format = 'enketopreviewlink'
-
-    def render(self, data, media_type=None, renderer_context=None):
-        raise NotImplementedError("%s not yet implemented" % (self.__class__.__name__))
-

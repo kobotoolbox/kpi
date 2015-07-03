@@ -142,3 +142,10 @@ HAYSTACK_CONNECTIONS = {
         'PATH': os.path.join(os.path.dirname(__file__), 'whoosh_index'),
     },
 }
+
+''' Enketo settings copied from dkobo '''
+ENKETO_SERVER = os.environ.get('ENKETO_SERVER', 'https://enketo.org')
+ENKETO_PREVIEW_URI = os.environ.get('ENKETO_PREVIEW_URI', '/webform/preview')
+# The number of hours to keep a kobo survey preview (generated for enketo)
+# around before purging it.
+KOBO_SURVEY_PREVIEW_EXPIRATION = os.environ.get('KOBO_SURVEY_PREVIEW_EXPIRATION', 24)

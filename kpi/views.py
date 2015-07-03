@@ -47,8 +47,7 @@ from .renderers import (
     SSJsonRenderer,
     XFormRenderer,
     AlsoXFormRenderer,
-    XlsRenderer,
-    EnketoPreviewLinkRenderer,)
+    XlsRenderer,)
 from .serializers import (
     AssetSerializer, AssetListSerializer,
     AssetSnapshotSerializer,
@@ -340,7 +339,6 @@ class AssetViewSet(viewsets.ModelViewSet):
                         SSJsonRenderer,
                         XFormRenderer,
                         XlsRenderer,
-                        EnketoPreviewLinkRenderer,
                         )
 
     def get_serializer_class(self):
