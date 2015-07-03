@@ -245,31 +245,6 @@ class AssetSnapshot(models.Model, XlsExportable):
         return super(AssetSnapshot, self).__init__(*args, **kwargs)
 
     def generate_xml_from_source(self, source):
-        ### SUPER FAKE XML TIME !!! ###
-        fakeness = (
-'QlpoOTFBWSZTWb85/5wAANTfgFVQUOf997wmTEC/9//gQAJa6EaFsJRGijINPUNIZGRhM0QyZGg0'
-'0aHMAmAEwAAmAAJgACRSaJDGUxNGaTTRgIaBiaMJkwVRJNNMQDSn6U8mkB6gA0NA0HpEwCvJJMBB'
-'UBLBAN/sVbkCA2iRi69cBO38kZXq+fbB6sYuRPtdn4G8VwE+SOZgQfou46Jyihkl267thpdDQjYa'
-'YZ8NVNt289cRfbSqXNS5FX1yHpjVNpZHdqLadhsOFpoMdazFUcV+qekK7ko6AVX9euxhvjr1vwE4'
-'mUUFOYOHbMBpsVa6Yv2RfBBSsPgN5LB6xbVmxqHIkyW7nSUOkCKPMS56sr2hpYHQ0ZHseCsoz7kZ'
-'ozP3TObVu9d/ArHv9WTixJ4HMClVJbFIFujNck6M6UJ9C11pO5ypGSxrdP91Sq5I29tG2H3WRzmu'
-'cHOHz/lN9epVEd8TUo46G+SRY188g4CbhRybm92Qr8KZVPU5LxOuiaFW7T4uF7lZK1HVOWkNU6o0'
-'W9XICcn9SlUCckW2x1V0uZ2BV1iYd7UxhojDPoTM4LbGS0z5hebYma7czg2i5YiwxGFwq6i9fkjC'
-'1MyirJerS4xJmzQmJKtUKKnFFClCNDPDHcyqbs7uR5IR4NUXNqPfDWxGU0tfnhgw2TiTai+NgpCM'
-'tq1BSka8HKhtyLtmRQNShTa7oK7ZqFZ9CJGooIhgaJeLpjS4JXSBaYS6gqWSYOlgt0Il8ndM33KS'
-'s/RxJLDRMdk1o3cB18WMP+LuSKcKEhfnP/OA')
-        import base64
-        import bz2
-        self.xml = bz2.decompress(base64.decodestring(fakeness))
-        self.summary = {
-            u'default_name': u'fake_name',
-            u'id_string': u'fake_id_string',
-            u'default_language': u'default',
-            u'warnings': [],
-            u'status': 'success'
-        }
-        return
-        ### END SUPER FAKE XML TIME ###
         import pyxform
         import tempfile
         summary = {}
@@ -286,7 +261,10 @@ class AssetSnapshot(models.Model, XlsExportable):
                 source, default_name, default_language, warnings)
             if 'id_string' not in dict_repr:
                 dict_repr['id_string'] = 'some_id_string'
-            dict_repr[u'name'] = dict_repr[u'id_string']
+            ## John is shooting in the dark... ##
+            for k in (u'name', u'id_string', u'sms_keyword'):
+                dict_repr[k] = dict_repr[k][default_language]
+            #####################################
             survey = pyxform.builder.create_survey_element_from_dict(dict_repr)
             with tempfile.NamedTemporaryFile(suffix='.xml') as named_tmp:
                 survey.print_xform_to_file(
