@@ -140,10 +140,14 @@ class Command(BaseCommand):
         for from_user in users:
             if not to_user:
                 to_user = from_user
+
             print "user has %d collections" % to_user.owned_collections.count()
             print "user has %d assets" % to_user.assets.count()
+            print "Destroying user's collections and assets in KPI."
             to_user.owned_collections.all().delete()
             to_user.assets.all().delete()
-            print "user has %d collections" % to_user.owned_collections.count()
-            print "user has %d assets" % to_user.assets.count()
-            _import_user_assets(from_user, to_user)
+            if not options.get('destroy'):
+                print "Importing assets and collections."
+                print "user has %d collections" % to_user.owned_collections.count()
+                print "user has %d assets" % to_user.assets.count()
+                _import_user_assets(from_user, to_user)
