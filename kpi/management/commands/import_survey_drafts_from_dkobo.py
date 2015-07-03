@@ -126,15 +126,16 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         users = User.objects.none()
-        if options.get('username'):
-            users = [User.objects.get(username=options.get('username'))]
-        elif options.get('all_users'):
+        to_user = False
+        if options.get('all_users'):
             users = User.objects.all()
         else:
-            raise Exception('must specify either --username=username or --allusers')
-        to_user = False
-        if options.get('to_username'):
-            to_user = User.objects.get(username=options.get('to_username'))
+            if options.get('username'):
+                users = [User.objects.get(username=options.get('username'))]
+            else:
+                raise Exception('must specify either --username=username or --allusers')
+            if options.get('to_username'):
+                to_user = User.objects.get(username=options.get('to_username'))
 
         for from_user in users:
             if not to_user:
