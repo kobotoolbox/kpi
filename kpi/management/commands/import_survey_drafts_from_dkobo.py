@@ -25,6 +25,8 @@ from jsonfield import JSONField
 from taggit.managers import TaggableManager
 
 from django.db import models
+
+
 class SurveyDraft(models.Model):
     '''
     SurveyDrafts belong to a user and contain the minimal representation of
@@ -57,6 +59,7 @@ def _set_auto_field_update(kls, field_name, val):
     field.auto_now = val
     field.auto_now_add = val
 
+
 def _import_user_assets(from_user, to_user):
     user = to_user
 
@@ -86,7 +89,6 @@ def _import_user_assets(from_user, to_user):
         _set_auto_field_update(Asset, "date_created", True)
         _set_auto_field_update(Asset, "date_modified", True)
 
-
     for survey_draft in user_survey_drafts.all():
         print 'importing sd %s %d' % (survey_draft.name, survey_draft.id)
         _import_asset(survey_draft)
@@ -109,31 +111,32 @@ def _import_user_assets(from_user, to_user):
 class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
         make_option('--destroy',
-            action='store_true',
-            dest='destroy',
-            default=False,
-            help='Delete all collections, assets, and tasks for user'),
+                    action='store_true',
+                    dest='destroy',
+                    default=False,
+                    help='Delete all collections, assets, and tasks for user'),
         make_option('--destination',
-            action='store',
-            dest='destination',
-            default=False,
-            help='A uid of a destination collection that will contain the imported asset(s)'),
+                    action='store',
+                    dest='destination',
+                    default=False,
+                    help='A uid of a destination collection that will contain the imported asset(s)'
+                    ),
         make_option('--allusers',
-            action='store_true',
-            dest='all_users',
-            default=False,
-            help='migrate all the users at once'),
+                    action='store_true',
+                    dest='all_users',
+                    default=False,
+                    help='migrate all the users at once'),
         make_option('--username',
-            action='store',
-            dest='username',
-            default=False,
-            help='specify the user to migrate'),
+                    action='store',
+                    dest='username',
+                    default=False,
+                    help='specify the user to migrate'),
         make_option('--to-username',
-            action='store',
-            dest='to_username',
-            default=False,
-            help='specify the user to migrate the assets TO (default: same as --username)'),
-        )
+                    action='store',
+                    dest='to_username',
+                    default=False,
+                    help='specify the user to migrate the assets TO (default: same as --username)'),
+    )
 
     def handle(self, *args, **options):
         users = User.objects.none()
