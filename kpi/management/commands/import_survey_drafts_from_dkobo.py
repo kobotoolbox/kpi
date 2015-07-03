@@ -1,17 +1,6 @@
-from django.core.management.base import BaseCommand, CommandError
-from django.core.management import call_command
+from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from django.conf import settings
-from django.forms.models import model_to_dict
 from optparse import make_option
-import os
-import json
-import glob
-import random
-# from django.utils import timezone
-from django.contrib.sites.models import Site
-import dateutil.parser
-
 import re
 
 from kpi.models import Collection
@@ -93,7 +82,7 @@ def _import_user_assets(from_user, to_user):
         print 'importing sd %s %d' % (survey_draft.name, survey_draft.id)
         _import_asset(survey_draft)
 
-    (qlib, created) = Collection.objects.get_or_create(name="question library", owner=user)
+    (qlib, _) = Collection.objects.get_or_create(name="question library", owner=user)
 
     for qlib_asset in user_qlib_assets.all():
         print 'importing qla %s %d' % (qlib_asset.name, qlib_asset.id)
