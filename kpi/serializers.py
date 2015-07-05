@@ -259,12 +259,14 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         asset's content or by accepting the source directly in the request.
         Transform the source into XML that's then exposed to Enketo
         (and the www). ''' 
+        have_asset = ('asset' in validated_data and validated_data['asset']) 
+        have_source = ('source' in validated_data and validated_data['source']) 
         # TODO: Move to a validator?
-        if 'asset' in validated_data and 'source' in validated_data:
+        if have_asset and have_source:
             # The client is confused
             raise serializers.ValidationError(
                 'Specify either asset or source, not both.')
-        elif 'asset' in validated_data:
+        elif have_asset:
             # The client provided an existing asset; read source from it
             if 'asset_version_id' not in validated_data:
                 # Require the version; don't just assume the client wanted
@@ -294,7 +296,7 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
                 except reversion.models.Version.DoesNotExist:
                     raise serializers.ValidationError(
                         'Version matching asset_version_id does not exist.')
-        elif 'source' in validated_data:
+        elif have_source:
             # The client provided source directly
             if 'asset_version_id' in validated_data:
                 raise serializers.ValidationError(
