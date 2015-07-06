@@ -45,8 +45,11 @@ class WritableJSONField(serializers.Field):
         if (not data) and (not self.required):
             return None
         else:
-            # TODO: Provide better feedback when invalid JSON encountered
-            return json.loads(data)
+            try:
+                return json.loads(data)
+            except Exception as e:
+                raise serializers.ValidationError(
+                    u'Unable to parse JSON: {}'.format(e))
 
     def to_representation(self, value):
         return value
@@ -293,7 +296,9 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
             snapshot.source)
         # Generate XML from survey structure
         snapshot.generate_xml_from_source(survey_structure)
-        # generate_xml_from_source() wrote to snapshot.xml; save the snapshot
+        # Did it make anything?
+        if not snapshot.xml:
+            raise serializers.ValidationError(snapshot.summary)
         snapshot.save()
         return snapshot
 
