@@ -352,7 +352,7 @@ var assetContentStore = Reflux.createStore({
   },
 });
 
-window.dkobo_xlform = require('./libs/xlform');
+var dkobo_xlform = require('./libs/xlform_with_deps');
 
 var surveyCompanionStore = Reflux.createStore({
   init () {
@@ -376,6 +376,7 @@ var allAssetsStore = Reflux.createStore({
     this.listenTo(actions.resources.listAssets.failed, this.onListAssetsFailed);
     this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
     this.listenTo(actions.resources.createAsset.completed, this.onCreateAssetCompleted);
+    this.listenTo(actions.resources.loadAsset.completed, this.loadAssetCompleted)
   },
   whenLoaded (uid, cb) {
     if (this.byUid[uid] && this.byUid[uid].content) {
@@ -387,6 +388,9 @@ var allAssetsStore = Reflux.createStore({
       this._waitingOn[uid].push(cb);
       actions.resources.loadAsset({id: uid});
     }
+  },
+  loadAssetCompleted (asset) {
+    this.registerAssetOrCollection(asset);
   },
   onCreateAssetCompleted (asset) {
     this.registerAssetOrCollection(asset);

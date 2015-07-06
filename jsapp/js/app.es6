@@ -8,11 +8,6 @@ var select2 = require('select2-browserify');
 var actions = require('./actions');
 // import XLSX from 'xlsx';
 
-window._ = require('underscore');
-window.Backbone = require('backbone');
-window.Backbone.$ = $
-window.BackboneValidation = require('backbone-validation');
-
 import React from 'react/addons';
 import Router from 'react-router';
 import Q from 'q';
@@ -37,7 +32,7 @@ import Favicon from 'react-favicon';
 
 var bootstrap = require('./libs/rest_framework/bootstrap.min');
 
-window.dkobo_xlform = require('./libs/xlform');
+var dkobo_xlform = require('./libs/xlform_with_deps');
 
 var assign = require('react/lib/Object.assign');
 var Reflux = require('reflux');
