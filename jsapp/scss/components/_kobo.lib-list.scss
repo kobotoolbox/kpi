@@ -3,10 +3,20 @@
   padding: 0;
 }
 
+$reddish: #f00;
+
 .lib-list__item {
   border-bottom: 1px solid #ddd;
   padding-left: 20px;
   position: relative;
+  &.sortable-active {
+    &:after {
+      content: 'importing...';
+    }
+  }
+  &.ui-sortable-helper {
+    background-color: #ddd;
+  }
 }
 
 .lib-list__label {

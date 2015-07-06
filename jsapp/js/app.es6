@@ -615,6 +615,27 @@ var AssetNavigator = React.createClass({
     this.listenTo(stores.pageState, this.handlePageStateStore);
     actions.resources.listTags()
   },
+  activateSortable() {
+    if (!this.refs.liblist) {
+      return;
+    }
+    var $el = $(this.refs.liblist.getDOMNode());
+    if ($el.hasClass('ui-sortable')) {
+      $el.sortable('destroy');
+    }
+    $el.sortable({
+      helper: 'clone',
+      cursor: 'move',
+      distance: 5,
+      items: '> li',
+      connectWith: '.survey-editor__list',
+      opacity: 0.9,
+      scroll: false,
+      deactivate: ()=> {
+        $el.sortable('cancel');
+      }
+    })
+  },
   assetLibraryTrigger (res) {
     this.setState({
       assetLibraryItems: res
@@ -658,12 +679,12 @@ var AssetNavigator = React.createClass({
     if (qresults && qresults.count > 0) {
       alItems = qresults.results;
       return (
-              <bem.LibList>
+              <bem.LibList ref="liblist">
                 {qresults.results.map((item)=> {
                   var modifiers = [item.asset_type];
                   var summ = item.summary;
                   return (
-                      <bem.LibList__item m={modifiers}>
+                      <bem.LibList__item m={modifiers} key={item.uid} data-uid={item.uid}>
                         <bem.LibList__dragbox />
                         <bem.LibList__label>
                           <ui.AssetName {...item} />
@@ -755,6 +776,9 @@ var AssetNavigator = React.createClass({
     if (!this.state.assetNavIsOpen) {
       return this.renderClosedContent();
     }
+    window.setTimeout(()=>{
+      this.activateSortable();
+    }, 1);
     return (
         <bem.LibNav m={{
               shrunk: this.state.assetNavIsOpen
@@ -1463,6 +1487,21 @@ var Forms = React.createClass({
   }
 });
 
+class SurveyScope {
+  constructor ({survey}) {
+    this.survey = survey;
+  }
+  handleItem({position, itemData}) {
+    var p = new $.Deferred();
+    if (!stores.allAssets.byUid[itemData.uid]) {
+      actions.resources.loadAsset({id: itemData.uid});
+      p.reject('not loaded yet');
+    } else {
+      log('add item ', [this.survey, stores.allAssets.byUid[itemData.uid], position])
+    }
+    return p.promise();
+  }
+}
 
 var NewForm = React.createClass({
   mixins: [
@@ -1543,8 +1582,10 @@ var NewForm = React.createClass({
     actions.resources.createResource.listen(this.creatingResource);
     actions.resources.createResource.completed.listen(this.creatingResourceCompleted);
     var survey = dkobo_xlform.model.Survey.create();
+    var skp = new SurveyScope({survey: survey});
     var app = new dkobo_xlform.view.SurveyApp({
-      survey: survey
+      survey: survey,
+      ngScope: skp,
     });
     $('.form-wrap').html(app.$el);
     app.render()
@@ -2051,8 +2092,10 @@ var FormPage = React.createClass({
   postLoadRenderMount () {
     this._postLoadRenderMounted = true;
     this.state.survey.settings.set('form_title', this.state.asset.name);
+    var skp = new SurveyScope({survey: this.state.survey});
     this.app = new dkobo_xlform.view.SurveyApp({
-      survey: this.state.survey
+      survey: this.state.survey,
+      ngScope: skp,
     });
     var fw = this.refs['form-wrap'].getDOMNode();
     this.app.$el.appendTo(fw);
