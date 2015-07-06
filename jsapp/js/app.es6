@@ -1492,14 +1492,7 @@ class SurveyScope {
     this.survey = survey;
   }
   handleItem({position, itemData}) {
-    var p = new $.Deferred();
-    if (!stores.allAssets.byUid[itemData.uid]) {
-      actions.resources.loadAsset({id: itemData.uid});
-      p.reject('not loaded yet');
-    } else {
-      log('add item ', [this.survey, stores.allAssets.byUid[itemData.uid], position])
-    }
-    return p.promise();
+    actions.survey.addItemAtPosition({position: position, uid: itemData.uid, survey: this.survey});
   }
 }
 

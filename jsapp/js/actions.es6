@@ -39,6 +39,15 @@ actions.auth = Reflux.createActions({
   }
 });
 
+actions.survey = Reflux.createActions({
+  addItemAtPosition: {
+    children: [
+      "completed",
+      "failed"
+    ],
+  }
+});
+
 actions.search = Reflux.createActions({
   assets: {
     children: [

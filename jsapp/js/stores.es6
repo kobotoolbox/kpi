@@ -352,14 +352,41 @@ var assetContentStore = Reflux.createStore({
   },
 });
 
+window.dkobo_xlform = require('./libs/xlform');
+
+var surveyCompanionStore = Reflux.createStore({
+  init () {
+    this.listenTo(actions.survey.addItemAtPosition, this.addItemAtPosition);
+  },
+  addItemAtPosition ({position, survey, uid}) {
+    allAssetsStore.whenLoaded(uid, function(asset){
+      var _s = dkobo_xlform.model.Survey.loadDict(asset.content)
+      survey.insertSurvey(_s, position);
+    });
+  }
+})
+
+
 var allAssetsStore = Reflux.createStore({
   init: function () {
     this.data = [];
     this.byUid = {};
+    this._waitingOn = {};
     this.listenTo(actions.resources.listAssets.completed, this.onListAssetsCompleted);
     this.listenTo(actions.resources.listAssets.failed, this.onListAssetsFailed);
     this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
     this.listenTo(actions.resources.createAsset.completed, this.onCreateAssetCompleted);
+  },
+  whenLoaded (uid, cb) {
+    if (this.byUid[uid] && this.byUid[uid].content) {
+      cb.call(this, this.byUid[uid]);
+    } else {
+      if (!this._waitingOn[uid]) {
+        this._waitingOn[uid] = [];
+      }
+      this._waitingOn[uid].push(cb);
+      actions.resources.loadAsset({id: uid});
+    }
   },
   onCreateAssetCompleted (asset) {
     this.registerAssetOrCollection(asset);
@@ -383,6 +410,15 @@ var allAssetsStore = Reflux.createStore({
   registerAssetOrCollection (asset) {
     asset.tags = asset.tag_string.split(',').filter((tg) => { return tg.length > 1; })
     this.byUid[asset.uid] = asset;
+    this.callCallbacks(asset);
+  },
+  callCallbacks (asset) {
+    if (this._waitingOn[asset.uid]) {
+      while (this._waitingOn[asset.uid].length > 0) {
+        var cb = this._waitingOn[asset.uid].pop();
+        cb.call(this, asset);
+      }
+    }
   },
   byAssetType (asset_type) {
     var asset_types = [].concat(asset_type);
@@ -422,7 +458,7 @@ var selectedAssetStore = Reflux.createStore({
     }
   }
 });
-
+ 
 var collectionAssetsStore = Reflux.createStore({
   init () {
     this.collections = {};
