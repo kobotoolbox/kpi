@@ -239,7 +239,8 @@ class AssetSnapshot(models.Model, XlsExportable):
     uid = models.CharField(max_length=ASSET_UID_LENGTH, default='', blank=True)
 
     def __init__(self, *args, **kwargs):
-        if 'asset' in kwargs and 'asset_version_id' not in kwargs:
+        if (kwargs.get('asset', None) is not None and
+                'asset_version_id' not in kwargs):
             asset = kwargs.get('asset')
             kwargs['asset_version_id'] = reversion.get_for_object(asset).last().pk
         return super(AssetSnapshot, self).__init__(*args, **kwargs)

@@ -44,6 +44,7 @@ class WritableJSONField(serializers.Field):
         if (not data) and (not self.required):
             return None
         else:
+            # TODO: Provide better feedback when invalid JSON encountered
             return json.loads(data)
 
     def to_representation(self, value):
@@ -227,12 +228,13 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         queryset=Asset.objects.all(), view_name='asset-detail',
         lookup_field='uid',
         required=False,
+        allow_null=True,
         style={'base_template': 'input.html'} # Render as a simple text box
     )
     owner = serializers.HyperlinkedRelatedField(view_name='user-detail',
                                                 lookup_field='username',
                                                 read_only=True)
-    asset_version_id = serializers.IntegerField(required=False)
+    asset_version_id = serializers.IntegerField(required=False, read_only=True)
     date_created = serializers.DateTimeField(read_only=True)
     source = WritableJSONField(required=False)
 
@@ -258,55 +260,27 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         ''' Create a snapshot of an asset, either by copying an existing
         asset's content or by accepting the source directly in the request.
         Transform the source into XML that's then exposed to Enketo
-        (and the www). ''' 
-        have_asset = ('asset' in validated_data and validated_data['asset']) 
-        have_source = ('source' in validated_data and validated_data['source']) 
+        (and the www). '''
+        asset = validated_data.get('asset', None)
+        source = validated_data.get('source', None)
         # TODO: Move to a validator?
-        if have_asset and have_source:
+        if (asset and source) or not (asset or source):
             # The client is confused
             raise serializers.ValidationError(
-                'Specify either asset or source, not both.')
-        elif have_asset:
+                'Specify either asset or source, but not both.')
+        elif asset:
             # The client provided an existing asset; read source from it
-            if 'asset_version_id' not in validated_data:
-                # Require the version; don't just assume the client wanted
-                # the most recent one
-                raise serializers.ValidationError(
-                    'When specifying an asset, its asset_version_id must be '
-                    'provided as well.'
-                )
-            asset = validated_data['asset']
             if not self.context['request'].user.has_perm('view_asset', asset):
                 # The client is not allowed to snapshot this asset
                 raise exceptions.PermissionDenied
-            if asset.version_id == validated_data['asset_version_id']:
-                # Easy case: the client referenced the current version of the
-                # asset. Use its content as the source for the snapshot
-                validated_data['source'] = asset.content 
-            else:
-                # The client referenced an old version. Get its content from
-                # reversion and use that as the source
-                try:
-                    content_json = asset.versions().get(
-                        pk=validated_data['asset_version_id']
-                    ).field_dict['content']
-                    # Using reversion in this way bypasses JSONField's magic,
-                    # so we have to deserialize manually
-                    validated_data['source'] = json.loads(content_json)
-                except reversion.models.Version.DoesNotExist:
-                    raise serializers.ValidationError(
-                        'Version matching asset_version_id does not exist.')
-        elif have_source:
-            # The client provided source directly
-            if 'asset_version_id' in validated_data:
-                raise serializers.ValidationError(
-                    'asset_version_id cannot be specified when providing '
-                    'source directly.'
-                )
-        else:
-            # The client is confused
-            raise serializers.ValidationError(
-                'Either asset or source must be specified.')
+            validated_data['source'] = asset.content
+            # Record the asset's version id
+            validated_data['asset_version_id'] = asset.version_id
+        elif source:
+            # The client provided source directly; no need to copy anything
+            # For tidiness, pop off unused fields. `None` avoids KeyError
+            validated_data.pop('asset', None)
+            validated_data.pop('asset_version_id', None)
 
         # Force owner to be the requesting user
         validated_data['owner'] = self.context['request'].user
