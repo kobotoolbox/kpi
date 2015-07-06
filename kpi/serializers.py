@@ -13,7 +13,6 @@ from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
 import reversion
 
-
 from .models import Asset
 from .models import AssetDeployment
 from .models import AssetSnapshot
@@ -21,6 +20,8 @@ from .models import Collection
 from .models import ImportTask
 from .models import ObjectPermission
 from .models.object_permission import get_anonymous_user
+
+from .utils.kobo_to_xlsform import convert_any_kobo_features_to_xlsform_survey_structure
 
 
 class Paginated(LimitOffsetPagination):
@@ -284,26 +285,31 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
 
         # Force owner to be the requesting user
         validated_data['owner'] = self.context['request'].user
-
-        # Create the snapshot and generate XML
+        # Create the snapshot
         snapshot = AssetSnapshot(**validated_data)
-        snapshot.generate_xml_from_source(snapshot.source)
+        # Handle name generation and convert any KoBo-specific features to a
+        # valid survey structure for pyxform
+        survey_structure = convert_any_kobo_features_to_xlsform_survey_structure(
+            snapshot.source)
+        # Generate XML from survey structure
+        snapshot.generate_xml_from_source(survey_structure)
+        # generate_xml_from_source() wrote to snapshot.xml; save the snapshot
         snapshot.save()
         return snapshot
 
     class Meta:
         model = AssetSnapshot
         lookup_field = 'uid'
-        fields = ('xml',
-                  'enketopreviewlink',
-                  'source',
-                  'details',
+        fields = ('url',
                   'uid',
-                  'url',
                   'owner',
+                  'date_created',
+                  'xml',
+                  'enketopreviewlink',
                   'asset',
                   'asset_version_id',
-                  'date_created',
+                  'details',
+                  'source',
                   )
 
 
