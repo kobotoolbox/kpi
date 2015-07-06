@@ -192,11 +192,16 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
             return None
 
     @property
+    def version_id(self):
+        return reversion.get_for_object(self).last().id
+
+    @property
     def export(self):
         version_id = reversion.get_for_object(self).last().id
         # AssetSnapshot.objects.filter(asset=self).delete()
-        (model, _) = AssetSnapshot.objects.get_or_create(asset=self,
-                                                       asset_version_id=version_id)
+        (model, _) = AssetSnapshot.objects.get_or_create(
+            asset=self,
+            asset_version_id=self.version_id)
         return model
 
     def content_terms(self):
@@ -233,7 +238,6 @@ class AssetSnapshot(models.Model, XlsExportable):
     date_created = models.DateTimeField(auto_now_add=True)
     uid = models.CharField(max_length=ASSET_UID_LENGTH, default='', blank=True)
 
-
     def __init__(self, *args, **kwargs):
         if 'asset' in kwargs and 'asset_version_id' not in kwargs:
             asset = kwargs.get('asset')
@@ -257,7 +261,10 @@ class AssetSnapshot(models.Model, XlsExportable):
                 source, default_name, default_language, warnings)
             if 'id_string' not in dict_repr:
                 dict_repr['id_string'] = 'some_id_string'
-            dict_repr[u'name'] = dict_repr[u'id_string']
+            ## John is shooting in the dark... ##
+            for k in (u'name', u'id_string', u'sms_keyword'):
+                dict_repr[k] = dict_repr[k][default_language]
+            #####################################
             survey = pyxform.builder.create_survey_element_from_dict(dict_repr)
             with tempfile.NamedTemporaryFile(suffix='.xml') as named_tmp:
                 survey.print_xform_to_file(
@@ -283,7 +290,7 @@ class AssetSnapshot(models.Model, XlsExportable):
             self.uid = self._generate_uid()
 
     def _generate_uid(self):
-        return 'x' + ShortUUID().random(ASSET_UID_LENGTH -1)
+        return 's' + ShortUUID().random(ASSET_UID_LENGTH -1)
 
     def get_version(self):
         if self.asset_version_id is None:

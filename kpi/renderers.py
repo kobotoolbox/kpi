@@ -1,8 +1,10 @@
 from django.utils.encoding import smart_unicode
 from django.http import StreamingHttpResponse
+from django.shortcuts import get_object_or_404
 from rest_framework import renderers
 from rest_framework.response import Response
 from kpi.serializers import UserSerializer
+from kpi.models import AssetSnapshot
 import json
 import copy
 
@@ -30,6 +32,21 @@ class XFormRenderer(renderers.BaseRenderer):
         asset = renderer_context['view'].get_object()
         return asset.export.xml
 
+# TODO: Please rename
+class AlsoXFormRenderer(renderers.BaseRenderer):
+    media_type = 'application/xml'
+    format = 'xml'
+    charset = 'utf-8'
+
+    def render(self, data, media_type=None, renderer_context=None):
+        # We avoid get_object() here to bypass get_queryset(). These XML
+        # representations are TOTALLY PUBLIC!
+        asset_snapshot = get_object_or_404(
+            AssetSnapshot,
+            uid=renderer_context['view'].kwargs['uid']
+        )
+        return asset_snapshot.xml
+
 class XlsRenderer(renderers.BaseRenderer):
     media_type = 'application/xls'
     format = 'xls'
@@ -37,11 +54,3 @@ class XlsRenderer(renderers.BaseRenderer):
     def render(self, data, media_type=None, renderer_context=None):
         asset = renderer_context['view'].get_object()
         return asset.to_xls_io()
-
-class EnketoPreviewLinkRenderer(renderers.BaseRenderer):
-    media_type = 'text/plain'
-    format = 'enketopreviewlink'
-
-    def render(self, data, media_type=None, renderer_context=None):
-        raise NotImplementedError("%s not yet implemented" % (self.__class__.__name__))
-

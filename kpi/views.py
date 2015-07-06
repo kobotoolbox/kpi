@@ -46,8 +46,8 @@ from .renderers import (
     AssetJsonRenderer,
     SSJsonRenderer,
     XFormRenderer,
-    XlsRenderer,
-    EnketoPreviewLinkRenderer,)
+    AlsoXFormRenderer,
+    XlsRenderer,)
 from .serializers import (
     AssetSerializer, AssetListSerializer,
     AssetSnapshotSerializer,
@@ -296,28 +296,20 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
     queryset = AssetSnapshot.objects.none()
     # permission_classes = (IsOwnerOrReadOnly,)
 
+    renderer_classes = NoUpdateModelViewSet.renderer_classes + [
+        # TODO: Please rename
+        AlsoXFormRenderer,
+    ]
+
     def get_queryset(self):
+        # The XML renderer IGNORES this and serves anyone, so
+        # /asset_snapshot/valid_uid/.xml is world-readable, even though
+        # /asset_snapshot/valid_uid/ requires ownership
         user = self.request.user
         if not user.is_anonymous():
             return AssetSnapshot.objects.filter(owner=user)
         else:
             return AssetSnapshot.objects.none()
-
-    @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
-    def xml(self, request, uid):
-        asset_snapshot = self.get_object()
-        return Response(asset_snapshot.xml)
-
-    def create(self, request, *args, **kwargs):
-        raise NotImplementedError("need to figure out how to create these for survey previews")
-        if 'asset_uid' in request.data:
-            request.data['asset_id'] = Asset.objects.get(uid=request.data['asset_uid']).id
-        serializer = AssetSnapshotSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED,
-                        headers=headers)
 
 
 class AssetViewSet(viewsets.ModelViewSet):
@@ -347,7 +339,6 @@ class AssetViewSet(viewsets.ModelViewSet):
                         SSJsonRenderer,
                         XFormRenderer,
                         XlsRenderer,
-                        EnketoPreviewLinkRenderer,
                         )
 
     def get_serializer_class(self):
