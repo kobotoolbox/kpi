@@ -1929,7 +1929,6 @@ var FormEnketoPreview = React.createClass({
     stores.allAssets.whenLoaded(uid, function(asset){
       actions.resources.createSnapshot({
         asset: asset.url,
-        asset_version_id: asset.version_id
       });
     })
     this.listenTo(stores.snapshots, this.snapshotCreated);
