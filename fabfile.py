@@ -4,7 +4,8 @@ import json
 import re
 import requests
 
-from fabric.api import local, hosts, cd, env, prefix, run, sudo
+from fabric.api import cd, env, prefix, run
+
 
 def kobo_workon(venv_name):
     return prefix('kobo_workon %s' % venv_name)
@@ -43,8 +44,6 @@ def setup_env(deployment_name):
     env.update(deployment)
     check_key_filename(deployment)
 
-    env.virtualenv = os.path.join('/home', 'ubuntu', '.virtualenvs',
-                                  env.kpi_virtualenv_name, 'bin', 'activate')
     env.uwsgi_pidfile = os.path.join('/home', 'ubuntu', 'pids',
                                   'kobo-uwsgi-master.pid')
     env.kpi_path = os.path.join(env.home, env.kpi_path)
@@ -143,3 +142,13 @@ def get_last_successfully_built_commit(branch):
     raise Exception("Couldn't find a passing build for the branch {}. "
         "This could be due to pagination, in which case this code "
         "must be made more robust!".format(branch))
+
+
+def transfer_data(deployment_name):
+    # TODO: Might be nice to also allow passing non-default parameters (e.g. a specific username) to
+    #     `import_survey_drafts_from_dkobo`.
+    setup_env(deployment_name)
+    with cd(env.kpi_path):
+        with kobo_workon(env.kpi_virtualenv_name):
+            with prefix('DJANGO_SETTINGS_MODULE=kobo_playground.settings'):
+                run('python manage.py import_survey_drafts_from_dkobo --allusers')
