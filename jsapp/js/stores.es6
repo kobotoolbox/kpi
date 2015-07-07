@@ -203,15 +203,15 @@ var pageStateStore = Reflux.createStore({
   }
 });
 
-stores.assetPreview = Reflux.createStore({
+stores.snapshots = Reflux.createStore({
   init () {
-    this.listenTo(actions.resources.generatePreview.completed, this.previewCreated);
+    this.listenTo(actions.resources.createSnapshot.completed, this.snapshotCreated);
   },
-  previewCreated (...args) {
-    log('preview created1!', args);
-    this.trigger(args);
+  snapshotCreated (snapshot) {
+    this.trigger(snapshot);
   },
 });
+
 var assetStore = Reflux.createStore({
   init: function () {
     this.data = {};
@@ -359,7 +359,7 @@ var surveyCompanionStore = Reflux.createStore({
     this.listenTo(actions.survey.addItemAtPosition, this.addItemAtPosition);
   },
   addItemAtPosition ({position, survey, uid}) {
-    allAssetsStore.whenLoaded(uid, function(asset){
+    stores.allAssets.whenLoaded(uid, function(asset){
       var _s = dkobo_xlform.model.Survey.loadDict(asset.content)
       survey.insertSurvey(_s, position);
     });

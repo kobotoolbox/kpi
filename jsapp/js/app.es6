@@ -1922,34 +1922,61 @@ var FormSharing = React.createClass({
 var FormEnketoPreview = React.createClass({
   mixins: [
     Navigation,
+    Reflux.ListenerMixin,
   ],
   componentDidMount () {
     var uid = this.props.params.assetid;
-    var asset = stores.asset.data && stores.asset.data[uid];
-    if (asset) {
-      actions.resources.generatePreview({
+    stores.allAssets.whenLoaded(uid, function(asset){
+      actions.resources.createSnapshot({
         asset: asset.url,
-        asset_version_id: asset.version_id
       });
+    })
+    this.listenTo(stores.snapshots, this.snapshotCreated);
+  },
+  getInitialState () {
+    return {
+      enketopreviewlink: false,
+      message: t('loading...'),
+      error: false
     }
+  },
+  snapshotCreated (snapshot) {
+    var uid = this.props.params.assetid;
+    this.setState({
+      enketopreviewlink: snapshot.enketopreviewlink
+    })
   },
   routeBack () {
     var params = this.context.router.getCurrentParams();
     this.transitionTo('form-landing', {assetid: params.assetid});
   },
+  renderEnketoPreviewIframe () {
+    return (
+        <div className='row enketo-holder'><iframe src={this.state.enketopreviewlink} /></div>
+      );
+  },
+  renderPlaceholder () {
+    return (
+        <div className='row'>
+          <div className='cutout-placeholder'>
+            <span className={classNames({
+                  'k-preview-message': true,
+                  'k-preview-error-message': this.state.error
+                })}>
+              {this.state.message}
+            </span>
+          </div>
+        </div>
+      );
+  },
   render () {
     return (
       <ui.Modal open onClose={this.routeBack} title={t('enketo preview')}>
         <ui.Modal.Body>
-          <div className='row'>
-            <div className='cutout-placeholder'>
-              <span>
-                Enketo
-                &trade;
-                Preview
-              </span>
-            </div>
-          </div>
+          { this.state.enketopreviewlink ? 
+              this.renderEnketoPreviewIframe() :
+              this.renderPlaceholder()
+          }
         </ui.Modal.Body>
         <ui.Modal.Footer>
           <button type="button"
