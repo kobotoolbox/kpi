@@ -8,11 +8,6 @@ var select2 = require('select2-browserify');
 var actions = require('./actions');
 // import XLSX from 'xlsx';
 
-window._ = require('underscore');
-window.Backbone = require('backbone');
-window.Backbone.$ = $
-window.BackboneValidation = require('backbone-validation');
-
 import React from 'react/addons';
 import Router from 'react-router';
 import Q from 'q';
@@ -37,7 +32,7 @@ import Favicon from 'react-favicon';
 
 var bootstrap = require('./libs/rest_framework/bootstrap.min');
 
-window.dkobo_xlform = require('./libs/xlform');
+var dkobo_xlform = require('./libs/xlform_with_deps');
 
 var assign = require('react/lib/Object.assign');
 var Reflux = require('reflux');
@@ -226,7 +221,7 @@ mixins.collection = {
           searchResults: r
         });
       } else {
-        actions.search.assets(queryInput);
+        actions.search.assetsWithTags({q: queryInput, tags: this.state.selectedTags});
       }
     }
   },
@@ -571,16 +566,28 @@ var sessionStore = stores.session;
 
 
 var TagList = React.createClass({
-  renderTag (tag, n) {
-    return <span className="taglist__tag" key={tag.name} onClick={(evt)=>{this.props.onTagClick(tag.name, evt)}}>{tag.name}</span>
+  tagClick (evt) {
+    this.props.onTagClick(evt.currentTarget.dataset.tag, evt);
   },
   render () {
     var tags = this.props.tags || [];
+    var selected = this.props.selected.reduce(function(sel, tagName){
+      sel[tagName] = true;
+      return sel;
+    }, {});
     return (
-      <div className="taglist">
-        {tags.map(this.renderTag)}
-      </div>
-      )
+      <bem.LibNav__tags>
+        {tags.map((tag) => {
+          return (
+              <bem.LibNav__tag key={tag.name} data-tag={tag.name} onClick={this.tagClick} m={{
+                    selected: selected[tag.name]
+                  }}>
+                {tag.name}
+              </bem.LibNav__tag>
+            );
+        })}
+      </bem.LibNav__tags>
+    );
   }
 });
 
@@ -603,6 +610,27 @@ var AssetNavigator = React.createClass({
     this.listenTo(stores.pageState, this.handlePageStateStore);
     actions.resources.listTags()
   },
+  activateSortable() {
+    if (!this.refs.liblist) {
+      return;
+    }
+    var $el = $(this.refs.liblist.getDOMNode());
+    if ($el.hasClass('ui-sortable')) {
+      $el.sortable('destroy');
+    }
+    $el.sortable({
+      helper: 'clone',
+      cursor: 'move',
+      distance: 5,
+      items: '> li',
+      connectWith: '.survey-editor__list',
+      opacity: 0.9,
+      scroll: false,
+      deactivate: ()=> {
+        $el.sortable('cancel');
+      }
+    })
+  },
   assetLibraryTrigger (res) {
     this.setState({
       assetLibraryItems: res
@@ -615,6 +643,7 @@ var AssetNavigator = React.createClass({
     return {
       searchResults: {},
       imports: [],
+      selectedTags: [],
       assetNavIntentOpen: stores.pageState.state.assetNavIntentOpen,
       assetNavIsOpen: stores.pageState.state.assetNavIsOpen
     };
@@ -645,12 +674,12 @@ var AssetNavigator = React.createClass({
     if (qresults && qresults.count > 0) {
       alItems = qresults.results;
       return (
-              <bem.LibList>
+              <bem.LibList ref="liblist">
                 {qresults.results.map((item)=> {
                   var modifiers = [item.asset_type];
                   var summ = item.summary;
                   return (
-                      <bem.LibList__item m={modifiers}>
+                      <bem.LibList__item m={modifiers} key={item.uid} data-uid={item.uid}>
                         <bem.LibList__dragbox />
                         <bem.LibList__label>
                           <ui.AssetName {...item} />
@@ -701,6 +730,11 @@ var AssetNavigator = React.createClass({
                         <bem.LibList__qtype>
                           {t(item.asset_type)}
                         </bem.LibList__qtype>
+                        <bem.LibList__tags>
+                          {(item.tags || []).map((tg)=>{
+                            return <bem.LibList__tag>{tg}</bem.LibList__tag>;
+                          })}
+                        </bem.LibList__tags>
                       </bem.LibList__item>
                     );
                 })}
@@ -708,29 +742,43 @@ var AssetNavigator = React.createClass({
         )
     }
   },
-  onTagClick () {
-    log('tag click; select tag, trigger specific search')
+  toggleTagSelected (tag) {
+    var tags = this.state.selectedTags,
+        _ti = tags.indexOf(tag);
+    if (_ti === -1) {
+      tags.push(tag);
+    } else {
+      tags.splice(tags.indexOf(_ti), 1);
+    }
+    this.setState({
+      selectedTags: tags
+    });
+  },
+  onTagClick (tag) {
+    this.toggleTagSelected(tag);
+    this.liveSearch()
   },
   renderClosedContent () {
-    var navKls = classNames("asset-navigator", this.state.assetNavIsOpen ? "" : "asset-navigator--deactivated")
     return (
-        <div className={navKls}>
-          <div className="asset-navigator__header asset-navigator__header--deactivated">
-            <div className="asset-navigator__logo" onClick={this.toggleOpen}>
-              <i className="fa fa-icon fa-book fa-2x" />
-            </div>
-          </div>
-        </div>
+        <bem.LibNav m={'deactivated'}>
+          <bem.LibNav__header m={'deactivated'}>
+            <bem.LibNav__logo onClick={this.toggleOpen}>
+              <i />
+            </bem.LibNav__logo>
+          </bem.LibNav__header>
+        </bem.LibNav>
       );
   },
   toggleOpen () {
     stores.pageState.toggleAssetNavIntentOpen()
   },
   render () {
-    var navKls = classNames("asset-navigator", this.state.assetNavIsOpen ? "" : "asset-navigator--shrunk")
     if (!this.state.assetNavIsOpen) {
       return this.renderClosedContent();
     }
+    window.setTimeout(()=>{
+      this.activateSortable();
+    }, 1);
     return (
         <bem.LibNav m={{
               shrunk: this.state.assetNavIsOpen
@@ -742,7 +790,7 @@ var AssetNavigator = React.createClass({
             <bem.LibNav__search>
               <ui.SmallInputBox ref="navigatorSearchBox" placeholder={t('search library')} onKeyUp={this.liveSearch} />
             </bem.LibNav__search>
-            <TagList tags={this.state.tags} onTagClick={this.onTagClick} />
+            <TagList tags={this.state.tags} onTagClick={this.onTagClick} selected={this.state.selectedTags} />
           </bem.LibNav__header>
           <bem.LibNav__content>
             {this.renderSearchResults()}
@@ -1439,6 +1487,27 @@ var Forms = React.createClass({
   }
 });
 
+class SurveyScope {
+  constructor ({survey}) {
+    this.survey = survey;
+  }
+  add_row_to_question_library (row) {
+    if (row.constructor.kls === 'Row') {
+      actions.resources.createAsset({
+        content: JSON.stringify({
+          survey: [
+            row.toJSON2()
+          ]
+        })
+      });
+    } else {
+      console.error('cannot add group to question library');
+    }
+  }
+  handleItem({position, itemData}) {
+    actions.survey.addItemAtPosition({position: position, uid: itemData.uid, survey: this.survey});
+  }
+}
 
 var NewForm = React.createClass({
   mixins: [
@@ -1519,8 +1588,10 @@ var NewForm = React.createClass({
     actions.resources.createResource.listen(this.creatingResource);
     actions.resources.createResource.completed.listen(this.creatingResourceCompleted);
     var survey = dkobo_xlform.model.Survey.create();
+    var skp = new SurveyScope({survey: survey});
     var app = new dkobo_xlform.view.SurveyApp({
-      survey: survey
+      survey: survey,
+      ngScope: skp,
     });
     $('.form-wrap').html(app.$el);
     app.render()
@@ -1556,7 +1627,7 @@ var CollectionList = React.createClass({
   dropAction ({file, event}) {
     actions.resources.createAsset({
       base64Encoded: event.target.result,
-      name: file.name,
+      filename: file.name,
       lastModified: file.lastModified,
       contentType: file.type
     });
@@ -1850,14 +1921,15 @@ var FormSharing = React.createClass({
 
 var FormEnketoPreview = React.createClass({
   mixins: [
-    Navigation
+    Navigation,
   ],
   componentDidMount () {
     var uid = this.props.params.assetid;
     var asset = stores.asset.data && stores.asset.data[uid];
     if (asset) {
       actions.resources.generatePreview({
-        asset: asset.url
+        asset: asset.url,
+        asset_version_id: asset.version_id
       });
     }
   },
@@ -1866,8 +1938,8 @@ var FormEnketoPreview = React.createClass({
     this.transitionTo('form-landing', {assetid: params.assetid});
   },
   render () {
-    var sharedUsers = [];
-    return <ui.Modal open onClose={this.routeBack} title={t('enketo preview')}>
+    return (
+      <ui.Modal open onClose={this.routeBack} title={t('enketo preview')}>
         <ui.Modal.Body>
           <div className='row'>
             <div className='cutout-placeholder'>
@@ -1887,7 +1959,8 @@ var FormEnketoPreview = React.createClass({
             {t('done')}
           </button>
         </ui.Modal.Footer>
-      </ui.Modal>;
+      </ui.Modal>
+    );
   }
 });
 
@@ -2027,8 +2100,10 @@ var FormPage = React.createClass({
   postLoadRenderMount () {
     this._postLoadRenderMounted = true;
     this.state.survey.settings.set('form_title', this.state.asset.name);
+    var skp = new SurveyScope({survey: this.state.survey});
     this.app = new dkobo_xlform.view.SurveyApp({
-      survey: this.state.survey
+      survey: this.state.survey,
+      ngScope: skp,
     });
     var fw = this.refs['form-wrap'].getDOMNode();
     this.app.$el.appendTo(fw);

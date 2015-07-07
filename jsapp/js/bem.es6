@@ -18,15 +18,20 @@ bem.AssetRow__sharingIcon = bem.AssetRow.__('sharingIcon');
 bem.AssetRow__sharingIcon__owner =
                 bem.AssetRow__sharingIcon.__('owner', '<span>');
 
-bem.LibNav = BEM('asset-navigator');
+bem.LibNav = BEM('lib-nav');
 bem.LibNav__content = bem.LibNav.__('content');
 bem.LibNav__header = bem.LibNav.__('header');
 bem.LibNav__footer = bem.LibNav.__('footer');
 bem.LibNav__search = bem.LibNav.__('search');
 bem.LibNav__logo = bem.LibNav.__('logo');
 
+bem.LibNav__tags = bem.LibNav.__('tags');
+bem.LibNav__tag = bem.LibNav.__('tag', '<span>');
+
 bem.LibList = BEM('lib-list', '<ul>')
 bem.LibList__item = bem.LibList.__('item', '<li>');
+bem.LibList__tags = bem.LibList.__('tags');
+bem.LibList__tag = bem.LibList.__('tag', '<span>');
 bem.LibList__label = bem.LibList.__('label');
 bem.LibList__dragbox = bem.LibList.__('dragbox');
 bem.LibList__qtype = bem.LibList.__('qtype');
@@ -129,6 +134,5 @@ bem.AccountBox__logout =    bem.AccountBox.__('logout');
 
 bem.uiPanel = BEM('ui-panel');
 bem.uiPanel__body = bem.uiPanel.__('body');
-
 
 export default bem;

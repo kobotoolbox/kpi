@@ -60,7 +60,10 @@ define 'cs!xlform/mv.validationLogicHelpers', [
       else
         super
     questionTypeHasNoValidationOperators: () ->
-      operators = $skipLogicHelpers.question_types[@helper_factory.current_question.getValue('type').split(' ')[0]]?.operators
+      typeId = @helper_factory.current_question.get('type').get('typeId')
+      if !typeId
+        return console.error('no type id found for question', @helper_factory.current_question)
+      operators = $skipLogicHelpers.question_types[typeId]?.operators
       if !operators
         operators = $skipLogicHelpers.question_types['default'].operators
       operators.length == operators[0]

@@ -429,8 +429,13 @@ define 'cs!xlform/view.surveyApp', [
             if ui.sender.hasClass('group__rows')
               return
             item = ui.item.prev()
-
-            @ngScope.add_item @getItemPosition(item) - 1
+            if @ngScope.handleItem
+              @ngScope.handleItem({
+                  position: @getItemPosition(item) - 1,
+                  itemData: ui.item.data()
+                })
+            else
+              @ngScope.add_item @getItemPosition(item) - 1
             ui.sender.sortable('cancel')
         })
       group_rows = @formEditorEl.find('.group__rows')

@@ -323,7 +323,12 @@ define 'cs!xlform/model.row', [
         # if value changes, it could be set from an initialization value
         # or it could be changed elsewhere.
         # we need to keep typeId, listName, and orOther in sync.
-        [tpid, p2, p3] = newType.split(" ")
+        if _.isObject(newType)
+          tpid = _.keys(newType)[0]
+          p2 = _.values(newType)[0]
+        else
+          [tpid, p2, p3] = newType.split(" ")
+
         typeDetail.set("typeId", tpid, silent: true)
         if p2
           typeDetail.set("listName", p2, silent: true)

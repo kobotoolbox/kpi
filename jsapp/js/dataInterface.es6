@@ -60,13 +60,11 @@ var dataInterface;
       }).fail(d.fail);
       return d.promise();
     },
-    createAssetSnapshot ({asset_uid}) {
+    createAssetSnapshot (data) {
       return $ajax({
         url: '/asset_snapshots/',
         method: 'POST',
-        data: {
-          asset_uid: asset_uid
-        }
+        data: data
       });
     },
     createTemporaryAssetSnapshot ({source}) {
@@ -125,15 +123,30 @@ var dataInterface;
       return $ajax({
         url: '/assets/',
         data: {
-          asset_type: 'block'
+          asset_type: 'question|block'
         },
+        method: 'GET'
+      });
+    },
+    assetSearch ({tags, q}) {
+      var params = [];
+      if (tags) {
+        tags.forEach(function(tag){
+          params.push(`tag=${tag}`)
+        });
+      }
+      if (q) {
+        params.push(`q=${q}`);
+      }
+      return $ajax({
+        url: `/assets/?${params.join('&')}`,
         method: 'GET'
       });
     },
     readCollection ({uid}) {
       return $ajax({
         url: `/collections/${uid}/`
-      })
+      });
     },
     deleteAsset ({uid}) {
       return $ajax({

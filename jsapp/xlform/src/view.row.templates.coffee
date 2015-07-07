@@ -225,7 +225,7 @@ define 'cs!xlform/view.row.templates', [], ()->
 
   expandChoiceList = ()->
     """
-    <span class="card__buttons__multioptions js-toggle-row-multioptions js-cancel-select-row"><i class="fa fa-fw caret"></i></span>
+    <span class="card__buttons__multioptions js-toggle-row-multioptions js-cancel-select-row"><i class='right-and-down-caret' /></span>
     """
 
   rowErrorView = (atts)->
