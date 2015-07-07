@@ -1952,7 +1952,7 @@ var FormEnketoPreview = React.createClass({
   },
   renderEnketoPreviewIframe () {
     return (
-        <div className='row enketo-holder'><iframe src={this.state.enketopreviewlink} /></div>
+        <div className='enketo-holder'><iframe src={this.state.enketopreviewlink} /></div>
       );
   },
   renderPlaceholder () {
@@ -2417,6 +2417,11 @@ var FormList = React.createClass({
   },
   _renderSearchCriteria () {
     return (
+      <bem.CollectionNav__searchcriteria>
+      </bem.CollectionNav__searchcriteria>
+      );
+    /*
+    return (
         <bem.CollectionNav__searchcriteria className="col-sm-6 k-form-list-search-bar">
           <label>
             <input type="radio" name="formlist__search__type" id="formlist__search__type--1" value="type1" checked={this.state.searchRadio==='type1'} onChange={this.searchCriteriaChange} />
@@ -2430,7 +2435,6 @@ var FormList = React.createClass({
             <input type="radio" name="formlist__search__type" id="formlist__search__type--3" value="type3" checked={this.state.searchRadio==='type3'} onChange={this.searchCriteriaChange} />
             {t('public')}
           </label>
-          {/*
           <div className="btn-group hidden">
             <a href="#" className="btn btn-default dropdown-toggle" data-toggle="dropdown">
               {t('type')}
@@ -2443,9 +2447,9 @@ var FormList = React.createClass({
               <li><a href="#"><Icon fa='folder-o' />collection</a></li>
              </ul>
           </div>
-          */}
         </bem.CollectionNav__searchcriteria>
       );
+    */
   },
   _renderFormsSearchRow () {
     return (
