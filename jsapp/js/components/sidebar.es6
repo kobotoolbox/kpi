@@ -232,7 +232,7 @@ var Sidebar = React.createClass({
             }
           </ul>
           <div className="sidebar-footer">
-            <SidebarFooterItem label="help" href="https://support.kobotoolbox.org/" />
+            <SidebarFooterItem label="help" href="http://support.kobotoolbox.org/" />
             <SidebarFooterItem label="about" href="http://www.kobotoolbox.org/" />
             <SidebarFooterItem label="source" href="https://github.com/kobotoolbox/" />
           </div>
