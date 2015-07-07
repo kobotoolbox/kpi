@@ -106,7 +106,7 @@ actions.resources = Reflux.createActions({
       "failed"
     ]
   },
-  generatePreview: {
+  createSnapshot: {
     children: [
       "completed",
       "failed"
@@ -243,9 +243,10 @@ actions.resources.createResource.failed.listen(function(){
   log('createResourceFailed');
 });
 
-actions.resources.generatePreview.listen(function(details){
-  dataInterface.createAssetSnapshot(details).done(actions.resources.generatePreview.completed)
-    .fail(actions.resources.generatePreview.failed);
+actions.resources.createSnapshot.listen(function(details){
+  dataInterface.createAssetSnapshot(details)
+    .done(actions.resources.createSnapshot.completed)
+    .fail(actions.resources.createSnapshot.failed);
 });
 
 actions.resources.listTags.listen(function(){
