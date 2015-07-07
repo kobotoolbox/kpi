@@ -23,7 +23,8 @@ $assetNavFooterHeight: 60px;
 }
 .lib-nav__content {
   padding: 0;
-  overflow: auto;
+  overflow-y: auto;
+  height: 100%;
 }
 
 
