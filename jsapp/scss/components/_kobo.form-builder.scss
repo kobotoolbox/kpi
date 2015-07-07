@@ -45,7 +45,6 @@ $buttonBorderRadius: 5px;
   @import "../stylesheets/partials/icons";
   @import "../stylesheets/partials/buttons";
   @import "../stylesheets/partials/misc";
-  @import "../stylesheets/partials/modals_iframes";
 
   @import "../stylesheets/partials/header_and_top_menu";
   @import "../stylesheets/partials/content";
@@ -63,3 +62,5 @@ $buttonBorderRadius: 5px;
     margin-top: 25px;
   }
 }
+
+@import "../stylesheets/partials/modals_iframes";
