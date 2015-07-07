@@ -30,6 +30,8 @@ bem.LibNav__tag = bem.LibNav.__('tag', '<span>');
 
 bem.LibList = BEM('lib-list', '<ul>')
 bem.LibList__item = bem.LibList.__('item', '<li>');
+bem.LibList__tags = bem.LibList.__('tags');
+bem.LibList__tag = bem.LibList.__('tag', '<span>');
 bem.LibList__label = bem.LibList.__('label');
 bem.LibList__dragbox = bem.LibList.__('dragbox');
 bem.LibList__qtype = bem.LibList.__('qtype');

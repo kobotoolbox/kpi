@@ -230,6 +230,8 @@ actions.resources.createAsset.listen(function(contents){
     dataInterface.postCreateBase64EncodedAsset(contents)
       .done(actions.resources.createAsset.completed)
       .fail(actions.resources.createAsset.failed);
+  } else if (contents.content) {
+    dataInterface.createResource(contents);
   }
 });
 

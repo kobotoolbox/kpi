@@ -60,13 +60,11 @@ var dataInterface;
       }).fail(d.fail);
       return d.promise();
     },
-    createAssetSnapshot ({asset_uid}) {
+    createAssetSnapshot (data) {
       return $ajax({
         url: '/asset_snapshots/',
         method: 'POST',
-        data: {
-          asset_uid: asset_uid
-        }
+        data: data
       });
     },
     createTemporaryAssetSnapshot ({source}) {
@@ -125,7 +123,7 @@ var dataInterface;
       return $ajax({
         url: '/assets/',
         data: {
-          asset_type: 'block'
+          asset_type: 'question|block'
         },
         method: 'GET'
       });

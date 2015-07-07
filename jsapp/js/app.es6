@@ -730,6 +730,11 @@ var AssetNavigator = React.createClass({
                         <bem.LibList__qtype>
                           {t(item.asset_type)}
                         </bem.LibList__qtype>
+                        <bem.LibList__tags>
+                          {(item.tags || []).map((tg)=>{
+                            return <bem.LibList__tag>{tg}</bem.LibList__tag>;
+                          })}
+                        </bem.LibList__tags>
                       </bem.LibList__item>
                     );
                 })}
@@ -1486,6 +1491,19 @@ class SurveyScope {
   constructor ({survey}) {
     this.survey = survey;
   }
+  add_row_to_question_library (row) {
+    if (row.constructor.kls === 'Row') {
+      actions.resources.createAsset({
+        content: JSON.stringify({
+          survey: [
+            row.toJSON2()
+          ]
+        })
+      });
+    } else {
+      console.error('cannot add group to question library');
+    }
+  }
   handleItem({position, itemData}) {
     actions.survey.addItemAtPosition({position: position, uid: itemData.uid, survey: this.survey});
   }
@@ -1609,7 +1627,7 @@ var CollectionList = React.createClass({
   dropAction ({file, event}) {
     actions.resources.createAsset({
       base64Encoded: event.target.result,
-      name: file.name,
+      filename: file.name,
       lastModified: file.lastModified,
       contentType: file.type
     });
@@ -1903,14 +1921,15 @@ var FormSharing = React.createClass({
 
 var FormEnketoPreview = React.createClass({
   mixins: [
-    Navigation
+    Navigation,
   ],
   componentDidMount () {
     var uid = this.props.params.assetid;
     var asset = stores.asset.data && stores.asset.data[uid];
     if (asset) {
       actions.resources.generatePreview({
-        asset: asset.url
+        asset: asset.url,
+        asset_version_id: asset.version_id
       });
     }
   },
@@ -1919,8 +1938,8 @@ var FormEnketoPreview = React.createClass({
     this.transitionTo('form-landing', {assetid: params.assetid});
   },
   render () {
-    var sharedUsers = [];
-    return <ui.Modal open onClose={this.routeBack} title={t('enketo preview')}>
+    return (
+      <ui.Modal open onClose={this.routeBack} title={t('enketo preview')}>
         <ui.Modal.Body>
           <div className='row'>
             <div className='cutout-placeholder'>
@@ -1940,7 +1959,8 @@ var FormEnketoPreview = React.createClass({
             {t('done')}
           </button>
         </ui.Modal.Footer>
-      </ui.Modal>;
+      </ui.Modal>
+    );
   }
 });
 
