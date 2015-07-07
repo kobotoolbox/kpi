@@ -3,19 +3,27 @@
   padding: 0;
 }
 
-$reddish: #f00;
-
 .lib-list__item {
   border-bottom: 1px solid #ddd;
   padding-left: 20px;
   position: relative;
+  cursor: grab;
+  cursor:-moz-grab;
+  cursor:-webkit-grab;
+
   &.sortable-active {
     &:after {
       content: 'importing...';
     }
   }
   &.ui-sortable-helper {
-    background-color: #ddd;
+      cursor:grabbing;
+      cursor:-moz-grabbing;
+      cursor:-webkit-grabbing;
+  }
+
+  &.ui-sortable-helper {
+    background-color: #fff;
   }
 }
 
