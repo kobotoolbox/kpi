@@ -1274,11 +1274,13 @@ var FormSettingsEditor = React.createClass({
             </div>
           </div>
           <div className="form-group">
-            <label htmlFor="select" className="col-lg-2 control-label">{t('form style')}</label>
+            <label htmlFor="select" className="col-lg-2 control-label">{t('Web form style')}</label>
             <div className="col-lg-10">
               <select className="form-control" onChange={this.props.onStyleChange} value={this.props.styleValue}>
-                <option value=''>{t('-none-')}</option>
-                <option value='field-list'>{t('field-list')}</option>
+                <option value=''>{t('Default - single page')}</option>
+                <option value='theme-grid'>{t('Grid theme')}</option>
+                <option value='pages'>{t('Multiple pages')}</option>
+                <option value='theme-grid pages'>{t('Grid theme + Multiple pages')}</option>
               </select>
             </div>
           </div>
