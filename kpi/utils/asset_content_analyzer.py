@@ -1,8 +1,11 @@
 import re
 import json
 
+import pyxform
+
 # possibly pull these aliases from pyxform
 GEO_TYPES = ['gps', 'geopoint', 'geoshape', 'geotrace',]
+META_QUESTION_TYPES = pyxform.constants.XLSFORM_METADATA_TYPES
 
 class AssetContentAnalyzer(object):
     def __init__(self, *args, **kwargs):
@@ -25,6 +28,7 @@ class AssetContentAnalyzer(object):
         languages = set()
         geo = False
         labels = []
+        metas = set()
         types = set()
         summary_errors = []
         keys = set()
@@ -45,9 +49,13 @@ class AssetContentAnalyzer(object):
                 if not _type:
                     summary_errors.append(row)
                     continue
-                if not re.match('^end', _type):
-                    row_count += 1
-                    types.add(_type)
+                if _type in META_QUESTION_TYPES:
+                    metas.add(_type)
+                    continue
+                if re.match('^end', _type):
+                    continue
+                row_count += 1
+                types.add(_type)
                 if _label != None and len(_label) > 5:
                     labels.append(_label)
                 keys = keys | set(row.keys())
