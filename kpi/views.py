@@ -33,6 +33,7 @@ from .models import (
     Collection,
     Asset,
     AssetSnapshot,
+    SitewideMessage,
     ImportTask,
     AssetDeployment,
     ObjectPermission,)
@@ -51,6 +52,7 @@ from .renderers import (
 from .serializers import (
     AssetSerializer, AssetListSerializer,
     AssetSnapshotSerializer,
+    SitewideMessageSerializer,
     CollectionSerializer, CollectionListSerializer,
     UserSerializer, UserListSerializer,
     TagSerializer, TagListSerializer,
@@ -134,7 +136,6 @@ class ObjectPermissionViewSet(NoUpdateModelViewSet):
             instance.user,
             instance.permission.codename
         )
-
 
 class CollectionViewSet(viewsets.ModelViewSet):
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
@@ -462,3 +463,8 @@ class AssetViewSet(viewsets.ModelViewSet):
 
 def _wrap_html_pre(content):
     return "<!doctype html><html><body><code><pre>%s</pre></code></body></html>" % content
+
+
+class SitewideMessageViewSet(viewsets.ModelViewSet):
+    queryset = SitewideMessage.objects.all()
+    serializer_class = SitewideMessageSerializer

@@ -19,6 +19,7 @@ from .models import AssetSnapshot
 from .models import Collection
 from .models import ImportTask
 from .models import ObjectPermission
+from .models import SitewideMessage
 from .models.object_permission import get_anonymous_user
 
 from .utils.kobo_to_xlsform import convert_any_kobo_features_to_xlsform_survey_structure
@@ -649,6 +650,13 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
             {'format': 'zip', 'url': '%s?format=zip' % obj_url},
         ]
 
+
+class SitewideMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SitewideMessage
+        lookup_field = 'slug'
+        fields = ('slug',
+                  'body',)
 
 class CollectionListSerializer(CollectionSerializer):
     children_count = serializers.SerializerMethodField()

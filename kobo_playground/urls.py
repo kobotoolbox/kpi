@@ -8,6 +8,7 @@ from kpi.views import (
     ImportTaskViewSet,
     ObjectPermissionViewSet,
     AssetDeploymentViewSet,
+    SitewideMessageViewSet,
 )
 from rest_framework.routers import DefaultRouter
 from rest_framework import renderers
@@ -23,7 +24,7 @@ router.register(r'tags', TagViewSet)
 router.register(r'permissions', ObjectPermissionViewSet)
 router.register(r'imports', ImportTaskViewSet)
 router.register(r'deployments', AssetDeploymentViewSet)
-
+router.register(r'sitewide_messages', SitewideMessageViewSet)
 
 urlpatterns = [
     url(r'^me/$', current_user),
