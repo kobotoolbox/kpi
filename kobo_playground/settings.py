@@ -135,12 +135,16 @@ LIVERELOAD_SCRIPT = os.environ.get('LIVERELOAD_SCRIPT', False)
 USE_MINIFIED_SCRIPTS = os.environ.get('KOBO_USE_MINIFIED_SCRIPTS', False)
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', False)
 
+''' Haystack search settings '''
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
         'PATH': os.path.join(os.path.dirname(__file__), 'whoosh_index'),
     },
 }
+# If this causes performance trouble, see
+# http://django-haystack.readthedocs.org/en/latest/best_practices.html#use-of-a-queue-for-a-better-user-experience
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 
 ''' Enketo settings copied from dkobo '''
 ENKETO_SERVER = os.environ.get('ENKETO_SERVER', 'https://enketo.org')
