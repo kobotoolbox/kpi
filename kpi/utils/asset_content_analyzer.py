@@ -52,10 +52,10 @@ class AssetContentAnalyzer(object):
                     labels.append(_label)
                 keys = keys | set(row.keys())
 
-        if row_count == 0:
-            self.asset_type = 'empty'
-        elif self.settings:
+        if self.settings:
             self.asset_type = 'survey'
+        elif row_count == 0:
+            self.asset_type = 'empty'
         elif row_count == 1:
             self.asset_type = 'question'
         else:
