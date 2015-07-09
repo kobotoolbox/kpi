@@ -5,10 +5,8 @@ from django.core.exceptions import FieldError
 from rest_framework.compat import get_model_name
 from rest_framework import filters
 from haystack.query import SearchQuerySet
-from haystack.inputs import AutoQuery
+from haystack.inputs import Raw
 from haystack import connections
-import unicodecsv
-from io import BytesIO
 from .models.object_permission import get_objects_for_user, get_anonymous_user
 
 
@@ -26,48 +24,11 @@ class KpiObjectPermissionsFilter(object):
         return get_objects_for_user(user, permission, queryset)
 
 
-class PipeDialect(unicodecsv.Dialect):
-    delimiter = '|'
-    quotechar = "'"
-    escapechar = '\\'
-    doublequote = False
-    skipinitialspace = False
-    # We don't parse multi-line input; furthermore, `lineterminator` is ignored
-    # by the reader according to https://docs.python.org/2/library/csv.html
-    lineterminator = '\r\n'
-    quoting = unicodecsv.QUOTE_ALL
-
-
 class SearchFilter(filters.BaseFilterBackend):
     '''
     Filters objects by searching with Haystack if the the request includes a
     query.
     '''
-    def _apply_query_filter(self, queryset, field, and_values):
-        '''
-        ?key=this&key=that shall mean this AND that
-        ?key=this|that shall mean this OR that
-
-        We use the pipe character with an eye toward eventual Postgres text
-        search integration:
-        http://www.postgresql.org/docs/9.4/static/functions-textsearch.html
-        '''
-        for and_value in and_values:
-            if and_value is not None and '|' in and_value:
-                # "The unicodecsv file reads and decodes byte strings for you,"
-                # not unicode strings (http://stackoverflow.com/a/21479663)!
-                or_values = unicodecsv.reader(
-                    BytesIO(and_value.encode('utf8')),
-                    dialect=PipeDialect,
-                    encoding='utf-8').next()
-                q_query = Q()
-                for or_value in or_values:
-                    q_query |= Q(**{field: or_value})
-                queryset = queryset.filter(q_query)
-            else:
-                queryset = queryset.filter(**{field: and_value})
-        return queryset
-
     def filter_queryset(self, request, queryset, view):
         is_search = False
         search_queryset = SearchQuerySet().models(queryset.model)
@@ -75,31 +36,15 @@ class SearchFilter(filters.BaseFilterBackend):
             queryset.model).fields
         for k, v in request.query_params.iteritems():
             if k == 'q':
-                # 'q' means do a full-text search of the document fields
-                search_queryset = search_queryset.filter(content=AutoQuery(v))
+                # 'q' means do a full-text search of the document fields.
+                # Raw() passes the search string unaltered to Woosh. This loses
+                # backend agnosticism but gains a rich query language:
+                # https://pythonhosted.org/Whoosh/querylang.html
+                search_queryset = search_queryset.filter(content=Raw(v))
                 is_search = True
-            else:
-                # Try doing a regular database query
-                v_list = request.query_params.getlist(k)
-                if k == 'tag':
-                    # 'tag' as shorthand for 'tags__name'
-                    k = 'tags__name'
-                if k == 'parent' and v == '':
-                    # Empty string means query for null parent
-                    # TODO: Support null queries generally?
-                    v_list = [None]
-                try:
-                    queryset = self._apply_query_filter(queryset, k, v_list)
-                except FieldError:
-                    # Invalid field for a database query; try the search engine
-                    if k in indexed_fields:
-                        search_queryset = search_queryset.filter(
-                            **{k: AutoQuery(v)})
-                        is_search = True
-                    else:
-                        # The field is hopelessly invalid.
-                        # TODO: Warn the client in some way?
-                        pass
+            elif k == 'parent' and v == '':
+                # Empty string means query for null parent
+                queryset = queryset.filter(parent=None)
         if not is_search:
             return queryset
         # TODO: Call highlight() on the SearchQuerySet and somehow pass the

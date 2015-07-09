@@ -1,6 +1,6 @@
 {{ object.name }}
+{{ object.uid }}
 {{ object.owner.username }}
 {% for tag in object.tags.all %}
-{{ object.tag }}
+{{ tag }}
 {% endfor %}
-{{ object.uid }}

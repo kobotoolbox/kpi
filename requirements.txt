@@ -23,7 +23,7 @@ django-debug-toolbar==1.2.2
 shortuuid==0.4.2
 djangorestframework==3.1.1
 Whoosh==2.7.0
-django-haystack==2.3.1
+django-haystack==2.4.0
 unicodecsv==0.13.0
 django-cachebuster==0.2.1
 celery==3.1.18
