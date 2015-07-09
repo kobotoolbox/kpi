@@ -2520,7 +2520,7 @@ var FormList = React.createClass({
           <ui.SmallInputBox ref="formlist-search" placeholder={t('search drafts')} onChange={this.searchChange} />
         </bem.CollectionNav__search>
         {this._renderSearchCriteria()}
-        <bem.CollectionNav__actions>
+        <bem.CollectionNav__actions className="col-sm-offset-6">
           <bem.CollectionNav__link href={this.makeHref('new-form')}>
             <i />
             {t('new form')}
