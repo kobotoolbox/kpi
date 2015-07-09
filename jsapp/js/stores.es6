@@ -206,9 +206,13 @@ var pageStateStore = Reflux.createStore({
 stores.snapshots = Reflux.createStore({
   init () {
     this.listenTo(actions.resources.createSnapshot.completed, this.snapshotCreated);
+    this.listenTo(actions.resources.createSnapshot.failed, this.snapshotCreationFailed);
   },
   snapshotCreated (snapshot) {
-    this.trigger(snapshot);
+    this.trigger(assign({success: true}, snapshot));
+  },
+  snapshotCreationFailed (data) {
+    this.trigger(assign({success: false}, data));
   },
 });
 

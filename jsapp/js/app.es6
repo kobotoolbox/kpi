@@ -1439,10 +1439,8 @@ var App = React.createClass({
     evt.preventDefault();
     stores.pageState.toggleSidebarIntentOpen();
   },
-
-  render() {
+  renderLoggedinContent () {
     return (
-      <DocumentTitle title="KoBo">
         <bem.PageWrapper m={{
             'activenav': this.state.sidebarIsOpen,
             'asset-nav-present': this.state.assetNavPresent,
@@ -1993,7 +1991,7 @@ var FormEnketoPreview = React.createClass({
         asset: asset.url,
       });
     })
-    this.listenTo(stores.snapshots, this.snapshotCreated);
+    this.listenTo(stores.snapshots, this.snapshotCreation);
   },
   getInitialState () {
     return {
@@ -2002,11 +2000,18 @@ var FormEnketoPreview = React.createClass({
       error: false
     }
   },
-  snapshotCreated (snapshot) {
-    var uid = this.props.params.assetid;
-    this.setState({
-      enketopreviewlink: snapshot.enketopreviewlink
-    })
+  snapshotCreation (data) {
+    if (data.success) {
+      var uid = this.props.params.assetid;
+      this.setState({
+        enketopreviewlink: data.enketopreviewlink
+      })
+    } else {
+      this.setState({
+        message: data.error,
+        error: true
+      })
+    }
   },
   routeBack () {
     var params = this.context.router.getCurrentParams();
@@ -2388,6 +2393,7 @@ var LibraryList = React.createClass({
     this.listenTo(stores.allAssets, this.allAssetsChange);
   },
   allAssetsChange () {
+    // WHY IS THIS NOT WORKING
     this.setState({
       list: stores.allAssets.byAssetType(['block', 'question'])
     })
