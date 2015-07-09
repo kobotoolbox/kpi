@@ -6,6 +6,10 @@ var bem = BEM.init();
 bem.PageWrapper = BEM('page-wrapper');
 bem.PageWrapper__content = bem.PageWrapper.__('content');
 
+bem.Loading = BEM('loading');
+bem.Loading__message = bem.Loading.__('message');
+bem.Loading__img = bem.Loading.__('img', '<img>');
+
 bem.AssetRow = BEM('asset-row', '<li>');
 bem.AssetRow__cell        = bem.AssetRow.__('cell');
 
