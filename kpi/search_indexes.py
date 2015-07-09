@@ -16,6 +16,13 @@ class FieldPreparersMixin:
         ]
     def prepare_name__exact(self, obj):
         return re.sub(self.COMMA_SPACE_RE, '-', obj.name)
+    def prepare_asset_type(self, obj):
+        return re.sub(self.COMMA_SPACE_RE, '-', obj.asset_type)
+    def prepare_owner__username__exact(self, obj):
+        if obj.owner:
+            return re.sub(self.COMMA_SPACE_RE, '-', obj.owner.username)
+        else:
+            return None
     def prepare_parent__name__exact(self, obj):
         if obj.parent:
             return re.sub(self.COMMA_SPACE_RE, '-', obj.parent.name)
@@ -29,16 +36,17 @@ class AssetIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixin):
     # since our queries use Raw().
     text = indexes.CharField(document=True, use_template=True)
     name = indexes.CharField(model_attr='name')
-    asset_type = indexes.CharField(model_attr='asset_type')
-    owner__username = indexes.CharField(model_attr='owner__username')
+    owner__username = indexes.CharField(model_attr='owner__username', null=True)
     parent__name = indexes.CharField(model_attr='parent__name', null=True)
     tag = indexes.MultiValueField()
-    # There's nothing multi-valued about this field, but using MultiValueField
-    # convinces Haystack to use Whoosh's KEYWORD field, which in turn uses
-    # KeywordAnalyzer. Then, by replacing commas, we can force the entire field
-    # to be a single token. This would be much easier if Haystack allowed us to
-    # use Whoosh's ID field.
+    # There's nothing multi-valued about these fields, but using
+    # MultiValueField convinces Haystack to use Whoosh's KEYWORD field, which
+    # in turn uses KeywordAnalyzer. Then, by replacing commas, we can force the
+    # entire field to be a single token. This would be much easier if Haystack
+    # allowed us to use Whoosh's ID field.
     name__exact = indexes.MultiValueField()
+    asset_type = indexes.MultiValueField()
+    owner__username__exact = indexes.MultiValueField()
     parent__name__exact = indexes.MultiValueField()
     def get_model(self):
         return Asset
@@ -53,6 +61,7 @@ class CollectionIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixi
     tag = indexes.MultiValueField()
     # Not really multi-valued; see AssetIndex for explanation
     name__exact = indexes.MultiValueField()
+    owner__username__exact = indexes.MultiValueField()
     parent__name__exact = indexes.MultiValueField()
     def get_model(self):
         return Collection
