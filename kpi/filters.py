@@ -6,6 +6,7 @@ from rest_framework.compat import get_model_name
 from rest_framework import filters
 from haystack.query import SearchQuerySet
 from haystack.inputs import Raw
+from haystack.constants import ITERATOR_LOAD_PER_QUERY
 from haystack import connections
 from .models.object_permission import get_objects_for_user, get_anonymous_user
 
@@ -51,7 +52,15 @@ class SearchFilter(filters.BaseFilterBackend):
         # highlighted result to the serializer.
         # http://django-haystack.readthedocs.org/en/latest/searchqueryset_api.html#SearchQuerySet.highlight
         matching_pks = search_queryset.values_list('pk', flat=True)
+        # We can now read len(matching_pks) very quickly, so the search engine
+        # has done its job. HOWEVER, Haystack will only retrieve the actual pks
+        # in batches of 10 (HAYSTACK_ITERATOR_LOAD_PER_QUERY), with each batch
+        # taking nearly a tenth of a second! By using a slice, we can force
+        # Haystack to hand over all the pks at once.
+        big_slice = max(ITERATOR_LOAD_PER_QUERY, search_queryset.count() - 1)
+        matching_pks = list(matching_pks[:big_slice])
         # Will still be filtered by KpiObjectPermissionsFilter.filter_queryset()
+        # TODO: Preserve ordering of search results
         return queryset.filter(pk__in=matching_pks)
 
 
