@@ -19,6 +19,7 @@ from rest_framework import (
 )
 from rest_framework import exceptions
 from rest_framework.decorators import api_view
+from rest_framework.decorators import renderer_classes
 from rest_framework.decorators import detail_route
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
@@ -83,6 +84,11 @@ def current_user(request):
                          'is_staff': user.is_staff,
                          'last_login': user.last_login,
                          })
+
+@api_view(['GET'])
+@renderer_classes([renderers.TemplateHTMLRenderer])
+def home(request):
+    return Response('ok', template_name="index.html")
 
 
 class NoUpdateModelViewSet(
