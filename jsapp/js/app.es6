@@ -1463,10 +1463,72 @@ var App = React.createClass({
             <AssetNavigator />
           :null}
         </bem.PageWrapper>
+      );
+  },
+  
+  renderNonLoggedinContent () {
+    return (
+        <div className="registration__bg">
+          <form method="post" action="." className="registration registration--login">
+            <div className="registration--logo">
+              <a href="/">
+                <img src="/static/kobo/images/kobologo.svg" />
+              </a>
+            </div>    
+            <p>
+              <label for="id_username" className="hidden">Username:</label>
+              <input id="id_username" maxlength="254" name="username" type="text" placeholder="Username" />
+            </p>
+            <p>
+              <label for="id_password" className="hidden">Password:</label>
+              <input id="id_password" name="password" type="password" placeholder="Password" />
+            </p>
+            <a href="/accounts/password/reset/" className="registration__forgot">Forgot?</a>
+            <input type="submit" value="Login" className="registration__action" />
+            <input type="hidden" name="next" value="/" />
+            <div className="registration__footer">
+              or <a href="/accounts/register/">create an account</a>
+            </div>
+          </form>
+          <div className="registration__credit">
+            <a href="https://flic.kr/p/9v4mC5" title="Muhkjar refugee camp" target="_blank">Photo</a>
+            <span>by UNAMID /</span>
+            <a href="https://creativecommons.org/licenses/by-nc-nd/2.0/" target="_blank">by-nc-nd</a>
+          </div>
+        </div>
+      );
+  },
+
+  render() {
+    // towards #42
+    var isLoggedIn = true;
+    return (
+      <DocumentTitle title="KoBoToolbox">
+        {
+          isLoggedIn ?
+          this.renderLoggedinContent()
+          :
+          this.renderNonLoggedinContent()
+        }
       </DocumentTitle>
     );
   }
 });
+
+// intended to provide a component we can export to html
+var Loading = React.createClass({
+  render () {
+    var loadingImage = 'path/to/img.jpg'
+    return (
+        <bem.Loading>
+          <bem.Loading__message>
+            {t('loading kobotoolbox')}
+          </bem.Loading__message>
+          <bem.Loading__img src={loadingImage} />
+        </bem.Loading>
+      );
+  }
+})
 
 var Forms = React.createClass({
   mixins: [
