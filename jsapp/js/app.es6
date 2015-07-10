@@ -934,9 +934,13 @@ var AssetRow = React.createClass({
                   'public-owned': isPublic,
                 }}>
               <i />
-              <bem.AssetRow__sharingIcon__owner>
-                {this.props.owner__username}
-              </bem.AssetRow__sharingIcon__owner>
+              {
+                selfowned ?
+                  t('me') :
+                <bem.AssetRow__sharingIcon__owner>
+                  {this.props.owner__username}
+                </bem.AssetRow__sharingIcon__owner>
+              }
             </bem.AssetRow__sharingIcon>
           </bem.AssetRow__cell>
           <bem.AssetRow__cell m={'action-icons'}>
