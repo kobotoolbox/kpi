@@ -148,6 +148,12 @@ var dataInterface;
         url: `/collections/${uid}/`
       });
     },
+    deleteCollection ({uid}) {
+      return $ajax({
+        url: `/collections/${uid}/`,
+        method: 'DELETE'
+      });
+    },
     deleteAsset ({uid}) {
       return $ajax({
         url: `/assets/${uid}/`,

@@ -428,6 +428,12 @@ var allAssetsStore = Reflux.createStore({
       }
     }
   },
+  byKind (kind) {
+    var kinds = [].concat(kind);
+    return this.data.filter(function(asset){
+      return kinds.indexOf(asset.kind) !== -1;
+    });
+  },
   byAssetType (asset_type) {
     var asset_types = [].concat(asset_type);
     return this.data.filter(function(asset){

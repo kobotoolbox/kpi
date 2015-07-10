@@ -1679,7 +1679,18 @@ var CollectionList = React.createClass({
     this.listenTo(stores.collectionAssets, this.listenChange);
   },
   listenChange (data) {
-    log('listen change', data);
+    var collections = data.children.filter(function(c){
+      return c.kind === 'collection';
+    });
+    var assets = data.children.filter(function(c){
+      return c.kind === 'asset';
+    })
+    this.setState({
+      list: [
+        ...collections,
+        ...assets
+      ]
+    });
   },
   initialAction () {
     actions.resources.readCollection({uid: this.props.params.uid});
@@ -2457,8 +2468,9 @@ var FormList = React.createClass({
     this.listenTo(stores.allAssets, this.listenChange);
   },
   listenChange (data) {
+    var collections = stores.allAssets.byKind('collection')
     this.setState({
-      list: stores.allAssets.byAssetType('survey')
+      list: [...collections, ...stores.allAssets.byAssetType('survey')]
     })
   },
   initialAction () {
