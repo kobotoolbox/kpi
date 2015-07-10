@@ -19,6 +19,7 @@ from rest_framework import (
 )
 from rest_framework import exceptions
 from rest_framework.decorators import api_view
+from rest_framework.decorators import renderer_classes
 from rest_framework.decorators import detail_route
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
@@ -29,6 +30,7 @@ from .filters import KpiAssignedObjectPermissionsFilter
 from .filters import KpiObjectPermissionsFilter
 from .filters import SearchFilter
 from .highlighters import highlight_xform
+from .model_utils import _load_library_content
 from .models import (
     Collection,
     Asset,
@@ -83,6 +85,11 @@ def current_user(request):
                          'is_staff': user.is_staff,
                          'last_login': user.last_login,
                          })
+
+@api_view(['GET'])
+@renderer_classes([renderers.TemplateHTMLRenderer])
+def home(request):
+    return Response('ok', template_name="index.html")
 
 
 class NoUpdateModelViewSet(
@@ -281,13 +288,23 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
             except Exception:
                 raise Exception('could not parse xls submission')
 
-            asset = Asset.objects.create(
-                owner=self.request.user,
-                content=survey_dict,
-                name=request.POST.get('name')
-            )
-            data = AssetSerializer(asset, context={'request': request}).data
-            return Response(data, status.HTTP_201_CREATED)
+            survey_dict_keys = survey_dict.keys()
+            if 'library' in survey_dict_keys:
+                collection = _load_library_content({
+                        'content': survey_dict,
+                        'owner': request.user,
+                        'name': request.POST.get('name')
+                    })
+                data = CollectionSerializer(collection, context={'request': request}).data
+                return Response(data, status.HTTP_201_CREATED)
+            elif 'survey' in survey_dict_keys or 'block' in survey_dict_keys:
+                asset = Asset.objects.create(
+                    owner=request.user,
+                    content=survey_dict,
+                    name=request.POST.get('name')
+                )
+                data = AssetSerializer(asset, context={'request': request}).data
+                return Response(data, status.HTTP_201_CREATED)
 
 
 class AssetSnapshotViewSet(NoUpdateModelViewSet):
