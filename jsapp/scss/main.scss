@@ -48,7 +48,6 @@ $newformCircleWidthHeight: 55px;
 @import './components/kobo.lib-nav';
 @import './components/kobo.lib-list';
 @import './components/kobo.form-builder';
-@import './components/kobo.asset-navigator';
 @import './components/kobo.asset-name';
 @import './components/kobo.bem.ui';
 
@@ -175,23 +174,6 @@ $i: 200;
   list-style-type: none;
 }
 // $highlightedBarColor: #616161;
-.taglist {
-  max-height: 4em;
-  overflow: hidden;
-  scroll: auto;
-  margin-left: -60px;
-}
-.taglist__tag {
-  margin-left: 3px;
-  font-size: 11px;
-  text-decoration: underline;
-  color: #555;
-  cursor: pointer;
-  &:after {
-    content: ' ';
-    text-decoration: none;
-  }
-}
 
 .asset-nav {
   height: 100%;

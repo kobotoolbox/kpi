@@ -113,8 +113,8 @@ ui.AssetName = React.createClass({
         extra = false;
     var summary = this.props.summary;
     if (!name) {
-      name = summary.labels[0];
-      if (summary.labels.length === 2) {
+      name = summary.labels ? summary.labels[0] : t('empty');
+      if (summary.labels && summary.labels.length === 2) {
         extra = <small>{t('and one other question')}</small>;
       } else if (summary.labels.length > 2) {
         extra = <small>{t('and ## other questions').replace('##', summary.labels.length-1)}</small>;

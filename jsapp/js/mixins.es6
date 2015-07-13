@@ -148,7 +148,7 @@ var dmix = {
           </bem.AssetView__col>
           <bem.AssetView__col m="date-modified">
             <bem.AssetView__colsubtext>
-              {t('modified')}
+              {t('last saved')}
             </bem.AssetView__colsubtext>
             {formatTime(this.state.date_modified)}
           </bem.AssetView__col>

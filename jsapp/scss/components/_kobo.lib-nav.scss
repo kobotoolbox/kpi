@@ -1,3 +1,114 @@
-// possible destination for library-navigator css
 .lib-nav {
+  transition: all .4s ease 0s;
+  -webkit-box-shadow: -5px 0px 5px 0px rgba(50, 50, 50, 0.07);
+  -moz-box-shadow:    -5px 0px 5px 0px rgba(50, 50, 50, 0.07);
+  box-shadow:         -5px 0px 5px 0px rgba(50, 50, 50, 0.07);
+}
+
+$assetNavHeaderHeight: 120px;
+$assetNavFooterHeight: 60px;
+.lib-nav {
+  position: fixed;
+  right: 0;
+  top: 0;
+  padding: 68px 20px 8px;
+  padding: $assetNavHeaderHeight 0 $assetNavFooterHeight;
+  width: 400px;
+  height: 100%;
+  background-color: #fff;
+  border-left: 1px solid rgba(50,50,50,0.2);
+  z-index: 5;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box; 
+}
+.lib-nav__content {
+  padding: 0;
+  overflow-y: auto;
+  height: 100%;
+}
+
+
+.library-asset-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0 -10px;
+  margin: 0;
+}
+.library-asset-list__item {
+  border-bottom: 1px solid #ddd;
+  padding-left: 20px;
+  position: relative;
+}
+.l-a__item__draggable {
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: 12px;
+  height: 12px;
+  margin-top: -8px;
+  background-color: #e8e8e8;
+  border-radius: 6px;
+}
+.lib-nav__header {
+  padding-left: 60px;
+  width: 100%;
+  height: $assetNavHeaderHeight;
+  margin-top: -1 * $assetNavHeaderHeight;
+}
+.lib-nav__footer {
+  height: $assetNavFooterHeight;
+  margin-bottom: -1 * $assetNavFooterHeight;
+}
+.lib-nav__search {
+  margin: 0 8px;
+  height: 60px;
+}
+// .lib-nav__header--deactivated {
+//   background-color: rgba(255,255,255,0.2);
+// }
+.lib-nav__logo {
+  background-color: rgb(228, 228, 228);
+  transition: all 0.3s ease 0s;
+
+  .lib-nav__header--deactivated & {
+      background-color: rgba(255,255,255,0.2);
+  }
+  > i:first-child {
+    @extend .fa, .fa-2x, .fa-book;
+  }
+  width: 60px;
+  height: 60px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 0 none;
+  text-align: center;
+  line-height: 75px;
+}
+.lib-nav--deactivated {
+  margin-right: -340px;
+  background-color: rgba(255,255,255,0.2);
+}
+
+.lib-nav__tags {
+  max-height: 4em;
+  overflow: auto;
+  scroll: auto;
+  margin-left: -60px;
+}
+.lib-nav__tag {
+  margin-left: 3px;
+  font-size: 11px;
+  text-decoration: underline;
+  color: #555;
+  cursor: pointer;
+  padding: 1px;
+  &:after {
+    content: ' ';
+    text-decoration: none;
+  }
+  &.lib-nav__tag--selected {
+    background-color: #666;
+    color: #fff;
+  }
 }

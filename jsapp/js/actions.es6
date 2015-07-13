@@ -39,8 +39,23 @@ actions.auth = Reflux.createActions({
   }
 });
 
+actions.survey = Reflux.createActions({
+  addItemAtPosition: {
+    children: [
+      "completed",
+      "failed"
+    ],
+  }
+});
+
 actions.search = Reflux.createActions({
   assets: {
+    children: [
+      "completed",
+      "failed"
+    ]
+  },
+  assetsWithTags: {
     children: [
       "completed",
       "failed"
@@ -91,7 +106,7 @@ actions.resources = Reflux.createActions({
       "failed"
     ]
   },
-  generatePreview: {
+  createSnapshot: {
     children: [
       "completed",
       "failed"
@@ -215,6 +230,8 @@ actions.resources.createAsset.listen(function(contents){
     dataInterface.postCreateBase64EncodedAsset(contents)
       .done(actions.resources.createAsset.completed)
       .fail(actions.resources.createAsset.failed);
+  } else if (contents.content) {
+    dataInterface.createResource(contents);
   }
 });
 
@@ -226,9 +243,10 @@ actions.resources.createResource.failed.listen(function(){
   log('createResourceFailed');
 });
 
-actions.resources.generatePreview.listen(function(details){
-  dataInterface.createAssetSnapshot(details).done(actions.resources.generatePreview.completed)
-    .fail(actions.resources.generatePreview.failed);
+actions.resources.createSnapshot.listen(function(details){
+  dataInterface.createAssetSnapshot(details)
+    .done(actions.resources.createSnapshot.completed)
+    .fail(actions.resources.createSnapshot.failed);
 });
 
 actions.resources.listTags.listen(function(){
@@ -293,6 +311,12 @@ actions.search.libraryDefaultQuery.listen(function(){
     .done(actions.search.libraryDefaultQuery.completed)
     .fail(actions.search.libraryDefaultQuery.failed);
 });
+
+actions.search.assetsWithTags.listen(function(queryString){
+  dataInterface.assetSearch(queryString)
+    .done(actions.search.assetsWithTags.completed)
+    .fail(actions.search.assetsWithTags.failed)
+})
 
 actions.search.tags.listen(function(queryString){
   dataInterface.searchTags(queryString)

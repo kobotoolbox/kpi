@@ -12,6 +12,14 @@
     background-color: rgba(51, 51, 51, 0.5);
 }
 
+.modal-body .enketo-holder {
+  width: inherit;
+  position: static;
+  margin: 0;
+  padding: 0;
+  border: 0 none;
+}
+
 .enketo-holder {
   width: 820px;
   margin-left: -440px;

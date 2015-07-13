@@ -176,7 +176,7 @@ var Sidebar = React.createClass({
   },
   renderAccountBar () {
     var accountName = this.state.currentAccount && this.state.currentAccount.username;
-    var defaultGravatarImage = 'http://www.gravatar.com/avatar/64e1b8d34f425d19e1ee2ea7236d3028?s=40';
+    var defaultGravatarImage = `${window.location.protocol}//www.gravatar.com/avatar/64e1b8d34f425d19e1ee2ea7236d3028?s=40`;
     var gravatar = this.state.currentAccount && this.state.currentAccount.gravatar || defaultGravatarImage;
 
     if (this.state.isLoggedIn) {
