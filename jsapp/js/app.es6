@@ -136,14 +136,12 @@ mixins.formView = {
         <ui.Panel className="k-div--formview--innerrender">
           <div className="row k-form-header-row">
             {this.renderCloseButton()}
-            <div className="k-header-name-row form-group col-md-10">
+            <div className="k-header-name-row form-group">
               <div className="k-corner-icon"></div>
               {this.renderFormNameInput()}
             </div>
-            <div className="col-md-2">
-              <div className="k-col-padrt25">
-                {this.renderSaveAndPreviewButtons()}
-              </div>
+            <div className="k-fixed-buttons">
+              {this.renderSaveAndPreviewButtons()}
             </div>
           </div>
           { this.state.survey ?
