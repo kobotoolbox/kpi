@@ -1417,7 +1417,11 @@ var App = React.createClass({
     })
   },
   widthLessThanMin () {
-    return window.innerWidth < 560;
+    if (stores.pageState.state.assetNavIsOpen) {
+      return window.innerWidth < 1500;
+    } else {
+      return window.innerWidth < 1100;
+    }
   },
   handleResize () {
     if (this.widthLessThanMin()) {
