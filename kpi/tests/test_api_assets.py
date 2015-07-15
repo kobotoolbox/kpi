@@ -74,7 +74,8 @@ class ObjectRelationshipsTests(APITestCase):
 
     def _count_children_by_kind(self, children, kind):
         count = 0
-        for child in children:
+        # TODO: Request all pages of children
+        for child in children['results']:
             if child['kind'] == kind:
                 count += 1
         return count
@@ -102,7 +103,8 @@ class ObjectRelationshipsTests(APITestCase):
         coll_req2 = self.client.get(reverse('collection-detail', args=[self.coll.uid]))
         self.assertEqual(self._count_children_by_kind(
             coll_req2.data['children'], self.surv.kind), 1)
-        self.assertEqual(self.surv.uid, coll_req2.data['children'][0]['uid'])
+        self.assertEqual(
+            self.surv.uid, coll_req2.data['children']['results'][0]['uid'])
 
     def test_add_asset_to_collection(self):
         '''
