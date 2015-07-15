@@ -12,20 +12,37 @@ class ApiAnonymousPermissionsTestCase(KpiTestCase):
 
     def setUp(self):
         self.anon= get_anonymous_user()
+        self.someuser = User.objects.get(username='someuser')
+        self.someuser_password = 'someuser'
 
+        # This was written when we allowed anons to create assets, but I'll
+        # leave it here just to make sure it has no effect
         permission= Permission.objects.get(codename='add_asset')
         self.anon.user_permissions.add(permission)
 
-    def test_anon_create_asset(self):
-        self.create_asset('gist')
+        # Log in and create an asset that anon can access
+        self.assertTrue(self.client.login(username=self.someuser.username,
+                                          password=self.someuser_password))
+        self.anon_accessible = self.create_asset('Anonymous can access this!')
+        self.add_perm(self.anon_accessible, self.anon, 'view_')
+        # Log out and become anonymous again
+        self.client.logout()
+        response = self.client.get(reverse('current-user'))
+        self.assertFalse('username' in response.data)
+
 
     def test_anon_list_assets(self):
-        gist= self.create_asset('gist')
-        self.assert_object_in_object_list(gist)
+        self.assert_object_in_object_list(self.anon_accessible)
 
     def test_anon_asset_detail(self):
-        gist= self.create_asset('gist')
-        self.assert_detail_viewable(gist)
+        self.assert_detail_viewable(self.anon_accessible)
+
+    def test_cannot_create_asset(self):
+        url = reverse('asset-list')
+        data = {'name': 'my asset', 'content': ''}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN,
+                         msg="anonymous user cannot create a asset")
 
     def test_cannot_create_collection(self):
         url = reverse('collection-list')
