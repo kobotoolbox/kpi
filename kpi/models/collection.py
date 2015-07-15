@@ -123,9 +123,9 @@ def post_delete_collection(sender, instance, **kwargs):
 
 
 class CollectionChildrenQuerySet(object):
-    ''' A pseudo-QuerySet containing both collections and assets that are
-    children of a collection. Collections are always listed before assets.
-    Derived from http://ramenlabs.com/2010/12/08/how-to-quack-like-a-queryset/.
+    ''' A pseudo-QuerySet containing mixed-model children of a collection.
+    Collections are always listed before assets.  Derived from
+    http://ramenlabs.com/2010/12/08/how-to-quack-like-a-queryset/.
     '''
     def __init__(self, collection):
         self.collection = collection
@@ -217,6 +217,7 @@ class CollectionChildrenQuerySet(object):
             *args, **kwargs)
         qs.child_assets = qs.child_assets.select_related(
             *args, **kwargs)
+        return qs
 
     def prefetch_related(self, *args, **kwargs):
         qs = self._clone()
@@ -224,6 +225,7 @@ class CollectionChildrenQuerySet(object):
             *args, **kwargs)
         qs.child_assets = qs.child_assets.prefetch_related(
             *args, **kwargs)
+        return qs
 
     def _clone(self):
         qs = CollectionChildrenQuerySet(self.collection)
