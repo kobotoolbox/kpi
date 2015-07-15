@@ -200,30 +200,22 @@ class CollectionChildrenQuerySet(object):
         return self._clone()
 
     def filter(self, *args, **kwargs):
-        qs = self._clone()
-        qs.child_collections = qs.child_collections.filter(*args, **kwargs)
-        qs.child_assets = qs.child_assets.filter(*args, **kwargs)
-        return qs
+        return self._apply_to_both('filter', *args, **kwargs)
 
     def exclude(self, *args, **kwargs):
-        qs = self._clone()
-        qs.child_collections = qs.child_collections.exclude(*args, **kwargs)
-        qs.child_assets = qs.child_assets.exclude(*args, **kwargs)
-        return qs
+        return self._apply_to_both('exclude', *args, **kwargs)
 
     def select_related(self, *args, **kwargs):
-        qs = self._clone()
-        qs.child_collections = qs.child_collections.select_related(
-            *args, **kwargs)
-        qs.child_assets = qs.child_assets.select_related(
-            *args, **kwargs)
-        return qs
+        return self._apply_to_both('select_related', *args, **kwargs)
 
     def prefetch_related(self, *args, **kwargs):
+        return self._apply_to_both('prefetch_related', *args, **kwargs)
+
+    def _apply_to_both(self, method, *args, **kwargs):
         qs = self._clone()
-        qs.child_collections = qs.child_collections.prefetch_related(
+        qs.child_collections = getattr(qs.child_collections, method)(
             *args, **kwargs)
-        qs.child_assets = qs.child_assets.prefetch_related(
+        qs.child_collections = getattr(qs.child_collections, method)(
             *args, **kwargs)
         return qs
 
