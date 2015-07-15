@@ -344,10 +344,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         many=True, read_only=True, source='get_ancestors_or_none')
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     tag_string = serializers.CharField(required=False, allow_blank=True)
-    # assetdeployment__count comes from annotate() in
-    # AssetManager.get_queryset()
-    deployment_count = serializers.IntegerField(
-        source='assetdeployment__count', read_only=True)
+    deployment_count = serializers.SerializerMethodField()
     version_id = serializers.IntegerField(read_only=True)
 
     class Meta:
@@ -448,6 +445,16 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def get_koboform_link(self, obj):
         return reverse('asset-koboform', args=(obj.uid,), request=self.context
                        .get('request', None))
+
+    def get_deployment_count(self, obj):
+        # If the QuerySet has been annotated with Count('assetdeployment'),
+        # then no further database queries are necessary
+        return getattr(
+            obj,
+            'assetdeployment__count',
+            # Not annotated; hit the database
+            obj.assetdeployment_set.count()
+        )
 
     def _content(self, obj):
         return json.dumps(obj.content)

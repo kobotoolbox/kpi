@@ -356,7 +356,7 @@ class AssetViewSet(viewsets.ModelViewSet):
         'permissions__content_object',
         # Getting the tag_string is making one query per object, but
         # prefetch_related doesn't seem to help
-    ).all()
+    ).annotate(Count('assetdeployment')).all()
     serializer_class = AssetSerializer
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
