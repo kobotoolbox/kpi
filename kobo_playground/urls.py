@@ -27,7 +27,7 @@ router.register(r'deployments', AssetDeploymentViewSet)
 
 urlpatterns = [
     url(r'^$', home),
-    url(r'^me/$', current_user),
+    url(r'^me/$', current_user, name='current-user'),
     url(r'^', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls',
                                namespace='rest_framework')),
