@@ -1,4 +1,4 @@
-from kpi.models.collection import Collection
+from kpi.models.collection import Collection, CollectionChildrenQuerySet
 from kpi.models.asset import Asset
 from kpi.models.asset import AssetSnapshot
 from kpi.models.object_permission import ObjectPermission, ObjectPermissionMixin
