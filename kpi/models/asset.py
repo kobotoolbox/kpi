@@ -41,10 +41,6 @@ class TaggableModelManager(models.Manager):
 
 
 class AssetManager(TaggableModelManager):
-    def get_queryset(self):
-        return super(AssetManager, self).get_queryset().annotate(
-            models.Count('assetdeployment')
-        )
     def filter_by_tag_name(self, tag_name):
         return self.filter(tags__name=tag_name)
 

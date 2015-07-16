@@ -1,5 +1,6 @@
 import datetime
 import json
+from collections import OrderedDict
 
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -17,6 +18,7 @@ from .models import Asset
 from .models import AssetDeployment
 from .models import AssetSnapshot
 from .models import Collection
+from .models import CollectionChildrenQuerySet
 from .models import ImportTask
 from .models import ObjectPermission
 from .models.object_permission import get_anonymous_user
@@ -342,10 +344,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         many=True, read_only=True, source='get_ancestors_or_none')
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     tag_string = serializers.CharField(required=False, allow_blank=True)
-    # assetdeployment__count comes from annotate() in
-    # AssetManager.get_queryset()
-    deployment_count = serializers.IntegerField(
-        source='assetdeployment__count', read_only=True)
+    deployment_count = serializers.SerializerMethodField()
     version_id = serializers.IntegerField(read_only=True)
 
     class Meta:
@@ -447,6 +446,16 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return reverse('asset-koboform', args=(obj.uid,), request=self.context
                        .get('request', None))
 
+    def get_deployment_count(self, obj):
+        # If the QuerySet has been annotated with Count('assetdeployment'),
+        # then no further database queries are necessary
+        return getattr(
+            obj,
+            'assetdeployment__count',
+            # Not annotated; hit the database
+            obj.assetdeployment_set.count()
+        )
+
     def _content(self, obj):
         return json.dumps(obj.content)
 
@@ -457,6 +466,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
 class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
     xform_id_string = serializers.CharField(required=False)
+    asset = GenericHyperlinkedRelatedField(
+        lookup_field='uid',
+        style={'base_template': 'input.html'} # Render as a simple text box
+    )
 
     def create(self, validated_data):
         user = self.context['request'].user
@@ -579,7 +592,6 @@ class UserListSerializer(UserSerializer):
 
 
 class CollectionChildrenSerializer(serializers.Serializer):
-
     def to_representation(self, value):
         if isinstance(value, Collection):
             serializer = CollectionListSerializer
@@ -604,10 +616,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
     # ancestors are ordered from farthest to nearest
     ancestors = AncestorCollectionsSerializer(
         many=True, read_only=True, source='get_ancestors_or_none')
-    children = CollectionChildrenSerializer(
-        many=True, read_only=True,
-        source='get_children_and_assets_iterable'
-    )
+    children = serializers.SerializerMethodField()
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     downloads = serializers.SerializerMethodField()
     tag_string = serializers.CharField(required=False)
@@ -641,6 +650,30 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
     def _get_tag_names(self, obj):
         return obj.tags.names()
 
+    def get_children(self, obj):
+        paginator = LimitOffsetPagination()
+        paginator.default_limit = 10
+        queryset = CollectionChildrenQuerySet(obj).select_related(
+            'owner', 'parent'
+        ).prefetch_related(
+            'permissions',
+            'permissions__permission',
+            'permissions__user',
+            'permissions__content_object',
+        ).all()
+        page = paginator.paginate_queryset(
+            queryset=queryset,
+            request=self.context.get('request', None)
+        )
+        serializer = CollectionChildrenSerializer(
+            page, read_only=True, many=True, context=self.context)
+        return OrderedDict([
+            ('count', paginator.count),
+            ('next', paginator.get_next_link()),
+            ('previous', paginator.get_previous_link()),
+            ('results', serializer.data)
+        ])
+
     def get_downloads(self, obj):
         request = self.context.get('request', None)
         obj_url = reverse(
@@ -658,6 +691,7 @@ class CollectionListSerializer(CollectionSerializer):
         return obj.children.count()
 
     def get_assets_count(self, obj):
+        return Asset.objects.filter(parent=obj).only('pk').count()
         return obj.assets.count()
 
     class Meta(CollectionSerializer.Meta):

@@ -104,7 +104,9 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
 
         child_field= 'children'
         child_found= False
-        for child in parent_data[child_field]:
+        # TODO: Request next page of children if child was not found on first
+        # page
+        for child in parent_data[child_field]['results']:
             if child['url'].endswith(child_url):
                 child_found= True
                 break
