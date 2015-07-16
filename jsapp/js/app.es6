@@ -1434,6 +1434,8 @@ var App = React.createClass({
 
     // can use window.matchMedia(...) here
     window.addEventListener('resize', this.handleResize);
+
+    stores.pageState.toggleAssetNavIntentOpen();
   },
   componentWillUnmount () {
     window.removeEventListener('resize', this.handleResize);
