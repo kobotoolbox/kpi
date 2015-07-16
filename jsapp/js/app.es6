@@ -136,14 +136,12 @@ mixins.formView = {
         <ui.Panel className="k-div--formview--innerrender">
           <div className="row k-form-header-row">
             {this.renderCloseButton()}
-            <div className="k-header-name-row form-group col-md-10">
+            <div className="k-header-name-row form-group">
               <div className="k-corner-icon"></div>
               {this.renderFormNameInput()}
             </div>
-            <div className="col-md-2">
-              <div className="k-col-padrt25">
-                {this.renderSaveAndPreviewButtons()}
-              </div>
+            <div className="k-fixed-buttons">
+              {this.renderSaveAndPreviewButtons()}
             </div>
           </div>
           { this.state.survey ?
@@ -1415,7 +1413,11 @@ var App = React.createClass({
     })
   },
   widthLessThanMin () {
-    return window.innerWidth < 560;
+    if (stores.pageState.state.assetNavIsOpen) {
+      return window.innerWidth < 1500;
+    } else {
+      return window.innerWidth < 1100;
+    }
   },
   handleResize () {
     if (this.widthLessThanMin()) {
@@ -1432,6 +1434,8 @@ var App = React.createClass({
 
     // can use window.matchMedia(...) here
     window.addEventListener('resize', this.handleResize);
+
+    stores.pageState.toggleAssetNavIntentOpen();
   },
   componentWillUnmount () {
     window.removeEventListener('resize', this.handleResize);

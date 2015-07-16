@@ -252,21 +252,23 @@ $cardIndicatorIconWidth: 21px;
     &.card__buttons__button--blue {
         color:$linkColor;
     }
-    &.card__buttons__button--add {
-      bottom: 22%;
-    }
-    &.card__buttons__button--card__buttons__button--copy {
-        bottom: 25%
+    // &.card__buttons__button--add {
+    //   bottom: 22%;
+    // }
+    &.card__buttons__button--copy {
+        bottom: 26%;
     }
     &.card__buttons__button--activated {
         // trying to transition this into %activated-card-button
         color: #646D75;
         background-color: #D9DDE1;
+        opacity: 1;
     }
     &:hover, &.card__buttons__button--activated:hover {
+        opacity: 0.5;
         // @extend %activated-card-button;
-        background: none;
-        color: white;
+        // background: none;
+        // color: white;
     }
 
     .bleeding-edge & {
