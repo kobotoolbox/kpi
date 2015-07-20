@@ -32,8 +32,7 @@ class XFormRenderer(renderers.BaseRenderer):
         asset = renderer_context['view'].get_object()
         return asset.export.xml
 
-# TODO: Please rename
-class AlsoXFormRenderer(renderers.BaseRenderer):
+class AssetSnapshotXFormRenderer(renderers.BaseRenderer):
     media_type = 'application/xml'
     format = 'xml'
     charset = 'utf-8'
