@@ -48,7 +48,7 @@ from .renderers import (
     AssetJsonRenderer,
     SSJsonRenderer,
     XFormRenderer,
-    AlsoXFormRenderer,
+    AssetSnapshotXFormRenderer,
     XlsRenderer,)
 from .serializers import (
     AssetSerializer, AssetListSerializer,
@@ -321,8 +321,7 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
     # permission_classes = (IsOwnerOrReadOnly,)
 
     renderer_classes = NoUpdateModelViewSet.renderer_classes + [
-        # TODO: Please rename
-        AlsoXFormRenderer,
+        AssetSnapshotXFormRenderer,
     ]
 
     def get_queryset(self):
@@ -480,10 +479,18 @@ class AssetViewSet(viewsets.ModelViewSet):
         # If the request fails at an early stage, e.g. the user has no
         # model-level permissions, accepted_renderer won't be present.
         if hasattr(request, 'accepted_renderer'):
-            if request.accepted_renderer.format == 'xls':
+            # Check the class of the renderer instead of just looking at the
+            # format, because we don't want to set Content-Disposition:
+            # attachment on asset snapshot XML
+            if (isinstance(request.accepted_renderer, XlsRenderer) or
+                    isinstance(request.accepted_renderer, XFormRenderer)):
                 response[
                     'Content-Disposition'
-                ] = 'attachment; filename={}.xls'.format(self.get_object().uid)
+                ] = 'attachment; filename={}.{}'.format(
+                    self.get_object().uid,
+                    request.accepted_renderer.format
+                )
+
         return super(AssetViewSet, self).finalize_response(
             request, response, *args, **kwargs)
 
