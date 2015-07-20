@@ -9,23 +9,26 @@ class FieldPreparersMixin:
     We'll find commas (and spaces, to mimic Gmail) and replace them with dashes.
     '''
     COMMA_SPACE_RE = re.compile('[, ]')
+    def _escape_comma_space(self, string, repl='-'):
+        return re.sub(self.COMMA_SPACE_RE, repl, string) 
+
     def prepare_tag(self, obj):
         return [
-            re.sub(self.COMMA_SPACE_RE, '-', t.name)
+            self._escape_comma_space(t.name)
             for t in obj.tags.all()
         ]
     def prepare_name__exact(self, obj):
-        return re.sub(self.COMMA_SPACE_RE, '-', obj.name)
+        return self._escape_comma_space(obj.name)
     def prepare_asset_type(self, obj):
-        return re.sub(self.COMMA_SPACE_RE, '-', obj.asset_type)
+        return self._escape_comma_space(obj.asset_type)
     def prepare_owner__username__exact(self, obj):
         if obj.owner:
-            return re.sub(self.COMMA_SPACE_RE, '-', obj.owner.username)
+            return self._escape_comma_space(obj.owner.username)
         else:
             return None
     def prepare_parent__name__exact(self, obj):
         if obj.parent:
-            return re.sub(self.COMMA_SPACE_RE, '-', obj.parent.name)
+            return self._escape_comma_space(obj.parent.name)
         else:
             return None
 
