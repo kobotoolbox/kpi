@@ -192,38 +192,39 @@ $cardIndicatorIconWidth: 21px;
     text-align: center;
     vertical-align: middle;
     display: none;
-    .card--shaded & {
-        display: block;
-    }
     span {
         position: relative;
         top: 35%;
         font-weight: 600;
         font-size: 23px;
     }
-    .card__header.settings & {
-        background: rgba(#858F98, 0.6);
-        span:after {
-            content: "Settings";
-        }
+}
+
+.card--shaded .card__header--shade {
+    display: block;
+}
+.card__header.settings .card__header--shade {
+    background: rgba(#858F98, 0.6);
+    span:after {
+        content: "Settings";
     }
-    .card__header.delete & {
-        background: rgba(#D08B8C, 0.6);
-        span:after {
-            content: "Delete Question";
-        }
+}
+.card__header.delete .card__header--shade {
+    background: rgba(#D08B8C, 0.6);
+    span:after {
+        content: "Delete Question";
     }
-    .card__header.duplicate & {
-        background:rgba($linkColor, 0.6);
-        span:after {
-            content: "Duplicate Question";
-        }
+}
+.card__header.duplicate .card__header--shade {
+    background:rgba($linkColor, 0.6);
+    span:after {
+        content: "Duplicate Question";
     }
-    .card__header.add-to-library & {
-        background: rgba(#39BF6E, 0.6);
-        span:after {
-            content: "Add Question to Library";
-        }
+}
+.card__header.add-to-library .card__header--shade {
+    background: rgba(#39BF6E, 0.6);
+    span:after {
+        content: "Add Question to Library";
     }
 }
 
@@ -323,8 +324,6 @@ $cardIndicatorIconWidth: 21px;
     display: none;
 }
 
-.survey-editor__action--multiquestion {
-  .survey-editor--singlequestion & {
+.survey-editor--singlequestion .survey-editor__action--multiquestion {
     display: none;
-  }
 }
