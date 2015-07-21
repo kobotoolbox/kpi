@@ -134,6 +134,7 @@ if not DEBUG:
 LIVERELOAD_SCRIPT = os.environ.get('LIVERELOAD_SCRIPT', False)
 USE_MINIFIED_SCRIPTS = os.environ.get('KOBO_USE_MINIFIED_SCRIPTS', False)
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', False)
+KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL', False)
 
 ''' Haystack search settings '''
 HAYSTACK_CONNECTIONS = {
