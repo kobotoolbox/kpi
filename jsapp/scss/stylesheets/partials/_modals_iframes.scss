@@ -1,3 +1,32 @@
+.modal-open {
+  // width: 80%;
+  min-height:90%;
+  // left: 10%; 
+  // margin: auto auto auto auto;
+  .modal-dialog {
+    height: 100%;
+    min-height: 100%;
+  }
+}
+
+// .modal-body {
+//   overflow-y:scroll;
+//   max-height:none;
+//   position:absolute;
+//   top:50px;
+//   bottom:50px;
+//   right:0px;
+//   left:0px;
+// }
+
+// .modal-footer {
+//   position: absolute;
+//   bottom: 0;
+//   right: 0;
+//   left: 0;
+// } 
+
+
 /* ==========================================================================
    iframe wrapper
    ========================================================================== */
@@ -12,31 +41,32 @@
     background-color: rgba(51, 51, 51, 0.5);
 }
 
-.modal-body .enketo-holder {
-  width: inherit;
-  position: static;
-  margin: 0;
-  padding: 0;
-  border: 0 none;
-}
+// .modal-body .enketo-holder {
+//   width: inherit;
+//   position: static;
+//   margin: 0;
+//   padding: 0;
+//   border: 0 none;
+// }
 
 .enketo-holder {
-  width: 820px;
-  margin-left: -440px;
-  position: fixed;
-  top: 5%;
-  left: 50%;
-  height: 80%;
-  background: white;
-  border:2px solid #5CB5EB;
-  padding:20px;
-  border-radius: 4px;
-  z-index: 101;
-  overflow: hidden;
+  // width: 820px;
+  // margin-left: -440px;
+  // position: fixed;
+  // top: 5%;
+  // left: 50%;
+  // height: 80%;
+  // background: white;
+  // border:2px solid #5CB5EB;
+  // padding:20px;
+  // border-radius: 4px;
+  // z-index: 101;
+  // overflow: hidden;
   iframe {
     width: 100%;
     height:100%;
     border:1px solid white;
+    min-height: 450px;
   }
   .enketo-loading-message {
     margin:35%;
