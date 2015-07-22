@@ -1,11 +1,11 @@
 {{ object.name }}
+{{ object.uid }}
 {% if object.owner %}
 {{ object.owner.username }}
 {% endif %}
 {% for tag in object.tags.all %}
-{{ object.tag }}
+{{ tag.name }}
 {% endfor %}
-{{ object.uid }}
-{% for term in object.content_terms %}
-{{ term }}
+{% for label in object.summary.labels %}
+{{ label }}
 {% endfor %}

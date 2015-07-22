@@ -39,7 +39,7 @@ var dataInterface;
     },
     listBlocks () {
       return $ajax({
-        url: '/assets/?asset_type=block'
+        url: '/assets/?q=asset_type:block'
       })
     },
     listAllAssets () {
@@ -123,7 +123,7 @@ var dataInterface;
       return $ajax({
         url: '/assets/',
         data: {
-          asset_type: 'question|block'
+          q: 'asset_type:question OR asset_type:block'
         },
         method: 'GET'
       });
@@ -132,14 +132,14 @@ var dataInterface;
       var params = [];
       if (tags) {
         tags.forEach(function(tag){
-          params.push(`tag=${tag}`)
+          params.push(`tag:${tag}`)
         });
       }
       if (q) {
-        params.push(`q=${q}`);
+        params.push(`(${q})`);
       }
       return $ajax({
-        url: `/assets/?${params.join('&')}`,
+        url: `/assets/?${params.join(' AND ')}`,
         method: 'GET'
       });
     },

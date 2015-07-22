@@ -200,20 +200,6 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
             asset_version_id=self.version_id)
         return model
 
-    def content_terms(self):
-        # TODO: make prettier: strip HTML, etc.
-        terms = set()
-        values = self.content.values()
-        while values:
-            value = values.pop()
-            if isinstance(value, dict):
-                values.extend(value.values())
-            elif isinstance(value, list):
-                values.extend(value)
-            else:
-                terms.add(value)
-        return terms
-
     def __unicode__(self):
         return u'{} ({})'.format(self.name, self.uid)
 
