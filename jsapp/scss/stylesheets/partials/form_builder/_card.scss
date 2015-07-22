@@ -11,17 +11,6 @@
     margin-bottom: 4px;
     position: relative;
 
-    .bleeding-edge & {
-        margin-bottom: 0;
-    }
-    // pseudo-rule used only to increase card hover area to the left of the card
-    .no-touch &:before {
-        content: " ";
-        height: 100%;
-        left: -60px;
-        position: absolute;
-        width: 80px;
-    }
     &.card--movable {
       cursor: move;
     }
@@ -37,11 +26,12 @@
         cursor: move;
         position: relative;
 
-        .bleeding-edge & {
-            padding-top: 5px;
-            padding-bottom: 5px;
-            border-width: 1px;
-        }
+    }
+
+    .bleeding-edge .card__header {
+        padding-top: 5px;
+        padding-bottom: 5px;
+        border-width: 1px;
     }
 
     .card__text {
@@ -78,6 +68,18 @@
     &.card--shaded .card__header-title {
         opacity:0.3;
     }
+}
+
+.bleeding-edge .card {
+    margin-bottom: 0;
+}
+// pseudo-rule used only to increase card hover area to the left of the card
+.no-touch .card:before {
+    content: " ";
+    height: 100%;
+    left: -60px;
+    position: absolute;
+    width: 80px;
 }
 
 .card--placeholder {
@@ -166,17 +168,17 @@ $cardIndicatorIconWidth: 21px;
     cursor: pointer;
     z-index: 3;
 
-    .card--shaded & {
-        border:none;
-    }
-
-    .bleeding-edge & {
-        width: 169px;
-        right: -181px;
-        background-color: white;
-    }
 }
 
+.card--shaded .card__buttons {
+    border:none;
+}
+
+.bleeding-edge .card__buttons {
+    width: 169px;
+    right: -181px;
+    background-color: white;
+}
 // ==========================================================================
 // Card Shade (displays on hover above the card header)
 // ==========================================================================
@@ -272,22 +274,22 @@ $cardIndicatorIconWidth: 21px;
         // color: white;
     }
 
-    .bleeding-edge & {
-        position: relative;
-        float: left;
-        width: 30px;
-        display: block;
-        margin: 5px;
-        &.card__buttons__button--red,
-          &.card__buttons__button--gray,
-          &.card__buttons__button--blue,
-          &.card__buttons__button--gray-green,
-          &.card__buttons__button--copy {
-            top: 0;
-        }
-    }
 }
 
+.bleeding-edge .card__buttons__button {
+    position: relative;
+    float: left;
+    width: 30px;
+    display: block;
+    margin: 5px;
+    &.card__buttons__button--red,
+      &.card__buttons__button--gray,
+      &.card__buttons__button--blue,
+      &.card__buttons__button--gray-green,
+      &.card__buttons__button--copy {
+        top: 0;
+    }
+}
 // Misc...
 
 .placeholder {
