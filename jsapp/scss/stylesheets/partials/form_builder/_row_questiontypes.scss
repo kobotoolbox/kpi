@@ -66,9 +66,10 @@
         background-color: darken(#C5CACF, 20%);
     }
 
-    .survey-editor--singlequestion & {
-        display: none;
-    }
+}
+
+.survey-editor--singlequestion .row__questiontypes__close {
+    display: none;
 }
 
 input.row__questiontypes__new-question-name {
