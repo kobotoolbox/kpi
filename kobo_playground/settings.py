@@ -50,7 +50,6 @@ INSTALLED_APPS = (
     'taggit',
     'rest_framework',
     'rest_framework.authtoken',
-    'djcelery',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -128,9 +127,6 @@ TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
 if not DEBUG:
     STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
-import djcelery
-djcelery.setup_loader()
-
 LIVERELOAD_SCRIPT = os.environ.get('LIVERELOAD_SCRIPT', False)
 USE_MINIFIED_SCRIPTS = os.environ.get('KOBO_USE_MINIFIED_SCRIPTS', False)
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', False)
@@ -148,3 +144,14 @@ ENKETO_PREVIEW_URI = os.environ.get('ENKETO_PREVIEW_URI', '/webform/preview')
 # The number of hours to keep a kobo survey preview (generated for enketo)
 # around before purging it.
 KOBO_SURVEY_PREVIEW_EXPIRATION = os.environ.get('KOBO_SURVEY_PREVIEW_EXPIRATION', 24)
+
+''' Celery configuration '''
+from datetime import timedelta
+CELERYBEAT_SCHEDULE = {
+    # Update the Haystack index every hour to catch any stragglers that might
+    # have gotten past haystack.signals.RealtimeSignalProcessor
+    'update-search-index': {
+        'task': 'kpi.tasks.update_search_index',
+        'schedule': timedelta(hours=1)
+    },
+}
