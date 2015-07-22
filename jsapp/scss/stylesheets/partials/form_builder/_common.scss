@@ -1,14 +1,14 @@
-%caret-right {
+// %caret-right {
     // &:before {
     //     content: "\f0da";
     // }
-}
+// }
 
-%caret-down {
+// %caret-down {
     // &:before {
     //     content: "\f0d7";
     // }
-}
+// }
 
 %card-expansion {
     border: $cardBorderStyle;
@@ -49,10 +49,12 @@
 .form-builder, .main, .content {
   height: 100%
 }
+
 .form-builder__message {
     margin: 20px auto;
     padding: 10px;
 }
+
 .form-builder__message--error {
     border: 1px solid #faa3a3;
     background-color: #FFDFDF;
