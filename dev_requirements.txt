@@ -1,2 +1,3 @@
 -r requirements.txt
 Fabric==1.10.2
+Werkzeug==0.10.4

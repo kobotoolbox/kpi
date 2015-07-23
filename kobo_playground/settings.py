@@ -51,6 +51,7 @@ INSTALLED_APPS = (
     'taggit',
     'rest_framework',
     'rest_framework.authtoken',
+    'registration',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -107,6 +108,7 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'jsapp'),
+    os.path.join(BASE_DIR, 'static'),
 )
 
 from cachebuster.detectors import git
@@ -164,3 +166,19 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(hours=1)
     },
 }
+
+# http://django-registration-redux.readthedocs.org/en/latest/quickstart.html#settings
+ACCOUNT_ACTIVATION_DAYS = 3
+REGISTRATION_AUTO_LOGIN= True
+
+# https://docs.djangoproject.com/en/stable/topics/email/#smtp-backend
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+if 'EMAIL_BACKEND' in os.environ:
+    EMAIL_BACKEND= os.environ.get('EMAIL_BACKEND')
+if 'DEFAULT_FROM_EMAIL' in os.environ:
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
+    SERVER_EMAIL = DEFAULT_FROM_EMAIL
