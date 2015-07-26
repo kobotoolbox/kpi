@@ -3,7 +3,7 @@
 {% block content %}
 <div class="registration__bg">
   <form method="post" action="." class="registration registration--login">
-    <div class="registration--logo"><a href="/"><img src="/static/kobo/images/kobologo.svg"/></a></div>    
+    <div class="registration--logo"><a href="/"><img src="/static/kobo/images/kobologo.svg"/></a></div>
     {% csrf_token %}
     {{ form.as_p }}
     <a href="{% url 'auth_password_reset' %}" class="registration__forgot">Forgot?</a>
@@ -19,12 +19,17 @@
   <div class="registration__credit"><a href="https://flic.kr/p/9v4mC5" title="Muhkjar refugee camp" target="_blank">Photo</a> by UNAMID / <a href="https://creativecommons.org/licenses/by-nc-nd/2.0/" target="_blank">by-nc-nd</a></div>
 </div>
 
-<script>
+
+{% endblock %}
+
+{% block footer %}
+ {{ block.super }}
+  <script>
   $(function () {
     $('form.registration input#id_username').attr('placeholder', 'Username');
     $('form.registration input#id_password').attr('placeholder', 'Password');
     $('form.registration > p > label').addClass('hidden');
   });
 </script>
+{% endblock footer %}
 
-{% endblock %}
