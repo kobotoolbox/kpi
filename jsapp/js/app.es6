@@ -1661,7 +1661,7 @@ var NewForm = React.createClass({
       survey: dkobo_xlform.model.Survey.create()
     });
     var app = new dkobo_xlform.view.SurveyApp({
-      survey: survey.survey,
+      survey: skp.survey,
       ngScope: skp
     });
     $('.form-wrap').html(app.$el);
