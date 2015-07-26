@@ -1657,15 +1657,16 @@ var NewForm = React.createClass({
   componentDidMount () {
     actions.resources.createResource.listen(this.creatingResource);
     actions.resources.createResource.completed.listen(this.creatingResourceCompleted);
-    var survey = dkobo_xlform.model.Survey.create();
-    var skp = new SurveyScope({survey: survey});
+    var skp = new SurveyScope({
+      survey: dkobo_xlform.model.Survey.create()
+    });
     var app = new dkobo_xlform.view.SurveyApp({
-      survey: survey,
-      ngScope: skp,
+      survey: survey.survey,
+      ngScope: skp
     });
     $('.form-wrap').html(app.$el);
-    app.render()
-    this.app = app
+    app.render();
+    this.app = app;
     this.setState({
       survey: survey
     });
@@ -1767,10 +1768,11 @@ var FormDownload = React.createClass({
           <ul>
             {
               this.state.downloads.map(function(item){
+                var fmt = `download-format-${item.format}`;
                 return (
                     <li>
-                      <a href={item.url}>
-                        {t(`download-format-${item.format}`)}
+                      <a href={item.url} ref={fmt}>
+                        {t(fmt)}
                       </a>
                     </li>
                   );
@@ -2159,6 +2161,9 @@ var FormPage = React.createClass({
       );
   },
   assetStoreTriggered (data, uid, stateUpdates) {
+    if (this.state.survey) {
+      return;
+    }
     var s = data[uid],
       survey,
       content,

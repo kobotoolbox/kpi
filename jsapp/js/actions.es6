@@ -287,6 +287,15 @@ actions.resources.readCollection.listen(function(details){
         actions.resources.readCollection.failed(details, req, err, message);
       });
 })
+
+actions.resources.deleteCollection.listen(function(details){
+  dataInterface.deleteCollection(details)
+    .done(function(result){
+      actions.resources.deleteCollection.completed(details, result)
+    })
+    .fail(actions.resources.deleteCollection.failed);
+});
+
 actions.resources.cloneAsset.listen(function(details){
   dataInterface.cloneAsset(details)
     .done(function(...args){

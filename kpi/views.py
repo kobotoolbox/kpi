@@ -3,7 +3,6 @@ from itertools import chain
 from pyxform.xls2json_backends import xls_to_dict
 import base64
 import json
-import random
 import datetime
 
 from django.contrib.auth.models import User
@@ -63,9 +62,9 @@ from .utils.gravatar_url import gravatar_url
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 
-CLONE_ARG_NAME= 'clone_from'
-ASSET_CLONE_FIELDS= {'name', 'content', 'asset_type'}
-COLLECTION_CLONE_FIELDS= {'name'}
+CLONE_ARG_NAME = 'clone_from'
+ASSET_CLONE_FIELDS = {'name', 'content', 'asset_type'}
+COLLECTION_CLONE_FIELDS = {'name'}
 
 
 @api_view(['GET'])
@@ -85,6 +84,12 @@ def current_user(request):
                          'is_staff': user.is_staff,
                          'last_login': user.last_login,
                          })
+
+@api_view(['GET'])
+@renderer_classes([renderers.TemplateHTMLRenderer])
+def home(request):
+    return Response('ok', template_name="index.html")
+
 
 @api_view(['GET'])
 @renderer_classes([renderers.TemplateHTMLRenderer])
@@ -160,7 +165,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
 
     def _clone(self):
         # Clone an existing collection.
-        original_uid= self.request.data[CLONE_ARG_NAME]
+        original_uid = self.request.data[CLONE_ARG_NAME]
         original_collection= get_object_or_404(Collection, uid=original_uid)
         view_perm= get_perm_name('view', original_collection)
         if not self.request.user.has_perm(view_perm, original_collection):
@@ -278,17 +283,10 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ImportTaskSerializer
     lookup_field = 'uid'
 
-    # permission_classes = (IsOwnerOrReadOnly,)
-    # user = models.ForeignKey('auth.User')
-    # data = JSONField()
-    # status = models.CharField(choices=STATUS_CHOICES, max_length=32, default=CREATED)
-    # uid = models.CharField(max_length=UID_LENGTH, default='')
-    # date_created = models.DateTimeField(auto_now_add=True)
-
     def create(self, request, *args, **kwargs):
         if 'base64Encoded' in request.POST:
             encoded_str = request.POST['base64Encoded']
-            encoded_substr = encoded_str[encoded_str.index('base64') +7:]
+            encoded_substr = encoded_str[encoded_str.index('base64') + 7:]
             decoded_str = base64.b64decode(encoded_substr)
             try:
                 survey_dict = xls_to_dict(BytesIO(decoded_str))
@@ -302,7 +300,9 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
                         'owner': request.user,
                         'name': request.POST.get('name')
                     })
-                data = CollectionSerializer(collection, context={'request': request}).data
+                data = CollectionSerializer(collection, context={
+                              'request': request
+                            }).data
                 return Response(data, status.HTTP_201_CREATED)
             elif 'survey' in survey_dict_keys or 'block' in survey_dict_keys:
                 asset = Asset.objects.create(
@@ -310,7 +310,9 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
                     content=survey_dict,
                     name=request.POST.get('name')
                 )
-                data = AssetSerializer(asset, context={'request': request}).data
+                data = AssetSerializer(asset, context={
+                              'request': request
+                            }).data
                 return Response(data, status.HTTP_201_CREATED)
 
 
@@ -336,14 +338,9 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
 
 
 class AssetViewSet(viewsets.ModelViewSet):
-
     """
-    * Download a asset in a `.xls` or `.xml` format <span class='label label-success'>complete</span>
-    * View a asset in a markdown spreadsheet or XML preview format <span class='label label-success'>complete</span>
     * Assign a asset to a collection <span class='label label-warning'>partially implemented</span>
-    * View previous versions of a asset <span class='label label-danger'>TODO</span>
     * Run a partial update of a asset <span class='label label-danger'>TODO</span>
-    * Generate a link to a preview in enketo-express <span class='label label-danger'>TODO</span>
     """
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
     queryset = Asset.objects.select_related(

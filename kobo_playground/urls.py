@@ -1,4 +1,3 @@
-from rest_framework.urlpatterns import format_suffix_patterns
 from kpi.views import (
     AssetViewSet,
     AssetSnapshotViewSet,
@@ -10,7 +9,6 @@ from kpi.views import (
     AssetDeploymentViewSet,
 )
 from rest_framework.routers import DefaultRouter
-from rest_framework import renderers
 from django.conf.urls import url, include
 from kpi.views import home, current_user
 
