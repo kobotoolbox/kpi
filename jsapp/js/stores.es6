@@ -206,9 +206,13 @@ var pageStateStore = Reflux.createStore({
 stores.snapshots = Reflux.createStore({
   init () {
     this.listenTo(actions.resources.createSnapshot.completed, this.snapshotCreated);
+    this.listenTo(actions.resources.createSnapshot.failed, this.snapshotCreationFailed);
   },
   snapshotCreated (snapshot) {
-    this.trigger(snapshot);
+    this.trigger(assign({success: true}, snapshot));
+  },
+  snapshotCreationFailed (data) {
+    this.trigger(assign({success: false}, data));
   },
 });
 
@@ -423,6 +427,12 @@ var allAssetsStore = Reflux.createStore({
         cb.call(this, asset);
       }
     }
+  },
+  byKind (kind) {
+    var kinds = [].concat(kind);
+    return this.data.filter(function(asset){
+      return kinds.indexOf(asset.kind) !== -1;
+    });
   },
   byAssetType (asset_type) {
     var asset_types = [].concat(asset_type);

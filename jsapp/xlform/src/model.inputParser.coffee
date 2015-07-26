@@ -92,7 +92,7 @@ define [
     tmp = {}
     choiceNames = []
     for choiceRow in passedChoices
-      lName = choiceRow["list name"]
+      lName = choiceRow["list name"] || choiceRow["list_name"]
       unless tmp[lName]
         tmp[lName] = []
         choiceNames.push(lName)
