@@ -1480,7 +1480,7 @@ var App = React.createClass({
           <form method="post" action="." className="registration registration--login">
             <div className="registration--logo">
               <a href="/">
-                <img src="/static/kobo/images/kobologo.svg" />
+                <img src="/static/img/kobologo.svg" />
               </a>
             </div>    
             <p>
