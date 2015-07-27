@@ -28,3 +28,4 @@ Whoosh==2.7.0
 django-haystack==2.4.0
 celery==3.1.18
 django-cachebuster==0.2.1
+django-ses==0.7.0
