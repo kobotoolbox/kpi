@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cachebuster',
     'django.contrib.staticfiles',
     'reversion',
     'debug_toolbar',
@@ -107,6 +108,9 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'jsapp'),
 )
+
+from cachebuster.detectors import git
+CACHEBUSTER_UNIQUE_STRING = git.unique_string(__file__)[:6]
 
 if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
     STATICFILES_DIRS = STATICFILES_DIRS + (

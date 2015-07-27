@@ -188,6 +188,7 @@ module.exports = function(grunt) {
     'build',
     'copy',
     'uglify',
+    'cssmin',
   ]);
 
 };

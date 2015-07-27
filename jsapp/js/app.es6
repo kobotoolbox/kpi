@@ -932,9 +932,13 @@ var AssetRow = React.createClass({
                   'public-owned': isPublic,
                 }}>
               <i />
-              <bem.AssetRow__sharingIcon__owner>
-                {this.props.owner__username}
-              </bem.AssetRow__sharingIcon__owner>
+              {
+                selfowned ?
+                  t('me') :
+                <bem.AssetRow__sharingIcon__owner>
+                  {this.props.owner__username}
+                </bem.AssetRow__sharingIcon__owner>
+              }
             </bem.AssetRow__sharingIcon>
           </bem.AssetRow__cell>
           <bem.AssetRow__cell m={'action-icons'}>
@@ -1445,10 +1449,8 @@ var App = React.createClass({
     evt.preventDefault();
     stores.pageState.toggleSidebarIntentOpen();
   },
-
-  render() {
+  renderLoggedinContent () {
     return (
-      <DocumentTitle title="KoBo">
         <bem.PageWrapper m={{
             'activenav': this.state.sidebarIsOpen,
             'asset-nav-present': this.state.assetNavPresent,
@@ -1469,10 +1471,72 @@ var App = React.createClass({
             <AssetNavigator />
           :null}
         </bem.PageWrapper>
+      );
+  },
+  
+  renderNonLoggedinContent () {
+    return (
+        <div className="registration__bg">
+          <form method="post" action="." className="registration registration--login">
+            <div className="registration--logo">
+              <a href="/">
+                <img src="/static/kobo/images/kobologo.svg" />
+              </a>
+            </div>    
+            <p>
+              <label for="id_username" className="hidden">Username:</label>
+              <input id="id_username" maxlength="254" name="username" type="text" placeholder="Username" />
+            </p>
+            <p>
+              <label for="id_password" className="hidden">Password:</label>
+              <input id="id_password" name="password" type="password" placeholder="Password" />
+            </p>
+            <a href="/accounts/password/reset/" className="registration__forgot">Forgot?</a>
+            <input type="submit" value="Login" className="registration__action" />
+            <input type="hidden" name="next" value="/" />
+            <div className="registration__footer">
+              or <a href="/accounts/register/">create an account</a>
+            </div>
+          </form>
+          <div className="registration__credit">
+            <a href="https://flic.kr/p/9v4mC5" title="Muhkjar refugee camp" target="_blank">Photo</a>
+            <span>by UNAMID /</span>
+            <a href="https://creativecommons.org/licenses/by-nc-nd/2.0/" target="_blank">by-nc-nd</a>
+          </div>
+        </div>
+      );
+  },
+
+  render() {
+    // towards #42
+    var isLoggedIn = true;
+    return (
+      <DocumentTitle title="KoBoToolbox">
+        {
+          isLoggedIn ?
+          this.renderLoggedinContent()
+          :
+          this.renderNonLoggedinContent()
+        }
       </DocumentTitle>
     );
   }
 });
+
+// intended to provide a component we can export to html
+var Loading = React.createClass({
+  render () {
+    var loadingImage = 'path/to/img.jpg'
+    return (
+        <bem.Loading>
+          <bem.Loading__message>
+            {t('loading kobotoolbox')}
+          </bem.Loading__message>
+          <bem.Loading__img src={loadingImage} />
+        </bem.Loading>
+      );
+  }
+})
 
 var Forms = React.createClass({
   mixins: [
@@ -1594,14 +1658,16 @@ var NewForm = React.createClass({
     actions.resources.createResource.listen(this.creatingResource);
     actions.resources.createResource.completed.listen(this.creatingResourceCompleted);
     var survey = dkobo_xlform.model.Survey.create();
-    var skp = new SurveyScope({survey: survey});
+    var skp = new SurveyScope({
+      survey: survey
+    });
     var app = new dkobo_xlform.view.SurveyApp({
       survey: survey,
-      ngScope: skp,
+      ngScope: skp
     });
     $('.form-wrap').html(app.$el);
-    app.render()
-    this.app = app
+    app.render();
+    this.app = app;
     this.setState({
       survey: survey
     });
@@ -1625,7 +1691,18 @@ var CollectionList = React.createClass({
     this.listenTo(stores.collectionAssets, this.listenChange);
   },
   listenChange (data) {
-    log('listen change', data);
+    var collections = data.children.filter(function(c){
+      return c.kind === 'collection';
+    });
+    var assets = data.children.filter(function(c){
+      return c.kind === 'asset';
+    })
+    this.setState({
+      list: [
+        ...collections,
+        ...assets
+      ]
+    });
   },
   initialAction () {
     actions.resources.readCollection({uid: this.props.params.uid});
@@ -1692,10 +1769,11 @@ var FormDownload = React.createClass({
           <ul>
             {
               this.state.downloads.map(function(item){
+                var fmt = `download-format-${item.format}`;
                 return (
                     <li>
-                      <a href={item.url}>
-                        {t(`download-format-${item.format}`)}
+                      <a href={item.url} ref={fmt}>
+                        {t(fmt)}
                       </a>
                     </li>
                   );
@@ -1937,7 +2015,7 @@ var FormEnketoPreview = React.createClass({
         asset: asset.url,
       });
     })
-    this.listenTo(stores.snapshots, this.snapshotCreated);
+    this.listenTo(stores.snapshots, this.snapshotCreation);
   },
   getInitialState () {
     return {
@@ -1946,11 +2024,18 @@ var FormEnketoPreview = React.createClass({
       error: false
     }
   },
-  snapshotCreated (snapshot) {
-    var uid = this.props.params.assetid;
-    this.setState({
-      enketopreviewlink: snapshot.enketopreviewlink
-    })
+  snapshotCreation (data) {
+    if (data.success) {
+      var uid = this.props.params.assetid;
+      this.setState({
+        enketopreviewlink: data.enketopreviewlink
+      })
+    } else {
+      this.setState({
+        message: data.error,
+        error: true
+      })
+    }
   },
   routeBack () {
     var params = this.context.router.getCurrentParams();
@@ -2077,6 +2162,9 @@ var FormPage = React.createClass({
       );
   },
   assetStoreTriggered (data, uid, stateUpdates) {
+    if (this.state.survey) {
+      return;
+    }
     var s = data[uid],
       survey,
       content,
@@ -2332,6 +2420,7 @@ var LibraryList = React.createClass({
     this.listenTo(stores.allAssets, this.allAssetsChange);
   },
   allAssetsChange () {
+    // WHY IS THIS NOT WORKING
     this.setState({
       list: stores.allAssets.byAssetType(['block', 'question'])
     })
@@ -2395,8 +2484,9 @@ var FormList = React.createClass({
     this.listenTo(stores.allAssets, this.listenChange);
   },
   listenChange (data) {
+    var collections = stores.allAssets.byKind('collection')
     this.setState({
-      list: stores.allAssets.byAssetType('survey')
+      list: [...collections, ...stores.allAssets.byAssetType('survey')]
     })
   },
   initialAction () {
@@ -2464,7 +2554,7 @@ var FormList = React.createClass({
           <ui.SmallInputBox ref="formlist-search" placeholder={t('search drafts')} onChange={this.searchChange} />
         </bem.CollectionNav__search>
         {this._renderSearchCriteria()}
-        <bem.CollectionNav__actions>
+        <bem.CollectionNav__actions className="col-sm-offset-6">
           <bem.CollectionNav__link href={this.makeHref('new-form')}>
             <i />
             {t('new form')}
