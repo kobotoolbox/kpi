@@ -15,3 +15,4 @@ jsapp/js/refactored.es6
 *.orig
 whoosh_index
 tmp
+staticfiles
