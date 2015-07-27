@@ -117,7 +117,6 @@ module.exports = function(grunt) {
         flatten: true,
         src: [
           './jsapp/xlform/components/fontawesome/fonts/fontawesome-webfont.*',
-          './jsapp/kobo/fonts/open-sans/opensans-*',
           ],
         dest: './jsapp/fonts/',
       }
