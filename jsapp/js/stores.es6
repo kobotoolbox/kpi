@@ -479,7 +479,9 @@ var collectionAssetsStore = Reflux.createStore({
     this.listenTo(actions.resources.readCollection.completed, this.readCollectionCompleted);
   },
   readCollectionCompleted (data, x, y) {
-    data.children.forEach((childAsset)=> {
+    var children = data.children && data.children.results;
+
+    children.forEach((childAsset)=> {
       stores.allAssets.registerAssetOrCollection(childAsset);
     });
     this.collections[data.uid] = data;

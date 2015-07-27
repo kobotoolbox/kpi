@@ -225,6 +225,14 @@ mixins.collection = {
   },
   renderList (items) {
     var currentUsername = sessionStore.currentAccount && sessionStore.currentAccount.username;
+    if (items.length === 0) {
+      return (
+          <bem.CollectionAssetList__message m={'empty'}>
+            <i />
+            {t('no items to display')}
+          </bem.CollectionAssetList__message>
+        );
+    }
     return items.map((resource) => {
             // perm should be cached in the resource upon arrival
             var perm = parsePermissions(resource.owner, resource.permissions)
@@ -241,24 +249,23 @@ mixins.collection = {
   },
   renderLoadingMessage () {
     return (
-        <div className='k-loading-message-with-padding'>
-          <i className='fa fa-spinner fa-spin' />
-          &nbsp;
+        <bem.CollectionAssetList__message m={'loading'}>
+          <i />
           {this._loadingMessage()}
-        </div>
+        </bem.CollectionAssetList__message>
       );
   },
   renderPanel () {
     return (
       <ui.Panel className="k-div--formspanel">
         {this._renderFormsSearchRow()}
-        <ul className="collection-asset-list list-group">
+        <bem.CollectionAssetList>
           {this.state.list === false ?
             this.renderLoadingMessage()
             :
             this.renderList(this.state.list)
           }
-        </ul>
+        </bem.CollectionAssetList>
         <RouteHandler />
       </ui.Panel>
     );
@@ -1691,12 +1698,12 @@ var CollectionList = React.createClass({
     this.listenTo(stores.collectionAssets, this.listenChange);
   },
   listenChange (data) {
-    var collections = data.children.filter(function(c){
+    var collections = data.children.results.filter(function(c){
       return c.kind === 'collection';
     });
-    var assets = data.children.filter(function(c){
+    var assets = data.children.results.filter(function(c){
       return c.kind === 'asset';
-    })
+    });
     this.setState({
       list: [
         ...collections,

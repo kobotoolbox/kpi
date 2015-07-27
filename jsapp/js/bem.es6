@@ -47,6 +47,9 @@ bem.CollectionNav__actions = bem.CollectionNav.__('actions');
 bem.CollectionNav__button = bem.CollectionNav.__('button', '<button>');
 bem.CollectionNav__link = bem.CollectionNav.__('link', '<a>');
 
+bem.CollectionAssetList = bem('collection-asset-list', '<ul>');
+bem.CollectionAssetList__message = bem.CollectionAssetList.__('message');
+
 bem.CollectionHeader = bem('collection-header');
 bem.CollectionHeader__buttonRow = bem('collection-header__button-row')
 bem.CollectionHeader__buttonGroup = bem('collection-header__button-group', [
