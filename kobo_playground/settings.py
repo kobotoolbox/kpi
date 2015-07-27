@@ -34,8 +34,10 @@ LOGIN_REDIRECT_URL = '/'
 
 # Application definition
 
+# The order of INSTALLED_APPS is important for template resolution. When two
+# apps both define templates for the same view, the first app listed receives
+# precedence
 INSTALLED_APPS = (
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -47,11 +49,12 @@ INSTALLED_APPS = (
     'mptt',
     'haystack',
     'kpi',
+    'registration', # Must come AFTER kpi
+    'django.contrib.admin', # Must come AFTER registration
     'django_extensions',
     'taggit',
     'rest_framework',
     'rest_framework.authtoken',
-    'registration',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -169,7 +172,8 @@ CELERYBEAT_SCHEDULE = {
 
 # http://django-registration-redux.readthedocs.org/en/latest/quickstart.html#settings
 ACCOUNT_ACTIVATION_DAYS = 3
-REGISTRATION_AUTO_LOGIN= True
+REGISTRATION_AUTO_LOGIN = True
+REGISTRATION_EMAIL_HTML = False # Otherwise we have to write HTML templates
 
 # Email configuration from dkobo; expects SES
 if os.environ.get('EMAIL_BACKEND'):
