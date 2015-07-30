@@ -401,6 +401,7 @@ mixins.collection = {
     return (
       <DocumentTitle title={this._title()}>
         <div>
+          {this.renderAbovePanel && this.renderAbovePanel()}
           <Dropzone className='dropfiles'
                 activeClassName='dropfiles--active'
                 onDropFiles={this.dropFiles}
@@ -1642,6 +1643,7 @@ var NewForm = React.createClass({
 var Collections = React.createClass({
   mixins: [
     mixins.collection,
+    mixins.ancestorBreadcrumb,
     Navigation,
     Reflux.ListenerMixin,
   ],
@@ -1656,6 +1658,7 @@ var Collections = React.createClass({
       return c.kind === 'asset';
     });
     this.setState({
+      ancestors: data.ancestors,
       list: [
         ...collections,
         ...assets
@@ -1672,6 +1675,18 @@ var Collections = React.createClass({
       lastModified: file.lastModified,
       contentType: file.type
     });
+  },
+  renderAbovePanel() {
+    var ancestors;
+    if (this.state.ancestors) {
+      return this.renderAncestorBreadcrumb(this.ancestorListToParams(this.state.ancestors));
+    } else {
+      return this.renderAncestorBreadcrumb([{
+        children: t('collections'),
+        to: 'collections',
+        params: {}      
+      }]);
+    }
   },
   _title () {
     return t('KoBo collection view');
@@ -2961,9 +2976,10 @@ var routes = (
     <Route name="demo" handler={Demo} />
     <Route name="demo2" handler={DemoCollections} />
 
-    <Route name="collections" handler={CollectionList} >
+    <Route name="collections">
       <Route name="collection-page" path=":uid" handler={Collections} />
       <Route name="collection-sharing" path=":assetid/sharing" handler={CollectionSharing} />
+      <DefaultRoute handler={CollectionList} />
     </Route>
 
     <Route name="users">
