@@ -2388,7 +2388,7 @@ var LibraryList = React.createClass({
     })
   },
   initialAction () {
-    actions.resources.listAssets();
+    actions.resources.listQuestionsAndBlocks();
   },
   dropAction ({file, event}) {
     actions.resources.createAsset({

@@ -42,6 +42,15 @@ var dataInterface;
         url: '/assets/?q=asset_type:block'
       })
     },
+    listQuestionsAndBlocks() {
+      return $ajax({
+        url: '/assets/',
+        data: {
+          q: 'asset_type:question OR asset_type:block'
+        },
+        method: 'GET'
+      });
+    },
     listAllAssets () {
       var d = new $.Deferred();
       $.when($.getJSON('/assets/?parent='), $.getJSON('/collections/?parent=')).done(function(assetR, collectionR){
