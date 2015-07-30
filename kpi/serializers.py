@@ -561,14 +561,18 @@ class AssetListSerializer(AssetSerializer):
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
-    assets = serializers.HyperlinkedRelatedField(many=True,
-                                                 view_name='asset-detail',
-                                                 read_only=True,
-                                                 lookup_field='uid')
+    # assets = serializers.HyperlinkedRelatedField(many=True,
+    #                                              view_name='asset-detail',
+    #                                              read_only=True,
+    #                                              lookup_field='uid')
 
     class Meta:
         model = User
-        fields = ('url', 'username', 'assets', 'owned_collections')
+        fields = ('url',
+                  'username',
+                  # 'assets',
+                  'owned_collections',
+                  )
         lookup_field = 'username'
         extra_kwargs = {
             'owned_collections': {
