@@ -110,6 +110,10 @@ $assetRowTextColor: #888;
     @include bt-theme($kcol-view);
     @include action-faicon('file-o')
   }
+  &.asset-row__action-icon--view-collection {
+    @include bt-theme($kcol-view);
+    @include action-faicon('folder-o')
+  }
   &.asset-row__action-icon--edit {
     @include bt-theme($kcol-edit);
     @include action-faicon('pencil');
@@ -125,6 +129,10 @@ $assetRowTextColor: #888;
   &.asset-row__action-icon--delete {
     @include bt-theme($kcol-delete);
     @include action-faicon('trash-o');
+  }
+  &.asset-row__action-icon--sharing {
+    @include bt-theme($kcol-preview);
+    @include action-faicon('users');
   }
   &.asset-row__action-icon--download {
     @include bt-theme($kcol-download);

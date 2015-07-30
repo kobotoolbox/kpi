@@ -280,26 +280,16 @@ mixins.collection = {
       sharing: function(uid, evt){
         this.transitionTo('collection-sharing', {assetid: uid});
       },
-      /*
       view: function(uid, evt){
         this.transitionTo('collection-page', {uid: uid})
       },
-      // edit: function(uid, evt){
-      //   this.transitionTo('form-edit', {assetid: uid})
+      // clone: function(uid, evt){
+      //   this.transitionTo('collection-page', {uid: uid})
       // },
-      // preview: function(uid, evt){
-      //   this.transitionTo('collection-page', {assetid: uid})
-      // },
-      clone: function(uid, evt){
-        this.transitionTo('collection-page', {uid: uid})
-      },
-      download: function(uid, evt){
-        this.transitionTo('collection-page', {uid: uid})
-      },
       delete: function(uid, evt){
-        actions.resources.deleteCollection({uid: uid})
+        window.confirm(t('Warning! You are about to delete this collection with all its questions and blocks. Are you sure you want to continue?')) &&
+            actions.resources.deleteCollection({uid: uid});
       },
-      */
     },
     asset: {
       new: function(uid, evt){
@@ -322,7 +312,8 @@ mixins.collection = {
         this.transitionTo('form-download', {assetid: uid})
       },
       delete: function(uid, evt){
-        actions.resources.deleteAsset({uid: uid})
+        window.confirm(t('You are about to permanently delete this form. Are you sure you want to continue?')) && 
+          actions.resources.deleteAsset({uid: uid});
       },
       deploy: function(uid, evt){
         var asset_url = stores.selectedAsset.asset.url;
@@ -972,20 +963,10 @@ var AssetRow = React.createClass({
               })
             }
             { this.props.kind === 'collection' &&
-              <bem.AssetRow__celllink m="sharing"
-                    data-action='sharing'
-                    data-disabled={true}
-                    data-kind={this.props.kind}
-                    data-asset-type={this.props.kind}
-                    href={this.makeHref('collection-sharing', {assetid: this.props.uid})}
-                >
-                {t('sharing')}
-              </bem.AssetRow__celllink>
-              /*
-              ['view', 'download', 'clone', 'delete'].map((actn)=>{
+              ['view', 'sharing', 'delete'].map((actn)=>{
                 return (
                       <bem.AssetRow__actionIcon
-                          m={actn}
+                          m={actn === 'view' ? 'view-collection' : actn}
                           data-action={actn}
                           data-asset-type={this.props.kind}
                           data-disabled={false}
@@ -993,7 +974,7 @@ var AssetRow = React.createClass({
                         <i />
                       </bem.AssetRow__actionIcon>
                     );
-              })*/
+              })
             }
           </bem.AssetRow__cell>
           <bem.AssetRow__cell m={['deploy-button', isDeployable ? 'deployable':'disabled']}
