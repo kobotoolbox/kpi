@@ -24,12 +24,16 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
 
     fixtures = ['test_data']
 
-    def log_in(self, username=None, password=None):
-        '''Log in, asserting success.'''
+    def login(self, username=None, password=None, expect_success=True):
+        '''
+        Log in, asserting success. Uses `username` rather than `user`, preferring consistency with 
+        :py:class:`BasePermissionsTestCase` over the rest of the calls in this class.
+        '''
+        
         kwargs= dict()
         if username and password:
             kwargs= {'username': username, 'password': password}
-        self.assertTrue(self.client.login(**kwargs))
+        self.assertEqual(self.client.login(**kwargs), expect_success)
 
     def _url_to_uid(self, url):
         return re.match(r'.+/(.+)/.*$', url).groups()[0]
@@ -48,7 +52,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
     def create_collection(self, name, owner=None, owner_password=None,
                           **kwargs):
         if owner and owner_password:
-            self.log_in(owner.username, owner_password)
+            self.login(owner.username, owner_password)
 
         kwargs.update({'name': name})
         response= self.client.post(reverse('collection-list'), kwargs)
@@ -63,7 +67,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
     def create_asset(self, name, content=None, owner=None,
                      owner_password=None, **kwargs):
         if owner and owner_password:
-            self.log_in(owner.username, owner_password)
+            self.login(owner.username, owner_password)
 
         if content is None:
             content= ''
@@ -81,7 +85,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
     def assert_child_of(self, child, parent_collection, owner=None,
                         owner_password=None):
         if owner and owner_password:
-            self.log_in(owner.username, owner_password)
+            self.login(owner.username, owner_password)
 
         parent_url= reverse('collection-detail',
                             kwargs={'uid': parent_collection.uid})
@@ -115,7 +119,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
     def add_to_collection(self, child, parent_collection,
                           owner=None, owner_password=None):
         if owner and owner_password:
-            self.log_in(owner.username, owner_password)
+            self.login(owner.username, owner_password)
 
         parent_url= reverse('collection-detail',
                             kwargs={'uid': parent_collection.uid})
@@ -189,7 +193,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         url= reverse(view_name)
 
         if user and password:
-            self.log_in(user.username, password)
+            self.login(user.username, password)
         response= self.client.get(url)
         if user and password:
             self.client.logout()
@@ -213,7 +217,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         url= reverse(view_name, kwargs={'uid': obj.uid})
 
         if user and password:
-            self.log_in(user.username, password)
+            self.login(user.username, password)
         response= self.client.get(url)
         if user and password:
             self.client.logout()
