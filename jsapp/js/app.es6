@@ -2452,7 +2452,7 @@ var FormList = React.createClass({
     })
   },
   initialAction () {
-    actions.resources.listAssets();
+    actions.resources.listSurveys();
   },
   dropAction ({file, event}) {
     actions.resources.createAsset({
