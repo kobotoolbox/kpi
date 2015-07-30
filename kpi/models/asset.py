@@ -168,7 +168,7 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
     def save(self, *args, **kwargs):
         # populate uid field if it's empty
         if self.asset_type != "survey" and 'settings' in self.content:
-            del kwargs['content']['settings']
+            del self.content['settings']
         self._populate_uid()
         self._populate_summary()
         with transaction.atomic(), reversion.create_revision():
