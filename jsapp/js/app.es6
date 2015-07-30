@@ -966,7 +966,7 @@ var AssetRow = React.createClass({
                     );
               })
             }
-            { this.props.kind === 'collection' &&
+            { /*this.props.kind === 'collection' &&
               ['view', 'download', 'clone', 'delete'].map((actn)=>{
                 return (
                       <bem.AssetRow__actionIcon
@@ -978,7 +978,7 @@ var AssetRow = React.createClass({
                         <i />
                       </bem.AssetRow__actionIcon>
                     );
-              })
+              })*/
             }
           </bem.AssetRow__cell>
           <bem.AssetRow__cell m={['deploy-button', isDeployable ? 'deployable':'disabled']}
@@ -1643,7 +1643,7 @@ var NewForm = React.createClass({
   }
 });
 
-var CollectionList = React.createClass({
+var Collections = React.createClass({
   mixins: [
     mixins.collection,
     Navigation,
@@ -2411,7 +2411,7 @@ var LibraryList = React.createClass({
     return (
       <bem.CollectionNav>
         <bem.CollectionNav__search className="col-sm-4 k-form-list-search-bar">
-          <ui.SmallInputBox ref="formlist-search" placeholder={t('search drafts')} onChange={this.searchChange} />
+          <ui.SmallInputBox ref="formlist-search" placeholder={t('search library')} onChange={this.searchChange} />
         </bem.CollectionNav__search>
         {this._renderSearchCriteria()}
         <bem.CollectionNav__actions className="col-sm-2 col-sm-offset-6 k-form-list-search-bar">
@@ -2528,6 +2528,57 @@ var FormList = React.createClass({
             </bem.CollectionNav__button>
           </Dropzone>
         </bem.CollectionNav__actions>
+      </bem.CollectionNav>
+    );
+  }
+});
+
+var CollectionList = React.createClass({
+  mixins: [
+    mixins.droppable,
+    Navigation,
+    mixins.collection,
+    Reflux.ListenerMixin,
+  ],
+  addListeners () {
+    this.listenTo(stores.allAssets, this.listenChange);
+  },
+  listenChange (data) {
+    var collections = stores.allAssets.byKind('collection')
+    this.setState({
+      list: [...collections]
+    })
+  },
+  initialAction () {
+    actions.resources.listAssets();
+  },
+  searchCriteriaChange (evt) {
+    this.setState({
+      searchRadio: 'type'+(Math.floor(Math.random()*3))
+    })
+  },
+  _title () {
+    return t('KoBo collections');
+  },
+  _loadingMessage () {
+    return t('loading collections...')
+  },
+  _renderSearchCriteria () {
+    return (
+      <bem.CollectionNav__searchcriteria>
+      </bem.CollectionNav__searchcriteria>
+      );
+    /*
+        truncated comment after copying from FormList
+    */
+  },
+  _renderFormsSearchRow () {
+    return (
+      <bem.CollectionNav>
+        <bem.CollectionNav__search className="col-sm-4 k-form-list-search-bar">
+          <ui.SmallInputBox ref="formlist-search" placeholder={t('search collections')} onChange={this.searchChange} />
+        </bem.CollectionNav__search>
+        {this._renderSearchCriteria()}
       </bem.CollectionNav>
     );
   }
@@ -2721,10 +2772,6 @@ var routes = (
     <Route name="forms" handler={Forms}>
       <Route name="new-form" path="new" handler={NewForm} />
 
-      <Route name="collections">
-        <Route name="collection-page" path=":uid" handler={CollectionList} />
-      </Route>
-
       <Route name="form-landing" path="/forms/:assetid">
         <Route name="form-download" path="download" handler={FormDownload} />
         <Route name="form-json" path="json" handler={FormJson} />
@@ -2739,6 +2786,10 @@ var routes = (
     </Route>
     <Route name="demo" handler={Demo} />
     <Route name="demo2" handler={DemoCollections} />
+
+    <Route name="collections" handler={CollectionList} >
+      <Route name="collection-page" path=":uid" handler={Collections} />
+    </Route>
 
     <Route name="users">
       <DefaultRoute name="users-list" handler={UserList} />
