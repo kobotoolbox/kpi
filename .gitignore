@@ -10,3 +10,9 @@ jsapp/tmp
 jsapp/js/libs/xlform.js
 
 jsapp/js/refactored.es6
+*sublime-*
+~*
+*.orig
+whoosh_index
+tmp
+staticfiles

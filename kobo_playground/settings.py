@@ -34,8 +34,10 @@ LOGIN_REDIRECT_URL = '/'
 
 # Application definition
 
+# The order of INSTALLED_APPS is important for template resolution. When two
+# apps both define templates for the same view, the first app listed receives
+# precedence
 INSTALLED_APPS = (
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -47,6 +49,8 @@ INSTALLED_APPS = (
     'mptt',
     'haystack',
     'kpi',
+    'registration', # Must come AFTER kpi
+    'django.contrib.admin', # Must come AFTER registration
     'django_extensions',
     'taggit',
     'rest_framework',
@@ -107,6 +111,7 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'jsapp'),
+    os.path.join(BASE_DIR, 'static'),
 )
 
 from cachebuster.detectors import git
@@ -164,3 +169,22 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(hours=1)
     },
 }
+
+# http://django-registration-redux.readthedocs.org/en/latest/quickstart.html#settings
+ACCOUNT_ACTIVATION_DAYS = 3
+REGISTRATION_AUTO_LOGIN = True
+REGISTRATION_EMAIL_HTML = False # Otherwise we have to write HTML templates
+
+# Email configuration from dkobo; expects SES
+if os.environ.get('EMAIL_BACKEND'):
+    EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND')
+
+if os.environ.get('DEFAULT_FROM_EMAIL'):
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
+    SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+if os.environ.get('AWS_ACCESS_KEY_ID'):
+    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    AWS_SES_REGION_NAME = os.environ.get('AWS_SES_REGION_NAME')
+    AWS_SES_REGION_ENDPOINT = os.environ.get('AWS_SES_REGION_ENDPOINT')

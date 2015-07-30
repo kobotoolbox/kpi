@@ -148,7 +148,7 @@ mixins.formView = {
             this.renderSubSettingsBar()
           :null}
 
-          { ('renderSubTitle' in this) ? 
+          { ('renderSubTitle' in this) ?
             this.renderSubTitle()
           : null}
           <div ref="form-wrap" className='form-wrap'>
@@ -1369,7 +1369,7 @@ var FormSettingsBox = React.createClass({
     if (metaData === '') {
       metaData = t('none (0 metadata specified)')
     }
-    var expandIconKls = classNames('fa', 'fa-icon', 'fa-fw', 
+    var expandIconKls = classNames('fa', 'fa-icon', 'fa-fw',
             this.state.formSettingsExpanded ? 'fa-caret-down' : 'fa-caret-right')
 
     return (
@@ -1456,8 +1456,10 @@ var App = React.createClass({
     evt.preventDefault();
     stores.pageState.toggleSidebarIntentOpen();
   },
-  renderLoggedinContent () {
+
+  render() {
     return (
+      <DocumentTitle title="KoBoToolbox">
         <bem.PageWrapper m={{
             'activenav': this.state.sidebarIsOpen,
             'asset-nav-present': this.state.assetNavPresent,
@@ -1474,57 +1476,10 @@ var App = React.createClass({
             */}
             <RouteHandler appstate={this.state} />
           </bem.PageWrapper__content>
-          { this.state.assetNavPresent ? 
+          { this.state.assetNavPresent ?
             <AssetNavigator />
           :null}
         </bem.PageWrapper>
-      );
-  },
-  
-  renderNonLoggedinContent () {
-    return (
-        <div className="registration__bg">
-          <form method="post" action="." className="registration registration--login">
-            <div className="registration--logo">
-              <a href="/">
-                <img src="/static/kobo/images/kobologo.svg" />
-              </a>
-            </div>    
-            <p>
-              <label for="id_username" className="hidden">Username:</label>
-              <input id="id_username" maxlength="254" name="username" type="text" placeholder="Username" />
-            </p>
-            <p>
-              <label for="id_password" className="hidden">Password:</label>
-              <input id="id_password" name="password" type="password" placeholder="Password" />
-            </p>
-            <a href="/accounts/password/reset/" className="registration__forgot">Forgot?</a>
-            <input type="submit" value="Login" className="registration__action" />
-            <input type="hidden" name="next" value="/" />
-            <div className="registration__footer">
-              or <a href="/accounts/register/">create an account</a>
-            </div>
-          </form>
-          <div className="registration__credit">
-            <a href="https://flic.kr/p/9v4mC5" title="Muhkjar refugee camp" target="_blank">Photo</a>
-            <span>by UNAMID /</span>
-            <a href="https://creativecommons.org/licenses/by-nc-nd/2.0/" target="_blank">by-nc-nd</a>
-          </div>
-        </div>
-      );
-  },
-
-  render() {
-    // towards #42
-    var isLoggedIn = true;
-    return (
-      <DocumentTitle title="KoBoToolbox">
-        {
-          isLoggedIn ?
-          this.renderLoggedinContent()
-          :
-          this.renderNonLoggedinContent()
-        }
       </DocumentTitle>
     );
   }
@@ -1821,7 +1776,7 @@ var FormJson = React.createClass({
         <ui.Panel>
           <pre>
             <code>
-              {this.state.assetcontent ? 
+              {this.state.assetcontent ?
                 JSON.stringify(this.state.assetcontent, null, 4)
               :null}
             </code>
@@ -2071,7 +2026,7 @@ var FormEnketoPreview = React.createClass({
     return (
       <ui.Modal open onClose={this.routeBack} title={t('enketo preview')}>
         <ui.Modal.Body>
-          { this.state.enketopreviewlink ? 
+          { this.state.enketopreviewlink ?
               this.renderEnketoPreviewIframe() :
               this.renderPlaceholder()
           }
@@ -2721,7 +2676,7 @@ var DemoCollections = React.createClass({
   render () {
     return (
         <div>
-          <Demo.collection name="root" 
+          <Demo.collection name="root"
                   msg={'loading your surveys'} />
           <Demo.collection name="random"
                   msg={'loading a random collection'} />

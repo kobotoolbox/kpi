@@ -16,6 +16,9 @@ from rest_framework import (
     renderers,
     status,
 )
+
+from django.contrib.auth.decorators import login_required
+
 from rest_framework import exceptions
 from rest_framework.decorators import api_view
 from rest_framework.decorators import renderer_classes
@@ -90,7 +93,7 @@ def current_user(request):
 def home(request):
     return Response('ok', template_name="index.html")
 
-
+@login_required
 @api_view(['GET'])
 @renderer_classes([renderers.TemplateHTMLRenderer])
 def home(request):

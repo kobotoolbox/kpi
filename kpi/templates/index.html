@@ -26,13 +26,14 @@
     <!--[if lt IE 8]>
       <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
-    <div class="loading">
+    {% block content %}{% endblock content %}
 
-    </div>
-    {% if use_minified_script %}
-        <script src="{% static "compiled/bundle.min.js" %}" defer></script>
-    {% else %}
-        <script src="{% static "compiled/bundle.js" %}" defer></script>
-    {% endif %}
+    {% block footer %}
+      {% if use_minified_script %}
+          <script src="{% static "compiled/bundle.min.js" %}" defer></script>
+      {% else %}
+          <script src="{% static "compiled/bundle.js" %}" defer></script>
+      {% endif %}
+    {% endblock footer %}
   </body>
 </html>
