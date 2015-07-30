@@ -277,6 +277,10 @@ mixins.collection = {
   },
   click: {
     collection: {
+      sharing: function(uid, evt){
+        this.transitionTo('collection-sharing', {assetid: uid});
+      },
+      /*
       view: function(uid, evt){
         this.transitionTo('collection-page', {uid: uid})
       },
@@ -295,6 +299,7 @@ mixins.collection = {
       delete: function(uid, evt){
         actions.resources.deleteCollection({uid: uid})
       },
+      */
     },
     asset: {
       new: function(uid, evt){
@@ -966,7 +971,17 @@ var AssetRow = React.createClass({
                     );
               })
             }
-            { /*this.props.kind === 'collection' &&
+            { this.props.kind === 'collection' &&
+              <bem.AssetRow__celllink m="sharing"
+                    data-action='sharing'
+                    data-disabled={true}
+                    data-kind={this.props.kind}
+                    data-asset-type={this.props.kind}
+                    href={this.makeHref('collection-sharing', {assetid: this.props.uid})}
+                >
+                {t('sharing')}
+              </bem.AssetRow__celllink>
+              /*
               ['view', 'download', 'clone', 'delete'].map((actn)=>{
                 return (
                       <bem.AssetRow__actionIcon
@@ -1965,6 +1980,184 @@ var FormSharing = React.createClass({
   }
 });
 
+var CollectionSharing = React.createClass({
+  mixins: [
+    Navigation,
+    Reflux.connectFilter(assetStore, function(data){
+      var uid = this.props.params.assetid,
+        asset = data[uid];
+      if (asset) {
+        return {
+          asset: asset,
+          permissions: asset.permissions,
+          owner: asset.owner__username,
+          pperms: parsePermissions(asset.owner__username, asset.permissions),
+          public_permission: getAnonymousUserPermission(asset.permissions),
+          related_users: assetStore.relatedUsers[uid]
+        };
+      }
+    }),
+    mixins.permissions,
+    Reflux.ListenerMixin
+  ],
+
+  statics: {
+    willTransitionTo: function(transition, params, idk, callback) {
+      actions.resources.loadAsset({id: params.assetid});
+      callback();
+    }
+  },
+  componentDidMount () {
+    this.listenTo(stores.userExists, this.userExistsStoreChange);
+  },
+  routeBack () {
+    var params = this.context.router.getCurrentParams();
+    this.transitionTo('collections');
+  },
+  userExistsStoreChange (checked, result) {
+    var inpVal = this.usernameFieldValue();
+    if (inpVal === result) {
+      var newStatus = checked[result] ? 'success' : 'error';
+      this.setState({
+        userInputStatus: newStatus
+      })
+    }
+  },
+  usernameField () {
+    return this.refs.usernameInput.refs.inp.getDOMNode();
+  },
+  usernameFieldValue () {
+    return this.usernameField().value;
+  },
+  usernameCheck (evt) {
+    var username = evt.target.value;
+    if (username && username.length > 3) {
+      var result = stores.userExists.checkUsername(username);
+      if (result === undefined) {
+        actions.misc.checkUsername(username);
+      } else {
+        log(result ? 'success' : 'error');
+        this.setState({
+          userInputStatus: result ? 'success' : 'error'
+        });
+      }
+    } else {
+      this.setState({
+        userInputStatus: false
+      })
+    }
+  },
+  getInitialState () {
+    return {
+      userInputStatus: false
+    }
+  },
+  addInitialUserPermission (evt) {
+    evt.preventDefault();
+    var username = this.usernameFieldValue();
+    if (stores.userExists.checkUsername(username)) {
+      actions.permissions.assignPerm({
+        username: username,
+        uid: this.props.params.assetid,
+        kind: this.state.asset.kind,
+        objectUrl: this.props.objectUrl,
+        role: 'view'
+      });
+      this.usernameField().value="";
+    }
+  },
+  render () {
+    var sharedUsers = [];
+    var inpStatus = this.state.userInputStatus;
+    if (!this.state.pperms) {
+      return <i className="fa fa-spin" />;
+    }
+    var _perms = this.state.pperms;
+    var perms = this.state.related_users.map(function(username){
+      var currentPerm = _perms.filter(function(p){ return p.username === username })[0];
+      if (currentPerm) {
+        return currentPerm;
+      } else {
+        return {
+          username: username,
+          can: {}
+        }
+      }
+    });
+    var userInputKls = classNames('form-group',
+                                    (inpStatus !== false) ? `has-${inpStatus}` : '');
+    var btnKls = classNames('btn',
+                            'btn-block',
+                            'btn-sm',
+                            inpStatus === 'success' ? 'btn-success' : 'hidden');
+
+    var uid = this.state.asset.uid;
+    var kind = this.state.asset.kind;
+    var objectUrl = this.state.asset.url;
+
+    if (!perms) {
+      return <p>loading</p>
+    }
+    return (
+      <ui.Modal open onClose={this.routeBack} title={this.state.asset.name}
+                  small={t('manage sharing permissions')}
+                  label={t('note: this does not control permissions to the data collected by projects')}>
+        <ui.Modal.Body>
+          <ui.Panel className="k-div--sharing">
+            {t('owner')}
+            &nbsp;
+            <StackedIcon frontIcon='user' />
+            &nbsp;
+            <UserProfileLink username={this.state.asset.owner__username} />
+          </ui.Panel>
+          <ui.Panel className="k-div--sharing2">
+            <form onSubmit={this.addInitialUserPermission}>
+              <div className='col-sm-9'>
+                <div className={userInputKls}>
+                  <ui.SmallInputBox ref='usernameInput' placeholder={t('share with username')} onKeyUp={this.usernameCheck} />
+                </div>
+              </div>
+              <div className='col-sm-3'>
+                <button className={btnKls}>
+                  <i className="fa fa-fw fa-lg fa-plus" />
+                </button>
+              </div>
+            </form>
+            <br />
+            <br />
+            <div>
+              {perms.map((perm)=> {
+                return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
+              })}
+            </div>
+          </ui.Panel>
+          <div className='row'>
+            {(() => {
+              if (this.state.public_permission) {
+                return <PublicPermDiv isOn={true}
+                            onToggle={this.removePerm('view',
+                                              this.state.public_permission,
+                                              uid)}
+                            />
+              } else {
+                return <PublicPermDiv isOn={false}
+                            onToggle={this.setPerm('view', {
+                                username: anonUsername,
+                                uid: uid,
+                                kind: kind,
+                                objectUrl: objectUrl
+                              }
+                            )}
+                            />
+              }
+            })()}
+          </div>
+        </ui.Modal.Body>
+      </ui.Modal>
+      );
+  }
+});
+
 var FormEnketoPreview = React.createClass({
   mixins: [
     Navigation,
@@ -2789,6 +2982,7 @@ var routes = (
 
     <Route name="collections" handler={CollectionList} >
       <Route name="collection-page" path=":uid" handler={Collections} />
+      <Route name="collection-sharing" path=":assetid/sharing" handler={CollectionSharing} />
     </Route>
 
     <Route name="users">

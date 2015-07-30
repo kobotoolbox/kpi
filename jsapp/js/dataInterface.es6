@@ -216,7 +216,7 @@ var dataInterface;
         method: 'GET'
       });
     },
-    getCollection ({id}) {
+    getCollection (params={}) {
       if (params.url) {
         return $.getJSON(params.url);
       } else  {
