@@ -902,12 +902,6 @@ var AssetRow = React.createClass({
                             'deleted': this.props.deleted,
                           }}
                         onClick={this.clickAsset}>
-          <bem.AssetRow__cell m={['icon',
-                  `kind-${this.props.kind}`,
-                  this.props.asset_type ? `assettype-${this.props.asset_type}` : null
-                ]}>
-            <i />
-          </bem.AssetRow__cell>
           <bem.AssetRow__celllink m={['name', this.props.name ? 'titled' : 'untitled']}
                 data-action='view'
                 data-disabled={true}
@@ -918,18 +912,10 @@ var AssetRow = React.createClass({
             <bem.AssetRow__name>
               <ui.AssetName {...this.props} />
             </bem.AssetRow__name>
-            <bem.AssetRow__tags>
-              {
-                this.props.tags.length > 0 ?
-                  <i />
-              :null}
-              {this.props.tags.map((tag)=>{
-                return <bem.AssetRow__tags__tag>{tag}</bem.AssetRow__tags__tag>
-              })}
-            </bem.AssetRow__tags>
           </bem.AssetRow__celllink>
+
           <bem.AssetRow__cell m={'date-modified'}>
-            <span className="date date--modified">{formatTime(this.props.date_modified)}</span>
+            <span className="date date--modified">{t('Modified')} {formatTime(this.props.date_modified)}</span>
           </bem.AssetRow__cell>
           <bem.AssetRow__cell m={'userlink'}>
             <bem.AssetRow__sharingIcon
@@ -947,6 +933,17 @@ var AssetRow = React.createClass({
                 </bem.AssetRow__sharingIcon__owner>
               }
             </bem.AssetRow__sharingIcon>
+          </bem.AssetRow__cell>
+          <bem.AssetRow__cell m={'tags'}>
+            <bem.AssetRow__tags>
+              {
+                this.props.tags.length > 0 ?
+                  <i />
+              :<bem.AssetRow__tags__notags>{t('no tags')}</bem.AssetRow__tags__notags>}
+              {this.props.tags.map((tag)=>{
+                return <bem.AssetRow__tags__tag>{tag}</bem.AssetRow__tags__tag>
+              })}
+            </bem.AssetRow__tags>
           </bem.AssetRow__cell>
           <bem.AssetRow__cell m={'action-icons'}>
             { this.props.kind === 'asset' &&

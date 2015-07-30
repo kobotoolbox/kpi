@@ -6,18 +6,17 @@ $assetRowTextColor: #888;
   display: table;
 }
 .asset-row {
-  display: table-row;
+  // display: table-row;
   // transition: all 0.3s ease 0s;
   // @extend .clearfix;
   list-style-type: none;
   border-bottom: 1px solid #ddd;
   cursor: pointer;
   padding: 0;
-  > a {
-    display: table-cell;
-  }
+  // > a {
+  //   display: table-cell;
+  // }
   a {
-    padding: 5px;
     text-decoration: none;
     color: $assetRowTextColor;
     &:hover {
@@ -29,7 +28,6 @@ $assetRowTextColor: #888;
     }
   }
 }
-
 
 .asset-row__tags {
   > i:first-child {
@@ -49,7 +47,7 @@ $assetRowTextColor: #888;
   }
 }
 .asset-row--selected {
-  padding: 8px 0 12px;
+  // padding: 8px 0 12px;
   background-color: $highlightedBarColor;
   a, a:hover {
     background-color: transparent;
@@ -108,7 +106,7 @@ $assetRowTextColor: #888;
 
   &.asset-row__action-icon--view {
     @include bt-theme($kcol-view);
-    @include action-faicon('file-o')
+    @include action-faicon('eye')
   }
   &.asset-row__action-icon--edit {
     @include bt-theme($kcol-edit);
@@ -161,31 +159,19 @@ $assetRowTextColor: #888;
 $colcount: 4;
 $colwidth: (100% / $colcount) - 1%;
 %rowcell {
-  display: table-cell;
+  display: inline-block;
   width: $colwidth;
-
-  margin-left: 1%;
+  // margin-left: 1%;
   padding: 4px 2px;
 }
 .asset-row__celllink {
-  @extend %rowcell;
-  .asset-row--selected & {
-    &.asset-row__celllink--name {
-      color: $celllink_hovercolor;
-      background-color: $celllink_hoverbg;
-      &:hover {
-        color: lighten($celllink_hovercolor, 5%);
-        background-color: lighten($celllink_hoverbg, 5%);
-      }
-    }
-    cursor: pointer;
-  }
-  &.asset-row__celllink--named {
-    font-weight: bold;
-  }
+  font-size: 1.3em;
+  padding: 4px 2px;
+  display: block;
 }
 // consider extending .col-md-3, etc.
 .asset-row__cell {
+  // @extend .col-sm-4;
   @extend %rowcell;
 
   // indicating the asset type
