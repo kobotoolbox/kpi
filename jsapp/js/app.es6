@@ -901,7 +901,8 @@ var AssetRow = React.createClass({
                             'selected': this.props.isSelected,
                             'deleted': this.props.deleted,
                           }}
-                        onClick={this.clickAsset}>
+                        onClick={this.clickAsset}
+                        className="clearfix">
           <bem.AssetRow__celllink m={['name', this.props.name ? 'titled' : 'untitled']}
                 data-action='view'
                 data-disabled={true}
@@ -913,81 +914,87 @@ var AssetRow = React.createClass({
               <ui.AssetName {...this.props} />
             </bem.AssetRow__name>
           </bem.AssetRow__celllink>
-
-          <bem.AssetRow__cell m={'date-modified'}>
-            <span className="date date--modified">{t('Modified')} {formatTime(this.props.date_modified)}</span>
-          </bem.AssetRow__cell>
-          <bem.AssetRow__cell m={'userlink'}>
-            <bem.AssetRow__sharingIcon
-                href="#"
-                m={{
-                  'self-owned': selfowned,
-                  'public-owned': isPublic,
-                }}>
-              <i />
-              {
-                selfowned ?
-                  t('me') :
-                <bem.AssetRow__sharingIcon__owner>
-                  {this.props.owner__username}
-                </bem.AssetRow__sharingIcon__owner>
-              }
-            </bem.AssetRow__sharingIcon>
-          </bem.AssetRow__cell>
-          <bem.AssetRow__cell m={'tags'}>
-            <bem.AssetRow__tags>
-              {
-                this.props.tags.length > 0 ?
-                  <i />
-              :<bem.AssetRow__tags__notags>{t('no tags')}</bem.AssetRow__tags__notags>}
-              {this.props.tags.map((tag)=>{
-                return <bem.AssetRow__tags__tag>{tag}</bem.AssetRow__tags__tag>
-              })}
-            </bem.AssetRow__tags>
-          </bem.AssetRow__cell>
-          <bem.AssetRow__cell m={'action-icons'}>
-            { this.props.kind === 'asset' &&
-              ['view',
-                    // 'edit', 'preview',
-                    'download', 'clone', 'delete',
-                    ].map((actn)=>{
-                return (
-                      <bem.AssetRow__actionIcon href="#"
-                          m={actn}
-                          data-action={actn}
-                          data-asset-type={this.props.kind}
-                          data-disabled={false}
-                          >
-                        <i />
-                      </bem.AssetRow__actionIcon>
-                    );
-              })
-            }
-            { this.props.kind === 'collection' &&
-              ['view', 'download', 'clone', 'delete'].map((actn)=>{
-                return (
-                      <bem.AssetRow__actionIcon
-                          m={actn}
-                          data-action={actn}
-                          data-asset-type={this.props.kind}
-                          data-disabled={false}
-                          >
-                        <i />
-                      </bem.AssetRow__actionIcon>
-                    );
-              })
-            }
-          </bem.AssetRow__cell>
-          <bem.AssetRow__cell m={['deploy-button', isDeployable ? 'deployable':'disabled']}
-                    data-action='deploy'
-                    data-asset-type='asset'
-                    data-kind='asset'
-                    data-disabled={false}>
-            { isDeployable ?
-              <button>
+          <bem.AssetRow__cellmeta>
+            <bem.AssetRow__cell m={'userlink'}>
+              <bem.AssetRow__sharingIcon
+                  href="#"
+                  m={{
+                    'self-owned': selfowned,
+                    'public-owned': isPublic,
+                  }}>
                 <i />
-              </button>
-            : null }
+                {
+                  selfowned ?
+                    t('me') :
+                  <bem.AssetRow__sharingIcon__owner>
+                    {this.props.owner__username}
+                  </bem.AssetRow__sharingIcon__owner>
+                }
+              </bem.AssetRow__sharingIcon>
+            </bem.AssetRow__cell>
+            <bem.AssetRow__cell m={'date-modified'}>
+              <span className="date date--modified">{t('Modified')} {formatTime(this.props.date_modified)}</span>
+            </bem.AssetRow__cell>
+
+            <bem.AssetRow__cell m={'tags'}>
+              <bem.AssetRow__tags>
+                {
+                  this.props.tags.length > 0 ?
+                    <i />
+                :<bem.AssetRow__tags__notags>{t('no tags')}</bem.AssetRow__tags__notags>}
+                {this.props.tags.map((tag)=>{
+                  return <bem.AssetRow__tags__tag>{tag}</bem.AssetRow__tags__tag>
+                })}
+              </bem.AssetRow__tags>
+            </bem.AssetRow__cell>
+
+          </bem.AssetRow__cellmeta>
+
+          <bem.AssetRow__cell m={'asset-buttons'}>
+            <bem.AssetRow__cell m={'action-icons'}>
+              { this.props.kind === 'asset' &&
+                ['view',
+                      // 'edit', 'preview',
+                      'download', 'clone', 'delete',
+                      ].map((actn)=>{
+                  return (
+                        <bem.AssetRow__actionIcon href="#"
+                            m={actn}
+                            data-action={actn}
+                            data-asset-type={this.props.kind}
+                            data-disabled={false}
+                            >
+                          <i />
+                        </bem.AssetRow__actionIcon>
+                      );
+                })
+              }
+              { this.props.kind === 'collection' &&
+                ['view', 'download', 'clone', 'delete'].map((actn)=>{
+                  return (
+                        <bem.AssetRow__actionIcon
+                            m={actn}
+                            data-action={actn}
+                            data-asset-type={this.props.kind}
+                            data-disabled={false}
+                            >
+                          <i />
+                        </bem.AssetRow__actionIcon>
+                      );
+                })
+              }
+            </bem.AssetRow__cell>
+            <bem.AssetRow__cell m={['deploy-button', isDeployable ? 'deployable':'disabled']}
+                      data-action='deploy'
+                      data-asset-type='asset'
+                      data-kind='asset'
+                      data-disabled={false}>
+              { isDeployable ?
+                <button>
+                  <i />
+                </button>
+              : null }
+            </bem.AssetRow__cell>
           </bem.AssetRow__cell>
         </bem.AssetRow>
       );

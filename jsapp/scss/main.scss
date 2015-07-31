@@ -427,3 +427,9 @@ from SO
     @extend .fa, .fa-lg, .fa-question;
   }
 }
+
+.k-form-list-nav-actions {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+}

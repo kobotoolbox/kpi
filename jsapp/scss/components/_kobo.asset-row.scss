@@ -2,42 +2,29 @@ $celllink_hovercolor: #f7f7f7;
 $celllink_hoverbg: #356A8E;
 $assetRowTextColor: #888;
 
-.collection-asset-list.list-group {
-  display: table;
-}
+// .collection-asset-list.list-group {
+  // display: table;
+// }
 .asset-row {
-  // display: table-row;
-  // transition: all 0.3s ease 0s;
-  // @extend .clearfix;
   list-style-type: none;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #DDD;
   cursor: pointer;
-  padding: 0;
-  // > a {
-  //   display: table-cell;
-  // }
-  a {
+  padding: 10px 12px;
+  clear: both;
+  a, a:hover {
     text-decoration: none;
-    color: $assetRowTextColor;
-    &:hover {
-      text-decoration: none;
-    }
-    &.asset-row__action-icon {
-      display: inline-block;
-      padding: 0;
-    }
   }
 }
 
 .asset-row__tags {
+  color: $assetRowTextColor;
   > i:first-child {
     @extend .fa, .fa-fw, .fa-tag;
     margin-right: 6px;
-    opacity: 0.5;
+    // opacity: 0.5;
   }
 }
 .asset-row__tags__tag {
-  color: #bababa;
   margin-right: 3px;
   &:after {
     content: ',';
@@ -47,7 +34,6 @@ $assetRowTextColor: #888;
   }
 }
 .asset-row--selected {
-  // padding: 8px 0 12px;
   background-color: $highlightedBarColor;
   a, a:hover {
     background-color: transparent;
@@ -155,33 +141,54 @@ $assetRowTextColor: #888;
     }
   }
 }
-// not including the 
-$colcount: 4;
+
+// TODO: update col number when questions count added
+$colcount: 3;
 $colwidth: (100% / $colcount) - 1%;
 %rowcell {
-  display: inline-block;
+  float: left;
   width: $colwidth;
-  // margin-left: 1%;
-  padding: 4px 2px;
+  @media(max-width:767px) {
+    width: 50%;
+  }
 }
-.asset-row__celllink {
-  font-size: 1.3em;
-  padding: 4px 2px;
-  display: block;
-}
-// consider extending .col-md-3, etc.
-.asset-row__cell {
-  // @extend .col-sm-4;
-  @extend %rowcell;
 
+%rowbar {
+  @media(min-width:768px) {
+    float: left;
+    width: 70%;
+  }
+}
+
+.asset-row__celllink {
+  @extend %rowbar;
+  font-size: 1.4em;
+  display: block;
+  line-height: 1.5em;
+  color: #333;
+  @media(min-width:768px) {
+    overflow: hidden;
+    text-overflow: ellipsis; 
+    white-space: nowrap;
+    height: 1.5em;
+  }
+}
+.asset-row__cellmeta {
+  @extend %rowbar;
+  .asset-row__cell {
+    @extend %rowcell;
+  }
+}
+
+.asset-row__cell {
   // indicating the asset type
   &.asset-row__cell--icon {
-    width: 1%;
+    // width: 1%;
     @extend %inner-fa-icon;
-    .asset-row--selected & {
-      background-color: $celllink_hoverbg;
-      color: $celllink_hovercolor;
-    }
+    // .asset-row--selected & {
+    //   background-color: $celllink_hoverbg;
+    //   color: $celllink_hovercolor;
+    // }
 
     &.asset-row__cell--assettype-empty {
       @include action-faicon('lemon-o');
@@ -206,13 +213,7 @@ $colwidth: (100% / $colcount) - 1%;
       @include action-faicon('folder-o');
     }
   }
-  &.asset-row__cell--userlink {
-    width: 12%;
-  }
   &.asset-row__cell--deploy-button {
-    width: 6%;
-    text-align: right;
-
     i {
       @extend .fa, .fa-fw, .fa-play;
     }
@@ -233,22 +234,16 @@ $colwidth: (100% / $colcount) - 1%;
     }
   }
   &.asset-row__cell--date-modified {
-    width: 14%;
-    color: #aaa;
+    color: $assetRowTextColor;
   }
-  &.asset-row__cell--name {
-    width: 37%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    // &.asset-row__cell--titled {
-    //   a {
-    //     font-weight: bold;
-    //   }
-    // }
-  }
+  // &.asset-row__cell--name {
+  //   color: $assetRowTextColor;
+  //   overflow: hidden;
+  //   text-overflow: ellipsis; 
+  // }
 }
 
-.asset-row__celllink--name {
+// .asset-row__celllink--name {
   // .asset-row--selected & {
   //   a {
   //     border: 1px solid mix($highlightedBarColor, lighten($kcol-view, 15%), 60%);
@@ -264,7 +259,31 @@ $colwidth: (100% / $colcount) - 1%;
   //     }
   //   }
   // }
-}
-.asset-row__cell--action-icons {
+// }
+.asset-row__cell--asset-buttons {
   text-align: right;
+  width: 29%; // 100% - rowbar width
+  float: right;
+  margin-top: -10px;
+  opacity: 0;
+  height: 0px;
+  transition:all 0.3s;
+  .asset-row__cell {
+    display: inline;
+  }
+
+  .asset-row:hover & {
+    opacity: 1; 
+    height: auto;
+    transition:all 0.3s;
+  }
+}
+
+@media(max-width:767px) {
+  .asset-row__cell--asset-buttons {
+    width: 100%;
+    text-align: center;
+    margin-top: 0px;
+    padding:5px;
+  }
 }
