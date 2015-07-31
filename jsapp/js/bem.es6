@@ -14,9 +14,11 @@ bem.AssetRow = BEM('asset-row', '<li>');
 bem.AssetRow__cell        = bem.AssetRow.__('cell');
 
 bem.AssetRow__celllink    = bem.AssetRow.__('celllink', '<a>');
-bem.AssetRow__name        = bem.AssetRow.__('name');
+bem.AssetRow__cellmeta    = bem.AssetRow.__('cellmeta');
+bem.AssetRow__name        = bem.AssetRow.__('name', '<span>');
 bem.AssetRow__tags        = bem.AssetRow.__('tags');
 bem.AssetRow__tags__tag   = bem.AssetRow.__('tags__tag', '<span>');
+bem.AssetRow__tags__notags = bem.AssetRow.__('tags__notags', '<span>');
 bem.AssetRow__actionIcon  = bem.AssetRow.__('action-icon', '<a>');
 bem.AssetRow__sharingIcon = bem.AssetRow.__('sharingIcon');
 bem.AssetRow__sharingIcon__owner =
@@ -46,6 +48,9 @@ bem.CollectionNav__searchcriteria = bem.CollectionNav.__('searchcriteria');
 bem.CollectionNav__actions = bem.CollectionNav.__('actions');
 bem.CollectionNav__button = bem.CollectionNav.__('button', '<button>');
 bem.CollectionNav__link = bem.CollectionNav.__('link', '<a>');
+
+bem.CollectionAssetList = bem('collection-asset-list', '<ul>');
+bem.CollectionAssetList__message = bem.CollectionAssetList.__('message');
 
 bem.CollectionHeader = bem('collection-header');
 bem.CollectionHeader__buttonRow = bem('collection-header__button-row')

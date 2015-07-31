@@ -45,6 +45,7 @@ $newformCircleWidthHeight: 55px;
 @import '../xlform/components/fontawesome/scss/font-awesome';
 @import './components/kobo.collection-header';
 @import './components/kobo.collection-nav';
+@import './components/kobo.collection-asset-list';
 @import './components/kobo.list-view';
 @import './components/kobo.asset-view';
 @import './components/kobo.asset-row';
@@ -425,4 +426,10 @@ from SO
   > i:first-child {
     @extend .fa, .fa-lg, .fa-question;
   }
+}
+
+.k-form-list-nav-actions {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
 }
