@@ -3,7 +3,7 @@
 // ==========================================================================
 
 .registration__bg {
-    background: url('/static/img/signup_photo.jpg'); 
+    background: url('/static/img/signup_photo.jpg');
     background-size: cover;
     background-repeat: none;
     width: 100%;
@@ -30,6 +30,10 @@
             max-width: 100%;
         }
     }
+
+    input{
+        color: black;
+    }
 }
 
 .registration__row {
@@ -44,7 +48,7 @@
     border: none;
     border-radius: 0px;
     font-size: 13px;
-    border-bottom: 2px solid #CBD0D7; 
+    border-bottom: 2px solid #CBD0D7;
     &.registration__action {
         font-size: 14px;
         padding:10px;
@@ -141,11 +145,11 @@
             width: 55%;
             float: left;
             > * {
-                padding-left: 50px;            
+                padding-left: 50px;
             }
             p {
                 font-size: 13px;
-                text-align: justify;                
+                text-align: justify;
             }
         }
         .registration--logo img {
@@ -158,4 +162,4 @@
         font-size: 14px;
         letter-spacing: 0em;
     }
-} 
+}
