@@ -10,10 +10,18 @@ $assetRowTextColor: #888;
   border-bottom: 1px solid #DDD;
   cursor: pointer;
   padding: 10px 12px;
+  padding-left: 30px;
   clear: both;
+  position: relative;
   a, a:hover {
     text-decoration: none;
   }
+}
+
+.asset-row__cell--icon {
+  position: absolute;
+  left: 5px;
+  top: 12px;
 }
 
 .asset-row__tags {
@@ -21,7 +29,6 @@ $assetRowTextColor: #888;
   > i:first-child {
     @extend .fa, .fa-fw, .fa-tag;
     margin-right: 6px;
-    // opacity: 0.5;
   }
 }
 .asset-row__tags__tag {
@@ -260,6 +267,7 @@ $colwidth: (100% / $colcount) - 1%;
   //   }
   // }
 // }
+
 .asset-row__cell--asset-buttons {
   text-align: right;
   width: 29%; // 100% - rowbar width

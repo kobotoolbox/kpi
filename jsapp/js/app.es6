@@ -903,6 +903,13 @@ var AssetRow = React.createClass({
                           }}
                         onClick={this.clickAsset}
                         className="clearfix">
+          <bem.AssetRow__cell m={['icon',
+                    `kind-${this.props.kind}`,
+                    this.props.asset_type ? `assettype-${this.props.asset_type}` : null
+                  ]}>
+              <i />
+          </bem.AssetRow__cell> 
+
           <bem.AssetRow__celllink m={['name', this.props.name ? 'titled' : 'untitled']}
                 data-action='view'
                 data-disabled={true}
