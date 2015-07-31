@@ -26,10 +26,10 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
 
     def login(self, username=None, password=None, expect_success=True):
         '''
-        Log in, asserting success. Uses `username` rather than `user`, preferring consistency with 
+        Log in, asserting success. Uses `username` rather than `user`, preferring consistency with
         :py:class:`BasePermissionsTestCase` over the rest of the calls in this class.
         '''
-        
+
         kwargs= dict()
         if username and password:
             kwargs= {'username': username, 'password': password}
