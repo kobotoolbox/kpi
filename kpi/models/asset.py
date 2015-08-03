@@ -166,6 +166,10 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
         return 'a' + ShortUUID().random(ASSET_UID_LENGTH -1)
 
     def save(self, *args, **kwargs):
+        # don't save settings if a previous save has already classified this asset as
+        # question_type= question or block
+        if self.asset_type in ['question', 'block'] and 'settings' in self.content:
+            del self.content['settings']
         # populate uid field if it's empty
         self._populate_uid()
         self._populate_summary()

@@ -277,23 +277,18 @@ mixins.collection = {
   },
   click: {
     collection: {
+      sharing: function(uid, evt){
+        this.transitionTo('collection-sharing', {assetid: uid});
+      },
       view: function(uid, evt){
         this.transitionTo('collection-page', {uid: uid})
       },
-      // edit: function(uid, evt){
-      //   this.transitionTo('form-edit', {assetid: uid})
+      // clone: function(uid, evt){
+      //   this.transitionTo('collection-page', {uid: uid})
       // },
-      // preview: function(uid, evt){
-      //   this.transitionTo('collection-page', {assetid: uid})
-      // },
-      clone: function(uid, evt){
-        this.transitionTo('collection-page', {uid: uid})
-      },
-      download: function(uid, evt){
-        this.transitionTo('collection-page', {uid: uid})
-      },
       delete: function(uid, evt){
-        actions.resources.deleteCollection({uid: uid})
+        window.confirm(t('Warning! You are about to delete this collection with all its questions and blocks. Are you sure you want to continue?')) &&
+            actions.resources.deleteCollection({uid: uid});
       },
     },
     asset: {
@@ -317,7 +312,8 @@ mixins.collection = {
         this.transitionTo('form-download', {assetid: uid})
       },
       delete: function(uid, evt){
-        actions.resources.deleteAsset({uid: uid})
+        window.confirm(t('You are about to permanently delete this form. Are you sure you want to continue?')) && 
+          actions.resources.deleteAsset({uid: uid});
       },
       deploy: function(uid, evt){
         var asset_url = stores.selectedAsset.asset.url;
@@ -405,6 +401,7 @@ mixins.collection = {
     return (
       <DocumentTitle title={this._title()}>
         <div>
+          {this.renderAbovePanel && this.renderAbovePanel()}
           <Dropzone className='dropfiles'
                 activeClassName='dropfiles--active'
                 onDropFiles={this.dropFiles}
@@ -977,10 +974,10 @@ var AssetRow = React.createClass({
                 })
               }
               { this.props.kind === 'collection' &&
-                ['view', 'download', 'clone', 'delete'].map((actn)=>{
+              ['view', 'sharing', 'delete'].map((actn)=>{
                   return (
                         <bem.AssetRow__actionIcon
-                            m={actn}
+                          m={actn === 'view' ? 'view-collection' : actn}
                             data-action={actn}
                             data-asset-type={this.props.kind}
                             data-disabled={false}
@@ -1654,9 +1651,10 @@ var NewForm = React.createClass({
   }
 });
 
-var CollectionList = React.createClass({
+var Collections = React.createClass({
   mixins: [
     mixins.collection,
+    mixins.ancestorBreadcrumb,
     Navigation,
     Reflux.ListenerMixin,
   ],
@@ -1671,6 +1669,7 @@ var CollectionList = React.createClass({
       return c.kind === 'asset';
     });
     this.setState({
+      ancestors: data.ancestors,
       list: [
         ...collections,
         ...assets
@@ -1687,6 +1686,18 @@ var CollectionList = React.createClass({
       lastModified: file.lastModified,
       contentType: file.type
     });
+  },
+  renderAbovePanel() {
+    var ancestors;
+    if (this.state.ancestors) {
+      return this.renderAncestorBreadcrumb(this.ancestorListToParams(this.state.ancestors));
+    } else {
+      return this.renderAncestorBreadcrumb([{
+        children: t('collections'),
+        to: 'collections',
+        params: {}      
+      }]);
+    }
   },
   _title () {
     return t('KoBo collection view');
@@ -1831,6 +1842,184 @@ var FormSharing = React.createClass({
   routeBack () {
     var params = this.context.router.getCurrentParams();
     this.transitionTo('form-landing', {assetid: params.assetid});
+  },
+  userExistsStoreChange (checked, result) {
+    var inpVal = this.usernameFieldValue();
+    if (inpVal === result) {
+      var newStatus = checked[result] ? 'success' : 'error';
+      this.setState({
+        userInputStatus: newStatus
+      })
+    }
+  },
+  usernameField () {
+    return this.refs.usernameInput.refs.inp.getDOMNode();
+  },
+  usernameFieldValue () {
+    return this.usernameField().value;
+  },
+  usernameCheck (evt) {
+    var username = evt.target.value;
+    if (username && username.length > 3) {
+      var result = stores.userExists.checkUsername(username);
+      if (result === undefined) {
+        actions.misc.checkUsername(username);
+      } else {
+        log(result ? 'success' : 'error');
+        this.setState({
+          userInputStatus: result ? 'success' : 'error'
+        });
+      }
+    } else {
+      this.setState({
+        userInputStatus: false
+      })
+    }
+  },
+  getInitialState () {
+    return {
+      userInputStatus: false
+    }
+  },
+  addInitialUserPermission (evt) {
+    evt.preventDefault();
+    var username = this.usernameFieldValue();
+    if (stores.userExists.checkUsername(username)) {
+      actions.permissions.assignPerm({
+        username: username,
+        uid: this.props.params.assetid,
+        kind: this.state.asset.kind,
+        objectUrl: this.props.objectUrl,
+        role: 'view'
+      });
+      this.usernameField().value="";
+    }
+  },
+  render () {
+    var sharedUsers = [];
+    var inpStatus = this.state.userInputStatus;
+    if (!this.state.pperms) {
+      return <i className="fa fa-spin" />;
+    }
+    var _perms = this.state.pperms;
+    var perms = this.state.related_users.map(function(username){
+      var currentPerm = _perms.filter(function(p){ return p.username === username })[0];
+      if (currentPerm) {
+        return currentPerm;
+      } else {
+        return {
+          username: username,
+          can: {}
+        }
+      }
+    });
+    var userInputKls = classNames('form-group',
+                                    (inpStatus !== false) ? `has-${inpStatus}` : '');
+    var btnKls = classNames('btn',
+                            'btn-block',
+                            'btn-sm',
+                            inpStatus === 'success' ? 'btn-success' : 'hidden');
+
+    var uid = this.state.asset.uid;
+    var kind = this.state.asset.kind;
+    var objectUrl = this.state.asset.url;
+
+    if (!perms) {
+      return <p>loading</p>
+    }
+    return (
+      <ui.Modal open onClose={this.routeBack} title={this.state.asset.name}
+                  small={t('manage sharing permissions')}
+                  label={t('note: this does not control permissions to the data collected by projects')}>
+        <ui.Modal.Body>
+          <ui.Panel className="k-div--sharing">
+            {t('owner')}
+            &nbsp;
+            <StackedIcon frontIcon='user' />
+            &nbsp;
+            <UserProfileLink username={this.state.asset.owner__username} />
+          </ui.Panel>
+          <ui.Panel className="k-div--sharing2">
+            <form onSubmit={this.addInitialUserPermission}>
+              <div className='col-sm-9'>
+                <div className={userInputKls}>
+                  <ui.SmallInputBox ref='usernameInput' placeholder={t('share with username')} onKeyUp={this.usernameCheck} />
+                </div>
+              </div>
+              <div className='col-sm-3'>
+                <button className={btnKls}>
+                  <i className="fa fa-fw fa-lg fa-plus" />
+                </button>
+              </div>
+            </form>
+            <br />
+            <br />
+            <div>
+              {perms.map((perm)=> {
+                return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
+              })}
+            </div>
+          </ui.Panel>
+          <div className='row'>
+            {(() => {
+              if (this.state.public_permission) {
+                return <PublicPermDiv isOn={true}
+                            onToggle={this.removePerm('view',
+                                              this.state.public_permission,
+                                              uid)}
+                            />
+              } else {
+                return <PublicPermDiv isOn={false}
+                            onToggle={this.setPerm('view', {
+                                username: anonUsername,
+                                uid: uid,
+                                kind: kind,
+                                objectUrl: objectUrl
+                              }
+                            )}
+                            />
+              }
+            })()}
+          </div>
+        </ui.Modal.Body>
+      </ui.Modal>
+      );
+  }
+});
+
+var CollectionSharing = React.createClass({
+  mixins: [
+    Navigation,
+    Reflux.connectFilter(assetStore, function(data){
+      var uid = this.props.params.assetid,
+        asset = data[uid];
+      if (asset) {
+        return {
+          asset: asset,
+          permissions: asset.permissions,
+          owner: asset.owner__username,
+          pperms: parsePermissions(asset.owner__username, asset.permissions),
+          public_permission: getAnonymousUserPermission(asset.permissions),
+          related_users: assetStore.relatedUsers[uid]
+        };
+      }
+    }),
+    mixins.permissions,
+    Reflux.ListenerMixin
+  ],
+
+  statics: {
+    willTransitionTo: function(transition, params, idk, callback) {
+      actions.resources.loadAsset({id: params.assetid});
+      callback();
+    }
+  },
+  componentDidMount () {
+    this.listenTo(stores.userExists, this.userExistsStoreChange);
+  },
+  routeBack () {
+    var params = this.context.router.getCurrentParams();
+    this.transitionTo('collections');
   },
   userExistsStoreChange (checked, result) {
     var inpVal = this.usernameFieldValue();
@@ -2399,7 +2588,7 @@ var LibraryList = React.createClass({
     })
   },
   initialAction () {
-    actions.resources.listAssets();
+    actions.resources.listQuestionsAndBlocks();
   },
   dropAction ({file, event}) {
     actions.resources.createAsset({
@@ -2422,7 +2611,7 @@ var LibraryList = React.createClass({
     return (
       <bem.CollectionNav>
         <bem.CollectionNav__search className="col-sm-4 k-form-list-search-bar">
-          <ui.SmallInputBox ref="formlist-search" placeholder={t('search drafts')} onChange={this.searchChange} />
+          <ui.SmallInputBox ref="formlist-search" placeholder={t('search library')} onChange={this.searchChange} />
         </bem.CollectionNav__search>
         {this._renderSearchCriteria()}
         <bem.CollectionNav__actions className="col-sm-2 col-sm-offset-6 k-form-list-search-bar">
@@ -2463,7 +2652,7 @@ var FormList = React.createClass({
     })
   },
   initialAction () {
-    actions.resources.listAssets();
+    actions.resources.listSurveys();
   },
   dropAction ({file, event}) {
     actions.resources.createAsset({
@@ -2539,6 +2728,57 @@ var FormList = React.createClass({
             </bem.CollectionNav__button>
           </Dropzone>
         </bem.CollectionNav__actions>
+      </bem.CollectionNav>
+    );
+  }
+});
+
+var CollectionList = React.createClass({
+  mixins: [
+    mixins.droppable,
+    Navigation,
+    mixins.collection,
+    Reflux.ListenerMixin,
+  ],
+  addListeners () {
+    this.listenTo(stores.allAssets, this.listenChange);
+  },
+  listenChange (data) {
+    var collections = stores.allAssets.byKind('collection')
+    this.setState({
+      list: [...collections]
+    })
+  },
+  initialAction () {
+    actions.resources.listAssets();
+  },
+  searchCriteriaChange (evt) {
+    this.setState({
+      searchRadio: 'type'+(Math.floor(Math.random()*3))
+    })
+  },
+  _title () {
+    return t('KoBo collections');
+  },
+  _loadingMessage () {
+    return t('loading collections...')
+  },
+  _renderSearchCriteria () {
+    return (
+      <bem.CollectionNav__searchcriteria>
+      </bem.CollectionNav__searchcriteria>
+      );
+    /*
+        truncated comment after copying from FormList
+    */
+  },
+  _renderFormsSearchRow () {
+    return (
+      <bem.CollectionNav>
+        <bem.CollectionNav__search className="col-sm-4 k-form-list-search-bar">
+          <ui.SmallInputBox ref="formlist-search" placeholder={t('search collections')} onChange={this.searchChange} />
+        </bem.CollectionNav__search>
+        {this._renderSearchCriteria()}
       </bem.CollectionNav>
     );
   }
@@ -2732,10 +2972,6 @@ var routes = (
     <Route name="forms" handler={Forms}>
       <Route name="new-form" path="new" handler={NewForm} />
 
-      <Route name="collections">
-        <Route name="collection-page" path=":uid" handler={CollectionList} />
-      </Route>
-
       <Route name="form-landing" path="/forms/:assetid">
         <Route name="form-download" path="download" handler={FormDownload} />
         <Route name="form-json" path="json" handler={FormJson} />
@@ -2750,6 +2986,12 @@ var routes = (
     </Route>
     <Route name="demo" handler={Demo} />
     <Route name="demo2" handler={DemoCollections} />
+
+    <Route name="collections">
+      <Route name="collection-page" path=":uid" handler={Collections} />
+      <Route name="collection-sharing" path=":assetid/sharing" handler={CollectionSharing} />
+      <DefaultRoute handler={CollectionList} />
+    </Route>
 
     <Route name="users">
       <DefaultRoute name="users-list" handler={UserList} />

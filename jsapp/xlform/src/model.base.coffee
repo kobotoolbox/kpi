@@ -138,11 +138,11 @@ define 'cs!xlform/model.base', [
           @hidden = @get("value") is @_oValue
 
       @on "change:value", (rd, val, ctxt)=>
-        @_parent.trigger "change", @key, val, ctxt
+        # @_parent.trigger "change", @key, val, ctxt
         @_parent.trigger "detail-change", @key, val, ctxt
         @getSurvey().trigger "row-detail-change", @_parent, @key, val, ctxt
-      if @key is "type"
-        @on "change:list", (rd, val, ctxt)=>
-          @_parent.trigger "change", @key, val, ctxt
+      # if @key is "type"
+      #   @on "change:list", (rd, val, ctxt)=>
+      #     @_parent.trigger "change", @key, val, ctxt
 
   base

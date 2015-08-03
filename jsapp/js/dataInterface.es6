@@ -42,6 +42,24 @@ var dataInterface;
         url: '/assets/?q=asset_type:block'
       })
     },
+    listQuestionsAndBlocks() {
+      return $ajax({
+        url: '/assets/',
+        data: {
+          q: 'asset_type:question OR asset_type:block'
+        },
+        method: 'GET'
+      });
+    },
+    listSurveys() {
+      return $ajax({
+        url: '/assets/',
+        data: {
+          q: 'asset_type:survey'
+        },
+        method: 'GET'
+      });
+    },
     listAllAssets () {
       var d = new $.Deferred();
       $.when($.getJSON('/assets/?parent='), $.getJSON('/collections/?parent=')).done(function(assetR, collectionR){
@@ -198,7 +216,7 @@ var dataInterface;
         method: 'GET'
       });
     },
-    getCollection ({id}) {
+    getCollection (params={}) {
       if (params.url) {
         return $.getJSON(params.url);
       } else  {

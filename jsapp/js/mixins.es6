@@ -122,12 +122,16 @@ var dmix = {
     }
   },
   renderAncestors () {
-    var ancestors = [{
-      children: 'forms',
-      to: 'forms',
-      params: {}      
-    }];
-    return this.renderAncestorBreadcrumb(ancestors)
+    var ancestors;
+    if (this.state.ancestors) {
+      return this.renderAncestorBreadcrumb(this.ancestorListToParams(this.state.ancestors));
+    } else {
+      return this.renderAncestorBreadcrumb([{
+        children: 'forms',
+        to: 'forms',
+        params: {}      
+      }]);
+    }
   },
   renderName () {
     return (
@@ -454,6 +458,25 @@ mixins.ancestorBreadcrumb = {
         </ui.Breadcrumb>
       );
   },
+  ancestorListToParams (ancestorList) {
+    return ancestorList.reduce(function(arr, ancestor) {
+      arr.push(
+        {
+          children: ancestor.name,
+          to: 'collection-page',
+          params: {
+            uid: ancestor.uid
+          }
+        }
+      );
+      return arr;
+    }, [
+      {
+        children: t('collections'),
+        to: 'collections'
+      }
+    ]);
+  },
   _breadcrumbItem (item) {
     return (
         <ui.BreadcrumbItem>
@@ -504,12 +527,16 @@ mixins.cmix = {
   assetSearchChange (data) {
   },
   panelHeader () {
-    var ancestors = [{
-      children: 'forms',
-      to: 'forms',
-      params: {}      
-    }];
-    return this.renderAncestorBreadcrumb(ancestors);
+    var ancestors;
+    if (this.state.ancestors) {
+      return this.renderAncestorBreadcrumb(this.ancestorListToParams(this.state.ancestors));
+    } else {
+      return this.renderAncestorBreadcrumb([{
+        children: 'forms',
+        to: 'forms',
+        params: {}      
+      }]);
+    }
   },
   panelName (placeholder) {
     if (!this.state.name) {
