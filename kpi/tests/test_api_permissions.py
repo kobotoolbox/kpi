@@ -21,8 +21,8 @@ class ApiAnonymousPermissionsTestCase(KpiTestCase):
         self.anon.user_permissions.add(permission)
 
         # Log in and create an asset that anon can access
-        self.assertTrue(self.client.login(username=self.someuser.username,
-                                          password=self.someuser_password))
+        self.client.login(username=self.someuser.username,
+                          password=self.someuser_password)
         self.anon_accessible = self.create_asset('Anonymous can access this!')
         self.add_perm(self.anon_accessible, self.anon, 'view_')
         # Log out and become anonymous again
