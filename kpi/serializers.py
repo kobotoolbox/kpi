@@ -22,6 +22,7 @@ from .models import CollectionChildrenQuerySet
 from .models import ImportTask
 from .models import ObjectPermission
 from .models.object_permission import get_anonymous_user
+from .models import TagUid
 
 from .utils.kobo_to_xlsform import convert_any_kobo_features_to_xlsform_survey_structure
 
@@ -64,10 +65,11 @@ class TagSerializer(serializers.ModelSerializer):
         '_get_collections', read_only=True)
     parent = serializers.SerializerMethodField(
         '_get_parent_url', read_only=True)
+    uid = serializers.ReadOnlyField(source='taguid.uid')
 
     class Meta:
         model = Tag
-        fields = ('name', 'url', 'assets', 'collections', 'parent')
+        fields = ('name', 'url', 'assets', 'collections', 'parent', 'uid')
 
     def _get_parent_url(self, obj):
         return reverse('tag-list', request=self.context.get('request', None))
@@ -97,7 +99,8 @@ class TagSerializer(serializers.ModelSerializer):
 
     def _get_tag_url(self, obj):
         request = self.context.get('request', None)
-        return reverse('tag-detail', args=(obj.name,), request=request)
+        uid = TagUid.objects.get_or_create(tag=obj)[0].uid
+        return reverse('tag-detail', args=(uid,), request=request)
 
 
 class TagListSerializer(TagSerializer):
