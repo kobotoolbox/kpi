@@ -395,7 +395,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # queries.
         if user.is_anonymous():
             user = get_anonymous_user()
-        fields['parent'].queryset = fields['parent'].queryset.filter(owner=user)
+        if 'parent' in fields:
+            # TODO: remove this restriction?
+            fields['parent'].queryset = fields['parent'].queryset.filter(
+                owner=user)
         # Honor requests to exclude fields
         # TODO: Actually exclude fields from tha database query! DRF grabs
         # all columns, even ones that are never named in `fields`
@@ -564,17 +567,34 @@ class AssetListSerializer(AssetSerializer):
                   )
 
 
+class AssetUrlListSerializer(AssetSerializer):
+    class Meta(AssetSerializer.Meta):
+        fields = ('url',)
+
+
 class UserSerializer(serializers.HyperlinkedModelSerializer):
-    # assets = serializers.HyperlinkedRelatedField(many=True,
-    #                                              view_name='asset-detail',
-    #                                              read_only=True,
-    #                                              lookup_field='uid')
+    assets = serializers.SerializerMethodField()
+    def get_assets(self, obj):
+        paginator = LimitOffsetPagination()
+        paginator.default_limit = 10
+        page = paginator.paginate_queryset(
+            queryset=obj.assets.all(),
+            request=self.context.get('request', None)
+        )
+        serializer = AssetUrlListSerializer(
+            page, many=True, read_only=True, context=self.context)
+        return OrderedDict([
+            ('count', paginator.count),
+            ('next', paginator.get_next_link()),
+            ('previous', paginator.get_previous_link()),
+            ('results', serializer.data)
+        ])
 
     class Meta:
         model = User
         fields = ('url',
                   'username',
-                  # 'assets',
+                  'assets',
                   'owned_collections',
                   )
         lookup_field = 'username'
