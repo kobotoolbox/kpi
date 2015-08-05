@@ -231,7 +231,7 @@ class AssetSnapshot(models.Model, XlsExportable):
             kwargs['asset_version_id'] = reversion.get_for_object(asset).last().pk
         return super(AssetSnapshot, self).__init__(*args, **kwargs)
 
-    def generate_xml_from_source(self, source):
+    def generate_xml_from_source(self, source, **opts):
         import pyxform
         import tempfile
         summary = {}
@@ -239,10 +239,18 @@ class AssetSnapshot(models.Model, XlsExportable):
         default_name = None
         default_language = u'default'
         default_id_string = u'xform_id_string'
-        if 'settings' not in source:
-            raise Exception("Cannot generate XML from a document with no settings")
-        if 'id_string' not in source['settings'][0]:
-            source['settings'][0]['id_string'] = default_id_string
+        if 'settings' in source and len(source['settings']) > 0:
+            settings = source['settings'][0]
+        else:
+            settings = {}
+
+        if 'id_string' not in settings:
+            settings['id_string'] = default_id_string
+
+        if opts.get('include_note'):
+            source['survey'].insert(0, {'type': 'note',
+                    'label': opts['include_note']})
+        source['settings'] = [settings]
         try:
             dict_repr = pyxform.xls2json.workbook_to_json(
                 source, default_name, default_language, warnings)
@@ -288,7 +296,15 @@ class AssetSnapshot(models.Model, XlsExportable):
         self._populate_uid()
         if self.source is None:
             self.source = version.object.to_ss_structure()
-        self.generate_xml_from_source(self.source)
+        if self.asset and self.asset.asset_type in ['question', 'block'] and \
+                len(self.asset.summary['languages']) == 0:
+            asset_type = self.asset.asset_type
+            note = 'Note: This item is a ASSET_TYPE and ' + \
+                    'must be included in a form before deploying'
+            note = note.replace('ASSET_TYPE', asset_type)
+            self.generate_xml_from_source(self.source, include_note=note)
+        else:
+            self.generate_xml_from_source(self.source)
         return super(AssetSnapshot, self).save(*args, **kwargs)
 
 
