@@ -342,7 +342,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     parent = serializers.HyperlinkedRelatedField(lookup_field='uid',
                                                  queryset=Collection.objects.all(),
                                                  view_name='collection-detail',
-                                                 required=False)
+                                                 required=False,
+                                                 allow_null=True)
     ancestors = AncestorCollectionsSerializer(
         many=True, read_only=True, source='get_ancestors_or_none')
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
