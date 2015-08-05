@@ -225,7 +225,7 @@ class AssetDeploymentViewSet(NoUpdateModelViewSet):
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    lookup_field = 'name'
+    lookup_field = 'taguid__uid'
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
