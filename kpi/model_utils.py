@@ -63,7 +63,8 @@ def _load_library_content(structure):
             scontent = copy.deepcopy(content)
             scontent['survey'] = block_rows
             sa = Asset.objects.create(content=scontent, asset_type='block',
-                                        owner=structure['owner'], parent=collection)
+                                      name=block_name, parent=collection,
+                                      owner=structure['owner'])
             sa.tags.add(*list(block_tags))
     return collection
 

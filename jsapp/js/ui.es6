@@ -110,18 +110,27 @@ ui.BreadcrumbItem = React.createClass({
 ui.AssetName = React.createClass({
   render () {
     var name = this.props.name,
-        extra = false;
+        extra = false,
+        isEmpty;
     var summary = this.props.summary;
+    var row_count;
     if (!name) {
-      name = summary.labels ? summary.labels[0] : t('empty');
-      if (summary.labels && summary.labels.length === 2) {
-        extra = <small>{t('and one other question')}</small>;
-      } else if (summary.labels.length > 2) {
-        extra = <small>{t('and ## other questions').replace('##', summary.labels.length-1)}</small>;
+      row_count = summary.row_count;
+      name = summary.labels ? summary.labels[0] : false;
+      if (!name) {
+        isEmpty = true;
+        name = t('empty');
+      }
+      if (row_count) {
+        if (row_count === 2) {
+          extra = <small>{t('and one other question')}</small>;
+        } else if (row_count > 2) {
+          extra = <small>{t('and ## other questions').replace('##', row_count-1)}</small>;
+        }
       }
     }
     return (
-        <span className="asset-name">
+        <span className={isEmpty ? 'asset-name asset-name--empty' : 'asset-name'}>
           {name}
           {extra ?
             extra

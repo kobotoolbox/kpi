@@ -48,7 +48,7 @@ class AssetContentAnalyzer(object):
                 if not re.match('^end', _type):
                     row_count += 1
                     types.add(_type)
-                if _label != None and len(_label) > 5:
+                if _label != None and len(_label) > 0:
                     labels.append(_label)
                 keys = keys | set(row.keys())
 
