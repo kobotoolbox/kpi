@@ -135,7 +135,32 @@ class ObjectRelationshipsTests(APITestCase):
         self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
         req = self.client.get(surv_url)
         self.assertIn('/collections/%s' % (self.coll.uid), req.data['parent'])
+        # Assigned asset to collection successfully; now remove it
         patch_req = self.client.patch(surv_url, data={'parent': ''})
         self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
         req = self.client.get(surv_url)
         self.assertIsNone(req.data['parent'])
+
+    def test_move_asset_between_collections(self):
+        '''
+        * a survey starts out with no collection.
+        * assigning a collection to the survey returns a HTTP 200 code.
+        * a follow up query on the asset shows that the collection is now set
+        * assigning a new collection to the survey returns a HTTP 200 code.
+        * a follow up query on the asset shows the new collection now set
+        '''
+        self.assertEqual(self.surv.parent, None)
+        surv_url = reverse('asset-detail', args=[self.surv.uid])
+        patch_req = self.client.patch(surv_url, data={'parent': reverse(
+            'collection-detail', args=[self.coll.uid])})
+        self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
+        req = self.client.get(surv_url)
+        self.assertIn('/collections/%s' % (self.coll.uid), req.data['parent'])
+        # Assigned asset to collection successfully; now move it to another
+        other_coll = Collection.objects.create(
+            name='another collection', owner=self.user)
+        patch_req = self.client.patch(surv_url, data={'parent': reverse(
+            'collection-detail', args=[other_coll.uid])})
+        self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
+        req = self.client.get(surv_url)
+        self.assertIn('/collections/%s' % (other_coll.uid), req.data['parent'])
