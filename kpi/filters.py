@@ -57,7 +57,7 @@ class SearchFilter(filters.BaseFilterBackend):
         # in batches of 10 (HAYSTACK_ITERATOR_LOAD_PER_QUERY), with each batch
         # taking nearly a tenth of a second! By using a slice, we can force
         # Haystack to hand over all the pks at once.
-        big_slice = max(ITERATOR_LOAD_PER_QUERY, search_queryset.count() - 1)
+        big_slice = max(ITERATOR_LOAD_PER_QUERY, search_queryset.count())
         matching_pks = list(matching_pks[:big_slice])
         # Will still be filtered by KpiObjectPermissionsFilter.filter_queryset()
         # TODO: Preserve ordering of search results
