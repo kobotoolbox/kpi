@@ -1,5 +1,6 @@
 import copy
 import re
+import logging
 from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User, Permission
@@ -94,6 +95,9 @@ def grant_all_model_level_perms(
         content_types.append(ContentType.objects.get_for_model(models))
     permissions_to_assign = permissions_manager.filter(
         content_type__in=content_types)
+    if content_types and not permissions_to_assign.exists():
+        raise Exception('No permissions found! You may need to migrate your '
+            'database. Models specified: {}'.format(models))
     if user.pk == settings.ANONYMOUS_USER_ID:
         # The user is anonymous, so pare down the permissions to only those
         # that the configuration allows for anonymous users
