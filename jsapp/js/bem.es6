@@ -136,10 +136,11 @@ bem.Sidebar__footer = bem('sidebar__footer');
 bem.Sidebar__footeritem = bem('sidebar__footeritem');
 
 bem.AccountBox = BEM('account-box');
-bem.AccountBox__name =      bem.AccountBox.__('name');
-bem.AccountBox__image =     bem.AccountBox.__('image');
-bem.AccountBox__indicator = bem.AccountBox.__('indicator');
-bem.AccountBox__logout =    bem.AccountBox.__('logout');
+bem.AccountBox__name =      bem.AccountBox.__('name', '<span>');
+bem.AccountBox__image =     bem.AccountBox.__('image', '<span>');
+bem.AccountBox__logo =     	bem.AccountBox.__('logo', '<span>');
+// bem.AccountBox__indicator = bem.AccountBox.__('indicator');
+// bem.AccountBox__logout =    bem.AccountBox.__('logout');
 
 bem.uiPanel = BEM('ui-panel');
 bem.uiPanel__body = bem.uiPanel.__('body');

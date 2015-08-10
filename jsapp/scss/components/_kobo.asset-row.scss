@@ -233,18 +233,21 @@ $colwidth: (100% / $colcount) - 1%;
       @extend .fa, .fa-fw, .fa-play;
     }
     button {
-      @extend .btn;
+      // @extend .btn;
+      @extend .mdl-button;
     }
     .asset-row:not(.asset-row--selected) & {
       button {
-        @extend .btn-default;
+        // @extend .btn-default;
+        @extend .mdl-button;
         @extend .disabled;
       }
     }
     .asset-row--selected & {
       button {
         opacity: 1;
-        @extend .btn-success;
+        // @extend .btn-success;
+        @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
       }
     }
   }

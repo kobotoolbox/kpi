@@ -54,7 +54,7 @@ $mult: 0.5;
   }
 }
 .asset-view__ancestors {
-  @extend .col-md-12;
+  // @extend .col-md-12;
   .asset-view__row & {
     margin-bottom: 0px;
   }
@@ -62,9 +62,9 @@ $mult: 0.5;
     margin: 0 3px 1px 0;
   }
 }
-.asset-view__ancestor {
-  @extend .label, .label-warning;
-}
+// .asset-view__ancestor {
+//   @extend .label, .label-warning;
+// }
 
 .asset-view__key {
   float: left;
@@ -187,7 +187,7 @@ $mult: 0.5;
       // margin-bottom: 4px;
     }
     &.asset-view__col--revisions {
-      @extend .col-md-1;
+      // @extend .col-md-1;
       @extend .pull-right;
       text-align: left;
       padding: 0 5px;
@@ -245,7 +245,7 @@ $mult: 0.5;
 }
 .asset-view__buttoncol {
   // @extend .col-lg-3;
-  @extend .col-md-6;
+  // @extend .col-md-6;
 }
 
 @mixin disableablelink($col) {
@@ -260,7 +260,8 @@ $mult: 0.5;
   }
 }
 .asset-view__button, .asset-view__link:not(.asset-view__link--sharing) {
-  @extend .btn, .btn-block, .btn-default;
+  // @extend .btn, .btn-block, .btn-default;
+  @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
   // &.asset-view__button--disabled, &.asset-view__link--disabled {
   //   opacity: 0.3;
   //   @extend %disabled-button;
@@ -286,12 +287,13 @@ $mult: 0.5;
   display: inline;
 }
 .asset-view__deployments {
-  @extend .col-md-12;
+  // @extend .col-md-12;
   @extend %has-icon-col;
   @include iconcol('edit');
 
   .asset-view__deploybutton {
-    @extend .pull-right, .btn, .btn-success;
+    // @extend .pull-right, .btn, .btn-success;
+    @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;    
     @include action-faicon('play');
   }
 }

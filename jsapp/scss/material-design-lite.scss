@@ -1,0 +1,42 @@
+// Material Icons font
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Material Icons'), local('MaterialIcons-Regular'), url('/static/fonts/material-icons.woff2') format('woff2');
+}
+
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  word-wrap: normal;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Color Palette for Material UI  */ 
+
+// $primary-color-dark:   #0288D1;
+// $primary-color:        #03A9F4;
+// $primary-color-light:  #B3E5FC;
+// $primary-color-text:   #FFFFFF;
+// $accent-color:         #536DFE;
+// $primary-text-color:   #212121;
+// $secondary-text-color: #727272;
+// $divider-color:        #B6B6B6;
+
+@import '../../node_modules/material-design-lite/src/_color-definitions';
+
+$color-primary: $palette-indigo-400 !default;
+$color-primary-dark: $palette-indigo-600 !default;
+$color-accent: $palette-indigo-A200 !default; 
+$layout-header-bg-color: unquote("rgb(#{$palette-blue-grey-800})") !default;
+
+
+@import '../../node_modules/material-design-lite/src/material-design-lite';

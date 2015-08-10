@@ -5,7 +5,7 @@
 $cardBorderColor: #d9dde1;
 $cardInSortBorderColor: #3FA2EE;
 
-$bodyBackgroundColor: #E9EDF0;
+$bodyBackgroundColor: #FFF;
 $textColor: #3f3f3f;
 
 $wellTextColor: #7A8692;
@@ -41,13 +41,13 @@ $buttonBorderRadius: 5px;
 @import "stylesheets/partials/misc";
 @import "stylesheets/partials/modals_iframes";
 
-@import "stylesheets/partials/header_and_top_menu";
+// @import "stylesheets/partials/header_and_top_menu";
 @import "stylesheets/partials/content";
 @import "stylesheets/partials/registration";
 @import "stylesheets/partials/sidenote";
 
 @import 'stylesheets/pages/form_builder';
-@import 'stylesheets/pages/form_list';
-@import "stylesheets/pages/question_library";
+// @import 'stylesheets/pages/form_list';
+// @import "stylesheets/pages/question_library";
 
 @import "stylesheets/partials/helpers";

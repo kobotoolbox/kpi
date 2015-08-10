@@ -12,6 +12,7 @@ import React from 'react/addons';
 import Router from 'react-router';
 import Q from 'q';
 import Sidebar from './components/sidebar';
+import MainHeader from './components/header';
 import TagsInput from 'react-tagsinput';
 import classNames from 'classnames';
 import alertify from 'alertifyjs';
@@ -30,7 +31,8 @@ var DocumentTitle = require('react-document-title');
 import Favicon from 'react-favicon';
 
 
-var bootstrap = require('./libs/rest_framework/bootstrap.min');
+// var bootstrap = require('./libs/rest_framework/bootstrap.min');
+var mdl = require('./libs/rest_framework/material.min');
 
 var dkobo_xlform = require('./libs/xlform_with_deps');
 
@@ -1473,20 +1475,34 @@ var App = React.createClass({
             'asset-nav-present': this.state.assetNavPresent,
             'asset-nav-open': this.state.assetNavIsOpen && this.state.assetNavPresent,
             'header-search': this.state.headerSearch,
-              }}>
-          <Sidebar isOpen={this.state.sidebarIsOpen} toggleIntentOpen={this.toggleSidebarIntentOpen} />
-          <bem.PageWrapper__content m={{
-            'navigator-open': this.state.assetNavigatorIsOpen,
-            'navigator-present': this.state.assetNavigator,
-              }}>
-            {/*
-            <BgTopPanel {...this.state} />
-            */}
-            <RouteHandler appstate={this.state} />
-          </bem.PageWrapper__content>
-          { this.state.assetNavPresent ?
-            <AssetNavigator />
-          :null}
+              }}  className="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+          <MainHeader />
+          {/* <Sidebar isOpen={this.state.sidebarIsOpen} toggleIntentOpen={this.toggleSidebarIntentOpen} />*/}
+
+          <div className="mdl-layout__drawer">
+            <span className="mdl-layout-title">KoBo 2</span>
+            <nav className="mdl-navigation">
+              <a className="mdl-navigation__link" href="">Link 1</a>
+              <a className="mdl-navigation__link" href="">Link 2</a>
+              <a className="mdl-navigation__link" href="">Link 3</a>
+              <a className="mdl-navigation__link" href="">Link 4</a>
+            </nav>
+          </div>
+
+          <main className="mdl-layout__content">
+            <bem.PageWrapper__content m={{
+              'navigator-open': this.state.assetNavigatorIsOpen,
+              'navigator-present': this.state.assetNavigator,
+                }}>
+              {/*
+              <BgTopPanel {...this.state} />
+              */}
+              <RouteHandler appstate={this.state} />
+            </bem.PageWrapper__content>
+            { this.state.assetNavPresent ?
+              <AssetNavigator />
+            :null}
+          </main>
         </bem.PageWrapper>
       </DocumentTitle>
     );

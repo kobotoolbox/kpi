@@ -1,15 +1,18 @@
 @import 'kobo';
-@import './components/kobo-rdash';
+// @import './components/kobo-rdash'; 
 @import './components/asset-dashboard';
 @import './components/menus';
 @import './react-tagsinput';
-@import './components/alertify';
+@import './components/alertify'; 
 
-@import './components/bootswatch_variables';
-@import '../../node_modules/bootstrap-sass/assets/stylesheets/bootstrap';
+// @import './components/bootswatch_variables';
+// @import '../../node_modules/bootstrap-sass/assets/stylesheets/bootstrap';
 @import '../../node_modules/react-tooltip/dist/react-tooltip';
-@import '../../node_modules/select2-browserify/select2/select2'; 
-@import './components/bootswatch';
+@import '../../node_modules/select2-browserify/select2/select2.css'; 
+
+@import 'material-design-lite';
+
+// @import './components/bootswatch';
 
 // http://www.materialpalette.com/grey/indigo
 $muiLight: #616161;
@@ -41,6 +44,11 @@ $kcol-8: mix(#00BCD4, grayscale(#00BCD4), 38%);
 $newformButtonColor: mix(#2196F3, grayscale(#2196F3), 38%);
 
 $newformCircleWidthHeight: 55px;
+
+//  temporarily here
+.row {
+  background-color: transparent;
+}
 
 @import '../xlform/components/fontawesome/scss/font-awesome';
 @import './components/kobo.collection-header';
@@ -77,12 +85,12 @@ $i: 200;
   }
 }
 
-.page-wrapper--asset-nav-present {
-  padding-right: 60px;
-}
-.page-wrapper--asset-nav-open {
-  padding-right: 400px;
-}
+// .page-wrapper--asset-nav-present {
+//   padding-right: 60px;
+// }
+// .page-wrapper--asset-nav-open {
+//   padding-right: 400px;
+// }
 
 
 
@@ -195,7 +203,8 @@ $i: 200;
   opacity: 0.3;
 }
 .k-save--complete {
-  @extend .btn-success;
+  // @extend .btn-success;
+  @extend .mdl-button;
 }
 .k-save--needed {
   color: $saveNeededColor;
@@ -309,21 +318,22 @@ $actionButtonColor: #2196F3;
   padding-right: 30px;
 }
 
-@media (min-width: $screen-md-min) {
-  .k-header-name-row {
-    padding-right: $assetSaveButtonWidth + 20;
-  }
-  .k-fixed-buttons {
-    position: absolute;
-    right: 32px;
-    top: 2px;
-    width: $assetSaveButtonWidth;
-    text-align: right;
-    .btn-toolbar .btn {
-      float: none;
-    }
-  }
-}
+// TODO
+// @media (min-width: $screen-md-min) {
+//   .k-header-name-row {
+//     padding-right: $assetSaveButtonWidth + 20;
+//   }
+//   .k-fixed-buttons {
+//     position: absolute;
+//     right: 32px;
+//     top: 2px;
+//     width: $assetSaveButtonWidth;
+//     text-align: right;
+//     .btn-toolbar .btn {
+//       float: none;
+//     }
+//   }
+// }
 
 .k-corner-icon {
   opacity: 0.3;
@@ -351,64 +361,24 @@ from SO
 */
 
 
-.account-box {
-  position: relative;
-  height: 32px;
-}
-.account-box__name {
-  position: absolute;
-  top: 6px;
-  left: 22px;
-  padding: 0 2px;
-  color: dimgrey;
-  max-width: 175px;
-  display: inline-block;
-  background-color: #282828;
-  text-indent: 0;
-  z-index: 3;
-}
-.account-box__indicator {
-  padding-top: 1px;
-  border-top: 1px solid dimgrey;
-  position: absolute;
-  top: 15px;
-  left: 0;
-  z-index: 2;
-}
 .account-box__image {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  top: 7px;
-  left: 205px;
-  overflow: hidden;
-  border-radius: 3px;
-  z-index: 3;
+  width:24px;
+  display: inline-block; 
+  margin-left: 6px;
   img {
     opacity: 0.7;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 20px;
-    height: 20px;
-    margin-left: -10px;
-    margin-top: -10px;
+    max-width: 24px;
+    max-height: 24px;
   }
 }
-.account-box__logout {
-  display: none;
-  // position: absolute;
-  // top: 6px;
-  // right: 60px;
-  // text-decoration: underline;
-  // color: dimgrey;
-  // opacity: 0;
-  // cursor: pointer;
-  // .account-box:hover & {
-  //   opacity: 1;
-  // }
-}
 
+.account-box__logo {
+  width: 120px;
+  height: 28px;
+  background: url('/static/img/kobologo.svg') no-repeat;
+  background-size: contain;
+  display: block;
+}
 .dropfiles--active {
   > * {
     opacity: 0.4;
