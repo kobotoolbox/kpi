@@ -27,16 +27,18 @@ bem.uiModal__header = bem.uiModal.__('header');
 }
 
 */
-
 .ui-panel {
-  // @extend .panel, .panel-default;
-  margin: 11px;
-  position: relative;
+  @extend .mdl-grid;
+  max-width:1080px;
 }
 .ui-panel__body {
-  // @extend .panel-body;
-  padding: 7px;
+  @extend .mdl-cell, .mdl-cell--12-col, .mdl-grid, .mdl-shadow--2dp, .mdl-color--white;
+  > .row {
+    position: relative;
+  }
 }
+
+
 
 // <div className={"panel panel-default k-panel k-panel-default " + this.props.className }>
 //   <div className="panel-body k-panel-body">

@@ -7,15 +7,15 @@ $wrapBorderColor: transparent;
 $invalidBgColor: #fbd8db;
 $invalidColor: #90111a;
 
-.k-tagsinput {
-  background-color: #fff;
-  border: 1px solid $wrapBorderColor;
-  overflow: hidden;
-  padding-left: 2px;
-  padding-top: 2px;
-  display: inline-block;
-  float: left;
-}
+// .k-tagsinput {
+  // background-color: #fff;
+  // border: 1px solid $wrapBorderColor;
+  // overflow: hidden;
+  // padding-left: 2px;
+  // padding-top: 2px;
+  // display: inline-block;
+  // float: left;
+// }
 
 .k-tagsinput-tag {
   background-color: $tagBgColor;

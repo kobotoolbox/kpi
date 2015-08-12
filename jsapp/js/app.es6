@@ -140,10 +140,12 @@ mixins.formView = {
             {this.renderCloseButton()}
             <div className="k-header-name-row form-group">
               <div className="k-corner-icon"></div>
-              {this.renderFormNameInput()}
-            </div>
-            <div className="k-fixed-buttons">
-              {this.renderSaveAndPreviewButtons()}
+              <div className="k-header-form-title mdl-textfield mdl-js-textfield">
+                {this.renderFormNameInput()}
+              </div>
+              <div className="k-header-save-button">
+                {this.renderSaveAndPreviewButtons()}
+              </div>
             </div>
           </div>
           { this.state.survey ?
@@ -1246,9 +1248,9 @@ var FormInput = React.createClass({
   render () {
     return (
         <div className="form-group">
-          <label htmlFor={this.props.id} className="col-lg-2 control-label">{this.props.label}</label>
-          <div className="col-lg-10">
-            <input type="text" className="form-control" id={this.props.id} placeholder={this.props.placeholder}
+          <div className="mdl-textfield mdl-js-textfield textfield-demo">
+            {/*<label className="mdl-textfield__label" htmlFor={this.props.id}>{this.props.label}</label>*/}
+            <input className="mdl-textfield__input" type="text" id={this.props.id} placeholder={this.props.placeholder}
                   onChange={this.props.onChange} />
           </div>
         </div>
@@ -1260,14 +1262,10 @@ var FormCheckbox = React.createClass({
   render () {
     return (
         <div className="form-group">
-          <label htmlFor={this.props.name} className="col-lg-8 control-label">{this.props.label}</label>
-          <div className="col-lg-4">
-            <div className="checkbox">
-              <label>
-                <input type="checkbox" id={this.props.name} checked={this.props.value} onChange={this.props.onChange} />
-              </label>
-            </div>
-          </div>
+          <label className="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" htmlFor={this.props.name} >
+            <input type="checkbox" className="mdl-checkbox__input"  id={this.props.name} checked={this.props.value} onChange={this.props.onChange} />
+            <span className="mdl-checkbox__label">{this.props.label}</span>
+          </label>
         </div>
       );
   }
@@ -1278,23 +1276,25 @@ var FormSettingsEditor = React.createClass({
     return (
       <div className="well">
         <form className="form-horizontal">
-          <FormInput id="form_id" label="form id" value={this.props.form_id} placeholder={t('form id')} onChange={this.props.onFieldChange} />
           <hr />
-          <div className="row">
-            <div className="col-md-6">
+          <FormInput id="form_id" label="form id" value={this.props.form_id} placeholder={t('form id')} onChange={this.props.onFieldChange} />
+          <div className="mdl-grid">
+            <div className="mdl-cell mdl-cell--6-col">
               {this.props.meta.map((mtype) => {
                 return <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
               })}
             </div>
-            <div className="col-md-6">
+            <div className="mdl-cell mdl-cell--6-col">
               {this.props.phoneMeta.map((mtype) => {
                 return <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
               })}
             </div>
           </div>
-          <div className="form-group">
-            <label htmlFor="select" className="col-lg-2 control-label">{t('Web form style')}</label>
-            <div className="col-lg-10">
+          <div className="form-group mdl-grid">
+            <div className="mdl-cell mdl-cell--2-col">
+              <label htmlFor="select" className="control-label">{t('Web form style')}</label>
+            </div>
+            <div className="mdl-cell mdl-cell--6-col">
               <select className="form-control" onChange={this.props.onStyleChange} value={this.props.styleValue}>
                 <option value=''>{t('Default - single page')}</option>
                 <option value='theme-grid'>{t('Grid theme')}</option>
@@ -1386,7 +1386,7 @@ var FormSettingsBox = React.createClass({
         <div className={classNames('row', 'k-sub-settings-bar', {
           'k-sub-settings-bar--expanded': this.state.formSettingsExpanded
         })}>
-          <div className="col-md-12" onClick={this.toggleSettingsEdit}>
+          <div className="k-sub-settings-container" onClick={this.toggleSettingsEdit}>
             <i className="fa fa-cog" />
             &nbsp;&nbsp;
             <i className={expandIconKls} />
@@ -1478,7 +1478,7 @@ var App = React.createClass({
               }}  className="mdl-layout mdl-js-layout mdl-layout--fixed-header">
           <MainHeader />
           {/* <Sidebar isOpen={this.state.sidebarIsOpen} toggleIntentOpen={this.toggleSidebarIntentOpen} />*/}
-
+        {/* TODO: Mode to separate file */ }
           <div className="mdl-layout__drawer">
             <span className="mdl-layout-title">KoBo 2</span>
             <nav className="mdl-navigation">
@@ -1573,8 +1573,7 @@ var NewForm = React.createClass({
   ],
   renderFormNameInput () {
     var nameKls = this.state.survey_name_valid ? '' : 'has-warning';
-    var nameInputKls = classNames('form-control',
-                                  'input-lg',
+    var nameInputKls = classNames('mdl-textfield__input',
                                   nameKls);
     return (
         <input ref="form-name"
@@ -2291,7 +2290,7 @@ var FormPage = React.createClass({
     var disabled = !!this.state.disabled;
     var pendingSave = this.state.asset_updated === false;
     var saveText = t('save');
-    var saveBtnKls = classNames('btn','btn-default', {
+    var saveBtnKls = classNames('mdl-button','mdl-button--colored', 'mdl-button--raised', 'mdl-js-button', {
       'disabled': disabled,
       'k-save': true,
       'k-save--pending': this.state.asset_updated === false,
@@ -2299,8 +2298,10 @@ var FormPage = React.createClass({
       'k-save--needed': this.state.asset_updated === -1
     });
     var previewDisabled = !!this.state.previewDisabled;
-    var previewBtnKls = classNames('btn',
-                                  'btn-default',
+    var previewBtnKls = classNames('mdl-button',
+                                  'mdl-js-button',
+                                  'mdl-button--colored',
+                                  'mdl-button--raised',
                                   previewDisabled ? 'disabled': '')
     return (
         <div className="k-form-actions">
@@ -2325,8 +2326,7 @@ var FormPage = React.createClass({
   },
   renderFormNameInput () {
     var nameKls = this.state.survey_name_valid ? '' : 'has-warning';
-    var nameInputKls = classNames('form-control',
-                                  'input-lg',
+    var nameInputKls = classNames('mdl-textfield__input',
                                   nameKls);
     var nameVal = this.state.survey_name;
     return (

@@ -1,16 +1,17 @@
-@import 'kobo';
 // @import './components/kobo-rdash'; 
 @import './components/asset-dashboard';
 @import './components/menus';
-@import './react-tagsinput';
 @import './components/alertify'; 
 
 // @import './components/bootswatch_variables';
 // @import '../../node_modules/bootstrap-sass/assets/stylesheets/bootstrap';
-@import '../../node_modules/react-tooltip/dist/react-tooltip';
-@import '../../node_modules/select2-browserify/select2/select2.css'; 
 
 @import 'material-design-lite';
+
+@import '../../node_modules/select2-browserify/select2/select2'; 
+@import './kobo';
+@import './react-tagsinput';
+@import '../../node_modules/react-tooltip/dist/react-tooltip';
 
 // @import './components/bootswatch';
 
@@ -20,8 +21,7 @@ $muiDark: #9D9D9D;
 $muiBlue: #526CFD;
 $highlightedBarColor: #F5F8FA;
 $saveNeededColor: #9c27b0;
-$assetCornerIconWidth: 45px;
-$assetSaveButtonWidth: 105px;
+// $assetSaveButtonWidth: 105px;
 
 // $kcol-view: #7B1FA2;
 // $kcol-edit: #009688;
@@ -44,11 +44,6 @@ $kcol-8: mix(#00BCD4, grayscale(#00BCD4), 38%);
 $newformButtonColor: mix(#2196F3, grayscale(#2196F3), 38%);
 
 $newformCircleWidthHeight: 55px;
-
-//  temporarily here
-.row {
-  background-color: transparent;
-}
 
 @import '../xlform/components/fontawesome/scss/font-awesome';
 @import './components/kobo.collection-header';
@@ -85,18 +80,18 @@ $i: 200;
   }
 }
 
-// .page-wrapper--asset-nav-present {
-//   padding-right: 60px;
-// }
-// .page-wrapper--asset-nav-open {
-//   padding-right: 400px;
-// }
-
-
-
-.panel-wrap--right-spaced {
-  padding-right: 391px;
+.page-wrapper--asset-nav-present .mdl-layout__content {
+  padding-right: 60px;
+  transition: all .4s ease 0s;
 }
+.page-wrapper--asset-nav-open .mdl-layout__content {
+  padding-right: 400px;
+  transition: all .4s ease 0s; 
+}
+
+// .panel-wrap--right-spaced {
+//   padding-right: 391px;
+// }
 
 .sidebar-wrapper {
   -webkit-box-shadow: 5px 0px -5px 0px rgba(50, 50, 50, 0.07);
@@ -163,6 +158,7 @@ $i: 200;
     }
   }
 }
+
 .assetnav-search-results {
   li {
     position: relative;
@@ -211,67 +207,29 @@ $i: 200;
   box-shadow: 1px 1px 2px rgba($saveNeededColor, 0.5);
   // background-image: radial-gradient(circle, #FFEFEF 80%, #f0f0f0 81%);
 }
-.page-wrapper__content {
-  padding: 1px 0;
+// .page-wrapper__content {
+  // padding: 1px 0;
 
-  .page-wrapper--asset-nav-present & {
-    padding-top: 20px;
-  }
-}
-.k-header-formname-text {
-  border-left: 2px solid lighten(#4caf50, 30%);
-  color: lighten(#4caf50, 20%);
-  padding-left: 5px;
-}
-.k-sub-settings-bar {
-  cursor: pointer;
-  color: #B2B2B2;
-  &:hover {
-    color: #666;
-  }
-  .settings-preview {
-    margin: 0 24px 0 0;
-  }
+  // .page-wrapper--asset-nav-present & {
+  //   padding-top: 20px;
+  // }
+// }
 
-  transition: all .4s ease 0s;
-}
+// .k-header-formname-text {
+//   border-left: 2px solid lighten(#4caf50, 30%);
+//   color: lighten(#4caf50, 20%);
+//   padding-left: 5px;
+// }
 
-.k-form-close-button {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  border: 0 none;
-  background-color: transparent;
-  opacity: 0.6;
-  width: 32px;
-  height: 32px;
-  font-size: 26px;
-  line-height: 32px;
-  color: #666;
-  z-index: 999;
-  cursor: pointer;
-  display: block;
-  text-align: center;
-  &:hover {
-    opacity: 1;
-    text-decoration: none;
-    color: #666;
-  }
-  &.k-form-close-button--warning {
-    color: $saveNeededColor;
-  }
-}
-
-
-.k-btn-wrap--newform {
-  position: absolute;
-  width: 65px;
-  height: 65px;
-  padding: 0;
-  top: 3px;
-  left: 16px;
-  margin: 0;
-}
+// .k-btn-wrap--newform {
+//   position: absolute;
+//   width: 65px;
+//   height: 65px;
+//   padding: 0;
+//   top: 3px;
+//   left: 16px;
+//   margin: 0;
+// }
 $actionButtonColor: #2196F3;
 .k-actbtn {
               //   padding: "6px 27px",
@@ -313,10 +271,10 @@ $actionButtonColor: #2196F3;
   padding-right: 25px;
 }
 
-.k-header-name-row {
-  padding-left: $assetCornerIconWidth + 10;
-  padding-right: 30px;
-}
+// .k-header-name-row {
+//   padding-left: $assetCornerIconWidth + 10;
+//   padding-right: 30px;
+// }
 
 // TODO
 // @media (min-width: $screen-md-min) {
@@ -334,18 +292,6 @@ $actionButtonColor: #2196F3;
 //     }
 //   }
 // }
-
-.k-corner-icon {
-  opacity: 0.3;
-  width: $assetCornerIconWidth;
-  height: $assetCornerIconWidth;
-  position: absolute;
-  border-radius: 25px;
-  top: 0;
-  left: 0;
-  background-color: lighten($muiBlue, 20%);
-  border: 3px solid lighten($muiBlue, 12%);
-}
 
 /*
 from SO

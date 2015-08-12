@@ -5,11 +5,7 @@
 $cardBorderColor: #d9dde1;
 $cardInSortBorderColor: #3FA2EE;
 
-$bodyBackgroundColor: #FFF;
-$textColor: #3f3f3f;
-
 $wellTextColor: #7A8692;
-
 $addButtonColor: #BEC9D0;
 $addButtonColorHover: #5CB2EE;
 
@@ -34,7 +30,7 @@ $buttonBorderRadius: 5px;
 @import "stylesheets/partials/select2_override";
 @import "stylesheets/partials/tagsinput_override";
 
-@import "stylesheets/partials/normalize";
+// @import "stylesheets/partials/normalize";
 @import "stylesheets/partials/base";
 @import "stylesheets/partials/icons";
 @import "stylesheets/partials/buttons";

@@ -22,9 +22,9 @@ $mult: 0.5;
   }
 }
 
-.asset-view {
+// .asset-view {
   // @extend %demo-panel;
-}
+// }
 
 .asset-view {
   &.asset-view--type-survey {
@@ -46,7 +46,7 @@ $mult: 0.5;
 }
 .asset-view__row {
   @extend .row;
-  color: #818181 !important;
+  // color: #818181 !important;
 }
 .asset-view__span {
   &.asset-view__span--can-edit, &.asset-view__span--can-view {
@@ -153,8 +153,8 @@ $mult: 0.5;
   }
 }
 .asset-view__name {
-  font-size: 22px;
-  padding: 4px 0 8px;
+  @extend h3;
+  // padding: 4px 0 8px;
   &.asset-view__name--untitled {
     color: #666;
   }
@@ -237,15 +237,14 @@ $mult: 0.5;
   }
 }
 .asset-view__content {
-  @extend .container;
+  @extend .mdl-card__supporting-text;
 }
-.asset-view__colsubtext {  }
+// .asset-view__colsubtext {  }
 .asset-view__buttons {
-  @extend .row;
+  @extend .mdl-grid;
 }
 .asset-view__buttoncol {
-  // @extend .col-lg-3;
-  // @extend .col-md-6;
+  @extend .mdl-cell, .mdl-cell--3-col;
 }
 
 @mixin disableablelink($col) {
@@ -287,13 +286,14 @@ $mult: 0.5;
   display: inline;
 }
 .asset-view__deployments {
-  // @extend .col-md-12;
-  @extend %has-icon-col;
-  @include iconcol('edit');
+  @extend .mdl-card__actions;
+  // @extend %has-icon-col;
+  // @include iconcol('edit');
 
   .asset-view__deploybutton {
     // @extend .pull-right, .btn, .btn-success;
-    @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;    
+    float: right;
+    @extend .mdl-button, .mdl-button--colored;    
     @include action-faicon('play');
   }
 }
