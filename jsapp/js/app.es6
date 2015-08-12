@@ -13,6 +13,7 @@ import Router from 'react-router';
 import Q from 'q';
 import Sidebar from './components/sidebar';
 import MainHeader from './components/header';
+import Drawer from './components/drawer';
 import TagsInput from 'react-tagsinput';
 import classNames from 'classnames';
 import alertify from 'alertifyjs';
@@ -1478,17 +1479,7 @@ var App = React.createClass({
               }}  className="mdl-layout mdl-js-layout mdl-layout--fixed-header">
           <MainHeader />
           {/* <Sidebar isOpen={this.state.sidebarIsOpen} toggleIntentOpen={this.toggleSidebarIntentOpen} />*/}
-        {/* TODO: Mode to separate file */ }
-          <div className="mdl-layout__drawer">
-            <span className="mdl-layout-title">KoBo 2</span>
-            <nav className="mdl-navigation">
-              <a className="mdl-navigation__link" href="">Link 1</a>
-              <a className="mdl-navigation__link" href="">Link 2</a>
-              <a className="mdl-navigation__link" href="">Link 3</a>
-              <a className="mdl-navigation__link" href="">Link 4</a>
-            </nav>
-          </div>
-
+          <Drawer />
           <main className="mdl-layout__content">
             <bem.PageWrapper__content m={{
               'navigator-open': this.state.assetNavigatorIsOpen,

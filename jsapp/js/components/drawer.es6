@@ -1,0 +1,120 @@
+import React from 'react/addons';
+import Router from 'react-router';
+import {log, t} from '../utils';
+import icons from '../icons';
+import stores from '../stores';
+import classNames from 'classnames';
+import Reflux from 'reflux';
+import bem from '../bem';
+
+var actions = require('../actions');
+var assign = require('react/lib/Object.assign');
+
+let Link = Router.Link;
+
+class DrawerTitle extends React.Component {
+  render () {
+    var kls = "sidebar-title"
+    if (this.props.separator) {
+      kls += " separator";
+    }
+    return (
+        <li className={kls}>
+          <span>{this.props.label}</span>
+        </li>
+      )
+  }
+}
+class DrawerLink extends React.Component {
+  onClick (evt) {
+    if (!this.props.href) {
+      evt.preventDefault();
+    }
+    if (this.props.onClick) {
+      this.props.onClick(evt);
+    }
+  }
+  render () {
+    var icon_class = "menu-icon fa fa-fw fa-"+(this.props['fa-icon'] || 'table')
+    var icon = (<span className={icon_class}></span>);
+
+    var link;
+    if (this.props.linkto) {
+      link = <Link to={this.props.linkto} className="mdl-navigation__link"
+                    activeClassName="active">{this.props.label} {icon}</Link>
+    } else {
+      link = <a href={this.props.href || "#"} 
+      							className="mdl-navigation__link" 
+      							onClick={this.onClick.bind(this)}>{this.props.label} 
+      							{icon} </a>
+    }
+    return link; 
+  }
+}
+var Drawer = React.createClass({
+  mixins: [
+    Reflux.connect(stores.session),
+    Reflux.connect(stores.pageState),
+    // toolTipped,
+  ],
+  getInitialState () {
+    return assign({
+      showRecent: true
+    }, stores.pageState.state);
+  },
+  logout () {
+    actions.auth.logout();
+  },
+  renderAccountNavLink () {
+    var accountName = this.state.currentAccount && this.state.currentAccount.username;
+    var defaultGravatarImage = `${window.location.protocol}//www.gravatar.com/avatar/64e1b8d34f425d19e1ee2ea7236d3028?s=40`;
+    var gravatar = this.state.currentAccount && this.state.currentAccount.gravatar || defaultGravatarImage;
+
+    if (this.state.isLoggedIn) {
+      return (
+					<a className="mdl-navigation__link">
+	          logout
+					</a>
+        );
+    }
+    return (
+        <div>
+					<a className="mdl-navigation__link">
+	          login yo!
+	        </a>
+        </div>
+        );
+
+  },
+  render () {
+    return (
+          <div className="mdl-layout__drawer">
+            <span className="mdl-layout-title">KoBo</span>
+            <nav className="mdl-navigation">
+            	<div className="drawer-separator"></div>
+              <span className="mdl-navigation__link">{t('drafts in progress')}</span>
+
+	            <DrawerLink label={t('forms')} linkto='forms' fa-icon="files-o" />
+  	          <DrawerLink label={t('library')} linkto='library' fa-icon="book" />
+    	        <DrawerLink label={t('collections')} linkto='collections' fa-icon="folder-o" />
+
+    	        <div className="drawer-separator"></div>
+    	        <span className="mdl-navigation__link">{t('deployed projects')}</span>
+	            { stores.session.currentAccount ?
+    	            <DrawerLink label={t('projects')} active='true' href={stores.session.currentAccount.projects_url} fa-icon="globe" />
+  	          :null }
+
+  	          <div className="drawer-separator"></div>
+  	          <span className="mdl-navigation__link">{t('account actions')}</span>
+	            { this.state.isLoggedIn ? 
+  	            <DrawerLink label={t('logout')} onClick={this.logout} fa-icon="sign-out" />
+    	        : 
+      	        <DrawerLink label={t('login')} href='/api-auth/login/?next=/' fa-icon="sign-in" />
+        	    }
+            </nav>
+          </div>
+      )
+  }
+});
+
+export default Drawer;

@@ -39,4 +39,9 @@ body {
   @extend .mdl-color--grey-100;
 }
 
+.drawer-separator {
+  height: 1px;
+  background-color: #dcdcdc;
+  margin: 8px 0;
+}
 @import '../../node_modules/material-design-lite/src/material-design-lite';
