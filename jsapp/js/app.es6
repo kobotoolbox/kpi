@@ -1480,11 +1480,11 @@ var App = React.createClass({
           <MainHeader />
           {/* <Sidebar isOpen={this.state.sidebarIsOpen} toggleIntentOpen={this.toggleSidebarIntentOpen} />*/}
           <Drawer />
-          <main className="mdl-layout__content">
             <bem.PageWrapper__content m={{
               'navigator-open': this.state.assetNavigatorIsOpen,
               'navigator-present': this.state.assetNavigator,
-                }}>
+                }} 
+              className="mdl-layout__content">
               {/*
               <BgTopPanel {...this.state} />
               */}
@@ -1493,7 +1493,6 @@ var App = React.createClass({
             { this.state.assetNavPresent ?
               <AssetNavigator />
             :null}
-          </main>
         </bem.PageWrapper>
       </DocumentTitle>
     );
