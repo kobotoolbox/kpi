@@ -724,7 +724,7 @@ var AssetNavigator = React.createClass({
                   var modifiers = [item.asset_type];
                   var summ = item.summary;
                   return (
-                      <bem.LibList__item m={modifiers}>
+                      <bem.LibList__item m={modifiers} key={item.uid} data-uid={item.uid}>
                         <bem.LibList__dragbox />
                         <bem.LibList__label>
                           <ui.AssetName {...item} />
