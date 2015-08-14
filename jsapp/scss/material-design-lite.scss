@@ -31,6 +31,12 @@ $layout-header-bg-color: unquote("rgb(#{$palette-blue-grey-800})") !default;
 $preferred_font: 'Open Sans', 'Helvetica', 'Arial', sans-serif !default;
 $performance_font: 'Open Sans', 'Helvetica', 'Arial', sans-serif !default; 
 
+$layout-text-color: #FFF !default;
+$layout-drawer-navigation-color: #FFF !default;
+$layout-nav-color: unquote("rgb(#{$palette-blue-grey-400})") !default;
+
+@import '../../node_modules/material-design-lite/src/material-design-lite';
+
 .row {
   @extend .mui-row;
 }
@@ -41,7 +47,25 @@ body {
 
 .drawer-separator {
   height: 1px;
-  background-color: #dcdcdc;
+  background-color: rgba(255, 255, 255, 0.2);
   margin: 8px 0;
 }
-@import '../../node_modules/material-design-lite/src/material-design-lite';
+
+.mdl-layout__drawer {
+  border-right:1px solid rgba(255, 255, 255, 0.2);
+}
+.mdl-layout__drawer > .mdl-layout-title {
+  color: $layout-drawer-navigation-color;
+}
+
+.mdl-checkbox__tick-outline {
+  mask: url("/static/img/tick-mask.svg?embed");
+
+  .mdl-checkbox.is-checked & {
+    background: $checkbox-color url("/static/img/tick.svg?embed");
+  }
+
+  .mdl-checkbox.is-checked.is-disabled & {
+    background: $checkbox-disabled-color url("/static/img/tick.svg?embed");
+  }
+}

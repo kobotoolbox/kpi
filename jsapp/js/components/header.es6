@@ -6,6 +6,8 @@ import stores from '../stores';
 import classNames from 'classnames';
 import Reflux from 'reflux';
 import bem from '../bem';
+import mixins from '../mixins';
+
 
 var actions = require('../actions');
 var assign = require('react/lib/Object.assign');
@@ -16,12 +18,23 @@ var MainHeader = React.createClass({
   mixins: [
     Reflux.connect(stores.session),
     Reflux.connect(stores.pageState),
+    mixins.ancestorBreadcrumb,
     // toolTipped,
   ],
   getInitialState () {
-    return assign({
-      showRecent: true
-    }, stores.pageState.state);
+    return assign(stores.pageState.state);
+  },
+  renderBreadcrumb() {
+    var ancestors;
+    if (this.state.ancestors) {
+      return this.renderAncestorBreadcrumb(this.ancestorListToParams(this.state.ancestors));
+    } else {
+      return this.renderAncestorBreadcrumb([{
+        children: t('Forms'),
+        to: 'forms',
+        params: {}      
+      }]);
+    }
   },
   logout () {
     actions.auth.logout();
@@ -42,33 +55,23 @@ var MainHeader = React.createClass({
         );
     }
     return (
-        <div>
-					<a className="mdl-navigation__link">
-	          not logged in
-	        </a>
-        </div>
+					<span className="mdl-navigation__link">not logged in</span>
         );
-
   },
   render () {
-    var title = (
-        <span className="kobo">
-          <span className="ko">Ko</span><span className="bo">Bo</span><span className="toolbox">Toolbox</span>
-        </span>
-        );
     return (
-					  <header className="mdl-layout__header">
-					    <div className="mdl-layout__header-row">
-					      <span className="mdl-layout-title">{title}</span>
-					      <div className="mdl-layout-spacer"></div>
-					      <nav className="mdl-navigation">
-									<a className="mdl-navigation__link" href="/">
-						      	<bem.AccountBox__logo />
-					        </a> 
-					      	{this.renderAccountNavLink()}
-					      </nav>
-					    </div>
-					  </header>
+        <header className="mdl-layout__header">
+          <div className="mdl-layout__header-row">
+            <span className="mdl-layout-title">Title</span>
+            <div className="mdl-layout-spacer"></div>
+            <nav className="mdl-navigation">
+        			<a className="mdl-navigation__link" href="/">
+              	<bem.AccountBox__logo />
+              </a>
+            	{this.renderAccountNavLink()}
+            </nav>
+          </div>
+        </header>
       )
   }
 });

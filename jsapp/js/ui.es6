@@ -11,7 +11,7 @@ ui.SmallInputBox = React.createClass({
   render () {
     return (
         <input type="text" placeholder={this.props.placeholder} ref='inp'
-                className="form-control input-sm pull-right" onKeyUp={this.props.onKeyUp} onChange={this.props.onChange} />
+                className="form-control" onKeyUp={this.props.onKeyUp} onChange={this.props.onChange} />
       );
   }
 });

@@ -88,7 +88,7 @@ var Drawer = React.createClass({
   },
   render () {
     return (
-          <div className="mdl-layout__drawer">
+          <div className="mdl-layout__drawer mdl-color--blue-grey-800">
             <span className="mdl-layout-title">KoBo</span>
             <nav className="mdl-navigation">
             	<div className="drawer-separator"></div>

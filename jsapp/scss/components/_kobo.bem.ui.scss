@@ -33,6 +33,7 @@ bem.uiModal__header = bem.uiModal.__('header');
 }
 .ui-panel__body {
   @extend .mdl-cell, .mdl-cell--12-col, .mdl-grid, .mdl-shadow--2dp, .mdl-color--white;
+  flex-flow:column;
   > .row {
     position: relative;
   }
