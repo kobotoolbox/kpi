@@ -2654,18 +2654,30 @@ var LibraryList = React.createClass({
           <ui.SmallInputBox ref="formlist-search" placeholder={t('search library')} onChange={this.searchChange} />
         </bem.CollectionNav__search>
         {this._renderSearchCriteria()}
-        <bem.CollectionNav__actions className="k-form-list-search-bar">
-          <bem.CollectionNav__link m={['new', 'new-block']} ref={this.makeHref('new-form')}>
-            <i />
-            {t('add to library')}
-          </bem.CollectionNav__link>
-          <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
-            <bem.CollectionNav__button m={['upload', 'upload-block']} className="btn btn-default btn-block btn-sm">
-              <i className='fa fa-icon fa-cloud fa-fw' />
-              &nbsp;&nbsp;
-              {t('upload')}
-            </bem.CollectionNav__button>
-          </Dropzone>
+        <bem.CollectionNav__actions className="k-form-list-actions">
+          <button id="demo-menu-top-right"
+                  className="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
+            <i className="material-icons">add</i>
+          </button>
+
+          <ul className="mdl-menu mdl-menu--top-right mdl-js-menu mdl-js-ripple-effect"
+              htmlFor="demo-menu-top-right">
+            <li className="mdl-menu__item">
+              <bem.CollectionNav__link m={['new', 'new-block']} ref={this.makeHref('new-form')}>
+                <i />
+                {t('add to library')}
+              </bem.CollectionNav__link>
+            </li>
+            <li className="mdl-menu__item">
+              <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
+                <bem.CollectionNav__button m={['upload', 'upload-block']}>
+                  <i className='fa fa-icon fa-cloud fa-fw' />
+                  &nbsp;&nbsp;
+                  {t('upload')}
+                </bem.CollectionNav__button>
+              </Dropzone>
+            </li>
+          </ul>
         </bem.CollectionNav__actions>
       </bem.CollectionNav>
       );
@@ -2756,21 +2768,37 @@ var FormList = React.createClass({
           <ui.SmallInputBox ref="formlist-search" placeholder={t('search drafts')} onChange={this.searchChange} />
         </bem.CollectionNav__search>
         {this._renderSearchCriteria()}
-        <bem.CollectionNav__actions className="">
-          <bem.CollectionNav__link href={this.makeHref('new-form')}>
-            <i />
-            {t('new form')}
-          </bem.CollectionNav__link>
-          <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
-            <bem.CollectionNav__button m={'upload'}>
-              <i />
-              {t('upload')}
-            </bem.CollectionNav__button>
-          </Dropzone>
+        <bem.CollectionNav__actions className="k-form-list-actions">
+          <button id="demo-menu-top-right"
+                  className="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
+            <i className="material-icons">add</i>
+          </button>
+
+          <ul className="mdl-menu mdl-menu--top-right mdl-js-menu mdl-js-ripple-effect"
+              htmlFor="demo-menu-top-right">
+            <li className="mdl-menu__item">
+              <bem.CollectionNav__link href={this.makeHref('new-form')}>
+                <i />
+                {t('new form')}
+              </bem.CollectionNav__link>
+            </li>
+            <li className="mdl-menu__item">
+              <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
+                <bem.CollectionNav__button m={'upload'}>
+                  <i />
+                  {t('upload')}
+                </bem.CollectionNav__button>
+              </Dropzone>
+            </li>
+          </ul>
         </bem.CollectionNav__actions>
+
       </bem.CollectionNav>
     );
-  }
+  },
+  componentDidUpdate() {
+    mdl.upgradeDom(); 
+  }  
 });
 
 var CollectionList = React.createClass({
