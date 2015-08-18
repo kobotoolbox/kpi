@@ -133,8 +133,10 @@ TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
     'kpi.context_processors.dev_mode',
 )
 
-if not DEBUG:
-    STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+# This is very brittle (can't handle references to missing images in CSS);
+# TODO: replace later with grunt gzipping?
+#if not DEBUG:
+#    STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 LIVERELOAD_SCRIPT = os.environ.get('LIVERELOAD_SCRIPT', False)
 USE_MINIFIED_SCRIPTS = os.environ.get('KOBO_USE_MINIFIED_SCRIPTS', False)
@@ -175,11 +177,9 @@ RabbitMQ:
     rabbitmqctl add_user kpi kpi
     rabbitmqctl add_vhost kpi
     rabbitmqctl set_permissions -p kpi kpi '.*' '.*' '.*'
-Also, an entry in /etc/hosts must point the hostname to the local machine, i.e.
-    127.0.0.1 kpi
 See http://celery.readthedocs.org/en/latest/getting-started/brokers/rabbitmq.html#setting-up-rabbitmq.
 '''
-BROKER_URL = 'amqp://kpi:kpi@kpi:5672//'
+BROKER_URL = 'amqp://kpi:kpi@localhost:5672/kpi'
 
 # http://django-registration-redux.readthedocs.org/en/latest/quickstart.html#settings
 ACCOUNT_ACTIVATION_DAYS = 3
