@@ -169,6 +169,17 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(hours=1)
     },
 }
+'''
+Distinct projects using Celery need their own queues. Example commands for
+RabbitMQ:
+    rabbitmqctl add_user kpi kpi
+    rabbitmqctl add_vhost kpi
+    rabbitmqctl set_permissions -p kpi kpi '.*' '.*' '.*'
+Also, an entry in /etc/hosts must point the hostname to the local machine, i.e.
+    127.0.0.1 kpi
+See http://celery.readthedocs.org/en/latest/getting-started/brokers/rabbitmq.html#setting-up-rabbitmq.
+'''
+BROKER_URL = 'amqp://kpi:kpi@kpi:5672//'
 
 # http://django-registration-redux.readthedocs.org/en/latest/quickstart.html#settings
 ACCOUNT_ACTIVATION_DAYS = 3
