@@ -1,7 +1,4 @@
-from io import BytesIO
 from itertools import chain
-from pyxform.xls2json_backends import xls_to_dict
-import base64
 import json
 import datetime
 
@@ -32,7 +29,6 @@ from .filters import KpiAssignedObjectPermissionsFilter
 from .filters import KpiObjectPermissionsFilter
 from .filters import SearchFilter
 from .highlighters import highlight_xform
-from .model_utils import _load_library_content
 from .models import (
     Collection,
     Asset,
@@ -59,10 +55,11 @@ from .serializers import (
     UserSerializer, UserListSerializer,
     TagSerializer, TagListSerializer,
     AssetDeploymentSerializer,
-    ImportTaskSerializer,
+    ImportTaskSerializer, ImportTaskListSerializer,
     ObjectPermissionSerializer,)
 from .utils.gravatar_url import gravatar_url
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
+from .tasks import import_in_background
 
 
 CLONE_ARG_NAME = 'clone_from'
@@ -286,37 +283,26 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ImportTaskSerializer
     lookup_field = 'uid'
 
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ImportTaskListSerializer
+        else:
+            return ImportTaskSerializer
+
     def create(self, request, *args, **kwargs):
         if 'base64Encoded' in request.POST:
             encoded_str = request.POST['base64Encoded']
             encoded_substr = encoded_str[encoded_str.index('base64') + 7:]
-            decoded_str = base64.b64decode(encoded_substr)
-            try:
-                survey_dict = xls_to_dict(BytesIO(decoded_str))
-            except Exception:
-                raise Exception('could not parse xls submission')
-
-            survey_dict_keys = survey_dict.keys()
-            if 'library' in survey_dict_keys:
-                collection = _load_library_content({
-                        'content': survey_dict,
-                        'owner': request.user,
-                        'name': request.POST.get('name')
-                    })
-                data = CollectionSerializer(collection, context={
-                              'request': request
-                            }).data
-                return Response(data, status.HTTP_201_CREATED)
-            elif 'survey' in survey_dict_keys or 'block' in survey_dict_keys:
-                asset = Asset.objects.create(
-                    owner=request.user,
-                    content=survey_dict,
-                    name=request.POST.get('name')
-                )
-                data = AssetSerializer(asset, context={
-                              'request': request
-                            }).data
-                return Response(data, status.HTTP_201_CREATED)
+            import_task = ImportTask.objects.create(user=request.user, data={
+                'base64Encoded': encoded_substr,
+                'name': request.POST.get('name')
+            })
+            # Have Celery run the import in the background
+            import_in_background.delay(import_task_uid=import_task.uid)
+            return Response({
+                'uid': import_task.uid,
+                'status': ImportTask.PROCESSING
+            }, status.HTTP_201_CREATED)
 
 
 class AssetSnapshotViewSet(NoUpdateModelViewSet):

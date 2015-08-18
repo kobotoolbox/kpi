@@ -730,7 +730,7 @@ var AssetNavigator = React.createClass({
                   var modifiers = [item.asset_type];
                   var summ = item.summary;
                   return (
-                      <bem.LibList__item m={modifiers}>
+                      <bem.LibList__item m={modifiers} key={item.uid} data-uid={item.uid}>
                         <bem.LibList__dragbox />
                         <bem.LibList__label>
                           <ui.AssetName {...item} />
@@ -1426,8 +1426,11 @@ var FormSettingsBox = React.createClass({
 
 
 
-function surveyToValidJson(survey) {
+function surveyToValidJson(survey, omitSettings=false) {
   var surveyDict = survey.toFlatJSON();
+  if (omitSettings && 'settings' in surveyDict) {
+    delete surveyDict['settings'];
+  }
   if ('settings' in surveyDict) {
     log('has settings');
   } else {
@@ -1574,12 +1577,7 @@ class SurveyScope {
   }
 }
 
-var NewForm = React.createClass({
-  mixins: [
-    Navigation,
-    mixins.formView,
-    Reflux.ListenerMixin,
-  ],
+mixins.newForm = {
   renderFormNameInput () {
     var nameKls = this.state.survey_name_valid ? '' : 'has-warning';
     var nameInputKls = classNames('mdl-textfield__input',
@@ -1621,19 +1619,6 @@ var NewForm = React.createClass({
           </div>
         );
   },
-  saveNewForm (evt) {
-    evt.preventDefault();
-    var sc;
-    var chgs = {
-      name: this.refs['form-name'].getDOMNode().value
-    };
-    try {
-      chgs.content = surveyToValidJson(this.state.survey);
-    } catch (e) {
-      log('cannot save survey', e);
-    }
-    actions.resources.createResource(chgs);
-  },
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
       stores.pageState.setHeaderSearch(false);
@@ -1653,9 +1638,15 @@ var NewForm = React.createClass({
     this.transitionTo('form-edit', { assetid: data.uid });
   },
   componentDidMount () {
+    this.navigateBack = (evt) => {
+      if (this.needsSave() && confirm(t('you have unsaved changes. would you like to save?'))) {
+        this._saveForm();
+      }
+      this.transitionTo(this.listRoute);
+    }
     actions.resources.createResource.listen(this.creatingResource);
     actions.resources.createResource.completed.listen(this.creatingResourceCompleted);
-    var survey = dkobo_xlform.model.Survey.create();
+    var survey = this.createSurvey();
     var skp = new SurveyScope({
       survey: survey
     });
@@ -1676,6 +1667,66 @@ var NewForm = React.createClass({
           {this.innerRender()}
         </DocumentTitle>
       );
+  }
+}
+
+var NewForm = React.createClass({
+  mixins: [
+    Navigation,
+    mixins.formView,
+    Reflux.ListenerMixin,
+    mixins.newForm,
+  ],
+  // Where to go when user closes without saving
+  listRoute: 'forms',
+  createSurvey() {
+    return dkobo_xlform.model.Survey.create();
+  },
+  saveNewForm (evt) {
+    evt.preventDefault();
+    var sc;
+    var chgs = {
+      name: this.refs['form-name'].getDOMNode().value
+    };
+    try {
+      chgs.content = surveyToValidJson(this.state.survey);
+    } catch (e) {
+      log('cannot save survey', e);
+    }
+    actions.resources.createResource(chgs);
+  }
+});
+
+var AddToLibrary = React.createClass({
+  mixins: [
+    Navigation,
+    mixins.formView,
+    Reflux.ListenerMixin,
+    mixins.newForm,
+  ],
+  // Where to go when user closes without saving
+  listRoute: 'library',
+  createSurvey() {
+    // Start with a blank slate instead of using Survey.create(), which follows
+    // defaultSurveyDetails and creates unwanted questions like "start time"
+    var content = {survey: []};
+    return dkobo_xlform.model.Survey.loadDict(content);
+  },
+  saveNewForm (evt) {
+    evt.preventDefault();
+    var sc;
+    var chgs = {
+      name: this.refs['form-name'].getDOMNode().value
+    };
+    try {
+      // pass true to surveyToValidJson() so that settings will be omitted
+      // and the backend will view this as a question or block instead of a
+      // survey
+      chgs.content = surveyToValidJson(this.state.survey, true);
+    } catch (e) {
+      log('cannot save survey', e);
+    }
+    actions.resources.createResource(chgs);
   }
 });
 
@@ -2663,7 +2714,7 @@ var LibraryList = React.createClass({
           <ul className="mdl-menu mdl-menu--top-right mdl-js-menu mdl-js-ripple-effect"
               htmlFor="demo-menu-top-right">
             <li className="mdl-menu__item">
-              <bem.CollectionNav__link m={['new', 'new-block']} ref={this.makeHref('new-form')}>
+              <bem.CollectionNav__link m={['new', 'new-block']} href={this.makeHref('add-to-library')}>
                 <i />
                 {t('add to library')}
               </bem.CollectionNav__link>
@@ -3039,6 +3090,7 @@ var routes = (
 
     <Route name="forms" handler={Forms}>
       <Route name="new-form" path="new" handler={NewForm} />
+      <Route name="add-to-library" path="add-to-library" handler={AddToLibrary} />
 
       <Route name="form-landing" path="/forms/:assetid">
         <Route name="form-download" path="download" handler={FormDownload} />

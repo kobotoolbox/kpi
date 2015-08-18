@@ -248,7 +248,16 @@ actions.resources.createAsset.listen(function(contents){
 });
 
 actions.resources.createAsset.completed.listen(function(contents){
-  notify(t("successfully created"))
+  if (contents.status) {
+    if(contents.status === 'processing') {
+      notify('successfully uploaded file; processing may take a few minutes');
+      log("processing import " + contents.uid);
+    } else {
+      notify("unexpected import status \"" + contents.status + "\"", 'error');
+    }
+  } else {
+    notify(t("successfully created"));
+  }
 })
 
 actions.resources.createResource.failed.listen(function(){
