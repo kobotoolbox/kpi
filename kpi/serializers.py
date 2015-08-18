@@ -546,6 +546,20 @@ class ImportTaskSerializer(serializers.HyperlinkedModelSerializer):
             },
         }
 
+class ImportTaskListSerializer(ImportTaskSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        lookup_field='uid',
+        view_name='importtask-detail'
+    )
+
+    class Meta(ImportTaskSerializer.Meta):
+        fields = (
+            'url',
+            'status',
+            'uid',
+            'date_created',
+        )
+
 
 class AssetListSerializer(AssetSerializer):
 
