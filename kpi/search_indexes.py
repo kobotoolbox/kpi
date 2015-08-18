@@ -24,13 +24,20 @@ class FieldPreparersMixin:
     def prepare_owner__username__exact(self, obj):
         if obj.owner:
             return self._escape_comma_space(obj.owner.username)
-        else:
-            return None
     def prepare_parent__name__exact(self, obj):
         if obj.parent:
             return self._escape_comma_space(obj.parent.name)
-        else:
-            return None
+    def prepare_parent__uid(self, obj):
+        '''
+        Trivial method needed because MultiValueField(model_attr='parent__uid')
+        ends up giving each character in the UID its own entry in the lexicon
+        '''
+        if obj.parent:
+            return obj.parent.uid
+    def prepare_ancestor__uid(self, obj):
+        ancestors = obj.get_ancestors_or_none()
+        if ancestors:
+            return [a.uid for a in ancestors]
 
 class AssetIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixin):
     # Haystack usually doesn't deal well with double underscores in field names
@@ -42,6 +49,7 @@ class AssetIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixin):
     owner__username = indexes.CharField(model_attr='owner__username', null=True)
     parent__name = indexes.CharField(model_attr='parent__name', null=True)
     tag = indexes.MultiValueField()
+    ancestor__uid = indexes.MultiValueField()
     # There's nothing multi-valued about these fields, but using
     # MultiValueField convinces Haystack to use Whoosh's KEYWORD field, which
     # in turn uses KeywordAnalyzer. Then, by replacing commas, we can force the
@@ -51,6 +59,7 @@ class AssetIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixin):
     asset_type = indexes.MultiValueField()
     owner__username__exact = indexes.MultiValueField()
     parent__name__exact = indexes.MultiValueField()
+    parent__uid = indexes.MultiValueField()
     def get_model(self):
         return Asset
 
@@ -62,9 +71,11 @@ class CollectionIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixi
     owner__username = indexes.CharField(model_attr='owner__username')
     parent__name = indexes.CharField(model_attr='parent__name', null=True)
     tag = indexes.MultiValueField()
+    ancestor__uid = indexes.MultiValueField()
     # Not really multi-valued; see AssetIndex for explanation
     name__exact = indexes.MultiValueField()
     owner__username__exact = indexes.MultiValueField()
     parent__name__exact = indexes.MultiValueField()
+    parent__uid = indexes.MultiValueField()
     def get_model(self):
         return Collection
