@@ -129,25 +129,26 @@ mixins.formView = {
     return this.state.asset_updated === -1;
   },
   renderCloseButton() {
-    var kls = classNames('k-form-close-button', {
+    var kls = classNames('k-form-close-button', 'mdl-button', 'mdl-js-button', 'mdl-button--icon', {
       "k-form-close-button--warning": this.needsSave()
     });
-    return <a className={kls} onClick={this.navigateBack}>&times;</a>;
+    return <a className={kls} onClick={this.navigateBack}>
+                <i className="material-icons">clear</i>
+            </a>;
   },
   innerRender () {
 
     return (
         <ui.Panel className="k-div--formview--innerrender">
-          <div className="row k-form-header-row">
+          <div className="k-form-header__buttons">
+            {this.renderSaveAndPreviewButtons()}
+            <div className="mdl-layout-spacer"></div>
             {this.renderCloseButton()}
-            <div className="k-header-name-row form-group">
-              <div className="k-corner-icon"></div>
-              <div className="k-header-form-title">
-                {this.renderFormNameInput()}
-              </div>
-              <div className="k-header-save-button">
-                {this.renderSaveAndPreviewButtons()}
-              </div>
+          </div>
+          <div className="k-form-header__title">
+            <div className="k-corner-icon"></div>
+            <div className="k-header-form-title">
+              {this.renderFormNameInput()}
             </div>
           </div>
           { this.state.survey ?
@@ -2537,7 +2538,6 @@ var FormLanding = React.createClass({
     willTransitionTo: function(transition, params, idk, callback) {
       stores.pageState.setHeaderSearch(true);
       stores.pageState.setHeaderTitle('Forms');
-      console.log('set Header Title');
       // stores.pageState.setTopPanel(30, false);
       actions.resources.loadAsset({id: params.assetid});
       // actions.resources.loadAssetContent({id: params.assetid});

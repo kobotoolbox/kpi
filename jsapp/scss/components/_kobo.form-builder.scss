@@ -1,14 +1,23 @@
-
-.k-form-header-row {
+.k-form-header__buttons {
   width: 100%;
   display: flex;
-  padding-right:35px;
+  position: fixed;
+  z-index: 10;
+  background-color: rgb(245,245,245);
+  margin: -8px;
+  padding: 8px;
+  padding-right: 75px;
+  transition: all 0.5s;
+  .page-wrapper--asset-nav-open & {
+    padding-right: 405px;
+  }
 }
 
-.k-header-name-row {
+.k-form-header__title {
   display: flex;
   align-items: center;
   width: 100%;
+  padding-top: 50px;
   .k-header-form-title {
     flex:1;
     padding:0px 10px;
@@ -37,32 +46,6 @@
   transition: all .4s ease 0s;
 }
 
-.k-form-close-button {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  border: 0 none;
-  background-color: transparent;
-  opacity: 0.6;
-  width: 32px;
-  height: 32px;
-  font-size: 26px;
-  line-height: 32px;
-  color: #666;
-  z-index: 999;
-  cursor: pointer;
-  display: block;
-  text-align: center;
-  &:hover {
-    opacity: 1;
-    text-decoration: none;
-    color: #666;
-  }
-  &.k-form-close-button--warning {
-    color: $saveNeededColor;
-  }
-}
-
 .form-wrap {
   padding-top: 25px;
   width:100%;
@@ -77,5 +60,3 @@
     }
   }
 }
-
-// @import "../stylesheets/partials/modals_iframes";
