@@ -11,6 +11,8 @@ Top-level (null-parent) assets and collections can be found by including `parent
 * `owner__username__exact`: a space- and comma-escaped representation of the owner's username;
 * `parent__name`: a tokenized\* representation of the parent object's name;
 * `parent__name__exact`: a space- and comma-escaped representation of the parent object's name;
+* `parent__uid`: the UID of the parent collection;
+* `ancestor__uid`: a multi-value field containing the UIDs of all ancestor collections;
 * `tag`: a multi-valued field holding space- and comma-escaped representations of each tag assigned to the object;
 * `asset_type` (for assets only): a space- and comma-escaped representation of the asset's type string.
 
