@@ -18,23 +18,17 @@ var MainHeader = React.createClass({
   mixins: [
     Reflux.connect(stores.session),
     Reflux.connect(stores.pageState),
-    mixins.ancestorBreadcrumb,
+    // mixins.ancestorBreadcrumb,
     // toolTipped,
   ],
   getInitialState () {
     return assign(stores.pageState.state);
   },
-  renderBreadcrumb() {
-    var ancestors;
-    if (this.state.ancestors) {
-      return this.renderAncestorBreadcrumb(this.ancestorListToParams(this.state.ancestors));
-    } else {
-      return this.renderAncestorBreadcrumb([{
-        children: t('Forms'),
-        to: 'forms',
-        params: {}      
-      }]);
-    }
+  pageStateChange (state) {
+    this.setState(state);
+  },
+  componentDidMount () {
+    this.listenTo(stores.pageState, this.pageStateChange)
   },
   logout () {
     actions.auth.logout();
@@ -62,7 +56,7 @@ var MainHeader = React.createClass({
     return (
         <header className="mdl-layout__header">
           <div className="mdl-layout__header-row">
-            <span className="mdl-layout-title">Title</span>
+            <span className="mdl-layout-title">{this.state.headerTitle}</span>
             <div className="mdl-layout-spacer"></div>
             <nav className="mdl-navigation">
         			<a className="mdl-navigation__link" href="/">

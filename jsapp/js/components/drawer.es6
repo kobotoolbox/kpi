@@ -41,12 +41,11 @@ class DrawerLink extends React.Component {
     var link;
     if (this.props.linkto) {
       link = <Link to={this.props.linkto} className="mdl-navigation__link"
-                    activeClassName="active">{this.props.label} {icon}</Link>
+                    activeClassName="active">{icon} {this.props.label}</Link>
     } else {
       link = <a href={this.props.href || "#"} 
       							className="mdl-navigation__link" 
-      							onClick={this.onClick.bind(this)}>{this.props.label} 
-      							{icon} </a>
+      							onClick={this.onClick.bind(this)}>{icon} {this.props.label}</a>
     }
     return link; 
   }
@@ -55,7 +54,6 @@ var Drawer = React.createClass({
   mixins: [
     Reflux.connect(stores.session),
     Reflux.connect(stores.pageState),
-    // toolTipped,
   ],
   getInitialState () {
     return assign({
@@ -65,47 +63,30 @@ var Drawer = React.createClass({
   logout () {
     actions.auth.logout();
   },
-  renderAccountNavLink () {
-    var accountName = this.state.currentAccount && this.state.currentAccount.username;
-    var defaultGravatarImage = `${window.location.protocol}//www.gravatar.com/avatar/64e1b8d34f425d19e1ee2ea7236d3028?s=40`;
-    var gravatar = this.state.currentAccount && this.state.currentAccount.gravatar || defaultGravatarImage;
-
-    if (this.state.isLoggedIn) {
-      return (
-					<a className="mdl-navigation__link">
-	          logout
-					</a>
-        );
-    }
-    return (
-        <div>
-					<a className="mdl-navigation__link">
-	          login yo!
-	        </a>
-        </div>
-        );
-
-  },
   render () {
     return (
           <div className="mdl-layout__drawer mdl-color--blue-grey-800">
-            <span className="mdl-layout-title">KoBo</span>
+            <span className="mdl-layout-title">
+              <a href="/">
+                <bem.AccountBox__logo />
+              </a>            
+            </span>
             <nav className="mdl-navigation">
             	<div className="drawer-separator"></div>
-              <span className="mdl-navigation__link">{t('drafts in progress')}</span>
+              <span className="mdl-navigation__heading">{t('drafts in progress')}</span>
 
 	            <DrawerLink label={t('forms')} linkto='forms' fa-icon="files-o" />
   	          <DrawerLink label={t('library')} linkto='library' fa-icon="book" />
     	        <DrawerLink label={t('collections')} linkto='collections' fa-icon="folder-o" />
 
     	        <div className="drawer-separator"></div>
-    	        <span className="mdl-navigation__link">{t('deployed projects')}</span>
+    	        <span className="mdl-navigation__heading">{t('deployed projects')}</span>
 	            { stores.session.currentAccount ?
     	            <DrawerLink label={t('projects')} active='true' href={stores.session.currentAccount.projects_url} fa-icon="globe" />
   	          :null }
 
   	          <div className="drawer-separator"></div>
-  	          <span className="mdl-navigation__link">{t('account actions')}</span>
+  	          <span className="mdl-navigation__heading">{t('account actions')}</span>
 	            { this.state.isLoggedIn ? 
   	            <DrawerLink label={t('logout')} onClick={this.logout} fa-icon="sign-out" />
     	        : 

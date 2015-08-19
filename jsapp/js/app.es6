@@ -1448,9 +1448,10 @@ var App = React.createClass({
     Navigation
   ],
   getInitialState () {
-    return assign({}, stores.pageState.state, {
-      sidebarIsOpen: !this.widthLessThanMin()
-    })
+    return assign(stores.pageState.state);
+    // return assign({}, stores.pageState.state, {
+    //   sidebarIsOpen: !this.widthLessThanMin()
+    // })
   },
   widthLessThanMin () {
     if (stores.pageState.state.assetNavIsOpen) {
@@ -1460,11 +1461,11 @@ var App = React.createClass({
     }
   },
   handleResize () {
-    if (this.widthLessThanMin()) {
-      stores.pageState.hideSidebar();
-    } else if (this.state.sidebarIntentOpen && !this.state.sidebarIsOpen) {
-      stores.pageState.showSidebar();
-    }
+    // if (this.widthLessThanMin()) {
+    //   stores.pageState.hideSidebar();
+    // } else if (this.state.sidebarIntentOpen && !this.state.sidebarIsOpen) {
+    //   stores.pageState.showSidebar();
+    // }
   },
   pageStateChange (state) {
     this.setState(state);
@@ -1473,7 +1474,7 @@ var App = React.createClass({
     this.listenTo(stores.pageState, this.pageStateChange)
 
     // can use window.matchMedia(...) here
-    window.addEventListener('resize', this.handleResize);
+    // window.addEventListener('resize', this.handleResize);
 
     stores.pageState.toggleAssetNavIntentOpen();
   },
@@ -1494,7 +1495,7 @@ var App = React.createClass({
               // 'activenav': this.state.sidebarIsOpen,
               'asset-nav-present': this.state.assetNavPresent,
               'asset-nav-open': this.state.assetNavIsOpen && this.state.assetNavPresent,
-              'header-search': this.state.headerSearch,
+              // 'header-search': this.state.headerSearch,
                 }}  className="mdl-layout mdl-js-layout mdl-layout--fixed-header">
               <MainHeader />
               <Drawer />
@@ -1517,7 +1518,6 @@ var App = React.createClass({
     // Material Design Lite
     // This upgrades all upgradable components (i.e. with 'mdl-js-*' class)
     mdl.upgradeDom(); 
-    console.log('component updated');
   }
 });
 
@@ -1547,6 +1547,7 @@ var Forms = React.createClass({
           uid: params.assetid
         });
       }
+      stores.pageState.setHeaderTitle('Forms');
       callback();
     }
   },
@@ -1737,6 +1738,12 @@ var Collections = React.createClass({
     Navigation,
     Reflux.ListenerMixin,
   ],
+  statics: {
+    willTransitionTo: function(transition, params, idk, callback) {
+      stores.pageState.setHeaderTitle('Collections');
+      callback();
+    }
+  },
   addListeners () {
     this.listenTo(stores.collectionAssets, this.listenChange);
   },
@@ -2453,7 +2460,8 @@ var FormPage = React.createClass({
     }
 
     this.listenTo(assetStore, this.assetStoreTriggered)
-    stores.pageState.setTopPanel(30, false);
+    // stores.pageState.setTopPanel(30, false);
+    stores.pageState.setHeaderTitle('Forms');
     this._postLoadRenderMounted = false;
   },
   surveyChange (a,b,c) {
@@ -2478,9 +2486,8 @@ var FormPage = React.createClass({
   },
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
-
       stores.pageState.setHeaderSearch(false);
-      stores.pageState.setTopPanel(30, false);
+      // stores.pageState.setTopPanel(30, false);
       if (params.assetid[0] === 'c') {
         transition.redirect('collection-page', {uid: params.assetid});
       } else {
@@ -2513,7 +2520,6 @@ var FormPage = React.createClass({
     // Material Design Lite
     // This upgrades all upgradable components (i.e. with 'mdl-js-*' class)
     mdl.upgradeDom(); 
-    console.log('form component updated');
   }
 
 });
@@ -2530,7 +2536,9 @@ var FormLanding = React.createClass({
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
       stores.pageState.setHeaderSearch(true);
-      stores.pageState.setTopPanel(30, false);
+      stores.pageState.setHeaderTitle('Forms');
+      console.log('set Header Title');
+      // stores.pageState.setTopPanel(30, false);
       actions.resources.loadAsset({id: params.assetid});
       // actions.resources.loadAssetContent({id: params.assetid});
       callback();
@@ -2669,6 +2677,12 @@ var LibraryList = React.createClass({
     mixins.collection,
     Reflux.ListenerMixin,
   ],
+  statics: {
+    willTransitionTo: function(transition, params, idk, callback) {
+      stores.pageState.setHeaderTitle('Library');
+      callback();
+    }
+  },
   addListeners () {
     this.listenTo(stores.allAssets, this.allAssetsChange);
   },
@@ -2859,6 +2873,12 @@ var CollectionList = React.createClass({
     mixins.collection,
     Reflux.ListenerMixin,
   ],
+  statics: {
+    willTransitionTo: function(transition, params, idk, callback) {
+      stores.pageState.setHeaderTitle('Collections');
+      callback();
+    }
+  },
   addListeners () {
     this.listenTo(stores.allAssets, this.listenChange);
   },
