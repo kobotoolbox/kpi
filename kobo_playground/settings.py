@@ -29,6 +29,8 @@ DEBUG = (os.environ.get('DJANGO_DEBUG', 'True') == 'True')
 TEMPLATE_DEBUG = (os.environ.get('TEMPLATE_DEBUG', 'True') == 'True')
 
 ALLOWED_HOSTS = []
+if 'DJANGO_ALLOWED_HOSTS' in os.environ:
+    ALLOWED_HOSTS.append(os.environ['DJANGO_ALLOWED_HOSTS'])
 
 LOGIN_REDIRECT_URL = '/'
 
@@ -163,18 +165,19 @@ ENKETO_PREVIEW_URI = os.environ.get('ENKETO_PREVIEW_URI', '/webform/preview')
 KOBO_SURVEY_PREVIEW_EXPIRATION = os.environ.get('KOBO_SURVEY_PREVIEW_EXPIRATION', 24)
 
 ''' Celery configuration '''
-from datetime import timedelta
-CELERYBEAT_SCHEDULE = {
-    # Update the Haystack index every hour to catch any stragglers that might
-    # have gotten past haystack.signals.RealtimeSignalProcessor
-    'update-search-index': {
-        'task': 'kpi.tasks.update_search_index',
-        'schedule': timedelta(hours=1)
-    },
-}
+# Uncomment to enable failsafe search indexing
+#from datetime import timedelta
+#CELERYBEAT_SCHEDULE = {
+#    # Update the Haystack index twice per day to catch any stragglers that
+#    # might have gotten past haystack.signals.RealtimeSignalProcessor
+#    'update-search-index': {
+#        'task': 'kpi.tasks.update_search_index',
+#        'schedule': timedelta(hours=12)
+#    },
+#}
 '''
 Distinct projects using Celery need their own queues. Example commands for
-RabbitMQ:
+RabbitMQ queue creation:
     rabbitmqctl add_user kpi kpi
     rabbitmqctl add_vhost kpi
     rabbitmqctl set_permissions -p kpi kpi '.*' '.*' '.*'
@@ -200,3 +203,17 @@ if os.environ.get('AWS_ACCESS_KEY_ID'):
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
     AWS_SES_REGION_NAME = os.environ.get('AWS_SES_REGION_NAME')
     AWS_SES_REGION_ENDPOINT = os.environ.get('AWS_SES_REGION_ENDPOINT')
+
+''' Sentry configuration '''
+if 'RAVEN_DSN' in os.environ:
+    import raven
+    INSTALLED_APPS = INSTALLED_APPS + (
+        'raven.contrib.django.raven_compat',
+    )
+    RAVEN_CONFIG = {
+        'dsn': os.environ['RAVEN_DSN'],
+    }
+    try:
+        RAVEN_CONFIG['release'] = raven.fetch_git_sha(BASE_DIR)
+    except raven.exceptions.InvalidGitRepository:
+        pass
