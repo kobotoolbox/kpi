@@ -121,6 +121,7 @@ var pageStateStore = Reflux.createStore({
       bgTopPanelHeight: 60,
       bgTopPanelFixed: false,
       headerSearch: true,
+      headerTitle: 'Forms',
       assetNavPresent: false,
       assetNavIsOpen: true,
       assetNavIntentOpen: true,
@@ -199,6 +200,14 @@ var pageStateStore = Reflux.createStore({
         assetNavIsOpen: !this.state.headerSearch
       };
       assign(this.state, changes);
+      this.trigger(changes);
+    }
+  },
+  setHeaderTitle (title) {
+    var changes = {};
+    if (this.state.headerTitle != title) {
+      changes.headerTitle = title;
+      assign(this.state, changes)
       this.trigger(changes);
     }
   }
