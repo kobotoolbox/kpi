@@ -1,9 +1,10 @@
 'use strict';
 
-import {log, t, parsePermissions} from './utils';
+import {log, t, notify, parsePermissions} from './utils';
 
 import {dataInterface} from './dataInterface';
 
+var assetParserUtils = require('./assetParserUtils');
 var actions = require('./actions');
 var Reflux = require('reflux');
 var Immutable = require('immutable');
@@ -117,7 +118,6 @@ var assetSearchStore = Reflux.createStore({
 var pageStateStore = Reflux.createStore({
   init () {
     this.state = {
-      headerTitle: 'Forms',
       bgTopPanelHeight: 60,
       bgTopPanelFixed: false,
       headerSearch: true,
@@ -201,15 +201,7 @@ var pageStateStore = Reflux.createStore({
       assign(this.state, changes);
       this.trigger(changes);
     }
-  },
-  setHeaderTitle (title) {
-    var changes = {};
-    if (this.state.headerTitle != title) {
-      changes.headerTitle = title;
-      assign(this.state, changes)
-      this.trigger(changes);
-    }
-  }  
+  }
 });
 
 stores.snapshots = Reflux.createStore({
@@ -255,44 +247,11 @@ var assetStore = Reflux.createStore({
     this.noteRelatedUsers(resp);
     this.trigger(this.data, resp.uid, {asset_updated: true});
   },
-  parsePermissions (resp) {
-    var out = {};
-    var pp = parsePermissions(resp.owner__username, resp.permissions);
-    out.parsedPermissions = pp;
-    out.access = (()=>{
-      var viewers = {};
-      var changers = {};
-      var isPublic = false;
-      pp.forEach(function(userPerm){
-        if (userPerm.can.view) {
-          viewers[userPerm.username] = true;
-        }
-        if (userPerm.can.change) {
-          changers[userPerm.username] = true;
-        }
-        if (userPerm.username === 'AnonymousUser') {
-          isPublic = !!userPerm.can.view;
-        }
-      });
-      return {view: viewers, change: changers, ownerUsername: resp.owner__username, isPublic: isPublic};
-    })()
-    return out;
-  },
-  parseTags(asset) {
-    return {
-      tags: asset.tag_string.split(',').filter((tg) => { return tg.length > 1; })
-    }
-  },
-  parsed (asset) {
-    return assign(asset,
-        this.parsePermissions(asset),
-        this.parseTags(asset))
-  },
   onLoadAssetCompleted: function (resp, req, jqxhr) {
     if (!resp.uid) {
       throw new Error('no uid found in response');
     }
-    this.data[resp.uid] = this.parsed(resp);
+    this.data[resp.uid] = assetParserUtils.parsed(resp);
     this.noteRelatedUsers(resp);
     this.trigger(this.data, resp.uid);
   }
@@ -412,7 +371,7 @@ var allAssetsStore = Reflux.createStore({
     this.trigger(this.data);
   },
   onListAssetsFailed: function (err) {
-    debugger
+    notify(t('failed to list assets'));
   },
   onDeleteAssetCompleted (asset) {
     this.byUid[asset.uid].deleted = 'true';
@@ -473,12 +432,14 @@ var selectedAssetStore = Reflux.createStore({
     if (this.uid === uid) {
       this.uid = false;
       this.asset = {};
-      return false;
     } else {
       this.uid = uid;
       this.asset = allAssetsStore.byUid[uid]
-      return true;
     }
+    this.trigger({
+      uid: this.uid
+    });
+    return this.uid !== false;
   }
 });
  
