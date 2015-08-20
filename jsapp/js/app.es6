@@ -4,6 +4,8 @@ window.jQuery = $;
 window.$ = $;
 require('jquery.scrollto');
 require('jquery-ui/sortable');
+
+var mdl = require('./libs/rest_framework/material');
 var select2 = require('select2-browserify');
 var actions = require('./actions');
 // import XLSX from 'xlsx';
@@ -11,7 +13,9 @@ var actions = require('./actions');
 import React from 'react/addons';
 import Router from 'react-router';
 import Q from 'q';
-import Sidebar from './components/sidebar';
+// import Sidebar from './components/sidebar';
+import MainHeader from './components/header';
+import Drawer from './components/drawer';
 import TagsInput from 'react-tagsinput';
 import classNames from 'classnames';
 import alertify from 'alertifyjs';
@@ -30,7 +34,7 @@ var DocumentTitle = require('react-document-title');
 import Favicon from 'react-favicon';
 
 
-var bootstrap = require('./libs/rest_framework/bootstrap.min');
+// var bootstrap = require('./libs/rest_framework/bootstrap.min');
 
 var dkobo_xlform = require('./libs/xlform_with_deps');
 
@@ -125,23 +129,26 @@ mixins.formView = {
     return this.state.asset_updated === -1;
   },
   renderCloseButton() {
-    var kls = classNames('k-form-close-button', {
+    var kls = classNames('k-form-close-button', 'mdl-button', 'mdl-js-button', 'mdl-button--icon', {
       "k-form-close-button--warning": this.needsSave()
     });
-    return <a className={kls} onClick={this.navigateBack}>&times;</a>;
+    return <a className={kls} onClick={this.navigateBack}>
+                <i className="material-icons">clear</i>
+            </a>;
   },
   innerRender () {
 
     return (
         <ui.Panel className="k-div--formview--innerrender">
-          <div className="row k-form-header-row">
+          <div className="k-form-header__buttons">
+            {this.renderSaveAndPreviewButtons()}
+            <div className="mdl-layout-spacer"></div>
             {this.renderCloseButton()}
-            <div className="k-header-name-row form-group">
-              <div className="k-corner-icon"></div>
+          </div>
+          <div className="k-form-header__title">
+            <div className="k-corner-icon"></div>
+            <div className="k-header-form-title">
               {this.renderFormNameInput()}
-            </div>
-            <div className="k-fixed-buttons">
-              {this.renderSaveAndPreviewButtons()}
             </div>
           </div>
           { this.state.survey ?
@@ -1244,10 +1251,11 @@ var FormInput = React.createClass({
   render () {
     return (
         <div className="form-group">
-          <label htmlFor={this.props.id} className="col-lg-2 control-label">{this.props.label}</label>
-          <div className="col-lg-10">
-            <input type="text" className="form-control" id={this.props.id} placeholder={this.props.placeholder}
+          <div className="mdl-textfield mdl-js-textfield">
+            <input className="mdl-textfield__input" type="text" id={this.props.id} 
                   onChange={this.props.onChange} />
+            <label className="mdl-textfield__label" htmlFor={this.props.id}>{this.props.label}</label>
+
           </div>
         </div>
       );
@@ -1258,17 +1266,18 @@ var FormCheckbox = React.createClass({
   render () {
     return (
         <div className="form-group">
-          <label htmlFor={this.props.name} className="col-lg-8 control-label">{this.props.label}</label>
-          <div className="col-lg-4">
-            <div className="checkbox">
-              <label>
-                <input type="checkbox" id={this.props.name} checked={this.props.value} onChange={this.props.onChange} />
-              </label>
-            </div>
-          </div>
+          <label className="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" htmlFor={this.props.name} >
+            <input type="checkbox" className="mdl-checkbox__input"  id={this.props.name} checked={this.props.value} onChange={this.props.onChange} />
+            <span className="mdl-checkbox__label">{this.props.label}</span>
+          </label>
         </div>
       );
+  }, 
+  componentDidUpdate() {
+    // TODO: upgrade specific element only (as opposed to whole DOM)
+    mdl.upgradeDom(); 
   }
+
 })
 
 var FormSettingsEditor = React.createClass({
@@ -1276,23 +1285,27 @@ var FormSettingsEditor = React.createClass({
     return (
       <div className="well">
         <form className="form-horizontal">
-          <FormInput id="form_id" label="form id" value={this.props.form_id} placeholder={t('form id')} onChange={this.props.onFieldChange} />
           <hr />
-          <div className="row">
-            <div className="col-md-6">
+          <div className="mdl-grid">
+            <div className="mdl-cell mdl-cell--12-col">
+              <FormInput id="form_id" label="form id" value={this.props.form_id} onChange={this.props.onFieldChange} />
+            </div>
+            <div className="mdl-cell mdl-cell--6-col">
               {this.props.meta.map((mtype) => {
                 return <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
               })}
             </div>
-            <div className="col-md-6">
+            <div className="mdl-cell mdl-cell--6-col">
               {this.props.phoneMeta.map((mtype) => {
                 return <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
               })}
             </div>
           </div>
-          <div className="form-group">
-            <label htmlFor="select" className="col-lg-2 control-label">{t('Web form style')}</label>
-            <div className="col-lg-10">
+          <div className="form-group mdl-grid">
+            <div className="mdl-cell mdl-cell--2-col">
+              <label htmlFor="select" className="control-label">{t('Web form style')}</label>
+            </div>
+            <div className="mdl-cell mdl-cell--6-col">
               <select className="form-control" onChange={this.props.onStyleChange} value={this.props.styleValue}>
                 <option value=''>{t('Default - single page')}</option>
                 <option value='theme-grid'>{t('Grid theme')}</option>
@@ -1304,6 +1317,9 @@ var FormSettingsEditor = React.createClass({
         </form>
       </div>
       );
+  }, 
+  componentDidUpdate() {
+    mdl.upgradeDom(); 
   }
 })
 
@@ -1384,7 +1400,7 @@ var FormSettingsBox = React.createClass({
         <div className={classNames('row', 'k-sub-settings-bar', {
           'k-sub-settings-bar--expanded': this.state.formSettingsExpanded
         })}>
-          <div className="col-md-12" onClick={this.toggleSettingsEdit}>
+          <div className="k-sub-settings-container" onClick={this.toggleSettingsEdit}>
             <i className="fa fa-cog" />
             &nbsp;&nbsp;
             <i className={expandIconKls} />
@@ -1402,6 +1418,9 @@ var FormSettingsBox = React.createClass({
         </div>
 
       );
+  }, 
+  componentDidUpdate() {
+    mdl.upgradeDom(); 
   }
 })
 
@@ -1430,9 +1449,10 @@ var App = React.createClass({
     Navigation
   ],
   getInitialState () {
-    return assign({}, stores.pageState.state, {
-      sidebarIsOpen: !this.widthLessThanMin()
-    })
+    return assign(stores.pageState.state);
+    // return assign({}, stores.pageState.state, {
+    //   sidebarIsOpen: !this.widthLessThanMin()
+    // })
   },
   widthLessThanMin () {
     if (stores.pageState.state.assetNavIsOpen) {
@@ -1442,11 +1462,11 @@ var App = React.createClass({
     }
   },
   handleResize () {
-    if (this.widthLessThanMin()) {
-      stores.pageState.hideSidebar();
-    } else if (this.state.sidebarIntentOpen && !this.state.sidebarIsOpen) {
-      stores.pageState.showSidebar();
-    }
+    // if (this.widthLessThanMin()) {
+    //   stores.pageState.hideSidebar();
+    // } else if (this.state.sidebarIntentOpen && !this.state.sidebarIsOpen) {
+    //   stores.pageState.showSidebar();
+    // }
   },
   pageStateChange (state) {
     this.setState(state);
@@ -1455,7 +1475,7 @@ var App = React.createClass({
     this.listenTo(stores.pageState, this.pageStateChange)
 
     // can use window.matchMedia(...) here
-    window.addEventListener('resize', this.handleResize);
+    // window.addEventListener('resize', this.handleResize);
 
     stores.pageState.toggleAssetNavIntentOpen();
   },
@@ -1471,28 +1491,34 @@ var App = React.createClass({
   render() {
     return (
       <DocumentTitle title="KoBoToolbox">
-        <bem.PageWrapper m={{
-            'activenav': this.state.sidebarIsOpen,
-            'asset-nav-present': this.state.assetNavPresent,
-            'asset-nav-open': this.state.assetNavIsOpen && this.state.assetNavPresent,
-            'header-search': this.state.headerSearch,
-              }}>
-          <Sidebar isOpen={this.state.sidebarIsOpen} toggleIntentOpen={this.toggleSidebarIntentOpen} />
-          <bem.PageWrapper__content m={{
-            'navigator-open': this.state.assetNavigatorIsOpen,
-            'navigator-present': this.state.assetNavigator,
-              }}>
-            {/*
-            <BgTopPanel {...this.state} />
-            */}
-            <RouteHandler appstate={this.state} />
-          </bem.PageWrapper__content>
-          { this.state.assetNavPresent ?
-            <AssetNavigator />
-          :null}
-        </bem.PageWrapper>
+        <div className="mdl-wrapper">
+          <bem.PageWrapper m={{
+              // 'activenav': this.state.sidebarIsOpen,
+              'asset-nav-present': this.state.assetNavPresent,
+              'asset-nav-open': this.state.assetNavIsOpen && this.state.assetNavPresent,
+              // 'header-search': this.state.headerSearch,
+                }}  className="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+              <MainHeader />
+              <Drawer />
+              <bem.PageWrapper__content m={{
+                'navigator-open': this.state.assetNavigatorIsOpen,
+                'navigator-present': this.state.assetNavigator,
+                  }} 
+                className="mdl-layout__content">
+                <RouteHandler appstate={this.state} />
+              </bem.PageWrapper__content>
+              { this.state.assetNavPresent ?
+                <AssetNavigator />
+              :null}
+          </bem.PageWrapper>
+        </div>
       </DocumentTitle>
     );
+  },
+  componentDidUpdate() {
+    // Material Design Lite
+    // This upgrades all upgradable components (i.e. with 'mdl-js-*' class)
+    mdl.upgradeDom(); 
   }
 });
 
@@ -1522,6 +1548,7 @@ var Forms = React.createClass({
           uid: params.assetid
         });
       }
+      stores.pageState.setHeaderTitle('Forms');
       callback();
     }
   },
@@ -1555,16 +1582,19 @@ class SurveyScope {
 mixins.newForm = {
   renderFormNameInput () {
     var nameKls = this.state.survey_name_valid ? '' : 'has-warning';
-    var nameInputKls = classNames('form-control',
-                                  'input-lg',
+    var nameInputKls = classNames('mdl-textfield__input',
                                   nameKls);
     return (
-        <input ref="form-name"
+        <div className="mdl-textfield mdl-js-textfield mdl-textfield--full-width">
+          <input ref="form-name"
                 className={nameInputKls}
                 type="text"
                 onChange={this.nameInputChange}
                 placeholder={t('form name')}
+                id="formtitle"
               />
+          <label className="mdl-textfield__label" htmlFor="formtitle"></label>
+        </div>
       );
   },
   renderSaveAndPreviewButtons () {
@@ -1709,6 +1739,12 @@ var Collections = React.createClass({
     Navigation,
     Reflux.ListenerMixin,
   ],
+  statics: {
+    willTransitionTo: function(transition, params, idk, callback) {
+      stores.pageState.setHeaderTitle('Collections');
+      callback();
+    }
+  },
   addListeners () {
     this.listenTo(stores.collectionAssets, this.listenChange);
   },
@@ -2326,7 +2362,7 @@ var FormPage = React.createClass({
     var disabled = !!this.state.disabled;
     var pendingSave = this.state.asset_updated === false;
     var saveText = t('save');
-    var saveBtnKls = classNames('btn','btn-default', {
+    var saveBtnKls = classNames('mdl-button','mdl-button--colored', 'mdl-button--raised', 'mdl-js-button', {
       'disabled': disabled,
       'k-save': true,
       'k-save--pending': this.state.asset_updated === false,
@@ -2334,8 +2370,10 @@ var FormPage = React.createClass({
       'k-save--needed': this.state.asset_updated === -1
     });
     var previewDisabled = !!this.state.previewDisabled;
-    var previewBtnKls = classNames('btn',
-                                  'btn-default',
+    var previewBtnKls = classNames('mdl-button',
+                                  'mdl-js-button',
+                                  'mdl-button--colored',
+                                  'mdl-button--raised',
                                   previewDisabled ? 'disabled': '')
     return (
         <div className="k-form-actions">
@@ -2360,18 +2398,21 @@ var FormPage = React.createClass({
   },
   renderFormNameInput () {
     var nameKls = this.state.survey_name_valid ? '' : 'has-warning';
-    var nameInputKls = classNames('form-control',
-                                  'input-lg',
+    var nameInputKls = classNames('mdl-textfield__input',
                                   nameKls);
     var nameVal = this.state.survey_name;
     return (
-        <input ref="form-name"
-                className={nameInputKls}
-                type="text"
-                value={nameVal}
-                onChange={this.nameInputChange}
-                placeholder={t('form name')}
-              />
+        <div className="mdl-textfield mdl-js-textfield mdl-textfield--full-width">
+          <input ref="form-name"
+              className={nameInputKls}
+              type="text"
+              value={nameVal}
+              onChange={this.nameInputChange}
+              placeholder={t('form name')}
+              id="surveytitle"
+            />
+          <label className="mdl-textfield__label" htmlFor="surveytitle"></label>
+        </div>
       );
   },
   assetStoreTriggered (data, uid, stateUpdates) {
@@ -2420,7 +2461,8 @@ var FormPage = React.createClass({
     }
 
     this.listenTo(assetStore, this.assetStoreTriggered)
-    stores.pageState.setTopPanel(30, false);
+    // stores.pageState.setTopPanel(30, false);
+    stores.pageState.setHeaderTitle('Forms');
     this._postLoadRenderMounted = false;
   },
   surveyChange (a,b,c) {
@@ -2445,9 +2487,8 @@ var FormPage = React.createClass({
   },
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
-
       stores.pageState.setHeaderSearch(false);
-      stores.pageState.setTopPanel(30, false);
+      // stores.pageState.setTopPanel(30, false);
       if (params.assetid[0] === 'c') {
         transition.redirect('collection-page', {uid: params.assetid});
       } else {
@@ -2475,7 +2516,13 @@ var FormPage = React.createClass({
           <RouteHandler />
         </div>
       );
+  }, 
+  componentDidUpdate() {
+    // Material Design Lite
+    // This upgrades all upgradable components (i.e. with 'mdl-js-*' class)
+    mdl.upgradeDom(); 
   }
+
 });
 
 var FormLanding = React.createClass({
@@ -2490,7 +2537,8 @@ var FormLanding = React.createClass({
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
       stores.pageState.setHeaderSearch(true);
-      stores.pageState.setTopPanel(30, false);
+      stores.pageState.setHeaderTitle('Forms');
+      // stores.pageState.setTopPanel(30, false);
       actions.resources.loadAsset({id: params.assetid});
       // actions.resources.loadAssetContent({id: params.assetid});
       callback();
@@ -2629,6 +2677,12 @@ var LibraryList = React.createClass({
     mixins.collection,
     Reflux.ListenerMixin,
   ],
+  statics: {
+    willTransitionTo: function(transition, params, idk, callback) {
+      stores.pageState.setHeaderTitle('Library');
+      callback();
+    }
+  },
   addListeners () {
     this.listenTo(stores.allAssets, this.allAssetsChange);
   },
@@ -2661,22 +2715,34 @@ var LibraryList = React.createClass({
   _renderFormsSearchRow () {
     return (
       <bem.CollectionNav>
-        <bem.CollectionNav__search className="col-sm-4 k-form-list-search-bar">
+        <bem.CollectionNav__search className="k-form-list-search-bar">
           <ui.SmallInputBox ref="formlist-search" placeholder={t('search library')} onChange={this.searchChange} />
         </bem.CollectionNav__search>
         {this._renderSearchCriteria()}
-        <bem.CollectionNav__actions className="col-sm-2 col-sm-offset-6 k-form-list-search-bar">
-          <bem.CollectionNav__link m={['new', 'new-block']} href={this.makeHref('add-to-library')}>
-            <i />
-            {t('add to library')}
-          </bem.CollectionNav__link>
-          <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
-            <bem.CollectionNav__button m={['upload', 'upload-block']} className="btn btn-default btn-block btn-sm">
-              <i className='fa fa-icon fa-cloud fa-fw' />
-              &nbsp;&nbsp;
-              {t('upload')}
-            </bem.CollectionNav__button>
-          </Dropzone>
+        <bem.CollectionNav__actions className="k-form-list-actions">
+          <button id="demo-menu-top-right"
+                  className="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
+            <i className="material-icons">add</i>
+          </button>
+
+          <ul className="mdl-menu mdl-menu--top-right mdl-js-menu mdl-js-ripple-effect"
+              htmlFor="demo-menu-top-right">
+            <li className="mdl-menu__item">
+              <bem.CollectionNav__link m={['new', 'new-block']} href={this.makeHref('add-to-library')}>
+                <i />
+                {t('add to library')}
+              </bem.CollectionNav__link>
+            </li>
+            <li className="mdl-menu__item">
+              <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
+                <bem.CollectionNav__button m={['upload', 'upload-block']}>
+                  <i className='fa fa-icon fa-cloud fa-fw' />
+                  &nbsp;&nbsp;
+                  {t('upload')}
+                </bem.CollectionNav__button>
+              </Dropzone>
+            </li>
+          </ul>
         </bem.CollectionNav__actions>
       </bem.CollectionNav>
       );
@@ -2763,25 +2829,41 @@ var FormList = React.createClass({
   _renderFormsSearchRow () {
     return (
       <bem.CollectionNav>
-        <bem.CollectionNav__search className="col-sm-4 k-form-list-search-bar">
+        <bem.CollectionNav__search className="k-form-list-search-bar">
           <ui.SmallInputBox ref="formlist-search" placeholder={t('search drafts')} onChange={this.searchChange} />
         </bem.CollectionNav__search>
         {this._renderSearchCriteria()}
-        <bem.CollectionNav__actions className="col-sm-offset-6">
-          <bem.CollectionNav__link href={this.makeHref('new-form')}>
-            <i />
-            {t('new form')}
-          </bem.CollectionNav__link>
-          <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
-            <bem.CollectionNav__button m={'upload'}>
-              <i />
-              {t('upload')}
-            </bem.CollectionNav__button>
-          </Dropzone>
+        <bem.CollectionNav__actions className="k-form-list-actions">
+          <button id="demo-menu-top-right"
+                  className="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
+            <i className="material-icons">add</i>
+          </button>
+
+          <ul className="mdl-menu mdl-menu--top-right mdl-js-menu mdl-js-ripple-effect"
+              htmlFor="demo-menu-top-right">
+            <li className="mdl-menu__item">
+              <bem.CollectionNav__link href={this.makeHref('new-form')}>
+                <i />
+                {t('new form')}
+              </bem.CollectionNav__link>
+            </li>
+            <li className="mdl-menu__item">
+              <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
+                <bem.CollectionNav__button m={'upload'}>
+                  <i />
+                  {t('upload')}
+                </bem.CollectionNav__button>
+              </Dropzone>
+            </li>
+          </ul>
         </bem.CollectionNav__actions>
+
       </bem.CollectionNav>
     );
-  }
+  },
+  componentDidUpdate() {
+    mdl.upgradeDom(); 
+  }  
 });
 
 var CollectionList = React.createClass({
@@ -2791,6 +2873,12 @@ var CollectionList = React.createClass({
     mixins.collection,
     Reflux.ListenerMixin,
   ],
+  statics: {
+    willTransitionTo: function(transition, params, idk, callback) {
+      stores.pageState.setHeaderTitle('Collections');
+      callback();
+    }
+  },
   addListeners () {
     this.listenTo(stores.allAssets, this.listenChange);
   },
@@ -2826,7 +2914,7 @@ var CollectionList = React.createClass({
   _renderFormsSearchRow () {
     return (
       <bem.CollectionNav>
-        <bem.CollectionNav__search className="col-sm-4 k-form-list-search-bar">
+        <bem.CollectionNav__search className="k-form-list-search-bar">
           <ui.SmallInputBox ref="formlist-search" placeholder={t('search collections')} onChange={this.searchChange} />
         </bem.CollectionNav__search>
         {this._renderSearchCriteria()}

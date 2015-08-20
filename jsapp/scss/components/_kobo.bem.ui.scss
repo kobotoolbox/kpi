@@ -28,15 +28,24 @@ bem.uiModal__header = bem.uiModal.__('header');
 
 */
 
-.ui-panel {
-  @extend .panel, .panel-default;
-  margin: 11px;
-  position: relative;
-}
+.ui-panel {}
+
 .ui-panel__body {
-  @extend .panel-body;
-  padding: 7px;
+  @extend .mdl-grid;
+  max-width:1080px;
+  > .row {
+    position: relative;
+  }
+
+  > .asset-view__content, 
+  > .collection-asset-list {
+    @extend .mdl-cell, .mdl-cell--12-col;
+    @extend .mdl-shadow--2dp, .mdl-color--white;
+    flex-flow:column;
+  }
 }
+
+
 
 // <div className={"panel panel-default k-panel k-panel-default " + this.props.className }>
 //   <div className="panel-body k-panel-body">
@@ -47,7 +56,7 @@ bem.uiModal__header = bem.uiModal.__('header');
 .message {}
 
 .message--error {
-  @extend .alert, .alert-dismissible, .alert-danger;
+  // @extend .alert, .alert-dismissible, .alert-danger;
   text-decoration: uppercase;
 }
 .message--loading {
@@ -58,7 +67,7 @@ bem.uiModal__header = bem.uiModal.__('header');
 }
 
 .ui-breadcrumb {
-  @extend .breadcrumb;
+  // @extend .breadcrumb;
   > li + li:before {
     content: '>';
   }

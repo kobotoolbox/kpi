@@ -14,7 +14,8 @@ $mult: 0.5;
   font-size: larger;
 }
 .list-view__headerbutton {
-  @extend .btn, .btn-primary;
+  // @extend .btn, .btn-primary;
+  @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
 }
 .list-view__search {
   clear: both;

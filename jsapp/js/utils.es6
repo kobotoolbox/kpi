@@ -73,3 +73,10 @@ export var t = function (str) {
 log.t = function () {
   console.log(JSON.stringify(__strings, null, 4));
 }
+
+// unique id for forms with inputs and labels
+let lastId = 0;
+export var newId = function(prefix='id') {
+    lastId++;
+    return `${prefix}${lastId}`;
+}

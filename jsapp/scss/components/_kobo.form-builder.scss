@@ -1,36 +1,54 @@
-// Colors 
-// ==========================================================================
-$cardBorderColor: #d9dde1;
-$cardInSortBorderColor: #3FA2EE;
+.k-form-header__buttons {
+  width: 100%;
+  display: flex;
+  position: fixed;
+  z-index: 10;
+  background-color: rgb(245,245,245);
+  margin: -8px;
+  padding: 8px;
+  padding-right: 75px;
+  transition: all 0.5s;
+  .page-wrapper--asset-nav-open & {
+    padding-right: 405px;
+  }
+}
 
-$bodyBackgroundColor: #E9EDF0;
-$textColor: #3f3f3f;
+.k-form-header__title {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding-top: 50px;
+  .k-header-form-title {
+    flex:1;
+    padding:0px 10px;
+  }
+  .k-corner-icon {
+    opacity: 0.3;
+    width: 45px;
+    height: 45px;
+    border-radius: 25px;
+    background-color: lighten($muiBlue, 20%);
+    border: 3px solid lighten($muiBlue, 12%);
+  }
+}
 
-$wellTextColor: #7A8692;
+.k-sub-settings-bar {
+  cursor: pointer;
+  color: #B2B2B2;
+  width: 100%;
+  &:hover {
+    color: #666;
+  }
+  .settings-preview {
+    margin: 0 24px 0 0;
+  }
 
-$addButtonColor: #BEC9D0;
-$addButtonColorHover: #5CB2EE;
-
-$linkColor: #3FA2EE;
-$indicatorColor: #8595A5;
-
-// Borders
-// ==========================================================================
-$cardBorderStyle: 1px solid $cardBorderColor;
-$cardInSortBorderStyle: 1px solid $cardInSortBorderColor;
-$cardInSortThinBorderStyle: 1px solid $cardInSortBorderColor;
-
-$thinBorderStyle: 1px solid $cardBorderColor;
-$buttonBorderRadius: 5px;
-
-@import "../stylesheets/partials/select2_override";
-@import "../stylesheets/partials/tagsinput_override";
-@import "../stylesheets/partials/misc";
-@import "../stylesheets/partials/icons";
-@import "../stylesheets/partials/registration";
+  transition: all .4s ease 0s;
+}
 
 .form-wrap {
-  padding-top: 45px;
+  padding-top: 25px;
+  width:100%;
   .survey-header,
     .sub-header-bar {
     display: none;
@@ -41,23 +59,4 @@ $buttonBorderRadius: 5px;
       box-shadow: none;
     }
   }
-
-  // @import "../stylesheets/partials/normalize";
-  @import "../stylesheets/partials/base";
-
-  // @import "../stylesheets/partials/header_and_top_menu";
-  @import "../stylesheets/partials/buttons";
-  @import "../stylesheets/partials/content";
-  @import "../stylesheets/partials/sidenote";
-
-  @import '../stylesheets/pages/form_builder';
-  // @import '../stylesheets/pages/form_list';
-  // @import "../stylesheets/pages/question_library";
-  @import "../stylesheets/partials/helpers";
-
-  .btn--addrow .fa {
-    margin-top: 25px;
-  }
 }
-
-@import "../stylesheets/partials/modals_iframes";

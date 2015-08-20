@@ -117,6 +117,7 @@ var assetSearchStore = Reflux.createStore({
 var pageStateStore = Reflux.createStore({
   init () {
     this.state = {
+      headerTitle: 'Forms',
       bgTopPanelHeight: 60,
       bgTopPanelFixed: false,
       headerSearch: true,
@@ -200,7 +201,15 @@ var pageStateStore = Reflux.createStore({
       assign(this.state, changes);
       this.trigger(changes);
     }
-  }
+  },
+  setHeaderTitle (title) {
+    var changes = {};
+    if (this.state.headerTitle != title) {
+      changes.headerTitle = title;
+      assign(this.state, changes)
+      this.trigger(changes);
+    }
+  }  
 });
 
 stores.snapshots = Reflux.createStore({

@@ -21,7 +21,7 @@ $assetRowTextColor: #888;
 .asset-row__cell--icon {
   position: absolute;
   left: 5px;
-  top: 12px;
+  top: 16px;
 }
 
 .asset-row__tags {
@@ -233,18 +233,21 @@ $colwidth: (100% / $colcount) - 1%;
       @extend .fa, .fa-fw, .fa-play;
     }
     button {
-      @extend .btn;
+      // @extend .btn;
+      @extend .mdl-button;
     }
     .asset-row:not(.asset-row--selected) & {
       button {
-        @extend .btn-default;
+        // @extend .btn-default;
+        @extend .mdl-button;
         @extend .disabled;
       }
     }
     .asset-row--selected & {
       button {
         opacity: 1;
-        @extend .btn-success;
+        // @extend .btn-success;
+        @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
       }
     }
   }
@@ -282,7 +285,7 @@ $colwidth: (100% / $colcount) - 1%;
   float: right;
   margin-top: -10px;
   opacity: 0;
-  height: 0px;
+  // height: 0px;
   transition:all 0.3s;
   .asset-row__cell {
     display: inline;

@@ -1,0 +1,111 @@
+// Material Icons font
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Material Icons'), local('MaterialIcons-Regular'), url('/static/fonts/material-icons.woff2') format('woff2');
+}
+
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  word-wrap: normal;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+// Color definitions
+@import '../../node_modules/material-design-lite/src/_color-definitions';
+
+// KPI MDL Variable Overrides
+$color-primary: $palette-indigo-400 !default;
+$color-primary-dark: $palette-indigo-600 !default;
+$color-accent: $palette-indigo-A200 !default; 
+$layout-header-bg-color: unquote("rgb(#{$palette-blue-grey-800})") !default;
+$preferred_font: 'Open Sans', 'Helvetica', 'Arial', sans-serif !default;
+$performance_font: 'Open Sans', 'Helvetica', 'Arial', sans-serif !default; 
+
+$layout-text-color: #FFF !default;
+$layout-drawer-navigation-color: #FFF !default;
+$layout-nav-color: unquote("rgb(#{$palette-blue-grey-900})") !default;
+$layout-drawer-navigation-link-active-background: unquote("rgb(#{$palette-blue-grey-900})") !default;
+$layout-drawer-navigation-link-active-color: #FFF !default;
+// Custom variables
+$k-drawer-icon-color: unquote("rgb(#{$palette-light-blue-A200})");
+
+@import '../../node_modules/material-design-lite/src/material-design-lite';
+
+.row {
+  @extend .mui-row;
+}
+
+body {
+  @extend .mdl-color--grey-100;
+}
+
+.drawer-separator {
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.1);
+  margin: 8px 0;
+}
+
+$layout-header-mobile-indent-plus: $layout-header-mobile-indent + 6px;
+$layout-header-desktop-indent-plus: $layout-header-desktop-indent + 6px;
+
+.mdl-layout__drawer {
+  border-right:1px solid rgba(255, 255, 255, 0.2);
+  > .mdl-layout-title {
+    color: $layout-drawer-navigation-color;
+    padding-top:16px;
+  }
+
+  .mdl-navigation__heading {
+    padding: 8px $layout-header-desktop-indent;
+    opacity: 0.5;
+    font-size: 0.85em;
+    @media screen and (max-width: $layout-screen-size-threshold) {
+        padding: 8px $layout-header-mobile-indent;
+    }
+  }
+
+  .mdl-navigation {
+    padding-top: 8px;
+    .mdl-navigation__link {
+      padding: 10px $layout-header-desktop-indent-plus;
+      // border-bottom: 1px solid red;
+      @media screen and (max-width: $layout-screen-size-threshold) {
+          padding: 10px $layout-header-mobile-indent-plus;
+      }
+
+      .menu-icon {
+        font-size: 16px;
+        margin-right: 6px; 
+        color: $k-drawer-icon-color;
+      }
+        &.active {
+            background-color: $layout-drawer-navigation-link-active-background;
+            color: $layout-drawer-navigation-link-active-color;
+        }
+
+    }
+  }
+
+}
+
+.mdl-checkbox__tick-outline {
+  mask: url("/static/img/tick-mask.svg?embed");
+
+  .mdl-checkbox.is-checked & {
+    background: $checkbox-color url("/static/img/tick.svg?embed");
+  }
+
+  .mdl-checkbox.is-checked.is-disabled & {
+    background: $checkbox-disabled-color url("/static/img/tick.svg?embed");
+  }
+}
