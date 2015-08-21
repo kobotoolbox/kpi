@@ -36,10 +36,9 @@ const initialSearchState = {
   searchDebugQuery: false
 };
 
-function SearchContext(name, opts={}) {
-  var additionalParams = opts.additionalParams || {};
+function SearchContext(opts={}) {
+  var ctx = this;
   var debounceTime = opts.debounceTime || 500;
-  var that = this;
 
   var search = Reflux.createAction({
     children: [
@@ -49,9 +48,11 @@ function SearchContext(name, opts={}) {
     ]
   });
 
-  var searchStore = Reflux.createStore({
+  var searchStore = ctx.store = Reflux.createStore({
     init () {
-      this.filterParams = {};
+      this.filterParams = {
+        abc: 'asset_type:survey'
+      };
       this.state = {
         searchState: 'none'
       };
@@ -75,7 +76,7 @@ function SearchContext(name, opts={}) {
     combined with the context defaults and turned into a proper request
     in this method and searchDataInterface.
     */
-    var searchParams = assign({}, additionalParams, params);
+    var searchParams = assign({}, searchStore.filterParams, params);
     var tags = searchParams.tags || [];
     var parent = searchParams.parent;
     var cacheAsDefaultSearch = opts.cacheAsDefaultSearch;
@@ -116,11 +117,12 @@ function SearchContext(name, opts={}) {
   });
   search.completed.listen(function(rawSearchParams, data, opts){
     var count = data.count;
-    var searchParams = assign({}, searchStore.filterParams, rawSearchParams)
+    var searchParams = assign({}, searchStore.filterParams, rawSearchParams);
     var newState = {
       searchState: 'done',
       searchResultsFor: searchParams,
       searchDebugQuery: searchParams.__builtQueryString,
+      searchBaseFilterParams: searchStore.filterParams,
       searchResults: data,
       searchResultsList: data.results,
       searchResultsCount: count,
@@ -176,14 +178,13 @@ var commonMethods = {
     this.extendSearchContext();
   },
   extendSearchContext () {
-    log('extending search context');
     var ctx;
     if (this.props.searchContext instanceof SearchContext) {
       ctx = this.props.searchContext;
     } else {
       ctx = getSearchContext(this.props.searchContext);
     }
-    assign(this, ctx);
+    assign(this, ctx.mixin);
   },
   searchChangeEvent (evt) {
     var val = evt.target.value;
@@ -209,15 +210,15 @@ var contexts = {};
 
 function getSearchContext(name, opts={}) {
   if (!contexts[name]) {
-    contexts[name] = new SearchContext(name, opts);
+    contexts[name] = new SearchContext();
   }
   if (opts.filterParams) {
-    contexts[name].setFilterParams(opts.filterParams);
+    contexts[name].store.filterParams = opts.filterParams;
   }
   if (opts.showDefault) {
-    contexts[name].showDefault(opts.showDefault);
+    contexts[name].store.showDefault = opts.showDefault;
   }
-  return contexts[name].mixin;
+  return contexts[name];
 }
 
 module.exports = {

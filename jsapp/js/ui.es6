@@ -1,5 +1,6 @@
 import React from 'react/addons';
 import bem from './bem';
+import _ from 'underscore';
 import {t, newId} from './utils';
 
 var ui = {};
@@ -9,12 +10,12 @@ ui.SmallInputBox = React.createClass({
     return this.refs.inp.getDOMNode().value;
   },
   render () {
-    const id = newId();
+    var elemId = _.uniqueId('elem');
     return (
         <div className="mdl-textfield mdl-js-textfield mdl-textfield--full-width">
-            <input type="text" ref='inp' className="mdl-textfield__input" 
-                onKeyUp={this.props.onKeyUp} onChange={this.props.onChange} id={id} />
-              <label className="mdl-textfield__label" htmlFor={id} >{this.props.placeholder}</label>
+          <input type="text" ref='inp' className="mdl-textfield__input"
+              onKeyUp={this.props.onKeyUp} onChange={this.props.onChange} id={elemId} />
+          <label className="mdl-textfield__label" htmlFor={elemId} >{this.props.placeholder}</label>
         </div>
       );
   }

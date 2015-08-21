@@ -16,10 +16,13 @@ import Q from 'q';
 // import Sidebar from './components/sidebar';
 import MainHeader from './components/header';
 import Drawer from './components/drawer';
+import searches from './searches';
+import {List, ListSearch, ListSearchDebug} from './components/list';
 import TagsInput from 'react-tagsinput';
 import classNames from 'classnames';
 import alertify from 'alertifyjs';
 var ReactTooltip = require("react-tooltip");
+var AssetRow = require('./components/assetrow');
 // import {Sheeted} from './models/sheeted';
 import stores from './stores';
 import Dropzone from './libs/dropzone';
@@ -652,6 +655,11 @@ var AssetNavigator = React.createClass({
     return {
       searchResults: {},
       imports: [],
+      searchContext: searches.getSearchContext('library', {
+        filterParams: {
+          assetType: 'asset_type:question OR asset_type:block'
+        }
+      }),
       selectedTags: [],
       assetNavIntentOpen: stores.pageState.state.assetNavIntentOpen,
       assetNavIsOpen: stores.pageState.state.assetNavIsOpen
@@ -797,8 +805,14 @@ var AssetNavigator = React.createClass({
               <i />
             </bem.LibNav__logo>
             <bem.LibNav__search>
-              <ui.SmallInputBox ref="navigatorSearchBox" placeholder={t('search library')} onKeyUp={this.liveSearch} />
+              <ListSearch
+                  placeholder={t('search library')}
+                  searchContext={this.state.searchContext}
+                />
             </bem.LibNav__search>
+            <ListSearchDebug
+                searchContext={this.state.searchContext}
+              />
             <TagList tags={this.state.tags} onTagClick={this.onTagClick} selected={this.state.selectedTags} />
           </bem.LibNav__header>
           <bem.LibNav__content>
@@ -868,149 +882,6 @@ var ActionLink = React.createClass({
   }
 });
 
-var AssetRow = React.createClass({
-  mixins: [
-    Navigation
-  ],
-  clickAsset (evt) {
-    var clickedActionIcon = $(evt.target).closest('[data-action]').get(0);
-    if (clickedActionIcon && this.props.isSelected) {
-      this.props.onActionButtonClick(assign(evt, {
-        actionIcon: clickedActionIcon,
-      }));
-    } else {
-      evt.nativeEvent.preventDefault();
-      evt.nativeEvent.stopImmediatePropagation();
-      // this click was not intended for a button
-      evt.preventDefault();
-      stores.selectedAsset.toggleSelect(this.props.uid);
-      this.props.onToggleSelect();
-    }
-  },
-  preventDefault (evt) {
-    evt.preventDefault();
-  },
-  render () {
-    var selfowned = this.props.owner__username == this.props.currentUsername;
-    var perm = this.props.perm;
-    var isPublic = this.props.owner__username === anonUsername;
-    var isCollection = this.props.kind === 'collection',
-        hrefTo = isCollection ? 'collection-page' : 'form-landing',
-        hrefKey = isCollection ? 'uid' : 'assetid',
-        hrefParams = {};
-    var isDeployable = !isCollection && this.props.asset_type && this.props.asset_type === 'survey';
-    hrefParams[hrefKey] = this.props.uid;
-    return (
-        <bem.AssetRow m={{
-                            'selected': this.props.isSelected,
-                            'deleted': this.props.deleted,
-                          }}
-                        onClick={this.clickAsset}
-                        className="clearfix">
-          <bem.AssetRow__cell m={['icon',
-                    `kind-${this.props.kind}`,
-                    this.props.asset_type ? `assettype-${this.props.asset_type}` : null
-                  ]}>
-              <i />
-          </bem.AssetRow__cell> 
-
-          <bem.AssetRow__celllink m={['name', this.props.name ? 'titled' : 'untitled']}
-                data-action='view'
-                data-disabled={true}
-                data-kind={this.props.kind}
-                data-asset-type={this.props.kind}
-                href={this.makeHref( hrefTo, hrefParams)}
-              >
-            <bem.AssetRow__name>
-              <ui.AssetName {...this.props} />
-            </bem.AssetRow__name>
-          </bem.AssetRow__celllink>
-          <bem.AssetRow__cellmeta>
-            <bem.AssetRow__cell m={'userlink'}>
-              <bem.AssetRow__sharingIcon
-                  href="#"
-                  m={{
-                    'self-owned': selfowned,
-                    'public-owned': isPublic,
-                  }}>
-                <i />
-                {
-                  selfowned ?
-                    t('me') :
-                  <bem.AssetRow__sharingIcon__owner>
-                    {this.props.owner__username}
-                  </bem.AssetRow__sharingIcon__owner>
-                }
-              </bem.AssetRow__sharingIcon>
-            </bem.AssetRow__cell>
-            <bem.AssetRow__cell m={'date-modified'}>
-              <span className="date date--modified">{t('Modified')} {formatTime(this.props.date_modified)}</span>
-            </bem.AssetRow__cell>
-
-            <bem.AssetRow__cell m={'tags'}>
-              <bem.AssetRow__tags>
-                {
-                  this.props.tags.length > 0 ?
-                    <i />
-                :<bem.AssetRow__tags__notags>{t('no tags')}</bem.AssetRow__tags__notags>}
-                {this.props.tags.map((tag)=>{
-                  return <bem.AssetRow__tags__tag>{tag}</bem.AssetRow__tags__tag>
-                })}
-              </bem.AssetRow__tags>
-            </bem.AssetRow__cell>
-
-          </bem.AssetRow__cellmeta>
-
-          <bem.AssetRow__cell m={'asset-buttons'}>
-            <bem.AssetRow__cell m={'action-icons'}>
-              { this.props.kind === 'asset' &&
-                ['view',
-                      // 'edit', 'preview',
-                      'download', 'clone', 'delete',
-                      ].map((actn)=>{
-                  return (
-                        <bem.AssetRow__actionIcon href="#"
-                            m={actn}
-                            data-action={actn}
-                            data-asset-type={this.props.kind}
-                            data-disabled={false}
-                            >
-                          <i />
-                        </bem.AssetRow__actionIcon>
-                      );
-                })
-              }
-              { this.props.kind === 'collection' &&
-              ['view', 'sharing', 'delete'].map((actn)=>{
-                  return (
-                        <bem.AssetRow__actionIcon
-                          m={actn === 'view' ? 'view-collection' : actn}
-                            data-action={actn}
-                            data-asset-type={this.props.kind}
-                            data-disabled={false}
-                            >
-                          <i />
-                        </bem.AssetRow__actionIcon>
-                      );
-                })
-              }
-            </bem.AssetRow__cell>
-            <bem.AssetRow__cell m={['deploy-button', isDeployable ? 'deployable':'disabled']}
-                      data-action='deploy'
-                      data-asset-type='asset'
-                      data-kind='asset'
-                      data-disabled={false}>
-              { isDeployable ?
-                <button>
-                  <i />
-                </button>
-              : null }
-            </bem.AssetRow__cell>
-          </bem.AssetRow__cell>
-        </bem.AssetRow>
-      );
-  }
-})
 
 var collectionAssetsStore = stores.collectionAssets;
 
@@ -1548,7 +1419,7 @@ var Forms = React.createClass({
           uid: params.assetid
         });
       }
-      stores.pageState.setHeaderTitle('Forms');
+      // stores.pageState.setHeaderTitle('Forms');
       callback();
     }
   },
@@ -2709,6 +2580,15 @@ var LibraryList = React.createClass({
   searchChange () {
 
   },
+  getInitialState () {
+    return {
+      searchContext: searches.getSearchContext('library', {
+        filterParams: {
+          assetType: 'asset_type:question OR asset_type:block'
+        }
+      })
+    }
+  },
   _renderSearchCriteria () {
     return;
   },
@@ -2716,8 +2596,14 @@ var LibraryList = React.createClass({
     return (
       <bem.CollectionNav>
         <bem.CollectionNav__search className="k-form-list-search-bar">
-          <ui.SmallInputBox ref="formlist-search" placeholder={t('search library')} onChange={this.searchChange} />
+          <ListSearch
+              placeholder={t('search library')}
+              searchContext={this.state.searchContext}
+            />
         </bem.CollectionNav__search>
+        <ListSearchDebug
+            searchContext={this.state.searchContext}
+          />
         {this._renderSearchCriteria()}
         <bem.CollectionNav__actions className="k-form-list-actions">
           <button id="demo-menu-top-right"
@@ -2758,6 +2644,7 @@ var FormList = React.createClass({
     Navigation,
     mixins.collection,
     Reflux.ListenerMixin,
+    searches.common,
   ],
   addListeners () {
     this.listenTo(stores.allAssets, this.listenChange);
@@ -2770,6 +2657,15 @@ var FormList = React.createClass({
   },
   initialAction () {
     actions.resources.listSurveys();
+  },
+  getInitialState () {
+    return {
+      searchContext: searches.getSearchContext('forms', {
+        filterParams: {
+          assetType: 'asset_type:survey'
+        }
+      })
+    }
   },
   dropAction ({file, event}) {
     actions.resources.createAsset({
@@ -2795,44 +2691,19 @@ var FormList = React.createClass({
       <bem.CollectionNav__searchcriteria>
       </bem.CollectionNav__searchcriteria>
       );
-    /*
-    return (
-        <bem.CollectionNav__searchcriteria className="col-sm-6 k-form-list-search-bar">
-          <label>
-            <input type="radio" name="formlist__search__type" id="formlist__search__type--1" value="type1" checked={this.state.searchRadio==='type1'} onChange={this.searchCriteriaChange} />
-            {t('my forms')}
-          </label>
-          <label>
-            <input type="radio" name="formlist__search__type" id="formlist__search__type--2" value="type2" checked={this.state.searchRadio==='type2'} onChange={this.searchCriteriaChange} />
-            {t('shared with me')}
-          </label>
-          <label>
-            <input type="radio" name="formlist__search__type" id="formlist__search__type--3" value="type3" checked={this.state.searchRadio==='type3'} onChange={this.searchCriteriaChange} />
-            {t('public')}
-          </label>
-          <div className="btn-group hidden">
-            <a href="#" className="btn btn-default dropdown-toggle" data-toggle="dropdown">
-              {t('type')}
-              <span className="caret"></span>
-            </a>
-            <ul className="dropdown-menu">
-              <li><a href="#"><Icon fa='file-o' />forms</a></li>
-              <li><a href="#"><Icon fa='file-o' />blocks</a></li>
-              <li><a href="#"><Icon fa='file-o' />questions</a></li>
-              <li><a href="#"><Icon fa='folder-o' />collection</a></li>
-             </ul>
-          </div>
-        </bem.CollectionNav__searchcriteria>
-      );
-    */
   },
   _renderFormsSearchRow () {
     return (
       <bem.CollectionNav>
         <bem.CollectionNav__search className="k-form-list-search-bar">
-          <ui.SmallInputBox ref="formlist-search" placeholder={t('search drafts')} onChange={this.searchChange} />
+          <ListSearch
+              placeholder={t('search drafts')}
+              searchContext={this.state.searchContext}
+            />
         </bem.CollectionNav__search>
-        {this._renderSearchCriteria()}
+        <ListSearchDebug
+            searchContext={this.state.searchContext}
+          />
         <bem.CollectionNav__actions className="k-form-list-actions">
           <button id="demo-menu-top-right"
                   className="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
@@ -2862,8 +2733,8 @@ var FormList = React.createClass({
     );
   },
   componentDidUpdate() {
-    mdl.upgradeDom(); 
-  }  
+    mdl.upgradeDom();
+  }
 });
 
 var CollectionList = React.createClass({
