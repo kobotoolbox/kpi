@@ -21,7 +21,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '@25)**hc^rjaiagb4#&q*84hr*uscsxwr-cv#0joiwj$))obyk'
+# Secret key must match that used by KoBoCAT when sharing sessions
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '@25)**hc^rjaiagb4#&q*84hr*uscsxwr-cv#0joiwj$))obyk')
+
+# Domain must not exclude KoBoCAT when sharing sessions
+if 'CSRF_COOKIE_DOMAIN' in os.environ:
+    CSRF_COOKIE_DOMAIN = os.environ['CSRF_COOKIE_DOMAIN']
+    SESSION_COOKIE_DOMAIN = CSRF_COOKIE_DOMAIN
+    SESSION_COOKIE_NAME = 'kobonaut'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = (os.environ.get('DJANGO_DEBUG', 'True') == 'True')
@@ -69,7 +76,17 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-AUTHENTICATION_BACKENDS = ('kpi.backends.ObjectPermissionBackend',)
+
+# The backend that handles user authentication must match KoBoCAT's when
+# sharing sessions. ModelBackend does not interfere with object-level
+# permissions: it always denies object-specific requests (see
+# https://github.com/django/django/blob/1.7/django/contrib/auth/backends.py#L44).
+# KoBoCAT also lists ModelBackend before
+# guardian.backends.ObjectPermissionBackend.
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'kpi.backends.ObjectPermissionBackend',
+)
 
 ROOT_URLCONF = 'kobo_playground.urls'
 
