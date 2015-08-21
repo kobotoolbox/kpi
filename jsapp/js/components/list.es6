@@ -1,13 +1,16 @@
 import React from 'react/addons';
 var Reflux = require('reflux');
 var assign = require('react/lib/Object.assign');
+var Select = require('react-select');
 
 import {notify, formatTime, anonUsername, parsePermissions, log, t} from '../utils';
 import ui from '../ui';
 import bem from '../bem';
+import actions from '../actions';
 import searches from '../searches';
 import stores from '../stores';
 import mixins from '../mixins';
+import dataInterface from '../dataInterface';
 import {Navigation} from 'react-router';
 
 var AssetRow = require('./assetrow');
@@ -82,7 +85,7 @@ var List = React.createClass({
               display the search results
           */}
           {
-            (searchState === 'none' && !showDefault) ? 
+            (searchState === 'none' && !showDefault) ?
               <bem.CollectionAssetList__message>
                 {t('enter a search term above')}
               </bem.CollectionAssetList__message>
@@ -217,6 +220,69 @@ var ListSearch = React.createClass({
           </bem.Search>
         );
   },
+});
+
+var ListTagFilter = React.createClass({
+  mixins: [
+    searches.common,
+    Reflux.ListenerMixin,
+  ],
+  getDefaultProps () {
+    return {
+      searchContext: 'default',
+    }
+  },
+  getInitialState () {
+    return {
+      availableTags: [],
+      tagsLoaded: false,
+    }
+  },
+  componentDidMount () {
+    this.listenTo(stores.tags, this.tagsLoaded)
+    actions.resources.listTags();
+  },
+  tagsLoaded (tags) {
+    this.setState({
+      tagsLoaded: true,
+      availableTags: tags.map(function(t){
+        return {
+          label: t.name,
+          value: t.name,
+        }
+      })
+    });
+  },
+  onTagChange (tagString, tagList) {
+    var tagString = tagList.map(function(t){
+      return `tag:${t.value}`
+    }).join(' OR ');
+    log(tagString);
+    this.searchStore.filterParams.tagString = tagString;
+    this.getSearchActions().search();
+  },
+  render () {
+    if (!this.state.tagsLoaded) {
+      return (
+          <Select
+              name="tags"
+              value=""
+              disabled={true}
+              multi={true}
+              placeholder={t('tags are loading')}
+            />
+        );
+    }
+    return (
+        <Select
+            name="tags"
+            multi={true}
+            placeholder={t('select tags')}
+            options={this.state.availableTags}
+            onChange={this.onTagChange}
+          />
+      );
+  },
 })
 
 var ListSearchDebug = React.createClass({
@@ -267,4 +333,5 @@ export default {
   List: List,
   ListSearch: ListSearch,
   ListSearchDebug: ListSearchDebug,
+  ListTagFilter: ListTagFilter,
 };

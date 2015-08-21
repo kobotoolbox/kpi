@@ -70,7 +70,7 @@ function SearchContext(opts={}) {
     searchStore.filterParams = p;
   }
 
-  search.listen(function(params, opts={}){
+  search.listen(function(params={}, opts={}){
     /*
     search receives a params object with keys and values which get
     combined with the context defaults and turned into a proper request
