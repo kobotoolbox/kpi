@@ -84,11 +84,14 @@ function SearchContext(opts={}) {
       delete this.state[key];
     },
     toDataObject () {
-      var params = assign({}, this.filterParams, {
-        tags: this.state.searchTags,
-        string: this.state.searchString,
-      });
-      return params;
+      var params = {};
+      if (this.state.searchTags) {
+        params.tags = this.state.searchTags;
+      }
+      if (this.state.searchString) {
+        params.string = this.state.searchString;
+      }
+      return assign({}, this.filterParams, params);
     },
     toQueryData (dataObject) {
       var searchParams = dataObject || this.toDataObject(),
@@ -141,12 +144,26 @@ function SearchContext(opts={}) {
     var dataObject = searchStore.toDataObject();
     var _dataObjectClone = assign({}, dataObject)
     var qData = searchStore.toQueryData(dataObject);
-
     var isSearch = !opts.cacheAsDefaultSearch;
+
+    // we can clean this up later, but right now, if the search query is empty
+    // it cancels the search
+    if (((d)=>{
+      if (opts.cacheAsDefaultSearch) {
+        return false;
+      }
+
+      var hasTags = d.tags && d.tags.length && d.tags.length > 0;
+      var hasString = d.string && d.string.length && d.string.length > 0;
+      return !hasTags && !hasString;
+    })(_dataObjectClone)) {
+      return search.cancel();
+    }
 
     if (isSearch) {
       // cancel existing searches
       if (jqxhrs.search) {
+        jqxhrs.search.searchAborted=true;
         jqxhrs.search.abort();
         jqxhrs.search = false;
       }
@@ -163,7 +180,6 @@ function SearchContext(opts={}) {
 
     jqxhrs[ isSearch ? 'search' : 'default' ] = req;
 
-    log('searchFor ', _dataObjectClone);
     if (isSearch) {
       searchStore.update({
         searchState: 'loading',
@@ -214,21 +230,12 @@ function SearchContext(opts={}) {
     searchStore.update(newState);
   });
   search.failed.listen(function(xhr, searchParams){
-    searchStore.update({
-      searchState: 'failed',
-    })
-    log('failed');
+    // if (xhr.searchAborted) {
+    //   log('search was canceled because a new search came up')
+    // }
     // searchStore.update({
-    //   searchResultsSuccess: false,
-    //   searchResultsDisplayed: true,
-    //   searchState: 'none',
-    //   searchResultsFor: searchParams,
-    //   searchDebugQuery: `error on query: ${searchParams.__builtQueryString}`,
-    //   searchErrorMessage: 'error on query',
-    //   searchResults: { results: [] },
-    //   searchResultsList: [],
-    //   searchResultsCount: 0,
-    // });
+    //   searchState: 'failed',
+    // })
   });
   search.cancel.listen(function(){
     if (jqxhrs.search) {
@@ -285,15 +292,10 @@ var commonMethods = {
     this.searchValue();
   },
   searchChangeEvent (evt) {
-    var val = evt.target.value;
-    if (val) {
-      this.quietUpdateStore({
-        searchString: val,
-      });
-      this.debouncedSearch();
-    } else {
-      this.clearSearchStringAndCancel();
-    }
+    this.quietUpdateStore({
+      searchString: evt.target.value,
+    });
+    this.debouncedSearch();
   },
   clearSearchStringAndCancel () {
     this.searchStore.removeItem('searchString');

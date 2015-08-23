@@ -264,13 +264,15 @@ var ListSearchSummary = React.createClass({
   render () {
     var messages = [], modifier,
         s = this.state;
+    if (s.searchFor && s.searchFor.tags && s.searchFor.tags.length > 0) {
+      var tagString = _.pluck(s.searchFor.tags, 'label').join(', ');
+    }
     if (s.searchState === 'loading') {
       if (s.searchFor) {
         if (s.searchFor.string) {
           messages.push(t('searching for "___"').replace('___', s.searchFor.string));
         }
-        if (s.searchFor.tags && s.searchFor.tags.length > 0) {
-          var tagString = _.pluck(s.searchFor.tags, 'label').join(', ');
+        if (tagString) {
           messages.push(t('tagged with [___]').replace('___', tagString));
         }
       }
@@ -279,8 +281,9 @@ var ListSearchSummary = React.createClass({
       if (s.searchFor) {
         if (s.searchFor.string) {
           messages.push(t('searched for "___"').replace('___', s.searchFor.string));
-        } else if (s.searchFor.tags && s.searchFor.tags.length > 0) {
-          messages.push(t('tagged with [___]').replace('___', s.searchFor.tags.join(', ')));
+        }
+        if (tagString) {
+          messages.push(t('tagged with [___]').replace('___', tagString));
         }
       }
       messages.push(t('found ## results').replace('##', s.searchResultsCount));
