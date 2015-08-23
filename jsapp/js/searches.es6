@@ -50,6 +50,7 @@ const initialState = assign({
 function SearchContext(opts={}) {
   var ctx = this;
   var debounceTime = opts.debounceTime || 500;
+  var jqxhrs = {};
 
   var search = Reflux.createAction({
     children: [
@@ -67,82 +68,120 @@ function SearchContext(opts={}) {
       };
     },
     update (items) {
+      this.quietUpdate(items);
+      this.triggerState();
+    },
+    triggerState () {
+      this.trigger(this.state);
+    },
+    quietUpdate (items) {
       if (!items.cleared) {
         items.cleared = false;
       }
       assign(this.state, items);
-      this.trigger(this.state);
-    }
+    },
+    removeItem (key) {
+      delete this.state[key];
+    },
+    toDataObject () {
+      var params = assign({}, this.filterParams, {
+        tags: this.state.searchTags,
+        string: this.state.searchString,
+      });
+      return params;
+    },
+    toQueryData (dataObject) {
+      var searchParams = dataObject || this.toDataObject(),
+          _searchParamsClone = assign({}, searchParams),
+          paramGroups = [],
+          queryData = {},
+          qString;
+
+      if ('tags' in searchParams) {
+        if (searchParams.tags && searchParams.tags.length > 0) {
+          paramGroups.push(
+              searchParams.tags.map(function(t){
+                return `tag:${t.value}`
+              }).join(' OR ')
+            );
+        }
+        delete searchParams.tags;
+      }
+      if ('string' in searchParams) {
+        if (searchParams.string && searchParams.string.length > 0) {
+          paramGroups.push(
+              searchParams.string
+            );
+        }
+        delete searchParams.string;
+      }
+      if ('parent' in searchParams) {
+        if (searchParams.parent && searchParams.parent.length > 0) {
+          queryData.parent = searchParams.parent;
+        }
+        delete searchParams.parent;
+      }
+      paramGroups = paramGroups.concat(_.values(searchParams));
+
+      if (paramGroups.length > 1) {
+        queryData.q = paramGroups.map(function(s){return `(${s})`}).join(' AND ');
+      } else if (paramGroups.length === 1) {
+        queryData.q = paramGroups[0];
+      }
+      return queryData;
+    },
   });
 
-  this.setFilterParams = function(p) {
-    searchStore.filterParams = p;
-  }
-
-  search.listen(function(params={}, opts={}){
+  search.listen(function(opts={}){
     /*
-    search receives a params object with keys and values which get
-    combined with the context defaults and turned into a proper request
-    in this method and searchDataInterface.
+    search will query whatever values are in the store
+    and will pass the values back to the store to be reflected
+    in the components' states.
     */
-    var searchParams = assign({}, searchStore.filterParams, params);
-    var tags = searchParams.tags || [];
-    var parent = searchParams.parent;
-    var cacheAsDefaultSearch = opts.cacheAsDefaultSearch;
-    if (tags) {
-      delete searchParams.tags;
-    }
-    if (parent) {
-      delete searchParams.parent;
-    }
+    var dataObject = searchStore.toDataObject();
+    var _dataObjectClone = assign({}, dataObject)
+    var qData = searchStore.toQueryData(dataObject);
 
-    var searchQuery = _.values(searchParams);
-    if (searchQuery.length > 1) {
-      searchQuery = searchQuery.map(function(s){return `(${s})`}).join(' AND ');
-    } else {
-      searchQuery = searchQuery[0];
+    var isSearch = !opts.cacheAsDefaultSearch;
+
+    if (isSearch) {
+      // cancel existing searches
+      if (jqxhrs.search) {
+        jqxhrs.search.abort();
+        jqxhrs.search = false;
+      }
     }
-    if (cacheAsDefaultSearch) {
-      searchStore.update({
-        defaultQueryState: 'loading',
-        defaultQueryStr: params.string,
-        defaultQueryTags: tags,
-        defaultQueryParams: params,
-      })
-    } else {
-      searchStore.update({
-        searchState: 'loading',
-        searchStr: params.string,
-        searchTags: tags,
-        searchParams: params,
-      })
-    }
-    var searchDataObj = {
-      q: searchQuery
-    };
-    if (parent) {
-      searchDataObj.parent = parent;
-    }
-    searchParams.__builtQueryString = $.param(searchDataObj);
-    searchDataInterface.assets(searchDataObj)
+    var req = searchDataInterface.assets(qData)
       .done(function(data){
-        search.completed(searchParams, data, {
-          cacheAsDefaultSearch: cacheAsDefaultSearch,
-          tags: tags
+        search.completed(dataObject, data, {
+          cacheAsDefaultSearch: opts.cacheAsDefaultSearch,
         });
       })
       .fail(function(xhr){
-        search.failed(xhr, searchParams);
+        search.failed(xhr, dataObject);
       });
+
+    jqxhrs[ isSearch ? 'search' : 'default' ] = req;
+
+    log('searchFor ', _dataObjectClone);
+    if (isSearch) {
+      searchStore.update({
+        searchState: 'loading',
+        searchFor: _dataObjectClone,
+      })
+    } else {
+      searchStore.update({
+        defaultQueryState: 'loading',
+        defaultQueryFor: _dataObjectClone,
+      })
+    }
   });
-  search.completed.listen(function(rawSearchParams, data, opts){
+
+  search.completed.listen(function(searchParams, data, opts){
     data.results = data.results.map(assetParserUtils.parsed);
 
     var count = data.count,
-        isEmpty = count === 0,
-        tags = opts.tags;
-
-    var searchParams = assign({}, searchStore.filterParams, rawSearchParams);
+        isEmpty = count === 0;
 
     var newState;
 
@@ -163,44 +202,54 @@ function SearchContext(opts={}) {
         searchDebugQuery: searchParams.__builtQueryString,
         searchBaseFilterParams: searchStore.filterParams,
         searchResults: data,
-        searchTags: tags,
+        searchTags: searchParams.tags,
         searchResultsList: data.results,
         searchResultsCount: count,
-      };
 
-      // when to show search results (as opposed to default query)
-      newState.searchResultsDisplayed = (function(){
-        return true;
-      })();
-      newState.searchResultsSuccess = (function(){
-        return count > 0;
-      })();
+        // when to show search results (as opposed to default query)
+        searchResultsDisplayed: true,
+        searchResultsSuccess: count > 0,
+      };
     }
     searchStore.update(newState);
   });
   search.failed.listen(function(xhr, searchParams){
     searchStore.update({
-      searchResultsSuccess: false,
-      searchResultsDisplayed: true,
-      searchState: 'none',
-      searchResultsFor: searchParams,
-      searchDebugQuery: `error on query: ${searchParams.__builtQueryString}`,
-      searchErrorMessage: 'error on query',
-      searchResults: { results: [] },
-      searchResultsList: [],
-      searchResultsCount: 0,
-    });
+      searchState: 'failed',
+    })
+    log('failed');
+    // searchStore.update({
+    //   searchResultsSuccess: false,
+    //   searchResultsDisplayed: true,
+    //   searchState: 'none',
+    //   searchResultsFor: searchParams,
+    //   searchDebugQuery: `error on query: ${searchParams.__builtQueryString}`,
+    //   searchErrorMessage: 'error on query',
+    //   searchResults: { results: [] },
+    //   searchResultsList: [],
+    //   searchResultsCount: 0,
+    // });
   });
   search.cancel.listen(function(){
+    if (jqxhrs.search) {
+      jqxhrs.search.abort();
+    }
     searchStore.update(assign({
       cleared: true
     }, clearSearchState));
   })
   this.mixin = {
-    searchValue: ( debounceTime ? _.debounce(search, debounceTime) : search ),
+    debouncedSearch: ( debounceTime ? _.debounce(search, debounceTime) : search ),
+    searchValue: search,
+    updateStore (vals) {
+      searchStore.update(vals);
+    },
+    quietUpdateStore (vals) {
+      searchStore.quietUpdate(vals);
+    },
     searchStore: searchStore,
     searchDefault: function () {
-      search({}, {
+      search({
         cacheAsDefaultSearch: true
       });
     },
@@ -229,19 +278,30 @@ var commonMethods = {
     }
     assign(this, ctx.mixin);
   },
+  searchTagsChange (tags) {
+    this.quietUpdateStore({
+      searchTags: tags
+    });
+    this.searchValue();
+  },
   searchChangeEvent (evt) {
     var val = evt.target.value;
     if (val) {
-      this.searchValue({
-        string: val
+      this.quietUpdateStore({
+        searchString: val,
       });
+      this.debouncedSearch();
     } else {
-      this.getSearchActions().search.cancel();
+      this.clearSearchStringAndCancel();
     }
+  },
+  clearSearchStringAndCancel () {
+    this.searchStore.removeItem('searchString');
+    this.getSearchActions().search.cancel();
   },
   searchClear () {
     this.getSearchActions().search.cancel();
-  }
+  },
 };
 
 function isSearchContext (ctx) {

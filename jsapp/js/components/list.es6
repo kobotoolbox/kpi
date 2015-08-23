@@ -157,16 +157,6 @@ var List = React.createClass({
       evt.preventDefault();
     }
   },
-  searchChange (evt) {
-    var val = evt.target.value;
-    if (val) {
-      this.searchValue({
-        string: val
-      });
-    } else {
-      this.getSearchActions().search.cancel();
-    }
-  },
 });
 
 var ListSearch = React.createClass({
@@ -233,15 +223,7 @@ var ListTagFilter = React.createClass({
     });
   },
   onTagChange (tagString, tagList) {
-    var tagString = tagList.map(function(t){
-      return `tag:${t.value}`
-    }).join(' OR ');
-    if (tagList.length === 0) {
-      delete this.searchStore.filterParams.tagString;
-    } else {
-      this.searchStore.filterParams.tagString = tagString;
-    }
-    this.getSearchActions().search();
+    this.searchTagsChange(tagList);
   },
   render () {
     if (!this.state.tagsLoaded) {
@@ -282,21 +264,29 @@ var ListSearchSummary = React.createClass({
   render () {
     var messages = [], modifier,
         s = this.state;
-    if (s.searchResultsDisplayed) {
-      if (s.searchState === 'loading') {
-        messages.push(t('searching'))
-        modifier = 'loading';
-      } else if (s.searchState === 'done') {
-        if (s.searchStr) {
-          messages.push(t('searched for "___"').replace('___', s.searchStr));
+    if (s.searchState === 'loading') {
+      if (s.searchFor) {
+        if (s.searchFor.string) {
+          messages.push(t('searching for "___"').replace('___', s.searchFor.string));
         }
-        log('ss' , s);
-        messages.push(t('found ## results').replace('##', s.searchResultsCount));
-        modifier = 'done';
+        if (s.searchFor.tags && s.searchFor.tags.length > 0) {
+          var tagString = _.pluck(s.searchFor.tags, 'label').join(', ');
+          messages.push(t('tagged with [___]').replace('___', tagString));
+        }
       }
+      modifier = 'loading';
+    } else if (s.searchResultsDisplayed) {
+      if (s.searchFor) {
+        if (s.searchFor.string) {
+          messages.push(t('searched for "___"').replace('___', s.searchFor.string));
+        } else if (s.searchFor.tags && s.searchFor.tags.length > 0) {
+          messages.push(t('tagged with [___]').replace('___', s.searchFor.tags.join(', ')));
+        }
+      }
+      messages.push(t('found ## results').replace('##', s.searchResultsCount));
+      modifier = 'done';
     } else {
       if (s.defaultQueryState === 'loading') {
-        messages.push(t('loading'))
         modifier = 'loading'
       } else if (s.defaultQueryState === 'done') {
         messages.push(t('listing ## items').replace('##', s.defaultQueryCount));
