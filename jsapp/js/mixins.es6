@@ -646,9 +646,9 @@ mixins.clickAssets = {
     var assetType = data.assetType,
         action = data.action,
         disabled = data.disabled == "true",
-        uid = this.state.list && stores.selectedAsset.uid,
+        uid = stores.selectedAsset.uid,
         result;
-    var click = this.click || mixins.collection.click;
+    var click = this.click;
 
     if (action === 'new') {
       result = this.click.asset.new.call(this);
@@ -657,6 +657,43 @@ mixins.clickAssets = {
     }
     if (result !== false) {
       evt.preventDefault();
+    }
+  },
+  click: {
+    collection: {
+      sharing: function(uid, evt){
+        this.transitionTo('collection-sharing', {assetid: uid});
+      },
+      view: function(uid, evt){
+        this.transitionTo('collection-page', {uid: uid})
+      },
+      delete: function(uid, evt){
+        window.confirm(t('Warning! You are about to delete this collection with all its questions and blocks. Are you sure you want to continue?')) &&
+            actions.resources.deleteCollection({uid: uid});
+      },
+    },
+    asset: {
+      new: function(uid, evt){
+        this.transitionTo('new-form')
+      },
+      view: function(uid, evt){
+        this.transitionTo('form-landing', {assetid: uid})
+      },
+      clone: function(uid, evt){
+        actions.resources.cloneAsset({uid: uid})
+      },
+      download: function(uid, evt){
+        this.transitionTo('form-download', {assetid: uid})
+      },
+      delete: function(uid, evt){
+        window.confirm(t('You are about to permanently delete this form. Are you sure you want to continue?')) && 
+          actions.resources.deleteAsset({uid: uid});
+      },
+      deploy: function(uid, evt){
+        var asset_url = stores.selectedAsset.asset.url;
+        // var form_id_string = prompt('form_id_string');
+        actions.resources.deployAsset(asset_url);
+      },
     }
   },
 };

@@ -61,6 +61,8 @@ var FormsSearchableList = React.createClass({
                 searchContext={this.state.searchContext}
               />
             <ListSearchSummary
+                assetDescriptor={t('form')}
+                assetDescriptorPlural={t('forms')}
                 searchContext={this.state.searchContext}
               />
           </bem.CollectionNav__search>
@@ -71,24 +73,20 @@ var FormsSearchableList = React.createClass({
               <i className="material-icons">add</i>
             </button>
 
-            <ul className="mdl-menu mdl-menu--top-right mdl-js-menu mdl-js-ripple-effect"
+            <div className="mdl-menu mdl-menu--top-right mdl-js-menu mdl-js-ripple-effect"
                 htmlFor="demo-menu-top-right">
-              <li className="mdl-menu__item">
-                <bem.CollectionNav__link m={['new', 'new-block']} href={this.makeHref('add-to-library')}>
-                  <i />
-                  {t('add to library')}
-                </bem.CollectionNav__link>
-              </li>
-              <li className="mdl-menu__item">
-                <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
-                  <bem.CollectionNav__button m={['upload', 'upload-block']}>
-                    <i className='fa fa-icon fa-cloud fa-fw' />
-                    &nbsp;&nbsp;
-                    {t('upload')}
-                  </bem.CollectionNav__button>
-                </Dropzone>
-              </li>
-            </ul>
+              <bem.CollectionNav__link className="mdl-menu__item" m={['new', 'new-block']}
+                  href={this.makeHref('new-form')}>
+                <i />
+                {t('new form')}
+              </bem.CollectionNav__link>
+              <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
+                <bem.CollectionNav__button m={['upload', 'upload-block']} className="mdl-menu__item">
+                  <i className='fa fa-icon fa-cloud fa-fw' />
+                  {t('upload')}
+                </bem.CollectionNav__button>
+              </Dropzone>
+            </div>
           </bem.CollectionNav__actions>
         </bem.CollectionNav>
         <SearchCollectionList

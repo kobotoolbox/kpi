@@ -101,62 +101,6 @@ var List = React.createClass({
         </bem.CollectionAssetList>
       );
   },
-  click: {
-    collection: {
-      sharing: function(uid, evt){
-        this.transitionTo('collection-sharing', {assetid: uid});
-      },
-      view: function(uid, evt){
-        this.transitionTo('collection-page', {uid: uid})
-      },
-      delete: function(uid, evt){
-        window.confirm(t('Warning! You are about to delete this collection with all its questions and blocks. Are you sure you want to continue?')) &&
-            actions.resources.deleteCollection({uid: uid});
-      },
-    },
-    asset: {
-      new: function(uid, evt){
-        log('transitionTo new-form')
-        this.transitionTo('new-form')
-      },
-      view: function(uid, evt){
-        this.transitionTo('form-landing', {assetid: uid})
-      },
-      clone: function(uid, evt){
-        actions.resources.cloneAsset({uid: uid})
-      },
-      download: function(uid, evt){
-        this.transitionTo('form-download', {assetid: uid})
-      },
-      delete: function(uid, evt){
-        window.confirm(t('You are about to permanently delete this form. Are you sure you want to continue?')) && 
-          actions.resources.deleteAsset({uid: uid});
-      },
-      deploy: function(uid, evt){
-        var asset_url = stores.selectedAsset.asset.url;
-        // var form_id_string = prompt('form_id_string');
-        actions.resources.deployAsset(asset_url);
-      },
-    }
-  },
-  onActionButtonClick (evt) {
-    var data = evt.actionIcon ? evt.actionIcon.dataset : evt.currentTarget.dataset;
-    var assetType = data.assetType,
-        action = data.action,
-        disabled = data.disabled == "true",
-        uid = this.state.list && stores.selectedAsset.uid,
-        result;
-    var click = this.click || mixins.collection.click;
-
-    if (action === 'new') {
-      result = this.click.asset.new.call(this);
-    } else if (this.click[assetType] && this.click[assetType][action]) {
-      result = this.click[assetType][action].call(this, uid, evt);
-    }
-    if (result !== false) {
-      evt.preventDefault();
-    }
-  },
 });
 
 var ListSearch = React.createClass({
@@ -261,6 +205,12 @@ var ListSearchSummary = React.createClass({
   searchChanged (state) {
     this.setState(state);
   },
+  getDefaultProps () {
+    return {
+      assetDescriptor: 'item',
+      assetDescriptorPlural: 'items',
+    };
+  },
   render () {
     var messages = [], modifier,
         s = this.state;
@@ -292,7 +242,7 @@ var ListSearchSummary = React.createClass({
       if (s.defaultQueryState === 'loading') {
         modifier = 'loading'
       } else if (s.defaultQueryState === 'done') {
-        messages.push(t('listing ## items').replace('##', s.defaultQueryCount));
+        messages.push(t('## ___ available').replace('##', s.defaultQueryCount).replace('___', this.props.assetDescriptorPlural));
         modifier = 'done'
       }
     }

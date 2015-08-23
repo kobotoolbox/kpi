@@ -443,7 +443,7 @@ var selectedAssetStore = Reflux.createStore({
       this.asset = {};
     } else {
       this.uid = uid;
-      this.asset = allAssetsStore.byUid[uid]
+      this.asset = allAssetsStore.byUid[uid];
     }
     this.trigger({
       uid: this.uid
@@ -451,7 +451,7 @@ var selectedAssetStore = Reflux.createStore({
     return this.uid !== false;
   }
 });
- 
+
 var collectionAssetsStore = Reflux.createStore({
   init () {
     this.collections = {};

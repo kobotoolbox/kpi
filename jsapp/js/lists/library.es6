@@ -61,6 +61,8 @@ var LibrarySearchableList = React.createClass({
                 searchContext={this.state.searchContext}
               />
             <ListSearchSummary
+                assetDescriptor={t('library item')}
+                assetDescriptorPlural={t('library items')}
                 searchContext={this.state.searchContext}
               />
           </bem.CollectionNav__search>

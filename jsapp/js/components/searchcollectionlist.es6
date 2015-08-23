@@ -1,5 +1,6 @@
 import React from 'react/addons';
 import Reflux from 'reflux';
+import {Navigation} from 'react-router';
 
 import searches from '../searches';
 import mixins from '../mixins';
@@ -12,6 +13,7 @@ import AssetRow from './assetrow';
 var SearchCollectionList = React.createClass({
   mixins: [
     searches.common,
+    Navigation,
     mixins.clickAssets,
     Reflux.ListenerMixin,
   ],
@@ -21,16 +23,27 @@ var SearchCollectionList = React.createClass({
       searchContext: 'default',
     }
   },
+  getInitialState () {
+    return {
+      selectedAssetUid: stores.selectedAsset.uid,
+    }
+  },
   componentDidMount () {
     this.listenTo(this.searchStore, this.searchChanged);
+    this.listenTo(stores.selectedAsset, this.selectedAssetChanged);
   },
   searchChanged (searchStoreState) {
     this.setState(searchStoreState);
   },
+  selectedAssetChanged ({uid}) {
+    this.setState({
+      selectedAssetUid: uid
+    });
+  },
   renderAssetRow (resource) {
     var currentUsername = stores.session.currentAccount && stores.session.currentAccount.username;
     var perm = parsePermissions(resource.owner, resource.permissions)
-    var isSelected = stores.selectedAsset.uid === resource.uid;
+    var isSelected = this.state.selectedAssetUid === resource.uid;
     return <this.props.assetRowClass key={resource.uid}
                       currentUsername={currentUsername}
                       perm={perm}
