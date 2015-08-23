@@ -9,6 +9,9 @@ ui.SmallInputBox = React.createClass({
   getValue () {
     return this.refs.inp.getDOMNode().value;
   },
+  setValue (v) {
+    this.refs.inp.getDOMNode().value = v;
+  },
   render () {
     var elemId = _.uniqueId('elem');
     return (

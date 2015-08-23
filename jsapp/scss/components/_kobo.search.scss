@@ -1,0 +1,54 @@
+
+.search {
+  @extend .mdl-cell, .mdl-cell--12-col;
+
+  position: relative;
+  margin-top: 12px;
+  padding: 0 20px;
+
+  .search__cancel, .search__icon {
+    position: absolute;
+    top: 26px;
+    color: #bbb;
+    @extend .fa, .fa-fw, .fa-icon;
+  }
+  .search__icon {
+    left: 0;
+  }
+  .search__cancel {
+    right: 0;
+  }
+  &.search--none {
+    .search__icon, .search__cancel {
+      display: none;
+    }
+  }
+  &.search--loading {
+    .search__icon {
+      @extend .fa-spin, .fa-spinner;
+    }
+    .search__cancel {
+      @extend .fa-times;
+      cursor: pointer;
+    }
+  }
+  &.search--done {
+    .search__icon {
+      visibility: hidden;
+    }
+    .search__cancel {
+      @extend .fa-times;
+      cursor: pointer;
+    }
+  }
+}
+.search__summary {
+  @extend .mdl-cell, .mdl-cell--12-col;
+
+  padding: 0 20px;
+  margin-top: 12px;
+  color: #888;
+  span {
+    margin-right: 12px;
+  }
+}

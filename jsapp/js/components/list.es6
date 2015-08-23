@@ -33,11 +33,6 @@ var List = React.createClass({
   },
   componentDidMount () {
     this.listenTo(this.searchStore, this.searchStoreChanged);
-    // if (this.props.showDefault) {
-    //   this.getSearchActions().search({
-    //     cacheAsDefaultSearch: true
-    //   });
-    // }
   },
   searchStoreChanged (searchStoreState) {
     this.setState(searchStoreState);
@@ -68,22 +63,7 @@ var List = React.createClass({
         searchResultsCount = this.state.searchResultsCount;
 
     return (
-        <div>
-          {this.props.children}
-          <bem.CollectionAssetList>
-          {/*
-          pseudo-code of what's being rendered here:
-          ------------------------------------------
-          if searchState === 'none' and !showDefault:
-            display message prompting for query
-          else:
-            if loading:
-              display the loading message
-            else if showDefault and searchState === 'none':
-              display the showDefault
-            else:
-              display the search results
-          */}
+        <bem.CollectionAssetList>
           {
             (searchState === 'none' && !showDefault) ?
               <bem.CollectionAssetList__message>
@@ -118,8 +98,7 @@ var List = React.createClass({
               }
             })()
           }
-          </bem.CollectionAssetList>
-        </div>
+        </bem.CollectionAssetList>
       );
   },
   click: {
@@ -207,7 +186,7 @@ var ListSearch = React.createClass({
   },
   searchStoreChanged (searchStoreState) {
     if (searchStoreState.cleared) {
-      this.refs['formlist-search'].getDOMNode().value = '';
+      this.refs['formlist-search'].setValue('');
     }
     this.setState(searchStoreState);
   },
@@ -257,8 +236,11 @@ var ListTagFilter = React.createClass({
     var tagString = tagList.map(function(t){
       return `tag:${t.value}`
     }).join(' OR ');
-    log(tagString);
-    this.searchStore.filterParams.tagString = tagString;
+    if (tagList.length === 0) {
+      delete this.searchStore.filterParams.tagString;
+    } else {
+      this.searchStore.filterParams.tagString = tagString;
+    }
     this.getSearchActions().search();
   },
   render () {
@@ -284,6 +266,53 @@ var ListTagFilter = React.createClass({
       );
   },
 })
+
+var ListSearchSummary = React.createClass({
+  mixins: [
+    searches.common,
+    Reflux.ListenerMixin,
+    Navigation,
+  ],
+  componentDidMount () {
+    this.listenTo(this.searchStore, this.searchChanged)
+  },
+  searchChanged (state) {
+    this.setState(state);
+  },
+  render () {
+    var messages = [], modifier,
+        s = this.state;
+    if (s.searchResultsDisplayed) {
+      if (s.searchState === 'loading') {
+        messages.push(t('searching'))
+        modifier = 'loading';
+      } else if (s.searchState === 'done') {
+        if (s.searchStr) {
+          messages.push(t('searched for "___"').replace('___', s.searchStr));
+        }
+        log('ss' , s);
+        messages.push(t('found ## results').replace('##', s.searchResultsCount));
+        modifier = 'done';
+      }
+    } else {
+      if (s.defaultQueryState === 'loading') {
+        messages.push(t('loading'))
+        modifier = 'loading'
+      } else if (s.defaultQueryState === 'done') {
+        messages.push(t('listing ## items').replace('##', s.defaultQueryCount));
+        modifier = 'done'
+      }
+    }
+
+    return (
+        <bem.Search__summary m={modifier}>
+          {messages.map(function(message, i){
+            return <span key={`prop-${i}`}>{message}</span>;
+          })}
+        </bem.Search__summary>
+      )
+  },
+});
 
 var ListSearchDebug = React.createClass({
   mixins: [
@@ -333,5 +362,6 @@ export default {
   List: List,
   ListSearch: ListSearch,
   ListSearchDebug: ListSearchDebug,
+  ListSearchSummary: ListSearchSummary,
   ListTagFilter: ListTagFilter,
 };

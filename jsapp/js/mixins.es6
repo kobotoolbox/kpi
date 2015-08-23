@@ -640,4 +640,25 @@ mixins.cmix = {
   }
 }
 
+mixins.clickAssets = {
+  onActionButtonClick (evt) {
+    var data = evt.actionIcon ? evt.actionIcon.dataset : evt.currentTarget.dataset;
+    var assetType = data.assetType,
+        action = data.action,
+        disabled = data.disabled == "true",
+        uid = this.state.list && stores.selectedAsset.uid,
+        result;
+    var click = this.click || mixins.collection.click;
+
+    if (action === 'new') {
+      result = this.click.asset.new.call(this);
+    } else if (this.click[assetType] && this.click[assetType][action]) {
+      result = this.click[assetType][action].call(this, uid, evt);
+    }
+    if (result !== false) {
+      evt.preventDefault();
+    }
+  },
+};
+
 export default mixins;

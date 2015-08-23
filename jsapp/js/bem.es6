@@ -27,6 +27,7 @@ bem.AssetRow__sharingIcon__owner =
 bem.Search = BEM('search');
 bem.Search__icon = bem.Search.__('icon', '<i>');
 bem.Search__cancel = bem.Search.__('cancel', '<i>');
+bem.Search__summary = bem.Search.__('summary');
 
 bem.LibNav = BEM('lib-nav');
 bem.LibNav__content = bem.LibNav.__('content');
