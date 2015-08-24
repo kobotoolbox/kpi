@@ -486,6 +486,27 @@ mixins.ancestorBreadcrumb = {
   },
 };
 
+
+mixins.collectionList = {
+  getInitialState () {
+    return {
+      collectionList: [],
+      collectionSearchState: 'none',
+      collectionCount: 0,
+      collectionStore: stores.collections,
+    }
+  },
+  listCollections () {
+    actions.resources.listCollections();
+  },
+  componentDidMount () {
+    this.listenTo(stores.collections, this.collectionsChanged);
+  },
+  collectionsChanged (collections) {
+    this.setState(collections);
+  },
+};
+
 mixins.cmix = {
   componentDidMount () {
     this.listenTo(stores.session, this.cmixSessionStoreChange);
@@ -639,5 +660,63 @@ mixins.cmix = {
       )
   }
 }
+
+mixins.clickAssets = {
+  onActionButtonClick (evt) {
+    var data = evt.actionIcon ? evt.actionIcon.dataset : evt.currentTarget.dataset;
+    var assetType = data.assetType,
+        action = data.action,
+        disabled = data.disabled == "true",
+        uid = stores.selectedAsset.uid,
+        result;
+    var click = this.click;
+
+    if (action === 'new') {
+      result = this.click.asset.new.call(this);
+    } else if (this.click[assetType] && this.click[assetType][action]) {
+      result = this.click[assetType][action].call(this, uid, evt);
+    }
+    if (result !== false) {
+      evt.preventDefault();
+    }
+  },
+  click: {
+    collection: {
+      sharing: function(uid, evt){
+        this.transitionTo('collection-sharing', {assetid: uid});
+      },
+      view: function(uid, evt){
+        this.transitionTo('collection-page', {uid: uid})
+      },
+      delete: function(uid, evt){
+        window.confirm(t('Warning! You are about to delete this collection with all its questions and blocks. Are you sure you want to continue?')) &&
+            actions.resources.deleteCollection({uid: uid});
+      },
+    },
+    asset: {
+      new: function(uid, evt){
+        this.transitionTo('new-form')
+      },
+      view: function(uid, evt){
+        this.transitionTo('form-landing', {assetid: uid})
+      },
+      clone: function(uid, evt){
+        actions.resources.cloneAsset({uid: uid})
+      },
+      download: function(uid, evt){
+        this.transitionTo('form-download', {assetid: uid})
+      },
+      delete: function(uid, evt){
+        window.confirm(t('You are about to permanently delete this form. Are you sure you want to continue?')) && 
+          actions.resources.deleteAsset({uid: uid});
+      },
+      deploy: function(uid, evt){
+        var asset_url = stores.selectedAsset.asset.url;
+        // var form_id_string = prompt('form_id_string');
+        actions.resources.deployAsset(asset_url);
+      },
+    }
+  },
+};
 
 export default mixins;

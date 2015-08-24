@@ -46,6 +46,13 @@ $assetRowTextColor: #888;
     background-color: transparent;
   }
 }
+.asset-row--selected {
+  .asset-row__celllink--name {
+    border-bottom: 1px dotted #ddd;
+    cursor: pointer;
+  }
+  cursor: default;
+}
 .asset-row--deleted {
   opacity: 0.5;
   background-color: rgba(255, 200, 200, 0.1);
@@ -260,7 +267,10 @@ $colwidth: (100% / $colcount) - 1%;
   //   text-overflow: ellipsis; 
   // }
 }
-
+.asset-row__celllink--name {
+  margin-bottom: 6px;
+  border-bottom: 1px dotted transparent;
+}
 // .asset-row__celllink--name {
   // .asset-row--selected & {
   //   a {

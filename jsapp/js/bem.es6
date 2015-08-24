@@ -24,6 +24,11 @@ bem.AssetRow__sharingIcon = bem.AssetRow.__('sharingIcon');
 bem.AssetRow__sharingIcon__owner =
                 bem.AssetRow__sharingIcon.__('owner', '<span>');
 
+bem.Search = BEM('search');
+bem.Search__icon = bem.Search.__('icon', '<i>');
+bem.Search__cancel = bem.Search.__('cancel', '<i>');
+bem.Search__summary = bem.Search.__('summary');
+
 bem.LibNav = BEM('lib-nav');
 bem.LibNav__content = bem.LibNav.__('content');
 bem.LibNav__header = bem.LibNav.__('header');
@@ -44,10 +49,13 @@ bem.LibList__qtype = bem.LibList.__('qtype');
 
 bem.CollectionNav = bem('collection-nav');
 bem.CollectionNav__search = bem.CollectionNav.__('search');
-bem.CollectionNav__searchcriteria = bem.CollectionNav.__('searchcriteria');
+bem.CollectionNav__searchcriteria = bem.CollectionNav.__('searchcriteria', '<ul>');
+bem.CollectionNav__searchcriterion = bem.CollectionNav.__('searchcriterion', '<li>');
 bem.CollectionNav__actions = bem.CollectionNav.__('actions');
 bem.CollectionNav__button = bem.CollectionNav.__('button', '<button>');
 bem.CollectionNav__link = bem.CollectionNav.__('link', '<a>');
+bem.CollectionNav__searchcancel = bem.CollectionNav.__('searchcancel', '<i>');
+bem.CollectionNav__searchicon = bem.CollectionNav.__('searchicon', '<i>');
 
 bem.CollectionAssetList = bem('collection-asset-list', '<ul>');
 bem.CollectionAssetList__message = bem.CollectionAssetList.__('message');

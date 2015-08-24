@@ -1,9 +1,11 @@
 'use strict';
 
-import {log, t, parsePermissions} from './utils';
+import {log, t, notify, parsePermissions} from './utils';
 
 import {dataInterface} from './dataInterface';
+import cookie from 'react-cookie';
 
+var assetParserUtils = require('./assetParserUtils');
 var actions = require('./actions');
 var Reflux = require('reflux');
 var Immutable = require('immutable');
@@ -116,31 +118,23 @@ var assetSearchStore = Reflux.createStore({
 
 var pageStateStore = Reflux.createStore({
   init () {
-    this.state = {
-      headerTitle: 'Forms',
-      bgTopPanelHeight: 60,
-      bgTopPanelFixed: false,
-      headerSearch: true,
-      assetNavPresent: false,
-      assetNavIsOpen: true,
-      assetNavIntentOpen: true,
-      sidebarIsOpen: false,
-      sidebarIntentOpen: false
+    var navIsOpen = cookie.load('assetNavIntentOpen');
+    if (navIsOpen === undefined) {
+      // default assetNav value.
+      navIsOpen = false;
     }
+    this.state = {
+      headerSearch: true,
+      headerTitle: 'Forms',
+      assetNavPresent: false,
+      assetNavIsOpen: navIsOpen,
+      assetNavIntentOpen: navIsOpen,
+      sidebarIsOpen: false,
+      sidebarIntentOpen: false,
+    };
   },
   setState (chz) {
     var changed = changes(this.state, chz);
-    if (changed) {
-      assign(this.state, changed);
-      this.trigger(changed);
-    }
-  },
-  setTopPanel (height, isFixed) {
-    var changed = changes(this.state, {
-      bgTopPanelHeight: height,
-      bgTopPanelFixed: isFixed
-    });
-
     if (changed) {
       assign(this.state, changed);
       this.trigger(changed);
@@ -181,6 +175,7 @@ var pageStateStore = Reflux.createStore({
         changes = {
           assetNavIntentOpen: newIntent
         };
+    cookie.save('assetNavIntentOpen', newIntent);
 
     // xor
     if ( (isOpen || newIntent) && !(isOpen && newIntent) ) {
@@ -189,17 +184,13 @@ var pageStateStore = Reflux.createStore({
     assign(this.state, changes);
     this.trigger(changes);
   },
-  setHeaderSearch (tf) {
-    var newVal = !!tf;
-    if (newVal !== this.state.headerSearch) {
-      this.state.headerSearch = !!tf;
-      var changes = {
-        headerSearch: this.state.headerSearch,
-        assetNavPresent: !this.state.headerSearch,
-        assetNavIsOpen: !this.state.headerSearch
-      };
-      assign(this.state, changes);
-      this.trigger(changes);
+  setAssetNavPresent (tf) {
+    var val = !!tf;
+    if (val !== this.state.assetNavPresent) {
+      this.state.assetNavPresent = val;
+      this.trigger({
+        assetNavPresent: val
+      });
     }
   },
   setHeaderTitle (title) {
@@ -209,7 +200,7 @@ var pageStateStore = Reflux.createStore({
       assign(this.state, changes)
       this.trigger(changes);
     }
-  }  
+  }
 });
 
 stores.snapshots = Reflux.createStore({
@@ -255,44 +246,11 @@ var assetStore = Reflux.createStore({
     this.noteRelatedUsers(resp);
     this.trigger(this.data, resp.uid, {asset_updated: true});
   },
-  parsePermissions (resp) {
-    var out = {};
-    var pp = parsePermissions(resp.owner__username, resp.permissions);
-    out.parsedPermissions = pp;
-    out.access = (()=>{
-      var viewers = {};
-      var changers = {};
-      var isPublic = false;
-      pp.forEach(function(userPerm){
-        if (userPerm.can.view) {
-          viewers[userPerm.username] = true;
-        }
-        if (userPerm.can.change) {
-          changers[userPerm.username] = true;
-        }
-        if (userPerm.username === 'AnonymousUser') {
-          isPublic = !!userPerm.can.view;
-        }
-      });
-      return {view: viewers, change: changers, ownerUsername: resp.owner__username, isPublic: isPublic};
-    })()
-    return out;
-  },
-  parseTags(asset) {
-    return {
-      tags: asset.tag_string.split(',').filter((tg) => { return tg.length > 1; })
-    }
-  },
-  parsed (asset) {
-    return assign(asset,
-        this.parsePermissions(asset),
-        this.parseTags(asset))
-  },
   onLoadAssetCompleted: function (resp, req, jqxhr) {
     if (!resp.uid) {
       throw new Error('no uid found in response');
     }
-    this.data[resp.uid] = this.parsed(resp);
+    this.data[resp.uid] = assetParserUtils.parsed(resp);
     this.noteRelatedUsers(resp);
     this.trigger(this.data, resp.uid);
   }
@@ -412,7 +370,7 @@ var allAssetsStore = Reflux.createStore({
     this.trigger(this.data);
   },
   onListAssetsFailed: function (err) {
-    debugger
+    notify(t('failed to list assets'));
   },
   onDeleteAssetCompleted (asset) {
     this.byUid[asset.uid].deleted = 'true';
@@ -473,15 +431,17 @@ var selectedAssetStore = Reflux.createStore({
     if (this.uid === uid) {
       this.uid = false;
       this.asset = {};
-      return false;
     } else {
       this.uid = uid;
-      this.asset = allAssetsStore.byUid[uid]
-      return true;
+      this.asset = allAssetsStore.byUid[uid];
     }
+    this.trigger({
+      selectedAssetUid: this.uid
+    });
+    return this.uid !== false;
   }
 });
- 
+
 var collectionAssetsStore = Reflux.createStore({
   init () {
     this.collections = {};
@@ -518,6 +478,19 @@ var userExistsStore = Reflux.createStore({
     this.trigger(this.checked, username)
   }
 });
+
+stores.collections = Reflux.createStore({
+  init () {
+    this.listenTo(actions.resources.listCollections.completed, this.listCollectionsCompleted);
+  },
+  listCollectionsCompleted (collectionData) {
+    this.trigger({
+      collectionSearchState: 'done',
+      collectionCount: collectionData.count,
+      collectionList: collectionData.results,
+    })
+  },
+})
 
 assign(stores, {
   history: historyStore,
