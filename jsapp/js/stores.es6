@@ -3,6 +3,7 @@
 import {log, t, notify, parsePermissions} from './utils';
 
 import {dataInterface} from './dataInterface';
+import cookie from 'react-cookie';
 
 var assetParserUtils = require('./assetParserUtils');
 var actions = require('./actions');
@@ -117,31 +118,23 @@ var assetSearchStore = Reflux.createStore({
 
 var pageStateStore = Reflux.createStore({
   init () {
+    var navIsOpen = cookie.load('assetNavIntentOpen');
+    if (navIsOpen === undefined) {
+      // default assetNav value.
+      navIsOpen = false;
+    }
     this.state = {
-      bgTopPanelHeight: 60,
-      bgTopPanelFixed: false,
       headerSearch: true,
       headerTitle: 'Forms',
       assetNavPresent: false,
-      assetNavIsOpen: true,
-      assetNavIntentOpen: true,
+      assetNavIsOpen: navIsOpen,
+      assetNavIntentOpen: navIsOpen,
       sidebarIsOpen: false,
-      sidebarIntentOpen: false
-    }
+      sidebarIntentOpen: false,
+    };
   },
   setState (chz) {
     var changed = changes(this.state, chz);
-    if (changed) {
-      assign(this.state, changed);
-      this.trigger(changed);
-    }
-  },
-  setTopPanel (height, isFixed) {
-    var changed = changes(this.state, {
-      bgTopPanelHeight: height,
-      bgTopPanelFixed: isFixed
-    });
-
     if (changed) {
       assign(this.state, changed);
       this.trigger(changed);
@@ -182,6 +175,7 @@ var pageStateStore = Reflux.createStore({
         changes = {
           assetNavIntentOpen: newIntent
         };
+    cookie.save('assetNavIntentOpen', newIntent);
 
     // xor
     if ( (isOpen || newIntent) && !(isOpen && newIntent) ) {
@@ -190,17 +184,13 @@ var pageStateStore = Reflux.createStore({
     assign(this.state, changes);
     this.trigger(changes);
   },
-  setHeaderSearch (tf) {
-    var newVal = !!tf;
-    if (newVal !== this.state.headerSearch) {
-      this.state.headerSearch = !!tf;
-      var changes = {
-        headerSearch: this.state.headerSearch,
-        assetNavPresent: !this.state.headerSearch,
-        assetNavIsOpen: !this.state.headerSearch
-      };
-      assign(this.state, changes);
-      this.trigger(changes);
+  setAssetNavPresent (tf) {
+    var val = !!tf;
+    if (val !== this.state.assetNavPresent) {
+      this.state.assetNavPresent = val;
+      this.trigger({
+        assetNavPresent: val
+      });
     }
   },
   setHeaderTitle (title) {

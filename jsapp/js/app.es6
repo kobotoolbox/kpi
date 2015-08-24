@@ -192,17 +192,6 @@ mixins.permissions = {
   }
 };
 
-var BgTopPanel = React.createClass({
-  render () {
-    var h = this.props.bgTopPanelHeight;
-    var kls = classNames('bg-fixed-top-panel', `bg--h${h}`, {
-      'bg--fixed': this.props.bgTopPanelFixed
-    });
-    return (<div className={kls} />);
-  }
-});
-
-
 class UserDropdown extends React.Component {
   logout (evt) {
     evt.preventDefault();
@@ -356,7 +345,7 @@ var AssetNavigatorListView = React.createClass({
     return {};
   },
   searchStoreChanged (searchStoreState) {
-    this.setState(searchStoreState)
+    this.setState(searchStoreState);
   },
   activateSortable() {
     if (!this.refs.liblist) {
@@ -380,7 +369,22 @@ var AssetNavigatorListView = React.createClass({
     })
   },
   render () {
-    if (this.state.searchResults.count === 0) {
+    var list,
+        count,
+        status,
+        isSearch = this.state.searchResultsDisplayed;
+
+    if (isSearch) {
+      status = this.state.searchState,
+      list = this.state.searchResultsList;
+      count = this.state.searchResultsCount;
+    } else {
+      status = this.state.defaultQueryState;
+      list = this.state.defaultQueryResultsList;
+      count = this.state.defaultQueryCount;
+    }
+
+    if (count === 0) {
       return (
           <bem.LibList m={'empty'}>
             <bem.LibList__item m={'message'}>
@@ -395,8 +399,8 @@ var AssetNavigatorListView = React.createClass({
       }, 1);
 
       return (
-            <bem.LibList m={'search-results'} ref="liblist">
-              {this.state.searchResultsList.map((item)=> {
+            <bem.LibList m={isSearch ? 'search' : 'default'} ref="liblist">
+              {list.map((item)=> {
                 var modifiers = [item.asset_type];
                 var summ = item.summary;
                 return (
@@ -436,9 +440,8 @@ var AssetNavigator = React.createClass({
   ],
   componentDidMount() {
     this.listenTo(stores.assetLibrary, this.assetLibraryTrigger);
-    actions.search.libraryDefaultQuery();
-
     this.listenTo(stores.pageState, this.handlePageStateStore);
+    this.state.searchContext.mixin.searchDefault();
   },
   assetLibraryTrigger (res) {
     this.setState({
@@ -1071,43 +1074,14 @@ function surveyToValidJson(survey, omitSettings=false) {
 var App = React.createClass({
   mixins: [
     Reflux.ListenerMixin,
-    Navigation
+    Navigation,
+    Reflux.connect(stores.pageState),
   ],
   getInitialState () {
-    return assign(stores.pageState.state);
-    // return assign({}, stores.pageState.state, {
-    //   sidebarIsOpen: !this.widthLessThanMin()
-    // })
+    return assign({}, stores.pageState.state, {
+      sidebarIsOpen: stores.pageState.state.sidebarIsOpen
+    });
   },
-  widthLessThanMin () {
-    if (stores.pageState.state.assetNavIsOpen) {
-      return window.innerWidth < 1500;
-    } else {
-      return window.innerWidth < 1100;
-    }
-  },
-  handleResize () {
-    // if (this.widthLessThanMin()) {
-    //   stores.pageState.hideSidebar();
-    // } else if (this.state.sidebarIntentOpen && !this.state.sidebarIsOpen) {
-    //   stores.pageState.showSidebar();
-    // }
-  },
-  pageStateChange (state) {
-    this.setState(state);
-  },
-  componentDidMount () {
-    this.listenTo(stores.pageState, this.pageStateChange)
-
-    // can use window.matchMedia(...) here
-    // window.addEventListener('resize', this.handleResize);
-
-    stores.pageState.toggleAssetNavIntentOpen();
-  },
-  componentWillUnmount () {
-    window.removeEventListener('resize', this.handleResize);
-  },
-
   toggleSidebarIntentOpen (evt) {
     evt.preventDefault();
     stores.pageState.toggleSidebarIntentOpen();
@@ -1121,7 +1095,6 @@ var App = React.createClass({
               // 'activenav': this.state.sidebarIsOpen,
               'asset-nav-present': this.state.assetNavPresent,
               'asset-nav-open': this.state.assetNavIsOpen && this.state.assetNavPresent,
-              // 'header-search': this.state.headerSearch,
                 }}  className="mdl-layout mdl-js-layout mdl-layout--fixed-header">
               <MainHeader />
               <Drawer />
@@ -1143,7 +1116,7 @@ var App = React.createClass({
   componentDidUpdate() {
     // Material Design Lite
     // This upgrades all upgradable components (i.e. with 'mdl-js-*' class)
-    mdl.upgradeDom(); 
+    mdl.upgradeDom();
   }
 });
 
@@ -1248,8 +1221,7 @@ mixins.newForm = {
   },
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setHeaderSearch(false);
-      stores.pageState.setTopPanel(30, false);
+      stores.pageState.setAssetNavPresent(true);
       callback();
     }
   },
@@ -2110,8 +2082,7 @@ var FormPage = React.createClass({
   },
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setHeaderSearch(false);
-      // stores.pageState.setTopPanel(30, false);
+      stores.pageState.setAssetNavPresent(true);
       if (params.assetid[0] === 'c') {
         transition.redirect('collection-page', {uid: params.assetid});
       } else {
@@ -2159,11 +2130,9 @@ var FormLanding = React.createClass({
   ],
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setHeaderSearch(true);
+      stores.pageState.setAssetNavPresent(false);
       stores.pageState.setHeaderTitle('Forms');
-      // stores.pageState.setTopPanel(30, false);
       actions.resources.loadAsset({id: params.assetid});
-      // actions.resources.loadAssetContent({id: params.assetid});
       callback();
     }
   },

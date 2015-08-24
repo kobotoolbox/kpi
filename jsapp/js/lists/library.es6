@@ -25,6 +25,7 @@ var LibrarySearchableList = React.createClass({
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
       stores.pageState.setHeaderTitle(t('Library'));
+      stores.pageState.setAssetNavPresent(false);
       callback();
     }
   },

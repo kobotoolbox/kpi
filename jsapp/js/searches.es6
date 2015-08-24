@@ -33,7 +33,8 @@ const clearSearchState = {
   searchResultsDisplayed: false,
   searchResultsFor: false,
   searchResultsSuccess: null,
-  searchDebugQuery: false
+  searchDebugQuery: false,
+  searchResultsCount: 0,
 };
 const initialState = assign({
   cleared: false,

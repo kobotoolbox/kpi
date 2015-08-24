@@ -25,6 +25,7 @@ var FormsSearchableList = React.createClass({
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
       stores.pageState.setHeaderTitle(t('Forms'));
+      stores.pageState.setAssetNavPresent(false);
       callback();
     }
   },
