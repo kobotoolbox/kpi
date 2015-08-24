@@ -242,8 +242,9 @@ var ListSearchSummary = React.createClass({
       if (s.defaultQueryState === 'loading') {
         modifier = 'loading'
       } else if (s.defaultQueryState === 'done') {
-        messages.push(t('## ___ available').replace('##', s.defaultQueryCount).replace('___', this.props.assetDescriptorPlural));
-        modifier = 'done'
+        var desc = s.defaultQueryCount === 1 ? this.props.assetDescriptor : this.props.assetDescriptorPlural;
+        messages.push(t('## ___ available').replace('##', s.defaultQueryCount).replace('___', desc));
+        modifier = 'done';
       }
     }
 

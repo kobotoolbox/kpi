@@ -48,8 +48,10 @@ $assetRowTextColor: #888;
 }
 .asset-row--selected {
   .asset-row__celllink--name {
-    border-bottom: 1px dotted rgba(6, 126, 179, 0.5);
+    border-bottom: 1px dotted #ddd;
+    cursor: pointer;
   }
+  cursor: default;
 }
 .asset-row--deleted {
   opacity: 0.5;
