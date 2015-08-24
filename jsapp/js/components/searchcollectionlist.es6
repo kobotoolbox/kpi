@@ -15,6 +15,7 @@ var SearchCollectionList = React.createClass({
     searches.common,
     Navigation,
     mixins.clickAssets,
+    Reflux.connect(stores.selectedAsset),
     Reflux.ListenerMixin,
   ],
   getDefaultProps () {
@@ -23,22 +24,11 @@ var SearchCollectionList = React.createClass({
       searchContext: 'default',
     }
   },
-  getInitialState () {
-    return {
-      selectedAssetUid: stores.selectedAsset.uid,
-    }
-  },
   componentDidMount () {
     this.listenTo(this.searchStore, this.searchChanged);
-    this.listenTo(stores.selectedAsset, this.selectedAssetChanged);
   },
   searchChanged (searchStoreState) {
     this.setState(searchStoreState);
-  },
-  selectedAssetChanged ({uid}) {
-    this.setState({
-      selectedAssetUid: uid
-    });
   },
   renderAssetRow (resource) {
     var currentUsername = stores.session.currentAccount && stores.session.currentAccount.username;

@@ -2264,61 +2264,7 @@ var FormLanding = React.createClass({
 
 var LibrarySearchableList = require('./lists/library');
 var FormsSearchableList = require('./lists/forms');
-
-var CollectionList = React.createClass({
-  mixins: [
-    mixins.droppable,
-    Navigation,
-    mixins.collection,
-    Reflux.ListenerMixin,
-  ],
-  render () {},
-  statics: {
-    willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setHeaderTitle('Collections');
-      callback();
-    }
-  },
-  addListeners () {
-    this.listenTo(stores.allAssets, this.listenChange);
-  },
-  listenChange (data) {
-    var collections = stores.allAssets.byKind('collection')
-    this.setState({
-      list: [...collections]
-    })
-  },
-  searchCriteriaChange (evt) {
-    this.setState({
-      searchRadio: 'type'+(Math.floor(Math.random()*3))
-    })
-  },
-  _title () {
-    return t('KoBo collections');
-  },
-  _loadingMessage () {
-    return t('loading collections...')
-  },
-  _renderSearchCriteria () {
-    return (
-      <bem.CollectionNav__searchcriteria>
-      </bem.CollectionNav__searchcriteria>
-      );
-    /*
-        truncated comment after copying from FormList
-    */
-  },
-  _renderFormsSearchRow () {
-    return (
-      <bem.CollectionNav>
-        <bem.CollectionNav__search className="k-form-list-search-bar">
-          <ui.SmallInputBox ref="formlist-search" placeholder={t('search collections')} onChange={this.searchChange} />
-        </bem.CollectionNav__search>
-        {this._renderSearchCriteria()}
-      </bem.CollectionNav>
-    );
-  }
-});
+var CollectionList = require('./lists/collection');
 
 var FormNotFound = React.createClass({
   render () {

@@ -94,6 +94,12 @@ actions.resources = Reflux.createActions({
       "failed"
     ]
   },
+  listCollections: {
+    children: [
+      "completed",
+      "failed"
+    ]
+  },
   listQuestionsAndBlocks: {
     children: [
       "completed",
@@ -455,6 +461,12 @@ actions.resources.listSurveys.listen(function(){
   dataInterface.listSurveys()
       .done(actions.resources.listAssets.completed)
       .fail(actions.resources.listAssets.failed)
+});
+
+actions.resources.listCollections.listen(function(){
+  dataInterface.listCollections()
+      .done(actions.resources.listCollections.completed)
+      .fail(actions.resources.listCollections.failed)
 });
 
 actions.resources.listQuestionsAndBlocks.listen(function(){

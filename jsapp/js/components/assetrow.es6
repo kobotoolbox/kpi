@@ -92,10 +92,10 @@ var AssetRow = React.createClass({
             <bem.AssetRow__cell m={'tags'}>
               <bem.AssetRow__tags>
                 {
-                  this.props.tags.length > 0 ?
+                  tags.length > 0 ?
                     <i />
                 :<bem.AssetRow__tags__notags>{t('no tags')}</bem.AssetRow__tags__notags>}
-                {this.props.tags.map((tag)=>{
+                {tags.map((tag)=>{
                   return <bem.AssetRow__tags__tag>{tag}</bem.AssetRow__tags__tag>
                 })}
               </bem.AssetRow__tags>

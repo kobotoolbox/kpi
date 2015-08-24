@@ -486,6 +486,27 @@ mixins.ancestorBreadcrumb = {
   },
 };
 
+
+mixins.collectionList = {
+  getInitialState () {
+    return {
+      collectionList: [],
+      collectionSearchState: 'none',
+      collectionCount: 0,
+      collectionStore: stores.collections,
+    }
+  },
+  listCollections () {
+    actions.resources.listCollections();
+  },
+  componentDidMount () {
+    this.listenTo(stores.collections, this.collectionsChanged);
+  },
+  collectionsChanged (collections) {
+    this.setState(collections);
+  },
+};
+
 mixins.cmix = {
   componentDidMount () {
     this.listenTo(stores.session, this.cmixSessionStoreChange);

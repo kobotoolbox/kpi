@@ -436,7 +436,7 @@ var selectedAssetStore = Reflux.createStore({
       this.asset = allAssetsStore.byUid[uid];
     }
     this.trigger({
-      uid: this.uid
+      selectedAssetUid: this.uid
     });
     return this.uid !== false;
   }
@@ -478,6 +478,19 @@ var userExistsStore = Reflux.createStore({
     this.trigger(this.checked, username)
   }
 });
+
+stores.collections = Reflux.createStore({
+  init () {
+    this.listenTo(actions.resources.listCollections.completed, this.listCollectionsCompleted);
+  },
+  listCollectionsCompleted (collectionData) {
+    this.trigger({
+      collectionSearchState: 'done',
+      collectionCount: collectionData.count,
+      collectionList: collectionData.results,
+    })
+  },
+})
 
 assign(stores, {
   history: historyStore,
