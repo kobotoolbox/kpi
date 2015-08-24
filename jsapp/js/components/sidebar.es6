@@ -233,9 +233,15 @@ var Sidebar = React.createClass({
             }
           </ul>
           <div className="sidebar-footer">
-            <SidebarFooterItem label="help" href="http://support.kobotoolbox.org/" />
-            <SidebarFooterItem label="about" href="http://www.kobotoolbox.org/" />
-            <SidebarFooterItem label="source" href="https://github.com/kobotoolbox/" />
+            <a href="http://support.kobotoolbox.org/" target="_blank">
+              help
+            </a>
+            <a href="http://www.kobotoolbox.org/" target="_blank">
+              about
+            </a>
+            <a href="https://github.com/kobotoolbox/" target="_blank">
+              source
+            </a>
           </div>
         </div>
       )

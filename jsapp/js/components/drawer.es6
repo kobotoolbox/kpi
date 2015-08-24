@@ -93,6 +93,19 @@ var Drawer = React.createClass({
       	        <DrawerLink label={t('login')} href='/api-auth/login/?next=/' fa-icon="sign-in" />
         	    }
             </nav>
+
+            <div className="drawer__footer">
+              <a href="http://support.kobotoolbox.org/" target="_blank">
+                help
+              </a>
+              <a href="http://www.kobotoolbox.org/" target="_blank">
+                about
+              </a>
+              <a href="https://github.com/kobotoolbox/" target="_blank">
+                source
+              </a>
+            </div>
+
           </div>
       )
   }

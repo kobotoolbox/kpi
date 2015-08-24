@@ -49,54 +49,10 @@ body {
   @extend .mdl-color--grey-100;
 }
 
-.drawer-separator {
-  height: 1px;
-  background-color: rgba(255, 255, 255, 0.1);
-  margin: 8px 0;
-}
-
 $layout-header-mobile-indent-plus: $layout-header-mobile-indent + 6px;
 $layout-header-desktop-indent-plus: $layout-header-desktop-indent + 6px;
 
-.mdl-layout__drawer {
-  border-right:1px solid rgba(255, 255, 255, 0.2);
-  > .mdl-layout-title {
-    color: $layout-drawer-navigation-color;
-    padding-top:16px;
-  }
-
-  .mdl-navigation__heading {
-    padding: 8px $layout-header-desktop-indent;
-    opacity: 0.5;
-    font-size: 0.85em;
-    @media screen and (max-width: $layout-screen-size-threshold) {
-        padding: 8px $layout-header-mobile-indent;
-    }
-  }
-
-  .mdl-navigation {
-    padding-top: 8px;
-    .mdl-navigation__link {
-      padding: 10px $layout-header-desktop-indent-plus;
-      // border-bottom: 1px solid red;
-      @media screen and (max-width: $layout-screen-size-threshold) {
-          padding: 10px $layout-header-mobile-indent-plus;
-      }
-
-      .menu-icon {
-        font-size: 16px;
-        margin-right: 6px; 
-        color: $k-drawer-icon-color;
-      }
-        &.active {
-            background-color: $layout-drawer-navigation-link-active-background;
-            color: $layout-drawer-navigation-link-active-color;
-        }
-
-    }
-  }
-
-}
+@import './components/kobo.drawer'; 
 
 .mdl-checkbox__tick-outline {
   mask: url("/static/img/tick-mask.svg?embed");

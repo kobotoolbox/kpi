@@ -1,10 +1,10 @@
-// @import './components/kobo-rdash'; 
 @import './components/asset-dashboard';
 @import './components/menus';
 @import './components/alertify'; 
 
 // @import './components/bootswatch_variables';
 // @import '../../node_modules/bootstrap-sass/assets/stylesheets/bootstrap';
+// @import './components/bootswatch';
 
 @import 'material-design-lite';
 
@@ -13,15 +13,13 @@
 @import './react-tagsinput';
 @import '../../node_modules/react-tooltip/dist/react-tooltip';
 
-// @import './components/bootswatch';
-
 // http://www.materialpalette.com/grey/indigo
 $muiLight: #616161;
 $muiDark: #9D9D9D;
 $muiBlue: #526CFD;
 $highlightedBarColor: #F5F8FA;
 $saveNeededColor: #9c27b0;
-// $assetSaveButtonWidth: 105px;
+$assetSaveButtonWidth: 105px;
 
 // $kcol-view: #7B1FA2;
 // $kcol-edit: #009688;
