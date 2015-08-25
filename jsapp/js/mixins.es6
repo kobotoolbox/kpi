@@ -12,6 +12,7 @@ import actions from './actions';
 import ui from './ui';
 var ReactTooltip = require('react-tooltip');
 var assign = require('react/lib/Object.assign');
+import Select from 'react-select';
 // var Reflux = require('reflux');
 
 var dmix = {
@@ -41,6 +42,7 @@ var dmix = {
                   {this.renderName()}
                   {this.renderTimes()}
                   {this.renderTags()}
+                  {this.renderParentCollection()}
                   {this.renderUsers()}
                   {this.renderIsPublic()}
                   {this.renderLanguages()}
@@ -73,6 +75,7 @@ var dmix = {
                   {this.renderName()}
                   {this.renderTimes()}
                   {this.renderTags()}
+                  {this.renderParentCollection()}
                   {this.renderUsers()}
                   {this.renderIsPublic()}
                   {this.renderLanguages()}
@@ -108,6 +111,7 @@ var dmix = {
                   {this.renderName()}
                   {this.renderTimes()}
                   {this.renderTags()}
+                  {this.renderParentCollection()}
                   {this.renderUsers()}
                   {this.renderIsPublic()}
                   {this.renderLanguages()}
@@ -142,6 +146,49 @@ var dmix = {
           <ui.AssetName {...this.state} />
         </bem.AssetView__name>
       );
+  },
+  renderParentCollection () {
+    return (
+        <bem.AssetView__row m={'parent'}>
+          <bem.AssetView__iconwrap><i /></bem.AssetView__iconwrap>
+          <bem.AssetView__col m="date-modified">
+            <bem.AssetView__colsubtext>
+              {t('in folder')}
+            </bem.AssetView__colsubtext>
+            <Select
+              name="parent_collection"
+              value=""
+              allowCreate={true}
+              clearable={true}
+              addLabelText={t('make new collection: "{label}"')}
+              clearValueText={t('none')}
+              searchPromptText={t('collection name')}
+              placeholder={t('in collection')}
+              options={this.state.collectionOptionList}
+              onChange={this.onCollectionChange}
+            />
+
+          </bem.AssetView__col>
+
+        </bem.AssetView__row>
+      );
+  },
+  onCollectionChange (nameOrId, items) {
+    var uid = this.props.params.assetid;
+    var item = items[0];
+    if (item.created) {
+      dataInterface.createCollection({
+        name: item.value
+      }).done((newCollection)=>{
+        dataInterface.updateAsset(uid, {
+          parent: newCollection.uid,
+        });
+      });
+    } else {
+      dataInterface.updateAsset(uid, {
+        parent: newCollection.uid,
+      });
+    }
   },
   renderTimes () {
     return (
@@ -387,6 +434,7 @@ var dmix = {
     return {
       userCanEdit: false,
       userCanView: true,
+      collectionOptionList: [],
       currentUsername: stores.session.currentAccount && stores.session.currentAccount.username,
     };
   },
@@ -408,9 +456,22 @@ var dmix = {
         ));
     }
   },
+  collectionStoreChange ({collectionList}) {
+    this.setState({
+      collectionOptionList:
+        collectionList.map(function(c){
+            return {
+              value: c.uid,
+              label: c.name || c.uid,
+            }
+          })
+    });
+  },
   componentDidMount () {
     this.listenTo(stores.session, this.dmixSessionStoreChange);
-    this.listenTo(stores.asset, this.dmixAssetStoreChange)
+    this.listenTo(stores.asset, this.dmixAssetStoreChange);
+    this.listenTo(stores.collections, this.collectionStoreChange);
+    actions.resources.listCollections();
 
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
     if (this.props.randdelay && uid) {

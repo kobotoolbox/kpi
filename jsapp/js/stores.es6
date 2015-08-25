@@ -108,7 +108,7 @@ var assetSearchStore = Reflux.createStore({
     return false;
   },
   onAssetSearch (queryString, results) {
-    results.query=queryString;
+    results.query = queryString;
     this.queries[queryString] = [results, new Date()];
     if(results.count > 0) {
       this.trigger(results);
@@ -416,7 +416,7 @@ var allAssetsStore = Reflux.createStore({
 
 var selectedAssetStore = Reflux.createStore({
   init () {
-    this.uid = false;
+    this.uid = cookie.load('selectedAssetUid');
     this.listenTo(actions.resources.createAsset.completed, this.onAssetCreated);
   },
   onAssetCreated (asset) {
@@ -435,6 +435,7 @@ var selectedAssetStore = Reflux.createStore({
       this.uid = uid;
       this.asset = allAssetsStore.byUid[uid];
     }
+    cookie.save('selectedAssetUid', this.uid);
     this.trigger({
       selectedAssetUid: this.uid
     });
@@ -484,6 +485,7 @@ stores.collections = Reflux.createStore({
     this.listenTo(actions.resources.listCollections.completed, this.listCollectionsCompleted);
   },
   listCollectionsCompleted (collectionData) {
+    this.latestList = collectionData.results;
     this.trigger({
       collectionSearchState: 'done',
       collectionCount: collectionData.count,

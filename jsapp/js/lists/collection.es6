@@ -73,7 +73,7 @@ var CollectionList = React.createClass({
             <ul className="mdl-menu mdl-menu--top-right mdl-js-menu mdl-js-ripple-effect"
                 htmlFor="demo-menu-top-right">
                 <bem.CollectionNav__button m={['new', 'new-collection']} className="mdl-menu__item"
-                    onClick={this.createCollection.bind(this)}>
+                    onClick={this.createCollection}>
                   <i />
                   {t('new collection')}
                 </bem.CollectionNav__button>
