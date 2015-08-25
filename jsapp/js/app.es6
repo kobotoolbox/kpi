@@ -55,16 +55,11 @@ mixins.taggedAsset = {
   mixins: [
     React.addons.LinkedStateMixin
   ],
-  componentWillUnmount () {
-    if (this._tagsChanged) {
-      var uid = this.props.params.assetid || this.props.params.uid;
-      actions.resources.updateAsset(uid, {
-        tag_string: this.state.tags.join(',')
-      })
-    }
-  },
   tagChange (tags, changedTag) {
-    this._tagsChanged = true;
+    var uid = this.props.params.assetid || this.props.params.uid;
+    actions.resources.updateAsset(uid, {
+      tag_string: tags.join(',')
+    });
   },
   linkTagState () {
     // because onChange doesn't work when valueLink is specified.
