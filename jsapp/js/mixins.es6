@@ -2,7 +2,7 @@ var mixins = {};
 
 import Dropzone from './libs/dropzone';
 import {notify, getAnonymousUserPermission, formatTime, anonUsername, parsePermissions, log, t} from './utils';
-import {dataInterface} from './dataInterface';
+import {dataInterface} from './dataInterface';  
 import stores from './stores';
 import React from 'react/addons';
 import Router from 'react-router';
@@ -170,7 +170,7 @@ var dmix = {
               addLabelText={t('make new collection: "{label}"')}
               clearValueText={t('none')}
               searchPromptText={t('collection name')}
-              placeholder={t('in collection')}
+              placeholder={t('select parent collection')}
               options={this.state.collectionOptionList}
               onChange={this.onCollectionChange}
             />
