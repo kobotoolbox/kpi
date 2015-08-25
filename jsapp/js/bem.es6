@@ -99,6 +99,7 @@ bem.AssetView__key = bem.AssetView.__('key');
 bem.AssetView__val = bem.AssetView.__('val');
 bem.AssetView__ancestor = bem.AssetView.__('ancestor');
 bem.AssetView__ancestors = bem.AssetView.__('ancestors');
+bem.AssetView__parent = bem.AssetView.__('parent');
 bem.AssetView__iconwrap = bem.AssetView.__('iconwrap')
 bem.AssetView__times = bem.AssetView.__('times');
 bem.AssetView__col = bem.AssetView.__('col');

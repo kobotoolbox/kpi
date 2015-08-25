@@ -148,16 +148,23 @@ var dmix = {
       );
   },
   renderParentCollection () {
+    var value = null,
+        opts = this.state.collectionOptionList;
+    if (this.state.parent && opts && opts.length > 0) {
+      opts.forEach((opt) => {
+        if (this.state.parent.indexOf(opt.value) > 0) {
+          value = opt.value;
+          return false;
+        }
+      })
+    }
     return (
-        <bem.AssetView__row m={'parent'}>
+        <bem.AssetView__parent m={'parent'}>
           <bem.AssetView__iconwrap><i /></bem.AssetView__iconwrap>
           <bem.AssetView__col m="date-modified">
-            <bem.AssetView__colsubtext>
-              {t('in folder')}
-            </bem.AssetView__colsubtext>
             <Select
               name="parent_collection"
-              value=""
+              value={value}
               allowCreate={true}
               clearable={true}
               addLabelText={t('make new collection: "{label}"')}
@@ -167,26 +174,28 @@ var dmix = {
               options={this.state.collectionOptionList}
               onChange={this.onCollectionChange}
             />
-
           </bem.AssetView__col>
-
-        </bem.AssetView__row>
+        </bem.AssetView__parent>
       );
   },
-  onCollectionChange (nameOrId, items) {
+  onCollectionChange (nameOrId, items, x, y, z) {
     var uid = this.props.params.assetid;
     var item = items[0];
-    if (item.created) {
+    if (!item) {
+      dataInterface.patchAsset(uid, {
+          parent: null,
+        });
+    } else if (item.create) {
       dataInterface.createCollection({
         name: item.value
       }).done((newCollection)=>{
-        dataInterface.updateAsset(uid, {
-          parent: newCollection.uid,
+        dataInterface.patchAsset(uid, {
+          parent: `/collections/${newCollection.uid}/`,
         });
       });
-    } else {
-      dataInterface.updateAsset(uid, {
-        parent: newCollection.uid,
+    } else if (item) {
+      dataInterface.patchAsset(uid, {
+        parent: `/collections/${item.value}/`,
       });
     }
   },
