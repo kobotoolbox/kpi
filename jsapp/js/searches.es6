@@ -106,7 +106,7 @@ function SearchContext(opts={}) {
           paramGroups.push(
               searchParams.tags.map(function(t){
                 return `tag:${t.value}`
-              }).join(' OR ')
+              }).join(' AND ')
             );
         }
         delete searchParams.tags;

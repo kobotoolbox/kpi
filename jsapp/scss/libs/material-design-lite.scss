@@ -21,7 +21,7 @@
 }
 
 // Color definitions
-@import '../../node_modules/material-design-lite/src/_color-definitions';
+@import '../../../node_modules/material-design-lite/src/_color-definitions';
 
 // KPI MDL Variable Overrides
 $color-primary: $palette-indigo-400 !default;
@@ -39,7 +39,7 @@ $layout-drawer-navigation-link-active-color: #FFF !default;
 // Custom variables
 $k-drawer-icon-color: unquote("rgb(#{$palette-light-blue-A200})");
 
-@import '../../node_modules/material-design-lite/src/material-design-lite';
+@import '../../../node_modules/material-design-lite/src/material-design-lite';
 
 .row {
   @extend .mui-row;

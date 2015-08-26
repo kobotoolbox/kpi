@@ -3,13 +3,24 @@
   padding: 0;
 }
 
+.lib-list--empty {
+  .lib-list__item {
+    cursor: default;
+  }
+}
+
+.lib-list--done {
+  .lib-list__item {
+    cursor: grab;
+    cursor:-moz-grab;
+    cursor:-webkit-grab;
+  }
+}
+
 .lib-list__item {
   border-bottom: 1px solid #ddd;
   padding-left: 20px;
   position: relative;
-  cursor: grab;
-  cursor:-moz-grab;
-  cursor:-webkit-grab;
 
   &.sortable-active {
     &:after {
