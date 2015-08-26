@@ -13,6 +13,20 @@
 @import './react-tagsinput';
 @import '../../node_modules/react-tooltip/dist/react-tooltip';
 
+@import '../../node_modules/react-select/dist/default';
+
+.collection-nav__search {
+  .Select {
+    width: 85%;
+    padding-left: 5%;
+  }
+  .Select-control {
+    background-color: transparent;
+    border: 0 none;
+    border-radius: 0;
+  }
+}
+
 // http://www.materialpalette.com/grey/indigo
 $muiLight: #616161;
 $muiDark: #9D9D9D;
@@ -50,6 +64,7 @@ $newformCircleWidthHeight: 55px;
 @import './components/kobo.list-view';
 @import './components/kobo.asset-view';
 @import './components/kobo.asset-row';
+@import './components/kobo.search';
 @import './components/kobo.lib-nav';
 @import './components/kobo.lib-list';
 @import './components/kobo.form-builder';

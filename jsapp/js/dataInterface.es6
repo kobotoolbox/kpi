@@ -60,6 +60,9 @@ var dataInterface;
         method: 'GET'
       });
     },
+    listCollections () {
+      return $.getJSON('/collections/?parent=');
+    },
     listAllAssets () {
       var d = new $.Deferred();
       $.when($.getJSON('/assets/?parent='), $.getJSON('/collections/?parent=')).done(function(assetR, collectionR){
@@ -195,6 +198,13 @@ var dataInterface;
           q: queryString
         }
       });
+    },
+    createCollection (data) {
+      return $ajax({
+        method: 'POST',
+        url: '/collections/',
+        data: data,
+      })
     },
     createResource (details) {
       return $ajax({

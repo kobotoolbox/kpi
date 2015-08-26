@@ -55,7 +55,7 @@ var MainHeader = React.createClass({
   _breadcrumbItem (item) {
     return (
         <span className="header-breadcrumb__item">
-          <a href="{item.href}">{item.label}</a>
+          <Link to={item.href}>{item.label}</Link>
         </span>
       );
   },
