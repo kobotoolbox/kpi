@@ -81,21 +81,19 @@ var LibrarySearchableList = React.createClass({
 
             <ul className="mdl-menu mdl-menu--top-right mdl-js-menu mdl-js-ripple-effect"
                 htmlFor="demo-menu-top-right">
-              <li className="mdl-menu__item">
-                <bem.CollectionNav__link m={['new', 'new-block']} href={this.makeHref('add-to-library')}>
-                  <i />
-                  {t('add to library')}
-                </bem.CollectionNav__link>
-              </li>
-              <li className="mdl-menu__item">
-                <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
-                  <bem.CollectionNav__button m={['upload', 'upload-block']}>
-                    <i className='fa fa-icon fa-cloud fa-fw' />
-                    &nbsp;&nbsp;
-                    {t('upload')}
-                  </bem.CollectionNav__button>
-                </Dropzone>
-              </li>
+              <bem.CollectionNav__link m={['new', 'new-block']} className="mdl-menu__item"
+                  href={this.makeHref('add-to-library')}>
+                <i />
+                {t('add to library')}
+              </bem.CollectionNav__link>
+              <Dropzone onDropFiles={this.dropFiles} className="mdl-menu__item"
+                  params={{destination: false}} fileInput>
+                <bem.CollectionNav__button m={['upload', 'upload-block']}>
+                  <i className='fa fa-icon fa-cloud fa-fw' />
+                  &nbsp;&nbsp;
+                  {t('upload')}
+                </bem.CollectionNav__button>
+              </Dropzone>
             </ul>
           </bem.CollectionNav__actions>
         </bem.CollectionNav>

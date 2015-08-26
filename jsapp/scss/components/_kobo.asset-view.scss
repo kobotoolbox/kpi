@@ -196,6 +196,10 @@ $mult: 0.5;
     }
   }
 }
+.asset-view__parent {
+  @extend %has-icon-col;
+  @include iconcol('folder');
+}
 .asset-view__tags {
   min-height: 1.5em;
   @extend %has-icon-col;

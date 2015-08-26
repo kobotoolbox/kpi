@@ -46,11 +46,11 @@ class DrawerLink extends React.Component {
       link = <Link to={this.props.linkto} className="mdl-navigation__link"
                     activeClassName="active" onClick={this.toggleDrawer}>{icon} {this.props.label}</Link>
     } else {
-      link = <a href={this.props.href || "#"} 
-      							className="mdl-navigation__link" 
+      link = <a href={this.props.href || "#"}
+      							className="mdl-navigation__link"
       							onClick={this.onClick.bind(this)}>{icon} {this.props.label}</a>
     }
-    return link; 
+    return link;
   }
 }
 var Drawer = React.createClass({
@@ -74,7 +74,7 @@ var Drawer = React.createClass({
             <span className="mdl-layout-title">
               <a href="/">
                 <bem.AccountBox__logo />
-              </a>            
+              </a>
             </span>
             <nav className="mdl-navigation">
             	<div className="drawer-separator"></div>
@@ -92,9 +92,9 @@ var Drawer = React.createClass({
 
   	          <div className="drawer-separator"></div>
   	          <span className="mdl-navigation__heading">{t('account actions')}</span>
-	            { this.state.isLoggedIn ? 
+	            { this.state.isLoggedIn ?
   	            <DrawerLink label={t('logout')} onClick={this.logout} fa-icon="sign-out" />
-    	        : 
+    	        :
       	        <DrawerLink label={t('login')} href='/api-auth/login/?next=/' fa-icon="sign-in" />
         	    }
             </nav>
