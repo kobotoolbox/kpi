@@ -424,7 +424,7 @@ actions.auth.verifyLogin.listen(function(){
 actions.resources.loadAsset.listen(function(params){
   var dispatchMethodName;
   if (params.url) {
-    dispatchMethodName = params.url.indexOf('collections') === -1 ? 
+    dispatchMethodName = params.url.indexOf('collections') === -1 ?
         'getAsset' : 'getCollection';
   } else {
     dispatchMethodName = {

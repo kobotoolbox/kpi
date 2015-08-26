@@ -226,9 +226,9 @@ var Sidebar = React.createClass({
                 <SidebarLink label={t('projects')} active='true' href={stores.session.currentAccount.projects_url} fa-icon="globe" />
             :null }
             <SidebarTitle label={t('account actions')} />
-            { this.state.isLoggedIn ? 
+            { this.state.isLoggedIn ?
               <SidebarLink label={t('logout')} onClick={this.logout} fa-icon="sign-out" />
-            : 
+            :
               <SidebarLink label={t('login')} href='/api-auth/login/?next=/' fa-icon="sign-in" />
             }
           </ul>

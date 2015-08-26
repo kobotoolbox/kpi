@@ -12,6 +12,7 @@ import actions from './actions';
 import ui from './ui';
 var ReactTooltip = require('react-tooltip');
 var assign = require('react/lib/Object.assign');
+import Select from 'react-select';
 // var Reflux = require('reflux');
 
 var dmix = {
@@ -41,6 +42,7 @@ var dmix = {
                   {this.renderName()}
                   {this.renderTimes()}
                   {this.renderTags()}
+                  {this.renderParentCollection()}
                   {this.renderUsers()}
                   {this.renderIsPublic()}
                   {this.renderLanguages()}
@@ -73,6 +75,7 @@ var dmix = {
                   {this.renderName()}
                   {this.renderTimes()}
                   {this.renderTags()}
+                  {this.renderParentCollection()}
                   {this.renderUsers()}
                   {this.renderIsPublic()}
                   {this.renderLanguages()}
@@ -108,6 +111,7 @@ var dmix = {
                   {this.renderName()}
                   {this.renderTimes()}
                   {this.renderTags()}
+                  {this.renderParentCollection()}
                   {this.renderUsers()}
                   {this.renderIsPublic()}
                   {this.renderLanguages()}
@@ -129,7 +133,7 @@ var dmix = {
       return this.renderAncestorBreadcrumb([{
         children: 'forms',
         to: 'forms',
-        params: {}      
+        params: {}
       }]);
     }
   },
@@ -142,6 +146,58 @@ var dmix = {
           <ui.AssetName {...this.state} />
         </bem.AssetView__name>
       );
+  },
+  renderParentCollection () {
+    var value = null,
+        opts = this.state.collectionOptionList;
+    if (this.state.parent && opts && opts.length > 0) {
+      opts.forEach((opt) => {
+        if (this.state.parent.indexOf(opt.value) > 0) {
+          value = opt.value;
+          return false;
+        }
+      })
+    }
+    return (
+        <bem.AssetView__parent m={'parent'}>
+          <bem.AssetView__iconwrap><i /></bem.AssetView__iconwrap>
+          <bem.AssetView__col m="date-modified">
+            <Select
+              name="parent_collection"
+              value={value}
+              allowCreate={true}
+              clearable={true}
+              addLabelText={t('make new collection: "{label}"')}
+              clearValueText={t('none')}
+              searchPromptText={t('collection name')}
+              placeholder={t('select parent collection')}
+              options={this.state.collectionOptionList}
+              onChange={this.onCollectionChange}
+            />
+          </bem.AssetView__col>
+        </bem.AssetView__parent>
+      );
+  },
+  onCollectionChange (nameOrId, items, x, y, z) {
+    var uid = this.props.params.assetid;
+    var item = items[0];
+    if (!item) {
+      dataInterface.patchAsset(uid, {
+          parent: null,
+        });
+    } else if (item.create) {
+      dataInterface.createCollection({
+        name: item.value
+      }).done((newCollection)=>{
+        dataInterface.patchAsset(uid, {
+          parent: `/collections/${newCollection.uid}/`,
+        });
+      });
+    } else if (item) {
+      dataInterface.patchAsset(uid, {
+        parent: `/collections/${item.value}/`,
+      });
+    }
   },
   renderTimes () {
     return (
@@ -293,7 +349,7 @@ var dmix = {
           <bem.AssetView__deployments>
             <i />
             {
-              this.state.deployment_count ? 
+              this.state.deployment_count ?
                 `${t('deployments')}: ${this.state.deployment_count}`
                 :
                 t('no deployments')
@@ -387,6 +443,7 @@ var dmix = {
     return {
       userCanEdit: false,
       userCanView: true,
+      collectionOptionList: [],
       currentUsername: stores.session.currentAccount && stores.session.currentAccount.username,
     };
   },
@@ -408,9 +465,22 @@ var dmix = {
         ));
     }
   },
+  collectionStoreChange ({collectionList}) {
+    this.setState({
+      collectionOptionList:
+        collectionList.map(function(c){
+            return {
+              value: c.uid,
+              label: c.name || c.uid,
+            }
+          })
+    });
+  },
   componentDidMount () {
     this.listenTo(stores.session, this.dmixSessionStoreChange);
-    this.listenTo(stores.asset, this.dmixAssetStoreChange)
+    this.listenTo(stores.asset, this.dmixAssetStoreChange);
+    this.listenTo(stores.collections, this.collectionStoreChange);
+    actions.resources.listCollections();
 
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
     if (this.props.randdelay && uid) {
@@ -555,7 +625,7 @@ mixins.cmix = {
       return this.renderAncestorBreadcrumb([{
         children: 'forms',
         to: 'forms',
-        params: {}      
+        params: {}
       }]);
     }
   },
@@ -707,7 +777,7 @@ mixins.clickAssets = {
         this.transitionTo('form-download', {assetid: uid})
       },
       delete: function(uid, evt){
-        window.confirm(t('You are about to permanently delete this form. Are you sure you want to continue?')) && 
+        window.confirm(t('You are about to permanently delete this form. Are you sure you want to continue?')) &&
           actions.resources.deleteAsset({uid: uid});
       },
       deploy: function(uid, evt){
