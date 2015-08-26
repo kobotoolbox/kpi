@@ -1,7 +1,7 @@
 '''
 Converts kobo-specific structures into xlsform-standard structures:
 This enables us to use the form-builder to open and save structures which are not
-standardized xlsform features. 
+standardized xlsform features.
 
 Example structures: scoring, ranking
 '''
@@ -158,7 +158,7 @@ class KoboScoreGroup(GroupHandler):
         | skorechoices | c2   | Choice 2 |
 
         into:
-        #survey 
+        #survey
         |           type          |     name     | label |  appearance  |
         |-------------------------|--------------|-------|--------------|
         | begin group             | skore        |       | field-list   |
@@ -212,7 +212,7 @@ class KoboScoreGroup(GroupHandler):
                     'type': 'end group',
                 })
             self.finish()
-            return False 
+            return False
         elif row.get('type') == 'score__row':
             self.add_row(row)
             return self

@@ -875,7 +875,7 @@ var FormInput = React.createClass({
     return (
         <div className="form-group">
           <div className="mdl-textfield mdl-js-textfield">
-            <input className="mdl-textfield__input" type="text" id={this.props.id} 
+            <input className="mdl-textfield__input" type="text" id={this.props.id}
                   onChange={this.props.onChange} />
             <label className="mdl-textfield__label" htmlFor={this.props.id}>{this.props.label}</label>
 
@@ -895,10 +895,10 @@ var FormCheckbox = React.createClass({
           </label>
         </div>
       );
-  }, 
+  },
   componentDidUpdate() {
     // TODO: upgrade specific element only (as opposed to whole DOM)
-    mdl.upgradeDom(); 
+    mdl.upgradeDom();
   }
 
 })
@@ -940,9 +940,9 @@ var FormSettingsEditor = React.createClass({
         </form>
       </div>
       );
-  }, 
+  },
   componentDidUpdate() {
-    mdl.upgradeDom(); 
+    mdl.upgradeDom();
   }
 })
 
@@ -1041,9 +1041,9 @@ var FormSettingsBox = React.createClass({
         </div>
 
       );
-  }, 
+  },
   componentDidUpdate() {
-    mdl.upgradeDom(); 
+    mdl.upgradeDom();
   }
 })
 
@@ -1096,7 +1096,7 @@ var App = React.createClass({
               <bem.PageWrapper__content m={{
                 'navigator-open': this.state.assetNavigatorIsOpen,
                 'navigator-present': this.state.assetNavigator,
-                  }} 
+                  }}
                 className="mdl-layout__content">
                 <RouteHandler appstate={this.state} />
               </bem.PageWrapper__content>
@@ -1372,7 +1372,7 @@ var Collections = React.createClass({
       return this.renderAncestorBreadcrumb([{
         children: t('collections'),
         to: 'collections',
-        params: {}      
+        params: {}
       }]);
     }
   },
@@ -2105,11 +2105,11 @@ var FormPage = React.createClass({
           <RouteHandler />
         </div>
       );
-  }, 
+  },
   componentDidUpdate() {
     // Material Design Lite
     // This upgrades all upgradable components (i.e. with 'mdl-js-*' class)
-    mdl.upgradeDom(); 
+    mdl.upgradeDom();
   }
 
 });

@@ -2,7 +2,7 @@ var mixins = {};
 
 import Dropzone from './libs/dropzone';
 import {notify, getAnonymousUserPermission, formatTime, anonUsername, parsePermissions, log, t} from './utils';
-import {dataInterface} from './dataInterface';  
+import {dataInterface} from './dataInterface';
 import stores from './stores';
 import React from 'react/addons';
 import Router from 'react-router';
@@ -133,7 +133,7 @@ var dmix = {
       return this.renderAncestorBreadcrumb([{
         children: 'forms',
         to: 'forms',
-        params: {}      
+        params: {}
       }]);
     }
   },
@@ -349,7 +349,7 @@ var dmix = {
           <bem.AssetView__deployments>
             <i />
             {
-              this.state.deployment_count ? 
+              this.state.deployment_count ?
                 `${t('deployments')}: ${this.state.deployment_count}`
                 :
                 t('no deployments')
@@ -625,7 +625,7 @@ mixins.cmix = {
       return this.renderAncestorBreadcrumb([{
         children: 'forms',
         to: 'forms',
-        params: {}      
+        params: {}
       }]);
     }
   },
@@ -777,7 +777,7 @@ mixins.clickAssets = {
         this.transitionTo('form-download', {assetid: uid})
       },
       delete: function(uid, evt){
-        window.confirm(t('You are about to permanently delete this form. Are you sure you want to continue?')) && 
+        window.confirm(t('You are about to permanently delete this form. Are you sure you want to continue?')) &&
           actions.resources.deleteAsset({uid: uid});
       },
       deploy: function(uid, evt){

@@ -10,7 +10,7 @@ class FieldPreparersMixin:
     '''
     COMMA_SPACE_RE = re.compile('[, ]')
     def _escape_comma_space(self, string, repl='-'):
-        return re.sub(self.COMMA_SPACE_RE, repl, string) 
+        return re.sub(self.COMMA_SPACE_RE, repl, string)
 
     def prepare_tag(self, obj):
         return [
