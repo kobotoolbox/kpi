@@ -282,6 +282,14 @@ actions.resources.listTags.listen(function(){
     .fail(actions.resources.listTags.failed);
 });
 
+actions.resources.listTags.completed.listen(function(results){
+  if (results.next) {
+    if (window.trackJs) {
+      window.trackJs.track('MAX_TAGS_EXCEEDED: Too many tags');
+    }
+  }
+})
+
 actions.resources.updateAsset.listen(function(uid, values){
   dataInterface.patchAsset(uid, values)
     .done(actions.resources.updateAsset.completed)

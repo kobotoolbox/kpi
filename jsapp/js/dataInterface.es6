@@ -223,7 +223,10 @@ var dataInterface;
     listTags () {
       return $ajax({
         url: `/tags/`,
-        method: 'GET'
+        method: 'GET',
+        data: {
+          limit: 9999,
+        },
       });
     },
     getCollection (params={}) {
