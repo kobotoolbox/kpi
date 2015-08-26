@@ -11,14 +11,14 @@ $assetNavFooterHeight: 60px;
 .lib-nav {
   position: fixed;
   right: 0;
-  top: 64px;
+  top: 60px;
   padding: 68px 20px 8px;
   padding: $assetNavHeaderHeight 0 $assetNavFooterHeight;
   width: 400px;
   height: 100%;
   background-color: #fff;
   border-left: 1px solid rgba(50,50,50,0.2);
-  z-index: 5;
+  z-index: 2;
   box-sizing: border-box;
   -moz-box-sizing: border-box; 
 }

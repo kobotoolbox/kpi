@@ -117,15 +117,16 @@ var assetSearchStore = Reflux.createStore({
 var pageStateStore = Reflux.createStore({
   init () {
     this.state = {
-      headerTitle: 'Forms',
-      bgTopPanelHeight: 60,
-      bgTopPanelFixed: false,
-      headerSearch: true,
+      headerBreadcrumb: [],
+      drawerIsVisible: false,
+      // bgTopPanelHeight: 60,
+      // bgTopPanelFixed: false,
+      // headerSearch: true,
       assetNavPresent: false,
       assetNavIsOpen: true,
       assetNavIntentOpen: true,
-      sidebarIsOpen: false,
-      sidebarIntentOpen: false
+      // sidebarIsOpen: false,
+      // sidebarIntentOpen: false
     }
   },
   setState (chz) {
@@ -135,45 +136,36 @@ var pageStateStore = Reflux.createStore({
       this.trigger(changed);
     }
   },
-  setTopPanel (height, isFixed) {
-    var changed = changes(this.state, {
-      bgTopPanelHeight: height,
-      bgTopPanelFixed: isFixed
-    });
+  // setTopPanel (height, isFixed) {
+  //   var changed = changes(this.state, {
+  //     bgTopPanelHeight: height,
+  //     bgTopPanelFixed: isFixed
+  //   });
 
-    if (changed) {
-      assign(this.state, changed);
-      this.trigger(changed);
-    }
-  },
-  toggleSidebarIntentOpen () {
-    var newIntent = !this.state.sidebarIntentOpen,
-        isOpen = this.state.sidebarIsOpen,
-        changes = {
-          sidebarIntentOpen: newIntent
-        };
-    // xor
-    if ( (isOpen || newIntent) && !(isOpen && newIntent) ) {
-      changes.sidebarIsOpen = !isOpen;
-    }
-    assign(this.state, changes);
+  //   if (changed) {
+  //     assign(this.state, changed);
+  //     this.trigger(changed);
+  //   }
+  // },
+  // toggleSidebarIntentOpen () {
+  //   var newIntent = !this.state.sidebarIntentOpen,
+  //       isOpen = this.state.sidebarIsOpen,
+  //       changes = {
+  //         sidebarIntentOpen: newIntent
+  //       };
+  //   // xor
+  //   if ( (isOpen || newIntent) && !(isOpen && newIntent) ) {
+  //     changes.sidebarIsOpen = !isOpen;
+  //   }
+  //   assign(this.state, changes);
+  //   this.trigger(changes);
+  // },
+  toggleDrawer () {
+    var changes = {};
+    var newval = !this.state.drawerIsVisible;
+    changes.drawerIsVisible = newval;
+    assign(this.state, changes)
     this.trigger(changes);
-  },
-  hideSidebar () {
-    var changes = {};
-    if (this.state.sidebarIsOpen) {
-      changes.sidebarIsOpen = false;
-      assign(this.state, changes)
-      this.trigger(changes);
-    }
-  },
-  showSidebar () {
-    var changes = {};
-    if (!this.state.sidebarIsOpen) {
-      changes.sidebarIsOpen = true;
-      assign(this.state, changes)
-      this.trigger(changes);
-    }
   },
   toggleAssetNavIntentOpen () {
     var newIntent = !this.state.assetNavIntentOpen,
@@ -202,13 +194,11 @@ var pageStateStore = Reflux.createStore({
       this.trigger(changes);
     }
   },
-  setHeaderTitle (title) {
-    var changes = {};
-    if (this.state.headerTitle != title) {
-      changes.headerTitle = title;
+  setHeaderBreadcrumb (newBreadcrumb) {
+      var changes = {};
+      changes.headerBreadcrumb = newBreadcrumb;
       assign(this.state, changes)
       this.trigger(changes);
-    }
   }  
 });
 

@@ -52,11 +52,23 @@ var MainHeader = React.createClass({
 					<span className="mdl-navigation__link">not logged in</span>
         );
   },
+  _breadcrumbItem (item) {
+    return (
+        <span className="header-breadcrumb__item">
+          <a href="{item.href}">{item.label}</a>
+        </span>
+      );
+  },
+  renderBreadcrumb() {
+    var bc = this.state.headerBreadcrumb;
+    return bc.map(this._breadcrumbItem);
+  },
   render () {
+
     return (
         <header className="mdl-layout__header">
           <div className="mdl-layout__header-row">
-            <span className="mdl-layout-title">{this.state.headerTitle}</span>
+            <span className="mdl-layout-title">{this.renderBreadcrumb()}</span>
             <div className="mdl-layout-spacer"></div>
             <nav className="mdl-navigation">
         			<a className="mdl-navigation__link" href="/">

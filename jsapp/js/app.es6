@@ -141,9 +141,11 @@ mixins.formView = {
     return (
         <ui.Panel className="k-div--formview--innerrender">
           <div className="k-form-header__buttons">
-            {this.renderSaveAndPreviewButtons()}
-            <div className="mdl-layout-spacer"></div>
-            {this.renderCloseButton()}
+            <div className="mdl-grid k-form-header__inner">
+              {this.renderSaveAndPreviewButtons()}
+              <div className="mdl-layout-spacer"></div>
+              {this.renderCloseButton()}
+            </div>
           </div>
           <div className="k-form-header__title">
             <div className="k-corner-icon"></div>
@@ -422,15 +424,15 @@ mixins.collection = {
   }
 };
 
-var BgTopPanel = React.createClass({
-  render () {
-    var h = this.props.bgTopPanelHeight;
-    var kls = classNames('bg-fixed-top-panel', `bg--h${h}`, {
-      'bg--fixed': this.props.bgTopPanelFixed
-    });
-    return (<div className={kls} />);
-  }
-});
+// var BgTopPanel = React.createClass({
+//   render () {
+//     var h = this.props.bgTopPanelHeight;
+//     var kls = classNames('bg-fixed-top-panel', `bg--h${h}`, {
+//       'bg--fixed': this.props.bgTopPanelFixed
+//     });
+//     return (<div className={kls} />);
+//   }
+// });
 
 
 class UserDropdown extends React.Component {
@@ -1483,20 +1485,13 @@ var App = React.createClass({
     window.removeEventListener('resize', this.handleResize);
   },
 
-  toggleSidebarIntentOpen (evt) {
-    evt.preventDefault();
-    stores.pageState.toggleSidebarIntentOpen();
-  },
-
   render() {
     return (
       <DocumentTitle title="KoBoToolbox">
         <div className="mdl-wrapper">
           <bem.PageWrapper m={{
-              // 'activenav': this.state.sidebarIsOpen,
               'asset-nav-present': this.state.assetNavPresent,
               'asset-nav-open': this.state.assetNavIsOpen && this.state.assetNavPresent,
-              // 'header-search': this.state.headerSearch,
                 }}  className="mdl-layout mdl-js-layout mdl-layout--fixed-header">
               <MainHeader />
               <Drawer />
@@ -1547,8 +1542,13 @@ var Forms = React.createClass({
         transition.redirect("collection-page", {
           uid: params.assetid
         });
+      } else {
+        var headerBreadcrumb = [
+          {'label': t('Forms'), 'href': '/forms'}
+        ];
+        stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
       }
-      stores.pageState.setHeaderTitle('Forms');
+
       callback();
     }
   },
@@ -1623,8 +1623,12 @@ mixins.newForm = {
   },
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setHeaderSearch(false);
-      stores.pageState.setTopPanel(30, false);
+      var headerBreadcrumb = [
+        {'label': t('Forms'), 'href': '/forms'},
+        {'label': t('New'), 'href': ''}
+      ];
+      stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
+
       callback();
     }
   },
@@ -1741,7 +1745,11 @@ var Collections = React.createClass({
   ],
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setHeaderTitle('Collections');
+      var headerBreadcrumb = [
+        {'label': t('Collections'), 'href': '/collections'},
+        {'label': t('Collection'), 'href': params.uid}
+      ];
+      stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
       callback();
     }
   },
@@ -2461,8 +2469,11 @@ var FormPage = React.createClass({
     }
 
     this.listenTo(assetStore, this.assetStoreTriggered)
-    // stores.pageState.setTopPanel(30, false);
-    stores.pageState.setHeaderTitle('Forms');
+      var headerBreadcrumb = [
+        {'label': t('Forms'), 'href': '/forms'}
+      ];
+    stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
+
     this._postLoadRenderMounted = false;
   },
   surveyChange (a,b,c) {
@@ -2488,7 +2499,6 @@ var FormPage = React.createClass({
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
       stores.pageState.setHeaderSearch(false);
-      // stores.pageState.setTopPanel(30, false);
       if (params.assetid[0] === 'c') {
         transition.redirect('collection-page', {uid: params.assetid});
       } else {
@@ -2536,11 +2546,14 @@ var FormLanding = React.createClass({
   ],
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setHeaderSearch(true);
-      stores.pageState.setHeaderTitle('Forms');
-      // stores.pageState.setTopPanel(30, false);
+      var headerBreadcrumb = [
+        {
+          'label': t('Forms'), 
+          'href': '/forms', 
+        }
+      ];
+      stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
       actions.resources.loadAsset({id: params.assetid});
-      // actions.resources.loadAssetContent({id: params.assetid});
       callback();
     }
   },
@@ -2679,7 +2692,15 @@ var LibraryList = React.createClass({
   ],
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setHeaderTitle('Library');
+      
+      var headerBreadcrumb = [
+        {
+          'label': t('Library'), 
+          'href': '', 
+        }
+      ];
+      stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
+
       callback();
     }
   },
@@ -2875,7 +2896,10 @@ var CollectionList = React.createClass({
   ],
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setHeaderTitle('Collections');
+      var headerBreadcrumb = [
+        {'label': t('Collections'), 'href': ''},
+      ];
+      stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
       callback();
     }
   },

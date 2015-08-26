@@ -32,7 +32,8 @@ bem.uiModal__header = bem.uiModal.__('header');
 
 .ui-panel__body {
   @extend .mdl-grid;
-  max-width:1080px;
+  max-width:980px; 
+  padding:10px 35px;
   > .row {
     position: relative;
   }
@@ -45,13 +46,20 @@ bem.uiModal__header = bem.uiModal.__('header');
   }
 }
 
+.k-form-header__inner {
+  max-width: 980px;
+  display: flex; 
+}
 
+.page-wrapper--asset-nav-present .mdl-layout__content {
+  margin-right: 60px;
+  transition: all .4s ease 0s;
+}
 
-// <div className={"panel panel-default k-panel k-panel-default " + this.props.className }>
-//   <div className="panel-body k-panel-body">
-//     {this.props.children}
-//   </div>
-// </div>
+.page-wrapper--asset-nav-open .mdl-layout__content {
+  margin-right: 400px;
+  transition: all .4s ease 0s; 
+}
 
 .message {}
 
@@ -66,11 +74,11 @@ bem.uiModal__header = bem.uiModal.__('header');
   }
 }
 
-.ui-breadcrumb {
+// .ui-breadcrumb {
   // @extend .breadcrumb;
-  > li + li:before {
-    content: '>';
-  }
-}
-.ui-breadcrumb__item {
-}
+  // > li + li:before {
+    // content: '>';
+  // }
+// }
+// .ui-breadcrumb__item {
+// }

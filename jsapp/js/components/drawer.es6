@@ -34,6 +34,9 @@ class DrawerLink extends React.Component {
       this.props.onClick(evt);
     }
   }
+  toggleDrawer () {
+    stores.pageState.toggleDrawer();
+  }
   render () {
     var icon_class = "menu-icon fa fa-fw fa-"+(this.props['fa-icon'] || 'table')
     var icon = (<span className={icon_class}></span>);
@@ -41,7 +44,7 @@ class DrawerLink extends React.Component {
     var link;
     if (this.props.linkto) {
       link = <Link to={this.props.linkto} className="mdl-navigation__link"
-                    activeClassName="active">{icon} {this.props.label}</Link>
+                    activeClassName="active" onClick={this.toggleDrawer}>{icon} {this.props.label}</Link>
     } else {
       link = <a href={this.props.href || "#"} 
       							className="mdl-navigation__link" 
@@ -65,7 +68,9 @@ var Drawer = React.createClass({
   },
   render () {
     return (
-          <div className="mdl-layout__drawer mdl-color--blue-grey-800">
+          <bem.Drawer m={{
+              'toggled': this.state.drawerIsVisible,
+                }} className="mdl-layout__drawer mdl-color--blue-grey-800">
             <span className="mdl-layout-title">
               <a href="/">
                 <bem.AccountBox__logo />
@@ -106,7 +111,7 @@ var Drawer = React.createClass({
               </a>
             </div>
 
-          </div>
+          </bem.Drawer>
       )
   }
 });
