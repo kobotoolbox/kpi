@@ -379,7 +379,15 @@ var AssetNavigatorListView = React.createClass({
       count = this.state.defaultQueryCount;
     }
 
-    if (count === 0) {
+    if (status !== 'done') {
+      return (
+          <bem.LibList m={'empty'}>
+            <bem.LibList__item m={'message'}>
+              {t('loading')}
+            </bem.LibList__item>
+          </bem.LibList>
+        );
+    } else if (count === 0) {
       return (
           <bem.LibList m={'empty'}>
             <bem.LibList__item m={'message'}>
@@ -394,7 +402,7 @@ var AssetNavigatorListView = React.createClass({
       }, 1);
 
       return (
-            <bem.LibList m={isSearch ? 'search' : 'default'} ref="liblist">
+            <bem.LibList m={['done', isSearch ? 'search' : 'default']} ref="liblist">
               {list.map((item)=> {
                 var modifiers = [item.asset_type];
                 var summ = item.summary;
@@ -2051,7 +2059,6 @@ var FormPage = React.createClass({
     }
 
     this.listenTo(assetStore, this.assetStoreTriggered)
-    // stores.pageState.setTopPanel(30, false);
     stores.pageState.setHeaderTitle('Forms');
     this._postLoadRenderMounted = false;
   },
