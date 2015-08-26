@@ -111,7 +111,7 @@ var dmix = {
                   {this.renderName()}
                   {this.renderTimes()}
                   {this.renderTags()}
-                  {this.renderParentCollection()}
+                  {/* this.renderParentCollection() */}
                   {this.renderUsers()}
                   {this.renderIsPublic()}
                   {this.renderLanguages()}
