@@ -21,7 +21,7 @@
 }
 
 // Color definitions
-@import '../../node_modules/material-design-lite/src/_color-definitions';
+@import '../../../node_modules/material-design-lite/src/_color-definitions';
 
 // KPI MDL Variable Overrides
 $color-primary: $palette-indigo-400 !default;
@@ -39,7 +39,7 @@ $layout-drawer-navigation-link-active-color: #FFF !default;
 // Custom variables
 $k-drawer-icon-color: unquote("rgb(#{$palette-light-blue-A200})");
 
-@import '../../node_modules/material-design-lite/src/material-design-lite';
+@import '../../../node_modules/material-design-lite/src/material-design-lite';
 
 .row {
   @extend .mui-row;
@@ -52,7 +52,7 @@ body {
 $layout-header-mobile-indent-plus: $layout-header-mobile-indent + 6px;
 $layout-header-desktop-indent-plus: $layout-header-desktop-indent + 6px;
 
-@import './components/kobo.drawer'; 
+@import '../components/kobo.drawer'; 
 
 .mdl-checkbox__tick-outline {
   mask: url("/static/img/tick-mask.svg?embed");

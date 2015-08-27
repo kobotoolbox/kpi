@@ -1,19 +1,14 @@
 @import './components/asset-dashboard';
 @import './components/menus';
-@import './components/alertify'; 
+@import '../../node_modules/select2-browserify/select2/select2';
 
-// @import './components/bootswatch_variables';
-// @import '../../node_modules/bootstrap-sass/assets/stylesheets/bootstrap';
-// @import './components/bootswatch';
-
-@import 'material-design-lite';
-
-@import '../../node_modules/select2-browserify/select2/select2'; 
 @import './kobo';
-@import './react-tagsinput';
 @import '../../node_modules/react-tooltip/dist/react-tooltip';
 
-@import '../../node_modules/react-select/dist/default';
+@import './libs/material-design-lite';
+@import './libs/alertify';
+@import './libs/react-tagsinput';
+// @import './libs/react-select';
 
 .collection-nav__search {
   .Select {
