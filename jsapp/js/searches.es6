@@ -81,6 +81,13 @@ function SearchContext(opts={}) {
       }
       assign(this.state, items);
     },
+    filterTagQueryData () {
+      if (this.filterTags) {
+        return {
+          q: this.filterTags
+        }
+      }
+    },
     removeItem (key) {
       delete this.state[key];
     },
@@ -322,6 +329,9 @@ function getSearchContext(name, opts={}) {
   }
   if (opts.showDefault) {
     contexts[name].store.showDefault = opts.showDefault;
+  }
+  if (opts.filterTags) {
+    contexts[name].store.filterTags = opts.filterTags;
   }
   return contexts[name];
 }
