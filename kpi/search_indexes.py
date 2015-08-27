@@ -1,5 +1,6 @@
 import re
 from haystack import indexes
+from taggit.models import Tag
 from .models import Asset, Collection
 
 class FieldPreparersMixin:
@@ -39,6 +40,7 @@ class FieldPreparersMixin:
         if ancestors:
             return [a.uid for a in ancestors]
 
+
 class AssetIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixin):
     # Haystack usually doesn't deal well with double underscores in field names
     # (searches fail silently when Haystack's split_expression() throws away
@@ -63,6 +65,7 @@ class AssetIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixin):
     def get_model(self):
         return Asset
 
+
 class CollectionIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixin):
     # Haystack seems allergic to mixins and inheritance (even from ABCs!),
     # so throw DRY to the wind
@@ -79,3 +82,25 @@ class CollectionIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixi
     parent__uid = indexes.MultiValueField()
     def get_model(self):
         return Collection
+
+
+class TagIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixin):
+    text = indexes.CharField(model_attr='name', document=True)
+    name__ngram = indexes.NgramField(model_attr='name')
+    asset_type = indexes.MultiValueField()
+    kind = indexes.MultiValueField()
+    def prepare_asset_type(self, obj):
+        # Call order_by() to make distinct() behave as expected
+        asset_types = Asset.objects.filter(tags=obj).order_by().values_list(
+            'asset_type', flat=True).distinct()
+        return [self._escape_comma_space(x) for x in asset_types]
+    def prepare_kind(self, obj):
+        kinds = []
+        for klass in (Asset, Collection):
+            try:
+                kinds.append(klass.objects.filter(tags=obj)[0].kind)
+            except IndexError:
+                pass
+        return [self._escape_comma_space(x) for x in kinds]
+    def get_model(self):
+        return Tag

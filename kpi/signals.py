@@ -1,7 +1,8 @@
 import django.db.models
 from django.dispatch import receiver
 from django.contrib.auth.models import User
-from taggit.models import Tag
+from taggit.models import Tag, TaggedItem
+from haystack import connections
 from models import Collection, Asset, TagUid
 from .model_utils import grant_all_model_level_perms
 
@@ -26,3 +27,17 @@ def tag_uid_post_save(sender, instance, created, raw, **kwargs):
         return
     # Make sure we have a TagUid object for each newly-created Tag
     TagUid.objects.get_or_create(tag=instance)
+
+def _update_tag_in_index(tag):
+    index = connections['default'].get_unified_index().get_index(Tag)
+    index.update_object(tag)
+
+@receiver(django.db.models.signals.post_save, sender=TaggedItem)
+def tagged_item_post_save(sender, instance, created, raw, **kwargs):
+    if raw:
+        return
+    _update_tag_in_index(instance.tag)
+
+@receiver(django.db.models.signals.post_delete, sender=TaggedItem)
+def tagged_item_post_delete(sender, instance, **kwargs):
+    _update_tag_in_index(instance.tag)
