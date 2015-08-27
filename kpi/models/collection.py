@@ -11,6 +11,7 @@ from taggit.models import Tag
 from asset import (
     Asset,
     TaggableModelManager,
+    KpiTaggableManager,
     TagStringMixin,
 )
 from object_permission import ObjectPermission, ObjectPermissionMixin
@@ -54,7 +55,7 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     objects = CollectionManager()
-    tags = TaggableManager()
+    tags = TaggableManager(manager=KpiTaggableManager)
     permissions = GenericRelation(ObjectPermission)
 
     @property

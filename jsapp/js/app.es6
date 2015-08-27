@@ -71,11 +71,20 @@ mixins.taggedAsset = {
     return ls;
   },
   renderTaggedAssetTags () {
+    var transform = function(tag) {
+      // Behavior should match KpiTaggableManager.add()
+      return tag.trim().replace(/ /g, '-');
+    };
+    // react-tagsinput splits on tab (9) and enter (13) by default; we want to
+    // split on comma (188) as well
+    var addKeys = [9, 13, 188];
     return (
-        <div>
-          <TagsInput ref="tags" classNamespace="k" valueLink={this.linkTagState()} />
-        </div>
-      );
+      <div>
+        <TagsInput ref="tags" classNamespace="k"
+          valueLink={this.linkTagState()} transform={transform}
+          addKeys={addKeys} />
+      </div>
+    );
   }
 };
 
