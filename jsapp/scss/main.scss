@@ -65,6 +65,7 @@ $newformCircleWidthHeight: 55px;
 @import './components/kobo.form-builder';
 @import './components/kobo.asset-name';
 @import './components/kobo.bem.ui';
+@import './components/kobo.modal';
 
 $i: 200;
 .bg-fixed-top-panel {
@@ -136,29 +137,7 @@ $i: 200;
   box-shadow: 1px 1px 2px rgba($saveNeededColor, 0.5);
   // background-image: radial-gradient(circle, #FFEFEF 80%, #f0f0f0 81%);
 }
-// .page-wrapper__content {
-  // padding: 1px 0;
 
-  // .page-wrapper--asset-nav-present & {
-  //   padding-top: 20px;
-  // }
-// }
-
-// .k-header-formname-text {
-//   border-left: 2px solid lighten(#4caf50, 30%);
-//   color: lighten(#4caf50, 20%);
-//   padding-left: 5px;
-// }
-
-// .k-btn-wrap--newform {
-//   position: absolute;
-//   width: 65px;
-//   height: 65px;
-//   padding: 0;
-//   top: 3px;
-//   left: 16px;
-//   margin: 0;
-// }
 $actionButtonColor: #2196F3;
 .k-actbtn {
               //   padding: "6px 27px",

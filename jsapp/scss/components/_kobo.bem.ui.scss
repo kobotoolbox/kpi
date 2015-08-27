@@ -46,9 +46,8 @@ bem.uiModal__header = bem.uiModal.__('header');
   }
 }
 
-.k-form-header__inner {
-  max-width: 980px;
-  display: flex; 
+.page-wrapper__content {
+  position:relative;
 }
 
 .page-wrapper--asset-nav-present .mdl-layout__content {
@@ -59,6 +58,11 @@ bem.uiModal__header = bem.uiModal.__('header');
 .page-wrapper--asset-nav-open .mdl-layout__content {
   margin-right: 400px;
   transition: all .4s ease 0s; 
+}
+
+.k-form-header__inner {
+  max-width: 980px;
+  display: flex; 
 }
 
 .message {}
