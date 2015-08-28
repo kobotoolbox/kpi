@@ -21,10 +21,9 @@
 }
 
 .modal-header, .modal-footer {
-	height: 60px;
+	min-height: 60px;
 	padding-top:10px;
-	overflow: hidden;
-
+	// overflow: hidden;
 }
 
 h4.modal-title {

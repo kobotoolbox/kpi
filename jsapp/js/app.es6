@@ -854,21 +854,18 @@ var UserPermDiv = React.createClass({
 class PublicPermDiv extends UserPermDiv {
   render () {
     var isOn = this.props.isOn;
-    var btnCls = classNames('btn',
-                            isOn ? 'btn-primary' : 'btn-default',
-                            'btn-block');
+    var btnCls = classNames('mdl-button', 'mdl-button--raised', 
+                            isOn ? 'mdl-button--colored' : '');
     return (
-      <div className='row'>
-        <div className='col-md-12'>
-          <button className={btnCls} onClick={this.props.onToggle}>
-            <i className={`fa fa-group fa-lg`} />
-            &nbsp;&nbsp;
-            {isOn ?
-              t('shared publicly') :
-              t('not shared publicly')}
-          </button>
-        </div>
-        <p className='col-md-12 text-muted text-center'>
+      <div className='permissions-toggle'>
+        <button className={btnCls} onClick={this.props.onToggle}>
+          <i className={`fa fa-group fa-lg`} />
+          &nbsp;&nbsp;
+          {isOn ?
+            t('shared publicly') :
+            t('not shared publicly')}
+        </button>
+        <p className='text-muted text-center'>
           {isOn ?
             t('anyone with this link can view the survey') :
             t('this form is only viewable by the users listed above')}
@@ -1618,10 +1615,10 @@ var FormSharing = React.createClass({
     });
     var userInputKls = classNames('form-group',
                                     (inpStatus !== false) ? `has-${inpStatus}` : '');
-    var btnKls = classNames('btn',
-                            'btn-block',
-                            'btn-sm',
-                            inpStatus === 'success' ? 'btn-success' : 'hidden');
+    var btnKls = classNames('mdl-button',
+                            'mdl-buton-raised',
+                            'mdl-button--colored',
+                            inpStatus === 'success' ? 'mdl-button--colored' : 'hidden');
 
     var uid = this.state.asset.uid;
     var kind = this.state.asset.kind;
@@ -1631,63 +1628,89 @@ var FormSharing = React.createClass({
       return <p>loading</p>
     }
     return (
-      <ui.Modal open onClose={this.routeBack} title={this.state.asset.name}
-                  small={t('manage sharing permissions')}
-                  label={t('note: this does not control permissions to the data collected by projects')}>
+      <ui.Modal open onClose={this.routeBack} title={t('manage sharing permissions')}>
         <ui.Modal.Body>
           <ui.Panel className="k-div--sharing">
-            {t('owner')}
-            &nbsp;
-            <StackedIcon frontIcon='user' />
-            &nbsp;
-            <UserProfileLink username={this.state.asset.owner__username} />
-          </ui.Panel>
-          <ui.Panel className="k-div--sharing2">
-            <form onSubmit={this.addInitialUserPermission}>
-              <div className='col-sm-9'>
-                <div className={userInputKls}>
-                  <ui.SmallInputBox ref='usernameInput' placeholder={t('share with username')} onKeyUp={this.usernameCheck} />
+            <div className="k-sharing__title">
+              <h5>{this.state.asset.name}</h5>
+            </div>
+            <div className="k-sharing__header">
+              <div className="user--pill">
+                <StackedIcon frontIcon='user' /> 
+                <div className="user--pill__name">
+                  <UserProfileLink username={this.state.asset.owner__username} /><br/>
+                  <span className="text-small">{t('owner')}</span>
                 </div>
               </div>
-              <div className='col-sm-3'>
-                <button className={btnKls}>
-                  <i className="fa fa-fw fa-lg fa-plus" />
-                </button>
-              </div>
-            </form>
-            <br />
-            <br />
-            <div>
-              {perms.map((perm)=> {
-                return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
-              })}
+
+              <div className="text-small">{t('note: this does not control permissions to the data collected by projects')}</div>
+
             </div>
+
+
+            <div className="mdl-grid">
+              <div className="mdl-cell mdl-cell--5-col">
+                <div className="k-share-username mdl-card mdl-shadow--2dp">
+                  <form onSubmit={this.addInitialUserPermission}>
+                    <div className="mdl-card__title">
+                      <h2 className="mdl-card__title-text">{t('share with username')}</h2>
+                    </div>
+                    <div className="mdl-card__supporting-text">
+                      <ui.SmallInputBox ref='usernameInput' placeholder={t('share with username')} onKeyUp={this.usernameCheck} />
+                      <button className={btnKls}>
+                        <i className="fa fa-fw fa-lg fa-plus" />
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+              <div className="mdl-cell mdl-cell--1-col">
+              </div>
+              <div className="mdl-cell mdl-cell--5-col">
+                <div className="k-share-publicly mdl-card mdl-shadow--2dp">
+                  <div className="mdl-card__title">
+                    <h2 className="mdl-card__title-text">{t('share publicly')}</h2>
+                  </div>
+                  <div className="mdl-card__supporting-text">
+                    <div>
+                      {perms.map((perm)=> {
+                        return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
+                      })}
+                    </div>
+
+                    {(() => {
+                      if (this.state.public_permission) {
+                        return <PublicPermDiv isOn={true}
+                                    onToggle={this.removePerm('view',
+                                                      this.state.public_permission,
+                                                      uid)}
+                                    />
+                      } else {
+                        return <PublicPermDiv isOn={false}
+                                    onToggle={this.setPerm('view', {
+                                        username: anonUsername,
+                                        uid: uid,
+                                        kind: kind,
+                                        objectUrl: objectUrl
+                                      }
+                                    )}
+                                    />
+                      }
+                    })()}
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </ui.Panel>
-          <div className='row'>
-            {(() => {
-              if (this.state.public_permission) {
-                return <PublicPermDiv isOn={true}
-                            onToggle={this.removePerm('view',
-                                              this.state.public_permission,
-                                              uid)}
-                            />
-              } else {
-                return <PublicPermDiv isOn={false}
-                            onToggle={this.setPerm('view', {
-                                username: anonUsername,
-                                uid: uid,
-                                kind: kind,
-                                objectUrl: objectUrl
-                              }
-                            )}
-                            />
-              }
-            })()}
-          </div>
         </ui.Modal.Body>
       </ui.Modal>
       );
+  },
+  componentDidUpdate() {
+    mdl.upgradeDom();
   }
+
 });
 
 var CollectionSharing = React.createClass({
@@ -1796,9 +1819,9 @@ var CollectionSharing = React.createClass({
     });
     var userInputKls = classNames('form-group',
                                     (inpStatus !== false) ? `has-${inpStatus}` : '');
-    var btnKls = classNames('btn',
-                            'btn-block',
-                            'btn-sm',
+    var btnKls = classNames('mdl-button',
+                            'mdl-button--raised',
+                            'mdl-button--colored',
                             inpStatus === 'success' ? 'btn-success' : 'hidden');
 
     var uid = this.state.asset.uid;
@@ -1809,62 +1832,83 @@ var CollectionSharing = React.createClass({
       return <p>loading</p>
     }
     return (
-      <ui.Modal open onClose={this.routeBack} title={this.state.asset.name}
-                  small={t('manage sharing permissions')}
-                  label={t('note: this does not control permissions to the data collected by projects')}>
+      <ui.Modal open onClose={this.routeBack} title={t('manage sharing permissions')}>
         <ui.Modal.Body>
           <ui.Panel className="k-div--sharing">
-            {t('owner')}
-            &nbsp;
-            <StackedIcon frontIcon='user' />
-            &nbsp;
-            <UserProfileLink username={this.state.asset.owner__username} />
-          </ui.Panel>
-          <ui.Panel className="k-div--sharing2">
-            <form onSubmit={this.addInitialUserPermission}>
-              <div className='col-sm-9'>
-                <div className={userInputKls}>
-                  <ui.SmallInputBox ref='usernameInput' placeholder={t('share with username')} onKeyUp={this.usernameCheck} />
+            <div className="k-sharing__title">
+              <h5>{this.state.asset.name}</h5>
+            </div>
+            <div className="k-sharing__header">
+              <div className="user--pill">
+                <StackedIcon frontIcon='user' /> 
+                <div className="user--pill__name">
+                  <UserProfileLink username={this.state.asset.owner__username} /><br/>
+                  <span className="text-small">{t('owner')}</span>
                 </div>
               </div>
-              <div className='col-sm-3'>
-                <button className={btnKls}>
-                  <i className="fa fa-fw fa-lg fa-plus" />
-                </button>
-              </div>
-            </form>
-            <br />
-            <br />
-            <div>
-              {perms.map((perm)=> {
-                return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
-              })}
+              <div className="text-small">{t('note: this does not control permissions to the data collected by projects')}</div>
             </div>
+
+            <div className="mdl-grid">
+              <div className="mdl-cell mdl-cell--5-col">
+                <div className="k-share-username mdl-card mdl-shadow--2dp">
+                  <form onSubmit={this.addInitialUserPermission}>
+                    <div className="mdl-card__title">
+                      <h2 className="mdl-card__title-text">{t('share with username')}</h2>
+                    </div>
+                    <div className="mdl-card__supporting-text">
+                      <ui.SmallInputBox ref='usernameInput' placeholder={t('share with username')} onKeyUp={this.usernameCheck} />
+                      <button className={btnKls}>
+                        <i className="fa fa-fw fa-lg fa-plus" />
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+              <div className="mdl-cell mdl-cell--1-col">
+              </div>
+              <div className="mdl-cell mdl-cell--5-col">
+                <div className="k-share-publicly mdl-card mdl-shadow--2dp">
+                    <div className="mdl-card__title">
+                      <h2 className="mdl-card__title-text">{t('share publicly')}</h2>
+                    </div>
+                    <div className="mdl-card__supporting-text">
+                      <div>
+                        {perms.map((perm)=> {
+                          return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
+                        })}
+                      </div>
+                      {(() => {
+                        if (this.state.public_permission) {
+                          return <PublicPermDiv isOn={true}
+                                      onToggle={this.removePerm('view',
+                                                        this.state.public_permission,
+                                                        uid)}
+                                      />
+                        } else {
+                          return <PublicPermDiv isOn={false}
+                                      onToggle={this.setPerm('view', {
+                                          username: anonUsername,
+                                          uid: uid,
+                                          kind: kind,
+                                          objectUrl: objectUrl
+                                        }
+                                      )}
+                                      />
+                        }
+                      })()}
+                    </div>
+                </div>
+              </div>
+            </div>
+
           </ui.Panel>
-          <div className='row'>
-            {(() => {
-              if (this.state.public_permission) {
-                return <PublicPermDiv isOn={true}
-                            onToggle={this.removePerm('view',
-                                              this.state.public_permission,
-                                              uid)}
-                            />
-              } else {
-                return <PublicPermDiv isOn={false}
-                            onToggle={this.setPerm('view', {
-                                username: anonUsername,
-                                uid: uid,
-                                kind: kind,
-                                objectUrl: objectUrl
-                              }
-                            )}
-                            />
-              }
-            })()}
-          </div>
         </ui.Modal.Body>
       </ui.Modal>
       );
+  },
+  componentDidUpdate() {
+    mdl.upgradeDom();
   }
 });
 
