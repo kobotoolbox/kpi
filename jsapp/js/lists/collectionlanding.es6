@@ -15,7 +15,6 @@ import ui from '../ui';
 import AssetRow from '../components/assetrow';
 import {List, ListSearch, ListSearchDebug, ListTagFilter, ListSearchSummary} from '../components/list';
 import {notify, getAnonymousUserPermission, formatTime, anonUsername, parsePermissions, log, t} from '../utils';
-import InlineEdit from 'react-inline-edit';
 
 var extendCollectionToStateMixin = {
   componentDidMount () {
