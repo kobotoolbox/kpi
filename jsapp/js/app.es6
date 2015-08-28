@@ -2277,6 +2277,8 @@ var LibrarySearchableList = require('./lists/library');
 var FormsSearchableList = require('./lists/forms');
 var CollectionList = require('./lists/collection');
 
+var CollectionLanding = require('./lists/collectionlanding');
+
 var FormNotFound = React.createClass({
   render () {
     return (
@@ -2482,7 +2484,7 @@ var routes = (
     <Route name="demo2" handler={DemoCollections} />
 
     <Route name="collections">
-      <Route name="collection-page" path=":uid" handler={Collections} />
+      <Route name="collection-page" path=":uid" handler={CollectionLanding} />
       <Route name="collection-sharing" path=":assetid/sharing" handler={CollectionSharing} />
       <DefaultRoute handler={CollectionList} />
     </Route>

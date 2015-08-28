@@ -206,6 +206,13 @@ var dataInterface;
         data: data,
       })
     },
+    patchCollection (uid, data) {
+      return $ajax({
+        url: `/collections/${uid}/`,
+        method: 'PATCH',
+        data: data
+      });
+    },
     createResource (details) {
       return $ajax({
         method: 'POST',
