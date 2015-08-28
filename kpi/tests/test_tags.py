@@ -15,13 +15,13 @@ class CreateCollectionTests(TestCase):
         self.sa = Asset.objects.create(owner=self.user)
 
     def test_query_tags(self):
-        TAG_NAME = 'Some Tag'
+        TAG_NAME = 'Some-Tag'
         self.assertEqual(Tag.objects.count(), 0)
         self.coll.tags.add(TAG_NAME)
         self.assertEqual(Tag.objects.count(), 1)
 
     def test_can_query_all_assets_by_tag(self):
-        TAG_NAME = 'Some Asset Tag'
+        TAG_NAME = 'Some-Asset-Tag'
         self.sa.tags.add(TAG_NAME)
         tag_obj = Tag.objects.get(name=TAG_NAME)
         tagged_survey_items = Asset.objects.filter(tags=tag_obj)
@@ -30,7 +30,7 @@ class CreateCollectionTests(TestCase):
         self.assertEqual(Asset.objects.filter_by_tag_name(TAG_NAME).count(), 1)
 
     def test_can_query_all_collections_by_tag(self):
-        TAG_NAME = 'Some Collection Tag'
+        TAG_NAME = 'Some-Collection-Tag'
         self.coll.tags.add(TAG_NAME)
         tag_obj = Tag.objects.get(name=TAG_NAME)
         tagged_collections = Collection.objects.filter(tags=tag_obj)

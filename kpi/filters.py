@@ -33,8 +33,6 @@ class SearchFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         is_search = False
         search_queryset = SearchQuerySet().models(queryset.model)
-        indexed_fields = connections['default'].get_unified_index().get_index(
-            queryset.model).fields
         for k, v in request.query_params.iteritems():
             if k == 'q':
                 # 'q' means do a full-text search of the document fields.

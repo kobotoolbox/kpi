@@ -1,4 +1,5 @@
 import re
+import six
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
@@ -6,7 +7,8 @@ from django.db import transaction
 from django.dispatch import receiver
 from jsonfield import JSONField
 from shortuuid import ShortUUID
-from taggit.managers import TaggableManager
+from taggit.managers import TaggableManager, _TaggableManager
+from taggit.utils import require_instance_manager
 from taggit.models import Tag
 import reversion
 
@@ -38,6 +40,25 @@ class TaggableModelManager(models.Manager):
         if tag_string:
             created.tag_string= tag_string
         return created
+
+
+class KpiTaggableManager(_TaggableManager):
+    @require_instance_manager
+    def add(self, *tags, **kwargs):
+        ''' A wrapper that replaces spaces in tag names with dashes and also
+        strips leading and trailng whitespace. Behavior should match the
+        TagsInput transform function in app.es6. '''
+        tags_out = []
+        for t in tags:
+            # Modify strings only; the superclass' add() method will then
+            # create Tags or use existing ones as appropriate.  We do not fix
+            # existing Tag objects, which could also be passed into this
+            # method, because a fixed name could collide with the name of
+            # another Tag object already in the database.
+            if isinstance(t, six.string_types):
+                t = t.strip().replace(' ', '-')
+            tags_out.append(t)
+        super(KpiTaggableManager, self).add(*tags_out, **kwargs)
 
 
 class AssetManager(TaggableModelManager):
@@ -108,7 +129,7 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
     owner = models.ForeignKey('auth.User', related_name='assets', null=True)
     editors_can_change_permissions = models.BooleanField(default=True)
     uid = models.CharField(max_length=ASSET_UID_LENGTH, default='', blank=True)
-    tags = TaggableManager()
+    tags = TaggableManager(manager=KpiTaggableManager)
 
     permissions = GenericRelation(ObjectPermission)
 
