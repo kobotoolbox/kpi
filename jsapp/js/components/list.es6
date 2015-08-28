@@ -152,8 +152,8 @@ var ListTagFilter = React.createClass({
     }
   },
   componentDidMount () {
-    this.listenTo(stores.tags, this.tagsLoaded)
-    actions.resources.listTags();
+    this.listenTo(stores.tags, this.tagsLoaded);
+    actions.resources.listTags(this.searchStore.filterTagQueryData());
   },
   tagsLoaded (tags) {
     this.setState({

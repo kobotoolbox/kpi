@@ -44,8 +44,9 @@ var FormsSearchableList = React.createClass({
     return {
       searchContext: searches.getSearchContext('forms', {
         filterParams: {
-          assetType: 'asset_type:survey'
-        }
+          assetType: 'asset_type:survey',
+        },
+        filterTags: 'asset_type:survey',
       })
     }
   },

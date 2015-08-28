@@ -220,13 +220,13 @@ var dataInterface;
         data: data
       });
     },
-    listTags () {
+    listTags (data) {
       return $ajax({
         url: `/tags/`,
         method: 'GET',
-        data: {
+        data: assign({
           limit: 9999,
-        },
+        }, data),
       });
     },
     getCollection (params={}) {
