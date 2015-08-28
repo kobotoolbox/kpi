@@ -152,8 +152,8 @@ var ListTagFilter = React.createClass({
     }
   },
   componentDidMount () {
-    this.listenTo(stores.tags, this.tagsLoaded)
-    actions.resources.listTags();
+    this.listenTo(stores.tags, this.tagsLoaded);
+    actions.resources.listTags(this.searchStore.filterTagQueryData());
   },
   tagsLoaded (tags) {
     this.setState({
@@ -161,7 +161,7 @@ var ListTagFilter = React.createClass({
       availableTags: tags.map(function(t){
         return {
           label: t.name,
-          value: t.name,
+          value: t.name.replace(/\s/g, '-'),
         }
       })
     });

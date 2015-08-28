@@ -223,6 +223,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     lookup_field = 'taguid__uid'
+    filter_backends = (SearchFilter,)
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
@@ -289,7 +290,15 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
         else:
             return ImportTaskSerializer
 
+    def get_queryset(self, *args, **kwargs):
+        if self.request.user.is_anonymous():
+            return ImportTask.objects.none()
+        else:
+            return ImportTask.objects.filter(user=self.request.user)
+
     def create(self, request, *args, **kwargs):
+        if self.request.user.is_anonymous():
+            raise exceptions.NotAuthenticated()
         if 'base64Encoded' in request.POST:
             encoded_str = request.POST['base64Encoded']
             encoded_substr = encoded_str[encoded_str.index('base64') + 7:]

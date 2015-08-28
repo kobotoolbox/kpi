@@ -206,6 +206,13 @@ var dataInterface;
         data: data,
       })
     },
+    patchCollection (uid, data) {
+      return $ajax({
+        url: `/collections/${uid}/`,
+        method: 'PATCH',
+        data: data
+      });
+    },
     createResource (details) {
       return $ajax({
         method: 'POST',
@@ -220,13 +227,13 @@ var dataInterface;
         data: data
       });
     },
-    listTags () {
+    listTags (data) {
       return $ajax({
         url: `/tags/`,
         method: 'GET',
-        data: {
+        data: assign({
           limit: 9999,
-        },
+        }, data),
       });
     },
     getCollection (params={}) {

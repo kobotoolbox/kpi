@@ -61,7 +61,11 @@ bem.CollectionAssetList = bem('collection-asset-list', '<ul>');
 bem.CollectionAssetList__message = bem.CollectionAssetList.__('message');
 
 bem.CollectionHeader = bem('collection-header');
-bem.CollectionHeader__buttonRow = bem('collection-header__button-row')
+bem.CollectionHeader__item = bem.CollectionHeader.__('item');
+bem.CollectionHeader__input = bem.CollectionHeader.__('input', '<input>');
+bem.CollectionHeader__buttonRow = bem('collection-header__button-row');
+bem.CollectionHeader__iconwrap = bem.CollectionHeader.__('iconwrap')
+
 bem.CollectionHeader__buttonGroup = bem('collection-header__button-group', [
                       'new',
                       'actions',
@@ -118,18 +122,8 @@ bem.AssetView__deployments = bem.AssetView.__('deployments');
 bem.AssetView__deploybutton = bem.AssetView.__('deploybutton', '<button>');
 
 
-bem.CollectionHeader__button = bem.CollectionHeader.__('button', '<a>')
-// bem('collection-header__button', '<button>', [
-//                         'new-form',
-//                         'view-form',      'view-collection',
-//                         'edit-form',      'edit-collection',
-//                         'preview-form',   'preview-collection',
-//                         'clone-form',     'clone-collection',
-//                         'download-form',  'download-collection',
-//                         'delete',
 
-//                         'disabled',
-//                     ]);
+bem.CollectionHeader__button = bem.CollectionHeader.__('button', '<a>')
 
 // bem.Sidebar = BEM('sidebar')
 // bem.Sidebar__link = bem.Sidebar.__('link');

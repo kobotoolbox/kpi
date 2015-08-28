@@ -276,8 +276,8 @@ actions.resources.createSnapshot.listen(function(details){
     .fail(actions.resources.createSnapshot.failed);
 });
 
-actions.resources.listTags.listen(function(){
-  dataInterface.listTags()
+actions.resources.listTags.listen(function(data){
+  dataInterface.listTags(data)
     .done(actions.resources.listTags.completed)
     .fail(actions.resources.listTags.failed);
 });

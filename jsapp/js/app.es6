@@ -71,11 +71,20 @@ mixins.taggedAsset = {
     return ls;
   },
   renderTaggedAssetTags () {
+    var transform = function(tag) {
+      // Behavior should match KpiTaggableManager.add()
+      return tag.trim().replace(/ /g, '-');
+    };
+    // react-tagsinput splits on tab (9) and enter (13) by default; we want to
+    // split on comma (188) as well
+    var addKeys = [9, 13, 188];
     return (
-        <div>
-          <TagsInput ref="tags" classNamespace="k" valueLink={this.linkTagState()} />
-        </div>
-      );
+      <div>
+        <TagsInput ref="tags" classNamespace="k"
+          valueLink={this.linkTagState()} transform={transform}
+          addKeys={addKeys} />
+      </div>
+    );
   }
 };
 
@@ -2305,6 +2314,8 @@ var LibrarySearchableList = require('./lists/library');
 var FormsSearchableList = require('./lists/forms');
 var CollectionList = require('./lists/collection');
 
+var CollectionLanding = require('./lists/collectionlanding');
+
 var FormNotFound = React.createClass({
   render () {
     return (
@@ -2510,7 +2521,7 @@ var routes = (
     <Route name="demo2" handler={DemoCollections} />
 
     <Route name="collections">
-      <Route name="collection-page" path=":uid" handler={Collections} />
+      <Route name="collection-page" path=":uid" handler={CollectionLanding} />
       <Route name="collection-sharing" path=":assetid/sharing" handler={CollectionSharing} />
       <DefaultRoute handler={CollectionList} />
     </Route>
