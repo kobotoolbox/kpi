@@ -61,7 +61,7 @@ var CollectionLanding = React.createClass({
       stores.pageState.setHeaderBreadcrumb([
         {'label': t('Collections'), 'to': 'collections'},
         {'label': t('Collection'), 'to': 'collection-page', 'params': {
-          uid: this.props.params.uid
+          uid: params.uid
         }}
       ]);
       stores.pageState.setAssetNavPresent(false);
