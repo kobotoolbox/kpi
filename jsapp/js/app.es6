@@ -423,14 +423,14 @@ var AssetNavigatorListView = React.createClass({
                       <bem.LibList__label>
                         <ui.AssetName {...item} />
                       </bem.LibList__label>
-                      <bem.LibList__qtype>
-                        {t(item.asset_type)}
-                      </bem.LibList__qtype>
                       <bem.LibList__tags>
                         {(item.tags || []).map((tg)=>{
                           return <bem.LibList__tag>{tg}</bem.LibList__tag>;
                         })}
                       </bem.LibList__tags>
+                      <bem.LibList__qtype>
+                        {t(item.asset_type)}
+                      </bem.LibList__qtype>
                     </bem.LibList__item>
                   );
               })}
@@ -800,13 +800,13 @@ var UserPermDiv = React.createClass({
     mixins.permissions,
   ],
   renderPerm ([permName, permPermission, permissionObject]) {
-    var btnCls = classNames('btn',
-                            'btn-sm',
+    var btnCls = classNames('mdl-button',
+                            'mdl-button--raised',
                             `perm-${permName}`,
-                            'btn-block',
+                            'mdl-js-button',
                             ({
                               "false": "btn-default",
-                              "allow": "btn-primary",
+                              "allow": "mdl-button--colored",
                               "deny": "btn-danger"
                             })[permPermission]);
 
@@ -817,12 +817,10 @@ var UserPermDiv = React.createClass({
       buttonAction = this.setPerm(permName, this.props);
     }
     return (
-        <div className='k-col-3-nopadd'>
-          <button className={btnCls} onClick={buttonAction}>
-            {permName}
-          </button>
-        </div>
-      );
+      <button className={btnCls} onClick={buttonAction}>
+        {permName}
+      </button>
+    );
   },
   render () {
     var hasAnyPerms = false;
@@ -841,8 +839,8 @@ var UserPermDiv = React.createClass({
       debugger;
     }
     return (
-      <div className='row'>
-        <div className='col-md-6'>
+      <div>
+        <div>
           <UserProfileLink icon={this.props.icon || 'user-o'} iconBefore='true' username={this.props.username} />
         </div>
         {availPerms.map(this.renderPerm)}
@@ -1661,6 +1659,11 @@ var FormSharing = React.createClass({
                         <i className="fa fa-fw fa-lg fa-plus" />
                       </button>
                     </div>
+                    <div className="mdl-card__actions mdl-card--border">
+                      {perms.map((perm)=> {
+                        return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
+                      })}
+                    </div>
                   </form>
                 </div>
               </div>
@@ -1672,12 +1675,6 @@ var FormSharing = React.createClass({
                     <h2 className="mdl-card__title-text">{t('share publicly')}</h2>
                   </div>
                   <div className="mdl-card__supporting-text">
-                    <div>
-                      {perms.map((perm)=> {
-                        return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
-                      })}
-                    </div>
-
                     {(() => {
                       if (this.state.public_permission) {
                         return <PublicPermDiv isOn={true}
@@ -1862,6 +1859,11 @@ var CollectionSharing = React.createClass({
                         <i className="fa fa-fw fa-lg fa-plus" />
                       </button>
                     </div>
+                    <div className="mdl-card__actions mdl-card--border">
+                      {perms.map((perm)=> {
+                        return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
+                      })}
+                    </div>
                   </form>
                 </div>
               </div>
@@ -1873,11 +1875,6 @@ var CollectionSharing = React.createClass({
                       <h2 className="mdl-card__title-text">{t('share publicly')}</h2>
                     </div>
                     <div className="mdl-card__supporting-text">
-                      <div>
-                        {perms.map((perm)=> {
-                          return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
-                        })}
-                      </div>
                       {(() => {
                         if (this.state.public_permission) {
                           return <PublicPermDiv isOn={true}
