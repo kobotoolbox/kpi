@@ -581,11 +581,11 @@ var AssetNavigator = React.createClass({
                   searchContext={this.state.searchContext}
                 />
             </bem.LibNav__search>
-          </bem.LibNav__header>
-          <bem.LibNav__content>
             <ListTagFilter
                   searchContext={this.state.searchContext}
                 />
+          </bem.LibNav__header>
+          <bem.LibNav__content>
             <AssetNavigatorListView
                   searchContext={this.state.searchContext}
                 />
