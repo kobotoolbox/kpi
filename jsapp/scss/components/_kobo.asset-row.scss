@@ -26,19 +26,22 @@ $assetRowTextColor: #888;
 
 .asset-row__tags {
   color: $assetRowTextColor;
+  font-size: 11px;
   > i:first-child {
     @extend .fa, .fa-fw, .fa-tag;
-    margin-right: 6px;
+    margin-right: 2px;
+    float: left;
   }
 }
 .asset-row__tags__tag {
-  margin-right: 3px;
-  &:after {
-    content: ',';
-  }
-  &:last-child:after {
-    content: '';
-  }
+  @extend .k-tagsinput-tag;
+  line-height: 14px;
+  // &:after {
+  //   content: ',';
+  // }
+  // &:last-child:after {
+  //   content: '';
+  // }
 }
 .asset-row--selected {
   background-color: $highlightedBarColor;
