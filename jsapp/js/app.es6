@@ -144,6 +144,7 @@ mixins.formView = {
             </a>;
   },
   innerRender () {
+    var isSurvey = this.state.asset && this.state.asset.asset_type === 'survey';
 
     return (
         <ui.Panel className="k-div--formview--innerrender">
@@ -160,7 +161,7 @@ mixins.formView = {
               {this.renderFormNameInput()}
             </div>
           </div>
-          { this.state.survey ?
+          { this.state.survey && isSurvey ?
             this.renderSubSettingsBar()
           :null}
 
