@@ -24,14 +24,16 @@ var extendCollectionToStateMixin = {
       actions.resources.readCollection({uid: uid})
       this.setState({
         collectionLoading: 1,
-      })
+      });
     }
   },
   collectionLoaded (coll, uid) {
-    this.setState({
-      collection: coll,
-      collectionLoading: 0,
-    })
+    if (uid === this.props.params.uid) {
+      this.setState({
+        collection: coll,
+        collectionLoading: 0,
+      })
+    }
   },
   getInitialState () {
     return {
@@ -56,10 +58,12 @@ var CollectionLanding = React.createClass({
   ],
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
-      var headerBreadcrumb = [
-        {'label': t('Collections'), 'href': '/collections'}
-      ];
-      stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
+      stores.pageState.setHeaderBreadcrumb([
+        {'label': t('Collections'), 'to': 'collections'},
+        {'label': t('Collection'), 'to': 'collection-page', 'params': {
+          uid: this.props.params.uid
+        }}
+      ]);
       stores.pageState.setAssetNavPresent(false);
       callback();
     }

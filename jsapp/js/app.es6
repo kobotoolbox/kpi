@@ -1149,10 +1149,9 @@ var Forms = React.createClass({
           uid: params.assetid
         });
       } else {
-        var headerBreadcrumb = [
-          {'label': t('Forms'), 'href': '/forms'}
-        ];
-        stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
+        stores.pageState.setHeaderBreadcrumb([
+          {'label': t('Forms'), 'to': 'forms'}
+        ]);
       }
       callback();
     }
@@ -1228,11 +1227,10 @@ mixins.newForm = {
   },
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
-      var headerBreadcrumb = [
-        {'label': t('Forms'), 'href': '/forms'},
-        {'label': t('New'), 'href': ''}
-      ];
-      stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
+      stores.pageState.setHeaderBreadcrumb([
+        {'label': t('Forms'), 'to': 'forms'},
+        {'label': t('New'), 'to': 'new-form'}
+      ]);
       stores.pageState.setAssetNavPresent(true);
       callback();
     }
@@ -1352,8 +1350,10 @@ var Collections = React.createClass({
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
       var headerBreadcrumb = [
-        {'label': t('Collections'), 'href': '/collections'},
-        {'label': t('Collection'), 'href': params.uid}
+        {'label': t('Collections'), 'to': 'collections'},
+        {'label': t('Collection'), 'to': 'collection-landing', params: {
+          uid: params.uid
+        }}
       ];
       stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
       callback();
@@ -2138,7 +2138,7 @@ var FormPage = React.createClass({
 
     this.listenTo(assetStore, this.assetStoreTriggered)
       var headerBreadcrumb = [
-        {'label': t('Forms'), 'href': '/forms'}
+        {'label': t('Forms'), 'to': 'forms'}
       ];
     stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
     this._postLoadRenderMounted = false;

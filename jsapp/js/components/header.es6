@@ -18,17 +18,9 @@ var MainHeader = React.createClass({
   mixins: [
     Reflux.connect(stores.session),
     Reflux.connect(stores.pageState),
-    // mixins.ancestorBreadcrumb,
-    // toolTipped,
   ],
   getInitialState () {
-    return assign(stores.pageState.state);
-  },
-  pageStateChange (state) {
-    this.setState(state);
-  },
-  componentDidMount () {
-    this.listenTo(stores.pageState, this.pageStateChange)
+    return assign({}, stores.pageState.state);
   },
   logout () {
     actions.auth.logout();
@@ -40,22 +32,27 @@ var MainHeader = React.createClass({
 
     if (this.state.isLoggedIn) {
       return (
-					<a className="mdl-navigation__link">
-	          <bem.AccountBox__name>{accountName}</bem.AccountBox__name>
-	          <bem.AccountBox__image>
-	            <img src={gravatar} />
-	          </bem.AccountBox__image>
-					</a>
+          <a className="mdl-navigation__link">
+            <bem.AccountBox__name>{accountName}</bem.AccountBox__name>
+            <bem.AccountBox__image>
+              <img src={gravatar} />
+            </bem.AccountBox__image>
+          </a>
         );
     }
     return (
-					<span className="mdl-navigation__link">not logged in</span>
+          <span className="mdl-navigation__link">not logged in</span>
         );
   },
   _breadcrumbItem (item) {
     return (
         <span className="header-breadcrumb__item">
-          <Link to={item.href}>{item.label}</Link>
+          {
+            ('to' in item) ?
+            <Link to={item.to} params={item.params}>{item.label}</Link>
+            :
+            <a href={item.href}>{item.label}</a>
+          }
         </span>
       );
   },
@@ -71,10 +68,10 @@ var MainHeader = React.createClass({
             <span className="mdl-layout-title">{this.renderBreadcrumb()}</span>
             <div className="mdl-layout-spacer"></div>
             <nav className="mdl-navigation">
-        			<a className="mdl-navigation__link" href="/">
-              	<bem.AccountBox__logo />
+              <a className="mdl-navigation__link" href="/">
+                <bem.AccountBox__logo />
               </a>
-            	{this.renderAccountNavLink()}
+              {this.renderAccountNavLink()}
             </nav>
           </div>
         </header>
