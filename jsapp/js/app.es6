@@ -1246,6 +1246,9 @@ mixins.newForm = {
   creatingResourceCompleted (data) {
     this.transitionTo('form-edit', { assetid: data.uid });
   },
+  surveyStateChanged (state) {
+    this.setState(state);
+  },
   componentDidMount () {
     this.navigateBack = (evt) => {
       if (this.needsSave() && confirm(t('you have unsaved changes. would you like to save?'))) {
@@ -1255,12 +1258,14 @@ mixins.newForm = {
     }
     actions.resources.createResource.listen(this.creatingResource);
     actions.resources.createResource.completed.listen(this.creatingResourceCompleted);
+    this.listenTo(stores.surveyState, this.surveyStateChanged);
     var survey = this.createSurvey();
     var skp = new SurveyScope({
       survey: survey
     });
     var app = new dkobo_xlform.view.SurveyApp({
       survey: survey,
+      stateStore: stores.surveyState,
       ngScope: skp
     });
     $('.form-wrap').html(app.$el);
@@ -2008,9 +2013,15 @@ var FormPage = React.createClass({
     });
   },
 
-  showAll () {},
-  previewForm () {},
-  groupQuestions () {},
+  showAll () {
+    this.app.expandMultioptions();
+  },
+  previewForm () {
+    log('preview button has been clicked');
+  },
+  groupQuestions () {
+    this.app.groupSelectedRows();
+  },
 
   onSurveyChange () {
     this.setState({
@@ -2018,11 +2029,12 @@ var FormPage = React.createClass({
     });
   },
   renderSaveAndPreviewButtons () {
-    var showallDisabled = true;
-    var groupQuestionsDisabled = true;
+    var surv = this.state.survey,
+        app = this.app || {};
+
     var previewDisabled = true;
-    var groupable = false;
-    var showAllOpen = false;
+    var groupable = !!this.state.groupButtonIsActive;
+    var showAllOpen = !!this.state.multioptionsExpanded;
     return (
         <bem.FormHeader>
           <bem.FormHeader__button m={['save', {
@@ -2035,7 +2047,8 @@ var FormPage = React.createClass({
           </bem.FormHeader__button>
           <bem.FormHeader__button m={['preview', {
                 previewdisabled: previewDisabled
-              }]} onClick={this.previewForm}>
+              }]} onClick={this.previewForm}
+              disabled={previewDisabled}>
             <i />
             {t('preview')}
           </bem.FormHeader__button>
@@ -2047,7 +2060,8 @@ var FormPage = React.createClass({
           </bem.FormHeader__button>
           <bem.FormHeader__button m={['group', {
                 groupable: groupable
-              }]} onClick={this.groupQuestions}>
+              }]} onClick={this.groupQuestions}
+              disabled={!groupable}>
             <i />
             {t('group questions')}
           </bem.FormHeader__button>
@@ -2059,6 +2073,7 @@ var FormPage = React.createClass({
     return {
       survey_loaded: false,
       survey_name: '',
+      multioptionsExpanded: true,
       kind: 'asset',
       asset: false
     };
@@ -2142,12 +2157,17 @@ var FormPage = React.createClass({
       this.state.survey.off('change');
     }
   },
+  surveyStateChanged (state) {
+    this.setState(state);
+  },
   postLoadRenderMount () {
     this._postLoadRenderMounted = true;
     this.state.survey.settings.set('form_title', this.state.asset.name);
     var skp = new SurveyScope({survey: this.state.survey});
+    this.listenTo(stores.surveyState, this.surveyStateChanged);
     this.app = new dkobo_xlform.view.SurveyApp({
       survey: this.state.survey,
+      stateStore: stores.surveyState,
       ngScope: skp,
     });
     var fw = this.refs['form-wrap'].getDOMNode();

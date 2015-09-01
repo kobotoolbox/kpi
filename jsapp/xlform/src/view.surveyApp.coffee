@@ -135,6 +135,7 @@ define 'cs!xlform/view.surveyApp', [
       @warnings = options.warnings || []
       @__rowViews = new Backbone.Model()
       @ngScope = options.ngScope
+      @surveyStateStore = options.stateStore || {trigger:$.noop}
 
       $(document).on 'click', @deselect_rows
 
@@ -228,6 +229,9 @@ define 'cs!xlform/view.surveyApp', [
       return
 
     activateGroupButton: (active=true)->
+      @surveyStateStore.setState({
+          groupButtonIsActive: active
+        })
       @$('.btn--group-questions').toggleClass('btn--disabled', !active)
 
     getApp: -> @
@@ -263,10 +267,15 @@ define 'cs!xlform/view.surveyApp', [
 
     toggleCardSettings: (evt)->
       @_getViewForTarget(evt).toggleSettings()
-    
+
     toggleGroupExpansion: (evt)->
       view = @_getViewForTarget(evt)
-      view.$el.toggleClass('group--shrunk')
+      groupsAreShrunk = view.$el.hasClass('group--shrunk')
+      @surveyStateStore.setState({
+          groupShrunk: groupsAreShrunk
+        })
+      view.$el.toggleClass('group--shrunk', !groupsAreShrunk)
+
 
     toggleRowMultioptions: (evt)->
       view = @_getViewForTarget(evt)
@@ -378,11 +387,16 @@ define 'cs!xlform/view.surveyApp', [
         @$(".card--expandedchoices").each (i, el)=>
           @_getViewForTarget(currentTarget: el).hideMultioptions()
           ``
+        _expanded = false
       else
-        @$(".card--selectquestion").each (i, el)=>               
+        @$(".card--selectquestion").each (i, el)=>
           @_getViewForTarget(currentTarget: el).showMultioptions()
           ``
+        _expanded = true
 
+      @surveyStateStore.trigger({
+          multioptionsExpanded: _expanded
+        })
       @set_multioptions_label()
       return
 
