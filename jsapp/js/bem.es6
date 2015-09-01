@@ -24,6 +24,9 @@ bem.AssetRow__sharingIcon = bem.AssetRow.__('sharingIcon');
 bem.AssetRow__sharingIcon__owner =
                 bem.AssetRow__sharingIcon.__('owner', '<span>');
 
+bem.FormHeader = bem('form-header');
+bem.FormHeader__button = bem.FormHeader.__('button', '<button>');
+
 bem.Search = BEM('search');
 bem.Search__icon = bem.Search.__('icon', '<i>');
 bem.Search__cancel = bem.Search.__('cancel', '<i>');

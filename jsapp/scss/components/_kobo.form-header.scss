@@ -1,0 +1,28 @@
+@mixin formHeaderButton($iconCls) {
+  > i {
+    @extend .fa-#{$iconCls};
+  }
+}
+
+.form-header__button {
+  @extend .mdl-button, .mdl-button--raised, .mdl-js-button;
+
+  > i {
+    @extend .fa, .fa-sm;
+    margin-right: 5px;
+  }
+  margin-right: 5px;
+}
+
+.form-header__button--preview {
+  @include formHeaderButton('eye');
+}
+.form-header__button--save {
+  @include formHeaderButton('save');
+}
+.form-header__button--show-all {
+  @include formHeaderButton('caret-right');
+}
+.form-header__button--group {
+  @include formHeaderButton('circle-o');
+}

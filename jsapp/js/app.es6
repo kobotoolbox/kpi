@@ -1992,9 +1992,6 @@ var FormPage = React.createClass({
   mixins: [
     Navigation,
     mixins.formView,
-    // Reflux.connectFilter(assetStore, 'asset', function(data){
-    //   return data[this.props.params.assetid];
-    // }),
     Reflux.ListenerMixin,
   ],
   getNameValue () {
@@ -2008,62 +2005,56 @@ var FormPage = React.createClass({
     });
     this.setState({
       asset_updated: false
-    })
+    });
   },
+
+  showAll () {},
+  previewForm () {},
+  groupQuestions () {},
+
   onSurveyChange () {
     this.setState({
       asset_updated: -1
     });
   },
   renderSaveAndPreviewButtons () {
-    var disabled = !!this.state.disabled;
-    var pendingSave = this.state.asset_updated === false;
-    var saveText = t('save');
-    var saveBtnKls = classNames('mdl-button','mdl-button--colored', 'mdl-button--raised', 'mdl-js-button', {
-      'disabled': disabled,
-      'k-save': true,
-      'k-save--pending': this.state.asset_updated === false,
-      'k-save--complete': this.state.asset_updated === true,
-      'k-save--needed': this.state.asset_updated === -1
-    });
-
-    var previewText = t('preview');
-    var previewDisabled = true;
-    var previewBtnKls = classNames('mdl-button','mdl-js-button','mdl-button--raised',
-                                  'k-preview',
-                                  previewDisabled ? 'disabled': '');
-
-    var showallText = t('show all responses');
     var showallDisabled = true;
-    var showallBtnKls = classNames('mdl-button', 'mdl-js-button','mdl-button--raised',
-                                  'k-showall',
-                                  showallDisabled ? 'disabled': '');
-
-    var groupQuestionsText = t('group questions');
     var groupQuestionsDisabled = true;
-    var groupQuestionsBtnKls = classNames('mdl-button','mdl-js-button','mdl-button--raised',
-                                  'k-groupQuestions',
-                                  groupQuestionsDisabled ? 'disabled': '')
+    var previewDisabled = true;
+    var groupable = false;
+    var showAllOpen = false;
     return (
-        <div className="k-form-actions">
-          <a href="#" className={saveBtnKls} onClick={this.saveForm}>
-            <i className={classNames('fa', 'fa-sm', 'fa-save')} /> {saveText}
-          </a>
-
-          <a href="#" className={previewBtnKls} >
-            <i className={classNames('fa', 'fa-sm', 'fa-eye')} /> {previewText}
-          </a>
-
-          <a href="#" className={showallBtnKls} >
-            <i className={classNames('fa', 'fa-sm', 'fa-caret-right')} /> {showallText}
-          </a>
-
-          <a href="#" className={groupQuestionsBtnKls} >
-            <i className={classNames('fa', 'fa-sm', 'fa-circle-o')} /> {groupQuestionsText}
-          </a>
-        </div>
+        <bem.FormHeader>
+          <bem.FormHeader__button m={['save', {
+                savepending: this.state.asset_updated === false,
+                savecomplete: this.state.asset_updated === true,
+                saveneeded: this.state.asset_updated === -1,
+              }]} onClick={this.saveForm}>
+            <i />
+            {t('save')}
+          </bem.FormHeader__button>
+          <bem.FormHeader__button m={['preview', {
+                previewdisabled: previewDisabled
+              }]} onClick={this.previewForm}>
+            <i />
+            {t('preview')}
+          </bem.FormHeader__button>
+          <bem.FormHeader__button m={['show-all', {
+                open: showAllOpen,
+              }]} onClick={this.showAll}>
+            <i />
+            {t('show all responses')}
+          </bem.FormHeader__button>
+          <bem.FormHeader__button m={['group', {
+                groupable: groupable
+              }]} onClick={this.groupQuestions}>
+            <i />
+            {t('group questions')}
+          </bem.FormHeader__button>
+        </bem.FormHeader>
       );
   },
+
   getInitialState () {
     return {
       survey_loaded: false,
