@@ -860,13 +860,13 @@ class PublicPermDiv extends UserPermDiv {
           <i className={`fa fa-group fa-lg`} />
           &nbsp;&nbsp;
           {isOn ?
-            t('shared publicly') :
-            t('not shared publicly')}
+            t('Link sharing on') :
+            t('Link sharing off')}
         </button>
         <p className='text-muted text-center'>
           {isOn ?
-            t('anyone with this link can view the survey') :
-            t('this form is only viewable by the users listed above')}
+            t('Anyone with the link can view this item') :
+            t('This item can only be viewed by you and anyone you specify')}
         </p>
       </div>
       );
@@ -1641,7 +1641,7 @@ var FormSharing = React.createClass({
                 </div>
               </div>
 
-              <div className="text-small">{t('note: this does not control permissions to the data collected by projects')}</div>
+              <div className="text-small">{t('To share this item with others just enter their username below, then choose which permissions they shoud have. To remove them again just deselect both permissions. Note: this does not control permissions to the data collected by projects')}</div>
 
             </div>
 
@@ -1672,7 +1672,7 @@ var FormSharing = React.createClass({
               <div className="mdl-cell mdl-cell--5-col">
                 <div className="k-share-publicly mdl-card mdl-shadow--2dp">
                   <div className="mdl-card__title">
-                    <h2 className="mdl-card__title-text">{t('share publicly')}</h2>
+                    <h2 className="mdl-card__title-text">{t('Link sharing')}</h2>
                   </div>
                   <div className="mdl-card__supporting-text">
                     {(() => {
@@ -1851,10 +1851,10 @@ var CollectionSharing = React.createClass({
                 <div className="k-share-username mdl-card mdl-shadow--2dp">
                   <form onSubmit={this.addInitialUserPermission}>
                     <div className="mdl-card__title">
-                      <h2 className="mdl-card__title-text">{t('share with username')}</h2>
+                      <h2 className="mdl-card__title-text">{t('Share with other users')}</h2>
                     </div>
                     <div className="mdl-card__supporting-text">
-                      <ui.SmallInputBox ref='usernameInput' placeholder={t('share with username')} onKeyUp={this.usernameCheck} />
+                      <ui.SmallInputBox ref='usernameInput' placeholder={t('enter a username')} onKeyUp={this.usernameCheck} />
                       <button className={btnKls}>
                         <i className="fa fa-fw fa-lg fa-plus" />
                       </button>
@@ -1872,7 +1872,7 @@ var CollectionSharing = React.createClass({
               <div className="mdl-cell mdl-cell--5-col">
                 <div className="k-share-publicly mdl-card mdl-shadow--2dp">
                     <div className="mdl-card__title">
-                      <h2 className="mdl-card__title-text">{t('share publicly')}</h2>
+                      <h2 className="mdl-card__title-text">{t('Link sharing')}</h2>
                     </div>
                     <div className="mdl-card__supporting-text">
                       {(() => {
