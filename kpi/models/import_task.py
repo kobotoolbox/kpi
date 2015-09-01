@@ -5,7 +5,7 @@ from shortuuid import ShortUUID
 from jsonfield import JSONField
 import requests
 from pyxform import xls2json_backends
-from ..models import Collection
+from ..models import Collection, Asset
 from ..model_utils import create_assets, _load_library_content
 from ..zip_importer import HttpContentParse
 
