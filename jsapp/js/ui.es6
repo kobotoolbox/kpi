@@ -64,14 +64,21 @@ ui.Modal = React.createClass({
     }
   },
   render () {
+
     return (
           <div className='modal-backdrop' style={{backgroundColor: 'rgba(0,0,0,0.3)'}} onClick={this.backdropClick.bind(this)}>
             <div className={this.props.open ? 'modal-open' : 'modal'}>
               <div className="modal-dialog k-modal-dialog">
                 <div className="modal-content">
                   <div className="modal-header">
-                    <button type="button" className="close" data-dismiss="modal" aria-hidden="true" onClick={this.props.onClose}>×</button>
-                    {this.renderTitle()}
+                    <div className="mdl-grid k-form-header__inner">
+                      {this.renderTitle()}
+                      <div className="mdl-layout-spacer"></div>
+                      <button type="button" className="close mdl-button mdl-button--icon mdl-js-button" onClick={this.props.onClose}>
+                        <i className="material-icons">clear</i> 
+                      </button>
+                    </div>
+
                   </div>
                   {this.props.children}
                 </div>

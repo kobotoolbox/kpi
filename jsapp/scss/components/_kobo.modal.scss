@@ -1,0 +1,93 @@
+.page-wrapper__content .modal-backdrop {
+	position: absolute;
+	height: 100%;
+	width:100%;
+	.modal-open {
+		height: 100%;
+	}
+}
+
+.modal-dialog {
+	display: flex;
+	justify-content: center;
+	height: 100%;
+}
+
+.modal-content {
+	width: 80%;
+	display: flex;
+	flex-direction: column;
+	background-color: #F5F5F5;
+}
+
+.modal-header, .modal-footer {
+	min-height: 60px;
+	padding-top:10px;
+	// overflow: hidden;
+}
+
+h4.modal-title {
+	margin-top:0px;
+}
+
+.modal-footer {
+	text-align: center;
+	button {
+	@extend .mdl-button;
+	@extend .mdl-button--colored; 
+	@extend .mdl-button--raised;
+	}
+}
+
+.modal-body {
+	flex-grow:1;
+	display: flex;
+	flex-direction:column;
+	.enketo-holder {
+		flex-grow:1;
+		display: flex;
+		flex-direction:column;
+		iframe {
+			flex-grow:1;
+	    border:1px solid white;
+	    width: 100%;
+		}
+	}
+}
+
+.enketo-holder {
+  .enketo-loading-message {
+    p {
+      text-align: center;
+      font-weight: 600;
+    }
+
+    i:before {
+      color: #3FA2EE;
+      font-size: 20px;
+    }
+  }
+}
+
+.touch .enketo-holder {
+  width: 94%;
+  left: 3%; 
+  margin-left: 0px;
+  -webkit-overflow-scrolling:touch;
+  overflow-y: scroll; 
+}
+
+.enketo-iframe-icon {
+  color: #fff;
+  background-image: url(/static/css/images/ui-icons_ffffff_256x240.png);
+  background-color: #C6CBD0;
+  background-position: -81px -129px;
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  border-radius: 3px;
+  z-index: 1000;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}

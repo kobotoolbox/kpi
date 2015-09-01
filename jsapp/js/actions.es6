@@ -256,7 +256,7 @@ actions.resources.createAsset.listen(function(contents){
 actions.resources.createAsset.completed.listen(function(contents){
   if (contents.status) {
     if(contents.status === 'processing') {
-      notify('successfully uploaded file; processing may take a few minutes');
+      notify('uploading file');
       log("processing import " + contents.uid);
     } else {
       notify("unexpected import status \"" + contents.status + "\"", 'error');

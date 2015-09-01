@@ -132,11 +132,11 @@ bem.CollectionHeader__button = bem.CollectionHeader.__('button', '<a>')
 // bem.Sidebar__footeritem = bem.Sidebar.__('footeritem');
 
 // trying out an alternative syntax
-bem.Sidebar = bem('sidebar');
-bem.Sidebar__link = bem('sidebar__link', ['active']);
-bem.Sidebar__title = bem('sidebar__title');
-bem.Sidebar__footer = bem('sidebar__footer');
-bem.Sidebar__footeritem = bem('sidebar__footeritem');
+// bem.Sidebar = bem('sidebar');
+// bem.Sidebar__link = bem('sidebar__link', ['active']);
+// bem.Sidebar__title = bem('sidebar__title');
+// bem.Sidebar__footer = bem('sidebar__footer');
+// bem.Sidebar__footeritem = bem('sidebar__footeritem');
 
 bem.AccountBox = BEM('account-box');
 bem.AccountBox__name =      bem.AccountBox.__('name', '<span>');
@@ -148,4 +148,5 @@ bem.AccountBox__logo =     	bem.AccountBox.__('logo', '<span>');
 bem.uiPanel = BEM('ui-panel');
 bem.uiPanel__body = bem.uiPanel.__('body');
 
+bem.Drawer = bem('drawer');
 export default bem;

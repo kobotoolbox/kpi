@@ -124,8 +124,9 @@ var pageStateStore = Reflux.createStore({
       navIsOpen = false;
     }
     this.state = {
-      headerSearch: true,
-      headerTitle: 'Forms',
+      headerBreadcrumb: [],
+      drawerIsVisible: false,
+      // headerSearch: true,
       assetNavPresent: false,
       assetNavIsOpen: navIsOpen,
       assetNavIntentOpen: navIsOpen,
@@ -140,34 +141,36 @@ var pageStateStore = Reflux.createStore({
       this.trigger(changed);
     }
   },
-  toggleSidebarIntentOpen () {
-    var newIntent = !this.state.sidebarIntentOpen,
-        isOpen = this.state.sidebarIsOpen,
-        changes = {
-          sidebarIntentOpen: newIntent
-        };
-    // xor
-    if ( (isOpen || newIntent) && !(isOpen && newIntent) ) {
-      changes.sidebarIsOpen = !isOpen;
-    }
-    assign(this.state, changes);
+  // setTopPanel (height, isFixed) {
+  //   var changed = changes(this.state, {
+  //     bgTopPanelHeight: height,
+  //     bgTopPanelFixed: isFixed
+  //   });
+
+  //   if (changed) {
+  //     assign(this.state, changed);
+  //     this.trigger(changed);
+  //   }
+  // },
+  // toggleSidebarIntentOpen () {
+  //   var newIntent = !this.state.sidebarIntentOpen,
+  //       isOpen = this.state.sidebarIsOpen,
+  //       changes = {
+  //         sidebarIntentOpen: newIntent
+  //       };
+  //   // xor
+  //   if ( (isOpen || newIntent) && !(isOpen && newIntent) ) {
+  //     changes.sidebarIsOpen = !isOpen;
+  //   }
+  //   assign(this.state, changes);
+  //   this.trigger(changes);
+  // },
+  toggleDrawer () {
+    var changes = {};
+    var newval = !this.state.drawerIsVisible;
+    changes.drawerIsVisible = newval;
+    assign(this.state, changes)
     this.trigger(changes);
-  },
-  hideSidebar () {
-    var changes = {};
-    if (this.state.sidebarIsOpen) {
-      changes.sidebarIsOpen = false;
-      assign(this.state, changes)
-      this.trigger(changes);
-    }
-  },
-  showSidebar () {
-    var changes = {};
-    if (!this.state.sidebarIsOpen) {
-      changes.sidebarIsOpen = true;
-      assign(this.state, changes)
-      this.trigger(changes);
-    }
   },
   toggleAssetNavIntentOpen () {
     var newIntent = !this.state.assetNavIntentOpen,
@@ -193,14 +196,12 @@ var pageStateStore = Reflux.createStore({
       });
     }
   },
-  setHeaderTitle (title) {
-    var changes = {};
-    if (this.state.headerTitle != title) {
-      changes.headerTitle = title;
+  setHeaderBreadcrumb (newBreadcrumb) {
+      var changes = {};
+      changes.headerBreadcrumb = newBreadcrumb;
       assign(this.state, changes)
       this.trigger(changes);
-    }
-  }
+  }  
 });
 
 stores.snapshots = Reflux.createStore({

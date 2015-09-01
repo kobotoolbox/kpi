@@ -1,15 +1,14 @@
 .k-form-header__buttons {
-  width: 100%;
-  display: flex;
+  width: calc(100% - 70px);
+  left: 0px;
   position: fixed;
-  z-index: 10;
+  z-index: 5;
   background-color: rgb(245,245,245);
-  margin: -8px;
-  padding: 8px;
-  padding-right: 75px;
+  margin: -10px 0px;
+  padding: 10px 25px;
   transition: all 0.5s;
   .page-wrapper--asset-nav-open & {
-    padding-right: 405px;
+    width: calc(100% - 410px);
   }
 }
 
@@ -17,7 +16,7 @@
   display: flex;
   align-items: center;
   width: 100%;
-  padding-top: 50px;
+  padding-top: 65px;
   .k-header-form-title {
     flex:1;
     padding:0px 10px;
@@ -29,6 +28,12 @@
     border-radius: 25px;
     background-color: lighten($muiBlue, 20%);
     border: 3px solid lighten($muiBlue, 12%);
+  }
+}
+
+.k-form-actions {
+  > a {
+    margin-right: 1em;
   }
 }
 
