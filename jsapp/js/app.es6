@@ -2215,8 +2215,8 @@ var FormLanding = React.createClass({
     willTransitionTo: function(transition, params, idk, callback) {
       var headerBreadcrumb = [
         {
-          'label': t('Forms'), 
-          'href': '/forms', 
+          'label': t('Forms'),
+          'to': 'forms',
         }
       ];
       stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
