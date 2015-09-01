@@ -144,7 +144,7 @@ bem.CollectionHeader__button = bem.CollectionHeader.__('button', '<a>')
 bem.AccountBox = BEM('account-box');
 bem.AccountBox__name =      bem.AccountBox.__('name', '<span>');
 bem.AccountBox__image =     bem.AccountBox.__('image', '<span>');
-bem.AccountBox__logo =     	bem.AccountBox.__('logo', '<span>');
+bem.AccountBox__logo =      bem.AccountBox.__('logo', '<span>');
 // bem.AccountBox__indicator = bem.AccountBox.__('indicator');
 // bem.AccountBox__logout =    bem.AccountBox.__('logout');
 
