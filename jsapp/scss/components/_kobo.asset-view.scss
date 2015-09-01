@@ -197,6 +197,7 @@ $mult: 0.5;
   }
 }
 .asset-view__parent {
+  clear: both;
   @extend %has-icon-col;
   @include iconcol('folder');
 }
