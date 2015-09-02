@@ -1013,7 +1013,6 @@ var FormSettingsBox = React.createClass({
   },
   onStyleChange (evt) {
     var newStyle = evt.target.value;
-    log(newStyle);
     this.props.survey.settings.set('style', newStyle);
     this.setState({
       styleValue: newStyle
