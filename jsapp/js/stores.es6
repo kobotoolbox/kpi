@@ -93,6 +93,19 @@ var tagsStore = Reflux.createStore({
 
 const MAX_SEARCH_AGE = (5 * 60) // seconds
 
+var surveyStateStore = Reflux.createStore({
+  init () {
+    this.state = {};
+  },
+  setState (state) {
+    var chz = changes(this.state, state);
+    if (chz) {
+      assign(this.state, state);
+      this.trigger(chz);
+    }
+  },
+})
+
 var assetSearchStore = Reflux.createStore({
   init () {
     this.queries = {};
@@ -508,6 +521,7 @@ assign(stores, {
   allAssets: allAssetsStore,
   session: sessionStore,
   userExists: userExistsStore,
+  surveyState: surveyStateStore,
 });
 
 module.exports = stores

@@ -12,6 +12,8 @@ var $ = require('jquery');
 var assign = require('react/lib/Object.assign');
 var assetParserUtils = require('./assetParserUtils');
 
+import stores from './stores';
+
 var searchDataInterface = (function(){
   return {
     assets: function(data) {
@@ -203,6 +205,7 @@ function SearchContext(opts={}) {
 
   search.completed.listen(function(searchParams, data, opts){
     data.results = data.results.map(assetParserUtils.parsed);
+    data.results.forEach(stores.allAssets.registerAssetOrCollection);
 
     var count = data.count,
         isEmpty = count === 0;

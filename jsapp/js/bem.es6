@@ -24,6 +24,9 @@ bem.AssetRow__sharingIcon = bem.AssetRow.__('sharingIcon');
 bem.AssetRow__sharingIcon__owner =
                 bem.AssetRow__sharingIcon.__('owner', '<span>');
 
+bem.FormHeader = bem('form-header');
+bem.FormHeader__button = bem.FormHeader.__('button', '<button>');
+
 bem.Search = BEM('search');
 bem.Search__icon = bem.Search.__('icon', '<i>');
 bem.Search__cancel = bem.Search.__('cancel', '<i>');
@@ -141,7 +144,7 @@ bem.CollectionHeader__button = bem.CollectionHeader.__('button', '<a>')
 bem.AccountBox = BEM('account-box');
 bem.AccountBox__name =      bem.AccountBox.__('name', '<span>');
 bem.AccountBox__image =     bem.AccountBox.__('image', '<span>');
-bem.AccountBox__logo =     	bem.AccountBox.__('logo', '<span>');
+bem.AccountBox__logo =      bem.AccountBox.__('logo', '<span>');
 // bem.AccountBox__indicator = bem.AccountBox.__('indicator');
 // bem.AccountBox__logout =    bem.AccountBox.__('logout');
 

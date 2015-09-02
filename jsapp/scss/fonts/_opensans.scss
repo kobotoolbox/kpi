@@ -1,0 +1,41 @@
+/* ==========================================================================
+   Fonts
+   ========================================================================== */
+
+// Open Sans Regular
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: normal;
+  src:  local('Open Sans'), local('OpenSans'),
+        url('/static/fonts/OpenSans-Regular.woff2') format('woff2'),
+        url('/static/fonts/OpenSans-Regular.woff') format('woff');
+}
+
+// Open Sans Semibold
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 600;
+  src:  local('Open Sans Semibold'), local('OpenSans-Semibold'),
+        url('/static/fonts/OpenSans-Semibold.woff2') format('woff2'),
+        url('/static/fonts/OpenSans-Semibold.woff') format('woff');
+}
+
+// Open Sans Regular Italic
+@font-face {
+  font-family: 'Open Sans';
+  font-style: italic;
+  font-weight: normal;
+  src:  url('/static/fonts/OpenSans-Italic.woff2') format('woff2'),
+        url('/static/fonts/OpenSans-Italic.woff') format('woff');
+}
+
+// Open Sans Semibold Italic
+@font-face {
+  font-family: 'Open Sans';
+  font-style: italic;
+  font-weight: 600;
+  src:  url('/static/fonts/OpenSans-SemiboldItalic.woff2') format('woff2'),
+        url('/static/fonts/OpenSans-SemiboldItalic.woff') format('woff');
+}

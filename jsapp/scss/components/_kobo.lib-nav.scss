@@ -5,8 +5,8 @@
   box-shadow:         -5px 0px 5px 0px rgba(50, 50, 50, 0.07);
 }
 
-$assetNavHeaderHeight: 60px;
-$assetNavFooterHeight: 60px;
+$assetNavHeaderHeight: 108px;
+$assetNavFooterHeight: 0px;
 
 .lib-nav {
   position: fixed;
@@ -55,14 +55,21 @@ $assetNavFooterHeight: 60px;
   width: 100%;
   height: $assetNavHeaderHeight;
   margin-top: -1 * $assetNavHeaderHeight;
+  .Select {
+    margin: 0 0 0 -60px;
+    padding: 4px 8px;
+  }
 }
 .lib-nav__footer {
   height: $assetNavFooterHeight;
   margin-bottom: -1 * $assetNavFooterHeight;
 }
 .lib-nav__search {
-  margin: 0 8px;
+  margin: 0;
   height: 60px;
+  .search {
+    margin: 0;
+  }
 }
 // .lib-nav__header--deactivated {
 //   background-color: rgba(255,255,255,0.2);

@@ -15,6 +15,7 @@ import Router from 'react-router';
 import Q from 'q';
 // import Sidebar from './components/sidebar';
 import MainHeader from './components/header';
+import Select from 'react-select';
 import Drawer from './components/drawer';
 import searches from './searches';
 import {List, ListSearch, ListSearchDebug, ListTagFilter} from './components/list';
@@ -25,6 +26,7 @@ var ReactTooltip = require("react-tooltip");
 var AssetRow = require('./components/assetrow');
 // import {Sheeted} from './models/sheeted';
 import stores from './stores';
+import {dataInterface} from './dataInterface';
 import Dropzone from './libs/dropzone';
 import icons from './icons';
 import cookie from 'react-cookie';
@@ -144,6 +146,7 @@ mixins.formView = {
             </a>;
   },
   innerRender () {
+    var isSurvey = this.state.asset && this.state.asset.asset_type === 'survey';
 
     return (
         <ui.Panel className="k-div--formview--innerrender">
@@ -160,7 +163,7 @@ mixins.formView = {
               {this.renderFormNameInput()}
             </div>
           </div>
-          { this.state.survey ?
+          { this.state.survey && isSurvey ?
             this.renderSubSettingsBar()
           :null}
 
@@ -580,11 +583,11 @@ var AssetNavigator = React.createClass({
                   searchContext={this.state.searchContext}
                 />
             </bem.LibNav__search>
-          </bem.LibNav__header>
-          <bem.LibNav__content>
             <ListTagFilter
                   searchContext={this.state.searchContext}
                 />
+          </bem.LibNav__header>
+          <bem.LibNav__content>
             <AssetNavigatorListView
                   searchContext={this.state.searchContext}
                 />
@@ -939,21 +942,32 @@ var FormSettingsEditor = React.createClass({
             </div>
           </div>
           <div className="form-group mdl-grid">
-            <div className="mdl-cell mdl-cell--2-col">
-              <label htmlFor="select" className="control-label">{t('Web form style')}</label>
+            <div className="mdl-cell mdl-cell--3-col">
+              <label htmlFor='webform-style' className={'mdl-button mdl-js-button'}
+                  onClick={this.focusSelect}>
+                {t('Web form style')}
+              </label>
             </div>
-            <div className="mdl-cell mdl-cell--6-col">
-              <select className="form-control" onChange={this.props.onStyleChange} value={this.props.styleValue}>
-                <option value=''>{t('Default - single page')}</option>
-                <option value='theme-grid'>{t('Grid theme')}</option>
-                <option value='pages'>{t('Multiple pages')}</option>
-                <option value='theme-grid pages'>{t('Grid theme + Multiple pages')}</option>
-              </select>
+            <div className="mdl-cell mdl-cell--5-col">
+              <Select
+                  name="webform-style"
+                  ref="webformStyle"
+                  value={this.props.styleValue}
+                  options={[
+                      {value: '', label: t('Default - single page')},
+                      {value: 'theme-grid', label: t('Grid theme')},
+                      {value: 'pages', label: t('Multiple pages')},
+                      {value: 'theme-grid pages', label: t('Grid theme + Multiple pages')},
+                    ]}
+                />
             </div>
           </div>
         </form>
       </div>
       );
+  },
+  focusSelect () {
+    this.refs.webformStyle.focus();
   },
   componentDidUpdate() {
     mdl.upgradeDom();
@@ -1068,11 +1082,6 @@ function surveyToValidJson(survey, omitSettings=false) {
   var surveyDict = survey.toFlatJSON();
   if (omitSettings && 'settings' in surveyDict) {
     delete surveyDict['settings'];
-  }
-  if ('settings' in surveyDict) {
-    log('has settings');
-  } else {
-    log('no settings');
   }
   return JSON.stringify(surveyDict);
 }
@@ -1246,6 +1255,9 @@ mixins.newForm = {
   creatingResourceCompleted (data) {
     this.transitionTo('form-edit', { assetid: data.uid });
   },
+  surveyStateChanged (state) {
+    this.setState(state);
+  },
   componentDidMount () {
     this.navigateBack = (evt) => {
       if (this.needsSave() && confirm(t('you have unsaved changes. would you like to save?'))) {
@@ -1255,12 +1267,14 @@ mixins.newForm = {
     }
     actions.resources.createResource.listen(this.creatingResource);
     actions.resources.createResource.completed.listen(this.creatingResourceCompleted);
+    this.listenTo(stores.surveyState, this.surveyStateChanged);
     var survey = this.createSurvey();
     var skp = new SurveyScope({
       survey: survey
     });
     var app = new dkobo_xlform.view.SurveyApp({
       survey: survey,
+      stateStore: stores.surveyState,
       ngScope: skp
     });
     $('.form-wrap').html(app.$el);
@@ -1992,9 +2006,6 @@ var FormPage = React.createClass({
   mixins: [
     Navigation,
     mixins.formView,
-    // Reflux.connectFilter(assetStore, 'asset', function(data){
-    //   return data[this.props.params.assetid];
-    // }),
     Reflux.ListenerMixin,
   ],
   getNameValue () {
@@ -2002,72 +2013,82 @@ var FormPage = React.createClass({
   },
   saveForm (evt) {
     evt.preventDefault();
-    actions.resources.updateAsset(this.props.params.assetid, {
-      name: this.getNameValue(),
-      content: surveyToValidJson(this.state.survey)
-    });
+    dataInterface.patchAsset(this.props.params.assetid, {
+      content: surveyToValidJson(this.state.survey),
+    }).done((asset) => {
+      this.setState({
+        asset_updated: true
+      });
+      actions.resources.updateAsset.completed(asset);
+    }).fail((jqxhr) => {
+      actions.resources.updateAsset.failed(asset);
+    })
     this.setState({
       asset_updated: false
-    })
+    });
   },
+
+  showAll () {
+    this.app.expandMultioptions();
+  },
+  previewForm () {
+    log('preview button has been clicked');
+  },
+  groupQuestions () {
+    this.app.groupSelectedRows();
+  },
+
   onSurveyChange () {
     this.setState({
       asset_updated: -1
     });
   },
   renderSaveAndPreviewButtons () {
-    var disabled = !!this.state.disabled;
-    var pendingSave = this.state.asset_updated === false;
-    var saveText = t('save');
-    var saveBtnKls = classNames('mdl-button','mdl-button--colored', 'mdl-button--raised', 'mdl-js-button', {
-      'disabled': disabled,
-      'k-save': true,
-      'k-save--pending': this.state.asset_updated === false,
-      'k-save--complete': this.state.asset_updated === true,
-      'k-save--needed': this.state.asset_updated === -1
-    });
+    var surv = this.state.survey,
+        app = this.app || {};
 
-    var previewText = t('preview');
     var previewDisabled = true;
-    var previewBtnKls = classNames('mdl-button','mdl-js-button','mdl-button--raised',
-                                  'k-preview',
-                                  previewDisabled ? 'disabled': '');
-
-    var showallText = t('show all responses');
-    var showallDisabled = true;
-    var showallBtnKls = classNames('mdl-button', 'mdl-js-button','mdl-button--raised',
-                                  'k-showall',
-                                  showallDisabled ? 'disabled': '');
-
-    var groupQuestionsText = t('group questions');
-    var groupQuestionsDisabled = true;
-    var groupQuestionsBtnKls = classNames('mdl-button','mdl-js-button','mdl-button--raised',
-                                  'k-groupQuestions',
-                                  groupQuestionsDisabled ? 'disabled': '')
+    var groupable = !!this.state.groupButtonIsActive;
+    var showAllOpen = !!this.state.multioptionsExpanded;
     return (
-        <div className="k-form-actions">
-          <a href="#" className={saveBtnKls} onClick={this.saveForm}>
-            <i className={classNames('fa', 'fa-sm', 'fa-save')} /> {saveText}
-          </a>
-
-          <a href="#" className={previewBtnKls} >
-            <i className={classNames('fa', 'fa-sm', 'fa-eye')} /> {previewText}
-          </a>
-
-          <a href="#" className={showallBtnKls} >
-            <i className={classNames('fa', 'fa-sm', 'fa-caret-right')} /> {showallText}
-          </a>
-
-          <a href="#" className={groupQuestionsBtnKls} >
-            <i className={classNames('fa', 'fa-sm', 'fa-circle-o')} /> {groupQuestionsText}
-          </a>
-        </div>
+        <bem.FormHeader>
+          <bem.FormHeader__button m={['save', {
+                savepending: this.state.asset_updated === false,
+                savecomplete: this.state.asset_updated === true,
+                saveneeded: this.state.asset_updated === -1,
+              }]} onClick={this.saveForm}>
+            <i />
+            {t('save')}
+          </bem.FormHeader__button>
+          <bem.FormHeader__button m={['preview', {
+                previewdisabled: previewDisabled
+              }]} onClick={this.previewForm}
+              disabled={previewDisabled}>
+            <i />
+            {t('preview')}
+          </bem.FormHeader__button>
+          <bem.FormHeader__button m={['show-all', {
+                open: showAllOpen,
+              }]} onClick={this.showAll}>
+            <i />
+            {t('show all responses')}
+          </bem.FormHeader__button>
+          <bem.FormHeader__button m={['group', {
+                groupable: groupable
+              }]} onClick={this.groupQuestions}
+              disabled={!groupable}>
+            <i />
+            {t('group questions')}
+          </bem.FormHeader__button>
+        </bem.FormHeader>
       );
   },
+
   getInitialState () {
     return {
       survey_loaded: false,
       survey_name: '',
+      multioptionsExpanded: true,
       kind: 'asset',
       asset: false
     };
@@ -2151,12 +2172,17 @@ var FormPage = React.createClass({
       this.state.survey.off('change');
     }
   },
+  surveyStateChanged (state) {
+    this.setState(state);
+  },
   postLoadRenderMount () {
     this._postLoadRenderMounted = true;
     this.state.survey.settings.set('form_title', this.state.asset.name);
     var skp = new SurveyScope({survey: this.state.survey});
+    this.listenTo(stores.surveyState, this.surveyStateChanged);
     this.app = new dkobo_xlform.view.SurveyApp({
       survey: this.state.survey,
+      stateStore: stores.surveyState,
       ngScope: skp,
     });
     var fw = this.refs['form-wrap'].getDOMNode();
