@@ -35,6 +35,7 @@ var AssetRow = React.createClass({
     var selfowned = this.props.owner__username == this.props.currentUsername;
     var perm = this.props.perm;
     var isPublic = this.props.owner__username === anonUsername;
+    var _rc = this.props.summary && this.props.summary.row_count;
     var isCollection = this.props.kind === 'collection',
         hrefTo = isCollection ? 'collection-page' : 'form-landing',
         hrefKey = isCollection ? 'uid' : 'assetid',
@@ -99,6 +100,9 @@ var AssetRow = React.createClass({
                   return <bem.AssetRow__tags__tag>{tag}</bem.AssetRow__tags__tag>
                 })}
               </bem.AssetRow__tags>
+            </bem.AssetRow__cell>
+            <bem.AssetRow__cell m={'row-count'}>
+              {`${_rc === 1 ? t('1 question') : t('___ questions').replace('___', _rc)}`}
             </bem.AssetRow__cell>
 
           </bem.AssetRow__cellmeta>

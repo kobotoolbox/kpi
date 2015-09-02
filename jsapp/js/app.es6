@@ -406,8 +406,16 @@ var AssetNavigatorListView = React.createClass({
                 return (
                     <bem.LibList__item m={modifiers} key={item.uid} data-uid={item.uid}>
                       <bem.LibList__dragbox />
-                      <bem.LibList__label>
+                      <bem.LibList__label m={'name'}>
                         <ui.AssetName {...item} />
+                      </bem.LibList__label>
+                      <bem.LibList__label m={'labels'}>
+                        <p><em>labels</em></p>
+                        <ol>
+                          {summ.labels.map(function(lbl){
+                            return <li>{lbl}</li>;
+                          })}
+                        </ol>
                       </bem.LibList__label>
                       <bem.LibList__tags>
                         {(item.tags || []).map((tg)=>{
@@ -415,7 +423,7 @@ var AssetNavigatorListView = React.createClass({
                         })}
                       </bem.LibList__tags>
                       <bem.LibList__qtype>
-                        {t(item.asset_type)}
+                        {`rows: ${summ.row_count}`}
                       </bem.LibList__qtype>
                     </bem.LibList__item>
                   );
