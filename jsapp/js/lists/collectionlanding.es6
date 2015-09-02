@@ -77,6 +77,9 @@ var CollectionLanding = React.createClass({
       contentType: file.type
     });
   },
+  componentDidMount () {
+    this.sendCollectionNameChange = _.debounce(this._sendCollectionNameChange, 2500);
+  },
   createCollection () {
     dataInterface.createCollection({
       name: prompt('collection name?'),
@@ -85,11 +88,8 @@ var CollectionLanding = React.createClass({
       this.redirect(`/collections/${data.uid}/`);
     })
   },
-  changeCollectionName (evt) {
-    var name = evt.target.value;
-    if (this.state.collectionNamingRequest) {
-      this.state.collectionNamingRequest.abort();
-    }
+  _sendCollectionNameChange (name) {
+    // this method is debounced
     var req = dataInterface.patchCollection(this.props.params.uid, {
       name: name
     }).done((coll) => {
@@ -104,6 +104,17 @@ var CollectionLanding = React.createClass({
       collectionNameSaving: true,
       collectionNaming: name,
     });
+  },
+  changeCollectionName (evt) {
+    var name = evt.target.value;
+    if (this.state.collectionNamingRequest) {
+      this.state.collectionNamingRequest.abort();
+    }
+    this.setState({
+      collectionNaming: name,
+      collectionNameSaving: true,
+    });
+    this.sendCollectionNameChange(name);
   },
   render () {
     var s = this.state,
@@ -136,8 +147,8 @@ var CollectionLanding = React.createClass({
             placeholder={t('collection name')}
             />
         </bem.CollectionHeader__item>
-        <bem.CollectionNav>
-          <bem.CollectionNav__actions className="k-form-list-actions">
+        <bem.CollectionNav className="ui-panel__cell">
+          <bem.CollectionNav__actions>
             <button id="demo-menu-top-right"
                     className="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
               <i className="material-icons">add</i>
