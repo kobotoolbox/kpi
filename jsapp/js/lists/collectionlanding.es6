@@ -79,6 +79,7 @@ var CollectionLanding = React.createClass({
   },
   componentDidMount () {
     this.sendCollectionNameChange = _.debounce(this._sendCollectionNameChange, 2500);
+    mdl.upgradeDom();
   },
   createCollection () {
     dataInterface.createCollection({
@@ -138,14 +139,16 @@ var CollectionLanding = React.createClass({
       <ui.Panel>
         <bem.CollectionHeader__item m={'name'}>
           <bem.CollectionHeader__iconwrap><i /></bem.CollectionHeader__iconwrap>
-          <bem.CollectionHeader__input
-            m={{
-                saving: s.collectionNameSaving
-              }}
-            value={collectionName}
-            onChange={this.changeCollectionName}
-            placeholder={t('collection name')}
-            />
+          <div className="mdl-textfield mdl-js-textfield">
+            <bem.CollectionHeader__input
+              m={{
+                  saving: s.collectionNameSaving
+                }}
+              value={collectionName}
+              onChange={this.changeCollectionName}
+              placeholder={t('collection name')}
+              />
+          </div>
         </bem.CollectionHeader__item>
         <bem.CollectionNav className="ui-panel__cell">
           <bem.CollectionNav__actions>

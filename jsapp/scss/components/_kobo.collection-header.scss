@@ -10,32 +10,34 @@
 }
 .collection-header__item--name {
   position: relative;
-  .collection-header__iconwrap {
-    position: absolute;
-    top: 10px;
-    left: 8px;
-    color: dimgrey;
-    i {
-      @extend .fa, .fa-fw, .fa-folder-o, .fa-2x;
-    }
+  width:100%;
+  display: flex;
+  align-items: center;
+  padding-top:20px;
+  padding-bottom: 10px;
+  .mdl-textfield {
+    flex-grow:1;
+  }
+}
+.collection-header__iconwrap {
+  color: dimgrey;
+  i {
+    @extend .fa, .fa-fw, .fa-folder-o, .fa-2x;
   }
 }
 .collection-header__input {
-  border-width: 0 0 3px 0;
-  border-color: transparent;
-  border-style: solid;
-  background-color: transparent;
-  font-size: 34px;
-  display: block;
-  color: dimgrey;
-  margin: 0 10px 5px 50px;
+  width: 100%;
+  font-size: 28px;
+  @extend .mdl-textfield__input;
   padding-left: 10px;
   &:focus {
-    border-color: #5FCA2A;
+    border-color: unquote("rgb(#{$color-primary})");
+    border-bottom-width: 2px;
   }
   &.collection-header__input--saving {
     &:focus {
-      border-color: #00897b;
+      border-color: unquote("rgb(#{$color-primary-dark})");
+      border-bottom-width: 2px;
     }
   }
 }
