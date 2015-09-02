@@ -8,7 +8,7 @@
   @extend .mdl-button, .mdl-button--raised, .mdl-js-button;
 
   > i {
-    @extend .fa, .fa-sm;
+    @extend .fa, .fa-sm, .fa-fw;
     margin-right: 5px;
   }
   margin-right: 5px;
@@ -23,6 +23,23 @@
 .form-header__button--save {
   @extend .mdl-button--colored;
   @include formHeaderButton('save');
+
+  &.form-header__button--savepending {
+    > i {
+      @extend .fa-spin, .fa-spinner;
+    }
+  }
+  &:after {
+    content: '_';
+    font-family: monospace;
+    color: transparent;
+  }
+  &.form-header__button--saveneeded {
+    &:after {
+      content: '*';
+      color: white;
+    }
+  }
 }
 .form-header__button--show-all {
   @include formHeaderButton('caret-right');

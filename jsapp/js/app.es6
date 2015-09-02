@@ -15,6 +15,7 @@ import Router from 'react-router';
 import Q from 'q';
 // import Sidebar from './components/sidebar';
 import MainHeader from './components/header';
+import Select from 'react-select';
 import Drawer from './components/drawer';
 import searches from './searches';
 import {List, ListSearch, ListSearchDebug, ListTagFilter} from './components/list';
@@ -25,6 +26,7 @@ var ReactTooltip = require("react-tooltip");
 var AssetRow = require('./components/assetrow');
 // import {Sheeted} from './models/sheeted';
 import stores from './stores';
+import {dataInterface} from './dataInterface';
 import Dropzone from './libs/dropzone';
 import icons from './icons';
 import cookie from 'react-cookie';
@@ -940,21 +942,32 @@ var FormSettingsEditor = React.createClass({
             </div>
           </div>
           <div className="form-group mdl-grid">
-            <div className="mdl-cell mdl-cell--2-col">
-              <label htmlFor="select" className="control-label">{t('Web form style')}</label>
+            <div className="mdl-cell mdl-cell--3-col">
+              <label htmlFor='webform-style' className={'mdl-button mdl-js-button'}
+                  onClick={this.focusSelect}>
+                {t('Web form style')}
+              </label>
             </div>
-            <div className="mdl-cell mdl-cell--6-col">
-              <select className="form-control" onChange={this.props.onStyleChange} value={this.props.styleValue}>
-                <option value=''>{t('Default - single page')}</option>
-                <option value='theme-grid'>{t('Grid theme')}</option>
-                <option value='pages'>{t('Multiple pages')}</option>
-                <option value='theme-grid pages'>{t('Grid theme + Multiple pages')}</option>
-              </select>
+            <div className="mdl-cell mdl-cell--5-col">
+              <Select
+                  name="webform-style"
+                  ref="webformStyle"
+                  value={this.props.styleValue}
+                  options={[
+                      {value: '', label: t('Default - single page')},
+                      {value: 'theme-grid', label: t('Grid theme')},
+                      {value: 'pages', label: t('Multiple pages')},
+                      {value: 'theme-grid pages', label: t('Grid theme + Multiple pages')},
+                    ]}
+                />
             </div>
           </div>
         </form>
       </div>
       );
+  },
+  focusSelect () {
+    this.refs.webformStyle.focus();
   },
   componentDidUpdate() {
     mdl.upgradeDom();
@@ -1069,11 +1082,6 @@ function surveyToValidJson(survey, omitSettings=false) {
   var surveyDict = survey.toFlatJSON();
   if (omitSettings && 'settings' in surveyDict) {
     delete surveyDict['settings'];
-  }
-  if ('settings' in surveyDict) {
-    log('has settings');
-  } else {
-    log('no settings');
   }
   return JSON.stringify(surveyDict);
 }
@@ -2005,10 +2013,16 @@ var FormPage = React.createClass({
   },
   saveForm (evt) {
     evt.preventDefault();
-    actions.resources.updateAsset(this.props.params.assetid, {
-      name: this.getNameValue(),
-      content: surveyToValidJson(this.state.survey)
-    });
+    dataInterface.patchAsset(this.props.params.assetid, {
+      content: surveyToValidJson(this.state.survey),
+    }).done((asset) => {
+      this.setState({
+        asset_updated: true
+      });
+      actions.resources.updateAsset.completed(asset);
+    }).fail((jqxhr) => {
+      actions.resources.updateAsset.failed(asset);
+    })
     this.setState({
       asset_updated: false
     });
