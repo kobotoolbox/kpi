@@ -37,6 +37,17 @@ $mult: 0.5;
 
   }
 }
+.asset-view__message {
+  text-align: center;
+  font-size: 20px;
+  margin: 40px 0;
+  &.asset-view__message--loading {
+    > i {
+      @extend .fa, .fa-fw, .fa-spin, .fa-spinner;
+      margin-right: 15px;
+    }
+  }
+}
 %has-icon-col {
   @extend .row;
   padding-bottom: 12px;
@@ -251,6 +262,10 @@ $mult: 0.5;
 }
 .asset-view__buttoncol {
   @extend .mdl-cell, .mdl-cell--3-col;
+  .asset-view__link, .asset-view__button {
+    display: block;
+    width: 100%;
+  }
 }
 
 @mixin disableablelink($col) {
@@ -291,6 +306,7 @@ $mult: 0.5;
 .asset-view__link--sharing {
   display: inline;
 }
+
 .asset-view__deployments {
   @extend .mdl-card__actions;
   // @extend %has-icon-col;

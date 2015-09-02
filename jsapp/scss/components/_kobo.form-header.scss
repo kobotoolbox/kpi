@@ -14,11 +14,23 @@
   margin-right: 5px;
 }
 
+.form-header__button--create {
+  @extend .mdl-button--colored;
+  @include formHeaderButton('save');
+  &.form-header__button--create-pending {
+    > i {
+      @extend .fa-spin, .fa-spinner;
+    }
+  }
+}
 .form-header__button--preview {
   @include formHeaderButton('eye');
   &.form-header__button--previewdisabled {
     @extend .mdl-button--disabled;
   }
+}
+.form-header__button--close {
+  @include formHeaderButton('times');
 }
 .form-header__button--save {
   @extend .mdl-button--colored;

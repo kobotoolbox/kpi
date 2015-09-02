@@ -48,7 +48,7 @@ var AssetRow = React.createClass({
                             'deleted': this.props.deleted,
                           }}
                         onClick={this.clickAsset}
-                        className="clearfix">
+                      >
           <bem.AssetRow__cell m={['icon',
                     `kind-${this.props.kind}`,
                     this.props.asset_type ? `assettype-${this.props.asset_type}` : null
