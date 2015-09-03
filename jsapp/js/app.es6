@@ -1951,6 +1951,11 @@ var FormEnketoPreview = React.createClass({
       });
     })
     this.listenTo(stores.snapshots, this.snapshotCreation);
+    stores.pageState.setHeaderBreadcrumb([
+      {'label': t('Forms'), 'to': 'forms'},
+      {'label': t('Preview')}
+    ]);
+
   },
   getInitialState () {
     return {
@@ -1997,7 +2002,7 @@ var FormEnketoPreview = React.createClass({
   },
   render () {
     return (
-      <ui.Modal open onClose={this.routeBack} title={t('enketo preview')}>
+      <ui.Modal open onClose={this.routeBack}>
         <ui.Modal.Body>
           { this.state.enketopreviewlink ?
               this.renderEnketoPreviewIframe() :
