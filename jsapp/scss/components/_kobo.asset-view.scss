@@ -61,9 +61,24 @@ $mult: 0.5;
 }
 .asset-view__span {
   &.asset-view__span--can-edit, &.asset-view__span--can-view {
-    margin: 0 20px;
+    padding: 10px 20px 11px;
   }
 }
+.asset-view__row--header {
+  padding: 0 20px;
+}
+.asset-view__row {
+  &.asset-view__row--fixed {
+    position: fixed;
+    top: 70px;
+    z-index: 99;
+    margin: -7px -16px;
+    background-color: #fff;
+    width: 894px;
+    border-bottom: 1px solid #D8E3EC;
+  }
+}
+
 .asset-view__ancestors {
   // @extend .col-md-12;
   .asset-view__row & {

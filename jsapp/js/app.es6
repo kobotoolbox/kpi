@@ -100,6 +100,26 @@ mixins.formView = {
       asset_updated: false
     });
   },
+  componentDidMount() {
+    document.querySelector('.page-wrapper__content').addEventListener('scroll', this.handleScroll);
+  },
+  componentWillUnmount () {
+    document.querySelector('.page-wrapper__content').removeEventListener('scroll', this.handleScroll);
+  },
+  handleScroll(evt) {
+    var scrollTop = evt.target.scrollTop;
+    if (!this.state.formHeaderFixed && scrollTop > 40) {
+      var fhfh = $('.asset-view__row--header').height()
+      this.setState({
+        formHeaderFixed: true,
+        formHeaderFixedHeight: fhfh,
+      });
+    } else if (this.state.formHeaderFixed && scrollTop <= 32) {
+      this.setState({
+        formHeaderFixed: false
+      });
+    }
+  },
   navigateBack (evt) {
     if (this.needsSave() && confirm(t('you have unsaved changes. would you like to save?'))) {
       this._saveForm();
@@ -135,24 +155,33 @@ mixins.formView = {
   },
   innerRender () {
     var isSurvey = this.state.asset && this.state.asset.asset_type === 'survey';
-
+    var formHeaderFixed = this.state.formHeaderFixed,
+        formHeaderFixedHeight = this.state.formHeaderFixedHeight,
+        placeHolder = <div style={{height: formHeaderFixedHeight}} />,
+        formHeader = (
+            <bem.AssetView__row m={['header', {
+                  fixed: formHeaderFixed,
+                }]}
+                ref={'fixableHeader'}>
+              {this.renderSaveAndPreviewButtons()}
+            </bem.AssetView__row>
+          );
     return (
         <bem.AssetView>
           <ui.Panel>
             <bem.AssetView__content>
-              <bem.AssetView__row>
-                {this.renderSaveAndPreviewButtons()}
-              </bem.AssetView__row>
 
+              { this.formHeaderFixed ? placeHolder : formHeader }
               { this.state.survey && isSurvey ?
                 <bem.AssetView__row>
                   <FormSettingsBox {...this.state} />
                 </bem.AssetView__row>
               :null}
-
               <bem.AssetView__row>
                 <div ref="form-wrap" className='form-wrap' />
               </bem.AssetView__row>
+              { this.formHeaderFixed ? formHeader : null }
+
             </bem.AssetView__content>
           </ui.Panel>
         </bem.AssetView>
@@ -409,14 +438,15 @@ var AssetNavigatorListView = React.createClass({
                       <bem.LibList__label m={'name'}>
                         <ui.AssetName {...item} />
                       </bem.LibList__label>
-                      <bem.LibList__label m={'labels'}>
-                        <p><em>labels</em></p>
-                        <ol>
-                          {summ.labels.map(function(lbl){
-                            return <li>{lbl}</li>;
-                          })}
-                        </ol>
-                      </bem.LibList__label>
+                      { this.state.displayDetails ?
+                        <bem.LibList__label m={'labels'}>
+                          <ol>
+                            {summ.labels.map(function(lbl){
+                              return <li>{lbl}</li>;
+                            })}
+                          </ol>
+                        </bem.LibList__label>
+                      : null }
                       <bem.LibList__tags>
                         {(item.tags || []).map((tg)=>{
                           return <bem.LibList__tag>{tg}</bem.LibList__tag>;
@@ -1994,18 +2024,23 @@ var FormPage = React.createClass({
   ],
   saveForm (evt) {
     evt.preventDefault();
+    var _nameValue = this.refs['form-name'].getValue();
     dataInterface.patchAsset(this.props.params.assetid, {
+      name: _nameValue,
       content: surveyToValidJson(this.state.survey),
     }).done((asset) => {
       this.setState({
-        asset_updated: true
+        asset: asset,
+        asset_updated: true,
+        _pendingName: false,
       });
       actions.resources.updateAsset.completed(asset);
     }).fail((jqxhr) => {
       actions.resources.updateAsset.failed(asset);
     })
     this.setState({
-      asset_updated: false
+      asset_updated: false,
+      _pendingName: _nameValue,
     });
   },
 
@@ -2024,6 +2059,11 @@ var FormPage = React.createClass({
       asset_updated: -1
     });
   },
+  onNameInputChange (evt) {
+    this.setState({
+      _pendingName: evt.target.value,
+    })
+  },
   renderSaveAndPreviewButtons () {
     var surv = this.state.survey,
         app = this.app || {};
@@ -2031,8 +2071,17 @@ var FormPage = React.createClass({
     var previewDisabled = true;
     var groupable = !!this.state.groupButtonIsActive;
     var showAllOpen = !!this.state.multioptionsExpanded;
+    var _pendingName = this.state._pendingName;
+    var _name = this.state.name || this.state.asset && this.state.asset.name;
+
     return (
         <bem.FormHeader>
+          <ui.SmallInputBox
+              ref='form-name'
+              value={_pendingName || _name}
+              onChange={this.onNameInputChange}
+              placeholder='form name'
+            />
           <bem.FormHeader__button m={['save', {
                 savepending: this.state.asset_updated === false,
                 savecomplete: this.state.asset_updated === true,
@@ -2145,9 +2194,9 @@ var FormPage = React.createClass({
     }
 
     this.listenTo(assetStore, this.assetStoreTriggered)
-      var headerBreadcrumb = [
-        {'label': t('Forms'), 'to': 'forms'}
-      ];
+    var headerBreadcrumb = [
+      {'label': t('Forms'), 'to': 'forms'}
+    ];
     stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
     this._postLoadRenderMounted = false;
   },
