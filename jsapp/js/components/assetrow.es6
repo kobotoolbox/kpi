@@ -35,6 +35,7 @@ var AssetRow = React.createClass({
     var selfowned = this.props.owner__username == this.props.currentUsername;
     var perm = this.props.perm;
     var isPublic = this.props.owner__username === anonUsername;
+    var _rc = this.props.summary && this.props.summary.row_count;
     var isCollection = this.props.kind === 'collection',
         hrefTo = isCollection ? 'collection-page' : 'form-landing',
         hrefKey = isCollection ? 'uid' : 'assetid',
@@ -48,7 +49,7 @@ var AssetRow = React.createClass({
                             'deleted': this.props.deleted,
                           }}
                         onClick={this.clickAsset}
-                        className="clearfix">
+                      >
           <bem.AssetRow__cell m={['icon',
                     `kind-${this.props.kind}`,
                     this.props.asset_type ? `assettype-${this.props.asset_type}` : null
@@ -88,21 +89,22 @@ var AssetRow = React.createClass({
             <bem.AssetRow__cell m={'date-modified'}>
               <span className="date date--modified">{t('Modified')} {formatTime(this.props.date_modified)}</span>
             </bem.AssetRow__cell>
-
-            <bem.AssetRow__cell m={'tags'}>
-              <bem.AssetRow__tags>
-                {
-                  tags.length > 0 ?
-                    <i />
-                :<bem.AssetRow__tags__notags>{t('no tags')}</bem.AssetRow__tags__notags>}
-                {tags.map((tag)=>{
-                  return <bem.AssetRow__tags__tag>{tag}</bem.AssetRow__tags__tag>
-                })}
-              </bem.AssetRow__tags>
+            <bem.AssetRow__cell m={'row-count'}>
+              {`${_rc === 1 ? t('1 question') : t('___ questions').replace('___', _rc)}`}
             </bem.AssetRow__cell>
-
           </bem.AssetRow__cellmeta>
-
+          { tags.length > 0 &&
+            <bem.AssetRow__cellmeta>
+              <bem.AssetRow__cell m={'tags'}>
+                <bem.AssetRow__tags>
+                  <i />
+                  {tags.map((tag)=>{
+                    return <bem.AssetRow__tags__tag>{tag}</bem.AssetRow__tags__tag>
+                  })}
+                </bem.AssetRow__tags>
+              </bem.AssetRow__cell>
+            </bem.AssetRow__cellmeta>
+          }
           <bem.AssetRow__cell m={'asset-buttons'}>
             <bem.AssetRow__cell m={'action-icons'}>
               { this.props.kind === 'asset' &&
@@ -111,7 +113,7 @@ var AssetRow = React.createClass({
                       'download', 'clone', 'delete',
                       ].map((actn)=>{
                   return (
-                        <bem.AssetRow__actionIcon href="#"
+                        <bem.AssetRow__actionIcon
                             m={actn}
                             data-action={actn}
                             data-asset-type={this.props.kind}
@@ -137,17 +139,15 @@ var AssetRow = React.createClass({
                 })
               }
             </bem.AssetRow__cell>
-            <bem.AssetRow__cell m={['deploy-button', isDeployable ? 'deployable':'disabled']}
-                      data-action='deploy'
-                      data-asset-type='asset'
-                      data-kind='asset'
-                      data-disabled={false}>
-              { isDeployable ?
-                <button>
-                  <i />
-                </button>
-              : null }
-            </bem.AssetRow__cell>
+            { isDeployable &&
+              <bem.AssetRow__actionIcon
+                    m={'deploy'}
+                    data-action={'deploy'}
+                    data-asset-type={this.props.kind}
+                  >
+                <i />
+              </bem.AssetRow__actionIcon>
+            }
           </bem.AssetRow__cell>
         </bem.AssetRow>
       );

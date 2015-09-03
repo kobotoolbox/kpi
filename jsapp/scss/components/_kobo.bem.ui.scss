@@ -38,7 +38,6 @@ bem.uiModal__header = bem.uiModal.__('header');
     position: relative;
   }
 
-  > .asset-view__content, 
   > .collection-asset-list {
     @extend .mdl-cell, .mdl-cell--12-col;
     @extend .mdl-shadow--2dp, .mdl-color--white;

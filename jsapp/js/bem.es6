@@ -27,6 +27,11 @@ bem.AssetRow__sharingIcon__owner =
 bem.FormHeader = bem('form-header');
 bem.FormHeader__button = bem.FormHeader.__('button', '<button>');
 
+bem.FormMeta = bem('form-meta');
+bem.FormMeta__preview = bem.FormMeta.__('preview');
+bem.FormMeta__content = bem.FormMeta.__('content');
+bem.FormMeta__button = bem.FormMeta.__('button');
+
 bem.Search = BEM('search');
 bem.Search__icon = bem.Search.__('icon', '<i>');
 bem.Search__cancel = bem.Search.__('cancel', '<i>');
@@ -95,6 +100,7 @@ bem.AssetView = BEM('asset-view');
 // bem.AssetView__icon = bem.AssetView.__('icon');
 
 bem.AssetView__label = bem.AssetView.__('label', '<label>');
+bem.AssetView__message = bem.AssetView.__('message');
 bem.AssetView__content = bem.AssetView.__('content');
 bem.AssetView__value = bem.AssetView.__('value', '<span>');
 bem.AssetView__assetTypeWrap = bem.AssetView.__('asset-type-wrap');
