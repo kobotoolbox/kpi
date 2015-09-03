@@ -156,22 +156,23 @@ mixins.formView = {
   innerRender () {
     var isSurvey = this.state.asset && this.state.asset.asset_type === 'survey';
     var formHeaderFixed = this.state.formHeaderFixed,
-        formHeaderFixedHeight = this.state.formHeaderFixedHeight,
-        placeHolder = <div style={{height: formHeaderFixedHeight}} />,
-        formHeader = (
-            <bem.AssetView__row m={['header', {
-                  fixed: formHeaderFixed,
-                }]}
-                ref={'fixableHeader'}>
-              {this.renderSaveAndPreviewButtons()}
-            </bem.AssetView__row>
+        placeHolder = formHeaderFixed && (
+            <bem.AssetView__row m={['header', 'placeholder']}
+                  style={{height: this.state.formHeaderFixedHeight}} />
           );
     return (
         <bem.AssetView>
           <ui.Panel>
             <bem.AssetView__content>
-
-              { this.formHeaderFixed ? placeHolder : formHeader }
+              <bem.AssetView__row m={['header', {
+                    fixed: formHeaderFixed,
+                  }]}
+                  ref={'fixableHeader'}>
+                {this.renderSaveAndPreviewButtons()}
+              </bem.AssetView__row>
+              {formHeaderFixed ?
+                placeHolder
+              : null}
               { this.state.survey && isSurvey ?
                 <bem.AssetView__row>
                   <FormSettingsBox {...this.state} />
@@ -180,8 +181,6 @@ mixins.formView = {
               <bem.AssetView__row>
                 <div ref="form-wrap" className='form-wrap' />
               </bem.AssetView__row>
-              { this.formHeaderFixed ? formHeader : null }
-
             </bem.AssetView__content>
           </ui.Panel>
         </bem.AssetView>

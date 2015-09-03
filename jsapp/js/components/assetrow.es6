@@ -102,7 +102,7 @@ var AssetRow = React.createClass({
             </bem.AssetRow__cell>
           </bem.AssetRow__cellmeta>
           { tags.length > 0 &&
-            <bem.AssetRow__cellmeta>
+            <bem.AssetRow__cellmeta m={'full'}>
               <bem.AssetRow__cell m={'tags'}>
                 <bem.AssetRow__tags>
                   <i />
