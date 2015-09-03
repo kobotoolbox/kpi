@@ -198,9 +198,13 @@ $colwidth: (100% / $colcount) - 1%;
 }
 .asset-row__cellmeta {
   @extend %rowbar;
-  .asset-row__cell {
+  .asset-row__cell:not(.asset-row__cell--tags) {
     @extend %rowcell;
   }
+}
+.asset-row__cell--tags {
+  margin: 8px 8px 4px -15px;
+  width: 100%;
 }
 
 .asset-row__cell {
