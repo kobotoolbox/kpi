@@ -4,6 +4,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.dispatch import receiver
 from mptt.models import MPTTModel, TreeForeignKey
+from mptt.managers import TreeManager
 from shortuuid import ShortUUID
 from taggit.managers import TaggableManager
 from taggit.models import Tag
@@ -20,7 +21,7 @@ from object_permission import ObjectPermission, ObjectPermissionMixin
 COLLECTION_UID_LENGTH = 22
 
 
-class CollectionManager(TaggableModelManager):
+class CollectionManager(TreeManager, TaggableModelManager):
 
     def create(self, *args, **kwargs):
         assets = False
