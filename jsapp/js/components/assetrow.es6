@@ -98,7 +98,7 @@ var AssetRow = React.createClass({
                 } else if (this.props.asset_type === 'block') {
                   return t('block with ___ questions').replace('___', _rc);
                 }
-              })()}
+              }).call(this)}
             </bem.AssetRow__cell>
           </bem.AssetRow__cellmeta>
           { tags.length > 0 &&
