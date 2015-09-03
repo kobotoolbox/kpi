@@ -42,8 +42,12 @@
 }
 
 .collection-nav__search {
-  > .Select, > .search {
-    @extend .mdl-cell, .mdl-cell--6-col;
+  > .search {
+    @extend .mdl-cell, .mdl-cell--8-col;
+  }
+
+  > .Select {
+    @extend .mdl-cell, .mdl-cell--4-col;
   }
 
   .Select-control {
