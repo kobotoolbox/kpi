@@ -90,12 +90,15 @@ var AssetRow = React.createClass({
               <span className="date date--modified">{t('Modified')} {formatTime(this.props.date_modified)}</span>
             </bem.AssetRow__cell>
             <bem.AssetRow__cell m={'row-count'}>
-              {{
-                'undefined': 'collection of ',
-                'survey': 'survey with ',
-                'question': '',
-                'block': 'block of ',
-              }[this.props.asset_type]}{`${_rc === 1 ? t('1 question') : t('___ questions').replace('___', _rc)}`}
+              {(function(){
+                if (this.props.kind === 'collection') {
+                  return;
+                } else if (this.props.asset_type === 'survey') {
+                  return t('survey with ___ questions').replace('___', _rc);
+                } else if (this.props.asset_type === 'block') {
+                  return t('block with ___ questions').replace('___', _rc);
+                }
+              })()}
             </bem.AssetRow__cell>
           </bem.AssetRow__cellmeta>
           { tags.length > 0 &&
