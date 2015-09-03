@@ -452,9 +452,11 @@ var AssetNavigatorListView = React.createClass({
                           return <bem.LibList__tag>{tg}</bem.LibList__tag>;
                         })}
                       </bem.LibList__tags>
-                      <bem.LibList__qtype>
-                        {`rows: ${summ.row_count}`}
-                      </bem.LibList__qtype>
+                      {item.asset_type==='block' ?
+                        <bem.LibList__qtype>
+                          {t('block of ___ questions').replace('___', summ.row_count)}
+                        </bem.LibList__qtype>
+                      :null}
                     </bem.LibList__item>
                   );
               })}
