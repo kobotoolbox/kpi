@@ -253,9 +253,6 @@ $mult: 0.5;
     @extend .fa-#{$faClass};
   }
 }
-.asset-view__content {
-  @extend .mdl-card__supporting-text;
-}
 // .asset-view__colsubtext {  }
 .asset-view__buttons {
   @extend .mdl-grid;

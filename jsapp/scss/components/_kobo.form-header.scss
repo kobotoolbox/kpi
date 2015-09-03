@@ -1,3 +1,43 @@
+.asset-view__content {
+  width:100%;
+}
+
+.form-header {
+  width: calc(100% - 70px);
+  left: 0px;
+  position: fixed;
+  z-index: 5;
+  background-color: rgb(245,245,245);
+  margin: -10px 0px;
+  padding: 10px 25px;
+  transition: all 0.5s;
+  display: flex;
+  justify-content:space-between;
+  .page-wrapper--asset-nav-open & {
+    width: calc(100% - 410px);
+  }
+}
+
+.form-meta {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding-top: 65px;
+  .k-header-form-title {
+    flex:1;
+    padding:0px 10px;
+  }
+  .k-corner-icon {
+    opacity: 0.3;
+    width: 45px;
+    height: 45px;
+    border-radius: 25px;
+    background-color: lighten($muiBlue, 20%);
+    border: 3px solid lighten($muiBlue, 12%);
+  }
+}
+
+
 @mixin formHeaderButton($iconCls) {
   > i {
     @extend .fa-#{$iconCls};
