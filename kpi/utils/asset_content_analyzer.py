@@ -48,14 +48,14 @@ class AssetContentAnalyzer(object):
                 if not re.match('^end', _type):
                     row_count += 1
                     types.add(_type)
-                if _label != None and len(_label) > 5:
+                if _label != None and len(_label) > 0:
                     labels.append(_label)
                 keys = keys | set(row.keys())
 
-        if row_count == 0:
-            self.asset_type = 'empty'
-        elif self.settings:
+        if self.settings:
             self.asset_type = 'survey'
+        elif row_count == 0:
+            self.asset_type = 'empty'
         elif row_count == 1:
             self.asset_type = 'question'
         else:

@@ -11,6 +11,7 @@ from taggit.managers import TaggableManager
 
 from kpi.models import Asset
 from kpi.models import Collection
+from kpi.models.asset import KpiTaggableManager
 
 
 class SurveyDraft(models.Model):
@@ -29,7 +30,7 @@ class SurveyDraft(models.Model):
     date_modified = models.DateTimeField()
     summary = JSONField()
     asset_type = models.CharField(max_length=32, null=True)
-    tags = TaggableManager()
+    tags = TaggableManager(manager=KpiTaggableManager)
 
 
 def _csv_to_dict(content):

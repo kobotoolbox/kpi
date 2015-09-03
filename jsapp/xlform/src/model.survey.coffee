@@ -113,7 +113,7 @@ define 'cs!xlform/model.survey', [
         for own key, val of obj.choices
           for list_item in val
             flattened_choices.push($.extend({
-                list_name: key
+                'list name': key
               }, list_item))
         obj.choices = flattened_choices
 

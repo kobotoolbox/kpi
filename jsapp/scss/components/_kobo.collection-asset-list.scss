@@ -1,0 +1,20 @@
+// ul.collection-asset-list
+// .collection-asset-list {
+//   border: 1px dotted #fafafa;
+//   border-radius: 1px;
+// }
+
+.collection-asset-list__message {
+  padding: 4px 12px;
+
+  &.collection-asset-list__message--loading {
+    > i:first-child {
+      @extend .fa, .fa-spin, .fa-spinner;
+      margin-right: 12px;
+    }
+  }
+  &.collection-asset-list__message--empty {
+    font-style: italic;
+    color: #999;
+  }
+}

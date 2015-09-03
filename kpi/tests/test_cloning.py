@@ -47,13 +47,13 @@ class TestCloning(KpiTestCase):
             return cloned_asset
 
     def test_clone_asset(self):
-        self.log_in(self.someuser.username, self.someuser_password)
+        self.login(self.someuser.username, self.someuser_password)
         original_asset= self.create_asset(
             'cloning_asset', tag_string='tag1,tag2')
         self._clone_asset(original_asset)
 
     def test_clone_asset_into_collection(self):
-        self.log_in(self.someuser.username, self.someuser_password)
+        self.login(self.someuser.username, self.someuser_password)
         original_asset= self.create_asset('cloning_asset')
         parent_collection= self.create_collection('parent_collection')
         parent_url= reverse(
@@ -63,22 +63,22 @@ class TestCloning(KpiTestCase):
         self.assertEqual(cloned_asset.parent, parent_collection)
 
     def test_cannot_clone_unshared_asset(self):
-        self.log_in(self.someuser.username, self.someuser_password)
+        self.login(self.someuser.username, self.someuser_password)
         original_asset= self.create_asset('cloning_asset')
-        self.log_in(self.another_user.username, self.another_user_password)
+        self.login(self.another_user.username, self.another_user_password)
         self._clone_asset(original_asset, expected_status_code=status.HTTP_404_NOT_FOUND)
 
     def test_clone_shared_asset(self):
-        self.log_in(self.someuser.username, self.someuser_password)
+        self.login(self.someuser.username, self.someuser_password)
         original_asset= self.create_asset('cloning_asset')
         self.add_perm(original_asset, self.another_user, 'view')
-        self.log_in(self.another_user.username, self.another_user_password)
+        self.login(self.another_user.username, self.another_user_password)
         self._clone_asset(original_asset)
 
 # TODO
 #     def test_clone_collection(self):
 #         raise NotImplementedError
-#         self.log_in(self.someuser.username, self.someuser_password)
+#         self.login(self.someuser.username, self.someuser_password)
 #         original_collection= self.create_collection(
 #             'cloning_collection', tag_string='tag1,tag2')
 #         response = self.client.post(reverse('collection-list'),

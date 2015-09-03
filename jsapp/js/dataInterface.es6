@@ -39,8 +39,29 @@ var dataInterface;
     },
     listBlocks () {
       return $ajax({
-        url: '/assets/?asset_type=block'
+        url: '/assets/?q=asset_type:block'
       })
+    },
+    listQuestionsAndBlocks() {
+      return $ajax({
+        url: '/assets/',
+        data: {
+          q: 'asset_type:question OR asset_type:block'
+        },
+        method: 'GET'
+      });
+    },
+    listSurveys() {
+      return $ajax({
+        url: '/assets/',
+        data: {
+          q: 'asset_type:survey'
+        },
+        method: 'GET'
+      });
+    },
+    listCollections () {
+      return $.getJSON('/collections/?parent=');
     },
     listAllAssets () {
       var d = new $.Deferred();
@@ -123,7 +144,7 @@ var dataInterface;
       return $ajax({
         url: '/assets/',
         data: {
-          asset_type: 'question|block'
+          q: 'asset_type:question OR asset_type:block'
         },
         method: 'GET'
       });
@@ -132,20 +153,26 @@ var dataInterface;
       var params = [];
       if (tags) {
         tags.forEach(function(tag){
-          params.push(`tag=${tag}`)
+          params.push(`tag:${tag}`)
         });
       }
       if (q) {
-        params.push(`q=${q}`);
+        params.push(`(${q})`);
       }
       return $ajax({
-        url: `/assets/?${params.join('&')}`,
+        url: `/assets/?${params.join(' AND ')}`,
         method: 'GET'
       });
     },
     readCollection ({uid}) {
       return $ajax({
         url: `/collections/${uid}/`
+      });
+    },
+    deleteCollection ({uid}) {
+      return $ajax({
+        url: `/collections/${uid}/`,
+        method: 'DELETE'
       });
     },
     deleteAsset ({uid}) {
@@ -172,6 +199,20 @@ var dataInterface;
         }
       });
     },
+    createCollection (data) {
+      return $ajax({
+        method: 'POST',
+        url: '/collections/',
+        data: data,
+      })
+    },
+    patchCollection (uid, data) {
+      return $ajax({
+        url: `/collections/${uid}/`,
+        method: 'PATCH',
+        data: data
+      });
+    },
     createResource (details) {
       return $ajax({
         method: 'POST',
@@ -186,13 +227,16 @@ var dataInterface;
         data: data
       });
     },
-    listTags () {
+    listTags (data) {
       return $ajax({
         url: `/tags/`,
-        method: 'GET'
+        method: 'GET',
+        data: assign({
+          limit: 9999,
+        }, data),
       });
     },
-    getCollection ({id}) {
+    getCollection (params={}) {
       if (params.url) {
         return $.getJSON(params.url);
       } else  {

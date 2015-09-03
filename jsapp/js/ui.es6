@@ -1,6 +1,7 @@
 import React from 'react/addons';
 import bem from './bem';
-import {t} from './utils';
+import _ from 'underscore';
+import {t, newId} from './utils';
 
 var ui = {};
 
@@ -8,10 +9,17 @@ ui.SmallInputBox = React.createClass({
   getValue () {
     return this.refs.inp.getDOMNode().value;
   },
+  setValue (v) {
+    this.refs.inp.getDOMNode().value = v;
+  },
   render () {
+    var elemId = _.uniqueId('elem');
     return (
-        <input type="text" placeholder={this.props.placeholder} ref='inp'
-                className="form-control input-sm pull-right" onKeyUp={this.props.onKeyUp} onChange={this.props.onChange} />
+        <div className="mdl-textfield mdl-js-textfield mdl-textfield--full-width">
+          <input type="text" ref='inp' className="mdl-textfield__input"
+              onKeyUp={this.props.onKeyUp} onChange={this.props.onChange} id={elemId} />
+          <label className="mdl-textfield__label" htmlFor={elemId} >{this.props.placeholder}</label>
+        </div>
       );
   }
 });
@@ -56,14 +64,21 @@ ui.Modal = React.createClass({
     }
   },
   render () {
+
     return (
           <div className='modal-backdrop' style={{backgroundColor: 'rgba(0,0,0,0.3)'}} onClick={this.backdropClick.bind(this)}>
             <div className={this.props.open ? 'modal-open' : 'modal'}>
               <div className="modal-dialog k-modal-dialog">
                 <div className="modal-content">
                   <div className="modal-header">
-                    <button type="button" className="close" data-dismiss="modal" aria-hidden="true" onClick={this.props.onClose}>×</button>
-                    {this.renderTitle()}
+                    <div className="mdl-grid k-form-header__inner">
+                      {this.renderTitle()}
+                      <div className="mdl-layout-spacer"></div>
+                      <button type="button" className="close mdl-button mdl-button--icon mdl-js-button" onClick={this.props.onClose}>
+                        <i className="material-icons">clear</i> 
+                      </button>
+                    </div>
+
                   </div>
                   {this.props.children}
                 </div>
@@ -110,18 +125,27 @@ ui.BreadcrumbItem = React.createClass({
 ui.AssetName = React.createClass({
   render () {
     var name = this.props.name,
-        extra = false;
+        extra = false,
+        isEmpty;
     var summary = this.props.summary;
+    var row_count;
     if (!name) {
-      name = summary.labels ? summary.labels[0] : t('empty');
-      if (summary.labels && summary.labels.length === 2) {
-        extra = <small>{t('and one other question')}</small>;
-      } else if (summary.labels.length > 2) {
-        extra = <small>{t('and ## other questions').replace('##', summary.labels.length-1)}</small>;
+      row_count = summary.row_count;
+      name = summary.labels ? summary.labels[0] : false;
+      if (!name) {
+        isEmpty = true;
+        name = t('empty');
+      }
+      if (row_count) {
+        if (row_count === 2) {
+          extra = <small>{t('and one other question')}</small>;
+        } else if (row_count > 2) {
+          extra = <small>{t('and ## other questions').replace('##', row_count-1)}</small>;
+        }
       }
     }
     return (
-        <span className="asset-name">
+        <span className={isEmpty ? 'asset-name asset-name--empty' : 'asset-name'}>
           {name}
           {extra ?
             extra

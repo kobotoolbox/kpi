@@ -6,7 +6,6 @@
     "Nicolás Straub <nicolas.straub@kobotoolbox.org>"
   ],
   "description": "Javascript components of the KoBoToolbox",
-  "main": "jsapp/kobo/app.js",
   "keywords": [],
   "license": "LGPL",
   "homepage": "https://github.com/kobotoolbox/dkobo",

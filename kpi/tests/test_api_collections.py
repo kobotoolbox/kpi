@@ -37,6 +37,19 @@ class CollectionsTests(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_collection_rename(self):
+        url = reverse('collection-detail', kwargs={'uid': self.coll.uid})
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['name'], 'test collection')
+        # PATCH with a new name
+        response = self.client.patch(url, data={'name': "what's in a name"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # GET to verify the new name stuck
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['name'], "what's in a name")
+
     def test_collection_list(self):
         url= reverse('collection-list')
         response= self.client.get(url)

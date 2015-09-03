@@ -1,9 +1,5 @@
-from io import BytesIO
 from itertools import chain
-from pyxform.xls2json_backends import xls_to_dict
-import base64
 import json
-import random
 import datetime
 
 from django.contrib.auth.models import User
@@ -17,8 +13,12 @@ from rest_framework import (
     renderers,
     status,
 )
+
+from django.contrib.auth.decorators import login_required
+
 from rest_framework import exceptions
 from rest_framework.decorators import api_view
+from rest_framework.decorators import renderer_classes
 from rest_framework.decorators import detail_route
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
@@ -47,7 +47,7 @@ from .renderers import (
     AssetJsonRenderer,
     SSJsonRenderer,
     XFormRenderer,
-    AlsoXFormRenderer,
+    AssetSnapshotXFormRenderer,
     XlsRenderer,)
 from .serializers import (
     AssetSerializer, AssetListSerializer,
@@ -57,15 +57,16 @@ from .serializers import (
     UserSerializer, UserListSerializer,
     TagSerializer, TagListSerializer,
     AssetDeploymentSerializer,
-    ImportTaskSerializer,
+    ImportTaskSerializer, ImportTaskListSerializer,
     ObjectPermissionSerializer,)
 from .utils.gravatar_url import gravatar_url
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
+from .tasks import import_in_background
 
 
-CLONE_ARG_NAME= 'clone_from'
-ASSET_CLONE_FIELDS= {'name', 'content', 'asset_type'}
-COLLECTION_CLONE_FIELDS= {'name'}
+CLONE_ARG_NAME = 'clone_from'
+ASSET_CLONE_FIELDS = {'name', 'content', 'asset_type'}
+COLLECTION_CLONE_FIELDS = {'name'}
 
 
 @api_view(['GET'])
@@ -85,6 +86,17 @@ def current_user(request):
                          'is_staff': user.is_staff,
                          'last_login': user.last_login,
                          })
+
+@api_view(['GET'])
+@renderer_classes([renderers.TemplateHTMLRenderer])
+def home(request):
+    return Response('ok', template_name="index.html")
+
+@login_required
+@api_view(['GET'])
+@renderer_classes([renderers.TemplateHTMLRenderer])
+def home(request):
+    return Response('ok', template_name="index.html")
 
 
 class NoUpdateModelViewSet(
@@ -139,7 +151,14 @@ class ObjectPermissionViewSet(NoUpdateModelViewSet):
 
 class CollectionViewSet(viewsets.ModelViewSet):
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
-    queryset = Collection.objects.all()
+    queryset = Collection.objects.select_related(
+        'owner', 'parent'
+    ).prefetch_related(
+        'permissions',
+        'permissions__permission',
+        'permissions__user',
+        'permissions__content_object',
+    ).all()
     serializer_class = CollectionSerializer
     permission_classes = (IsOwnerOrReadOnly,)
     filter_backends = (KpiObjectPermissionsFilter, SearchFilter)
@@ -147,7 +166,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
 
     def _clone(self):
         # Clone an existing collection.
-        original_uid= self.request.data[CLONE_ARG_NAME]
+        original_uid = self.request.data[CLONE_ARG_NAME]
         original_collection= get_object_or_404(Collection, uid=original_uid)
         view_perm= get_perm_name('view', original_collection)
         if not self.request.user.has_perm(view_perm, original_collection):
@@ -204,7 +223,8 @@ class AssetDeploymentViewSet(NoUpdateModelViewSet):
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    lookup_field = 'name'
+    lookup_field = 'taguid__uid'
+    filter_backends = (SearchFilter,)
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
@@ -265,30 +285,34 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ImportTaskSerializer
     lookup_field = 'uid'
 
-    # permission_classes = (IsOwnerOrReadOnly,)
-    # user = models.ForeignKey('auth.User')
-    # data = JSONField()
-    # status = models.CharField(choices=STATUS_CHOICES, max_length=32, default=CREATED)
-    # uid = models.CharField(max_length=UID_LENGTH, default='')
-    # date_created = models.DateTimeField(auto_now_add=True)
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ImportTaskListSerializer
+        else:
+            return ImportTaskSerializer
+
+    def get_queryset(self, *args, **kwargs):
+        if self.request.user.is_anonymous():
+            return ImportTask.objects.none()
+        else:
+            return ImportTask.objects.filter(user=self.request.user)
 
     def create(self, request, *args, **kwargs):
+        if self.request.user.is_anonymous():
+            raise exceptions.NotAuthenticated()
         if 'base64Encoded' in request.POST:
             encoded_str = request.POST['base64Encoded']
-            encoded_substr = encoded_str[encoded_str.index('base64') +7:]
-            decoded_str = base64.b64decode(encoded_substr)
-            try:
-                survey_dict = xls_to_dict(BytesIO(decoded_str))
-            except Exception:
-                raise Exception('could not parse xls submission')
-
-            asset = Asset.objects.create(
-                owner=self.request.user,
-                content=survey_dict,
-                name=request.POST.get('name')
-            )
-            data = AssetSerializer(asset, context={'request': request}).data
-            return Response(data, status.HTTP_201_CREATED)
+            encoded_substr = encoded_str[encoded_str.index('base64') + 7:]
+            import_task = ImportTask.objects.create(user=request.user, data={
+                'base64Encoded': encoded_substr,
+                'name': request.POST.get('name')
+            })
+            # Have Celery run the import in the background
+            import_in_background.delay(import_task_uid=import_task.uid)
+            return Response({
+                'uid': import_task.uid,
+                'status': ImportTask.PROCESSING
+            }, status.HTTP_201_CREATED)
 
 
 class AssetSnapshotViewSet(NoUpdateModelViewSet):
@@ -298,8 +322,7 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
     # permission_classes = (IsOwnerOrReadOnly,)
 
     renderer_classes = NoUpdateModelViewSet.renderer_classes + [
-        # TODO: Please rename
-        AlsoXFormRenderer,
+        AssetSnapshotXFormRenderer,
     ]
 
     def get_queryset(self):
@@ -314,22 +337,21 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
 
 
 class AssetViewSet(viewsets.ModelViewSet):
-
     """
-    * Download a asset in a `.xls` or `.xml` format <span class='label label-success'>complete</span>
-    * View a asset in a markdown spreadsheet or XML preview format <span class='label label-success'>complete</span>
     * Assign a asset to a collection <span class='label label-warning'>partially implemented</span>
-    * View previous versions of a asset <span class='label label-danger'>TODO</span>
     * Run a partial update of a asset <span class='label label-danger'>TODO</span>
-    * Generate a link to a preview in enketo-express <span class='label label-danger'>TODO</span>
     """
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
-    queryset = Asset.objects.select_related('owner', 'parent').prefetch_related(
+    queryset = Asset.objects.select_related(
+        'owner', 'parent'
+    ).prefetch_related(
         'permissions',
         'permissions__permission',
         'permissions__user',
         'permissions__content_object',
-    ).all()
+        # Getting the tag_string is making one query per object, but
+        # prefetch_related doesn't seem to help
+    ).annotate(Count('assetdeployment')).all()
     serializer_class = AssetSerializer
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
@@ -453,10 +475,18 @@ class AssetViewSet(viewsets.ModelViewSet):
         # If the request fails at an early stage, e.g. the user has no
         # model-level permissions, accepted_renderer won't be present.
         if hasattr(request, 'accepted_renderer'):
-            if request.accepted_renderer.format == 'xls':
+            # Check the class of the renderer instead of just looking at the
+            # format, because we don't want to set Content-Disposition:
+            # attachment on asset snapshot XML
+            if (isinstance(request.accepted_renderer, XlsRenderer) or
+                    isinstance(request.accepted_renderer, XFormRenderer)):
                 response[
                     'Content-Disposition'
-                ] = 'attachment; filename={}.xls'.format(self.get_object().uid)
+                ] = 'attachment; filename={}.{}'.format(
+                    self.get_object().uid,
+                    request.accepted_renderer.format
+                )
+
         return super(AssetViewSet, self).finalize_response(
             request, response, *args, **kwargs)
 

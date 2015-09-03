@@ -4,37 +4,57 @@
 // bem.CollectionNav__actions = bem.CollectionNav.__('actions');
 
 .collection-nav {
-  @extend .row;
+  width:100%;
 }
+
 .collection-nav__search {
-
+  @extend .mdl-grid;
+  width: 100%;
 }
-.collection-nav__searchcriteria {
 
+.search__summary {
+  width: 100%;
 }
+
+.collection-nav__searchcriteria {}
+
 .collection-nav__actions {
-  @extend .col-sm-2;
-  padding-top: 5px;
-  label {
-    color: #b3b3b3;
-    margin-right: 12px;
-  }
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 2;
 }
-.collection-nav__action {
 
-}
 .collection-nav__button {
-  @extend .btn, .btn-default, .btn-block, .btn-sm;
+  @extend .mdl-button;
   > i {
-    @extend .fa, .fa-icon, .fa-cloud, .fa-fw;
+    @extend .fa, .fa-cloud, .fa-fw;
     margin-right: 12px;
   }
 }
 
 .collection-nav__link {
-  @extend .btn, .btn-default, .btn-block, .btn-sm;
+  @extend .mdl-button;
   > i:first-child {
     @extend .fa, .fa-fw, .fa-plus;
     margin-right: 12px;
+  }
+}
+
+.collection-nav__search {
+  > .search {
+    @extend .mdl-cell, .mdl-cell--8-col;
+  }
+
+  > .Select {
+    @extend .mdl-cell, .mdl-cell--4-col;
+  }
+
+  .Select-control {
+    background-color: transparent;
+    border-color: transparent;
+    border-bottom-color: #DDD;
+    margin-top: 10px;
+    border-radius: 0;
   }
 }

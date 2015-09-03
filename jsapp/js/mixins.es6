@@ -12,6 +12,7 @@ import actions from './actions';
 import ui from './ui';
 var ReactTooltip = require('react-tooltip');
 var assign = require('react/lib/Object.assign');
+import Select from 'react-select';
 // var Reflux = require('reflux');
 
 var dmix = {
@@ -41,6 +42,7 @@ var dmix = {
                   {this.renderName()}
                   {this.renderTimes()}
                   {this.renderTags()}
+                  {this.renderParentCollection()}
                   {this.renderUsers()}
                   {this.renderIsPublic()}
                   {this.renderLanguages()}
@@ -73,6 +75,7 @@ var dmix = {
                   {this.renderName()}
                   {this.renderTimes()}
                   {this.renderTags()}
+                  {this.renderParentCollection()}
                   {this.renderUsers()}
                   {this.renderIsPublic()}
                   {this.renderLanguages()}
@@ -108,6 +111,7 @@ var dmix = {
                   {this.renderName()}
                   {this.renderTimes()}
                   {this.renderTags()}
+                  {/* this.renderParentCollection() */}
                   {this.renderUsers()}
                   {this.renderIsPublic()}
                   {this.renderLanguages()}
@@ -121,14 +125,7 @@ var dmix = {
       }
     }
   },
-  renderAncestors () {
-    var ancestors = [{
-      children: 'forms',
-      to: 'forms',
-      params: {}      
-    }];
-    return this.renderAncestorBreadcrumb(ancestors)
-  },
+  renderAncestors () {},
   renderName () {
     return (
         <bem.AssetView__name m={[
@@ -138,6 +135,58 @@ var dmix = {
           <ui.AssetName {...this.state} />
         </bem.AssetView__name>
       );
+  },
+  renderParentCollection () {
+    var value = null,
+        opts = this.state.collectionOptionList;
+    if (this.state.parent && opts && opts.length > 0) {
+      opts.forEach((opt) => {
+        if (this.state.parent.indexOf(opt.value) > 0) {
+          value = opt.value;
+          return false;
+        }
+      })
+    }
+    return (
+        <bem.AssetView__parent m={'parent'}>
+          <bem.AssetView__iconwrap><i /></bem.AssetView__iconwrap>
+          <bem.AssetView__col m="date-modified">
+            <Select
+              name="parent_collection"
+              value={value}
+              allowCreate={true}
+              clearable={true}
+              addLabelText={t('make new collection: "{label}"')}
+              clearValueText={t('none')}
+              searchPromptText={t('collection name')}
+              placeholder={t('select parent collection')}
+              options={this.state.collectionOptionList}
+              onChange={this.onCollectionChange}
+            />
+          </bem.AssetView__col>
+        </bem.AssetView__parent>
+      );
+  },
+  onCollectionChange (nameOrId, items, x, y, z) {
+    var uid = this.props.params.assetid;
+    var item = items[0];
+    if (!item) {
+      dataInterface.patchAsset(uid, {
+          parent: null,
+        });
+    } else if (item.create) {
+      dataInterface.createCollection({
+        name: item.value
+      }).done((newCollection)=>{
+        dataInterface.patchAsset(uid, {
+          parent: `/collections/${newCollection.uid}/`,
+        });
+      });
+    } else if (item) {
+      dataInterface.patchAsset(uid, {
+        parent: `/collections/${item.value}/`,
+      });
+    }
   },
   renderTimes () {
     return (
@@ -289,7 +338,7 @@ var dmix = {
           <bem.AssetView__deployments>
             <i />
             {
-              this.state.deployment_count ? 
+              this.state.deployment_count ?
                 `${t('deployments')}: ${this.state.deployment_count}`
                 :
                 t('no deployments')
@@ -383,6 +432,7 @@ var dmix = {
     return {
       userCanEdit: false,
       userCanView: true,
+      collectionOptionList: [],
       currentUsername: stores.session.currentAccount && stores.session.currentAccount.username,
     };
   },
@@ -404,9 +454,22 @@ var dmix = {
         ));
     }
   },
+  collectionStoreChange ({collectionList}) {
+    this.setState({
+      collectionOptionList:
+        collectionList.map(function(c){
+            return {
+              value: c.uid,
+              label: c.name || c.uid,
+            }
+          })
+    });
+  },
   componentDidMount () {
     this.listenTo(stores.session, this.dmixSessionStoreChange);
-    this.listenTo(stores.asset, this.dmixAssetStoreChange)
+    this.listenTo(stores.asset, this.dmixAssetStoreChange);
+    this.listenTo(stores.collections, this.collectionStoreChange);
+    actions.resources.listCollections();
 
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
     if (this.props.randdelay && uid) {
@@ -454,12 +517,52 @@ mixins.ancestorBreadcrumb = {
         </ui.Breadcrumb>
       );
   },
+  ancestorListToParams (ancestorList) {
+    return ancestorList.reduce(function(arr, ancestor) {
+      arr.push(
+        {
+          children: ancestor.name,
+          to: 'collection-page',
+          params: {
+            uid: ancestor.uid
+          }
+        }
+      );
+      return arr;
+    }, [
+      {
+        children: t('collections'),
+        to: 'collections'
+      }
+    ]);
+  },
   _breadcrumbItem (item) {
     return (
         <ui.BreadcrumbItem>
           <Link {...item} />
         </ui.BreadcrumbItem>
       );
+  },
+};
+
+
+mixins.collectionList = {
+  getInitialState () {
+    return {
+      collectionList: [],
+      collectionSearchState: 'none',
+      collectionCount: 0,
+      collectionStore: stores.collections,
+    }
+  },
+  listCollections () {
+    actions.resources.listCollections();
+  },
+  componentDidMount () {
+    this.listenTo(stores.collections, this.collectionsChanged);
+  },
+  collectionsChanged (collections) {
+    this.setState(collections);
   },
 };
 
@@ -502,14 +605,6 @@ mixins.cmix = {
   collectionAssetsChange (data) {
   },
   assetSearchChange (data) {
-  },
-  panelHeader () {
-    var ancestors = [{
-      children: 'forms',
-      to: 'forms',
-      params: {}      
-    }];
-    return this.renderAncestorBreadcrumb(ancestors);
   },
   panelName (placeholder) {
     if (!this.state.name) {
@@ -597,9 +692,6 @@ mixins.cmix = {
   _createPanel () {
     return (
         <bem.ListView>
-          {
-            this.panelHeader()
-          }
           <ui.Panel margin="thin">
             {this.panelName(this.props.name)}
             {this.panelButtons()}
@@ -613,5 +705,62 @@ mixins.cmix = {
   }
 }
 
+mixins.clickAssets = {
+  onActionButtonClick (evt) {
+    var data = evt.actionIcon ? evt.actionIcon.dataset : evt.currentTarget.dataset;
+    var assetType = data.assetType,
+        action = data.action,
+        disabled = data.disabled == "true",
+        uid = stores.selectedAsset.uid,
+        result;
+    var click = this.click;
+
+    if (action === 'new') {
+      result = this.click.asset.new.call(this);
+    } else if (this.click[assetType] && this.click[assetType][action]) {
+      result = this.click[assetType][action].call(this, uid, evt);
+    }
+    if (result !== false) {
+      evt.preventDefault();
+    }
+  },
+  click: {
+    collection: {
+      sharing: function(uid, evt){
+        this.transitionTo('collection-sharing', {assetid: uid});
+      },
+      view: function(uid, evt){
+        this.transitionTo('collection-page', {uid: uid})
+      },
+      delete: function(uid, evt){
+        window.confirm(t('Warning! You are about to delete this collection with all its questions and blocks. Are you sure you want to continue?')) &&
+            actions.resources.deleteCollection({uid: uid});
+      },
+    },
+    asset: {
+      new: function(uid, evt){
+        this.transitionTo('new-form')
+      },
+      view: function(uid, evt){
+        this.transitionTo('form-landing', {assetid: uid})
+      },
+      clone: function(uid, evt){
+        actions.resources.cloneAsset({uid: uid})
+      },
+      download: function(uid, evt){
+        this.transitionTo('form-download', {assetid: uid})
+      },
+      delete: function(uid, evt){
+        window.confirm(t('You are about to permanently delete this form. Are you sure you want to continue?')) &&
+          actions.resources.deleteAsset({uid: uid});
+      },
+      deploy: function(uid, evt){
+        var asset_url = stores.selectedAsset.asset.url;
+        // var form_id_string = prompt('form_id_string');
+        actions.resources.deployAsset(asset_url);
+      },
+    }
+  },
+};
 
 export default mixins;

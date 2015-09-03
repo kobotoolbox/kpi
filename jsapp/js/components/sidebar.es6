@@ -213,6 +213,7 @@ var Sidebar = React.createClass({
             <SidebarTitle label={t('drafts in progress')} />
             <SidebarLink label={t('forms')} linkto='forms' fa-icon="files-o" />
             <SidebarLink label={t('library')} linkto='library' fa-icon="book" />
+            <SidebarLink label={t('collections')} linkto='collections' fa-icon="folder-o" />
             {/* this.state.showRecent && this.state.sidebarIsOpen ?
               <div>
                 <SidebarLink label={t('recent')} onClick={this.toggleRecent} fa-icon="clock-o" />
@@ -225,16 +226,22 @@ var Sidebar = React.createClass({
                 <SidebarLink label={t('projects')} active='true' href={stores.session.currentAccount.projects_url} fa-icon="globe" />
             :null }
             <SidebarTitle label={t('account actions')} />
-            { this.state.isLoggedIn ? 
+            { this.state.isLoggedIn ?
               <SidebarLink label={t('logout')} onClick={this.logout} fa-icon="sign-out" />
-            : 
+            :
               <SidebarLink label={t('login')} href='/api-auth/login/?next=/' fa-icon="sign-in" />
             }
           </ul>
           <div className="sidebar-footer">
-            <SidebarFooterItem label="help" href="https://support.kobotoolbox.org/" />
-            <SidebarFooterItem label="about" href="http://www.kobotoolbox.org/" />
-            <SidebarFooterItem label="source" href="https://github.com/kobotoolbox/" />
+            <a href="http://support.kobotoolbox.org/" target="_blank">
+              help
+            </a>
+            <a href="http://www.kobotoolbox.org/" target="_blank">
+              about
+            </a>
+            <a href="https://github.com/kobotoolbox/" target="_blank">
+              source
+            </a>
           </div>
         </div>
       )

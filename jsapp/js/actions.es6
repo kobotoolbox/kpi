@@ -88,6 +88,24 @@ actions.resources = Reflux.createActions({
       "failed"
     ]
   },
+  listSurveys: {
+    children: [
+      "completed",
+      "failed"
+    ]
+  },
+  listCollections: {
+    children: [
+      "completed",
+      "failed"
+    ]
+  },
+  listQuestionsAndBlocks: {
+    children: [
+      "completed",
+      "failed"
+    ]
+  },
   createAsset: {
     children: [
       "completed",
@@ -236,7 +254,16 @@ actions.resources.createAsset.listen(function(contents){
 });
 
 actions.resources.createAsset.completed.listen(function(contents){
-  notify(t("successfully created"))
+  if (contents.status) {
+    if(contents.status === 'processing') {
+      notify('uploading file');
+      log("processing import " + contents.uid);
+    } else {
+      notify("unexpected import status \"" + contents.status + "\"", 'error');
+    }
+  } else {
+    notify(t("successfully created"));
+  }
 })
 
 actions.resources.createResource.failed.listen(function(){
@@ -249,11 +276,19 @@ actions.resources.createSnapshot.listen(function(details){
     .fail(actions.resources.createSnapshot.failed);
 });
 
-actions.resources.listTags.listen(function(){
-  dataInterface.listTags()
+actions.resources.listTags.listen(function(data){
+  dataInterface.listTags(data)
     .done(actions.resources.listTags.completed)
     .fail(actions.resources.listTags.failed);
 });
+
+actions.resources.listTags.completed.listen(function(results){
+  if (results.next) {
+    if (window.trackJs) {
+      window.trackJs.track('MAX_TAGS_EXCEEDED: Too many tags');
+    }
+  }
+})
 
 actions.resources.updateAsset.listen(function(uid, values){
   dataInterface.patchAsset(uid, values)
@@ -287,6 +322,15 @@ actions.resources.readCollection.listen(function(details){
         actions.resources.readCollection.failed(details, req, err, message);
       });
 })
+
+actions.resources.deleteCollection.listen(function(details){
+  dataInterface.deleteCollection(details)
+    .done(function(result){
+      actions.resources.deleteCollection.completed(details, result)
+    })
+    .fail(actions.resources.deleteCollection.failed);
+});
+
 actions.resources.cloneAsset.listen(function(details){
   dataInterface.cloneAsset(details)
     .done(function(...args){
@@ -388,7 +432,7 @@ actions.auth.verifyLogin.listen(function(){
 actions.resources.loadAsset.listen(function(params){
   var dispatchMethodName;
   if (params.url) {
-    dispatchMethodName = params.url.indexOf('collections') === -1 ? 
+    dispatchMethodName = params.url.indexOf('collections') === -1 ?
         'getAsset' : 'getCollection';
   } else {
     dispatchMethodName = {
@@ -419,7 +463,25 @@ actions.resources.listAssets.listen(function(){
   dataInterface.listAllAssets()
       .done(actions.resources.listAssets.completed)
       .fail(actions.resources.listAssets.failed)
-})
+});
+
+actions.resources.listSurveys.listen(function(){
+  dataInterface.listSurveys()
+      .done(actions.resources.listAssets.completed)
+      .fail(actions.resources.listAssets.failed)
+});
+
+actions.resources.listCollections.listen(function(){
+  dataInterface.listCollections()
+      .done(actions.resources.listCollections.completed)
+      .fail(actions.resources.listCollections.failed)
+});
+
+actions.resources.listQuestionsAndBlocks.listen(function(){
+  dataInterface.listQuestionsAndBlocks()
+      .done(actions.resources.listAssets.completed)
+      .fail(actions.resources.listAssets.failed)
+});
 
 module.exports = actions;
 

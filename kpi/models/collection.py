@@ -11,6 +11,7 @@ from taggit.models import Tag
 from asset import (
     Asset,
     TaggableModelManager,
+    KpiTaggableManager,
     TagStringMixin,
 )
 from object_permission import ObjectPermission, ObjectPermissionMixin
@@ -54,7 +55,7 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     objects = CollectionManager()
-    tags = TaggableManager()
+    tags = TaggableManager(manager=KpiTaggableManager)
     permissions = GenericRelation(ObjectPermission)
 
     @property
@@ -111,9 +112,6 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
                 mixed_descendants.append(asset)
         return mixed_descendants
 
-    def get_children_and_assets_iterable(self):
-        return chain(self.get_children(), self.assets.all())
-
     def __unicode__(self):
         return self.name
 
@@ -123,3 +121,107 @@ def post_delete_collection(sender, instance, **kwargs):
     # Remove all permissions associated with this object
     ObjectPermission.objects.filter_for_object(instance).delete()
     # No recalculation is necessary since children will also be deleted
+
+
+class CollectionChildrenQuerySet(object):
+    ''' A pseudo-QuerySet containing mixed-model children of a collection.
+    Collections are always listed before assets.  Derived from
+    http://ramenlabs.com/2010/12/08/how-to-quack-like-a-queryset/.
+    '''
+    def __init__(self, collection):
+        self.collection = collection
+        self.child_collections = collection.get_children()
+        self.child_assets = collection.assets.all()
+
+    def __iter__(self):
+        for row in chain(self.child_collections, self.child_assets):
+            yield row
+
+    def __repr__(self):
+        data = list(self[:models.query.REPR_OUTPUT_SIZE + 1])
+        if len(data) > models.query.REPR_OUTPUT_SIZE:
+            data[-1] = "...(remaining elements truncated)..."
+        return repr(data)
+
+    def __getitem__(self, k):
+        if not isinstance(k, (slice, int, long)):
+            raise TypeError
+        assert ((not isinstance(k, slice) and (k >= 0))
+                or (isinstance(k, slice) and (k.start is None or k.start >= 0)
+                    and (k.stop is None or k.stop >= 0))), \
+                "Negative indexing is not supported."
+
+        qs = self._clone()
+        collections = qs.child_collections
+        assets = qs.child_assets
+
+        if isinstance(k, slice):
+            ''' Colletions first, then Assets '''
+            collections_start = 0
+            assets_start = 0
+            collections_count = None
+
+            if k.step is not None:
+                raise NotImplementedError(
+                    'Slicing with a step is not implemented.'
+                )
+            if k.start is not None:
+                # It's alright if the slice starts beyond the end of the
+                # QuerySet; Django will just return emptiness
+                collections_start = k.start
+                # Counting is expensive; store the result for future use
+                collections_count = collections.count()
+                assets_start = max(0, k.start - collections_count)
+            if k.stop is None:
+                qs.child_collections = collections[collections_start:]
+                qs.child_assets = assets[assets_start:]
+                return qs
+            else:
+                # It's alright of the slice ends beyond the end of the
+                # QuerySet; Django will just stop at the last object
+                collections_stop = k.stop
+                if collections_count is None:
+                    # Only count if we didn't already
+                    collections_count = collections.count()
+                assets_stop = max(0, k.stop - collections_count)
+                qs.child_collections = collections[
+                    collections_start:collections_stop]
+                qs.child_assets = assets[assets_start:assets_stop]
+                return qs
+        else:
+            try:
+                return collections[k]
+            except IndexError:
+                return assets[k - collections.count()]
+
+    def count(self):
+        return self.child_collections.count() + self.child_assets.count()
+
+    def all(self):
+        return self._clone()
+
+    def filter(self, *args, **kwargs):
+        return self._apply_to_both('filter', *args, **kwargs)
+
+    def exclude(self, *args, **kwargs):
+        return self._apply_to_both('exclude', *args, **kwargs)
+
+    def select_related(self, *args, **kwargs):
+        return self._apply_to_both('select_related', *args, **kwargs)
+
+    def prefetch_related(self, *args, **kwargs):
+        return self._apply_to_both('prefetch_related', *args, **kwargs)
+
+    def _apply_to_both(self, method, *args, **kwargs):
+        qs = self._clone()
+        qs.child_collections = getattr(qs.child_collections, method)(
+            *args, **kwargs)
+        qs.child_collections = getattr(qs.child_collections, method)(
+            *args, **kwargs)
+        return qs
+
+    def _clone(self):
+        qs = CollectionChildrenQuerySet(self.collection)
+        qs.child_collections = self.child_collections._clone()
+        qs.child_assets = self.child_assets._clone()
+        return qs

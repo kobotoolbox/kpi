@@ -8,7 +8,8 @@ var el = (function(){
   return $d.get(0);
 })();
 
-window.csrftoken = $('input[name=csrfmiddlewaretoken]').eq(0).val();
+window.csrftoken = $('input[name=csrfmiddlewaretoken]').eq(0).val() || $('meta[name=csrf-token]').attr('content');
+
 function csrfSafeMethod(method) {
     // these HTTP methods do not require CSRF protection
     return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
