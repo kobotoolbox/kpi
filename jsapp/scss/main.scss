@@ -48,6 +48,8 @@ $newformCircleWidthHeight: 55px;
 @import './components/kobo.bem.ui';
 @import './components/kobo.modal';
 
+@import './libs/pygments-theme';
+
 .k-invisible {
   visibility: hidden;
 }

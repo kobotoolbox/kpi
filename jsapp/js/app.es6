@@ -1518,8 +1518,38 @@ var FormJson = React.createClass({
         </ui.Panel>
       );
   }
-})
+});
 
+var FormXform = React.createClass({
+  mixins: [
+    Navigation,
+    Reflux.ListenerMixin
+  ],
+  componentDidMount () {
+    dataInterface.getAssetXformView(this.props.params.assetid).done((content)=>{
+      this.setState({
+        xformLoaded: true,
+        xformHtml: {
+          __html: $('<div>').html(content).find('.pygment').html()
+        },
+      })
+    });
+  },
+  getInitialState () {
+    return {
+      xformLoaded: false
+    }
+  },
+  render () {
+    if (!this.state.xformLoaded) {
+      return <p>XForm is loading</p>
+    } else {
+      return <div className="pygment"
+                dangerouslySetInnerHTML={this.state.xformHtml}
+              />
+    }
+  }
+});
 
 var FormSharing = React.createClass({
   mixins: [
@@ -2580,6 +2610,7 @@ var routes = (
       <Route name="form-landing" path="/forms/:assetid">
         <Route name="form-download" path="download" handler={FormDownload} />
         <Route name="form-json" path="json" handler={FormJson} />
+        <Route name="form-xform" path="xform" handler={FormXform} />
         <Route name="form-sharing" path="sharing" handler={FormSharing} />
         <Route name="form-preview-enketo" path="preview" handler={FormEnketoPreview} />
         <Route name='form-edit' path="edit" handler={FormPage} />
