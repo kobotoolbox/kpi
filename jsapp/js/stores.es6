@@ -1,9 +1,11 @@
 'use strict';
 
-import {log, t, parsePermissions} from './utils';
+import {log, t, notify, parsePermissions} from './utils';
 
 import {dataInterface} from './dataInterface';
+import cookie from 'react-cookie';
 
+var assetParserUtils = require('./assetParserUtils');
 var actions = require('./actions');
 var Reflux = require('reflux');
 var Immutable = require('immutable');
@@ -91,6 +93,19 @@ var tagsStore = Reflux.createStore({
 
 const MAX_SEARCH_AGE = (5 * 60) // seconds
 
+var surveyStateStore = Reflux.createStore({
+  init () {
+    this.state = {};
+  },
+  setState (state) {
+    var chz = changes(this.state, state);
+    if (chz) {
+      assign(this.state, state);
+      this.trigger(chz);
+    }
+  },
+})
+
 var assetSearchStore = Reflux.createStore({
   init () {
     this.queries = {};
@@ -106,7 +121,7 @@ var assetSearchStore = Reflux.createStore({
     return false;
   },
   onAssetSearch (queryString, results) {
-    results.query=queryString;
+    results.query = queryString;
     this.queries[queryString] = [results, new Date()];
     if(results.count > 0) {
       this.trigger(results);
@@ -116,16 +131,21 @@ var assetSearchStore = Reflux.createStore({
 
 var pageStateStore = Reflux.createStore({
   init () {
-    this.state = {
-      bgTopPanelHeight: 60,
-      bgTopPanelFixed: false,
-      headerSearch: true,
-      assetNavPresent: false,
-      assetNavIsOpen: true,
-      assetNavIntentOpen: true,
-      sidebarIsOpen: true,
-      sidebarIntentOpen: true
+    var navIsOpen = cookie.load('assetNavIntentOpen');
+    if (navIsOpen === undefined) {
+      // default assetNav value.
+      navIsOpen = false;
     }
+    this.state = {
+      headerBreadcrumb: [],
+      drawerIsVisible: false,
+      // headerSearch: true,
+      assetNavPresent: false,
+      assetNavIsOpen: navIsOpen,
+      assetNavIntentOpen: navIsOpen,
+      sidebarIsOpen: false,
+      sidebarIntentOpen: false,
+    };
   },
   setState (chz) {
     var changed = changes(this.state, chz);
@@ -134,45 +154,36 @@ var pageStateStore = Reflux.createStore({
       this.trigger(changed);
     }
   },
-  setTopPanel (height, isFixed) {
-    var changed = changes(this.state, {
-      bgTopPanelHeight: height,
-      bgTopPanelFixed: isFixed
-    });
+  // setTopPanel (height, isFixed) {
+  //   var changed = changes(this.state, {
+  //     bgTopPanelHeight: height,
+  //     bgTopPanelFixed: isFixed
+  //   });
 
-    if (changed) {
-      assign(this.state, changed);
-      this.trigger(changed);
-    }
-  },
-  toggleSidebarIntentOpen () {
-    var newIntent = !this.state.sidebarIntentOpen,
-        isOpen = this.state.sidebarIsOpen,
-        changes = {
-          sidebarIntentOpen: newIntent
-        };
-    // xor
-    if ( (isOpen || newIntent) && !(isOpen && newIntent) ) {
-      changes.sidebarIsOpen = !isOpen;
-    }
-    assign(this.state, changes);
+  //   if (changed) {
+  //     assign(this.state, changed);
+  //     this.trigger(changed);
+  //   }
+  // },
+  // toggleSidebarIntentOpen () {
+  //   var newIntent = !this.state.sidebarIntentOpen,
+  //       isOpen = this.state.sidebarIsOpen,
+  //       changes = {
+  //         sidebarIntentOpen: newIntent
+  //       };
+  //   // xor
+  //   if ( (isOpen || newIntent) && !(isOpen && newIntent) ) {
+  //     changes.sidebarIsOpen = !isOpen;
+  //   }
+  //   assign(this.state, changes);
+  //   this.trigger(changes);
+  // },
+  toggleDrawer () {
+    var changes = {};
+    var newval = !this.state.drawerIsVisible;
+    changes.drawerIsVisible = newval;
+    assign(this.state, changes)
     this.trigger(changes);
-  },
-  hideSidebar () {
-    var changes = {};
-    if (this.state.sidebarIsOpen) {
-      changes.sidebarIsOpen = false;
-      assign(this.state, changes)
-      this.trigger(changes);
-    }
-  },
-  showSidebar () {
-    var changes = {};
-    if (!this.state.sidebarIsOpen) {
-      changes.sidebarIsOpen = true;
-      assign(this.state, changes)
-      this.trigger(changes);
-    }
   },
   toggleAssetNavIntentOpen () {
     var newIntent = !this.state.assetNavIntentOpen,
@@ -180,6 +191,7 @@ var pageStateStore = Reflux.createStore({
         changes = {
           assetNavIntentOpen: newIntent
         };
+    cookie.save('assetNavIntentOpen', newIntent);
 
     // xor
     if ( (isOpen || newIntent) && !(isOpen && newIntent) ) {
@@ -188,27 +200,33 @@ var pageStateStore = Reflux.createStore({
     assign(this.state, changes);
     this.trigger(changes);
   },
-  setHeaderSearch (tf) {
-    var newVal = !!tf;
-    if (newVal !== this.state.headerSearch) {
-      this.state.headerSearch = !!tf;
-      var changes = {
-        headerSearch: this.state.headerSearch,
-        assetNavPresent: !this.state.headerSearch,
-        assetNavIsOpen: !this.state.headerSearch
-      };
-      assign(this.state, changes);
-      this.trigger(changes);
+  setAssetNavPresent (tf) {
+    var val = !!tf;
+    if (val !== this.state.assetNavPresent) {
+      this.state.assetNavPresent = val;
+      this.trigger({
+        assetNavPresent: val
+      });
     }
-  }
+  },
+  setHeaderBreadcrumb (newBreadcrumb) {
+      var changes = {};
+      changes.headerBreadcrumb = newBreadcrumb;
+      assign(this.state, changes)
+      this.trigger(changes);
+  }  
 });
 
 stores.snapshots = Reflux.createStore({
   init () {
     this.listenTo(actions.resources.createSnapshot.completed, this.snapshotCreated);
+    this.listenTo(actions.resources.createSnapshot.failed, this.snapshotCreationFailed);
   },
   snapshotCreated (snapshot) {
-    this.trigger(snapshot);
+    this.trigger(assign({success: true}, snapshot));
+  },
+  snapshotCreationFailed (data) {
+    this.trigger(assign({success: false}, data));
   },
 });
 
@@ -242,44 +260,11 @@ var assetStore = Reflux.createStore({
     this.noteRelatedUsers(resp);
     this.trigger(this.data, resp.uid, {asset_updated: true});
   },
-  parsePermissions (resp) {
-    var out = {};
-    var pp = parsePermissions(resp.owner__username, resp.permissions);
-    out.parsedPermissions = pp;
-    out.access = (()=>{
-      var viewers = {};
-      var changers = {};
-      var isPublic = false;
-      pp.forEach(function(userPerm){
-        if (userPerm.can.view) {
-          viewers[userPerm.username] = true;
-        }
-        if (userPerm.can.change) {
-          changers[userPerm.username] = true;
-        }
-        if (userPerm.username === 'AnonymousUser') {
-          isPublic = !!userPerm.can.view;
-        }
-      });
-      return {view: viewers, change: changers, ownerUsername: resp.owner__username, isPublic: isPublic};
-    })()
-    return out;
-  },
-  parseTags(asset) {
-    return {
-      tags: asset.tag_string.split(',').filter((tg) => { return tg.length > 1; })
-    }
-  },
-  parsed (asset) {
-    return assign(asset,
-        this.parsePermissions(asset),
-        this.parseTags(asset))
-  },
   onLoadAssetCompleted: function (resp, req, jqxhr) {
     if (!resp.uid) {
       throw new Error('no uid found in response');
     }
-    this.data[resp.uid] = this.parsed(resp);
+    this.data[resp.uid] = assetParserUtils.parsed(resp);
     this.noteRelatedUsers(resp);
     this.trigger(this.data, resp.uid);
   }
@@ -399,7 +384,7 @@ var allAssetsStore = Reflux.createStore({
     this.trigger(this.data);
   },
   onListAssetsFailed: function (err) {
-    debugger
+    notify(t('failed to list assets'));
   },
   onDeleteAssetCompleted (asset) {
     this.byUid[asset.uid].deleted = 'true';
@@ -424,6 +409,12 @@ var allAssetsStore = Reflux.createStore({
       }
     }
   },
+  byKind (kind) {
+    var kinds = [].concat(kind);
+    return this.data.filter(function(asset){
+      return kinds.indexOf(asset.kind) !== -1;
+    });
+  },
   byAssetType (asset_type) {
     var asset_types = [].concat(asset_type);
     return this.data.filter(function(asset){
@@ -439,7 +430,7 @@ var allAssetsStore = Reflux.createStore({
 
 var selectedAssetStore = Reflux.createStore({
   init () {
-    this.uid = false;
+    this.uid = cookie.load('selectedAssetUid');
     this.listenTo(actions.resources.createAsset.completed, this.onAssetCreated);
   },
   onAssetCreated (asset) {
@@ -454,22 +445,27 @@ var selectedAssetStore = Reflux.createStore({
     if (this.uid === uid) {
       this.uid = false;
       this.asset = {};
-      return false;
     } else {
       this.uid = uid;
-      this.asset = allAssetsStore.byUid[uid]
-      return true;
+      this.asset = allAssetsStore.byUid[uid];
     }
+    cookie.save('selectedAssetUid', this.uid);
+    this.trigger({
+      selectedAssetUid: this.uid
+    });
+    return this.uid !== false;
   }
 });
- 
+
 var collectionAssetsStore = Reflux.createStore({
   init () {
     this.collections = {};
     this.listenTo(actions.resources.readCollection.completed, this.readCollectionCompleted);
   },
   readCollectionCompleted (data, x, y) {
-    data.children.forEach((childAsset)=> {
+    var children = data.children && data.children.results;
+
+    children.forEach((childAsset)=> {
       stores.allAssets.registerAssetOrCollection(childAsset);
     });
     this.collections[data.uid] = data;
@@ -498,6 +494,20 @@ var userExistsStore = Reflux.createStore({
   }
 });
 
+stores.collections = Reflux.createStore({
+  init () {
+    this.listenTo(actions.resources.listCollections.completed, this.listCollectionsCompleted);
+  },
+  listCollectionsCompleted (collectionData) {
+    this.latestList = collectionData.results;
+    this.trigger({
+      collectionSearchState: 'done',
+      collectionCount: collectionData.count,
+      collectionList: collectionData.results,
+    })
+  },
+})
+
 assign(stores, {
   history: historyStore,
   tags: tagsStore,
@@ -511,6 +521,7 @@ assign(stores, {
   allAssets: allAssetsStore,
   session: sessionStore,
   userExists: userExistsStore,
+  surveyState: surveyStateStore,
 });
 
 module.exports = stores

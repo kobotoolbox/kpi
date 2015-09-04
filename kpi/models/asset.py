@@ -1,4 +1,5 @@
 import re
+import six
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
@@ -6,7 +7,8 @@ from django.db import transaction
 from django.dispatch import receiver
 from jsonfield import JSONField
 from shortuuid import ShortUUID
-from taggit.managers import TaggableManager
+from taggit.managers import TaggableManager, _TaggableManager
+from taggit.utils import require_instance_manager
 from taggit.models import Tag
 import reversion
 
@@ -40,11 +42,26 @@ class TaggableModelManager(models.Manager):
         return created
 
 
+class KpiTaggableManager(_TaggableManager):
+    @require_instance_manager
+    def add(self, *tags, **kwargs):
+        ''' A wrapper that replaces spaces in tag names with dashes and also
+        strips leading and trailng whitespace. Behavior should match the
+        TagsInput transform function in app.es6. '''
+        tags_out = []
+        for t in tags:
+            # Modify strings only; the superclass' add() method will then
+            # create Tags or use existing ones as appropriate.  We do not fix
+            # existing Tag objects, which could also be passed into this
+            # method, because a fixed name could collide with the name of
+            # another Tag object already in the database.
+            if isinstance(t, six.string_types):
+                t = t.strip().replace(' ', '-')
+            tags_out.append(t)
+        super(KpiTaggableManager, self).add(*tags_out, **kwargs)
+
+
 class AssetManager(TaggableModelManager):
-    def get_queryset(self):
-        return super(AssetManager, self).get_queryset().annotate(
-            models.Count('assetdeployment')
-        )
     def filter_by_tag_name(self, tag_name):
         return self.filter(tags__name=tag_name)
 
@@ -112,7 +129,7 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
     owner = models.ForeignKey('auth.User', related_name='assets', null=True)
     editors_can_change_permissions = models.BooleanField(default=True)
     uid = models.CharField(max_length=ASSET_UID_LENGTH, default='', blank=True)
-    tags = TaggableManager()
+    tags = TaggableManager(manager=KpiTaggableManager)
 
     permissions = GenericRelation(ObjectPermission)
 
@@ -170,6 +187,10 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
         return 'a' + ShortUUID().random(ASSET_UID_LENGTH -1)
 
     def save(self, *args, **kwargs):
+        # don't save settings if a previous save has already classified this asset as
+        # question_type= question or block
+        if self.asset_type in ['question', 'block'] and 'settings' in self.content:
+            del self.content['settings']
         # populate uid field if it's empty
         self._populate_uid()
         self._populate_summary()
@@ -204,20 +225,6 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
             asset_version_id=self.version_id)
         return model
 
-    def content_terms(self):
-        # TODO: make prettier: strip HTML, etc.
-        terms = set()
-        values = self.content.values()
-        while values:
-            value = values.pop()
-            if isinstance(value, dict):
-                values.extend(value.values())
-            elif isinstance(value, list):
-                values.extend(value)
-            else:
-                terms.add(value)
-        return terms
-
     def __unicode__(self):
         return u'{} ({})'.format(self.name, self.uid)
 
@@ -245,7 +252,7 @@ class AssetSnapshot(models.Model, XlsExportable):
             kwargs['asset_version_id'] = reversion.get_for_object(asset).last().pk
         return super(AssetSnapshot, self).__init__(*args, **kwargs)
 
-    def generate_xml_from_source(self, source):
+    def generate_xml_from_source(self, source, **opts):
         import pyxform
         import tempfile
         summary = {}
@@ -253,10 +260,18 @@ class AssetSnapshot(models.Model, XlsExportable):
         default_name = None
         default_language = u'default'
         default_id_string = u'xform_id_string'
-        if 'settings' not in source:
-            raise Exception("Cannot generate XML from a document with no settings")
-        if 'id_string' not in source['settings'][0]:
-            source['settings'][0]['id_string'] = default_id_string
+        if 'settings' in source and len(source['settings']) > 0:
+            settings = source['settings'][0]
+        else:
+            settings = {}
+
+        if 'id_string' not in settings:
+            settings['id_string'] = default_id_string
+
+        if opts.get('include_note'):
+            source['survey'].insert(0, {'type': 'note',
+                    'label': opts['include_note']})
+        source['settings'] = [settings]
         try:
             dict_repr = pyxform.xls2json.workbook_to_json(
                 source, default_name, default_language, warnings)
@@ -302,7 +317,15 @@ class AssetSnapshot(models.Model, XlsExportable):
         self._populate_uid()
         if self.source is None:
             self.source = version.object.to_ss_structure()
-        self.generate_xml_from_source(self.source)
+        if self.asset and self.asset.asset_type in ['question', 'block'] and \
+                len(self.asset.summary['languages']) == 0:
+            asset_type = self.asset.asset_type
+            note = 'Note: This item is a ASSET_TYPE and ' + \
+                    'must be included in a form before deploying'
+            note = note.replace('ASSET_TYPE', asset_type)
+            self.generate_xml_from_source(self.source, include_note=note)
+        else:
+            self.generate_xml_from_source(self.source)
         return super(AssetSnapshot, self).save(*args, **kwargs)
 
 

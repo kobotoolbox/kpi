@@ -23,6 +23,7 @@
 // inputs in edit-in-place
 .card__text input, 
 .editable-wrapper input {
+    font-family: "Open Sans", "Helvetica", "Arial", sans-serif;
     border:none;
     padding:0px;
     margin:0px;
@@ -30,6 +31,7 @@
     display: inline;
     height:auto !important;
     font-size: 13px;
+    width: 100%;
 }
 
 code input[type="text"] {

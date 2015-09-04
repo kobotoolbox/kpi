@@ -6,17 +6,31 @@ var bem = BEM.init();
 bem.PageWrapper = BEM('page-wrapper');
 bem.PageWrapper__content = bem.PageWrapper.__('content');
 
+bem.Loading = BEM('loading');
+bem.Loading__message = bem.Loading.__('message');
+bem.Loading__img = bem.Loading.__('img', '<img>');
+
 bem.AssetRow = BEM('asset-row', '<li>');
 bem.AssetRow__cell        = bem.AssetRow.__('cell');
 
 bem.AssetRow__celllink    = bem.AssetRow.__('celllink', '<a>');
-bem.AssetRow__name        = bem.AssetRow.__('name');
+bem.AssetRow__cellmeta    = bem.AssetRow.__('cellmeta');
+bem.AssetRow__name        = bem.AssetRow.__('name', '<span>');
 bem.AssetRow__tags        = bem.AssetRow.__('tags');
 bem.AssetRow__tags__tag   = bem.AssetRow.__('tags__tag', '<span>');
+bem.AssetRow__tags__notags = bem.AssetRow.__('tags__notags', '<span>');
 bem.AssetRow__actionIcon  = bem.AssetRow.__('action-icon', '<a>');
 bem.AssetRow__sharingIcon = bem.AssetRow.__('sharingIcon');
 bem.AssetRow__sharingIcon__owner =
                 bem.AssetRow__sharingIcon.__('owner', '<span>');
+
+bem.FormHeader = bem('form-header');
+bem.FormHeader__button = bem.FormHeader.__('button', '<button>');
+
+bem.Search = BEM('search');
+bem.Search__icon = bem.Search.__('icon', '<i>');
+bem.Search__cancel = bem.Search.__('cancel', '<i>');
+bem.Search__summary = bem.Search.__('summary');
 
 bem.LibNav = BEM('lib-nav');
 bem.LibNav__content = bem.LibNav.__('content');
@@ -38,13 +52,23 @@ bem.LibList__qtype = bem.LibList.__('qtype');
 
 bem.CollectionNav = bem('collection-nav');
 bem.CollectionNav__search = bem.CollectionNav.__('search');
-bem.CollectionNav__searchcriteria = bem.CollectionNav.__('searchcriteria');
+bem.CollectionNav__searchcriteria = bem.CollectionNav.__('searchcriteria', '<ul>');
+bem.CollectionNav__searchcriterion = bem.CollectionNav.__('searchcriterion', '<li>');
 bem.CollectionNav__actions = bem.CollectionNav.__('actions');
 bem.CollectionNav__button = bem.CollectionNav.__('button', '<button>');
 bem.CollectionNav__link = bem.CollectionNav.__('link', '<a>');
+bem.CollectionNav__searchcancel = bem.CollectionNav.__('searchcancel', '<i>');
+bem.CollectionNav__searchicon = bem.CollectionNav.__('searchicon', '<i>');
+
+bem.CollectionAssetList = bem('collection-asset-list', '<ul>');
+bem.CollectionAssetList__message = bem.CollectionAssetList.__('message');
 
 bem.CollectionHeader = bem('collection-header');
-bem.CollectionHeader__buttonRow = bem('collection-header__button-row')
+bem.CollectionHeader__item = bem.CollectionHeader.__('item');
+bem.CollectionHeader__input = bem.CollectionHeader.__('input', '<input>');
+bem.CollectionHeader__buttonRow = bem('collection-header__button-row');
+bem.CollectionHeader__iconwrap = bem.CollectionHeader.__('iconwrap')
+
 bem.CollectionHeader__buttonGroup = bem('collection-header__button-group', [
                       'new',
                       'actions',
@@ -82,6 +106,7 @@ bem.AssetView__key = bem.AssetView.__('key');
 bem.AssetView__val = bem.AssetView.__('val');
 bem.AssetView__ancestor = bem.AssetView.__('ancestor');
 bem.AssetView__ancestors = bem.AssetView.__('ancestors');
+bem.AssetView__parent = bem.AssetView.__('parent');
 bem.AssetView__iconwrap = bem.AssetView.__('iconwrap')
 bem.AssetView__times = bem.AssetView.__('times');
 bem.AssetView__col = bem.AssetView.__('col');
@@ -100,18 +125,8 @@ bem.AssetView__deployments = bem.AssetView.__('deployments');
 bem.AssetView__deploybutton = bem.AssetView.__('deploybutton', '<button>');
 
 
-bem.CollectionHeader__button = bem.CollectionHeader.__('button', '<a>')
-// bem('collection-header__button', '<button>', [
-//                         'new-form',
-//                         'view-form',      'view-collection',
-//                         'edit-form',      'edit-collection',
-//                         'preview-form',   'preview-collection',
-//                         'clone-form',     'clone-collection',
-//                         'download-form',  'download-collection',
-//                         'delete',
 
-//                         'disabled',
-//                     ]);
+bem.CollectionHeader__button = bem.CollectionHeader.__('button', '<a>')
 
 // bem.Sidebar = BEM('sidebar')
 // bem.Sidebar__link = bem.Sidebar.__('link');
@@ -120,19 +135,21 @@ bem.CollectionHeader__button = bem.CollectionHeader.__('button', '<a>')
 // bem.Sidebar__footeritem = bem.Sidebar.__('footeritem');
 
 // trying out an alternative syntax
-bem.Sidebar = bem('sidebar');
-bem.Sidebar__link = bem('sidebar__link', ['active']);
-bem.Sidebar__title = bem('sidebar__title');
-bem.Sidebar__footer = bem('sidebar__footer');
-bem.Sidebar__footeritem = bem('sidebar__footeritem');
+// bem.Sidebar = bem('sidebar');
+// bem.Sidebar__link = bem('sidebar__link', ['active']);
+// bem.Sidebar__title = bem('sidebar__title');
+// bem.Sidebar__footer = bem('sidebar__footer');
+// bem.Sidebar__footeritem = bem('sidebar__footeritem');
 
 bem.AccountBox = BEM('account-box');
-bem.AccountBox__name =      bem.AccountBox.__('name');
-bem.AccountBox__image =     bem.AccountBox.__('image');
-bem.AccountBox__indicator = bem.AccountBox.__('indicator');
-bem.AccountBox__logout =    bem.AccountBox.__('logout');
+bem.AccountBox__name =      bem.AccountBox.__('name', '<span>');
+bem.AccountBox__image =     bem.AccountBox.__('image', '<span>');
+bem.AccountBox__logo =      bem.AccountBox.__('logo', '<span>');
+// bem.AccountBox__indicator = bem.AccountBox.__('indicator');
+// bem.AccountBox__logout =    bem.AccountBox.__('logout');
 
 bem.uiPanel = BEM('ui-panel');
 bem.uiPanel__body = bem.uiPanel.__('body');
 
+bem.Drawer = bem('drawer');
 export default bem;

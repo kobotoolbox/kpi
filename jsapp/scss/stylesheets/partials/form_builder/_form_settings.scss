@@ -1,3 +1,9 @@
+.formbuilder-wrap.container {
+  .container__fixed {
+    display: none;
+  }
+}
+
 .form__settings {
   border:2px solid #D9DDE1;
   float: left;

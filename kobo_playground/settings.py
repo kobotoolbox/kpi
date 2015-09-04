@@ -21,36 +21,49 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '@25)**hc^rjaiagb4#&q*84hr*uscsxwr-cv#0joiwj$))obyk'
+# Secret key must match that used by KoBoCAT when sharing sessions
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '@25)**hc^rjaiagb4#&q*84hr*uscsxwr-cv#0joiwj$))obyk')
+
+# Domain must not exclude KoBoCAT when sharing sessions
+if 'CSRF_COOKIE_DOMAIN' in os.environ:
+    CSRF_COOKIE_DOMAIN = os.environ['CSRF_COOKIE_DOMAIN']
+    SESSION_COOKIE_DOMAIN = CSRF_COOKIE_DOMAIN
+    SESSION_COOKIE_NAME = 'kobonaut'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', True)
+DEBUG = (os.environ.get('DJANGO_DEBUG', 'True') == 'True')
 
-TEMPLATE_DEBUG = os.environ.get('TEMPLATE_DEBUG', DEBUG)
+TEMPLATE_DEBUG = (os.environ.get('TEMPLATE_DEBUG', 'True') == 'True')
 
 ALLOWED_HOSTS = []
+if 'DJANGO_ALLOWED_HOSTS' in os.environ:
+    ALLOWED_HOSTS.append(os.environ['DJANGO_ALLOWED_HOSTS'])
 
 LOGIN_REDIRECT_URL = '/'
 
 # Application definition
 
+# The order of INSTALLED_APPS is important for template resolution. When two
+# apps both define templates for the same view, the first app listed receives
+# precedence
 INSTALLED_APPS = (
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cachebuster',
     'django.contrib.staticfiles',
     'reversion',
     'debug_toolbar',
     'mptt',
     'haystack',
     'kpi',
+    'registration', # Must come AFTER kpi
+    'django.contrib.admin', # Must come AFTER registration
     'django_extensions',
     'taggit',
     'rest_framework',
     'rest_framework.authtoken',
-    'djcelery',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -63,7 +76,17 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-AUTHENTICATION_BACKENDS = ('kpi.backends.ObjectPermissionBackend',)
+
+# The backend that handles user authentication must match KoBoCAT's when
+# sharing sessions. ModelBackend does not interfere with object-level
+# permissions: it always denies object-specific requests (see
+# https://github.com/django/django/blob/1.7/django/contrib/auth/backends.py#L44).
+# KoBoCAT also lists ModelBackend before
+# guardian.backends.ObjectPermissionBackend.
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'kpi.backends.ObjectPermissionBackend',
+)
 
 ROOT_URLCONF = 'kobo_playground.urls'
 
@@ -75,7 +98,6 @@ ANONYMOUS_USER_ID = -1
 ALLOWED_ANONYMOUS_PERMISSIONS = (
     'kpi.view_collection',
     'kpi.view_asset',
-    'kpi.add_asset',
 )
 
 
@@ -108,7 +130,11 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'jsapp'),
+    os.path.join(BASE_DIR, 'static'),
 )
+
+from cachebuster.detectors import git
+CACHEBUSTER_UNIQUE_STRING = git.unique_string(__file__)[:6]
 
 if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
     STATICFILES_DIRS = STATICFILES_DIRS + (
@@ -126,22 +152,27 @@ TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
     'kpi.context_processors.dev_mode',
 )
 
-if not DEBUG:
-    STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
-
-import djcelery
-djcelery.setup_loader()
+# This is very brittle (can't handle references to missing images in CSS);
+# TODO: replace later with grunt gzipping?
+#if not DEBUG:
+#    STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 LIVERELOAD_SCRIPT = os.environ.get('LIVERELOAD_SCRIPT', False)
 USE_MINIFIED_SCRIPTS = os.environ.get('KOBO_USE_MINIFIED_SCRIPTS', False)
+TRACKJS_TOKEN = os.environ.get('TRACKJS_TOKEN')
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', False)
+KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL', False)
 
+''' Haystack search settings '''
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
         'PATH': os.path.join(os.path.dirname(__file__), 'whoosh_index'),
     },
 }
+# If this causes performance trouble, see
+# http://django-haystack.readthedocs.org/en/latest/best_practices.html#use-of-a-queue-for-a-better-user-experience
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 
 ''' Enketo settings copied from dkobo '''
 ENKETO_SERVER = os.environ.get('ENKETO_SERVER', 'https://enketo.org')
@@ -149,3 +180,57 @@ ENKETO_PREVIEW_URI = os.environ.get('ENKETO_PREVIEW_URI', '/webform/preview')
 # The number of hours to keep a kobo survey preview (generated for enketo)
 # around before purging it.
 KOBO_SURVEY_PREVIEW_EXPIRATION = os.environ.get('KOBO_SURVEY_PREVIEW_EXPIRATION', 24)
+
+''' Celery configuration '''
+# Uncomment to enable failsafe search indexing
+#from datetime import timedelta
+#CELERYBEAT_SCHEDULE = {
+#    # Update the Haystack index twice per day to catch any stragglers that
+#    # might have gotten past haystack.signals.RealtimeSignalProcessor
+#    'update-search-index': {
+#        'task': 'kpi.tasks.update_search_index',
+#        'schedule': timedelta(hours=12)
+#    },
+#}
+'''
+Distinct projects using Celery need their own queues. Example commands for
+RabbitMQ queue creation:
+    rabbitmqctl add_user kpi kpi
+    rabbitmqctl add_vhost kpi
+    rabbitmqctl set_permissions -p kpi kpi '.*' '.*' '.*'
+See http://celery.readthedocs.org/en/latest/getting-started/brokers/rabbitmq.html#setting-up-rabbitmq.
+'''
+BROKER_URL = 'amqp://kpi:kpi@localhost:5672/kpi'
+
+# http://django-registration-redux.readthedocs.org/en/latest/quickstart.html#settings
+ACCOUNT_ACTIVATION_DAYS = 3
+REGISTRATION_AUTO_LOGIN = True
+REGISTRATION_EMAIL_HTML = False # Otherwise we have to write HTML templates
+
+# Email configuration from dkobo; expects SES
+if os.environ.get('EMAIL_BACKEND'):
+    EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND')
+
+if os.environ.get('DEFAULT_FROM_EMAIL'):
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
+    SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+if os.environ.get('AWS_ACCESS_KEY_ID'):
+    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    AWS_SES_REGION_NAME = os.environ.get('AWS_SES_REGION_NAME')
+    AWS_SES_REGION_ENDPOINT = os.environ.get('AWS_SES_REGION_ENDPOINT')
+
+''' Sentry configuration '''
+if 'RAVEN_DSN' in os.environ:
+    import raven
+    INSTALLED_APPS = INSTALLED_APPS + (
+        'raven.contrib.django.raven_compat',
+    )
+    RAVEN_CONFIG = {
+        'dsn': os.environ['RAVEN_DSN'],
+    }
+    try:
+        RAVEN_CONFIG['release'] = raven.fetch_git_sha(BASE_DIR)
+    except raven.exceptions.InvalidGitRepository:
+        pass

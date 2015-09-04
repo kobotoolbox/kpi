@@ -15,9 +15,11 @@ import re
 UID_LENGTH = 22
 
 def kobocat_url(path, internal=False):
+    if internal and settings.KOBOCAT_INTERNAL_URL:
+        return u''.join([settings.KOBOCAT_INTERNAL_URL, path])
     if settings.KOBOCAT_URL:
-        return ''.join([settings.KOBOCAT_URL, path])
-    return "/kobocat%s" % path
+        return u''.join([settings.KOBOCAT_URL, path])
+    return u"/kobocat%s" % path
 
 def deploy_asset(user, asset, form_id):
     print "deploying asset '%s' for user '%s'" % (asset.name, user.username)

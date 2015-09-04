@@ -1,5 +1,6 @@
 import copy
 import re
+import logging
 from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User, Permission
@@ -20,16 +21,18 @@ importing kpi.model_utils:
 '''
 
 TAG_RE = r'tag:(.*)'
+from collections import defaultdict
 
 def _load_library_content(structure):
     content = structure.get('content', {})
     if 'library' not in content:
         raise Exception('to load a library, you must have a sheet called "library"')
-    collection = Collection.objects.create(owner=structure['owner'], name=structure['name'])
-    assets = []
-    for row in content.get('library', []):
-        sub_lib_asset = copy.deepcopy(content)
-        del sub_lib_asset['library']
+    library_sheet = content.get('library', [])
+    del content['library']
+
+    grouped = defaultdict(list)
+    for row in library_sheet:
+        # preserve the additional sheets of imported library (but not the library)
         row_tags = []
         for key, val in row.items():
             if unicode(val).lower() in ['false', '0', 'no', 'n', '', 'none']:
@@ -37,10 +40,32 @@ def _load_library_content(structure):
             if re.search(TAG_RE, key):
                 row_tags.append(re.match(TAG_RE, key).groups()[0])
                 del row[key]
-        sub_lib_asset['survey'] = [row]
-        sa = Asset.objects.create(content=sub_lib_asset, asset_type='survey_block',
-                                    owner=structure['owner'], parent=collection)
-        sa.tags.add(*row_tags)
+        block_name = row.get('block', None)
+        grouped[block_name].append((row, row_tags,))
+
+    collection = Collection.objects.create(owner=structure['owner'], name=structure['name'])
+
+    for block_name, rows in grouped.items():
+        if block_name is None:
+            for (row, row_tags) in rows:
+                scontent = copy.deepcopy(content)
+                scontent['survey'] = [row]
+                sa = Asset.objects.create(content=scontent, asset_type='question',
+                                            owner=structure['owner'], parent=collection)
+                sa.tags.add(*row_tags)
+        else:
+            block_rows = []
+            block_tags = set()
+            for (row, row_tags) in rows:
+                for tag in row_tags:
+                    block_tags.add(tag)
+                block_rows.append(row)
+            scontent = copy.deepcopy(content)
+            scontent['survey'] = block_rows
+            sa = Asset.objects.create(content=scontent, asset_type='block',
+                                      name=block_name, parent=collection,
+                                      owner=structure['owner'])
+            sa.tags.add(*list(block_tags))
     return collection
 
 def create_assets(kls, structure, **options):
@@ -71,6 +96,9 @@ def grant_all_model_level_perms(
         content_types.append(ContentType.objects.get_for_model(models))
     permissions_to_assign = permissions_manager.filter(
         content_type__in=content_types)
+    if content_types and not permissions_to_assign.exists():
+        raise Exception('No permissions found! You may need to migrate your '
+            'database. Models specified: {}'.format(models))
     if user.pk == settings.ANONYMOUS_USER_ID:
         # The user is anonymous, so pare down the permissions to only those
         # that the configuration allows for anonymous users

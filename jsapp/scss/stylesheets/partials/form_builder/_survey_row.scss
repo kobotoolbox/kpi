@@ -21,16 +21,16 @@
     &:hover { 
         > .survey__row__spacer > .btn--addrow {
             display: block;
-
-            // duplicated inside .btn--addrow, where
-            // specificity is too low.
-            .survey-editor--singlequestion & {
-                display: none;
-            }
         }
     }
-
 }
+
+// duplicated inside .btn--addrow, where
+// specificity is too low.
+.survey-editor--singlequestion .survey__row:hover > .survey__row__spacer > .btn--addrow {
+    display: none;
+}
+
 .score_preview, .rank_preview {
     background-color: #fff;
     margin-left: -16px;
@@ -265,11 +265,11 @@ tr .scorecell__radio:hover {
         content: 'AUTOMATIC';
     }
 }
-.rank__levels .rank_items__name {
+// .rank__levels .rank_items__name {
     // &:before, &:after {
     //     content: "\"";
     // }
-}
+// }
 .scorerank-beta-warning {
     color: rgb(193, 128, 128);
     position: absolute;
@@ -288,7 +288,6 @@ tr .scorecell__radio:hover {
         color: #ddd;
     }
 }
-
 
 .insort {
     .btn--addrow {
@@ -318,17 +317,7 @@ $nested-btn--addrow-height: 24px;
     height: $btn--addrow-height + (2 * $click-area-btn--addrow-padding-tb);
     position: absolute;
     left: -50px;
-    top: -42px;
-
-    .no-touch & {
-        padding: $click-area-btn--addrow-padding-tb 0 0 11px;
-        // z-index: 1;
-    }
-    .touch & {
-        height: 36px;
-        margin-top:5px;
-        padding-left: 10px;
-    }
+    top: -20px;
 
     .fa {
         background-color: $addButtonColor;
@@ -348,33 +337,45 @@ $nested-btn--addrow-height: 24px;
         }
     }
 
-    // inside group, the btn--addrow must be placed slightly differently
-    // note: this compiles to
-    // .group__rows .btn--addrow {...}
-    .group__rows & {
-        left: -30px;
-        width: 40px;
-        height: $nested-btn--addrow-height + (2 * $click-area-nested-btn--addrow-padding-tb);
-        top: -30px;
-        padding: $click-area-nested-btn--addrow-padding-tb 0 0 3px;
-        z-index:101; // 101 so it is above .btn--addrow when last item in group
-        .fa {
-            width: 22px;
-            height: 22px;
-            line-height: 22px;
-        }
-    }
+}
 
-    .group__rows .group__rows & {
-        left:-24px;
-        z-index: 102;
-        width: 30px;
-    }
+.no-touch .btn--addrow {
+    padding: $click-area-btn--addrow-padding-tb 0 0 11px;
+    // z-index: 1;
+}
 
-    // not specific enough for all :hover cases
-    .survey-editor--singlequestion & {
-        display: none;
+.touch .btn--addrow {
+    height: 36px;
+    margin-top:5px;
+    padding-left: 10px;
+}
+
+// inside group, the btn--addrow must be placed slightly differently
+// note: this compiles to
+// .group__rows .btn--addrow {...}
+.group__rows .btn--addrow {
+    left: -30px;
+    width: 40px;
+    height: $nested-btn--addrow-height + (2 * $click-area-nested-btn--addrow-padding-tb);
+    top: -30px;
+    padding: $click-area-nested-btn--addrow-padding-tb 0 0 3px;
+    z-index:101; // 101 so it is above .btn--addrow when last item in group
+    .fa {
+        width: 22px;
+        height: 22px;
+        line-height: 22px;
     }
+}
+
+.group__rows .group__rows .btn--addrow {
+    left:-24px;
+    z-index: 102;
+    width: 30px;
+}
+
+// not specific enough for all :hover cases
+.survey-editor--singlequestion .btn--addrow {
+    display: none;
 }
 
 // touch device hacky fix to first row spacing

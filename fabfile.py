@@ -85,6 +85,7 @@ def deploy_ref(deployment_name, ref):
                 run("python manage.py migrate")
                 run("python manage.py collectstatic --noinput")
 
+    run("sudo restart kpi_celeryd")
     run("sudo service uwsgi reload")
 
 # NOTE non-master branch

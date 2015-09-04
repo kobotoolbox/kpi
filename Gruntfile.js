@@ -117,7 +117,10 @@ module.exports = function(grunt) {
         flatten: true,
         src: [
           './jsapp/xlform/components/fontawesome/fonts/fontawesome-webfont.*',
-          './jsapp/kobo/fonts/open-sans/opensans-*',
+          './node_modules/open-sans-fontface/fonts/Regular/*',
+          './node_modules/open-sans-fontface/fonts/Italic/*',
+          './node_modules/open-sans-fontface/fonts/SemiboldItalic/*',
+          './node_modules/open-sans-fontface/fonts/Semibold/*',
           ],
         dest: './jsapp/fonts/',
       }
@@ -188,6 +191,7 @@ module.exports = function(grunt) {
     'build',
     'copy',
     'uglify',
+    'cssmin',
   ]);
 
 };

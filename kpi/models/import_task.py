@@ -1,10 +1,12 @@
+import base64
+from io import BytesIO
 from django.db import models
 from shortuuid import ShortUUID
 from jsonfield import JSONField
 import requests
 from pyxform import xls2json_backends
-from kpi.model_utils import create_assets
-from kpi.models import Collection
+from ..models import Collection, Asset
+from ..model_utils import create_assets, _load_library_content
 from ..zip_importer import HttpContentParse
 
 
@@ -42,8 +44,24 @@ class ImportTask(models.Model):
         '''
         this could take a while.
         '''
-        if self.data['url']:
-            self._load_assets_from_url(self.data['url'], destination=self.data['destination'])
+        self.status = self.PROCESSING
+        self.save(update_fields=['status'])
+        if 'url' in self.data and 'destination' in self.data:
+            self._load_assets_from_url(
+                self.data['url'], destination=self.data['destination'])
+        elif 'base64Encoded' in self.data and 'name' in self.data:
+            self._parse_xls_upload(
+                base64_encoded_upload=self.data['base64Encoded'],
+                name=self.data['name']
+            )
+        else:
+            raise Exception(
+                'ImportTask data must contain both `base64Encoded` and `name` '
+                'or both `url` and `destination`'
+            )
+        # TODO: record failures; possibly clear self.data after success
+        self.status = self.COMPLETE
+        self.save(update_fields=['status'])
 
     def _load_assets_from_url(self, url, destination):
         req = requests.get(url, allow_redirects=True)
@@ -90,3 +108,19 @@ class ImportTask(models.Model):
                 orm_obj.parent = parent_item
             orm_obj.save()
 
+    def _parse_xls_upload(self, base64_encoded_upload, name):
+        decoded_str = base64.b64decode(base64_encoded_upload)
+        survey_dict = xls2json_backends.xls_to_dict(BytesIO(decoded_str))
+        survey_dict_keys = survey_dict.keys()
+        if 'library' in survey_dict_keys:
+            collection = _load_library_content({
+                    'content': survey_dict,
+                    'owner': self.user,
+                    'name': name
+                })
+        elif 'survey' in survey_dict_keys or 'block' in survey_dict_keys:
+            asset = Asset.objects.create(
+                owner=self.user,
+                content=survey_dict,
+                name=name
+            )

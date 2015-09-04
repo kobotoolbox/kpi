@@ -28,26 +28,78 @@ bem.uiModal__header = bem.uiModal.__('header');
 
 */
 
-.ui-panel {
-  @extend .panel, .panel-default;
-  margin: 11px;
-  position: relative;
-}
+.ui-panel {}
+
 .ui-panel__body {
-  @extend .panel-body;
-  padding: 7px;
+  @extend .mdl-grid;
+  max-width:980px; 
+  padding:10px 35px;
+  > .row {
+    position: relative;
+  }
+
+  > .asset-view__content, 
+  > .collection-asset-list {
+    @extend .mdl-cell, .mdl-cell--12-col;
+    @extend .mdl-shadow--2dp, .mdl-color--white;
+    flex-flow:column;
+  }
 }
 
-// <div className={"panel panel-default k-panel k-panel-default " + this.props.className }>
-//   <div className="panel-body k-panel-body">
-//     {this.props.children}
-//   </div>
-// </div>
+.page-wrapper__content {
+  position:relative;
+}
+
+.page-wrapper--asset-nav-present .mdl-layout__content {
+  margin-right: 60px;
+  transition: all .4s ease 0s;
+}
+
+.page-wrapper--asset-nav-open .mdl-layout__content {
+  margin-right: 400px;
+  transition: all .4s ease 0s; 
+}
+
+.k-form-header__inner {
+  max-width: 980px;
+  display: flex; 
+}
+
+// Sharing form header
+.k-sharing__header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  .user--pill {
+    display: flex;
+    padding-right:20px;
+    span.fa-stack {
+      margin-right: 5px;
+    }
+    a.user-profile-link {
+      font-size: 1.1em;
+      font-weight: 600;
+    }
+    .user--pill__name {
+      line-height: 1.2em;
+      padding-top: 4px;
+    }
+  }
+}
+
+.k-sharing__title {
+  width: 100%;
+}
+
+.text-small {
+  font-size: 0.85em;
+  opacity: .75;
+}
 
 .message {}
 
 .message--error {
-  @extend .alert, .alert-dismissible, .alert-danger;
+  // @extend .alert, .alert-dismissible, .alert-danger;
   text-decoration: uppercase;
 }
 .message--loading {
@@ -55,13 +107,4 @@ bem.uiModal__header = bem.uiModal.__('header');
   > i:first-child {
     @extend .fa, .fa-fw, .fa-spinner, .fa-spin;
   }
-}
-
-.ui-breadcrumb {
-  @extend .breadcrumb;
-  > li + li:before {
-    content: '>';
-  }
-}
-.ui-breadcrumb__item {
 }

@@ -17,7 +17,9 @@
    ========================================================================== */
 
 .container {
-    max-width: 700px;
+    // max-width: 750px;
+    // replaces bootstrap's min-with with auto, fixes smaller windows with sidebars open
+    // width:auto;
     margin-right: auto;
     margin-left: auto;
     position: relative;

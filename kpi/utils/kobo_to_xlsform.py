@@ -1,7 +1,7 @@
 '''
 Converts kobo-specific structures into xlsform-standard structures:
 This enables us to use the form-builder to open and save structures which are not
-standardized xlsform features. 
+standardized xlsform features.
 
 Example structures: scoring, ranking
 '''
@@ -158,7 +158,7 @@ class KoboScoreGroup(GroupHandler):
         | skorechoices | c2   | Choice 2 |
 
         into:
-        #survey 
+        #survey
         |           type          |     name     | label |  appearance  |
         |-------------------------|--------------|-------|--------------|
         | begin group             | skore        |       | field-list   |
@@ -212,7 +212,7 @@ class KoboScoreGroup(GroupHandler):
                     'type': 'end group',
                 })
             self.finish()
-            return False 
+            return False
         elif row.get('type') == 'score__row':
             self.add_row(row)
             return self
@@ -263,10 +263,16 @@ def _autoname_fields(surv_contents, default_language=None):
 
 
 def _autovalue_choices(surv_choices):
+    out = []
     for choice in surv_choices:
-        if 'name' not in choice:
-            choice['name'] = choice['label']
-    return surv_choices
+        if choice != {}:
+            if 'value' in choice and 'name' not in choice:
+                raise Exception("A 'value' column is not valid for choices sheet." + \
+                                    "Please use 'name' column instead")
+            if 'name' not in choice:
+                choice['name'] = choice.get('label')
+            out.append(choice)
+    return out
 
 def _parse_contents_of_kobo_structures(ss_structure):
     contents = ss_structure['survey']
