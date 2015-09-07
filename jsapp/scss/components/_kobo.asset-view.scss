@@ -37,6 +37,17 @@ $mult: 0.5;
 
   }
 }
+.asset-view__message {
+  text-align: center;
+  font-size: 20px;
+  margin: 40px 0;
+  &.asset-view__message--loading {
+    > i {
+      @extend .fa, .fa-fw, .fa-spin, .fa-spinner;
+      margin-right: 15px;
+    }
+  }
+}
 %has-icon-col {
   @extend .row;
   padding-bottom: 12px;
@@ -50,9 +61,25 @@ $mult: 0.5;
 }
 .asset-view__span {
   &.asset-view__span--can-edit, &.asset-view__span--can-view {
-    margin: 0 20px;
+    padding: 10px 20px 11px;
   }
 }
+.asset-view__row--header {
+  padding: 0 20px;
+}
+.asset-view__row {
+  &.asset-view__row--fixed {
+    position: fixed;
+    top: 70px;
+    z-index: 99;
+    margin: -7px -16px;
+    padding: 7px 35px 7px;
+    background-color: #fff;
+    width: 894px;
+    border-bottom: 1px solid #D8E3EC;
+  }
+}
+
 .asset-view__ancestors {
   // @extend .col-md-12;
   .asset-view__row & {
@@ -251,6 +278,10 @@ $mult: 0.5;
 }
 .asset-view__buttoncol {
   @extend .mdl-cell, .mdl-cell--3-col;
+  .asset-view__link, .asset-view__button {
+    display: block;
+    width: 100%;
+  }
 }
 
 @mixin disableablelink($col) {
@@ -291,6 +322,7 @@ $mult: 0.5;
 .asset-view__link--sharing {
   display: inline;
 }
+
 .asset-view__deployments {
   @extend .mdl-card__actions;
   // @extend %has-icon-col;

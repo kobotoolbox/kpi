@@ -1,16 +1,14 @@
 $celllink_hovercolor: #f7f7f7;
 $celllink_hoverbg: #356A8E;
-$assetRowTextColor: #888;
+$highlightedBarColor: #EAEAED;
+$highlightedBarTextColor: #25343C;
 
-// .collection-asset-list.list-group {
-  // display: table;
-// }
 .asset-row {
+  @extend .clearfix;
   list-style-type: none;
   border-bottom: 1px solid #DDD;
   cursor: pointer;
-  padding: 10px 12px;
-  padding-left: 30px;
+  padding: 10px 12px 10px 45px;
   clear: both;
   position: relative;
   a, a:hover {
@@ -20,12 +18,11 @@ $assetRowTextColor: #888;
 
 .asset-row__cell--icon {
   position: absolute;
-  left: 5px;
+  left: 10px;
   top: 16px;
 }
 
 .asset-row__tags {
-  color: $assetRowTextColor;
   font-size: 11px;
   > i:first-child {
     @extend .fa, .fa-fw, .fa-tag;
@@ -45,13 +42,15 @@ $assetRowTextColor: #888;
 }
 .asset-row--selected {
   background-color: $highlightedBarColor;
+  color: $highlightedBarTextColor;
   a, a:hover {
+    color: $highlightedBarTextColor;
     background-color: transparent;
   }
 }
 .asset-row--selected {
   .asset-row__celllink--name {
-    border-bottom: 1px dotted #ddd;
+    border-bottom: 1px solid #DADAEC;
     cursor: pointer;
   }
   cursor: default;
@@ -102,8 +101,9 @@ $assetRowTextColor: #888;
   margin-right: 4px;
   text-align: center;
   line-height: 27px;
-  border-radius: 15px;
+  border-radius: 2px;
   padding: 4px;
+  background-color: rgba(255,255,255,0.8);
 
   @extend %inner-fa-icon;
 
@@ -142,7 +142,6 @@ $assetRowTextColor: #888;
 }
 
 .asset-row__sharingIcon {
-  color: lighten(#000, 30%);
   i {
     @extend .fa, .fa-fw, .fa-user;
   }
@@ -155,7 +154,6 @@ $assetRowTextColor: #888;
     i {
       display: none;
     }
-    color: #666;
   }
   &.asset-row__sharingIcon--public-owned {
     span {
@@ -200,20 +198,26 @@ $colwidth: (100% / $colcount) - 1%;
 }
 .asset-row__cellmeta {
   @extend %rowbar;
-  .asset-row__cell {
+  &.asset-row__cellmeta--wide {
+    width: 100%;
+  }
+  .asset-row__cell:not(.asset-row__cell--tags) {
     @extend %rowcell;
   }
+}
+.asset-row__cell--tags {
+  margin: 8px 8px 4px 0px;
+  text-indent: -15px;
+  width: 100%;
 }
 
 .asset-row__cell {
   // indicating the asset type
   &.asset-row__cell--icon {
-    // width: 1%;
     @extend %inner-fa-icon;
-    // .asset-row--selected & {
-    //   background-color: $celllink_hoverbg;
-    //   color: $celllink_hovercolor;
-    // }
+    > i {
+      @extend .fa-lg;
+    }
 
     &.asset-row__cell--assettype-empty {
       @include action-faicon('lemon-o');
@@ -226,14 +230,11 @@ $colwidth: (100% / $colcount) - 1%;
       @include action-faicon('circle-o');
     }
     &.asset-row__cell--assettype-block {
-      @include action-faicon('square');
+      @include action-faicon('square-o');
     }
     &.asset-row__cell--assettype-survey {
-      @include action-faicon('file');
+      @include action-faicon('file-o');
     }
-    // &.asset-row__cell--kind-asset {
-    //  @include action-faicon('file-o');
-    // }
     &.asset-row__cell--kind-collection {
       @include action-faicon('folder-o');
     }
@@ -243,54 +244,26 @@ $colwidth: (100% / $colcount) - 1%;
       @extend .fa, .fa-fw, .fa-play;
     }
     button {
-      // @extend .btn;
       @extend .mdl-button;
     }
     .asset-row:not(.asset-row--selected) & {
       button {
-        // @extend .btn-default;
         @extend .mdl-button;
-        @extend .disabled;
+        @extend .mdl--disabled;
       }
     }
     .asset-row--selected & {
       button {
         opacity: 1;
-        // @extend .btn-success;
         @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
       }
     }
   }
-  &.asset-row__cell--date-modified {
-    color: $assetRowTextColor;
-  }
-  // &.asset-row__cell--name {
-  //   color: $assetRowTextColor;
-  //   overflow: hidden;
-  //   text-overflow: ellipsis; 
-  // }
 }
 .asset-row__celllink--name {
   margin-bottom: 6px;
   border-bottom: 1px dotted transparent;
 }
-// .asset-row__celllink--name {
-  // .asset-row--selected & {
-  //   a {
-  //     border: 1px solid mix($highlightedBarColor, lighten($kcol-view, 15%), 60%);
-  //     background-color: mix($highlightedBarColor, lighten($kcol-view, 25%), 90%);
-  //     border-radius: 6px;
-  //     cursor: pointer;
-  //     color: mix($assetRowTextColor, darken($kcol-view, 5%), 50%);
-  //     text-decoration: none;
-  //     &:hover {
-  //       border-color: mix($highlightedBarColor, darken($kcol-view, 15%), 60%);
-  //       color: mix($assetRowTextColor, darken($kcol-view, 5%), 50%);
-  //       background-color: mix($highlightedBarColor, lighten($kcol-view, 25%), 80%);
-  //     }
-  //   }
-  // }
-// }
 
 .asset-row__cell--asset-buttons {
   text-align: right;
@@ -298,14 +271,14 @@ $colwidth: (100% / $colcount) - 1%;
   float: right;
   margin-top: -10px;
   opacity: 0;
-  // height: 0px;
   transition:all 0.3s;
+
   .asset-row__cell {
     display: inline;
   }
 
   .asset-row:hover & {
-    opacity: 1; 
+    opacity: 1;
     height: auto;
     transition:all 0.3s;
   }

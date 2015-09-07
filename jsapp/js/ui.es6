@@ -14,9 +14,10 @@ ui.SmallInputBox = React.createClass({
   },
   render () {
     var elemId = _.uniqueId('elem');
+    var value = this.props.value;
     return (
         <div className="mdl-textfield mdl-js-textfield mdl-textfield--full-width">
-          <input type="text" ref='inp' className="mdl-textfield__input"
+          <input type="text" ref='inp' className="mdl-textfield__input" value={value}
               onKeyUp={this.props.onKeyUp} onChange={this.props.onChange} id={elemId} />
           <label className="mdl-textfield__label" htmlFor={elemId} >{this.props.placeholder}</label>
         </div>

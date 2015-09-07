@@ -94,12 +94,31 @@ mixins.formView = {
   _saveForm (evt) {
     evt && evt.preventDefault();
     actions.resources.updateAsset(this.props.params.assetid, {
-      name: this.getNameValue(),
       content: surveyToValidJson(this.state.survey)
     });
     this.setState({
       asset_updated: false
     });
+  },
+  componentDidMount() {
+    document.querySelector('.page-wrapper__content').addEventListener('scroll', this.handleScroll);
+  },
+  componentWillUnmount () {
+    document.querySelector('.page-wrapper__content').removeEventListener('scroll', this.handleScroll);
+  },
+  handleScroll(evt) {
+    var scrollTop = evt.target.scrollTop;
+    if (!this.state.formHeaderFixed && scrollTop > 40) {
+      var fhfh = $('.asset-view__row--header').height()
+      this.setState({
+        formHeaderFixed: true,
+        formHeaderFixedHeight: fhfh,
+      });
+    } else if (this.state.formHeaderFixed && scrollTop <= 32) {
+      this.setState({
+        formHeaderFixed: false
+      });
+    }
   },
   navigateBack (evt) {
     if (this.needsSave() && confirm(t('you have unsaved changes. would you like to save?'))) {
@@ -109,22 +128,19 @@ mixins.formView = {
   },
   loadingNotice () {
     return (
-        <p>
-          <i className='fa fa-spinner fa-spin' />
-          &nbsp;&nbsp;
-          {t('loading form...')}
-        </p>
+        <bem.AssetView>
+          <ui.Panel>
+            <bem.AssetView__content>
+              <bem.AssetView__message m={'loading'}>
+                <i />
+                {t('loading...')}
+              </bem.AssetView__message>
+            </bem.AssetView__content>
+          </ui.Panel>
+        </bem.AssetView>
       );
   },
-  renderSubSettingsBar () {
-    return <FormSettingsBox {...this.state} />;
-  },
-  nameInputValue () {
-    return this.refs['form-name'].getDOMNode().value;
-  },
   nameInputChange (evt) {
-    var nameVal = this.nameInputValue();
-    this.state.survey.settings.set('form_title', nameVal)
     this.setState({
       survey_name: this.state.survey.settings.get('form_title')
     });
@@ -137,42 +153,37 @@ mixins.formView = {
   needsSave () {
     return this.state.asset_updated === -1;
   },
-  renderCloseButton() {
-    var kls = classNames('k-form-close-button', 'mdl-button', 'mdl-js-button', 'mdl-button--icon', {
-      "k-form-close-button--warning": this.needsSave()
-    });
-    return <a className={kls} onClick={this.navigateBack}>
-                <i className="material-icons">clear</i>
-            </a>;
-  },
   innerRender () {
     var isSurvey = this.state.asset && this.state.asset.asset_type === 'survey';
-
+    var formHeaderFixed = this.state.formHeaderFixed,
+        placeHolder = formHeaderFixed && (
+            <bem.AssetView__row m={['header', 'placeholder']}
+                  style={{height: this.state.formHeaderFixedHeight}} />
+          );
     return (
-        <ui.Panel className="k-div--formview--innerrender">
-          <div className="k-form-header__buttons">
-            <div className="mdl-grid k-form-header__inner">
-              {this.renderSaveAndPreviewButtons()}
-              <div className="mdl-layout-spacer"></div>
-              {this.renderCloseButton()}
-            </div>
-          </div>
-          <div className="k-form-header__title">
-            <div className="k-corner-icon"></div>
-            <div className="k-header-form-title">
-              {this.renderFormNameInput()}
-            </div>
-          </div>
-          { this.state.survey && isSurvey ?
-            this.renderSubSettingsBar()
-          :null}
-
-          { ('renderSubTitle' in this) ?
-            this.renderSubTitle()
-          : null}
-          <div ref="form-wrap" className='form-wrap'>
-          </div>
-        </ui.Panel>
+        <bem.AssetView>
+          <ui.Panel>
+            <bem.AssetView__content>
+              <bem.AssetView__row m={['header', {
+                    fixed: formHeaderFixed,
+                  }]}
+                  ref={'fixableHeader'}>
+                {this.renderSaveAndPreviewButtons()}
+              </bem.AssetView__row>
+              {formHeaderFixed ?
+                placeHolder
+              : null}
+              { this.state.survey && isSurvey ?
+                <bem.AssetView__row>
+                  <FormSettingsBox {...this.state} />
+                </bem.AssetView__row>
+              :null}
+              <bem.AssetView__row>
+                <div ref="form-wrap" className='form-wrap' />
+              </bem.AssetView__row>
+            </bem.AssetView__content>
+          </ui.Panel>
+        </bem.AssetView>
       );
   },
 };
@@ -423,17 +434,28 @@ var AssetNavigatorListView = React.createClass({
                 return (
                     <bem.LibList__item m={modifiers} key={item.uid} data-uid={item.uid}>
                       <bem.LibList__dragbox />
-                      <bem.LibList__label>
+                      <bem.LibList__label m={'name'}>
                         <ui.AssetName {...item} />
                       </bem.LibList__label>
+                      { this.state.displayDetails ?
+                        <bem.LibList__label m={'labels'}>
+                          <ol>
+                            {summ.labels.map(function(lbl){
+                              return <li>{lbl}</li>;
+                            })}
+                          </ol>
+                        </bem.LibList__label>
+                      : null }
                       <bem.LibList__tags>
                         {(item.tags || []).map((tg)=>{
                           return <bem.LibList__tag>{tg}</bem.LibList__tag>;
                         })}
                       </bem.LibList__tags>
-                      <bem.LibList__qtype>
-                        {t(item.asset_type)}
-                      </bem.LibList__qtype>
+                      {item.asset_type==='block' ?
+                        <bem.LibList__qtype>
+                          {t('block of ___ questions').replace('___', summ.row_count)}
+                        </bem.LibList__qtype>
+                      :null}
                     </bem.LibList__item>
                   );
               })}
@@ -917,30 +939,37 @@ var FormCheckbox = React.createClass({
     // TODO: upgrade specific element only (as opposed to whole DOM)
     mdl.upgradeDom();
   }
-
 })
 
 var FormSettingsEditor = React.createClass({
   render () {
     return (
-      <div className="well">
-        <form className="form-horizontal">
-          <hr />
           <div className="mdl-grid">
-            <div className="mdl-cell mdl-cell--12-col">
-              <FormInput id="form_id" label="form id" value={this.props.form_id} onChange={this.props.onFieldChange} />
-            </div>
-            <div className="mdl-cell mdl-cell--6-col">
+            {/* offset? */}
+            <div className="mdl-cell mdl-cell--1-col" />
+            <div className="mdl-cell mdl-cell--5-col">
               {this.props.meta.map((mtype) => {
                 return <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
               })}
             </div>
-            <div className="mdl-cell mdl-cell--6-col">
+            <div className="mdl-cell mdl-cell--5-col">
               {this.props.phoneMeta.map((mtype) => {
                 return <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
               })}
             </div>
           </div>
+      );
+  },
+  focusSelect () {
+    this.refs.webformStyle.focus();
+  },
+  componentDidUpdate() {
+    mdl.upgradeDom();
+  }
+});
+
+/*
+        <div>
           <div className="form-group mdl-grid">
             <div className="mdl-cell mdl-cell--3-col">
               <label htmlFor='webform-style' className={'mdl-button mdl-js-button'}
@@ -953,6 +982,7 @@ var FormSettingsEditor = React.createClass({
                   name="webform-style"
                   ref="webformStyle"
                   value={this.props.styleValue}
+                  onChange={this.props.onStyleChange}
                   options={[
                       {value: '', label: t('Default - single page')},
                       {value: 'theme-grid', label: t('Grid theme')},
@@ -962,17 +992,8 @@ var FormSettingsEditor = React.createClass({
                 />
             </div>
           </div>
-        </form>
-      </div>
-      );
-  },
-  focusSelect () {
-    this.refs.webformStyle.focus();
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
-  }
-})
+
+*/
 
 var FormSettingsBox = React.createClass({
   getInitialState () {
@@ -1044,31 +1065,29 @@ var FormSettingsBox = React.createClass({
     if (metaData === '') {
       metaData = t('none (0 metadata specified)')
     }
-    var expandIconKls = classNames('fa', 'fa-icon', 'fa-fw',
-            this.state.formSettingsExpanded ? 'fa-caret-down' : 'fa-caret-right')
 
+    var metaContent;
+    if (!this.state.formSettingsExpanded) {
+      metaContent = (
+          <bem.FormMeta__button m={'metasummary'} onClick={this.toggleSettingsEdit}>
+            {t('metadata:')}
+            {metaData}
+          </bem.FormMeta__button>
+        );
+    } else {
+      metaContent = (
+          <FormSettingsEditor {...this.state} onCheckboxChange={this.onCheckboxChange}
+            />
+        );
+    }
     return (
-        <div className={classNames('row', 'k-sub-settings-bar', {
-          'k-sub-settings-bar--expanded': this.state.formSettingsExpanded
-        })}>
-          <div className="k-sub-settings-container" onClick={this.toggleSettingsEdit}>
-            <i className="fa fa-cog" />
-            &nbsp;&nbsp;
-            <i className={expandIconKls} />
-            &nbsp;&nbsp;
-            <span className="settings-preview">{t('form id')}: {this.state.xform_id_string}</span>
-            <span className="settings-preview">{t('meta questions')}: {metaData}</span>
-          </div>
-          {this.state.formSettingsExpanded ?
-            <FormSettingsEditor {...this.state} onCheckboxChange={this.onCheckboxChange}
-                onFieldChange={this.onFieldChange}
-                onStyleChange={this.onStyleChange}
-                styleValue={this.state.styleValue}
-                />
-          :null}
-        </div>
-
-      );
+        <bem.FormMeta>
+          <bem.FormMeta__button m='expand' onClick={this.toggleSettingsEdit}>
+            <i />
+          </bem.FormMeta__button>
+          {metaContent}
+        </bem.FormMeta>
+      )
   },
   componentDidUpdate() {
     mdl.upgradeDom();
@@ -1211,27 +1230,23 @@ mixins.newForm = {
       );
   },
   renderSaveAndPreviewButtons () {
-    var disabled = !!this.state.disabled;
-    var saveText = t('create');
-    var saveBtnKls = classNames('btn','btn-default',
-                              disabled ? 'disabled' : '');
-    var previewDisabled = !!this.state.previewDisabled;
-    var previewBtnKls = classNames('btn',
-                                  'btn-default',
-                                  previewDisabled ? 'disabled': '')
     return (
-          <div className="k-form-actions">
-            <div className='btn-toolbar'>
-              <div className='btn-group btn-group-justified'>
-                <a href="#" className={saveBtnKls} onClick={this.saveNewForm}>
-                  <i className={classNames('fa', 'fa-sm', 'fa-save')} />
-                  &nbsp;
-                  &nbsp;
-                  {saveText}
-                </a>
-              </div>
-            </div>
-          </div>
+          <bem.FormHeader>
+            <ui.SmallInputBox
+                ref='form-name'
+                placeholder='form name'
+              />
+            <bem.FormHeader__button m={'create'} onClick={this.saveNewForm}>
+              <i />
+              {t('create')}
+            </bem.FormHeader__button>
+            <bem.FormHeader__button m={['preview', {
+                  previewdisabled: true,
+                }]} onClick={this.previewForm}>
+              <i />
+              {t('preview')}
+            </bem.FormHeader__button>
+          </bem.FormHeader>
         );
   },
   statics: {
@@ -2013,23 +2028,25 @@ var FormPage = React.createClass({
     mixins.formView,
     Reflux.ListenerMixin,
   ],
-  getNameValue () {
-    return this.refs['form-name'].getDOMNode().value
-  },
   saveForm (evt) {
     evt.preventDefault();
+    var _nameValue = this.refs['form-name'].getValue();
     dataInterface.patchAsset(this.props.params.assetid, {
+      name: _nameValue,
       content: surveyToValidJson(this.state.survey),
     }).done((asset) => {
       this.setState({
-        asset_updated: true
+        asset: asset,
+        asset_updated: true,
+        _pendingName: false,
       });
       actions.resources.updateAsset.completed(asset);
     }).fail((jqxhr) => {
       actions.resources.updateAsset.failed(asset);
     })
     this.setState({
-      asset_updated: false
+      asset_updated: false,
+      _pendingName: _nameValue,
     });
   },
 
@@ -2048,6 +2065,11 @@ var FormPage = React.createClass({
       asset_updated: -1
     });
   },
+  onNameInputChange (evt) {
+    this.setState({
+      _pendingName: evt.target.value,
+    })
+  },
   renderSaveAndPreviewButtons () {
     var surv = this.state.survey,
         app = this.app || {};
@@ -2055,8 +2077,17 @@ var FormPage = React.createClass({
     var previewDisabled = true;
     var groupable = !!this.state.groupButtonIsActive;
     var showAllOpen = !!this.state.multioptionsExpanded;
+    var _pendingName = this.state._pendingName;
+    var _name = this.state.name || this.state.asset && this.state.asset.name;
+
     return (
         <bem.FormHeader>
+          <ui.SmallInputBox
+              ref='form-name'
+              value={_pendingName || _name}
+              onChange={this.onNameInputChange}
+              placeholder='form name'
+            />
           <bem.FormHeader__button m={['save', {
                 savepending: this.state.asset_updated === false,
                 savecomplete: this.state.asset_updated === true,
@@ -2064,6 +2095,12 @@ var FormPage = React.createClass({
               }]} onClick={this.saveForm}>
             <i />
             {t('save')}
+          </bem.FormHeader__button>
+          <bem.FormHeader__button m={['close', {
+                'close-warning': this.needsSave(),
+              }]} onClick={this.navigateBack}>
+            <i />
+            {t('close')}
           </bem.FormHeader__button>
           <bem.FormHeader__button m={['preview', {
                 previewdisabled: previewDisabled
@@ -2163,9 +2200,9 @@ var FormPage = React.createClass({
     }
 
     this.listenTo(assetStore, this.assetStoreTriggered)
-      var headerBreadcrumb = [
-        {'label': t('Forms'), 'to': 'forms'}
-      ];
+    var headerBreadcrumb = [
+      {'label': t('Forms'), 'to': 'forms'}
+    ];
     stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
     this._postLoadRenderMounted = false;
   },
