@@ -58,6 +58,7 @@ INSTALLED_APPS = (
     'mptt',
     'haystack',
     'kpi',
+    'hub',
     'registration', # Must come AFTER kpi
     'django.contrib.admin', # Must come AFTER registration
     'django_extensions',

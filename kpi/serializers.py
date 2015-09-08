@@ -14,6 +14,7 @@ from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
 import reversion
 
+from hub.models import SitewideMessage
 from .models import Asset
 from .models import AssetDeployment
 from .models import AssetSnapshot
@@ -21,7 +22,6 @@ from .models import Collection
 from .models import CollectionChildrenQuerySet
 from .models import ImportTask
 from .models import ObjectPermission
-from .models import SitewideMessage
 from .models.object_permission import get_anonymous_user
 from .models import TagUid
 

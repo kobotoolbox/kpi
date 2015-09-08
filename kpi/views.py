@@ -29,11 +29,11 @@ from .filters import KpiAssignedObjectPermissionsFilter
 from .filters import KpiObjectPermissionsFilter
 from .filters import SearchFilter
 from .highlighters import highlight_xform
+from hub.models import SitewideMessage
 from .models import (
     Collection,
     Asset,
     AssetSnapshot,
-    SitewideMessage,
     ImportTask,
     AssetDeployment,
     ObjectPermission,)
