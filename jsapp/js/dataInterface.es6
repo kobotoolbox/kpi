@@ -191,6 +191,12 @@ var dataInterface;
         return $.getJSON(`/assets/${params.id}/`);
       }
     },
+    getAssetXformView (uid) {
+      return $ajax({
+        url: `/assets/${uid}/xform`,
+        dataType: 'html'
+      });
+    },
     searchAssets (queryString) {
       return $ajax({
         url: '/assets/',

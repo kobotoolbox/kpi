@@ -30,7 +30,7 @@ class XFormRenderer(renderers.BaseRenderer):
 
     def render(self, data, media_type=None, renderer_context=None):
         asset = renderer_context['view'].get_object()
-        return asset.export.xml
+        return asset.get_export().xml
 
 class AssetSnapshotXFormRenderer(renderers.BaseRenderer):
     media_type = 'application/xml'
