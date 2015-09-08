@@ -58,6 +58,7 @@ INSTALLED_APPS = (
     'mptt',
     'haystack',
     'kpi',
+    'hub',
     'registration', # Must come AFTER kpi
     'django.contrib.admin', # Must come AFTER registration
     'django_extensions',
@@ -76,6 +77,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
+# used in kpi.models.sitewide_messages
+MARKITUP_FILTER = ('markdown.markdown', {'safe_mode': False})
 
 # The backend that handles user authentication must match KoBoCAT's when
 # sharing sessions. ModelBackend does not interfere with object-level

@@ -14,6 +14,7 @@ from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
 import reversion
 
+from hub.models import SitewideMessage
 from .models import Asset
 from .models import AssetDeployment
 from .models import AssetSnapshot
@@ -724,6 +725,13 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
             {'format': 'zip', 'url': '%s?format=zip' % obj_url},
         ]
 
+
+class SitewideMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SitewideMessage
+        lookup_field = 'slug'
+        fields = ('slug',
+                  'body',)
 
 class CollectionListSerializer(CollectionSerializer):
     children_count = serializers.SerializerMethodField()
