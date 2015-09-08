@@ -198,14 +198,6 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
         with transaction.atomic(), reversion.create_revision():
             super(Asset, self).save(*args, **kwargs)
 
-    def get_descendants_list(self, include_self=False):
-        ''' A asset never has any descendants, but provide this method
-        a la django-mptt to simplify permissions code '''
-        if include_self:
-            return list(self)
-        else:
-            return list()
-
     def get_ancestors_or_none(self):
         # ancestors are ordered from farthest to nearest
         if self.parent is not None:
