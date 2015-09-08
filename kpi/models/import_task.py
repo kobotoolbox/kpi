@@ -159,3 +159,6 @@ class ImportTask(models.Model):
                     'filename': filename,
                     'owner__username': self.user.username,
                 })
+        else:
+            raise SyntaxError('survey upload must have one of these sheets: {}' \
+                        .format('survey, block, library'))
