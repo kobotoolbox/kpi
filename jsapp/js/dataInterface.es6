@@ -256,7 +256,7 @@ var dataInterface;
         data: data
       });
     },
-    postCreateBase64EncodedAsset (contents) {
+    postCreateBase64EncodedImport (contents) {
       var formData = new FormData();
       Object.keys(contents).forEach(function(key){
         formData.append(key, contents[key]);

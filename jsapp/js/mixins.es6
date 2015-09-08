@@ -502,7 +502,7 @@ mixins.droppable = {
       files.map(function(file){
         var reader = new FileReader();
         reader.onload = (e)=>{
-          actions.resources.createAsset({
+          actions.resources.createImport({
             base64Encoded: e.target.result,
             name: file.name,
             lastModified: file.lastModified,

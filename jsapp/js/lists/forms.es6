@@ -33,7 +33,7 @@ var FormsSearchableList = React.createClass({
     this.searchDefault();
   },
   dropAction ({file, event}) {
-    actions.resources.createAsset({
+    actions.resources.createImport({
       base64Encoded: event.target.result,
       name: file.name,
       lastModified: file.lastModified,
