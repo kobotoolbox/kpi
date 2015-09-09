@@ -24,7 +24,15 @@ var FormsSearchableList = React.createClass({
   ],
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setHeaderTitle(t('Forms'));
+
+      var headerBreadcrumb = [
+        {
+          'label': t('Forms'), 
+          'href': '/forms', 
+        }
+      ];
+      stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
+
       stores.pageState.setAssetNavPresent(false);
       callback();
     }

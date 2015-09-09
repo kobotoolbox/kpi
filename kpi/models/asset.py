@@ -2,6 +2,7 @@ import re
 import six
 
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.exceptions import MultipleObjectsReturned
 from django.db import models
 from django.db import transaction
 from django.dispatch import receiver
@@ -197,14 +198,6 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
         with transaction.atomic(), reversion.create_revision():
             super(Asset, self).save(*args, **kwargs)
 
-    def get_descendants_list(self, include_self=False):
-        ''' A asset never has any descendants, but provide this method
-        a la django-mptt to simplify permissions code '''
-        if include_self:
-            return list(self)
-        else:
-            return list()
-
     def get_ancestors_or_none(self):
         # ancestors are ordered from farthest to nearest
         if self.parent is not None:
@@ -216,14 +209,16 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
     def version_id(self):
         return reversion.get_for_object(self).last().id
 
-    @property
-    def export(self):
-        version_id = reversion.get_for_object(self).last().id
-        # AssetSnapshot.objects.filter(asset=self).delete()
-        (model, _) = AssetSnapshot.objects.get_or_create(
+    def get_export(self, regenerate=True, version_id=False):
+        if not version_id:
+            version_id = reversion.get_for_object(self).last().id
+
+        AssetSnapshot.objects.filter(asset=self, asset_version_id=version_id).delete()
+
+        (snapshot, _created) = AssetSnapshot.objects.get_or_create(
             asset=self,
             asset_version_id=self.version_id)
-        return model
+        return snapshot
 
     def __unicode__(self):
         return u'{} ({})'.format(self.name, self.uid)
@@ -294,10 +289,11 @@ class AssetSnapshot(models.Model, XlsExportable):
             summary['status'] = 'success'
         except Exception, e:
             summary.update({
+                u'error_type': type(e).__name__,
                 u'error': unicode(e),
                 u'warnings': warnings,
             })
-        self.summary = summary
+        self.details = summary
 
     def _populate_uid(self):
         if self.uid == '':
@@ -312,20 +308,23 @@ class AssetSnapshot(models.Model, XlsExportable):
         return reversion.get_for_object(
             self.asset).get(id=self.asset_version_id)
 
+    def _valid_source(self):
+        return convert_any_kobo_features_to_xlsform_survey_structure(self.source)
+
     def save(self, *args, **kwargs):
         version = self.get_version()
         self._populate_uid()
         if self.source is None:
             self.source = version.object.to_ss_structure()
+        _valid_source = self._valid_source()
+        note = False
         if self.asset and self.asset.asset_type in ['question', 'block'] and \
                 len(self.asset.summary['languages']) == 0:
             asset_type = self.asset.asset_type
             note = 'Note: This item is a ASSET_TYPE and ' + \
                     'must be included in a form before deploying'
             note = note.replace('ASSET_TYPE', asset_type)
-            self.generate_xml_from_source(self.source, include_note=note)
-        else:
-            self.generate_xml_from_source(self.source)
+        self.generate_xml_from_source(_valid_source, include_note=note)
         return super(AssetSnapshot, self).save(*args, **kwargs)
 
 

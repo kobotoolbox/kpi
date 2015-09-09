@@ -13,7 +13,9 @@ from kpi.views import (
     ImportTaskViewSet,
     ObjectPermissionViewSet,
     AssetDeploymentViewSet,
+    SitewideMessageViewSet,
 )
+
 from kpi.views import current_user, home
 from kpi.forms import RegistrationForm
 
@@ -26,6 +28,7 @@ router.register(r'tags', TagViewSet)
 router.register(r'permissions', ObjectPermissionViewSet)
 router.register(r'imports', ImportTaskViewSet)
 router.register(r'deployments', AssetDeploymentViewSet)
+router.register(r'sitewide_messages', SitewideMessageViewSet)
 
 
 urlpatterns = [

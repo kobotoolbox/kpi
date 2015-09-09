@@ -15,6 +15,7 @@ import Router from 'react-router';
 import Q from 'q';
 // import Sidebar from './components/sidebar';
 import MainHeader from './components/header';
+import Select from 'react-select';
 import Drawer from './components/drawer';
 import searches from './searches';
 import {List, ListSearch, ListSearchDebug, ListTagFilter} from './components/list';
@@ -25,6 +26,7 @@ var ReactTooltip = require("react-tooltip");
 var AssetRow = require('./components/assetrow');
 // import {Sheeted} from './models/sheeted';
 import stores from './stores';
+import {dataInterface} from './dataInterface';
 import Dropzone from './libs/dropzone';
 import icons from './icons';
 import cookie from 'react-cookie';
@@ -92,12 +94,31 @@ mixins.formView = {
   _saveForm (evt) {
     evt && evt.preventDefault();
     actions.resources.updateAsset(this.props.params.assetid, {
-      name: this.getNameValue(),
       content: surveyToValidJson(this.state.survey)
     });
     this.setState({
       asset_updated: false
     });
+  },
+  componentDidMount() {
+    document.querySelector('.page-wrapper__content').addEventListener('scroll', this.handleScroll);
+  },
+  componentWillUnmount () {
+    document.querySelector('.page-wrapper__content').removeEventListener('scroll', this.handleScroll);
+  },
+  handleScroll(evt) {
+    var scrollTop = evt.target.scrollTop;
+    if (!this.state.formHeaderFixed && scrollTop > 40) {
+      var fhfh = $('.asset-view__row--header').height()
+      this.setState({
+        formHeaderFixed: true,
+        formHeaderFixedHeight: fhfh,
+      });
+    } else if (this.state.formHeaderFixed && scrollTop <= 32) {
+      this.setState({
+        formHeaderFixed: false
+      });
+    }
   },
   navigateBack (evt) {
     if (this.needsSave() && confirm(t('you have unsaved changes. would you like to save?'))) {
@@ -107,22 +128,19 @@ mixins.formView = {
   },
   loadingNotice () {
     return (
-        <p>
-          <i className='fa fa-spinner fa-spin' />
-          &nbsp;&nbsp;
-          {t('loading form...')}
-        </p>
+        <bem.AssetView>
+          <ui.Panel>
+            <bem.AssetView__content>
+              <bem.AssetView__message m={'loading'}>
+                <i />
+                {t('loading...')}
+              </bem.AssetView__message>
+            </bem.AssetView__content>
+          </ui.Panel>
+        </bem.AssetView>
       );
   },
-  renderSubSettingsBar () {
-    return <FormSettingsBox {...this.state} />;
-  },
-  nameInputValue () {
-    return this.refs['form-name'].getDOMNode().value;
-  },
   nameInputChange (evt) {
-    var nameVal = this.nameInputValue();
-    this.state.survey.settings.set('form_title', nameVal)
     this.setState({
       survey_name: this.state.survey.settings.get('form_title')
     });
@@ -135,39 +153,37 @@ mixins.formView = {
   needsSave () {
     return this.state.asset_updated === -1;
   },
-  renderCloseButton() {
-    var kls = classNames('k-form-close-button', 'mdl-button', 'mdl-js-button', 'mdl-button--icon', {
-      "k-form-close-button--warning": this.needsSave()
-    });
-    return <a className={kls} onClick={this.navigateBack}>
-                <i className="material-icons">clear</i>
-            </a>;
-  },
   innerRender () {
-
+    var isSurvey = this.state.asset && this.state.asset.asset_type === 'survey';
+    var formHeaderFixed = this.state.formHeaderFixed,
+        placeHolder = formHeaderFixed && (
+            <bem.AssetView__row m={['header', 'placeholder']}
+                  style={{height: this.state.formHeaderFixedHeight}} />
+          );
     return (
-        <ui.Panel className="k-div--formview--innerrender">
-          <div className="k-form-header__buttons">
-            {this.renderSaveAndPreviewButtons()}
-            <div className="mdl-layout-spacer"></div>
-            {this.renderCloseButton()}
-          </div>
-          <div className="k-form-header__title">
-            <div className="k-corner-icon"></div>
-            <div className="k-header-form-title">
-              {this.renderFormNameInput()}
-            </div>
-          </div>
-          { this.state.survey ?
-            this.renderSubSettingsBar()
-          :null}
-
-          { ('renderSubTitle' in this) ?
-            this.renderSubTitle()
-          : null}
-          <div ref="form-wrap" className='form-wrap'>
-          </div>
-        </ui.Panel>
+        <bem.AssetView>
+          <ui.Panel>
+            <bem.AssetView__content>
+              <bem.AssetView__row m={['header', {
+                    fixed: formHeaderFixed,
+                  }]}
+                  ref={'fixableHeader'}>
+                {this.renderSaveAndPreviewButtons()}
+              </bem.AssetView__row>
+              {formHeaderFixed ?
+                placeHolder
+              : null}
+              { this.state.survey && isSurvey ?
+                <bem.AssetView__row>
+                  <FormSettingsBox {...this.state} />
+                </bem.AssetView__row>
+              :null}
+              <bem.AssetView__row>
+                <div ref="form-wrap" className='form-wrap' />
+              </bem.AssetView__row>
+            </bem.AssetView__content>
+          </ui.Panel>
+        </bem.AssetView>
       );
   },
 };
@@ -418,17 +434,28 @@ var AssetNavigatorListView = React.createClass({
                 return (
                     <bem.LibList__item m={modifiers} key={item.uid} data-uid={item.uid}>
                       <bem.LibList__dragbox />
-                      <bem.LibList__label>
+                      <bem.LibList__label m={'name'}>
                         <ui.AssetName {...item} />
                       </bem.LibList__label>
-                      <bem.LibList__qtype>
-                        {t(item.asset_type)}
-                      </bem.LibList__qtype>
+                      { this.state.displayDetails ?
+                        <bem.LibList__label m={'labels'}>
+                          <ol>
+                            {summ.labels.map(function(lbl){
+                              return <li>{lbl}</li>;
+                            })}
+                          </ol>
+                        </bem.LibList__label>
+                      : null }
                       <bem.LibList__tags>
                         {(item.tags || []).map((tg)=>{
                           return <bem.LibList__tag>{tg}</bem.LibList__tag>;
                         })}
                       </bem.LibList__tags>
+                      {item.asset_type==='block' ?
+                        <bem.LibList__qtype>
+                          {t('block of ___ questions').replace('___', summ.row_count)}
+                        </bem.LibList__qtype>
+                      :null}
                     </bem.LibList__item>
                   );
               })}
@@ -578,11 +605,11 @@ var AssetNavigator = React.createClass({
                   searchContext={this.state.searchContext}
                 />
             </bem.LibNav__search>
-          </bem.LibNav__header>
-          <bem.LibNav__content>
             <ListTagFilter
                   searchContext={this.state.searchContext}
                 />
+          </bem.LibNav__header>
+          <bem.LibNav__content>
             <AssetNavigatorListView
                   searchContext={this.state.searchContext}
                 />
@@ -798,13 +825,13 @@ var UserPermDiv = React.createClass({
     mixins.permissions,
   ],
   renderPerm ([permName, permPermission, permissionObject]) {
-    var btnCls = classNames('btn',
-                            'btn-sm',
+    var btnCls = classNames('mdl-button',
+                            'mdl-button--raised',
                             `perm-${permName}`,
-                            'btn-block',
+                            'mdl-js-button',
                             ({
                               "false": "btn-default",
-                              "allow": "btn-primary",
+                              "allow": "mdl-button--colored",
                               "deny": "btn-danger"
                             })[permPermission]);
 
@@ -815,12 +842,10 @@ var UserPermDiv = React.createClass({
       buttonAction = this.setPerm(permName, this.props);
     }
     return (
-        <div className='k-col-3-nopadd'>
-          <button className={btnCls} onClick={buttonAction}>
-            {permName}
-          </button>
-        </div>
-      );
+      <button className={btnCls} onClick={buttonAction}>
+        {permName}
+      </button>
+    );
   },
   render () {
     var hasAnyPerms = false;
@@ -839,8 +864,8 @@ var UserPermDiv = React.createClass({
       debugger;
     }
     return (
-      <div className='row'>
-        <div className='col-md-6'>
+      <div>
+        <div>
           <UserProfileLink icon={this.props.icon || 'user-o'} iconBefore='true' username={this.props.username} />
         </div>
         {availPerms.map(this.renderPerm)}
@@ -852,24 +877,21 @@ var UserPermDiv = React.createClass({
 class PublicPermDiv extends UserPermDiv {
   render () {
     var isOn = this.props.isOn;
-    var btnCls = classNames('btn',
-                            isOn ? 'btn-primary' : 'btn-default',
-                            'btn-block');
+    var btnCls = classNames('mdl-button', 'mdl-button--raised', 
+                            isOn ? 'mdl-button--colored' : '');
     return (
-      <div className='row'>
-        <div className='col-md-12'>
-          <button className={btnCls} onClick={this.props.onToggle}>
-            <i className={`fa fa-group fa-lg`} />
-            &nbsp;&nbsp;
-            {isOn ?
-              t('shared publicly') :
-              t('not shared publicly')}
-          </button>
-        </div>
-        <p className='col-md-12 text-muted text-center'>
+      <div className='permissions-toggle'>
+        <button className={btnCls} onClick={this.props.onToggle}>
+          <i className={`fa fa-group fa-lg`} />
+          &nbsp;&nbsp;
           {isOn ?
-            t('anyone with this link can view the survey') :
-            t('this form is only viewable by the users listed above')}
+            t('Link sharing on') :
+            t('Link sharing off')}
+        </button>
+        <p className='text-muted text-center'>
+          {isOn ?
+            t('Anyone with the link can view this item') :
+            t('This item can only be viewed by you and anyone you specify')}
         </p>
       </div>
       );
@@ -917,51 +939,61 @@ var FormCheckbox = React.createClass({
     // TODO: upgrade specific element only (as opposed to whole DOM)
     mdl.upgradeDom();
   }
-
 })
 
 var FormSettingsEditor = React.createClass({
   render () {
     return (
-      <div className="well">
-        <form className="form-horizontal">
-          <hr />
           <div className="mdl-grid">
-            <div className="mdl-cell mdl-cell--12-col">
-              <FormInput id="form_id" label="form id" value={this.props.form_id} onChange={this.props.onFieldChange} />
-            </div>
-            <div className="mdl-cell mdl-cell--6-col">
+            {/* offset? */}
+            <div className="mdl-cell mdl-cell--1-col" />
+            <div className="mdl-cell mdl-cell--5-col">
               {this.props.meta.map((mtype) => {
                 return <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
               })}
             </div>
-            <div className="mdl-cell mdl-cell--6-col">
+            <div className="mdl-cell mdl-cell--5-col">
               {this.props.phoneMeta.map((mtype) => {
                 return <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
               })}
             </div>
           </div>
-          <div className="form-group mdl-grid">
-            <div className="mdl-cell mdl-cell--2-col">
-              <label htmlFor="select" className="control-label">{t('Web form style')}</label>
-            </div>
-            <div className="mdl-cell mdl-cell--6-col">
-              <select className="form-control" onChange={this.props.onStyleChange} value={this.props.styleValue}>
-                <option value=''>{t('Default - single page')}</option>
-                <option value='theme-grid'>{t('Grid theme')}</option>
-                <option value='pages'>{t('Multiple pages')}</option>
-                <option value='theme-grid pages'>{t('Grid theme + Multiple pages')}</option>
-              </select>
-            </div>
-          </div>
-        </form>
-      </div>
       );
+  },
+  focusSelect () {
+    this.refs.webformStyle.focus();
   },
   componentDidUpdate() {
     mdl.upgradeDom();
   }
-})
+});
+
+/*
+        <div>
+          <div className="form-group mdl-grid">
+            <div className="mdl-cell mdl-cell--3-col">
+              <label htmlFor='webform-style' className={'mdl-button mdl-js-button'}
+                  onClick={this.focusSelect}>
+                {t('Web form style')}
+              </label>
+            </div>
+            <div className="mdl-cell mdl-cell--5-col">
+              <Select
+                  name="webform-style"
+                  ref="webformStyle"
+                  value={this.props.styleValue}
+                  onChange={this.props.onStyleChange}
+                  options={[
+                      {value: '', label: t('Default - single page')},
+                      {value: 'theme-grid', label: t('Grid theme')},
+                      {value: 'pages', label: t('Multiple pages')},
+                      {value: 'theme-grid pages', label: t('Grid theme + Multiple pages')},
+                    ]}
+                />
+            </div>
+          </div>
+
+*/
 
 var FormSettingsBox = React.createClass({
   getInitialState () {
@@ -1033,31 +1065,29 @@ var FormSettingsBox = React.createClass({
     if (metaData === '') {
       metaData = t('none (0 metadata specified)')
     }
-    var expandIconKls = classNames('fa', 'fa-icon', 'fa-fw',
-            this.state.formSettingsExpanded ? 'fa-caret-down' : 'fa-caret-right')
 
+    var metaContent;
+    if (!this.state.formSettingsExpanded) {
+      metaContent = (
+          <bem.FormMeta__button m={'metasummary'} onClick={this.toggleSettingsEdit}>
+            {t('metadata:')}
+            {metaData}
+          </bem.FormMeta__button>
+        );
+    } else {
+      metaContent = (
+          <FormSettingsEditor {...this.state} onCheckboxChange={this.onCheckboxChange}
+            />
+        );
+    }
     return (
-        <div className={classNames('row', 'k-sub-settings-bar', {
-          'k-sub-settings-bar--expanded': this.state.formSettingsExpanded
-        })}>
-          <div className="k-sub-settings-container" onClick={this.toggleSettingsEdit}>
-            <i className="fa fa-cog" />
-            &nbsp;&nbsp;
-            <i className={expandIconKls} />
-            &nbsp;&nbsp;
-            <span className="settings-preview">{t('form id')}: {this.state.xform_id_string}</span>
-            <span className="settings-preview">{t('meta questions')}: {metaData}</span>
-          </div>
-          {this.state.formSettingsExpanded ?
-            <FormSettingsEditor {...this.state} onCheckboxChange={this.onCheckboxChange}
-                onFieldChange={this.onFieldChange}
-                onStyleChange={this.onStyleChange}
-                styleValue={this.state.styleValue}
-                />
-          :null}
-        </div>
-
-      );
+        <bem.FormMeta>
+          <bem.FormMeta__button m='expand' onClick={this.toggleSettingsEdit}>
+            <i />
+          </bem.FormMeta__button>
+          {metaContent}
+        </bem.FormMeta>
+      )
   },
   componentDidUpdate() {
     mdl.upgradeDom();
@@ -1071,11 +1101,6 @@ function surveyToValidJson(survey, omitSettings=false) {
   var surveyDict = survey.toFlatJSON();
   if (omitSettings && 'settings' in surveyDict) {
     delete surveyDict['settings'];
-  }
-  if ('settings' in surveyDict) {
-    log('has settings');
-  } else {
-    log('no settings');
   }
   return JSON.stringify(surveyDict);
 }
@@ -1094,17 +1119,11 @@ var App = React.createClass({
       sidebarIsOpen: stores.pageState.state.sidebarIsOpen
     });
   },
-  toggleSidebarIntentOpen (evt) {
-    evt.preventDefault();
-    stores.pageState.toggleSidebarIntentOpen();
-  },
-
   render() {
     return (
       <DocumentTitle title="KoBoToolbox">
         <div className="mdl-wrapper">
           <bem.PageWrapper m={{
-              // 'activenav': this.state.sidebarIsOpen,
               'asset-nav-present': this.state.assetNavPresent,
               'asset-nav-open': this.state.assetNavIsOpen && this.state.assetNavPresent,
                 }}  className="mdl-layout mdl-js-layout mdl-layout--fixed-header">
@@ -1157,8 +1176,11 @@ var Forms = React.createClass({
         transition.redirect("collection-page", {
           uid: params.assetid
         });
+      } else {
+        stores.pageState.setHeaderBreadcrumb([
+          {'label': t('Forms'), 'to': 'forms'}
+        ]);
       }
-      // stores.pageState.setHeaderTitle('Forms');
       callback();
     }
   },
@@ -1208,31 +1230,31 @@ mixins.newForm = {
       );
   },
   renderSaveAndPreviewButtons () {
-    var disabled = !!this.state.disabled;
-    var saveText = t('create');
-    var saveBtnKls = classNames('btn','btn-default',
-                              disabled ? 'disabled' : '');
-    var previewDisabled = !!this.state.previewDisabled;
-    var previewBtnKls = classNames('btn',
-                                  'btn-default',
-                                  previewDisabled ? 'disabled': '')
     return (
-          <div className="k-form-actions">
-            <div className='btn-toolbar'>
-              <div className='btn-group btn-group-justified'>
-                <a href="#" className={saveBtnKls} onClick={this.saveNewForm}>
-                  <i className={classNames('fa', 'fa-sm', 'fa-save')} />
-                  &nbsp;
-                  &nbsp;
-                  {saveText}
-                </a>
-              </div>
-            </div>
-          </div>
+          <bem.FormHeader>
+            <ui.SmallInputBox
+                ref='form-name'
+                placeholder='form name'
+              />
+            <bem.FormHeader__button m={'create'} onClick={this.saveNewForm}>
+              <i />
+              {t('create')}
+            </bem.FormHeader__button>
+            <bem.FormHeader__button m={['preview', {
+                  previewdisabled: true,
+                }]} onClick={this.previewForm}>
+              <i />
+              {t('preview')}
+            </bem.FormHeader__button>
+          </bem.FormHeader>
         );
   },
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
+      stores.pageState.setHeaderBreadcrumb([
+        {'label': t('Forms'), 'to': 'forms'},
+        {'label': t('New'), 'to': 'new-form'}
+      ]);
       stores.pageState.setAssetNavPresent(true);
       callback();
     }
@@ -1248,6 +1270,9 @@ mixins.newForm = {
   creatingResourceCompleted (data) {
     this.transitionTo('form-edit', { assetid: data.uid });
   },
+  surveyStateChanged (state) {
+    this.setState(state);
+  },
   componentDidMount () {
     this.navigateBack = (evt) => {
       if (this.needsSave() && confirm(t('you have unsaved changes. would you like to save?'))) {
@@ -1257,12 +1282,14 @@ mixins.newForm = {
     }
     actions.resources.createResource.listen(this.creatingResource);
     actions.resources.createResource.completed.listen(this.creatingResourceCompleted);
+    this.listenTo(stores.surveyState, this.surveyStateChanged);
     var survey = this.createSurvey();
     var skp = new SurveyScope({
       survey: survey
     });
     var app = new dkobo_xlform.view.SurveyApp({
       survey: survey,
+      stateStore: stores.surveyState,
       ngScope: skp
     });
     $('.form-wrap').html(app.$el);
@@ -1352,7 +1379,13 @@ var Collections = React.createClass({
   render () {},
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setHeaderTitle('Collections');
+      var headerBreadcrumb = [
+        {'label': t('Collections'), 'to': 'collections'},
+        {'label': t('Collection'), 'to': 'collection-landing', params: {
+          uid: params.uid
+        }}
+      ];
+      stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
       callback();
     }
   },
@@ -1502,8 +1535,38 @@ var FormJson = React.createClass({
         </ui.Panel>
       );
   }
-})
+});
 
+var FormXform = React.createClass({
+  mixins: [
+    Navigation,
+    Reflux.ListenerMixin
+  ],
+  componentDidMount () {
+    dataInterface.getAssetXformView(this.props.params.assetid).done((content)=>{
+      this.setState({
+        xformLoaded: true,
+        xformHtml: {
+          __html: $('<div>').html(content).find('.pygment').html()
+        },
+      })
+    });
+  },
+  getInitialState () {
+    return {
+      xformLoaded: false
+    }
+  },
+  render () {
+    if (!this.state.xformLoaded) {
+      return <p>XForm is loading</p>
+    } else {
+      return <div className="pygment"
+                dangerouslySetInnerHTML={this.state.xformHtml}
+              />
+    }
+  }
+});
 
 var FormSharing = React.createClass({
   mixins: [
@@ -1611,10 +1674,10 @@ var FormSharing = React.createClass({
     });
     var userInputKls = classNames('form-group',
                                     (inpStatus !== false) ? `has-${inpStatus}` : '');
-    var btnKls = classNames('btn',
-                            'btn-block',
-                            'btn-sm',
-                            inpStatus === 'success' ? 'btn-success' : 'hidden');
+    var btnKls = classNames('mdl-button',
+                            'mdl-buton-raised',
+                            'mdl-button--colored',
+                            inpStatus === 'success' ? 'mdl-button--colored' : 'hidden');
 
     var uid = this.state.asset.uid;
     var kind = this.state.asset.kind;
@@ -1624,63 +1687,88 @@ var FormSharing = React.createClass({
       return <p>loading</p>
     }
     return (
-      <ui.Modal open onClose={this.routeBack} title={this.state.asset.name}
-                  small={t('manage sharing permissions')}
-                  label={t('note: this does not control permissions to the data collected by projects')}>
+      <ui.Modal open onClose={this.routeBack} title={t('manage sharing permissions')}>
         <ui.Modal.Body>
           <ui.Panel className="k-div--sharing">
-            {t('owner')}
-            &nbsp;
-            <StackedIcon frontIcon='user' />
-            &nbsp;
-            <UserProfileLink username={this.state.asset.owner__username} />
-          </ui.Panel>
-          <ui.Panel className="k-div--sharing2">
-            <form onSubmit={this.addInitialUserPermission}>
-              <div className='col-sm-9'>
-                <div className={userInputKls}>
-                  <ui.SmallInputBox ref='usernameInput' placeholder={t('share with username')} onKeyUp={this.usernameCheck} />
+            <div className="k-sharing__title">
+              <h5>{this.state.asset.name}</h5>
+            </div>
+            <div className="k-sharing__header">
+              <div className="user--pill">
+                <StackedIcon frontIcon='user' /> 
+                <div className="user--pill__name">
+                  <UserProfileLink username={this.state.asset.owner__username} /><br/>
+                  <span className="text-small">{t('owner')}</span>
                 </div>
               </div>
-              <div className='col-sm-3'>
-                <button className={btnKls}>
-                  <i className="fa fa-fw fa-lg fa-plus" />
-                </button>
-              </div>
-            </form>
-            <br />
-            <br />
-            <div>
-              {perms.map((perm)=> {
-                return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
-              })}
+
+              <div className="text-small">{t('To share this item with others just enter their username below, then choose which permissions they shoud have. To remove them again just deselect both permissions. Note: this does not control permissions to the data collected by projects')}</div>
+
             </div>
+
+
+            <div className="mdl-grid">
+              <div className="mdl-cell mdl-cell--5-col">
+                <div className="k-share-username mdl-card mdl-shadow--2dp">
+                  <form onSubmit={this.addInitialUserPermission}>
+                    <div className="mdl-card__title">
+                      <h2 className="mdl-card__title-text">{t('share with username')}</h2>
+                    </div>
+                    <div className="mdl-card__supporting-text">
+                      <ui.SmallInputBox ref='usernameInput' placeholder={t('share with username')} onKeyUp={this.usernameCheck} />
+                      <button className={btnKls}>
+                        <i className="fa fa-fw fa-lg fa-plus" />
+                      </button>
+                    </div>
+                    <div className="mdl-card__actions mdl-card--border">
+                      {perms.map((perm)=> {
+                        return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
+                      })}
+                    </div>
+                  </form>
+                </div>
+              </div>
+              <div className="mdl-cell mdl-cell--1-col">
+              </div>
+              <div className="mdl-cell mdl-cell--5-col">
+                <div className="k-share-publicly mdl-card mdl-shadow--2dp">
+                  <div className="mdl-card__title">
+                    <h2 className="mdl-card__title-text">{t('Link sharing')}</h2>
+                  </div>
+                  <div className="mdl-card__supporting-text">
+                    {(() => {
+                      if (this.state.public_permission) {
+                        return <PublicPermDiv isOn={true}
+                                    onToggle={this.removePerm('view',
+                                                      this.state.public_permission,
+                                                      uid)}
+                                    />
+                      } else {
+                        return <PublicPermDiv isOn={false}
+                                    onToggle={this.setPerm('view', {
+                                        username: anonUsername,
+                                        uid: uid,
+                                        kind: kind,
+                                        objectUrl: objectUrl
+                                      }
+                                    )}
+                                    />
+                      }
+                    })()}
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </ui.Panel>
-          <div className='row'>
-            {(() => {
-              if (this.state.public_permission) {
-                return <PublicPermDiv isOn={true}
-                            onToggle={this.removePerm('view',
-                                              this.state.public_permission,
-                                              uid)}
-                            />
-              } else {
-                return <PublicPermDiv isOn={false}
-                            onToggle={this.setPerm('view', {
-                                username: anonUsername,
-                                uid: uid,
-                                kind: kind,
-                                objectUrl: objectUrl
-                              }
-                            )}
-                            />
-              }
-            })()}
-          </div>
         </ui.Modal.Body>
       </ui.Modal>
       );
+  },
+  componentDidUpdate() {
+    mdl.upgradeDom();
   }
+
 });
 
 var CollectionSharing = React.createClass({
@@ -1789,9 +1877,9 @@ var CollectionSharing = React.createClass({
     });
     var userInputKls = classNames('form-group',
                                     (inpStatus !== false) ? `has-${inpStatus}` : '');
-    var btnKls = classNames('btn',
-                            'btn-block',
-                            'btn-sm',
+    var btnKls = classNames('mdl-button',
+                            'mdl-button--raised',
+                            'mdl-button--colored',
                             inpStatus === 'success' ? 'btn-success' : 'hidden');
 
     var uid = this.state.asset.uid;
@@ -1802,62 +1890,83 @@ var CollectionSharing = React.createClass({
       return <p>loading</p>
     }
     return (
-      <ui.Modal open onClose={this.routeBack} title={this.state.asset.name}
-                  small={t('manage sharing permissions')}
-                  label={t('note: this does not control permissions to the data collected by projects')}>
+      <ui.Modal open onClose={this.routeBack} title={t('manage sharing permissions')}>
         <ui.Modal.Body>
           <ui.Panel className="k-div--sharing">
-            {t('owner')}
-            &nbsp;
-            <StackedIcon frontIcon='user' />
-            &nbsp;
-            <UserProfileLink username={this.state.asset.owner__username} />
-          </ui.Panel>
-          <ui.Panel className="k-div--sharing2">
-            <form onSubmit={this.addInitialUserPermission}>
-              <div className='col-sm-9'>
-                <div className={userInputKls}>
-                  <ui.SmallInputBox ref='usernameInput' placeholder={t('share with username')} onKeyUp={this.usernameCheck} />
+            <div className="k-sharing__title">
+              <h5>{this.state.asset.name}</h5>
+            </div>
+            <div className="k-sharing__header">
+              <div className="user--pill">
+                <StackedIcon frontIcon='user' /> 
+                <div className="user--pill__name">
+                  <UserProfileLink username={this.state.asset.owner__username} /><br/>
+                  <span className="text-small">{t('owner')}</span>
                 </div>
               </div>
-              <div className='col-sm-3'>
-                <button className={btnKls}>
-                  <i className="fa fa-fw fa-lg fa-plus" />
-                </button>
-              </div>
-            </form>
-            <br />
-            <br />
-            <div>
-              {perms.map((perm)=> {
-                return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
-              })}
+              <div className="text-small">{t('note: this does not control permissions to the data collected by projects')}</div>
             </div>
+
+            <div className="mdl-grid">
+              <div className="mdl-cell mdl-cell--5-col">
+                <div className="k-share-username mdl-card mdl-shadow--2dp">
+                  <form onSubmit={this.addInitialUserPermission}>
+                    <div className="mdl-card__title">
+                      <h2 className="mdl-card__title-text">{t('Share with other users')}</h2>
+                    </div>
+                    <div className="mdl-card__supporting-text">
+                      <ui.SmallInputBox ref='usernameInput' placeholder={t('enter a username')} onKeyUp={this.usernameCheck} />
+                      <button className={btnKls}>
+                        <i className="fa fa-fw fa-lg fa-plus" />
+                      </button>
+                    </div>
+                    <div className="mdl-card__actions mdl-card--border">
+                      {perms.map((perm)=> {
+                        return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
+                      })}
+                    </div>
+                  </form>
+                </div>
+              </div>
+              <div className="mdl-cell mdl-cell--1-col">
+              </div>
+              <div className="mdl-cell mdl-cell--5-col">
+                <div className="k-share-publicly mdl-card mdl-shadow--2dp">
+                    <div className="mdl-card__title">
+                      <h2 className="mdl-card__title-text">{t('Link sharing')}</h2>
+                    </div>
+                    <div className="mdl-card__supporting-text">
+                      {(() => {
+                        if (this.state.public_permission) {
+                          return <PublicPermDiv isOn={true}
+                                      onToggle={this.removePerm('view',
+                                                        this.state.public_permission,
+                                                        uid)}
+                                      />
+                        } else {
+                          return <PublicPermDiv isOn={false}
+                                      onToggle={this.setPerm('view', {
+                                          username: anonUsername,
+                                          uid: uid,
+                                          kind: kind,
+                                          objectUrl: objectUrl
+                                        }
+                                      )}
+                                      />
+                        }
+                      })()}
+                    </div>
+                </div>
+              </div>
+            </div>
+
           </ui.Panel>
-          <div className='row'>
-            {(() => {
-              if (this.state.public_permission) {
-                return <PublicPermDiv isOn={true}
-                            onToggle={this.removePerm('view',
-                                              this.state.public_permission,
-                                              uid)}
-                            />
-              } else {
-                return <PublicPermDiv isOn={false}
-                            onToggle={this.setPerm('view', {
-                                username: anonUsername,
-                                uid: uid,
-                                kind: kind,
-                                objectUrl: objectUrl
-                              }
-                            )}
-                            />
-              }
-            })()}
-          </div>
         </ui.Modal.Body>
       </ui.Modal>
       );
+  },
+  componentDidUpdate() {
+    mdl.upgradeDom();
   }
 });
 
@@ -1874,6 +1983,11 @@ var FormEnketoPreview = React.createClass({
       });
     })
     this.listenTo(stores.snapshots, this.snapshotCreation);
+    stores.pageState.setHeaderBreadcrumb([
+      {'label': t('Forms'), 'to': 'forms'},
+      {'label': t('Preview')}
+    ]);
+
   },
   getInitialState () {
     return {
@@ -1920,7 +2034,7 @@ var FormEnketoPreview = React.createClass({
   },
   render () {
     return (
-      <ui.Modal open onClose={this.routeBack} title={t('enketo preview')}>
+      <ui.Modal open onClose={this.routeBack}>
         <ui.Modal.Body>
           { this.state.enketopreviewlink ?
               this.renderEnketoPreviewIframe() :
@@ -1944,63 +2058,111 @@ var FormPage = React.createClass({
   mixins: [
     Navigation,
     mixins.formView,
-    // Reflux.connectFilter(assetStore, 'asset', function(data){
-    //   return data[this.props.params.assetid];
-    // }),
     Reflux.ListenerMixin,
   ],
-  getNameValue () {
-    return this.refs['form-name'].getDOMNode().value
-  },
   saveForm (evt) {
     evt.preventDefault();
-    actions.resources.updateAsset(this.props.params.assetid, {
-      name: this.getNameValue(),
-      content: surveyToValidJson(this.state.survey)
-    });
-    this.setState({
-      asset_updated: false
+    var _nameValue = this.refs['form-name'].getValue();
+    dataInterface.patchAsset(this.props.params.assetid, {
+      name: _nameValue,
+      content: surveyToValidJson(this.state.survey),
+    }).done((asset) => {
+      this.setState({
+        asset: asset,
+        asset_updated: true,
+        _pendingName: false,
+      });
+      actions.resources.updateAsset.completed(asset);
+    }).fail((jqxhr) => {
+      actions.resources.updateAsset.failed(asset);
     })
+    this.setState({
+      asset_updated: false,
+      _pendingName: _nameValue,
+    });
   },
+
+  showAll () {
+    this.app.expandMultioptions();
+  },
+  previewForm () {
+    log('preview button has been clicked');
+  },
+  groupQuestions () {
+    this.app.groupSelectedRows();
+  },
+
   onSurveyChange () {
     this.setState({
       asset_updated: -1
     });
   },
+  onNameInputChange (evt) {
+    this.setState({
+      _pendingName: evt.target.value,
+    })
+  },
   renderSaveAndPreviewButtons () {
-    var disabled = !!this.state.disabled;
-    var pendingSave = this.state.asset_updated === false;
-    var saveText = t('save');
-    var saveBtnKls = classNames('mdl-button','mdl-button--colored', 'mdl-button--raised', 'mdl-js-button', {
-      'disabled': disabled,
-      'k-save': true,
-      'k-save--pending': this.state.asset_updated === false,
-      'k-save--complete': this.state.asset_updated === true,
-      'k-save--needed': this.state.asset_updated === -1
-    });
-    var previewDisabled = !!this.state.previewDisabled;
-    var previewBtnKls = classNames('mdl-button',
-                                  'mdl-js-button',
-                                  'mdl-button--colored',
-                                  'mdl-button--raised',
-                                  previewDisabled ? 'disabled': '')
+    var surv = this.state.survey,
+        app = this.app || {};
+
+    var previewDisabled = true;
+    var groupable = !!this.state.groupButtonIsActive;
+    var showAllOpen = !!this.state.multioptionsExpanded;
+    var _pendingName = this.state._pendingName;
+    var _name = this.state.name || this.state.asset && this.state.asset.name;
+
     return (
-        <div className="k-form-actions">
-          <div className='btn-toolbar'>
-            <a href="#" className={saveBtnKls} onClick={this.saveForm}>
-              <i className={classNames('fa', 'fa-sm', 'fa-save')} />
-              &nbsp;
-              &nbsp;
-              {saveText}
-            </a>
-          </div>
-        </div>
+        <bem.FormHeader>
+          <ui.SmallInputBox
+              ref='form-name'
+              value={_pendingName || _name}
+              onChange={this.onNameInputChange}
+              placeholder='form name'
+            />
+          <bem.FormHeader__button m={['save', {
+                savepending: this.state.asset_updated === false,
+                savecomplete: this.state.asset_updated === true,
+                saveneeded: this.state.asset_updated === -1,
+              }]} onClick={this.saveForm}>
+            <i />
+            {t('save')}
+          </bem.FormHeader__button>
+          <bem.FormHeader__button m={['close', {
+                'close-warning': this.needsSave(),
+              }]} onClick={this.navigateBack}>
+            <i />
+            {t('close')}
+          </bem.FormHeader__button>
+          <bem.FormHeader__button m={['preview', {
+                previewdisabled: previewDisabled
+              }]} onClick={this.previewForm}
+              disabled={previewDisabled}>
+            <i />
+            {t('preview')}
+          </bem.FormHeader__button>
+          <bem.FormHeader__button m={['show-all', {
+                open: showAllOpen,
+              }]} onClick={this.showAll}>
+            <i />
+            {t('show all responses')}
+          </bem.FormHeader__button>
+          <bem.FormHeader__button m={['group', {
+                groupable: groupable
+              }]} onClick={this.groupQuestions}
+              disabled={!groupable}>
+            <i />
+            {t('group questions')}
+          </bem.FormHeader__button>
+        </bem.FormHeader>
       );
   },
+
   getInitialState () {
     return {
       survey_loaded: false,
       survey_name: '',
+      multioptionsExpanded: true,
       kind: 'asset',
       asset: false
     };
@@ -2070,7 +2232,10 @@ var FormPage = React.createClass({
     }
 
     this.listenTo(assetStore, this.assetStoreTriggered)
-    stores.pageState.setHeaderTitle('Forms');
+    var headerBreadcrumb = [
+      {'label': t('Forms'), 'to': 'forms'}
+    ];
+    stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
     this._postLoadRenderMounted = false;
   },
   surveyChange (a,b,c) {
@@ -2081,12 +2246,17 @@ var FormPage = React.createClass({
       this.state.survey.off('change');
     }
   },
+  surveyStateChanged (state) {
+    this.setState(state);
+  },
   postLoadRenderMount () {
     this._postLoadRenderMounted = true;
     this.state.survey.settings.set('form_title', this.state.asset.name);
     var skp = new SurveyScope({survey: this.state.survey});
+    this.listenTo(stores.surveyState, this.surveyStateChanged);
     this.app = new dkobo_xlform.view.SurveyApp({
       survey: this.state.survey,
+      stateStore: stores.surveyState,
       ngScope: skp,
     });
     var fw = this.refs['form-wrap'].getDOMNode();
@@ -2143,8 +2313,14 @@ var FormLanding = React.createClass({
   ],
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
+      var headerBreadcrumb = [
+        {
+          'label': t('Forms'),
+          'to': 'forms',
+        }
+      ];
+      stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
       stores.pageState.setAssetNavPresent(false);
-      stores.pageState.setHeaderTitle('Forms');
       actions.resources.loadAsset({id: params.assetid});
       callback();
     }
@@ -2473,6 +2649,7 @@ var routes = (
       <Route name="form-landing" path="/forms/:assetid">
         <Route name="form-download" path="download" handler={FormDownload} />
         <Route name="form-json" path="json" handler={FormJson} />
+        <Route name="form-xform" path="xform" handler={FormXform} />
         <Route name="form-sharing" path="sharing" handler={FormSharing} />
         <Route name="form-preview-enketo" path="preview" handler={FormEnketoPreview} />
         <Route name='form-edit' path="edit" handler={FormPage} />

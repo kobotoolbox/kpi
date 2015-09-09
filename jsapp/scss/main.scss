@@ -1,7 +1,7 @@
 @import './components/asset-dashboard';
 @import './components/menus';
-
 @import '../../node_modules/select2-browserify/select2/select2';
+
 @import './kobo';
 @import '../../node_modules/react-tooltip/dist/react-tooltip';
 
@@ -10,37 +10,12 @@
 @import './libs/react-tagsinput';
 @import './libs/react-select';
 
-.collection-nav__search {
-  .Select {
-    width: 85%;
-    padding-left: 5%;
-  }
-  .Select-control {
-    background-color: transparent;
-    border: 0 none;
-    border-radius: 0;
-  }
-}
-
-// @import './components/bootswatch';
-
 // http://www.materialpalette.com/grey/indigo
 $muiLight: #616161;
 $muiDark: #9D9D9D;
 $muiBlue: #526CFD;
-$highlightedBarColor: #F5F8FA;
 $saveNeededColor: #9c27b0;
-// $assetSaveButtonWidth: 105px;
-
-// $kcol-view: #7B1FA2;
-// $kcol-edit: #009688;
-// $kcol-preview: #FFC107;
-// $kcol-clone: #2196F3;
-// $kcol-delete: #FF5722;
-// $kcol-download: #4CAF50;
-// $kcol-7: #FF4081;
-// $kcol-8: #00BCD4;
-// $newformButtonColor: #2196F3;
+$assetSaveButtonWidth: 105px;
 
 $kcol-view: mix(#7B1FA2, grayscale(#7B1FA2), 38%);
 $kcol-edit: mix(#009688, grayscale(#009688), 38%);
@@ -55,307 +30,26 @@ $newformButtonColor: mix(#2196F3, grayscale(#2196F3), 38%);
 $newformCircleWidthHeight: 55px;
 
 @import '../xlform/components/fontawesome/scss/font-awesome';
+@import './fonts/opensans';
+@import './components/kobo.account-box';
 @import './components/kobo.collection-header';
 @import './components/kobo.collection-nav';
 @import './components/kobo.collection-asset-list';
 @import './components/kobo.list-view';
 @import './components/kobo.asset-view';
 @import './components/kobo.asset-row';
+@import './components/kobo.form-header';
+@import './components/kobo.form-meta';
 @import './components/kobo.search';
 @import './components/kobo.lib-nav';
 @import './components/kobo.lib-list';
 @import './components/kobo.form-builder';
 @import './components/kobo.asset-name';
 @import './components/kobo.bem.ui';
+@import './components/kobo.modal';
 
-$i: 200;
-.bg-fixed-top-panel {
-  position: absolute;
-  width: 100%;
-  top: 0;
-  left: 0;
-  background-color: white;
-  z-index: 1;
-  transition: all .2s ease 0s;
-
-  &.bg--fixed {
-    position: fixed;
-  }
-
-  @while $i > 0 {
-    &.bg--h#{$i} {
-      height: 1px * $i;
-    }
-    $i: $i - 10;
-  }
-}
-
-.page-wrapper--asset-nav-present .mdl-layout__content {
-  padding-right: 60px;
-  transition: all .4s ease 0s;
-}
-.page-wrapper--asset-nav-open .mdl-layout__content {
-  padding-right: 400px;
-  transition: all .4s ease 0s; 
-}
-
-// .panel-wrap--right-spaced {
-//   padding-right: 391px;
-// }
-
-.sidebar-wrapper {
-  -webkit-box-shadow: 5px 0px -5px 0px rgba(50, 50, 50, 0.07);
-  -moz-box-shadow:    5px 0px -5px 0px rgba(50, 50, 50, 0.07);
-  box-shadow:         5px 0px -5px 0px rgba(50, 50, 50, 0.07);
-}
-.sidebar {
-  hr {
-    display: none;
-  }
-  .k-form-header-row {
-    padding-right: 125px;
-    position: relative;
-  }
-  .k-form-actions {
-    position: absolute;
-    top: 0;
-    right: 0;
-  }
-  .k-sidebar-smallitems {
-    margin: 0;
-    padding: 0;
-  }
-  .k-sidebar-smallitems__item {
-    opacity: 0.7;
-    &:hover {
-      opacity: 1;
-    }
-    margin: 0;
-    padding: 0;
-    position: relative;
-    height: 2em;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    a {
-      float: none;
-      color: #999;
-      font-size: 12px;
-      font-weight: normal;
-      padding-left: 10px;
-      width: 100%;
-      height: 2em;
-      display: block;
-      position: absolute;
-      top: 0;
-      left: 0;
-
-      &:hover {
-        color: lighten(#999, 5%);
-        background-color: darken(#2d2d2d, 2%);
-      }
-
-      i {
-        position: absolute;
-        top: 4px;
-        left: 3px;
-      }
-      span.name {
-        position: absolute;
-        top: 0px;
-        left: 20px;
-      }
-    }
-  }
-}
-
-.assetnav-search-results {
-  li {
-    position: relative;
-    padding-left: 13px;
-  }
-}
-.k-draggable {
-  position: absolute;
-  top: 50%;
-  left: 6px;
-  margin-top: -12px;
-  opacity: 0.4;
-}
-.k-draggable-iconwrap {
-  overflow: hidden;
-  display: inline-block;
-  width: 9px;
-}
-.assetnav-search-results {
-  padding: 0 8px;
-  list-style-type: none;
-}
-// $highlightedBarColor: #616161;
-
-.asset-nav {
-  height: 100%;
-  z-index: 999;
-  width: 250px;
-}
-
-// .k-sidebar-item-name {
-// }
+@import './libs/pygments-theme';
 
 .k-invisible {
   visibility: hidden;
-}
-.k-save--pending {
-  opacity: 0.3;
-}
-.k-save--complete {
-  // @extend .btn-success;
-  @extend .mdl-button;
-}
-.k-save--needed {
-  color: $saveNeededColor;
-  box-shadow: 1px 1px 2px rgba($saveNeededColor, 0.5);
-  // background-image: radial-gradient(circle, #FFEFEF 80%, #f0f0f0 81%);
-}
-// .page-wrapper__content {
-  // padding: 1px 0;
-
-  // .page-wrapper--asset-nav-present & {
-  //   padding-top: 20px;
-  // }
-// }
-
-// .k-header-formname-text {
-//   border-left: 2px solid lighten(#4caf50, 30%);
-//   color: lighten(#4caf50, 20%);
-//   padding-left: 5px;
-// }
-
-// .k-btn-wrap--newform {
-//   position: absolute;
-//   width: 65px;
-//   height: 65px;
-//   padding: 0;
-//   top: 3px;
-//   left: 16px;
-//   margin: 0;
-// }
-$actionButtonColor: #2196F3;
-.k-actbtn {
-              //   padding: "6px 27px",
-              // lineHeight: "3.86em",
-              // borderRadius: "31px"
-  background-color: $actionButtonColor;
-  padding: 17px 18px 13px;
-  font-size: 45px;
-  line-height: 30px;
-  border-radius: 45px;
-  color: #fff;
-  -webkit-box-shadow: 2px 4px 14px 0px rgba(50, 50, 50, 0.2);
-  -moz-box-shadow:    2px 4px 14px 0px rgba(50, 50, 50, 0.2);
-  box-shadow:         2px 4px 14px 0px rgba(50, 50, 50, 0.2);
-  &:hover {
-    -webkit-box-shadow: 2px 4px 14px 0px rgba(50, 50, 50, 0.4);
-    -moz-box-shadow:    2px 4px 14px 0px rgba(50, 50, 50, 0.4);
-    box-shadow:         2px 4px 14px 0px rgba(50, 50, 50, 0.4);
-  }
-
-  &.k-actbtn--muted {
-    background-color: lighten($actionButtonColor, 30%);
-    color: #f4f4f4;
-    opacity: 0.8;
-
-    box-shadow: none;
-    -webkit-box-shadow: none;
-    -moz-box-shadow: none;
-    &:hover {
-      opacity: 1;
-    }
-  }
-}
-
-.k-loading-message-with-padding, .loading-message-with-padding {
-  padding: 40px;
-}
-.k-col-padrt25 {
-  padding-right: 25px;
-}
-
-// .k-header-name-row {
-//   padding-left: $assetCornerIconWidth + 10;
-//   padding-right: 30px;
-// }
-
-// TODO
-// @media (min-width: $screen-md-min) {
-//   .k-header-name-row {
-//     padding-right: $assetSaveButtonWidth + 20;
-//   }
-//   .k-fixed-buttons {
-//     position: absolute;
-//     right: 32px;
-//     top: 2px;
-//     width: $assetSaveButtonWidth;
-//     text-align: right;
-//     .btn-toolbar .btn {
-//       float: none;
-//     }
-//   }
-// }
-
-/*
-from SO
-    -webkit-animation: pulsate 1s ease-out;
-    -webkit-animation-iteration-count: infinite; 
-    opacity: 0.0
-}
-@-webkit-keyframes pulsate {
-    0% {-webkit-transform: scale(0.1, 0.1); opacity: 0.0;}
-    50% {opacity: 1.0;}
-    100% {-webkit-transform: scale(1.2, 1.2); opacity: 0.0;}
-}
-*/
-
-
-.account-box__image {
-  width:24px;
-  display: inline-block; 
-  margin-left: 6px;
-  img {
-    opacity: 0.7;
-    max-width: 24px;
-    max-height: 24px;
-  }
-}
-
-.account-box__logo {
-  width: 120px;
-  height: 28px;
-  background: url('/static/img/kobologo.svg') no-repeat;
-  background-size: contain;
-  display: block;
-}
-.dropfiles--active {
-  > * {
-    opacity: 0.4;
-  }
-  &:before {
-    content: attr(title);
-    font-size: 3em;
-    position: absolute;
-    top: 45%;
-    left: 45%;
-  }
-}
-
-.k-404 {
-  > i:first-child {
-    @extend .fa, .fa-lg, .fa-question;
-  }
-}
-
-.k-form-list-nav-actions {
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
 }

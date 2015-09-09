@@ -1,0 +1,67 @@
+@mixin formHeaderButton($iconCls) {
+  > i {
+    @extend .fa-#{$iconCls};
+  }
+}
+
+.form-header__button {
+  @extend .mdl-button, .mdl-button--raised, .mdl-js-button;
+
+  > i {
+    @extend .fa, .fa-sm, .fa-fw;
+    margin-right: 5px;
+  }
+  margin-right: 5px;
+}
+
+.form-header__button--create {
+  @extend .mdl-button--colored;
+  @include formHeaderButton('save');
+  &.form-header__button--create-pending {
+    > i {
+      @extend .fa-spin, .fa-spinner;
+    }
+  }
+}
+.form-header__button--preview {
+  @include formHeaderButton('eye');
+  &.form-header__button--previewdisabled {
+    @extend .mdl-button--disabled;
+  }
+}
+.form-header__button--close {
+  @include formHeaderButton('times');
+}
+.form-header__button--save {
+  @extend .mdl-button--colored;
+  @include formHeaderButton('save');
+
+  &.form-header__button--savepending {
+    > i {
+      @extend .fa-spin, .fa-spinner;
+    }
+  }
+  &:after {
+    content: '_';
+    font-family: monospace;
+    color: transparent;
+  }
+  &.form-header__button--saveneeded {
+    &:after {
+      content: '*';
+      color: white;
+    }
+  }
+}
+.form-header__button--show-all {
+  @include formHeaderButton('caret-right');
+  &.form-header__button--open {
+    @include formHeaderButton('caret-down');
+  }
+}
+.form-header__button--group {
+  @include formHeaderButton('circle-o');
+  &:not(.form-header__button--groupable) {
+    @extend .mdl-button--disabled;
+  }
+}

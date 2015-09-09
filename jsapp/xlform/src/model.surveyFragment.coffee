@@ -237,6 +237,7 @@ define 'cs!xlform/model.surveyFragment', [
 
     groupStart: ->
       group = @
+      export_relevant_values: (surv, shts)-> surv.push(@toJSON())
       toJSON: ->
         out = {}
         for k, val of group.attributes
@@ -246,6 +247,7 @@ define 'cs!xlform/model.surveyFragment', [
         out
     groupEnd: ->
       group = @
+      export_relevant_values: (surv, shts)-> surv.push(@toJSON())
       toJSON: ()-> type: "end #{group._groupOrRepeatKey()}"
 
   INVALID_TYPES_AT_THIS_STAGE = ['begin group', 'end group', 'begin repeat', 'end repeat']

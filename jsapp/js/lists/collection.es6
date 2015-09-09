@@ -27,7 +27,13 @@ var CollectionList = React.createClass({
   ],
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setHeaderTitle(t('Collections'));
+      var headerBreadcrumb = [
+        {
+          'label': t('Collections'), 
+          'href': '/collections', 
+        }
+      ];
+      stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
       stores.pageState.setAssetNavPresent(false);
       callback();
     }

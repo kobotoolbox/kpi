@@ -125,18 +125,7 @@ var dmix = {
       }
     }
   },
-  renderAncestors () {
-    var ancestors;
-    if (this.state.ancestors) {
-      return this.renderAncestorBreadcrumb(this.ancestorListToParams(this.state.ancestors));
-    } else {
-      return this.renderAncestorBreadcrumb([{
-        children: 'forms',
-        to: 'forms',
-        params: {}
-      }]);
-    }
-  },
+  renderAncestors () {},
   renderName () {
     return (
         <bem.AssetView__name m={[
@@ -617,18 +606,6 @@ mixins.cmix = {
   },
   assetSearchChange (data) {
   },
-  panelHeader () {
-    var ancestors;
-    if (this.state.ancestors) {
-      return this.renderAncestorBreadcrumb(this.ancestorListToParams(this.state.ancestors));
-    } else {
-      return this.renderAncestorBreadcrumb([{
-        children: 'forms',
-        to: 'forms',
-        params: {}
-      }]);
-    }
-  },
   panelName (placeholder) {
     if (!this.state.name) {
       return (
@@ -715,9 +692,6 @@ mixins.cmix = {
   _createPanel () {
     return (
         <bem.ListView>
-          {
-            this.panelHeader()
-          }
           <ui.Panel margin="thin">
             {this.panelName(this.props.name)}
             {this.panelButtons()}

@@ -4,6 +4,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.dispatch import receiver
 from mptt.models import MPTTModel, TreeForeignKey
+from mptt.managers import TreeManager
 from shortuuid import ShortUUID
 from taggit.managers import TaggableManager
 from taggit.models import Tag
@@ -20,7 +21,7 @@ from object_permission import ObjectPermission, ObjectPermissionMixin
 COLLECTION_UID_LENGTH = 22
 
 
-class CollectionManager(TaggableModelManager):
+class CollectionManager(TreeManager, TaggableModelManager):
 
     def create(self, *args, **kwargs):
         assets = False
@@ -95,22 +96,9 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
         else:
             return None
 
-    def get_descendants_list(self, include_self=False):
-        ''' Similar to django-mptt's get_descendants, but returns a list
-        instead of a QuerySet since our descendants are both Assets and
-        Collections '''
-        mixed_descendants = list()
-        if not include_self:
-            # Gather our own child assets, since we won't be included
-            # in the main loop
-            mixed_descendants.extend(list(self.assets.all()))
-        for descendant in self.get_descendants(include_self):
-            # Append each of our descendant collections
-            mixed_descendants.append(descendant)
-            for asset in descendant.assets.all():
-                # Append each descendant collection's child assets
-                mixed_descendants.append(asset)
-        return mixed_descendants
+    def get_mixed_children(self):
+        ''' Returns all children, both Assets and Collections '''
+        return CollectionChildrenQuerySet(self)
 
     def __unicode__(self):
         return self.name
@@ -212,11 +200,14 @@ class CollectionChildrenQuerySet(object):
     def prefetch_related(self, *args, **kwargs):
         return self._apply_to_both('prefetch_related', *args, **kwargs)
 
+    def only(self, *args, **kwargs):
+        return self._apply_to_both('only', *args, **kwargs)
+
     def _apply_to_both(self, method, *args, **kwargs):
         qs = self._clone()
         qs.child_collections = getattr(qs.child_collections, method)(
             *args, **kwargs)
-        qs.child_collections = getattr(qs.child_collections, method)(
+        qs.child_assets = getattr(qs.child_assets, method)(
             *args, **kwargs)
         return qs
 

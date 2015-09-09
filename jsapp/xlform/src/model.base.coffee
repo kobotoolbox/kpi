@@ -78,7 +78,8 @@ define 'cs!xlform/model.base', [
       @_parent._parent
     precedingRow: ->
       ii = @_parent.models.indexOf(@)
-      @_parent.at(ii-1)
+      if ii isnt 0
+        @_parent.at(ii-1)
     nextRow: ->
       ii = @_parent.models.indexOf(@)
       @_parent.at(ii+1)

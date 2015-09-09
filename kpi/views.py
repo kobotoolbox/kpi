@@ -1,4 +1,5 @@
 from itertools import chain
+import copy
 import json
 import datetime
 
@@ -29,8 +30,10 @@ from .filters import KpiAssignedObjectPermissionsFilter
 from .filters import KpiObjectPermissionsFilter
 from .filters import SearchFilter
 from .highlighters import highlight_xform
+from hub.models import SitewideMessage
 from .models import (
     Collection,
+    Asset,
     Asset,
     AssetSnapshot,
     ImportTask,
@@ -51,6 +54,7 @@ from .renderers import (
 from .serializers import (
     AssetSerializer, AssetListSerializer,
     AssetSnapshotSerializer,
+    SitewideMessageSerializer,
     CollectionSerializer, CollectionListSerializer,
     UserSerializer, UserListSerializer,
     TagSerializer, TagListSerializer,
@@ -146,7 +150,6 @@ class ObjectPermissionViewSet(NoUpdateModelViewSet):
             instance.user,
             instance.permission.codename
         )
-
 
 class CollectionViewSet(viewsets.ModelViewSet):
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
@@ -440,23 +443,19 @@ class AssetViewSet(viewsets.ModelViewSet):
     def xls(self, request, *args, **kwargs):
         return self.table_view(self, request, *args, **kwargs)
 
-    @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
+    @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
     def xform(self, request, *args, **kwargs):
         asset = self.get_object()
-        export = asset.export
-        title = '[%s] %s' % (self.request.user.username, reverse(
-            'asset-detail', args=(asset.uid,), request=self.request),)
-        header_links = '''
-        <a href="../">Back</a> | <a href="../.xml">Download XML file</a><br>'''
-        footer = '\n<!-- kpi/views.py#footer -->\n'
+        export = asset.get_export(regenerate=True)
+        response_data = copy.copy(export.details)
+        response_data['api_url'] = reverse('asset-detail', args=(asset.uid,), request=self.request)
         options = {
             'linenos': True,
             'full': True,
-            'title': title,
-            'header': header_links,
-            'footer': footer,
         }
-        return Response(highlight_xform(export.xml, **options))
+        if export.xml != '':
+            response_data['highlighted_xform'] = highlight_xform(export.xml, **options)
+        return Response(response_data, template_name='highlighted_xform.html')
 
     def perform_create(self, serializer):
         # Check if the user is anonymous. The
@@ -492,3 +491,8 @@ class AssetViewSet(viewsets.ModelViewSet):
 
 def _wrap_html_pre(content):
     return "<!doctype html><html><body><code><pre>%s</pre></code></body></html>" % content
+
+
+class SitewideMessageViewSet(viewsets.ModelViewSet):
+    queryset = SitewideMessage.objects.all()
+    serializer_class = SitewideMessageSerializer

@@ -24,7 +24,12 @@ var LibrarySearchableList = React.createClass({
   ],
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setHeaderTitle(t('Library'));
+
+      var headerBreadcrumb = [
+        {'label': t('Library'), 'href': '', }
+      ];
+      stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
+
       stores.pageState.setAssetNavPresent(false);
       callback();
     }
