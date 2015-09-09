@@ -1,6 +1,7 @@
 import React from 'react/addons';
 import Reflux from 'reflux';
 import {Navigation} from 'react-router';
+import mdl from '../libs/rest_framework/material';
 import Dropzone from '../libs/dropzone';
 import assign from 'react/lib/Object.assign';
 
