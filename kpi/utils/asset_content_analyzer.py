@@ -5,7 +5,8 @@ import pyxform
 
 # possibly pull these aliases from pyxform
 GEO_TYPES = ['gps', 'geopoint', 'geoshape', 'geotrace',]
-META_QUESTION_TYPES = pyxform.constants.XLSFORM_METADATA_TYPES
+_unlisted_meta_types = ['username']
+META_QUESTION_TYPES = pyxform.constants.XLSFORM_METADATA_TYPES | set(_unlisted_meta_types)
 
 class AssetContentAnalyzer(object):
     def __init__(self, *args, **kwargs):
