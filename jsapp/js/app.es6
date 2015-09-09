@@ -100,6 +100,19 @@ mixins.formView = {
       asset_updated: false
     });
   },
+  _previewForm (evt) {
+    evt && evt.preventDefault();
+    dataInterface.createAssetSnapshot({
+      asset: this.state.asset.url,
+      source: surveyToValidJson(this.state.survey),
+    }).done((content) => {
+      this.setState({
+        enketopreviewOverlay: content.enketopreviewlink,
+      });
+    }).fail((jqxhr) => {
+      notify(t('failed to generate preview. please report this to support@kobotoolbox.org'));
+    });
+  },
   componentDidMount() {
     document.querySelector('.page-wrapper__content').addEventListener('scroll', this.handleScroll);
   },
@@ -177,6 +190,9 @@ mixins.formView = {
                 <bem.AssetView__row>
                   <FormSettingsBox {...this.state} />
                 </bem.AssetView__row>
+              :null}
+              { this.state.enketopreviewOverlay ?
+                <p>Overlay Preview: {this.state.enketopreviewOverlay}</p>
               :null}
               <bem.AssetView__row>
                 <div ref="form-wrap" className='form-wrap' />
@@ -1230,6 +1246,7 @@ mixins.newForm = {
       );
   },
   renderSaveAndPreviewButtons () {
+    var previewDisabled = this.state.survey.rows.length < 1;
     return (
           <bem.FormHeader>
             <ui.SmallInputBox
@@ -1241,7 +1258,7 @@ mixins.newForm = {
               {t('create')}
             </bem.FormHeader__button>
             <bem.FormHeader__button m={['preview', {
-                  previewdisabled: true,
+                  previewdisabled: previewDisabled,
                 }]} onClick={this.previewForm}>
               <i />
               {t('preview')}
@@ -2104,7 +2121,7 @@ var FormPage = React.createClass({
     var surv = this.state.survey,
         app = this.app || {};
 
-    var previewDisabled = true;
+    var previewDisabled = this.state.survey.rows.length < 1;
     var groupable = !!this.state.groupButtonIsActive;
     var showAllOpen = !!this.state.multioptionsExpanded;
     var _pendingName = this.state._pendingName;
@@ -2134,7 +2151,7 @@ var FormPage = React.createClass({
           </bem.FormHeader__button>
           <bem.FormHeader__button m={['preview', {
                 previewdisabled: previewDisabled
-              }]} onClick={this.previewForm}
+              }]} onClick={this._previewForm}
               disabled={previewDisabled}>
             <i />
             {t('preview')}
