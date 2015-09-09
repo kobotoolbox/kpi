@@ -224,12 +224,12 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
         return u'{} ({})'.format(self.name, self.uid)
 
 class AssetSnapshot(models.Model, XlsExportable):
-
     '''
     This model serves as a cache of the XML that was exported by the installed
     version of pyxform.
 
-    If the database gets heavy, we will want to clear this out.
+    TODO: come up with a policy to clear this cache out.
+    DO NOT: depend on these snapshots existing for more than a day until a policy is set.
     '''
     xml = models.TextField()
     source = JSONField(null=True)
