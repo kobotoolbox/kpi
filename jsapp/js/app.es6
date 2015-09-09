@@ -166,6 +166,19 @@ mixins.formView = {
   needsSave () {
     return this.state.asset_updated === -1;
   },
+  _hidePreview () {
+    this.setState({
+      enketopreviewOverlay: false
+    });
+  },
+  renderEnketoPreviewOverlay () {
+    return (
+        <bem.AssetView__row m={['enk-preview-needs-style']} style={{width:'100%'}}>
+          <button onClick={this._hidePreview}>x</button>
+          <iframe src={this.state.enketopreviewOverlay} style={{width: '100%', height: 800}} />
+        </bem.AssetView__row>
+      );
+  },
   innerRender () {
     var isSurvey = this.state.asset && this.state.asset.asset_type === 'survey';
     var formHeaderFixed = this.state.formHeaderFixed,
@@ -192,7 +205,7 @@ mixins.formView = {
                 </bem.AssetView__row>
               :null}
               { this.state.enketopreviewOverlay ?
-                <p>Overlay Preview: {this.state.enketopreviewOverlay}</p>
+                this.renderEnketoPreviewOverlay()
               :null}
               <bem.AssetView__row>
                 <div ref="form-wrap" className='form-wrap' />
