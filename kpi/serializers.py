@@ -58,6 +58,9 @@ class WritableJSONField(serializers.Field):
     def to_representation(self, value):
         return value
 
+class ReadOnlyJSONField(serializers.ReadOnlyField):
+    def to_representation(self, value):
+        return value
 
 class TagSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField('_get_tag_url', read_only=True)
@@ -532,13 +535,14 @@ class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class ImportTaskSerializer(serializers.HyperlinkedModelSerializer):
+    messages = ReadOnlyJSONField(required=False)
 
     class Meta:
         model = ImportTask
         fields = (
-            'data',
             'status',
             'uid',
+            'messages',
             'date_created',
         )
         extra_kwargs = {
@@ -552,11 +556,13 @@ class ImportTaskListSerializer(ImportTaskSerializer):
         lookup_field='uid',
         view_name='importtask-detail'
     )
+    messages = ReadOnlyJSONField(required=False)
 
     class Meta(ImportTaskSerializer.Meta):
         fields = (
             'url',
             'status',
+            'messages',
             'uid',
             'date_created',
         )

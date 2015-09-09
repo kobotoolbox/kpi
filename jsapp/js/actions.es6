@@ -112,6 +112,12 @@ actions.resources = Reflux.createActions({
       "failed"
     ]
   },
+  createImport: {
+    children: [
+      "completed",
+      "failed"
+    ]
+  },
   loadAsset: {
     children: [
       "completed",
@@ -242,27 +248,26 @@ actions.misc.checkUsername.listen(function(username){
     .done(actions.misc.checkUsername.completed)
     .fail(actions.misc.checkUsername.failed_);
 });
-
-actions.resources.createAsset.listen(function(contents){
+actions.resources.createImport.listen(function(contents){
   if (contents.base64Encoded) {
-    dataInterface.postCreateBase64EncodedAsset(contents)
-      .done(actions.resources.createAsset.completed)
-      .fail(actions.resources.createAsset.failed);
+    dataInterface.postCreateBase64EncodedImport(contents)
+      .done(actions.resources.createImport.completed)
+      .fail(actions.resources.createImport.failed);
   } else if (contents.content) {
     dataInterface.createResource(contents);
   }
 });
 
-actions.resources.createAsset.completed.listen(function(contents){
+actions.resources.createImport.completed.listen(function(contents){
   if (contents.status) {
     if(contents.status === 'processing') {
-      notify('uploading file');
-      log("processing import " + contents.uid);
+      notify(t('successfully uploaded file; processing may take a few minutes'));
+      log("processing import " + contents.uid, contents);
     } else {
       notify("unexpected import status \"" + contents.status + "\"", 'error');
     }
   } else {
-    notify(t("successfully created"));
+    notify(t('Error: import.status not available'));
   }
 })
 

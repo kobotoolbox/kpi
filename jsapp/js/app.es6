@@ -1368,6 +1368,7 @@ var AddToLibrary = React.createClass({
   }
 });
 
+/*
 var Collections = React.createClass({
   mixins: [
     mixins.collection,
@@ -1449,6 +1450,7 @@ var Collections = React.createClass({
     }
   }
 });
+*/
 
 var FormDownload = React.createClass({
   mixins: [

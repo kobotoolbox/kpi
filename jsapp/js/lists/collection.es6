@@ -42,7 +42,7 @@ var CollectionList = React.createClass({
     this.listCollections();
   },
   dropAction ({file, event}) {
-    actions.resources.createAsset({
+    actions.resources.createImport({
       base64Encoded: event.target.result,
       name: file.name,
       lastModified: file.lastModified,
