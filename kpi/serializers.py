@@ -300,17 +300,9 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         # Force owner to be the requesting user
         validated_data['owner'] = self.context['request'].user
         # Create the snapshot
-        snapshot = AssetSnapshot(**validated_data)
-        # Handle name generation and convert any KoBo-specific features to a
-        # valid survey structure for pyxform
-        survey_structure = convert_any_kobo_features_to_xlsform_survey_structure(
-            snapshot.source)
-        # Generate XML from survey structure
-        snapshot.generate_xml_from_source(survey_structure)
-        # Did it make anything?
+        snapshot = AssetSnapshot.objects.create(**validated_data)
         if not snapshot.xml:
             raise serializers.ValidationError(snapshot.summary)
-        snapshot.save()
         return snapshot
 
     class Meta:
