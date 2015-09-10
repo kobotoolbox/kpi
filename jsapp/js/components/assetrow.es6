@@ -132,6 +132,15 @@ var AssetRow = React.createClass({
                       );
                 })
               }
+              { isDeployable &&
+                <bem.AssetRow__actionIcon
+                      m={'deploy'}
+                      data-action={'deploy'}
+                      data-asset-type={this.props.kind}
+                    >
+                  <i />
+                </bem.AssetRow__actionIcon>
+              }
               { this.props.kind === 'collection' &&
               ['view', 'sharing', 'delete'].map((actn)=>{
                   return (
@@ -147,15 +156,6 @@ var AssetRow = React.createClass({
                 })
               }
             </bem.AssetRow__cell>
-            { isDeployable &&
-              <bem.AssetRow__actionIcon
-                    m={'deploy'}
-                    data-action={'deploy'}
-                    data-asset-type={this.props.kind}
-                  >
-                <i />
-              </bem.AssetRow__actionIcon>
-            }
           </bem.AssetRow__cell>
         </bem.AssetRow>
       );
