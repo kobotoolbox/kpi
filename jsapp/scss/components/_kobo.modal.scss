@@ -1,9 +1,18 @@
-.page-wrapper__content .modal-backdrop {
-	position: absolute;
-	height: 100%;
-	width:100%;
-	.modal-open {
+.page-wrapper__content {
+	.modal-backdrop {
+		position: absolute;
 		height: 100%;
+		width:100%;
+		.modal-open {
+			height: 100%;
+		}
+	}
+	.asset-view .modal-backdrop {
+		position: fixed;
+		top:60px;
+		height:calc(100% - 60);
+		overflow: hidden;
+		z-index: 101;
 	}
 }
 
@@ -47,11 +56,11 @@ h4.modal-title {
 		flex-grow:1;
 		display: flex;
 		flex-direction:column;
-		iframe {
-			flex-grow:1;
-	    border:1px solid white;
-	    width: 100%;
-		}
+	}
+	iframe {
+		flex-grow:1;
+    border:1px solid white;
+    width: 100%;
 	}
 }
 

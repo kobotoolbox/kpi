@@ -109,6 +109,7 @@ mixins.formView = {
       this.setState({
         enketopreviewOverlay: content.enketopreviewlink,
       });
+      stores.pageState.setAssetNavPresent(false);
     }).fail((jqxhr) => {
       notify(t('failed to generate preview. please report this to support@kobotoolbox.org'));
     });
@@ -170,13 +171,17 @@ mixins.formView = {
     this.setState({
       enketopreviewOverlay: false
     });
+    stores.pageState.setAssetNavPresent(true);
   },
   renderEnketoPreviewOverlay () {
     return (
-        <bem.AssetView__row m={['enk-preview-needs-style']} style={{width:'100%'}}>
-          <button onClick={this._hidePreview}>x</button>
-          <iframe src={this.state.enketopreviewOverlay} style={{width: '100%', height: 800}} />
-        </bem.AssetView__row>
+      <ui.Modal open onClose={this._hidePreview} title={t('Form Preview')}>
+        <ui.Modal.Body>
+          <iframe src={this.state.enketopreviewOverlay} /> 
+        </ui.Modal.Body>
+        <ui.Modal.Footer>
+        </ui.Modal.Footer>
+      </ui.Modal>
       );
   },
   innerRender () {
@@ -204,14 +209,14 @@ mixins.formView = {
                   <FormSettingsBox {...this.state} />
                 </bem.AssetView__row>
               :null}
-              { this.state.enketopreviewOverlay ?
-                this.renderEnketoPreviewOverlay()
-              :null}
               <bem.AssetView__row>
                 <div ref="form-wrap" className='form-wrap' />
               </bem.AssetView__row>
             </bem.AssetView__content>
           </ui.Panel>
+          { this.state.enketopreviewOverlay ?
+            this.renderEnketoPreviewOverlay()
+          :null}
         </bem.AssetView>
       );
   },
