@@ -23,23 +23,19 @@ $highlightedBarTextColor: #25343C;
 }
 
 .asset-row__tags {
-  font-size: 11px;
+  font-size: 12px;
+  color: #555;
   > i:first-child {
     @extend .fa, .fa-fw, .fa-tag;
-    margin-right: 2px;
-    float: left;
+    margin-right: 4px;
   }
 }
+
 .asset-row__tags__tag {
   @extend .k-tagsinput-tag;
   line-height: 14px;
-  // &:after {
-  //   content: ',';
-  // }
-  // &:last-child:after {
-  //   content: '';
-  // }
 }
+
 .asset-row--selected {
   background-color: $highlightedBarColor;
   color: $highlightedBarTextColor;
@@ -48,6 +44,7 @@ $highlightedBarTextColor: #25343C;
     background-color: transparent;
   }
 }
+
 .asset-row--selected {
   .asset-row__celllink--name {
     border-bottom: 1px solid #DADAEC;
@@ -55,6 +52,7 @@ $highlightedBarTextColor: #25343C;
   }
   cursor: default;
 }
+
 .asset-row--deleted {
   opacity: 0.5;
   background-color: rgba(255, 200, 200, 0.1);
@@ -165,17 +163,6 @@ $highlightedBarTextColor: #25343C;
   }
 }
 
-// TODO: update col number when questions count added
-$colcount: 3;
-$colwidth: (100% / $colcount) - 1%;
-%rowcell {
-  float: left;
-  width: $colwidth;
-  @media(max-width:767px) {
-    width: 50%;
-  }
-}
-
 %rowbar {
   @media(min-width:768px) {
     float: left;
@@ -198,17 +185,42 @@ $colwidth: (100% / $colcount) - 1%;
 }
 .asset-row__cellmeta {
   @extend %rowbar;
+  font-size: 12px;
   &.asset-row__cellmeta--wide {
     width: 100%;
   }
-  .asset-row__cell:not(.asset-row__cell--tags) {
-    @extend %rowcell;
+
+  .asset-row__cell {
+    width:25%;
+    float: left;
   }
-}
-.asset-row__cell--tags {
-  margin: 8px 8px 4px 0px;
-  text-indent: -15px;
-  width: 100%;
+  @mixin gradient($from, $to) {
+  background-color: $from;
+  background-image: -moz-linear-gradient($from, $to);
+  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from($from), to($to));
+  background-image: -webkit-linear-gradient($from, $to);
+  background-image: -o-linear-gradient($from, $to);
+  }
+  .asset-row__cell--tags {
+    max-height: 6em;
+    overflow: hidden;
+    width:49%;
+    position: relative;
+    .asset-row--selected & {
+      max-height: 40em;
+    }
+    &:after {
+      content: "";
+      position: absolute;
+      top: 4.5em;
+      height: 1.5em;
+      width: 100%;
+      @include gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 1));
+      .asset-row--selected & {
+        display: none;
+      }
+    }
+  }
 }
 
 .asset-row__cell {
@@ -260,6 +272,7 @@ $colwidth: (100% / $colcount) - 1%;
     }
   }
 }
+
 .asset-row__celllink--name {
   margin-bottom: 6px;
   border-bottom: 1px dotted transparent;
