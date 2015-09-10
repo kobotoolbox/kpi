@@ -277,10 +277,13 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         asset = validated_data.get('asset', None)
         source = validated_data.get('source', None)
         # TODO: Move to a validator?
-        if (asset and source) or not (asset or source):
-            # The client is confused
-            raise serializers.ValidationError(
-                'Specify either asset or source, but not both.')
+        if asset and source:
+            if not self.context['request'].user.has_perm('view_asset', asset):
+                # The client is not allowed to snapshot this asset
+                raise exceptions.PermissionDenied
+            validated_data['source'] = source
+            # when source is included, snapshot is not tied to an individual v_id
+            validated_data['asset_version_id'] = None
         elif asset:
             # The client provided an existing asset; read source from it
             if not self.context['request'].user.has_perm('view_asset', asset):
@@ -294,21 +297,15 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
             # For tidiness, pop off unused fields. `None` avoids KeyError
             validated_data.pop('asset', None)
             validated_data.pop('asset_version_id', None)
+        else:
+            raise serializers.ValidationError('Specify an asset and/or a source')
 
         # Force owner to be the requesting user
         validated_data['owner'] = self.context['request'].user
         # Create the snapshot
-        snapshot = AssetSnapshot(**validated_data)
-        # Handle name generation and convert any KoBo-specific features to a
-        # valid survey structure for pyxform
-        survey_structure = convert_any_kobo_features_to_xlsform_survey_structure(
-            snapshot.source)
-        # Generate XML from survey structure
-        snapshot.generate_xml_from_source(survey_structure)
-        # Did it make anything?
+        snapshot = AssetSnapshot.objects.create(**validated_data)
         if not snapshot.xml:
             raise serializers.ValidationError(snapshot.summary)
-        snapshot.save()
         return snapshot
 
     class Meta:
