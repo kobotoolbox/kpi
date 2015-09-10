@@ -248,13 +248,14 @@ var dmix = {
       );
   },
   renderIsPublic () {
-    var is_public = this.state.access.isPublic;
+    var is_public = this.state.access.isPublic,
+        linkSharingM = `linksharing-${is_public ? 'on' : 'off'}`;
     return (
-        <bem.AssetView__inlibrary>
+        <bem.AssetView__inlibrary m={linkSharingM}>
           <bem.AssetView__iconwrap><i /></bem.AssetView__iconwrap>
-          <bem.AssetView__col m={['publicshared', is_public ? 'public' : 'private' ]}>
+          <bem.AssetView__col m={linkSharingM}>
             {
-              is_public ? 'in library' : 'private'
+              is_public ? t('link sharing: on') : t('link sharing: off')
             }
           </bem.AssetView__col>
         </bem.AssetView__inlibrary>

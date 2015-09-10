@@ -11,19 +11,19 @@ function parseResponsePermissions (resp) {
   var out = {};
   var pp = parsePermissions(resp.owner__username, resp.permissions);
   out.parsedPermissions = pp;
+  var isPublic = !!resp.permissions.filter(function(pp){
+    return pp.user__username==='AnonymousUser';
+  })[0];
+
   out.access = (()=>{
     var viewers = {};
     var changers = {};
-    var isPublic = false;
     pp.forEach(function(userPerm){
       if (userPerm.can.view) {
         viewers[userPerm.username] = true;
       }
       if (userPerm.can.change) {
         changers[userPerm.username] = true;
-      }
-      if (userPerm.username === 'AnonymousUser') {
-        isPublic = !!userPerm.can.view;
       }
     });
     return {view: viewers, change: changers, ownerUsername: resp.owner__username, isPublic: isPublic};
