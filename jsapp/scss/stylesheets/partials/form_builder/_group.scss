@@ -130,15 +130,10 @@
 .group__caret {
     cursor: pointer;
     color: #8595a6;
-    @extend .fa, .fa-fw, .fa-caret-down;
-    // @extend %caret-down;
 }
 .group--shrunk {
     border-bottom: none;
     padding-bottom: 0px;
-    .group__caret {
-        @extend .fa, .fa-fw, .fa-caret-right;
-    }
     .group__rows {
         display: none;
     }
