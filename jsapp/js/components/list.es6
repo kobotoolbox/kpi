@@ -193,6 +193,43 @@ var ListTagFilter = React.createClass({
   },
 })
 
+var ListExpandToggle = React.createClass({
+  mixins: [
+    searches.common,
+    Reflux.ListenerMixin,
+  ],
+  getInitialState () {
+    return {
+      assetNavExpanded: stores.pageState.state.assetNavExpanded
+    }
+  },
+  handleChange: function(event) {
+    stores.pageState.setState({assetNavExpanded: !this.state.assetNavExpanded})
+    // console.log(stores.pageState);
+    this.setState({assetNavExpanded: !this.state.assetNavExpanded});
+  },
+  getDefaultProps () {
+    return {
+      searchContext: 'default',
+    }
+  },
+  render () {
+    return (
+      <bem.LibNav__expanded>
+        <bem.LibNav__count>
+          xx assets found
+        </bem.LibNav__count>
+        <bem.LibNav__expandedToggle>
+          <label className="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" htmlFor="expandedToggleCheckbox" >
+            <input type="checkbox" className="mdl-checkbox__input"  id="expandedToggleCheckbox" checked={this.state.assetNavExpanded} onChange={this.handleChange} />
+            <span className="mdl-checkbox__label">{t('expand details')} {this.state.assetNavExpanded}</span>
+          </label>
+        </bem.LibNav__expandedToggle>
+      </bem.LibNav__expanded>
+      );
+  },
+})
+
 var ListSearchSummary = React.createClass({
   mixins: [
     searches.common,
@@ -308,4 +345,5 @@ export default {
   ListSearchDebug: ListSearchDebug,
   ListSearchSummary: ListSearchSummary,
   ListTagFilter: ListTagFilter,
+  ListExpandToggle: ListExpandToggle,
 };

@@ -143,6 +143,7 @@ var pageStateStore = Reflux.createStore({
       assetNavPresent: false,
       assetNavIsOpen: navIsOpen,
       assetNavIntentOpen: navIsOpen,
+      assetNavExpanded: false,
       sidebarIsOpen: false,
       sidebarIntentOpen: false,
     };

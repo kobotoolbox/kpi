@@ -25,6 +25,7 @@ $assetNavFooterHeight: 0px;
   padding: 0;
   overflow-y: auto;
   flex-grow:1;
+  @extend .mdl-color--grey-100;
 }
 
 .library-asset-list {
@@ -116,4 +117,13 @@ $assetNavFooterHeight: 0px;
     background-color: #666;
     color: #fff;
   }
+}
+
+.lib-nav__expanded {
+  display: flex;
+  justify-content:space-around;
+  width: 100%;
+  padding-top: 4px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #DDD;
 }
