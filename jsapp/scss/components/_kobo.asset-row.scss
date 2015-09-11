@@ -23,7 +23,7 @@ $highlightedBarTextColor: #25343C;
 }
 
 .asset-row__tags {
-  font-size: 12px;
+  font-size: 11px;
   color: #555;
   > i:first-child {
     @extend .fa, .fa-fw, .fa-tag;
@@ -33,7 +33,6 @@ $highlightedBarTextColor: #25343C;
 
 .asset-row__tags__tag {
   @extend .k-tagsinput-tag;
-  line-height: 14px;
 }
 
 .asset-row--selected {
@@ -186,12 +185,12 @@ $highlightedBarTextColor: #25343C;
 .asset-row__cellmeta {
   @extend %rowbar;
   font-size: 12px;
-  &.asset-row__cellmeta--wide {
-    width: 100%;
-  }
+  // &.asset-row__cellmeta--wide {
+  //   width: 100%;
+  // }
 
   .asset-row__cell {
-    width:25%;
+    width:33%;
     float: left;
   }
   @mixin gradient($from, $to) {
@@ -202,9 +201,9 @@ $highlightedBarTextColor: #25343C;
   background-image: -o-linear-gradient($from, $to);
   }
   .asset-row__cell--tags {
-    max-height: 6em;
+    max-height: 4.5em;
     overflow: hidden;
-    width:49%;
+    width:100%;
     position: relative;
     .asset-row--selected & {
       max-height: 40em;
@@ -212,7 +211,7 @@ $highlightedBarTextColor: #25343C;
     &:after {
       content: "";
       position: absolute;
-      top: 4.5em;
+      top: 3em;
       height: 1.5em;
       width: 100%;
       @include gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 1));
@@ -251,24 +250,19 @@ $highlightedBarTextColor: #25343C;
       @include action-faicon('folder-o');
     }
   }
-  &.asset-row__cell--deploy-button {
+  
+  .asset-row__action-icon--deploy {
+    @extend .mdl-button;
     i {
-      @extend .fa, .fa-fw, .fa-play;
-    }
-    button {
-      @extend .mdl-button;
+      @extend .fa, .fa-play;
     }
     .asset-row:not(.asset-row--selected) & {
-      button {
-        @extend .mdl-button;
-        @extend .mdl--disabled;
-      }
+      @extend .mdl-button;
+      @extend .mdl--disabled;
     }
     .asset-row--selected & {
-      button {
-        opacity: 1;
-        @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
-      }
+      opacity: 1;
+      @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
     }
   }
 }
