@@ -58,9 +58,10 @@ $highlightedBarTextColor: #25343C;
 }
 
 @mixin bt-theme($col) {
+  // TODO: extend MDL-like behavior into this mixin
+  // @extend .mdl-button;
   .asset-row:not(.asset-row--selected) & {
-    // border-color: rgba($col, 0.2);
-    // background-color: rgba($col, 0.05);
+    // @extend .mdl-button--disabled;
     border-color: lighten(rgb(223, 223, 223), 30%);
     background-color: lighten(rgb(223, 223, 223), 50%);
 
@@ -69,11 +70,18 @@ $highlightedBarTextColor: #25343C;
     }
   }
   .asset-row--selected & {
+    // @extend .mdl-button--raised, .mdl-button--colored;
     border-color: rgba($col, 0.7);
     background-color: rgba($col, 0.05);
     cursor: pointer;
+    transition:all 0.5s;
     > * {
       color: darken($col, 5%);
+    }
+
+    &:hover {
+      border-color: rgba($col, 0.85);
+      background-color: rgba($col, 0.15);      
     }
   }
 }
@@ -93,11 +101,11 @@ $highlightedBarTextColor: #25343C;
   border-style: solid;
   border-width: 1px;
   width: 30px;
-  height: 30px;
-  display: inline;
-  margin-right: 4px;
+  height: 36px;
+  display: inline-block;
+  margin-right: 3px;
   text-align: center;
-  line-height: 27px;
+  line-height: 24px;
   border-radius: 2px;
   padding: 4px;
   background-color: rgba(255,255,255,0.8);
@@ -135,6 +143,12 @@ $highlightedBarTextColor: #25343C;
   &.asset-row__action-icon--download {
     @include bt-theme($kcol-download);
     @include action-faicon('download');
+  }
+  &.asset-row__action-icon--deploy {
+    // @include bt-theme($kcol-deploy);
+    @include action-faicon('play');
+    padding: 4px 12px;
+    margin-left: 4px;
   }
 }
 
@@ -222,47 +236,46 @@ $highlightedBarTextColor: #25343C;
   }
 }
 
-.asset-row__cell {
-  // indicating the asset type
-  &.asset-row__cell--icon {
-    @extend %inner-fa-icon;
-    > i {
-      @extend .fa-lg;
-    }
-
-    &.asset-row__cell--assettype-empty {
-      @include action-faicon('lemon-o');
-      > i {
-        @extend .fa-spin;
-      }
-      opacity: 0.8;
-    }
-    &.asset-row__cell--assettype-question {
-      @include action-faicon('circle-o');
-    }
-    &.asset-row__cell--assettype-block {
-      @include action-faicon('square-o');
-    }
-    &.asset-row__cell--assettype-survey {
-      @include action-faicon('file-o');
-    }
-    &.asset-row__cell--kind-collection {
-      @include action-faicon('folder-o');
-    }
+.asset-row__cell.asset-row__cell--icon {
+  @extend %inner-fa-icon;
+  > i {
+    @extend .fa-lg;
   }
-  
-  .asset-row__action-icon--deploy {
-    @extend .mdl-button;
+
+  &.asset-row__cell--assettype-empty {
+    @include action-faicon('lemon-o');
+    > i {
+      @extend .fa-spin;
+    }
+    opacity: 0.8;
+  }
+  &.asset-row__cell--assettype-question {
+    @include action-faicon('circle-o');
+  }
+  &.asset-row__cell--assettype-block {
+    @include action-faicon('square-o');
+  }
+  &.asset-row__cell--assettype-survey {
+    @include action-faicon('file-o');
+  }
+  &.asset-row__cell--kind-collection {
+    @include action-faicon('folder-o');
+  }
+}
+
+.asset-row__action-icon.asset-row__action-icon--deploy {
+  @extend .mdl-button;
+  i {
+    @extend .fa, .fa-play;
+  }
+  .asset-row:not(.asset-row--selected) & {
+    @extend .mdl--disabled;
+  }
+  .asset-row--selected & {
+    opacity: 1;
+    @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
     i {
-      @extend .fa, .fa-play;
-    }
-    .asset-row:not(.asset-row--selected) & {
-      @extend .mdl-button;
-      @extend .mdl--disabled;
-    }
-    .asset-row--selected & {
-      opacity: 1;
-      @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
+      color: white;
     }
   }
 }
@@ -272,7 +285,7 @@ $highlightedBarTextColor: #25343C;
   border-bottom: 1px dotted transparent;
 }
 
-.asset-row__cell--asset-buttons {
+.asset-row__cell--action-icons {
   text-align: right;
   width: 29%; // 100% - rowbar width
   float: right;
@@ -280,14 +293,9 @@ $highlightedBarTextColor: #25343C;
   opacity: 0;
   transition:all 0.3s;
 
-  .asset-row__cell {
-    display: inline;
-  }
-
-  .asset-row:hover & {
+  .asset-row--selected & {
     opacity: 1;
     height: auto;
-    transition:all 0.3s;
   }
 }
 
@@ -296,6 +304,6 @@ $highlightedBarTextColor: #25343C;
     width: 100%;
     text-align: center;
     margin-top: 0px;
-    padding:5px;
+    padding:5px; 
   }
 }

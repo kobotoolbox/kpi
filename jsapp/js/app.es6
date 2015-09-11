@@ -100,6 +100,20 @@ mixins.formView = {
       asset_updated: false
     });
   },
+  _previewForm (evt) {
+    evt && evt.preventDefault();
+    dataInterface.createAssetSnapshot({
+      asset: this.state.asset.url,
+      source: surveyToValidJson(this.state.survey),
+    }).done((content) => {
+      this.setState({
+        enketopreviewOverlay: content.enketopreviewlink,
+      });
+      stores.pageState.setAssetNavPresent(false);
+    }).fail((jqxhr) => {
+      notify(t('failed to generate preview. please report this to support@kobotoolbox.org'));
+    });
+  },
   componentDidMount() {
     document.querySelector('.page-wrapper__content').addEventListener('scroll', this.handleScroll);
   },
@@ -153,6 +167,23 @@ mixins.formView = {
   needsSave () {
     return this.state.asset_updated === -1;
   },
+  _hidePreview () {
+    this.setState({
+      enketopreviewOverlay: false
+    });
+    stores.pageState.setAssetNavPresent(true);
+  },
+  renderEnketoPreviewOverlay () {
+    return (
+      <ui.Modal open onClose={this._hidePreview} title={t('Form Preview')}>
+        <ui.Modal.Body>
+          <iframe src={this.state.enketopreviewOverlay} /> 
+        </ui.Modal.Body>
+        <ui.Modal.Footer>
+        </ui.Modal.Footer>
+      </ui.Modal>
+      );
+  },
   innerRender () {
     var isSurvey = this.state.asset && this.state.asset.asset_type === 'survey';
     var formHeaderFixed = this.state.formHeaderFixed,
@@ -183,6 +214,9 @@ mixins.formView = {
               </bem.AssetView__row>
             </bem.AssetView__content>
           </ui.Panel>
+          { this.state.enketopreviewOverlay ?
+            this.renderEnketoPreviewOverlay()
+          :null}
         </bem.AssetView>
       );
   },
@@ -1230,6 +1264,7 @@ mixins.newForm = {
       );
   },
   renderSaveAndPreviewButtons () {
+    var previewDisabled = this.state.survey.rows.length < 1;
     return (
           <bem.FormHeader>
             <ui.SmallInputBox
@@ -1241,7 +1276,7 @@ mixins.newForm = {
               {t('create')}
             </bem.FormHeader__button>
             <bem.FormHeader__button m={['preview', {
-                  previewdisabled: true,
+                  previewdisabled: previewDisabled,
                 }]} onClick={this.previewForm}>
               <i />
               {t('preview')}
@@ -2106,7 +2141,7 @@ var FormPage = React.createClass({
     var surv = this.state.survey,
         app = this.app || {};
 
-    var previewDisabled = true;
+    var previewDisabled = this.state.survey.rows.length < 1;
     var groupable = !!this.state.groupButtonIsActive;
     var showAllOpen = !!this.state.multioptionsExpanded;
     var _pendingName = this.state._pendingName;
@@ -2136,7 +2171,7 @@ var FormPage = React.createClass({
           </bem.FormHeader__button>
           <bem.FormHeader__button m={['preview', {
                 previewdisabled: previewDisabled
-              }]} onClick={this.previewForm}
+              }]} onClick={this._previewForm}
               disabled={previewDisabled}>
             <i />
             {t('preview')}

@@ -337,6 +337,23 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
         else:
             return AssetSnapshot.objects.none()
 
+    @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
+    def xform(self, request, *args, **kwargs):
+        '''
+        This route will render the XForm into syntax-highlighted HTML.
+        It is useful for debugging pyxform transformations
+        '''
+        snapshot = self.get_object()
+        response_data = copy.copy(snapshot.details)
+        options = {
+            'linenos': True,
+            'full': True,
+        }
+        if snapshot.xml != '':
+            response_data['highlighted_xform'] = highlight_xform(snapshot.xml, **options)
+        return Response(response_data, template_name='highlighted_xform.html')
+
+
 
 class AssetViewSet(viewsets.ModelViewSet):
     """
@@ -447,8 +464,8 @@ class AssetViewSet(viewsets.ModelViewSet):
     def xform(self, request, *args, **kwargs):
         asset = self.get_object()
         export = asset.get_export(regenerate=True)
+        # TODO-- forward to AssetSnapshotViewset.xform
         response_data = copy.copy(export.details)
-        response_data['api_url'] = reverse('asset-detail', args=(asset.uid,), request=self.request)
         options = {
             'linenos': True,
             'full': True,
