@@ -130,6 +130,9 @@ bem.AssetView__link = bem.AssetView.__('link', '<a>');
 bem.AssetView__deployments = bem.AssetView.__('deployments');
 bem.AssetView__deploybutton = bem.AssetView.__('deploybutton', '<button>');
 
+bem.PopoverMenu = bem('popover-menu');
+bem.PopoverMenu__item = bem.PopoverMenu.__('item');
+bem.PopoverMenu__link = bem.PopoverMenu.__('link', '<a>');
 
 
 bem.CollectionHeader__button = bem.CollectionHeader.__('button', '<a>')
