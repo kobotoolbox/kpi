@@ -1,5 +1,6 @@
 import base64
 from io import BytesIO
+import re
 from collections import defaultdict
 from django.db import models
 from shortuuid import ShortUUID
@@ -9,7 +10,7 @@ from pyxform import xls2json_backends
 from ..models import Collection, Asset
 from ..model_utils import create_assets, _load_library_content
 from ..zip_importer import HttpContentParse
-
+from rest_framework import exceptions
 
 UID_LENGTH = 22
 
@@ -65,15 +66,18 @@ class ImportTask(models.Model):
                 self._load_assets_from_url(
                     self.data['url'], destination=self.data['destination'],
                     messages=msgs)
-            elif 'base64Encoded' in self.data and 'name' in self.data:
-                self._parse_xls_upload(
-                    base64_encoded_upload=self.data['base64Encoded'],
-                    filename=self.data['name'],
-                    messages=msgs,
-                )
+            elif 'base64Encoded' in self.data:
+                params = {
+                    'base64_encoded_upload': self.data['base64Encoded'],
+                    'filename': self.data.get('filename', None),
+                    'messages': msgs,
+                }
+                if 'destination' in self.data:
+                    params['destination'] = self.data['destination']
+                self._parse_xls_upload(**params)
             else:
                 raise Exception(
-                    'ImportTask data must contain both `base64Encoded` and `name` '
+                    'ImportTask data must contain `base64Encoded` '
                     'or both `url` and `destination`'
                 )
             _status = self.COMPLETE
@@ -131,11 +135,19 @@ class ImportTask(models.Model):
                 orm_obj.parent = parent_item
             orm_obj.save()
 
-    def _parse_xls_upload(self, base64_encoded_upload, filename, messages):
-        decoded_str = base64.b64decode(base64_encoded_upload)
-        survey_dict = xls2json_backends.xls_to_dict(BytesIO(decoded_str))
+    def _parse_xls_upload(self, base64_encoded_upload, filename, messages, destination=False):
+        survey_dict = _b64_xls_to_dict(base64_encoded_upload)
         survey_dict_keys = survey_dict.keys()
+
+        if destination:
+            #TODO: check & handle if destination is a collection
+            destination_asset = Asset.objects.get(owner=self.user, uid=destination)
+        else:
+            destination_asset = False
+
         if 'library' in survey_dict_keys:
+            if destination_asset:
+                raise SyntaxError('libraries cannot be imported into assets')
             collection = _load_library_content({
                     'content': survey_dict,
                     'owner': self.user,
@@ -148,11 +160,20 @@ class ImportTask(models.Model):
                     'owner__username': self.user.username,
                 })
         elif 'survey' in survey_dict_keys or 'block' in survey_dict_keys:
-            asset = Asset.objects.create(
-                owner=self.user,
-                content=survey_dict,
-            )
-            messages['created'].append({
+            if destination_asset:
+                asset = destination_asset
+                if not asset.has_perm(self.user, 'change_asset'):
+                    raise exceptions.PermissionDenied('user cannot update asset')
+                asset.content = survey_dict
+                asset.save()
+                msg_key = 'updated'
+            else:
+                asset = Asset.objects.create(
+                    owner=self.user,
+                    content=survey_dict,
+                )
+                msg_key = 'created'
+            messages[msg_key].append({
                     'uid': asset.uid,
                     'summary': asset.summary,
                     'kind': 'asset',
@@ -162,3 +183,14 @@ class ImportTask(models.Model):
         else:
             raise SyntaxError('xls upload must have one of these sheets: {}' \
                         .format('survey, block, library'))
+
+def _b64_xls_to_dict(base64_encoded_upload):
+    decoded_str = base64.b64decode(base64_encoded_upload)
+    survey_dict = xls2json_backends.xls_to_dict(BytesIO(decoded_str))
+    return _strip_header_keys(survey_dict)
+
+def _strip_header_keys(survey_dict):
+    for sheet_name, sheet in survey_dict.items():
+        if re.search(r'_header$', sheet_name):
+            del survey_dict[sheet_name]
+    return survey_dict

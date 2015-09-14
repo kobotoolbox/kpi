@@ -53,6 +53,12 @@ let Route = Router.Route;
 let RouteHandler = Router.RouteHandler;
 let NotFoundRoute = Router.NotFoundRoute;
 
+var update_states = {
+  UNSAVED_CHANGES: -1,
+  UP_TO_DATE: true,
+  PENDING_UPDATE: false,
+};
+
 mixins.taggedAsset = {
   mixins: [
     React.addons.LinkedStateMixin
@@ -97,7 +103,7 @@ mixins.formView = {
       content: surveyToValidJson(this.state.survey)
     });
     this.setState({
-      asset_updated: false
+      asset_updated: update_states.PENDING_UPDATE,
     });
   },
   _previewForm (evt) {
@@ -161,11 +167,11 @@ mixins.formView = {
   },
   getInitialState () {
     return {
-      'asset_updated': true
+      'asset_updated': update_states.UP_TO_DATE,
     }
   },
   needsSave () {
-    return this.state.asset_updated === -1;
+    return this.state.asset_updated === update_states.UNSAVED_CHANGES;
   },
   _hidePreview () {
     this.setState({
@@ -177,7 +183,7 @@ mixins.formView = {
     return (
       <ui.Modal open onClose={this._hidePreview} title={t('Form Preview')}>
         <ui.Modal.Body>
-          <iframe src={this.state.enketopreviewOverlay} /> 
+          <iframe src={this.state.enketopreviewOverlay} />
         </ui.Modal.Body>
         <ui.Modal.Footer>
         </ui.Modal.Footer>
@@ -1058,7 +1064,9 @@ var FormSettingsBox = React.createClass({
   },
   onCheckboxChange (evt) {
     this.getSurveyDetail(evt.target.id).set('value', evt.target.checked);
-    this.updateState();
+    this.updateState({
+      asset_updated: update_states.UNSAVED_CHANGES,
+    });
   },
   onFieldChange (evt) {
     var fieldId = evt.target.id,
@@ -1070,8 +1078,7 @@ var FormSettingsBox = React.createClass({
       xform_id_string: this.props.survey.settings.get('form_id')
     })
   },
-  updateState () {
-    var newState = {};
+  updateState (newState={}) {
     "start end today deviceid".split(" ").forEach(this.passValueIntoObj('meta', newState));
     "username simserial subscriberid phonenumber".split(" ").map(this.passValueIntoObj('phoneMeta', newState));
     this.setState(newState);
@@ -2104,7 +2111,7 @@ var FormPage = React.createClass({
     }).done((asset) => {
       this.setState({
         asset: asset,
-        asset_updated: true,
+        asset_updated: update_states.UP_TO_DATE,
         _pendingName: false,
       });
       actions.resources.updateAsset.completed(asset);
@@ -2112,7 +2119,7 @@ var FormPage = React.createClass({
       actions.resources.updateAsset.failed(asset);
     })
     this.setState({
-      asset_updated: false,
+      asset_updated: update_states.PENDING_UPDATE,
       _pendingName: _nameValue,
     });
   },
@@ -2129,7 +2136,7 @@ var FormPage = React.createClass({
 
   onSurveyChange () {
     this.setState({
-      asset_updated: -1
+      asset_updated: update_states.UNSAVED_CHANGES
     });
   },
   onNameInputChange (evt) {
@@ -2156,9 +2163,9 @@ var FormPage = React.createClass({
               placeholder='form name'
             />
           <bem.FormHeader__button m={['save', {
-                savepending: this.state.asset_updated === false,
-                savecomplete: this.state.asset_updated === true,
-                saveneeded: this.state.asset_updated === -1,
+                savepending: this.state.asset_updated === update_states.PENDING_UPDATE,
+                savecomplete: this.state.asset_updated === update_states.UP_TO_DATE,
+                saveneeded: this.state.asset_updated === update_states.UNSAVED_CHANGES,
               }]} onClick={this.saveForm}>
             <i />
             {t('save')}
@@ -2241,7 +2248,6 @@ var FormPage = React.createClass({
           survey.settings.set('form_title', this.state.survey_name);
         }
         window.setTimeout(( () => {
-          survey.settings.on('change', this.onSurveyChange);
           survey.rows.on('change', this.onSurveyChange);
           survey.rows.on('sort', this.onSurveyChange);
         } ), 500);
