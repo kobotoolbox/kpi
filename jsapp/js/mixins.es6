@@ -292,10 +292,23 @@ var dmix = {
       );
   },
   toggleDownloads (evt) {
-    var isFocusEvent = (evt.type === 'focus');
-    this.setState({
-      downloadsShowing: isFocusEvent
-    });
+    var isFocusEvent = evt.type === 'focus',
+        isBlur = evt.type === 'blur',
+        $popoverMenu;
+    if (isBlur) {
+      $popoverMenu = $(this.refs['dl-popover'].getDOMNode());
+      // if we setState and immediately hide popover then the
+      // download links will not register as clicked
+      $popoverMenu.fadeOut(250, () => {
+        this.setState({
+          downloadsShowing: false,
+        });
+      });
+    } else {
+      this.setState({
+        downloadsShowing: true,
+      });
+    }
   },
   renderButtons () {
     var downloadable = !!this.state.downloads[0],
@@ -318,15 +331,16 @@ var dmix = {
               {t('preview')}
             </bem.AssetView__link>
           </bem.AssetView__buttoncol>
-          <bem.AssetView__buttoncol>
-            <bem.AssetView__button htmlFor="formdownload-links" m="download" disabled={!downloadable}
+          <bem.AssetView__buttoncol
                 onFocus={this.toggleDownloads}
                 onBlur={this.toggleDownloads}>
+            <bem.AssetView__button m={'download'}
+                  disabled={!downloadable}>
               <i />
               {t('download')}
             </bem.AssetView__button>
             {(downloadable && this.state.downloadsShowing) ?
-              <bem.PopoverMenu id="formdownload-links">
+              <bem.PopoverMenu ref='dl-popover'>
                 {downloads.map((dl)=>{
                   return (
                       <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
