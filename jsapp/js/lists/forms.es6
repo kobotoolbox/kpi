@@ -9,6 +9,8 @@ import stores from '../stores';
 import bem from '../bem';
 import ui from '../ui';
 
+var mdl = require('../libs/rest_framework/material');
+
 import SearchCollectionList from '../components/searchcollectionlist';
 
 import {List, ListSearch, ListSearchDebug, ListTagFilter, ListSearchSummary} from '../components/list';
@@ -28,7 +30,7 @@ var FormsSearchableList = React.createClass({
       var headerBreadcrumb = [
         {
           'label': t('Forms'), 
-          'href': '/forms', 
+          // 'href': 'forms', 
         }
       ];
       stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
@@ -106,6 +108,8 @@ var FormsSearchableList = React.createClass({
       </ui.Panel>
       );
   },
-});
+  componentDidUpdate() {
+    mdl.upgradeDom();
+  }});
 
 export default FormsSearchableList;

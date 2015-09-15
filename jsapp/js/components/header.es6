@@ -8,7 +8,7 @@ import Reflux from 'reflux';
 import bem from '../bem';
 import mixins from '../mixins';
 
-
+var mdl = require('../libs/rest_framework/material');
 var actions = require('../actions');
 var assign = require('react/lib/Object.assign');
 
@@ -76,6 +76,9 @@ var MainHeader = React.createClass({
           </div>
         </header>
       )
+  },
+  componentDidUpdate() {
+    mdl.upgradeDom();
   }
 });
 

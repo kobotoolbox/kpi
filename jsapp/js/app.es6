@@ -2606,6 +2606,9 @@ var Home = React.createClass({
         Please log in and click "forms"
       </ui.Panel>
       );
+  },
+  componentDidUpdate() {
+    mdl.upgradeDom();
   }
 });
 

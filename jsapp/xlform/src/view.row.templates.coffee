@@ -80,7 +80,7 @@ define 'cs!xlform/view.row.templates', [], ()->
     """
     <div class="survey__row__item survey__row__item--group group card js-select-row">
       <header class="group__header">
-        <i class="group__caret js-toggle-group-expansion fa fa-fw"></i>
+        <i class="group__caret js-toggle-group-expansion fa fa-fw fa-caret-down"></i>
         <span class="group__label js-cancel-select-row js-cancel-sort">#{g.getValue('label')}</span>
           <div class="group__header__buttons">
             <span class="group__header__buttons__button group__header__buttons__button--settings js-toggle-card-settings"><i class="fa fa-cog"></i></span>

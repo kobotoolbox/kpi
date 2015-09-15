@@ -24,22 +24,17 @@ $highlightedBarTextColor: #25343C;
 
 .asset-row__tags {
   font-size: 11px;
+  color: #555;
   > i:first-child {
     @extend .fa, .fa-fw, .fa-tag;
-    margin-right: 2px;
-    float: left;
+    margin-right: 4px;
   }
 }
+
 .asset-row__tags__tag {
   @extend .k-tagsinput-tag;
-  line-height: 14px;
-  // &:after {
-  //   content: ',';
-  // }
-  // &:last-child:after {
-  //   content: '';
-  // }
 }
+
 .asset-row--selected {
   background-color: $highlightedBarColor;
   color: $highlightedBarTextColor;
@@ -48,6 +43,7 @@ $highlightedBarTextColor: #25343C;
     background-color: transparent;
   }
 }
+
 .asset-row--selected {
   .asset-row__celllink--name {
     border-bottom: 1px solid #DADAEC;
@@ -55,6 +51,7 @@ $highlightedBarTextColor: #25343C;
   }
   cursor: default;
 }
+
 .asset-row--deleted {
   opacity: 0.5;
   background-color: rgba(255, 200, 200, 0.1);
@@ -77,8 +74,14 @@ $highlightedBarTextColor: #25343C;
     border-color: rgba($col, 0.7);
     background-color: rgba($col, 0.05);
     cursor: pointer;
+    transition:all 0.5s;
     > * {
       color: darken($col, 5%);
+    }
+
+    &:hover {
+      border-color: rgba($col, 0.85);
+      background-color: rgba($col, 0.15);      
     }
   }
 }
@@ -98,11 +101,11 @@ $highlightedBarTextColor: #25343C;
   border-style: solid;
   border-width: 1px;
   width: 30px;
-  height: 30px;
-  display: inline;
-  margin-right: 4px;
+  height: 36px;
+  display: inline-block;
+  margin-right: 3px;
   text-align: center;
-  line-height: 27px;
+  line-height: 24px;
   border-radius: 2px;
   padding: 4px;
   background-color: rgba(255,255,255,0.8);
@@ -142,7 +145,7 @@ $highlightedBarTextColor: #25343C;
     @include action-faicon('download');
   }
   &.asset-row__action-icon--deploy {
-    @include bt-theme($kcol-deploy);
+    // @include bt-theme($kcol-deploy);
     @include action-faicon('play');
     padding: 4px 12px;
     margin-left: 4px;
@@ -173,17 +176,6 @@ $highlightedBarTextColor: #25343C;
   }
 }
 
-// TODO: update col number when questions count added
-$colcount: 3;
-$colwidth: (100% / $colcount) - 1%;
-%rowcell {
-  float: left;
-  width: $colwidth;
-  @media(max-width:767px) {
-    width: 50%;
-  }
-}
-
 %rowbar {
   @media(min-width:768px) {
     float: left;
@@ -206,47 +198,88 @@ $colwidth: (100% / $colcount) - 1%;
 }
 .asset-row__cellmeta {
   @extend %rowbar;
-  &.asset-row__cellmeta--wide {
-    width: 100%;
-  }
-  .asset-row__cell:not(.asset-row__cell--tags) {
-    @extend %rowcell;
-  }
-}
-.asset-row__cell--tags {
-  margin: 8px 8px 4px 0px;
-  width: 100%;
-}
+  font-size: 12px;
+  // &.asset-row__cellmeta--wide {
+  //   width: 100%;
+  // }
 
-.asset-row__cell {
-  // indicating the asset type
-  &.asset-row__cell--icon {
-    @extend %inner-fa-icon;
-    > i {
-      @extend .fa-lg;
+  .asset-row__cell {
+    width:33%;
+    float: left;
+  }
+  @mixin gradient($from, $to) {
+  background-color: $from;
+  background-image: -moz-linear-gradient($from, $to);
+  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from($from), to($to));
+  background-image: -webkit-linear-gradient($from, $to);
+  background-image: -o-linear-gradient($from, $to);
+  }
+  .asset-row__cell--tags {
+    max-height: 4.5em;
+    overflow: hidden;
+    width:100%;
+    position: relative;
+    .asset-row--selected & {
+      max-height: 40em;
     }
-
-    &.asset-row__cell--assettype-empty {
-      @include action-faicon('lemon-o');
-      > i {
-        @extend .fa-spin;
+    &:after {
+      content: "";
+      position: absolute;
+      top: 3em;
+      height: 1.5em;
+      width: 100%;
+      @include gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 1));
+      .asset-row--selected & {
+        display: none;
       }
-      opacity: 0.8;
-    }
-    &.asset-row__cell--assettype-question {
-      @include action-faicon('circle-o');
-    }
-    &.asset-row__cell--assettype-block {
-      @include action-faicon('square-o');
-    }
-    &.asset-row__cell--assettype-survey {
-      @include action-faicon('file-o');
-    }
-    &.asset-row__cell--kind-collection {
-      @include action-faicon('folder-o');
     }
   }
 }
+
+.asset-row__cell.asset-row__cell--icon {
+  @extend %inner-fa-icon;
+  > i {
+    @extend .fa-lg;
+  }
+
+  &.asset-row__cell--assettype-empty {
+    @include action-faicon('lemon-o');
+    > i {
+      @extend .fa-spin;
+    }
+    opacity: 0.8;
+  }
+  &.asset-row__cell--assettype-question {
+    @include action-faicon('circle-o');
+  }
+  &.asset-row__cell--assettype-block {
+    @include action-faicon('square-o');
+  }
+  &.asset-row__cell--assettype-survey {
+    @include action-faicon('file-o');
+  }
+  &.asset-row__cell--kind-collection {
+    @include action-faicon('folder-o');
+  }
+}
+
+.asset-row__action-icon.asset-row__action-icon--deploy {
+  @extend .mdl-button;
+  i {
+    @extend .fa, .fa-play;
+  }
+  .asset-row:not(.asset-row--selected) & {
+    @extend .mdl--disabled;
+  }
+  .asset-row--selected & {
+    opacity: 1;
+    @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
+    i {
+      color: white;
+    }
+  }
+}
+
 .asset-row__celllink--name {
   margin-bottom: 6px;
   border-bottom: 1px dotted transparent;
@@ -260,7 +293,7 @@ $colwidth: (100% / $colcount) - 1%;
   opacity: 0;
   transition:all 0.3s;
 
-  .asset-row:hover & {
+  .asset-row--selected & {
     opacity: 1;
     height: auto;
   }
@@ -271,6 +304,6 @@ $colwidth: (100% / $colcount) - 1%;
     width: 100%;
     text-align: center;
     margin-top: 0px;
-    padding:5px;
+    padding:5px; 
   }
 }
