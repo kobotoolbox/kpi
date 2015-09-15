@@ -39,7 +39,7 @@ from .models import (
     ImportTask,
     AssetDeployment,
     ObjectPermission,)
-from .models.object_permission import get_anonymous_user
+from .models.object_permission import get_anonymous_user, get_objects_for_user
 from .models.asset_deployment import kobocat_url
 from .permissions import (
     IsOwnerOrReadOnly,
@@ -248,9 +248,14 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
                 values_list('id'))
             return Tag.objects.filter(same_content_type & same_id).distinct().\
                 values_list('id', flat=True)
+
+        accessible_collections = get_objects_for_user(
+            user, 'view_collection', Collection).only('pk')
+        accessible_assets = get_objects_for_user(
+            user, 'view_asset', Asset).only('pk')
         all_tag_ids = list(chain(
-            _get_tags_on_items('collection', user.owned_collections.all()),
-            _get_tags_on_items('asset', user.assets.all()),
+            _get_tags_on_items('collection', accessible_collections),
+            _get_tags_on_items('asset', accessible_assets),
         ))
 
         return Tag.objects.filter(id__in=all_tag_ids).distinct()

@@ -274,6 +274,10 @@ define 'cs!xlform/view.surveyApp', [
       @surveyStateStore.setState({
           groupShrunk: groupsAreShrunk
         })
+      $et = $(evt.currentTarget)
+      $et.toggleClass('fa-caret-right')
+      $et.toggleClass('fa-caret-down')
+
       view.$el.toggleClass('group--shrunk', !groupsAreShrunk)
 
 

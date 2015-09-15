@@ -7,28 +7,16 @@ $wrapBorderColor: transparent;
 $invalidBgColor: #fbd8db;
 $invalidColor: #90111a;
 
-// .k-tagsinput {
-  // background-color: #fff;
-  // border: 1px solid $wrapBorderColor;
-  // overflow: hidden;
-  // padding-left: 2px;
-  // padding-top: 2px;
-  // display: inline-block;
-  // float: left;
-// }
-
 .k-tagsinput-tag {
   background-color: $tagBgColor;
   border-radius: 2px;
   border: 1px solid $tagBorderColor;
   color: $tagTextColor;
-  float: left;
-  font-family: sans-serif;
-  font-size: 13px;
   font-weight: 400;
-  margin-bottom: 3px;
-  margin-right: 3px;
-  padding: 0 5px;
+  margin-bottom: 2px;
+  margin-right: 2px;
+  padding: 0 4px;
+  display: inline-block;
 }
 
 /* a.k-tagsinput-remove */

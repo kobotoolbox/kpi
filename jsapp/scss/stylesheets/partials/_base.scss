@@ -8,9 +8,9 @@
     box-sizing: border-box;
 }
 
-// html, body {
-//   height: 100%;
-// }
+html, body {
+  height: 100%;
+}
 
 // html {
 //     font-size: 1em;
@@ -19,10 +19,10 @@
 //     -webkit-font-smoothing: antialiased;
 // }
 
-// body {
-//   padding: 0px;
-//   margin: 0px;
-// }
+body {
+  padding: 0px;
+  margin: 0px;
+}
 
 // input[type="text"] {
 //     display: block;
@@ -97,12 +97,12 @@ textarea {
     outline: none;
 }
 
-::-moz-selection {
-    background: #b3d4fc;
-    text-shadow: none;
-}
+// ::-moz-selection {
+//     background: #b3d4fc;
+//     text-shadow: none;
+// }
 
-::selection {
-    background: #b3d4fc;
-    text-shadow: none;
-}
+// ::selection {
+//     background: #b3d4fc;
+//     text-shadow: none;
+// }
