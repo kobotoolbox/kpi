@@ -438,6 +438,7 @@ var AssetNavigatorListView = React.createClass({
       count = this.state.defaultQueryCount;
     }
 
+
     if (status !== 'done') {
       return (
           <bem.LibList m={'empty'}>

@@ -203,9 +203,14 @@ var ListExpandToggle = React.createClass({
       assetNavExpanded: stores.pageState.state.assetNavExpanded
     }
   },
+  componentDidMount () {
+    this.listenTo(this.searchStore, this.searchStoreChanged);
+  },
+  searchStoreChanged (searchStoreState) {
+    this.setState(searchStoreState);
+  },
   handleChange: function(event) {
     stores.pageState.setState({assetNavExpanded: !this.state.assetNavExpanded})
-    // console.log(stores.pageState);
     this.setState({assetNavExpanded: !this.state.assetNavExpanded});
   },
   getDefaultProps () {
@@ -214,10 +219,19 @@ var ListExpandToggle = React.createClass({
     }
   },
   render () {
+    var count,
+        isSearch = this.state.searchResultsDisplayed;
+
+    if (isSearch) {
+      count = this.state.searchResultsCount;
+    } else {
+      count = this.state.defaultQueryCount;
+    }
+
     return (
       <bem.LibNav__expanded>
         <bem.LibNav__count>
-          xx assets found
+          {count} {t('assets found')}
         </bem.LibNav__count>
         <bem.LibNav__expandedToggle>
           <label className="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" htmlFor="expandedToggleCheckbox" >
