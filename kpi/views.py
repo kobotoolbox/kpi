@@ -34,7 +34,6 @@ from hub.models import SitewideMessage
 from .models import (
     Collection,
     Asset,
-    Asset,
     AssetSnapshot,
     ImportTask,
     AssetDeployment,
@@ -310,17 +309,18 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
         if 'base64Encoded' in request.POST:
             encoded_str = request.POST['base64Encoded']
             encoded_substr = encoded_str[encoded_str.index('base64') + 7:]
-            import_task = ImportTask.objects.create(user=request.user, data={
+            itask_data = {
                 'base64Encoded': encoded_substr,
-                'name': request.POST.get('name')
-            })
+                'filename': request.POST.get('filename', None),
+                'destination': request.POST.get('destination', None),
+            }
+            import_task = ImportTask.objects.create(user=request.user, data=itask_data)
             # Have Celery run the import in the background
             import_in_background.delay(import_task_uid=import_task.uid)
             return Response({
                 'uid': import_task.uid,
                 'status': ImportTask.PROCESSING
             }, status.HTTP_201_CREATED)
-
 
 class AssetSnapshotViewSet(NoUpdateModelViewSet):
     serializer_class = AssetSnapshotSerializer

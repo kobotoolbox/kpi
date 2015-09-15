@@ -1,4 +1,3 @@
-
 $mult: 0.5;
 %demo-panel {
   width: 650px * $mult;
@@ -281,6 +280,7 @@ $mult: 0.5;
   @extend .mdl-grid;
 }
 .asset-view__buttoncol {
+  position: relative;
   @extend .mdl-cell, .mdl-cell--3-col;
   .asset-view__link, .asset-view__button {
     display: block;
@@ -291,6 +291,11 @@ $mult: 0.5;
 @mixin disableablelink($col) {
   background-color: $col;
   color: #fff;
+
+  &:focus {
+    background-color: $col !important;
+  }
+
   &.asset-view__link--disabled, &.asset-view__button--disabled {
     $bgcol: mix(white, $col, 50%);
     background-color: $bgcol;

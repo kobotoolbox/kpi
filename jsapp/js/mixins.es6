@@ -14,6 +14,7 @@ var ReactTooltip = require('react-tooltip');
 var assign = require('react/lib/Object.assign');
 import Select from 'react-select';
 // var Reflux = require('reflux');
+import alertify from 'alertifyjs';
 
 var dmix = {
   assetTypeRenderers: {
@@ -291,7 +292,29 @@ var dmix = {
         </bem.AssetView__langs>
       );
   },
+  toggleDownloads (evt) {
+    var isFocusEvent = evt.type === 'focus',
+        isBlur = evt.type === 'blur',
+        $popoverMenu;
+    if (isBlur) {
+      $popoverMenu = $(this.refs['dl-popover'].getDOMNode());
+      // if we setState and immediately hide popover then the
+      // download links will not register as clicked
+      $popoverMenu.fadeOut(250, () => {
+        this.setState({
+          downloadsShowing: false,
+        });
+      });
+    } else {
+      this.setState({
+        downloadsShowing: true,
+      });
+    }
+  },
   renderButtons () {
+    var downloadable = !!this.state.downloads[0],
+        downloads = this.state.downloads;
+
     return (
         <bem.AssetView__buttons>
           <bem.AssetView__iconwrap><i /></bem.AssetView__iconwrap>
@@ -309,11 +332,27 @@ var dmix = {
               {t('preview')}
             </bem.AssetView__link>
           </bem.AssetView__buttoncol>
-          <bem.AssetView__buttoncol>
-            <bem.AssetView__link m="download" href={this.makeHref('form-download', {assetid: this.state.uid})}>
+          <bem.AssetView__buttoncol
+                onFocus={this.toggleDownloads}
+                onBlur={this.toggleDownloads}>
+            <bem.AssetView__button m={'download'}
+                  disabled={!downloadable}>
               <i />
               {t('download')}
-            </bem.AssetView__link>
+            </bem.AssetView__button>
+            {(downloadable && this.state.downloadsShowing) ?
+              <bem.PopoverMenu ref='dl-popover'>
+                {downloads.map((dl)=>{
+                  return (
+                      <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
+                          key={`dl-${dl.format}`}>
+                        <i />
+                        {t(`download-${dl.format}`)}
+                      </bem.PopoverMenu__link>
+                    );
+                })}
+              </bem.PopoverMenu>
+            :null}
           </bem.AssetView__buttoncol>
           <bem.AssetView__buttoncol>
             <Dropzone fileInput onDropFiles={this.onDrop}
@@ -356,15 +395,17 @@ var dmix = {
       throw new Error("Only 1 file can be uploaded in this case");
     }
     const VALID_ASSET_UPLOAD_FILE_TYPES = [
-      'application/vnd.ms-excel'
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     ]
     var file = files[0];
     if (VALID_ASSET_UPLOAD_FILE_TYPES.indexOf(file.type) === -1) {
-      throw new Error(`Invalid filetype: ${file.type}`);
+      var err = `Invalid filetype: '${file.type}'`;
+      console && console.error(err);
+      alertify.error(err);
+    } else {
+      this.dropFiles(files);
     }
-    actions.resources.updateAsset(this.state.uid, {
-      base64Encoded: 'ENCODE ASSET IN KPI/JS/MIXINS.ES6'
-    });
   },
   summaryDetails () {
     return (
@@ -484,23 +525,53 @@ var dmix = {
 mixins.dmix = dmix;
 
 mixins.droppable = {
-  dropFiles (files, params) {
-    if (files.length > 1) {
-      notify('cannot load multiple files');
-    } else {
-      files.map(function(file){
-        var reader = new FileReader();
-        reader.onload = (e)=>{
-          actions.resources.createImport({
-            base64Encoded: e.target.result,
-            name: file.name,
-            lastModified: file.lastModified,
-            contentType: file.type
-          });
-        }
-        reader.readAsDataURL(file);
-      });
-    }
+  _forEachDroppedFile (evt, file, params={}) {
+    dataInterface.postCreateBase64EncodedImport(assign({
+        base64Encoded: evt.target.result,
+        name: file.name,
+        lastModified: file.lastModified,
+      }, this.state.url ? {
+        destination: this.state.url,
+      } : null
+    )).done((data, status, jqxhr)=> {
+      window.setTimeout((()=>{
+        dataInterface.getImportDetails({
+          uid: data.uid,
+        }).done((importData, status, jqxhr) => {
+          if (importData.status === 'complete') {
+            var assetData = importData.messages.updated || importData.messages.created;
+            var assetUid = assetData && assetData.length > 0 && assetData[0].uid,
+                isCurrentPage = this.state.uid === assetUid;
+
+            if (!assetUid) {
+              alertify.error(t('could not redirect to asset'));
+            } else if (isCurrentPage) {
+              actions.resources.loadAsset({id: assetUid});
+            } else {
+              this.transitionTo('form-landing', {assetid: assetUid});
+            }
+          } else {
+            alertify.error(t('import not complete'))
+          }
+        }).fail((failData)=>{
+          alertify.error(t('import failed'))
+          log('import failed', failData);
+        })
+      }), 2500);
+    }).fail((jqxhr)=> {
+      log('Failed to create import: ', jqxhr);
+      alertify.error(t('failed to create import'));
+    });
+  },
+  dropFiles (files, params={}) {
+    files.map((file) => {
+      var reader = new FileReader();
+      reader.onload = (e)=>{
+        var f = this.forEachDroppedFile || this._forEachDroppedFile;
+        f.call(this, e, file, params);
+      }
+      reader.readAsDataURL(file);
+    });
   }
 };
 
