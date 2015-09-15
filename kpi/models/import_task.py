@@ -17,7 +17,7 @@ from rest_framework import exceptions
 UID_LENGTH = 22
 
 def _resolve_url_to_asset_or_collection(item_path):
-    if item_path.startswith('http'):
+    if item_path.startswith(('http', 'https')):
         item_path = urlparse.urlparse(item_path).path
     match = resolve(item_path)
     uid = match.kwargs.get('uid')
@@ -76,7 +76,7 @@ class ImportTask(models.Model):
 
             dest_item = dest_kls = has_necessary_perm = False
 
-            if 'destination' in self.data:
+            if 'destination' in self.data and self.data['destination']:
                 (dest_kls, dest_item) = _resolve_url_to_asset_or_collection(self.data.get('destination'))
                 necessary_perm = 'change_%s' % dest_kls
                 if not dest_item.has_perm(self.user, necessary_perm):
