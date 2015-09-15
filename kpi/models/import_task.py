@@ -85,22 +85,22 @@ class ImportTask(models.Model):
                     has_necessary_perm = True
 
             if 'url' in self.data:
-                self._load_assets_from_url(**{
-                        'messages': msgs,
-                        'url': self.data.get('url'),
-                        'destination': destination,
-                        'destination_kls': destination_kls,
-                        'has_necessary_perm': has_necessary_perm,
-                    })
+                self._load_assets_from_url(
+                    messages=msgs,
+                    url=self.data.get('url'),
+                    destination=dest_item,
+                    destination_kls=dest_kls,
+                    has_necessary_perm=has_necessary_perm,
+                )
             elif 'base64Encoded' in self.data:
-                self._parse_b64_upload(**{
-                    'base64_encoded_upload': self.data['base64Encoded'],
-                    'filename': self.data.get('filename', None),
-                    'messages': msgs,
-                    'destination': dest_item,
-                    'destination_kls': dest_kls,
-                    'has_necessary_perm': has_necessary_perm,
-                })
+                self._parse_b64_upload(
+                    base64_encoded_upload=self.data['base64Encoded'],
+                    filename=self.data.get('filename', None),
+                    messages=msgs,
+                    destination=dest_item,
+                    destination_kls=dest_kls,
+                    has_necessary_perm=has_necessary_perm,
+                )
             else:
                 raise Exception(
                     'ImportTask data must contain `base64Encoded` or `url`'
