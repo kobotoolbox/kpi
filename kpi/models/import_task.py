@@ -3,6 +3,8 @@ from io import BytesIO
 import re
 from collections import defaultdict
 from django.db import models
+from django.core.urlresolvers import get_script_prefix, resolve, Resolver404
+from django.utils.six.moves.urllib import parse as urlparse
 from shortuuid import ShortUUID
 from jsonfield import JSONField
 import requests
@@ -13,6 +15,16 @@ from ..zip_importer import HttpContentParse
 from rest_framework import exceptions
 
 UID_LENGTH = 22
+
+def _resolve_url_to_asset_or_collection(item_path):
+    if item_path.startswith('http'):
+        item_path = urlparse.urlparse(item_path).path
+    match = resolve(item_path)
+    uid = match.kwargs.get('uid')
+    if match.url_name == 'asset-detail':
+        return ('asset', Asset.objects.get(uid=uid))
+    elif match.url_name == 'collection-detail':
+        return ('collection', Collection.objects.get(uid=uid))
 
 
 class ImportTask(models.Model):
@@ -62,23 +74,36 @@ class ImportTask(models.Model):
             self.status = self.PROCESSING
             self.save(update_fields=['status'])
 
-            if 'url' in self.data and 'destination' in self.data:
-                self._load_assets_from_url(
-                    self.data['url'], destination=self.data['destination'],
-                    messages=msgs)
+            dest_item = dest_kls = has_necessary_perm = False
+
+            if 'destination' in self.data:
+                (dest_kls, dest_item) = _resolve_url_to_asset_or_collection(self.data.get('destination'))
+                necessary_perm = 'change_%s' % dest_kls
+                if not dest_item.has_perm(self.user, necessary_perm):
+                    raise exceptions.PermissionDenied('user cannot update %s' % kls)
+                else:
+                    has_necessary_perm = True
+
+            if 'url' in self.data:
+                self._load_assets_from_url(**{
+                        'messages': msgs,
+                        'url': self.data.get('url'),
+                        'destination': destination,
+                        'destination_kls': destination_kls,
+                        'has_necessary_perm': has_necessary_perm,
+                    })
             elif 'base64Encoded' in self.data:
-                params = {
+                self._parse_b64_upload(**{
                     'base64_encoded_upload': self.data['base64Encoded'],
                     'filename': self.data.get('filename', None),
                     'messages': msgs,
-                }
-                if 'destination' in self.data:
-                    params['destination'] = self.data['destination']
-                self._parse_xls_upload(**params)
+                    'destination': dest_item,
+                    'destination_kls': dest_kls,
+                    'has_necessary_perm': has_necessary_perm,
+                })
             else:
                 raise Exception(
-                    'ImportTask data must contain `base64Encoded` '
-                    'or both `url` and `destination`'
+                    'ImportTask data must contain `base64Encoded` or `url`'
                 )
             _status = self.COMPLETE
         except Exception, err:
@@ -90,33 +115,35 @@ class ImportTask(models.Model):
         self.messages.update(msgs)
         self.save(update_fields=['status', 'messages'])
 
-    def _load_assets_from_url(self, url, destination, messages):
+    def _load_assets_from_url(self, url, messages, **kwargs):
+        destination = kwargs.get('destination', False)
+        destination_kls = kwargs.get('destination_kls', False)
+        has_necessary_perm = kwargs.get('has_necessary_perm', False)
         req = requests.get(url, allow_redirects=True)
         fif = HttpContentParse(request=req).parse()
         fif.remove_invalid_assets()
         fif.remove_empty_collections()
-        destination_collection = False
+
+        destination_collection = destination \
+                if (destination_kls == 'collection') else False
+
+        if destination_collection and not has_necessary_perm:
+            # redundant check
+            raise exceptions.PermissionDenied('user cannot load assets into this collection')
 
         collections_to_assign = []
         for item in fif._parsed:
-            kwargs = {
+            extra_args = {
                 'owner': self.user,
                 'name': item._name_base,
             }
-            if destination:
-                destination_collection = Collection.objects.get(owner=self.user, uid=destination)
 
             if item.get_type() == 'collection':
-                item._orm = create_assets(item.get_type(), kwargs)
+                item._orm = create_assets(item.get_type(), extra_args)
             elif item.get_type() == 'asset':
                 kontent = xls2json_backends.xls_to_dict(item.readable)
-                content = {}
-                for key, val in kontent.items():
-                    if not key.endswith('_header'):
-                        content[key] = val
-                kwargs['asset_type'] = 'survey_block'
-                kwargs['content'] = content
-                item._orm = create_assets(item.get_type(), kwargs)
+                extra_args['content'] = _strip_header_keys(kontent)
+                item._orm = create_assets(item.get_type(), extra_args)
             if item.parent:
                 collections_to_assign.append([
                     item._orm,
@@ -129,24 +156,26 @@ class ImportTask(models.Model):
                 ])
 
         for (orm_obj, parent_item) in collections_to_assign:
-            if hasattr(orm_obj, 'parent'):
-                orm_obj.parent = parent_item
-            else:
-                orm_obj.parent = parent_item
+            orm_obj.parent = parent_item
             orm_obj.save()
 
-    def _parse_xls_upload(self, base64_encoded_upload, filename, messages, destination=False):
+    def _parse_b64_upload(self, base64_encoded_upload, filename, messages, **kwargs):
         survey_dict = _b64_xls_to_dict(base64_encoded_upload)
         survey_dict_keys = survey_dict.keys()
 
-        if destination:
-            #TODO: check & handle if destination is a collection
-            destination_asset = Asset.objects.get(owner=self.user, uid=destination)
-        else:
-            destination_asset = False
+        destination = kwargs.get('destination', False)
+        destination_kls = kwargs.get('destination_kls', False)
+        has_necessary_perm = kwargs.get('has_necessary_perm', False)
+
+        if destination and not has_necessary_perm:
+            # redundant check
+            raise exceptions.PermissionDenied('user cannot update item')
+
+        if destination_kls == 'collection':
+            raise NotImplementedError('cannot import into a collection at this time')
 
         if 'library' in survey_dict_keys:
-            if destination_asset:
+            if destination:
                 raise SyntaxError('libraries cannot be imported into assets')
             collection = _load_library_content({
                     'content': survey_dict,
@@ -160,19 +189,18 @@ class ImportTask(models.Model):
                     'owner__username': self.user.username,
                 })
         elif 'survey' in survey_dict_keys or 'block' in survey_dict_keys:
-            if destination_asset:
-                asset = destination_asset
-                if not asset.has_perm(self.user, 'change_asset'):
-                    raise exceptions.PermissionDenied('user cannot update asset')
-                asset.content = survey_dict
-                asset.save()
-                msg_key = 'updated'
-            else:
+            if not destination:
                 asset = Asset.objects.create(
                     owner=self.user,
                     content=survey_dict,
                 )
                 msg_key = 'created'
+            else:
+                asset = destination
+                asset.content = survey_dict
+                asset.save()
+                msg_key = 'updated'
+
             messages[msg_key].append({
                     'uid': asset.uid,
                     'summary': asset.summary,

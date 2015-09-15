@@ -184,6 +184,9 @@ var dataInterface;
     getAssetContent ({id}) {
       return $.getJSON(`/assets/${id}/content/`);
     },
+    getImportDetails ({uid}) {
+      return $.getJSON(`/imports/${uid}/`);
+    },
     getAsset (params={}) {
       if (params.url) {
         return $.getJSON(params.url);

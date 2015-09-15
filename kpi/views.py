@@ -307,11 +307,8 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
             itask_data = {
                 'base64Encoded': encoded_substr,
                 'filename': request.POST.get('filename', None),
+                'destination': request.POST.get('destination', None),
             }
-            if 'destination_uid' in request.POST:
-                existing_asset = Asset.objects.get(owner=request.user, \
-                                    uid=request.POST['destination_uid'])
-                itask_data['destination'] = existing_asset.uid
             import_task = ImportTask.objects.create(user=request.user, data=itask_data)
             # Have Celery run the import in the background
             import_in_background.delay(import_task_uid=import_task.uid)
@@ -319,7 +316,6 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
                 'uid': import_task.uid,
                 'status': ImportTask.PROCESSING
             }, status.HTTP_201_CREATED)
-
 
 class AssetSnapshotViewSet(NoUpdateModelViewSet):
     serializer_class = AssetSnapshotSerializer

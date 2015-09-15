@@ -408,13 +408,34 @@ var dmix = {
   },
   forEachDroppedFile (evt, file, params) {
     dataInterface.postCreateBase64EncodedImport({
-      destination_uid: this.state.uid,
+      destination: this.state.url,
       base64Encoded: evt.target.result,
       name: file.name,
       lastModified: file.lastModified,
       contentType: file.type,
     }).done((data, status, jqxhr)=> {
       log('Successfully created import: ', data);
+      var importUid = data.uid;
+      window.setTimeout((()=>{
+        dataInterface.getImportDetails({
+          uid: importUid
+        }).done((importData, status, jqxhr)=>{
+          if (importData.status === 'complete') {
+            var assetData = importData.messages.updated || importData.messages.created;
+            var assetUid = assetData && assetData.length > 0 && assetData[0].uid;
+            if (assetUid) {
+              actions.resources.loadAsset({id: assetUid});
+            } else {
+              notify(t('could not find asset id'), 'error');
+            }
+          }
+          log('import status', importData);
+          notify(`import: '${importData.status}'`)
+        }).fail((failData)=>{
+          notify(t('import failed'))
+          log('import failed', failData);
+        })
+      }), 2500);
       notify(t('successfully created import.'));
     }).fail((jqxhr)=> {
       log('Failed to create import: ', jqxhr);
