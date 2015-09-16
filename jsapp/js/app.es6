@@ -1271,7 +1271,8 @@ mixins.newForm = {
       );
   },
   renderSaveAndPreviewButtons () {
-    var previewDisabled = this.state.survey.rows.length < 1;
+    var survey = this.state.survey;
+    var previewDisabled = survey && survey.rows.length < 1;
     return (
           <bem.FormHeader>
             <ui.SmallInputBox
