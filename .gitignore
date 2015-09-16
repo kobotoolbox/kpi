@@ -16,3 +16,4 @@ jsapp/js/refactored.es6
 whoosh_index
 tmp
 staticfiles
+.sass-cache
