@@ -78,6 +78,23 @@ def create_assets(kls, structure, **options):
             obj = Asset.objects.create(**structure)
     return obj
 
+def grant_default_model_level_perms(user):
+    ''' Gives ``user`` unrestricted model-level access to Collections, Assets,
+    and everything listed in settings.KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES.
+    Without this, actions on individual instances are immediately denied and
+    object-level permissions are never considered.  '''
+    models_and_content_types = [Collection, Asset]
+    try:
+        for pair in settings.KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES:
+            models_and_content_types.append(ContentType.objects.get(
+                app_label=pair[0],
+                model=pair[1]
+            ))
+    except ContentType.DoesNotExist:
+        # TODO: Warn that KC hasn't been installed?
+        pass
+    grant_all_model_level_perms(user, models_and_content_types)
+
 def grant_all_model_level_perms(
         user, models_or_content_types, permissions_manager=Permission.objects
     ):
