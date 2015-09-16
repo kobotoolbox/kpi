@@ -237,3 +237,21 @@ if 'RAVEN_DSN' in os.environ:
         RAVEN_CONFIG['release'] = raven.fetch_git_sha(BASE_DIR)
     except raven.exceptions.InvalidGitRepository:
         pass
+
+''' Since this project handles user creation but shares its database with
+KoBoCAT, we must handle the model-level permission assignment that would've
+been done by KoBoCAT's post_save signal handler. Here we record the content
+types of the models listed in KC's set_api_permissions_for_user(). Verify that
+this list still matches that function if you experience permission-related
+problems. See
+https://github.com/kobotoolbox/kobocat/blob/master/onadata/libs/utils/user_auth.py.
+'''
+KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES = [
+    # Each tuple must be (app_label, model_name)
+    ('main', 'userprofile'),
+    ('logger', 'xform'),
+    ('api', 'project'),
+    ('api', 'team'),
+    ('api', 'organizationprofile'),
+    ('logger', 'note'),
+]

@@ -1,11 +1,13 @@
 import django.db.models
 from django.dispatch import receiver
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
+from django.conf import settings
 from taggit.models import Tag, TaggedItem
 from haystack import connections
 from haystack.exceptions import NotHandled
 from models import Collection, Asset, TagUid
-from .model_utils import grant_all_model_level_perms
+from .model_utils import grant_default_model_level_perms
 
 @receiver(django.db.models.signals.post_save, sender=User)
 def default_permissions_post_save(sender, instance, created, raw, **kwargs):
@@ -22,7 +24,7 @@ def default_permissions_post_save(sender, instance, created, raw, **kwargs):
         # We should only grant default permissions when the user is first
         # created
         return
-    grant_all_model_level_perms(instance, (Collection, Asset))
+    grant_default_model_level_perms(instance)
 
 @receiver(django.db.models.signals.post_save, sender=Tag)
 def tag_uid_post_save(sender, instance, created, raw, **kwargs):

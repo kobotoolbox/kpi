@@ -78,8 +78,25 @@ def create_assets(kls, structure, **options):
             obj = Asset.objects.create(**structure)
     return obj
 
+def grant_default_model_level_perms(user):
+    ''' Gives ``user`` unrestricted model-level access to Collections, Assets,
+    and everything listed in settings.KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES.
+    Without this, actions on individual instances are immediately denied and
+    object-level permissions are never considered.  '''
+    models_and_content_types = [Collection, Asset]
+    try:
+        for pair in settings.KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES:
+            models_and_content_types.append(ContentType.objects.get(
+                app_label=pair[0],
+                model=pair[1]
+            ))
+    except ContentType.DoesNotExist:
+        # TODO: Warn that KC hasn't been installed?
+        pass
+    grant_all_model_level_perms(user, models_and_content_types)
+
 def grant_all_model_level_perms(
-        user, models, permissions_manager=Permission.objects
+        user, models_or_content_types, permissions_manager=Permission.objects
     ):
     ''' Utility function that gives ``user`` unrestricted model-level access
     to everything listed in ``models``. Without this, actions on individual
@@ -89,11 +106,18 @@ def grant_all_model_level_perms(
     '''
     content_types = []
     try:
-        for model in models:
-            content_types.append(ContentType.objects.get_for_model(model))
+        for item in models_or_content_types:
+            if isinstance(item, ContentType):
+                content_types.append(item)
+            else:
+                content_types.append(ContentType.objects.get_for_model(item))
     except TypeError:
-        # models is a single model, not an iterable
-        content_types.append(ContentType.objects.get_for_model(models))
+        # models_or_content_types is a single item, not an iterable
+        item = models_or_content_types
+        if isinstance(item, ContentType):
+            content_types.append(item)
+        else:
+            content_types.append(ContentType.objects.get_for_model(item))
     permissions_to_assign = permissions_manager.filter(
         content_type__in=content_types)
     if content_types and not permissions_to_assign.exists():
