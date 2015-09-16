@@ -79,7 +79,7 @@ def create_assets(kls, structure, **options):
     return obj
 
 def grant_all_model_level_perms(
-        user, models, permissions_manager=Permission.objects
+        user, models_or_content_types, permissions_manager=Permission.objects
     ):
     ''' Utility function that gives ``user`` unrestricted model-level access
     to everything listed in ``models``. Without this, actions on individual
@@ -89,11 +89,18 @@ def grant_all_model_level_perms(
     '''
     content_types = []
     try:
-        for model in models:
-            content_types.append(ContentType.objects.get_for_model(model))
+        for item in models_or_content_types:
+            if isinstance(item, ContentType):
+                content_types.append(item)
+            else:
+                content_types.append(ContentType.objects.get_for_model(item))
     except TypeError:
-        # models is a single model, not an iterable
-        content_types.append(ContentType.objects.get_for_model(models))
+        # models_or_content_types is a single item, not an iterable
+        item = models_or_content_types
+        if isinstance(item, ContentType):
+            content_types.append(item)
+        else:
+            content_types.append(ContentType.objects.get_for_model(item))
     permissions_to_assign = permissions_manager.filter(
         content_type__in=content_types)
     if content_types and not permissions_to_assign.exists():

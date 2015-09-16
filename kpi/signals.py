@@ -1,6 +1,8 @@
 import django.db.models
 from django.dispatch import receiver
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
+from django.conf import settings
 from taggit.models import Tag, TaggedItem
 from haystack import connections
 from haystack.exceptions import NotHandled
@@ -22,7 +24,17 @@ def default_permissions_post_save(sender, instance, created, raw, **kwargs):
         # We should only grant default permissions when the user is first
         # created
         return
-    grant_all_model_level_perms(instance, (Collection, Asset))
+    models_and_content_types = [Collection, Asset]
+    try:
+        for pair in settings.KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES:
+            models_and_content_types.append(ContentType.objects.get(
+                app_label=pair[0],
+                model=pair[1]
+            ))
+    except ContentType.DoesNotExist:
+        # TODO: Warn that KC hasn't been installed?
+        pass
+    grant_all_model_level_perms(instance, models_and_content_types)
 
 @receiver(django.db.models.signals.post_save, sender=Tag)
 def tag_uid_post_save(sender, instance, created, raw, **kwargs):
