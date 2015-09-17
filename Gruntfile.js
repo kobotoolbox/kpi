@@ -93,6 +93,14 @@ module.exports = function(grunt) {
         }
       }
     },
+    // autoprefixer is required for material-design-icons
+    autoprefixer: {
+      target: {
+        files: {
+          'jsapp/compiled/bundle.css': 'jsapp/compiled/bundle.css'
+        }
+      },
+    },
     uglify: {
       main: {
         files: {
@@ -121,6 +129,7 @@ module.exports = function(grunt) {
           './node_modules/open-sans-fontface/fonts/Italic/*',
           './node_modules/open-sans-fontface/fonts/SemiboldItalic/*',
           './node_modules/open-sans-fontface/fonts/Semibold/*',
+          './node_modules/material-design-icons/iconfont/Material*',
           ],
         dest: './jsapp/fonts/',
       }
@@ -146,7 +155,7 @@ module.exports = function(grunt) {
         }
       },
       sass: {
-        tasks: ['sass'],
+        tasks: ['sass','autoprefixer'],
         files: ['jsapp/scss/**/*.scss'],
         options: {
           livereload: false
@@ -166,6 +175,7 @@ module.exports = function(grunt) {
 
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-sass');
+  grunt.loadNpmTasks('grunt-autoprefixer');
   grunt.loadNpmTasks('grunt-contrib-cssmin');
   grunt.loadNpmTasks('grunt-contrib-requirejs');
   grunt.loadNpmTasks('grunt-contrib-copy');
@@ -175,6 +185,7 @@ module.exports = function(grunt) {
   grunt.registerTask('develop', [
     'browserify:dev',
     'sass:dist',
+    'autoprefixer',
     'watch',
   ]);
   grunt.registerTask('js', ['browserify:dev']);
@@ -185,6 +196,7 @@ module.exports = function(grunt) {
     'string-replace:reqjs',
     'browserify:dev',
     'sass:dist',
+    'autoprefixer',
     'string-replace:fixreqjs'
   ]);
   grunt.registerTask('buildall', [
