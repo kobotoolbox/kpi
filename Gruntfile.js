@@ -93,6 +93,7 @@ module.exports = function(grunt) {
         }
       }
     },
+    // autoprefixer is required for material-design-icons
     autoprefixer: {
       target: {
         files: {
