@@ -42,6 +42,9 @@ bem.LibNav__content = bem.LibNav.__('content');
 bem.LibNav__header = bem.LibNav.__('header');
 bem.LibNav__footer = bem.LibNav.__('footer');
 bem.LibNav__search = bem.LibNav.__('search');
+bem.LibNav__expanded = bem.LibNav.__('expanded');
+bem.LibNav__count = bem.LibNav.__('count');
+bem.LibNav__expandedToggle = bem.LibNav.__('expandedToggle');
 bem.LibNav__logo = bem.LibNav.__('logo');
 
 bem.LibNav__tags = bem.LibNav.__('tags');

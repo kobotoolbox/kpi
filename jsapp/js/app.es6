@@ -18,7 +18,7 @@ import MainHeader from './components/header';
 import Select from 'react-select';
 import Drawer from './components/drawer';
 import searches from './searches';
-import {List, ListSearch, ListSearchDebug, ListTagFilter} from './components/list';
+import {List, ListSearch, ListSearchDebug, ListTagFilter, ListExpandToggle} from './components/list';
 import TagsInput from 'react-tagsinput';
 import classNames from 'classnames';
 import alertify from 'alertifyjs';
@@ -444,6 +444,7 @@ var AssetNavigatorListView = React.createClass({
       count = this.state.defaultQueryCount;
     }
 
+
     if (status !== 'done') {
       return (
           <bem.LibList m={'empty'}>
@@ -477,25 +478,25 @@ var AssetNavigatorListView = React.createClass({
                       <bem.LibList__label m={'name'}>
                         <ui.AssetName {...item} />
                       </bem.LibList__label>
-                      { this.state.displayDetails ?
-                        <bem.LibList__label m={'labels'}>
-                          <ol>
-                            {summ.labels.map(function(lbl){
-                              return <li>{lbl}</li>;
-                            })}
-                          </ol>
-                        </bem.LibList__label>
-                      : null }
-                      <bem.LibList__tags>
-                        {(item.tags || []).map((tg)=>{
-                          return <bem.LibList__tag>{tg}</bem.LibList__tag>;
-                        })}
-                      </bem.LibList__tags>
                       {item.asset_type==='block' ?
                         <bem.LibList__qtype>
                           {t('block of ___ questions').replace('___', summ.row_count)}
                         </bem.LibList__qtype>
                       :null}
+                      { stores.pageState.state.assetNavExpanded && item.asset_type==='block' ?
+                        <ol>
+                          {summ.labels.map(function(lbl){
+                            return <li>{lbl}</li>;
+                          })}
+                        </ol>
+                      : null }
+                      { stores.pageState.state.assetNavExpanded ?
+                        <bem.LibList__tags>
+                          {(item.tags || []).map((tg)=>{
+                            return <bem.LibList__tag>{tg}</bem.LibList__tag>;
+                          })}
+                        </bem.LibList__tags>
+                      : null }
                     </bem.LibList__item>
                   );
               })}
@@ -646,6 +647,9 @@ var AssetNavigator = React.createClass({
                 />
             </bem.LibNav__search>
             <ListTagFilter
+                  searchContext={this.state.searchContext}
+                />
+            <ListExpandToggle
                   searchContext={this.state.searchContext}
                 />
           </bem.LibNav__header>
