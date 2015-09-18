@@ -488,6 +488,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
 class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
     xform_id_string = serializers.CharField(required=False)
+    xform_url = serializers.SerializerMethodField()
+
     asset = GenericHyperlinkedRelatedField(
         lookup_field='uid',
         style={'base_template': 'input.html'} # Render as a simple text box
@@ -510,6 +512,9 @@ class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
         return AssetDeployment._create_if_possible(
             asset, user, xform_id_string)
 
+    def get_xform_url(self, obj):
+        return obj.data.get('published_form_url')
+
     class Meta:
         model = AssetDeployment
         fields = (
@@ -520,6 +525,7 @@ class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
             'uid',
             'xform_pk',
             'xform_id_string',
+            'xform_url',
         )
         lookup_field = 'uid'
         extra_kwargs = {
