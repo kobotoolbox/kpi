@@ -378,7 +378,7 @@ var dmix = {
       value: defaultFormId,
       onok: (evt, val)=> {
         actions.resources.deployAsset(asset_url, val);
-        notify(t('deployed as ___').replacE('___', val));
+        notify(t('deployed as ___').replace('___', val));
       },
       oncancel: ()=> {
         // notify(t('canceled'))
@@ -851,7 +851,7 @@ mixins.clickAssets = {
           value: defaultFormId,
           onok: (evt, val)=> {
             actions.resources.deployAsset(asset_url, val);
-            notify(t('deployed as ___').replacE('___', val));
+            notify(t('deployed as ___').replace('___', val));
           },
           oncancel: ()=> {
             // notify(t('canceled'))
