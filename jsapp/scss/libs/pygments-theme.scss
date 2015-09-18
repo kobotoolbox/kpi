@@ -1,5 +1,11 @@
 // color scheme provided by pygments
 .pygment {
+  .warnings {
+    white-space: pre-wrap;
+    font-family: monospace;
+    font-size: 12px;
+  }
+
   background: #f0f0f0;
 
   td.linenos { background-color: #f0f0f0; padding-right: 10px; }
