@@ -305,7 +305,7 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         # Create the snapshot
         snapshot = AssetSnapshot.objects.create(**validated_data)
         if not snapshot.xml:
-            raise serializers.ValidationError(snapshot.summary)
+            raise serializers.ValidationError(snapshot.details)
         return snapshot
 
     class Meta:
