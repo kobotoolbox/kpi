@@ -6,9 +6,9 @@
 <body>
   <div class="pygment">
     {% if error %}
-    <p class="error">
-      {{error_type}}: {{error}}
-    </p>
+    <ul class="error">
+      <li>{{error_type}}: {{error}}</li>
+    </ul>
     {% endif %}
 
     {% if warnings %}
