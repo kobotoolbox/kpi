@@ -84,7 +84,7 @@ def _import_user_assets(from_user, to_user):
 
     for qlib_asset in user_qlib_assets.all():
         print 'importing qla %s %d' % (qlib_asset.name, qlib_asset.id)
-        _import_asset(survey_draft, qlib)
+        _import_asset(qlib_asset, qlib)
 
     _set_auto_field_update(Asset, "date_created", False)
     _set_auto_field_update(Asset, "date_modified", False)
