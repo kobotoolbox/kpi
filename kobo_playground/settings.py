@@ -75,6 +75,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'kpi.middleware.OtherFormBuilderRedirectMiddleware',
 )
 
 # used in kpi.models.sitewide_messages
@@ -165,6 +166,7 @@ USE_MINIFIED_SCRIPTS = os.environ.get('KOBO_USE_MINIFIED_SCRIPTS', False)
 TRACKJS_TOKEN = os.environ.get('TRACKJS_TOKEN')
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', False)
 KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL', False)
+DKOBO_URL = os.environ.get('DKOBO_URL', False)
 
 ''' Haystack search settings '''
 HAYSTACK_CONNECTIONS = {
