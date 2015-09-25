@@ -9,6 +9,8 @@ class OtherFormBuilderRedirectMiddleware(object):
     def process_request(self, request):
         if request.user.is_anonymous():
             return
+        if not settings.DKOBO_URL:
+            return
         try:
             preferred_builder = \
                 request.user.formbuilderpreference.preferred_builder
