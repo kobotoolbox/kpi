@@ -52,15 +52,9 @@ def _set_auto_field_update(kls, field_name, val):
 def _import_user_assets(from_user, to_user):
     user = to_user
 
-    # TODO: Only migrate what wasn't migrated alread?
-    # !!! Also would require a change to the destroy behavior
-    '''
     not_already_migrated = user.survey_drafts.filter(kpi_asset_uid='')
     user_survey_drafts = not_already_migrated.filter(asset_type=None)
     user_qlib_assets = not_already_migrated.exclude(asset_type=None)
-    '''
-    user_survey_drafts = user.survey_drafts.filter(asset_type=None)
-    user_qlib_assets = user.survey_drafts.exclude(asset_type=None)
 
     def _import_asset(asset, parent_collection=None):
         survey_dict = _csv_to_dict(asset.body)
@@ -161,11 +155,13 @@ class Command(BaseCommand):
 
             print "user has %d collections" % to_user.owned_collections.count()
             print "user has %d assets" % to_user.assets.count()
-            print "Destroying user's collections and assets in KPI."
-            to_user.owned_collections.all().delete()
-            to_user.assets.all().delete()
-            if not options.get('destroy'):
-                print "Importing assets and collections."
-                print "user has %d collections" % to_user.owned_collections.count()
-                print "user has %d assets" % to_user.assets.count()
-                _import_user_assets(from_user, to_user)
+            if options.get('destroy'):
+                print "Destroying user's collections and assets in KPI."
+                to_user.owned_collections.all().delete()
+                to_user.assets.all().delete()
+                print "Removing references in dkobo to KPI assets."
+                to_user.survey_drafts.update(kpi_asset_uid='')
+            print "Importing assets and collections."
+            print "user has %d collections" % to_user.owned_collections.count()
+            print "user has %d assets" % to_user.assets.count()
+            _import_user_assets(from_user, to_user)
