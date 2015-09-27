@@ -6,19 +6,19 @@
 
 import _ from 'underscore';
 import Reflux from 'reflux';
+import stores from './stores';
 import {notify, log, t} from './utils';
+import {dataInterface} from './dataInterface';
 
 var $ = require('jquery');
 var assign = require('react/lib/Object.assign');
 var assetParserUtils = require('./assetParserUtils');
 
-import stores from './stores';
-
 var searchDataInterface = (function(){
   return {
     assets: function(data) {
       return $.ajax({
-        url: '/assets/',
+        url: `${dataInterface.rootUrl}/assets/`,
         dataType: 'json',
         data: data,
         method: 'GET'
