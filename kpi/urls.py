@@ -32,7 +32,7 @@ router.register(r'sitewide_messages', SitewideMessageViewSet)
 
 
 urlpatterns = [
-    url(r'^$', home),
+    url(r'^$', home, name='kpi-root'),
     url(r'^me/$', current_user, name='current-user'),
     url(r'^', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls',

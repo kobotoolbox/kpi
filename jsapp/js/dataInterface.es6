@@ -2,7 +2,6 @@ var $ = require('jquery');
 
 import assign from 'react/lib/Object.assign';
 
-
 var dataInterface;
 (function(){
   var $ajax = (o)=> {
@@ -13,18 +12,28 @@ var dataInterface;
     'c': 'collections',
     'p': 'permissions',
   }
+  var rootUrl = (function(){
+    try {
+      return document.head.querySelector('meta[name=kpi-root-url]').content;
+    } catch (e) {
+      console.error('no kpi-root-url meta tag set. defaulting to "/"');
+      return '/';
+    }
+  })();
+  this.rootUrl = rootUrl;
+
   assign(this, {
-    selfProfile: ()=> $ajax({ url: '/me/' }),
+    selfProfile: ()=> $ajax({ url: `${rootUrl}/me/` }),
     queryUserExistence: (username)=> {
       var d = new $.Deferred();
-      $ajax({ url: `/users/${username}/` })
+      $ajax({ url: `${rootUrl}/users/${username}/` })
         .done(()=>{ d.resolve(username, true); })
         .fail(()=>{ d.reject(username, false); });
       return d.promise();
     },
     logout: ()=> {
       var d = new $.Deferred();
-      $ajax({ url: '/api-auth/logout/' }).done(d.resolve).fail(function (resp, etype, emessage) {
+      $ajax({ url: `${rootUrl}/api-auth/logout/` }).done(d.resolve).fail(function (resp, etype, emessage) {
         // logout request wasn't successful, but may have logged the user out
         // querying '/me/' can confirm if we have logged out.
         dataInterface.selfProfile().done(function(data){
@@ -39,12 +48,12 @@ var dataInterface;
     },
     listBlocks () {
       return $ajax({
-        url: '/assets/?q=asset_type:block'
+        url: `${rootUrl}/assets/?q=asset_type:block`
       })
     },
     listQuestionsAndBlocks() {
       return $ajax({
-        url: '/assets/',
+        url: `${rootUrl}/assets/`,
         data: {
           q: 'asset_type:question OR asset_type:block'
         },
@@ -53,7 +62,7 @@ var dataInterface;
     },
     listSurveys() {
       return $ajax({
-        url: '/assets/',
+        url: `${rootUrl}/assets/`,
         data: {
           q: 'asset_type:survey'
         },
@@ -61,11 +70,11 @@ var dataInterface;
       });
     },
     listCollections () {
-      return $.getJSON('/collections/?parent=');
+      return $.getJSON(`${rootUrl}/collections/?parent=`);
     },
     listAllAssets () {
       var d = new $.Deferred();
-      $.when($.getJSON('/assets/?parent='), $.getJSON('/collections/?parent=')).done(function(assetR, collectionR){
+      $.when($.getJSON(`${rootUrl}/assets/?parent=`), $.getJSON(`${rootUrl}/collections/?parent=`)).done(function(assetR, collectionR){
         var assets = assetR[0],
             collections = collectionR[0];
         var r = {results:[]};
@@ -83,14 +92,14 @@ var dataInterface;
     },
     createAssetSnapshot (data) {
       return $ajax({
-        url: '/asset_snapshots/',
+        url: `${rootUrl}/asset_snapshots/`,
         method: 'POST',
         data: data
       });
     },
     createTemporaryAssetSnapshot ({source}) {
       return $ajax({
-        url: '/asset_snapshots/',
+        url: `${rootUrl}/asset_snapshots/`,
         method: 'POST',
         data: {
           source: source
@@ -100,7 +109,7 @@ var dataInterface;
     cloneAsset ({uid}) {
       return $ajax({
         method: 'POST',
-        url: '/assets/',
+        url: `${rootUrl}/assets/`,
         data: {
           clone_from: uid
         }
@@ -109,7 +118,7 @@ var dataInterface;
     cloneCollection ({uid}) {
       return $ajax({
         method: 'POST',
-        url: '/collections/',
+        url: `${rootUrl}/collections/`,
         data: {
           clone_from: uid
         }
@@ -123,11 +132,11 @@ var dataInterface;
     },
     assignPerm (creds) {
       // Do we already have these URLs stored somewhere?
-      var objectUrl = creds.objectUrl || `/${creds.kind}s/${creds.uid}/`;
-      var userUrl = `/users/${creds.username}/`;
+      var objectUrl = creds.objectUrl || `${rootUrl}/${creds.kind}s/${creds.uid}/`;
+      var userUrl = `${rootUrl}/users/${creds.username}/`;
       var codename = `${creds.role}_${creds.kind}`;
       return $ajax({
-        url: '/permissions/',
+        url: `${rootUrl}/permissions/`,
         method: 'POST',
         data: {
           'user': userUrl,
@@ -142,7 +151,7 @@ var dataInterface;
     },
     libraryDefaultSearch () {
       return $ajax({
-        url: '/assets/',
+        url: `${rootUrl}/assets/`,
         data: {
           q: 'asset_type:question OR asset_type:block'
         },
@@ -160,49 +169,49 @@ var dataInterface;
         params.push(`(${q})`);
       }
       return $ajax({
-        url: `/assets/?${params.join(' AND ')}`,
+        url: `${rootUrl}/assets/?${params.join(' AND ')}`,
         method: 'GET'
       });
     },
     readCollection ({uid}) {
       return $ajax({
-        url: `/collections/${uid}/`
+        url: `${rootUrl}/collections/${uid}/`
       });
     },
     deleteCollection ({uid}) {
       return $ajax({
-        url: `/collections/${uid}/`,
+        url: `${rootUrl}/collections/${uid}/`,
         method: 'DELETE'
       });
     },
     deleteAsset ({uid}) {
       return $ajax({
-        url: `/assets/${uid}/`,
+        url: `${rootUrl}/assets/${uid}/`,
         method: 'DELETE'
       });
     },
     getAssetContent ({id}) {
-      return $.getJSON(`/assets/${id}/content/`);
+      return $.getJSON(`${rootUrl}/assets/${id}/content/`);
     },
     getImportDetails ({uid}) {
-      return $.getJSON(`/imports/${uid}/`);
+      return $.getJSON(`${rootUrl}/imports/${uid}/`);
     },
     getAsset (params={}) {
       if (params.url) {
         return $.getJSON(params.url);
       } else  {
-        return $.getJSON(`/assets/${params.id}/`);
+        return $.getJSON(`${rootUrl}/assets/${params.id}/`);
       }
     },
     getAssetXformView (uid) {
       return $ajax({
-        url: `/assets/${uid}/xform`,
+        url: `${rootUrl}/assets/${uid}/xform`,
         dataType: 'html'
       });
     },
     searchAssets (queryString) {
       return $ajax({
-        url: '/assets/',
+        url: `${rootUrl}/assets/`,
         data: {
           q: queryString
         }
@@ -211,13 +220,13 @@ var dataInterface;
     createCollection (data) {
       return $ajax({
         method: 'POST',
-        url: '/collections/',
+        url: `${rootUrl}/collections/`,
         data: data,
       })
     },
     patchCollection (uid, data) {
       return $ajax({
-        url: `/collections/${uid}/`,
+        url: `${rootUrl}/collections/${uid}/`,
         method: 'PATCH',
         data: data
       });
@@ -225,20 +234,20 @@ var dataInterface;
     createResource (details) {
       return $ajax({
         method: 'POST',
-        url: '/assets/',
+        url: `${rootUrl}/assets/`,
         data: details
       });
     },
     patchAsset (uid, data) {
       return $ajax({
-        url: `/assets/${uid}/`,
+        url: `${rootUrl}/assets/${uid}/`,
         method: 'PATCH',
         data: data
       });
     },
     listTags (data) {
       return $ajax({
-        url: `/tags/`,
+        url: `${rootUrl}/tags/`,
         method: 'GET',
         data: assign({
           limit: 9999,
@@ -249,7 +258,7 @@ var dataInterface;
       if (params.url) {
         return $.getJSON(params.url);
       } else  {
-        return $.getJSON(`/collections/${params.id}/`);
+        return $.getJSON(`${rootUrl}/collections/${params.id}/`);
       }
     },
     deployAsset (asset_url, xform_id_string) {
@@ -261,7 +270,7 @@ var dataInterface;
       }
       return $ajax({
         method: 'POST',
-        url: '/deployments/',
+        url: `${rootUrl}/deployments/`,
         data: data
       });
     },
@@ -272,7 +281,7 @@ var dataInterface;
       });
       return $.ajax({
         method: 'POST',
-        url: '/imports/',
+        url: `${rootUrl}/imports/`,
         data: formData,
         processData: false,
         contentType: false
@@ -281,10 +290,10 @@ var dataInterface;
     getResource ({id}) {
       // how can we avoid pulling asset type from the 1st character of the uid?
       var assetType = assetMapping[id[0]];
-      return $.getJSON(`/${assetType}/${id}/`);
+      return $.getJSON(`${rootUrl}/${assetType}/${id}/`);
     },
     login: (creds)=> {
-      return $ajax({ url: '/api-auth/login/?next=/me/', data: creds, method: 'POST'});
+      return $ajax({ url: `${rootUrl}/api-auth/login/?next=/me/`, data: creds, method: 'POST'});
     }
   });
 }).call(dataInterface={});
