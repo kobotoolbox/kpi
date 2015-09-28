@@ -305,7 +305,13 @@ actions.resources.deployAsset.listen(function(uid, form_id_string){
   dataInterface.deployAsset(uid, form_id_string)
     .done(actions.resources.deployAsset.completed)
     .fail(actions.resources.deployAsset.failed);
-})
+});
+
+actions.resources.deployAsset.completed.listen(function({xform_url}){
+  window.setTimeout(function(){
+    window.location.href=xform_url;
+  }, 1000);
+});
 
 actions.resources.createResource.listen(function(details){
   dataInterface.createResource(details)
