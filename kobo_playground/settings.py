@@ -75,7 +75,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'kpi.middleware.OtherFormBuilderRedirectMiddleware',
+    'hub.middleware.OtherFormBuilderRedirectMiddleware',
 )
 
 # used in kpi.models.sitewide_messages
