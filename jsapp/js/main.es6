@@ -22,8 +22,9 @@ $.ajaxSetup({
     }
 });
 
-if (window.location.pathname == "/") {
-  $('.wrapper').hide();
+if (document.head.querySelector('meta[name=kpi-root-url]')) {
   runRoutes(el);
+} else {
+  console.error('no kpi-root-url meta tag set. skipping react-router init');
 }
 
