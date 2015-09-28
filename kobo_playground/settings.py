@@ -132,6 +132,11 @@ USE_TZ = True
 STATIC_ROOT = 'staticfiles'
 STATIC_URL = '/static/'
 
+# KPI_URL should be set in the environment when running in a subdirectory
+KPI_URL = os.environ.get('KPI_URL', False)
+if KPI_URL:
+    STATIC_URL = KPI_URL + STATIC_URL
+
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'jsapp'),
     os.path.join(BASE_DIR, 'static'),
