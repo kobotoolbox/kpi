@@ -136,6 +136,8 @@ STATIC_URL = '/static/'
 KPI_URL = os.environ.get('KPI_URL', False)
 if KPI_URL:
     STATIC_URL = KPI_URL + STATIC_URL
+    from django.conf.global_settings import LOGIN_URL
+    LOGIN_URL = KPI_URL + LOGIN_URL
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'jsapp'),
