@@ -25,9 +25,9 @@ class OtherFormBuilderRedirectMiddleware(object):
         preferred_builder = self.THIS_BUILDER
         if not settings.KPI_URL or not settings.DKOBO_URL \
                 or request.user.is_anonymous():
-            # Default to this builder if the necessary URLs are not configured
-            # or the user is anonymous
-            return self._redirect_if_necessary(request, preferred_builder)
+            # Do not attempt to redirect if the necessary URLs are not
+            # configured or the user is anonymous
+            return
         try:
             preferred_builder = \
                 request.user.formbuilderpreference.preferred_builder
