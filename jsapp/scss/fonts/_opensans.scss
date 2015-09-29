@@ -8,8 +8,8 @@
   font-style: normal;
   font-weight: normal;
   src:  local('Open Sans'), local('OpenSans'),
-        url('/static/fonts/OpenSans-Regular.woff2') format('woff2'),
-        url('/static/fonts/OpenSans-Regular.woff') format('woff');
+        url('../fonts/OpenSans-Regular.woff2') format('woff2'),
+        url('../fonts/OpenSans-Regular.woff') format('woff');
 }
 
 // Open Sans Semibold
@@ -18,8 +18,8 @@
   font-style: normal;
   font-weight: 600;
   src:  local('Open Sans Semibold'), local('OpenSans-Semibold'),
-        url('/static/fonts/OpenSans-Semibold.woff2') format('woff2'),
-        url('/static/fonts/OpenSans-Semibold.woff') format('woff');
+        url('../fonts/OpenSans-Semibold.woff2') format('woff2'),
+        url('../fonts/OpenSans-Semibold.woff') format('woff');
 }
 
 // Open Sans Regular Italic
@@ -27,8 +27,8 @@
   font-family: 'Open Sans';
   font-style: italic;
   font-weight: normal;
-  src:  url('/static/fonts/OpenSans-Italic.woff2') format('woff2'),
-        url('/static/fonts/OpenSans-Italic.woff') format('woff');
+  src:  url('../fonts/OpenSans-Italic.woff2') format('woff2'),
+        url('../fonts/OpenSans-Italic.woff') format('woff');
 }
 
 // Open Sans Semibold Italic
@@ -36,6 +36,6 @@
   font-family: 'Open Sans';
   font-style: italic;
   font-weight: 600;
-  src:  url('/static/fonts/OpenSans-SemiboldItalic.woff2') format('woff2'),
-        url('/static/fonts/OpenSans-SemiboldItalic.woff') format('woff');
+  src:  url('../fonts/OpenSans-SemiboldItalic.woff2') format('woff2'),
+        url('../fonts/OpenSans-SemiboldItalic.woff') format('woff');
 }
