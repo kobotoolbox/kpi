@@ -5,9 +5,9 @@
   font-weight: 400;
   src:  local('Material Icons'), 
         local('MaterialIcons-Regular'), 
-        url('/static/fonts/MaterialIcons-Regular.woff2') format('woff2'), 
-        url('/static/fonts/MaterialIcons-Regular.woff') format('woff'), 
-        url('/static/fonts/MaterialIcons-Regular.ttf') format('truetype');
+        url('../fonts/MaterialIcons-Regular.woff2') format('woff2'), 
+        url('../fonts/MaterialIcons-Regular.woff') format('woff'), 
+        url('../fonts/MaterialIcons-Regular.ttf') format('truetype');
 }
 
 .material-icons {
@@ -56,17 +56,17 @@ body {
 $layout-header-mobile-indent-plus: $layout-header-mobile-indent + 6px;
 $layout-header-desktop-indent-plus: $layout-header-desktop-indent + 6px;
 
-@import '../components/kobo.drawer'; 
+@import '../components/kobo.drawer';
 
 .mdl-checkbox__tick-outline {
-  mask: url("/static/img/tick-mask.svg?embed");
+  mask: url('../img/tick-mask.svg?embed');
 
   .mdl-checkbox.is-checked & {
-    background: $checkbox-color url("/static/img/tick.svg?embed");
+    background: $checkbox-color url('../img/tick.svg?embed');
   }
 
   .mdl-checkbox.is-checked.is-disabled & {
-    background: $checkbox-disabled-color url("/static/img/tick.svg?embed");
+    background: $checkbox-disabled-color url('../img/tick.svg?embed');
   }
 }
 

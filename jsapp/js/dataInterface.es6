@@ -14,10 +14,10 @@ var dataInterface;
   }
   var rootUrl = (function(){
     try {
-      return document.head.querySelector('meta[name=kpi-root-url]').content;
+      return document.head.querySelector('meta[name=kpi-root-url]').content.replace(/\/$/, '');
     } catch (e) {
-      console.error('no kpi-root-url meta tag set. defaulting to "/"');
-      return '/';
+      console.error('no kpi-root-url meta tag set. defaulting to ""');
+      return '';
     }
   })();
   this.rootUrl = rootUrl;
