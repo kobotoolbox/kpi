@@ -1,10 +1,11 @@
 {% extends "registration.html" %}
+{% load staticfiles %}
 
 {% block content %}
 <div class="registration__bg">
 
   <form action="." method="post" class="registration registration--register">
-    <div class="registration--logo"><a href="/"><img src="/static/img/kobologo.svg"/></a></div>    
+    <div class="registration--logo"><a href="/"><img src="{% static 'img/kobologo.svg' %}"/></a></div>
 
     <div class="registration__first-half">
       {% csrf_token%}
@@ -19,7 +20,7 @@
       {% if welcome_message %}
         {{ welcome_message|safe }}
       {% else %}
-        <p>KoBoToolbox is an integrated set of tools for building forms and collecting interview responses. It is built by the Harvard Humanitarian Initiative for easy and reliable use in difficult field settings, such as humanitarian emergencies or post-conflict environments.</p> 
+        <p>KoBoToolbox is an integrated set of tools for building forms and collecting interview responses. It is built by the Harvard Humanitarian Initiative for easy and reliable use in difficult field settings, such as humanitarian emergencies or post-conflict environments.</p>
         <p>You can download and install KoBoToolbox on <a href="http://support.kobotoolbox.org/customer/portal/articles/1691108-install-kobotoolbox-on-your-own-server">your own server</a> or <a href="http://support.kobotoolbox.org/customer/portal/articles/1691105-using-kobotoolbox-offline">on your own computer</a>.</p>
       {% endif %}
     </div>
