@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import models, migrations, ProgrammingError
+from django.db import models, migrations, ProgrammingError, OperationalError
 from django.conf import settings
 
 
@@ -10,7 +10,8 @@ def south_forwards(apps, schema_editor):
                 "applied) VALUES ('hub', '0002_formbuilderpreference', NOW());"
     try:
         schema_editor.execute(statement, params=None)
-    except ProgrammingError:
+    # Different backends raise different exceptions when a table is missing
+    except (ProgrammingError, OperationalError):
         # South may have never touched this database
         pass
 
@@ -19,7 +20,7 @@ def south_backwards(apps, schema_editor):
                 "AND migration='0002_formbuilderpreference';"
     try:
         schema_editor.execute(statement, params=None)
-    except ProgrammingError:
+    except (ProgrammingError, OperationalError):
         pass
 
 
