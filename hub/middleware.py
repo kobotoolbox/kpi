@@ -21,7 +21,10 @@ class OtherFormBuilderRedirectMiddleware(object):
         if not request.build_absolute_uri().startswith(preferred_url):
             return HttpResponseRedirect(preferred_url)
 
-    def process_request(self, request):
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        ''' Using process_view instead of process_request allows the resolver
+        to run and return 404 when appropriate, instead of blindly returning
+        302 for all requests '''
         preferred_builder = self.THIS_BUILDER
         if not settings.KPI_URL or not settings.DKOBO_URL \
                 or request.user.is_anonymous():
