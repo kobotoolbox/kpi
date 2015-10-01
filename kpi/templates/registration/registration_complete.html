@@ -1,10 +1,11 @@
 {% extends "registration.html" %}
+{% load staticfiles %}
 
 {% block content %}
 <div class="registration__bg">
 
   <form action="." method="post" class="registration">
-    <div class="registration--logo"><a href="/"><img src="/static/img/kobologo.svg"/></a></div>    
+    <div class="registration--logo"><a href="/"><img src="{% static 'img/kobologo.svg' %}"/></a></div>
 
     <p class="registration__message  registration__message--complete">Thanks for creating a KoBoToolbox account.</p>
     <p class="registration__message  registration__message--complete">Please click the activation link in the email just sent to you.</p>

@@ -11,7 +11,7 @@ from taggit.managers import TaggableManager
 
 from kpi.models import Asset
 from kpi.models import Collection
-from kpi.models.asset import KpiTaggableManager
+from kpi.models.asset import KpiTaggableManager, ASSET_UID_LENGTH
 
 
 class SurveyDraft(models.Model):
@@ -31,6 +31,8 @@ class SurveyDraft(models.Model):
     summary = JSONField()
     asset_type = models.CharField(max_length=32, null=True)
     tags = TaggableManager(manager=KpiTaggableManager)
+    kpi_asset_uid = models.CharField(
+        max_length=ASSET_UID_LENGTH, default='', blank=True)
 
 
 def _csv_to_dict(content):
@@ -50,8 +52,9 @@ def _set_auto_field_update(kls, field_name, val):
 def _import_user_assets(from_user, to_user):
     user = to_user
 
-    user_survey_drafts = user.survey_drafts.filter(asset_type=None)
-    user_qlib_assets = user.survey_drafts.exclude(asset_type=None)
+    not_already_migrated = user.survey_drafts.filter(kpi_asset_uid='')
+    user_survey_drafts = not_already_migrated.filter(asset_type=None)
+    user_qlib_assets = not_already_migrated.exclude(asset_type=None)
 
     def _import_asset(asset, parent_collection=None):
         survey_dict = _csv_to_dict(asset.body)
@@ -76,15 +79,23 @@ def _import_user_assets(from_user, to_user):
         _set_auto_field_update(Asset, "date_created", True)
         _set_auto_field_update(Asset, "date_modified", True)
 
+        # Note on the old draft the uid of the new asset
+        asset.kpi_asset_uid = new_asset.uid
+        asset.save()
+
+        return new_asset
+
     for survey_draft in user_survey_drafts.all():
         print 'importing sd %s %d' % (survey_draft.name, survey_draft.id)
-        _import_asset(survey_draft)
+        new_asset = _import_asset(survey_draft)
+        print '\timported to asset {}'.format(new_asset.uid)
 
     (qlib, _) = Collection.objects.get_or_create(name="question library", owner=user)
 
     for qlib_asset in user_qlib_assets.all():
         print 'importing qla %s %d' % (qlib_asset.name, qlib_asset.id)
-        _import_asset(survey_draft, qlib)
+        new_asset = _import_asset(qlib_asset, qlib)
+        print '\timported to asset {}'.format(new_asset.uid)
 
     _set_auto_field_update(Asset, "date_created", False)
     _set_auto_field_update(Asset, "date_modified", False)
@@ -144,11 +155,13 @@ class Command(BaseCommand):
 
             print "user has %d collections" % to_user.owned_collections.count()
             print "user has %d assets" % to_user.assets.count()
-            print "Destroying user's collections and assets in KPI."
-            to_user.owned_collections.all().delete()
-            to_user.assets.all().delete()
-            if not options.get('destroy'):
-                print "Importing assets and collections."
-                print "user has %d collections" % to_user.owned_collections.count()
-                print "user has %d assets" % to_user.assets.count()
-                _import_user_assets(from_user, to_user)
+            if options.get('destroy'):
+                print "Destroying user's collections and assets in KPI."
+                to_user.owned_collections.all().delete()
+                to_user.assets.all().delete()
+                print "Removing references in dkobo to KPI assets."
+                to_user.survey_drafts.update(kpi_asset_uid='')
+            print "Importing assets and collections."
+            print "user has %d collections" % to_user.owned_collections.count()
+            print "user has %d assets" % to_user.assets.count()
+            _import_user_assets(from_user, to_user)

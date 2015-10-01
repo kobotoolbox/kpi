@@ -72,9 +72,12 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    # TODO: Uncomment this when interoperability with dkobo is no longer
+    # needed. See https://code.djangoproject.com/ticket/21649
+    #'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'hub.middleware.OtherFormBuilderRedirectMiddleware',
 )
 
 # used in kpi.models.sitewide_messages
@@ -131,6 +134,13 @@ USE_TZ = True
 STATIC_ROOT = 'staticfiles'
 STATIC_URL = '/static/'
 
+# KPI_URL should be set in the environment when running in a subdirectory
+KPI_URL = os.environ.get('KPI_URL', False)
+if KPI_URL:
+    STATIC_URL = KPI_URL + STATIC_URL
+    from django.conf.global_settings import LOGIN_URL
+    LOGIN_URL = KPI_URL + LOGIN_URL
+
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'jsapp'),
     os.path.join(BASE_DIR, 'static'),
@@ -165,6 +175,7 @@ USE_MINIFIED_SCRIPTS = os.environ.get('KOBO_USE_MINIFIED_SCRIPTS', False)
 TRACKJS_TOKEN = os.environ.get('TRACKJS_TOKEN')
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', False)
 KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL', False)
+DKOBO_URL = os.environ.get('DKOBO_URL', False)
 
 ''' Haystack search settings '''
 HAYSTACK_CONNECTIONS = {

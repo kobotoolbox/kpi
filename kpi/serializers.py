@@ -58,9 +58,98 @@ class WritableJSONField(serializers.Field):
     def to_representation(self, value):
         return value
 
+
 class ReadOnlyJSONField(serializers.ReadOnlyField):
     def to_representation(self, value):
         return value
+
+
+class GenericHyperlinkedRelatedField(serializers.HyperlinkedRelatedField):
+
+    def __init__(self, **kwargs):
+        # These arguments are required by ancestors but meaningless in our
+        # situation. We will override them dynamically.
+        kwargs['view_name'] = '*'
+        kwargs['queryset'] = ObjectPermission.objects.none()
+        return super(GenericHyperlinkedRelatedField, self).__init__(**kwargs)
+
+    def to_representation(self, value):
+        self.view_name = '{}-detail'.format(
+            ContentType.objects.get_for_model(value).model)
+        result = super(GenericHyperlinkedRelatedField, self).to_representation(
+            value)
+        self.view_name = '*'
+        return result
+
+    def to_internal_value(self, data):
+        ''' The vast majority of this method has been copied and pasted from
+        HyperlinkedRelatedField.to_internal_value(). Modifications exist
+        to allow any type of object. '''
+        _ = self.context.get('request', None)
+        try:
+            http_prefix = data.startswith(('http:', 'https:'))
+        except AttributeError:
+            self.fail('incorrect_type', data_type=type(data).__name__)
+
+        # The script prefix must be removed even if the URL is relative.
+        # TODO: Figure out why DRF only strips absolute URLs, or file bug
+        if True or http_prefix:
+            # If needed convert absolute URLs to relative path
+            data = urlparse.urlparse(data).path
+            prefix = get_script_prefix()
+            if data.startswith(prefix):
+                data = '/' + data[len(prefix):]
+
+        try:
+            match = resolve(data)
+        except Resolver404:
+            self.fail('no_match')
+
+        ### Begin modifications ###
+        # We're a generic relation; we don't discriminate
+        '''
+        try:
+            expected_viewname = request.versioning_scheme.get_versioned_viewname(
+                self.view_name, request
+            )
+        except AttributeError:
+            expected_viewname = self.view_name
+
+        if match.view_name != expected_viewname:
+            self.fail('incorrect_match')
+        '''
+
+        # Dynamically modify the queryset
+        self.queryset = match.func.cls.queryset
+        ### End modifications ###
+
+        try:
+            return self.get_object(match.view_name, match.args, match.kwargs)
+        except (ObjectDoesNotExist, TypeError, ValueError):
+            self.fail('does_not_exist')
+
+
+class RelativePrefixHyperlinkedRelatedField(
+        serializers.HyperlinkedRelatedField):
+    def to_internal_value(self, data):
+        try:
+            http_prefix = data.startswith(('http:', 'https:'))
+        except AttributeError:
+            self.fail('incorrect_type', data_type=type(data).__name__)
+
+        # The script prefix must be removed even if the URL is relative.
+        # TODO: Figure out why DRF only strips absolute URLs, or file bug
+        if True or http_prefix:
+            # If needed convert absolute URLs to relative path
+            data = urlparse.urlparse(data).path
+            prefix = get_script_prefix()
+            if data.startswith(prefix):
+                data = '/' + data[len(prefix):]
+
+        return super(
+            RelativePrefixHyperlinkedRelatedField, self
+        ).to_internal_value(data)
+
 
 class TagSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField('_get_tag_url', read_only=True)
@@ -114,75 +203,12 @@ class TagListSerializer(TagSerializer):
         fields = ('name', 'url', )
 
 
-class GenericHyperlinkedRelatedField(serializers.HyperlinkedRelatedField):
-
-    def __init__(self, **kwargs):
-        # These arguments are required by ancestors but meaningless in our
-        # situation. We will override them dynamically.
-        kwargs['view_name'] = '*'
-        kwargs['queryset'] = ObjectPermission.objects.none()
-        return super(GenericHyperlinkedRelatedField, self).__init__(**kwargs)
-
-    def to_representation(self, value):
-        self.view_name = '{}-detail'.format(
-            ContentType.objects.get_for_model(value).model)
-        result = super(GenericHyperlinkedRelatedField, self).to_representation(
-            value)
-        self.view_name = '*'
-        return result
-
-    def to_internal_value(self, data):
-        ''' The vast majority of this method has been copied and pasted from
-        HyperlinkedRelatedField.to_internal_value(). Modifications exist
-        to allow any type of object. '''
-        _ = self.context.get('request', None)
-        try:
-            http_prefix = data.startswith(('http:', 'https:'))
-        except AttributeError:
-            self.fail('incorrect_type', data_type=type(data).__name__)
-
-        if http_prefix:
-            # If needed convert absolute URLs to relative path
-            data = urlparse.urlparse(data).path
-            prefix = get_script_prefix()
-            if data.startswith(prefix):
-                data = '/' + data[len(prefix):]
-
-        try:
-            match = resolve(data)
-        except Resolver404:
-            self.fail('no_match')
-
-        ### Begin modifications ###
-        # We're a generic relation; we don't discriminate
-        '''
-        try:
-            expected_viewname = request.versioning_scheme.get_versioned_viewname(
-                self.view_name, request
-            )
-        except AttributeError:
-            expected_viewname = self.view_name
-
-        if match.view_name != expected_viewname:
-            self.fail('incorrect_match')
-        '''
-
-        # Dynamically modify the queryset
-        self.queryset = match.func.cls.queryset
-        ### End modifications ###
-
-        try:
-            return self.get_object(match.view_name, match.args, match.kwargs)
-        except (ObjectDoesNotExist, TypeError, ValueError):
-            self.fail('does_not_exist')
-
-
 class ObjectPermissionSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid',
         view_name='objectpermission-detail'
     )
-    user = serializers.HyperlinkedRelatedField(
+    user = RelativePrefixHyperlinkedRelatedField(
         view_name='user-detail',
         lookup_field='username',
         queryset=User.objects.all(),
@@ -237,16 +263,18 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
     xml = serializers.SerializerMethodField()
     enketopreviewlink = serializers.SerializerMethodField()
     details = WritableJSONField(required=False)
-    asset = serializers.HyperlinkedRelatedField(
+    asset = RelativePrefixHyperlinkedRelatedField(
         queryset=Asset.objects.all(), view_name='asset-detail',
         lookup_field='uid',
         required=False,
         allow_null=True,
         style={'base_template': 'input.html'} # Render as a simple text box
     )
-    owner = serializers.HyperlinkedRelatedField(view_name='user-detail',
-                                                lookup_field='username',
-                                                read_only=True)
+    owner = RelativePrefixHyperlinkedRelatedField(
+        view_name='user-detail',
+        lookup_field='username',
+        read_only=True
+    )
     asset_version_id = serializers.IntegerField(required=False, read_only=True)
     date_created = serializers.DateTimeField(read_only=True)
     source = WritableJSONField(required=False)
@@ -325,8 +353,8 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
-    owner = serializers.HyperlinkedRelatedField(view_name='user-detail', lookup_field='username',
-                                                read_only=True,)
+    owner = RelativePrefixHyperlinkedRelatedField(
+        view_name='user-detail', lookup_field='username', read_only=True)
     owner__username = serializers.ReadOnlyField(source='owner.username')
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid', view_name='asset-detail')
@@ -340,11 +368,13 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     version_count = serializers.SerializerMethodField('_version_count')
     downloads = serializers.SerializerMethodField()
     embeds = serializers.SerializerMethodField()
-    parent = serializers.HyperlinkedRelatedField(lookup_field='uid',
-                                                 queryset=Collection.objects.all(),
-                                                 view_name='collection-detail',
-                                                 required=False,
-                                                 allow_null=True)
+    parent = RelativePrefixHyperlinkedRelatedField(
+        lookup_field='uid',
+        queryset=Collection.objects.all(),
+        view_name='collection-detail',
+        required=False,
+        allow_null=True
+    )
     ancestors = AncestorCollectionsSerializer(
         many=True, read_only=True, source='get_ancestors_or_none')
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
@@ -651,13 +681,17 @@ class CollectionChildrenSerializer(serializers.Serializer):
 class CollectionSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid', view_name='collection-detail')
-    owner = serializers.HyperlinkedRelatedField(view_name='user-detail',
-                                                lookup_field='username',
-                                                read_only=True)
-    parent = serializers.HyperlinkedRelatedField(lookup_field='uid',
-                                                 required=False,
-                                                 view_name='collection-detail',
-                                                 queryset=Collection.objects.all())
+    owner = RelativePrefixHyperlinkedRelatedField(
+        view_name='user-detail',
+        lookup_field='username',
+        read_only=True
+    )
+    parent = RelativePrefixHyperlinkedRelatedField(
+        lookup_field='uid',
+        required=False,
+        view_name='collection-detail',
+        queryset=Collection.objects.all()
+    )
     owner__username = serializers.ReadOnlyField(source='owner.username')
     # ancestors are ordered from farthest to nearest
     ancestors = AncestorCollectionsSerializer(
