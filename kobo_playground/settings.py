@@ -65,6 +65,7 @@ INSTALLED_APPS = (
     'taggit',
     'rest_framework',
     'rest_framework.authtoken',
+    'oauth2_provider',
 )
 
 MIDDLEWARE_CLASSES = (

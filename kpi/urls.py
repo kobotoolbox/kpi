@@ -42,4 +42,5 @@ urlpatterns = [
     url(r'^accounts/logout/', 'django.contrib.auth.views.logout',
         {'next_page': '/'}),
     url(r'^accounts/', include('registration.backends.default.urls')),
+    url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 ]
