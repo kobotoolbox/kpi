@@ -3,17 +3,19 @@
 
 {% block content %}
 <div class="registration__bg">
-  <form method="post" action="." class="registration registration--login">
+  <form method="post" action="{% url 'account_login' %}" class="registration registration--login">
     <div class="registration--logo"><a href="/"><img src="{% static 'img/kobologo.svg' %}"/></a></div>
     {% csrf_token %}
     {{ form.as_p }}
-    <a href="{% url 'auth_password_reset' %}" class="registration__forgot">Forgot?</a>
+    <a href="{% url 'account_reset_password' %}" class="registration__forgot">Forgot?</a>
 
     <input type="submit" value="Login" class="registration__action" />
-    <input type="hidden" name="next" value="{{ next }}" />
+    {% if redirect_field_value %}
+    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+    {% endif %}
 
     <div class="registration__footer">
-      or <a href="{% url 'registration_register' %}">create an account</a>
+      or <a href="{{ signup_url }}">create an account</a>
     </div>
   </form>
 
@@ -26,6 +28,8 @@
 {% block footer %}
  {{ block.super }}
   <script>
+  {# This doesn't work; see https://github.com/kobotoolbox/kpi/issues/365 #}
+  {# Is this footer block even loaded? #}
   $(function () {
     $('form.registration input#id_username').attr('placeholder', 'Username');
     $('form.registration input#id_password').attr('placeholder', 'Password');

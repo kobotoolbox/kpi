@@ -1,8 +1,8 @@
 from django.conf.urls import url, include
+from django.shortcuts import render
 from rest_framework.urlpatterns import format_suffix_patterns
 from rest_framework.routers import DefaultRouter
 from rest_framework import renderers
-from registration.backends.default.views import RegistrationView
 
 from kpi.views import (
     AssetViewSet,
@@ -17,7 +17,6 @@ from kpi.views import (
 )
 
 from kpi.views import current_user, home
-from kpi.forms import RegistrationForm
 
 router = DefaultRouter()
 router.register(r'assets', AssetViewSet)
@@ -37,10 +36,13 @@ urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls',
                                namespace='rest_framework')),
-    url(r'^accounts/register/$', RegistrationView.as_view(
-        form_class=RegistrationForm), name='registration_register'),
-    url(r'^accounts/logout/', 'django.contrib.auth.views.logout',
-        {'next_page': '/'}),
-    url(r'^accounts/', include('registration.backends.default.urls')),
+    #url(r'^accounts/logout/', 'django.contrib.auth.views.logout',
+    #    {'next_page': '/'}),
+    url(r'^accounts/', include('allauth.urls')),
     url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
+    url(
+        r'^account_confirmed/',
+        lambda r: render(r, 'account_confirmed.html'),
+        name='account-confirmed'
+    ),
 ]

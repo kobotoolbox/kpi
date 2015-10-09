@@ -1,0 +1,35 @@
+{% extends "registration.html" %}
+{% load staticfiles %}
+{% load account %}
+
+{% block content %}
+<div class="registration__bg">
+
+  {% if confirmation %}
+    <form action="{% url 'account_confirm_email' confirmation.key %}" method="post" class="registration">
+  {% else %}
+    <form action="." method="post" class="registration">
+  {% endif %}
+    <div class="registration--logo"><a href="/"><img src="{% static 'img/kobologo.svg' %}"/></a></div>
+    {% if confirmation %}
+      {% csrf_token %}
+      {% user_display confirmation.email_address.user as user_display %}
+      {% with confirmation.email_address.email as email %}
+      <p class="registration__message">
+        Please confirm that <strong>{{ email }}</strong> is the correct e-mail address for
+        user <strong>{{ user_display }}</strong>.
+      </p>
+      {% endwith %}
+      <input type="submit" value="Confirm E-mail" class="registration__action" />
+    {% else %}
+      {% url 'account_signup' as signup_url %}
+      <p class="registration__message">Sorry, we couldn't activate your account. The link we sent you has expired.</p>
+      <p class="registration__message"><a href="{{ signup_url }}">Click here to create a new account.</a></p>
+    {% endif %}
+
+  </form>
+
+  <div class="registration__credit"><a href="https://flic.kr/p/9v4mC5" title="Muhkjar refugee camp" target="_blank">Photo</a> by UNAMID / <a href="https://creativecommons.org/licenses/by-nc-nd/2.0/" target="_blank">by-nc-nd</a></div>
+</div>
+
+{% endblock %}
