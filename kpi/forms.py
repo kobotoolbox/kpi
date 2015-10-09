@@ -1,14 +1,15 @@
-from django import forms
+from allauth.account.adapter import DefaultAccountAdapter
 from django.utils.translation import ugettext_lazy as _
-from registration import forms as registration_forms
+from django import forms
+import re
 
-class RegistrationForm(registration_forms.RegistrationForm):
-    username = forms.RegexField(
-        regex=r'^[a-z][a-z0-9_]+$',
-        max_length=30,
-        label=_("Username"),
-        error_messages={'invalid': _(
-            'A username may only contain lowercase letters, numbers, and '
-            'underscores (_).'
-        )}
-    )
+class UsernameValidationAdapter(DefaultAccountAdapter):
+    def clean_username(self, username):
+        # Why don't they use RegexField?
+        USERNAME_REGEX = re.compile(r'^[a-z][a-z0-9_]+$')
+        if not USERNAME_REGEX.match(username):                                  
+            raise forms.ValidationError(_(
+                'A username may only contain lowercase letters, numbers, and '
+                'underscores (_).'
+            ))
+        return super(UsernameValidationAdapter, self).clean_username(username)

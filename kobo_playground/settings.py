@@ -53,14 +53,17 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'cachebuster',
     'django.contrib.staticfiles',
+    'django.contrib.sites', # required by `allauth`
     'reversion',
     'debug_toolbar',
     'mptt',
     'haystack',
     'kpi',
     'hub',
-    'registration', # Must come AFTER kpi
-    'django.contrib.admin', # Must come AFTER registration
+    'allauth', # must come AFTER kpi for templates to work
+    'allauth.account',
+    'allauth.socialaccount',
+    'django.contrib.admin', # had to come after `registration`; unsure about allauth
     'django_extensions',
     'taggit',
     'rest_framework',
@@ -163,6 +166,8 @@ REST_FRAMEWORK = {
 }
 
 TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
+    # Required by `allauth` template tags
+    'django.core.context_processors.request',
     'kpi.context_processors.dev_mode',
 )
 
@@ -217,11 +222,6 @@ See http://celery.readthedocs.org/en/latest/getting-started/brokers/rabbitmq.htm
 '''
 BROKER_URL = 'amqp://kpi:kpi@localhost:5672/kpi'
 
-# http://django-registration-redux.readthedocs.org/en/latest/quickstart.html#settings
-ACCOUNT_ACTIVATION_DAYS = 3
-REGISTRATION_AUTO_LOGIN = True
-REGISTRATION_EMAIL_HTML = False # Otherwise we have to write HTML templates
-
 # Email configuration from dkobo; expects SES
 if os.environ.get('EMAIL_BACKEND'):
     EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND')
@@ -267,3 +267,15 @@ KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES = [
     ('api', 'organizationprofile'),
     ('logger', 'note'),
 ]
+
+# The sites framework is required by `allauth`
+SITE_ID = os.environ.get('DJANGO_SITE_ID', '1')
+
+# django-allauth settings
+ACCOUNT_ADAPTER = 'kpi.forms.UsernameValidationAdapter'
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = 'account-confirmed'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_SUBJECT_PREFIX = ''
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_SESSION_REMEMBER = True

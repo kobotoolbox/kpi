@@ -4,7 +4,7 @@
 {% block content %}
 <div class="registration__bg">
 
-  <form action="." method="post" class="registration registration--register">
+  <form action="{% url 'account_signup' %}" method="post" class="registration registration--register">
     <div class="registration--logo"><a href="/"><img src="{% static 'img/kobologo.svg' %}"/></a></div>
 
     <div class="registration__first-half">
@@ -12,7 +12,7 @@
       {{ form.as_p }}
       <input type="submit" value="Create Account" class="registration__action" />
       <div class="registration__footer">
-        or <a href="{% url 'auth_login' %}">login</a>
+        or <a href="{{ login_url }}">login</a>
       </div>
     </div>
 

@@ -4,14 +4,13 @@
 {% block content %}
 <div class="registration__bg">
 
-  <form method="post" action="." class="registration registration--login">
+  <form action="{% url 'account_login' %}" method="get" class="registration">
     <div class="registration--logo"><a href="/"><img src="{% static 'img/kobologo.svg' %}"/></a></div>
 
-  <p style="text-align:center;">Password reset successfully</p>
-
-  <p style="text-align:center;">
-    <a href="{% url 'auth_login' %}">Log in</a>
-  </p>
+    <p class="registration__message  registration__message--complete">Thanks for activating your KoBoToolbox account.</p>
+    <p class="registration__message  registration__message--complete">
+      You may now <a href="{% url 'account_login' %}">login</a> with your username and password.</p>
+    <input type="submit" value="Login" class="registration__action">
 
   </form>
 
