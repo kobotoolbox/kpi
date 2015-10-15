@@ -21,9 +21,11 @@ from rest_framework import exceptions
 from rest_framework.decorators import api_view
 from rest_framework.decorators import renderer_classes
 from rest_framework.decorators import detail_route
+from rest_framework.decorators import authentication_classes
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework.authtoken.models import Token
 from taggit.models import Tag
 
 from .filters import KpiAssignedObjectPermissionsFilter
@@ -37,9 +39,12 @@ from .models import (
     AssetSnapshot,
     ImportTask,
     AssetDeployment,
-    ObjectPermission,)
+    ObjectPermission,
+    AuthorizedApplication,
+    )
 from .models.object_permission import get_anonymous_user, get_objects_for_user
 from .models.asset_deployment import kobocat_url
+from .models.authorized_application import ApplicationTokenAuthentication
 from .permissions import (
     IsOwnerOrReadOnly,
     get_perm_name,
@@ -55,11 +60,12 @@ from .serializers import (
     AssetSnapshotSerializer,
     SitewideMessageSerializer,
     CollectionSerializer, CollectionListSerializer,
-    UserSerializer, UserListSerializer,
+    UserSerializer, UserListSerializer, CreateUserSerializer,
     TagSerializer, TagListSerializer,
     AssetDeploymentSerializer,
     ImportTaskSerializer, ImportTaskListSerializer,
-    ObjectPermissionSerializer,)
+    ObjectPermissionSerializer,
+    AuthorizedApplicationUserSerializer,)
 from .utils.gravatar_url import gravatar_url
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from .tasks import import_in_background
@@ -267,7 +273,6 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
-
     """
     This viewset automatically provides `list` and `detail` actions.
     """
@@ -275,11 +280,53 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     lookup_field = 'username'
 
+    def __init__(self, *args, **kwargs):
+        super(UserViewSet, self).__init__(*args, **kwargs)
+        self.authentication_classes += [ApplicationTokenAuthentication]
+
     def get_serializer_class(self):
         if self.action == 'list':
             return UserListSerializer
         else:
             return UserSerializer
+
+
+class AuthorizedApplicationUserViewSet(mixins.CreateModelMixin,
+                                       viewsets.GenericViewSet):
+    authentication_classes = [ApplicationTokenAuthentication] 
+    queryset = User.objects.all()
+    serializer_class = CreateUserSerializer
+    lookup_field = 'username'
+    def create(self, request, *args, **kwargs):
+        if type(request.auth) is not AuthorizedApplication:
+            # Only specially-authorized applications are allowed to create
+            # users via this endpoint
+            raise exceptions.PermissionDenied()
+        return super(AuthorizedApplicationUserViewSet, self).create(
+            request, *args, **kwargs)
+
+
+@api_view(['POST'])
+@authentication_classes([ApplicationTokenAuthentication])
+def authorized_application_authenticate_user(request):
+    ''' Returns a user-level API token when given a valid username and
+    password. The request header must include an authorized application key '''
+    if type(request.auth) is not AuthorizedApplication:
+        # Only specially-authorized applications are allowed to authenticate
+        # users this way
+        raise exceptions.PermissionDenied()
+    serializer = AuthorizedApplicationUserSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    username = serializer.validated_data['username']
+    password = serializer.validated_data['password']
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        raise exceptions.PermissionDenied()
+    if not user.check_password(password):
+        raise exceptions.PermissionDenied()
+    token = Token.objects.get_or_create(user=user)[0]
+    return Response({'token': token.key})
 
 
 class XlsFormParser(MultiPartParser):

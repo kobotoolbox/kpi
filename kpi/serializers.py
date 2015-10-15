@@ -653,6 +653,26 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         }
 
 
+class CreateUserSerializer(serializers.ModelSerializer):
+    ''' Taken directly from the DRF documentation '''
+    class Meta:
+        model = User
+        fields = ('email', 'username', 'password')
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'email': {'required': True} # Not in the documentation, hmm...
+        }
+
+    def create(self, validated_data):
+        user = User(
+            email=validated_data['email'],
+            username=validated_data['username']
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
+
+
 class UserListSerializer(UserSerializer):
     assets_count = serializers.SerializerMethodField('_assets_count')
     collections_count = serializers.SerializerMethodField('_collections_count')
@@ -795,3 +815,22 @@ class CollectionListSerializer(CollectionSerializer):
                   'date_modified',
                   'permissions',
                   'tag_string',)
+
+
+class AuthorizedApplicationUserSerializer(serializers.BaseSerializer):
+    username = serializers.CharField()
+    password = serializers.CharField(style={'input_type': 'password'})
+    token = serializers.CharField(read_only=True)
+    def to_internal_value(self, data):
+        field_names = ('username', 'password')
+        validation_errors = {}
+        validated_data = {}
+        for field_name in field_names:
+            value = data.get(field_name)
+            if not value:
+                validation_errors[field_name] = 'This field is required.'
+            else:
+                validated_data[field_name] = value
+        if len(validation_errors):
+            raise exceptions.ValidationError(validation_errors)
+        return validated_data
