@@ -17,6 +17,7 @@ from kpi.views import (
 )
 
 from kpi.views import current_user, home
+from kpi.views import authorized_application_authenticate_user
 from kpi.forms import RegistrationForm
 
 router = DefaultRouter()
@@ -43,4 +44,6 @@ urlpatterns = [
         {'next_page': '/'}),
     url(r'^accounts/', include('registration.backends.default.urls')),
     url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
+    url(r'^authorized-application/authenticate-user/$',
+        authorized_application_authenticate_user),
 ]
