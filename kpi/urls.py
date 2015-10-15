@@ -14,6 +14,7 @@ from kpi.views import (
     ObjectPermissionViewSet,
     AssetDeploymentViewSet,
     SitewideMessageViewSet,
+    AuthorizedApplicationUserViewSet,
 )
 
 from kpi.views import current_user, home
@@ -31,6 +32,8 @@ router.register(r'imports', ImportTaskViewSet)
 router.register(r'deployments', AssetDeploymentViewSet)
 router.register(r'sitewide_messages', SitewideMessageViewSet)
 
+router.register(
+    r'authorized-application/users', AuthorizedApplicationUserViewSet)
 
 urlpatterns = [
     url(r'^$', home, name='kpi-root'),
@@ -44,6 +47,8 @@ urlpatterns = [
         {'next_page': '/'}),
     url(r'^accounts/', include('registration.backends.default.urls')),
     url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
-    url(r'^authorized-application/authenticate-user/$',
-        authorized_application_authenticate_user),
+    url(
+        r'^authorized-application/authenticate-user/$',
+        authorized_application_authenticate_user
+    ),
 ]

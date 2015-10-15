@@ -272,7 +272,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
             return TagSerializer
 
 
-class UserViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
     """
     This viewset automatically provides `list` and `detail` actions.
     """
@@ -287,17 +287,23 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
     def get_serializer_class(self):
         if self.action == 'list':
             return UserListSerializer
-        elif self.action == 'create':
-            return CreateUserSerializer
         else:
             return UserSerializer
 
+
+class AuthorizedApplicationUserViewSet(mixins.CreateModelMixin,
+                                       viewsets.GenericViewSet):
+    authentication_classes = [ApplicationTokenAuthentication] 
+    queryset = User.objects.all()
+    serializer_class = CreateUserSerializer
+    lookup_field = 'username'
     def create(self, request, *args, **kwargs):
         if type(request.auth) is not AuthorizedApplication:
             # Only specially-authorized applications are allowed to create
             # users via this endpoint
             raise exceptions.PermissionDenied()
-        return super(UserViewSet, self).create(request, *args, **kwargs)
+        return super(AuthorizedApplicationUserViewSet, self).create(
+            request, *args, **kwargs)
 
 
 @api_view(['POST'])

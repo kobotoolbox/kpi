@@ -23,7 +23,7 @@ class AuthorizedApplication(models.Model):
         return self.name
 
 class ApplicationTokenAuthentication(TokenAuthentication):
-    model = AuthorizedApplication 
+    model = AuthorizedApplication
     def authenticate_credentials(self, key):
         ''' Mostly duplicated from TokenAuthentication, except that we return
         an AnonymousUser '''
