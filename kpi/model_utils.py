@@ -43,7 +43,11 @@ def _load_library_content(structure):
         block_name = row.get('block', None)
         grouped[block_name].append((row, row_tags,))
 
-    collection = Collection.objects.create(owner=structure['owner'], name=structure['name'])
+    collection_name = structure['name']
+    if not collection_name:
+        collection_name = 'Collection'
+    collection = Collection.objects.create(
+        owner=structure['owner'], name=collection_name)
 
     for block_name, rows in grouped.items():
         if block_name is None:
