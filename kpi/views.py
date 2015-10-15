@@ -37,9 +37,12 @@ from .models import (
     AssetSnapshot,
     ImportTask,
     AssetDeployment,
-    ObjectPermission,)
+    ObjectPermission,
+    AuthorizedApplication,
+    )
 from .models.object_permission import get_anonymous_user, get_objects_for_user
 from .models.asset_deployment import kobocat_url
+from .models.authorized_application import ApplicationTokenAuthentication
 from .permissions import (
     IsOwnerOrReadOnly,
     get_perm_name,
@@ -55,7 +58,7 @@ from .serializers import (
     AssetSnapshotSerializer,
     SitewideMessageSerializer,
     CollectionSerializer, CollectionListSerializer,
-    UserSerializer, UserListSerializer,
+    UserSerializer, UserListSerializer, CreateUserSerializer,
     TagSerializer, TagListSerializer,
     AssetDeploymentSerializer,
     ImportTaskSerializer, ImportTaskListSerializer,
@@ -266,8 +269,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
             return TagSerializer
 
 
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
-
+class UserViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
     """
     This viewset automatically provides `list` and `detail` actions.
     """
@@ -275,11 +277,24 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     lookup_field = 'username'
 
+    def __init__(self, *args, **kwargs):
+        super(UserViewSet, self).__init__(*args, **kwargs)
+        self.authentication_classes += [ApplicationTokenAuthentication]
+
     def get_serializer_class(self):
         if self.action == 'list':
             return UserListSerializer
+        elif self.action == 'create':
+            return CreateUserSerializer
         else:
             return UserSerializer
+
+    def create(self, request, *args, **kwargs):
+        if type(request.auth) is not AuthorizedApplication:
+            # Only specially-authorized applications are allowed to create
+            # users via this endpoint
+            raise exceptions.PermissionDenied()
+        return super(UserViewSet, self).create(request, *args, **kwargs)
 
 
 class XlsFormParser(MultiPartParser):

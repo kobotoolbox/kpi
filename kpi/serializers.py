@@ -653,6 +653,26 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         }
 
 
+class CreateUserSerializer(serializers.ModelSerializer):
+    ''' Taken directly from the DRF documentation '''
+    class Meta:
+        model = User
+        fields = ('email', 'username', 'password')
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'email': {'required': True} # Not in the documentation, hmm...
+        }
+
+    def create(self, validated_data):
+        user = User(
+            email=validated_data['email'],
+            username=validated_data['username']
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
+
+
 class UserListSerializer(UserSerializer):
     assets_count = serializers.SerializerMethodField('_assets_count')
     collections_count = serializers.SerializerMethodField('_collections_count')
