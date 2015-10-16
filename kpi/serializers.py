@@ -654,21 +654,36 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class CreateUserSerializer(serializers.ModelSerializer):
-    ''' Taken directly from the DRF documentation '''
     class Meta:
         model = User
-        fields = ('email', 'username', 'password')
+        fields = (
+            'username',
+            'password',
+            'first_name',
+            'last_name',
+            'email',
+            #'is_staff',
+            #'is_superuser',
+            #'is_active',
+        )
         extra_kwargs = {
             'password': {'write_only': True},
-            'email': {'required': True} # Not in the documentation, hmm...
+            'email': {'required': True}
         }
 
     def create(self, validated_data):
-        user = User(
-            email=validated_data['email'],
-            username=validated_data['username']
-        )
+        user = User()
         user.set_password(validated_data['password'])
+        non_password_fields = list(self.Meta.fields)
+        try:
+            non_password_fields.remove('password')
+        except ValueError:
+            pass
+        for field in non_password_fields:
+            try:
+                setattr(user, field, validated_data[field])
+            except KeyError:
+                pass
         user.save()
         return user
 

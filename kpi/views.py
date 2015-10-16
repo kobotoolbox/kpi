@@ -323,10 +323,24 @@ def authorized_application_authenticate_user(request):
         user = User.objects.get(username=username)
     except User.DoesNotExist:
         raise exceptions.PermissionDenied()
-    if not user.check_password(password):
+    if not user.is_active or not user.check_password(password):
         raise exceptions.PermissionDenied()
     token = Token.objects.get_or_create(user=user)[0]
-    return Response({'token': token.key})
+    response_data = {'token': token.key}
+    user_attributes_to_return = (
+        'username',
+        'first_name',
+        'last_name',
+        'email',
+        'is_staff',
+        'is_active',
+        'is_superuser',
+        'last_login',
+        'date_joined'
+    )
+    for attribute in user_attributes_to_return:
+        response_data[attribute] = getattr(user, attribute)
+    return Response(response_data)
 
 
 class XlsFormParser(MultiPartParser):
