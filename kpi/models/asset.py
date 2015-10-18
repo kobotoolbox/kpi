@@ -192,10 +192,14 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
         # question_type= question or block
         if self.asset_type in ['question', 'block'] and 'settings' in self.content:
             del self.content['settings']
-        # populate uid field if it's empty
-        self._strip_empty_rows(self.content['survey'], required_key='type')
-        if self.content.has_key('choices'):
-            self._strip_empty_rows(self.content['choices'], required_key='name')
+        # populate summary and uid
+        if self.content is not None:
+            if self.content.has_key('survey'):
+                self._strip_empty_rows(
+                    self.content['survey'], required_key='type')
+            if self.content.has_key('choices'):
+                self._strip_empty_rows(
+                    self.content['choices'], required_key='name')
         self._populate_uid()
         self._populate_summary()
         with transaction.atomic(), reversion.create_revision():
