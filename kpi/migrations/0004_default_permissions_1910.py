@@ -4,10 +4,25 @@ import sys
 
 from django.db import models, migrations
 from django.contrib.auth import get_user_model
+from django.contrib.auth.management import create_permissions
 from ..model_utils import grant_all_model_level_perms
 
 
 def default_permissions_to_existing_users(apps, schema_editor):
+    # The permissions objects might not have been created yet. See
+    # https://code.djangoproject.com/ticket/23422. This is a workaround.
+    for app_config in apps.get_app_configs():
+        old_models_module = app_config.models_module
+        if app_config.models_module is None:
+            app_config.models_module = True # HACK HACK HACK
+        create_permissions(
+            app_config=app_config,
+            verbosity=2,
+            interactive=False,
+            using=schema_editor.connection.alias
+        )
+        app_config.models_module = old_models_module
+    # End workaround.
     Asset = apps.get_model('kpi', 'Asset')
     Collection = apps.get_model('kpi', 'Collection')
     Permission = apps.get_model('auth', 'Permission')
@@ -45,6 +60,7 @@ class Migration(migrations.Migration):
         # Not true, but if we specify '0001_initial', migrate will raise a
         # CommandError: Conflicting migrations detected
         ('kpi', '0003_assetsnapshot'),
+        ('auth', '0001_initial'),
     ]
 
     operations = [
