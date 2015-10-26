@@ -188,7 +188,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         self._test_remove_perm(obj, perm_name_prefix, other_user)
 
     def assert_object_in_object_list(self, obj, user=None, password=None,
-                                     in_list=True):
+                                     in_list=True, msg=None):
         view_name= obj._meta.model_name + '-list'
         url= reverse(view_name)
 
@@ -209,7 +209,10 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
                     uid_found= True
                     break
 
-        self.assertEqual(uid_found, in_list)
+        if msg is None:
+            in_list_string= in_list and 'not ' or ''
+            msg= 'Object "{}" {}found in list.'.format(obj, in_list_string)
+        self.assertEqual(uid_found, in_list, msg=msg)
 
     def assert_detail_viewable(self, obj, user=None, password=None,
                                viewable=True):
