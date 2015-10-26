@@ -68,6 +68,14 @@ class ApiPermissionsPublicAssetTestCase(KpiTestCase):
     def test_user_can_view_public_asset(self):
         self.assert_detail_viewable(self.public_asset, self.someuser, self.someuser_password)
 
+    def test_public_asset_not_in_list_user(self):
+        self.assert_object_in_object_list(self.public_asset, self.someuser, self.someuser_password,
+                                     in_list=False)
+
+    def test_public_asset_not_in_list_admin(self):
+        self.assert_object_in_object_list(self.public_asset, self.admin, self.admin_password,
+                                     in_list=False)
+
 
 class ApiPermissionsTestCase(KpiTestCase):
     fixtures = ['test_data']
