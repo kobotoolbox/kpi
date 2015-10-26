@@ -1,5 +1,5 @@
+/*eslint no-unused-vars:0*/
 import React from 'react';
-// var assign = require('react/lib/Object.assign');
 
 var icons = {
   asset: ()=> <i className='fa fa-file-o' />,

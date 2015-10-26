@@ -1,6 +1,8 @@
 import moment from 'moment';
 import alertify from 'alertifyjs';
 
+export var assign = require('react/lib/Object.assign');
+
 export function notify(msg, atype='success') {
   alertify.notify(msg, atype);
 }
@@ -17,10 +19,30 @@ export function getAnonymousUserPermission(permissions) {
   })[0];
 }
 
+export function surveyToValidJson(survey, omitSettings=false) {
+  var surveyDict = survey.toFlatJSON();
+  if (omitSettings && 'settings' in surveyDict) {
+    delete surveyDict.settings;
+  }
+  return JSON.stringify(surveyDict);
+}
+
+export function customConfirm(msg) {
+  /*eslint no-alert: 0*/
+  return window.confirm(msg);
+}
+export function customPrompt(msg) {
+  /*eslint no-alert: 0*/
+  return window.prompt(msg);
+}
+
 export function parsePermissions(owner, permissions) {
   var users = [];
   var perms = {};
-  permissions && permissions.map((perm) => {
+  if (!permissions) {
+    return [];
+  }
+  permissions.map((perm) => {
     perm.user__username = perm.user.match(/\/users\/(.*)\//)[1];
     return perm;
   }).filter((perm)=> {
@@ -46,17 +68,17 @@ export function parsePermissions(owner, permissions) {
 
 
 export var log = (function(){
-  var log = function(...args) {
+  var _log = function(...args) {
     console.log.apply(console, args);
     return args[0];
   };
-  log.profileSeconds = function(n=1) {
+  _log.profileSeconds = function(n=1) {
     console.profile();
     window.setTimeout(function(){
       console.profileEnd();
     }, n * 1000);
-  }
-  return log;
+  };
+  return _log;
 })();
 window.log = log;
 
@@ -72,11 +94,11 @@ export var t = function (str) {
 
 log.t = function () {
   console.log(JSON.stringify(__strings, null, 4));
-}
+};
 
 // unique id for forms with inputs and labels
 let lastId = 0;
 export var newId = function(prefix='id') {
     lastId++;
     return `${prefix}${lastId}`;
-}
+};

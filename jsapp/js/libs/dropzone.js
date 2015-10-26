@@ -1,9 +1,17 @@
 /**
  * Originally from https://github.com/paramaggarwal/react-dropzone/
  * Except:
- *   - use your own css (minimal )
+ *   - use your own css (minimal)
  *   - optionally include file select input
- *   - 
+ * Usage:
+ * <Dropzone onDropFiles={dropFn}>
+ *   Drag files here
+ * </Dropzone>
+ *
+ * Or:
+ * <Dropzone fileInput onDropFiles={dropFn}>
+ *   Click here to upload files, or drag files here
+ * </Dropzone>
  */
 var React = require('react');
 var classNames = require('classnames');
@@ -12,7 +20,7 @@ var Dropzone = React.createClass({
   getInitialState: function() {
     return {
       isDragActive: false
-    }
+    };
   },
 
   propTypes: {
@@ -24,10 +32,10 @@ var Dropzone = React.createClass({
       className: 'dropzone',
       activeClassName: 'dropzone--active',
       disabledClassname: 'dropzone--disabled',
-    }
+    };
   },
 
-  onDragLeave: function(e) {
+  onDragLeave: function() {
     this.setState({
       isDragActive: false
     });
@@ -36,7 +44,7 @@ var Dropzone = React.createClass({
   onDragOver: function(e) {
     e.preventDefault();
     if (e.dataTransfer) {
-      e.dataTransfer.dropEffect = "copy";
+      e.dataTransfer.dropEffect = 'copy';
     }
 
     this.setState({
@@ -76,21 +84,21 @@ var Dropzone = React.createClass({
       kls = classNames(this.props.className, this.props.disabledClassname);
       return <div className={kls}>{this.props.children}</div>;
     }
-    kls = classNames(this.props.className, 
-                      this.state.isDragActive ? this.props.activeClassName : '');
+    kls = classNames(this.props.className,
+                      this.state.isDragActive ? this.props.activeClassName : null);
 
     var fileInp;
     if (this.props.fileInput) {
-      fileInp = React.createElement("input", {
+      fileInp = React.createElement('input', {
         style: { display: 'none' },
-        type: "file",
+        type: 'file',
         multiple: true,
-        ref: "fileInput",
+        ref: 'fileInput',
         onChange: this.onDrop
       });
     }
     return (
-      React.createElement("div", {
+      React.createElement('div', {
           className: kls,
           title: this.props.title,
           onClick: this.onClick,

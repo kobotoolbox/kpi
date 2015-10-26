@@ -2,19 +2,23 @@ import React from 'react/addons';
 import Reflux from 'reflux';
 import {Navigation} from 'react-router';
 import Dropzone from '../libs/dropzone';
+import mdl from '../libs/rest_framework/material';
 
 import searches from '../searches';
 import mixins from '../mixins';
 import stores from '../stores';
 import bem from '../bem';
 import ui from '../ui';
-
-var mdl = require('../libs/rest_framework/material');
-
 import SearchCollectionList from '../components/searchcollectionlist';
 
-import {List, ListSearch, ListSearchDebug, ListTagFilter, ListSearchSummary} from '../components/list';
-import {notify, getAnonymousUserPermission, formatTime, anonUsername, parsePermissions, log, t} from '../utils';
+import {
+  ListSearch,
+  ListTagFilter,
+  ListSearchSummary,
+} from '../components/list';
+import {
+  t,
+} from '../utils';
 
 
 var FormsSearchableList = React.createClass({
@@ -29,8 +33,7 @@ var FormsSearchableList = React.createClass({
 
       var headerBreadcrumb = [
         {
-          'label': t('Forms'), 
-          // 'href': 'forms', 
+          'label': t('Forms'),
         }
       ];
       stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
@@ -58,7 +61,7 @@ var FormsSearchableList = React.createClass({
         },
         filterTags: 'asset_type:survey',
       })
-    }
+    };
   },
   render () {
     return (

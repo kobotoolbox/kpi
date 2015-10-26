@@ -1,20 +1,18 @@
 import React from 'react/addons';
-var Reflux = require('reflux');
-var assign = require('react/lib/Object.assign');
-var Select = require('react-select');
+import {Navigation} from 'react-router';
+import Reflux from 'reflux';
+import Select from 'react-select';
 
-import {notify, formatTime, anonUsername, parsePermissions, log, t} from '../utils';
 import ui from '../ui';
 import bem from '../bem';
 import actions from '../actions';
 import searches from '../searches';
 import stores from '../stores';
-import mixins from '../mixins';
-import dataInterface from '../dataInterface';
-import {Navigation} from 'react-router';
-
-var AssetRow = require('./assetrow');
-
+import AssetRow from './assetrow';
+import {
+  parsePermissions,
+  t,
+} from '../utils';
 
 var List = React.createClass({
   mixins: [
@@ -29,7 +27,7 @@ var List = React.createClass({
     return {
       assetRowClass: AssetRow,
       searchContext: 'default',
-    }
+    };
   },
   componentDidMount () {
     this.listenTo(this.searchStore, this.searchStoreChanged);
@@ -39,28 +37,24 @@ var List = React.createClass({
   },
   renderAssetRow (resource) {
     var currentUsername = stores.session.currentAccount && stores.session.currentAccount.username;
-    var perm = parsePermissions(resource.owner, resource.permissions)
+    var perm = parsePermissions(resource.owner, resource.permissions);
     var isSelected = stores.selectedAsset.uid === resource.uid;
-    return <this.props.assetRowClass key={resource.uid}
+    return (
+          <this.props.assetRowClass key={resource.uid}
                       currentUsername={currentUsername}
                       perm={perm}
                       onActionButtonClick={this.onActionButtonClick}
                       isSelected={isSelected}
                       {...resource}
                         />
+      );
   },
   render () {
     var searchState = this.state.searchState,
-        cancellable = this.state.searchState !== 'none',
         showDefault = this.props.showDefault,
         searchResultsList = this.state.searchResultsList || [],
-        defaultSearchResults = this.state.defaultSearchResults,
         defaultSearchResultsList = this.state.defaultSearchResultsList || [],
-        isLoading = this.state.searchState === 'loading',
-        searchResultsListEmpty = searchResultsList && searchResultsList.length === 0,
-        searchResultsSuccess = this.state.searchResultsSuccess,
-        searchDebugQuery = this.state.searchDebugQuery,
-        searchResultsCount = this.state.searchResultsCount;
+        isLoading = this.state.searchState === 'loading';
 
     return (
         <bem.CollectionAssetList>
@@ -113,7 +107,7 @@ var ListSearch = React.createClass({
     return {
       searchContext: 'default',
       placeholderText: 'search...'
-    }
+    };
   },
   componentDidMount () {
     this.listenTo(this.searchStore, this.searchStoreChanged);
@@ -143,13 +137,13 @@ var ListTagFilter = React.createClass({
   getDefaultProps () {
     return {
       searchContext: 'default',
-    }
+    };
   },
   getInitialState () {
     return {
       availableTags: [],
       tagsLoaded: false,
-    }
+    };
   },
   componentDidMount () {
     this.listenTo(stores.tags, this.tagsLoaded);
@@ -158,11 +152,11 @@ var ListTagFilter = React.createClass({
   tagsLoaded (tags) {
     this.setState({
       tagsLoaded: true,
-      availableTags: tags.map(function(t){
+      availableTags: tags.map(function(tag){
         return {
-          label: t.name,
-          value: t.name.replace(/\s/g, '-'),
-        }
+          label: tag.name,
+          value: tag.name.replace(/\s/g, '-'),
+        };
       })
     });
   },
@@ -191,7 +185,7 @@ var ListTagFilter = React.createClass({
           />
       );
   },
-})
+});
 
 var ListExpandToggle = React.createClass({
   mixins: [
@@ -201,7 +195,7 @@ var ListExpandToggle = React.createClass({
   getInitialState () {
     return {
       assetNavExpanded: stores.pageState.state.assetNavExpanded
-    }
+    };
   },
   componentDidMount () {
     this.listenTo(this.searchStore, this.searchStoreChanged);
@@ -209,14 +203,14 @@ var ListExpandToggle = React.createClass({
   searchStoreChanged (searchStoreState) {
     this.setState(searchStoreState);
   },
-  handleChange: function(event) {
-    stores.pageState.setState({assetNavExpanded: !this.state.assetNavExpanded})
+  handleChange: function(/*event*/) {
+    stores.pageState.setState({assetNavExpanded: !this.state.assetNavExpanded});
     this.setState({assetNavExpanded: !this.state.assetNavExpanded});
   },
   getDefaultProps () {
     return {
       searchContext: 'default',
-    }
+    };
   },
   render () {
     var count,
@@ -234,15 +228,15 @@ var ListExpandToggle = React.createClass({
           {count} {t('assets found')}
         </bem.LibNav__count>
         <bem.LibNav__expandedToggle>
-          <label className="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" htmlFor="expandedToggleCheckbox" >
-            <input type="checkbox" className="mdl-checkbox__input"  id="expandedToggleCheckbox" checked={this.state.assetNavExpanded} onChange={this.handleChange} />
-            <span className="mdl-checkbox__label">{t('expand details')} {this.state.assetNavExpanded}</span>
+          <label className='mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect' htmlFor='expandedToggleCheckbox'>
+            <input type='checkbox' className='mdl-checkbox__input' id='expandedToggleCheckbox' checked={this.state.assetNavExpanded} onChange={this.handleChange} />
+            <span className='mdl-checkbox__label'>{t('expand details')} {this.state.assetNavExpanded}</span>
           </label>
         </bem.LibNav__expandedToggle>
       </bem.LibNav__expanded>
       );
   },
-})
+});
 
 var ListSearchSummary = React.createClass({
   mixins: [
@@ -251,7 +245,7 @@ var ListSearchSummary = React.createClass({
     Navigation,
   ],
   componentDidMount () {
-    this.listenTo(this.searchStore, this.searchChanged)
+    this.listenTo(this.searchStore, this.searchChanged);
   },
   searchChanged (state) {
     this.setState(state);
@@ -291,7 +285,7 @@ var ListSearchSummary = React.createClass({
       modifier = 'done';
     } else {
       if (s.defaultQueryState === 'loading') {
-        modifier = 'loading'
+        modifier = 'loading';
       } else if (s.defaultQueryState === 'done') {
         var desc = s.defaultQueryCount === 1 ? this.props.assetDescriptor : this.props.assetDescriptorPlural;
         messages.push(t('## ___ available').replace('##', s.defaultQueryCount).replace('___', desc));
@@ -305,7 +299,7 @@ var ListSearchSummary = React.createClass({
             return <span key={`prop-${i}`}>{message}</span>;
           })}
         </bem.Search__summary>
-      )
+      );
   },
 });
 
@@ -318,7 +312,7 @@ var ListSearchDebug = React.createClass({
   getDefaultProps () {
     return {
       searchContext: 'default',
-    }
+    };
   },
   componentDidMount () {
     this.listenTo(this.searchStore, this.searchStoreChanged);
@@ -350,7 +344,7 @@ var ListSearchDebug = React.createClass({
             </bem.CollectionNav__searchcriteria>
         );
   },
-})
+});
 
 
 export default {

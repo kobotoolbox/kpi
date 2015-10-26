@@ -8,11 +8,15 @@ import mixins from '../mixins';
 import stores from '../stores';
 import bem from '../bem';
 import ui from '../ui';
-
 import SearchCollectionList from '../components/searchcollectionlist';
-
-import {List, ListSearch, ListSearchDebug, ListTagFilter, ListSearchSummary} from '../components/list';
-import {notify, getAnonymousUserPermission, formatTime, anonUsername, parsePermissions, log, t} from '../utils';
+import {
+  ListSearch,
+  ListTagFilter,
+  ListSearchSummary,
+} from '../components/list';
+import {
+  t,
+} from '../utils';
 
 
 var LibrarySearchableList = React.createClass({
@@ -53,7 +57,7 @@ var LibrarySearchableList = React.createClass({
         },
         filterTags: 'asset_type:question OR asset_type:block',
       })
-    }
+    };
   },
   render () {
     return (

@@ -1,26 +1,31 @@
-var mixins = {};
-
+/*eslint no-unused-vars:0*/
+import React from 'react/addons';
 import Dropzone from './libs/dropzone';
-import {notify, getAnonymousUserPermission, formatTime, anonUsername, parsePermissions, log, t} from './utils';
+import Select from 'react-select';
+import alertify from 'alertifyjs';
+import {Link} from 'react-router';
+import ReactTooltip from 'react-tooltip';
+
 import {dataInterface} from './dataInterface';
 import stores from './stores';
-import React from 'react/addons';
-import Router from 'react-router';
-var Link = Router.Link;
 import bem from './bem';
 import actions from './actions';
 import ui from './ui';
-var ReactTooltip = require('react-tooltip');
-var assign = require('react/lib/Object.assign');
-import Select from 'react-select';
-// var Reflux = require('reflux');
-import alertify from 'alertifyjs';
+import {
+  formatTime,
+  customConfirm,
+  log,
+  t,
+  assign,
+} from './utils';
+
+var mixins = {};
 
 var dmix = {
   assetTypeRenderers: {
     block: {
       renderTypeHeader () {
-        var effect='solid';
+        var effect = 'solid';
         var atype_tip = t('can be imported into a form from the question library');
         return (
             <bem.AssetView__assetTypeWrap m={'type-block'}>
@@ -37,7 +42,7 @@ var dmix = {
         return (
             <bem.AssetView m={['type-block']}>
               {this.renderAncestors()}
-              <ui.Panel margin="thin" className="ui-panel--overflowhidden">
+              <ui.Panel margin='thin' className='ui-panel--overflowhidden'>
                 {this.renderTypeHeader()}
                 <bem.AssetView__content>
                   {this.renderName()}
@@ -70,7 +75,7 @@ var dmix = {
         return (
             <bem.AssetView m={['type-question']}>
               {this.renderAncestors()}
-              <ui.Panel margin="thin">
+              <ui.Panel margin='thin'>
                 {this.renderTypeHeader()}
                 <bem.AssetView__content>
                   {this.renderName()}
@@ -106,7 +111,7 @@ var dmix = {
         return (
             <bem.AssetView m={['type-survey']}>
               {this.renderAncestors()}
-              <ui.Panel margin="thin">
+              <ui.Panel margin='thin'>
                 {this.renderTypeHeader()}
                 <bem.AssetView__content>
                   {this.renderName()}
@@ -146,14 +151,14 @@ var dmix = {
           value = opt.value;
           return false;
         }
-      })
+      });
     }
     return (
         <bem.AssetView__parent m={'parent'}>
           <bem.AssetView__iconwrap><i /></bem.AssetView__iconwrap>
-          <bem.AssetView__col m="date-modified">
+          <bem.AssetView__col m='date-modified'>
             <Select
-              name="parent_collection"
+              name='parent_collection'
               value={value}
               allowCreate={true}
               clearable={true}
@@ -168,7 +173,7 @@ var dmix = {
         </bem.AssetView__parent>
       );
   },
-  onCollectionChange (nameOrId, items, x, y, z) {
+  onCollectionChange (nameOrId, items) {
     var uid = this.props.params.assetid;
     var item = items[0];
     if (!item) {
@@ -193,16 +198,16 @@ var dmix = {
     return (
         <bem.AssetView__times>
           <bem.AssetView__iconwrap><i /></bem.AssetView__iconwrap>
-          <bem.AssetView__col m="revisions">
+          <bem.AssetView__col m='revisions'>
             {t('r')}{this.state.version_count}
           </bem.AssetView__col>
-          <bem.AssetView__col m="date-modified">
+          <bem.AssetView__col m='date-modified'>
             <bem.AssetView__colsubtext>
               {t('last saved')}
             </bem.AssetView__colsubtext>
             {formatTime(this.state.date_modified)}
           </bem.AssetView__col>
-          <bem.AssetView__col m="date-created">
+          <bem.AssetView__col m='date-created'>
             <bem.AssetView__colsubtext>
               {t('created')}
             </bem.AssetView__colsubtext>
@@ -212,7 +217,9 @@ var dmix = {
       );
   },
   _renderTag (tag) {
-    return <bem.AssetView__tags__tag>{tag}</bem.AssetView__tags__tag>
+    return (
+        <bem.AssetView__tags__tag>{tag}</bem.AssetView__tags__tag>
+      );
   },
   renderTags () {
     return (
@@ -225,23 +232,23 @@ var dmix = {
       );
   },
   renderUsers () {
-    var editorCount = Object.keys(this.state.access.change).length
-    var viewerCount = Object.keys(this.state.access.view).length
+    var editorCount = Object.keys(this.state.access.change).length;
+    var viewerCount = Object.keys(this.state.access.view).length;
     return (
         <bem.AssetView__users>
           <bem.AssetView__iconwrap><i /></bem.AssetView__iconwrap>
-          <bem.AssetView__col m="users">
-            <bem.AssetView__span m="owner">
+          <bem.AssetView__col m='users'>
+            <bem.AssetView__span m='owner'>
               <i />
               {t('owner:')} {this.state.owner__username}
             </bem.AssetView__span>
-            <bem.AssetView__span m="can-view">
+            <bem.AssetView__span m='can-view'>
               {viewerCount} { viewerCount === 1 ? t('viewer') : t('viewers') }
             </bem.AssetView__span>
-            <bem.AssetView__span m="can-edit">
+            <bem.AssetView__span m='can-edit'>
               {editorCount} { editorCount === 1 ? t('editor') : t('editors') }
             </bem.AssetView__span>
-            <bem.AssetView__link m="sharing" href={this.makeHref('form-sharing', {assetid: this.state.uid})}>
+            <bem.AssetView__link m='sharing' href={this.makeHref('form-sharing', {assetid: this.state.uid})}>
               {t('edit')}
             </bem.AssetView__link>
           </bem.AssetView__col>
@@ -279,7 +286,7 @@ var dmix = {
     return (
         <bem.AssetView__langs>
           <bem.AssetView__iconwrap><i /></bem.AssetView__iconwrap>
-          <bem.AssetView__col m="languages">
+          <bem.AssetView__col m='languages'>
             <bem.AssetView__label>
               {t('languages') + ':'}
             </bem.AssetView__label>
@@ -294,8 +301,7 @@ var dmix = {
       );
   },
   toggleDownloads (evt) {
-    var isFocusEvent = evt.type === 'focus',
-        isBlur = evt.type === 'blur',
+    var isBlur = evt.type === 'blur',
         $popoverMenu;
     if (isBlur) {
       $popoverMenu = $(this.refs['dl-popover'].getDOMNode());
@@ -328,7 +334,7 @@ var dmix = {
             </bem.AssetView__link>
           </bem.AssetView__buttoncol>
           <bem.AssetView__buttoncol>
-            <bem.AssetView__link m="preview" href={this.makeHref('form-preview-enketo', {assetid: this.state.uid})}>
+            <bem.AssetView__link m='preview' href={this.makeHref('form-preview-enketo', {assetid: this.state.uid})}>
               <i />
               {t('preview')}
             </bem.AssetView__link>
@@ -341,7 +347,7 @@ var dmix = {
               <i />
               {t('download')}
             </bem.AssetView__button>
-            {(downloadable && this.state.downloadsShowing) ?
+            { (downloadable && this.state.downloadsShowing) ?
               <bem.PopoverMenu ref='dl-popover'>
                 {downloads.map((dl)=>{
                   return (
@@ -353,7 +359,7 @@ var dmix = {
                     );
                 })}
               </bem.PopoverMenu>
-            :null}
+            : null }
           </bem.AssetView__buttoncol>
           <bem.AssetView__buttoncol>
             <Dropzone fileInput onDropFiles={this.onDrop}
@@ -393,16 +399,16 @@ var dmix = {
   },
   onDrop (files) {
     if (files.length !== 1) {
-      throw new Error("Only 1 file can be uploaded in this case");
+      throw new Error('Only 1 file can be uploaded in this case');
     }
     const VALID_ASSET_UPLOAD_FILE_TYPES = [
       'application/vnd.ms-excel',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    ]
+    ];
     var file = files[0];
     if (VALID_ASSET_UPLOAD_FILE_TYPES.indexOf(file.type) === -1) {
       var err = `Invalid filetype: '${file.type}'`;
-      console && console.error(err);
+      console.error(err);
       alertify.error(err);
     } else {
       this.dropFiles(files);
@@ -441,7 +447,7 @@ var dmix = {
       );
   },
   _createPanel () {
-    return this.innerRender()
+    return this.innerRender();
   },
   isOwner() {
     if (!this.state.owner__username || !this.state.currentUsername) {
@@ -503,7 +509,7 @@ var dmix = {
             return {
               value: c.uid,
               label: c.name || c.uid,
-            }
+            };
           })
     });
   },
@@ -516,17 +522,17 @@ var dmix = {
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
     if (this.props.randdelay && uid) {
       window.setTimeout(()=>{
-        actions.resources.loadAsset({id: uid})
+        actions.resources.loadAsset({id: uid});
       }, Math.random() * 3000);
     } else if (uid) {
-      actions.resources.loadAsset({id: uid})
+      actions.resources.loadAsset({id: uid});
     }
   }
 };
 mixins.dmix = dmix;
 
 mixins.droppable = {
-  _forEachDroppedFile (evt, file, params={}) {
+  _forEachDroppedFile (evt, file/*, params={}*/) {
     dataInterface.postCreateBase64EncodedImport(assign({
         base64Encoded: evt.target.result,
         name: file.name,
@@ -534,11 +540,11 @@ mixins.droppable = {
       }, this.state.url ? {
         destination: this.state.url,
       } : null
-    )).done((data, status, jqxhr)=> {
+    )).done((data/*, status, jqxhr*/)=> {
       window.setTimeout((()=>{
         dataInterface.getImportDetails({
           uid: data.uid,
-        }).done((importData, status, jqxhr) => {
+        }).done((importData/*, status, jqxhr*/) => {
           if (importData.status === 'complete') {
             var assetData = importData.messages.updated || importData.messages.created;
             var assetUid = assetData && assetData.length > 0 && assetData[0].uid,
@@ -552,12 +558,12 @@ mixins.droppable = {
               this.transitionTo('form-landing', {assetid: assetUid});
             }
           } else {
-            alertify.error(t('import not complete'))
+            alertify.error(t('import not complete'));
           }
         }).fail((failData)=>{
-          alertify.error(t('import failed'))
+          alertify.error(t('import failed'));
           log('import failed', failData);
-        })
+        });
       }), 2500);
     }).fail((jqxhr)=> {
       log('Failed to create import: ', jqxhr);
@@ -570,7 +576,7 @@ mixins.droppable = {
       reader.onload = (e)=>{
         var f = this.forEachDroppedFile || this._forEachDroppedFile;
         f.call(this, e, file, params);
-      }
+      };
       reader.readAsDataURL(file);
     });
   }
@@ -625,7 +631,7 @@ mixins.collectionList = {
       collectionSearchState: 'none',
       collectionCount: 0,
       collectionStore: stores.collections,
-    }
+    };
   },
   listCollections () {
     actions.resources.listCollections();
@@ -649,7 +655,7 @@ mixins.cmix = {
     }
     if (this.props.uid) {
       this.listenTo(stores.collectionAssets, this.collectionAssetsChange);
-      actions.resources.readCollection.failed.listen(this.collectionAssetsFailed)
+      actions.resources.readCollection.failed.listen(this.collectionAssetsFailed);
       actions.resources.readCollection({uid: this.props.uid});
     } else {
       actions.resources.listAssets();
@@ -662,7 +668,7 @@ mixins.cmix = {
     return {
       searchPlaceholder: 'search',
       expandAddOptions: false
-    }
+    };
   },
   allAssetsSearchChange () {
 
@@ -674,9 +680,9 @@ mixins.cmix = {
       });
     }
   },
-  collectionAssetsChange (data) {
+  collectionAssetsChange (/*data*/) {
   },
-  assetSearchChange (data) {
+  assetSearchChange (/*data*/) {
   },
   panelName (placeholder) {
     if (!this.state.name) {
@@ -699,19 +705,19 @@ mixins.cmix = {
           <bem.ListView__searchcriteria>
             <bem.ListView__searchcriterion>
               <label>
-                <input type="checkbox" />
+                <input type='checkbox' />
                 {t('my forms')}
               </label>
             </bem.ListView__searchcriterion>
             <bem.ListView__searchcriterion>
               <label>
-                <input type="radio" />
+                <input type='radio' />
                 {t('shared with me')}
               </label>
             </bem.ListView__searchcriterion>
             <bem.ListView__searchcriterion>
               <label>
-                <input type="radio" />
+                <input type='radio' />
                 {t('public')}
               </label>
             </bem.ListView__searchcriterion>
@@ -722,7 +728,7 @@ mixins.cmix = {
   expandAddOptions () {
     this.setState({
       expandAddOptions: !this.state.expandAddOptions
-    })
+    });
   },
   panelButtons () {
     return (
@@ -732,12 +738,12 @@ mixins.cmix = {
         }} onClick={this.expandAddOptions}>
           <i />
         </bem.ListView__headerbutton>
-      )
+      );
   },
   panelContents () {
     if (this.state.loadError) {
       return (
-          <bem.Message m="error">
+          <bem.Message m='error'>
             <strong>{t('error loading data')}</strong>
             <br />
             {this.state.loadError}
@@ -745,7 +751,7 @@ mixins.cmix = {
         );
     } else if (this.state.results) {
       return (
-          <bem.Message m="loaded">
+          <bem.Message m='loaded'>
             <strong>{t('results loaded')}</strong>
             <br />
             {this.state.results.length}
@@ -753,7 +759,7 @@ mixins.cmix = {
         );
     } else {
       return (
-          <bem.Message m="loading">
+          <bem.Message m='loading'>
             <i />
             {t('loading')}
           </bem.Message>
@@ -764,7 +770,7 @@ mixins.cmix = {
   _createPanel () {
     return (
         <bem.ListView>
-          <ui.Panel margin="thin">
+          <ui.Panel margin='thin'>
             {this.panelName(this.props.name)}
             {this.panelButtons()}
             {this.panelSearchBar()}
@@ -773,19 +779,19 @@ mixins.cmix = {
             }
           </ui.Panel>
         </bem.ListView>
-      )
+      );
   }
-}
+};
 
 mixins.clickAssets = {
   onActionButtonClick (evt) {
     var data = evt.actionIcon ? evt.actionIcon.dataset : evt.currentTarget.dataset;
     var assetType = data.assetType,
         action = data.action,
-        disabled = data.disabled == "true",
+        // disabled = data.disabled === 'true',
         uid = stores.selectedAsset.uid,
         result;
-    var click = this.click;
+    // var click = this.click;
 
     if (action === 'new') {
       result = this.click.asset.new.call(this);
@@ -798,35 +804,39 @@ mixins.clickAssets = {
   },
   click: {
     collection: {
-      sharing: function(uid, evt){
+      sharing: function(uid/*, evt*/){
         this.transitionTo('collection-sharing', {assetid: uid});
       },
-      view: function(uid, evt){
-        this.transitionTo('collection-page', {uid: uid})
+      view: function(uid/*, evt*/){
+        this.transitionTo('collection-page', {uid: uid});
       },
-      delete: function(uid, evt){
-        window.confirm(t('Warning! You are about to delete this collection with all its questions and blocks. Are you sure you want to continue?')) &&
-            actions.resources.deleteCollection({uid: uid});
+      delete: function(uid/*, evt*/){
+        var q_ = t('Warning! You are about to delete this collection with all its questions and blocks. Are you sure you want to continue?');
+        if (customConfirm(q_)) {
+          actions.resources.deleteCollection({uid: uid});
+        }
       },
     },
     asset: {
-      new: function(uid, evt){
-        this.transitionTo('new-form')
+      new: function(/*uid, evt*/){
+        this.transitionTo('new-form');
       },
-      view: function(uid, evt){
-        this.transitionTo('form-landing', {assetid: uid})
+      view: function(uid/*, evt*/){
+        this.transitionTo('form-landing', {assetid: uid});
       },
-      clone: function(uid, evt){
-        actions.resources.cloneAsset({uid: uid})
+      clone: function(uid/*, evt*/){
+        actions.resources.cloneAsset({uid: uid});
       },
-      download: function(uid, evt){
-        this.transitionTo('form-download', {assetid: uid})
+      download: function(uid/*, evt*/){
+        this.transitionTo('form-download', {assetid: uid});
       },
-      delete: function(uid, evt){
-        window.confirm(t('You are about to permanently delete this form. Are you sure you want to continue?')) &&
+      delete: function(uid/*, evt*/){
+        var q_ = t('You are about to permanently delete this form. Are you sure you want to continue?');
+        if (customConfirm(q_)) {
           actions.resources.deleteAsset({uid: uid});
+        }
       },
-      deploy: function(uid, evt){
+      deploy: function(/*uid, evt*/){
         var asset_url = stores.selectedAsset.asset.url;
         // var form_id_string = prompt('form_id_string');
         actions.resources.deployAsset(asset_url);
