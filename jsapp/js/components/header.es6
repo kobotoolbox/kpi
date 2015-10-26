@@ -1,18 +1,12 @@
 import React from 'react/addons';
-import Router from 'react-router';
-import {log, t} from '../utils';
-import icons from '../icons';
+import {Link} from 'react-router';
+import mdl from '../libs/rest_framework/material';
+
 import stores from '../stores';
-import classNames from 'classnames';
 import Reflux from 'reflux';
 import bem from '../bem';
-import mixins from '../mixins';
-
-var mdl = require('../libs/rest_framework/material');
-var actions = require('../actions');
-var assign = require('react/lib/Object.assign');
-
-let Link = Router.Link;
+import actions from '../actions';
+import {assign} from '../utils';
 
 var MainHeader = React.createClass({
   mixins: [
@@ -75,7 +69,7 @@ var MainHeader = React.createClass({
             </nav>
           </div>
         </header>
-      )
+      );
   },
   componentDidUpdate() {
     mdl.upgradeDom();

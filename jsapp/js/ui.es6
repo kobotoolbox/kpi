@@ -1,7 +1,8 @@
 import React from 'react/addons';
-import bem from './bem';
 import _ from 'underscore';
-import {t, newId} from './utils';
+
+import bem from './bem';
+import {t} from './utils';
 
 var ui = {};
 
@@ -76,7 +77,7 @@ ui.Modal = React.createClass({
                       {this.renderTitle()}
                       <div className="mdl-layout-spacer"></div>
                       <button type="button" className="close mdl-button mdl-button--icon mdl-js-button" onClick={this.props.onClose}>
-                        <i className="material-icons">clear</i> 
+                        <i className="material-icons">clear</i>
                       </button>
                     </div>
 
@@ -94,7 +95,7 @@ ui.Modal.Footer = React.createClass({
   render () {
     return <div className="modal-footer">{this.props.children}</div>;
   }
-})
+});
 
 ui.Modal.Body = React.createClass({
   render () {
@@ -141,7 +142,7 @@ ui.AssetName = React.createClass({
         if (row_count === 2) {
           extra = <small>{t('and one other question')}</small>;
         } else if (row_count > 2) {
-          extra = <small>{t('and ## other questions').replace('##', row_count-1)}</small>;
+          extra = <small>{t('and ## other questions').replace('##', row_count - 1)}</small>;
         }
       }
     }
@@ -150,7 +151,7 @@ ui.AssetName = React.createClass({
           {name}
           {extra ?
             extra
-          :null }
+          : null }
         </span>
       );
   }

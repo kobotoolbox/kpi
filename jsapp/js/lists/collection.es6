@@ -3,17 +3,18 @@ import Reflux from 'reflux';
 import {Navigation} from 'react-router';
 import Dropzone from '../libs/dropzone';
 
-import {dataInterface} from '../dataInterface'
-import searches from '../searches';
+import {dataInterface} from '../dataInterface';
 import actions from '../actions';
 import mixins from '../mixins';
 import stores from '../stores';
 import bem from '../bem';
 import ui from '../ui';
-
 import AssetRow from '../components/assetrow';
-import {List, ListSearch, ListSearchDebug, ListTagFilter, ListSearchSummary} from '../components/list';
-import {notify, getAnonymousUserPermission, formatTime, anonUsername, parsePermissions, log, t} from '../utils';
+import {
+  customPrompt,
+  parsePermissions,
+  t,
+} from '../utils';
 
 
 var CollectionList = React.createClass({
@@ -29,8 +30,8 @@ var CollectionList = React.createClass({
     willTransitionTo: function(transition, params, idk, callback) {
       var headerBreadcrumb = [
         {
-          'label': t('Collections'), 
-          'href': '/collections', 
+          'label': t('Collections'),
+          'href': '/collections',
         }
       ];
       stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
@@ -51,10 +52,10 @@ var CollectionList = React.createClass({
   },
   createCollection () {
     dataInterface.createCollection({
-      name: prompt('collection name?')
+      name: customPrompt('collection name?'),
     }).done((data)=>{
       this.redirect(`/collections/${data.uid}/`);
-    })
+    });
   },
   render () {
     return (
@@ -101,19 +102,20 @@ var CollectionList = React.createClass({
   },
   renderAssetRow (resource) {
     var currentUsername = stores.session.currentAccount && stores.session.currentAccount.username;
-    var perm = parsePermissions(resource.owner, resource.permissions)
+    var perm = parsePermissions(resource.owner, resource.permissions);
     var isSelected = this.state.selectedAssetUid === resource.uid;
-    return <AssetRow key={resource.uid}
+    return (
+          <AssetRow key={resource.uid}
                       currentUsername={currentUsername}
                       perm={perm}
                       onActionButtonClick={this.onActionButtonClick}
                       isSelected={isSelected}
                       {...resource}
                         />
+      );
   },
   renderCollectionList () {
-    var s = this.state,
-        p = this.props;
+    var s = this.state;
     if (s.collectionSearchState === 'loading') {
       return (
         <bem.CollectionAssetList>

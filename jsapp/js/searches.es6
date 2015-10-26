@@ -3,16 +3,14 @@
  Reflux.actions and Reflux.stores which trigger and store
  searches in different contexts.
 */
-
 import _ from 'underscore';
 import Reflux from 'reflux';
-import stores from './stores';
-import {notify, log, t} from './utils';
-import {dataInterface} from './dataInterface';
+import $ from 'jquery';
 
-var $ = require('jquery');
-var assign = require('react/lib/Object.assign');
-var assetParserUtils = require('./assetParserUtils');
+import stores from './stores';
+import {dataInterface} from './dataInterface';
+import {assign} from './utils';
+import assetParserUtils from './assetParserUtils';
 
 var searchDataInterface = (function(){
   return {
@@ -22,9 +20,9 @@ var searchDataInterface = (function(){
         dataType: 'json',
         data: data,
         method: 'GET'
-      })
+      });
     }
-  }
+  };
 })();
 
 const clearSearchState = {
@@ -57,9 +55,9 @@ function SearchContext(opts={}) {
 
   var search = Reflux.createAction({
     children: [
-      "completed",
-      "failed",
-      "cancel"
+      'completed',
+      'failed',
+      'cancel',
     ]
   });
 
@@ -87,7 +85,7 @@ function SearchContext(opts={}) {
       if (this.filterTags) {
         return {
           q: this.filterTags
-        }
+        };
       }
     },
     removeItem (key) {
@@ -105,16 +103,15 @@ function SearchContext(opts={}) {
     },
     toQueryData (dataObject) {
       var searchParams = dataObject || this.toDataObject(),
-          _searchParamsClone = assign({}, searchParams),
+          // _searchParamsClone = assign({}, searchParams),
           paramGroups = [],
-          queryData = {},
-          qString;
+          queryData = {};
 
       if ('tags' in searchParams) {
         if (searchParams.tags && searchParams.tags.length > 0) {
           paramGroups.push(
               searchParams.tags.map(function(t){
-                return `tag:"${t.value}"`
+                return `tag:"${t.value}"`;
               }).join(' AND ')
             );
         }
@@ -137,7 +134,9 @@ function SearchContext(opts={}) {
       paramGroups = paramGroups.concat(_.values(searchParams));
 
       if (paramGroups.length > 1) {
-        queryData.q = paramGroups.map(function(s){return `(${s})`}).join(' AND ');
+        queryData.q = paramGroups.map(function(s){
+          return `(${s})`;
+        }).join(' AND ');
       } else if (paramGroups.length === 1) {
         queryData.q = paramGroups[0];
       }
@@ -145,21 +144,21 @@ function SearchContext(opts={}) {
     },
   });
 
-  search.listen(function(opts={}){
+  search.listen(function(_opts={}){
     /*
     search will query whatever values are in the store
     and will pass the values back to the store to be reflected
     in the components' states.
     */
     var dataObject = searchStore.toDataObject();
-    var _dataObjectClone = assign({}, dataObject)
+    var _dataObjectClone = assign({}, dataObject);
     var qData = searchStore.toQueryData(dataObject);
-    var isSearch = !opts.cacheAsDefaultSearch;
+    var isSearch = !_opts.cacheAsDefaultSearch;
 
     // we can clean this up later, but right now, if the search query is empty
     // it cancels the search
     if (((d)=>{
-      if (opts.cacheAsDefaultSearch) {
+      if (_opts.cacheAsDefaultSearch) {
         return false;
       }
 
@@ -173,7 +172,7 @@ function SearchContext(opts={}) {
     if (isSearch) {
       // cancel existing searches
       if (jqxhrs.search) {
-        jqxhrs.search.searchAborted=true;
+        jqxhrs.search.searchAborted = true;
         jqxhrs.search.abort();
         jqxhrs.search = false;
       }
@@ -181,7 +180,7 @@ function SearchContext(opts={}) {
     var req = searchDataInterface.assets(qData)
       .done(function(data){
         search.completed(dataObject, data, {
-          cacheAsDefaultSearch: opts.cacheAsDefaultSearch,
+          cacheAsDefaultSearch: _opts.cacheAsDefaultSearch,
         });
       })
       .fail(function(xhr){
@@ -194,25 +193,24 @@ function SearchContext(opts={}) {
       searchStore.update({
         searchState: 'loading',
         searchFor: _dataObjectClone,
-      })
+      });
     } else {
       searchStore.update({
         defaultQueryState: 'loading',
         defaultQueryFor: _dataObjectClone,
-      })
+      });
     }
   });
 
-  search.completed.listen(function(searchParams, data, opts){
+  search.completed.listen(function(searchParams, data, _opts){
     data.results = data.results.map(assetParserUtils.parsed);
     data.results.forEach(stores.allAssets.registerAssetOrCollection);
 
-    var count = data.count,
-        isEmpty = count === 0;
+    var count = data.count;
 
     var newState;
 
-    if (opts.cacheAsDefaultSearch) {
+    if (_opts.cacheAsDefaultSearch) {
       newState = {
         defaultQueryState: 'done',
         defaultQueryFor: searchParams,
@@ -240,7 +238,7 @@ function SearchContext(opts={}) {
     }
     searchStore.update(newState);
   });
-  search.failed.listen(function(xhr, searchParams){
+  search.failed.listen(function(/*xhr, searchParams*/){
     // if (xhr.searchAborted) {
     //   log('search was canceled because a new search came up')
     // }
@@ -255,7 +253,7 @@ function SearchContext(opts={}) {
     searchStore.update(assign({
       cleared: true
     }, clearSearchState));
-  })
+  });
   this.mixin = {
     debouncedSearch: ( debounceTime ? _.debounce(search, debounceTime) : search ),
     searchValue: search,
@@ -274,10 +272,10 @@ function SearchContext(opts={}) {
     getSearchActions: function(){
       return {
         search: search,
-      }
+      };
     },
   };
-};
+}
 
 var commonMethods = {
   getInitialState () {
@@ -343,4 +341,4 @@ module.exports = {
   getSearchContext: getSearchContext,
   common: commonMethods,
   isSearchContext: isSearchContext,
-}
+};

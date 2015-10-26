@@ -1,57 +1,53 @@
-import {notify, getAnonymousUserPermission, formatTime, anonUsername, parsePermissions, log, t} from './utils';
-var $ = require('jquery');
+import $ from 'jquery';
 window.jQuery = $;
 window.$ = $;
 require('jquery.scrollto');
 require('jquery-ui/sortable');
 
-var mdl = require('./libs/rest_framework/material');
-var select2 = require('select2-browserify');
-var actions = require('./actions');
-// import XLSX from 'xlsx';
-
+import mdl from './libs/rest_framework/material';
 import React from 'react/addons';
-import Router from 'react-router';
-import Q from 'q';
-// import Sidebar from './components/sidebar';
-import MainHeader from './components/header';
-import Select from 'react-select';
-import Drawer from './components/drawer';
-import searches from './searches';
-import {List, ListSearch, ListSearchDebug, ListTagFilter, ListExpandToggle} from './components/list';
-import TagsInput from 'react-tagsinput';
 import classNames from 'classnames';
-import alertify from 'alertifyjs';
-var ReactTooltip = require("react-tooltip");
-var AssetRow = require('./components/assetrow');
-// import {Sheeted} from './models/sheeted';
+import DocumentTitle from 'react-document-title';
+import Reflux from 'reflux';
+import {
+  Navigation,
+  DefaultRoute,
+  Link,
+  Route,
+  RouteHandler,
+  NotFoundRoute,
+  run,
+} from 'react-router';
+
+import searches from './searches';
+import actions from './actions';
+import TagsInput from 'react-tagsinput';
 import stores from './stores';
 import {dataInterface} from './dataInterface';
-import Dropzone from './libs/dropzone';
-import icons from './icons';
-import cookie from 'react-cookie';
 import bem from './bem';
 import ui from './ui';
 import mixins from './mixins';
+import MainHeader from './components/header';
+import Drawer from './components/drawer';
+import {
+  ListSearch,
+  ListTagFilter,
+  ListExpandToggle
+} from './components/list';
+import {
+  notify,
+  getAnonymousUserPermission,
+  surveyToValidJson,
+  anonUsername,
+  parsePermissions,
+  log,
+  t,
+  customConfirm,
+  assign,
+} from './utils';
 
-var DocumentTitle = require('react-document-title');
-
-import Favicon from 'react-favicon';
-
-
-// var bootstrap = require('./libs/rest_framework/bootstrap.min');
-
-var dkobo_xlform = require('./libs/xlform_with_deps');
-
-var assign = require('react/lib/Object.assign');
-var Reflux = require('reflux');
-
-var Navigation = Router.Navigation;
-let DefaultRoute = Router.DefaultRoute;
-let Link = Router.Link;
-let Route = Router.Route;
-let RouteHandler = Router.RouteHandler;
-let NotFoundRoute = Router.NotFoundRoute;
+// coffee compiled code which we hope to find a better way to import
+import dkobo_xlform from './libs/xlform_with_deps';
 
 var update_states = {
   UNSAVED_CHANGES: -1,
@@ -63,7 +59,7 @@ mixins.taggedAsset = {
   mixins: [
     React.addons.LinkedStateMixin
   ],
-  tagChange (tags, changedTag) {
+  tagChange (tags/*, changedTag*/) {
     var uid = this.props.params.assetid || this.props.params.uid;
     actions.resources.updateAsset(uid, {
       tag_string: tags.join(',')
@@ -75,7 +71,7 @@ mixins.taggedAsset = {
     ls.requestChange = function(...args) {
       that.tagChange(...args);
       rc.apply(this, args);
-    }
+    };
     return ls;
   },
   renderTaggedAssetTags () {
@@ -95,10 +91,11 @@ mixins.taggedAsset = {
     );
   }
 };
-
 mixins.formView = {
   _saveForm (evt) {
-    evt && evt.preventDefault();
+    if (evt && evt.preventDefault) {
+      evt.preventDefault();
+    }
     actions.resources.updateAsset(this.props.params.assetid, {
       content: surveyToValidJson(this.state.survey)
     });
@@ -107,7 +104,9 @@ mixins.formView = {
     });
   },
   _previewForm (evt) {
-    evt && evt.preventDefault();
+    if (evt && evt.preventDefault) {
+      evt.preventDefault();
+    }
     dataInterface.createAssetSnapshot({
       asset: this.state.asset.url,
       source: surveyToValidJson(this.state.survey),
@@ -116,7 +115,7 @@ mixins.formView = {
         enketopreviewOverlay: content.enketopreviewlink,
       });
       stores.pageState.setAssetNavPresent(false);
-    }).fail((jqxhr) => {
+    }).fail((/* jqxhr */) => {
       notify(t('failed to generate preview. please report this to support@kobotoolbox.org'));
     });
   },
@@ -129,7 +128,7 @@ mixins.formView = {
   handleScroll(evt) {
     var scrollTop = evt.target.scrollTop;
     if (!this.state.formHeaderFixed && scrollTop > 40) {
-      var fhfh = $('.asset-view__row--header').height()
+      var fhfh = $('.asset-view__row--header').height();
       this.setState({
         formHeaderFixed: true,
         formHeaderFixedHeight: fhfh,
@@ -140,8 +139,8 @@ mixins.formView = {
       });
     }
   },
-  navigateBack (evt) {
-    if (this.needsSave() && confirm(t('you have unsaved changes. would you like to save?'))) {
+  navigateBack (/* evt */) {
+    if (this.needsSave() && customConfirm(t('you have unsaved changes. would you like to save?'))) {
       this._saveForm();
     }
     this.transitionTo('forms');
@@ -160,7 +159,7 @@ mixins.formView = {
         </bem.AssetView>
       );
   },
-  nameInputChange (evt) {
+  nameInputChange (/* evt */) {
     this.setState({
       survey_name: this.state.survey.settings.get('form_title')
     });
@@ -168,7 +167,7 @@ mixins.formView = {
   getInitialState () {
     return {
       'asset_updated': update_states.UP_TO_DATE,
-    }
+    };
   },
   needsSave () {
     return this.state.asset_updated === update_states.UNSAVED_CHANGES;
@@ -214,7 +213,7 @@ mixins.formView = {
                 <bem.AssetView__row>
                   <FormSettingsBox {...this.state} />
                 </bem.AssetView__row>
-              :null}
+              : null }
               <bem.AssetView__row>
                 <div ref="form-wrap" className='form-wrap' />
               </bem.AssetView__row>
@@ -222,7 +221,7 @@ mixins.formView = {
           </ui.Panel>
           { this.state.enketopreviewOverlay ?
             this.renderEnketoPreviewOverlay()
-          :null}
+          : null }
         </bem.AssetView>
       );
   },
@@ -235,8 +234,8 @@ mixins.permissions = {
       actions.permissions.removePerm({
         permission_url: permObject.url,
         content_object_uid: content_object_uid
-      })
-    }
+      });
+    };
   },
   setPerm (permName, props) {
     return (evt) => {
@@ -248,7 +247,7 @@ mixins.permissions = {
         objectUrl: props.objectUrl,
         role: permName
       });
-    }
+    };
   }
 };
 
@@ -275,7 +274,7 @@ class UserDropdown extends React.Component {
               </a>
             </li>
           </ul>
-      )
+      );
   }
 }
 class UserIcon extends React.Component {
@@ -287,9 +286,10 @@ class UserIcon extends React.Component {
         <a href="#" className="dropdown-toggle" data-toggle="dropdown">
           <img src={imgSrc} className="gravatar-img" />
         </a>
-      )
+      );
   }
 }
+/*
 var RecentHistoryDropdownBase = React.createClass({
   mixins: [Reflux.ListenerMixin],
   getInitialState () {
@@ -297,6 +297,7 @@ var RecentHistoryDropdownBase = React.createClass({
   },
   render () {}
 });
+*/
 
 class ItemDropdown extends React.Component {
   render () {
@@ -341,9 +342,10 @@ class ItemDropdownDivider extends React.Component {
   }
 }
 
+/*
 var LoginForm = React.createClass({
   done (...args) {
-    log(args, this)
+    log(args, this);
   },
 
   fail (...args) {
@@ -374,7 +376,6 @@ var LoginForm = React.createClass({
   }
 });
 
-
 var LiLink = React.createClass({
   render () {
     var liClass = this.props.active ? 'active' : '';
@@ -388,6 +389,7 @@ var LiLink = React.createClass({
     return <li className={liClass}><a href={href}>{linkText} {srOnly}</a></li>
   }
 });
+*/
 
 var assetStore = stores.asset;
 var sessionStore = stores.session;
@@ -426,7 +428,7 @@ var AssetNavigatorListView = React.createClass({
       deactivate: ()=> {
         $el.sortable('cancel');
       }
-    })
+    });
   },
   render () {
     var list,
@@ -435,7 +437,7 @@ var AssetNavigatorListView = React.createClass({
         isSearch = this.state.searchResultsDisplayed;
 
     if (isSearch) {
-      status = this.state.searchState,
+      status = this.state.searchState;
       list = this.state.searchResultsList;
       count = this.state.searchResultsCount;
     } else {
@@ -478,12 +480,12 @@ var AssetNavigatorListView = React.createClass({
                       <bem.LibList__label m={'name'}>
                         <ui.AssetName {...item} />
                       </bem.LibList__label>
-                      {item.asset_type==='block' ?
+                      { item.asset_type === 'block' ?
                         <bem.LibList__qtype>
                           {t('block of ___ questions').replace('___', summ.row_count)}
                         </bem.LibList__qtype>
-                      :null}
-                      { stores.pageState.state.assetNavExpanded && item.asset_type==='block' ?
+                      : null }
+                      { (stores.pageState.state.assetNavExpanded && item.asset_type === 'block') ?
                         <ol>
                           {summ.labels.map(function(lbl){
                             return <li>{lbl}</li>;
@@ -546,7 +548,7 @@ var AssetNavigator = React.createClass({
     };
   },
   getImportsByStatus (n) {
-    this.imports.filter((i)=> i.status==n )
+    return this.imports.filter((i)=> i.status === n );
   },
   searchFieldValue () {
     return this.refs.navigatorSearchBox.refs.inp.getDOMNode().value;
@@ -555,7 +557,8 @@ var AssetNavigator = React.createClass({
     var queryInput = this.searchFieldValue(),
       r;
     if (queryInput && queryInput.length > 2) {
-      if (r = stores.assetSearch.getRecentSearch(queryInput)) {
+      r = stores.assetSearch.getRecentSearch(queryInput);
+      if (r) {
         this.setState({
           searchResults: r
         });
@@ -566,15 +569,15 @@ var AssetNavigator = React.createClass({
   },
   _displayAssetLibraryItems () {
     var qresults = this.state.assetLibraryItems;
-    var alItems;
-    var contents;
+    // var alItems;
+    // var contents;
     if (qresults && qresults.count > 0) {
-      alItems = qresults.results;
+      // var alItems = qresults.results;
       return (
               <bem.LibList ref="liblist">
                 {qresults.results.map((item)=> {
                   var modifiers = [item.asset_type];
-                  var summ = item.summary;
+                  // var summ = item.summary;
                   return (
                       <bem.LibList__item m={modifiers} key={item.uid} data-uid={item.uid}>
                         <bem.LibList__dragbox />
@@ -626,7 +629,7 @@ var AssetNavigator = React.createClass({
       );
   },
   toggleOpen () {
-    stores.pageState.toggleAssetNavIntentOpen()
+    stores.pageState.toggleAssetNavIntentOpen();
   },
   render () {
     if (!this.state.assetNavIsOpen) {
@@ -664,7 +667,7 @@ var AssetNavigator = React.createClass({
   }
 });
 
-
+/*
 var Icon = React.createClass({
   render () {
     var kls = classNames('fa', `fa-${this.props.fa}`, this.props.also);
@@ -685,6 +688,7 @@ class NavBarIcon extends React.Component {
       );
   }
 }
+*/
 
 class Header extends React.Component {
   render () {
@@ -715,15 +719,14 @@ class StackedIcon extends React.Component {
       );
   }
 }
-
+/*
 var ActionLink = React.createClass({
   render () {
     return <bem.AssetRow__actionIcon {...this.props} />
   }
 });
-
-
 var collectionAssetsStore = stores.collectionAssets;
+*/
 
 function stringifyRoutes(contextRouter) {
   return JSON.stringify(contextRouter.getCurrentRoutes().map(function(r){
@@ -731,7 +734,7 @@ function stringifyRoutes(contextRouter) {
       name: r.name,
       href: r.path
     };
-  }), null, 4)
+  }), null, 4);
 }
 
 class CloseButton extends React.Component {
@@ -785,14 +788,14 @@ class ButtonGroup extends React.Component {
                   onClick={this.toggleExpandGroup.bind(this)}
                   className={mainClassnames}>{title}&nbsp;&nbsp;{iconEl}</a>;
 
-    var action = this.props.action || 'view';
+    // var action = this.props.action || 'view';
     if (links.length > 0) {
       openLink = (
         <a href="#" className={caretClassnames} onClick={this.toggleExpandGroup.bind(this)}><span className="caret" /></a>
       );
       links = (
           <ul className="dropdown-menu">
-            {links.map((lnk, i)=> {
+            {links.map((lnk)=> {
               var _key = lnk.code;
               return (<li key={_key}><a href={lnk.url}>{t(lnk.title || lnk.code)}</a></li>);
             })}
@@ -812,12 +815,12 @@ class ButtonGroup extends React.Component {
 
 class DownloadButtons extends React.Component {
   render () {
-    var title = 'there are no available downloads';
+    // var title = 'there are no available downloads';
     var links = this.props.downloads.map((link) => {
       return assign({
         code: `download.${this.props.kind}.${link.format}`
       }, link);
-    })
+    });
     return (
       <ButtonGroup href="#"
                     links={links}
@@ -834,7 +837,9 @@ class UserProfileLink extends React.Component {
   render () {
     var before, after, icon;
     if (this.props.icon) {
-      icon = <i className={`fa fa-${this.props.icon}`} />
+      icon = (
+          <i className={`fa fa-${this.props.icon}`} />
+        );
       if (this.props.iconBefore) {
         before = icon;
       } else {
@@ -869,15 +874,16 @@ var UserPermDiv = React.createClass({
     mixins.permissions,
   ],
   renderPerm ([permName, permPermission, permissionObject]) {
+    const permClasses = {
+      'false': 'btn-default',
+      allow: 'mdl-button--colored',
+      deny: 'btn-danger',
+    };
     var btnCls = classNames('mdl-button',
                             'mdl-button--raised',
                             `perm-${permName}`,
                             'mdl-js-button',
-                            ({
-                              "false": "btn-default",
-                              "allow": "mdl-button--colored",
-                              "deny": "btn-danger"
-                            })[permPermission]);
+                            permClasses[permPermission]);
 
     var buttonAction;
     if (permissionObject) {
@@ -892,21 +898,21 @@ var UserPermDiv = React.createClass({
     );
   },
   render () {
-    var hasAnyPerms = false;
+    // var hasAnyPerms = false;
     var cans = this.props.can;
     var availPerms = ['view', 'change'].map((permName) => {
       if ( permName in cans ) {
         if (cans[permName].deny) {
-          return [permName, "deny", cans[permName]];
+          return [permName, 'deny', cans[permName]];
         } else if (cans[permName]) {
-          return [permName, "allow", cans[permName]];
+          return [permName, 'allow', cans[permName]];
         }
       }
-      return [permName, "false"];
+      return [permName, 'false'];
     });
-    if (!this.props.username) {
-      debugger;
-    }
+    // if (!this.props.username) {
+    //   debugger;
+    // }
     return (
       <div>
         <div>
@@ -921,8 +927,8 @@ var UserPermDiv = React.createClass({
 class PublicPermDiv extends UserPermDiv {
   render () {
     var isOn = this.props.isOn;
-    var btnCls = classNames('mdl-button', 'mdl-button--raised', 
-                            isOn ? 'mdl-button--colored' : '');
+    var btnCls = classNames('mdl-button', 'mdl-button--raised',
+                            isOn ? 'mdl-button--colored' : null);
     return (
       <div className='permissions-toggle'>
         <button className={btnCls} onClick={this.props.onToggle}>
@@ -949,10 +955,10 @@ class KoBo extends React.Component {
           <span className='ko'>Ko</span>
           <span className='bo'>Bo</span>
         </span>
-      )
+      );
   }
 }
-
+/*
 var FormInput = React.createClass({
   render () {
     return (
@@ -967,13 +973,14 @@ var FormInput = React.createClass({
       );
   }
 });
+*/
 
 var FormCheckbox = React.createClass({
   render () {
     return (
         <div className="form-group">
           <label className="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" htmlFor={this.props.name} >
-            <input type="checkbox" className="mdl-checkbox__input"  id={this.props.name} checked={this.props.value} onChange={this.props.onChange} />
+            <input type="checkbox" className="mdl-checkbox__input" id={this.props.name} checked={this.props.value} onChange={this.props.onChange} />
             <span className="mdl-checkbox__label">{this.props.label}</span>
           </label>
         </div>
@@ -983,7 +990,7 @@ var FormCheckbox = React.createClass({
     // TODO: upgrade specific element only (as opposed to whole DOM)
     mdl.upgradeDom();
   }
-})
+});
 
 var FormSettingsEditor = React.createClass({
   render () {
@@ -993,12 +1000,16 @@ var FormSettingsEditor = React.createClass({
             <div className="mdl-cell mdl-cell--1-col" />
             <div className="mdl-cell mdl-cell--5-col">
               {this.props.meta.map((mtype) => {
-                return <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
+                return (
+                    <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
+                  );
               })}
             </div>
             <div className="mdl-cell mdl-cell--5-col">
               {this.props.phoneMeta.map((mtype) => {
-                return <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
+                return (
+                    <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
+                  );
               })}
             </div>
           </div>
@@ -1048,7 +1059,7 @@ var FormSettingsBox = React.createClass({
       meta: [],
       phoneMeta: [],
       styleValue: 'field-list'
-    }
+    };
   },
   getSurveyDetail (sdId) {
     return this.props.survey.surveyDetails.filter(function(sd){
@@ -1080,11 +1091,11 @@ var FormSettingsBox = React.createClass({
     }
     this.setState({
       xform_id_string: this.props.survey.settings.get('form_id')
-    })
+    });
   },
   updateState (newState={}) {
-    "start end today deviceid".split(" ").forEach(this.passValueIntoObj('meta', newState));
-    "username simserial subscriberid phonenumber".split(" ").map(this.passValueIntoObj('phoneMeta', newState));
+    'start end today deviceid'.split(' ').forEach(this.passValueIntoObj('meta', newState));
+    'username simserial subscriberid phonenumber'.split(' ').map(this.passValueIntoObj('phoneMeta', newState));
     this.setState(newState);
   },
   componentDidMount () {
@@ -1103,12 +1114,14 @@ var FormSettingsBox = React.createClass({
     });
   },
   render () {
-    var metaData = [].concat(this.state.meta).concat(this.state.phoneMeta).filter(function(item, a, b, c){
+    var metaData = [].concat(this.state.meta).concat(this.state.phoneMeta).filter(function(item){
       return item.value;
-    }).map(function(item){ return item.label; }).join(', ');
+    }).map(function(item){
+      return item.label;
+    }).join(', ');
 
     if (metaData === '') {
-      metaData = t('none (0 metadata specified)')
+      metaData = t('none (0 metadata specified)');
     }
 
     var metaContent;
@@ -1132,24 +1145,12 @@ var FormSettingsBox = React.createClass({
           </bem.FormMeta__button>
           {metaContent}
         </bem.FormMeta>
-      )
+      );
   },
   componentDidUpdate() {
     mdl.upgradeDom();
   }
-})
-
-
-
-
-function surveyToValidJson(survey, omitSettings=false) {
-  var surveyDict = survey.toFlatJSON();
-  if (omitSettings && 'settings' in surveyDict) {
-    delete surveyDict['settings'];
-  }
-  return JSON.stringify(surveyDict);
-}
-
+});
 
 /* Routes:
 */
@@ -1171,7 +1172,7 @@ var App = React.createClass({
           <bem.PageWrapper m={{
               'asset-nav-present': this.state.assetNavPresent,
               'asset-nav-open': this.state.assetNavIsOpen && this.state.assetNavPresent,
-                }}  className="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+                }} className="mdl-layout mdl-js-layout mdl-layout--fixed-header">
               <MainHeader />
               <Drawer />
               <bem.PageWrapper__content m={{
@@ -1183,7 +1184,7 @@ var App = React.createClass({
               </bem.PageWrapper__content>
               { this.state.assetNavPresent ?
                 <AssetNavigator />
-              :null}
+              : null }
           </bem.PageWrapper>
         </div>
       </DocumentTitle>
@@ -1199,7 +1200,7 @@ var App = React.createClass({
 // intended to provide a component we can export to html
 var Loading = React.createClass({
   render () {
-    var loadingImage = 'path/to/img.jpg'
+    var loadingImage = 'path/to/img.jpg';
     return (
         <bem.Loading>
           <bem.Loading__message>
@@ -1209,7 +1210,7 @@ var Loading = React.createClass({
         </bem.Loading>
       );
   }
-})
+});
 
 var Forms = React.createClass({
   mixins: [
@@ -1217,8 +1218,8 @@ var Forms = React.createClass({
   ],
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
-      if (params.assetid && params.assetid[0]==='c') {
-        transition.redirect("collection-page", {
+      if (params.assetid && params.assetid[0] === 'c') {
+        transition.redirect('collection-page', {
           uid: params.assetid
         });
       } else {
@@ -1321,12 +1322,12 @@ mixins.newForm = {
     this.setState(state);
   },
   componentDidMount () {
-    this.navigateBack = (evt) => {
-      if (this.needsSave() && confirm(t('you have unsaved changes. would you like to save?'))) {
+    this.navigateBack = (/*evt*/) => {
+      if (this.needsSave() && customConfirm(t('you have unsaved changes. would you like to save?'))) {
         this._saveForm();
       }
       this.transitionTo(this.listRoute);
-    }
+    };
     actions.resources.createResource.listen(this.creatingResource);
     actions.resources.createResource.completed.listen(this.creatingResourceCompleted);
     this.listenTo(stores.surveyState, this.surveyStateChanged);
@@ -1353,7 +1354,7 @@ mixins.newForm = {
         </DocumentTitle>
       );
   }
-}
+};
 
 var NewForm = React.createClass({
   mixins: [
@@ -1369,7 +1370,6 @@ var NewForm = React.createClass({
   },
   saveNewForm (evt) {
     evt.preventDefault();
-    var sc;
     var chgs = {
       name: this.refs['form-name'].getDOMNode().value
     };
@@ -1399,7 +1399,6 @@ var AddToLibrary = React.createClass({
   },
   saveNewForm (evt) {
     evt.preventDefault();
-    var sc;
     var chgs = {
       name: this.refs['form-name'].getDOMNode().value
     };
@@ -1511,17 +1510,17 @@ var FormDownload = React.createClass({
     }
   },
   componentDidMount () {
-    this.listenTo(assetStore, this.assetStoreTriggered)
+    this.listenTo(assetStore, this.assetStoreTriggered);
   },
   getInitialState () {
     return {
       downloads: []
     };
   },
-  assetStoreTriggered (data, uid, stateUpdates) {
+  assetStoreTriggered (data, uid) {
     this.setState({
       downloads: data[uid].downloads
-    })
+    });
   },
   render () {
     return (
@@ -1557,26 +1556,26 @@ var FormJson = React.createClass({
     }
   },
   componentDidMount () {
-    this.listenTo(assetStore, this.assetStoreTriggered)
+    this.listenTo(assetStore, this.assetStoreTriggered);
   },
-  assetStoreTriggered (data, uid, stateUpdates) {
+  assetStoreTriggered (data, uid) {
     this.setState({
       assetcontent: data[uid].content
-    })
+    });
   },
   getInitialState () {
     return {
       assetcontent: false
-    }
+    };
   },
   render () {
     return (
         <ui.Panel>
           <pre>
             <code>
-              {this.state.assetcontent ?
+              { this.state.assetcontent ?
                 JSON.stringify(this.state.assetcontent, null, 4)
-              :null}
+             : null }
             </code>
           </pre>
         </ui.Panel>
@@ -1596,21 +1595,25 @@ var FormXform = React.createClass({
         xformHtml: {
           __html: $('<div>').html(content).find('.pygment').html()
         },
-      })
+      });
     });
   },
   getInitialState () {
     return {
       xformLoaded: false
-    }
+    };
   },
   render () {
     if (!this.state.xformLoaded) {
-      return <p>XForm is loading</p>
+      return (
+          <p>XForm is loading</p>
+        );
     } else {
-      return <div className="pygment"
-                dangerouslySetInnerHTML={this.state.xformHtml}
-              />
+      return (
+          <div className="pygment"
+                    dangerouslySetInnerHTML={this.state.xformHtml}
+                  />
+        );
     }
   }
 });
@@ -1655,7 +1658,7 @@ var FormSharing = React.createClass({
       var newStatus = checked[result] ? 'success' : 'error';
       this.setState({
         userInputStatus: newStatus
-      })
+      });
     }
   },
   usernameField () {
@@ -1679,13 +1682,13 @@ var FormSharing = React.createClass({
     } else {
       this.setState({
         userInputStatus: false
-      })
+      });
     }
   },
   getInitialState () {
     return {
       userInputStatus: false
-    }
+    };
   },
   addInitialUserPermission (evt) {
     evt.preventDefault();
@@ -1698,29 +1701,30 @@ var FormSharing = React.createClass({
         objectUrl: this.props.objectUrl,
         role: 'view'
       });
-      this.usernameField().value="";
+      this.usernameField().value = '';
     }
   },
   render () {
-    var sharedUsers = [];
     var inpStatus = this.state.userInputStatus;
     if (!this.state.pperms) {
-      return <i className="fa fa-spin" />;
+      return (
+          <i className="fa fa-spin" />
+        );
     }
     var _perms = this.state.pperms;
     var perms = this.state.related_users.map(function(username){
-      var currentPerm = _perms.filter(function(p){ return p.username === username })[0];
+      var currentPerm = _perms.filter(function(p){
+        return p.username === username;
+      })[0];
       if (currentPerm) {
         return currentPerm;
       } else {
         return {
           username: username,
           can: {}
-        }
+        };
       }
     });
-    var userInputKls = classNames('form-group',
-                                    (inpStatus !== false) ? `has-${inpStatus}` : '');
     var btnKls = classNames('mdl-button',
                             'mdl-buton-raised',
                             'mdl-button--colored',
@@ -1731,7 +1735,9 @@ var FormSharing = React.createClass({
     var objectUrl = this.state.asset.url;
 
     if (!perms) {
-      return <p>loading</p>
+      return (
+          <p>loading</p>
+        );
     }
     return (
       <ui.Modal open onClose={this.routeBack} title={t('manage sharing permissions')}>
@@ -1742,7 +1748,7 @@ var FormSharing = React.createClass({
             </div>
             <div className="k-sharing__header">
               <div className="user--pill">
-                <StackedIcon frontIcon='user' /> 
+                <StackedIcon frontIcon='user' />
                 <div className="user--pill__name">
                   <UserProfileLink username={this.state.asset.owner__username} /><br/>
                   <span className="text-small">{t('owner')}</span>
@@ -1785,21 +1791,25 @@ var FormSharing = React.createClass({
                   <div className="mdl-card__supporting-text">
                     {(() => {
                       if (this.state.public_permission) {
-                        return <PublicPermDiv isOn={true}
-                                    onToggle={this.removePerm('view',
-                                                      this.state.public_permission,
-                                                      uid)}
-                                    />
+                        return (
+                            <PublicPermDiv isOn={true}
+                                onToggle={this.removePerm('view',
+                                                  this.state.public_permission,
+                                                  uid)}
+                                />
+                          );
                       } else {
-                        return <PublicPermDiv isOn={false}
-                                    onToggle={this.setPerm('view', {
-                                        username: anonUsername,
-                                        uid: uid,
-                                        kind: kind,
-                                        objectUrl: objectUrl
-                                      }
-                                    )}
-                                    />
+                        return (
+                          <PublicPermDiv isOn={false}
+                                onToggle={this.setPerm('view', {
+                                    username: anonUsername,
+                                    uid: uid,
+                                    kind: kind,
+                                    objectUrl: objectUrl
+                                  }
+                                )}
+                                />
+                          );
                       }
                     })()}
                   </div>
@@ -1849,7 +1859,6 @@ var CollectionSharing = React.createClass({
     this.listenTo(stores.userExists, this.userExistsStoreChange);
   },
   routeBack () {
-    var params = this.context.router.getCurrentParams();
     this.transitionTo('collections');
   },
   userExistsStoreChange (checked, result) {
@@ -1858,7 +1867,7 @@ var CollectionSharing = React.createClass({
       var newStatus = checked[result] ? 'success' : 'error';
       this.setState({
         userInputStatus: newStatus
-      })
+      });
     }
   },
   usernameField () {
@@ -1882,13 +1891,13 @@ var CollectionSharing = React.createClass({
     } else {
       this.setState({
         userInputStatus: false
-      })
+      });
     }
   },
   getInitialState () {
     return {
       userInputStatus: false
-    }
+    };
   },
   addInitialUserPermission (evt) {
     evt.preventDefault();
@@ -1901,29 +1910,28 @@ var CollectionSharing = React.createClass({
         objectUrl: this.props.objectUrl,
         role: 'view'
       });
-      this.usernameField().value="";
+      this.usernameField().value = '';
     }
   },
   render () {
-    var sharedUsers = [];
     var inpStatus = this.state.userInputStatus;
     if (!this.state.pperms) {
       return <i className="fa fa-spin" />;
     }
     var _perms = this.state.pperms;
     var perms = this.state.related_users.map(function(username){
-      var currentPerm = _perms.filter(function(p){ return p.username === username })[0];
+      var currentPerm = _perms.filter(function(p){
+        return p.username === username;
+      })[0];
       if (currentPerm) {
         return currentPerm;
       } else {
         return {
           username: username,
           can: {}
-        }
+        };
       }
     });
-    var userInputKls = classNames('form-group',
-                                    (inpStatus !== false) ? `has-${inpStatus}` : '');
     var btnKls = classNames('mdl-button',
                             'mdl-button--raised',
                             'mdl-button--colored',
@@ -1934,7 +1942,9 @@ var CollectionSharing = React.createClass({
     var objectUrl = this.state.asset.url;
 
     if (!perms) {
-      return <p>loading</p>
+      return (
+          <p>loading</p>
+        );
     }
     return (
       <ui.Modal open onClose={this.routeBack} title={t('manage sharing permissions')}>
@@ -1945,7 +1955,7 @@ var CollectionSharing = React.createClass({
             </div>
             <div className="k-sharing__header">
               <div className="user--pill">
-                <StackedIcon frontIcon='user' /> 
+                <StackedIcon frontIcon='user' />
                 <div className="user--pill__name">
                   <UserProfileLink username={this.state.asset.owner__username} /><br/>
                   <span className="text-small">{t('owner')}</span>
@@ -1985,13 +1995,16 @@ var CollectionSharing = React.createClass({
                     <div className="mdl-card__supporting-text">
                       {(() => {
                         if (this.state.public_permission) {
-                          return <PublicPermDiv isOn={true}
-                                      onToggle={this.removePerm('view',
-                                                        this.state.public_permission,
-                                                        uid)}
-                                      />
+                          return (
+                              <PublicPermDiv isOn={true}
+                                onToggle={this.removePerm('view',
+                                                  this.state.public_permission,
+                                                  uid)}
+                              />
+                            );
                         } else {
-                          return <PublicPermDiv isOn={false}
+                          return (
+                              <PublicPermDiv isOn={false}
                                       onToggle={this.setPerm('view', {
                                           username: anonUsername,
                                           uid: uid,
@@ -2000,6 +2013,7 @@ var CollectionSharing = React.createClass({
                                         }
                                       )}
                                       />
+                            );
                         }
                       })()}
                     </div>
@@ -2028,7 +2042,7 @@ var FormEnketoPreview = React.createClass({
       actions.resources.createSnapshot({
         asset: asset.url,
       });
-    })
+    });
     this.listenTo(stores.snapshots, this.snapshotCreation);
     stores.pageState.setHeaderBreadcrumb([
       {'label': t('Forms'), 'to': 'forms'},
@@ -2041,19 +2055,19 @@ var FormEnketoPreview = React.createClass({
       enketopreviewlink: false,
       message: t('loading...'),
       error: false
-    }
+    };
   },
   snapshotCreation (data) {
     if (data.success) {
-      var uid = this.props.params.assetid;
+      // var uid = this.props.params.assetid;
       this.setState({
         enketopreviewlink: data.enketopreviewlink
-      })
+      });
     } else {
       this.setState({
         message: data.error,
         error: true
-      })
+      });
     }
   },
   routeBack () {
@@ -2120,9 +2134,9 @@ var FormPage = React.createClass({
         _pendingName: false,
       });
       actions.resources.updateAsset.completed(asset);
-    }).fail((jqxhr) => {
+    }).fail((/*jqxhr*/) => {
       actions.resources.updateAsset.failed(asset);
-    })
+    });
     this.setState({
       asset_updated: update_states.PENDING_UPDATE,
       _pendingName: _nameValue,
@@ -2147,12 +2161,9 @@ var FormPage = React.createClass({
   onNameInputChange (evt) {
     this.setState({
       _pendingName: evt.target.value,
-    })
+    });
   },
   renderSaveAndPreviewButtons () {
-    var surv = this.state.survey,
-        app = this.app || {};
-
     var previewDisabled = this.state.survey.rows.length < 1;
     var groupable = !!this.state.groupButtonIsActive;
     var showAllOpen = !!this.state.multioptionsExpanded;
@@ -2271,21 +2282,22 @@ var FormPage = React.createClass({
   },
   componentDidMount () {
     this.navigateBack = ()=> {
-      if (this.needsSave() && confirm(t('you have unsaved changes. would you like to save?'))) {
+      if (this.needsSave() && customConfirm(t('you have unsaved changes. would you like to save?'))) {
         this._saveForm();
       }
       this.transitionTo('form-landing', {assetid: this.props.params.assetid});
-    }
+    };
 
-    this.listenTo(assetStore, this.assetStoreTriggered)
+    this.listenTo(assetStore, this.assetStoreTriggered);
+
     var headerBreadcrumb = [
       {'label': t('Forms'), 'to': 'forms'}
     ];
     stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
     this._postLoadRenderMounted = false;
   },
-  surveyChange (a,b,c) {
-    log('survey change' ,a ,b,c)
+  surveyChange (a, b, c) {
+    log('survey change', a, b, c);
   },
   componentWillUnmount () {
     if (this.state.survey) {
@@ -2372,7 +2384,7 @@ var FormLanding = React.createClass({
     }
   },
   render () {
-    return this._createPanel()
+    return this._createPanel();
   }
 });
 
@@ -2509,7 +2521,7 @@ var FormNotFound = React.createClass({
         <ui.Panel>
           {t('path not found / recognized')}
         </ui.Panel>
-      )
+      );
   }
 });
 
@@ -2601,12 +2613,12 @@ var Home = React.createClass({
   componentDidMount () {
     this.listenTo(sessionStore, this.sessionStoreChange);
   },
-  sessionStoreChange (x,y,z) {
+  sessionStoreChange (x, y, z) {
     log('sessionStoreChange ', x, y, z);
   },
   statics: {
     willTransitionTo (transition) {
-      transition.redirect('forms')
+      transition.redirect('forms');
     }
   },
   render () {
@@ -2656,9 +2668,9 @@ var DemoCollections = React.createClass({
           <Demo.collection uid="c5Q4Tg3hVx23PbwgYcApCP"
                   msg={'loading assets in a question library'} />
         </div>
-      )
+      );
   }
-})
+});
 
 
 Demo.asset = React.createClass({
@@ -2669,7 +2681,7 @@ Demo.asset = React.createClass({
     Reflux.ListenerMixin
   ],
   render () {
-    return this._createPanel()
+    return this._createPanel();
   }
 });
 
@@ -2682,7 +2694,7 @@ Demo.collection = React.createClass({
     Reflux.ListenerMixin,
   ],
   render () {
-    return this._createPanel()
+    return this._createPanel();
   }
 });
 
@@ -2734,7 +2746,7 @@ var routes = (
 );
 
 export function runRoutes(el) {
-  Router.run(routes, function (Handler, state) {
+  run(routes, function (Handler) {
     React.render(<Handler />, el);
   });
-};
+}

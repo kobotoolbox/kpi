@@ -3,26 +3,29 @@ import Reflux from 'reflux';
 import {Navigation} from 'react-router';
 import mdl from '../libs/rest_framework/material';
 import Dropzone from '../libs/dropzone';
-import assign from 'react/lib/Object.assign';
 
-import {dataInterface} from '../dataInterface'
-import searches from '../searches';
+import {dataInterface} from '../dataInterface';
 import actions from '../actions';
 import mixins from '../mixins';
 import stores from '../stores';
 import bem from '../bem';
 import ui from '../ui';
-
 import AssetRow from '../components/assetrow';
-import {List, ListSearch, ListSearchDebug, ListTagFilter, ListSearchSummary} from '../components/list';
-import {notify, getAnonymousUserPermission, formatTime, anonUsername, parsePermissions, log, t} from '../utils';
+import {
+  parsePermissions,
+  t,
+} from '../utils';
 
 var extendCollectionToStateMixin = {
   componentDidMount () {
     this.listenTo(stores.collectionAssets, this.collectionLoaded);
-    var uid, params = this.props.params;
-    if (params && (uid=params.uid) && uid[0] === 'c') {
-      actions.resources.readCollection({uid: uid})
+    var params = this.props.params,
+        uid;
+    if (params) {
+      uid = params.uid;
+    }
+    if (params && (uid) && uid[0] === 'c') {
+      actions.resources.readCollection({uid: uid});
       this.setState({
         collectionLoading: 1,
       });
@@ -33,7 +36,7 @@ var extendCollectionToStateMixin = {
       this.setState({
         collection: coll,
         collectionLoading: 0,
-      })
+      });
     }
   },
   getInitialState () {
@@ -43,9 +46,9 @@ var extendCollectionToStateMixin = {
       },
       collectionLoading: -1,
       collectionUrl: `/collections/${this.props.params.uid}/`
-    }
+    };
   },
-}
+};
 
 var CollectionLanding = React.createClass({
   mixins: [
@@ -84,11 +87,11 @@ var CollectionLanding = React.createClass({
   },
   createCollection () {
     dataInterface.createCollection({
-      name: prompt('collection name?'),
+      name: customPrompt('collection name?'),
       parent: this.state.collectionUrl,
     }).done((data) => {
       this.redirect(`/collections/${data.uid}/`);
-    })
+    });
   },
   _sendCollectionNameChange (name) {
     // this method is debounced
@@ -182,19 +185,20 @@ var CollectionLanding = React.createClass({
   },
   renderAssetRow (resource) {
     var currentUsername = stores.session.currentAccount && stores.session.currentAccount.username;
-    var perm = parsePermissions(resource.owner, resource.permissions)
+    var perm = parsePermissions(resource.owner, resource.permissions);
     var isSelected = this.state.selectedAssetUid === resource.uid;
-    return <AssetRow key={resource.uid}
+    return (
+          <AssetRow key={resource.uid}
                       currentUsername={currentUsername}
                       perm={perm}
                       onActionButtonClick={this.onActionButtonClick}
                       isSelected={isSelected}
                       {...resource}
                         />
+      );
   },
   renderCollectionList () {
-    var s = this.state,
-        p = this.props;
+    var s = this.state;
     if (s.collectionLoading) {
       return (
         <bem.CollectionAssetList>
@@ -216,12 +220,6 @@ var CollectionLanding = React.createClass({
       return (
         <bem.CollectionAssetList>
           {s.collection.children.results.map(this.renderAssetRow)}
-        </bem.CollectionAssetList>
-      );
-
-      return (
-        <bem.CollectionAssetList>
-          {s.collectionList.map(this.renderAssetRow)}
         </bem.CollectionAssetList>
       );
     }
