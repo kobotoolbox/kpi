@@ -385,11 +385,8 @@ var dmix = {
       value: defaultFormId,
       onok: (evt, val)=> {
         actions.resources.deployAsset(asset_url, val);
-        notify(t('deployed as ___').replace('___', val));
       },
-      oncancel: ()=> {
-        // notify(t('canceled'))
-      }
+      oncancel: ()=> {}
     };
     alertify.prompt(opts.title, opts.message, opts.value, opts.onok, opts.oncancel);
   },
@@ -860,13 +857,10 @@ mixins.clickAssets = {
           title: t('deploy form to kobocat'),
           message: t('please specify a form id'),
           value: defaultFormId,
-          onok: (evt, val)=> {
+          onok: (_evt, val)=> {
             actions.resources.deployAsset(asset_url, val);
-            notify(t('deployed as ___').replace('___', val));
           },
-          oncancel: ()=> {
-            // notify(t('canceled'))
-          }
+          oncancel: ()=> {},
         };
         alertify.prompt(opts.title, opts.message, opts.value, opts.onok, opts.oncancel);
       },

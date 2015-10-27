@@ -1,5 +1,10 @@
 import {dataInterface} from './dataInterface';
-import {log, t, notify} from './utils';
+import {
+  log,
+  t,
+  notify,
+  redirectTo,
+} from './utils';
 
 var Reflux = require('reflux');
 
@@ -307,10 +312,21 @@ actions.resources.deployAsset.listen(function(uid, form_id_string){
     .fail(actions.resources.deployAsset.failed);
 });
 
-actions.resources.deployAsset.completed.listen(function({xform_url}){
+actions.resources.deployAsset.completed.listen(function(data){
+  // todo: provide a more informative notification
+  console.log('deployed form data: ', data);
+
+  let xform_url = data.xform_url;
+  notify(t('deployed form'));
   window.setTimeout(function(){
-    window.location.href=xform_url;
+    redirectTo(xform_url);
   }, 1000);
+});
+
+actions.resources.deployAsset.failed.listen(function(data){
+  // todo: provide a more informative error
+  console.error('undeployed response: ', data);
+  notify(t('there was a problem deploying the form'));
 });
 
 actions.resources.createResource.listen(function(details){
@@ -495,4 +511,3 @@ actions.resources.listQuestionsAndBlocks.listen(function(){
 });
 
 module.exports = actions;
-
