@@ -1,3 +1,4 @@
+var _ = require('underscore');
 var Backbone = require('backbone');
 var $utils = require('./model.utils');
 var $skipLogicHelpers = require('./mv.skipLogicHelpers');
