@@ -1,15 +1,9 @@
-define 'cs!xlform/view.rowDetail.SkipLogic', [
-        'backbone',
-        'xlform/model.rowDetails.skipLogic',
-        'cs!xlform/view.widgets',
-        'cs!xlform/mv.skipLogicHelpers'
-        ], (
-            Backbone,
-            $modelRowDetailsSkipLogic,
-            $viewWidgets,
-            $skipLogicHelpers
-            )->
+Backbone = require 'backbone'
+$modelRowDetailsSkipLogic = require './model.rowDetails.skipLogic'
+$viewWidgets = require './view.widgets'
+$skipLogicHelper = require './mv.skipLogicHelpers'
 
+module.exports = do ->
   viewRowDetailSkipLogic = {}
 
   ###----------------------------------------------------------------------------------------------------------###

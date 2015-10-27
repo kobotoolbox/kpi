@@ -1,11 +1,8 @@
-define 'cs!xlform/view.widgets', [
-        'backbone'
-        ], (
-            Backbone
-            )->
-  
+Backbone = require('backbone')
+
+module.exports = do ->
   viewWidgets = {}
-  
+
   class viewWidgets.Base extends Backbone.View
     attach_to: ($el) ->
       if $el instanceof viewWidgets.Base

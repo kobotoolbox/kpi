@@ -1,24 +1,15 @@
-define 'cs!xlform/view.row', [
-        'backbone',
-        'jquery',
-        'cs!xlform/view.rowSelector',
-        'cs!xlform/model.row',
-        'cs!xlform/model.utils',
-        'cs!xlform/view.templates',
-        'cs!xlform/view.utils',
-        'cs!xlform/view.choices',
-        'cs!xlform/view.rowDetail',
-        ], (
-            Backbone,
-            $,
-            $rowSelector,
-            $row,
-            $modelUtils,
-            $viewTemplates,
-            $viewUtils,
-            $viewChoices,
-            $viewRowDetail,
-            )->
+_ = require 'underscore'
+Backbone = require 'backbone'
+$ = require 'jquery'
+$rowSelector = require './view.rowSelector'
+$row = require './model.row'
+$modelUtils = require './model.utils'
+$viewTemplates = require './view.templates'
+$viewUtils = require './view.utils'
+$viewChoices = require './view.choices'
+$viewRowDetail = require './view.rowDetail'
+
+module.exports = do ->
   class BaseRowView extends Backbone.View
     tagName: "li"
     className: "survey__row  xlf-row-view xlf-row-view--depr"

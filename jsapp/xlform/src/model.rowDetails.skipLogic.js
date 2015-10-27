@@ -1,12 +1,8 @@
-define('xlform/model.rowDetails.skipLogic', [
-        'backbone',
-        'cs!xlform/model.utils',
-        'cs!xlform/mv.skipLogicHelpers'
-        ], function(
-                    Backbone,
-                    $utils,
-                    $skipLogicHelpers
-                    ) {
+var Backbone = require('backbone');
+var $utils = require('./model.utils');
+var $skipLogicHelpers = require('./mv.skipLogicHelpers');
+
+module.exports = (function() {
 
 var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -463,4 +459,4 @@ rowDetailsSkipLogic.DateResponseModel = (function(_super) {
 
 return rowDetailsSkipLogic;
 
-});
+})();

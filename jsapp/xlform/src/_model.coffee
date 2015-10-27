@@ -1,21 +1,15 @@
 ###
 dkobo_xlform.model[...]
 ###
-define 'cs!xlform/_model', [
-        'underscore',
-        'cs!xlform/model.survey',
-        'cs!xlform/model.utils',
-        'cs!xlform/model.row',
-        'xlform/model.rowDetails.skipLogic',
-        'cs!xlform/model.configs',
-        ], (
-            _,
-            $survey,
-            $utils,
-            $row,
-            $rowDetailsSkipLogic,
-            $configs,
-            )->
+
+_ = require 'underscore'
+$survey = require './model.survey'
+$utils = require './model.utils'
+$row = require './model.row'
+$rowDetailsSkipLogic = require './model.rowDetails.skipLogic'
+$configs = require './model.configs'
+
+module.exports = do ->
 
   model = {}
 

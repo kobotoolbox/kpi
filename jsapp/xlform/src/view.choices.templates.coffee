@@ -1,5 +1,4 @@
-define 'cs!xlform/view.choices.templates', [], ()->
-
+module.exports = do ->
   addOptionButton = () ->
       """<div class="card__addoptions">
           <div class="card__addoptions__layer"></div>

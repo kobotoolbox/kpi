@@ -1,4 +1,6 @@
-define 'cs!xlform/model.aliases', ['underscore'], (_)->
+_ = require 'underscore'
+
+module.exports = do ->
   aliases_dict =
     group: [
         "begin group"

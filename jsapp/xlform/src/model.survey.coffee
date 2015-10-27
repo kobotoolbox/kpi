@@ -1,39 +1,16 @@
-# module.exports = do ->
-#   $base = './xlform/model.base'
-#   $choices = './xlform/model.choices'
-#   $modelUtils = './xlform/model.utils'
-#   $configs = './xlform/model.configs'
-#   $surveyFragment = './xlform/model.surveyFragment'
-#   $surveyDetail = './xlform/model.surveyDetail'
-#   $inputDeserializer = './xlform/model.inputDeserializer'
-#   $inputParser = './xlform/model.inputParser'
-#   $markdownTable = './xlform/model.utils.markdownTable'
-#   csv = './xlform/csv'
+_ = require 'underscore'
+$base = require './model.base'
+$choices = require './model.choices'
+$modelUtils = require './model.utils'
+$configs = require './model.configs'
+$surveyFragment = require './model.surveyFragment'
+$surveyDetail = require './model.surveyDetail'
+$inputDeserializer = require './model.inputDeserializer'
+$inputParser = require './model.inputParser'
+$markdownTable = require './model.utils.markdownTable'
+csv = require './csv'
 
-define 'cs!xlform/model.survey', [
-        'cs!xlform/model.base',
-        'cs!xlform/model.choices',
-        'cs!xlform/model.utils',
-        'cs!xlform/model.configs',
-        'cs!xlform/model.surveyFragment',
-        'cs!xlform/model.surveyDetail',
-        'cs!xlform/model.inputDeserializer',
-        'cs!xlform/model.inputParser',
-        'cs!xlform/model.utils.markdownTable',
-        'cs!xlform/csv',
-        ], (
-            $base,
-            $choices,
-            $modelUtils,
-            $configs,
-            $surveyFragment,
-            $surveyDetail,
-            $inputDeserializer,
-            $inputParser,
-            $markdownTable,
-            csv,
-            )->
-
+module.exports = do ->
   class Survey extends $surveyFragment.SurveyFragment
     constructor: (options={}, addlOpts)->
       super()

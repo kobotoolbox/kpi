@@ -1,19 +1,11 @@
-define 'cs!xlform/view.templates', [
-        'cs!xlform/view.choices.templates',
-        'cs!xlform/view.row.templates',
-        'cs!xlform/view.rowDetail.templates',
-        'cs!xlform/view.rowSelector.templates',
-        'cs!xlform/view.surveyApp.templates',
-        'cs!xlform/view.surveyDetails.templates',
-        ], (
-            choices_templates,
-            row_templates,
-            rowDetail_templates,
-            rowSelector_templates,
-            surveyApp_templates,
-            surveyDetails_templates,
-            )->
+choices_templates = require './view.choices.templates'
+row_templates = require './view.row.templates'
+rowDetail_templates = require './view.rowDetail.templates'
+rowSelector_templates = require './view.rowSelector.templates'
+surveyApp_templates = require './view.surveyApp.templates'
+surveyDetails_templates = require './view.surveyDetails.templates'
 
+module.exports = do ->
   templates =
     choices: choices_templates
     row: row_templates

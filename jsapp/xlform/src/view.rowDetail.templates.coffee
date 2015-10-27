@@ -1,4 +1,4 @@
-define 'cs!xlform/view.rowDetail.templates', [], ()->
+module.exports = do ->
   (that) ->
     """
     <code>#{that.model.key}:</code>

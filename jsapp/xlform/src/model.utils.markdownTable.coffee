@@ -1,8 +1,6 @@
-define [
-        'cs!xlform/csv',
-        ], (
-            csv
-            )->
+csv = require './csv'
+
+module.exports = do ->
 
   markdownTable = {}
   ###

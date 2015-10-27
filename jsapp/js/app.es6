@@ -45,9 +45,9 @@ import {
   customConfirm,
   assign,
 } from './utils';
+// import the form builder
+import dkobo_xlform from '../xlform/src/_xlform.init';
 
-// coffee compiled code which we hope to find a better way to import
-import dkobo_xlform from './libs/xlform_with_deps';
 
 var update_states = {
   UNSAVED_CHANGES: -1,

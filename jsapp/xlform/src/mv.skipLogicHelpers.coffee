@@ -1,9 +1,6 @@
-define 'cs!xlform/mv.skipLogicHelpers', [
-        'xlform/model.skipLogicParser'
-        ], (
-            $skipLogicParser
-            )->
+skipLogicParser = require './model.skipLogicParser'
 
+module.exports = do ->
   skipLogicHelpers = {}
 
   ###----------------------------------------------------------------------------------------------------------###

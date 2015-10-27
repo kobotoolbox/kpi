@@ -8,7 +8,7 @@
             failureMessage:string - the message passed to the callback when validation fails
             args:array - additional arguments to pass into the validation function
 */
-define('xlform/view.utils.validator', [], function(){
+module.exports = (function(){
 
 return (function () {
     var singleton = {
@@ -53,4 +53,4 @@ return (function () {
     
 } ());
 
-});
+})();

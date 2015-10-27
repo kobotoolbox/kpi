@@ -1,4 +1,6 @@
-define('xlform/model.validationLogicParserFactory', ['underscore'], function () {
+var _ = require('underscore');
+
+module.exports = (function(){
     return function (equalityCriterionPattern, existenceCriterionPattern, criteriaJoinPattern, selectMultiplePattern) {
         function parseCriterion(text) {
             var matches = text.match(existenceCriterionPattern);
@@ -73,4 +75,4 @@ define('xlform/model.validationLogicParserFactory', ['underscore'], function () 
             }
         };
     }
-});
+})();

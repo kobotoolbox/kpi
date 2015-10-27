@@ -1,5 +1,4 @@
-define 'cs!xlform/view.surveyApp.templates', [], ()->
-
+module.exports = do ->
   surveyTemplateApp = () ->
       """
           <button class="btn js-start-survey">Start from Scratch</button>

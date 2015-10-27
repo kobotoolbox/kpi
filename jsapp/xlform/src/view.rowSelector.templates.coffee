@@ -1,4 +1,4 @@
-define 'cs!xlform/view.rowSelector.templates', [], ()->
+module.exports = do ->
   xlfRowSelector = {}
 
   closeRowSelectorButton = """

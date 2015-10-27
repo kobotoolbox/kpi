@@ -1,10 +1,7 @@
-define 'cs!xlform/model.utils', [
-        'xlform/model.skipLogicParser',
-        'xlform/model.validationLogicParser'
-        ], (
-            $skipLogicParser,
-            $validationLogicParser
-            )->
+$skipLogicParser = require './model.skipLogicParser',
+$validationLogicParser = require './model.validationLogicParser'
+
+module.exports = do ->
 
   utils =
     skipLogicParser: $skipLogicParser

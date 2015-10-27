@@ -1,18 +1,13 @@
-define 'cs!xlform/model.surveyFragment', [
-        'cs!xlform/model.base',
-        'cs!xlform/model.row',
-        'cs!xlform/model.aliases',
-        'cs!xlform/model.utils',
-        'cs!xlform/model.configs',
-        'backbone',
-        ], (
-            $base,
-            $row,
-            $aliases,
-            $utils,
-            $configs,
-            Backbone,
-            )->
+
+_ = require 'underscore'
+Backbone = require 'backbone'
+$base = require './model.base'
+$row = require './model.row'
+$aliases = require './model.aliases'
+$utils = require './model.utils'
+$configs = require './model.configs'
+
+module.exports = do ->
 
   surveyFragment = {}
 

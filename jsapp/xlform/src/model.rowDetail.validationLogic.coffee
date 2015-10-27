@@ -1,8 +1,7 @@
-define 'cs!xlform/model.rowDetail.validationLogic', [
-  'backbone',
-  'xlform/model.rowDetails.skipLogic'
-], (Backbone, $skipLogicModel) ->
+Backbone = require 'backbone'
+$skipLogicModel = require './model.rowDetails.skipLogic'
 
+module.exports = do ->
   rowDetailValidationLogic = {}
   class rowDetailValidationLogic.ValidationLogicModelFactory extends $skipLogicModel.SkipLogicFactory
     create_operator: (type, symbol, id) ->

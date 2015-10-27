@@ -1,8 +1,7 @@
-define 'cs!xlform/mv.validationLogicHelpers', [
-  'xlform/model.validationLogicParser',
-  'cs!xlform/mv.skipLogicHelpers'
-], ($validationLogicParser, $skipLogicHelpers) ->
+$validationLogicParser = require './model.validationLogicParser'
+$skipLogicHelpers = require './mv.skipLogicHelpers'
 
+module.exports = do ->
   validationLogicHelpers = {}
 
   class validationLogicHelpers.ValidationLogicHelperFactory extends $skipLogicHelpers.SkipLogicHelperFactory

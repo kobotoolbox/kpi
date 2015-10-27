@@ -1,9 +1,6 @@
-define 'cs!xlform/view.icons', [
-        'backbone',
-        ], (
-            Backbone,
-            )->
+Backbone = require 'backbone'
 
+module.exports = do ->
   iconDetails = [
     # row 1
       label: "Select One"

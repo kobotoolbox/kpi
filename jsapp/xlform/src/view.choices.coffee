@@ -1,19 +1,12 @@
-define 'cs!xlform/view.choices', [
-        'backbone',
-        'cs!xlform/model.choices',
-        'cs!xlform/model.utils'
-        'cs!xlform/view.pluggedIn.backboneView',
-        'cs!xlform/view.templates',
-        'cs!xlform/view.utils',
-        ], (
-            Backbone,
-            $choices,
-            $modelUtils,
-            $baseView,
-            $viewTemplates,
-            $viewUtils,
-            )->
+_ = require 'underscore'
+Backbone = require 'backbone'
+$choices = require './model.choices'
+$modelUtils = require './model.utils'
+$baseView = require './view.pluggedIn.backboneView'
+$viewTemplates = require './view.templates'
+$viewUtils = require './view.utils'
 
+module.exports = do ->
   class ListView extends $baseView
     initialize: ({@rowView, @model})->
       @list = @model

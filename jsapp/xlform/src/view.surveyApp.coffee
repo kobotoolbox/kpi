@@ -1,27 +1,15 @@
-define 'cs!xlform/view.surveyApp', [
-        'underscore',
-        'backbone',
-        'cs!xlform/model.survey',
-        'cs!xlform/model.utils',
-        'cs!xlform/view.templates',
-        'cs!xlform/view.surveyDetails',
-        'cs!xlform/view.rowSelector',
-        'cs!xlform/view.row',
-        'cs!xlform/view.pluggedIn.backboneView',
-        'cs!xlform/view.utils',
-        ], (
-            _,
-            Backbone,
-            $survey,
-            $modelUtils,
-            $viewTemplates,
-            $surveyDetailView,
-            $viewRowSelector,
-            $rowView,
-            $baseView,
-            $viewUtils,
-            )->
+_ = require 'underscore'
+Backbone = require 'backbone'
+$survey = require './model.survey'
+$modelUtils = require './model.utils'
+$viewTemplates = require './view.templates'
+$surveyDetailView = require './view.surveyDetails'
+$viewRowSelector = require './view.rowSelector'
+$rowView = require './view.row'
+$baseView = require './view.pluggedIn.backboneView'
+$viewUtils = require './view.utils'
 
+module.exports = do ->
   surveyApp = {}
 
   _notifyIfRowsOutOfOrder = do ->

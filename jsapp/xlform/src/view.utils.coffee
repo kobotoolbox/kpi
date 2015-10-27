@@ -1,4 +1,7 @@
-define 'cs!xlform/view.utils', ['xlform/view.utils.validator'], (Validator)->
+_ = require 'underscore'
+Validator = require './view.utils.validator'
+
+module.exports = do ->
   viewUtils = {}
   viewUtils.Validator = Validator
 

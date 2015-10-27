@@ -1,10 +1,7 @@
-define 'cs!xlform/model.choices', [
-        'cs!xlform/model.base',
-        'cs!xlform/model.utils',
-        ], (
-            base,
-            $modelUtils,
-            )->
+base = require './model.base'
+$modelUtils = require './model.utils'
+
+module.exports = do ->
 
   choices = {}
 

@@ -3,14 +3,10 @@ This is the view for the survey-wide details that appear at the bottom
 of the survey. Examples: "imei", "start", "end"
 ###
 
-define 'cs!xlform/view.surveyDetails', [
-        'backbone',
-        'cs!xlform/view.templates'
-        ], (
-            Backbone,
-            $viewTemplates
-            )->
+Backbone = require 'backbone'
+$viewTemplates = require './view.templates'
 
+module.exports = do ->
   class SurveyDetailView extends Backbone.View
     className: "survey-header__option"
     events:

@@ -4,14 +4,10 @@ have access to those plugins and a proper error message is
 displayed.
 ###
 
-define 'cs!xlform/view.pluggedIn.backboneView', [
-        'backbone',
-        'jquery',
-        ], (
-            Backbone,
-            $,
-            )->
+Backbone = require 'backbone'
+$ = require 'jquery'
 
+module.exports = do ->
   missingPlugins = []
   errorMessageUnlessExists = (base, param, message)->
     unless base[param]
@@ -25,5 +21,5 @@ define 'cs!xlform/view.pluggedIn.backboneView', [
 
   if missingPlugins.length > 0
     throw new Error("Missing plugin(s): {#{missingPlugins.join(', ')}}")
-  
+
   Backbone.View

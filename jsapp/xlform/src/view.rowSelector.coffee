@@ -1,15 +1,10 @@
-define 'cs!xlform/view.rowSelector', [
-        'backbone',
-        'cs!xlform/view.pluggedIn.backboneView',
-        'cs!xlform/view.templates',
-        'cs!xlform/view.icons',
-        ], (
-            Backbone,
-            $baseView,
-            $viewTemplates,
-            $icons,
-            )->
+_ = require 'underscore'
+Backbone = require 'backbone'
+$baseView = require './view.pluggedIn.backboneView'
+$viewTemplates = require './view.templates'
+$icons = require './view.icons'
 
+module.exports = do ->
   viewRowSelector = {}
 
   class viewRowSelector.RowSelector extends $baseView

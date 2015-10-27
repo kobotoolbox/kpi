@@ -28,20 +28,15 @@ DAMAGE.
 #   ###
 #   XLForm
 #     (for XLSForm without the excel dependency)
-# 
+#
 #   Used to create surveys that can be compiled to XForms using the python library: pyxform
 #   ###
 
-define 'cs!xlform/_xlform.init', [
-        'cs!xlform/_model',
-        'cs!xlform/_view',
-        'cs!xlform/mv.skipLogicHelpers',
-        ], (
-            $model,
-            $view,
-            $skipLogicHelpers,
-            )->
+$model = require './_model'
+$view = require './_view'
+$skipLogicHelpers = require './mv.skipLogicHelpers'
 
+module.exports = do ->
   XLF =
     model: $model
     view: $view

@@ -1,4 +1,4 @@
-define 'cs!xlform/view.row.templates', [], ()->
+module.exports = do ->
   expandingSpacerHtml = """
       <div class="survey__row__spacer  row clearfix expanding-spacer-between-rows expanding-spacer-between-rows--depr">
         <div class="js-expand-row-selector btn btn--addrow btn--block  btn-xs  btn-default  add-row-btn"
