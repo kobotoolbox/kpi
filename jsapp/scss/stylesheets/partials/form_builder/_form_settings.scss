@@ -51,7 +51,12 @@ span.poshytip {
   margin-top: 15px;
   margin-bottom: 30px;
 }
-
+.form__settings__field {
+  margin-bottom: 8px;
+  select {
+    width: 100%;
+  }
+}
 .form__settings-formid {
   display: block;
   margin-bottom: 15px;

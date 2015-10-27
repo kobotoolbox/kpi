@@ -30,6 +30,13 @@
 .survey-editor--singlequestion .survey__row:hover > .survey__row__spacer > .btn--addrow {
     display: none;
 }
+ 
+// a quick fix for the issue regarding adding matrix
+.survey__row--score, .survey__row--rank {
+    .card__buttons__button--add {
+        display: none;
+    }
+}
 
 .score_preview, .rank_preview {
     background-color: #fff;

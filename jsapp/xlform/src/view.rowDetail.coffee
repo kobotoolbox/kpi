@@ -264,7 +264,7 @@ define 'cs!xlform/view.rowDetail', [
         text: ['multiline', 'numbers']
         select_one: ['minimal', 'quick', 'horizontal-compact', 'horizontal', 'likert', 'compact', 'quickcompact', 'label', 'list-nolabel']
         select_multiple: ['minimal', 'horizontal-compact', 'horizontal', 'compact', 'label', 'list-nolabel']
-        image: ['signature', 'draw']
+        image: ['signature', 'draw', 'annotate']
         date: ['month-year', 'year']
         group: ['select', 'field-list', 'table-list', 'other']
 
