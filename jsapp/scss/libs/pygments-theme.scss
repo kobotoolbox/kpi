@@ -1,5 +1,28 @@
 // color scheme provided by pygments
 .pygment {
+  .warnings, .error {
+    font-family: monospace;
+    font-size: 12px;
+    li {
+      white-space: pre-wrap;
+      border-left: 2px solid black;
+      margin: 6px 15px;
+      padding: 0 0 0 15px;
+    }
+  }
+  .warnings {
+    color: #CF480E;
+    li {
+      border-color: #CF480E;
+    }
+  }
+  .error {
+    color: #DF1E1E;
+    li {
+      border-color: #DF1E1E;
+    }
+  }
+
   background: #f0f0f0;
 
   td.linenos { background-color: #f0f0f0; padding-right: 10px; }

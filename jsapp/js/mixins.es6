@@ -376,7 +376,22 @@ var dmix = {
       );
   },
   deployAsset () {
-    actions.resources.deployAsset(this.state.url);
+    var asset_url = this.state.url;
+    var settings = this.state.settings;
+    var defaultFormId = (settings && settings.form_id) || '';
+    var opts = {
+      title: t('deploy form to kobocat'),
+      message: t('please specify a form id'),
+      value: defaultFormId,
+      onok: (evt, val)=> {
+        actions.resources.deployAsset(asset_url, val);
+        notify(t('deployed as ___').replace('___', val));
+      },
+      oncancel: ()=> {
+        // notify(t('canceled'))
+      }
+    };
+    alertify.prompt(opts.title, opts.message, opts.value, opts.onok, opts.oncancel);
   },
   renderDeployments () {
     return (
@@ -837,9 +852,23 @@ mixins.clickAssets = {
         }
       },
       deploy: function(/*uid, evt*/){
-        var asset_url = stores.selectedAsset.asset.url;
-        // var form_id_string = prompt('form_id_string');
-        actions.resources.deployAsset(asset_url);
+        var asset = stores.selectedAsset.asset,
+            asset_url = asset.url,
+            defaultFormId = asset.settings && asset.settings.form_id;
+
+        var opts = {
+          title: t('deploy form to kobocat'),
+          message: t('please specify a form id'),
+          value: defaultFormId,
+          onok: (evt, val)=> {
+            actions.resources.deployAsset(asset_url, val);
+            notify(t('deployed as ___').replace('___', val));
+          },
+          oncancel: ()=> {
+            // notify(t('canceled'))
+          }
+        };
+        alertify.prompt(opts.title, opts.message, opts.value, opts.onok, opts.oncancel);
       },
     }
   },

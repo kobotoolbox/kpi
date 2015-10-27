@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+  <title>kobo xform export preview</title>
+</head>
+<body>
+  <div class="pygment">
+    {% if error %}
+    <ul class="error">
+      <li>{{error_type}}: {{error}}</li>
+    </ul>
+    {% endif %}
+
+    {% if warnings %}
+      <ul class="warnings">
+        {% for warning in warnings %}
+        <li>{{warning}}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% if highlighted_xform %}
+      {{highlighted_xform|safe}}
+    {% endif %}
+  </div>
+</body>
+</html>

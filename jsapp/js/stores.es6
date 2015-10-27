@@ -453,7 +453,7 @@ var selectedAssetStore = Reflux.createStore({
     }
     cookie.save('selectedAssetUid', this.uid);
     this.trigger({
-      selectedAssetUid: this.uid
+      selectedAssetUid: this.uid,
     });
     return this.uid !== false;
   }
