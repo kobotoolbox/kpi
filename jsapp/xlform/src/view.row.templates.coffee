@@ -232,7 +232,7 @@ define 'cs!xlform/view.row.templates', [], ()->
     """
     <div class="card card--error">
       Row could not be displayed: <pre>#{atts}</pre>
-      <em>This question could not be imported. Please re-create it manually. Please contact us at <a href="mailto:info@kobotoolbox.org">info@kobotoolbox.org</a> so we can fix this bug!</em>
+      <em>This question could not be imported. Please re-create it manually. Please contact us at <a href="mailto:support@kobotoolbox.org">support@kobotoolbox.org</a> so we can fix this bug!</em>
     </div>
     #{expandingSpacerHtml}
     """

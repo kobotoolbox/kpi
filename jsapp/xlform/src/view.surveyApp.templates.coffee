@@ -41,49 +41,53 @@ define 'cs!xlform/view.surveyApp.templates', [], ()->
         </div>
         <div class="container__fixed">
           <div class="container__wide">
-          <div class="form__settings">
-            <label>Form ID</label>
-            <span class="poshytip" title="Unique form name">?</span>
-            <div class="form__settings-formid"><span class="form-id editable editable-click">#{survey.settings.get("form_id")}</span></div>
+            <div class="form__settings">
 
-            <div class="form__settings-fields bleeding-edge">
-              <div>
-              <label class="">Version</label>
-              <span class="poshytip" title="Version of the form">?</span>
-              <span class="editable  editable-click">Standard mode</span>
+              <div class="form__settings__field form__settings__field--form_id">
+                <label>Form ID</label>
+                <span class="poshytip" title="Unique form name">?</span>
+                <input type="text">
               </div>
-              <div>
-              <label class="">Automatic ID</label>
-              <span class="poshytip" title="Choose Statistics mode for question IDs like A01, A02, etc.">?</span>
-              <span class="editable  editable-click">Standard mode</span>
+
+              <div class="form__settings__field form__settings__field--style form__settings__field--appearance">
+                <label class="">Web form style (Optional)</label>
+                <span class="poshytip" title="This allows using different Enketo styles, e.g. 'theme-grid'">?</span>
+                <p>
+                  <select>
+                    <option value="">Default - single page</option>
+                    <option value="theme-grid">Grid theme</option>
+                    <option value="pages">Multiple pages</option>
+                    <option value="theme-grid pages">Multiple pages + Grid theme</option>
+                  </select>
+                </p>
               </div>
-              <div>
-              <label class="">Default Language</label>
-              <span class="poshytip" title="The default language in which the form is written - optional">?</span>
-              <span class="editable  editable-click">English</span>
+
+              <div class="form__settings__field form__settings__field--version">
+                <label class="">Version (Optional)</label>
+                <span class="poshytip" title="A version ID of the form">?</span>
+                <input type="text">
               </div>
-            </div>
 
-            <div class="form__settings-meta__questions">
-              <h4 class="form__settings-meta__questions-title">Hidden meta questions to include in your form to help with analysis</h4>
-              <div class="stats  row-details settings__first-meta" id="additional-options"></div>
-              <h4 class="form__settings-meta__questions-title">Meta questions for collecting with cell phones</h4>
-              <div class="stats  row-details settings__second-meta" id="additional-options"></div>
-            </div>
+              <div class="form__settings-meta__questions">
+                <h4 class="form__settings-meta__questions-title">Hidden meta questions to include in your form to help with analysis</h4>
+                <div class="stats  row-details settings__first-meta" id="additional-options"></div>
+                <h4 class="form__settings-meta__questions-title">Meta questions for collecting with cell phones</h4>
+                <div class="stats  row-details settings__second-meta" id="additional-options"></div>
+              </div>
 
-            <div class="form__settings-submission-url bleeding-edge">
-              <label class="">Manual submission URL (advanced)</label>
-              <span class="poshytip" title="The specific server instance where the data should go to - optional">?</span>
-              <div><span class="editable  editable-click">http://kobotoolbox.org/data/longish_username</span></div>
-            </div>
+              <div class="form__settings-submission-url bleeding-edge">
+                <label class="">Manual submission URL (advanced)</label>
+                <span class="poshytip" title="The specific server instance where the data should go to - optional">?</span>
+                <div><span class="editable  editable-click">http://kobotoolbox.org/data/longish_username</span></div>
+              </div>
 
-            <div class="form__settings-public-key bleeding-edge">
-              <label class="">Public Key</label>
-              <span class="poshytip" title="The encryption key used for secure forms - optional">?</span>
-              <span class="editable  editable-click">12345-232</span>
-            </div>
+              <div class="form__settings-public-key bleeding-edge">
+                <label class="">Public Key</label>
+                <span class="poshytip" title="The encryption key used for secure forms - optional">?</span>
+                <span class="editable  editable-click">12345-232</span>
+              </div>
 
-          </div>
+            </div>
           </div>
         </div>
         <header class="survey-header">

@@ -252,7 +252,7 @@ define 'cs!xlform/view.row', [
       super(args)
       beta_elem = $('<p>', {
               class: 'scorerank-beta-warning'
-              text: 'Note: Rank and Score question types are currently in beta.'
+              text: 'Note: Rank and Matrix question types are currently in beta.'
               })
       while @model._scoreChoices.options.length < 2
         @model._scoreChoices.options.add(label: 'Option')
@@ -376,12 +376,12 @@ define 'cs!xlform/view.row', [
         @render(fixScroll: true)
 
   class RankView extends RankScoreView
-    className: "survey__row survey__row--score"
+    className: "survey__row survey__row--rank"
     _renderRow: (args...)->
       super(args)
       beta_elem = $('<p>', {
                     class: 'scorerank-beta-warning'
-                    text: 'Note: Rank and Score question types are currently in beta.'
+                    text: 'Note: Rank and Matrix question types are currently in beta'
                     })
       template_args = {}
       template_args.rank_constraint_msg = @model.get('kobo--rank-constraint-message')?.get('value')
