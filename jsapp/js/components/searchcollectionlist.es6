@@ -6,9 +6,11 @@ import searches from '../searches';
 import mixins from '../mixins';
 import stores from '../stores';
 import bem from '../bem';
-import {notify, getAnonymousUserPermission, formatTime, anonUsername, parsePermissions, log, t} from '../utils';
-
 import AssetRow from './assetrow';
+import {
+  parsePermissions,
+  t,
+} from '../utils';
 
 var SearchCollectionList = React.createClass({
   mixins: [
@@ -22,7 +24,7 @@ var SearchCollectionList = React.createClass({
     return {
       assetRowClass: AssetRow,
       searchContext: 'default',
-    }
+    };
   },
   componentDidMount () {
     this.listenTo(this.searchStore, this.searchChanged);
@@ -32,19 +34,20 @@ var SearchCollectionList = React.createClass({
   },
   renderAssetRow (resource) {
     var currentUsername = stores.session.currentAccount && stores.session.currentAccount.username;
-    var perm = parsePermissions(resource.owner, resource.permissions)
+    var perm = parsePermissions(resource.owner, resource.permissions);
     var isSelected = this.state.selectedAssetUid === resource.uid;
-    return <this.props.assetRowClass key={resource.uid}
+    return (
+        <this.props.assetRowClass key={resource.uid}
                       currentUsername={currentUsername}
                       perm={perm}
                       onActionButtonClick={this.onActionButtonClick}
                       isSelected={isSelected}
                       {...resource}
                         />
+      );
   },
   render () {
-    var s = this.state,
-        p = this.props;
+    var s = this.state;
     return (
         <bem.CollectionAssetList>
         {

@@ -3,7 +3,7 @@ import $ from 'jquery';
 
 
 var el = (function(){
-  var $d = $('<div>', {'class': 'kpiapp'})
+  var $d = $('<div>', {'class': 'kpiapp'});
   $('body').prepend($d);
   return $d.get(0);
 })();
@@ -17,7 +17,7 @@ function csrfSafeMethod(method) {
 $.ajaxSetup({
     beforeSend: function(xhr, settings) {
         if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            xhr.setRequestHeader('X-CSRFToken', csrftoken);
         }
     }
 });

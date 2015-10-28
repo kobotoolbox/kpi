@@ -1,14 +1,16 @@
 import React from 'react/addons';
-import Router from 'react-router';
+import {Navigation} from 'react-router';
+import $ from 'jquery';
+
 import bem from '../bem';
 import ui from '../ui';
 import stores from '../stores';
-
-import {notify, getAnonymousUserPermission, formatTime, anonUsername, t} from '../utils';
-
-var Navigation = Router.Navigation;
-var assign = require('react/lib/Object.assign');
-var $ = require('jquery');
+import {
+  formatTime,
+  anonUsername,
+  t,
+  assign,
+} from '../utils';
 
 var AssetRow = React.createClass({
   mixins: [
@@ -32,8 +34,8 @@ var AssetRow = React.createClass({
     evt.preventDefault();
   },
   render () {
-    var selfowned = this.props.owner__username == this.props.currentUsername;
-    var perm = this.props.perm;
+    var selfowned = this.props.owner__username === this.props.currentUsername;
+    // var perm = this.props.perm;
     var isPublic = this.props.owner__username === anonUsername;
     var _rc = this.props.summary && this.props.summary.row_count;
     var isCollection = this.props.kind === 'collection',
@@ -92,7 +94,7 @@ var AssetRow = React.createClass({
             <bem.AssetRow__cell m={'row-count'}>
               {(function(){
                 if (this.props.kind === 'collection') {
-                  return;
+                  return null;
                 } else if (this.props.asset_type === 'survey') {
                   return t('survey with ___ questions').replace('___', _rc);
                 } else if (this.props.asset_type === 'block') {
@@ -107,7 +109,9 @@ var AssetRow = React.createClass({
                 <bem.AssetRow__tags>
                   <i />
                   {tags.map((tag)=>{
-                    return <bem.AssetRow__tags__tag>{tag}</bem.AssetRow__tags__tag>
+                    return (
+                          <bem.AssetRow__tags__tag>{tag}</bem.AssetRow__tags__tag>
+                      );
                   })}
                 </bem.AssetRow__tags>
               </bem.AssetRow__cell>

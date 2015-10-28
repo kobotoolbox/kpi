@@ -1,6 +1,8 @@
-var $ = require('jquery');
+import $ from 'jquery';
 
-import assign from 'react/lib/Object.assign';
+import {
+  assign,
+} from './utils';
 
 var dataInterface;
 (function(){
@@ -11,7 +13,8 @@ var dataInterface;
     'a': 'assets',
     'c': 'collections',
     'p': 'permissions',
-  }
+  };
+
   var rootUrl = (function(){
     try {
       return document.head.querySelector('meta[name=kpi-root-url]').content.replace(/\/$/, '');
@@ -33,11 +36,11 @@ var dataInterface;
     },
     logout: ()=> {
       var d = new $.Deferred();
-      $ajax({ url: `${rootUrl}/api-auth/logout/` }).done(d.resolve).fail(function (resp, etype, emessage) {
+      $ajax({ url: `${rootUrl}/api-auth/logout/` }).done(d.resolve).fail(function (/*resp, etype, emessage*/) {
         // logout request wasn't successful, but may have logged the user out
         // querying '/me/' can confirm if we have logged out.
         dataInterface.selfProfile().done(function(data){
-          if (data.message == "user is not logged in") {
+          if (data.message === 'user is not logged in') {
             d.resolve(data);
           } else {
             d.fail(data);
@@ -49,7 +52,7 @@ var dataInterface;
     listBlocks () {
       return $ajax({
         url: `${rootUrl}/assets/?q=asset_type:block`
-      })
+      });
     },
     listQuestionsAndBlocks() {
       return $ajax({
@@ -77,12 +80,16 @@ var dataInterface;
       $.when($.getJSON(`${rootUrl}/assets/?parent=`), $.getJSON(`${rootUrl}/collections/?parent=`)).done(function(assetR, collectionR){
         var assets = assetR[0],
             collections = collectionR[0];
-        var r = {results:[]};
-        var pushItem = function (item){r.results.push(item)};
+        var r = {
+          results: [],
+        };
+        var pushItem = function (item){
+          r.results.push(item);
+        };
         assets.results.forEach(pushItem);
         collections.results.forEach(pushItem);
-        var sortAtt = 'date_modified'
-        r.results.sort(function(a,b){
+        var sortAtt = 'date_modified';
+        r.results.sort(function(a, b){
           var ad = a[sortAtt], bd = b[sortAtt];
           return (ad === bd) ? 0 : ((ad > bd) ? -1 : 1);
         });
@@ -104,7 +111,7 @@ var dataInterface;
         data: {
           source: source
         }
-      })
+      });
     },
     cloneAsset ({uid}) {
       return $ajax({
@@ -162,7 +169,7 @@ var dataInterface;
       var params = [];
       if (tags) {
         tags.forEach(function(tag){
-          params.push(`tag:${tag}`)
+          params.push(`tag:${tag}`);
         });
       }
       if (q) {
@@ -199,7 +206,7 @@ var dataInterface;
     getAsset (params={}) {
       if (params.url) {
         return $.getJSON(params.url);
-      } else  {
+      } else {
         return $.getJSON(`${rootUrl}/assets/${params.id}/`);
       }
     },
@@ -222,7 +229,7 @@ var dataInterface;
         method: 'POST',
         url: `${rootUrl}/collections/`,
         data: data,
-      })
+      });
     },
     patchCollection (uid, data) {
       return $ajax({
@@ -257,7 +264,7 @@ var dataInterface;
     getCollection (params={}) {
       if (params.url) {
         return $.getJSON(params.url);
-      } else  {
+      } else {
         return $.getJSON(`${rootUrl}/collections/${params.id}/`);
       }
     },
@@ -296,6 +303,6 @@ var dataInterface;
       return $ajax({ url: `${rootUrl}/api-auth/login/?next=/me/`, data: creds, method: 'POST'});
     }
   });
-}).call(dataInterface={});
+}).call(dataInterface = {});
 
 export default {dataInterface: dataInterface};

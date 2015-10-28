@@ -1,4 +1,5 @@
-import React from 'react/addons';
+/*eslint new-cap: 0*/
+/*eslint no-multi-spaces: 0*/
 
 var BEM = require('./libs/react-create-bem-element');
 var bem = BEM.init();
@@ -50,7 +51,7 @@ bem.LibNav__logo = bem.LibNav.__('logo');
 bem.LibNav__tags = bem.LibNav.__('tags');
 bem.LibNav__tag = bem.LibNav.__('tag', '<span>');
 
-bem.LibList = BEM('lib-list', '<ul>')
+bem.LibList = BEM('lib-list', '<ul>');
 bem.LibList__item = bem.LibList.__('item', '<li>');
 bem.LibList__tags = bem.LibList.__('tags');
 bem.LibList__tag = bem.LibList.__('tag', '<span>');
@@ -75,16 +76,8 @@ bem.CollectionHeader = bem('collection-header');
 bem.CollectionHeader__item = bem.CollectionHeader.__('item');
 bem.CollectionHeader__input = bem.CollectionHeader.__('input', '<input>');
 bem.CollectionHeader__buttonRow = bem('collection-header__button-row');
-bem.CollectionHeader__iconwrap = bem.CollectionHeader.__('iconwrap')
-
-bem.CollectionHeader__buttonGroup = bem('collection-header__button-group', [
-                      'new',
-                      'actions',
-                      'deploy',
-
-                      'flat',
-                      'disabled',
-                    ]);
+bem.CollectionHeader__iconwrap = bem.CollectionHeader.__('iconwrap');
+bem.CollectionHeader__buttonGroup = bem('collection-header__button-group');
 
 bem.Message = BEM('message');
 
@@ -98,10 +91,6 @@ bem.ListView__headerbutton = bem.ListView.__('headerbutton');
 bem.ListView__attr = bem.ListView.__('attr');
 
 bem.AssetView = BEM('asset-view');
-// bem.AssetView__header = bem.AssetView.__('header');
-// bem.AssetView__attr = bem.AssetView.__('attr');
-// bem.AssetView__icon = bem.AssetView.__('icon');
-
 bem.AssetView__label = bem.AssetView.__('label', '<label>');
 bem.AssetView__message = bem.AssetView.__('message');
 bem.AssetView__content = bem.AssetView.__('content');
@@ -116,7 +105,7 @@ bem.AssetView__val = bem.AssetView.__('val');
 bem.AssetView__ancestor = bem.AssetView.__('ancestor');
 bem.AssetView__ancestors = bem.AssetView.__('ancestors');
 bem.AssetView__parent = bem.AssetView.__('parent');
-bem.AssetView__iconwrap = bem.AssetView.__('iconwrap')
+bem.AssetView__iconwrap = bem.AssetView.__('iconwrap');
 bem.AssetView__times = bem.AssetView.__('times');
 bem.AssetView__col = bem.AssetView.__('col');
 bem.AssetView__span = bem.AssetView.__('span', '<span>');
@@ -138,27 +127,11 @@ bem.PopoverMenu__item = bem.PopoverMenu.__('item');
 bem.PopoverMenu__link = bem.PopoverMenu.__('link', '<a>');
 
 
-bem.CollectionHeader__button = bem.CollectionHeader.__('button', '<a>')
-
-// bem.Sidebar = BEM('sidebar')
-// bem.Sidebar__link = bem.Sidebar.__('link');
-// bem.Sidebar__title = bem.Sidebar.__('title');
-// bem.Sidebar__footer = bem.Sidebar.__('footer');
-// bem.Sidebar__footeritem = bem.Sidebar.__('footeritem');
-
-// trying out an alternative syntax
-// bem.Sidebar = bem('sidebar');
-// bem.Sidebar__link = bem('sidebar__link', ['active']);
-// bem.Sidebar__title = bem('sidebar__title');
-// bem.Sidebar__footer = bem('sidebar__footer');
-// bem.Sidebar__footeritem = bem('sidebar__footeritem');
-
+bem.CollectionHeader__button = bem.CollectionHeader.__('button', '<a>');
 bem.AccountBox = BEM('account-box');
 bem.AccountBox__name =      bem.AccountBox.__('name', '<span>');
 bem.AccountBox__image =     bem.AccountBox.__('image', '<span>');
 bem.AccountBox__logo =      bem.AccountBox.__('logo', '<span>');
-// bem.AccountBox__indicator = bem.AccountBox.__('indicator');
-// bem.AccountBox__logout =    bem.AccountBox.__('logout');
 
 bem.uiPanel = BEM('ui-panel');
 bem.uiPanel__body = bem.uiPanel.__('body');

@@ -3,38 +3,38 @@ import {log, t, notify} from './utils';
 
 var Reflux = require('reflux');
 
-var actions = {}
+var actions = {};
 
 
 actions.navigation = Reflux.createActions([
-    "transitionStart",
-    "transitionEnd",
-    "historyPush",
-    "routeUpdate",
+    'transitionStart',
+    'transitionEnd',
+    'historyPush',
+    'routeUpdate',
 
-    "documentTitleUpdate"
+    'documentTitleUpdate'
   ]);
 
 actions.auth = Reflux.createActions({
   login: {
     children: [
-      "loggedin",
-      "passwordfail",
-      "anonymous",
-      "failed"
+      'loggedin',
+      'passwordfail',
+      'anonymous',
+      'failed'
     ]
   },
   verifyLogin: {
     children: [
-      "loggedin",
-      "anonymous",
-      "failed"
+      'loggedin',
+      'anonymous',
+      'failed'
     ]
   },
   logout: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   }
 });
@@ -42,8 +42,8 @@ actions.auth = Reflux.createActions({
 actions.survey = Reflux.createActions({
   addItemAtPosition: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ],
   }
 });
@@ -51,32 +51,32 @@ actions.survey = Reflux.createActions({
 actions.search = Reflux.createActions({
   assets: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   assetsWithTags: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   tags: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   libraryDefaultQuery: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   collections: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   }
 });
@@ -84,128 +84,128 @@ actions.search = Reflux.createActions({
 actions.resources = Reflux.createActions({
   listAssets: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   listSurveys: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   listCollections: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   listQuestionsAndBlocks: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   createAsset: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   createImport: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   loadAsset: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   deployAsset: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   createSnapshot: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   cloneAsset: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   deleteAsset: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   listTags: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   createCollection: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   readCollection: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   updateCollection: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   deleteCollection: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   loadAssetSubResource: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   loadAssetContent: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   loadResource: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ],
   },
   createResource: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   updateAsset: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   notFound: {}
@@ -214,20 +214,20 @@ actions.resources = Reflux.createActions({
 actions.permissions = Reflux.createActions({
   assignPerm: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   removePerm: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   },
   assignPublicPerm: {
     children: [
-      "completed",
-      "failed"
+      'completed',
+      'failed'
     ]
   }
 });
@@ -236,8 +236,8 @@ actions.misc = Reflux.createActions({
   checkUsername: {
     asyncResult: true,
     children: [
-      "completed",
-      "failed_"
+      'completed',
+      'failed_'
     ]
   }
 });
@@ -262,14 +262,14 @@ actions.resources.createImport.completed.listen(function(contents){
   if (contents.status) {
     if(contents.status === 'processing') {
       notify(t('successfully uploaded file; processing may take a few minutes'));
-      log("processing import " + contents.uid, contents);
+      log('processing import ' + contents.uid, contents);
     } else {
-      notify("unexpected import status \"" + contents.status + "\"", 'error');
+      notify(`unexpected import status ${contents.status}`, 'error');
     }
   } else {
     notify(t('Error: import.status not available'));
   }
-})
+});
 
 actions.resources.createResource.failed.listen(function(){
   log('createResourceFailed');
@@ -293,7 +293,7 @@ actions.resources.listTags.completed.listen(function(results){
       window.trackJs.track('MAX_TAGS_EXCEEDED: Too many tags');
     }
   }
-})
+});
 
 actions.resources.updateAsset.listen(function(uid, values){
   dataInterface.patchAsset(uid, values)
@@ -305,7 +305,7 @@ actions.resources.deployAsset.listen(function(uid, form_id_string){
   dataInterface.deployAsset(uid, form_id_string)
     .done(actions.resources.deployAsset.completed)
     .fail(actions.resources.deployAsset.failed);
-})
+});
 
 actions.resources.createResource.listen(function(details){
   dataInterface.createResource(details)
@@ -315,8 +315,8 @@ actions.resources.createResource.listen(function(details){
 
 actions.resources.deleteAsset.listen(function(details){
   dataInterface.deleteAsset(details)
-    .done(function(result){
-      actions.resources.deleteAsset.completed(details)
+    .done(function(/*result*/){
+      actions.resources.deleteAsset.completed(details);
     })
     .fail(actions.resources.deleteAsset.failed);
 });
@@ -326,12 +326,12 @@ actions.resources.readCollection.listen(function(details){
       .fail(function(req, err, message){
         actions.resources.readCollection.failed(details, req, err, message);
       });
-})
+});
 
 actions.resources.deleteCollection.listen(function(details){
   dataInterface.deleteCollection(details)
     .done(function(result){
-      actions.resources.deleteCollection.completed(details, result)
+      actions.resources.deleteCollection.completed(details, result);
     })
     .fail(actions.resources.deleteCollection.failed);
 });
@@ -339,8 +339,8 @@ actions.resources.deleteCollection.listen(function(details){
 actions.resources.cloneAsset.listen(function(details){
   dataInterface.cloneAsset(details)
     .done(function(...args){
-      actions.resources.createAsset.completed(...args)
-      actions.resources.cloneAsset.completed(...args)
+      actions.resources.createAsset.completed(...args);
+      actions.resources.cloneAsset.completed(...args);
     })
     .fail(actions.resources.cloneAsset.failed);
 });
@@ -348,11 +348,11 @@ actions.resources.cloneAsset.listen(function(details){
 actions.search.assets.listen(function(queryString){
   dataInterface.searchAssets(queryString)
     .done(function(...args){
-      actions.search.assets.completed.apply(this, [queryString, ...args])
+      actions.search.assets.completed.apply(this, [queryString, ...args]);
     })
     .fail(function(...args){
-      actions.search.assets.failed.apply(this, [queryString, ...args])
-    })
+      actions.search.assets.failed.apply(this, [queryString, ...args]);
+    });
 });
 
 actions.search.libraryDefaultQuery.listen(function(){
@@ -364,13 +364,13 @@ actions.search.libraryDefaultQuery.listen(function(){
 actions.search.assetsWithTags.listen(function(queryString){
   dataInterface.assetSearch(queryString)
     .done(actions.search.assetsWithTags.completed)
-    .fail(actions.search.assetsWithTags.failed)
-})
+    .fail(actions.search.assetsWithTags.failed);
+});
 
 actions.search.tags.listen(function(queryString){
   dataInterface.searchTags(queryString)
     .done(actions.search.searchTags.completed)
-    .fail(actions.search.searchTags.failed)
+    .fail(actions.search.searchTags.failed);
 });
 
 actions.permissions.assignPerm.listen(function(creds){
@@ -384,7 +384,7 @@ actions.permissions.assignPerm.completed.listen(function(val){
 
 actions.permissions.removePerm.listen(function(details){
   if (!details.content_object_uid) {
-    throw new Error('removePerm needs a content_object_uid parameter to be set')
+    throw new Error('removePerm needs a content_object_uid parameter to be set');
   }
   dataInterface.removePerm(details.permission_url)
     .done(function(resp){
@@ -403,7 +403,7 @@ actions.auth.login.listen(function(creds){
         if(data.username) {
           actions.auth.login.loggedin(data);
         } else {
-          actions.auth.login.passwordfail(resp1)
+          actions.auth.login.passwordfail(resp1);
         }
       }).fail(actions.auth.login.failed);
   })
@@ -424,7 +424,7 @@ actions.auth.logout.listen(function(){
 });
 actions.auth.verifyLogin.listen(function(){
     dataInterface.selfProfile()
-        .done((data, msg, req)=>{
+        .done((data/*, msg, req*/)=>{
           if (data.username) {
             actions.auth.verifyLogin.loggedin(data);
           } else {
@@ -432,7 +432,7 @@ actions.auth.verifyLogin.listen(function(){
           }
         })
         .fail(actions.auth.verifyLogin.failed);
-})
+});
 
 actions.resources.loadAsset.listen(function(params){
   var dispatchMethodName;
@@ -448,7 +448,7 @@ actions.resources.loadAsset.listen(function(params){
 
   dataInterface[dispatchMethodName](params)
       .done(actions.resources.loadAsset.completed)
-      .fail(actions.resources.loadAsset.failed)
+      .fail(actions.resources.loadAsset.failed);
 });
 
 actions.resources.loadAsset.completed.listen(function(asset){
@@ -461,31 +461,31 @@ actions.resources.loadAssetContent.listen(function(params){
         // data.sheeted = new Sheeted([['survey', 'choices', 'settings'], data.data])
         actions.resources.loadAssetContent.completed(data, ...args);
       })
-      .fail(actions.resources.loadAssetContent.failed)
+      .fail(actions.resources.loadAssetContent.failed);
 });
 
 actions.resources.listAssets.listen(function(){
   dataInterface.listAllAssets()
       .done(actions.resources.listAssets.completed)
-      .fail(actions.resources.listAssets.failed)
+      .fail(actions.resources.listAssets.failed);
 });
 
 actions.resources.listSurveys.listen(function(){
   dataInterface.listSurveys()
       .done(actions.resources.listAssets.completed)
-      .fail(actions.resources.listAssets.failed)
+      .fail(actions.resources.listAssets.failed);
 });
 
 actions.resources.listCollections.listen(function(){
   dataInterface.listCollections()
       .done(actions.resources.listCollections.completed)
-      .fail(actions.resources.listCollections.failed)
+      .fail(actions.resources.listCollections.failed);
 });
 
 actions.resources.listQuestionsAndBlocks.listen(function(){
   dataInterface.listQuestionsAndBlocks()
       .done(actions.resources.listAssets.completed)
-      .fail(actions.resources.listAssets.failed)
+      .fail(actions.resources.listAssets.failed);
 });
 
 module.exports = actions;
