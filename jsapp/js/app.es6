@@ -1275,6 +1275,11 @@ mixins.newForm = {
         </div>
       );
   },
+  newFormUpdateName (evt) {
+    this.setState({
+      survey_name: evt.target.value,
+    });
+  },
   renderSaveAndPreviewButtons () {
     var survey = this.state.survey;
     var previewDisabled = !(survey && survey.rows.length > 0);
@@ -1283,6 +1288,7 @@ mixins.newForm = {
             <ui.SmallInputBox
                 ref='form-name'
                 placeholder='form name'
+                onChange={this.newFormUpdateName}
               />
             <bem.FormHeader__button m={'create'} onClick={this.saveNewForm}>
               <i />
@@ -1371,13 +1377,9 @@ var NewForm = React.createClass({
   saveNewForm (evt) {
     evt.preventDefault();
     var chgs = {
-      name: this.refs['form-name'].getDOMNode().value
+      name: this.state.survey_name,
+      content: surveyToValidJson(this.state.survey),
     };
-    try {
-      chgs.content = surveyToValidJson(this.state.survey);
-    } catch (e) {
-      log('cannot save survey', e);
-    }
     actions.resources.createResource(chgs);
   }
 });
