@@ -293,6 +293,7 @@ module.exports = do ->
     _render_html: ->
       @$el.html $viewTemplates.$$render('surveyApp', @)
 
+      ###
       @$settings =
         form_id: @$('.form__settings__field--form_id')
         version: @$('.form__settings__field--version')
@@ -311,6 +312,7 @@ module.exports = do ->
         _inp.val(_style_val)
       else
         @$settings.style.find('select').val(_style_val)
+      ###
 
       @formEditorEl = @$(".-form-editor")
       @settingsBox = @$(".form__settings-meta__questions")
