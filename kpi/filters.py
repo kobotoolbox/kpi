@@ -20,14 +20,9 @@ class KpiObjectPermissionsFilter(object):
             'model_name': get_model_name(model_cls)
         }
         permission = self.perm_format % kwargs
-        result_queryset= get_objects_for_user(user, permission, queryset)
 
-        # For detail (non-list) views, union in public assets for logged-in users.
-        if (view.action != 'list') and not request.user.is_anonymous():
-            public_queryset= get_objects_for_user(AnonymousUser, permission, queryset)
-            result_queryset|= public_queryset
-
-        return result_queryset
+        strict_query= view.action == 'list'
+        return get_objects_for_user(user, permission, queryset, strict=strict_query)
 
 
 class SearchFilter(filters.BaseFilterBackend):

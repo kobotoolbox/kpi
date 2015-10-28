@@ -215,7 +215,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         self.assertEqual(uid_found, in_list, msg=msg)
 
     def assert_detail_viewable(self, obj, user=None, password=None,
-                               viewable=True):
+                               viewable=True, msg=None):
         view_name= obj._meta.model_name + '-detail'
         url= reverse(view_name, kwargs={'uid': obj.uid})
 
@@ -225,12 +225,14 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         if user and password:
             self.client.logout()
 
+        viewable_string= viewable and 'not ' or ''
+        msg= msg or 'Object "{}" {}detail viewable.'.format(obj, viewable_string)
         if viewable:
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, msg=msg)
         else:
             # 404 expected here; see
             # https://github.com/tomchristie/django-rest-framework/issues/1439
-            self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+            self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, viewable_string)
 
     def assert_viewable(self, obj, user=None, password=None, viewable=True):
         self.assert_object_in_object_list(
