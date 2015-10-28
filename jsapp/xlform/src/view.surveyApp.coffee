@@ -331,6 +331,7 @@ module.exports = do ->
       $inps = {}
       _settings = @survey.settings
 
+      ###
       if @$settings.form_id.length > 0
         $inps.form_id = @$settings.form_id.find('input').eq(0)
         $inps.form_id.change (evt)->
@@ -349,6 +350,7 @@ module.exports = do ->
         $inps.style = @$settings.style.find('input,select').eq(0)
         $inps.style.change (evt)->
           _settings.set('style', $inps.style.val())
+      ###
 
     _render_addSubViews: ->
       meta_view = new $viewUtils.ViewComposer()
