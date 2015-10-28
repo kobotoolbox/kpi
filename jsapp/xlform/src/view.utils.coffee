@@ -155,7 +155,19 @@ module.exports = do ->
       $(".enketo-holder").remove()
 
     launch.fromCsv = (surveyCsv, options={})->
-      holder = $("<div>", class: "enketo-holder").html("<div class='enketo-iframe-icon'></div><div class=\"enketo-loading-message\"><p><i class=\"fa fa-spin fa-spinner\"></i><br/>Loading Preview</p><p>This will take a few seconds depending on the size of your form.</p></div>")
+      holder = $("<div>", class: "enketo-holder").html("""
+        <div class='enketo-iframe-icon'></div>
+        <div class="enketo-loading-message">
+          <p>
+          <i class="fa fa-spin fa-spinner"></i>
+          <br/>
+          Loading Preview
+        </p>
+        <p>
+          This will take a few seconds depending on the size of your form.
+        </p>
+        </div>
+      """)
       wrap = $("<div>", class: "js-click-remove-iframe iframe-bg-shade")
       holder.appendTo('body')
       wrap.appendTo('body')
