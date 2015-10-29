@@ -17,7 +17,7 @@ def default_permissions_to_existing_users(apps, schema_editor):
             app_config.models_module = True # HACK HACK HACK
         create_permissions(
             app_config=app_config,
-            verbosity=2,
+            verbosity=0,
             interactive=False,
             using=schema_editor.connection.alias
         )
