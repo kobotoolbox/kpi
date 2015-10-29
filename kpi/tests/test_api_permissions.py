@@ -62,20 +62,23 @@ class ApiPermissionsPublicAssetTestCase(KpiTestCase):
         self.someuser_password= 'someuser'
 
         self.login(self.admin.username, self.admin_password)
-        self.public_asset= self.create_asset('public_asset')
-        self.add_perm(self.public_asset, self.anon, 'view')
+        self.admins_public_asset= self.create_asset('admins_public_asset')
+        self.add_perm(self.admins_public_asset, self.anon, 'view')
+
+        self.login(self.someuser.username, self.someuser_password)
+        self.someusers_public_asset= self.create_asset('someusers_public_asset')
+        self.add_perm(self.someusers_public_asset, self.anon, 'view')
 
     def test_user_can_view_public_asset(self):
-        self.assert_detail_viewable(self.public_asset, self.someuser, self.someuser_password)
+        self.assert_detail_viewable(self.admins_public_asset, self.someuser, self.someuser_password)
 
     def test_public_asset_not_in_list_user(self):
-        self.assert_object_in_object_list(self.public_asset, self.someuser, self.someuser_password,
+        self.assert_object_in_object_list(self.admins_public_asset, self.someuser, self.someuser_password,
                                      in_list=False)
 
-    # TODO: Known issue (https://github.com/kobotoolbox/kpi/issues/384).
-#     def test_public_asset_not_in_list_admin(self):
-#         self.assert_object_in_object_list(self.public_asset, self.admin, self.admin_password,
-#                                      in_list=False)
+    def test_public_asset_not_in_list_admin(self):
+        self.assert_object_in_object_list(self.someusers_public_asset, self.admin, self.admin_password,
+                                     in_list=False)
 
 
 class ApiPermissionsTestCase(KpiTestCase):
