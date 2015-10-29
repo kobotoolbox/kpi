@@ -30,7 +30,6 @@ class ApiAnonymousPermissionsTestCase(KpiTestCase):
         response = self.client.get(reverse('current-user'))
         self.assertFalse('username' in response.data)
 
-
     def test_anon_list_assets(self):
         self.assert_object_in_object_list(self.anon_accessible)
 
@@ -52,14 +51,44 @@ class ApiAnonymousPermissionsTestCase(KpiTestCase):
                          msg="anonymous user cannot create a collection")
 
 
+class ApiPermissionsPublicAssetTestCase(KpiTestCase):
+    def setUp(self):
+        KpiTestCase.setUp(self)
+
+        self.anon= get_anonymous_user()
+        self.admin= User.objects.get(username='admin')
+        self.admin_password= 'pass'
+        self.someuser= User.objects.get(username='someuser')
+        self.someuser_password= 'someuser'
+
+        self.login(self.admin.username, self.admin_password)
+        self.admins_public_asset= self.create_asset('admins_public_asset')
+        self.add_perm(self.admins_public_asset, self.anon, 'view')
+
+        self.login(self.someuser.username, self.someuser_password)
+        self.someusers_public_asset= self.create_asset('someusers_public_asset')
+        self.add_perm(self.someusers_public_asset, self.anon, 'view')
+
+    def test_user_can_view_public_asset(self):
+        self.assert_detail_viewable(self.admins_public_asset, self.someuser, self.someuser_password)
+
+    def test_public_asset_not_in_list_user(self):
+        self.assert_object_in_object_list(self.admins_public_asset, self.someuser, self.someuser_password,
+                                     in_list=False)
+
+    def test_public_asset_not_in_list_admin(self):
+        self.assert_object_in_object_list(self.someusers_public_asset, self.admin, self.admin_password,
+                                     in_list=False)
+
+
 class ApiPermissionsTestCase(KpiTestCase):
     fixtures = ['test_data']
 
     def setUp(self):
         self.admin= User.objects.get(username='admin')
+        self.admin_password= 'pass'
         self.someuser= User.objects.get(username='someuser')
         self.someuser_password= 'someuser'
-        self.admin_password= 'pass'
 
         self.assertTrue(self.client.login(username=self.admin.username,
                                           password=self.admin_password))

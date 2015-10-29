@@ -1,13 +1,11 @@
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
-from django.db.models import Q
-from django.core.exceptions import FieldError
 from rest_framework.compat import get_model_name
 from rest_framework import filters
 from haystack.query import SearchQuerySet
 from haystack.inputs import Raw
 from haystack.constants import ITERATOR_LOAD_PER_QUERY
-from haystack import connections
+
 from .models.object_permission import get_objects_for_user, get_anonymous_user
 
 
@@ -22,7 +20,9 @@ class KpiObjectPermissionsFilter(object):
             'model_name': get_model_name(model_cls)
         }
         permission = self.perm_format % kwargs
-        return get_objects_for_user(user, permission, queryset)
+
+        strict_query= view.action == 'list'
+        return get_objects_for_user(user, permission, queryset, strict=strict_query)
 
 
 class SearchFilter(filters.BaseFilterBackend):
