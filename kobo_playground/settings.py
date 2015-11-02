@@ -135,12 +135,14 @@ USE_TZ = True
 STATIC_ROOT = 'staticfiles'
 STATIC_URL = '/static/'
 
-# KPI_URL should be set in the environment when running in a subdirectory
-KPI_URL = os.environ.get('KPI_URL', False)
-if KPI_URL:
-    STATIC_URL = KPI_URL + STATIC_URL
+# Following the uWSGI mountpoint convention, this should have a leading slash
+# but no trailing slash
+KPI_PREFIX = os.environ.get('KPI_PREFIX', False)
+# KPI_PREFIX should be set in the environment when running in a subdirectory
+if KPI_PREFIX and KPI_PREFIX != '/':
+    STATIC_URL = '{}/{}'.format(KPI_PREFIX, STATIC_URL)
     from django.conf.global_settings import LOGIN_URL
-    LOGIN_URL = KPI_URL + LOGIN_URL
+    LOGIN_URL = '{}/{}'.format(KPI_PREFIX, LOGIN_URL)
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'jsapp'),
@@ -176,7 +178,9 @@ USE_MINIFIED_SCRIPTS = os.environ.get('KOBO_USE_MINIFIED_SCRIPTS', False)
 TRACKJS_TOKEN = os.environ.get('TRACKJS_TOKEN')
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', False)
 KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL', False)
-DKOBO_URL = os.environ.get('DKOBO_URL', False)
+# Following the uWSGI mountpoint convention, this should have a leading slash
+# but no trailing slash
+DKOBO_PREFIX = os.environ.get('DKOBO_PREFIX', False)
 
 ''' Haystack search settings '''
 HAYSTACK_CONNECTIONS = {
