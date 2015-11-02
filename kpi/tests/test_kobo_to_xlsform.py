@@ -120,3 +120,13 @@ class Converter(TestCase):
 
         self.assertEqual(surv[4]['type'], 'end group')
         self.assertEqual(len(surv[4].keys()), 1)
+
+    def test_duplicate_question_names(self):
+        surv= [{"type": "decimal",
+                "label": "question"},
+               {"type": "decimal",
+                "label": "question"}]
+        result= convert_survey(surv)
+
+        names= [row['name'] for row in result['survey'] if row.get('name')]
+        self.assertEqual(len(names), len(set(names)))
