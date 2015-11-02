@@ -251,13 +251,13 @@ def _autoname_fields(surv_contents, default_language=None):
                 next_name = _sluggify_valid_xml(surv_row['label::%s' % default_language])
             else:
                 raise ValueError('Label cannot be translated: %s' % json.dumps(surv_row))
-            surv_row['name'] = next_name
             while next_name in kuid_names.values():
                 next_name = _increment(next_name)
             if 'kuid' not in surv_row:
                 surv_row['kuid'] = _rand_id(8)
             if surv_row['kuid'] in kuid_names:
                 raise Exception("Duplicate kuid: %s" % surv_row['kuid'])
+            surv_row['name'] = next_name
             kuid_names[surv_row['kuid']] = next_name
     return surv_contents
 
