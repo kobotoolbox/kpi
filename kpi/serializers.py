@@ -24,6 +24,8 @@ from .models import ImportTask
 from .models import ObjectPermission
 from .models.object_permission import get_anonymous_user
 from .models import TagUid
+from .forms import USERNAME_REGEX, USERNAME_MAX_LENGTH
+from .forms import USERNAME_INVALID_MESSAGE
 
 from .utils.kobo_to_xlsform import convert_any_kobo_features_to_xlsform_survey_structure
 
@@ -675,6 +677,12 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class CreateUserSerializer(serializers.ModelSerializer):
+    username = serializers.RegexField(
+        regex=USERNAME_REGEX,
+        max_length=USERNAME_MAX_LENGTH,
+        error_messages={'invalid': USERNAME_INVALID_MESSAGE}
+    )
+    email = serializers.EmailField()
     class Meta:
         model = User
         fields = (
