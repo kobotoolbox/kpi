@@ -1,3 +1,4 @@
+_ = require 'underscore'
 base = require './model.base'
 $modelUtils = require './model.utils'
 
