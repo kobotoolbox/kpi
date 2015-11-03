@@ -2,11 +2,13 @@ import json
 
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+from lxml import etree
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from kpi.models import Asset
 from kpi.models import Collection
+from .kpi_test_case import KpiTestCase
 
 
 class AssetsListApiTests(APITestCase):
@@ -60,6 +62,74 @@ class AssetsDetailApiTests(APITestCase):
         }
         resp = self.client.patch(self.asset_url, data, format='json')
         self.assertEqual(resp.data['settings'], {'mysetting': "value"})
+
+
+class AssetsXmlExportApiTests(KpiTestCase):
+    fixtures = ['test_data']
+
+    def test_xml_export_title_retained(self):
+        asset_title= 'XML Export Test Asset Title'
+        content= {'settings': [{'form_title': asset_title, 'form_id': 'titled_asset'}],
+                 'survey': [{'label': 'Q1 Label.', 'type': 'decimal'}]}
+        self.login('someuser', 'someuser')
+        asset= self.create_asset('', json.dumps(content), format='json')
+        response= self.client.get(reverse('asset-detail',
+                                          kwargs={'uid':asset.uid, 'format': 'xml'}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        xml= etree.fromstring(response.content)
+        title_elts= xml.xpath('./*[local-name()="head"]/*[local-name()="title"]')
+        self.assertEqual(len(title_elts), 1)
+        self.assertEqual(title_elts[0].text, asset_title)
+
+    def test_xml_export_name_as_title(self):
+        asset_name= 'XML Export Test Asset Name'
+        content= {'settings': [{'form_id': 'named_asset'}],
+                 'survey': [{'label': 'Q1 Label.', 'type': 'decimal'}]}
+        self.login('someuser', 'someuser')
+        asset= self.create_asset(asset_name, json.dumps(content), format='json')
+        response= self.client.get(reverse('asset-detail',
+                                          kwargs={'uid':asset.uid, 'format': 'xml'}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        xml= etree.fromstring(response.content)
+        title_elts= xml.xpath('./*[local-name()="head"]/*[local-name()="title"]')
+        self.assertEqual(len(title_elts), 1)
+        self.assertEqual(title_elts[0].text, asset_name)
+
+    def test_xml_export_auto_title(self):
+        content= {'settings': [{'form_id': 'no_title_asset'}],
+                 'survey': [{'label': 'Q1 Label.', 'type': 'decimal'}]}
+        self.login('someuser', 'someuser')
+        asset= self.create_asset('', json.dumps(content), format='json')
+        response= self.client.get(reverse('asset-detail',
+                                          kwargs={'uid':asset.uid, 'format': 'xml'}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        xml= etree.fromstring(response.content)
+        title_elts= xml.xpath('./*[local-name()="head"]/*[local-name()="title"]')
+        self.assertEqual(len(title_elts), 1)
+        self.assertNotEqual(title_elts[0].text, '')
+
+    def test_xml_export_group(self):
+        example_formbuilder_output= {'survey': [{"type": "begin group",
+                                                 "relevant": "",
+                                                 "appearance": "",
+                                                 "name": "group_hl3hw45",
+                                                 "label": "Group 1 Label"},
+                                                {"required": "true",
+                                                 "type": "decimal",
+                                                 "label": "Question 1 Label"},
+                                                {"type": "end group"}],
+                                     "settings": [{"form_title": "",
+                                                   "form_id": "group_form"}]}
+
+        self.login('someuser', 'someuser')
+        asset= self.create_asset('', json.dumps(example_formbuilder_output), format='json')
+        response= self.client.get(reverse('asset-detail',
+                                          kwargs={'uid':asset.uid, 'format': 'xml'}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        xml= etree.fromstring(response.content)
+        group_elts= xml.xpath('./*[local-name()="body"]/*[local-name()="group"]')
+        self.assertEqual(len(group_elts), 1)
+        self.assertNotIn('relevant', group_elts[0].attrib)
 
 
 class ObjectRelationshipsTests(APITestCase):

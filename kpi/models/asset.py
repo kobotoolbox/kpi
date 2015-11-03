@@ -270,8 +270,14 @@ class AssetSnapshot(models.Model, XlsExportable):
         else:
             settings = {}
 
-        if 'id_string' not in settings:
-            settings['id_string'] = default_id_string
+        settings.setdefault('form_id', default_id_string)
+
+        # Delete empty `relevant` attributes from `begin group` elements.
+        for i_row, row in enumerate(source['survey']):
+            if (row['type'] == 'begin group') and (row.get('relevant') == ''):
+                del source['survey'][i_row]['relevant']
+
+        settings['form_title']=  settings.get('form_title') or self.asset.name or 'Untitled'
 
         if opts.get('include_note'):
             source['survey'].insert(0, {'type': 'note',
