@@ -19,7 +19,7 @@ module.exports = do ->
       if value
         @$el.val value
         if !@$el.val()?
-          @$el.prop('selectedIndex', 0);
+          @$el.prop('selectedIndex', 0)
       else return @$el.val()
 
   class viewWidgets.Label extends viewWidgets.Base
@@ -83,14 +83,14 @@ module.exports = do ->
       super
       if !(@options instanceof viewWidgets.DropDownModel)
         @options = new viewWidgets.DropDownModel()
-        @options.set 'options', options
+        @options.set 'options', @options
       @options.on 'change:options', @render.bind(@)
     render: () =>
-      options = ''
+      options_html = ''
       _.each @options.get('options'), (option) ->
-        options += '<option value="' + option.value + '">' + option.text + '</option>'
+        options_html += '<option value="' + option.value + '">' + option.text + '</option>'
 
-      @$el.html options
+      @$el.html options_html
       @
 
     attach_to: (target) ->
