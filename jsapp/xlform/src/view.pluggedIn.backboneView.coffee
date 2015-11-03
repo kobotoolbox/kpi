@@ -5,7 +5,8 @@ displayed.
 ###
 
 Backbone = require 'backbone'
-$ = require 'jquery'
+@jQuery = $ = require 'jquery'
+select2 = require 'select2'
 
 module.exports = do ->
   missingPlugins = []

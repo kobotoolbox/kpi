@@ -99,7 +99,9 @@ module.exports = do ->
 
     selectMenuItem: (evt)->
       @question_name = @line.find('input').val()
-      $('select.skiplogic__rowselect').select2('destroy')
+      $rowSelect = $('select.skiplogic__rowselect')
+      if $rowSelect.data('select2')
+        $rowSelect.select2('destroy')
       rowType = $(evt.target).closest('.questiontypelist__item').data("menuItem")
       value = (@question_name || 'New Question').replace(/\t/g, ' ')
 
