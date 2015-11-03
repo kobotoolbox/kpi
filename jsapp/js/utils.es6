@@ -36,6 +36,10 @@ export function customPrompt(msg) {
   return window.prompt(msg);
 }
 
+export function redirectTo(href) {
+  window.location.href = href;
+}
+
 export function parsePermissions(owner, permissions) {
   var users = [];
   var perms = {};

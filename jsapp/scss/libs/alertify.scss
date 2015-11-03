@@ -48,9 +48,10 @@
 }
 .alertify .ajs-commands {
   position: absolute;
-  left: 4px;
   margin: -14px 0 0 24px;
   z-index: 2;
+  right: 0;
+  top: 18px;
 }
 .alertify .ajs-commands button {
   display: none;
@@ -78,6 +79,7 @@
 }
 .alertify .ajs-body {
   min-height: 56px;
+  margin: 0 -6px;
 }
 .alertify .ajs-body .ajs-content {
   padding: 16px 16px 16px 24px;
