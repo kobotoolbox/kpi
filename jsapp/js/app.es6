@@ -2284,10 +2284,13 @@ var FormPage = React.createClass({
   },
   componentDidMount () {
     this.navigateBack = ()=> {
-      if (this.needsSave() && customConfirm(t('you have unsaved changes. would you like to save?'))) {
-        this._saveForm();
+      var needsSave = this.needsSave();
+      if (!needsSave || customConfirm(t('you have unsaved changes. would you like to save?'))) {
+        if (needsSave) {
+          this._saveForm();
+        }
+        this.transitionTo('form-landing', {assetid: this.props.params.assetid});
       }
-      this.transitionTo('form-landing', {assetid: this.props.params.assetid});
     };
 
     this.listenTo(assetStore, this.assetStoreTriggered);
