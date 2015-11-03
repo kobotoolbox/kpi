@@ -190,7 +190,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         self._test_remove_perm(obj, perm_name_prefix, other_user)
 
     def assert_object_in_object_list(self, obj, user=None, password=None,
-                                     in_list=True):
+                                     in_list=True, msg=None):
         view_name= obj._meta.model_name + '-list'
         url= reverse(view_name)
 
@@ -211,10 +211,13 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
                     uid_found= True
                     break
 
-        self.assertEqual(uid_found, in_list)
+        if msg is None:
+            in_list_string= in_list and 'not ' or ''
+            msg= 'Object "{}" {}found in list.'.format(obj, in_list_string)
+        self.assertEqual(uid_found, in_list, msg=msg)
 
     def assert_detail_viewable(self, obj, user=None, password=None,
-                               viewable=True):
+                               viewable=True, msg=None):
         view_name= obj._meta.model_name + '-detail'
         url= reverse(view_name, kwargs={'uid': obj.uid})
 
@@ -224,12 +227,14 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         if user and password:
             self.client.logout()
 
+        viewable_string= viewable and 'not ' or ''
+        msg= msg or 'Object "{}" {}detail viewable.'.format(obj, viewable_string)
         if viewable:
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, msg=msg)
         else:
             # 404 expected here; see
             # https://github.com/tomchristie/django-rest-framework/issues/1439
-            self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+            self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, viewable_string)
 
     def assert_viewable(self, obj, user=None, password=None, viewable=True):
         self.assert_object_in_object_list(

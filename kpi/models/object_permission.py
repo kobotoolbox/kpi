@@ -34,7 +34,7 @@ def get_all_objects_for_user(user, klass):
         content_type=ContentType.objects.get_for_model(klass)
     ).values_list('object_id', flat=True))
 
-def get_objects_for_user(user, perms, klass=None):
+def get_objects_for_user(user, perms, klass=None, strict=True):
     """
     A simplified version of django-guardian's get_objects_for_user shortcut.
     Returns queryset of objects for which a given ``user`` has *all*
@@ -46,9 +46,11 @@ def get_objects_for_user(user, perms, klass=None):
       If ``klass`` parameter is not given, those should be full permission
       names rather than only codenames (i.e. ``auth.change_user``). If more than
       one permission is present within sequence, their content type **must** be
-      the same or ``MixedContentTypeError`` exception would be raised.
+      the same or ``ValidationError`` exception will be raised.
     :param klass: may be a Model, Manager or QuerySet object. If not given
-      this parameter would be computed based on given ``params``.
+      this parameter will be computed based on given ``params``.
+    :param strict: When True, do not honor superuser status or
+      include public objects.
     """
     if isinstance(perms, basestring):
         perms = [perms]
@@ -96,7 +98,7 @@ def get_objects_for_user(user, perms, klass=None):
     # we should also have ``codenames`` list
 
     # First check if user is superuser and if so, return queryset immediately
-    if user.is_superuser:
+    if user.is_superuser and not strict:
         return queryset
 
     # Check if the user is anonymous. The
@@ -106,19 +108,27 @@ def get_objects_for_user(user, perms, klass=None):
         user = get_anonymous_user()
 
     # Now we should extract list of pk values for which we would filter queryset
-    # TODO: omit objects for which the user has only a deny permission
     user_obj_perms_queryset = (ObjectPermission.objects
         .filter(user=user)
         .filter(permission__content_type=ctype)
-        .filter(permission__codename__in=codenames))
-    fields = ['object_id', 'permission__codename']
+        .filter(permission__codename__in=codenames)
+        .filter(deny=False))
+
+    # Optionally union in public assets (with allow permissions).
+    if (not strict) and (user != get_anonymous_user()):
+        public_obj_perms_queryset= (ObjectPermission.objects
+                                    .filter(user=get_anonymous_user())
+                                    .filter(permission__content_type=ctype)
+                                    .filter(permission__codename__in=codenames)
+                                    .filter(deny=False))
+        user_obj_perms_queryset|= public_obj_perms_queryset
 
     if len(codenames) > 1:
-        counts = user_obj_perms_queryset.values(fields[0]).annotate(
-            object_pk_count=models.Count(fields[0]))
+        counts = user_obj_perms_queryset.values('object_id').annotate(
+            object_pk_count=models.Count('object_id'))
         user_obj_perms_queryset = counts.filter(object_pk_count__gte=len(codenames))
 
-    values = user_obj_perms_queryset.values_list(fields[0], flat=True)
+    values = user_obj_perms_queryset.values_list('object_id', flat=True)
     values = list(values)
     objects = queryset.filter(pk__in=values)
 
