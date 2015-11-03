@@ -278,9 +278,7 @@ class AssetSnapshot(models.Model, XlsExportable):
             if (row['type'] == 'begin group') and (row.get('relevant') == ''):
                 del source['survey'][i_row]['relevant']
 
-        # FIXME: Remove (or remove this note) once issue #168 is resolved.
-        if not settings.get('form_title'):  # Might be the empty string.
-            settings['form_title']=  self.asset.name
+        settings['form_title']=  settings.get('form_title') or self.asset.name or 'Untitled'
 
         if opts.get('include_note'):
             source['survey'].insert(0, {'type': 'note',

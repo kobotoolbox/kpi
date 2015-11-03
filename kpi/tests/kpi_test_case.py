@@ -67,6 +67,8 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
     def create_asset(self, name, content=None, owner=None,
                      owner_password=None, **kwargs):
         if owner and owner_password:
+            if isinstance(owner, basestring):
+                self.login(owner.username, owner_password)
             self.login(owner.username, owner_password)
 
         if content is None:
