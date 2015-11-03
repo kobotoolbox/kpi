@@ -1,6 +1,6 @@
 _ = require 'underscore'
 Backbone = require 'backbone'
-skipLogicParser = require './model.skipLogicParser'
+$skipLogicParser = require './model.skipLogicParser'
 
 module.exports = do ->
   skipLogicHelpers = {}

@@ -81,9 +81,10 @@ module.exports = do ->
     tagName: 'select'
     constructor: (@options) ->
       super
+      _options = @options
       if !(@options instanceof viewWidgets.DropDownModel)
         @options = new viewWidgets.DropDownModel()
-        @options.set 'options', @options
+        @options.set 'options', _options
       @options.on 'change:options', @render.bind(@)
     render: () =>
       options_html = ''
