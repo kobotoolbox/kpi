@@ -7,7 +7,6 @@ _ = require 'underscore'
 Backbone = require 'backbone'
 $utils = require './model.utils'
 $skipLogicHelpers = require './mv.skipLogicHelpers'
-console.log($skipLogicHelpers)
 
 rowDetailsSkipLogic = {}
 
