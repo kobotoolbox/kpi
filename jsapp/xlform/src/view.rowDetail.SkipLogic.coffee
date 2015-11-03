@@ -1,7 +1,8 @@
+_ = require 'underscore'
 Backbone = require 'backbone'
 $modelRowDetailsSkipLogic = require './model.rowDetails.skipLogic'
 $viewWidgets = require './view.widgets'
-$skipLogicHelper = require './mv.skipLogicHelpers'
+$skipLogicHelpers = require './mv.skipLogicHelpers'
 
 module.exports = do ->
   viewRowDetailSkipLogic = {}

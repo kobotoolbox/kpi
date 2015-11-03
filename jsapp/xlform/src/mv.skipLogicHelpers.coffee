@@ -1,3 +1,5 @@
+_ = require 'underscore'
+Backbone = require 'backbone'
 skipLogicParser = require './model.skipLogicParser'
 
 module.exports = do ->
@@ -142,10 +144,7 @@ module.exports = do ->
         response_value = _.find(question.getList().options.models, (option) ->
           option.get('name') == response_value)?.cid
       @view.response_value_view.val response_value
-      @view.attach_to destination
-
-
-
+      @view.attach_to @destination
       @dispatcher.trigger 'rendered', @
 
     serialize: () ->
@@ -251,7 +250,7 @@ module.exports = do ->
     render: (@destination) ->
       if @destination?
         @destination.empty()
-        @state.render destination
+        @state.render @destination
       return
     serialize: () ->
       return @state.serialize()
@@ -353,9 +352,9 @@ module.exports = do ->
         @determine_add_new_criterion_visibility()
 
       removeInvalidPresenters = () =>
-        questions = builder.questions()
+        questions = @builder.questions()
         presenters_to_be_removed = []
-        _.each @presenters, (presenter) =>
+        _.each @presenters, (presenter) ->
           if presenter.model._get_question() && !(presenter.model._get_question() in questions)
             presenters_to_be_removed.push presenter.model.cid
 

@@ -1,3 +1,4 @@
+_ = require 'underscore'
 $skipLogicParser = require './model.skipLogicParser',
 $validationLogicParser = require './model.validationLogicParser'
 

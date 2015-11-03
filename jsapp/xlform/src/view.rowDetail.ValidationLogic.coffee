@@ -1,3 +1,4 @@
+_ = require 'underscore'
 $skipLogicView = require './view.rowDetail.SkipLogic'
 $viewWidgets = require './view.widgets'
 $skipLogicHelpers = require './mv.skipLogicHelpers'
