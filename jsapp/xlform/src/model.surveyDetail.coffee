@@ -1,8 +1,6 @@
-define 'cs!xlform/model.surveyDetail', [
-        'cs!xlform/model.base',
-        ], (
-            base,
-            )->
+base = require './model.base'
+
+module.exports = do ->
 
   # SurveyDetails (attached to a XLF.Survey instance) containing details such as
   #     start time, deviceid, (etc.)

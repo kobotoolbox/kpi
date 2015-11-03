@@ -1,10 +1,8 @@
-define 'cs!xlform/model.utils', [
-        'xlform/model.skipLogicParser',
-        'xlform/model.validationLogicParser'
-        ], (
-            $skipLogicParser,
-            $validationLogicParser
-            )->
+_ = require 'underscore'
+$skipLogicParser = require './model.skipLogicParser',
+$validationLogicParser = require './model.validationLogicParser'
+
+module.exports = do ->
 
   utils =
     skipLogicParser: $skipLogicParser
@@ -59,11 +57,15 @@ define 'cs!xlform/model.utils', [
     utils.sluggify(str, {
         preventDuplicates: other_names
         lowerCase: false
+        preventDuplicateUnderscores: true
         stripSpaces: true
         lrstrip: true
         incrementorPadding: 3
         validXmlTag: true
       })
+
+  utils.isValidXmlTag = (str)->
+    str.search(/^[a-zA-Z_:]([a-zA-Z0-9_:.])*$/) is 0
 
   utils.sluggify = (str, opts={})->
     if str == ''
@@ -79,6 +81,7 @@ define 'cs!xlform/model.utils', [
         lowerCase: true
         replaceNonWordCharacters: true
         nonWordCharsExceptions: false
+        preventDuplicateUnderscores: false
         validXmlTag: false
         underscores: true
         characterLimit: 30
@@ -120,6 +123,10 @@ define 'cs!xlform/model.utils', [
     if opts.validXmlTag
       if str[0].match(/^\d/)
         str = "_" + str
+
+    if opts.preventDuplicateUnderscores
+      while str.search(/__/) isnt -1
+        str = str.replace(/__/, '_')
 
     if _.isArray(opts.preventDuplicates)
       str = do ->

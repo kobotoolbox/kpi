@@ -1,20 +1,12 @@
-define 'cs!xlform/model.rowDetailMixins', [
-        'cs!xlform/mv.skipLogicHelpers',
-        'xlform/model.rowDetails.skipLogic',
-        'cs!xlform/view.rowDetail.SkipLogic',
-        'cs!xlform/model.utils',
-        'cs!xlform/mv.validationLogicHelpers',
-        'cs!xlform/model.rowDetail.validationLogic',
-        'cs!xlform/view.rowDetail.ValidationLogic'
-        ], (
-            $skipLogicHelpers,
-            $modelRowDetailsSkipLogic,
-            $viewRowDetailSkipLogic,
-            $modelUtils,
-            $validationLogicHelpers,
-            $modelRowDetailValidationLogic,
-            $viewRowDetailValidationLogic
-            )->
+$skipLogicHelpers = require './mv.skipLogicHelpers'
+$modelRowDetailsSkipLogic = require './model.rowDetails.skipLogic'
+$viewRowDetailSkipLogic = require './view.rowDetail.SkipLogic'
+$modelUtils = require './model.utils'
+$validationLogicHelpers = require './mv.validationLogicHelpers'
+$modelRowDetailValidationLogic = require './model.rowDetail.validationLogic'
+$viewRowDetailValidationLogic = require './view.rowDetail.ValidationLogic'
+
+module.exports = do ->
   # To be extended ontop of a RowDetail when the key matches
   # the attribute in XLF.RowDetailMixin
   SkipLogicDetailMixin =

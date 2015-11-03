@@ -1,15 +1,9 @@
-define 'cs!xlform/_view', [
-        'underscore',
-        'cs!xlform/view.surveyApp',
-        'cs!xlform/view.utils',
-        'cs!xlform/view.rowDetail.SkipLogic',
-        ], (
-            _,
-            $surveyApp,
-            $viewUtils,
-            $viewRowDetailSkipLogic,
-            )->
+_ = require 'underscore',
+$surveyApp = require './view.surveyApp'
+$viewUtils = require './view.utils'
+$viewRowDetailSkipLogic = require './view.rowDetail.SkipLogic'
 
+module.exports = do ->
   view = {}
 
   _.extend(view,

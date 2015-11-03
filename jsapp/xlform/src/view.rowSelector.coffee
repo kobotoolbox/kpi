@@ -1,15 +1,10 @@
-define 'cs!xlform/view.rowSelector', [
-        'backbone',
-        'cs!xlform/view.pluggedIn.backboneView',
-        'cs!xlform/view.templates',
-        'cs!xlform/view.icons',
-        ], (
-            Backbone,
-            $baseView,
-            $viewTemplates,
-            $icons,
-            )->
+_ = require 'underscore'
+Backbone = require 'backbone'
+$baseView = require './view.pluggedIn.backboneView'
+$viewTemplates = require './view.templates'
+$icons = require './view.icons'
 
+module.exports = do ->
   viewRowSelector = {}
 
   class viewRowSelector.RowSelector extends $baseView
@@ -104,7 +99,9 @@ define 'cs!xlform/view.rowSelector', [
 
     selectMenuItem: (evt)->
       @question_name = @line.find('input').val()
-      $('select.skiplogic__rowselect').select2('destroy')
+      $rowSelect = $('select.skiplogic__rowselect')
+      if $rowSelect.data('select2')
+        $rowSelect.select2('destroy')
       rowType = $(evt.target).closest('.questiontypelist__item').data("menuItem")
       value = (@question_name || 'New Question').replace(/\t/g, ' ')
 

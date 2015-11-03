@@ -1,2 +1,4 @@
-define 'cs!xlform/model.rowDetail', ['cs!xlform/model.base'], ($base)->
+$base = require './model.base'
+
+module.exports = do ->
   RowDetail: $base.RowDetail

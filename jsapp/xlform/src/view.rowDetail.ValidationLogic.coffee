@@ -1,9 +1,9 @@
-define 'cs!xlform/view.rowDetail.ValidationLogic', [
-  'cs!xlform/view.rowDetail.SkipLogic',
-  'cs!xlform/view.widgets',
-  'cs!xlform/mv.skipLogicHelpers'
-], ($skipLogicView, $viewWidgets, $skipLogicHelpers) ->
+_ = require 'underscore'
+$skipLogicView = require './view.rowDetail.SkipLogic'
+$viewWidgets = require './view.widgets'
+$skipLogicHelpers = require './mv.skipLogicHelpers'
 
+module.exports = do ->
   viewRowDetailValidationLogic = {}
   class viewRowDetailValidationLogic.ValidationLogicViewFactory extends $skipLogicView.SkipLogicViewFactory
     create_criterion_builder_view: () ->

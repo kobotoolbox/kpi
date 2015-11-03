@@ -1,20 +1,11 @@
-define 'cs!xlform/model.base', [
-        'underscore',
-        'backbone',
-        # 'backbone-validation',
-        'cs!xlform/view.utils',
-        'cs!xlform/model.configs',
-        'cs!xlform/model.rowDetailMixins',
-        ], (
-            _,
-            Backbone,
-            # validation,
-            $viewUtils,
-            $configs,
-            $rowDetailMixins,
-            )->
+_ = require 'underscore'
+Backbone = require 'backbone'
+validation = require 'backbone-validation'
+$viewUtils = require './view.utils'
+$configs = require './model.configs'
+$rowDetailMixins = require './model.rowDetailMixins'
 
-  validation = window.BackboneValidation
+module.exports = do ->
   _.extend validation.validators, {
     invalidChars: (value, attr, customValue)->
       unless $viewUtils.Validator.__validators.invalidChars(value, customValue)

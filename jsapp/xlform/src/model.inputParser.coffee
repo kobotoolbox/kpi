@@ -1,10 +1,7 @@
-define [
-        'underscore',
-        'cs!xlform/model.aliases',
-        ], (
-            _,
-            $aliases,
-            )->
+_ = require 'underscore'
+$aliases = require './model.aliases'
+
+module.exports = do ->
   inputParser = {}
 
   class ParsedStruct

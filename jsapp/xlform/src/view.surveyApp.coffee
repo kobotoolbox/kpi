@@ -1,27 +1,15 @@
-define 'cs!xlform/view.surveyApp', [
-        'underscore',
-        'backbone',
-        'cs!xlform/model.survey',
-        'cs!xlform/model.utils',
-        'cs!xlform/view.templates',
-        'cs!xlform/view.surveyDetails',
-        'cs!xlform/view.rowSelector',
-        'cs!xlform/view.row',
-        'cs!xlform/view.pluggedIn.backboneView',
-        'cs!xlform/view.utils',
-        ], (
-            _,
-            Backbone,
-            $survey,
-            $modelUtils,
-            $viewTemplates,
-            $surveyDetailView,
-            $viewRowSelector,
-            $rowView,
-            $baseView,
-            $viewUtils,
-            )->
+_ = require 'underscore'
+Backbone = require 'backbone'
+$survey = require './model.survey'
+$modelUtils = require './model.utils'
+$viewTemplates = require './view.templates'
+$surveyDetailView = require './view.surveyDetails'
+$viewRowSelector = require './view.rowSelector'
+$rowView = require './view.row'
+$baseView = require './view.pluggedIn.backboneView'
+$viewUtils = require './view.utils'
 
+module.exports = do ->
   surveyApp = {}
 
   _notifyIfRowsOutOfOrder = do ->
@@ -304,6 +292,28 @@ define 'cs!xlform/view.surveyApp', [
 
     _render_html: ->
       @$el.html $viewTemplates.$$render('surveyApp', @)
+
+      ###
+      @$settings =
+        form_id: @$('.form__settings__field--form_id')
+        version: @$('.form__settings__field--version')
+        style: @$('.form__settings__field--style')
+
+      @$settings.form_id.find('input').val(@survey.settings.get('form_id'))
+      @$settings.version.find('input').val(@survey.settings.get('version'))
+
+      _style_val = @survey.settings.get('style') || ""
+
+      if @$settings.style.find('select option')
+          .filter(((i, opt)-> opt.value is _style_val)).length is 0
+        # user has specified a style other than the available styles
+        _inp = $("<input>", {type: 'text'})
+        @$settings.style.find('select').replaceWith(_inp)
+        _inp.val(_style_val)
+      else
+        @$settings.style.find('select').val(_style_val)
+      ###
+
       @formEditorEl = @$(".-form-editor")
       @settingsBox = @$(".form__settings-meta__questions")
 
@@ -318,9 +328,29 @@ define 'cs!xlform/view.surveyApp', [
             return "Length cannot exceed 255 characters, is " + value.length + " characters."
           return
 
-      if @features.surveySettings
-        $viewUtils.makeEditable @, @survey.settings, '.form-id', property:'form_id', transformFunction: $modelUtils.sluggify
+      $inps = {}
+      _settings = @survey.settings
 
+      ###
+      if @$settings.form_id.length > 0
+        $inps.form_id = @$settings.form_id.find('input').eq(0)
+        $inps.form_id.change (evt)->
+          _val = $inps.form_id.val()
+          _sluggified = $modelUtils.sluggify(_val)
+          _settings.set('form_id', _sluggified)
+          if _sluggified isnt _val
+            $inps.form_id.val(_sluggified)
+
+      if @$settings.version.length > 0
+        $inps.version = @$settings.version.find('input').eq(0)
+        $inps.version.change (evt)->
+          _settings.set('version', $inps.version.val())
+
+      if @$settings.style.length > 0
+        $inps.style = @$settings.style.find('input,select').eq(0)
+        $inps.style.change (evt)->
+          _settings.set('style', $inps.style.val())
+      ###
 
     _render_addSubViews: ->
       meta_view = new $viewUtils.ViewComposer()

@@ -1,19 +1,13 @@
-define 'cs!xlform/view.rowDetail', [
-        'cs!xlform/model.utils',
-        'cs!xlform/model.configs',
-        'cs!xlform/view.utils',
-        'cs!xlform/view.icons',
-        'cs!xlform/view.rowDetail.SkipLogic',
-        'cs!xlform/view.templates',
-        ], (
-            $modelUtils,
-            $configs,
-            $viewUtils,
-            $icons,
-            $viewRowDetailSkipLogic,
-            $viewTemplates,
-            )->
+_ = require 'underscore'
+Backbone = require 'backbone'
+$modelUtils = require './model.utils'
+$configs = require './model.configs'
+$viewUtils = require './view.utils'
+$icons = require './view.icons'
+$viewRowDetailSkipLogic = require './view.rowDetail.SkipLogic'
+$viewTemplates = require './view.templates'
 
+module.exports = do ->
   viewRowDetail = {}
 
   class viewRowDetail.DetailView extends Backbone.View
@@ -264,7 +258,7 @@ define 'cs!xlform/view.rowDetail', [
         text: ['multiline', 'numbers']
         select_one: ['minimal', 'quick', 'horizontal-compact', 'horizontal', 'likert', 'compact', 'quickcompact', 'label', 'list-nolabel']
         select_multiple: ['minimal', 'horizontal-compact', 'horizontal', 'compact', 'label', 'list-nolabel']
-        image: ['signature', 'draw']
+        image: ['signature', 'draw', 'annotate']
         date: ['month-year', 'year']
         group: ['select', 'field-list', 'table-list', 'other']
 

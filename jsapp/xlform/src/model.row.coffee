@@ -1,29 +1,17 @@
-global = if window? then window else process
+global = @
 
-define 'cs!xlform/model.row', [
-        'underscore',
-        'backbone',
-        'cs!xlform/model.base',
-        'cs!xlform/model.configs',
-        'cs!xlform/model.utils',
-        'cs!xlform/model.surveyDetail',
-        'cs!xlform/model.aliases',
-        'cs!xlform/model.rowDetail',
-        'cs!xlform/model.choices',
-        'cs!xlform/mv.skipLogicHelpers',
-        ], (
-            _,
-            Backbone,
-            base,
-            $configs,
-            $utils,
-            $surveyDetail,
-            $aliases,
-            $rowDetail,
-            $choices,
-            $skipLogicHelpers,
-            )->
+_ = require 'underscore'
+Backbone = require 'backbone'
+base = require './model.base'
+$configs = require './model.configs'
+$utils = require './model.utils'
+$surveyDetail = require './model.surveyDetail'
+$aliases = require './model.aliases'
+$rowDetail = require './model.rowDetail'
+$choices = require './model.choices'
+$skipLogicHelpers = require './mv.skipLogicHelpers'
 
+module.exports = do ->
   row = {}
 
   class row.BaseRow extends base.BaseModel

@@ -1,7 +1,7 @@
 '''
 Converts kobo-specific structures into xlsform-standard structures:
 This enables us to use the form-builder to open and save structures which are not
-standardized xlsform features.
+standardized xlsform features. 
 
 Example structures: scoring, ranking
 '''
@@ -58,14 +58,14 @@ class KoboRankGroup(GroupHandler):
 
     into:
     #survey
-    |       type       |    name   |    label     | appearance | reqd |         constraint_message        |
-    |------------------|-----------|--------------|------------|------|-----------------------------------|
-    | begin group      | rnk       |              | field-list |      |                                   |
-    | note             | rnk_label | Top 3 needs? |            |      |                                   |
-    | select_one needs | n1        | 1st need     | minimal    | true |                                   |
-    | select_one needs | n2        | 2nd need     | minimal    | true | ${n2} != ${n1}                    |
-    | select_one needs | n3        | 3rd need     | minimal    | true | ${n3} != ${n1} and ${n3} != ${n2} |
-    | end group        |           |              |            |      |                                   |
+    |       type       |    name   |    label     | appearance | required |             constraint            |
+    |------------------|-----------|--------------|------------|----------|-----------------------------------|
+    | begin group      | rnk       |              | field-list |          |                                   |
+    | note             | rnk_label | Top 3 needs? |            |          |                                   |
+    | select_one needs | n1        | 1st need     | minimal    | true     |                                   |
+    | select_one needs | n2        | 2nd need     | minimal    | true     | ${n2} != ${n1}                    |
+    | select_one needs | n3        | 3rd need     | minimal    | true     | ${n3} != ${n1} and ${n3} != ${n2} |
+    | end group        |           |              |            |          |                                   |
     #choices
     | list name |   name  |  label  |
     |-----------|---------|---------|
@@ -75,10 +75,23 @@ class KoboRankGroup(GroupHandler):
     '''
     name = 'Kobo rank group'
     description = '''Ask a user to rank a number of things.'''
+
     def begin(self, initial_row):
-        self._name = initial_row.get('name')
+        _name = initial_row.get('name')
         self._previous_levels = []
+
+        begin_group = {'type': 'begin group',
+                        'name': _name,
+                        'appearance': 'field-list'}
+
+        if 'required' in initial_row:
+            del initial_row['required']
+        if 'relevant' in initial_row:
+            begin_group['relevant'] = initial_row['relevant']
+            del initial_row['relevant']
+
         initial_row_type = initial_row.get('type')
+
         try:
             self._rank_itemset = initial_row['kobo--rank-items']
             del initial_row['kobo--rank-items']
@@ -90,14 +103,10 @@ class KoboRankGroup(GroupHandler):
                     'kobo--rank-items',
                     'kobo--rank-constraint-message',
                 ))
-        initial_row['name'] = '%s_label' % self._name
-        initial_row['type'] = 'note'
+        initial_row.update({'name': '%s_label' % _name,
+                            'type': 'note'})
         self._rows = [
-            {
-                'type': 'begin group',
-                'name': self._name,
-                'appearance': 'field-list',
-            },
+            begin_group,
             initial_row,
         ]
 
@@ -112,6 +121,7 @@ class KoboRankGroup(GroupHandler):
     def add_level(self, row):
         row_name = row['name']
         appearance = row.get('appearance') or 'minimal'
+        # all ranking sub-questions are required
         row.update({
             'type': 'select_one %s' % self._rank_itemset,
             'required': 'true',
@@ -145,12 +155,12 @@ class KoboScoreGroup(GroupHandler):
         """
         Convert KoboScoreGroup:
         #survey
-        |     type    |  name | label | kobo--score-choices |
-        |-------------|-------|-------|---------------------|
-        | begin score | skore | Score | skorechoices        |
-        | score__row  | skr1  | Q1    |                     |
-        | score__row  | skr2  | Q2    |                     |
-        | end score   |       |       |                     |
+        |     type    |  name | label | kobo--score-choices | required |
+        |-------------|-------|-------|---------------------|----------|
+        | begin score | skore | Score | skorechoices        | true     |
+        | score__row  | skr1  | Q1    |                     |          |
+        | score__row  | skr2  | Q2    |                     |          |
+        | end score   |       |       |                     |          |
         #choices
         |  list name   | name |  label   |
         |--------------|------|----------|
@@ -159,13 +169,13 @@ class KoboScoreGroup(GroupHandler):
 
         into:
         #survey
-        |           type          |     name     | label |  appearance  |
-        |-------------------------|--------------|-------|--------------|
-        | begin group             | skore        |       | field-list   |
-        | select_one skorechoices | skore_header | Score | label        |
-        | select_one skorechoices | skr1         | Q1    | list-nolabel |
-        | select_one skorechoices | skr2         | Q2    | list-nolabel |
-        | end group               |              |       |              |
+        |           type          |     name     | label |  appearance  | required |
+        |-------------------------|--------------|-------|--------------|----------|
+        | begin group             | skore        |       | field-list   |          |
+        | select_one skorechoices | skore_header | Score | label        |          |
+        | select_one skorechoices | skr1         | Q1    | list-nolabel | true     |
+        | select_one skorechoices | skr2         | Q2    | list-nolabel | true     |
+        | end group               |              |       |              |          |
         #choices
         |  list name   | name |  label   |
         |--------------|------|----------|
@@ -176,6 +186,20 @@ class KoboScoreGroup(GroupHandler):
 
     def begin(self, initial_row):
         initial_row_type = initial_row.get('type')
+        _name = initial_row.get('name')
+
+        begin_group = {'type': 'begin group',
+                        'name': _name,
+                        'appearance': 'field-list'}
+
+        if 'required' in initial_row:
+            self._initial_row_required = initial_row['required']
+            del initial_row['required']
+
+        if 'relevant' in initial_row:
+            begin_group['relevant'] = initial_row['relevant']
+            del initial_row['relevant']
+
         try:
             self._common_type = 'select_one %s' % initial_row['kobo--score-choices']
             del initial_row['kobo--score-choices']
@@ -184,7 +208,6 @@ class KoboScoreGroup(GroupHandler):
                     initial_row_type,
                     'kobo--score-choices',
                 ))
-        _name = initial_row.get('name')
         initial_row.update({
             'type': self._common_type,
             'name': '%s_header' % _name,
@@ -192,18 +215,18 @@ class KoboScoreGroup(GroupHandler):
             })
 
         self._rows = [
-            {
-                'type': 'begin group',
-                'name': _name,
-                'appearance': 'field-list',
-            },
+            begin_group,
             initial_row,
         ]
 
     def add_row(self, row):
         appearance = row.get('appearance') or 'list-nolabel'
         row.update({'type': self._common_type,
-                    'appearance': appearance,})
+                    'appearance': appearance,
+                    })
+        if hasattr(self, '_initial_row_required') and \
+                self._initial_row_required:
+            row.update({'required': 'true'})
         self._rows.append(row)
 
     def handle_row(self, row):
@@ -263,16 +286,10 @@ def _autoname_fields(surv_contents, default_language=None):
 
 
 def _autovalue_choices(surv_choices):
-    out = []
     for choice in surv_choices:
-        if choice != {}:
-            if 'value' in choice and 'name' not in choice:
-                raise Exception("A 'value' column is not valid for choices sheet." + \
-                                    "Please use 'name' column instead")
-            if 'name' not in choice:
-                choice['name'] = choice.get('label')
-            out.append(choice)
-    return out
+        if 'name' not in choice:
+            choice['name'] = choice['label']
+    return surv_choices
 
 def _parse_contents_of_kobo_structures(ss_structure):
     contents = ss_structure['survey']

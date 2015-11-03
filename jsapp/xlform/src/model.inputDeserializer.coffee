@@ -4,15 +4,11 @@
 # ______________________________________________________________________
 ###
 
-define 'cs!xlform/model.inputDeserializer', [
-        'underscore',
-        'cs!xlform/csv',
-        'cs!xlform/model.aliases',
-        ], (
-            _,
-            csv,
-            $aliases,
-            )->
+_ = require 'underscore'
+csv = require './csv'
+$aliases = require './model.aliases'
+
+module.exports = do ->
   inputDeserializer = (inp, ctx={})->
     r = deserialize inp, ctx
     if not ctx.error and ctx.validate

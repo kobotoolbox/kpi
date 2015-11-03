@@ -1,4 +1,4 @@
-define 'cs!xlform/view.row.templates', [], ()->
+module.exports = do ->
   expandingSpacerHtml = """
       <div class="survey__row__spacer  row clearfix expanding-spacer-between-rows expanding-spacer-between-rows--depr">
         <div class="js-expand-row-selector btn btn--addrow btn--block  btn-xs  btn-default  add-row-btn"
@@ -232,7 +232,7 @@ define 'cs!xlform/view.row.templates', [], ()->
     """
     <div class="card card--error">
       Row could not be displayed: <pre>#{atts}</pre>
-      <em>This question could not be imported. Please re-create it manually. Please contact us at <a href="mailto:info@kobotoolbox.org">info@kobotoolbox.org</a> so we can fix this bug!</em>
+      <em>This question could not be imported. Please re-create it manually. Please contact us at <a href="mailto:support@kobotoolbox.org">support@kobotoolbox.org</a> so we can fix this bug!</em>
     </div>
     #{expandingSpacerHtml}
     """

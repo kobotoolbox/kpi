@@ -1,24 +1,15 @@
-define 'cs!xlform/view.row', [
-        'backbone',
-        'jquery',
-        'cs!xlform/view.rowSelector',
-        'cs!xlform/model.row',
-        'cs!xlform/model.utils',
-        'cs!xlform/view.templates',
-        'cs!xlform/view.utils',
-        'cs!xlform/view.choices',
-        'cs!xlform/view.rowDetail',
-        ], (
-            Backbone,
-            $,
-            $rowSelector,
-            $row,
-            $modelUtils,
-            $viewTemplates,
-            $viewUtils,
-            $viewChoices,
-            $viewRowDetail,
-            )->
+_ = require 'underscore'
+Backbone = require 'backbone'
+$ = require 'jquery'
+$rowSelector = require './view.rowSelector'
+$row = require './model.row'
+$modelUtils = require './model.utils'
+$viewTemplates = require './view.templates'
+$viewUtils = require './view.utils'
+$viewChoices = require './view.choices'
+$viewRowDetail = require './view.rowDetail'
+
+module.exports = do ->
   class BaseRowView extends Backbone.View
     tagName: "li"
     className: "survey__row  xlf-row-view xlf-row-view--depr"
@@ -252,7 +243,7 @@ define 'cs!xlform/view.row', [
       super(args)
       beta_elem = $('<p>', {
               class: 'scorerank-beta-warning'
-              text: 'Note: Rank and Score question types are currently in beta.'
+              text: 'Note: Rank and Matrix question types are currently in beta.'
               })
       while @model._scoreChoices.options.length < 2
         @model._scoreChoices.options.add(label: 'Option')
@@ -376,12 +367,12 @@ define 'cs!xlform/view.row', [
         @render(fixScroll: true)
 
   class RankView extends RankScoreView
-    className: "survey__row survey__row--score"
+    className: "survey__row survey__row--rank"
     _renderRow: (args...)->
       super(args)
       beta_elem = $('<p>', {
                     class: 'scorerank-beta-warning'
-                    text: 'Note: Rank and Score question types are currently in beta.'
+                    text: 'Note: Rank and Matrix question types are currently in beta'
                     })
       template_args = {}
       template_args.rank_constraint_msg = @model.get('kobo--rank-constraint-message')?.get('value')
