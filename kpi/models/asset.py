@@ -272,7 +272,6 @@ class AssetSnapshot(models.Model, XlsExportable):
 
         settings.setdefault('form_id', default_id_string)
 
-        # FIXME: Remove once the issue of inserting `relevant` is fixed in the form builder.
         # Delete empty `relevant` attributes from `begin group` elements.
         for i_row, row in enumerate(source['survey']):
             if (row['type'] == 'begin group') and (row.get('relevant') == ''):

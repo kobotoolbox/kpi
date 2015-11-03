@@ -71,7 +71,7 @@ class AssetsXmlExportApiTests(KpiTestCase):
         asset_title= 'XML Export Test Asset Title'
         content= {'settings': [{'form_title': asset_title, 'form_id': 'titled_asset'}],
                  'survey': [{'label': 'Q1 Label.', 'type': 'decimal'}]}
-        self.login('admin', 'pass')
+        self.login('someuser', 'someuser')
         asset= self.create_asset('', json.dumps(content), format='json')
         response= self.client.get(reverse('asset-detail',
                                           kwargs={'uid':asset.uid, 'format': 'xml'}))
@@ -85,7 +85,7 @@ class AssetsXmlExportApiTests(KpiTestCase):
         asset_name= 'XML Export Test Asset Name'
         content= {'settings': [{'form_id': 'named_asset'}],
                  'survey': [{'label': 'Q1 Label.', 'type': 'decimal'}]}
-        self.login('admin', 'pass')
+        self.login('someuser', 'someuser')
         asset= self.create_asset(asset_name, json.dumps(content), format='json')
         response= self.client.get(reverse('asset-detail',
                                           kwargs={'uid':asset.uid, 'format': 'xml'}))
@@ -98,7 +98,7 @@ class AssetsXmlExportApiTests(KpiTestCase):
     def test_xml_export_auto_title(self):
         content= {'settings': [{'form_id': 'no_title_asset'}],
                  'survey': [{'label': 'Q1 Label.', 'type': 'decimal'}]}
-        self.login('admin', 'pass')
+        self.login('someuser', 'someuser')
         asset= self.create_asset('', json.dumps(content), format='json')
         response= self.client.get(reverse('asset-detail',
                                           kwargs={'uid':asset.uid, 'format': 'xml'}))
@@ -107,6 +107,29 @@ class AssetsXmlExportApiTests(KpiTestCase):
         title_elts= xml.xpath('./*[local-name()="head"]/*[local-name()="title"]')
         self.assertEqual(len(title_elts), 1)
         self.assertNotEqual(title_elts[0].text, '')
+
+    def test_xml_export_group(self):
+        example_formbuilder_output= {'survey': [{"type": "begin group",
+                                                 "relevant": "",
+                                                 "appearance": "",
+                                                 "name": "group_hl3hw45",
+                                                 "label": "Group 1 Label"},
+                                                {"required": "true",
+                                                 "type": "decimal",
+                                                 "label": "Question 1 Label"},
+                                                {"type": "end group"}],
+                                     "settings": [{"form_title": "",
+                                                   "form_id": "group_form"}]}
+
+        self.login('someuser', 'someuser')
+        asset= self.create_asset('', json.dumps(example_formbuilder_output), format='json')
+        response= self.client.get(reverse('asset-detail',
+                                          kwargs={'uid':asset.uid, 'format': 'xml'}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        xml= etree.fromstring(response.content)
+        group_elts= xml.xpath('./*[local-name()="body"]/*[local-name()="group"]')
+        self.assertEqual(len(group_elts), 1)
+        self.assertNotIn('relevant', group_elts[0].attrib)
 
 
 class ObjectRelationshipsTests(APITestCase):
