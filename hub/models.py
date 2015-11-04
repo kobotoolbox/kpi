@@ -21,3 +21,7 @@ class FormBuilderPreference(models.Model):
         choices=BUILDER_CHOICES,
         default=DKOBO
     )
+    def __unicode__(self):
+        choices_dict = dict(self.BUILDER_CHOICES)
+        choice_label = choices_dict[self.preferred_builder]
+        return u'{} prefers {}'.format(self.user, choice_label)
