@@ -16,7 +16,7 @@ import reversion
 
 from hub.models import SitewideMessage
 from .models import Asset
-from .models import AssetDeployment
+from .models import AssetDeployment, AssetDeploymentException
 from .models import AssetSnapshot
 from .models import Collection
 from .models import CollectionChildrenQuerySet
@@ -541,8 +541,15 @@ class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
             xform_id_string = datetime.datetime.utcnow().strftime(
                 '%Y%m%dT%H%M%S%fZ')
 
-        return AssetDeployment._create_if_possible(
-            asset, user, xform_id_string)
+        try:
+            return AssetDeployment._create_if_possible(
+                asset, user, xform_id_string)
+        except AssetDeploymentException as e:
+            if e.invalid_form_id:
+                raise exceptions.ValidationError(
+                    detail={'xform_id_string': e.detail})
+            # Something other than an invalid form id; just reraise
+            raise
 
     def get_xform_url(self, obj):
         return obj.data.get('published_form_url')
