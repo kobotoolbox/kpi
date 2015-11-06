@@ -31,7 +31,11 @@ module.exports = (function(){
             };
 
             if (matches[3]) {
-                res.response_value = matches[3].replace(/date\('(\d{4}-\d{2}-\d{2})'\)/, '$1');
+                // strip surrounding single quotes, if any
+                var response_value = matches[3].replace(/^'([^']*)'$/, "$1");
+                // extract xxxx-xx-xx from date('xxxx-xx-xx')
+                response_value = response_value.replace(/date\('(\d{4}-\d{2}-\d{2})'\)/, '$1');
+                res.response_value = response_value;
             }
 
             return res;
