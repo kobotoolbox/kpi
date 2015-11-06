@@ -27,8 +27,6 @@ from .models import TagUid
 from .forms import USERNAME_REGEX, USERNAME_MAX_LENGTH
 from .forms import USERNAME_INVALID_MESSAGE
 
-from .utils.kobo_to_xlsform import convert_any_kobo_features_to_xlsform_survey_structure
-
 
 class Paginated(LimitOffsetPagination):
 
