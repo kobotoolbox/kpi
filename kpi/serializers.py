@@ -27,8 +27,6 @@ from .models import TagUid
 from .forms import USERNAME_REGEX, USERNAME_MAX_LENGTH
 from .forms import USERNAME_INVALID_MESSAGE
 
-from .utils.kobo_to_xlsform import convert_any_kobo_features_to_xlsform_survey_structure
-
 
 class Paginated(LimitOffsetPagination):
 
@@ -383,7 +381,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     tag_string = serializers.CharField(required=False, allow_blank=True)
     deployment_count = serializers.SerializerMethodField()
     version_id = serializers.IntegerField(read_only=True)
-    settings = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Asset
@@ -405,7 +402,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'embeds',
                   'koboform_link',
                   'xform_link',
-                  'settings',
                   'tag_string',
                   'uid',
                   'kind',
@@ -421,18 +417,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 'read_only': True,
             },
         }
-
-    def get_settings(self, obj):
-        if obj.asset_type != 'survey':
-            return False
-        settings = obj.content.get('settings')
-        if isinstance(settings, dict):
-            return settings
-        if not isinstance(settings, list):
-            return False
-        if len(settings) > 0:
-            return settings[0]
-
 
     def get_fields(self, *args, **kwargs):
         fields = super(AssetSerializer, self).get_fields(*args, **kwargs)

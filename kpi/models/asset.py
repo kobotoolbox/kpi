@@ -15,7 +15,7 @@ import reversion
 
 from .object_permission import ObjectPermission, ObjectPermissionMixin
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
-from ..utils.kobo_to_xlsform import convert_any_kobo_features_to_xlsform_survey_structure
+from ..utils.kobo_to_xlsform import to_xlsform_structure
 
 
 
@@ -83,7 +83,7 @@ class TagStringMixin:
 
 class XlsExportable(object):
     def valid_xlsform_content(self):
-        return convert_any_kobo_features_to_xlsform_survey_structure(self.content)
+        return to_xlsform_structure(self.content)
 
     def to_xls_io(self):
         import xlwt
@@ -325,7 +325,7 @@ class AssetSnapshot(models.Model, XlsExportable):
             self.asset).get(id=self.asset_version_id)
 
     def _valid_source(self):
-        return convert_any_kobo_features_to_xlsform_survey_structure(self.source)
+        return to_xlsform_structure(self.source)
 
     def save(self, *args, **kwargs):
         version = self.get_version()

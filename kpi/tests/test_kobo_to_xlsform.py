@@ -3,8 +3,9 @@
 
 from django.test import TestCase
 
-from ..utils.kobo_to_xlsform import (convert_any_kobo_features_to_xlsform_survey_structure,
+from ..utils.kobo_to_xlsform import (to_xlsform_structure,
                                      _sluggify_valid_xml,)
+
 
 def convert_survey(surv, choices=[], sheets={}):
     sheets.update({
@@ -14,7 +15,7 @@ def convert_survey(surv, choices=[], sheets={}):
         sheets.update({
             'choices': choices
         })
-    return convert_any_kobo_features_to_xlsform_survey_structure(sheets)
+    return to_xlsform_structure(sheets)
 
 COLS = {
     'rank-cmessage': 'kobo--rank-constraint-message',
@@ -122,11 +123,11 @@ class Converter(TestCase):
         self.assertEqual(len(surv[4].keys()), 1)
 
     def test_duplicate_question_names(self):
-        surv= [{"type": "decimal",
-                "label": "question"},
-               {"type": "decimal",
-                "label": "question"}]
-        result= convert_survey(surv)
+        surv = [{"type": "decimal",
+                 "label": "question"},
+                {"type": "decimal",
+                 "label": "question"}]
+        result = convert_survey(surv)
 
-        names= [row['name'] for row in result['survey'] if row.get('name')]
+        names = [row['name'] for row in result['survey'] if row.get('name')]
         self.assertEqual(len(names), len(set(names)))
