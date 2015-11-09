@@ -14,6 +14,18 @@ import re
 
 UID_LENGTH = 22
 
+class AssetDeploymentException(exceptions.APIException):
+    @property
+    def invalid_form_id(self):
+        # We recognize certain KC API responses as indications of an
+        # invalid form id:
+        invalid_form_id_responses = (
+            'Form with this id or SMS-keyword already exists.',
+            'In strict mode, the XForm ID must be a valid slug and '
+                'contain no spaces.',
+        )
+        return self.detail in invalid_form_id_responses
+
 def kobocat_url(path, internal=False):
     if internal and settings.KOBOCAT_INTERNAL_URL:
         return u''.join([settings.KOBOCAT_INTERNAL_URL, path])
@@ -68,24 +80,24 @@ def deploy_asset(user, asset, form_id):
         status_code = response.status_code
     except requests.exceptions.RequestException as e:
         # Failed to access the KC API
-        raise exceptions.APIException(detail=unicode(e))
+        raise AssetDeploymentException(detail=unicode(e))
     try:
         resp = response.json()
     except ValueError as e:
         # Unparseable KC API output
-        raise exceptions.APIException(detail=unicode(e))
+        raise AssetDeploymentException(detail=unicode(e))
     if status_code != 201 or (
         'type' in resp and resp['type'] == 'alert-error'
     ) or 'formid' not in resp:
         if 'text' in resp:
             # KC API refused us for a specified reason, likely invalid input
             # Raise a 400 error that includes the reason
-            e = exceptions.APIException(detail=resp['text'])
+            e = AssetDeploymentException(detail=resp['text'])
             e.status_code = status.HTTP_400_BAD_REQUEST
             raise e
         else:
             # Unspecified failure; raise 500
-            raise exceptions.APIException(
+            raise AssetDeploymentException(
                 detail='Unexpected KoBoCAT error {}'.format(status_code)
             )
 
