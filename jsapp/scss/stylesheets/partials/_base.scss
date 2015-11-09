@@ -20,8 +20,12 @@ html, body {
 // }
 
 body {
-  padding: 0px;
-  margin: 0px;
+    padding: 0px;
+    margin: 0px;
+}
+
+input[type="text"] {
+    font-family: "Open Sans", "Helvetica", "Arial", sans-serif;
 }
 
 // input[type="text"] {

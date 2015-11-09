@@ -66,7 +66,7 @@ var Drawer = React.createClass({
   ],
   getInitialState () {
     return assign({
-      showRecent: true
+      showRecent: true,
     }, stores.pageState.state);
   },
   logout () {
@@ -99,7 +99,10 @@ var Drawer = React.createClass({
               <div className='drawer-separator'></div>
               <span className='mdl-navigation__heading'>{t('account actions')}</span>
               { this.state.isLoggedIn ?
-                <DrawerLink label={t('logout')} onClick={this.logout} fa-icon='sign-out' />
+                <div>
+                  <DrawerLink label={t('settings')} href={stores.session.currentAccount.projects_url + 'settings'} fa-icon='user' />
+                  <DrawerLink label={t('logout')} onClick={this.logout} fa-icon='sign-out' />
+                </div>
               :
                 <DrawerLink label={t('login')} href='/api-auth/login/?next=/' fa-icon='sign-in' />
               }
