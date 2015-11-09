@@ -73,9 +73,6 @@ var Drawer = React.createClass({
     actions.auth.logout();
   },
   render () {
-    // if (stores.session.currentAccount){
-    //   var accountSettings = stores.session.currentAccount.projects_url + '/kobocat/' + stores.session.currentAccount.username;
-    // }
     return (
           <bem.Drawer m={{
               'toggled': this.state.drawerIsVisible,
@@ -103,7 +100,7 @@ var Drawer = React.createClass({
               <span className='mdl-navigation__heading'>{t('account actions')}</span>
               { this.state.isLoggedIn ?
                 <div>
-                  <DrawerLink label={t('settings')} href={stores.session.currentAccount.projects_url + 'kobocat/' + stores.session.currentAccount.username} fa-icon='user' />
+                  <DrawerLink label={t('settings')} href={stores.session.currentAccount.projects_url + 'settings'} fa-icon='user' />
                   <DrawerLink label={t('logout')} onClick={this.logout} fa-icon='sign-out' />
                 </div>
               :

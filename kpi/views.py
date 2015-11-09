@@ -87,7 +87,7 @@ def current_user(request):
                          'last_name': user.last_name,
                          'email': user.email,
                          'server_time': str(datetime.datetime.utcnow()),
-                         'projects_url': kobocat_url('/'),
+                         'projects_url': kobocat_url('/%s/' % user.username),
                          'is_superuser': user.is_superuser,
                          'gravatar': gravatar_url(user.email),
                          'is_staff': user.is_staff,
