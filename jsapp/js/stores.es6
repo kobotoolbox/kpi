@@ -257,7 +257,7 @@ var assetStore = Reflux.createStore({
   },
 
   onUpdateAssetCompleted: function (resp/*, req, jqhr*/){
-    this.data[resp.uid] = resp;
+    this.data[resp.uid] = assetParserUtils.parsed(resp);
     this.noteRelatedUsers(resp);
     this.trigger(this.data, resp.uid, {asset_updated: true});
   },

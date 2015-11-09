@@ -4,6 +4,7 @@ window.$ = $;
 require('jquery.scrollto');
 require('jquery-ui/sortable');
 
+import Select from 'react-select';
 import mdl from './libs/rest_framework/material';
 import React from 'react/addons';
 import classNames from 'classnames';
@@ -45,6 +46,7 @@ import {
   customConfirm,
   assign,
 } from './utils';
+import assetParserUtils from './assetParserUtils';
 // import the form builder
 import dkobo_xlform from '../xlform/src/_xlform.init';
 
@@ -2033,6 +2035,10 @@ var CollectionSharing = React.createClass({
   }
 });
 
+var FormHeader__panel = bem('form-header__panel'),
+    FormHeader__panelheader = bem('form-header__panelheader'),
+    FormHeader__paneltext = bem('form-header__paneltext');
+
 var FormEnketoPreview = React.createClass({
   mixins: [
     Navigation,
@@ -2117,6 +2123,13 @@ var FormEnketoPreview = React.createClass({
   }
 });
 
+const AVAILABLE_FORM_STYLES = [
+  {value: '', label: t('Default - single page')},
+  {value: 'theme-grid', label: t('Grid theme')},
+  {value: 'pages', label: t('Multiple pages')},
+  {value: 'theme-grid pages', label: t('Grid theme + Multiple pages')},
+];
+
 var FormPage = React.createClass({
   mixins: [
     Navigation,
@@ -2131,7 +2144,7 @@ var FormPage = React.createClass({
       content: surveyToValidJson(this.state.survey),
     }).done((asset) => {
       this.setState({
-        asset: asset,
+        asset: assetParserUtils.parsed(asset),
         asset_updated: update_states.UP_TO_DATE,
         _pendingName: false,
       });
@@ -2165,12 +2178,29 @@ var FormPage = React.createClass({
       _pendingName: evt.target.value,
     });
   },
+  openFormStylePanel (evt) {
+    evt.target.blur();
+    this.setState({
+      formStylePanelDisplayed: !this.state.formStylePanelDisplayed,
+    });
+  },
+  onStyleChange (value) {
+    var newStyle = value;
+    this.state.survey.settings.set('style', newStyle);
+    var asset = this.state.asset;
+    asset.settings__style = newStyle;
+    this.setState({
+      asset: asset,
+    });
+  },
   renderSaveAndPreviewButtons () {
     var previewDisabled = this.state.survey.rows.length < 1;
     var groupable = !!this.state.groupButtonIsActive;
     var showAllOpen = !!this.state.multioptionsExpanded;
     var _pendingName = this.state._pendingName;
     var _name = this.state.name || this.state.asset && this.state.asset.name;
+    var hasSettings = this.state.asset.asset_type == 'survey';
+    var styleValue = this.state.asset.settings__style;
 
     return (
         <bem.FormHeader>
@@ -2214,10 +2244,38 @@ var FormPage = React.createClass({
             <i />
             {t('group questions')}
           </bem.FormHeader__button>
+          { hasSettings ?
+            <bem.FormHeader__button m={{
+              formstyle: true,
+              formstyleactive: this.state.formStylePanelDisplayed,
+            }} onClick={this.openFormStylePanel}>
+              {t('form-style')}
+            </bem.FormHeader__button>
+          : null }
+          { this.state.formStylePanelDisplayed ?
+            <FormHeader__panel m='formstyle'>
+              <FormHeader__panelheader>
+                {t('form style')}
+              </FormHeader__panelheader>
+              <FormHeader__paneltext>
+                {t('select the form style that you would like to use.')}
+                {t('for more info, see: ')}
+              </FormHeader__paneltext>
+              <Select
+                name="webform-style"
+                ref="webformStyle"
+                value={styleValue}
+                onChange={this.onStyleChange}
+                addLabelText={t('custom form style: "{label}"')}
+                allowCreate={true}
+                placeholder={AVAILABLE_FORM_STYLES[0].label}
+                options={AVAILABLE_FORM_STYLES}
+              />
+            </FormHeader__panel>
+          : null }
         </bem.FormHeader>
       );
   },
-
   getInitialState () {
     return {
       survey_loaded: false,

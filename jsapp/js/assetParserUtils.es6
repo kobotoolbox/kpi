@@ -34,8 +34,26 @@ function parseResponsePermissions (resp) {
   return out;
 }
 
+function parseSettings (asset) {
+  var settings = asset.content && asset.content.settings;
+  if (settings) {
+    if (settings.length) {
+      settings = settings[0];
+    }
+    return {
+      unparsed__settings: settings,
+      settings__style: settings.style,
+      settings__form_id: settings.form_id,
+      settings__title: settings.title,
+    };
+  } else {
+    return {};
+  }
+}
+
 function parsed (asset) {
   return assign(asset,
+      parseSettings(asset),
       parseResponsePermissions(asset),
       parseTags(asset));
 }
