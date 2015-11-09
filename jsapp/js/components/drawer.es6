@@ -72,6 +72,9 @@ var Drawer = React.createClass({
   logout () {
     actions.auth.logout();
   },
+  accountSettings () {
+    console.log(this.state.currentAccount);
+  },
   render () {
     return (
           <bem.Drawer m={{
@@ -99,7 +102,10 @@ var Drawer = React.createClass({
               <div className='drawer-separator'></div>
               <span className='mdl-navigation__heading'>{t('account actions')}</span>
               { this.state.isLoggedIn ?
-                <DrawerLink label={t('logout')} onClick={this.logout} fa-icon='sign-out' />
+                <div>
+                  <DrawerLink label={t('settings')} onClick={this.accountSettings} fa-icon='user' />
+                  <DrawerLink label={t('logout')} onClick={this.logout} fa-icon='sign-out' />
+                </div>
               :
                 <DrawerLink label={t('login')} href='/api-auth/login/?next=/' fa-icon='sign-in' />
               }

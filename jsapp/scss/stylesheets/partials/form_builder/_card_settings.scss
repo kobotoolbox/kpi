@@ -85,12 +85,14 @@
     padding-bottom: 4px;
     > label {
         text-align: right;
-        width: 25%;
-        margin-right: 3%;
+        width: 32%;
+        margin-right: 2%;
         display: inline-block;
         font-weight: 600;
         vertical-align: middle;
         text-transform: capitalize;
+        font-size: 12px;
+        line-height: 1.2em;
 
         &.align-top {
             vertical-align: top;
@@ -102,15 +104,21 @@
         border-top:1px solid #d9dde1;
         padding-top:15px;
     }
-}
+    input[type="text"] {
+        width:85%;
+        padding:2px;
+        font-size: 13px;
+    }
 
-.card__settings__fields .settings__input {
-    width: 65%;
-    display: inline-block;
-    input.text {
+    .settings__input {
+        width: 65%;
         display: inline-block;
+        input.text {
+            display: inline-block;
+        }
     }
 }
+
 
 .card__settings-close {
     background: #C5CACF;
