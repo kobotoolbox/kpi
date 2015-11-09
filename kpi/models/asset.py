@@ -83,7 +83,7 @@ class TagStringMixin:
 
 class XlsExportable(object):
     def valid_xlsform_content(self):
-        return convert_any_kobo_features_to_xlsform_survey_structure(self.content)
+        return to_xlsform_structure(self.content)
 
     def to_xls_io(self):
         import xlwt
