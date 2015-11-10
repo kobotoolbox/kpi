@@ -304,6 +304,8 @@ module.exports = do ->
 
       @convertAttributesToRowDetails()
 
+      @get("label").on "change", (changes)=>
+        @getSurvey().trigger("change", changes)
 
       typeDetail = @get("type")
       tpVal = typeDetail.get("value")
