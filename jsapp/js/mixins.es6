@@ -14,6 +14,7 @@ import ui from './ui';
 import {
   formatTime,
   customConfirm,
+  customConfirmAsync,
   log,
   t,
   assign,
@@ -824,9 +825,10 @@ mixins.clickAssets = {
       },
       delete: function(uid/*, evt*/){
         var q_ = t('Warning! You are about to delete this collection with all its questions and blocks. Are you sure you want to continue?');
-        if (customConfirm(q_)) {
-          actions.resources.deleteCollection({uid: uid});
-        }
+        customConfirmAsync(q_)
+          .done(function(){
+            actions.resources.deleteCollection({uid: uid});
+          });
       },
     },
     asset: {
@@ -844,9 +846,10 @@ mixins.clickAssets = {
       },
       delete: function(uid/*, evt*/){
         var q_ = t('You are about to permanently delete this form. Are you sure you want to continue?');
-        if (customConfirm(q_)) {
-          actions.resources.deleteAsset({uid: uid});
-        }
+        customConfirmAsync(q_)
+          .done(function(){
+            actions.resources.deleteAsset({uid: uid});
+          });
       },
       deploy: function(/*uid, evt*/){
         var asset = stores.selectedAsset.asset,
