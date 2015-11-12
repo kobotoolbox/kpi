@@ -47,6 +47,9 @@ var AssetRow = React.createClass({
         hrefKey = isCollection ? 'uid' : 'assetid',
         hrefParams = {},
         tags = this.props.tags || [];
+    if (isCollection) {
+      _rc = this.props.assets_count + this.props.children_count;
+    }
     var isDeployable = !isCollection && this.props.asset_type && this.props.asset_type === 'survey';
     hrefParams[hrefKey] = this.props.uid;
     return (
@@ -97,15 +100,15 @@ var AssetRow = React.createClass({
               <span className="date date--modified">{t('Modified')} {formatTime(this.props.date_modified)}</span>
             </bem.AssetRow__cell>
             <bem.AssetRow__cell m={'row-count'}>
-              {(function(){
+              {()=>{
                 if (this.props.kind === 'collection') {
-                  return null;
+                  return t('collection with ___ items').replace('___', _rc);
                 } else if (this.props.asset_type === 'survey') {
                   return t('survey with ___ questions').replace('___', _rc);
                 } else if (this.props.asset_type === 'block') {
                   return t('block with ___ questions').replace('___', _rc);
                 }
-              }).call(this)}
+              }()}
             </bem.AssetRow__cell>
           </bem.AssetRow__cellmeta>
           { tags.length > 0 &&
