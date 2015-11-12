@@ -499,15 +499,38 @@ var userExistsStore = Reflux.createStore({
 stores.collections = Reflux.createStore({
   init () {
     this.listenTo(actions.resources.listCollections.completed, this.listCollectionsCompleted);
+    this.initialState = {
+      collectionSearchState: 'none',
+      collectionCount: 0,
+      collectionList: [],
+    };
+    this.state = this.initialState;
+    this.listenTo(actions.resources.deleteCollection, this.deleteCollectionStarted);
+    this.listenTo(actions.resources.deleteCollection.completed, this.deleteCollectionCompleted);
   },
   listCollectionsCompleted (collectionData) {
     this.latestList = collectionData.results;
-    this.trigger({
+    assign(this.state, {
       collectionSearchState: 'done',
       collectionCount: collectionData.count,
       collectionList: collectionData.results,
     });
+    this.trigger(this.state);
   },
+  deleteCollectionCompleted ({uid}) {
+    this.state.collectionList = this.state.collectionList.filter((item) => {
+      return item.uid !== uid;
+    });
+    this.trigger(this.state);
+  },
+  deleteCollectionStarted ({uid}) {
+    this.state.collectionList.forEach((item) => {
+      if (item.uid === uid) {
+        item.deleting = true;
+      }
+    });
+    this.trigger(this.state);
+  }
 });
 
 assign(stores, {

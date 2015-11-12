@@ -49,6 +49,7 @@ var AssetRow = React.createClass({
         <bem.AssetRow m={{
                             'selected': this.props.isSelected,
                             'deleted': this.props.deleted,
+                            'deleting': this.props.deleting,
                           }}
                         onClick={this.clickAsset}
                       >

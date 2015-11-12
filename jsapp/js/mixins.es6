@@ -639,12 +639,8 @@ mixins.ancestorBreadcrumb = {
 
 mixins.collectionList = {
   getInitialState () {
-    return {
-      collectionList: [],
-      collectionSearchState: 'none',
-      collectionCount: 0,
-      collectionStore: stores.collections,
-    };
+    // initial state is a copy of "stores.collections.initialState"
+    return assign({}, stores.collections.initialState);
   },
   listCollections () {
     actions.resources.listCollections();
