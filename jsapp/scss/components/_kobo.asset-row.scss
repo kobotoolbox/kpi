@@ -53,35 +53,22 @@ $highlightedBarTextColor: #25343C;
 }
 
 .asset-row--deleted {
-  opacity: 0.5;
+  opacity: 0.35;
   background-color: rgba(255, 200, 200, 0.1);
 }
 
-@mixin bt-theme($col) {
-  // TODO: extend MDL-like behavior into this mixin
-  // @extend .mdl-button;
-  .asset-row:not(.asset-row--selected) & {
-    // @extend .mdl-button--disabled;
-    border-color: lighten(rgb(223, 223, 223), 30%);
-    background-color: lighten(rgb(223, 223, 223), 50%);
-
-    > * {
-      color: lighten(#555, 60%)
-    }
-  }
+@mixin bt-theme($col1, $col2) {
   .asset-row--selected & {
-    // @extend .mdl-button--raised, .mdl-button--colored;
-    border-color: rgba($col, 0.7);
-    background-color: rgba($col, 0.05);
+    border-color: unquote("rgb(#{$col1})");
+    background: unquote("rgb(#{$col2})");
     cursor: pointer;
     transition:all 0.5s;
+    opacity: 0.4;
     > * {
-      color: darken($col, 5%);
+      color: unquote("rgb(#{$col1})");
     }
-
     &:hover {
-      border-color: rgba($col, 0.85);
-      background-color: rgba($col, 0.15);      
+      opacity: 1;
     }
   }
 }
@@ -113,41 +100,41 @@ $highlightedBarTextColor: #25343C;
   @extend %inner-fa-icon;
 
   &.asset-row__action-icon--view {
-    @include bt-theme($kcol-view);
+    @include bt-theme($palette-purple-800, $palette-purple-50);
     @include action-faicon('eye')
   }
   &.asset-row__action-icon--view-collection {
-    @include bt-theme($kcol-view);
+    @include bt-theme($palette-purple-800, $palette-purple-50);
     @include action-faicon('folder-o')
   }
   &.asset-row__action-icon--edit {
-    @include bt-theme($kcol-edit);
+    // @include bt-theme($kcol-edit);
     @include action-faicon('pencil');
   }
   &.asset-row__action-icon--preview {
-    @include bt-theme($kcol-preview);
+    @include bt-theme($palette-purple-800, $palette-purple-50);
     @include action-faicon('eye');
   }
   &.asset-row__action-icon--clone {
-    @include bt-theme($kcol-clone);
+    @include bt-theme($palette-teal-800, $palette-teal-50);
     @include action-faicon('copy');
   }
   &.asset-row__action-icon--delete {
-    @include bt-theme($kcol-delete);
+    @include bt-theme($palette-red-800, $palette-red-50);
     @include action-faicon('trash-o');
   }
   &.asset-row__action-icon--sharing {
-    @include bt-theme($kcol-preview);
+    @include bt-theme($palette-light-green-800, $palette-light-green-50);
     @include action-faicon('users');
   }
   &.asset-row__action-icon--download {
-    @include bt-theme($kcol-download);
+    @include bt-theme($palette-light-blue-800, $palette-light-blue-50);
     @include action-faicon('download');
   }
   &.asset-row__action-icon--deploy {
-    // @include bt-theme($kcol-deploy);
+    // @include bt-theme('#FFF', $palette-amber-800);
     @include action-faicon('play');
-    padding: 4px 12px;
+    padding: 4px 6px;
     margin-left: 4px;
   }
 }
