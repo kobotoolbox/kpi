@@ -14,6 +14,7 @@ import {
   t,
 } from '../utils';
 
+/*
 var List = React.createClass({
   mixins: [
     searches.common,
@@ -96,6 +97,7 @@ var List = React.createClass({
       );
   },
 });
+*/
 
 var ListSearch = React.createClass({
   mixins: [
@@ -355,7 +357,7 @@ var ListSearchDebug = React.createClass({
 
 
 export default {
-  List: List,
+  // List: List,
   ListSearch: ListSearch,
   ListSearchDebug: ListSearchDebug,
   ListSearchSummary: ListSearchSummary,

@@ -42,6 +42,7 @@ var SearchCollectionList = React.createClass({
                       perm={perm}
                       onActionButtonClick={this.onActionButtonClick}
                       isSelected={isSelected}
+                      deleting={resource.deleting}
                       {...resource}
                         />
       );

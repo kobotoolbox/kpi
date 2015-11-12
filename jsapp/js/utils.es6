@@ -1,5 +1,6 @@
 import moment from 'moment';
 import alertify from 'alertifyjs';
+import $ from 'jquery';
 
 export var assign = require('react/lib/Object.assign');
 
@@ -25,6 +26,15 @@ export function surveyToValidJson(survey, omitSettings=false) {
     delete surveyDict.settings;
   }
   return JSON.stringify(surveyDict);
+}
+
+export function customConfirmAsync(msg) {
+  var dfd = new $.Deferred();
+  window.setTimeout(function(){
+    var tf = window.confirm(msg);
+    dfd[ tf ? 'resolve' : 'reject' ](tf);
+  }, 0);
+  return dfd.promise();
 }
 
 export function customConfirm(msg) {

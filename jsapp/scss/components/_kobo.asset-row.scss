@@ -14,6 +14,10 @@ $highlightedBarTextColor: #25343C;
   a, a:hover {
     text-decoration: none;
   }
+
+  &--deleting {
+    opacity: 0.5;
+  }
 }
 
 .asset-row__cell--icon {
