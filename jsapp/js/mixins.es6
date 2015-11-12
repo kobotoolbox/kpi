@@ -433,7 +433,7 @@ var dmix = {
   renderDeployments () {
     return (
         <bem.AssetView__row m='secondary-buttons'>
-          <bem.AssetView__buttoncol></bem.AssetView__buttoncol>
+          <bem.AssetView__buttoncol m='first'></bem.AssetView__buttoncol>
           <bem.AssetView__buttoncol>
             <Dropzone fileInput onDropFiles={this.onDrop}
                   disabled={!this.state.userCanEdit}>
@@ -445,8 +445,8 @@ var dmix = {
               </bem.AssetView__button>
             </Dropzone>
           </bem.AssetView__buttoncol>
-          <bem.AssetView__buttoncol></bem.AssetView__buttoncol>
-          <bem.AssetView__buttoncol></bem.AssetView__buttoncol>
+          <bem.AssetView__buttoncol m='third'></bem.AssetView__buttoncol>
+          <bem.AssetView__buttoncol m='fourth'></bem.AssetView__buttoncol>
           <bem.AssetView__buttoncol>
             <bem.AssetView__button m='delete'>
               <i />

@@ -317,6 +317,15 @@ $mult: 0.5;
 .asset-view__row--secondary-buttons {
   @extend .mdl-grid;
   margin-top:20px;
+  .asset-view__buttoncol--third, 
+  .asset-view__buttoncol--fourth {
+    @extend .mdl-cell--hide-tablet;
+  }
+  .asset-view__buttoncol--first,
+  .asset-view__buttoncol--third, 
+  .asset-view__buttoncol--fourth {
+    @extend .mdl-cell--hide-phone;
+  }
 }
 
 .asset-view__deployments, .asset-view__langs {
