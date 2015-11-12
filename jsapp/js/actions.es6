@@ -306,16 +306,18 @@ actions.resources.updateAsset.listen(function(uid, values){
     .fail(actions.resources.updateAsset.failed);
 });
 
-actions.resources.deployAsset.listen(function(uid, form_id_string){
+actions.resources.deployAsset.listen(function(uid, form_id_string, dialog){
   dataInterface.deployAsset(uid, form_id_string)
-    .done(actions.resources.deployAsset.completed)
-    .fail(actions.resources.deployAsset.failed);
+    .done((data) => {actions.resources.deployAsset.completed(data, dialog)})
+    .fail((data) => {actions.resources.deployAsset.failed(data, dialog)});
 });
 
-actions.resources.deployAsset.completed.listen(function(data){
+actions.resources.deployAsset.completed.listen(function(data, dialog){
   // todo: provide a more informative notification
   console.log('deployed form data: ', data);
-
+  // close the dialog
+  dialog.destroy();
+  // notify and redirect
   let xform_url = data.xform_url;
   notify(t('deployed form'));
   window.setTimeout(function(){
@@ -323,10 +325,40 @@ actions.resources.deployAsset.completed.listen(function(data){
   }, 1000);
 });
 
-actions.resources.deployAsset.failed.listen(function(data){
-  // todo: provide a more informative error
+actions.resources.deployAsset.failed.listen(function(data, dialog){
   console.error('undeployed response: ', data);
-  notify(t('there was a problem deploying the form'));
+  let ok_button = dialog.elements.buttons.primary.firstChild;
+  dialog.set('title', t('unable to deploy'));
+  if(!data.responseJSON || (!data.responseJSON.xform_id_string &&
+                            !data.responseJSON.detail)) {
+    // failed to retrieve a valid response from the server
+    // setContent() removes the input box, but the value is retained
+    dialog.setContent(t(
+      'please check your connection and try again. if this problem ' +
+      'persists, contact support@kobotoolbox.org'
+    ));
+    ok_button.innerText = t('Retry');
+    ok_button.disabled = false;
+  } else if(!!data.responseJSON.xform_id_string){
+    let message = t('your form id was not valid: ') +
+      `<blockquote>${data.responseJSON.xform_id_string}</blockquote>`;
+    message += t('please specify a form id');
+    dialog.set('message', message);
+    ok_button.innerText = t('OK');
+    ok_button.disabled = false;
+  } else if(!!data.responseJSON.detail) {
+    dialog.setContent(
+      t('your form cannot be deployed because it contains errors: ') +
+      `<blockquote>${data.responseJSON.detail}</blockquote>`
+    );
+    ok_button.remove()
+  }
+  dialog.set({
+    'message': message,
+    'title': title
+  });
+  ok_button.innerText = ok_button_text;
+  ok_button.disabled = ok_button_disabled;
 });
 
 actions.resources.createResource.listen(function(details){

@@ -100,3 +100,8 @@ h4.modal-title {
   height: 15px;
   cursor: pointer;
 }
+
+// quoted text inside alertify dialogs
+.ajs-content blockquote {
+  font-size: 1em;
+}

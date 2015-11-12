@@ -375,20 +375,30 @@ var dmix = {
         </bem.AssetView__buttons>
       );
   },
-  deployAsset () {
-    var asset_url = this.state.url;
-    var settings = this.state.settings;
-    var defaultFormId = (settings && settings.form_id) || '';
-    var opts = {
+  deployPrompt (asset_url, settings) {
+    let defaultFormId = (settings && settings.form_id) || '';
+    let dialog = alertify.dialog('prompt');
+    let opts = {
       title: t('deploy form to kobocat'),
       message: t('please specify a form id'),
       value: defaultFormId,
-      onok: (evt, val)=> {
-        actions.resources.deployAsset(asset_url, val);
+      onok: (evt, val) => {
+        let ok_button = dialog.elements.buttons.primary.firstChild;
+        ok_button.disabled = true;
+        ok_button.innerText = t('Deploying...');
+        // pass the dialog so it can be modified to include error messages
+        actions.resources.deployAsset(asset_url, val, dialog);
+        // keep the dialog open
+        return false;
       },
-      oncancel: ()=> {}
+      oncancel: () => {dialog.destroy();}
     };
-    alertify.prompt(opts.title, opts.message, opts.value, opts.onok, opts.oncancel);
+    dialog.set(opts).show();
+  },
+  deployAsset () {
+    let asset_url = this.state.url;
+    let settings = this.state.settings;
+    dmix.deployPrompt(asset_url, settings);
   },
   renderDeployments () {
     return (
@@ -849,20 +859,8 @@ mixins.clickAssets = {
         }
       },
       deploy: function(/*uid, evt*/){
-        var asset = stores.selectedAsset.asset,
-            asset_url = asset.url,
-            defaultFormId = asset.settings && asset.settings.form_id;
-
-        var opts = {
-          title: t('deploy form to kobocat'),
-          message: t('please specify a form id'),
-          value: defaultFormId,
-          onok: (_evt, val)=> {
-            actions.resources.deployAsset(asset_url, val);
-          },
-          oncancel: ()=> {},
-        };
-        alertify.prompt(opts.title, opts.message, opts.value, opts.onok, opts.oncancel);
+        let asset = stores.selectedAsset.asset;
+        dmix.deployPrompt(asset.url, asset.settings);
       },
     }
   },
