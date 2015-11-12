@@ -27,7 +27,11 @@ var AssetRow = React.createClass({
       evt.nativeEvent.preventDefault();
       evt.nativeEvent.stopImmediatePropagation();
       evt.preventDefault();
-      stores.selectedAsset.toggleSelect(this.props.uid);
+
+      // if no asset is selected, then this asset
+      // otherwise, toggle selection (unselect if already selected)
+      let forceSelect = (stores.selectedAsset.uid === false);
+      stores.selectedAsset.toggleSelect(this.props.uid, forceSelect);
     }
   },
   preventDefault (evt) {

@@ -443,13 +443,13 @@ var selectedAssetStore = Reflux.createStore({
     }
     this.trigger(this.asset);
   },
-  toggleSelect (uid) {
-    if (this.uid === uid) {
-      this.uid = false;
-      this.asset = {};
-    } else {
+  toggleSelect (uid, forceSelect=false) {
+    if (forceSelect || this.uid !== uid) {
       this.uid = uid;
       this.asset = allAssetsStore.byUid[uid];
+    } else {
+      this.uid = false;
+      this.asset = {};
     }
     cookie.save('selectedAssetUid', this.uid);
     this.trigger({
