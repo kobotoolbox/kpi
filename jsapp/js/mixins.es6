@@ -391,7 +391,9 @@ var dmix = {
         // keep the dialog open
         return false;
       },
-      oncancel: () => {dialog.destroy();}
+      oncancel: () => {
+        dialog.destroy();
+      }
     };
     dialog.set(opts).show();
   },
