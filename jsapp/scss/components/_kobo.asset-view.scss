@@ -21,7 +21,7 @@ $mult: 0.5;
   text-align: center;
   font-size: 20px;
   margin: 40px 0;
-  &.asset-view__message--loading {
+  &--loading {
     > i {
       @extend .fa, .fa-fw, .fa-spin, .fa-spinner;
       margin-right: 15px;
@@ -48,7 +48,7 @@ $mult: 0.5;
 }
 
 .asset-view__row {
-  &.asset-view__row--fixed {
+  &--fixed {
     position: fixed;
     top: 63px;
     z-index: 99;
@@ -110,13 +110,13 @@ $mult: 0.5;
   }
 }
 .asset-view__asset-type-wrap {
-  &.asset-view__asset-type-wrap--type-survey {
+  &--type-survey {
     @include assetTypeHeader($kcol-clone, 'file');
   }
-  &.asset-view__asset-type-wrap--type-question {
+  &--type-question {
     @include assetTypeHeader($kcol-7, 'circle-o');
   }
-  &.asset-view__asset-type-wrap--type-block {
+  &--type-block {
     @include assetTypeHeader($kcol-8, 'square-o');
   }
 }
@@ -136,7 +136,7 @@ $mult: 0.5;
     @extend .fa, .fa-fw, .fa-question;
     margin-right: 2px;
   }
-  &.asset-view__asset-type--type-survey {
+  &--type-survey {
     color: mix(#999, $kcol-clone, 50%);
     border-color: $kcol-clone;
     background-color: lighten($kcol-clone, 45%);
@@ -144,7 +144,7 @@ $mult: 0.5;
       @extend .fa-file;
     }
   }
-  &.asset-view__asset-type--type-question {
+  &--type-question {
     color: mix(#999, $kcol-7, 50%);
     border-color: $kcol-7;
     background-color: lighten($kcol-7, 37%);
@@ -152,7 +152,7 @@ $mult: 0.5;
       @extend .fa-circle-o;
     }
   }
-  &.asset-view__asset-type--type-block {
+  &--type-block {
     color: mix(#999, $kcol-8, 50%);
     border-color: $kcol-8;
     background-color: lighten($kcol-8, 60%); 
@@ -165,7 +165,7 @@ $mult: 0.5;
 .asset-view__name {
   @extend h3;
   margin-bottom: 0.5em;
-  &.asset-view__name--untitled {
+  &--untitled {
     color: #666;
   }
   small {
@@ -189,7 +189,7 @@ $mult: 0.5;
       @extend .fa, .fa-tag;
     }
   }
-  &.asset-view__tags--empty {
+  &--empty {
     span {
       font-style: italic;
       color: #bbb;
@@ -211,14 +211,14 @@ $mult: 0.5;
   }
 }
 
-.asset-view__span--username, 
-.asset-view__span--can-view, 
-.asset-view__span--can-edit {
-  display: block;
+.asset-view__span {
+  &--username, &--can-view, &--can-edit {
+    display: block;
+  }
 }
 
 
-// buttons 
+// buttons
 
 @mixin action-faicon ($faClass) {
   > i {
@@ -266,45 +266,45 @@ $mult: 0.5;
   i {
     margin-right: 8px;
   }
-  &.asset-view__link--disabled, &.asset-view__button--disabled {
+  &--disabled {
     opacity: 0.5;
   }
 
-  &.asset-view__button--preview, &.asset-view__link--preview {
+  &--preview {
     @extend .mdl-color--purple-800;
     @include action-faicon('eye');
   }
-  &.asset-view__button--edit, &.asset-view__link--edit {
+  &--edit {
     // @include disableablelink($kcol-edit);
     @extend .mdl-color--indigo-800;
     @include action-faicon('pencil');
   }
-  &.asset-view__button--download, &.asset-view__link--download {
+  &--download {
     @extend .mdl-color--light-blue-800;
     @include action-faicon('download');
   }
-  &.asset-view__button--clone, &.asset-view__link--clone {
+  &--clone {
     @extend .mdl-color--teal-800;
     @include action-faicon('upload');
   }
-  &.asset-view__button--sharing, &.asset-view__link--sharing {
+  &--sharing {
     @extend .mdl-color--light-green-800;
     @include action-faicon('share-alt');
     > i {
       @extend .fa-share-alt;
     }
   }
-  &.asset-view__button--deploy, &.asset-view__link--deploy {
+  &--deploy {
     // @extend .mdl-color--amber-800;
     @include action-faicon('play');
   }
 
-  &.asset-view__button--refresh, &.asset-view__link--refresh {
+  &--refresh {
     @extend .mdl-color-text--red;
     @include action-faicon('refresh');
   }
 
-  &.asset-view__button--delete, &.asset-view__link--delete {
+  &--delete {
     @extend .mdl-color-text--red;
     > i {
       @extend .fa, .fa-fw, .fa-trash-o;
