@@ -59,8 +59,7 @@ var dmix = {
                     {this.renderDateModified()}
                   </bem.AssetView__row>
                   <bem.AssetView__row m='buttons'>
-                    {this.renderButtons()}
-                    {this.renderDeployments()}
+                    {this.renderButtons({deployable: false})}
                     {this.renderLanguages()}
                   </bem.AssetView__row>
                 </bem.AssetView__content>
@@ -100,8 +99,7 @@ var dmix = {
                     {this.renderDateModified()}
                   </bem.AssetView__row>
                   <bem.AssetView__row m='buttons'>
-                    {this.renderButtons()}
-                    {this.renderDeployments()}
+                    {this.renderButtons({deployable: false})}
                     {this.renderLanguages()}
                   </bem.AssetView__row>
                 </bem.AssetView__content>
@@ -144,7 +142,7 @@ var dmix = {
                   </bem.AssetView__row>
                   {/* this.renderParentCollection() */}
                   <bem.AssetView__row m='buttons'>
-                    {this.renderButtons()}
+                    {this.renderButtons({deployable: true})}
                     {this.renderDeployments()}
                     {this.renderLanguages()}
                   </bem.AssetView__row>
@@ -353,7 +351,7 @@ var dmix = {
       });
     }
   },
-  renderButtons () {
+  renderButtons ({deployable}) {
     var downloadable = !!this.state.downloads[0],
         downloads = this.state.downloads;
 
@@ -407,12 +405,14 @@ var dmix = {
               {t('share')}
             </bem.AssetView__link>
           </bem.AssetView__buttoncol>
+          { deployable ?
           <bem.AssetView__buttoncol>
             <bem.AssetView__button m={'deploy'}  onClick={this.deployAsset}>
               <i />
               {t('deploy')}
             </bem.AssetView__button>
           </bem.AssetView__buttoncol>
+          : null }
 
         </bem.AssetView__buttons>
       );
