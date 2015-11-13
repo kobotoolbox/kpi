@@ -611,6 +611,22 @@ var dmix = {
       asset = data[uid];
     if (asset) {
       if (!this.extended_by_asset_type) {
+        let isLibrary = asset.asset_type !== 'survey';
+
+        stores.pageState.setHeaderBreadcrumb([
+          {
+            label: isLibrary ? t('library') : t('forms'),
+            to: isLibrary ? 'library' : 'forms',
+          },
+          {
+            label: t(`view-${asset.asset_type}`),
+            to: 'form-landing',
+            params: {
+              assetid: asset.uid,
+            }
+          }
+        ]);
+
         var _mx = dmix.assetTypeRenderers[asset.asset_type];
         if ('asset_type' in asset && _mx) {
           assign(this, _mx, {

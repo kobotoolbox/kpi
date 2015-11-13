@@ -5,6 +5,12 @@
     "collections": "Collections",
     "projects": "Projects",
     "settings": "Settings",
+    "view-survey": "Survey",
+    "view-block": "Block",
+    "view-question": "Question",
+    "edit-survey": "Edit",
+    "edit-question": "Edit",
+    "edit-block": "Edit",
     "logout": "Logout"
   }
 }

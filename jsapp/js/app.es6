@@ -121,7 +121,34 @@ mixins.formView = {
       notify(t('failed to generate preview. please report this to support@kobotoolbox.org'));
     });
   },
+  whenAssetLoadedSetBreadcrumb() {
+    let asset = this.state.asset;
+    let isLibrary = asset.asset_type !== 'survey';
+    stores.pageState.setHeaderBreadcrumb(
+      [
+        {
+          label: isLibrary ? t('library') : t('forms'),
+          'to': isLibrary ? 'library' : 'forms'
+        },
+        {
+          label: t(`view-${asset.asset_type}`),
+          to: 'form-landing',
+          params: {
+            assetid: asset.uid,
+          }
+        },
+        {
+          label: t(`edit-${asset.asset_type}`),
+          to: 'form-edit',
+          params: {
+            assetid: asset.uid,
+          }
+        }
+      ]
+    );
+  },
   componentDidMount() {
+    this._breadcrumbSet = false;
     document.querySelector('.page-wrapper__content').addEventListener('scroll', this.handleScroll);
   },
   componentWillUnmount () {
@@ -192,6 +219,15 @@ mixins.formView = {
       );
   },
   innerRender () {
+    window.setTimeout(()=>{
+      // This is not the right place to do this. But the downside is a small flicker.
+      // Fix when react / reflux enlightenment is reached.
+      if (!this._breadcrumbSet) {
+        this.whenAssetLoadedSetBreadcrumb();
+        this._breadcrumbSet = true;
+      }
+    }, 100);
+
     var isSurvey = this.state.asset && this.state.asset.asset_type === 'survey';
     var formHeaderFixed = this.state.formHeaderFixed,
         placeHolder = formHeaderFixed && (
@@ -1225,9 +1261,14 @@ var Forms = React.createClass({
           uid: params.assetid
         });
       } else {
-        stores.pageState.setHeaderBreadcrumb([
-          {'label': t('Forms'), 'to': 'forms'}
-        ]);
+        stores.pageState.setHeaderBreadcrumb(
+          [
+            {
+              label: t('Forms'),
+              'to': 'forms'
+            }
+          ]
+        );
       }
       callback();
     }
@@ -1307,10 +1348,6 @@ mixins.newForm = {
   },
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setHeaderBreadcrumb([
-        {'label': t('Forms'), 'to': 'forms'},
-        {'label': t('New'), 'to': 'new-form'}
-      ]);
       stores.pageState.setAssetNavPresent(true);
       callback();
     }
@@ -1336,6 +1373,19 @@ mixins.newForm = {
       }
       this.transitionTo(this.listRoute);
     };
+
+    let isLibrary = this.context.router.getCurrentPath().match(/library/);
+    stores.pageState.setHeaderBreadcrumb([
+      {
+        label: isLibrary ? t('library') : t('forms'),
+        to: isLibrary ? 'library' : 'forms',
+      },
+      {
+        label: t('New'),
+        to: isLibrary ? 'add-to-library' : 'new-form',
+      }
+    ]);
+
     actions.resources.createResource.listen(this.creatingResource);
     actions.resources.createResource.completed.listen(this.creatingResourceCompleted);
     this.listenTo(stores.surveyState, this.surveyStateChanged);
@@ -2050,12 +2100,18 @@ var FormEnketoPreview = React.createClass({
       actions.resources.createSnapshot({
         asset: asset.url,
       });
+      let bcRoot;
+      if (asset.asset_type === 'survey') {
+        bcRoot = {'label': t('Forms'), 'to': 'forms'};
+      } else {
+        bcRoot = {label: t('Library'), 'to': 'library'};
+      }
+      stores.pageState.setHeaderBreadcrumb([
+        bcRoot,
+        {'label': t('Preview')}
+      ]);
     });
     this.listenTo(stores.snapshots, this.snapshotCreation);
-    stores.pageState.setHeaderBreadcrumb([
-      {'label': t('Forms'), 'to': 'forms'},
-      {'label': t('Preview')}
-    ]);
 
   },
   getInitialState () {
