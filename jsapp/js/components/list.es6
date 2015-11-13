@@ -139,6 +139,7 @@ var ListTagFilter = React.createClass({
   getDefaultProps () {
     return {
       searchContext: 'default',
+      hidden: false,
     };
   },
   getInitialState () {
@@ -174,6 +175,7 @@ var ListTagFilter = React.createClass({
               disabled={true}
               multi={true}
               placeholder={t('tags are loading')}
+              className={{hidden: this.props.hidden}}
             />
         );
     }
@@ -184,6 +186,7 @@ var ListTagFilter = React.createClass({
             placeholder={t('select tags')}
             options={this.state.availableTags}
             onChange={this.onTagChange}
+            className={{hidden: this.props.hidden}}
           />
       );
   },
@@ -212,6 +215,7 @@ var ListExpandToggle = React.createClass({
   getDefaultProps () {
     return {
       searchContext: 'default',
+      hidden: false,
     };
   },
   render () {
@@ -225,7 +229,7 @@ var ListExpandToggle = React.createClass({
     }
 
     return (
-      <bem.LibNav__expanded>
+      <bem.LibNav__expanded className={{hidden: this.props.hidden}}>
         <bem.LibNav__count>
           {count} {t('assets found')}
         </bem.LibNav__count>
