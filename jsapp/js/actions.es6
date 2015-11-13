@@ -343,20 +343,20 @@ actions.resources.deployAsset.failed.listen(function(data, dialog){
     // failed to retrieve a valid response from the server
     // setContent() removes the input box, but the value is retained
     dialogContent = `
-      ${t('please check your connection and try again.')}
-      ${t('if this problem persists, contact support@kobotoolbox.org')}
+      <p>${t('please check your connection and try again.')}</p>
+      <p>${t('if this problem persists, contact support@kobotoolbox.org')}</p>
     `;
     ok_button_text = t('retry');
   } else if(!!data.responseJSON.xform_id_string){
     dialogSettings.message = `
-      ${t('your form id was not valid:')}
-      <pre><code>${data.responseJSON.xform_id_string}</code></pre>
-      ${t('please specify a different form id:')}
+      <p>${t('your form id was not valid:')}</p>
+      <p><code>${data.responseJSON.xform_id_string}</code></p>
+      <p>${t('please specify a different form id:')}</p>
     `;
   } else if(!!data.responseJSON.detail) {
     dialogContent = `
-      ${t('your form cannot be deployed because it contains errors:')}
-      <pre><code>${data.responseJSON.detail}</code></pre>
+      <p>${t('your form cannot be deployed because it contains errors:')}</p>
+      <p><code>${data.responseJSON.detail}</code></p>
     `;
     ok_button_remove = true;
   }

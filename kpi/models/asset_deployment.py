@@ -80,11 +80,13 @@ def deploy_asset(user, asset, form_id):
         status_code = response.status_code
     except requests.exceptions.RequestException as e:
         # Failed to access the KC API
+        # TODO: clarify that the user cannot correct this
         raise AssetDeploymentException(detail=unicode(e))
     try:
         resp = response.json()
     except ValueError as e:
         # Unparseable KC API output
+        # TODO: clarify that the user cannot correct this
         raise AssetDeploymentException(detail=unicode(e))
     if status_code != 201 or (
         'type' in resp and resp['type'] == 'alert-error'
