@@ -308,57 +308,70 @@ actions.resources.updateAsset.listen(function(uid, values){
 
 actions.resources.deployAsset.listen(function(uid, form_id_string, dialog){
   dataInterface.deployAsset(uid, form_id_string)
-    .done((data) => {actions.resources.deployAsset.completed(data, dialog)})
-    .fail((data) => {actions.resources.deployAsset.failed(data, dialog)});
+    .done((data) => {
+      actions.resources.deployAsset.completed(data, dialog);
+    })
+    .fail((data) => {
+      actions.resources.deployAsset.failed(data, dialog);
+    });
 });
 
 actions.resources.deployAsset.completed.listen(function(data, dialog){
-  // todo: provide a more informative notification
-  console.log('deployed form data: ', data);
-  // close the dialog
-  dialog.destroy();
+  // close the dialog.
+  // (this was sometimes failing. possibly dialog already destroyed?)
+  if(dialog && typeof dialog.destroy === 'function') {
+    dialog.destroy();
+  }
   // notify and redirect
-  let xform_url = data.xform_url;
   notify(t('deployed form'));
   window.setTimeout(function(){
-    redirectTo(xform_url);
+    redirectTo(data.xform_url);
   }, 1000);
 });
 
 actions.resources.deployAsset.failed.listen(function(data, dialog){
-  console.error('undeployed response: ', data);
-  let ok_button = dialog.elements.buttons.primary.firstChild;
-  dialog.set('title', t('unable to deploy'));
+  let dialogSettings = {
+    title: t('unable to deploy'),
+  };
+  let dialogContent = false;
+
+  let ok_button_text = t('ok');
+  let ok_button_remove = false;
+
   if(!data.responseJSON || (!data.responseJSON.xform_id_string &&
                             !data.responseJSON.detail)) {
     // failed to retrieve a valid response from the server
     // setContent() removes the input box, but the value is retained
-    dialog.setContent(t(
-      'please check your connection and try again. if this problem ' +
-      'persists, contact support@kobotoolbox.org'
-    ));
-    ok_button.innerText = t('Retry');
-    ok_button.disabled = false;
+    dialogContent = `
+      <p>${t('please check your connection and try again.')}</p>
+      <p>${t('if this problem persists, contact support@kobotoolbox.org')}</p>
+    `;
+    ok_button_text = t('retry');
   } else if(!!data.responseJSON.xform_id_string){
-    let message = t('your form id was not valid: ') +
-      `<blockquote>${data.responseJSON.xform_id_string}</blockquote>`;
-    message += t('please specify a form id');
-    dialog.set('message', message);
-    ok_button.innerText = t('OK');
-    ok_button.disabled = false;
+    dialogSettings.message = `
+      <p>${t('your form id was not valid:')}</p>
+      <p><code>${data.responseJSON.xform_id_string}</code></p>
+      <p>${t('please specify a different form id:')}</p>
+    `;
   } else if(!!data.responseJSON.detail) {
-    dialog.setContent(
-      t('your form cannot be deployed because it contains errors: ') +
-      `<blockquote>${data.responseJSON.detail}</blockquote>`
-    );
-    ok_button.remove()
+    dialogContent = `
+      <p>${t('your form cannot be deployed because it contains errors:')}</p>
+      <p><code>${data.responseJSON.detail}</code></p>
+    `;
+    ok_button_remove = true;
   }
-  dialog.set({
-    'message': message,
-    'title': title
-  });
-  ok_button.innerText = ok_button_text;
-  ok_button.disabled = ok_button_disabled;
+  dialog.set(dialogSettings);
+  if (dialogContent) {
+    dialog.setContent(dialogContent);
+  }
+
+  let ok_button = dialog.elements.buttons.primary.firstChild;
+  if (ok_button_remove) {
+    ok_button.remove();
+  } else {
+    ok_button.innerText = ok_button_text;
+    ok_button.disabled = false;
+  }
 });
 
 actions.resources.createResource.listen(function(details){

@@ -383,6 +383,7 @@ var dmix = {
       title: t('deploy form to kobocat'),
       message: t('please specify a form id'),
       value: defaultFormId,
+      labels: {ok: t('ok'), cancel: t('cancel')},
       onok: (evt, val) => {
         let ok_button = dialog.elements.buttons.primary.firstChild;
         ok_button.disabled = true;
@@ -392,7 +393,9 @@ var dmix = {
         // keep the dialog open
         return false;
       },
-      oncancel: () => {dialog.destroy();}
+      oncancel: () => {
+        dialog.destroy();
+      }
     };
     dialog.set(opts).show();
   },
