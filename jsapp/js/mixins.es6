@@ -319,6 +319,16 @@ var dmix = {
       );
   },
   renderLanguages () {
+    var langCount = this.state.summary.languages.length;
+    if (langCount === 0) {
+      return (
+          <bem.AssetView__langs m={'none'}>
+            <bem.AssetView__label>
+              {t('no translations')}
+            </bem.AssetView__label>
+          </bem.AssetView__langs>
+        );
+    }
     return (
         <bem.AssetView__langs>
           <bem.AssetView__label>
@@ -396,7 +406,7 @@ var dmix = {
           <bem.AssetView__buttoncol>
             <bem.AssetView__link m='clone' onClick={this.saveCloneAs}>
               <i />
-              {t('save as')}
+              {t('clone')}
             </bem.AssetView__link>
           </bem.AssetView__buttoncol>
           <bem.AssetView__buttoncol>
