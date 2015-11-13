@@ -380,10 +380,13 @@ actions.resources.createResource.listen(function(details){
     .fail(actions.resources.createResource.failed);
 });
 
-actions.resources.deleteAsset.listen(function(details){
+actions.resources.deleteAsset.listen(function(details, {onComplete}){
   dataInterface.deleteAsset(details)
     .done(function(/*result*/){
       actions.resources.deleteAsset.completed(details);
+      if (onComplete) {
+        onComplete(details);
+      }
     })
     .fail(actions.resources.deleteAsset.failed);
 });
@@ -403,11 +406,14 @@ actions.resources.deleteCollection.listen(function(details){
     .fail(actions.resources.deleteCollection.failed);
 });
 
-actions.resources.cloneAsset.listen(function(details){
+actions.resources.cloneAsset.listen(function(details, opts={}){
   dataInterface.cloneAsset(details)
     .done(function(...args){
       actions.resources.createAsset.completed(...args);
       actions.resources.cloneAsset.completed(...args);
+      if (opts.onComplete) {
+        opts.onComplete(...args);
+      }
     })
     .fail(actions.resources.cloneAsset.failed);
 });

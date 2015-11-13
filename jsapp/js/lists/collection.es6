@@ -54,22 +54,22 @@ var CollectionList = React.createClass({
     dataInterface.createCollection({
       name: customPrompt('collection name?'),
     }).done((data)=>{
-      this.redirect(`/collections/${data.uid}/`);
+      this.transitionTo(`/collections/${data.uid}`);
     });
   },
   render () {
     return (
       <ui.Panel>
         <bem.CollectionNav>
+          {/*
           <bem.CollectionNav__search>
-            {/*
             <ListSearchSummary
                 assetDescriptor={t('collection')}
                 assetDescriptorPlural={t('collections')}
                 searchContext={this.state.searchContext}
               />
-            */}
           </bem.CollectionNav__search>
+          */}
 
           <bem.CollectionNav__actions className="k-form-list-actions">
             <button id="demo-menu-top-right"
