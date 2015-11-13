@@ -350,8 +350,8 @@ actions.resources.deployAsset.failed.listen(function(data, dialog){
   } else if(!!data.responseJSON.xform_id_string){
     dialogSettings.message = `
       ${t('your form id was not valid:')}
-      <code>${data.responseJSON.xform_id_string}</code>
-      ${t('please specify a form id')}
+      <pre><code>${data.responseJSON.xform_id_string}</code></pre>
+      ${t('please specify a different form id:')}
     `;
   } else if(!!data.responseJSON.detail) {
     dialogContent = `
