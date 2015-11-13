@@ -260,6 +260,9 @@ $mult: 0.5;
 // }
 .asset-view__button, .asset-view__link {
   @extend .mdl-button;
+
+  padding: 0;
+
   i {
     margin-right: 8px;
   }
