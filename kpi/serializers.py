@@ -533,6 +533,7 @@ class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
                 raise exceptions.ValidationError(
                     detail={'xform_id_string': e.detail})
             # Something other than an invalid form id; just reraise
+            # TODO: clarify whether or not this is a user error
             raise
 
     def get_xform_url(self, obj):
