@@ -8,6 +8,7 @@ import Reflux from 'reflux';
 import $ from 'jquery';
 
 import stores from './stores';
+import actions from './actions';
 import {dataInterface} from './dataInterface';
 import {assign} from './utils';
 import assetParserUtils from './assetParserUtils';
@@ -65,8 +66,27 @@ function SearchContext(opts={}) {
     init () {
       this.filterParams = {};
       this.state = {
-        searchState: 'none'
+        searchState: 'none',
       };
+      this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
+    },
+    onDeleteAssetCompleted (asset) {
+      var filterOutDeletedAsset = ({listName}) => {
+        let uid = asset.uid;
+        let listLength = this.state[listName].length;
+        let l = this.state[listName].filter(function(result){
+          return result.uid !== uid;
+        });
+        if (l.length !== listLength) {
+          let o = {};
+          o[listName] = l;
+          this.update(o);
+        }
+      };
+      filterOutDeletedAsset({listName: 'defaultQueryResultsList'});
+      if (this.state.searchResultsList && this.state.searchResultsList.length > 0) {
+        filterOutDeletedAsset({listName: 'searchResultsList'});
+      }
     },
     update (items) {
       this.quietUpdate(items);
@@ -84,7 +104,7 @@ function SearchContext(opts={}) {
     filterTagQueryData () {
       if (this.filterTags) {
         return {
-          q: this.filterTags
+          q: this.filterTags,
         };
       }
     },
