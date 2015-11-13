@@ -32,7 +32,7 @@ $newformButtonColor: mix(#2196F3, grayscale(#2196F3), 38%);
 
 $newformCircleWidthHeight: 55px;
 
-@import '../xlform/components/fontawesome/scss/font-awesome';
+@import '../../node_modules/font-awesome/scss/font-awesome';
 @import './fonts/opensans';
 @import './components/kobo.account-box';
 @import './components/kobo.collection-header';

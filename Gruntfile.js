@@ -73,7 +73,7 @@ module.exports = function(grunt) {
         expand: true,
         flatten: true,
         src: [
-          './jsapp/xlform/components/fontawesome/fonts/fontawesome-webfont.*',
+          './node_modules/font-awesome/fonts/*',
           './node_modules/open-sans-fontface/fonts/Regular/*',
           './node_modules/open-sans-fontface/fonts/Italic/*',
           './node_modules/open-sans-fontface/fonts/SemiboldItalic/*',
