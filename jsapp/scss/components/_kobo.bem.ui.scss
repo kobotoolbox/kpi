@@ -130,14 +130,12 @@ bem.uiModal__header = bem.uiModal.__('header');
   }
   &.popover-menu__link--dl-xls {
     > i:first-child {
-      // @extend .fa-file-excel-o;
-      @extend .fa-file-o;
+      @extend .fa-file-excel-o;
     }
   }
   &.popover-menu__link--dl-xml {
     > i:first-child {
-      // @extend .fa-file-code-o;
-      @extend .fa-file-o;
+      @extend .fa-file-code-o;
     }
   }
 }

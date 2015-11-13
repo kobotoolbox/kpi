@@ -17,6 +17,7 @@ $muiBlue: #526CFD;
 $saveNeededColor: #9c27b0;
 $assetSaveButtonWidth: 105px;
 
+// TODO: phase out these colors from collection header
 $kcol-view: mix(#7B1FA2, grayscale(#7B1FA2), 38%);
 $kcol-edit: mix(#009688, grayscale(#009688), 38%);
 $kcol-preview: mix(#FFC107, grayscale(#FFC107), 38%);
@@ -31,7 +32,7 @@ $newformButtonColor: mix(#2196F3, grayscale(#2196F3), 38%);
 
 $newformCircleWidthHeight: 55px;
 
-@import '../xlform/components/fontawesome/scss/font-awesome';
+@import '../../node_modules/font-awesome/scss/font-awesome';
 @import './fonts/opensans';
 @import './components/kobo.account-box';
 @import './components/kobo.collection-header';

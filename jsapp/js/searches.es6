@@ -59,8 +59,10 @@ function SearchContext(opts={}) {
       'completed',
       'failed',
       'cancel',
+      'refresh',
     ]
   });
+  var latestSearchData;
 
   var searchStore = ctx.store = Reflux.createStore({
     init () {
@@ -197,6 +199,7 @@ function SearchContext(opts={}) {
         jqxhrs.search = false;
       }
     }
+    latestSearchData = {params: qData, dataObject: dataObject};
     var req = searchDataInterface.assets(qData)
       .done(function(data){
         search.completed(dataObject, data, {
@@ -220,6 +223,17 @@ function SearchContext(opts={}) {
         defaultQueryFor: _dataObjectClone,
       });
     }
+  });
+  search.refresh.listen(function(){
+    searchDataInterface.assets(latestSearchData.qData)
+      .done(function(data){
+        search.completed(latestSearchData.dataObject, data, {
+          cacheAsDefaultSearch: false,
+        });
+      })
+      .fail(function(xhr){
+        search.failed(xhr, latestSearchData.dataObject);
+      });
   });
 
   search.completed.listen(function(searchParams, data, _opts){

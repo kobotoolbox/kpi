@@ -165,7 +165,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
         'permissions__permission',
         'permissions__user',
         'permissions__content_object',
-    ).all()
+    ).all().order_by('-date_modified')
     serializer_class = CollectionSerializer
     permission_classes = (IsOwnerOrReadOnly,)
     filter_backends = (KpiObjectPermissionsFilter, SearchFilter)
