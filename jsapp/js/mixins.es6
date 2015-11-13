@@ -240,17 +240,17 @@ var dmix = {
     return (
       <bem.AssetView__col m='owner'>
         <bem.AssetView__label>
-          {t('Owner')} 
+          {t('owner')}
         </bem.AssetView__label>
         <bem.AssetView__span m='val'>
           <bem.AssetView__span m='username'>
-          {this.state.owner__username}
+            {this.state.owner__username}
           </bem.AssetView__span>
           <bem.AssetView__span m='can-view'>
-            {viewerCount} { viewerCount === 1 ? t('viewer') : t('viewers') }
+            { `${viewerCount} ${viewerCount === 1 ? t('viewer') : t('viewers')}` }
           </bem.AssetView__span>
           <bem.AssetView__span m='can-edit'>
-            {editorCount} { editorCount === 1 ? t('editor') : t('editors') }
+            { `${editorCount} ${editorCount === 1 ? t('editor') : t('editors')}` }
           </bem.AssetView__span>
         </bem.AssetView__span>
       </bem.AssetView__col>
@@ -262,7 +262,7 @@ var dmix = {
     return (
       <bem.AssetView__col m={linkSharingM}>
         <bem.AssetView__label>
-          {t('Status')} 
+          {t('status')}
         </bem.AssetView__label>
         <bem.AssetView__span m='val'>
           {
@@ -276,7 +276,7 @@ var dmix = {
     return (
       <bem.AssetView__col m='rowcount'>
         <bem.AssetView__label>
-          {t('Questions')} 
+          {t('questions')}
         </bem.AssetView__label>
         <bem.AssetView__span m='val'>
           {this.state.summary.row_count}
@@ -288,7 +288,7 @@ var dmix = {
     return (
       <bem.AssetView__col m='revisions'>
         <bem.AssetView__label>
-          {t('Revisions')} 
+          {t('revisions')}
         </bem.AssetView__label>
         <bem.AssetView__span m='val'>
           {this.state.version_count}
@@ -300,7 +300,7 @@ var dmix = {
     return (
       <bem.AssetView__col m='date-created'>
         <bem.AssetView__label>
-          {t('Created')} 
+          {t('created')}
         </bem.AssetView__label>
         <bem.AssetView__span m='val'>
           {formatTime(this.state.date_created)}
@@ -312,7 +312,7 @@ var dmix = {
     return (
       <bem.AssetView__col m='date-modified'>
         <bem.AssetView__label>
-          {t('Modified')} 
+          {t('modified')}
         </bem.AssetView__label>
         <bem.AssetView__span m='val'>
           {formatTime(this.state.date_modified)}
@@ -468,7 +468,7 @@ var dmix = {
           <bem.AssetView__buttoncol>
             <bem.AssetView__button m='delete'>
               <i />
-              {t('delete *')}
+              {t('delete')}
             </bem.AssetView__button>
           </bem.AssetView__buttoncol>
           <bem.AssetView__deployments>
