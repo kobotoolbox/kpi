@@ -358,11 +358,14 @@ actions.resources.deleteCollection.listen(function(details){
     .fail(actions.resources.deleteCollection.failed);
 });
 
-actions.resources.cloneAsset.listen(function(details){
+actions.resources.cloneAsset.listen(function(details, opts={}){
   dataInterface.cloneAsset(details)
     .done(function(...args){
       actions.resources.createAsset.completed(...args);
       actions.resources.cloneAsset.completed(...args);
+      if (opts.onComplete) {
+        opts.onComplete(...args);
+      }
     })
     .fail(actions.resources.cloneAsset.failed);
 });

@@ -47,6 +47,9 @@ var SearchCollectionList = React.createClass({
                         />
       );
   },
+  refreshSearch () {
+    this.searchValue.refresh();
+  },
   render () {
     var s = this.state;
     return (

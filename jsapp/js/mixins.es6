@@ -15,6 +15,7 @@ import {
   formatTime,
   customConfirm,
   customConfirmAsync,
+  customPromptAsync,
   log,
   t,
   assign,
@@ -257,7 +258,7 @@ var dmix = {
   },
   renderIsPublic () {
     var is_public = this.state.access.isPublic,
-        linkSharingM = `status linksharing-${is_public ? 'on' : 'off'}`;
+        linkSharingM = ['status', `linksharing-${is_public ? 'on' : 'off'}`];
     return (
       <bem.AssetView__col m={linkSharingM}>
         <bem.AssetView__label>
@@ -395,9 +396,9 @@ var dmix = {
             : null }
           </bem.AssetView__buttoncol>
           <bem.AssetView__buttoncol>
-            <bem.AssetView__link m='clone' href={this.makeHref('form-edit', {assetid: this.state.uid})}>
+            <bem.AssetView__link m='clone' onClick={this.saveCloneAs}>
               <i />
-              {t('clone *')}
+              {t('save as')}
             </bem.AssetView__link>
           </bem.AssetView__buttoncol>
           <bem.AssetView__buttoncol>
@@ -415,6 +416,22 @@ var dmix = {
 
         </bem.AssetView__buttons>
       );
+  },
+  saveCloneAs () {
+    customPromptAsync(t('new form name'))
+      .done((value) => {
+        let uid = this.props.params.assetid;
+        actions.resources.cloneAsset({
+          uid: uid,
+          name: value,
+        }, {
+          onComplete: (asset) => {
+            this.transitionTo('form-landing', {
+              assetid: asset.uid,
+            });
+          }
+        });
+      });
   },
   deployAsset () {
     var asset_url = this.state.url;
@@ -890,7 +907,17 @@ mixins.clickAssets = {
         this.transitionTo('form-landing', {assetid: uid});
       },
       clone: function(uid/*, evt*/){
-        actions.resources.cloneAsset({uid: uid});
+        customPromptAsync(t('new name?'))
+          .done((value) => {
+            actions.resources.cloneAsset({
+              uid: uid,
+              name: value,
+            }, {
+              onComplete: (asset) => {
+                this.refreshSearch && this.refreshSearch();
+              }
+            });
+          });
       },
       download: function(uid/*, evt*/){
         this.transitionTo('form-download', {assetid: uid});

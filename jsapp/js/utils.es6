@@ -28,6 +28,19 @@ export function surveyToValidJson(survey, omitSettings=false) {
   return JSON.stringify(surveyDict);
 }
 
+export function customPromptAsync(msg) {
+  var dfd = new $.Deferred();
+  window.setTimeout(function(){
+    var val = window.prompt(msg);
+    if (val === null) {
+      dfd.reject();
+    } else {
+      dfd.resolve(val);
+    }
+  }, 0);
+  return dfd;
+}
+
 export function customConfirmAsync(msg) {
   var dfd = new $.Deferred();
   window.setTimeout(function(){
