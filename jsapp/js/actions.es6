@@ -335,10 +335,13 @@ actions.resources.createResource.listen(function(details){
     .fail(actions.resources.createResource.failed);
 });
 
-actions.resources.deleteAsset.listen(function(details){
+actions.resources.deleteAsset.listen(function(details, {onComplete}){
   dataInterface.deleteAsset(details)
     .done(function(/*result*/){
       actions.resources.deleteAsset.completed(details);
+      if (onComplete) {
+        onComplete(details);
+      }
     })
     .fail(actions.resources.deleteAsset.failed);
 });

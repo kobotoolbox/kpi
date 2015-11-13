@@ -448,6 +448,20 @@ var dmix = {
     };
     alertify.prompt(opts.title, opts.message, opts.value, opts.onok, opts.oncancel);
   },
+  deleteAsset (...args) {
+    let uid = this.props.params.assetid;
+    let aType = this.state.asset_type;
+    let q_ = t('You are about to permanently delete this ___. Are you sure you want to continue?')
+                .replace('___', t(aType));
+    customConfirmAsync(q_)
+      .done(() => {
+        actions.resources.deleteAsset({uid: uid}, {
+          onComplete: ()=> {
+            this.transitionTo(aType === 'survey' ? 'forms' : 'library');
+          }
+        });
+      });
+  },
   renderDeployments () {
     return (
         <bem.AssetView__row m='secondary-buttons'>
@@ -466,7 +480,7 @@ var dmix = {
           <bem.AssetView__buttoncol m='third'></bem.AssetView__buttoncol>
           <bem.AssetView__buttoncol m='fourth'></bem.AssetView__buttoncol>
           <bem.AssetView__buttoncol>
-            <bem.AssetView__button m='delete'>
+            <bem.AssetView__button m='delete' onClick={this.deleteAsset}>
               <i />
               {t('delete')}
             </bem.AssetView__button>
