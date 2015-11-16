@@ -163,6 +163,14 @@ var ListTagFilter = React.createClass({
       })
     });
   },
+  getTagStringFromSearchStore () {
+    if (!!this.searchStore.state.searchTags) {
+      return this.searchStore.state.searchTags.map(function(tag){
+        return tag.value;
+      }).join(',');
+    }
+    return '';
+  },
   onTagChange (tagString, tagList) {
     this.searchTagsChange(tagList);
   },
@@ -187,6 +195,7 @@ var ListTagFilter = React.createClass({
             options={this.state.availableTags}
             onChange={this.onTagChange}
             className={{hidden: this.props.hidden}}
+            value={this.getTagStringFromSearchStore()}
           />
       );
   },

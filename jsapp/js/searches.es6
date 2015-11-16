@@ -261,7 +261,8 @@ function SearchContext(opts={}) {
         searchDebugQuery: searchParams.__builtQueryString,
         searchBaseFilterParams: searchStore.filterParams,
         searchResults: data,
-        searchTags: searchParams.tags,
+        // toQueryData() deletes searchParams.tags
+        //searchTags: searchParams.tags,
         searchResultsList: data.results,
         searchResultsCount: count,
 
