@@ -380,7 +380,11 @@ actions.resources.createResource.listen(function(details){
     .fail(actions.resources.createResource.failed);
 });
 
-actions.resources.deleteAsset.listen(function(details, {onComplete}){
+actions.resources.deleteAsset.listen(function(details, params={}){
+  var onComplete;
+  if (params && params.onComplete) {
+    onComplete = params.onComplete;
+  }
   dataInterface.deleteAsset(details)
     .done(function(/*result*/){
       actions.resources.deleteAsset.completed(details);
