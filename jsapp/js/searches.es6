@@ -341,11 +341,9 @@ var commonMethods = {
     });
     this.debouncedSearch();
   },
-  clearSearchStringAndCancel () {
-    this.searchStore.removeItem('searchString');
-    this.getSearchActions().search.cancel();
-  },
   searchClear () {
+    this.searchStore.removeItem('searchString');
+    this.searchStore.removeItem('searchTags');
     this.getSearchActions().search.cancel();
   },
 };

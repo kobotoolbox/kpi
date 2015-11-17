@@ -150,7 +150,14 @@ var ListTagFilter = React.createClass({
   },
   componentDidMount () {
     this.listenTo(stores.tags, this.tagsLoaded);
+    this.listenTo(this.searchStore, this.searchStoreChanged);
     actions.resources.listTags(this.searchStore.filterTagQueryData());
+  },
+  searchStoreChanged (searchStoreState) {
+    if (searchStoreState.cleared) {
+      // re-render to remove tags if the search was cleared
+      this.setState(searchStoreState);
+    }
   },
   tagsLoaded (tags) {
     this.setState({
