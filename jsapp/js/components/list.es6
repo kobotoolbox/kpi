@@ -139,6 +139,7 @@ var ListTagFilter = React.createClass({
   getDefaultProps () {
     return {
       searchContext: 'default',
+      hidden: false,
     };
   },
   getInitialState () {
@@ -149,7 +150,14 @@ var ListTagFilter = React.createClass({
   },
   componentDidMount () {
     this.listenTo(stores.tags, this.tagsLoaded);
+    this.listenTo(this.searchStore, this.searchStoreChanged);
     actions.resources.listTags(this.searchStore.filterTagQueryData());
+  },
+  searchStoreChanged (searchStoreState) {
+    if (searchStoreState.cleared) {
+      // re-render to remove tags if the search was cleared
+      this.setState(searchStoreState);
+    }
   },
   tagsLoaded (tags) {
     this.setState({
@@ -161,6 +169,14 @@ var ListTagFilter = React.createClass({
         };
       })
     });
+  },
+  getTagStringFromSearchStore () {
+    if (!!this.searchStore.state.searchTags) {
+      return this.searchStore.state.searchTags.map(function(tag){
+        return tag.value;
+      }).join(',');
+    }
+    return '';
   },
   onTagChange (tagString, tagList) {
     this.searchTagsChange(tagList);
@@ -174,6 +190,7 @@ var ListTagFilter = React.createClass({
               disabled={true}
               multi={true}
               placeholder={t('tags are loading')}
+              className={{hidden: this.props.hidden}}
             />
         );
     }
@@ -184,6 +201,8 @@ var ListTagFilter = React.createClass({
             placeholder={t('select tags')}
             options={this.state.availableTags}
             onChange={this.onTagChange}
+            className={{hidden: this.props.hidden}}
+            value={this.getTagStringFromSearchStore()}
           />
       );
   },
@@ -212,6 +231,7 @@ var ListExpandToggle = React.createClass({
   getDefaultProps () {
     return {
       searchContext: 'default',
+      hidden: false,
     };
   },
   render () {
@@ -225,7 +245,7 @@ var ListExpandToggle = React.createClass({
     }
 
     return (
-      <bem.LibNav__expanded>
+      <bem.LibNav__expanded className={{hidden: this.props.hidden}}>
         <bem.LibNav__count>
           {count} {t('assets found')}
         </bem.LibNav__count>

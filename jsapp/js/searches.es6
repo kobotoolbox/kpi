@@ -261,7 +261,8 @@ function SearchContext(opts={}) {
         searchDebugQuery: searchParams.__builtQueryString,
         searchBaseFilterParams: searchStore.filterParams,
         searchResults: data,
-        searchTags: searchParams.tags,
+        // toQueryData() deletes searchParams.tags
+        //searchTags: searchParams.tags,
         searchResultsList: data.results,
         searchResultsCount: count,
 
@@ -340,11 +341,9 @@ var commonMethods = {
     });
     this.debouncedSearch();
   },
-  clearSearchStringAndCancel () {
-    this.searchStore.removeItem('searchString');
-    this.getSearchActions().search.cancel();
-  },
   searchClear () {
+    this.searchStore.removeItem('searchString');
+    this.searchStore.removeItem('searchTags');
     this.getSearchActions().search.cancel();
   },
 };

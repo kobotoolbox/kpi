@@ -655,33 +655,21 @@ var AssetNavigator = React.createClass({
       selectedTags: tags
     });
   },
-  renderClosedContent () {
-    return (
-        <bem.LibNav m={'deactivated'}>
-          <bem.LibNav__header m={'deactivated'}>
-            <bem.LibNav__logo onClick={this.toggleOpen}>
-              <i />
-            </bem.LibNav__logo>
-          </bem.LibNav__header>
-        </bem.LibNav>
-      );
-  },
   toggleOpen () {
     stores.pageState.toggleAssetNavIntentOpen();
   },
   render () {
-    if (!this.state.assetNavIsOpen) {
-      return this.renderClosedContent();
-    }
+    let hidden = !this.state.assetNavIsOpen;
+    let hiddenClass = {hidden: hidden};
     return (
         <bem.LibNav m={{
-              shrunk: this.state.assetNavIsOpen
+              deactivated: !this.state.assetNavIsOpen
             }}>
           <bem.LibNav__header>
             <bem.LibNav__logo onClick={this.toggleOpen}>
               <i />
             </bem.LibNav__logo>
-            <bem.LibNav__search>
+            <bem.LibNav__search className={hiddenClass}>
               <ListSearch
                   placeholder={t('search library')}
                   searchContext={this.state.searchContext}
@@ -689,12 +677,14 @@ var AssetNavigator = React.createClass({
             </bem.LibNav__search>
             <ListTagFilter
                   searchContext={this.state.searchContext}
+                  hidden={hidden}
                 />
             <ListExpandToggle
                   searchContext={this.state.searchContext}
+                  hidden={hidden}
                 />
           </bem.LibNav__header>
-          <bem.LibNav__content>
+          <bem.LibNav__content className={hiddenClass}>
             <AssetNavigatorListView
                   searchContext={this.state.searchContext}
                 />
