@@ -304,8 +304,13 @@ module.exports = do ->
 
       @convertAttributesToRowDetails()
 
-      @get("label").on "change", (changes)=>
-        @getSurvey().trigger("change", changes)
+     on_change_callback= (changes)=> 
+        @getSurvey().trigger('change', changes)
+      # row_attr.on('change', on_change_callback)  for _, row_attr in @attributes
+      attribute_names= ["name", "label", "hint", "required", 'calculation',
+                        "relevant", "default", "constraint", "appearance",
+                        "constraint_message" ]
+      @get(attr_nm)?.on('change', on_change_callback) for attr_nm in attribute_names
 
       typeDetail = @get("type")
       tpVal = typeDetail.get("value")
