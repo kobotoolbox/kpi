@@ -304,12 +304,10 @@ module.exports = do ->
 
       @convertAttributesToRowDetails()
 
-     on_change_callback= (changes)=> 
-        @getSurvey().trigger('change', changes)
+      on_change_callback= (changes)=> @getSurvey().trigger('change', changes)
       # row_attr.on('change', on_change_callback)  for _, row_attr in @attributes
       attribute_names= ["name", "label", "hint", "required", 'calculation',
-                        "relevant", "default", "constraint", "appearance",
-                        "constraint_message" ]
+                        "default", "appearance", "constraint_message"]  # , "constraint", "relevant"]
       @get(attr_nm)?.on('change', on_change_callback) for attr_nm in attribute_names
 
       typeDetail = @get("type")
@@ -372,6 +370,8 @@ module.exports = do ->
       if newRowType.get('typeId') in ['select_one', 'select_multiple']
         newRowType.set 'list', @getList().clone()
         newRowType.set 'listName', newRowType.get('list').get 'name'
+
+      @getSurvey().trigger('change', changes)
 
       return newRow
 
