@@ -300,6 +300,11 @@ function SearchContext(opts={}) {
     },
     searchStore: searchStore,
     searchDefault: function () {
+      searchStore.quietUpdate(assign({
+        cleared: true,
+        searchString: false,
+      }, clearSearchState));
+
       search({
         cacheAsDefaultSearch: true
       });
