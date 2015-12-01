@@ -1,0 +1,5 @@
+libxslt1-dev
+python-dev
+python-pip
+libpq-dev
+npm
