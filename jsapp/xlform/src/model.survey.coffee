@@ -65,15 +65,25 @@ module.exports = do ->
       name_detail = new_row.get('name')
       name_detail.set 'value', name_detail.deduplicate(survey)
 
+    _ensure_row_list_is_copied: (row)->
+      if rowlist = row.getList()
+        @choices.add(name: rowlist.get("name"), options: rowlist.options.toJSON())
+
     insertSurvey: (survey, index=-1)->
       index = @rows.length  if index is -1
       for row, row_i in survey.rows.models
-        if rowlist = row.getList()
-          @choices.add(name: rowlist.get("name"), options: rowlist.options.toJSON())
-        name_detail = row.get('name')
-        name_detail.set 'value', name_detail.deduplicate(@)
         index_incr = index + row_i
-        @rows.add(row.toJSON(), at: index_incr)
+        if row.rows
+          # item is a group
+          group = row
+          group.forEachRow(((r)=> @_ensure_row_list_is_copied(r)), includeGroups: true)
+          @rows.add(group, at: index_incr)
+        else
+          @_ensure_row_list_is_copied(row)
+          # its a group
+          name_detail = row.get('name')
+          name_detail.set 'value', name_detail.deduplicate(@)
+          @rows.add(row.toJSON(), at: index_incr)
       ``
 
     toFlatJSON: (stringify=false, spaces=4)->
