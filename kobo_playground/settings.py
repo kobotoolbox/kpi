@@ -33,8 +33,6 @@ if 'CSRF_COOKIE_DOMAIN' in os.environ:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = (os.environ.get('DJANGO_DEBUG', 'True') == 'True')
 
-TEMPLATE_DEBUG = (os.environ.get('TEMPLATE_DEBUG', 'True') == 'True')
-
 ALLOWED_HOSTS = []
 if 'DJANGO_ALLOWED_HOSTS' in os.environ:
     ALLOWED_HOSTS.append(os.environ['DJANGO_ALLOWED_HOSTS'])
@@ -137,7 +135,8 @@ STATIC_URL = '/static/'
 
 # Following the uWSGI mountpoint convention, this should have a leading slash
 # but no trailing slash
-KPI_PREFIX = os.environ.get('KPI_PREFIX', False)
+KPI_PREFIX = os.environ.get('KPI_PREFIX', 'False')
+KPI_PREFIX = False if KPI_PREFIX.lower == 'false' else KPI_PREFIX
 # KPI_PREFIX should be set in the environment when running in a subdirectory
 if KPI_PREFIX and KPI_PREFIX != '/':
     STATIC_URL = '{}/{}'.format(KPI_PREFIX, STATIC_URL)
@@ -173,14 +172,16 @@ TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
 #if not DEBUG:
 #    STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
-LIVERELOAD_SCRIPT = os.environ.get('LIVERELOAD_SCRIPT', False)
-USE_MINIFIED_SCRIPTS = os.environ.get('KOBO_USE_MINIFIED_SCRIPTS', False)
+LIVERELOAD_SCRIPT = os.environ.get('LIVERELOAD_SCRIPT', 'False')
+LIVERELOAD_SCRIPT= False if LIVERELOAD_SCRIPT.lower() == 'False' else LIVERELOAD_SCRIPT
+USE_MINIFIED_SCRIPTS = os.environ.get('KOBO_USE_MINIFIED_SCRIPTS', 'False').lower != 'false'
 TRACKJS_TOKEN = os.environ.get('TRACKJS_TOKEN')
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', False)
 KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL', False)
 # Following the uWSGI mountpoint convention, this should have a leading slash
 # but no trailing slash
-DKOBO_PREFIX = os.environ.get('DKOBO_PREFIX', False)
+DKOBO_PREFIX = os.environ.get('DKOBO_PREFIX', 'False')
+DKOBO_PREFIX = False if DKOBO_PREFIX.lower() == 'false' else DKOBO_PREFIX
 
 ''' Haystack search settings '''
 HAYSTACK_CONNECTIONS = {
