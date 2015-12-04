@@ -137,12 +137,11 @@ module.exports = do ->
       #   @on "change:list", (rd, val, ctxt)=>
       #     @_parent.trigger "change", @key, val, ctxt
 
-      mark_unsaved_attributes= ["name", "label", "hint", "required", 
-                                'calculation', "default", "appearance",
-                                "constraint_message"]  # , "constraint", "relevant"]
-      if @key in mark_unsaved_attributes
-        on_change_callback= (changes)=> 
-          @getSurvey().trigger('change', changes)
-        @on('change', on_change_callback)
+      # when attributes change, register changes with parent survey
+      if @key in ["name", "label", "hint", "required",
+                  "calculation", "default", "appearance",
+                  "constraint_message"]
+        @on "change", (changes)=>
+          @getSurvey().trigger "change", changes
 
   base
