@@ -365,7 +365,7 @@ module.exports = do ->
         newRowType.set 'list', @getList().clone()
         newRowType.set 'listName', newRowType.get('list').get 'name'
 
-      @getSurvey().trigger('change', changes)
+      @getSurvey().trigger('change')
 
       return newRow
 
