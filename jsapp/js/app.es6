@@ -2364,6 +2364,7 @@ var FormPage = React.createClass({
         window.setTimeout(( () => {
           survey.rows.on('change', this.onSurveyChange);
           survey.rows.on('sort', this.onSurveyChange);
+          survey.on('change', this.onSurveyChange);
         } ), 500);
         assign(updates, {
           survey: survey,

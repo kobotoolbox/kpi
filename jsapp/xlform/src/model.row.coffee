@@ -304,7 +304,6 @@ module.exports = do ->
 
       @convertAttributesToRowDetails()
 
-
       typeDetail = @get("type")
       tpVal = typeDetail.get("value")
       processType = (rd, newType, ctxt)=>
@@ -365,6 +364,8 @@ module.exports = do ->
       if newRowType.get('typeId') in ['select_one', 'select_multiple']
         newRowType.set 'list', @getList().clone()
         newRowType.set 'listName', newRowType.get('list').get 'name'
+
+      @getSurvey().trigger('change')
 
       return newRow
 
