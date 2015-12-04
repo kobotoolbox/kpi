@@ -219,7 +219,7 @@ RabbitMQ queue creation:
     rabbitmqctl set_permissions -p kpi kpi '.*' '.*' '.*'
 See http://celery.readthedocs.org/en/latest/getting-started/brokers/rabbitmq.html#setting-up-rabbitmq.
 '''
-BROKER_URL = 'amqp://kpi:kpi@localhost:5672/kpi'
+BROKER_URL = os.environ.get('KPI_BROKER_URL', 'amqp://kpi:kpi@localhost:5672/kpi')
 
 # http://django-registration-redux.readthedocs.org/en/latest/quickstart.html#settings
 ACCOUNT_ACTIVATION_DAYS = 3
