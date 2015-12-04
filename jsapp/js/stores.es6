@@ -1,6 +1,7 @@
 import Reflux from 'reflux';
 import cookie from 'react-cookie';
 
+import dkobo_xlform from '../xlform/src/_xlform.init';
 import assetParserUtils from './assetParserUtils';
 import actions from './actions';
 import {
@@ -335,9 +336,6 @@ var assetContentStore = Reflux.createStore({
   },
 });
 
-/*
-var dkobo_xlform = require('./libs/xlform_with_deps');
-
 var surveyCompanionStore = Reflux.createStore({
   init () {
     this.listenTo(actions.survey.addItemAtPosition, this.addItemAtPosition);
@@ -349,7 +347,6 @@ var surveyCompanionStore = Reflux.createStore({
     });
   }
 })
-*/
 
 
 var allAssetsStore = Reflux.createStore({

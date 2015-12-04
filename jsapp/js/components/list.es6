@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react/addons';
 import {Navigation} from 'react-router';
 import Reflux from 'reflux';
@@ -190,7 +191,7 @@ var ListTagFilter = React.createClass({
               disabled={true}
               multi={true}
               placeholder={t('tags are loading')}
-              className={{hidden: this.props.hidden}}
+              className={this.props.hidden ? 'hidden' : null}
             />
         );
     }
@@ -201,7 +202,7 @@ var ListTagFilter = React.createClass({
             placeholder={t('select tags')}
             options={this.state.availableTags}
             onChange={this.onTagChange}
-            className={{hidden: this.props.hidden}}
+            className={this.props.hidden ? 'hidden' : null}
             value={this.getTagStringFromSearchStore()}
           />
       );
