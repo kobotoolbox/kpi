@@ -3,6 +3,8 @@ import _ from 'underscore';
 
 import bem from './bem';
 import {t} from './utils';
+var hotkey = require('react-hotkey');
+hotkey.activate();
 
 var ui = {};
 
@@ -40,6 +42,12 @@ ui.Panel = React.createClass({
 
 
 ui.Modal = React.createClass({
+  mixins: [hotkey.Mixin('handleHotkey')],
+  handleHotkey: function(evt) {
+    if (evt.keyCode === 27) {
+      this.props.onClose.call(evt);
+    }
+  },
   backdropClick (evt) {
     if (evt.currentTarget === evt.target) {
       this.props.onClose.call(evt);
@@ -68,26 +76,26 @@ ui.Modal = React.createClass({
   render () {
 
     return (
-          <div className='modal-backdrop' style={{backgroundColor: 'rgba(0,0,0,0.3)'}} onClick={this.backdropClick.bind(this)}>
-            <div className={this.props.open ? 'modal-open' : 'modal'}>
-              <div className="modal-dialog k-modal-dialog">
-                <div className="modal-content">
-                  <div className="modal-header">
-                    <div className="mdl-grid k-form-header__inner">
-                      {this.renderTitle()}
-                      <div className="mdl-layout-spacer"></div>
-                      <button type="button" className="close mdl-button mdl-button--icon mdl-js-button" onClick={this.props.onClose}>
-                        <i className="material-icons">clear</i>
-                      </button>
-                    </div>
-
-                  </div>
-                  {this.props.children}
+      <div className='modal-backdrop' style={{backgroundColor: 'rgba(0,0,0,0.3)'}} onClick={this.backdropClick.bind(this)}>
+        <div className={this.props.open ? 'modal-open' : 'modal'}> 
+          <div className="modal-dialog k-modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <div className="mdl-grid k-form-header__inner">
+                  {this.renderTitle()}
+                  <div className="mdl-layout-spacer"></div>
+                  <button type="button" className="close mdl-button mdl-button--icon mdl-js-button" onClick={this.props.onClose}>
+                    <i className="material-icons">clear</i>
+                  </button>
                 </div>
+
               </div>
+              {this.props.children}
             </div>
           </div>
-        );
+        </div>
+      </div>
+    );
   }
 });
 

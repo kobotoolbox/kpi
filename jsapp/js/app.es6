@@ -2156,14 +2156,6 @@ var FormEnketoPreview = React.createClass({
               this.renderPlaceholder()
           }
         </ui.Modal.Body>
-        <ui.Modal.Footer>
-          <button type="button"
-                    className="btn btn-default"
-                    data-dismiss="modal"
-                    onClick={this.routeBack}>
-            {t('done')}
-          </button>
-        </ui.Modal.Footer>
       </ui.Modal>
     );
   }
