@@ -136,7 +136,7 @@ STATIC_URL = '/static/'
 # Following the uWSGI mountpoint convention, this should have a leading slash
 # but no trailing slash
 KPI_PREFIX = os.environ.get('KPI_PREFIX', 'False')
-KPI_PREFIX = False if KPI_PREFIX.lower == 'false' else KPI_PREFIX
+KPI_PREFIX = False if KPI_PREFIX.lower() == 'false' else KPI_PREFIX
 # KPI_PREFIX should be set in the environment when running in a subdirectory
 if KPI_PREFIX and KPI_PREFIX != '/':
     STATIC_URL = '{}/{}'.format(KPI_PREFIX, STATIC_URL)
