@@ -35,28 +35,24 @@ var MainHeader = React.createClass({
           <span className="mdl-navigation__link">not logged in</span>
         );
   },
-  _breadcrumbItem (item) {
-    return (
-        <span className="header-breadcrumb__item">
-          {
-            ('to' in item) ?
-            <Link to={item.to} params={item.params}>{item.label}</Link>
-            :
-            <a href={item.href}>{item.label}</a>
-          }
-        </span>
-      );
-  },
-  renderBreadcrumb() {
-    var bc = this.state.headerBreadcrumb;
-    return bc.map(this._breadcrumbItem);
-  },
   render () {
-
     return (
         <header className="mdl-layout__header">
           <div className="mdl-layout__header-row">
-            <span className="mdl-layout-title">{this.renderBreadcrumb()}</span>
+            <span className="mdl-layout-title">
+              {this.state.headerBreadcrumb.map((item, n)=>{
+                return (
+                    <span className="header-breadcrumb__item" key={`bc${n}`}>
+                      {
+                        ('to' in item) ?
+                        <Link to={item.to} params={item.params}>{item.label}</Link>
+                        :
+                        <a href={item.href}>{item.label}</a>
+                      }
+                    </span>
+                  );
+              })}
+            </span>
             <div className="mdl-layout-spacer"></div>
             <nav className="mdl-navigation">
               <a className="mdl-navigation__link" href="/">

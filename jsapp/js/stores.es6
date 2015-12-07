@@ -1,6 +1,7 @@
 import Reflux from 'reflux';
 import cookie from 'react-cookie';
 
+import dkobo_xlform from '../xlform/src/_xlform.init';
 import assetParserUtils from './assetParserUtils';
 import actions from './actions';
 import {
@@ -335,9 +336,6 @@ var assetContentStore = Reflux.createStore({
   },
 });
 
-/*
-var dkobo_xlform = require('./libs/xlform_with_deps');
-
 var surveyCompanionStore = Reflux.createStore({
   init () {
     this.listenTo(actions.survey.addItemAtPosition, this.addItemAtPosition);
@@ -349,7 +347,6 @@ var surveyCompanionStore = Reflux.createStore({
     });
   }
 })
-*/
 
 
 var allAssetsStore = Reflux.createStore({
@@ -443,13 +440,13 @@ var selectedAssetStore = Reflux.createStore({
     }
     this.trigger(this.asset);
   },
-  toggleSelect (uid) {
-    if (this.uid === uid) {
-      this.uid = false;
-      this.asset = {};
-    } else {
+  toggleSelect (uid, forceSelect=false) {
+    if (forceSelect || this.uid !== uid) {
       this.uid = uid;
       this.asset = allAssetsStore.byUid[uid];
+    } else {
+      this.uid = false;
+      this.asset = {};
     }
     cookie.save('selectedAssetUid', this.uid);
     this.trigger({
@@ -499,15 +496,38 @@ var userExistsStore = Reflux.createStore({
 stores.collections = Reflux.createStore({
   init () {
     this.listenTo(actions.resources.listCollections.completed, this.listCollectionsCompleted);
+    this.initialState = {
+      collectionSearchState: 'none',
+      collectionCount: 0,
+      collectionList: [],
+    };
+    this.state = this.initialState;
+    this.listenTo(actions.resources.deleteCollection, this.deleteCollectionStarted);
+    this.listenTo(actions.resources.deleteCollection.completed, this.deleteCollectionCompleted);
   },
   listCollectionsCompleted (collectionData) {
     this.latestList = collectionData.results;
-    this.trigger({
+    assign(this.state, {
       collectionSearchState: 'done',
       collectionCount: collectionData.count,
       collectionList: collectionData.results,
     });
+    this.trigger(this.state);
   },
+  deleteCollectionCompleted ({uid}) {
+    this.state.collectionList = this.state.collectionList.filter((item) => {
+      return item.uid !== uid;
+    });
+    this.trigger(this.state);
+  },
+  deleteCollectionStarted ({uid}) {
+    this.state.collectionList.forEach((item) => {
+      if (item.uid === uid) {
+        item.deleting = true;
+      }
+    });
+    this.trigger(this.state);
+  }
 });
 
 assign(stores, {

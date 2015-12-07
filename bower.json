@@ -46,6 +46,6 @@
     "lodash": "~2.4.1",
     "modernizr": "~2.8.1",
     "backbone-validation": "~0.9.1",
-    "fontawesome": "~4.0.3"
+    "fontawesome": "~4.4.0"
   }
 }

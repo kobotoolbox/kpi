@@ -35,16 +35,20 @@ var SearchCollectionList = React.createClass({
   renderAssetRow (resource) {
     var currentUsername = stores.session.currentAccount && stores.session.currentAccount.username;
     var perm = parsePermissions(resource.owner, resource.permissions);
-    var isSelected = this.state.selectedAssetUid === resource.uid;
+    var isSelected = stores.selectedAsset.uid === resource.uid;
     return (
         <this.props.assetRowClass key={resource.uid}
                       currentUsername={currentUsername}
                       perm={perm}
                       onActionButtonClick={this.onActionButtonClick}
                       isSelected={isSelected}
+                      deleting={resource.deleting}
                       {...resource}
                         />
       );
+  },
+  refreshSearch () {
+    this.searchValue.refresh();
   },
   render () {
     var s = this.state;

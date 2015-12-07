@@ -8,6 +8,7 @@ import Reflux from 'reflux';
 import $ from 'jquery';
 
 import stores from './stores';
+import actions from './actions';
 import {dataInterface} from './dataInterface';
 import {assign} from './utils';
 import assetParserUtils from './assetParserUtils';
@@ -58,15 +59,36 @@ function SearchContext(opts={}) {
       'completed',
       'failed',
       'cancel',
+      'refresh',
     ]
   });
+  var latestSearchData;
 
   var searchStore = ctx.store = Reflux.createStore({
     init () {
       this.filterParams = {};
       this.state = {
-        searchState: 'none'
+        searchState: 'none',
       };
+      this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
+    },
+    onDeleteAssetCompleted (asset) {
+      var filterOutDeletedAsset = ({listName}) => {
+        let uid = asset.uid;
+        let listLength = this.state[listName].length;
+        let l = this.state[listName].filter(function(result){
+          return result.uid !== uid;
+        });
+        if (l.length !== listLength) {
+          let o = {};
+          o[listName] = l;
+          this.update(o);
+        }
+      };
+      filterOutDeletedAsset({listName: 'defaultQueryResultsList'});
+      if (this.state.searchResultsList && this.state.searchResultsList.length > 0) {
+        filterOutDeletedAsset({listName: 'searchResultsList'});
+      }
     },
     update (items) {
       this.quietUpdate(items);
@@ -84,7 +106,7 @@ function SearchContext(opts={}) {
     filterTagQueryData () {
       if (this.filterTags) {
         return {
-          q: this.filterTags
+          q: this.filterTags,
         };
       }
     },
@@ -177,6 +199,7 @@ function SearchContext(opts={}) {
         jqxhrs.search = false;
       }
     }
+    latestSearchData = {params: qData, dataObject: dataObject};
     var req = searchDataInterface.assets(qData)
       .done(function(data){
         search.completed(dataObject, data, {
@@ -200,6 +223,17 @@ function SearchContext(opts={}) {
         defaultQueryFor: _dataObjectClone,
       });
     }
+  });
+  search.refresh.listen(function(){
+    searchDataInterface.assets(latestSearchData.qData)
+      .done(function(data){
+        search.completed(latestSearchData.dataObject, data, {
+          cacheAsDefaultSearch: false,
+        });
+      })
+      .fail(function(xhr){
+        search.failed(xhr, latestSearchData.dataObject);
+      });
   });
 
   search.completed.listen(function(searchParams, data, _opts){
@@ -227,7 +261,8 @@ function SearchContext(opts={}) {
         searchDebugQuery: searchParams.__builtQueryString,
         searchBaseFilterParams: searchStore.filterParams,
         searchResults: data,
-        searchTags: searchParams.tags,
+        // toQueryData() deletes searchParams.tags
+        //searchTags: searchParams.tags,
         searchResultsList: data.results,
         searchResultsCount: count,
 
@@ -265,6 +300,11 @@ function SearchContext(opts={}) {
     },
     searchStore: searchStore,
     searchDefault: function () {
+      searchStore.quietUpdate(assign({
+        cleared: true,
+        searchString: false,
+      }, clearSearchState));
+
       search({
         cacheAsDefaultSearch: true
       });
@@ -306,11 +346,9 @@ var commonMethods = {
     });
     this.debouncedSearch();
   },
-  clearSearchStringAndCancel () {
-    this.searchStore.removeItem('searchString');
-    this.getSearchActions().search.cancel();
-  },
   searchClear () {
+    this.searchStore.removeItem('searchString');
+    this.searchStore.removeItem('searchTags');
     this.getSearchActions().search.cancel();
   },
 };

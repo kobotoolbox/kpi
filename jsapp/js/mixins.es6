@@ -14,6 +14,8 @@ import ui from './ui';
 import {
   formatTime,
   customConfirm,
+  customConfirmAsync,
+  customPromptAsync,
   log,
   t,
   assign,
@@ -46,13 +48,20 @@ var dmix = {
                 {this.renderTypeHeader()}
                 <bem.AssetView__content>
                   {this.renderName()}
-                  {this.renderTimes()}
                   {this.renderTags()}
                   {this.renderParentCollection()}
-                  {this.renderUsers()}
-                  {this.renderIsPublic()}
-                  {this.renderLanguages()}
-                  {this.renderButtons()}
+                  <bem.AssetView__row m='meta'>
+                    {this.renderUsers()}
+                    {this.renderIsPublic()}
+                    {this.renderRowCount()}
+                    {this.renderRevisions()}
+                    {this.renderDateCreated()}
+                    {this.renderDateModified()}
+                  </bem.AssetView__row>
+                  <bem.AssetView__row m='buttons'>
+                    {this.renderButtons({deployable: false})}
+                    {this.renderLanguages()}
+                  </bem.AssetView__row>
                 </bem.AssetView__content>
               </ui.Panel>
             </bem.AssetView>
@@ -79,13 +88,20 @@ var dmix = {
                 {this.renderTypeHeader()}
                 <bem.AssetView__content>
                   {this.renderName()}
-                  {this.renderTimes()}
                   {this.renderTags()}
                   {this.renderParentCollection()}
-                  {this.renderUsers()}
-                  {this.renderIsPublic()}
-                  {this.renderLanguages()}
-                  {this.renderButtons()}
+                  <bem.AssetView__row m='meta'>
+                    {this.renderUsers()}
+                    {this.renderIsPublic()}
+                    {this.renderRowCount()}
+                    {this.renderRevisions()}
+                    {this.renderDateCreated()}
+                    {this.renderDateModified()}
+                  </bem.AssetView__row>
+                  <bem.AssetView__row m='buttons'>
+                    {this.renderButtons({deployable: false})}
+                    {this.renderLanguages()}
+                  </bem.AssetView__row>
                 </bem.AssetView__content>
               </ui.Panel>
             </bem.AssetView>
@@ -115,15 +131,21 @@ var dmix = {
                 {this.renderTypeHeader()}
                 <bem.AssetView__content>
                   {this.renderName()}
-                  {this.renderTimes()}
                   {this.renderTags()}
+                  <bem.AssetView__row m='meta'>
+                    {this.renderUsers()}
+                    {this.renderIsPublic()}
+                    {this.renderRowCount()}
+                    {this.renderRevisions()}
+                    {this.renderDateCreated()}
+                    {this.renderDateModified()}
+                  </bem.AssetView__row>
                   {/* this.renderParentCollection() */}
-                  {this.renderUsers()}
-                  {this.renderIsPublic()}
-                  {this.renderLanguages()}
-                  {this.renderButtons()}
-                  {this.renderRowCount()}
-                  {this.renderDeployments()}
+                  <bem.AssetView__row m='buttons'>
+                    {this.renderButtons({deployable: true})}
+                    {this.renderDeployments()}
+                    {this.renderLanguages()}
+                  </bem.AssetView__row>
                 </bem.AssetView__content>
               </ui.Panel>
             </bem.AssetView>
@@ -194,28 +216,7 @@ var dmix = {
       });
     }
   },
-  renderTimes () {
-    return (
-        <bem.AssetView__times>
-          <bem.AssetView__iconwrap><i /></bem.AssetView__iconwrap>
-          <bem.AssetView__col m='revisions'>
-            {t('r')}{this.state.version_count}
-          </bem.AssetView__col>
-          <bem.AssetView__col m='date-modified'>
-            <bem.AssetView__colsubtext>
-              {t('last saved')}
-            </bem.AssetView__colsubtext>
-            {formatTime(this.state.date_modified)}
-          </bem.AssetView__col>
-          <bem.AssetView__col m='date-created'>
-            <bem.AssetView__colsubtext>
-              {t('created')}
-            </bem.AssetView__colsubtext>
-            {formatTime(this.state.date_created)}
-          </bem.AssetView__col>
-        </bem.AssetView__times>
-      );
-  },
+
   _renderTag (tag) {
     return (
         <bem.AssetView__tags__tag>{tag}</bem.AssetView__tags__tag>
@@ -235,68 +236,110 @@ var dmix = {
     var editorCount = Object.keys(this.state.access.change).length;
     var viewerCount = Object.keys(this.state.access.view).length;
     return (
-        <bem.AssetView__users>
-          <bem.AssetView__iconwrap><i /></bem.AssetView__iconwrap>
-          <bem.AssetView__col m='users'>
-            <bem.AssetView__span m='owner'>
-              <i />
-              {t('owner:')} {this.state.owner__username}
-            </bem.AssetView__span>
-            <bem.AssetView__span m='can-view'>
-              {viewerCount} { viewerCount === 1 ? t('viewer') : t('viewers') }
-            </bem.AssetView__span>
-            <bem.AssetView__span m='can-edit'>
-              {editorCount} { editorCount === 1 ? t('editor') : t('editors') }
-            </bem.AssetView__span>
-            <bem.AssetView__link m='sharing' href={this.makeHref('form-sharing', {assetid: this.state.uid})}>
-              {t('edit')}
-            </bem.AssetView__link>
-          </bem.AssetView__col>
-        </bem.AssetView__users>
-      );
+      <bem.AssetView__col m='owner'>
+        <bem.AssetView__label>
+          {t('owner')}
+        </bem.AssetView__label>
+        <bem.AssetView__span m='val'>
+          <bem.AssetView__span m='username'>
+            {this.state.owner__username}
+          </bem.AssetView__span>
+          <bem.AssetView__span m='can-view'>
+            { `${viewerCount} ${viewerCount === 1 ? t('viewer') : t('viewers')}` }
+          </bem.AssetView__span>
+          <bem.AssetView__span m='can-edit'>
+            { `${editorCount} ${editorCount === 1 ? t('editor') : t('editors')}` }
+          </bem.AssetView__span>
+        </bem.AssetView__span>
+      </bem.AssetView__col>
+    );
   },
   renderIsPublic () {
     var is_public = this.state.access.isPublic,
-        linkSharingM = `linksharing-${is_public ? 'on' : 'off'}`;
+        linkSharingM = ['status', `linksharing-${is_public ? 'on' : 'off'}`];
     return (
-        <bem.AssetView__inlibrary m={linkSharingM}>
-          <bem.AssetView__iconwrap><i /></bem.AssetView__iconwrap>
-          <bem.AssetView__col m={linkSharingM}>
-            {
-              is_public ? t('link sharing: on') : t('link sharing: off')
-            }
-          </bem.AssetView__col>
-        </bem.AssetView__inlibrary>
+      <bem.AssetView__col m={linkSharingM}>
+        <bem.AssetView__label>
+          {t('status')}
+        </bem.AssetView__label>
+        <bem.AssetView__span m='val'>
+          {
+            is_public ? t('public') : t('private')
+          }
+        </bem.AssetView__span>
+      </bem.AssetView__col>
       );
   },
   renderRowCount () {
     return (
-        <bem.AssetView__row>
-          <bem.AssetView__iconwrap><i /></bem.AssetView__iconwrap>
-          <bem.AssetView__key>
-            {t('number of questions')}:
-          </bem.AssetView__key>
-          <bem.AssetView__val>
-            {this.state.summary.row_count}
-          </bem.AssetView__val>
-        </bem.AssetView__row>
+      <bem.AssetView__col m='rowcount'>
+        <bem.AssetView__label>
+          {t('questions')}
+        </bem.AssetView__label>
+        <bem.AssetView__span m='val'>
+          {this.state.summary.row_count}
+        </bem.AssetView__span>
+      </bem.AssetView__col>
+      );
+  },
+  renderRevisions () {
+    return (
+      <bem.AssetView__col m='revisions'>
+        <bem.AssetView__label>
+          {t('revisions')}
+        </bem.AssetView__label>
+        <bem.AssetView__span m='val'>
+          {this.state.version_count}
+        </bem.AssetView__span>
+      </bem.AssetView__col>
+      );
+  },
+  renderDateCreated () {
+    return (
+      <bem.AssetView__col m='date-created'>
+        <bem.AssetView__label>
+          {t('created')}
+        </bem.AssetView__label>
+        <bem.AssetView__span m='val'>
+          {formatTime(this.state.date_created)}
+        </bem.AssetView__span>
+      </bem.AssetView__col>
+      );
+  },
+  renderDateModified () {
+    return (
+      <bem.AssetView__col m='date-modified'>
+        <bem.AssetView__label>
+          {t('modified')}
+        </bem.AssetView__label>
+        <bem.AssetView__span m='val'>
+          {formatTime(this.state.date_modified)}
+        </bem.AssetView__span>
+      </bem.AssetView__col>
       );
   },
   renderLanguages () {
+    var langCount = this.state.summary.languages.length;
+    if (langCount === 0) {
+      return (
+          <bem.AssetView__langs m={'none'}>
+            <bem.AssetView__label>
+              {t('no translations')}
+            </bem.AssetView__label>
+          </bem.AssetView__langs>
+        );
+    }
     return (
         <bem.AssetView__langs>
-          <bem.AssetView__iconwrap><i /></bem.AssetView__iconwrap>
-          <bem.AssetView__col m='languages'>
-            <bem.AssetView__label>
-              {t('languages') + ':'}
-            </bem.AssetView__label>
-            <bem.AssetView__value>
-              {this.state.summary.languages.length}
-            </bem.AssetView__value>
-            <bem.AssetView__colsubtext>
-              {this.state.summary.languages.join(', ')}
-            </bem.AssetView__colsubtext>
-          </bem.AssetView__col>
+          <bem.AssetView__label>
+            {t('languages') + ': '}
+          </bem.AssetView__label>
+          <bem.AssetView__value>
+            {this.state.summary.languages.length}
+          </bem.AssetView__value>
+          <bem.AssetView__colsubtext>
+            {this.state.summary.languages.join(', ')}
+          </bem.AssetView__colsubtext>
         </bem.AssetView__langs>
       );
   },
@@ -318,25 +361,24 @@ var dmix = {
       });
     }
   },
-  renderButtons () {
+  renderButtons ({deployable}) {
     var downloadable = !!this.state.downloads[0],
         downloads = this.state.downloads;
 
     return (
         <bem.AssetView__buttons>
-          <bem.AssetView__iconwrap><i /></bem.AssetView__iconwrap>
+          <bem.AssetView__buttoncol>
+            <bem.AssetView__link m='preview' href={this.makeHref('form-preview-enketo', {assetid: this.state.uid})}>
+              <i />
+              {t('preview')}
+            </bem.AssetView__link>
+          </bem.AssetView__buttoncol>
           <bem.AssetView__buttoncol>
             <bem.AssetView__link m={['edit', {
               disabled: !this.state.userCanEdit,
                 }]} href={this.makeHref('form-edit', {assetid: this.state.uid})}>
               <i />
               {t('edit')}
-            </bem.AssetView__link>
-          </bem.AssetView__buttoncol>
-          <bem.AssetView__buttoncol>
-            <bem.AssetView__link m='preview' href={this.makeHref('form-preview-enketo', {assetid: this.state.uid})}>
-              <i />
-              {t('preview')}
             </bem.AssetView__link>
           </bem.AssetView__buttoncol>
           <bem.AssetView__buttoncol
@@ -362,49 +404,117 @@ var dmix = {
             : null }
           </bem.AssetView__buttoncol>
           <bem.AssetView__buttoncol>
-            <Dropzone fileInput onDropFiles={this.onDrop}
-                  disabled={!this.state.userCanEdit}>
-              <bem.AssetView__button m={['update', {
-                disabled: !this.state.userCanEdit
-                  }]}>
-                <i />
-                {t('update')}
-              </bem.AssetView__button>
-            </Dropzone>
+            <bem.AssetView__link m='clone' onClick={this.saveCloneAs}>
+              <i />
+              {t('clone')}
+            </bem.AssetView__link>
           </bem.AssetView__buttoncol>
+          <bem.AssetView__buttoncol>
+            <bem.AssetView__link m='sharing' href={this.makeHref('form-sharing', {assetid: this.state.uid})}>
+              <i />
+              {t('share')}
+            </bem.AssetView__link>
+          </bem.AssetView__buttoncol>
+          { deployable ?
+          <bem.AssetView__buttoncol>
+            <bem.AssetView__button m={'deploy'}  onClick={this.deployAsset}>
+              <i />
+              {t('deploy')}
+            </bem.AssetView__button>
+          </bem.AssetView__buttoncol>
+          : null }
+
         </bem.AssetView__buttons>
       );
   },
-  deployAsset () {
-    var asset_url = this.state.url;
-    var settings = this.state.settings;
-    var defaultFormId = (settings && settings.form_id) || '';
-    var opts = {
+  saveCloneAs () {
+    customPromptAsync(t('new form name'))
+      .done((value) => {
+        let uid = this.props.params.assetid;
+        actions.resources.cloneAsset({
+          uid: uid,
+          name: value,
+        }, {
+          onComplete: (asset) => {
+            this.transitionTo('form-landing', {
+              assetid: asset.uid,
+            });
+          }
+        });
+      });
+  },
+  deployPrompt (asset_url, settings) {
+    let defaultFormId = (settings && settings.form_id) || '';
+    let dialog = alertify.dialog('prompt');
+    let opts = {
       title: t('deploy form to kobocat'),
       message: t('please specify a form id'),
       value: defaultFormId,
-      onok: (evt, val)=> {
-        actions.resources.deployAsset(asset_url, val);
+      labels: {ok: t('ok'), cancel: t('cancel')},
+      onok: (evt, val) => {
+        let ok_button = dialog.elements.buttons.primary.firstChild;
+        ok_button.disabled = true;
+        ok_button.innerText = t('Deploying...');
+        // pass the dialog so it can be modified to include error messages
+        actions.resources.deployAsset(asset_url, val, dialog);
+        // keep the dialog open
+        return false;
       },
-      oncancel: ()=> {}
+      oncancel: () => {
+        dialog.destroy();
+      }
     };
-    alertify.prompt(opts.title, opts.message, opts.value, opts.onok, opts.oncancel);
+    dialog.set(opts).show();
+  },
+  deployAsset () {
+    let asset_url = this.state.url;
+    let settings = this.state.settings;
+    dmix.deployPrompt(asset_url, settings);
+  },
+  deleteAsset (...args) {
+    let uid = this.props.params.assetid;
+    let aType = this.state.asset_type;
+    let q_ = t('You are about to permanently delete this ___. Are you sure you want to continue?')
+                .replace('___', t(aType));
+    customConfirmAsync(q_)
+      .done(() => {
+        actions.resources.deleteAsset({uid: uid}, {
+          onComplete: ()=> {
+            this.transitionTo(aType === 'survey' ? 'forms' : 'library');
+          }
+        });
+      });
   },
   renderDeployments () {
     return (
-        <bem.AssetView__row>
+        <bem.AssetView__row m='secondary-buttons'>
+          <bem.AssetView__buttoncol m='first'></bem.AssetView__buttoncol>
+          <bem.AssetView__buttoncol>
+            <Dropzone fileInput onDropFiles={this.onDrop}
+                  disabled={!this.state.userCanEdit}>
+              <bem.AssetView__button m={['refresh', {
+                disabled: !this.state.userCanEdit
+                  }]}>
+                <i />
+                {t('refresh')}
+              </bem.AssetView__button>
+            </Dropzone>
+          </bem.AssetView__buttoncol>
+          <bem.AssetView__buttoncol m='third'></bem.AssetView__buttoncol>
+          <bem.AssetView__buttoncol m='fourth'></bem.AssetView__buttoncol>
+          <bem.AssetView__buttoncol>
+            <bem.AssetView__button m='delete' onClick={this.deleteAsset}>
+              <i />
+              {t('delete')}
+            </bem.AssetView__button>
+          </bem.AssetView__buttoncol>
           <bem.AssetView__deployments>
-            <i />
             {
               this.state.deployment_count ?
                 `${t('deployments')}: ${this.state.deployment_count}`
                 :
                 t('no deployments')
             }
-            <bem.AssetView__deploybutton onClick={this.deployAsset}>
-              {t('deploy')}
-              <i />
-            </bem.AssetView__deploybutton>
           </bem.AssetView__deployments>
         </bem.AssetView__row>
       );
@@ -501,6 +611,22 @@ var dmix = {
       asset = data[uid];
     if (asset) {
       if (!this.extended_by_asset_type) {
+        let isLibrary = asset.asset_type !== 'survey';
+
+        stores.pageState.setHeaderBreadcrumb([
+          {
+            label: isLibrary ? t('library') : t('forms'),
+            to: isLibrary ? 'library' : 'forms',
+          },
+          {
+            label: t(`view-${asset.asset_type}`),
+            to: 'form-landing',
+            params: {
+              assetid: asset.uid,
+            }
+          }
+        ]);
+
         var _mx = dmix.assetTypeRenderers[asset.asset_type];
         if ('asset_type' in asset && _mx) {
           assign(this, _mx, {
@@ -638,12 +764,8 @@ mixins.ancestorBreadcrumb = {
 
 mixins.collectionList = {
   getInitialState () {
-    return {
-      collectionList: [],
-      collectionSearchState: 'none',
-      collectionCount: 0,
-      collectionStore: stores.collections,
-    };
+    // initial state is a copy of "stores.collections.initialState"
+    return assign({}, stores.collections.initialState);
   },
   listCollections () {
     actions.resources.listCollections();
@@ -824,9 +946,10 @@ mixins.clickAssets = {
       },
       delete: function(uid/*, evt*/){
         var q_ = t('Warning! You are about to delete this collection with all its questions and blocks. Are you sure you want to continue?');
-        if (customConfirm(q_)) {
-          actions.resources.deleteCollection({uid: uid});
-        }
+        customConfirmAsync(q_)
+          .done(function(){
+            actions.resources.deleteCollection({uid: uid});
+          });
       },
     },
     asset: {
@@ -837,32 +960,31 @@ mixins.clickAssets = {
         this.transitionTo('form-landing', {assetid: uid});
       },
       clone: function(uid/*, evt*/){
-        actions.resources.cloneAsset({uid: uid});
+        customPromptAsync(t('new name?'))
+          .done((value) => {
+            actions.resources.cloneAsset({
+              uid: uid,
+              name: value,
+            }, {
+              onComplete: (asset) => {
+                this.refreshSearch && this.refreshSearch();
+              }
+            });
+          });
       },
       download: function(uid/*, evt*/){
         this.transitionTo('form-download', {assetid: uid});
       },
       delete: function(uid/*, evt*/){
         var q_ = t('You are about to permanently delete this form. Are you sure you want to continue?');
-        if (customConfirm(q_)) {
-          actions.resources.deleteAsset({uid: uid});
-        }
+        customConfirmAsync(q_)
+          .done(function(){
+            actions.resources.deleteAsset({uid: uid});
+          });
       },
       deploy: function(/*uid, evt*/){
-        var asset = stores.selectedAsset.asset,
-            asset_url = asset.url,
-            defaultFormId = asset.settings && asset.settings.form_id;
-
-        var opts = {
-          title: t('deploy form to kobocat'),
-          message: t('please specify a form id'),
-          value: defaultFormId,
-          onok: (_evt, val)=> {
-            actions.resources.deployAsset(asset_url, val);
-          },
-          oncancel: ()=> {},
-        };
-        alertify.prompt(opts.title, opts.message, opts.value, opts.onok, opts.oncancel);
+        let asset = stores.selectedAsset.asset;
+        dmix.deployPrompt(asset.url, asset.settings);
       },
     }
   },

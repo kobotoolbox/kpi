@@ -306,27 +306,72 @@ actions.resources.updateAsset.listen(function(uid, values){
     .fail(actions.resources.updateAsset.failed);
 });
 
-actions.resources.deployAsset.listen(function(uid, form_id_string){
+actions.resources.deployAsset.listen(function(uid, form_id_string, dialog){
   dataInterface.deployAsset(uid, form_id_string)
-    .done(actions.resources.deployAsset.completed)
-    .fail(actions.resources.deployAsset.failed);
+    .done((data) => {
+      actions.resources.deployAsset.completed(data, dialog);
+    })
+    .fail((data) => {
+      actions.resources.deployAsset.failed(data, dialog);
+    });
 });
 
-actions.resources.deployAsset.completed.listen(function(data){
-  // todo: provide a more informative notification
-  console.log('deployed form data: ', data);
-
-  let xform_url = data.xform_url;
+actions.resources.deployAsset.completed.listen(function(data, dialog){
+  // close the dialog.
+  // (this was sometimes failing. possibly dialog already destroyed?)
+  if(dialog && typeof dialog.destroy === 'function') {
+    dialog.destroy();
+  }
+  // notify and redirect
   notify(t('deployed form'));
   window.setTimeout(function(){
-    redirectTo(xform_url);
+    redirectTo(data.xform_url);
   }, 1000);
 });
 
-actions.resources.deployAsset.failed.listen(function(data){
-  // todo: provide a more informative error
-  console.error('undeployed response: ', data);
-  notify(t('there was a problem deploying the form'));
+actions.resources.deployAsset.failed.listen(function(data, dialog){
+  let dialogSettings = {
+    title: t('unable to deploy'),
+  };
+  let dialogContent = false;
+
+  let ok_button_text = t('ok');
+  let ok_button_remove = false;
+
+  if(!data.responseJSON || (!data.responseJSON.xform_id_string &&
+                            !data.responseJSON.detail)) {
+    // failed to retrieve a valid response from the server
+    // setContent() removes the input box, but the value is retained
+    dialogContent = `
+      <p>${t('please check your connection and try again.')}</p>
+      <p>${t('if this problem persists, contact support@kobotoolbox.org')}</p>
+    `;
+    ok_button_text = t('retry');
+  } else if(!!data.responseJSON.xform_id_string){
+    dialogSettings.message = `
+      <p>${t('your form id was not valid:')}</p>
+      <p><code>${data.responseJSON.xform_id_string}</code></p>
+      <p>${t('please specify a different form id:')}</p>
+    `;
+  } else if(!!data.responseJSON.detail) {
+    dialogContent = `
+      <p>${t('your form cannot be deployed because it contains errors:')}</p>
+      <p><code>${data.responseJSON.detail}</code></p>
+    `;
+    ok_button_remove = true;
+  }
+  dialog.set(dialogSettings);
+  if (dialogContent) {
+    dialog.setContent(dialogContent);
+  }
+
+  let ok_button = dialog.elements.buttons.primary.firstChild;
+  if (ok_button_remove) {
+    ok_button.remove();
+  } else {
+    ok_button.innerText = ok_button_text;
+    ok_button.disabled = false;
+  }
 });
 
 actions.resources.createResource.listen(function(details){
@@ -335,10 +380,17 @@ actions.resources.createResource.listen(function(details){
     .fail(actions.resources.createResource.failed);
 });
 
-actions.resources.deleteAsset.listen(function(details){
+actions.resources.deleteAsset.listen(function(details, params={}){
+  var onComplete;
+  if (params && params.onComplete) {
+    onComplete = params.onComplete;
+  }
   dataInterface.deleteAsset(details)
     .done(function(/*result*/){
       actions.resources.deleteAsset.completed(details);
+      if (onComplete) {
+        onComplete(details);
+      }
     })
     .fail(actions.resources.deleteAsset.failed);
 });
@@ -358,11 +410,14 @@ actions.resources.deleteCollection.listen(function(details){
     .fail(actions.resources.deleteCollection.failed);
 });
 
-actions.resources.cloneAsset.listen(function(details){
+actions.resources.cloneAsset.listen(function(details, opts={}){
   dataInterface.cloneAsset(details)
     .done(function(...args){
       actions.resources.createAsset.completed(...args);
       actions.resources.cloneAsset.completed(...args);
+      if (opts.onComplete) {
+        opts.onComplete(...args);
+      }
     })
     .fail(actions.resources.cloneAsset.failed);
 });

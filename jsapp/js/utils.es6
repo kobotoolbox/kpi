@@ -1,5 +1,7 @@
 import moment from 'moment';
 import alertify from 'alertifyjs';
+import $ from 'jquery';
+import translations from './translations.json';
 
 export var assign = require('react/lib/Object.assign');
 
@@ -25,6 +27,28 @@ export function surveyToValidJson(survey, omitSettings=false) {
     delete surveyDict.settings;
   }
   return JSON.stringify(surveyDict);
+}
+
+export function customPromptAsync(msg) {
+  var dfd = new $.Deferred();
+  window.setTimeout(function(){
+    var val = window.prompt(msg);
+    if (val === null) {
+      dfd.reject();
+    } else {
+      dfd.resolve(val);
+    }
+  }, 0);
+  return dfd;
+}
+
+export function customConfirmAsync(msg) {
+  var dfd = new $.Deferred();
+  window.setTimeout(function(){
+    var tf = window.confirm(msg);
+    dfd[ tf ? 'resolve' : 'reject' ](tf);
+  }, 0);
+  return dfd.promise();
 }
 
 export function customConfirm(msg) {
@@ -88,16 +112,31 @@ window.log = log;
 
 
 var __strings = [];
-// t will start out as a placeholder for a translation method
-export var t = function (str) {
+
+var currentLang = "en_US";
+
+export function t(str) {
+  if (translations[currentLang][str]) {
+    return translations[currentLang][str];
+  }
   if (__strings.indexOf(str) === -1) {
     __strings.push(str);
   }
   return str;
 };
 
+export function changeLang(langCode) {
+  if (langCode in translations) {
+    currentLang = langCode;
+  } else {
+    throw new Error(`language '${langCode}' not found in translations.json`);
+  }
+}
+
 log.t = function () {
-  console.log(JSON.stringify(__strings, null, 4));
+  let _t = {};
+  __strings.forEach(function(str){ _t[str] = str; })
+  console.log(JSON.stringify(_t, null, 4));
 };
 
 // unique id for forms with inputs and labels

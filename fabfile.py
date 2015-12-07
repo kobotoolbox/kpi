@@ -74,11 +74,10 @@ def deploy_ref(deployment_name, ref):
         run("pip install -r %s" % env.pip_requirements_file)
 
     with cd(env.kpi_path):
-        run("bower install")
-        run("npm install")
-        run("grunt buildall")
-
         with kobo_workon(env.kpi_virtualenv_name):
+            run("bower install")
+            run("npm install")
+            run("grunt buildall")
             # KPI and KF share a virtualenv but have distinct settings modules
             with prefix('DJANGO_SETTINGS_MODULE=kobo_playground.settings'):
                 run("python manage.py syncdb")
