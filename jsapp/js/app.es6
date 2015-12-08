@@ -222,7 +222,7 @@ mixins.formView = {
     window.setTimeout(()=>{
       // This is not the right place to do this. But the downside is a small flicker.
       // Fix when react / reflux enlightenment is reached.
-      if (!this._breadcrumbSet) {
+      if (!this._breadcrumbSet && this.state.asset) {
         this.whenAssetLoadedSetBreadcrumb();
         this._breadcrumbSet = true;
       }
