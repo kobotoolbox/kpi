@@ -2187,6 +2187,7 @@ var FormPage = React.createClass({
         _pendingName: false,
       });
       actions.resources.updateAsset.completed(asset);
+      this.unpreventClosingTab();
     }).fail((/*jqxhr*/) => {
       actions.resources.updateAsset.failed(asset);
     });
@@ -2205,8 +2206,10 @@ var FormPage = React.createClass({
   groupQuestions () {
     this.app.groupSelectedRows();
   },
-
   onSurveyChange () {
+    if (!this.state.asset_updated !== update_states.UNSAVED_CHANGES) {
+      this.preventClosingTab();
+    }
     this.setState({
       asset_updated: update_states.UNSAVED_CHANGES
     });
@@ -2405,6 +2408,15 @@ var FormPage = React.createClass({
     if (this.state.survey) {
       this.state.survey.off('change');
     }
+    this.unpreventClosingTab();
+  },
+  preventClosingTab () {
+    $(window).on('beforeunload.noclosetab', function(){
+      return t('you have unsaved changes');
+    });
+  },
+  unpreventClosingTab () {
+    $(window).off('beforeunload.noclosetab');
   },
   surveyStateChanged (state) {
     this.setState(state);
