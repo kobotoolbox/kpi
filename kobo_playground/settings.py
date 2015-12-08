@@ -112,6 +112,12 @@ ALLOWED_ANONYMOUS_PERMISSIONS = (
 DATABASES = {
     'default': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
 }
+# This project does not use GIS (yet). Change the database engine accordingly
+# to avoid unnecessary dependencies.
+for db in DATABASES.values():
+    if db['ENGINE'] == 'django.contrib.gis.db.backends.postgis':
+        db['ENGINE'] = 'django.db.backends.postgresql_psycopg2'
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
@@ -184,10 +190,14 @@ DKOBO_PREFIX = os.environ.get('DKOBO_PREFIX', 'False')
 DKOBO_PREFIX = False if DKOBO_PREFIX.lower() == 'false' else DKOBO_PREFIX
 
 ''' Haystack search settings '''
+WHOOSH_PATH = os.path.join(
+    os.environ.get('KPI_WHOOSH_DIR', os.path.dirname(__file__)),
+    'whoosh_index'
+)
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
-        'PATH': os.path.join(os.path.dirname(__file__), 'whoosh_index'),
+        'PATH': WHOOSH_PATH,
     },
 }
 # If this causes performance trouble, see
