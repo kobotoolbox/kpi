@@ -33,9 +33,7 @@ if 'CSRF_COOKIE_DOMAIN' in os.environ:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = (os.environ.get('DJANGO_DEBUG', 'True') == 'True')
 
-ALLOWED_HOSTS = []
-if 'DJANGO_ALLOWED_HOSTS' in os.environ:
-    ALLOWED_HOSTS.append(os.environ['DJANGO_ALLOWED_HOSTS'])
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(' ')
 
 LOGIN_REDIRECT_URL = '/'
 
