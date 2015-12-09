@@ -3,3 +3,4 @@ python-dev
 python-pip
 libpq-dev
 npm
+default-jre-headless
