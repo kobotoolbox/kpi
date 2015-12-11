@@ -4,6 +4,27 @@
   }
 }
 
+/*
+http://codepen.io/adamaoc/pen/KguLA
+ */
+.form-header {
+  &__row {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: row;
+    -moz-flex-direction: row;
+    flex-direction: row;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+  }
+  &__button {
+    flex-grow: 1;
+  }
+}
+
 .form-header__button {
   @extend .mdl-button, .mdl-button--raised, .mdl-js-button;
 

@@ -301,9 +301,16 @@ actions.resources.listTags.completed.listen(function(results){
 });
 
 actions.resources.updateAsset.listen(function(uid, values){
-  dataInterface.patchAsset(uid, values)
-    .done(actions.resources.updateAsset.completed)
-    .fail(actions.resources.updateAsset.failed);
+  return new Promise(function(resolve, reject){
+    dataInterface.patchAsset(uid, values)
+      .done(function(asset){
+        actions.resources.updateAsset.completed(asset);
+        resolve(asset);
+      })
+      .fail(function(...args){
+        reject(args)
+      });
+  })
 });
 
 actions.resources.deployAsset.listen(function(uid, form_id_string, dialog){
@@ -375,9 +382,17 @@ actions.resources.deployAsset.failed.listen(function(data, dialog){
 });
 
 actions.resources.createResource.listen(function(details){
-  dataInterface.createResource(details)
-    .done(actions.resources.createResource.completed)
-    .fail(actions.resources.createResource.failed);
+  return new Promise(function(resolve, reject){
+    dataInterface.createResource(details)
+      .done(function(asset){
+        actions.resources.createResource.completed(asset);
+        resolve(asset);
+      })
+      .fail(function(...args){
+        actions.resources.createResource.failed(...args)
+        reject(args);
+      });
+  });
 });
 
 actions.resources.deleteAsset.listen(function(details, params={}){
