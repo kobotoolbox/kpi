@@ -1,9 +1,3 @@
-/*
-TODO:
-* fix breadcrumbs
-* show-all-responses button
-*/
-
 import React from 'react/addons';
 import $ from 'jquery';
 import mdl from '../libs/rest_framework/material';
@@ -194,23 +188,31 @@ export default {
     };
   },
   componentDidMount() {
-    let isLibrary = this.isLibrary();
+    document.querySelector('.page-wrapper__content').addEventListener('scroll', this.handleScroll);
+    this.listenTo(stores.surveyState, this.surveyStateChanged);
+    this.setBreadcrumb();
+  },
+  setBreadcrumb (params={}) {
+    let isLibrary;
+    if (params.asset_type) {
+      isLibrary = params.asset_type !== 'survey';
+    } else {
+      this.isLibrary();
+    }
     let bcData = [
       {
         'label': isLibrary ? t('library') : t('forms'),
         'to': isLibrary ? 'library' : 'forms',
       }
     ];
-
     if (this.editorState === 'new') {
       bcData.push({
         label: t('new'),
         to: isLibrary ? 'add-to-library' : 'new-form',
       });
     } else {
-      let uid = this.state.asset_uid || this.props.params.assetid,
-          asset_type = this.state.asset_type || 'unk';
-
+      let uid = params.asset_uid || this.state.asset_uid || this.props.params.assetid,
+          asset_type = params.asset_type || this.state.asset_type || 'asset';
       bcData.push({
         label: t(`view-${asset_type}`),
         to: 'form-landing',
@@ -225,8 +227,6 @@ export default {
 
     stores.pageState.setHeaderBreadcrumb(bcData);
 
-    document.querySelector('.page-wrapper__content').addEventListener('scroll', this.handleScroll);
-    this.listenTo(stores.surveyState, this.surveyStateChanged);
   },
   componentWillUnmount () {
     document.querySelector('.page-wrapper__content').removeEventListener('scroll', this.handleScroll);
@@ -243,7 +243,7 @@ export default {
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
       stores.pageState.setAssetNavPresent(true);
-      if (params.assetid[0] === 'c') {
+      if (params.assetid && params.assetid[0] === 'c') {
         transition.redirect('collection-page', {uid: params.assetid});
       } else {
         callback();
@@ -290,14 +290,20 @@ export default {
   groupQuestions () {
     this.app.groupSelectedRows();
   },
-  showAll () {
+  showAll (evt) {
+    evt.preventDefault();
+    evt.currentTarget.blur();
     this.app.expandMultioptions();
   },
   needsSave () {
     return this.state.asset_updated === update_states.UNSAVED_CHANGES;
   },
   isLibrary () {
-    return this.context.router.getCurrentPath().match(/library/)
+    if (this.state.asset_type) {
+      return this.state.asset_type !== 'survey';
+    } else {
+      return this.context.router.getCurrentPath().match(/library/);
+    }
   },
   previewForm (evt) {
     if (evt && evt.preventDefault) {
@@ -388,7 +394,15 @@ export default {
       }
       ooo.groupable = !!this.state.groupButtonIsActive;
       ooo.showAllOpen = !!this.state.multioptionsExpanded;
-      ooo.showAllAvailable = true; // todo: only true if survey has select questions
+      ooo.showAllAvailable = (() => {
+        var hasSelect = false;
+        this.app.survey.forEachRow(function(row){
+          if (row._isSelectQuestion()) {
+            hasSelect = true;
+          }
+        });
+        return hasSelect;
+      })(); // todo: only true if survey has select questions
       ooo.name = this.state.name;
       ooo.hasSettings = !this.isLibrary();
       ooo.styleValue = this.state.settings__style;
@@ -443,20 +457,23 @@ export default {
               <i />
               {t('preview')}
             </bem.FormHeader__button>
-            <bem.FormHeader__button m={['show-all', {
-                  open: showAllOpen,
-                  available: showAllAvailable,
-                }]} onClick={this.showAll}>
-              <i />
-              {t('show all responses')}
-            </bem.FormHeader__button>
-            <bem.FormHeader__button m={['group', {
-                  groupable: groupable
-                }]} onClick={this.groupQuestions}
-                disabled={!groupable}>
-              <i />
-              {t('group questions')}
-            </bem.FormHeader__button>
+            { showAllAvailable ?
+              <bem.FormHeader__button m={['show-all', {
+                    open: showAllOpen,
+                  }]} onClick={this.showAll}>
+                <i />
+                {t('show all responses')}
+              </bem.FormHeader__button>
+            : null }
+            { groupable ?
+              <bem.FormHeader__button m={['group', {
+                    groupable: groupable
+                  }]} onClick={this.groupQuestions}
+                  disabled={!groupable}>
+                <i />
+                {t('group questions')}
+              </bem.FormHeader__button>
+            : null }
             { hasSettings ?
               <bem.FormHeader__button m={{
                 formstyle: true,
@@ -528,6 +545,10 @@ export default {
       name: optionalParams.name,
       savedName: optionalParams.name,
       settings__style: optionalParams.settings__style,
+      asset_uid: optionalParams.asset_uid,
+      asset_type: optionalParams.asset_type,
+    });
+    this.setBreadcrumb({
       asset_uid: optionalParams.asset_uid,
       asset_type: optionalParams.asset_type,
     });
