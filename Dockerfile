@@ -1,4 +1,4 @@
-FROM ubuntu:trusty
+FROM teodorescuserban/kobo-base-kobos:latest
 
 ENV KPI_SRC_DIR=/srv/src/kpi \
     KPI_LOGS_DIR=/srv/logs \
@@ -7,21 +7,12 @@ ENV KPI_SRC_DIR=/srv/src/kpi \
 # be copied there.
 ENV NGINX_STATIC_DIR=/srv/static
 
-#########################
-# Install apt packages. #
-#########################
-
-COPY ./apt_packages.txt ${KPI_SRC_DIR}/
-WORKDIR ${KPI_SRC_DIR}/
-RUN apt-get update && \
-    apt-get install -qy $(cat apt_packages.txt)
-RUN ln -s $(echo `which nodejs`) $(echo `dirname $(which nodejs)`/node)
-
 
 #########################
 # Install pip packages. #
 #########################
 #FIXME
+WORKDIR ${KPI_SRC_DIR}/
 RUN apt-get install -y git-core
 COPY ./requirements.txt ${KPI_SRC_DIR}/
 RUN pip install -r requirements.txt
