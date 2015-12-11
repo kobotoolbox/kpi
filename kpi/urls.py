@@ -20,6 +20,7 @@ from kpi.views import (
 from kpi.views import current_user, home
 from kpi.views import authorized_application_authenticate_user
 from kpi.forms import RegistrationForm
+from hub.views import switch_builder
 
 router = DefaultRouter()
 router.register(r'assets', AssetViewSet)
@@ -51,4 +52,5 @@ urlpatterns = [
         r'^authorized-application/authenticate-user/$',
         authorized_application_authenticate_user
     ),
+    url(r'^hub/switch_builder$', switch_builder, name='toggle-preferred-builder'),
 ]
