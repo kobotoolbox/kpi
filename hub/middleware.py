@@ -1,6 +1,7 @@
 from django.http import HttpResponseRedirect
 from django.conf import settings
 from models import FormBuilderPreference
+from hub.views import switch_builder
 
 class OtherFormBuilderRedirectMiddleware(object):
     '''
@@ -33,6 +34,12 @@ class OtherFormBuilderRedirectMiddleware(object):
         ''' Using process_view instead of process_request allows the resolver
         to run and return 404 when appropriate, instead of blindly returning
         302 for all requests '''
+        if view_func is switch_builder:
+            # Never redirect the view that changes form builder preference
+            return
+        if request.path_info.startswith('/admin/'):
+            # Never redirect the admin interface
+            return
         preferred_builder = self.THIS_BUILDER
         if not settings.KPI_PREFIX or not settings.DKOBO_PREFIX \
                 or request.user.is_anonymous():
