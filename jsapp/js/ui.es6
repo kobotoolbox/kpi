@@ -18,8 +18,12 @@ ui.SmallInputBox = React.createClass({
   render () {
     var elemId = _.uniqueId('elem');
     var value = this.props.value;
+    var mdlKls = 'mdl-textfield mdl-js-textfield mdl-textfield--full-width';
+    if (value) {
+      mdlKls += ' is-dirty';
+    }
     return (
-        <div className="mdl-textfield mdl-js-textfield mdl-textfield--full-width">
+        <div className={mdlKls}>
           <input type="text" ref='inp' className="mdl-textfield__input" value={value}
               onKeyUp={this.props.onKeyUp} onChange={this.props.onChange} id={elemId} />
           <label className="mdl-textfield__label" htmlFor={elemId} >{this.props.placeholder}</label>

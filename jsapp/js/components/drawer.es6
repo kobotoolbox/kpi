@@ -2,6 +2,7 @@ import React from 'react/addons';
 import Reflux from 'reflux';
 import {Link} from 'react-router';
 
+import {dataInterface} from '../dataInterface';
 import actions from '../actions';
 import stores from '../stores';
 import bem from '../bem';
@@ -101,6 +102,7 @@ var Drawer = React.createClass({
               { this.state.isLoggedIn ?
                 <div>
                   <DrawerLink label={t('settings')} href={stores.session.currentAccount.projects_url + 'settings'} fa-icon='user' />
+                  <DrawerLink label={t('leave beta')} href={`${dataInterface.rootUrl}/hub/switch_builder`} fa-icon='circle-o' />
                   <DrawerLink label={t('logout')} onClick={this.logout} fa-icon='sign-out' />
                 </div>
               :
