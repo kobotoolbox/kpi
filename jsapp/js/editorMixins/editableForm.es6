@@ -300,9 +300,9 @@ export default {
   },
   isLibrary () {
     if (this.state.asset_type) {
-      return this.state.asset_type !== 'survey';
+      return !!this.state.asset_type !== 'survey';
     } else {
-      return this.context.router.getCurrentPath().match(/library/);
+      return !!this.context.router.getCurrentPath().match(/library/);
     }
   },
   previewForm (evt) {
@@ -340,7 +340,7 @@ export default {
       this.app.survey.settings.set('style', this.state.settings__style);
     }
     var params = {
-      content: surveyToValidJson(this.app.survey),
+      content: surveyToValidJson(this.app.survey, this.isLibrary()),
     };
     if (this.state.name) {
       params.name = this.state.name;
