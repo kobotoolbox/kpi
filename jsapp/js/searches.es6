@@ -225,7 +225,7 @@ function SearchContext(opts={}) {
     }
   });
   search.refresh.listen(function(){
-    searchDataInterface.assets(latestSearchData.qData)
+    searchDataInterface.assets(latestSearchData.params)
       .done(function(data){
         search.completed(latestSearchData.dataObject, data, {
           cacheAsDefaultSearch: false,
