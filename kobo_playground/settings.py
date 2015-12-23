@@ -193,11 +193,11 @@ HAYSTACK_CONNECTIONS = {
 # http://django-haystack.readthedocs.org/en/latest/best_practices.html#use-of-a-queue-for-a-better-user-experience
 HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 
-''' Enketo settings copied from dkobo '''
+# Enketo settings copied from dkobo.
 ENKETO_SERVER = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
 ENKETO_VERSION= os.environ.get('ENKETO_VERSION', 'Legacy').lower()
 assert ENKETO_VERSION in ['legacy', 'express']
-ENKETO_PREVIEW_URI = os.environ.get('ENKETO_PREVIEW_URI') or 'webform/preview' if ENKETO_VERSION == 'legacy' else '/preview'
+ENKETO_PREVIEW_URI = 'webform/preview' if ENKETO_VERSION == 'legacy' else '/preview'
 # The number of hours to keep a kobo survey preview (generated for enketo)
 # around before purging it.
 KOBO_SURVEY_PREVIEW_EXPIRATION = os.environ.get('KOBO_SURVEY_PREVIEW_EXPIRATION', 24)
