@@ -293,7 +293,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
 class AuthorizedApplicationUserViewSet(mixins.CreateModelMixin,
                                        viewsets.GenericViewSet):
-    authentication_classes = [ApplicationTokenAuthentication] 
+    authentication_classes = [ApplicationTokenAuthentication]
     queryset = User.objects.all()
     serializer_class = CreateUserSerializer
     lookup_field = 'username'
@@ -384,6 +384,7 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
                 'status': ImportTask.PROCESSING
             }, status.HTTP_201_CREATED)
 
+
 class AssetSnapshotViewSet(NoUpdateModelViewSet):
     serializer_class = AssetSnapshotSerializer
     lookup_field = 'uid'
@@ -395,9 +396,13 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
     ]
 
     def get_queryset(self):
-        # The XML renderer IGNORES this and serves anyone, so
-        # /asset_snapshot/valid_uid/.xml is world-readable, even though
-        # /asset_snapshot/valid_uid/ requires ownership
+        if (self.action == 'retrieve' and
+                self.request.accepted_renderer.format == 'xml'):
+            # The XML renderer is totally public and serves anyone, so
+            # /asset_snapshot/valid_uid/.xml is world-readable, even though
+            # /asset_snapshot/valid_uid/ requires ownership
+            return AssetSnapshot.objects.all()
+
         user = self.request.user
         if not user.is_anonymous():
             return AssetSnapshot.objects.filter(owner=user)
