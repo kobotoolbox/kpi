@@ -31,6 +31,7 @@ class AssetsListApiTests(APITestCase):
         url = reverse('asset-list')
         data = {
             'content': json.dumps({}),
+            'asset_type': 'empty',
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED,
@@ -45,7 +46,7 @@ class AssetsDetailApiTests(APITestCase):
     def setUp(self):
         self.client.login(username='admin', password='pass')
         url = reverse('asset-list')
-        data = {'content': '{}'}
+        data = {'content': '{}', 'asset_type': 'empty'}
         self.r = self.client.post(url, data, format='json')
         self.asset_url = self.r.data['url']
         self.assertEqual(self.r.status_code, status.HTTP_201_CREATED)

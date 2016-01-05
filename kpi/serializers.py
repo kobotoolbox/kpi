@@ -23,6 +23,7 @@ from .models import CollectionChildrenQuerySet
 from .models import ImportTask
 from .models import ObjectPermission
 from .models.object_permission import get_anonymous_user
+from .models.asset import ASSET_TYPES
 from .models import TagUid
 from .forms import USERNAME_REGEX, USERNAME_MAX_LENGTH
 from .forms import USERNAME_INVALID_MESSAGE
@@ -358,7 +359,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     owner__username = serializers.ReadOnlyField(source='owner.username')
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid', view_name='asset-detail')
-    asset_type = serializers.ReadOnlyField()
+    asset_type = serializers.ChoiceField(choices=ASSET_TYPES)
     settings = WritableJSONField(required=False, allow_blank=True)
     content = WritableJSONField(required=False)
     xls_link = serializers.SerializerMethodField()

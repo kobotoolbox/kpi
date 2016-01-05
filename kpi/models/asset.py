@@ -176,22 +176,16 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
 
     def _populate_summary(self):
         if self.content is None:
-            self.asset_type = 'empty'
             self.content = {}
             self.summary = {}
             return
         analyzer = AssetContentAnalyzer(**self.content)
-        self.asset_type = analyzer.asset_type
         self.summary = analyzer.summary
 
     def _generate_uid(self):
         return 'a' + ShortUUID().random(ASSET_UID_LENGTH -1)
 
     def save(self, *args, **kwargs):
-        # don't save settings if a previous save has already classified this asset as
-        # question_type= question or block
-        if self.asset_type in ['question', 'block'] and 'settings' in self.content:
-            del self.content['settings']
         # populate summary and uid
         if self.content is not None:
             if self.content.has_key('survey'):
