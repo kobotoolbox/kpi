@@ -15,10 +15,13 @@ def switch_builder(request):
 
     if 'beta' in request.GET:
         beta_val = request.GET.get('beta') == '1'
-        (pref, created) = FormBuilderPreference.objects.get_or_create(user=request.user)
-        pref.preferred_builder = 'K' if beta_val else 'D'
+        (pref, created) = FormBuilderPreference.objects.get_or_create(
+            user=request.user)
+        pref.preferred_builder = FormBuilderPreference.KPI if beta_val \
+            else FormBuilderPreference.DKOBO
         pref.save()
     if 'migrate' in request.GET:
-        call_command('import_survey_drafts_from_dkobo', username=request.user.username)
+        call_command(
+            'import_survey_drafts_from_dkobo', username=request.user.username)
 
     return HttpResponseRedirect('/')
