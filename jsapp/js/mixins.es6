@@ -695,8 +695,14 @@ mixins.droppable = {
             } else {
               this.transitionTo('form-landing', {assetid: assetUid});
             }
+          } else if (importData.status === 'processing') {
+            alertify.warning(t('import processing...'));
+          } else if (importData.status === 'created') {
+            alertify.warning(t('import pending...'));
+          } else if (importData.status === 'error')  {
+            alertify.error(t(`<strong>import error</strong><br><code><strong>${importData.messages.error_type}</strong><br>${importData.messages.error}</code>`));
           } else {
-            alertify.error(t('import not complete'));
+            alertify.error(t('import failure'));
           }
         }).fail((failData)=>{
           alertify.error(t('import failed'));
