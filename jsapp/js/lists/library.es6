@@ -41,6 +41,7 @@ var LibrarySearchableList = React.createClass({
   componentDidMount () {
     this.searchDefault();
   },
+  /*
   dropAction ({file, event}) {
     actions.resources.createAsset({
       base64Encoded: event.target.result,
@@ -49,6 +50,7 @@ var LibrarySearchableList = React.createClass({
       contentType: file.type
     });
   },
+  */
   getInitialState () {
     return {
       searchContext: searches.getSearchContext('library', {

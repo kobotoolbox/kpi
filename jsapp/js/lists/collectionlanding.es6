@@ -73,6 +73,7 @@ var CollectionLanding = React.createClass({
       callback();
     }
   },
+  /*
   dropAction ({file, event}) {
     actions.resources.createImport({
       base64Encoded: event.target.result,
@@ -82,6 +83,7 @@ var CollectionLanding = React.createClass({
       contentType: file.type
     });
   },
+  */
   componentDidMount () {
     this.sendCollectionNameChange = _.debounce(this._sendCollectionNameChange, 2500);
     mdl.upgradeDom();

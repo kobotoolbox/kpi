@@ -340,7 +340,7 @@ export default {
       this.app.survey.settings.set('style', this.state.settings__style);
     }
     var params = {
-      content: surveyToValidJson(this.app.survey, this.isLibrary()),
+      content: surveyToValidJson(this.app.survey),
       asset_type: this.isLibrary() ? 'block' : 'survey',
     };
     if (this.state.name) {
