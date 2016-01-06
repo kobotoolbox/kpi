@@ -48,6 +48,54 @@ class CreateAssetVersions(AssetsTestCase):
         anon_asset = Asset.objects.create(content=self.asset.content)
         self.assertEqual(anon_asset.owner, None)
 
+
+class AssetSettingsTests(AssetsTestCase):
+    def _content(self, form_title='some form title'):
+        return {
+            'survey': [
+                {'type': 'text', 'label': 'Question 1',
+                 'name': 'q1', 'kuid': 'abc'},
+            ],
+            # settingslist
+            'settings': [
+                {'form_title': form_title,
+                 'id_string': 'some_idstring'},
+            ]
+        }
+
+    def test_blocks_strip_settings(self):
+        a1 = Asset.objects.create(content=self._content(), owner=self.user,
+                                  asset_type='block')
+        self.assertTrue('settings' not in a1.content)
+
+    def test_questions_strip_settings(self):
+        a1 = Asset.objects.create(content=self._content(), owner=self.user,
+                                  asset_type='question')
+        self.assertTrue('settings' not in a1.content)
+
+    def test_surveys_retain_settings(self):
+        a1 = Asset.objects.create(content=self._content(), owner=self.user,
+                                  asset_type='survey')
+        self.assertEqual(a1.asset_type, 'survey')
+        self.assertTrue('settings' in a1.content)
+
+    def test_surveys_move_form_title_to_name(self):
+        a1 = Asset.objects.create(content=self._content('abcxyz'), owner=self.user,
+                                  asset_type='survey')
+        # settingslist
+        settings = a1.content['settings'][0]
+        self.assertTrue('form_title' not in settings)
+        self.assertEqual(a1.name, 'abcxyz')
+
+    def test_surveys_exported_to_xml_have_id_string_and_title(self):
+        a1 = Asset.objects.create(content=self._content('abcxyz'), owner=self.user,
+                                  asset_type='survey')
+        export = a1.get_export()
+        self.assertTrue('<h:title>abcxyz</h:title>' in export.xml)
+        # self.assertTrue('<some_idstring id="some_idstring">' in export.xml)
+
+# TODO: test values of "valid_xlsform_content"
+
 # class ReadAssetsTests(AssetsTestCase):
 #     def test_strip_kuids(self):
 #         sans_kuid = self.sa.to_ss_structure(content_tag='survey', strip_kuids=True)['survey']
@@ -64,7 +112,6 @@ class CreateAssetVersions(AssetsTestCase):
 #         self.assertEqual(ss_struct[0], {
 #                 'style': 'grid-theme',
 #             })
-
 
 class ShareAssetsTest(AssetsTestCase):
 

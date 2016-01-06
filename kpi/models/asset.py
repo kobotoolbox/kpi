@@ -170,6 +170,18 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
     def to_ss_structure(self):
         return self.content
 
+    def _pull_form_title_from_settings(self):
+        if self.asset_type is not 'survey':
+            return
+
+        # settingslist
+        if len(self.content['settings']) > 0:
+            settings = self.content['settings'][0]
+            if 'form_title' in settings:
+                self.name = settings['form_title']
+                del settings['form_title']
+                self.content['settings'] = [settings]
+
     def _populate_uid(self):
         if self.uid == '':
             self.uid = self._generate_uid()
@@ -197,6 +209,8 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
             if 'settings' in self.content:
                 if self.asset_type is not 'survey':
                     del self.content['settings']
+                else:
+                    self._pull_form_title_from_settings()
 
         self._populate_uid()
         self._populate_summary()
@@ -263,6 +277,7 @@ class AssetSnapshot(models.Model, XlsExportable):
         default_name = None
         default_language = u'default'
         default_id_string = u'xform_id_string'
+        # settingslist
         if 'settings' in source and len(source['settings']) > 0:
             settings = source['settings'][0]
         else:
@@ -275,7 +290,9 @@ class AssetSnapshot(models.Model, XlsExportable):
             if (row['type'] == 'begin group') and (row.get('relevant') == ''):
                 del source['survey'][i_row]['relevant']
 
-        settings['form_title']=  settings.get('form_title') or self.asset.name or 'Untitled'
+        # form_title is now always stored in the model
+        # (removed from the settings sheet until export)
+        settings['form_title'] = settings.get('form_title') or self.asset.name or 'Untitled'
 
         if opts.get('include_note'):
             source['survey'].insert(0, {'type': 'note',
