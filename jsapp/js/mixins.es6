@@ -429,7 +429,7 @@ var dmix = {
   },
   saveCloneAs () {
     customPromptAsync(t('new form name'))
-      .done((value) => {
+      .then((value) => {
         let uid = this.props.params.assetid;
         actions.resources.cloneAsset({
           uid: uid,
@@ -680,7 +680,7 @@ mixins.droppable = {
       }, this.state.url ? {
         destination: this.state.url,
       } : null
-    )).done((data)=> {
+    )).then((data)=> {
       window.setTimeout((()=>{
         dataInterface.getImportDetails({
           uid: data.uid,
@@ -963,7 +963,7 @@ mixins.clickAssets = {
       },
       clone: function(uid/*, evt*/){
         customPromptAsync(t('new name?'))
-          .done((value) => {
+          .then((value) => {
             actions.resources.cloneAsset({
               uid: uid,
               name: value,

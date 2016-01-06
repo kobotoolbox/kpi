@@ -26,16 +26,16 @@ export function surveyToValidJson(survey) {
 }
 
 export function customPromptAsync(msg) {
-  var dfd = new $.Deferred();
-  window.setTimeout(function(){
-    var val = window.prompt(msg);
-    if (val === null) {
-      dfd.reject();
-    } else {
-      dfd.resolve(val);
-    }
-  }, 0);
-  return dfd;
+  return new Promise(function(resolve, reject){
+    window.setTimeout(function(){
+      var val = window.prompt(msg);
+      if (val === null) {
+        reject();
+      } else {
+        resolve(val);
+      }
+    }, 0);
+  });
 }
 
 export function customConfirmAsync(msg) {
