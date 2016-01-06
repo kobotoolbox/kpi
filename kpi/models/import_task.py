@@ -98,6 +98,7 @@ class ImportTask(models.Model):
                     base64_encoded_upload=self.data['base64Encoded'],
                     filename=self.data.get('filename', None),
                     messages=msgs,
+                    library=self.data.get('library', False),
                     destination=dest_item,
                     destination_kls=dest_kls,
                     has_necessary_perm=has_necessary_perm,
@@ -160,7 +161,9 @@ class ImportTask(models.Model):
             orm_obj.parent = parent_item
             orm_obj.save()
 
-    def _parse_b64_upload(self, base64_encoded_upload, filename, messages, **kwargs):
+    def _parse_b64_upload(self, base64_encoded_upload, messages, **kwargs):
+        filename = kwargs.get('filename')
+        library = kwargs.get('library')
         survey_dict = _b64_xls_to_dict(base64_encoded_upload)
         survey_dict_keys = survey_dict.keys()
 
@@ -177,6 +180,9 @@ class ImportTask(models.Model):
                                       ' time')
 
         if 'library' in survey_dict_keys:
+            if not library:
+                raise ValueError('a library cannot be imported into the'
+                                 ' form list')
             if destination:
                 raise SyntaxError('libraries cannot be imported into assets')
             collection = _load_library_content({
@@ -190,11 +196,18 @@ class ImportTask(models.Model):
                     'filename': filename,
                     'owner__username': self.user.username,
                 })
-        elif 'survey' in survey_dict_keys or 'block' in survey_dict_keys:
+        elif 'survey' in survey_dict_keys:
             if not destination:
+                if library and len(survey_dict.get('survey')) > 1:
+                    asset_type = 'block'
+                elif library:
+                    asset_type = 'question'
+                else:
+                    asset_type = 'survey'
                 asset = Asset.objects.create(
                     owner=self.user,
                     content=survey_dict,
+                    asset_type=asset_type,
                 )
                 msg_key = 'created'
             else:
