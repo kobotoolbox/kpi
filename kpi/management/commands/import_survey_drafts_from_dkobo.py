@@ -52,6 +52,15 @@ def _set_auto_field_update(kls, field_name, val):
 def _import_user_assets(from_user, to_user):
     user = to_user
 
+    # now, if a user wants to re-import, they can delete the asset from kpi
+    # and re-run management command
+    already_migrated_sds = user.survey_drafts.exclude(kpi_asset_uid='')
+    for migrated_sd in already_migrated_sds.all():
+        _kpi_uid = migrated_sd.kpi_asset_uid
+        if Asset.objects.filter(uid=_kpi_uid).count() == 0:
+            migrated_sd.kpi_asset_uid = ''
+            migrated_sd.save()
+
     not_already_migrated = user.survey_drafts.filter(kpi_asset_uid='')
     user_survey_drafts = not_already_migrated.filter(asset_type=None)
     user_qlib_assets = not_already_migrated.exclude(asset_type=None)
