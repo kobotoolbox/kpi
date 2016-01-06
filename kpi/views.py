@@ -373,6 +373,7 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
             itask_data = {
                 'base64Encoded': encoded_substr,
                 # NOTE: 'filename' here comes from 'name' (!) in the POST data
+                'library': request.POST.get('library') not in ['false', False],
                 'filename': request.POST.get('name', None),
                 'destination': request.POST.get('destination', None),
             }

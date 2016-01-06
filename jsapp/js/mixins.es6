@@ -671,14 +671,16 @@ mixins.dmix = dmix;
 
 mixins.droppable = {
   _forEachDroppedFile (evt, file/*, params={}*/) {
+    var isLibrary = !!this.context.router.getCurrentPathname().match(/library/);
     dataInterface.postCreateBase64EncodedImport(assign({
         base64Encoded: evt.target.result,
         name: file.name,
+        library: isLibrary,
         lastModified: file.lastModified,
       }, this.state.url ? {
         destination: this.state.url,
       } : null
-    )).done((data/*, status, jqxhr*/)=> {
+    )).done((data)=> {
       window.setTimeout((()=>{
         dataInterface.getImportDetails({
           uid: data.uid,

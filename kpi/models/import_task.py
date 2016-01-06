@@ -74,7 +74,7 @@ class ImportTask(models.Model):
                 raise Exception('only recently created imports can be executed')
             self.status = self.PROCESSING
             self.save(update_fields=['status'])
-
+            library = self.data.get('library')
             dest_item = dest_kls = has_necessary_perm = False
 
             if 'destination' in self.data and self.data['destination']:
