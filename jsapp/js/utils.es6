@@ -21,12 +21,8 @@ export function getAnonymousUserPermission(permissions) {
   })[0];
 }
 
-export function surveyToValidJson(survey, omitSettings=false) {
-  var surveyDict = survey.toFlatJSON();
-  if (omitSettings && 'settings' in surveyDict) {
-    delete surveyDict.settings;
-  }
-  return JSON.stringify(surveyDict);
+export function surveyToValidJson(survey) {
+  return JSON.stringify(survey.toFlatJSON());
 }
 
 export function customPromptAsync(msg) {

@@ -341,6 +341,7 @@ export default {
     }
     var params = {
       content: surveyToValidJson(this.app.survey, this.isLibrary()),
+      asset_type: this.isLibrary() ? 'block' : 'survey',
     };
     if (this.state.name) {
       params.name = this.state.name;
