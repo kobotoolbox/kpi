@@ -689,29 +689,32 @@ mixins.droppable = {
                 isCurrentPage = this.state.uid === assetUid;
 
             if (!assetUid) {
-              alertify.error(t('could not redirect to asset'));
+              alertify.error(t('Could not redirect to asset.'));
             } else if (isCurrentPage) {
               actions.resources.loadAsset({id: assetUid});
             } else {
               this.transitionTo('form-landing', {assetid: assetUid});
             }
-          } else if (importData.status === 'processing') {
-            alertify.warning(t('import processing...'));
+          }
+          // If the import task didn't complete immediately, inform the user accordingly.
+          else if (importData.status === 'processing') {
+            alertify.warning(t('Your library assets have uploaded and are being processed. This may take a few moments.'));
           } else if (importData.status === 'created') {
-            alertify.warning(t('import pending...'));
+            alertify.warning(t('Your library assets have uploaded and are queued for processing. This may take a few moments.'));
           } else if (importData.status === 'error')  {
-            alertify.error(t(`<strong>import error</strong><br><code><strong>${importData.messages.error_type}</strong><br>${importData.messages.error}</code>`));
+            var error_message= `<strong>Import Error.</strong><br><code><strong>${importData.messages.error_type}</strong><br>${importData.messages.error}</code>`
+            alertify.error(t(error_message));
           } else {
-            alertify.error(t('import failure'));
+            alertify.error(t('Import Failure.'));
           }
         }).fail((failData)=>{
-          alertify.error(t('import failed'));
+          alertify.error(t('Import Failed.'));
           log('import failed', failData);
         });
       }), 2500);
     }).fail((jqxhr)=> {
       log('Failed to create import: ', jqxhr);
-      alertify.error(t('failed to create import'));
+      alertify.error(t('Failed to create import.'));
     });
   },
   dropFiles (files, params={}) {
