@@ -188,12 +188,16 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
     def save(self, *args, **kwargs):
         # populate summary and uid
         if self.content is not None:
-            if self.content.has_key('survey'):
+            if 'survey' in self.content:
                 self._strip_empty_rows(
                     self.content['survey'], required_key='type')
-            if self.content.has_key('choices'):
+            if 'choices' in self.content:
                 self._strip_empty_rows(
                     self.content['choices'], required_key='name')
+            if 'settings' in self.content:
+                if self.asset_type is not 'survey':
+                    del self.content['settings']
+
         self._populate_uid()
         self._populate_summary()
         with transaction.atomic(), reversion.create_revision():
