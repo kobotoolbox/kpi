@@ -3,7 +3,7 @@ from io import BytesIO
 import re
 from collections import defaultdict
 from django.db import models
-from django.core.urlresolvers import get_script_prefix, resolve, Resolver404
+from django.core.urlresolvers import get_script_prefix, resolve
 from django.utils.six.moves.urllib import parse as urlparse
 from shortuuid import ShortUUID
 from jsonfield import JSONField
@@ -15,6 +15,7 @@ from ..zip_importer import HttpContentParse
 from rest_framework import exceptions
 
 UID_LENGTH = 22
+
 
 def _resolve_url_to_asset_or_collection(item_path):
     if item_path.startswith(('http', 'https')):
@@ -172,7 +173,8 @@ class ImportTask(models.Model):
             raise exceptions.PermissionDenied('user cannot update item')
 
         if destination_kls == 'collection':
-            raise NotImplementedError('cannot import into a collection at this time')
+            raise NotImplementedError('cannot import into a collection at this'
+                                      ' time')
 
         if 'library' in survey_dict_keys:
             if destination:
@@ -209,8 +211,8 @@ class ImportTask(models.Model):
                     'owner__username': self.user.username,
                 })
         else:
-            raise SyntaxError('xls upload must have one of these sheets: {}' \
-                        .format('survey, block, library'))
+            raise SyntaxError('xls upload must have one of these sheets: {}'
+                              .format('survey, library'))
 
 def _b64_xls_to_dict(base64_encoded_upload):
     decoded_str = base64.b64decode(base64_encoded_upload)
