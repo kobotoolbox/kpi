@@ -300,7 +300,7 @@ export default {
   },
   isLibrary () {
     if (this.state.asset_type) {
-      return !!this.state.asset_type !== 'survey';
+      return this.state.asset_type !== 'survey';
     } else {
       return !!this.context.router.getCurrentPath().match(/library/);
     }
@@ -341,13 +341,12 @@ export default {
     }
     var params = {
       content: surveyToValidJson(this.app.survey),
-      asset_type: this.isLibrary() ? 'block' : 'survey',
     };
     if (this.state.name) {
       params.name = this.state.name;
     }
     if (this.editorState === 'new') {
-      // create
+      params.asset_type = this.isLibrary() ? 'block' : 'survey';
       actions.resources.createResource(params)
         .then((asset) => {
           this.transitionTo('form-edit', {assetid: asset.uid});
