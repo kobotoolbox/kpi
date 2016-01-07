@@ -65,12 +65,13 @@ def _import_user_assets(from_user, to_user):
     user_survey_drafts = not_already_migrated.filter(asset_type=None)
     user_qlib_assets = not_already_migrated.exclude(asset_type=None)
 
-    def _import_asset(asset, parent_collection=None):
+    def _import_asset(asset, parent_collection=None, asset_type='survey'):
         survey_dict = _csv_to_dict(asset.body)
         obj = {
             'name': asset.name,
             'date_created': asset.date_created,
             'date_modified': asset.date_modified,
+            'asset_type': asset_type,
             'owner': user,
         }
 
@@ -96,14 +97,14 @@ def _import_user_assets(from_user, to_user):
 
     for survey_draft in user_survey_drafts.all():
         print 'importing sd %s %d' % (survey_draft.name, survey_draft.id)
-        new_asset = _import_asset(survey_draft)
+        new_asset = _import_asset(survey_draft, asset_type='survey')
         print '\timported to asset {}'.format(new_asset.uid)
 
     (qlib, _) = Collection.objects.get_or_create(name="question library", owner=user)
 
     for qlib_asset in user_qlib_assets.all():
         print 'importing qla %s %d' % (qlib_asset.name, qlib_asset.id)
-        new_asset = _import_asset(qlib_asset, qlib)
+        new_asset = _import_asset(qlib_asset, qlib, asset_type='block')
         print '\timported to asset {}'.format(new_asset.uid)
 
     _set_auto_field_update(Asset, "date_created", False)
