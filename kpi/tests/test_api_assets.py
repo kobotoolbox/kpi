@@ -70,10 +70,10 @@ class AssetsXmlExportApiTests(KpiTestCase):
 
     def test_xml_export_title_retained(self):
         asset_title= 'XML Export Test Asset Title'
-        content= {'settings': [{'form_title': asset_title, 'form_id': 'titled_asset'}],
+        content= {'settings': [{'id_string': 'titled_asset'}],
                  'survey': [{'label': 'Q1 Label.', 'type': 'decimal'}]}
         self.login('someuser', 'someuser')
-        asset= self.create_asset('', json.dumps(content), format='json')
+        asset= self.create_asset(asset_title, json.dumps(content), format='json')
         response= self.client.get(reverse('asset-detail',
                                           kwargs={'uid':asset.uid, 'format': 'xml'}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
