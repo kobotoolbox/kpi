@@ -214,6 +214,14 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
 
         self._populate_uid()
         self._populate_summary()
+
+        # infer asset_type only between question and block
+        if self.asset_type in ['question', 'block']:
+            if self.summary.get('row_count') == 1:
+                self.asset_type = 'question'
+            else:
+                self.asset_type = 'block'
+
         with transaction.atomic(), reversion.create_revision():
             super(Asset, self).save(*args, **kwargs)
 
@@ -283,7 +291,7 @@ class AssetSnapshot(models.Model, XlsExportable):
         else:
             settings = {}
 
-        settings.setdefault('form_id', default_id_string)
+        settings.setdefault('id_string', default_id_string)
 
         # Delete empty `relevant` attributes from `begin group` elements.
         for i_row, row in enumerate(source['survey']):

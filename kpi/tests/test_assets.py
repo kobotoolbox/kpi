@@ -55,13 +55,31 @@ class AssetSettingsTests(AssetsTestCase):
             'survey': [
                 {'type': 'text', 'label': 'Question 1',
                  'name': 'q1', 'kuid': 'abc'},
+                {'type': 'text', 'label': 'Question 2',
+                 'name': 'q2', 'kuid': 'def'}
             ],
             # settingslist
             'settings': [
                 {'form_title': form_title,
-                 'id_string': 'some_idstring'},
+                 'id_string': 'xid_stringx'},
             ]
         }
+
+    def test_asset_type_changes_based_on_row_count(self):
+        # we are inferring the asset_type from the content so that
+        # a question can become a block and vice versa
+        a1 = Asset.objects.create(content=self._content(), owner=self.user,
+                                  asset_type='block')
+        self.assertEqual(a1.asset_type, 'block')
+        self.assertEqual(len(a1.content['survey']), 2)
+
+        # shorten the content
+        a1.content['survey'] = [a1.content['survey'][0]]
+
+        # trigger the asset_type change
+        a1.save()
+        self.assertEqual(a1.asset_type, 'question')
+        self.assertEqual(len(a1.content['survey']), 1)
 
     def test_blocks_strip_settings(self):
         a1 = Asset.objects.create(content=self._content(), owner=self.user,
