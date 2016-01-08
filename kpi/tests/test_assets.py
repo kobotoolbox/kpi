@@ -112,7 +112,7 @@ class AssetSettingsTests(AssetsTestCase):
                                   asset_type='survey')
         export = a1.get_export()
         self.assertTrue('<h:title>abcxyz</h:title>' in export.xml)
-        # self.assertTrue('<some_idstring id="some_idstring">' in export.xml)
+        self.assertTrue('<xid_stringx id="xid_stringx">' in export.xml)
 
 # TODO: test values of "valid_xlsform_content"
 
