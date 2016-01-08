@@ -170,38 +170,58 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
     def to_ss_structure(self):
         return self.content
 
+    def _pull_form_title_from_settings(self):
+        if self.asset_type is not 'survey':
+            return
+
+        # settingslist
+        if len(self.content['settings']) > 0:
+            settings = self.content['settings'][0]
+            if 'form_title' in settings:
+                self.name = settings['form_title']
+                del settings['form_title']
+                self.content['settings'] = [settings]
+
     def _populate_uid(self):
         if self.uid == '':
             self.uid = self._generate_uid()
 
     def _populate_summary(self):
         if self.content is None:
-            self.asset_type = 'empty'
             self.content = {}
             self.summary = {}
             return
         analyzer = AssetContentAnalyzer(**self.content)
-        self.asset_type = analyzer.asset_type
         self.summary = analyzer.summary
 
     def _generate_uid(self):
         return 'a' + ShortUUID().random(ASSET_UID_LENGTH -1)
 
     def save(self, *args, **kwargs):
-        # don't save settings if a previous save has already classified this asset as
-        # question_type= question or block
-        if self.asset_type in ['question', 'block'] and 'settings' in self.content:
-            del self.content['settings']
         # populate summary and uid
         if self.content is not None:
-            if self.content.has_key('survey'):
+            if 'survey' in self.content:
                 self._strip_empty_rows(
                     self.content['survey'], required_key='type')
-            if self.content.has_key('choices'):
+            if 'choices' in self.content:
                 self._strip_empty_rows(
                     self.content['choices'], required_key='name')
+            if 'settings' in self.content:
+                if self.asset_type is not 'survey':
+                    del self.content['settings']
+                else:
+                    self._pull_form_title_from_settings()
+
         self._populate_uid()
         self._populate_summary()
+
+        # infer asset_type only between question and block
+        if self.asset_type in ['question', 'block']:
+            if self.summary.get('row_count') == 1:
+                self.asset_type = 'question'
+            else:
+                self.asset_type = 'block'
+
         with transaction.atomic(), reversion.create_revision():
             super(Asset, self).save(*args, **kwargs)
 
@@ -265,31 +285,34 @@ class AssetSnapshot(models.Model, XlsExportable):
         default_name = None
         default_language = u'default'
         default_id_string = u'xform_id_string'
+        # settingslist
         if 'settings' in source and len(source['settings']) > 0:
             settings = source['settings'][0]
         else:
             settings = {}
 
-        settings.setdefault('form_id', default_id_string)
+        settings.setdefault('id_string', default_id_string)
 
         # Delete empty `relevant` attributes from `begin group` elements.
         for i_row, row in enumerate(source['survey']):
             if (row['type'] == 'begin group') and (row.get('relevant') == ''):
                 del source['survey'][i_row]['relevant']
 
-        settings['form_title']=  settings.get('form_title') or self.asset.name or 'Untitled'
+        # form_title is now always stored in the model
+        # (removed from the settings sheet until export)
+        settings.setdefault('form_title', self.asset.name or 'Untitled')
 
         if opts.get('include_note'):
             source['survey'].insert(0, {'type': 'note',
-                    'label': opts['include_note']})
+                                    'label': opts['include_note']})
         source['settings'] = [settings]
         try:
             dict_repr = pyxform.xls2json.workbook_to_json(
                 source, default_name, default_language, warnings)
-            # TODO: Change when using this method for real deployments?
-            # IDs don't matter for previews
-            for k in (u'name', u'id_string', u'sms_keyword'):
-                dict_repr[k] = default_id_string
+
+            for k in (u'id_string', u'sms_keyword'):
+                dict_repr.setdefault(k, default_id_string)
+
             survey = pyxform.builder.create_survey_element_from_dict(dict_repr)
             with tempfile.NamedTemporaryFile(suffix='.xml') as named_tmp:
                 survey.print_xform_to_file(

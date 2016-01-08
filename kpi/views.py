@@ -362,7 +362,8 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
         if self.request.user.is_anonymous():
             return ImportTask.objects.none()
         else:
-            return ImportTask.objects.filter(user=self.request.user)
+            return ImportTask.objects.filter(
+                        user=self.request.user).order_by('date_created')
 
     def create(self, request, *args, **kwargs):
         if self.request.user.is_anonymous():
@@ -373,10 +374,12 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
             itask_data = {
                 'base64Encoded': encoded_substr,
                 # NOTE: 'filename' here comes from 'name' (!) in the POST data
+                'library': request.POST.get('library') not in ['false', False],
                 'filename': request.POST.get('name', None),
                 'destination': request.POST.get('destination', None),
             }
-            import_task = ImportTask.objects.create(user=request.user, data=itask_data)
+            import_task = ImportTask.objects.create(user=request.user,
+                                                    data=itask_data)
             # Have Celery run the import in the background
             import_in_background.delay(import_task_uid=import_task.uid)
             return Response({

@@ -3,7 +3,7 @@ from io import BytesIO
 import re
 from collections import defaultdict
 from django.db import models
-from django.core.urlresolvers import get_script_prefix, resolve, Resolver404
+from django.core.urlresolvers import get_script_prefix, resolve
 from django.utils.six.moves.urllib import parse as urlparse
 from shortuuid import ShortUUID
 from jsonfield import JSONField
@@ -15,6 +15,7 @@ from ..zip_importer import HttpContentParse
 from rest_framework import exceptions
 
 UID_LENGTH = 22
+
 
 def _resolve_url_to_asset_or_collection(item_path):
     if item_path.startswith(('http', 'https')):
@@ -48,7 +49,8 @@ class ImportTask(models.Model):
     user = models.ForeignKey('auth.User')
     data = JSONField()
     messages = JSONField(default={})
-    status = models.CharField(choices=STATUS_CHOICES, max_length=32, default=CREATED)
+    status = models.CharField(choices=STATUS_CHOICES, max_length=32,
+                              default=CREATED)
     uid = models.CharField(max_length=UID_LENGTH, default='')
     date_created = models.DateTimeField(auto_now_add=True)
     # date_expired = models.DateTimeField(null=True)
@@ -73,7 +75,7 @@ class ImportTask(models.Model):
                 raise Exception('only recently created imports can be executed')
             self.status = self.PROCESSING
             self.save(update_fields=['status'])
-
+            library = self.data.get('library')
             dest_item = dest_kls = has_necessary_perm = False
 
             if 'destination' in self.data and self.data['destination']:
@@ -97,6 +99,7 @@ class ImportTask(models.Model):
                     base64_encoded_upload=self.data['base64Encoded'],
                     filename=self.data.get('filename', None),
                     messages=msgs,
+                    library=self.data.get('library', False),
                     destination=dest_item,
                     destination_kls=dest_kls,
                     has_necessary_perm=has_necessary_perm,
@@ -159,7 +162,9 @@ class ImportTask(models.Model):
             orm_obj.parent = parent_item
             orm_obj.save()
 
-    def _parse_b64_upload(self, base64_encoded_upload, filename, messages, **kwargs):
+    def _parse_b64_upload(self, base64_encoded_upload, messages, **kwargs):
+        filename = kwargs.get('filename')
+        library = kwargs.get('library')
         survey_dict = _b64_xls_to_dict(base64_encoded_upload)
         survey_dict_keys = survey_dict.keys()
 
@@ -172,9 +177,13 @@ class ImportTask(models.Model):
             raise exceptions.PermissionDenied('user cannot update item')
 
         if destination_kls == 'collection':
-            raise NotImplementedError('cannot import into a collection at this time')
+            raise NotImplementedError('cannot import into a collection at this'
+                                      ' time')
 
         if 'library' in survey_dict_keys:
+            if not library:
+                raise ValueError('a library cannot be imported into the'
+                                 ' form list')
             if destination:
                 raise SyntaxError('libraries cannot be imported into assets')
             collection = _load_library_content({
@@ -188,11 +197,18 @@ class ImportTask(models.Model):
                     'filename': filename,
                     'owner__username': self.user.username,
                 })
-        elif 'survey' in survey_dict_keys or 'block' in survey_dict_keys:
+        elif 'survey' in survey_dict_keys:
             if not destination:
+                if library and len(survey_dict.get('survey')) > 1:
+                    asset_type = 'block'
+                elif library:
+                    asset_type = 'question'
+                else:
+                    asset_type = 'survey'
                 asset = Asset.objects.create(
                     owner=self.user,
                     content=survey_dict,
+                    asset_type=asset_type,
                 )
                 msg_key = 'created'
             else:
@@ -209,8 +225,8 @@ class ImportTask(models.Model):
                     'owner__username': self.user.username,
                 })
         else:
-            raise SyntaxError('xls upload must have one of these sheets: {}' \
-                        .format('survey, block, library'))
+            raise SyntaxError('xls upload must have one of these sheets: {}'
+                              .format('survey, library'))
 
 def _b64_xls_to_dict(base64_encoded_upload):
     decoded_str = base64.b64decode(base64_encoded_upload)

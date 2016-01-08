@@ -42,6 +42,7 @@ var CollectionList = React.createClass({
   componentDidMount () {
     this.listCollections();
   },
+  /*
   dropAction ({file, event}) {
     actions.resources.createImport({
       base64Encoded: event.target.result,
@@ -50,6 +51,7 @@ var CollectionList = React.createClass({
       contentType: file.type
     });
   },
+  */
   createCollection () {
     dataInterface.createCollection({
       name: customPrompt('collection name?'),

@@ -429,7 +429,7 @@ var dmix = {
   },
   saveCloneAs () {
     customPromptAsync(t('new form name'))
-      .done((value) => {
+      .then((value) => {
         let uid = this.props.params.assetid;
         actions.resources.cloneAsset({
           uid: uid,
@@ -671,14 +671,16 @@ mixins.dmix = dmix;
 
 mixins.droppable = {
   _forEachDroppedFile (evt, file/*, params={}*/) {
+    var isLibrary = !!this.context.router.getCurrentPathname().match(/library/);
     dataInterface.postCreateBase64EncodedImport(assign({
         base64Encoded: evt.target.result,
         name: file.name,
+        library: isLibrary,
         lastModified: file.lastModified,
       }, this.state.url ? {
         destination: this.state.url,
       } : null
-    )).done((data/*, status, jqxhr*/)=> {
+    )).then((data)=> {
       window.setTimeout((()=>{
         dataInterface.getImportDetails({
           uid: data.uid,
@@ -970,7 +972,7 @@ mixins.clickAssets = {
       },
       clone: function(uid/*, evt*/){
         customPromptAsync(t('new name?'))
-          .done((value) => {
+          .then((value) => {
             actions.resources.cloneAsset({
               uid: uid,
               name: value,

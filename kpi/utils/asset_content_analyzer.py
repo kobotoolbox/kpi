@@ -34,7 +34,6 @@ class AssetContentAnalyzer(object):
         summary_errors = []
         keys = set()
         if not self.survey:
-            self.asset_type = 'empty'
             return {}
 
         for row in self.survey:
@@ -63,15 +62,6 @@ class AssetContentAnalyzer(object):
                     labels.append(_label)
                 keys = keys | set(row.keys())
 
-        if self.settings:
-            self.asset_type = 'survey'
-        elif row_count == 0:
-            self.asset_type = 'empty'
-        elif row_count == 1:
-            self.asset_type = 'question'
-        else:
-            self.asset_type = 'block'
-
         summary = {
             'row_count': row_count,
             'languages': self._get_languages_from_column_names(keys),
@@ -80,15 +70,3 @@ class AssetContentAnalyzer(object):
             'columns': list(keys),
         }
         return summary
-
-    def get_asset_type(self):
-        if self.survey == None:
-            return 'empty'
-        elif len(self.survey) == 0:
-            return 'empty'
-        elif self.settings:
-            return 'survey'
-        elif len(self.survey) == 1:
-            return 'question'
-        else:
-            return 'block'
