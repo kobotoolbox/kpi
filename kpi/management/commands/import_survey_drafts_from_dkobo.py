@@ -85,7 +85,6 @@ def _import_user_assets(from_user, to_user):
         new_asset.content = survey_dict
         new_asset.date_created = obj['date_created']
         new_asset.date_modified = obj['date_modified']
-        new_asset.asset_type= asset.asset_type
         new_asset.save()
         _set_auto_field_update(Asset, "date_created", True)
         _set_auto_field_update(Asset, "date_modified", True)
