@@ -27,6 +27,7 @@
 
 .collection-nav__button {
   @extend .mdl-button;
+  min-width: 100%;
   > i {
     @extend .fa, .fa-cloud, .fa-fw;
     margin-right: 12px;
