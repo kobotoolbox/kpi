@@ -68,8 +68,6 @@ var AssetRow = React.createClass({
           </bem.AssetRow__cell>
 
           <bem.AssetRow__celllink m={['name', this.props.name ? 'titled' : 'untitled']}
-                data-action='view'
-                data-disabled={true}
                 data-kind={this.props.kind}
                 data-asset-type={this.props.kind}
                 href={this.makeHref( hrefTo, hrefParams)}

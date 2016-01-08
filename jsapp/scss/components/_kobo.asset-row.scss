@@ -62,11 +62,6 @@ $highlightedBarTextColor: #25343C;
   &:after {
     content:'\f0d8';
   }
-
-  .asset-row__celllink--name {
-    border-bottom: 1px solid #DADAEC;
-    cursor: pointer;
-  }
 }
 
 .asset-row--deleted {
