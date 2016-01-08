@@ -300,11 +300,12 @@ class AssetSnapshot(models.Model, XlsExportable):
 
         # form_title is now always stored in the model
         # (removed from the settings sheet until export)
-        settings['form_title'] = settings.get('form_title') or self.asset.name or 'Untitled'
+        settings['form_title'] = (settings.get('form_title') or
+                                  self.asset.name or 'Untitled')
 
         if opts.get('include_note'):
             source['survey'].insert(0, {'type': 'note',
-                    'label': opts['include_note']})
+                                    'label': opts['include_note']})
         source['settings'] = [settings]
         try:
             dict_repr = pyxform.xls2json.workbook_to_json(
