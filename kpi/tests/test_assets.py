@@ -80,7 +80,8 @@ class AssetSettingsTests(AssetsTestCase):
         self.assertTrue('settings' in a1.content)
 
     def test_surveys_move_form_title_to_name(self):
-        a1 = Asset.objects.create(content=self._content('abcxyz'), owner=self.user,
+        a1 = Asset.objects.create(content=self._content('abcxyz'),
+                                  owner=self.user,
                                   asset_type='survey')
         # settingslist
         settings = a1.content['settings'][0]
@@ -88,7 +89,8 @@ class AssetSettingsTests(AssetsTestCase):
         self.assertEqual(a1.name, 'abcxyz')
 
     def test_surveys_exported_to_xml_have_id_string_and_title(self):
-        a1 = Asset.objects.create(content=self._content('abcxyz'), owner=self.user,
+        a1 = Asset.objects.create(content=self._content('abcxyz'),
+                                  owner=self.user,
                                   asset_type='survey')
         export = a1.get_export()
         self.assertTrue('<h:title>abcxyz</h:title>' in export.xml)
