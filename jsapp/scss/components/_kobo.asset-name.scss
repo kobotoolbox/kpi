@@ -1,4 +1,7 @@
 .asset-name {
+  &--empty {
+    font-style: italic;
+  }
   small {
     color: #bbb;
     margin-left: 5px;
