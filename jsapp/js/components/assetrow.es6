@@ -68,8 +68,6 @@ var AssetRow = React.createClass({
           </bem.AssetRow__cell>
 
           <bem.AssetRow__celllink m={['name', this.props.name ? 'titled' : 'untitled']}
-                data-action='view'
-                data-disabled={true}
                 data-kind={this.props.kind}
                 data-asset-type={this.props.kind}
                 href={this.makeHref( hrefTo, hrefParams)}
@@ -111,8 +109,54 @@ var AssetRow = React.createClass({
               }()}
             </bem.AssetRow__cell>
           </bem.AssetRow__cellmeta>
-          { tags.length > 0 &&
-            <bem.AssetRow__cellmeta m={'full'}>
+          { this.props.isSelected && 
+            <bem.AssetRow__cell m={'buttons'}>
+              <bem.AssetRow__cell m={'action-icons'}>
+                { this.props.kind === 'asset' &&
+                  ['edit', 'view', 'download', 'clone'].map((actn)=>{
+                    return (
+                          <bem.AssetRow__actionIcon
+                              m={actn}
+                              data-action={actn}
+                              data-asset-type={this.props.kind}
+                              data-disabled={false}
+                              >
+                            <i />
+                            {actn}
+                          </bem.AssetRow__actionIcon>
+                        );
+                  })
+                }
+                { isDeployable &&
+                  <bem.AssetRow__actionIcon
+                        m={'deploy'}
+                        data-action={'deploy'}
+                        data-asset-type={this.props.kind}
+                      >
+                    <i />
+                    {t('deploy')}
+                  </bem.AssetRow__actionIcon>
+                }
+                { this.props.kind === 'collection' &&
+                ['view', 'sharing'].map((actn)=>{
+                    return (
+                          <bem.AssetRow__actionIcon
+                            m={actn === 'view' ? 'view-collection' : actn}
+                              data-action={actn}
+                              data-asset-type={this.props.kind}
+                              data-disabled={false}
+                              >
+                            <i />
+                            {actn}
+                          </bem.AssetRow__actionIcon>
+                        );
+                  })
+                }
+              </bem.AssetRow__cell>
+            </bem.AssetRow__cell>
+          }
+          { tags.length > 0 && this.props.isSelected &&
+            <bem.AssetRow__cellmeta m={'tags'}>
               <bem.AssetRow__cell m={'tags'}>
                 <bem.AssetRow__tags>
                   <i />
@@ -125,50 +169,27 @@ var AssetRow = React.createClass({
               </bem.AssetRow__cell>
             </bem.AssetRow__cellmeta>
           }
-          <bem.AssetRow__cell m={'asset-buttons'}>
-            <bem.AssetRow__cell m={'action-icons'}>
-              { this.props.kind === 'asset' &&
-                ['view',
-                      // 'edit', 'preview',
-                      'download', 'clone', 'delete',
-                      ].map((actn)=>{
-                  return (
-                        <bem.AssetRow__actionIcon
-                            m={actn}
-                            data-action={actn}
-                            data-asset-type={this.props.kind}
-                            data-disabled={false}
-                            >
-                          <i />
-                        </bem.AssetRow__actionIcon>
-                      );
-                })
-              }
-              { isDeployable &&
-                <bem.AssetRow__actionIcon
-                      m={'deploy'}
-                      data-action={'deploy'}
-                      data-asset-type={this.props.kind}
-                    >
-                  <i />
-                </bem.AssetRow__actionIcon>
-              }
-              { this.props.kind === 'collection' &&
-              ['view', 'sharing', 'delete'].map((actn)=>{
-                  return (
-                        <bem.AssetRow__actionIcon
-                          m={actn === 'view' ? 'view-collection' : actn}
-                            data-action={actn}
-                            data-asset-type={this.props.kind}
-                            data-disabled={false}
-                            >
-                          <i />
-                        </bem.AssetRow__actionIcon>
-                      );
-                })
-              }
+          { this.props.isSelected && 
+            <bem.AssetRow__cell m={'secondary-buttons'}>
+              <bem.AssetRow__cell m={'action-icons'}>
+                { 
+                  ['refresh', 'delete'].map((actn)=>{
+                    return (
+                          <bem.AssetRow__actionIcon
+                              m={actn}
+                              data-action={actn}
+                              data-asset-type={this.props.kind}
+                              data-disabled={false}
+                              >
+                            <i />
+                            {actn}
+                          </bem.AssetRow__actionIcon>
+                        );
+                  })
+                }
+              </bem.AssetRow__cell>
             </bem.AssetRow__cell>
-          </bem.AssetRow__cell>
+          }
         </bem.AssetRow>
       );
   }

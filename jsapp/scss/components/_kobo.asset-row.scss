@@ -18,6 +18,18 @@ $highlightedBarTextColor: #25343C;
   &--deleting {
     opacity: 0.5;
   }
+  &:after {
+    content:'\f0d7';
+    font-family: 'FontAwesome';
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    width: 24px;
+    height: 24px;
+    font-size: 24px;
+    text-align: center;
+    opacity: 0.5;
+  }
 }
 
 .asset-row__cell--icon {
@@ -46,14 +58,10 @@ $highlightedBarTextColor: #25343C;
     color: $highlightedBarTextColor;
     background-color: transparent;
   }
-}
 
-.asset-row--selected {
-  .asset-row__celllink--name {
-    border-bottom: 1px solid #DADAEC;
-    cursor: pointer;
+  &:after {
+    content:'\f0d8';
   }
-  cursor: default;
 }
 
 .asset-row--deleted {
@@ -88,60 +96,60 @@ $highlightedBarTextColor: #25343C;
     @extend .fa-fw;
   }
 }
-.asset-row__action-icon {
-  border-style: solid;
-  border-width: 1px;
-  width: 30px;
-  height: 36px;
-  display: inline-block;
-  margin-right: 3px;
-  text-align: center;
-  line-height: 24px;
-  border-radius: 2px;
-  padding: 4px;
-  background-color: rgba(255,255,255,0.8);
+// .asset-row__action-icon {
+//   border-style: solid;
+//   border-width: 1px;
+//   width: 30px;
+//   height: 36px;
+//   display: inline-block;
+//   margin-right: 3px;
+//   text-align: center;
+//   line-height: 24px;
+//   border-radius: 2px;
+//   padding: 4px;
+//   background-color: rgba(255,255,255,0.8);
 
-  @extend %inner-fa-icon;
+//   @extend %inner-fa-icon;
 
-  &.asset-row__action-icon--view {
-    @include bt-theme($palette-purple-800, $palette-purple-50);
-    @include action-faicon('eye')
-  }
-  &.asset-row__action-icon--view-collection {
-    @include bt-theme($palette-purple-800, $palette-purple-50);
-    @include action-faicon('folder-o')
-  }
-  &.asset-row__action-icon--edit {
-    // @include bt-theme($kcol-edit);
-    @include action-faicon('pencil');
-  }
-  &.asset-row__action-icon--preview {
-    @include bt-theme($palette-purple-800, $palette-purple-50);
-    @include action-faicon('eye');
-  }
-  &.asset-row__action-icon--clone {
-    @include bt-theme($palette-teal-800, $palette-teal-50);
-    @include action-faicon('copy');
-  }
-  &.asset-row__action-icon--delete {
-    @include bt-theme($palette-red-800, $palette-red-50);
-    @include action-faicon('trash-o');
-  }
-  &.asset-row__action-icon--sharing {
-    @include bt-theme($palette-light-green-800, $palette-light-green-50);
-    @include action-faicon('users');
-  }
-  &.asset-row__action-icon--download {
-    @include bt-theme($palette-light-blue-800, $palette-light-blue-50);
-    @include action-faicon('download');
-  }
-  &.asset-row__action-icon--deploy {
-    // @include bt-theme('#FFF', $palette-amber-800);
-    @include action-faicon('play');
-    padding: 4px 6px;
-    margin-left: 4px;
-  }
-}
+//   &.asset-row__action-icon--view {
+//     @include bt-theme($palette-purple-800, $palette-purple-50);
+//     @include action-faicon('eye')
+//   }
+//   &.asset-row__action-icon--view-collection {
+//     @include bt-theme($palette-purple-800, $palette-purple-50);
+//     @include action-faicon('folder-o')
+//   }
+//   &.asset-row__action-icon--edit {
+//     // @include bt-theme($kcol-edit);
+//     @include action-faicon('pencil');
+//   }
+//   &.asset-row__action-icon--preview {
+//     @include bt-theme($palette-purple-800, $palette-purple-50);
+//     @include action-faicon('eye');
+//   }
+//   &.asset-row__action-icon--clone {
+//     @include bt-theme($palette-teal-800, $palette-teal-50);
+//     @include action-faicon('copy');
+//   }
+//   &.asset-row__action-icon--delete {
+//     @include bt-theme($palette-red-800, $palette-red-50);
+//     @include action-faicon('trash-o');
+//   }
+//   &.asset-row__action-icon--sharing {
+//     @include bt-theme($palette-light-green-800, $palette-light-green-50);
+//     @include action-faicon('users');
+//   }
+//   &.asset-row__action-icon--download {
+//     @include bt-theme($palette-light-blue-800, $palette-light-blue-50);
+//     @include action-faicon('download');
+//   }
+//   &.asset-row__action-icon--deploy {
+//     // @include bt-theme('#FFF', $palette-amber-800);
+//     @include action-faicon('play');
+//     padding: 4px 6px;
+//     margin-left: 4px;
+//   }
+// }
 
 .asset-row__sharingIcon {
   i {
@@ -167,15 +175,14 @@ $highlightedBarTextColor: #25343C;
   }
 }
 
-%rowbar {
-  @media(min-width:768px) {
-    float: left;
-    width: 70%;
-  }
-}
+// %rowbar {
+//   @media(min-width:768px) {
+//     float: left;
+//     width: 70%;
+//   }
+// }
 
 .asset-row__celllink {
-  @extend %rowbar;
   font-size: 1.4em;
   display: block;
   line-height: 1.5em;
@@ -187,17 +194,16 @@ $highlightedBarTextColor: #25343C;
     height: 1.5em;
   }
 }
+
 .asset-row__cellmeta {
-  @extend %rowbar;
   font-size: 12px;
-  // &.asset-row__cellmeta--wide {
-  //   width: 100%;
-  // }
+  @extend .clearfix;
 
   .asset-row__cell {
-    width:33%;
+    width:20%;
     float: left;
   }
+
   @mixin gradient($from, $to) {
   background-color: $from;
   background-image: -moz-linear-gradient($from, $to);
@@ -232,7 +238,6 @@ $highlightedBarTextColor: #25343C;
   > i {
     @extend .fa-lg;
   }
-
   &.asset-row__cell--assettype-empty {
     @include action-faicon('lemon-o');
     > i {
@@ -254,19 +259,69 @@ $highlightedBarTextColor: #25343C;
   }
 }
 
-.asset-row__action-icon.asset-row__action-icon--deploy {
-  @extend .mdl-button;
-  i {
-    @extend .fa, .fa-play;
+.asset-row__cell--buttons {
+  transition:all 0.3s;
+  clear: both;
+  padding:12px 0px;
+  .asset-row__cell--action-icons {
+    display: flex;
+    justify-content:space-around;
   }
-  .asset-row:not(.asset-row--selected) & {
-    @extend .mdl--disabled;
+}
+
+.asset-row--selected {
+  .asset-row__action-icon {
+    @extend .mdl-button;
+    i {
+      margin-right: 8px;
+    }
+
+    &:hover {
+      color: white;
+    }
+
+    &.asset-row__action-icon--deploy i {
+      @extend .fa, .fa-play;
+    }
+
+    &.asset-row__action-icon--view i, 
+    &.asset-row__action-icon--preview i {
+      @extend .fa, .fa-eye; 
+    }
+
+    &.asset-row__action-icon--view-collection i {
+      @extend .fa, .fa-folder-o;
+    }
+
+    &.asset-row__action-icon--edit i {
+      @extend .fa, .fa-pencil; 
+    }
+
+    &.asset-row__action-icon--clone i {
+      @extend .fa, .fa-copy; 
+    }
+
+    &.asset-row__action-icon--delete i {
+      @extend .fa, .fa-trash-o; 
+    }
+
+    &.asset-row__action-icon--sharing i {
+      @extend .fa, .fa-users; 
+    }
+
+    &.asset-row__action-icon--download i {
+      @extend .fa, .fa-download; 
+    }
+
+    &.asset-row__action-icon--refresh i {
+      @extend .fa, .fa-refresh; 
+    }
   }
-  .asset-row--selected & {
-    opacity: 1;
+
+  .asset-row__cell--buttons .asset-row__action-icon {
     @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
     i {
-      color: white;
+      color: white;      
     }
   }
 }
@@ -276,25 +331,13 @@ $highlightedBarTextColor: #25343C;
   border-bottom: 1px dotted transparent;
 }
 
-.asset-row__cell--action-icons {
-  text-align: right;
-  width: 29%; // 100% - rowbar width
-  float: right;
-  margin-top: -10px;
-  opacity: 0;
+.asset-row__cell--secondary-buttons {
   transition:all 0.3s;
-
-  .asset-row--selected & {
-    opacity: 1;
-    height: auto;
-  }
-}
-
-@media(max-width:767px) {
-  .asset-row__cell--asset-buttons {
-    width: 100%;
-    text-align: center;
-    margin-top: 0px;
-    padding:5px; 
+  clear: both;
+  padding-bottom:12px;
+  text-align: right;
+  .asset-row__action-icon {
+    margin-left: 12px;
+    @extend .mdl-color-text--red;
   }
 }
