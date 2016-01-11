@@ -217,9 +217,10 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
 
         # infer asset_type only between question and block
         if self.asset_type in ['question', 'block']:
-            if self.summary.get('row_count') == 1:
+            row_count = self.summary.get('row_count')
+            if row_count == 1:
                 self.asset_type = 'question'
-            else:
+            elif row_count > 1:
                 self.asset_type = 'block'
 
         with transaction.atomic(), reversion.create_revision():
