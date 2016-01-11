@@ -8,6 +8,7 @@ import mixins from '../mixins';
 import stores from '../stores';
 import bem from '../bem';
 import ui from '../ui';
+import {dataInterface} from '../dataInterface';
 import SearchCollectionList from '../components/searchcollectionlist';
 import {
   ListSearch,
@@ -18,6 +19,8 @@ import {
   t,
 } from '../utils';
 
+var CollectionSidebar = bem.create('collection-sidebar', '<ul>'),
+    CollectionSidebar__item = bem.create('collection-sidebar__item', '<li>');
 
 var LibrarySearchableList = React.createClass({
   mixins: [
@@ -38,8 +41,16 @@ var LibrarySearchableList = React.createClass({
       callback();
     }
   },
+  queryCollections () {
+    dataInterface.listCollections().then((collections)=>{
+      this.setState({
+        sidebarCollections: collections.results,
+      });
+    });
+  },
   componentDidMount () {
     this.searchDefault();
+    this.queryCollections();
   },
   /*
   dropAction ({file, event}) {
@@ -60,6 +71,29 @@ var LibrarySearchableList = React.createClass({
         filterTags: 'asset_type:question OR asset_type:block',
       })
     };
+  },
+  clickFilterByCollection (evt) {
+    var data = $(evt.currentTarget).data();
+    if (data.collectionUid) {
+      this.filterByCollection(data.collectionUid);
+    } else {
+      this.filterByCollection(false);
+    }
+  },
+  filterByCollection (collectionUid) {
+    if (collectionUid) {
+      this.quietUpdateStore({
+        parentUid: collectionUid,
+      });
+    } else {
+      this.quietUpdateStore({
+        parentUid: false,
+      });
+    }
+    this.searchValue();
+    this.setState({
+      filteredCollectionUid: collectionUid,
+    });
   },
   render () {
     return (
@@ -104,6 +138,43 @@ var LibrarySearchableList = React.createClass({
             </ul>
           </bem.CollectionNav__actions>
         </bem.CollectionNav>
+        {
+          this.state.sidebarCollections ?
+          <CollectionSidebar>
+            <CollectionSidebar__item
+              key='allitems'
+              m={{
+                  allitems: true,
+                  selected: !this.state.filteredCollectionUid,
+                }} onClick={this.clickFilterByCollection}>
+              <i />
+              {t('all items')}
+            </CollectionSidebar__item>
+            {this.state.sidebarCollections.map((collection)=>{
+              return (
+                  <CollectionSidebar__item
+                    key={collection.uid}
+                    m={{
+                      collection: true,
+                      selected: this.state.filteredCollectionUid === collection.uid,
+                    }}
+                    onClick={this.clickFilterByCollection}
+                    data-collection-uid={collection.uid}
+                  >
+                    <i />
+                    {collection.name}
+                  </CollectionSidebar__item>
+                );
+            })}
+          </CollectionSidebar>
+          :
+          <CollectionSidebar>
+            <CollectionSidebar__item m={'loading'}>
+              {t('loading')}
+              <i />
+            </CollectionSidebar__item>
+          </CollectionSidebar>
+        }
         <SearchCollectionList
             showDefault={true}
             searchContext={this.state.searchContext}

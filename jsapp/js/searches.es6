@@ -121,6 +121,9 @@ function SearchContext(opts={}) {
       if (this.state.searchString) {
         params.string = this.state.searchString;
       }
+      if (this.state.parentUid) {
+        params.parentUid = `parent__uid:${this.state.parentUid}`;
+      }
       return assign({}, this.filterParams, params);
     },
     toQueryData (dataObject) {

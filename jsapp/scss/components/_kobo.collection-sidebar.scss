@@ -1,0 +1,21 @@
+.collection-sidebar {
+  margin: 20px 0;
+  &__item {
+    background-color: #fff;
+    padding: 8px 20px;
+    cursor: pointer;
+    &--selected {
+      font-weight: bold;
+    }
+    > i {
+      @extend .fa, .fa-fw;
+      margin-right: 12px;
+    }
+    &--collection {
+      > i {
+        @extend .fa-folder;
+      }
+    }
+  }
+}
+
