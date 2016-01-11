@@ -300,7 +300,7 @@ class AssetSnapshot(models.Model, XlsExportable):
 
         # form_title is now always stored in the model
         # (removed from the settings sheet until export)
-        default_form_title= self.asset.name if hasattr(self.asset, 'name') else 'Untitled'
+        default_form_title= (hasattr(self.asset, 'name') and self.asset.name) or 'Untitled'
         settings.setdefault('form_title', default_form_title)
 
         if opts.get('include_note'):
