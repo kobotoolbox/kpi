@@ -2,6 +2,7 @@ import React from 'react/addons';
 import Reflux from 'reflux';
 import {Navigation} from 'react-router';
 import Dropzone from '../libs/dropzone';
+import mdl from '../libs/rest_framework/material';
 
 import {dataInterface} from '../dataInterface';
 import actions from '../actions';
@@ -11,7 +12,7 @@ import bem from '../bem';
 import ui from '../ui';
 import AssetRow from '../components/assetrow';
 import {
-  customPrompt,
+  customPromptAsync,
   parsePermissions,
   t,
 } from '../utils';
@@ -39,6 +40,9 @@ var CollectionList = React.createClass({
       callback();
     }
   },
+  componentDidUpdate() {
+    mdl.upgradeDom();
+  },
   componentDidMount () {
     this.listCollections();
   },
@@ -53,10 +57,12 @@ var CollectionList = React.createClass({
   },
   */
   createCollection () {
-    dataInterface.createCollection({
-      name: customPrompt('collection name?'),
-    }).done((data)=>{
-      this.transitionTo(`/collections/${data.uid}`);
+    customPromptAsync('collection name?').then((val)=>{
+      dataInterface.createCollection({
+        name: val,
+      }).done((data)=>{
+        this.transitionTo(`/collections/${data.uid}`);
+      });
     });
   },
   render () {
