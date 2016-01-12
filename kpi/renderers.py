@@ -38,12 +38,7 @@ class AssetSnapshotXFormRenderer(renderers.BaseRenderer):
     charset = 'utf-8'
 
     def render(self, data, media_type=None, renderer_context=None):
-        # We avoid get_object() here to bypass get_queryset(). These XML
-        # representations are TOTALLY PUBLIC!
-        asset_snapshot = get_object_or_404(
-            AssetSnapshot,
-            uid=renderer_context['view'].kwargs['uid']
-        )
+        asset_snapshot = renderer_context['view'].get_object()
         return asset_snapshot.xml
 
 class XlsRenderer(renderers.BaseRenderer):

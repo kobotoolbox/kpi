@@ -319,8 +319,17 @@ var dmix = {
       );
   },
   renderLanguages () {
-    var langCount = this.state.summary.languages.length;
-    if (langCount === 0) {
+    var langs = this.state.summary.languages;
+    var langCount = langs && langs.length;
+    if (!langs) {
+      return (
+          <bem.AssetView__langs m={'null'}>
+            <bem.AssetView__label>
+              {t('no language information')}
+            </bem.AssetView__label>
+          </bem.AssetView__langs>
+        );
+    } else if (langCount === 0) {
       return (
           <bem.AssetView__langs m={'none'}>
             <bem.AssetView__label>
@@ -429,7 +438,7 @@ var dmix = {
   },
   saveCloneAs () {
     customPromptAsync(t('new form name'))
-      .done((value) => {
+      .then((value) => {
         let uid = this.props.params.assetid;
         actions.resources.cloneAsset({
           uid: uid,
@@ -671,14 +680,16 @@ mixins.dmix = dmix;
 
 mixins.droppable = {
   _forEachDroppedFile (evt, file/*, params={}*/) {
+    var isLibrary = !!this.context.router.getCurrentPathname().match(/library/);
     dataInterface.postCreateBase64EncodedImport(assign({
         base64Encoded: evt.target.result,
         name: file.name,
+        library: isLibrary,
         lastModified: file.lastModified,
       }, this.state.url ? {
         destination: this.state.url,
       } : null
-    )).done((data/*, status, jqxhr*/)=> {
+    )).then((data)=> {
       window.setTimeout((()=>{
         dataInterface.getImportDetails({
           uid: data.uid,
@@ -689,23 +700,32 @@ mixins.droppable = {
                 isCurrentPage = this.state.uid === assetUid;
 
             if (!assetUid) {
-              alertify.error(t('could not redirect to asset'));
+              alertify.error(t('Could not redirect to asset.'));
             } else if (isCurrentPage) {
               actions.resources.loadAsset({id: assetUid});
             } else {
               this.transitionTo('form-landing', {assetid: assetUid});
             }
+          }
+          // If the import task didn't complete immediately, inform the user accordingly.
+          else if (importData.status === 'processing') {
+            alertify.warning(t('Your library assets have uploaded and are being processed. This may take a few moments.'));
+          } else if (importData.status === 'created') {
+            alertify.warning(t('Your library assets have uploaded and are queued for processing. This may take a few moments.'));
+          } else if (importData.status === 'error')  {
+            var error_message= `<strong>Import Error.</strong><br><code><strong>${importData.messages.error_type}</strong><br>${importData.messages.error}</code>`
+            alertify.error(t(error_message));
           } else {
-            alertify.error(t('import not complete'));
+            alertify.error(t('Import Failure.'));
           }
         }).fail((failData)=>{
-          alertify.error(t('import failed'));
+          alertify.error(t('Import Failed.'));
           log('import failed', failData);
         });
       }), 2500);
     }).fail((jqxhr)=> {
       log('Failed to create import: ', jqxhr);
-      alertify.error(t('failed to create import'));
+      alertify.error(t('Failed to create import.'));
     });
   },
   dropFiles (files, params={}) {
@@ -926,7 +946,6 @@ mixins.clickAssets = {
         uid = stores.selectedAsset.uid,
         result;
     // var click = this.click;
-
     if (action === 'new') {
       result = this.click.asset.new.call(this);
     } else if (this.click[assetType] && this.click[assetType][action]) {
@@ -961,7 +980,7 @@ mixins.clickAssets = {
       },
       clone: function(uid/*, evt*/){
         customPromptAsync(t('new name?'))
-          .done((value) => {
+          .then((value) => {
             actions.resources.cloneAsset({
               uid: uid,
               name: value,
@@ -974,6 +993,9 @@ mixins.clickAssets = {
       },
       download: function(uid/*, evt*/){
         this.transitionTo('form-download', {assetid: uid});
+      },
+      edit: function (uid) {
+        this.transitionTo('form-edit', {assetid: uid});
       },
       delete: function(uid/*, evt*/){
         var q_ = t('You are about to permanently delete this form. Are you sure you want to continue?');

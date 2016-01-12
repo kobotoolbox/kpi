@@ -89,7 +89,6 @@ var Drawer = React.createClass({
 
               <DrawerLink label={t('forms')} linkto='forms' fa-icon='files-o' />
               <DrawerLink label={t('library')} linkto='library' fa-icon='book' />
-              <DrawerLink label={t('collections')} linkto='collections' fa-icon='folder-o' />
 
               <div className='drawer-separator'></div>
               <span className='mdl-navigation__heading'>{t('deployed projects')}</span>
@@ -102,7 +101,7 @@ var Drawer = React.createClass({
               { this.state.isLoggedIn ?
                 <div>
                   <DrawerLink label={t('settings')} href={stores.session.currentAccount.projects_url + 'settings'} fa-icon='user' />
-                  <DrawerLink label={t('leave beta')} href={`${dataInterface.rootUrl}/hub/switch_builder`} fa-icon='circle-o' />
+                  <DrawerLink label={t('leave beta')} href={`${dataInterface.rootUrl}/hub/switch_builder?beta=0`} fa-icon='circle-o' />
                   <DrawerLink label={t('logout')} onClick={this.logout} fa-icon='sign-out' />
                 </div>
               :

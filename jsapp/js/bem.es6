@@ -133,4 +133,7 @@ bem.uiPanel = BEM('ui-panel');
 bem.uiPanel__body = bem.uiPanel.__('body');
 
 bem.Drawer = bem('drawer');
+
+bem.create = BEM;
+
 export default bem;

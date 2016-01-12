@@ -31,6 +31,7 @@ class AssetsListApiTests(APITestCase):
         url = reverse('asset-list')
         data = {
             'content': json.dumps({}),
+            'asset_type': 'empty',
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED,
@@ -45,7 +46,7 @@ class AssetsDetailApiTests(APITestCase):
     def setUp(self):
         self.client.login(username='admin', password='pass')
         url = reverse('asset-list')
-        data = {'content': '{}'}
+        data = {'content': '{}', 'asset_type': 'empty'}
         self.r = self.client.post(url, data, format='json')
         self.asset_url = self.r.data['url']
         self.assertEqual(self.r.status_code, status.HTTP_201_CREATED)
@@ -69,10 +70,10 @@ class AssetsXmlExportApiTests(KpiTestCase):
 
     def test_xml_export_title_retained(self):
         asset_title= 'XML Export Test Asset Title'
-        content= {'settings': [{'form_title': asset_title, 'form_id': 'titled_asset'}],
+        content= {'settings': [{'id_string': 'titled_asset'}],
                  'survey': [{'label': 'Q1 Label.', 'type': 'decimal'}]}
         self.login('someuser', 'someuser')
-        asset= self.create_asset('', json.dumps(content), format='json')
+        asset= self.create_asset(asset_title, json.dumps(content), format='json')
         response= self.client.get(reverse('asset-detail',
                                           kwargs={'uid':asset.uid, 'format': 'xml'}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)

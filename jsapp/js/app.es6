@@ -1188,19 +1188,12 @@ var FormSharing = React.createClass({
             <div className="k-sharing__title">
               <h5>{this.state.asset.name}</h5>
             </div>
+            <p>
+              {this.state.asset.owner__username}{'&nbsp;'}<span className="text-small">({t('owner')})</span>
+            </p>
             <div className="k-sharing__header">
-              <div className="user--pill">
-                <StackedIcon frontIcon='user' />
-                <div className="user--pill__name">
-                  <UserProfileLink username={this.state.asset.owner__username} /><br/>
-                  <span className="text-small">{t('owner')}</span>
-                </div>
-              </div>
-
               <div className="text-small">{t('To share this item with others just enter their username below, then choose which permissions they shoud have. To remove them again just deselect both permissions. Note: this does not control permissions to the data collected by projects')}</div>
-
             </div>
-
 
             <div className="mdl-grid">
               <div className="mdl-cell mdl-cell--5-col">

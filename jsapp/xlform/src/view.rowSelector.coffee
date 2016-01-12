@@ -40,7 +40,7 @@ module.exports = do ->
       @line.parents(".survey-editor__null-top-row").addClass "expanded"
       @line.css "height", "inherit"
       @line.html $viewTemplates.$$render('xlfRowSelector.namer')
-      $.scrollTo @line, 200, offset: -300
+      # $.scrollTo @line, 200, offset: -300
 
       if (@options.surveyView.features.multipleQuestions)
         $(window).on 'keydown.cancel_add_question',  (evt) =>
@@ -68,7 +68,7 @@ module.exports = do ->
       evt.preventDefault()
       @question_name = @line.find('input').val()
       @line.empty()
-      $.scrollTo @line, 200, offset: -300
+      # $.scrollTo @line, 200, offset: -300
 
       @line.html $viewTemplates.$$render('xlfRowSelector.line', "")
       @line.find('.row__questiontypes__new-question-name').val(@question_name)
@@ -127,7 +127,7 @@ module.exports = do ->
       @hide()
       @options.surveyView.reset().then () =>
         view = @options.surveyView.getViewForRow(newRow)
-        $.scrollTo view.$el, 200, offset: -300
+        # $.scrollTo view.$el, 200, offset: -300
 
 
   viewRowSelector

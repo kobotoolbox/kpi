@@ -45,6 +45,7 @@ var FormsSearchableList = React.createClass({
   componentDidMount () {
     this.searchDefault();
   },
+  /*
   dropAction ({file, event}) {
     actions.resources.createImport({
       base64Encoded: event.target.result,
@@ -53,6 +54,7 @@ var FormsSearchableList = React.createClass({
       contentType: file.type
     });
   },
+  */
   getInitialState () {
     return {
       searchContext: searches.getSearchContext('forms', {

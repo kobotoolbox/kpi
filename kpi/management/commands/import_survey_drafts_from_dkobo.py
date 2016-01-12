@@ -52,16 +52,26 @@ def _set_auto_field_update(kls, field_name, val):
 def _import_user_assets(from_user, to_user):
     user = to_user
 
+    # now, if a user wants to re-import, they can delete the asset from kpi
+    # and re-run management command
+    already_migrated_sds = user.survey_drafts.exclude(kpi_asset_uid='')
+    for migrated_sd in already_migrated_sds.all():
+        _kpi_uid = migrated_sd.kpi_asset_uid
+        if Asset.objects.filter(uid=_kpi_uid).count() == 0:
+            migrated_sd.kpi_asset_uid = ''
+            migrated_sd.save()
+
     not_already_migrated = user.survey_drafts.filter(kpi_asset_uid='')
     user_survey_drafts = not_already_migrated.filter(asset_type=None)
     user_qlib_assets = not_already_migrated.exclude(asset_type=None)
 
-    def _import_asset(asset, parent_collection=None):
+    def _import_asset(asset, parent_collection=None, asset_type='survey'):
         survey_dict = _csv_to_dict(asset.body)
         obj = {
             'name': asset.name,
             'date_created': asset.date_created,
             'date_modified': asset.date_modified,
+            'asset_type': asset_type,
             'owner': user,
         }
 
@@ -87,14 +97,14 @@ def _import_user_assets(from_user, to_user):
 
     for survey_draft in user_survey_drafts.all():
         print 'importing sd %s %d' % (survey_draft.name, survey_draft.id)
-        new_asset = _import_asset(survey_draft)
+        new_asset = _import_asset(survey_draft, asset_type='survey')
         print '\timported to asset {}'.format(new_asset.uid)
 
     (qlib, _) = Collection.objects.get_or_create(name="question library", owner=user)
 
     for qlib_asset in user_qlib_assets.all():
         print 'importing qla %s %d' % (qlib_asset.name, qlib_asset.id)
-        new_asset = _import_asset(qlib_asset, qlib)
+        new_asset = _import_asset(qlib_asset, qlib, asset_type='block')
         print '\timported to asset {}'.format(new_asset.uid)
 
     _set_auto_field_update(Asset, "date_created", False)

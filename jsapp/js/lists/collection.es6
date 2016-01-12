@@ -2,6 +2,7 @@ import React from 'react/addons';
 import Reflux from 'reflux';
 import {Navigation} from 'react-router';
 import Dropzone from '../libs/dropzone';
+import mdl from '../libs/rest_framework/material';
 
 import {dataInterface} from '../dataInterface';
 import actions from '../actions';
@@ -11,7 +12,7 @@ import bem from '../bem';
 import ui from '../ui';
 import AssetRow from '../components/assetrow';
 import {
-  customPrompt,
+  customPromptAsync,
   parsePermissions,
   t,
 } from '../utils';
@@ -39,9 +40,13 @@ var CollectionList = React.createClass({
       callback();
     }
   },
+  componentDidUpdate() {
+    mdl.upgradeDom();
+  },
   componentDidMount () {
     this.listCollections();
   },
+  /*
   dropAction ({file, event}) {
     actions.resources.createImport({
       base64Encoded: event.target.result,
@@ -50,11 +55,14 @@ var CollectionList = React.createClass({
       contentType: file.type
     });
   },
+  */
   createCollection () {
-    dataInterface.createCollection({
-      name: customPrompt('collection name?'),
-    }).done((data)=>{
-      this.transitionTo(`/collections/${data.uid}`);
+    customPromptAsync('collection name?').then((val)=>{
+      dataInterface.createCollection({
+        name: val,
+      }).done((data)=>{
+        this.transitionTo(`/collections/${data.uid}`);
+      });
     });
   },
   render () {
@@ -79,14 +87,16 @@ var CollectionList = React.createClass({
 
             <ul className="mdl-menu mdl-menu--top-right mdl-js-menu mdl-js-ripple-effect"
                 htmlFor="demo-menu-top-right">
+              <li>
                 <bem.CollectionNav__button m={['new', 'new-collection']} className="mdl-menu__item"
                     onClick={this.createCollection}>
                   <i />
                   {t('new collection')}
                 </bem.CollectionNav__button>
-              <li className="mdl-menu__item">
+              </li>
+              <li>
                 <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
-                  <bem.CollectionNav__button m={['upload', 'upload-block']}>
+                  <bem.CollectionNav__button m={['upload', 'upload-block']} className="mdl-menu__item">
                     <i className='fa fa-icon fa-cloud fa-fw' />
                     &nbsp;&nbsp;
                     {t('upload')}

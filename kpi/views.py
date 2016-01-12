@@ -293,7 +293,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
 class AuthorizedApplicationUserViewSet(mixins.CreateModelMixin,
                                        viewsets.GenericViewSet):
-    authentication_classes = [ApplicationTokenAuthentication] 
+    authentication_classes = [ApplicationTokenAuthentication]
     queryset = User.objects.all()
     serializer_class = CreateUserSerializer
     lookup_field = 'username'
@@ -362,7 +362,8 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
         if self.request.user.is_anonymous():
             return ImportTask.objects.none()
         else:
-            return ImportTask.objects.filter(user=self.request.user)
+            return ImportTask.objects.filter(
+                        user=self.request.user).order_by('date_created')
 
     def create(self, request, *args, **kwargs):
         if self.request.user.is_anonymous():
@@ -373,16 +374,19 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
             itask_data = {
                 'base64Encoded': encoded_substr,
                 # NOTE: 'filename' here comes from 'name' (!) in the POST data
+                'library': request.POST.get('library') not in ['false', False],
                 'filename': request.POST.get('name', None),
                 'destination': request.POST.get('destination', None),
             }
-            import_task = ImportTask.objects.create(user=request.user, data=itask_data)
+            import_task = ImportTask.objects.create(user=request.user,
+                                                    data=itask_data)
             # Have Celery run the import in the background
             import_in_background.delay(import_task_uid=import_task.uid)
             return Response({
                 'uid': import_task.uid,
                 'status': ImportTask.PROCESSING
             }, status.HTTP_201_CREATED)
+
 
 class AssetSnapshotViewSet(NoUpdateModelViewSet):
     serializer_class = AssetSnapshotSerializer
@@ -395,9 +399,13 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
     ]
 
     def get_queryset(self):
-        # The XML renderer IGNORES this and serves anyone, so
-        # /asset_snapshot/valid_uid/.xml is world-readable, even though
-        # /asset_snapshot/valid_uid/ requires ownership
+        if (self.action == 'retrieve' and
+                self.request.accepted_renderer.format == 'xml'):
+            # The XML renderer is totally public and serves anyone, so
+            # /asset_snapshot/valid_uid/.xml is world-readable, even though
+            # /asset_snapshot/valid_uid/ requires ownership
+            return AssetSnapshot.objects.all()
+
         user = self.request.user
         if not user.is_anonymous():
             return AssetSnapshot.objects.filter(owner=user)

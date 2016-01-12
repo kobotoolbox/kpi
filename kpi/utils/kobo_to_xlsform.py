@@ -289,7 +289,11 @@ def _autoname_fields(surv_contents, default_language=None):
     '''
     kuid_names = {}
     for surv_row in surv_contents:
-        if 'name' not in surv_row:
+        # xls2json_backends.csv_to_dict(), called by dkobo, omits 'name' keys
+        # whose values are blank. Since we read JSON from the form builder
+        # instead of CSV, however, we have to tolerate not only missing names
+        # but blank ones as well.
+        if 'name' not in surv_row or surv_row['name'] == '':
             if re.search(r'^end ', surv_row['type']):
                 continue
             if 'label' in surv_row:
