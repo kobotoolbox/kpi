@@ -2,6 +2,12 @@
   margin: 20px 0;
   flex-grow: 1;
 
+  &__itemlink {
+    text-decoration: none;
+    float: right;
+    color: #00f;
+    margin: 0 0 0 12px;
+  }
   &__item {
     background-color: #fff;
     padding: 8px 20px;
@@ -9,6 +15,14 @@
     cursor: pointer;
     border-bottom: 1px solid #ddd;
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.1), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+    &--info {
+      cursor: default;
+      border: 0 none;
+      box-shadow: none;
+      color: #2136A9;
+      font-size: 11px;
+      background-color: transparent;
+    }
     &--selected {
       background-color: #eee;
       font-weight: bold;

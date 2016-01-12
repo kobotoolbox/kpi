@@ -18,10 +18,12 @@ import {
 import {
   t,
   customPromptAsync,
+  customConfirmAsync,
 } from '../utils';
 
 var CollectionSidebar = bem.create('collection-sidebar', '<ul>'),
-    CollectionSidebar__item = bem.create('collection-sidebar__item', '<li>');
+    CollectionSidebar__item = bem.create('collection-sidebar__item', '<li>'),
+    CollectionSidebar__itemlink = bem.create('collection-sidebar__itemlink', '<a>');
 
 var LibrarySearchableList = React.createClass({
   mixins: [
@@ -105,6 +107,14 @@ var LibrarySearchableList = React.createClass({
       });
     });
   },
+  deleteCollection (evt) {
+    evt.preventDefault();
+    var collectionUid = $(evt.currentTarget).data('collection-uid');
+    customConfirmAsync('are you sure you want to delete this collection? this action is not reversible').then(()=>{
+      var qc = () => this.queryCollections();
+      dataInterface.deleteCollection({uid: collectionUid}).then(qc).catch(qc);
+    });
+  },
   render () {
     return (
       <ui.Panel>
@@ -158,9 +168,19 @@ var LibrarySearchableList = React.createClass({
                   selected: !this.state.filteredCollectionUid,
                 }} onClick={this.clickFilterByCollection}>
               <i />
-              {t('all items')}
+              {t('all items (no filter)')}
             </CollectionSidebar__item>
-            {this.state.sidebarCollections.map((collection)=>{
+            {/*
+            <CollectionSidebar__item
+              key='info'
+              m='info'
+            >
+              {t('filter by collection')}
+            </CollectionSidebar__item>
+            */}
+            {this.state.sidebarCollections.map((collection)=>{  
+              var editLink = this.makeHref('collection-page', {uid: collection.uid}),
+                sharingLink = this.makeHref('collection-sharing', {assetid: collection.uid});
               return (
                   <CollectionSidebar__item
                     key={collection.uid}
@@ -173,6 +193,17 @@ var LibrarySearchableList = React.createClass({
                   >
                     <i />
                     {collection.name}
+                    <CollectionSidebar__itemlink href={'#'}
+                      onClick={this.deleteCollection}
+                      data-collection-uid={collection.uid}>
+                      {t('delete')}
+                    </CollectionSidebar__itemlink>
+                    <CollectionSidebar__itemlink href={sharingLink}>
+                      {t('sharing')}
+                    </CollectionSidebar__itemlink>
+                    <CollectionSidebar__itemlink href={editLink}>
+                      {t('edit')}
+                    </CollectionSidebar__itemlink>
                   </CollectionSidebar__item>
                 );
             })}
