@@ -30,7 +30,7 @@ export function customPromptAsync(msg) {
     window.setTimeout(function(){
       var val = window.prompt(msg);
       if (val === null) {
-        reject();
+        reject(new Error('empty value'));
       } else {
         resolve(val);
       }

@@ -121,6 +121,9 @@ function SearchContext(opts={}) {
       if (this.state.searchString) {
         params.string = this.state.searchString;
       }
+      if (this.state.parentUid) {
+        params.parentUid = `parent__uid:${this.state.parentUid}`;
+      }
       return assign({}, this.filterParams, params);
     },
     toQueryData (dataObject) {
@@ -154,7 +157,6 @@ function SearchContext(opts={}) {
         delete searchParams.parent;
       }
       paramGroups = paramGroups.concat(_.values(searchParams));
-
       if (paramGroups.length > 1) {
         queryData.q = paramGroups.map(function(s){
           return `(${s})`;
@@ -179,6 +181,7 @@ function SearchContext(opts={}) {
 
     // we can clean this up later, but right now, if the search query is empty
     // it cancels the search
+    /*
     if (((d)=>{
       if (_opts.cacheAsDefaultSearch) {
         return false;
@@ -190,7 +193,7 @@ function SearchContext(opts={}) {
     })(_dataObjectClone)) {
       return search.cancel();
     }
-
+    */
     if (isSearch) {
       // cancel existing searches
       if (jqxhrs.search) {

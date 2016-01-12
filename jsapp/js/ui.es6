@@ -148,7 +148,7 @@ ui.AssetName = React.createClass({
       name = summary.labels ? summary.labels[0] : false;
       if (!name) {
         isEmpty = true;
-        name = t('empty');
+        name = t('no name');
       }
       if (row_count) {
         if (row_count === 2) {

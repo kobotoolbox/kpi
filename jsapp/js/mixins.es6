@@ -319,8 +319,17 @@ var dmix = {
       );
   },
   renderLanguages () {
-    var langCount = this.state.summary.languages.length;
-    if (langCount === 0) {
+    var langs = this.state.summary.languages;
+    var langCount = langs && langs.length;
+    if (!langs) {
+      return (
+          <bem.AssetView__langs m={'null'}>
+            <bem.AssetView__label>
+              {t('no language information')}
+            </bem.AssetView__label>
+          </bem.AssetView__langs>
+        );
+    } else if (langCount === 0) {
       return (
           <bem.AssetView__langs m={'none'}>
             <bem.AssetView__label>
