@@ -14,6 +14,7 @@ import ui from '../ui';
 import AssetRow from '../components/assetrow';
 import {
   parsePermissions,
+  customPromptAsync,
   t,
 } from '../utils';
 
@@ -64,7 +65,7 @@ var CollectionLanding = React.createClass({
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
       stores.pageState.setHeaderBreadcrumb([
-        {'label': t('Collections'), 'to': 'collections'},
+        {'label': t('library'), 'to': 'library'},
         {'label': t('Collection'), 'to': 'collection-page', 'params': {
           uid: params.uid
         }}
@@ -86,14 +87,34 @@ var CollectionLanding = React.createClass({
   */
   componentDidMount () {
     this.sendCollectionNameChange = _.debounce(this._sendCollectionNameChange, 2500);
+  },
+  componentDidUpdate () {
     mdl.upgradeDom();
   },
   createCollection () {
-    dataInterface.createCollection({
-      name: customPrompt('collection name?'),
+    customPromptAsync('collection name?').then((val) => {
+      dataInterface.createCollection({
+        name: val,
+        parent: this.state.collectionUrl,
+      }).then((data) => {
+        this.transitionTo(`/collections/${data.uid}/`);
+      });
+    });
+  },
+  createQuestion () {
+    dataInterface.createResource({
+      asset_type: 'question',
       parent: this.state.collectionUrl,
-    }).done((data) => {
-      this.redirect(`/collections/${data.uid}/`);
+    }).then((data) => {
+      this.transitionTo(`/forms/${data.uid}/edit`);
+    });
+  },
+  createBlock () {
+    dataInterface.createResource({
+      asset_type: 'block',
+      parent: this.state.collectionUrl,
+    }).then((data) => {
+      this.transitionTo(`/forms/${data.uid}/edit`);
     });
   },
   _sendCollectionNameChange (name) {
@@ -166,11 +187,21 @@ var CollectionLanding = React.createClass({
 
             <ul className="mdl-menu mdl-menu--top-right mdl-js-menu mdl-js-ripple-effect"
                 htmlFor="demo-menu-top-right">
-                <bem.CollectionNav__button m={['new', 'new-collection']} className="mdl-menu__item"
-                    onClick={this.createCollection}>
-                  <i />
-                  {t('new collection inside "___"').replace('___', collectionIdentifier)}
-                </bem.CollectionNav__button>
+              <bem.CollectionNav__button m={['new', 'new-collection']} className="mdl-menu__item"
+                  onClick={this.createCollection}>
+                <i />
+                {t('new collection inside "___"').replace('___', collectionIdentifier)}
+              </bem.CollectionNav__button>
+              <bem.CollectionNav__button m={['new', 'new-question']} className="mdl-menu__item"
+                  onClick={this.createQuestion}>
+                <i />
+                {t('new question inside "___"').replace('___', collectionIdentifier)}
+              </bem.CollectionNav__button>
+              <bem.CollectionNav__button m={['new', 'new-block']} className="mdl-menu__item"
+                  onClick={this.createBlock}>
+                <i />
+                {t('new block inside "___"').replace('___', collectionIdentifier)}
+              </bem.CollectionNav__button>
               <li className="mdl-menu__item">
                 <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
                   <bem.CollectionNav__button m={['upload', 'upload-block']}>
