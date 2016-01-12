@@ -17,6 +17,7 @@ import {
 } from '../components/list';
 import {
   t,
+  customPromptAsync,
 } from '../utils';
 
 var CollectionSidebar = bem.create('collection-sidebar', '<ul>'),
@@ -95,6 +96,15 @@ var LibrarySearchableList = React.createClass({
       filteredCollectionUid: collectionUid,
     });
   },
+  createCollection () {
+    customPromptAsync('collection name?').then((val)=>{
+      dataInterface.createCollection({
+        name: val,
+      }).then((data)=>{
+        this.queryCollections();
+      });
+    });
+  },
   render () {
     return (
       <ui.Panel>
@@ -117,11 +127,16 @@ var LibrarySearchableList = React.createClass({
 
             <ul className="mdl-menu mdl-menu--top-right mdl-js-menu mdl-js-ripple-effect"
                 htmlFor="demo-menu-top-right">
-              <bem.CollectionNav__link m={['new', 'new-block']} className="mdl-menu__item"
+              <bem.CollectionNav__link key={'new-asset'} m={['new', 'new-block']} className="mdl-menu__item"
                   href={this.makeHref('add-to-library')}>
                 <i />
                 {t('add to library')}
               </bem.CollectionNav__link>
+              <bem.CollectionNav__button key={'new-collection'} m={['new', 'new-collection']} className="mdl-menu__item"
+                  onClick={this.createCollection}>
+                <i />
+                {t('new collection')}
+              </bem.CollectionNav__button>
               <Dropzone onDropFiles={this.dropFiles} className="mdl-menu__item"
                   params={{destination: false}} fileInput>
                 <bem.CollectionNav__button m={['upload', 'upload-block']}>
