@@ -89,7 +89,6 @@ var Drawer = React.createClass({
 
               <DrawerLink label={t('forms')} linkto='forms' fa-icon='files-o' />
               <DrawerLink label={t('library')} linkto='library' fa-icon='book' />
-              <DrawerLink label={t('collections')} linkto='collections' fa-icon='folder-o' />
 
               <div className='drawer-separator'></div>
               <span className='mdl-navigation__heading'>{t('deployed projects')}</span>
