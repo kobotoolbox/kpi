@@ -301,7 +301,8 @@ class AssetSnapshot(models.Model, XlsExportable):
 
         # form_title is now always stored in the model
         # (removed from the settings sheet until export)
-        settings.setdefault('form_title', self.asset.name or 'Untitled')
+        default_form_title= (hasattr(self.asset, 'name') and self.asset.name) or 'Untitled'
+        settings.setdefault('form_title', default_form_title)
 
         if opts.get('include_note'):
             source['survey'].insert(0, {'type': 'note',
@@ -311,8 +312,10 @@ class AssetSnapshot(models.Model, XlsExportable):
             dict_repr = pyxform.xls2json.workbook_to_json(
                 source, default_name, default_language, warnings)
 
-            for k in (u'id_string', u'sms_keyword'):
+            for k in (u'name', u'id_string', u'sms_keyword'):
                 dict_repr.setdefault(k, default_id_string)
+                if not isinstance(dict_repr[k], basestring):
+                    dict_repr[k]= default_id_string
 
             survey = pyxform.builder.create_survey_element_from_dict(dict_repr)
             with tempfile.NamedTemporaryFile(suffix='.xml') as named_tmp:

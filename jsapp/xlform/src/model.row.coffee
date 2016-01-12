@@ -210,6 +210,7 @@ module.exports = do ->
         additionalSheets['choices'].add(@_rankLevels)
       begin_xlsformrow = _.clone(@toJSON2())
       begin_xlsformrow.type = "begin rank"
+      begin_xlsformrow['kobo--rank-items'] = @getList().get('name')
       survey_arr.push(begin_xlsformrow)
       ``
 

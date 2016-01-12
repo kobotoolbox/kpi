@@ -149,7 +149,7 @@ var LibrarySearchableList = React.createClass({
               </bem.CollectionNav__button>
               <Dropzone onDropFiles={this.dropFiles} className="mdl-menu__item"
                   params={{destination: false}} fileInput>
-                <bem.CollectionNav__button m={['upload', 'upload-block']}>
+                <bem.CollectionNav__button m={['upload', 'upload-block']} className="mdl-menu__item">
                   <i className='fa fa-icon fa-cloud fa-fw' />
                   &nbsp;&nbsp;
                   {t('upload')}

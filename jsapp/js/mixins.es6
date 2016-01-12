@@ -946,7 +946,6 @@ mixins.clickAssets = {
         uid = stores.selectedAsset.uid,
         result;
     // var click = this.click;
-
     if (action === 'new') {
       result = this.click.asset.new.call(this);
     } else if (this.click[assetType] && this.click[assetType][action]) {
@@ -994,6 +993,9 @@ mixins.clickAssets = {
       },
       download: function(uid/*, evt*/){
         this.transitionTo('form-download', {assetid: uid});
+      },
+      edit: function (uid) {
+        this.transitionTo('form-edit', {assetid: uid});
       },
       delete: function(uid/*, evt*/){
         var q_ = t('You are about to permanently delete this form. Are you sure you want to continue?');
