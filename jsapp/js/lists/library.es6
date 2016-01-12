@@ -107,11 +107,6 @@ var LibrarySearchableList = React.createClass({
             <ListTagFilter
                 searchContext={this.state.searchContext}
               />
-            <ListSearchSummary
-                assetDescriptor={t('library item')}
-                assetDescriptorPlural={t('library items')}
-                searchContext={this.state.searchContext}
-              />
           </bem.CollectionNav__search>
 
           <bem.CollectionNav__actions className="k-form-list-actions">
@@ -175,6 +170,12 @@ var LibrarySearchableList = React.createClass({
             </CollectionSidebar__item>
           </CollectionSidebar>
         }
+        <ListSearchSummary
+            assetDescriptor={t('library item')}
+            assetDescriptorPlural={t('library items')}
+            searchContext={this.state.searchContext}
+          />
+
         <SearchCollectionList
             showDefault={true}
             searchContext={this.state.searchContext}

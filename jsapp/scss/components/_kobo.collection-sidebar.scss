@@ -1,11 +1,22 @@
 .collection-sidebar {
   margin: 20px 0;
+  flex-grow: 1;
+
   &__item {
     background-color: #fff;
     padding: 8px 20px;
+    margin: 0 8px;
     cursor: pointer;
+    border-bottom: 1px solid #ddd;
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.1), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
     &--selected {
+      background-color: #eee;
       font-weight: bold;
+      &.collection-sidebar__item--collection {
+        > i {
+          @extend .fa-folder;
+        }
+      }
     }
     > i {
       @extend .fa, .fa-fw;
@@ -13,7 +24,7 @@
     }
     &--collection {
       > i {
-        @extend .fa-folder;
+        @extend .fa-folder-o;
       }
     }
   }
