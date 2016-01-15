@@ -12,6 +12,8 @@ import {
   assign,
 } from '../utils';
 
+var AssetTypeIcon = bem.create('asset-type-icon');
+
 var AssetRow = React.createClass({
   mixins: [
     Navigation
@@ -60,11 +62,10 @@ var AssetRow = React.createClass({
                           }}
                         onClick={this.clickAsset}
                       >
-          <bem.AssetRow__cell m={['icon',
-                    `kind-${this.props.kind}`,
-                    this.props.asset_type ? `assettype-${this.props.asset_type}` : null
-                  ]}>
-              <i />
+          <i />
+
+          <bem.AssetRow__cell m={['icon']}>
+            <AssetTypeIcon m={[this.props.asset_type, 'medium']}><i /></AssetTypeIcon>
           </bem.AssetRow__cell>
 
           <bem.AssetRow__celllink m={['name', this.props.name ? 'titled' : 'untitled']}
