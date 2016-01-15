@@ -32,13 +32,14 @@ bem.uiModal__header = bem.uiModal.__('header');
 
 .ui-panel__body {
   @extend .mdl-grid;
-  max-width:980px; 
-  padding:10px 35px;
+  max-width: 980px;
+  padding: 10px 35px;
+
   > .row {
     position: relative;
   }
 
-  > .asset-view__content, 
+  > .asset-view__content,
   > .collection-asset-list {
     @extend .mdl-cell, .mdl-cell--12-col;
     @extend .mdl-shadow--2dp, .mdl-color--white;
@@ -57,12 +58,12 @@ bem.uiModal__header = bem.uiModal.__('header');
 
 .page-wrapper--asset-nav-open .mdl-layout__content {
   margin-right: 400px;
-  transition: all .4s ease 0s; 
+  transition: all .4s ease 0s;
 }
 
 .k-form-header__inner {
   max-width: 980px;
-  display: flex; 
+  display: flex;
 }
 
 // Sharing form header
