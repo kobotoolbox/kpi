@@ -11,6 +11,16 @@ $highlightedBarTextColor: #25343C;
   padding: 10px 12px 10px 45px;
   clear: both;
   position: relative;
+
+  > i:first-child {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+
+    @extend .fa, .fa-fw, .fa-lg, .fa-caret-down;
+    color: #bbb;
+  }
+
   a, a:hover {
     text-decoration: none;
   }
@@ -18,17 +28,14 @@ $highlightedBarTextColor: #25343C;
   &--deleting {
     opacity: 0.5;
   }
-  &:after {
-    content:'\f0d7';
-    font-family: 'FontAwesome';
-    position: absolute;
-    right: 15px;
-    top: 15px;
-    width: 24px;
-    height: 24px;
-    font-size: 24px;
-    text-align: center;
-    opacity: 0.5;
+
+  &.asset-row--active {
+    background-color: $highlightedBarColor;
+    color: $highlightedBarTextColor;
+    > i:first-child {
+      @extend .fa-caret-up;
+      color: #666;
+    }
   }
 }
 
@@ -51,18 +58,6 @@ $highlightedBarTextColor: #25343C;
   @extend .k-tagsinput-tag;
 }
 
-.asset-row--selected {
-  background-color: $highlightedBarColor;
-  color: $highlightedBarTextColor;
-  a, a:hover {
-    color: $highlightedBarTextColor;
-    background-color: transparent;
-  }
-
-  &:after {
-    content:'\f0d8';
-  }
-}
 
 .asset-row--deleted {
   opacity: 0.35;
@@ -70,7 +65,7 @@ $highlightedBarTextColor: #25343C;
 }
 
 @mixin bt-theme($col1, $col2) {
-  .asset-row--selected & {
+  .asset-row--active & {
     border-color: unquote("rgb(#{$col1})");
     background: unquote("rgb(#{$col2})");
     cursor: pointer;
@@ -187,9 +182,9 @@ $highlightedBarTextColor: #25343C;
   display: block;
   line-height: 1.5em;
   color: #333;
-  @media(min-width:768px) {
+  @media (min-width:768px) {
     overflow: hidden;
-    text-overflow: ellipsis; 
+    text-overflow: ellipsis;
     white-space: nowrap;
     height: 1.5em;
   }
@@ -197,11 +192,15 @@ $highlightedBarTextColor: #25343C;
 
 .asset-row__cellmeta {
   font-size: 12px;
+  display: flex;
+
   @extend .clearfix;
 
   .asset-row__cell {
-    width:20%;
-    float: left;
+    flex-grow: 2;
+    &--userlink {
+      flex-grow: 1;
+    }
   }
 
   @mixin gradient($from, $to) {
@@ -216,7 +215,7 @@ $highlightedBarTextColor: #25343C;
     overflow: hidden;
     width:100%;
     position: relative;
-    .asset-row--selected & {
+    .asset-row--active & {
       max-height: 40em;
     }
     &:after {
@@ -226,7 +225,7 @@ $highlightedBarTextColor: #25343C;
       height: 1.5em;
       width: 100%;
       @include gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 1));
-      .asset-row--selected & {
+      .asset-row--active & {
         display: none;
       }
     }
@@ -263,13 +262,23 @@ $highlightedBarTextColor: #25343C;
   transition:all 0.3s;
   clear: both;
   padding:12px 0px;
+  margin-left: -32px;
+
   .asset-row__cell--action-icons {
     display: flex;
-    justify-content:space-around;
+    justify-content: space-around;
+
+    a {
+      flex-grow: 1;
+      margin-right: 4px;
+      &:last-child {
+        margin-right: 0;
+      }
+    }
   }
 }
 
-.asset-row--selected {
+.asset-row--active {
   .asset-row__action-icon {
     @extend .mdl-button;
     i {
