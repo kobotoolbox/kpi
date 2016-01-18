@@ -33,7 +33,7 @@ bem.uiModal__header = bem.uiModal.__('header');
 .ui-panel__body {
   @extend .mdl-grid;
   max-width: 980px;
-  padding: 10px 35px;
+  padding: 0;
 
   > .row {
     position: relative;
