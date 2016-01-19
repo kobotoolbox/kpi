@@ -191,7 +191,7 @@ HAYSTACK_CONNECTIONS = {
 }
 # If this causes performance trouble, see
 # http://django-haystack.readthedocs.org/en/latest/best_practices.html#use-of-a-queue-for-a-better-user-experience
-HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+HAYSTACK_SIGNAL_PROCESSOR = 'kpi.signals.HaystackSignalProcessor'
 
 # Enketo settings copied from dkobo.
 ENKETO_SERVER = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
