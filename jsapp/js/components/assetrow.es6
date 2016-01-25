@@ -12,6 +12,8 @@ import {
   assign,
 } from '../utils';
 
+var AssetTypeIcon = bem.create('asset-type-icon');
+
 var AssetRow = React.createClass({
   mixins: [
     Navigation
@@ -55,16 +57,17 @@ var AssetRow = React.createClass({
     return (
         <bem.AssetRow m={{
                             'selected': this.props.isSelected,
+                            'active': this.props.isSelected,
+                            'inactive': !this.props.isSelected,
                             'deleted': this.props.deleted,
                             'deleting': this.props.deleting,
                           }}
                         onClick={this.clickAsset}
                       >
-          <bem.AssetRow__cell m={['icon',
-                    `kind-${this.props.kind}`,
-                    this.props.asset_type ? `assettype-${this.props.asset_type}` : null
-                  ]}>
-              <i />
+          <i />
+
+          <bem.AssetRow__cell m={['icon']}>
+            <AssetTypeIcon m={[this.props.asset_type, 'medium']}><i /></AssetTypeIcon>
           </bem.AssetRow__cell>
 
           <bem.AssetRow__celllink m={['name', this.props.name ? 'titled' : 'untitled']}
@@ -78,21 +81,11 @@ var AssetRow = React.createClass({
           </bem.AssetRow__celllink>
           <bem.AssetRow__cellmeta>
             <bem.AssetRow__cell m={'userlink'}>
-              <bem.AssetRow__sharingIcon
-                  href="#"
-                  m={{
-                    'self-owned': selfowned,
-                    'public-owned': isPublic,
-                  }}>
-                <i />
-                {
-                  selfowned ?
-                    t('me') :
-                  <bem.AssetRow__sharingIcon__owner>
-                    {this.props.owner__username}
-                  </bem.AssetRow__sharingIcon__owner>
-                }
-              </bem.AssetRow__sharingIcon>
+              {
+                selfowned ?
+                  t('me') :
+                  this.props.owner__username
+              }
             </bem.AssetRow__cell>
             <bem.AssetRow__cell m={'date-modified'}>
               <span className="date date--modified">{t('Modified')} {formatTime(this.props.date_modified)}</span>
@@ -109,7 +102,7 @@ var AssetRow = React.createClass({
               }()}
             </bem.AssetRow__cell>
           </bem.AssetRow__cellmeta>
-          { this.props.isSelected && 
+          { this.props.isSelected &&
             <bem.AssetRow__cell m={'buttons'}>
               <bem.AssetRow__cell m={'action-icons'}>
                 { this.props.kind === 'asset' &&
@@ -169,11 +162,10 @@ var AssetRow = React.createClass({
               </bem.AssetRow__cell>
             </bem.AssetRow__cellmeta>
           }
-          { this.props.isSelected && 
+          { this.props.isSelected &&
             <bem.AssetRow__cell m={'secondary-buttons'}>
               <bem.AssetRow__cell m={'action-icons'}>
-                { 
-                  ['refresh', 'delete'].map((actn)=>{
+                  {['refresh', 'delete'].map((actn)=>{
                     return (
                           <bem.AssetRow__actionIcon
                               m={actn}
@@ -185,8 +177,7 @@ var AssetRow = React.createClass({
                             {actn}
                           </bem.AssetRow__actionIcon>
                         );
-                  })
-                }
+                  })}
               </bem.AssetRow__cell>
             </bem.AssetRow__cell>
           }
