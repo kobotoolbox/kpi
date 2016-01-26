@@ -24,7 +24,8 @@ static3==0.5.1
 unicodecsv==0.13.0
 whitenoise==1.0.6
 wsgiref==0.1.2
-Whoosh==2.7.0
+#Whoosh==2.7.0 # https://bitbucket.org/mchaput/whoosh/issues/386/keyerror-1l
+https://bitbucket.org/kobojohn/whoosh/get/8a3b596c57fd.zip#egg=Whoosh
 django-haystack==2.4.0
 celery==3.1.18
 django-cachebuster==0.2.1
