@@ -1,10 +1,12 @@
 import copy
 import re
 import logging
+import haystack
 from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User, Permission
 from django.conf import settings
+from taggit.models import Tag, TaggedItem
 from .models import Asset
 from .models import Collection
 from .models.object_permission import perm_parse
@@ -30,6 +32,9 @@ def _load_library_content(structure):
     library_sheet = content.get('library', [])
     del content['library']
 
+    tag_name_to_pk = {} # Both a cache and a record of what to index later
+    created_asset_pks = [] # A list of what to index at the end of the import
+
     grouped = defaultdict(list)
     for row in library_sheet:
         # preserve the additional sheets of imported library (but not the library)
@@ -38,10 +43,25 @@ def _load_library_content(structure):
             if unicode(val).lower() in ['false', '0', 'no', 'n', '', 'none']:
                 continue
             if re.search(TAG_RE, key):
-                row_tags.append(re.match(TAG_RE, key).groups()[0])
+                tag_name = re.match(TAG_RE, key).groups()[0]
+                row_tags.append(tag_name)
+                tag_name_to_pk[tag_name] = None # Will be filled in later
                 del row[key]
         block_name = row.get('block', None)
         grouped[block_name].append((row, row_tags,))
+
+    # Resolve tag names to PKs
+    existing_tags = Tag.objects.filter(
+        name__in=tag_name_to_pk.keys()).values_list('name', 'pk')
+    existing_tags_dict = dict(existing_tags)
+    tag_name_to_pk.update(existing_tags_dict)
+    if existing_tags.count() < len(tag_name_to_pk.keys()):
+        import_tag_names = set(tag_name_to_pk.keys())
+        existing_tag_names = set(existing_tags_dict.keys())
+        for new_tag_name in import_tag_names.difference(existing_tag_names):
+            # We're not atomic, but get_or_create should be
+            new_tag, created = Tag.objects.get_or_create(name=new_tag_name)
+            tag_name_to_pk[new_tag_name] = new_tag.pk
 
     collection_name = structure['name']
     if not collection_name:
@@ -49,27 +69,54 @@ def _load_library_content(structure):
     collection = Collection.objects.create(
         owner=structure['owner'], name=collection_name)
 
-    for block_name, rows in grouped.items():
-        if block_name is None:
-            for (row, row_tags) in rows:
+    with haystack.signal_processor.defer():
+        for block_name, rows in grouped.items():
+            if block_name is None:
+                for (row, row_tags) in rows:
+                    scontent = copy.deepcopy(content)
+                    scontent['survey'] = [row]
+                    sa = Asset.objects.create(
+                        content=scontent,
+                        asset_type='question',
+                        owner=structure['owner'],
+                        parent=collection
+                    )
+                    created_asset_pks.append(sa.pk)
+                    for tag_name in row_tags:
+                        ti = TaggedItem.objects.create(
+                            tag_id = tag_name_to_pk[tag_name],
+                            content_object = sa
+                        )
+            else:
+                block_rows = []
+                block_tags = set()
+                for (row, row_tags) in rows:
+                    for tag in row_tags:
+                        block_tags.add(tag)
+                    block_rows.append(row)
                 scontent = copy.deepcopy(content)
-                scontent['survey'] = [row]
-                sa = Asset.objects.create(content=scontent, asset_type='question',
-                                            owner=structure['owner'], parent=collection)
-                sa.tags.add(*row_tags)
-        else:
-            block_rows = []
-            block_tags = set()
-            for (row, row_tags) in rows:
-                for tag in row_tags:
-                    block_tags.add(tag)
-                block_rows.append(row)
-            scontent = copy.deepcopy(content)
-            scontent['survey'] = block_rows
-            sa = Asset.objects.create(content=scontent, asset_type='block',
-                                      name=block_name, parent=collection,
-                                      owner=structure['owner'])
-            sa.tags.add(*list(block_tags))
+                scontent['survey'] = block_rows
+                sa = Asset.objects.create(
+                    content=scontent,
+                    asset_type='block',
+                    name=block_name,
+                    parent=collection,
+                    owner=structure['owner']
+                )
+                created_asset_pks.append(sa.pk)
+                for tag_name in block_tags:
+                    ti = TaggedItem.objects.create(
+                        tag_id = tag_name_to_pk[tag_name],
+                        content_object = sa
+                    )
+
+    # Update the search index
+    for tag_pk in tag_name_to_pk.values():
+        update_object_in_search_index(Tag.objects.get(pk=tag_pk))
+    for asset_pk in created_asset_pks:
+        asset = Asset.objects.get(pk=asset_pk)
+        update_object_in_search_index(asset)
+
     return collection
 
 def create_assets(kls, structure, **options):
@@ -136,3 +183,17 @@ def grant_all_model_level_perms(
             q_query |= Q(content_type__app_label=app_label, codename=codename)
         permissions_to_assign = permissions_to_assign.filter(q_query)
     user.user_permissions.add(*permissions_to_assign)
+
+def update_object_in_search_index(obj):
+    '''
+    If a search index exists for the type of `obj`, update it. Otherwise, do
+    nothing
+    '''
+    try:
+        index = haystack.connections['default'].get_unified_index().get_index(
+            type(obj))
+    except haystack.exceptions.NotHandled:
+        # There's nothing to update because this type of object is not indexed
+        return
+    index.update_object(obj)
+

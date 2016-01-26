@@ -1,5 +1,6 @@
 from itertools import chain
 
+import haystack
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.dispatch import receiver
@@ -87,6 +88,29 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
         if self.uid == '':
             self.uid = self._generate_uid()
         super(Collection, self).save(*args, **kwargs)
+
+    def delete_with_deferred_indexing(self):
+        ''' Defer Haystack indexing, delete all child assets, then delete
+        myself. Should be faster than `delete()` for large collections '''
+        # Import this utility function here to avoid a circular dependency
+        from ..model_utils import update_object_in_search_index
+        # Get the Haystack index for assets
+        asset_index = haystack.connections['default'].get_unified_index(
+            ).get_index(Asset)
+        # Defer signal processing and begin deletion
+        tag_pks = set()
+        with haystack.signal_processor.defer():
+            for asset in self.assets.only('pk'):
+                # Keep track of the tags we will need to reindex
+                tag_pks.update(asset.tags.values_list('pk', flat=True))
+                # Remove the child asset itself
+                asset.delete()
+                asset_index.remove_object(asset)
+        # Update search index for affected tags
+        for tag in Tag.objects.filter(pk__in=tag_pks):
+            update_object_in_search_index(tag)
+        # Remove this collection; signals will be processed normally
+        self.delete()
 
     def get_ancestors_or_none(self):
         # ancestors are ordered from farthest to nearest

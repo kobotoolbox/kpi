@@ -21,31 +21,18 @@ import {
   assign,
 } from './utils';
 
+var AssetTypeIcon = bem.create('asset-type-icon');
+
 var mixins = {};
 
 var dmix = {
   assetTypeRenderers: {
     block: {
-      renderTypeHeader () {
-        var effect = 'solid';
-        var atype_tip = t('can be imported into a form from the question library');
-        return (
-            <bem.AssetView__assetTypeWrap m={'type-block'}>
-              <bem.AssetView__assetType>
-                <i />
-                <span data-tip={atype_tip}>{t('reusable question block')}</span>
-              </bem.AssetView__assetType>
-              <hr />
-              <ReactTooltip effect={effect} />
-            </bem.AssetView__assetTypeWrap>
-          );
-      },
       innerRender: function () {
         return (
             <bem.AssetView m={['type-block']}>
               {this.renderAncestors()}
               <ui.Panel margin='thin' className='ui-panel--overflowhidden'>
-                {this.renderTypeHeader()}
                 <bem.AssetView__content>
                   {this.renderName()}
                   {this.renderTags()}
@@ -69,23 +56,11 @@ var dmix = {
       }
     },
     question: {
-      renderTypeHeader () {
-        return (
-            <bem.AssetView__assetTypeWrap m={'type-question'}>
-              <bem.AssetView__assetType>
-                <i />
-                {t('reusable question')}
-              </bem.AssetView__assetType>
-              <hr />
-            </bem.AssetView__assetTypeWrap>
-          );
-      },
       innerRender: function () {
         return (
             <bem.AssetView m={['type-question']}>
               {this.renderAncestors()}
               <ui.Panel margin='thin'>
-                {this.renderTypeHeader()}
                 <bem.AssetView__content>
                   {this.renderName()}
                   {this.renderTags()}
@@ -109,26 +84,11 @@ var dmix = {
       },
     },
     survey: {
-      renderTypeHeader () {
-        return (
-            <bem.AssetView__assetTypeWrap m={'type-survey'}>
-              <bem.AssetView__assetType>
-                <i />
-                {t('form')}
-                <small>
-                  {t('deployable')}
-                </small>
-              </bem.AssetView__assetType>
-              <hr />
-            </bem.AssetView__assetTypeWrap>
-            );
-      },
       innerRender: function () {
         return (
             <bem.AssetView m={['type-survey']}>
               {this.renderAncestors()}
               <ui.Panel margin='thin'>
-                {this.renderTypeHeader()}
                 <bem.AssetView__content>
                   {this.renderName()}
                   {this.renderTags()}
@@ -159,7 +119,7 @@ var dmix = {
         <bem.AssetView__name m={[
               this.state.name ? 'named' : 'untitled'
             ]}>
-          <i />
+          <AssetTypeIcon m={this.state.asset_type}><i /></AssetTypeIcon>
           <ui.AssetName {...this.state} />
         </bem.AssetView__name>
       );
