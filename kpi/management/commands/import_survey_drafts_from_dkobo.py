@@ -14,6 +14,7 @@ from kpi.models import Asset
 from kpi.models import Collection
 from kpi.models.asset import KpiTaggableManager, ASSET_UID_LENGTH
 
+
 class SurveyDraft(models.Model):
     '''
     SurveyDrafts belong to a user and contain the minimal representation of
@@ -101,7 +102,8 @@ def _import_user_assets(from_user, to_user):
         except Exception:
             client.captureException()
 
-    (qlib, _) = Collection.objects.get_or_create(name="question library", owner=user)
+    (qlib, _) = Collection.objects.get_or_create(name="question library",
+                                                 owner=user)
 
     for qlib_asset in user_qlib_assets.all():
         print 'importing qla %s %d' % (qlib_asset.name, qlib_asset.id)
@@ -128,7 +130,8 @@ class Command(BaseCommand):
                     action='store',
                     dest='destination',
                     default=False,
-                    help='A uid of a destination collection that will contain the imported asset(s)'
+                    help='A uid of a destination collection that will contain '
+                    'the imported asset(s)'
                     ),
         make_option('--allusers',
                     action='store_true',
@@ -144,7 +147,8 @@ class Command(BaseCommand):
                     action='store',
                     dest='to_username',
                     default=False,
-                    help='specify the user to migrate the assets TO (default: same as --username)'),
+                    help='specify the user to migrate the assets TO (default: '
+                    'same as --username)'),
     )
 
     def handle(self, *args, **options):
@@ -156,7 +160,8 @@ class Command(BaseCommand):
             if options.get('username'):
                 users = [User.objects.get(username=options.get('username'))]
             else:
-                raise Exception('must specify either --username=username or --allusers')
+                raise Exception('must specify either --username=username '
+                                'or --allusers')
             if options.get('to_username'):
                 to_user = User.objects.get(username=options.get('to_username'))
 
