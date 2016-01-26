@@ -1,6 +1,7 @@
 from StringIO import StringIO
 from optparse import make_option
 from pyxform.xls2json_backends import csv_to_dict
+from raven.contrib.django.raven_compat.models import client
 import re
 
 from django.contrib.auth.models import User
@@ -12,7 +13,6 @@ from taggit.managers import TaggableManager
 from kpi.models import Asset
 from kpi.models import Collection
 from kpi.models.asset import KpiTaggableManager, ASSET_UID_LENGTH
-
 
 class SurveyDraft(models.Model):
     '''
@@ -96,9 +96,10 @@ def _import_user_assets(from_user, to_user):
         return new_asset
 
     for survey_draft in user_survey_drafts.all():
-        print 'importing sd %s %d' % (survey_draft.name, survey_draft.id)
-        new_asset = _import_asset(survey_draft, asset_type='survey')
-        print '\timported to asset {}'.format(new_asset.uid)
+        try:
+            new_asset = _import_asset(survey_draft, asset_type='survey')
+        except Exception:
+            client.captureException()
 
     (qlib, _) = Collection.objects.get_or_create(name="question library", owner=user)
 
