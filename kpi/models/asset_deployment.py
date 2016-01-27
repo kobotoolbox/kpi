@@ -36,8 +36,6 @@ def kobocat_url(path, internal=False):
 def deploy_asset(user, asset, form_id):
     (token, is_new) = Token.objects.get_or_create(user=user)
     headers = {u'Authorization':'Token ' + token.key}
-    import json
-    print json.dumps(asset.content, indent=4)
     xls_dict = xls_to_dict(asset.to_xls_io())
     foo = cStringIO.StringIO()
     writer = unicodecsv.writer(

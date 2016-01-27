@@ -18,6 +18,9 @@ def switch_builder(request):
         pref.save()
     if 'migrate' in request.GET:
         call_command(
-            'import_survey_drafts_from_dkobo', username=request.user.username)
+            'import_survey_drafts_from_dkobo',
+            username=request.user.username,
+            quiet=True # squelches `print` statements
+        )
 
     return HttpResponseRedirect('/')

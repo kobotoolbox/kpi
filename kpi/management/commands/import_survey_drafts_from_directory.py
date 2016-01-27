@@ -35,7 +35,6 @@ def _set_auto_field_update(kls, field_name, val):
     field.auto_now_add = val
 
 def _import_user_drafts(server, username, draft_id, fpath):
-    print 'importing user drafts from : %s' % (fpath,)
     try:
         owner = User.objects.get(username=username)
     except User.DoesNotExist, e:
