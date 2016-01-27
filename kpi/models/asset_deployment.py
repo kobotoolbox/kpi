@@ -34,7 +34,6 @@ def kobocat_url(path, internal=False):
     return u"/kobocat%s" % path
 
 def deploy_asset(user, asset, form_id):
-    print "deploying asset '%s' for user '%s'" % (asset.name, user.username)
     (token, is_new) = Token.objects.get_or_create(user=user)
     headers = {u'Authorization':'Token ' + token.key}
     import json

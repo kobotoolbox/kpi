@@ -1,6 +1,7 @@
 from StringIO import StringIO
 from optparse import make_option
 from pyxform.xls2json_backends import csv_to_dict
+import logging
 import re
 
 from django.contrib.auth.models import User
@@ -96,16 +97,23 @@ def _import_user_assets(from_user, to_user):
         return new_asset
 
     for survey_draft in user_survey_drafts.all():
-        print 'importing sd %s %d' % (survey_draft.name, survey_draft.id)
-        new_asset = _import_asset(survey_draft, asset_type='survey')
-        print '\timported to asset {}'.format(new_asset.uid)
+        try:
+            new_asset = _import_asset(survey_draft, asset_type='survey')
+        except:
+            message = (u'Failed to migrate survey draft with name="{}" '
+                       u'and pk={}').format(survey_draft.name, survey_draft.pk)
+            logging.error(message, exc_info=True)
 
-    (qlib, _) = Collection.objects.get_or_create(name="question library", owner=user)
+    (qlib, _) = Collection.objects.get_or_create(name="question library",
+                                                 owner=user)
 
     for qlib_asset in user_qlib_assets.all():
-        print 'importing qla %s %d' % (qlib_asset.name, qlib_asset.id)
-        new_asset = _import_asset(qlib_asset, qlib, asset_type='block')
-        print '\timported to asset {}'.format(new_asset.uid)
+        try:
+            new_asset = _import_asset(qlib_asset, qlib, asset_type='block')
+        except:
+            message = (u'Failed to migrate library asset with name="{}" '
+                       u'and pk={}').format(survey_draft.name, survey_draft.pk)
+            logging.error(message, exc_info=True)
 
     _set_auto_field_update(Asset, "date_created", False)
     _set_auto_field_update(Asset, "date_modified", False)
@@ -127,7 +135,8 @@ class Command(BaseCommand):
                     action='store',
                     dest='destination',
                     default=False,
-                    help='A uid of a destination collection that will contain the imported asset(s)'
+                    help='A uid of a destination collection that will contain '
+                    'the imported asset(s)'
                     ),
         make_option('--allusers',
                     action='store_true',
@@ -143,7 +152,8 @@ class Command(BaseCommand):
                     action='store',
                     dest='to_username',
                     default=False,
-                    help='specify the user to migrate the assets TO (default: same as --username)'),
+                    help='specify the user to migrate the assets TO (default: '
+                    'same as --username)'),
     )
 
     def handle(self, *args, **options):
@@ -155,7 +165,8 @@ class Command(BaseCommand):
             if options.get('username'):
                 users = [User.objects.get(username=options.get('username'))]
             else:
-                raise Exception('must specify either --username=username or --allusers')
+                raise Exception('must specify either --username=username '
+                                'or --allusers')
             if options.get('to_username'):
                 to_user = User.objects.get(username=options.get('to_username'))
 
