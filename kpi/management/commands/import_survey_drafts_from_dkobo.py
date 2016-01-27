@@ -1,7 +1,7 @@
 from StringIO import StringIO
 from optparse import make_option
 from pyxform.xls2json_backends import csv_to_dict
-from raven.contrib.django.raven_compat.models import client
+import logging
 import re
 
 from django.contrib.auth.models import User
@@ -99,16 +99,21 @@ def _import_user_assets(from_user, to_user):
     for survey_draft in user_survey_drafts.all():
         try:
             new_asset = _import_asset(survey_draft, asset_type='survey')
-        except Exception:
-            client.captureException()
+        except:
+            message = (u'Failed to import survey draft with name="{}" '
+                       u'and pk={}').format(survey_draft.name, survey_draft.pk)
+            logging.error(message, exc_info=True)
 
     (qlib, _) = Collection.objects.get_or_create(name="question library",
                                                  owner=user)
 
     for qlib_asset in user_qlib_assets.all():
-        print 'importing qla %s %d' % (qlib_asset.name, qlib_asset.id)
-        new_asset = _import_asset(qlib_asset, qlib, asset_type='block')
-        print '\timported to asset {}'.format(new_asset.uid)
+        try:
+            new_asset = _import_asset(qlib_asset, qlib, asset_type='block')
+        except:
+            message = (u'Failed to import library asset with name="{}" '
+                       u'and pk={}').format(survey_draft.name, survey_draft.pk)
+            logging.error(message, exc_info=True)
 
     _set_auto_field_update(Asset, "date_created", False)
     _set_auto_field_update(Asset, "date_modified", False)
