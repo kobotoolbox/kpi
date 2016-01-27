@@ -100,7 +100,7 @@ def _import_user_assets(from_user, to_user):
         try:
             new_asset = _import_asset(survey_draft, asset_type='survey')
         except:
-            message = (u'Failed to import survey draft with name="{}" '
+            message = (u'Failed to migrate survey draft with name="{}" '
                        u'and pk={}').format(survey_draft.name, survey_draft.pk)
             logging.error(message, exc_info=True)
 
@@ -111,7 +111,7 @@ def _import_user_assets(from_user, to_user):
         try:
             new_asset = _import_asset(qlib_asset, qlib, asset_type='block')
         except:
-            message = (u'Failed to import library asset with name="{}" '
+            message = (u'Failed to migrate library asset with name="{}" '
                        u'and pk={}').format(survey_draft.name, survey_draft.pk)
             logging.error(message, exc_info=True)
 
