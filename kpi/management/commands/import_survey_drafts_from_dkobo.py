@@ -154,9 +154,21 @@ class Command(BaseCommand):
                     default=False,
                     help='specify the user to migrate the assets TO (default: '
                     'same as --username)'),
+        make_option('--quiet',
+                    action='store_true',
+                    dest='quiet',
+                    default=False,
+                    help='Do not output status messages'),
     )
 
     def handle(self, *args, **options):
+        if options.get('quiet'):
+            # Do not output anything
+            def print_str(string): pass
+        else:
+            # Output status messages
+            def print_str(string): print string
+
         users = User.objects.none()
         to_user = False
         if options.get('all_users'):
@@ -174,15 +186,17 @@ class Command(BaseCommand):
             if not to_user:
                 to_user = from_user
 
-            print "user has %d collections" % to_user.owned_collections.count()
-            print "user has %d assets" % to_user.assets.count()
+            print_str(
+                "user has %d collections" % to_user.owned_collections.count())
+            print_str("user has %d assets" % to_user.assets.count())
             if options.get('destroy'):
-                print "Destroying user's collections and assets in KPI."
+                print_str("Destroying user's collections and assets in KPI.")
                 to_user.owned_collections.all().delete()
                 to_user.assets.all().delete()
-                print "Removing references in dkobo to KPI assets."
+                print_str("Removing references in dkobo to KPI assets.")
                 to_user.survey_drafts.update(kpi_asset_uid='')
-            print "Importing assets and collections."
-            print "user has %d collections" % to_user.owned_collections.count()
-            print "user has %d assets" % to_user.assets.count()
+            print_str("Importing assets and collections.")
+            print_str(
+                "user has %d collections" % to_user.owned_collections.count())
+            print_str("user has %d assets" % to_user.assets.count())
             _import_user_assets(from_user, to_user)
