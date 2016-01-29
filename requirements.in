@@ -1,0 +1,54 @@
+# File for use with `pip-compile`; see https://github.com/nvie/pip-tools
+# https://github.com/bndr/pipreqs is a handy utility, too.
+
+# Custom Whoosh; see https://bitbucket.org/mchaput/whoosh/issues/386/keyerror-1l
+-e git+https://github.com/jnm/whoosh@master#egg=Whoosh
+
+# Custom pyxform
+-e git+https://github.com/kobotoolbox/pyxform.git@master#egg=pyxform
+
+# Regular PyPI packages
+Django<1.9
+Fabric
+Markdown
+Pygments
+amqp
+anyjson
+billiard
+boto
+celery
+dj-static
+dj_database_url
+django-braces
+django-debug-toolbar
+django-extensions
+django-oauth-toolkit
+django-registration-redux
+django-ses
+django-toolbelt
+django_cachebuster
+django_haystack
+django_jsonfield
+django_markitup
+django_mptt
+django_reversion
+django_taggit
+djangorestframework
+gunicorn
+jsonfield
+kombu
+lxml
+oauthlib
+psycopg2
+python_dateutil
+pytz
+raven
+requests
+shortuuid
+six
+sqlparse
+static3
+unicodecsv
+whitenoise
+xlrd
+xlwt

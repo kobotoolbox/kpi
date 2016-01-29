@@ -78,6 +78,7 @@ class HaystackSignalProcessor(haystack.signals.BaseSignalProcessor):
         return super(HaystackSignalProcessor, self).handle_delete(
             sender, instance, **kwargs)
 
+    @staticmethod
     def handle_tagged_item_save(sender, instance, created, raw, **kwargs):
         '''
         TaggedItem is the through model for the tag-to-object M2M relationship.
@@ -93,6 +94,7 @@ class HaystackSignalProcessor(haystack.signals.BaseSignalProcessor):
         # Update the search index for the tagged object
         update_object_in_search_index(instance.content_object)
 
+    @staticmethod
     def handle_tagged_item_delete(sender, instance, **kwargs):
         update_object_in_search_index(instance.tag)
         update_object_in_search_index(instance.content_object)

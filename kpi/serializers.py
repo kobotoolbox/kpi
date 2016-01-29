@@ -12,7 +12,7 @@ from rest_framework import serializers, exceptions
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
-import reversion
+from reversion import revisions as reversion
 
 from hub.models import SitewideMessage
 from .models import Asset

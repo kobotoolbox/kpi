@@ -11,7 +11,7 @@ from shortuuid import ShortUUID
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 from taggit.models import Tag
-import reversion
+from reversion import revisions as reversion
 
 from .object_permission import ObjectPermission, ObjectPermissionMixin
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
