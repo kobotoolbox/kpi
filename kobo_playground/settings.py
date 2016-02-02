@@ -57,7 +57,7 @@ INSTALLED_APPS = (
     'debug_toolbar',
     'mptt',
     'haystack',
-    'kpi',
+    'kpi.apps.KpiConfig',
     'hub',
     'registration', # Must come AFTER kpi
     'django.contrib.admin', # Must come AFTER registration
@@ -189,9 +189,18 @@ HAYSTACK_CONNECTIONS = {
         'PATH': os.path.join(os.path.dirname(__file__), 'whoosh_index'),
     },
 }
+# Listed models will be indexed in real time. TaggedItem is handled differently
+# and hard-coded into kpi.haystack_utils.SignalProcessor, so do not list it
+# here.
+HAYSTACK_SIGNAL_MODELS = (
+    # Each tuple must be (app_label, model_name)
+    ('kpi', 'Asset'),
+    ('kpi', 'Collection'),
+    ('taggit', 'Tag'),
+)
 # If this causes performance trouble, see
 # http://django-haystack.readthedocs.org/en/latest/best_practices.html#use-of-a-queue-for-a-better-user-experience
-HAYSTACK_SIGNAL_PROCESSOR = 'kpi.signals.HaystackSignalProcessor'
+HAYSTACK_SIGNAL_PROCESSOR = 'kpi.haystack_utils.SignalProcessor'
 
 # Enketo settings copied from dkobo.
 ENKETO_SERVER = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
