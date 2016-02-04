@@ -59,29 +59,26 @@ ENV DJANGO_SETTINGS_MODULE kobo_playground.settings
 RUN python manage.py collectstatic --noinput
 
 
-###############################################
-# Persist the log directory and Whoosh index. #
-###############################################
+#################################################################
+# Persist the log directory, email directory, and Whoosh index. #
+#################################################################
 
-RUN mkdir "${KPI_LOGS_DIR}/" "${KPI_WHOOSH_DIR}/"
-VOLUME "${KPI_LOGS_DIR}/" "${KPI_WHOOSH_DIR}/"
+RUN mkdir -p "${KPI_LOGS_DIR}/" "${KPI_WHOOSH_DIR}/" "${KPI_SRC_DIR}/emails"
+VOLUME "${KPI_LOGS_DIR}/" "${KPI_WHOOSH_DIR}/" "${KPI_SRC_DIR}/emails"
 
 
 #################################################
 # Handle runtime tasks and create main process. #
 #################################################
-# FIXME: Pending reversion to Phusion-based base image.
-#RUN mkdir -p /etc/service/uwsgi/ && \
-#    echo '#!/bin/bash \n echo "not a cat"' >> /etc/service/uwsgi/run
-#    #echo '#!/usr/bin/env bash \n uwsgi --ini /srv/src/uwsgi.ini' >> /etc/service/uwsgi/run
+RUN mkdir -p /etc/service/uwsgi/
 
 # FIXME: Allow Celery to run as root.
 ENV C_FORCE_ROOT="true"
 
+# Prepare for execution.
+COPY ./docker/setup_kpi.bash /etc/my_init.d/
+RUN rm -rf /etc/service/wsgi && \
+    mkdir -p /etc/service/uwsgi
+COPY ./docker/run_uwsgi.bash /etc/service/uwsgi/run
+
 EXPOSE 8000
-CMD cd "${KPI_SRC_DIR}" && \
-    python manage.py migrate --noinput && \
-    echo "Copying static files to nginx volume..." && \
-    rsync -aq --chown=www-data "${KPI_SRC_DIR}/staticfiles/" "${NGINX_STATIC_DIR}/" && \
-    echo "Starting uwsgi..." && \
-    /usr/local/bin/uwsgi --ini "${KPI_SRC_DIR}/uwsgi.ini"
