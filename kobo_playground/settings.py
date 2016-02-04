@@ -14,7 +14,7 @@ from django.conf import global_settings
 import os
 import dj_database_url
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 
 # Quick-start development settings - unsuitable for production
@@ -25,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '@25)**hc^rjaiagb4#&q*84hr*uscsxwr-cv#0joiwj$))obyk')
 
 # Domain must not exclude KoBoCAT when sharing sessions
-if 'CSRF_COOKIE_DOMAIN' in os.environ:
+if os.environ.get('CSRF_COOKIE_DOMAIN'):
     CSRF_COOKIE_DOMAIN = os.environ['CSRF_COOKIE_DOMAIN']
     SESSION_COOKIE_DOMAIN = CSRF_COOKIE_DOMAIN
     SESSION_COOKIE_NAME = 'kobonaut'
@@ -108,7 +108,6 @@ ALLOWED_ANONYMOUS_PERMISSIONS = (
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
-
 DATABASES = {
     'default': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
 }
@@ -234,7 +233,7 @@ RabbitMQ queue creation:
     rabbitmqctl set_permissions -p kpi kpi '.*' '.*' '.*'
 See http://celery.readthedocs.org/en/latest/getting-started/brokers/rabbitmq.html#setting-up-rabbitmq.
 '''
-BROKER_URL = os.environ.get('KPI_BROKER_URL', 'amqp://kpi:kpi@localhost:5672/kpi')
+BROKER_URL = os.environ.get('KPI_BROKER_URL', 'amqp://kpi:kpi@rabbit:5672/kpi')
 
 # http://django-registration-redux.readthedocs.org/en/latest/quickstart.html#settings
 ACCOUNT_ACTIVATION_DAYS = 3
@@ -242,8 +241,14 @@ REGISTRATION_AUTO_LOGIN = True
 REGISTRATION_EMAIL_HTML = False # Otherwise we have to write HTML templates
 
 # Email configuration from dkobo; expects SES
-if os.environ.get('EMAIL_BACKEND'):
-    EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND')
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND',
+    'django.core.mail.backends.filebased.EmailBackend')
+
+if EMAIL_BACKEND == 'django.core.mail.backends.filebased.EmailBackend':
+    EMAIL_FILE_PATH = os.environ.get(
+        'EMAIL_FILE_PATH', os.path.join(BASE_DIR, 'emails'))
+    if not os.path.isdir(EMAIL_FILE_PATH):
+        os.mkdir(EMAIL_FILE_PATH)
 
 if os.environ.get('DEFAULT_FROM_EMAIL'):
     DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
