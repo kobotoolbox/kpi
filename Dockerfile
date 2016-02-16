@@ -70,6 +70,9 @@ VOLUME "${KPI_LOGS_DIR}/" "${KPI_WHOOSH_DIR}/" "${KPI_SRC_DIR}/emails"
 #################################################
 # Handle runtime tasks and create main process. #
 #################################################
+# Using `/etc/profile.d/` as a repository for non-hard-coded environment variable overrides.
+RUN echo 'source /etc/profile' >> /root/.bashrc
+
 RUN mkdir -p /etc/service/uwsgi/
 
 # FIXME: Allow Celery to run as root.

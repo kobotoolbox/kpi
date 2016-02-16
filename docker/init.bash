@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+source /etc/profile
+
 echo 'KoBoForm initializing.'
 
 cd "${KPI_SRC_DIR}"
