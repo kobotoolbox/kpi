@@ -7,7 +7,9 @@ module.exports = do ->
   choices = {}
 
   class choices.Option extends base.BaseModel
-    initialize: -> @unset("list name")
+    initialize: ->
+      @unset("list name")
+      @unset("list_name")
     destroy: ->
       choicelist = @list()._parent
       choicelist_cid = choicelist.cid

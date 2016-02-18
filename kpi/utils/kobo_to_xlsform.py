@@ -319,6 +319,10 @@ def _autovalue_choices(surv_choices):
     for choice in surv_choices:
         if 'name' not in choice:
             choice['name'] = choice['label']
+        # workaround for incorrect "list_name" column header (was missing _)
+        if 'list name' in choice:
+            choice['list_name'] = choice['list name']
+            del choice['list name']
     return surv_choices
 
 
@@ -363,6 +367,7 @@ def to_xlsform_structure(surv, **kwargs):
 
     if 'choices' in surv and opts['autovalue_options']:
         surv['choices'] = _autovalue_choices(surv.get('choices', []))
+
     for kobo_custom_sheet_name in filter(_is_kobo_specific, surv.keys()):
         del surv[kobo_custom_sheet_name]
     return surv

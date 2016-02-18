@@ -100,7 +100,7 @@ module.exports = do ->
         for own key, val of obj.choices
           for list_item in val
             flattened_choices.push($.extend({
-                'list name': key
+                'list_name': key
               }, list_item))
         obj.choices = flattened_choices
 
@@ -238,11 +238,11 @@ module.exports = do ->
           clName = clAtts.name
           for option in clAtts.options
             cols.push _.keys option
-            rows.push _.extend {}, option, "list name": clName
+            rows.push _.extend {}, option, "list_name": clName
 
 
         if rows.length > 0
-          columns: @prepCols cols, exclude: ['setManually'], add: ['list name']
+          columns: @prepCols cols, exclude: ['setManually'], add: ['list_name']
           rowObjects: rows
         else
           false
