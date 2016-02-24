@@ -293,6 +293,9 @@ def _autoname_fields(surv_contents, default_language=None):
         # whose values are blank. Since we read JSON from the form builder
         # instead of CSV, however, we have to tolerate not only missing names
         # but blank ones as well.
+        for skip_key in ['appearance', 'relevant']:
+            if skip_key in surv_row and surv_row[skip_key] == '':
+                del surv_row[skip_key]
         if 'name' not in surv_row or surv_row['name'] == '':
             if re.search(r'^end ', surv_row['type']):
                 continue
