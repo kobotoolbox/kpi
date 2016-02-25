@@ -207,7 +207,7 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
                 self._strip_empty_rows(
                     self.content['choices'], required_key='name')
             if 'settings' in self.content:
-                if self.asset_type is not 'survey':
+                if self.asset_type != 'survey':
                     del self.content['settings']
                 else:
                     self._pull_form_title_from_settings()
