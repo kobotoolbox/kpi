@@ -14,7 +14,7 @@ from django.conf import global_settings
 import os
 import dj_database_url
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 
 # Quick-start development settings - unsuitable for production
@@ -25,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '@25)**hc^rjaiagb4#&q*84hr*uscsxwr-cv#0joiwj$))obyk')
 
 # Domain must not exclude KoBoCAT when sharing sessions
-if 'CSRF_COOKIE_DOMAIN' in os.environ:
+if os.environ.get('CSRF_COOKIE_DOMAIN'):
     CSRF_COOKIE_DOMAIN = os.environ['CSRF_COOKIE_DOMAIN']
     SESSION_COOKIE_DOMAIN = CSRF_COOKIE_DOMAIN
     SESSION_COOKIE_NAME = 'kobonaut'
@@ -35,9 +35,7 @@ DEBUG = (os.environ.get('DJANGO_DEBUG', 'True') == 'True')
 
 TEMPLATE_DEBUG = (os.environ.get('TEMPLATE_DEBUG', 'True') == 'True')
 
-ALLOWED_HOSTS = []
-if 'DJANGO_ALLOWED_HOSTS' in os.environ:
-    ALLOWED_HOSTS.append(os.environ['DJANGO_ALLOWED_HOSTS'])
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(' ')
 
 LOGIN_REDIRECT_URL = '/'
 
@@ -110,10 +108,15 @@ ALLOWED_ANONYMOUS_PERMISSIONS = (
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
-
 DATABASES = {
     'default': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
 }
+# This project does not use GIS (yet). Change the database engine accordingly
+# to avoid unnecessary dependencies.
+for db in DATABASES.values():
+    if db['ENGINE'] == 'django.contrib.gis.db.backends.postgis':
+        db['ENGINE'] = 'django.db.backends.postgresql_psycopg2'
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
@@ -137,7 +140,9 @@ STATIC_URL = '/static/'
 
 # Following the uWSGI mountpoint convention, this should have a leading slash
 # but no trailing slash
-KPI_PREFIX = os.environ.get('KPI_PREFIX', False)
+KPI_PREFIX = os.environ.get('KPI_PREFIX', 'False')
+KPI_PREFIX = False if KPI_PREFIX.lower() == 'false' else KPI_PREFIX
+
 # KPI_PREFIX should be set in the environment when running in a subdirectory
 if KPI_PREFIX and KPI_PREFIX != '/':
     STATIC_URL = '{}/{}'.format(KPI_PREFIX, STATIC_URL)
@@ -173,20 +178,26 @@ TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
 #if not DEBUG:
 #    STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
-LIVERELOAD_SCRIPT = os.environ.get('LIVERELOAD_SCRIPT', False)
-USE_MINIFIED_SCRIPTS = os.environ.get('KOBO_USE_MINIFIED_SCRIPTS', False)
+LIVERELOAD_SCRIPT = os.environ.get('LIVERELOAD_SCRIPT', 'False')
+LIVERELOAD_SCRIPT = False if LIVERELOAD_SCRIPT.lower() == 'false' else LIVERELOAD_SCRIPT
+USE_MINIFIED_SCRIPTS = os.environ.get('KOBO_USE_MINIFIED_SCRIPTS', 'False').lower() != 'false'
 TRACKJS_TOKEN = os.environ.get('TRACKJS_TOKEN')
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', False)
 KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL', False)
 # Following the uWSGI mountpoint convention, this should have a leading slash
 # but no trailing slash
-DKOBO_PREFIX = os.environ.get('DKOBO_PREFIX', False)
+DKOBO_PREFIX = os.environ.get('DKOBO_PREFIX', 'False')
+DKOBO_PREFIX = False if DKOBO_PREFIX.lower() == 'false' else DKOBO_PREFIX
 
 ''' Haystack search settings '''
+WHOOSH_PATH = os.path.join(
+    os.environ.get('KPI_WHOOSH_DIR', os.path.dirname(__file__)),
+    'whoosh_index'
+)
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
-        'PATH': os.path.join(os.path.dirname(__file__), 'whoosh_index'),
+        'PATH': WHOOSH_PATH,
     },
 }
 # If this causes performance trouble, see
@@ -198,7 +209,7 @@ ENKETO_SERVER = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 
 ENKETO_SERVER= ENKETO_SERVER + '/' if not ENKETO_SERVER.endswith('/') else ENKETO_SERVER
 ENKETO_VERSION= os.environ.get('ENKETO_VERSION', 'Legacy').lower()
 assert ENKETO_VERSION in ['legacy', 'express']
-ENKETO_PREVIEW_URI = 'webform/preview' if ENKETO_VERSION == 'legacy' else '/preview'
+ENKETO_PREVIEW_URI = 'webform/preview' if ENKETO_VERSION == 'legacy' else 'preview'
 # The number of hours to keep a kobo survey preview (generated for enketo)
 # around before purging it.
 KOBO_SURVEY_PREVIEW_EXPIRATION = os.environ.get('KOBO_SURVEY_PREVIEW_EXPIRATION', 24)
@@ -222,7 +233,7 @@ RabbitMQ queue creation:
     rabbitmqctl set_permissions -p kpi kpi '.*' '.*' '.*'
 See http://celery.readthedocs.org/en/latest/getting-started/brokers/rabbitmq.html#setting-up-rabbitmq.
 '''
-BROKER_URL = 'amqp://kpi:kpi@localhost:5672/kpi'
+BROKER_URL = os.environ.get('KPI_BROKER_URL', 'amqp://kpi:kpi@rabbit:5672/kpi')
 
 # http://django-registration-redux.readthedocs.org/en/latest/quickstart.html#settings
 ACCOUNT_ACTIVATION_DAYS = 3
@@ -230,8 +241,14 @@ REGISTRATION_AUTO_LOGIN = True
 REGISTRATION_EMAIL_HTML = False # Otherwise we have to write HTML templates
 
 # Email configuration from dkobo; expects SES
-if os.environ.get('EMAIL_BACKEND'):
-    EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND')
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND',
+    'django.core.mail.backends.filebased.EmailBackend')
+
+if EMAIL_BACKEND == 'django.core.mail.backends.filebased.EmailBackend':
+    EMAIL_FILE_PATH = os.environ.get(
+        'EMAIL_FILE_PATH', os.path.join(BASE_DIR, 'emails'))
+    if not os.path.isdir(EMAIL_FILE_PATH):
+        os.mkdir(EMAIL_FILE_PATH)
 
 if os.environ.get('EMAIL_HOST'):
     EMAIL_HOST = os.environ.get('EMAIL_HOST')

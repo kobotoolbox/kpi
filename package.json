@@ -44,7 +44,7 @@
     "react-favicon": "0.0.3",
     "react-router": "^0.13.3",
     "react-select": "^0.6.3",
-    "react-tagsinput": "^1.3.3",
+    "react-tagsinput": "1.4.x",
     "react-tooltip": "^0.3.3",
     "reflux": "^0.2.7",
     "select2": "^3.5.2-browserify",

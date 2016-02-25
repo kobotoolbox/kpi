@@ -11,6 +11,9 @@ import {
   assign,
 } from '../utils';
 
+
+var leaveBetaUrl = stores.pageState.leaveBetaUrl;
+
 class DrawerTitle extends React.Component {
   render () {
     var kls = 'sidebar-title';
@@ -101,7 +104,9 @@ var Drawer = React.createClass({
               { this.state.isLoggedIn ?
                 <div>
                   <DrawerLink label={t('settings')} href={stores.session.currentAccount.projects_url + 'settings'} fa-icon='user' />
-                  <DrawerLink label={t('leave beta')} href={`${dataInterface.rootUrl}/hub/switch_builder?beta=0`} fa-icon='circle-o' />
+                  {leaveBetaUrl ?
+                    <DrawerLink label={t('leave beta')} href={leaveBetaUrl} fa-icon='circle-o' />
+                  :null}
                   <DrawerLink label={t('logout')} onClick={this.logout} fa-icon='sign-out' />
                 </div>
               :
