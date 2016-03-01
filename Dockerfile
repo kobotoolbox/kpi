@@ -1,4 +1,4 @@
-FROM kobotoolbox/base-kobos:docker_local
+FROM kobotoolbox/base-kobos:latest
 
 ENV KPI_SRC_DIR=/srv/src/kpi \
     KPI_LOGS_DIR=/srv/logs \
