@@ -293,6 +293,9 @@ def _autoname_fields(surv_contents, default_language=None):
         # whose values are blank. Since we read JSON from the form builder
         # instead of CSV, however, we have to tolerate not only missing names
         # but blank ones as well.
+        for skip_key in ['appearance', 'relevant']:
+            if skip_key in surv_row and surv_row[skip_key] == '':
+                del surv_row[skip_key]
         if 'name' not in surv_row or surv_row['name'] == '':
             if re.search(r'^end ', surv_row['type']):
                 continue
@@ -319,6 +322,10 @@ def _autovalue_choices(surv_choices):
     for choice in surv_choices:
         if 'name' not in choice:
             choice['name'] = choice['label']
+        # workaround for incorrect "list_name" column header (was missing _)
+        if 'list name' in choice:
+            choice['list_name'] = choice['list name']
+            del choice['list name']
     return surv_choices
 
 
@@ -363,6 +370,7 @@ def to_xlsform_structure(surv, **kwargs):
 
     if 'choices' in surv and opts['autovalue_options']:
         surv['choices'] = _autovalue_choices(surv.get('choices', []))
+
     for kobo_custom_sheet_name in filter(_is_kobo_specific, surv.keys()):
         del surv[kobo_custom_sheet_name]
     return surv
