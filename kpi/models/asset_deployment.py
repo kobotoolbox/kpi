@@ -71,7 +71,7 @@ def deploy_asset(user, asset, form_id):
     valid_xlsform_csv_repr = foo.getvalue()
     payload = {u'text_xls_form': valid_xlsform_csv_repr}
 
-    url = kobocat_url('/api/v1/forms', internal=True)
+    url = kobocat_url('/api/v1/forms?format=json', internal=True)
     try:
         response = requests.post(url, headers=headers, data=payload)
         status_code = response.status_code
