@@ -7,13 +7,14 @@ from django.db import models
 from django.db import transaction
 from django.dispatch import receiver
 from jsonfield import JSONField
+from reversion import revisions as reversion
 from shortuuid import ShortUUID
 from taggit.managers import TaggableManager, _TaggableManager
-from taggit.utils import require_instance_manager
 from taggit.models import Tag
-from reversion import revisions as reversion
+from taggit.utils import require_instance_manager
 
 from .object_permission import ObjectPermission, ObjectPermissionMixin
+from ..asset_deployment import deploy_asset
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
 from ..utils.kobo_to_xlsform import to_xlsform_structure
 
@@ -117,7 +118,8 @@ class XlsExportable(object):
         return string_io
 
 @reversion.register
-class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
+class Asset(
+        ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
@@ -132,6 +134,17 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
     uid = models.CharField(max_length=ASSET_UID_LENGTH, default='', blank=True)
     tags = TaggableManager(manager=KpiTaggableManager)
 
+    # Deployment-related attributes
+    KOBOCAT_MAX_ID_STRING_LENGTH = 100 # Copied from KoBoCAT's XForm model
+    KOBOCAT_MAX_UUID_LENGTH = 32 # Copied from KoBoCAT's XForm model
+    date_deployed = models.DateTimeField(blank=True, null=True)
+    xform_data = JSONField()
+    xform_pk = models.IntegerField(null=True)
+    xform_id_string = models.CharField(
+        max_length=KOBOCAT_MAX_ID_STRING_LENGTH, blank=True)
+    xform_uuid = models.CharField(
+        max_length=KOBOCAT_MAX_UUID_LENGTH, blank=True)
+
     permissions = GenericRelation(ObjectPermission)
 
     objects = AssetManager()
@@ -142,7 +155,6 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
 
     class Meta:
         ordering = ('-date_modified',)
-
         permissions = (
             # change_, add_, and delete_asset are provided automatically
             # by Django
@@ -160,6 +172,27 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
         'view_collection': 'view_asset',
         'change_collection': 'change_asset'
     }
+
+    # Do not allow these fields to change once they are no longer NULL or
+    # blank
+    IMMUTABLE_FIELDS = ('xform_pk', 'xform_id_string', 'xform_uuid')
+
+    def __setattr__(self, name, value):
+        # Rougly based on https://github.com/red56/django-immutablemodel,
+        # which inspired no confidence because it failed to recognize u'' as an
+        # empty string
+        if name in self.IMMUTABLE_FIELDS:
+            try:
+                current_value = getattr(self, name, None)
+            except:
+                current_value = None
+            if current_value is not None and current_value is not '' and \
+                    current_value is not u'' and current_value != value:
+                raise ValueError(
+                    '%s.%s is immutable and cannot be changed' % (
+                        self.__class__.__name__, name)
+                )
+        return super(Asset, self).__setattr__(name, value)
 
     def versions(self):
         return reversion.get_for_object(self)
@@ -250,6 +283,11 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
             asset=self,
             asset_version_id=self.version_id)
         return snapshot
+
+    def deploy(self, user, form_id):
+        ''' `form_id` is the XForm ID string '''
+        deploy_asset(user, self, form_id)
+        self.save()
 
     def __unicode__(self):
         return u'{} ({})'.format(self.name, self.uid)

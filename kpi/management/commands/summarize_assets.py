@@ -1,5 +1,4 @@
 from django.core.management.base import BaseCommand, CommandError
-from kpi.models import AssetDeployment
 from kpi.models import Asset
 
 def _set_auto_field_update(kls, field_name, val):
