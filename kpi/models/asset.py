@@ -250,11 +250,12 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def version_id(self):
-        return reversion.get_for_object(self).last().id
+        # Whoa! The `first()` version is the newest!
+        return reversion.get_for_object(self).first().id
 
     def get_export(self, regenerate=True, version_id=False):
         if not version_id:
-            version_id = reversion.get_for_object(self).last().id
+            version_id = self.version_id
 
         AssetSnapshot.objects.filter(asset=self, asset_version_id=version_id).delete()
 

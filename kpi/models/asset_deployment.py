@@ -6,7 +6,6 @@ from rest_framework.authtoken.models import Token
 from rest_framework import exceptions, status
 from pyxform.xls2json_backends import xls_to_dict
 from django.conf import settings
-from reversion import revisions as reversion
 import cStringIO
 import unicodecsv
 import requests
