@@ -15,6 +15,12 @@ from shortuuid import ShortUUID
 
 UID_LENGTH = 22
 
+# TODO: Use a better question type to store the version?
+VERSION_QUESTION_NAME = '__version__'
+VERSION_QUESTION_TYPE = 'calculate'
+# Define a function that returns {'column name': 'cell value'}
+VERSION_QUESTION_CELL = lambda x: {'calculation': x}
+
 class AssetDeploymentException(exceptions.APIException):
     @property
     def invalid_form_id(self):
@@ -35,12 +41,29 @@ def kobocat_url(path, internal=False):
     return u"/kobocat%s" % path
 
 def deploy_asset(user, asset, form_id):
+    ''' Pass `form_id = None` for a redeployment. The `asset` MUST have already
+    been deployed. If it has not, pass a valid slug as `form_id` to perform a
+    regular deployment. '''
+    if form_id is None:
+        redeployment = True
+        form_id = asset.xform_id_string
+        assert(len(form_id))
+        assert(asset.xform_pk is not None)
+    else:
+        redeployment = False
+
     (token, is_new) = Token.objects.get_or_create(user=user)
     headers = {u'Authorization':'Token ' + token.key}
-    xls_dict = xls_to_dict(asset.to_xls_io())
-    foo = cStringIO.StringIO()
+    version_extra_row = {
+        'name': VERSION_QUESTION_NAME,
+        'type': VERSION_QUESTION_TYPE,
+    }
+    version_extra_row.update(VERSION_QUESTION_CELL(asset.version_id))
+    xls_dict = xls_to_dict(asset.to_xls_io(
+        extra_rows={'survey': version_extra_row}))
+    csv_io = cStringIO.StringIO()
     writer = unicodecsv.writer(
-        foo, delimiter=',', quotechar='"', quoting=unicodecsv.QUOTE_MINIMAL)
+        csv_io, delimiter=',', quotechar='"', quoting=unicodecsv.QUOTE_MINIMAL)
     settings_arr = xls_dict.get('settings', [])
     if len(settings_arr) == 0:
         setting = {}
@@ -69,24 +92,33 @@ def deploy_asset(user, asset, form_id):
             writer.writerow([None] + out_row)
 
 
-    valid_xlsform_csv_repr = foo.getvalue()
+    valid_xlsform_csv_repr = csv_io.getvalue()
     payload = {u'text_xls_form': valid_xlsform_csv_repr}
 
     url = kobocat_url('/api/v1/forms', internal=True)
+    if redeployment:
+        request_method = requests.patch
+        url = '{}/{}'.format(url, asset.xform_pk)
+        expected_status_code = 200 if redeployment else 201
+    else:
+        request_method = requests.post
+        expected_status_code = 201
     try:
-        response = requests.post(url, headers=headers, data=payload)
+        response = request_method(url, headers=headers, data=payload)
         status_code = response.status_code
     except requests.exceptions.RequestException as e:
         # Failed to access the KC API
         # TODO: clarify that the user cannot correct this
         raise AssetDeploymentException(detail=unicode(e))
+
     try:
         resp = response.json()
     except ValueError as e:
         # Unparseable KC API output
         # TODO: clarify that the user cannot correct this
         raise AssetDeploymentException(detail=unicode(e))
-    if status_code != 201 or (
+
+    if status_code != expected_status_code or (
         'type' in resp and resp['type'] == 'alert-error'
     ) or 'formid' not in resp:
         if 'text' in resp:
@@ -98,7 +130,8 @@ def deploy_asset(user, asset, form_id):
         else:
             # Unspecified failure; raise 500
             raise AssetDeploymentException(
-                detail='Unexpected KoBoCAT error {}'.format(status_code)
+                detail='Unexpected KoBoCAT error {}: {}'.format(
+                    status_code, response.content)
             )
 
     # update_params['kobocat_published_form_id'] = resp[u'formid']
@@ -113,9 +146,13 @@ def deploy_asset(user, asset, form_id):
     # Update the Asset with details returned by KC
     asset.date_deployed = datetime.datetime.now()
     asset.xform_data = resp
-    asset.xform_pk = resp['formid']
-    asset.xform_id_string = resp['id_string']
-    asset.xform_uuid = resp['uuid']
-    asset.save()
+    if redeployment:
+        assert(asset.xform_pk == resp['formid'])
+        assert(asset.xform_id_string == resp['id_string'])
+        assert(asset.xform_uuid == resp['uuid'])
+    else:
+        asset.xform_pk = resp['formid']
+        asset.xform_id_string = resp['id_string']
+        asset.xform_uuid = resp['uuid']
 
     return resp

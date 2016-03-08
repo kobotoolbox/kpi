@@ -1,5 +1,6 @@
 import re
 import six
+import copy
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import MultipleObjectsReturned
@@ -86,7 +87,12 @@ class XlsExportable(object):
     def valid_xlsform_content(self):
         return to_xlsform_structure(self.content)
 
-    def to_xls_io(self):
+    def to_xls_io(self, extra_rows=None):
+        ''' To append rows to one or more sheets, pass `extra_rows` as a
+        dictionary of dictionaries following the format 
+        `{'sheet name': {'column name': 'cell value'}` '''
+        if extra_rows is None:
+            extra_rows = {}
         import xlwt
         import StringIO
         try:
@@ -103,7 +109,15 @@ class XlsExportable(object):
                         val = row.get(col, None)
                         if val:
                             sheet.write(ri +1, ci, val)
-            ss_dict = self.valid_xlsform_content()
+            # The extra rows should persist within this function and its return
+            # value *only*. Calling deepcopy() is required to achive this
+            # isolation.
+            ss_dict = copy.deepcopy(self.valid_xlsform_content())
+            for extra_row_sheet_name, extra_row in extra_rows.iteritems():
+                extra_row_sheet = ss_dict.get(extra_row_sheet_name, [])
+                extra_row_sheet.append(extra_row)
+                ss_dict[extra_row_sheet_name] = extra_row_sheet
+
             workbook = xlwt.Workbook()
             for sheet_name in ss_dict.keys():
                 # pyxform.xls2json_backends adds "_header" items for each sheet....
@@ -286,7 +300,13 @@ class Asset(
 
     def deploy(self, user, form_id):
         ''' `form_id` is the XForm ID string '''
-        deploy_asset(user, self, form_id)
+        if self.date_deployed is None:
+            # First-time deployment
+            deploy_asset(user, self, form_id)
+        else:
+            # Redeployment
+            assert(form_id == self.xform_id_string)
+            deploy_asset(user, self, None)
         self.save()
 
     def __unicode__(self):
