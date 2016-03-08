@@ -12,7 +12,6 @@ from rest_framework import serializers, exceptions
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
-from reversion import revisions as reversion
 
 from hub.models import SitewideMessage
 from .models import Asset
@@ -450,7 +449,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return fields
 
     def _version_count(self, obj):
-        return reversion.get_for_object(obj).count()
+        return obj.versions().count()
 
     def get_xls_link(self, obj):
         return reverse('asset-xls', args=(obj.uid,), request=self.context.get('request', None))

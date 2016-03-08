@@ -10,7 +10,6 @@ from jsonfield import JSONField
 from pyxform.xls2json_backends import xls_to_dict
 from rest_framework import exceptions, status
 from rest_framework.authtoken.models import Token
-from reversion import revisions as reversion
 from shortuuid import ShortUUID
 
 UID_LENGTH = 22
