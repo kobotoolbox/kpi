@@ -435,10 +435,35 @@ var dmix = {
     };
     dialog.set(opts).show();
   },
+  reDeployPrompt (asset_url, settings) {
+    let dialog = alertify.dialog('confirm');
+    let opts = {
+      title: t('ovewrite existing deployment on kobocat'),
+      message: t('are you sure you want to overwrite the previous deployment of this form?'),
+      labels: {ok: t('ok'), cancel: t('cancel')},
+      onok: (evt, val) => {
+        let ok_button = dialog.elements.buttons.primary.firstChild;
+        ok_button.disabled = true;
+        ok_button.innerText = t('Deploying...');
+        // pass the dialog so it can be modified to include error messages
+        actions.resources.deployAsset(asset_url, val, dialog);
+        // keep the dialog open
+        return false;
+      },
+      oncancel: () => {
+        dialog.destroy();
+      }
+    };
+    dialog.set(opts).show();
+  },
   deployAsset () {
     let asset_url = this.state.url;
     let settings = this.state.settings;
-    dmix.deployPrompt(asset_url, settings);
+    if (this.state.date_deployed) {
+      dmix.reDeployPrompt(asset_url, settings);
+    } else {
+      dmix.deployPrompt(asset_url, settings);
+    }
   },
   deleteAsset (...args) {
     let uid = this.props.params.assetid;
@@ -966,7 +991,11 @@ mixins.clickAssets = {
       },
       deploy: function(/*uid, evt*/){
         let asset = stores.selectedAsset.asset;
-        dmix.deployPrompt(asset.url, asset.settings);
+        if (asset.date_deployed) {
+          dmix.reDeployPrompt(asset.url, asset.settings);
+        } else {
+          dmix.deployPrompt(asset.url, asset.settings);
+        }
       },
     }
   },
