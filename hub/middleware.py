@@ -46,10 +46,6 @@ class OtherFormBuilderRedirectMiddleware(object):
             # Do not attempt to redirect if the necessary prefixes are not
             # configured or the user is anonymous
             return
-        try:
-            preferred_builder = \
-                request.user.formbuilderpreference.preferred_builder
-        except FormBuilderPreference.DoesNotExist:
-            # Ignore missing preference
-            pass
+        (preferred_builder, created) = \
+            FormBuilderPreference.objects.get_or_create(user=request.user)
         return self._redirect_if_necessary(request, preferred_builder)
