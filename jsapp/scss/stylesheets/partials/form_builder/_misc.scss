@@ -23,7 +23,7 @@
 // inputs in edit-in-place
 .card__text input, 
 .editable-wrapper input {
-    font-family: "Open Sans", "Helvetica", "Arial", sans-serif;
+    font-family: $preferred_font;
     border:none;
     padding:0px;
     margin:0px;

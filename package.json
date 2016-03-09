@@ -36,7 +36,6 @@
     "material-design-icons": "^2.0.0",
     "material-design-lite": "^1.0.2",
     "moment": "^2.10.3",
-    "open-sans-fontface": "^1.4.0",
     "q": "^1.4.1",
     "react": "^0.13.3",
     "react-cookie": "^0.2.3",
@@ -47,6 +46,7 @@
     "react-tagsinput": "1.4.x",
     "react-tooltip": "^0.3.3",
     "reflux": "^0.2.7",
+    "roboto-fontface": "^0.4.5",    
     "select2": "^3.5.2-browserify",
     "time-grunt": "^1.2.1",
     "underscore": "^1.8.3"

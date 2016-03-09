@@ -160,18 +160,9 @@
     border-bottom: 2px solid #CBD0D7;
 }
 
-.forms-filter__sorter {
-    // border:none;
-    // border-radius: 0;
-    // border-bottom: 2px solid #CBD0D7;
-    // padding:8px;
-    // float: left;
-}
-
-
 .forms__card {
     border-radius: 0px;
-    font-family: 'Open Sans';
+    font-family: $preferred_font;
     margin-bottom: 12px;
     font-size: 11px;
     border: $cardBorderStyle;
@@ -219,7 +210,7 @@
 
 .forms__kobocat__publisher__label {
     display: block;
-    font-family: 'Open Sans';
+    font-family: $preferred_font;
     font-weight: 600;
     margin-bottom: 15px;
 }

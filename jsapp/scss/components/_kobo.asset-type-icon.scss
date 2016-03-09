@@ -26,7 +26,9 @@
   line-height: 28px;
 
   &--block {
-    background-color: #009E11;
+    background-color: #FFF;
+    border:1px solid unquote("rgb(#{$color-primary})");
+    color: unquote("rgb(#{$color-primary})");
     > i {
       &:after {
         content: 'B';
@@ -35,7 +37,8 @@
     }
   }
   &--question {
-    background-color: #2A78E4;
+    background-color: unquote("rgb(#{$color-primary})");
+    border:1px solid unquote("rgb(#{$color-primary})");
     > i {
       &:after {
         content: 'Q';

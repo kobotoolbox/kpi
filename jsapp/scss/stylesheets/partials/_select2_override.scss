@@ -3,12 +3,12 @@ Overrides to Select2 CSS Defaults
 */
 
 .select2-search input {
-    font-family: "Open Sans";
+    font-family: $preferred_font;
     border-radius: 0px;
 }
 
 .select2-container-multi .select2-choices .select2-search-field input {
-    font-family: "Open Sans";
+    font-family: $preferred_font;
 }
 
 .select2-container-multi .select2-choices .select2-search-choice {

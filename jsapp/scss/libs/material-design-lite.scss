@@ -28,12 +28,7 @@
 @import '../../../node_modules/material-design-lite/src/_color-definitions';
 
 // NEW COLORS (March 2016)
-// $greyish-brown: #575757;
 $azure: '34, 150, 243';
-// $black: #363636;
-// $cool-grey-54: rgba(165, 179, 188, 0.54);
-// $cool-grey: #8a9aa4;
-
 $nav-menu-item-bg: #555b6e;
 $nav-menu-item-bg-active: #2196f3;
 $layout-header-bg-color: #414553 !default;
@@ -43,17 +38,14 @@ $color-primary: $azure !default;
 $color-accent: $azure !default; 
 $color-primary-dark: $palette-indigo-600 !default;
 
-$preferred_font: 'Open Sans', 'Helvetica', 'Arial', sans-serif !default;
-$performance_font: 'Open Sans', 'Helvetica', 'Arial', sans-serif !default; 
+$preferred_font: 'Roboto', 'Helvetica', 'Arial', sans-serif !default;
+$performance_font: 'Roboto', 'Helvetica', 'Arial', sans-serif !default; 
 
 $layout-text-color: #363636 !default;
 
 $layout-nav-color: #FFF !default;
 $layout-drawer-nav-link-color: #7d8a93 !default;
 $layout-drawer-nav-link-active-bg: #F9F9F9 !default;
-
-// Custom variables
-$k-drawer-icon-color: unquote("rgb(#{$palette-light-blue-A200})");
 
 @import '../../../node_modules/material-design-lite/src/material-design-lite';
 
@@ -83,17 +75,17 @@ $layout-header-desktop-indent-plus: $layout-header-desktop-indent + 6px;
   }
 }
 
-.header-breadcrumb__item {
-  margin-right: 10px;
-  font-size: 18px;
-  a, a:hover {
-    color: white;
-  }
+// .header-breadcrumb__item {
+//   margin-right: 10px;
+//   font-size: 18px;
+//   a, a:hover {
+//     color: white;
+//   }
 
-  + .header-breadcrumb__item:before {
-    content:'>';
-    display: inline-block;
-    margin-right: 10px;
-    opacity: 0.6;
-  }
-}
+//   + .header-breadcrumb__item:before {
+//     content:'>';
+//     display: inline-block;
+//     margin-right: 10px;
+//     opacity: 0.6;
+//   }
+// }

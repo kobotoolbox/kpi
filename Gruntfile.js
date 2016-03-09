@@ -74,11 +74,7 @@ module.exports = function(grunt) {
         flatten: true,
         src: [
           './node_modules/font-awesome/fonts/*',
-          './node_modules/open-sans-fontface/fonts/Regular/*',
-          './node_modules/open-sans-fontface/fonts/Italic/*',
-          './node_modules/open-sans-fontface/fonts/SemiboldItalic/*',
-          './node_modules/open-sans-fontface/fonts/Semibold/*',
-          './node_modules/material-design-icons/iconfont/Material*',
+          './node_modules/roboto-fontface/fonts/*.wof*',
           ],
         dest: './jsapp/fonts/',
       }

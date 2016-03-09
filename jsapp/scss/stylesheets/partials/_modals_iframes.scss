@@ -27,7 +27,7 @@
    ========================================================================== */
 
 .ui-widget {
-    font-family: 'Open Sans', sans-serif;
+    font-family: $preferred_font;
     font-size: 1em;
 }
 
@@ -62,7 +62,7 @@
     background: transparent;
     border: none;
     color: #333;
-    font-family: 'Open Sans', sans-serif;
+    font-family: $preferred_font;
     font-weight: 600;
     font-size: 1.2em;
 }
