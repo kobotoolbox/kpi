@@ -36,9 +36,7 @@ class DrawerLink extends React.Component {
       this.props.onClick(evt);
     }
   }
-  toggleDrawer () {
-    stores.pageState.toggleDrawer();
-  }
+
   render () {
     var icon_class = `menu-icon fa fa-fw fa-${this.props['fa-icon'] || 'table'}`;
     var icon = (<span className={icon_class}></span>);
@@ -47,17 +45,17 @@ class DrawerLink extends React.Component {
     if (this.props.linkto) {
       link = (
             <Link to={this.props.linkto}
-                  className='mdl-navigation__link'
-                  activeClassName='active'
-                  onClick={this.toggleDrawer}>
-              {icon} {this.props.label}
+                className='k-drawer__link'
+                activeClassName='active'
+                title={this.props.label}>
+              {icon} 
             </Link>
             );
     } else {
       link = (
           <a href={this.props.href || '#'}
-                    className='mdl-navigation__link'
-                    onClick={this.onClick.bind(this)}>{icon} {this.props.label}</a>
+              className='k-drawer__link'
+              onClick={this.onClick.bind(this)} title={this.props.label}>{icon} </a>
         );
     }
     return link;
@@ -73,59 +71,23 @@ var Drawer = React.createClass({
       showRecent: true,
     }, stores.pageState.state);
   },
-  logout () {
-    actions.auth.logout();
-  },
   render () {
     return (
-          <bem.Drawer m={{
-              'toggled': this.state.drawerIsVisible,
-                }} className='mdl-layout__drawer mdl-color--blue-grey-800'>
-            <span className='mdl-layout-title'>
-              <a href='/'>
-                <bem.AccountBox__logo />
-              </a>
-            </span>
-            <nav className='mdl-navigation'>
-              <div className='drawer-separator'></div>
-              <span className='mdl-navigation__heading'>{t('drafts in progress')}</span>
-
+          <bem.Drawer className='mdl-layout__drawer mdl-shadow--2dp'>
+            <nav className='k-drawer__icons'>
               <DrawerLink label={t('forms')} linkto='forms' fa-icon='files-o' />
               <DrawerLink label={t('library')} linkto='library' fa-icon='book' />
-
-              <div className='drawer-separator'></div>
-              <span className='mdl-navigation__heading'>{t('deployed projects')}</span>
               { stores.session.currentAccount ?
                   <DrawerLink label={t('projects')} active='true' href={stores.session.currentAccount.projects_url} fa-icon='globe' />
               : null }
 
-              <div className='drawer-separator'></div>
-              <span className='mdl-navigation__heading'>{t('account actions')}</span>
-              { this.state.isLoggedIn ?
-                <div>
-                  <DrawerLink label={t('settings')} href={stores.session.currentAccount.projects_url + 'settings'} fa-icon='user' />
-                  {leaveBetaUrl ?
-                    <DrawerLink label={t('leave beta')} href={leaveBetaUrl} fa-icon='circle-o' />
-                  :null}
-                  <DrawerLink label={t('logout')} onClick={this.logout} fa-icon='sign-out' />
-                </div>
-              :
-                <DrawerLink label={t('login')} href='/api-auth/login/?next=/' fa-icon='sign-in' />
-              }
+              <div className="mdl-layout-spacer"></div>
+
+              <div className='k-drawer__icons-bottom'>
+                <DrawerLink label={t('source')} href='https://github.com/kobotoolbox/' fa-icon='github' />
+                <DrawerLink label={t('help')} href='http://support.kobotoolbox.org/' fa-icon='question-circle' />
+              </div>
             </nav>
-
-            <div className='drawer__footer'>
-              <a href='http://support.kobotoolbox.org/' target='_blank'>
-                help
-              </a>
-              <a href='http://www.kobotoolbox.org/' target='_blank'>
-                about
-              </a>
-              <a href='https://github.com/kobotoolbox/' target='_blank'>
-                source
-              </a>
-            </div>
-
           </bem.Drawer>
       );
   }

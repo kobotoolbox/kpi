@@ -27,19 +27,31 @@
 // Color definitions
 @import '../../../node_modules/material-design-lite/src/_color-definitions';
 
-// KPI MDL Variable Overrides
-$color-primary: $palette-indigo-400 !default;
+// NEW COLORS (March 2016)
+// $greyish-brown: #575757;
+$azure: '34, 150, 243';
+// $black: #363636;
+// $cool-grey-54: rgba(165, 179, 188, 0.54);
+// $cool-grey: #8a9aa4;
+
+$nav-menu-item-bg: #555b6e;
+$nav-menu-item-bg-active: #2196f3;
+$layout-header-bg-color: #414553 !default;
+
+// MDL Overrides
+$color-primary: $azure !default;
+$color-accent: $azure !default; 
 $color-primary-dark: $palette-indigo-600 !default;
-$color-accent: $palette-indigo-A200 !default; 
-$layout-header-bg-color: unquote("rgb(#{$palette-blue-grey-800})") !default;
+
 $preferred_font: 'Open Sans', 'Helvetica', 'Arial', sans-serif !default;
 $performance_font: 'Open Sans', 'Helvetica', 'Arial', sans-serif !default; 
 
-$layout-text-color: #FFF !default;
-$layout-drawer-navigation-color: #FFF !default;
-$layout-nav-color: unquote("rgb(#{$palette-blue-grey-900})") !default;
-$layout-drawer-navigation-link-active-background: unquote("rgb(#{$palette-blue-grey-900})") !default;
-$layout-drawer-navigation-link-active-color: #FFF !default;
+$layout-text-color: #363636 !default;
+
+$layout-nav-color: #FFF !default;
+$layout-drawer-nav-link-color: #7d8a93 !default;
+$layout-drawer-nav-link-active-bg: #F9F9F9 !default;
+
 // Custom variables
 $k-drawer-icon-color: unquote("rgb(#{$palette-light-blue-A200})");
 
@@ -56,7 +68,8 @@ body {
 $layout-header-mobile-indent-plus: $layout-header-mobile-indent + 6px;
 $layout-header-desktop-indent-plus: $layout-header-desktop-indent + 6px;
 
-@import '../components/kobo.drawer';
+@import '../components/new.navigation';
+@import '../components/new.drawer'; 
 
 .mdl-checkbox__tick-outline {
   mask: url('../img/tick-mask.svg?embed');

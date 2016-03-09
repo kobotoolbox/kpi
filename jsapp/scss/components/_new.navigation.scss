@@ -1,0 +1,75 @@
+// MDL Layout overrides for navigation and drawer
+
+.mdl-layout--fixed-drawer:not(.is-small-screen) {
+  > .mdl-layout__header {
+    margin-left: 0px;
+    width:100%;
+    .mdl-layout__drawer-button {
+    	display: none;
+    }
+
+    // temporary
+    .mdl-placeholder {
+    	min-width: 150px;
+    }
+  }
+
+}
+
+.mdl-layout--fixed-drawer > .mdl-layout__header {
+	min-height:56px;
+	.mdl-layout__header-row {
+		height:56px;
+		padding-left:20px;
+	}
+
+	button.mdl-button {
+		color: $layout-nav-color;
+		text-transform: none;
+		i {
+			font-size: 18px;
+			margin-left: 8px;
+			margin-right:8px;
+			opacity: 0.8;
+			vertical-align: middle;
+		}
+		&:active, &:focus, &:hover {
+			background-color: transparent; 
+		}
+	}
+
+	.account-box__image {
+	  width:24px;
+	  display: inline-block;
+	  margin-right: 6px;
+	  img {
+	    width: 24px;
+	    height: 24px;
+	    border-radius:12px;
+	  }
+	}
+
+	.account-box__logo {
+	  width: 120px;
+	  height: 28px;
+	  background: url('../img/kobologo.svg') no-repeat;
+	  background-size: contain;
+	  display: block;
+	}
+
+	.mdl-menu__outline {
+		background-color:$nav-menu-item-bg;
+		margin-top: 8px;
+		box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5), inset 0 1px 3px 0 rgba(0, 0, 0, 0.5);
+	}
+
+	.mdl-menu__item {
+		color: $layout-nav-color;
+		opacity: 0.7;
+		&:hover {
+			opacity: 1;
+			background-color:$nav-menu-item-bg-active;
+		}
+	}
+}
+
