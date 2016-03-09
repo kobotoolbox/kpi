@@ -26,9 +26,8 @@
   line-height: 28px;
 
   &--block {
-    background-color: #FFF;
+    background-color: unquote("rgb(#{$color-primary})");
     border:1px solid unquote("rgb(#{$color-primary})");
-    color: unquote("rgb(#{$color-primary})");
     > i {
       &:after {
         content: 'B';
@@ -37,8 +36,9 @@
     }
   }
   &--question {
-    background-color: unquote("rgb(#{$color-primary})");
+    background-color: #FFF;
     border:1px solid unquote("rgb(#{$color-primary})");
+    color: unquote("rgb(#{$color-primary})");
     > i {
       &:after {
         content: 'Q';
@@ -47,7 +47,9 @@
     }
   }
   &--survey {
-    background-color: #444;
+    background-color: unquote("rgb(#{$color-primary})");
+    border:1px solid unquote("rgb(#{$color-primary})");
+    // background-color: #444;
     > i {
       font-size: 16px;
       font-weight: 600;

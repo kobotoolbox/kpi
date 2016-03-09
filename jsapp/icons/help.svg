@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="48px" height="48px" viewBox="0 0 48 48" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 3.6.1 (26313) - http://www.bohemiancoding.com/sketch -->
+    <title>32x32 Icon</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path id="path-1" d="M13.0003804,12.4277344 C13.0003804,12.4277344 12.8563375,8 18.1739644,8 C23.4915914,8 22.8187398,12.9729004 22.8187398,12.9729004 C22.8187398,12.9729004 22.8512105,14.8779297 18.4745015,19.623291 C18.4644918,19.6567383 17.9603414,20.043335 17.9807271,22.4187012"></path>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="32x32-Icon">
+            <g id="Help" transform="translate(6.000000, 6.000000)">
+                <circle id="Oval-231" stroke="#979797" stroke-width="2" cx="18" cy="18" r="18"></circle>
+                <g id="Path-1604">
+                    <use stroke="#979797" stroke-width="2" stroke-linecap="square" xlink:href="#path-1"></use>
+                    <use stroke="none" xlink:href="#path-1"></use>
+                </g>
+                <rect id="Rectangle-971" stroke="#979797" fill="#D8D8D8" x="17" y="26" width="2" height="2"></rect>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -15,9 +15,15 @@
     text-align: center;
     color: $layout-drawer-nav-link-color;
     padding:16px 0px;
+    span.label {
+      display: none;
+      font-size: 14px;
+      font-weight: 400;
+    }
     &.active {
       color: unquote("rgb(#{$color-primary})");
       background-color: $layout-drawer-nav-link-active-bg;
+      span.label {display: inline-block;}
     }
   }
 

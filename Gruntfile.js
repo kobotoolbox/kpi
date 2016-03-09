@@ -79,6 +79,21 @@ module.exports = function(grunt) {
         dest: './jsapp/fonts/',
       }
     },
+    webfont: {
+        icons: {
+            src: 'jsapp/icons/*.svg',
+            dest: 'jsapp/fonts',
+            destCss: 'jsapp/fonts',
+            options: {
+                font: 'k-iconfont',
+                syntax: 'bem',
+                templateOptions: {
+                    baseClass: 'ki',
+                    classPrefix: 'ki-'
+                }
+            }
+        }
+    },
     watch: {
       js: {
         options: {
@@ -120,6 +135,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-webfont');
   grunt.registerTask('develop', [
     'browserify:dev',
     'sass:dist',
@@ -136,6 +152,7 @@ module.exports = function(grunt) {
   grunt.registerTask('buildall', [
     'build',
     'copy',
+    'webfont',
     'uglify',
     'cssmin',
   ]);

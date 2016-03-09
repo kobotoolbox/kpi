@@ -38,7 +38,7 @@ class DrawerLink extends React.Component {
   }
 
   render () {
-    var icon_class = `menu-icon fa fa-fw fa-${this.props['fa-icon'] || 'table'}`;
+    var icon_class = `ki ki-${this.props['ki-icon'] || 'globe'}`; 
     var icon = (<span className={icon_class}></span>);
 
     var link;
@@ -49,13 +49,14 @@ class DrawerLink extends React.Component {
                 activeClassName='active'
                 title={this.props.label}>
               {icon} 
+              <span className="label">{this.props.label}</span>
             </Link>
             );
     } else {
       link = (
           <a href={this.props.href || '#'}
               className='k-drawer__link'
-              onClick={this.onClick.bind(this)} title={this.props.label}>{icon} </a>
+              onClick={this.onClick.bind(this)} title={this.props.label}>{icon} <span className="label">{this.props.label}</span></a>
         );
     }
     return link;
@@ -75,17 +76,17 @@ var Drawer = React.createClass({
     return (
           <bem.Drawer className='mdl-layout__drawer mdl-shadow--2dp'>
             <nav className='k-drawer__icons'>
-              <DrawerLink label={t('forms')} linkto='forms' fa-icon='files-o' />
-              <DrawerLink label={t('library')} linkto='library' fa-icon='book' />
+              <DrawerLink label={t('forms')} linkto='forms' ki-icon='forms' />
+              <DrawerLink label={t('library')} linkto='library' ki-icon='library' />
               { stores.session.currentAccount ?
-                  <DrawerLink label={t('projects')} active='true' href={stores.session.currentAccount.projects_url} fa-icon='globe' />
+                  <DrawerLink label={t('projects')} active='true' href={stores.session.currentAccount.projects_url} ki-icon='globe' />
               : null }
 
               <div className="mdl-layout-spacer"></div>
 
               <div className='k-drawer__icons-bottom'>
-                <DrawerLink label={t('source')} href='https://github.com/kobotoolbox/' fa-icon='github' />
-                <DrawerLink label={t('help')} href='http://support.kobotoolbox.org/' fa-icon='question-circle' />
+                <DrawerLink label={t('source')} href='https://github.com/kobotoolbox/' ki-icon='github' />
+                <DrawerLink label={t('help')} href='http://support.kobotoolbox.org/' ki-icon='help' />
               </div>
             </nav>
           </bem.Drawer>
