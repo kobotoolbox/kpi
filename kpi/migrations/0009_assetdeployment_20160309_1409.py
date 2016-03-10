@@ -5,9 +5,6 @@ import sys
 from django.db import migrations, models
 import jsonfield.fields
 
-def do_nothing(apps, schema_editor):
-    pass
-
 def explode_assets(apps, schema_editor):
     AssetDeployment = apps.get_model('kpi', 'AssetDeployment')
     Asset = apps.get_model('kpi', 'Asset')
@@ -20,6 +17,7 @@ def explode_assets(apps, schema_editor):
     for original_asset in deployed_assets:
         deployments = original_asset.assetdeployment_set.all()
         multiple_deployments = deployments.count() > 1
+        first = True
         for deployment in deployments:
             asset = original_asset
             if multiple_deployments:
@@ -28,9 +26,14 @@ def explode_assets(apps, schema_editor):
                 asset = Asset.objects.get(pk=original_asset.pk)
                 # As we clone the Asset to match the number of deployments,
                 # append the XForm id_string to the name of each new asset
-                asset.pk = None
                 asset.name = '{} ({})'.format(
                     asset.name, deployment.xform_id_string)
+                # The first asset is only modified, not copied.
+                if not first:
+                    # Since we're copying, unset the unique fields so that they
+                    # will be regenerated automatically
+                    asset.pk = None
+                    asset.uid = ''
 
             # Copy the deployment-related fields
             asset.date_deployed = deployment.date_created
@@ -40,6 +43,7 @@ def explode_assets(apps, schema_editor):
             asset.xform_uuid = deployment.data['uuid']
             asset.save()
             deployments_done += 1
+            first = False
         assets_done += 1
         if assets_done % asset_progress_interval == 0:
             sys.stdout.write('.')
@@ -79,7 +83,7 @@ class Migration(migrations.Migration):
             name='xform_uuid',
             field=models.CharField(max_length=32, blank=True),
         ),
-        migrations.RunPython(explode_assets, do_nothing),
+        migrations.RunPython(explode_assets),
         migrations.RemoveField(
             model_name='assetdeployment',
             name='asset',
