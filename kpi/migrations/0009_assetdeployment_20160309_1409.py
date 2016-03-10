@@ -5,6 +5,11 @@ import sys
 from django.db import migrations, models
 import jsonfield.fields
 
+# Methods on historical models aren't available, so load `_generate_uid()` from
+# the current incarnation of `Asset` and hope for the best
+from ..models import Asset as Asset__do_not_use
+generate_uid = Asset__do_not_use._generate_uid
+
 def explode_assets(apps, schema_editor):
     AssetDeployment = apps.get_model('kpi', 'AssetDeployment')
     Asset = apps.get_model('kpi', 'Asset')
@@ -17,23 +22,25 @@ def explode_assets(apps, schema_editor):
     for original_asset in deployed_assets:
         deployments = original_asset.assetdeployment_set.all()
         multiple_deployments = deployments.count() > 1
+        original_asset_name = original_asset.name
+        original_asset_uid = original_asset.uid
         first = True
         for deployment in deployments:
             asset = original_asset
             if multiple_deployments:
-                # One Asset was deployed multiple times. Re-fetch the original
-                # asset to prevent our changes from being cumulative
-                asset = Asset.objects.get(pk=original_asset.pk)
                 # As we clone the Asset to match the number of deployments,
                 # append the XForm id_string to the name of each new asset
                 asset.name = '{} ({})'.format(
-                    asset.name, deployment.xform_id_string)
-                # The first asset is only modified, not copied.
+                    original_asset_name, deployment.xform_id_string)
+                # Don't copy the first asset; just modify it
                 if not first:
                     # Since we're copying, unset the unique fields so that they
                     # will be regenerated automatically
                     asset.pk = None
-                    asset.uid = ''
+                    # `Asset.save()` will not be called! We must regenerate the
+                    # uid here, manually
+                    # https://docs.djangoproject.com/en/1.8/topics/migrations/#historical-models
+                    asset.uid = generate_uid()
 
             # Copy the deployment-related fields
             asset.date_deployed = deployment.date_created

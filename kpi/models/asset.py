@@ -241,7 +241,8 @@ class Asset(
         analyzer = AssetContentAnalyzer(**self.content)
         self.summary = analyzer.summary
 
-    def _generate_uid(self):
+    @staticmethod
+    def _generate_uid():
         return 'a' + ShortUUID().random(ASSET_UID_LENGTH -1)
 
     def save(self, *args, **kwargs):

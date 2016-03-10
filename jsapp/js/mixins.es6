@@ -439,7 +439,10 @@ var dmix = {
     let dialog = alertify.dialog('confirm');
     let opts = {
       title: t('ovewrite existing deployment on kobocat'),
-      message: t('are you sure you want to overwrite the previous deployment of this form?'),
+      message: t('this form has already been deployed. are you sure you ' +
+                 'want overwrite the existing deployment? this action ' +
+                 'cannot be undone. to deploy using a different form id, ' +
+                 'cancel this action and clone this form.'),
       labels: {ok: t('ok'), cancel: t('cancel')},
       onok: (evt, val) => {
         let ok_button = dialog.elements.buttons.primary.firstChild;
