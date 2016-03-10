@@ -12,23 +12,23 @@ billiard==3.3.0.22
 boto==2.39.0
 celery==3.1.20
 contextlib2==0.5.1        # via raven
-dj-database-url==0.3.0
+dj-database-url==0.4.0
 dj-static==0.0.6
 django-braces==1.8.1
 django-cachebuster==0.2.1
 django-debug-toolbar==1.4
 django-extensions==1.6.1
 django-haystack==2.4.1
-django-jsonfield==0.9.15
-django-markitup==2.3.0
-django-mptt==0.8.0
+django-jsonfield==0.9.19
+django-markitup==2.3.1
+django-mptt==0.8.3
 django-oauth-toolkit==0.10.0
-django-registration-redux==1.3
+django-registration-redux==1.4
 django-reversion==1.10.1
 django-ses==0.7.0
 django-taggit==0.18.0
 django-toolbelt==0.0.1
-Django==1.8.8
+Django==1.8.10
 djangorestframework==3.3.2
 ecdsa==0.13               # via paramiko
 Fabric==1.10.2
@@ -41,10 +41,10 @@ oauthlib==1.0.3
 paramiko==1.16.0          # via fabric
 psycopg2==2.6.1
 pycrypto==2.6.1           # via paramiko
-Pygments==2.1
-python-dateutil==2.4.2
+Pygments==2.1.3
+python-dateutil==2.5.0
 pytz==2015.7
-raven==5.10.2
+raven==5.11.0
 requests==2.9.1
 shortuuid==0.4.3
 six==1.10.0

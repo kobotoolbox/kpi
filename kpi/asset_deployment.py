@@ -1,18 +1,24 @@
-from django.db import models
-from shortuuid import ShortUUID
-from jsonfield import JSONField
-from kpi.models import Asset
-from rest_framework.authtoken.models import Token
-from rest_framework import exceptions, status
-from pyxform.xls2json_backends import xls_to_dict
-from django.conf import settings
-from reversion import revisions as reversion
 import cStringIO
-import unicodecsv
-import requests
+import datetime
 import re
+import requests
+import unicodecsv
+
+from django.conf import settings
+from django.db import models
+from jsonfield import JSONField
+from pyxform.xls2json_backends import xls_to_dict
+from rest_framework import exceptions, status
+from rest_framework.authtoken.models import Token
+from shortuuid import ShortUUID
 
 UID_LENGTH = 22
+
+# TODO: Use a better question type to store the version?
+VERSION_QUESTION_NAME = '__version__'
+VERSION_QUESTION_TYPE = 'calculate'
+# Define a function that returns {'column name': 'cell value'}
+VERSION_QUESTION_CELL = lambda x: {'calculation': x}
 
 class AssetDeploymentException(exceptions.APIException):
     @property
@@ -34,12 +40,29 @@ def kobocat_url(path, internal=False):
     return u"/kobocat%s" % path
 
 def deploy_asset(user, asset, form_id):
+    ''' Pass `form_id = None` for a redeployment. The `asset` MUST have already
+    been deployed. If it has not, pass a valid slug as `form_id` to perform a
+    regular deployment. '''
+    if form_id is None:
+        redeployment = True
+        form_id = asset.xform_id_string
+        assert(len(form_id))
+        assert(asset.xform_pk is not None)
+    else:
+        redeployment = False
+
     (token, is_new) = Token.objects.get_or_create(user=user)
     headers = {u'Authorization':'Token ' + token.key}
-    xls_dict = xls_to_dict(asset.to_xls_io())
-    foo = cStringIO.StringIO()
+    version_extra_row = {
+        'name': VERSION_QUESTION_NAME,
+        'type': VERSION_QUESTION_TYPE,
+    }
+    version_extra_row.update(VERSION_QUESTION_CELL(asset.version_id))
+    xls_dict = xls_to_dict(asset.to_xls_io(
+        extra_rows={'survey': version_extra_row}))
+    csv_io = cStringIO.StringIO()
     writer = unicodecsv.writer(
-        foo, delimiter=',', quotechar='"', quoting=unicodecsv.QUOTE_MINIMAL)
+        csv_io, delimiter=',', quotechar='"', quoting=unicodecsv.QUOTE_MINIMAL)
     settings_arr = xls_dict.get('settings', [])
     if len(settings_arr) == 0:
         setting = {}
@@ -68,24 +91,33 @@ def deploy_asset(user, asset, form_id):
             writer.writerow([None] + out_row)
 
 
-    valid_xlsform_csv_repr = foo.getvalue()
+    valid_xlsform_csv_repr = csv_io.getvalue()
     payload = {u'text_xls_form': valid_xlsform_csv_repr}
 
     url = kobocat_url('/api/v1/forms', internal=True)
+    if redeployment:
+        request_method = requests.patch
+        url = '{}/{}'.format(url, asset.xform_pk)
+        expected_status_code = 200 if redeployment else 201
+    else:
+        request_method = requests.post
+        expected_status_code = 201
     try:
-        response = requests.post(url, headers=headers, data=payload)
+        response = request_method(url, headers=headers, data=payload)
         status_code = response.status_code
     except requests.exceptions.RequestException as e:
         # Failed to access the KC API
         # TODO: clarify that the user cannot correct this
         raise AssetDeploymentException(detail=unicode(e))
+
     try:
         resp = response.json()
     except ValueError as e:
         # Unparseable KC API output
         # TODO: clarify that the user cannot correct this
         raise AssetDeploymentException(detail=unicode(e))
-    if status_code != 201 or (
+
+    if status_code != expected_status_code or (
         'type' in resp and resp['type'] == 'alert-error'
     ) or 'formid' not in resp:
         if 'text' in resp:
@@ -97,7 +129,8 @@ def deploy_asset(user, asset, form_id):
         else:
             # Unspecified failure; raise 500
             raise AssetDeploymentException(
-                detail='Unexpected KoBoCAT error {}'.format(status_code)
+                detail='Unexpected KoBoCAT error {}: {}'.format(
+                    status_code, response.content)
             )
 
     # update_params['kobocat_published_form_id'] = resp[u'formid']
@@ -108,54 +141,17 @@ def deploy_asset(user, asset, form_id):
         u'message': 'Successfully published form',
         u'published_form_url': kobocat_url('/%s/forms/%s' % (user.username, resp.get('id_string')))
         })
+
+    # Update the Asset with details returned by KC
+    asset.date_deployed = datetime.datetime.now()
+    asset.xform_data = resp
+    if redeployment:
+        assert(asset.xform_pk == resp['formid'])
+        assert(asset.xform_id_string == resp['id_string'])
+        assert(asset.xform_uuid == resp['uuid'])
+    else:
+        asset.xform_pk = resp['formid']
+        asset.xform_id_string = resp['id_string']
+        asset.xform_uuid = resp['uuid']
+
     return resp
-
-class AssetDeployment(models.Model):
-    '''
-    keeping a record of when a user deploys an individual asset.
-    '''
-    MAX_ID_LENGTH = 100 # Copied from KoBoCAT's XForm model
-
-    user = models.ForeignKey('auth.User')
-    date_created = models.DateTimeField(auto_now_add=True)
-    asset = models.ForeignKey('kpi.Asset')
-    asset_version_id = models.IntegerField()
-    xform_pk = models.IntegerField(null=True)
-    xform_id_string = models.CharField(max_length=MAX_ID_LENGTH)
-    data = JSONField()
-    uid = models.CharField(max_length=UID_LENGTH, default='')
-
-    @property
-    def state(self):
-        return self.data.get('state', None)
-
-    @state.setter
-    def state(self, value):
-        self.data.set('state', value)
-
-    def deploy_asset(self, form_id):
-        return deploy_asset(self.user, self.asset, form_id)
-
-    def save(self, *args, **kwargs):
-        if self.data == '':
-            self.data = {}
-        if self.uid == '':
-            self.uid = 'd'+ShortUUID().random(UID_LENGTH-1)
-        super(AssetDeployment, self).save(*args, **kwargs)
-
-    @classmethod
-    def _create_if_possible(kls, asset, user, xform_id_string):
-        asset_version_id = reversion.get_for_object(asset).last().id
-        new_ad = AssetDeployment(
-            user=user,
-            asset=asset,
-            asset_version_id=asset_version_id
-            )
-        # Might raise exceptions, but they're the caller's obligation to handle
-        result = new_ad.deploy_asset(xform_id_string)
-        new_ad.data = result
-        new_ad.xform_pk = result['formid']
-        # KC might return something different from what we provided
-        new_ad.xform_id_string = result['id_string']
-        new_ad.save()
-        return new_ad
