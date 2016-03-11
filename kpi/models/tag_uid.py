@@ -6,7 +6,7 @@ TAG_UID_LENGTH = 22
 
 class TagUid(models.Model):
     tag = models.OneToOneField(Tag)
-    uid = models.CharField(max_length=TAG_UID_LENGTH, default='', blank=True)
+    uid = models.CharField(max_length=TAG_UID_LENGTH, default='', unique=True)
 
     def _generate_uid(self):
         return 't' + ShortUUID().random(TAG_UID_LENGTH - 1)

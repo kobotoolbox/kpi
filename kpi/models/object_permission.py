@@ -203,7 +203,8 @@ class ObjectPermission(models.Model):
     # so duplicate the content_type field here.
     content_type = models.ForeignKey(ContentType)
     content_object = GenericForeignKey('content_type', 'object_id')
-    uid = models.CharField(max_length=OBJECT_PERMISSION_UID_LENGTH, default='')
+    uid = models.CharField(
+        max_length=OBJECT_PERMISSION_UID_LENGTH, default='', unique=True)
     objects = ObjectPermissionManager()
 
     @property

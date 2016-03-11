@@ -145,7 +145,8 @@ class Asset(
         'Collection', related_name='assets', null=True, blank=True)
     owner = models.ForeignKey('auth.User', related_name='assets', null=True)
     editors_can_change_permissions = models.BooleanField(default=True)
-    uid = models.CharField(max_length=ASSET_UID_LENGTH, default='', blank=True)
+    uid = models.CharField(
+        max_length=ASSET_UID_LENGTH, default='', unique=True)
     tags = TaggableManager(manager=KpiTaggableManager)
 
     # Deployment-related attributes
@@ -329,7 +330,8 @@ class AssetSnapshot(models.Model, XlsExportable):
     asset = models.ForeignKey(Asset, null=True)
     asset_version_id = models.IntegerField(null=True)
     date_created = models.DateTimeField(auto_now_add=True)
-    uid = models.CharField(max_length=ASSET_UID_LENGTH, default='', blank=True)
+    uid = models.CharField(
+        max_length=ASSET_UID_LENGTH, default='', unique=True)
 
     def __init__(self, *args, **kwargs):
         if (kwargs.get('asset', None) is not None and

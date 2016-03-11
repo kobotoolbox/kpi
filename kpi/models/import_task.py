@@ -51,7 +51,7 @@ class ImportTask(models.Model):
     messages = JSONField(default={})
     status = models.CharField(choices=STATUS_CHOICES, max_length=32,
                               default=CREATED)
-    uid = models.CharField(max_length=UID_LENGTH, default='')
+    uid = models.CharField(max_length=UID_LENGTH, default='', unique=True)
     date_created = models.DateTimeField(auto_now_add=True)
     # date_expired = models.DateTimeField(null=True)
 
