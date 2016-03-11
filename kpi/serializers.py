@@ -12,11 +12,9 @@ from rest_framework import serializers, exceptions
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
-from reversion import revisions as reversion
 
 from hub.models import SitewideMessage
 from .models import Asset
-from .models import AssetDeployment, AssetDeploymentException
 from .models import AssetSnapshot
 from .models import Collection
 from .models import CollectionChildrenQuerySet
@@ -27,6 +25,7 @@ from .models.asset import ASSET_TYPES
 from .models import TagUid
 from .forms import USERNAME_REGEX, USERNAME_MAX_LENGTH
 from .forms import USERNAME_INVALID_MESSAGE
+from .asset_deployment import AssetDeploymentException
 
 
 class Paginated(LimitOffsetPagination):
@@ -380,8 +379,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         many=True, read_only=True, source='get_ancestors_or_none')
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     tag_string = serializers.CharField(required=False, allow_blank=True)
-    deployment_count = serializers.SerializerMethodField()
     version_id = serializers.IntegerField(read_only=True)
+
+    # Deployment-related fields
+    xform_id_string = serializers.CharField(read_only=True)
+    xform_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -408,15 +410,20 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'kind',
                   'xls_link',
                   'name',
-                  'deployment_count',
-                  'permissions',)
+                  'permissions',
+                  # Deployment-related fields
+                  'date_deployed',
+                  'xform_pk',
+                  'xform_id_string',
+                  'xform_uuid',
+                  'xform_url',)
         extra_kwargs = {
-            'parent': {
-                'lookup_field': 'uid',
-            },
-            'uid': {
-                'read_only': True,
-            },
+            'parent': {'lookup_field': 'uid'},
+            'uid': {'read_only': True},
+            'date_deployed': {'read_only': True},
+            'xform_pk': {'read_only': True},
+            'xform_id_string': {'allow_blank': True},
+            'xform_uuid': {'read_only': True},
         }
 
     def get_fields(self, *args, **kwargs):
@@ -442,7 +449,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return fields
 
     def _version_count(self, obj):
-        return reversion.get_for_object(obj).count()
+        return obj.versions().count()
 
     def get_xls_link(self, obj):
         return reverse('asset-xls', args=(obj.uid,), request=self.context.get('request', None))
@@ -485,15 +492,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return reverse('asset-koboform', args=(obj.uid,), request=self.context
                        .get('request', None))
 
-    def get_deployment_count(self, obj):
-        # If the QuerySet has been annotated with Count('assetdeployment'),
-        # then no further database queries are necessary
-        return getattr(
-            obj,
-            'assetdeployment__count',
-            # Not annotated; hit the database
-            obj.assetdeployment_set.count()
-        )
+    def get_xform_url(self, obj):
+        return obj.xform_data.get('published_form_url')
 
     def _content(self, obj):
         return json.dumps(obj.content)
@@ -501,79 +501,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def _table_url(self, obj):
         request = self.context.get('request', None)
         return reverse('asset-table-view', args=(obj.uid,), request=request)
-
-
-class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
-    xform_id_string = serializers.CharField(required=False)
-    xform_url = serializers.SerializerMethodField()
-
-    asset = GenericHyperlinkedRelatedField(
-        lookup_field='uid',
-        style={'base_template': 'input.html'} # Render as a simple text box
-    )
-
-    def create(self, validated_data):
-        user = self.context['request'].user
-        if user.is_anonymous():
-            raise exceptions.NotAuthenticated
-
-        asset = validated_data['asset']
-        xform_id_string = ''
-        if 'xform_id_string' in validated_data:
-            xform_id_string = validated_data.get('xform_id_string')
-        if not len(xform_id_string):
-            # If no id string was provided, use a punctuation-free timestamp
-            xform_id_string = datetime.datetime.utcnow().strftime(
-                '%Y%m%dT%H%M%S%fZ')
-
-        try:
-            return AssetDeployment._create_if_possible(
-                asset, user, xform_id_string)
-        except AssetDeploymentException as e:
-            if e.invalid_form_id:
-                raise exceptions.ValidationError(
-                    detail={'xform_id_string': e.detail})
-            # Something other than an invalid form id; just reraise
-            # TODO: clarify whether or not this is a user error
-            raise
-
-    def get_xform_url(self, obj):
-        return obj.data.get('published_form_url')
-
-    class Meta:
-        model = AssetDeployment
-        fields = (
-            'user',
-            'date_created',
-            'asset',
-            'asset_version_id',
-            'uid',
-            'xform_pk',
-            'xform_id_string',
-            'xform_url',
-        )
-        lookup_field = 'uid'
-        extra_kwargs = {
-            'user': {
-                'lookup_field': 'username',
-                'read_only': True,
-            },
-            'asset': {
-                'lookup_field': 'uid',
-            },
-            'asset_version_id': {
-                'read_only': True,
-            },
-            'uid': {
-                'read_only': True,
-            },
-            'xform_pk': {
-                'read_only': True,
-            },
-            'xform_id_string': {
-                'allow_blank': True,
-            }
-        }
 
 
 class ImportTaskSerializer(serializers.HyperlinkedModelSerializer):
@@ -626,7 +553,7 @@ class AssetListSerializer(AssetSerializer):
                   'kind',
                   'name',
                   'asset_type',
-                  'deployment_count',
+                  'date_deployed',
                   'permissions',
                   )
 

@@ -39,15 +39,18 @@ from .models import (
     Asset,
     AssetSnapshot,
     ImportTask,
-    AssetDeployment,
     ObjectPermission,
     AuthorizedApplication,
-    )
+)
 from .models.object_permission import get_anonymous_user, get_objects_for_user
-from .models.asset_deployment import kobocat_url
+from .asset_deployment import (
+    AssetDeploymentException,
+    kobocat_url,
+)
 from .models.authorized_application import ApplicationTokenAuthentication
 from .permissions import (
     IsOwnerOrReadOnly,
+    PostMappedToChangePermission,
     get_perm_name,
 )
 from .renderers import (
@@ -63,7 +66,6 @@ from .serializers import (
     CollectionSerializer, CollectionListSerializer,
     UserSerializer, UserListSerializer, CreateUserSerializer,
     TagSerializer, TagListSerializer,
-    AssetDeploymentSerializer,
     ImportTaskSerializer, ImportTaskListSerializer,
     ObjectPermissionSerializer,
     AuthorizedApplicationUserSerializer,)
@@ -210,18 +212,6 @@ class CollectionViewSet(viewsets.ModelViewSet):
             return CollectionListSerializer
         else:
             return CollectionSerializer
-
-
-class AssetDeploymentViewSet(NoUpdateModelViewSet):
-    queryset = AssetDeployment.objects.none()
-    serializer_class = AssetDeploymentSerializer
-    lookup_field = 'uid'
-
-    def get_queryset(self, *args, **kwargs):
-        if self.request.user.is_anonymous():
-            return AssetDeployment.objects.none()
-        else:
-            return AssetDeployment.objects.filter(user=self.request.user)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -442,7 +432,7 @@ class AssetViewSet(viewsets.ModelViewSet):
         'permissions__content_object',
         # Getting the tag_string is making one query per object, but
         # prefetch_related doesn't seem to help
-    ).annotate(Count('assetdeployment')).all()
+    ).all()
     serializer_class = AssetSerializer
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
@@ -576,6 +566,41 @@ class AssetViewSet(viewsets.ModelViewSet):
 
         return super(AssetViewSet, self).finalize_response(
             request, response, *args, **kwargs)
+
+    @detail_route(
+        methods=['post'], permission_classes=[PostMappedToChangePermission])
+    def deploy(self, request, uid=None):
+        user = request.user
+        if user.is_anonymous():
+            raise exceptions.NotAuthenticated
+
+        asset = self.get_object()
+        xform_id_string = request.POST.get(
+            'xform_id_string', asset.xform_id_string)
+        if asset.date_deployed and asset.xform_id_string != xform_id_string:
+            raise exceptions.ValidationError(
+                detail={'xform_id_string': 'This asset has alread been ' \
+                    'deployed, and therefore its xform_id_string cannot be ' \
+                    'changed.'
+            })
+
+        if not len(xform_id_string):
+            # If no id string was provided, use a punctuation-free timestamp
+            xform_id_string = datetime.datetime.utcnow().strftime(
+                '%Y%m%dT%H%M%S%fZ')
+
+        try:
+            asset.deploy(user, xform_id_string)
+        except AssetDeploymentException as e:
+            if e.invalid_form_id:
+                raise exceptions.ValidationError(
+                    detail={'xform_id_string': e.detail})
+            # Something other than an invalid form id; just reraise
+            # TODO: clarify whether or not this is a user error
+            raise
+
+        return Response(
+            AssetSerializer(asset, context={'request': request}).data)
 
 
 def _wrap_html_pre(content):

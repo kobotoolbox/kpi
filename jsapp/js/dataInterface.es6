@@ -273,15 +273,13 @@ var dataInterface;
       }
     },
     deployAsset (asset_url, xform_id_string) {
-      var data = {
-        'asset': asset_url,
-      };
+      var data = {};
       if (xform_id_string) {
         data.xform_id_string = xform_id_string;
       }
       return $ajax({
         method: 'POST',
-        url: `${rootUrl}/deployments/`,
+        url: `${asset_url}deploy/`,
         data: data
       });
     },

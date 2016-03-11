@@ -1,5 +1,6 @@
 import re
 import six
+import copy
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import MultipleObjectsReturned
@@ -7,13 +8,14 @@ from django.db import models
 from django.db import transaction
 from django.dispatch import receiver
 from jsonfield import JSONField
+from reversion import revisions as reversion
 from shortuuid import ShortUUID
 from taggit.managers import TaggableManager, _TaggableManager
-from taggit.utils import require_instance_manager
 from taggit.models import Tag
-from reversion import revisions as reversion
+from taggit.utils import require_instance_manager
 
 from .object_permission import ObjectPermission, ObjectPermissionMixin
+from ..asset_deployment import deploy_asset
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
 from ..utils.kobo_to_xlsform import to_xlsform_structure
 
@@ -85,7 +87,12 @@ class XlsExportable(object):
     def valid_xlsform_content(self):
         return to_xlsform_structure(self.content)
 
-    def to_xls_io(self):
+    def to_xls_io(self, extra_rows=None):
+        ''' To append rows to one or more sheets, pass `extra_rows` as a
+        dictionary of dictionaries following the format 
+        `{'sheet name': {'column name': 'cell value'}` '''
+        if extra_rows is None:
+            extra_rows = {}
         import xlwt
         import StringIO
         try:
@@ -102,7 +109,15 @@ class XlsExportable(object):
                         val = row.get(col, None)
                         if val:
                             sheet.write(ri +1, ci, val)
-            ss_dict = self.valid_xlsform_content()
+            # The extra rows should persist within this function and its return
+            # value *only*. Calling deepcopy() is required to achive this
+            # isolation.
+            ss_dict = copy.deepcopy(self.valid_xlsform_content())
+            for extra_row_sheet_name, extra_row in extra_rows.iteritems():
+                extra_row_sheet = ss_dict.get(extra_row_sheet_name, [])
+                extra_row_sheet.append(extra_row)
+                ss_dict[extra_row_sheet_name] = extra_row_sheet
+
             workbook = xlwt.Workbook()
             for sheet_name in ss_dict.keys():
                 # pyxform.xls2json_backends adds "_header" items for each sheet....
@@ -117,7 +132,8 @@ class XlsExportable(object):
         return string_io
 
 @reversion.register
-class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
+class Asset(
+        ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
@@ -129,8 +145,20 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
         'Collection', related_name='assets', null=True, blank=True)
     owner = models.ForeignKey('auth.User', related_name='assets', null=True)
     editors_can_change_permissions = models.BooleanField(default=True)
-    uid = models.CharField(max_length=ASSET_UID_LENGTH, default='', blank=True)
+    uid = models.CharField(
+        max_length=ASSET_UID_LENGTH, default='', unique=True)
     tags = TaggableManager(manager=KpiTaggableManager)
+
+    # Deployment-related attributes
+    KOBOCAT_MAX_ID_STRING_LENGTH = 100 # Copied from KoBoCAT's XForm model
+    KOBOCAT_MAX_UUID_LENGTH = 32 # Copied from KoBoCAT's XForm model
+    date_deployed = models.DateTimeField(blank=True, null=True)
+    xform_data = JSONField()
+    xform_pk = models.IntegerField(null=True)
+    xform_id_string = models.CharField(
+        max_length=KOBOCAT_MAX_ID_STRING_LENGTH, blank=True)
+    xform_uuid = models.CharField(
+        max_length=KOBOCAT_MAX_UUID_LENGTH, blank=True)
 
     permissions = GenericRelation(ObjectPermission)
 
@@ -142,7 +170,6 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
 
     class Meta:
         ordering = ('-date_modified',)
-
         permissions = (
             # change_, add_, and delete_asset are provided automatically
             # by Django
@@ -160,6 +187,27 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
         'view_collection': 'view_asset',
         'change_collection': 'change_asset'
     }
+
+    # Do not allow these fields to change once they are no longer NULL or
+    # blank
+    IMMUTABLE_FIELDS = ('xform_pk', 'xform_id_string', 'xform_uuid')
+
+    def __setattr__(self, name, value):
+        # Rougly based on https://github.com/red56/django-immutablemodel,
+        # which inspired no confidence because it failed to recognize u'' as an
+        # empty string
+        if name in self.IMMUTABLE_FIELDS:
+            try:
+                current_value = getattr(self, name, None)
+            except:
+                current_value = None
+            if current_value is not None and current_value is not '' and \
+                    current_value is not u'' and current_value != value:
+                raise ValueError(
+                    '%s.%s is immutable and cannot be changed' % (
+                        self.__class__.__name__, name)
+                )
+        return super(Asset, self).__setattr__(name, value)
 
     def versions(self):
         return reversion.get_for_object(self)
@@ -194,7 +242,8 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
         analyzer = AssetContentAnalyzer(**self.content)
         self.summary = analyzer.summary
 
-    def _generate_uid(self):
+    @staticmethod
+    def _generate_uid():
         return 'a' + ShortUUID().random(ASSET_UID_LENGTH -1)
 
     def save(self, *args, **kwargs):
@@ -238,11 +287,12 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
 
     @property
     def version_id(self):
-        return reversion.get_for_object(self).last().id
+        # Whoa! The `first()` version is the newest!
+        return reversion.get_for_object(self).first().id
 
     def get_export(self, regenerate=True, version_id=False):
         if not version_id:
-            version_id = reversion.get_for_object(self).last().id
+            version_id = self.version_id
 
         AssetSnapshot.objects.filter(asset=self, asset_version_id=version_id).delete()
 
@@ -250,6 +300,17 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
             asset=self,
             asset_version_id=self.version_id)
         return snapshot
+
+    def deploy(self, user, form_id):
+        ''' `form_id` is the XForm ID string '''
+        if self.date_deployed is None:
+            # First-time deployment
+            deploy_asset(user, self, form_id)
+        else:
+            # Redeployment
+            assert(form_id == self.xform_id_string)
+            deploy_asset(user, self, None)
+        self.save()
 
     def __unicode__(self):
         return u'{} ({})'.format(self.name, self.uid)
@@ -269,7 +330,8 @@ class AssetSnapshot(models.Model, XlsExportable):
     asset = models.ForeignKey(Asset, null=True)
     asset_version_id = models.IntegerField(null=True)
     date_created = models.DateTimeField(auto_now_add=True)
-    uid = models.CharField(max_length=ASSET_UID_LENGTH, default='', blank=True)
+    uid = models.CharField(
+        max_length=ASSET_UID_LENGTH, default='', unique=True)
 
     def __init__(self, *args, **kwargs):
         if (kwargs.get('asset', None) is not None and

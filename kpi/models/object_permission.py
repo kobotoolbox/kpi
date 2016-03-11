@@ -1,3 +1,4 @@
+from django.apps import apps
 from django.db import models, transaction
 from django.core.exceptions import ValidationError, ImproperlyConfigured
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -202,7 +203,8 @@ class ObjectPermission(models.Model):
     # so duplicate the content_type field here.
     content_type = models.ForeignKey(ContentType)
     content_object = GenericForeignKey('content_type', 'object_id')
-    uid = models.CharField(max_length=OBJECT_PERMISSION_UID_LENGTH, default='')
+    uid = models.CharField(
+        max_length=OBJECT_PERMISSION_UID_LENGTH, default='', unique=True)
     objects = ObjectPermissionManager()
 
     @property
@@ -251,6 +253,17 @@ class ObjectPermissionMixin(object):
     e.g.
         class MyAwesomeModel(ObjectPermissionMixin, models.Model)
     '''
+    def get_assignable_permissions(self):
+        ''' The "versioned app registry" used during migrations apparently does
+        not store non-database attributes, so this awful workaround is needed
+        '''
+        try:
+            return self.ASSIGNABLE_PERMISSIONS
+        except AttributeError:
+            return apps.get_model(
+                self._meta.app_label, self._meta.model_name
+            ).ASSIGNABLE_PERMISSIONS
+
     @transaction.atomic
     def save(self, *args, **kwargs):
         # Make sure we exist in the database before proceeding
@@ -460,11 +473,13 @@ class ObjectPermissionMixin(object):
         if self.owner is not None:
             for perm in Permission.objects.filter(
                 content_type=content_type,
-                codename__in=self.ASSIGNABLE_PERMISSIONS
+                codename__in=self.get_assignable_permissions()
             ):
                 new_permission = ObjectPermission()
                 new_permission.content_object = self
-                new_permission.user = self.owner
+                # `user_id` instead of `user` is another workaround for
+                # migrations
+                new_permission.user_id = self.owner_id
                 new_permission.permission = perm
                 new_permission.inherited = True
                 new_permission._populate_uid()
@@ -532,7 +547,7 @@ class ObjectPermissionMixin(object):
         ''' Assign user_obj the given perm on this object. To break
         inheritance from a parent object, use deny=True. '''
         app_label, codename = perm_parse(perm, self)
-        if codename not in self.ASSIGNABLE_PERMISSIONS:
+        if codename not in self.get_assignable_permissions():
             # Some permissions are calculated and not stored in the database
             raise ValidationError('{} cannot be assigned explicitly.'.format(
                 codename)
@@ -668,7 +683,7 @@ class ObjectPermissionMixin(object):
             # Get the User database representation for AnonymousUser
             user_obj = get_anonymous_user()
         app_label, codename = perm_parse(perm, self)
-        if codename not in self.ASSIGNABLE_PERMISSIONS:
+        if codename not in self.get_assignable_permissions():
             # Some permissions are calculated and not stored in the database
             raise ValidationError('{} cannot be removed explicitly.'.format(
                 codename)
