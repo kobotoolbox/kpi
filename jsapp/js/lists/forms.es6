@@ -12,8 +12,6 @@ import ui from '../ui';
 import SearchCollectionList from '../components/searchcollectionlist';
 
 import {
-  ListSearch,
-  ListTagFilter,
   ListSearchSummary,
 } from '../components/list';
 import {
@@ -69,20 +67,6 @@ var FormsSearchableList = React.createClass({
     return (
       <ui.Panel>
         <bem.CollectionNav>
-          <bem.CollectionNav__search>
-            <ListSearch
-                placeholder={t('search forms')}
-                searchContext={this.state.searchContext}
-              />
-            <ListTagFilter
-                searchContext={this.state.searchContext}
-              />
-            <ListSearchSummary
-                assetDescriptor={t('form')}
-                assetDescriptorPlural={t('forms')}
-                searchContext={this.state.searchContext}
-              />
-          </bem.CollectionNav__search>
 
           <bem.CollectionNav__actions className="k-form-list-actions">
             <button id="demo-menu-top-right"
@@ -108,6 +92,12 @@ var FormsSearchableList = React.createClass({
         </bem.CollectionNav>
         <SearchCollectionList
             showDefault={true}
+            searchContext={this.state.searchContext}
+          />
+        <div className="mdl-layout-spacer"></div>
+        <ListSearchSummary
+            assetDescriptor={t('form')}
+            assetDescriptorPlural={t('forms')}
             searchContext={this.state.searchContext}
           />
       </ui.Panel>

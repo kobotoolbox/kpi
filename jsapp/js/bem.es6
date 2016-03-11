@@ -72,6 +72,9 @@ bem.CollectionNav__searchicon = bem.CollectionNav.__('searchicon', '<i>');
 bem.CollectionAssetList = bem('collection-asset-list', '<ul>');
 bem.CollectionAssetList__message = bem.CollectionAssetList.__('message');
 
+bem.AssetListSorts = bem('asset-list-sorts', '<div>');
+bem.AssetListSorts__item = bem.AssetListSorts.__('item');
+
 bem.CollectionHeader = bem('collection-header');
 bem.CollectionHeader__item = bem.CollectionHeader.__('item');
 bem.CollectionHeader__input = bem.CollectionHeader.__('input', '<input>');

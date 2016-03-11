@@ -7,6 +7,12 @@ import Reflux from 'reflux';
 import bem from '../bem';
 import actions from '../actions';
 import {t, assign} from '../utils';
+import searches from '../searches';
+
+import {
+  ListSearch,
+  ListTagFilter,
+} from '../components/list';
 
 var leaveBetaUrl = stores.pageState.leaveBetaUrl;
 
@@ -16,7 +22,14 @@ var MainHeader = React.createClass({
     Reflux.connect(stores.pageState),
   ],
   getInitialState () {
-    return assign({}, stores.pageState.state);
+    return assign({}, stores.pageState.state, {
+      searchContext: searches.getSearchContext('forms', {
+        filterParams: {
+          assetType: 'asset_type:survey',
+        },
+        filterTags: 'asset_type:survey',
+      })
+    });
   },
   logout () {
     actions.auth.logout();
@@ -65,17 +78,17 @@ var MainHeader = React.createClass({
                 <bem.AccountBox__logo />
               </a>
             </span>
-            <div className="mdl-layout-spacer"></div>
+            <ListSearch
+                placeholder={t('search forms')}
+                searchContext={this.state.searchContext}
+              />
+            <ListTagFilter
+                searchContext={this.state.searchContext}
+              />
             <div className="mdl-placeholder">
-              search
+              (x msgs)
             </div>
-            <div className="mdl-placeholder">
-              tags
-            </div>
-            <div className="mdl-placeholder">
-              notifications
-            </div>
-            <div className="mdl-layout-spacer"></div>
+
             {this.renderAccountNavMenu()}
           </div>
         </header>

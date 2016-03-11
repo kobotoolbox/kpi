@@ -7,13 +7,7 @@
     .mdl-layout__drawer-button {
     	display: none;
     }
-
-    // temporary
-    .mdl-placeholder {
-    	min-width: 150px;
-    }
   }
-
 }
 
 .mdl-layout--fixed-drawer > .mdl-layout__header {
@@ -21,6 +15,7 @@
 	.mdl-layout__header-row {
 		height:56px;
 		padding-left:20px;
+		justify-content: space-between;
 	}
 
 	button.mdl-button {
@@ -78,6 +73,15 @@
 			opacity: 1;
 			background-color:$nav-menu-item-bg-active;
 		}
+	}
+
+	.Select {
+		min-width:200px;
+	}
+
+	.search .mdl-textfield__input {
+		color:white;
+		border-color:white;
 	}
 }
 

@@ -1,50 +1,15 @@
-/*
-this code was not used because backdrop was opaque, needs some tweaking
-bem.uiModal_wrap = BEM('ui-modal_wrap');
-bem.uiModal = BEM('ui-modal');
-bem.uiModal__dialog = bem.uiModal.__('dialog');
-bem.uiModal__content = bem.uiModal.__('content');
-bem.uiModal__header = bem.uiModal.__('header');
-
-.ui-modal_wrap {
-  @extend .modal-backdrop;
+.ui-panel {
+  height:100%;
 }
-.ui-modal:not(.ui-modal--open) {
-  @extend .modal;
-}
-.ui-modal--open {
-  @extend .modal-open;
-}
-.ui-modal__header {
-  @extend .modal-header;
-}
-.ui-modal__content {
-  @extend .modal-content;
-}
-.ui-modal__dialog {
-  margin-top: 100px;
-  @extend .modal-dialog;
-}
-
-*/
-
-.ui-panel {}
 
 .ui-panel__body {
-  @extend .mdl-grid;
-  max-width: 980px;
+  @extend .mdl-grid, .mdl-shadow--2dp;
+  background:#FFF;
+  margin:2px 6px;
+  max-width: 1200px;
   padding: 0;
-
-  > .row {
-    position: relative;
-  }
-
-  > .asset-view__content,
-  > .collection-asset-list {
-    @extend .mdl-cell, .mdl-cell--12-col;
-    @extend .mdl-shadow--2dp, .mdl-color--white;
-    flex-flow:column;
-  }
+  height:100%;
+  flex-direction:column;
 }
 
 .page-wrapper__content {
@@ -62,7 +27,7 @@ bem.uiModal__header = bem.uiModal.__('header');
 }
 
 .k-form-header__inner {
-  max-width: 980px;
+  max-width: 1200px;
   display: flex;
 }
 
@@ -100,9 +65,9 @@ bem.uiModal__header = bem.uiModal.__('header');
 .message {}
 
 .message--error {
-  // @extend .alert, .alert-dismissible, .alert-danger;
   text-decoration: uppercase;
 }
+
 .message--loading {
   text-align: center;
   > i:first-child {

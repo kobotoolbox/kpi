@@ -35,6 +35,14 @@
       padding:12px 0px;
     }
   }
+
+  .drawer__sidebar {
+      position: absolute;
+      top: 10px;
+      left: 62px;
+      width: 170px;
+      height: 95%;
+  }  
 }
 
 .mdl-layout--fixed-drawer:not(.is-small-screen) {
@@ -45,6 +53,9 @@
   }
 
   > .mdl-layout__content {
+    height:calc(100% - 72px);
     margin-left:$layout-drawer-width + 6px;
+    overflow:hidden;
+    margin-top:6px;
   }
 }

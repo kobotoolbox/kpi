@@ -66,42 +66,49 @@ var AssetRow = React.createClass({
                       >
           <i />
 
-          <bem.AssetRow__cell m={['icon']}>
+          <bem.AssetRow__cell m={'title'}>
             <AssetTypeIcon m={[this.props.asset_type, 'medium']}><i /></AssetTypeIcon>
+            <bem.AssetRow__celllink m={['name', this.props.name ? 'titled' : 'untitled']}
+                  data-kind={this.props.kind}
+                  data-asset-type={this.props.kind}
+                  href={this.makeHref( hrefTo, hrefParams)}
+                >
+              <bem.AssetRow__name>
+                <ui.AssetName {...this.props} />
+              </bem.AssetRow__name>
+            </bem.AssetRow__celllink>
           </bem.AssetRow__cell>
-
-          <bem.AssetRow__celllink m={['name', this.props.name ? 'titled' : 'untitled']}
-                data-kind={this.props.kind}
-                data-asset-type={this.props.kind}
-                href={this.makeHref( hrefTo, hrefParams)}
-              >
-            <bem.AssetRow__name>
-              <ui.AssetName {...this.props} />
-            </bem.AssetRow__name>
-          </bem.AssetRow__celllink>
-          <bem.AssetRow__cellmeta>
-            <bem.AssetRow__cell m={'userlink'}>
-              {
-                selfowned ?
-                  t('me') :
-                  this.props.owner__username
+          <bem.AssetRow__cell m={'userlink'}>
+            {
+              selfowned ?
+                t('me') :
+                this.props.owner__username
+            }
+          </bem.AssetRow__cell>
+          <bem.AssetRow__cell m={'date-modified'}>
+            <span className="date date--modified">{formatTime(this.props.date_modified)}</span>
+          </bem.AssetRow__cell>
+          <bem.AssetRow__cell m={'row-count'}>
+            {()=>{
+              if (this.props.asset_type === 'question') {
+                return '-';
+              } else {
+                return _rc;
               }
+            }()}
+          </bem.AssetRow__cell>
+          { tags.length > 0 && this.props.isSelected &&
+            <bem.AssetRow__cell m={'tags'}>
+                <bem.AssetRow__tags>
+                  <i />
+                  {tags.map((tag)=>{
+                    return (
+                          <bem.AssetRow__tags__tag>{tag}</bem.AssetRow__tags__tag>
+                      );
+                  })}
+                </bem.AssetRow__tags>
             </bem.AssetRow__cell>
-            <bem.AssetRow__cell m={'date-modified'}>
-              <span className="date date--modified">{t('Modified')} {formatTime(this.props.date_modified)}</span>
-            </bem.AssetRow__cell>
-            <bem.AssetRow__cell m={'row-count'}>
-              {()=>{
-                if (this.props.kind === 'collection') {
-                  return t('collection with ___ items').replace('___', _rc);
-                } else if (this.props.asset_type === 'survey') {
-                  return t('survey with ___ questions').replace('___', _rc);
-                } else if (this.props.asset_type === 'block') {
-                  return t('block with ___ questions').replace('___', _rc);
-                }
-              }()}
-            </bem.AssetRow__cell>
-          </bem.AssetRow__cellmeta>
+          }
           { this.props.isSelected &&
             <bem.AssetRow__cell m={'buttons'}>
               <bem.AssetRow__cell m={'action-icons'}>
@@ -147,20 +154,6 @@ var AssetRow = React.createClass({
                 }
               </bem.AssetRow__cell>
             </bem.AssetRow__cell>
-          }
-          { tags.length > 0 && this.props.isSelected &&
-            <bem.AssetRow__cellmeta m={'tags'}>
-              <bem.AssetRow__cell m={'tags'}>
-                <bem.AssetRow__tags>
-                  <i />
-                  {tags.map((tag)=>{
-                    return (
-                          <bem.AssetRow__tags__tag>{tag}</bem.AssetRow__tags__tag>
-                      );
-                  })}
-                </bem.AssetRow__tags>
-              </bem.AssetRow__cell>
-            </bem.AssetRow__cellmeta>
           }
           { this.props.isSelected &&
             <bem.AssetRow__cell m={'secondary-buttons'}>

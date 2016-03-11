@@ -1,8 +1,13 @@
-// ul.collection-asset-list
-// .collection-asset-list {
-//   border: 1px dotted #fafafa;
-//   border-radius: 1px;
-// }
+.ui-panel__body {
+  > .asset-view__content,
+  > .collection-asset-list {
+    @extend .mdl-cell, .mdl-cell--12-col;
+    // @extend .mdl-shadow--2dp, .mdl-color--white;
+    flex-flow:column;
+    height:calc(100% - 70px);
+    overflow:auto;
+  }
+}
 
 .collection-asset-list__message {
   padding: 4px 12px;
@@ -15,6 +20,55 @@
   }
   &.collection-asset-list__message--empty {
     font-style: italic;
-    color: #999;
+    color: $cool-gray;
+  }
+}
+
+.asset-list-sorts {
+  @extend .mdl-grid;
+  padding: 6px 12px;
+  white-space: nowrap;  
+  > .asset-list-sorts__item {
+    @extend .mdl-cell;
+    color:$cool-gray;
+    font-weight: 500;
+    position: relative;
+    padding:5px 0px;
+    &:after {
+      content: '';
+      height:100%;
+      width:1px;
+      background-color: $cool-gray;
+      right: 2px;
+      top: 0px;
+      position:absolute;
+      opacity: 0.5;
+    }
+    &.asset-list-sorts__item--name {
+      @extend .mdl-cell--6-col;
+    }
+    &.asset-list-sorts__item--owner {
+      @extend .mdl-cell--2-col;
+    }
+    &.asset-list-sorts__item--modified {
+      @extend .mdl-cell--3-col;
+    }
+    &.asset-list-sorts__item--questions {
+      @extend .mdl-cell--1-col;
+      &:after {display:none;}
+    }
+  }
+}
+
+.search__summary {
+  background-color:#F0F0F0;
+  height:50px;
+  width:100%;
+  flex-grow:0;
+  color:$greyish-brown;
+  text-align:right;
+  > div {
+    padding:15px;
+    vertical-align:middle;
   }
 }

@@ -3,20 +3,16 @@
 // bem.CollectionNav__searchcriteria = bem.CollectionNav.__('searchcriteria');
 // bem.CollectionNav__actions = bem.CollectionNav.__('actions');
 
-.collection-nav {
-  width:100%;
-}
+// .collection-nav {
+//   width:100%;
+// }
 
-.collection-nav__search {
-  @extend .mdl-grid;
-  width: 100%;
-}
+// .collection-nav__search {
+//   @extend .mdl-grid;
+//   width: 100%;
+// }
 
-.search__summary {
-  width: 100%;
-}
-
-.collection-nav__searchcriteria {}
+// .collection-nav__searchcriteria {}
 
 .collection-nav__actions {
   position: fixed;
@@ -42,20 +38,20 @@
   }
 }
 
-.collection-nav__search {
-  > .search {
-    @extend .mdl-cell, .mdl-cell--8-col;
-  }
+// .collection-nav__search {
+//   > .search {
+//     @extend .mdl-cell, .mdl-cell--8-col;
+//   }
 
-  > .Select {
-    @extend .mdl-cell, .mdl-cell--4-col;
-  }
+//   > .Select {
+//     @extend .mdl-cell, .mdl-cell--4-col;
+//   }
 
-  .Select-control {
-    background-color: transparent;
-    border-color: transparent;
-    border-bottom-color: #DDD;
-    margin-top: 10px;
-    border-radius: 0;
-  }
-}
+//   .Select-control {
+//     background-color: transparent;
+//     border-color: transparent;
+//     border-bottom-color: #DDD;
+//     margin-top: 10px;
+//     border-radius: 0;
+//   }
+// }

@@ -54,6 +54,12 @@ var SearchCollectionList = React.createClass({
     var s = this.state;
     return (
         <bem.CollectionAssetList>
+          <bem.AssetListSorts>
+            <bem.AssetListSorts__item m={'name'}>{t('Name')}</bem.AssetListSorts__item>
+            <bem.AssetListSorts__item m={'owner'}>{t('Owner')}</bem.AssetListSorts__item>
+            <bem.AssetListSorts__item m={'modified'}>{t('Last Modified')}</bem.AssetListSorts__item>
+            <bem.AssetListSorts__item m={'questions'}>{t('Questions')}</bem.AssetListSorts__item>
+          </bem.AssetListSorts>
         {
           (()=>{
             if (s.searchResultsDisplayed) {

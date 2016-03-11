@@ -30,6 +30,9 @@
 
 // NEW COLORS (March 2016)
 $azure: '34, 150, 243';
+$black: #363636;
+$cool-gray: #a5b3bc;
+$greyish-brown: #575757;
 $nav-menu-item-bg: #555b6e;
 $nav-menu-item-bg-active: #2196f3;
 $layout-header-bg-color: #414553 !default;
@@ -47,6 +50,10 @@ $layout-drawer-nav-link-color: #7d8a93 !default;
 $layout-drawer-nav-link-active-bg: #F9F9F9 !default;
 
 @import '../../../node_modules/material-design-lite/src/material-design-lite';
+
+html {
+  color: $black;
+}
 
 body {
   @extend .mdl-color--grey-100;
