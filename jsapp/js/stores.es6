@@ -398,7 +398,9 @@ var allAssetsStore = Reflux.createStore({
       return tg.length > 1;
     });
     this.byUid[asset.uid] = asset;
-    this.callCallbacks(asset);
+    if (asset.content) {
+      this.callCallbacks(asset);
+    }
   },
   callCallbacks (asset) {
     if (this._waitingOn[asset.uid]) {
