@@ -10,7 +10,6 @@ export default {
   editorState: 'new',
   getInitialState () {
     return {
-      survey_loaded: true,
       kind: 'asset',
       asset: false
     };

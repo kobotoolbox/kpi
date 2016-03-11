@@ -11,7 +11,6 @@ export default {
   editorState: 'existing',
   getInitialState () {
     return {
-      survey_loaded: false,
       kind: 'asset',
       asset: false
     };
