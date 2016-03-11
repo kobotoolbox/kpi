@@ -143,6 +143,7 @@ class ShareAssetsTest(AssetsTestCase):
         # Make a copy of self.asset and put it inside self.coll
         self.asset_in_coll = self.asset
         self.asset_in_coll.pk = None
+        self.asset_in_coll.uid = ''
         self.asset_in_coll.parent = self.coll
         self.asset_in_coll.save()
 
