@@ -47,6 +47,7 @@ shortuuid
 six
 sqlparse
 static3
+transifex-client
 unicodecsv
 whitenoise
 xlrd
