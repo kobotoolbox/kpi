@@ -1,6 +1,6 @@
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
-from rest_framework import permissions
+from rest_framework import permissions, exceptions
 
 
 # FIXME: Move to `object_permissions` module.
@@ -49,3 +49,22 @@ class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
     perms_map['GET']= ['%(app_label)s.view_%(model_name)s']
     perms_map['OPTIONS']= perms_map['GET']
     perms_map['HEAD']= perms_map['GET']
+
+
+class ClonePermissions(permissions.DjangoModelPermissions):
+    '''
+    Defers to DjangoModelPermissions for model-level queries (e.g. a POST to
+    /assets/ requires `add_asset`), and checks to see if the user has view
+    access to the particular object
+    '''
+    ALLOWED_METHODS = ('POST',)
+    def _check_allowed_method(self, request):
+        if request.method not in self.ALLOWED_METHODS:
+            raise exceptions.MethodNotAllowed(request.method)
+    def has_permission(self, request, view):
+        self._check_allowed_method(request)
+        return super(ClonePermissions, self).has_permission(request, view)
+    def has_object_permission(self, request, view, obj):
+        self._check_allowed_method(request)
+        view_perm = get_perm_name('view', obj)
+        return request.user.has_perm(view_perm, obj)

@@ -11,12 +11,10 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
-from ..views import (
-    ASSET_CLONE_FIELDS,
-    COLLECTION_CLONE_FIELDS,
-)
 from .kpi_test_case import KpiTestCase
 
+ASSET_CLONE_FIELDS = {'name', 'content', 'asset_type'}
+COLLECTION_CLONE_FIELDS = {'name'}
 
 class TestCloning(KpiTestCase):
 
@@ -27,10 +25,12 @@ class TestCloning(KpiTestCase):
         self.another_user_password= 'anotheruser'
 
     def _clone_asset(self, original_asset, **kwargs):
-        kwargs.update({'clone_from': original_asset.uid})
         expected_status_code= kwargs.pop('expected_status_code', status.HTTP_201_CREATED)
 
-        response = self.client.post(reverse('asset-list'), kwargs)
+        response = self.client.post(
+            reverse('asset-clone', kwargs={'uid': original_asset.uid}),
+            kwargs
+        )
         self.assertEqual(response.status_code, expected_status_code)
 
         if expected_status_code != status.HTTP_201_CREATED:

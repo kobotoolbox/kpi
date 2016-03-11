@@ -48,6 +48,7 @@ from .models.asset_deployment import kobocat_url
 from .models.authorized_application import ApplicationTokenAuthentication
 from .permissions import (
     IsOwnerOrReadOnly,
+    ClonePermissions,
     get_perm_name,
 )
 from .renderers import (
@@ -72,11 +73,6 @@ from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from .tasks import import_in_background
 
 
-CLONE_ARG_NAME = 'clone_from'
-ASSET_CLONE_FIELDS = {'name', 'content', 'asset_type'}
-COLLECTION_CLONE_FIELDS = {'name'}
-
-
 @api_view(['GET'])
 def current_user(request):
     user = request.user
@@ -98,7 +94,6 @@ def current_user(request):
 @login_required
 def home(request):
     return SimpleTemplateResponse("index.html")
-
 
 class NoUpdateModelViewSet(
     mixins.CreateModelMixin,
@@ -165,39 +160,14 @@ class CollectionViewSet(viewsets.ModelViewSet):
     filter_backends = (KpiObjectPermissionsFilter, SearchFilter)
     lookup_field = 'uid'
 
-    def _clone(self):
-        # Clone an existing collection.
-        original_uid = self.request.data[CLONE_ARG_NAME]
-        original_collection= get_object_or_404(Collection, uid=original_uid)
-        view_perm= get_perm_name('view', original_collection)
-        if not self.request.user.has_perm(view_perm, original_collection):
-            raise Http404
-        else:
-            # Copy the essential data from the original collection.
-            original_data= model_to_dict(original_collection)
-            cloned_data= {keep_field: original_data[keep_field]
-                          for keep_field in COLLECTION_CLONE_FIELDS}
-            if original_collection.tag_string:
-                cloned_data['tag_string']= original_collection.tag_string
-
-            # Pull any additionally provided parameters/overrides from the
-            # request.
-            for param in self.request.data:
-                cloned_data[param]= self.request.data[param]
-            serializer = self.get_serializer(data=cloned_data)
-            serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
-
-            headers = self.get_success_headers(serializer.data)
-            return Response(serializer.data, status=status.HTTP_201_CREATED,
-                            headers=headers)
-
-    def create(self, request, *args, **kwargs):
-        if CLONE_ARG_NAME not in request.data:
-            return super(CollectionViewSet, self).create(request, *args,
-                                                         **kwargs)
-        else:
-            return self._clone()
+    @detail_route(methods=['post'], permission_classes=[ClonePermissions])
+    def clone(self, request, uid=None):
+        # TODO: Use clone() logic from AssetViewSet, but also copy all of the
+        # assets inside the collection
+        raise NotImplementedError(
+            'Cloning a collection is not yet useful because none of the '
+            'assets inside is cloned'
+        )
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -472,42 +442,6 @@ class AssetViewSet(viewsets.ModelViewSet):
             queryset = queryset.defer('content')
         return queryset
 
-    def _get_clone_serializer(self):
-        original_uid= self.request.data[CLONE_ARG_NAME]
-        original_asset= get_object_or_404(Asset, uid=original_uid)
-        view_perm= get_perm_name('view', original_asset)
-        if not self.request.user.has_perm(view_perm, original_asset):
-            raise Http404
-        else:
-            # Copy the essential data from the original asset.
-            original_data= model_to_dict(original_asset)
-            cloned_data= {keep_field: original_data[keep_field]
-                          for keep_field in ASSET_CLONE_FIELDS}
-            if original_asset.tag_string:
-                cloned_data['tag_string']= original_asset.tag_string
-            # TODO: Duplicate permissions if a user is cloning their own asset.
-#             if ('permissions' in original_data) and (self.request.user == original_asset.owner):
-#                 raise NotImplementedError
-            # Pull any additionally provided parameters/overrides from therequest.
-            for param in self.request.data:
-                cloned_data[param]= self.request.data[param]
-
-            serializer = self.get_serializer(data=cloned_data)
-
-            return serializer
-
-    def create(self, request, *args, **kwargs):
-        if CLONE_ARG_NAME in request.data:
-            serializer= self._get_clone_serializer()
-        else:
-            serializer = self.get_serializer(data=request.data)
-
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED,
-                        headers=headers)
-
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def content(self, request, *args, **kwargs):
         asset = self.get_object()
@@ -545,6 +479,27 @@ class AssetViewSet(viewsets.ModelViewSet):
         if export.xml != '':
             response_data['highlighted_xform'] = highlight_xform(export.xml, **options)
         return Response(response_data, template_name='highlighted_xform.html')
+
+    @detail_route(methods=['post'], permission_classes=[ClonePermissions])
+    def clone(self, request, uid=None):
+        obj = self.get_object()
+        tag_string = getattr(obj, 'tag_string', None)
+        obj.pk = None
+        obj.uid = ''
+        if 'name' in request.data:
+            obj.name = request.data['name']
+        obj.save()
+        incoming_data = request.data.copy()
+        # Now that the new object has a PK, restore the tags
+        if tag_string and not 'tag_string' in incoming_data:
+            incoming_data['tag_string'] = tag_string
+        # Allow changing fields in the newly-created clone
+        serializer = self.get_serializer(obj, incoming_data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED,
+                        headers=headers)
 
     def perform_create(self, serializer):
         # Check if the user is anonymous. The
