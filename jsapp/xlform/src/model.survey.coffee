@@ -286,16 +286,7 @@ module.exports = do ->
 
   # Settings (assigned to each $survey.Survey instance)
   class Settings extends $base.BaseModel
-    validation:
-      form_title:
-        required: true
-        invalidChars: '`'
-      form_id:
-        required: true
-        invalidChars: '`'
-    defaults:
-      form_title: "New form"
-      form_id: "new_form"
+    validation: {}
     toCsvJson: ->
       columns = _.keys(@attributes)
       rowObjects = [@toJSON()]
