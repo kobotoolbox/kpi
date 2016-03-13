@@ -45,7 +45,7 @@ def deploy_asset(user, asset, form_id):
         setting = {}
     else:
         setting = settings_arr[0]
-    setting['form_id'] = form_id
+    setting['id_string'] = form_id
     xls_dict['settings'] = [setting]
 
     for sheet_name, rows in xls_dict.items():
