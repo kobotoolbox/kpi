@@ -14,11 +14,8 @@ class OtherFormBuilderRedirectMiddleware(object):
     }
 
     def _redirect_if_necessary(self, request, preferred_builder):
-        try:
-            preferred_prefix = self.PREFERENCE_TO_PREFIX[preferred_builder]
-        except KeyError:
-            # Ignore invalid preference
-            return
+        preferred_builder_key = preferred_builder.preferred_builder
+        preferred_prefix = self.PREFERENCE_TO_PREFIX[preferred_builder_key]
         prefix_length = max(1, len(request.path) - len(request.path_info))
         prefix = request.path[:prefix_length]
         if prefix != preferred_prefix:
