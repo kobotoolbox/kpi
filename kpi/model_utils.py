@@ -1,7 +1,6 @@
 import copy
 import re
 import logging
-import haystack
 from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User, Permission
@@ -10,6 +9,7 @@ from taggit.models import Tag, TaggedItem
 from .models import Asset
 from .models import Collection
 from .models.object_permission import perm_parse
+from .haystack_utils import update_object_in_search_index
 
 '''
 This circular import will bite you if you don't import kpi.models before
@@ -183,17 +183,3 @@ def grant_all_model_level_perms(
             q_query |= Q(content_type__app_label=app_label, codename=codename)
         permissions_to_assign = permissions_to_assign.filter(q_query)
     user.user_permissions.add(*permissions_to_assign)
-
-def update_object_in_search_index(obj):
-    '''
-    If a search index exists for the type of `obj`, update it. Otherwise, do
-    nothing
-    '''
-    try:
-        index = haystack.connections['default'].get_unified_index().get_index(
-            type(obj))
-    except haystack.exceptions.NotHandled:
-        # There's nothing to update because this type of object is not indexed
-        return
-    index.update_object(obj)
-

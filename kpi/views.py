@@ -4,20 +4,20 @@ import json
 import datetime
 
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Count
 from django.forms import model_to_dict
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django.template.response import SimpleTemplateResponse
+
 from rest_framework import (
     viewsets,
     mixins,
     renderers,
     status,
+    exceptions,
 )
-
-from django.contrib.auth.decorators import login_required
-
-from rest_framework import exceptions
 from rest_framework.decorators import api_view
 from rest_framework.decorators import renderer_classes
 from rest_framework.decorators import detail_route
@@ -26,6 +26,7 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.authtoken.models import Token
+
 from taggit.models import Tag
 
 from .filters import KpiAssignedObjectPermissionsFilter
@@ -94,16 +95,9 @@ def current_user(request):
                          'last_login': user.last_login,
                          })
 
-@api_view(['GET'])
-@renderer_classes([renderers.TemplateHTMLRenderer])
-def home(request):
-    return Response('ok', template_name="index.html")
-
 @login_required
-@api_view(['GET'])
-@renderer_classes([renderers.TemplateHTMLRenderer])
 def home(request):
-    return Response('ok', template_name="index.html")
+    return SimpleTemplateResponse("index.html")
 
 
 class NoUpdateModelViewSet(

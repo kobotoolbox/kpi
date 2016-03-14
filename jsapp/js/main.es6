@@ -1,5 +1,6 @@
 import {runRoutes} from './app';
 import $ from 'jquery';
+import cookie from 'react-cookie';
 
 
 var el = (function(){
@@ -8,7 +9,7 @@ var el = (function(){
   return $d.get(0);
 })();
 
-window.csrftoken = $('input[name=csrfmiddlewaretoken]').eq(0).val() || $('meta[name=csrf-token]').attr('content');
+window.csrftoken = cookie.load('csrftoken');
 
 function csrfSafeMethod(method) {
     // these HTTP methods do not require CSRF protection

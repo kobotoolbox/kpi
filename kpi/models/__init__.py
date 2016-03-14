@@ -7,3 +7,5 @@ from kpi.models.asset_deployment import AssetDeployment
 from kpi.models.asset_deployment import AssetDeploymentException
 from kpi.models.tag_uid import TagUid
 from kpi.models.authorized_application import AuthorizedApplication
+
+import kpi.signals

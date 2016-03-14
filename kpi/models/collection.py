@@ -17,6 +17,7 @@ from asset import (
     TagStringMixin,
 )
 from object_permission import ObjectPermission, ObjectPermissionMixin
+from ..haystack_utils import update_object_in_search_index
 
 
 COLLECTION_UID_LENGTH = 22
@@ -92,8 +93,6 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
     def delete_with_deferred_indexing(self):
         ''' Defer Haystack indexing, delete all child assets, then delete
         myself. Should be faster than `delete()` for large collections '''
-        # Import this utility function here to avoid a circular dependency
-        from ..model_utils import update_object_in_search_index
         # Get the Haystack index for assets
         asset_index = haystack.connections['default'].get_unified_index(
             ).get_index(Asset)
