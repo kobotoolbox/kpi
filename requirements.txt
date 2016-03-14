@@ -19,7 +19,6 @@ django-cachebuster==0.2.1
 django-debug-toolbar==1.4
 django-extensions==1.6.1
 django-haystack==2.4.1
-django-jsonfield==0.9.15
 django-markitup==2.3.0
 django-mptt==0.8.0
 django-oauth-toolkit==0.10.0
