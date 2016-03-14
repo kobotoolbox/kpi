@@ -28,7 +28,6 @@ django-ses
 django-toolbelt
 django_cachebuster
 django_haystack
-django_jsonfield
 django_markitup
 django_mptt
 django_reversion
