@@ -489,8 +489,11 @@ export default {
                 {t('form style')}
               </FormHeader__panelheader>
               <FormHeader__paneltext>
-                {t('select the form style that you would like to use.')}
-                {t('for more info, see: ')}
+                {t('Select the form style that you would like to use. This will only affect web forms.')}
+                <br/>
+                <a href="http://support.kobotoolbox.org/customer/en/portal/articles/2108533">
+                {t('Read more...')}
+                </a>
               </FormHeader__paneltext>
               <Select
                 name="webform-style"
