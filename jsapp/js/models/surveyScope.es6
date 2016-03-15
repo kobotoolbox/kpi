@@ -1,4 +1,8 @@
 import actions from '../actions';
+import {
+  notify,
+  t,
+} from '../utils';
 
 class SurveyScope {
   constructor ({survey}) {
@@ -6,12 +10,15 @@ class SurveyScope {
   }
   add_row_to_question_library (row) {
     if (row.constructor.kls === 'Row') {
-      actions.resources.createAsset({
+      actions.resources.createResource({
+        asset_type: 'question',
         content: JSON.stringify({
           survey: [
             row.toJSON2()
           ]
         })
+      }).then(function(){
+        notify(t('question has been added to the library'));
       });
     } else {
       console.error('cannot add group to question library');
