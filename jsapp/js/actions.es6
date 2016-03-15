@@ -277,7 +277,7 @@ actions.resources.createImport.completed.listen(function(contents){
 });
 
 actions.resources.createAsset.listen(function(){
-  throw new Error(`use actions.resources.createImport
+  console.error(`use actions.resources.createImport
                   or actions.resources.createResource.`);
 });
 
