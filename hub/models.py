@@ -19,7 +19,7 @@ class FormBuilderPreference(models.Model):
     preferred_builder = models.CharField(
         max_length=1,
         choices=BUILDER_CHOICES,
-        default=DKOBO
+        default=KPI,
     )
     def __unicode__(self):
         choices_dict = dict(self.BUILDER_CHOICES)

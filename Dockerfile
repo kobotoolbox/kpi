@@ -2,20 +2,37 @@ FROM kobotoolbox/base-kobos:latest
 
 ENV KPI_SRC_DIR=/srv/src/kpi \
     KPI_LOGS_DIR=/srv/logs \
-    KPI_WHOOSH_DIR=/srv/whoosh
+    KPI_WHOOSH_DIR=/srv/whoosh \
+    NODE_PATH=/srv/node_modules \
+    PIP_EDITABLE_PACKAGE_DIR=/srv/pip_editable_packages
 # The mountpoint of a volume shared with the nginx container. Static files will
 # be copied there.
 ENV NGINX_STATIC_DIR=/srv/static
 
+###########################
+# Install `apt` packages. #
+###########################
+
+COPY ./apt_requirements.txt ${KPI_SRC_DIR}/
+WORKDIR ${KPI_SRC_DIR}/
+RUN apt-get update && \
+    apt-get install -y $(cat ${KPI_SRC_DIR}/apt_requirements.txt) && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 #########################
 # Install pip packages. #
 #########################
-#FIXME
-WORKDIR ${KPI_SRC_DIR}/
-RUN apt-get install -y git-core
+
+# Install Git so `pyxform` and Whoosh can be installed directly from the repo.
+RUN apt-get update && \
+    apt-get install -y git-core && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN pip install pip-tools
 COPY ./requirements.txt ${KPI_SRC_DIR}/
-RUN pip install -r requirements.txt
+# Install the packages, storing editable packages outside the `kpi` directory (see https://github.com/nvie/pip-tools/issues/332)
+RUN mkdir -p "${PIP_EDITABLE_PACKAGE_DIR}/" && \
+    ln -s "${PIP_EDITABLE_PACKAGE_DIR}/" "${KPI_SRC_DIR}/src" && \
+    pip-sync requirements.txt
 
 
 #########################
@@ -23,8 +40,10 @@ RUN pip install -r requirements.txt
 #########################
 
 COPY ./package.json ${KPI_SRC_DIR}/
-RUN npm install
-ENV PATH $PATH:${KPI_SRC_DIR}/node_modules/.bin
+RUN npm install && \
+    mv "${KPI_SRC_DIR}/node_modules" "${NODE_PATH}" && \
+    ln -s "${NODE_PATH}" "${KPI_SRC_DIR}/node_modules"
+ENV PATH $PATH:${NODE_PATH}/.bin
 
 
 ###########################
@@ -47,7 +66,7 @@ RUN apt-get install libpcre3 libpcre3-dev && \
 # Grunt. #
 ##########
 
-COPY . ${KPI_SRC_DIR}
+COPY ./Gruntfile.js ./jsapp/ ${KPI_SRC_DIR}/
 RUN grunt buildall
 
 
@@ -56,6 +75,7 @@ RUN grunt buildall
 ###########
 
 ENV DJANGO_SETTINGS_MODULE kobo_playground.settings
+COPY . ${KPI_SRC_DIR}
 RUN python manage.py collectstatic --noinput
 
 
@@ -73,9 +93,7 @@ VOLUME "${KPI_LOGS_DIR}/" "${KPI_WHOOSH_DIR}/" "${KPI_SRC_DIR}/emails"
 # Using `/etc/profile.d/` as a repository for non-hard-coded environment variable overrides.
 RUN echo 'source /etc/profile' >> /root/.bashrc
 
-RUN mkdir -p /etc/service/uwsgi/
-
-# FIXME: Allow Celery to run as root.
+# FIXME: Allow Celery to run as root ...for now.
 ENV C_FORCE_ROOT="true"
 
 # Prepare for execution.

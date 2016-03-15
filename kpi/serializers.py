@@ -12,7 +12,7 @@ from rest_framework import serializers, exceptions
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
-import reversion
+from reversion import revisions as reversion
 
 from hub.models import SitewideMessage
 from .models import Asset
@@ -470,9 +470,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def get_downloads(self, obj):
         def _reverse_lookup_format(fmt):
             request = self.context.get('request', None)
-            url = '%s.%s' % (reverse('asset-detail',
-                                     args=(obj.uid,),
-                                     request=request), fmt)
+            obj_url = reverse('asset-detail', args=(obj.uid,), request=request)
+            # The trailing slash must be removed prior to appending the format
+            # extension
+            url = '%s.%s' % (obj_url.rstrip('/'), fmt)
 
             return {'format': fmt,
                     'url': url, }

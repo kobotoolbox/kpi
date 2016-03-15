@@ -6,7 +6,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework import exceptions, status
 from pyxform.xls2json_backends import xls_to_dict
 from django.conf import settings
-import reversion
+from reversion import revisions as reversion
 import cStringIO
 import unicodecsv
 import requests
@@ -42,11 +42,13 @@ def deploy_asset(user, asset, form_id):
         foo, delimiter=',', quotechar='"', quoting=unicodecsv.QUOTE_MINIMAL)
     settings_arr = xls_dict.get('settings', [])
     if len(settings_arr) == 0:
-        setting = {}
+        settings_dict = {}
     else:
-        setting = settings_arr[0]
-    setting['form_id'] = form_id
-    xls_dict['settings'] = [setting]
+        settings_dict = settings_arr[0]
+    if 'form_id' in settings_dict:
+        del settings_dict['form_id']
+    settings_dict['id_string'] = form_id
+    xls_dict['settings'] = [settings_dict]
 
     for sheet_name, rows in xls_dict.items():
         if re.search(r'_header$', sheet_name):

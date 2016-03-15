@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
-from rest_framework.compat import get_model_name
 from rest_framework import filters
 from haystack.query import SearchQuerySet
 from haystack.inputs import Raw
@@ -17,7 +16,7 @@ class KpiObjectPermissionsFilter(object):
         model_cls = queryset.model
         kwargs = {
             'app_label': model_cls._meta.app_label,
-            'model_name': get_model_name(model_cls)
+            'model_name': model_cls._meta.model_name,
         }
         permission = self.perm_format % kwargs
 

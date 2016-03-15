@@ -11,8 +11,6 @@ import random
 from django.contrib.sites.models import Site
 import dateutil.parser
 
-import ipdb
-
 import re
 
 from kpi.models import Collection

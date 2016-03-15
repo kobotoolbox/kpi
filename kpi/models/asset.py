@@ -11,7 +11,7 @@ from shortuuid import ShortUUID
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 from taggit.models import Tag
-import reversion
+from reversion import revisions as reversion
 
 from .object_permission import ObjectPermission, ObjectPermissionMixin
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
@@ -171,7 +171,7 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
         return self.content
 
     def _pull_form_title_from_settings(self):
-        if self.asset_type is not 'survey':
+        if self.asset_type != 'survey':
             return
 
         # settingslist
@@ -207,7 +207,7 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
                 self._strip_empty_rows(
                     self.content['choices'], required_key='name')
             if 'settings' in self.content:
-                if self.asset_type is not 'survey':
+                if self.asset_type != 'survey':
                     del self.content['settings']
                 else:
                     self._pull_form_title_from_settings()
