@@ -114,25 +114,20 @@ var dataInterface;
       });
     },
     cloneAsset ({uid, name}) {
-      let data = {
-        clone_from: uid,
-      };
+      let data = {};
       if (name) {
         data.name = name;
       }
       return $ajax({
         method: 'POST',
-        url: `${rootUrl}/assets/`,
+        url: `${rootUrl}/assets/${uid}/clone/`,
         data: data,
       });
     },
     cloneCollection ({uid}) {
       return $ajax({
         method: 'POST',
-        url: `${rootUrl}/collections/`,
-        data: {
-          clone_from: uid
-        }
+        url: `${rootUrl}/collections/${uid}/clone/`,
       });
     },
     removePerm (permUrl) {
