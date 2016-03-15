@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kpi', '0009_assetdeployment_20160309_1409'),
+        ('kpi', '0008_authorizedapplication'),
     ]
 
     operations = [
