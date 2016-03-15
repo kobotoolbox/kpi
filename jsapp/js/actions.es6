@@ -276,6 +276,11 @@ actions.resources.createImport.completed.listen(function(contents){
   }
 });
 
+actions.resources.createAsset.listen(function(){
+  throw new Error(`use actions.resources.createImport
+                  or actions.resources.createResource.`);
+});
+
 actions.resources.createResource.failed.listen(function(){
   log('createResourceFailed');
 });
