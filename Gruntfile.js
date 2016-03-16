@@ -14,6 +14,9 @@ module.exports = function(grunt) {
         },
         options: {
           browserifyOptions: {
+              paths: [
+                './jsapp/js',
+              ],
               debug: true,
               extensions: [
                 '.es6',

@@ -6,6 +6,7 @@ $viewUtils = require './view.utils'
 $icons = require './view.icons'
 $viewRowDetailSkipLogic = require './view.rowDetail.SkipLogic'
 $viewTemplates = require './view.templates'
+_t = require('utils').t
 
 module.exports = do ->
   viewRowDetail = {}
@@ -146,14 +147,14 @@ module.exports = do ->
   viewRowDetail.DetailViewMixins.hint =
     html: ->
       @$el.addClass("card__settings__fields--active")
-      viewRowDetail.Templates.textbox @cid, @model.key, 'Question hint', 'text'
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Question hint"), 'text'
     afterRender: ->
       @listenForInputChange()
 
   viewRowDetail.DetailViewMixins.constraint_message =
     html: ->
       @$el.addClass("card__settings__fields--active")
-      viewRowDetail.Templates.textbox @cid, @model.key, 'Error Message', 'text'
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Error Message"), 'text'
     insertInDOM: (rowView)->
       @_insertInDOM rowView.cardSettingsWrap.find('.card__settings__fields--validation-criteria').eq(0)
     afterRender: ->
@@ -206,7 +207,7 @@ module.exports = do ->
     html: ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
-      viewRowDetail.Templates.textbox @cid, @model.key, 'Data column name', 'text'
+      viewRowDetail.Templates.textbox @cid, @model.key, _t("Data column name"), 'text'
     afterRender: ->
       @listenForInputChange(transformFn: (value)=>
         value_chars = value.split('')
@@ -228,7 +229,7 @@ module.exports = do ->
     html: ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
-      label = if @model.key == 'default' then 'Default response' else @model.key.replace(/_/g, ' ')
+      label = if @model.key == 'default' then _t("Default response") else @model.key.replace(/_/g, ' ')
       viewRowDetail.Templates.textbox @cid, @model.key, label, 'text'
     afterRender: ->
       @$el.find('input').eq(0).val(@model.get("value"))
@@ -241,14 +242,14 @@ module.exports = do ->
   viewRowDetail.DetailViewMixins._isRepeat =
     html: ->
       @$el.addClass("card__settings__fields--active")
-      viewRowDetail.Templates.checkbox @cid, @model.key, 'Repeat', 'Repeat this group if necessary'
+      viewRowDetail.Templates.checkbox @cid, @model.key, _t("Repeat"), t("Repeat this group if necessary")
     afterRender: ->
       @listenForCheckboxChange()
 
   viewRowDetail.DetailViewMixins.required =
     html: ->
       @$el.addClass("card__settings__fields--active")
-      viewRowDetail.Templates.checkbox @cid, @model.key, 'Mandatory response'
+      viewRowDetail.Templates.checkbox @cid, @model.key, _t("Mandatory response")
     afterRender: ->
       @listenForCheckboxChange()
 
@@ -267,15 +268,15 @@ module.exports = do ->
 
       @$el.addClass("card__settings__fields--active")
       if @model_is_group(@model)
-        return viewRowDetail.Templates.checkbox @cid, @model.key, 'Appearance (advanced)', 'Show all questions in this group on the same screen'
+        return viewRowDetail.Templates.checkbox @cid, @model.key, _t("Appearance (advanced)"), _t("Show all questions in this group on the same screen")
       else
         appearances = @getTypes()
         if appearances?
           appearances.push 'other'
           appearances.unshift 'select'
-          return viewRowDetail.Templates.dropdown @cid, @model.key, appearances, 'Appearance (advanced)'
+          return viewRowDetail.Templates.dropdown @cid, @model.key, appearances, _t("Appearance (advanced)")
         else
-          return viewRowDetail.Templates.textbox @cid, @model.key, 'Appearance (advanced)', 'text'
+          return viewRowDetail.Templates.textbox @cid, @model.key, _t("Appearance (advanced)"), 'text'
 
     model_is_group: (model) ->
       model._parent.constructor.key == 'group'
