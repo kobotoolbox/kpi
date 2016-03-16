@@ -48,6 +48,7 @@ six
 sqlparse
 static3
 unicodecsv
+uWSGI
 whitenoise
 xlrd
 xlwt

@@ -28,8 +28,7 @@ RUN apt-get update && \
 
 RUN pip install pip-tools
 COPY ./requirements.txt /srv/tmp/base_requirements.txt
-RUN pip-sync /srv/tmp/base_requirements.txt && \
-    pip install uwsgi
+RUN pip-sync /srv/tmp/base_requirements.txt
 
 
 #########################

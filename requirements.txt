@@ -50,6 +50,7 @@ six==1.10.0
 sqlparse==0.1.18
 static3==0.6.1
 unicodecsv==0.14.1
+uWSGI==2.0.12
 whitenoise==2.0.6
 xlrd==0.8.0
 xlwt==1.0.0
