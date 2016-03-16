@@ -1,81 +1,79 @@
-FROM kobotoolbox/base-kobos:latest
+FROM kobotoolbox/koboform_base:latest
 
-ENV KPI_SRC_DIR=/srv/src/kpi \
-    KPI_LOGS_DIR=/srv/logs \
-    KPI_WHOOSH_DIR=/srv/whoosh \
-    NODE_PATH=/srv/node_modules \
-    PIP_EDITABLE_PACKAGE_DIR=/srv/pip_editable_packages
-# The mountpoint of a volume shared with the nginx container. Static files will
-# be copied there.
-ENV NGINX_STATIC_DIR=/srv/static
 
-###########################
-# Install `apt` packages. #
-###########################
+##########################################
+# Install any additional `apt` packages. #
+##########################################
 
 COPY ./apt_requirements.txt ${KPI_SRC_DIR}/
-WORKDIR ${KPI_SRC_DIR}/
-RUN apt-get update && \
-    apt-get install -y $(cat ${KPI_SRC_DIR}/apt_requirements.txt) && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN diff -q "${KPI_SRC_DIR}/apt_requirements.txt" "/srv/tmp/base_apt_requirements.txt" || \
+        ( apt-get update && \
+        apt-get install -y $(cat ${KPI_SRC_DIR}/apt_requirements.txt) && \
+        apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ) \ 
+    || true # Prevent non-zero exit code.
 
-#########################
-# Install pip packages. #
-#########################
 
-# Install Git so `pyxform` and Whoosh can be installed directly from the repo.
-RUN apt-get update && \
-    apt-get install -y git-core && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-RUN pip install pip-tools
+###########################
+# Re-sync `pip` packages. #
+###########################
+
 COPY ./requirements.txt ${KPI_SRC_DIR}/
 # Install the packages, storing editable packages outside the `kpi` directory (see https://github.com/nvie/pip-tools/issues/332)
-RUN mkdir -p "${PIP_EDITABLE_PACKAGE_DIR}/" && \
-    ln -s "${PIP_EDITABLE_PACKAGE_DIR}/" "${KPI_SRC_DIR}/src" && \
-    pip-sync requirements.txt
+RUN diff -q "${KPI_SRC_DIR}/requirements.txt" /srv/tmp/base_requirements.txt || \
+    pip-sync "${KPI_SRC_DIR}/base_requirements.txt" \
+    || true # Prevent non-zero exit code.
 
 
-#########################
-# Install NPM packages. #
-#########################
+##########################################
+# Install any additional `npm` packages. #
+##########################################
 
 COPY ./package.json ${KPI_SRC_DIR}/
-RUN npm install && \
-    mv "${KPI_SRC_DIR}/node_modules" "${NODE_PATH}" && \
-    ln -s "${NODE_PATH}" "${KPI_SRC_DIR}/node_modules"
-ENV PATH $PATH:${NODE_PATH}/.bin
+RUN diff -q "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json || \
+    npm install \
+    || true # Prevent non-zero exit code.
 
-
-###########################
-# Install Bower packages. #
-###########################
+##########################################
+# Install any additional Bower packages. #
+##########################################
 
 COPY ./bower.json ./.bowerrc ${KPI_SRC_DIR}/
-RUN bower install --allow-root --config.interactive=false
+RUN (   diff -q "${KPI_SRC_DIR}/bower.json" /srv/tmp/base_bower.json && \
+        diff -q "${KPI_SRC_DIR}/.bowerrc" /srv/tmp/base_bowerrc ) || \
+    bower install --allow-root --config.interactive=false \
+    || true # Prevent non-zero exit code.
 
 
-##################
-# Install uwsgi. #
-##################
+###############################################
+# Copy over this directory in its live state. #
+###############################################
 
-RUN apt-get install libpcre3 libpcre3-dev && \
-    pip install uwsgi
+RUN rm -rf "${KPI_SRC_DIR}"
+COPY . ${KPI_SRC_DIR}
+RUN rm -rf "${KPI_SRC_DIR}/node_modules" && \
+    rm -rf "${KPI_SRC_DIR}/staticfiles" && \
+    rm -rf "${KPI_SRC_DIR}/jsapp/xlform/components" && \
+    ln -s "${NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
+#    ln -s "${STATICFILES_DIR}" "${KPI_SRC_DIR}/staticfiles" && \
+    ln -s "${BOWER_COMPONENTS_DIR}/" "${KPI_SRC_DIR}/jsapp/xlform/components"
 
 
-##########
-# Grunt. #
-##########
+######################
+# Build client code. #
+######################
 
-COPY ./Gruntfile.js ./jsapp/ ${KPI_SRC_DIR}/
+# FIXME: To use Docker's caching mechanism and avoid unnecessary rebuilds, the inputs and outputs of the `grunt` build need to be identified.
+#COPY ./Gruntfile.js ./jsapp/ ${KPI_SRC_DIR}/
+#RUN mkdir "${STATICFILES_DIR}" && \
+#    ln -s "${STATICFILES_DIR}" "${KPI_SRC_DIR}/staticfiles" && \
+#    grunt buildall
 RUN grunt buildall
-
 
 ###########
 # Django. #
 ###########
 
 ENV DJANGO_SETTINGS_MODULE kobo_playground.settings
-COPY . ${KPI_SRC_DIR}
 RUN python manage.py collectstatic --noinput
 
 
@@ -90,6 +88,7 @@ VOLUME "${KPI_LOGS_DIR}/" "${KPI_WHOOSH_DIR}/" "${KPI_SRC_DIR}/emails"
 #################################################
 # Handle runtime tasks and create main process. #
 #################################################
+
 # Using `/etc/profile.d/` as a repository for non-hard-coded environment variable overrides.
 RUN echo 'source /etc/profile' >> /root/.bashrc
 
