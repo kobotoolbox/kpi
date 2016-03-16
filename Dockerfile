@@ -6,6 +6,7 @@ FROM kobotoolbox/koboform_base:latest
 ##########################################
 
 COPY ./apt_requirements.txt ${KPI_SRC_DIR}/
+# Only install if the current version of `apt_requirements.txt` differs from the one used in the base image.
 RUN diff -q "${KPI_SRC_DIR}/apt_requirements.txt" "/srv/tmp/base_apt_requirements.txt" || \
         ( apt-get update && \
         apt-get install -y $(cat ${KPI_SRC_DIR}/apt_requirements.txt) && \
@@ -18,7 +19,7 @@ RUN diff -q "${KPI_SRC_DIR}/apt_requirements.txt" "/srv/tmp/base_apt_requirement
 ###########################
 
 COPY ./requirements.txt ${KPI_SRC_DIR}/
-# Install the packages, storing editable packages outside the `kpi` directory (see https://github.com/nvie/pip-tools/issues/332)
+# Only install if the current version of `requirements.txt` differs from the one used in the base image.
 RUN diff -q "${KPI_SRC_DIR}/requirements.txt" /srv/tmp/base_requirements.txt || \
     pip-sync "${KPI_SRC_DIR}/base_requirements.txt" \
     || true # Prevent non-zero exit code.
@@ -29,6 +30,7 @@ RUN diff -q "${KPI_SRC_DIR}/requirements.txt" /srv/tmp/base_requirements.txt || 
 ##########################################
 
 COPY ./package.json ${KPI_SRC_DIR}/
+# Only install if the current version of `package.json` differs from the one used in the base image.
 RUN diff -q "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json || \
     npm install \
     || true # Prevent non-zero exit code.
@@ -38,6 +40,7 @@ RUN diff -q "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json || \
 ##########################################
 
 COPY ./bower.json ./.bowerrc ${KPI_SRC_DIR}/
+# Only install if the current versions of `bower.json` or `.bowerrc` differ from the ones used in the base image.
 RUN (   diff -q "${KPI_SRC_DIR}/bower.json" /srv/tmp/base_bower.json && \
         diff -q "${KPI_SRC_DIR}/.bowerrc" /srv/tmp/base_bowerrc ) || \
     bower install --allow-root --config.interactive=false \
@@ -45,15 +48,13 @@ RUN (   diff -q "${KPI_SRC_DIR}/bower.json" /srv/tmp/base_bower.json && \
 
 
 ###############################################
-# Copy over this directory in its live state. #
+# Copy over this directory in its current state. #
 ###############################################
 
 RUN rm -rf "${KPI_SRC_DIR}"
 COPY . ${KPI_SRC_DIR}
-RUN rm -rf "${KPI_SRC_DIR}/node_modules" && \
-    rm -rf "${KPI_SRC_DIR}/staticfiles" && \
-    rm -rf "${KPI_SRC_DIR}/jsapp/xlform/components" && \
-    ln -s "${NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
+# Restore the backed-up package installation directories.
+RUN ln -s "${NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
 #    ln -s "${STATICFILES_DIR}" "${KPI_SRC_DIR}/staticfiles" && \
     ln -s "${BOWER_COMPONENTS_DIR}/" "${KPI_SRC_DIR}/jsapp/xlform/components"
 
@@ -62,7 +63,8 @@ RUN rm -rf "${KPI_SRC_DIR}/node_modules" && \
 # Build client code. #
 ######################
 
-# FIXME: To use Docker's caching mechanism and avoid unnecessary rebuilds, the inputs and outputs of the `grunt` build need to be identified.
+# FIXME: To use Docker's caching mechanism and avoid unnecessary `grunt` rebuilds whenever there's a 
+#   change to the host's `kpi` directory, the inputs and outputs of `grunt buildall` need to be identified.
 #COPY ./Gruntfile.js ./jsapp/ ${KPI_SRC_DIR}/
 #RUN mkdir "${STATICFILES_DIR}" && \
 #    ln -s "${STATICFILES_DIR}" "${KPI_SRC_DIR}/staticfiles" && \

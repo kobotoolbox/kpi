@@ -1,3 +1,6 @@
+# Base image to take care of `apt`, `pip`, `npm`, and `bower dependencies. Packages are
+#   stored outside the source directory so it can be overwritten in development scenarios.
+
 FROM kobotoolbox/base-kobos:latest
 
 
@@ -31,9 +34,9 @@ COPY ./requirements.txt /srv/tmp/base_requirements.txt
 RUN pip-sync /srv/tmp/base_requirements.txt
 
 
-#########################
-# Install NPM packages. #
-#########################
+###########################
+# Install `npm` packages. #
+###########################
 
 COPY ./package.json ${KPI_SRC_DIR}/
 WORKDIR ${KPI_SRC_DIR}/
@@ -44,9 +47,9 @@ RUN mkdir -p "${NODE_PATH}" && \
 ENV PATH $PATH:${NODE_PATH}/.bin
 
 
-###########################
-# Install Bower packages. #
-###########################
+#############################
+# Install `bower` packages. #
+#############################
 
 COPY ./bower.json ./.bowerrc ${KPI_SRC_DIR}/
 RUN mkdir -p "${BOWER_COMPONENTS_DIR}" && \
