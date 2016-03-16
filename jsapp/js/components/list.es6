@@ -125,7 +125,7 @@ var ListSearch = React.createClass({
     return (
           <bem.Search m={[this.state.searchState]} >
             <bem.Search__icon />
-            <ui.SmallInputBox ref="formlist-search" placeholder={t(this.props.placeholderText)} onChange={this.searchChangeEvent} />
+            <ui.SearchBox ref="formlist-search" placeholder={t(this.props.placeholderText)} onChange={this.searchChangeEvent} />
             <bem.Search__cancel m={{'active': this.state.searchState !== 'none'}} onClick={this.searchClear} />
           </bem.Search>
         );
