@@ -1,6 +1,16 @@
 FROM kobotoolbox/koboform_base:latest
 
 
+# Note: Additional environment variables established in `Dockerfile.koboform_base`.
+ENV KPI_LOGS_DIR=/srv/logs \
+    KPI_WHOOSH_DIR=/srv/whoosh \
+    # STATICFILES_DIR=/srv/staticfiles \
+    GRUNT_BUILD_DIR=/srv/grunt_build_dir \
+    # The mountpoint of a volume shared with the nginx container. Static files will
+    # be copied there.
+    NGINX_STATIC_DIR=/srv/static
+
+
 ##########################################
 # Install any additional `apt` packages. #
 ##########################################
@@ -35,6 +45,7 @@ RUN diff -q "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json || \
     npm install \
     || true # Prevent non-zero exit code.
 
+
 ##########################################
 # Install any additional Bower packages. #
 ##########################################
@@ -45,6 +56,16 @@ RUN (   diff -q "${KPI_SRC_DIR}/bower.json" /srv/tmp/base_bower.json && \
         diff -q "${KPI_SRC_DIR}/.bowerrc" /srv/tmp/base_bowerrc ) || \
     bower install --allow-root --config.interactive=false \
     || true # Prevent non-zero exit code.
+
+
+######################
+# Build client code. #
+######################
+
+COPY ./Gruntfile.js ./jsapp/ ${KPI_SRC_DIR}/
+RUN mkdir "${GRUNT_BUILD_DIR}" && \
+    ln -s "${GRUNT_BUILD_DIR}" "${KPI_SRC_DIR}/jsapp/compiled" && \
+    grunt buildall
 
 
 ###############################################
@@ -59,21 +80,9 @@ RUN ln -s "${NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
     ln -s "${BOWER_COMPONENTS_DIR}/" "${KPI_SRC_DIR}/jsapp/xlform/components"
 
 
-######################
-# Build client code. #
-######################
-
-# FIXME: To use Docker's caching mechanism and avoid unnecessary `grunt` rebuilds whenever there's a 
-#   change to the host's `kpi` directory, the inputs and outputs of `grunt buildall` need to be identified.
-#COPY ./Gruntfile.js ./jsapp/ ${KPI_SRC_DIR}/
-#RUN mkdir "${STATICFILES_DIR}" && \
-#    ln -s "${STATICFILES_DIR}" "${KPI_SRC_DIR}/staticfiles" && \
-#    grunt buildall
-RUN grunt buildall
-
-###########
-# Django. #
-###########
+###########################
+# Organize static assets. #
+###########################
 
 ENV DJANGO_SETTINGS_MODULE kobo_playground.settings
 RUN python manage.py collectstatic --noinput

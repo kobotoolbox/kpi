@@ -1,6 +1,6 @@
 Dockerfile
 node_modules
-staticfiles
 jsapp/xlform/components
-*.pyc
 jsapp/compiled
+staticfiles
+*.pyc
