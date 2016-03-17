@@ -31,7 +31,7 @@ RUN diff -q "${KPI_SRC_DIR}/apt_requirements.txt" "/srv/tmp/base_apt_requirement
 COPY ./requirements.txt ${KPI_SRC_DIR}/
 # Only install if the current version of `requirements.txt` differs from the one used in the base image.
 RUN diff -q "${KPI_SRC_DIR}/requirements.txt" /srv/tmp/base_requirements.txt || \
-    pip-sync "${KPI_SRC_DIR}/base_requirements.txt" \
+    pip-sync "${KPI_SRC_DIR}/requirements.txt" \
     || true # Prevent non-zero exit code.
 
 
