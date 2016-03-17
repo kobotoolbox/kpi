@@ -23,6 +23,16 @@ if [[ ! -d "${KPI_SRC_DIR}/jsapp/xlform/components" ]]; then
     ln -s "${BOWER_COMPONENTS_DIR}/" "${KPI_SRC_DIR}/jsapp/xlform/components"
 fi
 
+if [[ ! -d "${KPI_SRC_DIR}/jsapp/compiled" ]]; then
+    echo "Restoring \`grunt\` build directory to \`${KPI_SRC_DIR}/jsapp/compiled\`."
+    ln -s "${GRUNT_BUILD_DIR}" "${KPI_SRC_DIR}/jsapp/compiled"
+fi
+
+if [[ ! -d "${KPI_SRC_DIR}/jsapp/fonts" ]]; then
+    echo "Restoring \`grunt\` fonts directory to \`${KPI_SRC_DIR}/jsapp/fonts\`."
+    ln -s "${GRUNT_FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts"
+fi
+
 if [[ ! -d "${KPI_SRC_DIR}/staticfiles" ]]; then
     echo 'Building static files from live code.'
     (cd "${KPI_SRC_DIR}" && grunt buildall && python manage.py collectstatic --noinput)
