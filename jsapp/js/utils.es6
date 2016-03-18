@@ -1,7 +1,6 @@
 import moment from 'moment';
 import alertify from 'alertifyjs';
 import $ from 'jquery';
-import translations from './translations.json';
 
 export var assign = require('react/lib/Object.assign');
 
