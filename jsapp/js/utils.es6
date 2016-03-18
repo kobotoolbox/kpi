@@ -111,14 +111,9 @@ var __strings = [];
 
 var currentLang = "en_US";
 
+/*global gettext*/
 export function t(str) {
-  if (translations[currentLang][str]) {
-    return translations[currentLang][str];
-  }
-  if (__strings.indexOf(str) === -1) {
-    __strings.push(str);
-  }
-  return str;
+  return gettext(str);
 };
 
 export function changeLang(langCode) {
