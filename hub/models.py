@@ -38,7 +38,10 @@ class UserRegistrationChoiceManager(models.Manager):
 class UserRegistrationChoice(models.Model):
     field_name = models.CharField(max_length=50, unique=True)
     json_data = JSONField()
-    value_label_path = models.CharField(max_length=100)
+    value_label_path = models.CharField(
+        max_length=100, help_text='Must yield an array of arrays in the '
+            'format `[[value, label], [value, label], ...]`. See '
+            'http://jmespath.org/')
     objects = UserRegistrationChoiceManager()
 
     @property

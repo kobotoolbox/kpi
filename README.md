@@ -35,3 +35,42 @@ Construct a string using the [Whoosh query language](https://pythonhosted.org/Wh
 When the `q` parameter contains a search term without a specified field, e.g. `/tags/?q=health`, that term is matched against the search "document" (the `text` field).
 
 \* Implemented by Haystack as [a Whoosh TEXT field using the StemmingAnalyzer](https://github.com/django-haystack/django-haystack/blob/ad90028a22b4274b8df1f4698dd59ac0643f03d5/haystack/backends/whoosh_backend.py#L174). Unsuitable for exact matching.
+
+User registration choices
+-------------------------
+[JMESPath](http://jmespath.org) is employed to facilitate parsing output from other APIs. For example, to offer users a list of countries from http://peric.github.io/GetCountries/:
+
+* Go to http://peric.github.io/GetCountries/;
+* Select `countryName` and `isoAlpha3` columns;
+  * `isoAlpha3` will be stored in the database; `countryName` will be the label shown to users;
+* Choose the JSON output type;
+* Click Generate and receive data like:
+  ```
+  {
+    "countries":{
+      "country":[
+        {
+          "countryName":"Andorra",
+          "isoAlpha3":"AND"
+        },
+        ...
+     ]
+    }
+  }
+  ```
+* Go to http://your-kpi-server/admin/hub/userregistrationchoice/;
+* Click "Add user registration choice";
+* Enter `country` as the field name;
+* Paste in the previously generated JSON in the "Json data" field;
+* Use `countries.country[*][isoAlpha3, countryName]` as the "Value label path"
+  * This JMESPath yields:
+    ```
+    [
+      [
+        "AND",
+        "Andorra"
+      ],
+      ...
+    ]
+    ```
+    which is the desired array of `[value, label]` arrays.
