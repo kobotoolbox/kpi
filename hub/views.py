@@ -1,7 +1,11 @@
-from .models import FormBuilderPreference
-from django.http import HttpResponseRedirect
-from django.core.management import call_command
 from django.contrib.auth.decorators import login_required
+from django.core.management import call_command
+from django.db import transaction
+from django.http import HttpResponseRedirect
+from registration.backends.default.views import RegistrationView
+from registration.forms import RegistrationForm
+
+from .models import FormBuilderPreference, ExtraUserDetail
 
 
 @login_required
@@ -24,3 +28,18 @@ def switch_builder(request):
         )
 
     return HttpResponseRedirect('/')
+
+
+class ExtraDetailRegistrationView(RegistrationView):
+    def register(self, request, form, *args, **kwargs):
+        ''' Save all the fields not included in the standard `RegistrationForm`
+        into the JSON `data` field of an `ExtraUserDetail` object '''
+        standard_fields = set(RegistrationForm().fields.keys())
+        extra_fields = set(form.fields.keys()).difference(standard_fields)
+        # Don't save the user unless we successfully store the extra data
+        with transaction.atomic():
+            new_user = super(ExtraDetailRegistrationView, self).register(
+                request, form, *args, **kwargs)
+            extra_data = {k: form.cleaned_data[k] for k in extra_fields}
+            ExtraUserDetail.objects.create(user=new_user, data=extra_data)
+        return new_user
