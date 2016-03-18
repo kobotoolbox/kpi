@@ -1,7 +1,7 @@
 import React from 'react/addons';
 import Reflux from 'reflux';
 import {Navigation} from 'react-router';
-import Dropzone from '../libs/dropzone';
+// import Dropzone from '../libs/dropzone';
 import mdl from '../libs/rest_framework/material';
 
 import searches from '../searches';
@@ -66,30 +66,7 @@ var FormsSearchableList = React.createClass({
   render () {
     return (
       <ui.Panel>
-        <bem.CollectionNav>
 
-          <bem.CollectionNav__actions className="k-form-list-actions">
-            <button id="demo-menu-top-right"
-                    className="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
-              <i className="material-icons">add</i>
-            </button>
-
-            <div className="mdl-menu mdl-menu--top-right mdl-js-menu mdl-js-ripple-effect"
-                htmlFor="demo-menu-top-right">
-              <bem.CollectionNav__link className="mdl-menu__item" m={['new', 'new-block']}
-                  href={this.makeHref('new-form')}>
-                <i />
-                {t('new form')}
-              </bem.CollectionNav__link>
-              <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
-                <bem.CollectionNav__button m={['upload', 'upload-block']} className="mdl-menu__item">
-                  <i className='fa fa-icon fa-cloud fa-fw' />
-                  {t('upload')}
-                </bem.CollectionNav__button>
-              </Dropzone>
-            </div>
-          </bem.CollectionNav__actions>
-        </bem.CollectionNav>
         <SearchCollectionList
             showDefault={true}
             searchContext={this.state.searchContext}

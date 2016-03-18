@@ -39,9 +39,14 @@
   .drawer__sidebar {
       position: absolute;
       top: 10px;
-      left: 62px;
-      width: 170px;
+      left: 70px;
+      width: 154px;
       height: 95%;
+      .header-breadcrumb__item {
+        text-align: center;
+        font-size: 18px;
+        margin-bottom: 10px;
+      }
   }  
 }
 
@@ -57,5 +62,33 @@
     margin-left:$layout-drawer-width + 6px;
     overflow:hidden;
     margin-top:6px;
+  }
+}
+
+// collection nav buttons and menu 
+
+.collection-nav__actions {
+  text-align:center; 
+  margin-bottom:10px;
+  > button {
+    min-width:120px;
+  }
+
+}
+
+.collection-nav__button {
+  @extend .mdl-button;
+  min-width: 100%;
+  > i {
+    @extend .fa, .fa-cloud, .fa-fw;
+    margin-right: 12px;
+  }
+}
+
+.collection-nav__link {
+  @extend .mdl-button;
+  > i:first-child {
+    @extend .fa, .fa-fw, .fa-plus;
+    margin-right: 12px;
   }
 }

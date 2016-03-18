@@ -22,17 +22,33 @@ var MainHeader = React.createClass({
     Reflux.connect(stores.pageState),
   ],
   getInitialState () {
-    return assign({}, stores.pageState.state, {
-      searchContext: searches.getSearchContext('forms', {
-        filterParams: {
-          assetType: 'asset_type:survey',
-        },
-        filterTags: 'asset_type:survey',
-      })
-    });
+    this.prepareSearchContext();
+    return assign({}, stores.pageState.state, stores.pageState.state.searchContext);
   },
   logout () {
     actions.auth.logout();
+  },
+  prepareSearchContext() {
+    var hash = window.location.hash;
+    if (hash == '#/library') {
+      stores.pageState.setState({
+        searchContext: searches.getSearchContext('library', {
+          filterParams: {
+            assetType: 'asset_type:question OR asset_type:block',
+          },
+          filterTags: 'asset_type:question OR asset_type:block',
+        })        
+      });
+    } else {
+      stores.pageState.setState({
+        searchContext: searches.getSearchContext('forms', {
+          filterParams: {
+            assetType: 'asset_type:survey',
+          },
+          filterTags: 'asset_type:survey',
+        })
+      });
+    }
   },
   renderAccountNavMenu () {
     var accountName = this.state.currentAccount && this.state.currentAccount.username;
@@ -96,6 +112,9 @@ var MainHeader = React.createClass({
   },
   componentDidUpdate() {
     mdl.upgradeDom();
+  },
+  componentWillReceiveProps() {
+    this.prepareSearchContext();
   }
 });
 

@@ -1,7 +1,7 @@
 import React from 'react/addons';
 import Reflux from 'reflux';
 import {Navigation} from 'react-router';
-import Dropzone from '../libs/dropzone';
+// import Dropzone from '../libs/dropzone';
 
 import searches from '../searches';
 import mixins from '../mixins';
@@ -72,36 +72,6 @@ var LibrarySearchableList = React.createClass({
   render () {
     return (
       <ui.Panel>
-        <bem.CollectionNav>
-          <bem.CollectionNav__actions className="k-form-list-actions">
-            <button id="demo-menu-top-right"
-                    className="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
-              <i className="material-icons">add</i>
-            </button>
-
-            <ul className="mdl-menu mdl-menu--top-right mdl-js-menu mdl-js-ripple-effect"
-                htmlFor="demo-menu-top-right">
-              <bem.CollectionNav__link key={'new-asset'} m={['new', 'new-block']} className="mdl-menu__item"
-                  href={this.makeHref('add-to-library')}>
-                <i />
-                {t('add to library')}
-              </bem.CollectionNav__link>
-              <bem.CollectionNav__button key={'new-collection'} m={['new', 'new-collection']} className="mdl-menu__item"
-                  onClick={this.createCollection}>
-                <i />
-                {t('new collection')}
-              </bem.CollectionNav__button>
-              <Dropzone onDropFiles={this.dropFiles} className="mdl-menu__item"
-                  params={{destination: false}} fileInput>
-                <bem.CollectionNav__button m={['upload', 'upload-block']} className="mdl-menu__item">
-                  <i className='fa fa-icon fa-cloud fa-fw' />
-                  &nbsp;&nbsp;
-                  {t('upload')}
-                </bem.CollectionNav__button>
-              </Dropzone>
-            </ul>
-          </bem.CollectionNav__actions>
-        </bem.CollectionNav>
 
         <SearchCollectionList
             showDefault={true}

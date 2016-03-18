@@ -2,6 +2,7 @@ import React from 'react/addons';
 import Reflux from 'reflux';
 import {Link} from 'react-router';
 import {Navigation} from 'react-router';
+import Dropzone from '../libs/dropzone';
 
 import {dataInterface} from '../dataInterface';
 import actions from '../actions';
@@ -13,7 +14,6 @@ import {
   t,
   assign,
 } from '../utils';
-
 
 var leaveBetaUrl = stores.pageState.leaveBetaUrl;
 
@@ -92,16 +92,7 @@ var Drawer = React.createClass({
   getInitialState () {
     return assign({
       showRecent: true,
-    }, stores.pageState.state, 
-    {
-      searchContext: searches.getSearchContext('library', {
-        filterParams: {
-          assetType: 'asset_type:question OR asset_type:block',
-        },
-        filterTags: 'asset_type:question OR asset_type:block',
-      })
-    }
-    );
+    }, stores.pageState.state);
   },
   clickFilterByCollection (evt) {
     var data = $(evt.currentTarget).data();
@@ -162,6 +153,53 @@ var Drawer = React.createClass({
             </nav>
 
             <div className="drawer__sidebar">
+              {this.state.headerBreadcrumb.map((item, n)=>{
+                return (
+                    <div className="header-breadcrumb__item" key={`bc${n}`}>
+                      {
+                        ('to' in item) ?
+                        <Link to={item.to} params={item.params}>{item.label}</Link>
+                        :
+                        <a href={item.href}>{item.label}</a>
+                      }
+                    </div>
+                  );
+              })}
+              {/* library sidebar menu */}
+              <bem.CollectionNav>
+                <bem.CollectionNav__actions className="k-form-list-actions">
+                  <button id="sidebar-menu"
+                          className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                    {t('new')}
+                  </button>
+
+                  <ul htmlFor="sidebar-menu" className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect">
+                    <bem.CollectionNav__link key={'new-asset'} m={['new', 'new-block']} className="mdl-menu__item"
+                        href={this.makeHref('add-to-library')}>
+                      <i />
+                      {t('add to library')}
+                    </bem.CollectionNav__link>
+                    <bem.CollectionNav__button key={'new-collection'} m={['new', 'new-collection']} className="mdl-menu__item"
+                        onClick={this.createCollection}>
+                      <i />
+                      {t('new collection')}
+                    </bem.CollectionNav__button>
+                    <bem.CollectionNav__link className="mdl-menu__item" m={['new', 'new-block']}
+                        href={this.makeHref('new-form')}>
+                      <i />
+                      {t('new form')}
+                    </bem.CollectionNav__link>
+                    <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
+                      <bem.CollectionNav__button m={['upload', 'upload-block']} className="mdl-menu__item">
+                        <i className='fa fa-icon fa-cloud fa-fw' />
+                        {t('upload')}
+                      </bem.CollectionNav__button>
+                    </Dropzone>
+                  </ul>
+                </bem.CollectionNav__actions>
+              </bem.CollectionNav>
+              {/* end library sidebar menu */}
+
               { this.state.sidebarCollections ?
                 <CollectionSidebar>
                   <CollectionSidebar__item

@@ -14,29 +14,12 @@
 
 // .collection-nav__searchcriteria {}
 
-.collection-nav__actions {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 2;
-}
-
-.collection-nav__button {
-  @extend .mdl-button;
-  min-width: 100%;
-  > i {
-    @extend .fa, .fa-cloud, .fa-fw;
-    margin-right: 12px;
-  }
-}
-
-.collection-nav__link {
-  @extend .mdl-button;
-  > i:first-child {
-    @extend .fa, .fa-fw, .fa-plus;
-    margin-right: 12px;
-  }
-}
+// .collection-nav__actions {
+//   position: fixed;
+//   bottom: 20px;
+//   right: 20px;
+//   z-index: 2;
+// }
 
 // .collection-nav__search {
 //   > .search {
