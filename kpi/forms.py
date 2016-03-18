@@ -4,6 +4,8 @@ from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 from registration import forms as registration_forms
 
+from kobo_playground.static_lists import SECTORS, COUNTRIES
+
 USERNAME_REGEX = r'^[a-z][a-z0-9_]+$'
 USERNAME_MAX_LENGTH = 30
 USERNAME_INVALID_MESSAGE = _(
@@ -29,10 +31,12 @@ class RegistrationForm(registration_forms.RegistrationForm):
     sector = forms.ChoiceField(
         label=_('Sector'),
         required=False,
+        choices=(('', ''),) + SECTORS,
     )
     country = forms.ChoiceField(
         label=_('Country'),
         required=False,
+        choices=(('', ''),) + COUNTRIES,
     )
     default_language = forms.ChoiceField(
         label=_('Default language'),
