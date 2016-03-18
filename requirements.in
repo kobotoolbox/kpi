@@ -34,7 +34,6 @@ django_reversion
 django_taggit
 djangorestframework
 gunicorn
-jmespath
 jsonfield
 kombu
 lxml

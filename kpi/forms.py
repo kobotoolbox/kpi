@@ -4,19 +4,12 @@ from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 from registration import forms as registration_forms
 
-from hub.models import UserRegistrationChoice
-
 USERNAME_REGEX = r'^[a-z][a-z0-9_]+$'
 USERNAME_MAX_LENGTH = 30
 USERNAME_INVALID_MESSAGE = _(
     'A username may only contain lowercase letters, numbers, and '
     'underscores (_).'
 )
-
-def make_callable_for_choices(field_name):
-    def callable():
-        return UserRegistrationChoice.objects.get_choices_for_field(field_name)
-    return callable
 
 class RegistrationForm(registration_forms.RegistrationForm):
     username = forms.RegexField(
@@ -35,12 +28,10 @@ class RegistrationForm(registration_forms.RegistrationForm):
     )
     sector = forms.ChoiceField(
         label=_('Sector'),
-        choices=make_callable_for_choices('sector'),
         required=False,
     )
     country = forms.ChoiceField(
         label=_('Country'),
-        choices=make_callable_for_choices('country'),
         required=False,
     )
     default_language = forms.ChoiceField(

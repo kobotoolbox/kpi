@@ -32,7 +32,6 @@ djangorestframework==3.3.2
 ecdsa==0.13               # via paramiko
 Fabric==1.10.2
 gunicorn==19.4.5
-jmespath==0.9.0
 jsonfield==1.0.3
 kombu==3.0.33
 lxml==2.3.4
