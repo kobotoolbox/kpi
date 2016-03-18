@@ -43,6 +43,9 @@ class DrawerLink extends React.Component {
       this.props.onClick(evt);
     }
   }
+  toggleDrawer () {
+    stores.pageState.toggleDrawer();
+  }
 
   render () {
     var icon_class = `ki ki-${this.props['ki-icon'] || 'globe'}`; 
@@ -54,7 +57,8 @@ class DrawerLink extends React.Component {
             <Link to={this.props.linkto}
                 className='k-drawer__link'
                 activeClassName='active'
-                title={this.props.label}>
+                title={this.props.label}
+                onClick={this.toggleDrawer}>
               {icon} 
               <span className="label">{this.props.label}</span>
             </Link>

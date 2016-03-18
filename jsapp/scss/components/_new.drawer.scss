@@ -37,18 +37,27 @@
   }
 
   .drawer__sidebar {
-      position: absolute;
-      top: 10px;
-      left: 70px;
-      width: 154px;
-      height: 95%;
-      .header-breadcrumb__item {
-        text-align: center;
-        font-size: 18px;
-        margin-bottom: 10px;
-      }
-  }  
+    position: absolute;
+    top: 10px;
+    left: 70px;
+    width: 154px;
+    height: 95%;
+    .header-breadcrumb__item {
+      text-align: center;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+  }
 }
+
+
+.mdl-layout--fixed-drawer {
+  > .mdl-layout__content {
+    height:calc(100% - 72px);
+    overflow:hidden;
+    margin-top:6px;
+  }
+} 
 
 .mdl-layout--fixed-drawer:not(.is-small-screen) {
   > .mdl-layout__drawer {
@@ -58,10 +67,7 @@
   }
 
   > .mdl-layout__content {
-    height:calc(100% - 72px);
     margin-left:$layout-drawer-width + 6px;
-    overflow:hidden;
-    margin-top:6px;
   }
 }
 

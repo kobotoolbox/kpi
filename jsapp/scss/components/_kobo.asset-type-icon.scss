@@ -69,3 +69,23 @@
     }
   }
 }
+
+.asset-row--active {
+  .asset-type-icon {
+    background-color: $cool-gray;
+    border:1px solid $cool-gray;
+    border-radius:0px;
+    color:#FFF;
+    // width:30px;
+    // height:30px;
+    // line-height: 28px;
+    > i {
+      &:after {
+        content: '\f00c';
+        font-family:'FontAwesome';
+        // font-size:16px;
+        font-weight: normal;
+      }
+    }
+  }  
+}

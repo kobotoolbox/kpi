@@ -53,45 +53,55 @@ var SearchCollectionList = React.createClass({
   render () {
     var s = this.state;
     return (
-        <bem.CollectionAssetList>
-          <bem.AssetListSorts>
-            <bem.AssetListSorts__item m={'name'}>{t('Name')}</bem.AssetListSorts__item>
-            <bem.AssetListSorts__item m={'owner'}>{t('Owner')}</bem.AssetListSorts__item>
-            <bem.AssetListSorts__item m={'modified'}>{t('Last Modified')}</bem.AssetListSorts__item>
-            <bem.AssetListSorts__item m={'questions'}>{t('Questions')}</bem.AssetListSorts__item>
+        <bem.CollectionList>
+          <bem.AssetListSorts className="mdl-grid">
+            <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--6-col mdl-cell--3-col-tablet">
+              {t('Name')}
+            </bem.AssetListSorts__item>
+            <bem.AssetListSorts__item m={'owner'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet">
+              {t('Owner')}
+            </bem.AssetListSorts__item>
+            <bem.AssetListSorts__item m={'modified'} className="mdl-cell mdl-cell--3-col mdl-cell--2-col-tablet">
+              {t('Last Modified')}
+            </bem.AssetListSorts__item>
+            <bem.AssetListSorts__item m={'questions'} className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet">
+              {t('Questions')}
+            </bem.AssetListSorts__item>
           </bem.AssetListSorts>
-        {
-          (()=>{
-            if (s.searchResultsDisplayed) {
-              if (s.searchState === 'loading') {
-                return (
-                  <bem.CollectionAssetList__message m={'loading'}>
-                    {t('loading...')}
-                  </bem.CollectionAssetList__message>
-                );
-              } else if (s.searchState === 'done') {
-                return s.searchResultsList.map(this.renderAssetRow);
+          <bem.CollectionAssetList>
+          {
+            (()=>{
+              if (s.searchResultsDisplayed) {
+                if (s.searchState === 'loading') {
+                  return (
+                    <bem.CollectionAssetList__message m={'loading'}>
+                      {t('loading...')}
+                    </bem.CollectionAssetList__message>
+                  );
+                } else if (s.searchState === 'done') {
+                  return s.searchResultsList.map(this.renderAssetRow);
+                }
+              } else {
+                if (s.defaultQueryState === 'loading') {
+                  return (
+                    <bem.CollectionAssetList__message m={'loading'}>
+                      {t('loading...')}
+                    </bem.CollectionAssetList__message>
+                  );
+                } else if (s.defaultQueryState === 'done') {
+                  return s.defaultQueryResultsList.map(this.renderAssetRow);
+                }
               }
-            } else {
-              if (s.defaultQueryState === 'loading') {
-                return (
-                  <bem.CollectionAssetList__message m={'loading'}>
-                    {t('loading...')}
-                  </bem.CollectionAssetList__message>
-                );
-              } else if (s.defaultQueryState === 'done') {
-                return s.defaultQueryResultsList.map(this.renderAssetRow);
-              }
-            }
-            // it shouldn't get to this point
-            return (
-              <bem.CollectionAssetList__message m={'error'}>
-                {t('error')}
-              </bem.CollectionAssetList__message>
-            );
-          })()
-        }
-        </bem.CollectionAssetList>
+              // it shouldn't get to this point
+              return (
+                <bem.CollectionAssetList__message m={'error'}>
+                  {t('error')}
+                </bem.CollectionAssetList__message>
+              );
+            })()
+          }
+          </bem.CollectionAssetList>
+        </bem.CollectionList>
       );
   },
 });

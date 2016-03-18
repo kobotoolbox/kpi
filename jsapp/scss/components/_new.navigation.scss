@@ -1,4 +1,4 @@
-// MDL Layout overrides for navigation and drawer
+// MDL Layout overrides for navigation
 
 .mdl-layout--fixed-drawer:not(.is-small-screen) {
   > .mdl-layout__header {
@@ -8,6 +8,12 @@
     	display: none;
     }
   }
+}
+
+.mdl-layout--fixed-drawer.is-small-screen {
+	> .mdl-layout__header .mdl-layout__header-row {
+		padding-left:60px;
+	}
 }
 
 .mdl-layout--fixed-drawer > .mdl-layout__header {

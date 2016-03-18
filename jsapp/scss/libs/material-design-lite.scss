@@ -80,18 +80,3 @@ $layout-header-desktop-indent-plus: $layout-header-desktop-indent + 6px;
     background: $checkbox-disabled-color url('../img/tick.svg?embed');
   }
 }
-
-// .header-breadcrumb__item {
-//   margin-right: 10px;
-//   font-size: 18px;
-//   a, a:hover {
-//     color: white;
-//   }
-
-//   + .header-breadcrumb__item:before {
-//     content:'>';
-//     display: inline-block;
-//     margin-right: 10px;
-//     opacity: 0.6;
-//   }
-// }
