@@ -1,3 +1,4 @@
+
 import moment from 'moment';
 import alertify from 'alertifyjs';
 import $ from 'jquery';
@@ -108,20 +109,11 @@ window.log = log;
 
 var __strings = [];
 
-var currentLang = "en_US";
 
 /*global gettext*/
 export function t(str) {
   return gettext(str);
 };
-
-export function changeLang(langCode) {
-  if (langCode in translations) {
-    currentLang = langCode;
-  } else {
-    throw new Error(`language '${langCode}' not found in translations.json`);
-  }
-}
 
 log.t = function () {
   let _t = {};

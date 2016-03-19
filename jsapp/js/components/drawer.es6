@@ -1,17 +1,19 @@
 import React from 'react/addons';
 import Reflux from 'reflux';
 import {Link} from 'react-router';
+import Select from 'react-select';
 
 import {dataInterface} from '../dataInterface';
 import actions from '../actions';
 import stores from '../stores';
 import bem from '../bem';
+import cookie from 'react-cookie';
 import {
   t,
   assign,
 } from '../utils';
 
-
+const LANGUAGE_COOKIE_NAME = 'django_language';
 var leaveBetaUrl = stores.pageState.leaveBetaUrl;
 
 class DrawerTitle extends React.Component {
@@ -63,18 +65,58 @@ class DrawerLink extends React.Component {
     return link;
   }
 }
+
+function langsToValues (langs) {
+  return langs.map(function(lang) {
+    return {
+      value: lang[0],
+      label: lang[1],
+    };
+  });
+}
+
 var Drawer = React.createClass({
   mixins: [
     Reflux.connect(stores.session),
     Reflux.connect(stores.pageState),
+    Reflux.ListenerMixin,
   ],
   getInitialState () {
+    this.listenTo(stores.session, ({currentAccount}) => {
+      this.setState({
+        languageKeyValues: langsToValues(currentAccount.languages),
+      });
+    });
+
+    var langKeys;
+    if (stores.session.currentAccount) {
+      langKeys = languageKeyValues(stores.session.currentAccount.languages);
+    } else {
+      langKeys = [];
+    }
+
     return assign({
+      currentLang: cookie.load(LANGUAGE_COOKIE_NAME) || 'en',
       showRecent: true,
+      showLanguageSwitcher: false,
+      languageKeyValues: langKeys,
+      _langIndex: 0,
     }, stores.pageState.state);
   },
   logout () {
     actions.auth.logout();
+  },
+  languageChange (langCode) {
+    cookie.save(LANGUAGE_COOKIE_NAME, langCode);
+    // increment the state so that translations are rerendered.
+    this.setState({
+      _langIndex: this.state._langIndex + 1,
+    });
+  },
+  languagePrompt () {
+    this.setState({
+      showLanguageSwitcher: !this.state.showLanguageSwitcher,
+    });
   },
   render () {
     return (
@@ -108,6 +150,18 @@ var Drawer = React.createClass({
                     <DrawerLink label={t('leave beta')} href={leaveBetaUrl} fa-icon='circle-o' />
                   :null}
                   <DrawerLink label={t('logout')} onClick={this.logout} fa-icon='sign-out' />
+                  <DrawerLink label={t('language')} onClick={this.languagePrompt} fa-icon='globe' />
+                  {this.state.showLanguageSwitcher ?
+                    <div style={{padding: '2px 20px'}}>
+                      <Select
+                        name="language-selector"
+                        value={this.state.currentLang}
+                        onChange={this.languageChange}
+                        options={this.state.languageKeyValues}
+                      />
+
+                    </div>
+                  : null }
                 </div>
               :
                 <DrawerLink label={t('login')} href='/api-auth/login/?next=/' fa-icon='sign-in' />
