@@ -16,6 +16,8 @@ from reversion import revisions as reversion
 from .object_permission import ObjectPermission, ObjectPermissionMixin
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
 from ..utils.kobo_to_xlsform import to_xlsform_structure
+from ..deployment_backends.mixin import ProjectDeployable
+
 
 
 
@@ -117,7 +119,11 @@ class XlsExportable(object):
         return string_io
 
 @reversion.register
-class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
+class Asset(ObjectPermissionMixin,
+            TagStringMixin,
+            ProjectDeployable,
+            XlsExportable,
+            models.Model):
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
@@ -132,6 +138,11 @@ class Asset(ObjectPermissionMixin, TagStringMixin, models.Model, XlsExportable):
     uid = models.CharField(
         max_length=ASSET_UID_LENGTH, default='', unique=True)
     tags = TaggableManager(manager=KpiTaggableManager)
+
+    # deployment_data is accessed through "ProjectDeployable"s
+    # "asset.deployment" property
+    deployment_data = JSONField(default={})
+
 
     permissions = GenericRelation(ObjectPermission)
 
