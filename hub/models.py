@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models.signals import post_init
 from django.conf import settings
 from markitup.fields import MarkupField
 from jsonfield import JSONField
@@ -30,7 +31,15 @@ class FormBuilderPreference(models.Model):
 
 
 class ExtraUserDetail(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL)
-    data = JSONField()
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='extra_details')
+    data = JSONField(default={})
+
     def __unicode__(self):
-        return self.user.__unicode__()
+        return '{}\'s data: {}'.format(self.user.__unicode__(), repr(self.data))
+
+
+def create_extra_user_details(sender, instance, created, **kwargs):
+    if created:
+        ExtraUserDetail.objects.get_or_create(user=instance)
+
+post_init.connect(create_extra_user_details, sender=settings.AUTH_USER_MODEL)

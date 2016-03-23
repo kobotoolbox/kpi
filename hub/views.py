@@ -41,5 +41,6 @@ class ExtraDetailRegistrationView(RegistrationView):
             new_user = super(ExtraDetailRegistrationView, self).register(
                 request, form, *args, **kwargs)
             extra_data = {k: form.cleaned_data[k] for k in extra_fields}
-            ExtraUserDetail.objects.create(user=new_user, data=extra_data)
+            new_user.extra_details.data.update(extra_data)
+            new_user.extra_details.save()
         return new_user
