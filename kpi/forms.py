@@ -1,6 +1,10 @@
 from django import forms
+from django.conf import settings
+from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 from registration import forms as registration_forms
+
+from kobo_playground.static_lists import SECTORS, COUNTRIES
 
 USERNAME_REGEX = r'^[a-z][a-z0-9_]+$'
 USERNAME_MAX_LENGTH = 30
@@ -16,3 +20,41 @@ class RegistrationForm(registration_forms.RegistrationForm):
         label=_("Username"),
         error_messages={'invalid': USERNAME_INVALID_MESSAGE}
     )
+    name = forms.CharField(
+        label=_('Name'),
+        required=False,
+    )
+    organization = forms.CharField(
+        label=_('Organization name'),
+        required=False,
+    )
+    sector = forms.ChoiceField(
+        label=_('Sector'),
+        required=False,
+        choices=(('', ''),) + SECTORS,
+    )
+    country = forms.ChoiceField(
+        label=_('Country'),
+        required=False,
+        choices=(('', ''),) + COUNTRIES,
+    )
+    default_language = forms.ChoiceField(
+        label=_('Default language'),
+        choices=settings.LANGUAGES,
+        # TODO: Read the preferred language from the request?
+        initial='en',
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            'name',
+            'username',
+            'organization',
+            'email',
+            'sector',
+            'country',
+            'default_language',
+            # The 'password' field appears without adding it here; adding it
+            # anyway results in a duplicate
+        ]
