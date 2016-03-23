@@ -242,7 +242,7 @@ module.exports = do ->
   viewRowDetail.DetailViewMixins._isRepeat =
     html: ->
       @$el.addClass("card__settings__fields--active")
-      viewRowDetail.Templates.checkbox @cid, @model.key, _t("Repeat"), t("Repeat this group if necessary")
+      viewRowDetail.Templates.checkbox @cid, @model.key, _t("Repeat"), _t("Repeat this group if necessary")
     afterRender: ->
       @listenForCheckboxChange()
 

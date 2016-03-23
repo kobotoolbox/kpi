@@ -115,7 +115,7 @@ var AssetRow = React.createClass({
                               data-disabled={false}
                               >
                             <i />
-                            {actn}
+                            {t(actn)}
                           </bem.AssetRow__actionIcon>
                         );
                   })

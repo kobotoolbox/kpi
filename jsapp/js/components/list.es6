@@ -109,7 +109,7 @@ var ListSearch = React.createClass({
   getDefaultProps () {
     return {
       searchContext: 'default',
-      placeholderText: 'search...'
+      placeholderText: t('search...')
     };
   },
   componentDidMount () {

@@ -14,6 +14,7 @@ import {
 } from '../utils';
 
 const LANGUAGE_COOKIE_NAME = 'django_language';
+
 var leaveBetaUrl = stores.pageState.leaveBetaUrl;
 
 class DrawerTitle extends React.Component {
@@ -107,11 +108,9 @@ var Drawer = React.createClass({
     actions.auth.logout();
   },
   languageChange (langCode) {
-    cookie.save(LANGUAGE_COOKIE_NAME, langCode);
-    // increment the state so that translations are rerendered.
-    this.setState({
-      _langIndex: this.state._langIndex + 1,
-    });
+    if (langCode) {
+      cookie.save(LANGUAGE_COOKIE_NAME, langCode);
+    }
   },
   languagePrompt () {
     this.setState({
@@ -142,7 +141,7 @@ var Drawer = React.createClass({
               : null }
 
               <div className='drawer-separator'></div>
-              <span className='mdl-navigation__heading'>{t('account actions')}</span>
+              <span className='mdl-navigation__heading' onDoubleClick={this.languagePrompt}>{t('account actions')}</span>
               { this.state.isLoggedIn ?
                 <div>
                   <DrawerLink label={t('settings')} href={stores.session.currentAccount.projects_url + 'settings'} fa-icon='user' />
@@ -150,7 +149,9 @@ var Drawer = React.createClass({
                     <DrawerLink label={t('leave beta')} href={leaveBetaUrl} fa-icon='circle-o' />
                   :null}
                   <DrawerLink label={t('logout')} onClick={this.logout} fa-icon='sign-out' />
-                  <DrawerLink label={t('language')} onClick={this.languagePrompt} fa-icon='globe' />
+                  {this.state.showLanguageSwitcher ?
+                    <DrawerLink label={t('language')} fa-icon='globe' />
+                  : null }
                   {this.state.showLanguageSwitcher ?
                     <div style={{padding: '2px 20px'}}>
                       <Select

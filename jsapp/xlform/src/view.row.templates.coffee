@@ -32,7 +32,7 @@ module.exports = do ->
         <ul class="card__settings__tabs">
           <li class="heading"><i class="fa fa-cog"></i> Settings</li>
           <li data-card-settings-tab-id="question-options" class="card__settings__tabs__tab--active">#{_t("Question Options")}</li>
-          <li data-card-settings-tab-id="skip-logic" class="">Skip Logic</li>
+          <li data-card-settings-tab-id="skip-logic" class="">#{_t("Skip Logic")}</li>
           <li data-card-settings-tab-id="validation-criteria" class="">#{_t("Validation Criteria")}</li>
           <li data-card-settings-tab-id="response-type" class="card__settings__tab--response-type">#{_t("Response Type")}</li>
         </ul>
