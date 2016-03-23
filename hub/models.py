@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models.signals import post_init
+from django.db.models.signals import post_save
 from django.conf import settings
 from markitup.fields import MarkupField
 from jsonfield import JSONField
@@ -42,4 +42,4 @@ def create_extra_user_details(sender, instance, created, **kwargs):
     if created:
         ExtraUserDetail.objects.get_or_create(user=instance)
 
-post_init.connect(create_extra_user_details, sender=settings.AUTH_USER_MODEL)
+post_save.connect(create_extra_user_details, sender=settings.AUTH_USER_MODEL)
