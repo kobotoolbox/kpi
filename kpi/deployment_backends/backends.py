@@ -6,4 +6,5 @@ from kobocat_backend import KobocatDeploymentBackend
 
 DEPLOYMENT_BACKENDS = {
     'mock': MockDeploymentBackend,
+    'kobocat': KobocatDeploymentBackend,
 }
