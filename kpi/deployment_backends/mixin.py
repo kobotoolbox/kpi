@@ -4,7 +4,7 @@
 from backends import DEPLOYMENT_BACKENDS
 
 
-class ProjectDeployable:
+class DeployableMixin:
     def connect_deployment(self, **kwargs):
         if 'type' in kwargs:
             _type = kwargs.pop('type')
