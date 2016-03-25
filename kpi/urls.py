@@ -1,6 +1,6 @@
 from django.conf.urls import url, include
 from django.views.i18n import javascript_catalog
-from registration.backends.default.views import RegistrationView
+from hub.views import ExtraDetailRegistrationView
 from rest_framework import renderers
 from rest_framework.routers import DefaultRouter
 
@@ -48,7 +48,7 @@ urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls',
                                namespace='rest_framework')),
-    url(r'^accounts/register/$', RegistrationView.as_view(
+    url(r'^accounts/register/$', ExtraDetailRegistrationView.as_view(
         form_class=RegistrationForm), name='registration_register'),
     url(r'^accounts/logout/', 'django.contrib.auth.views.logout',
         {'next_page': '/'}),

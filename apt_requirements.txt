@@ -1,2 +1,5 @@
 libpq-dev
 gettext
+git-core
+libpcre3
+libpcre3-dev

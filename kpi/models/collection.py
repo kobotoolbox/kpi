@@ -54,7 +54,8 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
         'self', null=True, blank=True, related_name='children')
     owner = models.ForeignKey('auth.User', related_name='owned_collections')
     editors_can_change_permissions = models.BooleanField(default=True)
-    uid = models.CharField(max_length=COLLECTION_UID_LENGTH, default='')
+    uid = models.CharField(
+        max_length=COLLECTION_UID_LENGTH, default='', unique=True)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     objects = CollectionManager()

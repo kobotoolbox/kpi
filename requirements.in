@@ -49,6 +49,7 @@ sqlparse
 static3
 transifex-client
 unicodecsv
+uWSGI
 whitenoise
 xlrd
 xlwt
