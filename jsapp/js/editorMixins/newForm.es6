@@ -27,8 +27,8 @@ export default {
     if (!this.needsSave()) {
       this.transitionTo(this.listRoute);
     } else {
-      customConfirmAsync(t('you have unsaved changes. would you like to save?'))
-        .fail(() => {
+      customConfirmAsync(t('you have unsaved changes. leave form without saving?'))
+        .done(() => {
           this.transitionTo(this.listRoute);
         });
     }
