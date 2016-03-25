@@ -27,7 +27,7 @@ django-reversion==1.10.1
 django-ses==0.7.0
 django-taggit==0.18.0
 django-toolbelt==0.0.1
-Django==1.8.8
+Django==1.8.8             # via django-debug-toolbar, django-haystack, django-mptt, django-oauth-toolkit, django-reversion, django-toolbelt, jsonfield
 djangorestframework==3.3.2
 ecdsa==0.13               # via paramiko
 Fabric==1.10.2
@@ -49,6 +49,7 @@ shortuuid==0.4.3
 six==1.10.0
 sqlparse==0.1.18
 static3==0.6.1
+transifex-client==0.11
 unicodecsv==0.14.1
 uWSGI==2.0.12
 whitenoise==2.0.6

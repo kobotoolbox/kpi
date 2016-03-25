@@ -10,6 +10,7 @@ from django.forms import model_to_dict
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.template.response import SimpleTemplateResponse
+from django.conf import settings
 
 from rest_framework import (
     viewsets,
@@ -93,6 +94,7 @@ def current_user(request):
                          'gravatar': gravatar_url(user.email),
                          'is_staff': user.is_staff,
                          'last_login': user.last_login,
+                         'languages': settings.LANGUAGES,
                          })
 
 @login_required

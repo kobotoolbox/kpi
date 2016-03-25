@@ -2,104 +2,106 @@ _ = require 'underscore'
 Backbone = require 'backbone'
 
 module.exports = do ->
+  _t = require("utils").t
+
   iconDetails = [
     # row 1
-      label: "Select One"
+      label: _t("Select One")
       faClass: "dot-circle-o"
       grouping: "r1"
       id: "select_one"
     ,
-      label: "Select Many"
+      label: _t("Select Many")
       faClass: "list-ul"
       grouping: "r1"
       id: "select_multiple"
     ,
-      label: "Text"
+      label: _t("Text")
       faClass: "lato-text"
       grouping: "r1"
       id: "text"
     ,
-      label: "Number"
+      label: _t("Number")
       faClass: "lato-integer"
       grouping: "r1"
       id: "integer"
     ,
 
     # row 2
-      label: "Decimal"
+      label: _t("Decimal")
       faClass: "lato-decimal"
       grouping: "r2"
       id: "decimal"
     ,
-      label: "Date"
+      label: _t("Date")
       faClass: "calendar"
       grouping: "r2"
       id: "date"
     ,
-      label: "Time"
+      label: _t("Time")
       faClass: "clock-o"
       grouping: "r2"
       id: "time"
     ,
-      label: "Date & time"
+      label: _t("Date & time")
       faClass: "calendar clock-over"
       grouping: "r2"
       id: "datetime"
     ,
 
     # r3
-      label: "GPS"
+      label: _t("GPS")
       faClass: "map-marker"
       grouping: "r3"
       id: "geopoint"
     ,
-      label: "Photo"
+      label: _t("Photo")
       faClass: "picture-o"
       grouping: "r3"
       id: "image"
     ,
-      label: "Audio"
+      label: _t("Audio")
       faClass: "volume-up"
       grouping: "r3"
       id: "audio"
     ,
-      label: "Video"
+      label: _t("Video")
       faClass: "video-camera"
       grouping: "r3"
       id: "video"
     ,
 
     # r4
-      label: "Note"
+      label: _t("Note")
       faClass: "bars"
       grouping: "r4"
       id: "note"
     ,
-      label: "Barcode"
+      label: _t("Barcode")
       faClass: "barcode"
       grouping: "r4"
       id: "barcode"
     ,
-      label: "Acknowledge"
+      label: _t("Acknowledge")
       faClass: "check-square-o"
       grouping: "r4"
       id: "acknowledge"
     ,
-      label: "Calculate"
+      label: _t("Calculate")
       faClass: "lato-calculate"
       grouping: "r4"
       id: "calculate"
     ,
 
     # r5
-      label: "Matrix / Rating"
+      label: _t("Matrix / Rating")
       # faClass: "server"
       # will look better but isn't available until FA 4.3
       faClass: "th"
       grouping: "r5"
       id: "score"
     ,
-      label: "Ranking"
+      label: _t("Ranking")
       faClass: "sort-amount-desc"
       grouping: "r5"
       id: "rank"
