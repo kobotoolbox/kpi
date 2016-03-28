@@ -8,6 +8,7 @@ $viewRowSelector = require './view.rowSelector'
 $rowView = require './view.row'
 $baseView = require './view.pluggedIn.backboneView'
 $viewUtils = require './view.utils'
+_t = require('utils').t
 
 module.exports = do ->
   surveyApp = {}
@@ -609,7 +610,8 @@ module.exports = do ->
 
     clickRemoveRow: (evt)->
       evt.preventDefault()
-      if confirm("Are you sure you want to delete this question? This action cannot be undone.")
+      if confirm(_t("Are you sure you want to delete this question?") + " " +
+          _t("This action cannot be undone."))
         $et = $(evt.target)
         rowEl = $et.parents(".survey__row").eq(0)
         rowId = rowEl.data("rowId")
