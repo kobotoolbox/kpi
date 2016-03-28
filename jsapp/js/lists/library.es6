@@ -110,7 +110,11 @@ var LibrarySearchableList = React.createClass({
   deleteCollection (evt) {
     evt.preventDefault();
     var collectionUid = $(evt.currentTarget).data('collection-uid');
-    customConfirmAsync('are you sure you want to delete this collection? this action is not reversible').then(()=>{
+    customConfirmAsync(`${t(
+        'Are you sure you want to delete this collection?'
+      )} ${t(
+        'This action cannot be undone.'
+        )}`).then(()=>{
       var qc = () => this.queryCollections();
       dataInterface.deleteCollection({uid: collectionUid}).then(qc).catch(qc);
     });

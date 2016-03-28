@@ -201,7 +201,7 @@ export default {
     }
     let bcData = [
       {
-        'label': isLibrary ? t('library') : t('forms'),
+        'label': isLibrary ? t('Library') : t('Forms'),
         'to': isLibrary ? 'library' : 'forms',
       }
     ];
