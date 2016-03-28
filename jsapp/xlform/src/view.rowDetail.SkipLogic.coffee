@@ -3,6 +3,7 @@ Backbone = require 'backbone'
 $modelRowDetailsSkipLogic = require './model.rowDetails.skipLogic'
 $viewWidgets = require './view.widgets'
 $skipLogicHelpers = require './mv.skipLogicHelpers'
+_t = require('utils').t
 
 module.exports = do ->
   viewRowDetailSkipLogic = {}
@@ -20,15 +21,15 @@ module.exports = do ->
       tempId = _.uniqueId("skiplogic_expr")
       @$el.html("""
         <p>
-          This question will only be displayed if the following conditions apply
+          #{_t('This question will only be displayed if the following conditions apply')}
         </p>
         <div class="skiplogic__criterialist"></div>
         <p class="skiplogic__addnew">
-          <button class="skiplogic__addcriterion">+ Add another condition</button>
+          <button class="skiplogic__addcriterion">+ #{_t('Add another condition')}</button>
         </p>
         <select class="skiplogic__delimselect">
-          <option value="and">Question should match all of these criteria</option>
-          <option value="or">Question should match any of these criteria</option>
+          <option value="and">#{_t('Question should match all of these criteria')}</option>
+          <option value="or">#{_t('Question should match any of these criteria')}</option>
         </select>
       """)
 
@@ -215,7 +216,7 @@ module.exports = do ->
       @$el.on 'blur', handler
 
     constructor: (text) ->
-      super(text, "skiplogic__responseval", "response value")
+      super(text, "skiplogic__responseval", _t("response value"))
 
   class viewRowDetailSkipLogic.SkipLogicValidatingTextResponseView extends viewRowDetailSkipLogic.SkipLogicTextResponse
     render: () ->
@@ -282,7 +283,7 @@ module.exports = do ->
           value: row.cid
           text: row.getValue("label")
 
-        options.unshift value: -1, text: 'Select question from list'
+        options.unshift value: -1, text: _t('Select question from list')
         model.set 'options', options
 
       set_options()

@@ -171,13 +171,13 @@ var Drawer = React.createClass({
 
             <div className='drawer__footer'>
               <a href='http://support.kobotoolbox.org/' target='_blank'>
-                help
+                {t('help')}
               </a>
               <a href='http://www.kobotoolbox.org/' target='_blank'>
-                about
+                {t('about')}
               </a>
               <a href='https://github.com/kobotoolbox/' target='_blank'>
-                source
+                {t('source')}
               </a>
             </div>
 

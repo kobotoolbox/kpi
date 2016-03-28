@@ -5,6 +5,7 @@ $modelUtils = require './model.utils'
 $baseView = require './view.pluggedIn.backboneView'
 $viewTemplates = require './view.templates'
 $viewUtils = require './view.utils'
+_t = require('utils').t
 
 module.exports = do ->
   class ListView extends $baseView
@@ -81,7 +82,7 @@ module.exports = do ->
       @t = $("<i class=\"fa fa-trash-o js-remove-option\">")
       @pw = $("<div class=\"editable-wrapper js-cancel-select-row\">")
       @p = $("<span class=\"js-cancel-select-row\">")
-      @c = $("<code><label>Value:</label> <span class=\"js-cancel-select-row\">AUTOMATIC</span></code>")
+      @c = $("<code><label>#{_t('Value:')}</label> <span class=\"js-cancel-select-row\">#{_t('AUTOMATIC')}</span></code>")
       @d = $('<div>')
       if @model
         @p.html @model.get("label") || 'Empty'
