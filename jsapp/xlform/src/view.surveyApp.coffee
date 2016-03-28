@@ -731,7 +731,20 @@ module.exports = do ->
       $et = $(evt.currentTarget)
       buttonName = $et.data('buttonName')
       $et.parents('.card').addClass('card--shaded')
-      $et.parents('.card__header').addClass(buttonName)
+      $header = $et.parents('.card__header')
+      card_hover_text = do ->
+        if buttonName is 'settings'
+          _t('[button triggers] Settings')
+        else if buttonName is 'delete'
+          _t('[button triggers] Delete Question')
+        else if buttonName is 'duplicate'
+          _t('[button triggers] Duplicate Question')
+        else if buttonName is 'add-to-library'
+          _t('[button triggers] Add Question to Library')
+
+      $header.find('.card__header--shade').eq(0).children('span').eq(0)
+        .attr('data-card-hover-text', card_hover_text)
+      $header.addClass(buttonName)
       return
     buttonHoverOut: (evt)->
       evt.stopPropagation()
