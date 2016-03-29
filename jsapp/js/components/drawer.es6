@@ -47,10 +47,18 @@ class DrawerLink extends React.Component {
     var icon = (<span className={icon_class}></span>);
 
     var link;
+    var style = {};
+    if (this.props.lowercase) {
+      // to get navigation items looking the same,
+      // a lowercase prop can be passed.
+      // if the drawer items were all using a unique css class we could do this in css
+      style = {'text-transform': 'lowercase'};
+    }
     if (this.props.linkto) {
       link = (
             <Link to={this.props.linkto}
                   className='mdl-navigation__link'
+                  style={style}
                   activeClassName='active'
                   onClick={this.toggleDrawer}>
               {icon} {this.props.label}
@@ -59,6 +67,7 @@ class DrawerLink extends React.Component {
     } else {
       link = (
           <a href={this.props.href || '#'}
+                    style={style}
                     className='mdl-navigation__link'
                     onClick={this.onClick.bind(this)}>{icon} {this.props.label}</a>
         );
@@ -131,8 +140,8 @@ var Drawer = React.createClass({
               <div className='drawer-separator'></div>
               <span className='mdl-navigation__heading'>{t('drafts in progress')}</span>
 
-              <DrawerLink label={t('forms')} linkto='forms' fa-icon='files-o' />
-              <DrawerLink label={t('library')} linkto='library' fa-icon='book' />
+              <DrawerLink label={t('Form List')} linkto='forms' fa-icon='files-o' lowercase={true} />
+              <DrawerLink label={t('Library List')} linkto='library' fa-icon='book' lowercase={true} />
 
               <div className='drawer-separator'></div>
               <span className='mdl-navigation__heading'>{t('deployed projects')}</span>
