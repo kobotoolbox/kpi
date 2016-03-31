@@ -127,7 +127,7 @@ var AssetRow = React.createClass({
                         data-asset-type={this.props.kind}
                       >
                     <i />
-                    {t('deploy')}
+                    {this.props.deployed_version_id ? t('redeploy') : t('deploy')}
                   </bem.AssetRow__actionIcon>
                 }
                 { this.props.kind === 'collection' &&

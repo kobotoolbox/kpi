@@ -388,7 +388,7 @@ var dmix = {
           <bem.AssetView__buttoncol>
             <bem.AssetView__button m={'deploy'}  onClick={this.deployAsset}>
               <i />
-              {t('deploy')}
+              {this.state.deployed_version_id ? t('redeploy') : t('deploy')}
             </bem.AssetView__button>
           </bem.AssetView__buttoncol>
           : null }
@@ -412,20 +412,19 @@ var dmix = {
         });
       });
   },
-  deployPrompt (asset_url, settings) {
-    let defaultFormId = (settings && settings.form_id) || '';
-    let dialog = alertify.dialog('prompt');
+  reDeployConfirm (asset) {
+    let dialog = alertify.dialog('confirm');
     let opts = {
-      title: t('deploy form to kobocat'),
-      message: t('please specify a form id'),
-      value: defaultFormId,
+      title: t('overwrite existing deployment on kobocat'),
+      message: t('this form has already been deployed. are you sure you ' +
+                 'want overwrite the existing deployment? this action ' +
+                 'cannot be undone. consider deploying a clone instead.'),
       labels: {ok: t('ok'), cancel: t('cancel')},
       onok: (evt, val) => {
         let ok_button = dialog.elements.buttons.primary.firstChild;
         ok_button.disabled = true;
         ok_button.innerText = t('Deploying...');
-        // pass the dialog so it can be modified to include error messages
-        actions.resources.deployAsset(asset_url, val, dialog);
+        actions.resources.deployAsset(asset, true, dialog);
         // keep the dialog open
         return false;
       },
@@ -435,10 +434,24 @@ var dmix = {
     };
     dialog.set(opts).show();
   },
-  deployAsset () {
-    let asset_url = this.state.url;
-    let settings = this.state.settings;
-    dmix.deployPrompt(asset_url, settings);
+  deployAsset (asset) {
+    if (!asset || asset.kind != 'asset') {
+        if (this.state && this.state.kind == 'asset') {
+          asset = this.state;
+        } else {
+          console.error(
+            'Neither the arguments nor the state supplied an asset.');
+          return;
+        }
+    }
+    if (!asset.deployed_version_id) {
+      // There's no existing deployment for this asset
+      let deployment_alert = alertify.warning(t('deploying to kobocat...'), 60);
+      actions.resources.deployAsset(asset, false, deployment_alert);
+    } else {
+      // We are about to overwrite(!) an existing deployment
+      dmix.reDeployConfirm(asset);
+    }
   },
   deleteAsset (...args) {
     let uid = this.props.params.assetid;
@@ -479,10 +492,11 @@ var dmix = {
           </bem.AssetView__buttoncol>
           <bem.AssetView__deployments>
             {
-              this.state.deployment_count ?
-                `${t('deployments')}: ${this.state.deployment_count}`
-                :
-                t('no deployments')
+              this.state.deployed_version_id ?
+                t('version id ___ deployed').replace(
+                  '___', this.state.deployed_version_id)
+              :
+                t('not deployed')
             }
           </bem.AssetView__deployments>
         </bem.AssetView__row>
@@ -966,7 +980,7 @@ mixins.clickAssets = {
       },
       deploy: function(/*uid, evt*/){
         let asset = stores.selectedAsset.asset;
-        dmix.deployPrompt(asset.url, asset.settings);
+        dmix.deployAsset(asset);
       },
     }
   },
