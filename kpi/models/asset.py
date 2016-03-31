@@ -89,7 +89,14 @@ class XlsExportable(object):
     def valid_xlsform_content(self):
         return to_xlsform_structure(self.content)
 
-    def to_xls_io(self):
+    def to_xls_io(self, extra_rows=None, extra_settings=None):
+        ''' To append rows to one or more sheets, pass `extra_rows` as a
+        dictionary of dictionaries in the following format:
+            `{'sheet name': {'column name': 'cell value'}`
+        Extra settings may be included as a dictionary of
+            `{'setting name': 'setting value'}` '''
+        if extra_rows is None:
+            extra_rows = {}
         import xlwt
         import StringIO
         try:
@@ -106,7 +113,24 @@ class XlsExportable(object):
                         val = row.get(col, None)
                         if val:
                             sheet.write(ri +1, ci, val)
-            ss_dict = self.valid_xlsform_content()
+            # The extra rows and settings should persist within this function
+            # and its return value *only*. Calling deepcopy() is required to
+            # achive this isolation.
+            ss_dict = copy.deepcopy(self.valid_xlsform_content())
+            for extra_row_sheet_name, extra_row in extra_rows.iteritems():
+                extra_row_sheet = ss_dict.get(extra_row_sheet_name, [])
+                extra_row_sheet.append(extra_row)
+                ss_dict[extra_row_sheet_name] = extra_row_sheet
+            if extra_settings:
+                for setting_name, setting_value in extra_settings.iteritems():
+                    # Do not silently overwrite existing settings
+                    settings_sheet = ss_dict.get('settings', [{}])
+                    if not len(settings_sheet):
+                        settings_sheet.append({})
+                    settings_row = settings_sheet[0]
+                    assert(setting_name not in settings_row)
+                    settings_row[setting_name] = setting_value
+
             workbook = xlwt.Workbook()
             for sheet_name in ss_dict.keys():
                 # pyxform.xls2json_backends adds "_header" items for each sheet....
@@ -119,6 +143,21 @@ class XlsExportable(object):
         workbook.save(string_io)
         string_io.seek(0)
         return string_io
+
+    def to_versioned_xls_io(self):
+        ''' Records the version in the `settings` sheet and as a `calculate`
+        question '''
+        extra_rows = {
+            'survey': {
+                'name': '__version__',
+                'type': 'calculate',
+                'calculation': self.version_id
+            }
+        }
+        extra_settings = {'version': self.version_id}
+        return self.to_xls_io(
+            extra_rows=extra_rows, extra_settings=extra_settings)
+
 
 @reversion.register
 class Asset(ObjectPermissionMixin,
@@ -213,7 +252,8 @@ class Asset(ObjectPermissionMixin,
         analyzer = AssetContentAnalyzer(**self.content)
         self.summary = analyzer.summary
 
-    def _generate_uid(self):
+    @staticmethod
+    def _generate_uid():
         return 'a' + ShortUUID().random(ASSET_UID_LENGTH -1)
 
     def save(self, *args, **kwargs):
