@@ -141,9 +141,9 @@ class Asset(ObjectPermissionMixin,
         max_length=ASSET_UID_LENGTH, default='', unique=True)
     tags = TaggableManager(manager=KpiTaggableManager)
 
-    # deployment_data is accessed through "Deployable"s
-    # "asset.deployment" property
-    deployment_data = JSONField(default={})
+    # _deployment_data should be accessed through the `deployment` property
+    # provided by `DeployableMixin`
+    _deployment_data = JSONField(default={})
 
 
     permissions = GenericRelation(ObjectPermission)
