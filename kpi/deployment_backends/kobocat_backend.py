@@ -18,6 +18,12 @@ from base_backend import BaseDeploymentBackend
 
 
 class KobocatDeploymentException(exceptions.APIException):
+    def __init__(self, *args, **kwargs):
+        if 'response' in kwargs:
+            self.response = kwargs.pop('response')
+        return super(KobocatDeploymentException, self).__init__(
+            *args, **kwargs)
+
     @property
     def invalid_form_id(self):
         # We recognize certain KC API responses as indications of an
@@ -135,7 +141,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except requests.exceptions.RequestException as e:
             # Failed to access the KC API
             # TODO: clarify that the user cannot correct this
-            raise KobocatDeploymentException(detail=unicode(e))
+            raise KobocatDeploymentException(
+                detail=unicode(e), response=response)
 
         # If it's a no-content success, return immediately
         if response.status_code == expected_status_code == 204:
@@ -147,7 +154,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except ValueError as e:
             # Unparseable KC API output
             # TODO: clarify that the user cannot correct this
-            raise KobocatDeploymentException(detail=unicode(e))
+            raise KobocatDeploymentException(
+                detail=unicode(e), response=response)
 
         # Check for failure
         if response.status_code != expected_status_code or (
@@ -163,7 +171,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 # Unspecified failure; raise 500
                 raise KobocatDeploymentException(
                     detail='Unexpected KoBoCAT error {}: {}'.format(
-                        response.status_code, response.content)
+                        response.status_code, response.content),
+                    response=response
                 )
 
         return json_response
@@ -241,7 +250,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             u'text_xls_form': valid_xlsform_csv_repr,
             u'downloadable': active
         }
-        json_response = self._kobocat_request('PATCH', url, payload)
+        try:
+            json_response = self._kobocat_request('PATCH', url, payload)
+        except KobocatDeploymentException as e:
+            if e.response.status_code == 404:
+                # Whoops, the KC project we thought we were going to ovewrite
+                # is gone! Try a standard deployment instead
+                return self.connect(self.identifier, active)
         self.store_data({
             'active': json_response['downloadable'],
             'backend_response': json_response,
