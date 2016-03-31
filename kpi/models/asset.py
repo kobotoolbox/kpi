@@ -1,5 +1,7 @@
 import re
 import six
+import copy
+import json
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import MultipleObjectsReturned
@@ -173,6 +175,11 @@ class Asset(ObjectPermissionMixin,
         'change_collection': 'change_asset'
     }
 
+    def __init__(self, *args, **kwargs):
+        r = super(Asset, self).__init__(*args, **kwargs)
+        # Mind the depth
+        self._initial_content_json = json.dumps(self.content)
+
     def versions(self):
         return reversion.get_for_object(self)
 
@@ -235,7 +242,18 @@ class Asset(ObjectPermissionMixin,
             elif row_count > 1:
                 self.asset_type = 'block'
 
-        with transaction.atomic(), reversion.create_revision():
+        new_content_json = json.dumps(self.content)
+        if self._initial_content_json != new_content_json or (
+                not self.pk or not self.versions().exists()
+        ):
+            # Create a new version if the content has been changed, or if no
+            # version exists yet
+            with reversion.create_revision():
+                super(Asset, self).save(*args, **kwargs)
+            # Reset `_initial_content` since the change has been written to the
+            # database
+            self._initial_content = new_content_json
+        else:
             super(Asset, self).save(*args, **kwargs)
 
     def _strip_empty_rows(self, arr, required_key='type'):
