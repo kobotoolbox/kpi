@@ -49,3 +49,7 @@ class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
     perms_map['GET']= ['%(app_label)s.view_%(model_name)s']
     perms_map['OPTIONS']= perms_map['GET']
     perms_map['HEAD']= perms_map['GET']
+
+class PostMappedToChangePermission(IsOwnerOrReadOnly):
+    perms_map = IsOwnerOrReadOnly.perms_map
+    perms_map['POST'] = ['%(app_label)s.change_%(model_name)s']

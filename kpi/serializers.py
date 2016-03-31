@@ -379,8 +379,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         many=True, read_only=True, source='get_ancestors_or_none')
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     tag_string = serializers.CharField(required=False, allow_blank=True)
-    deployment_count = serializers.SerializerMethodField()
     version_id = serializers.IntegerField(read_only=True)
+    deployed_version_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -407,7 +407,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'kind',
                   'xls_link',
                   'name',
-                  'deployment_count',
+                  'deployed_version_id',
+                  'version_id',
                   'permissions',)
         extra_kwargs = {
             'parent': {
@@ -485,15 +486,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return reverse('asset-koboform', args=(obj.uid,), request=self.context
                        .get('request', None))
 
-    def get_deployment_count(self, obj):
-        # If the QuerySet has been annotated with Count('assetdeployment'),
-        # then no further database queries are necessary
-        return getattr(
-            obj,
-            'assetdeployment__count',
-            # Not annotated; hit the database
-            obj.assetdeployment_set.count()
-        )
+    def get_deployed_version_id(self, obj):
+        if obj.has_deployment:
+            return obj.deployment.version
 
     def _content(self, obj):
         return json.dumps(obj.content)
@@ -501,6 +496,53 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def _table_url(self, obj):
         request = self.context.get('request', None)
         return reverse('asset-table-view', args=(obj.uid,), request=request)
+
+
+class DeploymentSerializer(serializers.Serializer):
+    backend = serializers.CharField()
+    identifier = serializers.CharField(read_only=True)
+    active = serializers.BooleanField(required=False)
+    version = serializers.CharField(required=False)
+
+    def create(self, validated_data):
+        asset = self.context['asset']
+        # Stop if the requester attempts to deploy any version of the asset
+        # except the current one
+        if 'version' in validated_data and \
+                validated_data['version'] != str(asset.version_id):
+            raise NotImplementedError(
+                'Only the current version can be deployed')
+        asset.connect_deployment(
+            backend=validated_data['backend'],
+            active=validated_data['active']
+        )
+        return asset.deployment
+
+    def update(self, instance, validated_data):
+        asset = self.context['asset']
+        deployment = self.context['asset'].deployment
+        if 'backend' in validated_data and \
+                validated_data['backend'] != deployment.backend:
+            raise exceptions.ValidationError(
+                {'backend': 'This field cannot be modified after the initial '
+                            'deployment.'})
+        # Is this a request to replace the content of the existing, deployed
+        # form?
+        if 'version' in validated_data:
+            # For now, don't check that
+            #   validated_data['version'] != str(deployment.version)
+            # Instead, send the update to KC even if the content is unchanged
+            if validated_data['version'] != str(asset.version_id):
+                # We still can't deploy any version other than the current one
+                raise NotImplementedError(
+                    'Only the current version can be deployed')
+            # Overwrite the contents of the form
+            deployment.redeploy(active=validated_data['active'])
+        else:
+            # A regular PATCH request can update only the `active` field
+            if 'active' in validated_data:
+                deployment.set_active(validated_data['active'])
+        return deployment
 
 
 class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
@@ -626,7 +668,8 @@ class AssetListSerializer(AssetSerializer):
                   'kind',
                   'name',
                   'asset_type',
-                  'deployment_count',
+                  'deployed_version_id',
+                  'version_id',
                   'permissions',
                   )
 
