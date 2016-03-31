@@ -15,7 +15,6 @@ from taggit.models import Tag
 
 from hub.models import SitewideMessage
 from .models import Asset
-from .models import AssetDeployment, AssetDeploymentException
 from .models import AssetSnapshot
 from .models import Collection
 from .models import CollectionChildrenQuerySet
@@ -543,79 +542,6 @@ class DeploymentSerializer(serializers.Serializer):
             if 'active' in validated_data:
                 deployment.set_active(validated_data['active'])
         return deployment
-
-
-class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
-    xform_id_string = serializers.CharField(required=False)
-    xform_url = serializers.SerializerMethodField()
-
-    asset = GenericHyperlinkedRelatedField(
-        lookup_field='uid',
-        style={'base_template': 'input.html'} # Render as a simple text box
-    )
-
-    def create(self, validated_data):
-        user = self.context['request'].user
-        if user.is_anonymous():
-            raise exceptions.NotAuthenticated
-
-        asset = validated_data['asset']
-        xform_id_string = ''
-        if 'xform_id_string' in validated_data:
-            xform_id_string = validated_data.get('xform_id_string')
-        if not len(xform_id_string):
-            # If no id string was provided, use a punctuation-free timestamp
-            xform_id_string = datetime.datetime.utcnow().strftime(
-                '%Y%m%dT%H%M%S%fZ')
-
-        try:
-            return AssetDeployment._create_if_possible(
-                asset, user, xform_id_string)
-        except AssetDeploymentException as e:
-            if e.invalid_form_id:
-                raise exceptions.ValidationError(
-                    detail={'xform_id_string': e.detail})
-            # Something other than an invalid form id; just reraise
-            # TODO: clarify whether or not this is a user error
-            raise
-
-    def get_xform_url(self, obj):
-        return obj.data.get('published_form_url')
-
-    class Meta:
-        model = AssetDeployment
-        fields = (
-            'user',
-            'date_created',
-            'asset',
-            'asset_version_id',
-            'uid',
-            'xform_pk',
-            'xform_id_string',
-            'xform_url',
-        )
-        lookup_field = 'uid'
-        extra_kwargs = {
-            'user': {
-                'lookup_field': 'username',
-                'read_only': True,
-            },
-            'asset': {
-                'lookup_field': 'uid',
-            },
-            'asset_version_id': {
-                'read_only': True,
-            },
-            'uid': {
-                'read_only': True,
-            },
-            'xform_pk': {
-                'read_only': True,
-            },
-            'xform_id_string': {
-                'allow_blank': True,
-            }
-        }
 
 
 class ImportTaskSerializer(serializers.HyperlinkedModelSerializer):

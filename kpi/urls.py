@@ -12,7 +12,6 @@ from kpi.views import (
     TagViewSet,
     ImportTaskViewSet,
     ObjectPermissionViewSet,
-    AssetDeploymentViewSet,
     SitewideMessageViewSet,
     AuthorizedApplicationUserViewSet,
 )
@@ -30,7 +29,6 @@ router.register(r'users', UserViewSet)
 router.register(r'tags', TagViewSet)
 router.register(r'permissions', ObjectPermissionViewSet)
 router.register(r'imports', ImportTaskViewSet)
-router.register(r'deployments', AssetDeploymentViewSet)
 router.register(r'sitewide_messages', SitewideMessageViewSet)
 
 router.register(

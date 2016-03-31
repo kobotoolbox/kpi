@@ -40,7 +40,6 @@ from .models import (
     Asset,
     AssetSnapshot,
     ImportTask,
-    AssetDeployment,
     ObjectPermission,
     AuthorizedApplication,
     )
@@ -64,7 +63,6 @@ from .serializers import (
     CollectionSerializer, CollectionListSerializer,
     UserSerializer, UserListSerializer, CreateUserSerializer,
     TagSerializer, TagListSerializer,
-    AssetDeploymentSerializer,
     ImportTaskSerializer, ImportTaskListSerializer,
     ObjectPermissionSerializer,
     AuthorizedApplicationUserSerializer,
@@ -214,18 +212,6 @@ class CollectionViewSet(viewsets.ModelViewSet):
             return CollectionListSerializer
         else:
             return CollectionSerializer
-
-
-class AssetDeploymentViewSet(NoUpdateModelViewSet):
-    queryset = AssetDeployment.objects.none()
-    serializer_class = AssetDeploymentSerializer
-    lookup_field = 'uid'
-
-    def get_queryset(self, *args, **kwargs):
-        if self.request.user.is_anonymous():
-            return AssetDeployment.objects.none()
-        else:
-            return AssetDeployment.objects.filter(user=self.request.user)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -446,7 +432,7 @@ class AssetViewSet(viewsets.ModelViewSet):
         'permissions__content_object',
         # Getting the tag_string is making one query per object, but
         # prefetch_related doesn't seem to help
-    ).annotate(Count('assetdeployment')).all()
+    ).all()
     serializer_class = AssetSerializer
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
