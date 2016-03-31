@@ -12,7 +12,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     '''
     def connect(self):
         self.store_data({
-                'type': 'mock',
+                'backend': 'mock',
                 'identifier': 'mock://%s' % self.asset.uid,
                 'active': False,
             })

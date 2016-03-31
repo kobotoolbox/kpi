@@ -6,21 +6,26 @@ from backends import DEPLOYMENT_BACKENDS
 
 class DeployableMixin:
     def connect_deployment(self, **kwargs):
-        if 'type' in kwargs:
-            _type = kwargs.pop('type')
+        if 'backend' in kwargs:
+            backend = kwargs.pop('backend')
             try:
-                DEPLOYMENT_BACKENDS[_type](self).connect(**kwargs)
+                DEPLOYMENT_BACKENDS[backend](self).connect(**kwargs)
             except KeyError, e:
-                raise KeyError('cannot retrieve asset backend: "{}"'.format(_type))
+                raise KeyError(
+                    'cannot retrieve asset backend: "{}"'.format(backend))
         else:
-            raise KeyError('connect_deployment requires an argument "type"')
+            raise KeyError('connect_deployment requires an argument "backend"')
+
+    @property
+    def has_deployment(self):
+        return 'backend' in self._deployment_data
 
     @property
     def deployment(self):
-        if 'type' not in self.deployment_data:
+        if not self.has_deployment:
             raise Exception('must call asset.connect_deployment first')
         try:
-            _type = self.deployment_data['type']
-            return DEPLOYMENT_BACKENDS[_type](self)
+            backend = self._deployment_data['backend']
+            return DEPLOYMENT_BACKENDS[backend](self)
         except KeyError, e:
-            raise KeyError('cannot retrieve asset backend: {}'.format(_type))
+            raise KeyError('cannot retrieve asset backend: {}'.format(backend))

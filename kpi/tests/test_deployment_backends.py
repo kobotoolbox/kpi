@@ -15,14 +15,14 @@ class CreateDeployment(TestCase):
     def test_invalid_backend_fails(self):
         self.asset.save()
         def _bad_deployment():
-            self.asset.connect_deployment(type='nonexistent')
+            self.asset.connect_deployment(backend='nonexistent')
         self.assertRaises(KeyError, _bad_deployment)
 
     def test_mock_deployment_inits(self):
         self.asset.save()
         _uid = self.asset.uid
-        self.asset.connect_deployment(type='mock')
-        self.assertEqual(self.asset.deployment_data['type'], 'mock')
+        self.asset.connect_deployment(backend='mock')
+        self.assertEqual(self.asset.deployment_data['backend'], 'mock')
 
 
 class MockDeployment(TestCase):
@@ -33,7 +33,7 @@ class MockDeployment(TestCase):
                     u'label': 'Q1.',}
                 ]
             })
-        self.asset.connect_deployment(type='mock')
+        self.asset.connect_deployment(backend='mock')
 
     def test_deployment_creates_identifier(self):
         _uid = self.asset.uid
