@@ -123,10 +123,10 @@ for db in DATABASES.values():
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
 from django.conf.global_settings import LANGUAGES as _available_langs
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import get_language_info
 
 _available_langs = dict(_available_langs)
-LANGUAGES = [(lang_code, _(_available_langs[lang_code]))
+LANGUAGES = [(lang_code, get_language_info(lang_code)['name_local'])
              for lang_code in os.environ.get('DJANGO_LANGUAGE_CODES', 'en').split(' ')]
 
 LANGUAGE_CODE = 'en-us'
