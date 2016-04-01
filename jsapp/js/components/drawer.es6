@@ -119,11 +119,11 @@ var Drawer = React.createClass({
   },
   languageChange (langCode) {
     if (langCode) {
+      var cookieParams = {path: '/'};
       if (cookieDomain) {
-        cookie.save(LANGUAGE_COOKIE_NAME, langCode, {domain: cookieDomain});
-      } else {
-        cookie.save(LANGUAGE_COOKIE_NAME, langCode);
+        cookieParams.domain = cookieDomain;
       }
+      cookie.save(LANGUAGE_COOKIE_NAME, langCode, cookieParams);
     }
   },
   languagePrompt () {
