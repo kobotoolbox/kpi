@@ -388,7 +388,8 @@ var dmix = {
           <bem.AssetView__buttoncol>
             <bem.AssetView__button m={'deploy'}  onClick={this.deployAsset}>
               <i />
-              {this.state.deployed_version_id ? t('redeploy') : t('deploy')}
+              {this.state.deployed_version_id === null ?
+                t('deploy') : t('redeploy')}
             </bem.AssetView__button>
           </bem.AssetView__buttoncol>
           : null }
@@ -444,7 +445,7 @@ var dmix = {
           return;
         }
     }
-    if (!asset.deployed_version_id) {
+    if (asset.deployed_version_id === null) {
       // There's no existing deployment for this asset
       let deployment_alert = alertify.warning(t('deploying to kobocat...'), 60);
       actions.resources.deployAsset(asset, false, deployment_alert);
@@ -492,11 +493,11 @@ var dmix = {
           </bem.AssetView__buttoncol>
           <bem.AssetView__deployments>
             {
-              this.state.deployed_version_id ?
+              this.state.deployed_version_id === null ?
+                t('not deployed')
+              :
                 t('version id ___ deployed').replace(
                   '___', this.state.deployed_version_id)
-              :
-                t('not deployed')
             }
           </bem.AssetView__deployments>
         </bem.AssetView__row>
