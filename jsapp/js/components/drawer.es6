@@ -16,6 +16,7 @@ import {
 const LANGUAGE_COOKIE_NAME = 'django_language';
 
 var leaveBetaUrl = stores.pageState.leaveBetaUrl;
+var cookieDomain = stores.pageState.cookieDomain;
 
 class DrawerTitle extends React.Component {
   render () {
@@ -118,7 +119,11 @@ var Drawer = React.createClass({
   },
   languageChange (langCode) {
     if (langCode) {
-      cookie.save(LANGUAGE_COOKIE_NAME, langCode);
+      if (cookieDomain) {
+        cookie.save(LANGUAGE_COOKIE_NAME, langCode, {domain: cookieDomain});
+      } else {
+        cookie.save(LANGUAGE_COOKIE_NAME, langCode);
+      }
     }
   },
   languagePrompt () {
