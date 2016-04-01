@@ -155,7 +155,7 @@ var Drawer = React.createClass({
               : null }
 
               <div className='drawer-separator'></div>
-              <span className='mdl-navigation__heading' onDoubleClick={this.languagePrompt}>{t('account actions')}</span>
+              <span className='mdl-navigation__heading'>{t('account actions')}</span>
               { this.state.isLoggedIn ?
                 <div>
                   <DrawerLink label={t('settings')} href={stores.session.currentAccount.projects_url + 'settings'} fa-icon='user' />
@@ -163,11 +163,9 @@ var Drawer = React.createClass({
                     <DrawerLink label={t('leave beta')} href={leaveBetaUrl} fa-icon='circle-o' />
                   :null}
                   <DrawerLink label={t('logout')} onClick={this.logout} fa-icon='sign-out' />
+                  <DrawerLink label={t('language')} fa-icon='globe' onClick={this.languagePrompt} />
                   {this.state.showLanguageSwitcher ?
-                    <DrawerLink label={t('language')} fa-icon='globe' />
-                  : null }
-                  {this.state.showLanguageSwitcher ?
-                    <div style={{padding: '2px 20px'}}>
+                    <div style={{padding: '2px 20px 2px 35px'}}>
                       <Select
                         name="language-selector"
                         value={this.state.currentLang}
