@@ -47,7 +47,7 @@ def explode_assets(apps, schema_editor):
             kc_deployment.store_data({
                 'backend': 'kobocat',
                 'identifier': kc_deployment.make_identifier(
-                    asset.owner, deployment.xform_id_string),
+                    asset.owner.username, deployment.xform_id_string),
                 'active': deployment.data['downloadable'],
                 'backend_response': deployment.data,
                 'version': 0 # Not ideal, but preferable to the ugliness
