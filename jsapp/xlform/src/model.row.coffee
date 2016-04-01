@@ -10,6 +10,7 @@ $aliases = require './model.aliases'
 $rowDetail = require './model.rowDetail'
 $choices = require './model.choices'
 $skipLogicHelpers = require './mv.skipLogicHelpers'
+_t = require('utils').t
 
 module.exports = do ->
   row = {}
@@ -190,7 +191,7 @@ module.exports = do ->
       @_extendAll(rr)
       rankConstraintMessageKey = 'kobo--rank-constraint-message'
       if !rr.get(rankConstraintMessageKey)
-        rr.set(rankConstraintMessageKey, 'Items cannot be selected more than once')
+        rr.set(rankConstraintMessageKey, _t('Items cannot be selected more than once'))
 
     _beginEndKey: ->
       'rank'

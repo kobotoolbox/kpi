@@ -122,6 +122,13 @@ for db in DATABASES.values():
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
+from django.conf.global_settings import LANGUAGES as _available_langs
+from django.utils.translation import ugettext_lazy as _
+
+_available_langs = dict(_available_langs)
+LANGUAGES = [(lang_code, _(_available_langs[lang_code]))
+             for lang_code in os.environ.get('DJANGO_LANGUAGE_CODES', 'en').split(' ')]
+
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'

@@ -16,6 +16,7 @@ import {
 const LANGUAGE_COOKIE_NAME = 'django_language';
 
 var leaveBetaUrl = stores.pageState.leaveBetaUrl;
+var cookieDomain = stores.pageState.cookieDomain;
 
 class DrawerTitle extends React.Component {
   render () {
@@ -47,10 +48,18 @@ class DrawerLink extends React.Component {
     var icon = (<span className={icon_class}></span>);
 
     var link;
+    var style = {};
+    if (this.props.lowercase) {
+      // to get navigation items looking the same,
+      // a lowercase prop can be passed.
+      // if the drawer items were all using a unique css class we could do this in css
+      style = {'text-transform': 'lowercase'};
+    }
     if (this.props.linkto) {
       link = (
             <Link to={this.props.linkto}
                   className='mdl-navigation__link'
+                  style={style}
                   activeClassName='active'
                   onClick={this.toggleDrawer}>
               {icon} {this.props.label}
@@ -59,6 +68,7 @@ class DrawerLink extends React.Component {
     } else {
       link = (
           <a href={this.props.href || '#'}
+                    style={style}
                     className='mdl-navigation__link'
                     onClick={this.onClick.bind(this)}>{icon} {this.props.label}</a>
         );
@@ -109,7 +119,11 @@ var Drawer = React.createClass({
   },
   languageChange (langCode) {
     if (langCode) {
-      cookie.save(LANGUAGE_COOKIE_NAME, langCode);
+      var cookieParams = {path: '/'};
+      if (cookieDomain) {
+        cookieParams.domain = cookieDomain;
+      }
+      cookie.save(LANGUAGE_COOKIE_NAME, langCode, cookieParams);
     }
   },
   languagePrompt () {
@@ -131,8 +145,8 @@ var Drawer = React.createClass({
               <div className='drawer-separator'></div>
               <span className='mdl-navigation__heading'>{t('drafts in progress')}</span>
 
-              <DrawerLink label={t('forms')} linkto='forms' fa-icon='files-o' />
-              <DrawerLink label={t('library')} linkto='library' fa-icon='book' />
+              <DrawerLink label={t('Form List')} linkto='forms' fa-icon='files-o' lowercase={true} />
+              <DrawerLink label={t('Library List')} linkto='library' fa-icon='book' lowercase={true} />
 
               <div className='drawer-separator'></div>
               <span className='mdl-navigation__heading'>{t('deployed projects')}</span>
@@ -141,7 +155,7 @@ var Drawer = React.createClass({
               : null }
 
               <div className='drawer-separator'></div>
-              <span className='mdl-navigation__heading' onDoubleClick={this.languagePrompt}>{t('account actions')}</span>
+              <span className='mdl-navigation__heading'>{t('account actions')}</span>
               { this.state.isLoggedIn ?
                 <div>
                   <DrawerLink label={t('settings')} href={stores.session.currentAccount.projects_url + 'settings'} fa-icon='user' />
@@ -149,11 +163,9 @@ var Drawer = React.createClass({
                     <DrawerLink label={t('leave beta')} href={leaveBetaUrl} fa-icon='circle-o' />
                   :null}
                   <DrawerLink label={t('logout')} onClick={this.logout} fa-icon='sign-out' />
+                  <DrawerLink label={t('language')} fa-icon='globe' onClick={this.languagePrompt} />
                   {this.state.showLanguageSwitcher ?
-                    <DrawerLink label={t('language')} fa-icon='globe' />
-                  : null }
-                  {this.state.showLanguageSwitcher ?
-                    <div style={{padding: '2px 20px'}}>
+                    <div style={{padding: '2px 20px 2px 35px'}}>
                       <Select
                         name="language-selector"
                         value={this.state.currentLang}
@@ -171,13 +183,13 @@ var Drawer = React.createClass({
 
             <div className='drawer__footer'>
               <a href='http://support.kobotoolbox.org/' target='_blank'>
-                help
+                {t('help')}
               </a>
               <a href='http://www.kobotoolbox.org/' target='_blank'>
-                about
+                {t('about')}
               </a>
               <a href='https://github.com/kobotoolbox/' target='_blank'>
-                source
+                {t('source')}
               </a>
             </div>
 

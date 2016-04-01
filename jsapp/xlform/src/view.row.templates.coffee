@@ -14,7 +14,7 @@ module.exports = do ->
       <section class="card__settings  row-extras row-extras--depr">
         <i class="card__settings-close fa fa-times js-toggle-card-settings"></i>
         <ul class="card__settings__tabs">
-          <li class="heading"><i class="fa fa-cog"></i> Settings</li>
+          <li class="heading"><i class="fa fa-cog"></i> #{_t("Settings")}</li>
           <li data-card-settings-tab-id="all" class="card__settings__tabs__tab--active">#{_t("All group settings")}</li>
           <li data-card-settings-tab-id="skip-logic" class="">#{_t("Skip Logic")}</li>
         </ul>
@@ -30,7 +30,7 @@ module.exports = do ->
       <section class="card__settings  row-extras row-extras--depr">
         <i class="card__settings-close fa fa-times js-toggle-card-settings"></i>
         <ul class="card__settings__tabs">
-          <li class="heading"><i class="fa fa-cog"></i> Settings</li>
+          <li class="heading"><i class="fa fa-cog"></i> #{_t("Settings")}</li>
           <li data-card-settings-tab-id="question-options" class="card__settings__tabs__tab--active">#{_t("Question Options")}</li>
           <li data-card-settings-tab-id="skip-logic" class="">#{_t("Skip Logic")}</li>
           <li data-card-settings-tab-id="validation-criteria" class="">#{_t("Validation Criteria")}</li>
