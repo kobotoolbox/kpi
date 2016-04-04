@@ -1,7 +1,8 @@
 from django.conf.urls import url, include
-from rest_framework.routers import DefaultRouter
+from django.views.i18n import javascript_catalog
+from hub.views import ExtraDetailRegistrationView
 from rest_framework import renderers
-from registration.backends.default.views import RegistrationView
+from rest_framework.routers import DefaultRouter
 
 from kpi.views import (
     AssetViewSet,
@@ -35,13 +36,19 @@ router.register(r'sitewide_messages', SitewideMessageViewSet)
 router.register(
     r'authorized-application/users', AuthorizedApplicationUserViewSet)
 
+
+# Apps whose translations should be available in the client code.
+js_info_dict = {
+    'packages': ('kpi.apps.KpiConfig',),
+}
+
 urlpatterns = [
     url(r'^$', home, name='kpi-root'),
     url(r'^me/$', current_user, name='current-user'),
     url(r'^', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls',
                                namespace='rest_framework')),
-    url(r'^accounts/register/$', RegistrationView.as_view(
+    url(r'^accounts/register/$', ExtraDetailRegistrationView.as_view(
         form_class=RegistrationForm), name='registration_register'),
     url(r'^accounts/logout/', 'django.contrib.auth.views.logout',
         {'next_page': '/'}),
@@ -52,4 +59,6 @@ urlpatterns = [
         authorized_application_authenticate_user
     ),
     url(r'^hub/switch_builder$', switch_builder, name='toggle-preferred-builder'),
+    # Translation catalog for client code.
+    url(r'^jsi18n/$', javascript_catalog, js_info_dict, name='javascript-catalog'),
 ]

@@ -1479,9 +1479,9 @@ var FormEnketoPreview = React.createClass({
       });
       let bcRoot;
       if (asset.asset_type === 'survey') {
-        bcRoot = {'label': t('Forms'), 'to': 'forms'};
+        bcRoot = {'label': t('Form List'), 'to': 'forms'};
       } else {
-        bcRoot = {label: t('Library'), 'to': 'library'};
+        bcRoot = {'label': t('Library List'), 'to': 'library'};
       }
       stores.pageState.setHeaderBreadcrumb([
         bcRoot,

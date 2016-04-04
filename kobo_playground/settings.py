@@ -68,6 +68,7 @@ INSTALLED_APPS = (
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -119,11 +120,20 @@ for db in DATABASES.values():
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/1.7/topics/i18n/
+# https://docs.djangoproject.com/en/1.8/topics/i18n/
+
+from django.conf.global_settings import LANGUAGES as _available_langs
+from django.utils.translation import get_language_info
+
+_available_langs = dict(_available_langs)
+LANGUAGES = [(lang_code, get_language_info(lang_code)['name_local'])
+             for lang_code in os.environ.get('DJANGO_LANGUAGE_CODES', 'en').split(' ')]
 
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
+
+LOCALE_PATHS= (os.path.join(BASE_DIR, 'locale'),)
 
 USE_I18N = True
 

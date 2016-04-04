@@ -1,7 +1,7 @@
+
 import moment from 'moment';
 import alertify from 'alertifyjs';
 import $ from 'jquery';
-import translations from './translations.json';
 
 export var assign = require('react/lib/Object.assign');
 
@@ -109,25 +109,11 @@ window.log = log;
 
 var __strings = [];
 
-var currentLang = "en_US";
 
+/*global gettext*/
 export function t(str) {
-  if (translations[currentLang][str]) {
-    return translations[currentLang][str];
-  }
-  if (__strings.indexOf(str) === -1) {
-    __strings.push(str);
-  }
-  return str;
+  return gettext(str);
 };
-
-export function changeLang(langCode) {
-  if (langCode in translations) {
-    currentLang = langCode;
-  } else {
-    throw new Error(`language '${langCode}' not found in translations.json`);
-  }
-}
 
 log.t = function () {
   let _t = {};

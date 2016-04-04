@@ -1,81 +1,97 @@
-FROM kobotoolbox/base-kobos:latest
+FROM kobotoolbox/koboform_base:latest
 
-ENV KPI_SRC_DIR=/srv/src/kpi \
-    KPI_LOGS_DIR=/srv/logs \
+
+# Note: Additional environment variables established in `Dockerfile.koboform_base`.
+ENV KPI_LOGS_DIR=/srv/logs \
     KPI_WHOOSH_DIR=/srv/whoosh \
-    NODE_PATH=/srv/node_modules \
-    PIP_EDITABLE_PACKAGE_DIR=/srv/pip_editable_packages
-# The mountpoint of a volume shared with the nginx container. Static files will
-# be copied there.
-ENV NGINX_STATIC_DIR=/srv/static
+    # STATICFILES_DIR=/srv/staticfiles \
+    GRUNT_BUILD_DIR=/srv/grunt_build \
+    GRUNT_FONTS_DIR=/srv/grunt_fonts \
+    # The mountpoint of a volume shared with the nginx container. Static files will
+    # be copied there.
+    NGINX_STATIC_DIR=/srv/static
 
-###########################
-# Install `apt` packages. #
-###########################
+
+##########################################
+# Install any additional `apt` packages. #
+##########################################
 
 COPY ./apt_requirements.txt ${KPI_SRC_DIR}/
-WORKDIR ${KPI_SRC_DIR}/
-RUN apt-get update && \
-    apt-get install -y $(cat ${KPI_SRC_DIR}/apt_requirements.txt) && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Only install if the current version of `apt_requirements.txt` differs from the one used in the base image.
+RUN diff -q "${KPI_SRC_DIR}/apt_requirements.txt" "/srv/tmp/base_apt_requirements.txt" || \
+        ( apt-get update && \
+        apt-get install -y $(cat ${KPI_SRC_DIR}/apt_requirements.txt) && \
+        apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ) \ 
+    || true # Prevent non-zero exit code.
 
-#########################
-# Install pip packages. #
-#########################
 
-# Install Git so `pyxform` and Whoosh can be installed directly from the repo.
-RUN apt-get update && \
-    apt-get install -y git-core && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-RUN pip install pip-tools
+###########################
+# Re-sync `pip` packages. #
+###########################
+
 COPY ./requirements.txt ${KPI_SRC_DIR}/
-# Install the packages, storing editable packages outside the `kpi` directory (see https://github.com/nvie/pip-tools/issues/332)
-RUN mkdir -p "${PIP_EDITABLE_PACKAGE_DIR}/" && \
-    ln -s "${PIP_EDITABLE_PACKAGE_DIR}/" "${KPI_SRC_DIR}/src" && \
-    pip-sync requirements.txt
+# Only install if the current version of `requirements.txt` differs from the one used in the base image.
+RUN diff -q "${KPI_SRC_DIR}/requirements.txt" /srv/tmp/base_requirements.txt || \
+    pip-sync "${KPI_SRC_DIR}/requirements.txt" \
+    || true # Prevent non-zero exit code.
 
 
-#########################
-# Install NPM packages. #
-#########################
+##########################################
+# Install any additional `npm` packages. #
+##########################################
 
 COPY ./package.json ${KPI_SRC_DIR}/
-RUN npm install && \
-    mv "${KPI_SRC_DIR}/node_modules" "${NODE_PATH}" && \
-    ln -s "${NODE_PATH}" "${KPI_SRC_DIR}/node_modules"
-ENV PATH $PATH:${NODE_PATH}/.bin
+# Only install if the current version of `package.json` differs from the one used in the base image.
+RUN diff -q "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json || \
+    npm install \
+    || true # Prevent non-zero exit code.
 
 
-###########################
-# Install Bower packages. #
-###########################
+##########################################
+# Install any additional Bower packages. #
+##########################################
 
 COPY ./bower.json ./.bowerrc ${KPI_SRC_DIR}/
-RUN bower install --allow-root --config.interactive=false
+# Only install if the current versions of `bower.json` or `.bowerrc` differ from the ones used in the base image.
+RUN (   diff -q "${KPI_SRC_DIR}/bower.json" /srv/tmp/base_bower.json && \
+        diff -q "${KPI_SRC_DIR}/.bowerrc" /srv/tmp/base_bowerrc ) || \
+    bower install --allow-root --config.interactive=false \
+    || true # Prevent non-zero exit code.
 
 
-##################
-# Install uwsgi. #
-##################
+######################
+# Build client code. #
+######################
 
-RUN apt-get install libpcre3 libpcre3-dev && \
-    pip install uwsgi
-
-
-##########
-# Grunt. #
-##########
-
-COPY ./Gruntfile.js ./jsapp/ ${KPI_SRC_DIR}/
-RUN grunt buildall
+COPY ./Gruntfile.js ${KPI_SRC_DIR}/
+COPY ./jsapp ${KPI_SRC_DIR}/jsapp
+RUN mkdir "${GRUNT_BUILD_DIR}" && \
+    mkdir "${GRUNT_FONTS_DIR}" && \
+    ln -s "${GRUNT_BUILD_DIR}" "${KPI_SRC_DIR}/jsapp/compiled" && \
+    rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
+    ln -s "${GRUNT_FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts" && \
+    grunt buildall
 
 
-###########
-# Django. #
-###########
+###############################################
+# Copy over this directory in its current state. #
+###############################################
+
+RUN rm -rf "${KPI_SRC_DIR}"
+COPY . ${KPI_SRC_DIR}
+# Restore the backed-up package installation directories.
+RUN ln -s "${NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
+#    ln -s "${STATICFILES_DIR}" "${KPI_SRC_DIR}/staticfiles" && \
+    ln -s "${BOWER_COMPONENTS_DIR}/" "${KPI_SRC_DIR}/jsapp/xlform/components" && \
+    ln -s "${GRUNT_BUILD_DIR}" "${KPI_SRC_DIR}/jsapp/compiled" && \
+    ln -s "${GRUNT_FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts"
+
+
+###########################
+# Organize static assets. #
+###########################
 
 ENV DJANGO_SETTINGS_MODULE kobo_playground.settings
-COPY . ${KPI_SRC_DIR}
 RUN python manage.py collectstatic --noinput
 
 
@@ -90,6 +106,7 @@ VOLUME "${KPI_LOGS_DIR}/" "${KPI_WHOOSH_DIR}/" "${KPI_SRC_DIR}/emails"
 #################################################
 # Handle runtime tasks and create main process. #
 #################################################
+
 # Using `/etc/profile.d/` as a repository for non-hard-coded environment variable overrides.
 RUN echo 'source /etc/profile' >> /root/.bashrc
 

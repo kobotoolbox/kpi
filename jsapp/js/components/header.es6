@@ -8,6 +8,9 @@ import bem from '../bem';
 import actions from '../actions';
 import {t, assign} from '../utils';
 import searches from '../searches';
+import cookie from 'react-cookie';
+
+const LANGUAGE_COOKIE_NAME = 'django_language';
 
 import {
   ListSearch,
@@ -15,15 +18,43 @@ import {
 } from '../components/list';
 
 var leaveBetaUrl = stores.pageState.leaveBetaUrl;
+var cookieDomain = stores.pageState.cookieDomain;
+
+function langsToValues (langs) {
+  return langs.map(function(lang) {
+    return {
+      value: lang[0],
+      label: lang[1],
+    };
+  });
+}
 
 var MainHeader = React.createClass({
   mixins: [
     Reflux.connect(stores.session),
     Reflux.connect(stores.pageState),
+    Reflux.ListenerMixin,
   ],
   getInitialState () {
+    this.listenTo(stores.session, ({currentAccount}) => {
+      this.setState({
+        languageKeyValues: langsToValues(currentAccount.languages),
+      });
+    });
+
+    var langKeys;
+    if (stores.session.currentAccount) {
+      langKeys = languageKeyValues(stores.session.currentAccount.languages);
+    } else {
+      langKeys = [];
+    }
+
     this.prepareSearchContext();
-    return assign({}, stores.pageState.state, stores.pageState.state.searchContext);
+    return assign({
+      currentLang: cookie.load(LANGUAGE_COOKIE_NAME) || 'en',
+      languageKeyValues: langKeys,
+      _langIndex: 0,
+    }, stores.pageState.state, stores.pageState.state.searchContext);
   },
   logout () {
     actions.auth.logout();
@@ -50,6 +81,15 @@ var MainHeader = React.createClass({
       });
     }
   },
+  languageChange (langCode) {
+    if (langCode) {
+      var cookieParams = {path: '/'};
+      if (cookieDomain) {
+        cookieParams.domain = cookieDomain;
+      }
+      cookie.save(LANGUAGE_COOKIE_NAME, langCode, cookieParams);
+    }
+  },
   renderAccountNavMenu () {
     var accountName = this.state.currentAccount && this.state.currentAccount.username;
     var defaultGravatarImage = `${window.location.protocol}//www.gravatar.com/avatar/64e1b8d34f425d19e1ee2ea7236d3028?s=40`;
@@ -73,9 +113,15 @@ var MainHeader = React.createClass({
             {leaveBetaUrl ?
               <li><a href={leaveBetaUrl} className="mdl-menu__item">{t('leave beta')}</a></li>
             :null}
-            <li><a href='#' className="mdl-menu__item"><i className="ki ki-language"></i> {t('Language')}</a></li>
-
+            <li><a href='#' className="mdl-menu__item mdl-js-button" id="nav-menu-lang" ><i className="ki ki-language"></i> {t('Language')}</a></li>
             <li><a href='#' onClick={this.logout} className="mdl-menu__item"><i className="ki ki-logout"></i> {t('Logout')}</a></li>
+          </ul>
+          <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" htmlFor="nav-menu-lang">
+              {this.state.languageKeyValues.map((lang)=>{
+                return (
+                    <li><a href='#' onClick={this.languageChange(lang.value)} className="mdl-menu__item">{lang.label}</a></li>
+                  );
+              })}
           </ul>
         </nav>
 

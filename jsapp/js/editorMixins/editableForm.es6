@@ -201,7 +201,7 @@ export default {
     }
     let bcData = [
       {
-        'label': isLibrary ? t('library') : t('forms'),
+        'label': isLibrary ? t('Library List') : t('Form List'),
         'to': isLibrary ? 'library' : 'forms',
       }
     ];
@@ -489,8 +489,12 @@ export default {
                 {t('form style')}
               </FormHeader__panelheader>
               <FormHeader__paneltext>
-                {t('select the form style that you would like to use.')}
-                {t('for more info, see: ')}
+                {t('select the form style that you would like to use. this will only affect web forms.')}
+              </FormHeader__paneltext>
+              <FormHeader__paneltext>
+                <a href="http://support.kobotoolbox.org/customer/en/portal/articles/2108533">
+                  {t('read more...')}
+                </a>
               </FormHeader__paneltext>
               <Select
                 name="webform-style"

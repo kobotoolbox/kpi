@@ -1,6 +1,7 @@
 _ = require 'underscore'
 Backbone = require 'backbone'
 $skipLogicParser = require './model.skipLogicParser'
+_t = require('utils').t
 
 module.exports = do ->
   skipLogicHelpers = {}
@@ -404,8 +405,8 @@ module.exports = do ->
     serialize: () ->
       return ''
     constructor: (view_factory, @context) ->
-      @criterion_builder_button = view_factory.create_button '<i class="fa fa-plus"></i> Add a condition', 'skiplogic__button skiplogic__select-builder'
-      @handcode_button = view_factory.create_button '<i>${}</i> Manually enter your skip logic in XLSForm code', 'skiplogic__button skiplogic__select-handcode'
+      @criterion_builder_button = view_factory.create_button '<i class="fa fa-plus"></i> ' + _t("Add a condition"), 'skiplogic__button skiplogic__select-builder'
+      @handcode_button = view_factory.create_button '<i>${}</i> ' + _t("Manually enter your skip logic in XLSForm code"), 'skiplogic__button skiplogic__select-handcode'
       ###@view = @view_factory.create_skip_logic_picker_view(context)###
     switch_editing_mode: () -> return
 

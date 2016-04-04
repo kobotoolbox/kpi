@@ -8,6 +8,7 @@ $viewTemplates = require './view.templates'
 $viewUtils = require './view.utils'
 $viewChoices = require './view.choices'
 $viewRowDetail = require './view.rowDetail'
+_t = require('utils').t
 
 module.exports = do ->
   class BaseRowView extends Backbone.View
@@ -129,7 +130,7 @@ module.exports = do ->
 
     deleteGroup: (evt)=>
       skipConfirm = $(evt.currentTarget).hasClass('js-force-delete-group')
-      if skipConfirm or confirm('Are you sure you want to split apart this group?')
+      if skipConfirm or confirm(_t('Are you sure you want to split apart this group?'))
         @_deleteGroup()
       evt.preventDefault()
 
@@ -177,7 +178,7 @@ module.exports = do ->
           $appearanceField.find('input:checkbox').prop('checked', false)
           appearanceModel = @model.get('appearance')
           if appearanceModel.getValue()
-            @surveyView.ngScope.miscUtils.alert("You can't display nested groups on the same screen - the setting has been removed from the parent group")
+            @surveyView.ngScope.miscUtils.alert(_t("You can't display nested groups on the same screen - the setting has been removed from the parent group"))
           appearanceModel.set('value', '')
 
       @model.on 'remove', (row) =>
@@ -243,7 +244,7 @@ module.exports = do ->
       super(args)
       beta_elem = $('<p>', {
               class: 'scorerank-beta-warning'
-              text: 'Note: Rank and Matrix question types are currently in beta.'
+              text: _t('Note: Rank and Matrix question types are currently in beta.')
               })
       while @model._scoreChoices.options.length < 2
         @model._scoreChoices.options.add(label: 'Option')
@@ -259,7 +260,7 @@ module.exports = do ->
 
       if @model._scoreRows.length < 1
         @model._scoreRows.add
-          label: 'Enter your question'
+          label: _t('Enter your question')
           name: ''
 
       score_rows = for sr in @model._scoreRows.models
@@ -372,7 +373,7 @@ module.exports = do ->
       super(args)
       beta_elem = $('<p>', {
                     class: 'scorerank-beta-warning'
-                    text: 'Note: Rank and Matrix question types are currently in beta'
+                    text: _t('Note: Rank and Matrix question types are currently in beta')
                     })
       template_args = {}
       template_args.rank_constraint_msg = @model.get('kobo--rank-constraint-message')?.get('value')

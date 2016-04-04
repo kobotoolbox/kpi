@@ -3,6 +3,7 @@ import Reflux from 'reflux';
 import {Link} from 'react-router';
 import {Navigation} from 'react-router';
 import Dropzone from '../libs/dropzone';
+import Select from 'react-select';
 
 import {dataInterface} from '../dataInterface';
 import actions from '../actions';
@@ -52,6 +53,13 @@ class DrawerLink extends React.Component {
     var icon = (<span className={icon_class}></span>);
 
     var link;
+    var style = {};
+    if (this.props.lowercase) {
+      // to get navigation items looking the same,
+      // a lowercase prop can be passed.
+      // if the drawer items were all using a unique css class we could do this in css
+      style = {'text-transform': 'lowercase'};
+    }
     if (this.props.linkto) {
       link = (
             <Link to={this.props.linkto}
@@ -73,14 +81,14 @@ class DrawerLink extends React.Component {
     return link;
   }
 }
+
 var Drawer = React.createClass({
   mixins: [
     searches.common,
     mixins.droppable,
     Navigation,
-    Reflux.ListenerMixin,
     Reflux.connect(stores.session),
-    Reflux.connect(stores.pageState),
+    Reflux.connect(stores.pageState)
   ],
   queryCollections () {
     dataInterface.listCollections().then((collections)=>{
@@ -94,9 +102,7 @@ var Drawer = React.createClass({
     this.queryCollections();
   },
   getInitialState () {
-    return assign({
-      showRecent: true,
-    }, stores.pageState.state);
+    return assign({}, stores.pageState.state);
   },
   clickFilterByCollection (evt) {
     var data = $(evt.currentTarget).data();
@@ -147,7 +153,6 @@ var Drawer = React.createClass({
               { stores.session.currentAccount ?
                   <DrawerLink label={t('projects')} active='true' href={stores.session.currentAccount.projects_url} ki-icon='globe' />
               : null }
-
               <div className="mdl-layout-spacer"></div>
 
               <div className='k-drawer__icons-bottom'>
@@ -203,7 +208,6 @@ var Drawer = React.createClass({
                 </bem.CollectionNav__actions>
               </bem.CollectionNav>
               {/* end library sidebar menu */}
-
               { this.state.sidebarCollections ?
                 <CollectionSidebar>
                   <CollectionSidebar__item

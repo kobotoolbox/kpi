@@ -5,6 +5,14 @@ Python Dependencies
 -------------------
 Python dependencies are listed in `requirements.in`, which is then compiled to `requirements.txt` by [`pip-compile`](https://github.com/nvie/pip-tools). You may use `pip` directly with `requirements.txt`, but consider using instead the `pip-sync` command provided by [pip-tools](https://github.com/nvie/pip-tools). Do not add new dependencies directly to `requirements.txt`.
 
+Downloading and compiling the translations
+------------------------------------------
+
+* Pull the submodule into the `locale` directory with `git submodule update`.
+* Optionally configure transifex to pull the latest translations into the `locale` directory with `tx pull --all`
+* Run `python manage.py compilemessages` to create `.mo` files from the `.po` files.
+* To test out locales in the interface, double click "account actions" in the left navbar, use the dropdown to select a language, and refresh.
+
 Searching assets and collections
 --------------------------------
 Top-level (null-parent) assets and collections can be found by including `parent=` in the query string. For other searches, construct a string using the [Whoosh query language](https://pythonhosted.org/Whoosh/querylang.html) and pass it in as the `q` parameter, e.g. `/assets/?q=name:sanitation`. Fields indexed by Whoosh are:

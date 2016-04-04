@@ -48,7 +48,7 @@
     "react-tooltip": "^0.3.3",
     "reflux": "^0.2.7",
     "roboto-fontface": "^0.4.5",
-    "select2": "^3.5.2-browserify",
+    "select2": "3.5.1-browserify-fix",
     "time-grunt": "^1.2.1",
     "underscore": "^1.8.3"
   },

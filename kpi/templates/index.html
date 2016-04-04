@@ -30,6 +30,9 @@
     {% block content %}{% endblock content %}
 
     {% block footer %}
+      <!-- Make Django's internationalization functionality available in client code. -->
+      <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
+
       {% if use_minified_script %}
           <script src="{% static "compiled/bundle.min.js" %}" defer></script>
       {% else %}

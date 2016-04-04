@@ -1,4 +1,6 @@
 module.exports = do ->
+  _t = require('utils').t
+
   xlfRowSelector = {}
 
   closeRowSelectorButton = """
@@ -27,7 +29,7 @@ module.exports = do ->
       <div class="row__questiontypes row__questiontypes--namer">
         <form class="row__questiontypes__form" action="javascript:void(0);" >
           <input type="text" class="js-cancel-sort mdl-textfield__input" />
-          <button> + Add Question </button>
+          <button> + #{_t("Add Question")} </button>
         </form>
       </div>
     """

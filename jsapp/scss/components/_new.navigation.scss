@@ -81,6 +81,21 @@
 		}
 	}
 
+	.k-submenu {
+		position:relative;
+		ul {
+			border:1px solid red;
+			position:absolute;
+			width:200px;
+			left:-190px;
+			top:0px;
+			visibility:hidden;
+		}
+		&:hover ul {
+			visibility:visible;
+		}
+	}
+
 	.Select {
 		min-width:200px;
 	}
