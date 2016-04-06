@@ -1,6 +1,7 @@
 import React from 'react/addons';
 import {Link} from 'react-router';
 import mdl from '../libs/rest_framework/material';
+import Select from 'react-select';
 
 import stores from '../stores';
 import Reflux from 'reflux';
@@ -49,39 +50,44 @@ var MainHeader = React.createClass({
       langKeys = [];
     }
 
-    this.prepareSearchContext();
     return assign({
       currentLang: cookie.load(LANGUAGE_COOKIE_NAME) || 'en',
       languageKeyValues: langKeys,
+      libraryFiltersContext: searches.getSearchContext('library', {
+        filterParams: {
+          assetType: 'asset_type:question OR asset_type:block',
+        },
+        filterTags: 'asset_type:question OR asset_type:block',
+      }),
+      formFiltersContext: searches.getSearchContext('forms', {
+        filterParams: {
+          assetType: 'asset_type:survey',
+        },
+        filterTags: 'asset_type:survey',
+      }),
       _langIndex: 0,
-    }, stores.pageState.state, stores.pageState.state.searchContext);
+    }, stores.pageState.state);
+  },
+  componentWillMount() {
+    this.setStates();
   },
   logout () {
     actions.auth.logout();
   },
-  prepareSearchContext() {
-    var hash = window.location.hash;
-    if (hash == '#/library') {
-      stores.pageState.setState({
-        searchContext: searches.getSearchContext('library', {
-          filterParams: {
-            assetType: 'asset_type:question OR asset_type:block',
-          },
-          filterTags: 'asset_type:question OR asset_type:block',
-        })        
-      });
+  setStates() {
+    var breadcrumb = this.state.headerBreadcrumb;
+    if (breadcrumb.length > 1) {
+      this.setState({headerFilters: false});
+      return;
+    }
+    if (breadcrumb[0] && breadcrumb[0].to == 'library') {
+      this.setState({headerFilters: 'library'});
     } else {
-      stores.pageState.setState({
-        searchContext: searches.getSearchContext('forms', {
-          filterParams: {
-            assetType: 'asset_type:survey',
-          },
-          filterTags: 'asset_type:survey',
-        })
-      });
+      this.setState({headerFilters: 'forms'});
     }
   },
   languageChange (langCode) {
+    console.log(langCode);
     if (langCode) {
       var cookieParams = {path: '/'};
       if (cookieDomain) {
@@ -113,23 +119,17 @@ var MainHeader = React.createClass({
             {leaveBetaUrl ?
               <li><a href={leaveBetaUrl} className="mdl-menu__item">{t('leave beta')}</a></li>
             :null}
-            <li><a href='#' className="mdl-menu__item mdl-js-button" id="nav-menu-lang" ><i className="ki ki-language"></i> {t('Language')}</a></li>
-            <li><a href='#' onClick={this.logout} className="mdl-menu__item"><i className="ki ki-logout"></i> {t('Logout')}</a></li>
-          </ul>
-          <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" htmlFor="nav-menu-lang">
-              {this.state.languageKeyValues.map((lang)=>{
-                return (
-                    <li><a href='#' onClick={this.languageChange(lang.value)} className="mdl-menu__item">{lang.label}</a></li>
-                  );
-              })}
+            <li><a className="mdl-menu__item"><i className="ki ki-language"></i> {t('Language')}</a></li>
+            <li><a onClick={this.logout} className="mdl-menu__item"><i className="ki ki-logout"></i> {t('Logout')}</a></li>
           </ul>
         </nav>
 
         );
     }
+
     return (
           <span>not logged in</span>
-        );
+    );
   },
   render () {
     return (
@@ -140,15 +140,26 @@ var MainHeader = React.createClass({
                 <bem.AccountBox__logo />
               </a>
             </span>
-            <ListSearch
-                placeholder={t('search forms')}
-                searchContext={this.state.searchContext}
-              />
-            <ListTagFilter
-                searchContext={this.state.searchContext}
-              />
+            { this.state.headerFilters == 'library' && 
+              <ListSearch searchContext={this.state.libraryFiltersContext} />
+            }
+            { this.state.headerFilters == 'library' && 
+              <ListTagFilter searchContext={this.state.libraryFiltersContext} />
+            }
+            { this.state.headerFilters == 'forms' && 
+              <ListSearch searchContext={this.state.formFiltersContext} />
+            }
+            { this.state.headerFilters == 'forms' && 
+              <ListTagFilter searchContext={this.state.formFiltersContext} />
+            }
+
             <div className="mdl-placeholder">
-              (x msgs)
+              <Select
+                name="language-selector"
+                value={this.state.currentLang}
+                onChange={this.languageChange}
+                options={this.state.languageKeyValues}
+              />
             </div>
 
             {this.renderAccountNavMenu()}
@@ -160,7 +171,7 @@ var MainHeader = React.createClass({
     mdl.upgradeDom();
   },
   componentWillReceiveProps() {
-    this.prepareSearchContext();
+    this.setStates();
   }
 });
 

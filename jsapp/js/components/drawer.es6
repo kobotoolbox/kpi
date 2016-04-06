@@ -104,6 +104,17 @@ var Drawer = React.createClass({
   getInitialState () {
     return assign({}, stores.pageState.state);
   },
+  componentWillMount() {
+    this.setStates();
+  },
+  setStates() {
+    var breadcrumb = this.state.headerBreadcrumb;
+    if (breadcrumb[0] && breadcrumb[0].to == 'library') {
+      this.setState({headerFilters: 'library'});
+    } else {
+      this.setState({headerFilters: 'forms'});
+    }
+  },
   clickFilterByCollection (evt) {
     var data = $(evt.currentTarget).data();
     if (data.collectionUid) {
@@ -182,33 +193,39 @@ var Drawer = React.createClass({
                     {t('new')}
                   </button>
 
-                  <ul htmlFor="sidebar-menu" className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect">
-                    <bem.CollectionNav__link key={'new-asset'} m={['new', 'new-block']} className="mdl-menu__item"
-                        href={this.makeHref('add-to-library')}>
-                      <i />
-                      {t('add to library')}
-                    </bem.CollectionNav__link>
-                    <bem.CollectionNav__button key={'new-collection'} m={['new', 'new-collection']} className="mdl-menu__item"
-                        onClick={this.createCollection}>
-                      <i />
-                      {t('new collection')}
-                    </bem.CollectionNav__button>
-                    <bem.CollectionNav__link className="mdl-menu__item" m={['new', 'new-block']}
-                        href={this.makeHref('new-form')}>
-                      <i />
-                      {t('new form')}
-                    </bem.CollectionNav__link>
-                    <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
-                      <bem.CollectionNav__button m={['upload', 'upload-block']} className="mdl-menu__item">
-                        <i className='fa fa-icon fa-cloud fa-fw' />
-                        {t('upload')}
-                      </bem.CollectionNav__button>
-                    </Dropzone>
-                  </ul>
+                    {this.state.headerFilters == 'library' ?
+                      <ul htmlFor="sidebar-menu" className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect">
+                        <bem.CollectionNav__link key={'new-asset'} m={['new', 'new-block']} className="mdl-menu__item"
+                            href={this.makeHref('add-to-library')}>
+                          <i />
+                          {t('add to library')}
+                        </bem.CollectionNav__link>
+                        <bem.CollectionNav__button key={'new-collection'} m={['new', 'new-collection']} className="mdl-menu__item"
+                            onClick={this.createCollection}>
+                          <i />
+                          {t('new collection')}
+                        </bem.CollectionNav__button>
+                      </ul>
+                    : null }
+                    {this.state.headerFilters == 'forms' ?
+                      <ul htmlFor="sidebar-menu" className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect">
+                        <bem.CollectionNav__link className="mdl-menu__item" m={['new', 'new-block']}
+                            href={this.makeHref('new-form')}>
+                          <i />
+                          {t('new form')}
+                        </bem.CollectionNav__link>
+                        <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
+                          <bem.CollectionNav__button m={['upload', 'upload-block']} className="mdl-menu__item">
+                            <i className='fa fa-icon fa-cloud fa-fw' />
+                            {t('upload')}
+                          </bem.CollectionNav__button>
+                        </Dropzone>
+                      </ul>
+                    : null }
                 </bem.CollectionNav__actions>
               </bem.CollectionNav>
               {/* end library sidebar menu */}
-              { this.state.sidebarCollections ?
+              { this.state.sidebarCollections && this.state.headerFilters == 'library' ?
                 <CollectionSidebar>
                   <CollectionSidebar__item
                     key='allitems'
@@ -258,17 +275,21 @@ var Drawer = React.createClass({
                   })}
                 </CollectionSidebar>
                 :
-                <CollectionSidebar>
+                {/*<CollectionSidebar>
                   <CollectionSidebar__item m={'loading'}>
                     {t('loading')}
                     <i />
                   </CollectionSidebar__item>
-                </CollectionSidebar>
+                </CollectionSidebar>*/}
               }
             </div>
           </bem.Drawer>
       );
+  },
+  componentWillReceiveProps() {
+    this.setStates();
   }
+
 });
 
 export default Drawer;

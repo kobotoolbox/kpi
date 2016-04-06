@@ -30,7 +30,7 @@
     background-color: unquote("rgb(#{$color-primary})");
     border:1px solid unquote("rgb(#{$color-primary})");
     > i {
-      &:after {
+      &:before {
         content: 'B';
         font-style: normal;
       }
@@ -41,7 +41,7 @@
     border:1px solid unquote("rgb(#{$color-primary})");
     color: unquote("rgb(#{$color-primary})");
     > i {
-      &:after {
+      &:before {
         content: 'Q';
         font-style: normal;
       }
@@ -80,10 +80,10 @@
     // height:30px;
     // line-height: 28px;
     > i {
-      &:after {
+      &:before {
         content: '\f00c';
         font-family:'FontAwesome';
-        // font-size:16px;
+        font-size:16px;
         font-weight: normal;
       }
     }

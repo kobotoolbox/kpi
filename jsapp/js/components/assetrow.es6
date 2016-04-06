@@ -40,6 +40,7 @@ var AssetRow = React.createClass({
     evt.preventDefault();
   },
   render () {
+    console.log(this.props);
     var selfowned = this.props.owner__username === this.props.currentUsername;
     // var perm = this.props.perm;
     var isPublic = this.props.owner__username === anonUsername;
@@ -138,6 +139,16 @@ var AssetRow = React.createClass({
                        t('deploy') : t('redeploy')}
                   </bem.AssetRow__actionIcon>
                 }
+                { this.props.asset_type && this.props.asset_type === 'survey' &&
+                  <bem.AssetRow__actionIcon
+                        m={'refresh'}
+                        data-action={'refresh'}
+                        data-asset-type={this.props.kind}
+                        title={t('refresh')}
+                      >
+                    <i />
+                  </bem.AssetRow__actionIcon>
+                }
                 { this.props.kind === 'collection' &&
                 ['view', 'sharing'].map((actn)=>{
                     return (
@@ -153,19 +164,14 @@ var AssetRow = React.createClass({
                         );
                   })
                 }
-                {['refresh', 'delete'].map((actn)=>{
-                  return (
-                        <bem.AssetRow__actionIcon
-                            m={actn}
-                            data-action={actn}
-                            data-asset-type={this.props.kind}
-                            data-disabled={false}
-                            title={actn}
-                            >
-                          <i />
-                        </bem.AssetRow__actionIcon>
-                      );
-                })}
+                <bem.AssetRow__actionIcon
+                      m={'delete'}
+                      data-action={'delete'}
+                      data-asset-type={this.props.kind}
+                      title={t('delete')}
+                    >
+                  <i />
+                </bem.AssetRow__actionIcon>
             </bem.AssetRow__buttons>
           }
         </bem.AssetRow>

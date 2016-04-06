@@ -44,6 +44,7 @@
 
 .asset-row__tags {
   padding-left:34px;
+  white-space: normal;
   .asset-row__tags__tag {
     @extend .k-tagsinput-tag;
   }
