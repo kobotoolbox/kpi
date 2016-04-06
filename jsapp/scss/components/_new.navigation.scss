@@ -1,0 +1,219 @@
+// MDL Layout overrides for navigation
+
+.mdl-layout--fixed-drawer:not(.is-small-screen) {
+  > .mdl-layout__header {
+    margin-left: 0px;
+    width:100%;
+    .mdl-layout__drawer-button {
+    	display: none;
+    }
+  }
+}
+
+.mdl-layout--fixed-drawer.is-small-screen {
+	> .mdl-layout__header .mdl-layout__header-row {
+		padding-left:60px;
+	}
+}
+
+.mdl-layout--fixed-drawer > .mdl-layout__header {
+	min-height:56px;
+	.mdl-layout__header-row {
+		height:56px;
+		padding-left:20px;
+		justify-content: space-between;
+	}
+
+	button.mdl-button {
+		color: $layout-nav-color;
+		text-transform: none;
+		i {
+			font-size: 18px;
+			margin-left: 8px;
+			margin-right:8px;
+			opacity: 0.8;
+			vertical-align: middle;
+		}
+		&:active, &:focus, &:hover {
+			background-color: transparent; 
+		}
+	}
+
+	.account-box__image {
+	  width:24px;
+	  display: inline-block;
+	  margin-right: 6px;
+	  img {
+	    width: 24px;
+	    height: 24px;
+	    border-radius:12px;
+	  }
+	}
+
+	.account-box__logo {
+	  width: 120px;
+	  height: 28px;
+	  background: url('../img/kobologo.svg') no-repeat;
+	  background-size: contain;
+	  display: block;
+	}
+
+	.mdl-menu__outline {
+		background-color:$nav-menu-item-bg;
+		margin-top: 10px;
+		box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5), inset 0 1px 3px 0 rgba(0, 0, 0, 0.5);
+	}
+
+	.mdl-menu {
+		margin:0px;
+	}
+
+	.mdl-menu__item {
+		color: $layout-nav-color;
+		opacity: 0.7;
+		i {
+			font-size: 32px;
+			margin-right: 8px;
+		}
+		&:hover {
+			opacity: 1;
+			background-color:$nav-menu-item-bg-active;
+		}
+	}
+
+	.k-submenu {
+		position:relative;
+		ul {
+			border:1px solid red;
+			position:absolute;
+			width:200px;
+			left:-190px;
+			top:0px;
+			visibility:hidden;
+		}
+		&:hover ul {
+			visibility:visible;
+		}
+	}
+
+	.Select {
+		min-width:200px;
+	}
+
+	.k-search__input {
+		color:white;
+		border:2px solid #dbedf7;
+		border-radius:16px;
+		padding:5px;
+		background-color:transparent;
+		font-size:14px;
+		text-align:center;
+		position:relative;
+	}
+
+	.search__icon {
+		@extend .fa, .fa-search;
+		position:absolute;
+    margin-left: 10px;
+    margin-top: 8px;
+    color:#dbedf7;
+    &:before {
+			font-size: 18px;
+    }
+	}
+
+	.Select-control {
+    position: relative;
+    overflow: hidden;
+    background-color: transparent;
+    padding:5px;
+    border-radius:16px;
+    border:2px solid #dbedf7;
+    .Select-arrow {
+			border-top: 8px solid transparent;
+			border-bottom: 8px solid transparent;
+			border-left: 8px solid #dbedf7;
+			right: 6px;
+    	top: 10px;
+    }
+		.Select-placeholder {
+		  color: #FFF;
+		  padding: 5px;
+		  padding-right:24px;
+		  padding-top:8px;
+		  background-color:transparent;
+		  text-align: center;
+		  font-size: 14px;
+		}
+		.Select-input > input {
+			padding-left:10px;
+			color: white;
+			font-size: 14px;
+		}
+
+		.Select-item {
+		  background-color:$nav-menu-item-bg-active;
+		  border-radius: 6px;
+		  border: none;
+		  color: #FFF;
+		  font-size: 0.9em;
+		  &:first-child {
+		  	margin-left: 5px;
+		  }
+		}
+
+		.Select-item-label .Select-item-label__a {
+		  color: #FFF;
+		}
+		.Select-item-icon {
+		  border-right: none;
+  		border-bottom-left-radius: 6px;
+	  	border-top-left-radius: 6px;
+	  	color:#dbedf7;
+	    padding: 5px;
+    	padding-right: 2px;
+			&:hover,
+			&:focus {
+			  background-color: $nav-menu-item-bg-active;
+			  color: #FFF;
+			}
+			&:active {
+			  background-color: $nav-menu-item-bg-active;
+			}
+		}
+	}
+
+	.Select-menu-outer {
+	  background-color:$nav-menu-item-bg;
+	  border: none;
+	  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+	  color: white;
+	}
+	.Select-option {
+	  color: #FFF;
+	}
+	.Select-option.is-focused {
+	  background-color:$nav-menu-item-bg-active;
+	  color: #FFF;
+	}
+	.Select-option.is-disabled {
+	  color: rgba(255, 255, 255, 0.5);
+	}
+	.Select-noresults {
+	  color: #DDD;
+	}	
+
+	.Select-clear {
+	  color: #dbedf7;
+	  background:$layout-header-bg-color;
+    font-size: 22px;
+    padding: 4px 6px;
+    right: 7px;
+    border-radius: 5px;
+    top: 4px;
+		&:hover {
+		  color: #FFF;
+		}
+	}
+}
+

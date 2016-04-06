@@ -22,8 +22,8 @@ bem.AssetRow__tags__tag   = bem.AssetRow.__('tags__tag', '<span>');
 bem.AssetRow__tags__notags = bem.AssetRow.__('tags__notags', '<span>');
 bem.AssetRow__actionIcon  = bem.AssetRow.__('action-icon', '<a>');
 bem.AssetRow__sharingIcon = bem.AssetRow.__('sharingIcon');
-bem.AssetRow__sharingIcon__owner =
-                bem.AssetRow__sharingIcon.__('owner', '<span>');
+bem.AssetRow__sharingIcon__owner = bem.AssetRow__sharingIcon.__('owner', '<span>');
+bem.AssetRow__buttons        = bem.AssetRow.__('buttons');
 
 bem.FormHeader = bem('form-header');
 bem.FormHeader__button = bem.FormHeader.__('button', '<button>');
@@ -69,8 +69,12 @@ bem.CollectionNav__link = bem.CollectionNav.__('link', '<a>');
 bem.CollectionNav__searchcancel = bem.CollectionNav.__('searchcancel', '<i>');
 bem.CollectionNav__searchicon = bem.CollectionNav.__('searchicon', '<i>');
 
+bem.CollectionList = bem('collection-list', '<div>');
 bem.CollectionAssetList = bem('collection-asset-list', '<ul>');
 bem.CollectionAssetList__message = bem.CollectionAssetList.__('message');
+
+bem.AssetListSorts = bem('asset-list-sorts', '<div>');
+bem.AssetListSorts__item = bem.AssetListSorts.__('item');
 
 bem.CollectionHeader = bem('collection-header');
 bem.CollectionHeader__item = bem.CollectionHeader.__('item');

@@ -1,11 +1,12 @@
+@import './libs/material-design-lite';
+
 @import './components/asset-dashboard';
 @import './components/menus';
+
+@import './fonts/roboto';
+@import '../../node_modules/font-awesome/scss/font-awesome';
 @import '../../node_modules/select2/select2';
-
-@import './kobo';
 @import '../../node_modules/react-tooltip/dist/react-tooltip';
-
-@import './libs/material-design-lite';
 @import './libs/alertify';
 @import './libs/react-tagsinput';
 @import './libs/react-select';
@@ -32,9 +33,9 @@ $newformButtonColor: mix(#2196F3, grayscale(#2196F3), 38%);
 
 $newformCircleWidthHeight: 55px;
 
-@import '../../node_modules/font-awesome/scss/font-awesome';
-@import './fonts/opensans';
-@import './components/kobo.account-box';
+@import './kobo';
+
+// @import './components/kobo.account-box';
 @import './components/kobo.collection-header';
 @import './components/kobo.collection-nav';
 @import './components/kobo.collection-asset-list';

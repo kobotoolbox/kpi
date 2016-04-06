@@ -77,14 +77,25 @@ module.exports = function(grunt) {
         flatten: true,
         src: [
           './node_modules/font-awesome/fonts/*',
-          './node_modules/open-sans-fontface/fonts/Regular/*',
-          './node_modules/open-sans-fontface/fonts/Italic/*',
-          './node_modules/open-sans-fontface/fonts/SemiboldItalic/*',
-          './node_modules/open-sans-fontface/fonts/Semibold/*',
-          './node_modules/material-design-icons/iconfont/Material*',
+          './node_modules/roboto-fontface/fonts/*.wof*',
           ],
         dest: './jsapp/fonts/',
       }
+    },
+    webfont: {
+        icons: {
+            src: 'jsapp/icons/*.svg',
+            dest: 'jsapp/fonts',
+            destCss: 'jsapp/fonts',
+            options: {
+                font: 'k-iconfont',
+                syntax: 'bem',
+                templateOptions: {
+                    baseClass: 'ki',
+                    classPrefix: 'ki-'
+                }
+            }
+        }
     },
     watch: {
       js: {
@@ -127,6 +138,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-webfont');
   grunt.registerTask('develop', [
     'browserify:dev',
     'sass:dist',
@@ -143,6 +155,7 @@ module.exports = function(grunt) {
   grunt.registerTask('buildall', [
     'build',
     'copy',
+    'webfont',
     'uglify',
     'cssmin',
   ]);

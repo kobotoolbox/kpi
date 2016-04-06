@@ -32,6 +32,23 @@ ui.SmallInputBox = React.createClass({
   }
 });
 
+ui.SearchBox = React.createClass({
+  getValue () {
+    return this.refs.inp.getDOMNode().value;
+  },
+  setValue (v) {
+    this.refs.inp.getDOMNode().value = v;
+  },
+  render () {
+    var elemId = _.uniqueId('elem');
+    var value = this.props.value;
+    return (
+        <input type="text" ref='inp' className="k-search__input" value={value}
+            onKeyUp={this.props.onKeyUp} onChange={this.props.onChange} id={elemId} placeholder={this.props.placeholder}/>
+      );
+  }
+});
+
 ui.Panel = React.createClass({
   render () {
     return (

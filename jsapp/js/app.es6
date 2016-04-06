@@ -872,7 +872,7 @@ var App = React.createClass({
           <bem.PageWrapper m={{
               'asset-nav-present': this.state.assetNavPresent,
               'asset-nav-open': this.state.assetNavIsOpen && this.state.assetNavPresent,
-                }} className="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+                }} className="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header">
               <MainHeader />
               <Drawer />
               <bem.PageWrapper__content m={{

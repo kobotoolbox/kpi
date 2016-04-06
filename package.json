@@ -27,6 +27,7 @@
     "grunt-contrib-uglify": "^0.9.1",
     "grunt-contrib-watch": "^0.6.1",
     "grunt-sass": "^1.0.0",
+    "grunt-webfont": "^1.2.0",
     "immutable": "^3.4.7",
     "jit-grunt": "^0.9.1",
     "jquery": "^2.1.4",
@@ -36,7 +37,6 @@
     "material-design-icons": "^2.0.0",
     "material-design-lite": "^1.0.2",
     "moment": "^2.10.3",
-    "open-sans-fontface": "^1.4.0",
     "q": "^1.4.1",
     "react": "^0.13.3",
     "react-cookie": "^0.2.3",
@@ -47,6 +47,7 @@
     "react-tagsinput": "1.4.x",
     "react-tooltip": "^0.3.3",
     "reflux": "^0.2.7",
+    "roboto-fontface": "^0.4.5",
     "select2": "3.5.1-browserify-fix",
     "time-grunt": "^1.2.1",
     "underscore": "^1.8.3"

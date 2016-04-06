@@ -2,7 +2,8 @@
   display: inline-block;
   text-align: center;
   color: #fff;
-  font-weight: 800;
+  font-weight: 700;
+  margin-right:10px;
 
   &--small {
     width: 20px;
@@ -26,7 +27,8 @@
   line-height: 28px;
 
   &--block {
-    background-color: #009E11;
+    background-color: unquote("rgb(#{$color-primary})");
+    border:1px solid unquote("rgb(#{$color-primary})");
     > i {
       &:after {
         content: 'B';
@@ -35,7 +37,9 @@
     }
   }
   &--question {
-    background-color: #2A78E4;
+    background-color: #FFF;
+    border:1px solid unquote("rgb(#{$color-primary})");
+    color: unquote("rgb(#{$color-primary})");
     > i {
       &:after {
         content: 'Q';
@@ -44,7 +48,9 @@
     }
   }
   &--survey {
-    background-color: #444;
+    background-color: unquote("rgb(#{$color-primary})");
+    border:1px solid unquote("rgb(#{$color-primary})");
+    // background-color: #444;
     > i {
       font-size: 16px;
       font-weight: 600;
@@ -62,4 +68,24 @@
       }
     }
   }
+}
+
+.asset-row--active {
+  .asset-type-icon {
+    background-color: $cool-gray;
+    border:1px solid $cool-gray;
+    border-radius:0px;
+    color:#FFF;
+    // width:30px;
+    // height:30px;
+    // line-height: 28px;
+    > i {
+      &:after {
+        content: '\f00c';
+        font-family:'FontAwesome';
+        // font-size:16px;
+        font-weight: normal;
+      }
+    }
+  }  
 }
