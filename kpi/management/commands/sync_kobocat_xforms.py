@@ -140,8 +140,10 @@ class Command(BaseCommand):
         # Only users who prefer KPI or all users?
         if not options.get('all_users'):
             users = users.filter(
-                formbuilderpreference__preferred_builder=
-                    FormBuilderPreference.KPI)
+                models.Q(formbuilderpreference__preferred_builder=
+                    FormBuilderPreference.KPI) |
+                models.Q(formbuilderpreference=None) # KPI is the default now
+            )
             print_str('%d of selected users prefer KPI' % users.count())
 
         # We'll be copying the date fields from KC, so don't auto-update them
@@ -152,6 +154,9 @@ class Command(BaseCommand):
             (token, created) = Token.objects.get_or_create(user=user)
             print_str('user %s' % user.username)
             existing_surveys = user.assets.filter(asset_type='survey')
+
+            # Each asset that the user has already deployed to KC should have a
+            # form uuid stored in its deployment data
             kpi_deployed_uuids = {}
             for existing_survey in existing_surveys:
                 dd = existing_survey._deployment_data
@@ -159,6 +164,8 @@ class Command(BaseCommand):
                     kpi_deployed_uuids[dd['backend_response']['uuid']] = \
                         existing_survey.pk
             print_str('\thas %d deployed KPI assets' % len(kpi_deployed_uuids))
+
+            # Use our stub model to access KC's XForm objects
             xforms = user.xforms.all()
             print_str('\thas %d KC forms' % xforms.count())
             for xform in xforms:
@@ -171,14 +178,19 @@ class Command(BaseCommand):
                     asset = user.assets.get(
                         pk=kpi_deployed_uuids[xform.uuid])
                     time_diff = xform.date_modified - asset.date_modified
+                    # If the timestamps are close enough, we assume the KC form
+                    # content was not updated since the last KPI deployment
                     if time_diff <= TIMESTAMP_DIFFERENCE_TOLERANCE:
-                        # The timestamps are close enough; we assume the KC
-                        # form content was not updated since the last KPI
-                        # deployment
+                        # Print the timedelta in a sane way, per
+                        # http://stackoverflow.com/a/8408947
+                        if time_diff < datetime.timedelta(0):
+                            time_diff_str = '-{}'.format(-time_diff)
+                        else:
+                            time_diff_str = '+{}'.format(time_diff)
                         print_str(
                             u'\t{} is up-to-date (timestamp '
                             u'difference is {})'.format(
-                                xform.id_string, time_diff)
+                                xform.id_string, time_diff_str)
                         )
                         continue
                     else:
@@ -229,6 +241,13 @@ class Command(BaseCommand):
                             deployment_data['date_modified'])
                     asset.content = asset_content
                     asset.save()
+                    # If this user already has an identically-named asset,
+                    # append `xform.id_string` in parentheses for clarification
+                    if Asset.objects.filter(
+                            owner=user, name=asset.name).exists():
+                        asset.name = u'{} ({})'.format(
+                            asset.name, xform.id_string)
+                        # `store_data()` handles saving the asset
                     # Copy the deployment-related data
                     kc_deployment = KobocatDeploymentBackend(asset)
                     kc_deployment.store_data({
