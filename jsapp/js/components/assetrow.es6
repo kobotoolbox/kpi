@@ -40,7 +40,6 @@ var AssetRow = React.createClass({
     evt.preventDefault();
   },
   render () {
-    console.log(this.props);
     var selfowned = this.props.owner__username === this.props.currentUsername;
     // var perm = this.props.perm;
     var isPublic = this.props.owner__username === anonUsername;

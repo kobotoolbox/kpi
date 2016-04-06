@@ -70,22 +70,16 @@
   }
 }
 
-.asset-row--active {
-  .asset-type-icon {
-    background-color: $cool-gray;
-    border:1px solid $cool-gray;
-    border-radius:0px;
-    color:#FFF;
-    // width:30px;
-    // height:30px;
-    // line-height: 28px;
-    > i {
-      &:before {
-        content: '\f00c';
-        font-family:'FontAwesome';
-        font-size:16px;
-        font-weight: normal;
-      }
+.asset-row--active .asset-type-icon, 
+.asset-row .asset-type-icon:hover {
+  background-color: $cool-gray;
+  border:1px solid $cool-gray;
+  border-radius:0px;
+  color:#FFF;
+  > i {
+    &:before {
+      content: '\f00c';
+      font-family:'FontAwesome';
     }
-  }  
+  }
 }

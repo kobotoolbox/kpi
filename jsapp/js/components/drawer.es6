@@ -13,6 +13,8 @@ import searches from '../searches';
 import mixins from '../mixins';
 import {
   t,
+  customPromptAsync,
+  customConfirmAsync,
   assign,
 } from '../utils';
 

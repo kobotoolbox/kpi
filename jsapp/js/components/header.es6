@@ -87,7 +87,6 @@ var MainHeader = React.createClass({
     }
   },
   languageChange (langCode) {
-    console.log(langCode);
     if (langCode) {
       var cookieParams = {path: '/'};
       if (cookieDomain) {
