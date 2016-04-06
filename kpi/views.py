@@ -40,15 +40,14 @@ from .models import (
     Asset,
     AssetSnapshot,
     ImportTask,
-    AssetDeployment,
     ObjectPermission,
     AuthorizedApplication,
     )
 from .models.object_permission import get_anonymous_user, get_objects_for_user
-from .models.asset_deployment import kobocat_url
 from .models.authorized_application import ApplicationTokenAuthentication
 from .permissions import (
     IsOwnerOrReadOnly,
+    PostMappedToChangePermission,
     get_perm_name,
 )
 from .renderers import (
@@ -64,19 +63,19 @@ from .serializers import (
     CollectionSerializer, CollectionListSerializer,
     UserSerializer, UserListSerializer, CreateUserSerializer,
     TagSerializer, TagListSerializer,
-    AssetDeploymentSerializer,
     ImportTaskSerializer, ImportTaskListSerializer,
     ObjectPermissionSerializer,
-    AuthorizedApplicationUserSerializer,)
+    AuthorizedApplicationUserSerializer,
+    DeploymentSerializer,)
 from .utils.gravatar_url import gravatar_url
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from .tasks import import_in_background
+from deployment_backends.backends import DEPLOYMENT_BACKENDS
 
 
 CLONE_ARG_NAME = 'clone_from'
 ASSET_CLONE_FIELDS = {'name', 'content', 'asset_type'}
 COLLECTION_CLONE_FIELDS = {'name'}
-
 
 @api_view(['GET'])
 def current_user(request):
@@ -89,7 +88,8 @@ def current_user(request):
                          'last_name': user.last_name,
                          'email': user.email,
                          'server_time': str(datetime.datetime.utcnow()),
-                         'projects_url': kobocat_url('/%s/' % user.username),
+                         'projects_url': '/'.join((
+                            settings.KOBOCAT_URL, user.username)),
                          'is_superuser': user.is_superuser,
                          'gravatar': gravatar_url(user.email),
                          'is_staff': user.is_staff,
@@ -212,18 +212,6 @@ class CollectionViewSet(viewsets.ModelViewSet):
             return CollectionListSerializer
         else:
             return CollectionSerializer
-
-
-class AssetDeploymentViewSet(NoUpdateModelViewSet):
-    queryset = AssetDeployment.objects.none()
-    serializer_class = AssetDeploymentSerializer
-    lookup_field = 'uid'
-
-    def get_queryset(self, *args, **kwargs):
-        if self.request.user.is_anonymous():
-            return AssetDeployment.objects.none()
-        else:
-            return AssetDeployment.objects.filter(user=self.request.user)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -444,7 +432,7 @@ class AssetViewSet(viewsets.ModelViewSet):
         'permissions__content_object',
         # Getting the tag_string is making one query per object, but
         # prefetch_related doesn't seem to help
-    ).annotate(Count('assetdeployment')).all()
+    ).all()
     serializer_class = AssetSerializer
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
@@ -547,6 +535,76 @@ class AssetViewSet(viewsets.ModelViewSet):
         if export.xml != '':
             response_data['highlighted_xform'] = highlight_xform(export.xml, **options)
         return Response(response_data, template_name='highlighted_xform.html')
+
+    @detail_route(
+        methods=['get', 'post', 'patch'],
+        permission_classes=[PostMappedToChangePermission]
+    )
+    def deployment(self, request, uid):
+        '''
+        A GET request retrieves the existing deployment, if any.
+        A POST request creates a new deployment, but only if a deployment does
+            not exist already.
+        A PATCH request updates the `active` field of the existing deployment.
+        A PUT request overwrites the entire deployment, including the form
+            contents, but does not change the deployment's identifier
+        '''
+        asset = self.get_object()
+
+        # TODO: Require the client to provide a fully-qualified identifier,
+        # otherwise provide less kludgy solution
+        if 'identifier' not in request.data and 'id_string' in request.data:
+            id_string = request.data.pop('id_string')[0]
+            backend_name = request.data['backend']
+            try:
+                backend = DEPLOYMENT_BACKENDS[backend_name]
+            except KeyError:
+                raise KeyError(
+                    'cannot retrieve asset backend: "{}"'.format(backend_name))
+            request.data['identifier'] = backend.make_identifier(
+                request.user.username, id_string)
+
+        if request.method == 'GET':
+            if not asset.has_deployment:
+                raise Http404
+            else:
+                serializer = DeploymentSerializer(
+                    asset.deployment, context=self.get_serializer_context())
+                # TODO: Understand why this 404s when `serializer.data` is not
+                # coerced to a dict
+                return Response(dict(serializer.data))
+        elif request.method == 'POST':
+            if asset.has_deployment:
+                raise exceptions.MethodNotAllowed(
+                    method=request.method,
+                    detail='Use PATCH to update an existing deployment'
+                    )
+            serializer = DeploymentSerializer(
+                data=request.data,
+                context={'asset': asset}
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            # TODO: Understand why this 404s when `serializer.data` is not
+            # coerced to a dict
+            return Response(dict(serializer.data))
+        elif request.method == 'PATCH':
+            if not asset.has_deployment:
+                raise exceptions.MethodNotAllowed(
+                    method=request.method,
+                    detail='Use POST to create a new deployment'
+                )
+            serializer = DeploymentSerializer(
+                asset.deployment,
+                data=request.data,
+                context={'asset': asset},
+                partial=True
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            # TODO: Understand why this 404s when `serializer.data` is not
+            # coerced to a dict
+            return Response(dict(serializer.data))
 
     def perform_create(self, serializer):
         # Check if the user is anonymous. The

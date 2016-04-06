@@ -12,11 +12,9 @@ from rest_framework import serializers, exceptions
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
-from reversion import revisions as reversion
 
 from hub.models import SitewideMessage
 from .models import Asset
-from .models import AssetDeployment, AssetDeploymentException
 from .models import AssetSnapshot
 from .models import Collection
 from .models import CollectionChildrenQuerySet
@@ -380,8 +378,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         many=True, read_only=True, source='get_ancestors_or_none')
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     tag_string = serializers.CharField(required=False, allow_blank=True)
-    deployment_count = serializers.SerializerMethodField()
     version_id = serializers.IntegerField(read_only=True)
+    deployed_version_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -408,7 +406,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'kind',
                   'xls_link',
                   'name',
-                  'deployment_count',
+                  'deployed_version_id',
+                  'version_id',
                   'permissions',)
         extra_kwargs = {
             'parent': {
@@ -442,7 +441,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return fields
 
     def _version_count(self, obj):
-        return reversion.get_for_object(obj).count()
+        return obj.versions().count()
 
     def get_xls_link(self, obj):
         return reverse('asset-xls', args=(obj.uid,), request=self.context.get('request', None))
@@ -486,15 +485,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return reverse('asset-koboform', args=(obj.uid,), request=self.context
                        .get('request', None))
 
-    def get_deployment_count(self, obj):
-        # If the QuerySet has been annotated with Count('assetdeployment'),
-        # then no further database queries are necessary
-        return getattr(
-            obj,
-            'assetdeployment__count',
-            # Not annotated; hit the database
-            obj.assetdeployment_set.count()
-        )
+    def get_deployed_version_id(self, obj):
+        if obj.has_deployment:
+            return obj.deployment.version
 
     def _content(self, obj):
         return json.dumps(obj.content)
@@ -504,77 +497,51 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return reverse('asset-table-view', args=(obj.uid,), request=request)
 
 
-class AssetDeploymentSerializer(serializers.HyperlinkedModelSerializer):
-    xform_id_string = serializers.CharField(required=False)
-    xform_url = serializers.SerializerMethodField()
-
-    asset = GenericHyperlinkedRelatedField(
-        lookup_field='uid',
-        style={'base_template': 'input.html'} # Render as a simple text box
-    )
+class DeploymentSerializer(serializers.Serializer):
+    backend = serializers.CharField()
+    identifier = serializers.CharField(read_only=True)
+    active = serializers.BooleanField(required=False)
+    version = serializers.CharField(required=False)
 
     def create(self, validated_data):
-        user = self.context['request'].user
-        if user.is_anonymous():
-            raise exceptions.NotAuthenticated
-
-        asset = validated_data['asset']
-        xform_id_string = ''
-        if 'xform_id_string' in validated_data:
-            xform_id_string = validated_data.get('xform_id_string')
-        if not len(xform_id_string):
-            # If no id string was provided, use a punctuation-free timestamp
-            xform_id_string = datetime.datetime.utcnow().strftime(
-                '%Y%m%dT%H%M%S%fZ')
-
-        try:
-            return AssetDeployment._create_if_possible(
-                asset, user, xform_id_string)
-        except AssetDeploymentException as e:
-            if e.invalid_form_id:
-                raise exceptions.ValidationError(
-                    detail={'xform_id_string': e.detail})
-            # Something other than an invalid form id; just reraise
-            # TODO: clarify whether or not this is a user error
-            raise
-
-    def get_xform_url(self, obj):
-        return obj.data.get('published_form_url')
-
-    class Meta:
-        model = AssetDeployment
-        fields = (
-            'user',
-            'date_created',
-            'asset',
-            'asset_version_id',
-            'uid',
-            'xform_pk',
-            'xform_id_string',
-            'xform_url',
+        asset = self.context['asset']
+        # Stop if the requester attempts to deploy any version of the asset
+        # except the current one
+        if 'version' in validated_data and \
+                validated_data['version'] != str(asset.version_id):
+            raise NotImplementedError(
+                'Only the current version can be deployed')
+        asset.connect_deployment(
+            backend=validated_data['backend'],
+            active=validated_data['active']
         )
-        lookup_field = 'uid'
-        extra_kwargs = {
-            'user': {
-                'lookup_field': 'username',
-                'read_only': True,
-            },
-            'asset': {
-                'lookup_field': 'uid',
-            },
-            'asset_version_id': {
-                'read_only': True,
-            },
-            'uid': {
-                'read_only': True,
-            },
-            'xform_pk': {
-                'read_only': True,
-            },
-            'xform_id_string': {
-                'allow_blank': True,
-            }
-        }
+        return asset.deployment
+
+    def update(self, instance, validated_data):
+        asset = self.context['asset']
+        deployment = self.context['asset'].deployment
+        if 'backend' in validated_data and \
+                validated_data['backend'] != deployment.backend:
+            raise exceptions.ValidationError(
+                {'backend': 'This field cannot be modified after the initial '
+                            'deployment.'})
+        # Is this a request to replace the content of the existing, deployed
+        # form?
+        if 'version' in validated_data:
+            # For now, don't check that
+            #   validated_data['version'] != str(deployment.version)
+            # Instead, send the update to KC even if the content is unchanged
+            if validated_data['version'] != str(asset.version_id):
+                # We still can't deploy any version other than the current one
+                raise NotImplementedError(
+                    'Only the current version can be deployed')
+            # Overwrite the contents of the form
+            deployment.redeploy(active=validated_data['active'])
+        else:
+            # A regular PATCH request can update only the `active` field
+            if 'active' in validated_data:
+                deployment.set_active(validated_data['active'])
+        return deployment
 
 
 class ImportTaskSerializer(serializers.HyperlinkedModelSerializer):
@@ -627,7 +594,8 @@ class AssetListSerializer(AssetSerializer):
                   'kind',
                   'name',
                   'asset_type',
-                  'deployment_count',
+                  'deployed_version_id',
+                  'version_id',
                   'permissions',
                   )
 

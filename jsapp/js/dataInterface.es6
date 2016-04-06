@@ -272,16 +272,19 @@ var dataInterface;
         return $.getJSON(`${rootUrl}/collections/${params.id}/`);
       }
     },
-    deployAsset (asset_url, xform_id_string) {
+    deployAsset (asset, redeployment) {
       var data = {
-        'asset': asset_url,
+        'backend': 'kobocat',
+        'active': true,
       };
-      if (xform_id_string) {
-        data.xform_id_string = xform_id_string;
+      var method = 'POST';
+      if (redeployment) {
+        method = 'PATCH';
+        data.version = asset.version_id;
       }
       return $ajax({
-        method: 'POST',
-        url: `${rootUrl}/deployments/`,
+        method: method,
+        url: `${asset.url}deployment/`,
         data: data
       });
     },
