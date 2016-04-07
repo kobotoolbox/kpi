@@ -24,7 +24,10 @@ def explode_assets(apps, schema_editor):
                 asset.owner.username, deployment.xform_id_string),
             'active': deployment.data['downloadable'],
             'backend_response': deployment.data,
-            'version': deployment.asset_version_id
+            # deployment.asset_version_id was mistakenly set to the id of the
+            # _oldest_ version of the asset, making it useless, so we use zero
+            # as a placeholder
+            'version': 0
         })
         assets_done += 1
         if assets_done % asset_progress_interval == 0:
