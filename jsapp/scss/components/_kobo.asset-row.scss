@@ -3,18 +3,8 @@
   border-top: 1px solid transparentize($cool-gray, .7);
   cursor: pointer;
   padding: 10px 12px;
-  position: relative;
+  // position: relative;
   white-space: nowrap;
-
-  > i:first-child {
-    position: absolute;
-    right: 5px;
-    top: 20px;
-    font-size: 24px;
-
-    @extend .fa, .fa-fw, .fa-lg, .fa-caret-right;
-    color: #A5B3BC;
-  }
 
   a, a:hover {
     color: $black;
@@ -24,13 +14,6 @@
 
   &--deleting {
     opacity: 0.5;
-  }
-
-  &.asset-row--active {
-    > i:first-child {
-      @extend .fa-caret-down;
-      color: #A5B3BC;
-    }
   }
 
   > .asset-row__cell {
@@ -82,16 +65,32 @@
 }
 
 
+.asset-row__cell--row-count {
+  position: relative;
+}
+
+.k-asset-arrow-icon {
+  position: absolute;
+  right: -5px;
+  top: 0px;
+  font-size: 24px;
+  @extend .fa, .fa-fw, .fa-lg, .fa-caret-right;
+  color: #A5B3BC;
+
+}
+
 
 .asset-row--active {
   > .asset-row__buttons {
-    position: fixed;
-    top: 80px;
-    right: 6px;
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    padding: 6px;
     background: white;
     text-align: right;
-    width:calc(100% - 260px);
+    width:100%;
   }
+
   .asset-row__action-icon {
     font-size:32px;
     margin-right: 20px;
@@ -141,13 +140,10 @@
       @extend .fa, .fa-refresh; 
     }
   }
-}
 
-.is-small-screen {
-  .asset-row--active {
-    > .asset-row__buttons {
-      right:22px;
-      width:calc(100% - 40px);
-    }
+  .k-asset-arrow-icon {
+    @extend .fa-caret-down;
+    color: #A5B3BC;
   }
+
 }

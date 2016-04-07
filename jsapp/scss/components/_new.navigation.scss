@@ -99,7 +99,7 @@
 	}
 
 	.Select {
-		min-width:200px;
+		min-width:180px;
 	}
 
 	.k-search__input {
@@ -135,15 +135,13 @@
 			border-top: 8px solid transparent;
 			border-bottom: 8px solid transparent;
 			border-left: 8px solid #dbedf7;
-			right: 6px;
-    	top: 10px;
+			right: 4px;
+    	top: 8px;
     }
 		.Select-placeholder {
 		  color: #FFF;
 		  padding: 5px;
-		  padding-right:24px;
-		  padding-top:8px;
-		  background-color:transparent;
+		  padding-right:22px;
 		  text-align: center;
 		  font-size: 14px;
 		}
@@ -185,6 +183,10 @@
 		}
 	}
 
+	.Select.is-multi .Select-input {
+		padding:0px;
+	}
+
 	.Select-menu-outer {
 	  background-color:$nav-menu-item-bg;
 	  border: none;
@@ -219,3 +221,6 @@
 	}
 }
 
+@media screen and (max-width: 540px) {
+
+}

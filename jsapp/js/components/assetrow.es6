@@ -65,7 +65,6 @@ var AssetRow = React.createClass({
                         onClick={this.clickAsset}
                         className="mdl-grid"
                       >
-          <i />
 
           <bem.AssetRow__cell m={'title'} className="mdl-cell mdl-cell--6-col mdl-cell--3-col-tablet">
             <AssetTypeIcon m={[this.props.asset_type, 'medium']}><i /></AssetTypeIcon>
@@ -97,6 +96,7 @@ var AssetRow = React.createClass({
                 return _rc;
               }
             }()}
+            <i className="k-asset-arrow-icon"></i>
           </bem.AssetRow__cell>
           { tags.length > 0 && this.props.isSelected &&
             <bem.AssetRow__cell m={'tags'} className="mdl-cell mdl-cell--12-col">

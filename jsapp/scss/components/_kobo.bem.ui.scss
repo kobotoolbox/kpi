@@ -1,15 +1,18 @@
 .ui-panel {
   height:100%;
+  margin:0px 6px; 
 }
 
 .ui-panel__body {
   @extend .mdl-grid, .mdl-shadow--2dp;
   background:#FFF;
-  margin:2px 6px;
-  max-width: 1200px;
+  // margin:2px 6px;
+  margin:2px auto;
+  max-width: 1100px;
   padding: 0;
   height:100%;
   flex-direction:column;
+
 }
 
 .page-wrapper__content {

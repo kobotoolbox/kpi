@@ -5,6 +5,10 @@
     flex-flow:column;
     height:calc(100% - 66px);
   }
+
+  > .collection-list {
+    position: relative;
+  }
 }
 
 .collection-asset-list {

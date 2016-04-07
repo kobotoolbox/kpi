@@ -114,7 +114,7 @@ var MainHeader = React.createClass({
           </button>
 
           <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" htmlFor="nav-menu-acct">
-            <li><a href={stores.session.currentAccount.projects_url + 'settings'} className="mdl-menu__item"><i className="ki ki-settings"></i> {t('Profile Settings')}</a></li>
+            <li><a href={stores.session.currentAccount.projects_url + '/settings'} className="mdl-menu__item"><i className="ki ki-settings"></i> {t('Profile Settings')}</a></li>
             {leaveBetaUrl ?
               <li><a href={leaveBetaUrl} className="mdl-menu__item">{t('leave beta')}</a></li>
             :null}
