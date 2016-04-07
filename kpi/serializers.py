@@ -662,7 +662,6 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
                   'assets',
                   'owned_collections',
                   )
-        lookup_field = 'username'
         extra_kwargs = {
             'url' : {
                 'lookup_field': 'username',
