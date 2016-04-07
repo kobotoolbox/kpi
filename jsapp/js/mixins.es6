@@ -4,7 +4,6 @@ import Dropzone from './libs/dropzone';
 import Select from 'react-select';
 import alertify from 'alertifyjs';
 import {Link} from 'react-router';
-import ReactTooltip from 'react-tooltip';
 
 import {dataInterface} from './dataInterface';
 import stores from './stores';

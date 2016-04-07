@@ -1,6 +1,7 @@
 import React from 'react/addons';
 import {Navigation} from 'react-router';
 import $ from 'jquery';
+import ReactTooltip from 'react-tooltip';
 
 import bem from '../bem';
 import ui from '../ui';
@@ -117,6 +118,7 @@ var AssetRow = React.createClass({
                           <bem.AssetRow__actionIcon
                               m={actn}
                               data-action={actn}
+                              data-tip={actn}
                               data-asset-type={this.props.kind}
                               data-disabled={false}
                               title={actn}
@@ -131,11 +133,10 @@ var AssetRow = React.createClass({
                         m={'deploy'}
                         data-action={'deploy'}
                         data-asset-type={this.props.kind}
+                        data-tip={this.props.deployed_version_id === null ? t('deploy') : t('redeploy')}
                         title={t('deploy')}
                       >
                     <i />
-                    {this.props.deployed_version_id === null ?
-                       t('deploy') : t('redeploy')}
                   </bem.AssetRow__actionIcon>
                 }
                 { this.props.asset_type && this.props.asset_type === 'survey' &&
@@ -143,6 +144,7 @@ var AssetRow = React.createClass({
                         m={'refresh'}
                         data-action={'refresh'}
                         data-asset-type={this.props.kind}
+                        data-tip={t('refresh')}
                         title={t('refresh')}
                       >
                     <i />
@@ -157,6 +159,7 @@ var AssetRow = React.createClass({
                               data-asset-type={this.props.kind}
                               data-disabled={false}
                               title={actn}
+                              data-tip={actn}
                               >
                             <i />
                           </bem.AssetRow__actionIcon>
@@ -167,10 +170,12 @@ var AssetRow = React.createClass({
                       m={'delete'}
                       data-action={'delete'}
                       data-asset-type={this.props.kind}
+                      data-tip={t('delete')}
                       title={t('delete')}
                     >
                   <i />
                 </bem.AssetRow__actionIcon>
+              <ReactTooltip effect="float" place="bottom" />
             </bem.AssetRow__buttons>
           }
         </bem.AssetRow>
