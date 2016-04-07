@@ -579,7 +579,6 @@ class ImportTaskListSerializer(ImportTaskSerializer):
 
 
 class AssetListSerializer(AssetSerializer):
-
     class Meta(AssetSerializer.Meta):
         fields = ('url',
                   'date_modified',
@@ -598,6 +597,28 @@ class AssetListSerializer(AssetSerializer):
                   'version_id',
                   'permissions',
                   )
+
+
+class AssetVersionListSerializer(AssetSerializer):
+    date_deployed = serializers.SerializerMethodField()
+    version_id = serializers.SerializerMethodField()
+
+    @staticmethod
+    def _get_attr_set_by_view(obj, name):
+        if not hasattr(obj, name):
+            raise Exception(
+                'The view must set the `{}` attribute on each '
+                'version passed to this serializer.'.format(name))
+        return getattr(obj, name)
+
+    def get_date_deployed(self, obj):
+        return self._get_attr_set_by_view(obj, 'date_deployed')
+
+    def get_version_id(self, obj):
+        return self._get_attr_set_by_view(obj, '_static_version_id')
+
+    class Meta(AssetSerializer.Meta):
+        fields = ('version_id', 'date_deployed')
 
 
 class AssetUrlListSerializer(AssetSerializer):

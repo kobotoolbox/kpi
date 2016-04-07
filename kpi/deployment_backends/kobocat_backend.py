@@ -180,6 +180,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return json_response
 
 
+    @property
+    def timestamp(self):
+        try:
+            return self.asset._deployment_data['backend_response'][
+                'date_modified']
+        except KeyError:
+            return None
+
     @transaction.atomic
     def connect(self, identifier=None, active=False):
         '''

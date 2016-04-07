@@ -1,3 +1,4 @@
+from distutils.util import strtobool
 from itertools import chain
 import copy
 import json
@@ -57,7 +58,7 @@ from .renderers import (
     AssetSnapshotXFormRenderer,
     XlsRenderer,)
 from .serializers import (
-    AssetSerializer, AssetListSerializer,
+    AssetSerializer, AssetListSerializer, AssetVersionListSerializer,
     AssetSnapshotSerializer,
     SitewideMessageSerializer,
     CollectionSerializer, CollectionListSerializer,
@@ -605,6 +606,52 @@ class AssetViewSet(viewsets.ModelViewSet):
             # TODO: Understand why this 404s when `serializer.data` is not
             # coerced to a dict
             return Response(dict(serializer.data))
+
+    @detail_route()
+    def versions(self, request, *args, **kwargs):
+        asset = self.get_object()
+        versioned_assets = {}
+        deployments = {}
+        for version in asset.versions():
+            versioned_asset = version.object_version.object
+            # Asset.version_id returns the *most recent* version of the asset;
+            # it has no way to the version of the instance it's bound to.
+            # Record a _static_version_id here for the serializer to use
+            versioned_asset._static_version_id = version.id
+            versioned_assets[version.id] = versioned_asset
+            if versioned_asset.has_deployment:
+                # Some versions have deployment data, but that data may specify
+                # that a different version was deployed! Record all the
+                # deployments now
+                deployments[versioned_asset.deployment.version] = \
+                    versioned_asset.deployment
+        for version_id, versioned_asset in versioned_assets.iteritems():
+            # Now that all the deployments are known, loop through the versions
+            # again and note whether each was deployed, and if so, at what time
+            try:
+                deployment = deployments[version_id]
+            except KeyError:
+                versioned_asset.date_deployed = None
+                continue
+            versioned_asset.date_deployed = deployment.timestamp
+        # Support filtering by deployment status
+        if 'deployed' in request.query_params:
+            try:
+                deployment_filter = strtobool(request.query_params['deployed'])
+            except ValueError as e:
+                raise exceptions.ValidationError(detail={'deployed': repr(e)})
+            versioned_assets = {
+                k: v for k, v in versioned_assets.iteritems()
+                    if (not v.date_deployed is None) == deployment_filter
+            }
+        # Pass the annotated objects to the serializer
+        return Response(
+            AssetVersionListSerializer(
+                versioned_assets.values(),
+                many=True,
+                context=self.get_serializer_context()
+            ).data
+        )
 
     def perform_create(self, serializer):
         # Check if the user is anonymous. The
