@@ -254,16 +254,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         }
         try:
             json_response = self._kobocat_request('PATCH', url, payload)
+            self.store_data({
+                'active': json_response['downloadable'],
+                'backend_response': json_response,
+                'version': self.asset.version_id,
+            })
         except KobocatDeploymentException as e:
             if e.response.status_code == 404:
-                # Whoops, the KC project we thought we were going to ovewrite
+                # Whoops, the KC project we thought we were going to overwrite
                 # is gone! Try a standard deployment instead
                 return self.connect(self.identifier, active)
-        self.store_data({
-            'active': json_response['downloadable'],
-            'backend_response': json_response,
-            'version': self.asset.version_id,
-        })
+            raise
 
     @transaction.atomic
     def set_active(self, active):
