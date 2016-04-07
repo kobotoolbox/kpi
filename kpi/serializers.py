@@ -380,6 +380,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     tag_string = serializers.CharField(required=False, allow_blank=True)
     version_id = serializers.IntegerField(read_only=True)
     deployed_version_id = serializers.SerializerMethodField()
+    deployed_versions = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -396,6 +397,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'date_modified',
                   'version_id',
                   'version_count',
+                  'deployed_version_id',
+                  'deployed_versions',
                   'content',
                   'downloads',
                   'embeds',
@@ -406,8 +409,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'kind',
                   'xls_link',
                   'name',
-                  'deployed_version_id',
-                  'version_id',
                   'permissions',)
         extra_kwargs = {
             'parent': {
@@ -488,6 +489,44 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def get_deployed_version_id(self, obj):
         if obj.has_deployment:
             return obj.deployment.version
+
+    def get_deployed_versions(self, asset):
+        versioned_assets = {}
+        deployments = {}
+        request = self.context.get('request', None)
+        for version in asset.versions():
+            versioned_asset = version.object_version.object
+            # Asset.version_id returns the *most recent* version of the asset;
+            # it has no way to the version of the instance it's bound to.
+            # Record a _static_version_id here for the serializer to use
+            versioned_asset._static_version_id = version.id
+            versioned_assets[version.id] = versioned_asset
+            if versioned_asset.has_deployment:
+                # Some versions have deployment data, but that data may specify
+                # that a different version was deployed! Record all the
+                # deployments now
+                deployments[versioned_asset.deployment.version] = \
+                    versioned_asset.deployment
+        for version_id, versioned_asset in versioned_assets.iteritems():
+            # Now that all the deployments are known, loop through the versions
+            # again and note whether each was deployed, and if so, at what time
+            try:
+                deployment = deployments[version_id]
+            except KeyError:
+                versioned_asset.date_deployed = None
+                continue
+            versioned_asset.date_deployed = deployment.timestamp
+        # Include only versions that were deployed
+        versioned_assets = {
+            k: v for k, v in versioned_assets.iteritems()
+                if not v.date_deployed is None
+        }
+        # Pass the annotated objects to the serializer
+        return AssetVersionListSerializer(
+            versioned_assets.values(),
+            many=True,
+            context=self.context
+        ).data
 
     def _content(self, obj):
         return json.dumps(obj.content)
