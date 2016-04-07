@@ -664,6 +664,9 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
                   )
         lookup_field = 'username'
         extra_kwargs = {
+            'url' : {
+                'lookup_field': 'username',
+            },
             'owned_collections': {
                 'lookup_field': 'uid',
             },
