@@ -93,7 +93,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             settings_dict = settings_arr[0]
         if 'form_id' in settings_dict:
             del settings_dict['form_id']
-        settings_dict['form_id'] = id_string
+        settings_dict['id_string'] = id_string
         settings_dict['form_title'] = self.asset.name
         xls_dict['settings'] = [settings_dict]
 
