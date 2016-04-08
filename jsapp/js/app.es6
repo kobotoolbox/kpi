@@ -869,6 +869,7 @@ var App = React.createClass({
     return (
       <DocumentTitle title="KoBoToolbox">
         <div className="mdl-wrapper">
+          <div className="k-header__bar"></div>
           <bem.PageWrapper m={{
               'asset-nav-present': this.state.assetNavPresent,
               'asset-nav-open': this.state.assetNavIsOpen && this.state.assetNavPresent,

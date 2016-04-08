@@ -1,3 +1,8 @@
+.mdl-layout {
+  max-width: 1440px;
+  margin:0 auto;
+}
+
 .ui-panel {
   height:100%;
   margin:0px 6px; 
@@ -8,7 +13,7 @@
   background:#FFF;
   // margin:2px 6px;
   margin:2px auto;
-  max-width: 1150px;
+  // max-width: 1150px;
   padding: 0;
   height:100%;
   flex-direction:column;

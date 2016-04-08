@@ -1,4 +1,17 @@
 // MDL Layout overrides for navigation
+.k-header__bar {
+  background-color: $layout-header-bg-color;
+  @extend .mdl-shadow--2dp;
+  position: absolute;
+  min-height: 56px;
+  width: 100%;
+  z-index:1;
+}
+
+.mdl-layout__header {
+	background-color: transparent;
+	box-shadow: none !important;
+}
 
 .mdl-layout--fixed-drawer:not(.is-small-screen), 
 .mdl-layout--fixed-drawer.is-upgraded:not(.is-small-screen) {
@@ -8,13 +21,45 @@
     .mdl-layout__drawer-button {
     	display: none;
     }
+
+    .mdl-layout-title {
+    	width: 230px;
+    }
+
+		.search, .Select {
+			margin-right: 40px;
+		}
   }
 }
 
 .mdl-layout--fixed-drawer.is-small-screen {
-	> .mdl-layout__header .mdl-layout__header-row {
-		padding-left:60px;
+	> .mdl-layout__header {
+		.mdl-layout__header-row {
+			padding-left:60px;
+		}
+		.account-box__logo {
+		  width: 120px;
+		  height: 28px;
+		}
+
+	  .mdl-layout-title {
+	  	width: 150px;
+	  }
+
+	  .Select {
+	  	min-width:120px;
+	  }
+
+	  .search input {
+	  	width:120px;
+	  }
+
+		.search, .Select {
+			margin-right: 20px;
+		}
+
 	}
+
 }
 
 .mdl-layout--fixed-drawer > .mdl-layout__header {
@@ -22,7 +67,13 @@
 	.mdl-layout__header-row {
 		height:56px;
 		padding-left:20px;
-		justify-content: space-between;
+	}
+
+	.mdl-placeholder {
+		margin-left: auto;
+	}
+	.mdl-navigation {
+		margin-left: auto;
 	}
 
 	button.mdl-button {
@@ -53,8 +104,8 @@
 	}
 
 	.account-box__logo {
-	  width: 120px;
-	  height: 28px;
+	  width: 150px;
+	  height: 35px;
 	  background: url('../img/kobologo.svg') no-repeat;
 	  background-size: contain;
 	  display: block;
@@ -219,8 +270,4 @@
 		  color: #FFF;
 		}
 	}
-}
-
-@media screen and (max-width: 540px) {
-
 }
