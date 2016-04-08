@@ -11,14 +11,34 @@
 .ui-panel__body {
   @extend .mdl-grid, .mdl-shadow--2dp;
   background:#FFF;
-  // margin:2px 6px;
   margin:2px auto;
-  // max-width: 1150px;
   padding: 0;
   height:100%;
   flex-direction:column;
+  > .asset-view__content, 
+  > .collection-list {
+    @extend .mdl-cell, .mdl-cell--12-col;
+    flex-flow:column;
+  }
 
+  > .collection-list {
+    position: relative;
+    height:calc(100% - 55px);
+    overflow:auto;
+  }
+
+  > .asset-view__content {
+    height:100%;
+    > .asset-view__row--header {
+      height:110px;
+    }
+    .asset-view__row--form {
+      height:calc(100% - 110px);
+      overflow:auto;
+    }
+  }
 }
+
 
 .page-wrapper__content {
   position:relative;

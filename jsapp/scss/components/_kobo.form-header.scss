@@ -23,6 +23,14 @@ http://codepen.io/adamaoc/pen/KguLA
   &__button {
     flex-grow: 1;
   }
+  position:relative;
+}
+
+.form-header__close {
+  @extend .mdl-button, .mdl-button--icon, .mdl-js-button;
+  position: absolute;
+  right:-25px;
+  top: -15px;
 }
 
 .form-header__button {

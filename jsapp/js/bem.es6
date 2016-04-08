@@ -27,6 +27,7 @@ bem.AssetRow__buttons        = bem.AssetRow.__('buttons');
 
 bem.FormHeader = bem('form-header');
 bem.FormHeader__button = bem.FormHeader.__('button', '<button>');
+bem.FormHeader__close = bem.FormHeader.__('close', '<button>');
 
 bem.FormMeta = bem('form-meta');
 bem.FormMeta__preview = bem.FormMeta.__('preview');

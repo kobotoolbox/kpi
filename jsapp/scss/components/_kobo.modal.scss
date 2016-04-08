@@ -5,19 +5,19 @@
     width:100%;
     display: flex;
     justify-content: center;
+    top: 0px;
     .modal-open {
       width: 80%;
       max-width:820px;  
-
     }
   }
-  .asset-view .modal-backdrop {
-    position: fixed;
-    top:60px;
-    height:calc(100% - 60);
-    overflow: hidden;
-    z-index: 101;
-  }
+  // .asset-view .modal-backdrop {
+  //   position: fixed;
+  //   top:60px;
+  //   height:calc(100% - 60);
+  //   overflow: hidden;
+  //   z-index: 101;
+  // }
 }
 
 .modal-dialog, .modal-open {

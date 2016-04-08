@@ -1,3 +1,24 @@
+.form-meta {
+  margin: 12px;
+  // margin-left: 30px;
+  background-color: rgb(247, 247, 247);
+}
+
+.form-meta__button--metasummary {
+  @extend .mdl-button;
+  span {
+    margin: 0 5px;
+  }
+}
+
+.form-meta__button--expand {
+  background-color: #F0F0F0;
+  @extend .mdl-button;
+  > i {
+    @extend .fa, .fa-fw, .fa-cog;
+  }
+}
+
 .k-form-header__buttons {
   width: calc(100% - 70px);
   left: 0px;
@@ -52,12 +73,10 @@
 }
 
 .form-wrap {
-  padding-top: 25px;
-  padding-left: 20px;
-  padding-right: 10px;
+  padding: 12px;
+  padding-left: 30px;
   width:100%;
-  .survey-header,
-    .sub-header-bar {
+  .survey-header, .sub-header-bar {
     display: none;
   }
   input, textarea {

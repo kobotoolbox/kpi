@@ -429,6 +429,12 @@ export default {
 
     return (
         <bem.FormHeader>
+          <bem.FormHeader__close m={[{
+                'close-warning': this.needsSave(),
+              }]} onClick={this.navigateBack}>
+            <i className="material-icons">clear</i>
+          </bem.FormHeader__close>
+
           <ui.SmallInputBox
               ref='form-name'
               value={name}
@@ -559,40 +565,26 @@ export default {
   },
   render () {
     var isSurvey = this.app && !this.isLibrary();
-    //this.state.asset && this.state.asset.asset_type === 'survey';
-    var formHeaderFixed = this.state.formHeaderFixed,
-        placeHolder = formHeaderFixed && (
-            <bem.AssetView__row m={['header', 'placeholder']}
-                  style={{height: this.state.formHeaderFixedHeight}} />
-          );
     return (
         <DocumentTitle title={this.state.name || t('Untitled')}>
-          <bem.AssetView>
-            <ui.Panel>
-              <bem.AssetView__content>
-                <bem.AssetView__row m={['header', {
-                      fixed: formHeaderFixed,
-                    }]}
-                    ref={'fixableHeader'}>
-                  {this.renderSaveAndPreviewButtons()}
-                </bem.AssetView__row>
-                {formHeaderFixed ?
-                  placeHolder
-                : null}
+          <ui.Panel>
+            <bem.AssetView__content>
+              <bem.AssetView__row m={'header'}>
+                {this.renderSaveAndPreviewButtons()}
+              </bem.AssetView__row>
+              <bem.AssetView__row m={'form'}>
                 { isSurvey ?
                   <bem.AssetView__row>
                     <FormSettingsBox survey={this.app.survey} {...this.state} />
                   </bem.AssetView__row>
                 : null }
-                <bem.AssetView__row>
-                  <div ref="form-wrap" className='form-wrap'>
-                    { (!this.state.surveyAppRendered) ?
-                        this.renderLoadingNotice()
-                    : null }
-                  </div>
-                </bem.AssetView__row>
-              </bem.AssetView__content>
-            </ui.Panel>
+                <div ref="form-wrap" className='form-wrap'>
+                  { (!this.state.surveyAppRendered) ?
+                      this.renderLoadingNotice()
+                  : null }
+                </div>
+              </bem.AssetView__row>
+            </bem.AssetView__content>
             { this.state.enketopreviewOverlay ?
               <ui.Modal open onClose={this.hidePreview} title={t('Form Preview')}>
                 <ui.Modal.Body>
@@ -602,7 +594,7 @@ export default {
                 </ui.Modal.Footer>
               </ui.Modal>
             : null }
-          </bem.AssetView>
+          </ui.Panel>
         </DocumentTitle>
       );
   },
