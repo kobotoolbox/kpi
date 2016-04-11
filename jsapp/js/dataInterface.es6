@@ -113,12 +113,15 @@ var dataInterface;
         }
       });
     },
-    cloneAsset ({uid, name}) {
+    cloneAsset ({uid, name, version_id}) {
       let data = {
         clone_from: uid,
       };
       if (name) {
         data.name = name;
+      }
+      if (version_id) {
+        data.clone_from_version_id = version_id;
       }
       return $ajax({
         method: 'POST',

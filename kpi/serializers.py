@@ -491,9 +491,14 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             return obj.deployment.version
 
     def get_deployed_versions(self, asset):
-        versioned_assets = {}
-        deployments = {}
+        versioned_assets = OrderedDict()
+        deployments = OrderedDict()
+        versioned_deployed_assets = []
         request = self.context.get('request', None)
+        # Handle the current deployment
+        if asset.has_deployment:
+            deployments[asset.deployment.version] = asset.deployment
+        # Handle previous deployments
         for version in asset.versions():
             versioned_asset = version.object_version.object
             # Asset.version_id returns the *most recent* version of the asset;
@@ -516,14 +521,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 versioned_asset.date_deployed = None
                 continue
             versioned_asset.date_deployed = deployment.timestamp
-        # Include only versions that were deployed
-        versioned_assets = {
-            k: v for k, v in versioned_assets.iteritems()
-                if not v.date_deployed is None
-        }
-        # Pass the annotated objects to the serializer
+            versioned_deployed_assets.append(versioned_asset)
+        # Pass the annotated, deployed asset versions to the serializer
         return AssetVersionListSerializer(
-            versioned_assets.values(),
+            versioned_deployed_assets,
             many=True,
             context=self.context
         ).data
