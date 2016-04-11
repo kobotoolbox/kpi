@@ -80,6 +80,13 @@ var AssetRow = React.createClass({
             </bem.AssetRow__name>
           </bem.AssetRow__celllink>
           <bem.AssetRow__cellmeta>
+            <bem.AssetRow__cell m={'deployment-status'}>
+              {
+                this.props.deployed_version_id === null ?
+                  t('draft') :
+                  t('deployed')
+              }
+            </bem.AssetRow__cell>
             <bem.AssetRow__cell m={'userlink'}>
               {
                 selfowned ?

@@ -198,6 +198,9 @@ $highlightedBarTextColor: #25343C;
 
   .asset-row__cell {
     flex-grow: 2;
+    &--deployment-status {
+      flex-grow: 1;
+    }
     &--userlink {
       flex-grow: 1;
     }
