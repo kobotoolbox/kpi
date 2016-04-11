@@ -1,4 +1,6 @@
-// MDL Layout overrides for navigation
+// header and navigation styling
+$headerAccountTextColor: #DBEDF7;
+
 .k-header__bar {
   background-color: $layout-header-bg-color;
   @extend .mdl-shadow--2dp;
@@ -72,30 +74,83 @@
 	.mdl-placeholder {
 		margin-left: auto;
 	}
-	.mdl-navigation {
-		margin-left: auto;
-	}
 
-	button.mdl-button {
-		color: $layout-nav-color;
-		text-transform: none;
-		position: relative;
-		i {
-			font-size: 18px;
-			margin-left: 8px;
-			margin-right:8px;
-			opacity: 0.8;
+	.account-box {
+		margin-left: auto;
+		.account-box__notifications, 
+		.account-box__name {
+			display: inline-block;
 			vertical-align: middle;
 		}
-		&:active, &:focus, &:hover {
-			background-color: transparent; 
+	}
+
+	.account-box__notifications {
+		margin-right: 12px;
+		i {
+			font-size: 18px;
+			color: $headerAccountTextColor;
+		}
+	}
+	.account-box__name {
+		color: $layout-nav-color;
+		position: relative;
+		cursor:pointer;
+		> i {
+			font-size: 26px;
+			opacity: 0.8;
+			color: $headerAccountTextColor;
+			vertical-align: middle;
+			transition:all 0.5s;
+		}
+
+		&:hover > i {
+			opacity:1;
+			transition:all 0.5s;
+		}
+
+		> span {
+			padding:0px 12px;
+			font-size: 16px;
+			color: $headerAccountTextColor;
+		}
+
+		.k-account__menu {
+			position: absolute;
+			top:36px;
+			right:-40px;
+			background-color:$nav-menu-item-bg;
+			box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5), inset 0 1px 3px 0 rgba(0, 0, 0, 0.5);
+			margin:0px;
+			padding:8px 0px;
+			transition:all 0.5s 0.5s;
+			max-height: 0px;
+			opacity:0;
+			overflow: hidden;
+			&:before {
+				width: 0; 
+				height: 0; 
+				border-left: 15px solid transparent;
+				border-right: 15px solid transparent;
+				border-bottom: 15px solid $nav-menu-item-bg;
+				position: absolute;
+				top: -6px;
+				content: '';
+				right:30px;
+			}
+		}
+
+		&:hover .k-account__menu {
+			transition:all 0.5s 0.2s;
+			max-height: 1000px;
+			opacity:1;
+			overflow: visible;			
 		}
 	}
 
 	.account-box__image {
 	  width:24px;
 	  display: inline-block;
-	  margin-right: 6px;
+	  margin-right: 12px;
 	  img {
 	    width: 24px;
 	    height: 24px;
@@ -111,41 +166,40 @@
 	  display: block;
 	}
 
-	.mdl-menu__outline {
-		background-color:$nav-menu-item-bg;
-		margin-top: 10px;
-		box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5), inset 0 1px 3px 0 rgba(0, 0, 0, 0.5);
-	}
-
-	.mdl-menu {
-		margin:0px;
-	}
-
 	.mdl-menu__item {
 		color: $layout-nav-color;
-		opacity: 0.7;
+		opacity: 1;
+		padding-left: 12px;
+		padding-right: 54px;
+		height:36px;
+		line-height: 36px;
+		vertical-align: middle;
 		i {
-			font-size: 32px;
-			margin-right: 8px;
+			font-size: 26px;
+			margin-right: 4px;
 		}
 		&:hover {
-			opacity: 1;
 			background-color:$nav-menu-item-bg-active;
 		}
 	}
 
-	.k-submenu {
+	.k-lang__submenu {
 		position:relative;
 		ul {
-			border:1px solid red;
 			position:absolute;
-			width:200px;
-			left:-190px;
+			right:100%;
 			top:0px;
-			visibility:hidden;
+			background-color:$nav-menu-item-bg;
+			transition:all 0.5s;
+			max-height: 0px;
+			opacity:0;
+			overflow: hidden;
 		}
-		&:hover ul {
-			visibility:visible;
+		&:hover > ul {
+			transition:all 0.5s;
+			max-height: 1000px;
+			opacity:1;
+			overflow: visible;			
 		}
 	}
 

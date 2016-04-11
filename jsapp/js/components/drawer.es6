@@ -113,7 +113,15 @@ var Drawer = React.createClass({
   setStates() {
     var breadcrumb = this.state.headerBreadcrumb;
     if (breadcrumb[0] && breadcrumb[0].to == 'library') {
-      this.setState({headerFilters: 'library'});
+      this.setState({
+        headerFilters: 'library',
+        searchContext: searches.getSearchContext('library', {
+          filterParams: {
+            assetType: 'asset_type:question OR asset_type:block',
+          },
+          filterTags: 'asset_type:question OR asset_type:block',
+        })
+      });
     } else {
       this.setState({headerFilters: 'forms'});
     }

@@ -39,20 +39,13 @@ var MainHeader = React.createClass({
   getInitialState () {
     this.listenTo(stores.session, ({currentAccount}) => {
       this.setState({
-        languageKeyValues: langsToValues(currentAccount.languages),
+        // languageKeyValues: langsToValues(currentAccount.languages),
+        languages: currentAccount.languages,
       });
     });
 
-    var langKeys;
-    if (stores.session.currentAccount) {
-      langKeys = languageKeyValues(stores.session.currentAccount.languages);
-    } else {
-      langKeys = [];
-    }
-
     return assign({
       currentLang: cookie.load(LANGUAGE_COOKIE_NAME) || 'en',
-      languageKeyValues: langKeys,
       libraryFiltersContext: searches.getSearchContext('library', {
         filterParams: {
           assetType: 'asset_type:question OR asset_type:block',
@@ -86,7 +79,8 @@ var MainHeader = React.createClass({
       this.setState({headerFilters: 'forms'});
     }
   },
-  languageChange (langCode) {
+  languageChange (evt) {
+    var langCode = $(evt.target).data('key');
     if (langCode) {
       var cookieParams = {path: '/'};
       if (cookieDomain) {
@@ -95,34 +89,46 @@ var MainHeader = React.createClass({
       cookie.save(LANGUAGE_COOKIE_NAME, langCode, cookieParams);
     }
   },
+  renderLangItem(lang) {
+    return (
+      <li>
+        <a data-key={lang[0]} onClick={this.languageChange} className="mdl-menu__item">{lang[1]}</a>
+      </li>
+    );
+  },
   renderAccountNavMenu () {
     var accountName = this.state.currentAccount && this.state.currentAccount.username;
     var defaultGravatarImage = `${window.location.protocol}//www.gravatar.com/avatar/64e1b8d34f425d19e1ee2ea7236d3028?s=40`;
     var gravatar = this.state.currentAccount && this.state.currentAccount.gravatar || defaultGravatarImage;
+    var langs = this.state.languages;
 
     if (this.state.isLoggedIn) {
       return (
-        <nav className="mdl-navigation">
-          <button id="nav-menu-acct" className="mdl-button mdl-js-button">
-            <span>
-              <bem.AccountBox__image>
-                <img src={gravatar} />
-              </bem.AccountBox__image>
-              <bem.AccountBox__name>{accountName}</bem.AccountBox__name>
-              <i className="fa fa-caret-down"></i>
-            </span>
-          </button>
-
-          <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" htmlFor="nav-menu-acct">
-            <li><a href={stores.session.currentAccount.projects_url + '/settings'} className="mdl-menu__item"><i className="ki ki-settings"></i> {t('Profile Settings')}</a></li>
-            {leaveBetaUrl ?
-              <li><a href={leaveBetaUrl} className="mdl-menu__item">{t('leave beta')}</a></li>
-            :null}
-            <li><a className="mdl-menu__item"><i className="ki ki-language"></i> {t('Language')}</a></li>
-            <li><a onClick={this.logout} className="mdl-menu__item"><i className="ki ki-logout"></i> {t('Logout')}</a></li>
-          </ul>
-        </nav>
-
+        <bem.AccountBox>
+          <bem.AccountBox__notifications>
+            <i className="fa fa-bell"></i> lang = {this.state.currentLang}
+          </bem.AccountBox__notifications>
+          <bem.AccountBox__name>
+            <bem.AccountBox__image>
+              <img src={gravatar} />
+            </bem.AccountBox__image>
+            <span>{accountName}</span>
+            <i className="fa fa-caret-down"></i>
+            <ul className="k-account__menu">
+              <li><a href={stores.session.currentAccount.projects_url + '/settings'} className="mdl-menu__item"><i className="ki ki-settings"></i> {t('Profile Settings')}</a></li>
+              {leaveBetaUrl ?
+                <li><a href={leaveBetaUrl} className="mdl-menu__item">{t('leave beta')}</a></li>
+              :null}
+              <li className="k-lang__submenu">
+                <a className="mdl-menu__item"><i className="ki ki-language"></i> {t('Language')}</a>
+                <ul>
+                  {langs.map(this.renderLangItem)}
+                </ul>
+              </li>
+              <li><a onClick={this.logout} className="mdl-menu__item"><i className="ki ki-logout"></i> {t('Logout')}</a></li>
+            </ul>
+          </bem.AccountBox__name>
+        </bem.AccountBox>
         );
     }
 
@@ -151,15 +157,6 @@ var MainHeader = React.createClass({
             { this.state.headerFilters == 'forms' && 
               <ListTagFilter searchContext={this.state.formFiltersContext} />
             }
-
-            <div className="mdl-placeholder">
-              <Select
-                name="language-selector"
-                value={this.state.currentLang}
-                onChange={this.languageChange}
-                options={this.state.languageKeyValues}
-              />
-            </div>
 
             {this.renderAccountNavMenu()}
           </div>

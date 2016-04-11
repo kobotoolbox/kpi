@@ -127,10 +127,9 @@ bem.PopoverMenu = bem('popover-menu');
 bem.PopoverMenu__item = bem.PopoverMenu.__('item');
 bem.PopoverMenu__link = bem.PopoverMenu.__('link', '<a>');
 
-
-bem.CollectionHeader__button = bem.CollectionHeader.__('button', '<a>');
 bem.AccountBox = BEM('account-box');
-bem.AccountBox__name =      bem.AccountBox.__('name', '<span>');
+bem.AccountBox__notifications = bem.AccountBox.__('notifications');
+bem.AccountBox__name =      bem.AccountBox.__('name');
 bem.AccountBox__image =     bem.AccountBox.__('image', '<span>');
 bem.AccountBox__logo =      bem.AccountBox.__('logo', '<span>');
 

@@ -29,6 +29,9 @@ var SearchCollectionList = React.createClass({
   componentDidMount () {
     this.listenTo(this.searchStore, this.searchChanged);
   },
+  componentWillReceiveProps () {
+    this.listenTo(this.searchStore, this.searchChanged);
+  },
   searchChanged (searchStoreState) {
     this.setState(searchStoreState);
   },
