@@ -568,7 +568,7 @@ export default {
     return (
         <DocumentTitle title={this.state.name || t('Untitled')}>
           <ui.Panel>
-            <bem.AssetView__content>
+            <bem.AssetView__content m={this.state.formStylePanelDisplayed ? 'formStyleDisplayed': null }>
               <bem.AssetView__row m={'header'}>
                 {this.renderSaveAndPreviewButtons()}
               </bem.AssetView__row>
