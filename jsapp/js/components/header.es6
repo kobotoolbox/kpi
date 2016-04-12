@@ -105,8 +105,12 @@ var MainHeader = React.createClass({
     if (this.state.isLoggedIn) {
       return (
         <bem.AccountBox>
+          <span>lang = {this.state.currentLang}</span>
           <bem.AccountBox__notifications>
-            <i className="fa fa-bell"></i> lang = {this.state.currentLang}
+            <i className="fa fa-bell"></i> 
+            <bem.AccountBox__notifications__count>
+              2 
+            </bem.AccountBox__notifications__count>
           </bem.AccountBox__notifications>
           <bem.AccountBox__name>
             <bem.AccountBox__image>

@@ -85,11 +85,26 @@ $headerAccountTextColor: #DBEDF7;
 	}
 
 	.account-box__notifications {
-		margin-right: 12px;
+		margin:0px 32px;
+		margin-top: 4px;
+		position: relative;
 		i {
 			font-size: 18px;
 			color: $headerAccountTextColor;
 		}
+	}
+	.account-box__notifications__count {
+		background-color: #FF5469;
+		color: white;
+		padding:1px 5px;
+		font-weight: bold;
+		border-radius: 15px;
+		position: absolute;
+		font-size: 11px;
+		line-height: 15px;
+		top:-8px;
+		left:10px;
+		border:1px solid $layout-header-bg-color;
 	}
 	.account-box__name {
 		color: $layout-nav-color;
