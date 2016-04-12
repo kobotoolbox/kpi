@@ -116,7 +116,9 @@ bem.AssetView__buttons = bem.AssetView.__('buttons');
 bem.AssetView__buttoncol = bem.AssetView.__('buttoncol');
 bem.AssetView__button = bem.AssetView.__('button', '<button>');
 bem.AssetView__link = bem.AssetView.__('link', '<a>');
-bem.AssetView__deployments = bem.AssetView.__('deployments');
+bem.AssetView__plainlink = bem.AssetView.__('plainlink', '<a>'); // FIXME: feels wrong, but _kobo.asset-view.scss makes __link equivalent to __button
+bem.AssetView__deployments = bem.AssetView.__('deployments', '<ul>');
+bem.AssetView__deployment = bem.AssetView.__('deployment', '<li>');
 
 bem.PopoverMenu = bem('popover-menu');
 bem.PopoverMenu__item = bem.PopoverMenu.__('item');

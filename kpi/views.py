@@ -465,6 +465,15 @@ class AssetViewSet(viewsets.ModelViewSet):
     def _get_clone_serializer(self):
         original_uid= self.request.data[CLONE_ARG_NAME]
         original_asset= get_object_or_404(Asset, uid=original_uid)
+        try:
+            # Optionally clone a historical version of the asset
+            original_version_id = self.request.data['clone_from_version_id']
+            source_version = get_object_or_404(
+                original_asset.versions(), id=original_version_id)
+            original_asset = source_version.object_version.object
+        except KeyError:
+            # Default to cloning the current version
+            pass
         view_perm= get_perm_name('view', original_asset)
         if not self.request.user.has_perm(view_perm, original_asset):
             raise Http404
