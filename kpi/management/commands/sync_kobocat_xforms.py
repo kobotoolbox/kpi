@@ -45,6 +45,9 @@ def convert_dict_to_xls(ss_dict):
     for sheet_name in ss_dict.keys():
         # pyxform.xls2json_backends adds "_header" items for each sheet.....
         if not re.match(r".*_header$", sheet_name):
+            # Sheets with empty names are rejected by xlwt; omit them
+            if not sheet_name:
+                continue
             cur_sheet = workbook.add_sheet(sheet_name)
             _add_contents_to_sheet(cur_sheet, ss_dict[sheet_name])
     string_io = StringIO.StringIO()
