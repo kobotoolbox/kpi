@@ -1,7 +1,6 @@
 var merge = require('lodash.merge');
 var webpack = require('webpack');
 var path = require('path');
-var webpackStatsHelper = require('./webpack-stats-helper');
 var url = require('url');
 var autoprefixer = require('autoprefixer');
 var pkg = require('../package.json');
