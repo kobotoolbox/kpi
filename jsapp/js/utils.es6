@@ -124,6 +124,10 @@ log.t = function () {
 // unique id for forms with inputs and labels
 let lastId = 0;
 export var newId = function(prefix='id') {
-    lastId++;
-    return `${prefix}${lastId}`;
+  lastId++;
+  return `${prefix}${lastId}`;
 };
+
+export var randString = function () {
+  return Math.random().toString(36).match(/\.(\S{6}).*/)[1];
+}

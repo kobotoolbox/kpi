@@ -27,6 +27,7 @@ django-reversion==1.10.1
 django-ses==0.7.0
 django-taggit==0.18.0
 django-toolbelt==0.0.1
+django-webpack-loader==0.3.0
 Django==1.8.8             # via django-debug-toolbar, django-haystack, django-mptt, django-oauth-toolkit, django-reversion, django-toolbelt, jsonfield
 djangorestframework==3.3.2
 ecdsa==0.13               # via paramiko

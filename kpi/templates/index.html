@@ -9,6 +9,7 @@
     <meta name="kpi-root-url" content="{% url 'kpi-root' %}">
     {% if csrf_token %}<meta name="csrf-token" content="{{csrf_token}}">{% endif %}
 
+    {% load render_bundle from webpack_loader %}
     {% load staticfiles %}
     {% load cachebuster %}
 
@@ -33,11 +34,8 @@
       <!-- Make Django's internationalization functionality available in client code. -->
       <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
 
-      {% if use_minified_script %}
-          <script src="{% static "compiled/bundle.min.js" %}" defer></script>
-      {% else %}
-          <script src="{% static "compiled/bundle.js" %}" defer></script>
-      {% endif %}
+      {% render_bundle 'app' %}
+
     {% endblock footer %}
 
     {% if livereload_script %}

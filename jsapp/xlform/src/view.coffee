@@ -1,10 +1,6 @@
-define 'cs!xlform/view', [
-        'cs!xlform/view.templates',
-        'cs!xlform/view.surveyApp'
-        ], (
-            $viewTemplates,
-            $surveyApp
-            )->
+do ->
+  $viewTemplates = require './view.templates'
+  $surveyApp = require './view.surveyApp'
 
   surveyApp: $surveyApp
   viewTemplates: $viewTemplates

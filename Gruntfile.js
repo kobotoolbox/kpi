@@ -26,7 +26,8 @@ module.exports = function(grunt) {
               ]
           },
           transform: [
-            [ to5ify, { compact: false } ],
+            [ to5ify, { compact: false, presets: ['es2015', 'react'],
+              'plugins': ['add-module-exports'] } ],
             [ coffeeify ]
           ]
         }
