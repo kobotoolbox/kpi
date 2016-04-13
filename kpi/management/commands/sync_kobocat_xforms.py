@@ -131,6 +131,9 @@ class Command(BaseCommand):
             # Output status messages
             def print_str(string): print string
 
+        def print_tabular(*args):
+            print_str(u'\t'.join(map(lambda x: u'{}'.format(x), args)))
+
         users = User.objects.all()
         print_str('%d total users' % users.count())
         # A specific user or everyone?
@@ -152,7 +155,6 @@ class Command(BaseCommand):
 
         for user in users:
             (token, created) = Token.objects.get_or_create(user=user)
-            print_str('user %s' % user.username)
             existing_surveys = user.assets.filter(asset_type='survey')
 
             # Each asset that the user has already deployed to KC should have a
@@ -163,103 +165,126 @@ class Command(BaseCommand):
                 if 'backend_response' in dd:
                     kpi_deployed_uuids[dd['backend_response']['uuid']] = \
                         existing_survey.pk
-            print_str('\thas %d deployed KPI assets' % len(kpi_deployed_uuids))
-
             # Use our stub model to access KC's XForm objects
             xforms = user.xforms.all()
-            print_str('\thas %d KC forms' % xforms.count())
             for xform in xforms:
-                update_existing = False
-                if xform.uuid in kpi_deployed_uuids:
-                    # This KC form already has a corresponding KPI asset,
-                    # but the user may have directly updated the form on KC
-                    # after deploying from KPI. If so, then the KPI asset must
-                    # be updated with the contents of the KC form
-                    asset = user.assets.get(
-                        pk=kpi_deployed_uuids[xform.uuid])
-                    time_diff = xform.date_modified - asset.date_modified
-                    # If the timestamps are close enough, we assume the KC form
-                    # content was not updated since the last KPI deployment
-                    if time_diff <= TIMESTAMP_DIFFERENCE_TOLERANCE:
-                        # Print the timedelta in a sane way, per
+                try:
+                    update_existing = False
+                    if xform.uuid in kpi_deployed_uuids:
+                        # This KC form already has a corresponding KPI asset,
+                        # but the user may have directly updated the form on KC
+                        # after deploying from KPI. If so, then the KPI asset
+                        # must be updated with the contents of the KC form
+                        asset = user.assets.get(
+                            pk=kpi_deployed_uuids[xform.uuid])
+                        time_diff = xform.date_modified - asset.date_modified
+                        # Format the timedelta in a sane way, per
                         # http://stackoverflow.com/a/8408947
                         if time_diff < datetime.timedelta(0):
                             time_diff_str = '-{}'.format(-time_diff)
                         else:
                             time_diff_str = '+{}'.format(time_diff)
-                        print_str(
-                            u'\t{} is up-to-date (timestamp '
-                            u'difference is {})'.format(
-                                xform.id_string, time_diff_str)
+                        # If the timestamps are close enough, we assume the KC
+                        # form content was not updated since the last KPI
+                        # deployment
+                        if time_diff <= TIMESTAMP_DIFFERENCE_TOLERANCE:
+                            print_tabular(
+                                'NOOP',
+                                user.username,
+                                xform.id_string,
+                                asset.uid,
+                                time_diff_str
+                            )
+                            continue
+                        else:
+                            update_existing = True
+                    # Load the xlsform from the KC API to avoid having to deal
+                    # with S3 credentials, etc.
+                    response = kc_forms_api_request(
+                        token, xform.pk, xlsform=True)
+                    if response.status_code != 200:
+                        print_tabular(
+                            'FAIL',
+                            user.username,
+                            xform.id_string,
+                            'unable to load xls ({})'.format(
+                                response.status_code)
                         )
                         continue
-                    else:
-                        update_existing = True
-                # Load the xlsform from the KC API to avoid having to deal with
-                # S3 credentials, etc.
-                response = kc_forms_api_request(
-                    token, xform.pk, xlsform=True)
-                if response.status_code != 200:
-                    print_str('!!!\tfailed to load xls for {} ({})'.format(
-                        xform.id_string,
-                        response.status_code)
-                    )
-                    continue
-                # Convert the xlsform to KPI JSON
-                xls_io = io.BytesIO(response.content)
-                if xform.xls.name.endswith('.csv'):
-                    dict_repr = xls2json_backends.csv_to_dict(xls_io)
-                    xls_io = convert_dict_to_xls(dict_repr)
-                asset_content = xlsform_to_kpi_content_schema(xls_io)
-                # Get the form data from KC
-                response = kc_forms_api_request(token, xform.pk)
-                if response.status_code != 200:
-                    print_str('\tfailed to load form data for {} ({})'.format(
-                        xform.id_string,
-                        response.status_code)
-                    )
-                    continue
-                deployment_data = response.json()
-                with transaction.atomic():
-                    if update_existing:
-                        print_str(
-                            u'\tKPI appears to have an old version of {} '
-                            u'(timestamp difference is {})'.format(
-                                xform.id_string, time_diff)
+                    # Convert the xlsform to KPI JSON
+                    xls_io = io.BytesIO(response.content)
+                    if xform.xls.name.endswith('.csv'):
+                        dict_repr = xls2json_backends.csv_to_dict(xls_io)
+                        xls_io = convert_dict_to_xls(dict_repr)
+                    asset_content = xlsform_to_kpi_content_schema(xls_io)
+                    # Get the form data from KC
+                    response = kc_forms_api_request(token, xform.pk)
+                    if response.status_code != 200:
+                        print_tabular(
+                            'FAIL',
+                            user.username,
+                            xform.id_string,
+                            'unable to load form data ({})'.format(
+                                response.status_code)
                         )
-                    else:
-                        # This is an orphaned KC form. Build a new asset to
-                        # match it
-                        print_str(u'\t{} does not exist in KPI'.format(
-                            xform.id_string))
-                        asset = Asset()
-                        asset.asset_type = 'survey'
-                        asset.owner = user
-                        asset.date_created = dateutil.parser.parse(
-                            deployment_data['date_created'])
+                        continue
+                    deployment_data = response.json()
+                    with transaction.atomic():
+                        if not update_existing:
+                            # This is an orphaned KC form. Build a new asset to
+                            # match it
+                            asset = Asset()
+                            asset.asset_type = 'survey'
+                            asset.owner = user
+                            asset.date_created = dateutil.parser.parse(
+                                deployment_data['date_created'])
+                        # Update the asset's modification date and content
+                        # regardless of whether it's a new asset or an existing
+                        # one being updated
                         asset.date_modified = dateutil.parser.parse(
                             deployment_data['date_modified'])
-                    asset.content = asset_content
-                    asset.save()
-                    # If this user already has an identically-named asset,
-                    # append `xform.id_string` in parentheses for clarification
-                    if Asset.objects.filter(
-                            owner=user, name=asset.name).exists():
-                        asset.name = u'{} ({})'.format(
-                            asset.name, xform.id_string)
-                        # `store_data()` handles saving the asset
-                    # Copy the deployment-related data
-                    kc_deployment = KobocatDeploymentBackend(asset)
-                    kc_deployment.store_data({
-                        'backend': 'kobocat',
-                        'identifier': kc_deployment.make_identifier(
-                            user.username, xform.id_string),
-                        'active': xform.downloadable,
-                        'backend_response': deployment_data,
-                        'version': asset.version_id
-                    })
-                    print_str('\t\tsuccess: KC %s -> KPI %s' % (
-                        xform.id_string, asset.uid))
+                        asset.content = asset_content
+                        asset.save()
+                        # If this user already has an identically-named asset,
+                        # append `xform.id_string` in parentheses for
+                        # clarification
+                        if Asset.objects.filter(
+                                owner=user, name=asset.name).exists():
+                            asset.name = u'{} ({})'.format(
+                                asset.name, xform.id_string)
+                            # `store_data()` handles saving the asset
+                        # Copy the deployment-related data
+                        kc_deployment = KobocatDeploymentBackend(asset)
+                        kc_deployment.store_data({
+                            'backend': 'kobocat',
+                            'identifier': kc_deployment.make_identifier(
+                                user.username, xform.id_string),
+                            'active': xform.downloadable,
+                            'backend_response': deployment_data,
+                            'version': asset.version_id
+                        })
+                        if update_existing:
+                            print_tabular(
+                                'UPDATE',
+                                user.username,
+                                xform.id_string,
+                                asset.uid,
+                                time_diff_str
+                            )
+                        else:
+                            print_tabular(
+                                'CREATE',
+                                user.username,
+                                xform.id_string,
+                                asset.uid,
+                            )
+                except Exception as e:
+                    print_tabular(
+                        'FAIL',
+                        user.username,
+                        xform.id_string,
+                        repr(e)
+                    )
 
         _set_auto_field_update(Asset, "date_created", True)
         _set_auto_field_update(Asset, "date_modified", True)

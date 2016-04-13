@@ -497,6 +497,13 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         if asset.has_deployment:
             asset_deployments_by_version_id[asset.deployment.version] = \
                 asset.deployment
+            # The currently deployed version may be unknown, but we still want
+            # to pass its timestamp to the serializer
+            if asset.deployment.version == 0:
+                # Temporary attributes for later use by the serializer
+                asset._static_version_id = 0
+                asset._date_deployed = asset.deployment.timestamp
+                deployed_versioned_assets.append(asset)
         # Record all previous deployments
         for version in asset.versions():
             historical_asset = version.object_version.object
