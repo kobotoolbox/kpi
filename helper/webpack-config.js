@@ -170,12 +170,12 @@ module.exports = function (options) {
       filename: "[name]-[hash].js",
       publicPath: options.publicPath,
     },
-
     resolve: {
       extensions: ['', '.jsx', '.js', '.es6', '.coffee'],
       alias: {
         app: path.join(__dirname, '../app'),
-        test: path.join(__dirname, '../test')
+        utils: path.join(__dirname, '../jsapp/js/utils'),
+        test: path.join(__dirname, '../test'),
       }
     },
     module: {
