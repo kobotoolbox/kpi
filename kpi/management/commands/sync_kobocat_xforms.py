@@ -16,18 +16,13 @@ from django.core.management.base import BaseCommand
 from django.db import models, transaction
 from rest_framework.authtoken.models import Token
 
+from formpack.utils.xls_to_ss_structure import xls_to_dicts
 from hub.models import FormBuilderPreference
-from hub.utils.xls_to_ss_structure import xls_to_dicts
 from ...deployment_backends.kobocat_backend import KobocatDeploymentBackend
 from ...models import Asset
 from .import_survey_drafts_from_dkobo import _set_auto_field_update
 
 TIMESTAMP_DIFFERENCE_TOLERANCE = datetime.timedelta(seconds=30)
-
-def convert_csv_to_xls(csv_repr):
-    ''' Copied from dkobo/koboform/pyxform_utils.py '''
-    dict_repr = xls2json_backends.csv_to_dict(StringIO.StringIO(csv_repr.encode("utf-8")))
-    return convert_dict_to_xls(dict_repr)
 
 def _add_contents_to_sheet(sheet, contents):
     ''' Copied from dkobo/koboform/pyxform_utils.py '''
