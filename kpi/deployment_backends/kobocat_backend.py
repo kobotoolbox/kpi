@@ -9,6 +9,7 @@ import urlparse
 import posixpath
 
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.db import transaction
 from pyxform.xls2json_backends import xls_to_dict
 from rest_framework import exceptions, status
@@ -143,8 +144,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except requests.exceptions.RequestException as e:
             # Failed to access the KC API
             # TODO: clarify that the user cannot correct this
-            raise KobocatDeploymentException(
-                detail=unicode(e), response=response)
+            raise KobocatDeploymentException(detail=unicode(e))
 
         # If it's a no-content success, return immediately
         if response.status_code == expected_status_code == 204:
@@ -199,6 +199,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if not identifier:
             # Use the external URL here; the internal URL will be substituted
             # in when appropriate
+            if not settings.KOBOCAT_URL or not settings.KOBOCAT_INTERNAL_URL:
+                raise ImproperlyConfigured(
+                    'Both KOBOCAT_URL and KOBOCAT_INTERNAL_URL must be '
+                    'configured before using KobocatDeploymentBackend'
+                )
             server = settings.KOBOCAT_URL
             username = self.asset.owner.username
             id_string = self.asset.uid

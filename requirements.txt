@@ -4,6 +4,7 @@
 #
 #    pip-compile requirements.in
 #
+-e git+https://github.com/kobotoolbox/formpack.git@master#egg=formpack
 -e git+https://github.com/kobotoolbox/pyxform.git@master#egg=pyxform
 -e git+https://github.com/jnm/whoosh@master#egg=Whoosh
 amqp==1.4.9
@@ -32,12 +33,15 @@ djangorestframework==3.3.2
 ecdsa==0.13               # via paramiko
 Fabric==1.10.2
 gunicorn==19.4.5
+Jinja2==2.8
 jsonfield==1.0.3
 kombu==3.0.33
 lxml==2.3.4
 Markdown==2.6.5
 oauthlib==1.0.3
+ordereddict==1.1          # via funcsigs
 paramiko==1.16.0          # via fabric
+path.py==8.1.2
 psycopg2==2.6.1
 pycrypto==2.6.1           # via paramiko
 Pygments==2.1
@@ -51,6 +55,7 @@ sqlparse==0.1.18
 static3==0.6.1
 transifex-client==0.11
 unicodecsv==0.14.1
+urllib3==1.15.1           # via transifex-client
 uWSGI==2.0.12
 whitenoise==2.0.6
 xlrd==0.8.0
