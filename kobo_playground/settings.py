@@ -234,16 +234,20 @@ ENKETO_PREVIEW_URI = 'webform/preview' if ENKETO_VERSION == 'legacy' else 'previ
 KOBO_SURVEY_PREVIEW_EXPIRATION = os.environ.get('KOBO_SURVEY_PREVIEW_EXPIRATION', 24)
 
 ''' Celery configuration '''
-# Uncomment to enable failsafe search indexing
-#from datetime import timedelta
-#CELERYBEAT_SCHEDULE = {
-#    # Update the Haystack index twice per day to catch any stragglers that
-#    # might have gotten past haystack.signals.RealtimeSignalProcessor
-#    'update-search-index': {
-#        'task': 'kpi.tasks.update_search_index',
-#        'schedule': timedelta(hours=12)
-#    },
-#}
+from datetime import timedelta
+CELERYBEAT_SCHEDULE = {
+    # Create/update KPI assets to match KC forms
+    'sync-kobocat-xforms': {
+        'task': 'kpi.tasks.sync_kobocat_xforms',
+        'schedule': timedelta(minutes=30)
+    },
+    # Update the Haystack index twice per day to catch any stragglers that
+    # might have gotten past haystack.signals.RealtimeSignalProcessor
+    #'update-search-index': {
+    #    'task': 'kpi.tasks.update_search_index',
+    #    'schedule': timedelta(hours=12)
+    #},
+}
 '''
 Distinct projects using Celery need their own queues. Example commands for
 RabbitMQ queue creation:
