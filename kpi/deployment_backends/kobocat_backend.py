@@ -10,7 +10,6 @@ import posixpath
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from django.db import transaction
 from pyxform.xls2json_backends import xls_to_dict
 from rest_framework import exceptions, status
 from rest_framework.authtoken.models import Token
@@ -188,7 +187,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except KeyError:
             return None
 
-    @transaction.atomic
     def connect(self, identifier=None, active=False):
         '''
         POST initial survey content to kobocat and create a new project.
@@ -248,7 +246,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'version': self.asset.version_id,
         })
 
-    @transaction.atomic
     def redeploy(self, active=None):
         '''
         Replace (overwrite) the deployment, keeping the same identifier, and
@@ -279,7 +276,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 return self.connect(self.identifier, active)
             raise
 
-    @transaction.atomic
     def set_active(self, active):
         '''
         PATCH active boolean of survey.
@@ -300,7 +296,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'backend_response': json_response,
         })
 
-    @transaction.atomic
     def delete(self):
         url = self.external_to_internal_url(
             self.asset._deployment_data['backend_response']['url'])
