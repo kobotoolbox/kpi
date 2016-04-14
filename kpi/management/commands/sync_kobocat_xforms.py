@@ -1,11 +1,12 @@
+import StringIO
 import datetime
+import dateutil.parser
 import io
 import json
+import logging
 import re
 import requests
 import xlwt
-import StringIO
-import dateutil.parser
 from optparse import make_option
 from pyxform import xls2json_backends
 
@@ -182,9 +183,9 @@ class Command(BaseCommand):
                             time_diff_str = '-{}'.format(-time_diff)
                         else:
                             time_diff_str = '+{}'.format(time_diff)
-                        # If the timestamps are close enough, we assume the KC
-                        # form content was not updated since the last KPI
-                        # deployment
+                        # If KC timestamp is not sufficiently ahead of the KPI
+                        # timestamp, we assume the KC form content was not
+                        # updated since the last KPI deployment
                         if time_diff <= TIMESTAMP_DIFFERENCE_TOLERANCE:
                             print_tabular(
                                 'NOOP',
@@ -201,13 +202,16 @@ class Command(BaseCommand):
                     response = kc_forms_api_request(
                         token, xform.pk, xlsform=True)
                     if response.status_code != 200:
-                        print_tabular(
+                        error_information = [
                             'FAIL',
                             user.username,
                             xform.id_string,
-                            'unable to load xls ({})'.format(
+                            u'unable to load xls ({})'.format(
                                 response.status_code)
-                        )
+                        ]
+                        print_tabular(*error_information)
+                        logging.warning(u'sync_kobocat_xforms: {}'.format(
+                            u', '.join(error_information)))
                         continue
                     # Convert the xlsform to KPI JSON
                     xls_io = io.BytesIO(response.content)
@@ -218,13 +222,16 @@ class Command(BaseCommand):
                     # Get the form data from KC
                     response = kc_forms_api_request(token, xform.pk)
                     if response.status_code != 200:
-                        print_tabular(
+                        error_information = [
                             'FAIL',
                             user.username,
                             xform.id_string,
                             'unable to load form data ({})'.format(
                                 response.status_code)
-                        )
+                        ]
+                        print_tabular(*error_information)
+                        logging.error(u'sync_kobocat_xforms: {}'.format(
+                            u', '.join(error_information)))
                         continue
                     deployment_data = response.json()
                     with transaction.atomic():
@@ -277,12 +284,15 @@ class Command(BaseCommand):
                                 asset.uid,
                             )
                 except Exception as e:
-                    print_tabular(
+                    error_information = [
                         'FAIL',
                         user.username,
                         xform.id_string,
                         repr(e)
-                    )
+                    ]
+                    print_tabular(*error_information)
+                    logging.exception(u'sync_kobocat_xforms: {}'.format(
+                        u', '.join(error_information)))
 
         _set_auto_field_update(Asset, "date_created", True)
         _set_auto_field_update(Asset, "date_modified", True)
