@@ -89,7 +89,8 @@ class XlsExportable(object):
     def valid_xlsform_content(self):
         return to_xlsform_structure(self.content)
 
-    def to_xls_io(self, extra_rows=None, extra_settings=None):
+    def to_xls_io(self, extra_rows=None, extra_settings=None,
+            overwrite_settings=False):
         ''' To append rows to one or more sheets, pass `extra_rows` as a
         dictionary of dictionaries in the following format:
             `{'sheet name': {'column name': 'cell value'}`
@@ -123,12 +124,16 @@ class XlsExportable(object):
                 ss_dict[extra_row_sheet_name] = extra_row_sheet
             if extra_settings:
                 for setting_name, setting_value in extra_settings.iteritems():
-                    # Do not silently overwrite existing settings
                     settings_sheet = ss_dict.get('settings', [{}])
                     if not len(settings_sheet):
                         settings_sheet.append({})
                     settings_row = settings_sheet[0]
-                    assert(setting_name not in settings_row)
+                    if not overwrite_settings:
+                        assert setting_name not in settings_row, (
+                            u'Setting `{}` already exists, but '
+                            u'`overwrite_settings` is False'.format(
+                                setting_name)
+                            )
                     settings_row[setting_name] = setting_value
 
             workbook = xlwt.Workbook()
@@ -138,7 +143,8 @@ class XlsExportable(object):
                     cur_sheet = workbook.add_sheet(sheet_name)
                     _add_contents_to_sheet(cur_sheet, ss_dict[sheet_name])
         except Exception as e:
-            raise type(e)("asset.content improperly formatted for XLS export: %s" % (e.message))
+            raise Exception("asset.content improperly formatted for XLS "
+                            "export: %s" % repr(e))
         string_io = StringIO.StringIO()
         workbook.save(string_io)
         string_io.seek(0)
@@ -156,7 +162,10 @@ class XlsExportable(object):
         }
         extra_settings = {'version': self.version_id}
         return self.to_xls_io(
-            extra_rows=extra_rows, extra_settings=extra_settings)
+            extra_rows=extra_rows,
+            extra_settings=extra_settings,
+            overwrite_settings=True
+        )
 
 
 @reversion.register

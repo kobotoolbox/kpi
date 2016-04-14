@@ -57,6 +57,7 @@ INSTALLED_APPS = (
     'haystack',
     'kpi.apps.KpiConfig',
     'hub',
+    'webpack_loader',
     'registration', # Must come AFTER kpi
     'django.contrib.admin', # Must come AFTER registration
     'django_extensions',
@@ -258,6 +259,13 @@ BROKER_URL = os.environ.get('KPI_BROKER_URL', 'amqp://kpi:kpi@rabbit:5672/kpi')
 ACCOUNT_ACTIVATION_DAYS = 3
 REGISTRATION_AUTO_LOGIN = True
 REGISTRATION_EMAIL_HTML = False # Otherwise we have to write HTML templates
+
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'BUNDLE_DIR_NAME': 'jsapp/compiled/',
+        'POLL_INTERVAL': 0.5,
+    }
+}
 
 # Email configuration from dkobo; expects SES
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND',

@@ -91,7 +91,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             settings_dict = {}
         else:
             settings_dict = settings_arr[0]
-        settings_dict['form_id'] = id_string
+        if 'form_id' in settings_dict:
+            del settings_dict['form_id']
+        settings_dict['id_string'] = id_string
         settings_dict['form_title'] = self.asset.name
         xls_dict['settings'] = [settings_dict]
 
@@ -178,6 +180,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return json_response
 
 
+    @property
+    def timestamp(self):
+        try:
+            return self.asset._deployment_data['backend_response'][
+                'date_modified']
+        except KeyError:
+            return None
+
     @transaction.atomic
     def connect(self, identifier=None, active=False):
         '''
@@ -252,16 +262,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         }
         try:
             json_response = self._kobocat_request('PATCH', url, payload)
+            self.store_data({
+                'active': json_response['downloadable'],
+                'backend_response': json_response,
+                'version': self.asset.version_id,
+            })
         except KobocatDeploymentException as e:
             if e.response.status_code == 404:
-                # Whoops, the KC project we thought we were going to ovewrite
+                # Whoops, the KC project we thought we were going to overwrite
                 # is gone! Try a standard deployment instead
                 return self.connect(self.identifier, active)
-        self.store_data({
-            'active': json_response['downloadable'],
-            'backend_response': json_response,
-            'version': self.asset.version_id,
-        })
+            raise
 
     @transaction.atomic
     def set_active(self, active):

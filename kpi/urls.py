@@ -31,8 +31,9 @@ router.register(r'permissions', ObjectPermissionViewSet)
 router.register(r'imports', ImportTaskViewSet)
 router.register(r'sitewide_messages', SitewideMessageViewSet)
 
-router.register(
-    r'authorized-application/users', AuthorizedApplicationUserViewSet)
+router.register(r'authorized-application/users',
+                AuthorizedApplicationUserViewSet,
+                base_name='authorized-applications')
 
 
 # Apps whose translations should be available in the client code.

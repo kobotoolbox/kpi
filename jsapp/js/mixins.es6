@@ -396,13 +396,15 @@ var dmix = {
         </bem.AssetView__buttons>
       );
   },
-  saveCloneAs () {
+  saveCloneAs (evt) {
+    let version_id = evt.currentTarget.dataset.versionId;
     customPromptAsync(t('new form name'))
       .then((value) => {
         let uid = this.props.params.assetid;
         actions.resources.cloneAsset({
           uid: uid,
           name: value,
+          version_id: version_id,
         }, {
           onComplete: (asset) => {
             this.transitionTo('form-landing', {
@@ -493,10 +495,37 @@ var dmix = {
           <bem.AssetView__deployments>
             {
               this.state.deployed_version_id === null ?
-                t('not deployed')
+                <bem.AssetView__deployment>
+                  {t('not deployed')}
+                </bem.AssetView__deployment>
               :
-                t('version id ___ deployed').replace(
-                  '___', this.state.deployed_version_id)
+                this.state.deployed_version_id === 0 ?
+                  <bem.AssetView__deployment>
+                    {t('unknown version deployed')}
+                  </bem.AssetView__deployment>
+                :
+                  this.state.deployed_versions.map((item) => {
+                    return (
+                      <bem.AssetView__deployment>
+                        {t('version ___').replace('___', item.version_id)}
+                        {' | '}
+                        {
+                          item.version_id === this.state.deployed_version_id ?
+                              t('current live version')
+                          : [
+                            t('previously deployed ___')
+                              .replace('___', formatTime(item.date_deployed)),
+                            ' | ',
+                            <bem.AssetView__plainlink m='clone'
+                                data-version-id={item.version_id}
+                                onClick={this.saveCloneAs}>
+                              {t('clone')}
+                            </bem.AssetView__plainlink>
+                          ]
+                        }
+                      </bem.AssetView__deployment>
+                    );
+                  })
             }
           </bem.AssetView__deployments>
         </bem.AssetView__row>

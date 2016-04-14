@@ -380,6 +380,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     tag_string = serializers.CharField(required=False, allow_blank=True)
     version_id = serializers.IntegerField(read_only=True)
     deployed_version_id = serializers.SerializerMethodField()
+    deployed_versions = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -396,6 +397,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'date_modified',
                   'version_id',
                   'version_count',
+                  'deployed_version_id',
+                  'deployed_versions',
                   'content',
                   'downloads',
                   'embeds',
@@ -406,8 +409,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'kind',
                   'xls_link',
                   'name',
-                  'deployed_version_id',
-                  'version_id',
                   'permissions',)
         extra_kwargs = {
             'parent': {
@@ -488,6 +489,39 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def get_deployed_version_id(self, obj):
         if obj.has_deployment:
             return obj.deployment.version
+
+    def get_deployed_versions(self, asset):
+        asset_deployments_by_version_id = OrderedDict()
+        deployed_versioned_assets = []
+        # Record the current deployment, if any
+        if asset.has_deployment:
+            asset_deployments_by_version_id[asset.deployment.version] = \
+                asset.deployment
+        # Record all previous deployments
+        for version in asset.versions():
+            historical_asset = version.object_version.object
+            if historical_asset.has_deployment:
+                asset_deployments_by_version_id[
+                    historical_asset.deployment.version
+                ] = historical_asset.deployment
+        # Annotate and list deployed asset versions
+        for version in asset.versions().filter(
+                id__in=asset_deployments_by_version_id.keys()):
+            historical_asset = version.object_version.object
+            # Asset.version_id returns the *most recent* version of the asset;
+            # it has no way to know the version of the instance it's bound to.
+            # Record a _static_version_id here for the serializer to use
+            historical_asset._static_version_id = version.id
+            # Make the deployment timestamp available to the serializer
+            historical_asset._date_deployed = asset_deployments_by_version_id[
+                version.id].timestamp
+            # Store the annotated asset objects in a list for serialization
+            deployed_versioned_assets.append(historical_asset)
+        return AssetVersionListSerializer(
+            deployed_versioned_assets,
+            many=True,
+            context=self.context
+        ).data
 
     def _content(self, obj):
         return json.dumps(obj.content)
@@ -579,7 +613,6 @@ class ImportTaskListSerializer(ImportTaskSerializer):
 
 
 class AssetListSerializer(AssetSerializer):
-
     class Meta(AssetSerializer.Meta):
         fields = ('url',
                   'date_modified',
@@ -598,6 +631,28 @@ class AssetListSerializer(AssetSerializer):
                   'version_id',
                   'permissions',
                   )
+
+
+class AssetVersionListSerializer(AssetSerializer):
+    date_deployed = serializers.SerializerMethodField()
+    version_id = serializers.SerializerMethodField()
+
+    @staticmethod
+    def _get_attr_set_by_view(obj, name):
+        if not hasattr(obj, name):
+            raise Exception(
+                'The view must set the `{}` attribute on each '
+                'version passed to this serializer.'.format(name))
+        return getattr(obj, name)
+
+    def get_date_deployed(self, obj):
+        return self._get_attr_set_by_view(obj, '_date_deployed')
+
+    def get_version_id(self, obj):
+        return self._get_attr_set_by_view(obj, '_static_version_id')
+
+    class Meta(AssetSerializer.Meta):
+        fields = ('version_id', 'date_deployed')
 
 
 class AssetUrlListSerializer(AssetSerializer):
@@ -630,8 +685,10 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
                   'assets',
                   'owned_collections',
                   )
-        lookup_field = 'username'
         extra_kwargs = {
+            'url' : {
+                'lookup_field': 'username',
+            },
             'owned_collections': {
                 'lookup_field': 'uid',
             },

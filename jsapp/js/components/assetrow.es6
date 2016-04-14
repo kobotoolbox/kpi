@@ -95,6 +95,49 @@ var AssetRow = React.createClass({
                 return '-';
               } else {
                 return _rc;
+              /*
+          <bem.AssetRow__celllink m={['name', this.props.name ? 'titled' : 'untitled']}
+                data-kind={this.props.kind}
+                data-asset-type={this.props.kind}
+                href={this.makeHref( hrefTo, hrefParams)}
+              >
+            <bem.AssetRow__name>
+              <ui.AssetName {...this.props} />
+            </bem.AssetRow__name>
+          </bem.AssetRow__celllink>
+          <bem.AssetRow__cellmeta>
+            <bem.AssetRow__cell m={'deployment-status'}>
+              {
+                this.props.deployed_version_id === null ?
+                  t('draft') :
+                  t('deployed')
+              }
+            </bem.AssetRow__cell>
+            <bem.AssetRow__cell m={'userlink'}>
+              {
+                selfowned ?
+                  t('me') :
+                  this.props.owner__username
+              */
+
+              //and later
+              /*
+                          <bem.AssetRow__cell m={'date-modified'}>
+              <span className="date date--modified">{t('Modified')} {formatTime(this.props.date_modified)}</span>
+            </bem.AssetRow__cell>
+            <bem.AssetRow__cell m={'row-count'}>
+              {function(){
+                if (this.props.kind === 'collection') {
+                  return t('collection with ___ items').replace('___', _rc);
+                } else if (this.props.asset_type === 'survey') {
+                  return t('survey with ___ questions').replace('___', _rc);
+                } else if (this.props.asset_type === 'block') {
+                  return t('block with ___ questions').replace('___', _rc);
+                }
+              }.call(this)}
+            </bem.AssetRow__cell>
+          </bem.AssetRow__cellmeta>
+              */
               }
             }()}
             <i className="k-asset-arrow-icon"></i>
