@@ -236,11 +236,6 @@ KOBO_SURVEY_PREVIEW_EXPIRATION = os.environ.get('KOBO_SURVEY_PREVIEW_EXPIRATION'
 ''' Celery configuration '''
 from datetime import timedelta
 CELERYBEAT_SCHEDULE = {
-    # Create/update KPI assets to match KC forms
-    'sync-kobocat-xforms': {
-        'task': 'kpi.tasks.sync_kobocat_xforms',
-        'schedule': timedelta(minutes=30)
-    },
     # Update the Haystack index twice per day to catch any stragglers that
     # might have gotten past haystack.signals.RealtimeSignalProcessor
     #'update-search-index': {
@@ -248,6 +243,14 @@ CELERYBEAT_SCHEDULE = {
     #    'schedule': timedelta(hours=12)
     #},
 }
+
+if KOBOCAT_URL:
+    # Create/update KPI assets to match KC forms
+    CELERYBEAT_SCHEDULE['sync-kobocat-xforms'] = {
+        'task': 'kpi.tasks.sync_kobocat_xforms',
+        'schedule': timedelta(minutes=30),
+    }
+
 '''
 Distinct projects using Celery need their own queues. Example commands for
 RabbitMQ queue creation:
