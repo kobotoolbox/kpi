@@ -12,6 +12,7 @@ from pyxform import xls2json_backends
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import get_storage_class
 from django.core.management.base import BaseCommand
 from django.db import models, transaction
@@ -123,6 +124,11 @@ class Command(BaseCommand):
     )
 
     def handle(self, *args, **options):
+        if not settings.KOBOCAT_URL or not settings.KOBOCAT_INTERNAL_URL:
+            raise ImproperlyConfigured(
+                'Both KOBOCAT_URL and KOBOCAT_INTERNAL_URL must be '
+                'configured before using this command'
+            )
         if options.get('quiet'):
             # Do not output anything
             def print_str(string): pass
