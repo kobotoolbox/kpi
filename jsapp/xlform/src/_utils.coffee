@@ -1,5 +1,5 @@
 
-define ['cs!xlform/_model'], ($model)->
+define ['./_model'], ($model)->
   ###
   ###
   utils = {}

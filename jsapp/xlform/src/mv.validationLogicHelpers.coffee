@@ -1,3 +1,4 @@
+$ = require 'jquery'
 $validationLogicParser = require './model.validationLogicParser'
 $skipLogicHelpers = require './mv.skipLogicHelpers'
 _t = require('utils').t

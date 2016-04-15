@@ -29,6 +29,7 @@ django-oauth-toolkit
 django-registration-redux
 django-ses
 django-toolbelt
+django-webpack-loader
 django_cachebuster
 django_haystack
 django_markitup

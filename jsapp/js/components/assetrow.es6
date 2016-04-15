@@ -98,7 +98,7 @@ var AssetRow = React.createClass({
               <span className="date date--modified">{t('Modified')} {formatTime(this.props.date_modified)}</span>
             </bem.AssetRow__cell>
             <bem.AssetRow__cell m={'row-count'}>
-              {()=>{
+              {function(){
                 if (this.props.kind === 'collection') {
                   return t('collection with ___ items').replace('___', _rc);
                 } else if (this.props.asset_type === 'survey') {
@@ -106,7 +106,7 @@ var AssetRow = React.createClass({
                 } else if (this.props.asset_type === 'block') {
                   return t('block with ___ questions').replace('___', _rc);
                 }
-              }()}
+              }.call(this)}
             </bem.AssetRow__cell>
           </bem.AssetRow__cellmeta>
           { this.props.isSelected &&

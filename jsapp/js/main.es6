@@ -2,6 +2,7 @@ import {runRoutes} from './app';
 import $ from 'jquery';
 import cookie from 'react-cookie';
 
+require('../scss/main.scss');
 
 var el = (function(){
   var $d = $('<div>', {'class': 'kpiapp'});
