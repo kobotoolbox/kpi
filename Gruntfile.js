@@ -79,6 +79,7 @@ module.exports = function(grunt) {
         src: [
           './node_modules/font-awesome/fonts/*',
           './node_modules/roboto-fontface/fonts/*.wof*',
+          './node_modules/material-design-icons/iconfont/*',
           ],
         dest: './jsapp/fonts/',
       }

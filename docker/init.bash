@@ -7,6 +7,12 @@ echo 'KoBoForm initializing.'
 
 cd "${KPI_SRC_DIR}"
 
+if [[ -z $DATABASE_URL ]]; then
+    echo "DATABASE_URL must be configured to run this server"
+    echo "example: 'DATABASE_URL=postgres://hostname:5432/dbname'"
+    exit 1
+fi
+
 echo 'Synchronizing database.'
 python manage.py syncdb --noinput
 
@@ -35,7 +41,7 @@ fi
 
 if [[ ! -d "${KPI_SRC_DIR}/staticfiles" ]]; then
     echo 'Building static files from live code.'
-    (cd "${KPI_SRC_DIR}" && grunt buildall && python manage.py collectstatic --noinput)
+    (cd "${KPI_SRC_DIR}" && npm run build-production && python manage.py collectstatic --noinput)
 fi
 
 echo "Copying static files to nginx volume..."
