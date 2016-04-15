@@ -1,7 +1,11 @@
 # http://celery.readthedocs.org/en/latest/django/first-steps-with-django.html
 from __future__ import absolute_import
 import os
-from celery import Celery
+import celery
+
+from django.conf import settings
+from raven.contrib.celery import register_signal, register_logger_signal
+from raven.contrib.django.raven_compat.models import client as raven_client
 
 # Attempt to determine the project name from the directory containing this file
 PROJECT_NAME = os.path.basename(os.path.dirname(__file__))
@@ -10,10 +14,16 @@ PROJECT_NAME = os.path.basename(os.path.dirname(__file__))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{}.settings'.format(
     PROJECT_NAME))
 
-from django.conf import settings
+# Log to Sentry from Celery jobs per
+# https://docs.getsentry.com/hosted/clients/python/integrations/celery/
+class Celery(celery.Celery):
+    def on_configure(self):
+        # register a custom filter to filter out duplicate logs
+        register_logger_signal(raven_client)
+        # hook into the Celery error handler
+        register_signal(raven_client)
 
 app = Celery(PROJECT_NAME)
-
 # Using a string here means the worker will not have to
 # pickle the object when using Windows.
 app.config_from_object('django.conf:settings')
