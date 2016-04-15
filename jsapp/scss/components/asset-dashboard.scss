@@ -7,8 +7,10 @@ $permEditorColor: #999;
 .dropzone {
   border: 3px solid dashed;
 }
+
 .dropzone--active {
   border: 3px dashed red;
+
   > * {
     opacity: 0.3;
   }
@@ -19,10 +21,12 @@ $permEditorColor: #999;
     border-color: #f00;
   }
 }
+
 .gravatar-img {
   border: 1px solid #ddd;
   border-radius: 2px;
 }
+
 .form-preview {
   position: relative;
 }
@@ -38,39 +42,48 @@ $permEditorColor: #999;
     color: #f25858;
     font-style: italic;
     text-align: center;
+
     span {
       line-height: 40px;
     }
   }
 }
+
 .k-history {}
+
 .k-history--empty {
   opacity: 0.4;
+
   &:hover {
     opacity: 0.8;
   }
 }
+
 .k-col-2-nopadd {
   width: 15.6%;
   padding: 0 0 0 1%;
   float: left;
 }
+
 .k-col-3-nopadd {
   width: 24%;
   padding: 0 0 0 1%;
   float: left;
 }
+
 .k-col-6-nopadd {
   width: 49%;
   padding: 0 0 0 1%;
   float: left;
 }
+
 .cutout-placeholder {
   margin: 30px;
   border: 3px dashed #ddd;
   text-align: center;
   height: 300px;
   border-radius: 15px;
+
   > span {
     color: #aaa;
     display: block;
@@ -95,11 +108,13 @@ $permEditorColor: #999;
 .k-breadcrumb {
   margin: 0;
   padding: 0;
+
   li {
     margin: 0;
     padding: 0;
     list-style-type: none;
     display: inline-block;
+
     a {
       border: 1px solid #eee;
       display: inline-block;
@@ -107,6 +122,7 @@ $permEditorColor: #999;
       border-radius: 4px;
       text-transform: uppercase;
       margin-right: 4px;
+
       &:hover {
         background-color: #eee;
         border-color: #bbb;
@@ -114,14 +130,17 @@ $permEditorColor: #999;
     }
   }
 }
+
 .k-user-details {
   margin: 0 20px 0 0;
+
   .a {
-      padding: 20.5px 15px;
-      line-height: 23px;
-      display: inline-block;
+    padding: 20.5px 15px;
+    line-height: 23px;
+    display: inline-block;
   }
 }
+
 .k-icon-wrap {
   width: 65px;
   height: 65px;
@@ -131,19 +150,23 @@ $permEditorColor: #999;
   margin-right: 15px;
   background-color: #ddd;
   position: relative;
+
   &.k-icon-wrap--green {
     background-color: #23ae89;
   }
+
   &.k-icon-wrap--blue {
     background-color: #2361ae;
   }
 
   i {
     color: #fff;
+
     &.k-expanded {
       font-size: 30px;
       line-height: 66px;
     }
+
     &.k-icon-overlay {
       position: absolute;
       bottom: 10px;
@@ -156,20 +179,23 @@ $permEditorColor: #999;
 .user-profile-link {
   color: #333;
   text-decoration: none;
+
   &:hover {
     color: #666;
     text-decoration: underline;
   }
+
   i {
-    margin: 0 8px
+    margin: 0 8px;
   }
 }
 
 .assetcollection__row--loading {
-	td {
+  td {
     color: #aaa;
     font-style: italic;
     text-align: center;
+
     span {
       line-height: 40px;
     }
@@ -191,6 +217,7 @@ $permEditorColor: #999;
   position: relative;
   margin-right: 10px;
 }
+
 .permissions-editor--unshared {
   .permissions-editor__icon {
     color: $permEditorColor;
@@ -199,24 +226,29 @@ $permEditorColor: #999;
     left: 4px;
   }
 }
+
 .icon--asset {
   .fa-stack-2x {
     color: #364F62;
   }
 }
+
 .icon--collection {
   .fa-stack-2x {
     color: #A165AB;
   }
 }
+
 .k-search {
   width: 300px;
   margin-top: 15px;
   float: right;
 }
+
 .permissions-editor__list {
   text-align: left;
 }
+
 .permissions-editor__icon {
   color: $permEditorColor;
   position: absolute;
@@ -229,10 +261,11 @@ $permEditorColor: #999;
   width: 70px;
   height: 60px;
   text-align: center;
-  background-image: url('~/img/kobosquare-small.png');
+  background-image: url("~/img/kobosquare-small.png");
   background-position: center;
   background-repeat: no-repeat;
   opacity: 0.3;
+
   &:hover {
     opacity: 0.6;
   }

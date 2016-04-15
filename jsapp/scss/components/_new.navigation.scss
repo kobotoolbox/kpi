@@ -3,340 +3,368 @@ $headerAccountTextColor: #DBEDF7;
 
 .k-header__bar {
   background-color: $layout-header-bg-color;
+
   @extend .mdl-shadow--2dp;
+
   position: absolute;
   min-height: 56px;
   width: 100%;
-  z-index:1;
+  z-index: 1;
 }
 
 .mdl-layout__header {
-	background-color: transparent;
-	box-shadow: none !important;
+  background-color: transparent;
+  box-shadow: none !important;
 }
 
-.mdl-layout--fixed-drawer:not(.is-small-screen), 
+.mdl-layout--fixed-drawer:not(.is-small-screen),
 .mdl-layout--fixed-drawer.is-upgraded:not(.is-small-screen) {
   > .mdl-layout__header {
     margin-left: 0px;
-    width:100%;
+    width: 100%;
+
     .mdl-layout__drawer-button {
-    	display: none;
+      display: none;
     }
 
     .mdl-layout-title {
-    	width: 230px;
+      width: 230px;
     }
 
-		.search, .Select {
-			margin-right: 40px;
-		}
+    .search, .Select {
+      margin-right: 40px;
+    }
   }
 }
 
 .mdl-layout--fixed-drawer.is-small-screen {
-	> .mdl-layout__header {
-		.mdl-layout__header-row {
-			padding-left:60px;
-		}
-		.account-box__logo {
-		  width: 120px;
-		  height: 28px;
-		}
+  > .mdl-layout__header {
+    .mdl-layout__header-row {
+      padding-left: 60px;
+    }
 
-	  .mdl-layout-title {
-	  	width: 150px;
-	  }
+    .account-box__logo {
+      width: 120px;
+      height: 28px;
+    }
 
-	  .Select {
-	  	min-width:120px;
-	  }
+    .mdl-layout-title {
+      width: 150px;
+    }
 
-	  .search input {
-	  	width:120px;
-	  }
+    .Select {
+      min-width: 120px;
+    }
 
-		.search, .Select {
-			margin-right: 20px;
-		}
+    .search input {
+      width: 120px;
+    }
 
-	}
-
+    .search, .Select {
+      margin-right: 20px;
+    }
+  }
 }
 
 .mdl-layout--fixed-drawer > .mdl-layout__header {
-	min-height:56px;
-	.mdl-layout__header-row {
-		height:56px;
-		padding-left:20px;
-	}
+  min-height: 56px;
 
-	.mdl-placeholder {
-		margin-left: auto;
-	}
+  .mdl-layout__header-row {
+    height: 56px;
+    padding-left: 20px;
+  }
 
-	.account-box {
-		margin-left: auto;
-		.account-box__notifications, 
-		.account-box__name {
-			display: inline-block;
-			vertical-align: middle;
-		}
-	}
+  .mdl-placeholder {
+    margin-left: auto;
+  }
 
-	.account-box__notifications {
-		margin:0px 32px;
-		margin-top: 4px;
-		position: relative;
-		i {
-			font-size: 18px;
-			color: $headerAccountTextColor;
-		}
-	}
-	.account-box__notifications__count {
-		background-color: #FF5469;
-		color: white;
-		padding:1px 5px;
-		font-weight: bold;
-		border-radius: 15px;
-		position: absolute;
-		font-size: 11px;
-		line-height: 15px;
-		top:-8px;
-		left:10px;
-		border:1px solid $layout-header-bg-color;
-	}
-	.account-box__name {
-		color: $layout-nav-color;
-		position: relative;
-		cursor:pointer;
-		> i {
-			font-size: 26px;
-			opacity: 0.8;
-			color: $headerAccountTextColor;
-			vertical-align: middle;
-			transition:all 0.5s;
-		}
+  .account-box {
+    margin-left: auto;
 
-		&:hover > i {
-			opacity:1;
-			transition:all 0.5s;
-		}
+    .account-box__notifications,
+    .account-box__name {
+      display: inline-block;
+      vertical-align: middle;
+    }
+  }
 
-		> span {
-			padding:0px 12px;
-			font-size: 16px;
-			color: $headerAccountTextColor;
-		}
+  .account-box__notifications {
+    margin: 0px 32px;
+    margin-top: 4px;
+    position: relative;
 
-		.k-account__menu {
-			position: absolute;
-			top:36px;
-			right:-40px;
-			background-color:$nav-menu-item-bg;
-			box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5), inset 0 1px 3px 0 rgba(0, 0, 0, 0.5);
-			margin:0px;
-			padding:8px 0px;
-			transition:all 0.5s 0.5s;
-			max-height: 0px;
-			opacity:0;
-			overflow: hidden;
-			&:before {
-				width: 0; 
-				height: 0; 
-				border-left: 15px solid transparent;
-				border-right: 15px solid transparent;
-				border-bottom: 15px solid $nav-menu-item-bg;
-				position: absolute;
-				top: -6px;
-				content: '';
-				right:30px;
-			}
-		}
+    i {
+      font-size: 18px;
+      color: $headerAccountTextColor;
+    }
+  }
 
-		&:hover .k-account__menu {
-			transition:all 0.5s 0.2s;
-			max-height: 1000px;
-			opacity:1;
-			overflow: visible;			
-		}
-	}
+  .account-box__notifications__count {
+    background-color: #FF5469;
+    color: white;
+    padding: 1px 5px;
+    font-weight: bold;
+    border-radius: 15px;
+    position: absolute;
+    font-size: 11px;
+    line-height: 15px;
+    top: -8px;
+    left: 10px;
+    border: 1px solid $layout-header-bg-color;
+  }
 
-	.account-box__image {
-	  width:24px;
-	  display: inline-block;
-	  margin-right: 12px;
-	  img {
-	    width: 24px;
-	    height: 24px;
-	    border-radius:12px;
-	  }
-	}
+  .account-box__name {
+    color: $layout-nav-color;
+    position: relative;
+    cursor: pointer;
 
-	.account-box__logo {
-	  width: 150px;
-	  height: 35px;
-	  background: url('../img/kobologo.svg') no-repeat;
-	  background-size: contain;
-	  display: block;
-	}
+    > i {
+      font-size: 26px;
+      opacity: 0.8;
+      color: $headerAccountTextColor;
+      vertical-align: middle;
+      transition: all 0.5s;
+    }
 
-	.mdl-menu__item {
-		color: $layout-nav-color;
-		opacity: 1;
-		padding-left: 12px;
-		padding-right: 54px;
-		height:36px;
-		line-height: 36px;
-		vertical-align: middle;
-		i {
-			font-size: 26px;
-			margin-right: 4px;
-		}
-		&:hover {
-			background-color:$nav-menu-item-bg-active;
-		}
-	}
+    &:hover > i {
+      opacity: 1;
+      transition: all 0.5s;
+    }
 
-	.k-lang__submenu {
-		position:relative;
-		ul {
-			position:absolute;
-			right:100%;
-			top:0px;
-			background-color:$nav-menu-item-bg;
-			transition:all 0.5s;
-			max-height: 0px;
-			opacity:0;
-			overflow: hidden;
-		}
-		&:hover > ul {
-			transition:all 0.5s;
-			max-height: 1000px;
-			opacity:1;
-			overflow: visible;			
-		}
-	}
+    > span {
+      padding: 0px 12px;
+      font-size: 16px;
+      color: $headerAccountTextColor;
+    }
 
-	.Select {
-		min-width:180px;
-	}
+    .k-account__menu {
+      position: absolute;
+      top: 36px;
+      right: -40px;
+      background-color: $nav-menu-item-bg;
+      box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5), inset 0 1px 3px 0 rgba(0, 0, 0, 0.5);
+      margin: 0px;
+      padding: 8px 0px;
+      transition: all 0.5s 0.5s;
+      max-height: 0px;
+      opacity: 0;
+      overflow: hidden;
 
-	.k-search__input {
-		color:white;
-		border:2px solid #dbedf7;
-		border-radius:16px;
-		padding:5px;
-		background-color:transparent;
-		font-size:14px;
-		text-align:center;
-		position:relative;
-	}
+      &:before {
+        width: 0;
+        height: 0;
+        border-left: 15px solid transparent;
+        border-right: 15px solid transparent;
+        border-bottom: 15px solid $nav-menu-item-bg;
+        position: absolute;
+        top: -6px;
+        content: '';
+        right: 30px;
+      }
+    }
 
-	.search__icon {
-		@extend .fa, .fa-search;
-		position:absolute;
+    &:hover .k-account__menu {
+      transition: all 0.5s 0.2s;
+      max-height: 1000px;
+      opacity: 1;
+      overflow: visible;
+    }
+  }
+
+  .account-box__image {
+    width: 24px;
+    display: inline-block;
+    margin-right: 12px;
+
+    img {
+      width: 24px;
+      height: 24px;
+      border-radius: 12px;
+    }
+  }
+
+  .account-box__logo {
+    width: 150px;
+    height: 35px;
+    background: url("../img/kobologo.svg") no-repeat;
+    background-size: contain;
+    display: block;
+  }
+
+  .mdl-menu__item {
+    color: $layout-nav-color;
+    opacity: 1;
+    padding-left: 12px;
+    padding-right: 54px;
+    height: 36px;
+    line-height: 36px;
+    vertical-align: middle;
+
+    i {
+      font-size: 26px;
+      margin-right: 4px;
+    }
+
+    &:hover {
+      background-color: $nav-menu-item-bg-active;
+    }
+  }
+
+  .k-lang__submenu {
+    position: relative;
+
+    ul {
+      position: absolute;
+      right: 100%;
+      top: 0px;
+      background-color: $nav-menu-item-bg;
+      transition: all 0.5s;
+      max-height: 0px;
+      opacity: 0;
+      overflow: hidden;
+    }
+
+    &:hover > ul {
+      transition: all 0.5s;
+      max-height: 1000px;
+      opacity: 1;
+      overflow: visible;
+    }
+  }
+
+  .Select {
+    min-width: 180px;
+  }
+
+  .k-search__input {
+    color: white;
+    border: 2px solid #dbedf7;
+    border-radius: 16px;
+    padding: 5px;
+    background-color: transparent;
+    font-size: 14px;
+    text-align: center;
+    position: relative;
+  }
+
+  .search__icon {
+    @extend .fa, .fa-search;
+
+    position: absolute;
     margin-left: 10px;
     margin-top: 8px;
-    color:#dbedf7;
-    &:before {
-			font-size: 18px;
-    }
-	}
+    color: #dbedf7;
 
-	.Select-control {
+    &:before {
+      font-size: 18px;
+    }
+  }
+
+  .Select-control {
     position: relative;
     overflow: hidden;
     background-color: transparent;
-    padding:5px;
-    border-radius:16px;
-    border:2px solid #dbedf7;
+    padding: 5px;
+    border-radius: 16px;
+    border: 2px solid #dbedf7;
+
     .Select-arrow {
-			border-top: 8px solid transparent;
-			border-bottom: 8px solid transparent;
-			border-left: 8px solid #dbedf7;
-			right: 4px;
-    	top: 8px;
+      border-top: 8px solid transparent;
+      border-bottom: 8px solid transparent;
+      border-left: 8px solid #dbedf7;
+      right: 4px;
+      top: 8px;
     }
-		.Select-placeholder {
-		  color: #FFF;
-		  padding: 5px;
-		  padding-right:22px;
-		  text-align: center;
-		  font-size: 14px;
-		}
-		.Select-input > input {
-			padding-left:10px;
-			color: white;
-			font-size: 14px;
-		}
 
-		.Select-item {
-		  background-color:$nav-menu-item-bg-active;
-		  border-radius: 6px;
-		  border: none;
-		  color: #FFF;
-		  font-size: 0.9em;
-		  &:first-child {
-		  	margin-left: 5px;
-		  }
-		}
+    .Select-placeholder {
+      color: #FFF;
+      padding: 5px;
+      padding-right: 22px;
+      text-align: center;
+      font-size: 14px;
+    }
 
-		.Select-item-label .Select-item-label__a {
-		  color: #FFF;
-		}
-		.Select-item-icon {
-		  border-right: none;
-  		border-bottom-left-radius: 6px;
-	  	border-top-left-radius: 6px;
-	  	color:#dbedf7;
-	    padding: 5px;
-    	padding-right: 2px;
-			&:hover,
-			&:focus {
-			  background-color: $nav-menu-item-bg-active;
-			  color: #FFF;
-			}
-			&:active {
-			  background-color: $nav-menu-item-bg-active;
-			}
-		}
-	}
+    .Select-input > input {
+      padding-left: 10px;
+      color: white;
+      font-size: 14px;
+    }
 
-	.Select.is-multi .Select-input {
-		padding:0px;
-	}
+    .Select-item {
+      background-color: $nav-menu-item-bg-active;
+      border-radius: 6px;
+      border: none;
+      color: #FFF;
+      font-size: 0.9em;
 
-	.Select-menu-outer {
-	  background-color:$nav-menu-item-bg;
-	  border: none;
-	  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
-	  color: white;
-	}
-	.Select-option {
-	  color: #FFF;
-	}
-	.Select-option.is-focused {
-	  background-color:$nav-menu-item-bg-active;
-	  color: #FFF;
-	}
-	.Select-option.is-disabled {
-	  color: rgba(255, 255, 255, 0.5);
-	}
-	.Select-noresults {
-	  color: #DDD;
-	}	
+      &:first-child {
+        margin-left: 5px;
+      }
+    }
 
-	.Select-clear {
-	  color: #dbedf7;
-	  background:$layout-header-bg-color;
+    .Select-item-label .Select-item-label__a {
+      color: #FFF;
+    }
+
+    .Select-item-icon {
+      border-right: none;
+      border-bottom-left-radius: 6px;
+      border-top-left-radius: 6px;
+      color: #dbedf7;
+      padding: 5px;
+      padding-right: 2px;
+
+      &:hover,
+      &:focus {
+        background-color: $nav-menu-item-bg-active;
+        color: #FFF;
+      }
+
+      &:active {
+        background-color: $nav-menu-item-bg-active;
+      }
+    }
+  }
+
+  .Select.is-multi .Select-input {
+    padding: 0px;
+  }
+
+  .Select-menu-outer {
+    background-color: $nav-menu-item-bg;
+    border: none;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+    color: white;
+  }
+
+  .Select-option {
+    color: #FFF;
+  }
+
+  .Select-option.is-focused {
+    background-color: $nav-menu-item-bg-active;
+    color: #FFF;
+  }
+
+  .Select-option.is-disabled {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .Select-noresults {
+    color: #DDD;
+  }
+
+  .Select-clear {
+    color: #dbedf7;
+    background: $layout-header-bg-color;
     font-size: 22px;
     padding: 4px 6px;
     right: 7px;
     border-radius: 5px;
     top: 4px;
-		&:hover {
-		  color: #FFF;
-		}
-	}
+
+    &:hover {
+      color: #FFF;
+    }
+  }
 }

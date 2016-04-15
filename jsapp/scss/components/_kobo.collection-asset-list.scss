@@ -4,9 +4,11 @@
   &.collection-asset-list__message--loading {
     > i:first-child {
       @extend .fa, .fa-spin, .fa-spinner;
+
       margin-right: 12px;
     }
   }
+
   &.collection-asset-list__message--empty {
     font-style: italic;
     color: $cool-gray;
@@ -17,22 +19,25 @@
   // @extend .mdl-grid;
   padding: 6px 12px;
   white-space: nowrap;
+
   > .asset-list-sorts__item {
     // @extend .mdl-cell;
-    color:$cool-gray;
+    color: $cool-gray;
     font-weight: 500;
     position: relative;
-    padding:5px 0px;
+    padding: 5px 0px;
+
     &:after {
       content: '';
-      height:100%;
-      width:1px;
+      height: 100%;
+      width: 1px;
       background-color: $cool-gray;
       right: 2px;
       top: 0px;
-      position:absolute;
+      position: absolute;
       opacity: 0.5;
     }
+
     // &.asset-list-sorts__item--name {
     //   @extend .mdl-cell--6-col, .mdl-cell--3-col-tablet;
     // }
@@ -44,20 +49,23 @@
     // }
     &.asset-list-sorts__item--questions {
       // @extend .mdl-cell--1-col, .mdl-cell--1-col-tablet;
-      &:after {display:none;}
+      &:after {
+        display: none;
+      }
     }
   }
 }
 
 .search__summary {
-  background-color:#F0F0F0;
-  height:50px;
-  width:100%;
-  flex-grow:0;
-  color:$greyish-brown;
-  text-align:right;
+  background-color: #F0F0F0;
+  height: 50px;
+  width: 100%;
+  flex-grow: 0;
+  color: $greyish-brown;
+  text-align: right;
+
   > div {
-    padding:15px;
-    vertical-align:middle;
+    padding: 15px;
+    vertical-align: middle;
   }
 }

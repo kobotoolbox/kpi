@@ -5,6 +5,7 @@ $mult: 0.5;
   height: 1280px * $mult;
   float: left;
 }
+
 .ui-panel--overflowhidden {
   overflow: hidden;
 }
@@ -23,31 +24,36 @@ $mult: 0.5;
   text-align: center;
   font-size: 20px;
   margin: 40px 0;
+
   &--loading {
     > i {
       @extend .fa, .fa-fw, .fa-spin, .fa-spinner;
+
       margin-right: 15px;
     }
   }
 }
+
 %has-icon-col {
   @extend .row;
+
   padding-bottom: 12px;
   min-height: 1.2em;
   border-top: 1px solid #eee;
   padding-top: 6px;
 }
+
 .asset-view__row {
   @extend .row;
 }
 
 .asset-view__row--header {
   padding: 0 10px 0 12px;
+
   // reset MDL css effects for buttons
   button:focus:not(:active) {
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
   }
-
 }
 
 // .asset-view__row {
@@ -69,10 +75,12 @@ $mult: 0.5;
   .asset-view__row & {
     margin-bottom: 0px;
   }
+
   .asset-view__ancestor {
     margin: 0 3px 1px 0;
   }
 }
+
 // .asset-view__ancestor {
 //   @extend .label, .label-warning;
 // }
@@ -83,6 +91,7 @@ $mult: 0.5;
   margin-right: 5%;
   text-align: right;
 }
+
 .asset-view__val {
   float: left;
   width: 30%;
@@ -91,43 +100,53 @@ $mult: 0.5;
 
 @mixin assetTypeHeader($col, $iconkls) {
   color: $col;
+
   // border-bottom: 6px solid $col;
   // margin: -7px -7px 0;
   hr {
     display: none;
   }
-  font-size: 16px;
-  .asset-view__asset-type {
 
+  font-size: 16px;
+
+  .asset-view__asset-type {
     > i:first-child {
       @extend .fa, .fa-fw, .fa-#{$iconkls};
     }
+
     > i[data-tip] {
       opacity: 0.5;
       margin-left: 18px;
+
       &:hover {
         opacity: 1;
       }
+
       @extend .fa, .fa-fw, .fa-question;
     }
   }
 }
+
 .asset-view__asset-type-wrap {
   &--type-survey {
-    @include assetTypeHeader($kcol-clone, 'file');
+    @include assetTypeHeader($kcol-clone, "file");
   }
+
   &--type-question {
-    @include assetTypeHeader($kcol-7, 'circle-o');
+    @include assetTypeHeader($kcol-7, "circle-o");
   }
+
   &--type-block {
-    @include assetTypeHeader($kcol-8, 'square-o');
+    @include assetTypeHeader($kcol-8, "square-o");
   }
 }
+
 .asset-view__asset-type {
   text-transform: uppercase;
   line-height: 10px;
   font-weight: 600;
   padding: 7px 4px 4px;
+
   small {
     color: #bbb;
     font-style: italic;
@@ -135,30 +154,38 @@ $mult: 0.5;
     margin-left: 12px;
     text-transform: none;
   }
+
   > i:first-child {
     @extend .fa, .fa-fw, .fa-question;
+
     margin-right: 2px;
   }
+
   &--type-survey {
     color: mix(#999, $kcol-clone, 50%);
     border-color: $kcol-clone;
     background-color: lighten($kcol-clone, 45%);
+
     > i:first-child {
       @extend .fa-file;
     }
   }
+
   &--type-question {
     color: mix(#999, $kcol-7, 50%);
     border-color: $kcol-7;
     background-color: lighten($kcol-7, 37%);
+
     > i:first-child {
       @extend .fa-circle-o;
     }
   }
+
   &--type-block {
     color: mix(#999, $kcol-8, 50%);
     border-color: $kcol-8;
-    background-color: lighten($kcol-8, 60%); 
+    background-color: lighten($kcol-8, 60%);
+
     > i:first-child {
       @extend .fa-square-o;
     }
@@ -167,6 +194,7 @@ $mult: 0.5;
 
 .asset-view__name {
   @extend h3;
+
   margin-bottom: 0.5em;
   position: relative;
   padding-left: 50px;
@@ -174,11 +202,13 @@ $mult: 0.5;
   &--untitled {
     color: #666;
   }
+
   small {
     font-style: italic;
     font-size: smaller;
     color: lighten(#666, 2%);
   }
+
   .asset-type-icon {
     display: block;
     position: absolute;
@@ -189,6 +219,7 @@ $mult: 0.5;
 
 .asset-view__tags {
   margin-bottom: 1em;
+
   .asset-view__iconwrap {
     display: inline-block;
     float: left;
@@ -197,10 +228,12 @@ $mult: 0.5;
     height: 30px;
     line-height: 30px;
     margin-right: 10px;
+
     i {
       @extend .fa, .fa-tag;
     }
   }
+
   &--empty {
     span {
       font-style: italic;
@@ -229,10 +262,9 @@ $mult: 0.5;
   }
 }
 
-
 // buttons
 
-@mixin action-faicon ($faClass) {
+@mixin action-faicon($faClass) {
   > i {
     @extend .fa, .fa-fw, .fa-#{$faClass};
   }
@@ -241,9 +273,12 @@ $mult: 0.5;
 .asset-view__buttons {
   @extend .mdl-grid;
 }
+
 .asset-view__buttoncol {
   position: relative;
+
   @extend .mdl-cell, .mdl-cell--2-col;
+
   .asset-view__link, .asset-view__button {
     display: block;
     width: 100%;
@@ -274,46 +309,60 @@ $mult: 0.5;
   i {
     margin-right: 8px;
   }
+
   &--disabled {
     opacity: 0.5;
   }
 
   &--preview {
     @extend .mdl-color--purple-800;
-    @include action-faicon('eye');
+
+    @include action-faicon("eye");
   }
+
   &--edit {
     // @include disableablelink($kcol-edit);
     @extend .mdl-color--indigo-800;
-    @include action-faicon('pencil');
+
+    @include action-faicon("pencil");
   }
+
   &--download {
     @extend .mdl-color--light-blue-800;
-    @include action-faicon('download');
+
+    @include action-faicon("download");
   }
+
   &--clone {
     @extend .mdl-color--teal-800;
-    @include action-faicon('upload');
+
+    @include action-faicon("upload");
   }
+
   &--sharing {
     @extend .mdl-color--light-green-800;
-    @include action-faicon('share-alt');
+
+    @include action-faicon("share-alt");
+
     > i {
       @extend .fa-share-alt;
     }
   }
+
   &--deploy {
     // @extend .mdl-color--amber-800;
-    @include action-faicon('play');
+    @include action-faicon("play");
   }
 
   &--refresh {
     @extend .mdl-color-text--red;
-    @include action-faicon('refresh');
+
+    @include action-faicon("refresh");
   }
 
   &--delete {
     @extend .mdl-color-text--red;
+
     > i {
       @extend .fa, .fa-fw, .fa-trash-o;
     }
@@ -328,13 +377,16 @@ $mult: 0.5;
 
 .asset-view__row--secondary-buttons {
   @extend .mdl-grid;
-  margin-top:20px;
-  .asset-view__buttoncol--third, 
+
+  margin-top: 20px;
+
+  .asset-view__buttoncol--third,
   .asset-view__buttoncol--fourth {
     @extend .mdl-cell--hide-tablet;
   }
+
   .asset-view__buttoncol--first,
-  .asset-view__buttoncol--third, 
+  .asset-view__buttoncol--third,
   .asset-view__buttoncol--fourth {
     @extend .mdl-cell--hide-phone;
   }
@@ -342,6 +394,7 @@ $mult: 0.5;
 
 .asset-view__deployments, .asset-view__langs {
   @extend .mdl-cell, .mdl-cell--12-col;
+
   text-align: center;
 }
 

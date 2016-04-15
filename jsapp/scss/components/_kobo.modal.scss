@@ -2,14 +2,15 @@
   .modal-backdrop {
     position: absolute;
     height: 100%;
-    width:100%;
+    width: 100%;
     display: flex;
     justify-content: center;
     top: 0px;
     z-index: 3;
+
     .modal-open {
       width: 80%;
-      max-width:820px;  
+      max-width: 820px;
     }
   }
 }
@@ -20,7 +21,7 @@
 
 .modal-content {
   width: 100%;
-  height: 100%; 
+  height: 100%;
   display: flex;
   flex-direction: column;
   background-color: #F5F5F5;
@@ -29,38 +30,45 @@
 .modal-header {
   .mdl-grid {
     // padding:4px;
+ 
   }
 }
+
 .modal-footer {
   min-height: 60px;
-  padding-top:10px;
+  padding-top: 10px;
 }
 
 h4.modal-title {
-  margin-top:0px;
+  margin-top: 0px;
 }
 
 .modal-footer {
   text-align: center;
+
   button {
     @extend .mdl-button;
+
     @extend .mdl-button--colored;
+
     @extend .mdl-button--raised;
   }
 }
 
 .modal-body {
-  flex-grow:1;
+  flex-grow: 1;
   display: flex;
-  flex-direction:column;
+  flex-direction: column;
+
   .enketo-holder {
-    flex-grow:1;
+    flex-grow: 1;
     display: flex;
-    flex-direction:column;
+    flex-direction: column;
   }
+
   iframe {
-    flex-grow:1;
-    border:1px solid white;
+    flex-grow: 1;
+    border: 1px solid white;
     width: 100%;
   }
 }
@@ -83,13 +91,13 @@ h4.modal-title {
   width: 94%;
   left: 3%;
   margin-left: 0px;
-  -webkit-overflow-scrolling:touch;
+  -webkit-overflow-scrolling: touch;
   overflow-y: scroll;
 }
 
 .enketo-iframe-icon {
   color: #fff;
-  background-image: url('~/jquery-ui/themes/humanity/images/ui-icons_ffffff_256x240.png');
+  background-image: url("~/jquery-ui/themes/humanity/images/ui-icons_ffffff_256x240.png");
   background-color: #C6CBD0;
   background-position: -81px -129px;
   position: absolute;

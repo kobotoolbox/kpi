@@ -3,7 +3,7 @@
   text-align: center;
   color: #fff;
   font-weight: 700;
-  margin-right:10px;
+  margin-right: 10px;
 
   &--small {
     width: 20px;
@@ -12,6 +12,7 @@
     font-size: 12px;
     line-height: 18px;
   }
+
   &--medium {
     width: 24px;
     height: 24px;
@@ -28,7 +29,8 @@
 
   &--block {
     background-color: unquote("rgb(#{$color-primary})");
-    border:1px solid unquote("rgb(#{$color-primary})");
+    border: 1px solid unquote("rgb(#{$color-primary})");
+
     > i {
       &:before {
         content: 'B';
@@ -36,10 +38,12 @@
       }
     }
   }
+
   &--question {
     background-color: #FFF;
-    border:1px solid unquote("rgb(#{$color-primary})");
+    border: 1px solid unquote("rgb(#{$color-primary})");
     color: unquote("rgb(#{$color-primary})");
+
     > i {
       &:before {
         content: 'Q';
@@ -47,20 +51,25 @@
       }
     }
   }
+
   &--survey {
     background-color: unquote("rgb(#{$color-primary})");
-    border:1px solid unquote("rgb(#{$color-primary})");
+    border: 1px solid unquote("rgb(#{$color-primary})");
+
     // background-color: #444;
     > i {
       font-size: 16px;
       font-weight: 600;
+
       @extend .fa, .fa-fw, .fa-file-o;
     }
+
     &.asset-type-icon--small {
       > i {
         font-size: 11px;
       }
     }
+
     &.asset-type-icon--medium {
       > i {
         margin-left: 2px;
@@ -70,16 +79,17 @@
   }
 }
 
-.asset-row--active .asset-type-icon, 
+.asset-row--active .asset-type-icon,
 .asset-row .asset-type-icon:hover {
   background-color: $cool-gray;
-  border:1px solid $cool-gray;
-  border-radius:0px;
-  color:#FFF;
+  border: 1px solid $cool-gray;
+  border-radius: 0px;
+  color: #FFF;
+
   > i {
     &:before {
       content: '\f00c';
-      font-family:'FontAwesome';
+      font-family: 'FontAwesome';
     }
   }
 }

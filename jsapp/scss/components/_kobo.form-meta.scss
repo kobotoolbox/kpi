@@ -5,6 +5,7 @@
 
 .form-meta__button--metasummary {
   @extend .mdl-button;
+
   span {
     margin: 0 5px;
   }
@@ -12,7 +13,9 @@
 
 .form-meta__button--expand {
   background-color: #F0F0F0;
+
   @extend .mdl-button;
+
   > i {
     @extend .fa, .fa-fw, .fa-cog;
   }

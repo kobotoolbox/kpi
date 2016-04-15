@@ -1,15 +1,15 @@
-@import './libs/material-design-lite';
+@import "./libs/material-design-lite";
 
-@import './components/asset-dashboard';
-@import './components/menus';
+@import "./components/asset-dashboard";
+@import "./components/menus";
 
-@import './fonts/roboto';
-@import '../../node_modules/font-awesome/scss/font-awesome';
-@import '../../node_modules/select2/src/scss/core';
-@import '../../node_modules/react-tooltip/dist/react-tooltip';
-@import './libs/alertify';
-@import './libs/react-tagsinput';
-@import './libs/react-select';
+@import "./fonts/roboto";
+@import "../../node_modules/font-awesome/scss/font-awesome";
+@import "../../node_modules/select2/src/scss/core";
+@import "../../node_modules/react-tooltip/dist/react-tooltip";
+@import "./libs/alertify";
+@import "./libs/react-tagsinput";
+@import "./libs/react-select";
 
 // http://www.materialpalette.com/grey/indigo
 $muiLight: #616161;
@@ -25,7 +25,7 @@ $kcol-preview: mix(#FFC107, grayscale(#FFC107), 38%);
 $kcol-clone: mix(#2196F3, grayscale(#2196F3), 38%);
 $kcol-delete: mix(#FF5722, grayscale(#FF5722), 38%);
 $kcol-download: mix(#4CAF50, grayscale(#4CAF50), 38%);
-$kcol-deploy: rgb(92,107,192);
+$kcol-deploy: rgb(92, 107, 192);
 
 $kcol-7: mix(#FF4081, grayscale(#FF4081), 38%);
 $kcol-8: mix(#00BCD4, grayscale(#00BCD4), 38%);
@@ -33,27 +33,25 @@ $newformButtonColor: mix(#2196F3, grayscale(#2196F3), 38%);
 
 $newformCircleWidthHeight: 55px;
 
-@import './kobo';
+@import "./kobo";
 
 // @import './components/kobo.account-box';
-@import './components/kobo.collection-header';
-@import './components/kobo.collection-nav';
-@import './components/kobo.collection-asset-list';
-@import './components/kobo.list-view';
-@import './components/kobo.asset-view';
-@import './components/kobo.asset-row';
-@import './components/kobo.form-header';
-@import './components/kobo.form-meta';
-@import './components/kobo.search';
-@import './components/kobo.lib-nav';
-@import './components/kobo.lib-list';
-@import './components/kobo.form-builder';
-@import './components/kobo.asset-name';
-@import './components/kobo.bem.ui';
-@import './components/kobo.modal';
-@import './components/kobo.collection-sidebar';
-@import './components/kobo.asset-type-icon';
-@import './libs/pygments-theme';
+@import "./components/kobo.collection-header";
+@import "./components/kobo.collection-asset-list";
+@import "./components/kobo.list-view";
+@import "./components/kobo.asset-view";
+@import "./components/kobo.asset-row";
+@import "./components/kobo.form-header";
+@import "./components/kobo.form-meta";
+@import "./components/kobo.lib-nav";
+@import "./components/kobo.lib-list";
+@import "./components/kobo.form-builder";
+@import "./components/kobo.asset-name";
+@import "./components/kobo.bem.ui";
+@import "./components/kobo.modal";
+@import "./components/kobo.collection-sidebar";
+@import "./components/kobo.asset-type-icon";
+@import "./libs/pygments-theme";
 
 .k-invisible {
   visibility: hidden;

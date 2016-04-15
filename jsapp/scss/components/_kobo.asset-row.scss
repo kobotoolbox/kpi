@@ -1,8 +1,9 @@
 .asset-row {
   list-style-type: none;
-  border-top: 1px solid transparentize($cool-gray, .7);
+  border-top: 1px solid transparentize($cool-gray, 0.7);
   cursor: pointer;
   padding: 10px 12px;
+
   // position: relative;
   white-space: nowrap;
 
@@ -18,6 +19,7 @@
 
   > .asset-row__cell {
     min-width: 0;
+
     &.asset-row__cell--title {
       text-overflow: ellipsis;
       overflow: hidden;
@@ -26,14 +28,13 @@
 }
 
 .asset-row__tags {
-  padding-left:34px;
+  padding-left: 34px;
   white-space: normal;
+
   .asset-row__tags__tag {
     @extend .k-tagsinput-tag;
   }
 }
-
-
 
 .asset-row--deleted {
   opacity: 0.35;
@@ -44,26 +45,29 @@
   i {
     @extend .fa, .fa-fw, .fa-user;
   }
+
   &.asset-row__sharingIcon--multi-user {
     i {
       @extend .fa, .fa-fw, .fa-users;
     }
   }
+
   &.asset-row__sharingIcon--self-owned {
     i {
       display: none;
     }
   }
+
   &.asset-row__sharingIcon--public-owned {
     span {
       display: none;
     }
+
     i {
       @extend .fa, .fa-fw, .fa-question;
     }
   }
 }
-
 
 .asset-row__cell--row-count {
   position: relative;
@@ -74,10 +78,11 @@
   right: -5px;
   top: 0px;
   font-size: 24px;
+
   @extend .fa, .fa-fw, .fa-lg, .fa-caret-right;
+
   color: #A5B3BC;
 }
-
 
 .asset-row--active {
   > .asset-row__buttons {
@@ -87,18 +92,19 @@
     padding: 6px;
     background: white;
     text-align: right;
-    width:100%;
+    width: 100%;
   }
 
   .asset-row__action-icon {
-    font-size:32px;
+    font-size: 32px;
     margin-right: 20px;
     font-weight: 400;
-    color:$cool-gray;
-    cursor:pointer;
-    padding:0px 6px;
+    color: $cool-gray;
+    cursor: pointer;
+    padding: 0px 6px;
+
     &:hover {
-      background-color:transparent;
+      background-color: transparent;
       color: unquote("rgb(#{$color-accent})");
     }
 
@@ -106,9 +112,9 @@
       @extend .fa, .fa-play;
     }
 
-    &.asset-row__action-icon--view i, 
+    &.asset-row__action-icon--view i,
     &.asset-row__action-icon--preview i {
-      @extend .fa, .fa-eye; 
+      @extend .fa, .fa-eye;
     }
 
     &.asset-row__action-icon--view-collection i {
@@ -116,33 +122,33 @@
     }
 
     &.asset-row__action-icon--edit i {
-      @extend .fa, .fa-pencil; 
+      @extend .fa, .fa-pencil;
     }
 
     &.asset-row__action-icon--clone i {
-      @extend .fa, .fa-copy; 
+      @extend .fa, .fa-copy;
     }
 
     &.asset-row__action-icon--delete i {
-      @extend .fa, .fa-trash-o; 
+      @extend .fa, .fa-trash-o;
     }
 
     &.asset-row__action-icon--sharing i {
-      @extend .fa, .fa-users; 
+      @extend .fa, .fa-users;
     }
 
     &.asset-row__action-icon--download i {
-      @extend .fa, .fa-download; 
+      @extend .fa, .fa-download;
     }
 
     &.asset-row__action-icon--refresh i {
-      @extend .fa, .fa-refresh; 
+      @extend .fa, .fa-refresh;
     }
   }
 
   .k-asset-arrow-icon {
     @extend .fa-caret-down;
+
     color: #A5B3BC;
   }
-
 }
