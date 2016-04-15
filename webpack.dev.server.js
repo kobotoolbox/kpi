@@ -2,8 +2,6 @@
 // make edits to the corresponding '.config' file
 var configs = require('./webpack.dev.server.config');
 
-console.log(JSON.stringify(configs, null, 4));
-
 var WebpackDevServer = require('webpack-dev-server');
 var webpack = require('webpack');
 var port = configs.port || 3000;

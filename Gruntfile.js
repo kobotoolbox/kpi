@@ -154,11 +154,8 @@ module.exports = function(grunt) {
     'clean:js',
   ]);
   grunt.registerTask('buildall', [
-    'build',
     'copy',
     'webfont',
-    'uglify',
-    'cssmin',
   ]);
   grunt.registerTask('default', ['develop']);
 

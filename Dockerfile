@@ -64,13 +64,18 @@ RUN (   diff -q "${KPI_SRC_DIR}/bower.json" /srv/tmp/base_bower.json && \
 ######################
 
 COPY ./Gruntfile.js ${KPI_SRC_DIR}/
+COPY ./webpack* ${KPI_SRC_DIR}/
+COPY ./helper/webpack-config.js ${KPI_SRC_DIR}/helper/wepback-config.js
+
 COPY ./jsapp ${KPI_SRC_DIR}/jsapp
+
 RUN mkdir "${GRUNT_BUILD_DIR}" && \
     mkdir "${GRUNT_FONTS_DIR}" && \
     ln -s "${GRUNT_BUILD_DIR}" "${KPI_SRC_DIR}/jsapp/compiled" && \
     rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
     ln -s "${GRUNT_FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts" && \
-    grunt buildall
+    grunt buildall && \
+    npm run build-production
 
 
 ###############################################
