@@ -5,20 +5,22 @@ var url = require('url');
 var autoprefixer = require('autoprefixer');
 var pkg = require('../package.json');
 var BundleTracker = require('webpack-bundle-tracker');
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = function (options) {
   var defaultOptions = {
-    hot: false,
-    hash: false,
+    banner: false,
     debug: false,
-    optimize: false,
-    saveStats: false,
+    extractCss: false,
     failOnError: false,
+    hash: false,
     host: '0.0.0.0',
+    hot: false,
+    https: false,
+    optimize: false,
     port: 3000,
     publicPath: '/static/compiled/',
-    https: false,
-    banner: false
+    saveStats: false,
   };
 
   options = merge(defaultOptions, options || {});
@@ -51,6 +53,14 @@ module.exports = function (options) {
     'Version: ' + pkg.version + '\n' +
     'Description: ' + pkg.description;
 
+  var scssLoader = [
+    'style-loader', [
+      'css-loader',
+      'postcss-loader',
+      'sass-loader?outputStyle=expanded&' + scssIncludePaths.join('&includePaths[]='),
+    ].join('!')
+  ]
+
   var loaders = [
     {
       test: /\.(js|jsx|es6)$/,
@@ -72,7 +82,10 @@ module.exports = function (options) {
     },
     {
       test: /\.scss$/,
-      loader: 'style-loader!css-loader!postcss-loader!sass-loader?outputStyle=expanded&' + scssIncludePaths.join('&includePaths[]=')
+      loader: options.extractCss ?
+        ExtractTextPlugin.extract(
+          scssLoader[0], scssLoader[1]
+        ) : scssLoader.join('!')
     },
     {
       test: /\.sass$/,
@@ -112,8 +125,12 @@ module.exports = function (options) {
   }
 
   var plugins = [
-    new webpack.NoErrorsPlugin()
+    new webpack.NoErrorsPlugin(),
   ];
+
+  if (options.extractCss) {
+    plugins.push(new ExtractTextPlugin('[name].css'));
+  }
 
   if (options.hot) {
     plugins.push(new webpack.HotModuleReplacementPlugin());

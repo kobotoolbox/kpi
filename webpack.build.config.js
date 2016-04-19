@@ -5,6 +5,7 @@ module.exports = WebpackConfig({
   hash: false,
   debug: false,
   optimize: true,
+  extractCss: true,
   saveStats: true,
   failOnError: true
 });

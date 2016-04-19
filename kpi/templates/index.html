@@ -13,6 +13,8 @@
     {% load staticfiles %}
     {% load cachebuster %}
 
+    {% render_bundle 'app' 'css' %}
+
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
       <script>window.html5 || document.write('<script src="{% static 'js/vendor/html5shiv.js' %}"><\/script>')</script>
@@ -28,7 +30,7 @@
       <!-- Make Django's internationalization functionality available in client code. -->
       <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
 
-      {% render_bundle 'app' %}
+      {% render_bundle 'app' 'js' %}
 
     {% endblock footer %}
 
