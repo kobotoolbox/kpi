@@ -94,6 +94,8 @@ RUN ln -s "${NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
 ENV DJANGO_SETTINGS_MODULE kobo_playground.settings
 RUN python manage.py collectstatic --noinput
 
+RUN git clone https://github.com/kobotoolbox/form-builder-translations.git locale
+RUN python manage.py compilemessages
 
 #################################################################
 # Persist the log directory, email directory, and Whoosh index. #
