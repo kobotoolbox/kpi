@@ -9,7 +9,7 @@ import urlparse
 import posixpath
 
 from django.conf import settings
-from django.db import transaction
+from django.core.exceptions import ImproperlyConfigured
 from pyxform.xls2json_backends import xls_to_dict
 from rest_framework import exceptions, status
 from rest_framework.authtoken.models import Token
@@ -143,8 +143,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except requests.exceptions.RequestException as e:
             # Failed to access the KC API
             # TODO: clarify that the user cannot correct this
-            raise KobocatDeploymentException(
-                detail=unicode(e), response=response)
+            raise KobocatDeploymentException(detail=unicode(e))
 
         # If it's a no-content success, return immediately
         if response.status_code == expected_status_code == 204:
@@ -188,7 +187,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except KeyError:
             return None
 
-    @transaction.atomic
     def connect(self, identifier=None, active=False):
         '''
         POST initial survey content to kobocat and create a new project.
@@ -199,6 +197,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if not identifier:
             # Use the external URL here; the internal URL will be substituted
             # in when appropriate
+            if not settings.KOBOCAT_URL or not settings.KOBOCAT_INTERNAL_URL:
+                raise ImproperlyConfigured(
+                    'Both KOBOCAT_URL and KOBOCAT_INTERNAL_URL must be '
+                    'configured before using KobocatDeploymentBackend'
+                )
             server = settings.KOBOCAT_URL
             username = self.asset.owner.username
             id_string = self.asset.uid
@@ -243,7 +246,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'version': self.asset.version_id,
         })
 
-    @transaction.atomic
     def redeploy(self, active=None):
         '''
         Replace (overwrite) the deployment, keeping the same identifier, and
@@ -274,7 +276,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 return self.connect(self.identifier, active)
             raise
 
-    @transaction.atomic
     def set_active(self, active):
         '''
         PATCH active boolean of survey.
@@ -295,7 +296,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'backend_response': json_response,
         })
 
-    @transaction.atomic
     def delete(self):
         url = self.external_to_internal_url(
             self.asset._deployment_data['backend_response']['url'])

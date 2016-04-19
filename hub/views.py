@@ -5,6 +5,7 @@ from django.http import HttpResponseRedirect
 from registration.backends.default.views import RegistrationView
 from registration.forms import RegistrationForm
 
+from kpi.tasks import sync_kobocat_xforms
 from .models import FormBuilderPreference, ExtraUserDetail
 
 
@@ -26,6 +27,8 @@ def switch_builder(request):
             username=request.user.username,
             quiet=True # squelches `print` statements
         )
+        # Create/update KPI assets to match the user's KC forms
+        sync_kobocat_xforms.delay(username=request.user.username)
 
     return HttpResponseRedirect('/')
 

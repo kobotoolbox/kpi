@@ -499,33 +499,28 @@ var dmix = {
                   {t('not deployed')}
                 </bem.AssetView__deployment>
               :
-                this.state.deployed_version_id === 0 ?
-                  <bem.AssetView__deployment>
-                    {t('unknown version deployed')}
-                  </bem.AssetView__deployment>
-                :
-                  this.state.deployed_versions.map((item) => {
-                    return (
-                      <bem.AssetView__deployment>
-                        {t('version ___').replace('___', item.version_id)}
-                        {' | '}
-                        {
-                          item.version_id === this.state.deployed_version_id ?
-                              t('current live version')
-                          : [
-                            t('previously deployed ___')
-                              .replace('___', formatTime(item.date_deployed)),
-                            ' | ',
-                            <bem.AssetView__plainlink m='clone'
-                                data-version-id={item.version_id}
-                                onClick={this.saveCloneAs}>
-                              {t('clone')}
-                            </bem.AssetView__plainlink>
-                          ]
-                        }
-                      </bem.AssetView__deployment>
-                    );
-                  })
+                this.state.deployed_versions.map((item) => {
+                  return (
+                    <bem.AssetView__deployment>
+                      {[
+                        t('version ___').replace('___', item.version_id),
+                        ' | ',
+                        t('deployed ___')
+                          .replace('___', formatTime(item.date_deployed)),
+                        ' | ',
+                        item.version_id === this.state.deployed_version_id ?
+                          t('current live version')
+                        :
+                          <bem.AssetView__plainlink m='clone'
+                              data-version-id={item.version_id}
+                              onClick={this.saveCloneAs}>
+                            {t('clone')}
+                          </bem.AssetView__plainlink>
+                      ]}
+                    </bem.AssetView__deployment>
+                  );
+                }
+              )
             }
           </bem.AssetView__deployments>
         </bem.AssetView__row>

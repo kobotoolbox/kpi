@@ -5,6 +5,8 @@ import sys
 from django.db import migrations, models
 
 from ..deployment_backends.kobocat_backend import KobocatDeploymentBackend
+from ..management.commands.import_survey_drafts_from_dkobo import \
+    _set_auto_field_update
 
 def explode_assets(apps, schema_editor):
     AssetDeployment = apps.get_model('kpi', 'AssetDeployment')
@@ -14,6 +16,9 @@ def explode_assets(apps, schema_editor):
     total_assets = deployed_assets.count()
     asset_progress_interval = max(1, int(total_assets / 50))
     assets_done = 0
+    # Do not automatically update asset timestamps during this migration
+    _set_auto_field_update(Asset, "date_created", False)
+    _set_auto_field_update(Asset, "date_modified", False)
     for asset in deployed_assets:
         deployment = asset.assetdeployment_set.last()
         # Copy the deployment-related data
@@ -33,6 +38,8 @@ def explode_assets(apps, schema_editor):
         if assets_done % asset_progress_interval == 0:
             sys.stdout.write('.')
             sys.stdout.flush()
+    _set_auto_field_update(Asset, "date_created", True)
+    _set_auto_field_update(Asset, "date_modified", True)
     print '  migrated {} assets'.format(assets_done)
     print '  !!! Only the most recent deployment of each asset has been'
     print '  !!! retained. Use the command `./manage.py sync_kobocat_xforms`'
