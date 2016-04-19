@@ -237,6 +237,11 @@ KOBO_SURVEY_PREVIEW_EXPIRATION = os.environ.get('KOBO_SURVEY_PREVIEW_EXPIRATION'
 ''' Celery configuration '''
 # Uncomment to enable failsafe search indexing
 #from datetime import timedelta
+
+if os.environ.get('SKIP_CELERY', 'False') == 'True':
+    # helpful for certain debugging
+    CELERY_ALWAYS_EAGER = True
+
 #CELERYBEAT_SCHEDULE = {
 #    # Update the Haystack index twice per day to catch any stragglers that
 #    # might have gotten past haystack.signals.RealtimeSignalProcessor
