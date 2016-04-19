@@ -105,6 +105,7 @@ var MainHeader = React.createClass({
     if (this.state.isLoggedIn) {
       return (
         <bem.AccountBox>
+          {/*
           <span>lang = {this.state.currentLang}</span>
           <bem.AccountBox__notifications>
             <i className="fa fa-bell"></i> 
@@ -112,6 +113,7 @@ var MainHeader = React.createClass({
               2 
             </bem.AccountBox__notifications__count>
           </bem.AccountBox__notifications>
+          */}
           <bem.AccountBox__name>
             <bem.AccountBox__image>
               <img src={gravatar} />
