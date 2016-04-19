@@ -56,3 +56,7 @@ $newformCircleWidthHeight: 55px;
 .k-invisible {
   visibility: hidden;
 }
+
+body.hide-edge .is-edge {
+  display: none !important;
+}

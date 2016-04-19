@@ -173,7 +173,7 @@ var Drawer = React.createClass({
               <DrawerLink label={t('forms')} linkto='forms' ki-icon='forms' />
               <DrawerLink label={t('library')} linkto='library' ki-icon='library' />
               { stores.session.currentAccount ?
-                  <DrawerLink label={t('projects')} active='true' href={stores.session.currentAccount.projects_url} ki-icon='globe' />
+                  <DrawerLink label={t('projects')} active='true' href={stores.session.currentAccount.projects_url} ki-icon='globe' className="is-edge" />
               : null }
               <div className="mdl-layout-spacer"></div>
 

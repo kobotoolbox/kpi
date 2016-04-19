@@ -10,6 +10,8 @@ import actions from '../actions';
 import {t, assign} from '../utils';
 import searches from '../searches';
 import cookie from 'react-cookie';
+import hotkey from 'react-hotkey';
+hotkey.activate();
 
 const LANGUAGE_COOKIE_NAME = 'django_language';
 
@@ -35,7 +37,13 @@ var MainHeader = React.createClass({
     Reflux.connect(stores.session),
     Reflux.connect(stores.pageState),
     Reflux.ListenerMixin,
+    hotkey.Mixin('handleHotkey'),
   ],
+  handleHotkey: function(e) {
+    if (e.altKey && e.keyCode == '69') {
+      document.body.classList.toggle('hide-edge');
+    }
+  },
   getInitialState () {
     this.listenTo(stores.session, ({currentAccount}) => {
       this.setState({
@@ -62,6 +70,7 @@ var MainHeader = React.createClass({
     }, stores.pageState.state);
   },
   componentWillMount() {
+    document.body.classList.add('hide-edge');
     this.setStates();
   },
   logout () {
@@ -105,15 +114,12 @@ var MainHeader = React.createClass({
     if (this.state.isLoggedIn) {
       return (
         <bem.AccountBox>
-          {/*
-          <span>lang = {this.state.currentLang}</span>
-          <bem.AccountBox__notifications>
+          <bem.AccountBox__notifications className="is-edge">
             <i className="fa fa-bell"></i> 
             <bem.AccountBox__notifications__count>
               2 
             </bem.AccountBox__notifications__count>
           </bem.AccountBox__notifications>
-          */}
           <bem.AccountBox__name>
             <bem.AccountBox__image>
               <img src={gravatar} />
