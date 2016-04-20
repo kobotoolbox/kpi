@@ -4,7 +4,6 @@ FROM kobotoolbox/koboform_base:latest
 # Note: Additional environment variables established in `Dockerfile.koboform_base`.
 ENV KPI_LOGS_DIR=/srv/logs \
     KPI_WHOOSH_DIR=/srv/whoosh \
-    # STATICFILES_DIR=/srv/staticfiles \
     GRUNT_BUILD_DIR=/srv/grunt_build \
     GRUNT_FONTS_DIR=/srv/grunt_fonts \
     # The mountpoint of a volume shared with the nginx container. Static files will
@@ -81,7 +80,6 @@ RUN rm -rf "${KPI_SRC_DIR}"
 COPY . ${KPI_SRC_DIR}
 # Restore the backed-up package installation directories.
 RUN ln -s "${NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
-#    ln -s "${STATICFILES_DIR}" "${KPI_SRC_DIR}/staticfiles" && \
     ln -s "${BOWER_COMPONENTS_DIR}/" "${KPI_SRC_DIR}/jsapp/xlform/components" && \
     ln -s "${GRUNT_BUILD_DIR}" "${KPI_SRC_DIR}/jsapp/compiled" && \
     ln -s "${GRUNT_FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts"
