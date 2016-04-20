@@ -193,8 +193,8 @@ LIVERELOAD_SCRIPT = os.environ.get('LIVERELOAD_SCRIPT', 'False')
 LIVERELOAD_SCRIPT = False if LIVERELOAD_SCRIPT.lower() == 'false' else LIVERELOAD_SCRIPT
 USE_MINIFIED_SCRIPTS = os.environ.get('KOBO_USE_MINIFIED_SCRIPTS', 'False').lower() != 'false'
 TRACKJS_TOKEN = os.environ.get('TRACKJS_TOKEN')
-KOBOCAT_URL = os.environ.get('KOBOCAT_URL', False)
-KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL', False)
+KOBOCAT_URL = os.environ.get('KOBOCAT_URL', '/kobocat/')
+KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL', 'http://kobocat/')
 # Following the uWSGI mountpoint convention, this should have a leading slash
 # but no trailing slash
 DKOBO_PREFIX = os.environ.get('DKOBO_PREFIX', 'False')

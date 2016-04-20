@@ -47,7 +47,6 @@ var MainHeader = React.createClass({
   getInitialState () {
     this.listenTo(stores.session, ({currentAccount}) => {
       this.setState({
-        // languageKeyValues: langsToValues(currentAccount.languages),
         languages: currentAccount.languages,
       });
     });
@@ -148,10 +147,20 @@ var MainHeader = React.createClass({
           <span>not logged in</span>
     );
   },
+  toggleFixedDrawer() {
+    stores.pageState.toggleFixedDrawer();
+  },
   render () {
     return (
         <header className="mdl-layout__header">
           <div className="mdl-layout__header-row">
+            <button className="mdl-button mdl-button--icon k-burger" onClick={this.toggleFixedDrawer}>
+            { this.state.showFixedDrawer ?
+              <i className="fa fa-close"></i>
+            : 
+              <i className="fa fa-bars"></i>
+            }
+            </button>
             <span className='mdl-layout-title'>
               <a href='/'>
                 <bem.AccountBox__logo />

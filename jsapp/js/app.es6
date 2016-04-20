@@ -861,9 +861,7 @@ var App = React.createClass({
     Reflux.connect(stores.pageState),
   ],
   getInitialState () {
-    return assign({}, stores.pageState.state, {
-      sidebarIsOpen: stores.pageState.state.sidebarIsOpen
-    });
+    return assign({}, stores.pageState.state);
   },
   render() {
     return (
@@ -872,8 +870,10 @@ var App = React.createClass({
           <div className="k-header__bar"></div>
           <bem.PageWrapper m={{
               'asset-nav-present': this.state.assetNavPresent,
+              'asset-nav-present': this.state.assetNavPresent,
               'asset-nav-open': this.state.assetNavIsOpen && this.state.assetNavPresent,
-                }} className="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header">
+              'fixed-drawer': this.state.showFixedDrawer,
+                }} className="mdl-layout mdl-layout--fixed-header">
               <MainHeader />
               <Drawer />
               <bem.PageWrapper__content m={{
@@ -895,6 +895,7 @@ var App = React.createClass({
     // Material Design Lite
     // This upgrades all upgradable components (i.e. with 'mdl-js-*' class)
     mdl.upgradeDom();
+    console.log(stores.pageState.state);
   }
 });
 

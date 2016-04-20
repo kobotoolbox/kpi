@@ -47,9 +47,9 @@ class DrawerLink extends React.Component {
       this.props.onClick(evt);
     }
   }
-  toggleDrawer () {
-    stores.pageState.toggleDrawer();
-  }
+  // toggleDrawer () {
+  //   stores.pageState.toggleDrawer();
+  // }
 
   render () {
     var icon_class = `ki ki-${this.props['ki-icon'] || 'globe'}`; 
@@ -68,8 +68,7 @@ class DrawerLink extends React.Component {
             <Link to={this.props.linkto}
                 className='k-drawer__link'
                 activeClassName='active'
-                title={this.props.label}
-                onClick={this.toggleDrawer}>
+                title={this.props.label}>
               {icon} 
               <span className="label">{this.props.label}</span>
             </Link>
@@ -166,9 +165,12 @@ var Drawer = React.createClass({
       dataInterface.deleteCollection({uid: collectionUid}).then(qc).catch(qc);
     });
   }, 
+  toggleFixedDrawer() {
+    stores.pageState.toggleFixedDrawer();
+  },
   render () {
     return (
-          <bem.Drawer className='mdl-layout__drawer mdl-shadow--2dp'>
+          <bem.Drawer className='k-drawer mdl-shadow--2dp'>
             <nav className='k-drawer__icons'> 
               <DrawerLink label={t('forms')} linkto='forms' ki-icon='forms' />
               <DrawerLink label={t('library')} linkto='library' ki-icon='library' />
@@ -184,6 +186,10 @@ var Drawer = React.createClass({
             </nav>
 
             <div className="drawer__sidebar">
+              <button className="mdl-button mdl-button--icon k-drawer__close" onClick={this.toggleFixedDrawer}>
+                <i className="fa fa-close"></i>
+              </button>
+
               {this.state.headerBreadcrumb.map((item, n)=>{
                 return (
                     <div className="header-breadcrumb__item" key={`bc${n}`}>

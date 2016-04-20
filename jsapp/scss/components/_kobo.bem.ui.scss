@@ -1,6 +1,18 @@
+.kpiapp,
+.mdl-wrapper,
+.mdl-layout {
+  height: 100%;
+}
+
 .mdl-layout {
   max-width: 1440px;
   margin: 0 auto;
+}
+
+.mdl-layout__content {
+  height: calc(100% - 72px);
+  overflow: hidden;
+  position: relative;
 }
 
 .ui-panel {
@@ -52,10 +64,6 @@
       }
     }
   }
-}
-
-.page-wrapper__content {
-  position: relative;
 }
 
 .page-wrapper--asset-nav-present .mdl-layout__content {
