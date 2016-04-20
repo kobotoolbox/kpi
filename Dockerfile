@@ -17,11 +17,11 @@ ENV KPI_LOGS_DIR=/srv/logs \
 
 COPY ./apt_requirements.txt ${KPI_SRC_DIR}/
 # Only install if the current version of `apt_requirements.txt` differs from the one used in the base image.
-RUN diff -q "${KPI_SRC_DIR}/apt_requirements.txt" "/srv/tmp/base_apt_requirements.txt" || \
-        ( apt-get update && \
+RUN if [ "$(diff -q ${KPI_SRC_DIR}/apt_requirements.txt /srv/tmp/base_apt_requirements.txt)" ]; then \
+        apt-get update && \
         apt-get install -y $(cat ${KPI_SRC_DIR}/apt_requirements.txt) && \
-        apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ) \ 
-    || true # Prevent non-zero exit code.
+        apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \ 
+    ; fi
 
 
 ###########################
@@ -30,9 +30,9 @@ RUN diff -q "${KPI_SRC_DIR}/apt_requirements.txt" "/srv/tmp/base_apt_requirement
 
 COPY ./requirements.txt ${KPI_SRC_DIR}/
 # Only install if the current version of `requirements.txt` differs from the one used in the base image.
-RUN diff -q "${KPI_SRC_DIR}/requirements.txt" /srv/tmp/base_requirements.txt || \
+RUN if [ "$(diff -q ${KPI_SRC_DIR}/requirements.txt /srv/tmp/base_requirements.txt)" ]; then \
     pip-sync "${KPI_SRC_DIR}/requirements.txt" \
-    || true # Prevent non-zero exit code.
+    ; fi
 
 
 ##########################################
@@ -41,9 +41,9 @@ RUN diff -q "${KPI_SRC_DIR}/requirements.txt" /srv/tmp/base_requirements.txt || 
 
 COPY ./package.json ${KPI_SRC_DIR}/
 # Only install if the current version of `package.json` differs from the one used in the base image.
-RUN diff -q "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json || \
+RUN if [ "$(diff -q ${KPI_SRC_DIR}/package.json /srv/tmp/base_package.json)" ]; then \
     npm install \
-    || true # Prevent non-zero exit code.
+    ; fi
 
 
 ##########################################
@@ -52,10 +52,10 @@ RUN diff -q "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json || \
 
 COPY ./bower.json ./.bowerrc ${KPI_SRC_DIR}/
 # Only install if the current versions of `bower.json` or `.bowerrc` differ from the ones used in the base image.
-RUN (   diff -q "${KPI_SRC_DIR}/bower.json" /srv/tmp/base_bower.json && \
-        diff -q "${KPI_SRC_DIR}/.bowerrc" /srv/tmp/base_bowerrc ) || \
+RUN if [ "$(diff -q ${KPI_SRC_DIR}/bower.json /srv/tmp/base_bower.json && \
+        diff -q ${KPI_SRC_DIR}/.bowerrc /srv/tmp/base_bowerrc)" ]; then \
     bower install --allow-root --config.interactive=false \
-    || true # Prevent non-zero exit code.
+    ; fi
 
 
 ######################
