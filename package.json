@@ -108,7 +108,7 @@
     "icons": "grunt webfont:icons",
     "build-production": "webpack --config webpack.prod.config.js --progress --colors",
     "watch": "node webpack.dev.server.js",
-    "test": "gulp browserify && node ./node_modules/mocha-phantomjs/bin/mocha-phantomjs test/tests.html"
+    "test": "webpack --config webpack.test.config.js --progress --colors && mocha-phantomjs test/tests.html"
   },
   "repository": {
     "type": "git",

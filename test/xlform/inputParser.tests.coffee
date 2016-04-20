@@ -2,7 +2,7 @@
 
 $inputParser = require("../../jsapp/xlform/src/model.inputParser")
 $choices = require("../../jsapp/xlform/src/model.choices")
-$surveys = require("../fixtures/surveys")
+$surveys = require("../fixtures/xlformSurveys")
 
 do ->
   describe '" $inputParser', ->

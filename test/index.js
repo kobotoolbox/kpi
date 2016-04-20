@@ -9,7 +9,9 @@ require('./xlform/choices.tests')
 require('./xlform/deserializer.tests')
 require('./xlform/group.tests')
 require('./xlform/inputParser.tests')
+/*
 require('./xlform/integration.tests')
 require('./xlform/model.tests')
 require('./xlform/survey.tests')
+*/
 require('./xlform/utils.tests')

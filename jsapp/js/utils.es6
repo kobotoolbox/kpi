@@ -111,8 +111,15 @@ var __strings = [];
 
 
 /*global gettext*/
+if (window.gettext) {
+  var _gettext = window.gettext;
+} else {
+  var _gettext = function(s){
+    return s;
+  };
+}
 export function t(str) {
-  return gettext(str);
+  return _gettext(str);
 };
 
 log.t = function () {

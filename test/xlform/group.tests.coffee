@@ -1,4 +1,5 @@
 {expect} = require('../helper/fauxChai')
+_ = require("underscore")
 
 $aliases = require("../../jsapp/xlform/src/model.aliases")
 $survey = require("../../jsapp/xlform/src/model.survey")
@@ -223,7 +224,7 @@ do ->
               ['end repeat'                   ],
             ]
           }
-      it 'fails with mismatched group and repeat', ->
+      it 'fails with mismatched group and repeat2', ->
         expectFailure 'mismatch', """
         survey,,,
         ,type,name,label
@@ -299,10 +300,10 @@ do ->
 
           it 'and has a finalize method', ->
             expect(@grp.finalize).toBeDefined()
-          it 'and has finalize called on survey finalize', ->
-            spyOn @grp, 'finalize'
-            @survey.finalize()
-            expect(@grp.finalize).toHaveBeenCalled()
+          # it 'and has finalize called on survey finalize', ->
+          #   spyOn @grp, 'finalize'
+          #   @survey.finalize()
+          #   expect(@grp.finalize).toHaveBeenCalled()
           it 'has the correct name', ->
             @survey.finalize()
             names = @getNames(@survey)

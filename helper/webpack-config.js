@@ -18,6 +18,8 @@ module.exports = function (options) {
     hot: false,
     https: false,
     optimize: false,
+    outputDir: path.resolve(__dirname, '../jsapp/compiled/'),
+    outputHash: true,
     port: 3000,
     publicPath: '/static/compiled/',
     saveStats: false,
@@ -26,7 +28,7 @@ module.exports = function (options) {
   options = merge(defaultOptions, options || {});
 
   var entry = {
-    app: path.join(__dirname, '../jsapp/js/main.es6')
+    app: options.entry || path.join(__dirname, '../jsapp/js/main.es6'),
   };
 
   var scssIncludePaths = [
@@ -183,8 +185,8 @@ module.exports = function (options) {
       return result;
     }, {}),
     output: {
-      path: path.resolve(__dirname, '../jsapp/compiled/'),
-      filename: "[name]-[hash].js",
+      path: options.outputDir,
+      filename: options.outputHash ? "[name]-[hash].js" : "[name].js",
       publicPath: options.publicPath,
     },
     resolve: {

@@ -1,5 +1,7 @@
 _ = require 'underscore'
 Backbone = require 'backbone'
+jQuery = require 'jquery'
+$ = jQuery
 $survey = require './model.survey'
 $modelUtils = require './model.utils'
 $viewTemplates = require './view.templates'
