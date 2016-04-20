@@ -95,6 +95,11 @@ var MainHeader = React.createClass({
         cookieParams.domain = cookieDomain;
       }
       cookie.save(LANGUAGE_COOKIE_NAME, langCode, cookieParams);
+      if ('reload' in window.location) {
+        window.location.reload();
+      } else {
+        window.alert(t('Please refresh the page'));
+      }
     }
   },
   renderLangItem(lang) {
