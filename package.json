@@ -94,7 +94,7 @@
     "roboto-fontface": "^0.4.5",
     "sass-loader": "^2.0.1",
     "script-loader": "^0.6.1",
-    "select2": "^4.0.2",
+    "select2": "3.5.2-browserify",
     "style-loader": "^0.12.3",
     "time-grunt": "^1.2.1",
     "underscore": "^1.8.3",
