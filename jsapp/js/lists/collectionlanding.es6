@@ -179,7 +179,7 @@ var CollectionLanding = React.createClass({
           </div>
         </bem.CollectionHeader__item>
         <bem.CollectionNav className="ui-panel__cell">
-          <bem.CollectionNav__actions>
+          {/*<bem.CollectionNav__actions>
             <button id="demo-menu-top-right"
                     className="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
               <i className="material-icons">add</i>
@@ -211,7 +211,7 @@ var CollectionLanding = React.createClass({
                 </Dropzone>
               </li>
             </ul>
-          </bem.CollectionNav__actions>
+          </bem.CollectionNav__actions>*/}
         </bem.CollectionNav>
         {this.renderCollectionList()}
       </ui.Panel>

@@ -21,23 +21,6 @@ import {
 
 var leaveBetaUrl = stores.pageState.leaveBetaUrl;
 
-var CollectionSidebar = bem.create('collection-sidebar', '<ul>'),
-    CollectionSidebar__item = bem.create('collection-sidebar__item', '<li>'),
-    CollectionSidebar__itemlink = bem.create('collection-sidebar__itemlink', '<a>');
-
-class DrawerTitle extends React.Component {
-  render () {
-    var kls = 'sidebar-title';
-    if (this.props.separator) {
-      kls += ' separator';
-    }
-    return (
-        <li className={kls}>
-          <span>{this.props.label}</span>
-        </li>
-      );
-  }
-}
 class DrawerLink extends React.Component {
   onClick (evt) {
     if (!this.props.href) {
@@ -202,7 +185,7 @@ var Drawer = React.createClass({
                     </div>
                   );
               })}
-              {/* library sidebar menu */}
+
               <bem.CollectionNav>
                 <bem.CollectionNav__actions className="k-form-list-actions">
                   <button id="sidebar-menu"
@@ -241,10 +224,10 @@ var Drawer = React.createClass({
                     : null }
                 </bem.CollectionNav__actions>
               </bem.CollectionNav>
-              {/* end library sidebar menu */}
-              { this.state.sidebarCollections && this.state.headerFilters == 'library' ?
-                <CollectionSidebar>
-                  <CollectionSidebar__item
+
+              { this.state.sidebarCollections && this.state.headerFilters == 'library' &&
+                <bem.CollectionSidebar>
+                  <bem.CollectionSidebar__item
                     key='allitems'
                     m={{
                         allitems: true,
@@ -252,20 +235,12 @@ var Drawer = React.createClass({
                       }} onClick={this.clickFilterByCollection}>
                     <i />
                     {t('all items (no filter)')}
-                  </CollectionSidebar__item>
-                  {/*
-                  <CollectionSidebar__item
-                    key='info'
-                    m='info'
-                  >
-                    {t('filter by collection')}
-                  </CollectionSidebar__item>
-                  */}
+                  </bem.CollectionSidebar__item>
                   {this.state.sidebarCollections.map((collection)=>{  
                     var editLink = this.makeHref('collection-page', {uid: collection.uid}),
                       sharingLink = this.makeHref('collection-sharing', {assetid: collection.uid});
                     return (
-                        <CollectionSidebar__item
+                        <bem.CollectionSidebar__item
                           key={collection.uid}
                           m={{
                             collection: true,
@@ -276,28 +251,23 @@ var Drawer = React.createClass({
                         >
                           <i />
                           {collection.name}
-                          <CollectionSidebar__itemlink href={'#'}
-                            onClick={this.deleteCollection}
-                            data-collection-uid={collection.uid}>
-                            {t('delete')}
-                          </CollectionSidebar__itemlink>
-                          <CollectionSidebar__itemlink href={sharingLink}>
-                            {t('sharing')}
-                          </CollectionSidebar__itemlink>
-                          <CollectionSidebar__itemlink href={editLink}>
-                            {t('edit')}
-                          </CollectionSidebar__itemlink>
-                        </CollectionSidebar__item>
+                          <bem.CollectionSidebar__itemactions>
+                            <bem.CollectionSidebar__itemlink href={'#'}
+                              onClick={this.deleteCollection}
+                              data-collection-uid={collection.uid}>
+                              {t('delete')}
+                            </bem.CollectionSidebar__itemlink>
+                            <bem.CollectionSidebar__itemlink href={sharingLink}>
+                              {t('sharing')}
+                            </bem.CollectionSidebar__itemlink>
+                            <bem.CollectionSidebar__itemlink href={editLink}>
+                              {t('edit')}
+                            </bem.CollectionSidebar__itemlink>
+                          </bem.CollectionSidebar__itemactions>
+                        </bem.CollectionSidebar__item>
                       );
                   })}
-                </CollectionSidebar>
-                :
-                {/*<CollectionSidebar>
-                  <CollectionSidebar__item m={'loading'}>
-                    {t('loading')}
-                    <i />
-                  </CollectionSidebar__item>
-                </CollectionSidebar>*/}
+                </bem.CollectionSidebar>
               }
             </div>
           </bem.Drawer>

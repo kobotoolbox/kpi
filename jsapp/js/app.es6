@@ -895,7 +895,6 @@ var App = React.createClass({
     // Material Design Lite
     // This upgrades all upgradable components (i.e. with 'mdl-js-*' class)
     mdl.upgradeDom();
-    console.log(stores.pageState.state);
   }
 });
 

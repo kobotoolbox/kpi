@@ -1,9 +1,12 @@
 .collection-sidebar {
   &__itemlink {
-    display: none;
-    clear: both;
     margin-left: 5px;
     font-size: 0.9em;
+  }
+
+  &__itemactions {
+    margin-left: 20px;
+    display: none;
   }
 
   &__item {
@@ -25,17 +28,8 @@
     &--selected {
       border: 1px solid #DEDEDE;
 
-      > .collection-sidebar__itemlink {
+      > .collection-sidebar__itemactions {
         display: inline-block;
-      }
-    }
-
-    &--allitems {
-      text-align: center;
-
-      i {
-        display: none;
-        margin-right: 0px;
       }
     }
 
@@ -43,6 +37,20 @@
       @extend .fa, .fa-fw;
 
       margin-right: 8px;
+      display: inline-block;
+      vertical-align: top;
+      padding-top: 5px;
+    }
+
+    > span {
+      width: 82%;
+      display: inline-block;
+      line-height: 1.3em;
+      padding-top: 5px;
+    }
+
+    &--allitems > i {
+      visibility: hidden;
     }
 
     &--collection {
