@@ -41,8 +41,8 @@ $drawer-icons-column-width: 56px;
 }
 
 .drawer__sidebar {
-  flex-grow: 1;
-  height: 99%;
+  width: calc(100% - 50px);
+  height: 100%;
   padding: 10px;
 
   .header-breadcrumb__item {
@@ -104,7 +104,6 @@ $drawer-icons-column-width: 56px;
 
 .k-drawer + .mdl-layout__content {
   margin-left: $layout-drawer-width + 8px;
-  margin-top: 1px;
 }
 
 @media screen and (max-width: 768px) {
@@ -122,7 +121,6 @@ $drawer-icons-column-width: 56px;
 
   .k-drawer + .mdl-layout__content {
     margin-left: 0px;
-    margin-top: 0px;
   }
 
   .drawer__sidebar {

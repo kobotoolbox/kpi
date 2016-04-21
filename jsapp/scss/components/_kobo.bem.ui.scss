@@ -13,6 +13,7 @@
   height: calc(100% - 72px);
   overflow: hidden;
   position: relative;
+  margin-top: 6px;
 }
 
 .ui-panel {
@@ -39,7 +40,6 @@
   > .collection-list {
     position: relative;
     height: calc(100% - 66px);
-    overflow: auto;
   }
 
   > .asset-view__content {
