@@ -218,7 +218,9 @@ $headerAccountTextColor: #DBEDF7;
     }
   }
 
-  .Select-control {
+  .Select-control,
+  .is-open > .Select-control,
+  .is-focused > .Select-control {
     position: relative;
     overflow: hidden;
     background-color: transparent;
@@ -260,6 +262,10 @@ $headerAccountTextColor: #DBEDF7;
       }
     }
 
+    .Select-item-label {
+      padding: 1px 5px;
+    }
+
     .Select-item-label .Select-item-label__a {
       color: #FFF;
     }
@@ -269,8 +275,8 @@ $headerAccountTextColor: #DBEDF7;
       border-bottom-left-radius: 6px;
       border-top-left-radius: 6px;
       color: #dbedf7;
-      padding: 5px;
-      padding-right: 2px;
+      padding: 1px 5px;
+      padding-right: 0px;
 
       &:hover,
       &:focus {
@@ -284,6 +290,11 @@ $headerAccountTextColor: #DBEDF7;
     }
   }
 
+  .is-focused:not(.is-open) > .Select-control {
+    border: 2px solid #dbedf7;
+    box-shadow: none;
+  }
+
   .Select.is-multi .Select-input {
     padding: 0px;
   }
@@ -293,6 +304,7 @@ $headerAccountTextColor: #DBEDF7;
     border: none;
     box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
     color: white;
+    margin-top: 6px;
   }
 
   .Select-option {
@@ -316,10 +328,10 @@ $headerAccountTextColor: #DBEDF7;
     color: #dbedf7;
     background: $layout-header-bg-color;
     font-size: 22px;
-    padding: 4px 6px;
-    right: 7px;
-    border-radius: 5px;
-    top: 4px;
+    padding: 4px;
+    right: 4px;
+    border-radius: 0px;
+    top: 2px;
 
     &:hover {
       color: #FFF;
