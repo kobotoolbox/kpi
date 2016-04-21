@@ -22,13 +22,15 @@ def switch_builder(request):
             else FormBuilderPreference.DKOBO
         pref.save()
     if 'migrate' in request.GET:
+        # TODO: don't start these tasks for if they're already running for this
+        # particular user
         call_command(
             'import_survey_drafts_from_dkobo',
             username=request.user.username,
             quiet=True # squelches `print` statements
         )
         # Create/update KPI assets to match the user's KC forms
-        sync_kobocat_xforms.delay(username=request.user.username)
+        sync_kobocat_xforms(username=request.user.username)
 
     return HttpResponseRedirect('/')
 
