@@ -19,6 +19,9 @@ import {
   assign,
 } from '../utils';
 
+import SidebarFormsList from '../lists/sidebarForms';
+SidebarFormsList
+
 var leaveBetaUrl = stores.pageState.leaveBetaUrl;
 
 class DrawerLink extends React.Component {
@@ -30,10 +33,6 @@ class DrawerLink extends React.Component {
       this.props.onClick(evt);
     }
   }
-  // toggleDrawer () {
-  //   stores.pageState.toggleDrawer();
-  // }
-
   render () {
     var icon_class = `ki ki-${this.props['ki-icon'] || 'globe'}`; 
     var icon = (<span className={icon_class}></span>);
@@ -105,7 +104,15 @@ var Drawer = React.createClass({
         })
       });
     } else {
-      this.setState({headerFilters: 'forms'});
+      this.setState({
+        headerFilters: 'forms',
+        searchContext: searches.getSearchContext('forms', {
+          filterParams: {
+            assetType: 'asset_type:survey',
+          },
+          filterTags: 'asset_type:survey',
+        })
+      });
     }
   },
   clickFilterByCollection (evt) {
@@ -268,6 +275,9 @@ var Drawer = React.createClass({
                       );
                   })}
                 </bem.CollectionSidebar>
+              }
+              { this.state.headerFilters == 'forms' &&
+                <SidebarFormsList/>
               }
             </div>
           </bem.Drawer>

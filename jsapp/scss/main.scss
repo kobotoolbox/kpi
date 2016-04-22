@@ -1,21 +1,11 @@
 @import "./libs/material-design-lite";
 
-@import "./components/asset-dashboard";
-@import "./components/menus";
-
 @import "./fonts/roboto";
 @import "../../node_modules/font-awesome/scss/font-awesome";
 @import "../../node_modules/react-tooltip/dist/react-tooltip";
 @import "./libs/alertify";
 @import "./libs/react-tagsinput";
 @import "./libs/react-select";
-
-// http://www.materialpalette.com/grey/indigo
-$muiLight: #616161;
-$muiDark: #9D9D9D;
-$muiBlue: #526CFD;
-$saveNeededColor: #9c27b0;
-$assetSaveButtonWidth: 105px;
 
 // TODO: phase out these colors from collection header
 $kcol-view: mix(#7B1FA2, grayscale(#7B1FA2), 38%);
@@ -32,12 +22,17 @@ $newformButtonColor: mix(#2196F3, grayscale(#2196F3), 38%);
 
 $newformCircleWidthHeight: 55px;
 
+@import "./components/kobo.navigation";
+@import "./components/kobo.drawer";
+@import "./components/kobo.drawer.lists";
+@import "./components/asset-dashboard";
+
 @import "./kobo";
 
-// @import './components/kobo.account-box';
 @import "./components/kobo.collection-header";
 @import "./components/kobo.collection-asset-list";
 @import "./components/kobo.list-view";
+@import "./components/kobo.asset-name";
 @import "./components/kobo.asset-view";
 @import "./components/kobo.asset-row";
 @import "./components/kobo.form-header";
@@ -45,10 +40,8 @@ $newformCircleWidthHeight: 55px;
 @import "./components/kobo.lib-nav";
 @import "./components/kobo.lib-list";
 @import "./components/kobo.form-builder";
-@import "./components/kobo.asset-name";
 @import "./components/kobo.bem.ui";
 @import "./components/kobo.modal";
-@import "./components/kobo.collection-sidebar";
 @import "./components/kobo.asset-type-icon";
 @import "./libs/pygments-theme";
 

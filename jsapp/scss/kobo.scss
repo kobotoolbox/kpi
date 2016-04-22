@@ -25,26 +25,19 @@ $buttonBorderRadius: 5px;
 // Included files
 // ==========================================================================
 
-// @import '../components/fontawesome/css/font-awesome.css';
-// @import '../components/select2/select2.css';
 @import "stylesheets/partials/select2_override";
 @import "stylesheets/partials/tagsinput_override";
 
-// @import "stylesheets/partials/normalize";
 @import "stylesheets/partials/base";
 @import "stylesheets/partials/icons";
 @import "stylesheets/partials/buttons";
 @import "stylesheets/partials/misc";
 @import "stylesheets/partials/modals_iframes";
 
-// @import "stylesheets/partials/header_and_top_menu";
 @import "stylesheets/partials/content";
 @import "stylesheets/partials/registration";
 @import "stylesheets/partials/sidenote";
 
 @import "stylesheets/pages/form_builder";
-
-// @import 'stylesheets/pages/form_list';
-// @import "stylesheets/pages/question_library";
 
 @import "stylesheets/partials/helpers";

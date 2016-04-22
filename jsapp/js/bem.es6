@@ -79,6 +79,12 @@ bem.CollectionSidebar__item = bem.CollectionSidebar.__('item');
 bem.CollectionSidebar__itemactions = bem('collection-sidebar__itemactions', '<div>');
 bem.CollectionSidebar__itemlink = bem.CollectionSidebar.__('itemlink', '<a>');
 
+bem.FormSidebar = bem('form-sidebar');
+bem.FormSidebar__item = bem.FormSidebar.__('item');
+bem.FormSidebar__label = bem.FormSidebar.__('label');
+bem.FormSidebar__grouping = bem.FormSidebar.__('grouping');
+bem.FormSidebar__itemlink = bem.FormSidebar.__('itemlink', '<a>');
+
 bem.AssetListSorts = bem('asset-list-sorts', '<div>');
 bem.AssetListSorts__item = bem.AssetListSorts.__('item');
 

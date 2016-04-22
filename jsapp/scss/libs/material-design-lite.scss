@@ -1,13 +1,9 @@
-// Material Icons font 
+// Material Icons font
 @font-face {
   font-family: 'Material Icons';
   font-style: normal;
   font-weight: 400;
-  src:  local('Material Icons'), 
-        local('MaterialIcons-Regular'), 
-        url('../fonts/MaterialIcons-Regular.woff2') format('woff2'), 
-        url('../fonts/MaterialIcons-Regular.woff') format('woff'), 
-        url('../fonts/MaterialIcons-Regular.ttf') format('truetype');
+  src: local("Material Icons"), local("MaterialIcons-Regular"), url("../fonts/MaterialIcons-Regular.woff2") format("woff2"), url("../fonts/MaterialIcons-Regular.woff") format("woff"), url("../fonts/MaterialIcons-Regular.ttf") format("truetype");
 }
 
 .material-icons {
@@ -25,11 +21,11 @@
 }
 
 // Color definitions
-@import '../../../node_modules/material-design-lite/src/_color-definitions';
-@import '../fonts/k-iconfont.css';
+@import "../../../node_modules/material-design-lite/src/_color-definitions";
+@import "../fonts/k-iconfont.css";
 
 // NEW COLORS (March 2016)
-$azure: '34, 150, 243';
+$azure: "34, 150, 243";
 $black: #363636;
 $cool-gray: #a5b3bc;
 $greyish-brown: #575757;
@@ -39,17 +35,17 @@ $layout-header-bg-color: #414553 !default;
 
 // MDL Overrides
 $color-primary: $azure !default;
-$color-accent: $azure !default; 
+$color-accent: $azure !default;
 $color-primary-dark: $palette-indigo-600 !default;
-$preferred_font: 'Roboto', 'Helvetica', 'Arial', sans-serif !default;
-$performance_font: 'Roboto', 'Helvetica', 'Arial', sans-serif !default; 
+$preferred_font: "Roboto", "Helvetica", "Arial", sans-serif !default;
+$performance_font: "Roboto", "Helvetica", "Arial", sans-serif !default;
 
 $layout-text-color: #363636 !default;
 $layout-nav-color: #FFF !default;
 $layout-drawer-nav-link-color: #7d8a93 !default;
 $layout-drawer-nav-link-active-bg: #F9F9F9 !default;
 
-@import '../../../node_modules/material-design-lite/src/material-design-lite';
+@import "../../../node_modules/material-design-lite/src/material-design-lite";
 
 html {
   color: $black;
@@ -63,20 +59,14 @@ body {
   @extend .mui-row;
 }
 
-$layout-header-mobile-indent-plus: $layout-header-mobile-indent + 6px;
-$layout-header-desktop-indent-plus: $layout-header-desktop-indent + 6px;
-
-@import '../components/new.navigation';
-@import '../components/new.drawer'; 
-
 .mdl-checkbox__tick-outline {
-  mask: url('../img/tick-mask.svg?embed');
+  mask: url("../img/tick-mask.svg?embed");
 
   .mdl-checkbox.is-checked & {
-    background: $checkbox-color url('../img/tick.svg?embed');
+    background: $checkbox-color url("../img/tick.svg?embed");
   }
 
   .mdl-checkbox.is-checked.is-disabled & {
-    background: $checkbox-disabled-color url('../img/tick.svg?embed');
+    background: $checkbox-disabled-color url("../img/tick.svg?embed");
   }
 }

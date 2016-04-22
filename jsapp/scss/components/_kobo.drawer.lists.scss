@@ -60,3 +60,59 @@
     }
   }
 }
+
+.form-sidebar {
+  &__grouping {
+    max-height: 140px;
+    padding: 0px 10px;
+    overflow: auto;
+    direction: rtl;
+    text-align: left;
+    margin: 10px;
+    margin-left: 16px;
+  }
+
+  &__item {
+    direction: ltr;
+    margin-bottom: 10px;
+    text-align: left;
+  }
+
+  &__itemlink {
+    display: block;
+    font-size: 0.9em;
+    color: $cool-gray;
+    padding: 3px;
+    cursor: pointer;
+    font-weight: 500;
+    line-height: 1.3em;
+  }
+
+  &__label {
+    color: $cool-gray;
+    font-weight: 600;
+    padding: 5px;
+    padding-top: 10px;
+
+    i {
+      font-size: 24px;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+  }
+}
+
+.form-sidebar__grouping::-webkit-scrollbar {
+  width: 0.6em;
+}
+
+.form-sidebar__grouping::-webkit-scrollbar-track {
+  background-color: #DEDEDE;
+  border-radius: 8px;
+}
+
+.form-sidebar__grouping::-webkit-scrollbar-thumb {
+  background-color: #06d1ba;
+  outline: none;
+  border-radius: 8px;
+}

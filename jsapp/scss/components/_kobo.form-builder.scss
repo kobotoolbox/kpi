@@ -1,7 +1,5 @@
 .form-meta {
   margin: 12px;
-
-  // margin-left: 30px;
   background-color: rgb(247, 247, 247);
 }
 
@@ -54,8 +52,8 @@
     width: 45px;
     height: 45px;
     border-radius: 25px;
-    background-color: lighten($muiBlue, 20%);
-    border: 3px solid lighten($muiBlue, 12%);
+    background-color: lighten(#526CFD, 20%);
+    border: 3px solid lighten(#526CFD, 12%);
   }
 }
 
