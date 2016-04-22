@@ -4,13 +4,11 @@ $permEditorColor: #999;
   margin-top: -15px;
 }
 
-.dropzone {
-  border: 3px solid dashed;
+.dropzone:hover {
+  opacity: 0.9;
 }
 
 .dropzone--active {
-  border: 3px dashed red;
-
   > * {
     opacity: 0.3;
   }
