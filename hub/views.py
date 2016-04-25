@@ -10,7 +10,7 @@ from kpi.tasks import sync_kobocat_xforms
 from .models import FormBuilderPreference, ExtraUserDetail
 
 # The `api_view` decorator allows authentication via DRF
-@api_view
+@api_view(['GET'])
 @login_required
 def switch_builder(request):
     '''
