@@ -181,7 +181,8 @@ var Drawer = React.createClass({
               </button>
 
               {this.state.headerBreadcrumb.map((item, n)=>{
-                return (
+                if (n < 1) {
+                  return (
                     <div className="header-breadcrumb__item" key={`bc${n}`}>
                       {
                         ('to' in item) ?
@@ -191,6 +192,9 @@ var Drawer = React.createClass({
                       }
                     </div>
                   );
+                } else {
+                  return '';
+                }
               })}
 
               <bem.CollectionNav>
