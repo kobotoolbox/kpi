@@ -11,6 +11,7 @@ import SearchCollectionList from '../components/searchcollectionlist';
 import {
   parsePermissions,
   t,
+  assign
 } from '../utils';
 
 var SidebarFormsList = React.createClass({
@@ -18,6 +19,7 @@ var SidebarFormsList = React.createClass({
     searches.common,
     Navigation,
     Reflux.ListenerMixin,
+    Reflux.connect(stores.pageState)
   ],
   getInitialState () {
     return {
@@ -31,6 +33,7 @@ var SidebarFormsList = React.createClass({
   },
   componentDidMount () {
     this.listenTo(this.searchStore, this.searchChanged);
+    console.log(this.props.params);
   },
   componentWillReceiveProps () {
     this.listenTo(this.searchStore, this.searchChanged);
@@ -51,7 +54,7 @@ var SidebarFormsList = React.createClass({
       <bem.FormSidebar>
         <bem.FormSidebar__label className="is-edge">
           <i className="fa fa-fw fa-check-circle"></i>
-          {t('Active')}
+          {t('Active')} (#)
         </bem.FormSidebar__label>
         <bem.FormSidebar__grouping>
           {
@@ -76,11 +79,15 @@ var SidebarFormsList = React.createClass({
         </bem.FormSidebar__grouping>
         <bem.FormSidebar__label className="is-edge">
           <i className="fa fa-fw fa-envelope"></i>
-          {t('Drafts')}
+          {t('Drafts')} (#)
         </bem.FormSidebar__label>
         <bem.FormSidebar__label className="is-edge">
           <i className="fa fa-fw fa-minus-circle"></i>
-          {t('Inactive')}
+          {t('Inactive')} (#)
+        </bem.FormSidebar__label>
+        <bem.FormSidebar__label className="is-edge">
+          <i className="fa fa-fw fa-trash"></i>
+          {t('Deleted')} (#)
         </bem.FormSidebar__label>
       </bem.FormSidebar>
     );

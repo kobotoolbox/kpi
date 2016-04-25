@@ -86,6 +86,9 @@
     cursor: pointer;
     font-weight: 500;
     line-height: 1.3em;
+    &:hover {
+      color:unquote("rgb(#{$color-primary})");
+    }
   }
 
   &__label {

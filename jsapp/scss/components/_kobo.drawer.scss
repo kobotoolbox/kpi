@@ -13,20 +13,20 @@ $drawer-icons-column-width: 56px;
   text-align: center;
   color: $layout-drawer-nav-link-color;
   padding: 16px 0px;
-
   span.label {
     display: none;
     font-size: 14px;
     font-weight: 400;
   }
-
   &.active {
     color: unquote("rgb(#{$color-primary})");
     background-color: $layout-drawer-nav-link-active-bg;
-
     span.label {
       display: inline-block;
     }
+  }
+  .ki-help {
+    font-size: 28px;
   }
 }
 
@@ -34,7 +34,6 @@ $drawer-icons-column-width: 56px;
   display: flex;
   flex-direction: column;
   border-top: solid 1px #CDCDCD;
-
   .k-drawer__link {
     padding: 12px 0px;
   }
@@ -44,13 +43,12 @@ $drawer-icons-column-width: 56px;
   width: calc(100% - 50px);
   height: 100%;
   padding: 10px;
-
+  overflow: hidden;
   .header-breadcrumb__item {
     text-align: center;
     font-size: 18px;
     margin-bottom: 10px;
   }
-
   .k-drawer__close {
     display: none;
   }
@@ -61,7 +59,6 @@ $drawer-icons-column-width: 56px;
 .collection-nav__actions {
   text-align: center;
   margin-bottom: 10px;
-
   > button {
     min-width: 120px;
   }
@@ -69,22 +66,17 @@ $drawer-icons-column-width: 56px;
 
 .collection-nav__button {
   @extend .mdl-button;
-
   min-width: 100%;
-
   > i {
     @extend .fa, .fa-cloud, .fa-fw;
-
     margin-right: 12px;
   }
 }
 
 .collection-nav__link {
   @extend .mdl-button;
-
   > i:first-child {
     @extend .fa, .fa-fw, .fa-plus;
-
     margin-right: 12px;
   }
 }
@@ -113,16 +105,13 @@ $drawer-icons-column-width: 56px;
     left: -256px;
     transition: left 0.5s;
   }
-
   .page-wrapper--fixed-drawer .k-drawer {
     left: 0px;
     width: 340px;
   }
-
   .k-drawer + .mdl-layout__content {
     margin-left: 0px;
   }
-
   .drawer__sidebar {
     .k-drawer__close {
       font-size: 16px;

@@ -20,7 +20,6 @@ import {
 } from '../utils';
 
 import SidebarFormsList from '../lists/sidebarForms';
-SidebarFormsList
 
 var leaveBetaUrl = stores.pageState.leaveBetaUrl;
 
