@@ -5,7 +5,6 @@
 
 .form-meta__button--metasummary {
   @extend .mdl-button;
-
   span {
     margin: 0 5px;
   }
@@ -13,9 +12,7 @@
 
 .form-meta__button--expand {
   background-color: #F0F0F0;
-
   @extend .mdl-button;
-
   > i {
     @extend .fa, .fa-fw, .fa-cog;
   }
@@ -30,7 +27,6 @@
   margin: -10px 0px;
   padding: 10px 25px;
   transition: all 0.5s;
-
   .page-wrapper--asset-nav-open & {
     width: calc(100% - 410px);
   }
@@ -41,19 +37,17 @@
   align-items: center;
   width: 100%;
   padding-top: 65px;
-
   .k-header-form-title {
     flex: 1;
     padding: 0px 10px;
   }
-
   .k-corner-icon {
     opacity: 0.3;
     width: 45px;
     height: 45px;
     border-radius: 25px;
-    background-color: lighten(#526CFD, 20%);
-    border: 3px solid lighten(#526CFD, 12%);
+    background-color: lighten(#526cfd, 20%);
+    border: 3px solid lighten(#526cfd, 12%);
   }
 }
 
@@ -67,15 +61,12 @@
   cursor: pointer;
   color: #B2B2B2;
   width: 100%;
-
   &:hover {
     color: #666;
   }
-
   .settings-preview {
     margin: 0 24px 0 0;
   }
-
   transition: all .4s ease 0s;
 }
 
@@ -83,14 +74,11 @@
   padding: 12px;
   padding-left: 30px;
   width: 100%;
-
   .survey-header, .sub-header-bar {
     display: none;
   }
-
   input, textarea {
     box-shadow: none;
-
     &:focus {
       box-shadow: none;
     }
