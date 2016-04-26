@@ -57,10 +57,6 @@ body {
   @extend .mdl-color--grey-100;
 }
 
-.row {
-  @extend .mui-row;
-}
-
 .mdl-checkbox__tick-outline {
   mask: url("../img/tick-mask.svg?embed");
   .mdl-checkbox.is-checked & {
