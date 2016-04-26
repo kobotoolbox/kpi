@@ -7,7 +7,31 @@ lists for registration fields were the original application.
 
 SECTORS = (
     # (value, human-readable label)
-    ('test', _('Test Sector')),
+    ("Public Administration", _("Public Administration")),
+    ("Arts, Entertainment, and Recreation", _("Arts, Entertainment, and Recreation")),
+    ("Educational Services / Higher Education", _("Educational Services / Higher Education")),
+    ("Health Services / Public Health", _("Health Services / Public Health")),
+    ("Finance and Insurance", _("Finance and Insurance")),
+    ("Information / Media", _("Information / Media")),
+    ("Economic/Social Development", _("Economic/Social Development")),
+    ("Security / Police / Peacekeeping", _("Security / Police / Peacekeeping")),
+    ("Disarmament & Demobilization", _("Disarmament & Demobilization")),
+    ("Environment", _("Environment")),
+    ("Private sector", _("Private sector")),
+    ("Humanitarian - Coordination / Information Management", _("Humanitarian - Coordination / Information Management")),
+    ("Humanitarian - Multiple Clusters", _("Humanitarian - Multiple Clusters")),
+    ("Humanitarian - Camp Management & Coordination", _("Humanitarian - Camp Management & Coordination")),
+    ("Humanitarian - Early Recovery", _("Humanitarian - Early Recovery")),
+    ("Humanitarian - Education", _("Humanitarian - Education")),
+    ("Humanitarian - Emergency Shelter", _("Humanitarian - Emergency Shelter")),
+    ("Humanitarian - Emergency Telecoms", _("Humanitarian - Emergency Telecoms")),
+    ("Humanitarian - Food Security", _("Humanitarian - Food Security")),
+    ("Humanitarian - Health", _("Humanitarian - Health")),
+    ("Humanitarian - Logistics", _("Humanitarian - Logistics")),
+    ("Humanitarian - Nutrition", _("Humanitarian - Nutrition")),
+    ("Humanitarian - Protection", _("Humanitarian - Protection")),
+    ("Humanitarian - Sanitation, Water & Hygiene", _("Humanitarian - Sanitation, Water & Hygiene")),
+    ("Other", _("Other")),
 )
 
 '''
