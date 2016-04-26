@@ -33,7 +33,6 @@ var SidebarFormsList = React.createClass({
   },
   componentDidMount () {
     this.listenTo(this.searchStore, this.searchChanged);
-    console.log(this.props.params);
   },
   componentWillReceiveProps () {
     this.listenTo(this.searchStore, this.searchChanged);
@@ -68,12 +67,6 @@ var SidebarFormsList = React.createClass({
               } else if (s.defaultQueryState === 'done') {
                   return s.defaultQueryResultsList.map(this.renderMiniAssetRow);
               }
-              // it shouldn't get to this point
-              return (
-                <bem.FormSidebar__item m={'error'}>
-                  {t('error')}
-                </bem.FormSidebar__item>
-              );
             })()
           }
         </bem.FormSidebar__grouping>
