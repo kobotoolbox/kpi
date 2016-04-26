@@ -25,16 +25,15 @@ import actions from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import {dataInterface} from '../dataInterface';
 
-var FormHeader__panel = bem('form-header__panel'),
-    FormHeader__row = bem('form-header__row'),
-    FormHeader__panelheader = bem('form-header__panelheader'),
-    FormHeader__paneltext = bem('form-header__paneltext');
+var FormStyle__panel = bem('form-style__panel'),
+    FormStyle__row = bem('form-style'),
+    FormStyle__panelheader = bem('form-style__panelheader'),
+    FormStyle__paneltext = bem('form-style__paneltext');
 
 var FormSettingsEditor = React.createClass({
   render () {
     return (
           <div className="mdl-grid">
-            {/* offset? */}
             <div className="mdl-cell mdl-cell--1-col" />
             <div className="mdl-cell mdl-cell--5-col">
               {this.props.meta.map((mtype) => {
@@ -428,12 +427,12 @@ export default {
     } = this.buttonStates();
 
     return (
-        <bem.FormHeader>
-          <bem.FormHeader__close m={[{
+        <bem.FormBuilderHeader>
+          <bem.FormBuilderHeader__close m={[{
                 'close-warning': this.needsSave(),
               }]} onClick={this.navigateBack}>
             <i className="material-icons">clear</i>
-          </bem.FormHeader__close>
+          </bem.FormBuilderHeader__close>
 
           <ui.SmallInputBox
               ref='form-name'
@@ -441,67 +440,67 @@ export default {
               onChange={this.nameChange}
               placeholder={t('form name')}
             />
-          <FormHeader__row m={allButtonsDisabled ? 'disabled' : null}>
-            <bem.FormHeader__button m={['save', {
+          <bem.FormBuilderHeader__row m={allButtonsDisabled ? 'disabled' : null}>
+            <bem.FormBuilderHeader__button m={['save', {
                   savepending: this.state.asset_updated === update_states.PENDING_UPDATE,
                   savecomplete: this.state.asset_updated === update_states.UP_TO_DATE,
                   saveneeded: this.state.asset_updated === update_states.UNSAVED_CHANGES,
                 }]} onClick={this.saveForm}>
               <i />
               {saveButtonText}
-            </bem.FormHeader__button>
-            <bem.FormHeader__button m={['close', {
+            </bem.FormBuilderHeader__button>
+            <bem.FormBuilderHeader__button m={['close', {
                   'close-warning': this.needsSave(),
                 }]} onClick={this.navigateBack}>
               <i />
               {t('close')}
-            </bem.FormHeader__button>
-            <bem.FormHeader__button m={['preview', {
+            </bem.FormBuilderHeader__button>
+            <bem.FormBuilderHeader__button m={['preview', {
                   previewdisabled: previewDisabled
                 }]} onClick={this.previewForm}
                 disabled={previewDisabled}>
               <i />
               {t('preview')}
-            </bem.FormHeader__button>
+            </bem.FormBuilderHeader__button>
             { showAllAvailable ?
-              <bem.FormHeader__button m={['show-all', {
+              <bem.FormBuilderHeader__button m={['show-all', {
                     open: showAllOpen,
                   }]} onClick={this.showAll}>
                 <i />
                 {t('show all responses')}
-              </bem.FormHeader__button>
+              </bem.FormBuilderHeader__button>
             : null }
             { groupable ?
-              <bem.FormHeader__button m={['group', {
+              <bem.FormBuilderHeader__button m={['group', {
                     groupable: groupable
                   }]} onClick={this.groupQuestions}
                   disabled={!groupable}>
                 <i />
                 {t('group questions')}
-              </bem.FormHeader__button>
+              </bem.FormBuilderHeader__button>
             : null }
             { hasSettings ?
-              <bem.FormHeader__button m={{
+              <bem.FormBuilderHeader__button m={{
                 formstyle: true,
                 formstyleactive: this.state.formStylePanelDisplayed,
               }} onClick={this.openFormStylePanel}>
                 {t('form-style')}
-              </bem.FormHeader__button>
+              </bem.FormBuilderHeader__button>
             : null }
-          </FormHeader__row>
+          </bem.FormBuilderHeader__row>
           { this.state.formStylePanelDisplayed ?
-            <FormHeader__panel m='formstyle'>
-              <FormHeader__panelheader>
+            <FormStyle__panel m='formstyle'>
+              <FormStyle__panelheader>
                 {t('form style')}
-              </FormHeader__panelheader>
-              <FormHeader__paneltext>
+              </FormStyle__panelheader>
+              <FormStyle__paneltext>
                 {t('select the form style that you would like to use. this will only affect web forms.')}
-              </FormHeader__paneltext>
-              <FormHeader__paneltext>
+              </FormStyle__paneltext>
+              <FormStyle__paneltext>
                 <a href="http://support.kobotoolbox.org/customer/en/portal/articles/2108533">
                   {t('read more...')}
                 </a>
-              </FormHeader__paneltext>
+              </FormStyle__paneltext>
               <Select
                 name="webform-style"
                 ref="webformStyle"
@@ -512,9 +511,9 @@ export default {
                 placeholder={AVAILABLE_FORM_STYLES[0].label}
                 options={AVAILABLE_FORM_STYLES}
               />
-            </FormHeader__panel>
+            </FormStyle__panel>
           : null }
-        </bem.FormHeader>
+        </bem.FormBuilderHeader>
       );
   },
   renderLoadingNotice () {

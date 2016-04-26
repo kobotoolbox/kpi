@@ -8,17 +8,17 @@
 @import "./libs/react-select";
 
 // TODO: phase out these colors from collection header
-$kcol-view: mix(#7B1FA2, grayscale(#7B1FA2), 38%);
+$kcol-view: mix(#7b1fa2, grayscale(#7b1fa2), 38%);
 $kcol-edit: mix(#009688, grayscale(#009688), 38%);
-$kcol-preview: mix(#FFC107, grayscale(#FFC107), 38%);
-$kcol-clone: mix(#2196F3, grayscale(#2196F3), 38%);
-$kcol-delete: mix(#FF5722, grayscale(#FF5722), 38%);
-$kcol-download: mix(#4CAF50, grayscale(#4CAF50), 38%);
+$kcol-preview: mix(#ffc107, grayscale(#ffc107), 38%);
+$kcol-clone: mix(#2196f3, grayscale(#2196f3), 38%);
+$kcol-delete: mix(#ff5722, grayscale(#ff5722), 38%);
+$kcol-download: mix(#4caf50, grayscale(#4caf50), 38%);
 $kcol-deploy: rgb(92, 107, 192);
 
-$kcol-7: mix(#FF4081, grayscale(#FF4081), 38%);
-$kcol-8: mix(#00BCD4, grayscale(#00BCD4), 38%);
-$newformButtonColor: mix(#2196F3, grayscale(#2196F3), 38%);
+$kcol-7: mix(#ff4081, grayscale(#ff4081), 38%);
+$kcol-8: mix(#00bcd4, grayscale(#00bcd4), 38%);
+$newformButtonColor: mix(#2196f3, grayscale(#2196f3), 38%);
 
 $newformCircleWidthHeight: 55px;
 
@@ -33,17 +33,18 @@ $newformCircleWidthHeight: 55px;
 @import "./components/kobo.collection-asset-list";
 @import "./components/kobo.list-view";
 @import "./components/kobo.asset-name";
-@import "./components/kobo.asset-view";
 @import "./components/kobo.asset-row";
-@import "./components/kobo.form-header";
-@import "./components/kobo.form-meta";
 @import "./components/kobo.lib-nav";
 @import "./components/kobo.lib-list";
+@import "./components/kobo.form-view";
 @import "./components/kobo.form-builder";
 @import "./components/kobo.bem.ui";
 @import "./components/kobo.modal";
 @import "./components/kobo.asset-type-icon";
 @import "./libs/pygments-theme";
+
+// TO BE PHASED OUT
+@import "./components/kobo.asset-view";
 
 .k-invisible {
   visibility: hidden;

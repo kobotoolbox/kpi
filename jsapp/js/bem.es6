@@ -25,9 +25,10 @@ bem.AssetRow__sharingIcon = bem.AssetRow.__('sharingIcon');
 bem.AssetRow__sharingIcon__owner = bem.AssetRow__sharingIcon.__('owner', '<span>');
 bem.AssetRow__buttons        = bem.AssetRow.__('buttons');
 
-bem.FormHeader = bem('form-header');
-bem.FormHeader__button = bem.FormHeader.__('button', '<button>');
-bem.FormHeader__close = bem.FormHeader.__('close', '<button>');
+bem.FormBuilderHeader = bem('formBuilder-header');
+bem.FormBuilderHeader__row = bem.FormBuilderHeader.__('row');
+bem.FormBuilderHeader__button = bem.FormBuilderHeader.__('button', '<button>');
+bem.FormBuilderHeader__close = bem.FormBuilderHeader.__('close', '<button>');
 
 bem.FormMeta = bem('form-meta');
 bem.FormMeta__preview = bem.FormMeta.__('preview');
@@ -135,6 +136,20 @@ bem.AssetView__link = bem.AssetView.__('link', '<a>');
 bem.AssetView__plainlink = bem.AssetView.__('plainlink', '<a>'); // FIXME: feels wrong, but _kobo.asset-view.scss makes __link equivalent to __button
 bem.AssetView__deployments = bem.AssetView.__('deployments', '<ul>');
 bem.AssetView__deployment = bem.AssetView.__('deployment', '<li>');
+
+bem.FormView = BEM('form-view');
+bem.FormView__header = bem.FormView.__('header');
+bem.FormView__tabs = bem.FormView.__('tabs');
+bem.FormView__tab = bem.FormView.__('tab', '<button>');
+bem.FormView__extras = bem.FormView.__('extras');
+bem.FormView__name = bem.FormView.__('name');
+bem.FormView__description = bem.FormView.__('description');
+
+bem.FormView__row = bem.FormView.__('row');
+bem.FormView__cell = bem.FormView.__('cell');
+bem.FormView__label = bem.FormView.__('label');
+bem.FormView__group = bem.FormView.__('group');
+bem.FormView__link = bem.FormView.__('link', '<a>');
 
 bem.PopoverMenu = bem('popover-menu');
 bem.PopoverMenu__item = bem.PopoverMenu.__('item');

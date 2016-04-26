@@ -6,6 +6,7 @@
   src: local("Material Icons"), local("MaterialIcons-Regular"), url("../fonts/MaterialIcons-Regular.woff2") format("woff2"), url("../fonts/MaterialIcons-Regular.woff") format("woff"), url("../fonts/MaterialIcons-Regular.ttf") format("truetype");
 }
 
+
 .material-icons {
   font-family: 'Material Icons';
   font-weight: normal;
@@ -32,6 +33,7 @@ $greyish-brown: #575757;
 $nav-menu-item-bg: #555b6e;
 $nav-menu-item-bg-active: #2196f3;
 $layout-header-bg-color: #414553 !default;
+$cool-green: #06d1ba;
 
 // MDL Overrides
 $color-primary: $azure !default;
@@ -41,9 +43,9 @@ $preferred_font: "Roboto", "Helvetica", "Arial", sans-serif !default;
 $performance_font: "Roboto", "Helvetica", "Arial", sans-serif !default;
 
 $layout-text-color: #363636 !default;
-$layout-nav-color: #FFF !default;
+$layout-nav-color: white !default;
 $layout-drawer-nav-link-color: #7d8a93 !default;
-$layout-drawer-nav-link-active-bg: #F9F9F9 !default;
+$layout-drawer-nav-link-active-bg: #f9f9f9 !default;
 
 @import "../../../node_modules/material-design-lite/src/material-design-lite";
 
@@ -61,12 +63,21 @@ body {
 
 .mdl-checkbox__tick-outline {
   mask: url("../img/tick-mask.svg?embed");
-
   .mdl-checkbox.is-checked & {
     background: $checkbox-color url("../img/tick.svg?embed");
   }
-
   .mdl-checkbox.is-checked.is-disabled & {
     background: $checkbox-disabled-color url("../img/tick.svg?embed");
+  }
+}
+
+@mixin shadow-1dp {
+  box-shadow: 0 1px 1px 0 rgba(0, 0, 0, $shadow-key-penumbra-opacity), 0 2px 0px -1px rgba(0, 0, 0, $shadow-key-umbra-opacity), 0 1px 2px 0 rgba(0, 0, 0, $shadow-ambient-shadow-opacity);
+}
+
+.mdl-button--raised {
+  @include shadow-1dp;
+  &:active {
+    @include shadow-2dp;
   }
 }

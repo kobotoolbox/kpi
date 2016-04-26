@@ -4,6 +4,7 @@ import Dropzone from './libs/dropzone';
 import Select from 'react-select';
 import alertify from 'alertifyjs';
 import {Link} from 'react-router';
+import mdl from './libs/rest_framework/material';
 
 import {dataInterface} from './dataInterface';
 import stores from './stores';
@@ -85,35 +86,99 @@ var dmix = {
     survey: {
       innerRender: function () {
         return (
-            <bem.AssetView m={['type-survey']}>
+            <bem.FormView>
               {this.renderAncestors()}
-              <ui.Panel margin='thin'>
-                <bem.AssetView__content>
-                  {this.renderName()}
-                  {this.renderTags()}
-                  <bem.AssetView__row m='meta'>
-                    {this.renderUsers()}
-                    {this.renderIsPublic()}
-                    {this.renderRowCount()}
-                    {this.renderRevisions()}
-                    {this.renderDateCreated()}
-                    {this.renderDateModified()}
-                  </bem.AssetView__row>
-                  {/* this.renderParentCollection() */}
-                  <bem.AssetView__row m='buttons'>
-                    {this.renderButtons({deployable: true})}
-                    {this.renderDeployments()}
-                    {this.renderLanguages()}
-                  </bem.AssetView__row>
-                </bem.AssetView__content>
-              </ui.Panel>
-            </bem.AssetView>
+              {this.renderHeader()}
+              <bem.FormView__row>
+                <bem.FormView__cell m='edit'>
+                  <bem.FormView__label>
+                    {t('Create and Edit your Project')}
+                  </bem.FormView__label>
+                  {this.renderEditPreviewButtons()}
+                  {this.renderDownloadButtons()}
+                </bem.FormView__cell>
+                <bem.FormView__cell m='history'>
+                  <bem.FormView__label>
+                    {t('Form Version History')}
+                  </bem.FormView__label>
+                </bem.FormView__cell>
+                <bem.FormView__cell m='meta'>
+                  {this.renderDateModified()}
+                  {this.renderLanguages()}
+                  {this.renderRowCount()}
+                </bem.FormView__cell>
+              </bem.FormView__row>
+              <div className="is-edge">
+                <bem.AssetView__row m='buttons'>
+                  {this.renderButtons({deployable: true})}
+                </bem.AssetView__row>
+                {this.renderDeployments()}
+                {this.renderRevisions()}
+                {this.renderUsers()}
+                {this.renderIsPublic()}
+                {this.renderDateCreated()}
+                {this.renderTags()}
+              </div>
+            </bem.FormView>
           );
       }
     }
   },
   renderAncestors () {},
-  renderName () {
+  renderHeader () {
+    return (
+        <bem.FormView__header m={[
+              this.state.name ? 'named' : 'untitled'
+            ]}>
+          <bem.FormView__tabs>
+            <bem.FormView__tab className="is-edge">
+              {t('Summary')}
+            </bem.FormView__tab>
+            <bem.FormView__tab className="active">
+              {t('Form')}
+            </bem.FormView__tab>
+            <bem.FormView__tab className="is-edge">
+              {t('Data')}
+            </bem.FormView__tab>
+
+            {this.renderExtraButtons()}
+
+          </bem.FormView__tabs>
+          <bem.FormView__name>
+            <ui.AssetName {...this.state} />
+          </bem.FormView__name>
+          <bem.FormView__description className="is-edge">
+            {t('no description yet')}
+          </bem.FormView__description>
+        </bem.FormView__header>
+      );
+  },
+  renderEditPreviewButtons () {
+    return (
+        <bem.FormView__group m='editpreview'>
+          <bem.FormView__link m={['edit', {
+            disabled: !this.state.userCanEdit,
+              }]} href={this.makeHref('form-edit', {assetid: this.state.uid})}>
+            {t('go to form builder')}
+          </bem.FormView__link>
+          <bem.FormView__link m='preview' href={this.makeHref('form-preview-enketo', {assetid: this.state.uid})}>
+            {t('preview form')}
+          </bem.FormView__link>
+        </bem.FormView__group>
+      );
+  },
+  renderDownloadButtons () {
+    return (
+        <bem.FormView__group m='download' className="is-edge">
+            <bem.FormView__link m={'download'}>
+              {t('download xls form')}
+            </bem.FormView__link>
+            <bem.FormView__link m={'upload'}>
+              {t('upload new xls form')}
+            </bem.FormView__link>
+        </bem.FormView__group>
+      );
+  },  renderName () {
     return (
         <bem.AssetView__name m={[
               this.state.name ? 'named' : 'untitled'
@@ -121,6 +186,32 @@ var dmix = {
           <AssetTypeIcon m={this.state.asset_type}><i /></AssetTypeIcon>
           <ui.AssetName {...this.state} />
         </bem.AssetView__name>
+      );
+  },
+  renderExtraButtons () {
+    return (
+      <bem.FormView__extras>
+        <button className="mdl-button mdl-js-button mdl-button--icon"
+                id="form-header-extras">
+          <i className="material-icons">more_vert</i>
+        </button>
+
+        <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
+            htmlFor="form-header-extras">
+          <li>
+            <a onClick={this.saveCloneAs} className="mdl-menu__item">
+              <i />
+              {t('Clone this project')}
+            </a>
+          </li>
+          <li>
+            <a href={this.makeHref('form-sharing', {assetid: this.state.uid})} className="mdl-menu__item">
+              <i />
+              {t('Share this project')}
+            </a>
+          </li>
+        </ul> 
+      </bem.FormView__extras>
       );
   },
   renderParentCollection () {
@@ -672,6 +763,9 @@ var dmix = {
     } else if (uid) {
       actions.resources.loadAsset({id: uid});
     }
+  },
+  componentDidUpdate() {
+    mdl.upgradeDom();
   }
 };
 mixins.dmix = dmix;

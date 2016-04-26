@@ -1,0 +1,139 @@
+.form-view {
+  height: 100%;
+  overflow: auto;
+  padding: 8px;
+  padding-top: 4px;
+}
+
+.form-view__header {
+  margin-bottom: 8px;
+  @extend .mdl-shadow--2dp;
+  background-color: #FFF;
+}
+
+.form-view__tabs {
+  background-color: #557893;
+  position: relative;
+}
+
+.form-view__extras {
+	float: right;
+  button.mdl-button {
+    color: white;
+    margin-top: 4px;
+  }
+}
+
+.form-view__tab {
+  background: transparent;
+  color: #FFF;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 8px 12px;
+  text-transform: uppercase;
+  font-size: 18px;
+  margin-right: 20px;
+  opacity: 0.6;
+  &.active {
+    opacity: 1;
+    border-bottom: 3px solid $cool-green;
+  }
+  &:hover {
+    cursor: pointer;
+    opacity: 1;
+  }
+}
+
+.form-view__name {
+  padding: 8px 12px;
+  font-size: 18px;
+  line-height: 1.4em;
+  color: unquote("rgb(#{$color-primary})");
+}
+
+.form-view__description {
+  padding: 8px 12px;
+  padding-top: 0px;
+}
+
+.form-view__row {
+  display: flex;
+  justify-content:space-around;
+}
+
+.form-view__cell {
+  @extend .mdl-shadow--2dp;
+  background-color: #FFF;
+  padding: 8px 12px;
+  margin-right:8px;
+  &--edit {
+  	width:50%;
+  }
+  &--history {
+  	width:30%;
+  }
+  &--meta {
+  	width:20%;
+  }
+  &:last-child {
+  	margin-right: 0px;
+  }
+}
+
+.form-view__label {
+  font-size: 14px;
+  color: $cool-green;
+}
+
+// FIXME: rename this
+.form-view__cell {
+	.asset-view__label {
+		display: block;
+		text-align: center;
+		padding-bottom: 5px;
+	}
+	.asset-view__span--val {
+		display: block;
+		text-align: center;
+		font-size: 18px;
+		color:$cool-green;
+	}
+	.asset-view__col--date-modified, 
+	.asset-view__langs {
+		padding-bottom: 8px;
+		margin: 8px;
+		margin-top: 0px;
+		border-bottom: 1px solid #CCC;
+	}
+}
+
+.form-view__group {
+	text-align: center;
+	padding: 8px;
+	&--editpreview {
+		border-bottom: 1px solid #CCC;
+	}
+}
+
+.form-view__label + .form-view__group {
+	padding-top:16px;
+}
+
+.k-button--bordered {
+	background:white;
+	color:unquote("rgb(#{$color-primary})");
+	border:2px solid unquote("rgb(#{$color-primary})");
+	box-shadow: none;
+	line-height: 32px;
+}
+
+.form-view__link {
+	@extend .mdl-button, .mdl-js-button, .mdl-button--raised;
+	margin:4px;
+	&--edit, &--download {
+		@extend .mdl-button--colored;
+	}
+	&--preview, &--upload {
+		@extend .k-button--bordered;
+	}
+}
