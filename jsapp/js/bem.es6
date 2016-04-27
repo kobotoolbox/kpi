@@ -141,6 +141,7 @@ bem.FormView = BEM('form-view');
 bem.FormView__header = bem.FormView.__('header');
 bem.FormView__tabs = bem.FormView.__('tabs');
 bem.FormView__tab = bem.FormView.__('tab', '<button>');
+bem.FormView__button = bem.FormView.__('button', '<button>');
 bem.FormView__extras = bem.FormView.__('extras');
 bem.FormView__name = bem.FormView.__('name');
 bem.FormView__description = bem.FormView.__('description');
@@ -149,6 +150,7 @@ bem.FormView__row = bem.FormView.__('row');
 bem.FormView__cell = bem.FormView.__('cell');
 bem.FormView__label = bem.FormView.__('label');
 bem.FormView__group = bem.FormView.__('group');
+bem.FormView__item = bem.FormView.__('item', '<span>');
 bem.FormView__link = bem.FormView.__('link', '<a>');
 
 bem.PopoverMenu = bem('popover-menu');

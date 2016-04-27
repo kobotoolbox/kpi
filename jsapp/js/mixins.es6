@@ -96,6 +96,7 @@ var dmix = {
                   </bem.FormView__label>
                   {this.renderEditPreviewButtons()}
                   {this.renderDownloadButtons()}
+                  {this.renderDeployButtons()}
                 </bem.FormView__cell>
                 <bem.FormView__cell m='history'>
                   <bem.FormView__label>
@@ -168,17 +169,55 @@ var dmix = {
       );
   },
   renderDownloadButtons () {
+    var downloadable = !!this.state.downloads[0],
+        downloads = this.state.downloads;
     return (
-        <bem.FormView__group m='download' className="is-edge">
-            <bem.FormView__link m={'download'}>
-              {t('download xls form')}
-            </bem.FormView__link>
-            <bem.FormView__link m={'upload'}>
-              {t('upload new xls form')}
-            </bem.FormView__link>
+        <bem.FormView__group m='download'>
+            <bem.FormView__item m={'download'} 
+              onFocus={this.toggleDownloads}
+              onBlur={this.toggleDownloads}>
+              <bem.FormView__button m={'download'}
+                  disabled={!downloadable}>
+              {t('Download Form')}
+              </bem.FormView__button>
+              { (downloadable && this.state.downloadsShowing) ?
+                <bem.PopoverMenu ref='dl-popover'>
+                  {downloads.map((dl)=>{
+                    return (
+                        <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
+                            key={`dl-${dl.format}`}>
+                          <i />
+                          {t(`download-${dl.format}`)}
+                        </bem.PopoverMenu__link>
+                      );
+                  })}
+                </bem.PopoverMenu>
+              : null }
+            </bem.FormView__item>
+
+            <Dropzone fileInput onDropFiles={this.onDrop}
+                  disabled={!this.state.userCanEdit}>
+              <bem.FormView__link m={['upload', {
+                disabled: !this.state.userCanEdit
+                  }]}>
+                {t('upload new xls form')}
+              </bem.FormView__link>
+            </Dropzone>
         </bem.FormView__group>
       );
-  },  renderName () {
+  },
+  renderDeployButtons () {
+  return (
+    <bem.FormView__group m={'actions'}>
+        <bem.FormView__link m={'deploy'}  onClick={this.deployAsset}>
+          <i />
+          {this.state.deployed_version_id === null ?
+            t('deploy') : t('redeploy')}
+        </bem.FormView__link>
+      </bem.FormView__group>
+    );
+  },
+  renderName () {
     return (
         <bem.AssetView__name m={[
               this.state.name ? 'named' : 'untitled'

@@ -113,6 +113,14 @@
 	&--editpreview {
 		border-bottom: 1px solid #CCC;
 	}
+
+  .dropzone {
+    display: inline;
+  }
+
+  &--actions {
+    text-align: right;
+  }
 }
 
 .form-view__label + .form-view__group {
@@ -127,7 +135,7 @@
 	line-height: 32px;
 }
 
-.form-view__link {
+.form-view__link, .form-view__button {
 	@extend .mdl-button, .mdl-js-button, .mdl-button--raised;
 	margin:4px;
 	&--edit, &--download {
@@ -136,4 +144,8 @@
 	&--preview, &--upload {
 		@extend .k-button--bordered;
 	}
+}
+
+.form-view__item--download {
+  position: relative;
 }
