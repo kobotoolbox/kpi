@@ -88,8 +88,9 @@ module.exports = function(grunt) {
         icons: {
             src: 'jsapp/icons/*.svg',
             dest: 'jsapp/fonts',
-            destCss: 'jsapp/fonts',
             options: {
+                stylesheet: 'scss',
+                relativeFontPath: '../fonts',
                 font: 'k-iconfont',
                 syntax: 'bem',
                 templateOptions: {
