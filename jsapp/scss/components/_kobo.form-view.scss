@@ -45,32 +45,34 @@
 }
 
 .form-view__name {
-  padding: 8px 12px;
+  padding: 10px 15px;
   font-size: 18px;
   line-height: 1.4em;
   color: unquote("rgb(#{$color-primary})");
 }
 
 .form-view__description {
-  padding: 8px 12px;
+  padding: 10px 15px;
   padding-top: 0px;
 }
 
 .form-view__row {
   display: flex;
   justify-content:space-around;
+  margin-bottom: 8px;
 }
 
 .form-view__cell {
   @extend .mdl-shadow--2dp;
   background-color: #FFF;
-  padding: 8px 12px;
+  padding: 15px;
   margin-right:8px;
   &--edit {
   	width:50%;
   }
   &--history {
   	width:30%;
+    position: relative;
   }
   &--meta {
   	width:20%;
@@ -78,11 +80,24 @@
   &:last-child {
   	margin-right: 0px;
   }
+  &--collecting-webforms {
+    width:65%;
+  }
+  &--collecting-android {
+    width:35%;
+  }
 }
 
 .form-view__label {
-  font-size: 14px;
-  color: $cool-green;
+  font-size: 16px;
+  color: $cool-gray;
+  &--title {
+    color: $cool-green;
+  }
+
+  &--white {
+    color: white;
+  }
 }
 
 // FIXME: rename this
@@ -110,8 +125,10 @@
 .form-view__group {
 	text-align: center;
 	padding: 8px;
+  padding-bottom: 12px;
 	&--editpreview {
 		border-bottom: 1px solid #CCC;
+    margin-bottom: 12px;
 	}
 
   .dropzone {
@@ -121,11 +138,75 @@
   &--actions {
     text-align: right;
   }
+
 }
 
-.form-view__label + .form-view__group {
-	padding-top:16px;
+.form-view__group--deployments-overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: $cool-gray;
+  opacity:0.9;
+  left: 0px;
+  top: 0px;
+  text-align: left;
+  padding:10px 15px;
+  .form-view__label {
+    font-size: 20px;
+    padding-bottom: 20px;
+  }
+
+  .form-view__group {
+    color: white;
+    &--desc {
+      text-align: left;
+      font-size: 16px;
+    }
+  }
+  i {
+    font-size: 32px;
+  }
 }
+
+.form-view__banner {
+  height:200px;
+  margin:-15px;
+  margin-bottom: 15px;
+  background-color: $cool-green;
+  &--android {
+    background-color: #dbeef8;
+  }
+}
+
+.form-view__cell--collecting-android {
+  i {
+    font-size: 20px;
+    vertical-align: middle;
+  }
+}
+
+.form-view__row--collecting {
+  position: relative;
+  .form-view__group--collecting-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: unquote("rgba(#{$color-primary}, 0.9)");
+    left: 0px;
+    top: 0px;    
+    padding:12%;
+    @extend .mdl-shadow--2dp;
+  }
+  .form-view__group--desc {
+    max-width: 240px;
+    margin: 0 auto;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+
+// buttons in forms 
 
 .k-button--bordered {
 	background:white;
@@ -144,6 +225,21 @@
 	&--preview, &--upload {
 		@extend .k-button--bordered;
 	}
+}
+
+.form-view__link--make-active {
+  border:2px solid white;
+  background-color: rgba(255,255,255,0.2);
+  color: white;
+  box-shadow: none;
+  height:48px;
+  line-height: 44px;
+  padding: 0px 24px;
+  margin:10px;
+  &:hover {
+    background-color: #FFF;
+    color:unquote("rgb(#{$color-primary})");
+  }
 }
 
 .form-view__item--download {

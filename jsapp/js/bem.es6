@@ -148,6 +148,7 @@ bem.FormView__description = bem.FormView.__('description');
 
 bem.FormView__row = bem.FormView.__('row');
 bem.FormView__cell = bem.FormView.__('cell');
+bem.FormView__banner = bem.FormView.__('banner');
 bem.FormView__label = bem.FormView.__('label');
 bem.FormView__group = bem.FormView.__('group');
 bem.FormView__item = bem.FormView.__('item', '<span>');

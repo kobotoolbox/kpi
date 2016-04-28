@@ -5,6 +5,7 @@ import Select from 'react-select';
 import alertify from 'alertifyjs';
 import {Link} from 'react-router';
 import mdl from './libs/rest_framework/material';
+import TagsInput from 'react-tagsinput';
 
 import {dataInterface} from './dataInterface';
 import stores from './stores';
@@ -24,6 +25,44 @@ import {
 var AssetTypeIcon = bem.create('asset-type-icon');
 
 var mixins = {};
+
+mixins.taggedAsset = {
+  mixins: [
+    React.addons.LinkedStateMixin
+  ],
+  tagChange (tags/*, changedTag*/) {
+    var uid = this.props.uid || this.props.params.assetid;
+    actions.resources.updateAsset(uid, {
+      tag_string: tags.join(',')
+    });
+  },
+  linkTagState () {
+    // because onChange doesn't work when valueLink is specified.
+    console.log(this);
+    var that = this, ls = this.linkState('tags'), rc = ls.requestChange;
+    ls.requestChange = function(...args) {
+      that.tagChange(...args);
+      rc.apply(this, args);
+    };
+    return ls;
+  },
+  renderTaggedAssetTags () {
+    var transform = function(tag) {
+      // Behavior should match KpiTaggableManager.add()
+      return tag.trim().replace(/ /g, '-');
+    };
+    // react-tagsinput splits on tab (9) and enter (13) by default; we want to
+    // split on comma (188) as well
+    var addKeys = [9, 13, 188];
+    return (
+      <div>
+        <TagsInput ref="tags" classNamespace="k"
+          valueLink={this.linkTagState()} transform={transform}
+          addKeys={addKeys} />
+      </div>
+    );
+  }
+};
 
 var dmix = {
   assetTypeRenderers: {
@@ -91,17 +130,21 @@ var dmix = {
               {this.renderHeader()}
               <bem.FormView__row>
                 <bem.FormView__cell m='edit'>
-                  <bem.FormView__label>
+                  <bem.FormView__label  m='title'>
                     {t('Create and Edit your Project')}
                   </bem.FormView__label>
                   {this.renderEditPreviewButtons()}
+                  <bem.FormView__label>
+                    {t('For Advanced Users')}
+                  </bem.FormView__label>
                   {this.renderDownloadButtons()}
                   {this.renderDeployButtons()}
                 </bem.FormView__cell>
                 <bem.FormView__cell m='history'>
-                  <bem.FormView__label>
+                  <bem.FormView__label m='title'>
                     {t('Form Version History')}
                   </bem.FormView__label>
+                  {this.renderDeployments()}
                 </bem.FormView__cell>
                 <bem.FormView__cell m='meta'>
                   {this.renderDateModified()}
@@ -109,11 +152,49 @@ var dmix = {
                   {this.renderRowCount()}
                 </bem.FormView__cell>
               </bem.FormView__row>
+              <bem.FormView__row m="collecting" className="is-edge">
+                <bem.FormView__cell m='collecting-webforms'>
+                  <bem.FormView__banner m="webforms">
+                  </bem.FormView__banner>
+                  <bem.FormView__label m='title'>
+                    {t('Collecting Data with Web Forms')}
+                  </bem.FormView__label>
+                  <ol>
+                    <li>{t('Choose one of the different web form links above.')}</li>
+                    <li>{t('Open the link on your own computer or mobile device or copy')}</li>
+                    <li>{t('Enter the server URL https://kobotoolbox.org and your username and password')}</li>
+                    <li>{t('Open "Get Blank Form" and select this project. ')}</li>
+                    <li>{t('Open "Enter Data."')}</li>
+                  </ol>
+                </bem.FormView__cell>
+                <bem.FormView__cell m='collecting-android'>
+                  <bem.FormView__banner m="android">
+                  </bem.FormView__banner>
+                  <bem.FormView__label m='title'>
+                    {t('Collecting Data with Android App')}
+                  </bem.FormView__label>
+
+                  <ol>
+                    <li>{t('Install KoboCollect on your Android device.')}</li>
+                    <li>{t('Click on')} <i className="material-icons">more_vert</i> {t('to open settings.')}</li>
+                    <li>{t('Enter the server URL https://kobotoolbox.org and your username and password')}</li>
+                    <li>{t('Open "Get Blank Form" and select this project. ')}</li>
+                    <li>{t('Open "Enter Data."')}</li>
+                  </ol>
+                </bem.FormView__cell>
+                { this.state.deployed_version_id === null &&
+                    <bem.FormView__group m="collecting-overlay">
+                      <bem.FormView__group m="desc">
+                        {t('Your form must be active in order to start collecting data. ')}
+                      </bem.FormView__group>
+                      <bem.FormView__link m={'make-active'}  onClick={this.deployAsset}>
+                          {t('Make Active')}
+                      </bem.FormView__link>
+                    </bem.FormView__group>
+                }
+              </bem.FormView__row>
+
               <div className="is-edge">
-                <bem.AssetView__row m='buttons'>
-                  {this.renderButtons({deployable: true})}
-                </bem.AssetView__row>
-                {this.renderDeployments()}
                 {this.renderRevisions()}
                 {this.renderUsers()}
                 {this.renderIsPublic()}
@@ -173,6 +254,7 @@ var dmix = {
         downloads = this.state.downloads;
     return (
         <bem.FormView__group m='download'>
+
             <bem.FormView__item m={'download'} 
               onFocus={this.toggleDownloads}
               onBlur={this.toggleDownloads}>
@@ -207,13 +289,12 @@ var dmix = {
       );
   },
   renderDeployButtons () {
-  return (
-    <bem.FormView__group m={'actions'}>
-        <bem.FormView__link m={'deploy'}  onClick={this.deployAsset}>
-          <i />
-          {this.state.deployed_version_id === null ?
-            t('deploy') : t('redeploy')}
-        </bem.FormView__link>
+    return (
+      <bem.FormView__group m={'actions'}>
+          <bem.FormView__link m={'deploy'}  onClick={this.deployAsset}>
+            {this.state.deployed_version_id === null ?
+              t('deploy') : t('redeploy')}
+          </bem.FormView__link>
       </bem.FormView__group>
     );
   },
@@ -601,59 +682,45 @@ var dmix = {
   },
   renderDeployments () {
     return (
-        <bem.AssetView__row m='secondary-buttons'>
-          <bem.AssetView__buttoncol m='first'></bem.AssetView__buttoncol>
-          <bem.AssetView__buttoncol>
-            <Dropzone fileInput onDropFiles={this.onDrop}
-                  disabled={!this.state.userCanEdit}>
-              <bem.AssetView__button m={['refresh', {
-                disabled: !this.state.userCanEdit
-                  }]}>
-                <i />
-                {t('refresh')}
-              </bem.AssetView__button>
-            </Dropzone>
-          </bem.AssetView__buttoncol>
-          <bem.AssetView__buttoncol m='third'></bem.AssetView__buttoncol>
-          <bem.AssetView__buttoncol m='fourth'></bem.AssetView__buttoncol>
-          <bem.AssetView__buttoncol>
-            <bem.AssetView__button m='delete' onClick={this.deleteAsset}>
-              <i />
-              {t('delete')}
-            </bem.AssetView__button>
-          </bem.AssetView__buttoncol>
-          <bem.AssetView__deployments>
-            {
-              this.state.deployed_version_id === null ?
-                <bem.AssetView__deployment>
-                  {t('not deployed')}
-                </bem.AssetView__deployment>
-              :
-                this.state.deployed_versions.map((item) => {
-                  return (
-                    <bem.AssetView__deployment>
-                      {[
-                        t('version ___').replace('___', item.version_id),
-                        ' | ',
-                        t('deployed ___')
-                          .replace('___', formatTime(item.date_deployed)),
-                        ' | ',
-                        item.version_id === this.state.deployed_version_id ?
-                          t('current live version')
-                        :
-                          <bem.AssetView__plainlink m='clone'
-                              data-version-id={item.version_id}
-                              onClick={this.saveCloneAs}>
-                            {t('clone')}
-                          </bem.AssetView__plainlink>
-                      ]}
-                    </bem.AssetView__deployment>
-                  );
-                }
-              )
-            }
-          </bem.AssetView__deployments>
-        </bem.AssetView__row>
+        <bem.FormView__group m="deployments">
+          {
+            this.state.deployed_version_id === null ?
+              <bem.FormView__group m="deployments-overlay">
+                <bem.FormView__label m="white">
+                  {t('Form Deployment History')}
+                </bem.FormView__label>
+                <bem.FormView__group m="icon">
+                  <i className="fa fa-undo" />
+                </bem.FormView__group>
+                <bem.FormView__group m="desc">
+                  {t('Every time you make changes to your form and redeploy it to make it live, the new form will appear here as a new version.')}
+                </bem.FormView__group>
+              </bem.FormView__group>
+            :
+              this.state.deployed_versions.map((item) => {
+                return (
+                  <bem.FormView__group>
+                    {[
+                      t('version ___').replace('___', item.version_id),
+                      ' | ',
+                      t('deployed ___')
+                        .replace('___', formatTime(item.date_deployed)),
+                      ' | ',
+                      item.version_id === this.state.deployed_version_id ?
+                        t('current live version')
+                      :
+                        <bem.AssetView__plainlink m='clone' className="is-edge" 
+                            data-version-id={item.version_id}
+                            onClick={this.saveCloneAs}>
+                          {t('clone')}
+                        </bem.AssetView__plainlink>
+                    ]}
+                  </bem.FormView__group>
+                );
+              }
+            )
+          }
+        </bem.FormView__group>
       );
   },
   onDrop (files) {

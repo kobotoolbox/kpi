@@ -392,11 +392,11 @@ $mult: 0.5;
   }
 }
 
-.asset-view__deployments, .asset-view__langs {
-  @extend .mdl-cell, .mdl-cell--12-col;
+// .asset-view__deployments, .asset-view__langs {
+//   @extend .mdl-cell, .mdl-cell--12-col;
 
-  text-align: center;
-}
+//   text-align: center;
+// }
 
 .asset-view__langs {
   margin-bottom: 20px;

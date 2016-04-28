@@ -4,6 +4,7 @@
   color: #fff;
   font-weight: 700;
   margin-right: 10px;
+  vertical-align: middle;
 
   &--small {
     width: 20px;
@@ -21,15 +22,15 @@
     line-height: 22px;
   }
 
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 15px;
   font-size: 20px;
   line-height: 28px;
 
   &--block {
-    background-color: unquote("rgb(#{$color-primary})");
-    border: 1px solid unquote("rgb(#{$color-primary})");
+    background-color: $cool-green;
+    border: 1px solid $cool-green;
 
     > i {
       &:before {
@@ -41,8 +42,8 @@
 
   &--question {
     background-color: #FFF;
-    border: 1px solid unquote("rgb(#{$color-primary})");
-    color: unquote("rgb(#{$color-primary})");
+    border: 1px solid $cool-green;
+    color: $cool-green;
 
     > i {
       &:before {
@@ -53,43 +54,40 @@
   }
 
   &--survey {
-    background-color: unquote("rgb(#{$color-primary})");
-    border: 1px solid unquote("rgb(#{$color-primary})");
+    background-color: #FFF;
+    border: 2px solid $cool-green;
 
-    // background-color: #444;
-    > i {
-      font-size: 16px;
-      font-weight: 600;
+    // > i {
+    //   font-size: 16px;
+    //   font-weight: 600;
 
-      @extend .fa, .fa-fw, .fa-file-o;
-    }
+    //   @extend .fa, .fa-fw, .fa-file-o;
+    // }
 
-    &.asset-type-icon--small {
-      > i {
-        font-size: 11px;
-      }
-    }
+    // &.asset-type-icon--small {
+    //   > i {
+    //     font-size: 11px;
+    //   }
+    // }
 
-    &.asset-type-icon--medium {
-      > i {
-        margin-left: 2px;
-        font-size: 12px;
-      }
-    }
+    // &.asset-type-icon--medium {
+    //   > i {
+    //     margin-left: 2px;
+    //     font-size: 12px;
+    //   }
+    // }
   }
 }
 
-.asset-row--active .asset-type-icon,
 .asset-row .asset-type-icon:hover {
   background-color: $cool-gray;
   border: 1px solid $cool-gray;
-  border-radius: 0px;
-  color: #FFF;
+  color:$cool-gray;
+}
 
-  > i {
-    &:before {
-      content: '\f00c';
-      font-family: 'FontAwesome';
-    }
-  }
+.asset-row--active .asset-type-icon, 
+.asset-row--active .asset-type-icon:hover {
+  background-color: $cool-green;
+  border: 2px solid $cool-green;
+  color:#FFF;
 }

@@ -21,7 +21,7 @@ import {
 
 import searches from './searches';
 import actions from './actions';
-import TagsInput from 'react-tagsinput';
+
 import stores from './stores';
 import {dataInterface} from './dataInterface';
 import bem from './bem';
@@ -49,43 +49,6 @@ import {
   t,
   assign,
 } from './utils';
-
-mixins.taggedAsset = {
-  mixins: [
-    React.addons.LinkedStateMixin
-  ],
-  tagChange (tags/*, changedTag*/) {
-    var uid = this.props.params.assetid || this.props.params.uid;
-    actions.resources.updateAsset(uid, {
-      tag_string: tags.join(',')
-    });
-  },
-  linkTagState () {
-    // because onChange doesn't work when valueLink is specified.
-    var that = this, ls = this.linkState('tags'), rc = ls.requestChange;
-    ls.requestChange = function(...args) {
-      that.tagChange(...args);
-      rc.apply(this, args);
-    };
-    return ls;
-  },
-  renderTaggedAssetTags () {
-    var transform = function(tag) {
-      // Behavior should match KpiTaggableManager.add()
-      return tag.trim().replace(/ /g, '-');
-    };
-    // react-tagsinput splits on tab (9) and enter (13) by default; we want to
-    // split on comma (188) as well
-    var addKeys = [9, 13, 188];
-    return (
-      <div>
-        <TagsInput ref="tags" classNamespace="k"
-          valueLink={this.linkTagState()} transform={transform}
-          addKeys={addKeys} />
-      </div>
-    );
-  }
-};
 
 mixins.permissions = {
   removePerm (permName, permObject, content_object_uid) {

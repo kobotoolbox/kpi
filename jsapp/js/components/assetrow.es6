@@ -6,6 +6,7 @@ import ReactTooltip from 'react-tooltip';
 import bem from '../bem';
 import ui from '../ui';
 import stores from '../stores';
+import mixins from '../mixins';
 import {
   formatTime,
   anonUsername,
@@ -17,14 +18,21 @@ var AssetTypeIcon = bem.create('asset-type-icon');
 
 var AssetRow = React.createClass({
   mixins: [
-    Navigation
+    Navigation,
+    mixins.taggedAsset
   ],
+  getInitialState () {
+    return {tags: this.props.tags};
+  },
   clickAsset (evt) {
     var clickedActionIcon = $(evt.target).closest('[data-action]').get(0);
     if (clickedActionIcon && this.props.isSelected) {
       this.props.onActionButtonClick(assign(evt, {
         actionIcon: clickedActionIcon,
       }));
+      this.setState({
+        tags: this.props.tags,
+      });
     } else {
       // this click was not intended for a button
       evt.nativeEvent.preventDefault();
@@ -63,12 +71,11 @@ var AssetRow = React.createClass({
                             'deleted': this.props.deleted,
                             'deleting': this.props.deleting,
                           }}
-                        onClick={this.clickAsset}
                         className="mdl-grid"
                       >
 
           <bem.AssetRow__cell m={'title'} className="mdl-cell mdl-cell--6-col mdl-cell--3-col-tablet">
-            <AssetTypeIcon m={[this.props.asset_type, 'medium']}><i /></AssetTypeIcon>
+            <AssetTypeIcon m={[this.props.asset_type]} onClick={this.clickAsset}><i /></AssetTypeIcon>
             <bem.AssetRow__celllink m={['name', this.props.name ? 'titled' : 'untitled']}
                   data-kind={this.props.kind}
                   data-asset-type={this.props.kind}
@@ -140,17 +147,11 @@ var AssetRow = React.createClass({
               */
               }
             }()}
-            <i className="k-asset-arrow-icon"></i>
+            <i className="k-asset-arrow-icon" onClick={this.clickAsset}></i>
           </bem.AssetRow__cell>
-          { tags.length > 0 && this.props.isSelected &&
+          { this.props.isSelected &&
             <bem.AssetRow__cell m={'tags'} className="mdl-cell mdl-cell--12-col">
-                <bem.AssetRow__tags>
-                  {tags.map((tag)=>{
-                    return (
-                          <bem.AssetRow__tags__tag>{tag}</bem.AssetRow__tags__tag>
-                      );
-                  })}
-                </bem.AssetRow__tags>
+              {this.renderTaggedAssetTags()}
             </bem.AssetRow__cell>
           }
           { this.props.isSelected &&

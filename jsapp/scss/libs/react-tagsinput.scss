@@ -1,11 +1,10 @@
 // $tagBorderColor: #a5d24a;
 // $tagBgColor: #cde69c;
 // $tagTextColor: #638421;
+// $tagBorderColor: unquote("rgb(#{$color-accent})");
 
-$tagBorderColor: unquote("rgb(#{$color-accent})");
-$tagBgColor: unquote("rgb(#{$color-accent})");
+$tagBgColor: unquote("rgba(#{$color-accent}, 0.8)");
 $tagTextColor: #FFF;
-
 
 $innerInputCursorColor: #777;
 $wrapBorderColor: transparent;
@@ -14,13 +13,12 @@ $invalidColor: #90111a;
 
 .k-tagsinput-tag {
   background-color: $tagBgColor;
-  // border-radius: 0px;
-  // border: 1px solid $tagBorderColor;
   color: $tagTextColor;
   font-weight: 400;
   margin-bottom: 4px;
   margin-right: 4px;
   padding: 4px 10px;
+  padding-right: 6px;
   display: inline-block;
   font-size:13px;
 }
@@ -29,12 +27,13 @@ $invalidColor: #90111a;
 .k-tagsinput-remove {
   cursor: pointer;
   font-weight: bold;
-  color: $tagTextColor;
-  opacity:0.7;
+  color: $tagTextColor !important;
+  opacity:0.8;
   margin-left:6px;
   &:before {
     content: "×";
     text-decoration: none;
+    font-size: 16px;
   }
   &:hover {
     text-decoration: none;
