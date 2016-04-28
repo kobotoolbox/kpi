@@ -31,12 +31,13 @@ module.exports = function (options) {
     app: options.entry || path.join(__dirname, '../jsapp/js/main.es6'),
   };
 
-  var scssIncludePaths = [
+  var scssIncludePaths = ['',
     '~',
     path.join(__dirname, '../jsapp/scss')
   ];
 
   var autoprefixerOptions = {
+
     browsers: [
       'ie >= 10',
       'ie_mob >= 10',
@@ -56,10 +57,11 @@ module.exports = function (options) {
     'Description: ' + pkg.description;
 
   var scssLoader = [
-    'style-loader', [
+    'style-loader',
+    [
       'css-loader',
       'postcss-loader',
-      'sass-loader?outputStyle=expanded&' + scssIncludePaths.join('&includePaths[]='),
+      'sass-loader?outputStyle=expanded' + scssIncludePaths.join('&includePaths[]='),
     ].join('!')
   ]
 
