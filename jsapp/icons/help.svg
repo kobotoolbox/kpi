@@ -1,11 +1,1 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-
-
-<svg width="38px" height="38px" viewBox="-1 -1 38 38" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 3.7.1 (28215) - http://www.bohemiancoding.com/sketch -->
-    <desc>Created with Sketch.</desc>
-    <defs></defs>
-    <circle id="Oval-231" stroke="#979797" stroke-width="2" fill="none" cx="18" cy="18" r="18"></circle>
-    <path d="M17.9807271,22.4187012 C17.9603414,20.043335 18.4644918,19.6567383 18.4745015,19.623291 C20.2511077,17.6970404 21.3011985,16.2388009 21.921855,15.1860144 C22.8301996,13.6452379 22.8187398,12.9729004 22.8187398,12.9729004 C22.8187398,12.9729004 23.4915914,8 18.1739644,8 C12.8563375,8 13.0003804,12.4277344 13.0003804,12.4277344" id="Path-1604" stroke="#979797" stroke-width="2" stroke-linecap="square" fill="none"></path>
-    <path d="M18,25.9875488 L18,27.9875488" id="Path-248" stroke="#979797" stroke-width="2" fill="none"></path>
-</svg>
+<svg width="37" height="37" viewBox="0 0 37 37" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><title>Help icon</title><defs><path id="a" d="M16.528 25.278h1.944v1.944h-1.944z"/><mask id="b" x="0" y="0" width="1.944" height="1.944" fill="#fff"><use xlink:href="#a"/></mask></defs><g transform="translate(1 1)" stroke="#8A9AA4" stroke-width="2" fill="none" fill-rule="evenodd"><ellipse cx="17.5" cy="17.5" rx="17.5" ry="17.5"/><path d="M12.64 12.083s-.14-4.305 5.03-4.305c5.169 0 4.515 4.835 4.515 4.835s.031 1.852-4.224 6.465c-.01.033-.5.409-.48 2.718" stroke-linecap="square"/><use mask="url(#b)" fill="#D8D8D8" xlink:href="#a"/></g></svg>

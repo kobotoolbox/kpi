@@ -38,7 +38,6 @@ mixins.taggedAsset = {
   },
   linkTagState () {
     // because onChange doesn't work when valueLink is specified.
-    console.log(this);
     var that = this, ls = this.linkState('tags'), rc = ls.requestChange;
     ls.requestChange = function(...args) {
       that.tagChange(...args);

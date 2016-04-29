@@ -24,9 +24,9 @@ $drawer-icons-column-width: 56px;
     span.label {
       display: inline-block;
     }
-  }
-  .ki-help {
-    font-size: 28px;
+    svg.ki-icon {
+      stroke: unquote("rgb(#{$color-primary})");
+    }
   }
 }
 

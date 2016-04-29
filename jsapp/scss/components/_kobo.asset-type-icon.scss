@@ -87,7 +87,12 @@
 
 .asset-row--active .asset-type-icon, 
 .asset-row--active .asset-type-icon:hover {
-  background-color: $cool-green;
-  border: 2px solid $cool-green;
-  color:#FFF;
+  border:none;
+  border-radius:0px;
+  background-color: transparent;
+  svg.ki-icon {
+    width:31px;
+    height:31px;
+    vertical-align: top;
+  }
 }

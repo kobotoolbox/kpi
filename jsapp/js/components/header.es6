@@ -11,6 +11,8 @@ import {t, assign} from '../utils';
 import searches from '../searches';
 import cookie from 'react-cookie';
 import hotkey from 'react-hotkey';
+import SVGIcon from '../libs/SVGIcon';
+
 hotkey.activate();
 
 const LANGUAGE_COOKIE_NAME = 'django_language';
@@ -125,23 +127,38 @@ var MainHeader = React.createClass({
             </bem.AccountBox__notifications__count>
           </bem.AccountBox__notifications>
           <bem.AccountBox__name>
+            <span>{accountName}</span>
             <bem.AccountBox__image>
               <img src={gravatar} />
             </bem.AccountBox__image>
-            <span>{accountName}</span>
-            <i className="fa fa-caret-down"></i>
             <ul className="k-account__menu">
-              <li><a href={stores.session.currentAccount.projects_url + '/settings'} className="mdl-menu__item"><i className="ki ki-settings"></i> {t('Profile Settings')}</a></li>
+              <li>
+                <a href={stores.session.currentAccount.projects_url + '/settings'} className="mdl-menu__item">
+                  <SVGIcon id='ki-settings' />
+                  {t('Profile Settings')}
+                </a>
+              </li>
               {leaveBetaUrl ?
-                <li><a href={leaveBetaUrl} className="mdl-menu__item">{t('leave beta')}</a></li>
+                <li>
+                  <a href={leaveBetaUrl} className="mdl-menu__item">
+                    {t('leave beta')}
+                  </a>
+                </li>
               :null}
               <li className="k-lang__submenu">
-                <a className="mdl-menu__item"><i className="ki ki-language"></i> {t('Language')}</a>
+                <a className="mdl-menu__item">
+                  <SVGIcon id='ki-globe' />
+                  {t('Language')}
+                </a>
                 <ul>
                   {langs.map(this.renderLangItem)}
                 </ul>
               </li>
-              <li><a onClick={this.logout} className="mdl-menu__item"><i className="ki ki-logout"></i> {t('Logout')}</a></li>
+              <li>
+                <a onClick={this.logout} className="mdl-menu__item">
+                  <SVGIcon id='ki-logout' /> 
+                  {t('Logout')}</a>
+                </li>
             </ul>
           </bem.AccountBox__name>
         </bem.AccountBox>

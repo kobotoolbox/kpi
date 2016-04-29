@@ -12,6 +12,8 @@ import stores from '../stores';
 import bem from '../bem';
 import searches from '../searches';
 import mixins from '../mixins';
+import SVGIcon from '../libs/SVGIcon';
+
 import {
   t,
   customPromptAsync,
@@ -33,8 +35,8 @@ class DrawerLink extends React.Component {
     }
   }
   render () {
-    var icon_class = `ki ki-${this.props['ki-icon'] || 'globe'}`; 
-    var icon = (<span className={icon_class}></span>);
+    // var icon_class = `ki ki-${this.props['ki-icon'] || 'globe'}`; 
+    // var icon = (<span className={icon_class}></span>);
 
     var link;
     var style = {};
@@ -46,20 +48,22 @@ class DrawerLink extends React.Component {
     }
     if (this.props.linkto) {
       link = (
-            <Link to={this.props.linkto}
-                className='k-drawer__link'
-                activeClassName='active'
-                title={this.props.label}>
-              {icon} 
-              <span className="label">{this.props.label}</span>
-            </Link>
-            );
+        <Link to={this.props.linkto}
+            className='k-drawer__link'
+            activeClassName='active'
+            title={this.props.label}>
+          <SVGIcon id={this.props['ki-icon']} />
+        </Link>
+      );
     } else {
       link = (
-          <a href={this.props.href || '#'}
-              className='k-drawer__link'
-              onClick={this.onClick.bind(this)} title={this.props.label}>{icon} <span className="label">{this.props.label}</span></a>
-        );
+        <a href={this.props.href || '#'}
+            className='k-drawer__link'
+            onClick={this.onClick.bind(this)} 
+            title={this.props.label}>
+            <SVGIcon id={this.props['ki-icon']} />
+        </a>
+      );
     }
     return link;
   }
@@ -161,16 +165,16 @@ var Drawer = React.createClass({
     return (
           <bem.Drawer className='k-drawer mdl-shadow--2dp'>
             <nav className='k-drawer__icons'> 
-              <DrawerLink label={t('forms')} linkto='forms' ki-icon='forms' />
-              <DrawerLink label={t('library')} linkto='library' ki-icon='library' />
+              <DrawerLink label={t('projects')} linkto='forms' ki-icon='ki-project' />
+              <DrawerLink label={t('library')} linkto='library' ki-icon='ki-library' />
               { stores.session.currentAccount ?
-                  <DrawerLink label={t('projects')} active='true' href={stores.session.currentAccount.projects_url} ki-icon='globe' className="is-edge" />
+                  <DrawerLink label={t('projects')} active='true' href={stores.session.currentAccount.projects_url} ki-icon='ki-globe' className="is-edge" />
               : null }
               <div className="mdl-layout-spacer"></div>
 
               <div className='k-drawer__icons-bottom'>
-                <DrawerLink label={t('source')} href='https://github.com/kobotoolbox/' ki-icon='github' />
-                <DrawerLink label={t('help')} href='http://support.kobotoolbox.org/' ki-icon='help' />
+                <DrawerLink label={t('source')} href='https://github.com/kobotoolbox/' ki-icon='ki-github' />
+                <DrawerLink label={t('help')} href='http://support.kobotoolbox.org/' ki-icon='ki-help' />
               </div>
             </nav>
 
@@ -259,7 +263,7 @@ var Drawer = React.createClass({
                           onClick={this.clickFilterByCollection}
                           data-collection-uid={collection.uid}
                         >
-                          <i />
+                          <SVGIcon id="ki-folder" />
                           {collection.name}
                           <bem.CollectionSidebar__itemactions>
                             <bem.CollectionSidebar__itemlink href={'#'}

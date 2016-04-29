@@ -8,6 +8,8 @@ import ui from '../ui';
 import searches from '../searches';
 import stores from '../stores';
 import SearchCollectionList from '../components/searchcollectionlist';
+import SVGIcon from '../libs/SVGIcon';
+
 import {
   parsePermissions,
   t,
@@ -52,7 +54,7 @@ var SidebarFormsList = React.createClass({
     return (
       <bem.FormSidebar>
         <bem.FormSidebar__label className="is-edge">
-          <i className="fa fa-fw fa-check-circle"></i>
+          <SVGIcon id="ki-check-round" />
           {t('Active')} (#)
         </bem.FormSidebar__label>
         <bem.FormSidebar__grouping>
@@ -71,15 +73,15 @@ var SidebarFormsList = React.createClass({
           }
         </bem.FormSidebar__grouping>
         <bem.FormSidebar__label className="is-edge">
-          <i className="fa fa-fw fa-envelope"></i>
+          <SVGIcon id="ki-drafts" />
           {t('Drafts')} (#)
         </bem.FormSidebar__label>
         <bem.FormSidebar__label className="is-edge">
-          <i className="fa fa-fw fa-minus-circle"></i>
+          <SVGIcon id="ki-inactive" />
           {t('Inactive')} (#)
         </bem.FormSidebar__label>
         <bem.FormSidebar__label className="is-edge">
-          <i className="fa fa-fw fa-trash"></i>
+          <SVGIcon id="ki-trash" />
           {t('Deleted')} (#)
         </bem.FormSidebar__label>
       </bem.FormSidebar>

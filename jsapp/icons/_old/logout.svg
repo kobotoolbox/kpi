@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="48px" height="48px" viewBox="0 0 48 48" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 3.6.1 (26313) - http://www.bohemiancoding.com/sketch -->
+    <title>32x32 Icon</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="32x32-Icon" fill="#000000">
+            <g id="Group-2" transform="translate(8.000000, 8.000000)">
+                <path d="M17.7777778,0 L14.2222222,0 L14.2222222,17.7777778 L17.7777778,17.7777778 L17.7777778,0 L17.7777778,0 Z M23.84,6.38222222 C26.6488889,8.64 28.4444444,12.1066667 28.4444444,16 C28.4444444,22.88 22.88,28.4444444 16,28.4444444 C9.12,28.4444444 3.55555556,22.88 3.55555556,16 C3.55555556,12.1066667 5.35111111,8.64 8.14222222,6.36444444 L5.63555556,3.85777778 C2.18666667,6.79111111 0,11.1288889 0,16 C0,24.8355556 7.16444444,32 16,32 C24.8355556,32 32,24.8355556 32,16 C32,11.1288889 29.8133333,6.79111111 26.3644444,3.85777778 L23.84,6.38222222 Z" id="Shape"></path>
+            </g>
+        </g>
+    </g>
+</svg>

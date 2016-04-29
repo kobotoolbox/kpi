@@ -1,7 +1,8 @@
 @import "./libs/material-design-lite";
 
 @import "./fonts/roboto";
-@import "../fonts/k-iconfont";
+
+// @import "../fonts/k-iconfont";
 @import "../../node_modules/font-awesome/scss/font-awesome";
 @import "../../node_modules/react-tooltip/dist/react-tooltip";
 @import "./libs/alertify";
@@ -30,6 +31,7 @@ $newformCircleWidthHeight: 55px;
 
 @import "./kobo";
 
+@import "./components/kobo.svg-icons";
 @import "./components/kobo.collection-header";
 @import "./components/kobo.collection-asset-list";
 @import "./components/kobo.list-view";

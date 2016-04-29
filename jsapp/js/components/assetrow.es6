@@ -2,6 +2,7 @@ import React from 'react/addons';
 import {Navigation} from 'react-router';
 import $ from 'jquery';
 import ReactTooltip from 'react-tooltip';
+import SVGIcon from '../libs/SVGIcon';
 
 import bem from '../bem';
 import ui from '../ui';
@@ -75,7 +76,13 @@ var AssetRow = React.createClass({
                       >
 
           <bem.AssetRow__cell m={'title'} className="mdl-cell mdl-cell--6-col mdl-cell--3-col-tablet">
-            <AssetTypeIcon m={[this.props.asset_type]} onClick={this.clickAsset}><i /></AssetTypeIcon>
+            { this.props.isSelected ? 
+              <AssetTypeIcon m={[this.props.asset_type]} onClick={this.clickAsset}>
+                <SVGIcon id='ki-check-round' />
+              </AssetTypeIcon>
+            : 
+              <AssetTypeIcon m={[this.props.asset_type]} onClick={this.clickAsset}><i /></AssetTypeIcon>
+            }
             <bem.AssetRow__celllink m={['name', this.props.name ? 'titled' : 'untitled']}
                   data-kind={this.props.kind}
                   data-asset-type={this.props.kind}
@@ -157,7 +164,8 @@ var AssetRow = React.createClass({
           { this.props.isSelected &&
             <bem.AssetRow__buttons>
                 { this.props.kind === 'asset' &&
-                  ['edit', 'view', 'download', 'clone'].map((actn)=>{
+                  ['edit', 'view', 'download'].map((actn)=>{
+                    var icon = 'ki-' + actn;
                     return (
                           <bem.AssetRow__actionIcon
                               m={actn}
@@ -167,10 +175,22 @@ var AssetRow = React.createClass({
                               data-disabled={false}
                               title={actn}
                               >
-                            <i />
+                            <SVGIcon id={icon} />
                           </bem.AssetRow__actionIcon>
                         );
                   })
+                }
+                { this.props.kind === 'asset' &&
+                  <bem.AssetRow__actionIcon
+                      m={'clone'}
+                      data-action={'clone'}
+                      data-tip={'clone'}
+                      data-asset-type={'clone'}
+                      data-disabled={false}
+                      title={'clone'}
+                      >
+                    <i />
+                  </bem.AssetRow__actionIcon>
                 }
                 { isDeployable &&
                   <bem.AssetRow__actionIcon
@@ -217,7 +237,7 @@ var AssetRow = React.createClass({
                       data-tip={t('delete')}
                       title={t('delete')}
                     >
-                  <i />
+                  <SVGIcon id='ki-trash' />
                 </bem.AssetRow__actionIcon>
               <ReactTooltip effect="float" place="bottom" />
             </bem.AssetRow__buttons>
