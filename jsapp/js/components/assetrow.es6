@@ -26,15 +26,12 @@ var AssetRow = React.createClass({
     return {tags: this.props.tags};
   },
   clickAsset (evt) {
-    var clickedActionIcon = $(evt.target).closest('[data-action]').get(0);
-    if (clickedActionIcon && this.props.isSelected) {
-      this.props.onActionButtonClick(assign(evt, {
-        actionIcon: clickedActionIcon,
-      }));
-      this.setState({
-        tags: this.props.tags,
-      });
-    } else {
+  console.log(this.props);
+    // if (this.props.isSelected) {
+    //   this.setState({
+    //     tags: this.props.tags,
+    //   });
+    // } else {
       // this click was not intended for a button
       evt.nativeEvent.preventDefault();
       evt.nativeEvent.stopImmediatePropagation();
@@ -44,6 +41,14 @@ var AssetRow = React.createClass({
       // otherwise, toggle selection (unselect if already selected)
       let forceSelect = (stores.selectedAsset.uid === false);
       stores.selectedAsset.toggleSelect(this.props.uid, forceSelect);
+    // }
+  },
+  clickAssetButton (evt) {
+    var clickedActionIcon = $(evt.target).closest('[data-action]').get(0);
+    if (clickedActionIcon && this.props.isSelected) {
+      this.props.onActionButtonClick(assign(evt, {
+        actionIcon: clickedActionIcon,
+      }));
     }
   },
   preventDefault (evt) {
@@ -162,7 +167,7 @@ var AssetRow = React.createClass({
             </bem.AssetRow__cell>
           }
           { this.props.isSelected &&
-            <bem.AssetRow__buttons>
+            <bem.AssetRow__buttons onClick={this.clickAssetButton}>
                 { this.props.kind === 'asset' &&
                   ['edit', 'view', 'download'].map((actn)=>{
                     var icon = 'ki-' + actn;
