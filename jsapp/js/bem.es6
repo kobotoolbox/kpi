@@ -25,8 +25,13 @@ bem.AssetRow__sharingIcon = bem.AssetRow.__('sharingIcon');
 bem.AssetRow__sharingIcon__owner = bem.AssetRow__sharingIcon.__('owner', '<span>');
 bem.AssetRow__buttons        = bem.AssetRow.__('buttons');
 
+bem.FormBuilder = bem('formBuilder');
+bem.FormBuilder__row = bem.FormBuilder.__('row');
+
 bem.FormBuilderHeader = bem('formBuilder-header');
 bem.FormBuilderHeader__row = bem.FormBuilderHeader.__('row');
+bem.FormBuilderHeader__cell = bem.FormBuilderHeader.__('cell');
+bem.FormBuilderHeader__item = bem.FormBuilderHeader.__('item', '<span>');
 bem.FormBuilderHeader__button = bem.FormBuilderHeader.__('button', '<button>');
 bem.FormBuilderHeader__close = bem.FormBuilderHeader.__('close', '<button>');
 

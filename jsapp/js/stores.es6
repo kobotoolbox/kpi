@@ -212,6 +212,15 @@ var pageStateStore = Reflux.createStore({
       });
     }
   },
+  setFormBuilderFocus (tf) {
+    var val = !!tf;
+    if (val !== this.state.formBuilderFocus) {
+      this.state.formBuilderFocus = val;
+      this.trigger({
+        formBuilderFocus: val
+      });
+    }
+  },
   setHeaderBreadcrumb (newBreadcrumb) {
       var _changes = {};
       _changes.headerBreadcrumb = newBreadcrumb;

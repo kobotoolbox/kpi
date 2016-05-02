@@ -74,6 +74,15 @@
     <mask id="grid-r" x="0" y="0" width="10.695" height="10.695" fill="#fff">
       <use xlink:href="#grid-i" />
     </mask>
+    <rect id="group-path-1" x="0" y="0" width="11.6923077" height="7.2" rx="1" />
+    <mask id="group-mask-2" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="11.6923077" height="7.2" fill="white">
+      <use xlink:href="#group-path-1" /> </mask>
+    <rect id="group-path-3" x="0" y="8.8" width="11.6923077" height="7.2" rx="1" />
+    <mask id="group-mask-4" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="11.6923077" height="7.2" fill="white">
+      <use xlink:href="#group-path-3" /> </mask>
+    <rect id="group-path-5" x="4.30769231" y="4" width="11.6923077" height="7.2" rx="1" />
+    <mask id="group-mask-6" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="11.6923077" height="7.2" fill="white">
+      <use xlink:href="#group-path-5" /> </mask>
     <path id="help-a" d="M16.528 25.278h1.944v1.944h-1.944z" />
     <mask id="help-b" x="0" y="0" width="1.944" height="1.944" fill="#fff">
       <use xlink:href="#help-a" />
@@ -85,6 +94,33 @@
     <mask id="hover-c" x="0" y="0" width="35" height="35" fill="#fff">
       <use xlink:href="#hover-a" />
     </mask>
+    <rect id="layout-path-1" x="0" y="0" width="4.86956522" height="4.86956522" rx="1" />
+    <mask id="layout-mask-2" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="4.86956522" height="4.86956522" fill="white">
+      <use xlink:href="#layout-path-1" /> </mask>
+    <rect id="layout-path-3" x="5.56521739" y="0" width="4.86956522" height="4.86956522" rx="1" />
+    <mask id="layout-mask-4" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="4.86956522" height="4.86956522" fill="white">
+      <use xlink:href="#layout-path-3" /> </mask>
+    <rect id="layout-path-5" x="11.1304348" y="0" width="4.86956522" height="4.86956522" rx="1" />
+    <mask id="layout-mask-6" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="4.86956522" height="4.86956522" fill="white">
+      <use xlink:href="#layout-path-5" /> </mask>
+    <rect id="layout-path-7" x="0" y="5.56521739" width="4.86956522" height="4.86956522" rx="1" />
+    <mask id="layout-mask-8" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="4.86956522" height="4.86956522" fill="white">
+      <use xlink:href="#layout-path-7" /> </mask>
+    <rect id="layout-path-9" x="5.56521739" y="5.56521739" width="4.86956522" height="4.86956522" rx="1" />
+    <mask id="layout-mask-10" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="4.86956522" height="4.86956522" fill="white">
+      <use xlink:href="#layout-path-9" /> </mask>
+    <rect id="layout-path-11" x="11.1304348" y="5.56521739" width="4.86956522" height="4.86956522" rx="1" />
+    <mask id="layout-mask-12" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="4.86956522" height="4.86956522" fill="white">
+      <use xlink:href="#layout-path-11" /> </mask>
+    <rect id="layout-path-13" x="0" y="11.1304348" width="4.86956522" height="4.86956522" rx="1" />
+    <mask id="layout-mask-14" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="4.86956522" height="4.86956522" fill="white">
+      <use xlink:href="#layout-path-13" /> </mask>
+    <rect id="layout-path-15" x="5.56521739" y="11.1304348" width="4.86956522" height="4.86956522" rx="1" />
+    <mask id="layout-mask-16" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="4.86956522" height="4.86956522" fill="white">
+      <use xlink:href="#layout-path-15" /> </mask>
+    <rect id="layout-path-17" x="11.1304348" y="11.1304348" width="4.86956522" height="4.86956522" rx="1" />
+    <mask id="layout-mask-18" maskContentUnits="userSpaceOnUse" maskUnits="objectBoundingBox" x="0" y="0" width="4.86956522" height="4.86956522" fill="white">
+      <use xlink:href="#layout-path-17" /> </mask>
     <path d="M9.987 26.873l-5.58.129 8.015-12.457 3.8 6.175 6.204-9.283 9.055 15.303-1.901.01-17.452.098.016-.024z" id="photo-gallery-a" />
     <mask id="photo-gallery-b" x="0" y="0" width="27.143" height="15.565" fill="#fff">
       <use xlink:href="#photo-gallery-a" />
@@ -101,6 +137,16 @@
     <path d="M5.75.5v15" id="trash-e" />
     <path d="M.75.5v15" id="trash-f" />
     <path d="M10.75.5v15" id="trash-g" /> </defs>
+  <symbol viewBox="0 0 18 17" id="ki-attach">
+    <title>Media File</title>
+    <desc>Created with Sketch.</desc>
+    <!-- Generator: Sketch 3.7.2 (28276) - http://www.bohemiancoding.com/sketch -->
+    <g id="attach-Page-1" stroke-width="1" fill-rule="evenodd">
+      <g id="attach-Media-File" transform="translate(1.000000, 1.000000)" stroke-width="1.5">
+        <path d="M8.35355445,14.0232578 L14.7508808,7.25750102 C14.7508808,7.25750102 17.5982435,4.34987243 14.5031371,1.20937466 C14.3532733,1.05734017 14.3612931,1.05284387 14.0145098,0.815725414 C13.1758623,0.242322696 10.3791788,-0.955770289 8.13146432,1.41269669 L1.05984773,8.77117549 C1.05984773,8.77117549 -1.19665954,11.1187421 0.875440934,13.4141317 C1.0076708,13.5605828 1.16081975,13.6855407 1.32918697,13.7858923 C2.03647424,14.2076558 4.01972901,15.0795936 5.87017416,13.0181108 L12.9028513,5.784738 C13.2056707,5.47325754 13.4091125,5.07071451 13.4609029,4.63467151 C13.5277183,4.07223781 13.3735548,3.32590019 12.4895907,2.59003748 C12.4895907,2.59003748 10.9628841,1.35735752 9.69667559,2.8319487 C9.66701204,2.86643686 9.63691368,2.90072738 9.60536596,2.93338738 L2.99218167,9.78032475"
+        id="attach-Page-1" /> </g>
+    </g>
+  </symbol>
   <symbol viewBox="0 0 35 35" id="ki-block">
     <title>Block icon</title>
     <g fill-rule="evenodd">
@@ -136,6 +182,16 @@
           <path d="M14.7051282,0 L3.67628205,0 C1.65432692,0 0.0183814103,1.65432692 0.0183814103,3.67628205 L0,25.7339744 C0,27.7559295 1.65432692,29.4102564 3.67628205,29.4102564 L33.0865385,29.4102564 C35.1084936,29.4102564 36.7628205,27.7559295 36.7628205,25.7339744 L36.7628205,7.3525641 C36.7628205,5.33060897 35.1084936,3.67628205 33.0865385,3.67628205 L18.3814103,3.67628205 L14.7051282,0 L14.7051282,0 Z"
           id="download-Shape" stroke-width="2" /> </g>
       </g>
+    </g>
+  </symbol>
+  <symbol viewBox="0 0 20 17" id="ki-download2">
+    <title>Download</title>
+    <desc>Created with Sketch.</desc>
+    <!-- Generator: Sketch 3.7.2 (28276) - http://www.bohemiancoding.com/sketch -->
+    <g id="download2-Page-1" stroke-width="1" fill-rule="evenodd">
+      <g id="download2-Download" transform="translate(1.000000, 1.000000)" stroke-width="1.2">
+        <polygon id="download2-Shape" points="11.9010989 6.05802663 15.1538462 6.05802663 8.64835165 12.1160533 2.14285714 6.05802663 5.3956044 6.05802663 5.3956044 0 11.9010989 1.11284144e-15" />
+        <path d="M0.428571429,15.3650794 L17.5928437,15.3650794" id="download2-Line" stroke-linecap="square" /> </g>
     </g>
   </symbol>
   <symbol viewBox="0 0 37 35" id="ki-drafts">
@@ -219,6 +275,17 @@
       <use mask="url(#grid-r)" xlink:href="#grid-i" />
     </g>
   </symbol>
+  <symbol viewBox="0 0 16 16" id="ki-group">
+    <title>Group</title>
+    <desc>Created with Sketch.</desc>
+    <!-- Generator: Sketch 3.7.2 (28276) - http://www.bohemiancoding.com/sketch -->
+    <g id="group-Page-1" stroke-width="1" fill-rule="evenodd">
+      <g id="group-Group" stroke-width="2.4">
+        <use id="group-Rectangle-124" mask="url(#group-mask-2)" xlink:href="#group-path-1" />
+        <use id="group-Rectangle-124-Copy-2" mask="url(#group-mask-4)" xlink:href="#group-path-3" />
+        <use id="group-Rectangle-124-Copy" mask="url(#group-mask-6)" xlink:href="#group-path-5" /> </g>
+    </g>
+  </symbol>
   <symbol viewBox="0 0 37 37" id="ki-help">
     <title>Help icon</title>
     <g transform="translate(1 1)" stroke-width="2" fill-rule="evenodd">
@@ -239,6 +306,25 @@
       <g id="inactive-Group" transform="translate(0.842000, 0.000000)">
         <path d="M17.5,35 C27.1649831,35 35,27.1649831 35,17.5 C35,7.83501688 27.1649831,0 17.5,0 C7.83501688,0 -2.44249065e-15,7.83501688 -2.44249065e-15,17.5 C-2.44249065e-15,27.1649831 7.83501688,35 17.5,35 Z M6.447,15.658 L28.552,15.658 L28.552,21.184 L6.447,21.184 L6.447,15.658 Z"
         id="inactive-Combined-Shape" /> </g>
+    </g>
+  </symbol>
+  <symbol viewBox="0 0 16 16" id="ki-layout">
+    <title>Style</title>
+    <desc>Created with Sketch.</desc>
+    <!-- Generator: Sketch 3.7.2 (28276) - http://www.bohemiancoding.com/sketch -->
+    <g id="layout-Page-1" stroke-width="1" fill-rule="evenodd">
+      <g id="layout-Style" stroke-width="2.4">
+        <g>
+          <use id="layout-Rectangle-118" mask="url(#layout-mask-2)" xlink:href="#layout-path-1" />
+          <use id="layout-Rectangle-118-Copy" mask="url(#layout-mask-4)" xlink:href="#layout-path-3" />
+          <use id="layout-Rectangle-118-Copy-2" mask="url(#layout-mask-6)" xlink:href="#layout-path-5" />
+          <use id="layout-Rectangle-118-Copy-5" mask="url(#layout-mask-8)" xlink:href="#layout-path-7" />
+          <use id="layout-Rectangle-118-Copy-4" mask="url(#layout-mask-10)" xlink:href="#layout-path-9" />
+          <use id="layout-Rectangle-118-Copy-3" mask="url(#layout-mask-12)" xlink:href="#layout-path-11" />
+          <use id="layout-Rectangle-118-Copy-8" mask="url(#layout-mask-14)" xlink:href="#layout-path-13" />
+          <use id="layout-Rectangle-118-Copy-7" mask="url(#layout-mask-16)" xlink:href="#layout-path-15" />
+          <use id="layout-Rectangle-118-Copy-6" mask="url(#layout-mask-18)" xlink:href="#layout-path-17" /> </g>
+      </g>
     </g>
   </symbol>
   <symbol viewBox="0 0 30 37" id="ki-library">
@@ -372,6 +458,17 @@
         id="view-Fill-1" />
         <path d="M35.6336171,11.2454267 C33.1489404,13.6736306 26.5484168,19.3216676 18.9392799,19.3216676 C11.3293021,19.3216676 4.72967544,13.6736306 2.24544711,11.2454267 C2.08535152,11.0892827 1.99751196,10.8815569 1.99751196,10.660628 C1.99751196,10.4396991 2.08535152,10.2324209 2.24499866,10.0762769 C4.72967544,7.64762548 11.3297505,1.99964435 18.9392799,1.99964435 C26.5479684,1.99964435 33.1489404,7.64762548 35.6336171,10.0762769 C35.7932643,10.2324209 35.8811038,10.4396991 35.8811038,10.660628 C35.8815523,10.8816129 35.7932643,11.0892827 35.6336171,11.2454267 M37.0310341,8.65151209 C34.3711267,6.05211486 27.283926,0.00602533374 18.9392799,0.00602533374 C10.5941853,0.00602533374 3.50698464,6.05256243 0.847581687,8.65195966 C0.300980824,9.18607165 1.68167636e-05,9.89915339 1.68167636e-05,10.660628 C-0.000431630258,11.4221026 0.300532377,12.135632 0.847581687,12.6701915 C3.50698464,15.2695887 10.5937369,21.3152307 18.9392799,21.3152307 C27.2844305,21.3152307 34.3716312,15.2691412 37.0314826,12.6697439 C37.5780834,12.1351844 37.8790474,11.4216551 37.878599,10.6601805 C37.878599,9.89915339 37.577635,9.18562408 37.0310341,8.65151209"
         id="view-Fill-3" /> </g>
+    </g>
+  </symbol>
+  <symbol viewBox="0 0 21 14" id="ki-view2">
+    <title>PREVIEW</title>
+    <desc>Created with Sketch.</desc>
+    <!-- Generator: Sketch 3.7.2 (28276) - http://www.bohemiancoding.com/sketch -->
+    <g id="view2-Page-1" stroke-width="1" fill-rule="evenodd">
+      <g id="view2-PREVIEW" transform="translate(1.000000, 1.000000)" stroke-width="1.2">
+        <path d="M18.9689976,5.99068571 C8.26476829,19.4044952 0.0547292683,5.99068571 0.0547292683,5.99068571 C0.0547292683,5.99068571 8.26476829,-7.42312381 18.9689976,5.99068571 L18.9689976,5.99068571 Z" id="view2-Stroke-1" />
+        <path d="M12.632201,5.99068571 C12.632201,7.76154286 11.2351912,9.19706667 9.51184488,9.19706667 C7.78859122,9.19706667 6.39158146,7.76154286 6.39158146,5.99068571 C6.39158146,4.21982857 7.78859122,2.78430476 9.51184488,2.78430476 C11.2351912,2.78430476 12.632201,4.21982857 12.632201,5.99068571 L12.632201,5.99068571 Z"
+        id="view2-Stroke-3" /> </g>
     </g>
   </symbol>
 </svg>

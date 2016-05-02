@@ -37,6 +37,7 @@ var FormsSearchableList = React.createClass({
       stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
 
       stores.pageState.setAssetNavPresent(false);
+      stores.pageState.setFormBuilderFocus(false);
       callback();
     }
   },

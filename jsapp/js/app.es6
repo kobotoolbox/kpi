@@ -833,9 +833,9 @@ var App = React.createClass({
           <div className="k-header__bar"></div>
           <bem.PageWrapper m={{
               'asset-nav-present': this.state.assetNavPresent,
-              'asset-nav-present': this.state.assetNavPresent,
               'asset-nav-open': this.state.assetNavIsOpen && this.state.assetNavPresent,
               'fixed-drawer': this.state.showFixedDrawer,
+              'formbuilder-focus': this.state.formBuilderFocus,
                 }} className="mdl-layout mdl-layout--fixed-header">
               <MainHeader />
               <Drawer />
@@ -1531,6 +1531,7 @@ var FormLanding = React.createClass({
       ];
       stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
       stores.pageState.setAssetNavPresent(false);
+      stores.pageState.setFormBuilderFocus(false);
       actions.resources.loadAsset({id: params.assetid});
       callback();
     }

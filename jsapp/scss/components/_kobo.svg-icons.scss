@@ -16,6 +16,9 @@ svg.ki-icon {
     stroke: transparent;
     fill: $cool-gray;
   }
+  &.ki-group {
+    fill: rgb(245, 245, 245);
+  }
 }
 
 svg path {

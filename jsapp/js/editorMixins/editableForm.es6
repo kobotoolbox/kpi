@@ -24,6 +24,7 @@ import stores from '../stores';
 import actions from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import {dataInterface} from '../dataInterface';
+import SVGIcon from '../libs/SVGIcon';
 
 var FormStyle__panel = bem('form-style__panel'),
     FormStyle__row = bem('form-style'),
@@ -242,6 +243,7 @@ export default {
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
       stores.pageState.setAssetNavPresent(true);
+      stores.pageState.setFormBuilderFocus(true);
       if (params.assetid && params.assetid[0] === 'c') {
         transition.redirect('collection-page', {uid: params.assetid});
       } else {
@@ -326,6 +328,7 @@ export default {
         enketopreviewOverlay: content.enketopreviewlink,
       });
       stores.pageState.setAssetNavPresent(false);
+      stores.pageState.setFormBuilderFocus(true);
     }).fail((/* jqxhr */) => {
       notify(t('failed to generate preview. please report this to support@kobotoolbox.org'));
     });
@@ -428,65 +431,84 @@ export default {
 
     return (
         <bem.FormBuilderHeader>
-          <bem.FormBuilderHeader__close m={[{
-                'close-warning': this.needsSave(),
-              }]} onClick={this.navigateBack}>
-            <i className="material-icons">clear</i>
-          </bem.FormBuilderHeader__close>
+          <bem.FormBuilderHeader__row m={['first', allButtonsDisabled ? 'disabled' : null]}>
 
-          <ui.SmallInputBox
-              ref='form-name'
-              value={name}
-              onChange={this.nameChange}
-              placeholder={t('form name')}
-            />
-          <bem.FormBuilderHeader__row m={allButtonsDisabled ? 'disabled' : null}>
-            <bem.FormBuilderHeader__button m={['save', {
-                  savepending: this.state.asset_updated === update_states.PENDING_UPDATE,
-                  savecomplete: this.state.asset_updated === update_states.UP_TO_DATE,
-                  saveneeded: this.state.asset_updated === update_states.UNSAVED_CHANGES,
-                }]} onClick={this.saveForm}>
-              <i />
-              {saveButtonText}
-            </bem.FormBuilderHeader__button>
-            <bem.FormBuilderHeader__button m={['close', {
-                  'close-warning': this.needsSave(),
-                }]} onClick={this.navigateBack}>
-              <i />
-              {t('close')}
-            </bem.FormBuilderHeader__button>
-            <bem.FormBuilderHeader__button m={['preview', {
-                  previewdisabled: previewDisabled
-                }]} onClick={this.previewForm}
-                disabled={previewDisabled}>
-              <i />
-              {t('preview')}
-            </bem.FormBuilderHeader__button>
-            { showAllAvailable ?
-              <bem.FormBuilderHeader__button m={['show-all', {
-                    open: showAllOpen,
-                  }]} onClick={this.showAll}>
+            <bem.FormBuilderHeader__cell m={'project-icon'} >
+              <SVGIcon id='ki-project' />
+            </bem.FormBuilderHeader__cell>
+            <bem.FormBuilderHeader__cell m={'name'} >
+              <ui.SmallInputBox
+                  ref='form-name'
+                  value={name}
+                  onChange={this.nameChange}
+                  placeholder={t('form name')}
+                />
+            </bem.FormBuilderHeader__cell>
+            <bem.FormBuilderHeader__cell m={'buttonsTopRight'} >
+
+              <bem.FormBuilderHeader__button m={['share']} className="is-edge">
+                {t('share')}
+              </bem.FormBuilderHeader__button>
+
+              <bem.FormBuilderHeader__button m={['save', {
+                    savepending: this.state.asset_updated === update_states.PENDING_UPDATE,
+                    savecomplete: this.state.asset_updated === update_states.UP_TO_DATE,
+                    saveneeded: this.state.asset_updated === update_states.UNSAVED_CHANGES,
+                  }]} onClick={this.saveForm}>
                 <i />
-                {t('show all responses')}
+                {saveButtonText}
               </bem.FormBuilderHeader__button>
-            : null }
-            { groupable ?
-              <bem.FormBuilderHeader__button m={['group', {
-                    groupable: groupable
-                  }]} onClick={this.groupQuestions}
-                  disabled={!groupable}>
-                <i />
-                {t('group questions')}
+            </bem.FormBuilderHeader__cell>
+            <bem.FormBuilderHeader__cell m={'close'} >
+              <bem.FormBuilderHeader__close m={[{
+                    'close-warning': this.needsSave(),
+                  }]} onClick={this.navigateBack}>
+                <i className="material-icons">clear</i>
+              </bem.FormBuilderHeader__close>
+            </bem.FormBuilderHeader__cell>
+          </bem.FormBuilderHeader__row>
+          <bem.FormBuilderHeader__row m={'second'} >
+            <bem.FormBuilderHeader__cell m={'buttons'} >
+              { showAllAvailable ?
+                <bem.FormBuilderHeader__button m={['show-all', {
+                      open: showAllOpen,
+                    }]} onClick={this.showAll}>
+                  <i className="fa fa-caret-right" />
+                </bem.FormBuilderHeader__button>
+              : null }
+              { groupable ?
+                <bem.FormBuilderHeader__button m={['group', {
+                      groupable: groupable
+                    }]} onClick={this.groupQuestions}
+                    disabled={!groupable}>
+                  <SVGIcon id='ki-group' /> 
+                </bem.FormBuilderHeader__button>
+              : null }
+              { hasSettings ?
+                <bem.FormBuilderHeader__item>
+                  <bem.FormBuilderHeader__button m={{
+                    formstyle: true,
+                    formstyleactive: this.state.formStylePanelDisplayed,
+                  }} onClick={this.openFormStylePanel}>
+                    <SVGIcon id='ki-layout' /> 
+                    {t('layout')}
+                    <i className="fa fa-caret-down" />
+                  </bem.FormBuilderHeader__button>
+                </bem.FormBuilderHeader__item>
+              : null }
+              <bem.FormBuilderHeader__button m={['preview', {
+                    previewdisabled: previewDisabled
+                  }]} onClick={this.previewForm}
+                  disabled={previewDisabled}>
+                <SVGIcon id='ki-view2' />
               </bem.FormBuilderHeader__button>
-            : null }
-            { hasSettings ?
-              <bem.FormBuilderHeader__button m={{
-                formstyle: true,
-                formstyleactive: this.state.formStylePanelDisplayed,
-              }} onClick={this.openFormStylePanel}>
-                {t('form-style')}
+            </bem.FormBuilderHeader__cell>
+            <bem.FormBuilderHeader__cell m={'spacer'} />
+            <bem.FormBuilderHeader__cell m={'library-toggle'} >
+              <bem.FormBuilderHeader__button m={['showLibrary']}>
+                {t('Search Library')}
               </bem.FormBuilderHeader__button>
-            : null }
+            </bem.FormBuilderHeader__cell>
           </bem.FormBuilderHeader__row>
           { this.state.formStylePanelDisplayed ?
             <FormStyle__panel m='formstyle'>
@@ -531,6 +553,7 @@ export default {
       enketopreviewOverlay: false
     });
     stores.pageState.setAssetNavPresent(true);
+    stores.pageState.setFormBuilderFocus(true);
   },
   launchAppForSurvey (survey, optionalParams={}) {
     var skp = new SurveyScope({
@@ -566,24 +589,20 @@ export default {
     var isSurvey = this.app && !this.isLibrary();
     return (
         <DocumentTitle title={this.state.name || t('Untitled')}>
-          <ui.Panel>
-            <bem.AssetView__content m={this.state.formStylePanelDisplayed ? 'formStyleDisplayed': null }>
-              <bem.AssetView__row m={'header'}>
-                {this.renderSaveAndPreviewButtons()}
-              </bem.AssetView__row>
-              <bem.AssetView__row m={'form'}>
+          <ui.Panel m={'transparent'}>
+            <bem.FormBuilder m={this.state.formStylePanelDisplayed ? 'formStyleDisplayed': null }>
+              {this.renderSaveAndPreviewButtons()}
+              <bem.FormBuilder m={'content'} >
                 { isSurvey ?
-                  <bem.AssetView__row>
-                    <FormSettingsBox survey={this.app.survey} {...this.state} />
-                  </bem.AssetView__row>
+                  <FormSettingsBox survey={this.app.survey} {...this.state} />
                 : null }
-                <div ref="form-wrap" className='form-wrap'>
-                  { (!this.state.surveyAppRendered) ?
-                      this.renderLoadingNotice()
-                  : null }
-                </div>
-              </bem.AssetView__row>
-            </bem.AssetView__content>
+                  <div ref="form-wrap" className='form-wrap'>
+                    { (!this.state.surveyAppRendered) ?
+                        this.renderLoadingNotice()
+                    : null }
+                  </div>
+              </bem.FormBuilder>
+            </bem.FormBuilder>
             { this.state.enketopreviewOverlay ?
               <ui.Modal open onClose={this.hidePreview} title={t('Form Preview')}>
                 <ui.Modal.Body>

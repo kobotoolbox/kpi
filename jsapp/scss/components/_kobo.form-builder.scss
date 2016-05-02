@@ -1,60 +1,17 @@
+// FORM BUILDER MAIN LAYOUT
 
-// FIXME: THIS BELOW SEEMS TO BE UNUSED - HERE FOR POSTERITY ONLY
-// .k-form-header__buttons {
-//   width: calc(100% - 70px);
-//   left: 0px;
-//   position: fixed;
-//   z-index: 5;
-//   background-color: rgb(245, 245, 245);
-//   margin: -10px 0px;
-//   padding: 10px 25px;
-//   transition: all 0.5s;
-//   .page-wrapper--asset-nav-open & {
-//     width: calc(100% - 410px);
-//   }
-// }
+.formBuilder-header {
+  height: 110px;
+}
 
-// .k-form-header__title {
-//   display: flex;
-//   align-items: center;
-//   width: 100%;
-//   padding-top: 65px;
-//   .k-header-form-title {
-//     flex: 1;
-//     padding: 0px 10px;
-//   }
-//   .k-corner-icon {
-//     opacity: 0.3;
-//     width: 45px;
-//     height: 45px;
-//     border-radius: 25px;
-//     background-color: lighten(#526cfd, 20%);
-//     border: 3px solid lighten(#526cfd, 12%);
-//   }
-// }
-
-// .k-form-actions {
-//   > a {
-//     margin-right: 1em;
-//   }
-// }
-
-// .k-sub-settings-bar {
-//   cursor: pointer;
-//   color: #B2B2B2;
-//   width: 100%;
-//   &:hover {
-//     color: #666;
-//   }
-//   .settings-preview {
-//     margin: 0 24px 0 0;
-//   }
-//   transition: all .4s ease 0s;
-// }
+.formBuilder--content {
+  height: calc(100% - 140px);
+  overflow: auto;
+  margin-top:15px;
+}
 
 .form-wrap {
-  padding: 12px;
-  padding-left: 30px;
+  padding:0px 75px;
   width: 100%;
   .survey-header, .sub-header-bar {
     display: none;
@@ -67,126 +24,154 @@
   }
 }
 
-// FORM BUILDER HEADER
-
-@mixin formHeaderButton($iconCls) {
-  > i {
-    @extend .fa-#{$iconCls};
+.formBuilder--formStyleDisplayed {
+  > .formBuilder-header {
+    height: 280px;
+  }
+  .formBuilder--content {
+    height: calc(100% - 300px);
   }
 }
 
-// http://codepen.io/adamaoc/pen/KguLA
+// FORM BUILDER HEADER
+
 .formBuilder-header {
   &__row {
-    display: -webkit-box;
-    display: -moz-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
     display: flex;
-    -webkit-flex-direction: row;
-    -moz-flex-direction: row;
-    flex-direction: row;
-    justify-content: space-between;
+    flex-direction:row;
     flex-wrap: nowrap;
+    border-bottom:1px solid #979797;
+    &--first {
+      background-color: #FFF;
+      height:75px;
+    }
   }
 
-  &__button {
-    flex-grow: 1;
+  &__cell {
+    &--project-icon {
+      background-color: $cool-green-bg;
+      width:75px;
+      text-align: center;
+      vertical-align: middle;
+      height:74px;
+      border-right: 1px solid #979797;
+
+      svg {
+        stroke:#FFF;
+        margin-top: 15px;
+      }
+    }
+
+    &--name {
+      width:calc(100% - 400px);
+      padding:0px 20px;
+    }
+
+    &--buttonsTopRight {
+      width:280px;
+      text-align: right;
+      align-self:center;
+    }
+
+    &--close {
+      width:45px;
+      text-align: right;
+    }
+
+    // second row 
+    &--buttons {
+      margin-left: 75px;
+      border-right: 1px solid #979797;
+      .formBuilder-header__item {
+        display: inline-block;
+        border-left:1px solid #979797;
+        border-right:1px solid #979797;
+        padding:4px;
+      }
+      svg {
+        width:20px;
+        height: 20px;
+        stroke:#333;
+        + span {
+          margin-left: 5px;
+        }
+      }
+    }
+    &--spacer {
+      flex-grow:1;
+    }
+    &--library-toggle {
+      width:250px;
+      border-left: 1px solid #979797;
+      padding:4px;
+    }
   }
 
-  position: relative;
 }
 
 .formBuilder-header__close {
   @extend .mdl-button, .mdl-button--icon, .mdl-js-button;
-
-  position: absolute;
-  right: -25px;
-  top: -15px;
 }
 
 .formBuilder-header__button {
-  @extend .mdl-button, .mdl-button--raised, .mdl-js-button;
+  @extend .mdl-button, .mdl-js-button;
 
   > i {
     @extend .fa, .fa-sm, .fa-fw;
-
     margin-right: 5px;
   }
 
-  margin-right: 5px;
-}
+  &.formBuilder-header__button--create,
+  &.formBuilder-header__button--save {
+    @extend .mdl-button--colored, .mdl-button--raised;
+    > i {
+      @extend .fa-save;
+    }
+  }
 
-.formBuilder-header__button--create {
-  @extend .mdl-button--colored;
-
-  @include formHeaderButton("save");
-
+  &.formBuilder-header__button--savepending,
   &.formBuilder-header__button--create-pending {
     > i {
       @extend .fa-spin, .fa-spinner;
     }
   }
+
 }
 
-.formBuilder-header__button--preview {
-  @include formHeaderButton("eye");
-
-  &.formBuilder-header__button--previewdisabled {
-    @extend .mdl-button--disabled;
-  }
+.formBuilder-header__button--save:after {
+  content: '_';
+  font-family: monospace;
+  color: transparent;
 }
 
-.formBuilder-header__button--close {
-  @include formHeaderButton("times");
-}
-
-.formBuilder-header__button--save {
-  @extend .mdl-button--colored;
-
-  @include formHeaderButton("save");
-
-  &.formBuilder-header__button--savepending {
-    > i {
-      @extend .fa-spin, .fa-spinner;
-    }
-  }
-
+.formBuilder-header__button--saveneeded {
   &:after {
-    content: '_';
-    font-family: monospace;
-    color: transparent;
-  }
-
-  &.formBuilder-header__button--saveneeded {
-    &:after {
-      content: '*';
-      color: white;
-    }
+    content: '*';
+    color: white;
   }
 }
 
-.formBuilder-header__button--formstyle {
-  &.formBuilder-header__button--formstyleactive {
-    background-color: rgba(158, 158, 158, 1);
-  }
-}
+// .formBuilder-header__button--formstyle {
+  // &.formBuilder-header__button--formstyleactive {
+  //   background-color: rgba(158, 158, 158, 1);
+  // }
+// }
 
-.formBuilder-header__button--show-all {
-  @include formHeaderButton("caret-right");
+// .formBuilder-header__button--show-all {
+//   @include formHeaderButton("caret-right");
 
-  &.formBuilder-header__button--open {
-    @include formHeaderButton("caret-down");
-  }
-}
+//   &.formBuilder-header__button--open {
+//     @include formHeaderButton("caret-down");
+//   }
+// }
 
-.formBuilder-header__button--group {
-  @include formHeaderButton("circle-o");
+// .formBuilder-header__button--group {
+//   @include formHeaderButton("circle-o");
 
-  &:not(.formBuilder-header__button--groupable) {
-    @extend .mdl-button--disabled;
-  }
-}
+//   &:not(.formBuilder-header__button--groupable) {
+//     @extend .mdl-button--disabled;
+//   }
+// }
 
 // FORM STYLE SETTINGS
 
@@ -208,11 +193,16 @@
 // FORM META 
 
 .form-meta {
-  margin: 12px;
-  background-color: rgb(247, 247, 247);
+  background-color: #FFF;
+  margin:4px 75px;
+  border:1px solid #d9dde1;
+  padding:5px;
 }
 
 .form-meta__button--metasummary {
+  background-color: #F7F7F7;
+  width:calc(100% - 80px);
+  text-align: left;
   @extend .mdl-button;
   span {
     margin: 0 5px;
