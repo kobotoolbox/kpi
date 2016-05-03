@@ -482,6 +482,12 @@ export default {
                   <i className="fa fa-caret-right" />
                 </bem.FormBuilderHeader__button>
               : null }
+              <bem.FormBuilderHeader__button m={['attach']}
+                  data-tip={t('Attach files')} 
+                  className="is-edge">
+                <SVGIcon id='ki-attach' />
+              </bem.FormBuilderHeader__button>
+
               { groupable ?
                 <bem.FormBuilderHeader__button m={['group', {
                       groupable: groupable
