@@ -416,6 +416,9 @@ export default {
     }
     return ooo;
   },
+  toggleLibraryNav() {
+    stores.pageState.toggleAssetNavIntentOpen();
+  },
   renderSaveAndPreviewButtons () {
     let {
       allButtonsDisabled,
@@ -505,7 +508,8 @@ export default {
             </bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__cell m={'spacer'} />
             <bem.FormBuilderHeader__cell m={'library-toggle'} >
-              <bem.FormBuilderHeader__button m={['showLibrary']}>
+              <bem.FormBuilderHeader__button m={['showLibrary']}
+                                             onClick={this.toggleLibraryNav} >
                 {t('Search Library')}
               </bem.FormBuilderHeader__button>
             </bem.FormBuilderHeader__cell>

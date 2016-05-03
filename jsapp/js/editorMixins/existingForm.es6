@@ -16,7 +16,6 @@ export default {
     };
   },
   componentDidMount () {
-    console.log(stores.pageState);
     let uid = this.props.params.assetid;
     stores.allAssets.whenLoaded(uid, (asset) => {
       var survey = dkobo_xlform.model.Survey.loadDict(asset.content);

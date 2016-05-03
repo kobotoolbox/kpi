@@ -123,6 +123,7 @@
 
   &.formBuilder-header__button--create,
   &.formBuilder-header__button--save {
+    margin-left: 10px;
     @extend .mdl-button--colored, .mdl-button--raised;
     > i {
       @extend .fa-save;
@@ -136,20 +137,24 @@
     }
   }
 
-}
+  &.formBuilder-header__button--save:after {
+    content: '_';
+    font-family: monospace;
+    color: transparent;
+  }
 
-.formBuilder-header__button--save:after {
-  content: '_';
-  font-family: monospace;
-  color: transparent;
-}
-
-.formBuilder-header__button--saveneeded {
-  &:after {
+  &.formBuilder-header__button--saveneeded:after {
     content: '*';
     color: white;
   }
+
+  &.formBuilder-header__button--showLibrary, 
+  &.formBuilder-header__button--share {
+    border:1px solid #979797;
+  }
 }
+
+
 
 // .formBuilder-header__button--formstyle {
   // &.formBuilder-header__button--formstyleactive {

@@ -71,6 +71,11 @@ body {
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, $shadow-key-penumbra-opacity), 0 2px 0px -1px rgba(0, 0, 0, $shadow-key-umbra-opacity), 0 1px 2px 0 rgba(0, 0, 0, $shadow-ambient-shadow-opacity);
 }
 
+.mdl-button {
+  text-transform: none;
+  font-weight: 400;
+}
+
 .mdl-button--raised {
   @include shadow-1dp;
   &:active {
