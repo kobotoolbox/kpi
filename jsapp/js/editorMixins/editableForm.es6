@@ -25,6 +25,7 @@ import actions from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import {dataInterface} from '../dataInterface';
 import SVGIcon from '../libs/SVGIcon';
+import ReactTooltip from 'react-tooltip';
 
 var FormStyle__panel = bem('form-style__panel'),
     FormStyle__row = bem('form-style'),
@@ -475,7 +476,9 @@ export default {
               { showAllAvailable ?
                 <bem.FormBuilderHeader__button m={['show-all', {
                       open: showAllOpen,
-                    }]} onClick={this.showAll}>
+                    }]} 
+                    onClick={this.showAll}
+                    data-tip={t('Show All Responses')}>
                   <i className="fa fa-caret-right" />
                 </bem.FormBuilderHeader__button>
               : null }
@@ -483,7 +486,8 @@ export default {
                 <bem.FormBuilderHeader__button m={['group', {
                       groupable: groupable
                     }]} onClick={this.groupQuestions}
-                    disabled={!groupable}>
+                    disabled={!groupable}
+                    data-tip={t('Group Questions')}>
                   <SVGIcon id='ki-group' /> 
                 </bem.FormBuilderHeader__button>
               : null }
@@ -492,17 +496,22 @@ export default {
                   <bem.FormBuilderHeader__button m={{
                     formstyle: true,
                     formstyleactive: this.state.formStylePanelDisplayed,
-                  }} onClick={this.openFormStylePanel}>
+                  }} onClick={this.openFormStylePanel} >
                     <SVGIcon id='ki-layout' /> 
                     {t('layout')}
-                    <i className="fa fa-caret-down" />
                   </bem.FormBuilderHeader__button>
                 </bem.FormBuilderHeader__item>
               : null }
+              <bem.FormBuilderHeader__button m={['download']}
+                  data-tip={t('Download')} 
+                  className="is-edge">
+                <SVGIcon id='ki-download2' />
+              </bem.FormBuilderHeader__button>
               <bem.FormBuilderHeader__button m={['preview', {
                     previewdisabled: previewDisabled
                   }]} onClick={this.previewForm}
-                  disabled={previewDisabled}>
+                  disabled={previewDisabled}
+                  data-tip={t('Preview')} >
                 <SVGIcon id='ki-view2' />
               </bem.FormBuilderHeader__button>
             </bem.FormBuilderHeader__cell>
@@ -539,6 +548,7 @@ export default {
               />
             </FormStyle__panel>
           : null }
+          <ReactTooltip effect="float" place="bottom" />
         </bem.FormBuilderHeader>
       );
   },
