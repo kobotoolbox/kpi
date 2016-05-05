@@ -612,7 +612,7 @@ export default {
           <ui.Panel m={'transparent'}>
             <bem.FormBuilder m={this.state.formStylePanelDisplayed ? 'formStyleDisplayed': null }>
               {this.renderSaveAndPreviewButtons()}
-              <bem.FormBuilder m={'content'} >
+              <bem.FormBuilder__contents>
                 { isSurvey ?
                   <FormSettingsBox survey={this.app.survey} {...this.state} />
                 : null }
@@ -621,7 +621,7 @@ export default {
                         this.renderLoadingNotice()
                     : null }
                   </div>
-              </bem.FormBuilder>
+              </bem.FormBuilder__contents>
             </bem.FormBuilder>
             { this.state.enketopreviewOverlay ?
               <ui.Modal open onClose={this.hidePreview} title={t('Form Preview')}>

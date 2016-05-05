@@ -27,6 +27,7 @@ bem.AssetRow__buttons        = bem.AssetRow.__('buttons');
 
 bem.FormBuilder = bem('formBuilder');
 bem.FormBuilder__row = bem.FormBuilder.__('row');
+bem.FormBuilder__contents = bem.FormBuilder.__('contents');
 
 bem.FormBuilderHeader = bem('formBuilder-header');
 bem.FormBuilderHeader__row = bem.FormBuilderHeader.__('row');
