@@ -62,6 +62,18 @@
   display: flex;
 }
 
+// Focus mode for form builder, disable drawer, header
+.mdl-layout.page-wrapper--formbuilder-focus {
+  .mdl-layout__content {
+    margin: 0px;
+    width: 100%;
+    height: 100%;
+  }
+  .ui-panel {
+    margin: 0px;
+  }
+}
+
 // Sharing form header
 .k-sharing__header {
   display: flex;

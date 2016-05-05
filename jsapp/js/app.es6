@@ -830,15 +830,21 @@ var App = React.createClass({
     return (
       <DocumentTitle title="KoBoToolbox">
         <div className="mdl-wrapper">
-          <div className="k-header__bar"></div>
+          { !this.state.formBuilderFocus && 
+            <div className="k-header__bar"></div>
+          }
           <bem.PageWrapper m={{
               'asset-nav-present': this.state.assetNavPresent,
               'asset-nav-open': this.state.assetNavIsOpen && this.state.assetNavPresent,
               'fixed-drawer': this.state.showFixedDrawer,
               'formbuilder-focus': this.state.formBuilderFocus,
                 }} className="mdl-layout mdl-layout--fixed-header">
-              <MainHeader />
-              <Drawer />
+              { !this.state.formBuilderFocus && 
+                <MainHeader/>
+              }
+              { !this.state.formBuilderFocus && 
+                <Drawer/>
+              }
               <bem.PageWrapper__content m={{
                 'navigator-open': this.state.assetNavigatorIsOpen,
                 'navigator-present': this.state.assetNavigator,

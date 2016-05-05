@@ -98,16 +98,6 @@ $drawer-icons-column-width: 56px;
   margin-left: $layout-drawer-width + 8px;
 }
 
-.page-wrapper--formbuilder-focus .k-drawer {
-  position: fixed;
-  z-index: 4;
-  left: -256px;
-  transition: left 0.5s;
-  + .mdl-layout__content {
-    margin-left: 8px;
-  }
-}
-
 @media screen and (max-width: 768px) {
   .k-drawer {
     position: fixed;

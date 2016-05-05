@@ -4,8 +4,8 @@
   height: 110px;
 }
 
-.formBuilder--content {
-  height: calc(100% - 140px);
+.formBuilder__contents {
+  height: calc(100% - 126px);
   overflow: auto;
   margin-top:15px;
 }
@@ -28,7 +28,7 @@
   > .formBuilder-header {
     height: 280px;
   }
-  .formBuilder--content {
+  .formBuilder__contents {
     height: calc(100% - 300px);
   }
 }
@@ -74,8 +74,9 @@
     }
 
     &--close {
-      width:45px;
+      width:50px;
       text-align: right;
+      padding:5px;
     }
 
     // second row 
@@ -101,7 +102,7 @@
       flex-grow:1;
     }
     &--library-toggle {
-      width:250px;
+      width:180px;
       border-left: 1px solid #979797;
       padding:4px;
     }
