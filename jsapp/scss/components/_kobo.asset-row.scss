@@ -18,22 +18,22 @@
   }
 
   > .asset-row__cell {
-    min-width: 0;
+    width:100%;
+    display: flex;
 
-    &.asset-row__cell--title {
-      text-overflow: ellipsis;
-      overflow: hidden;
+    > .asset-row__cell {
+      min-width: 0;
+      &.asset-row__cell--title {
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
     }
   }
+
 }
 
-.asset-row__tags {
-  padding-left: 34px;
+.asset-row__cell--tags {
   white-space: normal;
-
-  .asset-row__tags__tag {
-    @extend .k-tagsinput-tag;
-  }
 }
 
 .asset-row--deleted {

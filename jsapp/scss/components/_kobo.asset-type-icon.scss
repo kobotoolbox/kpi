@@ -79,20 +79,21 @@
   }
 }
 
-.asset-row .asset-type-icon:hover {
-  background-color: $cool-gray;
-  border: 1px solid $cool-gray;
-  color:$cool-gray;
-}
+// .asset-row .asset-type-icon:hover {
+//   background-color: $cool-gray;
+//   border: 1px solid $cool-gray;
+//   color:$cool-gray;
+// }
 
 .asset-row--active .asset-type-icon, 
 .asset-row--active .asset-type-icon:hover {
-  border:none;
-  border-radius:0px;
-  background-color: transparent;
+  // border:none;
+  // border-radius:0px;
+  // background-color: transparent;
   svg.ki-icon {
-    width:31px;
-    height:31px;
-    vertical-align: top;
+    display: none;
+    // width:31px;
+    // height:31px;
+    // vertical-align: top;
   }
 }

@@ -45,6 +45,10 @@ mixins.taggedAsset = {
     };
     return ls;
   },
+  adaptInputSize (e) {
+    var l = e.target.value.length;
+    e.target.size = l + 5;
+  },
   renderTaggedAssetTags () {
     var transform = function(tag) {
       // Behavior should match KpiTaggableManager.add()
@@ -56,7 +60,7 @@ mixins.taggedAsset = {
     return (
       <div>
         <TagsInput ref="tags" classNamespace="k"
-          valueLink={this.linkTagState()} transform={transform}
+          valueLink={this.linkTagState()} transform={transform} onKeyUp={this.adaptInputSize}
           addKeys={addKeys} />
       </div>
     );
