@@ -26,7 +26,7 @@
   height: 32px;
   border-radius: 15px;
   font-size: 20px;
-  line-height: 28px;
+  line-height: 24px;
 
   &--block {
     background-color: $cool-green;
@@ -36,6 +36,7 @@
       &:before {
         content: 'B';
         font-style: normal;
+        font-size: 14px;
       }
     }
   }
@@ -49,6 +50,7 @@
       &:before {
         content: 'Q';
         font-style: normal;
+        font-size: 14px;
       }
     }
   }

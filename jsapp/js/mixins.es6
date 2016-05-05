@@ -61,7 +61,7 @@ mixins.taggedAsset = {
       <div>
         <TagsInput ref="tags" classNamespace="k"
           valueLink={this.linkTagState()} transform={transform} onKeyUp={this.adaptInputSize}
-          addKeys={addKeys} />
+          addKeys={addKeys} placeholder={t('#tags')}/>
       </div>
     );
   }

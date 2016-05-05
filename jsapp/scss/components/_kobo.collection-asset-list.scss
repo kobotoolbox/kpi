@@ -5,15 +5,12 @@
 
 .collection-asset-list__message {
   padding: 4px 12px;
-
   &.collection-asset-list__message--loading {
     > i:first-child {
       @extend .fa, .fa-spin, .fa-spinner;
-
       margin-right: 12px;
     }
   }
-
   &.collection-asset-list__message--empty {
     font-style: italic;
     color: $cool-gray;
@@ -21,15 +18,16 @@
 }
 
 .asset-list-sorts {
-  padding: 6px 12px;
+  padding: 0px 12px;
   white-space: nowrap;
-
+  background-color: #f7f8fa;
   > .asset-list-sorts__item {
     color: $cool-gray;
     font-weight: 500;
     position: relative;
-    padding: 5px 0px;
-
+    padding: 6px 0px;
+    margin-top: 4px;
+    margin-bottom: 4px;
     &:after {
       content: '';
       height: 100%;
@@ -40,18 +38,7 @@
       position: absolute;
       opacity: 0.5;
     }
-
-    // &.asset-list-sorts__item--name {
-    //   @extend .mdl-cell--6-col, .mdl-cell--3-col-tablet;
-    // }
-    // &.asset-list-sorts__item--owner {
-    //   @extend .mdl-cell--2-col, .mdl-cell--2-col-tablet;
-    // }
-    // &.asset-list-sorts__item--modified {
-    //   @extend .mdl-cell--3-col, .mdl-cell--2-col-tablet;
-    // }
     &.asset-list-sorts__item--questions {
-      // @extend .mdl-cell--1-col, .mdl-cell--1-col-tablet;
       &:after {
         display: none;
       }
@@ -66,7 +53,6 @@
   flex-grow: 0;
   color: $greyish-brown;
   text-align: right;
-
   > div {
     padding: 15px;
     vertical-align: middle;

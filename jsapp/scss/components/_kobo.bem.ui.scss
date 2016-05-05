@@ -13,19 +13,18 @@
   height: calc(100% - 72px);
   overflow: hidden;
   position: relative;
-  margin-top: 6px;
+  margin-top: 8px;
   transition: all .4s ease 0s;
 }
 
 .ui-panel {
   height: 100%;
-  margin: 0px 6px;
+  margin: 0px 8px;
 }
 
 .ui-panel__body {
-  @extend .mdl-grid, .mdl-shadow--2dp;
+  @extend .mdl-grid, .mdl-grid--no-spacing, .mdl-shadow--2dp;
   background: #FFF;
-  margin: 2px auto;
   padding: 0;
   height: 100%;
   flex-direction: column;
@@ -34,10 +33,11 @@
   > .formBuilder {
     @extend .mdl-cell, .mdl-cell--12-col;
     flex-flow: column;
+    margin: 0px !important;
   }
   > .collection-list {
     position: relative;
-    height: calc(100% - 66px);
+    height: calc(100% - 50px);
   }
   > .asset-view__content {
     height: 100%;
@@ -144,4 +144,8 @@
   &:after {
     border-bottom: 8px solid #8a9aa4 !important;
   }
+}
+
+.reactTooltip.show {
+  opacity: 1 !important;
 }
