@@ -14,9 +14,10 @@ from kpi.views import (
     ObjectPermissionViewSet,
     SitewideMessageViewSet,
     AuthorizedApplicationUserViewSet,
+    OneTimeAuthenticationKeyViewSet,
 )
 
-from kpi.views import current_user, home
+from kpi.views import current_user, home, one_time_login
 from kpi.views import authorized_application_authenticate_user
 from kpi.forms import RegistrationForm
 from hub.views import switch_builder
@@ -31,9 +32,11 @@ router.register(r'permissions', ObjectPermissionViewSet)
 router.register(r'imports', ImportTaskViewSet)
 router.register(r'sitewide_messages', SitewideMessageViewSet)
 
-router.register(r'authorized-application/users',
+router.register(r'authorized_application/users',
                 AuthorizedApplicationUserViewSet,
-                base_name='authorized-applications')
+                base_name='authorized_applications')
+router.register(r'authorized_application/one_time_authentication_keys',
+                OneTimeAuthenticationKeyViewSet)
 
 
 # Apps whose translations should be available in the client code.
@@ -54,9 +57,10 @@ urlpatterns = [
     url(r'^accounts/', include('registration.backends.default.urls')),
     url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     url(
-        r'^authorized-application/authenticate-user/$',
+        r'^authorized_application/authenticate_user/$',
         authorized_application_authenticate_user
     ),
+    url(r'^authorized_application/one_time_login/$', one_time_login),
     url(r'^hub/switch_builder$', switch_builder, name='toggle-preferred-builder'),
     # Translation catalog for client code.
     url(r'^jsi18n/$', javascript_catalog, js_info_dict, name='javascript-catalog'),

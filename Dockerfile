@@ -4,7 +4,6 @@ FROM kobotoolbox/koboform_base:latest
 # Note: Additional environment variables established in `Dockerfile.koboform_base`.
 ENV KPI_LOGS_DIR=/srv/logs \
     KPI_WHOOSH_DIR=/srv/whoosh \
-    # STATICFILES_DIR=/srv/staticfiles \
     GRUNT_BUILD_DIR=/srv/grunt_build \
     GRUNT_FONTS_DIR=/srv/grunt_fonts \
     # The mountpoint of a volume shared with the nginx container. Static files will
@@ -18,11 +17,11 @@ ENV KPI_LOGS_DIR=/srv/logs \
 
 COPY ./apt_requirements.txt ${KPI_SRC_DIR}/
 # Only install if the current version of `apt_requirements.txt` differs from the one used in the base image.
-RUN diff -q "${KPI_SRC_DIR}/apt_requirements.txt" "/srv/tmp/base_apt_requirements.txt" || \
-        ( apt-get update && \
+RUN if [ "$(diff -q ${KPI_SRC_DIR}/apt_requirements.txt /srv/tmp/base_apt_requirements.txt)" ]; then \
+        apt-get update && \
         apt-get install -y $(cat ${KPI_SRC_DIR}/apt_requirements.txt) && \
-        apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ) \ 
-    || true # Prevent non-zero exit code.
+        apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \ 
+    ; fi
 
 
 ###########################
@@ -31,9 +30,9 @@ RUN diff -q "${KPI_SRC_DIR}/apt_requirements.txt" "/srv/tmp/base_apt_requirement
 
 COPY ./requirements.txt ${KPI_SRC_DIR}/
 # Only install if the current version of `requirements.txt` differs from the one used in the base image.
-RUN diff -q "${KPI_SRC_DIR}/requirements.txt" /srv/tmp/base_requirements.txt || \
+RUN if [ "$(diff -q ${KPI_SRC_DIR}/requirements.txt /srv/tmp/base_requirements.txt)" ]; then \
     pip-sync "${KPI_SRC_DIR}/requirements.txt" \
-    || true # Prevent non-zero exit code.
+    ; fi
 
 
 ##########################################
@@ -42,9 +41,9 @@ RUN diff -q "${KPI_SRC_DIR}/requirements.txt" /srv/tmp/base_requirements.txt || 
 
 COPY ./package.json ${KPI_SRC_DIR}/
 # Only install if the current version of `package.json` differs from the one used in the base image.
-RUN diff -q "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json || \
+RUN if [ "$(diff -q ${KPI_SRC_DIR}/package.json /srv/tmp/base_package.json)" ]; then \
     npm install \
-    || true # Prevent non-zero exit code.
+    ; fi
 
 
 ##########################################
@@ -53,10 +52,10 @@ RUN diff -q "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json || \
 
 COPY ./bower.json ./.bowerrc ${KPI_SRC_DIR}/
 # Only install if the current versions of `bower.json` or `.bowerrc` differ from the ones used in the base image.
-RUN (   diff -q "${KPI_SRC_DIR}/bower.json" /srv/tmp/base_bower.json && \
-        diff -q "${KPI_SRC_DIR}/.bowerrc" /srv/tmp/base_bowerrc ) || \
+RUN if [ "$(diff -q ${KPI_SRC_DIR}/bower.json /srv/tmp/base_bower.json && \
+        diff -q ${KPI_SRC_DIR}/.bowerrc /srv/tmp/base_bowerrc)" ]; then \
     bower install --allow-root --config.interactive=false \
-    || true # Prevent non-zero exit code.
+    ; fi
 
 
 RUN npm install material-design-icons
@@ -89,7 +88,6 @@ COPY . ${KPI_SRC_DIR}
 # Restore the backed-up package installation directories.
 
 RUN ln -s "${NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
-#    ln -s "${STATICFILES_DIR}" "${KPI_SRC_DIR}/staticfiles" && \
     ln -s "${BOWER_COMPONENTS_DIR}/" "${KPI_SRC_DIR}/jsapp/xlform/components" && \
     ln -s "${GRUNT_BUILD_DIR}" "${KPI_SRC_DIR}/jsapp/compiled" && \
     ln -s "${GRUNT_FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts"
@@ -100,6 +98,15 @@ RUN ln -s "${NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
 
 ENV DJANGO_SETTINGS_MODULE kobo_playground.settings
 RUN python manage.py collectstatic --noinput
+
+
+#####################################
+# Retrieve and compile translations #
+#####################################
+
+RUN git submodule init && \
+    git submodule update && \
+    python manage.py compilemessages
 
 
 #################################################################

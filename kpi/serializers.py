@@ -23,6 +23,7 @@ from .models import ObjectPermission
 from .models.object_permission import get_anonymous_user
 from .models.asset import ASSET_TYPES
 from .models import TagUid
+from .models import OneTimeAuthenticationKey
 from .forms import USERNAME_REGEX, USERNAME_MAX_LENGTH
 from .forms import USERNAME_INVALID_MESSAGE
 
@@ -904,3 +905,11 @@ class AuthorizedApplicationUserSerializer(serializers.BaseSerializer):
         if len(validation_errors):
             raise exceptions.ValidationError(validation_errors)
         return validated_data
+
+
+class OneTimeAuthenticationKeySerializer(serializers.ModelSerializer):
+    username = serializers.SlugRelatedField(
+        slug_field='username', source='user', queryset=User.objects.all())
+    class Meta:
+        model = OneTimeAuthenticationKey
+        fields = ('username', 'key', 'expiry')

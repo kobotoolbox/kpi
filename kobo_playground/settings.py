@@ -178,6 +178,13 @@ REST_FRAMEWORK = {
     'URL_FIELD_NAME': 'url',
     'DEFAULT_PAGINATION_CLASS': 'kpi.serializers.Paginated',
     'PAGE_SIZE': 100,
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # SessionAuthentication and BasicAuthentication would be included by
+        # default
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ],
 }
 
 TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (

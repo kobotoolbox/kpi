@@ -62,6 +62,13 @@ class AssetIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixin):
     owner__username__exact = indexes.MultiValueField()
     parent__name__exact = indexes.MultiValueField()
     parent__uid = indexes.MultiValueField()
+    deployment__identifier = indexes.MultiValueField()
+
+    def prepare_deployment__identifier(self, obj):
+        if not obj.has_deployment:
+            return None
+        return self._escape_comma_space(obj.deployment.identifier)
+
     def get_model(self):
         return Asset
 

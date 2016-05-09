@@ -5,5 +5,6 @@ from kpi.models.object_permission import ObjectPermission, ObjectPermissionMixin
 from kpi.models.import_task import ImportTask
 from kpi.models.tag_uid import TagUid
 from kpi.models.authorized_application import AuthorizedApplication
+from kpi.models.authorized_application import OneTimeAuthenticationKey
 
 import kpi.signals

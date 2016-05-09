@@ -4,11 +4,13 @@ from django.db import transaction
 from django.http import HttpResponseRedirect
 from registration.backends.default.views import RegistrationView
 from registration.forms import RegistrationForm
+from rest_framework.decorators import api_view
 
 from kpi.tasks import sync_kobocat_xforms
 from .models import FormBuilderPreference, ExtraUserDetail
 
-
+# The `api_view` decorator allows authentication via DRF
+@api_view(['GET'])
 @login_required
 def switch_builder(request):
     '''
@@ -22,13 +24,15 @@ def switch_builder(request):
             else FormBuilderPreference.DKOBO
         pref.save()
     if 'migrate' in request.GET:
+        # TODO: don't start these tasks for if they're already running for this
+        # particular user
         call_command(
             'import_survey_drafts_from_dkobo',
             username=request.user.username,
             quiet=True # squelches `print` statements
         )
         # Create/update KPI assets to match the user's KC forms
-        sync_kobocat_xforms.delay(username=request.user.username)
+        sync_kobocat_xforms(username=request.user.username)
 
     return HttpResponseRedirect('/')
 

@@ -3,14 +3,20 @@ import copy
 import json
 import datetime
 
+from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.db.models import Q, Count
 from django.forms import model_to_dict
-from django.http import Http404
-from django.shortcuts import get_object_or_404
+from django.http import Http404, HttpResponseBadRequest, HttpResponseRedirect
+from django.utils.http import is_safe_url
+from django.shortcuts import get_object_or_404, resolve_url
 from django.template.response import SimpleTemplateResponse
 from django.conf import settings
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.translation import ugettext_lazy as _
 
 from rest_framework import (
     viewsets,
@@ -42,6 +48,7 @@ from .models import (
     ImportTask,
     ObjectPermission,
     AuthorizedApplication,
+    OneTimeAuthenticationKey,
     )
 from .models.object_permission import get_anonymous_user, get_objects_for_user
 from .models.authorized_application import ApplicationTokenAuthentication
@@ -66,6 +73,7 @@ from .serializers import (
     ImportTaskSerializer, ImportTaskListSerializer,
     ObjectPermissionSerializer,
     AuthorizedApplicationUserSerializer,
+    OneTimeAuthenticationKeySerializer,
     DeploymentSerializer,)
 from .utils.gravatar_url import gravatar_url
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
@@ -328,6 +336,58 @@ def authorized_application_authenticate_user(request):
     for attribute in user_attributes_to_return:
         response_data[attribute] = getattr(user, attribute)
     return Response(response_data)
+
+
+class OneTimeAuthenticationKeyViewSet(
+        mixins.CreateModelMixin,
+        viewsets.GenericViewSet
+):
+    authentication_classes = [ApplicationTokenAuthentication]
+    queryset = OneTimeAuthenticationKey.objects.none()
+    serializer_class = OneTimeAuthenticationKeySerializer
+    def create(self, request, *args, **kwargs):
+        if type(request.auth) is not AuthorizedApplication:
+            # Only specially-authorized applications are allowed to create
+            # one-time authentication keys via this endpoint
+            raise exceptions.PermissionDenied()
+        return super(OneTimeAuthenticationKeyViewSet, self).create(
+            request, *args, **kwargs)
+
+
+@require_POST
+@csrf_exempt
+def one_time_login(request):
+    ''' If the request provides a key that matches a OneTimeAuthenticationKey
+    object, log in the User specified in that object and redirect to the
+    location specified in the 'next' parameter '''
+    try:
+        key = request.POST['key']
+    except KeyError:
+        return HttpResponseBadRequest(_('No key provided'))
+    try:
+        next_ = request.GET['next']
+    except KeyError:
+        next_ = None
+    if not next_ or not is_safe_url(url=next_, host=request.get_host()):
+        next_ = resolve_url(settings.LOGIN_REDIRECT_URL)
+    # Clean out all expired keys, just to keep the database tidier
+    OneTimeAuthenticationKey.objects.filter(
+        expiry__lt=datetime.datetime.now()).delete()
+    with transaction.atomic():
+        try:
+            otak = OneTimeAuthenticationKey.objects.get(
+                key=key,
+                expiry__gte=datetime.datetime.now()
+            )
+        except OneTimeAuthenticationKey.DoesNotExist:
+            return HttpResponseBadRequest(_('Invalid or expired key'))
+        # Nevermore
+        otak.delete()
+    # The request included a valid one-time key. Log in the associated user
+    user = otak.user
+    user.backend = settings.AUTHENTICATION_BACKENDS[0]
+    login(request, user)
+    return HttpResponseRedirect(next_)
 
 
 class XlsFormParser(MultiPartParser):
