@@ -42,7 +42,8 @@ RUN if [ "$(diff -q ${KPI_SRC_DIR}/requirements.txt /srv/tmp/base_requirements.t
 COPY ./package.json ${KPI_SRC_DIR}/
 # Only install if the current version of `package.json` differs from the one used in the base image.
 RUN if [ "$(diff -q ${KPI_SRC_DIR}/package.json /srv/tmp/base_package.json)" ]; then \
-    npm install \
+    # Try error-prone `npm install` step twice.
+    npm install || npm install \
     ; fi
 
 
