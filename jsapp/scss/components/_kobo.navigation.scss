@@ -127,11 +127,12 @@ $headerAccountTextColor: #dbedf7;
     height: 36px;
     line-height: 36px;
     vertical-align: middle;
-    svg.ki-icon {
-      width: 26px;
-      height: 26px;
+    font-size: 16px;
+    i {
+      font-size: 24px;
+      width: 30px;
       margin-right: 12px;
-      stroke: $layout-nav-color;
+      display: inline-block;
     }
     &:hover {
       background-color: $nav-menu-item-bg-active;

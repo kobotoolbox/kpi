@@ -11,7 +11,6 @@ import {t, assign} from '../utils';
 import searches from '../searches';
 import cookie from 'react-cookie';
 import hotkey from 'react-hotkey';
-import SVGIcon from '../libs/SVGIcon';
 
 hotkey.activate();
 
@@ -134,7 +133,7 @@ var MainHeader = React.createClass({
             <ul className="k-account__menu">
               <li>
                 <a href={stores.session.currentAccount.projects_url + '/settings'} className="mdl-menu__item">
-                  <SVGIcon id='ki-settings' />
+                  <i className="k-icon-settings" />
                   {t('Profile Settings')}
                 </a>
               </li>
@@ -147,7 +146,7 @@ var MainHeader = React.createClass({
               :null}
               <li className="k-lang__submenu">
                 <a className="mdl-menu__item">
-                  <SVGIcon id='ki-globe' />
+                  <i className="fa fa-globe" />
                   {t('Language')}
                 </a>
                 <ul>
@@ -156,7 +155,7 @@ var MainHeader = React.createClass({
               </li>
               <li>
                 <a onClick={this.logout} className="mdl-menu__item">
-                  <SVGIcon id='ki-logout' /> 
+                  <i className="k-icon-logout" /> 
                   {t('Logout')}</a>
                 </li>
             </ul>

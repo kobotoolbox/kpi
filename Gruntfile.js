@@ -80,31 +80,10 @@ module.exports = function(grunt) {
           './node_modules/font-awesome/fonts/*',
           './node_modules/roboto-fontface/fonts/*.wof*',
           './node_modules/material-design-icons/iconfont/*',
+          './jsapp/scss/fonts/k-icons/*',
           ],
         dest: './jsapp/fonts/',
-      },
-      svg: {
-        src: ['./jsapp/img/icons-sprite.svg',],
-        dest: './jsapp/compiled/icons-sprite.svg',
       }
-    },
-    svgstore: {
-      options: {
-        prefix : 'ki-',
-        svg: {
-          'xmlns:xlink': 'http://www.w3.org/1999/xlink',
-          'xmlns' : 'http://www.w3.org/2000/svg'
-        },
-        formatting : {
-          indent_size : 2
-        },
-        cleanup: ['fill', 'stroke']
-      },
-      default : {
-        files: {
-          'jsapp/img/icons-sprite.svg': ['jsapp/icons/*.svg'],
-        },
-      },
     },
     watch: {
       js: {
@@ -147,7 +126,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-svgstore');
   grunt.registerTask('develop', [
     'browserify:dev',
     'sass:dist',
@@ -162,7 +140,6 @@ module.exports = function(grunt) {
     'clean:js',
   ]);
   grunt.registerTask('buildall', [
-    'svgstore',
     'copy'
   ]);
   grunt.registerTask('default', ['develop']);

@@ -24,7 +24,6 @@ import stores from '../stores';
 import actions from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import {dataInterface} from '../dataInterface';
-import SVGIcon from '../libs/SVGIcon';
 import ReactTooltip from 'react-tooltip';
 
 var FormStyle__panel = bem('form-style__panel'),
@@ -438,7 +437,7 @@ export default {
           <bem.FormBuilderHeader__row m={['first', allButtonsDisabled ? 'disabled' : null]}>
 
             <bem.FormBuilderHeader__cell m={'project-icon'} >
-              <SVGIcon id='ki-project' />
+              <i className="k-icon-projects" />
             </bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__cell m={'name'} >
               <ui.SmallInputBox
@@ -479,13 +478,13 @@ export default {
                     }]} 
                     onClick={this.showAll}
                     data-tip={t('Show All Responses')}>
-                  <i className="fa fa-caret-right" />
+                  <i className="k-icon-view-all" />
                 </bem.FormBuilderHeader__button>
               : null }
               <bem.FormBuilderHeader__button m={['attach']}
                   data-tip={t('Attach files')} 
                   className="is-edge">
-                <SVGIcon id='ki-attach' />
+                <i className="k-icon-attach" />
               </bem.FormBuilderHeader__button>
 
               { groupable ?
@@ -494,7 +493,7 @@ export default {
                     }]} onClick={this.groupQuestions}
                     disabled={!groupable}
                     data-tip={t('Group Questions')}>
-                  <SVGIcon id='ki-group' /> 
+                  <i className="k-icon-multiple-pages" />
                 </bem.FormBuilderHeader__button>
               : null }
               { hasSettings ?
@@ -503,7 +502,7 @@ export default {
                     formstyle: true,
                     formstyleactive: this.state.formStylePanelDisplayed,
                   }} onClick={this.openFormStylePanel} >
-                    <SVGIcon id='ki-layout' /> 
+                    <i className="k-icon-grid" />
                     {t('layout')}
                   </bem.FormBuilderHeader__button>
                 </bem.FormBuilderHeader__item>
@@ -511,14 +510,14 @@ export default {
               <bem.FormBuilderHeader__button m={['download']}
                   data-tip={t('Download')} 
                   className="is-edge">
-                <SVGIcon id='ki-download2' />
+                <i className="k-icon-download" />
               </bem.FormBuilderHeader__button>
               <bem.FormBuilderHeader__button m={['preview', {
                     previewdisabled: previewDisabled
                   }]} onClick={this.previewForm}
                   disabled={previewDisabled}
                   data-tip={t('Preview')} >
-                <SVGIcon id='ki-view2' />
+                <i className="k-icon-view" />
               </bem.FormBuilderHeader__button>
             </bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__cell m={'spacer'} />

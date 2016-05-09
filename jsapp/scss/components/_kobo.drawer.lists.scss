@@ -15,6 +15,7 @@
     border: 1px solid #FFF;
     cursor: pointer;
     font-weight: 500;
+    vertical-align: top;
 
     &--info {
       cursor: default;
@@ -33,12 +34,11 @@
       }
     }
 
-    > svg.ki-icon {
-      margin-right: 8px;
+    > i {
+      margin-right: 10px;
       vertical-align: top;
-      width:16px;
-      height: 16px;
-      padding-top: 6px;
+      padding-top: 3px;
+      display: inline-block;
     }
 
     > span {
@@ -46,10 +46,6 @@
       display: inline-block;
       line-height: 1.3em;
       padding-top: 5px;
-    }
-
-    &--allitems > svg {
-      visibility: hidden;
     }
   }
 }
@@ -91,10 +87,11 @@
     padding: 5px;
     padding-top: 10px;
 
-    svg.ki-icon {
-      width:24px;
+    i {
+      font-size:24px;
       margin-right:12px;
       vertical-align: middle;
+      display: inline-block;
     }
   }
 }

@@ -90,7 +90,7 @@
     position: absolute;
     top: 0px;
     right: 0px;
-    padding: 4px;
+    padding: 2px 10px;
     background: #EDF7FD;
     text-align: right;
     width: 100%;
@@ -98,18 +98,14 @@
   }
 
   .asset-row__action-icon {
-    font-size: 32px;
-    margin-right: 20px;
+    font-size: 26px;
+    margin-left: 20px;
     font-weight: 400;
     color: $cool-gray;
     cursor: pointer;
-    padding: 0px 6px;
-
-    svg.ki-icon {
-      width:32px;
-      height:32px;
-      vertical-align: top;
-    }
+    padding: 4px 6px;
+    display: inline-block;
+    vertical-align: middle;
 
     &:hover {
       background-color: transparent;
@@ -130,15 +126,20 @@
 
     &.asset-row__action-icon--view i,
     &.asset-row__action-icon--preview i {
-      @extend .ki, .ki-eye;
+      @extend .k-icon, .k-icon-view;
     }
 
     &.asset-row__action-icon--view-collection i {
-      @extend .ki, .ki-folder;
+      @extend .k-icon, .k-icon-folder;
+    }
+
+    &.asset-row__action-icon--edit {
+      margin-right: -8px;
+      font-size: 29px;
     }
 
     &.asset-row__action-icon--edit i {
-      @extend .ki, .ki-pencil;
+      @extend .k-icon, .k-icon-edit;
     }
 
     &.asset-row__action-icon--clone i {
@@ -146,15 +147,15 @@
     }
 
     &.asset-row__action-icon--delete i {
-      @extend .ki, .ki-trash;
+      @extend .k-icon, .k-icon-trash;
     }
 
     &.asset-row__action-icon--sharing i {
-      @extend .ki, .ki-share;
+      @extend .k-icon, .k-icon-share;
     }
 
     &.asset-row__action-icon--download i {
-      @extend .ki, .ki-download;
+      @extend .k-icon, .k-icon-download;
     }
 
     &.asset-row__action-icon--refresh i {

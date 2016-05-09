@@ -1,0 +1,86 @@
+@font-face {
+  font-family: 'k-icons';
+  src: url('../fonts/k-icons.eot?70811610');
+  src: url('../fonts/k-icons.eot?70811610#iefix') format('embedded-opentype'),
+       url('../fonts/k-icons.woff2?70811610') format('woff2'),
+       url('../fonts/k-icons.woff?70811610') format('woff'),
+       url('../fonts/k-icons.ttf?70811610') format('truetype'),
+       url('../fonts/k-icons.svg?70811610#k-icons') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Chrome hack: SVG is rendered more smooth in Windozze. 100% magic, uncomment if you need it. */
+/* Note, that will break hinting! In other OS-es font will be not as sharp as it could be */
+/*
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  @font-face {
+    font-family: 'k-icons';
+    src: url('../font/k-icons.svg?70811610#k-icons') format('svg');
+  }
+}
+*/
+ 
+ .k-icon {
+  font-family: "k-icons";
+  font-style: normal;
+  font-weight: normal;
+ }
+
+ .k-icon:before, 
+ [class^="k-icon-"]:before, 
+ [class*=" k-icon-"]:before {
+  font-family: "k-icons";
+  font-style: normal;
+  font-weight: normal;
+  speak: none;
+  display: inline-block;
+  text-decoration: inherit;
+  width: 1em;
+  margin-right: .2em;
+  text-align: center;
+
+  /* For safety - reset parent styles, that can break glyph codes*/
+  font-variant: normal;
+  text-transform: none;
+ 
+  /* fix buttons height, for twitter bootstrap */
+  line-height: 1em;
+ 
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+ 
+}
+ 
+.k-icon-projects:before { content: '\e800'; } /* '' */
+.k-icon-attach:before { content: '\e801'; } /* '' */
+.k-icon-view:before { content: '\e802'; } /* '' */
+.k-icon-folder-share:before { content: '\e803'; } /* '' */
+.k-icon-expand:before { content: '\e804'; } /* '' */
+.k-icon-library:before { content: '\e805'; } /* '' */
+.k-icon-drafts:before { content: '\e806'; } /* '' */
+.k-icon-form:before { content: '\e807'; } /* '' */
+.k-icon-download:before { content: '\e808'; } /* '' */
+.k-icon-trash:before { content: '\e809'; } /* '' */
+.k-icon-share:before { content: '\e80a'; } /* '' */
+.k-icon-folder-shared:before { content: '\e80b'; } /* '' */
+.k-icon-folder:before { content: '\e80c'; } /* '' */
+.k-icon-settings:before { content: '\e80d'; } /* '' */
+.k-icon-active-1:before { content: '\e80e'; } /* '' */
+.k-icon-help:before { content: '\e80f'; } /* '' */
+.k-icon-edit:before { content: '\e810'; } /* '' */
+.k-icon-logout:before { content: '\e811'; } /* '' */
+.k-icon-check:before { content: '\e812'; } /* '' */
+.k-icon-inactive:before { content: '\e813'; } /* '' */
+.k-icon-active:before { content: '\e814'; } /* '' */
+.k-icon-grid:before { content: '\e815'; } /* '' */
+.k-icon-multiple-pages:before { content: '\e816'; } /* '' */
+.k-icon-results:before { content: '\e817'; } /* '' */
+.k-icon-photo-gallery:before { content: '\e818'; } /* '' */
+.k-icon-view-all:before { content: '\e819'; } /* '' */
+.k-icon-notification:before { content: '\e81a'; } /* '' */
+.k-icon-map-view:before { content: '\e81b'; } /* '' */
+.k-icon-block:before { content: '\e81c'; } /* '' */
+.k-icon-question:before { content: '\e81d'; } /* '' */
+.k-icon-github:before { content: '\e81e'; } /* '' */
+

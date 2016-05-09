@@ -2,7 +2,6 @@ import React from 'react/addons';
 import {Navigation} from 'react-router';
 import $ from 'jquery';
 import ReactTooltip from 'react-tooltip';
-import SVGIcon from '../libs/SVGIcon';
 
 import bem from '../bem';
 import ui from '../ui';
@@ -63,7 +62,7 @@ var AssetRow = React.createClass({
     var isDeployable = !isCollection && this.props.asset_type && this.props.asset_type === 'survey';
     hrefParams[hrefKey] = this.props.uid;
 
-    // <SVGIcon id='ki-check-round' /> temporarily removed from selected asset
+    // check-round icon temporarily removed from selected asset
     return (
         <bem.AssetRow m={{
                             'selected': this.props.isSelected,
@@ -121,7 +120,7 @@ var AssetRow = React.createClass({
           { this.props.isSelected &&
             <bem.AssetRow__buttons onClick={this.clickAssetButton}>
                 { this.props.kind === 'asset' &&
-                  ['edit', 'view', 'download'].map((actn)=>{
+                  ['view', 'edit', 'download'].map((actn)=>{
                     var icon = 'ki-' + actn;
                     return (
                           <bem.AssetRow__actionIcon
@@ -132,7 +131,7 @@ var AssetRow = React.createClass({
                               data-disabled={false}
                               title={actn}
                               >
-                            <SVGIcon id={icon} />
+                            <i />
                           </bem.AssetRow__actionIcon>
                         );
                   })
@@ -194,7 +193,7 @@ var AssetRow = React.createClass({
                       data-tip={t('delete')}
                       title={t('delete')}
                     >
-                  <SVGIcon id='ki-trash' />
+                  <i />
                 </bem.AssetRow__actionIcon>
               <ReactTooltip effect="float" place="bottom" />
             </bem.AssetRow__buttons>

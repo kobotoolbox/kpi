@@ -56,9 +56,15 @@
       height:74px;
       border-right: 1px solid #979797;
 
-      svg {
-        stroke:#FFF;
-        margin-top: 15px;
+      i {
+        color: #FFF;
+        font-size: 48px;
+        padding-top: 12px;
+        display: inline-block;
+        vertical-align: middle;
+        &:before {
+          margin-right:0px;
+        }
       }
     }
 
