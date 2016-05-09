@@ -26,10 +26,10 @@ http://codepen.io/adamaoc/pen/KguLA
 }
 
 .form-header__button {
-  @extend .mdl-button, .mdl-button--raised, .mdl-js-button;
+  @extend .mdl-button, .mdl-button--raised;
 
   > i {
-    @extend .fa, .fa-sm, .fa-fw;
+    @extend .fa, .fa-fw;
     margin-right: 5px;
   }
   margin-right: 5px;
