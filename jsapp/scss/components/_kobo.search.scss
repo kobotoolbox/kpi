@@ -1,16 +1,13 @@
-
 .search {
   @extend .mdl-cell, .mdl-cell--12-col;
-
   position: relative;
   margin-top: 12px;
   padding: 0 20px;
-
   .search__cancel, .search__icon {
     position: absolute;
     top: 26px;
     color: #bbb;
-    @extend .fa, .fa-fw, .fa-icon;
+    @extend .fa, .fa-fw;
   }
   .search__icon {
     left: 0;
@@ -24,7 +21,7 @@
     }
   }
   &.search--failed {
-    border: 1px solid rgba(255,100,100,0.4);
+    border: 1px solid rgba(255, 100, 100, 0.4);
   }
   &.search--loading {
     .search__icon {
@@ -45,9 +42,9 @@
     }
   }
 }
+
 .search__summary {
   @extend .mdl-cell, .mdl-cell--12-col;
-
   padding: 0 20px;
   margin-top: 12px;
   color: #888;

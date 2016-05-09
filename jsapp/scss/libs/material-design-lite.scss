@@ -1,14 +1,11 @@
-// Material Icons font 
+// Material Icons font
 @font-face {
   font-family: 'Material Icons';
   font-style: normal;
   font-weight: 400;
-  src:  local('Material Icons'), 
-        local('MaterialIcons-Regular'), 
-        url('../fonts/MaterialIcons-Regular.woff2') format('woff2'), 
-        url('../fonts/MaterialIcons-Regular.woff') format('woff'), 
-        url('../fonts/MaterialIcons-Regular.ttf') format('truetype');
+  src: local("Material Icons"), local("MaterialIcons-Regular"), url("../fonts/MaterialIcons-Regular.woff2") format("woff2"), url("../fonts/MaterialIcons-Regular.woff") format("woff"), url("../fonts/MaterialIcons-Regular.ttf") format("truetype");
 }
+
 
 .material-icons {
   font-family: 'Material Icons';
@@ -25,29 +22,26 @@
 }
 
 // Color definitions
-@import '../../../node_modules/material-design-lite/src/_color-definitions';
+@import "../../../node_modules/material-design-lite/src/_color-definitions";
 
 // KPI MDL Variable Overrides
 $color-primary: $palette-indigo-400 !default;
 $color-primary-dark: $palette-indigo-600 !default;
-$color-accent: $palette-indigo-A200 !default; 
+$color-accent: $palette-indigo-A200 !default;
 $layout-header-bg-color: unquote("rgb(#{$palette-blue-grey-800})") !default;
-$preferred_font: 'Open Sans', 'Helvetica', 'Arial', sans-serif !default;
-$performance_font: 'Open Sans', 'Helvetica', 'Arial', sans-serif !default; 
+$preferred_font: "Open Sans", "Helvetica", "Arial", sans-serif !default;
+$performance_font: "Open Sans", "Helvetica", "Arial", sans-serif !default;
 
-$layout-text-color: #FFF !default;
-$layout-drawer-navigation-color: #FFF !default;
+$layout-text-color: white !default;
+$layout-drawer-navigation-color: white !default;
 $layout-nav-color: unquote("rgb(#{$palette-blue-grey-900})") !default;
 $layout-drawer-navigation-link-active-background: unquote("rgb(#{$palette-blue-grey-900})") !default;
-$layout-drawer-navigation-link-active-color: #FFF !default;
+$layout-drawer-navigation-link-active-color: white !default;
+
 // Custom variables
 $k-drawer-icon-color: unquote("rgb(#{$palette-light-blue-A200})");
 
-@import '../../../node_modules/material-design-lite/src/material-design-lite';
-
-.row {
-  @extend .mui-row;
-}
+@import "../../../node_modules/material-design-lite/src/material-design-lite";
 
 body {
   @extend .mdl-color--grey-100;
@@ -56,17 +50,15 @@ body {
 $layout-header-mobile-indent-plus: $layout-header-mobile-indent + 6px;
 $layout-header-desktop-indent-plus: $layout-header-desktop-indent + 6px;
 
-@import '../components/kobo.drawer';
+@import "../components/kobo.drawer";
 
 .mdl-checkbox__tick-outline {
-  mask: url('../img/tick-mask.svg?embed');
-
+  mask: url("../img/tick-mask.svg?embed");
   .mdl-checkbox.is-checked & {
-    background: $checkbox-color url('../img/tick.svg?embed');
+    background: $checkbox-color url("../img/tick.svg?embed");
   }
-
   .mdl-checkbox.is-checked.is-disabled & {
-    background: $checkbox-disabled-color url('../img/tick.svg?embed');
+    background: $checkbox-disabled-color url("../img/tick.svg?embed");
   }
 }
 
@@ -76,9 +68,8 @@ $layout-header-desktop-indent-plus: $layout-header-desktop-indent + 6px;
   a, a:hover {
     color: white;
   }
-
   + .header-breadcrumb__item:before {
-    content:'>';
+    content: '>';
     display: inline-block;
     margin-right: 10px;
     opacity: 0.6;
