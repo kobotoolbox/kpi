@@ -228,6 +228,7 @@ module.exports = function (options) {
         './cptable': 'var cptable'
       }
     ],
+    bail: true,
     debug: options.debug
   };
 
