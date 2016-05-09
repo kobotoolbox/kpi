@@ -15,11 +15,11 @@ ENV KPI_LOGS_DIR=/srv/logs \
 # Install any additional `apt` packages. #
 ##########################################
 
-COPY ./apt_requirements.txt ${KPI_SRC_DIR}/
+COPY ./apt_requirements.txt "${KPI_SRC_DIR}/"
 # Only install if the current version of `apt_requirements.txt` differs from the one used in the base image.
-RUN if [ "$(diff -q ${KPI_SRC_DIR}/apt_requirements.txt /srv/tmp/base_apt_requirements.txt)" ]; then \
+RUN if ! diff "${KPI_SRC_DIR}/apt_requirements.txt" /srv/tmp/base_apt_requirements.txt; then \
         apt-get update && \
-        apt-get install -y $(cat ${KPI_SRC_DIR}/apt_requirements.txt) && \
+        apt-get install -y "$(cat ${KPI_SRC_DIR}/apt_requirements.txt)" && \
         apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \ 
     ; fi
 
@@ -28,10 +28,10 @@ RUN if [ "$(diff -q ${KPI_SRC_DIR}/apt_requirements.txt /srv/tmp/base_apt_requir
 # Re-sync `pip` packages. #
 ###########################
 
-COPY ./requirements.txt ${KPI_SRC_DIR}/
+COPY ./requirements.txt "${KPI_SRC_DIR}/"
 # Only install if the current version of `requirements.txt` differs from the one used in the base image.
-RUN if [ "$(diff -q ${KPI_SRC_DIR}/requirements.txt /srv/tmp/base_requirements.txt)" ]; then \
-    pip-sync "${KPI_SRC_DIR}/requirements.txt" \
+RUN if ! diff "${KPI_SRC_DIR}/requirements.txt" /srv/tmp/base_requirements.txt; then \
+        pip-sync "${KPI_SRC_DIR}/requirements.txt" \
     ; fi
 
 
@@ -39,10 +39,11 @@ RUN if [ "$(diff -q ${KPI_SRC_DIR}/requirements.txt /srv/tmp/base_requirements.t
 # Install any additional `npm` packages. #
 ##########################################
 
-COPY ./package.json ${KPI_SRC_DIR}/
+COPY ./package.json "${KPI_SRC_DIR}/"
 # Only install if the current version of `package.json` differs from the one used in the base image.
-RUN if [ "$(diff -q ${KPI_SRC_DIR}/package.json /srv/tmp/base_package.json)" ]; then \
-    npm install \
+RUN if ! diff "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json; then \
+        # Try error-prone `npm install` step twice.
+        npm install || npm install \
     ; fi
 
 
@@ -50,11 +51,11 @@ RUN if [ "$(diff -q ${KPI_SRC_DIR}/package.json /srv/tmp/base_package.json)" ]; 
 # Install any additional Bower packages. #
 ##########################################
 
-COPY ./bower.json ./.bowerrc ${KPI_SRC_DIR}/
+COPY ./bower.json ./.bowerrc "${KPI_SRC_DIR}/"
 # Only install if the current versions of `bower.json` or `.bowerrc` differ from the ones used in the base image.
-RUN if [ "$(diff -q ${KPI_SRC_DIR}/bower.json /srv/tmp/base_bower.json && \
-        diff -q ${KPI_SRC_DIR}/.bowerrc /srv/tmp/base_bowerrc)" ]; then \
-    bower install --allow-root --config.interactive=false \
+RUN if ! diff "${KPI_SRC_DIR}/bower.json" /srv/tmp/base_bower.json && \
+            ! diff "${KPI_SRC_DIR}/.bowerrc" /srv/tmp/base_bowerrc; then \
+        bower install --allow-root --config.interactive=false \
     ; fi
 
 
@@ -62,8 +63,8 @@ RUN if [ "$(diff -q ${KPI_SRC_DIR}/bower.json /srv/tmp/base_bower.json && \
 # Build client code. #
 ######################
 
-COPY ./Gruntfile.js ${KPI_SRC_DIR}/
-COPY ./jsapp ${KPI_SRC_DIR}/jsapp
+COPY ./Gruntfile.js "${KPI_SRC_DIR}/"
+COPY ./jsapp "${KPI_SRC_DIR}/jsapp"
 RUN mkdir "${GRUNT_BUILD_DIR}" && \
     mkdir "${GRUNT_FONTS_DIR}" && \
     ln -s "${GRUNT_BUILD_DIR}" "${KPI_SRC_DIR}/jsapp/compiled" && \
@@ -77,7 +78,7 @@ RUN mkdir "${GRUNT_BUILD_DIR}" && \
 ###############################################
 
 RUN rm -rf "${KPI_SRC_DIR}"
-COPY . ${KPI_SRC_DIR}
+COPY . "${KPI_SRC_DIR}"
 # Restore the backed-up package installation directories.
 RUN ln -s "${NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
     ln -s "${BOWER_COMPONENTS_DIR}/" "${KPI_SRC_DIR}/jsapp/xlform/components" && \
