@@ -472,52 +472,54 @@ export default {
           </bem.FormBuilderHeader__row>
           <bem.FormBuilderHeader__row m={'second'} >
             <bem.FormBuilderHeader__cell m={'buttons'} >
+              <bem.FormBuilderHeader__button m={['preview', {
+                    previewdisabled: previewDisabled
+                  }]} onClick={this.previewForm}
+                  disabled={previewDisabled}
+                  data-tip={t('Preview form')} >
+                <i className="k-icon-view" />
+              </bem.FormBuilderHeader__button>
               { showAllAvailable ?
                 <bem.FormBuilderHeader__button m={['show-all', {
                       open: showAllOpen,
                     }]} 
                     onClick={this.showAll}
-                    data-tip={t('Show All Responses')}>
+                    data-tip={t('Expand / collapse questions')}>
                   <i className="k-icon-view-all" />
                 </bem.FormBuilderHeader__button>
               : null }
-              <bem.FormBuilderHeader__button m={['attach']}
-                  data-tip={t('Attach files')} 
-                  className="is-edge">
-                <i className="k-icon-attach" />
-              </bem.FormBuilderHeader__button>
-
               { groupable ?
                 <bem.FormBuilderHeader__button m={['group', {
                       groupable: groupable
                     }]} onClick={this.groupQuestions}
                     disabled={!groupable}
-                    data-tip={t('Group Questions')}>
+                    data-tip={t('Create group with selected questions')}>
                   <i className="k-icon-multiple-pages" />
                 </bem.FormBuilderHeader__button>
               : null }
+              <bem.FormBuilderHeader__button m={['download']}
+                  data-tip={t('Download form')} 
+                  className="is-edge">
+                <i className="k-icon-download" />
+              </bem.FormBuilderHeader__button>
+
               { hasSettings ?
                 <bem.FormBuilderHeader__item>
                   <bem.FormBuilderHeader__button m={{
                     formstyle: true,
                     formstyleactive: this.state.formStylePanelDisplayed,
-                  }} onClick={this.openFormStylePanel} >
+                  }} onClick={this.openFormStylePanel} 
+                    data-tip={t('Web form layout')} >
                     <i className="k-icon-grid" />
-                    {t('layout')}
+                    {t('Layout')}
+                    <i className="fa fa-caret-down" />
                   </bem.FormBuilderHeader__button>
                 </bem.FormBuilderHeader__item>
               : null }
-              <bem.FormBuilderHeader__button m={['download']}
-                  data-tip={t('Download')} 
+              <bem.FormBuilderHeader__button m={['attach']}
+                  data-tip={t('Attach media files')} 
                   className="is-edge">
-                <i className="k-icon-download" />
-              </bem.FormBuilderHeader__button>
-              <bem.FormBuilderHeader__button m={['preview', {
-                    previewdisabled: previewDisabled
-                  }]} onClick={this.previewForm}
-                  disabled={previewDisabled}
-                  data-tip={t('Preview')} >
-                <i className="k-icon-view" />
+                <i className="k-icon-attach" />
               </bem.FormBuilderHeader__button>
             </bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__cell m={'spacer'} />
