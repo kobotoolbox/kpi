@@ -77,7 +77,7 @@ RUN mkdir "${GRUNT_BUILD_DIR}" && \
     rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
     ln -s "${GRUNT_FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts"
 
-RUN grunt copy && grunt webfont:icons && npm run build-production
+RUN grunt copy && npm run build-production
 
 ###############################################
 # Copy over this directory in its current state. #
