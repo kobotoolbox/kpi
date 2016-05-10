@@ -217,7 +217,7 @@
 }
 
 .form-view__link, .form-view__button {
-	@extend .mdl-button, .mdl-js-button, .mdl-button--raised;
+	@extend .mdl-button, .mdl-button--raised;
 	margin:4px;
 	&--edit, &--download {
 		@extend .mdl-button--colored;

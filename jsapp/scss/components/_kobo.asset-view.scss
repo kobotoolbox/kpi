@@ -34,18 +34,17 @@ $mult: 0.5;
   }
 }
 
-%has-icon-col {
-  @extend .row;
+// %has-icon-col {
+  // @extend .row;
+//   padding-bottom: 12px;
+//   min-height: 1.2em;
+//   border-top: 1px solid #eee;
+//   padding-top: 6px;
+// }
 
-  padding-bottom: 12px;
-  min-height: 1.2em;
-  border-top: 1px solid #eee;
-  padding-top: 6px;
-}
-
-.asset-view__row {
-  @extend .row;
-}
+// .asset-view__row {
+//   @extend .row;
+// }
 
 .asset-view__row--header {
   padding: 0 10px 0 12px;

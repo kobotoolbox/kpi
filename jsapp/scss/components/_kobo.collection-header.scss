@@ -5,8 +5,6 @@
 }
 
 .collection-header__button-row {
-  @extend .row;
-
   padding-top: 15px;
   position: relative;
 }
@@ -18,7 +16,6 @@
   align-items: center;
   padding-top: 20px;
   padding-bottom: 10px;
-
   .mdl-textfield {
     flex-grow: 1;
   }
@@ -26,7 +23,6 @@
 
 .collection-header__iconwrap {
   color: dimgrey;
-
   i {
     @extend .fa, .fa-fw, .fa-folder-o, .fa-2x;
   }
@@ -35,16 +31,12 @@
 .collection-header__input {
   width: 100%;
   font-size: 28px;
-
   @extend .mdl-textfield__input;
-
   padding-left: 10px;
-
   &:focus {
     border-color: unquote("rgb(#{$color-primary})");
     border-bottom-width: 2px;
   }
-
   &.collection-header__input--saving {
     &:focus {
       border-color: unquote("rgb(#{$color-primary-dark})");
@@ -83,14 +75,11 @@
   &:not(.collection-header__button--disabled) {
     border: 1px solid rgba($col, 0.25);
     color: darken($col, 10%);
-
     i {
       color: $col;
     }
-
     background-color: mix($col, white, 5%);
   }
-
   &.collection-header__button--disabled {
     border: 3px solid transparent;
     color: mix($col, grayscale($col), 80%);
@@ -105,68 +94,49 @@
 
 .collection-header__button {
   @extend .btn;
-
   // @extend .btn-sm;
   &:hover {
     color: #fff;
   }
-
   i {
     @extend .fa;
-
     @extend .fa-fw;
   }
-
   span {
     margin-left: 5px;
   }
-
   &.collection-header__button--disabled {
     @extend .disabled;
   }
-
   &.collection-header__button--new-asset i {
     &:after {
       content: '+';
     }
   }
-
   &.collection-header__button--view-asset {
     @include headerbutton($kcol-view);
-
     @include action-faicon("file-o");
   }
-
   &.collection-header__button--edit-asset {
     @include headerbutton($kcol-edit);
-
     @include action-faicon("pencil");
   }
-
   &.collection-header__button--preview-asset {
     @include headerbutton($kcol-preview);
-
     @include action-faicon("eye");
   }
-
   &.collection-header__button--download-asset {
     @include headerbutton($kcol-download);
-
     @include action-faicon("download");
   }
-
   &.collection-header__button--clone-asset {
     @include headerbutton($kcol-clone);
-
     @include action-faicon("copy");
   }
-
   &.collection-header__button--delete-asset {
     @include headerbutton($kcol-delete);
-
     @include action-faicon("trash-o");
   }
-
   &.collection-header__button--deploy-asset {
     @include action-faicon("play");
   }
@@ -196,17 +166,14 @@
   -webkit-box-shadow: 2px 4px 14px 0px rgba(50, 50, 50, 0.2);
   -moz-box-shadow: 2px 4px 14px 0px rgba(50, 50, 50, 0.2);
   box-shadow: 2px 4px 14px 0px rgba(50, 50, 50, 0.2);
-
   span {
     display: none;
   }
-
   &:hover {
     -webkit-box-shadow: 2px 4px 14px 0px rgba(50, 50, 50, 0.4);
     -moz-box-shadow: 2px 4px 14px 0px rgba(50, 50, 50, 0.4);
     box-shadow: 2px 4px 14px 0px rgba(50, 50, 50, 0.4);
   }
-
   &.collection-header__button--muted {
     background-color: tint($newformButtonColor, 30%);
     color: #f4f4f4;
@@ -214,7 +181,6 @@
     box-shadow: none;
     -webkit-box-shadow: none;
     -moz-box-shadow: none;
-
     &:hover {
       opacity: 1;
     }
