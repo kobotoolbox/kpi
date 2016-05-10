@@ -24,6 +24,7 @@ def exit_with_error(message):
     print message
     sys.exit(1)
 
+
 def check_key_filename(deployment_configs):
     if 'key_filename' in deployment_configs and \
        not os.path.exists(deployment_configs['key_filename']):
@@ -34,6 +35,7 @@ def check_key_filename(deployment_configs):
         if not os.path.exists(deployment_configs['key_filename']):
             exit_with_error("Cannot find required permissions file: %s" %
                             deployment_configs['key_filename'])
+
 
 def setup_env(deployment_name):
     deployment = DEPLOYMENTS.get(deployment_name, {})
@@ -48,10 +50,11 @@ def setup_env(deployment_name):
     check_key_filename(deployment)
 
     env.uwsgi_pidfile = os.path.join('/home', 'ubuntu', 'pids',
-                                  'kobo-uwsgi-master.pid')
+                                     'kobo-uwsgi-master.pid')
     env.kpi_path = os.path.join(env.home, env.kpi_path)
     env.pip_requirements_file = os.path.join(env.kpi_path,
                                              'requirements.txt')
+
 
 def deploy_ref(deployment_name, ref):
     setup_env(deployment_name)
@@ -93,9 +96,11 @@ def deploy_ref(deployment_name, ref):
     run("sudo restart kpi_celeryd")
     run("sudo service uwsgi reload")
 
+
 # NOTE non-master branch
 def deploy(deployment_name, branch='master'):
     deploy_ref(deployment_name, 'origin/{}'.format(branch))
+
 
 def deploy_passing(deployment_name, branch='master'):
     ''' Deploy the latest code on the given branch that's
