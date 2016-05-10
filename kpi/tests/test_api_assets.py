@@ -235,3 +235,17 @@ class ObjectRelationshipsTests(APITestCase):
         self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
         req = self.client.get(surv_url)
         self.assertIn('/collections/%s' % (other_coll.uid), req.data['parent'])
+
+
+class AssetsSettingsFieldTest(KpiTestCase):
+    fixtures = ['test_data']
+
+    def test_query_settings(self):
+        asset_title= 'asset_title'
+        content= {'settings': [{'id_string': 'titled_asset'}],
+                 'survey': [{'label': 'Q1 Label.', 'type': 'decimal'}]}
+        self.login('someuser', 'someuser')
+        asset= self.create_asset(None, json.dumps(content), format='json')
+        self.assert_object_in_object_list(asset)
+        # Note: This is not an API method, but an ORM one.
+        self.assertTrue(Asset.objects.filter(settings__id_string='titled_asset'))
