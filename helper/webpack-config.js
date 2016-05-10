@@ -21,7 +21,8 @@ module.exports = function (options) {
     outputDir: path.resolve(__dirname, '../jsapp/compiled/'),
     outputHash: true,
     port: 3000,
-    publicPath: '/static/compiled/',
+    // on prod + staging, process.env.KPI_PREFIX is '/forms'
+    publicPath: (process.env.KPI_PREFIX || '') + '/static/compiled/',
     saveStats: false,
   };
 
