@@ -167,7 +167,7 @@ var Drawer = React.createClass({
               <DrawerLink label={t('projects')} linkto='forms' ki-icon='projects' />
               <DrawerLink label={t('library')} linkto='library' ki-icon='library' />
               { stores.session.currentAccount ?
-                  <DrawerLink label={t('projects')} active='true' href={stores.session.currentAccount.projects_url} className="is-edge" />
+                  <DrawerLink label={t('projects')} active='true' href={stores.session.currentAccount.projects_url} className="is-edge" ki-icon='globe' />
               : null }
               <div className="mdl-layout-spacer"></div>
 
@@ -186,6 +186,7 @@ var Drawer = React.createClass({
                 if (n < 1) {
                   return (
                     <div className="header-breadcrumb__item" key={`bc${n}`}>
+                      <i className="k-icon-library" />
                       {
                         ('to' in item) ?
                         <Link to={item.to} params={item.params}>{item.label}</Link>
@@ -246,8 +247,9 @@ var Drawer = React.createClass({
                         allitems: true,
                         selected: !this.state.filteredCollectionUid,
                       }} onClick={this.clickFilterByCollection}>
-                    <i />
-                    {t('all items (no filter)')}
+                    <i className="fa fa-caret-down" />
+                    <i className="k-icon-folder" />
+                    {t('My Library')}
                   </bem.CollectionSidebar__item>
                   {this.state.sidebarCollections.map((collection)=>{  
                     var editLink = this.makeHref('collection-page', {uid: collection.uid}),

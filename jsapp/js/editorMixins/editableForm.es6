@@ -466,7 +466,7 @@ export default {
               <bem.FormBuilderHeader__close m={[{
                     'close-warning': this.needsSave(),
                   }]} onClick={this.navigateBack}>
-                <i className="material-icons">clear</i>
+                <i className="k-icon-close"></i>
               </bem.FormBuilderHeader__close>
             </bem.FormBuilderHeader__cell>
           </bem.FormBuilderHeader__row>
@@ -494,7 +494,7 @@ export default {
                     }]} onClick={this.groupQuestions}
                     disabled={!groupable}
                     data-tip={t('Create group with selected questions')}>
-                  <i className="k-icon-multiple-pages" />
+                  <i className="k-icon-group" />
                 </bem.FormBuilderHeader__button>
               : null }
               <bem.FormBuilderHeader__button m={['download']}

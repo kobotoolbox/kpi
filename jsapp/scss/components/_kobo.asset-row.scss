@@ -31,6 +31,10 @@
     }
   }
 
+  &:last-child {
+    border-bottom: 1px solid transparentize($cool-gray, 0.7);    
+  }
+
 }
 
 .asset-row__cell--tags {
@@ -98,8 +102,8 @@
   }
 
   .asset-row__action-icon {
-    font-size: 26px;
-    margin-left: 20px;
+    font-size: 20px;
+    margin-left: 15px;
     font-weight: 400;
     color: $cool-gray;
     cursor: pointer;
@@ -143,7 +147,7 @@
     }
 
     &.asset-row__action-icon--clone i {
-      @extend .fa, .fa-copy;
+      @extend .k-icon, .k-icon-clone;
     }
 
     &.asset-row__action-icon--delete i {
@@ -155,7 +159,7 @@
     }
 
     &.asset-row__action-icon--download i {
-      @extend .k-icon, .k-icon-download;
+      @extend .k-icon, .k-icon-folder-share-1;
     }
 
     &.asset-row__action-icon--refresh i {

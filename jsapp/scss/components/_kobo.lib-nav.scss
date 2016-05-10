@@ -1,5 +1,5 @@
 .lib-nav {
-  position: fixed;
+  position: absolute;
   right: 0;
   bottom: 0px;
   width: 400px;
@@ -88,14 +88,15 @@
   transition: all 0.3s ease 0s;
   width: 60px;
   height: 60px;
-  line-height: 75px;
+  line-height: 60px;
   cursor: pointer;
   text-align: center;
   .lib-nav--deactivated & {
     background-color: rgba(255, 255, 255, 0.2);
   }
   > i:first-child {
-    @extend .fa, .fa-2x, .fa-book;
+    @extend .k-icon, .k-icon-library;
+    font-size: 32px;
   }
 }
 

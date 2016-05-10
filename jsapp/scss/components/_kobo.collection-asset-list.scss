@@ -21,22 +21,22 @@
   padding: 0px 12px;
   white-space: nowrap;
   background-color: #f7f8fa;
+  border-bottom: 1px solid transparentize($cool-gray, 0.7);
   > .asset-list-sorts__item {
     color: $cool-gray;
     font-weight: 500;
     position: relative;
-    padding: 6px 0px;
-    margin-top: 4px;
-    margin-bottom: 4px;
+    padding: 10px 0px;
+    margin-top: 0px;
+    margin-bottom: 0px;
     &:after {
       content: '';
       height: 100%;
       width: 1px;
-      background-color: $cool-gray;
+      background-color: transparentize($cool-gray, 0.7);
       right: 2px;
       top: 0px;
       position: absolute;
-      opacity: 0.5;
     }
     &.asset-list-sorts__item--questions {
       &:after {

@@ -11,11 +11,18 @@
 
   &__item {
     color: $cool-gray;
-    padding: 3px;
-    border: 1px solid #FFF;
+    padding: 0px;
     cursor: pointer;
-    font-weight: 500;
     vertical-align: top;
+    margin-left: 20px;
+    margin-bottom: 10px;
+    text-align: left;
+    direction: ltr;
+
+    &--allitems {
+      margin-left: 0px;
+      color: darken($cool-gray, 15%);
+    }
 
     &--info {
       cursor: default;
@@ -27,11 +34,15 @@
     }
 
     &--selected {
-      border: 1px solid #DEDEDE;
+      color:#555B6E;
 
       > .collection-sidebar__itemactions {
         display: inline-block;
       }
+    }
+
+    &:hover {
+      color:#555B6E;
     }
 
     > i {
@@ -39,10 +50,14 @@
       vertical-align: top;
       padding-top: 3px;
       display: inline-block;
+      &.fa {
+        margin-right: 4px;
+        padding-top: 6px;
+      }
     }
 
     > span {
-      width: 82%;
+      max-width: 80%;
       display: inline-block;
       line-height: 1.3em;
       padding-top: 5px;
@@ -50,16 +65,19 @@
   }
 }
 
+.collection-sidebar {
+    max-height: 50%;
+    overflow: auto;
+    margin-right: -5px;
+}
+
 .form-sidebar {
   &__grouping {
     max-height: 140px;
     padding: 0px 10px;
-    padding-left: 18px;
+    // padding-left: 18px;
     overflow: auto;
-    direction: rtl;
-    text-align: left;
     margin: 8px;
-    margin-left: 12px;
   }
 
   &__item {
@@ -96,17 +114,22 @@
   }
 }
 
-.form-sidebar__grouping::-webkit-scrollbar {
+.form-sidebar__grouping::-webkit-scrollbar,
+.collection-sidebar::-webkit-scrollbar {
   width: 0.6em;
 }
 
-.form-sidebar__grouping::-webkit-scrollbar-track {
+.form-sidebar__grouping::-webkit-scrollbar-track,
+.collection-sidebar::-webkit-scrollbar-track {
   background-color: #DEDEDE;
+  background-color: transparent;
   border-radius: 8px;
 }
 
-.form-sidebar__grouping::-webkit-scrollbar-thumb {
-  background-color: $cool-green;
+.form-sidebar__grouping::-webkit-scrollbar-thumb,
+.collection-sidebar::-webkit-scrollbar-thumb {
+  // background-color: $cool-green;
+  background-color: #DEDEDE;
   outline: none;
   border-radius: 8px;
 }

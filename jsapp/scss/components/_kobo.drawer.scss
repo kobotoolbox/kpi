@@ -31,20 +31,31 @@ $drawer-icons-column-width: 56px;
   display: flex;
   flex-direction: column;
   border-top: solid 1px #CDCDCD;
+  padding-bottom: 40px;
   .k-drawer__link {
     padding: 12px 0px;
+    font-size: 28px;
   }
 }
 
 .drawer__sidebar {
   width: calc(100% - 50px);
   height: 100%;
-  padding: 10px;
+  padding: 15px 10px;
   overflow: hidden;
   .header-breadcrumb__item {
     text-align: center;
     font-size: 18px;
     margin-bottom: 10px;
+    a {
+      color: #8A9AA4;
+      font-weight: normal;
+    }
+    i {
+      color: #8A9AA4;
+      font-size: 22px;
+      vertical-align: middle;
+    }
   }
   .k-drawer__close {
     display: none;
