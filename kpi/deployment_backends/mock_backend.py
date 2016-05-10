@@ -10,11 +10,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     defines the interface for a deployment backend. 
     '''
-    def connect(self):
+    def connect(self, active=False):
         self.store_data({
                 'backend': 'mock',
                 'identifier': 'mock://%s' % self.asset.uid,
-                'active': False,
+                'active': active,
             })
 
     def set_active(self, active):

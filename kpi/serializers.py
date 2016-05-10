@@ -568,7 +568,7 @@ class DeploymentSerializer(serializers.Serializer):
                 'Only the current version can be deployed')
         asset.connect_deployment(
             backend=validated_data['backend'],
-            active=validated_data['active']
+            active=validated_data.get('active', False),
         )
         return asset.deployment
 
