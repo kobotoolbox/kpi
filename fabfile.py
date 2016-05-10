@@ -16,6 +16,9 @@ deployments_file = os.environ.get('DEPLOYMENTS_JSON', 'deployments.json')
 if os.path.exists(deployments_file):
     with open(deployments_file, 'r') as f:
         IMPORTED_DEPLOYMENTS = json.load(f)
+else:
+    raise Exception("Cannot find deployments.json")
+
 
 def exit_with_error(message):
     print message
@@ -79,6 +82,8 @@ def deploy_ref(deployment_name, ref):
             run("bower install")
             run("npm install")
             run("grunt buildall")
+            run("npm run build-production")
+
             # KPI and KF share a virtualenv but have distinct settings modules
             with prefix('DJANGO_SETTINGS_MODULE=kobo_playground.settings'):
                 run("python manage.py syncdb")
