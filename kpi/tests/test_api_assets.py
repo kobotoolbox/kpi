@@ -248,4 +248,4 @@ class AssetsSettingsFieldTest(KpiTestCase):
         asset= self.create_asset(None, json.dumps(content), format='json')
         self.assert_object_in_object_list(asset)
         # Note: This is not an API method, but an ORM one.
-        self.assertTrue(Asset.objects.filter(settings__id_string='titled_asset'))
+        self.assertFalse(Asset.objects.filter(settings__id_string='titled_asset'))

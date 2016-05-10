@@ -8,6 +8,7 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.db import models
 from django.db import transaction
 from django.dispatch import receiver
+import jsonbfield.fields
 from jsonfield import JSONField
 from shortuuid import ShortUUID
 from taggit.managers import TaggableManager, _TaggableManager
@@ -188,6 +189,7 @@ class Asset(ObjectPermissionMixin,
     uid = models.CharField(
         max_length=ASSET_UID_LENGTH, default='', unique=True)
     tags = TaggableManager(manager=KpiTaggableManager)
+    settings= jsonbfield.fields.JSONField(default=dict)
 
     # _deployment_data should be accessed through the `deployment` property
     # provided by `DeployableMixin`
