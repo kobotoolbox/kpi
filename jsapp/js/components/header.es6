@@ -41,7 +41,7 @@ var MainHeader = React.createClass({
     hotkey.Mixin('handleHotkey'),
   ],
   handleHotkey: function(e) {
-    if (e.altKey && e.keyCode == '69') {
+    if (e.altKey && (e.keyCode == '69' || e.keyCode == '186')) {
       document.body.classList.toggle('hide-edge');
     }
   },
