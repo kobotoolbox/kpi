@@ -52,37 +52,37 @@ var SidebarFormsList = React.createClass({
     var s = this.state;
     return (
       <bem.FormSidebar>
-        <bem.FormSidebar__label className="is-edge">
-          <i className="k-icon-active-1" />
-          {t('Active')} (#)
-        </bem.FormSidebar__label>
-        <bem.FormSidebar__grouping>
-          {
-            (()=>{
-              if (s.defaultQueryState === 'loading') {
-                return (
+        {
+          (() => {
+            if (s.defaultQueryState === 'loading') {
+              return (
+                <bem.FormSidebar__grouping>
                   <bem.FormSidebar__item m={'loading'}>
                     {t('loading...')}
                   </bem.FormSidebar__item>
-                );
-              } else if (s.defaultQueryState === 'done') {
-                  return s.defaultQueryResultsList.map(this.renderMiniAssetRow);
-              }
-            })()
-          }
-        </bem.FormSidebar__grouping>
-        <bem.FormSidebar__label className="is-edge">
-          <i className="k-icon-drafts" />
-          {t('Drafts')} (#)
-        </bem.FormSidebar__label>
-        <bem.FormSidebar__label className="is-edge">
-          <i className="k-icon-inactive" />
-          {t('Inactive')} (#)
-        </bem.FormSidebar__label>
-        <bem.FormSidebar__label className="is-edge">
-          <i className="k-icon-trash" />
-          {t('Deleted')} (#)
-        </bem.FormSidebar__label>
+                </bem.FormSidebar__grouping>
+              );
+            } else if (s.defaultQueryState === 'done') {
+              return ['active', 'drafts', 'inactive', 'deleted'].map(
+                (category) => {
+                  return [
+                    <bem.FormSidebar__label>
+                      <i className={`k-icon-${category}-1`} />
+                      {t(category)}
+                      {` (${s.defaultQueryCategorizedResultsLists[category].length})`}
+                    </bem.FormSidebar__label>,
+                    <bem.FormSidebar__grouping>
+                      {
+                        s.defaultQueryCategorizedResultsLists[category].map(
+                          this.renderMiniAssetRow)
+                      }
+                    </bem.FormSidebar__grouping>
+                  ];
+                }
+              );
+            }
+          })()
+        }
       </bem.FormSidebar>
     );
   },
