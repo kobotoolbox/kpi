@@ -256,14 +256,19 @@ class Command(BaseCommand):
                             deployment_data['date_modified'])
                         asset.content = asset_content
                         asset.save()
-                        # If this user already has an identically-named asset,
-                        # append `xform.id_string` in parentheses for
-                        # clarification
-                        if Asset.objects.filter(
+                        # The first save handles pulling the form title from
+                        # the settings sheet. If this user already has a
+                        # different but identically-named asset, append
+                        # `xform.id_string` in parentheses for clarification
+                        if Asset.objects.exclude(pk=asset.pk).filter(
                                 owner=user, name=asset.name).exists():
-                            asset.name = u'{} ({})'.format(
-                                asset.name, xform.id_string)
-                            # `store_data()` handles saving the asset
+                            if asset.name and len(asset.name.strip()):
+                                asset.name = u'{} ({})'.format(
+                                    asset.name, xform.id_string)
+                            else:
+                                asset.name = xform.id_string
+                            # Don't call `asset.save()` since `store_data()`
+                            # handles saving the asset
                         # Copy the deployment-related data
                         kc_deployment = KobocatDeploymentBackend(asset)
                         kc_deployment.store_data({
