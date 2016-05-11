@@ -63,11 +63,12 @@ var SidebarFormsList = React.createClass({
                 </bem.FormSidebar__grouping>
               );
             } else if (s.defaultQueryState === 'done') {
-              return ['active', 'drafts', 'inactive', 'deleted'].map(
+              return ['active', 'drafts', 'inactive' /*, 'deleted'*/].map(
                 (category) => {
+                  // TODO: ask Penar what's the difference between k-icon-active-1 and k-icon-active
                   return [
                     <bem.FormSidebar__label>
-                      <i className={`k-icon-${category}-1`} />
+                      <i className={`k-icon-${category == 'active' ? 'active-1' : category}`} />
                       {t(category)}
                       {` (${s.defaultQueryCategorizedResultsLists[category].length})`}
                     </bem.FormSidebar__label>,
@@ -83,6 +84,10 @@ var SidebarFormsList = React.createClass({
             }
           })()
         }
+        <bem.FormSidebar__label className="is-edge">
+          <i className="k-icon-trash" />
+          {t('Deleted')} (#)
+        </bem.FormSidebar__label>
       </bem.FormSidebar>
     );
   },
