@@ -8,6 +8,26 @@ module.exports = do ->
     skipLogicParser: $skipLogicParser
     validationLogicParser: $validationLogicParser
 
+  _trim = (str)->
+    str.replace(/^[\s\t\uFEFF\xA0]+|[\s\t\uFEFF\xA0]+$/g, '')
+
+  utils.split_paste = (str)->
+    out = []
+    for row in str.split('\n')
+      trimmed = _trim(row)
+      unless trimmed.match(/^\s*$/)
+        out.push(trimmed.split(/\s/))
+    out_out = []
+    for row in out[1..]
+      orow = []
+      for n in [0...row.length]
+        key = out[0][n]
+        val = row[n]
+        if val.length > 0
+          orow.push([key, val])
+      out_out.push(_.object(orow))
+    out_out
+
   utils.txtid = ()->
     # a is text
     # b is numeric or text

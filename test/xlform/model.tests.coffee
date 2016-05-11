@@ -34,7 +34,6 @@ xlform_survey_model = ($model)->
       @compareCsvs(x1, x2)
 
   it "creates xlform", ->
-    expect(1).toBe(2)
     xlf = new $model.Survey name: "Sample"
     expect(xlf).toBeDefined()
     expect(xlf instanceof $model.Survey).toBe(true)

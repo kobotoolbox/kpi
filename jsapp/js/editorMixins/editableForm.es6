@@ -5,6 +5,7 @@ import Select from 'react-select';
 import _ from 'underscore';
 import DocumentTitle from 'react-document-title';
 import SurveyScope from '../models/surveyScope';
+import cascadeMixin from './cascadeMixin';
 
 import {
   surveyToValidJson,
@@ -178,7 +179,7 @@ var FormSettingsBox = React.createClass({
   },
 });
 
-export default {
+export default assign({
   getInitialState () {
     return {
       asset_updated: update_states.UP_TO_DATE,
@@ -516,11 +517,21 @@ export default {
                   </bem.FormBuilderHeader__button>
                 </bem.FormBuilderHeader__item>
               : null }
+
               <bem.FormBuilderHeader__button m={['attach']}
-                  data-tip={t('Attach media files')} 
+                  data-tip={t('Attach media files')}
                   className="is-edge">
                 <i className="k-icon-attach" />
               </bem.FormBuilderHeader__button>
+              { this.toggleCascade !== undefined ?
+                <bem.FormBuilderHeader__button m={['cascading']}
+                    onClick={this.toggleCascade}
+                    data-tip={t('Insert cascading select')}>
+                  <i className="k-icon-cascade" />
+                  C
+                </bem.FormBuilderHeader__button>
+              : null }
+
             </bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__cell m={'spacer'} />
             <bem.FormBuilderHeader__cell m={'library-toggle'} >
@@ -613,6 +624,11 @@ export default {
           <ui.Panel m={'transparent'}>
             <bem.FormBuilder m={this.state.formStylePanelDisplayed ? 'formStyleDisplayed': null }>
               {this.renderSaveAndPreviewButtons()}
+
+              {this.state.showCascadePopup ?
+                this.renderCascadePopup()
+              : null}
+
               <bem.FormBuilder__contents>
                 { isSurvey ?
                   <FormSettingsBox survey={this.app.survey} {...this.state} />
@@ -637,4 +653,4 @@ export default {
         </DocumentTitle>
       );
   },
-};
+}, cascadeMixin);

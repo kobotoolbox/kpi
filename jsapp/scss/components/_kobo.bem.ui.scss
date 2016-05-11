@@ -24,24 +24,30 @@
 
 .ui-panel__body {
   @extend .mdl-grid, .mdl-grid--no-spacing, .mdl-shadow--2dp;
+
   background: #FFF;
   padding: 0;
   height: 100%;
   flex-direction: column;
+
   > .asset-view__content,
   > .collection-list,
   > .formBuilder {
     @extend .mdl-cell, .mdl-cell--12-col;
+
     flex-flow: column;
     margin: 0px !important;
   }
+
   > .collection-list {
     position: relative;
     height: calc(100% - 50px);
   }
+
   > .asset-view__content {
     height: 100%;
   }
+
   > .formBuilder {
     height: 100%;
   }
@@ -69,6 +75,7 @@
     width: 100%;
     height: 100%;
   }
+
   .ui-panel {
     margin: 0px;
   }
@@ -79,16 +86,20 @@
   display: flex;
   align-items: center;
   margin-bottom: 20px;
+
   .user--pill {
     display: flex;
     padding-right: 20px;
+
     span.fa-stack {
       margin-right: 5px;
     }
+
     a.user-profile-link {
       font-size: 1.1em;
       font-weight: 600;
     }
+
     .user--pill__name {
       line-height: 1.2em;
       padding-top: 4px;
@@ -113,6 +124,7 @@
 
 .message--loading {
   text-align: center;
+
   > i:first-child {
     @extend .fa, .fa-fw, .fa-spinner, .fa-spin;
   }
@@ -131,19 +143,24 @@
 
 .popover-menu__item, .popover-menu__link {
   @extend .mdl-shadow--6dp, .mdl-color--white;
+
   padding: 10px 8px 10px 26px;
   position: relative;
+
   > i:first-child {
     @extend .fa, .fa-fw;
+
     position: absolute;
     top: 12px;
     left: 4px;
   }
+
   &.popover-menu__link--dl-xls {
     > i:first-child {
       @extend .fa-file-excel-o;
     }
   }
+
   &.popover-menu__link--dl-xml {
     > i:first-child {
       @extend .fa-file-code-o;
@@ -153,6 +170,7 @@
 
 .reactTooltip.place-bottom {
   background-color: #8a9aa4 !important;
+
   &:after {
     border-bottom: 8px solid #8a9aa4 !important;
   }
@@ -160,4 +178,15 @@
 
 .reactTooltip.show {
   opacity: 1 !important;
+}
+
+.cascade-popup {
+  background-color: #ddd;
+  padding: 20px 15px;
+  margin-top: 20px;
+
+  textarea {
+    width: 100%;
+    height: 120px;
+  }
 }

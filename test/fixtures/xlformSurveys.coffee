@@ -4,6 +4,8 @@ fixtures of surveys, wrapped in javascript objects.
 sample surveys for tests.)
 ###
 
+_ = require("underscore")
+
 class SurveyFixture
   constructor: (@name)->
     @equivs = []
@@ -24,6 +26,24 @@ class SurveyFixture
       @_main
 
 surveys = {}
+
+surveys.cascading =
+  choices: (_.object(["list_name", "name", "label", "state", "county"], x) \
+                  for x in [
+                    ["state", "texas", "Texas", null, null],
+                    ["state", "washington", "Washington", null, null],
+                    ["county", "king", "King", "washington", null],
+                    ["county", "pierce", "Pierce", "washington", null],
+                    ["county", "king", "King", "texas", null],
+                    ["county", "cameron", "Cameron", "texas", null],
+                    ["city", "dumont", "Dumont", null, "king"],
+                    ["city", "finney", "Finney", null, "king"],
+                    ["city", "brownsville", "brownsville", null, "cameron"],
+                    ["city", "harlingen", "harlingen", null, "cameron"],
+                    ["city", "seattle", "Seattle", null, "king"],
+                    ["city", "redmond", "Redmond", null, "king"],
+                    ["city", "tacoma", "Tacoma", null, "pierce"],
+                    ["city", "puyallup", "Puyallup", null, "pierce"]])
 
 surveys.pizza_survey = do->
   csv = """

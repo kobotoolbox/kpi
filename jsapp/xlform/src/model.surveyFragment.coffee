@@ -123,6 +123,8 @@ module.exports = do ->
       unless '__rows' of opts
         opts.__rows = []
 
+      opts.__rows = [].concat.apply([], opts.__rows)
+
       rowCids = []
       @forEachRow (
           (r)->
