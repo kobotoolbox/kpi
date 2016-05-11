@@ -186,7 +186,11 @@ var Drawer = React.createClass({
                 if (n < 1) {
                   return (
                     <div className="header-breadcrumb__item" key={`bc${n}`}>
-                      <i className="k-icon-library" />
+                      {item.to == 'library' ?
+                        <i className="k-icon-library" />
+                      :
+                        <i className="k-icon-projects" />
+                      }
                       {
                         ('to' in item) ?
                         <Link to={item.to} params={item.params}>{item.label}</Link>
