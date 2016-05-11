@@ -7,7 +7,7 @@ var CascadePopup = bem.create('cascade-popup'),
     CascadePopup__message = bem.create('cascade-popup__message'),
     CascadePopup__button = bem.create('cascade-popup__button', '<button>');
 
-var choiceListHelpUrl = 'http://support.kobotoolbox.org';
+var choiceListHelpUrl = 'http://support.kobotoolbox.org/customer/en/portal/articles/1682856';
 
 import {
   surveyToValidJson,

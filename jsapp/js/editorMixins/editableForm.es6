@@ -32,6 +32,8 @@ var FormStyle__panel = bem('form-style__panel'),
     FormStyle__panelheader = bem('form-style__panelheader'),
     FormStyle__paneltext = bem('form-style__paneltext');
 
+var webformStylesSupportUrl = "http://support.kobotoolbox.org/customer/en/portal/articles/2108533";
+
 var FormSettingsEditor = React.createClass({
   render () {
     return (
@@ -550,7 +552,7 @@ export default assign({
                 {t('select the form style that you would like to use. this will only affect web forms.')}
               </FormStyle__paneltext>
               <FormStyle__paneltext>
-                <a href="http://support.kobotoolbox.org/customer/en/portal/articles/2108533">
+                <a href={webformStylesSupportUrl}>
                   {t('read more...')}
                 </a>
               </FormStyle__paneltext>
