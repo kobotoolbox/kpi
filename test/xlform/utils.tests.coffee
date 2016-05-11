@@ -5,16 +5,16 @@ pasted = [
             ["list_name", "name", "label", "state", "county"],
             ["state", "texas", "Texas", ""],
             ["state", "washington", "Washington", ""],
-            ["county", "king", "King", "washington", ""],
+            ["county", "king 1", "King", "washington", ""],
             ["county", "pierce", "Pierce", "washington", ""],
-            ["county", "king", "King", "texas", ""],
+            ["county", "king 2", "King", "texas", ""],
             ["county", "cameron", "Cameron", "texas", ""],
-            ["city", "dumont", "Dumont", "texas", "king"],
-            ["city", "finney", "Finney", "texas", "king"],
+            ["city", "dumont", "Dumont", "texas", "king 2"],
+            ["city", "finney", "Finney", "texas", "king 2"],
             ["city", "brownsville", "brownsville", "texas", "cameron"],
             ["city", "harlingen", "harlingen", "texas", "cameron"],
-            ["city", "seattle", "Seattle", "washington", "king"],
-            ["city", "redmond", "Redmond", "washington", "king"],
+            ["city", "seattle", "Seattle", "washington", "king 1"],
+            ["city", "redmond", "Redmond", "washington", "king 1"],
             ["city", "tacoma", "Tacoma", "washington", "pierce"],
             ["city", "puyallup", "Puyallup", "washington", "pierce"]
         ].map((r)-> r.join("\t")).join("\n")
@@ -33,7 +33,7 @@ expectation = JSON.parse("""
     },
     {
         "list_name": "county",
-        "name": "king",
+        "name": "king 1",
         "label": "King",
         "state": "washington"
     },
@@ -45,7 +45,7 @@ expectation = JSON.parse("""
     },
     {
         "list_name": "county",
-        "name": "king",
+        "name": "king 2",
         "label": "King",
         "state": "texas"
     },
@@ -60,14 +60,14 @@ expectation = JSON.parse("""
         "name": "dumont",
         "label": "Dumont",
         "state": "texas",
-        "county": "king"
+        "county": "king 2"
     },
     {
         "list_name": "city",
         "name": "finney",
         "label": "Finney",
         "state": "texas",
-        "county": "king"
+        "county": "king 2"
     },
     {
         "list_name": "city",
@@ -88,14 +88,14 @@ expectation = JSON.parse("""
         "name": "seattle",
         "label": "Seattle",
         "state": "washington",
-        "county": "king"
+        "county": "king 1"
     },
     {
         "list_name": "city",
         "name": "redmond",
         "label": "Redmond",
         "state": "washington",
-        "county": "king"
+        "county": "king 1"
     },
     {
         "list_name": "city",
@@ -118,8 +118,16 @@ expectation = JSON.parse("""
 do ->
   describe 'model.utils', ->
     describe 'pasted', ->
+      _eqKeyVals = (a, b)->
+        expect(_.keys(a).sort().join(',')).toEqual(_.keys(b).sort().join(','))
+        expect(_.values(a).sort().join(',')).toEqual(_.values(b).sort().join(','))
+
       it 'splits pasted code into appropriate chunks', ->
-        expect($utils.split_paste(pasted)).toEqual(expectation)
+        splitted = $utils.split_paste(pasted)
+        expect(splitted.length).toEqual(expectation.length)
+        for i in [0..splitted.length]
+            _eqKeyVals(splitted[i], expectation[i])
+
     describe 'sluggify', ->
       it 'lowerCases: true', ->
         expect($utils.sluggify("TESTING LOWERCASE TRUE", lowerCase: true)).toEqual('testing_lowercase_true')

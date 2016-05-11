@@ -16,7 +16,7 @@ module.exports = do ->
     for row in str.split('\n')
       trimmed = _trim(row)
       unless trimmed.match(/^\s*$/)
-        out.push(trimmed.split(/\s/))
+        out.push(trimmed.split(/\t/))
     out_out = []
     for row in out[1..]
       orow = []
