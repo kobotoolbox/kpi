@@ -8,8 +8,7 @@ bem.PageWrapper = BEM('page-wrapper');
 bem.PageWrapper__content = bem.PageWrapper.__('content');
 
 bem.Loading = BEM('loading');
-bem.Loading__message = bem.Loading.__('message');
-bem.Loading__img = bem.Loading.__('img', '<img>');
+bem.Loading__inner = bem.Loading.__('inner');
 
 bem.AssetRow = BEM('asset-row', '<li>');
 bem.AssetRow__cell        = bem.AssetRow.__('cell');
@@ -79,7 +78,6 @@ bem.CollectionNav__searchicon = bem.CollectionNav.__('searchicon', '<i>');
 
 bem.CollectionList = bem('collection-list', '<div>');
 bem.CollectionAssetList = bem('collection-asset-list', '<ul>');
-bem.CollectionAssetList__message = bem.CollectionAssetList.__('message');
 
 bem.CollectionSidebar = bem('collection-sidebar');
 bem.CollectionSidebar__item = bem.CollectionSidebar.__('item');
@@ -115,7 +113,7 @@ bem.ListView__attr = bem.ListView.__('attr');
 
 bem.AssetView = BEM('asset-view');
 bem.AssetView__label = bem.AssetView.__('label', '<label>');
-bem.AssetView__message = bem.AssetView.__('message');
+// bem.AssetView__message = bem.AssetView.__('message');
 bem.AssetView__content = bem.AssetView.__('content');
 bem.AssetView__value = bem.AssetView.__('value', '<span>');
 bem.AssetView__assetTypeWrap = bem.AssetView.__('asset-type-wrap');

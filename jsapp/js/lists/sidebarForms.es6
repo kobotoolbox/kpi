@@ -61,9 +61,12 @@ var SidebarFormsList = React.createClass({
             (()=>{
               if (s.defaultQueryState === 'loading') {
                 return (
-                  <bem.FormSidebar__item m={'loading'}>
-                    {t('loading...')}
-                  </bem.FormSidebar__item>
+                  <bem.Loading>
+                    <bem.Loading__inner>
+                      <i />
+                      {t('loading...')} 
+                    </bem.Loading__inner>
+                  </bem.Loading>
                 );
               } else if (s.defaultQueryState === 'done') {
                   return s.defaultQueryResultsList.map(this.renderMiniAssetRow);

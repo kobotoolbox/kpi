@@ -870,13 +870,12 @@ var App = React.createClass({
 // intended to provide a component we can export to html
 var Loading = React.createClass({
   render () {
-    var loadingImage = 'path/to/img.jpg';
     return (
         <bem.Loading>
-          <bem.Loading__message>
+          <bem.Loading__inner>
+            <i />
             {t('loading kobotoolbox')}
-          </bem.Loading__message>
-          <bem.Loading__img src={loadingImage} />
+          </bem.Loading__inner>
         </bem.Loading>
       );
   }

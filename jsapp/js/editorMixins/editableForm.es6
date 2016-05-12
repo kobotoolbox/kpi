@@ -586,12 +586,12 @@ export default assign({
   },
   renderLoadingNotice () {
     return (
-        <bem.AssetView__content>
-          <bem.AssetView__message m={'loading'}>
+        <bem.Loading>
+          <bem.Loading__inner>
             <i />
-            {t('loading...')}
-          </bem.AssetView__message>
-        </bem.AssetView__content>
+            {t('loading...')} 
+          </bem.Loading__inner>
+        </bem.Loading>
       );
   },
   hidePreview () {

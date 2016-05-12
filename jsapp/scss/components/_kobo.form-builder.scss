@@ -17,6 +17,7 @@
 .form-wrap {
   padding:0px 75px;
   width: 100%;
+  min-height: 200px;
   .survey-header, .sub-header-bar {
     display: none;
   }
@@ -25,6 +26,10 @@
     &:focus {
       box-shadow: none;
     }
+  }
+
+  .loading {
+    min-height: 200px;
   }
 }
 

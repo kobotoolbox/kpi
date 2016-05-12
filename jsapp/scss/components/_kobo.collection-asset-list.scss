@@ -3,20 +3,6 @@
   overflow: auto;
 }
 
-.collection-asset-list__message {
-  padding: 4px 12px;
-  &.collection-asset-list__message--loading {
-    > i:first-child {
-      @extend .fa, .fa-spin, .fa-spinner;
-      margin-right: 12px;
-    }
-  }
-  &.collection-asset-list__message--empty {
-    font-style: italic;
-    color: $cool-gray;
-  }
-}
-
 .asset-list-sorts {
   padding: 0px 12px;
   white-space: nowrap;

@@ -77,9 +77,12 @@ var SearchCollectionList = React.createClass({
               if (s.searchResultsDisplayed) {
                 if (s.searchState === 'loading') {
                   return (
-                    <bem.CollectionAssetList__message m={'loading'}>
-                      {t('loading...')}
-                    </bem.CollectionAssetList__message>
+                    <bem.Loading>
+                      <bem.Loading__inner>
+                        <i />
+                        {t('loading...')} 
+                      </bem.Loading__inner>
+                    </bem.Loading>
                   );
                 } else if (s.searchState === 'done') {
                   return s.searchResultsList.map(this.renderAssetRow);
@@ -87,20 +90,19 @@ var SearchCollectionList = React.createClass({
               } else {
                 if (s.defaultQueryState === 'loading') {
                   return (
-                    <bem.CollectionAssetList__message m={'loading'}>
-                      {t('loading...')}
-                    </bem.CollectionAssetList__message>
+                    <bem.Loading>
+                      <bem.Loading__inner>
+                        <i />
+                        {t('loading...')} 
+                      </bem.Loading__inner>
+                    </bem.Loading>
                   );
                 } else if (s.defaultQueryState === 'done') {
                   return s.defaultQueryResultsList.map(this.renderAssetRow);
                 }
               }
               // it shouldn't get to this point
-              return (
-                <bem.CollectionAssetList__message m={'error'}>
-                  {t('error')}
-                </bem.CollectionAssetList__message>
-              );
+              return false;
             })()
           }
           </bem.CollectionAssetList>

@@ -767,12 +767,14 @@ var dmix = {
   },
   innerRender () {
     return (
-        <bem.AssetView m='loadin g'>
-          <ui.Panel>
+      <ui.Panel>
+        <bem.Loading>
+          <bem.Loading__inner>
             <i />
-            {t('loading asset')}
-          </ui.Panel>
-        </bem.AssetView>
+            {t('loading...')} 
+          </bem.Loading__inner>
+        </bem.Loading>
+      </ui.Panel>
       );
   },
   _createPanel () {
