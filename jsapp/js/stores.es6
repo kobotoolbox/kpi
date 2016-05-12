@@ -316,6 +316,23 @@ var sessionStore = Reflux.createStore({
       acct.sysDate = new Date(Date.parse(acct.system_time));
       acct.curDate = new Date();
     }
+    if (acct.available_sectors) {
+      acct.available_sectors = acct.available_sectors.map(function(_s){
+        return {
+          value: _s[0],
+          label: _s[1],
+        };
+      });
+    }
+    if (acct.available_countries) {
+      acct.available_countries = acct.available_countries.map(function(_c){
+        return {
+          value: _c[0],
+          label: _c[1],
+        };
+      });
+    }
+
     this.trigger({
       isLoggedIn: true,
       sessionIsLoggedIn: true,
