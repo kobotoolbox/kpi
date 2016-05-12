@@ -647,21 +647,20 @@ var dmix = {
       });
   },
   renderDeployments () {
-    console.log(this.state);
-    var deployed_versions = [
-        {
-          version_id: 1, 
-          date_deployed: 'June 1 2016',
-        },
-        {
-          version_id: 2, 
-          date_deployed: 'June 1 2016',
-        },
-        {
-          version_id: 3, 
-          date_deployed: 'June 1 2016',
-        }
-    ];
+    // var deployed_versions = [
+    //     {
+    //       version_id: 1, 
+    //       date_deployed: 'June 1 2016',
+    //     },
+    //     {
+    //       version_id: 2, 
+    //       date_deployed: 'June 1 2016',
+    //     },
+    //     {
+    //       version_id: 3, 
+    //       date_deployed: 'June 1 2016',
+    //     }
+    // ];
 
     return (
         <bem.FormView__group m="deployments">
@@ -695,30 +694,30 @@ var dmix = {
             </bem.FormView__item>
           </bem.FormView__group>
 
-          <bem.FormView__group m="history">
-            <bem.FormView__label m='previous-versions'>
-              {t('Previous Versions')}
-            </bem.FormView__label>
+          {this.state.deployed_versions.length > 0 && 
+            <bem.FormView__group m="history">
+              <bem.FormView__label m='previous-versions'>
+                {t('Previous Versions')}
+              </bem.FormView__label>
 
-            {deployed_versions.map((item) => {
-              return (
-                <bem.FormView__group m="deploy-row">
-                  <bem.FormView__item m='version'>
-                    {item.version_id}
-                  </bem.FormView__item>
-                  <bem.FormView__item m='date'>
-                    {formatTime(item.date_deployed)}
-                  </bem.FormView__item>
-                  <bem.FormView__item m='lang'>
-                    
-                  </bem.FormView__item>
-                  <bem.FormView__item m='questions'>
-                    {this.state.summary.row_count}
-                  </bem.FormView__item>
-                </bem.FormView__group>
-              );
-            })}
-          </bem.FormView__group>
+              {this.state.deployed_versions.map((item) => {
+                return (
+                  <bem.FormView__group m="deploy-row">
+                    <bem.FormView__item m='version'>
+                      {item.version_id}
+                    </bem.FormView__item>
+                    <bem.FormView__item m='date'>
+                      {formatTime(item.date_deployed)}
+                    </bem.FormView__item>
+                    <bem.FormView__item m='lang'>
+                    </bem.FormView__item>
+                    <bem.FormView__item m='questions'>
+                    </bem.FormView__item>
+                  </bem.FormView__group>
+                );
+              })}
+            </bem.FormView__group>
+          }
         </bem.FormView__group>
       );
   },
