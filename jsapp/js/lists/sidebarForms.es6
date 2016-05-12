@@ -52,36 +52,39 @@ var SidebarFormsList = React.createClass({
     var s = this.state;
     return (
       <bem.FormSidebar>
-        <bem.FormSidebar__label className="is-edge">
-          <i className="k-icon-active-1" />
-          {t('Active')} (#)
-        </bem.FormSidebar__label>
-        <bem.FormSidebar__grouping>
-          {
-            (()=>{
-              if (s.defaultQueryState === 'loading') {
-                return (
-                  <bem.Loading>
-                    <bem.Loading__inner>
-                      <i />
-                      {t('loading...')} 
-                    </bem.Loading__inner>
-                  </bem.Loading>
-                );
-              } else if (s.defaultQueryState === 'done') {
-                  return s.defaultQueryResultsList.map(this.renderMiniAssetRow);
-              }
-            })()
-          }
-        </bem.FormSidebar__grouping>
-        <bem.FormSidebar__label className="is-edge">
-          <i className="k-icon-drafts" />
-          {t('Drafts')} (#)
-        </bem.FormSidebar__label>
-        <bem.FormSidebar__label className="is-edge">
-          <i className="k-icon-inactive" />
-          {t('Inactive')} (#)
-        </bem.FormSidebar__label>
+        {
+          (() => {
+            if (s.defaultQueryState === 'loading') {
+              return (
+                <bem.Loading>
+                  <bem.Loading__inner>
+                    <i />
+                    {t('loading...')} 
+                  </bem.Loading__inner>
+                </bem.Loading>
+              );
+            } else if (s.defaultQueryState === 'done') {
+              return ['active', 'drafts', 'inactive' /*, 'deleted'*/].map(
+                (category) => {
+                  // TODO: ask Penar what's the difference between k-icon-active-1 and k-icon-active
+                  return [
+                    <bem.FormSidebar__label>
+                      <i className={`k-icon-${category}`} />
+                      {t(category)}
+                      {` (${s.defaultQueryCategorizedResultsLists[category].length})`}
+                    </bem.FormSidebar__label>,
+                    <bem.FormSidebar__grouping m={category}>
+                      {
+                        s.defaultQueryCategorizedResultsLists[category].map(
+                          this.renderMiniAssetRow)
+                      }
+                    </bem.FormSidebar__grouping>
+                  ];
+                }
+              );
+            }
+          })()
+        }
         <bem.FormSidebar__label className="is-edge">
           <i className="k-icon-trash" />
           {t('Deleted')} (#)
