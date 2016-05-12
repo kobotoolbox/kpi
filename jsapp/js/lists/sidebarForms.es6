@@ -66,7 +66,6 @@ var SidebarFormsList = React.createClass({
             } else if (s.defaultQueryState === 'done') {
               return ['active', 'drafts', 'inactive' /*, 'deleted'*/].map(
                 (category) => {
-                  // TODO: ask Penar what's the difference between k-icon-active-1 and k-icon-active
                   return [
                     <bem.FormSidebar__label>
                       <i className={`k-icon-${category}`} />

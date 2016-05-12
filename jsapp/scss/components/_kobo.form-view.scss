@@ -67,15 +67,8 @@
   background-color: #FFF;
   padding: 15px;
   margin-right:8px;
-  &--edit {
-  	width:50%;
-  }
-  &--history {
-  	width:30%;
-    position: relative;
-  }
-  &--meta {
-  	width:20%;
+  &--overview {
+    width:100%;
   }
   &:last-child {
   	margin-right: 0px;
@@ -89,12 +82,12 @@
 }
 
 .form-view__label {
-  font-size: 16px;
+  font-size: 14px;
   color: $cool-gray;
   &--title {
+    font-size: 16px;
     color: $cool-green;
   }
-
   &--white {
     color: white;
   }
@@ -126,10 +119,6 @@
 	text-align: center;
 	padding: 8px;
   padding-bottom: 12px;
-	&--editpreview {
-		border-bottom: 1px solid #CCC;
-    margin-bottom: 12px;
-	}
 
   .dropzone {
     display: inline;
@@ -139,33 +128,57 @@
     text-align: right;
   }
 
-}
-
-.form-view__group--deployments-overlay {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background-color: $cool-gray;
-  opacity:0.9;
-  left: 0px;
-  top: 0px;
-  text-align: left;
-  padding:10px 15px;
-  .form-view__label {
-    font-size: 20px;
-    padding-bottom: 20px;
+  &--deployments {
+    padding:0px;
   }
 
-  .form-view__group {
-    color: white;
-    &--desc {
-      text-align: left;
-      font-size: 16px;
+  &--headings {
+    padding:0px;
+    padding-top: 15px;
+    padding-bottom: 5px;
+    > .form-view__label {
+      text-align: right;
+      display: inline-block;
+      width:15%;
+      &--version {
+        width:55%;
+        text-align: left;
+      }
     }
   }
-  i {
-    font-size: 32px;
+
+  &--deploy-row {
+    border-top:1px solid #DDD;
+    padding:8px 0px;
+    > .form-view__item {
+      text-align: right;
+      display: inline-block;
+      width:15%;
+      &--version {
+        width:55%;
+        text-align: left;
+      }
+    }
   }
+
+  &--history {
+    border-top:1px solid #DDD;
+    border-bottom:1px solid #DDD;
+    padding:0px;
+  }
+
+  &--buttons {
+    display: inline-block;
+    float: right;
+    text-align: right;
+    padding: 0px;
+  }
+
+}
+
+.form-view__label--previous-versions {
+  text-align: left;
+  padding: 12px 0px;
 }
 
 .form-view__banner {
@@ -207,41 +220,31 @@
 }
 
 // buttons in forms 
-
-.k-button--bordered {
-	background:white;
-	color:unquote("rgb(#{$color-primary})");
-	border:2px solid unquote("rgb(#{$color-primary})");
-	box-shadow: none;
-	line-height: 32px;
-}
-
-.form-view__link, .form-view__button {
-	@extend .mdl-button, .mdl-button--raised;
-	margin:4px;
-	&--edit, &--download {
-		@extend .mdl-button--colored;
-	}
-	&--preview, &--upload {
-		@extend .k-button--bordered;
-	}
-}
-
-.form-view__link--make-active {
-  border:2px solid white;
-  background-color: rgba(255,255,255,0.2);
-  color: white;
-  box-shadow: none;
-  height:48px;
-  line-height: 44px;
-  padding: 0px 24px;
-  margin:10px;
+.form-view__link {
+  font-size:18px;
+  margin-left: 10px;
+  color: $cool-gray;
+  cursor: pointer;
+  i.k-icon-view:before {
+    width:1.5em;
+  }
   &:hover {
-    background-color: #FFF;
-    color:unquote("rgb(#{$color-primary})");
+    color: unquote("rgb(#{$color-primary})");
   }
 }
 
-.form-view__item--download {
+.form-view__item--more-actions {
   position: relative;
+  margin-left: 10px;
+  button {
+    font-size: 18px;
+    background-color: transparent;
+    color: $cool-gray;
+    border:none;
+    border-radius: none;
+    cursor: pointer;
+    &:focus, &:hover {
+      color: unquote("rgb(#{$color-primary})");
+    }
+  }
 }

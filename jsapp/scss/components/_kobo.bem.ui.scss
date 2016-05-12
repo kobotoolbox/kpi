@@ -142,34 +142,29 @@
 
 .popover-menu {
   position: absolute;
-  top: 2.8em;
-  left: 7.5%;
-  width: 85%;
+  top: 1.5em;
+  right: 0;
+  min-width:200px;
+  max-width: 300px;
+  text-align: left;
+  box-shadow: 0px 2px 5px 0 rgba(0,0,0,0.2);
 }
 
 .popover-menu__link {
+  background-color: #FFF;
   display: block;
-}
-
-.popover-menu__item, .popover-menu__link {
-  @extend .mdl-shadow--6dp, .mdl-color--white;
-  padding: 10px 8px 10px 26px;
+  padding: 10px 5px;
   position: relative;
+  color:$cool-gray;
+  cursor: pointer;
+  &:hover {
+    background-color: #eff0f1;
+    color:$cool-gray;
+  }
+
   > i:first-child {
-    @extend .fa, .fa-fw;
-    position: absolute;
-    top: 12px;
-    left: 4px;
-  }
-  &.popover-menu__link--dl-xls {
-    > i:first-child {
-      @extend .fa-file-excel-o;
-    }
-  }
-  &.popover-menu__link--dl-xml {
-    > i:first-child {
-      @extend .fa-file-code-o;
-    }
+    margin-right: 6px;
+    font-size: 18px;
   }
 }
 

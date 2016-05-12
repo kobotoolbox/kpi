@@ -12,6 +12,7 @@ import stores from './stores';
 import bem from './bem';
 import actions from './actions';
 import ui from './ui';
+import ReactTooltip from 'react-tooltip';
 import {
   formatTime,
   customConfirm,
@@ -132,27 +133,11 @@ var dmix = {
               {this.renderAncestors()}
               {this.renderHeader()}
               <bem.FormView__row>
-                <bem.FormView__cell m='edit'>
-                  <bem.FormView__label  m='title'>
-                    {t('Create and Edit your Project')}
-                  </bem.FormView__label>
-                  {this.renderEditPreviewButtons()}
-                  <bem.FormView__label>
-                    {t('For Advanced Users')}
-                  </bem.FormView__label>
-                  {this.renderDownloadButtons()}
-                  {this.renderDeployButtons()}
-                </bem.FormView__cell>
-                <bem.FormView__cell m='history'>
+                <bem.FormView__cell m='overview'>
                   <bem.FormView__label m='title'>
-                    {t('Form Version History')}
+                    {t('Form Overview')}
                   </bem.FormView__label>
                   {this.renderDeployments()}
-                </bem.FormView__cell>
-                <bem.FormView__cell m='meta'>
-                  {this.renderDateModified()}
-                  {this.renderLanguages()}
-                  {this.renderRowCount()}
                 </bem.FormView__cell>
               </bem.FormView__row>
               <bem.FormView__row m="collecting" className="is-edge">
@@ -185,25 +170,8 @@ var dmix = {
                     <li>{t('Open "Enter Data."')}</li>
                   </ol>
                 </bem.FormView__cell>
-                { this.state.deployed_version_id === null &&
-                    <bem.FormView__group m="collecting-overlay">
-                      <bem.FormView__group m="desc">
-                        {t('Your form must be active in order to start collecting data. ')}
-                      </bem.FormView__group>
-                      <bem.FormView__link m={'make-active'}  onClick={this.deployAsset}>
-                          {t('Make Active')}
-                      </bem.FormView__link>
-                    </bem.FormView__group>
-                }
               </bem.FormView__row>
-
-              <div className="is-edge">
-                {this.renderRevisions()}
-                {this.renderUsers()}
-                {this.renderIsPublic()}
-                {this.renderDateCreated()}
-                {this.renderTags()}
-              </div>
+              <ReactTooltip effect="float" place="bottom" />
             </bem.FormView>
           );
       }
@@ -239,31 +207,34 @@ var dmix = {
       );
   },
   renderEditPreviewButtons () {
-    return (
-        <bem.FormView__group m='editpreview'>
-          <bem.FormView__link m={['edit', {
-            disabled: !this.state.userCanEdit,
-              }]} href={this.makeHref('form-edit', {assetid: this.state.uid})}>
-            {t('go to form builder')}
-          </bem.FormView__link>
-          <bem.FormView__link m='preview' href={this.makeHref('form-preview-enketo', {assetid: this.state.uid})}>
-            {t('preview form')}
-          </bem.FormView__link>
-        </bem.FormView__group>
-      );
-  },
-  renderDownloadButtons () {
     var downloadable = !!this.state.downloads[0],
         downloads = this.state.downloads;
     return (
-        <bem.FormView__group m='download'>
+        <bem.FormView__group m='buttons'>
+          <bem.FormView__link m={['edit', {
+              disabled: !this.state.userCanEdit,
+                }]} 
+              href={this.makeHref('form-edit', {assetid: this.state.uid})}
+              data-tip={t('Edit in Form Builder')}>
+            <i className="k-icon-edit" />
+          </bem.FormView__link>
+          <bem.FormView__link m='preview' 
+            href={this.makeHref('form-preview-enketo', {assetid: this.state.uid})}
+            data-tip={t('Preview')}>
+            <i className="k-icon-view" />
+          </bem.FormView__link>
+          <bem.FormView__link m={'deploy'} 
+            onClick={this.deployAsset}
+            data-tip={this.state.deployed_version_id === null ? t('deploy') : t('redeploy')}>
+            <i className="fa fa-play" />
+            
+          </bem.FormView__link>
 
-            <bem.FormView__item m={'download'} 
+            <bem.FormView__item m={'more-actions'} 
               onFocus={this.toggleDownloads}
               onBlur={this.toggleDownloads}>
-              <bem.FormView__button m={'download'}
-                  disabled={!downloadable}>
-              {t('Download Form')}
+              <bem.FormView__button disabled={!downloadable}>
+              <i className="k-icon-more-actions" />
               </bem.FormView__button>
               { (downloadable && this.state.downloadsShowing) ?
                 <bem.PopoverMenu ref='dl-popover'>
@@ -272,34 +243,26 @@ var dmix = {
                         <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
                             key={`dl-${dl.format}`}>
                           <i />
-                          {t(`download-${dl.format}`)}
+                          {t(`Download as ${dl.format}`)}
                         </bem.PopoverMenu__link>
                       );
                   })}
+
+                  <Dropzone fileInput onDropFiles={this.onDrop}
+                        disabled={!this.state.userCanEdit}>
+                    <bem.PopoverMenu__link m={['upload', {
+                      disabled: !this.state.userCanEdit
+                        }]}>
+                      <i className="k-icon-replace" />
+                      {t('Replace with XLS')}
+                    </bem.PopoverMenu__link>
+                  </Dropzone>
+
                 </bem.PopoverMenu>
               : null }
             </bem.FormView__item>
-
-            <Dropzone fileInput onDropFiles={this.onDrop}
-                  disabled={!this.state.userCanEdit}>
-              <bem.FormView__link m={['upload', {
-                disabled: !this.state.userCanEdit
-                  }]}>
-                {t('upload new xls form')}
-              </bem.FormView__link>
-            </Dropzone>
         </bem.FormView__group>
       );
-  },
-  renderDeployButtons () {
-    return (
-      <bem.FormView__group m={'actions'}>
-          <bem.FormView__link m={'deploy'}  onClick={this.deployAsset}>
-            {this.state.deployed_version_id === null ?
-              t('deploy') : t('redeploy')}
-          </bem.FormView__link>
-      </bem.FormView__group>
-    );
   },
   renderName () {
     return (
@@ -684,45 +647,78 @@ var dmix = {
       });
   },
   renderDeployments () {
+    console.log(this.state);
+    var deployed_versions = [
+        {
+          version_id: 1, 
+          date_deployed: 'June 1 2016',
+        },
+        {
+          version_id: 2, 
+          date_deployed: 'June 1 2016',
+        },
+        {
+          version_id: 3, 
+          date_deployed: 'June 1 2016',
+        }
+    ];
+
     return (
         <bem.FormView__group m="deployments">
-          {
-            this.state.deployed_version_id === null ?
-              <bem.FormView__group m="deployments-overlay">
-                <bem.FormView__label m="white">
-                  {t('Form Deployment History')}
-                </bem.FormView__label>
-                <bem.FormView__group m="icon">
-                  <i className="fa fa-undo" />
+          <bem.FormView__group m="headings">
+            <bem.FormView__label m='version'>
+              {t('Current Version')}
+            </bem.FormView__label>
+            <bem.FormView__label m='date'>
+              {t('Modified Date')}
+            </bem.FormView__label>
+            <bem.FormView__label m='lang'>
+              {t('Languages')}
+            </bem.FormView__label>
+            <bem.FormView__label m='questions'>
+              {t('Questions')}
+            </bem.FormView__label>
+          </bem.FormView__group>
+          <bem.FormView__group m="deploy-row">
+            <bem.FormView__item m='version'>
+              {this.state.version_id}
+              {this.renderEditPreviewButtons()}
+            </bem.FormView__item>
+            <bem.FormView__item m='date'>
+              {formatTime(this.state.date_modified)}
+            </bem.FormView__item>
+            <bem.FormView__item m='lang'>
+              {this.state.summary.languages}
+            </bem.FormView__item>
+            <bem.FormView__item m='questions'>
+              {this.state.summary.row_count}
+            </bem.FormView__item>
+          </bem.FormView__group>
+
+          <bem.FormView__group m="history">
+            <bem.FormView__label m='previous-versions'>
+              {t('Previous Versions')}
+            </bem.FormView__label>
+
+            {deployed_versions.map((item) => {
+              return (
+                <bem.FormView__group m="deploy-row">
+                  <bem.FormView__item m='version'>
+                    {item.version_id}
+                  </bem.FormView__item>
+                  <bem.FormView__item m='date'>
+                    {formatTime(item.date_deployed)}
+                  </bem.FormView__item>
+                  <bem.FormView__item m='lang'>
+                    
+                  </bem.FormView__item>
+                  <bem.FormView__item m='questions'>
+                    {this.state.summary.row_count}
+                  </bem.FormView__item>
                 </bem.FormView__group>
-                <bem.FormView__group m="desc">
-                  {t('Every time you make changes to your form and redeploy it to make it live, the new form will appear here as a new version.')}
-                </bem.FormView__group>
-              </bem.FormView__group>
-            :
-              this.state.deployed_versions.map((item) => {
-                return (
-                  <bem.FormView__group>
-                    {[
-                      t('version ___').replace('___', item.version_id),
-                      ' | ',
-                      t('deployed ___')
-                        .replace('___', formatTime(item.date_deployed)),
-                      ' | ',
-                      item.version_id === this.state.deployed_version_id ?
-                        t('current live version')
-                      :
-                        <bem.AssetView__plainlink m='clone' className="is-edge" 
-                            data-version-id={item.version_id}
-                            onClick={this.saveCloneAs}>
-                          {t('clone')}
-                        </bem.AssetView__plainlink>
-                    ]}
-                  </bem.FormView__group>
-                );
-              }
-            )
-          }
+              );
+            })}
+          </bem.FormView__group>
         </bem.FormView__group>
       );
   },
