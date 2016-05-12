@@ -26,6 +26,7 @@ import actions from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import {dataInterface} from '../dataInterface';
 import ReactTooltip from 'react-tooltip';
+import hotkey from 'react-hotkey';
 
 var FormStyle__panel = bem('form-style__panel'),
     FormStyle__row = bem('form-style'),
@@ -190,6 +191,9 @@ export default assign({
       currentName: 'name',
     };
   },
+  mixins: [
+    hotkey.Mixin('handleHotkey'),
+  ],
   componentDidMount() {
     document.querySelector('.page-wrapper__content').addEventListener('scroll', this.handleScroll);
     this.listenTo(stores.surveyState, this.surveyStateChanged);
@@ -253,6 +257,14 @@ export default assign({
         callback();
       }
     }
+  },
+  handleHotkey: function(e) {
+    if (e.altKey && e.keyCode == '69') {
+      document.body.classList.toggle('hide-edge');
+    }
+  },
+  componentWillMount() {
+    document.body.classList.add('hide-edge');
   },
   surveyStateChanged (state) {
     this.setState(state);
