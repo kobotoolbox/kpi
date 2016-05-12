@@ -7,6 +7,7 @@ import logging
 import re
 import requests
 import xlwt
+from hashlib import md5
 from optparse import make_option
 from pyxform import xls2json_backends
 
@@ -92,6 +93,7 @@ class XForm(models.Model):
     XFORM_TITLE_LENGTH = 255
     MAX_ID_LENGTH = 100
     xls = models.FileField(null=True)
+    xml = models.TextField()
     user = models.ForeignKey(User, related_name='xforms', null=True)
     downloadable = models.BooleanField(default=True)
     id_string = models.SlugField(
@@ -102,6 +104,15 @@ class XForm(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     uuid = models.CharField(max_length=32, default=u'')
+
+    @property
+    def hash(self):
+        return u'%s' % md5(self.xml.encode('utf8')).hexdigest()
+
+    @property
+    def prefixed_hash(self):
+        ''' Matches what's returned by the KC API '''
+        return u"md5:%s" % self.hash
 
 
 class Command(BaseCommand):
@@ -174,7 +185,6 @@ class Command(BaseCommand):
             xforms = user.xforms.all()
             for xform in xforms:
                 try:
-                    update_existing = False
                     if xform.uuid in kpi_deployed_uuids:
                         # This KC form already has a corresponding KPI asset,
                         # but the user may have directly updated the form on KC
@@ -182,27 +192,55 @@ class Command(BaseCommand):
                         # must be updated with the contents of the KC form
                         asset = user.assets.get(
                             pk=kpi_deployed_uuids[xform.uuid])
-                        time_diff = xform.date_modified - asset.date_modified
-                        # Format the timedelta in a sane way, per
-                        # http://stackoverflow.com/a/8408947
-                        if time_diff < datetime.timedelta(0):
-                            time_diff_str = '-{}'.format(-time_diff)
+                        non_content_operation = 'NOOP'
+                        # First, compare hashes to see if the KC form content
+                        # has changed since the last deployment
+                        backend_response = asset._deployment_data[
+                            'backend_response']
+                        if 'hash' in backend_response:
+                            update_existing = backend_response['hash'] \
+                                != xform.prefixed_hash
+                            diff_str = 'hashes {}'.format(
+                                'differ' if update_existing else 'match')
                         else:
-                            time_diff_str = '+{}'.format(time_diff)
-                        # If KC timestamp is not sufficiently ahead of the KPI
-                        # timestamp, we assume the KC form content was not
-                        # updated since the last KPI deployment
-                        if time_diff <= TIMESTAMP_DIFFERENCE_TOLERANCE:
+                            # KC's `date_modified` is nearly useless, because
+                            # every new submission changes it to the current
+                            # time, and when there are no submissions, merely
+                            # loading the projects list does the same (see
+                            # https://github.com/kobotoolbox/kpi/issues/661#issuecomment-218073765).
+                            # Still, in cases where KPI does not yet know the
+                            # hash, comparing timestamps can sometimes save us
+                            # from creating duplicate asset versions
+                            time_diff = xform.date_modified - asset.date_modified
+                            # Format the timedelta in a sane way, per
+                            # http://stackoverflow.com/a/8408947
+                            if time_diff < datetime.timedelta(0):
+                                diff_str = '-{}'.format(-time_diff)
+                            else:
+                                diff_str = '+{}'.format(time_diff)
+                            # If KC timestamp is sufficiently ahead of the KPI
+                            # timestamp, we assume the KC form content was
+                            # updated since the last KPI deployment
+                            if time_diff > TIMESTAMP_DIFFERENCE_TOLERANCE:
+                                update_existing = True
+                            else:
+                                update_existing = False
+                                # We don't need an update, but we should copy
+                                # the hash from KC to KPI for future reference
+                                non_content_operation = 'HASH'
+                                backend_response['hash'] = xform.prefixed_hash
+                                asset.save()
+
+                        if not update_existing:
+                            # No update needed. Skip to the next form
                             print_tabular(
-                                'NOOP',
+                                non_content_operation,
                                 user.username,
                                 xform.id_string,
                                 asset.uid,
-                                time_diff_str
+                                diff_str
                             )
                             continue
-                        else:
-                            update_existing = True
                     # Load the xlsform from the KC API to avoid having to deal
                     # with S3 credentials, etc.
                     response = kc_forms_api_request(
@@ -256,14 +294,19 @@ class Command(BaseCommand):
                             deployment_data['date_modified'])
                         asset.content = asset_content
                         asset.save()
-                        # If this user already has an identically-named asset,
-                        # append `xform.id_string` in parentheses for
-                        # clarification
-                        if Asset.objects.filter(
+                        # The first save handles pulling the form title from
+                        # the settings sheet. If this user already has a
+                        # different but identically-named asset, append
+                        # `xform.id_string` in parentheses for clarification
+                        if Asset.objects.exclude(pk=asset.pk).filter(
                                 owner=user, name=asset.name).exists():
-                            asset.name = u'{} ({})'.format(
-                                asset.name, xform.id_string)
-                            # `store_data()` handles saving the asset
+                            if asset.name and len(asset.name.strip()):
+                                asset.name = u'{} ({})'.format(
+                                    asset.name, xform.id_string)
+                            else:
+                                asset.name = xform.id_string
+                            # Don't call `asset.save()` since `store_data()`
+                            # handles saving the asset
                         # Copy the deployment-related data
                         kc_deployment = KobocatDeploymentBackend(asset)
                         kc_deployment.store_data({
@@ -280,7 +323,7 @@ class Command(BaseCommand):
                                 user.username,
                                 xform.id_string,
                                 asset.uid,
-                                time_diff_str
+                                diff_str
                             )
                         else:
                             print_tabular(
