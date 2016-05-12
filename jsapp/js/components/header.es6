@@ -187,19 +187,20 @@ var MainHeader = React.createClass({
                 <bem.AccountBox__logo />
               </a>
             </span>
-            { this.state.headerFilters == 'library' && 
-              <ListSearch searchContext={this.state.libraryFiltersContext} />
-            }
-            { this.state.headerFilters == 'library' && 
-              <ListTagFilter searchContext={this.state.libraryFiltersContext} />
-            }
-            { this.state.headerFilters == 'forms' && 
-              <ListSearch searchContext={this.state.formFiltersContext} />
-            }
-            { this.state.headerFilters == 'forms' && 
-              <ListTagFilter searchContext={this.state.formFiltersContext} />
-            }
-
+            <div className="mdl-layout__header-searchers">
+              { this.state.headerFilters == 'library' && 
+                <ListSearch searchContext={this.state.libraryFiltersContext} />
+              }
+              { this.state.headerFilters == 'library' && 
+                <ListTagFilter searchContext={this.state.libraryFiltersContext} />
+              }
+              { this.state.headerFilters == 'forms' && 
+                <ListSearch searchContext={this.state.formFiltersContext} />
+              }
+              { this.state.headerFilters == 'forms' && 
+                <ListTagFilter searchContext={this.state.formFiltersContext} />
+              }
+            </div>
             {this.renderAccountNavMenu()}
           </div>
         </header>
