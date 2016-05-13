@@ -651,7 +651,6 @@ class AssetListSerializer(AssetSerializer):
                   'version_id',
                   'has_deployment',
                   'deployed_version_id',
-                  'deployed_versions',
                   'deployment__identifier',
                   'deployment__active',
                   'permissions',
