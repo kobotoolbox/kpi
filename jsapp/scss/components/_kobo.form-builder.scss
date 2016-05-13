@@ -244,3 +244,37 @@
     @extend .fa, .fa-fw, .fa-cog;
   }
 }
+
+
+ // CASCADE MODAL CONTENTS
+
+ .cascade-popup {
+  textarea {
+    margin: 15px 0px;
+    width: 100%;
+    height: 220px;
+    border:2px solid $cool-gray;
+  }
+  .cascade-popup__buttonWrapper {
+    padding-top: 10px;
+    text-align: right;
+    button {
+      @extend .mdl-button, .mdl-button--colored, .mdl-button--raised;
+      min-width:100px;
+    }
+  }
+
+  .cascade-popup__message {
+    &--warning {
+      color:#FF5469;
+    }
+    &--ready {
+      color:$cool-green;
+    }
+  }
+
+  i.k-icon-help {
+    font-size: 26px;
+    color:$cool-gray;
+  }
+}

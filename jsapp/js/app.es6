@@ -1151,7 +1151,7 @@ var FormSharing = React.createClass({
         );
     }
     return (
-      <ui.Modal open onClose={this.routeBack} title={t('manage sharing permissions')}>
+      <ui.Modal open onClose={this.routeBack} title={t('manage sharing permissions')} className='modal-large'>
         <ui.Modal.Body>
           <ui.Panel className="k-div--sharing">
             <div className="k-sharing__title">
@@ -1351,7 +1351,7 @@ var CollectionSharing = React.createClass({
         );
     }
     return (
-      <ui.Modal open onClose={this.routeBack} title={t('manage sharing permissions')}>
+      <ui.Modal open onClose={this.routeBack} title={t('manage sharing permissions')} className='modal-large'>
         <ui.Modal.Body>
           <ui.Panel className="k-div--sharing">
             <div className="k-sharing__title">
@@ -1505,7 +1505,7 @@ var FormEnketoPreview = React.createClass({
   },
   render () {
     return (
-      <ui.Modal open onClose={this.routeBack}>
+      <ui.Modal open onClose={this.routeBack} className='modal-large'>
         <ui.Modal.Body>
           { this.state.enketopreviewlink ?
               this.renderEnketoPreviewIframe() :

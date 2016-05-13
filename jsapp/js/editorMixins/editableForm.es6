@@ -598,7 +598,12 @@ export default assign({
     this.setState({
       enketopreviewOverlay: false
     });
-    stores.pageState.setAssetNavPresent(true);
+    stores.pageState.setFormBuilderFocus(true);
+  },
+  hideCascade () {
+    this.setState({
+      showCascadePopup: false
+    });
     stores.pageState.setFormBuilderFocus(true);
   },
   launchAppForSurvey (survey, optionalParams={}) {
@@ -639,10 +644,6 @@ export default assign({
             <bem.FormBuilder m={this.state.formStylePanelDisplayed ? 'formStyleDisplayed': null }>
               {this.renderSaveAndPreviewButtons()}
 
-              {this.state.showCascadePopup ?
-                this.renderCascadePopup()
-              : null}
-
               <bem.FormBuilder__contents>
                 { isSurvey ?
                   <FormSettingsBox survey={this.app.survey} {...this.state} />
@@ -655,14 +656,23 @@ export default assign({
               </bem.FormBuilder__contents>
             </bem.FormBuilder>
             { this.state.enketopreviewOverlay ?
-              <ui.Modal open onClose={this.hidePreview} title={t('Form Preview')}>
+              <ui.Modal open onClose={this.hidePreview} title={t('Form Preview')} className='modal-large'>
                 <ui.Modal.Body>
                   <iframe src={this.state.enketopreviewOverlay} />
                 </ui.Modal.Body>
-                <ui.Modal.Footer>
-                </ui.Modal.Footer>
               </ui.Modal>
+
             : null }
+
+            {this.state.showCascadePopup ?
+              <ui.Modal open onClose={this.hideCascade} title={t('Import Cascading Select Questions')}>
+                <ui.Modal.Body>
+                  {this.renderCascadePopup()}
+                </ui.Modal.Body>
+              </ui.Modal>
+
+            : null}
+
           </ui.Panel>
         </DocumentTitle>
       );
