@@ -541,8 +541,7 @@ export default assign({
                 <bem.FormBuilderHeader__button m={['cascading']}
                     onClick={this.toggleCascade}
                     data-tip={t('Insert cascading select')}>
-                  <i className="k-icon-cascade" />
-                  C
+                  <i className="k-icon-cascading" />
                 </bem.FormBuilderHeader__button>
               : null }
 
