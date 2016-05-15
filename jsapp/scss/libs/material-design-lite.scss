@@ -6,7 +6,6 @@
   src: local("Material Icons"), local("MaterialIcons-Regular"), url("../fonts/MaterialIcons-Regular.woff2") format("woff2"), url("../fonts/MaterialIcons-Regular.woff") format("woff"), url("../fonts/MaterialIcons-Regular.ttf") format("truetype");
 }
 
-
 .material-icons {
   font-family: 'Material Icons';
   font-weight: normal;
@@ -58,9 +57,11 @@ body {
 
 .mdl-checkbox__tick-outline {
   mask: url("../img/tick-mask.svg?embed");
+
   .mdl-checkbox.is-checked & {
     background: $checkbox-color url("../img/tick.svg?embed");
   }
+
   .mdl-checkbox.is-checked.is-disabled & {
     background: $checkbox-disabled-color url("../img/tick.svg?embed");
   }
@@ -77,6 +78,7 @@ body {
 
 .mdl-button--raised {
   @include shadow-1dp;
+
   &:active {
     @include shadow-2dp;
   }
