@@ -56,10 +56,12 @@ export default {
         throw new Error(t('Paste your formatted table from excel in the box below.'));
       }
       tmpSurvey.choices.at(0).create_corresponding_rows();
+      /*
       tmpSurvey._addGroup({
         __rows: tmpSurvey.rows.models,
         label: '',
       });
+      */
       var rowCount = tmpSurvey.rows.length;
       if (rowCount === 0) {
         throw new Error(t('Paste your formatted table from excel in the box below.'));
