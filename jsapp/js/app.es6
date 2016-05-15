@@ -788,33 +788,6 @@ var FormInput = React.createClass({
 });
 */
 
-/*
-        <div>
-          <div className="form-group mdl-grid">
-            <div className="mdl-cell mdl-cell--3-col">
-              <label htmlFor='webform-style' className={'mdl-button mdl-js-button'}
-                  onClick={this.focusSelect}>
-                {t('Web form style')}
-              </label>
-            </div>
-            <div className="mdl-cell mdl-cell--5-col">
-              <Select
-                  name="webform-style"
-                  ref="webformStyle"
-                  value={this.props.styleValue}
-                  onChange={this.props.onStyleChange}
-                  options={[
-                      {value: '', label: t('Default - single page')},
-                      {value: 'theme-grid', label: t('Grid theme')},
-                      {value: 'pages', label: t('Multiple pages')},
-                      {value: 'theme-grid pages', label: t('Grid theme + Multiple pages')},
-                    ]}
-                />
-            </div>
-          </div>
-
-*/
-
 /* Routes:
 */
 var App = React.createClass({
