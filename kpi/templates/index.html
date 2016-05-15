@@ -9,15 +9,12 @@
     <meta name="kpi-root-url" content="{% url 'kpi-root' %}">
     {% if csrf_token %}<meta name="csrf-token" content="{{csrf_token}}">{% endif %}
 
+    {% load render_bundle from webpack_loader %}
     {% load staticfiles %}
     {% load cachebuster %}
 
-    {% if use_minified_script %}
-        <link rel="stylesheet" href="{% static 'compiled/bundle.min.css' %}">
-    {% else %}
-        <link rel="stylesheet" href="{% static 'compiled/bundle.css' %}">
-    {% endif %}
-
+    {% render_bundle 'app' 'css' %}
+    <link rel="stylesheet" type="text/css" href="{% static 'xlform/components/select2/select2.css' %}">
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
       <script>window.html5 || document.write('<script src="{% static 'js/vendor/html5shiv.js' %}"><\/script>')</script>
@@ -33,11 +30,8 @@
       <!-- Make Django's internationalization functionality available in client code. -->
       <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
 
-      {% if use_minified_script %}
-          <script src="{% static "compiled/bundle.min.js" %}" defer></script>
-      {% else %}
-          <script src="{% static "compiled/bundle.js" %}" defer></script>
-      {% endif %}
+      {% render_bundle 'app' 'js' %}
+
     {% endblock footer %}
 
     {% if livereload_script %}

@@ -26,7 +26,8 @@ module.exports = function(grunt) {
               ]
           },
           transform: [
-            [ to5ify, { compact: false } ],
+            [ to5ify, { compact: false, presets: ['es2015', 'react'],
+              'plugins': ['add-module-exports'] } ],
             [ coffeeify ]
           ]
         }
@@ -77,11 +78,9 @@ module.exports = function(grunt) {
         flatten: true,
         src: [
           './node_modules/font-awesome/fonts/*',
-          './node_modules/open-sans-fontface/fonts/Regular/*',
-          './node_modules/open-sans-fontface/fonts/Italic/*',
-          './node_modules/open-sans-fontface/fonts/SemiboldItalic/*',
-          './node_modules/open-sans-fontface/fonts/Semibold/*',
-          './node_modules/material-design-icons/iconfont/Material*',
+          './node_modules/roboto-fontface/fonts/*.wof*',
+          './node_modules/material-design-icons/iconfont/*',
+          './jsapp/scss/fonts/k-icons/*',
           ],
         dest: './jsapp/fonts/',
       }
@@ -141,10 +140,7 @@ module.exports = function(grunt) {
     'clean:js',
   ]);
   grunt.registerTask('buildall', [
-    'build',
-    'copy',
-    'uglify',
-    'cssmin',
+    'copy'
   ]);
   grunt.registerTask('default', ['develop']);
 

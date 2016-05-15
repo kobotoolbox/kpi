@@ -1,0 +1,36 @@
+sudo:
+  false
+# instead of python, using language: node_js to
+# get node v5 installed
+language: node_js
+node_js:
+  - "5"
+addons:
+  postgresql: 9.3
+  apt:
+    packages:
+      - build-essential
+      - fontforge
+      - gettext
+      - git-core
+      - python-2.7
+      - python-pip
+      - python-setuptools
+      - libpcre3
+      - libpcre3-dev
+      - libpq-dev
+      - ttfautohint
+cache:
+  directories:
+    - $HOME/.pip-download-cache
+    - node_modules
+script:
+  - python manage.py test
+  - npm run test
+env:
+  - PIP_DOWNLOAD_CACHE=$HOME/.pip-download-cache DJANGO_DEBUG=False DJANGO_SECRET_KEY=ZGtvYm90cmF2aXM DJANGO_SETTINGS_MODULE=kobo_playground.settings
+install:
+  - npm install -g install npm@latest
+  - npm config set strict-ssl false && npm install --save-dev
+  - bower install
+  - pip install --user -r requirements.txt

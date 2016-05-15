@@ -15,91 +15,6 @@ import {
   t,
 } from '../utils';
 
-/*
-var List = React.createClass({
-  mixins: [
-    searches.common,
-    Reflux.ListenerMixin,
-    Navigation,
-  ],
-  propTypes: {
-    showDefault: React.PropTypes.bool,
-  },
-  getDefaultProps () {
-    return {
-      assetRowClass: AssetRow,
-      searchContext: 'default',
-    };
-  },
-  componentDidMount () {
-    this.listenTo(this.searchStore, this.searchStoreChanged);
-  },
-  searchStoreChanged (searchStoreState) {
-    this.setState(searchStoreState);
-  },
-  renderAssetRow (resource) {
-    var currentUsername = stores.session.currentAccount && stores.session.currentAccount.username;
-    var perm = parsePermissions(resource.owner, resource.permissions);
-    var isSelected = stores.selectedAsset.uid === resource.uid;
-    return (
-          <this.props.assetRowClass key={resource.uid}
-                      currentUsername={currentUsername}
-                      perm={perm}
-                      onActionButtonClick={this.onActionButtonClick}
-                      isSelected={isSelected}
-                      {...resource}
-                        />
-      );
-  },
-  render () {
-    var searchState = this.state.searchState,
-        showDefault = this.props.showDefault,
-        searchResultsList = this.state.searchResultsList || [],
-        defaultSearchResultsList = this.state.defaultSearchResultsList || [],
-        isLoading = this.state.searchState === 'loading';
-
-    return (
-        <bem.CollectionAssetList>
-          {
-            (searchState === 'none' && !showDefault) ?
-              <bem.CollectionAssetList__message>
-                {t('enter a search term above')}
-              </bem.CollectionAssetList__message>
-          : (()=>{
-              if (isLoading) {
-                return (
-                  <bem.CollectionAssetList__message m={'loading'}>
-                    {t('loading...')}
-                  </bem.CollectionAssetList__message>
-                );
-              } else if (showDefault && searchState === 'none') {
-                if (defaultSearchResultsList.length === 0) {
-                  return (
-                      <bem.CollectionAssetList__message>
-                        {t('no assets were found')}
-                      </bem.CollectionAssetList__message>
-                    );
-                }
-                return defaultSearchResultsList.map(this.renderAssetRow);
-              } else {
-                if (searchResultsList.length === 0) {
-                  return (
-                      <bem.CollectionAssetList__message>
-                        {t('no results were found matching your query')}
-                      </bem.CollectionAssetList__message>
-                    );
-
-                }
-                return searchResultsList.map(this.renderAssetRow);
-              }
-            })()
-          }
-        </bem.CollectionAssetList>
-      );
-  },
-});
-*/
-
 var ListSearch = React.createClass({
   mixins: [
     searches.common,
@@ -125,7 +40,7 @@ var ListSearch = React.createClass({
     return (
           <bem.Search m={[this.state.searchState]} >
             <bem.Search__icon />
-            <ui.SmallInputBox ref="formlist-search" placeholder={t(this.props.placeholderText)} onChange={this.searchChangeEvent} />
+            <ui.SearchBox ref="formlist-search" placeholder={t(this.props.placeholderText)} onChange={this.searchChangeEvent} />
             <bem.Search__cancel m={{'active': this.state.searchState !== 'none'}} onClick={this.searchClear} />
           </bem.Search>
         );

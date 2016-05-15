@@ -50,7 +50,7 @@ module.exports = do ->
     if out and out.type
       out.begin = !type.match(/end/)
     out
-    
+
   q.testGroupOrRepeat = (type)->
     console.error("q.testGroupOrRepeat is renamed to q.testGroupable")
     q.testGroupable(type)

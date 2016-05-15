@@ -47,11 +47,22 @@ module.exports = do ->
       @forEachRow (r)=>
         if typeof r.linkUp is 'function'
           r.linkUp(@context)
-        # else
-        #   console.error('Linkup not defined for row: ', r)
+      @linkUpChoiceLists()
 
     @create: (options={}, addlOpts) ->
       return new Survey(options, addlOpts)
+    linkUpChoiceLists: ->
+      # In case of cascading selects, this will ensure choiceLists are connected to
+      # sub choice lists through a private "__cascadeList" property
+      choiceKeys = @choices.getListNames()
+      for choiceList in @choices.models
+        overlapping_choice_keys = _.intersection(choiceKeys, choiceList.getOptionKeys(true))
+        if overlapping_choice_keys.length > 1
+          throw new Error("cascading choices can only reference one choice list")
+        else if overlapping_choice_keys.length is 1
+          choiceList.__cascadedList = @choices.get(overlapping_choice_keys[0])
+      null
+
     insert_row: (row, index) ->
       if row._isCloned
         @rows.add(row, at: index)
@@ -226,8 +237,13 @@ module.exports = do ->
       choicesCsvJson = do =>
         lists = new $choices.ChoiceLists()
         @forEachRow (r)->
-          if 'getList' of r and (list = r.getList())
-            lists.add list
+          _getSubLists = (item)->
+            if 'getList' of item
+              list = item.getList()
+              if list and !lists.get(list.get('name'))
+                lists.add(list)
+                _getSubLists(list)
+          _getSubLists(r)
 
         rows = []
         cols = []

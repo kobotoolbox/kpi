@@ -1,69 +1,77 @@
-/*
-this code was not used because backdrop was opaque, needs some tweaking
-bem.uiModal_wrap = BEM('ui-modal_wrap');
-bem.uiModal = BEM('ui-modal');
-bem.uiModal__dialog = bem.uiModal.__('dialog');
-bem.uiModal__content = bem.uiModal.__('content');
-bem.uiModal__header = bem.uiModal.__('header');
-
-.ui-modal_wrap {
-  @extend .modal-backdrop;
-}
-.ui-modal:not(.ui-modal--open) {
-  @extend .modal;
-}
-.ui-modal--open {
-  @extend .modal-open;
-}
-.ui-modal__header {
-  @extend .modal-header;
-}
-.ui-modal__content {
-  @extend .modal-content;
-}
-.ui-modal__dialog {
-  margin-top: 100px;
-  @extend .modal-dialog;
+.kpiapp,
+.mdl-wrapper,
+.mdl-layout {
+  height: 100%;
 }
 
-*/
+.mdl-layout {
+  max-width: 1440px;
+  margin: 0 auto;
+}
 
-.ui-panel {}
+.mdl-layout__content {
+  height: calc(100% - 72px);
+  overflow: visible;
+  position: relative;
+  margin-top: 8px;
+  transition: all .4s ease 0s;
+}
+
+.ui-panel {
+  height: 100%;
+  margin: 0px 8px;
+}
 
 .ui-panel__body {
-  @extend .mdl-grid;
-  max-width: 980px;
+  @extend .mdl-grid, .mdl-grid--no-spacing, .mdl-shadow--2dp;
+  background: #FFF;
   padding: 0;
-
-  > .row {
-    position: relative;
-  }
-
+  height: 100%;
+  flex-direction: column;
   > .asset-view__content,
-  > .collection-asset-list {
+  > .collection-list,
+  > .formBuilder {
     @extend .mdl-cell, .mdl-cell--12-col;
-    @extend .mdl-shadow--2dp, .mdl-color--white;
-    flex-flow:column;
+    flex-flow: column;
+    margin: 0px !important;
+  }
+  > .collection-list {
+    position: relative;
+    height: calc(100% - 50px);
+  }
+  > .asset-view__content {
+    height: 100%;
+  }
+  > .formBuilder {
+    height: 100%;
   }
 }
 
-.page-wrapper__content {
-  position:relative;
-}
-
-.page-wrapper--asset-nav-present .mdl-layout__content {
-  margin-right: 60px;
-  transition: all .4s ease 0s;
+.ui-panel--transparent .ui-panel__body {
+  background: transparent;
+  box-shadow: none;
+  margin: 0px;
 }
 
 .page-wrapper--asset-nav-open .mdl-layout__content {
   margin-right: 400px;
-  transition: all .4s ease 0s;
 }
 
 .k-form-header__inner {
-  max-width: 980px;
+  max-width: 1200px;
   display: flex;
+}
+
+// Focus mode for form builder, disable drawer, header
+.mdl-layout.page-wrapper--formbuilder-focus {
+  .mdl-layout__content {
+    margin: 0px;
+    width: 100%;
+    height: 100%;
+  }
+  .ui-panel {
+    margin: 0px;
+  }
 }
 
 // Sharing form header
@@ -73,7 +81,7 @@ bem.uiModal__header = bem.uiModal.__('header');
   margin-bottom: 20px;
   .user--pill {
     display: flex;
-    padding-right:20px;
+    padding-right: 20px;
     span.fa-stack {
       margin-right: 5px;
     }
@@ -100,9 +108,9 @@ bem.uiModal__header = bem.uiModal.__('header');
 .message {}
 
 .message--error {
-  // @extend .alert, .alert-dismissible, .alert-danger;
   text-decoration: uppercase;
 }
+
 .message--loading {
   text-align: center;
   > i:first-child {
@@ -110,33 +118,63 @@ bem.uiModal__header = bem.uiModal.__('header');
   }
 }
 
+// Loading messages
+.loading {
+  display: table;
+  vertical-align: middle;
+  height: 100%;
+  width: 100%;
+  font-size: 18px;
+  opacity: 0.8;
+  i:first-child {
+    @extend .fa, .fa-spin, .fa-spinner;
+    margin-right: 12px;
+    vertical-align: middle;
+    font-size: 24px;
+  }
+  &__inner {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+  }
+}
+
+
 .popover-menu {
   position: absolute;
-  top: 2.8em;
-  left: 7.5%;
-  width: 85%;
+  top: 1.5em;
+  right: 0;
+  min-width:200px;
+  max-width: 300px;
+  text-align: left;
+  box-shadow: 0px 2px 5px 0 rgba(0,0,0,0.2);
 }
+
 .popover-menu__link {
+  background-color: #FFF;
   display: block;
-}
-.popover-menu__item, .popover-menu__link {
-  @extend .mdl-shadow--6dp, .mdl-color--white;
-  padding: 10px 8px 10px 26px;
+  padding: 10px 5px;
   position: relative;
+  color:$cool-gray;
+  cursor: pointer;
+  &:hover {
+    background-color: #eff0f1;
+    color:$cool-gray;
+  }
+
   > i:first-child {
-    @extend .fa, .fa-fw;
-    position: absolute;
-    top: 12px;
-    left: 4px;
+    margin-right: 6px;
+    font-size: 18px;
   }
-  &.popover-menu__link--dl-xls {
-    > i:first-child {
-      @extend .fa-file-excel-o;
-    }
+}
+
+.reactTooltip.place-bottom {
+  background-color: #8a9aa4 !important;
+  &:after {
+    border-bottom: 8px solid #8a9aa4 !important;
   }
-  &.popover-menu__link--dl-xml {
-    > i:first-child {
-      @extend .fa-file-code-o;
-    }
-  }
+}
+
+.reactTooltip.show {
+  opacity: 1 !important;
 }

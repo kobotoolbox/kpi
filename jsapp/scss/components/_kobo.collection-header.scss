@@ -3,28 +3,31 @@
   top: 0;
   z-index: 99;
 }
+
 .collection-header__button-row {
-  @extend .row;
   padding-top: 15px;
   position: relative;
 }
+
 .collection-header__item--name {
   position: relative;
-  width:100%;
+  width: 100%;
   display: flex;
   align-items: center;
-  padding-top:20px;
+  padding-top: 20px;
   padding-bottom: 10px;
   .mdl-textfield {
-    flex-grow:1;
+    flex-grow: 1;
   }
 }
+
 .collection-header__iconwrap {
   color: dimgrey;
   i {
     @extend .fa, .fa-fw, .fa-folder-o, .fa-2x;
   }
 }
+
 .collection-header__input {
   width: 100%;
   font-size: 28px;
@@ -41,6 +44,7 @@
     }
   }
 }
+
 // .collection-header__button-group--actions {
 //   @extend .col-md-9;
 //   @extend .col-md-offset-1;
@@ -82,12 +86,11 @@
   }
 }
 
-@mixin action-faicon ($faClass) {
+@mixin action-faicon($faClass) {
   > i {
     @extend .fa-#{$faClass};
   }
 }
-
 
 .collection-header__button {
   @extend .btn;
@@ -95,7 +98,6 @@
   &:hover {
     color: #fff;
   }
-
   i {
     @extend .fa;
     @extend .fa-fw;
@@ -103,7 +105,6 @@
   span {
     margin-left: 5px;
   }
-
   &.collection-header__button--disabled {
     @extend .disabled;
   }
@@ -112,35 +113,35 @@
       content: '+';
     }
   }
-
   &.collection-header__button--view-asset {
     @include headerbutton($kcol-view);
-    @include action-faicon('file-o');
+    @include action-faicon("file-o");
   }
   &.collection-header__button--edit-asset {
     @include headerbutton($kcol-edit);
-    @include action-faicon('pencil');
+    @include action-faicon("pencil");
   }
   &.collection-header__button--preview-asset {
     @include headerbutton($kcol-preview);
-    @include action-faicon('eye');
+    @include action-faicon("eye");
   }
   &.collection-header__button--download-asset {
     @include headerbutton($kcol-download);
-    @include action-faicon('download');
+    @include action-faicon("download");
   }
   &.collection-header__button--clone-asset {
     @include headerbutton($kcol-clone);
-    @include action-faicon('copy');
+    @include action-faicon("copy");
   }
   &.collection-header__button--delete-asset {
     @include headerbutton($kcol-delete);
-    @include action-faicon('trash-o');
+    @include action-faicon("trash-o");
   }
   &.collection-header__button--deploy-asset {
-    @include action-faicon('play');
+    @include action-faicon("play");
   }
 }
+
 .collection-header__button-group--new {
   position: absolute;
   width: 65px;
@@ -157,29 +158,26 @@
   width: $newformCircleWidthHeight;
   height: $newformCircleWidthHeight;
   font-size: 30px;
-  border-radius: $newformCircleWidthHeight / 2; 
+  border-radius: $newformCircleWidthHeight / 2;
   line-height: $newformCircleWidthHeight - 4px;
   position: relative;
   text-align: center;
-
   color: #fff;
   -webkit-box-shadow: 2px 4px 14px 0px rgba(50, 50, 50, 0.2);
-  -moz-box-shadow:    2px 4px 14px 0px rgba(50, 50, 50, 0.2);
-  box-shadow:         2px 4px 14px 0px rgba(50, 50, 50, 0.2);
+  -moz-box-shadow: 2px 4px 14px 0px rgba(50, 50, 50, 0.2);
+  box-shadow: 2px 4px 14px 0px rgba(50, 50, 50, 0.2);
   span {
     display: none;
   }
   &:hover {
     -webkit-box-shadow: 2px 4px 14px 0px rgba(50, 50, 50, 0.4);
-    -moz-box-shadow:    2px 4px 14px 0px rgba(50, 50, 50, 0.4);
-    box-shadow:         2px 4px 14px 0px rgba(50, 50, 50, 0.4);
+    -moz-box-shadow: 2px 4px 14px 0px rgba(50, 50, 50, 0.4);
+    box-shadow: 2px 4px 14px 0px rgba(50, 50, 50, 0.4);
   }
-
   &.collection-header__button--muted {
     background-color: tint($newformButtonColor, 30%);
     color: #f4f4f4;
     opacity: 0.8;
-
     box-shadow: none;
     -webkit-box-shadow: none;
     -moz-box-shadow: none;

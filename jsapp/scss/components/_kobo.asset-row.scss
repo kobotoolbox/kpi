@@ -1,355 +1,175 @@
-$celllink_hovercolor: #f7f7f7;
-$celllink_hoverbg: #356A8E;
-$highlightedBarColor: #EAEAED;
-$highlightedBarTextColor: #25343C;
-
 .asset-row {
-  @extend .clearfix;
   list-style-type: none;
-  border-bottom: 1px solid #DDD;
+  border-top: 1px solid transparentize($cool-gray, 0.7);
   cursor: pointer;
-  padding: 10px 12px 10px 45px;
-  clear: both;
-  position: relative;
+  padding: 4px 12px;
 
-  > i:first-child {
-    position: absolute;
-    right: 10px;
-    top: 10px;
-
-    @extend .fa, .fa-fw, .fa-lg, .fa-caret-down;
-    color: #bbb;
-  }
+  // position: relative;
+  white-space: nowrap;
 
   a, a:hover {
+    color: $black;
     text-decoration: none;
+    font-weight: 400;
   }
 
   &--deleting {
     opacity: 0.5;
   }
 
-  &.asset-row--active {
-    background-color: $highlightedBarColor;
-    color: $highlightedBarTextColor;
-    > i:first-child {
-      @extend .fa-caret-up;
-      color: #666;
+  > .asset-row__cell {
+    width:100%;
+    display: flex;
+    align-items:center;
+
+    > .asset-row__cell {
+      min-width: 0;
+      &.asset-row__cell--title {
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
     }
   }
-}
 
-.asset-row__cell--icon {
-  position: absolute;
-  left: 10px;
-  top: 16px;
-}
-
-.asset-row__tags {
-  font-size: 11px;
-  color: #555;
-  > i:first-child {
-    @extend .fa, .fa-fw, .fa-tag;
-    margin-right: 4px;
+  &:last-child {
+    border-bottom: 1px solid transparentize($cool-gray, 0.7);    
   }
+
 }
 
-.asset-row__tags__tag {
-  @extend .k-tagsinput-tag;
+.asset-row__cell--tags {
+  white-space: normal;
 }
-
 
 .asset-row--deleted {
   opacity: 0.35;
   background-color: rgba(255, 200, 200, 0.1);
 }
 
-@mixin bt-theme($col1, $col2) {
-  .asset-row--active & {
-    border-color: unquote("rgb(#{$col1})");
-    background: unquote("rgb(#{$col2})");
-    cursor: pointer;
-    transition:all 0.5s;
-    opacity: 0.4;
-    > * {
-      color: unquote("rgb(#{$col1})");
-    }
-    &:hover {
-      opacity: 1;
-    }
-  }
-}
-
-@mixin action-faicon ($faClass) {
-  > i {
-    @extend .fa-#{$faClass};
-  }
-}
-%inner-fa-icon {
-  > i {
-    @extend .fa;
-    @extend .fa-fw;
-  }
-}
-// .asset-row__action-icon {
-//   border-style: solid;
-//   border-width: 1px;
-//   width: 30px;
-//   height: 36px;
-//   display: inline-block;
-//   margin-right: 3px;
-//   text-align: center;
-//   line-height: 24px;
-//   border-radius: 2px;
-//   padding: 4px;
-//   background-color: rgba(255,255,255,0.8);
-
-//   @extend %inner-fa-icon;
-
-//   &.asset-row__action-icon--view {
-//     @include bt-theme($palette-purple-800, $palette-purple-50);
-//     @include action-faicon('eye')
-//   }
-//   &.asset-row__action-icon--view-collection {
-//     @include bt-theme($palette-purple-800, $palette-purple-50);
-//     @include action-faicon('folder-o')
-//   }
-//   &.asset-row__action-icon--edit {
-//     // @include bt-theme($kcol-edit);
-//     @include action-faicon('pencil');
-//   }
-//   &.asset-row__action-icon--preview {
-//     @include bt-theme($palette-purple-800, $palette-purple-50);
-//     @include action-faicon('eye');
-//   }
-//   &.asset-row__action-icon--clone {
-//     @include bt-theme($palette-teal-800, $palette-teal-50);
-//     @include action-faicon('copy');
-//   }
-//   &.asset-row__action-icon--delete {
-//     @include bt-theme($palette-red-800, $palette-red-50);
-//     @include action-faicon('trash-o');
-//   }
-//   &.asset-row__action-icon--sharing {
-//     @include bt-theme($palette-light-green-800, $palette-light-green-50);
-//     @include action-faicon('users');
-//   }
-//   &.asset-row__action-icon--download {
-//     @include bt-theme($palette-light-blue-800, $palette-light-blue-50);
-//     @include action-faicon('download');
-//   }
-//   &.asset-row__action-icon--deploy {
-//     // @include bt-theme('#FFF', $palette-amber-800);
-//     @include action-faicon('play');
-//     padding: 4px 6px;
-//     margin-left: 4px;
-//   }
-// }
-
 .asset-row__sharingIcon {
   i {
     @extend .fa, .fa-fw, .fa-user;
   }
+
   &.asset-row__sharingIcon--multi-user {
     i {
       @extend .fa, .fa-fw, .fa-users;
     }
   }
+
   &.asset-row__sharingIcon--self-owned {
     i {
       display: none;
     }
   }
+
   &.asset-row__sharingIcon--public-owned {
     span {
       display: none;
     }
+
     i {
       @extend .fa, .fa-fw, .fa-question;
     }
   }
 }
 
-// %rowbar {
-//   @media(min-width:768px) {
-//     float: left;
-//     width: 70%;
-//   }
-// }
-
-.asset-row__celllink {
-  font-size: 1.4em;
-  display: block;
-  line-height: 1.5em;
-  color: #333;
-  @media (min-width:768px) {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    height: 1.5em;
-  }
+.asset-row__cell--row-count {
+  position: relative;
 }
 
-.asset-row__cellmeta {
-  font-size: 12px;
-  display: flex;
+.k-asset-arrow-icon {
+  position: absolute;
+  right: -5px;
+  top: 0px;
+  font-size: 24px;
 
-  @extend .clearfix;
+  @extend .fa, .fa-fw, .fa-lg, .fa-caret-right;
 
-  .asset-row__cell {
-    flex-grow: 2;
-    &--deployment-status {
-      flex-grow: 1;
-    }
-    &--userlink {
-      flex-grow: 1;
-    }
-  }
-
-  @mixin gradient($from, $to) {
-  background-color: $from;
-  background-image: -moz-linear-gradient($from, $to);
-  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from($from), to($to));
-  background-image: -webkit-linear-gradient($from, $to);
-  background-image: -o-linear-gradient($from, $to);
-  }
-  .asset-row__cell--tags {
-    max-height: 4.5em;
-    overflow: hidden;
-    width:100%;
-    position: relative;
-    .asset-row--active & {
-      max-height: 40em;
-    }
-    &:after {
-      content: "";
-      position: absolute;
-      top: 3em;
-      height: 1.5em;
-      width: 100%;
-      @include gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 1));
-      .asset-row--active & {
-        display: none;
-      }
-    }
-  }
-}
-
-.asset-row__cell.asset-row__cell--icon {
-  @extend %inner-fa-icon;
-  > i {
-    @extend .fa-lg;
-  }
-  &.asset-row__cell--assettype-empty {
-    @include action-faicon('lemon-o');
-    > i {
-      @extend .fa-spin;
-    }
-    opacity: 0.8;
-  }
-  &.asset-row__cell--assettype-question {
-    @include action-faicon('circle-o');
-  }
-  &.asset-row__cell--assettype-block {
-    @include action-faicon('square-o');
-  }
-  &.asset-row__cell--assettype-survey {
-    @include action-faicon('file-o');
-  }
-  &.asset-row__cell--kind-collection {
-    @include action-faicon('folder-o');
-  }
-}
-
-.asset-row__cell--buttons {
-  transition:all 0.3s;
-  clear: both;
-  padding:12px 0px;
-  margin-left: -32px;
-
-  .asset-row__cell--action-icons {
-    display: flex;
-    justify-content: space-around;
-
-    a {
-      flex-grow: 1;
-      margin-right: 4px;
-      &:last-child {
-        margin-right: 0;
-      }
-    }
-  }
+  color: #A5B3BC;
 }
 
 .asset-row--active {
+  > .asset-row__buttons {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    padding: 2px 10px;
+    background: #EDF7FD;
+    text-align: right;
+    width: 100%;
+    box-shadow: 0 2px 3px 0 rgba(0,0,0,0.23);
+  }
+
   .asset-row__action-icon {
-    @extend .mdl-button;
-    i {
-      margin-right: 8px;
-    }
+    font-size: 20px;
+    margin-left: 15px;
+    font-weight: 400;
+    color: $cool-gray;
+    cursor: pointer;
+    padding: 4px 6px;
+    display: inline-block;
+    vertical-align: middle;
 
     &:hover {
-      color: white;
+      background-color: transparent;
+      color: unquote("rgb(#{$color-accent})");
+      svg.ki-icon {
+        stroke: unquote("rgb(#{$color-accent})");
+      }
+      svg.ki-icon.ki-view, 
+      svg.ki-icon.ki-edit {
+        fill: unquote("rgb(#{$color-accent})"); 
+        stroke:transparent;
+      }
     }
 
     &.asset-row__action-icon--deploy i {
       @extend .fa, .fa-play;
     }
 
-    &.asset-row__action-icon--view i, 
+    &.asset-row__action-icon--view i,
     &.asset-row__action-icon--preview i {
-      @extend .fa, .fa-eye; 
+      @extend .k-icon, .k-icon-view;
     }
 
     &.asset-row__action-icon--view-collection i {
-      @extend .fa, .fa-folder-o;
+      @extend .k-icon, .k-icon-folder;
+    }
+
+    &.asset-row__action-icon--edit {
+      margin-right: -8px;
+      font-size: 29px;
     }
 
     &.asset-row__action-icon--edit i {
-      @extend .fa, .fa-pencil; 
+      @extend .k-icon, .k-icon-edit;
     }
 
     &.asset-row__action-icon--clone i {
-      @extend .fa, .fa-copy; 
+      @extend .k-icon, .k-icon-clone;
     }
 
     &.asset-row__action-icon--delete i {
-      @extend .fa, .fa-trash-o; 
+      @extend .k-icon, .k-icon-trash;
     }
 
     &.asset-row__action-icon--sharing i {
-      @extend .fa, .fa-users; 
+      @extend .k-icon, .k-icon-share;
     }
 
     &.asset-row__action-icon--download i {
-      @extend .fa, .fa-download; 
+      @extend .k-icon, .k-icon-folder-share-1;
     }
 
     &.asset-row__action-icon--refresh i {
-      @extend .fa, .fa-refresh; 
+      @extend .fa, .fa-refresh;
     }
   }
 
-  .asset-row__cell--buttons .asset-row__action-icon {
-    @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
-    i {
-      color: white;      
-    }
-  }
-}
+  .k-asset-arrow-icon {
+    @extend .fa-caret-down;
 
-.asset-row__celllink--name {
-  margin-bottom: 6px;
-  border-bottom: 1px dotted transparent;
-}
-
-.asset-row__cell--secondary-buttons {
-  transition:all 0.3s;
-  clear: both;
-  padding-bottom:12px;
-  text-align: right;
-  .asset-row__action-icon {
-    margin-left: 12px;
-    @extend .mdl-color-text--red;
+    color: #A5B3BC;
   }
 }

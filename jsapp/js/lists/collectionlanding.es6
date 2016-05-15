@@ -71,6 +71,7 @@ var CollectionLanding = React.createClass({
         }}
       ]);
       stores.pageState.setAssetNavPresent(false);
+      stores.pageState.setFormBuilderFocus(false);
       callback();
     }
   },
@@ -179,7 +180,7 @@ var CollectionLanding = React.createClass({
           </div>
         </bem.CollectionHeader__item>
         <bem.CollectionNav className="ui-panel__cell">
-          <bem.CollectionNav__actions>
+          {/*<bem.CollectionNav__actions>
             <button id="demo-menu-top-right"
                     className="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
               <i className="material-icons">add</i>
@@ -211,7 +212,7 @@ var CollectionLanding = React.createClass({
                 </Dropzone>
               </li>
             </ul>
-          </bem.CollectionNav__actions>
+          </bem.CollectionNav__actions>*/}
         </bem.CollectionNav>
         {this.renderCollectionList()}
       </ui.Panel>
@@ -236,18 +237,23 @@ var CollectionLanding = React.createClass({
     if (s.collectionLoading) {
       return (
         <bem.CollectionAssetList>
-          <bem.CollectionAssetList__message m={'loading'}>
-            {t('loading...')}
-          </bem.CollectionAssetList__message>
+          <bem.Loading>
+            <bem.Loading__inner>
+              <i />
+              {t('loading...')} 
+            </bem.Loading__inner>
+          </bem.Loading>
         </bem.CollectionAssetList>
       );
     } else if (s.collection.url) {
       if (s.collection.children.count === 0) {
         return (
           <bem.CollectionAssetList>
-            <bem.CollectionAssetList__message m={'loading'}>
-              {t('no assets to display')}
-            </bem.CollectionAssetList__message>
+            <bem.Loading>
+              <bem.Loading__inner>
+                {t('No assets to display')} 
+              </bem.Loading__inner>
+            </bem.Loading>
           </bem.CollectionAssetList>
         );
       }

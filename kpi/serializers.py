@@ -380,8 +380,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     tag_string = serializers.CharField(required=False, allow_blank=True)
     version_id = serializers.IntegerField(read_only=True)
+    has_deployment = serializers.ReadOnlyField()
     deployed_version_id = serializers.SerializerMethodField()
     deployed_versions = serializers.SerializerMethodField()
+    deployment__identifier = serializers.SerializerMethodField()
+    deployment__active = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -398,8 +401,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'date_modified',
                   'version_id',
                   'version_count',
+                  'has_deployment',
                   'deployed_version_id',
                   'deployed_versions',
+                  'deployment__identifier',
+                  'deployment__active',
                   'content',
                   'downloads',
                   'embeds',
@@ -531,6 +537,13 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             context=self.context
         ).data
 
+    def get_deployment__identifier(self, obj):
+        if obj.has_deployment:
+            return obj.deployment.identifier
+
+    def get_deployment__active(self, obj):
+        return obj.has_deployment and obj.deployment.active
+
     def _content(self, obj):
         return json.dumps(obj.content)
 
@@ -635,8 +648,11 @@ class AssetListSerializer(AssetSerializer):
                   'kind',
                   'name',
                   'asset_type',
-                  'deployed_version_id',
                   'version_id',
+                  'has_deployment',
+                  'deployed_version_id',
+                  'deployment__identifier',
+                  'deployment__active',
                   'permissions',
                   )
 

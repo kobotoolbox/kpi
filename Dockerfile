@@ -59,19 +59,26 @@ RUN if ! diff "${KPI_SRC_DIR}/bower.json" /srv/tmp/base_bower.json && \
     ; fi
 
 
+RUN npm install material-design-icons
+
 ######################
 # Build client code. #
 ######################
 
-COPY ./Gruntfile.js "${KPI_SRC_DIR}/"
-COPY ./jsapp "${KPI_SRC_DIR}/jsapp"
+COPY ./Gruntfile.js ${KPI_SRC_DIR}/
+COPY ./webpack* ${KPI_SRC_DIR}/
+COPY ./.eslintrc ${KPI_SRC_DIR}/.eslintrc
+COPY ./helper/webpack-config.js ${KPI_SRC_DIR}/helper/webpack-config.js
+
+COPY ./jsapp ${KPI_SRC_DIR}/jsapp
+
 RUN mkdir "${GRUNT_BUILD_DIR}" && \
     mkdir "${GRUNT_FONTS_DIR}" && \
     ln -s "${GRUNT_BUILD_DIR}" "${KPI_SRC_DIR}/jsapp/compiled" && \
     rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
-    ln -s "${GRUNT_FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts" && \
-    grunt buildall
+    ln -s "${GRUNT_FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts"
 
+RUN grunt copy && npm run build-production
 
 ###############################################
 # Copy over this directory in its current state. #
@@ -80,11 +87,11 @@ RUN mkdir "${GRUNT_BUILD_DIR}" && \
 RUN rm -rf "${KPI_SRC_DIR}"
 COPY . "${KPI_SRC_DIR}"
 # Restore the backed-up package installation directories.
+
 RUN ln -s "${NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
     ln -s "${BOWER_COMPONENTS_DIR}/" "${KPI_SRC_DIR}/jsapp/xlform/components" && \
     ln -s "${GRUNT_BUILD_DIR}" "${KPI_SRC_DIR}/jsapp/compiled" && \
     ln -s "${GRUNT_FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts"
-
 
 ###########################
 # Organize static assets. #

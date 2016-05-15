@@ -9,7 +9,6 @@ jsapp/compiled
 jsapp/xlform/components
 jsapp/tmp
 jsapp/js/libs/xlform.js
-
 jsapp/js/refactored.es6
 *sublime-*
 ~*
@@ -18,3 +17,4 @@ whoosh_index
 tmp
 staticfiles
 .sass-cache
+webpack-stats.json

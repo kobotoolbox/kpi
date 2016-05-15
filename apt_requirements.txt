@@ -1,5 +1,7 @@
-libpq-dev
+fontforge
 gettext
 git-core
 libpcre3
 libpcre3-dev
+libpq-dev
+ttfautohint

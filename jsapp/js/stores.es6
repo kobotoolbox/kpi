@@ -139,14 +139,15 @@ var pageStateStore = Reflux.createStore({
     }
     this.state = {
       headerBreadcrumb: [],
-      drawerIsVisible: false,
+      // drawerIsVisible: false,
       // headerSearch: true,
       assetNavPresent: false,
       assetNavIsOpen: navIsOpen,
       assetNavIntentOpen: navIsOpen,
       assetNavExpanded: false,
-      sidebarIsOpen: false,
-      sidebarIntentOpen: false,
+      showFixedDrawer: false,
+      // sidebarIsOpen: false,
+      // sidebarIntentOpen: false,
     };
   },
   setState (chz) {
@@ -180,10 +181,10 @@ var pageStateStore = Reflux.createStore({
   //   assign(this.state, changes);
   //   this.trigger(changes);
   // },
-  toggleDrawer () {
+  toggleFixedDrawer () {
     var _changes = {};
-    var newval = !this.state.drawerIsVisible;
-    _changes.drawerIsVisible = newval;
+    var newval = !this.state.showFixedDrawer;
+    _changes.showFixedDrawer = newval;
     assign(this.state, _changes);
     this.trigger(_changes);
   },
@@ -208,6 +209,15 @@ var pageStateStore = Reflux.createStore({
       this.state.assetNavPresent = val;
       this.trigger({
         assetNavPresent: val
+      });
+    }
+  },
+  setFormBuilderFocus (tf) {
+    var val = !!tf;
+    if (val !== this.state.formBuilderFocus) {
+      this.state.formBuilderFocus = val;
+      this.trigger({
+        formBuilderFocus: val
       });
     }
   },

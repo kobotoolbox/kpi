@@ -1,0 +1,250 @@
+.form-view {
+  height: 100%;
+  overflow: auto;
+  padding: 8px;
+  padding-top: 4px;
+}
+
+.form-view__header {
+  margin-bottom: 8px;
+  @extend .mdl-shadow--2dp;
+  background-color: #FFF;
+}
+
+.form-view__tabs {
+  background-color: #557893;
+  position: relative;
+}
+
+.form-view__extras {
+	float: right;
+  button.mdl-button {
+    color: white;
+    margin-top: 4px;
+  }
+}
+
+.form-view__tab {
+  background: transparent;
+  color: #FFF;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 8px 12px;
+  text-transform: uppercase;
+  font-size: 18px;
+  margin-right: 20px;
+  opacity: 0.6;
+  &.active {
+    opacity: 1;
+    border-bottom: 3px solid $cool-green;
+  }
+  &:hover {
+    cursor: pointer;
+    opacity: 1;
+  }
+}
+
+.form-view__name {
+  padding: 10px 15px;
+  font-size: 18px;
+  line-height: 1.4em;
+  color: unquote("rgb(#{$color-primary})");
+}
+
+.form-view__description {
+  padding: 10px 15px;
+  padding-top: 0px;
+}
+
+.form-view__row {
+  display: flex;
+  justify-content:space-around;
+  margin-bottom: 8px;
+}
+
+.form-view__cell {
+  @extend .mdl-shadow--2dp;
+  background-color: #FFF;
+  padding: 15px;
+  margin-right:8px;
+  &--overview {
+    width:100%;
+  }
+  &:last-child {
+  	margin-right: 0px;
+  }
+  &--collecting-webforms {
+    width:65%;
+  }
+  &--collecting-android {
+    width:35%;
+  }
+}
+
+.form-view__label {
+  font-size: 14px;
+  color: $cool-gray;
+  &--title {
+    font-size: 16px;
+    color: $cool-green;
+  }
+  &--white {
+    color: white;
+  }
+}
+
+// FIXME: rename this
+.form-view__cell {
+	.asset-view__label {
+		display: block;
+		text-align: center;
+		padding-bottom: 5px;
+	}
+	.asset-view__span--val {
+		display: block;
+		text-align: center;
+		font-size: 18px;
+		color:$cool-green;
+	}
+	.asset-view__col--date-modified, 
+	.asset-view__langs {
+		padding-bottom: 8px;
+		margin: 8px;
+		margin-top: 0px;
+		border-bottom: 1px solid #CCC;
+	}
+}
+
+.form-view__group {
+	text-align: center;
+	padding: 8px;
+  padding-bottom: 12px;
+
+  .dropzone {
+    display: inline;
+  }
+
+  &--actions {
+    text-align: right;
+  }
+
+  &--deployments {
+    padding:0px;
+  }
+
+  &--headings {
+    padding:0px;
+    padding-top: 15px;
+    padding-bottom: 5px;
+    > .form-view__label {
+      text-align: right;
+      display: inline-block;
+      width:15%;
+      &--version {
+        width:55%;
+        text-align: left;
+      }
+    }
+  }
+
+  &--deploy-row {
+    border-top:1px solid #DDD;
+    padding:8px 0px;
+    > .form-view__item {
+      text-align: right;
+      display: inline-block;
+      width:15%;
+      &--version {
+        width:55%;
+        text-align: left;
+      }
+    }
+  }
+
+  &--history {
+    border-top:1px solid #DDD;
+    border-bottom:1px solid #DDD;
+    padding:0px;
+  }
+
+  &--buttons {
+    display: inline-block;
+    float: right;
+    text-align: right;
+    padding: 0px;
+  }
+
+}
+
+.form-view__label--previous-versions {
+  text-align: left;
+  padding: 12px 0px;
+}
+
+.form-view__banner {
+  height:200px;
+  margin:-15px;
+  margin-bottom: 15px;
+  background-color: $cool-green;
+  &--android {
+    background-color: #dbeef8;
+  }
+}
+
+.form-view__cell--collecting-android {
+  i {
+    font-size: 20px;
+    vertical-align: middle;
+  }
+}
+
+.form-view__row--collecting {
+  position: relative;
+  .form-view__group--collecting-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: unquote("rgba(#{$color-primary}, 0.9)");
+    left: 0px;
+    top: 0px;    
+    padding:12%;
+    @extend .mdl-shadow--2dp;
+  }
+  .form-view__group--desc {
+    max-width: 240px;
+    margin: 0 auto;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+
+// buttons in forms 
+.form-view__link {
+  font-size:18px;
+  margin-left: 10px;
+  color: $cool-gray;
+  cursor: pointer;
+  i.k-icon-view:before {
+    width:1.5em;
+  }
+  &:hover {
+    color: unquote("rgb(#{$color-primary})");
+  }
+}
+
+.form-view__item--more-actions {
+  position: relative;
+  margin-left: 10px;
+  button {
+    font-size: 18px;
+    background-color: transparent;
+    color: $cool-gray;
+    border:none;
+    border-radius: none;
+    cursor: pointer;
+    &:focus, &:hover {
+      color: unquote("rgb(#{$color-primary})");
+    }
+  }
+}

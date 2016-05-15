@@ -1,0 +1,353 @@
+// header and navigation styling
+$headerAccountTextColor: #dbedf7;
+
+.k-header__bar {
+  background-color: $layout-header-bg-color;
+  @extend .mdl-shadow--2dp;
+  position: absolute;
+  min-height: 56px;
+  width: 100%;
+  z-index: 1;
+}
+
+// .mdl-layout__drawer-button {
+//   display: none;
+// }
+
+.mdl-layout__header {
+  background-color: transparent;
+  box-shadow: none !important;
+  min-height: 56px;
+  margin-left: 0px;
+  width: 100%;
+  .mdl-layout__header-row {
+    height: 56px;
+    padding: 0px 20px;
+  }
+  .mdl-placeholder {
+    margin-left: auto;
+  }
+  .mdl-layout-title {
+    width: 230px;
+  }
+  .account-box {
+    margin-left: auto;
+    .account-box__notifications,
+    .account-box__name {
+      display: inline-block;
+      vertical-align: middle;
+    }
+  }
+  .account-box__notifications {
+    margin: 0px 32px;
+    margin-top: 4px;
+    position: relative;
+    i {
+      font-size: 18px;
+      color: $headerAccountTextColor;
+    }
+  }
+  .account-box__notifications__count {
+    background-color: #FF5469;
+    color: white;
+    padding: 1px 5px;
+    font-weight: bold;
+    border-radius: 15px;
+    position: absolute;
+    font-size: 11px;
+    line-height: 15px;
+    top: -8px;
+    left: 10px;
+    border: 1px solid $layout-header-bg-color;
+  }
+  .account-box__name {
+    color: $layout-nav-color;
+    position: relative;
+    cursor: pointer;
+    margin-top: 4px;
+    > span {
+      padding: 0px 8px;
+      font-size: 16px;
+      color: $headerAccountTextColor;
+    }
+    .k-account__menu {
+      position: absolute;
+      top: 20px;
+      right: -40px;
+      background-color: $nav-menu-item-bg;
+      box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5), inset 0 1px 3px 0 rgba(0, 0, 0, 0.5);
+      margin: 0px;
+      padding: 8px 0px;
+      transition: all 0.5s 0.5s;
+      max-height: 0px;
+      opacity: 0;
+      overflow: hidden;
+      &:before {
+        width: 0;
+        height: 0;
+        border-left: 15px solid transparent;
+        border-right: 15px solid transparent;
+        border-bottom: 15px solid $nav-menu-item-bg;
+        position: absolute;
+        top: -6px;
+        content: '';
+        right: 30px;
+      }
+    }
+    &:hover .k-account__menu {
+      top: 36px;
+      transition: all 0.5s 0.2s;
+      max-height: 1000px;
+      opacity: 1;
+      overflow: visible;
+    }
+  }
+  .account-box__image {
+    width: 24px;
+    display: inline-block;
+    margin-right: 12px;
+    img {
+      width: 24px;
+      height: 24px;
+      border-radius: 12px;
+    }
+  }
+  .account-box__logo {
+    width: 185px;
+    height: 46px;
+    background: url("../img/kobologo.svg") no-repeat left bottom;
+    background-size: contain;
+    display: block;
+  }
+  .mdl-menu__item {
+    color: $layout-nav-color;
+    opacity: 1;
+    padding-left: 12px;
+    padding-right: 54px;
+    height: 36px;
+    line-height: 36px;
+    vertical-align: middle;
+    font-size: 16px;
+    i {
+      font-size: 24px;
+      width: 30px;
+      margin-right: 12px;
+      display: inline-block;
+    }
+    &:hover {
+      background-color: $nav-menu-item-bg-active;
+    }
+  }
+  .k-lang__submenu {
+    position: relative;
+    ul {
+      position: absolute;
+      right: 100%;
+      top: 0px;
+      background-color: $nav-menu-item-bg;
+      transition: all 0.5s;
+      max-height: 0px;
+      opacity: 0;
+      overflow: hidden;
+    }
+    &:hover > ul {
+      transition: all 0.5s;
+      max-height: 1000px;
+      opacity: 1;
+      overflow: visible;
+    }
+  }
+  .Select {
+    width: 300px;
+  }
+  .Select-control,
+  .is-open > .Select-control,
+  .is-focused > .Select-control {
+    position: relative;
+    overflow: hidden;
+    background-color: transparent;
+    border-radius: 16px;
+    border: 2px solid #dbedf7;
+    height: 35px;
+    .Select-arrow-zone {
+      background: $layout-header-bg-color;
+    }
+    .Select-arrow {
+      border-top: 8px solid transparent;
+      border-bottom: 8px solid transparent;
+      border-left: 8px solid #dbedf7;
+      right: 4px;
+      top: 8px;
+    }
+    .Select-placeholder {
+      color: #FFF;
+      padding: 5px 12px;
+      padding-right: 22px;
+      text-align: left;
+      font-size: 14px;
+    }
+    .Select-input {
+      margin: 0px;
+      border: none;
+    }
+    .Select-input > input {
+      padding-left: 10px;
+      color: white;
+      font-size: 14px;
+      height: 20px;
+      margin: 0;
+      margin-left: 10px;
+      margin-top: 4px;
+      padding: 0px;
+    }
+    .Select-item {
+      background-color: $nav-menu-item-bg-active;
+      border-radius: 6px;
+      padding-right: 4px;
+      padding-top: 2px;
+      border: none;
+      color: #FFF;
+      font-size: 0.9em;
+      flex-shrink: 1;
+      min-width: 40px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: inline-block;
+      span {
+        vertical-align: baseline;
+      }
+    }
+    .Select-item-label {
+      display: inline;
+    }
+    .Select-item-label .Select-item-label__a {
+      color: #FFF;
+    }
+    .Select-item-icon {
+      border-right: none;
+      border-bottom-left-radius: 6px;
+      border-top-left-radius: 6px;
+      color: #dbedf7;
+      padding: 0px;
+      padding-left: 4px;
+      &:hover,
+      &:focus {
+        background-color: $nav-menu-item-bg-active;
+        color: #FFF;
+      }
+      &:active {
+        background-color: $nav-menu-item-bg-active;
+      }
+    }
+  }
+  .is-focused:not(.is-open) > .Select-control {
+    border: 2px solid #dbedf7;
+    box-shadow: none;
+  }
+  .Select.is-multi .Select-input {
+    padding: 0px;
+  }
+  .Select.is-multi .Select-control {
+    display: flex;
+    flex-wrap: nowrap;
+    padding-right: 25px;
+  }
+  .Select-menu-outer {
+    background-color: $nav-menu-item-bg;
+    border: none;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+    color: white;
+    margin-top: 6px;
+  }
+  .Select-option {
+    color: #FFF;
+  }
+  .Select-option.is-focused {
+    background-color: $nav-menu-item-bg-active;
+    color: #FFF;
+  }
+  .Select-option.is-disabled {
+    color: rgba(255, 255, 255, 0.5);
+  }
+  .Select-noresults {
+    color: #DDD;
+  }
+  .Select-clear {
+    color: #dbedf7;
+    background: $layout-header-bg-color;
+    font-size: 22px;
+    padding: 4px;
+    right: 4px;
+    border-radius: 0px;
+    top: 2px;
+    &:hover {
+      color: #FFF;
+    }
+  }
+  .mdl-layout__header-searchers {
+    width: calc(100% - 330px);
+  }
+  .search, .Select {
+    vertical-align: middle;
+    margin-right: 30px;
+    display: inline-block;
+    width: calc(50% - 30px);
+  }
+  .search {
+    position: relative;
+    .k-search__input {
+      color: white;
+      border: 2px solid #dbedf7;
+      border-radius: 16px;
+      padding: 5px 12px;
+      padding-right: 32px;
+      background-color: transparent;
+      font-size: 14px;
+      position: relative;
+      width: 99%;
+    }
+    .search__icon {
+      @extend .fa, .fa-search;
+      position: absolute;
+      top: 8px;
+      right: 15px;
+      color: #dbedf7;
+      &:before {
+        font-size: 18px;
+      }
+    }
+  }
+}
+
+.k-burger {
+  display: none;
+}
+
+@media screen and (max-width: 768px) {
+  .k-burger {
+    display: block;
+    margin-right: 10px;
+    // background-color: red;
+ 
+  }
+  .mdl-layout__header-row {
+    padding-left: 60px;
+  }
+  .account-box__logo {
+    width: 120px;
+    height: 28px;
+  }
+  .mdl-layout-title {
+    width: 150px;
+  }
+  .Select {
+    min-width: 120px;
+  }
+  .search input {
+    width: 120px;
+  }
+  .search, .Select {
+    margin-right: 20px;
+  }
+}

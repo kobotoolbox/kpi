@@ -256,6 +256,18 @@ function SearchContext(opts={}) {
         defaultQueryResults: data,
         defaultQueryResultsList: data.results,
         defaultQueryCount: count,
+        defaultQueryCategorizedResultsLists: {
+          'active': data.results.filter((asset) => {
+            return asset.has_deployment && asset.deployment__active;
+          }),
+          'inactive': data.results.filter((asset) => {
+            return asset.has_deployment && !asset.deployment__active;
+          }),
+          'drafts': data.results.filter((asset) => {
+            return !asset.has_deployment;
+          }),
+          'deleted': [], // not implemented yet
+        }
       };
     } else {
       newState = {

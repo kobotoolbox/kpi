@@ -40,7 +40,7 @@ module.exports = do ->
       @line.parents(".survey-editor__null-top-row").addClass "expanded"
       @line.css "height", "inherit"
       @line.html $viewTemplates.$$render('xlfRowSelector.namer')
-      @$el.parents('.page-wrapper__content').eq(0).scrollTo @line, 200, offset: -120
+      @$el.parents('.formBuilder__contents').eq(0).scrollTo @line, 200
 
       if (@options.surveyView.features.multipleQuestions)
         $(window).on 'keydown.cancel_add_question',  (evt) =>
@@ -75,7 +75,7 @@ module.exports = do ->
         menurow = $("<div>", class: "questiontypelist__row").appendTo $menu
         for mitem, i in mrow when mitem
           menurow.append $viewTemplates.$$render('xlfRowSelector.cell', mitem.attributes)
-      @$el.parents('.page-wrapper__content').eq(0).scrollTo @line, 200, offset: -120
+      @$el.parents('.formBuilder__contents').eq(0).scrollTo @line, 200
       @$('.questiontypelist__item').click _.bind(@selectMenuItem, @)
 
     shrink: ->

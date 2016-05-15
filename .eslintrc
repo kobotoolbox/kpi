@@ -1,24 +1,90 @@
 {
-  "plugins": [
-    "react"
-  ],
-  "ecmaFeatures": {
-    "jsx": true,
-    "modules": true
-  },
+  "parser": "babel-eslint",
   "env": {
     "browser": true,
-    "amd": true,
-    "es6": true
+    "node": true
+  },
+  "ecmaFeatures": {
+    "arrowFunctions": true,
+    "blockBindings": true,
+    "classes": true,
+    "defaultParams": true,
+    "destructuring": true,
+    "forOf": true,
+    "modules": true,
+    "objectLiteralComputedProperties": true,
+    "objectLiteralShorthandMethods": true,
+    "objectLiteralShorthandProperties": true,
+    "spread": true,
+    "superInFunctions": true,
+    "templateStrings": true,
+    "unicodeCodePointEscapes": true,
+    "jsx": true
   },
   "rules": {
-    "quotes": [ 1, "single" ],
-    "no-undef": false,
-    "no-console": false,
-    "camelcase": false,
-    "global-strict": false,
-    "no-extra-semi": 1,
-    "comma-dangle": 0,
-    "no-underscore-dangle": false
-  }
+    "strict": 0,
+    "curly": 0,
+    "quotes": 0,
+    "no-underscore-dangle": 0,
+    "camelcase": [2, {"properties": "never"}],
+    "new-cap": 0,
+    "react/jsx-boolean-value": 2,
+    "jsx-quotes": 0,
+    "react/jsx-no-undef": 2,
+    "react/jsx-sort-props": 0,
+    "react/jsx-sort-prop-types": 0,
+    "react/jsx-uses-react": 2,
+    "react/jsx-uses-vars": 2,
+    "react/no-did-mount-set-state": 2,
+    "react/no-did-update-set-state": 2,
+    "react/no-multi-comp": 0,
+    "react/no-unknown-property": 0,
+    "react/prop-types": 0,
+    "react/react-in-jsx-scope": 2,
+    "react/self-closing-comp": 2,
+    "react/wrap-multilines": 0,
+    "react/jsx-boolean-value": 0,
+    "react/self-closing-comp": 0,
+    "no-trailing-spaces":0,
+    "no-irregular-whitespace": 0,
+    "no-mixed-spaces-and-tabs": 0,
+    "no-unused-expressions": 0,
+    "no-unused-vars": 0,
+    "semi": 0,
+    "space-infix-ops": 0,
+    "comma-spacing": 0,
+    "key-spacing": 0,
+    "eol-last": 0,
+    "no-undef": 0,
+    "eqeqeq": 0,
+    "no-multi-spaces": 0,
+    "no-extend-native":0,
+    "no-script-url":0,
+    "no-extra-bind":0,
+    "semi-spacing":0,
+    "react/no-did-mount-set-state":0,
+    "no-extra-semi":0,
+    "no-extra-strict":0,
+    "camelcase":0,
+    "no-new-object":0,
+    "no-debugger":0
+
+  },
+  "globals": {
+    "inject": false,
+    "module": false,
+    "describe": false,
+    "it": false,
+    "before": false,
+    "beforeEach": false,
+    "after": false,
+    "afterEach": false,
+    "expect": false,
+    "window": false,
+    "document": false,
+    "Parse":false
+  },
+  "plugins": [
+    "react"
+  ]
 }

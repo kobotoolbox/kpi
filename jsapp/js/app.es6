@@ -21,7 +21,7 @@ import {
 
 import searches from './searches';
 import actions from './actions';
-import TagsInput from 'react-tagsinput';
+
 import stores from './stores';
 import {dataInterface} from './dataInterface';
 import bem from './bem';
@@ -49,43 +49,6 @@ import {
   t,
   assign,
 } from './utils';
-
-mixins.taggedAsset = {
-  mixins: [
-    React.addons.LinkedStateMixin
-  ],
-  tagChange (tags/*, changedTag*/) {
-    var uid = this.props.params.assetid || this.props.params.uid;
-    actions.resources.updateAsset(uid, {
-      tag_string: tags.join(',')
-    });
-  },
-  linkTagState () {
-    // because onChange doesn't work when valueLink is specified.
-    var that = this, ls = this.linkState('tags'), rc = ls.requestChange;
-    ls.requestChange = function(...args) {
-      that.tagChange(...args);
-      rc.apply(this, args);
-    };
-    return ls;
-  },
-  renderTaggedAssetTags () {
-    var transform = function(tag) {
-      // Behavior should match KpiTaggableManager.add()
-      return tag.trim().replace(/ /g, '-');
-    };
-    // react-tagsinput splits on tab (9) and enter (13) by default; we want to
-    // split on comma (188) as well
-    var addKeys = [9, 13, 188];
-    return (
-      <div>
-        <TagsInput ref="tags" classNamespace="k"
-          valueLink={this.linkTagState()} transform={transform}
-          addKeys={addKeys} />
-      </div>
-    );
-  }
-};
 
 mixins.permissions = {
   removePerm (permName, permObject, content_object_uid) {
@@ -825,33 +788,6 @@ var FormInput = React.createClass({
 });
 */
 
-/*
-        <div>
-          <div className="form-group mdl-grid">
-            <div className="mdl-cell mdl-cell--3-col">
-              <label htmlFor='webform-style' className={'mdl-button mdl-js-button'}
-                  onClick={this.focusSelect}>
-                {t('Web form style')}
-              </label>
-            </div>
-            <div className="mdl-cell mdl-cell--5-col">
-              <Select
-                  name="webform-style"
-                  ref="webformStyle"
-                  value={this.props.styleValue}
-                  onChange={this.props.onStyleChange}
-                  options={[
-                      {value: '', label: t('Default - single page')},
-                      {value: 'theme-grid', label: t('Grid theme')},
-                      {value: 'pages', label: t('Multiple pages')},
-                      {value: 'theme-grid pages', label: t('Grid theme + Multiple pages')},
-                    ]}
-                />
-            </div>
-          </div>
-
-*/
-
 /* Routes:
 */
 var App = React.createClass({
@@ -861,20 +797,27 @@ var App = React.createClass({
     Reflux.connect(stores.pageState),
   ],
   getInitialState () {
-    return assign({}, stores.pageState.state, {
-      sidebarIsOpen: stores.pageState.state.sidebarIsOpen
-    });
+    return assign({}, stores.pageState.state);
   },
   render() {
     return (
       <DocumentTitle title="KoBoToolbox">
         <div className="mdl-wrapper">
+          { !this.state.formBuilderFocus && 
+            <div className="k-header__bar"></div>
+          }
           <bem.PageWrapper m={{
               'asset-nav-present': this.state.assetNavPresent,
               'asset-nav-open': this.state.assetNavIsOpen && this.state.assetNavPresent,
-                }} className="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-              <MainHeader />
-              <Drawer />
+              'fixed-drawer': this.state.showFixedDrawer,
+              'formbuilder-focus': this.state.formBuilderFocus,
+                }} className="mdl-layout mdl-layout--fixed-header">
+              { !this.state.formBuilderFocus && 
+                <MainHeader/>
+              }
+              { !this.state.formBuilderFocus && 
+                <Drawer/>
+              }
               <bem.PageWrapper__content m={{
                 'navigator-open': this.state.assetNavigatorIsOpen,
                 'navigator-present': this.state.assetNavigator,
@@ -900,13 +843,12 @@ var App = React.createClass({
 // intended to provide a component we can export to html
 var Loading = React.createClass({
   render () {
-    var loadingImage = 'path/to/img.jpg';
     return (
         <bem.Loading>
-          <bem.Loading__message>
+          <bem.Loading__inner>
+            <i />
             {t('loading kobotoolbox')}
-          </bem.Loading__message>
-          <bem.Loading__img src={loadingImage} />
+          </bem.Loading__inner>
         </bem.Loading>
       );
   }
@@ -1182,7 +1124,7 @@ var FormSharing = React.createClass({
         );
     }
     return (
-      <ui.Modal open onClose={this.routeBack} title={t('manage sharing permissions')}>
+      <ui.Modal open onClose={this.routeBack} title={t('manage sharing permissions')} className='modal-large'>
         <ui.Modal.Body>
           <ui.Panel className="k-div--sharing">
             <div className="k-sharing__title">
@@ -1382,7 +1324,7 @@ var CollectionSharing = React.createClass({
         );
     }
     return (
-      <ui.Modal open onClose={this.routeBack} title={t('manage sharing permissions')}>
+      <ui.Modal open onClose={this.routeBack} title={t('manage sharing permissions')} className='modal-large'>
         <ui.Modal.Body>
           <ui.Panel className="k-div--sharing">
             <div className="k-sharing__title">
@@ -1536,7 +1478,7 @@ var FormEnketoPreview = React.createClass({
   },
   render () {
     return (
-      <ui.Modal open onClose={this.routeBack}>
+      <ui.Modal open onClose={this.routeBack} className='modal-large'>
         <ui.Modal.Body>
           { this.state.enketopreviewlink ?
               this.renderEnketoPreviewIframe() :
@@ -1567,6 +1509,7 @@ var FormLanding = React.createClass({
       ];
       stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
       stores.pageState.setAssetNavPresent(false);
+      stores.pageState.setFormBuilderFocus(false);
       actions.resources.loadAsset({id: params.assetid});
       callback();
     }

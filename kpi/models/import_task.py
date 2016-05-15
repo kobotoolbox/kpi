@@ -1,6 +1,7 @@
 import base64
 from io import BytesIO
 import re
+import logging
 from collections import defaultdict
 from django.db import models
 from django.core.urlresolvers import get_script_prefix, resolve
@@ -116,7 +117,13 @@ class ImportTask(models.Model):
 
         self.status = _status
         self.messages.update(msgs)
-        self.save(update_fields=['status', 'messages'])
+        try:
+            self.save(update_fields=['status', 'messages'])
+        except TypeError, e:
+            self.status = ImportTask.ERROR
+            logging.error('Failed to save import: %s' % repr(e),
+                          exc_info=True)
+            self.save(update_fields=['status'])
 
     def _load_assets_from_url(self, url, messages, **kwargs):
         destination = kwargs.get('destination', False)
