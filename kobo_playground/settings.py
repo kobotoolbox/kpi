@@ -206,6 +206,11 @@ TRACKJS_TOKEN = os.environ.get('TRACKJS_TOKEN')
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat/')
 KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL',
                                       'http://kobocat/')
+if 'KOBOCAT_URL' in os.environ:
+    DEFAULT_DEPLOYMENT_BACKEND = 'kobocat'
+else:
+    DEFAULT_DEPLOYMENT_BACKEND = 'mock'
+
 # Following the uWSGI mountpoint convention, this should have a leading slash
 # but no trailing slash
 DKOBO_PREFIX = os.environ.get('DKOBO_PREFIX', 'False')
@@ -263,7 +268,7 @@ CELERYBEAT_SCHEDULE = {
     #},
 }
 
-if KOBOCAT_URL:
+if 'KOBOCAT_URL' in os.environ:
     # Create/update KPI assets to match KC forms
     CELERYBEAT_SCHEDULE['sync-kobocat-xforms'] = {
         'task': 'kpi.tasks.sync_kobocat_xforms',

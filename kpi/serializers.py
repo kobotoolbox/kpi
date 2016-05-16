@@ -566,7 +566,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class DeploymentSerializer(serializers.Serializer):
-    backend = serializers.CharField()
+    backend = serializers.CharField(required=False)
     identifier = serializers.CharField(read_only=True)
     active = serializers.BooleanField(required=False)
     version = serializers.CharField(required=False)
@@ -579,8 +579,12 @@ class DeploymentSerializer(serializers.Serializer):
                 validated_data['version'] != str(asset.version_id):
             raise NotImplementedError(
                 'Only the current version can be deployed')
+        # if no backend is provided, use the installation's default backend
+        backend_id = validated_data.get('backend',
+                                        settings.DEFAULT_DEPLOYMENT_BACKEND)
+
         asset.connect_deployment(
-            backend=validated_data['backend'],
+            backend=backend_id,
             active=validated_data['active']
         )
         return asset.deployment
