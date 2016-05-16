@@ -661,20 +661,20 @@ var dmix = {
     });
   },
   renderDeployments () {
-    var deployed_versions = [
-        {
-          version_id: 1, 
-          date_deployed: 'June 1 2016',
-        },
-        {
-          version_id: 2, 
-          date_deployed: 'June 1 2016',
-        },
-        {
-          version_id: 3, 
-          date_deployed: 'June 1 2016',
-        }
-    ];
+    // var deployed_versions = [
+    //     {
+    //       version_id: 1, 
+    //       date_deployed: 'June 1 2016',
+    //     },
+    //     {
+    //       version_id: 2, 
+    //       date_deployed: 'June 1 2016',
+    //     },
+    //     {
+    //       version_id: 3, 
+    //       date_deployed: 'June 1 2016',
+    //     }
+    // ];
 
     return (
         <bem.FormView__group m="deployments">
@@ -708,14 +708,14 @@ var dmix = {
             </bem.FormView__item>
           </bem.FormView__group>
 
-          {deployed_versions.length > 0 && 
+          {this.state.deployed_versions.length > 0 && 
             <bem.FormView__group m={["history", this.state.historyExpanded ? 'historyExpanded' : 'historyHidden']}>
               <bem.FormView__group m="history-contents">
                 <bem.FormView__label m='previous-versions'>
                   {t('Previous Versions')}
                 </bem.FormView__label>
 
-                {deployed_versions.map((item) => {
+                {this.state.deployed_versions.map((item) => {
                   return (
                     <bem.FormView__group m="deploy-row">
                               <bem.FormView__item m='version'>
