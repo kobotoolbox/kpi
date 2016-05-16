@@ -548,7 +548,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_deployment__links(self, obj):
         if obj.has_deployment and obj.deployment.active:
-            dev_link = "https://ee.kobotoolbox.org/x/#YYES"
+            dev_link = "{}/enter-data".format(obj.deployment.identifier)
             return dict([[dd, dev_link] for dd in
                         ["online_offline",
                          "online_only_single",
