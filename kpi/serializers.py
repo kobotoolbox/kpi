@@ -385,6 +385,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     deployed_versions = serializers.SerializerMethodField()
     deployment__identifier = serializers.SerializerMethodField()
     deployment__active = serializers.SerializerMethodField()
+    deployment__links = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -405,6 +406,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'deployed_version_id',
                   'deployed_versions',
                   'deployment__identifier',
+                  'deployment__links',
                   'deployment__active',
                   'content',
                   'downloads',
@@ -544,6 +546,17 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def get_deployment__active(self, obj):
         return obj.has_deployment and obj.deployment.active
 
+    def get_deployment__links(self, obj):
+        if obj.has_deployment and obj.deployment.active:
+            dev_link = "https://ee.kobotoolbox.org/x/#YYES"
+            return dict([[dd, dev_link] for dd in
+                        ["online_offline",
+                         "online_only_single",
+                         "online_only_multi"]]
+                        )
+        else:
+            return {}
+
     def _content(self, obj):
         return json.dumps(obj.content)
 
@@ -653,6 +666,7 @@ class AssetListSerializer(AssetSerializer):
                   'deployed_version_id',
                   'deployment__identifier',
                   'deployment__active',
+                  'deployment__links',
                   'permissions',
                   )
 
