@@ -34,6 +34,9 @@
   font-size: 18px;
   margin-right: 20px;
   opacity: 0.6;
+  a {
+    color:#FFF;
+  }
   &.active {
     opacity: 1;
     border-bottom: 3px solid $cool-green;
@@ -74,10 +77,10 @@
   	margin-right: 0px;
   }
   &--collecting-webforms {
-    width:65%;
+    width:55%;
   }
   &--collecting-android {
-    width:35%;
+    width:45%;
   }
 }
 
@@ -163,8 +166,35 @@
 
   &--history {
     border-top:1px solid #DDD;
-    border-bottom:1px solid #DDD;
     padding:0px;
+    text-align: right;
+    button {
+      border:none;
+      text-align: right;
+      padding:6px 20px;
+      font-size: 14px;
+      cursor: pointer;
+      background-color: #FFF;
+    }
+  }
+
+  &--historyHidden .form-view__group--history-contents{
+    max-height: 0px;
+    overflow:hidden;
+    transition: 0.5s all;
+  }
+  &--historyExpanded .form-view__group--history-contents {
+    max-height: 4000px;
+    overflow:auto;
+    transition: 0.5s all;
+  }
+
+  &--history-contents {
+    padding:0px;
+    padding-bottom: 10px;
+    .form-view__group:last-child {
+      border-bottom: 1px solid #DDD;
+    }
   }
 
   &--buttons {
@@ -186,8 +216,15 @@
   margin:-15px;
   margin-bottom: 15px;
   background-color: $cool-green;
+  background-image: url("../img/graphic_macbook.png") center center no-repeat;
+  background-size: contain; 
   &--android {
-    background-color: #dbeef8;
+    background-color: #07cfba;
+  }
+  > .form-view__label {
+    font-size:18px;
+    padding:10px 15px;
+    padding-top: 165px;
   }
 }
 
@@ -223,6 +260,7 @@
 .form-view__link {
   font-size:18px;
   margin-left: 10px;
+  padding:0px 10px;
   color: $cool-gray;
   cursor: pointer;
   i.k-icon-view:before {
@@ -235,7 +273,7 @@
 
 .form-view__item--more-actions {
   position: relative;
-  margin-left: 10px;
+  // margin-left: 10px;
   button {
     font-size: 18px;
     background-color: transparent;
@@ -243,6 +281,7 @@
     border:none;
     border-radius: none;
     cursor: pointer;
+    padding:0px 10px;
     &:focus, &:hover {
       color: unquote("rgb(#{$color-primary})");
     }

@@ -143,10 +143,10 @@ var dmix = {
               <bem.FormView__row m="collecting" className="is-edge">
                 <bem.FormView__cell m='collecting-webforms'>
                   <bem.FormView__banner m="webforms">
-                  </bem.FormView__banner>
-                  <bem.FormView__label m='title'>
+                  <bem.FormView__label m='white'>
                     {t('Collecting Data with Web Forms')}
                   </bem.FormView__label>
+                  </bem.FormView__banner>
                   <ol>
                     <li>{t('Choose one of the different web form links above.')}</li>
                     <li>{t('Open the link on your own computer or mobile device or copy')}</li>
@@ -157,10 +157,10 @@ var dmix = {
                 </bem.FormView__cell>
                 <bem.FormView__cell m='collecting-android'>
                   <bem.FormView__banner m="android">
+                    <bem.FormView__label m='white'>
+                      {t('Collecting Data with Android App')}
+                    </bem.FormView__label>
                   </bem.FormView__banner>
-                  <bem.FormView__label m='title'>
-                    {t('Collecting Data with Android App')}
-                  </bem.FormView__label>
 
                   <ol>
                     <li>{t('Install KoboCollect on your Android device.')}</li>
@@ -179,6 +179,10 @@ var dmix = {
   },
   renderAncestors () {},
   renderHeader () {
+
+    if (stores.session.currentAccount) {
+      var kc_url = stores.session.currentAccount.projects_url + '/forms/'+ this.state.uid;
+    }
     return (
         <bem.FormView__header m={[
               this.state.name ? 'named' : 'untitled'
@@ -190,9 +194,11 @@ var dmix = {
             <bem.FormView__tab className="active">
               {t('Form')}
             </bem.FormView__tab>
-            <bem.FormView__tab className="is-edge">
-              {t('Data')}
-            </bem.FormView__tab>
+            { kc_url != undefined && this.state.has_deployment ?
+              <bem.FormView__tab>
+                <a href={kc_url}>{t('Data')}</a>
+              </bem.FormView__tab>
+            : null }
 
             {this.renderExtraButtons()}
 
@@ -226,7 +232,7 @@ var dmix = {
           <bem.FormView__link m={'deploy'} 
             onClick={this.deployAsset}
             data-tip={this.state.deployed_version_id === null ? t('deploy') : t('redeploy')}>
-            <i className="fa fa-play" />
+            <i className="k-icon-deploy" />
             
           </bem.FormView__link>
 
@@ -238,12 +244,15 @@ var dmix = {
               </bem.FormView__button>
               { (downloadable && this.state.downloadsShowing) ?
                 <bem.PopoverMenu ref='dl-popover'>
+                  <bem.PopoverMenu__item>
+                    <i className="k-icon-download" />
+                    {t('Download as')}
+                  </bem.PopoverMenu__item>
                   {downloads.map((dl)=>{
                     return (
                         <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
                             key={`dl-${dl.format}`}>
-                          <i />
-                          {t(`Download as ${dl.format}`)}
+                          {dl.format}
                         </bem.PopoverMenu__link>
                       );
                   })}
@@ -646,21 +655,26 @@ var dmix = {
         });
       });
   },
+  toggleDeploymentHistory () {
+    this.setState({
+      historyExpanded: !this.state.historyExpanded,
+    });
+  },
   renderDeployments () {
-    // var deployed_versions = [
-    //     {
-    //       version_id: 1, 
-    //       date_deployed: 'June 1 2016',
-    //     },
-    //     {
-    //       version_id: 2, 
-    //       date_deployed: 'June 1 2016',
-    //     },
-    //     {
-    //       version_id: 3, 
-    //       date_deployed: 'June 1 2016',
-    //     }
-    // ];
+    var deployed_versions = [
+        {
+          version_id: 1, 
+          date_deployed: 'June 1 2016',
+        },
+        {
+          version_id: 2, 
+          date_deployed: 'June 1 2016',
+        },
+        {
+          version_id: 3, 
+          date_deployed: 'June 1 2016',
+        }
+    ];
 
     return (
         <bem.FormView__group m="deployments">
@@ -694,28 +708,35 @@ var dmix = {
             </bem.FormView__item>
           </bem.FormView__group>
 
-          {this.state.deployed_versions.length > 0 && 
-            <bem.FormView__group m="history">
-              <bem.FormView__label m='previous-versions'>
-                {t('Previous Versions')}
-              </bem.FormView__label>
+          {deployed_versions.length > 0 && 
+            <bem.FormView__group m={["history", this.state.historyExpanded ? 'historyExpanded' : 'historyHidden']}>
+              <bem.FormView__group m="history-contents">
+                <bem.FormView__label m='previous-versions'>
+                  {t('Previous Versions')}
+                </bem.FormView__label>
 
-              {this.state.deployed_versions.map((item) => {
-                return (
-                  <bem.FormView__group m="deploy-row">
-                    <bem.FormView__item m='version'>
-                      {item.version_id}
-                    </bem.FormView__item>
-                    <bem.FormView__item m='date'>
-                      {formatTime(item.date_deployed)}
-                    </bem.FormView__item>
-                    <bem.FormView__item m='lang'>
-                    </bem.FormView__item>
-                    <bem.FormView__item m='questions'>
-                    </bem.FormView__item>
-                  </bem.FormView__group>
-                );
-              })}
+                {deployed_versions.map((item) => {
+                  return (
+                    <bem.FormView__group m="deploy-row">
+                              <bem.FormView__item m='version'>
+                        {item.version_id}
+                      </bem.FormView__item>
+                      <bem.FormView__item m='date'>
+                        {formatTime(item.date_deployed)}
+                      </bem.FormView__item>
+                      <bem.FormView__item m='lang'>
+                      </bem.FormView__item>
+                      <bem.FormView__item m='questions'>
+                      </bem.FormView__item>
+                    </bem.FormView__group>
+                  );
+                })}
+              </bem.FormView__group>
+
+              <bem.FormView__button onClick={this.toggleDeploymentHistory}>
+                {this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
+              </bem.FormView__button>
+
             </bem.FormView__group>
           }
         </bem.FormView__group>
@@ -806,6 +827,7 @@ var dmix = {
     return {
       userCanEdit: false,
       userCanView: true,
+      historyExpanded: false,
       collectionOptionList: [],
       currentUsername: stores.session.currentAccount && stores.session.currentAccount.username,
     };

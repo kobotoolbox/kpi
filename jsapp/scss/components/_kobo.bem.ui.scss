@@ -145,21 +145,28 @@
   box-shadow: 0px 2px 5px 0 rgba(0,0,0,0.2);
 }
 
-.popover-menu__link {
+.popover-menu__link, .popover-menu__item {
   background-color: #FFF;
   display: block;
   padding: 10px 5px;
   position: relative;
   color:$cool-gray;
   cursor: pointer;
-  &:hover {
-    background-color: #eff0f1;
-    color:$cool-gray;
-  }
 
   > i:first-child {
     margin-right: 6px;
     font-size: 18px;
+  }
+
+}
+.popover-menu__link {
+  &--dl-xls, &--dl-xml {
+    text-transform: uppercase;
+    padding-left: 50px;
+  }
+  &:hover {
+    background-color: #eff0f1;
+    color:$cool-gray;
   }
 }
 
