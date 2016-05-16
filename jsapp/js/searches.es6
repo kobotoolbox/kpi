@@ -257,16 +257,16 @@ function SearchContext(opts={}) {
         defaultQueryResultsList: data.results,
         defaultQueryCount: count,
         defaultQueryCategorizedResultsLists: {
-          'active': data.results.filter((asset) => {
+          'Deployed': data.results.filter((asset) => {
             return asset.has_deployment && asset.deployment__active;
           }),
-          'inactive': data.results.filter((asset) => {
-            return asset.has_deployment && !asset.deployment__active;
-          }),
-          'drafts': data.results.filter((asset) => {
+          'Draft': data.results.filter((asset) => {
             return !asset.has_deployment;
           }),
-          'deleted': [], // not implemented yet
+          'Archived': data.results.filter((asset) => {
+            return asset.has_deployment && !asset.deployment__active;
+          }),
+          'Deleted': [], // not implemented yet
         }
       };
     } else {
@@ -284,6 +284,18 @@ function SearchContext(opts={}) {
         // when to show search results (as opposed to default query)
         searchResultsDisplayed: true,
         searchResultsSuccess: count > 0,
+        searchResultsCategorizedResultsLists: {
+          'Deployed': data.results.filter((asset) => {
+            return asset.has_deployment && asset.deployment__active;
+          }),
+          'Draft': data.results.filter((asset) => {
+            return !asset.has_deployment;
+          }),
+          'Archived': data.results.filter((asset) => {
+            return asset.has_deployment && !asset.deployment__active;
+          }),
+          'Deleted': [], // not implemented yet
+        }
       };
     }
     searchStore.update(newState);

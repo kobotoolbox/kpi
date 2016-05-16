@@ -29,15 +29,10 @@
   height: 100%;
   flex-direction: column;
   > .asset-view__content,
-  > .collection-list,
   > .formBuilder {
     @extend .mdl-cell, .mdl-cell--12-col;
     flex-flow: column;
     margin: 0px !important;
-  }
-  > .collection-list {
-    position: relative;
-    height: calc(100% - 50px);
   }
   > .asset-view__content {
     height: 100%;

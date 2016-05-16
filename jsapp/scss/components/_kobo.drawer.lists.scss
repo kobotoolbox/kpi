@@ -123,6 +123,17 @@
       margin-right:6px;
       vertical-align: middle;
       display: inline-block;
+      @extend .k-icon;
+    }
+
+    &--Deployed i {
+      @extend .k-icon-active;
+    }
+    &--Draft i {
+      @extend .k-icon-drafts;
+    }
+    &--Archived i {
+      @extend .k-icon-inactive;
     }
   }
 }

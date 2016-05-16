@@ -1,8 +1,3 @@
-.collection-asset-list {
-  height: calc(100% - 50px);
-  overflow: auto;
-}
-
 .asset-list-sorts {
   padding: 0px 12px;
   white-space: nowrap;
@@ -42,5 +37,39 @@
   > div {
     padding: 15px;
     vertical-align: middle;
+  }
+}
+
+// regular, non-grouped list
+.list--regular {
+  @extend .mdl-cell, .mdl-cell--12-col;
+  flex-flow: column;
+  margin: 0px !important;
+  position: relative;
+  height: calc(100% - 50px);
+}
+
+.list--regular .asset-list {
+  height: calc(100% - 50px);
+  overflow: auto;
+}
+
+// grouped list
+
+.list--grouped {
+  height: 100%;
+  margin: 0px 8px;
+  overflow-y: auto;
+  .asset-list__heading {
+    font-weight: 500;
+    margin: 10px 0px;
+    margin-top: 20px;
+    font-size: 22px;
+    color: $cool-gray;
+  }
+  .asset-items {
+    @extend .mdl-shadow--2dp;
+    background: #FFF;
+    position: relative;
   }
 }

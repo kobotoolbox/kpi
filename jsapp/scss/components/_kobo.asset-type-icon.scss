@@ -58,26 +58,6 @@
   &--survey {
     background-color: #FFF;
     border: 2px solid $cool-green;
-
-    // > i {
-    //   font-size: 16px;
-    //   font-weight: 600;
-
-    //   @extend .fa, .fa-fw, .fa-file-o;
-    // }
-
-    // &.asset-type-icon--small {
-    //   > i {
-    //     font-size: 11px;
-    //   }
-    // }
-
-    // &.asset-type-icon--medium {
-    //   > i {
-    //     margin-left: 2px;
-    //     font-size: 12px;
-    //   }
-    // }
   }
 }
 
@@ -87,15 +67,9 @@
 //   color:$cool-gray;
 // }
 
-.asset-row--active .asset-type-icon, 
-.asset-row--active .asset-type-icon:hover {
-  // border:none;
-  // border-radius:0px;
-  // background-color: transparent;
-  svg.ki-icon {
-    display: none;
-    // width:31px;
-    // height:31px;
-    // vertical-align: top;
-  }
+.asset-row--active .asset-type-icon--survey, 
+.asset-row .asset-type-icon--survey:hover {
+    background-color: $cool-green;
 }
+
+

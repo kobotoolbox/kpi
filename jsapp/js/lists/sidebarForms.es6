@@ -64,11 +64,11 @@ var SidebarFormsList = React.createClass({
                 </bem.Loading>
               );
             } else if (s.defaultQueryState === 'done') {
-              return ['active', 'drafts', 'inactive' /*, 'deleted'*/].map(
+              return ['Deployed', 'Draft', 'Archived' /*, 'Deleted'*/].map(
                 (category) => {
                   return [
-                    <bem.FormSidebar__label>
-                      <i className={`k-icon-${category}`} />
+                    <bem.FormSidebar__label m={category}>
+                      <i />
                       {t(category)}
                       {` (${s.defaultQueryCategorizedResultsLists[category].length})`}
                     </bem.FormSidebar__label>,

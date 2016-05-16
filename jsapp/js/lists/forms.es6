@@ -66,19 +66,10 @@ var FormsSearchableList = React.createClass({
   },
   render () {
     return (
-      <ui.Panel>
-
-        <SearchCollectionList
-            showDefault={true}
-            searchContext={this.state.searchContext}
-          />
-        <div className="mdl-layout-spacer"></div>
-        <ListSearchSummary
-            assetDescriptor={t('form')}
-            assetDescriptorPlural={t('forms')}
-            searchContext={this.state.searchContext}
-          />
-      </ui.Panel>
+      <SearchCollectionList
+          showDefault={true}
+          searchContext={this.state.searchContext}
+        />
       );
   },
   componentDidUpdate() {
