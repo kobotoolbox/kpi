@@ -5,6 +5,8 @@ import newFormMixin from '../editorMixins/newForm';
 import editableFormMixin from '../editorMixins/editableForm';
 import existingFormMixin from '../editorMixins/existingForm';
 import Select from 'react-select';
+import ui from '../ui';
+import bem from '../bem';
 
 import {Navigation} from 'react-router';
 import {session} from '../stores';
@@ -59,11 +61,18 @@ export var NewForm = React.createClass({
       });
     });
   },
+  routeBack () {
+    this.transitionTo('forms');
+  },
   render () {
     if (!this.state.sessionLoaded) {
-      // TODO: use standardized loading wheel
       return (
-          <p>{t('loading')}</p>
+          <bem.Loading>
+            <bem.Loading__inner>
+              <i />
+              {t('loading...')} 
+            </bem.Loading__inner>
+          </bem.Loading>
         )
     }
     var acct = session.currentAccount;
@@ -71,61 +80,77 @@ export var NewForm = React.createClass({
     var sectors = acct.available_sectors;
     var countries = acct.available_countries;
     return (
-      <div>
-        <p>
-          <label htmlFor="name">
-            {t('Project Name')}
-          </label>
-          <br />
-          <input type="text"
-              ref="name"
-              id="name"
-              placeholder={t('Enter title of project here')}
-            />
-        </p>
-        <p>
-          <label htmlFor="description">
-            {t('Description')}
-          </label>
-          <br />
-          <textarea type="text" ref="description"
-              id="description"
-              placeholder={t('Enter short description here')}
-            />
-        </p>
-        <p>
-          <label htmlFor="sector">
-            {t('Sector')}
-          </label>
-          <br />
-          <Select name="sector"
-              ref="sector"
-              id="sector"
-              options={sectors}
-            />
-        </p>
-        <label htmlFor="country">
-          {t('Country')}
-        </label>
-        <br />
-        <Select name="country"
-            id="country"
-            ref="country"
-            options={countries}
-          />
-        <p>
-          <input type="checkbox"
-              name="share-metadata"
-              id="share-metadata"
-            />
-          <label htmlFor="share-metadata">
-            {t('Help kobotoolbox improve this tool by sharing project and sector.')}
-          </label>
-        </p>
-        <button onClick={this.createAsset}>
-          {t('Create project')}
-        </button>
-      </div>
+      <ui.Modal open onClose={this.routeBack} title={t('Create New Project from Scratch')}>
+        <ui.Modal.Body>
+          <bem.FormModal>
+            <bem.FormModal__item>
+              <label htmlFor="name">
+                {t('Project Name')}
+              </label>
+              <input type="text"
+                  ref="name"
+                  id="name"
+                  placeholder={t('Enter title of project here')}
+                />
+            </bem.FormModal__item>
+            <bem.FormModal__item>
+              <label htmlFor="description">
+                {t('Description')}
+              </label>
+              <textarea type="text" ref="description"
+                  id="description"
+                  placeholder={t('Enter short description here')}
+                />
+            </bem.FormModal__item>
+
+            <bem.FormModal__item>
+              <label className="long">
+                {t('Please specify the country and the sector where this project will be deployed.')}
+                {t('This information will be used to help you filter results on the project list page.')}
+              </label>
+              <label htmlFor="sector">
+                {t('Sector')}
+              </label>
+              <Select name="sector"
+                  ref="sector"
+                  id="sector"
+                  options={sectors}
+                />
+            </bem.FormModal__item>
+            <bem.FormModal__item>
+              <label htmlFor="country">
+                {t('Country')}
+              </label>
+              <Select name="country"
+                id="country"
+                ref="country"
+                options={countries}
+              />
+            </bem.FormModal__item>
+            <bem.FormModal__item>
+              <label className="long">
+                {t('Help KoboToolbox improve this product by sharing the sector and country where this project will be deployed.')}
+                {t('All the information is submitted anonymously, and will not include the project name or description listed above.')}
+              </label>
+
+              <input type="checkbox"
+                  name="share-metadata"
+                  id="share-metadata"
+                />
+              <label htmlFor="share-metadata" className="inline">
+                {t('Share the sector and country with developers')}
+              </label>
+            </bem.FormModal__item>
+
+            <bem.FormModal__item m='actions'>
+              <button onClick={this.createAsset} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                {t('Create project')}
+              </button>
+            </bem.FormModal__item>
+          </bem.FormModal>
+
+        </ui.Modal.Body>
+      </ui.Modal>
     );
   },
 });
