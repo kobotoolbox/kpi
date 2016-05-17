@@ -836,6 +836,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
                   'ancestors',
                   'children',
                   'permissions',
+                  'discoverable_when_public',
                   'tag_string',)
         lookup_field = 'uid'
         extra_kwargs = {
