@@ -17,7 +17,6 @@ echo 'Synchronizing database.'
 python manage.py syncdb --noinput
 
 echo 'Running migrations.'
-python manage.py makemigrations --noinput
 python manage.py migrate --noinput
 
 if [[ ! -d "${KPI_SRC_DIR}/node_modules" ]]; then
