@@ -147,6 +147,19 @@ ui.BreadcrumbItem = React.createClass({
   }
 });
 
+
+var SidebarAssetName = bem.create('sidebar-asset-name', '<span>');
+
+ui.SidebarAssetName = React.createClass({
+  render () {
+    return (
+        <SidebarAssetName m={{noname: !this.props.name}}>
+          {this.props.name || t('No name')}
+        </SidebarAssetName>
+      );
+  }
+});
+
 ui.AssetName = React.createClass({
   render () {
     var name = this.props.name,
