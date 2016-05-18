@@ -1,4 +1,4 @@
-_ = require 'underscore',
+_ = require 'underscore'
 $surveyApp = require './view.surveyApp'
 $viewUtils = require './view.utils'
 $viewRowDetailSkipLogic = require './view.rowDetail.SkipLogic'

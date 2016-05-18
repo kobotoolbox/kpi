@@ -1,63 +1,46 @@
-.k-form-header__buttons {
-  width: calc(100% - 70px);
-  left: 0px;
-  position: fixed;
-  z-index: 5;
-  background-color: rgb(245,245,245);
-  margin: -10px 0px;
-  padding: 10px 25px;
-  transition: all 0.5s;
-  .page-wrapper--asset-nav-open & {
-    width: calc(100% - 410px);
+// FORM BUILDER MAIN LAYOUT
+
+.formBuilder {
+  background-color: #FFF;
+  &:before {
+    content: ' ';
+    width: 100%;
+    height: 75px;
+    background-color: #FFF;
+    position: fixed;
+    right: 0;
+    z-index: -1;
+    top: 0px;
+  }
+  &:after {
+    content: ' ';
+    width: 100%;
+    height: 46px;
+    background-color: #DDD;
+    position: fixed;
+    right: 0;
+    z-index: -1;
+    top: 75px;
+    background-color: #F1F1F1;
+    box-shadow: 0px 2px 2px 0px rgba(0,0,0,0.22);
   }
 }
 
-.k-form-header__title {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding-top: 65px;
-  .k-header-form-title {
-    flex:1;
-    padding:0px 10px;
-  }
-  .k-corner-icon {
-    opacity: 0.3;
-    width: 45px;
-    height: 45px;
-    border-radius: 25px;
-    background-color: lighten($muiBlue, 20%);
-    border: 3px solid lighten($muiBlue, 12%);
-  }
+.formBuilder-header {
+  height: 110px;
 }
 
-.k-form-actions {
-  > a {
-    margin-right: 1em;
-  }
-}
-
-.k-sub-settings-bar {
-  cursor: pointer;
-  color: #B2B2B2;
-  width: 100%;
-  &:hover {
-    color: #666;
-  }
-  .settings-preview {
-    margin: 0 24px 0 0;
-  }
-
-  transition: all .4s ease 0s;
+.formBuilder__contents {
+  height: calc(100% - 126px);
+  overflow: auto;
+  margin-top:15px;
 }
 
 .form-wrap {
-  padding-top: 25px;
-  padding-left: 20px;
-  padding-right: 10px;
-  width:100%;
-  .survey-header,
-    .sub-header-bar {
+  padding:0px 75px;
+  width: 100%;
+  min-height: 200px;
+  .survey-header, .sub-header-bar {
     display: none;
   }
   input, textarea {
@@ -65,5 +48,258 @@
     &:focus {
       box-shadow: none;
     }
+  }
+
+  .loading {
+    min-height: 200px;
+  }
+}
+
+.formBuilder--formStyleDisplayed {
+  > .formBuilder-header {
+    height: 280px;
+  }
+  .formBuilder__contents {
+    height: calc(100% - 300px);
+  }
+}
+
+// FORM BUILDER HEADER
+
+.formBuilder-header {
+  &__row {
+    display: flex;
+    flex-direction:row;
+    flex-wrap: nowrap;
+    &--first {
+      background-color: #FFF;
+      height:75px;
+    }
+    &--second {
+      background-color: #F1F1F1;
+      box-shadow: 0px 2px 2px 0px rgba(0,0,0,0.22);
+    }
+  }
+
+  &__cell {
+    &--project-icon {
+      background-color: $cool-green;
+      width:75px;
+      text-align: center;
+      vertical-align: middle;
+      height:75px;
+
+      i {
+        color: #FFF;
+        font-size: 32px;
+        padding-top: 20px;
+        display: inline-block;
+        vertical-align: middle;
+        &:before {
+          margin-right:0px;
+        }
+      }
+    }
+
+    &--name {
+      width:calc(100% - 400px);
+      padding:0px 20px;
+    }
+
+    &--buttonsTopRight {
+      width:280px;
+      text-align: right;
+      align-self:center;
+    }
+
+    &--close {
+      width:45px;
+      text-align: right;
+      padding:5px;
+      margin-left: 5px;
+    }
+
+    // second row 
+    &--buttons {
+      margin-left: 75px;
+      .formBuilder-header__item {
+        display: inline-block;
+        border-left:1px solid #8A9AA4;
+        border-right:1px solid #8A9AA4;
+        margin:4px;
+        padding:0px 6px;
+      }
+
+      button {
+        color: #8A9AA4;
+        &:hover, &:focus, &:focus:not(:active) {
+          background-color: transparent;
+        }
+        &:hover {
+          color: #333;
+        }
+        i {
+          font-size: 18px;
+          &.k-icon-cascading {
+            font-size: 14px;
+          }
+        }
+      }
+    }
+    &--spacer {
+      flex-grow:1;
+    }
+    &--library-toggle {
+      width:200px;
+      padding:5px;
+      button {
+        min-width: 146px;
+      }
+    }
+  }
+
+}
+
+.formBuilder-header__close {
+  border:none;
+  background-color: transparent;
+  font-size: 20px;
+  color: #D8D8D8;
+  cursor: pointer;
+  &:hover {
+    color: darken(#D8D8D8, 20%);
+  }
+}
+
+.formBuilder-header__button {
+  @extend .mdl-button;
+
+  > i {
+    @extend .fa, .fa-fw;
+    margin-right: 5px;
+  }
+
+  &.formBuilder-header__button--create,
+  &.formBuilder-header__button--save {
+    margin-left: 10px;
+    text-transform: uppercase;
+    min-width:85px;
+    @extend .mdl-button--colored, .mdl-button--raised;
+    > i {
+      display: none;
+    }
+  }
+
+  &.formBuilder-header__button--savepending,
+  &.formBuilder-header__button--create-pending {
+    > i {
+      @extend .fa-spin, .fa-spinner;
+    }
+    > i + span {
+      display: none;
+    }
+  }
+
+  // &.formBuilder-header__button--save:after {
+  //   content: '_';
+  //   font-family: monospace;
+  //   color: transparent;
+  // }
+
+  &.formBuilder-header__button--saveneeded:after {
+    content: '*';
+    color: white;
+  }
+
+  &.formBuilder-header__button--share {
+    min-width:85px;
+    text-transform: uppercase;
+    @extend .mdl-button--raised;
+    background: #8595A1;
+    color: white;
+  }
+
+  &.formBuilder-header__button--showLibrary {
+    border:1px solid #5D6971;
+    color: #5D6971;
+  }
+}
+
+// FORM STYLE SETTINGS
+
+.form-style__panel {
+  padding: 12px 12px 20px;
+  margin: 12px 0;
+  background-color: #eee;
+}
+
+.form-style__panelheader {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.form-style__paneltext {
+  margin: 8px 0;
+}
+
+// FORM META 
+
+.form-meta {
+  margin:8px 75px;
+  margin-bottom: 16px;
+  margin-right: 60px;
+
+}
+
+.form-meta__button--metasummary {
+  background-color: #F7F7F7;
+  width:calc(100% - 80px);
+  text-align: left;
+  text-transform: uppercase;
+  @extend .mdl-button;
+  span {
+    margin: 0 5px;
+  }
+}
+
+.form-meta__button--expand {
+  background-color: #F0F0F0;
+  @extend .mdl-button;
+  > i {
+    @extend .fa, .fa-fw, .fa-cog;
+  }
+}
+
+
+ // CASCADE MODAL CONTENTS
+
+ .cascade-popup {
+  textarea {
+    margin: 15px 0px;
+    width: 100%;
+    height: 220px;
+    border:2px solid $cool-gray;
+  }
+  .cascade-popup__buttonWrapper {
+    padding-top: 10px;
+    text-align: right;
+    button {
+      @extend .mdl-button, .mdl-button--colored, .mdl-button--raised;
+      min-width:100px;
+    }
+  }
+
+  .cascade-popup__message {
+    &--warning {
+      color:#FF5469;
+    }
+    &--ready {
+      color:$cool-green;
+    }
+  }
+
+  i.k-icon-help {
+    font-size: 26px;
+    color:$cool-gray;
   }
 }

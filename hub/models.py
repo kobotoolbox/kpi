@@ -4,6 +4,7 @@ from django.conf import settings
 from markitup.fields import MarkupField
 from jsonfield import JSONField
 
+
 class SitewideMessage(models.Model):
     slug = models.CharField(max_length=50)
     body = MarkupField()

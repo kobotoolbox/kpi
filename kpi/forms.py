@@ -13,6 +13,7 @@ USERNAME_INVALID_MESSAGE = _(
     'underscores (_).'
 )
 
+
 class RegistrationForm(registration_forms.RegistrationForm):
     username = forms.RegexField(
         regex=USERNAME_REGEX,
@@ -28,10 +29,22 @@ class RegistrationForm(registration_forms.RegistrationForm):
         label=_('Organization name'),
         required=False,
     )
+    gender = forms.ChoiceField(
+        label=_('Gender'),
+        required=False,
+        choices=(
+                 ('', ''),
+                 ('male', _('Male')),
+                 ('female', _('Female')),
+                 ('other', _('Other')),
+                 )
+    )
+
     sector = forms.ChoiceField(
         label=_('Sector'),
         required=False,
-        choices=(('', ''),) + SECTORS,
+        choices=(('', ''),
+            ) + SECTORS,
     )
     country = forms.ChoiceField(
         label=_('Country'),
@@ -52,6 +65,7 @@ class RegistrationForm(registration_forms.RegistrationForm):
             'username',
             'organization',
             'email',
+            'gender',
             'sector',
             'country',
             'default_language',

@@ -32,6 +32,23 @@ ui.SmallInputBox = React.createClass({
   }
 });
 
+ui.SearchBox = React.createClass({
+  getValue () {
+    return this.refs.inp.getDOMNode().value;
+  },
+  setValue (v) {
+    this.refs.inp.getDOMNode().value = v;
+  },
+  render () {
+    var elemId = _.uniqueId('elem');
+    var value = this.props.value;
+    return (
+        <input type="text" ref='inp' className="k-search__input" value={value}
+            onKeyUp={this.props.onKeyUp} onChange={this.props.onChange} id={elemId} placeholder={this.props.placeholder}/>
+      );
+  }
+});
+
 ui.Panel = React.createClass({
   render () {
     return (
@@ -78,24 +95,18 @@ ui.Modal = React.createClass({
     }
   },
   render () {
-
     return (
-      <div className='modal-backdrop' style={{backgroundColor: 'rgba(0,0,0,0.3)'}} onClick={this.backdropClick.bind(this)}>
+      // m={['done', isSearch ? 'search' : 'default']}
+      <div className={'modal-backdrop ' + this.props.className} onClick={this.backdropClick.bind(this)}>
         <div className={this.props.open ? 'modal-open' : 'modal'}> 
-          <div className="modal-dialog k-modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <div className="mdl-grid k-form-header__inner">
-                  {this.renderTitle()}
-                  <div className="mdl-layout-spacer"></div>
-                  <button type="button" className="close mdl-button mdl-button--icon mdl-js-button" onClick={this.props.onClose}>
-                    <i className="material-icons">clear</i>
-                  </button>
-                </div>
-
-              </div>
-              {this.props.children}
+          <div className="modal-content">
+            <div className="modal-header">
+              {this.renderTitle()}
+              <a className="modal-x" type="button" onClick={this.props.onClose}>
+                <i className="k-icon-close"></i>
+              </a>
             </div>
+            {this.props.children}
           </div>
         </div>
       </div>

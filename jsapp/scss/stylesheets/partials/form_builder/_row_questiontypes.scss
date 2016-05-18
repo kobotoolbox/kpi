@@ -57,7 +57,7 @@
     color: white;
     border: 0 none;
     border-radius: 3px;
-    font-family: 'Open Sans';
+    font-family: $preferred_font;
     font-weight: 600;
     padding: 1px 3px;
     line-height: 1em;
@@ -123,7 +123,7 @@ input.row__questiontypes__new-question-name {
     margin-bottom: 1px;
     padding: 10px 5px;
     font-size: 11px;
-    font-family: 'Open Sans';
+    font-family: $preferred_font;
     font-weight: 600;
     cursor: pointer;
     color: #35495D;

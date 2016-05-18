@@ -1,10 +1,12 @@
 import React from 'react/addons';
 import {Navigation} from 'react-router';
 import $ from 'jquery';
+import ReactTooltip from 'react-tooltip';
 
 import bem from '../bem';
 import ui from '../ui';
 import stores from '../stores';
+import mixins from '../mixins';
 import {
   formatTime,
   anonUsername,
@@ -16,24 +18,29 @@ var AssetTypeIcon = bem.create('asset-type-icon');
 
 var AssetRow = React.createClass({
   mixins: [
-    Navigation
+    Navigation,
+    mixins.taggedAsset
   ],
+  getInitialState () {
+    return {tags: this.props.tags};
+  },
   clickAsset (evt) {
+    // this click was not intended for a button
+    evt.nativeEvent.preventDefault();
+    evt.nativeEvent.stopImmediatePropagation();
+    evt.preventDefault();
+
+    // if no asset is selected, then this asset
+    // otherwise, toggle selection (unselect if already selected)
+    let forceSelect = (stores.selectedAsset.uid === false);
+    stores.selectedAsset.toggleSelect(this.props.uid, forceSelect);
+  },
+  clickAssetButton (evt) {
     var clickedActionIcon = $(evt.target).closest('[data-action]').get(0);
     if (clickedActionIcon && this.props.isSelected) {
       this.props.onActionButtonClick(assign(evt, {
         actionIcon: clickedActionIcon,
       }));
-    } else {
-      // this click was not intended for a button
-      evt.nativeEvent.preventDefault();
-      evt.nativeEvent.stopImmediatePropagation();
-      evt.preventDefault();
-
-      // if no asset is selected, then this asset
-      // otherwise, toggle selection (unselect if already selected)
-      let forceSelect = (stores.selectedAsset.uid === false);
-      stores.selectedAsset.toggleSelect(this.props.uid, forceSelect);
     }
   },
   preventDefault (evt) {
@@ -54,6 +61,8 @@ var AssetRow = React.createClass({
     }
     var isDeployable = !isCollection && this.props.asset_type && this.props.asset_type === 'survey';
     hrefParams[hrefKey] = this.props.uid;
+
+    // check-round icon temporarily removed from selected asset
     return (
         <bem.AssetRow m={{
                             'selected': this.props.isSelected,
@@ -62,80 +71,103 @@ var AssetRow = React.createClass({
                             'deleted': this.props.deleted,
                             'deleting': this.props.deleting,
                           }}
-                        onClick={this.clickAsset}
+                        className="mdl-grid"
                       >
-          <i />
-
-          <bem.AssetRow__cell m={['icon']}>
-            <AssetTypeIcon m={[this.props.asset_type, 'medium']}><i /></AssetTypeIcon>
-          </bem.AssetRow__cell>
-
-          <bem.AssetRow__celllink m={['name', this.props.name ? 'titled' : 'untitled']}
-                data-kind={this.props.kind}
-                data-asset-type={this.props.kind}
-                href={this.makeHref( hrefTo, hrefParams)}
-              >
-            <bem.AssetRow__name>
-              <ui.AssetName {...this.props} />
-            </bem.AssetRow__name>
-          </bem.AssetRow__celllink>
-          <bem.AssetRow__cellmeta>
-            <bem.AssetRow__cell m={'deployment-status'}>
-              {
-                this.props.deployed_version_id === null ?
-                  t('draft') :
-                  t('deployed')
+          <bem.AssetRow__cell m={'asset-details'} onClick={this.clickAsset}>
+            <bem.AssetRow__cell m={'title'} className="mdl-cell mdl-cell--6-col mdl-cell--3-col-tablet">
+              { this.props.isSelected ? 
+                <AssetTypeIcon m={[this.props.asset_type]} ><i /></AssetTypeIcon>
+                
+              : 
+                <AssetTypeIcon m={[this.props.asset_type]} ><i /></AssetTypeIcon>
               }
+              <bem.AssetRow__celllink m={['name', this.props.name ? 'titled' : 'untitled']}
+                    data-kind={this.props.kind}
+                    data-asset-type={this.props.kind}
+                    href={this.makeHref( hrefTo, hrefParams)}
+                  >
+                <bem.AssetRow__name>
+                  <ui.AssetName {...this.props} />
+                </bem.AssetRow__name>
+              </bem.AssetRow__celllink>
             </bem.AssetRow__cell>
-            <bem.AssetRow__cell m={'userlink'}>
+            <bem.AssetRow__cell m={'userlink'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet">
               {
                 selfowned ?
                   t('me') :
                   this.props.owner__username
               }
             </bem.AssetRow__cell>
-            <bem.AssetRow__cell m={'date-modified'}>
-              <span className="date date--modified">{t('Modified')} {formatTime(this.props.date_modified)}</span>
+            <bem.AssetRow__cell m={'date-modified'} className="mdl-cell mdl-cell--3-col mdl-cell--2-col-tablet">
+              <span className="date date--modified">{formatTime(this.props.date_modified)}</span>
             </bem.AssetRow__cell>
-            <bem.AssetRow__cell m={'row-count'}>
+            <bem.AssetRow__cell m={'row-count'} className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet">
               {()=>{
-                if (this.props.kind === 'collection') {
-                  return t('collection with ___ items').replace('___', _rc);
-                } else if (this.props.asset_type === 'survey') {
-                  return t('survey with ___ questions').replace('___', _rc);
-                } else if (this.props.asset_type === 'block') {
-                  return t('block with ___ questions').replace('___', _rc);
+                if (this.props.asset_type === 'question') {
+                  return '-';
+                } else {
+                  return _rc;
                 }
               }()}
+              <i className="k-asset-arrow-icon" />
             </bem.AssetRow__cell>
-          </bem.AssetRow__cellmeta>
+          </bem.AssetRow__cell>
           { this.props.isSelected &&
-            <bem.AssetRow__cell m={'buttons'}>
-              <bem.AssetRow__cell m={'action-icons'}>
+            <bem.AssetRow__cell m={'tags'} className="mdl-cell mdl-cell--12-col">
+              {this.renderTaggedAssetTags()}
+            </bem.AssetRow__cell>
+          }
+          { this.props.isSelected &&
+            <bem.AssetRow__buttons onClick={this.clickAssetButton}>
                 { this.props.kind === 'asset' &&
-                  ['edit', 'view', 'download', 'clone'].map((actn)=>{
+                  ['view', 'edit', 'download'].map((actn)=>{
+                    var icon = 'ki-' + actn;
                     return (
                           <bem.AssetRow__actionIcon
                               m={actn}
                               data-action={actn}
+                              data-tip={actn}
                               data-asset-type={this.props.kind}
                               data-disabled={false}
+                              title={actn}
                               >
                             <i />
-                            {t(actn)}
                           </bem.AssetRow__actionIcon>
                         );
                   })
+                }
+                { this.props.kind === 'asset' &&
+                  <bem.AssetRow__actionIcon
+                      m={'clone'}
+                      data-action={'clone'}
+                      data-tip={'clone'}
+                      data-asset-type={'clone'}
+                      data-disabled={false}
+                      title={'clone'}
+                      >
+                    <i />
+                  </bem.AssetRow__actionIcon>
                 }
                 { isDeployable &&
                   <bem.AssetRow__actionIcon
                         m={'deploy'}
                         data-action={'deploy'}
                         data-asset-type={this.props.kind}
+                        data-tip={this.props.deployed_version_id === null ? t('deploy') : t('redeploy')}
+                        title={t('deploy')}
                       >
                     <i />
-                    {this.props.deployed_version_id === null ?
-                       t('deploy') : t('redeploy')}
+                  </bem.AssetRow__actionIcon>
+                }
+                { this.props.asset_type && this.props.asset_type === 'survey' &&
+                  <bem.AssetRow__actionIcon
+                        m={'refresh'}
+                        data-action={'refresh'}
+                        data-asset-type={this.props.kind}
+                        data-tip={t('refresh')}
+                        title={t('refresh')}
+                      >
+                    <i />
                   </bem.AssetRow__actionIcon>
                 }
                 { this.props.kind === 'collection' &&
@@ -146,48 +178,25 @@ var AssetRow = React.createClass({
                               data-action={actn}
                               data-asset-type={this.props.kind}
                               data-disabled={false}
+                              title={actn}
+                              data-tip={actn}
                               >
                             <i />
-                            {actn}
                           </bem.AssetRow__actionIcon>
                         );
                   })
                 }
-              </bem.AssetRow__cell>
-            </bem.AssetRow__cell>
-          }
-          { tags.length > 0 && this.props.isSelected &&
-            <bem.AssetRow__cellmeta m={'tags'}>
-              <bem.AssetRow__cell m={'tags'}>
-                <bem.AssetRow__tags>
+                <bem.AssetRow__actionIcon
+                      m={'delete'}
+                      data-action={'delete'}
+                      data-asset-type={this.props.kind}
+                      data-tip={t('delete')}
+                      title={t('delete')}
+                    >
                   <i />
-                  {tags.map((tag)=>{
-                    return (
-                          <bem.AssetRow__tags__tag>{tag}</bem.AssetRow__tags__tag>
-                      );
-                  })}
-                </bem.AssetRow__tags>
-              </bem.AssetRow__cell>
-            </bem.AssetRow__cellmeta>
-          }
-          { this.props.isSelected &&
-            <bem.AssetRow__cell m={'secondary-buttons'}>
-              <bem.AssetRow__cell m={'action-icons'}>
-                  {['refresh', 'delete'].map((actn)=>{
-                    return (
-                          <bem.AssetRow__actionIcon
-                              m={actn}
-                              data-action={actn}
-                              data-asset-type={this.props.kind}
-                              data-disabled={false}
-                              >
-                            <i />
-                            {t(actn)}
-                          </bem.AssetRow__actionIcon>
-                        );
-                  })}
-              </bem.AssetRow__cell>
-            </bem.AssetRow__cell>
+                </bem.AssetRow__actionIcon>
+              <ReactTooltip effect="float" place="bottom" />
+            </bem.AssetRow__buttons>
           }
         </bem.AssetRow>
       );

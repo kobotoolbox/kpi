@@ -37,6 +37,7 @@ var CollectionList = React.createClass({
       ];
       stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
       stores.pageState.setAssetNavPresent(false);
+      stores.pageState.setFormBuilderFocus(false);
       callback();
     }
   },
@@ -128,11 +129,12 @@ var CollectionList = React.createClass({
     var s = this.state;
     if (s.collectionSearchState === 'loading') {
       return (
-        <bem.CollectionAssetList>
-          <bem.CollectionAssetList__message m={'loading'}>
-            {t('loading...')}
-          </bem.CollectionAssetList__message>
-        </bem.CollectionAssetList>
+        <bem.Loading>
+          <bem.Loading__inner>
+            <i />
+            {t('loading...')} 
+          </bem.Loading__inner>
+        </bem.Loading>
       );
     } else if (s.collectionSearchState === 'done') {
       return (

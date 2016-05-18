@@ -2,7 +2,9 @@
   display: inline-block;
   text-align: center;
   color: #fff;
-  font-weight: 800;
+  font-weight: 700;
+  margin-right: 10px;
+  vertical-align: middle;
 
   &--small {
     width: 20px;
@@ -11,6 +13,7 @@
     font-size: 12px;
     line-height: 18px;
   }
+
   &--medium {
     width: 24px;
     height: 24px;
@@ -19,47 +22,80 @@
     line-height: 22px;
   }
 
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 15px;
   font-size: 20px;
-  line-height: 28px;
+  line-height: 24px;
 
   &--block {
-    background-color: #009E11;
+    background-color: $cool-green;
+    border: 1px solid $cool-green;
+
     > i {
-      &:after {
+      &:before {
         content: 'B';
         font-style: normal;
+        font-size: 14px;
       }
     }
   }
+
   &--question {
-    background-color: #2A78E4;
+    background-color: #FFF;
+    border: 1px solid $cool-green;
+    color: $cool-green;
+
     > i {
-      &:after {
+      &:before {
         content: 'Q';
         font-style: normal;
+        font-size: 14px;
       }
     }
   }
+
   &--survey {
-    background-color: #444;
-    > i {
-      font-size: 16px;
-      font-weight: 600;
-      @extend .fa, .fa-fw, .fa-file-o;
-    }
-    &.asset-type-icon--small {
-      > i {
-        font-size: 11px;
-      }
-    }
-    &.asset-type-icon--medium {
-      > i {
-        margin-left: 2px;
-        font-size: 12px;
-      }
-    }
+    background-color: #FFF;
+    border: 2px solid $cool-green;
+
+    // > i {
+    //   font-size: 16px;
+    //   font-weight: 600;
+
+    //   @extend .fa, .fa-fw, .fa-file-o;
+    // }
+
+    // &.asset-type-icon--small {
+    //   > i {
+    //     font-size: 11px;
+    //   }
+    // }
+
+    // &.asset-type-icon--medium {
+    //   > i {
+    //     margin-left: 2px;
+    //     font-size: 12px;
+    //   }
+    // }
+  }
+}
+
+// .asset-row .asset-type-icon:hover {
+//   background-color: $cool-gray;
+//   border: 1px solid $cool-gray;
+//   color:$cool-gray;
+// }
+
+.asset-row--active .asset-type-icon, 
+.asset-row--active .asset-type-icon:hover {
+  // border:none;
+  // border-radius:0px;
+  // background-color: transparent;
+  svg.ki-icon {
+    display: none;
+    // width:31px;
+    // height:31px;
+    // vertical-align: top;
   }
 }

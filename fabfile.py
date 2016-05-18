@@ -16,10 +16,14 @@ deployments_file = os.environ.get('DEPLOYMENTS_JSON', 'deployments.json')
 if os.path.exists(deployments_file):
     with open(deployments_file, 'r') as f:
         IMPORTED_DEPLOYMENTS = json.load(f)
+else:
+    raise Exception("Cannot find deployments.json")
+
 
 def exit_with_error(message):
     print message
     sys.exit(1)
+
 
 def check_key_filename(deployment_configs):
     if 'key_filename' in deployment_configs and \
@@ -31,6 +35,7 @@ def check_key_filename(deployment_configs):
         if not os.path.exists(deployment_configs['key_filename']):
             exit_with_error("Cannot find required permissions file: %s" %
                             deployment_configs['key_filename'])
+
 
 def setup_env(deployment_name):
     deployment = DEPLOYMENTS.get(deployment_name, {})
@@ -45,10 +50,11 @@ def setup_env(deployment_name):
     check_key_filename(deployment)
 
     env.uwsgi_pidfile = os.path.join('/home', 'ubuntu', 'pids',
-                                  'kobo-uwsgi-master.pid')
+                                     'kobo-uwsgi-master.pid')
     env.kpi_path = os.path.join(env.home, env.kpi_path)
     env.pip_requirements_file = os.path.join(env.kpi_path,
                                              'requirements.txt')
+
 
 def deploy_ref(deployment_name, ref):
     setup_env(deployment_name)
@@ -71,7 +77,7 @@ def deploy_ref(deployment_name, ref):
         run('find . -type d -empty -delete')
 
     with kobo_workon(env.kpi_virtualenv_name):
-        run("pip install --upgrade 'pip>=7.0' pip-tools")
+        run("pip install --upgrade 'pip==8.1.1' pip-tools")
         run("pip-sync '%s'" % env.pip_requirements_file)
 
     with cd(env.kpi_path):
@@ -79,6 +85,8 @@ def deploy_ref(deployment_name, ref):
             run("bower install")
             run("npm install")
             run("grunt buildall")
+            run("npm run build-production")
+
             # KPI and KF share a virtualenv but have distinct settings modules
             with prefix('DJANGO_SETTINGS_MODULE=kobo_playground.settings'):
                 run("python manage.py syncdb")
@@ -88,9 +96,11 @@ def deploy_ref(deployment_name, ref):
     run("sudo restart kpi_celeryd")
     run("sudo service uwsgi reload")
 
+
 # NOTE non-master branch
 def deploy(deployment_name, branch='master'):
     deploy_ref(deployment_name, 'origin/{}'.format(branch))
+
 
 def deploy_passing(deployment_name, branch='master'):
     ''' Deploy the latest code on the given branch that's

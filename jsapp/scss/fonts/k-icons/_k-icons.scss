@@ -1,0 +1,88 @@
+@font-face {
+  font-family: 'k-icons';
+  src: url("../fonts/k-icons.eot?70811610");
+  src: url("../fonts/k-icons.eot?70811610#iefix") format("embedded-opentype"), url("../fonts/k-icons.woff2?70811610") format("woff2"), url("../fonts/k-icons.woff?70811610") format("woff"), url("../fonts/k-icons.ttf?70811610") format("truetype"), url("../fonts/k-icons.svg?70811610#k-icons") format("svg");
+  font-weight: normal;
+  font-style: normal;
+}
+
+
+/* Chrome hack: SVG is rendered more smooth in Windozze. 100% magic, uncomment if you need it. */
+/* Note, that will break hinting! In other OS-es font will be not as sharp as it could be */
+/*
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  @font-face {
+    font-family: 'k-icons';
+    src: url('../font/k-icons.svg?70811610#k-icons') format('svg');
+  }
+}
+*/
+
+.k-icon {
+  font-family: "k-icons";
+  font-style: normal;
+  font-weight: normal;
+}
+
+.k-icon:before,
+[class^="k-icon-"]:before,
+[class*=" k-icon-"]:before {
+  font-family: "k-icons";
+  font-style: normal;
+  font-weight: normal;
+  speak: none;
+  display: inline-block;
+  text-decoration: inherit;
+  width: 1em;
+  margin-right: .2em;
+  text-align: center;
+  /* For safety - reset parent styles, that can break glyph codes*/
+  font-variant: normal;
+  text-transform: none;
+  /* fix buttons height, for twitter bootstrap */
+  line-height: 1em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+ 
+.k-icon-active-1:before { content: '\e821'; } /* '' */
+.k-icon-active:before { content: '\e818'; } /* '' */
+.k-icon-attach:before { content: '\e80f'; } /* '' */
+.k-icon-block:before { content: '\e828'; } /* '' */
+.k-icon-cascading:before { content: '\e800'; } /* '' */
+.k-icon-check:before { content: '\e812'; } /* '' */
+.k-icon-clone:before { content: '\e81b'; } /* '' */
+.k-icon-close:before { content: '\e807'; } /* '' */
+.k-icon-deploy:before { content: '\e816'; } /* '' */
+.k-icon-download2:before { content: '\e817'; } /* '' */
+.k-icon-download:before { content: '\e808'; } /* '' */
+.k-icon-drafts:before { content: '\e810'; } /* '' */
+.k-icon-edit:before { content: '\e803'; } /* '' */
+.k-icon-expand:before { content: '\e81a'; } /* '' */
+.k-icon-folder-share-1:before { content: '\e823'; } /* '' */
+.k-icon-folder-share:before { content: '\e80b'; } /* '' */
+.k-icon-folder:before { content: '\e820'; } /* '' */
+.k-icon-form:before { content: '\e826'; } /* '' */
+.k-icon-github:before { content: '\e805'; } /* '' */
+.k-icon-globe:before { content: '\e814'; } /* '' */
+.k-icon-grid:before { content: '\e815'; } /* '' */
+.k-icon-group:before { content: '\e824'; } /* '' */
+.k-icon-help:before { content: '\e801'; } /* '' */
+.k-icon-inactive:before { content: '\e81c'; } /* '' */
+.k-icon-language:before { content: '\e802'; } /* '' */
+.k-icon-library:before { content: '\e80d'; } /* '' */
+.k-icon-logout:before { content: '\e80c'; } /* '' */
+.k-icon-map-view:before { content: '\e80a'; } /* '' */
+.k-icon-more-actions:before { content: '\e827'; } /* '' */
+.k-icon-multiple-pages:before { content: '\e81d'; } /* '' */
+.k-icon-notification:before { content: '\e804'; } /* '' */
+.k-icon-photo-gallery:before { content: '\e822'; } /* '' */
+.k-icon-projects:before { content: '\e813'; } /* '' */
+.k-icon-question:before { content: '\e81e'; } /* '' */
+.k-icon-replace:before { content: '\e806'; } /* '' */
+.k-icon-results:before { content: '\e809'; } /* '' */
+.k-icon-settings:before { content: '\e825'; } /* '' */
+.k-icon-share:before { content: '\e80e'; } /* '' */
+.k-icon-trash:before { content: '\e811'; } /* '' */
+.k-icon-view-all:before { content: '\e81f'; } /* '' */
+.k-icon-view:before { content: '\e819'; } /* '' */

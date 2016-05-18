@@ -17,7 +17,7 @@ div.tagsinput span.tag {
     background: #5cb2ee;
     border: none;
     color: #FFF;
-    font-family: "Open Sans";
+    font-family: $preferred_font;
     font-size: 12px;
     margin: 0px 4px;
     padding: 0px 6px;
@@ -31,7 +31,7 @@ div.tagsinput span.tag {
 div.tagsinput input {
     border: none;
     color: #222;
-    font-family: "Open Sans";
+    font-family: $preferred_font;
     font-size: 12px;
     margin: 0 5px;
     padding: 5px;

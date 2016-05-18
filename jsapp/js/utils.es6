@@ -111,8 +111,15 @@ var __strings = [];
 
 
 /*global gettext*/
+if (window.gettext) {
+  var _gettext = window.gettext;
+} else {
+  var _gettext = function(s){
+    return s;
+  };
+}
 export function t(str) {
-  return gettext(str);
+  return _gettext(str);
 };
 
 log.t = function () {
@@ -124,6 +131,10 @@ log.t = function () {
 // unique id for forms with inputs and labels
 let lastId = 0;
 export var newId = function(prefix='id') {
-    lastId++;
-    return `${prefix}${lastId}`;
+  lastId++;
+  return `${prefix}${lastId}`;
 };
+
+export var randString = function () {
+  return Math.random().toString(36).match(/\.(\S{6}).*/)[1];
+}

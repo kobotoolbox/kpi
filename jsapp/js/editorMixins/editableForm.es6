@@ -5,6 +5,7 @@ import Select from 'react-select';
 import _ from 'underscore';
 import DocumentTitle from 'react-document-title';
 import SurveyScope from '../models/surveyScope';
+import cascadeMixin from './cascadeMixin';
 
 import {
   surveyToValidJson,
@@ -24,17 +25,20 @@ import stores from '../stores';
 import actions from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import {dataInterface} from '../dataInterface';
+import ReactTooltip from 'react-tooltip';
+import hotkey from 'react-hotkey';
 
-var FormHeader__panel = bem('form-header__panel'),
-    FormHeader__row = bem('form-header__row'),
-    FormHeader__panelheader = bem('form-header__panelheader'),
-    FormHeader__paneltext = bem('form-header__paneltext');
+var FormStyle__panel = bem('form-style__panel'),
+    FormStyle__row = bem('form-style'),
+    FormStyle__panelheader = bem('form-style__panelheader'),
+    FormStyle__paneltext = bem('form-style__paneltext');
+
+var webformStylesSupportUrl = "http://support.kobotoolbox.org/customer/en/portal/articles/2108533";
 
 var FormSettingsEditor = React.createClass({
   render () {
     return (
           <div className="mdl-grid">
-            {/* offset? */}
             <div className="mdl-cell mdl-cell--1-col" />
             <div className="mdl-cell mdl-cell--5-col">
               {this.props.meta.map((mtype) => {
@@ -178,7 +182,7 @@ var FormSettingsBox = React.createClass({
   },
 });
 
-export default {
+export default assign({
   getInitialState () {
     return {
       asset_updated: update_states.UP_TO_DATE,
@@ -187,6 +191,9 @@ export default {
       currentName: 'name',
     };
   },
+  mixins: [
+    hotkey.Mixin('handleHotkey'),
+  ],
   componentDidMount() {
     document.querySelector('.page-wrapper__content').addEventListener('scroll', this.handleScroll);
     this.listenTo(stores.surveyState, this.surveyStateChanged);
@@ -243,12 +250,21 @@ export default {
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
       stores.pageState.setAssetNavPresent(true);
+      stores.pageState.setFormBuilderFocus(true);
       if (params.assetid && params.assetid[0] === 'c') {
         transition.redirect('collection-page', {uid: params.assetid});
       } else {
         callback();
       }
     }
+  },
+  handleHotkey: function(e) {
+    if (e.altKey && e.keyCode == '69') {
+      document.body.classList.toggle('hide-edge');
+    }
+  },
+  componentWillMount() {
+    document.body.classList.add('hide-edge');
   },
   surveyStateChanged (state) {
     this.setState(state);
@@ -327,6 +343,7 @@ export default {
         enketopreviewOverlay: content.enketopreviewlink,
       });
       stores.pageState.setAssetNavPresent(false);
+      stores.pageState.setFormBuilderFocus(true);
     }).fail((/* jqxhr */) => {
       notify(t('failed to generate preview. please report this to support@kobotoolbox.org'));
     });
@@ -336,7 +353,7 @@ export default {
       evt.preventDefault();
     }
 
-    if (this.state.settings__style) {
+    if (this.state.settings__style !== undefined) {
       this.app.survey.settings.set('style', this.state.settings__style);
     }
     var params = {
@@ -414,6 +431,9 @@ export default {
     }
     return ooo;
   },
+  toggleLibraryNav() {
+    stores.pageState.toggleAssetNavIntentOpen();
+  },
   renderSaveAndPreviewButtons () {
     let {
       allButtonsDisabled,
@@ -428,74 +448,125 @@ export default {
     } = this.buttonStates();
 
     return (
-        <bem.FormHeader>
-          <ui.SmallInputBox
-              ref='form-name'
-              value={name}
-              onChange={this.nameChange}
-              placeholder={t('form name')}
-            />
-          <FormHeader__row m={allButtonsDisabled ? 'disabled' : null}>
-            <bem.FormHeader__button m={['save', {
-                  savepending: this.state.asset_updated === update_states.PENDING_UPDATE,
-                  savecomplete: this.state.asset_updated === update_states.UP_TO_DATE,
-                  saveneeded: this.state.asset_updated === update_states.UNSAVED_CHANGES,
-                }]} onClick={this.saveForm}>
-              <i />
-              {saveButtonText}
-            </bem.FormHeader__button>
-            <bem.FormHeader__button m={['close', {
-                  'close-warning': this.needsSave(),
-                }]} onClick={this.navigateBack}>
-              <i />
-              {t('close')}
-            </bem.FormHeader__button>
-            <bem.FormHeader__button m={['preview', {
-                  previewdisabled: previewDisabled
-                }]} onClick={this.previewForm}
-                disabled={previewDisabled}>
-              <i />
-              {t('preview')}
-            </bem.FormHeader__button>
-            { showAllAvailable ?
-              <bem.FormHeader__button m={['show-all', {
-                    open: showAllOpen,
-                  }]} onClick={this.showAll}>
+        <bem.FormBuilderHeader>
+          <bem.FormBuilderHeader__row m={['first', allButtonsDisabled ? 'disabled' : null]}>
+
+            <bem.FormBuilderHeader__cell m={'project-icon'} >
+              <i className="k-icon-projects" />
+            </bem.FormBuilderHeader__cell>
+            <bem.FormBuilderHeader__cell m={'name'} >
+              <ui.SmallInputBox
+                  ref='form-name'
+                  value={name}
+                  onChange={this.nameChange}
+                  placeholder={t('form name')}
+                />
+            </bem.FormBuilderHeader__cell>
+            <bem.FormBuilderHeader__cell m={'buttonsTopRight'} >
+
+              <bem.FormBuilderHeader__button m={['share']} className="is-edge">
+                {t('share')}
+              </bem.FormBuilderHeader__button>
+
+              <bem.FormBuilderHeader__button m={['save', {
+                    savepending: this.state.asset_updated === update_states.PENDING_UPDATE,
+                    savecomplete: this.state.asset_updated === update_states.UP_TO_DATE,
+                    saveneeded: this.state.asset_updated === update_states.UNSAVED_CHANGES,
+                  }]} onClick={this.saveForm}>
                 <i />
-                {t('show all responses')}
-              </bem.FormHeader__button>
-            : null }
-            { groupable ?
-              <bem.FormHeader__button m={['group', {
-                    groupable: groupable
-                  }]} onClick={this.groupQuestions}
-                  disabled={!groupable}>
-                <i />
-                {t('group questions')}
-              </bem.FormHeader__button>
-            : null }
-            { hasSettings ?
-              <bem.FormHeader__button m={{
-                formstyle: true,
-                formstyleactive: this.state.formStylePanelDisplayed,
-              }} onClick={this.openFormStylePanel}>
-                {t('form-style')}
-              </bem.FormHeader__button>
-            : null }
-          </FormHeader__row>
+                {saveButtonText}
+              </bem.FormBuilderHeader__button>
+            </bem.FormBuilderHeader__cell>
+            <bem.FormBuilderHeader__cell m={'close'} >
+              <bem.FormBuilderHeader__close m={[{
+                    'close-warning': this.needsSave(),
+                  }]} onClick={this.navigateBack}>
+                <i className="k-icon-close"></i>
+              </bem.FormBuilderHeader__close>
+            </bem.FormBuilderHeader__cell>
+          </bem.FormBuilderHeader__row>
+          <bem.FormBuilderHeader__row m={'second'} >
+            <bem.FormBuilderHeader__cell m={'buttons'} >
+              <bem.FormBuilderHeader__button m={['preview', {
+                    previewdisabled: previewDisabled
+                  }]} onClick={this.previewForm}
+                  disabled={previewDisabled}
+                  data-tip={t('Preview form')} >
+                <i className="k-icon-view" />
+              </bem.FormBuilderHeader__button>
+              { showAllAvailable ?
+                <bem.FormBuilderHeader__button m={['show-all', {
+                      open: showAllOpen,
+                    }]} 
+                    onClick={this.showAll}
+                    data-tip={t('Expand / collapse questions')}>
+                  <i className="k-icon-view-all" />
+                </bem.FormBuilderHeader__button>
+              : null }
+              { groupable ?
+                <bem.FormBuilderHeader__button m={['group', {
+                      groupable: groupable
+                    }]} onClick={this.groupQuestions}
+                    disabled={!groupable}
+                    data-tip={t('Create group with selected questions')}>
+                  <i className="k-icon-group" />
+                </bem.FormBuilderHeader__button>
+              : null }
+              <bem.FormBuilderHeader__button m={['download']}
+                  data-tip={t('Download form')} 
+                  className="is-edge">
+                <i className="k-icon-download" />
+              </bem.FormBuilderHeader__button>
+
+              { hasSettings ?
+                <bem.FormBuilderHeader__item>
+                  <bem.FormBuilderHeader__button m={{
+                    formstyle: true,
+                    formstyleactive: this.state.formStylePanelDisplayed,
+                  }} onClick={this.openFormStylePanel} 
+                    data-tip={t('Web form layout')} >
+                    <i className="k-icon-grid" />
+                    {t('Layout')}
+                    <i className="fa fa-caret-down" />
+                  </bem.FormBuilderHeader__button>
+                </bem.FormBuilderHeader__item>
+              : null }
+
+              <bem.FormBuilderHeader__button m={['attach']}
+                  data-tip={t('Attach media files')}
+                  className="is-edge">
+                <i className="k-icon-attach" />
+              </bem.FormBuilderHeader__button>
+              { this.toggleCascade !== undefined ?
+                <bem.FormBuilderHeader__button m={['cascading']}
+                    onClick={this.toggleCascade}
+                    data-tip={t('Insert cascading select')}>
+                  <i className="k-icon-cascading" />
+                </bem.FormBuilderHeader__button>
+              : null }
+
+            </bem.FormBuilderHeader__cell>
+            <bem.FormBuilderHeader__cell m={'spacer'} />
+            <bem.FormBuilderHeader__cell m={'library-toggle'} >
+              <bem.FormBuilderHeader__button m={['showLibrary']}
+                                             onClick={this.toggleLibraryNav} >
+                {t('Search Library')}
+              </bem.FormBuilderHeader__button>
+            </bem.FormBuilderHeader__cell>
+          </bem.FormBuilderHeader__row>
           { this.state.formStylePanelDisplayed ?
-            <FormHeader__panel m='formstyle'>
-              <FormHeader__panelheader>
+            <FormStyle__panel m='formstyle'>
+              <FormStyle__panelheader>
                 {t('form style')}
-              </FormHeader__panelheader>
-              <FormHeader__paneltext>
+              </FormStyle__panelheader>
+              <FormStyle__paneltext>
                 {t('select the form style that you would like to use. this will only affect web forms.')}
-              </FormHeader__paneltext>
-              <FormHeader__paneltext>
-                <a href="http://support.kobotoolbox.org/customer/en/portal/articles/2108533">
+              </FormStyle__paneltext>
+              <FormStyle__paneltext>
+                <a href={webformStylesSupportUrl}>
                   {t('read more...')}
                 </a>
-              </FormHeader__paneltext>
+              </FormStyle__paneltext>
               <Select
                 name="webform-style"
                 ref="webformStyle"
@@ -506,26 +577,33 @@ export default {
                 placeholder={AVAILABLE_FORM_STYLES[0].label}
                 options={AVAILABLE_FORM_STYLES}
               />
-            </FormHeader__panel>
+            </FormStyle__panel>
           : null }
-        </bem.FormHeader>
+          <ReactTooltip effect="float" place="bottom" />
+        </bem.FormBuilderHeader>
       );
   },
   renderLoadingNotice () {
     return (
-        <bem.AssetView__content>
-          <bem.AssetView__message m={'loading'}>
+        <bem.Loading>
+          <bem.Loading__inner>
             <i />
-            {t('loading...')}
-          </bem.AssetView__message>
-        </bem.AssetView__content>
+            {t('loading...')} 
+          </bem.Loading__inner>
+        </bem.Loading>
       );
   },
   hidePreview () {
     this.setState({
       enketopreviewOverlay: false
     });
-    stores.pageState.setAssetNavPresent(true);
+    stores.pageState.setFormBuilderFocus(true);
+  },
+  hideCascade () {
+    this.setState({
+      showCascadePopup: false
+    });
+    stores.pageState.setFormBuilderFocus(true);
   },
   launchAppForSurvey (survey, optionalParams={}) {
     var skp = new SurveyScope({
@@ -559,51 +637,43 @@ export default {
   },
   render () {
     var isSurvey = this.app && !this.isLibrary();
-    //this.state.asset && this.state.asset.asset_type === 'survey';
-    var formHeaderFixed = this.state.formHeaderFixed,
-        placeHolder = formHeaderFixed && (
-            <bem.AssetView__row m={['header', 'placeholder']}
-                  style={{height: this.state.formHeaderFixedHeight}} />
-          );
     return (
         <DocumentTitle title={this.state.name || t('Untitled')}>
-          <bem.AssetView>
-            <ui.Panel>
-              <bem.AssetView__content>
-                <bem.AssetView__row m={['header', {
-                      fixed: formHeaderFixed,
-                    }]}
-                    ref={'fixableHeader'}>
-                  {this.renderSaveAndPreviewButtons()}
-                </bem.AssetView__row>
-                {formHeaderFixed ?
-                  placeHolder
-                : null}
+          <ui.Panel m={'transparent'}>
+            <bem.FormBuilder m={this.state.formStylePanelDisplayed ? 'formStyleDisplayed': null }>
+              {this.renderSaveAndPreviewButtons()}
+
+              <bem.FormBuilder__contents>
                 { isSurvey ?
-                  <bem.AssetView__row>
-                    <FormSettingsBox survey={this.app.survey} {...this.state} />
-                  </bem.AssetView__row>
+                  <FormSettingsBox survey={this.app.survey} {...this.state} />
                 : null }
-                <bem.AssetView__row>
                   <div ref="form-wrap" className='form-wrap'>
                     { (!this.state.surveyAppRendered) ?
                         this.renderLoadingNotice()
                     : null }
                   </div>
-                </bem.AssetView__row>
-              </bem.AssetView__content>
-            </ui.Panel>
+              </bem.FormBuilder__contents>
+            </bem.FormBuilder>
             { this.state.enketopreviewOverlay ?
-              <ui.Modal open onClose={this.hidePreview} title={t('Form Preview')}>
+              <ui.Modal open onClose={this.hidePreview} title={t('Form Preview')} className='modal-large'>
                 <ui.Modal.Body>
                   <iframe src={this.state.enketopreviewOverlay} />
                 </ui.Modal.Body>
-                <ui.Modal.Footer>
-                </ui.Modal.Footer>
               </ui.Modal>
+
             : null }
-          </bem.AssetView>
+
+            {this.state.showCascadePopup ?
+              <ui.Modal open onClose={this.hideCascade} title={t('Import Cascading Select Questions')}>
+                <ui.Modal.Body>
+                  {this.renderCascadePopup()}
+                </ui.Modal.Body>
+              </ui.Modal>
+
+            : null}
+
+          </ui.Panel>
         </DocumentTitle>
       );
   },
-};
+}, cascadeMixin);

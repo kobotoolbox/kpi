@@ -57,6 +57,7 @@ INSTALLED_APPS = (
     'haystack',
     'kpi.apps.KpiConfig',
     'hub',
+    'webpack_loader',
     'registration', # Must come AFTER kpi
     'django.contrib.admin', # Must come AFTER registration
     'django_extensions',
@@ -188,6 +189,7 @@ REST_FRAMEWORK = {
 
 TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
     'kpi.context_processors.dev_mode',
+    'kpi.context_processors.sitewide_messages',
 )
 
 # This is very brittle (can't handle references to missing images in CSS);
@@ -199,8 +201,11 @@ LIVERELOAD_SCRIPT = os.environ.get('LIVERELOAD_SCRIPT', 'False')
 LIVERELOAD_SCRIPT = False if LIVERELOAD_SCRIPT.lower() == 'false' else LIVERELOAD_SCRIPT
 USE_MINIFIED_SCRIPTS = os.environ.get('KOBO_USE_MINIFIED_SCRIPTS', 'False').lower() != 'false'
 TRACKJS_TOKEN = os.environ.get('TRACKJS_TOKEN')
-KOBOCAT_URL = os.environ.get('KOBOCAT_URL', False)
-KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL', False)
+
+# replace this with the pointer to the kobocat server, if it exists
+KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat/')
+KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL',
+                                      'http://kobocat/')
 # Following the uWSGI mountpoint convention, this should have a leading slash
 # but no trailing slash
 DKOBO_PREFIX = os.environ.get('DKOBO_PREFIX', 'False')
@@ -241,6 +246,13 @@ ENKETO_PREVIEW_URI = 'webform/preview' if ENKETO_VERSION == 'legacy' else 'previ
 KOBO_SURVEY_PREVIEW_EXPIRATION = os.environ.get('KOBO_SURVEY_PREVIEW_EXPIRATION', 24)
 
 ''' Celery configuration '''
+if os.environ.get('SKIP_CELERY', 'False') == 'True':
+    # helpful for certain debugging
+    CELERY_ALWAYS_EAGER = True
+
+# Uncomment to enable failsafe search indexing
+#from datetime import timedelta
+
 from datetime import timedelta
 CELERYBEAT_SCHEDULE = {
     # Update the Haystack index twice per day to catch any stragglers that
@@ -272,6 +284,13 @@ BROKER_URL = os.environ.get('KPI_BROKER_URL', 'amqp://kpi:kpi@rabbit:5672/kpi')
 ACCOUNT_ACTIVATION_DAYS = 3
 REGISTRATION_AUTO_LOGIN = True
 REGISTRATION_EMAIL_HTML = False # Otherwise we have to write HTML templates
+
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'BUNDLE_DIR_NAME': 'jsapp/compiled/',
+        'POLL_INTERVAL': 0.5,
+    }
+}
 
 # Email configuration from dkobo; expects SES
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND',
