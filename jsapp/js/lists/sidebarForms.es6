@@ -44,7 +44,7 @@ var SidebarFormsList = React.createClass({
   renderMiniAssetRow (resource) {
     return  <bem.FormSidebar__item>
               <bem.FormSidebar__itemlink href={this.makeHref('form-landing', {assetid: resource.uid})}>
-                {resource.name} 
+                <ui.AssetName {...resource} />
               </bem.FormSidebar__itemlink>
             </bem.FormSidebar__item>
   },
