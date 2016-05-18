@@ -1,3 +1,4 @@
+from distutils.util import strtobool
 from itertools import chain
 import copy
 import json
@@ -49,6 +50,7 @@ from .models import (
     ObjectPermission,
     AuthorizedApplication,
     OneTimeAuthenticationKey,
+    UserCollectionSubscription,
     )
 from .models.object_permission import get_anonymous_user, get_objects_for_user
 from .models.authorized_application import ApplicationTokenAuthentication
@@ -74,7 +76,8 @@ from .serializers import (
     ObjectPermissionSerializer,
     AuthorizedApplicationUserSerializer,
     OneTimeAuthenticationKeySerializer,
-    DeploymentSerializer,)
+    DeploymentSerializer,
+    UserCollectionSubscriptionSerializer,)
 from .utils.gravatar_url import gravatar_url
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from .tasks import import_in_background
@@ -221,6 +224,22 @@ class CollectionViewSet(viewsets.ModelViewSet):
             return CollectionListSerializer
         else:
             return CollectionSerializer
+
+
+class PublicCollectionViewSet(CollectionViewSet):
+    def get_queryset(self, *args, **kwargs):
+        if 'subscribed' in self.request.query_params:
+            subscribed = strtobool(
+                self.request.query_params.get('subscribed', 'false').lower())
+            criteria = {'usercollectionsubscription__user': self.request.user}
+            if subscribed:
+                queryset = self.queryset.filter(**criteria)
+            else:
+                queryset = self.queryset.exclude(**criteria)
+
+        queryset = queryset.filter(discoverable_when_public=True)
+        return get_objects_for_user(
+            get_anonymous_user(), 'view_collection', queryset)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -733,3 +752,21 @@ def _wrap_html_pre(content):
 class SitewideMessageViewSet(viewsets.ModelViewSet):
     queryset = SitewideMessage.objects.all()
     serializer_class = SitewideMessageSerializer
+
+
+class UserCollectionSubscriptionViewSet(viewsets.ModelViewSet):
+    queryset = UserCollectionSubscription.objects.none()
+    serializer_class = UserCollectionSubscriptionSerializer
+    lookup_field = 'uid'
+
+    def get_queryset(self):
+        user = self.request.user
+        # Check if the user is anonymous. The
+        # django.contrib.auth.models.AnonymousUser object doesn't work for
+        # queries.
+        if user.is_anonymous():
+            user = get_anonymous_user()
+        return UserCollectionSubscription.objects.filter(user=user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

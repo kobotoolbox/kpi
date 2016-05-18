@@ -256,15 +256,38 @@ class ObjectPermissionMixin(object):
 
     @transaction.atomic
     def save(self, *args, **kwargs):
+        # TODO: Query the database fewer times! --jnm
+        # Some modifications don't require recalculating permissions, which is
+        # expensive. If the model specifies which fields are trivial in this
+        # respect, make an extra call to the database to find out whether they
+        # changed.
+        if self.pk and hasattr(self, 'FIELDS_UNRELATED_TO_PERMISSIONS'):
+            old_self = type(self).objects.get(pk=self.pk)
+        else:
+            old_self = None
         # Make sure we exist in the database before proceeding
         super(ObjectPermissionMixin, self).save(*args, **kwargs)
         # Recalculate self and all descendants, re-fetching ourself first to
         # guard against stale MPTT values
         fresh_self = type(self).objects.get(pk=self.pk)
-        # TODO: Don't do this when the modification is trivial, e.g. a
-        # collection was renamed
-        fresh_self._recalculate_inherited_perms()
-        fresh_self.recalculate_descendants_perms()
+
+        if old_self:
+            # Check whether any changes require recalculating permissions
+            recalculate_permission_required = False
+            for field in self._meta.fields:
+                field_name = field.attname
+                if field_name in self.FIELDS_UNRELATED_TO_PERMISSIONS:
+                    continue
+                if getattr(old_self, field_name) != getattr(
+                        fresh_self, field_name):
+                    recalculate_permission_required = True
+                    break
+        else:
+            recalculate_permission_required = True
+
+        if recalculate_permission_required:
+            fresh_self._recalculate_inherited_perms()
+            fresh_self.recalculate_descendants_perms()
 
     def _filter_anonymous_perms(self, unfiltered_set):
         ''' Restrict a set of tuples in the format (user_id, permission_id) to

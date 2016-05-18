@@ -33,11 +33,11 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='usercollectionsubscription',
-            name='owner',
+            name='user',
             field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterUniqueTogether(
             name='usercollectionsubscription',
-            unique_together=set([('collection', 'owner')]),
+            unique_together=set([('collection', 'user')]),
         ),
     ]

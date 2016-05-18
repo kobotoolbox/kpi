@@ -1,4 +1,3 @@
-from distutils.util import strtobool
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from rest_framework import filters
@@ -22,25 +21,6 @@ class KpiObjectPermissionsFilter(object):
         permission = self.perm_format % kwargs
 
         strict_query= view.action == 'list'
-
-        try:
-            discoverable = strtobool(
-                request.query_params.get('discoverable', 'false').lower())
-        except ValueError:
-            discoverable = False
-        if discoverable:
-            # This is a query for publicly-discoverable objects, i.e. objects
-            # with `discoverable_when_public = True` and for which
-            # AnonymousUser has `view_` permission
-            user = AnonymousUser()
-            try:
-                queryset = queryset.filter(discoverable_when_public=True)
-            except FieldError:
-                # This model does not have a `discoverable_when_public` field.
-                # Follow DRF's convention and ignore invalid stuff in the query
-                # params
-                pass
-
         return get_objects_for_user(user, permission, queryset, strict=strict_query)
 
 

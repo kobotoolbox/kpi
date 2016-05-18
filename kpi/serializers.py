@@ -18,9 +18,10 @@ from .models import Asset
 from .models import AssetSnapshot
 from .models import Collection
 from .models import CollectionChildrenQuerySet
+from .models import UserCollectionSubscription
 from .models import ImportTask
 from .models import ObjectPermission
-from .models.object_permission import get_anonymous_user
+from .models.object_permission import get_anonymous_user, get_objects_for_user
 from .models.asset import ASSET_TYPES
 from .models import TagUid
 from .models import OneTimeAuthenticationKey
@@ -943,3 +944,30 @@ class OneTimeAuthenticationKeySerializer(serializers.ModelSerializer):
     class Meta:
         model = OneTimeAuthenticationKey
         fields = ('username', 'key', 'expiry')
+
+
+class UserCollectionSubscriptionSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        lookup_field='uid',
+        view_name='usercollectionsubscription-detail'
+    )
+    collection = RelativePrefixHyperlinkedRelatedField(
+        lookup_field='uid',
+        view_name='collection-detail',
+        queryset=Collection.objects.none() # will be set in __init__()
+    )
+    uid = serializers.ReadOnlyField()
+
+    def __init__(self, *args, **kwargs):
+        super(UserCollectionSubscriptionSerializer, self).__init__(
+            *args, **kwargs)
+        self.fields['collection'].queryset = get_objects_for_user(
+            get_anonymous_user(),
+            'view_collection',
+            Collection.objects.filter(discoverable_when_public=True)
+        )
+
+    class Meta:
+        model = UserCollectionSubscription
+        lookup_field = 'uid'
+        fields = ('url', 'collection', 'uid')
