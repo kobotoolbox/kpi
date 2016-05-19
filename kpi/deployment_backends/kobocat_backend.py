@@ -321,7 +321,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             data=data
         )
         links = response.json()
-        for discard in ('enketo_id', 'code'):
+        for discard in ('enketo_id', 'code', 'preview_iframe_url'):
             try: del links[discard]
             except KeyError: pass
         return links
