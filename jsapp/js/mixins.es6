@@ -142,7 +142,7 @@ var dmix = {
                   {this.renderDeployments()}
                 </bem.FormView__cell>
               </bem.FormView__row>
-              { !this.state.has_deployment ?
+              { this.state.has_deployment ?
                 this.renderInstructions()
               : null }
               <ReactTooltip effect="float" place="bottom" />
