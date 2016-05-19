@@ -217,14 +217,16 @@
   margin-bottom: 15px;
   background: $cool-green url("~../img/graphic_macbook.png") center center no-repeat;
   background-size: contain; 
+  position: relative;
   &--android {
     background: #07cfba url("~../img/graphic_phone.png") center center no-repeat;
-    background-size: contain; 
+    background-size: cover; 
   }
   > .form-view__label {
     font-size:18px;
-    padding:10px 15px;
-    padding-top: 210px;
+    padding:15px;
+    position: absolute;
+    bottom: 0px;
   }
 }
 
@@ -319,6 +321,16 @@
     max-height: 180px;
     overflow: auto;
     top: 3.5em;
+    span.label {
+      display: block;
+      font-size: 16px;
+      padding-top: 5px;
+    }
+    span.desc {
+      display: block;
+      padding-top: 5px;
+      font-weight: normal;
+    }
   }
 }
 
@@ -340,3 +352,9 @@
   }
 }
 
+.form-view__label--step-by-step {
+  cursor: pointer;
+  i {
+    margin-left: 6px;
+  }
+}

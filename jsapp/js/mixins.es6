@@ -22,6 +22,7 @@ import {
   log,
   t,
   assign,
+  notify,
 } from './utils';
 
 var AssetTypeIcon = bem.create('asset-type-icon');
@@ -141,7 +142,9 @@ var dmix = {
                   {this.renderDeployments()}
                 </bem.FormView__cell>
               </bem.FormView__row>
-              {this.renderInstructions()}
+              { this.state.has_deployment ?
+                this.renderInstructions()
+              : null }
               <ReactTooltip effect="float" place="bottom" />
             </bem.FormView>
           );
@@ -469,17 +472,74 @@ var dmix = {
       );
   },
   renderInstructions () {
+    // PM: local testing deployment links
+    // var deployment__links = {
+    //   offline_url: "https://enke.to/_/#self",
+    //   url: "https://enke.to/::self",
+    //   iframe_url: "https://enke.to/i/::self",
+    //   preview_url: "https://enke.to/preview/::self",
+    //   // preview_iframe_url: "https://enke.to/preview/i/::self"
+    // };
+
+    var deployment__links_list = [];
+    var label = undefined;
+    var desc = undefined;
+    var value = undefined;
+
+    for (var key in this.state.deployment__links) {
+      value = deployment__links[key];
+
+      switch(key) {
+        case 'offline_url':
+          label = t('Online-Offline (single submission)');
+          desc = t('This allows online and offline submissions and is the best option for collecting data in the field. ');
+          break;
+        case 'url':
+          label = t('Online-Only (multiple submissions)');
+          desc = t('This is the best option when entering many records at once on a computer, e.g. for transcribing paper records');
+          break;
+        case 'iframe_url':
+          label = t('Embeddable web form code');
+          desc = t('Use this html5 code snippet to integrate your form on your own website using smaller margins. ');
+          value = '<iframe src="'+deployment__links[key]+'"></iframe>';
+          break;
+        case 'preview_url':
+          label = t('View only');
+          desc = t('Use this version fpr testing, getting feedback. Does not allow submitting data. ');
+          break;
+      }
+
+      deployment__links_list.push(
+        {
+          key: key,
+          value: value,
+          label: label, 
+          desc: desc
+        }
+      );
+    }
+
     return (
-      <bem.FormView__row m="collecting">
+      <bem.FormView__row m="collecting" className="is-edge">
         <bem.FormView__cell m='collecting-webforms'>
           <bem.FormView__banner m="webforms">
             <bem.FormView__label m='white'>
               {t('Collecting Data with Web Forms')}
             </bem.FormView__label>
           </bem.FormView__banner>
-          <bem.FormView__label>
-            {t('Get step-by-step instructions')}
+          <bem.FormView__label onClick={this.toggleInstructions} m='step-by-step'>
+            {t('Get step-by-step instructions')} 
+            <i className="fa fa-arrow-right"></i>
           </bem.FormView__label>
+          {this.state.showInstructions ?
+            <ol>
+              <li>{t('Choose one of the different web form links below.')}</li>
+              <li>{t('Open the link on your own computer or mobile device or copy')}</li>
+              <li>{t('Enter the server URL https://kobotoolbox.org and your username and password')}</li>
+              <li>{t('Open "Get Blank Form" and select this project. ')}</li>
+              <li>{t('Open "Enter Data."')}</li>
+            </ol>
+          : null }
           <bem.FormView__item m={'collect'} 
             onFocus={this.toggleCollectOptions}
             onBlur={this.toggleCollectOptions}>
@@ -489,12 +549,13 @@ var dmix = {
             </bem.FormView__button>
             {this.state.collectOptionsShowing ?
               <bem.PopoverMenu ref='collect-popover'>
-                {this.state.collectionOptionList.map((c)=>{
+                {deployment__links_list.map((c)=>{
                   return (
                       <bem.PopoverMenu__link  key={`c-${c.value}`} 
                                               onClick={this.setSelectedCollectOption(c)}
                                               className={this.state.selectedCollectOption.value == c.value ? 'active' : null}>
-                        {c.label}
+                        <span className="label">{c.label}</span>
+                        <span className="desc">{c.desc}</span>
                       </bem.PopoverMenu__link>
                     );
                 })}
@@ -503,21 +564,16 @@ var dmix = {
           </bem.FormView__item>
           {this.state.selectedCollectOption.value ?
             <bem.FormView__item m={'collect-links'}>
-              <ReactZeroClipboard text={this.state.selectedCollectOption.value}>
+              <ReactZeroClipboard text={this.state.selectedCollectOption.value} onAfterCopy={this.afterCopy}>
                 <a className="copy">copy</a>
               </ReactZeroClipboard>
-              <a href={this.state.selectedCollectOption.value} target="_blank" className="open">
-                {t('Open')}
-              </a>
+              {this.state.selectedCollectOption.key != 'iframe_url' ?
+                <a href={this.state.selectedCollectOption.value} target="_blank" className="open">
+                  {t('Open')}
+                </a>
+              : null }
             </bem.FormView__item>
           : null }
-          <ol className="is-edge">
-            <li>{t('Choose one of the different web form links above.')}</li>
-            <li>{t('Open the link on your own computer or mobile device or copy')}</li>
-            <li>{t('Enter the server URL https://kobotoolbox.org and your username and password')}</li>
-            <li>{t('Open "Get Blank Form" and select this project. ')}</li>
-            <li>{t('Open "Enter Data."')}</li>
-          </ol>
         </bem.FormView__cell>
         <bem.FormView__cell m='collecting-android'>
           <bem.FormView__banner m="android">
@@ -536,6 +592,9 @@ var dmix = {
         </bem.FormView__cell>
       </bem.FormView__row>
       );
+  },
+  afterCopy() {
+    notify(t('copied to clipboard'));
   },
   toggleCollectOptions (evt) {
     var isBlur = evt.type === 'blur',
@@ -572,6 +631,12 @@ var dmix = {
         downloadsShowing: true,
       });
     }
+  },
+  toggleInstructions (evt) {
+    var old = this.state.showInstructions;
+    this.setState({
+      showInstructions: !old,
+    });
   },
   setSelectedCollectOption(c) {
     return function (e) {
@@ -893,6 +958,7 @@ var dmix = {
       userCanEdit: false,
       userCanView: true,
       historyExpanded: false,
+      showInstructions: false,
       collectionOptionList: [],
       selectedCollectOption: {},
       currentUsername: stores.session.currentAccount && stores.session.currentAccount.username,
