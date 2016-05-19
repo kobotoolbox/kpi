@@ -385,6 +385,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     deployed_versions = serializers.SerializerMethodField()
     deployment__identifier = serializers.SerializerMethodField()
     deployment__active = serializers.SerializerMethodField()
+    deployment__links = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -405,6 +406,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'deployed_version_id',
                   'deployed_versions',
                   'deployment__identifier',
+                  'deployment__links',
                   'deployment__active',
                   'content',
                   'downloads',
@@ -543,6 +545,12 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_deployment__active(self, obj):
         return obj.has_deployment and obj.deployment.active
+
+    def get_deployment__links(self, obj):
+        if obj.has_deployment and obj.deployment.active:
+            return obj.deployment.get_enketo_survey_links()
+        else:
+            return {}
 
     def _content(self, obj):
         return json.dumps(obj.content)
