@@ -142,7 +142,7 @@ var dmix = {
                   {this.renderDeployments()}
                 </bem.FormView__cell>
               </bem.FormView__row>
-              { this.state.has_deployment ?
+              { !this.state.has_deployment ?
                 this.renderInstructions()
               : null }
               <ReactTooltip effect="float" place="bottom" />
@@ -154,9 +154,6 @@ var dmix = {
   renderAncestors () {},
   renderHeader () {
 
-    if (stores.session.currentAccount) {
-      var kc_url = stores.session.currentAccount.projects_url + '/forms/'+ this.state.uid;
-    }
     return (
         <bem.FormView__header m={[
               this.state.name ? 'named' : 'untitled'
@@ -168,9 +165,9 @@ var dmix = {
             <bem.FormView__tab className="active">
               {t('Form')}
             </bem.FormView__tab>
-            { kc_url != undefined && this.state.has_deployment ?
+            { this.state.deployment__identifier != undefined && this.state.deployment__active ?
               <bem.FormView__tab>
-                <a href={kc_url}>{t('Data')}</a>
+                <a href={this.state.deployment__identifier}>{t('Data')}</a>
               </bem.FormView__tab>
             : null }
 
@@ -477,8 +474,7 @@ var dmix = {
     //   offline_url: "https://enke.to/_/#self",
     //   url: "https://enke.to/::self",
     //   iframe_url: "https://enke.to/i/::self",
-    //   preview_url: "https://enke.to/preview/::self",
-    //   // preview_iframe_url: "https://enke.to/preview/i/::self"
+    //   preview_url: "https://enke.to/preview/::self"
     // };
     var deployment__links = this.state.deployment__links;
 
@@ -492,7 +488,7 @@ var dmix = {
 
       switch(key) {
         case 'offline_url':
-          label = t('Online-Offline (single submission)');
+          label = t('Online-Offline (multiple submission)');
           desc = t('This allows online and offline submissions and is the best option for collecting data in the field. ');
           break;
         case 'url':
@@ -502,7 +498,7 @@ var dmix = {
         case 'iframe_url':
           label = t('Embeddable web form code');
           desc = t('Use this html5 code snippet to integrate your form on your own website using smaller margins. ');
-          value = '<iframe src="'+deployment__links[key]+'"></iframe>';
+          value = '<iframe src="'+deployment__links[key]+'" width="800" height="600"></iframe>';
           break;
         case 'preview_url':
           label = t('View only');
@@ -520,6 +516,9 @@ var dmix = {
       );
     }
 
+    var kc_server = document.createElement('a');
+    kc_server.href = this.state.deployment__identifier;
+
     return (
       <bem.FormView__row m="collecting" className="is-edge">
         <bem.FormView__cell m='collecting-webforms'>
@@ -528,25 +527,18 @@ var dmix = {
               {t('Collecting Data with Web Forms')}
             </bem.FormView__label>
           </bem.FormView__banner>
-          <bem.FormView__label onClick={this.toggleInstructions} m='step-by-step'>
-            {t('Get step-by-step instructions')} 
+          <a href="http://support.kobotoolbox.org/customer/en/portal/articles/1653790-collecting-data-through-web-forms"
+             className="collect-link collect-link__web"
+             target="_blank">
+            {t('Learn more')} 
             <i className="fa fa-arrow-right"></i>
-          </bem.FormView__label>
-          {this.state.showInstructions ?
-            <ol>
-              <li>{t('Choose one of the different web form links below.')}</li>
-              <li>{t('Open the link on your own computer or mobile device or copy')}</li>
-              <li>{t('Enter the server URL https://kobotoolbox.org and your username and password')}</li>
-              <li>{t('Open "Get Blank Form" and select this project. ')}</li>
-              <li>{t('Open "Enter Data."')}</li>
-            </ol>
-          : null }
+          </a>
           <bem.FormView__item m={'collect'} 
             onFocus={this.toggleCollectOptions}
             onBlur={this.toggleCollectOptions}>
             <bem.FormView__button m='collectOptions'>
               {this.state.selectedCollectOption.label != null ? t(this.state.selectedCollectOption.label) : t('Choose an option')}
-              <i className="fa fa-caret-down" />
+              <i className="fa fa-caret-up" />
             </bem.FormView__button>
             {this.state.collectOptionsShowing ?
               <bem.PopoverMenu ref='collect-popover'>
@@ -582,11 +574,23 @@ var dmix = {
               {t('Collecting Data with Android App')}
             </bem.FormView__label>
           </bem.FormView__banner>
+          <a href="http://support.kobotoolbox.org/customer/en/portal/articles/1653782-collecting-data-with-kobocollect-on-android"
+             className="collect-link collect-link__android"
+             target="_blank">
+            {t('Learn more')} 
+            <i className="fa fa-arrow-right"></i>
+          </a>
 
           <ol>
-            <li>{t('Install KoboCollect on your Android device.')}</li>
+            <li>
+              {t('Install')} 
+              &nbsp;
+              <a href="https://play.google.com/store/apps/details?id=org.koboc.collect.android&hl=en" target="_blank">KoboCollect</a>
+              &nbsp;
+              {t('on your Android device.')}
+            </li>
             <li>{t('Click on')} <i className="material-icons">more_vert</i> {t('to open settings.')}</li>
-            <li>{t('Enter the server URL https://kobotoolbox.org and your username and password')}</li>
+            <li>{t('Enter the server URL') + ' ' + kc_server.origin + ' ' + t('and your username and password')}</li>
             <li>{t('Open "Get Blank Form" and select this project. ')}</li>
             <li>{t('Open "Enter Data."')}</li>
           </ol>
@@ -632,12 +636,6 @@ var dmix = {
         downloadsShowing: true,
       });
     }
-  },
-  toggleInstructions (evt) {
-    var old = this.state.showInstructions;
-    this.setState({
-      showInstructions: !old,
-    });
   },
   setSelectedCollectOption(c) {
     return function (e) {
@@ -959,7 +957,6 @@ var dmix = {
       userCanEdit: false,
       userCanView: true,
       historyExpanded: false,
-      showInstructions: false,
       collectionOptionList: [],
       selectedCollectOption: {},
       currentUsername: stores.session.currentAccount && stores.session.currentAccount.username,

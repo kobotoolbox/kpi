@@ -26,9 +26,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         # `self` is a demo Enketo form, but there's no guarantee it'll be
         # around forever.
         return {
+            'offline_url': 'https://enke.to/_/#self',
             'url': 'https://enke.to/::self',
             'iframe_url': 'https://enke.to/i/::self',
-            'offline_url': 'https://enke.to/_/#self',
             'preview_url': 'https://enke.to/preview/::self',
-            'preview_iframe_url': 'https://enke.to/preview/i/::self',
+            # 'preview_iframe_url': 'https://enke.to/preview/i/::self',
         }

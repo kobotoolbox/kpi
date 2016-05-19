@@ -231,7 +231,7 @@
 }
 
 .form-view__cell--collecting-android {
-  i {
+  li i {
     font-size: 20px;
     vertical-align: middle;
   }
@@ -300,7 +300,7 @@
     border-radius: none;
     cursor: pointer;
     text-align: left;
-    font-size: 16px;
+    font-size: 13px;
     background-color: transparent;
     color: $cool-gray;
     padding-right: 32px;
@@ -318,17 +318,21 @@
   .popover-menu {
     width:100%;
     max-width: 100%;
-    max-height: 180px;
+    max-height: 260px;
     overflow: auto;
-    top: 3.5em;
+    top: auto;
+    bottom:55px;
+    .popover-menu__link {
+      border-bottom: 1px solid #DDD;
+    }
     span.label {
       display: block;
-      font-size: 16px;
+      font-size: 14px;
       padding-top: 5px;
     }
     span.desc {
       display: block;
-      padding-top: 5px;
+      font-size: 13px;
       font-weight: normal;
     }
   }
@@ -352,9 +356,13 @@
   }
 }
 
-.form-view__label--step-by-step {
-  cursor: pointer;
+.collect-link {
+  color:$cool-gray;
   i {
     margin-left: 6px;
   }
+  &:hover {
+    color: unquote("rgb(#{$color-primary})");
+  }
 }
+

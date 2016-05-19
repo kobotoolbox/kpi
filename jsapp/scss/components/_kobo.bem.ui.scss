@@ -149,7 +149,7 @@
 .popover-menu__link, .popover-menu__item {
   background-color: #FFF;
   display: block;
-  padding: 10px 5px;
+  padding: 10px;
   position: relative;
   color:$cool-gray;
   cursor: pointer;
@@ -161,6 +161,7 @@
 
 }
 .popover-menu__link {
+
   &--dl-xls, &--dl-xml {
     text-transform: uppercase;
     padding-left: 50px;
