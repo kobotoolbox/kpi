@@ -548,12 +548,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_deployment__links(self, obj):
         if obj.has_deployment and obj.deployment.active:
-            dev_link = "{}/enter-data".format(obj.deployment.identifier)
-            return dict([[dd, dev_link] for dd in
-                        ["online_offline",
-                         "online_only_single",
-                         "online_only_multi"]]
-                        )
+            return obj.deployment.get_enketo_survey_links()
         else:
             return {}
 
@@ -670,7 +665,6 @@ class AssetListSerializer(AssetSerializer):
                   'deployed_version_id',
                   'deployment__identifier',
                   'deployment__active',
-                  'deployment__links',
                   'permissions',
                   )
 
