@@ -135,6 +135,7 @@ export var NewForm = React.createClass({
 
               <input type="checkbox"
                   name="share-metadata"
+                  ref="share-metadata"
                   id="share-metadata"
                 />
               <label htmlFor="share-metadata" className="inline">
