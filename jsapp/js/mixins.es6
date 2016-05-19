@@ -480,13 +480,14 @@ var dmix = {
     //   preview_url: "https://enke.to/preview/::self",
     //   // preview_iframe_url: "https://enke.to/preview/i/::self"
     // };
+    var deployment__links = this.state.deployment__links;
 
     var deployment__links_list = [];
     var label = undefined;
     var desc = undefined;
     var value = undefined;
 
-    for (var key in this.state.deployment__links) {
+    for (var key in deployment__links) {
       value = deployment__links[key];
 
       switch(key) {
