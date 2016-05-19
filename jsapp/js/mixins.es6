@@ -6,6 +6,7 @@ import alertify from 'alertifyjs';
 import {Link} from 'react-router';
 import mdl from './libs/rest_framework/material';
 import TagsInput from 'react-tagsinput';
+import ReactZeroClipboard from 'react-zeroclipboard';
 
 import {dataInterface} from './dataInterface';
 import stores from './stores';
@@ -140,37 +141,7 @@ var dmix = {
                   {this.renderDeployments()}
                 </bem.FormView__cell>
               </bem.FormView__row>
-              <bem.FormView__row m="collecting" className="is-edge">
-                <bem.FormView__cell m='collecting-webforms'>
-                  <bem.FormView__banner m="webforms">
-                  <bem.FormView__label m='white'>
-                    {t('Collecting Data with Web Forms')}
-                  </bem.FormView__label>
-                  </bem.FormView__banner>
-                  <ol>
-                    <li>{t('Choose one of the different web form links above.')}</li>
-                    <li>{t('Open the link on your own computer or mobile device or copy')}</li>
-                    <li>{t('Enter the server URL https://kobotoolbox.org and your username and password')}</li>
-                    <li>{t('Open "Get Blank Form" and select this project. ')}</li>
-                    <li>{t('Open "Enter Data."')}</li>
-                  </ol>
-                </bem.FormView__cell>
-                <bem.FormView__cell m='collecting-android'>
-                  <bem.FormView__banner m="android">
-                    <bem.FormView__label m='white'>
-                      {t('Collecting Data with Android App')}
-                    </bem.FormView__label>
-                  </bem.FormView__banner>
-
-                  <ol>
-                    <li>{t('Install KoboCollect on your Android device.')}</li>
-                    <li>{t('Click on')} <i className="material-icons">more_vert</i> {t('to open settings.')}</li>
-                    <li>{t('Enter the server URL https://kobotoolbox.org and your username and password')}</li>
-                    <li>{t('Open "Get Blank Form" and select this project. ')}</li>
-                    <li>{t('Open "Enter Data."')}</li>
-                  </ol>
-                </bem.FormView__cell>
-              </bem.FormView__row>
+              {this.renderInstructions()}
               <ReactTooltip effect="float" place="bottom" />
             </bem.FormView>
           );
@@ -497,6 +468,93 @@ var dmix = {
         </bem.AssetView__langs>
       );
   },
+  renderInstructions () {
+    return (
+      <bem.FormView__row m="collecting">
+        <bem.FormView__cell m='collecting-webforms'>
+          <bem.FormView__banner m="webforms">
+            <bem.FormView__label m='white'>
+              {t('Collecting Data with Web Forms')}
+            </bem.FormView__label>
+          </bem.FormView__banner>
+          <bem.FormView__label>
+            {t('Get step-by-step instructions')}
+          </bem.FormView__label>
+          <bem.FormView__item m={'collect'} 
+            onFocus={this.toggleCollectOptions}
+            onBlur={this.toggleCollectOptions}>
+            <bem.FormView__button m='collectOptions'>
+              {this.state.selectedCollectOption.label != null ? t(this.state.selectedCollectOption.label) : t('Choose an option')}
+              <i className="fa fa-caret-down" />
+            </bem.FormView__button>
+            {this.state.collectOptionsShowing ?
+              <bem.PopoverMenu ref='collect-popover'>
+                {this.state.collectionOptionList.map((c)=>{
+                  return (
+                      <bem.PopoverMenu__link  key={`c-${c.value}`} 
+                                              onClick={this.setSelectedCollectOption(c)}
+                                              className={this.state.selectedCollectOption.value == c.value ? 'active' : null}>
+                        {c.label}
+                      </bem.PopoverMenu__link>
+                    );
+                })}
+              </bem.PopoverMenu>
+            : null }
+          </bem.FormView__item>
+          {this.state.selectedCollectOption.value ?
+            <bem.FormView__item m={'collect-links'}>
+              <ReactZeroClipboard text={this.state.selectedCollectOption.value}>
+                <a className="copy">copy</a>
+              </ReactZeroClipboard>
+              <a href={this.state.selectedCollectOption.value} target="_blank" className="open">
+                {t('Open')}
+              </a>
+            </bem.FormView__item>
+          : null }
+          <ol className="is-edge">
+            <li>{t('Choose one of the different web form links above.')}</li>
+            <li>{t('Open the link on your own computer or mobile device or copy')}</li>
+            <li>{t('Enter the server URL https://kobotoolbox.org and your username and password')}</li>
+            <li>{t('Open "Get Blank Form" and select this project. ')}</li>
+            <li>{t('Open "Enter Data."')}</li>
+          </ol>
+        </bem.FormView__cell>
+        <bem.FormView__cell m='collecting-android'>
+          <bem.FormView__banner m="android">
+            <bem.FormView__label m='white'>
+              {t('Collecting Data with Android App')}
+            </bem.FormView__label>
+          </bem.FormView__banner>
+
+          <ol>
+            <li>{t('Install KoboCollect on your Android device.')}</li>
+            <li>{t('Click on')} <i className="material-icons">more_vert</i> {t('to open settings.')}</li>
+            <li>{t('Enter the server URL https://kobotoolbox.org and your username and password')}</li>
+            <li>{t('Open "Get Blank Form" and select this project. ')}</li>
+            <li>{t('Open "Enter Data."')}</li>
+          </ol>
+        </bem.FormView__cell>
+      </bem.FormView__row>
+      );
+  },
+  toggleCollectOptions (evt) {
+    var isBlur = evt.type === 'blur',
+        $popoverMenu;
+    if (isBlur) {
+      $popoverMenu = $(this.refs['collect-popover'].getDOMNode());
+      // if we setState and immediately hide popover then the
+      // download links will not register as clicked
+      $popoverMenu.fadeOut(250, () => {
+        this.setState({
+          collectOptionsShowing: false,
+        });
+      });
+    } else {
+      this.setState({
+        collectOptionsShowing: true,
+      });
+    }
+  },
   toggleDownloads (evt) {
     var isBlur = evt.type === 'blur',
         $popoverMenu;
@@ -514,6 +572,13 @@ var dmix = {
         downloadsShowing: true,
       });
     }
+  },
+  setSelectedCollectOption(c) {
+    return function (e) {
+      this.setState({
+        selectedCollectOption: c,
+      });
+    }.bind(this)
   },
   renderButtons ({deployable}) {
     var downloadable = !!this.state.downloads[0],
@@ -829,6 +894,7 @@ var dmix = {
       userCanView: true,
       historyExpanded: false,
       collectionOptionList: [],
+      selectedCollectOption: {},
       currentUsername: stores.session.currentAccount && stores.session.currentAccount.username,
     };
   },
