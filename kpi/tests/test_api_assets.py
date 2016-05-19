@@ -50,6 +50,7 @@ class AssetsDetailApiTests(APITestCase):
         self.r = self.client.post(url, data, format='json')
         self.asset_url = self.r.data['url']
         self.assertEqual(self.r.status_code, status.HTTP_201_CREATED)
+        self.asset_uid = self.r.data['uid']
 
     def test_asset_exists(self):
         resp = self.client.get(self.asset_url, format='json')
@@ -63,6 +64,26 @@ class AssetsDetailApiTests(APITestCase):
         }
         resp = self.client.patch(self.asset_url, data, format='json')
         self.assertEqual(resp.data['settings'], {'mysetting': "value"})
+
+    def test_asset_has_deployment_data(self):
+        response = self.client.get(self.asset_url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data.get('deployment__active'), False)
+        self.assertEqual(response.data.get('has_deployment'), False)
+
+    def test_asset_deployment_data_updates(self):
+        deployment_url = reverse('asset-deployment',
+                                 kwargs={'uid': self.asset_uid})
+
+        response1 = self.client.post(deployment_url, {
+                'backend': 'mock',
+                'active': True,
+            })
+        asset = Asset.objects.get(uid=self.asset_uid)
+
+        response2 = self.client.get(self.asset_url, format='json')
+        self.assertEqual(response2.data.get('deployment__active'), True)
+        self.assertEqual(response2.data['has_deployment'], True)
 
 
 class AssetsXmlExportApiTests(KpiTestCase):
