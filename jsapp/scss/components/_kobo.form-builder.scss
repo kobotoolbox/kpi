@@ -53,6 +53,35 @@
   .loading {
     min-height: 200px;
   }
+
+  .error-message {
+    width: 540px;
+    margin: 24px auto;
+    padding: 12px 20px;
+
+    &__strong {
+      border: 1px solid black;
+      padding-right: 12px;
+    }
+
+    &__link {
+      @extend .mdl-button;
+
+      margin-right: 5px;
+
+      &--raised {
+        @extend .mdl-button--colored, .mdl-button--raised;
+      }
+
+      &--help {
+        float: right;
+
+        i {
+          @extend .k-icon-help;
+        }
+      }
+    }
+  }
 }
 
 .formBuilder--formStyleDisplayed {
