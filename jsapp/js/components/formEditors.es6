@@ -27,6 +27,16 @@ export var NewForm = React.createClass({
     Navigation,
     Reflux.ListenerMixin,
   ],
+  countryChange (val) {
+    this.setState({
+      countryVal: val
+    });
+  },
+  sectorChange (val) {
+    this.setState({
+      sectorVal: val
+    });
+  },
   createAsset () {
     var getNodeVal = (att)=> {
       return this.refs[att].getDOMNode().value;
@@ -35,9 +45,9 @@ export var NewForm = React.createClass({
       name: getNodeVal('name'),
       settings: {
         description: getNodeVal('description'),
-        sector: getNodeVal('sector'),
-        country: getNodeVal('country'),
-        'share-metadata': getNodeVal('share-metadata'),
+        sector: this.state.sectorVal,
+        country: this.state.countryVal,
+        'share-metadata': getNodeVal('share-metadata') === "on",
       },
       asset_type: 'survey',
     }).done((asset) => {
@@ -52,6 +62,8 @@ export var NewForm = React.createClass({
   getInitialState () {
     return {
       sessionLoaded: !!session.currentAccount,
+      sectorVal: '',
+      countryVal: '',
     }
   },
   componentDidMount () {
@@ -114,6 +126,8 @@ export var NewForm = React.createClass({
               <Select name="sector"
                   ref="sector"
                   id="sector"
+                  value={this.state.sectorVal}
+                  onChange={this.sectorChange}
                   options={sectors}
                 />
             </bem.FormModal__item>
@@ -124,6 +138,8 @@ export var NewForm = React.createClass({
               <Select name="country"
                 id="country"
                 ref="country"
+                value={this.state.countryVal}
+                onChange={this.countryChange}
                 options={countries}
               />
             </bem.FormModal__item>
