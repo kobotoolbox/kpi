@@ -36,9 +36,7 @@ var AssetRow = React.createClass({
     stores.selectedAsset.toggleSelect(this.props.uid, forceSelect);
   },
   clickAssetButton (evt) {
-    // console.log(evt.target);
     var clickedActionIcon = $(evt.target).closest('[data-action]').get(0);
-    console.log(clickedActionIcon);
     if (clickedActionIcon && this.props.isSelected) {
       this.props.onActionButtonClick(assign(evt, {
         actionIcon: clickedActionIcon,
