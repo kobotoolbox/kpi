@@ -20,6 +20,16 @@ var SearchCollectionList = React.createClass({
     Reflux.connect(stores.selectedAsset),
     Reflux.ListenerMixin,
   ],
+  getInitialState () {
+    var selectedCategories = {
+      'Draft': true,
+      'Deployed': true, 
+      'Archived': false
+    }
+    return {
+      selectedCategories: selectedCategories,
+    };
+  },
   getDefaultProps () {
     return {
       assetRowClass: AssetRow,
@@ -50,6 +60,15 @@ var SearchCollectionList = React.createClass({
                         />
       );
   },
+  toggleCategory(c) {
+    return function (e) {
+    var selectedCategories = this.state.selectedCategories;
+    selectedCategories[c] = !selectedCategories[c];
+      this.setState({
+        selectedCategories: selectedCategories,
+      });
+    }.bind(this)
+  },
   renderHeadings () {
     return (
         <bem.AssetListSorts className="mdl-grid">
@@ -71,13 +90,15 @@ var SearchCollectionList = React.createClass({
   renderGroupedResults () {
     return ['Deployed', 'Draft', 'Archived' /*, 'deleted'*/].map(
       (category) => {
+        var categoryVisible = this.state.selectedCategories[category];
         if (this.state.defaultQueryCategorizedResultsLists[category].length > 0) {
           return [
-            <bem.AssetList__heading>
+            <bem.AssetList__heading m={[category, categoryVisible ? 'visible' : 'collapsed']} 
+                                    onClick={this.toggleCategory(category)}>
               {t(category)}
               {` (${this.state.defaultQueryCategorizedResultsLists[category].length})`}
             </bem.AssetList__heading>,
-            <bem.AssetItems>
+            <bem.AssetItems m={[category, categoryVisible ? 'visible' : 'collapsed']}>
               {this.renderHeadings()}
               {
                 (()=>{
@@ -104,6 +125,7 @@ var SearchCollectionList = React.createClass({
   },
   render () {
     var s = this.state;
+    console.log(s);
     if (this.props.searchContext.store.filterTags == 'asset_type:survey') {
       var display = 'grouped';
     } else {

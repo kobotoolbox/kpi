@@ -74,7 +74,7 @@
 .form-sidebar {
   height: calc(100% - 90px);
   &__grouping {
-    max-height: 25%;
+    max-height: 30%;
     padding-left: 28px;
     padding-right: 10px;
     margin-bottom: 10px;
@@ -117,6 +117,7 @@
     padding-bottom: 5px;
     padding-top: 15px;
     font-size: 0.9em;
+    cursor: pointer;
 
     i {
       font-size:18px;
@@ -135,6 +136,23 @@
     &--Archived i {
       @extend .k-icon-inactive;
     }
+
+    &--visible {
+      opacity: 1;
+    }
+    &--collapsed {
+      opacity: 0.75;
+    }
+  }
+}
+
+.form-sidebar__grouping {
+  transition:0.5s all;
+  &--visible {
+  }
+  &--collapsed {
+    max-height: 0%;
+    overflow: hidden;
   }
 }
 

@@ -23,7 +23,13 @@ var SidebarFormsList = React.createClass({
     Reflux.connect(stores.pageState)
   ],
   getInitialState () {
+    var selectedCategories = {
+      'Draft': true,
+      'Deployed': true, 
+      'Archived': false
+    }
     return {
+      selectedCategories: selectedCategories,
       searchContext: searches.getSearchContext('forms', {
         filterParams: {
           assetType: 'asset_type:survey',
@@ -48,6 +54,15 @@ var SidebarFormsList = React.createClass({
               </bem.FormSidebar__itemlink>
             </bem.FormSidebar__item>
   },
+  toggleCategory(c) {
+    return function (e) {
+    var selectedCategories = this.state.selectedCategories;
+    selectedCategories[c] = !selectedCategories[c];
+      this.setState({
+        selectedCategories: selectedCategories,
+      });
+    }.bind(this)
+  },
   render () {
     var s = this.state;
     return (
@@ -66,13 +81,18 @@ var SidebarFormsList = React.createClass({
             } else if (s.defaultQueryState === 'done') {
               return ['Deployed', 'Draft', 'Archived' /*, 'Deleted'*/].map(
                 (category) => {
+                  var categoryVisible = this.state.selectedCategories[category];
+                  if (s.defaultQueryCategorizedResultsLists[category].length < 1) {
+                    categoryVisible = false;
+                  }
                   return [
-                    <bem.FormSidebar__label m={category}>
+                    <bem.FormSidebar__label m={[category, categoryVisible ? 'visible' : 'collapsed']} 
+                                            onClick={this.toggleCategory(category)}>
                       <i />
                       {t(category)}
                       {` (${s.defaultQueryCategorizedResultsLists[category].length})`}
                     </bem.FormSidebar__label>,
-                    <bem.FormSidebar__grouping m={category}>
+                    <bem.FormSidebar__grouping m={[category, categoryVisible ? 'visible' : 'collapsed']}>
                       {
                         s.defaultQueryCategorizedResultsLists[category].map(
                           this.renderMiniAssetRow)

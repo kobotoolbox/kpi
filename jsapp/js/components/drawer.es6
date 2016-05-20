@@ -12,6 +12,7 @@ import stores from '../stores';
 import bem from '../bem';
 import searches from '../searches';
 import mixins from '../mixins';
+import ReactTooltip from 'react-tooltip';
 
 import {
   t,
@@ -50,7 +51,7 @@ class DrawerLink extends React.Component {
         <Link to={this.props.linkto}
             className='k-drawer__link'
             activeClassName='active'
-            title={this.props.label}>
+            data-tip={this.props.label}>
           {icon}
         </Link>
       );
@@ -59,7 +60,7 @@ class DrawerLink extends React.Component {
         <a href={this.props.href || '#'}
             className='k-drawer__link'
             onClick={this.onClick.bind(this)} 
-            title={this.props.label}>
+            data-tip={this.props.label}>
             {icon}
         </a>
       );
@@ -164,10 +165,10 @@ var Drawer = React.createClass({
     return (
           <bem.Drawer className='k-drawer mdl-shadow--2dp'>
             <nav className='k-drawer__icons'> 
-              <DrawerLink label={t('projects')} linkto='forms' ki-icon='projects' />
-              <DrawerLink label={t('library')} linkto='library' ki-icon='library' />
+              <DrawerLink label={t('Projects')} linkto='forms' ki-icon='projects' />
+              <DrawerLink label={t('Library')} linkto='library' ki-icon='library' />
               { stores.session.currentAccount ?
-                  <DrawerLink label={t('projects')} active='true' href={stores.session.currentAccount.projects_url} className="is-edge" ki-icon='globe' />
+                  <DrawerLink label={t('Projects')} active='true' href={stores.session.currentAccount.projects_url} className="is-edge" ki-icon='globe' />
               : null }
               <div className="mdl-layout-spacer"></div>
 
@@ -292,6 +293,8 @@ var Drawer = React.createClass({
                 <SidebarFormsList/>
               }
             </div>
+
+            <ReactTooltip effect="float" place="bottom" />
           </bem.Drawer>
       );
   },

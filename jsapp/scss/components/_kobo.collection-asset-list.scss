@@ -60,16 +60,39 @@
   height: 100%;
   margin: 0px 8px;
   overflow-y: auto;
+  // .asset-list {
+  //   height:100%;
+  //   border:1px solid green;
+  // }
   .asset-list__heading {
     font-weight: 500;
     margin: 10px 0px;
     margin-top: 20px;
     font-size: 22px;
     color: $cool-gray;
+    cursor: pointer;
   }
   .asset-items {
     @extend .mdl-shadow--2dp;
     background: #FFF;
     position: relative;
+    &--visible {
+    }
+    &--collapsed {
+      max-height: 0px;
+      overflow: hidden;
+    }
+  }
+  .asset-row--active {
+    position: relative;
+    > .asset-row__buttons {
+      background:#FFF;
+      width:34%;
+      box-shadow: none; 
+      top:5px;
+    }
+    .date--modified {
+      visibility: hidden;
+    }
   }
 }

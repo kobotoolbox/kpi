@@ -208,7 +208,7 @@ export default assign({
     }
     let bcData = [
       {
-        'label': isLibrary ? t('Library List') : t('Form List'),
+        'label': isLibrary ? t('Library List') : t('Projects'),
         'to': isLibrary ? 'library' : 'forms',
       }
     ];
