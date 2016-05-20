@@ -518,7 +518,7 @@ var dmix = {
     kc_server.href = this.state.deployment__identifier;
 
     return (
-      <bem.FormView__row m="collecting" className="is-edge">
+      <bem.FormView__row m="collecting">
         <bem.FormView__cell m='collecting-webforms'>
           <bem.FormView__banner m="webforms">
             <bem.FormView__label m='white'>
