@@ -192,7 +192,7 @@
   &--history-contents {
     padding:0px;
     padding-bottom: 10px;
-    .form-view__group:last-child {
+    > .form-view__group:last-child {
       border-bottom: 1px solid #DDD;
     }
   }

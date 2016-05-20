@@ -129,7 +129,6 @@ var AssetRow = React.createClass({
                               data-tip={actn}
                               data-asset-type={this.props.kind}
                               data-disabled={false}
-                              title={actn}
                               >
                             <i />
                           </bem.AssetRow__actionIcon>
@@ -143,7 +142,6 @@ var AssetRow = React.createClass({
                       data-tip={'clone'}
                       data-asset-type={'clone'}
                       data-disabled={false}
-                      title={'clone'}
                       >
                     <i />
                   </bem.AssetRow__actionIcon>
@@ -154,7 +152,6 @@ var AssetRow = React.createClass({
                         data-action={'deploy'}
                         data-asset-type={this.props.kind}
                         data-tip={this.props.deployed_version_id === null ? t('deploy') : t('redeploy')}
-                        title={t('deploy')}
                       >
                     <i />
                   </bem.AssetRow__actionIcon>
@@ -165,7 +162,6 @@ var AssetRow = React.createClass({
                         data-action={'refresh'}
                         data-asset-type={this.props.kind}
                         data-tip={t('refresh')}
-                        title={t('refresh')}
                       >
                     <i />
                   </bem.AssetRow__actionIcon>
@@ -178,7 +174,6 @@ var AssetRow = React.createClass({
                               data-action={actn}
                               data-asset-type={this.props.kind}
                               data-disabled={false}
-                              title={actn}
                               data-tip={actn}
                               >
                             <i />
@@ -191,7 +186,6 @@ var AssetRow = React.createClass({
                       data-action={'delete'}
                       data-asset-type={this.props.kind}
                       data-tip={t('delete')}
-                      title={t('delete')}
                     >
                   <i />
                 </bem.AssetRow__actionIcon>

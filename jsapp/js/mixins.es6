@@ -227,6 +227,10 @@ var dmix = {
                         </bem.PopoverMenu__link>
                       );
                   })}
+                  <bem.PopoverMenu__link onClick={this.saveCloneAs}>
+                    <i className="k-icon-clone"/>
+                    {t('Clone this project')}
+                  </bem.PopoverMenu__link>
 
                   <Dropzone fileInput onDropFiles={this.onDrop}
                         disabled={!this.state.userCanEdit}>
@@ -264,12 +268,6 @@ var dmix = {
 
         <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
             htmlFor="form-header-extras">
-          <li>
-            <a onClick={this.saveCloneAs} className="mdl-menu__item">
-              <i />
-              {t('Clone this project')}
-            </a>
-          </li>
           <li>
             <a href={this.makeHref('form-sharing', {assetid: this.state.uid})} className="mdl-menu__item">
               <i />
@@ -847,16 +845,23 @@ var dmix = {
                 {this.state.deployed_versions.map((item) => {
                   return (
                     <bem.FormView__group m="deploy-row">
-                              <bem.FormView__item m='version'>
+                      <bem.FormView__item m='version'>
                         {item.version_id}
+                        <bem.FormView__group m='buttons'>
+                          <bem.FormView__link m='clone' 
+                              data-version-id={item.version_id}
+                              data-tip={t('Clone as new project')}
+                              onClick={this.saveCloneAs}>
+                            <i className="k-icon-clone" />
+                          </bem.FormView__link>
+                        </bem.FormView__group>
                       </bem.FormView__item>
                       <bem.FormView__item m='date'>
                         {formatTime(item.date_deployed)}
                       </bem.FormView__item>
-                      <bem.FormView__item m='lang'>
-                      </bem.FormView__item>
-                      <bem.FormView__item m='questions'>
-                      </bem.FormView__item>
+
+                      <bem.FormView__item m='lang'></bem.FormView__item>
+                      <bem.FormView__item m='questions'></bem.FormView__item>
                     </bem.FormView__group>
                   );
                 })}
