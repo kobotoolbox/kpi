@@ -19,7 +19,7 @@ COPY ./apt_requirements.txt "${KPI_SRC_DIR}/"
 # Only install if the current version of `apt_requirements.txt` differs from the one used in the base image.
 RUN if ! diff "${KPI_SRC_DIR}/apt_requirements.txt" /srv/tmp/base_apt_requirements.txt; then \
         apt-get update && \
-        apt-get install -y $(cat "${KPI_SRC_DIR}/apt_requirements.txt") && \
+        apt-get install -y "$(cat ${KPI_SRC_DIR}/apt_requirements.txt)" && \
         apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \ 
     ; fi
 
