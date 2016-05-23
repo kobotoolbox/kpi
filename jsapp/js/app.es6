@@ -14,6 +14,7 @@ import {
   DefaultRoute,
   Link,
   Route,
+  Redirect,
   RouteHandler,
   NotFoundRoute,
   run,
@@ -1710,6 +1711,7 @@ Demo.collection = React.createClass({
 
 var routes = (
   <Route name="home" path="/" handler={App}>
+    <Redirect from="library/questions" to="library" />
     <Route name="library" handler={LibrarySearchableList}>
     </Route>
 
