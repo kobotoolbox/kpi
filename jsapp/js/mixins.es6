@@ -269,9 +269,22 @@ var dmix = {
         <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
             htmlFor="form-header-extras">
           <li>
+            <a className="mdl-menu__item" onClick={this.saveCloneAs}>
+              {t('Clone this project')}
+            </a>
+          </li>
+
+          <li>
             <a href={this.makeHref('form-sharing', {assetid: this.state.uid})} className="mdl-menu__item">
               <i />
               {t('Share this project')}
+            </a>
+          </li>
+
+          <li>
+            <a className="mdl-menu__item" onClick={this.deleteAsset}>
+              <i />
+              {t('Delete this project')}
             </a>
           </li>
         </ul> 
