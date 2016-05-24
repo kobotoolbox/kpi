@@ -193,18 +193,15 @@
   &.formBuilder-header__button--savepending,
   &.formBuilder-header__button--create-pending {
     > i {
-      @extend .fa-spin, .fa-spinner;
+      @extend .k-spin, .fa-circle-o-notch;
+      font-size: 22px;
+      line-height: 35px;
+      display: inline-block;
     }
     > i + span {
       display: none;
     }
   }
-
-  // &.formBuilder-header__button--save:after {
-  //   content: '_';
-  //   font-family: monospace;
-  //   color: transparent;
-  // }
 
   &.formBuilder-header__button--saveneeded:after {
     content: '*';

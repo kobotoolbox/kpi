@@ -109,7 +109,7 @@
 .message--loading {
   text-align: center;
   > i:first-child {
-    @extend .fa, .fa-fw, .fa-spinner, .fa-spin;
+    @extend .fa, .fa-fw, .fa-circle-o-notch, .k-spin;
   }
 }
 
@@ -122,7 +122,7 @@
   font-size: 18px;
   opacity: 0.8;
   i:first-child {
-    @extend .fa, .fa-spin, .fa-spinner;
+    @extend .fa, .k-spin, .fa-circle-o-notch;
     margin-right: 12px;
     vertical-align: middle;
     font-size: 24px;
@@ -160,8 +160,8 @@
   }
 
 }
-.popover-menu__link {
 
+.popover-menu__link {
   &--dl-xls, &--dl-xml {
     text-transform: uppercase;
     padding-left: 50px;
