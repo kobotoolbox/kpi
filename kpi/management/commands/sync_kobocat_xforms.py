@@ -241,6 +241,8 @@ class Command(BaseCommand):
                                 diff_str
                             )
                             continue
+                    else:
+                        update_existing = False
                     # Load the xlsform from the KC API to avoid having to deal
                     # with S3 credentials, etc.
                     response = kc_forms_api_request(
