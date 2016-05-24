@@ -5,7 +5,7 @@ services:
 
 before_script:
   - echo 'Building the KPI base docker image.'
-  - docker build -t kobotoolbox/koboform_base .
+  - docker build -t kobotoolbox/koboform_base:latest .
   - echo 'Building the KPI Docker image.'
   - docker build -t kobotoolbox/kpi:latest .
   - echo 'Setting up a `kobo-docker` "local" configuration with a minimal `envfile`.'
