@@ -496,8 +496,8 @@ class DiscoverablePublicCollectionTests(TestCase):
         self.assertFalse(self.coll.discoverable_when_public)
         self.assertFalse(AnonymousUser().has_perm(
             'view_collection', self.coll))
-        # Should remain not discoverable even after allowing anon access
+        # Should remain non-discoverable even after allowing anon access
         self.coll.assign_perm(AnonymousUser(), 'view_collection')
         self.assertTrue(AnonymousUser().has_perm(
-            'view_collection', self.standalone_coll))
+            'view_collection', self.coll))
         self.assertFalse(self.coll.discoverable_when_public)

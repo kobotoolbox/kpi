@@ -27,10 +27,13 @@ from hub.views import switch_builder
 router = DefaultRouter()
 router.register(r'assets', AssetViewSet)
 router.register(r'asset_snapshots', AssetSnapshotViewSet)
-router.register(r'collections', CollectionViewSet)
 router.register(r'public_collections', PublicCollectionViewSet)
 router.register(
     r'collection_subscriptions', UserCollectionSubscriptionViewSet)
+# In order for `reverse()` to use `collections` instead of
+# `public_collections`, ensure that `collections` is registered AFTER
+# `public_collections`.
+router.register(r'collections', CollectionViewSet)
 router.register(r'users', UserViewSet)
 router.register(r'tags', TagViewSet)
 router.register(r'permissions', ObjectPermissionViewSet)

@@ -228,6 +228,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
 
 class PublicCollectionViewSet(CollectionViewSet):
     def get_queryset(self, *args, **kwargs):
+        queryset = Collection.objects.filter(discoverable_when_public=True)
         if 'subscribed' in self.request.query_params:
             subscribed = strtobool(
                 self.request.query_params.get('subscribed', 'false').lower())
@@ -237,7 +238,6 @@ class PublicCollectionViewSet(CollectionViewSet):
             else:
                 queryset = self.queryset.exclude(**criteria)
 
-        queryset = queryset.filter(discoverable_when_public=True)
         return get_objects_for_user(
             get_anonymous_user(), 'view_collection', queryset)
 
