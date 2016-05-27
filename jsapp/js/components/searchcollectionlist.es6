@@ -20,6 +20,16 @@ var SearchCollectionList = React.createClass({
     Reflux.connect(stores.selectedAsset),
     Reflux.ListenerMixin,
   ],
+  getInitialState () {
+    var selectedCategories = {
+      'Draft': true,
+      'Deployed': true, 
+      'Archived': false
+    }
+    return {
+      selectedCategories: selectedCategories,
+    };
+  },
   getDefaultProps () {
     return {
       assetRowClass: AssetRow,
@@ -50,28 +60,87 @@ var SearchCollectionList = React.createClass({
                         />
       );
   },
+  toggleCategory(c) {
+    return function (e) {
+    var selectedCategories = this.state.selectedCategories;
+    selectedCategories[c] = !selectedCategories[c];
+      this.setState({
+        selectedCategories: selectedCategories,
+      });
+    }.bind(this)
+  },
+  renderHeadings () {
+    return (
+        <bem.AssetListSorts className="mdl-grid">
+          <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--6-col mdl-cell--3-col-tablet">
+            {t('Name')}
+          </bem.AssetListSorts__item>
+          <bem.AssetListSorts__item m={'owner'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet">
+            {t('Owner')}
+          </bem.AssetListSorts__item>
+          <bem.AssetListSorts__item m={'modified'} className="mdl-cell mdl-cell--3-col mdl-cell--2-col-tablet">
+            {t('Last Modified')}
+          </bem.AssetListSorts__item>
+          <bem.AssetListSorts__item m={'questions'} className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet">
+            {t('Questions')}
+          </bem.AssetListSorts__item>
+        </bem.AssetListSorts>
+      );
+  },
+  renderGroupedResults () {
+    return ['Deployed', 'Draft', 'Archived' /*, 'deleted'*/].map(
+      (category) => {
+        var categoryVisible = this.state.selectedCategories[category];
+        if (this.state.defaultQueryCategorizedResultsLists[category].length > 0) {
+          return [
+            <bem.AssetList__heading m={[category, categoryVisible ? 'visible' : 'collapsed']} 
+                                    onClick={this.toggleCategory(category)}>
+              {t(category)}
+              {` (${this.state.defaultQueryCategorizedResultsLists[category].length})`}
+            </bem.AssetList__heading>,
+            <bem.AssetItems m={[category, categoryVisible ? 'visible' : 'collapsed']}>
+              {this.renderHeadings()}
+              {
+                (()=>{
+                  if (this.state.searchResultsDisplayed) {
+                    return this.state.searchResultsCategorizedResultsLists[category].map(
+                      this.renderAssetRow)
+                  } else {
+                    return this.state.defaultQueryCategorizedResultsLists[category].map(
+                      this.renderAssetRow)
+                  }
+                })()
+              }
+            </bem.AssetItems>
+          ];
+        } else {
+          return false;
+        }
+      }
+    );    
+  },
+
   refreshSearch () {
     this.searchValue.refresh();
   },
   render () {
     var s = this.state;
+    console.log(s);
+    if (this.props.searchContext.store.filterTags == 'asset_type:survey') {
+      var display = 'grouped';
+    } else {
+      var display = 'regular';
+    }
     return (
-        <bem.CollectionList>
-          <bem.AssetListSorts className="mdl-grid">
-            <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--6-col mdl-cell--3-col-tablet">
-              {t('Name')}
-            </bem.AssetListSorts__item>
-            <bem.AssetListSorts__item m={'owner'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet">
-              {t('Owner')}
-            </bem.AssetListSorts__item>
-            <bem.AssetListSorts__item m={'modified'} className="mdl-cell mdl-cell--3-col mdl-cell--2-col-tablet">
-              {t('Last Modified')}
-            </bem.AssetListSorts__item>
-            <bem.AssetListSorts__item m={'questions'} className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet">
-              {t('Questions')}
-            </bem.AssetListSorts__item>
-          </bem.AssetListSorts>
-          <bem.CollectionAssetList>
+        <bem.List m={display}>
+          {
+            (()=>{
+              if (display == 'regular') {
+                return this.renderHeadings();
+              }
+            })()
+          }
+          <bem.AssetList>
           {
             (()=>{
               if (s.searchResultsDisplayed) {
@@ -85,7 +154,11 @@ var SearchCollectionList = React.createClass({
                     </bem.Loading>
                   );
                 } else if (s.searchState === 'done') {
-                  return s.searchResultsList.map(this.renderAssetRow);
+                  if (display == 'grouped') {
+                    return this.renderGroupedResults();
+                  } else {
+                    return s.searchResultsList.map(this.renderAssetRow);
+                  }
                 }
               } else {
                 if (s.defaultQueryState === 'loading') {
@@ -98,15 +171,19 @@ var SearchCollectionList = React.createClass({
                     </bem.Loading>
                   );
                 } else if (s.defaultQueryState === 'done') {
-                  return s.defaultQueryResultsList.map(this.renderAssetRow);
+                  if (display == 'grouped') {
+                    return this.renderGroupedResults();
+                  } else {
+                    return s.defaultQueryResultsList.map(this.renderAssetRow);
+                  }
                 }
               }
               // it shouldn't get to this point
               return false;
             })()
           }
-          </bem.CollectionAssetList>
-        </bem.CollectionList>
+          </bem.AssetList>
+        </bem.List>
       );
   },
 });

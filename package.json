@@ -90,6 +90,7 @@
     "react-select": "^0.6.3",
     "react-tagsinput": "1.4.x",
     "react-tooltip": "^0.3.3",
+    "react-zeroclipboard": "^1.1.0",
     "reflux": "^0.2.7",
     "rimraf": "^2.4.3",
     "roboto-fontface": "^0.4.5",

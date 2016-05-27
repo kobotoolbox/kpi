@@ -114,14 +114,6 @@
     &:hover {
       background-color: transparent;
       color: unquote("rgb(#{$color-accent})");
-      svg.ki-icon {
-        stroke: unquote("rgb(#{$color-accent})");
-      }
-      svg.ki-icon.ki-view, 
-      svg.ki-icon.ki-edit {
-        fill: unquote("rgb(#{$color-accent})"); 
-        stroke:transparent;
-      }
     }
 
     &.asset-row__action-icon--deploy i {
@@ -171,5 +163,32 @@
     @extend .fa-caret-down;
 
     color: #A5B3BC;
+  }
+
+  .asset-row__action-icon button {
+    border:none;
+    margin:0;
+    padding:0;
+    border-radius: 0px;
+    font-size: 20px;
+    font-weight: 400;
+    color: $cool-gray;
+    background-color: transparent;
+    cursor:pointer;
+    &:hover {
+      background-color: transparent;
+      color: unquote("rgb(#{$color-accent})");
+    }
+  }
+
+  .popover-menu {
+    padding:10px 0px;
+    right:20px;
+    top:2em;
+  }
+  .popover-menu__link {
+    font-size: 14px;
+    padding:8px 15px;
+    color: $cool-gray;
   }
 }

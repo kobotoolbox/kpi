@@ -277,7 +277,6 @@ var dataInterface;
     },
     deployAsset (asset, redeployment) {
       var data = {
-        'backend': 'kobocat',
         'active': true,
       };
       var method = 'POST';

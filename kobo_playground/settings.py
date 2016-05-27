@@ -206,6 +206,11 @@ TRACKJS_TOKEN = os.environ.get('TRACKJS_TOKEN')
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat/')
 KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL',
                                       'http://kobocat/')
+if 'KOBOCAT_URL' in os.environ:
+    DEFAULT_DEPLOYMENT_BACKEND = 'kobocat'
+else:
+    DEFAULT_DEPLOYMENT_BACKEND = 'mock'
+
 # Following the uWSGI mountpoint convention, this should have a leading slash
 # but no trailing slash
 DKOBO_PREFIX = os.environ.get('DKOBO_PREFIX', 'False')
@@ -245,6 +250,10 @@ ENKETO_PREVIEW_URI = 'webform/preview' if ENKETO_VERSION == 'legacy' else 'previ
 # around before purging it.
 KOBO_SURVEY_PREVIEW_EXPIRATION = os.environ.get('KOBO_SURVEY_PREVIEW_EXPIRATION', 24)
 
+ENKETO_API_TOKEN = os.environ.get('ENKETO_API_TOKEN', 'enketorules')
+# http://apidocs.enketo.org/v2/
+ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
+
 ''' Celery configuration '''
 if os.environ.get('SKIP_CELERY', 'False') == 'True':
     # helpful for certain debugging
@@ -263,7 +272,7 @@ CELERYBEAT_SCHEDULE = {
     #},
 }
 
-if KOBOCAT_URL:
+if 'KOBOCAT_URL' in os.environ:
     # Create/update KPI assets to match KC forms
     CELERYBEAT_SCHEDULE['sync-kobocat-xforms'] = {
         'task': 'kpi.tasks.sync_kobocat_xforms',

@@ -2,6 +2,7 @@ import React from 'react/addons';
 import bem from '../bem';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import _ from 'underscore';
+import stores from '../stores';
 import ReactTooltip from 'react-tooltip';
 
 var CascadePopup = bem.create('cascade-popup'),
@@ -27,6 +28,7 @@ export default {
       cascadeTextareaValue: '',
       cascadeLastSelectedRowIndex: lastSelectedRowIndex,
     });
+    stores.pageState.setAssetNavPresent(false);
   },
   cancelCascade () {
     this.setState({

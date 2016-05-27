@@ -208,7 +208,7 @@ export default assign({
     }
     let bcData = [
       {
-        'label': isLibrary ? t('Library List') : t('Form List'),
+        'label': isLibrary ? t('Library List') : t('Projects'),
         'to': isLibrary ? 'library' : 'forms',
       }
     ];
@@ -342,8 +342,8 @@ export default assign({
       this.setState({
         enketopreviewOverlay: content.enketopreviewlink,
       });
-      stores.pageState.setAssetNavPresent(false);
       stores.pageState.setFormBuilderFocus(true);
+      stores.pageState.setAssetNavPresent(false);
     }).fail((/* jqxhr */) => {
       notify(t('failed to generate preview. please report this to support@kobotoolbox.org'));
     });
@@ -598,12 +598,14 @@ export default assign({
       enketopreviewOverlay: false
     });
     stores.pageState.setFormBuilderFocus(true);
+    stores.pageState.setAssetNavPresent(true);
   },
   hideCascade () {
     this.setState({
       showCascadePopup: false
     });
     stores.pageState.setFormBuilderFocus(true);
+    stores.pageState.setAssetNavPresent(true);
   },
   launchAppForSurvey (survey, optionalParams={}) {
     var skp = new SurveyScope({

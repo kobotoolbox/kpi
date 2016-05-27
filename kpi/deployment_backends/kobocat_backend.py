@@ -76,6 +76,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             string=url
         )
 
+    @property
+    def backend_response(self):
+        return self.asset._deployment_data['backend_response']
+
     def to_csv_io(self, asset_xls_io, id_string):
         ''' Convert the output of `Asset.to_xls_io()` or
         `Asset.to_versioned_xls_io()` into a CSV appropriate for KC's
@@ -182,8 +186,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     @property
     def timestamp(self):
         try:
-            return self.asset._deployment_data['backend_response'][
-                'date_modified']
+            return self.backend_response['date_modified']
         except KeyError:
             return None
 
@@ -253,9 +256,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         '''
         if active is None:
             active = self.active
-        url = self.external_to_internal_url(
-            self.asset._deployment_data['backend_response']['url'])
-        id_string = self.asset._deployment_data['backend_response']['id_string']
+        url = self.external_to_internal_url(self.backend_response['url'])
+        id_string = self.backend_response['id_string']
         csv_io = self.to_csv_io(self.asset.to_versioned_xls_io(), id_string)
         valid_xlsform_csv_repr = csv_io.getvalue()
         payload = {
@@ -285,7 +287,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # self.asset._deployment_data.update(...)
         # self.asset.save()
         url = self.external_to_internal_url(
-            self.asset._deployment_data['backend_response']['url'])
+            self.backend_response['url'])
         payload = {
             u'downloadable': bool(active)
         }
@@ -298,7 +300,28 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def delete(self):
         url = self.external_to_internal_url(
-            self.asset._deployment_data['backend_response']['url'])
+            self.backend_response['url'])
         self._kobocat_request('DELETE', url, None)
         self.asset._deployment_data = {}
         self.asset.save()
+
+    def get_enketo_survey_links(self):
+        data = {
+            'server_url': u'{}/{}'.format(
+                settings.KOBOCAT_URL.rstrip('/'),
+                self.asset.owner.username
+            ),
+            'form_id': self.backend_response['id_string']
+        }
+        response = requests.post(
+            u'{}/{}'.format(
+                settings.ENKETO_SERVER, settings.ENKETO_SURVEY_ENDPOINT),
+            # bare tuple implies basic auth
+            auth=(settings.ENKETO_API_TOKEN, ''),
+            data=data
+        )
+        links = response.json()
+        for discard in ('enketo_id', 'code', 'preview_iframe_url'):
+            try: del links[discard]
+            except KeyError: pass
+        return links
