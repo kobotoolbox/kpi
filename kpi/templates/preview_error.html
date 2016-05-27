@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Preview Error</title>
+</head>
+<body>
+  {% if error %}
+  <ul class="error">
+    <li>{{error_type}}: {{error}}</li>
+  </ul>
+  {% endif %}
+</body>
+</html>

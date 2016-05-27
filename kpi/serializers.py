@@ -291,10 +291,10 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         )
 
     def get_enketopreviewlink(self, obj):
-        return u'{enketo_server}{enketo_preview_uri}?form={xml_uri}'.format(
-            enketo_server=settings.ENKETO_SERVER,
-            enketo_preview_uri=settings.ENKETO_PREVIEW_URI,
-            xml_uri=self.get_xml(obj)
+        return reverse(
+            viewname='assetsnapshot-preview',
+            kwargs={'uid': obj.uid},
+            request=self.context.get('request', None)
         )
 
     def create(self, validated_data):
