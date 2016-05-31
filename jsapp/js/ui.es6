@@ -100,7 +100,11 @@ ui.Modal = React.createClass({
   render () {
     return (
       // m={['done', isSearch ? 'search' : 'default']}
-      <div className={classNames('modal-backdrop', this.props.className, this.props.title ? 'modal-titled' : null)} onClick={this.backdropClick.bind(this)}>
+      <div className={classNames('modal-backdrop', this.props.className,
+            this.props.large ? 'modal-large' : null,
+            this.props.error ? 'modal-error' : null,
+            this.props.title ? 'modal-titled' : null)}
+          onClick={this.backdropClick}>
         <div className={this.props.open ? 'modal-open' : 'modal'}> 
           <div className="modal-content">
             <div className="modal-header">

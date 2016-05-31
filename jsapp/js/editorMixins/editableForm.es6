@@ -344,8 +344,11 @@ export default assign({
       });
       stores.pageState.setFormBuilderFocus(true);
       stores.pageState.setAssetNavPresent(false);
-    }).fail((/* jqxhr */) => {
-      notify(t('failed to generate preview. please report this to support@kobotoolbox.org'));
+    }).fail((jqxhr) => {
+      let err = jqxhr.responseJSON.error;
+      this.setState({
+        enketopreviewError: err,
+      });
     });
   },
   saveForm (evt) {
@@ -637,6 +640,11 @@ export default assign({
       asset_type: optionalParams.asset_type,
     });
   },
+  clearPreviewError () {
+    this.setState({
+      enketopreviewError: false,
+    });
+  },
   render () {
     var isSurvey = this.app && !this.isLibrary();
     return (
@@ -657,14 +665,23 @@ export default assign({
               </bem.FormBuilder__contents>
             </bem.FormBuilder>
             { this.state.enketopreviewOverlay ?
-              <ui.Modal open onClose={this.hidePreview} title={t('Form Preview')} className='modal-large'>
+              <ui.Modal open large
+                  onClose={this.hidePreview} title={t('Form Preview')}>
                 <ui.Modal.Body>
                   <iframe src={this.state.enketopreviewOverlay} />
                 </ui.Modal.Body>
               </ui.Modal>
 
-            : null }
-
+            : (
+                this.state.enketopreviewError ?
+                  <ui.Modal open error
+                      onClose={this.clearPreviewError} title={t('Error generating preview')}>
+                    <ui.Modal.Body>
+                      {this.state.enketopreviewError}
+                    </ui.Modal.Body>
+                  </ui.Modal>
+                : null
+              ) }
             {this.state.showCascadePopup ?
               <ui.Modal open onClose={this.hideCascade} title={t('Import Cascading Select Questions')}>
                 <ui.Modal.Body>

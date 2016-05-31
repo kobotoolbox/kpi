@@ -1461,7 +1461,7 @@ var FormEnketoPreview = React.createClass({
       return (
         <ui.Modal open onClose={this.routeBack}
               title={t('Error generating preview')}
-              className={['modal-large', 'modal-error']}
+              error
             >
           <ui.Modal.Body>
             {this.state.message}
