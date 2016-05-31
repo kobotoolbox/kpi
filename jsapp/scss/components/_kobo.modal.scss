@@ -74,6 +74,10 @@
 
 .modal-body {
   padding: 20px 15px;
+
+  .modal-titled & {
+    padding: 30px 15px;
+  }
 }
 
 .modal-footer {
