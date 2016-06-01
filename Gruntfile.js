@@ -39,13 +39,6 @@ module.exports = function(grunt) {
         'jsapp/js/tmp/',
       ]
     },
-    sass: {
-      dist: {
-        files: {
-          'jsapp/compiled/bundle.css': 'jsapp/scss/main.scss'
-        }
-      }
-    },
     // autoprefixer is required for material-design-icons
     autoprefixer: {
       target: {
@@ -107,19 +100,11 @@ module.exports = function(grunt) {
         options: {
           livereload: true
         }
-      },
-      sass: {
-        tasks: ['sass', 'autoprefixer'],
-        files: ['jsapp/scss/**/*.scss'],
-        options: {
-          livereload: false
-        }
       }
     }
   });
 
   grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-sass');
   grunt.loadNpmTasks('grunt-autoprefixer');
   grunt.loadNpmTasks('grunt-contrib-cssmin');
   grunt.loadNpmTasks('grunt-contrib-clean');
@@ -128,14 +113,12 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.registerTask('develop', [
     'browserify:dev',
-    'sass:dist',
     'autoprefixer',
     'watch',
   ]);
   grunt.registerTask('js', ['browserify:dev', 'clean']);
   grunt.registerTask('build', [
     'browserify:dev',
-    'sass:dist',
     'autoprefixer',
     'clean:js',
   ]);
