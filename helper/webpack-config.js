@@ -10,6 +10,7 @@ var publicPath = (process.env.KPI_PREFIX === '/' ? '' : (process.env.KPI_PREFIX 
 
 module.exports = function (options) {
   var defaultOptions = {
+    bail: false,
     banner: false,
     debug: false,
     extractCss: false,
@@ -230,7 +231,7 @@ module.exports = function (options) {
         './cptable': 'var cptable'
       }
     ],
-    bail: true,
+    bail: options.bail,
     debug: options.debug
   };
 
