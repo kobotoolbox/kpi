@@ -6,9 +6,11 @@ var autoprefixer = require('autoprefixer');
 var pkg = require('../package.json');
 var BundleTracker = require('webpack-bundle-tracker');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
+var defaultPublicPath = (process.env.KPI_PREFIX === '/' ? '' : (process.env.KPI_PREFIX || '')) + '/static/compiled/';
 
 module.exports = function (options) {
   var defaultOptions = {
+    bail: false,
     banner: false,
     debug: false,
     extractCss: false,
@@ -22,7 +24,7 @@ module.exports = function (options) {
     outputHash: true,
     port: 3000,
     // on prod + staging, process.env.KPI_PREFIX is '/forms'
-    publicPath: (process.env.KPI_PREFIX || '') + '/static/compiled/',
+    publicPath: defaultPublicPath,
     saveStats: false,
   };
 
@@ -229,7 +231,7 @@ module.exports = function (options) {
         './cptable': 'var cptable'
       }
     ],
-    bail: true,
+    bail: options.bail,
     debug: options.debug
   };
 
