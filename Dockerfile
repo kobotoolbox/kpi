@@ -60,8 +60,6 @@ RUN if ! diff "${KPI_SRC_DIR}/bower.json" /srv/tmp/base_bower.json && \
     ; fi
 
 
-RUN npm install material-design-icons
-
 ######################
 # Build client code. #
 ######################
