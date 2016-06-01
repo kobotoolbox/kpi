@@ -1324,7 +1324,9 @@ var CollectionSharing = React.createClass({
         );
     }
     return (
-      <ui.Modal open onClose={this.routeBack} title={t('manage sharing permissions')} className='modal-large'>
+      <ui.Modal open large
+          onClose={this.routeBack}
+          title={t('manage sharing permissions')}>
         <ui.Modal.Body>
           <ui.Panel className="k-div--sharing">
             <div className="k-sharing__title">
