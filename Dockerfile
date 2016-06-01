@@ -6,6 +6,7 @@ ENV KPI_LOGS_DIR=/srv/logs \
     KPI_WHOOSH_DIR=/srv/whoosh \
     GRUNT_BUILD_DIR=/srv/grunt_build \
     GRUNT_FONTS_DIR=/srv/grunt_fonts \
+    WEBPACK_STATS_PATH=/srv/webpack-stats.json \
     # The mountpoint of a volume shared with the nginx container. Static files will
     # be copied there.
     NGINX_STATIC_DIR=/srv/static
@@ -76,9 +77,12 @@ RUN mkdir "${GRUNT_BUILD_DIR}" && \
     mkdir "${GRUNT_FONTS_DIR}" && \
     ln -s "${GRUNT_BUILD_DIR}" "${KPI_SRC_DIR}/jsapp/compiled" && \
     rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
-    ln -s "${GRUNT_FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts"
+    ln -s "${GRUNT_FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts" && \
+    # FIXME: Move `webpack-stats.json` to some build target directory so these ad-hoc workarounds don't continue to accumulate.
+    ln -s "${WEBPACK_STATS_PATH}" webpack-stats.json
 
 RUN grunt copy && npm run build-production
+
 
 ###############################################
 # Copy over this directory in its current state. #
@@ -91,7 +95,9 @@ COPY . "${KPI_SRC_DIR}"
 RUN ln -s "${NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
     ln -s "${BOWER_COMPONENTS_DIR}/" "${KPI_SRC_DIR}/jsapp/xlform/components" && \
     ln -s "${GRUNT_BUILD_DIR}" "${KPI_SRC_DIR}/jsapp/compiled" && \
-    ln -s "${GRUNT_FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts"
+    ln -s "${GRUNT_FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts" && \
+    ln -s "${WEBPACK_STATS_PATH}" webpack-stats.json
+
 
 ###########################
 # Organize static assets. #
