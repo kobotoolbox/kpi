@@ -1,36 +1,24 @@
-sudo:
-  false
-# instead of python, using language: node_js to
-# get node v5 installed
-language: node_js
-node_js:
-  - "5"
-addons:
-  postgresql: 9.3
-  apt:
-    packages:
-      - build-essential
-      - fontforge
-      - gettext
-      - git-core
-      - python-2.7
-      - python-pip
-      - python-setuptools
-      - libpcre3
-      - libpcre3-dev
-      - libpq-dev
-      - ttfautohint
-cache:
-  directories:
-    - $HOME/.pip-download-cache
-    - node_modules
+sudo: required
+
+services:
+  - docker
+
+before_script:
+  - echo 'Building the KPI base docker image.'
+  - docker build -t kobotoolbox/koboform_base:latest -f Dockerfile.koboform_base .
+  - echo 'Building the KPI Docker image.'
+  - docker build -t kobotoolbox/kpi:latest .
+  - echo 'Setting up a `kobo-docker` "local" configuration with a minimal `envfile`.'
+  - KPI_SRC_DIR="$(pwd)"
+  - cd ..
+  - git clone https://github.com/kobotoolbox/kobo-docker.git
+  - cd kobo-docker
+  - ln -s docker-compose.local.yml docker-compose.yml
+  - echo -e 'DJANGO_SECRET_KEY=kobo\nKOBO_SUPERUSER_USERNAME=kobo\nKOBO_SUPERUSER_PASSWORD=kobo' > envfile.local.txt
+  - docker-compose run --rm kpi echo 'Container and dependencies started.'
+
 script:
-  - python manage.py test
-  - npm run test
-env:
-  - PIP_DOWNLOAD_CACHE=$HOME/.pip-download-cache DJANGO_DEBUG=False DJANGO_SECRET_KEY=ZGtvYm90cmF2aXM DJANGO_SETTINGS_MODULE=kobo_playground.settings
-install:
-  - npm install -g install npm@latest
-  - npm config set strict-ssl false && npm install --save-dev
-  - bower install
-  - pip install --user -r requirements.txt
+  # Use `my_init` to run the normal initialization steps before running the tests.
+  # NOTE: For some reason the `--rm` flag is needed for Compose to retain the accurate exit status.
+  - echo 'Running KPI tests from `docker/run_tests.bash`.'
+  - docker-compose run --rm kpi my_init --skip-runit docker/run_tests.bash

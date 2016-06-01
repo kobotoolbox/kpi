@@ -23,7 +23,9 @@ RUN apt-get update && \
 # Install `pip` packages. #
 ###########################
 
-RUN pip install pip-tools
+# FIXME: Temporarily install an older version of `pip` until `pip-tools` 1.7.
+RUN pip install --upgrade pip==8.1.1 && \
+    pip install pip-tools
 COPY ./requirements.txt /srv/tmp/base_requirements.txt
 RUN pip-sync /srv/tmp/base_requirements.txt
 
