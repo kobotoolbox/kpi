@@ -14,8 +14,8 @@
     {{ block.super }}
 {% endblock %}
 {% block bootstrap_theme %}
-    {% load staticfiles %}
-    <link rel="stylesheet" href="{% static 'compiled/bundle.css' %}">
+    {% load render_bundle from webpack_loader %}
+    {% render_bundle 'app' 'css' %}
 {% endblock %}
 
 {% block script %}
