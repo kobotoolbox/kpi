@@ -360,12 +360,21 @@ actions.resources.deployAsset.failed.listen(function(data, dialog_or_alert){
   }
   // report the problem to the user
   let failure_message = null;
+
   if(!data.responseJSON || (!data.responseJSON.xform_id_string &&
                             !data.responseJSON.detail)) {
     // failed to retrieve a valid response from the server
     // setContent() removes the input box, but the value is retained
+    var msg;
+    if (data.status == 500 && data.responseJSON && data.responseJSON.error) {
+      msg = `<code><pre>${data.responseJSON.error}</pre></code>`;
+    } else if (data.status == 500 && data.responseText) {
+      msg = `<code><pre>${data.responseText}</pre></code>`;
+    } else {
+      msg = t('please check your connection and try again.');
+    }
     failure_message = `
-      <p>${t('please check your connection and try again.')}</p>
+      <p>${msg}</p>
       <p>${t('if this problem persists, contact support@kobotoolbox.org')}</p>
     `;
   } else if(!!data.responseJSON.xform_id_string){
