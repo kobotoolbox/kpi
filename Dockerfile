@@ -1,7 +1,7 @@
 FROM kobotoolbox/koboform_base:latest
 
 
-# Note: Additional environment variables established in `Dockerfile.koboform_base`.
+# Note: Additional environment variables have been set in `Dockerfile.koboform_base`.
 ENV KPI_LOGS_DIR=/srv/logs \
     KPI_WHOOSH_DIR=/srv/whoosh \
     GRUNT_BUILD_DIR=/srv/grunt_build \
@@ -19,8 +19,8 @@ ENV KPI_LOGS_DIR=/srv/logs \
 COPY ./apt_requirements.txt "${KPI_SRC_DIR}/"
 # Only install if the current version of `apt_requirements.txt` differs from the one used in the base image.
 RUN if ! diff "${KPI_SRC_DIR}/apt_requirements.txt" /srv/tmp/base_apt_requirements.txt; then \
-        apt-get update && \
-        apt-get install -y $(cat "${KPI_SRC_DIR}/apt_requirements.txt") && \
+        apt-get update -qq && \
+        apt-get install -qqy $(cat "${KPI_SRC_DIR}/apt_requirements.txt") && \
         apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \ 
     ; fi
 
@@ -32,7 +32,7 @@ RUN if ! diff "${KPI_SRC_DIR}/apt_requirements.txt" /srv/tmp/base_apt_requiremen
 COPY ./requirements.txt "${KPI_SRC_DIR}/"
 # Only install if the current version of `requirements.txt` differs from the one used in the base image.
 RUN if ! diff "${KPI_SRC_DIR}/requirements.txt" /srv/tmp/base_requirements.txt; then \
-        pip-sync "${KPI_SRC_DIR}/requirements.txt" \
+        pip-sync "${KPI_SRC_DIR}/requirements.txt" 1>/dev/null \
     ; fi
 
 
@@ -44,7 +44,7 @@ COPY ./package.json "${KPI_SRC_DIR}/"
 # Only install if the current version of `package.json` differs from the one used in the base image.
 RUN if ! diff "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json; then \
         # Try error-prone `npm install` step twice.
-        npm install || npm install \
+        npm install --quiet || npm install --quiet \
     ; fi
 
 
@@ -56,7 +56,7 @@ COPY ./bower.json ./.bowerrc "${KPI_SRC_DIR}/"
 # Only install if the current versions of `bower.json` or `.bowerrc` differ from the ones used in the base image.
 RUN if ! diff "${KPI_SRC_DIR}/bower.json" /srv/tmp/base_bower.json && \
             ! diff "${KPI_SRC_DIR}/.bowerrc" /srv/tmp/base_bowerrc; then \
-        bower install --allow-root --config.interactive=false \
+        bower install --quiet --allow-root --config.interactive=false \
     ; fi
 
 
