@@ -48,11 +48,13 @@ var SidebarFormsList = React.createClass({
     this.setState(searchStoreState);
   },
   renderMiniAssetRow (resource) {
-    return  <bem.FormSidebar__item>
+    return (
+        <bem.FormSidebar__item key={resource.uid}>
               <bem.FormSidebar__itemlink href={this.makeHref('form-landing', {assetid: resource.uid})}>
                 <ui.SidebarAssetName {...resource} />
               </bem.FormSidebar__itemlink>
             </bem.FormSidebar__item>
+      );
   },
   toggleCategory(c) {
     return function (e) {

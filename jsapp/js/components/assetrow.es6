@@ -91,8 +91,13 @@ var AssetRow = React.createClass({
                             'deleting': this.props.deleting,
                           }}
                         className="mdl-grid"
+                        key={this.props.uid}
                       >
-          <bem.AssetRow__cell m={'asset-details'} onClick={this.clickAsset}>
+          <bem.AssetRow__cell
+              m={'asset-details'}
+              key={'asset-details'}
+              onClick={this.clickAsset}
+              >
             <bem.AssetRow__cell m={'title'} className="mdl-cell mdl-cell--6-col mdl-cell--3-col-tablet">
               { this.props.isSelected ? 
                 <AssetTypeIcon m={[this.props.asset_type]} ><i /></AssetTypeIcon>
@@ -110,17 +115,26 @@ var AssetRow = React.createClass({
                 </bem.AssetRow__name>
               </bem.AssetRow__celllink>
             </bem.AssetRow__cell>
-            <bem.AssetRow__cell m={'userlink'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet">
+            <bem.AssetRow__cell m={'userlink'}
+                key={'userlink'}
+                className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet"
+                >
               {
                 selfowned ?
                   t('me') :
                   this.props.owner__username
               }
             </bem.AssetRow__cell>
-            <bem.AssetRow__cell m={'date-modified'} className="mdl-cell mdl-cell--3-col mdl-cell--2-col-tablet">
+            <bem.AssetRow__cell m={'date-modified'}
+                key={'date-modified'}
+                className="mdl-cell mdl-cell--3-col mdl-cell--2-col-tablet"
+                >
               <span className="date date--modified">{formatTime(this.props.date_modified)}</span>
             </bem.AssetRow__cell>
-            <bem.AssetRow__cell m={'row-count'} className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet">
+            <bem.AssetRow__cell m={'row-count'}
+                key={'row-count'}
+                className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet"
+                >
               {()=>{
                 if (this.props.asset_type === 'question') {
                   return '-';
@@ -132,7 +146,10 @@ var AssetRow = React.createClass({
             </bem.AssetRow__cell>
           </bem.AssetRow__cell>
           { this.props.isSelected &&
-            <bem.AssetRow__cell m={'tags'} className="mdl-cell mdl-cell--12-col">
+            <bem.AssetRow__cell m={'tags'}
+                key={'tags'}
+                className="mdl-cell mdl-cell--12-col"
+                >
               {this.renderTaggedAssetTags()}
             </bem.AssetRow__cell>
           }
@@ -144,6 +161,7 @@ var AssetRow = React.createClass({
                     return (
                           <bem.AssetRow__actionIcon
                               m={actn}
+                              key={actn}
                               data-action={actn}
                               data-tip={actn}
                               data-asset-type={this.props.kind}
