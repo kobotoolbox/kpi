@@ -28,10 +28,16 @@ import {dataInterface} from '../dataInterface';
 import ReactTooltip from 'react-tooltip';
 import hotkey from 'react-hotkey';
 
+var errorLoadingFormSupportUrl = 'http://support.kobotoolbox.org/';
+
 var FormStyle__panel = bem('form-style__panel'),
     FormStyle__row = bem('form-style'),
     FormStyle__panelheader = bem('form-style__panelheader'),
     FormStyle__paneltext = bem('form-style__paneltext');
+
+var ErrorMessage = bem.create('error-message'),
+    ErrorMessage__strong = bem.create('error-message__header', '<strong>'),
+    ErrorMessage__link = bem.create('error-message__link', '<a>');
 
 var webformStylesSupportUrl = "http://support.kobotoolbox.org/customer/en/portal/articles/2108533";
 
@@ -236,8 +242,8 @@ export default assign({
 
   },
   componentWillUnmount () {
-    document.querySelector('.page-wrapper__content').removeEventListener('scroll', this.handleScroll);
-    if (this.app.survey) {
+    if (this.app && this.app.survey) {
+      document.querySelector('.page-wrapper__content').removeEventListener('scroll', this.handleScroll);
       this.app.survey.off('change');
     }
     this.unpreventClosingTab();
@@ -472,7 +478,8 @@ export default assign({
                     savepending: this.state.asset_updated === update_states.PENDING_UPDATE,
                     savecomplete: this.state.asset_updated === update_states.UP_TO_DATE,
                     saveneeded: this.state.asset_updated === update_states.UNSAVED_CHANGES,
-                  }]} onClick={this.saveForm}>
+                  }]} onClick={this.saveForm} className="disabled"
+                  disabled={!this.state.surveyAppRendered || !!this.state.surveyLoadError}>
                 <i />
                 {saveButtonText}
               </bem.FormBuilderHeader__button>
@@ -583,7 +590,34 @@ export default assign({
         </bem.FormBuilderHeader>
       );
   },
-  renderLoadingNotice () {
+  renderNotLoadedMessage () {
+    if (this.state.surveyLoadError) {
+      return (
+          <ErrorMessage>
+            <ErrorMessage__strong>
+              {t('Error loading survey:')}
+            </ErrorMessage__strong>
+            <p>
+              {this.state.surveyLoadError}
+            </p>
+            <div>
+              <ErrorMessage__link m="raised"
+                  href={this.makeHref('form-landing', {
+                    assetid: this.props.params.assetid,
+                  })}>
+                {t('Back')}
+              </ErrorMessage__link>
+              <ErrorMessage__link m="help"
+                  href={errorLoadingFormSupportUrl}>
+                <i className={'k-icon-help'}
+                  data-tip={t('Ask support about this error')}
+                  />
+              </ErrorMessage__link>
+            </div>
+          </ErrorMessage>
+        );
+    }
+
     return (
         <bem.Loading>
           <bem.Loading__inner>
@@ -607,35 +641,45 @@ export default assign({
     stores.pageState.setFormBuilderFocus(true);
     stores.pageState.setAssetNavPresent(true);
   },
-  launchAppForSurvey (survey, optionalParams={}) {
-    var skp = new SurveyScope({
-      survey: survey
-    });
-    this.app = new dkobo_xlform.view.SurveyApp({
-      survey: survey,
-      stateStore: stores.surveyState,
-      ngScope: skp,
-    });
+  launchAppForSurveyContent (survey, _state={}) {
+    if (_state.name) {
+      _state.savedName = _state.name;
+    }
 
-    this.app.$el.appendTo(this.refs['form-wrap'].getDOMNode());
-    this.app.render();
+    try {
+      if (!survey) {
+        survey = dkobo_xlform.model.Survey.create();
+      } else {
+        survey = dkobo_xlform.model.Survey.loadDict(survey);
+      }
+    } catch (err) {
+      _state.surveyLoadError = err.message;
+      _state.surveyAppRendered = false;
+    }
 
-    survey.rows.on('change', this.onSurveyChange);
-    survey.rows.on('sort', this.onSurveyChange);
-    survey.on('change', this.onSurveyChange);
+    if (!_state.surveyLoadError) {
+      _state.surveyAppRendered = true;
 
-    this.setState({
-      surveyAppRendered: true,
-      name: optionalParams.name,
-      savedName: optionalParams.name,
-      settings__style: optionalParams.settings__style,
-      asset_uid: optionalParams.asset_uid,
-      asset_type: optionalParams.asset_type,
-    });
+      var skp = new SurveyScope({
+        survey: survey
+      });
+      this.app = new dkobo_xlform.view.SurveyApp({
+        survey: survey,
+        stateStore: stores.surveyState,
+        ngScope: skp,
+      });
+      this.app.$el.appendTo(this.refs['form-wrap'].getDOMNode());
+      this.app.render();
+      survey.rows.on('change', this.onSurveyChange);
+      survey.rows.on('sort', this.onSurveyChange);
+      survey.on('change', this.onSurveyChange);
+    }
+
     this.setBreadcrumb({
-      asset_uid: optionalParams.asset_uid,
-      asset_type: optionalParams.asset_type,
+      asset_uid: _state.asset_uid,
+      asset_type: _state.asset_type,
     });
+    this.setState(_state);
   },
   render () {
     var isSurvey = this.app && !this.isLibrary();
@@ -651,7 +695,7 @@ export default assign({
                 : null }
                   <div ref="form-wrap" className='form-wrap'>
                     { (!this.state.surveyAppRendered) ?
-                        this.renderLoadingNotice()
+                        this.renderNotLoadedMessage()
                     : null }
                   </div>
               </bem.FormBuilder__contents>

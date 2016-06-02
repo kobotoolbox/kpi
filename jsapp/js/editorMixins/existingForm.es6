@@ -18,10 +18,7 @@ export default {
   componentDidMount () {
     let uid = this.props.params.assetid;
     stores.allAssets.whenLoaded(uid, (asset) => {
-      var survey = dkobo_xlform.model.Survey.loadDict(asset.content);
-      this.launchAppForSurvey(survey, {
-        // alternatively, we could pass asset. But for now it would be nice to keep
-        // track of the asset attributes used (and modified) in the UI
+      this.launchAppForSurveyContent(asset.content, {
         name: asset.name,
         settings__style: asset.settings__style,
         asset_uid: asset.uid,

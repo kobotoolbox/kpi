@@ -15,13 +15,9 @@ export default {
     };
   },
   componentDidMount () {
-      var survey;
-      if (this.listRoute == 'library') {
-        survey = dkobo_xlform.model.Survey.loadDict({survey: []});
-      } else {
-        survey = dkobo_xlform.model.Survey.create();
-      }
-      this.launchAppForSurvey(survey);
+    this.launchAppForSurveyContent(
+        this.listRoute == 'library' ? {survey: []} : null
+      );
   },
   navigateBack () {
     if (!this.needsSave()) {
