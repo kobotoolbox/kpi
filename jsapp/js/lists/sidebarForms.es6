@@ -50,10 +50,10 @@ var SidebarFormsList = React.createClass({
   renderMiniAssetRow (resource) {
     return (
         <bem.FormSidebar__item key={resource.uid}>
-              <bem.FormSidebar__itemlink href={this.makeHref('form-landing', {assetid: resource.uid})}>
-                <ui.SidebarAssetName {...resource} />
-              </bem.FormSidebar__itemlink>
-            </bem.FormSidebar__item>
+          <bem.FormSidebar__itemlink href={this.makeHref('form-landing', {assetid: resource.uid})}>
+            <ui.SidebarAssetName {...resource} />
+          </bem.FormSidebar__itemlink>
+        </bem.FormSidebar__item>
       );
   },
   toggleCategory(c) {
