@@ -579,7 +579,7 @@ class DeploymentSerializer(serializers.Serializer):
                                         settings.DEFAULT_DEPLOYMENT_BACKEND)
 
         asset.connect_deployment(
-            backend=validated_data['backend'],
+            backend=backend_id,
             active=validated_data.get('active', False),
         )
         return asset.deployment
