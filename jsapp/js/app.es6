@@ -1324,7 +1324,9 @@ var CollectionSharing = React.createClass({
         );
     }
     return (
-      <ui.Modal open onClose={this.routeBack} title={t('manage sharing permissions')} className='modal-large'>
+      <ui.Modal open large
+          onClose={this.routeBack}
+          title={t('manage sharing permissions')}>
         <ui.Modal.Body>
           <ui.Panel className="k-div--sharing">
             <div className="k-sharing__title">
@@ -1436,7 +1438,6 @@ var FormEnketoPreview = React.createClass({
   getInitialState () {
     return {
       enketopreviewlink: false,
-      message: t('loading...'),
       error: false
     };
   },
@@ -1457,32 +1458,33 @@ var FormEnketoPreview = React.createClass({
     var params = this.context.router.getCurrentParams();
     this.transitionTo('form-landing', {assetid: params.assetid});
   },
-  renderEnketoPreviewIframe () {
-    return (
-        <div className='enketo-holder'><iframe src={this.state.enketopreviewlink} /></div>
-      );
-  },
-  renderPlaceholder () {
-    return (
-        <div className='row'>
-          <div className='cutout-placeholder'>
-            <span className={classNames({
-                  'k-preview-message': true,
-                  'k-preview-error-message': this.state.error
-                })}>
-              {this.state.message}
-            </span>
-          </div>
-        </div>
-      );
-  },
   render () {
+    if (this.state.error) {
+      return (
+        <ui.Modal open onClose={this.routeBack}
+              title={t('Error generating preview')}
+              error
+            >
+          <ui.Modal.Body>
+            {this.state.message}
+          </ui.Modal.Body>
+        </ui.Modal>
+        );
+    }
     return (
       <ui.Modal open onClose={this.routeBack} className='modal-large'>
         <ui.Modal.Body>
           { this.state.enketopreviewlink ?
-              this.renderEnketoPreviewIframe() :
-              this.renderPlaceholder()
+              <div className='enketo-holder'>
+                <iframe src={this.state.enketopreviewlink} />
+              </div>
+              :
+              <bem.Loading>
+                <bem.Loading__inner>
+                  <i />
+                  {t('loading...')}
+                </bem.Loading__inner>
+              </bem.Loading>
           }
         </ui.Modal.Body>
       </ui.Modal>

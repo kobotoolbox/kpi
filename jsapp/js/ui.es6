@@ -3,6 +3,7 @@ import _ from 'underscore';
 
 import bem from './bem';
 import {t} from './utils';
+import classNames from 'classnames';
 var hotkey = require('react-hotkey');
 hotkey.activate();
 
@@ -75,7 +76,9 @@ ui.Modal = React.createClass({
     }
   },
   renderTitle () {
-    if (this.props.small) {
+    if (!this.props.title) {
+      return null;
+    } else if (this.props.small) {
       return (
           <div>
             <h4 className="modal-title">
@@ -97,7 +100,11 @@ ui.Modal = React.createClass({
   render () {
     return (
       // m={['done', isSearch ? 'search' : 'default']}
-      <div className={'modal-backdrop ' + this.props.className} onClick={this.backdropClick.bind(this)}>
+      <div className={classNames('modal-backdrop', this.props.className,
+            this.props.large ? 'modal-large' : null,
+            this.props.error ? 'modal-error' : null,
+            this.props.title ? 'modal-titled' : null)}
+          onClick={this.backdropClick}>
         <div className={this.props.open ? 'modal-open' : 'modal'}> 
           <div className="modal-content">
             <div className="modal-header">

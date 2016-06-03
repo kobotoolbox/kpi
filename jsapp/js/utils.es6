@@ -22,6 +22,10 @@ export function getAnonymousUserPermission(permissions) {
 }
 
 export function surveyToValidJson(survey) {
+  // skip logic references only preserved after initial call
+  // to "survey.toFlatJSON()"
+  survey.toFlatJSON();
+  // returning the result of the second call to "toFlatJSON()"
   return JSON.stringify(survey.toFlatJSON());
 }
 

@@ -125,7 +125,6 @@ var SearchCollectionList = React.createClass({
   },
   render () {
     var s = this.state;
-    console.log(s);
     if (this.props.searchContext.store.filterTags == 'asset_type:survey') {
       var display = 'grouped';
     } else {

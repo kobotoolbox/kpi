@@ -105,7 +105,7 @@ var MainHeader = React.createClass({
   },
   renderLangItem(lang) {
     return (
-      <li>
+      <li key={lang[0]}>
         <a data-key={lang[0]} onClick={this.languageChange} className="mdl-menu__item">{lang[1]}</a>
       </li>
     );
@@ -131,7 +131,7 @@ var MainHeader = React.createClass({
               <img src={gravatar} />
             </bem.AccountBox__image>
             <ul className="k-account__menu">
-              <li>
+              <li key="settings">
                 <a href={stores.session.currentAccount.projects_url + '/settings'} className="mdl-menu__item">
                   <i className="k-icon-settings" />
                   {t('Profile Settings')}
@@ -144,7 +144,7 @@ var MainHeader = React.createClass({
                   </a>
                 </li>
               :null}
-              <li className="k-lang__submenu">
+              <li className="k-lang__submenu" key="lang">
                 <a className="mdl-menu__item">
                   <i className="fa fa-globe" />
                   {t('Language')}
@@ -153,7 +153,7 @@ var MainHeader = React.createClass({
                   {langs.map(this.renderLangItem)}
                 </ul>
               </li>
-              <li>
+              <li key="logout">
                 <a onClick={this.logout} className="mdl-menu__item">
                   <i className="k-icon-logout" /> 
                   {t('Logout')}</a>
