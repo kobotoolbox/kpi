@@ -10,6 +10,12 @@ def dev_mode(request):
     return out
 
 
+def git_commit(request):
+    return {
+        'git_commit': settings.CACHEBUSTER_UNIQUE_STRING,
+    }
+
+
 def sitewide_messages(request):
     '''
     required in the context for any pages that need to display
