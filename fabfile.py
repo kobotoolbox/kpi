@@ -93,6 +93,9 @@ def deploy_ref(deployment_name, ref):
                 run("python manage.py migrate")
                 run("python manage.py collectstatic --noinput")
 
+    with cd(os.path.join(env.kpi_path, 'staticfiles')):
+        run("date > LAST_UPDATE.txt")
+
     run("sudo restart kpi_celeryd")
     run("sudo service uwsgi reload")
 
