@@ -46,6 +46,13 @@ var LibrarySearchableList = React.createClass({
       });
     });
   },
+  querySubscriptions () {
+    dataInterface.listSubscriptions().then((subscriptions)=>{
+      this.setState({
+        sidebarSubscriptions: subscriptions.results,
+      });
+    });
+  },
   componentDidMount () {
     this.searchDefault();
     this.queryCollections();

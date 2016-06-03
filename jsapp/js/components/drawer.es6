@@ -59,7 +59,7 @@ class DrawerLink extends React.Component {
       link = (
         <a href={this.props.href || '#'}
             className='k-drawer__link'
-            onClick={this.onClick.bind(this)} 
+            onClick={this.onClick.bind(this)}
             data-tip={this.props.label}>
             {icon}
         </a>
@@ -84,9 +84,17 @@ var Drawer = React.createClass({
       });
     });
   },
+  querySubscriptions () {
+    dataInterface.listSubscriptions().then((subscriptions)=>{
+      this.setState({
+        sidebarSubscriptions: subscriptions.results,
+      });
+    });
+  },
   componentDidMount () {
     this.searchDefault();
     this.queryCollections();
+    this.querySubscriptions();
   },
   getInitialState () {
     return assign({}, stores.pageState.state);
@@ -157,14 +165,14 @@ var Drawer = React.createClass({
       var qc = () => this.queryCollections();
       dataInterface.deleteCollection({uid: collectionUid}).then(qc).catch(qc);
     });
-  }, 
+  },
   toggleFixedDrawer() {
     stores.pageState.toggleFixedDrawer();
   },
   render () {
     return (
           <bem.Drawer className='k-drawer mdl-shadow--2dp'>
-            <nav className='k-drawer__icons'> 
+            <nav className='k-drawer__icons'>
               <DrawerLink label={t('Projects')} linkto='forms' ki-icon='projects' />
               <DrawerLink label={t('Library')} linkto='library' ki-icon='library' />
               { stores.session.currentAccount ?
@@ -249,14 +257,14 @@ var Drawer = React.createClass({
                   <bem.CollectionSidebar__item
                     key='allitems'
                     m={{
-                        allitems: true,
+                        toplevel: true,
                         selected: !this.state.filteredCollectionUid,
                       }} onClick={this.clickFilterByCollection}>
                     <i className="fa fa-caret-down" />
                     <i className="k-icon-folder" />
                     {t('My Library')}
                   </bem.CollectionSidebar__item>
-                  {this.state.sidebarCollections.map((collection)=>{  
+                  {this.state.sidebarCollections.map((collection)=>{
                     var editLink = this.makeHref('collection-page', {uid: collection.uid}),
                       sharingLink = this.makeHref('collection-sharing', {assetid: collection.uid});
                     return (
@@ -282,6 +290,41 @@ var Drawer = React.createClass({
                             </bem.CollectionSidebar__itemlink>
                             <bem.CollectionSidebar__itemlink href={editLink}>
                               {t('edit')}
+                            </bem.CollectionSidebar__itemlink>
+                          </bem.CollectionSidebar__itemactions>
+                        </bem.CollectionSidebar__item>
+                      );
+                  })}
+                  <bem.CollectionSidebar__item
+                    key='subscriptions'
+                    m={{
+                        toplevel: true,
+                        selected: !this.state.filteredCollectionUid,
+                      }} onClick={this.clickFilterByCollection}>
+                    <i className="fa fa-caret-down" />
+                    <i className="k-icon-folder" />
+                    {t('Subscriptions')}
+                  </bem.CollectionSidebar__item>
+                  {this.state.sidebarSubscriptions.map((collection)=>{
+                    var editLink = this.makeHref('collection-page', {uid: collection.uid}),
+                      sharingLink = this.makeHref('collection-sharing', {assetid: collection.uid});
+                    return (
+                        <bem.CollectionSidebar__item
+                          key={collection.uid}
+                          m={{
+                            collection: true,
+                            selected: this.state.filteredCollectionUid === collection.uid,
+                          }}
+                          onClick={this.clickFilterByCollection}
+                          data-collection-uid={collection.uid}
+                        >
+                          <i className="k-icon-folder" />
+                          {collection.name}
+                          <bem.CollectionSidebar__itemactions>
+                            <bem.CollectionSidebar__itemlink href={'#'}
+                              onClick={this.unsubscribeCollection}
+                              data-collection-uid={collection.uid}>
+                              {t('unsubscribe')}
                             </bem.CollectionSidebar__itemlink>
                           </bem.CollectionSidebar__itemactions>
                         </bem.CollectionSidebar__item>

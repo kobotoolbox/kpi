@@ -75,6 +75,9 @@ var dataInterface;
     listCollections () {
       return $.getJSON(`${rootUrl}/collections/?parent=`);
     },
+    listSubscriptions () {
+      return $.getJSON(`${rootUrl}/public_collections/?subscribed=true`);
+    },
     listAllAssets () {
       var d = new $.Deferred();
       $.when($.getJSON(`${rootUrl}/assets/?parent=`), $.getJSON(`${rootUrl}/collections/?parent=`)).done(function(assetR, collectionR){
