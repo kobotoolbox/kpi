@@ -12,7 +12,7 @@ from django.forms import model_to_dict
 from django.http import Http404, HttpResponseBadRequest, HttpResponseRedirect
 from django.utils.http import is_safe_url
 from django.shortcuts import get_object_or_404, resolve_url
-from django.template.response import SimpleTemplateResponse
+from django.template.response import TemplateResponse
 from django.conf import settings
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
@@ -105,9 +105,10 @@ def current_user(request):
                          'languages': settings.LANGUAGES,
                          })
 
+
 @login_required
 def home(request):
-    return SimpleTemplateResponse("index.html")
+    return TemplateResponse(request, "index.html")
 
 
 class NoUpdateModelViewSet(

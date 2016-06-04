@@ -190,6 +190,7 @@ REST_FRAMEWORK = {
 
 TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
     'kpi.context_processors.dev_mode',
+    'kpi.context_processors.git_commit',
     'kpi.context_processors.sitewide_messages',
 )
 
