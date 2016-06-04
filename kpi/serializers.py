@@ -260,6 +260,7 @@ class AncestorCollectionsSerializer(serializers.HyperlinkedModelSerializer):
 class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid', view_name='assetsnapshot-detail')
+    uid = serializers.ReadOnlyField()
     xml = serializers.SerializerMethodField()
     enketopreviewlink = serializers.SerializerMethodField()
     details = WritableJSONField(required=False)

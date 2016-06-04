@@ -6,16 +6,14 @@ from collections import defaultdict
 from django.db import models
 from django.core.urlresolvers import get_script_prefix, resolve
 from django.utils.six.moves.urllib import parse as urlparse
-from shortuuid import ShortUUID
 from jsonfield import JSONField
 import requests
 from pyxform import xls2json_backends
+from ..fields import KpiUidField
 from ..models import Collection, Asset
 from ..model_utils import create_assets, _load_library_content
 from ..zip_importer import HttpContentParse
 from rest_framework import exceptions
-
-UID_LENGTH = 22
 
 
 def _resolve_url_to_asset_or_collection(item_path):
@@ -52,14 +50,9 @@ class ImportTask(models.Model):
     messages = JSONField(default={})
     status = models.CharField(choices=STATUS_CHOICES, max_length=32,
                               default=CREATED)
-    uid = models.CharField(max_length=UID_LENGTH, default='', unique=True)
+    uid = KpiUidField(uid_prefix='i')
     date_created = models.DateTimeField(auto_now_add=True)
     # date_expired = models.DateTimeField(null=True)
-
-    def save(self, *args, **kwargs):
-        if self.uid == '':
-            self.uid = 'i'+ShortUUID().random(UID_LENGTH-1)
-        super(ImportTask, self).save(*args, **kwargs)
 
     def run(self):
         '''

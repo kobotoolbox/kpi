@@ -9,18 +9,16 @@ from django.db import models
 from django.db import transaction
 from django.dispatch import receiver
 from jsonfield import JSONField
-from shortuuid import ShortUUID
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 from taggit.models import Tag
 from reversion import revisions as reversion
 
 from .object_permission import ObjectPermission, ObjectPermissionMixin
+from ..fields import KpiUidField
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
 from ..utils.kobo_to_xlsform import to_xlsform_structure
 from ..deployment_backends.mixin import DeployableMixin
-
-
 
 
 ASSET_TYPES = [
@@ -32,8 +30,6 @@ ASSET_TYPES = [
 
     ('empty', 'empty'),             # useless, probably should be pruned
 ]
-
-ASSET_UID_LENGTH = 22
 
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
@@ -185,8 +181,7 @@ class Asset(ObjectPermissionMixin,
         'Collection', related_name='assets', null=True, blank=True)
     owner = models.ForeignKey('auth.User', related_name='assets', null=True)
     editors_can_change_permissions = models.BooleanField(default=True)
-    uid = models.CharField(
-        max_length=ASSET_UID_LENGTH, default='', unique=True)
+    uid = KpiUidField(uid_prefix='a')
     tags = TaggableManager(manager=KpiTaggableManager)
 
     # _deployment_data should be accessed through the `deployment` property
@@ -249,10 +244,6 @@ class Asset(ObjectPermissionMixin,
                 del settings['form_title']
                 self.content['settings'] = [settings]
 
-    def _populate_uid(self):
-        if self.uid == '':
-            self.uid = self._generate_uid()
-
     def _populate_summary(self):
         if self.content is None:
             self.content = {}
@@ -261,12 +252,8 @@ class Asset(ObjectPermissionMixin,
         analyzer = AssetContentAnalyzer(**self.content)
         self.summary = analyzer.summary
 
-    @staticmethod
-    def _generate_uid():
-        return 'a' + ShortUUID().random(ASSET_UID_LENGTH -1)
-
     def save(self, *args, **kwargs):
-        # populate summary and uid
+        # populate summary
         if self.content is not None:
             if 'survey' in self.content:
                 self._strip_empty_rows(
@@ -279,8 +266,6 @@ class Asset(ObjectPermissionMixin,
                     del self.content['settings']
                 else:
                     self._pull_form_title_from_settings()
-
-        self._populate_uid()
         self._populate_summary()
 
         # infer asset_type only between question and block
@@ -349,8 +334,7 @@ class AssetSnapshot(models.Model, XlsExportable):
     asset = models.ForeignKey(Asset, null=True)
     asset_version_id = models.IntegerField(null=True)
     date_created = models.DateTimeField(auto_now_add=True)
-    uid = models.CharField(
-        max_length=ASSET_UID_LENGTH, default='', unique=True)
+    uid = KpiUidField(uid_prefix='s')
 
     def __init__(self, *args, **kwargs):
         if (kwargs.get('asset', None) is not None and
@@ -419,13 +403,6 @@ class AssetSnapshot(models.Model, XlsExportable):
             })
         self.details = summary
 
-    def _populate_uid(self):
-        if self.uid == '':
-            self.uid = self._generate_uid()
-
-    def _generate_uid(self):
-        return 's' + ShortUUID().random(ASSET_UID_LENGTH -1)
-
     def get_version(self):
         if self.asset_version_id is None:
             return None
@@ -437,7 +414,6 @@ class AssetSnapshot(models.Model, XlsExportable):
 
     def save(self, *args, **kwargs):
         version = self.get_version()
-        self._populate_uid()
         if self.source is None:
             self.source = version.object.to_ss_structure()
         _valid_source = self._valid_source()

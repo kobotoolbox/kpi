@@ -6,7 +6,6 @@ from django.db import models
 from django.dispatch import receiver
 from mptt.models import MPTTModel, TreeForeignKey
 from mptt.managers import TreeManager
-from shortuuid import ShortUUID
 from taggit.managers import TaggableManager
 from taggit.models import Tag
 
@@ -18,9 +17,7 @@ from asset import (
 )
 from object_permission import ObjectPermission, ObjectPermissionMixin
 from ..haystack_utils import update_object_in_search_index
-
-
-COLLECTION_UID_LENGTH = 22
+from ..fields import KpiUidField
 
 
 class CollectionManager(TreeManager, TaggableModelManager):
@@ -54,8 +51,7 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
         'self', null=True, blank=True, related_name='children')
     owner = models.ForeignKey('auth.User', related_name='owned_collections')
     editors_can_change_permissions = models.BooleanField(default=True)
-    uid = models.CharField(
-        max_length=COLLECTION_UID_LENGTH, default='', unique=True)
+    uid = KpiUidField(uid_prefix='c')
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     objects = CollectionManager()
@@ -81,15 +77,6 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
     # Calculated permissions that are neither directly assignable nor stored
     # in the database, but instead implied by assignable permissions
     CALCULATED_PERMISSIONS = ('share_collection', 'delete_collection')
-
-    def _generate_uid(self):
-        return 'c' + ShortUUID().random(COLLECTION_UID_LENGTH -1)
-
-    def save(self, *args, **kwargs):
-        # populate uid field if it's empty
-        if self.uid == '':
-            self.uid = self._generate_uid()
-        super(Collection, self).save(*args, **kwargs)
 
     def delete_with_deferred_indexing(self):
         ''' Defer Haystack indexing, delete all child assets, then delete
