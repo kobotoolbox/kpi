@@ -111,12 +111,14 @@ var MainHeader = React.createClass({
     );
   },
   renderAccountNavMenu () {
-    var accountName = this.state.currentAccount && this.state.currentAccount.username;
     var defaultGravatarImage = `${window.location.protocol}//www.gravatar.com/avatar/64e1b8d34f425d19e1ee2ea7236d3028?s=40`;
-    var gravatar = this.state.currentAccount && this.state.currentAccount.gravatar || defaultGravatarImage;
-    var langs = this.state.languages;
+    var langs = [];
 
-    if (this.state.isLoggedIn) {
+    if (stores.session.currentAccount) {
+      var accountName = stores.session.currentAccount.username;
+      var gravatar = stores.session.currentAccount.gravatar || defaultGravatarImage;
+
+      langs = stores.session.currentAccount.languages;
       return (
         <bem.AccountBox>
           <bem.AccountBox__notifications className="is-edge">
@@ -165,7 +167,7 @@ var MainHeader = React.createClass({
     }
 
     return (
-          <span>not logged in</span>
+          <span>{t('not logged in')}</span>
     );
   },
   toggleFixedDrawer() {
