@@ -1,14 +1,23 @@
 .form-view {
   height: 100%;
-  overflow: auto;
   padding: 8px;
   padding-top: 4px;
+}
+
+.form-view__wrapper {
+  width: 100%;
+  height: calc(100% - 86px);
+  overflow: auto;
+  &--data {
+    overflow: visible;
+  }
 }
 
 .form-view__header {
   margin-bottom: 8px;
   @extend .mdl-shadow--2dp;
   background-color: #FFF;
+  position: relative;
 }
 
 .form-view__tabs {
@@ -81,6 +90,12 @@
   }
   &--collecting-android {
     width:45%;
+  }
+
+  &--iframe, 
+  &--iframe iframe {
+    width:100%;
+    height: 100%;
   }
 }
 
@@ -366,3 +381,25 @@
   }
 }
 
+.form-view__secondaryButtons {
+  position: absolute;
+  background-color: #FFF;
+  right: 10px;
+  bottom: 5px;
+  padding: 5px;
+}
+
+.form-view__secondaryButton {
+  border:none;
+  box-shadow: none;
+  border-radius: 0px;
+  margin-left: 15px;
+  text-transform: uppercase;
+  background-color: #FFF;
+  font-size: 14px;
+  color:$cool-gray;
+  cursor: pointer;
+  &.active, &:hover {
+    color: unquote("rgb(#{$color-primary})");
+  }
+}

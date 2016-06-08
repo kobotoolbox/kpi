@@ -131,20 +131,32 @@ var dmix = {
     survey: {
       innerRender: function () {
         return (
-            <bem.FormView>
+            <bem.FormView
+              m={this.state.activeTab == 'Form' ? 'scrollable' : ''} >
               {this.renderAncestors()}
               {this.renderHeader()}
-              <bem.FormView__row>
-                <bem.FormView__cell m='overview'>
-                  <bem.FormView__label m='title'>
-                    {t('Form Overview')}
-                  </bem.FormView__label>
-                  {this.renderDeployments()}
-                </bem.FormView__cell>
-              </bem.FormView__row>
-              { this.state.has_deployment ?
-                this.renderInstructions()
+              { this.state.activeTab == 'Form' ?
+                <bem.FormView__wrapper m='form'>
+                  <bem.FormView__row>
+                    <bem.FormView__cell m='overview'>
+                      <bem.FormView__label m='title'>
+                        {t('Form Overview')}
+                      </bem.FormView__label>
+                      {this.renderDeployments()}
+                    </bem.FormView__cell>
+                  </bem.FormView__row>
+
+                  { this.state.has_deployment ?
+                    this.renderInstructions()
+                  : null }
+                </bem.FormView__wrapper>
               : null }
+
+
+              { this.state.activeTab == 'Data' ?
+                this.renderDataTabs()
+              : null }
+
               <ReactTooltip effect="float" place="bottom" />
             </bem.FormView>
           );
@@ -162,12 +174,19 @@ var dmix = {
             <bem.FormView__tab className="is-edge">
               {t('Summary')}
             </bem.FormView__tab>
-            <bem.FormView__tab className="active">
-              {t('Form')}
+            <bem.FormView__tab 
+              className={this.state.activeTab == 'Form' ? 'active' : ''} 
+              onClick={this.setActiveTab} 
+              data-id='Form'>
+                {t('Form')}
             </bem.FormView__tab>
             { this.state.deployment__identifier != undefined && this.state.deployment__active ?
-              <bem.FormView__tab>
-                <a href={this.state.deployment__identifier}>{t('Data')}</a>
+              <bem.FormView__tab 
+                onClick={this.setActiveTab} 
+                data-id='Data'
+                className={this.state.activeTab == 'Data' ? 'active' : ''} 
+                >
+                {t('Data')}
               </bem.FormView__tab>
             : null }
 
@@ -180,6 +199,25 @@ var dmix = {
           <bem.FormView__description className="is-edge">
             {t('no description yet')}
           </bem.FormView__description>
+          { this.state.activeTab == 'Data' ?
+            <bem.FormView__secondaryButtons>
+              {  
+                ['Report', 'Table', 'Gallery', 'Downloads', 'Map', /* 'Settings'*/].map((actn)=>{
+                  return (
+                        <bem.FormView__secondaryButton
+                            m={actn}
+                            data-id={actn}
+                            onClick={this.setActiveSubTab}
+                            className={this.state.activeSubTab == actn ? 'active' : ''} 
+                            >
+                          {t(actn)}
+                        </bem.FormView__secondaryButton>
+                      );
+                }) 
+              }
+            </bem.FormView__secondaryButtons>
+          : null }
+
         </bem.FormView__header>
       );
   },
@@ -289,6 +327,30 @@ var dmix = {
           </li>
         </ul> 
       </bem.FormView__extras>
+      );
+  },
+  renderDataTabs() {
+    // setup iframe Urls for KC
+    // TODO: do this in a better place, and more cleanly
+
+    var deployment__identifier = this.state.deployment__identifier;
+    var report__base = deployment__identifier.replace('/forms/', '/reports/');
+    var iframeUrls = {
+      Report: report__base+'/digest.html',
+      Table: report__base+'/export.html',
+      Gallery: deployment__identifier+'/photos',
+      Map: deployment__identifier+'/map',
+      Downloads: report__base+'/export/'
+    };
+    return (
+      <bem.FormView__wrapper m='data'>
+        <bem.FormView__cell m='iframe'>
+          <iframe 
+            src={iframeUrls[this.state.activeSubTab]}>
+          </iframe>
+
+        </bem.FormView__cell>
+      </bem.FormView__wrapper>
       );
   },
   renderParentCollection () {
@@ -800,6 +862,18 @@ var dmix = {
       historyExpanded: !this.state.historyExpanded,
     });
   },
+  setActiveTab (evt) {
+    var tabId = $(evt.target).data('id');
+    this.setState({
+      activeTab: tabId,
+    });
+  },
+  setActiveSubTab (evt) {
+    var tabId = $(evt.target).data('id');
+    this.setState({
+      activeSubTab: tabId,
+    });
+  },
   renderDeployments () {
     // var deployed_versions = [
     //     {
@@ -971,10 +1045,13 @@ var dmix = {
     ));
   },
   getInitialState () {
+
     return {
       userCanEdit: false,
       userCanView: true,
       historyExpanded: false,
+      activeTab: 'Form',
+      activeSubTab: 'Report',
       collectionOptionList: [],
       selectedCollectOption: {},
       currentUsername: stores.session.currentAccount && stores.session.currentAccount.username,
