@@ -35,7 +35,7 @@ def get_all_objects_for_user(user, klass):
         content_type=ContentType.objects.get_for_model(klass)
     ).values_list('object_id', flat=True))
 
-def get_objects_for_user(user, perms, klass=None, strict=True):
+def get_objects_for_user(user, perms, klass=None, strict=True, subscribed=None):
     """
     A simplified version of django-guardian's get_objects_for_user shortcut.
     Returns queryset of objects for which a given ``user`` has *all*
@@ -51,7 +51,10 @@ def get_objects_for_user(user, perms, klass=None, strict=True):
     :param klass: may be a Model, Manager or QuerySet object. If not given
       this parameter will be computed based on given ``params``.
     :param strict: When True, do not honor superuser status or
-      include public objects.
+      include unsubscribed public objects.
+    :param subscribed: When True, include *only* objects from subscribed
+    collections. When False, exclude such objects. When None, include them
+    alongside regular objects.
     """
     if isinstance(perms, basestring):
         perms = [perms]
@@ -105,6 +108,7 @@ def get_objects_for_user(user, perms, klass=None, strict=True):
     # Check if the user is anonymous. The
     # django.contrib.auth.models.AnonymousUser object doesn't work for
     # queries, and it's nice to be able to pass in request.user blindly.
+    user_anonymous = user.is_anonymous() or user == get_anonymous_user()
     if user.is_anonymous():
         user = get_anonymous_user()
 
@@ -115,23 +119,67 @@ def get_objects_for_user(user, perms, klass=None, strict=True):
         .filter(permission__codename__in=codenames)
         .filter(deny=False))
 
-    # Optionally union in public assets (with allow permissions).
-    if (not strict) and (user != get_anonymous_user()):
-        public_obj_perms_queryset= (ObjectPermission.objects
-                                    .filter(user=get_anonymous_user())
-                                    .filter(permission__content_type=ctype)
-                                    .filter(permission__codename__in=codenames)
-                                    .filter(deny=False))
-        user_obj_perms_queryset|= public_obj_perms_queryset
+    if user_anonymous:
+        public_user_obj_perms_queryset = user_obj_perms_queryset
+    else:
+        public_user_obj_perms_queryset = (
+            ObjectPermission.objects
+                .filter(user=get_anonymous_user())
+                .filter(permission__content_type=ctype)
+                .filter(permission__codename__in=codenames)
+                .filter(deny=False)
+        )
 
     if len(codenames) > 1:
         counts = user_obj_perms_queryset.values('object_id').annotate(
             object_pk_count=models.Count('object_id'))
-        user_obj_perms_queryset = counts.filter(object_pk_count__gte=len(codenames))
+        public_counts = public_user_obj_perms_queryset.values(
+            'object_id').annotate(object_pk_count=models.Count('object_id'))
+        user_obj_perms_queryset = counts.filter(
+            object_pk_count__gte=len(codenames))
+        public_user_obj_perms_queryset = public_counts.filter(
+            object_pk_count__gte=len(codenames))
 
     values = user_obj_perms_queryset.values_list('object_id', flat=True)
     values = list(values)
     objects = queryset.filter(pk__in=values)
+
+    if user_anonymous:
+        public_objects = objects
+    else:
+        values = public_user_obj_perms_queryset.values_list(
+            'object_id', flat=True)
+        values = list(values)
+        public_objects = queryset.filter(pk__in=values)
+
+    # If applicable to the queryset's model, find out which objects belong to a
+    # subscribed parent
+    if hasattr(queryset.model, 'parent') and hasattr(
+            queryset.model._meta.get_field('parent').rel.to,
+            'usercollectionsubscription_set'
+    ):
+        subscribed_objects = public_objects.filter(
+            parent__usercollectionsubscription__user=user
+        # Ignore subscriptions to one's own collections
+        ).exclude(parent__owner=user)
+
+    if subscribed is True:
+        # Include *only* objects that belong to a subscribed parent
+        return subscribed_objects
+
+    if not user_anonymous:
+        values = public_user_obj_perms_queryset.values_list(
+            'object_id', flat=True)
+        values = list(values)
+        public_objects = queryset.filter(pk__in=values)
+
+        if not strict:
+            # Optionally union in public assets (with allow permissions).
+            objects |= public_objects
+        elif subscribed is not False:
+            # Strict mode has excluded all public assets, but bring in those
+            # belonging to subscribed collections if so requested
+            objects |= subscribed_objects
 
     return objects
 

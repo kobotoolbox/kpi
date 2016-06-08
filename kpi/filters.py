@@ -1,6 +1,9 @@
+from distutils.util import strtobool
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from rest_framework import filters
+from haystack.backends.whoosh_backend import WhooshSearchBackend
+from whoosh.qparser import QueryParser
 from haystack.query import SearchQuerySet
 from haystack.inputs import Raw
 from haystack.constants import ITERATOR_LOAD_PER_QUERY
@@ -21,44 +24,54 @@ class KpiObjectPermissionsFilter(object):
         permission = self.perm_format % kwargs
 
         strict_query= view.action == 'list'
-        return get_objects_for_user(user, permission, queryset, strict=strict_query)
+        if 'subscribed' in request.query_params:
+            subscribed = bool(strtobool(
+                request.query_params.get('subscribed').lower()))
+        else:
+            subscribed = None
+        return get_objects_for_user(
+            user, permission, queryset, strict=strict_query,
+            subscribed=subscribed
+        )
 
 
 class SearchFilter(filters.BaseFilterBackend):
-    '''
-    Filters objects by searching with Haystack if the the request includes a
-    query.
-    '''
+    ''' Filter objects by searching with Whoosh if the request includes a `q`
+    parameter. Another parameter, `parent`, is recognized when its value is an
+    empty string; this restricts the queryset to objects without parents. '''
     def filter_queryset(self, request, queryset, view):
-        is_search = False
-        search_queryset = SearchQuerySet().models(queryset.model)
-        for k, v in request.query_params.iteritems():
-            if k == 'q':
-                # 'q' means do a full-text search of the document fields.
-                # Raw() passes the search string unaltered to Woosh. This loses
-                # backend agnosticism but gains a rich query language:
-                # https://pythonhosted.org/Whoosh/querylang.html
-                search_queryset = search_queryset.filter(content=Raw(v))
-                is_search = True
-            elif k == 'parent' and v == '':
-                # Empty string means query for null parent
-                queryset = queryset.filter(parent=None)
-        if not is_search:
+        if ('parent' in request.query_params and
+                request.query_params['parent'] == ''):
+            # Empty string means query for null parent
+            queryset = queryset.filter(parent=None)
+        if 'q' not in request.query_params:
             return queryset
-        # TODO: Call highlight() on the SearchQuerySet and somehow pass the
-        # highlighted result to the serializer.
-        # http://django-haystack.readthedocs.org/en/latest/searchqueryset_api.html#SearchQuerySet.highlight
-        matching_pks = search_queryset.values_list('pk', flat=True)
-        # We can now read len(matching_pks) very quickly, so the search engine
-        # has done its job. HOWEVER, Haystack will only retrieve the actual pks
-        # in batches of 10 (HAYSTACK_ITERATOR_LOAD_PER_QUERY), with each batch
-        # taking nearly a tenth of a second! By using a slice, we can force
-        # Haystack to hand over all the pks at once.
-        big_slice = max(ITERATOR_LOAD_PER_QUERY, search_queryset.count())
-        matching_pks = list(matching_pks[:big_slice])
-        # Will still be filtered by KpiObjectPermissionsFilter.filter_queryset()
-        # TODO: Preserve ordering of search results
-        return queryset.filter(pk__in=matching_pks)
+        queryset_pks = list(queryset.values_list('pk', flat=True))
+        if not len(queryset_pks):
+            return queryset
+        # 'q' means do a full-text search of the document fields, where the
+        # critera are given in the Whoosh query language:
+        # https://pythonhosted.org/Whoosh/querylang.html
+        search_queryset = SearchQuerySet().models(queryset.model)
+        search_backend = search_queryset.query.backend
+        if not isinstance(search_backend, WhooshSearchBackend):
+            raise NotImplementedError(
+                'Only the Whoosh search engine is supported at this time')
+        if not search_backend.setup_complete:
+            search_backend.setup()
+        searcher = search_backend.index.searcher()
+        query = QueryParser('content', search_backend.index.schema).parse(
+            request.query_params['q'])
+        results = searcher.search(
+            query, scored=False, sortedby=None, limit=None)
+        pk_type = type(queryset_pks[0])
+        results_pks = {
+            # Coerce each `django_id` from unicode to the appropriate type,
+            # usually `int`
+            pk_type((x['django_id'])) for x in results
+        }
+        filter_pks = results_pks.intersection(queryset_pks)
+        return queryset.filter(pk__in=filter_pks)
 
 
 class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):

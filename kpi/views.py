@@ -226,18 +226,26 @@ class CollectionViewSet(viewsets.ModelViewSet):
             return CollectionSerializer
 
 
-class PublicCollectionViewSet(CollectionViewSet):
+class PublicCollectionViewSet(viewsets.ModelViewSet):
+    serializer_class = CollectionListSerializer
+    queryset = Collection.objects.none()
     def get_queryset(self, *args, **kwargs):
         queryset = Collection.objects.filter(discoverable_when_public=True)
         if 'subscribed' in self.request.query_params:
-            subscribed = strtobool(
-                self.request.query_params.get('subscribed', 'false').lower())
+            subscribed = bool(strtobool(
+                self.request.query_params.get('subscribed').lower()))
             criteria = {'usercollectionsubscription__user': self.request.user}
             if subscribed:
-                queryset = self.queryset.filter(**criteria)
+                queryset = queryset.filter(**criteria)
+                # Never show the user's own collections as subscribed, even if
+                # the user has subscribed to their own collection
+                queryset = queryset.exclude(owner=self.request.user)
             else:
-                queryset = self.queryset.exclude(**criteria)
-
+                unfiltered_queryset = queryset
+                queryset = queryset.exclude(**criteria)
+                # Always show one's own collections as unsubscribed
+                queryset |= unfiltered_queryset.filter(
+                    owner=self.request.user, **criteria)
         return get_objects_for_user(
             get_anonymous_user(), 'view_collection', queryset)
 
@@ -766,7 +774,11 @@ class UserCollectionSubscriptionViewSet(viewsets.ModelViewSet):
         # queries.
         if user.is_anonymous():
             user = get_anonymous_user()
-        return UserCollectionSubscription.objects.filter(user=user)
+        criteria = {'user': user}
+        if 'collection__uid' in self.request.query_params:
+            criteria['collection__uid'] = self.request.query_params[
+                'collection__uid']
+        return UserCollectionSubscription.objects.filter(**criteria)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
