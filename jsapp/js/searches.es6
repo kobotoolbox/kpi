@@ -124,6 +124,9 @@ function SearchContext(opts={}) {
       if (this.state.parentUid) {
         params.parentUid = `parent__uid:${this.state.parentUid}`;
       }
+      if (this.state.subscribed !== undefined) {
+        params.subscribed = this.state.subscribed;
+      }
       return assign({}, this.filterParams, params);
     },
     toQueryData (dataObject) {
@@ -155,6 +158,10 @@ function SearchContext(opts={}) {
           queryData.parent = searchParams.parent;
         }
         delete searchParams.parent;
+      }
+      if ('subscribed' in searchParams) {
+        queryData.subscribed = searchParams.subscribed;
+        delete searchParams.subscribed;
       }
       paramGroups = paramGroups.concat(_.values(searchParams));
       if (paramGroups.length > 1) {

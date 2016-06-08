@@ -129,19 +129,29 @@ var Drawer = React.createClass({
   clickFilterByCollection (evt) {
     var data = $(evt.currentTarget).data();
     if (data.collectionUid) {
-      this.filterByCollection(data.collectionUid);
+      this.filterByCollection(data.collectionUid, false);
     } else {
-      this.filterByCollection(false);
+      this.filterByCollection(false, false);
     }
   },
-  filterByCollection (collectionUid) {
+  clickFilterBySubscribedCollection (evt) {
+    var data = $(evt.currentTarget).data();
+    if (data.collectionUid) {
+      this.filterByCollection(data.collectionUid, true);
+    } else {
+      this.filterByCollection(false, true);
+    }
+  },
+  filterByCollection (collectionUid, subscribed) {
     if (collectionUid) {
       this.quietUpdateStore({
         parentUid: collectionUid,
+        subscribed: subscribed,
       });
     } else {
       this.quietUpdateStore({
         parentUid: false,
+        subscribed: subscribed,
       });
     }
     this.searchValue();
@@ -165,6 +175,13 @@ var Drawer = React.createClass({
       var qc = () => this.queryCollections();
       dataInterface.deleteCollection({uid: collectionUid}).then(qc).catch(qc);
     });
+  },
+  unsubscribeCollection (evt) {
+    evt.preventDefault();
+    var collectionUid = $(evt.currentTarget).data('collection-uid');
+    dataInterface.unsubscribeCollection({
+      uid: collectionUid,
+    }).then(() => this.querySubscriptions());
   },
   toggleFixedDrawer() {
     stores.pageState.toggleFixedDrawer();
@@ -258,7 +275,8 @@ var Drawer = React.createClass({
                     key='allitems'
                     m={{
                         toplevel: true,
-                        selected: !this.state.filteredCollectionUid,
+                        selected: !this.state.filteredCollectionUid &&
+                          !this.state.subscribedCollectionFilter,
                       }} onClick={this.clickFilterByCollection}>
                     <i className="fa fa-caret-down" />
                     <i className="k-icon-folder" />
@@ -299,8 +317,9 @@ var Drawer = React.createClass({
                     key='subscriptions'
                     m={{
                         toplevel: true,
-                        selected: !this.state.filteredCollectionUid,
-                      }} onClick={this.clickFilterByCollection}>
+                        selected: !this.state.filteredCollectionUid &&
+                          this.state.subscribedCollectionFilter,
+                      }} onClick={this.clickFilterBySubscribedCollection}>
                     <i className="fa fa-caret-down" />
                     <i className="k-icon-folder" />
                     {t('Subscriptions')}
@@ -315,7 +334,7 @@ var Drawer = React.createClass({
                             collection: true,
                             selected: this.state.filteredCollectionUid === collection.uid,
                           }}
-                          onClick={this.clickFilterByCollection}
+                          onClick={this.clickFilterBySubscribedCollection}
                           data-collection-uid={collection.uid}
                         >
                           <i className="k-icon-folder" />

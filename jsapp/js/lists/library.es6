@@ -72,6 +72,7 @@ var LibrarySearchableList = React.createClass({
       searchContext: searches.getSearchContext('library', {
         filterParams: {
           assetType: 'asset_type:question OR asset_type:block',
+          subscribed: false,
         },
         filterTags: 'asset_type:question OR asset_type:block',
       })

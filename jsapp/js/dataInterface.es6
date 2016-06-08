@@ -207,6 +207,20 @@ var dataInterface;
         method: 'DELETE'
       });
     },
+    unsubscribeCollection ({uid}) {
+      return $ajax({
+        url: `${rootUrl}/collection_subscriptions/`,
+        data: {
+          collection__uid: uid
+        },
+        method: 'GET'
+      }).then((data) => {
+        return $ajax({
+          url: data.results[0].url,
+          method: 'DELETE'
+        });
+      });
+    },
     getAssetContent ({id}) {
       return $.getJSON(`${rootUrl}/assets/${id}/content/`);
     },
