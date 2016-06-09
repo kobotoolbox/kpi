@@ -12,7 +12,7 @@ from taggit.managers import TaggableManager
 
 from kpi.models import Asset
 from kpi.models import Collection
-from kpi.models.asset import KpiTaggableManager, ASSET_UID_LENGTH
+from kpi.models.asset import KpiTaggableManager
 
 
 class SurveyDraft(models.Model):
@@ -33,7 +33,9 @@ class SurveyDraft(models.Model):
     asset_type = models.CharField(max_length=32, null=True)
     tags = TaggableManager(manager=KpiTaggableManager)
     kpi_asset_uid = models.CharField(
-        max_length=ASSET_UID_LENGTH, default='', blank=True)
+        max_length=Asset._meta.get_field('uid').max_length,
+        default='', blank=True
+    )
 
 
 def _csv_to_dict(content):

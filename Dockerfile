@@ -1,11 +1,12 @@
 FROM kobotoolbox/koboform_base:latest
 
 
-# Note: Additional environment variables established in `Dockerfile.koboform_base`.
+# Note: Additional environment variables have been set in `Dockerfile.koboform_base`.
 ENV KPI_LOGS_DIR=/srv/logs \
     KPI_WHOOSH_DIR=/srv/whoosh \
     GRUNT_BUILD_DIR=/srv/grunt_build \
     GRUNT_FONTS_DIR=/srv/grunt_fonts \
+    WEBPACK_STATS_PATH=/srv/webpack-stats.json \
     # The mountpoint of a volume shared with the nginx container. Static files will
     # be copied there.
     NGINX_STATIC_DIR=/srv/static
@@ -18,8 +19,8 @@ ENV KPI_LOGS_DIR=/srv/logs \
 COPY ./apt_requirements.txt "${KPI_SRC_DIR}/"
 # Only install if the current version of `apt_requirements.txt` differs from the one used in the base image.
 RUN if ! diff "${KPI_SRC_DIR}/apt_requirements.txt" /srv/tmp/base_apt_requirements.txt; then \
-        apt-get update && \
-        apt-get install -y $(cat "${KPI_SRC_DIR}/apt_requirements.txt") && \
+        apt-get update -qq && \
+        apt-get install -qqy $(cat "${KPI_SRC_DIR}/apt_requirements.txt") && \
         apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \ 
     ; fi
 
@@ -31,7 +32,7 @@ RUN if ! diff "${KPI_SRC_DIR}/apt_requirements.txt" /srv/tmp/base_apt_requiremen
 COPY ./requirements.txt "${KPI_SRC_DIR}/"
 # Only install if the current version of `requirements.txt` differs from the one used in the base image.
 RUN if ! diff "${KPI_SRC_DIR}/requirements.txt" /srv/tmp/base_requirements.txt; then \
-        pip-sync "${KPI_SRC_DIR}/requirements.txt" \
+        pip-sync "${KPI_SRC_DIR}/requirements.txt" 1>/dev/null \
     ; fi
 
 
@@ -43,7 +44,7 @@ COPY ./package.json "${KPI_SRC_DIR}/"
 # Only install if the current version of `package.json` differs from the one used in the base image.
 RUN if ! diff "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json; then \
         # Try error-prone `npm install` step twice.
-        npm install || npm install \
+        npm install --quiet || npm install --quiet \
     ; fi
 
 
@@ -55,7 +56,7 @@ COPY ./bower.json ./.bowerrc "${KPI_SRC_DIR}/"
 # Only install if the current versions of `bower.json` or `.bowerrc` differ from the ones used in the base image.
 RUN if ! diff "${KPI_SRC_DIR}/bower.json" /srv/tmp/base_bower.json && \
             ! diff "${KPI_SRC_DIR}/.bowerrc" /srv/tmp/base_bowerrc; then \
-        bower install --allow-root --config.interactive=false \
+        bower install --quiet --allow-root --config.interactive=false \
     ; fi
 
 
@@ -63,17 +64,23 @@ RUN if ! diff "${KPI_SRC_DIR}/bower.json" /srv/tmp/base_bower.json && \
 # Build client code. #
 ######################
 
-COPY ./Gruntfile.js "${KPI_SRC_DIR}/"
-COPY ./webpack* "${KPI_SRC_DIR}/"
-COPY ./.eslintrc "${KPI_SRC_DIR}/.eslintrc"
-COPY ./helper/webpack-config.js "${KPI_SRC_DIR}/helper/webpack-config.js"
-COPY ./jsapp "${KPI_SRC_DIR}/jsapp"
+COPY ./Gruntfile.js ${KPI_SRC_DIR}/
+COPY ./webpack* ${KPI_SRC_DIR}/
+COPY ./.eslintrc ${KPI_SRC_DIR}/.eslintrc
+COPY ./helper/webpack-config.js ${KPI_SRC_DIR}/helper/webpack-config.js
+
+COPY ./jsapp ${KPI_SRC_DIR}/jsapp
+
 RUN mkdir "${GRUNT_BUILD_DIR}" && \
     mkdir "${GRUNT_FONTS_DIR}" && \
     ln -s "${GRUNT_BUILD_DIR}" "${KPI_SRC_DIR}/jsapp/compiled" && \
     rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
     ln -s "${GRUNT_FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts" && \
-    grunt copy && npm run build-production
+    # FIXME: Move `webpack-stats.json` to some build target directory so these ad-hoc workarounds don't continue to accumulate.
+    ln -s "${WEBPACK_STATS_PATH}" webpack-stats.json
+
+RUN grunt copy && npm run build-production
+
 
 ###############################################
 # Copy over this directory in its current state. #
@@ -81,11 +88,13 @@ RUN mkdir "${GRUNT_BUILD_DIR}" && \
 
 RUN rm -rf "${KPI_SRC_DIR}"
 COPY . "${KPI_SRC_DIR}"
+
 # Restore the backed-up package installation directories.
 RUN ln -s "${NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
     ln -s "${BOWER_COMPONENTS_DIR}/" "${KPI_SRC_DIR}/jsapp/xlform/components" && \
     ln -s "${GRUNT_BUILD_DIR}" "${KPI_SRC_DIR}/jsapp/compiled" && \
-    ln -s "${GRUNT_FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts"
+    ln -s "${GRUNT_FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts" && \
+    ln -s "${WEBPACK_STATS_PATH}" webpack-stats.json
 
 
 ###########################

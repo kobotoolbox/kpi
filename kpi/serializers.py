@@ -260,6 +260,7 @@ class AncestorCollectionsSerializer(serializers.HyperlinkedModelSerializer):
 class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid', view_name='assetsnapshot-detail')
+    uid = serializers.ReadOnlyField()
     xml = serializers.SerializerMethodField()
     enketopreviewlink = serializers.SerializerMethodField()
     details = WritableJSONField(required=False)
@@ -291,10 +292,10 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         )
 
     def get_enketopreviewlink(self, obj):
-        return u'{enketo_server}{enketo_preview_uri}?form={xml_uri}'.format(
-            enketo_server=settings.ENKETO_SERVER,
-            enketo_preview_uri=settings.ENKETO_PREVIEW_URI,
-            xml_uri=self.get_xml(obj)
+        return reverse(
+            viewname='assetsnapshot-preview',
+            kwargs={'uid': obj.uid},
+            request=self.context.get('request', None)
         )
 
     def create(self, validated_data):
@@ -548,12 +549,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_deployment__links(self, obj):
         if obj.has_deployment and obj.deployment.active:
-            dev_link = "{}/enter-data".format(obj.deployment.identifier)
-            return dict([[dd, dev_link] for dd in
-                        ["online_offline",
-                         "online_only_single",
-                         "online_only_multi"]]
-                        )
+            return obj.deployment.get_enketo_survey_links()
         else:
             return {}
 
@@ -585,7 +581,7 @@ class DeploymentSerializer(serializers.Serializer):
 
         asset.connect_deployment(
             backend=backend_id,
-            active=validated_data['active']
+            active=validated_data.get('active', False),
         )
         return asset.deployment
 
@@ -670,7 +666,6 @@ class AssetListSerializer(AssetSerializer):
                   'deployed_version_id',
                   'deployment__identifier',
                   'deployment__active',
-                  'deployment__links',
                   'permissions',
                   )
 

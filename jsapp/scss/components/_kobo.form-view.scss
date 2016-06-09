@@ -192,7 +192,7 @@
   &--history-contents {
     padding:0px;
     padding-bottom: 10px;
-    .form-view__group:last-child {
+    > .form-view__group:last-child {
       border-bottom: 1px solid #DDD;
     }
   }
@@ -212,24 +212,26 @@
 }
 
 .form-view__banner {
-  height:200px;
+  height:240px;
   margin:-15px;
   margin-bottom: 15px;
-  background-color: $cool-green;
-  // background-image: url("../img/graphic_macbook.png") center center no-repeat;
+  background: $cool-green url("~../img/graphic_macbook.png") center center no-repeat;
   background-size: contain; 
+  position: relative;
   &--android {
-    background-color: #07cfba;
+    background: #07cfba url("~../img/graphic_phone.png") center center no-repeat;
+    background-size: cover; 
   }
   > .form-view__label {
     font-size:18px;
-    padding:10px 15px;
-    padding-top: 165px;
+    padding:15px;
+    position: absolute;
+    bottom: 0px;
   }
 }
 
 .form-view__cell--collecting-android {
-  i {
+  li i {
     font-size: 20px;
     vertical-align: middle;
   }
@@ -273,7 +275,6 @@
 
 .form-view__item--more-actions {
   position: relative;
-  // margin-left: 10px;
   button {
     font-size: 18px;
     background-color: transparent;
@@ -287,3 +288,81 @@
     }
   }
 }
+
+.form-view__item--collect {
+  position: relative;
+  display: block;
+  button.form-view__button--collectOptions {
+    border:2px solid $cool-gray;
+    width:100%;
+    margin:20px 0px;
+    padding:6px 10px;
+    border-radius: none;
+    cursor: pointer;
+    text-align: left;
+    font-size: 13px;
+    background-color: transparent;
+    color: $cool-gray;
+    padding-right: 32px;
+    position: relative;
+    &:focus, &:hover {
+      color: unquote("rgb(#{$color-primary})");
+    }
+    i {
+      position: absolute;
+      right: 10px;
+      top: 2px;
+      font-size: 24px;
+    }
+  }
+  .popover-menu {
+    width:100%;
+    max-width: 100%;
+    max-height: 260px;
+    overflow: auto;
+    top: auto;
+    bottom:55px;
+    .popover-menu__link {
+      border-bottom: 1px solid #DDD;
+    }
+    span.label {
+      display: block;
+      font-size: 14px;
+      padding-top: 5px;
+    }
+    span.desc {
+      display: block;
+      font-size: 13px;
+      font-weight: normal;
+    }
+  }
+}
+
+.form-view__item--collect-links {
+  text-align: right;
+  padding-top: 10px;
+  display: block;
+  a {
+    padding:4px 16px;
+    text-transform: uppercase;
+    display: inline-block;
+    &.copy {
+      color:$cool-gray;
+      transition:all 0.5s;
+      &:focus, &:active {
+        color: unquote("rgb(#{$color-primary})");
+      }
+    }
+  }
+}
+
+.collect-link {
+  color:$cool-gray;
+  i {
+    margin-left: 6px;
+  }
+  &:hover {
+    color: unquote("rgb(#{$color-primary})");
+  }
+}
+

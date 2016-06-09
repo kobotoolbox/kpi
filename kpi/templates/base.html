@@ -4,8 +4,9 @@
 <!--[if IE 8]> <html class="no-js lt-ie9"> <![endif]-->
 <!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
 <head>
-	{% load staticfiles %}
-    <link rel="stylesheet" href="{% static 'compiled/bundle.css' %}">
+    {% load staticfiles %}
+    {% load render_bundle from webpack_loader %}
+    {% render_bundle 'app' 'css' %}
 
 <link rel="stylesheet" href="{% static 'css/normalize.min.css' %}">
 <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">

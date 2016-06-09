@@ -65,6 +65,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'rest_framework.authtoken',
     'oauth2_provider',
+    'markitup',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -189,6 +190,7 @@ REST_FRAMEWORK = {
 
 TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
     'kpi.context_processors.dev_mode',
+    'kpi.context_processors.git_commit',
     'kpi.context_processors.sitewide_messages',
 )
 
@@ -249,6 +251,10 @@ ENKETO_PREVIEW_URI = 'webform/preview' if ENKETO_VERSION == 'legacy' else 'previ
 # The number of hours to keep a kobo survey preview (generated for enketo)
 # around before purging it.
 KOBO_SURVEY_PREVIEW_EXPIRATION = os.environ.get('KOBO_SURVEY_PREVIEW_EXPIRATION', 24)
+
+ENKETO_API_TOKEN = os.environ.get('ENKETO_API_TOKEN', 'enketorules')
+# http://apidocs.enketo.org/v2/
+ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 
 ''' Celery configuration '''
 if os.environ.get('SKIP_CELERY', 'False') == 'True':

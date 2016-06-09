@@ -31,7 +31,7 @@ var FormsSearchableList = React.createClass({
 
       var headerBreadcrumb = [
         {
-          'label': t('Form List'),
+          'label': t('Projects'),
         }
       ];
       stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);

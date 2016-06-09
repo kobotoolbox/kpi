@@ -33,21 +33,25 @@
     align-items: stretch;
     display: flex;
   }
+
   .modal-content {
     height: 100%;
     width: 100%;
     display: flex;
     flex-direction: column;
   }
+
   .modal-body {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
+
     .enketo-holder {
       flex-grow: 1;
       display: flex;
       flex-direction: column;
     }
+
     iframe {
       flex-grow: 1;
       border: 1px solid white;
@@ -56,17 +60,24 @@
   }
 }
 
-h4.modal-title {
+.modal-title {
   margin: 0px;
-  padding: 0px;
+  padding: 20px;
   font-size: 22px;
 }
 
 .modal-header {
   color: $cool-green;
-  padding-right: 150px;
-  padding-bottom: 15px;
   min-height: 30px;
+  margin: -15px -20px 0;
+}
+
+.modal-body {
+  padding: 20px 15px;
+
+  .modal-titled & {
+    padding: 30px 15px;
+  }
 }
 
 .modal-footer {
@@ -74,22 +85,26 @@ h4.modal-title {
   padding-top: 10px;
 }
 
+$modalXcolor: #d8d8d8;
+
 .modal-x {
   position: absolute;
-  top: 4px;
-  right: 2px;
   background-color: transparent;
-  padding: 8px;
+  top: 0;
+  right: 0;
+  padding: 25px;
   font-size: 20px;
-  color: #D8D8D8;
+  color: $modalXcolor;
   cursor: pointer;
+
   &:hover {
-    color: darken(#d8d8d8, 20%);
+    color: darken($modalXcolor, 20%);
   }
 }
 
 .modal-footer {
   text-align: center;
+
   button {
     @extend .mdl-button, .mdl-button--colored, .mdl-button--raised;
   }
@@ -101,10 +116,26 @@ h4.modal-title {
       text-align: center;
       font-weight: 600;
     }
+
     i:before {
       color: #3FA2EE;
       font-size: 20px;
     }
+  }
+}
+
+$errorColor: #E60C0C;
+
+.modal-error {
+  color: darken($errorColor, 20%);
+
+  .modal-title {
+    background-color: $errorColor;
+    color: mix(#fff, $errorColor, 95%);
+  }
+
+  .modal-x {
+    color: mix(#fff, $errorColor, 95%);
   }
 }
 

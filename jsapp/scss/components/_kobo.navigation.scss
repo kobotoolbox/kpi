@@ -7,12 +7,8 @@ $headerAccountTextColor: #dbedf7;
   position: absolute;
   min-height: 56px;
   width: 100%;
-  z-index: 1;
+  z-index: 0;
 }
-
-// .mdl-layout__drawer-button {
-//   display: none;
-// }
 
 .mdl-layout__header {
   background-color: transparent;
@@ -286,13 +282,13 @@ $headerAccountTextColor: #dbedf7;
     }
   }
   .mdl-layout__header-searchers {
-    width: calc(100% - 330px);
+    flex-grow: 1;
   }
   .search, .Select {
     vertical-align: middle;
-    margin-right: 30px;
+    margin-right: 20px;
     display: inline-block;
-    width: calc(50% - 30px);
+    width: calc(50% - 20px);
   }
   .search {
     position: relative;
@@ -324,30 +320,23 @@ $headerAccountTextColor: #dbedf7;
   display: none;
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 767px) {
   .k-burger {
     display: block;
     margin-right: 10px;
-    // background-color: red;
- 
   }
-  .mdl-layout__header-row {
-    padding-left: 60px;
-  }
-  .account-box__logo {
-    width: 120px;
-    height: 28px;
-  }
-  .mdl-layout-title {
-    width: 150px;
-  }
-  .Select {
-    min-width: 120px;
-  }
-  .search input {
-    width: 120px;
-  }
-  .search, .Select {
-    margin-right: 20px;
+  .mdl-layout__header {
+    .account-box__logo {
+      max-width: 90%;
+    }
+    .mdl-layout-title {
+      width: 180px;
+    }
+    .Select {
+      display: none;
+    }
+    .search {
+      width: 90%;
+    }
   }
 }

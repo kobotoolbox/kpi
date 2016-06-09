@@ -105,18 +105,20 @@ var MainHeader = React.createClass({
   },
   renderLangItem(lang) {
     return (
-      <li>
+      <li key={lang[0]}>
         <a data-key={lang[0]} onClick={this.languageChange} className="mdl-menu__item">{lang[1]}</a>
       </li>
     );
   },
   renderAccountNavMenu () {
-    var accountName = this.state.currentAccount && this.state.currentAccount.username;
     var defaultGravatarImage = `${window.location.protocol}//www.gravatar.com/avatar/64e1b8d34f425d19e1ee2ea7236d3028?s=40`;
-    var gravatar = this.state.currentAccount && this.state.currentAccount.gravatar || defaultGravatarImage;
-    var langs = this.state.languages;
+    var langs = [];
 
-    if (this.state.isLoggedIn) {
+    if (stores.session.currentAccount) {
+      var accountName = stores.session.currentAccount.username;
+      var gravatar = stores.session.currentAccount.gravatar || defaultGravatarImage;
+
+      langs = stores.session.currentAccount.languages;
       return (
         <bem.AccountBox>
           <bem.AccountBox__notifications className="is-edge">
@@ -131,7 +133,7 @@ var MainHeader = React.createClass({
               <img src={gravatar} />
             </bem.AccountBox__image>
             <ul className="k-account__menu">
-              <li>
+              <li key="settings">
                 <a href={stores.session.currentAccount.projects_url + '/settings'} className="mdl-menu__item">
                   <i className="k-icon-settings" />
                   {t('Profile Settings')}
@@ -144,7 +146,7 @@ var MainHeader = React.createClass({
                   </a>
                 </li>
               :null}
-              <li className="k-lang__submenu">
+              <li className="k-lang__submenu" key="lang">
                 <a className="mdl-menu__item">
                   <i className="fa fa-globe" />
                   {t('Language')}
@@ -153,7 +155,7 @@ var MainHeader = React.createClass({
                   {langs.map(this.renderLangItem)}
                 </ul>
               </li>
-              <li>
+              <li key="logout">
                 <a onClick={this.logout} className="mdl-menu__item">
                   <i className="k-icon-logout" /> 
                   {t('Logout')}</a>
@@ -165,7 +167,7 @@ var MainHeader = React.createClass({
     }
 
     return (
-          <span>not logged in</span>
+          <span>{t('not logged in')}</span>
     );
   },
   toggleFixedDrawer() {

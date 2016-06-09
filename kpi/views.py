@@ -12,7 +12,7 @@ from django.forms import model_to_dict
 from django.http import Http404, HttpResponseBadRequest, HttpResponseRedirect
 from django.utils.http import is_safe_url
 from django.shortcuts import get_object_or_404, resolve_url
-from django.template.response import SimpleTemplateResponse
+from django.template.response import TemplateResponse
 from django.conf import settings
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
@@ -110,9 +110,10 @@ def current_user(request):
                          'languages': settings.LANGUAGES,
                          })
 
+
 @login_required
 def home(request):
-    return SimpleTemplateResponse("index.html")
+    return TemplateResponse(request, "index.html")
 
 
 class NoUpdateModelViewSet(
@@ -477,9 +478,27 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
             'full': True,
         }
         if snapshot.xml != '':
-            response_data['highlighted_xform'] = highlight_xform(snapshot.xml, **options)
+            response_data['highlighted_xform'] = highlight_xform(snapshot.xml,
+                                                                 **options)
         return Response(response_data, template_name='highlighted_xform.html')
 
+    @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
+    def preview(self, request, *args, **kwargs):
+        snapshot = self.get_object()
+        if snapshot.details.get('status') == 'success':
+            preview_url = "{}{}?form={}".format(
+                              settings.ENKETO_SERVER,
+                              settings.ENKETO_PREVIEW_URI,
+                              reverse(viewname='assetsnapshot-detail',
+                                      format='xml',
+                                      kwargs={'uid': snapshot.uid},
+                                      request=request,
+                                      ),
+                            )
+            return HttpResponseRedirect(preview_url)
+        else:
+            response_data = copy.copy(snapshot.details)
+            return Response(response_data, template_name='preview_error.html')
 
 
 class AssetViewSet(viewsets.ModelViewSet):

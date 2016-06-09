@@ -6,6 +6,7 @@ import alertify from 'alertifyjs';
 import {Link} from 'react-router';
 import mdl from './libs/rest_framework/material';
 import TagsInput from 'react-tagsinput';
+import ReactZeroClipboard from 'react-zeroclipboard';
 
 import {dataInterface} from './dataInterface';
 import stores from './stores';
@@ -21,6 +22,7 @@ import {
   log,
   t,
   assign,
+  notify,
 } from './utils';
 
 var AssetTypeIcon = bem.create('asset-type-icon');
@@ -140,37 +142,9 @@ var dmix = {
                   {this.renderDeployments()}
                 </bem.FormView__cell>
               </bem.FormView__row>
-              <bem.FormView__row m="collecting" className="is-edge">
-                <bem.FormView__cell m='collecting-webforms'>
-                  <bem.FormView__banner m="webforms">
-                  <bem.FormView__label m='white'>
-                    {t('Collecting Data with Web Forms')}
-                  </bem.FormView__label>
-                  </bem.FormView__banner>
-                  <ol>
-                    <li>{t('Choose one of the different web form links above.')}</li>
-                    <li>{t('Open the link on your own computer or mobile device or copy')}</li>
-                    <li>{t('Enter the server URL https://kobotoolbox.org and your username and password')}</li>
-                    <li>{t('Open "Get Blank Form" and select this project. ')}</li>
-                    <li>{t('Open "Enter Data."')}</li>
-                  </ol>
-                </bem.FormView__cell>
-                <bem.FormView__cell m='collecting-android'>
-                  <bem.FormView__banner m="android">
-                    <bem.FormView__label m='white'>
-                      {t('Collecting Data with Android App')}
-                    </bem.FormView__label>
-                  </bem.FormView__banner>
-
-                  <ol>
-                    <li>{t('Install KoboCollect on your Android device.')}</li>
-                    <li>{t('Click on')} <i className="material-icons">more_vert</i> {t('to open settings.')}</li>
-                    <li>{t('Enter the server URL https://kobotoolbox.org and your username and password')}</li>
-                    <li>{t('Open "Get Blank Form" and select this project. ')}</li>
-                    <li>{t('Open "Enter Data."')}</li>
-                  </ol>
-                </bem.FormView__cell>
-              </bem.FormView__row>
+              { this.state.has_deployment ?
+                this.renderInstructions()
+              : null }
               <ReactTooltip effect="float" place="bottom" />
             </bem.FormView>
           );
@@ -180,9 +154,6 @@ var dmix = {
   renderAncestors () {},
   renderHeader () {
 
-    if (stores.session.currentAccount) {
-      var kc_url = stores.session.currentAccount.projects_url + '/forms/'+ this.state.uid;
-    }
     return (
         <bem.FormView__header m={[
               this.state.name ? 'named' : 'untitled'
@@ -194,9 +165,9 @@ var dmix = {
             <bem.FormView__tab className="active">
               {t('Form')}
             </bem.FormView__tab>
-            { kc_url != undefined && this.state.has_deployment ?
+            { this.state.deployment__identifier != undefined && this.state.deployment__active ?
               <bem.FormView__tab>
-                <a href={kc_url}>{t('Data')}</a>
+                <a href={this.state.deployment__identifier}>{t('Data')}</a>
               </bem.FormView__tab>
             : null }
 
@@ -256,6 +227,10 @@ var dmix = {
                         </bem.PopoverMenu__link>
                       );
                   })}
+                  <bem.PopoverMenu__link onClick={this.saveCloneAs}>
+                    <i className="k-icon-clone"/>
+                    {t('Clone this project')}
+                  </bem.PopoverMenu__link>
 
                   <Dropzone fileInput onDropFiles={this.onDrop}
                         disabled={!this.state.userCanEdit}>
@@ -294,15 +269,22 @@ var dmix = {
         <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
             htmlFor="form-header-extras">
           <li>
-            <a onClick={this.saveCloneAs} className="mdl-menu__item">
-              <i />
+            <a className="mdl-menu__item" onClick={this.saveCloneAs}>
               {t('Clone this project')}
             </a>
           </li>
+
           <li>
             <a href={this.makeHref('form-sharing', {assetid: this.state.uid})} className="mdl-menu__item">
               <i />
               {t('Share this project')}
+            </a>
+          </li>
+
+          <li>
+            <a className="mdl-menu__item" onClick={this.deleteAsset}>
+              <i />
+              {t('Delete this project')}
             </a>
           </li>
         </ul> 
@@ -497,6 +479,157 @@ var dmix = {
         </bem.AssetView__langs>
       );
   },
+  renderInstructions () {
+    // PM: local testing deployment links
+    // var deployment__links = {
+    //   offline_url: "https://enke.to/_/#self",
+    //   url: "https://enke.to/::self",
+    //   iframe_url: "https://enke.to/i/::self",
+    //   preview_url: "https://enke.to/preview/::self"
+    // };
+    var deployment__links = this.state.deployment__links;
+
+    var deployment__links_list = [];
+    var label = undefined;
+    var desc = undefined;
+    var value = undefined;
+
+    for (var key in deployment__links) {
+      value = deployment__links[key];
+
+      switch(key) {
+        case 'offline_url':
+          label = t('Online-Offline (multiple submission)');
+          desc = t('This allows online and offline submissions and is the best option for collecting data in the field. ');
+          break;
+        case 'url':
+          label = t('Online-Only (multiple submissions)');
+          desc = t('This is the best option when entering many records at once on a computer, e.g. for transcribing paper records');
+          break;
+        case 'iframe_url':
+          label = t('Embeddable web form code');
+          desc = t('Use this html5 code snippet to integrate your form on your own website using smaller margins. ');
+          value = '<iframe src="'+deployment__links[key]+'" width="800" height="600"></iframe>';
+          break;
+        case 'preview_url':
+          label = t('View only');
+          desc = t('Use this version fpr testing, getting feedback. Does not allow submitting data. ');
+          break;
+      }
+
+      deployment__links_list.push(
+        {
+          key: key,
+          value: value,
+          label: label, 
+          desc: desc
+        }
+      );
+    }
+
+    var kc_server = document.createElement('a');
+    kc_server.href = this.state.deployment__identifier;
+
+    return (
+      <bem.FormView__row m="collecting">
+        <bem.FormView__cell m='collecting-webforms'>
+          <bem.FormView__banner m="webforms">
+            <bem.FormView__label m='white'>
+              {t('Collecting Data with Web Forms')}
+            </bem.FormView__label>
+          </bem.FormView__banner>
+          <a href="http://support.kobotoolbox.org/customer/en/portal/articles/1653790-collecting-data-through-web-forms"
+             className="collect-link collect-link__web"
+             target="_blank">
+            {t('Learn more')} 
+            <i className="fa fa-arrow-right"></i>
+          </a>
+          <bem.FormView__item m={'collect'} 
+            onFocus={this.toggleCollectOptions}
+            onBlur={this.toggleCollectOptions}>
+            <bem.FormView__button m='collectOptions'>
+              {this.state.selectedCollectOption.label != null ? t(this.state.selectedCollectOption.label) : t('Choose an option')}
+              <i className="fa fa-caret-up" />
+            </bem.FormView__button>
+            {this.state.collectOptionsShowing ?
+              <bem.PopoverMenu ref='collect-popover'>
+                {deployment__links_list.map((c)=>{
+                  return (
+                      <bem.PopoverMenu__link  key={`c-${c.value}`} 
+                                              onClick={this.setSelectedCollectOption(c)}
+                                              className={this.state.selectedCollectOption.value == c.value ? 'active' : null}>
+                        <span className="label">{c.label}</span>
+                        <span className="desc">{c.desc}</span>
+                      </bem.PopoverMenu__link>
+                    );
+                })}
+              </bem.PopoverMenu>
+            : null }
+          </bem.FormView__item>
+          {this.state.selectedCollectOption.value ?
+            <bem.FormView__item m={'collect-links'}>
+              <ReactZeroClipboard text={this.state.selectedCollectOption.value} onAfterCopy={this.afterCopy}>
+                <a className="copy">copy</a>
+              </ReactZeroClipboard>
+              {this.state.selectedCollectOption.key != 'iframe_url' ?
+                <a href={this.state.selectedCollectOption.value} target="_blank" className="open">
+                  {t('Open')}
+                </a>
+              : null }
+            </bem.FormView__item>
+          : null }
+        </bem.FormView__cell>
+        <bem.FormView__cell m='collecting-android'>
+          <bem.FormView__banner m="android">
+            <bem.FormView__label m='white'>
+              {t('Collecting Data with Android App')}
+            </bem.FormView__label>
+          </bem.FormView__banner>
+          <a href="http://support.kobotoolbox.org/customer/en/portal/articles/1653782-collecting-data-with-kobocollect-on-android"
+             className="collect-link collect-link__android"
+             target="_blank">
+            {t('Learn more')} 
+            <i className="fa fa-arrow-right"></i>
+          </a>
+
+          <ol>
+            <li>
+              {t('Install')} 
+              &nbsp;
+              <a href="https://play.google.com/store/apps/details?id=org.koboc.collect.android&hl=en" target="_blank">KoboCollect</a>
+              &nbsp;
+              {t('on your Android device.')}
+            </li>
+            <li>{t('Click on')} <i className="material-icons">more_vert</i> {t('to open settings.')}</li>
+            <li>{t('Enter the server URL') + ' ' + kc_server.origin + ' ' + t('and your username and password')}</li>
+            <li>{t('Open "Get Blank Form" and select this project. ')}</li>
+            <li>{t('Open "Enter Data."')}</li>
+          </ol>
+        </bem.FormView__cell>
+      </bem.FormView__row>
+      );
+  },
+  afterCopy() {
+    notify(t('copied to clipboard'));
+  },
+  toggleCollectOptions (evt) {
+    var isBlur = evt.type === 'blur',
+        $popoverMenu;
+    if (isBlur) {
+      $popoverMenu = $(this.refs['collect-popover'].getDOMNode());
+      // if we setState and immediately hide popover then the
+      // download links will not register as clicked
+      $popoverMenu.fadeOut(250, () => {
+        this.setState({
+          collectOptionsShowing: false,
+        });
+      });
+    } else {
+      this.setState({
+        collectOptionsShowing: true,
+      });
+    }
+  },
   toggleDownloads (evt) {
     var isBlur = evt.type === 'blur',
         $popoverMenu;
@@ -514,6 +647,13 @@ var dmix = {
         downloadsShowing: true,
       });
     }
+  },
+  setSelectedCollectOption(c) {
+    return function (e) {
+      this.setState({
+        selectedCollectOption: c,
+      });
+    }.bind(this)
   },
   renderButtons ({deployable}) {
     var downloadable = !!this.state.downloads[0],
@@ -718,16 +858,23 @@ var dmix = {
                 {this.state.deployed_versions.map((item) => {
                   return (
                     <bem.FormView__group m="deploy-row">
-                              <bem.FormView__item m='version'>
+                      <bem.FormView__item m='version'>
                         {item.version_id}
+                        <bem.FormView__group m='buttons'>
+                          <bem.FormView__link m='clone' 
+                              data-version-id={item.version_id}
+                              data-tip={t('Clone as new project')}
+                              onClick={this.saveCloneAs}>
+                            <i className="k-icon-clone" />
+                          </bem.FormView__link>
+                        </bem.FormView__group>
                       </bem.FormView__item>
                       <bem.FormView__item m='date'>
                         {formatTime(item.date_deployed)}
                       </bem.FormView__item>
-                      <bem.FormView__item m='lang'>
-                      </bem.FormView__item>
-                      <bem.FormView__item m='questions'>
-                      </bem.FormView__item>
+
+                      <bem.FormView__item m='lang'></bem.FormView__item>
+                      <bem.FormView__item m='questions'></bem.FormView__item>
                     </bem.FormView__group>
                   );
                 })}
@@ -829,6 +976,7 @@ var dmix = {
       userCanView: true,
       historyExpanded: false,
       collectionOptionList: [],
+      selectedCollectOption: {},
       currentUsername: stores.session.currentAccount && stores.session.currentAccount.username,
     };
   },
@@ -841,7 +989,7 @@ var dmix = {
 
         stores.pageState.setHeaderBreadcrumb([
           {
-            label: isLibrary ? t('Library List') : t('Form List'),
+            label: isLibrary ? t('Library List') : t('Projects'),
             to: isLibrary ? 'library' : 'forms',
           },
           {

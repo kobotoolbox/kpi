@@ -237,8 +237,8 @@ stores.snapshots = Reflux.createStore({
   snapshotCreated (snapshot) {
     this.trigger(assign({success: true}, snapshot));
   },
-  snapshotCreationFailed (data) {
-    this.trigger(assign({success: false}, data));
+  snapshotCreationFailed (jqxhr) {
+    this.trigger(assign({success: false}, jqxhr.responseJSON));
   },
 });
 

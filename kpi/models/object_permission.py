@@ -6,11 +6,11 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User, AnonymousUser, Permission
 from django.conf import settings
 from django.shortcuts import _get_queryset
-from shortuuid import ShortUUID
 import copy
 import re
 
-OBJECT_PERMISSION_UID_LENGTH = 22
+from ..fields import KpiUidField
+
 
 def perm_parse(perm, obj=None):
     if obj is not None:
@@ -203,20 +203,12 @@ class ObjectPermission(models.Model):
     # so duplicate the content_type field here.
     content_type = models.ForeignKey(ContentType)
     content_object = GenericForeignKey('content_type', 'object_id')
-    uid = models.CharField(
-        max_length=OBJECT_PERMISSION_UID_LENGTH, default='', unique=True)
+    uid = KpiUidField(uid_prefix='p')
     objects = ObjectPermissionManager()
 
     @property
     def kind(self):
         return self._meta.model_name
-
-    def _populate_uid(self):
-        if self.uid == '':
-            self.uid = self._generate_uid()
-
-    def _generate_uid(self):
-        return 'p' + ShortUUID().random(OBJECT_PERMISSION_UID_LENGTH-1)
 
     class Meta:
         unique_together = ('user', 'permission', 'deny', 'inherited',
@@ -226,8 +218,6 @@ class ObjectPermission(models.Model):
         if self.permission.content_type_id is not self.content_type_id:
             raise ValidationError('The content type of the permission does '
                 'not match that of the object.')
-        # populate uid field if it's empty
-        self._populate_uid()
         super(ObjectPermission, self).save(*args, **kwargs)
 
     def __unicode__(self):
@@ -482,7 +472,8 @@ class ObjectPermissionMixin(object):
                 new_permission.user_id = self.owner_id
                 new_permission.permission = perm
                 new_permission.inherited = True
-                new_permission._populate_uid()
+                new_permission.uid = new_permission._meta.get_field(
+                    'uid').generate_uid()
                 if return_instead_of_creating:
                     objects_to_return.append(new_permission)
                 else:
@@ -534,7 +525,8 @@ class ObjectPermissionMixin(object):
                 new_permission.user_id = user_id
                 new_permission.permission_id = permission_id
                 new_permission.inherited = True
-                new_permission._populate_uid()
+                new_permission.uid = new_permission._meta.get_field(
+                    'uid').generate_uid()
                 if return_instead_of_creating:
                     objects_to_return.append(new_permission)
                 else:

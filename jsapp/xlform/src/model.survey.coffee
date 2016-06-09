@@ -110,9 +110,9 @@ module.exports = do ->
         flattened_choices = []
         for own key, val of obj.choices
           for list_item in val
-            flattened_choices.push($.extend({
-                'list_name': key
-              }, list_item))
+            _c = $.extend({list_name: key}, list_item)
+            delete _c.setManually
+            flattened_choices.push(_c)
         obj.choices = flattened_choices
 
       obj.settings = [@settings.attributes]
