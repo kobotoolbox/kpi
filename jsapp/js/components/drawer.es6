@@ -59,7 +59,7 @@ class DrawerLink extends React.Component {
       link = (
         <a href={this.props.href || '#'}
             className='k-drawer__link'
-            onClick={this.onClick.bind(this)}
+            onClick={this.onClick}
             data-tip={this.props.label}>
             {icon}
         </a>
