@@ -61,6 +61,72 @@
   font-size: 18px;
   line-height: 1.4em;
   color: unquote("rgb(#{$color-primary})");
+
+  &--has-data-tabs {
+    width:55%;
+    text-overflow:ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    display: inline-block;
+  }
+}
+
+// data tab secondary buttons
+.form-view__secondaryButtons {
+  padding: 5px;
+  width: 44%;
+  display: inline-block;
+  vertical-align: top;
+  text-align: right;
+}
+
+.form-view__secondaryButton {
+  border:none;
+  box-shadow: none;
+  border-radius: 0px;
+  margin-left: 2px;
+  font-size: 14px;
+  color:$cool-gray;
+  cursor: pointer;
+  display: inline-block;
+  text-align: center;
+  background-color: transparent;
+  i {
+    font-size:24px;
+  }
+  span {
+    display: block;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: -0.02em;
+    padding-top: 4px;
+    opacity: 0.6;
+  }
+
+  &--Report i {
+    @extend .k-icon, .k-icon-view-all;
+  }
+  &--Table i {
+    @extend .k-icon, .k-icon-results;
+  }
+  &--Gallery i {
+    @extend .k-icon, .k-icon-photo-gallery;
+  }
+  &--Downloads i {
+    @extend .k-icon, .k-icon-download;
+  }
+  &--Map i {
+    @extend .k-icon, .k-icon-map-view;
+  }
+  &--Settings i {
+    @extend .k-icon, .k-icon-settings;
+  }
+  &--active, &:hover {
+    color: unquote("rgb(#{$color-primary})");
+    span {
+      opacity: 1;
+    }
+  }
 }
 
 .form-view__description {
@@ -276,15 +342,19 @@
 // buttons in forms 
 .form-view__link {
   font-size:18px;
+  line-height: 18px;
   margin-left: 10px;
   padding:0px 10px;
   color: $cool-gray;
   cursor: pointer;
-  i.k-icon-view:before {
-    width:1.5em;
-  }
   &:hover {
     color: unquote("rgb(#{$color-primary})");
+  }
+
+  i.k-icon-edit {
+    font-size: 22px;
+    line-height: 22px;
+    margin-right: -10px;
   }
 }
 
@@ -377,29 +447,6 @@
     margin-left: 6px;
   }
   &:hover {
-    color: unquote("rgb(#{$color-primary})");
-  }
-}
-
-.form-view__secondaryButtons {
-  position: absolute;
-  background-color: #FFF;
-  right: 10px;
-  bottom: 5px;
-  padding: 5px;
-}
-
-.form-view__secondaryButton {
-  border:none;
-  box-shadow: none;
-  border-radius: 0px;
-  margin-left: 15px;
-  text-transform: uppercase;
-  background-color: #FFF;
-  font-size: 14px;
-  color:$cool-gray;
-  cursor: pointer;
-  &.active, &:hover {
     color: unquote("rgb(#{$color-primary})");
   }
 }

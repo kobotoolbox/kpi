@@ -157,7 +157,7 @@ var AssetRow = React.createClass({
             <bem.AssetRow__buttons onClick={this.clickAssetButton}>
                 { this.props.kind === 'asset' &&
                   ['view', 'edit', 'download'].map((actn)=>{
-                    var icon = 'ki-' + actn;
+                    var iconClass = 'k-icon-' + actn;
                     return (
                           <bem.AssetRow__actionIcon
                               m={actn}
@@ -167,7 +167,7 @@ var AssetRow = React.createClass({
                               data-asset-type={this.props.kind}
                               data-disabled={false}
                               >
-                            <i />
+                            <i className={iconClass} />
                           </bem.AssetRow__actionIcon>
                         );
                   })

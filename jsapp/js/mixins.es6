@@ -193,30 +193,31 @@ var dmix = {
             {this.renderExtraButtons()}
 
           </bem.FormView__tabs>
-          <bem.FormView__name>
+          <bem.FormView__name 
+            m={this.state.activeTab == 'Data' ? 'has-data-tabs' : ''} >
             <ui.AssetName {...this.state} />
           </bem.FormView__name>
-          <bem.FormView__description className="is-edge">
-            {t('no description yet')}
-          </bem.FormView__description>
           { this.state.activeTab == 'Data' ?
             <bem.FormView__secondaryButtons>
               {  
-                ['Report', 'Table', 'Gallery', 'Downloads', 'Map', /* 'Settings'*/].map((actn)=>{
+                ['Report', 'Table', 'Gallery', 'Downloads', 'Map',  'Settings'].map((actn)=>{
                   return (
                         <bem.FormView__secondaryButton
-                            m={actn}
+                            m={[actn, this.state.activeSubTab == actn ? 'active' : '']} 
                             data-id={actn}
                             onClick={this.setActiveSubTab}
-                            className={this.state.activeSubTab == actn ? 'active' : ''} 
                             >
-                          {t(actn)}
+                          <i />
+                          <span>{t(actn)}</span>
                         </bem.FormView__secondaryButton>
                       );
                 }) 
               }
             </bem.FormView__secondaryButtons>
           : null }
+          <bem.FormView__description className="is-edge">
+            {t('no description yet')}
+          </bem.FormView__description>
 
         </bem.FormView__header>
       );
@@ -340,7 +341,8 @@ var dmix = {
       Table: report__base+'/export.html',
       Gallery: deployment__identifier+'/photos',
       Map: deployment__identifier+'/map',
-      Downloads: report__base+'/export/'
+      Downloads: report__base+'/export/',
+      Settings: deployment__identifier+'/form_settings',
     };
     return (
       <bem.FormView__wrapper m='data'>
