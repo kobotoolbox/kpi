@@ -18,6 +18,9 @@ $drawer-icons-column-width: 56px;
     font-size: 14px;
     font-weight: 400;
   }
+  &:hover {
+    color: unquote("rgb(#{$color-primary})");
+  }
   &.active {
     color: unquote("rgb(#{$color-primary})");
     background-color: $layout-drawer-nav-link-active-bg;

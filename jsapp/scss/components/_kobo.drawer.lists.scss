@@ -99,13 +99,13 @@
     -webkit-box-orient: vertical;  
     overflow: hidden;
     text-overflow: ellipsis;
-    max-height: 3.6em;
+    max-height: 4.2em;
     word-wrap: break-word;
     // end multiline ellipsis webkit only
     color: $cool-gray;
     cursor: pointer;
-    font-weight: 500;
-    line-height: 1.2em;
+    font-weight: 400;
+    line-height: 1.4em;
     &:hover {
       color:unquote("rgb(#{$color-primary})");
     }
