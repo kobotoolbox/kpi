@@ -10,6 +10,7 @@
   overflow: auto;
   &--data {
     overflow: visible;
+    height: calc(100% - 96px);
   }
 }
 

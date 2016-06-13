@@ -344,6 +344,7 @@ var dmix = {
       Downloads: report__base+'/export/',
       Settings: deployment__identifier+'/form_settings',
     };
+    console.log(this.state.activeSubTab);
     return (
       <bem.FormView__wrapper m='data'>
         <bem.FormView__cell m='iframe'>
@@ -871,9 +872,9 @@ var dmix = {
     });
   },
   setActiveSubTab (evt) {
-    var tabId = $(evt.target).data('id');
+    var clickedActionId = $(evt.target).closest('[data-id]').data('id');
     this.setState({
-      activeSubTab: tabId,
+      activeSubTab: clickedActionId,
     });
   },
   renderDeployments () {
