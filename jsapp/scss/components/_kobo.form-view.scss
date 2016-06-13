@@ -74,7 +74,7 @@
 
 // data tab secondary buttons
 .form-view__secondaryButtons {
-  padding: 5px;
+  padding: 10px 5px;
   width: 44%;
   display: inline-block;
   vertical-align: top;
@@ -105,7 +105,7 @@
   }
 
   &--Report i {
-    @extend .k-icon, .k-icon-view-all;
+    @extend .k-icon, .k-icon-report;
   }
   &--Table i {
     @extend .k-icon, .k-icon-results;

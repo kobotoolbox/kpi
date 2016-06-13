@@ -205,10 +205,10 @@ var dmix = {
                         <bem.FormView__secondaryButton
                             m={[actn, this.state.activeSubTab == actn ? 'active' : '']} 
                             data-id={actn}
+                            data-tip={actn}
                             onClick={this.setActiveSubTab}
                             >
                           <i />
-                          <span>{t(actn)}</span>
                         </bem.FormView__secondaryButton>
                       );
                 }) 
