@@ -887,7 +887,9 @@ var dmix = {
       );
   },
   onDrop (files) {
-    if (files.length !== 1) {
+    if (files.length === 0) {
+      return;
+    } else if (files.length> 1) {
       var errMsg = t('Only 1 file can be uploaded in this case');
       alertify.error(errMsg);
       throw new Error(errMsg);
