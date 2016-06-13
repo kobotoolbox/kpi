@@ -256,6 +256,10 @@
       font-size: 14px;
       cursor: pointer;
       background-color: #FFF;
+      opacity: 0.5;
+      &:hover {
+        opacity: 1;
+      }
     }
   }
 
