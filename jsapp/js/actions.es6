@@ -311,6 +311,7 @@ actions.resources.updateAsset.listen(function(uid, values){
     dataInterface.patchAsset(uid, values)
       .done(function(asset){
         actions.resources.updateAsset.completed(asset);
+        notify(t('successfully updated'));
         resolve(asset);
       })
       .fail(function(...args){
