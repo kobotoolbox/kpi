@@ -96,6 +96,18 @@ class AssetContentTests(AssetsTestCase):
         ss_struct = a1.to_ss_structure()['survey']
         self.assertEqual(ss_struct[0]['type'], 'select_multiple yn')
 
+    def test_expand_content(self):
+        content = {'survey': [{'type': 'select_one abc'}]}
+        a1 = Asset.objects.create(content=content, asset_type='survey')
+        self.assertEqual(a1.content.get('survey')[0]['type'],
+                         {'select_one': 'abc'})
+
+    def test_expand_content(self):
+        content = {'survey': [{'type': 'select_one abc or_other'}]}
+        a1 = Asset.objects.create(content=content, asset_type='survey')
+        self.assertEqual(a1.content.get('survey')[0]['type'],
+                         {'select_one_or_other': 'abc'})
+
 
 class AssetSettingsTests(AssetsTestCase):
     def _content(self, form_title='some form title'):
