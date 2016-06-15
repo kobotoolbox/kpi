@@ -15,6 +15,7 @@ from taggit.models import Tag
 from reversion import revisions as reversion
 
 from formpack.utils.flatten_content import flatten_content
+from formpack.utils.expand_content import expand_content
 from .object_permission import ObjectPermission, ObjectPermissionMixin
 from ..fields import KpiUidField
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
@@ -85,10 +86,11 @@ class TagStringMixin:
 
 class XlsExportable(object):
     def valid_xlsform_content(self):
-        return to_xlsform_structure(self.content)
+        _flattened_content = flatten_content(self.content)
+        return to_xlsform_structure(_flattened_content)
 
     def to_xls_io(self, extra_rows=None, extra_settings=None,
-            overwrite_settings=False):
+                  overwrite_settings=False):
         ''' To append rows to one or more sheets, pass `extra_rows` as a
         dictionary of dictionaries in the following format:
             `{'sheet name': {'column name': 'cell value'}`
@@ -232,7 +234,7 @@ class Asset(ObjectPermissionMixin,
         return [v.field_dict for v in self.versions()]
 
     def to_ss_structure(self):
-        return flatten_content(copy.copy(self.content))
+        return flatten_content(copy.deepcopy(self.content))
 
     def _pull_form_title_from_settings(self):
         if self.asset_type != 'survey':
@@ -261,6 +263,7 @@ class Asset(ObjectPermissionMixin,
                 self._strip_empty_rows(
                     self.content['survey'], required_key='type')
                 self._assign_kuids(self.content['survey'])
+                expand_content(self.content)
             if 'choices' in self.content:
                 self._strip_empty_rows(
                     self.content['choices'], required_key='name')
