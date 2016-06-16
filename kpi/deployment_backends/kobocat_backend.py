@@ -320,6 +320,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             auth=(settings.ENKETO_API_TOKEN, ''),
             data=data
         )
+        if response.status_code == status.HTTP_404_NOT_FOUND:
+            return {}
+
         links = response.json()
         for discard in ('enketo_id', 'code', 'preview_iframe_url'):
             try: del links[discard]
