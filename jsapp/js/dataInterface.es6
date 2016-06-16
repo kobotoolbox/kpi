@@ -78,6 +78,9 @@ var dataInterface;
     listSubscriptions () {
       return $.getJSON(`${rootUrl}/public_collections/?subscribed=true`);
     },
+    listPublicCollections () {
+      return $.getJSON(`${rootUrl}/public_collections/?subscribed=false`);
+    },
     listAllAssets () {
       var d = new $.Deferred();
       $.when($.getJSON(`${rootUrl}/assets/?parent=`), $.getJSON(`${rootUrl}/collections/?parent=`)).done(function(assetR, collectionR){
@@ -210,6 +213,15 @@ var dataInterface;
       return $ajax({
         url: `${rootUrl}/assets/${uid}/`,
         method: 'DELETE'
+      });
+    },
+    subscribeCollection ({uid}) {
+      return $ajax({
+        url: `${rootUrl}/collection_subscriptions/`,
+        data: {
+          collection: `${rootUrl}/collections/${uid}/`,
+        },
+        method: 'POST'
       });
     },
     unsubscribeCollection ({uid}) {

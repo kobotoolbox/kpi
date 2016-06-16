@@ -127,6 +127,9 @@ function SearchContext(opts={}) {
       if (this.state.subscribed !== undefined) {
         params.subscribed = this.state.subscribed;
       }
+      if (this.state.public_parent !== undefined) {
+        params.public_parent = this.state.public_parent;
+      }
       return assign({}, this.filterParams, params);
     },
     toQueryData (dataObject) {
@@ -162,6 +165,10 @@ function SearchContext(opts={}) {
       if ('subscribed' in searchParams) {
         queryData.subscribed = searchParams.subscribed;
         delete searchParams.subscribed;
+      }
+      if ('public_parent' in searchParams) {
+        queryData.public_parent = searchParams.public_parent;
+        delete searchParams.public_parent;
       }
       paramGroups = paramGroups.concat(_.values(searchParams));
       if (paramGroups.length > 1) {

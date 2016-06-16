@@ -91,10 +91,18 @@ var Drawer = React.createClass({
       });
     });
   },
+  queryPublicCollections () {
+    dataInterface.listPublicCollections().then((publicCollections)=>{
+      this.setState({
+        sidebarPublicCollections: publicCollections.results,
+      });
+    });
+  },
   componentDidMount () {
     this.searchDefault();
     this.queryCollections();
     this.querySubscriptions();
+    this.queryPublicCollections();
   },
   getInitialState () {
     return assign({}, stores.pageState.state);
@@ -129,35 +137,48 @@ var Drawer = React.createClass({
   clickFilterByCollection (evt) {
     var data = $(evt.currentTarget).data();
     if (data.collectionUid) {
-      this.filterByCollection(data.collectionUid, false);
+      this.filterByCollection(data.collectionUid, false, false);
     } else {
-      this.filterByCollection(false, false);
+      this.filterByCollection(false, false, false);
     }
   },
   clickFilterBySubscribedCollection (evt) {
     var data = $(evt.currentTarget).data();
     if (data.collectionUid) {
-      this.filterByCollection(data.collectionUid, true);
+      this.filterByCollection(data.collectionUid, true, false);
     } else {
-      this.filterByCollection(false, true);
+      this.filterByCollection(false, true, false);
     }
   },
-  filterByCollection (collectionUid, subscribed) {
+  clickFilterByPublicCollection (evt) {
+    var data = $(evt.currentTarget).data();
+    if (data.collectionUid) {
+      this.filterByCollection(data.collectionUid, false, true);
+    } else {
+      this.filterByCollection(false, false, true);
+    }
+  },
+  filterByCollection (collectionUid, subscribed, public_parent) {
     if (collectionUid) {
       this.quietUpdateStore({
         parentUid: collectionUid,
         subscribed: subscribed,
+        public_parent: public_parent,
       });
     } else {
       this.quietUpdateStore({
         parentUid: false,
         subscribed: subscribed,
+        public_parent: public_parent,
       });
     }
     this.searchValue();
     this.setState({
       filteredCollectionUid: collectionUid,
     });
+  },
+  clickShowPublicCollections (evt) {
+    //TODO: show the collections in the main pane?
   },
   createCollection () {
     customPromptAsync('collection name?').then((val)=>{
@@ -176,12 +197,25 @@ var Drawer = React.createClass({
       dataInterface.deleteCollection({uid: collectionUid}).then(qc).catch(qc);
     });
   },
+  subscribeCollection (evt) {
+    evt.preventDefault();
+    var collectionUid = $(evt.currentTarget).data('collection-uid');
+    dataInterface.subscribeCollection({
+      uid: collectionUid,
+    }).then(() => {
+      this.querySubscriptions();
+      this.queryPublicCollections();
+    });
+  },
   unsubscribeCollection (evt) {
     evt.preventDefault();
     var collectionUid = $(evt.currentTarget).data('collection-uid');
     dataInterface.unsubscribeCollection({
       uid: collectionUid,
-    }).then(() => this.querySubscriptions());
+    }).then(() => {
+      this.querySubscriptions();
+      this.queryPublicCollections()
+    });
   },
   toggleFixedDrawer() {
     stores.pageState.toggleFixedDrawer();
@@ -344,6 +378,41 @@ var Drawer = React.createClass({
                               onClick={this.unsubscribeCollection}
                               data-collection-uid={collection.uid}>
                               {t('unsubscribe')}
+                            </bem.CollectionSidebar__itemlink>
+                          </bem.CollectionSidebar__itemactions>
+                        </bem.CollectionSidebar__item>
+                      );
+                  })}
+                  <bem.CollectionSidebar__item
+                    key='public'
+                    m={{
+                        toplevel: true,
+                        selected: this.state.showPublicCollections,
+                      }} onClick={this.clickShowPublicCollections}>
+                    <i className="fa fa-caret-down" />
+                    <i className="k-icon-folder" />
+                    {t('Public Collections')}
+                  </bem.CollectionSidebar__item>
+                  {this.state.sidebarPublicCollections.map((collection)=>{
+                    var editLink = this.makeHref('collection-page', {uid: collection.uid}),
+                      sharingLink = this.makeHref('collection-sharing', {assetid: collection.uid});
+                    return (
+                        <bem.CollectionSidebar__item
+                          key={collection.uid}
+                          m={{
+                            collection: true,
+                            selected: this.state.filteredCollectionUid === collection.uid,
+                          }}
+                          onClick={this.clickFilterByPublicCollection}
+                          data-collection-uid={collection.uid}
+                        >
+                          <i className="k-icon-folder" />
+                          {collection.name}
+                          <bem.CollectionSidebar__itemactions>
+                            <bem.CollectionSidebar__itemlink href={'#'}
+                              onClick={this.subscribeCollection}
+                              data-collection-uid={collection.uid}>
+                              {t('subscribe')}
                             </bem.CollectionSidebar__itemlink>
                           </bem.CollectionSidebar__itemactions>
                         </bem.CollectionSidebar__item>
