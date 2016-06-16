@@ -13,19 +13,17 @@ def _rand_id(n):
                    for _ in range(n))
 
 
-def autoname_fields__depr(surv_contents, default_language=None):
+def autoname_fields__depr(surv_contents):
     '''
-    if any names are not set, automatically fill them in
+    Note: this method is deprecated but kept around to link prior deployments
+    which don't have any names saved.
     '''
     kuid_names = {}
     for surv_row in surv_contents:
-        # xls2json_backends.csv_to_dict(), called by dkobo, omits 'name' keys
-        # whose values are blank. Since we read JSON from the form builder
-        # instead of CSV, however, we have to tolerate not only missing names
-        # but blank ones as well.
         if 'name' not in surv_row or surv_row['name'] == '':
             if isinstance(surv_row['type'], dict):
-                raise TypeError('Cannot autoname question of type: {}'.format(surv_row['type']))
+                raise TypeError('Cannot autoname question of type: {}'
+                                .format(surv_row['type']))
             if re.search(r'^end[\s_]', surv_row['type']):
                 continue
             if 'label' in surv_row:
