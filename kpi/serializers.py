@@ -501,39 +501,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             return obj.deployment.version
 
     def get_deployed_versions(self, asset):
-        asset_deployments_by_version_id = OrderedDict()
-        deployed_versioned_assets = []
-        # Record the current deployment, if any
-        if asset.has_deployment:
-            asset_deployments_by_version_id[asset.deployment.version] = \
-                asset.deployment
-            # The currently deployed version may be unknown, but we still want
-            # to pass its timestamp to the serializer
-            if asset.deployment.version == 0:
-                # Temporary attributes for later use by the serializer
-                asset._static_version_id = 0
-                asset._date_deployed = asset.deployment.timestamp
-                deployed_versioned_assets.append(asset)
-        # Record all previous deployments
-        for version in asset.versions():
-            historical_asset = version.object_version.object
-            if historical_asset.has_deployment:
-                asset_deployments_by_version_id[
-                    historical_asset.deployment.version
-                ] = historical_asset.deployment
-        # Annotate and list deployed asset versions
-        for version in asset.versions().filter(
-                id__in=asset_deployments_by_version_id.keys()):
-            historical_asset = version.object_version.object
-            # Asset.version_id returns the *most recent* version of the asset;
-            # it has no way to know the version of the instance it's bound to.
-            # Record a _static_version_id here for the serializer to use
-            historical_asset._static_version_id = version.id
-            # Make the deployment timestamp available to the serializer
-            historical_asset._date_deployed = asset_deployments_by_version_id[
-                version.id].timestamp
-            # Store the annotated asset objects in a list for serialization
-            deployed_versioned_assets.append(historical_asset)
+        deployed_versioned_assets = asset._deployed_versioned_assets()
         return AssetVersionListSerializer(
             deployed_versioned_assets,
             many=True,
@@ -628,7 +596,6 @@ class ImportTaskSerializer(serializers.HyperlinkedModelSerializer):
                 'read_only': True,
             },
         }
-
 
 class ImportTaskListSerializer(ImportTaskSerializer):
     url = serializers.HyperlinkedIdentityField(
