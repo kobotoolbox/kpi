@@ -1,6 +1,7 @@
 from django.apps import apps
 from django.db import models, transaction
 from django.core.exceptions import ValidationError, ImproperlyConfigured
+from django.core.exceptions import FieldDoesNotExist
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User, AnonymousUser, Permission
@@ -35,7 +36,10 @@ def get_all_objects_for_user(user, klass):
         content_type=ContentType.objects.get_for_model(klass)
     ).values_list('object_id', flat=True))
 
-def get_objects_for_user(user, perms, klass=None, strict=True, subscribed=None):
+def get_objects_for_user(
+        user, perms, klass=None, strict=True, subscribed=None,
+        public_parent=False
+    ):
     """
     A simplified version of django-guardian's get_objects_for_user shortcut.
     Returns queryset of objects for which a given ``user`` has *all*
@@ -55,6 +59,8 @@ def get_objects_for_user(user, perms, klass=None, strict=True, subscribed=None):
     :param subscribed: When True, include *only* objects from subscribed
     collections. When False, exclude such objects. When None, include them
     alongside regular objects.
+    :param public_parent: When True, include objects whose parent is viewable
+    by anonymous users and is publicly discoverable.
     """
     if isinstance(perms, basestring):
         perms = [perms]
@@ -154,7 +160,8 @@ def get_objects_for_user(user, perms, klass=None, strict=True, subscribed=None):
 
     # If applicable to the queryset's model, find out which objects belong to a
     # subscribed parent
-    if hasattr(queryset.model, 'parent') and hasattr(
+    if subscribed is not False and hasattr(
+        queryset.model, 'parent') and hasattr(
             queryset.model._meta.get_field('parent').rel.to,
             'usercollectionsubscription_set'
     ):
@@ -162,6 +169,24 @@ def get_objects_for_user(user, perms, klass=None, strict=True, subscribed=None):
             parent__usercollectionsubscription__user=user
         # Ignore subscriptions to one's own collections
         ).exclude(parent__owner=user)
+
+    # If applicable to the queryset's model and necessary due to `strict`, find
+    # out which objects belong to a public parent
+    if strict and public_parent and hasattr(queryset.model, 'parent'):
+        parent_model = queryset.model._meta.get_field('parent').rel.to
+        try:
+            parent_model._meta.get_field('discoverable_when_public')
+        except FieldDoesNotExist:
+            pass
+        else:
+            public_parent_objects = get_objects_for_user(
+                get_anonymous_user(),
+                'view_collection', # TODO: don't hard-code `collection`
+                parent_model.objects.filter(discoverable_when_public=True),
+                strict=False
+            )
+            objects |= queryset.model.objects.filter(
+                parent__in=public_parent_objects)
 
     if subscribed is True:
         # Include *only* objects that belong to a subscribed parent

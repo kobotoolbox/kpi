@@ -29,9 +29,13 @@ class KpiObjectPermissionsFilter(object):
                 request.query_params.get('subscribed').lower()))
         else:
             subscribed = None
+
+        public_parent  = bool(strtobool(
+            request.query_params.get('public_parent', 'false').lower()))
+
         return get_objects_for_user(
             user, permission, queryset, strict=strict_query,
-            subscribed=subscribed
+            subscribed=subscribed, public_parent=public_parent
         )
 
 
