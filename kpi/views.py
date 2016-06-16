@@ -216,6 +216,18 @@ class CollectionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
+    def perform_update(self, serializer, *args, **kwargs):
+        ''' Only the owner is allowed to change `discoverable_when_public` '''
+        original_collection = self.get_object()
+        if (self.request.user != original_collection.owner and
+                'discoverable_when_public' in serializer.validated_data and
+                (serializer.validated_data['discoverable_when_public'] !=
+                    original_collection.discoverable_when_public)
+        ):
+            raise exceptions.PermissionDenied()
+        return super(CollectionViewSet, self).perform_update(
+            serializer, *args, **kwargs)
+
     def perform_destroy(self, instance):
         instance.delete_with_deferred_indexing()
 
