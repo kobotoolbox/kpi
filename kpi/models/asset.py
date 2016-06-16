@@ -238,7 +238,7 @@ class Asset(ObjectPermissionMixin,
                 # Temporary attributes for later use by the serializer
                 self._static_version_id = 0
                 self._date_deployed = self.deployment.timestamp
-                deployed_versioned_assets.append(asset)
+                deployed_versioned_assets.append(self)
         # Record all previous deployments
         for version in self.versions():
             historical_asset = version.object_version.object
