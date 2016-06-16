@@ -22,6 +22,10 @@ DEFAULT_OPTS = {
 
 
 def sluggify(_str, _opts):
+    '''
+    this method is ported over from coffeescript:
+    jsapp/xlform/src/model.utils.coffee
+    '''
     if _str == '':
         return ''
     opts = DEFAULT_OPTS.copy()
