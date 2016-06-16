@@ -28,9 +28,6 @@ def autoname_fields__depr(surv_contents):
                 continue
             if 'label' in surv_row:
                 next_name = sluggify_valid_xml__depr(surv_row['label'])
-            elif default_language is not None:
-                _default_lang_label = surv_row['label::%s' % default_language]
-                next_name = sluggify_valid_xml__depr(_default_lang_label)
             else:
                 raise ValueError('Label cannot be translated: %s' %
                                  json.dumps(surv_row))
