@@ -306,6 +306,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         self.asset.save()
 
     def get_enketo_survey_links(self):
+        return None
         data = {
             'server_url': u'{}/{}'.format(
                 settings.KOBOCAT_URL.rstrip('/'),

@@ -235,7 +235,13 @@ actions.permissions = Reflux.createActions({
       'completed',
       'failed'
     ]
-  }
+  },
+  setCollectionDiscoverability: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
 });
 
 actions.misc = Reflux.createActions({
@@ -500,6 +506,15 @@ actions.permissions.removePerm.listen(function(details){
 
 actions.permissions.removePerm.completed.listen(function(uid){
   actions.resources.loadAsset({id: uid});
+});
+
+actions.permissions.setCollectionDiscoverability.listen(function(uid, discoverable){
+  dataInterface.patchCollection(uid, {discoverable_when_public: discoverable})
+    .done(actions.permissions.setCollectionDiscoverability.completed)
+    .fail(actions.permissions.setCollectionDiscoverability.failed);
+});
+actions.permissions.setCollectionDiscoverability.completed.listen(function(val){
+  actions.resources.loadAsset({url: val.url});
 });
 
 actions.auth.login.listen(function(creds){

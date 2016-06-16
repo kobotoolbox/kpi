@@ -60,6 +60,20 @@ mixins.permissions = {
       });
     };
   },
+  removeCollectionPublicPerm (collection, publicPerm) {
+    return (evt) => {
+      evt.preventDefault();
+      if (collection.discoverable_when_public) {
+        actions.permissions.setCollectionDiscoverability(
+          collection.uid, false
+        );
+      }
+      actions.permissions.removePerm({
+        permission_url: publicPerm.url,
+        content_object_uid: collection.uid
+      });
+    };
+  },
   setPerm (permName, props) {
     return (evt) => {
       evt.preventDefault();
@@ -70,6 +84,23 @@ mixins.permissions = {
         objectUrl: props.objectUrl,
         role: permName
       });
+    };
+  },
+  setCollectionDiscoverability (discoverable, collection, publicPerm) {
+    return (evt) => {
+      evt.preventDefault();
+      if (discoverable && !publicPerm) {
+        actions.permissions.assignPerm({
+          role: 'view',
+          username: anonUsername,
+          uid: collection.uid,
+          kind: collection.kind,
+          objectUrl: collection.url
+        });
+      }
+      actions.permissions.setCollectionDiscoverability(
+        collection.uid, discoverable
+      );
     };
   }
 };
@@ -761,6 +792,31 @@ class PublicPermDiv extends UserPermDiv {
   }
 }
 
+class DiscoverabilityDiv extends UserPermDiv {
+  render () {
+    var isOn = this.props.isOn;
+    var btnCls = classNames('mdl-button', 'mdl-button--raised',
+                            isOn ? 'mdl-button--colored' : null);
+    return (
+      <div className='permissions-toggle'>
+        <button className={btnCls} onClick={this.props.onToggle}>
+          <i className={`fa fa-globe fa-lg`} />
+          &nbsp;&nbsp;
+          {isOn ?
+            t('Public discoverability on') :
+            t('Public discoverability off')}
+        </button>
+        <p className='text-muted text-center'>
+          {isOn ?
+            t('Anyone can see this item in a public list') :
+            t('Requires link sharing to be enabled')
+          }
+        </p>
+      </div>
+      );
+  }
+}
+
 class KoBo extends React.Component {
   render () {
     return (
@@ -1376,9 +1432,10 @@ var CollectionSharing = React.createClass({
                         if (this.state.public_permission) {
                           return (
                               <PublicPermDiv isOn={true}
-                                onToggle={this.removePerm('view',
-                                                  this.state.public_permission,
-                                                  uid)}
+                                onToggle={this.removeCollectionPublicPerm(
+                                            this.state.asset,
+                                            this.state.public_permission
+                                          )}
                               />
                             );
                         } else {
@@ -1392,6 +1449,26 @@ var CollectionSharing = React.createClass({
                                         }
                                       )}
                                       />
+                            );
+                        }
+                      })()}
+                      {(() => {
+                        if (this.state.asset.discoverable_when_public) {
+                          return (
+                              <DiscoverabilityDiv isOn={true}
+                                onToggle={this.setCollectionDiscoverability(
+                                            false, this.state.asset,
+                                          )}
+                              />
+                            );
+                        } else {
+                          return (
+                              <DiscoverabilityDiv isOn={false}
+                                onToggle={this.setCollectionDiscoverability(
+                                            true, this.state.asset,
+                                            this.state.public_permission
+                                         )}
+                              />
                             );
                         }
                       })()}

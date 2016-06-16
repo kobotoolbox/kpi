@@ -166,6 +166,11 @@ var dataInterface;
       params.username = 'AnonymousUser';
       return dataInterface(params);
     },
+    setCollectionDiscoverability (uid, discoverable) {
+      dataInterface.patchCollection(uid, {
+        discoverable_when_public: discoverable
+      });
+    },
     libraryDefaultSearch () {
       return $ajax({
         url: `${rootUrl}/assets/`,
