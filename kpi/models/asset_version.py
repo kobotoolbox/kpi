@@ -13,4 +13,5 @@ class AssetVersion(models.Model):
     _reversion_version_id = models.PositiveIntegerField(null=True)
     version_content = JSONField()
     deployed_content = JSONField()
+    _deployment_data = JSONField(default=False)
     is_deployed = models.BooleanField(default=False)

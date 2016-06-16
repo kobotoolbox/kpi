@@ -44,6 +44,7 @@ class Command(BaseCommand):
                     av = av_qs.get(_reversion_version_id=asset_reversion.id)
                     av.name = sdata.get('name')
                     av.version_content = json.loads(sdata.get('content'))
+                    av._deployment_data = json.loads(sdata.get('_deployment_data', 'false'))
                     av.date_modified = sdata.get('date_modified')
                     av.save()
                 except AssetVersion.DoesNotExist, e:
@@ -51,6 +52,8 @@ class Command(BaseCommand):
                                         _reversion_version_id=asset_reversion.id,
                                         asset_id=asset_reversion.object_id,
                                         date_modified=sdata.get('date_modified'),
+                                        _deployment_data=json.loads(
+                                                sdata.get('_deployment_data', 'false')),
                                         version_content=json.loads(sdata.get('content')))
 
             index += step
@@ -96,8 +99,8 @@ class Command(BaseCommand):
             for asset in assets.all()[index:max_i]:
                 for revers_model in asset._deployed_versioned_assets():
                     rv_ids.append(revers_model.id)
-            _mrk += len(rv_ids)
             avs = AssetVersion.objects.filter(_reversion_version_id__in=rv_ids)
+            _mrk += avs.count()
             avs.update(is_deployed=True)
             if index % 1000 == 0:
                 print 'Marking deployed AssetVersions: @ {} ({})'.format(index,
