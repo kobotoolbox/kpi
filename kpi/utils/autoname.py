@@ -12,19 +12,24 @@ def _rand_id(n):
     return ''.join(random.choice(string.ascii_uppercase + string.digits)
                    for _ in range(n))
 
+def _has_name(row):
+    return 'name' in row and row['name'] != ''
 
-def autoname_fields__depr(surv_contents):
+def _is_group_end(row):
+    row_type = row['type']
+    return isinstance(row_type, basestring) and \
+        (row_type.startswith('end ') or row_type.startswith('end_'))
+
+
+def autoname_fields__depr(surv_list):
     '''
     Note: this method is deprecated but kept around to link prior deployments
     which don't have any names saved.
     '''
     kuid_names = {}
-    for surv_row in surv_contents:
-        if 'name' not in surv_row or surv_row['name'] == '':
-            if isinstance(surv_row['type'], dict):
-                raise TypeError('Cannot autoname question of type: {}'
-                                .format(surv_row['type']))
-            if re.search(r'^end[\s_]', surv_row['type']):
+    for surv_row in surv_list:
+        if not _has_name(surv_row):
+            if _is_group_end(surv_row):
                 continue
             if 'label' in surv_row:
                 next_name = sluggify_valid_xml__depr(surv_row['label'])
@@ -40,10 +45,10 @@ def autoname_fields__depr(surv_contents):
             surv_row['name'] = next_name
             kuid_names[surv_row['kuid']] = next_name
     # kuid is unused, and can't be compared with replacement method
-    for surv_row in surv_contents:
+    for surv_row in surv_list:
         if 'kuid' in surv_row:
             del surv_row['kuid']
-    return surv_contents
+    return surv_list
 
 
 def sluggify_valid_xml__depr(name):
