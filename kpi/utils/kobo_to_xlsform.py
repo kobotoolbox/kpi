@@ -315,6 +315,11 @@ def _autoname_fields(surv_contents, default_language=None):
                 raise Exception("Duplicate kuid: %s" % surv_row['kuid'])
             surv_row['name'] = next_name
             kuid_names[surv_row['kuid']] = next_name
+
+    for surv_row in surv_contents:
+        if 'kuid' in surv_row:
+            del surv_row['kuid']
+
     return surv_contents
 
 
@@ -362,6 +367,11 @@ def to_xlsform_structure(surv, **kwargs):
     opts.update(kwargs)
 
     if 'survey' in surv:
+        for survey_row in surv['survey']:
+            if 'type' in survey_row and isinstance(survey_row['type'], dict):
+                _srt = survey_row['type']
+                survey_row['type'] = '{} {}'.format(_srt.keys()[0],
+                                                    _srt.values()[0])
         if opts['autoname']:
             surv['survey'] = _autoname_fields(surv['survey'])
         if opts['extract_rank_and_score']:
