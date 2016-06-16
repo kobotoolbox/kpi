@@ -630,6 +630,7 @@ class ImportTaskSerializer(serializers.HyperlinkedModelSerializer):
             },
         }
 
+
 class ImportTaskListSerializer(ImportTaskSerializer):
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid',
