@@ -9,8 +9,8 @@ import re
 import json
 import random
 import string
-from kpi.utils.autoname import autoname_fields__depr, autovalue_choices, autoname_fields
-
+from kpi.utils.autoname import autoname_fields__depr, autoname_fields
+from kpi.utils.autoname import autovalue_choices as autovalue_choices_fn
 COLS = {
     'rank-cmessage': 'kobo--rank-constraint-message',
     'rank-items': 'kobo--rank-items',
@@ -303,14 +303,12 @@ def remove_empty_expressions(survey_content):
                 del surv_row[skip_key]
 
 
-def to_xlsform_structure(surv, **kwargs):
-    opts = {
-        'autoname': True,
-        'deprecated_autoname': False,
-        'autovalue_options': True,
-        'extract_rank_and_score': True,
-    }
-    opts.update(kwargs)
+def to_xlsform_structure(surv,
+                         autoname=True,
+                         deprecated_autoname=False,
+                         autovalue_choices=True,
+                         extract_rank_and_score=True,
+                         ):
 
     if 'survey' in surv:
         for survey_row in surv['survey']:
@@ -320,17 +318,17 @@ def to_xlsform_structure(surv, **kwargs):
                                                     _srt.values()[0])
         remove_empty_expressions(surv['survey'])
 
-        if opts['deprecated_autoname']:
+        if deprecated_autoname:
             surv['survey'] = autoname_fields__depr(surv)
-        elif opts['autoname']:
+        elif autoname:
             surv['survey'] = autoname_fields(surv)
 
-        if opts['extract_rank_and_score']:
+        if extract_rank_and_score:
             (surv['survey'], features_used) = \
                 _parse_contents_of_kobo_structures(surv)
 
-    if 'choices' in surv and opts['autovalue_options']:
-        surv['choices'] = autovalue_choices(surv.get('choices', []))
+    if 'choices' in surv and autovalue_choices:
+        surv['choices'] = autovalue_choices_fn(surv.get('choices', []))
 
     for kobo_custom_sheet_name in filter(_is_kobo_specific, surv.keys()):
         del surv[kobo_custom_sheet_name]
