@@ -9,6 +9,8 @@ def dev_mode(request):
     out['kpi_protocol'] = request.META.get('wsgi.url_scheme', 'http')
     if settings.TRACKJS_TOKEN:
         out['trackjs_token'] = settings.TRACKJS_TOKEN
+    if settings.GOOGLE_ANALYTICS_TOKEN:
+        context['google_analytics_token'] = settings.GOOGLE_ANALYTICS_TOKEN
     return out
 
 
