@@ -4,7 +4,6 @@ from hub.models import SitewideMessage
 
 def dev_mode(request):
     out = {}
-    out['livereload_script'] = settings.LIVERELOAD_SCRIPT
     if settings.TRACKJS_TOKEN:
         out['trackjs_token'] = settings.TRACKJS_TOKEN
     if settings.GOOGLE_ANALYTICS_TOKEN:

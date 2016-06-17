@@ -200,8 +200,6 @@ TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
 #if not DEBUG:
 #    STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
-LIVERELOAD_SCRIPT = os.environ.get('LIVERELOAD_SCRIPT', 'False')
-LIVERELOAD_SCRIPT = False if LIVERELOAD_SCRIPT.lower() == 'false' else LIVERELOAD_SCRIPT
 TRACKJS_TOKEN = os.environ.get('TRACKJS_TOKEN')
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 
