@@ -85,17 +85,18 @@ CLONE_ARG_NAME = 'clone_from'
 ASSET_CLONE_FIELDS = {'name', 'content', 'asset_type'}
 COLLECTION_CLONE_FIELDS = {'name'}
 
+
 @api_view(['GET'])
 def current_user(request):
     user = request.user
     if user.is_anonymous():
         return Response({'message': 'user is not logged in'})
     else:
-        return Response({'username': user.username,
+        users_payload = {'username': user.username,
                          'first_name': user.first_name,
                          'last_name': user.last_name,
                          'email': user.email,
-                         'server_time': str(datetime.datetime.utcnow()),
+                         'server_time': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
                          'projects_url': '/'.join((
                             settings.KOBOCAT_URL, user.username)),
                          'is_superuser': user.is_superuser,
@@ -103,7 +104,12 @@ def current_user(request):
                          'is_staff': user.is_staff,
                          'last_login': user.last_login,
                          'languages': settings.LANGUAGES,
-                         })
+                         }
+        if settings.UPCOMING_DOWNTIME:
+            # setting is in the format:
+            # [dt.strftime('%Y-%m-%dT%H:%M:%S'), html_notice, countdown_msg]
+            users_payload['upcoming_downtime'] = settings.UPCOMING_DOWNTIME
+        return Response(users_payload)
 
 
 @login_required
