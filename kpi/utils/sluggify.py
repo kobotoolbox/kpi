@@ -2,6 +2,8 @@
 
 from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
+
+import xml.etree.ElementTree as ET
 import re
 
 DEFAULT_OPTS = {
@@ -93,3 +95,10 @@ def sluggify_label(label, other_names=[]):
                 'incrementorPadding': 3,
                 'validXmlTag': True,
             })
+
+def is_valid_nodeName(_name):
+    try:
+        ET.fromstring('<{} />'.format(_name))
+        return True
+    except Exception, e:
+        return False
