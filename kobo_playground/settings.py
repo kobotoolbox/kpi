@@ -189,7 +189,8 @@ REST_FRAMEWORK = {
 }
 
 TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
-    'kpi.context_processors.dev_mode',
+    'kpi.context_processors.external_service_tokens',
+    'kpi.context_processors.email',
     'kpi.context_processors.git_commit',
     'kpi.context_processors.sitewide_messages',
 )
@@ -199,10 +200,8 @@ TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
 #if not DEBUG:
 #    STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
-LIVERELOAD_SCRIPT = os.environ.get('LIVERELOAD_SCRIPT', 'False')
-LIVERELOAD_SCRIPT = False if LIVERELOAD_SCRIPT.lower() == 'false' else LIVERELOAD_SCRIPT
-USE_MINIFIED_SCRIPTS = os.environ.get('KOBO_USE_MINIFIED_SCRIPTS', 'False').lower() != 'false'
 TRACKJS_TOKEN = os.environ.get('TRACKJS_TOKEN')
+GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 
 # replace this with the pointer to the kobocat server, if it exists
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat/')
