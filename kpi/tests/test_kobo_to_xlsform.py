@@ -3,8 +3,8 @@
 
 from django.test import TestCase
 
-from ..utils.kobo_to_xlsform import (to_xlsform_structure,
-                                     sluggify_valid_xml__depr,)
+from kpi.utils.kobo_to_xlsform import to_xlsform_structure
+from kpi.utils.autoname import sluggify_valid_xml__depr
 
 
 def convert_survey(surv, choices=[], sheets={}):

@@ -96,7 +96,10 @@ def sluggify_label(label, other_names=[]):
                 'validXmlTag': True,
             })
 
+
 def is_valid_nodeName(_name):
+    if not isinstance(_name, basestring) or _name == '':
+        return False
     try:
         ET.fromstring('<{} />'.format(_name))
         return True
