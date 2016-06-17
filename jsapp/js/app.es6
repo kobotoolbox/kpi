@@ -812,6 +812,13 @@ var App = React.createClass({
               'fixed-drawer': this.state.showFixedDrawer,
               'formbuilder-focus': this.state.formBuilderFocus,
                 }} className="mdl-layout mdl-layout--fixed-header">
+              { this.state.modalMessage ?
+                <ui.Modal open small onClose={()=>{stores.pageState.hideModal()}} icon={this.state.modalIcon}>
+                  <ui.Modal.Body>
+                    {stores.pageState.state.modalMessage}
+                  </ui.Modal.Body>
+                </ui.Modal>
+              : null}
               { !this.state.formBuilderFocus && 
                 <MainHeader/>
               }
