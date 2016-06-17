@@ -2,7 +2,7 @@ from django.conf import settings
 from hub.models import SitewideMessage
 
 
-def dev_mode(request):
+def external_service_tokens(request):
     out = {}
     if settings.TRACKJS_TOKEN:
         out['trackjs_token'] = settings.TRACKJS_TOKEN
