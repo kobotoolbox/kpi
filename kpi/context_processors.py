@@ -7,7 +7,7 @@ def external_service_tokens(request):
     if settings.TRACKJS_TOKEN:
         out['trackjs_token'] = settings.TRACKJS_TOKEN
     if settings.GOOGLE_ANALYTICS_TOKEN:
-        context['google_analytics_token'] = settings.GOOGLE_ANALYTICS_TOKEN
+        out['google_analytics_token'] = settings.GOOGLE_ANALYTICS_TOKEN
     return out
 
 def email(request):
