@@ -452,7 +452,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return fields
 
     def _version_count(self, obj):
-        return obj.versions().count()
+        return obj.asset_versions.count()
 
     def get_xls_link(self, obj):
         return reverse('asset-xls', args=(obj.uid,), request=self.context.get('request', None))
