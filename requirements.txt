@@ -61,3 +61,4 @@ uWSGI==2.0.12
 whitenoise==2.0.6
 xlrd==0.8.0
 xlwt==1.0.0
+django-jsonbfield==0.1.0

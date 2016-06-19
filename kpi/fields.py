@@ -5,6 +5,7 @@ from shortuuid import ShortUUID
 # to migrate dkobo (see SurveyDraft.kpi_asset_uid)
 UUID_LENGTH = 21
 
+
 class KpiUidField(models.CharField):
     ''' If empty, automatically populates itself with a UID before saving '''
     def __init__(self, uid_prefix):
@@ -23,7 +24,7 @@ class KpiUidField(models.CharField):
     def generate_uid(self):
         return self.uid_prefix + ShortUUID().random(UUID_LENGTH)
         # When UID_LENGTH is 22, that should be changed to:
-        #return self.uid_prefix + shortuuid.uuid()
+        # return self.uid_prefix + shortuuid.uuid()
 
     def pre_save(self, model_instance, add):
         value = getattr(model_instance, self.attname)
