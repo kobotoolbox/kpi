@@ -76,6 +76,7 @@ from .serializers import (
     OneTimeAuthenticationKeySerializer,
     DeploymentSerializer,)
 from .utils.gravatar_url import gravatar_url
+from .utils.kobo_to_xlsform import to_xlsform_structure
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from .tasks import import_in_background
 from deployment_backends.backends import DEPLOYMENT_BACKENDS
@@ -586,14 +587,23 @@ class AssetViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED,
                         headers=headers)
 
-    @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
-    def content(self, request, *args, **kwargs):
+    @detail_route(renderer_classes=[renderers.JSONRenderer])
+    def content(self, request, uid):
         asset = self.get_object()
-        return Response(json.dumps({
+        return Response({
             'kind': 'asset.content',
             'uid': asset.uid,
-            'data': asset.to_ss_structure()
-        }))
+            'data': asset.to_ss_structure(),
+        })
+
+    @detail_route(renderer_classes=[renderers.JSONRenderer])
+    def valid_content(self, request, uid):
+        asset = self.get_object()
+        return Response({
+            'kind': 'asset.valid_content',
+            'uid': asset.uid,
+            'data': to_xlsform_structure(asset.content),
+        })
 
     @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
     def koboform(self, request, *args, **kwargs):
