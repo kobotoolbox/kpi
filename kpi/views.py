@@ -173,6 +173,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
         'permissions__permission',
         'permissions__user',
         'permissions__content_object',
+        'usercollectionsubscription_set',
     ).all().order_by('-date_modified')
     serializer_class = CollectionSerializer
     permission_classes = (IsOwnerOrReadOnly,)
@@ -242,25 +243,7 @@ class PublicCollectionViewSet(viewsets.ModelViewSet):
     serializer_class = CollectionListSerializer
     queryset = Collection.objects.none()
     def get_queryset(self, *args, **kwargs):
-        queryset = Collection.objects.filter(discoverable_when_public=True)
-        if 'subscribed' in self.request.query_params:
-            subscribed = bool(strtobool(
-                self.request.query_params.get('subscribed').lower()))
-            criteria = {'usercollectionsubscription__user': self.request.user}
-            if subscribed:
-                queryset = queryset.filter(**criteria)
-                # Never show the user's own collections as subscribed, even if
-                # the user has subscribed to their own collection
-                queryset = queryset.exclude(owner=self.request.user)
-            else:
-                unfiltered_queryset = queryset
-                queryset = queryset.exclude(**criteria)
-                # Always show one's own collections as unsubscribed
-                queryset |= unfiltered_queryset.filter(
-                    owner=self.request.user, **criteria)
-        return get_objects_for_user(
-            get_anonymous_user(), 'view_collection', queryset)
-
+        raise NotImplementedError('this is going away in a hurry')
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()

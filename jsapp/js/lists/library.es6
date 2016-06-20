@@ -46,13 +46,6 @@ var LibrarySearchableList = React.createClass({
       });
     });
   },
-  querySubscriptions () {
-    dataInterface.listSubscriptions().then((subscriptions)=>{
-      this.setState({
-        sidebarSubscriptions: subscriptions.results,
-      });
-    });
-  },
   componentDidMount () {
     this.searchDefault();
     this.queryCollections();
@@ -72,7 +65,6 @@ var LibrarySearchableList = React.createClass({
       searchContext: searches.getSearchContext('library', {
         filterParams: {
           assetType: 'asset_type:question OR asset_type:block',
-          subscribed: false,
         },
         filterTags: 'asset_type:question OR asset_type:block',
       })

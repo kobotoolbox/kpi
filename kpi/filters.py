@@ -1,6 +1,7 @@
 from distutils.util import strtobool
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import FieldError
 from rest_framework import filters
 from haystack.backends.whoosh_backend import WhooshSearchBackend
 from whoosh.qparser import QueryParser
@@ -16,6 +17,15 @@ class KpiObjectPermissionsFilter(object):
 
     def filter_queryset(self, request, queryset, view):
         user = request.user
+        if user.is_superuser and view.action != 'list':
+            # For a list, we won't deluge the superuser with everyone else's
+            # stuff. This isn't a list, though, so return it all
+            return queryset
+        # Governs whether unsubscribed (but publicly discoverable) objects are
+        # included. Exclude them by default
+        all_public = bool(strtobool(
+            request.query_params.get('all_public', 'false').lower()))
+
         model_cls = queryset.model
         kwargs = {
             'app_label': model_cls._meta.app_label,
@@ -23,20 +33,48 @@ class KpiObjectPermissionsFilter(object):
         }
         permission = self.perm_format % kwargs
 
-        strict_query= view.action == 'list'
-        if 'subscribed' in request.query_params:
-            subscribed = bool(strtobool(
-                request.query_params.get('subscribed').lower()))
-        else:
-            subscribed = None
+        owned_and_explicitly_shared = get_objects_for_user(
+            user, permission, queryset)
+        public = get_objects_for_user(
+            get_anonymous_user(), permission, queryset)
+        if view.action != 'list':
+            # Not a list, so discoverability doesn't matter
+            return owned_and_explicitly_shared | public
 
-        public_parent  = bool(strtobool(
-            request.query_params.get('public_parent', 'false').lower()))
+        # For a list, do not include public objects unless they are also
+        # discoverable
+        try:
+            discoverable = public.filter(discoverable_when_public=True)
+        except FieldError:
+            try:
+                # The model does not have a discoverability setting, but maybe
+                # its parent does
+                discoverable = public.filter(
+                    parent__discoverable_when_public=True)
+            except FieldError:
+                # Neither the model or its parent has a discoverability setting
+                discoverable = public.none()
 
-        return get_objects_for_user(
-            user, permission, queryset, strict=strict_query,
-            subscribed=subscribed, public_parent=public_parent
-        )
+        if all_public:
+            # We were asked not to consider subscriptions; return all
+            # discoverable objects
+            return owned_and_explicitly_shared | discoverable
+
+        # Of the discoverable objects, determine to which the user has
+        # subscribed
+        try:
+            subscribed = public.filter(usercollectionsubscription__user=user)
+        except FieldError:
+            try:
+                # The model does not have a subscription relation, but maybe
+                # its parent does
+                subscribed = public.filter(
+                    parent__usercollectionsubscription__user=user)
+            except FieldError:
+                # Neither the model or its parent has a subscription relation
+                subscribed = public.none()
+
+        return owned_and_explicitly_shared | subscribed
 
 
 class SearchFilter(filters.BaseFilterBackend):

@@ -124,11 +124,8 @@ function SearchContext(opts={}) {
       if (this.state.parentUid) {
         params.parentUid = `parent__uid:${this.state.parentUid}`;
       }
-      if (this.state.subscribed !== undefined) {
-        params.subscribed = this.state.subscribed;
-      }
-      if (this.state.public_parent !== undefined) {
-        params.public_parent = this.state.public_parent;
+      if (this.state.allPublic === true) {
+        params.allPublic = true;
       }
       return assign({}, this.filterParams, params);
     },
@@ -162,13 +159,9 @@ function SearchContext(opts={}) {
         }
         delete searchParams.parent;
       }
-      if ('subscribed' in searchParams) {
-        queryData.subscribed = searchParams.subscribed;
-        delete searchParams.subscribed;
-      }
-      if ('public_parent' in searchParams) {
-        queryData.public_parent = searchParams.public_parent;
-        delete searchParams.public_parent;
+      if ('allPublic' in searchParams) {
+        queryData.all_public = searchParams.allPublic;
+        delete searchParams.allPublic;
       }
       paramGroups = paramGroups.concat(_.values(searchParams));
       if (paramGroups.length > 1) {

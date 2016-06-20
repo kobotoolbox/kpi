@@ -1,7 +1,6 @@
 from django.apps import apps
 from django.db import models, transaction
 from django.core.exceptions import ValidationError, ImproperlyConfigured
-from django.core.exceptions import FieldDoesNotExist
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User, AnonymousUser, Permission
@@ -36,10 +35,7 @@ def get_all_objects_for_user(user, klass):
         content_type=ContentType.objects.get_for_model(klass)
     ).values_list('object_id', flat=True))
 
-def get_objects_for_user(
-        user, perms, klass=None, strict=True, subscribed=None,
-        public_parent=False
-    ):
+def get_objects_for_user(user, perms, klass=None):
     """
     A simplified version of django-guardian's get_objects_for_user shortcut.
     Returns queryset of objects for which a given ``user`` has *all*
@@ -54,13 +50,6 @@ def get_objects_for_user(
       the same or ``ValidationError`` exception will be raised.
     :param klass: may be a Model, Manager or QuerySet object. If not given
       this parameter will be computed based on given ``params``.
-    :param strict: When True, do not honor superuser status or
-      include unsubscribed public objects.
-    :param subscribed: When True, include *only* objects from subscribed
-    collections. When False, exclude such objects. When None, include them
-    alongside regular objects.
-    :param public_parent: When True, include objects whose parent is viewable
-    by anonymous users and is publicly discoverable.
     """
     if isinstance(perms, basestring):
         perms = [perms]
@@ -107,14 +96,9 @@ def get_objects_for_user(
     # match which means: ctype.model_class() == queryset.model
     # we should also have ``codenames`` list
 
-    # First check if user is superuser and if so, return queryset immediately
-    if user.is_superuser and not strict:
-        return queryset
-
     # Check if the user is anonymous. The
     # django.contrib.auth.models.AnonymousUser object doesn't work for
     # queries, and it's nice to be able to pass in request.user blindly.
-    user_anonymous = user.is_anonymous() or user == get_anonymous_user()
     if user.is_anonymous():
         user = get_anonymous_user()
 
@@ -125,86 +109,14 @@ def get_objects_for_user(
         .filter(permission__codename__in=codenames)
         .filter(deny=False))
 
-    if user_anonymous:
-        public_user_obj_perms_queryset = user_obj_perms_queryset
-    else:
-        public_user_obj_perms_queryset = (
-            ObjectPermission.objects
-                .filter(user=get_anonymous_user())
-                .filter(permission__content_type=ctype)
-                .filter(permission__codename__in=codenames)
-                .filter(deny=False)
-        )
-
     if len(codenames) > 1:
         counts = user_obj_perms_queryset.values('object_id').annotate(
             object_pk_count=models.Count('object_id'))
-        public_counts = public_user_obj_perms_queryset.values(
-            'object_id').annotate(object_pk_count=models.Count('object_id'))
-        user_obj_perms_queryset = counts.filter(
-            object_pk_count__gte=len(codenames))
-        public_user_obj_perms_queryset = public_counts.filter(
-            object_pk_count__gte=len(codenames))
+        user_obj_perms_queryset = counts.filter(object_pk_count__gte=len(codenames))
 
     values = user_obj_perms_queryset.values_list('object_id', flat=True)
     values = list(values)
     objects = queryset.filter(pk__in=values)
-
-    if user_anonymous:
-        public_objects = objects
-    else:
-        values = public_user_obj_perms_queryset.values_list(
-            'object_id', flat=True)
-        values = list(values)
-        public_objects = queryset.filter(pk__in=values)
-
-    # If applicable to the queryset's model, find out which objects belong to a
-    # subscribed parent
-    if subscribed is not False and hasattr(
-        queryset.model, 'parent') and hasattr(
-            queryset.model._meta.get_field('parent').rel.to,
-            'usercollectionsubscription_set'
-    ):
-        subscribed_objects = public_objects.filter(
-            parent__usercollectionsubscription__user=user
-        # Ignore subscriptions to one's own collections
-        ).exclude(parent__owner=user)
-
-    # If applicable to the queryset's model and necessary due to `strict`, find
-    # out which objects belong to a public parent
-    if strict and public_parent and hasattr(queryset.model, 'parent'):
-        parent_model = queryset.model._meta.get_field('parent').rel.to
-        try:
-            parent_model._meta.get_field('discoverable_when_public')
-        except FieldDoesNotExist:
-            pass
-        else:
-            public_parent_objects = get_objects_for_user(
-                get_anonymous_user(),
-                'view_collection', # TODO: don't hard-code `collection`
-                parent_model.objects.filter(discoverable_when_public=True),
-                strict=False
-            )
-            objects |= queryset.model.objects.filter(
-                parent__in=public_parent_objects)
-
-    if subscribed is True:
-        # Include *only* objects that belong to a subscribed parent
-        return subscribed_objects
-
-    if not user_anonymous:
-        values = public_user_obj_perms_queryset.values_list(
-            'object_id', flat=True)
-        values = list(values)
-        public_objects = queryset.filter(pk__in=values)
-
-        if not strict:
-            # Optionally union in public assets (with allow permissions).
-            objects |= public_objects
-        elif subscribed is not False:
-            # Strict mode has excluded all public assets, but bring in those
-            # belonging to subscribed collections if so requested
-            objects |= subscribed_objects
 
     return objects
 
@@ -329,38 +241,15 @@ class ObjectPermissionMixin(object):
 
     @transaction.atomic
     def save(self, *args, **kwargs):
-        # TODO: Query the database fewer times! --jnm
-        # Some modifications don't require recalculating permissions, which is
-        # expensive. If the model specifies which fields are trivial in this
-        # respect, make an extra call to the database to find out whether they
-        # changed.
-        if self.pk and hasattr(self, 'FIELDS_UNRELATED_TO_PERMISSIONS'):
-            old_self = type(self).objects.get(pk=self.pk)
-        else:
-            old_self = None
         # Make sure we exist in the database before proceeding
         super(ObjectPermissionMixin, self).save(*args, **kwargs)
         # Recalculate self and all descendants, re-fetching ourself first to
         # guard against stale MPTT values
         fresh_self = type(self).objects.get(pk=self.pk)
-
-        if old_self:
-            # Check whether any changes require recalculating permissions
-            recalculate_permission_required = False
-            for field in self._meta.fields:
-                field_name = field.attname
-                if field_name in self.FIELDS_UNRELATED_TO_PERMISSIONS:
-                    continue
-                if getattr(old_self, field_name) != getattr(
-                        fresh_self, field_name):
-                    recalculate_permission_required = True
-                    break
-        else:
-            recalculate_permission_required = True
-
-        if recalculate_permission_required:
-            fresh_self._recalculate_inherited_perms()
-            fresh_self.recalculate_descendants_perms()
+        # TODO: Don't do this when the modification is trivial, e.g. a
+        # collection was renamed
+        fresh_self._recalculate_inherited_perms()
+        fresh_self.recalculate_descendants_perms()
 
     def _filter_anonymous_perms(self, unfiltered_set):
         ''' Restrict a set of tuples in the format (user_id, permission_id) to

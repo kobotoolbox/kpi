@@ -73,13 +73,7 @@ var dataInterface;
       });
     },
     listCollections () {
-      return $.getJSON(`${rootUrl}/collections/?parent=`);
-    },
-    listSubscriptions () {
-      return $.getJSON(`${rootUrl}/public_collections/?subscribed=true`);
-    },
-    listPublicCollections () {
-      return $.getJSON(`${rootUrl}/public_collections/?subscribed=false`);
+      return $.getJSON(`${rootUrl}/collections/?all_public=true`);
     },
     listAllAssets () {
       var d = new $.Deferred();

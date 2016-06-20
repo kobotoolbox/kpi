@@ -822,6 +822,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     downloads = serializers.SerializerMethodField()
     tag_string = serializers.CharField(required=False)
+    access_type = serializers.SerializerMethodField()
 
     class Meta:
         model = Collection
@@ -838,6 +839,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
                   'ancestors',
                   'children',
                   'permissions',
+                  'access_type',
                   'discoverable_when_public',
                   'tag_string',)
         lookup_field = 'uid'
@@ -885,6 +887,30 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
             {'format': 'zip', 'url': '%s?format=zip' % obj_url},
         ]
 
+    def get_access_type(self, obj):
+        try:
+            request = self.context['request']
+        except KeyError:
+            return None
+        if request.user == obj.owner:
+            return 'owned'
+        # `obj.permissions.filter(...).exists()` would be cleaner, but it'd
+        # cost a query. This ugly loop takes advantage of having already called
+        # `prefetch_related()`
+        for permission in obj.permissions.all():
+            if not permission.deny and permission.user == request.user:
+                return 'shared'
+        for subscription in obj.usercollectionsubscription_set.all():
+            # `usercollectionsubscription_set__user` is not prefetched
+            if subscription.user_id == request.user.pk:
+                return 'subscribed'
+        if obj.discoverable_when_public:
+            return 'public'
+        if request.user.is_superuser:
+            return 'superuser'
+        raise Exception(u'{} has unexpected access to {}'.format(
+            request.user.username, obj.uid))
+
 
 class SitewideMessageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -917,6 +943,8 @@ class CollectionListSerializer(CollectionSerializer):
                   'date_created',
                   'date_modified',
                   'permissions',
+                  'access_type',
+                  'discoverable_when_public',
                   'tag_string',)
 
 
