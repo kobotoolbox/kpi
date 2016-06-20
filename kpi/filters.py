@@ -33,8 +33,14 @@ class KpiObjectPermissionsFilter(object):
         }
         permission = self.perm_format % kwargs
 
-        owned_and_explicitly_shared = get_objects_for_user(
-            user, permission, queryset)
+        if user.is_anonymous():
+            user = get_anonymous_user()
+            # Avoid giving anonymous users special treatment when viewing
+            # public objects
+            owned_and_explicitly_shared = queryset.none()
+        else:
+            owned_and_explicitly_shared = get_objects_for_user(
+                user, permission, queryset)
         public = get_objects_for_user(
             get_anonymous_user(), permission, queryset)
         if view.action != 'list':
