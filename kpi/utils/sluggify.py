@@ -22,12 +22,14 @@ DEFAULT_OPTS = {
     'incrementorPadding': False,
 }
 
+import md5
 
 def sluggify(_str, _opts):
     '''
     this method is ported over from coffeescript:
     jsapp/xlform/src/model.utils.coffee
     '''
+    _initial = _str
     if _str == '':
         return ''
     opts = DEFAULT_OPTS.copy()
@@ -73,8 +75,10 @@ def sluggify(_str, _opts):
         names_lc = [name.lower() for name in names]
         attempt_base = _str
         if len(attempt_base) == 0:
-            raise ValueError("Renaming Error: {} is empty"
-                             .format(opts['descriptor']))
+            # empty string because arabic / cyrillic characters
+            _str = 'h' + md5.md5(
+                                 _initial[0:7].encode('utf-8')
+                                 ).hexdigest()[0:7]
         attempt = attempt_base
         incremented = 0
         while attempt.lower() in names_lc:

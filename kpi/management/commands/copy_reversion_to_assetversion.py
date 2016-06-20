@@ -6,6 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand
 from django.contrib.contenttypes.models import ContentType
 from django.forms import model_to_dict
+from raven.contrib.django.raven_compat.models import client
 from reversion import revisions
 from reversion.models import Version
 
@@ -25,6 +26,14 @@ def _version_ids_grouped_by_deployed(asset):
         deployed,
     )
 
+
+def create_assetversion_for_revision__wrapped(asset, version, deployed):
+    try:
+        create_assetversion_for_revision(asset, version, deployed)
+    except KeyboardInterrupt, e:
+        sys.exit(0)
+    except Exception, e:
+        client.captureException()
 
 def create_assetversion_for_revision(asset, version, deployed):
     fields = json.loads(version.serialized_data)[0].get('fields')
@@ -56,9 +65,9 @@ def create_revisions_for_user(user):
         new_avs = set()
         (undeployed, deployed) = _version_ids_grouped_by_deployed(asset)
         for v in Version.objects.filter(id__in=undeployed).all():
-            new_avs = new_avs | set([create_assetversion_for_revision(asset, v, deployed=False)])
+            new_avs = new_avs | set([create_assetversion_for_revision__wrapped(asset, v, deployed=False)])
         for v in Version.objects.filter(id__in=deployed).all():
-            new_avs = new_avs | set([create_assetversion_for_revision(asset, v, deployed=True)])
+            new_avs = new_avs | set([create_assetversion_for_revision__wrapped(asset, v, deployed=True)])
         uavs = uavs | new_avs
     return uavs
 
