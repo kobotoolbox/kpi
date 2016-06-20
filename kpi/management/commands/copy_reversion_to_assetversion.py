@@ -52,8 +52,9 @@ def create_assetversion_for_revision(asset, version, deployed):
 
     try:
         av = asset.asset_versions.get(_reversion_version_id=version.id)
-        av.__dict__.update(params)
-        av.save()
+        # av.__dict__.update(params)
+        # av.save()
+        return av
     except ObjectDoesNotExist, e:
         av = asset.asset_versions.create(**params)
     return av
