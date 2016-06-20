@@ -2,6 +2,8 @@ import React from 'react/addons';
 import {Link} from 'react-router';
 import mdl from '../libs/rest_framework/material';
 import Select from 'react-select';
+import moment from 'moment';
+import ui from '../ui';
 
 import stores from '../stores';
 import Reflux from 'reflux';
@@ -173,7 +175,18 @@ var MainHeader = React.createClass({
   toggleFixedDrawer() {
     stores.pageState.toggleFixedDrawer();
   },
+  showDowntimeNotificationBox () {
+    stores.pageState.showModal({
+      message: stores.session.currentAccount.downtimeMessage,
+      icon: 'gears',
+    });
+  },
   render () {
+    if (stores.session && stores.session.currentAccount && stores.session.currentAccount.downtimeDate) {
+      var mTime = moment(stores.session.currentAccount.downtimeDate);
+      var downtimeDate = `${mTime.fromNow()} (${mTime.calendar()})`;
+      var downtimeMessage = [t('Scheduled server maintenance'), downtimeDate];
+    }
     return (
         <header className="mdl-layout__header">
           <div className="mdl-layout__header-row">
@@ -189,6 +202,13 @@ var MainHeader = React.createClass({
                 <bem.AccountBox__logo />
               </a>
             </span>
+            {downtimeMessage ?
+              <div className="account-box__alert" onClick={this.showDowntimeNotificationBox}>
+                <strong>{downtimeMessage[0]}</strong>
+                <br />
+                {downtimeMessage[1]}
+              </div>
+            :null}
             <div className="mdl-layout__header-searchers">
               { this.state.headerFilters == 'library' && 
                 <ListSearch searchContext={this.state.libraryFiltersContext} />

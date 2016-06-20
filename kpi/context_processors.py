@@ -1,14 +1,20 @@
 from django.conf import settings
 from hub.models import SitewideMessage
 
-def dev_mode(request):
+
+def external_service_tokens(request):
     out = {}
-    out['livereload_script']  = settings.LIVERELOAD_SCRIPT
-    out['use_minified_script'] = settings.USE_MINIFIED_SCRIPTS
     if settings.TRACKJS_TOKEN:
         out['trackjs_token'] = settings.TRACKJS_TOKEN
+    if settings.GOOGLE_ANALYTICS_TOKEN:
+        out['google_analytics_token'] = settings.GOOGLE_ANALYTICS_TOKEN
     return out
 
+def email(request):
+    out = {}
+    # 'kpi_protocol' used in the activation_email.txt template
+    out['kpi_protocol'] = request.META.get('wsgi.url_scheme', 'http')
+    return out
 
 def git_commit(request):
     return {
