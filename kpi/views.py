@@ -245,12 +245,6 @@ class CollectionViewSet(viewsets.ModelViewSet):
             return CollectionSerializer
 
 
-class PublicCollectionViewSet(viewsets.ModelViewSet):
-    serializer_class = CollectionListSerializer
-    queryset = Collection.objects.none()
-    def get_queryset(self, *args, **kwargs):
-        raise NotImplementedError('this is going away in a hurry')
-
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
