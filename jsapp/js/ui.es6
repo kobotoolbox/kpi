@@ -105,8 +105,11 @@ ui.Modal = React.createClass({
             this.props.error ? 'modal-error' : null,
             this.props.title ? 'modal-titled' : null)}
           onClick={this.backdropClick}>
-        <div className={this.props.open ? 'modal-open' : 'modal'}> 
-          <div className="modal-content">
+        <div className={classNames(this.props.open ? 'modal-open' : 'modal', this.props.icon ? 'modal--withicon' : null)}>
+          {this.props.icon ?
+            <i className={classNames('modal_icon', `modal_icon--${this.props.icon}`)} />
+          :null}
+          <div className={classNames('modal-content')}>
             <div className="modal-header">
               {this.renderTitle()}
               <a className="modal-x" type="button" onClick={this.props.onClose}>
