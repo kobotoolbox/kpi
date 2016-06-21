@@ -17,6 +17,9 @@ export function formatTime(timeStr) {
 export var anonUsername = 'AnonymousUser';
 export function getAnonymousUserPermission(permissions) {
   return permissions.filter(function(perm){
+    if (perm.user__username === undefined) {
+      perm.user__username = perm.user.match(/\/users\/(.*)\//)[1];
+    }
     return perm.user__username === anonUsername;
   })[0];
 }

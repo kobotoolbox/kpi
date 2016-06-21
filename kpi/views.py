@@ -1,3 +1,4 @@
+from distutils.util import strtobool
 from itertools import chain
 import copy
 import json
@@ -49,9 +50,11 @@ from .models import (
     ObjectPermission,
     AuthorizedApplication,
     OneTimeAuthenticationKey,
+    UserCollectionSubscription,
     )
 from .models.object_permission import get_anonymous_user, get_objects_for_user
 from .models.authorized_application import ApplicationTokenAuthentication
+from .model_utils import disable_auto_field_update
 from .permissions import (
     IsOwnerOrReadOnly,
     PostMappedToChangePermission,
@@ -74,7 +77,8 @@ from .serializers import (
     ObjectPermissionSerializer,
     AuthorizedApplicationUserSerializer,
     OneTimeAuthenticationKeySerializer,
-    DeploymentSerializer,)
+    DeploymentSerializer,
+    UserCollectionSubscriptionSerializer,)
 from .utils.gravatar_url import gravatar_url
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from .tasks import import_in_background
@@ -176,6 +180,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
         'permissions__permission',
         'permissions__user',
         'permissions__content_object',
+        'usercollectionsubscription_set',
     ).all().order_by('-date_modified')
     serializer_class = CollectionSerializer
     permission_classes = (IsOwnerOrReadOnly,)
@@ -218,6 +223,32 @@ class CollectionViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+    def perform_update(self, serializer, *args, **kwargs):
+        ''' Only the owner is allowed to change `discoverable_when_public` '''
+        original_collection = self.get_object()
+        if (self.request.user != original_collection.owner and
+                'discoverable_when_public' in serializer.validated_data and
+                (serializer.validated_data['discoverable_when_public'] !=
+                    original_collection.discoverable_when_public)
+        ):
+            raise exceptions.PermissionDenied()
+
+        # Some fields shouldn't affect the modification date
+        FIELDS_NOT_AFFECTING_MODIFICATION_DATE = set((
+            'discoverable_when_public',
+        ))
+        changed_fields = set()
+        for k, v in serializer.validated_data.iteritems():
+            if getattr(original_collection, k) != v:
+                changed_fields.add(k)
+        if changed_fields.issubset(FIELDS_NOT_AFFECTING_MODIFICATION_DATE):
+            with disable_auto_field_update(Collection, 'date_modified'):
+                return super(CollectionViewSet, self).perform_update(
+                    serializer, *args, **kwargs)
+
+        return super(CollectionViewSet, self).perform_update(
+                serializer, *args, **kwargs)
 
     def perform_destroy(self, instance):
         instance.delete_with_deferred_indexing()
@@ -739,3 +770,25 @@ def _wrap_html_pre(content):
 class SitewideMessageViewSet(viewsets.ModelViewSet):
     queryset = SitewideMessage.objects.all()
     serializer_class = SitewideMessageSerializer
+
+
+class UserCollectionSubscriptionViewSet(viewsets.ModelViewSet):
+    queryset = UserCollectionSubscription.objects.none()
+    serializer_class = UserCollectionSubscriptionSerializer
+    lookup_field = 'uid'
+
+    def get_queryset(self):
+        user = self.request.user
+        # Check if the user is anonymous. The
+        # django.contrib.auth.models.AnonymousUser object doesn't work for
+        # queries.
+        if user.is_anonymous():
+            user = get_anonymous_user()
+        criteria = {'user': user}
+        if 'collection__uid' in self.request.query_params:
+            criteria['collection__uid'] = self.request.query_params[
+                'collection__uid']
+        return UserCollectionSubscription.objects.filter(**criteria)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

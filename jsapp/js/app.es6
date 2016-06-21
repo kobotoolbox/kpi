@@ -60,6 +60,20 @@ mixins.permissions = {
       });
     };
   },
+  removeCollectionPublicPerm (collection, publicPerm) {
+    return (evt) => {
+      evt.preventDefault();
+      if (collection.discoverable_when_public) {
+        actions.permissions.setCollectionDiscoverability(
+          collection.uid, false
+        );
+      }
+      actions.permissions.removePerm({
+        permission_url: publicPerm.url,
+        content_object_uid: collection.uid
+      });
+    };
+  },
   setPerm (permName, props) {
     return (evt) => {
       evt.preventDefault();
@@ -1383,9 +1397,10 @@ var CollectionSharing = React.createClass({
                         if (this.state.public_permission) {
                           return (
                               <PublicPermDiv isOn={true}
-                                onToggle={this.removePerm('view',
-                                                  this.state.public_permission,
-                                                  uid)}
+                                onToggle={this.removeCollectionPublicPerm(
+                                            this.state.asset,
+                                            this.state.public_permission
+                                          )}
                               />
                             );
                         } else {

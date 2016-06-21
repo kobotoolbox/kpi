@@ -51,6 +51,7 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
         'self', null=True, blank=True, related_name='children')
     owner = models.ForeignKey('auth.User', related_name='owned_collections')
     editors_can_change_permissions = models.BooleanField(default=True)
+    discoverable_when_public = models.BooleanField(default=False)
     uid = KpiUidField(uid_prefix='c')
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
@@ -227,3 +228,13 @@ class CollectionChildrenQuerySet(object):
         qs.child_collections = self.child_collections._clone()
         qs.child_assets = self.child_assets._clone()
         return qs
+
+
+class UserCollectionSubscription(models.Model):
+    ''' Record a user's subscription to a publicly-discoverable collection,
+    i.e. one that has `discoverable_when_public = True` '''
+    collection = models.ForeignKey(Collection)
+    user = models.ForeignKey('auth.User')
+    uid = KpiUidField(uid_prefix='b')
+    class Meta:
+        unique_together = ('collection', 'user')

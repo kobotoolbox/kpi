@@ -73,7 +73,7 @@ var dataInterface;
       });
     },
     listCollections () {
-      return $.getJSON(`${rootUrl}/collections/?parent=`);
+      return $.getJSON(`${rootUrl}/collections/?all_public=true`);
     },
     listAllAssets () {
       var d = new $.Deferred();
@@ -163,6 +163,11 @@ var dataInterface;
       params.username = 'AnonymousUser';
       return dataInterface(params);
     },
+    setCollectionDiscoverability (uid, discoverable) {
+      dataInterface.patchCollection(uid, {
+        discoverable_when_public: discoverable
+      });
+    },
     libraryDefaultSearch () {
       return $ajax({
         url: `${rootUrl}/assets/`,
@@ -202,6 +207,29 @@ var dataInterface;
       return $ajax({
         url: `${rootUrl}/assets/${uid}/`,
         method: 'DELETE'
+      });
+    },
+    subscribeCollection ({uid}) {
+      return $ajax({
+        url: `${rootUrl}/collection_subscriptions/`,
+        data: {
+          collection: `${rootUrl}/collections/${uid}/`,
+        },
+        method: 'POST'
+      });
+    },
+    unsubscribeCollection ({uid}) {
+      return $ajax({
+        url: `${rootUrl}/collection_subscriptions/`,
+        data: {
+          collection__uid: uid
+        },
+        method: 'GET'
+      }).then((data) => {
+        return $ajax({
+          url: data.results[0].url,
+          method: 'DELETE'
+        });
       });
     },
     getAssetContent ({id}) {
