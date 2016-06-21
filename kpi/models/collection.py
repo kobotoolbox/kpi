@@ -79,9 +79,6 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
     # in the database, but instead implied by assignable permissions
     CALCULATED_PERMISSIONS = ('share_collection', 'delete_collection')
 
-    FIELDS_UNRELATED_TO_PERMISSIONS = (
-        'name', 'discoverable_when_public', 'date_created', 'date_modified')
-
     def delete_with_deferred_indexing(self):
         ''' Defer Haystack indexing, delete all child assets, then delete
         myself. Should be faster than `delete()` for large collections '''

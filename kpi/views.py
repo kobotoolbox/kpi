@@ -54,6 +54,7 @@ from .models import (
     )
 from .models.object_permission import get_anonymous_user, get_objects_for_user
 from .models.authorized_application import ApplicationTokenAuthentication
+from .model_utils import disable_auto_field_update
 from .permissions import (
     IsOwnerOrReadOnly,
     PostMappedToChangePermission,
@@ -232,8 +233,22 @@ class CollectionViewSet(viewsets.ModelViewSet):
                     original_collection.discoverable_when_public)
         ):
             raise exceptions.PermissionDenied()
+
+        # Some fields shouldn't affect the modification date
+        FIELDS_NOT_AFFECTING_MODIFICATION_DATE = set((
+            'discoverable_when_public',
+        ))
+        changed_fields = set()
+        for k, v in serializer.validated_data.iteritems():
+            if getattr(original_collection, k) != v:
+                changed_fields.add(k)
+        if changed_fields.issubset(FIELDS_NOT_AFFECTING_MODIFICATION_DATE):
+            with disable_auto_field_update(Collection, 'date_modified'):
+                return super(CollectionViewSet, self).perform_update(
+                    serializer, *args, **kwargs)
+
         return super(CollectionViewSet, self).perform_update(
-            serializer, *args, **kwargs)
+                serializer, *args, **kwargs)
 
     def perform_destroy(self, instance):
         instance.delete_with_deferred_indexing()
