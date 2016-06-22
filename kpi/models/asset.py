@@ -173,7 +173,7 @@ class Asset(ObjectPermissionMixin,
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     content = JSONField(null=True)
-    summary = JSONField(null=True, default={})
+    summary = JSONField(null=True, default=dict)
     asset_type = models.CharField(
         choices=ASSET_TYPES, max_length=20, default='text')
     parent = models.ForeignKey(
