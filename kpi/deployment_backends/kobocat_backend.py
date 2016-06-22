@@ -182,12 +182,22 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         return json_response
 
-
     @property
     def timestamp(self):
         try:
             return self.backend_response['date_modified']
         except KeyError:
+            return None
+
+    @property
+    def mongo_userform_id(self):
+        try:
+            backend_response = self.asset._deployment_data['backend_response']
+            id_string = backend_response['id_string']
+            users = backend_response['users']
+            owner = filter(lambda u: u['role'] == 'owner', users)[0]['user']
+            return '{}__{}'.format(owner, id_string)
+        except KeyError, e:
             return None
 
     def connect(self, identifier=None, active=False):
@@ -328,3 +338,4 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             try: del links[discard]
             except KeyError: pass
         return links
+
