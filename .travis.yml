@@ -14,7 +14,7 @@ before_script:
   - git clone https://github.com/kobotoolbox/kobo-docker.git
   - cd kobo-docker
   - ln -s docker-compose.local.yml docker-compose.yml
-  - echo -e 'DJANGO_SECRET_KEY=kobo\nKOBO_SUPERUSER_USERNAME=kobo\nKOBO_SUPERUSER_PASSWORD=kobo' > envfile.local.txt
+  - echo -e 'DJANGO_SECRET_KEY=kobo\nKOBO_SUPERUSER_USERNAME=kobo\nKOBO_SUPERUSER_PASSWORD=kobo\nHOST_ADDRESS=Null' > envfile.local.txt
   - docker-compose run --rm kpi echo 'Container and dependencies started.' 1>/dev/null
 
 script:
