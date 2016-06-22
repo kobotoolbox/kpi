@@ -5,6 +5,7 @@ import {Navigation} from 'react-router';
 import Dropzone from '../libs/dropzone';
 import Select from 'react-select';
 import mdl from '../libs/rest_framework/material';
+import alertify from 'alertifyjs';
 
 import {dataInterface} from '../dataInterface';
 import actions from '../actions';
@@ -209,6 +210,11 @@ var Drawer = React.createClass({
           actions.permissions.setCollectionDiscoverability(
             collection.uid, discoverable
           );
+        }).catch((jqxhr) => {
+          // maybe publicPerm was already removed
+          if (jqxhr.status !== 404) {
+            alertify.error(t('unexpected error removing public permission'));
+          }
         });
       } else {
         var discovDeferred = actions.permissions.setCollectionDiscoverability(
