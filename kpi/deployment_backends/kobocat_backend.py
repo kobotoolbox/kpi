@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import cStringIO
+import logging
 import re
 import requests
 import unicodecsv
@@ -330,9 +331,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             auth=(settings.ENKETO_API_TOKEN, ''),
             data=data
         )
-        if response.status_code == status.HTTP_404_NOT_FOUND:
+        if response.status_code != 200:
+            # Don't 500 the entire asset view if Enketo is unreachable
+            logging.error('Unable to contact Enketo ({})'.format(
+                response.status_code))
             return {}
-
         links = response.json()
         for discard in ('enketo_id', 'code', 'preview_iframe_url'):
             try: del links[discard]

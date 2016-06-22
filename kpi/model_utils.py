@@ -1,3 +1,4 @@
+import contextlib
 import copy
 import re
 import logging
@@ -183,3 +184,14 @@ def grant_all_model_level_perms(
             q_query |= Q(content_type__app_label=app_label, codename=codename)
         permissions_to_assign = permissions_to_assign.filter(q_query)
     user.user_permissions.add(*permissions_to_assign)
+
+@contextlib.contextmanager
+def disable_auto_field_update(kls, field_name):
+    field = filter(lambda f: f.name == field_name, kls._meta.fields)[0]
+    original_auto_now = field.auto_now
+    original_auto_now_add = field.auto_now_add
+    field.auto_now = False
+    field.auto_now_add = False
+    yield
+    field.auto_now = original_auto_now
+    field.auto_now_add = original_auto_now_add

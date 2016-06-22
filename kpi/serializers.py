@@ -18,9 +18,10 @@ from .models import Asset
 from .models import AssetSnapshot
 from .models import Collection
 from .models import CollectionChildrenQuerySet
+from .models import UserCollectionSubscription
 from .models import ImportTask
 from .models import ObjectPermission
-from .models.object_permission import get_anonymous_user
+from .models.object_permission import get_anonymous_user, get_objects_for_user
 from .models.asset import ASSET_TYPES
 from .models import TagUid
 from .models import OneTimeAuthenticationKey
@@ -788,6 +789,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     downloads = serializers.SerializerMethodField()
     tag_string = serializers.CharField(required=False)
+    access_type = serializers.SerializerMethodField()
 
     class Meta:
         model = Collection
@@ -804,6 +806,8 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
                   'ancestors',
                   'children',
                   'permissions',
+                  'access_type',
+                  'discoverable_when_public',
                   'tag_string',)
         lookup_field = 'uid'
         extra_kwargs = {
@@ -850,6 +854,30 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
             {'format': 'zip', 'url': '%s?format=zip' % obj_url},
         ]
 
+    def get_access_type(self, obj):
+        try:
+            request = self.context['request']
+        except KeyError:
+            return None
+        if request.user == obj.owner:
+            return 'owned'
+        # `obj.permissions.filter(...).exists()` would be cleaner, but it'd
+        # cost a query. This ugly loop takes advantage of having already called
+        # `prefetch_related()`
+        for permission in obj.permissions.all():
+            if not permission.deny and permission.user == request.user:
+                return 'shared'
+        for subscription in obj.usercollectionsubscription_set.all():
+            # `usercollectionsubscription_set__user` is not prefetched
+            if subscription.user_id == request.user.pk:
+                return 'subscribed'
+        if obj.discoverable_when_public:
+            return 'public'
+        if request.user.is_superuser:
+            return 'superuser'
+        raise Exception(u'{} has unexpected access to {}'.format(
+            request.user.username, obj.uid))
+
 
 class SitewideMessageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -882,6 +910,8 @@ class CollectionListSerializer(CollectionSerializer):
                   'date_created',
                   'date_modified',
                   'permissions',
+                  'access_type',
+                  'discoverable_when_public',
                   'tag_string',)
 
 
@@ -910,3 +940,30 @@ class OneTimeAuthenticationKeySerializer(serializers.ModelSerializer):
     class Meta:
         model = OneTimeAuthenticationKey
         fields = ('username', 'key', 'expiry')
+
+
+class UserCollectionSubscriptionSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        lookup_field='uid',
+        view_name='usercollectionsubscription-detail'
+    )
+    collection = RelativePrefixHyperlinkedRelatedField(
+        lookup_field='uid',
+        view_name='collection-detail',
+        queryset=Collection.objects.none() # will be set in __init__()
+    )
+    uid = serializers.ReadOnlyField()
+
+    def __init__(self, *args, **kwargs):
+        super(UserCollectionSubscriptionSerializer, self).__init__(
+            *args, **kwargs)
+        self.fields['collection'].queryset = get_objects_for_user(
+            get_anonymous_user(),
+            'view_collection',
+            Collection.objects.filter(discoverable_when_public=True)
+        )
+
+    class Meta:
+        model = UserCollectionSubscription
+        lookup_field = 'uid'
+        fields = ('url', 'collection', 'uid')

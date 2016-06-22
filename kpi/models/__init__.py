@@ -1,4 +1,5 @@
 from kpi.models.collection import Collection, CollectionChildrenQuerySet
+from kpi.models.collection import UserCollectionSubscription
 from kpi.models.asset import Asset
 from kpi.models.asset import AssetSnapshot
 from kpi.models.asset_version import AssetVersion
