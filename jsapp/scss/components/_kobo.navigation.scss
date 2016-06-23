@@ -10,6 +10,29 @@ $headerAccountTextColor: #dbedf7;
   z-index: 0;
 }
 
+.account-box__alert {
+  color: rgb(33, 182, 243);
+  position: absolute;
+  left: 51px;
+  top: 4px;
+  height: 47px;
+  padding: 6px 5px;
+  background-color: #414553;
+  line-height: 17px;
+  font-size: 12px;
+
+  strong {
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 10px;
+  }
+
+  &:hover {
+    background-color: #585d6c;
+    cursor: pointer;
+  }
+}
+
 .mdl-layout__header {
   background-color: transparent;
   box-shadow: none !important;

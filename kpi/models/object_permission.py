@@ -35,7 +35,7 @@ def get_all_objects_for_user(user, klass):
         content_type=ContentType.objects.get_for_model(klass)
     ).values_list('object_id', flat=True))
 
-def get_objects_for_user(user, perms, klass=None, strict=True):
+def get_objects_for_user(user, perms, klass=None):
     """
     A simplified version of django-guardian's get_objects_for_user shortcut.
     Returns queryset of objects for which a given ``user`` has *all*
@@ -50,8 +50,6 @@ def get_objects_for_user(user, perms, klass=None, strict=True):
       the same or ``ValidationError`` exception will be raised.
     :param klass: may be a Model, Manager or QuerySet object. If not given
       this parameter will be computed based on given ``params``.
-    :param strict: When True, do not honor superuser status or
-      include public objects.
     """
     if isinstance(perms, basestring):
         perms = [perms]
@@ -98,10 +96,6 @@ def get_objects_for_user(user, perms, klass=None, strict=True):
     # match which means: ctype.model_class() == queryset.model
     # we should also have ``codenames`` list
 
-    # First check if user is superuser and if so, return queryset immediately
-    if user.is_superuser and not strict:
-        return queryset
-
     # Check if the user is anonymous. The
     # django.contrib.auth.models.AnonymousUser object doesn't work for
     # queries, and it's nice to be able to pass in request.user blindly.
@@ -114,15 +108,6 @@ def get_objects_for_user(user, perms, klass=None, strict=True):
         .filter(permission__content_type=ctype)
         .filter(permission__codename__in=codenames)
         .filter(deny=False))
-
-    # Optionally union in public assets (with allow permissions).
-    if (not strict) and (user != get_anonymous_user()):
-        public_obj_perms_queryset= (ObjectPermission.objects
-                                    .filter(user=get_anonymous_user())
-                                    .filter(permission__content_type=ctype)
-                                    .filter(permission__codename__in=codenames)
-                                    .filter(deny=False))
-        user_obj_perms_queryset|= public_obj_perms_queryset
 
     if len(codenames) > 1:
         counts = user_obj_perms_queryset.values('object_id').annotate(

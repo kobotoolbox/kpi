@@ -124,6 +124,9 @@ function SearchContext(opts={}) {
       if (this.state.parentUid) {
         params.parentUid = `parent__uid:${this.state.parentUid}`;
       }
+      if (this.state.allPublic === true) {
+        params.allPublic = true;
+      }
       return assign({}, this.filterParams, params);
     },
     toQueryData (dataObject) {
@@ -155,6 +158,10 @@ function SearchContext(opts={}) {
           queryData.parent = searchParams.parent;
         }
         delete searchParams.parent;
+      }
+      if ('allPublic' in searchParams) {
+        queryData.all_public = searchParams.allPublic;
+        delete searchParams.allPublic;
       }
       paramGroups = paramGroups.concat(_.values(searchParams));
       if (paramGroups.length > 1) {

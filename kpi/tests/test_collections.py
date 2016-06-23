@@ -482,3 +482,22 @@ class ShareCollectionTests(TestCase):
         for user_obj in AnonymousUser(), self.someuser:
             self.assertTrue(user_obj.has_perm(
                 'view_collection', self.standalone_coll))
+
+
+class DiscoverablePublicCollectionTests(TestCase):
+    fixtures = ['test_data']
+
+    def setUp(self):
+        self.user = User.objects.get(username='admin')
+        self.anotheruser = User.objects.get(username='anotheruser')
+        self.coll = Collection.objects.create(owner=self.user)
+
+    def test_collection_not_discoverable_by_default(self):
+        self.assertFalse(self.coll.discoverable_when_public)
+        self.assertFalse(AnonymousUser().has_perm(
+            'view_collection', self.coll))
+        # Should remain non-discoverable even after allowing anon access
+        self.coll.assign_perm(AnonymousUser(), 'view_collection')
+        self.assertTrue(AnonymousUser().has_perm(
+            'view_collection', self.coll))
+        self.assertFalse(self.coll.discoverable_when_public)

@@ -31,7 +31,8 @@ class ApiAnonymousPermissionsTestCase(KpiTestCase):
         self.assertFalse('username' in response.data)
 
     def test_anon_list_assets(self):
-        self.assert_object_in_object_list(self.anon_accessible)
+        # `view_` granted to anon means detail access, NOT list access
+        self.assert_object_in_object_list(self.anon_accessible, in_list=False)
 
     def test_anon_asset_detail(self):
         self.assert_detail_viewable(self.anon_accessible)
