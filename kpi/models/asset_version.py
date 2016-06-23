@@ -1,3 +1,5 @@
+import json
+import hashlib
 import datetime
 
 from django.db import models
@@ -28,3 +30,8 @@ class AssetVersion(models.Model):
 
     class Meta:
         ordering = ['-date_modified']
+
+    def _content_hash(self):
+        # used to determine changes in the content from version to version
+        _json_string = json.dumps(self.version_content, sort_keys=True)
+        return hashlib.sha1(_json_string).hexdigest()

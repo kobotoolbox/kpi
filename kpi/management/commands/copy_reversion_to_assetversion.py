@@ -1,84 +1,58 @@
-import sys
+import re
 import json
-import random
 
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand
-from django.contrib.contenttypes.models import ContentType
-from django.forms import model_to_dict
-from raven.contrib.django.raven_compat.models import client
 from reversion import revisions
-from reversion.models import Version
-
 from kpi.models import Asset, AssetVersion
-from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 
-from django.contrib.auth.models import User
-
-
-def _version_ids_grouped_by_deployed(asset):
-    dvas = [v._static_version_id for v in asset._deployed_versioned_assets()]
-    all_revs = revisions.get_for_object(asset).values_list('id', flat=True)
-    undeployed = set(all_revs) - set(dvas)
-    deployed = set(dvas)
-    return (
-        undeployed,
-        deployed,
-    )
-
-
-def create_assetversion_for_revision__wrapped(asset, version, deployed):
-    try:
-        create_assetversion_for_revision(asset, version, deployed)
-    except KeyboardInterrupt, e:
-        sys.exit(0)
-    except Exception, e:
-        client.captureException()
-
-def create_assetversion_for_revision(asset, version, deployed):
-    fields = json.loads(version.serialized_data)[0].get('fields')
-    params = {
-        'name': fields.get('name'),
-        '_reversion_version_id': version.id,
-        'version_content': json.loads(fields.get('content', 'null')),
-        'date_modified': fields.get('date_modified'),
-        '_deployment_data': json.loads(fields.get('_deployment_data', 'false')),
-        'deployed': deployed,
-    }
-    if deployed:
-        _c = to_xlsform_structure(params['version_content'],
-                                  deprecated_autoname=True)
-        params['deployed_content'] = _c
-
-    try:
-        av = asset.asset_versions.get(_reversion_version_id=version.id)
-        # av.__dict__.update(params)
-        # av.save()
-        return av
-    except ObjectDoesNotExist, e:
-        av = asset.asset_versions.create(**params)
-    return av
-
-
-def create_revisions_for_user(user):
-    uavs = set()
-    for asset in user.assets.all():
-        new_avs = set()
-        (undeployed, deployed) = _version_ids_grouped_by_deployed(asset)
-        for v in Version.objects.filter(id__in=undeployed).all():
-            new_avs = new_avs | set([create_assetversion_for_revision__wrapped(asset, v, deployed=False)])
-        for v in Version.objects.filter(id__in=deployed).all():
-            new_avs = new_avs | set([create_assetversion_for_revision__wrapped(asset, v, deployed=True)])
-        uavs = uavs | new_avs
-    return uavs
+from reversion import revisions as reversion
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        _avs = set()
-        for user in User.objects.all():
-            sys.stdout.write('parsing {}: '.format(user.username))
-            sys.stdout.flush()
-            user_versions = create_revisions_for_user(user)
-            print('{} versions'.format(len(user_versions)))
-            _avs = _avs | user_versions
+        asset_ids = Asset.objects.filter(asset_type='survey').order_by('date_modified').values_list('id', flat=True)
+        step = 100
+        for strt in xrange(0, len(asset_ids), step):
+            max_i = (strt + step) if (strt + step) < len(asset_ids) else len(asset_ids)
+            asset_version_objects = []
+            for i in xrange(strt, max_i):
+                asset_id = asset_ids[i]
+                asset_version_objects = asset_version_objects + get_versions_for_asset_id(asset_id)
+            AssetVersion.objects.bulk_create(asset_version_objects)
+        print 'created {} AssetVersion records'.format(AssetVersion.objects.count())
+
+
+def _saninitized_json_loads(item):
+    if '\u0000' in item:
+        item = re.sub('\\\u0000', '', item)
+    return json.loads(item)
+
+
+def get_versions_for_asset_id(asset_id):
+    asset_versions = reversion.get_for_object(asset)
+    _deployed_version_ids = []
+    _version_data = []
+    uncreated_asset_versions = []
+    for asset_v in asset_versions.all():
+        _fields = json.loads(asset_v.serialized_data)[0]['fields']
+        _deployed_version_id = None
+        if '_deployment_data' in _fields:
+            _dd = json.loads(_fields['_deployment_data'])
+            del _fields['_deployment_data']
+            _deployed_version_id = _dd.get('version')
+        else:
+            _dd = {}
+        if _deployed_version_id:
+            _deployed_version_ids.append(_deployed_version_id)
+        _version_data.append({
+            'name': _fields.get('name'),
+            '_reversion_version_id': asset_v.id,
+            'version_content': _saninitized_json_loads(_fields.get('content', 'null')),
+            'date_modified': _fields.get('date_modified'),
+            'asset_id': asset_id,
+            '_deployment_data': _dd,
+        })
+    for version in _version_data:
+        version['deployed'] = version['_reversion_version_id'] in _deployed_version_ids
+        uncreated_asset_versions.append(AssetVersion(**version))
+    return uncreated_asset_versions
