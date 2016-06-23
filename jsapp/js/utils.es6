@@ -32,10 +32,10 @@ export function surveyToValidJson(survey) {
   return JSON.stringify(survey.toFlatJSON());
 }
 
-export function customPromptAsync(msg) {
+export function customPromptAsync(msg, def) {
   return new Promise(function(resolve, reject){
     window.setTimeout(function(){
-      var val = window.prompt(msg);
+      var val = window.prompt(msg, def);
       if (val === null) {
         reject(new Error('empty value'));
       } else {
