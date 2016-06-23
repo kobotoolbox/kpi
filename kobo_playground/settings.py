@@ -13,6 +13,7 @@ from django.conf import global_settings
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 import dj_database_url
+import multiprocessing
 
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
@@ -261,6 +262,18 @@ ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 if os.environ.get('SKIP_CELERY', 'False') == 'True':
     # helpful for certain debugging
     CELERY_ALWAYS_EAGER = True
+
+# Celery defaults to having as many workers as there are cores. To avoid
+# excessive resource consumption, don't spawn more than 6 workers by default
+# even if there more than 6 cores.
+CELERYD_MAX_CONCURRENCY = int(os.environ.get('CELERYD_MAX_CONCURRENCY', 6))
+if multiprocessing.cpu_count() > CELERYD_MAX_CONCURRENCY:
+    CELERYD_CONCURRENCY = CELERYD_MAX_CONCURRENCY
+
+# Replace a worker after it completes 7 tasks by default. This allows the OS to
+# reclaim memory allocated during large tasks
+CELERYD_MAX_TASKS_PER_CHILD = int(os.environ.get(
+    'CELERYD_MAX_TASKS_PER_CHILD', 7))
 
 # Uncomment to enable failsafe search indexing
 #from datetime import timedelta
