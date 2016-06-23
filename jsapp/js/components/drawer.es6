@@ -167,6 +167,18 @@ var Drawer = React.createClass({
       dataInterface.deleteCollection({uid: collectionUid}).then(qc).catch(qc);
     });
   },
+  renameCollection (collection) {
+    return (evt) => {
+      evt.preventDefault();
+      customPromptAsync('collection name?', collection.name).then((val)=>{
+        actions.resources.updateCollection(collection.uid, {name: val}).then(
+          (data) => {
+            this.queryCollections();
+          }
+        );
+      });
+    };
+  },
   subscribeCollection (evt) {
     evt.preventDefault();
     var collectionUid = $(evt.currentTarget).data('collection-uid');
@@ -373,11 +385,13 @@ var Drawer = React.createClass({
                                 <bem.CollectionSidebar__itemlink href={sharingLink}>
                                   {t('sharing')}
                                 </bem.CollectionSidebar__itemlink>,
-                                <bem.CollectionSidebar__itemlink href={editLink}>
-                                  {t('edit')}
+                                <br />,
+                                <bem.CollectionSidebar__itemlink href={'#'}
+                                  onClick={this.renameCollection(collection)
+                                }>
+                                  {t('rename')}
                                 </bem.CollectionSidebar__itemlink>,
-                                collection.access_type === 'owned' ? [
-                                  <br />,
+                                collection.access_type === 'owned' ?
                                   collection.discoverable_when_public ?
                                     <bem.CollectionSidebar__itemlink href={'#'}
                                       onClick={
@@ -394,7 +408,7 @@ var Drawer = React.createClass({
                                     }>
                                       {t('make public')}
                                     </bem.CollectionSidebar__itemlink>
-                                ] : null
+                                : null
                               ]
                             }
                           </bem.CollectionSidebar__itemactions>
