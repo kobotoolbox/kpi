@@ -270,6 +270,11 @@ CELERYD_MAX_CONCURRENCY = int(os.environ.get('CELERYD_MAX_CONCURRENCY', 6))
 if multiprocessing.cpu_count() > CELERYD_MAX_CONCURRENCY:
     CELERYD_CONCURRENCY = CELERYD_MAX_CONCURRENCY
 
+# Replace a worker after it completes 7 tasks by default. This allows the OS to
+# reclaim memory allocated during large tasks
+CELERYD_MAX_TASKS_PER_CHILD = int(os.environ.get(
+    'CELERYD_MAX_TASKS_PER_CHILD', 7))
+
 # Uncomment to enable failsafe search indexing
 #from datetime import timedelta
 
