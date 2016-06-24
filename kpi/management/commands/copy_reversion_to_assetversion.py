@@ -2,7 +2,7 @@ import re
 import json
 
 from django.core.management.base import BaseCommand
-from reversion import revisions
+from reversion.models import Version
 from kpi.models import Asset, AssetVersion
 
 
@@ -27,7 +27,9 @@ def _saninitized_json_loads(item):
 
 
 def get_versions_for_asset_id(asset_id):
-    asset_versions = revisions.get_for_object(asset)
+    asset_versions = Version.objects.filter(content_type__app_label='kpi',
+                                            content_type__model='asset',
+                                            object_id_int=asset_id)
     _deployed_version_ids = []
     _version_data = []
     uncreated_asset_versions = []
