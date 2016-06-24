@@ -1257,7 +1257,7 @@ var CollectionSharing = React.createClass({
     this.listenTo(stores.userExists, this.userExistsStoreChange);
   },
   routeBack () {
-    this.transitionTo('collections');
+    this.transitionTo('library');
   },
   userExistsStoreChange (checked, result) {
     var inpVal = this.usernameFieldValue();
