@@ -5,8 +5,6 @@ from django.core.management.base import BaseCommand
 from reversion import revisions
 from kpi.models import Asset, AssetVersion
 
-from reversion import revisions as reversion
-
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
@@ -29,7 +27,7 @@ def _saninitized_json_loads(item):
 
 
 def get_versions_for_asset_id(asset_id):
-    asset_versions = reversion.get_for_object(asset)
+    asset_versions = revisions.get_for_object(asset)
     _deployed_version_ids = []
     _version_data = []
     uncreated_asset_versions = []

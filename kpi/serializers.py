@@ -363,6 +363,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     asset_type = serializers.ChoiceField(choices=ASSET_TYPES)
     settings = WritableJSONField(required=False, allow_blank=True)
     content = WritableJSONField(required=False)
+    graph_styles = WritableJSONField(required=False)
     xls_link = serializers.SerializerMethodField()
     summary = serializers.ReadOnlyField()
     koboform_link = serializers.SerializerMethodField()
@@ -410,6 +411,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'deployment__identifier',
                   'deployment__links',
                   'deployment__active',
+                  'graph_styles',
                   'content',
                   'downloads',
                   'embeds',

@@ -40,4 +40,9 @@ class Migration(migrations.Migration):
             name='summary',
             field=jsonfield.fields.JSONField(default=dict, null=True),
         ),
+        migrations.AddField(
+            model_name='asset',
+            name='graph_styles',
+            field=jsonbfield.fields.JSONField(default=dict),
+        ),
     ]

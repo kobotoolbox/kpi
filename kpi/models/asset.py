@@ -10,6 +10,7 @@ from django.db import models
 from django.db import transaction
 from django.dispatch import receiver
 from jsonfield import JSONField
+from jsonbfield.fields import JSONField as JSONBField
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 from taggit.models import Tag
@@ -174,6 +175,7 @@ class Asset(ObjectPermissionMixin,
     date_modified = models.DateTimeField(auto_now=True)
     content = JSONField(null=True)
     summary = JSONField(null=True, default=dict)
+    graph_styles = JSONBField(default=dict)
     asset_type = models.CharField(
         choices=ASSET_TYPES, max_length=20, default='text')
     parent = models.ForeignKey(
@@ -310,7 +312,7 @@ class Asset(ObjectPermissionMixin,
         super(Asset, self).save(*args, **kwargs)
 
     def _strip_empty_rows(self, arr, required_key='type'):
-        arr[:] = [row for row in arr if row.has_key(required_key)]
+        arr[:] = [row for row in arr if required_key in row]
 
     def get_ancestors_or_none(self):
         # ancestors are ordered from farthest to nearest
