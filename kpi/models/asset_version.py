@@ -7,6 +7,7 @@ from django.db import models
 from jsonbfield.fields import JSONField as JSONBField
 from reversion.models import Version
 from ..fields import KpiUidField
+from ..utils.kobo_to_xlsform import to_xlsform_structure
 
 DEFAULT_DATETIME = datetime.datetime(2010, 1, 1)
 
@@ -30,6 +31,12 @@ class AssetVersion(models.Model):
 
     class Meta:
         ordering = ['-date_modified']
+
+    def _deployed_content(self):
+        legacy_names = self._reversion_version is not None
+        return to_xlsform_structure(self.version_content,
+                                    autoname=True,
+                                    deprecated_autoname=legacy_names)
 
     def _content_hash(self):
         # used to determine changes in the content from version to version
