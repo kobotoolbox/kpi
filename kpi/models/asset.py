@@ -311,6 +311,22 @@ class Asset(ObjectPermissionMixin,
         # TODO: prevent assets from saving duplicate versions
         super(Asset, self).save(*args, **kwargs)
 
+    def to_clone_dict(self, version_uid=None):
+        if version_uid:
+            version = self.asset_versions.get(uid=version_uid)
+        else:
+            version = self.asset_versions.first()
+        return {
+            'name': version.name,
+            'content': version.version_content,
+            'asset_type': self.asset_type,
+            'tag_string': self.tag_string,
+        }
+
+    def clone(self, version_uid=None):
+        # not currently used, but this is how "to_clone_dict" should work
+        Asset.objects.create(**self.to_clone_dict(version_uid))
+
     def _strip_empty_rows(self, arr, required_key='type'):
         arr[:] = [row for row in arr if required_key in row]
 
@@ -353,7 +369,7 @@ class AssetSnapshot(models.Model, XlsExportable):
     details = JSONField(default={})
     owner = models.ForeignKey('auth.User', related_name='asset_snapshots', null=True)
     asset = models.ForeignKey(Asset, null=True)
-    asset_version_id = models.IntegerField(null=True)
+    asset_version_id = models.CharField(null=True, max_length=32)
     date_created = models.DateTimeField(auto_now_add=True)
     uid = KpiUidField(uid_prefix='s')
 
@@ -361,7 +377,7 @@ class AssetSnapshot(models.Model, XlsExportable):
         if (kwargs.get('asset', None) is not None and
                 'asset_version_id' not in kwargs):
             asset = kwargs.get('asset')
-            kwargs['asset_version_id'] = asset.asset_versions.first().id
+            kwargs['asset_version_id'] = asset.asset_versions.first().uid
         return super(AssetSnapshot, self).__init__(*args, **kwargs)
 
     def generate_xml_from_source(self, source, **opts):
@@ -424,12 +440,6 @@ class AssetSnapshot(models.Model, XlsExportable):
             })
         self.details = summary
 
-    def get_asset_version(self):
-        if self.asset_version_id is None:
-            return None
-        return reversion.get_for_object(
-            self.asset).get(id=self.asset_version_id)
-
     def save(self, *args, **kwargs):
         if self.source is None:
             self.source = copy.deepcopy(self.asset.content)
@@ -455,4 +465,6 @@ def post_delete_asset(sender, instance, **kwargs):
 @receiver(models.signals.post_save, sender=Asset,
           dispatch_uid="create_asset_version")
 def post_save_asset(sender, instance, **kwargs):
-    instance.asset_versions.create(version_content=instance.content)
+    instance.asset_versions.create(version_content=instance.content,
+                                   name=instance.name,
+                                   )

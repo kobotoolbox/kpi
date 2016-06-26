@@ -812,7 +812,7 @@ var dmix = {
     //       date_deployed: 'June 1 2016',
     //     }
     // ];
-
+    var dvcount = this.state.deployed_versions.length;
     return (
         <bem.FormView__group m="deployments">
           <bem.FormView__group m="headings">
@@ -831,7 +831,6 @@ var dmix = {
           </bem.FormView__group>
           <bem.FormView__group m="deploy-row">
             <bem.FormView__item m='version'>
-              {this.state.version_id}
               {this.renderEditPreviewButtons()}
             </bem.FormView__item>
             <bem.FormView__item m='date'>
@@ -852,11 +851,11 @@ var dmix = {
                   {t('Previous Versions')}
                 </bem.FormView__label>
 
-                {this.state.deployed_versions.map((item) => {
+                {this.state.deployed_versions.map((item, n) => {
                   return (
                     <bem.FormView__group m="deploy-row">
                       <bem.FormView__item m='version'>
-                        {item.version_id}
+                        {`v${dvcount-n}`}
                         <bem.FormView__group m='buttons'>
                           <bem.FormView__link m='clone' 
                               data-version-id={item.version_id}

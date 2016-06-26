@@ -12,10 +12,31 @@ from django.core.urlresolvers import reverse
 from rest_framework import status
 
 from ..views import (
-    ASSET_CLONE_FIELDS,
     COLLECTION_CLONE_FIELDS,
 )
 from .kpi_test_case import KpiTestCase
+from .test_assets import AssetsTestCase
+
+class TestCloningOrm(AssetsTestCase):
+    def test_clone_asset_version(self):
+        self.asset.content['survey'][0]['type'] = 'integer'
+        self.asset.name = 'Version 2'
+        self.asset.save()
+        v2_uid = self.asset.asset_versions.first().uid
+
+        self.asset.content['survey'][0]['type'] = 'note'
+        self.asset.name = 'Version 3'
+        self.asset.save()
+        v3_uid = self.asset.asset_versions.first().uid
+
+        v3_clone_data = self.asset.to_clone_dict(version_uid=v3_uid)
+        v2_clone_data = self.asset.to_clone_dict(version_uid=v2_uid)
+
+        self.assertEqual(v2_clone_data['name'], 'Version 2')
+        self.assertEqual(v2_clone_data['content']['survey'][0]['type'], 'integer')
+
+        self.assertEqual(v3_clone_data['name'], 'Version 3')
+        self.assertEqual(v3_clone_data['content']['survey'][0]['type'], 'note')
 
 
 class TestCloning(KpiTestCase):
@@ -28,7 +49,7 @@ class TestCloning(KpiTestCase):
 
     def _clone_asset(self, original_asset, **kwargs):
         kwargs.update({'clone_from': original_asset.uid})
-        expected_status_code= kwargs.pop('expected_status_code', status.HTTP_201_CREATED)
+        expected_status_code = kwargs.pop('expected_status_code', status.HTTP_201_CREATED)
 
         response = self.client.post(reverse('asset-list'), kwargs)
         self.assertEqual(response.status_code, expected_status_code)
@@ -36,41 +57,41 @@ class TestCloning(KpiTestCase):
         if expected_status_code != status.HTTP_201_CREATED:
             return
         else:
-            cloned_asset= self.url_to_obj(response.data['url'])
-            for field in ASSET_CLONE_FIELDS:
+            cloned_asset = self.url_to_obj(response.data['url'])
+            for field in {'name', 'content', 'asset_type'}:
                 self.assertEqual(cloned_asset.__dict__[field],
                                  original_asset.__dict__[field])
-            original_asset_tags= set(original_asset.tag_string.split(','))
-            cloned_asset_tags= set(cloned_asset.tag_string.split(','))
+            original_asset_tags = set(original_asset.tag_string.split(','))
+            cloned_asset_tags = set(cloned_asset.tag_string.split(','))
             self.assertSetEqual(cloned_asset_tags, original_asset_tags)
 
             return cloned_asset
 
     def test_clone_asset(self):
         self.login(self.someuser.username, self.someuser_password)
-        original_asset= self.create_asset(
+        original_asset = self.create_asset(
             'cloning_asset', tag_string='tag1,tag2')
         self._clone_asset(original_asset)
 
     def test_clone_asset_into_collection(self):
         self.login(self.someuser.username, self.someuser_password)
-        original_asset= self.create_asset('cloning_asset')
-        parent_collection= self.create_collection('parent_collection')
-        parent_url= reverse(
+        original_asset = self.create_asset('cloning_asset')
+        parent_collection = self.create_collection('parent_collection')
+        parent_url = reverse(
             'collection-detail', kwargs={'uid': parent_collection.uid})
-        cloned_asset= self._clone_asset(
+        cloned_asset = self._clone_asset(
             original_asset, parent=parent_url)
         self.assertEqual(cloned_asset.parent, parent_collection)
 
     def test_cannot_clone_unshared_asset(self):
         self.login(self.someuser.username, self.someuser_password)
-        original_asset= self.create_asset('cloning_asset')
+        original_asset = self.create_asset('cloning_asset')
         self.login(self.another_user.username, self.another_user_password)
         self._clone_asset(original_asset, expected_status_code=status.HTTP_404_NOT_FOUND)
 
     def test_clone_shared_asset(self):
         self.login(self.someuser.username, self.someuser_password)
-        original_asset= self.create_asset('cloning_asset')
+        original_asset = self.create_asset('cloning_asset')
         self.add_perm(original_asset, self.another_user, 'view')
         self.login(self.another_user.username, self.another_user_password)
         self._clone_asset(original_asset)

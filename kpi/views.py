@@ -87,7 +87,6 @@ from deployment_backends.backends import DEPLOYMENT_BACKENDS
 
 
 CLONE_ARG_NAME = 'clone_from'
-ASSET_CLONE_FIELDS = {'name', 'content', 'asset_type'}
 COLLECTION_CLONE_FIELDS = {'name'}
 
 
@@ -582,35 +581,23 @@ class AssetViewSet(viewsets.ModelViewSet):
     def _get_clone_serializer(self):
         original_uid = self.request.data[CLONE_ARG_NAME]
         original_asset = get_object_or_404(Asset, uid=original_uid)
-        try:
-            # Optionally clone a historical version of the asset
+        if 'clone_from_version_id' in self.request.data:
             original_version_id = self.request.data['clone_from_version_id']
             source_version = get_object_or_404(
-                original_asset.asset_versions(), uid=original_version_id)
-            original_asset = source_version.object_version.object
-        except KeyError:
-            # Default to cloning the current version
-            pass
-        view_perm= get_perm_name('view', original_asset)
+                original_asset.asset_versions, uid=original_version_id)
+        else:
+            source_version = original_asset.asset_versions.first()
+
+        view_perm = get_perm_name('view', original_asset)
         if not self.request.user.has_perm(view_perm, original_asset):
             raise Http404
-        else:
-            # Copy the essential data from the original asset.
-            original_data= model_to_dict(original_asset)
-            cloned_data= {keep_field: original_data[keep_field]
-                          for keep_field in ASSET_CLONE_FIELDS}
-            if original_asset.tag_string:
-                cloned_data['tag_string']= original_asset.tag_string
-            # TODO: Duplicate permissions if a user is cloning their own asset.
-#             if ('permissions' in original_data) and (self.request.user == original_asset.owner):
-#                 raise NotImplementedError
-            # Pull any additionally provided parameters/overrides from therequest.
-            for param in self.request.data:
-                cloned_data[param]= self.request.data[param]
-
-            serializer = self.get_serializer(data=cloned_data)
-
-            return serializer
+        # TODO: Duplicate permissions if a user is cloning their own asset.
+        cloned_data = original_asset.to_clone_dict(version_uid=source_version.uid)
+        for key, val in self.request.data.iteritems():
+            cloned_data.update(self.request.data.items())
+        # until we get content passed as a dict, transform the content obj to a str
+        cloned_data['content'] = json.dumps(cloned_data['content'])
+        return self.get_serializer(data=cloned_data)
 
     def create(self, request, *args, **kwargs):
         if CLONE_ARG_NAME in request.data:
