@@ -445,6 +445,20 @@ actions.resources.deleteCollection.listen(function(details){
     .fail(actions.resources.deleteCollection.failed);
 });
 
+actions.resources.updateCollection.listen(function(uid, values){
+  return new Promise(function(resolve, reject){
+    dataInterface.patchCollection(uid, values)
+      .done(function(asset){
+        actions.resources.updateCollection.completed(asset);
+        notify(t('successfully updated'));
+        resolve(asset);
+      })
+      .fail(function(...args){
+        reject(args)
+      });
+  })
+});
+
 actions.resources.cloneAsset.listen(function(details, opts={}){
   dataInterface.cloneAsset(details)
     .done(function(...args){

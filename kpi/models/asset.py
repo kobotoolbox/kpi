@@ -16,10 +16,13 @@ from taggit.utils import require_instance_manager
 from taggit.models import Tag
 from reversion import revisions as reversion
 
+from formpack.utils.flatten_content import flatten_content
+from formpack.utils.expand_content import expand_content
 from .object_permission import ObjectPermission, ObjectPermissionMixin
 from ..fields import KpiUidField
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
 from ..utils.kobo_to_xlsform import to_xlsform_structure
+from ..utils.random_id import random_id
 from ..deployment_backends.mixin import DeployableMixin
 
 ASSET_TYPES = [
@@ -84,10 +87,12 @@ class TagStringMixin:
 
 class XlsExportable(object):
     def valid_xlsform_content(self):
-        return to_xlsform_structure(copy.deepcopy(self.content))
+        _flattened_content = copy.deepcopy(self.content)
+        flatten_content(_flattened_content)
+        return to_xlsform_structure(_flattened_content)
 
     def to_xls_io(self, extra_rows=None, extra_settings=None,
-            overwrite_settings=False):
+                  overwrite_settings=False):
         ''' To append rows to one or more sheets, pass `extra_rows` as a
         dictionary of dictionaries in the following format:
             `{'sheet name': {'column name': 'cell value'}`
@@ -262,7 +267,7 @@ class Asset(ObjectPermissionMixin,
         return deployed_versioned_assets
 
     def to_ss_structure(self):
-        return self.content
+        return flatten_content(copy.deepcopy(self.content))
 
     def _pull_form_title_from_settings(self):
         if self.asset_type != 'survey':
@@ -290,9 +295,12 @@ class Asset(ObjectPermissionMixin,
             if 'survey' in self.content:
                 self._strip_empty_rows(
                     self.content['survey'], required_key='type')
+                self._assign_kuids(self.content['survey'])
+                expand_content(self.content)
             if 'choices' in self.content:
                 self._strip_empty_rows(
                     self.content['choices'], required_key='name')
+                self._assign_kuids(self.content['choices'])
             if 'settings' in self.content:
                 if self.asset_type != 'survey':
                     del self.content['settings']
@@ -330,6 +338,11 @@ class Asset(ObjectPermissionMixin,
     def _strip_empty_rows(self, arr, required_key='type'):
         arr[:] = [row for row in arr if required_key in row]
 
+    def _assign_kuids(self, arr):
+        for row in arr:
+            if '$kuid' not in row:
+                row['$kuid'] = random_id(9)
+
     def get_ancestors_or_none(self):
         # ancestors are ordered from farthest to nearest
         if self.parent is not None:
@@ -345,7 +358,8 @@ class Asset(ObjectPermissionMixin,
         if not version_id:
             version_id = self.version_id
 
-        AssetSnapshot.objects.filter(asset=self, asset_version_id=version_id).delete()
+        AssetSnapshot.objects.filter(asset=self,
+                                     asset_version_id=version_id).delete()
 
         (snapshot, _created) = AssetSnapshot.objects.get_or_create(
             asset=self,
