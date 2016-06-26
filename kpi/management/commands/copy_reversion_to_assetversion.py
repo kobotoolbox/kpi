@@ -20,6 +20,27 @@ class Command(BaseCommand):
         print 'created {} AssetVersion records'.format(AssetVersion.objects.count())
 
 
+from kpi.model_utils import disable_auto_field_update
+from django.db.models.signals import post_save
+from kpi.models.asset import post_save_asset
+
+
+def replace_deployment_ids(item):
+    # this needs to be run in a migration after all of the AssetVersions have been created
+    # from the reversion.models.Version instances
+    a_ids = set(AssetVersion.objects.filter(deployed=True).values_list('asset_id', flat=True))
+    post_save.disconnect(post_save_asset)
+    with disable_auto_field_update(Asset, 'date_modified'):
+        for a_id in a_ids:
+            asset = Asset.objects.get(id=a_id)
+            version_id = asset._deployment_data['version']
+            if isinstance(version_id, int):
+                uid = asset.asset_versions.get(_reversion_version_id=version_id).uid
+                asset._deployment_data['version'] = uid
+                asset.save()
+    post_save.connect(post_save_asset)
+
+
 def _saninitized_json_loads(item):
     if '\u0000' in item:
         item = re.sub('\\\u0000', '', item)

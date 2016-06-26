@@ -323,7 +323,7 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def version_id(self):
-        return self.asset_versions.first().id
+        return self.asset_versions.first().uid
 
     def get_export(self, regenerate=True, version_id=False):
         if not version_id:

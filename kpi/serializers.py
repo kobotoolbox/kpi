@@ -277,7 +277,7 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         lookup_field='username',
         read_only=True
     )
-    asset_version_id = serializers.IntegerField(required=False, read_only=True)
+    asset_version_id = serializers.ReadOnlyField()
     date_created = serializers.DateTimeField(read_only=True)
     source = WritableJSONField(required=False)
 
@@ -368,7 +368,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     summary = serializers.ReadOnlyField()
     koboform_link = serializers.SerializerMethodField()
     xform_link = serializers.SerializerMethodField()
-    version_count = serializers.SerializerMethodField('_version_count')
+    version_count = serializers.SerializerMethodField()
     downloads = serializers.SerializerMethodField()
     embeds = serializers.SerializerMethodField()
     parent = RelativePrefixHyperlinkedRelatedField(
@@ -382,7 +382,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         many=True, read_only=True, source='get_ancestors_or_none')
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     tag_string = serializers.CharField(required=False, allow_blank=True)
-    version_id = serializers.IntegerField(read_only=True)
+    version_id = serializers.CharField(read_only=True)
     has_deployment = serializers.ReadOnlyField()
     deployed_version_id = serializers.SerializerMethodField()
     deployed_versions = serializers.SerializerMethodField()
@@ -454,7 +454,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 fields.pop(exclude)
         return fields
 
-    def _version_count(self, obj):
+    def get_version_count(self, obj):
         return obj.asset_versions.count()
 
     def get_xls_link(self, obj):
@@ -501,10 +501,16 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_deployed_version_id(self, obj):
         if obj.has_deployment:
-            return obj.deployment.version
+            if isinstance(obj.deployment.version, int):
+                # this can be removed once the 'replace_deployment_ids'
+                # migration has been run
+                v_id = obj.deployment.version
+                return obj.asset_versions.get(_reversion_version_id=v_id).uid
+            else:
+                return obj.deployment.version
 
     def get_deployed_versions(self, asset):
-        deployed_versioned_assets = asset._deployed_versioned_assets()
+        deployed_versioned_assets = asset.asset_versions.filter(deployed=True)
         return AssetVersionListSerializer(
             deployed_versioned_assets,
             many=True,
@@ -645,19 +651,11 @@ class AssetVersionListSerializer(AssetSerializer):
     date_deployed = serializers.SerializerMethodField()
     version_id = serializers.SerializerMethodField()
 
-    @staticmethod
-    def _get_attr_set_by_view(obj, name):
-        if not hasattr(obj, name):
-            raise Exception(
-                'The view must set the `{}` attribute on each '
-                'version passed to this serializer.'.format(name))
-        return getattr(obj, name)
-
     def get_date_deployed(self, obj):
-        return self._get_attr_set_by_view(obj, '_date_deployed')
+        return obj.date_modified
 
     def get_version_id(self, obj):
-        return self._get_attr_set_by_view(obj, '_static_version_id')
+        return obj.uid
 
     class Meta(AssetSerializer.Meta):
         fields = ('version_id', 'date_deployed')
