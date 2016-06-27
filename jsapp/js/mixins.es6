@@ -1084,6 +1084,10 @@ var dmix = {
           <bem.FormView__group m="deploy-row">
             <bem.FormView__item m='version'>
               {this.state.version_id}
+              <span>
+                &nbsp;
+                {this.state.deployment__active ? t('(deployed)') : t('(undeployed draft)')}
+              </span>
               {this.renderEditPreviewButtons()}
             </bem.FormView__item>
             <bem.FormView__item m='date'>
