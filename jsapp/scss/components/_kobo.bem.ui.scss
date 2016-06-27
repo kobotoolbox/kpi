@@ -58,7 +58,7 @@
 }
 
 // Focus mode for form builder, disable drawer, header
-.mdl-layout.page-wrapper--formbuilder-focus {
+.mdl-layout.page-wrapper--header-hidden.mdl-layout.page-wrapper--drawer-hidden {
   .mdl-layout__content {
     margin: 0px;
     width: 100%;

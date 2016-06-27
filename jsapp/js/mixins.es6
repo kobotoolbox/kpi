@@ -168,36 +168,61 @@ var dmix = {
 
     return (
         <bem.FormView__header m={[
-              this.state.name ? 'named' : 'untitled'
+              this.state.name ? 'named' : 'untitled',
+              this.state.showExpandedReport ? 'expandedReport' : ''
             ]}>
-          <bem.FormView__tabs>
-            <bem.FormView__tab className="is-edge">
-              {t('Summary')}
-            </bem.FormView__tab>
-            <bem.FormView__tab 
-              className={this.state.activeTab == 'Form' ? 'active' : ''} 
-              onClick={this.setActiveTab} 
-              data-id='Form'>
-                {t('Form')}
-            </bem.FormView__tab>
-            { this.state.deployment__identifier != undefined && this.state.deployment__active ?
-              <bem.FormView__tab 
-                onClick={this.setActiveTab} 
-                data-id='Data'
-                className={this.state.activeTab == 'Data' ? 'active' : ''} 
-                >
-                {t('Data')}
+          { !this.state.showExpandedReport && 
+            <bem.FormView__tabs>
+              <bem.FormView__tab className="is-edge">
+                {t('Summary')}
               </bem.FormView__tab>
-            : null }
+              <bem.FormView__tab 
+                className={this.state.activeTab == 'Form' ? 'active' : ''} 
+                onClick={this.setActiveTab} 
+                data-id='Form'>
+                  {t('Form')}
+              </bem.FormView__tab>
+              { this.state.deployment__identifier != undefined && this.state.deployment__active ?
+                <bem.FormView__tab 
+                  onClick={this.setActiveTab} 
+                  data-id='Data'
+                  className={this.state.activeTab == 'Data' ? 'active' : ''} 
+                  >
+                  {t('Data')}
+                </bem.FormView__tab>
+              : null }
 
-            {this.renderExtraButtons()}
+              {this.renderExtraButtons()}
 
-          </bem.FormView__tabs>
-          <bem.FormView__name 
-            m={this.state.activeTab == 'Data' ? 'has-data-tabs' : ''} >
-            <ui.AssetName {...this.state} />
-          </bem.FormView__name>
-          { this.state.activeTab == 'Data' ?
+            </bem.FormView__tabs>
+          }
+
+          { this.state.showExpandedReport && 
+            <bem.FormView__tabs>
+              <bem.FormView__tab 
+                onClick={this.toggleExpandedReports}>
+                  <i className="k-icon k-icon-prev"></i>
+                  {t('Return to ')}
+                  <ui.AssetName {...this.state} />
+              </bem.FormView__tab>
+              <bem.FormView__extras>
+                <button className="mdl-button mdl-js-button"
+                        >
+                  {t('Export')}
+                </button>
+              </bem.FormView__extras>
+
+            </bem.FormView__tabs>
+          }
+
+          { !this.state.showExpandedReport && 
+            <bem.FormView__name 
+              m={this.state.activeTab == 'Data' ? 'has-data-tabs' : ''} >
+              <ui.AssetName {...this.state} />
+            </bem.FormView__name>
+          }
+
+          { this.state.activeTab == 'Data' && !this.state.showExpandedReport &&
             <bem.FormView__secondaryButtons>
               {  
                 ['Report', 'Table', 'Gallery', 'Downloads', 'Map',  'Settings'].map((actn)=>{
@@ -214,10 +239,20 @@ var dmix = {
                 }) 
               }
             </bem.FormView__secondaryButtons>
-          : null }
-          <bem.FormView__description className="is-edge">
-            {t('no description yet')}
-          </bem.FormView__description>
+          }
+
+          { this.state.activeTab == 'Data' && this.state.activeSubTab == 'Report' &&
+              this.renderReportButtons()
+          }
+
+          {this.state.showReportGraphSettings ?
+            <ui.Modal open onClose={this.toggleReportGraphSettings} title={t('Global Graph Settings')}>
+              <ui.Modal.Body>
+                {this.renderReportGraphSettings()}
+              </ui.Modal.Body>
+            </ui.Modal>
+
+          : null}
 
         </bem.FormView__header>
       );
@@ -344,9 +379,9 @@ var dmix = {
       Downloads: report__base+'/export/',
       Settings: deployment__identifier+'/form_settings',
     };
-    console.log(this.state.activeSubTab);
+
     return (
-      <bem.FormView__wrapper m='data'>
+      <bem.FormView__wrapper m={['data', this.state.activeSubTab]}>
         <bem.FormView__cell m='iframe'>
           <iframe 
             src={iframeUrls[this.state.activeSubTab]}>
@@ -355,6 +390,132 @@ var dmix = {
         </bem.FormView__cell>
       </bem.FormView__wrapper>
       );
+  },
+  renderReportButtons () {
+    return (
+      <bem.FormView__reportButtons className="is-edge">
+        <button className="mdl-button mdl-js-button"
+                onClick={this.toggleReportGraphSettings}>
+          {t('Graph Settings')}
+        </button>
+
+        <button className="mdl-button mdl-js-button"
+                id="report-language">
+          {t('Language')}
+          <i className="fa fa-caret-down"></i>
+        </button>
+
+        <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
+            htmlFor="report-language">
+          <li>
+            <a className="mdl-menu__item">
+              {t('Test link 1')}
+            </a>
+          </li>
+          <li>
+            <a className="mdl-menu__item">
+              {t('Test link 2')}
+            </a>
+          </li>
+        </ul> 
+
+        <button className="mdl-button mdl-js-button"
+                id="report-groupby">
+          {t('Group By')}
+          <i className="fa fa-caret-down"></i>
+        </button>
+
+        <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
+            htmlFor="report-groupby">
+          <li>
+            <a className="mdl-menu__item">
+              {t('Test group link 1')}
+            </a>
+          </li>
+          <li>
+            <a className="mdl-menu__item">
+              {t('Test group link 2')}
+            </a>
+          </li>
+        </ul> 
+
+        <button className="mdl-button mdl-js-button"
+                id="report-viewall">
+          {t('View All')}
+          <i className="fa fa-caret-down"></i>
+        </button>
+
+        <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
+            htmlFor="report-viewall">
+          <li>
+            <a className="mdl-menu__item">
+              {t('Test view all 1')}
+            </a>
+          </li>
+          <li>
+            <a className="mdl-menu__item">
+              {t('Test view all 2')}
+            </a>
+          </li>
+        </ul> 
+
+        <button className="mdl-button mdl-js-button"
+                onClick={this.toggleExpandedReports}>
+          {this.state.showExpandedReport ? t('Collapse') : t('Expand')}
+        </button>
+      </bem.FormView__reportButtons>
+    );
+  },
+  renderReportGraphSettings () {
+    return (
+      <bem.GraphSettings>
+        <div className="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
+          <div className="mdl-tabs__tab-bar">
+              <a href="#graph-type" className="mdl-tabs__tab is-active">
+                {t('Chart Type')}
+              </a>
+              <a href="#graph-colors" className="mdl-tabs__tab">
+                {t('Colors')}
+              </a>
+              <a href="#graph-labels" className="mdl-tabs__tab">
+                {t('Labels')}
+              </a>
+          </div>
+
+          <div className="mdl-tabs__panel is-active" id="graph-type">
+            <ul>
+              <li>Vertical</li>
+              <li>Donut</li>
+              <li>Pie</li>
+              <li>Line</li>
+            </ul>
+          </div>
+          <div className="mdl-tabs__panel" id="graph-colors">
+            Color presets go here
+          </div>
+          <div className="mdl-tabs__panel" id="graph-labels">
+            <bem.FormView__label>
+              {t('Data Labels')}
+            </bem.FormView__label>
+
+            <bem.FormView__label>
+              {t('X Axis')}
+            </bem.FormView__label>
+          </div>
+        </div>
+
+        <bem.GraphSettings__buttons>
+          <button className="mdl-button mdl-js-button"
+                  onClick={this.toggleReportGraphSettings}>
+            {t('Cancel')}
+          </button>
+          <button className="mdl-button mdl-js-button primary"
+                  onClick={this.toggleReportGraphSettings}>
+            {t('Done')}
+          </button>
+        </bem.GraphSettings__buttons>
+      </bem.GraphSettings>
+    );
   },
   renderParentCollection () {
     var value = null,
@@ -877,6 +1038,17 @@ var dmix = {
       activeSubTab: clickedActionId,
     });
   },
+  toggleReportGraphSettings () {
+    this.setState({
+      showReportGraphSettings: !this.state.showReportGraphSettings,
+    });
+  },
+  toggleExpandedReports () {
+    stores.pageState.setDrawerHidden(!this.state.showExpandedReport);
+    this.setState({
+      showExpandedReport: !this.state.showExpandedReport,
+    });
+  },
   renderDeployments () {
     // var deployed_versions = [
     //     {
@@ -1057,6 +1229,7 @@ var dmix = {
       activeSubTab: 'Report',
       collectionOptionList: [],
       selectedCollectOption: {},
+      showReportGraphSettings: false,
       currentUsername: stores.session.currentAccount && stores.session.currentAccount.username,
     };
   },

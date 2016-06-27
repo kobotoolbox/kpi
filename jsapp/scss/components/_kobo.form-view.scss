@@ -6,12 +6,19 @@
 
 .form-view__wrapper {
   width: 100%;
-  height: calc(100% - 86px);
+  height: calc(100% - 96px);
   overflow: auto;
   &--data {
     overflow: visible;
-    height: calc(100% - 96px);
   }
+  &--Report {
+    overflow: visible;
+    height: calc(100% - 134px);
+  }
+}
+
+.form-view__header--expandedReport + .form-view__wrapper--Report {
+  height: calc(100% - 96px);
 }
 
 .form-view__header {
@@ -19,6 +26,18 @@
   @extend .mdl-shadow--2dp;
   background-color: #FFF;
   position: relative;
+  &--expandedReport {
+    background-color: transparent;
+    box-shadow: none;
+    margin:-10px -6px;
+    margin-bottom: 8px;
+    .form-view__tabs {
+      padding:8px 0px;
+      i.k-icon-prev {
+        margin-right: 6px;
+      }
+    }
+  }
 }
 
 .form-view__tabs {
@@ -58,27 +77,30 @@
 }
 
 .form-view__name {
-  padding: 10px 15px;
+  margin:0px;
+  padding: 8px 15px;
   font-size: 18px;
-  line-height: 1.4em;
+  line-height: 1.5em;
   color: unquote("rgb(#{$color-primary})");
+  display: inline-block;
+  text-overflow:ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 
   &--has-data-tabs {
     width:55%;
-    text-overflow:ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-    display: inline-block;
   }
 }
 
 // data tab secondary buttons
 .form-view__secondaryButtons {
   padding: 10px 5px;
+  padding-bottom: 8px;
   width: 44%;
   display: inline-block;
   vertical-align: top;
   text-align: right;
+  margin:0px;
 }
 
 .form-view__secondaryButton {
@@ -123,10 +145,13 @@
     @extend .k-icon, .k-icon-settings;
   }
   &--active, &:hover {
-    color: unquote("rgb(#{$color-primary})");
+    color: #333;
     span {
       opacity: 1;
     }
+  }
+  &:hover {
+    color: unquote("rgb(#{$color-primary})");
   }
 }
 
@@ -453,5 +478,53 @@
   }
   &:hover {
     color: unquote("rgb(#{$color-primary})");
+  }
+}
+
+// report buttons
+.form-view__reportButtons {
+  button {
+    padding:0px;
+    margin:0px 15px;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: $cool-gray;
+    i {
+      font-size: 18px;
+      margin-left: 8px;
+    }
+    &:hover {
+      background-color: transparent;
+      color: #333;
+    }
+  }
+}
+
+// report graph settings
+.graph-settings {
+  margin-top: -30px;
+}
+
+.graph-settings__buttons {
+  text-align: right;
+  margin-top: 20px;
+  button {
+    border:2px solid $cool-gray;
+    color:$cool-gray;
+    font-weight: 500;
+    font-size: 15px;
+    margin-right: 15px;
+    min-width: 110px;
+    text-align: center;
+    text-transform: uppercase;
+    &:hover, &.primary:hover {
+      color: #333;
+      border-color: #333;
+      background-color: transparent;
+    }
+    &.primary {
+      color: unquote("rgb(#{$color-primary})");
+      border-color: unquote("rgb(#{$color-primary})");
+    }
   }
 }

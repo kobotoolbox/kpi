@@ -160,9 +160,12 @@ bem.FormView__label = bem.FormView.__('label');
 bem.FormView__group = bem.FormView.__('group');
 bem.FormView__item = bem.FormView.__('item', '<span>');
 bem.FormView__link = bem.FormView.__('link', '<a>');
-
 bem.FormView__secondaryButtons = bem.FormView.__('secondaryButtons');
 bem.FormView__secondaryButton = bem.FormView.__('secondaryButton', '<button>');
+bem.FormView__reportButtons = bem.FormView.__('reportButtons');
+
+bem.GraphSettings = BEM('graph-settings');
+bem.GraphSettings__buttons = bem.GraphSettings.__('buttons');
 
 bem.PopoverMenu = bem('popover-menu');
 bem.PopoverMenu__item = bem.PopoverMenu.__('item');
