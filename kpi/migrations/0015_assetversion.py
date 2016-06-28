@@ -15,6 +15,10 @@ from kpi.model_utils import disable_auto_field_update
 
 def copy_reversion_to_assetversion(apps, schema_editor):
     AssetVersion = apps.get_model('kpi', 'AssetVersion')
+    if AssetVersion.objects.exclude(_reversion_version=None).count() > 0:
+        print('skipping "copy_reversion_to_assetversion" process')
+        return
+
     Asset = apps.get_model('kpi', 'Asset')
     _ReversionVersion = apps.get_model('reversion', 'Version')
     asset_ids = Asset.objects.filter(asset_type='survey').order_by('date_modified').values_list('id', flat=True)
