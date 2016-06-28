@@ -80,7 +80,6 @@ var AssetRow = React.createClass({
     }
     var isDeployable = !isCollection && this.props.asset_type && this.props.asset_type === 'survey';
     hrefParams[hrefKey] = this.props.uid;
-    console.log(this.props);
 
     // check-round icon temporarily removed from selected asset
     return (
