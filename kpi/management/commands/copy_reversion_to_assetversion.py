@@ -1,28 +1,30 @@
 import re
+import gc
 import json
 
 from django.core.management.base import BaseCommand
 from reversion.models import Version
 from kpi.models import Asset, AssetVersion
+from kpi.model_utils import disable_auto_field_update
+from django.db.models.signals import post_save
+from kpi.models.asset import post_save_asset
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
         asset_ids = Asset.objects.filter(asset_type='survey').order_by('date_modified').values_list('id', flat=True)
-        step = 100
-        for strt in xrange(0, len(asset_ids), step):
-            max_i = (strt + step) if (strt + step) < len(asset_ids) else len(asset_ids)
-            asset_version_objects = []
-            for i in xrange(strt, max_i):
-                asset_id = asset_ids[i]
-                asset_version_objects = asset_version_objects + get_versions_for_asset_id(asset_id)
-            AssetVersion.objects.bulk_create(asset_version_objects)
+        for _i in xrange(0, len(asset_ids)):
+            create_(asset_ids[_i])
+            gc.collect()
+            if _i % 1000 == 0:
+                print('on {} with {} created'.format(_i, AssetVersion.objects.count()))
         print 'created {} AssetVersion records'.format(AssetVersion.objects.count())
 
 
-from kpi.model_utils import disable_auto_field_update
-from django.db.models.signals import post_save
-from kpi.models.asset import post_save_asset
+def create_(asset_id):
+    AssetVersion.objects.bulk_create(
+        get_versions_for_asset_id(asset_id)
+    )
 
 
 def replace_deployment_ids(item):
