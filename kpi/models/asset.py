@@ -180,7 +180,7 @@ class Asset(ObjectPermissionMixin,
     date_modified = models.DateTimeField(auto_now=True)
     content = JSONField(null=True)
     summary = JSONField(null=True, default=dict)
-    graph_styles = JSONBField(default=dict)
+    chart_styles = JSONBField(default=dict)
     asset_type = models.CharField(
         choices=ASSET_TYPES, max_length=20, default='text')
     parent = models.ForeignKey(

@@ -84,7 +84,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='asset',
-            name='graph_styles',
+            name='chart_styles',
             field=jsonbfield.fields.JSONField(default=dict),
         ),
     ]
