@@ -9,26 +9,6 @@ import jsonfield.fields
 import kpi.fields
 
 
-def convert_asset_version_id_to_uid_string(apps, schema_editor):
-    AssetSnapshot = apps.get_model("kpi", "AssetSnapshot")
-    AssetVersion = apps.get_model("kpi", "AssetVersion")
-
-    for _as in AssetSnapshot.objects.exclude(_asset_version_id_int=None).all():
-        _av = AssetVersion.objects.get(_reversion_version_id=_as._asset_version_id_int)
-        _as.asset_version_id = _av.uid
-        _as.save()
-
-
-def convert_asset_version_id_back_to_int(apps, schema_editor):
-    AssetSnapshot = apps.get_model("kpi", "AssetSnapshot")
-    AssetVersion = apps.get_model("kpi", "AssetVersion")
-
-    for _as in AssetSnapshot.objects.exclude(asset_version_id=None).all():
-        _av = AssetVersion.objects.get(uid=_as.asset_version_id)
-        _as._asset_version_id_int = _av._reversion_version_id
-        _as.save()
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -60,31 +40,19 @@ class Migration(migrations.Migration):
             name='summary',
             field=jsonfield.fields.JSONField(default=dict, null=True),
         ),
-        # temporarily move old field
-        migrations.RenameField(
-            model_name='assetsnapshot',
-            old_name='asset_version_id',
-            new_name='_asset_version_id_int',
-        ),
-        # add new CharField
-        migrations.AddField(
-            model_name='assetsnapshot',
-            name='asset_version_id',
-            field=models.CharField(max_length=32, null=True),
-        ),
-        # move values from IntegerField to CharField (and reverse)
-        migrations.RunPython(
-            convert_asset_version_id_to_uid_string,
-            convert_asset_version_id_back_to_int,
-        ),
-        # remove temporary field
-        migrations.RemoveField(
-            model_name='assetsnapshot',
-            name='_asset_version_id_int',
-        ),
         migrations.AddField(
             model_name='asset',
             name='chart_styles',
             field=jsonbfield.fields.JSONField(default=dict),
+        ),
+        migrations.RenameField(
+            model_name='assetsnapshot',
+            old_name='asset_version_id',
+            new_name='_reversion_version_id',
+        ),
+        migrations.AddField(
+            model_name='assetsnapshot',
+            name='asset_version',
+            field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, to='kpi.AssetVersion'),
         ),
     ]

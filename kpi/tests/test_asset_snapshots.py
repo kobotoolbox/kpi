@@ -22,6 +22,7 @@ class AssetSnapshotsTestCase(TestCase):
         self.asset_snapshot = AssetSnapshot.objects.create(asset=self.asset)
         self.sa = self.asset
 
+
 class CreateAssetSnapshots(AssetSnapshotsTestCase):
 
     def test_init_asset_snapshot(self):
@@ -29,6 +30,7 @@ class CreateAssetSnapshots(AssetSnapshotsTestCase):
         self.assertEqual(ae.asset.id, self.asset.id)
 
     def test_create_asset_snapshot(self):
+        self.asset_snapshot.delete()
         ae_count = AssetSnapshot.objects.count()
         ae = AssetSnapshot.objects.create(asset=self.asset)
         ae_count2 = AssetSnapshot.objects.count()

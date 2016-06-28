@@ -355,15 +355,14 @@ class Asset(ObjectPermissionMixin,
         return self.asset_versions.first().uid
 
     def get_export(self, regenerate=True, version_id=False):
-        if not version_id:
-            version_id = self.version_id
-
-        AssetSnapshot.objects.filter(asset=self,
-                                     asset_version_id=version_id).delete()
+        if version_id:
+            asset_version = self.asset_versions.get(uid=version_id)
+        else:
+            asset_version = self.asset_versions.first()
 
         (snapshot, _created) = AssetSnapshot.objects.get_or_create(
             asset=self,
-            asset_version_id=self.version_id)
+            asset_version=asset_version)
         return snapshot
 
     def __unicode__(self):
@@ -383,15 +382,17 @@ class AssetSnapshot(models.Model, XlsExportable):
     details = JSONField(default={})
     owner = models.ForeignKey('auth.User', related_name='asset_snapshots', null=True)
     asset = models.ForeignKey(Asset, null=True)
-    asset_version_id = models.CharField(null=True, max_length=32)
+    _reversion_version_id = models.IntegerField(null=True)
+    asset_version = models.OneToOneField('AssetVersion',
+                                             on_delete=models.CASCADE,
+                                             null=True)
     date_created = models.DateTimeField(auto_now_add=True)
     uid = KpiUidField(uid_prefix='s')
 
     def __init__(self, *args, **kwargs):
-        if (kwargs.get('asset', None) is not None and
-                'asset_version_id' not in kwargs):
+        if kwargs.get('asset') is not None and 'asset_version' not in kwargs:
             asset = kwargs.get('asset')
-            kwargs['asset_version_id'] = asset.asset_versions.first().uid
+            kwargs['asset_version'] = asset.asset_versions.first()
         return super(AssetSnapshot, self).__init__(*args, **kwargs)
 
     def generate_xml_from_source(self, source, **opts):
