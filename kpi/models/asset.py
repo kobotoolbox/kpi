@@ -405,6 +405,10 @@ class AssetSnapshot(models.Model, XlsExportable):
             kwargs['asset_version'] = asset.asset_versions.first()
         return super(AssetSnapshot, self).__init__(*args, **kwargs)
 
+    @property
+    def content(self):
+        return self.source
+
     def generate_xml_from_source(self, source, **opts):
         import pyxform
         import tempfile
@@ -469,14 +473,14 @@ class AssetSnapshot(models.Model, XlsExportable):
         if self.source is None:
             self.source = copy.deepcopy(self.asset.content)
         note = False
-        _valid_source = to_xlsform_structure(self.source)
         if self.asset and self.asset.asset_type in ['question', 'block'] and \
                 len(self.asset.summary['languages']) == 0:
             asset_type = self.asset.asset_type
             note = 'Note: This item is a ASSET_TYPE and ' + \
                    'must be included in a form before deploying'
             note = note.replace('ASSET_TYPE', asset_type)
-        self.generate_xml_from_source(_valid_source, include_note=note)
+        self.generate_xml_from_source(self.valid_xlsform_content(),
+                                      include_note=note)
         return super(AssetSnapshot, self).save(*args, **kwargs)
 
 
