@@ -159,7 +159,8 @@ class XlsExportable(object):
             'survey': {
                 'name': '__version__',
                 'type': 'calculate',
-                'calculation': self.version_id
+                # wraps the version id in quotes: 'v12345'
+                'calculation': '\'{}\''.format(self.version_id)
             }
         }
         extra_settings = {'version': self.version_id}
@@ -227,6 +228,12 @@ class Asset(ObjectPermissionMixin,
         r = super(Asset, self).__init__(*args, **kwargs)
         # Mind the depth
         self._initial_content_json = json.dumps(self.content)
+
+    # todo: test and implement this method
+    # def restore_version(self, uid):
+    #     _version_to_restore = self.asset_versions.get(uid=uid)
+    #     self.content = _version_to_restore.version_content
+    #     self.name = _version_to_restore.name
 
     def _deployed_versioned_assets(self):
         asset_deployments_by_version_id = OrderedDict()
