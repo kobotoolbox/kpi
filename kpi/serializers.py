@@ -306,30 +306,36 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         (and the www). '''
         asset = validated_data.get('asset', None)
         source = validated_data.get('source', None)
+
+        # Force owner to be the requesting user
+        validated_data['owner'] = self.context['request'].user
+
         # TODO: Move to a validator?
         if asset and source:
             if not self.context['request'].user.has_perm('view_asset', asset):
                 # The client is not allowed to snapshot this asset
                 raise exceptions.PermissionDenied
             validated_data['source'] = source
+            snapshot = AssetSnapshot.objects.create(**validated_data)
         elif asset:
             # The client provided an existing asset; read source from it
             if not self.context['request'].user.has_perm('view_asset', asset):
                 # The client is not allowed to snapshot this asset
                 raise exceptions.PermissionDenied
-            validated_data['source'] = asset.content
+            asset_version = asset.asset_versions.first()
+            try:
+                snapshot = AssetSnapshot.get(asset=asset, asset_version=asset_version)
+            except AssetSnapshot.DoesNotExist as e:
+                snapshot = AssetSnapshot.objects.create(**validated_data)
         elif source:
             # The client provided source directly; no need to copy anything
             # For tidiness, pop off unused fields. `None` avoids KeyError
             validated_data.pop('asset', None)
             validated_data.pop('asset_version', None)
+            snapshot = AssetSnapshot.objects.create(**validated_data)
         else:
             raise serializers.ValidationError('Specify an asset and/or a source')
 
-        # Force owner to be the requesting user
-        validated_data['owner'] = self.context['request'].user
-        # Create the snapshot
-        snapshot = AssetSnapshot.objects.create(**validated_data)
         if not snapshot.xml:
             raise serializers.ValidationError(snapshot.details)
         return snapshot
@@ -497,7 +503,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_deployed_version_id(self, obj):
         if obj.asset_versions.filter(deployed=True).exists():
-            if isinstance(obj.deployment.version, int):
+            if obj.has_deployment and isinstance(obj.deployment.version, int):
                 # this can be removed once the 'replace_deployment_ids'
                 # migration has been run
                 v_id = obj.deployment.version
