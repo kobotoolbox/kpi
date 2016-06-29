@@ -154,15 +154,15 @@ class AssetsXmlExportApiTests(KpiTestCase):
         self.assertEqual(title_elts[0].text, asset_name)
 
     def test_xml_export_auto_title(self):
-        content= {'settings': [{'form_id': 'no_title_asset'}],
-                 'survey': [{'label': 'Q1 Label.', 'type': 'decimal'}]}
+        content = {'settings': [{'form_id': 'no_title_asset'}],
+                   'survey': [{'label': 'Q1 Label.', 'type': 'decimal'}]}
         self.login('someuser', 'someuser')
-        asset= self.create_asset('', json.dumps(content), format='json')
-        response= self.client.get(reverse('asset-detail',
-                                          kwargs={'uid':asset.uid, 'format': 'xml'}))
+        asset = self.create_asset('', json.dumps(content), format='json')
+        response = self.client.get(reverse('asset-detail',
+                                           kwargs={'uid': asset.uid, 'format': 'xml'}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        xml= etree.fromstring(response.content)
-        title_elts= xml.xpath('./*[local-name()="head"]/*[local-name()="title"]')
+        xml = etree.fromstring(response.content)
+        title_elts = xml.xpath('./*[local-name()="head"]/*[local-name()="title"]')
         self.assertEqual(len(title_elts), 1)
         self.assertNotEqual(title_elts[0].text, '')
 
