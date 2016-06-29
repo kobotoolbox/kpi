@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from django.db import migrations, models
 import django.db.models.deletion
 from django.db.models.signals import post_save
+from django.core.exceptions import ObjectDoesNotExist
 import gc
 import json
 import datetime
@@ -11,6 +12,8 @@ import jsonbfield.fields
 import jsonfield.fields
 import kpi.fields
 from kpi.model_utils import disable_auto_field_update
+
+NULL_CHAR_REPR = '\\u0000'
 
 
 def copy_reversion_to_assetversion(apps, schema_editor):
@@ -21,13 +24,16 @@ def copy_reversion_to_assetversion(apps, schema_editor):
 
     Asset = apps.get_model('kpi', 'Asset')
     _ReversionVersion = apps.get_model('reversion', 'Version')
-    asset_ids = Asset.objects.filter(asset_type='survey').order_by('date_modified').values_list('id', flat=True)
+    asset_ids = Asset.objects.filter(asset_type='survey'
+                                     ).order_by('date_modified'
+                                                ).values_list('id', flat=True)
 
     for _i in xrange(0, len(asset_ids)):
         _create_versions_for_asset_id(asset_ids[_i], AssetVersion, _ReversionVersion)
         gc.collect()
         if _i % 1000 == 0:
             print('on {} with {} created'.format(_i, AssetVersion.objects.count()))
+
     print('created {} AssetVersion records'.format(AssetVersion.objects.count()))
     _replace_deployment_ids(AssetVersion, Asset)
     print('migrated deployment ids')
@@ -37,9 +43,11 @@ def noop(apps, schema_editor):
     pass
 
 
+# UNUSED:
+# this does not successfully strip null characters as needed for postgres
 def _saninitized_json_loads(item):
-    if '\u0000' in item:
-        item = re.sub('\\\u0000', '', item)
+    if NULL_CHAR_REPR in item:
+        item = item.replace(NULL_CHAR_REPR, '')
     return json.loads(item)
 
 
@@ -50,7 +58,11 @@ def _create_versions_for_asset_id(asset_id, AssetVersion, _ReversionVersion):
     _deployed_version_ids = []
     _version_data = []
     uncreated_asset_versions = []
+    passed_ids = []
     for asset_v in asset_versions.all():
+        if NULL_CHAR_REPR in asset_v.serialized_data:
+            passed_ids.append(asset_v.id)
+            continue
         _fields = json.loads(asset_v.serialized_data)[0]['fields']
         _deployed_version_id = None
         if '_deployment_data' in _fields:
@@ -64,14 +76,20 @@ def _create_versions_for_asset_id(asset_id, AssetVersion, _ReversionVersion):
         _version_data.append({
             'name': _fields.get('name'),
             '_reversion_version_id': asset_v.id,
-            'version_content': _saninitized_json_loads(_fields.get('content', 'null')),
+            'version_content': json.loads(_fields.get('content', 'null')),
             'date_modified': _fields.get('date_modified'),
             'asset_id': asset_id,
             '_deployment_data': _dd,
         })
+
+    if len(passed_ids) > 0:
+        print("Passed on parsing of ids with null characters:")
+        print(', '.join(passed_ids))
+
     for version in _version_data:
         version['deployed'] = version['_reversion_version_id'] in _deployed_version_ids
         uncreated_asset_versions.append(AssetVersion(**version))
+
     AssetVersion.objects.bulk_create(
         uncreated_asset_versions
     )
@@ -80,21 +98,23 @@ def _create_versions_for_asset_id(asset_id, AssetVersion, _ReversionVersion):
 def _replace_deployment_ids(AssetVersion, Asset):
     # this needs to be run in a migration after all of the AssetVersions have been created
     # from the reversion.models.Version instances
-    a_ids = set(AssetVersion.objects.filter(deployed=True).values_list('asset_id', flat=True))
+    a_ids = set(AssetVersion.objects.filter(deployed=True
+                                            ).values_list('asset_id', flat=True
+                                                          ))
     post_save.disconnect(dispatch_uid="post_save_asset")
+    ids_not_counted = []
     with disable_auto_field_update(Asset, 'date_modified'):
         for a_id in a_ids:
-            asset = Asset.objects.get(id=a_id)
-            version_id = asset._deployment_data['version']
             if isinstance(version_id, int):
-                uid = asset.asset_versions.get(_reversion_version_id=version_id).uid
-                # theoretically, this is reversible by saving the version_id int
-                asset._deployment_data['reversion_version__depr'] = version_id
-                asset._deployment_data['version'] = uid
-                asset.save()
-    # TODO:
-    # Test: will it cause problems to not re-connect the post_save during migrations?
-    # post_save.connect(post_save_asset)
+                try:
+                    asset = Asset.objects.get(id=a_id)
+                    version_id = asset._deployment_data['version']
+                    uid = asset.asset_versions.get(_reversion_version_id=version_id).uid
+                    asset._deployment_data['version_uid'] = uid
+                    asset.save()
+                except ObjectDoesNotExist as e:
+                    ids_not_counted.append(version_id)
+    print 'DeploymentIDs not found: {}'.format(', '.join(ids_not_counted))
 
 
 class Migration(migrations.Migration):
