@@ -312,21 +312,17 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
                 # The client is not allowed to snapshot this asset
                 raise exceptions.PermissionDenied
             validated_data['source'] = source
-            # when source is included, snapshot is not tied to an individual v_id
-            validated_data['asset_version_id'] = None
         elif asset:
             # The client provided an existing asset; read source from it
             if not self.context['request'].user.has_perm('view_asset', asset):
                 # The client is not allowed to snapshot this asset
                 raise exceptions.PermissionDenied
             validated_data['source'] = asset.content
-            # Record the asset's version id
-            validated_data['asset_version_id'] = asset.version_id
         elif source:
             # The client provided source directly; no need to copy anything
             # For tidiness, pop off unused fields. `None` avoids KeyError
             validated_data.pop('asset', None)
-            validated_data.pop('asset_version_id', None)
+            validated_data.pop('asset_version', None)
         else:
             raise serializers.ValidationError('Specify an asset and/or a source')
 

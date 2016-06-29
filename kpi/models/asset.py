@@ -390,7 +390,10 @@ class AssetSnapshot(models.Model, XlsExportable):
     uid = KpiUidField(uid_prefix='s')
 
     def __init__(self, *args, **kwargs):
-        if kwargs.get('asset') is not None and 'asset_version' not in kwargs:
+        asset = kwargs.get('asset')
+        asset_version = kwargs.get('asset_version')
+        _no_source = not kwargs.get('source')
+        if _no_source and asset and not asset_version:
             asset = kwargs.get('asset')
             kwargs['asset_version'] = asset.asset_versions.first()
         return super(AssetSnapshot, self).__init__(*args, **kwargs)
