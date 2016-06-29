@@ -104,8 +104,8 @@ var Drawer = React.createClass({
     this.setStates();
   },
   setStates() {
-    var breadcrumb = this.state.headerBreadcrumb;
-    if (breadcrumb[0] && breadcrumb[0].to == 'library') {
+    var isLibrary = !!this.context.router.getCurrentPathname().match(/library/);
+    if (isLibrary) {
       this.setState({
         headerFilters: 'library',
         searchContext: searches.getSearchContext('library', {
@@ -146,6 +146,7 @@ var Drawer = React.createClass({
       filteredCollectionUid: collectionUid,
       filteredByPublicCollection: publicCollection,
     });
+    this.transitionTo('library');
   },
   clickShowPublicCollections (evt) {
     //TODO: show the collections in the main pane?
@@ -295,7 +296,7 @@ var Drawer = React.createClass({
                     {this.state.headerFilters == 'library' ?
                       <ul htmlFor="sidebar-menu" className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect">
                         <bem.CollectionNav__link key={'new-asset'} m={['new', 'new-block']} className="mdl-menu__item"
-                            href={this.makeHref('add-to-library')}>
+                            href={this.makeHref('library-new-form')}>
                           <i />
                           {t('add to library')}
                         </bem.CollectionNav__link>

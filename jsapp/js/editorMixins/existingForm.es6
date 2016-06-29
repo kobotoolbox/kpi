@@ -27,12 +27,14 @@ export default {
     });
   },
   navigateBack () {
+    var isLibrary = !!this.context.router.getCurrentPathname().match(/library/);
+    var routeName = `${isLibrary ? 'library-' : ''}form-landing`;
     if (!this.needsSave()) {
-      this.transitionTo('form-landing', {assetid: this.props.params.assetid});
+      this.transitionTo(routeName, {assetid: this.props.params.assetid});
     } else {
       customConfirmAsync(t('you have unsaved changes. leave form without saving?'))
         .done(() => {
-          this.transitionTo('form-landing', {assetid: this.props.params.assetid});
+          this.transitionTo(routeName, {assetid: this.props.params.assetid});
         });
     }
   },

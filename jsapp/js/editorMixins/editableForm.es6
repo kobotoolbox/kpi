@@ -214,26 +214,26 @@ export default assign({
     }
     let bcData = [
       {
-        'label': isLibrary ? t('Library List') : t('Projects'),
+        'label': isLibrary ? t('Library') : t('Projects'),
         'to': isLibrary ? 'library' : 'forms',
       }
     ];
     if (this.editorState === 'new') {
       bcData.push({
         label: t('new'),
-        to: isLibrary ? 'add-to-library' : 'new-form',
+        to: `${isLibrary ? 'library-' : ''}new-form`,
       });
     } else {
       let uid = params.asset_uid || this.state.asset_uid || this.props.params.assetid,
           asset_type = params.asset_type || this.state.asset_type || 'asset';
       bcData.push({
         label: t(`view-${asset_type}`),
-        to: 'form-landing',
+        to: `${isLibrary ? 'library-' : ''}form-landing`,
         params: {assetid: uid},
       });
       bcData.push({
         label: t(`edit-${asset_type}`),
-        to: 'form-edit',
+        to: `${isLibrary ? 'library-' : ''}form-edit`,
         params: {assetid: uid},
       });
     }
@@ -375,7 +375,7 @@ export default assign({
       params.asset_type = this.isLibrary() ? 'block' : 'survey';
       actions.resources.createResource(params)
         .then((asset) => {
-          this.transitionTo('form-edit', {assetid: asset.uid});
+          this.transitionTo(`${this.isLibrary() ? 'library-' : ''}form-edit`, {assetid: asset.uid});
         })
     } else {
       // update existing
@@ -595,6 +595,7 @@ export default assign({
   },
   renderNotLoadedMessage () {
     if (this.state.surveyLoadError) {
+      var isLibrary = !!this.context.router.getCurrentPathname().match(/library/);
       return (
           <ErrorMessage>
             <ErrorMessage__strong>
@@ -605,7 +606,7 @@ export default assign({
             </p>
             <div>
               <ErrorMessage__link m="raised"
-                  href={this.makeHref('form-landing', {
+                  href={this.makeHref(`${isLibrary ? 'library-' : ''}form-landing`, {
                     assetid: this.props.params.assetid,
                   })}>
                 {t('Back')}
