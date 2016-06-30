@@ -47,12 +47,12 @@
   margin: 0px !important;
   position: relative;
   height: calc(100% - 50px);
+  .asset-list {
+    height: calc(100% - 50px);
+    overflow: auto;
+  }
 }
 
-.list--regular .asset-list {
-  height: calc(100% - 50px);
-  overflow: auto;
-}
 
 // grouped list
 

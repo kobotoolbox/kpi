@@ -87,6 +87,27 @@ var SearchCollectionList = React.createClass({
         </bem.AssetListSorts>
       );
   },
+  renderGroupedHeadings () {
+    return (
+        <bem.AssetListSorts className="mdl-grid">
+          <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--5-col mdl-cell--3-col-tablet">
+            {t('Name')}
+          </bem.AssetListSorts__item>
+          <bem.AssetListSorts__item m={'owner'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet">
+            {t('Shared by')}
+          </bem.AssetListSorts__item>
+          <bem.AssetListSorts__item m={'created'} className="mdl-cell mdl-cell--2-col mdl-cell--hide-tablet">
+            {t('Created')}
+          </bem.AssetListSorts__item>
+          <bem.AssetListSorts__item m={'modified'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet">
+            {t('Last Modified')}
+          </bem.AssetListSorts__item>
+          <bem.AssetListSorts__item m={'questions'} className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet">
+            {t('Questions')}
+          </bem.AssetListSorts__item>
+        </bem.AssetListSorts>
+      );
+  },
   renderGroupedResults () {
     return ['Deployed', 'Draft', 'Archived' /*, 'deleted'*/].map(
       (category) => {
@@ -99,7 +120,7 @@ var SearchCollectionList = React.createClass({
               {` (${this.state.defaultQueryCategorizedResultsLists[category].length})`}
             </bem.AssetList__heading>,
             <bem.AssetItems m={[category, categoryVisible ? 'visible' : 'collapsed']}>
-              {this.renderHeadings()}
+              {this.renderGroupedHeadings()}
               {
                 (()=>{
                   if (this.state.searchResultsDisplayed) {

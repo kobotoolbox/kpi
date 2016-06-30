@@ -71,7 +71,8 @@ var CollectionLanding = React.createClass({
         }}
       ]);
       stores.pageState.setAssetNavPresent(false);
-      stores.pageState.setFormBuilderFocus(false);
+      stores.pageState.setDrawerHidden(false);
+      stores.pageState.setHeaderHidden(false);
       callback();
     }
   },
