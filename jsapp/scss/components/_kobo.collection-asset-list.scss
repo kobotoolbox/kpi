@@ -60,10 +60,13 @@
   height: 100%;
   margin: 0px 8px;
   overflow-y: auto;
-  // .asset-list {
-  //   height:100%;
-  //   border:1px solid green;
-  // }
+  .asset-list {
+    min-height: 300px;
+    margin-bottom: 8px;
+    > .loading {
+      margin-top:110px;
+    }
+  }
   .asset-list__heading {
     font-weight: 500;
     margin: 10px 0px;

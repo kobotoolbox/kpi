@@ -9,6 +9,7 @@ from ..model_utils import grant_all_model_level_perms
 
 
 def default_permissions_to_existing_users(apps, schema_editor):
+    return # just skip this for now. it's not really applicable to our situation anyway
     # The permissions objects might not have been created yet. See
     # https://code.djangoproject.com/ticket/23422. This is a workaround.
     for app_config in apps.get_app_configs():

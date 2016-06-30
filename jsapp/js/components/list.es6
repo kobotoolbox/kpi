@@ -228,13 +228,13 @@ var ListSearchSummary = React.createClass({
         var desc = s.defaultQueryCount === 1 ? this.props.assetDescriptor : this.props.assetDescriptorPlural;
         messages.push(t('## ___ available').replace('##', s.defaultQueryCount).replace('___', desc));
         modifier = 'done';
-        if (s.defaultQueryCount < 1) {
-          if (s.defaultQueryFor.assetType == 'asset_type:survey') {
-            messages.push(t('You currently have no forms. You can create a new form by clicking on the + button below.'));
-          } else {
-            messages.push(t('Your library is currently empty. You can create a new question or a new block by clicking on the + button below, or add them from within your forms.'));
-          }
-        }
+        // if (s.defaultQueryCount < 1) {
+        //   if (s.defaultQueryFor.assetType == 'asset_type:survey') {
+        //     messages.push(t('You currently have no forms. You can create a new form by clicking on the + button below.'));
+        //   } else {
+        //     messages.push(t('Your library is currently empty. You can create a new question or a new block by clicking on the + button below, or add them from within your forms.'));
+        //   }
+        // }
       }
     }
 
