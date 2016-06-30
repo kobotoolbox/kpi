@@ -18,9 +18,6 @@ NULL_CHAR_REPR = '\\u0000'
 
 def copy_reversion_to_assetversion(apps, schema_editor):
     AssetVersion = apps.get_model('kpi', 'AssetVersion')
-    if AssetVersion.objects.exclude(_reversion_version=None).count() > 0:
-        print('skipping "copy_reversion_to_assetversion" process')
-        return
 
     Asset = apps.get_model('kpi', 'Asset')
     _ReversionVersion = apps.get_model('reversion', 'Version')
@@ -105,10 +102,10 @@ def _replace_deployment_ids(AssetVersion, Asset):
     ids_not_counted = []
     with disable_auto_field_update(Asset, 'date_modified'):
         for a_id in a_ids:
+            asset = Asset.objects.get(id=a_id)
+            version_id = asset._deployment_data['version']
             if isinstance(version_id, int):
                 try:
-                    asset = Asset.objects.get(id=a_id)
-                    version_id = asset._deployment_data['version']
                     uid = asset.asset_versions.get(_reversion_version_id=version_id).uid
                     asset._deployment_data['version_uid'] = uid
                     asset.save()
