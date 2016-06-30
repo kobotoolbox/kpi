@@ -35,9 +35,12 @@
   flex-grow: 0;
   color: $greyish-brown;
   text-align: right;
+  padding: 15px;
   > div {
-    padding: 15px;
-    vertical-align: middle;
+    display: inline;
+  }
+  div + div {
+    margin-left: 5px;
   }
 }
 
@@ -65,6 +68,13 @@
   height: 100%;
   margin: 0px 8px;
   overflow-y: auto;
+  .asset-list {
+    min-height: 300px;
+    margin-bottom: 4px;
+    > .loading {
+      margin-top:110px;
+    }
+  }
   .asset-list__heading {
     margin: 10px;
     font-size: 18px;
