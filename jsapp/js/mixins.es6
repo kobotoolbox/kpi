@@ -1080,7 +1080,7 @@ var dmix = {
           </bem.FormView__group>
           <bem.FormView__group m="deploy-row">
             <bem.FormView__item m='version'>
-              {this.state.version_id}
+              {dvcount > 0 ? `v${dvcount}` : ''}
               <span>
                 &nbsp;
                 {this.state.deployment__active ? t('(deployed)') : t('(undeployed draft)')}
