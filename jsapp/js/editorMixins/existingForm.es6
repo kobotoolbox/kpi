@@ -2,6 +2,7 @@ import {
   t,
   log,
   customConfirmAsync,
+  isLibrary,
 } from '../utils';
 
 import stores from '../stores';
@@ -27,8 +28,7 @@ export default {
     });
   },
   navigateBack () {
-    var isLibrary = !!this.context.router.getCurrentPathname().match(/library/);
-    var routeName = `${isLibrary ? 'library-' : ''}form-landing`;
+    var routeName = `${isLibrary(this.context.router) ? 'library-' : ''}form-landing`;
     if (!this.needsSave()) {
       this.transitionTo(routeName, {assetid: this.props.params.assetid});
     } else {

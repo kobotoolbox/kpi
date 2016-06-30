@@ -48,6 +48,7 @@ import {
   log,
   t,
   assign,
+  isLibrary,
 } from './utils';
 
 mixins.permissions = {
@@ -153,9 +154,10 @@ class ItemDropdown extends React.Component {
 
 class ItemDropdownItem extends React.Component {
   render () {
+    var baseName = isLibrary(this.context.router) ? 'library-' : '';
     return (
           <li>
-            <Link to='form-edit'
+            <Link to={`${baseName}form-edit`}
                   params={{assetid: this.props.uid}}>
               <i className={classNames('fa', 'fa-sm', this.props.faIcon)} />
               &nbsp;
@@ -1055,8 +1057,7 @@ var FormSharing = React.createClass({
   },
   routeBack () {
     var params = this.context.router.getCurrentParams();
-    var isLibrary = !!this.context.router.getCurrentPathname().match(/library/);
-    var baseName = isLibrary ? 'library-' : '';
+    var baseName = isLibrary(this.context.router) ? 'library-' : '';
     this.transitionTo(`${baseName}form-landing`, {assetid: params.assetid});
   },
   userExistsStoreChange (checked, result) {
@@ -1480,8 +1481,7 @@ var FormEnketoPreview = React.createClass({
   },
   routeBack () {
     var params = this.context.router.getCurrentParams();
-    var isLibrary = !!this.context.router.getCurrentPathname().match(/library/);
-    var baseName = isLibrary ? 'library-' : '';
+    var baseName = isLibrary(this.context.router) ? 'library-' : '';
     this.transitionTo(`${baseName}form-landing`, {assetid: params.assetid});
   },
   render () {

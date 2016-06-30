@@ -23,6 +23,7 @@ import {
   t,
   assign,
   notify,
+  isLibrary,
 } from './utils';
 
 var AssetTypeIcon = bem.create('asset-type-icon');
@@ -655,16 +656,12 @@ var dmix = {
   renderButtons ({deployable}) {
     var downloadable = !!this.state.downloads[0],
         downloads = this.state.downloads;
-    var isLibrary = !!this.context.router.getCurrentPathname().match(/library/);
-    var baseNameHref = (to, params, query) => {
-      var baseName = isLibrary ? 'library-' : '';
-      return this.makeHref(`${baseName}${to}`, params, query);
-    }
+    var baseName = isLibrary(this.context.router) ? 'library-' : '';
 
     return (
         <bem.AssetView__buttons>
           <bem.AssetView__buttoncol>
-            <bem.AssetView__link m='preview' href={baseNameHref('form-preview-enketo', {assetid: this.state.uid})}>
+            <bem.AssetView__link m='preview' href={this.makeHref(`${baseName}form-preview-enketo`, {assetid: this.state.uid})}>
               <i />
               {t('preview')}
             </bem.AssetView__link>
@@ -672,7 +669,7 @@ var dmix = {
           <bem.AssetView__buttoncol>
             <bem.AssetView__link m={['edit', {
               disabled: !this.state.userCanEdit,
-                }]} href={baseNameHref('form-edit', {assetid: this.state.uid})}>
+                }]} href={this.makeHref(`${baseName}form-edit`, {assetid: this.state.uid})}>
               <i />
               {t('edit')}
             </bem.AssetView__link>
@@ -706,7 +703,7 @@ var dmix = {
             </bem.AssetView__link>
           </bem.AssetView__buttoncol>
           <bem.AssetView__buttoncol>
-            <bem.AssetView__link m='sharing' href={baseNameHref('form-sharing', {assetid: this.state.uid})}>
+            <bem.AssetView__link m='sharing' href={this.makeHref(`${baseName}form-sharing`, {assetid: this.state.uid})}>
               <i />
               {t('share')}
             </bem.AssetView__link>
@@ -726,6 +723,7 @@ var dmix = {
   },
   saveCloneAs (evt) {
     let version_id = evt.currentTarget.dataset.versionId;
+    var baseName = isLibrary(this.context.router) ? 'library-' : '';
     customPromptAsync(t('new form name'))
       .then((value) => {
         let uid = this.props.params.assetid;
@@ -735,7 +733,7 @@ var dmix = {
           version_id: version_id,
         }, {
           onComplete: (asset) => {
-            this.transitionTo('form-landing', {
+            this.transitionTo(`${baseName}form-landing`, {
               assetid: asset.uid,
             });
           }
@@ -991,16 +989,17 @@ var dmix = {
       asset = data[uid];
     if (asset) {
       if (!this.extended_by_asset_type) {
-        let isLibrary = asset.asset_type !== 'survey';
+        let library = isLibrary(this.context.router);
+        let baseName = library ? 'library-' : '';
 
         stores.pageState.setHeaderBreadcrumb([
           {
-            label: isLibrary ? t('Library') : t('Projects'),
-            to: isLibrary ? 'library' : 'forms',
+            label: library ? t('Library') : t('Projects'),
+            to: library ? 'library' : 'forms',
           },
           {
             label: t(`view-${asset.asset_type}`),
-            to: 'form-landing',
+            to: `${baseName}form-landing`,
             params: {
               assetid: asset.uid,
             }
@@ -1054,7 +1053,8 @@ mixins.dmix = dmix;
 
 mixins.droppable = {
   _forEachDroppedFile (evt, file/*, params={}*/) {
-    var isLibrary = !!this.context.router.getCurrentPathname().match(/library/);
+    var isLibrary = isLibrary(this.context.router);
+    var baseName = isLibrary ? 'library-' : '';
     dataInterface.postCreateBase64EncodedImport(assign({
         base64Encoded: evt.target.result,
         name: file.name,
@@ -1078,7 +1078,7 @@ mixins.droppable = {
             } else if (isCurrentPage) {
               actions.resources.loadAsset({id: assetUid});
             } else {
-              this.transitionTo('form-landing', {assetid: assetUid});
+              this.transitionTo(`${baseName}form-landing`, {assetid: assetUid});
             }
           }
           // If the import task didn't complete immediately, inform the user accordingly.
@@ -1319,6 +1319,7 @@ mixins.clickAssets = {
         // disabled = data.disabled === 'true',
         uid = stores.selectedAsset.uid,
         result;
+    this.baseName = isLibrary(this.context.router) ? 'library-' : '';
     // var click = this.click;
     if (action === 'new') {
       result = this.click.asset.new.call(this);
@@ -1328,11 +1329,6 @@ mixins.clickAssets = {
     if (result !== false) {
       evt.preventDefault();
     }
-  },
-  baseNameRoute (route) {
-    var isLibrary = !!this.context.router.getCurrentPathname().match(/library/);
-    var baseName = isLibrary ? 'library-' : '';
-    return `${baseName}${route}`;
   },
   click: {
     collection: {
@@ -1355,7 +1351,7 @@ mixins.clickAssets = {
         this.transitionTo('new-form');
       },
       view: function(uid/*, evt*/){
-        this.transitionTo(this.baseNameRoute('form-landing'), {assetid: uid});
+        this.transitionTo(`${this.baseName}form-landing`, {assetid: uid});
       },
       clone: function(uid/*, evt*/){
         customPromptAsync(t('new name?'))
@@ -1371,10 +1367,10 @@ mixins.clickAssets = {
           });
       },
       download: function(uid/*, evt*/){
-        this.transitionTo(this.baseNameRoute('form-download'), {assetid: uid});
+        this.transitionTo(`${this.baseName}form-download`, {assetid: uid});
       },
       edit: function (uid) {
-        this.transitionTo(this.baseNameRoute('form-edit'), {assetid: uid});
+        this.transitionTo(`${this.baseName}form-edit`, {assetid: uid});
       },
       delete: function(uid/*, evt*/){
         var q_ = t('You are about to permanently delete this form. Are you sure you want to continue?');

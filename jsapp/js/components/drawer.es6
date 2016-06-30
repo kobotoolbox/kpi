@@ -22,6 +22,7 @@ import {
   assign,
   getAnonymousUserPermission,
   anonUsername,
+  isLibrary,
 } from '../utils';
 
 import SidebarFormsList from '../lists/sidebarForms';
