@@ -111,7 +111,8 @@ def _replace_deployment_ids(AssetVersion, Asset):
                     asset.save()
                 except ObjectDoesNotExist as e:
                     ids_not_counted.append(version_id)
-    print 'DeploymentIDs not found: {}'.format(', '.join(ids_not_counted))
+    if len(ids_not_counted) > 0:
+        print 'DeploymentIDs not found: {}'.format(', '.join(ids_not_counted))
 
 
 class Migration(migrations.Migration):
@@ -147,7 +148,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='asset',
-            name='chart_styles',
+            name='report_styles',
             field=jsonbfield.fields.JSONField(default=dict),
         ),
         migrations.RenameField(
