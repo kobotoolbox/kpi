@@ -62,7 +62,7 @@ def _create_versions_for_asset_id(asset_id, _AssetVersion, _ReversionVersion):
     passed_ids = []
     for asset_v in asset_versions.all():
         if NULL_CHAR_REPR in asset_v.serialized_data:
-            passed_ids.append(asset_v.id)
+            passed_ids.append(str(asset_v.id))
             continue
         _fields = json.loads(asset_v.serialized_data)[0]['fields']
         _deployed_version_id = None
