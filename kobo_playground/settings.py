@@ -113,7 +113,7 @@ ALLOWED_ANONYMOUS_PERMISSIONS = (
 
 # run heavy migration scripts by default
 # NOTE: this should be set to False for major deployments. This can take a long time
-SKIP_HEAVY_MIGRATIONS = os.environ.get('SKIP_HEAVY_MIGRATIONS', 'True') == 'True'
+SKIP_HEAVY_MIGRATIONS = os.environ.get('SKIP_HEAVY_MIGRATIONS', 'False') == 'True'
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
