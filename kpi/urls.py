@@ -15,6 +15,7 @@ from kpi.views import (
     SitewideMessageViewSet,
     AuthorizedApplicationUserViewSet,
     OneTimeAuthenticationKeyViewSet,
+    UserCollectionSubscriptionViewSet,
 )
 
 from kpi.views import current_user, home, one_time_login
@@ -25,6 +26,8 @@ from hub.views import switch_builder
 router = DefaultRouter()
 router.register(r'assets', AssetViewSet)
 router.register(r'asset_snapshots', AssetSnapshotViewSet)
+router.register(
+    r'collection_subscriptions', UserCollectionSubscriptionViewSet)
 router.register(r'collections', CollectionViewSet)
 router.register(r'users', UserViewSet)
 router.register(r'tags', TagViewSet)

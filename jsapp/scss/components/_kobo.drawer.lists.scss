@@ -4,6 +4,13 @@
     font-size: 0.9em;
   }
 
+  &__itembyline {
+    margin-left: 27px;
+    font-size: 11px;
+    color: #bbb;
+    margin-bottom: -10px;
+  }
+
   &__itemactions {
     margin-left: 20px;
     display: none;
@@ -19,7 +26,7 @@
     text-align: left;
     direction: ltr;
 
-    &--allitems {
+    &--toplevel {
       margin-left: 0px;
       color: darken($cool-gray, 15%);
     }
@@ -66,7 +73,7 @@
 }
 
 .collection-sidebar {
-    max-height: 50%;
+    height: calc(100% - 72px);
     overflow: auto;
     margin-right: -5px;
 }

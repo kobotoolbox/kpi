@@ -5,6 +5,7 @@ import {Navigation} from 'react-router';
 import Dropzone from '../libs/dropzone';
 import Select from 'react-select';
 import mdl from '../libs/rest_framework/material';
+import alertify from 'alertifyjs';
 
 import {dataInterface} from '../dataInterface';
 import actions from '../actions';
@@ -19,6 +20,8 @@ import {
   customPromptAsync,
   customConfirmAsync,
   assign,
+  getAnonymousUserPermission,
+  anonUsername,
 } from '../utils';
 
 import SidebarFormsList from '../lists/sidebarForms';
@@ -59,7 +62,7 @@ class DrawerLink extends React.Component {
       link = (
         <a href={this.props.href || '#'}
             className='k-drawer__link'
-            onClick={this.onClick.bind(this)} 
+            onClick={this.onClick}
             data-tip={this.props.label}>
             {icon}
         </a>
@@ -80,7 +83,13 @@ var Drawer = React.createClass({
   queryCollections () {
     dataInterface.listCollections().then((collections)=>{
       this.setState({
-        sidebarCollections: collections.results,
+        sidebarCollections: collections.results.filter((value) => {
+          return value.access_type !== 'public';
+        }),
+        sidebarPublicCollections: collections.results.filter((value) => {
+          return value.access_type === 'public' ||
+            value.access_type === 'subscribed';
+        })
       });
     });
   },
@@ -120,26 +129,26 @@ var Drawer = React.createClass({
   },
   clickFilterByCollection (evt) {
     var data = $(evt.currentTarget).data();
+    var collectionUid = false;
+    var publicCollection = false;
     if (data.collectionUid) {
-      this.filterByCollection(data.collectionUid);
-    } else {
-      this.filterByCollection(false);
+      collectionUid = data.collectionUid;
     }
-  },
-  filterByCollection (collectionUid) {
-    if (collectionUid) {
-      this.quietUpdateStore({
-        parentUid: collectionUid,
-      });
-    } else {
-      this.quietUpdateStore({
-        parentUid: false,
-      });
+    if (data.publicCollection) {
+      publicCollection = true;
     }
+    this.quietUpdateStore({
+      parentUid: collectionUid,
+      allPublic: publicCollection
+    });
     this.searchValue();
     this.setState({
       filteredCollectionUid: collectionUid,
+      filteredByPublicCollection: publicCollection,
     });
+  },
+  clickShowPublicCollections (evt) {
+    //TODO: show the collections in the main pane?
   },
   createCollection () {
     customPromptAsync('collection name?').then((val)=>{
@@ -157,14 +166,85 @@ var Drawer = React.createClass({
       var qc = () => this.queryCollections();
       dataInterface.deleteCollection({uid: collectionUid}).then(qc).catch(qc);
     });
-  }, 
+  },
+  renameCollection (collection) {
+    return (evt) => {
+      evt.preventDefault();
+      customPromptAsync('collection name?', collection.name).then((val)=>{
+        actions.resources.updateCollection(collection.uid, {name: val}).then(
+          (data) => {
+            this.queryCollections();
+          }
+        );
+      });
+    };
+  },
+  subscribeCollection (evt) {
+    evt.preventDefault();
+    var collectionUid = $(evt.currentTarget).data('collection-uid');
+    dataInterface.subscribeCollection({
+      uid: collectionUid,
+    }).then(() => {
+      this.queryCollections();
+    });
+  },
+  unsubscribeCollection (evt) {
+    evt.preventDefault();
+    var collectionUid = $(evt.currentTarget).data('collection-uid');
+    dataInterface.unsubscribeCollection({
+      uid: collectionUid,
+    }).then(() => {
+      this.queryCollections();
+    });
+  },
+  setCollectionDiscoverability (discoverable, collection) {
+    return (evt) => {
+      evt.preventDefault();
+      var publicPerm = getAnonymousUserPermission(collection.permissions);
+      var permDeferred = false;
+      if (discoverable) {
+        permDeferred = actions.permissions.assignPerm({
+          role: 'view',
+          username: anonUsername,
+          uid: collection.uid,
+          kind: collection.kind,
+          objectUrl: collection.url
+        });
+      }
+      else if (publicPerm) {
+        permDeferred = actions.permissions.removePerm({
+          permission_url: publicPerm.url,
+          content_object_uid: collection.uid
+        });
+      }
+      if (permDeferred) {
+        var discovDeferred = permDeferred.then(() => {
+          actions.permissions.setCollectionDiscoverability(
+            collection.uid, discoverable
+          );
+        }).catch((jqxhr) => {
+          // maybe publicPerm was already removed
+          if (jqxhr.status !== 404) {
+            alertify.error(t('unexpected error removing public permission'));
+          }
+        });
+      } else {
+        var discovDeferred = actions.permissions.setCollectionDiscoverability(
+          collection.uid, discoverable
+        );
+      }
+      discovDeferred.then(() => {
+        window.setTimeout(this.queryCollections, 1);
+      });
+    };
+  },
   toggleFixedDrawer() {
     stores.pageState.toggleFixedDrawer();
   },
   render () {
     return (
           <bem.Drawer className='k-drawer mdl-shadow--2dp'>
-            <nav className='k-drawer__icons'> 
+            <nav className='k-drawer__icons'>
               <DrawerLink label={t('Projects')} linkto='forms' ki-icon='projects' />
               <DrawerLink label={t('Library')} linkto='library' ki-icon='library' />
               <div className="mdl-layout-spacer"></div>
@@ -246,14 +326,103 @@ var Drawer = React.createClass({
                   <bem.CollectionSidebar__item
                     key='allitems'
                     m={{
-                        allitems: true,
+                        toplevel: true,
                         selected: !this.state.filteredCollectionUid,
                       }} onClick={this.clickFilterByCollection}>
                     <i className="fa fa-caret-down" />
                     <i className="k-icon-folder" />
                     {t('My Library')}
                   </bem.CollectionSidebar__item>
-                  {this.state.sidebarCollections.map((collection)=>{  
+                  {this.state.sidebarCollections.map((collection)=>{
+                    var editLink = this.makeHref('collection-page', {uid: collection.uid}),
+                      sharingLink = this.makeHref('collection-sharing', {assetid: collection.uid});
+                    var iconClass = 'k-icon-folder';
+                    switch (collection.access_type) {
+                      case 'public':
+                      case 'subscribed':
+                        iconClass = 'k-icon-globe';
+                        break;
+                      case 'shared':
+                        iconClass = 'k-icon-folder-share';
+                    }
+                    return (
+                        <bem.CollectionSidebar__item
+                          key={collection.uid}
+                          m={{
+                            collection: true,
+                            selected:
+                              this.state.filteredCollectionUid ===
+                                collection.uid &&
+                              !this.state.filteredByPublicCollection,
+                          }}
+                          onClick={this.clickFilterByCollection}
+                          data-collection-uid={collection.uid}
+                        >
+                          <i className={iconClass} />
+                          {collection.name}
+                          { collection.access_type !== 'owned' ?
+                              <bem.CollectionSidebar__itembyline>
+                              {t('by ___').replace('___', collection.owner__username)}
+                              </bem.CollectionSidebar__itembyline>
+                            : null
+                          }
+                          <bem.CollectionSidebar__itemactions>
+                            { collection.access_type === 'subscribed' ?
+                                <bem.CollectionSidebar__itemlink href={'#'}
+                                  onClick={this.unsubscribeCollection}
+                                  data-collection-uid={collection.uid}>
+                                  {t('unsubscribe')}
+                                </bem.CollectionSidebar__itemlink>
+                              : [
+                                <bem.CollectionSidebar__itemlink href={'#'}
+                                  onClick={this.deleteCollection}
+                                  data-collection-uid={collection.uid}>
+                                  {t('delete')}
+                                </bem.CollectionSidebar__itemlink>,
+                                <bem.CollectionSidebar__itemlink href={sharingLink}>
+                                  {t('sharing')}
+                                </bem.CollectionSidebar__itemlink>,
+                                <br />,
+                                <bem.CollectionSidebar__itemlink href={'#'}
+                                  onClick={this.renameCollection(collection)
+                                }>
+                                  {t('rename')}
+                                </bem.CollectionSidebar__itemlink>,
+                                collection.access_type === 'owned' ?
+                                  collection.discoverable_when_public ?
+                                    <bem.CollectionSidebar__itemlink href={'#'}
+                                      onClick={
+                                        this.setCollectionDiscoverability(
+                                          false, collection)
+                                    }>
+                                      {t('make private')}
+                                    </bem.CollectionSidebar__itemlink>
+                                  :
+                                    <bem.CollectionSidebar__itemlink href={'#'}
+                                      onClick={
+                                        this.setCollectionDiscoverability(
+                                          true, collection)
+                                    }>
+                                      {t('make public')}
+                                    </bem.CollectionSidebar__itemlink>
+                                : null
+                              ]
+                            }
+                          </bem.CollectionSidebar__itemactions>
+                        </bem.CollectionSidebar__item>
+                      );
+                  })}
+                  <bem.CollectionSidebar__item
+                    key='public'
+                    m={{
+                        toplevel: true,
+                        selected: this.state.showPublicCollections,
+                      }} onClick={this.clickShowPublicCollections}>
+                    <i className="fa fa-caret-down" />
+                    <i className="k-icon-folder" />
+                    {t('Public Collections')}
+                  </bem.CollectionSidebar__item>
+                  {this.state.sidebarPublicCollections.map((collection)=>{
                     var editLink = this.makeHref('collection-page', {uid: collection.uid}),
                       sharingLink = this.makeHref('collection-sharing', {assetid: collection.uid});
                     return (
@@ -261,25 +430,34 @@ var Drawer = React.createClass({
                           key={collection.uid}
                           m={{
                             collection: true,
-                            selected: this.state.filteredCollectionUid === collection.uid,
+                            selected:
+                              this.state.filteredCollectionUid ===
+                                collection.uid &&
+                              this.state.filteredByPublicCollection,
                           }}
                           onClick={this.clickFilterByCollection}
                           data-collection-uid={collection.uid}
+                          data-public-collection={true}
                         >
-                          <i className="k-icon-folder" />
+                          <i className="k-icon-globe" />
                           {collection.name}
+                          <bem.CollectionSidebar__itembyline>
+                          {t('by ___').replace('___', collection.owner__username)}
+                          </bem.CollectionSidebar__itembyline>
                           <bem.CollectionSidebar__itemactions>
-                            <bem.CollectionSidebar__itemlink href={'#'}
-                              onClick={this.deleteCollection}
-                              data-collection-uid={collection.uid}>
-                              {t('delete')}
-                            </bem.CollectionSidebar__itemlink>
-                            <bem.CollectionSidebar__itemlink href={sharingLink}>
-                              {t('sharing')}
-                            </bem.CollectionSidebar__itemlink>
-                            <bem.CollectionSidebar__itemlink href={editLink}>
-                              {t('edit')}
-                            </bem.CollectionSidebar__itemlink>
+                            { collection.access_type === 'subscribed' ?
+                                <bem.CollectionSidebar__itemlink href={'#'}
+                                  onClick={this.unsubscribeCollection}
+                                  data-collection-uid={collection.uid}>
+                                  {t('unsubscribe')}
+                                </bem.CollectionSidebar__itemlink>
+                              :
+                                <bem.CollectionSidebar__itemlink href={'#'}
+                                  onClick={this.subscribeCollection}
+                                  data-collection-uid={collection.uid}>
+                                  {t('subscribe')}
+                                </bem.CollectionSidebar__itemlink>
+                            }
                           </bem.CollectionSidebar__itemactions>
                         </bem.CollectionSidebar__item>
                       );

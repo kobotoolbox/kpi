@@ -60,6 +60,20 @@ mixins.permissions = {
       });
     };
   },
+  removeCollectionPublicPerm (collection, publicPerm) {
+    return (evt) => {
+      evt.preventDefault();
+      if (collection.discoverable_when_public) {
+        actions.permissions.setCollectionDiscoverability(
+          collection.uid, false
+        );
+      }
+      actions.permissions.removePerm({
+        permission_url: publicPerm.url,
+        content_object_uid: collection.uid
+      });
+    };
+  },
   setPerm (permName, props) {
     return (evt) => {
       evt.preventDefault();
@@ -813,7 +827,14 @@ var App = React.createClass({
               'header-hidden': this.state.headerHidden,
               'drawer-hidden': this.state.drawerHidden,
                 }} className="mdl-layout mdl-layout--fixed-header">
-              { !this.state.headerHidden && 
+              { this.state.modalMessage ?
+                <ui.Modal open small onClose={()=>{stores.pageState.hideModal()}} icon={this.state.modalIcon}>
+                  <ui.Modal.Body>
+                    {stores.pageState.state.modalMessage}
+                  </ui.Modal.Body>
+                </ui.Modal>
+              : null}
+              { !this.state.headerHidden &&
                 <MainHeader/>
               }
               { !this.state.drawerHidden && 
@@ -1237,7 +1258,7 @@ var CollectionSharing = React.createClass({
     this.listenTo(stores.userExists, this.userExistsStoreChange);
   },
   routeBack () {
-    this.transitionTo('collections');
+    this.transitionTo('library');
   },
   userExistsStoreChange (checked, result) {
     var inpVal = this.usernameFieldValue();
@@ -1377,9 +1398,10 @@ var CollectionSharing = React.createClass({
                         if (this.state.public_permission) {
                           return (
                               <PublicPermDiv isOn={true}
-                                onToggle={this.removePerm('view',
-                                                  this.state.public_permission,
-                                                  uid)}
+                                onToggle={this.removeCollectionPublicPerm(
+                                            this.state.asset,
+                                            this.state.public_permission
+                                          )}
                               />
                             );
                         } else {

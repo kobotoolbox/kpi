@@ -283,7 +283,7 @@ def _rand_id(n):
                    for _ in range(n))
 
 
-def _autoname_fields(surv_contents, default_language=None):
+def _autoname_fields(surv_contents, default_translation=None):
     '''
     if any names are not set, automatically fill them in
     '''
@@ -301,8 +301,8 @@ def _autoname_fields(surv_contents, default_language=None):
                 continue
             if 'label' in surv_row:
                 next_name = _sluggify_valid_xml(surv_row['label'])
-            elif default_language is not None:
-                _default_lang_label = surv_row['label::%s' % default_language]
+            elif default_translation is not None:
+                _default_lang_label = surv_row['label::%s' % default_translation]
                 next_name = _sluggify_valid_xml(_default_lang_label)
             else:
                 raise ValueError('Label cannot be translated: %s' %

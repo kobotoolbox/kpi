@@ -278,14 +278,21 @@ var dmix = {
             onClick={this.deployAsset}
             data-tip={this.state.deployed_version_id === null ? t('deploy') : t('redeploy')}>
             <i className="k-icon-deploy" />
-            
           </bem.FormView__link>
-
+          <Dropzone fileInput onDropFiles={this.onDrop}
+                  disabled={!this.state.userCanEdit}>
+              <bem.FormView__link m={['upload', {
+                disabled: !this.state.userCanEdit
+                  }]}
+                  data-tip={t('Replace with XLS')}>
+                <i className="k-icon-replace" />
+              </bem.FormView__link>
+            </Dropzone>
             <bem.FormView__item m={'more-actions'} 
               onFocus={this.toggleDownloads}
               onBlur={this.toggleDownloads}>
               <bem.FormView__button disabled={!downloadable}>
-              <i className="k-icon-more-actions" />
+                <i className="k-icon-more-actions" />
               </bem.FormView__button>
               { (downloadable && this.state.downloadsShowing) ?
                 <bem.PopoverMenu ref='dl-popover'>
@@ -305,16 +312,6 @@ var dmix = {
                     <i className="k-icon-clone"/>
                     {t('Clone this project')}
                   </bem.PopoverMenu__link>
-
-                  <Dropzone fileInput onDropFiles={this.onDrop}
-                        disabled={!this.state.userCanEdit}>
-                    <bem.PopoverMenu__link m={['upload', {
-                      disabled: !this.state.userCanEdit
-                        }]}>
-                      <i className="k-icon-replace" />
-                      {t('Replace with XLS')}
-                    </bem.PopoverMenu__link>
-                  </Dropzone>
 
                 </bem.PopoverMenu>
               : null }
@@ -1143,8 +1140,12 @@ var dmix = {
       );
   },
   onDrop (files) {
-    if (files.length !== 1) {
-      throw new Error('Only 1 file can be uploaded in this case');
+    if (files.length === 0) {
+      return;
+    } else if (files.length> 1) {
+      var errMsg = t('Only 1 file can be uploaded in this case');
+      alertify.error(errMsg);
+      throw new Error(errMsg);
     }
     const VALID_ASSET_UPLOAD_FILE_TYPES = [
       'application/vnd.ms-excel',

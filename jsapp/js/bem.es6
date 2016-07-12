@@ -83,6 +83,7 @@ bem.AssetItems = bem('asset-items', '<ul>');
 
 bem.CollectionSidebar = bem('collection-sidebar');
 bem.CollectionSidebar__item = bem.CollectionSidebar.__('item');
+bem.CollectionSidebar__itembyline = bem('collection-sidebar__itembyline', '<span>');
 bem.CollectionSidebar__itemactions = bem('collection-sidebar__itemactions', '<div>');
 bem.CollectionSidebar__itemlink = bem.CollectionSidebar.__('itemlink', '<a>');
 
