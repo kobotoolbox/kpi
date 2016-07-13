@@ -1,5 +1,5 @@
 """
-Django settings for kobo_playground project.
+Django settings for kobo project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/1.7/topics/settings/
@@ -99,9 +99,9 @@ AUTHENTICATION_BACKENDS = (
     'kpi.backends.ObjectPermissionBackend',
 )
 
-ROOT_URLCONF = 'kobo_playground.urls'
+ROOT_URLCONF = 'kobo.urls'
 
-WSGI_APPLICATION = 'kobo_playground.wsgi.application'
+WSGI_APPLICATION = 'kobo.wsgi.application'
 
 # What User object should be mapped to AnonymousUser?
 ANONYMOUS_USER_ID = -1
