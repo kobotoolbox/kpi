@@ -136,11 +136,16 @@ $drawer-icons-column-width: 56px;
   .drawer__sidebar {
     .k-drawer__close {
       font-size: 16px;
-      opacity: 0.8;
+      opacity: 1;
       position: absolute;
       right: 8px;
       top: 8px;
       display: block;
+      color: $layout-drawer-nav-link-color;
+      &:hover {
+        background-color: transparent;
+        opacity: 0.6;
+      }
     }
   }
 }

@@ -246,7 +246,7 @@ var Drawer = React.createClass({
 
             <div className="drawer__sidebar">
               <button className="mdl-button mdl-button--icon k-drawer__close" onClick={this.toggleFixedDrawer}>
-                <i className="fa fa-close"></i>
+                <i className="k-icon-close"></i>
               </button>
 
               {this.state.headerBreadcrumb.map((item, n)=>{
