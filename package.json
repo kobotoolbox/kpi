@@ -76,7 +76,6 @@
     "open": "0.0.5",
     "open-sans-fontface": "^1.4.0",
     "opn": "^3.0.2",
-    "phantomjs": "^1.9.18",
     "postcss": "^5.0.12",
     "postcss-loader": "^0.6.0",
     "q": "^1.4.1",
