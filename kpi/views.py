@@ -111,7 +111,7 @@ def current_user(request):
                          }
         if settings.UPCOMING_DOWNTIME:
             # setting is in the format:
-            # [dt.strftime('%Y-%m-%dT%H:%M:%S'), html_notice, countdown_msg]
+            # [dateutil.parser.parse('6pm edt').isoformat(), countdown_msg]
             users_payload['upcoming_downtime'] = settings.UPCOMING_DOWNTIME
         return Response(users_payload)
 
