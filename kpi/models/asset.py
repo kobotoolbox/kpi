@@ -492,6 +492,7 @@ def post_delete_asset(sender, instance, **kwargs):
 
 
 @receiver(models.signals.post_save, sender=Asset,
+          weak=False,
           dispatch_uid="create_asset_version")
 def post_save_asset(sender, instance, **kwargs):
     instance.asset_versions.create(version_content=instance.content,
