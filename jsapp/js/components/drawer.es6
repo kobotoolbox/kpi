@@ -40,19 +40,14 @@ class DrawerLink extends React.Component {
   render () {
     var icon_class = (this.props['ki-icon'] == undefined ? `fa fa-globe` : `k-icon-${this.props['ki-icon']}`);
     var icon = (<i className={icon_class}></i>);
+    var classNames = [this.props.class, 'k-drawer__link'];
 
     var link;
-    var style = {};
-    // if (this.props.lowercase) {
-    //   // to get navigation items looking the same,
-    //   // a lowercase prop can be passed.
-    //   // if the drawer items were all using a unique css class we could do this in css
-    //   style = {'text-transform': 'lowercase'};
-    // }
+
     if (this.props.linkto) {
       link = (
         <Link to={this.props.linkto}
-            className='k-drawer__link'
+            className={classNames.join(' ')}
             activeClassName='active'
             data-tip={this.props.label}>
           {icon}
@@ -61,7 +56,7 @@ class DrawerLink extends React.Component {
     } else {
       link = (
         <a href={this.props.href || '#'}
-            className='k-drawer__link'
+            className={classNames.join(' ')}
             onClick={this.onClick}
             data-tip={this.props.label}>
             {icon}
@@ -243,16 +238,10 @@ var Drawer = React.createClass({
   },
   render () {
     return (
-          <bem.Drawer className='k-drawer mdl-shadow--2dp'>
+          <bem.Drawer className='k-drawer'>
             <nav className='k-drawer__icons'>
-              <DrawerLink label={t('Projects')} linkto='forms' ki-icon='projects' />
-              <DrawerLink label={t('Library')} linkto='library' ki-icon='library' />
-              <div className="mdl-layout-spacer"></div>
-
-              <div className='k-drawer__icons-bottom'>
-                <DrawerLink label={t('source')} href='https://github.com/kobotoolbox/' ki-icon='github' />
-                <DrawerLink label={t('help')} href='http://support.kobotoolbox.org/' ki-icon='help' />
-              </div>
+              <DrawerLink label={t('Projects')} linkto='forms' ki-icon='projects' class='projects'/>
+              <DrawerLink label={t('Library')} linkto='library' ki-icon='library' class='library' />
             </nav>
 
             <div className="drawer__sidebar">
@@ -264,11 +253,6 @@ var Drawer = React.createClass({
                 if (n < 1) {
                   return (
                     <div className="header-breadcrumb__item" key={`bc${n}`}>
-                      {item.to == 'library' ?
-                        <i className="k-icon-library" />
-                      :
-                        <i className="k-icon-projects" />
-                      }
                       {
                         ('to' in item) ?
                         <Link to={item.to} params={item.params}>{item.label}</Link>
@@ -467,6 +451,18 @@ var Drawer = React.createClass({
               { this.state.headerFilters == 'forms' &&
                 <SidebarFormsList/>
               }
+
+            </div>
+
+            <div className='k-drawer__icons-bottom'>
+              <a href='https://github.com/kobotoolbox/' className='k-drawer__link'>
+                <i className="k-icon k-icon-github" />
+                {t('source')}
+              </a>
+              <a href='http://support.kobotoolbox.org/' className='k-drawer__link'>
+                <i className="k-icon k-icon-help" />
+                {t('help')}
+              </a>
             </div>
 
             <ReactTooltip effect="float" place="bottom" />

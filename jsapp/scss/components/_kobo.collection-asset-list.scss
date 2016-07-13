@@ -1,13 +1,13 @@
 .asset-list-sorts {
   padding: 0px 12px;
   white-space: nowrap;
-  background-color: #f7f8fa;
   border-bottom: 1px solid transparentize($cool-gray, 0.7);
   > .asset-list-sorts__item {
     color: $cool-gray;
     font-weight: 500;
     position: relative;
     padding: 10px 0px;
+    padding-top: 20px;
     margin-top: 0px;
     margin-bottom: 0px;
     &:after {
@@ -60,15 +60,9 @@
   height: 100%;
   margin: 0px 8px;
   overflow-y: auto;
-  // .asset-list {
-  //   height:100%;
-  //   border:1px solid green;
-  // }
   .asset-list__heading {
-    font-weight: 500;
-    margin: 10px 0px;
-    margin-top: 20px;
-    font-size: 22px;
+    margin: 10px;
+    font-size: 18px;
     color: $cool-gray;
     cursor: pointer;
   }
@@ -81,6 +75,9 @@
     &--collapsed {
       max-height: 0px;
       overflow: hidden;
+    }
+    + .asset-list__heading {
+      margin-top: 20px;
     }
   }
   .asset-row--active {
