@@ -28,6 +28,11 @@ def copy_reversion_to_assetversion(apps, schema_editor):
             necessary.
             """)
     else:
+        print("""
+            This might take a while. If it is too slow, you may want to re-run the
+            migration with SKIP_HEAVY_MIGRATIONS=True and run the management command
+            (populate_assetversions) to prepare the versions.
+            """)
         populate_assetversions(apps.get_model('kpi', 'Asset'),
                                apps.get_model('kpi', 'AssetVersion'),
                                apps.get_model('reversion', 'Version'),

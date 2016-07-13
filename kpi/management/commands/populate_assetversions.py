@@ -5,6 +5,7 @@ import gc
 import json
 
 from kpi.models import Asset, AssetVersion
+from kpi.models.asset import post_save_asset
 from reversion.models import Version
 
 from optparse import make_option
@@ -62,7 +63,7 @@ def _create_versions_for_asset_id(asset_id, _AssetVersion, _ReversionVersion):
     passed_ids = []
     for asset_v in asset_versions.all():
         if NULL_CHAR_REPR in asset_v.serialized_data:
-            passed_ids.append(str(asset_v.id))
+            passed_ids.append(asset_v.id)
             continue
         _fields = json.loads(asset_v.serialized_data)[0]['fields']
         _deployed_version_id = None
@@ -84,12 +85,25 @@ def _create_versions_for_asset_id(asset_id, _AssetVersion, _ReversionVersion):
         })
 
     if len(passed_ids) > 0:
-        print("Passed on parsing of ids with null characters:")
-        print(', '.join(passed_ids))
+        print("""Skipped invalid versions:
+                 (null characters, etc)
+                 {}""".format(json.dumps(passed_ids)))
 
+    _r_ids = []
     for version in _version_data:
+        _r_ids.append(version['_reversion_version_id'])
         version['deployed'] = version['_reversion_version_id'] in _deployed_version_ids
         uncreated_asset_versions.append(_AssetVersion(**version))
+
+    # BEGIN prevent duplicate AssetVersions
+    e_rids = _AssetVersion.objects.filter(
+        _reversion_version_id__in=_r_ids).values_list(
+        '_reversion_version_id', flat=True)
+    if len(e_rids) > 0:
+        uncreated_asset_versions = filter(lambda a:
+                                          a._reversion_version_id not in e_rids,
+                                          uncreated_asset_versions)
+    # END prevent duplicate AssetVersions
 
     _AssetVersion.objects.bulk_create(
         uncreated_asset_versions
@@ -100,9 +114,12 @@ def _replace_deployment_ids(_AssetVersion, _Asset):
     # this needs to be run in a migration after all of the AssetVersions have been created
     # from the reversion.models.Version instances
     a_ids = set(_AssetVersion.objects.filter(deployed=True
-                                            ).values_list('asset_id', flat=True
-                                                          ))
-    post_save.disconnect(dispatch_uid="post_save_asset")
+                                             ).values_list('asset_id', flat=True
+                                                           ))
+    post_save.disconnect(sender=_Asset,
+                         dispatch_uid="create_asset_version",
+                         receiver=post_save_asset,
+                         )
     ids_not_counted = []
     with disable_auto_field_update(_Asset, 'date_modified'):
         for a_id in a_ids:
@@ -115,5 +132,10 @@ def _replace_deployment_ids(_AssetVersion, _Asset):
                     asset.save()
                 except ObjectDoesNotExist as e:
                     ids_not_counted.append(version_id)
+    post_save.connect(sender=_Asset,
+                      dispatch_uid="create_asset_version",
+                      receiver=post_save_asset,
+                      )
     if len(ids_not_counted) > 0:
-        print 'DeploymentIDs not found: {}'.format(', '.join(ids_not_counted))
+        print("""DeploymentIDs not found:
+                 {}""".format(json.dumps(passed_ids)))
