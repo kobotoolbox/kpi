@@ -27,7 +27,7 @@ class CreateAssetVersions(AssetsTestCase):
         self.asset.content['survey'][0]['type'] = 'integer'
         self.assertEqual(self.asset.content['survey'][0]['type'], 'integer')
         self.asset.save()
-        self.assertEqual(len(self.asset.versions()), 2)
+        self.assertEqual(self.asset.asset_versions.count(), 2)
 
     def test_asset_can_be_owned(self):
         self.assertEqual(self.asset.owner, self.user)

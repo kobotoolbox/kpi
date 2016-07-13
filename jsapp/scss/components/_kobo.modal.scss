@@ -22,7 +22,8 @@
 
 .modal-content {
   .modal--withicon & {
-    padding-left: 100px;
+    padding-left: 110px;
+    padding-bottom: 30px;
   }
 
   background-color: #FFF;
@@ -34,7 +35,7 @@
   height: 57px;
   position: absolute;
   top: 45px;
-  left: 12px;
+  left: 18px;
 
   &--gears {
     background-image: url("../img/maintenance_gears.png");

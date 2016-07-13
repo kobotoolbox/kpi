@@ -253,7 +253,8 @@ export default assign({
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
       stores.pageState.setAssetNavPresent(true);
-      stores.pageState.setFormBuilderFocus(true);
+      stores.pageState.setDrawerHidden(true);
+      stores.pageState.setHeaderHidden(true);
       if (params.assetid && params.assetid[0] === 'c') {
         transition.redirect('collection-page', {uid: params.assetid});
       } else {
@@ -338,7 +339,8 @@ export default assign({
       this.setState({
         enketopreviewOverlay: content.enketopreviewlink,
       });
-      stores.pageState.setFormBuilderFocus(true);
+      stores.pageState.setDrawerHidden(true);
+      stores.pageState.setHeaderHidden(true);
       stores.pageState.setAssetNavPresent(false);
     }).fail((jqxhr) => {
       let err = jqxhr.responseJSON.error;
@@ -627,14 +629,16 @@ export default assign({
     this.setState({
       enketopreviewOverlay: false
     });
-    stores.pageState.setFormBuilderFocus(true);
+    stores.pageState.setDrawerHidden(true);
+    stores.pageState.setHeaderHidden(true);
     stores.pageState.setAssetNavPresent(true);
   },
   hideCascade () {
     this.setState({
       showCascadePopup: false
     });
-    stores.pageState.setFormBuilderFocus(true);
+    stores.pageState.setDrawerHidden(true);
+    stores.pageState.setHeaderHidden(true);
     stores.pageState.setAssetNavPresent(true);
   },
   launchAppForSurveyContent (survey, _state={}) {

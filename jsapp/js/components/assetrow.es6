@@ -100,13 +100,10 @@ var AssetRow = React.createClass({
               key={'asset-details'}
               onClick={this.clickAsset}
               >
-            <bem.AssetRow__cell m={'title'} className="mdl-cell mdl-cell--6-col mdl-cell--3-col-tablet">
-              { this.props.isSelected ? 
-                <AssetTypeIcon m={[this.props.asset_type]} ><i /></AssetTypeIcon>
-                
-              : 
-                <AssetTypeIcon m={[this.props.asset_type]} ><i /></AssetTypeIcon>
-              }
+            <bem.AssetRow__cell m={'title'} 
+                className={['mdl-cell', 
+                    this.props.asset_type == 'survey' ? 'mdl-cell--5-col mdl-cell--3-col-tablet' : 'mdl-cell--6-col mdl-cell--3-col-tablet']}>
+              <AssetTypeIcon m={[this.props.asset_type]} ><i /></AssetTypeIcon>
               <bem.AssetRow__celllink m={['name', this.props.name ? 'titled' : 'untitled']}
                     data-kind={this.props.kind}
                     data-asset-type={this.props.kind}
@@ -119,18 +116,30 @@ var AssetRow = React.createClass({
             </bem.AssetRow__cell>
             <bem.AssetRow__cell m={'userlink'}
                 key={'userlink'}
-                className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet"
-                >
-              {
-                selfowned ?
-                  t('me') :
-                  this.props.owner__username
+                  className={['mdl-cell', 'mdl-cell--2-col', 'mdl-cell--2-col-tablet']}>
+              { this.props.asset_type == 'survey' &&
+                <span>
+                {selfowned ? ' ' : this.props.owner__username}
+                </span>
+              }
+              { this.props.asset_type != 'survey' &&
+                <span>
+                {selfowned ? t('me') : this.props.owner__username}
+                </span>
               }
             </bem.AssetRow__cell>
+            { this.props.asset_type == 'survey' &&
+              <bem.AssetRow__cell m={'date-created'}
+                  key={'date-created'}
+                  className="mdl-cell mdl-cell--2-col mdl-cell--hide-tablet"
+                  >
+                <span className="date date--created">{formatTime(this.props.date_created)}</span>
+              </bem.AssetRow__cell>
+            }
             <bem.AssetRow__cell m={'date-modified'}
                 key={'date-modified'}
-                className="mdl-cell mdl-cell--3-col mdl-cell--2-col-tablet"
-                >
+                className={['mdl-cell', 
+                    this.props.asset_type == 'survey' ? 'mdl-cell--2-col mdl-cell--2-col-tablet' : 'mdl-cell--3-col mdl-cell--2-col-tablet']}>
               <span className="date date--modified">{formatTime(this.props.date_modified)}</span>
             </bem.AssetRow__cell>
             <bem.AssetRow__cell m={'row-count'}
@@ -159,7 +168,7 @@ var AssetRow = React.createClass({
             <bem.AssetRow__buttons onClick={this.clickAssetButton}>
                 { this.props.kind === 'asset' &&
                   ['view', 'edit', 'download'].map((actn)=>{
-                    var icon = 'ki-' + actn;
+                    var iconClass = 'k-icon-' + actn;
                     return (
                           <bem.AssetRow__actionIcon
                               m={actn}
@@ -169,7 +178,7 @@ var AssetRow = React.createClass({
                               data-asset-type={this.props.kind}
                               data-disabled={false}
                               >
-                            <i />
+                            <i className={iconClass} />
                           </bem.AssetRow__actionIcon>
                         );
                   })

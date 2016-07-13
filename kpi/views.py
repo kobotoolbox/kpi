@@ -80,13 +80,13 @@ from .serializers import (
     DeploymentSerializer,
     UserCollectionSubscriptionSerializer,)
 from .utils.gravatar_url import gravatar_url
+from .utils.kobo_to_xlsform import to_xlsform_structure
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from .tasks import import_in_background
 from deployment_backends.backends import DEPLOYMENT_BACKENDS
 
 
 CLONE_ARG_NAME = 'clone_from'
-ASSET_CLONE_FIELDS = {'name', 'content', 'asset_type'}
 COLLECTION_CLONE_FIELDS = {'name'}
 
 
@@ -111,7 +111,7 @@ def current_user(request):
                          }
         if settings.UPCOMING_DOWNTIME:
             # setting is in the format:
-            # [dt.strftime('%Y-%m-%dT%H:%M:%S'), html_notice, countdown_msg]
+            # [dateutil.parser.parse('6pm edt').isoformat(), countdown_msg]
             users_payload['upcoming_downtime'] = settings.UPCOMING_DOWNTIME
         return Response(users_payload)
 
@@ -579,37 +579,25 @@ class AssetViewSet(viewsets.ModelViewSet):
         return queryset
 
     def _get_clone_serializer(self):
-        original_uid= self.request.data[CLONE_ARG_NAME]
-        original_asset= get_object_or_404(Asset, uid=original_uid)
-        try:
-            # Optionally clone a historical version of the asset
+        original_uid = self.request.data[CLONE_ARG_NAME]
+        original_asset = get_object_or_404(Asset, uid=original_uid)
+        if 'clone_from_version_id' in self.request.data:
             original_version_id = self.request.data['clone_from_version_id']
             source_version = get_object_or_404(
-                original_asset.versions(), id=original_version_id)
-            original_asset = source_version.object_version.object
-        except KeyError:
-            # Default to cloning the current version
-            pass
-        view_perm= get_perm_name('view', original_asset)
+                original_asset.asset_versions, uid=original_version_id)
+        else:
+            source_version = original_asset.asset_versions.first()
+
+        view_perm = get_perm_name('view', original_asset)
         if not self.request.user.has_perm(view_perm, original_asset):
             raise Http404
-        else:
-            # Copy the essential data from the original asset.
-            original_data= model_to_dict(original_asset)
-            cloned_data= {keep_field: original_data[keep_field]
-                          for keep_field in ASSET_CLONE_FIELDS}
-            if original_asset.tag_string:
-                cloned_data['tag_string']= original_asset.tag_string
-            # TODO: Duplicate permissions if a user is cloning their own asset.
-#             if ('permissions' in original_data) and (self.request.user == original_asset.owner):
-#                 raise NotImplementedError
-            # Pull any additionally provided parameters/overrides from therequest.
-            for param in self.request.data:
-                cloned_data[param]= self.request.data[param]
-
-            serializer = self.get_serializer(data=cloned_data)
-
-            return serializer
+        # TODO: Duplicate permissions if a user is cloning their own asset.
+        cloned_data = original_asset.to_clone_dict(version_uid=source_version.uid)
+        for key, val in self.request.data.iteritems():
+            cloned_data.update(self.request.data.items())
+        # until we get content passed as a dict, transform the content obj to a str
+        cloned_data['content'] = json.dumps(cloned_data['content'])
+        return self.get_serializer(data=cloned_data)
 
     def create(self, request, *args, **kwargs):
         if CLONE_ARG_NAME in request.data:
@@ -623,14 +611,23 @@ class AssetViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED,
                         headers=headers)
 
-    @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
-    def content(self, request, *args, **kwargs):
+    @detail_route(renderer_classes=[renderers.JSONRenderer])
+    def content(self, request, uid):
         asset = self.get_object()
-        return Response(json.dumps({
+        return Response({
             'kind': 'asset.content',
             'uid': asset.uid,
-            'data': asset.to_ss_structure()
-        }))
+            'data': asset.to_ss_structure(),
+        })
+
+    @detail_route(renderer_classes=[renderers.JSONRenderer])
+    def valid_content(self, request, uid):
+        asset = self.get_object()
+        return Response({
+            'kind': 'asset.valid_content',
+            'uid': asset.uid,
+            'data': to_xlsform_structure(asset.content),
+        })
 
     @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
     def koboform(self, request, *args, **kwargs):

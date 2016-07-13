@@ -76,7 +76,8 @@ class ImportTask(models.Model):
             dest_item = dest_kls = has_necessary_perm = False
 
             if 'destination' in self.data and self.data['destination']:
-                (dest_kls, dest_item) = _resolve_url_to_asset_or_collection(self.data.get('destination'))
+                _d = self.data.get('destination')
+                (dest_kls, dest_item) = _resolve_url_to_asset_or_collection(_d)
                 necessary_perm = 'change_%s' % dest_kls
                 if not dest_item.has_perm(self.user, necessary_perm):
                     raise exceptions.PermissionDenied('user cannot update %s' % kls)
