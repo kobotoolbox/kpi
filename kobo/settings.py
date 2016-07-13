@@ -58,10 +58,10 @@ INSTALLED_APPS = (
     'debug_toolbar',
     'mptt',
     'haystack',
-    'kpi.apps.KpiConfig',
+    'kobo.apps.KpiConfig',
     'hub',
     'webpack_loader',
-    'registration', # Must come AFTER kpi
+    'registration',         # Order is important
     'django.contrib.admin', # Must come AFTER registration
     'django_extensions',
     'taggit',

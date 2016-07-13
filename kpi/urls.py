@@ -44,7 +44,7 @@ router.register(r'authorized_application/one_time_authentication_keys',
 
 # Apps whose translations should be available in the client code.
 js_info_dict = {
-    'packages': ('kpi.apps.KpiConfig',),
+    'packages': ('kobo.apps.KpiConfig',),
 }
 
 urlpatterns = [
