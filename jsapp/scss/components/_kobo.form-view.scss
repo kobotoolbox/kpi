@@ -6,8 +6,9 @@
 
 .form-view__wrapper {
   width: 100%;
-  height: calc(100% - 96px);
+  height: 100%;
   overflow: auto;
+  padding-top: 8px;
   &--data {
     overflow: visible;
   }
@@ -22,10 +23,14 @@
 }
 
 .form-view__header {
-  margin-bottom: 8px;
+  // margin-bottom: 8px;
   @extend .mdl-shadow--2dp;
   background-color: #FFF;
-  position: relative;
+  position: fixed;
+  width:100%;
+  top: 56px;
+  height: 55px;
+  left: 0px;
   &--expandedReport {
     background-color: transparent;
     box-shadow: none;
@@ -40,12 +45,31 @@
   }
 }
 
+// in form view adjustments
+
+.in-form-view .mdl-layout__content, 
+.in-form-view .k-drawer {
+  margin-top: 56px;
+  height:calc(100% - 128px);
+}
+
+// end in form view adjustments
+
 .form-view__tabs {
-  background-color: #557893;
   position: relative;
+  padding: 10px;
+  padding-bottom: 0px;
+}
+
+@media screen and (min-width: 769px) {
+  .form-view__tabs {
+    margin-left: 260px;
+  }
 }
 
 .form-view__extras {
+  // Temporary
+  display: none;
 	float: right;
   button.mdl-button {
     color: white;
@@ -55,14 +79,13 @@
 
 .form-view__tab {
   background: transparent;
-  color: #FFF;
   border: none;
   border-bottom: 3px solid transparent;
-  padding: 8px 12px;
+  padding: 20px 10px 4px;
   text-transform: uppercase;
-  font-size: 18px;
   margin-right: 20px;
-  opacity: 0.6;
+  opacity: 0.75;
+  font-size: 15px;
   a {
     color:#FFF;
   }
@@ -86,6 +109,8 @@
   text-overflow:ellipsis;
   white-space: nowrap;
   overflow: hidden;
+  // Temporary
+  display: none;
 
   &--has-data-tabs {
     width:55%;
