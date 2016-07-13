@@ -5,3 +5,5 @@ jsapp/compiled
 jsapp/fonts
 staticfiles
 *.pyc
+webpack-stats.json
+
