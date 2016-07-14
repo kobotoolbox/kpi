@@ -25,7 +25,7 @@ script:
   - python manage.py test
   - npm run test
 env:
-  - PIP_DOWNLOAD_CACHE=$HOME/.pip-download-cache DJANGO_DEBUG=False DJANGO_SECRET_KEY=ZGtvYm90cmF2aXM DJANGO_SETTINGS_MODULE=kobo_playground.settings DATABASE_URL="postgres://postgres@localhost:5432/travis_ci_test" TRAVIS_NODE_VERSION="6"
+  - PIP_DOWNLOAD_CACHE=$HOME/.pip-download-cache DJANGO_DEBUG=False DJANGO_SECRET_KEY=ZGtvYm90cmF2aXM DJANGO_SETTINGS_MODULE=kobo.settings DATABASE_URL="postgres://postgres@localhost:5432/travis_ci_test" TRAVIS_NODE_VERSION="6"
 install:
   - rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
   - npm install -g install npm@latest
