@@ -134,8 +134,7 @@ ENV C_FORCE_ROOT="true"
 
 # Prepare for execution.
 COPY ./docker/init.bash /etc/my_init.d/10_init_kpi.bash
-RUN rm -rf /etc/service/wsgi && \
-    mkdir -p /etc/service/uwsgi
+RUN mkdir -p /etc/service/uwsgi
 COPY ./docker/run_uwsgi.bash /etc/service/uwsgi/run
 
 EXPOSE 8000
