@@ -81,6 +81,8 @@ $headerAccountTextColor: #dbedf7;
     position: relative;
     cursor: pointer;
     margin-top: 4px;
+    background-color: transparent;
+    border: none;
     .account-box__username {
       display: inline-block;
       vertical-align: middle;
@@ -96,15 +98,11 @@ $headerAccountTextColor: #dbedf7;
     .k-account__menu {
       position: absolute;
       top: 20px;
-      right: -40px;
+      right: -15px;
       background-color: $nav-menu-item-bg;
       box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5), inset 0 1px 3px 0 rgba(0, 0, 0, 0.5);
       margin: 0px;
       padding: 8px 0px;
-      transition: all 0.5s 0.5s;
-      max-height: 0px;
-      opacity: 0;
-      overflow: hidden;
       &:before {
         width: 0;
         height: 0;
@@ -116,13 +114,6 @@ $headerAccountTextColor: #dbedf7;
         content: '';
         right: 30px;
       }
-    }
-    &:hover .k-account__menu {
-      top: 36px;
-      transition: all 0.5s 0.2s;
-      max-height: 1000px;
-      opacity: 1;
-      overflow: visible;
     }
   }
   .account-box__image {

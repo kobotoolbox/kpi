@@ -112,6 +112,25 @@ var MainHeader = React.createClass({
       </li>
     );
   },
+  toggleAccountMenuPopover (evt) {
+    var isBlur = evt.type === 'blur',
+        $popoverMenu;
+    if (isBlur) {
+      $popoverMenu = $(this.refs['accountMenu-popover'].getDOMNode());
+      // if we setState and immediately hide popover then the
+      // download links will not register as clicked
+      $popoverMenu.fadeOut(250, () => {
+        this.setState({
+          accountMenuPopoverShowing: false,
+        });
+      });
+    } else {
+      this.setState({
+        accountMenuPopoverShowing: true,
+      });
+    }
+  },
+
   renderAccountNavMenu () {
     var defaultGravatarImage = `${window.location.protocol}//www.gravatar.com/avatar/64e1b8d34f425d19e1ee2ea7236d3028?s=40`;
     var langs = [];
@@ -129,42 +148,50 @@ var MainHeader = React.createClass({
               2 
             </bem.AccountBox__notifications__count>
           </bem.AccountBox__notifications>
-          <bem.AccountBox__name>
+          <bem.AccountBox__name
+              onFocus={this.toggleAccountMenuPopover}
+              onBlur={this.toggleAccountMenuPopover}>
             <bem.AccountBox__username>
               {accountName}
             </bem.AccountBox__username>
             <bem.AccountBox__image>
               <img src={gravatar} />
             </bem.AccountBox__image>
-            <ul className="k-account__menu">
-              <li key="settings">
-                <a href={stores.session.currentAccount.projects_url + '/settings'} className="mdl-menu__item">
-                  <i className="k-icon-settings" />
-                  {t('Profile Settings')}
-                </a>
-              </li>
-              {leaveBetaUrl ?
-                <li>
-                  <a href={leaveBetaUrl} className="mdl-menu__item">
-                    {t('leave beta')}
-                  </a>
-                </li>
-              :null}
-              <li className="k-lang__submenu" key="lang">
-                <a className="mdl-menu__item">
-                  <i className="fa fa-globe" />
-                  {t('Language')}
-                </a>
-                <ul>
-                  {langs.map(this.renderLangItem)}
+
+            { (this.state.accountMenuPopoverShowing) ? 
+              <bem.PopoverMenu ref='accountMenu-popover'>
+                <ul className="k-account__menu">
+                  <li key="settings">
+                    <a href={stores.session.currentAccount.projects_url + '/settings'} className="mdl-menu__item">
+                      <i className="k-icon-settings" />
+                      {t('Profile Settings')}
+                    </a>
+                  </li>
+                  {leaveBetaUrl ?
+                    <li>
+                      <a href={leaveBetaUrl} className="mdl-menu__item">
+                        <i className="k-icon-settings" />
+                        {t('Leave Beta')}
+                      </a>
+                    </li>
+                  :null}
+                  <li className="k-lang__submenu" key="lang">
+                    <a className="mdl-menu__item">
+                      <i className="fa fa-globe" />
+                      {t('Language')}
+                    </a>
+                    <ul>
+                      {langs.map(this.renderLangItem)}
+                    </ul>
+                  </li>
+                  <li key="logout">
+                    <a onClick={this.logout} className="mdl-menu__item">
+                      <i className="k-icon-logout" /> 
+                      {t('Logout')}</a>
+                    </li>
                 </ul>
-              </li>
-              <li key="logout">
-                <a onClick={this.logout} className="mdl-menu__item">
-                  <i className="k-icon-logout" /> 
-                  {t('Logout')}</a>
-                </li>
-            </ul>
+              </bem.PopoverMenu>
+            : null }
           </bem.AccountBox__name>
         </bem.AccountBox>
         );
