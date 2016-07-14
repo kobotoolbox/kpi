@@ -3,25 +3,19 @@
   border-top: 1px solid transparentize($cool-gray, 0.7);
   cursor: pointer;
   padding: 4px 12px;
-
-  // position: relative;
   white-space: nowrap;
-
+  transition: max-height 0.5s ease, opacity 0.5s ease;
+  max-height: 999px;
+  opacity: 1;
   a, a:hover {
     color: $black;
     text-decoration: none;
     font-weight: 400;
   }
-
-  &--deleting {
-    opacity: 0.5;
-  }
-
   > .asset-row__cell {
-    width:100%;
+    width: 100%;
     display: flex;
-    align-items:center;
-
+    align-items: center;
     > .asset-row__cell {
       min-width: 0;
       &.asset-row__cell--title {
@@ -30,44 +24,44 @@
       }
     }
   }
-
   &:last-child {
-    border-bottom: 1px solid transparentize($cool-gray, 0.7);    
+    border-bottom: 1px solid transparentize($cool-gray, 0.7);
   }
 
+  &--deleting {
+    opacity: 0.5;
+  }
+
+  &--deleted {
+    transition: max-height 0.5s ease, opacity 0.5s ease;
+    opacity: 0;
+    max-height: 0px;
+  }
 }
 
 .asset-row__cell--tags {
   white-space: normal;
 }
 
-.asset-row--deleted {
-  opacity: 0.35;
-  background-color: rgba(255, 200, 200, 0.1);
-}
 
 .asset-row__sharingIcon {
   i {
     @extend .fa, .fa-fw, .fa-user;
   }
-
   &.asset-row__sharingIcon--multi-user {
     i {
       @extend .fa, .fa-fw, .fa-users;
     }
   }
-
   &.asset-row__sharingIcon--self-owned {
     i {
       display: none;
     }
   }
-
   &.asset-row__sharingIcon--public-owned {
     span {
       display: none;
     }
-
     i {
       @extend .fa, .fa-fw, .fa-question;
     }
@@ -84,7 +78,6 @@
   top: 0px;
   font-size: 24px;
   color: #A5B3BC;
-
   @extend .fa, .fa-fw, .fa-lg, .fa-caret-right;
 }
 
@@ -97,9 +90,8 @@
     background: #EDF7FD;
     text-align: right;
     width: 100%;
-    box-shadow: 0 2px 3px 0 rgba(0,0,0,0.23);
+    box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.23);
   }
-
   .asset-row__action-icon {
     font-size: 20px;
     margin-left: 15px;
@@ -109,61 +101,53 @@
     padding: 4px 6px;
     display: inline-block;
     vertical-align: middle;
-
     &:hover {
       background-color: transparent;
       color: unquote("rgb(#{$color-accent})");
     }
-
     &.asset-row__action-icon--view-collection i {
       @extend .k-icon, .k-icon-folder;
     }
-
     &.asset-row__action-icon--clone i {
       @extend .k-icon, .k-icon-clone;
     }
-
     &.asset-row__action-icon--delete i {
       @extend .k-icon, .k-icon-trash;
     }
-
     &.asset-row__action-icon--edit {
       margin-right: -8px;
       font-size: 29px;
       // adjust edit icon (pencil) size, since in font file it is smaller than other fonts
+   
     }
   }
-
   .k-asset-arrow-icon {
     @extend .fa-caret-down;
-
     color: #A5B3BC;
   }
-
   .asset-row__action-icon button {
-    border:none;
-    margin:0;
-    padding:0;
+    border: none;
+    margin: 0;
+    padding: 0;
     border-radius: 0px;
     font-size: 20px;
     font-weight: 400;
     color: $cool-gray;
     background-color: transparent;
-    cursor:pointer;
+    cursor: pointer;
     &:hover {
       background-color: transparent;
       color: unquote("rgb(#{$color-accent})");
     }
   }
-
   .popover-menu {
-    padding:10px 0px;
-    right:20px;
-    top:2em;
+    padding: 10px 0px;
+    right: 20px;
+    top: 2em;
   }
   .popover-menu__link {
     font-size: 14px;
-    padding:8px 15px;
+    padding: 8px 15px;
     color: $cool-gray;
   }
 }
