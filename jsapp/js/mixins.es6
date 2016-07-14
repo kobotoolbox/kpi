@@ -153,7 +153,7 @@ var dmix = {
               : null }
 
 
-              { this.state.activeTab == 'Data' ?
+              { this.state.activeTab == 'Data' || this.state.activeTab == 'Settings' ?
                 this.renderDataTabs()
               : null }
 
@@ -172,29 +172,59 @@ var dmix = {
               this.state.showExpandedReport ? 'expandedReport' : ''
             ]}>
           { !this.state.showExpandedReport && 
-            <bem.FormView__tabs>
-              <bem.FormView__tab className="is-edge">
-                {t('Summary')}
-              </bem.FormView__tab>
-              <bem.FormView__tab 
-                className={this.state.activeTab == 'Form' ? 'active' : ''} 
-                onClick={this.setActiveTab} 
-                data-id='Form'>
-                  {t('Form')}
-              </bem.FormView__tab>
-              { this.state.deployment__identifier != undefined && this.state.deployment__active ?
-                <bem.FormView__tab 
-                  onClick={this.setActiveTab} 
-                  data-id='Data'
-                  className={this.state.activeTab == 'Data' ? 'active' : ''} 
-                  >
-                  {t('Data')}
+            <bem.FormView__tabbar>
+              <bem.FormView__tabs>
+                <bem.FormView__tab className="is-edge" m='summary' >
+                  {t('Summary')}
                 </bem.FormView__tab>
-              : null }
+                <bem.FormView__tab 
+                  m='form' 
+                  className={this.state.activeTab == 'Form' ? 'active' : ''} 
+                  onClick={this.setActiveTab} 
+                  data-id='Form'>
+                    {t('Form')}
+                </bem.FormView__tab>
+                { this.state.deployment__identifier != undefined && this.state.deployment__active ?
+                  <bem.FormView__tab 
+                    m='data' 
+                    className={this.state.activeTab == 'Data' ? 'active' : ''} 
+                    onFocus={this.toggleDataPopover}
+                    onBlur={this.toggleDataPopover} >
+                    {t('Data')}
 
-              {this.renderExtraButtons()}
+                    { (this.state.dataPopoverShowing) ? 
+                      <bem.PopoverMenu ref='data-popover'>
+                        {  
+                          ['Report', 'Table', 'Gallery', 'Downloads', 'Map',  /*'Settings'*/].map((actn)=>{
+                            return (
+                              <bem.PopoverMenu__link
+                                  m={[actn, this.state.activeSubTab == actn ? 'active' : '']} 
+                                  data-id={actn}
+                                  onClick={this.setActiveSubTab}
+                                  >
+                                <i />
+                                {actn}
+                              </bem.PopoverMenu__link>
+                            );
+                          }) 
+                        }
 
-            </bem.FormView__tabs>
+                      </bem.PopoverMenu>
+                    : null }
+                  </bem.FormView__tab>
+
+                : null }
+
+                <bem.FormView__tab 
+                  m='settings' 
+                  className={this.state.activeTab == 'Settings' ? 'active' : ''} 
+                  onClick={this.setActiveTab} 
+                  data-id='Settings'>
+                    {t('Settings')}
+                </bem.FormView__tab>
+
+              </bem.FormView__tabs>
+            </bem.FormView__tabbar>
           }
 
           { this.state.showExpandedReport && 
@@ -214,32 +244,17 @@ var dmix = {
 
             </bem.FormView__tabs>
           }
-
-          { !this.state.showExpandedReport && 
-            <bem.FormView__name 
-              m={this.state.activeTab == 'Data' ? 'has-data-tabs' : ''} >
-              <ui.AssetName {...this.state} />
-            </bem.FormView__name>
-          }
-
-          { this.state.activeTab == 'Data' && !this.state.showExpandedReport &&
-            <bem.FormView__secondaryButtons>
-              {  
-                ['Report', 'Table', 'Gallery', 'Downloads', 'Map',  'Settings'].map((actn)=>{
-                  return (
-                        <bem.FormView__secondaryButton
-                            m={[actn, this.state.activeSubTab == actn ? 'active' : '']} 
-                            data-id={actn}
-                            data-tip={actn}
-                            onClick={this.setActiveSubTab}
-                            >
-                          <i />
-                        </bem.FormView__secondaryButton>
-                      );
-                }) 
-              }
-            </bem.FormView__secondaryButtons>
-          }
+          
+          <bem.FormView__title>
+            <bem.FormView__titleinner>
+              <bem.FormView__name>
+                <ui.AssetName {...this.state} />
+              </bem.FormView__name>
+              <bem.FormView__description className="is-edge">
+                <span className="no-description">{t('Enter a Description...')}</span>
+              </bem.FormView__description>
+            </bem.FormView__titleinner>
+          </bem.FormView__title>
 
           { this.state.activeTab == 'Data' && this.state.activeSubTab == 'Report' &&
               this.renderReportButtons()
@@ -329,39 +344,39 @@ var dmix = {
         </bem.AssetView__name>
       );
   },
-  renderExtraButtons () {
-    return (
-      <bem.FormView__extras>
-        <button className="mdl-button mdl-js-button mdl-button--icon"
-                id="form-header-extras">
-          <i className="material-icons">more_vert</i>
-        </button>
+  // renderExtraButtons () {
+  //   return (
+  //     <bem.FormView__extras>
+  //       <button className="mdl-button mdl-js-button mdl-button--icon"
+  //               id="form-header-extras">
+  //         <i className="material-icons">more_vert</i>
+  //       </button>
 
-        <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
-            htmlFor="form-header-extras">
-          <li>
-            <a className="mdl-menu__item" onClick={this.saveCloneAs}>
-              {t('Clone this project')}
-            </a>
-          </li>
+  //       <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
+  //           htmlFor="form-header-extras">
+  //         <li>
+  //           <a className="mdl-menu__item" onClick={this.saveCloneAs}>
+  //             {t('Clone this project')}
+  //           </a>
+  //         </li>
 
-          <li>
-            <a href={this.makeHref('form-sharing', {assetid: this.state.uid})} className="mdl-menu__item">
-              <i />
-              {t('Share this project')}
-            </a>
-          </li>
+  //         <li>
+  //           <a href={this.makeHref('form-sharing', {assetid: this.state.uid})} className="mdl-menu__item">
+  //             <i />
+  //             {t('Share this project')}
+  //           </a>
+  //         </li>
 
-          <li>
-            <a className="mdl-menu__item" onClick={this.deleteAsset}>
-              <i />
-              {t('Delete this project')}
-            </a>
-          </li>
-        </ul> 
-      </bem.FormView__extras>
-      );
-  },
+  //         <li>
+  //           <a className="mdl-menu__item" onClick={this.deleteAsset}>
+  //             <i />
+  //             {t('Delete this project')}
+  //           </a>
+  //         </li>
+  //       </ul> 
+  //     </bem.FormView__extras>
+  //     );
+  // },
   renderDataTabs() {
     // setup iframe Urls for KC
     // TODO: do this in a better place, and more cleanly
@@ -871,6 +886,24 @@ var dmix = {
       });
     }
   },
+  toggleDataPopover (evt) {
+    var isBlur = evt.type === 'blur',
+        $popoverMenu;
+    if (isBlur) {
+      $popoverMenu = $(this.refs['data-popover'].getDOMNode());
+      // if we setState and immediately hide popover then the
+      // download links will not register as clicked
+      $popoverMenu.fadeOut(250, () => {
+        this.setState({
+          dataPopoverShowing: false,
+        });
+      });
+    } else {
+      this.setState({
+        dataPopoverShowing: true,
+      });
+    }
+  },
   setSelectedCollectOption(c) {
     return function (e) {
       this.setState({
@@ -1028,11 +1061,18 @@ var dmix = {
     this.setState({
       activeTab: tabId,
     });
+    if (tabId == 'Settings') {
+      this.setState({
+        activeSubTab: tabId,
+      });    
+    }
   },
   setActiveSubTab (evt) {
     var clickedActionId = $(evt.target).closest('[data-id]').data('id');
+    $(evt.target).closest('button').trigger('blur');
     this.setState({
       activeSubTab: clickedActionId,
+      activeTab: 'Data'
     });
   },
   toggleReportGraphSettings () {

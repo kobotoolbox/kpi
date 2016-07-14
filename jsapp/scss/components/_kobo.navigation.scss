@@ -20,13 +20,11 @@ $headerAccountTextColor: #dbedf7;
   background-color: #414553;
   line-height: 17px;
   font-size: 12px;
-
   strong {
     font-weight: bold;
     text-transform: uppercase;
     font-size: 10px;
   }
-
   &:hover {
     background-color: #585d6c;
     cursor: pointer;
@@ -51,13 +49,10 @@ $headerAccountTextColor: #dbedf7;
   }
   .account-box {
     margin-left: auto;
-    .account-box__notifications,
-    .account-box__name {
-      display: inline-block;
-      vertical-align: middle;
-    }
   }
   .account-box__notifications {
+    display: inline-block;
+    vertical-align: middle;
     margin: 0px 32px;
     margin-top: 4px;
     position: relative;
@@ -80,11 +75,20 @@ $headerAccountTextColor: #dbedf7;
     border: 1px solid $layout-header-bg-color;
   }
   .account-box__name {
+    display: inline-block;
+    vertical-align: middle;
     color: $layout-nav-color;
     position: relative;
     cursor: pointer;
     margin-top: 4px;
-    > span {
+    .account-box__username {
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 4px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 180px;
+      overflow: hidden;
       padding: 0px 8px;
       font-size: 16px;
       color: $headerAccountTextColor;

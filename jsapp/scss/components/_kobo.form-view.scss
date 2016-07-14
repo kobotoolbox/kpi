@@ -12,18 +12,15 @@
   &--data {
     overflow: visible;
   }
-  &--Report {
-    overflow: visible;
-    height: calc(100% - 134px);
-  }
 }
 
 .form-view__header--expandedReport + .form-view__wrapper--Report {
   height: calc(100% - 96px);
 }
 
-.form-view__header {
-  // margin-bottom: 8px;
+// Fixed position white bar styling 
+
+.form-view__tabbar {
   @extend .mdl-shadow--2dp;
   background-color: #FFF;
   position: fixed;
@@ -31,45 +28,33 @@
   top: 56px;
   height: 55px;
   left: 0px;
-  &--expandedReport {
-    background-color: transparent;
-    box-shadow: none;
-    margin:-10px -6px;
-    margin-bottom: 8px;
-    .form-view__tabs {
-      padding:8px 0px;
-      i.k-icon-prev {
-        margin-right: 6px;
-      }
-    }
+  z-index: 1;
+}
+
+.form-view__tabs {
+  position: relative;
+  padding: 10px;
+  padding-bottom: 0px;
+  max-width:1440px;
+  margin:0 auto;
+}
+
+@media screen and (min-width: 769px) {
+  .form-view__tabbar .form-view__tabs {
+    padding-left: 260px;
   }
 }
 
-// in form view adjustments
-
+// adjust styling of content when in form view
 .in-form-view .mdl-layout__content, 
 .in-form-view .k-drawer {
   margin-top: 56px;
   height:calc(100% - 128px);
 }
 
-// end in form view adjustments
-
-.form-view__tabs {
-  position: relative;
-  padding: 10px;
-  padding-bottom: 0px;
-}
-
-@media screen and (min-width: 769px) {
-  .form-view__tabs {
-    margin-left: 260px;
-  }
-}
+// END Fixed position white bar styling 
 
 .form-view__extras {
-  // Temporary
-  display: none;
 	float: right;
   button.mdl-button {
     color: white;
@@ -84,106 +69,102 @@
   padding: 20px 10px 4px;
   text-transform: uppercase;
   margin-right: 20px;
-  opacity: 0.75;
   font-size: 15px;
-  a {
-    color:#FFF;
-  }
-  &.active {
-    opacity: 1;
+  cursor: pointer;
+  position: relative;
+  &.active, &:hover {
     border-bottom: 3px solid $cool-green;
   }
-  &:hover {
-    cursor: pointer;
-    opacity: 1;
+  .popover-menu {
+    right: auto;
+    left: 0px;
+    top:3em;
+    .popover-menu__link {
+      i {
+        font-size: 24px;
+        margin-right: 8px;
+      }
+      &--Report i {
+        @extend .k-icon, .k-icon-report;
+      }
+      &--Table i {
+        @extend .k-icon, .k-icon-results;
+      }
+      &--Gallery i {
+        @extend .k-icon, .k-icon-photo-gallery;
+      }
+      &--Downloads i {
+        @extend .k-icon, .k-icon-download-1;
+      }
+      &--Map i {
+        @extend .k-icon, .k-icon-map-view;
+      }
+      &--Settings i {
+        @extend .k-icon, .k-icon-settings;
+      }      
+    }
   }
 }
 
+// Fixed position title in form view 
+
+.form-view__title {
+  position: fixed;
+  top: 0px;
+  height: 55px;
+  left: 0px;
+  z-index: 1;
+  width:100%;
+}
+
+.form-view__titleinner {
+  width:100%;
+  max-width:1440px;
+  margin:0 auto;
+}
+
 .form-view__name {
-  margin:0px;
-  padding: 8px 15px;
   font-size: 18px;
-  line-height: 1.5em;
-  color: unquote("rgb(#{$color-primary})");
+  line-height: 1em;
+  // padding-top: 8px;
+  padding-top: 20px;
+  padding-bottom: 4px;
   display: inline-block;
   text-overflow:ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  // Temporary
-  display: none;
-
-  &--has-data-tabs {
-    width:55%;
-  }
-}
-
-// data tab secondary buttons
-.form-view__secondaryButtons {
-  padding: 10px 5px;
-  padding-bottom: 8px;
-  width: 44%;
-  display: inline-block;
-  vertical-align: top;
-  text-align: right;
-  margin:0px;
-}
-
-.form-view__secondaryButton {
-  border:none;
-  box-shadow: none;
-  border-radius: 0px;
-  margin-left: 2px;
-  font-size: 14px;
-  color:$cool-gray;
-  cursor: pointer;
-  display: inline-block;
-  text-align: center;
-  background-color: transparent;
-  i {
-    font-size:24px;
-  }
-  span {
-    display: block;
-    text-align: center;
-    font-size: 11px;
-    letter-spacing: -0.02em;
-    padding-top: 4px;
-    opacity: 0.6;
-  }
-
-  &--Report i {
-    @extend .k-icon, .k-icon-report;
-  }
-  &--Table i {
-    @extend .k-icon, .k-icon-results;
-  }
-  &--Gallery i {
-    @extend .k-icon, .k-icon-photo-gallery;
-  }
-  &--Downloads i {
-    @extend .k-icon, .k-icon-download-1;
-  }
-  &--Map i {
-    @extend .k-icon, .k-icon-map-view;
-  }
-  &--Settings i {
-    @extend .k-icon, .k-icon-settings;
-  }
-  &--active, &:hover {
-    color: #333;
-    span {
-      opacity: 1;
-    }
-  }
-  &:hover {
-    color: unquote("rgb(#{$color-primary})");
-  }
+  width:calc(100% - 270px);
+  color: white;
 }
 
 .form-view__description {
-  padding: 10px 15px;
-  padding-top: 0px;
+  color: $cool-gray;
+  margin: 0px;
+  margin-top: -4px;
+  padding: 0px;
+  line-height: 1em;
 }
+
+@media screen and (min-width: 769px) {
+  .form-view__titleinner {
+    padding-left: 260px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .form-view__title {
+    display: none;
+  }
+}
+
+.form-view__tabs {
+  position: relative;
+  padding: 10px;
+  padding-bottom: 0px;
+  max-width:1440px;
+  margin:0 auto;
+}
+
 
 .form-view__row {
   display: flex;
@@ -213,6 +194,7 @@
   &--iframe iframe {
     width:100%;
     height: 100%;
+    padding-right: 5px;
   }
 }
 

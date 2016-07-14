@@ -146,10 +146,13 @@ bem.AssetView__deployment = bem.AssetView.__('deployment', '<li>');
 
 bem.FormView = BEM('form-view');
 bem.FormView__header = bem.FormView.__('header');
+bem.FormView__tabbar = bem.FormView.__('tabbar');
 bem.FormView__tabs = bem.FormView.__('tabs');
 bem.FormView__tab = bem.FormView.__('tab', '<button>');
 bem.FormView__button = bem.FormView.__('button', '<button>');
 bem.FormView__extras = bem.FormView.__('extras');
+bem.FormView__title = bem.FormView.__('title');
+bem.FormView__titleinner = bem.FormView.__('titleinner');
 bem.FormView__name = bem.FormView.__('name');
 bem.FormView__description = bem.FormView.__('description');
 
@@ -175,9 +178,10 @@ bem.PopoverMenu__link = bem.PopoverMenu.__('link', '<a>');
 bem.AccountBox = BEM('account-box');
 bem.AccountBox__notifications = bem.AccountBox.__('notifications');
 bem.AccountBox__notifications__count = bem.AccountBox.__('notifications__count', '<span>');
-bem.AccountBox__name =      bem.AccountBox.__('name');
-bem.AccountBox__image =     bem.AccountBox.__('image', '<span>');
-bem.AccountBox__logo =      bem.AccountBox.__('logo', '<span>');
+bem.AccountBox__name = bem.AccountBox.__('name');
+bem.AccountBox__username = bem.AccountBox.__('username', '<span>');
+bem.AccountBox__image = bem.AccountBox.__('image', '<span>');
+bem.AccountBox__logo = bem.AccountBox.__('logo', '<span>');
 
 bem.uiPanel = BEM('ui-panel');
 bem.uiPanel__body = bem.uiPanel.__('body');

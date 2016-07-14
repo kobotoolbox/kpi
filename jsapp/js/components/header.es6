@@ -130,7 +130,9 @@ var MainHeader = React.createClass({
             </bem.AccountBox__notifications__count>
           </bem.AccountBox__notifications>
           <bem.AccountBox__name>
-            <span>{accountName}</span>
+            <bem.AccountBox__username>
+              {accountName}-asdasdasdasdasdasd
+            </bem.AccountBox__username>
             <bem.AccountBox__image>
               <img src={gravatar} />
             </bem.AccountBox__image>
