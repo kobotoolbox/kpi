@@ -227,24 +227,6 @@ var dmix = {
             </bem.FormView__tabbar>
           }
 
-          { this.state.showExpandedReport && 
-            <bem.FormView__tabs>
-              <bem.FormView__tab 
-                onClick={this.toggleExpandedReports}>
-                  <i className="k-icon k-icon-prev"></i>
-                  {t('Return to ')}
-                  <ui.AssetName {...this.state} />
-              </bem.FormView__tab>
-              <bem.FormView__extras>
-                <button className="mdl-button mdl-js-button"
-                        >
-                  {t('Export')}
-                </button>
-              </bem.FormView__extras>
-
-            </bem.FormView__tabs>
-          }
-          
           <bem.FormView__title>
             <bem.FormView__titleinner>
               <bem.FormView__name>
@@ -255,10 +237,6 @@ var dmix = {
               </bem.FormView__description>
             </bem.FormView__titleinner>
           </bem.FormView__title>
-
-          { this.state.activeTab == 'Data' && this.state.activeSubTab == 'Report' &&
-              this.renderReportButtons()
-          }
 
           {this.state.showReportGraphSettings ?
             <ui.Modal open onClose={this.toggleReportGraphSettings} title={t('Global Graph Settings')}>
@@ -394,6 +372,7 @@ var dmix = {
 
     return (
       <bem.FormView__wrapper m={['data', this.state.activeSubTab]}>
+        {this.renderReportButtons()}
         <bem.FormView__cell m='iframe'>
           <iframe 
             src={iframeUrls[this.state.activeSubTab]}>
@@ -472,8 +451,13 @@ var dmix = {
         </ul> 
 
         <button className="mdl-button mdl-js-button"
+                >
+          {t('Export')}
+        </button>
+
+        <button className="mdl-button mdl-js-button mdl-button--icon report-button__expand"
                 onClick={this.toggleExpandedReports}>
-          {this.state.showExpandedReport ? t('Collapse') : t('Expand')}
+          <i className="k-icon-expand" />
         </button>
       </bem.FormView__reportButtons>
     );

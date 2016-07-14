@@ -133,7 +133,7 @@
   text-overflow:ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  width:calc(100% - 270px);
+  width:calc(100% - 300px);
   color: white;
 }
 
@@ -490,10 +490,13 @@
 
 // report buttons
 .form-view__reportButtons {
+  padding-top: 5px;
+  padding-bottom: 10px;
+  height:45px;
   button {
     padding:0px;
     margin:0px 15px;
-    font-weight: 500;
+    margin-right: 30px;
     text-transform: uppercase;
     color: $cool-gray;
     i {
@@ -502,8 +505,20 @@
     }
     &:hover {
       background-color: transparent;
-      color: #333;
+      color: darken($cool-gray, 20%);
     }
+    &.report-button__expand {
+      float: right;
+      margin-right: 0px;
+      i {
+        font-size: 24px;
+        margin:0px;
+      }
+    }
+  }
+
+  + .form-view__cell--iframe {
+    height: calc(100% - 60px);
   }
 }
 

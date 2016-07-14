@@ -816,7 +816,11 @@ var App = React.createClass({
   render() {
     var currentRoutes = this.context.router.getCurrentRoutes();
     var activeRouteName = currentRoutes[currentRoutes.length - 1];
-    var currentRouteClass = (activeRouteName.path == '/forms/:assetid') ? 'in-form-view' : '';
+    if (!this.state.drawerHidden) {
+      var currentRouteClass = (activeRouteName.path == '/forms/:assetid') ? 'in-form-view' : '';
+    } else {
+      currentRouteClass = '';
+    }
 
     return (
       <DocumentTitle title="KoBoToolbox">
