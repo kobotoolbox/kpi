@@ -73,7 +73,6 @@ function SearchContext(opts={}) {
       this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
     },
     onDeleteAssetCompleted (asset) {
-      console.log(asset);
       var filterOutDeletedAsset = ({listName}) => {
         // TODO: look into why sometimes this.state[listName] is not defined
         if (this.state[listName] != undefined) {
