@@ -349,3 +349,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             except KeyError:
                 pass
         return links
+
+    def _submission_count(self):
+        _deployment_data = self.asset._deployment_data
+        id_string = _deployment_data['backend_response']['id_string']
+        # avoid migrations from being created for kc_reader mocked models
+        # there should be a better way to do this, right?
+        from .kc_reader.utils import instance_count
+        return instance_count(xform_id_string=id_string,
+                              user_id=self.asset.owner.pk,
+                              )
