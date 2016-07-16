@@ -28,5 +28,9 @@ class BaseDeploymentBackend:
         return self.asset._deployment_data.get('version', None)
 
     @property
+    def submission_count(self):
+        return self._submission_count()
+
+    @property
     def mongo_userform_id(self):
         return None
