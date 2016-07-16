@@ -16,6 +16,7 @@ from rest_framework import exceptions, status
 from rest_framework.authtoken.models import Token
 
 from base_backend import BaseDeploymentBackend
+from .kc_reader.utils import instance_count
 
 
 class KobocatDeploymentException(exceptions.APIException):
@@ -355,7 +356,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         id_string = _deployment_data['backend_response']['id_string']
         # avoid migrations from being created for kc_reader mocked models
         # there should be a better way to do this, right?
-        from .kc_reader.utils import instance_count
         return instance_count(xform_id_string=id_string,
                               user_id=self.asset.owner.pk,
                               )
