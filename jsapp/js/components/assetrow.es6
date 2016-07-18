@@ -169,7 +169,6 @@ var AssetRow = React.createClass({
                   return _rc;
                 }
               }()}
-              <i className="k-asset-arrow-icon" />
             </bem.AssetRow__cell>
           </bem.AssetRow__cell>
           { this.state.displayTags &&

@@ -20,6 +20,7 @@
       position: absolute;
     }
     &.asset-list-sorts__item--questions {
+      text-align: right;
       &:after {
         display: none;
       }
@@ -50,6 +51,10 @@
   .asset-list {
     height: calc(100% - 50px);
     overflow: auto;
+  }
+  .asset-row > .asset-row__buttons {
+    max-width: 32%;
+    top: 8px;
   }
 }
 

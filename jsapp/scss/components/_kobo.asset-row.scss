@@ -56,20 +56,22 @@
 
 .asset-row__cell--tags {
   white-space: normal;
+  padding-top: 30px;
 }
 
 .asset-row__cell--row-count {
   position: relative;
+  text-align: right;
 }
 
-.k-asset-arrow-icon {
-  position: absolute;
-  right: -5px;
-  top: 0px;
-  font-size: 24px;
-  color: #A5B3BC;
-  @extend .fa, .fa-fw, .fa-lg, .fa-caret-right;
-}
+// .k-asset-arrow-icon {
+//   position: absolute;
+//   right: -5px;
+//   top: 0px;
+//   font-size: 24px;
+//   color: #A5B3BC;
+//   @extend .fa, .fa-fw, .fa-lg, .fa-caret-right;
+// }
 
 .asset-row {
   position: relative;
@@ -81,6 +83,7 @@
     width:43%;
     text-align: right;
     display: none;
+    padding-right: 6px;
   }
   .asset-row__action-icon {
     margin-left: 4px;
@@ -110,10 +113,6 @@
   &--display-tags .asset-row__action-icon--tagsToggle {
     background-color: transparent;
     color: unquote("rgb(#{$color-accent})");      
-  }
-  .k-asset-arrow-icon {
-    @extend .fa-caret-down;
-    color: #A5B3BC;
   }
   .asset-row__action-icon--more-actions button {
     border: none;
