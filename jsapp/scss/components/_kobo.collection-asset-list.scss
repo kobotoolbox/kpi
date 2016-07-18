@@ -80,16 +80,4 @@
       margin-top: 20px;
     }
   }
-  .asset-row--active {
-    position: relative;
-    > .asset-row__buttons {
-      background:#FFF;
-      width:43%;
-      box-shadow: none; 
-      top:5px;
-    }
-    .date--modified {
-      visibility: hidden;
-    }
-  }
 }
