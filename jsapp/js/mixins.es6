@@ -277,7 +277,7 @@ var dmix = {
           </bem.FormView__link>
           <bem.FormView__link m={'deploy'}
             onClick={this.deployAsset}
-            data-tip={this.state.deployed_version_id === null ? t('deploy') : t('redeploy')}>
+            data-tip={this.state.has_deployment ? t('redeploy') : t('deploy')}>
             <i className="k-icon-deploy" />
           </bem.FormView__link>
           <Dropzone fileInput onDropFiles={this.onDrop}
@@ -938,8 +938,7 @@ var dmix = {
           <bem.AssetView__buttoncol>
             <bem.AssetView__button m={'deploy'}  onClick={this.deployAsset}>
               <i />
-              {this.state.deployed_version_id === null ?
-                t('deploy') : t('redeploy')}
+              {this.state.has_deployment ? t('redeploy') : t('deploy')}
             </bem.AssetView__button>
           </bem.AssetView__buttoncol>
           : null }
@@ -966,7 +965,7 @@ var dmix = {
         });
       });
   },
-  reDeployConfirm (asset) {
+  reDeployConfirm (asset, onComplete) {
     let dialog = alertify.dialog('confirm');
     let opts = {
       title: t('overwrite existing deployment on kobocat'),
@@ -978,7 +977,13 @@ var dmix = {
         let ok_button = dialog.elements.buttons.primary.firstChild;
         ok_button.disabled = true;
         ok_button.innerText = t('Deploying...');
-        actions.resources.deployAsset(asset, true, dialog);
+        actions.resources.deployAsset(asset, true, dialog, {
+          onComplete: () => {
+            notify(t('redeployed form'));
+            actions.resources.loadAsset({id: asset.uid});
+            onComplete(asset);
+          }
+        });
         // keep the dialog open
         return false;
       },
@@ -988,7 +993,7 @@ var dmix = {
     };
     dialog.set(opts).show();
   },
-  deployAsset (asset) {
+  deployAsset (asset, onComplete) {
     if (!asset || asset.kind != 'asset') {
         if (this.state && this.state.kind == 'asset') {
           asset = this.state;
@@ -998,13 +1003,19 @@ var dmix = {
           return;
         }
     }
-    if (asset.deployed_version_id === null) {
+    if (!asset.has_deployment) {
       // There's no existing deployment for this asset
       let deployment_alert = alertify.warning(t('deploying to kobocat...'), 60);
-      actions.resources.deployAsset(asset, false, deployment_alert);
+      actions.resources.deployAsset(asset, false, deployment_alert, {
+        onComplete: () => {
+          notify(t('deployed form'));
+          actions.resources.loadAsset({id: asset.uid});
+          onComplete(asset);
+        }
+      });
     } else {
       // We are about to overwrite(!) an existing deployment
-      dmix.reDeployConfirm(asset);
+      this.reDeployConfirm(asset, onComplete);
     }
   },
   deleteAsset (...args) {
@@ -1636,9 +1647,13 @@ mixins.clickAssets = {
             actions.resources.deleteAsset({uid: uid});
           });
       },
-      deploy: function(/*uid, evt*/){
+      deploy: function(uid){
         let asset = stores.selectedAsset.asset;
-        dmix.deployAsset(asset);
+        dmix.deployAsset(asset, () => {
+          // this callback is a kludge and here because I can't figure out how
+          // to call `transitionTo()` from within `deployAsset()`
+          this.transitionTo(`${this.baseName}form-landing`, {assetid: uid});
+        });
       },
     }
   },

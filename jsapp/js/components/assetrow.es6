@@ -205,7 +205,7 @@ var AssetRow = React.createClass({
                               data-action={'deploy'} 
                               data-asset-type={this.props.kind}>
                             <i className="k-icon-deploy" />
-                            {this.props.deployed_version_id === null ? t('Deploy this project') : t('Redeploy this project')}
+                            {this.props.has_deployment ? t('Redeploy this project') : t('Deploy this project')}
                           </bem.PopoverMenu__link>
                         }
                         { this.props.asset_type && this.props.asset_type === 'survey' &&
