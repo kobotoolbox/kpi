@@ -123,7 +123,12 @@ var Drawer = React.createClass({
     }
   },
   clickFilterByCollection (evt) {
-    var data = $(evt.currentTarget).data();
+    var target = $(evt.target);
+    if (target.hasClass('collection-toggle')) {
+      return false;
+    }
+
+    var data = $(evt.currentTarget).data();    
     var collectionUid = false;
     var publicCollection = false;
     if (data.collectionUid) {
@@ -144,6 +149,24 @@ var Drawer = React.createClass({
   },
   clickShowPublicCollections (evt) {
     //TODO: show the collections in the main pane?
+  },
+  toggleCollectionSettings (evt) {
+    var isBlur = evt.type === 'blur',
+        $popoverMenu;
+    if (isBlur) {
+      $popoverMenu = $(this.refs['collection-popover'].getDOMNode());
+      // if we setState and immediately hide popover then the
+      // download links will not register as clicked
+      $popoverMenu.fadeOut(250, () => {
+        this.setState({
+          selectedCollectionSettings: false,
+        });
+      });
+    } else {
+      this.setState({
+        selectedCollectionSettings: true,
+      });
+    }
   },
   createCollection () {
     customPromptAsync('collection name?').then((val)=>{
@@ -342,6 +365,13 @@ var Drawer = React.createClass({
                           onClick={this.clickFilterByCollection}
                           data-collection-uid={collection.uid}
                         >
+                          { this.state.filteredCollectionUid === collection.uid &&
+                            <bem.CollectionSidebar__itemCog 
+                                onFocus={this.toggleCollectionSettings}
+                                onBlur={this.toggleCollectionSettings}>
+                              <i className='collection-toggle k-icon-settings-small' />
+                            </bem.CollectionSidebar__itemCog>
+                          }
                           <i className={iconClass} />
                           {collection.name}
                           { collection.access_type !== 'owned' ?
@@ -350,49 +380,54 @@ var Drawer = React.createClass({
                               </bem.CollectionSidebar__itembyline>
                             : null
                           }
-                          <bem.CollectionSidebar__itemactions>
-                            { collection.access_type === 'subscribed' ?
-                                <bem.CollectionSidebar__itemlink href={'#'}
-                                  onClick={this.unsubscribeCollection}
-                                  data-collection-uid={collection.uid}>
-                                  {t('unsubscribe')}
-                                </bem.CollectionSidebar__itemlink>
-                              : [
-                                <bem.CollectionSidebar__itemlink href={'#'}
+
+                          { (this.state.selectedCollectionSettings) &&
+                            <bem.PopoverMenu ref='collection-popover'>
+                              { collection.access_type === 'subscribed' &&
+                                <bem.PopoverMenu__link
+                                    m={'unsubscribe'}
+                                    onClick={this.unsubscribeCollection}
+                                    data-collection-uid={collection.uid}
+                                    >
+                                  {t('Unsubscribe')}
+                                </bem.PopoverMenu__link>
+                              }
+                              { collection.access_type === 'owned' && collection.discoverable_when_public &&
+                                <bem.PopoverMenu__link
+                                    m={'make-private'}
+                                    onClick={this.setCollectionDiscoverability(false, collection)}
+                                    >
+                                  {t('Make Private')}
+                                </bem.PopoverMenu__link>
+                              }
+                              { collection.access_type === 'owned' && !collection.discoverable_when_public &&
+                                <bem.PopoverMenu__link
+                                    m={'make-public'}
+                                    onClick={this.setCollectionDiscoverability(true, collection)}
+                                    >
+                                  {t('Make Public')}
+                                </bem.PopoverMenu__link>
+                              }
+
+                              <bem.PopoverMenu__link
+                                  m={'share'}
+                                  href={sharingLink}
+                                  >
+                                <i className="k-icon-share" />
+                                {t('Share')}
+                              </bem.PopoverMenu__link>
+                              <bem.PopoverMenu__link
+                                  m={'delete'}
                                   onClick={this.deleteCollection}
-                                  data-collection-uid={collection.uid}>
-                                  {t('delete')}
-                                </bem.CollectionSidebar__itemlink>,
-                                <bem.CollectionSidebar__itemlink href={sharingLink}>
-                                  {t('sharing')}
-                                </bem.CollectionSidebar__itemlink>,
-                                <br />,
-                                <bem.CollectionSidebar__itemlink href={'#'}
-                                  onClick={this.renameCollection(collection)
-                                }>
-                                  {t('rename')}
-                                </bem.CollectionSidebar__itemlink>,
-                                collection.access_type === 'owned' ?
-                                  collection.discoverable_when_public ?
-                                    <bem.CollectionSidebar__itemlink href={'#'}
-                                      onClick={
-                                        this.setCollectionDiscoverability(
-                                          false, collection)
-                                    }>
-                                      {t('make private')}
-                                    </bem.CollectionSidebar__itemlink>
-                                  :
-                                    <bem.CollectionSidebar__itemlink href={'#'}
-                                      onClick={
-                                        this.setCollectionDiscoverability(
-                                          true, collection)
-                                    }>
-                                      {t('make public')}
-                                    </bem.CollectionSidebar__itemlink>
-                                : null
-                              ]
-                            }
-                          </bem.CollectionSidebar__itemactions>
+                                  data-collection-uid={collection.uid}
+                                  >
+                                <i className="k-icon-trash" />
+                                {t('Delete')}
+                              </bem.PopoverMenu__link>
+
+                            </bem.PopoverMenu>
+                          }
+                          
                         </bem.CollectionSidebar__item>
                       );
                   })}

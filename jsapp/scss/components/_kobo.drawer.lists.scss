@@ -40,13 +40,39 @@
       background-color: transparent;
     }
 
+    .popover-menu {
+      display: none;
+      min-width: 120px;
+      max-width: 180px;
+      right: auto;
+      left: -5px;
+    }
     &--selected {
       color:#555B6E;
+      position: relative;
 
       > .collection-sidebar__itemactions {
         display: inline-block;
       }
+
+      .collection-sidebar__itemCog {
+        position: absolute;
+        left: -24px;
+        top: 2px;
+        padding:0px;
+        border:none;
+        background-color: transparent;
+        cursor: pointer;
+        i:before {
+          font-size: 22px;
+        }
+      }
+
+      .popover-menu {
+        display: block;
+      }
     }
+
 
     &:hover {
       color:#555B6E;
