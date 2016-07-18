@@ -507,9 +507,10 @@
       background-color: transparent;
       color: darken($cool-gray, 20%);
     }
-    &.report-button__expand {
+    &.report-button__expand, &.report-button__print {
       float: right;
       margin-right: 0px;
+      margin-left: 8px;
       i {
         font-size: 24px;
         margin:0px;

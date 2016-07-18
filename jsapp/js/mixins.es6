@@ -450,15 +450,15 @@ var dmix = {
           </li>
         </ul> 
 
-        <button className="mdl-button mdl-js-button"
-                >
-          {t('Export')}
-        </button>
-
         <button className="mdl-button mdl-js-button mdl-button--icon report-button__expand"
-                onClick={this.toggleExpandedReports}>
+                onClick={this.toggleExpandedReports} data-tip={t('Expand')}>
           <i className="k-icon-expand" />
         </button>
+
+        <button className="mdl-button mdl-js-button mdl-button--icon report-button__print" data-tip={t('Print')}>
+          <i className="k-icon-print" />
+        </button>
+
       </bem.FormView__reportButtons>
     );
   },
