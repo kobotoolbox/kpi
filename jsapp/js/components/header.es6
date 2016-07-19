@@ -240,13 +240,13 @@ var MainHeader = React.createClass({
             :null}
             <div className="mdl-layout__header-searchers">
               { this.state.headerFilters == 'library' && 
-                <ListSearch searchContext={this.state.libraryFiltersContext} />
+                <ListSearch searchContext={this.state.libraryFiltersContext} placeholderText={t('Search Library')} />
               }
               { this.state.headerFilters == 'library' && 
                 <ListTagFilter searchContext={this.state.libraryFiltersContext} />
               }
               { this.state.headerFilters == 'forms' && 
-                <ListSearch searchContext={this.state.formFiltersContext} />
+                <ListSearch searchContext={this.state.formFiltersContext} placeholderText={t('Search Projects')} />
               }
               { this.state.headerFilters == 'forms' && 
                 <ListTagFilter searchContext={this.state.formFiltersContext} />

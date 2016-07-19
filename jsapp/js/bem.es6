@@ -188,6 +188,8 @@ bem.uiPanel__body = bem.uiPanel.__('body');
 
 bem.Drawer = bem('drawer');
 
+bem.tagSelect = BEM('tag-select');
+
 bem.create = BEM;
 
 export default bem;
