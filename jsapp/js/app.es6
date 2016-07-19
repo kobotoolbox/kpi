@@ -35,6 +35,8 @@ import {
   FormPage,
 } from './components/formEditors';
 
+import Reports from './components/reports';
+
 import {
   ListSearch,
   ListTagFilter,
@@ -1748,6 +1750,7 @@ var routes = (
         <Route name="form-json" path="json" handler={FormJson} />
         <Route name="form-xform" path="xform" handler={FormXform} />
         <Route name="form-sharing" path="sharing" handler={FormSharing} />
+        <Route name="form-reports" path="reports" handler={Reports} />
         <Route name="form-preview-enketo" path="preview" handler={FormEnketoPreview} />
         <Route name='form-edit' path="edit" handler={FormPage} />
         <DefaultRoute handler={FormLanding} />

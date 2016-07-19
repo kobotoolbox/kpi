@@ -18,3 +18,5 @@ tmp
 staticfiles
 .sass-cache
 webpack-stats.json
+sensitive_data.json
+
