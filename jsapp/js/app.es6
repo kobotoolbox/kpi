@@ -48,6 +48,7 @@ import {
   log,
   t,
   assign,
+  isLibrary,
 } from './utils';
 
 mixins.permissions = {
@@ -153,9 +154,10 @@ class ItemDropdown extends React.Component {
 
 class ItemDropdownItem extends React.Component {
   render () {
+    var baseName = isLibrary(this.context.router) ? 'library-' : '';
     return (
           <li>
-            <Link to='form-edit'
+            <Link to={`${baseName}form-edit`}
                   params={{assetid: this.props.uid}}>
               <i className={classNames('fa', 'fa-sm', this.props.faIcon)} />
               &nbsp;
@@ -1056,7 +1058,8 @@ var FormSharing = React.createClass({
   },
   routeBack () {
     var params = this.context.router.getCurrentParams();
-    this.transitionTo('form-landing', {assetid: params.assetid});
+    var baseName = isLibrary(this.context.router) ? 'library-' : '';
+    this.transitionTo(`${baseName}form-landing`, {assetid: params.assetid});
   },
   userExistsStoreChange (checked, result) {
     var inpVal = this.usernameFieldValue();
@@ -1448,7 +1451,7 @@ var FormEnketoPreview = React.createClass({
       if (asset.asset_type === 'survey') {
         bcRoot = {'label': t('Projects'), 'to': 'forms'};
       } else {
-        bcRoot = {'label': t('Library List'), 'to': 'library'};
+        bcRoot = {'label': t('Library'), 'to': 'library'};
       }
       stores.pageState.setHeaderBreadcrumb([
         bcRoot,
@@ -1479,7 +1482,8 @@ var FormEnketoPreview = React.createClass({
   },
   routeBack () {
     var params = this.context.router.getCurrentParams();
-    this.transitionTo('form-landing', {assetid: params.assetid});
+    var baseName = isLibrary(this.context.router) ? 'library-' : '';
+    this.transitionTo(`${baseName}form-landing`, {assetid: params.assetid});
   },
   render () {
     if (this.state.error) {
@@ -1734,22 +1738,36 @@ Demo.collection = React.createClass({
   }
 });
 
+var formRouteChildren = (baseName) => {
+  if (baseName === undefined) {
+    baseName = '';
+  }
+  return [
+    <Route name={`${baseName}form-download`} path="download" handler={FormDownload} />,
+    <Route name={`${baseName}form-json`} path="json" handler={FormJson} />,
+    <Route name={`${baseName}form-xform`} path="xform" handler={FormXform} />,
+    <Route name={`${baseName}form-sharing`} path="sharing" handler={FormSharing} />,
+    <Route name={`${baseName}form-preview-enketo`} path="preview" handler={FormEnketoPreview} />,
+    <Route name={`${baseName}form-edit`} path="edit" handler={FormPage} />
+  ];
+}
+
 var routes = (
   <Route name="home" path="/" handler={App}>
-    <Route name="library" handler={LibrarySearchableList}>
+    <Route name="library">
+      <Route name="library-new-form" path="new" handler={AddToLibrary} />
+      <Route name="library-form-landing" path="/library/:assetid">
+        {formRouteChildren('library-')}
+        <DefaultRoute handler={FormLanding} />
+      </Route>
+      <DefaultRoute handler={LibrarySearchableList} />
     </Route>
 
     <Route name="forms" handler={Forms}>
       <Route name="new-form" path="new" handler={NewForm} />
-      <Route name="add-to-library" path="add-to-library" handler={AddToLibrary} />
 
       <Route name="form-landing" path="/forms/:assetid">
-        <Route name="form-download" path="download" handler={FormDownload} />
-        <Route name="form-json" path="json" handler={FormJson} />
-        <Route name="form-xform" path="xform" handler={FormXform} />
-        <Route name="form-sharing" path="sharing" handler={FormSharing} />
-        <Route name="form-preview-enketo" path="preview" handler={FormEnketoPreview} />
-        <Route name='form-edit' path="edit" handler={FormPage} />
+        {formRouteChildren()}
         <DefaultRoute handler={FormLanding} />
       </Route>
 

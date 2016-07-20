@@ -36,6 +36,8 @@ const clearSearchState = {
   searchResultsSuccess: null,
   searchDebugQuery: false,
   searchResultsCount: 0,
+  parentUid: false,
+  allPublic: false,
 };
 const initialState = assign({
   cleared: false,

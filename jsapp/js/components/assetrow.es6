@@ -12,6 +12,7 @@ import {
   anonUsername,
   t,
   assign,
+  isLibrary,
 } from '../utils';
 
 var AssetTypeIcon = bem.create('asset-type-icon');
@@ -70,8 +71,9 @@ var AssetRow = React.createClass({
     // var perm = this.props.perm;
     var isPublic = this.props.owner__username === anonUsername;
     var _rc = this.props.summary && this.props.summary.row_count;
+    var baseName = isLibrary(this.context.router) ? 'library-' : '';
     var isCollection = this.props.kind === 'collection',
-        hrefTo = isCollection ? 'collection-page' : 'form-landing',
+        hrefTo = isCollection ? 'collection-page' : `${baseName}form-landing`,
         hrefKey = isCollection ? 'uid' : 'assetid',
         hrefParams = {},
         tags = this.props.tags || [];
@@ -203,7 +205,7 @@ var AssetRow = React.createClass({
                               data-action={'deploy'} 
                               data-asset-type={this.props.kind}>
                             <i className="k-icon-deploy" />
-                            {this.props.deployed_version_id === null ? t('Deploy this project') : t('Redeploy this project')}
+                            {this.props.has_deployment ? t('Redeploy this project') : t('Deploy this project')}
                           </bem.PopoverMenu__link>
                         }
                         { this.props.asset_type && this.props.asset_type === 'survey' &&

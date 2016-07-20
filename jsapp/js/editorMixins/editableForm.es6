@@ -12,6 +12,7 @@ import {
   notify,
   assign,
   t,
+  isLibrary,
 } from '../utils';
 
 import {
@@ -206,34 +207,30 @@ export default assign({
     this.setBreadcrumb();
   },
   setBreadcrumb (params={}) {
-    let isLibrary;
-    if (params.asset_type) {
-      isLibrary = params.asset_type !== 'survey';
-    } else {
-      this.isLibrary();
-    }
+    let library = isLibrary(this.context.router);
+    var baseName = library ? 'library-' : '';
     let bcData = [
       {
-        'label': isLibrary ? t('Library List') : t('Projects'),
-        'to': isLibrary ? 'library' : 'forms',
+        'label': library ? t('Library') : t('Projects'),
+        'to': library ? 'library' : 'forms',
       }
     ];
     if (this.editorState === 'new') {
       bcData.push({
         label: t('new'),
-        to: isLibrary ? 'add-to-library' : 'new-form',
+        to: `${baseName}new-form`,
       });
     } else {
       let uid = params.asset_uid || this.state.asset_uid || this.props.params.assetid,
           asset_type = params.asset_type || this.state.asset_type || 'asset';
       bcData.push({
         label: t(`view-${asset_type}`),
-        to: 'form-landing',
+        to: `${baseName}form-landing`,
         params: {assetid: uid},
       });
       bcData.push({
         label: t(`edit-${asset_type}`),
-        to: 'form-edit',
+        to: `${baseName}form-edit`,
         params: {assetid: uid},
       });
     }
@@ -321,13 +318,6 @@ export default assign({
   needsSave () {
     return this.state.asset_updated === update_states.UNSAVED_CHANGES;
   },
-  isLibrary () {
-    if (this.state.asset_type) {
-      return this.state.asset_type !== 'survey';
-    } else {
-      return !!this.context.router.getCurrentPath().match(/library/);
-    }
-  },
   previewForm (evt) {
     if (evt && evt.preventDefault) {
       evt.preventDefault();
@@ -374,10 +364,12 @@ export default assign({
       params.name = this.state.name;
     }
     if (this.editorState === 'new') {
-      params.asset_type = this.isLibrary() ? 'block' : 'survey';
+      var library = isLibrary(this.context.router);
+      var baseName = library ? 'library-' : '';
+      params.asset_type = library ? 'block' : 'survey';
       actions.resources.createResource(params)
         .then((asset) => {
-          this.transitionTo('form-edit', {assetid: asset.uid});
+          this.transitionTo(`${baseName}form-edit`, {assetid: asset.uid});
         })
     } else {
       // update existing
@@ -432,7 +424,7 @@ export default assign({
         return hasSelect;
       })(); // todo: only true if survey has select questions
       ooo.name = this.state.name;
-      ooo.hasSettings = !this.isLibrary();
+      ooo.hasSettings = !isLibrary(this.context.router);
       ooo.styleValue = this.state.settings__style;
     }
     if (this.editorState === 'new') {
@@ -597,6 +589,7 @@ export default assign({
   },
   renderNotLoadedMessage () {
     if (this.state.surveyLoadError) {
+      var baseName = isLibrary(this.context.router) ? 'library-' : '';
       return (
           <ErrorMessage>
             <ErrorMessage__strong>
@@ -607,7 +600,7 @@ export default assign({
             </p>
             <div>
               <ErrorMessage__link m="raised"
-                  href={this.makeHref('form-landing', {
+                  href={this.makeHref(`${baseName}form-landing`, {
                     assetid: this.props.params.assetid,
                   })}>
                 {t('Back')}
@@ -694,7 +687,7 @@ export default assign({
     });
   },
   render () {
-    var isSurvey = this.app && !this.isLibrary();
+    var isSurvey = this.app && !isLibrary(this.context.router);
     return (
         <DocumentTitle title={this.state.name || t('Untitled')}>
           <ui.Panel m={'transparent'}>
