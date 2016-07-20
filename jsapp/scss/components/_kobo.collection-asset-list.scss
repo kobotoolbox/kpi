@@ -1,13 +1,13 @@
 .asset-list-sorts {
   padding: 0px 12px;
   white-space: nowrap;
-  background-color: #f7f8fa;
   border-bottom: 1px solid transparentize($cool-gray, 0.7);
   > .asset-list-sorts__item {
     color: $cool-gray;
     font-weight: 500;
     position: relative;
     padding: 10px 0px;
+    padding-top: 20px;
     margin-top: 0px;
     margin-bottom: 0px;
     &:after {
@@ -20,6 +20,7 @@
       position: absolute;
     }
     &.asset-list-sorts__item--questions {
+      text-align: right;
       &:after {
         display: none;
       }
@@ -34,9 +35,12 @@
   flex-grow: 0;
   color: $greyish-brown;
   text-align: right;
+  padding: 15px;
   > div {
-    padding: 15px;
-    vertical-align: middle;
+    display: inline;
+  }
+  div + div {
+    margin-left: 5px;
   }
 }
 
@@ -51,6 +55,10 @@
     height: calc(100% - 50px);
     overflow: auto;
   }
+  .asset-row > .asset-row__buttons {
+    max-width: 32%;
+    top: 8px;
+  }
 }
 
 
@@ -60,15 +68,16 @@
   height: 100%;
   margin: 0px 8px;
   overflow-y: auto;
-  // .asset-list {
-  //   height:100%;
-  //   border:1px solid green;
-  // }
+  .asset-list {
+    min-height: 300px;
+    margin-bottom: 4px;
+    > .loading {
+      margin-top:110px;
+    }
+  }
   .asset-list__heading {
-    font-weight: 500;
-    margin: 10px 0px;
-    margin-top: 20px;
-    font-size: 22px;
+    margin: 10px;
+    font-size: 18px;
     color: $cool-gray;
     cursor: pointer;
   }
@@ -82,17 +91,8 @@
       max-height: 0px;
       overflow: hidden;
     }
-  }
-  .asset-row--active {
-    position: relative;
-    > .asset-row__buttons {
-      background:#FFF;
-      width:34%;
-      box-shadow: none; 
-      top:5px;
-    }
-    .date--modified {
-      visibility: hidden;
+    + .asset-list__heading {
+      margin-top: 20px;
     }
   }
 }

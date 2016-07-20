@@ -76,15 +76,18 @@ function SearchContext(opts={}) {
     },
     onDeleteAssetCompleted (asset) {
       var filterOutDeletedAsset = ({listName}) => {
-        let uid = asset.uid;
-        let listLength = this.state[listName].length;
-        let l = this.state[listName].filter(function(result){
-          return result.uid !== uid;
-        });
-        if (l.length !== listLength) {
-          let o = {};
-          o[listName] = l;
-          this.update(o);
+        // TODO: look into why sometimes this.state[listName] is not defined
+        if (this.state[listName] != undefined) {
+          let uid = asset.uid;
+          let listLength = this.state[listName].length;
+          let l = this.state[listName].filter(function(result){
+            return result.uid !== uid;
+          });
+          if (l.length !== listLength) {
+            let o = {};
+            o[listName] = l;
+            this.update(o);
+          }
         }
       };
       filterOutDeletedAsset({listName: 'defaultQueryResultsList'});
