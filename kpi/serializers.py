@@ -391,6 +391,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     deployment__identifier = serializers.SerializerMethodField()
     deployment__active = serializers.SerializerMethodField()
     deployment__links = serializers.SerializerMethodField()
+    deployment__submission_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -413,6 +414,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'deployment__identifier',
                   'deployment__links',
                   'deployment__active',
+                  'deployment__submission_count',
                   'report_styles',
                   'content',
                   'downloads',
@@ -534,6 +536,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             return obj.deployment.get_enketo_survey_links()
         else:
             return {}
+
+    def get_deployment__submission_count(self, obj):
+        if not obj.has_deployment:
+            return 0
+        return obj.deployment.submission_count
 
     def _content(self, obj):
         return json.dumps(obj.content)

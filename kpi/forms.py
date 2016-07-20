@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 from registration import forms as registration_forms
 
-from kobo_playground.static_lists import SECTORS, COUNTRIES
+from kobo.static_lists import SECTORS, COUNTRIES
 
 USERNAME_REGEX = r'^[a-z][a-z0-9_]+$'
 USERNAME_MAX_LENGTH = 30

@@ -32,3 +32,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             'preview_url': 'https://enke.to/preview/::self',
             # 'preview_iframe_url': 'https://enke.to/preview/i/::self',
         }
+
+    def _submission_count(self):
+        return 0
