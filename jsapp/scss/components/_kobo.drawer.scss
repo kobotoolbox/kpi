@@ -11,6 +11,7 @@ $drawer-icons-column-width: 56px;
   display: flex;
   flex-direction: row;
   transition: all 0.3s;
+  overflow: hidden;
 }
 
 .k-drawer + .mdl-layout__content {
@@ -44,7 +45,7 @@ $drawer-icons-column-width: 56px;
 }
 
 .k-drawer__icons-bottom {
-  width: 120px;
+  width: 165px;
   height: 120px;
   padding-top: 25px;
   position: absolute;
