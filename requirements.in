@@ -25,6 +25,7 @@ dj_database_url
 django-braces
 django-debug-toolbar
 django-extensions
+django-jsonbfield
 django-oauth-toolkit
 django-registration-redux
 django-ses
