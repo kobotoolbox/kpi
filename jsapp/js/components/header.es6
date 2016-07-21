@@ -1,5 +1,5 @@
 import React from 'react/addons';
-import {Link} from 'react-router';
+import {Link,Navigation} from 'react-router';
 import mdl from '../libs/rest_framework/material';
 import Select from 'react-select';
 import moment from 'moment';
@@ -41,6 +41,7 @@ var MainHeader = React.createClass({
     Reflux.connect(stores.pageState),
     Reflux.ListenerMixin,
     hotkey.Mixin('handleHotkey'),
+    Navigation
   ],
   handleHotkey: function(e) {
     if (e.altKey && (e.keyCode == '69' || e.keyCode == '186')) {
@@ -79,15 +80,19 @@ var MainHeader = React.createClass({
     actions.auth.logout();
   },
   setStates() {
-    var breadcrumb = this.state.headerBreadcrumb;
-    if (breadcrumb.length > 1) {
-      this.setState({headerFilters: false});
-      return;
-    }
-    if (breadcrumb[0] && breadcrumb[0].to == 'library') {
-      this.setState({headerFilters: 'library'});
-    } else {
-      this.setState({headerFilters: 'forms'});
+    var currentRoutes = this.context.router.getCurrentRoutes();
+    var activeRouteName = currentRoutes[currentRoutes.length - 1];
+
+    switch(activeRouteName.path) {
+      case '/forms':
+        this.setState({headerFilters: 'forms'});
+        break;
+      case '/library':
+        this.setState({headerFilters: 'library'});
+        break;
+      default:
+        this.setState({headerFilters: false});
+        break;
     }
   },
   languageChange (evt) {
