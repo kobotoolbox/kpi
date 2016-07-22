@@ -41,19 +41,13 @@ class DrawerLink extends React.Component {
   render () {
     var icon_class = (this.props['ki-icon'] == undefined ? `fa fa-globe` : `k-icon-${this.props['ki-icon']}`);
     var icon = (<i className={icon_class}></i>);
+    var classNames = [this.props.class, 'k-drawer__link'];
 
     var link;
-    var style = {};
-    // if (this.props.lowercase) {
-    //   // to get navigation items looking the same,
-    //   // a lowercase prop can be passed.
-    //   // if the drawer items were all using a unique css class we could do this in css
-    //   style = {'text-transform': 'lowercase'};
-    // }
     if (this.props.linkto) {
       link = (
         <Link to={this.props.linkto}
-            className='k-drawer__link'
+            className={classNames.join(' ')}
             activeClassName='active'
             data-tip={this.props.label}>
           {icon}
@@ -62,7 +56,7 @@ class DrawerLink extends React.Component {
     } else {
       link = (
         <a href={this.props.href || '#'}
-            className='k-drawer__link'
+            className={classNames.join(' ')}
             onClick={this.onClick}
             data-tip={this.props.label}>
             {icon}
@@ -86,29 +80,34 @@ var Drawer = React.createClass({
   },
   render () {
     return (
-          <bem.Drawer className='k-drawer mdl-shadow--2dp'>
+          <bem.Drawer className='k-drawer'>
             <nav className='k-drawer__icons'>
-              <DrawerLink label={t('Projects')} linkto='forms' ki-icon='projects' />
-              <DrawerLink label={t('Library')} linkto='library' ki-icon='library' />
+              <DrawerLink label={t('Projects')} linkto='forms' ki-icon='projects' class='projects'/>
+              <DrawerLink label={t('Library')} linkto='library' ki-icon='library' class='library' />
               { stores.session.currentAccount ?
                   <DrawerLink label={t('Projects')} active='true' href={stores.session.currentAccount.projects_url} className="is-edge" ki-icon='globe' />
               : null }
-              <div className="mdl-layout-spacer"></div>
-
-              <div className='k-drawer__icons-bottom'>
-                <DrawerLink label={t('source')} href='https://github.com/kobotoolbox/' ki-icon='github' />
-                <DrawerLink label={t('help')} href='http://support.kobotoolbox.org/' ki-icon='help' />
-              </div>
             </nav>
 
             <div className="drawer__sidebar">
               <button className="mdl-button mdl-button--icon k-drawer__close" onClick={this.toggleFixedDrawer}>
-                <i className="fa fa-close"></i>
+                <i className="k-icon-close"></i>
               </button>
               { isLibrary(this.context.router)
                 ? <LibrarySidebar />
                 : <FormSidebar />
               }
+            </div>
+
+            <div className='k-drawer__icons-bottom'>
+              <a href='https://github.com/kobotoolbox/' className='k-drawer__link'>
+                <i className="k-icon k-icon-github" />
+                {t('source')}
+              </a>
+              <a href='http://support.kobotoolbox.org/' className='k-drawer__link'>
+                <i className="k-icon k-icon-help" />
+                {t('help')}
+              </a>
             </div>
 
             <ReactTooltip effect="float" place="bottom" />
@@ -155,7 +154,6 @@ var FormSidebar = React.createClass({
           if (n < 1) {
             return (
               <div className="header-breadcrumb__item" key={`bc${n}`}>
-                <i className="k-icon-projects" />
                 {
                   ('to' in item) ?
                   <Link to={item.to} params={item.params}>{item.label}</Link>
@@ -243,6 +241,10 @@ var LibrarySidebar = React.createClass({
     });
   },
   clickFilterByCollection (evt) {
+    var target = $(evt.target);
+    if (target.hasClass('collection-toggle')) {
+      return false;
+    }
     var data = $(evt.currentTarget).data();
     var collectionUid = false;
     var publicCollection = false;
@@ -265,6 +267,24 @@ var LibrarySidebar = React.createClass({
   },
   clickShowPublicCollections (evt) {
     //TODO: show the collections in the main pane?
+  },
+  toggleCollectionSettings (evt) {
+    var isBlur = evt.type === 'blur',
+        $popoverMenu;
+    if (isBlur) {
+      $popoverMenu = $(this.refs['collection-popover'].getDOMNode());
+      // if we setState and immediately hide popover then the
+      // download links will not register as clicked
+      $popoverMenu.fadeOut(250, () => {
+        this.setState({
+          selectedCollectionSettings: false,
+        });
+      });
+    } else {
+      this.setState({
+        selectedCollectionSettings: true,
+      });
+    }
   },
   createCollection () {
     customPromptAsync('collection name?').then((val)=>{
@@ -361,7 +381,6 @@ var LibrarySidebar = React.createClass({
           if (n < 1) {
             return (
               <div className="header-breadcrumb__item" key={`bc${n}`}>
-                <i className="k-icon-library" />
                 {
                   ('to' in item) ?
                   <Link to={item.to} params={item.params}>{item.label}</Link>
@@ -433,6 +452,13 @@ var LibrarySidebar = React.createClass({
                     onClick={this.clickFilterByCollection}
                     data-collection-uid={collection.uid}
                   >
+                    { this.state.filteredCollectionUid === collection.uid &&
+                      <bem.CollectionSidebar__itemCog
+                          onFocus={this.toggleCollectionSettings}
+                          onBlur={this.toggleCollectionSettings}>
+                        <i className='collection-toggle k-icon-settings-small' />
+                      </bem.CollectionSidebar__itemCog>
+                    }
                     <i className={iconClass} />
                     {collection.name}
                     { collection.access_type !== 'owned' ?
@@ -441,49 +467,52 @@ var LibrarySidebar = React.createClass({
                         </bem.CollectionSidebar__itembyline>
                       : null
                     }
-                    <bem.CollectionSidebar__itemactions>
-                      { collection.access_type === 'subscribed' ?
-                          <bem.CollectionSidebar__itemlink href={'#'}
-                            onClick={this.unsubscribeCollection}
-                            data-collection-uid={collection.uid}>
-                            {t('unsubscribe')}
-                          </bem.CollectionSidebar__itemlink>
-                        : [
-                          <bem.CollectionSidebar__itemlink href={'#'}
+                    { (this.state.selectedCollectionSettings) &&
+                      <bem.PopoverMenu ref='collection-popover'>
+                        { collection.access_type === 'subscribed' &&
+                          <bem.PopoverMenu__link
+                              m={'unsubscribe'}
+                              onClick={this.unsubscribeCollection}
+                              data-collection-uid={collection.uid}
+                              >
+                            {t('Unsubscribe')}
+                          </bem.PopoverMenu__link>
+                        }
+                        { collection.access_type === 'owned' && collection.discoverable_when_public &&
+                          <bem.PopoverMenu__link
+                              m={'make-private'}
+                              onClick={this.setCollectionDiscoverability(false, collection)}
+                              >
+                            {t('Make Private')}
+                          </bem.PopoverMenu__link>
+                        }
+                        { collection.access_type === 'owned' && !collection.discoverable_when_public &&
+                          <bem.PopoverMenu__link
+                              m={'make-public'}
+                              onClick={this.setCollectionDiscoverability(true, collection)}
+                              >
+                            {t('Make Public')}
+                          </bem.PopoverMenu__link>
+                        }
+
+                        <bem.PopoverMenu__link
+                            m={'share'}
+                            href={sharingLink}
+                            >
+                          <i className="k-icon-share" />
+                          {t('Share')}
+                        </bem.PopoverMenu__link>
+                        <bem.PopoverMenu__link
+                            m={'delete'}
                             onClick={this.deleteCollection}
-                            data-collection-uid={collection.uid}>
-                            {t('delete')}
-                          </bem.CollectionSidebar__itemlink>,
-                          <bem.CollectionSidebar__itemlink href={sharingLink}>
-                            {t('sharing')}
-                          </bem.CollectionSidebar__itemlink>,
-                          <br />,
-                          <bem.CollectionSidebar__itemlink href={'#'}
-                            onClick={this.renameCollection(collection)
-                          }>
-                            {t('rename')}
-                          </bem.CollectionSidebar__itemlink>,
-                          collection.access_type === 'owned' ?
-                            collection.discoverable_when_public ?
-                              <bem.CollectionSidebar__itemlink href={'#'}
-                                onClick={
-                                  this.setCollectionDiscoverability(
-                                    false, collection)
-                              }>
-                                {t('make private')}
-                              </bem.CollectionSidebar__itemlink>
-                            :
-                              <bem.CollectionSidebar__itemlink href={'#'}
-                                onClick={
-                                  this.setCollectionDiscoverability(
-                                    true, collection)
-                              }>
-                                {t('make public')}
-                              </bem.CollectionSidebar__itemlink>
-                          : null
-                        ]
-                      }
-                    </bem.CollectionSidebar__itemactions>
+                            data-collection-uid={collection.uid}
+                            >
+                          <i className="k-icon-trash" />
+                          {t('Delete')}
+                        </bem.PopoverMenu__link>
+
+                      </bem.PopoverMenu>
+                    }
                   </bem.CollectionSidebar__item>
                 );
             })}

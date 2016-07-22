@@ -816,6 +816,14 @@ var App = React.createClass({
     return assign({}, stores.pageState.state);
   },
   render() {
+    var currentRoutes = this.context.router.getCurrentRoutes();
+    var activeRouteName = currentRoutes[currentRoutes.length - 1];
+    if (!this.state.drawerHidden) {
+      var currentRouteClass = (activeRouteName.path == '/forms/:assetid') ? 'in-form-view' : '';
+    } else {
+      currentRouteClass = '';
+    }
+
     return (
       <DocumentTitle title="KoBoToolbox">
         <div className="mdl-wrapper">
@@ -828,7 +836,7 @@ var App = React.createClass({
               'fixed-drawer': this.state.showFixedDrawer,
               'header-hidden': this.state.headerHidden,
               'drawer-hidden': this.state.drawerHidden,
-                }} className="mdl-layout mdl-layout--fixed-header">
+                }} className={["mdl-layout mdl-layout--fixed-header", currentRouteClass]}>
               { this.state.modalMessage ?
                 <ui.Modal open small onClose={()=>{stores.pageState.hideModal()}} icon={this.state.modalIcon}>
                   <ui.Modal.Body>

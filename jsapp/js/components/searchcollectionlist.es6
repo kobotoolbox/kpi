@@ -191,6 +191,26 @@ var SearchCollectionList = React.createClass({
                     </bem.Loading>
                   );
                 } else if (s.defaultQueryState === 'done') {
+                  if (s.defaultQueryCount < 1) {
+                    if (s.defaultQueryFor.assetType == 'asset_type:survey') {
+                      return (
+                        <bem.Loading>
+                          <bem.Loading__inner>
+                            {t('You currently have no forms. You can create a new form by clicking on the + button below.')} 
+                          </bem.Loading__inner>
+                        </bem.Loading>
+                      );
+                    } else {
+                      return (
+                        <bem.Loading>
+                          <bem.Loading__inner>
+                            {t('Your library is currently empty. You can create a new question or a new block by clicking on the + button below, or add them from within your forms.')} 
+                          </bem.Loading__inner>
+                        </bem.Loading>
+                      );
+                    }
+                  }
+
                   if (display == 'grouped') {
                     return this.renderGroupedResults();
                   } else {
