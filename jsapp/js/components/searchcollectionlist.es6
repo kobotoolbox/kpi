@@ -196,7 +196,7 @@ var SearchCollectionList = React.createClass({
                       return (
                         <bem.Loading>
                           <bem.Loading__inner>
-                            {t('You currently have no forms. You can create a new form by clicking on the + button below.')} 
+                            {t("Let's get started by creating your first project. Click the New button to create a new form.")} 
                           </bem.Loading__inner>
                         </bem.Loading>
                       );
@@ -204,7 +204,7 @@ var SearchCollectionList = React.createClass({
                       return (
                         <bem.Loading>
                           <bem.Loading__inner>
-                            {t('Your library is currently empty. You can create a new question or a new block by clicking on the + button below, or add them from within your forms.')} 
+                            {t("Let's get started by creating your first library question or question block. Click the New button to create a new question or block.")} 
                           </bem.Loading__inner>
                         </bem.Loading>
                       );
