@@ -25,10 +25,10 @@ function labelVal(label, value) {
   return {label: t(label), value: (value || label.toLowerCase().replace(/\W+/g, '_'))};
 }
 let reportStyles = [
-  labelVal('Pie Chart'),
-  labelVal('Ring Chart'),
-  labelVal('Bar Chart'),
-  labelVal('Scatter Plot'),
+  labelVal('Bar'),
+  labelVal('Pie'),
+  labelVal('Line'),
+  // labelVal('Scatter Plot'),
 ];
 
 
@@ -42,14 +42,12 @@ var DefaultReportStylePicker = React.createClass({
   },
   render () {
     return (
-        <div>
-          <p>Default styles</p>
+        <div style={{margin:'20px'}}>
           <Select
             name='default_report_type'
             value={this.props.defaultStyle.report_type}
             clearable={false}
-            searchPromptText={t('report type')}
-            placeholder={t('default report type')}
+            searchable={false}
             options={reportStyles}
             onChange={this.defaultReportStyleChange}
           />
@@ -160,9 +158,15 @@ var Reports = React.createClass({
 
     let translations = false;
     let reportData = this.state.reportData || [];
+
+    console.log(defaultStyle);
+    console.log(explicitStyles);
+    for (var i = reportData.length - 1; i >= 0; i--) {;
+      console.log(reportData[i]);
+      reportData[i].style = defaultStyle;
+    }
     return (
-        <div>
-          <h2>Reports</h2>
+        <bem.ReportView>
           {this.state.asset ?
             <div>
               {
@@ -183,7 +187,11 @@ var Reports = React.createClass({
                   onChange={this.reportStyleChange}
                   translationIndex={this.state.translationIndex}
                 />
-              <ReportWrap>
+              <bem.ReportView__wrap>
+                <bem.ReportView__warning>
+                  <h4>{t('Warning')}</h4>
+                  <p>{t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. ')}</p>
+                </bem.ReportView__warning>
                 {
                   reportData.length === 0 ?
                     <p>No report data</p>
@@ -191,7 +199,7 @@ var Reports = React.createClass({
                   reportData.map((rowContent)=>{
                     let kuid = rowContent.$kuid;
                     return (
-                        <ReportDiv title={rowContent.$kuid}>
+                        <bem.ReportView__item title={rowContent.$kuid}>
                           {/* style picker:
                           <IndividualReportStylePicker key={kuid}
                               row={row}
@@ -202,16 +210,21 @@ var Reports = React.createClass({
                             />
                           */}
                           <ReportViewItem {...rowContent} />
-                        </ReportDiv>
+                        </bem.ReportView__item>
                       );
                   })
                 }
-              </ReportWrap>
+              </bem.ReportView__wrap>
             </div>
           :
-            <p>loading</p>
+            <bem.Loading>
+              <bem.Loading__inner>
+                <i />
+                {t('loading...')}
+              </bem.Loading__inner>
+            </bem.Loading>
           }
-        </div>
+        </bem.ReportView>
       );
   }
 })
