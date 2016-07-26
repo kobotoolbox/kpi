@@ -120,15 +120,17 @@ var MainHeader = React.createClass({
   toggleAccountMenuPopover (evt) {
     var isBlur = evt.type === 'blur',
         $popoverMenu;
-    if (isBlur) {
-      $popoverMenu = $(this.refs['accountMenu-popover'].getDOMNode());
-      // if we setState and immediately hide popover then the
-      // download links will not register as clicked
-      $popoverMenu.fadeOut(250, () => {
-        this.setState({
-          accountMenuPopoverShowing: false,
+    if (this.state.accountMenuPopoverShowing || isBlur) {
+      if (this.refs['accountMenu-popover'] != undefined) {
+        $popoverMenu = $(this.refs['accountMenu-popover'].getDOMNode());
+        // if we setState and immediately hide popover then the
+        // links will not register as clicked
+        $popoverMenu.fadeOut(250, () => {
+          this.setState({
+            accountMenuPopoverShowing: false,
+          });
         });
-      });
+      }
     } else {
       this.setState({
         accountMenuPopoverShowing: true,
@@ -154,7 +156,7 @@ var MainHeader = React.createClass({
             </bem.AccountBox__notifications__count>
           </bem.AccountBox__notifications>
           <bem.AccountBox__name
-              onFocus={this.toggleAccountMenuPopover}
+              onClick={this.toggleAccountMenuPopover}
               onBlur={this.toggleAccountMenuPopover}>
             <bem.AccountBox__username>
               {accountName}

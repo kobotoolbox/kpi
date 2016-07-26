@@ -95,9 +95,13 @@ $drawer-icons-column-width: 56px;
 .collection-nav__actions {
   text-align: center;
   margin-bottom: 10px;
+  position: relative;
   > button {
     min-width: 120px;
     text-transform: uppercase;
+  }
+  .mdl-menu__container {
+    right: 21px !important;
   }
 }
 
