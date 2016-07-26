@@ -25,10 +25,12 @@ function labelVal(label, value) {
   return {label: t(label), value: (value || label.toLowerCase().replace(/\W+/g, '_'))};
 }
 let reportStyles = [
-  labelVal('Bar'),
-  labelVal('Pie'),
+  labelVal('Horizontal'),
+  labelVal('Vertical'),
   labelVal('Line'),
-  // labelVal('Scatter Plot'),
+  labelVal('Area'),
+  labelVal('Pie'),
+  labelVal('Donut'),
 ];
 
 
@@ -159,12 +161,12 @@ var Reports = React.createClass({
     let translations = false;
     let reportData = this.state.reportData || [];
 
-    console.log(defaultStyle);
-    console.log(explicitStyles);
-    for (var i = reportData.length - 1; i >= 0; i--) {;
-      console.log(reportData[i]);
-      reportData[i].style = defaultStyle;
-    }
+    // console.log(defaultStyle);
+    // console.log(explicitStyles);
+    // for (var i = reportData.length - 1; i >= 0; i--) {;
+      // console.log(reportData[i]);
+      // reportData[i].style = defaultStyle;
+    // }
     return (
         <bem.ReportView>
           {this.state.asset ?
