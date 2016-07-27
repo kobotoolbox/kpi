@@ -27,7 +27,7 @@ class CreateAssetVersions(AssetsTestCase):
         self.asset.content['survey'][0]['type'] = 'integer'
         self.assertEqual(self.asset.content['survey'][0]['type'], 'integer')
         self.asset.save()
-        self.assertEqual(len(self.asset.versions()), 2)
+        self.assertEqual(self.asset.asset_versions.count(), 2)
 
     def test_asset_can_be_owned(self):
         self.assertEqual(self.asset.owner, self.user)
@@ -47,6 +47,66 @@ class CreateAssetVersions(AssetsTestCase):
     def test_asset_can_be_anonymous(self):
         anon_asset = Asset.objects.create(content=self.asset.content)
         self.assertEqual(anon_asset.owner, None)
+
+
+class AssetContentTests(AssetsTestCase):
+    def _wrap_field(self, field_name, value):
+        return {'survey': [
+            {'type': 'text', 'name': 'x'},
+            {'type': 'text', 'name': 'y', field_name: value},
+        ]}
+
+    def _wrap_type(self, type_val):
+        return {'survey': [{
+            'type': type_val,
+            'name': 'q_yn',
+            'label': 'Yes or No',
+        }], 'choices': [
+            {'list_name': 'yn', 'name': 'y', 'label': 'Yes'},
+            {'list_name': 'yn', 'name': 'n', 'label': 'No'},
+        ]}
+
+    def test_flatten_empty_relevant(self):
+        content = self._wrap_field('relevant', [])
+        a1 = Asset.objects.create(content=content, asset_type='survey')
+        ss_struct = a1.to_ss_structure()['survey']
+        self.assertEqual(ss_struct[1]['relevant'], '')
+
+    def test_flatten_relevant(self):
+        content = self._wrap_field('relevant', [{'$lookup': 'x'}])
+        a1 = Asset.objects.create(content=content, asset_type='survey')
+        ss_struct = a1.to_ss_structure()['survey']
+        self.assertEqual(ss_struct[1]['relevant'], '${x}')
+
+    def test_flatten_constraints(self):
+        content = self._wrap_field('constraint', ['.', '>', {'$lookup': 'x'}])
+        a1 = Asset.objects.create(content=content, asset_type='survey')
+        ss_struct = a1.to_ss_structure()['survey']
+        self.assertEqual(ss_struct[1]['constraint'], '. > ${x}')
+
+    def test_flatten_select_one_type(self):
+        content = self._wrap_type({'select_one': 'yn'})
+        a1 = Asset.objects.create(content=content, asset_type='survey')
+        ss_struct = a1.to_ss_structure()['survey']
+        self.assertEqual(ss_struct[0]['type'], 'select_one yn')
+
+    def test_flatten_select_multiple_type(self):
+        content = self._wrap_type({'select_multiple': 'yn'})
+        a1 = Asset.objects.create(content=content, asset_type='survey')
+        ss_struct = a1.to_ss_structure()['survey']
+        self.assertEqual(ss_struct[0]['type'], 'select_multiple yn')
+
+    def test_expand_content(self):
+        content = {'survey': [{'type': 'select_one abc'}]}
+        a1 = Asset.objects.create(content=content, asset_type='survey')
+        self.assertEqual(a1.content.get('survey')[0]['type'],
+                         {'select_one': 'abc'})
+
+    def test_expand_content(self):
+        content = {'survey': [{'type': 'select_one abc or_other'}]}
+        a1 = Asset.objects.create(content=content, asset_type='survey')
+        self.assertEqual(a1.content.get('survey')[0]['type'],
+                         {'select_one_or_other': 'abc'})
 
 
 class AssetSettingsTests(AssetsTestCase):

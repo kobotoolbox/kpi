@@ -9,7 +9,8 @@ import re
 import json
 import random
 import string
-
+from kpi.utils.autoname import autoname_fields__depr, autoname_fields
+from kpi.utils.autoname import autovalue_choices as autovalue_choices_fn
 COLS = {
     'rank-cmessage': 'kobo--rank-constraint-message',
     'rank-items': 'kobo--rank-items',
@@ -267,68 +268,6 @@ KOBO_CUSTOM_TYPE_HANDLERS = {
 }
 
 
-def _sluggify_valid_xml(name):
-    out = re.sub('\W+', '_', name.strip().lower())
-    if re.match(r'^\d', out):
-        out = '_'+out
-    return out
-
-
-def _increment(name):
-    return name + '_0'
-
-
-def _rand_id(n):
-    return ''.join(random.choice(string.ascii_uppercase + string.digits)
-                   for _ in range(n))
-
-
-def _autoname_fields(surv_contents, default_language=None):
-    '''
-    if any names are not set, automatically fill them in
-    '''
-    kuid_names = {}
-    for surv_row in surv_contents:
-        # xls2json_backends.csv_to_dict(), called by dkobo, omits 'name' keys
-        # whose values are blank. Since we read JSON from the form builder
-        # instead of CSV, however, we have to tolerate not only missing names
-        # but blank ones as well.
-        for skip_key in ['appearance', 'relevant']:
-            if skip_key in surv_row and surv_row[skip_key] == '':
-                del surv_row[skip_key]
-        if 'name' not in surv_row or surv_row['name'] == '':
-            if re.search(r'^end ', surv_row['type']):
-                continue
-            if 'label' in surv_row:
-                next_name = _sluggify_valid_xml(surv_row['label'])
-            elif default_language is not None:
-                _default_lang_label = surv_row['label::%s' % default_language]
-                next_name = _sluggify_valid_xml(_default_lang_label)
-            else:
-                raise ValueError('Label cannot be translated: %s' %
-                                 json.dumps(surv_row))
-            while next_name in kuid_names.values():
-                next_name = _increment(next_name)
-            if 'kuid' not in surv_row:
-                surv_row['kuid'] = _rand_id(8)
-            if surv_row['kuid'] in kuid_names:
-                raise Exception("Duplicate kuid: %s" % surv_row['kuid'])
-            surv_row['name'] = next_name
-            kuid_names[surv_row['kuid']] = next_name
-    return surv_contents
-
-
-def _autovalue_choices(surv_choices):
-    for choice in surv_choices:
-        if 'name' not in choice:
-            choice['name'] = choice['label']
-        # workaround for incorrect "list_name" column header (was missing _)
-        if 'list name' in choice:
-            choice['list_name'] = choice['list name']
-            del choice['list name']
-    return surv_choices
-
-
 def _parse_contents_of_kobo_structures(ss_structure):
     contents = ss_structure['survey']
     features_used = set()
@@ -353,23 +292,43 @@ def _is_kobo_specific(name):
     return re.search(r'^kobo--', name)
 
 
-def to_xlsform_structure(surv, **kwargs):
-    opts = {
-        'autoname': True,
-        'autovalue_options': True,
-        'extract_rank_and_score': True,
-    }
-    opts.update(kwargs)
+def remove_empty_expressions(survey_content):
+    # xls2json_backends.csv_to_dict(), called by dkobo, omits 'name' keys
+    # whose values are blank. Since we read JSON from the form builder
+    # instead of CSV, however, we have to tolerate not only missing names
+    # but blank ones as well.
+    for surv_row in survey_content:
+        for skip_key in ['appearance', 'relevant', 'bind']:
+            if skip_key in surv_row and surv_row[skip_key] == '':
+                del surv_row[skip_key]
+
+
+def to_xlsform_structure(surv,
+                         autoname=True,
+                         deprecated_autoname=False,
+                         autovalue_choices=True,
+                         extract_rank_and_score=True,
+                         ):
 
     if 'survey' in surv:
-        if opts['autoname']:
-            surv['survey'] = _autoname_fields(surv['survey'])
-        if opts['extract_rank_and_score']:
+        for survey_row in surv['survey']:
+            if 'type' in survey_row and isinstance(survey_row['type'], dict):
+                _srt = survey_row['type']
+                survey_row['type'] = '{} {}'.format(_srt.keys()[0],
+                                                    _srt.values()[0])
+        remove_empty_expressions(surv['survey'])
+
+        if deprecated_autoname:
+            surv['survey'] = autoname_fields__depr(surv)
+        elif autoname:
+            surv['survey'] = autoname_fields(surv)
+
+        if extract_rank_and_score:
             (surv['survey'], features_used) = \
                 _parse_contents_of_kobo_structures(surv)
 
-    if 'choices' in surv and opts['autovalue_options']:
-        surv['choices'] = _autovalue_choices(surv.get('choices', []))
+    if 'choices' in surv and autovalue_choices:
+        surv['choices'] = autovalue_choices_fn(surv.get('choices', []))
 
     for kobo_custom_sheet_name in filter(_is_kobo_specific, surv.keys()):
         del surv[kobo_custom_sheet_name]

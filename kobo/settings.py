@@ -1,5 +1,5 @@
 """
-Django settings for kobo_playground project.
+Django settings for kobo project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/1.7/topics/settings/
@@ -13,6 +13,7 @@ from django.conf import global_settings
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 import dj_database_url
+import multiprocessing
 
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
@@ -23,6 +24,8 @@ BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 # Secret key must match that used by KoBoCAT when sharing sessions
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '@25)**hc^rjaiagb4#&q*84hr*uscsxwr-cv#0joiwj$))obyk')
+
+UPCOMING_DOWNTIME = False
 
 # Domain must not exclude KoBoCAT when sharing sessions
 if os.environ.get('CSRF_COOKIE_DOMAIN'):
@@ -55,10 +58,10 @@ INSTALLED_APPS = (
     'debug_toolbar',
     'mptt',
     'haystack',
-    'kpi.apps.KpiConfig',
+    'kobo.apps.KpiConfig',
     'hub',
     'webpack_loader',
-    'registration', # Must come AFTER kpi
+    'registration',         # Order is important
     'django.contrib.admin', # Must come AFTER registration
     'django_extensions',
     'taggit',
@@ -96,9 +99,9 @@ AUTHENTICATION_BACKENDS = (
     'kpi.backends.ObjectPermissionBackend',
 )
 
-ROOT_URLCONF = 'kobo_playground.urls'
+ROOT_URLCONF = 'kobo.urls'
 
-WSGI_APPLICATION = 'kobo_playground.wsgi.application'
+WSGI_APPLICATION = 'kobo.wsgi.application'
 
 # What User object should be mapped to AnonymousUser?
 ANONYMOUS_USER_ID = -1
@@ -108,6 +111,9 @@ ALLOWED_ANONYMOUS_PERMISSIONS = (
     'kpi.view_asset',
 )
 
+# run heavy migration scripts by default
+# NOTE: this should be set to False for major deployments. This can take a long time
+SKIP_HEAVY_MIGRATIONS = os.environ.get('SKIP_HEAVY_MIGRATIONS', 'False') == 'True'
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
@@ -189,7 +195,8 @@ REST_FRAMEWORK = {
 }
 
 TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
-    'kpi.context_processors.dev_mode',
+    'kpi.context_processors.external_service_tokens',
+    'kpi.context_processors.email',
     'kpi.context_processors.git_commit',
     'kpi.context_processors.sitewide_messages',
 )
@@ -199,10 +206,8 @@ TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
 #if not DEBUG:
 #    STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
-LIVERELOAD_SCRIPT = os.environ.get('LIVERELOAD_SCRIPT', 'False')
-LIVERELOAD_SCRIPT = False if LIVERELOAD_SCRIPT.lower() == 'false' else LIVERELOAD_SCRIPT
-USE_MINIFIED_SCRIPTS = os.environ.get('KOBO_USE_MINIFIED_SCRIPTS', 'False').lower() != 'false'
 TRACKJS_TOKEN = os.environ.get('TRACKJS_TOKEN')
+GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 
 # replace this with the pointer to the kobocat server, if it exists
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat/')
@@ -260,6 +265,18 @@ ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 if os.environ.get('SKIP_CELERY', 'False') == 'True':
     # helpful for certain debugging
     CELERY_ALWAYS_EAGER = True
+
+# Celery defaults to having as many workers as there are cores. To avoid
+# excessive resource consumption, don't spawn more than 6 workers by default
+# even if there more than 6 cores.
+CELERYD_MAX_CONCURRENCY = int(os.environ.get('CELERYD_MAX_CONCURRENCY', 6))
+if multiprocessing.cpu_count() > CELERYD_MAX_CONCURRENCY:
+    CELERYD_CONCURRENCY = CELERYD_MAX_CONCURRENCY
+
+# Replace a worker after it completes 7 tasks by default. This allows the OS to
+# reclaim memory allocated during large tasks
+CELERYD_MAX_TASKS_PER_CHILD = int(os.environ.get(
+    'CELERYD_MAX_TASKS_PER_CHILD', 7))
 
 # Uncomment to enable failsafe search indexing
 #from datetime import timedelta

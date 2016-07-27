@@ -1,3 +1,4 @@
+from distutils.util import strtobool
 from itertools import chain
 import copy
 import json
@@ -49,9 +50,11 @@ from .models import (
     ObjectPermission,
     AuthorizedApplication,
     OneTimeAuthenticationKey,
+    UserCollectionSubscription,
     )
 from .models.object_permission import get_anonymous_user, get_objects_for_user
 from .models.authorized_application import ApplicationTokenAuthentication
+from .model_utils import disable_auto_field_update
 from .permissions import (
     IsOwnerOrReadOnly,
     PostMappedToChangePermission,
@@ -74,8 +77,10 @@ from .serializers import (
     ObjectPermissionSerializer,
     AuthorizedApplicationUserSerializer,
     OneTimeAuthenticationKeySerializer,
-    DeploymentSerializer,)
+    DeploymentSerializer,
+    UserCollectionSubscriptionSerializer,)
 from .utils.gravatar_url import gravatar_url
+from .utils.kobo_to_xlsform import to_xlsform_structure
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from .tasks import import_in_background
 from deployment_backends.backends import DEPLOYMENT_BACKENDS
@@ -83,8 +88,8 @@ from deployment_backends.backends import DEPLOYMENT_BACKENDS
 from kobo_playground.static_lists import SECTORS, COUNTRIES
 
 CLONE_ARG_NAME = 'clone_from'
-ASSET_CLONE_FIELDS = {'name', 'content', 'asset_type'}
 COLLECTION_CLONE_FIELDS = {'name'}
+
 
 @api_view(['GET'])
 def current_user(request):
@@ -92,11 +97,11 @@ def current_user(request):
     if user.is_anonymous():
         return Response({'message': 'user is not logged in'})
     else:
-        return Response({'username': user.username,
+        users_payload = {'username': user.username,
                          'first_name': user.first_name,
                          'last_name': user.last_name,
                          'email': user.email,
-                         'server_time': str(datetime.datetime.utcnow()),
+                         'server_time': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
                          'projects_url': '/'.join((
                             settings.KOBOCAT_URL, user.username)),
                          'is_superuser': user.is_superuser,
@@ -108,7 +113,12 @@ def current_user(request):
                          'is_staff': user.is_staff,
                          'last_login': user.last_login,
                          'languages': settings.LANGUAGES,
-                         })
+                         }
+        if settings.UPCOMING_DOWNTIME:
+            # setting is in the format:
+            # [dateutil.parser.parse('6pm edt').isoformat(), countdown_msg]
+            users_payload['upcoming_downtime'] = settings.UPCOMING_DOWNTIME
+        return Response(users_payload)
 
 
 @login_required
@@ -175,6 +185,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
         'permissions__permission',
         'permissions__user',
         'permissions__content_object',
+        'usercollectionsubscription_set',
     ).all().order_by('-date_modified')
     serializer_class = CollectionSerializer
     permission_classes = (IsOwnerOrReadOnly,)
@@ -217,6 +228,32 @@ class CollectionViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+    def perform_update(self, serializer, *args, **kwargs):
+        ''' Only the owner is allowed to change `discoverable_when_public` '''
+        original_collection = self.get_object()
+        if (self.request.user != original_collection.owner and
+                'discoverable_when_public' in serializer.validated_data and
+                (serializer.validated_data['discoverable_when_public'] !=
+                    original_collection.discoverable_when_public)
+        ):
+            raise exceptions.PermissionDenied()
+
+        # Some fields shouldn't affect the modification date
+        FIELDS_NOT_AFFECTING_MODIFICATION_DATE = set((
+            'discoverable_when_public',
+        ))
+        changed_fields = set()
+        for k, v in serializer.validated_data.iteritems():
+            if getattr(original_collection, k) != v:
+                changed_fields.add(k)
+        if changed_fields.issubset(FIELDS_NOT_AFFECTING_MODIFICATION_DATE):
+            with disable_auto_field_update(Collection, 'date_modified'):
+                return super(CollectionViewSet, self).perform_update(
+                    serializer, *args, **kwargs)
+
+        return super(CollectionViewSet, self).perform_update(
+                serializer, *args, **kwargs)
 
     def perform_destroy(self, instance):
         instance.delete_with_deferred_indexing()
@@ -547,37 +584,25 @@ class AssetViewSet(viewsets.ModelViewSet):
         return queryset
 
     def _get_clone_serializer(self):
-        original_uid= self.request.data[CLONE_ARG_NAME]
-        original_asset= get_object_or_404(Asset, uid=original_uid)
-        try:
-            # Optionally clone a historical version of the asset
+        original_uid = self.request.data[CLONE_ARG_NAME]
+        original_asset = get_object_or_404(Asset, uid=original_uid)
+        if 'clone_from_version_id' in self.request.data:
             original_version_id = self.request.data['clone_from_version_id']
             source_version = get_object_or_404(
-                original_asset.versions(), id=original_version_id)
-            original_asset = source_version.object_version.object
-        except KeyError:
-            # Default to cloning the current version
-            pass
-        view_perm= get_perm_name('view', original_asset)
+                original_asset.asset_versions, uid=original_version_id)
+        else:
+            source_version = original_asset.asset_versions.first()
+
+        view_perm = get_perm_name('view', original_asset)
         if not self.request.user.has_perm(view_perm, original_asset):
             raise Http404
-        else:
-            # Copy the essential data from the original asset.
-            original_data= model_to_dict(original_asset)
-            cloned_data= {keep_field: original_data[keep_field]
-                          for keep_field in ASSET_CLONE_FIELDS}
-            if original_asset.tag_string:
-                cloned_data['tag_string']= original_asset.tag_string
-            # TODO: Duplicate permissions if a user is cloning their own asset.
-#             if ('permissions' in original_data) and (self.request.user == original_asset.owner):
-#                 raise NotImplementedError
-            # Pull any additionally provided parameters/overrides from therequest.
-            for param in self.request.data:
-                cloned_data[param]= self.request.data[param]
-
-            serializer = self.get_serializer(data=cloned_data)
-
-            return serializer
+        # TODO: Duplicate permissions if a user is cloning their own asset.
+        cloned_data = original_asset.to_clone_dict(version_uid=source_version.uid)
+        for key, val in self.request.data.iteritems():
+            cloned_data.update(self.request.data.items())
+        # until we get content passed as a dict, transform the content obj to a str
+        cloned_data['content'] = json.dumps(cloned_data['content'])
+        return self.get_serializer(data=cloned_data)
 
     def create(self, request, *args, **kwargs):
         if CLONE_ARG_NAME in request.data:
@@ -591,14 +616,23 @@ class AssetViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED,
                         headers=headers)
 
-    @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
-    def content(self, request, *args, **kwargs):
+    @detail_route(renderer_classes=[renderers.JSONRenderer])
+    def content(self, request, uid):
         asset = self.get_object()
-        return Response(json.dumps({
+        return Response({
             'kind': 'asset.content',
             'uid': asset.uid,
-            'data': asset.to_ss_structure()
-        }))
+            'data': asset.to_ss_structure(),
+        })
+
+    @detail_route(renderer_classes=[renderers.JSONRenderer])
+    def valid_content(self, request, uid):
+        asset = self.get_object()
+        return Response({
+            'kind': 'asset.valid_content',
+            'uid': asset.uid,
+            'data': to_xlsform_structure(asset.content),
+        })
 
     @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
     def koboform(self, request, *args, **kwargs):
@@ -738,3 +772,25 @@ def _wrap_html_pre(content):
 class SitewideMessageViewSet(viewsets.ModelViewSet):
     queryset = SitewideMessage.objects.all()
     serializer_class = SitewideMessageSerializer
+
+
+class UserCollectionSubscriptionViewSet(viewsets.ModelViewSet):
+    queryset = UserCollectionSubscription.objects.none()
+    serializer_class = UserCollectionSubscriptionSerializer
+    lookup_field = 'uid'
+
+    def get_queryset(self):
+        user = self.request.user
+        # Check if the user is anonymous. The
+        # django.contrib.auth.models.AnonymousUser object doesn't work for
+        # queries.
+        if user.is_anonymous():
+            user = get_anonymous_user()
+        criteria = {'user': user}
+        if 'collection__uid' in self.request.query_params:
+            criteria['collection__uid'] = self.request.query_params[
+                'collection__uid']
+        return UserCollectionSubscription.objects.filter(**criteria)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

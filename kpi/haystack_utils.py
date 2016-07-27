@@ -27,26 +27,9 @@ class SignalProcessor(haystack.signals.BaseSignalProcessor):
     def __init__(self, *args, **kwargs):
         self.signal_models = []
         self.tagged_item_model = None
-        try:
-            # Instruct `load_models()` not to call `setup()` since Haystack
-            # does that for us
-            self.load_models(setup=False)
-        except exceptions.AppRegistryNotReady:
-            # Haystack tried to load the signal processor too early. This
-            # should be fixed when Django 1.9 compatibility is fully
-            # implemented. See
-            # https://github.com/django-haystack/django-haystack/pull/1277
-            print (
-                'INFO: No signals could be connected during initialization of '
-                'the Haystack signal processor. `AppConfig.ready()` must call '
-                '`SignalProcessor.load_models()` for Haystack indexing to '
-                'function.'
-            )
-        else:
-            print (
-                'INFO: Haystack signals connected on the first try! Perhaps '
-                'remove workaround code in `SignalProcessor.__init__()`.'
-            )
+        # Instruct `load_models()` not to call `setup()` since Haystack
+        # does that for us
+        self.load_models(setup=False)
         super(SignalProcessor, self).__init__(*args, **kwargs)
 
     def load_models(self, setup=True):
@@ -61,7 +44,6 @@ class SignalProcessor(haystack.signals.BaseSignalProcessor):
         # call `setup()` to connect the newly-loaded signals
         if setup:
             self.setup()
-        print 'INFO: Successfully connected signals for Haystack indexing.'
 
     def setup(self):
         for model in self.signal_models:

@@ -36,6 +36,8 @@ const clearSearchState = {
   searchResultsSuccess: null,
   searchDebugQuery: false,
   searchResultsCount: 0,
+  parentUid: false,
+  allPublic: false,
 };
 const initialState = assign({
   cleared: false,
@@ -74,15 +76,18 @@ function SearchContext(opts={}) {
     },
     onDeleteAssetCompleted (asset) {
       var filterOutDeletedAsset = ({listName}) => {
-        let uid = asset.uid;
-        let listLength = this.state[listName].length;
-        let l = this.state[listName].filter(function(result){
-          return result.uid !== uid;
-        });
-        if (l.length !== listLength) {
-          let o = {};
-          o[listName] = l;
-          this.update(o);
+        // TODO: look into why sometimes this.state[listName] is not defined
+        if (this.state[listName] != undefined) {
+          let uid = asset.uid;
+          let listLength = this.state[listName].length;
+          let l = this.state[listName].filter(function(result){
+            return result.uid !== uid;
+          });
+          if (l.length !== listLength) {
+            let o = {};
+            o[listName] = l;
+            this.update(o);
+          }
         }
       };
       filterOutDeletedAsset({listName: 'defaultQueryResultsList'});
@@ -124,6 +129,9 @@ function SearchContext(opts={}) {
       if (this.state.parentUid) {
         params.parentUid = `parent__uid:${this.state.parentUid}`;
       }
+      if (this.state.allPublic === true) {
+        params.allPublic = true;
+      }
       return assign({}, this.filterParams, params);
     },
     toQueryData (dataObject) {
@@ -155,6 +163,10 @@ function SearchContext(opts={}) {
           queryData.parent = searchParams.parent;
         }
         delete searchParams.parent;
+      }
+      if ('allPublic' in searchParams) {
+        queryData.all_public = searchParams.allPublic;
+        delete searchParams.allPublic;
       }
       paramGroups = paramGroups.concat(_.values(searchParams));
       if (paramGroups.length > 1) {

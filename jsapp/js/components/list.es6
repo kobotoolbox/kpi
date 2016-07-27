@@ -24,7 +24,7 @@ var ListSearch = React.createClass({
   getDefaultProps () {
     return {
       searchContext: 'default',
-      placeholderText: t('search...')
+      placeholderText: t('Search...')
     };
   },
   componentDidMount () {
@@ -100,27 +100,33 @@ var ListTagFilter = React.createClass({
   render () {
     if (!this.state.tagsLoaded) {
       return (
+        <bem.tagSelect>
+          <i className="fa fa-search" />
           <Select
               name="tags"
               value=""
               disabled={true}
               multi={true}
-              placeholder={t('tags are loading')}
+              placeholder={t('Tags are loading...')}
               className={this.props.hidden ? 'hidden' : null}
             />
+        </bem.tagSelect>
         );
     }
     return (
+      <bem.tagSelect>
+        <i className="fa fa-search" />
         <Select
             name="tags"
             multi={true}
-            placeholder={t('select tags')}
+            placeholder={t('Search Tags')}
             options={this.state.availableTags}
             onChange={this.onTagChange}
             className={this.props.hidden ? 'hidden' : null}
             value={this.getTagStringFromSearchStore()}
           />
-      );
+      </bem.tagSelect>
+    );
   },
 });
 
@@ -228,13 +234,6 @@ var ListSearchSummary = React.createClass({
         var desc = s.defaultQueryCount === 1 ? this.props.assetDescriptor : this.props.assetDescriptorPlural;
         messages.push(t('## ___ available').replace('##', s.defaultQueryCount).replace('___', desc));
         modifier = 'done';
-        if (s.defaultQueryCount < 1) {
-          if (s.defaultQueryFor.assetType == 'asset_type:survey') {
-            messages.push(t('You currently have no forms. You can create a new form by clicking on the + button below.'));
-          } else {
-            messages.push(t('Your library is currently empty. You can create a new question or a new block by clicking on the + button below, or add them from within your forms.'));
-          }
-        }
       }
     }
 

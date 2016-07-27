@@ -6,8 +6,8 @@ from collections import OrderedDict
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.contrib.admin import helpers
-from django.contrib.admin.util import get_deleted_objects, model_ngettext
-from django.contrib.admin.util import NestedObjects
+from django.contrib.admin.utils import get_deleted_objects, model_ngettext
+from django.contrib.admin.utils import NestedObjects
 from django.db import router, transaction
 from django.template.response import TemplateResponse
 from django.utils.encoding import force_text

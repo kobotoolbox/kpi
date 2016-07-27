@@ -4,6 +4,13 @@
     font-size: 0.9em;
   }
 
+  &__itembyline {
+    margin-left: 27px;
+    font-size: 11px;
+    color: #bbb;
+    margin-bottom: -10px;
+  }
+
   &__itemactions {
     margin-left: 20px;
     display: none;
@@ -19,7 +26,7 @@
     text-align: left;
     direction: ltr;
 
-    &--allitems {
+    &--toplevel {
       margin-left: 0px;
       color: darken($cool-gray, 15%);
     }
@@ -33,13 +40,39 @@
       background-color: transparent;
     }
 
+    .popover-menu {
+      display: none;
+      min-width: 120px;
+      max-width: 180px;
+      right: auto;
+      left: -5px;
+    }
     &--selected {
       color:#555B6E;
+      position: relative;
 
       > .collection-sidebar__itemactions {
         display: inline-block;
       }
+
+      .collection-sidebar__itemCog {
+        position: absolute;
+        left: -24px;
+        top: 2px;
+        padding:0px;
+        border:none;
+        background-color: transparent;
+        cursor: pointer;
+        i:before {
+          font-size: 22px;
+        }
+      }
+
+      .popover-menu {
+        display: block;
+      }
     }
+
 
     &:hover {
       color:#555B6E;
@@ -66,7 +99,7 @@
 }
 
 .collection-sidebar {
-    max-height: 50%;
+    height: calc(100% - 72px);
     overflow: auto;
     margin-right: -5px;
 }
@@ -99,13 +132,13 @@
     -webkit-box-orient: vertical;  
     overflow: hidden;
     text-overflow: ellipsis;
-    max-height: 3.6em;
+    max-height: 4.2em;
     word-wrap: break-word;
     // end multiline ellipsis webkit only
     color: $cool-gray;
     cursor: pointer;
-    font-weight: 500;
-    line-height: 1.2em;
+    font-weight: 400;
+    line-height: 1.4em;
     &:hover {
       color:unquote("rgb(#{$color-primary})");
     }
@@ -134,7 +167,7 @@
       @extend .k-icon-drafts;
     }
     &--Archived i {
-      @extend .k-icon-inactive;
+      @extend .k-icon-archived;
     }
 
     &--visible {
@@ -149,9 +182,10 @@
 .form-sidebar__grouping {
   transition:0.5s all;
   &--visible {
+    max-height:2000px;
   }
   &--collapsed {
-    max-height: 0%;
+    max-height: 0px;
     overflow: hidden;
   }
 }

@@ -12,7 +12,8 @@ import SearchCollectionList from '../components/searchcollectionlist';
 import {
   parsePermissions,
   t,
-  assign
+  assign,
+  isLibrary
 } from '../utils';
 
 var SidebarFormsList = React.createClass({
@@ -48,9 +49,10 @@ var SidebarFormsList = React.createClass({
     this.setState(searchStoreState);
   },
   renderMiniAssetRow (resource) {
+    var baseName = isLibrary(this.context.router) ? 'library-' : '';
     return (
         <bem.FormSidebar__item key={resource.uid}>
-          <bem.FormSidebar__itemlink href={this.makeHref('form-landing', {assetid: resource.uid})}>
+          <bem.FormSidebar__itemlink href={this.makeHref(`${baseName}form-landing`, {assetid: resource.uid})}>
             <ui.SidebarAssetName {...resource} />
           </bem.FormSidebar__itemlink>
         </bem.FormSidebar__item>

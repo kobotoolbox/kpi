@@ -3,8 +3,8 @@
 
 from django.test import TestCase
 
-from ..utils.kobo_to_xlsform import (to_xlsform_structure,
-                                     _sluggify_valid_xml,)
+from kpi.utils.kobo_to_xlsform import to_xlsform_structure
+from kpi.utils.autoname import sluggify_valid_xml__depr
 
 
 def convert_survey(surv, choices=[], sheets={}):
@@ -69,7 +69,7 @@ class K2XSubModules(TestCase):
         ]
         for case in self.cases:
             [inp, expected] = case
-            self.assertEqual(_sluggify_valid_xml(inp[0]), expected)
+            self.assertEqual(sluggify_valid_xml__depr(inp[0]), expected)
 
     # def test_increment(self):
     #     self.cases = [

@@ -1,60 +1,88 @@
 $drawer-icons-column-width: 56px;
 
+// drawer layout size
+.k-drawer {
+  height: calc(100% - 72px);
+  top: $layout-desktop-header-height;
+  margin-left: 4px;
+  width: $layout-drawer-width;
+  position: absolute;
+  left: 0px;
+  display: flex;
+  flex-direction: row;
+  transition: all 0.3s;
+  overflow: hidden;
+}
+
+.k-drawer + .mdl-layout__content {
+  margin-left: $layout-drawer-width + 8px;
+}
+
 .k-drawer__icons {
   display: flex;
   flex-direction: column;
   width: 56px;
   height: 100%;
-  background-color: #F0F0F0;
 }
 
 .k-drawer__link {
   font-size: 36px;
   text-align: center;
-  color: $layout-drawer-nav-link-color;
+  color: unquote("rgb(#{$color-primary})");
   padding: 16px 0px;
+  opacity: 1;
   span.label {
     display: none;
     font-size: 14px;
     font-weight: 400;
   }
-  &.active {
-    color: unquote("rgb(#{$color-primary})");
-    background-color: $layout-drawer-nav-link-active-bg;
-    span.label {
-      display: inline-block;
-    }
+  &.library {
+    color: $cool-green;
+  }
+  &:hover {
+    opacity: 0.8;
   }
 }
 
 .k-drawer__icons-bottom {
-  display: flex;
-  flex-direction: column;
+  width: 165px;
+  height: 120px;
+  padding-top: 25px;
+  position: absolute;
+  bottom: 0px;
+  left: 56px;
   border-top: solid 1px #CDCDCD;
-  padding-bottom: 40px;
+  background-color: #F5F5F5;
   .k-drawer__link {
-    padding: 12px 0px;
-    font-size: 28px;
+    padding: 0px;
+    margin-bottom: 10px;
+    font-size: 15px;
+    display: block;
+    text-align: left;
+    color: $layout-drawer-nav-link-color;
+    font-weight: normal;
+    i {
+      font-size: 24px;
+      margin-right: 8px;
+      vertical-align: text-bottom;
+    }
+    span {
+      text-transform: capitalize;
+    }
   }
 }
 
 .drawer__sidebar {
   width: calc(100% - 50px);
-  height: 100%;
-  padding: 15px 10px;
-  overflow: hidden;
+  height: calc(100% - 130px);
+  padding: 10px;
   .header-breadcrumb__item {
     text-align: center;
     font-size: 18px;
     margin-bottom: 10px;
     a {
-      color: #8A9AA4;
+      color: $cool-gray;
       font-weight: normal;
-    }
-    i {
-      color: #8A9AA4;
-      font-size: 22px;
-      vertical-align: middle;
     }
   }
   .k-drawer__close {
@@ -67,9 +95,13 @@ $drawer-icons-column-width: 56px;
 .collection-nav__actions {
   text-align: center;
   margin-bottom: 10px;
+  position: relative;
   > button {
     min-width: 120px;
     text-transform: uppercase;
+  }
+  .mdl-menu__container {
+    right: 21px !important;
   }
 }
 
@@ -90,29 +122,14 @@ $drawer-icons-column-width: 56px;
   }
 }
 
-// drawer layout size
-.k-drawer {
-  height: calc(100% - 72px);
-  top: $layout-desktop-header-height;
-  margin-left: 4px;
-  width: $layout-drawer-width;
-  position: absolute;
-  left: 0px;
-  display: flex;
-  flex-direction: row;
-  background-color: #FFF;
-}
-
-.k-drawer + .mdl-layout__content {
-  margin-left: $layout-drawer-width + 8px;
-}
-
 @media screen and (max-width: 768px) {
   .k-drawer {
     position: fixed;
     z-index: 4;
     left: -256px;
     transition: left 0.5s;
+    background-color: #FFF;
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, $shadow-key-penumbra-opacity), 0 3px 1px -2px rgba(0, 0, 0, $shadow-key-umbra-opacity), 0 1px 5px 0 rgba(0, 0, 0, $shadow-ambient-shadow-opacity);
   }
   .page-wrapper--fixed-drawer .k-drawer {
     left: 0px;
@@ -124,11 +141,16 @@ $drawer-icons-column-width: 56px;
   .drawer__sidebar {
     .k-drawer__close {
       font-size: 16px;
-      opacity: 0.8;
+      opacity: 1;
       position: absolute;
       right: 8px;
       top: 8px;
       display: block;
+      color: $layout-drawer-nav-link-color;
+      &:hover {
+        background-color: transparent;
+        opacity: 0.6;
+      }
     }
   }
 }

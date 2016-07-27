@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import cStringIO
+import logging
 import re
 import requests
 import unicodecsv
@@ -15,6 +16,7 @@ from rest_framework import exceptions, status
 from rest_framework.authtoken.models import Token
 
 from base_backend import BaseDeploymentBackend
+from .kc_reader.utils import instance_count
 
 
 class KobocatDeploymentException(exceptions.APIException):
@@ -182,12 +184,22 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         return json_response
 
-
     @property
     def timestamp(self):
         try:
             return self.backend_response['date_modified']
         except KeyError:
+            return None
+
+    @property
+    def mongo_userform_id(self):
+        try:
+            backend_response = self.asset._deployment_data['backend_response']
+            id_string = backend_response['id_string']
+            users = backend_response['users']
+            owner = filter(lambda u: u['role'] == 'owner', users)[0]['user']
+            return '{}__{}'.format(owner, id_string)
+        except KeyError, e:
             return None
 
     def connect(self, identifier=None, active=False):
@@ -313,15 +325,37 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             ),
             'form_id': self.backend_response['id_string']
         }
-        response = requests.post(
-            u'{}/{}'.format(
-                settings.ENKETO_SERVER, settings.ENKETO_SURVEY_ENDPOINT),
-            # bare tuple implies basic auth
-            auth=(settings.ENKETO_API_TOKEN, ''),
-            data=data
-        )
-        links = response.json()
+        try:
+            response = requests.post(
+                u'{}/{}'.format(
+                    settings.ENKETO_SERVER, settings.ENKETO_SURVEY_ENDPOINT),
+                # bare tuple implies basic auth
+                auth=(settings.ENKETO_API_TOKEN, ''),
+                data=data
+            )
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            # Don't 500 the entire asset view if Enketo is unreachable
+            logging.error(
+                'Failed to retrieve links from Enketo', exc_info=True)
+            return {}
+        try:
+            links = response.json()
+        except ValueError:
+            logging.error('Received invalid JSON from Enketo', exc_info=True)
+            return {}
         for discard in ('enketo_id', 'code', 'preview_iframe_url'):
-            try: del links[discard]
-            except KeyError: pass
+            try:
+                del links[discard]
+            except KeyError:
+                pass
         return links
+
+    def _submission_count(self):
+        _deployment_data = self.asset._deployment_data
+        id_string = _deployment_data['backend_response']['id_string']
+        # avoid migrations from being created for kc_reader mocked models
+        # there should be a better way to do this, right?
+        return instance_count(xform_id_string=id_string,
+                              user_id=self.asset.owner.pk,
+                              )

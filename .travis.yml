@@ -1,24 +1,34 @@
-sudo: required
-
-services:
-  - docker
-
+sudo:
+  false
+language: python
+addons:
+  postgresql: 9.4
+  apt:
+    packages:
+      - build-essential
+      - fontforge
+      - gettext
+      - git-core
+      - libpcre3
+      - libpcre3-dev
+      - libpq-dev
+      - ttfautohint
+cache:
+  directories:
+    - $HOME/.pip-download-cache
+    - node_modules
 before_script:
-  - echo 'Building the KPI base docker image.'
-  - docker build -t kobotoolbox/koboform_base:latest -f Dockerfile.koboform_base .
-  - echo 'Building the KPI Docker image.'
-  - docker build -t kobotoolbox/kpi:latest .
-  - echo 'Setting up a `kobo-docker` "local" configuration with a minimal `envfile`.'
-  - KPI_SRC_DIR="$(pwd)"
-  - cd ..
-  - git clone https://github.com/kobotoolbox/kobo-docker.git
-  - cd kobo-docker
-  - ln -s docker-compose.local.yml docker-compose.yml
-  - echo -e 'DJANGO_SECRET_KEY=kobo\nKOBO_SUPERUSER_USERNAME=kobo\nKOBO_SUPERUSER_PASSWORD=kobo' > envfile.local.txt
-  - docker-compose run --rm kpi echo 'Container and dependencies started.' 1>/dev/null
-
+  - psql -c 'create database travis_ci_test;' -U postgres
 script:
-  # Use `my_init` to run the normal initialization steps before running the tests.
-  # NOTE: For some reason the `--rm` flag is needed for Compose to retain the accurate exit status.
-  - echo 'Running KPI tests from `docker/run_tests.bash`.'
-  - docker-compose run --rm kpi my_init --skip-runit docker/run_tests.bash
+  - grunt copy:fonts
+  - npm run build-production
+  - python manage.py test
+  - npm run test
+env:
+  - PIP_DOWNLOAD_CACHE=$HOME/.pip-download-cache DJANGO_DEBUG=False DJANGO_SECRET_KEY=ZGtvYm90cmF2aXM DJANGO_SETTINGS_MODULE=kobo.settings DATABASE_URL="postgres://postgres@localhost:5432/travis_ci_test" TRAVIS_NODE_VERSION="6"
+install:
+  - rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
+  - npm install -g install npm@latest
+  - npm config set strict-ssl false && npm install --save-dev
+  - bower install
+  - pip install -r requirements.txt

@@ -1,4 +1,4 @@
-.page-wrapper__content .modal-backdrop {
+.modal-backdrop {
   position: fixed;
   height: 100%;
   width: 100%;
@@ -21,8 +21,26 @@
 }
 
 .modal-content {
+  .modal--withicon & {
+    padding-left: 110px;
+    padding-bottom: 30px;
+  }
+
   background-color: #FFF;
   padding: 15px 20px;
+}
+
+.modal_icon {
+  width: 92px;
+  height: 57px;
+  position: absolute;
+  top: 45px;
+  left: 18px;
+
+  &--gears {
+    background-image: url("../img/maintenance_gears.png");
+    background-size: cover;
+  }
 }
 
 .modal-large {

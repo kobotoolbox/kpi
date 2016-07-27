@@ -146,8 +146,8 @@ var pageStateStore = Reflux.createStore({
       assetNavIntentOpen: navIsOpen,
       assetNavExpanded: false,
       showFixedDrawer: false,
-      // sidebarIsOpen: false,
-      // sidebarIntentOpen: false,
+      headerHidden: false,
+      drawerHidden: false,
     };
   },
   setState (chz) {
@@ -203,6 +203,21 @@ var pageStateStore = Reflux.createStore({
     assign(this.state, _changes);
     this.trigger(_changes);
   },
+  showModal ({message, icon}) {
+    this.setState({
+      modalMessage: message,
+      modalIcon: icon,
+    });
+  },
+  hideModal () {
+    if (this._onHideModal) {
+      this._onHideModal();
+    }
+    this.setState({
+      modalMessage: false,
+      modalIcon: false,
+    });
+  },
   setAssetNavPresent (tf) {
     var val = !!tf;
     if (val !== this.state.assetNavPresent) {
@@ -212,12 +227,21 @@ var pageStateStore = Reflux.createStore({
       });
     }
   },
-  setFormBuilderFocus (tf) {
+  setDrawerHidden (tf) {
     var val = !!tf;
-    if (val !== this.state.formBuilderFocus) {
-      this.state.formBuilderFocus = val;
+    if (val !== this.state.drawerHidden) {
+      this.state.drawerHidden = val;
       this.trigger({
-        formBuilderFocus: val
+        drawerHidden: val
+      });
+    }
+  },
+  setHeaderHidden (tf) {
+    var val = !!tf;
+    if (val !== this.state.headerHidden) {
+      this.state.headerHidden = val;
+      this.trigger({
+        headerHidden: val
       });
     }
   },
@@ -315,6 +339,27 @@ var sessionStore = Reflux.createStore({
     if (acct.system_time) {
       acct.sysDate = new Date(Date.parse(acct.system_time));
       acct.curDate = new Date();
+    }
+    if (acct.upcoming_downtime) {
+      var downtimeString = acct.upcoming_downtime[0];
+      acct.downtimeDate = new Date(Date.parse(acct.upcoming_downtime[0]));
+      acct.downtimeMessage = acct.upcoming_downtime[1];
+      stores.pageState._onHideModal = function () {
+        window.localStorage.setItem('downtimeNoticeSeen', downtimeString);
+      }
+      if (window.localStorage['downtimeNoticeSeen'] !== downtimeString) {
+        // user has not seen the notification about upcoming downtime
+        window.setTimeout(function(){
+          stores.pageState.showModal({
+            message: acct.downtimeMessage,
+            icon: 'gears',
+          })
+        }, 1500);
+      }
+    } else {
+      if ('downtimeNoticeSeen' in window.localStorage) {
+        localStorage.removeItem('downtimeNoticeSeen');
+      }
     }
     if (acct.available_sectors) {
       acct.available_sectors = acct.available_sectors.map(function(_s){

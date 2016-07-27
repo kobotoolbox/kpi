@@ -4,7 +4,6 @@
   color: #fff;
   font-weight: 700;
   margin-right: 10px;
-  vertical-align: middle;
 
   &--small {
     width: 20px;
@@ -60,12 +59,6 @@
     border: 2px solid $cool-green;
   }
 }
-
-// .asset-row .asset-type-icon:hover {
-//   background-color: $cool-gray;
-//   border: 1px solid $cool-gray;
-//   color:$cool-gray;
-// }
 
 .asset-row--active .asset-type-icon--survey, 
 .asset-row .asset-type-icon--survey:hover {

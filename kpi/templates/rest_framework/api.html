@@ -20,15 +20,5 @@
 {% endblock %}
 
 {% block script %}
-
-    {% if use_minified_script %}
-        <script src="{% static "compiled/bundle.min.js" %}"></script>
-    {% else %}
-        <script src="{% static "compiled/bundle.js" %}"></script>
-    {% endif %}
-
-    {% if livereload_script %}
-        <script>document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1"></' + 'script>')</script>
-    {% endif %}
 {% endblock %}
 

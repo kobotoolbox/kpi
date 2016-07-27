@@ -17,6 +17,9 @@ export function formatTime(timeStr) {
 export var anonUsername = 'AnonymousUser';
 export function getAnonymousUserPermission(permissions) {
   return permissions.filter(function(perm){
+    if (perm.user__username === undefined) {
+      perm.user__username = perm.user.match(/\/users\/(.*)\//)[1];
+    }
     return perm.user__username === anonUsername;
   })[0];
 }
@@ -29,10 +32,10 @@ export function surveyToValidJson(survey) {
   return JSON.stringify(survey.toFlatJSON());
 }
 
-export function customPromptAsync(msg) {
+export function customPromptAsync(msg, def) {
   return new Promise(function(resolve, reject){
     window.setTimeout(function(){
-      var val = window.prompt(msg);
+      var val = window.prompt(msg, def);
       if (val === null) {
         reject(new Error('empty value'));
       } else {
@@ -141,4 +144,8 @@ export var newId = function(prefix='id') {
 
 export var randString = function () {
   return Math.random().toString(36).match(/\.(\S{6}).*/)[1];
+};
+
+export function isLibrary(router) {
+  return !!router.getCurrentPathname().match(/library/);
 }

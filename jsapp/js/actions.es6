@@ -4,7 +4,6 @@ import {
   log,
   t,
   notify,
-  redirectTo,
 } from './utils';
 
 var Reflux = require('reflux');
@@ -235,7 +234,13 @@ actions.permissions = Reflux.createActions({
       'completed',
       'failed'
     ]
-  }
+  },
+  setCollectionDiscoverability: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
 });
 
 actions.misc = Reflux.createActions({
@@ -321,10 +326,17 @@ actions.resources.updateAsset.listen(function(uid, values){
 });
 
 actions.resources.deployAsset.listen(
-  function(asset, redeployment, dialog_or_alert){
+  function(asset, redeployment, dialog_or_alert, params={}){
+    var onComplete;
+    if (params && params.onComplete) {
+      onComplete = params.onComplete;
+    }
     dataInterface.deployAsset(asset, redeployment)
       .done((data) => {
         actions.resources.deployAsset.completed(data, dialog_or_alert);
+        if (onComplete) {
+          onComplete(asset);
+        }
       })
       .fail((data) => {
         actions.resources.deployAsset.failed(data, dialog_or_alert);
@@ -342,11 +354,6 @@ actions.resources.deployAsset.completed.listen(function(data, dialog_or_alert){
         dialog_or_alert.dismiss();
     }
   }
-  // notify and redirect
-  notify(t('deployed form'));
-  window.setTimeout(function(){
-    redirectTo(data.identifier);
-  }, 1000);
 });
 
 actions.resources.deployAsset.failed.listen(function(data, dialog_or_alert){
@@ -439,6 +446,20 @@ actions.resources.deleteCollection.listen(function(details){
     .fail(actions.resources.deleteCollection.failed);
 });
 
+actions.resources.updateCollection.listen(function(uid, values){
+  return new Promise(function(resolve, reject){
+    dataInterface.patchCollection(uid, values)
+      .done(function(asset){
+        actions.resources.updateCollection.completed(asset);
+        notify(t('successfully updated'));
+        resolve(asset);
+      })
+      .fail(function(...args){
+        reject(args)
+      });
+  })
+});
+
 actions.resources.cloneAsset.listen(function(details, opts={}){
   dataInterface.cloneAsset(details)
     .done(function(...args){
@@ -501,6 +522,15 @@ actions.permissions.removePerm.listen(function(details){
 
 actions.permissions.removePerm.completed.listen(function(uid){
   actions.resources.loadAsset({id: uid});
+});
+
+actions.permissions.setCollectionDiscoverability.listen(function(uid, discoverable){
+  dataInterface.patchCollection(uid, {discoverable_when_public: discoverable})
+    .done(actions.permissions.setCollectionDiscoverability.completed)
+    .fail(actions.permissions.setCollectionDiscoverability.failed);
+});
+actions.permissions.setCollectionDiscoverability.completed.listen(function(val){
+  actions.resources.loadAsset({url: val.url});
 });
 
 actions.auth.login.listen(function(creds){

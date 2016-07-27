@@ -18,9 +18,10 @@ from .models import Asset
 from .models import AssetSnapshot
 from .models import Collection
 from .models import CollectionChildrenQuerySet
+from .models import UserCollectionSubscription
 from .models import ImportTask
 from .models import ObjectPermission
-from .models.object_permission import get_anonymous_user
+from .models.object_permission import get_anonymous_user, get_objects_for_user
 from .models.asset import ASSET_TYPES
 from .models import TagUid
 from .models import OneTimeAuthenticationKey
@@ -276,7 +277,7 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         lookup_field='username',
         read_only=True
     )
-    asset_version_id = serializers.IntegerField(required=False, read_only=True)
+    asset_version_id = serializers.ReadOnlyField()
     date_created = serializers.DateTimeField(read_only=True)
     source = WritableJSONField(required=False)
 
@@ -305,34 +306,36 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         (and the www). '''
         asset = validated_data.get('asset', None)
         source = validated_data.get('source', None)
+
+        # Force owner to be the requesting user
+        validated_data['owner'] = self.context['request'].user
+
         # TODO: Move to a validator?
         if asset and source:
             if not self.context['request'].user.has_perm('view_asset', asset):
                 # The client is not allowed to snapshot this asset
                 raise exceptions.PermissionDenied
             validated_data['source'] = source
-            # when source is included, snapshot is not tied to an individual v_id
-            validated_data['asset_version_id'] = None
+            snapshot = AssetSnapshot.objects.create(**validated_data)
         elif asset:
             # The client provided an existing asset; read source from it
             if not self.context['request'].user.has_perm('view_asset', asset):
                 # The client is not allowed to snapshot this asset
                 raise exceptions.PermissionDenied
-            validated_data['source'] = asset.content
-            # Record the asset's version id
-            validated_data['asset_version_id'] = asset.version_id
+            asset_version = asset.asset_versions.first()
+            try:
+                snapshot = AssetSnapshot.get(asset=asset, asset_version=asset_version)
+            except AssetSnapshot.DoesNotExist as e:
+                snapshot = AssetSnapshot.objects.create(**validated_data)
         elif source:
             # The client provided source directly; no need to copy anything
             # For tidiness, pop off unused fields. `None` avoids KeyError
             validated_data.pop('asset', None)
-            validated_data.pop('asset_version_id', None)
+            validated_data.pop('asset_version', None)
+            snapshot = AssetSnapshot.objects.create(**validated_data)
         else:
             raise serializers.ValidationError('Specify an asset and/or a source')
 
-        # Force owner to be the requesting user
-        validated_data['owner'] = self.context['request'].user
-        # Create the snapshot
-        snapshot = AssetSnapshot.objects.create(**validated_data)
         if not snapshot.xml:
             raise serializers.ValidationError(snapshot.details)
         return snapshot
@@ -362,11 +365,12 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     asset_type = serializers.ChoiceField(choices=ASSET_TYPES)
     settings = WritableJSONField(required=False, allow_blank=True)
     content = WritableJSONField(required=False)
+    report_styles = WritableJSONField(required=False)
     xls_link = serializers.SerializerMethodField()
     summary = serializers.ReadOnlyField()
     koboform_link = serializers.SerializerMethodField()
     xform_link = serializers.SerializerMethodField()
-    version_count = serializers.SerializerMethodField('_version_count')
+    version_count = serializers.SerializerMethodField()
     downloads = serializers.SerializerMethodField()
     embeds = serializers.SerializerMethodField()
     parent = RelativePrefixHyperlinkedRelatedField(
@@ -380,13 +384,14 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         many=True, read_only=True, source='get_ancestors_or_none')
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     tag_string = serializers.CharField(required=False, allow_blank=True)
-    version_id = serializers.IntegerField(read_only=True)
+    version_id = serializers.CharField(read_only=True)
     has_deployment = serializers.ReadOnlyField()
     deployed_version_id = serializers.SerializerMethodField()
     deployed_versions = serializers.SerializerMethodField()
     deployment__identifier = serializers.SerializerMethodField()
     deployment__active = serializers.SerializerMethodField()
     deployment__links = serializers.SerializerMethodField()
+    deployment__submission_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -409,6 +414,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'deployment__identifier',
                   'deployment__links',
                   'deployment__active',
+                  'deployment__submission_count',
+                  'report_styles',
                   'content',
                   'downloads',
                   'embeds',
@@ -451,8 +458,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 fields.pop(exclude)
         return fields
 
-    def _version_count(self, obj):
-        return obj.versions().count()
+    def get_version_count(self, obj):
+        return obj.asset_versions.count()
 
     def get_xls_link(self, obj):
         return reverse('asset-xls', args=(obj.uid,), request=self.context.get('request', None))
@@ -497,43 +504,20 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                        .get('request', None))
 
     def get_deployed_version_id(self, obj):
-        if obj.has_deployment:
-            return obj.deployment.version
+        if obj.asset_versions.filter(deployed=True).exists():
+            if obj.has_deployment and isinstance(obj.deployment.version, int):
+                # this can be removed once the 'replace_deployment_ids'
+                # migration has been run
+                v_id = obj.deployment.version
+                try:
+                    return obj.asset_versions.get(_reversion_version_id=v_id).uid
+                except ObjectDoesNotExist, e:
+                    return obj.asset_versions.filter(deployed=True).first().uid
+            else:
+                return obj.deployment.version
 
     def get_deployed_versions(self, asset):
-        asset_deployments_by_version_id = OrderedDict()
-        deployed_versioned_assets = []
-        # Record the current deployment, if any
-        if asset.has_deployment:
-            asset_deployments_by_version_id[asset.deployment.version] = \
-                asset.deployment
-            # The currently deployed version may be unknown, but we still want
-            # to pass its timestamp to the serializer
-            if asset.deployment.version == 0:
-                # Temporary attributes for later use by the serializer
-                asset._static_version_id = 0
-                asset._date_deployed = asset.deployment.timestamp
-                deployed_versioned_assets.append(asset)
-        # Record all previous deployments
-        for version in asset.versions():
-            historical_asset = version.object_version.object
-            if historical_asset.has_deployment:
-                asset_deployments_by_version_id[
-                    historical_asset.deployment.version
-                ] = historical_asset.deployment
-        # Annotate and list deployed asset versions
-        for version in asset.versions().filter(
-                id__in=asset_deployments_by_version_id.keys()):
-            historical_asset = version.object_version.object
-            # Asset.version_id returns the *most recent* version of the asset;
-            # it has no way to know the version of the instance it's bound to.
-            # Record a _static_version_id here for the serializer to use
-            historical_asset._static_version_id = version.id
-            # Make the deployment timestamp available to the serializer
-            historical_asset._date_deployed = asset_deployments_by_version_id[
-                version.id].timestamp
-            # Store the annotated asset objects in a list for serialization
-            deployed_versioned_assets.append(historical_asset)
+        deployed_versioned_assets = asset.asset_versions.filter(deployed=True)
         return AssetVersionListSerializer(
             deployed_versioned_assets,
             many=True,
@@ -552,6 +536,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             return obj.deployment.get_enketo_survey_links()
         else:
             return {}
+
+    def get_deployment__submission_count(self, obj):
+        if not obj.has_deployment:
+            return 0
+        return obj.deployment.submission_count
 
     def _content(self, obj):
         return json.dumps(obj.content)
@@ -629,7 +618,6 @@ class ImportTaskSerializer(serializers.HyperlinkedModelSerializer):
             },
         }
 
-
 class ImportTaskListSerializer(ImportTaskSerializer):
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid',
@@ -675,19 +663,11 @@ class AssetVersionListSerializer(AssetSerializer):
     date_deployed = serializers.SerializerMethodField()
     version_id = serializers.SerializerMethodField()
 
-    @staticmethod
-    def _get_attr_set_by_view(obj, name):
-        if not hasattr(obj, name):
-            raise Exception(
-                'The view must set the `{}` attribute on each '
-                'version passed to this serializer.'.format(name))
-        return getattr(obj, name)
-
     def get_date_deployed(self, obj):
-        return self._get_attr_set_by_view(obj, '_date_deployed')
+        return obj.date_modified
 
     def get_version_id(self, obj):
-        return self._get_attr_set_by_view(obj, '_static_version_id')
+        return obj.uid
 
     class Meta(AssetSerializer.Meta):
         fields = ('version_id', 'date_deployed')
@@ -821,6 +801,7 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     downloads = serializers.SerializerMethodField()
     tag_string = serializers.CharField(required=False)
+    access_type = serializers.SerializerMethodField()
 
     class Meta:
         model = Collection
@@ -837,6 +818,8 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
                   'ancestors',
                   'children',
                   'permissions',
+                  'access_type',
+                  'discoverable_when_public',
                   'tag_string',)
         lookup_field = 'uid'
         extra_kwargs = {
@@ -883,6 +866,30 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
             {'format': 'zip', 'url': '%s?format=zip' % obj_url},
         ]
 
+    def get_access_type(self, obj):
+        try:
+            request = self.context['request']
+        except KeyError:
+            return None
+        if request.user == obj.owner:
+            return 'owned'
+        # `obj.permissions.filter(...).exists()` would be cleaner, but it'd
+        # cost a query. This ugly loop takes advantage of having already called
+        # `prefetch_related()`
+        for permission in obj.permissions.all():
+            if not permission.deny and permission.user == request.user:
+                return 'shared'
+        for subscription in obj.usercollectionsubscription_set.all():
+            # `usercollectionsubscription_set__user` is not prefetched
+            if subscription.user_id == request.user.pk:
+                return 'subscribed'
+        if obj.discoverable_when_public:
+            return 'public'
+        if request.user.is_superuser:
+            return 'superuser'
+        raise Exception(u'{} has unexpected access to {}'.format(
+            request.user.username, obj.uid))
+
 
 class SitewideMessageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -915,6 +922,8 @@ class CollectionListSerializer(CollectionSerializer):
                   'date_created',
                   'date_modified',
                   'permissions',
+                  'access_type',
+                  'discoverable_when_public',
                   'tag_string',)
 
 
@@ -943,3 +952,30 @@ class OneTimeAuthenticationKeySerializer(serializers.ModelSerializer):
     class Meta:
         model = OneTimeAuthenticationKey
         fields = ('username', 'key', 'expiry')
+
+
+class UserCollectionSubscriptionSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        lookup_field='uid',
+        view_name='usercollectionsubscription-detail'
+    )
+    collection = RelativePrefixHyperlinkedRelatedField(
+        lookup_field='uid',
+        view_name='collection-detail',
+        queryset=Collection.objects.none() # will be set in __init__()
+    )
+    uid = serializers.ReadOnlyField()
+
+    def __init__(self, *args, **kwargs):
+        super(UserCollectionSubscriptionSerializer, self).__init__(
+            *args, **kwargs)
+        self.fields['collection'].queryset = get_objects_for_user(
+            get_anonymous_user(),
+            'view_collection',
+            Collection.objects.filter(discoverable_when_public=True)
+        )
+
+    class Meta:
+        model = UserCollectionSubscription
+        lookup_field = 'uid'
+        fields = ('url', 'collection', 'uid')

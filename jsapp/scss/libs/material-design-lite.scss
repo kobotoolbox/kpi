@@ -29,9 +29,9 @@ $azure: "34, 150, 243";
 $black: #363636;
 $cool-gray: #a5b3bc;
 $greyish-brown: #575757;
-$nav-menu-item-bg: #555b6e;
+$nav-menu-item-bg: #4d5e7b;
 $nav-menu-item-bg-active: #2196f3;
-$layout-header-bg-color: #414553 !default;
+$layout-header-bg-color: #4d5e7b !default;
 $cool-green: #52c5d0;
 
 // MDL Overrides
@@ -73,6 +73,7 @@ body {
 .mdl-button {
   text-transform: none;
   font-weight: 400;
+  border-radius: 0px;
 }
 
 .mdl-button--raised {
