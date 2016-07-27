@@ -8,7 +8,7 @@ import jsonbfield.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kpi', '0013_uid_field'),
+        ('kpi', '0015_assetversion'),
     ]
 
     operations = [

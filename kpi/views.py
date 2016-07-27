@@ -85,7 +85,7 @@ from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from .tasks import import_in_background
 from deployment_backends.backends import DEPLOYMENT_BACKENDS
 
-from kobo_playground.static_lists import SECTORS, COUNTRIES
+from kobo.static_lists import SECTORS, COUNTRIES
 
 CLONE_ARG_NAME = 'clone_from'
 COLLECTION_CLONE_FIELDS = {'name'}
