@@ -190,3 +190,48 @@
 iframe {
   border:none;
 }
+
+// modal forms 
+.form-modal__item {
+  margin-bottom: 15px;
+  label {
+    font-weight: 500;
+    font-size:16px;
+    color:$cool-gray;
+    &.long {
+      padding-top: 5px;
+      margin-bottom: 10px;
+    }
+  }
+
+  label:not(.inline) {
+    display: block;
+    padding-bottom: 5px;
+  }
+
+  input[type="text"], textarea {
+    width:100%;
+    padding:6px 10px;
+    font-size:15px;
+    border:2px solid $cool-gray;
+  }
+
+  textarea {
+    min-height: 120px;
+  }
+
+  input[type="checkbox"] {
+    font-size: 20px;
+    margin-right: 5px;
+  }
+
+  .Select-control {
+    border:2px solid $cool-gray;
+    border-radius: 0px;
+  }
+
+  &--actions {
+    text-align: right;
+    padding-top: 10px;
+  }
+}
