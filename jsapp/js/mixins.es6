@@ -195,6 +195,11 @@ var dmix = {
  
                     { (this.state.dataPopoverShowing) ? 
                       <bem.PopoverMenu ref='data-popover'>
+                        <bem.PopoverMenu__link className='is-edge' m={'report-in-kpi'}
+                            href={this.makeHref('form-reports', {assetid: this.state.uid})}>
+                          <i className="k-icon-report" />
+                          {t('Report in KPI')}
+                        </bem.PopoverMenu__link>
                         {  
                           ['Report', 'Table', 'Gallery', 'Downloads', 'Map',  /*'Settings'*/].map((actn)=>{
                             return (

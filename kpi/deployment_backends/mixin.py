@@ -14,7 +14,7 @@ class DeployableMixin:
                 raise KeyError(
                     'cannot retrieve asset backend: "{}"'.format(backend))
         else:
-            raise KeyError('connect_deployment requires an argument "backend"')
+            raise KeyError('connect_deployment requires an argument: backend')
 
     @property
     def has_deployment(self):
