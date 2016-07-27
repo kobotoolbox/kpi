@@ -69,9 +69,7 @@ var ReportViewItem = React.createClass({
     let itemChart = this.state.itemChart;
     if (itemChart != undefined) {
       itemChart.destroy();
-      window.setTimeout((()=>{
-        itemChart = new Chart(canvas, opts);
-      }), 300);
+      itemChart = new Chart(canvas, opts);
     }
   },
   buildChartOptions () {

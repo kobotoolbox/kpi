@@ -242,17 +242,7 @@ var dmix = {
                 <span className="no-description">{t('Enter a Description...')}</span>
               </bem.FormView__description>
             </bem.FormView__titleinner>
-          </bem.FormView__title>
- 
-          {this.state.showReportGraphSettings ?
-            <ui.Modal open onClose={this.toggleReportGraphSettings} title={t('Global Graph Settings')}>
-              <ui.Modal.Body>
-                {this.renderReportGraphSettings()}
-              </ui.Modal.Body>
-            </ui.Modal>
- 
-          : null}
- 
+          </bem.FormView__title> 
         </bem.FormView__header>
       );
   },
@@ -345,7 +335,6 @@ var dmix = {
  
     return (
       <bem.FormView__wrapper m={['data', this.state.activeSubTab]}>
-        {this.renderReportButtons()}
         <bem.FormView__cell m='iframe'>
           <iframe 
             src={iframeUrls[this.state.activeSubTab]}>
@@ -354,137 +343,6 @@ var dmix = {
         </bem.FormView__cell>
       </bem.FormView__wrapper>
       );
-  },
-  renderReportButtons () {
-    return (
-      <bem.FormView__reportButtons className="is-edge">
-        <button className="mdl-button mdl-js-button"
-                onClick={this.toggleReportGraphSettings}>
-          {t('Graph Settings')}
-        </button>
- 
-        <button className="mdl-button mdl-js-button"
-                id="report-language">
-          {t('Language')}
-          <i className="fa fa-caret-down"></i>
-        </button>
- 
-        <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
-            htmlFor="report-language">
-          <li>
-            <a className="mdl-menu__item">
-              {t('Test link 1')}
-            </a>
-          </li>
-          <li>
-            <a className="mdl-menu__item">
-              {t('Test link 2')}
-            </a>
-          </li>
-        </ul> 
- 
-        <button className="mdl-button mdl-js-button"
-                id="report-groupby">
-          {t('Group By')}
-          <i className="fa fa-caret-down"></i>
-        </button>
- 
-        <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
-            htmlFor="report-groupby">
-          <li>
-            <a className="mdl-menu__item">
-              {t('Test group link 1')}
-            </a>
-          </li>
-          <li>
-            <a className="mdl-menu__item">
-              {t('Test group link 2')}
-            </a>
-          </li>
-        </ul> 
- 
-        <button className="mdl-button mdl-js-button"
-                id="report-viewall">
-          {t('View All')}
-          <i className="fa fa-caret-down"></i>
-        </button>
- 
-        <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
-            htmlFor="report-viewall">
-          <li>
-            <a className="mdl-menu__item">
-              {t('Test view all 1')}
-            </a>
-          </li>
-          <li>
-            <a className="mdl-menu__item">
-              {t('Test view all 2')}
-            </a>
-          </li>
-        </ul> 
- 
-        <button className="mdl-button mdl-js-button mdl-button--icon report-button__expand"
-                onClick={this.toggleExpandedReports} data-tip={t('Expand')}>
-          <i className="k-icon-expand" />
-        </button>
- 
-        <button className="mdl-button mdl-js-button mdl-button--icon report-button__print" data-tip={t('Print')}>
-          <i className="k-icon-print" />
-        </button>
- 
-      </bem.FormView__reportButtons>
-    );
-  },
-  renderReportGraphSettings () {
-    return (
-      <bem.GraphSettings>
-        <div className="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
-          <div className="mdl-tabs__tab-bar">
-              <a href="#graph-type" className="mdl-tabs__tab is-active">
-                {t('Chart Type')}
-              </a>
-              <a href="#graph-colors" className="mdl-tabs__tab">
-                {t('Colors')}
-              </a>
-              <a href="#graph-labels" className="mdl-tabs__tab">
-                {t('Labels')}
-              </a>
-          </div>
- 
-          <div className="mdl-tabs__panel is-active" id="graph-type">
-            <ul>
-              <li>Vertical</li>
-              <li>Donut</li>
-              <li>Pie</li>
-              <li>Line</li>
-            </ul>
-          </div>
-          <div className="mdl-tabs__panel" id="graph-colors">
-            Color presets go here
-          </div>
-          <div className="mdl-tabs__panel" id="graph-labels">
-            <bem.FormView__label>
-              {t('Data Labels')}
-            </bem.FormView__label>
- 
-            <bem.FormView__label>
-              {t('X Axis')}
-            </bem.FormView__label>
-          </div>
-        </div>
- 
-        <bem.GraphSettings__buttons>
-          <button className="mdl-button mdl-js-button"
-                  onClick={this.toggleReportGraphSettings}>
-            {t('Cancel')}
-          </button>
-          <button className="mdl-button mdl-js-button primary"
-                  onClick={this.toggleReportGraphSettings}>
-            {t('Done')}
-          </button>
-        </bem.GraphSettings__buttons>
-      </bem.GraphSettings>
-    );
   },
   renderParentCollection () {
     var value = null,
@@ -1043,17 +901,6 @@ var dmix = {
     this.setState({
       activeSubTab: clickedActionId,
       activeTab: 'Data'
-    });
-  },
-  toggleReportGraphSettings () {
-    this.setState({
-      showReportGraphSettings: !this.state.showReportGraphSettings,
-    });
-  },
-  toggleExpandedReports () {
-    stores.pageState.setDrawerHidden(!this.state.showExpandedReport);
-    this.setState({
-      showExpandedReport: !this.state.showExpandedReport,
     });
   },
   renderDeployments () {

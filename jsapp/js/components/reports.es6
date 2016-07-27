@@ -9,6 +9,9 @@ import actions from '../actions';
 import bem from '../bem';
 import stores from '../stores';
 import Select from 'react-select';
+import ui from '../ui';
+import mdl from '../libs/rest_framework/material';
+
 import ReportViewItem from './reportViewItem';
 
 import {
@@ -17,46 +20,51 @@ import {
   log,
 } from '../utils';
 
-var ReportWrap = bem.create('report-wrap'),
-    ReportDiv = bem.create('report-div');
-
 function labelVal(label, value) {
   // returns {label: "Some Value", value: "some_value"} for react-select
   return {label: t(label), value: (value || label.toLowerCase().replace(/\W+/g, '_'))};
 }
 let reportStyles = [
-  labelVal('Horizontal'),
   labelVal('Vertical'),
-  labelVal('Line'),
-  labelVal('Area'),
-  labelVal('Pie'),
   labelVal('Donut'),
+  labelVal('Area'),
+  labelVal('Horizontal'),
+  labelVal('Pie'),
+  labelVal('Line'),
 ];
 
-
-var DefaultReportStylePicker = React.createClass({
-  defaultReportStyleChange (value) {
+var DefaultChartTypePicker = React.createClass({
+  defaultReportStyleChange (e) {
     this.props.onChange({
       default: true,
     }, {
-      report_type: value || false
+      report_type: e.currentTarget.value || 'bar'
     });
   },
   render () {
+    var radioButtons = reportStyles.map(function(style){
+       return (
+          <bem.GraphSettings__radio m={style.value}>
+              <input type="radio" name="site_name" 
+                value={style.value} 
+                checked={this.props.defaultStyle.report_type === style.value} 
+                onChange={this.defaultReportStyleChange} 
+                id={'type-' + style.value} />
+              <label htmlFor={'type-' + style.value}>
+                {style.label}
+              </label>
+          </bem.GraphSettings__radio>
+       );
+    }, this);
+
     return (
-        <div style={{margin:'20px'}}>
-          <Select
-            name='default_report_type'
-            value={this.props.defaultStyle.report_type}
-            clearable={false}
-            searchable={false}
-            options={reportStyles}
-            onChange={this.defaultReportStyleChange}
-          />
-        </div>
+        <bem.GraphSettings__charttype>
+          {radioButtons}
+        </bem.GraphSettings__charttype>
       );
   },
 });
+
 
 var IndividualReportStylePicker = React.createClass({
   specificReportStyleChange (value) {
@@ -148,6 +156,159 @@ var Reports = React.createClass({
   translationIndexChange (val) {
     this.setState({translationIndex: val});
   },
+  toggleReportGraphSettings () {
+    this.setState({
+      showReportGraphSettings: !this.state.showReportGraphSettings,
+    });
+  },
+  toggleExpandedReports () {
+    stores.pageState.setDrawerHidden(!this.state.showExpandedReport);
+    this.setState({
+      showExpandedReport: !this.state.showExpandedReport,
+    });
+  },
+  renderReportButtons () {
+    return (
+      <bem.FormView__reportButtons>
+        <button className="mdl-button mdl-js-button"
+                onClick={this.toggleReportGraphSettings}>
+          {t('Graph Settings')}
+        </button>
+ 
+        <button className="mdl-button mdl-js-button"
+                id="report-language">
+          {t('Language')}
+          <i className="fa fa-caret-down"></i>
+        </button>
+ 
+        <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
+            htmlFor="report-language">
+          <li>
+            <a className="mdl-menu__item">
+              {t('Test link 1')}
+            </a>
+          </li>
+          <li>
+            <a className="mdl-menu__item">
+              {t('Test link 2')}
+            </a>
+          </li>
+        </ul> 
+ 
+        <button className="mdl-button mdl-js-button"
+                id="report-groupby">
+          {t('Group By')}
+          <i className="fa fa-caret-down"></i>
+        </button>
+ 
+        <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
+            htmlFor="report-groupby">
+          <li>
+            <a className="mdl-menu__item">
+              {t('Test group link 1')}
+            </a>
+          </li>
+          <li>
+            <a className="mdl-menu__item">
+              {t('Test group link 2')}
+            </a>
+          </li>
+        </ul> 
+ 
+        <button className="mdl-button mdl-js-button"
+                id="report-viewall">
+          {t('View All')}
+          <i className="fa fa-caret-down"></i>
+        </button>
+ 
+        <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
+            htmlFor="report-viewall">
+          <li>
+            <a className="mdl-menu__item">
+              {t('Test view all 1')}
+            </a>
+          </li>
+          <li>
+            <a className="mdl-menu__item">
+              {t('Test view all 2')}
+            </a>
+          </li>
+        </ul> 
+ 
+        <button className="mdl-button mdl-js-button mdl-button--icon report-button__expand"
+                onClick={this.toggleExpandedReports} data-tip={t('Expand')}>
+          <i className="k-icon-expand" />
+        </button>
+ 
+        <button className="mdl-button mdl-js-button mdl-button--icon report-button__print" data-tip={t('Print')}>
+          <i className="k-icon-print" />
+        </button>
+ 
+      </bem.FormView__reportButtons>
+    );
+  },
+  renderReportGraphSettings () {
+    let asset = this.state.asset,
+        rowsByKuid = this.state.rowsByKuid,
+        explicitStyles,
+        explicitStylesList = [],
+        defaultStyle;
+    if (asset && asset.content) {
+      explicitStyles = this.state.reportStyles.specified || {};
+      defaultStyle = this.state.reportStyles.default || {};
+    }
+
+    let translations = false;
+    let reportData = this.state.reportData || [];
+
+    for (var i = reportData.length - 1; i >= 0; i--) {;
+      reportData[i].style = defaultStyle;
+    }
+    return (
+      <bem.GraphSettings>
+        <div className="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
+          <div className="mdl-tabs__tab-bar">
+              <a href="#graph-type" className="mdl-tabs__tab is-active">
+                {t('Chart Type')}
+              </a>
+              <a href="#graph-colors" className="mdl-tabs__tab">
+                {t('Colors')}
+              </a>
+              <a href="#graph-labels" className="mdl-tabs__tab">
+                {t('Labels')}
+              </a>
+          </div>
+ 
+          <div className="mdl-tabs__panel is-active" id="graph-type">
+            <DefaultChartTypePicker
+                defaultStyle={defaultStyle}
+                onChange={this.reportStyleChange}
+                translationIndex={this.state.translationIndex}
+              />
+          </div>
+          <div className="mdl-tabs__panel" id="graph-colors">
+            Color presets go here
+          </div>
+          <div className="mdl-tabs__panel" id="graph-labels">
+            <bem.FormView__label>
+              {t('Data Labels')}
+            </bem.FormView__label>
+ 
+            <bem.FormView__label>
+              {t('X Axis')}
+            </bem.FormView__label>
+          </div>
+        </div>
+ 
+        <bem.GraphSettings__buttons>
+          <button className="mdl-button mdl-js-button primary"
+                  onClick={this.toggleReportGraphSettings}>
+            {t('Done')}
+          </button>
+        </bem.GraphSettings__buttons>
+      </bem.GraphSettings>
+    );
+  },
   render () {
     let asset = this.state.asset,
         rowsByKuid = this.state.rowsByKuid,
@@ -162,13 +323,12 @@ var Reports = React.createClass({
     let translations = false;
     let reportData = this.state.reportData || [];
 
-    // console.log(defaultStyle);
-    // console.log(explicitStyles);
     for (var i = reportData.length - 1; i >= 0; i--) {;
       reportData[i].style = defaultStyle;
     }
     return (
         <bem.ReportView>
+          {this.renderReportButtons()}
           {this.state.asset ?
             <div>
               {
@@ -184,11 +344,6 @@ var Reports = React.createClass({
                     />
                 : null
               }
-              <DefaultReportStylePicker
-                  defaultStyle={defaultStyle}
-                  onChange={this.reportStyleChange}
-                  translationIndex={this.state.translationIndex}
-                />
               <bem.ReportView__wrap>
                 <bem.ReportView__warning>
                   <h4>{t('Warning')}</h4>
@@ -226,9 +381,21 @@ var Reports = React.createClass({
               </bem.Loading__inner>
             </bem.Loading>
           }
+          {this.state.showReportGraphSettings ?
+            <ui.Modal open onClose={this.toggleReportGraphSettings} title={t('Global Graph Settings')}>
+              <ui.Modal.Body>
+                {this.renderReportGraphSettings()}
+              </ui.Modal.Body>
+            </ui.Modal>
+ 
+          : null}
         </bem.ReportView>
       );
+  },
+  componentDidUpdate() {
+    mdl.upgradeDom();
   }
+
 })
 
 export default Reports;
