@@ -426,7 +426,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'kind',
                   'xls_link',
                   'name',
-                  'permissions',)
+                  'permissions',
+                  'settings',)
         extra_kwargs = {
             'parent': {
                 'lookup_field': 'uid',
