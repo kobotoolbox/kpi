@@ -27,7 +27,7 @@ def _kuids(asset, cache=False):
     return asset._available_report_uids
 
 
-def get_kuid_to_variable_name_map(asset):
+def get_kuid_to_variable_name_map(asset_content):
     '''
     Retrieve a mapping from "kuids", which :py:mod:`formpack` is not aware of,
     to the corresponding XLSForm variable name.
@@ -36,10 +36,14 @@ def get_kuid_to_variable_name_map(asset):
     :rtype: dict[basesting, basestring]
     '''
 
-    survey_dict = asset.content.get('survey', [])
+    survey_dict = asset_content.get('survey', [])
     kuid_to_variable_name_map = {row.get('$kuid'): row.get('name') for row in survey_dict}
     return kuid_to_variable_name_map
 
+def _get_row_by_kuid(asset_content, kuid):
+    for row in asset_content.get('survey', []):
+        if row.get('$kuid') == kuid or row.get('kuid') == kuid:
+            return row
 
 def data(asset, kuids, lang=None, fields=None, split_by=None):
     schema = {
@@ -84,7 +88,9 @@ def data(asset, kuids, lang=None, fields=None, split_by=None):
     available_kuids = set(_kuids(asset))
     if kuids:
         available_kuids &= set(kuids)
-    kuid_to_variable_name_map = get_kuid_to_variable_name_map(asset)
+
+    asset_content = asset.valid_xlsform_content()
+    kuid_to_variable_name_map = get_kuid_to_variable_name_map(asset_content)
 
     data_by_kuid = dict()
     for kuid in available_kuids:
@@ -100,9 +106,9 @@ def data(asset, kuids, lang=None, fields=None, split_by=None):
 
     return [
         {
-            'data': data_by_kuid[kuid],
+            'data': data_by_kuid.get(kuid, {}),
             'style': report_styles.get(kuid, default_style),
-            'row': asset._get_row_by_kuid(kuid),
+            'row': _get_row_by_kuid(asset_content, kuid),
             'kuid': kuid,
         } for kuid in available_kuids
     ]
