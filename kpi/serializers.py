@@ -13,6 +13,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
 
+from kobo.static_lists import SECTORS, COUNTRIES
 from hub.models import SitewideMessage
 from .models import Asset
 from .models import AssetSnapshot
@@ -27,6 +28,7 @@ from .models import TagUid
 from .models import OneTimeAuthenticationKey
 from .forms import USERNAME_REGEX, USERNAME_MAX_LENGTH
 from .forms import USERNAME_INVALID_MESSAGE
+from .utils.gravatar_url import gravatar_url
 
 
 class Paginated(LimitOffsetPagination):
@@ -717,6 +719,57 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
             },
         }
 
+
+class CurrentUserSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField()
+    server_time = serializers.SerializerMethodField()
+    projects_url = serializers.SerializerMethodField()
+    gravatar = serializers.SerializerMethodField()
+    languages = serializers.SerializerMethodField()
+    extra_details = WritableJSONField(source='extra_details.data')
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'first_name',
+            'last_name',
+            'email',
+            'server_time',
+            'projects_url',
+            'is_superuser',
+            'gravatar',
+            'is_staff',
+            'last_login',
+            'languages',
+            'extra_details'
+        )
+
+    def get_server_time(self, obj):
+        return datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+
+    def get_projects_url(self, obj):
+        return '/'.join((settings.KOBOCAT_URL, obj.username))
+
+    def get_gravatar(self, obj):
+        return gravatar_url(obj.email)
+
+    def get_languages(self, obj):
+        return settings.LANGUAGES
+
+    def to_representation(self, obj):
+        if obj.is_anonymous():
+            return {'message': 'user is not logged in'}
+        rep = super(CurrentUserSerializer, self).to_representation(obj)
+        if settings.UPCOMING_DOWNTIME:
+            # setting is in the format:
+            # [dateutil.parser.parse('6pm edt').isoformat(), countdown_msg]
+            rep['upcoming_downtime'] = settings.UPCOMING_DOWNTIME
+        # TODO: Find a better location for SECTORS and COUNTRIES
+        # as the functionality develops. (possibly in tags?)
+        rep['available_sectors'] = SECTORS
+        rep['available_countries'] = COUNTRIES
+        return rep
 
 class CreateUserSerializer(serializers.ModelSerializer):
     username = serializers.RegexField(

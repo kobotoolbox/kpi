@@ -1613,6 +1613,81 @@ var UserProfile = React.createClass({
   }
 });
 
+var AccountSettings = React.createClass({
+  getInitialState () {
+    return {
+      name: 'na',
+      organization: 'or',
+      email: 'em',
+      gender: 'ge',
+      sector: 'se',
+      country: 'co',
+      defaultLanguage: 'de'
+    };
+  },
+  render () {
+    return (
+      <ui.Panel>
+        <bem.AccountSettings>
+          <bem.AccountSettings__item>
+            <label>
+              {t('Name')}
+              <input type="text" value={this.state.name}
+                onChange={this.nameChange} />
+            </label>
+          </bem.AccountSettings__item>
+          <bem.AccountSettings__item>
+            <label>
+              {t('Organization Name')}
+              <input type="text" value={this.state.organization}
+                onChange={this.organizationChange} />
+            </label>
+          </bem.AccountSettings__item>
+          <bem.AccountSettings__item>
+            <label>
+              {t('E-mail')}
+              <input type="email" value={this.state.email}
+                onChange={this.emailChange} />
+            </label>
+          </bem.AccountSettings__item>
+          <bem.AccountSettings__item>
+            <label>
+              {t('Gender')}
+              <select value={this.state.gender} onChange={this.genderChange}>
+                <option value="male">{t('Male')}</option>
+                <option value="female">{t('Female')}</option>
+                <option value="other">{t('Other')}</option>
+              </select>
+            </label>
+          </bem.AccountSettings__item>
+          <bem.AccountSettings__item>
+            <label>
+              {t('Sector')}
+              <select value={this.state.sector} onChange={this.sectorChange}>
+              </select>
+            </label>
+          </bem.AccountSettings__item>
+          <bem.AccountSettings__item>
+            <label>
+              {t('Country')}
+              <select value={this.state.country} onChange={this.countryChange}>
+              </select>
+            </label>
+          </bem.AccountSettings__item>
+          <bem.AccountSettings__item>
+            <label>
+              {t('Default Language')}
+              <select value={this.state.defaultLanguage}
+                onChange={this.defaultLanguageChange}>
+              </select>
+            </label>
+          </bem.AccountSettings__item>
+        </bem.AccountSettings>
+      </ui.Panel>
+    );
+  }
+});
+
 var Public = React.createClass({
   render () {
     return (
@@ -1796,6 +1871,8 @@ var routes = (
       <Route name="user-profile" handler={UserProfile}
               path="/users/:username" />
     </Route>
+
+    <Route name="account-settings" handler={AccountSettings} />
 
     <Route name="public" handler={Public}>
       <Route name="public-builder" handler={Builder} />

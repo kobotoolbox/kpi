@@ -79,6 +79,9 @@ var MainHeader = React.createClass({
   logout () {
     actions.auth.logout();
   },
+  accountSettings () {
+    this.transitionTo('account-settings');
+  },
   setStates() {
     var currentRoutes = this.context.router.getCurrentRoutes();
     var activeRouteName = currentRoutes[currentRoutes.length - 1];
@@ -172,6 +175,12 @@ var MainHeader = React.createClass({
                     <a href={stores.session.currentAccount.projects_url + '/settings'} className="mdl-menu__item">
                       <i className="k-icon-settings" />
                       {t('Profile Settings')}
+                    </a>
+                  </li>
+                  <li key="account-settings">
+                    <a onClick={this.accountSettings} className="mdl-menu__item">
+                      <i className="k-icon-settings" />
+                      {t('Account Settings')}
                     </a>
                   </li>
                   {leaveBetaUrl ?
