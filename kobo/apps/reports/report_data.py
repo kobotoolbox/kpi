@@ -54,7 +54,7 @@ def data(asset, kuids, lang=None, fields=None, split_by=None):
     translations = pack.available_translations
     lang = lang or next(iter(translations), None)
 
-    _data = [("v1", get_instances_for_userform_id(asset.deployment.mongo_userform_id))]
+    _data = get_instances_for_userform_id(asset.deployment.mongo_userform_id)
     stats = list(report.get_stats(_data, fields, lang, split_by).stats)
     report_data_by_variable_name = dict()
     for s in stats:
