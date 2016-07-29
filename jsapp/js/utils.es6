@@ -144,4 +144,8 @@ export var newId = function(prefix='id') {
 
 export var randString = function () {
   return Math.random().toString(36).match(/\.(\S{6}).*/)[1];
+};
+
+export function isLibrary(router) {
+  return !!router.getCurrentPathname().match(/library/);
 }

@@ -156,9 +156,10 @@
 .form-sidebar__grouping {
   transition:0.5s all;
   &--visible {
+    max-height:2000px;
   }
   &--collapsed {
-    max-height: 0%;
+    max-height: 0px;
     overflow: hidden;
   }
 }

@@ -23,6 +23,7 @@ import {
   t,
   assign,
   notify,
+  isLibrary,
 } from './utils';
 
 var AssetTypeIcon = bem.create('asset-type-icon');
@@ -190,17 +191,17 @@ var dmix = {
         <bem.FormView__group m='buttons'>
           <bem.FormView__link m={['edit', {
               disabled: !this.state.userCanEdit,
-                }]} 
+                }]}
               href={this.makeHref('form-edit', {assetid: this.state.uid})}
               data-tip={t('Edit in Form Builder')}>
             <i className="k-icon-edit" />
           </bem.FormView__link>
-          <bem.FormView__link m='preview' 
+          <bem.FormView__link m='preview'
             href={this.makeHref('form-preview-enketo', {assetid: this.state.uid})}
             data-tip={t('Preview')}>
             <i className="k-icon-view" />
           </bem.FormView__link>
-          <bem.FormView__link m={'deploy'} 
+          <bem.FormView__link m={'deploy'}
             onClick={this.deployAsset}
             data-tip={this.state.deployed_version_id === null ? t('deploy') : t('redeploy')}>
             <i className="k-icon-deploy" />
@@ -214,7 +215,7 @@ var dmix = {
                 <i className="k-icon-replace" />
               </bem.FormView__link>
             </Dropzone>
-            <bem.FormView__item m={'more-actions'} 
+            <bem.FormView__item m={'more-actions'}
               onFocus={this.toggleDownloads}
               onBlur={this.toggleDownloads}>
               <bem.FormView__button disabled={!downloadable}>
@@ -284,7 +285,7 @@ var dmix = {
               {t('Delete this project')}
             </a>
           </li>
-        </ul> 
+        </ul>
       </bem.FormView__extras>
       );
   },
@@ -518,7 +519,7 @@ var dmix = {
         {
           key: key,
           value: value,
-          label: label, 
+          label: label,
           desc: desc
         }
       );
@@ -538,10 +539,10 @@ var dmix = {
           <a href="http://support.kobotoolbox.org/customer/en/portal/articles/1653790-collecting-data-through-web-forms"
              className="collect-link collect-link__web"
              target="_blank">
-            {t('Learn more')} 
+            {t('Learn more')}
             <i className="fa fa-arrow-right"></i>
           </a>
-          <bem.FormView__item m={'collect'} 
+          <bem.FormView__item m={'collect'}
             onFocus={this.toggleCollectOptions}
             onBlur={this.toggleCollectOptions}>
             <bem.FormView__button m='collectOptions'>
@@ -552,7 +553,7 @@ var dmix = {
               <bem.PopoverMenu ref='collect-popover'>
                 {deployment__links_list.map((c)=>{
                   return (
-                      <bem.PopoverMenu__link  key={`c-${c.value}`} 
+                      <bem.PopoverMenu__link  key={`c-${c.value}`}
                                               onClick={this.setSelectedCollectOption(c)}
                                               className={this.state.selectedCollectOption.value == c.value ? 'active' : null}>
                         <span className="label">{c.label}</span>
@@ -585,13 +586,13 @@ var dmix = {
           <a href="http://support.kobotoolbox.org/customer/en/portal/articles/1653782-collecting-data-with-kobocollect-on-android"
              className="collect-link collect-link__android"
              target="_blank">
-            {t('Learn more')} 
+            {t('Learn more')}
             <i className="fa fa-arrow-right"></i>
           </a>
 
           <ol>
             <li>
-              {t('Install')} 
+              {t('Install')}
               &nbsp;
               <a href="https://play.google.com/store/apps/details?id=org.koboc.collect.android&hl=en" target="_blank">KoboCollect</a>
               &nbsp;
@@ -655,11 +656,12 @@ var dmix = {
   renderButtons ({deployable}) {
     var downloadable = !!this.state.downloads[0],
         downloads = this.state.downloads;
+    var baseName = isLibrary(this.context.router) ? 'library-' : '';
 
     return (
         <bem.AssetView__buttons>
           <bem.AssetView__buttoncol>
-            <bem.AssetView__link m='preview' href={this.makeHref('form-preview-enketo', {assetid: this.state.uid})}>
+            <bem.AssetView__link m='preview' href={this.makeHref(`${baseName}form-preview-enketo`, {assetid: this.state.uid})}>
               <i />
               {t('preview')}
             </bem.AssetView__link>
@@ -667,7 +669,7 @@ var dmix = {
           <bem.AssetView__buttoncol>
             <bem.AssetView__link m={['edit', {
               disabled: !this.state.userCanEdit,
-                }]} href={this.makeHref('form-edit', {assetid: this.state.uid})}>
+                }]} href={this.makeHref(`${baseName}form-edit`, {assetid: this.state.uid})}>
               <i />
               {t('edit')}
             </bem.AssetView__link>
@@ -701,7 +703,7 @@ var dmix = {
             </bem.AssetView__link>
           </bem.AssetView__buttoncol>
           <bem.AssetView__buttoncol>
-            <bem.AssetView__link m='sharing' href={this.makeHref('form-sharing', {assetid: this.state.uid})}>
+            <bem.AssetView__link m='sharing' href={this.makeHref(`${baseName}form-sharing`, {assetid: this.state.uid})}>
               <i />
               {t('share')}
             </bem.AssetView__link>
@@ -721,6 +723,7 @@ var dmix = {
   },
   saveCloneAs (evt) {
     let version_id = evt.currentTarget.dataset.versionId;
+    var baseName = isLibrary(this.context.router) ? 'library-' : '';
     customPromptAsync(t('new form name'))
       .then((value) => {
         let uid = this.props.params.assetid;
@@ -730,7 +733,7 @@ var dmix = {
           version_id: version_id,
         }, {
           onComplete: (asset) => {
-            this.transitionTo('form-landing', {
+            this.transitionTo(`${baseName}form-landing`, {
               assetid: asset.uid,
             });
           }
@@ -800,15 +803,15 @@ var dmix = {
   renderDeployments () {
     // var deployed_versions = [
     //     {
-    //       version_id: 1, 
+    //       version_id: 1,
     //       date_deployed: 'June 1 2016',
     //     },
     //     {
-    //       version_id: 2, 
+    //       version_id: 2,
     //       date_deployed: 'June 1 2016',
     //     },
     //     {
-    //       version_id: 3, 
+    //       version_id: 3,
     //       date_deployed: 'June 1 2016',
     //     }
     // ];
@@ -845,7 +848,7 @@ var dmix = {
             </bem.FormView__item>
           </bem.FormView__group>
 
-          {this.state.deployed_versions.length > 0 && 
+          {this.state.deployed_versions.length > 0 &&
             <bem.FormView__group m={["history", this.state.historyExpanded ? 'historyExpanded' : 'historyHidden']}>
               <bem.FormView__group m="history-contents">
                 <bem.FormView__label m='previous-versions'>
@@ -858,7 +861,7 @@ var dmix = {
                       <bem.FormView__item m='version'>
                         {item.version_id}
                         <bem.FormView__group m='buttons'>
-                          <bem.FormView__link m='clone' 
+                          <bem.FormView__link m='clone'
                               data-version-id={item.version_id}
                               data-tip={t('Clone as new project')}
                               onClick={this.saveCloneAs}>
@@ -935,7 +938,7 @@ var dmix = {
         <bem.Loading>
           <bem.Loading__inner>
             <i />
-            {t('loading...')} 
+            {t('loading...')}
           </bem.Loading__inner>
         </bem.Loading>
       </ui.Panel>
@@ -986,16 +989,17 @@ var dmix = {
       asset = data[uid];
     if (asset) {
       if (!this.extended_by_asset_type) {
-        let isLibrary = asset.asset_type !== 'survey';
+        let library = isLibrary(this.context.router);
+        let baseName = library ? 'library-' : '';
 
         stores.pageState.setHeaderBreadcrumb([
           {
-            label: isLibrary ? t('Library List') : t('Projects'),
-            to: isLibrary ? 'library' : 'forms',
+            label: library ? t('Library') : t('Projects'),
+            to: library ? 'library' : 'forms',
           },
           {
             label: t(`view-${asset.asset_type}`),
-            to: 'form-landing',
+            to: `${baseName}form-landing`,
             params: {
               assetid: asset.uid,
             }
@@ -1049,7 +1053,8 @@ mixins.dmix = dmix;
 
 mixins.droppable = {
   _forEachDroppedFile (evt, file/*, params={}*/) {
-    var isLibrary = !!this.context.router.getCurrentPathname().match(/library/);
+    var isLibrary = isLibrary(this.context.router);
+    var baseName = isLibrary ? 'library-' : '';
     dataInterface.postCreateBase64EncodedImport(assign({
         base64Encoded: evt.target.result,
         name: file.name,
@@ -1073,7 +1078,7 @@ mixins.droppable = {
             } else if (isCurrentPage) {
               actions.resources.loadAsset({id: assetUid});
             } else {
-              this.transitionTo('form-landing', {assetid: assetUid});
+              this.transitionTo(`${baseName}form-landing`, {assetid: assetUid});
             }
           }
           // If the import task didn't complete immediately, inform the user accordingly.
@@ -1314,6 +1319,7 @@ mixins.clickAssets = {
         // disabled = data.disabled === 'true',
         uid = stores.selectedAsset.uid,
         result;
+    this.baseName = isLibrary(this.context.router) ? 'library-' : '';
     // var click = this.click;
     if (action === 'new') {
       result = this.click.asset.new.call(this);
@@ -1345,7 +1351,7 @@ mixins.clickAssets = {
         this.transitionTo('new-form');
       },
       view: function(uid/*, evt*/){
-        this.transitionTo('form-landing', {assetid: uid});
+        this.transitionTo(`${this.baseName}form-landing`, {assetid: uid});
       },
       clone: function(uid/*, evt*/){
         customPromptAsync(t('new name?'))
@@ -1361,10 +1367,10 @@ mixins.clickAssets = {
           });
       },
       download: function(uid/*, evt*/){
-        this.transitionTo('form-download', {assetid: uid});
+        this.transitionTo(`${this.baseName}form-download`, {assetid: uid});
       },
       edit: function (uid) {
-        this.transitionTo('form-edit', {assetid: uid});
+        this.transitionTo(`${this.baseName}form-edit`, {assetid: uid});
       },
       delete: function(uid/*, evt*/){
         var q_ = t('You are about to permanently delete this form. Are you sure you want to continue?');

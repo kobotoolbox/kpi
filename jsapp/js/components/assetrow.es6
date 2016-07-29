@@ -12,6 +12,7 @@ import {
   anonUsername,
   t,
   assign,
+  isLibrary,
 } from '../utils';
 
 var AssetTypeIcon = bem.create('asset-type-icon');
@@ -70,8 +71,9 @@ var AssetRow = React.createClass({
     // var perm = this.props.perm;
     var isPublic = this.props.owner__username === anonUsername;
     var _rc = this.props.summary && this.props.summary.row_count;
+    var baseName = isLibrary(this.context.router) ? 'library-' : '';
     var isCollection = this.props.kind === 'collection',
-        hrefTo = isCollection ? 'collection-page' : 'form-landing',
+        hrefTo = isCollection ? 'collection-page' : `${baseName}form-landing`,
         hrefKey = isCollection ? 'uid' : 'assetid',
         hrefParams = {},
         tags = this.props.tags || [];
