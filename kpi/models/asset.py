@@ -2,6 +2,7 @@ import re
 import six
 import copy
 import json
+from collections import OrderedDict
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import MultipleObjectsReturned
@@ -9,6 +10,7 @@ from django.db import models
 from django.db import transaction
 from django.dispatch import receiver
 from jsonfield import JSONField
+from jsonbfield.fields import JSONField as JSONBField
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 from taggit.models import Tag
@@ -22,7 +24,6 @@ from ..utils.asset_content_analyzer import AssetContentAnalyzer
 from ..utils.kobo_to_xlsform import to_xlsform_structure
 from ..utils.random_id import random_id
 from ..deployment_backends.mixin import DeployableMixin
-
 
 ASSET_TYPES = [
     ('text', 'text'),               # uncategorized, misc
@@ -86,7 +87,8 @@ class TagStringMixin:
 
 class XlsExportable(object):
     def valid_xlsform_content(self):
-        _flattened_content = flatten_content(self.content)
+        _flattened_content = copy.deepcopy(self.content)
+        flatten_content(_flattened_content)
         return to_xlsform_structure(_flattened_content)
 
     def to_xls_io(self, extra_rows=None, extra_settings=None,
@@ -113,7 +115,7 @@ class XlsExportable(object):
                     for ci, col in enumerate(cols):
                         val = row.get(col, None)
                         if val:
-                            sheet.write(ri +1, ci, val)
+                            sheet.write(ri + 1, ci, val)
             # The extra rows and settings should persist within this function
             # and its return value *only*. Calling deepcopy() is required to
             # achive this isolation.
@@ -157,7 +159,8 @@ class XlsExportable(object):
             'survey': {
                 'name': '__version__',
                 'type': 'calculate',
-                'calculation': self.version_id
+                # wraps the version id in quotes: 'v12345'
+                'calculation': '\'{}\''.format(self.version_id)
             }
         }
         extra_settings = {'version': self.version_id}
@@ -168,7 +171,6 @@ class XlsExportable(object):
         )
 
 
-@reversion.register
 class Asset(ObjectPermissionMixin,
             TagStringMixin,
             DeployableMixin,
@@ -178,7 +180,8 @@ class Asset(ObjectPermissionMixin,
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     content = JSONField(null=True)
-    summary = JSONField(null=True, default={})
+    summary = JSONField(null=True, default=dict)
+    report_styles = JSONBField(default=dict)
     asset_type = models.CharField(
         choices=ASSET_TYPES, max_length=20, default='text')
     parent = models.ForeignKey(
@@ -191,7 +194,6 @@ class Asset(ObjectPermissionMixin,
     # _deployment_data should be accessed through the `deployment` property
     # provided by `DeployableMixin`
     _deployment_data = JSONField(default={})
-
 
     permissions = GenericRelation(ObjectPermission)
 
@@ -227,11 +229,49 @@ class Asset(ObjectPermissionMixin,
         # Mind the depth
         self._initial_content_json = json.dumps(self.content)
 
-    def versions(self):
-        return reversion.get_for_object(self)
+    # todo: test and implement this method
+    # def restore_version(self, uid):
+    #     _version_to_restore = self.asset_versions.get(uid=uid)
+    #     self.content = _version_to_restore.version_content
+    #     self.name = _version_to_restore.name
 
-    def versioned_data(self):
-        return [v.field_dict for v in self.versions()]
+    def _deployed_versioned_assets(self):
+        asset_deployments_by_version_id = OrderedDict()
+        deployed_versioned_assets = []
+        # Record the current deployment, if any
+        if self.has_deployment:
+            asset_deployments_by_version_id[self.deployment.version] = \
+                self.deployment
+            # The currently deployed version may be unknown, but we still want
+            # to pass its timestamp to the serializer
+            if self.deployment.version == 0:
+                # Temporary attributes for later use by the serializer
+                self._static_version_id = 0
+                self._date_deployed = self.deployment.timestamp
+                deployed_versioned_assets.append(self)
+        # Record all previous deployments
+        _reversion_versions = reversion.get_for_object(self)
+        for version in _reversion_versions:
+            historical_asset = version.object_version.object
+            if historical_asset.has_deployment:
+                asset_deployments_by_version_id[
+                    historical_asset.deployment.version
+                ] = historical_asset.deployment
+        # Annotate and list deployed asset versions
+        _reversion_versions = reversion.get_for_object(self)
+        for version in _reversion_versions.filter(
+                id__in=asset_deployments_by_version_id.keys()):
+            historical_asset = version.object_version.object
+            # Asset.version_id returns the *most recent* version of the asset;
+            # it has no way to know the version of the instance it's bound to.
+            # Record a _static_version_id here for the serializer to use
+            historical_asset._static_version_id = version.id
+            # Make the deployment timestamp available to the serializer
+            historical_asset._date_deployed = asset_deployments_by_version_id[
+                version.id].timestamp
+            # Store the annotated asset objects in a list for serialization
+            deployed_versioned_assets.append(historical_asset)
+        return deployed_versioned_assets
 
     def to_ss_structure(self):
         return flatten_content(copy.deepcopy(self.content))
@@ -283,19 +323,24 @@ class Asset(ObjectPermissionMixin,
             elif row_count > 1:
                 self.asset_type = 'block'
 
-        new_content_json = json.dumps(self.content)
-        if self._initial_content_json != new_content_json or (
-                not self.pk or not self.versions().exists()
-        ):
-            # Create a new version if the content has been changed, or if no
-            # version exists yet
-            with reversion.create_revision():
-                super(Asset, self).save(*args, **kwargs)
-            # Reset `_initial_content` since the change has been written to the
-            # database
-            self._initial_content = new_content_json
+        # TODO: prevent assets from saving duplicate versions
+        super(Asset, self).save(*args, **kwargs)
+
+    def to_clone_dict(self, version_uid=None):
+        if version_uid:
+            version = self.asset_versions.get(uid=version_uid)
         else:
-            super(Asset, self).save(*args, **kwargs)
+            version = self.asset_versions.first()
+        return {
+            'name': version.name,
+            'content': version.version_content,
+            'asset_type': self.asset_type,
+            'tag_string': self.tag_string,
+        }
+
+    def clone(self, version_uid=None):
+        # not currently used, but this is how "to_clone_dict" should work
+        Asset.objects.create(**self.to_clone_dict(version_uid))
 
     def _strip_empty_rows(self, arr, required_key='type'):
         arr[:] = [row for row in arr if required_key in row]
@@ -314,19 +359,17 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def version_id(self):
-        # Whoa! The `first()` version is the newest!
-        return reversion.get_for_object(self).first().id
+        return self.asset_versions.first().uid
 
     def get_export(self, regenerate=True, version_id=False):
-        if not version_id:
-            version_id = self.version_id
-
-        AssetSnapshot.objects.filter(asset=self,
-                                     asset_version_id=version_id).delete()
+        if version_id:
+            asset_version = self.asset_versions.get(uid=version_id)
+        else:
+            asset_version = self.asset_versions.first()
 
         (snapshot, _created) = AssetSnapshot.objects.get_or_create(
             asset=self,
-            asset_version_id=self.version_id)
+            asset_version=asset_version)
         return snapshot
 
     def __unicode__(self):
@@ -346,16 +389,25 @@ class AssetSnapshot(models.Model, XlsExportable):
     details = JSONField(default={})
     owner = models.ForeignKey('auth.User', related_name='asset_snapshots', null=True)
     asset = models.ForeignKey(Asset, null=True)
-    asset_version_id = models.IntegerField(null=True)
+    _reversion_version_id = models.IntegerField(null=True)
+    asset_version = models.OneToOneField('AssetVersion',
+                                             on_delete=models.CASCADE,
+                                             null=True)
     date_created = models.DateTimeField(auto_now_add=True)
     uid = KpiUidField(uid_prefix='s')
 
     def __init__(self, *args, **kwargs):
-        if (kwargs.get('asset', None) is not None and
-                'asset_version_id' not in kwargs):
+        asset = kwargs.get('asset')
+        asset_version = kwargs.get('asset_version')
+        _no_source = not kwargs.get('source')
+        if _no_source and asset and not asset_version:
             asset = kwargs.get('asset')
-            kwargs['asset_version_id'] = reversion.get_for_object(asset).last().pk
+            kwargs['asset_version'] = asset.asset_versions.first()
         return super(AssetSnapshot, self).__init__(*args, **kwargs)
+
+    @property
+    def content(self):
+        return self.source
 
     def generate_xml_from_source(self, source, **opts):
         import pyxform
@@ -417,28 +469,18 @@ class AssetSnapshot(models.Model, XlsExportable):
             })
         self.details = summary
 
-    def get_version(self):
-        if self.asset_version_id is None:
-            return None
-        return reversion.get_for_object(
-            self.asset).get(id=self.asset_version_id)
-
-    def _valid_source(self):
-        return to_xlsform_structure(self.source)
-
     def save(self, *args, **kwargs):
-        version = self.get_version()
         if self.source is None:
-            self.source = version.object.to_ss_structure()
-        _valid_source = self._valid_source()
+            self.source = copy.deepcopy(self.asset.content)
         note = False
         if self.asset and self.asset.asset_type in ['question', 'block'] and \
                 len(self.asset.summary['languages']) == 0:
             asset_type = self.asset.asset_type
             note = 'Note: This item is a ASSET_TYPE and ' + \
-                    'must be included in a form before deploying'
+                   'must be included in a form before deploying'
             note = note.replace('ASSET_TYPE', asset_type)
-        self.generate_xml_from_source(_valid_source, include_note=note)
+        self.generate_xml_from_source(self.valid_xlsform_content(),
+                                      include_note=note)
         return super(AssetSnapshot, self).save(*args, **kwargs)
 
 
@@ -447,3 +489,11 @@ def post_delete_asset(sender, instance, **kwargs):
     # Remove all permissions associated with this object
     ObjectPermission.objects.filter_for_object(instance).delete()
     # No recalculation is necessary since children will also be deleted
+
+
+@receiver(models.signals.post_save, sender=Asset,
+          dispatch_uid="create_asset_version")
+def post_save_asset(sender, instance, **kwargs):
+    instance.asset_versions.create(version_content=instance.content,
+                                   name=instance.name,
+                                   )

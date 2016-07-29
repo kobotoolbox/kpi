@@ -5,10 +5,11 @@ from rest_framework import status
 
 from .kpi_test_case import KpiTestCase
 
+
 class TestAssetSnapshotList(KpiTestCase):
     fixtures = ['test_data']
 
-    form_source= '''
+    form_source = '''
                     {
                         "survey": [
                             {"type":"text","label":"Text+Question.","required":"true"},

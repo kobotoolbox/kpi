@@ -817,14 +817,15 @@ var App = React.createClass({
     return (
       <DocumentTitle title="KoBoToolbox">
         <div className="mdl-wrapper">
-          { !this.state.formBuilderFocus && 
+          { !this.state.headerHidden && 
             <div className="k-header__bar"></div>
           }
           <bem.PageWrapper m={{
               'asset-nav-present': this.state.assetNavPresent,
               'asset-nav-open': this.state.assetNavIsOpen && this.state.assetNavPresent,
               'fixed-drawer': this.state.showFixedDrawer,
-              'formbuilder-focus': this.state.formBuilderFocus,
+              'header-hidden': this.state.headerHidden,
+              'drawer-hidden': this.state.drawerHidden,
                 }} className="mdl-layout mdl-layout--fixed-header">
               { this.state.modalMessage ?
                 <ui.Modal open small onClose={()=>{stores.pageState.hideModal()}} icon={this.state.modalIcon}>
@@ -833,10 +834,10 @@ var App = React.createClass({
                   </ui.Modal.Body>
                 </ui.Modal>
               : null}
-              { !this.state.formBuilderFocus && 
+              { !this.state.headerHidden &&
                 <MainHeader/>
               }
-              { !this.state.formBuilderFocus && 
+              { !this.state.drawerHidden &&
                 <Drawer/>
               }
               <bem.PageWrapper__content m={{
@@ -1533,7 +1534,8 @@ var FormLanding = React.createClass({
       ];
       stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
       stores.pageState.setAssetNavPresent(false);
-      stores.pageState.setFormBuilderFocus(false);
+      stores.pageState.setDrawerHidden(false);
+      stores.pageState.setHeaderHidden(false);
       actions.resources.loadAsset({id: params.assetid});
       callback();
     }
