@@ -83,10 +83,9 @@
   right: -5px;
   top: 0px;
   font-size: 24px;
+  color: #A5B3BC;
 
   @extend .fa, .fa-fw, .fa-lg, .fa-caret-right;
-
-  color: #A5B3BC;
 }
 
 .asset-row--active {
@@ -116,26 +115,8 @@
       color: unquote("rgb(#{$color-accent})");
     }
 
-    &.asset-row__action-icon--deploy i {
-      @extend .fa, .fa-play;
-    }
-
-    &.asset-row__action-icon--view i,
-    &.asset-row__action-icon--preview i {
-      @extend .k-icon, .k-icon-view;
-    }
-
     &.asset-row__action-icon--view-collection i {
       @extend .k-icon, .k-icon-folder;
-    }
-
-    &.asset-row__action-icon--edit {
-      margin-right: -8px;
-      font-size: 29px;
-    }
-
-    &.asset-row__action-icon--edit i {
-      @extend .k-icon, .k-icon-edit;
     }
 
     &.asset-row__action-icon--clone i {
@@ -146,16 +127,10 @@
       @extend .k-icon, .k-icon-trash;
     }
 
-    &.asset-row__action-icon--sharing i {
-      @extend .k-icon, .k-icon-share;
-    }
-
-    &.asset-row__action-icon--download i {
-      @extend .k-icon, .k-icon-folder-share-1;
-    }
-
-    &.asset-row__action-icon--refresh i {
-      @extend .fa, .fa-refresh;
+    &.asset-row__action-icon--edit {
+      margin-right: -8px;
+      font-size: 29px;
+      // adjust edit icon (pencil) size, since in font file it is smaller than other fonts
     }
   }
 

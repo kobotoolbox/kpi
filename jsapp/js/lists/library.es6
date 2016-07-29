@@ -35,7 +35,8 @@ var LibrarySearchableList = React.createClass({
       stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
 
       stores.pageState.setAssetNavPresent(false);
-      stores.pageState.setFormBuilderFocus(false);
+      stores.pageState.setDrawerHidden(false);
+      stores.pageState.setHeaderHidden(false);
       callback();
     }
   },

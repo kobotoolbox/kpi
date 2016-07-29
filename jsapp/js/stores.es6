@@ -146,8 +146,8 @@ var pageStateStore = Reflux.createStore({
       assetNavIntentOpen: navIsOpen,
       assetNavExpanded: false,
       showFixedDrawer: false,
-      // sidebarIsOpen: false,
-      // sidebarIntentOpen: false,
+      headerHidden: false,
+      drawerHidden: false,
     };
   },
   setState (chz) {
@@ -227,12 +227,21 @@ var pageStateStore = Reflux.createStore({
       });
     }
   },
-  setFormBuilderFocus (tf) {
+  setDrawerHidden (tf) {
     var val = !!tf;
-    if (val !== this.state.formBuilderFocus) {
-      this.state.formBuilderFocus = val;
+    if (val !== this.state.drawerHidden) {
+      this.state.drawerHidden = val;
       this.trigger({
-        formBuilderFocus: val
+        drawerHidden: val
+      });
+    }
+  },
+  setHeaderHidden (tf) {
+    var val = !!tf;
+    if (val !== this.state.headerHidden) {
+      this.state.headerHidden = val;
+      this.trigger({
+        headerHidden: val
       });
     }
   },

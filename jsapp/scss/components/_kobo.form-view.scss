@@ -1,14 +1,43 @@
 .form-view {
   height: 100%;
-  overflow: auto;
   padding: 8px;
   padding-top: 4px;
+}
+
+.form-view__wrapper {
+  width: 100%;
+  height: calc(100% - 96px);
+  overflow: auto;
+  &--data {
+    overflow: visible;
+  }
+  &--Report {
+    overflow: visible;
+    height: calc(100% - 134px);
+  }
+}
+
+.form-view__header--expandedReport + .form-view__wrapper--Report {
+  height: calc(100% - 96px);
 }
 
 .form-view__header {
   margin-bottom: 8px;
   @extend .mdl-shadow--2dp;
   background-color: #FFF;
+  position: relative;
+  &--expandedReport {
+    background-color: transparent;
+    box-shadow: none;
+    margin:-10px -6px;
+    margin-bottom: 8px;
+    .form-view__tabs {
+      padding:8px 0px;
+      i.k-icon-prev {
+        margin-right: 6px;
+      }
+    }
+  }
 }
 
 .form-view__tabs {
@@ -48,10 +77,82 @@
 }
 
 .form-view__name {
-  padding: 10px 15px;
+  margin:0px;
+  padding: 8px 15px;
   font-size: 18px;
-  line-height: 1.4em;
+  line-height: 1.5em;
   color: unquote("rgb(#{$color-primary})");
+  display: inline-block;
+  text-overflow:ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+
+  &--has-data-tabs {
+    width:55%;
+  }
+}
+
+// data tab secondary buttons
+.form-view__secondaryButtons {
+  padding: 10px 5px;
+  padding-bottom: 8px;
+  width: 44%;
+  display: inline-block;
+  vertical-align: top;
+  text-align: right;
+  margin:0px;
+}
+
+.form-view__secondaryButton {
+  border:none;
+  box-shadow: none;
+  border-radius: 0px;
+  margin-left: 2px;
+  font-size: 14px;
+  color:$cool-gray;
+  cursor: pointer;
+  display: inline-block;
+  text-align: center;
+  background-color: transparent;
+  i {
+    font-size:24px;
+  }
+  span {
+    display: block;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: -0.02em;
+    padding-top: 4px;
+    opacity: 0.6;
+  }
+
+  &--Report i {
+    @extend .k-icon, .k-icon-report;
+  }
+  &--Table i {
+    @extend .k-icon, .k-icon-results;
+  }
+  &--Gallery i {
+    @extend .k-icon, .k-icon-photo-gallery;
+  }
+  &--Downloads i {
+    @extend .k-icon, .k-icon-download-1;
+  }
+  &--Map i {
+    @extend .k-icon, .k-icon-map-view;
+  }
+  &--Settings i {
+    @extend .k-icon, .k-icon-settings;
+  }
+  &--active, &:hover {
+    color: #333;
+    span {
+      opacity: 1;
+    }
+  }
+  &:hover {
+    color: unquote("rgb(#{$color-primary})");
+  }
 }
 
 .form-view__description {
@@ -81,6 +182,12 @@
   }
   &--collecting-android {
     width:45%;
+  }
+
+  &--iframe, 
+  &--iframe iframe {
+    width:100%;
+    height: 100%;
   }
 }
 
@@ -175,6 +282,10 @@
       font-size: 14px;
       cursor: pointer;
       background-color: #FFF;
+      opacity: 0.5;
+      &:hover {
+        opacity: 1;
+      }
     }
   }
 
@@ -261,15 +372,19 @@
 // buttons in forms 
 .form-view__link {
   font-size:18px;
+  line-height: 18px;
   margin-left: 10px;
   padding:0px 10px;
   color: $cool-gray;
   cursor: pointer;
-  i.k-icon-view:before {
-    width:1.5em;
-  }
   &:hover {
     color: unquote("rgb(#{$color-primary})");
+  }
+
+  i.k-icon-edit {
+    font-size: 22px;
+    line-height: 22px;
+    margin-right: -10px;
   }
 }
 
@@ -366,3 +481,50 @@
   }
 }
 
+// report buttons
+.form-view__reportButtons {
+  button {
+    padding:0px;
+    margin:0px 15px;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: $cool-gray;
+    i {
+      font-size: 18px;
+      margin-left: 8px;
+    }
+    &:hover {
+      background-color: transparent;
+      color: #333;
+    }
+  }
+}
+
+// report graph settings
+.graph-settings {
+  margin-top: -30px;
+}
+
+.graph-settings__buttons {
+  text-align: right;
+  margin-top: 20px;
+  button {
+    border:2px solid $cool-gray;
+    color:$cool-gray;
+    font-weight: 500;
+    font-size: 15px;
+    margin-right: 15px;
+    min-width: 110px;
+    text-align: center;
+    text-transform: uppercase;
+    &:hover, &.primary:hover {
+      color: #333;
+      border-color: #333;
+      background-color: transparent;
+    }
+    &.primary {
+      color: unquote("rgb(#{$color-primary})");
+      border-color: unquote("rgb(#{$color-primary})");
+    }
+  }
+}
