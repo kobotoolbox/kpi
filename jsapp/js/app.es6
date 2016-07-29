@@ -35,6 +35,8 @@ import {
   FormPage,
 } from './components/formEditors';
 
+import Reports from './components/reports';
+
 import {
   ListSearch,
   ListTagFilter,

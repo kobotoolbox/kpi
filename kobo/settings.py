@@ -10,11 +10,13 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 
 from django.conf import global_settings
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+
 import dj_database_url
 import multiprocessing
+from pymongo import MongoClient
 
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 
@@ -429,3 +431,22 @@ KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES = [
     ('api', 'organizationprofile'),
     ('logger', 'note'),
 ]
+
+MONGO_DATABASE = {
+    'HOST': os.environ.get('KPI_MONGO_HOST', 'mongo'),
+    'PORT': int(os.environ.get('KPI_MONGO_PORT', 27017)),
+    'NAME': os.environ.get('KPI_MONGO_NAME', 'formhub'),
+    'USER': os.environ.get('KPI_MONGO_USER', ''),
+    'PASSWORD': os.environ.get('KPI_MONGO_PASS', '')
+}
+
+if MONGO_DATABASE.get('USER') and MONGO_DATABASE.get('PASSWORD'):
+    MONGO_CONNECTION_URL = (
+        "mongodb://%(USER)s:%(PASSWORD)s@%(HOST)s:%(PORT)s") % MONGO_DATABASE
+else:
+    MONGO_CONNECTION_URL = "mongodb://%(HOST)s:%(PORT)s" % MONGO_DATABASE
+
+MONGO_CONNECTION = MongoClient(
+    MONGO_CONNECTION_URL, j=True, tz_aware=True)
+MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
+

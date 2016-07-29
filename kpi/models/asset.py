@@ -25,6 +25,9 @@ from ..utils.asset_content_analyzer import AssetContentAnalyzer
 from ..utils.kobo_to_xlsform import to_xlsform_structure
 from ..utils.random_id import random_id
 from ..deployment_backends.mixin import DeployableMixin
+from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
+                                         DEFAULT_REPORTS_KEY)
+
 
 ASSET_TYPES = [
     ('text', 'text'),               # uncategorized, misc
@@ -325,6 +328,8 @@ class Asset(ObjectPermissionMixin,
             elif row_count > 1:
                 self.asset_type = 'block'
 
+        self._populate_report_styles()
+
         # TODO: prevent assets from saving duplicate versions
         super(Asset, self).save(*args, **kwargs)
 
@@ -343,6 +348,17 @@ class Asset(ObjectPermissionMixin,
     def clone(self, version_uid=None):
         # not currently used, but this is how "to_clone_dict" should work
         Asset.objects.create(**self.to_clone_dict(version_uid))
+
+    def _populate_report_styles(self):
+        default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})
+        specifieds = self.report_styles.get(SPECIFIC_REPORTS_KEY, {})
+        for row in self.content.get('survey', []):
+            if '$kuid' in row and row['$kuid'] not in specifieds:
+                specifieds[row['$kuid']] = {}
+        self.report_styles = {
+            DEFAULT_REPORTS_KEY: default,
+            SPECIFIC_REPORTS_KEY: specifieds,
+        }
 
     def _strip_empty_rows(self, arr, required_key='type'):
         arr[:] = [row for row in arr if required_key in row]

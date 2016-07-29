@@ -1,7 +1,6 @@
 from django.conf.urls import url, include
 from django.views.i18n import javascript_catalog
 from hub.views import ExtraDetailRegistrationView
-from rest_framework import renderers
 from rest_framework.routers import DefaultRouter
 
 from kpi.views import (
@@ -19,6 +18,7 @@ from kpi.views import (
 )
 
 from kpi.views import current_user, home, one_time_login
+from kobo.apps.reports.views import ReportsViewSet
 from kpi.views import authorized_application_authenticate_user
 from kpi.forms import RegistrationForm
 from hub.views import switch_builder
@@ -32,6 +32,7 @@ router.register(r'collections', CollectionViewSet)
 router.register(r'users', UserViewSet)
 router.register(r'tags', TagViewSet)
 router.register(r'permissions', ObjectPermissionViewSet)
+router.register(r'reports', ReportsViewSet, base_name='reports')
 router.register(r'imports', ImportTaskViewSet)
 router.register(r'sitewide_messages', SitewideMessageViewSet)
 
