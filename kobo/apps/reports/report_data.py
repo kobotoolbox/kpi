@@ -17,7 +17,7 @@ def get_instances_for_userform_id(userform_id, submission=None):
     return settings.MONGO_DB.instances.find(query)
 
 
-def _kuids(asset, cache=False):
+def _vnames(asset, cache=False):
     if not cache or not hasattr(asset, '_available_report_uids'):
         content = deepcopy(asset.content)
         survey = content.get('survey', [])
@@ -37,7 +37,7 @@ def get_kuid_to_variable_name_map(asset_content):
     '''
 
     survey_dict = asset_content.get('survey', [])
-    kuid_to_variable_name_map = {row.get('$kuid'): row.get('name') for row in survey_dict}
+    kuid_to_variable_name_map = {row.get('name'): row.get('name') for row in survey_dict}
     return kuid_to_variable_name_map
 
 def _get_row_by_kuid(asset_content, kuid):
@@ -46,20 +46,35 @@ def _get_row_by_kuid(asset_content, kuid):
             return row
 
 def data(asset, kuids, lang=None, fields=None, split_by=None):
-    schema = {
-        "id_string": asset.deployment.xform_id_string,
-        "version": 'v1',
-        "content": asset.valid_xlsform_content(),
-    }
+    _deployed_versions = asset.asset_versions.filter(deployed=True)
 
-    pack = FormPack([schema])
-    report = pack.autoreport()
-    fields = fields or [field.name for field in pack.get_fields_for_versions()]
+    schemas = []
+    for av in _deployed_versions.all():
+        if 'backend_response' not in av._deployment_data:
+            continue
+        id_string = av._deployment_data['backend_response'].get('id_string')
+        asset_content = av._deployed_content()
+        if av._reversion_version:
+            _version_id = str(av._reversion_version.id)
+        else:
+            _version_id = av.uid
+
+        schemas.append({
+            "id_string": id_string,
+            "version": _version_id,
+            "content": asset_content,
+        })
+
+    pack = FormPack(schemas)
+    _all_versions = pack.versions.keys()
+    report = pack.autoreport(versions=_all_versions)
+    fields = fields or [field.name for field in pack.get_fields_for_versions(versions=_all_versions)]
     translations = pack.available_translations
     lang = lang or next(iter(translations), None)
 
     _data = get_instances_for_userform_id(asset.deployment.mongo_userform_id)
-    stats = list(report.get_stats(_data, fields, lang, split_by).stats)
+    _stats = report.get_stats(_data, fields, lang, split_by)
+    stats = list(_stats.stats)
     report_data_by_variable_name = dict()
     for s in stats:
         form_field = s[0]
@@ -85,16 +100,16 @@ def data(asset, kuids, lang=None, fields=None, split_by=None):
                           'field_type': field_type})
         report_data_by_variable_name[variable_name] = stats_dict
 
-    available_kuids = set(_kuids(asset))
+    available_vnames = set(_vnames(asset))
     if kuids:
-        available_kuids &= set(kuids)
+        available_vnames &= set(kuids)
 
-    asset_content = asset.valid_xlsform_content()
     kuid_to_variable_name_map = get_kuid_to_variable_name_map(asset_content)
+    available_vnames = available_vnames | set(kuid_to_variable_name_map.keys())
 
     data_by_kuid = dict()
-    for kuid in available_kuids:
-        variable_name = kuid_to_variable_name_map[kuid]
+    for kuid in available_vnames:
+        variable_name = kuid #kuid_to_variable_name_map[kuid]
         if variable_name in report_data_by_variable_name:
             data_by_kuid[kuid] = report_data_by_variable_name[variable_name]
 
@@ -102,7 +117,7 @@ def data(asset, kuids, lang=None, fields=None, split_by=None):
         asset._populate_report_styles()
     default_style = asset.report_styles[DEFAULT_REPORTS_KEY]
     specified = asset.report_styles[SPECIFIC_REPORTS_KEY]
-    report_styles = {kuid: specified[kuid] for kuid in available_kuids if specified.get(kuid)}
+    report_styles = {kuid: specified[kuid] for kuid in available_vnames if specified.get(kuid)}
 
     return [
         {
@@ -110,5 +125,5 @@ def data(asset, kuids, lang=None, fields=None, split_by=None):
             'style': report_styles.get(kuid, default_style),
             'row': _get_row_by_kuid(asset_content, kuid),
             'kuid': kuid,
-        } for kuid in available_kuids
+        } for kuid in available_vnames
     ]
