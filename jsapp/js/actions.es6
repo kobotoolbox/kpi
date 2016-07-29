@@ -4,7 +4,6 @@ import {
   log,
   t,
   notify,
-  redirectTo,
 } from './utils';
 
 var Reflux = require('reflux');
@@ -327,10 +326,17 @@ actions.resources.updateAsset.listen(function(uid, values){
 });
 
 actions.resources.deployAsset.listen(
-  function(asset, redeployment, dialog_or_alert){
+  function(asset, redeployment, dialog_or_alert, params={}){
+    var onComplete;
+    if (params && params.onComplete) {
+      onComplete = params.onComplete;
+    }
     dataInterface.deployAsset(asset, redeployment)
       .done((data) => {
         actions.resources.deployAsset.completed(data, dialog_or_alert);
+        if (onComplete) {
+          onComplete(asset);
+        }
       })
       .fail((data) => {
         actions.resources.deployAsset.failed(data, dialog_or_alert);
@@ -348,11 +354,6 @@ actions.resources.deployAsset.completed.listen(function(data, dialog_or_alert){
         dialog_or_alert.dismiss();
     }
   }
-  // notify and redirect
-  notify(t('deployed form'));
-  window.setTimeout(function(){
-    redirectTo(data.identifier);
-  }, 1000);
 });
 
 actions.resources.deployAsset.failed.listen(function(data, dialog_or_alert){

@@ -1,5 +1,5 @@
 import React from 'react/addons';
-import {Link} from 'react-router';
+import {Link,Navigation} from 'react-router';
 import mdl from '../libs/rest_framework/material';
 import Select from 'react-select';
 import moment from 'moment';
@@ -41,6 +41,7 @@ var MainHeader = React.createClass({
     Reflux.connect(stores.pageState),
     Reflux.ListenerMixin,
     hotkey.Mixin('handleHotkey'),
+    Navigation
   ],
   handleHotkey: function(e) {
     if (e.altKey && (e.keyCode == '69' || e.keyCode == '186')) {
@@ -79,15 +80,19 @@ var MainHeader = React.createClass({
     actions.auth.logout();
   },
   setStates() {
-    var breadcrumb = this.state.headerBreadcrumb;
-    if (breadcrumb.length > 1) {
-      this.setState({headerFilters: false});
-      return;
-    }
-    if (breadcrumb[0] && breadcrumb[0].to == 'library') {
-      this.setState({headerFilters: 'library'});
-    } else {
-      this.setState({headerFilters: 'forms'});
+    var currentRoutes = this.context.router.getCurrentRoutes();
+    var activeRouteName = currentRoutes[currentRoutes.length - 1];
+
+    switch(activeRouteName.path) {
+      case '/forms':
+        this.setState({headerFilters: 'forms'});
+        break;
+      case '/library':
+        this.setState({headerFilters: 'library'});
+        break;
+      default:
+        this.setState({headerFilters: false});
+        break;
     }
   },
   languageChange (evt) {
@@ -112,6 +117,27 @@ var MainHeader = React.createClass({
       </li>
     );
   },
+  toggleAccountMenuPopover (evt) {
+    var isBlur = evt.type === 'blur',
+        $popoverMenu;
+    if (this.state.accountMenuPopoverShowing || isBlur) {
+      if (this.refs['accountMenu-popover'] != undefined) {
+        $popoverMenu = $(this.refs['accountMenu-popover'].getDOMNode());
+        // if we setState and immediately hide popover then the
+        // links will not register as clicked
+        $popoverMenu.fadeOut(250, () => {
+          this.setState({
+            accountMenuPopoverShowing: false,
+          });
+        });
+      }
+    } else {
+      this.setState({
+        accountMenuPopoverShowing: true,
+      });
+    }
+  },
+
   renderAccountNavMenu () {
     var defaultGravatarImage = `${window.location.protocol}//www.gravatar.com/avatar/64e1b8d34f425d19e1ee2ea7236d3028?s=40`;
     var langs = [];
@@ -129,40 +155,50 @@ var MainHeader = React.createClass({
               2 
             </bem.AccountBox__notifications__count>
           </bem.AccountBox__notifications>
-          <bem.AccountBox__name>
-            <span>{accountName}</span>
+          <bem.AccountBox__name
+              onClick={this.toggleAccountMenuPopover}
+              onBlur={this.toggleAccountMenuPopover}>
+            <bem.AccountBox__username>
+              {accountName}
+            </bem.AccountBox__username>
             <bem.AccountBox__image>
               <img src={gravatar} />
             </bem.AccountBox__image>
-            <ul className="k-account__menu">
-              <li key="settings">
-                <a href={stores.session.currentAccount.projects_url + '/settings'} className="mdl-menu__item">
-                  <i className="k-icon-settings" />
-                  {t('Profile Settings')}
-                </a>
-              </li>
-              {leaveBetaUrl ?
-                <li>
-                  <a href={leaveBetaUrl} className="mdl-menu__item">
-                    {t('leave beta')}
-                  </a>
-                </li>
-              :null}
-              <li className="k-lang__submenu" key="lang">
-                <a className="mdl-menu__item">
-                  <i className="fa fa-globe" />
-                  {t('Language')}
-                </a>
-                <ul>
-                  {langs.map(this.renderLangItem)}
+
+            { (this.state.accountMenuPopoverShowing) ? 
+              <bem.PopoverMenu ref='accountMenu-popover'>
+                <ul className="k-account__menu">
+                  <li key="settings">
+                    <a href={stores.session.currentAccount.projects_url + '/settings'} className="mdl-menu__item">
+                      <i className="k-icon-settings" />
+                      {t('Profile Settings')}
+                    </a>
+                  </li>
+                  {leaveBetaUrl ?
+                    <li>
+                      <a href={leaveBetaUrl} className="mdl-menu__item">
+                        <i className="k-icon-settings" />
+                        {t('Leave Beta')}
+                      </a>
+                    </li>
+                  :null}
+                  <li className="k-lang__submenu" key="lang">
+                    <a className="mdl-menu__item">
+                      <i className="fa fa-globe" />
+                      {t('Language')}
+                    </a>
+                    <ul>
+                      {langs.map(this.renderLangItem)}
+                    </ul>
+                  </li>
+                  <li key="logout">
+                    <a onClick={this.logout} className="mdl-menu__item">
+                      <i className="k-icon-logout" /> 
+                      {t('Logout')}</a>
+                    </li>
                 </ul>
-              </li>
-              <li key="logout">
-                <a onClick={this.logout} className="mdl-menu__item">
-                  <i className="k-icon-logout" /> 
-                  {t('Logout')}</a>
-                </li>
-            </ul>
+              </bem.PopoverMenu>
+            : null }
           </bem.AccountBox__name>
         </bem.AccountBox>
         );
@@ -211,13 +247,13 @@ var MainHeader = React.createClass({
             :null}
             <div className="mdl-layout__header-searchers">
               { this.state.headerFilters == 'library' && 
-                <ListSearch searchContext={this.state.libraryFiltersContext} />
+                <ListSearch searchContext={this.state.libraryFiltersContext} placeholderText={t('Search Library')} />
               }
               { this.state.headerFilters == 'library' && 
                 <ListTagFilter searchContext={this.state.libraryFiltersContext} />
               }
               { this.state.headerFilters == 'forms' && 
-                <ListSearch searchContext={this.state.formFiltersContext} />
+                <ListSearch searchContext={this.state.formFiltersContext} placeholderText={t('Search Projects')} />
               }
               { this.state.headerFilters == 'forms' && 
                 <ListTagFilter searchContext={this.state.formFiltersContext} />

@@ -85,6 +85,7 @@ from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from .tasks import import_in_background
 from deployment_backends.backends import DEPLOYMENT_BACKENDS
 
+from kobo.static_lists import SECTORS, COUNTRIES
 
 CLONE_ARG_NAME = 'clone_from'
 COLLECTION_CLONE_FIELDS = {'name'}
@@ -105,6 +106,10 @@ def current_user(request):
                             settings.KOBOCAT_URL, user.username)),
                          'is_superuser': user.is_superuser,
                          'gravatar': gravatar_url(user.email),
+                         # TODO: Find a better location for SECTORS and COUNTRIES
+                         # as the functionality develops. (possibly in tags?)
+                         'available_sectors': SECTORS,
+                         'available_countries': COUNTRIES,
                          'is_staff': user.is_staff,
                          'last_login': user.last_login,
                          'languages': settings.LANGUAGES,

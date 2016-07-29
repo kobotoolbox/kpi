@@ -20,13 +20,11 @@ $headerAccountTextColor: #dbedf7;
   background-color: #414553;
   line-height: 17px;
   font-size: 12px;
-
   strong {
     font-weight: bold;
     text-transform: uppercase;
     font-size: 10px;
   }
-
   &:hover {
     background-color: #585d6c;
     cursor: pointer;
@@ -51,13 +49,10 @@ $headerAccountTextColor: #dbedf7;
   }
   .account-box {
     margin-left: auto;
-    .account-box__notifications,
-    .account-box__name {
-      display: inline-block;
-      vertical-align: middle;
-    }
   }
   .account-box__notifications {
+    display: inline-block;
+    vertical-align: middle;
     margin: 0px 32px;
     margin-top: 4px;
     position: relative;
@@ -80,45 +75,45 @@ $headerAccountTextColor: #dbedf7;
     border: 1px solid $layout-header-bg-color;
   }
   .account-box__name {
+    display: inline-block;
+    vertical-align: middle;
     color: $layout-nav-color;
     position: relative;
     cursor: pointer;
     margin-top: 4px;
-    > span {
+    background-color: transparent;
+    border: none;
+    .account-box__username {
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 4px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 180px;
+      overflow: hidden;
       padding: 0px 8px;
       font-size: 16px;
       color: $headerAccountTextColor;
     }
     .k-account__menu {
       position: absolute;
-      top: 20px;
-      right: -40px;
-      background-color: $nav-menu-item-bg;
-      box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5), inset 0 1px 3px 0 rgba(0, 0, 0, 0.5);
+      top: 24px;
+      right: -15px;
+      background-color: darken($layout-header-bg-color, 5%);
+      // box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5), inset 0 1px 3px 0 rgba(0, 0, 0, 0.5);
       margin: 0px;
       padding: 8px 0px;
-      transition: all 0.5s 0.5s;
-      max-height: 0px;
-      opacity: 0;
-      overflow: hidden;
       &:before {
         width: 0;
         height: 0;
         border-left: 15px solid transparent;
         border-right: 15px solid transparent;
-        border-bottom: 15px solid $nav-menu-item-bg;
+        border-bottom: 15px solid darken($layout-header-bg-color, 5%);
         position: absolute;
-        top: -6px;
+        top: -10px;
         content: '';
         right: 30px;
       }
-    }
-    &:hover .k-account__menu {
-      top: 36px;
-      transition: all 0.5s 0.2s;
-      max-height: 1000px;
-      opacity: 1;
-      overflow: visible;
     }
   }
   .account-box__image {
@@ -163,7 +158,7 @@ $headerAccountTextColor: #dbedf7;
       position: absolute;
       right: 100%;
       top: 0px;
-      background-color: $nav-menu-item-bg;
+      background-color: darken($layout-header-bg-color, 5%);
       transition: all 0.5s;
       max-height: 0px;
       opacity: 0;
@@ -177,19 +172,19 @@ $headerAccountTextColor: #dbedf7;
     }
   }
   .Select {
-    width: 300px;
+    width: 100%;
   }
   .Select-control,
   .is-open > .Select-control,
   .is-focused > .Select-control {
     position: relative;
     overflow: hidden;
-    background-color: transparent;
-    border-radius: 16px;
-    border: 2px solid #dbedf7;
-    height: 35px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 0px;
+    border: none;
+    height: 31px;
     .Select-arrow-zone {
-      background: $layout-header-bg-color;
+      background: transparent;
     }
     .Select-arrow {
       border-top: 8px solid transparent;
@@ -199,28 +194,30 @@ $headerAccountTextColor: #dbedf7;
       top: 8px;
     }
     .Select-placeholder {
-      color: #FFF;
-      padding: 5px 12px;
-      padding-right: 22px;
+      color: #CCC;
+      padding: 5px 32px;
       text-align: left;
       font-size: 14px;
+      opacity: 0.6;
     }
     .Select-input {
       margin: 0px;
+      margin-left: 32px;
       border: none;
     }
     .Select-input > input {
-      padding-left: 10px;
       color: white;
       font-size: 14px;
       height: 20px;
       margin: 0;
-      margin-left: 10px;
       margin-top: 4px;
       padding: 0px;
     }
+    .Select-item + .Select-input {
+      margin-left: 10px;
+    }
     .Select-item {
-      background-color: $nav-menu-item-bg-active;
+      background-color: darken($nav-menu-item-bg-active, 5%);
       border-radius: 6px;
       padding-right: 4px;
       padding-top: 2px;
@@ -252,16 +249,16 @@ $headerAccountTextColor: #dbedf7;
       padding-left: 4px;
       &:hover,
       &:focus {
-        background-color: $nav-menu-item-bg-active;
+        background-color: transparent;
         color: #FFF;
       }
       &:active {
-        background-color: $nav-menu-item-bg-active;
+        background-color: transparent;
       }
     }
   }
   .is-focused:not(.is-open) > .Select-control {
-    border: 2px solid #dbedf7;
+    border: none;
     box-shadow: none;
   }
   .Select.is-multi .Select-input {
@@ -273,7 +270,7 @@ $headerAccountTextColor: #dbedf7;
     padding-right: 25px;
   }
   .Select-menu-outer {
-    background-color: $nav-menu-item-bg;
+    background-color: darken($nav-menu-item-bg, 5%);
     border: none;
     box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
     color: white;
@@ -294,7 +291,7 @@ $headerAccountTextColor: #dbedf7;
   }
   .Select-clear {
     color: #dbedf7;
-    background: $layout-header-bg-color;
+    background: #717e95;
     font-size: 22px;
     padding: 4px;
     right: 4px;
@@ -307,21 +304,21 @@ $headerAccountTextColor: #dbedf7;
   .mdl-layout__header-searchers {
     flex-grow: 1;
   }
-  .search, .Select {
+  .search, .tag-select {
     vertical-align: middle;
-    margin-right: 20px;
+    margin: 0px 10px;
     display: inline-block;
     width: calc(50% - 20px);
+    position: relative;
   }
   .search {
-    position: relative;
     .k-search__input {
       color: white;
-      border: 2px solid #dbedf7;
-      border-radius: 16px;
-      padding: 5px 12px;
-      padding-right: 32px;
-      background-color: transparent;
+      border: none;
+      border-radius: 0px;
+      padding: 6px 12px;
+      padding-left: 32px;
+      background-color: rgba(255, 255, 255, 0.2);
       font-size: 14px;
       position: relative;
       width: 99%;
@@ -329,8 +326,19 @@ $headerAccountTextColor: #dbedf7;
     .search__icon {
       @extend .fa, .fa-search;
       position: absolute;
-      top: 8px;
-      right: 15px;
+      top: 7px;
+      left: 8px;
+      color: #dbedf7;
+      &:before {
+        font-size: 18px;
+      }
+    }
+  }
+  .tag-select {
+    i {
+      position: absolute;
+      top: 7px;
+      left: 8px;
       color: #dbedf7;
       &:before {
         font-size: 18px;

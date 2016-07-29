@@ -88,8 +88,8 @@ RUN grunt copy && npm run build-production
 
 RUN rm -rf "${KPI_SRC_DIR}"
 COPY . "${KPI_SRC_DIR}"
-# Restore the backed-up package installation directories.
 
+# Restore the backed-up package installation directories.
 RUN ln -s "${NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
     ln -s "${BOWER_COMPONENTS_DIR}/" "${KPI_SRC_DIR}/jsapp/xlform/components" && \
     ln -s "${GRUNT_BUILD_DIR}" "${KPI_SRC_DIR}/jsapp/compiled" && \
@@ -133,8 +133,9 @@ RUN echo 'source /etc/profile' >> /root/.bashrc
 ENV C_FORCE_ROOT="true"
 
 # Prepare for execution.
-COPY ./docker/init.bash /etc/my_init.d/10_init_kpi.bash
-RUN mkdir -p /etc/service/uwsgi
-COPY ./docker/run_uwsgi.bash /etc/service/uwsgi/run
+RUN ln -s "${KPI_SRC_DIR}/docker/init.bash" /etc/my_init.d/10_init_kpi.bash && \
+    rm -rf /etc/service/wsgi && \
+    mkdir -p /etc/service/uwsgi && \
+    ln -s "${KPI_SRC_DIR}/docker/run_uwsgi.bash" /etc/service/uwsgi/run
 
 EXPOSE 8000

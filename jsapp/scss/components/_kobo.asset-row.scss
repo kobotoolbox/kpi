@@ -3,167 +3,167 @@
   border-top: 1px solid transparentize($cool-gray, 0.7);
   cursor: pointer;
   padding: 4px 12px;
-
-  // position: relative;
   white-space: nowrap;
-
+  transition: max-height 0.5s ease, opacity 0.5s ease;
+  max-height: 999px;
+  opacity: 1;
   a, a:hover {
     color: $black;
     text-decoration: none;
     font-weight: 400;
+  }
+  > .asset-row__cell {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    > .asset-row__cell {
+      min-width: 0;
+    }
+  }
+  &:last-child {
+    border-bottom: 1px solid transparentize($cool-gray, 0.7);
   }
 
   &--deleting {
     opacity: 0.5;
   }
 
-  > .asset-row__cell {
-    width:100%;
-    display: flex;
-    align-items:center;
-
-    > .asset-row__cell {
-      min-width: 0;
-      &.asset-row__cell--title {
-        text-overflow: ellipsis;
-        overflow: hidden;
-      }
-    }
+  &--deleted {
+    transition: max-height 0.5s ease, opacity 0.5s ease;
+    opacity: 0;
+    max-height: 0px;
   }
+}
 
-  &:last-child {
-    border-bottom: 1px solid transparentize($cool-gray, 0.7);    
-  }
+.asset-row__celllink--name {
+  display: inline-block;
+  max-width:95%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  font-size: 15px;
+  vertical-align: text-bottom;
+}
 
+.asset-type-icon + .asset-row__celllink--name {
+  max-width: calc(100% - 50px);
+}
+
+.asset-row__description {
+  display: block;
+  color: $cool-gray;
+  font-size: 13px;
 }
 
 .asset-row__cell--tags {
   white-space: normal;
-}
-
-.asset-row--deleted {
-  opacity: 0.35;
-  background-color: rgba(255, 200, 200, 0.1);
-}
-
-.asset-row__sharingIcon {
-  i {
-    @extend .fa, .fa-fw, .fa-user;
-  }
-
-  &.asset-row__sharingIcon--multi-user {
-    i {
-      @extend .fa, .fa-fw, .fa-users;
-    }
-  }
-
-  &.asset-row__sharingIcon--self-owned {
-    i {
-      display: none;
-    }
-  }
-
-  &.asset-row__sharingIcon--public-owned {
-    span {
-      display: none;
-    }
-
-    i {
-      @extend .fa, .fa-fw, .fa-question;
-    }
-  }
+  padding-top: 30px;
 }
 
 .asset-row__cell--row-count {
   position: relative;
+  text-align: right;
 }
 
-.k-asset-arrow-icon {
-  position: absolute;
-  right: -5px;
-  top: 0px;
-  font-size: 24px;
-  color: #A5B3BC;
+// .k-asset-arrow-icon {
+//   position: absolute;
+//   right: -5px;
+//   top: 0px;
+//   font-size: 24px;
+//   color: #A5B3BC;
+//   @extend .fa, .fa-fw, .fa-lg, .fa-caret-right;
+// }
 
-  @extend .fa, .fa-fw, .fa-lg, .fa-caret-right;
-}
-
-.asset-row--active {
+.asset-row {
+  position: relative;
   > .asset-row__buttons {
     position: absolute;
-    top: 0px;
+    top: 3px;
     right: 0px;
-    padding: 2px 10px;
-    background: #EDF7FD;
+    background:#FFF;
+    width:43%;
     text-align: right;
-    width: 100%;
-    box-shadow: 0 2px 3px 0 rgba(0,0,0,0.23);
+    display: none;
+    padding-right: 6px;
+    height: calc(100% - 10px);
   }
-
   .asset-row__action-icon {
-    font-size: 20px;
-    margin-left: 15px;
+    margin-left: 4px;
     font-weight: 400;
     color: $cool-gray;
     cursor: pointer;
     padding: 4px 6px;
     display: inline-block;
     vertical-align: middle;
-
+    font-size: 22px;
     &:hover {
       background-color: transparent;
       color: unquote("rgb(#{$color-accent})");
     }
-
     &.asset-row__action-icon--view-collection i {
       @extend .k-icon, .k-icon-folder;
     }
-
-    &.asset-row__action-icon--clone i {
-      @extend .k-icon, .k-icon-clone;
+    i:before {
+      margin:0px;
+      font-size: 22px;
     }
-
-    &.asset-row__action-icon--delete i {
-      @extend .k-icon, .k-icon-trash;
-    }
-
-    &.asset-row__action-icon--edit {
-      margin-right: -8px;
-      font-size: 29px;
+    &.asset-row__action-icon--edit i:before {
+      font-size: 26px;
       // adjust edit icon (pencil) size, since in font file it is smaller than other fonts
     }
   }
-
-  .k-asset-arrow-icon {
-    @extend .fa-caret-down;
-
-    color: #A5B3BC;
+  &--display-tags .asset-row__action-icon--tagsToggle {
+    background-color: transparent;
+    color: unquote("rgb(#{$color-accent})");      
   }
-
-  .asset-row__action-icon button {
-    border:none;
-    margin:0;
-    padding:0;
+  .asset-row__action-icon--more-actions button {
+    border: none;
+    margin: 0;
+    padding: 0;
     border-radius: 0px;
     font-size: 20px;
     font-weight: 400;
     color: $cool-gray;
     background-color: transparent;
-    cursor:pointer;
+    cursor: pointer;
     &:hover {
       background-color: transparent;
       color: unquote("rgb(#{$color-accent})");
     }
   }
-
   .popover-menu {
-    padding:10px 0px;
-    right:20px;
-    top:2em;
+    padding: 10px 0px;
+    right: 20px;
+    top: 1.2em;
+    background-color: #FFF;
   }
   .popover-menu__link {
     font-size: 14px;
-    padding:8px 15px;
+    padding: 8px 15px;
     color: $cool-gray;
+    i {
+      width:30px;
+      margin-right: 5px;
+      display: inline-block;
+      &:before {
+        font-size: 18px;
+      }
+    }
   }
+
+  &:hover {
+    .asset-row__name {
+      font-weight: 500;
+      color: #222;
+    }
+
+    > .asset-row__buttons {
+      display: block;
+    }
+
+    .date--modified {
+      visibility: hidden;
+    }
+
+  }
+
 }

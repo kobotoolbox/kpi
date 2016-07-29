@@ -2,6 +2,7 @@ import {
   t,
   log,
   customConfirmAsync,
+  isLibrary,
 } from '../utils';
 
 import stores from '../stores';
@@ -27,12 +28,13 @@ export default {
     });
   },
   navigateBack () {
+    var routeName = `${isLibrary(this.context.router) ? 'library-' : ''}form-landing`;
     if (!this.needsSave()) {
-      this.transitionTo('form-landing', {assetid: this.props.params.assetid});
+      this.transitionTo(routeName, {assetid: this.props.params.assetid});
     } else {
       customConfirmAsync(t('you have unsaved changes. leave form without saving?'))
         .done(() => {
-          this.transitionTo('form-landing', {assetid: this.props.params.assetid});
+          this.transitionTo(routeName, {assetid: this.props.params.assetid});
         });
     }
   },
