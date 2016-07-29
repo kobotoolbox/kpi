@@ -172,6 +172,7 @@ bem.GraphSettings = BEM('graph-settings');
 bem.GraphSettings__buttons = bem.GraphSettings.__('buttons');
 
 bem.FormModal = bem('form-modal');
+bem.FormModal__form = bem.FormModal.__('form', '<form>');
 bem.FormModal__item = bem.FormModal.__('item');
 
 bem.PopoverMenu = bem('popover-menu');
