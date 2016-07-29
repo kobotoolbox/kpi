@@ -88,7 +88,9 @@ def data(asset, kuids, lang=None, fields=None, split_by=None):
 
     data_by_kuid = dict()
     for kuid in available_kuids:
-        data_by_kuid[kuid] = report_data_by_variable_name[kuid_to_variable_name_map[kuid]]
+        variable_name = kuid_to_variable_name_map[kuid]
+        if variable_name in report_data_by_variable_name:
+            data_by_kuid[kuid] = report_data_by_variable_name[variable_name]
 
     if not asset.report_styles:
         asset._populate_report_styles()
