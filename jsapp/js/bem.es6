@@ -65,6 +65,8 @@ bem.LibList__label = bem.LibList.__('label');
 bem.LibList__dragbox = bem.LibList.__('dragbox');
 bem.LibList__qtype = bem.LibList.__('qtype');
 
+bem.CollectionsWrapper = bem('collections-wrapper');
+
 bem.CollectionNav = bem('collection-nav');
 bem.CollectionNav__search = bem.CollectionNav.__('search');
 bem.CollectionNav__searchcriteria = bem.CollectionNav.__('searchcriteria', '<ul>');
