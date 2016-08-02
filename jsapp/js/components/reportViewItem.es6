@@ -50,14 +50,6 @@ var ReportViewItem = React.createClass({
     return s;
   },
   componentDidMount () {
-
-    Chart.defaults.global.elements.rectangle.backgroundColor = 'rgba(52, 106, 200, 0.6)';
-    Chart.defaults.global.elements.line.borderColor = 'rgba(52, 106, 200, 0.6)';
-    Chart.defaults.global.elements.line.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-    Chart.defaults.global.elements.point.backgroundColor = 'rgba(52, 106, 200, 0.8)';
-    Chart.defaults.global.elements.point.radius = 4;
-    Chart.defaults.global.elements.arc.backgroundColor = 'rgba(52, 106, 200, 0.6)';
-
     var opts = this.buildChartOptions();
     var canvas = this.refs.canvas.getDOMNode();
     var itemChart = new Chart(canvas, opts);
@@ -74,6 +66,27 @@ var ReportViewItem = React.createClass({
   },
   buildChartOptions () {
     var chart_type = this.props.style.report_type;
+
+    // TODO: set as default globally in a higher level (PM)
+    var colors = this.props.style.report_colors || [
+      'rgba(52, 106, 200, 0.8)',
+      'rgba(252, 74, 124, 0.8)',
+      'rgba(250, 213, 99, 0.8)',
+      'rgba(113, 230, 33, 0.8)',
+      'rgba(78, 203, 255, 0.8)',
+      'rgba(253, 190, 76, 0.8)',
+      'rgba(77, 124, 244, 0.8)',
+      'rgba(33, 231, 184, 0.8)'
+    ];
+
+    var baseColor = colors[0];
+    Chart.defaults.global.elements.rectangle.backgroundColor = baseColor;
+    Chart.defaults.global.elements.line.borderColor = baseColor;
+    Chart.defaults.global.elements.line.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+    Chart.defaults.global.elements.point.backgroundColor = baseColor;
+    Chart.defaults.global.elements.point.radius = 4;
+    Chart.defaults.global.elements.arc.backgroundColor = baseColor;
+
     if (chart_type == 'donut') {
       chart_type = 'pie';
     }
@@ -111,18 +124,32 @@ var ReportViewItem = React.createClass({
 
     if (chart_type == 'pie') {
       opts.options.legend.display = true;
-      opts.data.datasets[0].backgroundColor = [
-        'rgba(52, 106, 200, 0.8)',
-        'rgba(252, 74, 124, 0.8)',
-        'rgba(250, 213, 99, 0.8)',
-        'rgba(113, 230, 33, 0.8)',
-        'rgba(78, 203, 255, 0.8)',
-        'rgba(253, 190, 76, 0.8)',
-        'rgba(77, 124, 244, 0.8)',
-        'rgba(33, 231, 184, 0.8)'
-      ];
+      opts.data.datasets[0].backgroundColor = colors;
+
       if (this.props.style.report_type == 'donut') {
         opts.options.cutoutPercentage = 50;
+      }
+    }
+
+    if (chart_type == 'bar') {
+      opts.options.scales = {
+        xAxes: [{ 
+          barPercentage: 0.4,
+          gridLines: {
+            display: false,
+          }
+        }],      
+      }
+    }
+
+    if (chart_type == 'horizontalBar') {
+      opts.options.scales = {
+        yAxes: [{ 
+          barPercentage: 0.4,
+          gridLines: {
+            display: false,
+          }
+        }],      
       }
     }
 

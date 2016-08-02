@@ -45,7 +45,7 @@ var DefaultChartTypePicker = React.createClass({
     var radioButtons = reportStyles.map(function(style){
        return (
           <bem.GraphSettings__radio m={style.value}>
-              <input type="radio" name="site_name" 
+              <input type="radio" name="chart_type" 
                 value={style.value} 
                 checked={this.props.defaultStyle.report_type === style.value} 
                 onChange={this.defaultReportStyleChange} 
@@ -61,6 +61,113 @@ var DefaultChartTypePicker = React.createClass({
         <bem.GraphSettings__charttype>
           {radioButtons}
         </bem.GraphSettings__charttype>
+      );
+  },
+});
+
+let reportColorSets = [
+  {
+    label: 'set1', 
+    colors: [
+      'rgba(52, 106, 200, 0.8)',
+      'rgba(252, 74, 124, 0.8)',
+      'rgba(250, 213, 99, 0.8)',
+      'rgba(113, 230, 33, 0.8)',
+      'rgba(78, 203, 255, 0.8)',
+      'rgba(253, 190, 76, 0.8)',
+      'rgba(77, 124, 244, 0.8)',
+      'rgba(33, 231, 184, 0.8)'
+    ]
+  },
+  {
+    label: 'set2', 
+    colors: [
+      'rgba(40, 106, 163, 0.8)',
+      'rgba(69, 137, 197, 0.8)',
+      'rgba(0, 123, 234, 0.8)',
+      'rgba(0, 134, 255, 0.8)',
+      'rgba(50, 159, 255, 0.8)',
+      'rgba(100, 182, 255, 0.8)',
+      'rgba(141, 200, 255, 0.8)',
+      'rgba(192, 224, 255, 0.8)'
+    ]
+  },
+  {
+    label: 'set3', 
+    colors: [
+      'rgba(39, 69, 255, 0.8)',
+      'rgba(34, 122, 233, 0.8)',
+      'rgba(46, 145, 243, 0.8)',
+      'rgba(92, 173, 255, 0.8)',
+      'rgba(148, 200, 255, 0.8)',
+      'rgba(31, 174, 228, 0.8)',
+      'rgba(25, 214, 209, 0.8)',
+      'rgba(28, 234, 225, 0.8)'
+    ]
+  },  
+  {
+    label: 'set4', 
+    colors: [
+      'rgba(253, 35, 4, 0.8)',
+      'rgba(253, 104, 97, 0.8)',
+      'rgba(232, 65, 14, 0.8)',
+      'rgba(253, 146, 72, 0.8)',
+      'rgba(233, 139, 3, 0.8)',
+      'rgba(253, 215, 114, 0.8)',
+      'rgba(254, 227, 159, 0.8)',
+      'rgba(253, 146, 72, 0.8)'
+    ]
+  },
+  {
+    label: 'set5', 
+    colors: [
+      'rgba(63, 63, 63, 1)',
+      'rgba(90, 90, 90, 1)',
+      'rgba(107, 107, 107, 1)',
+      'rgba(128, 128, 128, 1)',
+      'rgba(151, 151, 151, 1)',
+      'rgba(169, 169, 169, 1)',
+      'rgba(196, 196, 196, 1)',
+      'rgba(178, 179, 190, 1)'
+    ]
+  }
+];
+
+var DefaultChartColorsPicker = React.createClass({
+  defaultReportColorsChange (e) {
+    this.props.onChange({
+      default: true,
+    }, {
+      report_colors: reportColorSets[e.currentTarget.value].colors || reportColorSets[0].colors
+    });
+  },
+  render () {
+    var radioButtons = reportColorSets.map(function(set, index){
+       return (
+          <bem.GraphSettings__radio>
+              <input type="radio" name="chart_colors" 
+                value={index} 
+                checked={this.props.defaultStyle.report_colors === reportColorSets[index].colors} 
+                onChange={this.defaultReportColorsChange} 
+                id={'type-' + set.label} />
+              <label htmlFor={'type-' + set.label}>
+               {
+                  reportColorSets[index].colors.map(function(color){
+                       return (
+                          <div style={{backgroundColor: color}}>
+                          </div>
+                       );
+                    }, this)               
+               }                
+              </label>
+          </bem.GraphSettings__radio>
+       );
+    }, this);
+
+    return (
+        <bem.GraphSettings__colors>
+          {radioButtons}
+        </bem.GraphSettings__colors>
       );
   },
 });
@@ -274,8 +381,8 @@ var Reports = React.createClass({
               <a href="#graph-colors" className="mdl-tabs__tab">
                 {t('Colors')}
               </a>
-              <a href="#graph-labels" className="mdl-tabs__tab">
-                {t('Labels')}
+              <a href="#graph-labels" className="mdl-tabs__tab is-edge">
+                {t('Size')}
               </a>
           </div>
  
@@ -287,7 +394,11 @@ var Reports = React.createClass({
               />
           </div>
           <div className="mdl-tabs__panel" id="graph-colors">
-            Color presets go here
+            <DefaultChartColorsPicker
+                defaultStyle={defaultStyle}
+                onChange={this.reportStyleChange}
+                translationIndex={this.state.translationIndex}
+              />
           </div>
           <div className="mdl-tabs__panel" id="graph-labels">
             <bem.FormView__label>

@@ -181,6 +181,7 @@ bem.ReportView__chart = bem.ReportView.__('chart');
 bem.GraphSettings = BEM('graph-settings');
 bem.GraphSettings__buttons = bem.GraphSettings.__('buttons');
 bem.GraphSettings__charttype = bem.GraphSettings.__('charttype');
+bem.GraphSettings__colors = bem.GraphSettings.__('colors');
 bem.GraphSettings__radio = bem.GraphSettings.__('radio');
 
 bem.FormModal = bem('form-modal');

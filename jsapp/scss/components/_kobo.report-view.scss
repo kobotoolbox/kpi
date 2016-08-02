@@ -73,6 +73,11 @@
 
 .report-view__chart {
   padding: 40px 50px;
+  canvas {
+    margin:0 auto;
+    max-width:900px;
+    max-height: 600px;
+  }
 }
 
 // report buttons
@@ -138,8 +143,9 @@
   }
 }
 
-.graph-settings__charttype {
+.graph-settings__charttype, .graph-settings__colors {
   padding: 30px 10px;
+  min-height: 400px;
   margin-bottom: 20px;
   &:after {
     content: '';
@@ -149,10 +155,6 @@
 }
 
 .graph-settings__radio {
-  width: 33%;
-  height: 100px;
-  margin-bottom: 20px;
-  float: left;
   text-align: center;
   background-size: auto 80%;
   background-position: top center;
@@ -164,7 +166,6 @@
     border:2px solid white;
     display: block;
     width: 100%;
-    padding-top: 80px;
     cursor: pointer;
   }
   input:checked + label {
@@ -187,5 +188,34 @@
   }
   &--line {
     background-image: url("~../img/chart-line.png");
+  }
+}
+
+.graph-settings__charttype {
+  .graph-settings__radio {
+    width: 33%;
+    height: 100px;
+    margin-bottom: 20px;
+    float: left;
+    label {
+      padding-top: 80px;
+    }
+  } 
+}
+
+.graph-settings__colors {
+  .graph-settings__radio {
+    margin-bottom: 10px;
+    label {
+      padding:4px;
+      padding-top: 8px;
+      width: 380px;
+      margin:0 auto;
+      > div {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+      }
+    }
   }
 }
