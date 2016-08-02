@@ -1324,12 +1324,12 @@ mixins.dmix = dmix;
  
 mixins.droppable = {
   _forEachDroppedFile (evt, file/*, params={}*/) {
-    var isLibrary = isLibrary(this.context.router);
-    var baseName = isLibrary ? 'library-' : '';
+    var library = isLibrary(this.context.router);
+    var baseName = library ? 'library-' : '';
     dataInterface.postCreateBase64EncodedImport(assign({
         base64Encoded: evt.target.result,
         name: file.name,
-        library: isLibrary,
+        library: library,
         lastModified: file.lastModified,
       }, this.state.url ? {
         destination: this.state.url,
