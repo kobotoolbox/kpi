@@ -25,6 +25,7 @@ import {
   notify,
   isLibrary,
 } from './utils';
+import {ProjectSettingsEditor} from './components/formEditors';
  
 var AssetTypeIcon = bem.create('asset-type-icon');
  
@@ -322,16 +323,19 @@ var dmix = {
     // setup iframe Urls for KC
     // TODO: do this in a better place, and more cleanly
  
-    var deployment__identifier = this.state.deployment__identifier;
-    var report__base = deployment__identifier.replace('/forms/', '/reports/');
-    var iframeUrls = {
-      Report: report__base+'/digest.html',
-      Table: report__base+'/export.html',
-      Gallery: deployment__identifier+'/photos',
-      Map: deployment__identifier+'/map',
-      Downloads: report__base+'/export/',
-      Settings: deployment__identifier+'/form_settings',
-    };
+    var iframeUrls = false;
+    if (this.state.has_deployment) {
+      var deployment__identifier = this.state.deployment__identifier;
+      var report__base = deployment__identifier.replace('/forms/', '/reports/');
+      iframeUrls = {
+        Report: report__base+'/digest.html',
+        Table: report__base+'/export.html',
+        Gallery: deployment__identifier+'/photos',
+        Map: deployment__identifier+'/map',
+        Downloads: report__base+'/export/',
+        Settings: deployment__identifier+'/form_settings',
+      };
+    }
  
     return (
       <bem.FormView__wrapper m={['data', this.state.activeSubTab]}>
@@ -339,7 +343,6 @@ var dmix = {
           <iframe 
             src={iframeUrls[this.state.activeSubTab]}>
           </iframe>
- 
         </bem.FormView__cell>
       </bem.FormView__wrapper>
       );

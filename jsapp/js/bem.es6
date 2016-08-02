@@ -183,6 +183,10 @@ bem.GraphSettings__buttons = bem.GraphSettings.__('buttons');
 bem.GraphSettings__charttype = bem.GraphSettings.__('charttype');
 bem.GraphSettings__radio = bem.GraphSettings.__('radio');
 
+bem.FormModal = bem('form-modal');
+bem.FormModal__form = bem.FormModal.__('form', '<form>');
+bem.FormModal__item = bem.FormModal.__('item');
+
 bem.PopoverMenu = bem('popover-menu');
 bem.PopoverMenu__item = bem.PopoverMenu.__('item');
 bem.PopoverMenu__link = bem.PopoverMenu.__('link', '<a>');
