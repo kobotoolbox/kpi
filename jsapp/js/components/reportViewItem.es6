@@ -65,7 +65,7 @@ var ReportViewItem = React.createClass({
     }
   },
   buildChartOptions () {
-    var chart_type = this.props.style.report_type;
+    var chart_type = this.props.style.report_type || 'bar';
 
     // TODO: set as default globally in a higher level (PM)
     var colors = this.props.style.report_colors || [

@@ -221,21 +221,27 @@ var Reports = React.createClass({
       let defaultReportStyle = reportStyles.default;
       let specifiedReportStyles = reportStyles.specified;
 
-      asset.content.survey.forEach(function(r){
-        let $kuid = r.$kuid,
-          style = specifiedReportStyles[$kuid];
-        r._reportStyle = style;
-        rowsByKuid[r.$kuid] = r;
-      });
-
-      dataInterface.getReportData({uid: uid, kuids: kuids}).done((data)=>{
-        this.setState({
-          asset: asset,
-          rowsByKuid: rowsByKuid,
-          reportStyles: asset.report_styles,
-          reportData: data.list,
+      console.log(asset.report_styles);
+      if (asset.content.survey != undefined) {
+        asset.content.survey.forEach(function(r){
+          let $kuid = r.$kuid,
+            style = specifiedReportStyles[$kuid];
+          r._reportStyle = style;
+          rowsByKuid[r.$kuid] = r;
         });
-      });
+
+        dataInterface.getReportData({uid: uid, kuids: kuids}).done((data)=>{
+          this.setState({
+            asset: asset,
+            rowsByKuid: rowsByKuid,
+            reportStyles: asset.report_styles,
+            reportData: data.list,
+          });
+        });
+      } else {
+        // Redundant?
+        console.error('Survey not defined.');
+      }
     });
   },
   getInitialState () {
