@@ -13,7 +13,6 @@ import stores from '../stores';
 import bem from '../bem';
 import searches from '../searches';
 import mixins from '../mixins';
-import ReactTooltip from 'react-tooltip';
 
 import {
   t,
@@ -110,7 +109,6 @@ var Drawer = React.createClass({
               </a>
             </div>
 
-            <ReactTooltip effect="float" place="bottom" />
           </bem.Drawer>
       );
   },
@@ -149,7 +147,7 @@ var FormSidebar = React.createClass({
   },
   render () {
     return (
-      <div>
+      <bem.FormSidebar__wrapper>
         {this.state.headerBreadcrumb.map((item, n)=>{
           if (n < 1) {
             return (
@@ -189,7 +187,7 @@ var FormSidebar = React.createClass({
           </bem.CollectionNav__actions>
         </bem.CollectionNav>
         <SidebarFormsList/>
-      </div>
+      </bem.FormSidebar__wrapper>
     );
   },
   componentWillReceiveProps() {
@@ -303,17 +301,20 @@ var LibrarySidebar = React.createClass({
       dataInterface.deleteCollection({uid: collectionUid}).then(qc).catch(qc);
     });
   },
-  renameCollection (collection) {
-    return (evt) => {
-      evt.preventDefault();
-      customPromptAsync('collection name?', collection.name).then((val)=>{
-        actions.resources.updateCollection(collection.uid, {name: val}).then(
-          (data) => {
-            this.queryCollections();
-          }
-        );
-      });
-    };
+  renameCollection (evt) {
+    var collectionUid = $(evt.currentTarget).data('collection-uid');
+    var collectionName = $(evt.currentTarget).data('collection-name');
+
+    evt.preventDefault();
+    customPromptAsync('collection name?', collectionName).then((val)=>{
+      actions.resources.updateCollection(collectionUid, {name: val}).then(
+        (data) => {
+          this.queryCollections();
+          var popoverMenu = $(this.refs['collection-popover'].getDOMNode());
+          popoverMenu.fadeOut();
+        }
+      );
+    });
   },
   subscribeCollection (evt) {
     evt.preventDefault();
@@ -493,6 +494,15 @@ var LibrarySidebar = React.createClass({
                                 >
                               <i className="k-icon-share" />
                               {t('Share')}
+                            </bem.PopoverMenu__link>
+                            <bem.PopoverMenu__link
+                                m={'rename'}
+                                onClick={this.renameCollection}
+                                data-collection-uid={collection.uid}
+                                data-collection-name={collection.name}
+                                >
+                              <i className="k-icon-edit" />
+                              {t('Rename')}
                             </bem.PopoverMenu__link>
                             <bem.PopoverMenu__link
                                 m={'delete'}

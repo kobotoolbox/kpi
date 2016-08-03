@@ -90,6 +90,7 @@ bem.CollectionSidebar__itemactions = bem('collection-sidebar__itemactions', '<di
 bem.CollectionSidebar__itemlink = bem.CollectionSidebar.__('itemlink', '<a>');
 
 bem.FormSidebar = bem('form-sidebar');
+bem.FormSidebar__wrapper = bem.FormSidebar.__('wrapper');
 bem.FormSidebar__item = bem.FormSidebar.__('item');
 bem.FormSidebar__label = bem.FormSidebar.__('label');
 bem.FormSidebar__grouping = bem.FormSidebar.__('grouping');

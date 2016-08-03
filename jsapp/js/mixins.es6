@@ -13,7 +13,7 @@ import stores from './stores';
 import bem from './bem';
 import actions from './actions';
 import ui from './ui';
-import ReactTooltip from 'react-tooltip';
+
 import {
   formatTime,
   customConfirm,
@@ -159,7 +159,6 @@ var dmix = {
                 this.renderDataTabs()
               : null }
  
-              <ReactTooltip effect="float" place="bottom" />
             </bem.FormView>
           );
       }

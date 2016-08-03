@@ -1,7 +1,6 @@
 import React from 'react/addons';
 import {Navigation} from 'react-router';
 import $ from 'jquery';
-import ReactTooltip from 'react-tooltip';
  
 import bem from '../bem';
 import ui from '../ui';
@@ -278,7 +277,6 @@ var AssetRow = React.createClass({
                   <i className='k-icon-trash' />
                 </bem.AssetRow__actionIcon>
               }
-            <ReactTooltip effect="float" place="bottom" />
           </bem.AssetRow__buttons>
         </bem.AssetRow>
       );
