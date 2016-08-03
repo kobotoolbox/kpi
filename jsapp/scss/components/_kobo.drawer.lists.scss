@@ -1,4 +1,12 @@
+.collections-wrapper {
+  height: 100%;
+}
+
 .collection-sidebar {
+  height: calc(100% - 72px);
+  overflow: auto;
+  margin-right: -5px;
+
   &__itemlink {
     margin-left: 5px;
     font-size: 0.9em;
@@ -23,13 +31,8 @@
     vertical-align: top;
     margin-left: 20px;
     margin-bottom: 10px;
-    text-align: left;
+    text-align: left; 
     direction: ltr;
-
-    &--toplevel {
-      margin-left: 0px;
-      color: darken($cool-gray, 15%);
-    }
 
     &--info {
       cursor: default;
@@ -41,11 +44,10 @@
     }
 
     .popover-menu {
-      display: none;
-      min-width: 120px;
-      max-width: 180px;
+      min-width: 165px;
       right: auto;
-      left: -5px;
+      left: 10px;
+      font-size: 13px;
     }
     &--selected {
       color:#555B6E;
@@ -58,19 +60,24 @@
       .collection-sidebar__itemCog {
         position: absolute;
         left: -24px;
-        top: 2px;
+        top: 1px;
         padding:0px;
         border:none;
         background-color: transparent;
         cursor: pointer;
-        i:before {
-          font-size: 22px;
+        > i:before {
+          font-size: 24px;
         }
       }
 
       .popover-menu {
         display: block;
       }
+    }
+
+    &--toplevel {
+      margin-left: 0px;
+      color: darken($cool-gray, 15%);
     }
 
     &:hover {
@@ -86,6 +93,10 @@
         margin-right: 4px;
         padding-top: 6px;
       }
+
+      &.fa-caret-down {
+        display: none;
+      }
     }
 
     > span {
@@ -95,16 +106,20 @@
       padding-top: 5px;
     }
   }
-}
 
-.collection-sidebar {
-    height: calc(100% - 72px);
-    overflow: auto;
-    margin-right: -5px;
+  .collection-sidebar__item--toplevel.collection-sidebar__item--selected {
+    > i {
+      color: $cool-green;
+      &.fa-caret-down {
+        display: inline-block;
+      }
+    }
+  }
 }
 
 .form-sidebar {
-  height: calc(100% - 90px);
+  height: calc(100% - 85px);
+  overflow: hidden;
   &__grouping {
     max-height: 30%;
     padding-left: 28px;
@@ -181,7 +196,7 @@
 .form-sidebar__grouping {
   transition:0.5s all;
   &--visible {
-    max-height:2000px;
+    max-height:25%;
   }
   &--collapsed {
     max-height: 0px;

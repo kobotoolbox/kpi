@@ -13,7 +13,7 @@ import stores from './stores';
 import bem from './bem';
 import actions from './actions';
 import ui from './ui';
-import ReactTooltip from 'react-tooltip';
+
 import {
   formatTime,
   customConfirm,
@@ -159,7 +159,6 @@ var dmix = {
                 this.renderDataTabs()
               : null }
  
-              <ReactTooltip effect="float" place="bottom" />
             </bem.FormView>
           );
       }
@@ -1167,12 +1166,12 @@ mixins.dmix = dmix;
  
 mixins.droppable = {
   _forEachDroppedFile (evt, file/*, params={}*/) {
-    var isLibrary = isLibrary(this.context.router);
-    var baseName = isLibrary ? 'library-' : '';
+    var library = isLibrary(this.context.router);
+    var baseName = library ? 'library-' : '';
     dataInterface.postCreateBase64EncodedImport(assign({
         base64Encoded: evt.target.result,
         name: file.name,
-        library: isLibrary,
+        library: library,
         lastModified: file.lastModified,
       }, this.state.url ? {
         destination: this.state.url,

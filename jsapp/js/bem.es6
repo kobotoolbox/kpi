@@ -65,6 +65,8 @@ bem.LibList__label = bem.LibList.__('label');
 bem.LibList__dragbox = bem.LibList.__('dragbox');
 bem.LibList__qtype = bem.LibList.__('qtype');
 
+bem.CollectionsWrapper = bem('collections-wrapper');
+
 bem.CollectionNav = bem('collection-nav');
 bem.CollectionNav__search = bem.CollectionNav.__('search');
 bem.CollectionNav__searchcriteria = bem.CollectionNav.__('searchcriteria', '<ul>');
@@ -88,6 +90,7 @@ bem.CollectionSidebar__itemactions = bem('collection-sidebar__itemactions', '<di
 bem.CollectionSidebar__itemlink = bem.CollectionSidebar.__('itemlink', '<a>');
 
 bem.FormSidebar = bem('form-sidebar');
+bem.FormSidebar__wrapper = bem.FormSidebar.__('wrapper');
 bem.FormSidebar__item = bem.FormSidebar.__('item');
 bem.FormSidebar__label = bem.FormSidebar.__('label');
 bem.FormSidebar__grouping = bem.FormSidebar.__('grouping');

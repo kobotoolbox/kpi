@@ -161,6 +161,7 @@
 
       button {
         color: #8A9AA4;
+        overflow: visible;
         &:hover, &:focus, &:focus:not(:active) {
           background-color: transparent;
         }

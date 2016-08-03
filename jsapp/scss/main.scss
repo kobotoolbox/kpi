@@ -24,6 +24,10 @@ $newformButtonColor: mix(#2196f3, grayscale(#2196f3), 38%);
 
 $newformCircleWidthHeight: 55px;
 
+@import "./components/kobo.bem.ui";
+@import "./components/kobo.modal";
+@import "./components/kobo.tooltips";
+
 @import "./components/kobo.navigation";
 @import "./components/kobo.drawer";
 @import "./components/kobo.drawer.lists";
@@ -39,10 +43,7 @@ $newformCircleWidthHeight: 55px;
 @import "./components/kobo.lib-nav";
 @import "./components/kobo.lib-list";
 @import "./components/kobo.form-view";
-@import "./components/kobo.form-builder";
 @import "./components/kobo.report-view";
-@import "./components/kobo.bem.ui";
-@import "./components/kobo.modal";
 @import "./components/kobo.asset-type-icon";
 @import "./libs/pygments-theme";
 
