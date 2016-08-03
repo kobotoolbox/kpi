@@ -99,11 +99,11 @@ var Drawer = React.createClass({
             </div>
 
             <div className='k-drawer__icons-bottom'>
-              <a href='https://github.com/kobotoolbox/' className='k-drawer__link'>
+              <a href='https://github.com/kobotoolbox/' className='k-drawer__link' target="_blank">
                 <i className="k-icon k-icon-github" />
                 {t('source')}
               </a>
-              <a href='http://support.kobotoolbox.org/' className='k-drawer__link'>
+              <a href='http://support.kobotoolbox.org/' className='k-drawer__link' target="_blank">
                 <i className="k-icon k-icon-help" />
                 {t('help')}
               </a>
