@@ -151,11 +151,9 @@ bem.FormView = BEM('form-view');
 bem.FormView__header = bem.FormView.__('header');
 bem.FormView__tabbar = bem.FormView.__('tabbar');
 bem.FormView__tabs = bem.FormView.__('tabs');
-bem.FormView__tab = bem.FormView.__('tab', '<button>');
+bem.FormView__tab = bem.FormView.__('tab', '<a>');
 bem.FormView__button = bem.FormView.__('button', '<button>');
-bem.FormView__extras = bem.FormView.__('extras');
 bem.FormView__title = bem.FormView.__('title');
-bem.FormView__titleinner = bem.FormView.__('titleinner');
 bem.FormView__name = bem.FormView.__('name');
 bem.FormView__description = bem.FormView.__('description');
 

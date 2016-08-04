@@ -133,11 +133,7 @@ var dmix = {
     survey: {
       innerRender: function () {
         return (
-            <bem.FormView
-              m={this.state.activeTab == 'Form' ? 'scrollable' : ''} >
-              {this.renderAncestors()}
-              {this.renderHeader()}
-              { this.state.activeTab == 'Form' ?
+            <bem.FormView m='scrollable'>
                 <bem.FormView__wrapper m='form'>
                   <bem.FormView__row>
                     <bem.FormView__cell m='overview'>
@@ -151,100 +147,11 @@ var dmix = {
                   { this.state.has_deployment ?
                     this.renderInstructions()
                   : null }
-                </bem.FormView__wrapper>
-              : null }
- 
- 
-              { this.state.activeTab == 'Data' || this.state.activeTab == 'Settings' ?
-                this.renderDataTabs()
-              : null }
- 
+                </bem.FormView__wrapper> 
             </bem.FormView>
           );
       }
     }
-  },
-  renderAncestors () {},
-  renderHeader () {
- 
-    return (
-        <bem.FormView__header m={[
-              this.state.name ? 'named' : 'untitled',
-              this.state.showExpandedReport ? 'expandedReport' : ''
-            ]}>
-          { !this.state.showExpandedReport && 
-            <bem.FormView__tabbar>
-              <bem.FormView__tabs>
-                <bem.FormView__tab className="is-edge" m='summary' >
-                  {t('Summary')}
-                </bem.FormView__tab>
-                <bem.FormView__tab 
-                  m='form' 
-                  className={this.state.activeTab == 'Form' ? 'active' : ''} 
-                  onClick={this.setActiveTab} 
-                  data-id='Form'>
-                    {t('Form')}
-                </bem.FormView__tab>
-                { this.state.deployment__identifier != undefined && this.state.deployment__active ?
-                  <bem.FormView__tab 
-                    m='data' 
-                    className={this.state.activeTab == 'Data' ? 'active' : ''} 
-                    onFocus={this.toggleDataPopover}
-                    onBlur={this.toggleDataPopover} >
-                    {t('Data')}
- 
-                    { (this.state.dataPopoverShowing) ? 
-                      <bem.PopoverMenu ref='data-popover'>
-                        <bem.PopoverMenu__link className='is-edge' m={'report-in-kpi'}
-                            href={this.makeHref('form-reports', {assetid: this.state.uid})}>
-                          <i className="k-icon-report" />
-                          {t('Report in KPI')}
-                        </bem.PopoverMenu__link>
-                        {  
-                          ['Report', 'Table', 'Gallery', 'Downloads', 'Map',  /*'Settings'*/].map((actn)=>{
-                            return (
-                              <bem.PopoverMenu__link
-                                  m={[actn, this.state.activeSubTab == actn ? 'active' : '']} 
-                                  data-id={actn}
-                                  onClick={this.setActiveSubTab}
-                                  >
-                                <i />
-                                {actn}
-                              </bem.PopoverMenu__link>
-                            );
-                          }) 
-                        }
- 
-                      </bem.PopoverMenu>
-                    : null }
-                  </bem.FormView__tab>
- 
-                : null }
- 
-                <bem.FormView__tab 
-                  m='settings' 
-                  className={this.state.activeTab == 'Settings' ? 'active' : ''} 
-                  onClick={this.setActiveTab} 
-                  data-id='Settings'>
-                    {t('Settings')}
-                </bem.FormView__tab>
- 
-              </bem.FormView__tabs>
-            </bem.FormView__tabbar>
-          }
- 
-          <bem.FormView__title>
-            <bem.FormView__titleinner>
-              <bem.FormView__name>
-                <ui.AssetName {...this.state} />
-              </bem.FormView__name>
-              <bem.FormView__description className="is-edge">
-                <span className="no-description">{t('Enter a Description...')}</span>
-              </bem.FormView__description>
-            </bem.FormView__titleinner>
-          </bem.FormView__title> 
-        </bem.FormView__header>
-      );
   },
   renderEditPreviewButtons () {
     var downloadable = !!this.state.downloads[0],
@@ -316,34 +223,6 @@ var dmix = {
           <AssetTypeIcon m={this.state.asset_type}><i /></AssetTypeIcon>
           <ui.AssetName {...this.state} />
         </bem.AssetView__name>
-      );
-  },
-  renderDataTabs() {
-    // setup iframe Urls for KC
-    // TODO: do this in a better place, and more cleanly
- 
-    var iframeUrls = false;
-    if (this.state.has_deployment) {
-      var deployment__identifier = this.state.deployment__identifier;
-      var report__base = deployment__identifier.replace('/forms/', '/reports/');
-      iframeUrls = {
-        Report: report__base+'/digest.html',
-        Table: report__base+'/export.html',
-        Gallery: deployment__identifier+'/photos',
-        Map: deployment__identifier+'/map',
-        Downloads: report__base+'/export/',
-        Settings: deployment__identifier+'/form_settings',
-      };
-    }
- 
-    return (
-      <bem.FormView__wrapper m={['data', this.state.activeSubTab]}>
-        <bem.FormView__cell m='iframe'>
-          <iframe 
-            src={iframeUrls[this.state.activeSubTab]}>
-          </iframe>
-        </bem.FormView__cell>
-      </bem.FormView__wrapper>
       );
   },
   renderParentCollection () {
@@ -703,24 +582,6 @@ var dmix = {
       });
     }
   },
-  toggleDataPopover (evt) {
-    var isBlur = evt.type === 'blur',
-        $popoverMenu;
-    if (isBlur) {
-      $popoverMenu = $(this.refs['data-popover'].getDOMNode());
-      // if we setState and immediately hide popover then the
-      // download links will not register as clicked
-      $popoverMenu.fadeOut(250, () => {
-        this.setState({
-          dataPopoverShowing: false,
-        });
-      });
-    } else {
-      this.setState({
-        dataPopoverShowing: true,
-      });
-    }
-  },
   setSelectedCollectOption(c) {
     return function (e) {
       this.setState({
@@ -884,25 +745,6 @@ var dmix = {
   toggleDeploymentHistory () {
     this.setState({
       historyExpanded: !this.state.historyExpanded,
-    });
-  },
-  setActiveTab (evt) {
-    var tabId = $(evt.target).data('id');
-    this.setState({
-      activeTab: tabId,
-    });
-    if (tabId == 'Settings') {
-      this.setState({
-        activeSubTab: tabId,
-      });    
-    }
-  },
-  setActiveSubTab (evt) {
-    var clickedActionId = $(evt.target).closest('[data-id]').data('id');
-    $(evt.target).closest('button').trigger('blur');
-    this.setState({
-      activeSubTab: clickedActionId,
-      activeTab: 'Data'
     });
   },
   renderDeployments () {
@@ -1089,8 +931,6 @@ var dmix = {
       userCanEdit: false,
       userCanView: true,
       historyExpanded: false,
-      activeTab: 'Form',
-      activeSubTab: 'Report',
       collectionOptionList: [],
       selectedCollectOption: {},
       showReportGraphSettings: false,

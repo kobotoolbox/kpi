@@ -1,4 +1,5 @@
 // header and navigation styling
+
 $headerAccountTextColor: #dbedf7;
 
 .k-header__bar {
@@ -37,6 +38,7 @@ $headerAccountTextColor: #dbedf7;
   min-height: 56px;
   margin-left: 0px;
   width: 100%;
+  z-index: auto;
   .mdl-layout__header-row {
     height: 56px;
     padding: 0px 20px;
@@ -368,6 +370,113 @@ $headerAccountTextColor: #dbedf7;
     }
     .search {
       width: 90%;
+    }
+  }
+}
+
+// form view header (white bar)
+
+.with-formView-header .mdl-layout__content,
+.with-formView-header .k-drawer {
+  height: calc(100% - 128px);
+}
+
+.with-formView-header .k-drawer {
+  top: 120px;
+}
+
+.form-view__tabbar {
+  @extend .mdl-shadow--2dp;
+  background-color: #FFF;
+  width: 100%;
+  height: 55px;
+}
+
+.form-view__tabs {
+  position: relative;
+  padding: 10px;
+  padding-bottom: 0px;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+@media screen and (min-width: 769px) {
+  .form-view__tabbar .form-view__tabs {
+    padding-left: 260px;
+  }
+}
+
+// Form title + desc in header
+
+.form-view__title {
+  vertical-align: middle;
+  margin: 0px 10px;
+  display: inline-block;
+  flex-shrink: 1;
+  flex-grow: 1;
+  overflow: hidden;
+  .form-view__name {
+    font-size: 18px;
+    padding-top: 8px;
+    min-width: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    display: inline-block;
+    max-width: calc(100% - 5px);
+  }
+  .form-view__description {
+    color: $cool-gray;
+    margin: 0px;
+    margin-top: -2px;
+    padding: 0px;
+    line-height: 1em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    display: block;
+    min-height: 18px;
+    max-width: calc(100% - 5px);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .form-view__title {
+    display: none;
+  }
+}
+
+.form-view__button--data, a.form-view__tab {
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 20px 10px 4px;
+  text-transform: uppercase;
+  margin-right: 20px;
+  font-size: 15px;
+  cursor: pointer;
+  position: relative;
+  color: #444;
+  font-weight: normal;
+  &.active, &:hover {
+    border-bottom: 3px solid $cool-green;
+  }
+}
+
+.form-view__button--data {
+  > i {
+    margin-left: 4px;
+    opacity: 0.5;
+  }
+  .popover-menu {
+    right: auto;
+    left: 0px;
+    top: 3em;
+    .popover-menu__link {
+      i {
+        font-size: 24px;
+        margin-right: 8px;
+      }
     }
   }
 }

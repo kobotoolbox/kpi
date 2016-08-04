@@ -36,6 +36,7 @@ import {
 } from './components/formEditors';
 
 import Reports from './components/reports';
+import FormData from './components/formData';
 
 import {
   ListSearch,
@@ -820,10 +821,9 @@ var App = React.createClass({
   render() {
     var currentRoutes = this.context.router.getCurrentRoutes();
     var activeRouteName = currentRoutes[currentRoutes.length - 1];
-    if (!this.state.drawerHidden) {
-      var currentRouteClass = (activeRouteName.path == '/forms/:assetid') ? 'in-form-view' : '';
-    } else {
-      currentRouteClass = '';
+    var currentRouteClass = '';
+    if (currentRoutes[2] != undefined && currentRoutes[2].path == '/forms/:assetid') {
+      currentRouteClass = 'with-formView-header';
     }
 
     return (
@@ -1784,6 +1784,12 @@ var routes = (
         <Route name="form-reports" path="reports" handler={Reports} />
         <Route name="form-preview-enketo" path="preview" handler={FormEnketoPreview} />
         <Route name='form-edit' path="edit" handler={FormPage} />
+        <Route name='form-data-report' path="data/report" handler={FormData} />
+        <Route name='form-data-table' path="data/table" handler={FormData} />
+        <Route name='form-data-downloads' path="data/downloads" handler={FormData} />
+        <Route name='form-data-gallery' path="data/gallery" handler={FormData} />
+        <Route name='form-data-map' path="data/map" handler={FormData} />
+        <Route name='form-data-settings' path="data/settings" handler={FormData} />
         <DefaultRoute handler={FormLanding} />
       </Route>
 
