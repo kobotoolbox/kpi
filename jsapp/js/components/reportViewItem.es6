@@ -195,8 +195,12 @@ var ReportViewItem = React.createClass({
           </bem.ReportView__headingMeta>
         </bem.ReportView__itemHeading>
         <bem.ReportView__itemContent>
-          <bem.ReportView__chart>
-            <canvas ref="canvas"></canvas>
+          <bem.ReportView__chart
+              style={{
+                // height: this.props.style.graphHeight, 
+                width: this.props.style.graphWidth, 
+                }}>
+            <canvas ref="canvas" />
           </bem.ReportView__chart>
 
           <code className="is-edge" style={{fontSize:10,lineHeight:'11px'}}>

@@ -199,6 +199,39 @@ var IndividualReportStylePicker = React.createClass({
   },
 });
 
+var SizeSliderInput = React.createClass({
+  getInitialState: function() {
+    return {value: this.props.default};
+  },
+  handleChange: function(event) {
+    this.props.onChange({
+      value: event.target.value,
+      id: this.props.name
+    });
+
+    this.setState({value: event.target.value});
+  },
+  render: function() {
+    return (
+      <div className="slider-item">
+        <label> 
+          {this.props.label}
+          {this.state.value}
+        </label>
+        <input 
+          className="mdl-slider mdl-js-slider"
+          id={this.props.name}
+          type="range" 
+          min={this.props.min} 
+          max={this.props.max}
+          value={this.state.value} 
+          onChange={this.handleChange}
+          step="5" />
+      </div>
+    );
+  },
+});
+
 var Reports = React.createClass({
   mixins: [
     Navigation,
@@ -221,7 +254,6 @@ var Reports = React.createClass({
       let defaultReportStyle = reportStyles.default;
       let specifiedReportStyles = reportStyles.specified;
 
-      console.log(asset.report_styles);
       if (asset.content.survey != undefined) {
         asset.content.survey.forEach(function(r){
           let $kuid = r.$kuid,
@@ -246,6 +278,8 @@ var Reports = React.createClass({
   },
   getInitialState () {
     return {
+      graphWidth: "700",
+      graphHeight: "250",
       translationIndex: 0,
     };
   },
@@ -265,6 +299,13 @@ var Reports = React.createClass({
     this.setState({
       reportStyles: sett_,
     });
+  },
+  reportSizeChange (params, value) {
+    if (params.id == 'width') {
+      this.setState({graphWidth: params.value});
+    } else {
+      this.setState({graphHeight: params.value});
+    }
   },
   translationIndexChange (val) {
     this.setState({translationIndex: val});
@@ -387,7 +428,7 @@ var Reports = React.createClass({
               <a href="#graph-colors" className="mdl-tabs__tab">
                 {t('Colors')}
               </a>
-              <a href="#graph-labels" className="mdl-tabs__tab is-edge">
+              <a href="#graph-labels" className="mdl-tabs__tab">
                 {t('Size')}
               </a>
           </div>
@@ -406,14 +447,17 @@ var Reports = React.createClass({
                 translationIndex={this.state.translationIndex}
               />
           </div>
-          <div className="mdl-tabs__panel" id="graph-labels">
-            <bem.FormView__label>
-              {t('Data Labels')}
-            </bem.FormView__label>
- 
-            <bem.FormView__label>
-              {t('X Axis')}
-            </bem.FormView__label>
+          <div className="mdl-tabs__panel graph-tab__size" id="graph-labels">
+            <SizeSliderInput 
+                        name="width" min="300" max="900" default={this.state.graphWidth} 
+                        label={t('Width: ')} 
+                        onChange={this.reportSizeChange} />
+            <div className="is-edge">
+              <SizeSliderInput 
+                        name="height" min="200" max="500" default={this.state.graphHeight}
+                        label={t('Height: ')} 
+                        onChange={this.reportSizeChange} />
+            </div>
           </div>
         </div>
  
@@ -435,6 +479,9 @@ var Reports = React.createClass({
     if (asset && asset.content) {
       explicitStyles = this.state.reportStyles.specified || {};
       defaultStyle = this.state.reportStyles.default || {};
+
+      defaultStyle.graphWidth = this.state.graphWidth;
+      defaultStyle.graphHeight = this.state.graphHeight;
     }
 
     let translations = false;
@@ -443,6 +490,7 @@ var Reports = React.createClass({
     for (var i = reportData.length - 1; i >= 0; i--) {;
       reportData[i].style = defaultStyle;
     }
+
     return (
         <bem.ReportView>
           {this.renderReportButtons()}

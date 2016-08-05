@@ -72,11 +72,13 @@
 }
 
 .report-view__chart {
-  padding: 40px 50px;
+  margin:0 auto;
+  padding:40px 0px;
+  max-width:100% !important;
   canvas {
+    width: 100% !important;
+    height: auto !important;
     margin:0 auto;
-    max-width:900px;
-    max-height: 600px;
   }
 }
 
@@ -216,6 +218,20 @@
         width: 40px;
         height: 40px;
       }
+    }
+  }
+}
+
+.graph-tab__size {
+  padding:20px;
+  .slider-item {
+    padding: 10px;
+    display: flex;
+    > label {
+      width:100px;
+    }
+    > div {
+      flex-grow:1;
     }
   }
 }
