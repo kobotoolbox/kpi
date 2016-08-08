@@ -25,7 +25,7 @@
   }
 
   &__item {
-    color: $cool-gray;
+    color: #5C676E;
     padding: 0px;
     cursor: pointer;
     vertical-align: top;
@@ -149,7 +149,7 @@
     max-height: 4.2em;
     word-wrap: break-word;
     // end multiline ellipsis webkit only
-    color: $cool-gray;
+    color: #5C676E;
     cursor: pointer;
     font-weight: 400;
     line-height: 1.4em;
@@ -159,7 +159,7 @@
   }
 
   &__label {
-    color: $cool-gray;
+    color: #5C676E;
     font-weight: 600;
     padding-bottom: 5px;
     padding-top: 15px;
@@ -187,9 +187,9 @@
     &--visible {
       opacity: 1;
     }
-    &--collapsed {
-      opacity: 0.75;
-    }
+    // &--collapsed {
+    //   opacity: 0.75;
+    // }
   }
 }
 

@@ -37,8 +37,8 @@ $drawer-icons-column-width: 56px;
 
 .k-drawer__icons-bottom {
   width: 165px;
-  height: 100px;
-  padding-top: 25px;
+  height: 90px;
+  padding-top: 15px;
   position: absolute;
   bottom: 0px;
   left: 56px;
@@ -47,14 +47,14 @@ $drawer-icons-column-width: 56px;
   .k-drawer__link {
     padding: 0px;
     margin-bottom: 10px;
-    font-size: 15px;
+    font-size: 13px;
     display: block;
     text-align: left;
-    color: $layout-drawer-nav-link-color;
+    color: #5C676E;
     font-weight: normal;
     position: relative;
     i {
-      font-size: 24px;
+      font-size: 22px;
       margin-right: 8px;
       vertical-align: text-bottom;
     }
@@ -73,7 +73,7 @@ $drawer-icons-column-width: 56px;
     font-size: 18px;
     margin-bottom: 10px;
     a {
-      color: $cool-gray;
+      color: #8A9AA4;
       font-weight: normal;
     }
   }

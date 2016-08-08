@@ -11,6 +11,17 @@ $headerAccountTextColor: #dbedf7;
   z-index: 0;
 }
 
+.with-formView-header .k-header__bar:after {
+  background-color: white;
+  content: '';
+  height: 37px;
+  width: 100%;
+  z-index: 0;
+  @extend .mdl-shadow--2dp;
+  position: absolute;
+  top: 56px;
+}
+
 .account-box__alert {
   color: rgb(33, 182, 243);
   position: absolute;
@@ -378,25 +389,20 @@ $headerAccountTextColor: #dbedf7;
 
 .with-formView-header .mdl-layout__content,
 .with-formView-header .k-drawer {
-  height: calc(100% - 128px);
+  height: calc(100% - 108px);
 }
 
 .with-formView-header .k-drawer {
-  top: 120px;
+  top: 105px;
 }
 
 .form-view__tabbar {
-  @extend .mdl-shadow--2dp;
-  background-color: #FFF;
   width: 100%;
-  height: 55px;
+  height: 37px;
 }
 
 .form-view__tabs {
   position: relative;
-  padding: 10px;
-  padding-bottom: 0px;
-  max-width: 1440px;
   margin: 0 auto;
 }
 
@@ -450,7 +456,7 @@ $headerAccountTextColor: #dbedf7;
   background: transparent;
   border: none;
   border-bottom: 3px solid transparent;
-  padding: 20px 10px 4px;
+  padding: 12px 10px 4px;
   text-transform: uppercase;
   margin-right: 20px;
   font-size: 15px;

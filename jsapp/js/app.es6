@@ -828,7 +828,7 @@ var App = React.createClass({
 
     return (
       <DocumentTitle title="KoBoToolbox">
-        <div className="mdl-wrapper">
+        <div className={"mdl-wrapper " + currentRouteClass}>
           { !this.state.headerHidden && 
             <div className="k-header__bar"></div>
           }
@@ -838,7 +838,7 @@ var App = React.createClass({
               'fixed-drawer': this.state.showFixedDrawer,
               'header-hidden': this.state.headerHidden,
               'drawer-hidden': this.state.drawerHidden,
-                }} className={["mdl-layout mdl-layout--fixed-header", currentRouteClass]}>
+                }} className="mdl-layout mdl-layout--fixed-header">
               { this.state.modalMessage ?
                 <ui.Modal open small onClose={()=>{stores.pageState.hideModal()}} icon={this.state.modalIcon}>
                   <ui.Modal.Body>

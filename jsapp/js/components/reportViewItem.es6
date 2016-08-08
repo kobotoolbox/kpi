@@ -86,6 +86,7 @@ var ReportViewItem = React.createClass({
     Chart.defaults.global.elements.point.backgroundColor = baseColor;
     Chart.defaults.global.elements.point.radius = 4;
     Chart.defaults.global.elements.arc.backgroundColor = baseColor;
+    Chart.defaults.global.maintainAspectRatio = false;
 
     if (chart_type == 'donut') {
       chart_type = 'pie';
