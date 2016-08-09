@@ -18,6 +18,7 @@ import {
   NotFoundRoute,
   run,
 } from 'react-router';
+import Select from 'react-select';
 
 import searches from './searches';
 import actions from './actions';
@@ -1614,18 +1615,89 @@ var UserProfile = React.createClass({
 });
 
 var AccountSettings = React.createClass({
-  getInitialState () {
+  mixins: [
+    Reflux.connect(stores.session),
+    Reflux.ListenerMixin,
+  ],
+  getStateFromCurrentAccount(currentAccount) {
     return {
-      name: 'na',
-      organization: 'or',
-      email: 'em',
-      gender: 'ge',
-      sector: 'se',
-      country: 'co',
-      defaultLanguage: 'de'
+      languageChoices: currentAccount.languages,
+      countryChoices: currentAccount.available_countries,
+      sectorChoices: currentAccount.available_sectors,
+      name: currentAccount.extra_details.name,
+      organization: currentAccount.extra_details.organization,
+      email: currentAccount.email,
+      gender: currentAccount.extra_details.gender,
+      sector: currentAccount.extra_details.sector,
+      city: currentAccount.extra_details.city, // from kc
+      country: currentAccount.extra_details.country,
+      defaultLanguage: currentAccount.extra_details.default_language,
+      requireAuth: currentAccount.extra_details.require_auth, // from kc
+      homePage: currentAccount.extra_details.home_page, // from kc
+      twitter: currentAccount.extra_details.twitter, // from kc
+      description: currentAccount.extra_details.description, // from kc
+      address: currentAccount.extra_details.address, // from kc
+      phonenumber: currentAccount.extra_details.phonenumber, // from kc
+      metadata: currentAccount.extra_details.metadata // from kc
     };
   },
+  getInitialState () {
+    this.listenTo(stores.session, ({currentAccount}) => {
+      this.setState(this.getStateFromCurrentAccount(currentAccount));
+    });
+    if(stores.session && stores.session.currentAccount) {
+      return this.getStateFromCurrentAccount(stores.session.currentAccount);
+    }
+    return {};
+  },
+  nameChange (e) {this.setState({name: e.target.value});},
+  organizationChange (e) {this.setState({organization: e.target.value});},
+  emailChange (e) {this.setState({email: e.target.value});},
+  genderChange (e) {this.setState({gender: e.target.value});},
+  addressChange (e) {this.setState({address: e.target.value});},
+  cityChange (e) {this.setState({city: e.target.value});},
+  requireAuthChange (e) {this.setState({requireAuth: e.target.checked});},
+  homePageChange (e) {this.setState({homePage: e.target.value});},
+  twitterChange (e) {this.setState({twitter: e.target.value});},
+  phonenumberChange (e) {this.setState({phonenumber: e.target.value});},
+  descriptionChange (e) {this.setState({description: e.target.value});},
+  metadataChange (e) {this.setState({metadata: e.target.value});},
+  sectorChange (v) {this.setState({sector: v});},
+  countryChange (v) {this.setState({country: v});},
+  defaultLanguageChange (v) {this.setState({defaultLanguage: v});},
+  updateProfile () {
+    actions.misc.updateProfile({
+      email: this.state.email,
+      extra_details: JSON.stringify({
+        name: this.state.name,
+        organization: this.state.organization,
+        gender: this.state.gender,
+        sector: this.state.sector,
+        city: this.state.city,
+        country: this.state.country,
+        default_language: this.state.defaultLanguage,
+        require_auth: this.state.requireAuth,
+        home_page: this.state.homePage,
+        twitter: this.state.twitter,
+        description: this.state.description,
+        address: this.state.address,
+        phonenumber: this.state.phonenumber,
+        metadata: this.state.metadata,
+      })
+    });
+  },
   render () {
+    if(!stores.session || !stores.session.currentAccount) {
+      return (
+        <ui.Panel>
+          <bem.AccountSettings>
+            <bem.AccountSettings__item>
+              {t('loading...')}
+            </bem.AccountSettings__item>
+          </bem.AccountSettings>
+        </ui.Panel>
+      );
+    }
     return (
       <ui.Panel>
         <bem.AccountSettings>
@@ -1663,24 +1735,91 @@ var AccountSettings = React.createClass({
           <bem.AccountSettings__item>
             <label>
               {t('Sector')}
-              <select value={this.state.sector} onChange={this.sectorChange}>
-              </select>
+              <Select value={this.state.sector}
+                options={this.state.sectorChoices}
+                onChange={this.sectorChange}>
+              </Select>
+            </label>
+          </bem.AccountSettings__item>
+          <bem.AccountSettings__item>
+            <label>
+              {t('Address')}
+              <input type="text" value={this.state.address}
+                onChange={this.addressChange} />
+            </label>
+          </bem.AccountSettings__item>
+          <bem.AccountSettings__item>
+            <label>
+              {t('City')}
+              <input type="text" value={this.state.city}
+                onChange={this.cityChange} />
             </label>
           </bem.AccountSettings__item>
           <bem.AccountSettings__item>
             <label>
               {t('Country')}
-              <select value={this.state.country} onChange={this.countryChange}>
-              </select>
+              <Select value={this.state.country}
+                options={this.state.countryChoices}
+                onChange={this.countryChange}>
+              </Select>
             </label>
           </bem.AccountSettings__item>
           <bem.AccountSettings__item>
             <label>
               {t('Default Language')}
-              <select value={this.state.defaultLanguage}
+              <Select value={this.state.defaultLanguage}
+                options={this.state.languageChoices}
                 onChange={this.defaultLanguageChange}>
-              </select>
+              </Select>
             </label>
+          </bem.AccountSettings__item>
+          <bem.AccountSettings__item>
+            <label>
+              {t('Require authentication to see forms and submit data')}
+              <input type="checkbox" checked={this.state.requireAuth}
+                onChange={this.requireAuthChange} />
+            </label>
+          </bem.AccountSettings__item>
+          <bem.AccountSettings__item>
+            <label>
+              {t('Home page')}
+              <input type="text" value={this.state.homePage}
+                onChange={this.homePageChange} />
+            </label>
+          </bem.AccountSettings__item>
+          <bem.AccountSettings__item>
+            <label>
+              {t('Twitter')}
+              <input type="text" value={this.state.twitter}
+                onChange={this.twitterChange} />
+            </label>
+          </bem.AccountSettings__item>
+          <bem.AccountSettings__item>
+            <label>
+              {t('Phonenumber')}
+              <input type="text" value={this.state.phonenumber}
+                onChange={this.phonenumberChange} />
+            </label>
+          </bem.AccountSettings__item>
+          <bem.AccountSettings__item>
+            <label>
+              {t('Description')}
+              <input type="text" value={this.state.description}
+                onChange={this.descriptionChange} />
+            </label>
+          </bem.AccountSettings__item>
+          <bem.AccountSettings__item>
+            <label>
+              {t('Metadata')}
+              <input type="text" value={this.state.metadata}
+                onChange={this.metadataChange} />
+            </label>
+          </bem.AccountSettings__item>
+          <bem.AccountSettings__item>
+            {/* the design does not specify a button, but here's one anyway */}
+            <button onClick={this.updateProfile} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+              {t('Update')}
+            </button>
           </bem.AccountSettings__item>
         </bem.AccountSettings>
       </ui.Panel>

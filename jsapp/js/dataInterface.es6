@@ -49,6 +49,13 @@ var dataInterface;
       });
       return d.promise();
     },
+    patchProfile (data) {
+      return $ajax({
+        url: `${rootUrl}/me/`,
+        method: 'PATCH',
+        data: data
+      });
+    },
     listBlocks () {
       return $ajax({
         url: `${rootUrl}/assets/?q=asset_type:block`

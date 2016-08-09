@@ -250,6 +250,12 @@ actions.misc = Reflux.createActions({
       'completed',
       'failed_'
     ]
+  },
+  updateProfile: {
+    children: [
+      'completed',
+      'failed'
+    ]
   }
 });
 
@@ -259,6 +265,19 @@ actions.misc.checkUsername.listen(function(username){
     .done(actions.misc.checkUsername.completed)
     .fail(actions.misc.checkUsername.failed_);
 });
+
+actions.misc.updateProfile.listen(function(data){
+  dataInterface.patchProfile(data)
+    .done(actions.misc.updateProfile.completed)
+    .fail(actions.misc.updateProfile.failed);
+});
+actions.misc.updateProfile.completed.listen(function(){
+  notify(t('updated profile successfully'));
+});
+actions.misc.updateProfile.failed.listen(function(){
+  notify(t('failed to update profile'), 'error');
+});
+
 actions.resources.createImport.listen(function(contents){
   if (contents.base64Encoded) {
     dataInterface.postCreateBase64EncodedImport(contents)

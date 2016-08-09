@@ -771,6 +771,17 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         rep['available_countries'] = COUNTRIES
         return rep
 
+    def update(self, instance, validated_data):
+        # "The `.update()` method does not support writable dotted-source
+        # fields by default." --DRF
+        if 'extra_details' in validated_data:
+            extra_details = validated_data.pop('extra_details')['data']
+            instance.extra_details.data.update(extra_details)
+            instance.extra_details.save()
+        return super(CurrentUserSerializer, self).update(
+            instance, validated_data)
+
+
 class CreateUserSerializer(serializers.ModelSerializer):
     username = serializers.RegexField(
         regex=USERNAME_REGEX,
