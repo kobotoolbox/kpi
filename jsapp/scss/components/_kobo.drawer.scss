@@ -36,12 +36,8 @@ $drawer-icons-column-width: 56px;
 }
 
 .k-drawer__icons-bottom {
-  width: 165px;
-  height: 90px;
-  padding-top: 15px;
-  position: absolute;
-  bottom: 0px;
-  left: 56px;
+  height: 80px;
+  padding-top: 10px;
   border-top: solid 1px #CDCDCD;
   background-color: #F5F5F5;
   .k-drawer__link {
@@ -66,8 +62,9 @@ $drawer-icons-column-width: 56px;
 
 .drawer__sidebar {
   width: calc(100% - 50px);
-  height: calc(100% - 100px);
+  height: 100%;
   padding: 10px;
+  padding-bottom: 0px;
   .header-breadcrumb__item {
     text-align: center;
     font-size: 18px;
@@ -80,8 +77,8 @@ $drawer-icons-column-width: 56px;
   .k-drawer__close {
     display: none;
   }
-  .form-sidebar__wrapper {
-    height: 100%;
+  .form-sidebar__wrapper, .collections-wrapper {
+    height: calc(100% - 80px);
   }
 }
 

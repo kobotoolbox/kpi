@@ -1,9 +1,5 @@
-.collections-wrapper {
-  height: 100%;
-}
-
 .collection-sidebar {
-  height: calc(100% - 72px);
+  height: calc(100% - 80px);
   overflow: auto;
   margin-right: -5px;
 
@@ -118,21 +114,9 @@
 }
 
 .form-sidebar {
-  height: calc(100% - 85px);
-  overflow: hidden;
-  &__grouping {
-    max-height: 30%;
-    padding-left: 28px;
-    padding-right: 10px;
-    margin-bottom: 10px;
-    margin-right: -10px;
-    overflow-y: auto;
-    font-size:0.9em;
-    &--inactive {
-      max-height: 15%;
-    }
-  }
-
+  height: calc(100% - 80px);
+  overflow-y: auto;
+  overflow-x: hidden;
   &__item {
     margin-bottom: 15px;
     overflow-x:hidden;
@@ -187,38 +171,35 @@
     &--visible {
       opacity: 1;
     }
-    // &--collapsed {
-    //   opacity: 0.75;
-    // }
   }
 }
 
 .form-sidebar__grouping {
-  transition:0.5s all;
-  &--visible {
-    max-height:25%;
-  }
+  padding-left: 28px;
+  padding-right: 10px;
+  margin-bottom: 10px;
+  margin-right: -10px;
+  font-size:0.9em;
   &--collapsed {
-    max-height: 0px;
+    height: 0px;
     overflow: hidden;
   }
 }
 
-.form-sidebar__grouping::-webkit-scrollbar,
+.form-sidebar::-webkit-scrollbar,
 .collection-sidebar::-webkit-scrollbar {
   width: 0.6em;
 }
 
-.form-sidebar__grouping::-webkit-scrollbar-track,
+.form-sidebar::-webkit-scrollbar-track,
 .collection-sidebar::-webkit-scrollbar-track {
   background-color: #DEDEDE;
   background-color: transparent;
   border-radius: 8px;
 }
 
-.form-sidebar__grouping::-webkit-scrollbar-thumb,
+.form-sidebar::-webkit-scrollbar-thumb,
 .collection-sidebar::-webkit-scrollbar-thumb {
-  // background-color: $cool-green;
   background-color: #DEDEDE;
   outline: none;
   border-radius: 8px;
