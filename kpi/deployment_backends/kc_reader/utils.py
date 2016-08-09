@@ -19,21 +19,26 @@ def get_kc_profile_data(user_id):
     except _models.UserProfile.DoesNotExist:
         return {}
     fields = [
+        # Use a (kc_name, new_name) tuple to rename a field
         'name',
+        'organization',
+        ('home_page', 'organization_website'),
+        ('description', 'bio'),
+        ('phonenumber', 'phone_number'),
+        'address',
         'city',
         'country',
-        'organization',
-        'home_page',
-        'twitter',
-        'description',
         'require_auth',
-        'address',
-        'phonenumber',
+        'twitter',
         'metadata',
     ]
     result = {}
     for field in fields:
-        value = getattr(profile, field)
+        if isinstance(field, tuple):
+            kc_name, field = field
+        else:
+            kc_name = field
+        value = getattr(profile, kc_name)
         if not isinstance(value, basestring):
             value = json.dumps(value)
         result[field] = value

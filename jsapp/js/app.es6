@@ -1621,25 +1621,51 @@ var AccountSettings = React.createClass({
   ],
   getStateFromCurrentAccount(currentAccount) {
     return {
+      name: currentAccount.extra_details.name,
+      email: currentAccount.email,
+      organization: currentAccount.extra_details.organization,
+      organizationWebsite: currentAccount.extra_details.organization_website,
+      primarySector: currentAccount.extra_details.primarySector,
+      gender: currentAccount.extra_details.gender,
+      bio: currentAccount.extra_details.bio,
+      phoneNumber: currentAccount.extra_details.phone_number,
+      address: currentAccount.extra_details.address,
+      city: currentAccount.extra_details.city,
+      country: currentAccount.extra_details.country,
+      defaultLanguage: currentAccount.extra_details.default_language,
+      requireAuth: currentAccount.extra_details.require_auth,
+      twitter: currentAccount.extra_details.twitter,
+      linkedin: currentAccount.extra_details.linkedin,
+      instagram: currentAccount.extra_details.instagram,
+      metadata: currentAccount.extra_details.metadata,
+
       languageChoices: currentAccount.languages,
       countryChoices: currentAccount.available_countries,
       sectorChoices: currentAccount.available_sectors,
-      name: currentAccount.extra_details.name,
-      organization: currentAccount.extra_details.organization,
-      email: currentAccount.email,
-      gender: currentAccount.extra_details.gender,
-      sector: currentAccount.extra_details.sector,
-      city: currentAccount.extra_details.city, // from kc
-      country: currentAccount.extra_details.country,
-      defaultLanguage: currentAccount.extra_details.default_language,
-      requireAuth: currentAccount.extra_details.require_auth, // from kc
-      homePage: currentAccount.extra_details.home_page, // from kc
-      twitter: currentAccount.extra_details.twitter, // from kc
-      description: currentAccount.extra_details.description, // from kc
-      address: currentAccount.extra_details.address, // from kc
-      phonenumber: currentAccount.extra_details.phonenumber, // from kc
-      metadata: currentAccount.extra_details.metadata // from kc
     };
+  },
+  updateProfile () {
+    actions.misc.updateProfile({
+      email: this.state.email,
+      extra_details: JSON.stringify({
+        name: this.state.name,
+        organization: this.state.organization,
+        organization_website: this.state.organizationWebsite,
+        primarySector: this.state.primarySector,
+        gender: this.state.gender,
+        bio: this.state.bio,
+        phone_number: this.state.phoneNumber,
+        address: this.state.address,
+        city: this.state.city,
+        country: this.state.country,
+        default_language: this.state.defaultLanguage,
+        require_auth: this.state.requireAuth,
+        twitter: this.state.twitter,
+        linkedin: this.state.linkedin,
+        instagram: this.state.instagram,
+        metadata: this.state.metadata,
+      })
+    });
   },
   getInitialState () {
     this.listenTo(stores.session, ({currentAccount}) => {
@@ -1650,9 +1676,40 @@ var AccountSettings = React.createClass({
     }
     return {};
   },
+  handleChange (e, attr) {
+    if (e.target) {
+      if (e.target.type == 'checkbox') {
+        var val = e.target.checked;
+      } else {
+        var val = e.target.value;
+      }
+    } else {
+      // react-select just passes a string
+      var val = e;
+    }
+    this.setState({[attr]: val});
+  },
+  nameChange (e) {this.handleChange(e, 'name');},
+  emailChange (e) {this.handleChange(e, 'email');},
+  organizationChange (e) {this.handleChange(e, 'organization');},
+  organizationWebsiteChange (e) {this.handleChange(e, 'organizationWebsite');},
+  primarySectorChange (e) {this.handleChange(e, 'primarySector');},
+  genderChange (e) {this.handleChange(e, 'gender');},
+  bioChange (e) {this.handleChange(e, 'bio');},
+  phoneNumberChange (e) {this.handleChange(e, 'phoneNumber');},
+  addressChange (e) {this.handleChange(e, 'address');},
+  cityChange (e) {this.handleChange(e, 'city');},
+  countryChange (e) {this.handleChange(e, 'country');},
+  defaultLanguageChange (e) {this.handleChange(e, 'defaultLanguage');},
+  requireAuthChange (e) {this.handleChange(e, 'requireAuth');},
+  twitterChange (e) {this.handleChange(e, 'twitter');},
+  linkedinChange (e) {this.handleChange(e, 'linkedin');},
+  instagramChange (e) {this.handleChange(e, 'instagram');},
+  metadataChange (e) {this.handleChange(e, 'metadata');},
+  /*
   nameChange (e) {this.setState({name: e.target.value});},
-  organizationChange (e) {this.setState({organization: e.target.value});},
   emailChange (e) {this.setState({email: e.target.value});},
+  organizationChange (e) {this.setState({organization: e.target.value});},
   genderChange (e) {this.setState({gender: e.target.value});},
   addressChange (e) {this.setState({address: e.target.value});},
   cityChange (e) {this.setState({city: e.target.value});},
@@ -1665,27 +1722,7 @@ var AccountSettings = React.createClass({
   sectorChange (v) {this.setState({sector: v});},
   countryChange (v) {this.setState({country: v});},
   defaultLanguageChange (v) {this.setState({defaultLanguage: v});},
-  updateProfile () {
-    actions.misc.updateProfile({
-      email: this.state.email,
-      extra_details: JSON.stringify({
-        name: this.state.name,
-        organization: this.state.organization,
-        gender: this.state.gender,
-        sector: this.state.sector,
-        city: this.state.city,
-        country: this.state.country,
-        default_language: this.state.defaultLanguage,
-        require_auth: this.state.requireAuth,
-        home_page: this.state.homePage,
-        twitter: this.state.twitter,
-        description: this.state.description,
-        address: this.state.address,
-        phonenumber: this.state.phonenumber,
-        metadata: this.state.metadata,
-      })
-    });
-  },
+  */
   render () {
     if(!stores.session || !stores.session.currentAccount) {
       return (
@@ -1710,16 +1747,32 @@ var AccountSettings = React.createClass({
           </bem.AccountSettings__item>
           <bem.AccountSettings__item>
             <label>
-              {t('Organization Name')}
+              {t('Email')}
+              <input type="email" value={this.state.email}
+                onChange={this.emailChange} />
+            </label>
+          </bem.AccountSettings__item>
+          <bem.AccountSettings__item>
+            <label>
+              {t('Organization')}
               <input type="text" value={this.state.organization}
                 onChange={this.organizationChange} />
             </label>
           </bem.AccountSettings__item>
           <bem.AccountSettings__item>
             <label>
-              {t('E-mail')}
-              <input type="email" value={this.state.email}
-                onChange={this.emailChange} />
+              {t('Organization Website')}
+              <input type="text" value={this.state.organizationWebsite}
+                onChange={this.organizationWebsiteChange} />
+            </label>
+          </bem.AccountSettings__item>
+          <bem.AccountSettings__item>
+            <label>
+              {t('Primary Sector')}
+              <Select value={this.state.primarySector}
+                options={this.state.sectorChoices}
+                onChange={this.primarySectorChange}>
+              </Select>
             </label>
           </bem.AccountSettings__item>
           <bem.AccountSettings__item>
@@ -1734,11 +1787,16 @@ var AccountSettings = React.createClass({
           </bem.AccountSettings__item>
           <bem.AccountSettings__item>
             <label>
-              {t('Sector')}
-              <Select value={this.state.sector}
-                options={this.state.sectorChoices}
-                onChange={this.sectorChange}>
-              </Select>
+              {t('Bio')}
+              <input type="text" value={this.state.bio}
+                onChange={this.bioChange} />
+            </label>
+          </bem.AccountSettings__item>
+          <bem.AccountSettings__item>
+            <label>
+              {t('Phone Number')}
+              <input type="text" value={this.state.phoneNumber}
+                onChange={this.phoneNumberChange} />
             </label>
           </bem.AccountSettings__item>
           <bem.AccountSettings__item>
@@ -1782,13 +1840,6 @@ var AccountSettings = React.createClass({
           </bem.AccountSettings__item>
           <bem.AccountSettings__item>
             <label>
-              {t('Home page')}
-              <input type="text" value={this.state.homePage}
-                onChange={this.homePageChange} />
-            </label>
-          </bem.AccountSettings__item>
-          <bem.AccountSettings__item>
-            <label>
               {t('Twitter')}
               <input type="text" value={this.state.twitter}
                 onChange={this.twitterChange} />
@@ -1796,16 +1847,16 @@ var AccountSettings = React.createClass({
           </bem.AccountSettings__item>
           <bem.AccountSettings__item>
             <label>
-              {t('Phonenumber')}
-              <input type="text" value={this.state.phonenumber}
-                onChange={this.phonenumberChange} />
+              {t('LinkedIn')}
+              <input type="text" value={this.state.linkedin}
+                onChange={this.linkedinChange} />
             </label>
           </bem.AccountSettings__item>
           <bem.AccountSettings__item>
             <label>
-              {t('Description')}
-              <input type="text" value={this.state.description}
-                onChange={this.descriptionChange} />
+              {t('Instagram')}
+              <input type="text" value={this.state.instagram}
+                onChange={this.instagramChange} />
             </label>
           </bem.AccountSettings__item>
           <bem.AccountSettings__item>
