@@ -153,6 +153,7 @@
   position: relative;
   color:$cool-gray;
   cursor: pointer;
+  white-space: nowrap;
 
   > i:first-child {
     margin-right: 6px;
@@ -173,17 +174,6 @@
   &.active {
     color: unquote("rgb(#{$color-primary})");
   }
-}
-
-.reactTooltip.place-bottom {
-  background-color: #8a9aa4 !important;
-  &:after {
-    border-bottom: 8px solid #8a9aa4 !important;
-  }
-}
-
-.reactTooltip.show {
-  opacity: 1 !important;
 }
 
 // iframe default styles 
@@ -235,3 +225,51 @@ iframe {
     padding-top: 10px;
   }
 }
+
+// UI MDL Popover
+
+.ui-mdl-popover {
+  display: inline;
+  position: relative;
+  button {
+    border:none;
+    background-color: transparent;
+    margin-left: 4px;
+    font-weight: 400;
+    color: $cool-gray;
+    cursor: pointer;
+    padding: 4px 6px;
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 22px;
+    &:hover {
+      background-color: transparent;
+      color: unquote("rgb(#{$color-accent})");
+    }
+  }
+  ul {
+    text-align: left;
+    > a {
+      min-width: 200px;
+    }
+  }
+}
+
+// Scrollbar overrides
+
+::-webkit-scrollbar {
+  width: 0.8em;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #DEDEDE;
+  background-color: transparent;
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #DEDEDE;
+  outline: none;
+  border-radius: 8px;
+}
+

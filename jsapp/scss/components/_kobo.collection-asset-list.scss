@@ -70,6 +70,8 @@
   height: 100%;
   margin: 0px 8px;
   overflow-y: auto;
+  width: calc(100% - 0.8em);
+  overflow-x:hidden;
   .asset-list {
     min-height: 300px;
     margin-bottom: 4px;
@@ -81,7 +83,7 @@
     margin: 10px;
     font-size: 18px;
     color: $cool-gray;
-    cursor: pointer;
+    // cursor: pointer;
   }
   .asset-items {
     @extend .mdl-shadow--2dp;

@@ -213,45 +213,33 @@ var AssetRow = React.createClass({
             </bem.AssetRow__actionIcon>
  
               { this.props.asset_type && this.props.asset_type === 'survey' &&
-                <bem.AssetRow__actionIcon m={'more-actions'} 
-                      onFocus={this.toggleAssetMoreActions}
-                      onBlur={this.toggleAssetMoreActions}>
-                  <button>
-                    <i className="k-icon-more-actions" />
-                  </button>
-                  { (this.state.selectedAssetMoreActions) ?
-                    <bem.PopoverMenu ref='asset-popover'>
-                      { isDeployable &&
-                        <bem.PopoverMenu__link 
-                            m={'deploy'}
-                            data-action={'deploy'} 
-                            data-asset-type={this.props.kind}>
-                          <i className="k-icon-deploy" />
-                          {this.props.deployed_version_id === null ? t('Deploy this project') : t('Redeploy this project')}
-                        </bem.PopoverMenu__link>
-                      }
-                      { this.props.asset_type && this.props.asset_type === 'survey' &&
-                        <bem.PopoverMenu__link
-                              m={'refresh'}
-                              data-action={'refresh'}
-                              data-asset-type={this.props.kind}
-                            >
-                          <i className="k-icon-replace" />
-                          {t('Replace with XLS')}
-                        </bem.PopoverMenu__link>
-                      }
-                      <bem.PopoverMenu__link
-                            m={'delete'}
-                            data-action={'delete'}
-                            data-asset-type={this.props.kind}
-                          >
-                        <i className="k-icon-trash" />
-                        {t('Delete')}
-                      </bem.PopoverMenu__link>
- 
-                    </bem.PopoverMenu>
-                  : null }
-                </bem.AssetRow__actionIcon>
+                <ui.MDLPopoverMenu id={"more-" + this.props.uid}>
+                  { isDeployable &&
+                    <bem.PopoverMenu__link 
+                        m={'deploy'}
+                        data-action={'deploy'} 
+                        data-asset-type={this.props.kind}>
+                      <i className="k-icon-deploy" />
+                      {this.props.deployed_version_id === null ? t('Deploy this project') : t('Redeploy this project')}
+                    </bem.PopoverMenu__link>
+                  }
+                  <bem.PopoverMenu__link
+                        m={'refresh'}
+                        data-action={'refresh'}
+                        data-asset-type={this.props.kind}
+                      >
+                    <i className="k-icon-replace" />
+                    {t('Replace with XLS')}
+                  </bem.PopoverMenu__link>
+                  <bem.PopoverMenu__link
+                        m={'delete'}
+                        data-action={'delete'}
+                        data-asset-type={this.props.kind}
+                      >
+                    <i className="k-icon-trash" />
+                    {t('Delete')}
+                  </bem.PopoverMenu__link>
+                </ui.MDLPopoverMenu>
               }
               { this.props.kind === 'collection' &&
                 [/*'view',*/ 'sharing'].map((actn)=>{

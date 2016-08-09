@@ -62,3 +62,8 @@
     border-left: none;
   }
 }
+
+// more actions in asset-row adjustment
+.asset-row .ui-mdl-popover [data-tip]:after {
+  left: -50%;
+}

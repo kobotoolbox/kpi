@@ -115,7 +115,8 @@ var SearchCollectionList = React.createClass({
         if (this.state.defaultQueryCategorizedResultsLists[category].length > 0) {
           return [
             <bem.AssetList__heading m={[category, categoryVisible ? 'visible' : 'collapsed']} 
-                                    onClick={this.toggleCategory(category)}>
+                                    // onClick={this.toggleCategory(category)}
+                                    >
               {t(category)}
               {` (${this.state.defaultQueryCategorizedResultsLists[category].length})`}
             </bem.AssetList__heading>,

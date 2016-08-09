@@ -185,22 +185,3 @@
     overflow: hidden;
   }
 }
-
-.form-sidebar::-webkit-scrollbar,
-.collection-sidebar::-webkit-scrollbar {
-  width: 0.6em;
-}
-
-.form-sidebar::-webkit-scrollbar-track,
-.collection-sidebar::-webkit-scrollbar-track {
-  background-color: #DEDEDE;
-  background-color: transparent;
-  border-radius: 8px;
-}
-
-.form-sidebar::-webkit-scrollbar-thumb,
-.collection-sidebar::-webkit-scrollbar-thumb {
-  background-color: #DEDEDE;
-  outline: none;
-  border-radius: 8px;
-}

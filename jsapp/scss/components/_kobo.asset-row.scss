@@ -64,15 +64,6 @@
   text-align: right;
 }
 
-// .k-asset-arrow-icon {
-//   position: absolute;
-//   right: -5px;
-//   top: 0px;
-//   font-size: 24px;
-//   color: #A5B3BC;
-//   @extend .fa, .fa-fw, .fa-lg, .fa-caret-right;
-// }
-
 .asset-row {
   position: relative;
   > .asset-row__buttons {
@@ -82,7 +73,8 @@
     background:#FFF;
     width:43%;
     text-align: right;
-    display: none;
+    opacity: 0;
+    transition:0.3s opacity;
     padding-right: 6px;
     height: calc(100% - 10px);
   }
@@ -157,7 +149,8 @@
     }
 
     > .asset-row__buttons {
-      display: block;
+      opacity: 1;
+      transition:0.3s opacity;
     }
 
     .date--modified {

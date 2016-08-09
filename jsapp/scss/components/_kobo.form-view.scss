@@ -167,9 +167,15 @@
     }
   }
 
+  &--deploy-count {
+    display: inline-block;
+    width: 150px;
+    padding:0px;
+    text-align: left;
+  }
   &--buttons {
     display: inline-block;
-    float: right;
+    width:calc(100% - 151px);
     text-align: right;
     padding: 0px;
   }
@@ -247,20 +253,11 @@
   }
 }
 
-.form-view__item--more-actions {
-  position: relative;
-  button {
-    font-size: 18px;
-    background-color: transparent;
-    color: $cool-gray;
-    border:none;
-    border-radius: none;
-    cursor: pointer;
-    padding:0px 10px;
-    &:focus, &:hover {
-      color: unquote("rgb(#{$color-primary})");
-    }
-  }
+#more-dl-popover {
+  padding-top: 0px;
+  font-size: 18px;
+  line-height: 18px;
+  margin-left: 10px;
 }
 
 .form-view__item--collect {

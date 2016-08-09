@@ -452,7 +452,7 @@ $headerAccountTextColor: #dbedf7;
   }
 }
 
-.form-view__button--data, a.form-view__tab {
+a.form-view__tab {
   background: transparent;
   border: none;
   border-bottom: 3px solid transparent;
@@ -470,19 +470,30 @@ $headerAccountTextColor: #dbedf7;
 }
 
 .form-view__button--data {
-  > i {
-    margin-left: 4px;
-    opacity: 0.5;
+  display: inline;
+  position: relative;
+  button {
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 12px 10px 4px;
+    text-transform: uppercase;
+    margin-right: 20px;
+    font-size: 15px;
+    cursor: pointer;
+    position: relative;
+    color: #444;
+    font-weight: normal;
+    > i {
+      margin-left: 4px;
+      opacity: 0.5;
+    }
   }
-  .popover-menu {
-    right: auto;
-    left: 0px;
-    top: 3em;
-    .popover-menu__link {
-      i {
-        font-size: 24px;
-        margin-right: 8px;
-      }
+  .popover-menu__link {
+    font-weight: normal;
+    i {
+      font-size: 24px;
+      margin-right: 8px;
     }
   }
 }

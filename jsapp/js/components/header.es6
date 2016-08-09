@@ -277,48 +277,41 @@ var MainHeader = React.createClass({
               {t('Form')}
           </bem.FormView__tab>
           { this.state.asset.deployment__identifier != undefined && this.state.asset.deployment__active ?
-            <bem.FormView__button 
-              m='data' 
-              onFocus={this.toggleDataPopover}
-              onBlur={this.toggleDataPopover} >
-              {t('Data')}
-              <i className="fa fa-caret-down" />
-              { (this.state.dataPopoverShowing) ? 
-                <bem.PopoverMenu ref='data-popover'>
-                  <bem.PopoverMenu__link m={'report-in-kpi'}
-                      href={this.makeHref('form-reports', {assetid: this.state.assetid})}>
-                    <i className="k-icon-report" />
-                    {t('Report in KPI')}
-                  </bem.PopoverMenu__link>
-                  <bem.PopoverMenu__link m={'report'}
-                      href={this.makeHref('form-data-report', {assetid: this.state.assetid})}>
-                    <i className="k-icon-report" />
-                    {t('Report in KC')}
-                  </bem.PopoverMenu__link>
-                  <bem.PopoverMenu__link m={'table'}
-                      href={this.makeHref('form-data-table', {assetid: this.state.assetid})}>
-                    <i className="k-icon-results" />
-                    {t('Table')}
-                  </bem.PopoverMenu__link>
-                  <bem.PopoverMenu__link m={'gallery'}
-                      href={this.makeHref('form-data-gallery', {assetid: this.state.assetid})}>
-                    <i className="k-icon-photo-gallery" />
-                    {t('Gallery')}
-                  </bem.PopoverMenu__link>
-                  <bem.PopoverMenu__link m={'downloads'}
-                      href={this.makeHref('form-data-downloads', {assetid: this.state.assetid})}>
-                    <i className="k-icon-download-1" />
-                    {t('Downloads')}
-                  </bem.PopoverMenu__link>
-                  <bem.PopoverMenu__link m={'map'}
-                      href={this.makeHref('form-data-map', {assetid: this.state.assetid})}>
-                    <i className="k-icon-map-view" />
-                    {t('Map')}
-                  </bem.PopoverMenu__link>
-                </bem.PopoverMenu>
-              : null }
-            </bem.FormView__button>
-
+            <ui.MDLPopoverMenu  id="more-data-tab" 
+                                button_label={t('Data')}
+                                button_type='text' 
+                                classname='form-view__button--data'>
+                <bem.PopoverMenu__link m={'report-in-kpi'}
+                    href={this.makeHref('form-reports', {assetid: this.state.assetid})}>
+                  <i className="k-icon-report" />
+                  {t('Report in KPI')}
+                </bem.PopoverMenu__link>
+                <bem.PopoverMenu__link m={'report'}
+                    href={this.makeHref('form-data-report', {assetid: this.state.assetid})}>
+                  <i className="k-icon-report" />
+                  {t('Report in KC')}
+                </bem.PopoverMenu__link>
+                <bem.PopoverMenu__link m={'table'}
+                    href={this.makeHref('form-data-table', {assetid: this.state.assetid})}>
+                  <i className="k-icon-results" />
+                  {t('Table')}
+                </bem.PopoverMenu__link>
+                <bem.PopoverMenu__link m={'gallery'}
+                    href={this.makeHref('form-data-gallery', {assetid: this.state.assetid})}>
+                  <i className="k-icon-photo-gallery" />
+                  {t('Gallery')}
+                </bem.PopoverMenu__link>
+                <bem.PopoverMenu__link m={'downloads'}
+                    href={this.makeHref('form-data-downloads', {assetid: this.state.assetid})}>
+                  <i className="k-icon-download-1" />
+                  {t('Downloads')}
+                </bem.PopoverMenu__link>
+                <bem.PopoverMenu__link m={'map'}
+                    href={this.makeHref('form-data-map', {assetid: this.state.assetid})}>
+                  <i className="k-icon-map-view" />
+                  {t('Map')}
+                </bem.PopoverMenu__link>
+            </ui.MDLPopoverMenu>
           : null }
           <bem.FormView__tab 
             m='settings' 

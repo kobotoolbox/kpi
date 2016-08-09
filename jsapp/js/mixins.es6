@@ -184,34 +184,26 @@ var dmix = {
                 <i className="k-icon-replace" />
               </bem.FormView__link>
             </Dropzone>
-            <bem.FormView__item m={'more-actions'}
-              onFocus={this.toggleDownloads}
-              onBlur={this.toggleDownloads}>
-              <bem.FormView__button disabled={!downloadable}>
-                <i className="k-icon-more-actions" />
-              </bem.FormView__button>
-              { (downloadable && this.state.downloadsShowing) ?
-                <bem.PopoverMenu ref='dl-popover'>
-                  <bem.PopoverMenu__item>
-                    <i className="k-icon-download" />
-                    {t('Download as')}
-                  </bem.PopoverMenu__item>
-                  {downloads.map((dl)=>{
-                    return (
-                        <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
-                            key={`dl-${dl.format}`}>
-                          {dl.format}
-                        </bem.PopoverMenu__link>
-                      );
-                  })}
-                  <bem.PopoverMenu__link onClick={this.saveCloneAs}>
-                    <i className="k-icon-clone"/>
-                    {t('Clone this project')}
-                  </bem.PopoverMenu__link>
- 
-                </bem.PopoverMenu>
-              : null }
-            </bem.FormView__item>
+            { downloadable &&
+              <ui.MDLPopoverMenu id={"more-dl-popover"}>
+                <bem.PopoverMenu__item>
+                  <i className="k-icon-download" />
+                  {t('Download as')}
+                </bem.PopoverMenu__item>
+                {downloads.map((dl)=>{
+                  return (
+                      <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
+                          key={`dl-${dl.format}`}>
+                        {dl.format}
+                      </bem.PopoverMenu__link>
+                    );
+                })}
+                <bem.PopoverMenu__link onClick={this.saveCloneAs}>
+                  <i className="k-icon-clone"/>
+                  {t('Clone this project')}
+                </bem.PopoverMenu__link>
+             </ui.MDLPopoverMenu>
+            }
         </bem.FormView__group>
       );
   },
@@ -781,11 +773,13 @@ var dmix = {
           </bem.FormView__group>
           <bem.FormView__group m="deploy-row">
             <bem.FormView__item m='version'>
-              {dvcount > 0 ? `v${dvcount}` : ''}
-              <span>
-                &nbsp;
-                {this.state.deployment__active ? t('(deployed)') : t('(undeployed draft)')}
-              </span>
+              <bem.FormView__group m="deploy-count">
+                {dvcount > 0 ? `v${dvcount}` : ''}
+                <span>
+                  &nbsp;
+                  {this.state.deployment__active ? t('(deployed)') : t('(undeployed draft)')}
+                </span>
+              </bem.FormView__group>
               {this.renderEditPreviewButtons()}
             </bem.FormView__item>
             <bem.FormView__item m='date'>
