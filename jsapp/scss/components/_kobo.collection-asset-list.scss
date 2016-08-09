@@ -53,11 +53,13 @@
   height: calc(100% - 50px);
   .asset-list {
     height: calc(100% - 50px);
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    width: 100%;
   }
   .asset-row > .asset-row__buttons {
-    max-width: 32%;
-    top: 8px;
+    width: 33%;
+    top: 10px;
   }
 }
 
