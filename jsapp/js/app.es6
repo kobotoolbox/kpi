@@ -1867,12 +1867,104 @@ var AccountSettings = React.createClass({
             </label>
           </bem.AccountSettings__item>
           <bem.AccountSettings__item>
-            {/* the design does not specify a button, but here's one anyway */}
-            <button onClick={this.updateProfile} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-              {t('Update')}
+            <button onClick={this.updateProfile}>
+              {t('Save Changes')}
             </button>
           </bem.AccountSettings__item>
         </bem.AccountSettings>
+      </ui.Panel>
+    );
+  }
+});
+
+var ChangePassword = React.createClass({
+  mixins: [
+    Reflux.ListenerMixin,
+  ],
+  getInitialState () {
+    this.errors = {};
+    return {errors: this.errors};
+  },
+  componentDidMount () {
+    this.listenTo(
+      actions.auth.changePassword.failed, this.changePasswordFailed);
+  },
+  validateRequired (what) {
+    if (!this.state[what]) {
+      this.errors[what] = t('This field is required.');
+    }
+  },
+  changePassword () {
+    this.errors = {};
+    this.validateRequired('currentPassword');
+    this.validateRequired('newPassword');
+    this.validateRequired('verifyPassword');
+    if (this.state.newPassword != this.state.verifyPassword) {
+      this.errors['newPassword'] =
+        t('This field must match the Verify Password field.');
+    }
+    if (Object.keys(this.errors).length === 0) {
+      actions.auth.changePassword(
+        this.state.currentPassword, this.state.newPassword
+      );
+    }
+    this.setState({errors: this.errors});
+  },
+  changePasswordFailed (jqXHR) {
+    if (jqXHR.responseJSON.current_password) {
+      this.errors.currentPassword = jqXHR.responseJSON.current_password;
+    }
+    if (jqXHR.responseJSON.new_password) {
+      this.errors.newPassword = jqXHR.responseJSON.new_password;
+    }
+    this.setState({errors: this.errors});
+  },
+  currentPasswordChange (e) {
+    this.setState({currentPassword: e.target.value});
+  },
+  newPasswordChange (e) {
+    this.setState({newPassword: e.target.value});
+  },
+  verifyPasswordChange (e) {
+    this.setState({verifyPassword: e.target.value});
+  },
+  render () {
+    return (
+      <ui.Panel>
+        <bem.ChangePassword>
+          <bem.ChangePassword__item>
+            <label>
+              {t('Current Password')}
+              <input type="password" value={this.state.currentPassword}
+                onChange={this.currentPasswordChange} />
+              {this.state.errors.currentPassword}
+            </label>
+            <a href={`${dataInterface.rootUrl}/accounts/password/reset/`}>
+              {t('Forgot Password?')}
+            </a>
+          </bem.ChangePassword__item>
+          <bem.ChangePassword__item>
+            <label>
+              {t('New Password')}
+              <input type="password" value={this.state.newPassword}
+                onChange={this.newPasswordChange} />
+              {this.state.errors.newPassword}
+            </label>
+          </bem.ChangePassword__item>
+          <bem.ChangePassword__item>
+            <label>
+              {t('Verify Password')}
+              <input type="password" value={this.state.verifyPassword}
+                onChange={this.verifyPasswordChange} />
+              {this.state.errors.verifyPassword}
+            </label>
+          </bem.ChangePassword__item>
+          <bem.ChangePassword__item>
+            <button onClick={this.changePassword}>
+              {t('Save Changes')}
+            </button>
+          </bem.ChangePassword__item>
+        </bem.ChangePassword>
       </ui.Panel>
     );
   }
@@ -2063,6 +2155,7 @@ var routes = (
     </Route>
 
     <Route name="account-settings" handler={AccountSettings} />
+    <Route name="change-password" handler={ChangePassword} />
 
     <Route name="public" handler={Public}>
       <Route name="public-builder" handler={Builder} />

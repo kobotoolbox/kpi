@@ -82,6 +82,9 @@ var MainHeader = React.createClass({
   accountSettings () {
     this.transitionTo('account-settings');
   },
+  password () {
+    this.transitionTo('change-password');
+  },
   setStates() {
     var currentRoutes = this.context.router.getCurrentRoutes();
     var activeRouteName = currentRoutes[currentRoutes.length - 1];
@@ -172,11 +175,16 @@ var MainHeader = React.createClass({
             { (this.state.accountMenuPopoverShowing) ? 
               <bem.PopoverMenu ref='accountMenu-popover'>
                 <ul className="k-account__menu">
-                  <li key="settings">
+                  <li className="k-account__submenu" key="settings">
                     <a onClick={this.accountSettings} className="mdl-menu__item">
                       <i className="k-icon-settings" />
                       {t('Account Settings')}
                     </a>
+                    <ul>
+                      <li className="mdl-menu__item" onClick={this.password}>
+                        {t('Password')}
+                      </li>
+                    </ul>
                   </li>
                   {leaveBetaUrl ?
                     <li>
