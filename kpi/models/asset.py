@@ -513,6 +513,9 @@ def post_delete_asset(sender, instance, **kwargs):
           weak=False,
           dispatch_uid="create_asset_version")
 def post_save_asset(sender, instance, **kwargs):
-    instance.asset_versions.create(version_content=instance.content,
-                                   name=instance.name,
-                                   )
+    kwargs = {'version_content': instance.content,
+              'name': instance.name}
+    if instance._deployment_data:
+        kwargs.update({'_deployment_data': instance._deployment_data,
+                       'deployed': True})
+    instance.asset_versions.create(**kwargs)
