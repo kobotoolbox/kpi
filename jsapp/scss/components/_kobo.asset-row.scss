@@ -147,11 +147,13 @@
       display: none !important;
     }
     .mdl-menu {
+      margin-top: -8px;
+      margin-right: -5px;
       padding-top:0px;
       padding-bottom:0px;
       background-color: #FFF;
       overflow: visible;
-      border:2px solid rgba(0,0,0,0.05);
+      border:2px solid rgba(0,0,0,0.03);
     }
   }
 }
