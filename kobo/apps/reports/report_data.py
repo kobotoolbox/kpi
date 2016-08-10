@@ -50,7 +50,8 @@ def data(asset, kuids, lang=None, fields=None, split_by=None):
 
     schemas = []
     for av in _deployed_versions.all():
-        if 'backend_response' not in av._deployment_data:
+        if (not av._deployment_data) or \
+                ('backend_response' not in av._deployment_data):
             continue
         id_string = av._deployment_data['backend_response'].get('id_string')
         asset_content = av._deployed_content()
