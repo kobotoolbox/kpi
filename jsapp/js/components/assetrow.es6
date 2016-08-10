@@ -44,24 +44,6 @@ var AssetRow = React.createClass({
       }));
     }
   },
-  toggleAssetMoreActions (evt) {
-    var isBlur = evt.type === 'blur',
-        $popoverMenu;
-    if (isBlur) {
-      $popoverMenu = $(this.refs['asset-popover'].getDOMNode());
-      // if we setState and immediately hide popover then the
-      // download links will not register as clicked
-      $popoverMenu.fadeOut(250, () => {
-        this.setState({
-          selectedAssetMoreActions: false,
-        });
-      });
-    } else {
-      this.setState({
-        selectedAssetMoreActions: true,
-      });
-    }
-  },
   clickTagsToggle (evt) {
     var tagsToggle = !this.state.displayTags;
       this.setState({

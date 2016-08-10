@@ -464,6 +464,7 @@ a.form-view__tab {
   position: relative;
   color: #444;
   font-weight: normal;
+  display: inline-block;
   &.active, &:hover {
     border-bottom: 3px solid $cool-green;
   }

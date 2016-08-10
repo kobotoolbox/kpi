@@ -4,7 +4,6 @@ import _ from 'underscore';
 import bem from './bem';
 import {t} from './utils';
 import classNames from 'classnames';
-import mdl from './libs/rest_framework/material';
 
 var hotkey = require('react-hotkey');
 hotkey.activate();
@@ -213,7 +212,7 @@ ui.MDLPopoverMenu = React.createClass({
     var button_label = this.props.button_label;
     var classname = this.props.classname || 'ui-mdl-popover';
     return (
-          <div className={classname}>
+          <span className={classname}>
               { button_type == 'text' ?
                 <button id={id} className="mdl-js-button">
                   {button_label}
@@ -224,14 +223,11 @@ ui.MDLPopoverMenu = React.createClass({
                   <i className="k-icon-more-actions" />
                 </button>                
               }
-            <ul htmlFor={id} className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect">
+            <div htmlFor={id} className="mdl-menu mdl-menu--bottom-right mdl-js-menu">
               {this.props.children}
-            </ul>
-          </div>
+            </div>
+          </span>
     );
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   }
 });
 

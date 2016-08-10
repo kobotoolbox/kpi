@@ -6,6 +6,7 @@ import searches from '../searches';
 import mixins from '../mixins';
 import stores from '../stores';
 import bem from '../bem';
+import mdl from '../libs/rest_framework/material';
 import AssetRow from './assetrow';
 import {
   parsePermissions,
@@ -227,6 +228,9 @@ var SearchCollectionList = React.createClass({
         </bem.List>
       );
   },
+  componentDidUpdate() {
+    mdl.upgradeDom();
+  }
 });
 
 export default SearchCollectionList;
