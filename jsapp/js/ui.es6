@@ -209,21 +209,27 @@ ui.MDLPopoverMenu = React.createClass({
     var id = this.props.id;
     var button_tip = this.props.button_tip || t('More Actions');
     var button_type = this.props.button_type || 'icon';
+    var caretClass = this.props.caretClass || 'fa fa-caret-down';
     var button_label = this.props.button_label;
     var classname = this.props.classname || 'ui-mdl-popover';
+    var menuClasses = this.props.menuClasses || 'mdl-menu mdl-menu--bottom-right mdl-js-menu';
     return (
           <span className={classname}>
               { button_type == 'text' ?
                 <button id={id} className="mdl-js-button">
                   {button_label}
-                  <i className="fa fa-caret-down" />
+                  <i className={caretClass} />
                 </button>
-              : 
+              : button_type == 'cog-icon' ?
+                <button id={id} className="mdl-js-button">
+                  <i className="k-icon-settings-small" />
+                </button>                
+              :
                 <button id={id} className="mdl-js-button" data-tip={button_tip}>
                   <i className="k-icon-more-actions" />
                 </button>                
               }
-            <div htmlFor={id} className="mdl-menu mdl-menu--bottom-right mdl-js-menu">
+            <div htmlFor={id} className={menuClasses}>
               {this.props.children}
             </div>
           </span>

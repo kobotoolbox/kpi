@@ -263,7 +263,7 @@
 .form-view__item--collect {
   position: relative;
   display: block;
-  button.form-view__button--collectOptions {
+  button {
     border:2px solid $cool-gray;
     width:100%;
     margin:20px 0px;
@@ -286,16 +286,8 @@
       font-size: 24px;
     }
   }
-  .popover-menu {
-    width:100%;
-    max-width: 100%;
-    max-height: 260px;
-    overflow: auto;
-    top: auto;
-    bottom:55px;
-    .popover-menu__link {
-      border-bottom: 1px solid #DDD;
-    }
+  .popover-menu__link {
+    border-bottom: 1px solid #DDD;
     span.label {
       display: block;
       font-size: 14px;

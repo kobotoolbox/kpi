@@ -39,12 +39,6 @@
       background-color: transparent;
     }
 
-    .popover-menu {
-      min-width: 165px;
-      right: auto;
-      left: 10px;
-      font-size: 13px;
-    }
     &--selected {
       color:#555B6E;
       position: relative;
@@ -53,7 +47,7 @@
         display: inline-block;
       }
 
-      .collection-sidebar__itemCog {
+      .collection-cog {
         position: absolute;
         left: -24px;
         top: 1px;
@@ -61,14 +55,18 @@
         border:none;
         background-color: transparent;
         cursor: pointer;
-        > i:before {
+        button {
+          border: none;
+          background-color: transparent;
+          padding:0px;
+          margin:0px;
+          cursor: pointer;
+        }
+         i:before {
           font-size: 24px;
         }
       }
 
-      .popover-menu {
-        display: block;
-      }
     }
 
     &--toplevel {

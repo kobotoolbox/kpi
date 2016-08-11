@@ -470,28 +470,25 @@ var dmix = {
             {t('Learn more')}
             <i className="fa fa-arrow-right"></i>
           </a>
-          <bem.FormView__item m={'collect'}
-            onFocus={this.toggleCollectOptions}
-            onBlur={this.toggleCollectOptions}>
-            <bem.FormView__button m='collectOptions'>
-              {this.state.selectedCollectOption.label != null ? t(this.state.selectedCollectOption.label) : t('Choose an option')}
-              <i className="fa fa-caret-up" />
-            </bem.FormView__button>
-            {this.state.collectOptionsShowing ?
-              <bem.PopoverMenu ref='collect-popover'>
-                {deployment__links_list.map((c)=>{
-                  return (
-                      <bem.PopoverMenu__link  key={`c-${c.value}`}
-                                              onClick={this.setSelectedCollectOption(c)}
-                                              className={this.state.selectedCollectOption.value == c.value ? 'active' : null}>
-                        <span className="label">{c.label}</span>
-                        <span className="desc">{c.desc}</span>
-                      </bem.PopoverMenu__link>
-                    );
-                })}
-              </bem.PopoverMenu>
-            : null }
-          </bem.FormView__item>
+
+          <ui.MDLPopoverMenu id={"collect-options"}
+                            button_type='text' 
+                            button_label={this.state.selectedCollectOption.label != null ? t(this.state.selectedCollectOption.label) : t('Choose an option')}
+                            classname='form-view__item--collect'
+                            menuClasses='mdl-menu mdl-menu--top-right mdl-js-menu'
+                            caretClass='fa fa-caret-up'>
+            {deployment__links_list.map((c)=>{
+              return (
+                  <bem.PopoverMenu__link  key={`c-${c.value}`}
+                                          onClick={this.setSelectedCollectOption(c)}
+                                          className={this.state.selectedCollectOption.value == c.value ? 'active' : null}>
+                    <span className="label">{c.label}</span>
+                    <span className="desc">{c.desc}</span>
+                  </bem.PopoverMenu__link>
+                );
+            })}
+          </ui.MDLPopoverMenu>
+
           {this.state.selectedCollectOption.value ?
             <bem.FormView__item m={'collect-links'}>
               <ReactZeroClipboard text={this.state.selectedCollectOption.value} onAfterCopy={this.afterCopy}>
@@ -537,24 +534,6 @@ var dmix = {
   },
   afterCopy() {
     notify(t('copied to clipboard'));
-  },
-  toggleCollectOptions (evt) {
-    var isBlur = evt.type === 'blur',
-        $popoverMenu;
-    if (isBlur) {
-      $popoverMenu = $(this.refs['collect-popover'].getDOMNode());
-      // if we setState and immediately hide popover then the
-      // download links will not register as clicked
-      $popoverMenu.fadeOut(250, () => {
-        this.setState({
-          collectOptionsShowing: false,
-        });
-      });
-    } else {
-      this.setState({
-        collectOptionsShowing: true,
-      });
-    }
   },
   toggleDownloads (evt) {
     var isBlur = evt.type === 'blur',
