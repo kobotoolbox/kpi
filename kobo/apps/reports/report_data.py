@@ -58,7 +58,7 @@ def data(asset, kuids, lang=None, fields=None, split_by=None):
         if av._reversion_version:
             _version_id = str(av._reversion_version.id)
         else:
-            _version_id = av.uid
+            _version_id = av._deployment_data['version']
 
         schemas.append({
             "id_string": id_string,
