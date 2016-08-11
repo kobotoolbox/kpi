@@ -1706,23 +1706,6 @@ var AccountSettings = React.createClass({
   linkedinChange (e) {this.handleChange(e, 'linkedin');},
   instagramChange (e) {this.handleChange(e, 'instagram');},
   metadataChange (e) {this.handleChange(e, 'metadata');},
-  /*
-  nameChange (e) {this.setState({name: e.target.value});},
-  emailChange (e) {this.setState({email: e.target.value});},
-  organizationChange (e) {this.setState({organization: e.target.value});},
-  genderChange (e) {this.setState({gender: e.target.value});},
-  addressChange (e) {this.setState({address: e.target.value});},
-  cityChange (e) {this.setState({city: e.target.value});},
-  requireAuthChange (e) {this.setState({requireAuth: e.target.checked});},
-  homePageChange (e) {this.setState({homePage: e.target.value});},
-  twitterChange (e) {this.setState({twitter: e.target.value});},
-  phonenumberChange (e) {this.setState({phonenumber: e.target.value});},
-  descriptionChange (e) {this.setState({description: e.target.value});},
-  metadataChange (e) {this.setState({metadata: e.target.value});},
-  sectorChange (v) {this.setState({sector: v});},
-  countryChange (v) {this.setState({country: v});},
-  defaultLanguageChange (v) {this.setState({defaultLanguage: v});},
-  */
   render () {
     if(!stores.session || !stores.session.currentAccount) {
       return (
