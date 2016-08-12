@@ -286,7 +286,14 @@
       font-size: 24px;
     }
   }
+  .mdl-menu, .mdl-menu__container {
+    min-width: 300px;
+    width:100%;
+  }
   .popover-menu__link {
+    display: block;
+    width: 100%;
+    white-space: normal;
     border-bottom: 1px solid #DDD;
     span.label {
       display: block;

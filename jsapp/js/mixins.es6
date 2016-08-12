@@ -487,6 +487,15 @@ var dmix = {
                   </bem.PopoverMenu__link>
                 );
             })}
+                  <bem.PopoverMenu__link>
+                    <span className="label">Online-Offline multiple submission</span>
+                    <span className="desc">lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet ipsum dolor sit amet ipsum dolor sit amet</span>
+                  </bem.PopoverMenu__link>
+
+                  <bem.PopoverMenu__link>
+                    <span className="label">Online-Offline multiple submission</span>
+                    <span className="desc">lorem ipsum dolor sit amet lorem ipsum dolor sit amet lorem ipsum dolor sit amet ipsum dolor sit amet ipsum dolor sit amet</span>
+                  </bem.PopoverMenu__link>
           </ui.MDLPopoverMenu>
 
           {this.state.selectedCollectOption.value ?
