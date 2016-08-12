@@ -26,7 +26,7 @@ import stores from '../stores';
 import actions from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import {dataInterface} from '../dataInterface';
-import ReactTooltip from 'react-tooltip';
+
 import hotkey from 'react-hotkey';
 
 var errorLoadingFormSupportUrl = 'http://support.kobotoolbox.org/';
@@ -583,7 +583,7 @@ export default assign({
               />
             </FormStyle__panel>
           : null }
-          <ReactTooltip effect="float" place="bottom" />
+
         </bem.FormBuilderHeader>
       );
   },

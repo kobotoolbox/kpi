@@ -36,6 +36,7 @@ import {
 } from './components/formEditors';
 
 import Reports from './components/reports';
+import FormData from './components/formData';
 
 import {
   ListSearch,
@@ -820,15 +821,14 @@ var App = React.createClass({
   render() {
     var currentRoutes = this.context.router.getCurrentRoutes();
     var activeRouteName = currentRoutes[currentRoutes.length - 1];
-    if (!this.state.drawerHidden) {
-      var currentRouteClass = (activeRouteName.path == '/forms/:assetid') ? 'in-form-view' : '';
-    } else {
-      currentRouteClass = '';
+    var currentRouteClass = '';
+    if (currentRoutes[2] != undefined && currentRoutes[2].path == '/forms/:assetid') {
+      currentRouteClass = 'with-formView-header';
     }
 
     return (
       <DocumentTitle title="KoBoToolbox">
-        <div className="mdl-wrapper">
+        <div className={"mdl-wrapper " + currentRouteClass}>
           { !this.state.headerHidden && 
             <div className="k-header__bar"></div>
           }
@@ -838,7 +838,7 @@ var App = React.createClass({
               'fixed-drawer': this.state.showFixedDrawer,
               'header-hidden': this.state.headerHidden,
               'drawer-hidden': this.state.drawerHidden,
-                }} className={["mdl-layout mdl-layout--fixed-header", currentRouteClass]}>
+                }} className="mdl-layout mdl-layout--fixed-header">
               { this.state.modalMessage ?
                 <ui.Modal open small onClose={()=>{stores.pageState.hideModal()}} icon={this.state.modalIcon}>
                   <ui.Modal.Body>
@@ -1776,8 +1776,20 @@ var routes = (
     <Route name="forms" handler={Forms}>
       <Route name="new-form" path="new" handler={NewForm} />
 
-      <Route name="form-landing" path="/forms/:assetid">
-        {formRouteChildren()}
+      <Route name="form-landing" path="/forms/:assetid"> 
+        <Route name="form-download" path="download" handler={FormDownload} />
+        <Route name="form-json" path="json" handler={FormJson} />
+        <Route name="form-xform" path="xform" handler={FormXform} />
+        <Route name="form-sharing" path="sharing" handler={FormSharing} />
+        <Route name="form-reports" path="reports" handler={Reports} />
+        <Route name="form-preview-enketo" path="preview" handler={FormEnketoPreview} />
+        <Route name='form-edit' path="edit" handler={FormPage} />
+        <Route name='form-data-report' path="data/report" handler={FormData} />
+        <Route name='form-data-table' path="data/table" handler={FormData} />
+        <Route name='form-data-downloads' path="data/downloads" handler={FormData} />
+        <Route name='form-data-gallery' path="data/gallery" handler={FormData} />
+        <Route name='form-data-map' path="data/map" handler={FormData} />
+        <Route name='form-data-settings' path="data/settings" handler={FormData} />
         <DefaultRoute handler={FormLanding} />
       </Route>
 

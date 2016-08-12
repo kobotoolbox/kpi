@@ -65,6 +65,8 @@ bem.LibList__label = bem.LibList.__('label');
 bem.LibList__dragbox = bem.LibList.__('dragbox');
 bem.LibList__qtype = bem.LibList.__('qtype');
 
+bem.CollectionsWrapper = bem('collections-wrapper');
+
 bem.CollectionNav = bem('collection-nav');
 bem.CollectionNav__search = bem.CollectionNav.__('search');
 bem.CollectionNav__searchcriteria = bem.CollectionNav.__('searchcriteria', '<ul>');
@@ -88,6 +90,7 @@ bem.CollectionSidebar__itemactions = bem('collection-sidebar__itemactions', '<di
 bem.CollectionSidebar__itemlink = bem.CollectionSidebar.__('itemlink', '<a>');
 
 bem.FormSidebar = bem('form-sidebar');
+bem.FormSidebar__wrapper = bem.FormSidebar.__('wrapper');
 bem.FormSidebar__item = bem.FormSidebar.__('item');
 bem.FormSidebar__label = bem.FormSidebar.__('label');
 bem.FormSidebar__grouping = bem.FormSidebar.__('grouping');
@@ -148,11 +151,9 @@ bem.FormView = BEM('form-view');
 bem.FormView__header = bem.FormView.__('header');
 bem.FormView__tabbar = bem.FormView.__('tabbar');
 bem.FormView__tabs = bem.FormView.__('tabs');
-bem.FormView__tab = bem.FormView.__('tab', '<button>');
+bem.FormView__tab = bem.FormView.__('tab', '<a>');
 bem.FormView__button = bem.FormView.__('button', '<button>');
-bem.FormView__extras = bem.FormView.__('extras');
 bem.FormView__title = bem.FormView.__('title');
-bem.FormView__titleinner = bem.FormView.__('titleinner');
 bem.FormView__name = bem.FormView.__('name');
 bem.FormView__description = bem.FormView.__('description');
 
@@ -180,8 +181,12 @@ bem.ReportView__chart = bem.ReportView.__('chart');
 
 bem.GraphSettings = BEM('graph-settings');
 bem.GraphSettings__buttons = bem.GraphSettings.__('buttons');
+bem.GraphSettings__charttype = bem.GraphSettings.__('charttype');
+bem.GraphSettings__colors = bem.GraphSettings.__('colors');
+bem.GraphSettings__radio = bem.GraphSettings.__('radio');
 
 bem.FormModal = bem('form-modal');
+bem.FormModal__form = bem.FormModal.__('form', '<form>');
 bem.FormModal__item = bem.FormModal.__('item');
 
 bem.PopoverMenu = bem('popover-menu');

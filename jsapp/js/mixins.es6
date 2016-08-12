@@ -13,7 +13,7 @@ import stores from './stores';
 import bem from './bem';
 import actions from './actions';
 import ui from './ui';
-import ReactTooltip from 'react-tooltip';
+
 import {
   formatTime,
   customConfirm,
@@ -25,6 +25,7 @@ import {
   notify,
   isLibrary,
 } from './utils';
+import {ProjectSettingsEditor} from './components/formEditors';
  
 var AssetTypeIcon = bem.create('asset-type-icon');
  
@@ -132,11 +133,7 @@ var dmix = {
     survey: {
       innerRender: function () {
         return (
-            <bem.FormView
-              m={this.state.activeTab == 'Form' ? 'scrollable' : ''} >
-              {this.renderAncestors()}
-              {this.renderHeader()}
-              { this.state.activeTab == 'Form' ?
+            <bem.FormView m='scrollable'>
                 <bem.FormView__wrapper m='form'>
                   <bem.FormView__row>
                     <bem.FormView__cell m='overview'>
@@ -150,106 +147,11 @@ var dmix = {
                   { this.state.has_deployment ?
                     this.renderInstructions()
                   : null }
-                </bem.FormView__wrapper>
-              : null }
- 
- 
-              { this.state.activeTab == 'Data' || this.state.activeTab == 'Settings' ?
-                this.renderDataTabs()
-              : null }
- 
-              <ReactTooltip effect="float" place="bottom" />
+                </bem.FormView__wrapper> 
             </bem.FormView>
           );
       }
     }
-  },
-  renderAncestors () {},
-  renderHeader () {
- 
-    return (
-        <bem.FormView__header m={[
-              this.state.name ? 'named' : 'untitled',
-              this.state.showExpandedReport ? 'expandedReport' : ''
-            ]}>
-          { !this.state.showExpandedReport && 
-            <bem.FormView__tabbar>
-              <bem.FormView__tabs>
-                <bem.FormView__tab className="is-edge" m='summary' >
-                  {t('Summary')}
-                </bem.FormView__tab>
-                <bem.FormView__tab 
-                  m='form' 
-                  className={this.state.activeTab == 'Form' ? 'active' : ''} 
-                  onClick={this.setActiveTab} 
-                  data-id='Form'>
-                    {t('Form')}
-                </bem.FormView__tab>
-                { this.state.deployment__identifier != undefined && this.state.deployment__active ?
-                  <bem.FormView__tab 
-                    m='data' 
-                    className={this.state.activeTab == 'Data' ? 'active' : ''} 
-                    onFocus={this.toggleDataPopover}
-                    onBlur={this.toggleDataPopover} >
-                    {t('Data')}
- 
-                    { (this.state.dataPopoverShowing) ? 
-                      <bem.PopoverMenu ref='data-popover'>
-                        {  
-                          ['Report', 'Table', 'Gallery', 'Downloads', 'Map',  /*'Settings'*/].map((actn)=>{
-                            return (
-                              <bem.PopoverMenu__link
-                                  m={[actn, this.state.activeSubTab == actn ? 'active' : '']} 
-                                  data-id={actn}
-                                  onClick={this.setActiveSubTab}
-                                  >
-                                <i />
-                                {actn}
-                              </bem.PopoverMenu__link>
-                            );
-                          }) 
-                        }
- 
-                      </bem.PopoverMenu>
-                    : null }
-                  </bem.FormView__tab>
- 
-                : null }
- 
-                <bem.FormView__tab 
-                  m='settings' 
-                  className={this.state.activeTab == 'Settings' ? 'active' : ''} 
-                  onClick={this.setActiveTab} 
-                  data-id='Settings'>
-                    {t('Settings')}
-                </bem.FormView__tab>
- 
-              </bem.FormView__tabs>
-            </bem.FormView__tabbar>
-          }
- 
-          <bem.FormView__title>
-            <bem.FormView__titleinner>
-              <bem.FormView__name>
-                <ui.AssetName {...this.state} />
-              </bem.FormView__name>
-              <bem.FormView__description className="is-edge">
-                <span className="no-description">{t('Enter a Description...')}</span>
-              </bem.FormView__description>
-            </bem.FormView__titleinner>
-          </bem.FormView__title>
- 
-          {this.state.showReportGraphSettings ?
-            <ui.Modal open onClose={this.toggleReportGraphSettings} title={t('Global Graph Settings')}>
-              <ui.Modal.Body>
-                {this.renderReportGraphSettings()}
-              </ui.Modal.Body>
-            </ui.Modal>
- 
-          : null}
- 
-        </bem.FormView__header>
-      );
   },
   renderEditPreviewButtons () {
     var downloadable = !!this.state.downloads[0],
@@ -282,34 +184,26 @@ var dmix = {
                 <i className="k-icon-replace" />
               </bem.FormView__link>
             </Dropzone>
-            <bem.FormView__item m={'more-actions'}
-              onFocus={this.toggleDownloads}
-              onBlur={this.toggleDownloads}>
-              <bem.FormView__button disabled={!downloadable}>
-                <i className="k-icon-more-actions" />
-              </bem.FormView__button>
-              { (downloadable && this.state.downloadsShowing) ?
-                <bem.PopoverMenu ref='dl-popover'>
-                  <bem.PopoverMenu__item>
-                    <i className="k-icon-download" />
-                    {t('Download as')}
-                  </bem.PopoverMenu__item>
-                  {downloads.map((dl)=>{
-                    return (
-                        <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
-                            key={`dl-${dl.format}`}>
-                          {dl.format}
-                        </bem.PopoverMenu__link>
-                      );
-                  })}
-                  <bem.PopoverMenu__link onClick={this.saveCloneAs}>
-                    <i className="k-icon-clone"/>
-                    {t('Clone this project')}
-                  </bem.PopoverMenu__link>
- 
-                </bem.PopoverMenu>
-              : null }
-            </bem.FormView__item>
+            { downloadable &&
+              <ui.MDLPopoverMenu id={"more-dl-popover"}>
+                <bem.PopoverMenu__item>
+                  <i className="k-icon-download" />
+                  {t('Download as')}
+                </bem.PopoverMenu__item>
+                {downloads.map((dl)=>{
+                  return (
+                      <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
+                          key={`dl-${dl.format}`}>
+                        {dl.format}
+                      </bem.PopoverMenu__link>
+                    );
+                })}
+                <bem.PopoverMenu__link onClick={this.saveCloneAs}>
+                  <i className="k-icon-clone"/>
+                  {t('Clone this project')}
+                </bem.PopoverMenu__link>
+             </ui.MDLPopoverMenu>
+            }
         </bem.FormView__group>
       );
   },
@@ -322,164 +216,6 @@ var dmix = {
           <ui.AssetName {...this.state} />
         </bem.AssetView__name>
       );
-  },
-  renderDataTabs() {
-    // setup iframe Urls for KC
-    // TODO: do this in a better place, and more cleanly
- 
-    var deployment__identifier = this.state.deployment__identifier;
-    var report__base = deployment__identifier.replace('/forms/', '/reports/');
-    var iframeUrls = {
-      Report: report__base+'/digest.html',
-      Table: report__base+'/export.html',
-      Gallery: deployment__identifier+'/photos',
-      Map: deployment__identifier+'/map',
-      Downloads: report__base+'/export/',
-      Settings: deployment__identifier+'/form_settings',
-    };
- 
-    return (
-      <bem.FormView__wrapper m={['data', this.state.activeSubTab]}>
-        {this.renderReportButtons()}
-        <bem.FormView__cell m='iframe'>
-          <iframe 
-            src={iframeUrls[this.state.activeSubTab]}>
-          </iframe>
- 
-        </bem.FormView__cell>
-      </bem.FormView__wrapper>
-      );
-  },
-  renderReportButtons () {
-    return (
-      <bem.FormView__reportButtons className="is-edge">
-        <button className="mdl-button mdl-js-button"
-                onClick={this.toggleReportGraphSettings}>
-          {t('Graph Settings')}
-        </button>
- 
-        <button className="mdl-button mdl-js-button"
-                id="report-language">
-          {t('Language')}
-          <i className="fa fa-caret-down"></i>
-        </button>
- 
-        <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
-            htmlFor="report-language">
-          <li>
-            <a className="mdl-menu__item">
-              {t('Test link 1')}
-            </a>
-          </li>
-          <li>
-            <a className="mdl-menu__item">
-              {t('Test link 2')}
-            </a>
-          </li>
-        </ul> 
- 
-        <button className="mdl-button mdl-js-button"
-                id="report-groupby">
-          {t('Group By')}
-          <i className="fa fa-caret-down"></i>
-        </button>
- 
-        <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
-            htmlFor="report-groupby">
-          <li>
-            <a className="mdl-menu__item">
-              {t('Test group link 1')}
-            </a>
-          </li>
-          <li>
-            <a className="mdl-menu__item">
-              {t('Test group link 2')}
-            </a>
-          </li>
-        </ul> 
- 
-        <button className="mdl-button mdl-js-button"
-                id="report-viewall">
-          {t('View All')}
-          <i className="fa fa-caret-down"></i>
-        </button>
- 
-        <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
-            htmlFor="report-viewall">
-          <li>
-            <a className="mdl-menu__item">
-              {t('Test view all 1')}
-            </a>
-          </li>
-          <li>
-            <a className="mdl-menu__item">
-              {t('Test view all 2')}
-            </a>
-          </li>
-        </ul> 
- 
-        <button className="mdl-button mdl-js-button mdl-button--icon report-button__expand"
-                onClick={this.toggleExpandedReports} data-tip={t('Expand')}>
-          <i className="k-icon-expand" />
-        </button>
- 
-        <button className="mdl-button mdl-js-button mdl-button--icon report-button__print" data-tip={t('Print')}>
-          <i className="k-icon-print" />
-        </button>
- 
-      </bem.FormView__reportButtons>
-    );
-  },
-  renderReportGraphSettings () {
-    return (
-      <bem.GraphSettings>
-        <div className="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
-          <div className="mdl-tabs__tab-bar">
-              <a href="#graph-type" className="mdl-tabs__tab is-active">
-                {t('Chart Type')}
-              </a>
-              <a href="#graph-colors" className="mdl-tabs__tab">
-                {t('Colors')}
-              </a>
-              <a href="#graph-labels" className="mdl-tabs__tab">
-                {t('Labels')}
-              </a>
-          </div>
- 
-          <div className="mdl-tabs__panel is-active" id="graph-type">
-            <ul>
-              <li>Vertical</li>
-              <li>Donut</li>
-              <li>Pie</li>
-              <li>Line</li>
-            </ul>
-          </div>
-          <div className="mdl-tabs__panel" id="graph-colors">
-            Color presets go here
-          </div>
-          <div className="mdl-tabs__panel" id="graph-labels">
-            <bem.FormView__label>
-              {t('Data Labels')}
-            </bem.FormView__label>
- 
-            <bem.FormView__label>
-              {t('X Axis')}
-            </bem.FormView__label>
-          </div>
-        </div>
- 
-        <bem.GraphSettings__buttons>
-          <button className="mdl-button mdl-js-button"
-                  onClick={this.toggleReportGraphSettings}>
-            {t('Cancel')}
-          </button>
-          <button className="mdl-button mdl-js-button primary"
-                  onClick={this.toggleReportGraphSettings}>
-            {t('Done')}
-          </button>
-        </bem.GraphSettings__buttons>
-      </bem.GraphSettings>
-    );
   },
   renderParentCollection () {
     var value = null,
@@ -734,28 +470,25 @@ var dmix = {
             {t('Learn more')}
             <i className="fa fa-arrow-right"></i>
           </a>
-          <bem.FormView__item m={'collect'}
-            onFocus={this.toggleCollectOptions}
-            onBlur={this.toggleCollectOptions}>
-            <bem.FormView__button m='collectOptions'>
-              {this.state.selectedCollectOption.label != null ? t(this.state.selectedCollectOption.label) : t('Choose an option')}
-              <i className="fa fa-caret-up" />
-            </bem.FormView__button>
-            {this.state.collectOptionsShowing ?
-              <bem.PopoverMenu ref='collect-popover'>
-                {deployment__links_list.map((c)=>{
-                  return (
-                      <bem.PopoverMenu__link  key={`c-${c.value}`}
-                                              onClick={this.setSelectedCollectOption(c)}
-                                              className={this.state.selectedCollectOption.value == c.value ? 'active' : null}>
-                        <span className="label">{c.label}</span>
-                        <span className="desc">{c.desc}</span>
-                      </bem.PopoverMenu__link>
-                    );
-                })}
-              </bem.PopoverMenu>
-            : null }
-          </bem.FormView__item>
+
+          <ui.MDLPopoverMenu id={"collect-options"}
+                            button_type='text' 
+                            button_label={this.state.selectedCollectOption.label != null ? t(this.state.selectedCollectOption.label) : t('Choose an option')}
+                            classname='form-view__item--collect'
+                            menuClasses='mdl-menu mdl-menu--top-right mdl-js-menu'
+                            caretClass='fa fa-caret-up'>
+            {deployment__links_list.map((c)=>{
+              return (
+                  <bem.PopoverMenu__link  key={`c-${c.value}`}
+                                          onClick={this.setSelectedCollectOption(c)}
+                                          className={this.state.selectedCollectOption.value == c.value ? 'active' : null}>
+                    <span className="label">{c.label}</span>
+                    <span className="desc">{c.desc}</span>
+                  </bem.PopoverMenu__link>
+                );
+            })}
+          </ui.MDLPopoverMenu>
+
           {this.state.selectedCollectOption.value ?
             <bem.FormView__item m={'collect-links'}>
               <ReactZeroClipboard text={this.state.selectedCollectOption.value} onAfterCopy={this.afterCopy}>
@@ -802,24 +535,6 @@ var dmix = {
   afterCopy() {
     notify(t('copied to clipboard'));
   },
-  toggleCollectOptions (evt) {
-    var isBlur = evt.type === 'blur',
-        $popoverMenu;
-    if (isBlur) {
-      $popoverMenu = $(this.refs['collect-popover'].getDOMNode());
-      // if we setState and immediately hide popover then the
-      // download links will not register as clicked
-      $popoverMenu.fadeOut(250, () => {
-        this.setState({
-          collectOptionsShowing: false,
-        });
-      });
-    } else {
-      this.setState({
-        collectOptionsShowing: true,
-      });
-    }
-  },
   toggleDownloads (evt) {
     var isBlur = evt.type === 'blur',
         $popoverMenu;
@@ -835,24 +550,6 @@ var dmix = {
     } else {
       this.setState({
         downloadsShowing: true,
-      });
-    }
-  },
-  toggleDataPopover (evt) {
-    var isBlur = evt.type === 'blur',
-        $popoverMenu;
-    if (isBlur) {
-      $popoverMenu = $(this.refs['data-popover'].getDOMNode());
-      // if we setState and immediately hide popover then the
-      // download links will not register as clicked
-      $popoverMenu.fadeOut(250, () => {
-        this.setState({
-          dataPopoverShowing: false,
-        });
-      });
-    } else {
-      this.setState({
-        dataPopoverShowing: true,
       });
     }
   },
@@ -1021,36 +718,6 @@ var dmix = {
       historyExpanded: !this.state.historyExpanded,
     });
   },
-  setActiveTab (evt) {
-    var tabId = $(evt.target).data('id');
-    this.setState({
-      activeTab: tabId,
-    });
-    if (tabId == 'Settings') {
-      this.setState({
-        activeSubTab: tabId,
-      });    
-    }
-  },
-  setActiveSubTab (evt) {
-    var clickedActionId = $(evt.target).closest('[data-id]').data('id');
-    $(evt.target).closest('button').trigger('blur');
-    this.setState({
-      activeSubTab: clickedActionId,
-      activeTab: 'Data'
-    });
-  },
-  toggleReportGraphSettings () {
-    this.setState({
-      showReportGraphSettings: !this.state.showReportGraphSettings,
-    });
-  },
-  toggleExpandedReports () {
-    stores.pageState.setDrawerHidden(!this.state.showExpandedReport);
-    this.setState({
-      showExpandedReport: !this.state.showExpandedReport,
-    });
-  },
   renderDeployments () {
     // var deployed_versions = [
     //     {
@@ -1085,11 +752,13 @@ var dmix = {
           </bem.FormView__group>
           <bem.FormView__group m="deploy-row">
             <bem.FormView__item m='version'>
-              {dvcount > 0 ? `v${dvcount}` : ''}
-              <span>
-                &nbsp;
-                {this.state.deployment__active ? t('(deployed)') : t('(undeployed draft)')}
-              </span>
+              <bem.FormView__group m="deploy-count">
+                {dvcount > 0 ? `v${dvcount}` : ''}
+                <span>
+                  &nbsp;
+                  {this.state.deployment__active ? t('(deployed)') : t('(undeployed draft)')}
+                </span>
+              </bem.FormView__group>
               {this.renderEditPreviewButtons()}
             </bem.FormView__item>
             <bem.FormView__item m='date'>
@@ -1235,8 +904,6 @@ var dmix = {
       userCanEdit: false,
       userCanView: true,
       historyExpanded: false,
-      activeTab: 'Form',
-      activeSubTab: 'Report',
       collectionOptionList: [],
       selectedCollectOption: {},
       showReportGraphSettings: false,
@@ -1312,12 +979,12 @@ mixins.dmix = dmix;
  
 mixins.droppable = {
   _forEachDroppedFile (evt, file/*, params={}*/) {
-    var isLibrary = isLibrary(this.context.router);
-    var baseName = isLibrary ? 'library-' : '';
+    var library = isLibrary(this.context.router);
+    var baseName = library ? 'library-' : '';
     dataInterface.postCreateBase64EncodedImport(assign({
         base64Encoded: evt.target.result,
         name: file.name,
-        library: isLibrary,
+        library: library,
         lastModified: file.lastModified,
       }, this.state.url ? {
         destination: this.state.url,

@@ -4,8 +4,24 @@ import json
 import re
 import requests
 
-from fabric.api import cd, env, prefix, run
+from fabric.api import cd, env, prefix, run as run_
 
+
+def run(*args, **kwargs):
+    '''
+    After running the following:
+
+        export NVM_DIR="/home/ubuntu/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
+
+    as was originally in `.bashrc` and is now in `.profile`, the output of
+    `run()` included escape sequence garbage. I could not figure out how NVM
+    was causing this or how to stop it, but passing `pty=False` to every
+    invocation of `run()` seems a viable workaround.
+    '''
+
+    kwargs['pty'] = False
+    return run_(*args, **kwargs)
 
 def kobo_workon(venv_name):
     return prefix('kobo_workon %s' % venv_name)
