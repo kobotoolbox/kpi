@@ -110,7 +110,7 @@ var dataInterface;
         kuidString = `?kuids=${data.kuids.join(',')}`
       }
       return $ajax({
-        url: `${rootUrl}/reports/${data.uid}${kuidString}`,
+        url: `${rootUrl}/reports/${data.uid}/${kuidString}`,
       });
     },
     createTemporaryAssetSnapshot ({source}) {
