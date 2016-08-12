@@ -286,6 +286,11 @@
       font-size: 24px;
     }
   }
+  .mdl-menu__container {
+    max-height: 250px;
+    overflow-y:scroll;
+  }
+
   .mdl-menu, .mdl-menu__container {
     min-width: 300px;
     width:100%;
