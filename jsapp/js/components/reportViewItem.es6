@@ -49,7 +49,18 @@ var ReportViewItem = React.createClass({
     }
     return s;
   },
+  responsesExist () {
+    return !!this.props.data.responses;
+  },
   componentDidMount () {
+    if (!this.refs.canvas) {
+      return;
+    }
+    if (!this.responsesExist()) {
+      return this.setState({
+        itemChart: false,
+      });
+    }
     var opts = this.buildChartOptions();
     var canvas = this.refs.canvas.getDOMNode();
     var itemChart = new Chart(canvas, opts);
@@ -57,9 +68,14 @@ var ReportViewItem = React.createClass({
   },
   componentWillUpdate () {
     var canvas = this.refs.canvas.getDOMNode();
+    if (!this.responsesExist()) {
+      return this.setState({
+        itemChart: false,
+      });
+    }
     var opts = this.buildChartOptions();
     let itemChart = this.state.itemChart;
-    if (itemChart != undefined) {
+    if (itemChart !== undefined) {
       itemChart.destroy();
       itemChart = new Chart(canvas, opts);
     }
