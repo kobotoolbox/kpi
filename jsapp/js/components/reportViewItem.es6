@@ -161,12 +161,13 @@ var ReportViewItem = React.createClass({
     return opts;
   },
   render () {
-    let d = this.props.data,
-      r = this.props.row,
+    let p = this.props,
+      d = p.data,
+      r = p.row,
       _type = r.type;
     if (!_type) {
       console.error('No type given for row: ', this.props);
-      return;
+      return <p className='error'>{'Error displaying row: '}<code>{p.kuid}</code></p>;
     }
     if (_type.select_one || _type.select_multiple) {
       _type = _.keys(_type)[0];
