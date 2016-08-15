@@ -40,10 +40,13 @@ def get_kuid_to_variable_name_map(asset_content):
     kuid_to_variable_name_map = {row.get('name'): row.get('name') for row in survey_dict}
     return kuid_to_variable_name_map
 
-def _get_row_by_kuid(asset_content, kuid):
+
+def _get_row_by_kuid_or_name(asset_content, kuid):
     for row in asset_content.get('survey', []):
-        if row.get('$kuid') == kuid or row.get('kuid') == kuid:
+        if row.get('$kuid') == kuid or row.get('kuid') == kuid or row.get('name') == kuid:
             return row
+    return {}
+
 
 def data(asset, kuids, lang=None, fields=None, split_by=None):
     _deployed_versions = asset.asset_versions.filter(deployed=True)
@@ -124,7 +127,7 @@ def data(asset, kuids, lang=None, fields=None, split_by=None):
         {
             'data': data_by_kuid.get(kuid, {}),
             'style': report_styles.get(kuid, default_style),
-            'row': _get_row_by_kuid(asset_content, kuid),
+            'row': _get_row_by_kuid_or_name(asset_content, kuid),
             'kuid': kuid,
         } for kuid in available_vnames
     ]

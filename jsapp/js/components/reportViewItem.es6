@@ -39,7 +39,7 @@ var ReportViewItem = React.createClass({
     let p = this.props,
       d = p.data,
       s = {};
-      s.reportTable = {};
+      s.reportTable = [];
     if (d.percentages && d.responses && d.frequencies) {
       s.reportTable = _.zip(
           d.responses,
@@ -164,6 +164,10 @@ var ReportViewItem = React.createClass({
     let d = this.props.data,
       r = this.props.row,
       _type = r.type;
+    if (!_type) {
+      console.error('No type given for row: ', this.props);
+      return;
+    }
     if (_type.select_one || _type.select_multiple) {
       _type = _.keys(_type)[0];
     }
