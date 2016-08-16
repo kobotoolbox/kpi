@@ -49,35 +49,28 @@ var ReportViewItem = React.createClass({
     }
     return s;
   },
-  responsesExist () {
-    return !!this.props.data.responses;
-  },
   componentDidMount () {
     if (!this.refs.canvas) {
       return;
     }
-    if (!this.responsesExist()) {
-      return this.setState({
-        itemChart: false,
-      });
+    if (this.props.data.show_graph) {
+      var opts = this.buildChartOptions();
+      var canvas = this.refs.canvas.getDOMNode();
+      var itemChart = new Chart(canvas, opts);
+      this.setState({itemChart: itemChart});
     }
-    var opts = this.buildChartOptions();
-    var canvas = this.refs.canvas.getDOMNode();
-    var itemChart = new Chart(canvas, opts);
-    this.setState({itemChart: itemChart});
   },
   componentWillUpdate () {
-    var canvas = this.refs.canvas.getDOMNode();
-    if (!this.responsesExist()) {
-      return this.setState({
-        itemChart: false,
-      });
-    }
-    var opts = this.buildChartOptions();
-    let itemChart = this.state.itemChart;
-    if (itemChart !== undefined) {
-      itemChart.destroy();
-      itemChart = new Chart(canvas, opts);
+    if (this.props.data.show_graph) {
+      console.log(this.refs);
+      console.log(this.props);
+      var canvas = this.refs.canvas.getDOMNode();
+      var opts = this.buildChartOptions();
+      let itemChart = this.state.itemChart;
+      if (itemChart !== undefined) {
+        itemChart.destroy();
+        itemChart = new Chart(canvas, opts);
+      }
     }
   },
   buildChartOptions () {
@@ -217,14 +210,15 @@ var ReportViewItem = React.createClass({
           </bem.ReportView__headingMeta>
         </bem.ReportView__itemHeading>
         <bem.ReportView__itemContent>
-          <bem.ReportView__chart
-              style={{
-                // height: this.props.style.graphHeight, 
-                width: this.props.style.graphWidth, 
-                }}>
-            <canvas ref="canvas" />
-          </bem.ReportView__chart>
-
+          {this.props.data.show_graph && 
+            <bem.ReportView__chart
+                style={{
+                  // height: this.props.style.graphHeight, 
+                  width: this.props.style.graphWidth, 
+                  }}>
+              <canvas ref="canvas" />
+            </bem.ReportView__chart>
+          }
           <code className="is-edge" style={{fontSize:10,lineHeight:'11px'}}>
             <pre>
               {JSON.stringify(this.props, null, 4)}

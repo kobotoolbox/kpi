@@ -263,11 +263,19 @@ var Reports = React.createClass({
         });
 
         dataInterface.getReportData({uid: uid, kuids: kuids}).done((data)=>{
+
+          var dataWithResponses = [];
+          data.list.forEach(function(row){
+            if (row.data.responses != undefined) {
+              dataWithResponses.push(row);
+            }
+          });
+
           this.setState({
             asset: asset,
             rowsByKuid: rowsByKuid,
             reportStyles: asset.report_styles,
-            reportData: data.list,
+            reportData: dataWithResponses,
           });
         });
       } else {
