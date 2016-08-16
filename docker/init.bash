@@ -21,7 +21,7 @@ python manage.py migrate --noinput
 
 if [[ ! -d "${KPI_SRC_DIR}/node_modules" ]]; then
     echo "Restoring \`npm\` packages to \`${KPI_SRC_DIR}/node_modules\`."
-    ln -s "${NODE_PATH}" "${KPI_SRC_DIR}/node_modules"
+    ln -s "${KPI_NODE_PATH}" "${KPI_SRC_DIR}/node_modules"
 fi
 
 if [[ ! -d "${KPI_SRC_DIR}/jsapp/xlform/components" ]]; then
