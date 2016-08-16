@@ -62,8 +62,6 @@ var ReportViewItem = React.createClass({
   },
   componentWillUpdate () {
     if (this.props.data.show_graph) {
-      console.log(this.refs);
-      console.log(this.props);
       var canvas = this.refs.canvas.getDOMNode();
       var opts = this.buildChartOptions();
       let itemChart = this.state.itemChart;
