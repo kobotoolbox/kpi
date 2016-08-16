@@ -21,7 +21,7 @@ python manage.py migrate --noinput
 
 if [[ ! -d "${KPI_SRC_DIR}/node_modules" ]]; then
     echo "Restoring \`npm\` packages to \`${KPI_SRC_DIR}/node_modules\`."
-    ln -s "${NODE_PATH}" "${KPI_SRC_DIR}/node_modules"
+    ln -s "${KPI_NODE_PATH}" "${KPI_SRC_DIR}/node_modules"
 fi
 
 if [[ ! -d "${KPI_SRC_DIR}/jsapp/xlform/components" ]]; then
@@ -41,6 +41,12 @@ fi
 
 if [[ ! -d "${KPI_SRC_DIR}/staticfiles" ]] || [[ "${KPI_PREFIX}" != '/' ]]; then
     echo 'Building static files from live code.'
+    (cd "${KPI_SRC_DIR}" && grunt copy && npm run build-production && python manage.py collectstatic --noinput)
+fi
+
+# FIXME: This file is starting to resemble some kind of manual makefile, so just create a real one.
+if [[ ! -e "${KPI_SRC_DIR}/webpack-stats.json" ]]; then
+    echo "File \`${KPI_SRC_DIR}/webpack-stats.json\` missing; rebuilding client code."
     (cd "${KPI_SRC_DIR}" && npm run build-production && python manage.py collectstatic --noinput)
 fi
 

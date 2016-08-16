@@ -5,7 +5,7 @@ FROM kobotoolbox/base-kobos:latest
 
 
 ENV KPI_SRC_DIR=/srv/src/kpi \
-    NODE_PATH=/srv/node_modules \
+    KPI_NODE_PATH=/srv/node_modules \
     BOWER_COMPONENTS_DIR=/srv/bower_components
 
 ###############################
@@ -43,12 +43,12 @@ RUN pip-sync /srv/tmp/base_requirements.txt 1>/dev/null
 
 COPY ./package.json ${KPI_SRC_DIR}/
 WORKDIR ${KPI_SRC_DIR}/
-RUN mkdir -p "${NODE_PATH}" && \
-    ln -s "${NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
+RUN mkdir -p "${KPI_NODE_PATH}" && \
+    ln -s "${KPI_NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
     # Try error-prone `npm install` step twice.
     npm install --quiet || npm install --quiet && \ 
     mv "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json
-ENV PATH $PATH:${NODE_PATH}/.bin
+ENV PATH $PATH:${KPI_NODE_PATH}/.bin
 
 
 #############################
