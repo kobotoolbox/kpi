@@ -84,9 +84,6 @@ var Drawer = React.createClass({
             <nav className='k-drawer__icons'>
               <DrawerLink label={t('Projects')} linkto='forms' ki-icon='projects' class='projects'/>
               <DrawerLink label={t('Library')} linkto='library' ki-icon='library' class='library' />
-              { stores.session.currentAccount ?
-                  <DrawerLink label={t('Projects')} active='true' href={stores.session.currentAccount.projects_url} className="is-edge" ki-icon='globe' />
-              : null }
             </nav>
 
             <div className="drawer__sidebar">
@@ -99,6 +96,12 @@ var Drawer = React.createClass({
               }
 
               <div className='k-drawer__icons-bottom'>
+                { stores.session.currentAccount ?
+                  <a href={stores.session.currentAccount.projects_url} className='k-drawer__link'>
+                    <i className="k-icon k-icon-kc" />
+                    {t('KoboCat')}
+                  </a>
+                : null }
                 <a href='https://github.com/kobotoolbox/' className='k-drawer__link'>
                   <i className="k-icon k-icon-github" />
                   {t('source')}

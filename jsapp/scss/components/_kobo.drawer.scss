@@ -36,7 +36,7 @@ $drawer-icons-column-width: 56px;
 }
 
 .k-drawer__icons-bottom {
-  height: 80px;
+  height: 100px;
   padding-top: 10px;
   border-top: solid 1px #CDCDCD;
   background-color: #F5F5F5;
@@ -78,7 +78,7 @@ $drawer-icons-column-width: 56px;
     display: none;
   }
   .form-sidebar__wrapper, .collections-wrapper {
-    height: calc(100% - 80px);
+    height: calc(100% - 110px);
   }
 }
 

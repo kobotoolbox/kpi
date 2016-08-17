@@ -116,7 +116,7 @@ var ReportViewItem = React.createClass({
       data: {
           labels: this.props.data.responses,
           datasets: [{
-              data: this.props.data.frequencies,
+              data: this.props.data.percentages,
           }]
       },
       options: {
@@ -127,12 +127,27 @@ var ReportViewItem = React.createClass({
         animation: {
           duration: 500
         },
+        scales: {
+          xAxes: [{
+            ticks: {
+              beginAtZero: true,
+              max: 100
+            }
+          }],
+          yAxes: [{
+            ticks: {
+              beginAtZero: true,
+              max: 100
+            }
+          }]
+        },
       }
     };
 
     if (chart_type == 'pie') {
       opts.options.legend.display = true;
       opts.data.datasets[0].backgroundColor = colors;
+      opts.options.scales = false;
 
       if (this.props.style.report_type == 'donut') {
         opts.options.cutoutPercentage = 50;
@@ -140,29 +155,25 @@ var ReportViewItem = React.createClass({
     }
 
     if (chart_type == 'bar') {
-      opts.options.scales = {
-        xAxes: [{ 
-          barPercentage: 0.4,
-          gridLines: {
-            display: false,
-          }
-        }],      
-      }
+      opts.options.scales.xAxes = [{
+        barPercentage: 0.4,
+        gridLines: {
+          display: false,
+        },
+      }];
     }
 
     if (chart_type == 'horizontalBar') {
-      opts.options.scales = {
-        yAxes: [{ 
-          barPercentage: 0.4,
-          gridLines: {
-            display: false,
-          }
-        }],      
-      }
+      opts.options.scales.yAxes = [{
+        barPercentage: 0.4,
+        gridLines: {
+          display: false,
+        }
+      }];
     }
 
     if (this.props.style.report_type == 'area') {
-      opts.data.datasets[0].backgroundColor = 'rgba(52, 106, 200, 0.4)';
+      opts.data.datasets[0].backgroundColor = colors[0];
     }
 
     return opts;
