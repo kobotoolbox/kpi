@@ -1,6 +1,9 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django.db import ProgrammingError
+from django.utils.translation import ugettext_lazy
+
+from jsonfield import JSONField
 
 
 class ReadOnlyModelError(ValueError):
@@ -30,6 +33,12 @@ class LazyModelGroup:
         if not hasattr(self, '_Instance'):
             self._define()
         return self._Instance
+
+    @property
+    def UserProfile(self):
+        if not hasattr(self, '_UserProfile'):
+            self._define()
+        return self._UserProfile
 
     def _define(self):
         class _ReadOnlyXform(_ReadOnlyModel):
@@ -62,8 +71,44 @@ class LazyModelGroup:
             status = models.CharField(max_length=20,
                                       default=u'submitted_via_web')
             uuid = models.CharField(max_length=249, default=u'')
+
+        class _UserProfile(models.Model):
+            '''
+            From onadata/apps/main/models/user_profile.py
+            Not read-only because we need write access to `require_auth`
+            '''
+            class Meta:
+                managed = False
+                db_table = 'main_userprofile'
+                verbose_name = 'user profile'
+                verbose_name_plural = 'user profiles'
+
+            # This field is required.
+            user = models.OneToOneField(User, related_name='profile')
+
+            # Other fields here
+            name = models.CharField(max_length=255, blank=True)
+            city = models.CharField(max_length=255, blank=True)
+            country = models.CharField(max_length=2, blank=True)
+            organization = models.CharField(max_length=255, blank=True)
+            home_page = models.CharField(max_length=255, blank=True)
+            twitter = models.CharField(max_length=255, blank=True)
+            description = models.CharField(max_length=255, blank=True)
+            require_auth = models.BooleanField(
+                default=False,
+                verbose_name=ugettext_lazy(
+                    "Require authentication to see forms and submit data"
+                )
+            )
+            address = models.CharField(max_length=255, blank=True)
+            phonenumber = models.CharField(max_length=30, blank=True)
+            created_by = models.ForeignKey(User, null=True, blank=True)
+            num_of_submissions = models.IntegerField(default=0)
+            metadata = JSONField(default={}, blank=True)
+
         self._XForm = _ReadOnlyXform
         self._Instance = _ReadOnlyInstance
+        self._UserProfile = _UserProfile
 
 _models = LazyModelGroup()
 

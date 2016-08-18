@@ -377,6 +377,14 @@ var sessionStore = Reflux.createStore({
         };
       });
     }
+    if (acct.languages) {
+      acct.languages = acct.languages.map(function(_c){
+        return {
+          value: _c[0],
+          label: _c[1],
+        };
+      });
+    }
 
     this.trigger({
       isLoggedIn: true,

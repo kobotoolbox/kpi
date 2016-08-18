@@ -71,7 +71,8 @@ from .serializers import (
     AssetSnapshotSerializer,
     SitewideMessageSerializer,
     CollectionSerializer, CollectionListSerializer,
-    UserSerializer, UserListSerializer, CreateUserSerializer,
+    UserSerializer, UserListSerializer,
+    CurrentUserSerializer, CreateUserSerializer,
     TagSerializer, TagListSerializer,
     ImportTaskSerializer, ImportTaskListSerializer,
     ObjectPermissionSerializer,
@@ -85,40 +86,8 @@ from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from .tasks import import_in_background
 from deployment_backends.backends import DEPLOYMENT_BACKENDS
 
-from kobo.static_lists import SECTORS, COUNTRIES
-
 CLONE_ARG_NAME = 'clone_from'
 COLLECTION_CLONE_FIELDS = {'name'}
-
-
-@api_view(['GET'])
-def current_user(request):
-    user = request.user
-    if user.is_anonymous():
-        return Response({'message': 'user is not logged in'})
-    else:
-        users_payload = {'username': user.username,
-                         'first_name': user.first_name,
-                         'last_name': user.last_name,
-                         'email': user.email,
-                         'server_time': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
-                         'projects_url': '/'.join((
-                            settings.KOBOCAT_URL, user.username)),
-                         'is_superuser': user.is_superuser,
-                         'gravatar': gravatar_url(user.email),
-                         # TODO: Find a better location for SECTORS and COUNTRIES
-                         # as the functionality develops. (possibly in tags?)
-                         'available_sectors': SECTORS,
-                         'available_countries': COUNTRIES,
-                         'is_staff': user.is_staff,
-                         'last_login': user.last_login,
-                         'languages': settings.LANGUAGES,
-                         }
-        if settings.UPCOMING_DOWNTIME:
-            # setting is in the format:
-            # [dateutil.parser.parse('6pm edt').isoformat(), countdown_msg]
-            users_payload['upcoming_downtime'] = settings.UPCOMING_DOWNTIME
-        return Response(users_payload)
 
 
 @login_required
@@ -327,6 +296,13 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             return UserListSerializer
         else:
             return UserSerializer
+
+
+class CurrentUserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.none()
+    serializer_class = CurrentUserSerializer
+    def get_object(self):
+        return self.request.user
 
 
 class AuthorizedApplicationUserViewSet(mixins.CreateModelMixin,
