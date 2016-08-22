@@ -22,7 +22,6 @@ export var AccountSettings = React.createClass({
     Reflux.ListenerMixin,
   ],
   getStateFromCurrentAccount(currentAccount) {
-    console.log(currentAccount);
     if (currentAccount.extra_details == undefined)
       currentAccount.extra_details = {};
     return {
