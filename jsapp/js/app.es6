@@ -18,6 +18,7 @@ import {
   NotFoundRoute,
   run,
 } from 'react-router';
+import Select from 'react-select';
 
 import searches from './searches';
 import actions from './actions';
@@ -37,6 +38,7 @@ import {
 
 import Reports from './components/reports';
 import FormData from './components/formData';
+import {ChangePassword, AccountSettings} from './components/accountSettings';
 
 import {
   ListSearch,
@@ -1810,6 +1812,9 @@ var routes = (
       <Route name="user-profile" handler={UserProfile}
               path="/users/:username" />
     </Route>
+
+    <Route name="account-settings" handler={AccountSettings} />
+    <Route name="change-password" handler={ChangePassword} />
 
     <Route name="public" handler={Public}>
       <Route name="public-builder" handler={Builder} />

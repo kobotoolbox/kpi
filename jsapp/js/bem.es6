@@ -201,6 +201,15 @@ bem.AccountBox__username = bem.AccountBox.__('username', '<span>');
 bem.AccountBox__image = bem.AccountBox.__('image', '<span>');
 bem.AccountBox__logo = bem.AccountBox.__('logo', '<span>');
 
+bem.AccountSettings = BEM('account-settings');
+bem.AccountSettings__left = bem.AccountSettings.__('left');
+bem.AccountSettings__right = bem.AccountSettings.__('right');
+bem.AccountSettings__item = bem.FormModal.__('item');
+bem.AccountSettings__desc = bem.AccountSettings.__('desc');
+
+bem.ChangePassword = BEM('change-password');
+bem.ChangePassword__item = bem.FormModal.__('item');
+
 bem.uiPanel = BEM('ui-panel');
 bem.uiPanel__body = bem.uiPanel.__('body');
 

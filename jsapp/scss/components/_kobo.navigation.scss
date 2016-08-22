@@ -165,7 +165,7 @@ $headerAccountTextColor: #dbedf7;
       background-color: $nav-menu-item-bg-active;
     }
   }
-  .k-lang__submenu {
+  .k-lang__submenu, .k-account__submenu {
     position: relative;
     ul {
       position: absolute;

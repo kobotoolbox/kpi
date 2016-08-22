@@ -1,0 +1,72 @@
+.account-settings {
+	padding-top:30px;
+	width:100%;
+	height: 100%;
+	&__left {
+		width:10%;
+		margin-left: 5%;
+		float: left;
+		text-align: center;
+		img {
+			border-radius: 50%;
+			max-width: 100%;
+		}
+	}
+
+	&__right {
+		width:85%;
+		float: left;
+  	height: 100%;
+	  overflow: auto;
+	  padding-right: 60px;
+	}
+
+	h4 {
+		margin:0px;
+		font-weight: 400;
+		color: #454e54;
+	}
+
+	.account-settings__desc {
+		color: $cool-gray;
+	}
+
+	.form-modal__item--city {
+		width:46%;
+		margin-right: 2%;
+		float: left;
+	}
+	.form-modal__item--country {
+		width:52%;
+		float: left;
+	}
+
+	.form-modal__item--social {
+		border-top:1px solid #DDD;
+		margin-top: 20px;
+		padding-top: 20px;
+		label {
+			position: relative;
+			i {
+				position: absolute;
+				font-size: 20px;
+				top: 6px;
+				left: 14px;
+			}
+			input {
+				padding-left: 60px;
+			}
+		}
+	}
+
+	.form-modal__item--actions {
+		padding-bottom: 40px;
+	}
+}
+
+.change-password {
+	padding-top:30px;
+	width:80%;
+	margin-left: 15%;
+	height: 100%;
+}

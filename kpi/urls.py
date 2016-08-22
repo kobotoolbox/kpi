@@ -7,6 +7,7 @@ from kpi.views import (
     AssetViewSet,
     AssetSnapshotViewSet,
     UserViewSet,
+    CurrentUserViewSet,
     CollectionViewSet,
     TagViewSet,
     ImportTaskViewSet,
@@ -42,7 +43,6 @@ router.register(r'authorized_application/users',
 router.register(r'authorized_application/one_time_authentication_keys',
                 OneTimeAuthenticationKeyViewSet)
 
-
 # Apps whose translations should be available in the client code.
 js_info_dict = {
     'packages': ('kobo.apps.KpiConfig',),
@@ -50,7 +50,10 @@ js_info_dict = {
 
 urlpatterns = [
     url(r'^$', home, name='kpi-root'),
-    url(r'^me/$', current_user, name='current-user'),
+    url(r'^me/$', CurrentUserViewSet.as_view({
+        'get': 'retrieve',
+        'patch': 'partial_update',
+    }), name='currentuser-detail'),
     url(r'^', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls',
                                namespace='rest_framework')),

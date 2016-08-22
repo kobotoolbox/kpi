@@ -41,7 +41,13 @@ actions.auth = Reflux.createActions({
       'completed',
       'failed'
     ]
-  }
+  },
+  changePassword: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
 });
 
 actions.survey = Reflux.createActions({
@@ -250,6 +256,12 @@ actions.misc = Reflux.createActions({
       'completed',
       'failed_'
     ]
+  },
+  updateProfile: {
+    children: [
+      'completed',
+      'failed'
+    ]
   }
 });
 
@@ -259,6 +271,19 @@ actions.misc.checkUsername.listen(function(username){
     .done(actions.misc.checkUsername.completed)
     .fail(actions.misc.checkUsername.failed_);
 });
+
+actions.misc.updateProfile.listen(function(data){
+  dataInterface.patchProfile(data)
+    .done(actions.misc.updateProfile.completed)
+    .fail(actions.misc.updateProfile.failed);
+});
+actions.misc.updateProfile.completed.listen(function(){
+  notify(t('updated profile successfully'));
+});
+actions.misc.updateProfile.failed.listen(function(){
+  notify(t('failed to update profile'), 'error');
+});
+
 actions.resources.createImport.listen(function(contents){
   if (contents.base64Encoded) {
     dataInterface.postCreateBase64EncodedImport(contents)
@@ -584,6 +609,21 @@ actions.auth.verifyLogin.listen(function(){
           }
         })
         .fail(actions.auth.verifyLogin.failed);
+});
+
+actions.auth.changePassword.listen((currentPassword, newPassword) => {
+  dataInterface.patchProfile({
+    current_password: currentPassword,
+    new_password: newPassword
+  })
+  .done(actions.auth.changePassword.completed)
+  .fail(actions.auth.changePassword.failed);
+});
+actions.auth.changePassword.completed.listen(() => {
+  notify(t('changed password successfully'));
+});
+actions.auth.changePassword.failed.listen(() => {
+  notify(t('failed to change password'), 'error');
 });
 
 actions.resources.loadAsset.listen(function(params){

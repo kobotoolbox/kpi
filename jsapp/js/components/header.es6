@@ -89,6 +89,12 @@ var MainHeader = React.createClass({
   logout () {
     actions.auth.logout();
   },
+  accountSettings () {
+    this.transitionTo('account-settings');
+  },
+  password () {
+    this.transitionTo('change-password');
+  },
   setStates() {
     this.listenTo(stores.asset, this.assetLoad);
 
@@ -139,8 +145,9 @@ var MainHeader = React.createClass({
   },
   renderLangItem(lang) {
     return (
-      <li key={lang[0]}>
-        <a data-key={lang[0]} onClick={this.languageChange} className="mdl-menu__item">{lang[1]}</a>
+      <li key={lang.value}>
+        <a data-key={lang.value} onClick={this.languageChange}
+          className="mdl-menu__item">{lang.label}</a>
       </li>
     );
   },
@@ -195,11 +202,16 @@ var MainHeader = React.createClass({
             { (this.state.accountMenuPopoverShowing) ? 
               <bem.PopoverMenu ref='accountMenu-popover'>
                 <ul className="k-account__menu">
-                  <li key="settings">
-                    <a href={stores.session.currentAccount.projects_url + '/settings'} className="mdl-menu__item">
+                  <li className="k-account__submenu" key="settings">
+                    <a onClick={this.accountSettings} className="mdl-menu__item">
                       <i className="k-icon-settings" />
-                      {t('Profile Settings')}
+                      {t('Account Settings')}
                     </a>
+                    <ul>
+                      <li className="mdl-menu__item" onClick={this.password}>
+                        {t('Password')}
+                      </li>
+                    </ul>
                   </li>
                   {leaveBetaUrl ?
                     <li>
