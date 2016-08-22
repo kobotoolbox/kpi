@@ -12,6 +12,7 @@ import Select from 'react-select';
 import ui from '../ui';
 import mixins from '../mixins';
 import mdl from '../libs/rest_framework/material';
+import {ProjectSettingsEditor} from '../components/formEditors';
 
 import {
   assign,
@@ -25,6 +26,14 @@ var FormData = React.createClass({
     Reflux.ListenerMixin,
     mixins.dmix
   ],
+  updateRouteState () {
+    var currentRoutes = this.context.router.getCurrentRoutes();
+    var activeRoute = currentRoutes[currentRoutes.length - 1];
+    this.setState(assign({
+        currentRoute: activeRoute
+      }
+    ));
+  },
   componentDidMount () {
     this.listenTo(stores.session, this.dmixSessionStoreChange);
     this.listenTo(stores.asset, this.dmixAssetStoreChange);
@@ -36,19 +45,17 @@ var FormData = React.createClass({
     } else if (uid) {
       actions.resources.loadAsset({id: uid});
     }
-    var currentRoutes = this.context.router.getCurrentRoutes();
-    var activeRoute = currentRoutes[currentRoutes.length - 1];
-    this.setState(assign({
-        currentRoute: activeRoute
-      }
-    ));
+
+    this.updateRouteState();
+  },
+  componentWillReceiveProps () {
+    this.updateRouteState();
   },
   render () {
     if (this.state.deployment__identifier != undefined) {
       var deployment__identifier = this.state.deployment__identifier;
       var report__base = deployment__identifier.replace('/forms/', '/reports/');
       var iframeUrl = '';   
-
       switch(this.state.currentRoute.name) {
         case 'form-data-report':
           iframeUrl = report__base+'/digest.html';
@@ -75,6 +82,9 @@ var FormData = React.createClass({
             <bem.FormView>
               <bem.FormView__wrapper>
                 <bem.FormView__cell m='iframe'>
+                  {this.state.name != undefined && this.state.currentRoute.name == 'form-data-settings' && 
+                    <ProjectSettingsEditor asset={this.state} />
+                  }
                   <iframe src={iframeUrl} />
                 </bem.FormView__cell>
               </bem.FormView__wrapper>              
