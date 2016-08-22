@@ -18,7 +18,7 @@ from kpi.views import (
     UserCollectionSubscriptionViewSet,
 )
 
-from kpi.views import current_user, home, one_time_login
+from kpi.views import home, one_time_login
 from kobo.apps.reports.views import ReportsViewSet
 from kpi.views import authorized_application_authenticate_user
 from kpi.forms import RegistrationForm
