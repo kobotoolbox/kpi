@@ -781,7 +781,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         # fields by default." --DRF
         extra_details = validated_data.pop('extra_details', False)
         if extra_details:
-            instance.extra_details.data.update(extra_details.data)
+            instance.extra_details.data.update(extra_details['data'])
             instance.extra_details.save()
         current_password = validated_data.pop('current_password', False)
         new_password = validated_data.pop('new_password', False)
