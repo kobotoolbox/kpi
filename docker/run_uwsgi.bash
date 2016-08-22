@@ -3,8 +3,8 @@ set -e
 
 source /etc/profile
 
-kpi_WEB_SERVER="${kpi_WEB_SERVER:-uWSGI}"
-if [[ "${kpi_WEB_SERVER}" == 'uWSGI' ]]; then
+KPI_WEB_SERVER="${KPI_WEB_SERVER:-uWSGI}"
+if [[ "${KPI_WEB_SERVER^^}" == 'UWSGI' ]]; then
     exec /usr/local/bin/uwsgi --ini "${KPI_SRC_DIR}/uwsgi.ini"
 else
     cd "${KPI_SRC_DIR}"
