@@ -33,6 +33,8 @@
     transition: max-height 0.5s ease, opacity 0.5s ease;
     opacity: 0;
     max-height: 0px;
+    padding: 0px;
+    border:none;
   }
 
   .asset-row__celllink--name {
