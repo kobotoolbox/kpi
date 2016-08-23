@@ -327,7 +327,8 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
                 raise exceptions.PermissionDenied
             asset_version = asset.asset_versions.first()
             try:
-                snapshot = AssetSnapshot.get(asset=asset, asset_version=asset_version)
+                snapshot = AssetSnapshot.objects.get(asset=asset,
+                                                     asset_version=asset_version)
             except AssetSnapshot.DoesNotExist as e:
                 snapshot = AssetSnapshot.objects.create(**validated_data)
         elif source:
