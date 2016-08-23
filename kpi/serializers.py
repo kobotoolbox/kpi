@@ -14,7 +14,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
 
-from kobo.static_lists import SECTORS, COUNTRIES
+from kobo.static_lists import SECTORS, COUNTRIES, LANGUAGES
 from hub.models import SitewideMessage
 from .models import Asset
 from .models import AssetSnapshot
@@ -774,6 +774,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         # as the functionality develops. (possibly in tags?)
         rep['available_sectors'] = SECTORS
         rep['available_countries'] = COUNTRIES
+        rep['all_languages'] = LANGUAGES
         return rep
 
     def update(self, instance, validated_data):

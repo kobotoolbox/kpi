@@ -43,7 +43,7 @@ export var AccountSettings = React.createClass({
       instagram: currentAccount.extra_details.instagram,
       metadata: currentAccount.extra_details.metadata,
 
-      languageChoices: currentAccount.languages,
+      languageChoices: currentAccount.all_languages,
       countryChoices: currentAccount.available_countries,
       sectorChoices: currentAccount.available_sectors,
       genderChoices: [
