@@ -514,16 +514,16 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_deployed_version_id(self, obj):
         if obj.asset_versions.filter(deployed=True).exists():
-            if obj.has_deployment and isinstance(obj.deployment.version, int):
+            if obj.has_deployment and isinstance(obj.deployment.version_id, int):
                 # this can be removed once the 'replace_deployment_ids'
                 # migration has been run
-                v_id = obj.deployment.version
+                v_id = obj.deployment.version_id
                 try:
                     return obj.asset_versions.get(_reversion_version_id=v_id).uid
                 except ObjectDoesNotExist, e:
                     return obj.asset_versions.filter(deployed=True).first().uid
             else:
-                return obj.deployment.version
+                return obj.deployment.version_id
 
     def get_deployed_versions(self, asset):
         deployed_versioned_assets = asset.asset_versions.filter(deployed=True)
@@ -563,16 +563,16 @@ class DeploymentSerializer(serializers.Serializer):
     backend = serializers.CharField(required=False)
     identifier = serializers.CharField(read_only=True)
     active = serializers.BooleanField(required=False)
-    version = serializers.CharField(required=False)
+    version_id = serializers.CharField(required=False)
 
     def create(self, validated_data):
         asset = self.context['asset']
         # Stop if the requester attempts to deploy any version of the asset
         # except the current one
-        if 'version' in validated_data and \
-                validated_data['version'] != str(asset.version_id):
+        if 'version_id' in validated_data and \
+                validated_data['version_id'] != str(asset.version_id):
             raise NotImplementedError(
-                'Only the current version can be deployed')
+                'Only the current version_id can be deployed')
         # if no backend is provided, use the installation's default backend
         backend_id = validated_data.get('backend',
                                         settings.DEFAULT_DEPLOYMENT_BACKEND)
@@ -581,6 +581,7 @@ class DeploymentSerializer(serializers.Serializer):
             backend=backend_id,
             active=validated_data.get('active', False),
         )
+        asset.save()
         return asset.deployment
 
     def update(self, instance, validated_data):
@@ -593,11 +594,11 @@ class DeploymentSerializer(serializers.Serializer):
                             'deployment.'})
         # Is this a request to replace the content of the existing, deployed
         # form?
-        if 'version' in validated_data:
+        if 'version_id' in validated_data:
             # For now, don't check that
             #   validated_data['version'] != str(deployment.version)
             # Instead, send the update to KC even if the content is unchanged
-            if validated_data['version'] != str(asset.version_id):
+            if validated_data['version_id'] != str(asset.version_id):
                 # We still can't deploy any version other than the current one
                 raise NotImplementedError(
                     'Only the current version can be deployed')

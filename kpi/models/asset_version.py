@@ -40,5 +40,10 @@ class AssetVersion(models.Model):
 
     def _content_hash(self):
         # used to determine changes in the content from version to version
-        _json_string = json.dumps(self.version_content, sort_keys=True)
+        # not saved, only compared with other asset_versions (in tests and
+        # migration scripts, initially)
+        _json_string = json.dumps({'version_content': self.version_content,
+                                   'deployed_content': self.deployed_content,
+                                   'deployed': self.deployed,
+                                   }, sort_keys=True)
         return hashlib.sha1(_json_string).hexdigest()

@@ -230,7 +230,8 @@ class Asset(ObjectPermissionMixin,
     }
 
     def __init__(self, *args, **kwargs):
-        r = super(Asset, self).__init__(*args, **kwargs)
+        self._deployed = False
+        super(Asset, self).__init__(*args, **kwargs)
         # Mind the depth
         self._initial_content_json = json.dumps(self.content)
 
@@ -245,11 +246,11 @@ class Asset(ObjectPermissionMixin,
         deployed_versioned_assets = []
         # Record the current deployment, if any
         if self.has_deployment:
-            asset_deployments_by_version_id[self.deployment.version] = \
+            asset_deployments_by_version_id[self.deployment.version_id] = \
                 self.deployment
             # The currently deployed version may be unknown, but we still want
             # to pass its timestamp to the serializer
-            if self.deployment.version == 0:
+            if self.deployment.version_id == 0:
                 # Temporary attributes for later use by the serializer
                 self._static_version_id = 0
                 self._date_deployed = self.deployment.timestamp
@@ -260,7 +261,7 @@ class Asset(ObjectPermissionMixin,
             historical_asset = version.object_version.object
             if historical_asset.has_deployment:
                 asset_deployments_by_version_id[
-                    historical_asset.deployment.version
+                    historical_asset.deployment.version_id
                 ] = historical_asset.deployment
         # Annotate and list deployed asset versions
         _reversion_versions = reversion.get_for_object(self)
@@ -330,8 +331,13 @@ class Asset(ObjectPermissionMixin,
 
         self._populate_report_styles()
 
-        # TODO: prevent assets from saving duplicate versions
         super(Asset, self).save(*args, **kwargs)
+
+        self.asset_versions.create(name=self.name,
+                                   version_content=self.content,
+                                   _deployment_data=self._deployment_data,
+                                   deployed=self._deployed,
+                                   )
 
     def to_clone_dict(self, version_uid=None):
         if version_uid:
@@ -376,8 +382,18 @@ class Asset(ObjectPermissionMixin,
             return None
 
     @property
+    def latest_version(self):
+        return self.asset_versions.first()
+
+    @property
+    def latest_deployed_version(self):
+        return self.asset_versions.filter(deployed=True).first()
+
+    @property
     def version_id(self):
-        return self.asset_versions.first().uid
+        latest_version = self.latest_version
+        if latest_version:
+            return latest_version.uid
 
     def get_export(self, regenerate=True, version_id=False):
         if version_id:
@@ -507,15 +523,3 @@ def post_delete_asset(sender, instance, **kwargs):
     # Remove all permissions associated with this object
     ObjectPermission.objects.filter_for_object(instance).delete()
     # No recalculation is necessary since children will also be deleted
-
-
-@receiver(models.signals.post_save, sender=Asset,
-          weak=False,
-          dispatch_uid="create_asset_version")
-def post_save_asset(sender, instance, **kwargs):
-    kwargs = {'version_content': instance.content,
-              'name': instance.name}
-    if instance._deployment_data:
-        kwargs.update({'_deployment_data': instance._deployment_data,
-                       'deployed': True})
-    instance.asset_versions.create(**kwargs)

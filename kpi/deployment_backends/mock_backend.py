@@ -17,6 +17,15 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 'active': active,
             })
 
+    def redeploy(self, active=None):
+        '''
+        Replace (overwrite) the deployment, keeping the same identifier, and
+        optionally changing whether the deployment is active
+        '''
+        if active is None:
+            active = self.active
+        self.set_active(active)
+
     def set_active(self, active):
         self.store_data({
                 'active': bool(active),
