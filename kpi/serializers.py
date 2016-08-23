@@ -439,10 +439,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             'uid': {
                 'read_only': True,
             },
-            'name': {
-                'required': True,
-                'allow_blank': False,
-            },
         }
 
     def get_fields(self, *args, **kwargs):
