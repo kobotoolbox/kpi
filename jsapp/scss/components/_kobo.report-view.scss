@@ -141,6 +141,34 @@
       min-height: 800px;
       padding-right: 5px;
     }
+
+    .form-modal {
+      padding:0px 40px;
+      padding-top: 20px;
+    }
+
+    .form-modal__item label.long {
+      font-weight: 400;
+      font-size: 14px;
+    }
+
+    .form-modal__item textarea {
+      min-height: 80px;
+      margin-bottom: 10px;
+    }
+
+    .form-modal__item--sector {
+      width: 48%;
+      margin-right: 2%;
+      float: left;
+    }
+    .form-modal__item--country {
+      width: 50%;
+      float: left;
+      &:after {
+        clear:both;
+      }
+    }
   }
 
 // report graph settings
