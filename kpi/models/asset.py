@@ -293,13 +293,15 @@ class Asset(ObjectPermissionMixin,
 
         self._populate_report_styles()
 
+        _create_version = kwargs.pop('create_version', True)
         super(Asset, self).save(*args, **kwargs)
 
-        self.asset_versions.create(name=self.name,
-                                   version_content=self.content,
-                                   _deployment_data=self._deployment_data,
-                                   deployed=self._deployed,
-                                   )
+        if _create_version:
+            self.asset_versions.create(name=self.name,
+                                       version_content=self.content,
+                                       _deployment_data=self._deployment_data,
+                                       deployed=self._deployed,
+                                       )
 
     def to_clone_dict(self, version_uid=None):
         if version_uid:

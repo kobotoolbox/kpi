@@ -5,7 +5,6 @@ import gc
 import json
 
 from kpi.models import Asset, AssetVersion
-from kpi.models.asset import post_save_asset
 from reversion.models import Version
 
 from optparse import make_option
@@ -116,10 +115,6 @@ def _replace_deployment_ids(_AssetVersion, _Asset):
     a_ids = set(_AssetVersion.objects.filter(deployed=True
                                              ).values_list('asset_id', flat=True
                                                            ))
-    post_save.disconnect(sender=_Asset,
-                         dispatch_uid="create_asset_version",
-                         receiver=post_save_asset,
-                         )
     ids_not_counted = []
     with disable_auto_field_update(_Asset, 'date_modified'):
         for a_id in a_ids:
@@ -129,13 +124,10 @@ def _replace_deployment_ids(_AssetVersion, _Asset):
                 try:
                     uid = asset.asset_versions.get(_reversion_version_id=version_id).uid
                     asset._deployment_data['version_uid'] = uid
-                    asset.save()
+                    asset.save(create_version=False)
                 except ObjectDoesNotExist as e:
                     ids_not_counted.append(version_id)
-    post_save.connect(sender=_Asset,
-                      dispatch_uid="create_asset_version",
-                      receiver=post_save_asset,
-                      )
+
     if len(ids_not_counted) > 0:
         print("""DeploymentIDs not found:
                  {}""".format(json.dumps(passed_ids)))
