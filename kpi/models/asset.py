@@ -194,7 +194,7 @@ class Asset(ObjectPermissionMixin,
     editors_can_change_permissions = models.BooleanField(default=True)
     uid = KpiUidField(uid_prefix='a')
     tags = TaggableManager(manager=KpiTaggableManager)
-    settings= jsonbfield.fields.JSONField(default=dict)
+    settings = jsonbfield.fields.JSONField(default=dict)
 
     # _deployment_data should be accessed through the `deployment` property
     # provided by `DeployableMixin`
@@ -240,44 +240,6 @@ class Asset(ObjectPermissionMixin,
     #     _version_to_restore = self.asset_versions.get(uid=uid)
     #     self.content = _version_to_restore.version_content
     #     self.name = _version_to_restore.name
-
-    def _deployed_versioned_assets(self):
-        asset_deployments_by_version_id = OrderedDict()
-        deployed_versioned_assets = []
-        # Record the current deployment, if any
-        if self.has_deployment:
-            asset_deployments_by_version_id[self.deployment.version_id] = \
-                self.deployment
-            # The currently deployed version may be unknown, but we still want
-            # to pass its timestamp to the serializer
-            if self.deployment.version_id == 0:
-                # Temporary attributes for later use by the serializer
-                self._static_version_id = 0
-                self._date_deployed = self.deployment.timestamp
-                deployed_versioned_assets.append(self)
-        # Record all previous deployments
-        _reversion_versions = reversion.get_for_object(self)
-        for version in _reversion_versions:
-            historical_asset = version.object_version.object
-            if historical_asset.has_deployment:
-                asset_deployments_by_version_id[
-                    historical_asset.deployment.version_id
-                ] = historical_asset.deployment
-        # Annotate and list deployed asset versions
-        _reversion_versions = reversion.get_for_object(self)
-        for version in _reversion_versions.filter(
-                id__in=asset_deployments_by_version_id.keys()):
-            historical_asset = version.object_version.object
-            # Asset.version_id returns the *most recent* version of the asset;
-            # it has no way to know the version of the instance it's bound to.
-            # Record a _static_version_id here for the serializer to use
-            historical_asset._static_version_id = version.id
-            # Make the deployment timestamp available to the serializer
-            historical_asset._date_deployed = asset_deployments_by_version_id[
-                version.id].timestamp
-            # Store the annotated asset objects in a list for serialization
-            deployed_versioned_assets.append(historical_asset)
-        return deployed_versioned_assets
 
     def to_ss_structure(self):
         return flatten_content(copy.deepcopy(self.content))
