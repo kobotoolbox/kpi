@@ -17,8 +17,23 @@
 		width:85%;
 		float: left;
   	height: 100%;
-	  overflow: auto;
-	  padding-right: 60px;
+	  position: relative;
+	  padding-right: 80px;
+	  .form-modal__item--fields {
+	  	height: calc(100% - 90px);
+		  padding-right: 40px;
+		  overflow: auto;
+	  }
+	  .form-modal__item--username {
+	  	height: 60px;
+	  }
+		.form-modal__item--actions {
+			padding: 10px;
+			position: absolute;
+			top: 0px;
+			right: 70px;
+		}
+
 	}
 
 	h4 {
@@ -42,6 +57,7 @@
 	}
 
 	.form-modal__item--social {
+		clear: both;
 		border-top:1px solid #DDD;
 		margin-top: 20px;
 		padding-top: 20px;
@@ -50,17 +66,14 @@
 			i {
 				position: absolute;
 				font-size: 20px;
-				top: 6px;
-				left: 14px;
+				top: 7px;
+				left: 12px;
+				opacity: 0.8;
 			}
 			input {
 				padding-left: 60px;
 			}
 		}
-	}
-
-	.form-modal__item--actions {
-		padding-bottom: 40px;
 	}
 }
 

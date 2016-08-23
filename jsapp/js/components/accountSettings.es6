@@ -148,153 +148,164 @@ export var AccountSettings = React.createClass({
             <img src={gravatar} />
           </bem.AccountSettings__left>
           <bem.AccountSettings__right>
-            <bem.AccountSettings__item>
+            <bem.AccountSettings__item m='actions'>
+              <button onClick={this.updateProfile}
+                      className="mdl-button mdl-js-button mdl-button--bordered">
+                {t('Save Changes')}
+              </button>
+            </bem.AccountSettings__item>
+
+            <bem.AccountSettings__item m='username'>
               <h4>{accountName}</h4>
-              <bem.AccountSettings__desc>
+              <bem.AccountSettings__desc className="is-edge">
                 {t('Your username, bio, and links appear on your public profile')}
               </bem.AccountSettings__desc>
             </bem.AccountSettings__item>
-            <bem.AccountSettings__item>
-              <label>
-                {t('Name')}
-                <input type="text" value={this.state.name}
-                  onChange={this.nameChange} />
-              </label>
-              <bem.AccountSettings__desc>
-                {t('Use this to display your real name to other users')}
-              </bem.AccountSettings__desc>
-            </bem.AccountSettings__item>
-            <bem.AccountSettings__item>
-              <label>
-                {t('Email')}
-                <input type="email" value={this.state.email}
-                  onChange={this.emailChange} />
-              </label>
-            </bem.AccountSettings__item>
-            <bem.AccountSettings__item>
-              <label>
-                {t('Organization')}
-                <input type="text" value={this.state.organization}
-                  onChange={this.organizationChange} />
-              </label>
-            </bem.AccountSettings__item>
-            <bem.AccountSettings__item>
-              <label>
-                {t('Organization Website')}
-                <input type="text" value={this.state.organizationWebsite}
-                  onChange={this.organizationWebsiteChange} />
-              </label>
-              <bem.AccountSettings__desc>
-                {t('This will be used to create a hyperlink for your organization name. ')}
-              </bem.AccountSettings__desc>
-            </bem.AccountSettings__item>
-            <bem.AccountSettings__item>
-              <label>
-                {t('Primary Sector')}
-                <Select value={this.state.primarySector}
-                  options={this.state.sectorChoices}
-                  onChange={this.primarySectorChange}>
-                </Select>
-              </label>
-              <bem.AccountSettings__desc>
-                {t('Select the primary sector in which you work. ')}
-              </bem.AccountSettings__desc>
-            </bem.AccountSettings__item>
-            <bem.AccountSettings__item>
-              <label>
-                {t('Gender')}
-                <Select value={this.state.gender}
-                  options={this.state.genderChoices}
-                  onChange={this.genderChange}>
-                </Select>
-              </label>
-            </bem.AccountSettings__item>
-            <bem.AccountSettings__item>
-              <label>
-                {t('Bio')}
-                <textarea value={this.state.bio}
-                  onChange={this.bioChange} />
-              </label>
-            </bem.AccountSettings__item>
-            <bem.AccountSettings__item>
-              <label>
-                <input type="checkbox" checked={this.state.requireAuth}
-                  onChange={this.requireAuthChange} />
-                {t('Require authentication to see forms and submit data')}
-              </label>
-            </bem.AccountSettings__item>
+            <bem.AccountSettings__item m='fields'>
+              <bem.AccountSettings__item>
+                <label>
+                  {t('Privacy')}
+                  <br/>
+                  <input type="checkbox" checked={this.state.requireAuth}
+                    onChange={this.requireAuthChange} />
+                  {t('Require authentication to see forms and submit data')}
+                </label>
+              </bem.AccountSettings__item>
+              <bem.AccountSettings__item>
+                <label>
+                  {t('Name')}
+                  <input type="text" value={this.state.name}
+                    onChange={this.nameChange} />
+                </label>
+                <bem.AccountSettings__desc>
+                  {t('Use this to display your real name to other users')}
+                </bem.AccountSettings__desc>
+              </bem.AccountSettings__item>
+              <bem.AccountSettings__item>
+                <label>
+                  {t('Email')}
+                  <input type="email" value={this.state.email}
+                    onChange={this.emailChange} />
+                </label>
+              </bem.AccountSettings__item>
+              <bem.AccountSettings__item m='password'>
+                <a href='/#/change-password'
+                    className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                  {t('Modify Password')}
+                </a>
+              </bem.AccountSettings__item>
+              <bem.AccountSettings__item>
+                <label>
+                  {t('Organization')}
+                  <input type="text" value={this.state.organization}
+                    onChange={this.organizationChange} />
+                </label>
+              </bem.AccountSettings__item>
+              <bem.AccountSettings__item>
+                <label>
+                  {t('Organization Website')}
+                  <input type="text" value={this.state.organizationWebsite}
+                    onChange={this.organizationWebsiteChange} />
+                </label>
+                <bem.AccountSettings__desc className="is-edge">
+                  {t('This will be used to create a hyperlink for your organization name. ')}
+                </bem.AccountSettings__desc>
+              </bem.AccountSettings__item>
+              <bem.AccountSettings__item>
+                <label>
+                  {t('Primary Sector')}
+                  <Select value={this.state.primarySector}
+                    options={this.state.sectorChoices}
+                    onChange={this.primarySectorChange}>
+                  </Select>
+                </label>
+                <bem.AccountSettings__desc>
+                  {t('Select the primary sector in which you work. ')}
+                </bem.AccountSettings__desc>
+              </bem.AccountSettings__item>
+              <bem.AccountSettings__item>
+                <label>
+                  {t('Gender')}
+                  <Select value={this.state.gender}
+                    options={this.state.genderChoices}
+                    onChange={this.genderChange}>
+                  </Select>
+                </label>
+              </bem.AccountSettings__item>
+              <bem.AccountSettings__item>
+                <label>
+                  {t('Bio')}
+                  <textarea value={this.state.bio}
+                    onChange={this.bioChange} />
+                </label>
+              </bem.AccountSettings__item>
 
-            <bem.AccountSettings__item>
-              <label>
-                {t('Phone Number')}
-                <input type="text" value={this.state.phoneNumber}
-                  onChange={this.phoneNumberChange} />
-              </label>
-            </bem.AccountSettings__item>
-            <bem.AccountSettings__item>
-              <label>
-                {t('Address')}
-                <input type="text" value={this.state.address}
-                  onChange={this.addressChange} />
-              </label>
-            </bem.AccountSettings__item>
-            <bem.AccountSettings__item m='city'>
-              <label>
-                {t('City')}
-                <input type="text" value={this.state.city}
-                  onChange={this.cityChange} />
-              </label>
-            </bem.AccountSettings__item>
-            <bem.AccountSettings__item m='country'>
-              <label>
-                {t('Country')}
-                <Select value={this.state.country}
-                  options={this.state.countryChoices}
-                  onChange={this.countryChange}>
-                </Select>
-              </label>
-            </bem.AccountSettings__item>
-            <bem.AccountSettings__item>
-              <label>
-                {t('Default Language')}
-                <Select value={this.state.defaultLanguage}
-                  options={this.state.languageChoices}
-                  onChange={this.defaultLanguageChange}>
-                </Select>
-              </label>
-            </bem.AccountSettings__item>
-            <bem.AccountSettings__item m='social'>
-              <label>
-                {t('Social')}
-              </label>
-              <label>
-                <i className="fa fa-twitter" />
-                <input type="text" value={this.state.twitter}
-                  onChange={this.twitterChange} />
-              </label>
-              <label>
-                <i className="fa fa-linkedin" />
-                <input type="text" value={this.state.linkedin}
-                  onChange={this.linkedinChange} />
-              </label>
-              <label>
-                <i className="fa fa-instagram" />
-                <input type="text" value={this.state.instagram}
-                  onChange={this.instagramChange} />
-              </label>
-            </bem.AccountSettings__item>
-            <bem.AccountSettings__item>
-              <label>
-                {t('Metadata')}
-                <input type="text" value={this.state.metadata}
-                  onChange={this.metadataChange} />
-              </label>
-            </bem.AccountSettings__item>
-            <bem.AccountSettings__item m='actions'>
-              <button onClick={this.updateProfile}
-                      className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-                {t('Save Changes')}
-              </button>
+              <bem.AccountSettings__item>
+                <label>
+                  {t('Phone Number')}
+                  <input type="text" value={this.state.phoneNumber}
+                    onChange={this.phoneNumberChange} />
+                </label>
+              </bem.AccountSettings__item>
+              <bem.AccountSettings__item>
+                <label>
+                  {t('Address')}
+                  <input type="text" value={this.state.address}
+                    onChange={this.addressChange} />
+                </label>
+              </bem.AccountSettings__item>
+              <bem.AccountSettings__item m='city'>
+                <label>
+                  {t('City')}
+                  <input type="text" value={this.state.city}
+                    onChange={this.cityChange} />
+                </label>
+              </bem.AccountSettings__item>
+              <bem.AccountSettings__item m='country'>
+                <label>
+                  {t('Country')}
+                  <Select value={this.state.country}
+                    options={this.state.countryChoices}
+                    onChange={this.countryChange}>
+                  </Select>
+                </label>
+              </bem.AccountSettings__item>
+              <bem.AccountSettings__item className="is-edge">
+                <label>
+                  {t('Default Form Language')}
+                  <Select value={this.state.defaultLanguage}
+                    options={this.state.languageChoices}
+                    onChange={this.defaultLanguageChange}>
+                  </Select>
+                </label>
+              </bem.AccountSettings__item>
+              <bem.AccountSettings__item m='social'>
+                <label>
+                  {t('Social')}
+                </label>
+                <label>
+                  <i className="fa fa-twitter" />
+                  <input type="text" value={this.state.twitter}
+                    onChange={this.twitterChange} />
+                </label>
+                <label>
+                  <i className="fa fa-linkedin" />
+                  <input type="text" value={this.state.linkedin}
+                    onChange={this.linkedinChange} />
+                </label>
+                <label>
+                  <i className="fa fa-instagram" />
+                  <input type="text" value={this.state.instagram}
+                    onChange={this.instagramChange} />
+                </label>
+              </bem.AccountSettings__item>
+              <bem.AccountSettings__item>
+                <label>
+                  {t('Metadata')}
+                  <input type="text" value={this.state.metadata}
+                    onChange={this.metadataChange} />
+                </label>
+              </bem.AccountSettings__item>
             </bem.AccountSettings__item>
           </bem.AccountSettings__right>
         </bem.AccountSettings>

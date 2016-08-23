@@ -98,8 +98,8 @@ var Drawer = React.createClass({
               <div className='k-drawer__icons-bottom'>
                 { stores.session.currentAccount ?
                   <a href={stores.session.currentAccount.projects_url} className='k-drawer__link' target="_blank">
-                    <i className="k-icon k-icon-kc" />
-                    {t('KoboCat')}
+                    <i className="k-icon k-icon-globe" />
+                    {t('Projects (legacy)')}
                   </a>
                 : null }
                 <a href='https://github.com/kobotoolbox/' className='k-drawer__link' target="_blank">

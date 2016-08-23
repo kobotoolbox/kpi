@@ -176,6 +176,14 @@
   }
 }
 
+// bordered button style
+.mdl-button.mdl-button--bordered {
+  border:1px solid unquote("rgb(#{$color-primary})");
+  color: unquote("rgb(#{$color-primary})");
+  padding:0px 40px;
+  text-transform: uppercase;
+}
+
 // iframe default styles 
 iframe {
   border:none;
@@ -222,6 +230,8 @@ iframe {
   .Select-control {
     border:2px solid $cool-gray;
     border-radius: 0px;
+    padding-top: 5px;
+    padding-bottom: 5px;
   }
 
   &--actions {

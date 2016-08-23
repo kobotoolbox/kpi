@@ -92,9 +92,6 @@ var MainHeader = React.createClass({
   accountSettings () {
     this.transitionTo('account-settings');
   },
-  password () {
-    this.transitionTo('change-password');
-  },
   setStates() {
     this.listenTo(stores.asset, this.assetLoad);
 
@@ -207,11 +204,6 @@ var MainHeader = React.createClass({
                       <i className="k-icon-settings" />
                       {t('Account Settings')}
                     </a>
-                    <ul>
-                      <li className="mdl-menu__item" onClick={this.password}>
-                        {t('Password')}
-                      </li>
-                    </ul>
                   </li>
                   {leaveBetaUrl ?
                     <li>
