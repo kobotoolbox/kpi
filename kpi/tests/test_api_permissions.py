@@ -11,13 +11,13 @@ from .kpi_test_case import KpiTestCase
 class ApiAnonymousPermissionsTestCase(KpiTestCase):
 
     def setUp(self):
-        self.anon= get_anonymous_user()
+        self.anon = get_anonymous_user()
         self.someuser = User.objects.get(username='someuser')
         self.someuser_password = 'someuser'
 
         # This was written when we allowed anons to create assets, but I'll
         # leave it here just to make sure it has no effect
-        permission= Permission.objects.get(codename='add_asset')
+        permission = Permission.objects.get(codename='add_asset')
         self.anon.user_permissions.add(permission)
 
         # Log in and create an asset that anon can access
@@ -27,7 +27,7 @@ class ApiAnonymousPermissionsTestCase(KpiTestCase):
         self.add_perm(self.anon_accessible, self.anon, 'view_')
         # Log out and become anonymous again
         self.client.logout()
-        response = self.client.get(reverse('current-user'))
+        response = self.client.get(reverse('currentuser-detail'))
         self.assertFalse('username' in response.data)
 
     def test_anon_list_assets(self):

@@ -301,6 +301,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 class CurrentUserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.none()
     serializer_class = CurrentUserSerializer
+
     def get_object(self):
         return self.request.user
 
