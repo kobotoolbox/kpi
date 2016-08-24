@@ -168,6 +168,7 @@ bem.FormView__link = bem.FormView.__('link', '<a>');
 bem.FormView__secondaryButtons = bem.FormView.__('secondaryButtons');
 bem.FormView__secondaryButton = bem.FormView.__('secondaryButton', '<button>');
 bem.FormView__reportButtons = bem.FormView.__('reportButtons');
+bem.FormView__form = bem.FormView.__('form', '<form>');
 
 bem.ReportView = BEM('report-view');
 bem.ReportView__wrap = bem.ReportView.__('wrap');

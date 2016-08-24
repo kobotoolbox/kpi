@@ -12,7 +12,10 @@ import Select from 'react-select';
 import ui from '../ui';
 import mixins from '../mixins';
 import mdl from '../libs/rest_framework/material';
-import {ProjectSettingsEditor} from '../components/formEditors';
+import {
+  ProjectSettingsEditor,
+  ProjectDownloads
+} from '../components/formEditors';
 
 import {
   assign,
@@ -64,7 +67,7 @@ var FormData = React.createClass({
           iframeUrl = report__base+'/export.html';
           break;
         case 'form-data-downloads':
-          iframeUrl = report__base+'/export/';
+          return <ProjectDownloads asset={this.state} />;
           break;
         case 'form-data-gallery':
           iframeUrl = deployment__identifier+'/photos';
