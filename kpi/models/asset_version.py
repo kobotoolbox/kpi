@@ -1,6 +1,7 @@
 import json
 import hashlib
 import datetime
+from django.utils import timezone
 
 from django.db import models
 
@@ -16,7 +17,7 @@ class AssetVersion(models.Model):
     uid = KpiUidField(uid_prefix='v')
     asset = models.ForeignKey('Asset', related_name='asset_versions')
     name = models.CharField(null=True, max_length=255)
-    date_modified = models.DateTimeField(default=DEFAULT_DATETIME)
+    date_modified = models.DateTimeField(default=timezone.now)
 
     # preserving _reversion_version in case we don't save all that we
     # need to in the first migration from reversion to AssetVersion
