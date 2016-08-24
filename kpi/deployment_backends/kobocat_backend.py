@@ -354,6 +354,33 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 pass
         return links
 
+    def get_data_download_links(self):
+        legacy_base_url = u'/'.join((
+            settings.KOBOCAT_URL.rstrip('/'),
+            self.asset.owner.username,
+            'exports',
+            self.backend_response['id_string']
+        ))
+        formpack_base_url = u'/'.join((
+            settings.KOBOCAT_URL.rstrip('/'),
+            self.asset.owner.username,
+            'reports',
+            self.backend_response['id_string']
+        ))
+        links = {
+            # To be displayed in iframes
+            'xls_legacy': u'/'.join((legacy_base_url, 'xls/')),
+            'csv_legacy': u'/'.join((legacy_base_url, 'csv/')),
+            'zip_legacy': u'/'.join((legacy_base_url, 'zip/')),
+            'kml_legacy': u'/'.join((legacy_base_url, 'kml/')),
+            'analyser_legacy': u'/'.join((legacy_base_url, 'analyser/')),
+            'spss_labels_legacy': u'/'.join((legacy_base_url, 'sav_zip/')),
+            # For GET requests to formpack
+            'xls': u'/'.join((formpack_base_url, 'export.xlsx')),
+            'csv': u'/'.join((formpack_base_url, 'export.csv')),
+        }
+        return links
+
     def _submission_count(self):
         _deployment_data = self.asset._deployment_data
         id_string = _deployment_data['backend_response']['id_string']
