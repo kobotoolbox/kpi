@@ -36,6 +36,10 @@ import {
   FormPage,
 } from './components/formEditors';
 
+import Reports from './components/reports';
+import FormData from './components/formData';
+import {ChangePassword, AccountSettings} from './components/accountSettings';
+
 import {
   ListSearch,
   ListTagFilter,
@@ -819,15 +823,14 @@ var App = React.createClass({
   render() {
     var currentRoutes = this.context.router.getCurrentRoutes();
     var activeRouteName = currentRoutes[currentRoutes.length - 1];
-    if (!this.state.drawerHidden) {
-      var currentRouteClass = (activeRouteName.path == '/forms/:assetid') ? 'in-form-view' : '';
-    } else {
-      currentRouteClass = '';
+    var currentRouteClass = '';
+    if (currentRoutes[2] != undefined && currentRoutes[2].path == '/forms/:assetid') {
+      currentRouteClass = 'with-formView-header';
     }
 
     return (
       <DocumentTitle title="KoBoToolbox">
-        <div className="mdl-wrapper">
+        <div className={"mdl-wrapper " + currentRouteClass}>
           { !this.state.headerHidden && 
             <div className="k-header__bar"></div>
           }
@@ -837,7 +840,7 @@ var App = React.createClass({
               'fixed-drawer': this.state.showFixedDrawer,
               'header-hidden': this.state.headerHidden,
               'drawer-hidden': this.state.drawerHidden,
-                }} className={["mdl-layout mdl-layout--fixed-header", currentRouteClass]}>
+                }} className="mdl-layout mdl-layout--fixed-header">
               { this.state.modalMessage ?
                 <ui.Modal open small onClose={()=>{stores.pageState.hideModal()}} icon={this.state.modalIcon}>
                   <ui.Modal.Body>
@@ -1614,345 +1617,6 @@ var UserProfile = React.createClass({
   }
 });
 
-var AccountSettings = React.createClass({
-  mixins: [
-    Reflux.connect(stores.session),
-    Reflux.ListenerMixin,
-  ],
-  getStateFromCurrentAccount(currentAccount) {
-    return {
-      name: currentAccount.extra_details.name,
-      email: currentAccount.email,
-      organization: currentAccount.extra_details.organization,
-      organizationWebsite: currentAccount.extra_details.organization_website,
-      primarySector: currentAccount.extra_details.primarySector,
-      gender: currentAccount.extra_details.gender,
-      bio: currentAccount.extra_details.bio,
-      phoneNumber: currentAccount.extra_details.phone_number,
-      address: currentAccount.extra_details.address,
-      city: currentAccount.extra_details.city,
-      country: currentAccount.extra_details.country,
-      defaultLanguage: currentAccount.extra_details.default_language,
-      requireAuth: currentAccount.extra_details.require_auth,
-      twitter: currentAccount.extra_details.twitter,
-      linkedin: currentAccount.extra_details.linkedin,
-      instagram: currentAccount.extra_details.instagram,
-      metadata: currentAccount.extra_details.metadata,
-
-      languageChoices: currentAccount.languages,
-      countryChoices: currentAccount.available_countries,
-      sectorChoices: currentAccount.available_sectors,
-    };
-  },
-  updateProfile () {
-    actions.misc.updateProfile({
-      email: this.state.email,
-      extra_details: JSON.stringify({
-        name: this.state.name,
-        organization: this.state.organization,
-        organization_website: this.state.organizationWebsite,
-        primarySector: this.state.primarySector,
-        gender: this.state.gender,
-        bio: this.state.bio,
-        phone_number: this.state.phoneNumber,
-        address: this.state.address,
-        city: this.state.city,
-        country: this.state.country,
-        default_language: this.state.defaultLanguage,
-        require_auth: this.state.requireAuth,
-        twitter: this.state.twitter,
-        linkedin: this.state.linkedin,
-        instagram: this.state.instagram,
-        metadata: this.state.metadata,
-      })
-    });
-  },
-  getInitialState () {
-    this.listenTo(stores.session, ({currentAccount}) => {
-      this.setState(this.getStateFromCurrentAccount(currentAccount));
-    });
-    if(stores.session && stores.session.currentAccount) {
-      return this.getStateFromCurrentAccount(stores.session.currentAccount);
-    }
-    return {};
-  },
-  handleChange (e, attr) {
-    if (e.target) {
-      if (e.target.type == 'checkbox') {
-        var val = e.target.checked;
-      } else {
-        var val = e.target.value;
-      }
-    } else {
-      // react-select just passes a string
-      var val = e;
-    }
-    this.setState({[attr]: val});
-  },
-  nameChange (e) {this.handleChange(e, 'name');},
-  emailChange (e) {this.handleChange(e, 'email');},
-  organizationChange (e) {this.handleChange(e, 'organization');},
-  organizationWebsiteChange (e) {this.handleChange(e, 'organizationWebsite');},
-  primarySectorChange (e) {this.handleChange(e, 'primarySector');},
-  genderChange (e) {this.handleChange(e, 'gender');},
-  bioChange (e) {this.handleChange(e, 'bio');},
-  phoneNumberChange (e) {this.handleChange(e, 'phoneNumber');},
-  addressChange (e) {this.handleChange(e, 'address');},
-  cityChange (e) {this.handleChange(e, 'city');},
-  countryChange (e) {this.handleChange(e, 'country');},
-  defaultLanguageChange (e) {this.handleChange(e, 'defaultLanguage');},
-  requireAuthChange (e) {this.handleChange(e, 'requireAuth');},
-  twitterChange (e) {this.handleChange(e, 'twitter');},
-  linkedinChange (e) {this.handleChange(e, 'linkedin');},
-  instagramChange (e) {this.handleChange(e, 'instagram');},
-  metadataChange (e) {this.handleChange(e, 'metadata');},
-  render () {
-    if(!stores.session || !stores.session.currentAccount) {
-      return (
-        <ui.Panel>
-          <bem.AccountSettings>
-            <bem.AccountSettings__item>
-              {t('loading...')}
-            </bem.AccountSettings__item>
-          </bem.AccountSettings>
-        </ui.Panel>
-      );
-    }
-    return (
-      <ui.Panel>
-        <bem.AccountSettings>
-          <bem.AccountSettings__item>
-            <label>
-              {t('Name')}
-              <input type="text" value={this.state.name}
-                onChange={this.nameChange} />
-            </label>
-          </bem.AccountSettings__item>
-          <bem.AccountSettings__item>
-            <label>
-              {t('Email')}
-              <input type="email" value={this.state.email}
-                onChange={this.emailChange} />
-            </label>
-          </bem.AccountSettings__item>
-          <bem.AccountSettings__item>
-            <label>
-              {t('Organization')}
-              <input type="text" value={this.state.organization}
-                onChange={this.organizationChange} />
-            </label>
-          </bem.AccountSettings__item>
-          <bem.AccountSettings__item>
-            <label>
-              {t('Organization Website')}
-              <input type="text" value={this.state.organizationWebsite}
-                onChange={this.organizationWebsiteChange} />
-            </label>
-          </bem.AccountSettings__item>
-          <bem.AccountSettings__item>
-            <label>
-              {t('Primary Sector')}
-              <Select value={this.state.primarySector}
-                options={this.state.sectorChoices}
-                onChange={this.primarySectorChange}>
-              </Select>
-            </label>
-          </bem.AccountSettings__item>
-          <bem.AccountSettings__item>
-            <label>
-              {t('Gender')}
-              <select value={this.state.gender} onChange={this.genderChange}>
-                <option value="male">{t('Male')}</option>
-                <option value="female">{t('Female')}</option>
-                <option value="other">{t('Other')}</option>
-              </select>
-            </label>
-          </bem.AccountSettings__item>
-          <bem.AccountSettings__item>
-            <label>
-              {t('Bio')}
-              <input type="text" value={this.state.bio}
-                onChange={this.bioChange} />
-            </label>
-          </bem.AccountSettings__item>
-          <bem.AccountSettings__item>
-            <label>
-              {t('Phone Number')}
-              <input type="text" value={this.state.phoneNumber}
-                onChange={this.phoneNumberChange} />
-            </label>
-          </bem.AccountSettings__item>
-          <bem.AccountSettings__item>
-            <label>
-              {t('Address')}
-              <input type="text" value={this.state.address}
-                onChange={this.addressChange} />
-            </label>
-          </bem.AccountSettings__item>
-          <bem.AccountSettings__item>
-            <label>
-              {t('City')}
-              <input type="text" value={this.state.city}
-                onChange={this.cityChange} />
-            </label>
-          </bem.AccountSettings__item>
-          <bem.AccountSettings__item>
-            <label>
-              {t('Country')}
-              <Select value={this.state.country}
-                options={this.state.countryChoices}
-                onChange={this.countryChange}>
-              </Select>
-            </label>
-          </bem.AccountSettings__item>
-          <bem.AccountSettings__item>
-            <label>
-              {t('Default Language')}
-              <Select value={this.state.defaultLanguage}
-                options={this.state.languageChoices}
-                onChange={this.defaultLanguageChange}>
-              </Select>
-            </label>
-          </bem.AccountSettings__item>
-          <bem.AccountSettings__item>
-            <label>
-              {t('Require authentication to see forms and submit data')}
-              <input type="checkbox" checked={this.state.requireAuth}
-                onChange={this.requireAuthChange} />
-            </label>
-          </bem.AccountSettings__item>
-          <bem.AccountSettings__item>
-            <label>
-              {t('Twitter')}
-              <input type="text" value={this.state.twitter}
-                onChange={this.twitterChange} />
-            </label>
-          </bem.AccountSettings__item>
-          <bem.AccountSettings__item>
-            <label>
-              {t('LinkedIn')}
-              <input type="text" value={this.state.linkedin}
-                onChange={this.linkedinChange} />
-            </label>
-          </bem.AccountSettings__item>
-          <bem.AccountSettings__item>
-            <label>
-              {t('Instagram')}
-              <input type="text" value={this.state.instagram}
-                onChange={this.instagramChange} />
-            </label>
-          </bem.AccountSettings__item>
-          <bem.AccountSettings__item>
-            <label>
-              {t('Metadata')}
-              <input type="text" value={this.state.metadata}
-                onChange={this.metadataChange} />
-            </label>
-          </bem.AccountSettings__item>
-          <bem.AccountSettings__item>
-            <button onClick={this.updateProfile}>
-              {t('Save Changes')}
-            </button>
-          </bem.AccountSettings__item>
-        </bem.AccountSettings>
-      </ui.Panel>
-    );
-  }
-});
-
-var ChangePassword = React.createClass({
-  mixins: [
-    Reflux.ListenerMixin,
-  ],
-  getInitialState () {
-    this.errors = {};
-    return {errors: this.errors};
-  },
-  componentDidMount () {
-    this.listenTo(
-      actions.auth.changePassword.failed, this.changePasswordFailed);
-  },
-  validateRequired (what) {
-    if (!this.state[what]) {
-      this.errors[what] = t('This field is required.');
-    }
-  },
-  changePassword () {
-    this.errors = {};
-    this.validateRequired('currentPassword');
-    this.validateRequired('newPassword');
-    this.validateRequired('verifyPassword');
-    if (this.state.newPassword != this.state.verifyPassword) {
-      this.errors['newPassword'] =
-        t('This field must match the Verify Password field.');
-    }
-    if (Object.keys(this.errors).length === 0) {
-      actions.auth.changePassword(
-        this.state.currentPassword, this.state.newPassword
-      );
-    }
-    this.setState({errors: this.errors});
-  },
-  changePasswordFailed (jqXHR) {
-    if (jqXHR.responseJSON.current_password) {
-      this.errors.currentPassword = jqXHR.responseJSON.current_password;
-    }
-    if (jqXHR.responseJSON.new_password) {
-      this.errors.newPassword = jqXHR.responseJSON.new_password;
-    }
-    this.setState({errors: this.errors});
-  },
-  currentPasswordChange (e) {
-    this.setState({currentPassword: e.target.value});
-  },
-  newPasswordChange (e) {
-    this.setState({newPassword: e.target.value});
-  },
-  verifyPasswordChange (e) {
-    this.setState({verifyPassword: e.target.value});
-  },
-  render () {
-    return (
-      <ui.Panel>
-        <bem.ChangePassword>
-          <bem.ChangePassword__item>
-            <label>
-              {t('Current Password')}
-              <input type="password" value={this.state.currentPassword}
-                onChange={this.currentPasswordChange} />
-              {this.state.errors.currentPassword}
-            </label>
-            <a href={`${dataInterface.rootUrl}/accounts/password/reset/`}>
-              {t('Forgot Password?')}
-            </a>
-          </bem.ChangePassword__item>
-          <bem.ChangePassword__item>
-            <label>
-              {t('New Password')}
-              <input type="password" value={this.state.newPassword}
-                onChange={this.newPasswordChange} />
-              {this.state.errors.newPassword}
-            </label>
-          </bem.ChangePassword__item>
-          <bem.ChangePassword__item>
-            <label>
-              {t('Verify Password')}
-              <input type="password" value={this.state.verifyPassword}
-                onChange={this.verifyPasswordChange} />
-              {this.state.errors.verifyPassword}
-            </label>
-          </bem.ChangePassword__item>
-          <bem.ChangePassword__item>
-            <button onClick={this.changePassword}>
-              {t('Save Changes')}
-            </button>
-          </bem.ChangePassword__item>
-        </bem.ChangePassword>
-      </ui.Panel>
-    );
-  }
-});
-
 var Public = React.createClass({
   render () {
     return (
@@ -2114,8 +1778,20 @@ var routes = (
     <Route name="forms" handler={Forms}>
       <Route name="new-form" path="new" handler={NewForm} />
 
-      <Route name="form-landing" path="/forms/:assetid">
-        {formRouteChildren()}
+      <Route name="form-landing" path="/forms/:assetid"> 
+        <Route name="form-download" path="download" handler={FormDownload} />
+        <Route name="form-json" path="json" handler={FormJson} />
+        <Route name="form-xform" path="xform" handler={FormXform} />
+        <Route name="form-sharing" path="sharing" handler={FormSharing} />
+        <Route name="form-reports" path="reports" handler={Reports} />
+        <Route name="form-preview-enketo" path="preview" handler={FormEnketoPreview} />
+        <Route name='form-edit' path="edit" handler={FormPage} />
+        <Route name='form-data-report' path="data/report" handler={FormData} />
+        <Route name='form-data-table' path="data/table" handler={FormData} />
+        <Route name='form-data-downloads' path="data/downloads" handler={FormData} />
+        <Route name='form-data-gallery' path="data/gallery" handler={FormData} />
+        <Route name='form-data-map' path="data/map" handler={FormData} />
+        <Route name='form-data-settings' path="data/settings" handler={FormData} />
         <DefaultRoute handler={FormLanding} />
       </Route>
 

@@ -53,7 +53,7 @@
     transform: translate(0, -50%);
   }
   [data-tip]:before {
-    left: calc(100% - 10px);
+    left: calc(100% - 6px);
     top: 50%;
     transform: translate(0, -50%);
     border-right: 10px solid darken($cool-gray, 10%);
@@ -61,4 +61,9 @@
     border-top: 10px solid transparent;
     border-left: none;
   }
+}
+
+// more actions in asset-row adjustment
+.asset-row .ui-mdl-popover [data-tip]:after {
+  left: -50%;
 }

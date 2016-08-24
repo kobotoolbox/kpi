@@ -56,12 +56,13 @@ class AssetContentTests(AssetsTestCase):
             {'type': 'text', 'name': 'y', field_name: value},
         ]}
 
-    def _wrap_type(self, type_val):
-        return {'survey': [{
-            'type': type_val,
-            'name': 'q_yn',
-            'label': 'Yes or No',
-        }], 'choices': [
+    def _wrap_type(self, type_val, select_from=None):
+        r1 = {'type': type_val,
+              'name': 'q_yn',
+              'label': 'Yes or No'}
+        if select_from:
+            r1['select_from'] = select_from
+        return {'survey': [r1], 'choices': [
             {'list_name': 'yn', 'name': 'y', 'label': 'Yes'},
             {'list_name': 'yn', 'name': 'n', 'label': 'No'},
         ]}
@@ -85,13 +86,13 @@ class AssetContentTests(AssetsTestCase):
         self.assertEqual(ss_struct[1]['constraint'], '. > ${x}')
 
     def test_flatten_select_one_type(self):
-        content = self._wrap_type({'select_one': 'yn'})
+        content = self._wrap_type('select_one', select_from='yn')
         a1 = Asset.objects.create(content=content, asset_type='survey')
         ss_struct = a1.to_ss_structure()['survey']
         self.assertEqual(ss_struct[0]['type'], 'select_one yn')
 
     def test_flatten_select_multiple_type(self):
-        content = self._wrap_type({'select_multiple': 'yn'})
+        content = self._wrap_type('select_multiple', select_from='yn')
         a1 = Asset.objects.create(content=content, asset_type='survey')
         ss_struct = a1.to_ss_structure()['survey']
         self.assertEqual(ss_struct[0]['type'], 'select_multiple yn')
@@ -99,14 +100,9 @@ class AssetContentTests(AssetsTestCase):
     def test_expand_content(self):
         content = {'survey': [{'type': 'select_one abc'}]}
         a1 = Asset.objects.create(content=content, asset_type='survey')
-        self.assertEqual(a1.content.get('survey')[0]['type'],
-                         {'select_one': 'abc'})
-
-    def test_expand_content(self):
-        content = {'survey': [{'type': 'select_one abc or_other'}]}
-        a1 = Asset.objects.create(content=content, asset_type='survey')
-        self.assertEqual(a1.content.get('survey')[0]['type'],
-                         {'select_one_or_other': 'abc'})
+        r1 = a1.content.get('survey')[0]
+        self.assertEqual(r1['type'], 'select_one')
+        self.assertEqual(r1['select_from'], 'abc')
 
 
 class AssetSettingsTests(AssetsTestCase):

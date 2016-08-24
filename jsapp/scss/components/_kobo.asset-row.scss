@@ -5,8 +5,9 @@
   padding: 4px 12px;
   white-space: nowrap;
   transition: max-height 0.5s ease, opacity 0.5s ease;
-  max-height: 999px;
+  max-height: 200px;
   opacity: 1;
+  position: relative;
   a, a:hover {
     color: $black;
     text-decoration: none;
@@ -32,57 +33,49 @@
     transition: max-height 0.5s ease, opacity 0.5s ease;
     opacity: 0;
     max-height: 0px;
+    padding: 0px;
+    border:none;
   }
-}
 
-.asset-row__celllink--name {
-  display: inline-block;
-  max-width:95%;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  font-size: 15px;
-  vertical-align: text-bottom;
-}
+  .asset-row__celllink--name {
+    display: inline-block;
+    max-width:95%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    font-size: 15px;
+    vertical-align: text-bottom;
+  }
 
-.asset-type-icon + .asset-row__celllink--name {
-  max-width: calc(100% - 50px);
-}
+  .asset-type-icon + .asset-row__celllink--name {
+    max-width: calc(100% - 50px);
+  }
 
-.asset-row__description {
-  display: block;
-  color: $cool-gray;
-  font-size: 13px;
-}
+  .asset-row__description {
+    display: block;
+    color: $cool-gray;
+    font-size: 13px;
+  }
 
-.asset-row__cell--tags {
-  white-space: normal;
-  padding-top: 30px;
-}
+  .asset-row__cell--tags {
+    white-space: normal;
+    padding-top: 30px;
+  }
 
-.asset-row__cell--row-count {
-  position: relative;
-  text-align: right;
-}
+  .asset-row__cell--row-count {
+    position: relative;
+    text-align: right;
+  }
 
-// .k-asset-arrow-icon {
-//   position: absolute;
-//   right: -5px;
-//   top: 0px;
-//   font-size: 24px;
-//   color: #A5B3BC;
-//   @extend .fa, .fa-fw, .fa-lg, .fa-caret-right;
-// }
-
-.asset-row {
-  position: relative;
   > .asset-row__buttons {
     position: absolute;
     top: 3px;
     right: 0px;
     background:#FFF;
-    width:43%;
+    width:0;
+    overflow: hidden;
+    opacity: 0;
     text-align: right;
-    display: none;
+    transition:0.3s opacity;
     padding-right: 6px;
     height: calc(100% - 10px);
   }
@@ -115,27 +108,7 @@
     background-color: transparent;
     color: unquote("rgb(#{$color-accent})");      
   }
-  .asset-row__action-icon--more-actions button {
-    border: none;
-    margin: 0;
-    padding: 0;
-    border-radius: 0px;
-    font-size: 20px;
-    font-weight: 400;
-    color: $cool-gray;
-    background-color: transparent;
-    cursor: pointer;
-    &:hover {
-      background-color: transparent;
-      color: unquote("rgb(#{$color-accent})");
-    }
-  }
-  .popover-menu {
-    padding: 10px 0px;
-    right: 20px;
-    top: 1.2em;
-    background-color: #FFF;
-  }
+
   .popover-menu__link {
     font-size: 14px;
     padding: 8px 15px;
@@ -157,13 +130,32 @@
     }
 
     > .asset-row__buttons {
-      display: block;
+      opacity: 1;
+      width:43%;
+      overflow: visible;
+      transition:0.3s opacity;
     }
 
     .date--modified {
       visibility: hidden;
     }
-
   }
 
+
+  .mdl-menu__container {
+    right: 0px;
+    overflow: visible;
+    .mdl-menu__outline {
+      display: none !important;
+    }
+    .mdl-menu {
+      margin-top: -8px;
+      margin-right: -5px;
+      padding-top:0px;
+      padding-bottom:0px;
+      background-color: #FFF;
+      overflow: visible;
+      border:2px solid rgba(0,0,0,0.03);
+    }
+  }
 }

@@ -25,8 +25,8 @@ var SidebarFormsList = React.createClass({
   ],
   getInitialState () {
     var selectedCategories = {
-      'Draft': true,
-      'Deployed': true, 
+      'Draft': false,
+      'Deployed': false, 
       'Archived': false
     }
     return {

@@ -1,6 +1,8 @@
 KPI
 ===
 
+[![Build Status](https://travis-ci.org/kobotoolbox/kpi.svg?branch=develop)](https://travis-ci.org/kobotoolbox/kpi)
+
 Python Dependencies
 -------------------
 Python dependencies are listed in `requirements.in`, which is then compiled to `requirements.txt` by [`pip-compile`](https://github.com/nvie/pip-tools). You may use `pip` directly with `requirements.txt`, but consider using instead the `pip-sync` command provided by [pip-tools](https://github.com/nvie/pip-tools). Do not add new dependencies directly to `requirements.txt`.

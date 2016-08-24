@@ -90,7 +90,7 @@ RUN rm -rf "${KPI_SRC_DIR}"
 COPY . "${KPI_SRC_DIR}"
 
 # Restore the backed-up package installation directories.
-RUN ln -s "${NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
+RUN ln -s "${KPI_NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
     ln -s "${BOWER_COMPONENTS_DIR}/" "${KPI_SRC_DIR}/jsapp/xlform/components" && \
     ln -s "${GRUNT_BUILD_DIR}" "${KPI_SRC_DIR}/jsapp/compiled" && \
     ln -s "${GRUNT_FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts" && \

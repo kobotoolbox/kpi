@@ -6,6 +6,7 @@ import searches from '../searches';
 import mixins from '../mixins';
 import stores from '../stores';
 import bem from '../bem';
+import mdl from '../libs/rest_framework/material';
 import AssetRow from './assetrow';
 import {
   parsePermissions,
@@ -115,7 +116,8 @@ var SearchCollectionList = React.createClass({
         if (this.state.defaultQueryCategorizedResultsLists[category].length > 0) {
           return [
             <bem.AssetList__heading m={[category, categoryVisible ? 'visible' : 'collapsed']} 
-                                    onClick={this.toggleCategory(category)}>
+                                    // onClick={this.toggleCategory(category)}
+                                    >
               {t(category)}
               {` (${this.state.defaultQueryCategorizedResultsLists[category].length})`}
             </bem.AssetList__heading>,
@@ -226,6 +228,9 @@ var SearchCollectionList = React.createClass({
         </bem.List>
       );
   },
+  componentDidUpdate() {
+    mdl.upgradeDom();
+  }
 });
 
 export default SearchCollectionList;

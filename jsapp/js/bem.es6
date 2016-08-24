@@ -151,11 +151,9 @@ bem.FormView = BEM('form-view');
 bem.FormView__header = bem.FormView.__('header');
 bem.FormView__tabbar = bem.FormView.__('tabbar');
 bem.FormView__tabs = bem.FormView.__('tabs');
-bem.FormView__tab = bem.FormView.__('tab', '<button>');
+bem.FormView__tab = bem.FormView.__('tab', '<a>');
 bem.FormView__button = bem.FormView.__('button', '<button>');
-bem.FormView__extras = bem.FormView.__('extras');
 bem.FormView__title = bem.FormView.__('title');
-bem.FormView__titleinner = bem.FormView.__('titleinner');
 bem.FormView__name = bem.FormView.__('name');
 bem.FormView__description = bem.FormView.__('description');
 
@@ -171,8 +169,21 @@ bem.FormView__secondaryButtons = bem.FormView.__('secondaryButtons');
 bem.FormView__secondaryButton = bem.FormView.__('secondaryButton', '<button>');
 bem.FormView__reportButtons = bem.FormView.__('reportButtons');
 
+bem.ReportView = BEM('report-view');
+bem.ReportView__wrap = bem.ReportView.__('wrap');
+bem.ReportView__warning = bem.ReportView.__('warning');
+bem.ReportView__item = bem.ReportView.__('item');
+bem.ReportView__itemHeading = bem.ReportView.__('itemHeading');
+bem.ReportView__headingMeta = bem.ReportView.__('headingMeta');
+bem.ReportView__itemContent = bem.ReportView.__('itemContent');
+bem.ReportView__headingButton = bem.ReportView.__('headingButton', '<button>');
+bem.ReportView__chart = bem.ReportView.__('chart');
+
 bem.GraphSettings = BEM('graph-settings');
 bem.GraphSettings__buttons = bem.GraphSettings.__('buttons');
+bem.GraphSettings__charttype = bem.GraphSettings.__('charttype');
+bem.GraphSettings__colors = bem.GraphSettings.__('colors');
+bem.GraphSettings__radio = bem.GraphSettings.__('radio');
 
 bem.FormModal = bem('form-modal');
 bem.FormModal__form = bem.FormModal.__('form', '<form>');
@@ -191,7 +202,10 @@ bem.AccountBox__image = bem.AccountBox.__('image', '<span>');
 bem.AccountBox__logo = bem.AccountBox.__('logo', '<span>');
 
 bem.AccountSettings = BEM('account-settings');
+bem.AccountSettings__left = bem.AccountSettings.__('left');
+bem.AccountSettings__right = bem.AccountSettings.__('right');
 bem.AccountSettings__item = bem.FormModal.__('item');
+bem.AccountSettings__desc = bem.AccountSettings.__('desc');
 
 bem.ChangePassword = BEM('change-password');
 bem.ChangePassword__item = bem.FormModal.__('item');

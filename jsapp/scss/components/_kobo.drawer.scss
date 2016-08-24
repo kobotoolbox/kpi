@@ -36,25 +36,21 @@ $drawer-icons-column-width: 56px;
 }
 
 .k-drawer__icons-bottom {
-  width: 165px;
   height: 100px;
-  padding-top: 25px;
-  position: absolute;
-  bottom: 0px;
-  left: 56px;
+  padding-top: 10px;
   border-top: solid 1px #CDCDCD;
   background-color: #F5F5F5;
   .k-drawer__link {
     padding: 0px;
     margin-bottom: 10px;
-    font-size: 15px;
+    font-size: 13px;
     display: block;
     text-align: left;
-    color: $layout-drawer-nav-link-color;
+    color: #5C676E;
     font-weight: normal;
     position: relative;
     i {
-      font-size: 24px;
+      font-size: 22px;
       margin-right: 8px;
       vertical-align: text-bottom;
     }
@@ -66,22 +62,23 @@ $drawer-icons-column-width: 56px;
 
 .drawer__sidebar {
   width: calc(100% - 50px);
-  height: calc(100% - 100px);
+  height: 100%;
   padding: 10px;
+  padding-bottom: 0px;
   .header-breadcrumb__item {
     text-align: center;
     font-size: 18px;
     margin-bottom: 10px;
     a {
-      color: $cool-gray;
+      color: #8A9AA4;
       font-weight: normal;
     }
   }
   .k-drawer__close {
     display: none;
   }
-  .form-sidebar__wrapper {
-    height: 100%;
+  .form-sidebar__wrapper, .collections-wrapper {
+    height: calc(100% - 110px);
   }
 }
 

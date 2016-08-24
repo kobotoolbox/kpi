@@ -361,29 +361,25 @@ var sessionStore = Reflux.createStore({
         localStorage.removeItem('downtimeNoticeSeen');
       }
     }
+    var nestedArrToChoiceObjs = function (_s) {
+      return {
+        value: _s[0],
+        label: _s[1],
+      };
+    };
     if (acct.available_sectors) {
-      acct.available_sectors = acct.available_sectors.map(function(_s){
-        return {
-          value: _s[0],
-          label: _s[1],
-        };
-      });
+      acct.available_sectors = acct.available_sectors.map(
+        nestedArrToChoiceObjs);
     }
     if (acct.available_countries) {
-      acct.available_countries = acct.available_countries.map(function(_c){
-        return {
-          value: _c[0],
-          label: _c[1],
-        };
-      });
+      acct.available_countries = acct.available_countries.map(
+        nestedArrToChoiceObjs);
     }
     if (acct.languages) {
-      acct.languages = acct.languages.map(function(_c){
-        return {
-          value: _c[0],
-          label: _c[1],
-        };
-      });
+      acct.languages = acct.languages.map(nestedArrToChoiceObjs);
+    }
+    if (acct.all_languages) {
+      acct.all_languages = acct.all_languages.map(nestedArrToChoiceObjs);
     }
 
     this.trigger({

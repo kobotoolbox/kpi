@@ -120,13 +120,13 @@ var ProjectSettings = React.createClass({
                 value={this.state.description}
                 onChange={this.descriptionChange}
               />
-          </bem.FormModal__item>
-
-          <bem.FormModal__item>
             <label className="long">
-              {t('Please specify the country and the sector where this project will be deployed.')}
+              {t('Please specify the country and the sector where this project will be deployed. ')}
               {t('This information will be used to help you filter results on the project list page.')}
             </label>
+          </bem.FormModal__item>
+
+          <bem.FormModal__item m='sector'>
             <label htmlFor="sector">
               {t('Sector')}
             </label>
@@ -137,7 +137,7 @@ var ProjectSettings = React.createClass({
                 options={sectors}
               />
           </bem.FormModal__item>
-          <bem.FormModal__item>
+          <bem.FormModal__item  m='country'>
             <label htmlFor="country">
               {t('Country')}
             </label>
@@ -165,7 +165,7 @@ var ProjectSettings = React.createClass({
           </bem.FormModal__item>
 
           <bem.FormModal__item m='actions'>
-          <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+          <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--bordered">
               {this.props.submitButtonValue}
             </button>
           </bem.FormModal__item>

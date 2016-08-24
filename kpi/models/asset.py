@@ -25,6 +25,9 @@ from ..utils.asset_content_analyzer import AssetContentAnalyzer
 from ..utils.kobo_to_xlsform import to_xlsform_structure
 from ..utils.random_id import random_id
 from ..deployment_backends.mixin import DeployableMixin
+from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
+                                         DEFAULT_REPORTS_KEY)
+
 
 ASSET_TYPES = [
     ('text', 'text'),               # uncategorized, misc
@@ -191,7 +194,7 @@ class Asset(ObjectPermissionMixin,
     editors_can_change_permissions = models.BooleanField(default=True)
     uid = KpiUidField(uid_prefix='a')
     tags = TaggableManager(manager=KpiTaggableManager)
-    settings= jsonbfield.fields.JSONField(default=dict)
+    settings = jsonbfield.fields.JSONField(default=dict)
 
     # _deployment_data should be accessed through the `deployment` property
     # provided by `DeployableMixin`
@@ -227,7 +230,8 @@ class Asset(ObjectPermissionMixin,
     }
 
     def __init__(self, *args, **kwargs):
-        r = super(Asset, self).__init__(*args, **kwargs)
+        self._deployed = False
+        super(Asset, self).__init__(*args, **kwargs)
         # Mind the depth
         self._initial_content_json = json.dumps(self.content)
 
@@ -236,44 +240,6 @@ class Asset(ObjectPermissionMixin,
     #     _version_to_restore = self.asset_versions.get(uid=uid)
     #     self.content = _version_to_restore.version_content
     #     self.name = _version_to_restore.name
-
-    def _deployed_versioned_assets(self):
-        asset_deployments_by_version_id = OrderedDict()
-        deployed_versioned_assets = []
-        # Record the current deployment, if any
-        if self.has_deployment:
-            asset_deployments_by_version_id[self.deployment.version] = \
-                self.deployment
-            # The currently deployed version may be unknown, but we still want
-            # to pass its timestamp to the serializer
-            if self.deployment.version == 0:
-                # Temporary attributes for later use by the serializer
-                self._static_version_id = 0
-                self._date_deployed = self.deployment.timestamp
-                deployed_versioned_assets.append(self)
-        # Record all previous deployments
-        _reversion_versions = reversion.get_for_object(self)
-        for version in _reversion_versions:
-            historical_asset = version.object_version.object
-            if historical_asset.has_deployment:
-                asset_deployments_by_version_id[
-                    historical_asset.deployment.version
-                ] = historical_asset.deployment
-        # Annotate and list deployed asset versions
-        _reversion_versions = reversion.get_for_object(self)
-        for version in _reversion_versions.filter(
-                id__in=asset_deployments_by_version_id.keys()):
-            historical_asset = version.object_version.object
-            # Asset.version_id returns the *most recent* version of the asset;
-            # it has no way to know the version of the instance it's bound to.
-            # Record a _static_version_id here for the serializer to use
-            historical_asset._static_version_id = version.id
-            # Make the deployment timestamp available to the serializer
-            historical_asset._date_deployed = asset_deployments_by_version_id[
-                version.id].timestamp
-            # Store the annotated asset objects in a list for serialization
-            deployed_versioned_assets.append(historical_asset)
-        return deployed_versioned_assets
 
     def to_ss_structure(self):
         return flatten_content(copy.deepcopy(self.content))
@@ -325,8 +291,17 @@ class Asset(ObjectPermissionMixin,
             elif row_count > 1:
                 self.asset_type = 'block'
 
-        # TODO: prevent assets from saving duplicate versions
+        self._populate_report_styles()
+
+        _create_version = kwargs.pop('create_version', True)
         super(Asset, self).save(*args, **kwargs)
+
+        if _create_version:
+            self.asset_versions.create(name=self.name,
+                                       version_content=self.content,
+                                       _deployment_data=self._deployment_data,
+                                       deployed=self._deployed,
+                                       )
 
     def to_clone_dict(self, version_uid=None):
         if version_uid:
@@ -344,6 +319,17 @@ class Asset(ObjectPermissionMixin,
         # not currently used, but this is how "to_clone_dict" should work
         Asset.objects.create(**self.to_clone_dict(version_uid))
 
+    def _populate_report_styles(self):
+        default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})
+        specifieds = self.report_styles.get(SPECIFIC_REPORTS_KEY, {})
+        for row in self.content.get('survey', []):
+            if '$kuid' in row and row['$kuid'] not in specifieds:
+                specifieds[row['$kuid']] = {}
+        self.report_styles = {
+            DEFAULT_REPORTS_KEY: default,
+            SPECIFIC_REPORTS_KEY: specifieds,
+        }
+
     def _strip_empty_rows(self, arr, required_key='type'):
         arr[:] = [row for row in arr if required_key in row]
 
@@ -360,8 +346,18 @@ class Asset(ObjectPermissionMixin,
             return None
 
     @property
+    def latest_version(self):
+        return self.asset_versions.first()
+
+    @property
+    def latest_deployed_version(self):
+        return self.asset_versions.filter(deployed=True).first()
+
+    @property
     def version_id(self):
-        return self.asset_versions.first().uid
+        latest_version = self.latest_version
+        if latest_version:
+            return latest_version.uid
 
     def get_export(self, regenerate=True, version_id=False):
         if version_id:
@@ -491,12 +487,3 @@ def post_delete_asset(sender, instance, **kwargs):
     # Remove all permissions associated with this object
     ObjectPermission.objects.filter_for_object(instance).delete()
     # No recalculation is necessary since children will also be deleted
-
-
-@receiver(models.signals.post_save, sender=Asset,
-          weak=False,
-          dispatch_uid="create_asset_version")
-def post_save_asset(sender, instance, **kwargs):
-    instance.asset_versions.create(version_content=instance.content,
-                                   name=instance.name,
-                                   )

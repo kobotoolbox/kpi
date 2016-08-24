@@ -153,6 +153,7 @@
   position: relative;
   color:$cool-gray;
   cursor: pointer;
+  white-space: nowrap;
 
   > i:first-child {
     margin-right: 6px;
@@ -175,15 +176,12 @@
   }
 }
 
-.reactTooltip.place-bottom {
-  background-color: #8a9aa4 !important;
-  &:after {
-    border-bottom: 8px solid #8a9aa4 !important;
-  }
-}
-
-.reactTooltip.show {
-  opacity: 1 !important;
+// bordered button style
+.mdl-button.mdl-button--bordered {
+  border:1px solid unquote("rgb(#{$color-primary})");
+  color: unquote("rgb(#{$color-primary})");
+  padding:0px 40px;
+  text-transform: uppercase;
 }
 
 // iframe default styles 
@@ -209,7 +207,11 @@ iframe {
     padding-bottom: 5px;
   }
 
-  input[type="text"], textarea {
+  input[type="text"], 
+  input[type="email"], 
+  input[type="password"], 
+  select, 
+  textarea {
     width:100%;
     padding:6px 10px;
     font-size:15px;
@@ -228,6 +230,8 @@ iframe {
   .Select-control {
     border:2px solid $cool-gray;
     border-radius: 0px;
+    padding-top: 5px;
+    padding-bottom: 5px;
   }
 
   &--actions {
@@ -235,3 +239,51 @@ iframe {
     padding-top: 10px;
   }
 }
+
+// UI MDL Popover
+
+.ui-mdl-popover {
+  position: relative;
+  text-align: left;
+  button {
+    border:none;
+    background-color: transparent;
+    margin-left: 4px;
+    font-weight: 400;
+    color: $cool-gray;
+    cursor: pointer;
+    padding: 4px 6px;
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 22px;
+    &:hover {
+      background-color: transparent;
+      color: unquote("rgb(#{$color-accent})");
+    }
+  }
+  ul {
+    text-align: left;
+    > a {
+      min-width: 200px;
+    }
+  }
+}
+
+// Scrollbar overrides
+
+::-webkit-scrollbar {
+  width: 0.8em;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #DEDEDE;
+  background-color: transparent;
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #DEDEDE;
+  outline: none;
+  border-radius: 8px;
+}
+

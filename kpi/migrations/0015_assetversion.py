@@ -5,7 +5,7 @@ from django.db import migrations, models
 from django.conf import settings
 
 import django.db.models.deletion
-import datetime
+from django.utils import timezone
 
 import jsonbfield.fields
 import jsonfield.fields
@@ -58,7 +58,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('uid', kpi.fields.KpiUidField(uid_prefix=b'v')),
                 ('name', models.CharField(max_length=255, null=True)),
-                ('date_modified', models.DateTimeField(default=datetime.datetime.now())),
+                ('date_modified', models.DateTimeField(default=timezone.now)),
                 ('version_content', jsonbfield.fields.JSONField()),
                 ('deployed_content', jsonbfield.fields.JSONField(null=True)),
                 ('_deployment_data', jsonbfield.fields.JSONField(default=False)),
