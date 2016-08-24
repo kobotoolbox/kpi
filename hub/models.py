@@ -38,6 +38,8 @@ class ExtraUserDetail(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='extra_details')
     data = JSONField(default={})
 
+    # @jnm: Can we reassess how to do this and not break tests?
+    '''
     def __init__(self, *args, **kwargs):
         result = super(ExtraUserDetail, self).__init__(*args, **kwargs)
         # Copy data from the user's KC profile, if applicable, one time only.
@@ -51,6 +53,7 @@ class ExtraUserDetail(models.Model):
                         self.data[k] = v
                         self.data['copied_kc_profile'] = True
         return result
+    '''
 
     def save(self, *args, **kwargs):
         # `require_auth` needs to be written back to KC
