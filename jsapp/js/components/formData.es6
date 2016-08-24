@@ -68,7 +68,6 @@ var FormData = React.createClass({
           break;
         case 'form-data-downloads':
           return <ProjectDownloads asset={this.state} />;
-          break;
         case 'form-data-gallery':
           iframeUrl = deployment__identifier+'/photos';
           break;

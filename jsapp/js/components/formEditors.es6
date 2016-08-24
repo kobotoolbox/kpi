@@ -312,9 +312,7 @@ export var ProjectDownloads = React.createClass({
                     {
                       translations && translations.map((t) => {
                         if (t) {
-                          return (
-                            <option value={t}>{t}</option>
-                          );
+                          return <option value={t}>{t}</option>;
                         }
                       })
                     }
