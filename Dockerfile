@@ -102,7 +102,6 @@ RUN ln -s "${KPI_NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
 # Organize static assets. #
 ###########################
 
-ENV DJANGO_SETTINGS_MODULE kobo_playground.settings
 RUN python manage.py collectstatic --noinput
 
 
