@@ -1,0 +1,43 @@
+.user-row {
+  display: flex;
+  min-height: 50px;
+  border-bottom: 1px solid #DDD;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  padding-top: 5px;
+
+  &__avatar {
+  	width:40px;
+  	height:40px;
+  	margin-right: 20px;
+  	img {
+  		border-radius: 50%;
+  		max-width: 85%;
+  		height: auto;
+  		vertical-align: top;
+  	}
+  }
+  &__name {
+  	flex: 1;
+  }
+}
+
+.form-modal__item--perms-user {
+	margin-top: 30px;
+	position: relative;
+	input[type="text"] {
+		width:calc(100% - 64px);
+	}
+	button {
+		position: absolute;
+		bottom: 0px;
+		right: 0px;
+	}
+}
+
+.form-modal__item--perms-link {
+	margin-top: 30px;
+	label {
+		cursor: pointer;
+	}
+}

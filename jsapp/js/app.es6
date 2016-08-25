@@ -727,11 +727,15 @@ var UserPermDiv = React.createClass({
     }
     return (
       <button className={btnCls} onClick={buttonAction}>
+        <span>{t('can')} </span>
         {permName}
       </button>
     );
   },
   render () {
+    // TODO: get user's avatar, email from API
+    var defaultGravatarImage = `${window.location.protocol}//www.gravatar.com/avatar/64e1b8d34f425d19e1ee2ea7236d3028?s=40`;
+
     // var hasAnyPerms = false;
     var cans = this.props.can;
     var availPerms = ['view', 'change'].map((permName) => {
@@ -748,36 +752,38 @@ var UserPermDiv = React.createClass({
     //   debugger;
     // }
     return (
-      <div>
-        <div>
-          <UserProfileLink icon={this.props.icon || 'user-o'} iconBefore='true' username={this.props.username} />
-        </div>
-        {availPerms.map(this.renderPerm)}
-      </div>
+      <bem.UserRow>
+        <bem.UserRow__avatar>
+          <img src={defaultGravatarImage} />
+        </bem.UserRow__avatar>
+        <bem.UserRow__name>
+          <div><UserProfileLink username={this.props.username} /></div>
+          <bem.UserRow__email>email@email.com</bem.UserRow__email>
+        </bem.UserRow__name>
+        <bem.UserRow__role>
+          {availPerms.map(this.renderPerm)}
+        </bem.UserRow__role>
+      </bem.UserRow>      
       );
   }
 });
 
 class PublicPermDiv extends UserPermDiv {
   render () {
+    console.log(this.props);
     var isOn = this.props.isOn;
-    var btnCls = classNames('mdl-button', 'mdl-button--raised',
-                            isOn ? 'mdl-button--colored' : null);
+    var url = this.props.url || 'test URL goes here';
     return (
-      <div className='permissions-toggle'>
-        <button className={btnCls} onClick={this.props.onToggle}>
-          <i className={`fa fa-group fa-lg`} />
-          &nbsp;&nbsp;
-          {isOn ?
-            t('Link sharing on') :
-            t('Link sharing off')}
-        </button>
-        <p className='text-muted text-center'>
-          {isOn ?
-            t('Anyone with the link can view this item') :
-            t('This item can only be viewed by you and anyone you specify')}
-        </p>
-      </div>
+      <bem.FormModal__item m='perms-link'>
+        <label onClick={this.props.onToggle}>
+          <span>{isOn ? t('Anyone with link can view') : t('OFF - Only specific people can access')} </span>
+          <i className="fa fa-caret-down" />
+        </label>
+        { isOn && 
+        <input type="text"
+            value={this.props.url} />
+        }
+      </bem.FormModal__item>
       );
   }
 }
@@ -1083,7 +1089,7 @@ var FormSharing = React.createClass({
     }
   },
   usernameField () {
-    return this.refs.usernameInput.refs.inp.getDOMNode();
+    return this.refs.usernameInput.getDOMNode();
   },
   usernameFieldValue () {
     return this.usernameField().value;
@@ -1147,8 +1153,9 @@ var FormSharing = React.createClass({
       }
     });
     var btnKls = classNames('mdl-button',
+                            'mdl-js-button',
                             'mdl-buton-raised',
-                            'mdl-button--colored',
+                            'mdl-button--colored', 
                             inpStatus === 'success' ? 'mdl-button--colored' : 'hidden');
 
     var uid = this.state.asset.uid;
@@ -1160,78 +1167,73 @@ var FormSharing = React.createClass({
           <p>loading</p>
         );
     }
+
+    // TODO: get user's own avatar
+    var defaultGravatarImage = `${window.location.protocol}//www.gravatar.com/avatar/64e1b8d34f425d19e1ee2ea7236d3028?s=40`;
+
     return (
-      <ui.Modal open onClose={this.routeBack} title={t('manage sharing permissions')} className='modal-large'>
-        <ui.Modal.Body>
-          <ui.Panel className="k-div--sharing">
-            <div className="k-sharing__title">
-              <h5>{this.state.asset.name}</h5>
-            </div>
-            <p>
-              {this.state.asset.owner__username}{'&nbsp;'}<span className="text-small">({t('owner')})</span>
-            </p>
-            <div className="k-sharing__header">
-              <div className="text-small">{t('To share this item with others just enter their username below, then choose which permissions they shoud have. To remove them again just deselect both permissions. Note: this does not control permissions to the data collected by projects')}</div>
-            </div>
+      <ui.Modal open onClose={this.routeBack} title={t('Sharing Permissions')}>
+        <ui.Modal.Body className="modal-sharing">
 
-            <div className="mdl-grid">
-              <div className="mdl-cell mdl-cell--5-col">
-                <div className="k-share-username mdl-card mdl-shadow--2dp">
-                  <form onSubmit={this.addInitialUserPermission}>
-                    <div className="mdl-card__title">
-                      <h2 className="mdl-card__title-text">{t('share with username')}</h2>
-                    </div>
-                    <div className="mdl-card__supporting-text">
-                      <ui.SmallInputBox ref='usernameInput' placeholder={t('share with username')} onKeyUp={this.usernameCheck} />
-                      <button className={btnKls}>
-                        <i className="fa fa-fw fa-lg fa-plus" />
-                      </button>
-                    </div>
-                    <div className="mdl-card__actions mdl-card--border">
-                      {perms.map((perm)=> {
-                        return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
-                      })}
-                    </div>
-                  </form>
-                </div>
-              </div>
-              <div className="mdl-cell mdl-cell--1-col">
-              </div>
-              <div className="mdl-cell mdl-cell--5-col">
-                <div className="k-share-publicly mdl-card mdl-shadow--2dp">
-                  <div className="mdl-card__title">
-                    <h2 className="mdl-card__title-text">{t('Link sharing')}</h2>
-                  </div>
-                  <div className="mdl-card__supporting-text">
-                    {(() => {
-                      if (this.state.public_permission) {
-                        return (
-                            <PublicPermDiv isOn={true}
-                                onToggle={this.removePerm('view',
-                                                  this.state.public_permission,
-                                                  uid)}
-                                />
-                          );
-                      } else {
-                        return (
-                          <PublicPermDiv isOn={false}
-                                onToggle={this.setPerm('view', {
-                                    username: anonUsername,
-                                    uid: uid,
-                                    kind: kind,
-                                    objectUrl: objectUrl
-                                  }
-                                )}
-                                />
-                          );
-                      }
-                    })()}
-                  </div>
-                </div>
-              </div>
-            </div>
+          <bem.UserRow>
+            <bem.UserRow__avatar>
+              <img src={defaultGravatarImage} />
+            </bem.UserRow__avatar>
+            <bem.UserRow__name>
+              <div>{this.state.asset.owner__username}</div>
+              <bem.UserRow__email>email@email.com</bem.UserRow__email>
+            </bem.UserRow__name>
+            <bem.UserRow__role>{t('is owner')}</bem.UserRow__role>
+          </bem.UserRow>
 
-          </ui.Panel>
+          {perms.map((perm)=> {
+            return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
+          })}
+
+          <form onSubmit={this.addInitialUserPermission} className="sharing-form__user">
+            
+            <bem.FormModal__item m='perms-user'>
+              <label htmlFor="permsUser">
+                {t('Invite people and specify access rights')}
+              </label>
+              <input type="text"
+                  id="permsUser" 
+                  ref='usernameInput'
+                  placeholder={t('Enter a username')}
+                  onKeyUp={this.usernameCheck}
+              />
+              <button className={btnKls}>
+                <i className="fa fa-fw fa-lg fa-plus" />
+              </button>
+            </bem.FormModal__item>
+          </form>
+
+          {(() => {
+            if (this.state.public_permission) {
+              return (
+                  <PublicPermDiv 
+                      isOn={true} 
+                      url={`${window.location.protocol}//${window.location.host}/` + this.makeHref('form-landing', {assetid: uid})}
+                      onToggle={this.removePerm('view',
+                                this.state.public_permission,
+                                uid)}
+                  />
+                );
+            } else {
+              return (
+                <PublicPermDiv isOn={false}
+                      onToggle={this.setPerm('view', {
+                          username: anonUsername,
+                          uid: uid,
+                          kind: kind,
+                          objectUrl: objectUrl
+                        }
+                      )}
+                      />
+                );
+            }
+          })()}
+
         </ui.Modal.Body>
       </ui.Modal>
       );
