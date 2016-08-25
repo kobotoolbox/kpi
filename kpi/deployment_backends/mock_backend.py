@@ -43,4 +43,12 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         }
 
     def _submission_count(self):
-        return 0
+        submissions = self.asset._deployment_data.get('submissions', [])
+        return len(submissions)
+
+    def _mock_submission(self, submission):
+        submissions = self.asset._deployment_data.get('submissions', [])
+        submissions.append(submission)
+        self.store_data({
+            'submissions': submissions,
+            })

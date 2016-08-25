@@ -350,8 +350,12 @@ class Asset(ObjectPermissionMixin,
         return self.asset_versions.first()
 
     @property
+    def deployed_versions(self):
+        return self.asset_versions.filter(deployed=True)
+
+    @property
     def latest_deployed_version(self):
-        return self.asset_versions.filter(deployed=True).first()
+        return self.deployed_versions.first()
 
     @property
     def version_id(self):
