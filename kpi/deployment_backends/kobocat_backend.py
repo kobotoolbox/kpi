@@ -355,29 +355,35 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return links
 
     def get_data_download_links(self):
-        legacy_base_url = u'/'.join((
+        exports_base_url = u'/'.join((
             settings.KOBOCAT_URL.rstrip('/'),
             self.asset.owner.username,
             'exports',
             self.backend_response['id_string']
         ))
-        formpack_base_url = u'/'.join((
+        reports_base_url = u'/'.join((
             settings.KOBOCAT_URL.rstrip('/'),
             self.asset.owner.username,
             'reports',
             self.backend_response['id_string']
         ))
+        forms_base_url = u'/'.join((
+            settings.KOBOCAT_URL.rstrip('/'),
+            self.asset.owner.username,
+            'forms',
+            self.backend_response['id_string']
+        ))
         links = {
             # To be displayed in iframes
-            'xls_legacy': u'/'.join((legacy_base_url, 'xls/')),
-            'csv_legacy': u'/'.join((legacy_base_url, 'csv/')),
-            'zip_legacy': u'/'.join((legacy_base_url, 'zip/')),
-            'kml_legacy': u'/'.join((legacy_base_url, 'kml/')),
-            'analyser_legacy': u'/'.join((legacy_base_url, 'analyser/')),
-            'spss_labels_legacy': u'/'.join((legacy_base_url, 'sav_zip/')),
-            # For GET requests to formpack
-            'xls': u'/'.join((formpack_base_url, 'export.xlsx')),
-            'csv': u'/'.join((formpack_base_url, 'export.csv')),
+            'xls_legacy': u'/'.join((exports_base_url, 'xls/')),
+            'csv_legacy': u'/'.join((exports_base_url, 'csv/')),
+            'zip_legacy': u'/'.join((exports_base_url, 'zip/')),
+            'kml_legacy': u'/'.join((exports_base_url, 'kml/')),
+            'analyser_legacy': u'/'.join((exports_base_url, 'analyser/')),
+            # For GET requests that return files directly
+            'xls': u'/'.join((reports_base_url, 'export.xlsx')),
+            'csv': u'/'.join((reports_base_url, 'export.csv')),
+            'spss_labels': u'/'.join((forms_base_url, 'spss_labels.zip')),
         }
         return links
 

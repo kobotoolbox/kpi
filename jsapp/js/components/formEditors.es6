@@ -272,13 +272,18 @@ export var ProjectDownloads = React.createClass({
   handleSubmit (e) {
     e.preventDefault();
     if (!this.state.type.endsWith('_legacy')) {
-      let url = this.props.asset.deployment__data_download_links[this.state.type]
-      let params = $.param({
-        lang: this.state.lang,
-        hierarchy_in_labels: this.state.hierInLabels,
-        group_sep: this.state.groupSep,
-      });
-      redirectTo(`${url}?${params}`);
+        let url = this.props.asset.deployment__data_download_links[
+          this.state.type
+        ];
+        if (this.state.type == 'xls' || this.state.type == 'csv') {
+          let params = $.param({
+            lang: this.state.lang,
+            hierarchy_in_labels: this.state.hierInLabels,
+            group_sep: this.state.groupSep,
+          });
+          redirectTo(`${url}?${params}`);
+        }
+        redirectTo(url);
     }
   },
   render () {
@@ -299,7 +304,7 @@ export var ProjectDownloads = React.createClass({
                   <option value="zip_legacy">Media Attachments (ZIP)</option>
                   <option value="kml_legacy">GPS coordinates (KML)</option>
                   <option value="analyser_legacy">Excel Analyser</option>
-                  <option value="spss_labels_legacy">SPSS Labels</option>
+                  <option value="spss_labels">SPSS Labels</option>
                 </select>
               </bem.FormView__cell>
             , this.state.type == 'xls' || this.state.type == 'csv' ? [
@@ -327,13 +332,15 @@ export var ProjectDownloads = React.createClass({
                     onChange={this.hierInLabelsChange}
                   />
                 </bem.FormView__cell>,
-                <bem.FormView__cell>
-                  <label htmlFor="group_sep">{t('Group separator')}</label>
-                  <input type="text" name="group_sep"
-                    value={this.state.groupSep}
-                    onChange={this.groupSepChange}
-                  />
-                </bem.FormView__cell>
+                this.state.hierInLabels ?
+                  <bem.FormView__cell>
+                    <label htmlFor="group_sep">{t('Group separator')}</label>
+                    <input type="text" name="group_sep"
+                      value={this.state.groupSep}
+                      onChange={this.groupSepChange}
+                    />
+                  </bem.FormView__cell>
+                : null
               ] : null
             , this.state.type.endsWith('_legacy') ?
               <bem.FormView__cell m='iframe'>
