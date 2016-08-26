@@ -58,39 +58,34 @@ import {
 
 mixins.permissions = {
   removePerm (permName, permObject, content_object_uid) {
-    return (evt) => {
-      evt.preventDefault();
-      actions.permissions.removePerm({
-        permission_url: permObject.url,
-        content_object_uid: content_object_uid
-      });
-    };
+    actions.permissions.removePerm({
+      permission_url: permObject.url,
+      content_object_uid: content_object_uid
+    });
   },
-  removeCollectionPublicPerm (collection, publicPerm) {
-    return (evt) => {
-      evt.preventDefault();
-      if (collection.discoverable_when_public) {
-        actions.permissions.setCollectionDiscoverability(
-          collection.uid, false
-        );
-      }
-      actions.permissions.removePerm({
-        permission_url: publicPerm.url,
-        content_object_uid: collection.uid
-      });
-    };
-  },
+  // PM: temporarily disabled
+  // removeCollectionPublicPerm (collection, publicPerm) {
+  //   return (evt) => {
+  //     evt.preventDefault();
+  //     if (collection.discoverable_when_public) {
+  //       actions.permissions.setCollectionDiscoverability(
+  //         collection.uid, false
+  //       );
+  //     }
+  //     actions.permissions.removePerm({
+  //       permission_url: publicPerm.url,
+  //       content_object_uid: collection.uid
+  //     });
+  //   };
+  // },
   setPerm (permName, props) {
-    return (evt) => {
-      evt.preventDefault();
-      actions.permissions.assignPerm({
-        username: props.username,
-        uid: props.uid,
-        kind: props.kind,
-        objectUrl: props.objectUrl,
-        role: permName
-      });
-    };
+    actions.permissions.assignPerm({
+      username: props.username,
+      uid: props.uid,
+      kind: props.kind,
+      objectUrl: props.objectUrl,
+      role: permName
+    });
   }
 };
 
@@ -707,52 +702,40 @@ var UserPermDiv = React.createClass({
     Navigation,
     mixins.permissions,
   ],
-  renderPerm ([permName, permPermission, permissionObject]) {
-    const permClasses = {
-      'false': 'btn-default',
-      allow: 'mdl-button--colored',
-      deny: 'btn-danger',
-    };
-    var btnCls = classNames('mdl-button',
-                            'mdl-button--raised',
-                            `perm-${permName}`,
-                            'mdl-js-button',
-                            permClasses[permPermission]);
-
-    var buttonAction;
-    if (permissionObject) {
-      buttonAction = this.removePerm(permName, permissionObject, this.props.uid);
+  PermOnChange(permName) {
+    var cans = this.props.can;
+    if (permName != '') {
+      this.setPerm(permName, this.props);
+      if (permName == 'view' && cans.change)
+        this.removePerm('change', cans.change, this.props.uid);
     } else {
-      buttonAction = this.setPerm(permName, this.props);
+      if (cans.view)
+        this.removePerm('view', cans.view, this.props.uid);
+      if (cans.change)
+        this.removePerm('change', cans.change, this.props.uid);
     }
-    return (
-      <button className={btnCls} onClick={buttonAction}>
-        <span>{t('can')} </span>
-        {permName}
-      </button>
-    );
+
   },
   render () {
     // TODO: get user's avatar, email from API
     var defaultGravatarImage = `${window.location.protocol}//www.gravatar.com/avatar/64e1b8d34f425d19e1ee2ea7236d3028?s=40`;
 
-    // var hasAnyPerms = false;
+    var currentPerm = '';
     var cans = this.props.can;
-    var availPerms = ['view', 'change'].map((permName) => {
-      if ( permName in cans ) {
-        if (cans[permName].deny) {
-          return [permName, 'deny', cans[permName]];
-        } else if (cans[permName]) {
-          return [permName, 'allow', cans[permName]];
-        }
-      }
-      return [permName, 'false'];
-    });
-    // if (!this.props.username) {
-    //   debugger;
-    // }
+
+    if (cans.change) {
+      var currentPerm = 'change';
+    } else if (cans.view) {
+      var currentPerm = 'view';
+    }
+
+    var availablePermissions = [
+      {value: 'view', label: t('Can View')},
+      {value: 'change', label: t('Can Edit')}
+    ];
+
     return (
-      <bem.UserRow>
+      <bem.UserRow m={cans.view || cans.change ? 'regular' : 'deleted'}>
         <bem.UserRow__avatar>
           <img src={defaultGravatarImage} />
         </bem.UserRow__avatar>
@@ -761,32 +744,74 @@ var UserPermDiv = React.createClass({
           <bem.UserRow__email>email@email.com</bem.UserRow__email>
         </bem.UserRow__name>
         <bem.UserRow__role>
-          {availPerms.map(this.renderPerm)}
+          <Select
+            name='userPerms'
+            value={currentPerm}
+            clearable={true}
+            options={availablePermissions}
+            onChange={this.PermOnChange}
+          />
         </bem.UserRow__role>
       </bem.UserRow>      
       );
   }
 });
 
-class PublicPermDiv extends UserPermDiv {
+var PublicPermDiv = React.createClass({
+  mixins: [
+    Navigation,
+    mixins.permissions,
+  ],
+  togglePerms() {
+    if (this.props.publicPerm)
+      this.removePerm('view',this.props.publicPerm, this.props.uid);
+    else
+      this.setPerm('view', {
+          username: anonUsername,
+          uid: this.props.uid,
+          kind: this.props.kind,
+          objectUrl: this.props.objectUrl
+        }
+      );
+  },
   render () {
-    console.log(this.props);
-    var isOn = this.props.isOn;
-    var url = this.props.url || 'test URL goes here';
+    var uid = this.props.uid;
+
+    switch (this.props.kind) {
+      case 'collection':
+        var href = this.makeHref('collection-page', {uid: uid});
+      break;
+      default: 
+        var href = this.makeHref('form-landing', {assetid: uid});
+    }
+
+    if (isLibrary(this.context.router))
+      href = this.makeHref('library-form-landing', {assetid: uid});
+
+    var url = `${window.location.protocol}//${window.location.host}/${href}`;
+
     return (
       <bem.FormModal__item m='perms-link'>
-        <label onClick={this.props.onToggle}>
-          <span>{isOn ? t('Anyone with link can view') : t('OFF - Only specific people can access')} </span>
-          <i className="fa fa-caret-down" />
+        <label>
+          {t('Link Sharing')}
         </label>
-        { isOn && 
-        <input type="text"
-            value={this.props.url} />
+          <span>{this.props.publicPerm ? t('Anyone with link can view') : t('Only specific people can access')} </span>
+          <bem.ToggleSwitch onClick={this.togglePerms} >
+            <input type="checkbox" checked={this.props.publicPerm ? true : false} onChange={this.togglePerms} />
+            <label>
+              <span className="switch" />
+              <span className="text">
+                {this.props.publicPerm ? 'On' : 'Off'}
+              </span>
+              </label>
+          </bem.ToggleSwitch>
+        { this.props.publicPerm && 
+          <input type="text" value={url} readOnly />
         }
       </bem.FormModal__item>
-      );
+    );
   }
-}
+});
 
 class KoBo extends React.Component {
   render () {
@@ -798,6 +823,7 @@ class KoBo extends React.Component {
       );
   }
 }
+
 /*
 var FormInput = React.createClass({
   render () {
@@ -1044,7 +1070,7 @@ var FormXform = React.createClass({
   }
 });
 
-var FormSharing = React.createClass({
+var AssetSharing = React.createClass({
   mixins: [
     Navigation,
     Reflux.connectFilter(assetStore, function(data){
@@ -1073,11 +1099,6 @@ var FormSharing = React.createClass({
   },
   componentDidMount () {
     this.listenTo(stores.userExists, this.userExistsStoreChange);
-  },
-  routeBack () {
-    var params = this.context.router.getCurrentParams();
-    var baseName = isLibrary(this.context.router) ? 'library-' : '';
-    this.transitionTo(`${baseName}form-landing`, {assetid: params.assetid});
   },
   userExistsStoreChange (checked, result) {
     var inpVal = this.usernameFieldValue();
@@ -1131,6 +1152,9 @@ var FormSharing = React.createClass({
       this.usernameField().value = '';
     }
   },
+  routeBack () {
+    history.back();
+  },
   render () {
     var inpStatus = this.state.userInputStatus;
     if (!this.state.pperms) {
@@ -1152,10 +1176,7 @@ var FormSharing = React.createClass({
         };
       }
     });
-    var btnKls = classNames('mdl-button',
-                            'mdl-js-button',
-                            'mdl-buton-raised',
-                            'mdl-button--colored', 
+    var btnKls = classNames('mdl-button','mdl-js-button','mdl-button--raised','mdl-button--colored', 
                             inpStatus === 'success' ? 'mdl-button--colored' : 'hidden');
 
     var uid = this.state.asset.uid;
@@ -1208,32 +1229,12 @@ var FormSharing = React.createClass({
             </bem.FormModal__item>
           </form>
 
-          {(() => {
-            if (this.state.public_permission) {
-              return (
-                  <PublicPermDiv 
-                      isOn={true} 
-                      url={`${window.location.protocol}//${window.location.host}/` + this.makeHref('form-landing', {assetid: uid})}
-                      onToggle={this.removePerm('view',
-                                this.state.public_permission,
-                                uid)}
-                  />
-                );
-            } else {
-              return (
-                <PublicPermDiv isOn={false}
-                      onToggle={this.setPerm('view', {
-                          username: anonUsername,
-                          uid: uid,
-                          kind: kind,
-                          objectUrl: objectUrl
-                        }
-                      )}
-                      />
-                );
-            }
-          })()}
-
+          <PublicPermDiv 
+              uid={uid}
+              publicPerm={this.state.public_permission}
+              kind={kind}
+              objectUrl={objectUrl}
+          />
         </ui.Modal.Body>
       </ui.Modal>
       );
@@ -1242,212 +1243,6 @@ var FormSharing = React.createClass({
     mdl.upgradeDom();
   }
 
-});
-
-var CollectionSharing = React.createClass({
-  mixins: [
-    Navigation,
-    Reflux.connectFilter(assetStore, function(data){
-      var uid = this.props.params.assetid,
-        asset = data[uid];
-      if (asset) {
-        return {
-          asset: asset,
-          permissions: asset.permissions,
-          owner: asset.owner__username,
-          pperms: parsePermissions(asset.owner__username, asset.permissions),
-          public_permission: getAnonymousUserPermission(asset.permissions),
-          related_users: assetStore.relatedUsers[uid]
-        };
-      }
-    }),
-    mixins.permissions,
-    Reflux.ListenerMixin
-  ],
-
-  statics: {
-    willTransitionTo: function(transition, params, idk, callback) {
-      actions.resources.loadAsset({id: params.assetid});
-      callback();
-    }
-  },
-  componentDidMount () {
-    this.listenTo(stores.userExists, this.userExistsStoreChange);
-  },
-  routeBack () {
-    this.transitionTo('library');
-  },
-  userExistsStoreChange (checked, result) {
-    var inpVal = this.usernameFieldValue();
-    if (inpVal === result) {
-      var newStatus = checked[result] ? 'success' : 'error';
-      this.setState({
-        userInputStatus: newStatus
-      });
-    }
-  },
-  usernameField () {
-    return this.refs.usernameInput.refs.inp.getDOMNode();
-  },
-  usernameFieldValue () {
-    return this.usernameField().value;
-  },
-  usernameCheck (evt) {
-    var username = evt.target.value;
-    if (username && username.length > 3) {
-      var result = stores.userExists.checkUsername(username);
-      if (result === undefined) {
-        actions.misc.checkUsername(username);
-      } else {
-        log(result ? 'success' : 'error');
-        this.setState({
-          userInputStatus: result ? 'success' : 'error'
-        });
-      }
-    } else {
-      this.setState({
-        userInputStatus: false
-      });
-    }
-  },
-  getInitialState () {
-    return {
-      userInputStatus: false
-    };
-  },
-  addInitialUserPermission (evt) {
-    evt.preventDefault();
-    var username = this.usernameFieldValue();
-    if (stores.userExists.checkUsername(username)) {
-      actions.permissions.assignPerm({
-        username: username,
-        uid: this.props.params.assetid,
-        kind: this.state.asset.kind,
-        objectUrl: this.props.objectUrl,
-        role: 'view'
-      });
-      this.usernameField().value = '';
-    }
-  },
-  render () {
-    var inpStatus = this.state.userInputStatus;
-    if (!this.state.pperms) {
-      return <i className="fa fa-spin" />;
-    }
-    var _perms = this.state.pperms;
-    var perms = this.state.related_users.map(function(username){
-      var currentPerm = _perms.filter(function(p){
-        return p.username === username;
-      })[0];
-      if (currentPerm) {
-        return currentPerm;
-      } else {
-        return {
-          username: username,
-          can: {}
-        };
-      }
-    });
-    var btnKls = classNames('mdl-button',
-                            'mdl-button--raised',
-                            'mdl-button--colored',
-                            inpStatus === 'success' ? 'btn-success' : 'hidden');
-
-    var uid = this.state.asset.uid;
-    var kind = this.state.asset.kind;
-    var objectUrl = this.state.asset.url;
-
-    if (!perms) {
-      return (
-          <p>loading</p>
-        );
-    }
-    return (
-      <ui.Modal open large
-          onClose={this.routeBack}
-          title={t('manage sharing permissions')}>
-        <ui.Modal.Body>
-          <ui.Panel className="k-div--sharing">
-            <div className="k-sharing__title">
-              <h5>{this.state.asset.name}</h5>
-            </div>
-            <div className="k-sharing__header">
-              <div className="user--pill">
-                <StackedIcon frontIcon='user' />
-                <div className="user--pill__name">
-                  <UserProfileLink username={this.state.asset.owner__username} /><br/>
-                  <span className="text-small">{t('owner')}</span>
-                </div>
-              </div>
-              <div className="text-small">{t('note: this does not control permissions to the data collected by projects')}</div>
-            </div>
-
-            <div className="mdl-grid">
-              <div className="mdl-cell mdl-cell--5-col">
-                <div className="k-share-username mdl-card mdl-shadow--2dp">
-                  <form onSubmit={this.addInitialUserPermission}>
-                    <div className="mdl-card__title">
-                      <h2 className="mdl-card__title-text">{t('Share with other users')}</h2>
-                    </div>
-                    <div className="mdl-card__supporting-text">
-                      <ui.SmallInputBox ref='usernameInput' placeholder={t('enter a username')} onKeyUp={this.usernameCheck} />
-                      <button className={btnKls}>
-                        <i className="fa fa-fw fa-lg fa-plus" />
-                      </button>
-                    </div>
-                    <div className="mdl-card__actions mdl-card--border">
-                      {perms.map((perm)=> {
-                        return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
-                      })}
-                    </div>
-                  </form>
-                </div>
-              </div>
-              <div className="mdl-cell mdl-cell--1-col">
-              </div>
-              <div className="mdl-cell mdl-cell--5-col">
-                <div className="k-share-publicly mdl-card mdl-shadow--2dp">
-                    <div className="mdl-card__title">
-                      <h2 className="mdl-card__title-text">{t('Link sharing')}</h2>
-                    </div>
-                    <div className="mdl-card__supporting-text">
-                      {(() => {
-                        if (this.state.public_permission) {
-                          return (
-                              <PublicPermDiv isOn={true}
-                                onToggle={this.removeCollectionPublicPerm(
-                                            this.state.asset,
-                                            this.state.public_permission
-                                          )}
-                              />
-                            );
-                        } else {
-                          return (
-                              <PublicPermDiv isOn={false}
-                                      onToggle={this.setPerm('view', {
-                                          username: anonUsername,
-                                          uid: uid,
-                                          kind: kind,
-                                          objectUrl: objectUrl
-                                        }
-                                      )}
-                                      />
-                            );
-                        }
-                      })()}
-                    </div>
-                </div>
-              </div>
-            </div>
-
-          </ui.Panel>
-        </ui.Modal.Body>
-      </ui.Modal>
-      );
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
-  }
 });
 
 var FormEnketoPreview = React.createClass({
@@ -1760,7 +1555,7 @@ var formRouteChildren = (baseName) => {
     <Route name={`${baseName}form-download`} path="download" handler={FormDownload} />,
     <Route name={`${baseName}form-json`} path="json" handler={FormJson} />,
     <Route name={`${baseName}form-xform`} path="xform" handler={FormXform} />,
-    <Route name={`${baseName}form-sharing`} path="sharing" handler={FormSharing} />,
+    <Route name={`${baseName}form-sharing`} path="sharing" handler={AssetSharing} />,
     <Route name={`${baseName}form-preview-enketo`} path="preview" handler={FormEnketoPreview} />,
     <Route name={`${baseName}form-edit`} path="edit" handler={FormPage} />
   ];
@@ -1784,7 +1579,7 @@ var routes = (
         <Route name="form-download" path="download" handler={FormDownload} />
         <Route name="form-json" path="json" handler={FormJson} />
         <Route name="form-xform" path="xform" handler={FormXform} />
-        <Route name="form-sharing" path="sharing" handler={FormSharing} />
+        <Route name="form-sharing" path="sharing" handler={AssetSharing} />
         <Route name="form-reports" path="reports" handler={Reports} />
         <Route name="form-preview-enketo" path="preview" handler={FormEnketoPreview} />
         <Route name='form-edit' path="edit" handler={FormPage} />
@@ -1805,7 +1600,7 @@ var routes = (
 
     <Route name="collections">
       <Route name="collection-page" path=":uid" handler={CollectionLanding} />
-      <Route name="collection-sharing" path=":assetid/sharing" handler={CollectionSharing} />
+      <Route name="collection-sharing" path=":assetid/sharing" handler={AssetSharing} />
       <DefaultRoute handler={CollectionList} />
     </Route>
 
