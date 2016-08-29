@@ -34,6 +34,7 @@ def explode_assets(apps, schema_editor):
             # as a placeholder
             'version': 0
         })
+        asset.save()
         assets_done += 1
         if assets_done % asset_progress_interval == 0:
             sys.stdout.write('.')

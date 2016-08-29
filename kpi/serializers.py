@@ -600,10 +600,12 @@ class DeploymentSerializer(serializers.Serializer):
                     'Only the current version can be deployed')
             # Overwrite the contents of the form
             deployment.redeploy(active=validated_data['active'])
+            asset.save()
         else:
             # A regular PATCH request can update only the `active` field
             if 'active' in validated_data:
                 deployment.set_active(validated_data['active'])
+                asset.save()
         return deployment
 
 
