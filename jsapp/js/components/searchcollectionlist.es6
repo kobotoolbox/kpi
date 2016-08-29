@@ -25,7 +25,7 @@ var SearchCollectionList = React.createClass({
     var selectedCategories = {
       'Draft': true,
       'Deployed': true, 
-      'Archived': false
+      'Archived': true
     }
     return {
       selectedCategories: selectedCategories,
@@ -50,6 +50,7 @@ var SearchCollectionList = React.createClass({
     var currentUsername = stores.session.currentAccount && stores.session.currentAccount.username;
     var perm = parsePermissions(resource.owner, resource.permissions);
     var isSelected = stores.selectedAsset.uid === resource.uid;
+    console.log(resource);
     return (
         <this.props.assetRowClass key={resource.uid}
                       currentUsername={currentUsername}

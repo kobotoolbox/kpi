@@ -1236,6 +1236,9 @@ var AssetSharing = React.createClass({
               objectUrl={objectUrl}
           />
         </ui.Modal.Body>
+        <ui.Modal.Footer>
+          <button onClick={this.routeBack}>{t('Done')}</button>
+        </ui.Modal.Footer>
       </ui.Modal>
       );
   },
