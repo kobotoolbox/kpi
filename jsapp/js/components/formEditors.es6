@@ -111,13 +111,13 @@ var ProjectSettings = React.createClass({
     }
 
     return (
-      <bem.FormModal>
-        <bem.FormModal__form onSubmit={this.onSubmit}>
-          <bem.FormModal__item m='actions'>
-          <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--bordered">
-              {this.props.submitButtonValue}
-            </button>
-          </bem.FormModal__item>
+      <bem.FormModal__form onSubmit={this.onSubmit}>
+        <bem.FormModal__item m='actions'>
+        <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--bordered">
+            {this.props.submitButtonValue}
+          </button>
+        </bem.FormModal__item>
+        <bem.FormModal__item m='wrapper'>
           <bem.FormModal__item m='sharing'>
             <a href={this.makeHref('form-sharing', {assetid: this.state.assetid})} className="mdl-button mdl-js-button mdl-button--bordered mdl-button--gray-border">
               {t('Share')}
@@ -198,9 +198,9 @@ var ProjectSettings = React.createClass({
               {t('Share the sector and country with developers')}
             </label>
           </bem.FormModal__item>
-
-        </bem.FormModal__form>
-      </bem.FormModal>
+          <iframe src={this.props.iframeUrl} />
+        </bem.FormModal__item>
+      </bem.FormModal__form>
     );
   },
 });
@@ -271,6 +271,7 @@ export var ProjectSettingsEditor = React.createClass({
         onSubmit={this.updateAsset}
         submitButtonValue={t('Save Changes')}
         initialData={initialData}
+        iframeUrl={this.props.iframeUrl}
       />
     );
   },
