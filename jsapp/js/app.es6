@@ -18,6 +18,7 @@ import {
   NotFoundRoute,
   run,
 } from 'react-router';
+import Select from 'react-select';
 
 import searches from './searches';
 import actions from './actions';
@@ -35,6 +36,10 @@ import {
   FormPage,
 } from './components/formEditors';
 
+import Reports from './components/reports';
+import FormData from './components/formData';
+import {ChangePassword, AccountSettings} from './components/accountSettings';
+
 import {
   ListSearch,
   ListTagFilter,
@@ -48,6 +53,7 @@ import {
   log,
   t,
   assign,
+  isLibrary,
 } from './utils';
 
 mixins.permissions = {
@@ -153,9 +159,10 @@ class ItemDropdown extends React.Component {
 
 class ItemDropdownItem extends React.Component {
   render () {
+    var baseName = isLibrary(this.context.router) ? 'library-' : '';
     return (
           <li>
-            <Link to='form-edit'
+            <Link to={`${baseName}form-edit`}
                   params={{assetid: this.props.uid}}>
               <i className={classNames('fa', 'fa-sm', this.props.faIcon)} />
               &nbsp;
@@ -814,17 +821,25 @@ var App = React.createClass({
     return assign({}, stores.pageState.state);
   },
   render() {
+    var currentRoutes = this.context.router.getCurrentRoutes();
+    var activeRouteName = currentRoutes[currentRoutes.length - 1];
+    var currentRouteClass = '';
+    if (currentRoutes[2] != undefined && currentRoutes[2].path == '/forms/:assetid') {
+      currentRouteClass = 'with-formView-header';
+    }
+
     return (
       <DocumentTitle title="KoBoToolbox">
-        <div className="mdl-wrapper">
-          { !this.state.formBuilderFocus && 
+        <div className={"mdl-wrapper " + currentRouteClass}>
+          { !this.state.headerHidden && 
             <div className="k-header__bar"></div>
           }
           <bem.PageWrapper m={{
               'asset-nav-present': this.state.assetNavPresent,
               'asset-nav-open': this.state.assetNavIsOpen && this.state.assetNavPresent,
               'fixed-drawer': this.state.showFixedDrawer,
-              'formbuilder-focus': this.state.formBuilderFocus,
+              'header-hidden': this.state.headerHidden,
+              'drawer-hidden': this.state.drawerHidden,
                 }} className="mdl-layout mdl-layout--fixed-header">
               { this.state.modalMessage ?
                 <ui.Modal open small onClose={()=>{stores.pageState.hideModal()}} icon={this.state.modalIcon}>
@@ -833,10 +848,10 @@ var App = React.createClass({
                   </ui.Modal.Body>
                 </ui.Modal>
               : null}
-              { !this.state.formBuilderFocus && 
+              { !this.state.headerHidden &&
                 <MainHeader/>
               }
-              { !this.state.formBuilderFocus && 
+              { !this.state.drawerHidden &&
                 <Drawer/>
               }
               <bem.PageWrapper__content m={{
@@ -1055,7 +1070,8 @@ var FormSharing = React.createClass({
   },
   routeBack () {
     var params = this.context.router.getCurrentParams();
-    this.transitionTo('form-landing', {assetid: params.assetid});
+    var baseName = isLibrary(this.context.router) ? 'library-' : '';
+    this.transitionTo(`${baseName}form-landing`, {assetid: params.assetid});
   },
   userExistsStoreChange (checked, result) {
     var inpVal = this.usernameFieldValue();
@@ -1447,7 +1463,7 @@ var FormEnketoPreview = React.createClass({
       if (asset.asset_type === 'survey') {
         bcRoot = {'label': t('Projects'), 'to': 'forms'};
       } else {
-        bcRoot = {'label': t('Library List'), 'to': 'library'};
+        bcRoot = {'label': t('Library'), 'to': 'library'};
       }
       stores.pageState.setHeaderBreadcrumb([
         bcRoot,
@@ -1478,7 +1494,8 @@ var FormEnketoPreview = React.createClass({
   },
   routeBack () {
     var params = this.context.router.getCurrentParams();
-    this.transitionTo('form-landing', {assetid: params.assetid});
+    var baseName = isLibrary(this.context.router) ? 'library-' : '';
+    this.transitionTo(`${baseName}form-landing`, {assetid: params.assetid});
   },
   render () {
     if (this.state.error) {
@@ -1533,7 +1550,8 @@ var FormLanding = React.createClass({
       ];
       stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
       stores.pageState.setAssetNavPresent(false);
-      stores.pageState.setFormBuilderFocus(false);
+      stores.pageState.setDrawerHidden(false);
+      stores.pageState.setHeaderHidden(false);
       actions.resources.loadAsset({id: params.assetid});
       callback();
     }
@@ -1732,22 +1750,48 @@ Demo.collection = React.createClass({
   }
 });
 
+var formRouteChildren = (baseName) => {
+  if (baseName === undefined) {
+    baseName = '';
+  }
+  return [
+    <Route name={`${baseName}form-download`} path="download" handler={FormDownload} />,
+    <Route name={`${baseName}form-json`} path="json" handler={FormJson} />,
+    <Route name={`${baseName}form-xform`} path="xform" handler={FormXform} />,
+    <Route name={`${baseName}form-sharing`} path="sharing" handler={FormSharing} />,
+    <Route name={`${baseName}form-preview-enketo`} path="preview" handler={FormEnketoPreview} />,
+    <Route name={`${baseName}form-edit`} path="edit" handler={FormPage} />
+  ];
+}
+
 var routes = (
   <Route name="home" path="/" handler={App}>
-    <Route name="library" handler={LibrarySearchableList}>
+    <Route name="library">
+      <Route name="library-new-form" path="new" handler={AddToLibrary} />
+      <Route name="library-form-landing" path="/library/:assetid">
+        {formRouteChildren('library-')}
+        <DefaultRoute handler={FormLanding} />
+      </Route>
+      <DefaultRoute handler={LibrarySearchableList} />
     </Route>
 
     <Route name="forms" handler={Forms}>
       <Route name="new-form" path="new" handler={NewForm} />
-      <Route name="add-to-library" path="add-to-library" handler={AddToLibrary} />
 
-      <Route name="form-landing" path="/forms/:assetid">
+      <Route name="form-landing" path="/forms/:assetid"> 
         <Route name="form-download" path="download" handler={FormDownload} />
         <Route name="form-json" path="json" handler={FormJson} />
         <Route name="form-xform" path="xform" handler={FormXform} />
         <Route name="form-sharing" path="sharing" handler={FormSharing} />
+        <Route name="form-reports" path="reports" handler={Reports} />
         <Route name="form-preview-enketo" path="preview" handler={FormEnketoPreview} />
         <Route name='form-edit' path="edit" handler={FormPage} />
+        <Route name='form-data-report' path="data/report" handler={FormData} />
+        <Route name='form-data-table' path="data/table" handler={FormData} />
+        <Route name='form-data-downloads' path="data/downloads" handler={FormData} />
+        <Route name='form-data-gallery' path="data/gallery" handler={FormData} />
+        <Route name='form-data-map' path="data/map" handler={FormData} />
+        <Route name='form-data-settings' path="data/settings" handler={FormData} />
         <DefaultRoute handler={FormLanding} />
       </Route>
 
@@ -1768,6 +1812,9 @@ var routes = (
       <Route name="user-profile" handler={UserProfile}
               path="/users/:username" />
     </Route>
+
+    <Route name="account-settings" handler={AccountSettings} />
+    <Route name="change-password" handler={ChangePassword} />
 
     <Route name="public" handler={Public}>
       <Route name="public-builder" handler={Builder} />

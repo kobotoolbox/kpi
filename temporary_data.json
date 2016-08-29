@@ -1,0 +1,128 @@
+[
+  {
+    "data": {
+      "field_type": "select_one",
+      "frequencies": [
+        151,
+        35
+      ],
+      "label": "Gênero de la persona",
+      "not_provided": 0,
+      "percentages": [
+        81.18,
+        18.82
+      ],
+      "provided": 186,
+      "responses": [
+        "Feminino",
+        "Masculino"
+      ],
+      "show_graph": true,
+      "total_count": 186,
+      "variable_name": "g_nero"
+    },
+    "kuid": "TZCJ1SboX",
+    "row": {
+      "$kuid": "TZCJ1SboX",
+      "label": "Gênero",
+      "name": "g_nero",
+      "required": "true",
+      "type": {
+        "select_one": "rq6ok56"
+      }
+    }
+  },
+  {
+    "data": {
+      "field_type": "select_multiple",
+      "frequencies": [
+        75,
+        60,
+        39,
+        7,
+        5,
+        4
+      ],
+      "label": "Participa de alguma organização social?",
+      "not_provided": 0,
+      "percentages": [
+        40.32,
+        32.26,
+        20.97,
+        3.76,
+        2.69,
+        2.15
+      ],
+      "provided": 186,
+      "responses": [
+        "e) Igreja/Religiosa",
+        "a) Não",
+        "i) Não, mas gostaria de participar",
+        "b) Associação",
+        "h) Outros",
+        "d) Sindicato"
+      ],
+      "show_graph": true,
+      "total_count": 186,
+      "variable_name": "_2_participa_de_alguma_organiza_o_social_"
+    },
+    "kuid": "Rak94s7Gu",
+    "row": {
+      "$kuid": "Rak94s7Gu",
+      "label": "Participa de alguma organização social?",
+      "name": "_2_participa_de_alguma_organiza_o_social_",
+      "required": "false",
+      "type": {
+        "select_multiple": "yo3mf87"
+      }
+    }
+  },
+  {
+    "data": {
+      "field_type": "select_one",
+      "frequencies": [
+        82,
+        37,
+        28,
+        24,
+        8,
+        4,
+        3
+      ],
+      "label": "Qual seu grau de escolaridade?",
+      "not_provided": 0,
+      "percentages": [
+        44.09,
+        19.89,
+        15.05,
+        12.9,
+        4.3,
+        2.15,
+        1.61
+      ],
+      "provided": 186,
+      "responses": [
+        "b) Ensino fundamental incompleto (1º grau)",
+        "e)Ensino médio/técnico completo (2º grau)",
+        "c) Ensino fundamental completo (1º grau)",
+        "d) Ensino médio/técnico incompleto (2º grau)",
+        "a) Sem escolaridade",
+        "g) Superior completo",
+        "f) Superior incompleto"
+      ],
+      "show_graph": true,
+      "total_count": 186,
+      "variable_name": "_1_qual_seu_grau_de_escolaridade_"
+    },
+    "kuid": "cQuNbRZGD",
+    "row": {
+      "$kuid": "cQuNbRZGD",
+      "label": "Qual seu grau de escolaridade?",
+      "name": "qual_seu_grau_de_escolaridade_",
+      "required": "false",
+      "type": {
+        "select_one": "rk54u52"
+      }
+    }
+  }
+]

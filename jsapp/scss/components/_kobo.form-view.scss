@@ -1,62 +1,21 @@
 .form-view {
   height: 100%;
-  overflow: auto;
   padding: 8px;
   padding-top: 4px;
 }
 
-.form-view__header {
-  margin-bottom: 8px;
-  @extend .mdl-shadow--2dp;
-  background-color: #FFF;
-}
-
-.form-view__tabs {
-  background-color: #557893;
-  position: relative;
-}
-
-.form-view__extras {
-	float: right;
-  button.mdl-button {
-    color: white;
-    margin-top: 4px;
+.form-view__wrapper {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  padding-top: 8px;
+  &--data {
+    overflow: visible;
   }
 }
 
-.form-view__tab {
-  background: transparent;
-  color: #FFF;
-  border: none;
-  border-bottom: 3px solid transparent;
-  padding: 8px 12px;
-  text-transform: uppercase;
-  font-size: 18px;
-  margin-right: 20px;
-  opacity: 0.6;
-  a {
-    color:#FFF;
-  }
-  &.active {
-    opacity: 1;
-    border-bottom: 3px solid $cool-green;
-  }
-  &:hover {
-    cursor: pointer;
-    opacity: 1;
-  }
-}
-
-.form-view__name {
-  padding: 10px 15px;
-  font-size: 18px;
-  line-height: 1.4em;
-  color: unquote("rgb(#{$color-primary})");
-}
-
-.form-view__description {
-  padding: 10px 15px;
-  padding-top: 0px;
+.form-view__header--expandedReport + .form-view__wrapper--Report {
+  height: calc(100% - 96px);
 }
 
 .form-view__row {
@@ -175,6 +134,10 @@
       font-size: 14px;
       cursor: pointer;
       background-color: #FFF;
+      opacity: 0.5;
+      &:hover {
+        opacity: 1;
+      }
     }
   }
 
@@ -197,9 +160,15 @@
     }
   }
 
+  &--deploy-count {
+    display: inline-block;
+    width: 150px;
+    padding:0px;
+    text-align: left;
+  }
   &--buttons {
     display: inline-block;
-    float: right;
+    width:calc(100% - 151px);
     text-align: right;
     padding: 0px;
   }
@@ -232,8 +201,8 @@
 
 .form-view__cell--collecting-android {
   li i {
-    font-size: 20px;
     vertical-align: middle;
+    opacity: 0.8;
   }
 }
 
@@ -261,38 +230,33 @@
 // buttons in forms 
 .form-view__link {
   font-size:18px;
+  line-height: 18px;
   margin-left: 10px;
   padding:0px 10px;
   color: $cool-gray;
   cursor: pointer;
-  i.k-icon-view:before {
-    width:1.5em;
-  }
   &:hover {
     color: unquote("rgb(#{$color-primary})");
   }
+
+  i.k-icon-edit {
+    font-size: 22px;
+    line-height: 22px;
+    margin-right: -10px;
+  }
 }
 
-.form-view__item--more-actions {
-  position: relative;
-  button {
-    font-size: 18px;
-    background-color: transparent;
-    color: $cool-gray;
-    border:none;
-    border-radius: none;
-    cursor: pointer;
-    padding:0px 10px;
-    &:focus, &:hover {
-      color: unquote("rgb(#{$color-primary})");
-    }
-  }
+#more-dl-popover {
+  padding-top: 0px;
+  font-size: 18px;
+  line-height: 18px;
+  margin-left: 10px;
 }
 
 .form-view__item--collect {
   position: relative;
   display: block;
-  button.form-view__button--collectOptions {
+  button {
     border:2px solid $cool-gray;
     width:100%;
     margin:20px 0px;
@@ -315,16 +279,15 @@
       font-size: 24px;
     }
   }
-  .popover-menu {
+  .mdl-menu, .mdl-menu__container {
+    min-width: 300px;
     width:100%;
-    max-width: 100%;
-    max-height: 260px;
-    overflow: auto;
-    top: auto;
-    bottom:55px;
-    .popover-menu__link {
-      border-bottom: 1px solid #DDD;
-    }
+  }
+  .popover-menu__link {
+    display: block;
+    width: 100%;
+    white-space: normal;
+    border-bottom: 1px solid #DDD;
     span.label {
       display: block;
       font-size: 14px;
@@ -365,4 +328,3 @@
     color: unquote("rgb(#{$color-primary})");
   }
 }
-

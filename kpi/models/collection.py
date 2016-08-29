@@ -1,6 +1,7 @@
 from itertools import chain
 
 import haystack
+from django.apps import apps
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.dispatch import receiver
@@ -87,7 +88,7 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
             ).get_index(Asset)
         # Defer signal processing and begin deletion
         tag_pks = set()
-        with haystack.signal_processor.defer():
+        with apps.get_app_config('haystack').signal_processor.defer():
             for asset in self.assets.only('pk'):
                 # Keep track of the tags we will need to reindex
                 tag_pks.update(asset.tags.values_list('pk', flat=True))

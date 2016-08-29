@@ -49,6 +49,13 @@ var dataInterface;
       });
       return d.promise();
     },
+    patchProfile (data) {
+      return $ajax({
+        url: `${rootUrl}/me/`,
+        method: 'PATCH',
+        data: data
+      });
+    },
     listBlocks () {
       return $ajax({
         url: `${rootUrl}/assets/?q=asset_type:block`
@@ -102,6 +109,15 @@ var dataInterface;
         url: `${rootUrl}/asset_snapshots/`,
         method: 'POST',
         data: data
+      });
+    },
+    getReportData (data) {
+      let kuidString;
+      if (data.kuids) {
+        kuidString = `?kuids=${data.kuids.join(',')}`
+      }
+      return $ajax({
+        url: `${rootUrl}/reports/${data.uid}/${kuidString}`,
       });
     },
     createTemporaryAssetSnapshot ({source}) {

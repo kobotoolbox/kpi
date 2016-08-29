@@ -4,7 +4,6 @@ import {
   log,
   t,
   notify,
-  redirectTo,
 } from './utils';
 
 var Reflux = require('reflux');
@@ -42,7 +41,13 @@ actions.auth = Reflux.createActions({
       'completed',
       'failed'
     ]
-  }
+  },
+  changePassword: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
 });
 
 actions.survey = Reflux.createActions({
@@ -251,6 +256,12 @@ actions.misc = Reflux.createActions({
       'completed',
       'failed_'
     ]
+  },
+  updateProfile: {
+    children: [
+      'completed',
+      'failed'
+    ]
   }
 });
 
@@ -260,6 +271,19 @@ actions.misc.checkUsername.listen(function(username){
     .done(actions.misc.checkUsername.completed)
     .fail(actions.misc.checkUsername.failed_);
 });
+
+actions.misc.updateProfile.listen(function(data){
+  dataInterface.patchProfile(data)
+    .done(actions.misc.updateProfile.completed)
+    .fail(actions.misc.updateProfile.failed);
+});
+actions.misc.updateProfile.completed.listen(function(){
+  notify(t('updated profile successfully'));
+});
+actions.misc.updateProfile.failed.listen(function(){
+  notify(t('failed to update profile'), 'error');
+});
+
 actions.resources.createImport.listen(function(contents){
   if (contents.base64Encoded) {
     dataInterface.postCreateBase64EncodedImport(contents)
@@ -327,10 +351,17 @@ actions.resources.updateAsset.listen(function(uid, values){
 });
 
 actions.resources.deployAsset.listen(
-  function(asset, redeployment, dialog_or_alert){
+  function(asset, redeployment, dialog_or_alert, params={}){
+    var onComplete;
+    if (params && params.onComplete) {
+      onComplete = params.onComplete;
+    }
     dataInterface.deployAsset(asset, redeployment)
       .done((data) => {
         actions.resources.deployAsset.completed(data, dialog_or_alert);
+        if (onComplete) {
+          onComplete(asset);
+        }
       })
       .fail((data) => {
         actions.resources.deployAsset.failed(data, dialog_or_alert);
@@ -348,11 +379,6 @@ actions.resources.deployAsset.completed.listen(function(data, dialog_or_alert){
         dialog_or_alert.dismiss();
     }
   }
-  // notify and redirect
-  notify(t('deployed form'));
-  window.setTimeout(function(){
-    redirectTo(data.identifier);
-  }, 1000);
 });
 
 actions.resources.deployAsset.failed.listen(function(data, dialog_or_alert){
@@ -399,6 +425,22 @@ actions.resources.deployAsset.failed.listen(function(data, dialog_or_alert){
     `;
   }
   alertify.alert(t('unable to deploy'), failure_message);
+});
+
+actions.reports = Reflux.createActions({
+  setStyle: {
+    children: [
+      'completed',
+      'failed',
+    ]
+  }
+});
+
+actions.reports.setStyle.listen(function(assetId, details){
+  dataInterface.patchAsset(assetId, {
+    report_styles: JSON.stringify(details),
+  }).done(actions.reports.setStyle.completed)
+    .fail(actions.reports.setStyle.failed);
 });
 
 actions.resources.createResource.listen(function(details){
@@ -567,6 +609,21 @@ actions.auth.verifyLogin.listen(function(){
           }
         })
         .fail(actions.auth.verifyLogin.failed);
+});
+
+actions.auth.changePassword.listen((currentPassword, newPassword) => {
+  dataInterface.patchProfile({
+    current_password: currentPassword,
+    new_password: newPassword
+  })
+  .done(actions.auth.changePassword.completed)
+  .fail(actions.auth.changePassword.failed);
+});
+actions.auth.changePassword.completed.listen(() => {
+  notify(t('changed password successfully'));
+});
+actions.auth.changePassword.failed.listen(() => {
+  notify(t('failed to change password'), 'error');
 });
 
 actions.resources.loadAsset.listen(function(params){

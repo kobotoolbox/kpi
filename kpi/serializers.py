@@ -6,6 +6,7 @@ from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import get_script_prefix, resolve, Resolver404
+from django.db import transaction
 from django.utils.six.moves.urllib import parse as urlparse
 from django.conf import settings
 from rest_framework import serializers, exceptions
@@ -13,6 +14,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
 
+from kobo.static_lists import SECTORS, COUNTRIES, LANGUAGES
 from hub.models import SitewideMessage
 from .models import Asset
 from .models import AssetSnapshot
@@ -27,6 +29,7 @@ from .models import TagUid
 from .models import OneTimeAuthenticationKey
 from .forms import USERNAME_REGEX, USERNAME_MAX_LENGTH
 from .forms import USERNAME_INVALID_MESSAGE
+from .utils.gravatar_url import gravatar_url
 
 
 class Paginated(LimitOffsetPagination):
@@ -277,7 +280,7 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         lookup_field='username',
         read_only=True
     )
-    asset_version_id = serializers.IntegerField(required=False, read_only=True)
+    asset_version_id = serializers.ReadOnlyField()
     date_created = serializers.DateTimeField(read_only=True)
     source = WritableJSONField(required=False)
 
@@ -306,34 +309,37 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         (and the www). '''
         asset = validated_data.get('asset', None)
         source = validated_data.get('source', None)
+
+        # Force owner to be the requesting user
+        validated_data['owner'] = self.context['request'].user
+
         # TODO: Move to a validator?
         if asset and source:
             if not self.context['request'].user.has_perm('view_asset', asset):
                 # The client is not allowed to snapshot this asset
                 raise exceptions.PermissionDenied
             validated_data['source'] = source
-            # when source is included, snapshot is not tied to an individual v_id
-            validated_data['asset_version_id'] = None
+            snapshot = AssetSnapshot.objects.create(**validated_data)
         elif asset:
             # The client provided an existing asset; read source from it
             if not self.context['request'].user.has_perm('view_asset', asset):
                 # The client is not allowed to snapshot this asset
                 raise exceptions.PermissionDenied
-            validated_data['source'] = asset.content
-            # Record the asset's version id
-            validated_data['asset_version_id'] = asset.version_id
+            asset_version = asset.asset_versions.first()
+            try:
+                snapshot = AssetSnapshot.objects.get(asset=asset,
+                                                     asset_version=asset_version)
+            except AssetSnapshot.DoesNotExist as e:
+                snapshot = AssetSnapshot.objects.create(**validated_data)
         elif source:
             # The client provided source directly; no need to copy anything
             # For tidiness, pop off unused fields. `None` avoids KeyError
             validated_data.pop('asset', None)
-            validated_data.pop('asset_version_id', None)
+            validated_data.pop('asset_version', None)
+            snapshot = AssetSnapshot.objects.create(**validated_data)
         else:
             raise serializers.ValidationError('Specify an asset and/or a source')
 
-        # Force owner to be the requesting user
-        validated_data['owner'] = self.context['request'].user
-        # Create the snapshot
-        snapshot = AssetSnapshot.objects.create(**validated_data)
         if not snapshot.xml:
             raise serializers.ValidationError(snapshot.details)
         return snapshot
@@ -363,11 +369,12 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     asset_type = serializers.ChoiceField(choices=ASSET_TYPES)
     settings = WritableJSONField(required=False, allow_blank=True)
     content = WritableJSONField(required=False)
+    report_styles = WritableJSONField(required=False)
     xls_link = serializers.SerializerMethodField()
     summary = serializers.ReadOnlyField()
     koboform_link = serializers.SerializerMethodField()
     xform_link = serializers.SerializerMethodField()
-    version_count = serializers.SerializerMethodField('_version_count')
+    version_count = serializers.SerializerMethodField()
     downloads = serializers.SerializerMethodField()
     embeds = serializers.SerializerMethodField()
     parent = RelativePrefixHyperlinkedRelatedField(
@@ -381,13 +388,14 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         many=True, read_only=True, source='get_ancestors_or_none')
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     tag_string = serializers.CharField(required=False, allow_blank=True)
-    version_id = serializers.IntegerField(read_only=True)
+    version_id = serializers.CharField(read_only=True)
     has_deployment = serializers.ReadOnlyField()
     deployed_version_id = serializers.SerializerMethodField()
     deployed_versions = serializers.SerializerMethodField()
     deployment__identifier = serializers.SerializerMethodField()
     deployment__active = serializers.SerializerMethodField()
     deployment__links = serializers.SerializerMethodField()
+    deployment__submission_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -410,6 +418,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'deployment__identifier',
                   'deployment__links',
                   'deployment__active',
+                  'deployment__submission_count',
+                  'report_styles',
                   'content',
                   'downloads',
                   'embeds',
@@ -420,7 +430,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'kind',
                   'xls_link',
                   'name',
-                  'permissions',)
+                  'permissions',
+                  'settings',)
         extra_kwargs = {
             'parent': {
                 'lookup_field': 'uid',
@@ -452,8 +463,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 fields.pop(exclude)
         return fields
 
-    def _version_count(self, obj):
-        return obj.versions().count()
+    def get_version_count(self, obj):
+        return obj.asset_versions.count()
 
     def get_xls_link(self, obj):
         return reverse('asset-xls', args=(obj.uid,), request=self.context.get('request', None))
@@ -498,43 +509,20 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                        .get('request', None))
 
     def get_deployed_version_id(self, obj):
-        if obj.has_deployment:
-            return obj.deployment.version
+        if obj.asset_versions.filter(deployed=True).exists():
+            if obj.has_deployment and isinstance(obj.deployment.version_id, int):
+                # this can be removed once the 'replace_deployment_ids'
+                # migration has been run
+                v_id = obj.deployment.version_id
+                try:
+                    return obj.asset_versions.get(_reversion_version_id=v_id).uid
+                except ObjectDoesNotExist, e:
+                    return obj.asset_versions.filter(deployed=True).first().uid
+            else:
+                return obj.deployment.version_id
 
     def get_deployed_versions(self, asset):
-        asset_deployments_by_version_id = OrderedDict()
-        deployed_versioned_assets = []
-        # Record the current deployment, if any
-        if asset.has_deployment:
-            asset_deployments_by_version_id[asset.deployment.version] = \
-                asset.deployment
-            # The currently deployed version may be unknown, but we still want
-            # to pass its timestamp to the serializer
-            if asset.deployment.version == 0:
-                # Temporary attributes for later use by the serializer
-                asset._static_version_id = 0
-                asset._date_deployed = asset.deployment.timestamp
-                deployed_versioned_assets.append(asset)
-        # Record all previous deployments
-        for version in asset.versions():
-            historical_asset = version.object_version.object
-            if historical_asset.has_deployment:
-                asset_deployments_by_version_id[
-                    historical_asset.deployment.version
-                ] = historical_asset.deployment
-        # Annotate and list deployed asset versions
-        for version in asset.versions().filter(
-                id__in=asset_deployments_by_version_id.keys()):
-            historical_asset = version.object_version.object
-            # Asset.version_id returns the *most recent* version of the asset;
-            # it has no way to know the version of the instance it's bound to.
-            # Record a _static_version_id here for the serializer to use
-            historical_asset._static_version_id = version.id
-            # Make the deployment timestamp available to the serializer
-            historical_asset._date_deployed = asset_deployments_by_version_id[
-                version.id].timestamp
-            # Store the annotated asset objects in a list for serialization
-            deployed_versioned_assets.append(historical_asset)
+        deployed_versioned_assets = asset.asset_versions.filter(deployed=True)
         return AssetVersionListSerializer(
             deployed_versioned_assets,
             many=True,
@@ -554,6 +542,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         else:
             return {}
 
+    def get_deployment__submission_count(self, obj):
+        if not obj.has_deployment:
+            return 0
+        return obj.deployment.submission_count
+
     def _content(self, obj):
         return json.dumps(obj.content)
 
@@ -566,16 +559,16 @@ class DeploymentSerializer(serializers.Serializer):
     backend = serializers.CharField(required=False)
     identifier = serializers.CharField(read_only=True)
     active = serializers.BooleanField(required=False)
-    version = serializers.CharField(required=False)
+    version_id = serializers.CharField(required=False)
 
     def create(self, validated_data):
         asset = self.context['asset']
         # Stop if the requester attempts to deploy any version of the asset
         # except the current one
-        if 'version' in validated_data and \
-                validated_data['version'] != str(asset.version_id):
+        if 'version_id' in validated_data and \
+                validated_data['version_id'] != str(asset.version_id):
             raise NotImplementedError(
-                'Only the current version can be deployed')
+                'Only the current version_id can be deployed')
         # if no backend is provided, use the installation's default backend
         backend_id = validated_data.get('backend',
                                         settings.DEFAULT_DEPLOYMENT_BACKEND)
@@ -584,6 +577,7 @@ class DeploymentSerializer(serializers.Serializer):
             backend=backend_id,
             active=validated_data.get('active', False),
         )
+        asset.save()
         return asset.deployment
 
     def update(self, instance, validated_data):
@@ -596,11 +590,11 @@ class DeploymentSerializer(serializers.Serializer):
                             'deployment.'})
         # Is this a request to replace the content of the existing, deployed
         # form?
-        if 'version' in validated_data:
+        if 'version_id' in validated_data:
             # For now, don't check that
             #   validated_data['version'] != str(deployment.version)
             # Instead, send the update to KC even if the content is unchanged
-            if validated_data['version'] != str(asset.version_id):
+            if validated_data['version_id'] != str(asset.version_id):
                 # We still can't deploy any version other than the current one
                 raise NotImplementedError(
                     'Only the current version can be deployed')
@@ -629,7 +623,6 @@ class ImportTaskSerializer(serializers.HyperlinkedModelSerializer):
                 'read_only': True,
             },
         }
-
 
 class ImportTaskListSerializer(ImportTaskSerializer):
     url = serializers.HyperlinkedIdentityField(
@@ -676,19 +669,11 @@ class AssetVersionListSerializer(AssetSerializer):
     date_deployed = serializers.SerializerMethodField()
     version_id = serializers.SerializerMethodField()
 
-    @staticmethod
-    def _get_attr_set_by_view(obj, name):
-        if not hasattr(obj, name):
-            raise Exception(
-                'The view must set the `{}` attribute on each '
-                'version passed to this serializer.'.format(name))
-        return getattr(obj, name)
-
     def get_date_deployed(self, obj):
-        return self._get_attr_set_by_view(obj, '_date_deployed')
+        return obj.date_modified
 
     def get_version_id(self, obj):
-        return self._get_attr_set_by_view(obj, '_static_version_id')
+        return obj.uid
 
     class Meta(AssetSerializer.Meta):
         fields = ('version_id', 'date_deployed')
@@ -732,6 +717,89 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
                 'lookup_field': 'uid',
             },
         }
+
+
+class CurrentUserSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField()
+    server_time = serializers.SerializerMethodField()
+    projects_url = serializers.SerializerMethodField()
+    gravatar = serializers.SerializerMethodField()
+    languages = serializers.SerializerMethodField()
+    extra_details = WritableJSONField(source='extra_details.data')
+    current_password = serializers.CharField(write_only=True, required=False)
+    new_password = serializers.CharField(write_only=True, required=False)
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'first_name',
+            'last_name',
+            'email',
+            'server_time',
+            'projects_url',
+            'is_superuser',
+            'gravatar',
+            'is_staff',
+            'last_login',
+            'languages',
+            'extra_details',
+            'current_password',
+            'new_password',
+        )
+
+    def get_server_time(self, obj):
+        return datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+
+    def get_projects_url(self, obj):
+        return '/'.join((settings.KOBOCAT_URL, obj.username))
+
+    def get_gravatar(self, obj):
+        return gravatar_url(obj.email)
+
+    def get_languages(self, obj):
+        return settings.LANGUAGES
+
+    def to_representation(self, obj):
+        if obj.is_anonymous():
+            return {'message': 'user is not logged in'}
+        rep = super(CurrentUserSerializer, self).to_representation(obj)
+        if settings.UPCOMING_DOWNTIME:
+            # setting is in the format:
+            # [dateutil.parser.parse('6pm edt').isoformat(), countdown_msg]
+            rep['upcoming_downtime'] = settings.UPCOMING_DOWNTIME
+        # TODO: Find a better location for SECTORS and COUNTRIES
+        # as the functionality develops. (possibly in tags?)
+        rep['available_sectors'] = SECTORS
+        rep['available_countries'] = COUNTRIES
+        rep['all_languages'] = LANGUAGES
+        return rep
+
+    def update(self, instance, validated_data):
+        # "The `.update()` method does not support writable dotted-source
+        # fields by default." --DRF
+        extra_details = validated_data.pop('extra_details', False)
+        if extra_details:
+            instance.extra_details.data.update(extra_details['data'])
+            instance.extra_details.save()
+        current_password = validated_data.pop('current_password', False)
+        new_password = validated_data.pop('new_password', False)
+        if all((current_password, new_password)):
+            with transaction.atomic():
+                if instance.check_password(current_password):
+                    instance.set_password(new_password)
+                    instance.save()
+                else:
+                    raise serializers.ValidationError({
+                        'current_password': 'Incorrect current password.'
+                    })
+        elif any((current_password, new_password)):
+            raise serializers.ValidationError(
+                'current_password and new_password must both be sent ' \
+                'together; one or the other cannot be sent individually.'
+            )
+        return super(CurrentUserSerializer, self).update(
+            instance, validated_data)
 
 
 class CreateUserSerializer(serializers.ModelSerializer):

@@ -29,11 +29,13 @@ class MockDeployment(TestCase):
     def setUp(self):
         self.asset = Asset.objects.create(content={
             'survey': [
-                {u'type':'text', u'name': 'q1',
-                    u'label': 'Q1.',}
+                {u'type': 'text', u'name': 'q1',
+                    u'label': 'Q1.'
+                 }
                 ]
             })
-        self.asset.connect_deployment(backend='mock')
+        self.asset.deploy(backend='mock')
+        self.asset.save()
 
     def test_deployment_creates_identifier(self):
         _uid = self.asset.uid
@@ -44,7 +46,27 @@ class MockDeployment(TestCase):
 
     def test_set_active(self):
         self.asset.deployment.set_active(True)
+        self.asset.save()
         self.assertEqual(self.asset._deployment_data['active'], True)
 
         self.asset.deployment.set_active(False)
+        self.asset.save()
         self.assertEqual(self.asset._deployment_data['active'], False)
+
+    def test_redeploy(self):
+        _v1_uid = self.asset.latest_version.uid
+        self.asset.deployment.set_active(True)
+        self.asset.save()
+        _v2_uid = self.asset.latest_version.uid
+        self.assertEqual(self.asset.latest_deployed_version.uid, _v2_uid)
+
+        # version uid changed
+        self.assertNotEqual(_v1_uid, _v2_uid)
+
+        self.assertEqual(self.asset._deployment_data['active'], True)
+        self.asset.deploy(active=True)
+        self.asset.save()
+        _v3_uid = self.asset.asset_versions.first().uid
+
+        # version uid changed
+        self.assertNotEqual(_v2_uid, _v3_uid)

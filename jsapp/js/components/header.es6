@@ -1,5 +1,5 @@
 import React from 'react/addons';
-import {Link} from 'react-router';
+import {Link,Navigation} from 'react-router';
 import mdl from '../libs/rest_framework/material';
 import Select from 'react-select';
 import moment from 'moment';
@@ -41,6 +41,7 @@ var MainHeader = React.createClass({
     Reflux.connect(stores.pageState),
     Reflux.ListenerMixin,
     hotkey.Mixin('handleHotkey'),
+    Navigation
   ],
   handleHotkey: function(e) {
     if (e.altKey && (e.keyCode == '69' || e.keyCode == '186')) {
@@ -55,6 +56,9 @@ var MainHeader = React.createClass({
     });
 
     return assign({
+      showFormViewHeader: false,
+      dataPopoverShowing: false, 
+      asset: false,
       currentLang: cookie.load(LANGUAGE_COOKIE_NAME) || 'en',
       libraryFiltersContext: searches.getSearchContext('library', {
         filterParams: {
@@ -75,19 +79,50 @@ var MainHeader = React.createClass({
     document.body.classList.add('hide-edge');
     this.setStates();
   },
+  assetLoad(data) {
+    var asset = data[this.state.assetid];
+    this.setState(assign({
+        asset: asset
+      }
+    ));
+  },
   logout () {
     actions.auth.logout();
   },
+  accountSettings () {
+    this.transitionTo('account-settings');
+  },
   setStates() {
-    var breadcrumb = this.state.headerBreadcrumb;
-    if (breadcrumb.length > 1) {
-      this.setState({headerFilters: false});
-      return;
+    this.listenTo(stores.asset, this.assetLoad);
+
+    var currentParams = this.context.router.getCurrentParams();
+    this.setState(assign(currentParams));
+
+    var currentRoutes = this.context.router.getCurrentRoutes();
+    var activeRoute = currentRoutes[currentRoutes.length - 1];
+
+    switch(activeRoute.path) {
+      case '/forms':
+        this.setState({headerFilters: 'forms'});
+        break;
+      case '/library':
+        this.setState({headerFilters: 'library'});
+        break;
+      default:
+        this.setState({headerFilters: false});
+        break;
     }
-    if (breadcrumb[0] && breadcrumb[0].to == 'library') {
-      this.setState({headerFilters: 'library'});
+
+    if (currentRoutes[2] != undefined && currentRoutes[2].path == '/forms/:assetid') {
+      this.setState({
+        showFormViewHeader: true, 
+        activeRoute: activeRoute.path
+      });
     } else {
-      this.setState({headerFilters: 'forms'});
+      this.setState({
+        showFormViewHeader: false, 
+        activeRoute: false
+      });    
     }
   },
   languageChange (evt) {
@@ -107,11 +142,33 @@ var MainHeader = React.createClass({
   },
   renderLangItem(lang) {
     return (
-      <li key={lang[0]}>
-        <a data-key={lang[0]} onClick={this.languageChange} className="mdl-menu__item">{lang[1]}</a>
+      <li key={lang.value}>
+        <a data-key={lang.value} onClick={this.languageChange}
+          className="mdl-menu__item">{lang.label}</a>
       </li>
     );
   },
+  toggleAccountMenuPopover (evt) {
+    var isBlur = evt.type === 'blur',
+        $popoverMenu;
+    if (this.state.accountMenuPopoverShowing || isBlur) {
+      if (this.refs['accountMenu-popover'] != undefined) {
+        $popoverMenu = $(this.refs['accountMenu-popover'].getDOMNode());
+        // if we setState and immediately hide popover then the
+        // links will not register as clicked
+        $popoverMenu.fadeOut(250, () => {
+          this.setState({
+            accountMenuPopoverShowing: false,
+          });
+        });
+      }
+    } else {
+      this.setState({
+        accountMenuPopoverShowing: true,
+      });
+    }
+  },
+
   renderAccountNavMenu () {
     var defaultGravatarImage = `${window.location.protocol}//www.gravatar.com/avatar/64e1b8d34f425d19e1ee2ea7236d3028?s=40`;
     var langs = [];
@@ -129,40 +186,50 @@ var MainHeader = React.createClass({
               2 
             </bem.AccountBox__notifications__count>
           </bem.AccountBox__notifications>
-          <bem.AccountBox__name>
-            <span>{accountName}</span>
+          <bem.AccountBox__name
+              onClick={this.toggleAccountMenuPopover}
+              onBlur={this.toggleAccountMenuPopover}>
+            <bem.AccountBox__username>
+              {accountName}
+            </bem.AccountBox__username>
             <bem.AccountBox__image>
               <img src={gravatar} />
             </bem.AccountBox__image>
-            <ul className="k-account__menu">
-              <li key="settings">
-                <a href={stores.session.currentAccount.projects_url + '/settings'} className="mdl-menu__item">
-                  <i className="k-icon-settings" />
-                  {t('Profile Settings')}
-                </a>
-              </li>
-              {leaveBetaUrl ?
-                <li>
-                  <a href={leaveBetaUrl} className="mdl-menu__item">
-                    {t('leave beta')}
-                  </a>
-                </li>
-              :null}
-              <li className="k-lang__submenu" key="lang">
-                <a className="mdl-menu__item">
-                  <i className="fa fa-globe" />
-                  {t('Language')}
-                </a>
-                <ul>
-                  {langs.map(this.renderLangItem)}
+
+            { (this.state.accountMenuPopoverShowing) ? 
+              <bem.PopoverMenu ref='accountMenu-popover'>
+                <ul className="k-account__menu">
+                  <li className="k-account__submenu" key="settings">
+                    <a onClick={this.accountSettings} className="mdl-menu__item">
+                      <i className="k-icon-settings" />
+                      {t('Account Settings')}
+                    </a>
+                  </li>
+                  {leaveBetaUrl ?
+                    <li>
+                      <a href={leaveBetaUrl} className="mdl-menu__item">
+                        <i className="k-icon-settings" />
+                        {t('Leave Beta')}
+                      </a>
+                    </li>
+                  :null}
+                  <li className="k-lang__submenu" key="lang">
+                    <a className="mdl-menu__item">
+                      <i className="fa fa-globe" />
+                      {t('Language')}
+                    </a>
+                    <ul>
+                      {langs.map(this.renderLangItem)}
+                    </ul>
+                  </li>
+                  <li key="logout">
+                    <a onClick={this.logout} className="mdl-menu__item">
+                      <i className="k-icon-logout" /> 
+                      {t('Logout')}</a>
+                    </li>
                 </ul>
-              </li>
-              <li key="logout">
-                <a onClick={this.logout} className="mdl-menu__item">
-                  <i className="k-icon-logout" /> 
-                  {t('Logout')}</a>
-                </li>
-            </ul>
+              </bem.PopoverMenu>
+            : null }
           </bem.AccountBox__name>
         </bem.AccountBox>
         );
@@ -181,12 +248,92 @@ var MainHeader = React.createClass({
       icon: 'gears',
     });
   },
+  toggleDataPopover (evt) {
+    var isBlur = evt.type === 'blur',
+        $popoverMenu;
+    if (isBlur) {
+      $popoverMenu = $(this.refs['data-popover'].getDOMNode());
+      // if we setState and immediately hide popover then the
+      // download links will not register as clicked
+      $popoverMenu.fadeOut(250, () => {
+        this.setState({
+          dataPopoverShowing: false,
+        });
+      });
+    } else {
+      this.setState({
+        dataPopoverShowing: true,
+      });
+    }
+  },
+  renderFormViewHeader () {
+    return (
+      <bem.FormView__tabbar>
+        <bem.FormView__tabs>
+          <bem.FormView__tab className="is-edge" m='summary' >
+            {t('Summary')}
+          </bem.FormView__tab>
+          <bem.FormView__tab 
+            m='form' 
+            className={this.state.activeRoute == '/forms/:assetid' ? 'active' : ''} 
+            href={this.makeHref('form-landing', {assetid: this.state.assetid})}
+            data-id='Form'>
+              {t('Form')}
+          </bem.FormView__tab>
+          { this.state.asset.deployment__identifier != undefined && this.state.asset.deployment__active ?
+            <ui.MDLPopoverMenu  id="more-data-tab" 
+                                button_label={t('Data')}
+                                button_type='text' 
+                                classname='form-view__button--data'>
+                <bem.PopoverMenu__link m={'report-in-kpi'}
+                    href={this.makeHref('form-reports', {assetid: this.state.assetid})}>
+                  <i className="k-icon-report" />
+                  {t('Report in KPI')}
+                </bem.PopoverMenu__link>
+                <bem.PopoverMenu__link m={'report'}
+                    href={this.makeHref('form-data-report', {assetid: this.state.assetid})}>
+                  <i className="k-icon-report" />
+                  {t('Report in KC')}
+                </bem.PopoverMenu__link>
+                <bem.PopoverMenu__link m={'table'}
+                    href={this.makeHref('form-data-table', {assetid: this.state.assetid})}>
+                  <i className="k-icon-results" />
+                  {t('Table')}
+                </bem.PopoverMenu__link>
+                <bem.PopoverMenu__link m={'gallery'}
+                    href={this.makeHref('form-data-gallery', {assetid: this.state.assetid})}>
+                  <i className="k-icon-photo-gallery" />
+                  {t('Gallery')}
+                </bem.PopoverMenu__link>
+                <bem.PopoverMenu__link m={'downloads'}
+                    href={this.makeHref('form-data-downloads', {assetid: this.state.assetid})}>
+                  <i className="k-icon-download-1" />
+                  {t('Downloads')}
+                </bem.PopoverMenu__link>
+                <bem.PopoverMenu__link m={'map'}
+                    href={this.makeHref('form-data-map', {assetid: this.state.assetid})}>
+                  <i className="k-icon-map-view" />
+                  {t('Map')}
+                </bem.PopoverMenu__link>
+            </ui.MDLPopoverMenu>
+          : null }
+          <bem.FormView__tab 
+            m='settings' 
+            className={this.state.activeRoute == '/forms/:assetid/data/settings' ? 'active' : ''} 
+            href={this.makeHref('form-data-settings', {assetid: this.state.assetid})}>
+              {t('Settings')}
+          </bem.FormView__tab>
+        </bem.FormView__tabs>
+      </bem.FormView__tabbar>
+    );
+  },
   render () {
     if (stores.session && stores.session.currentAccount && stores.session.currentAccount.downtimeDate) {
       var mTime = moment(stores.session.currentAccount.downtimeDate);
       var downtimeDate = `${mTime.fromNow()} (${mTime.calendar()})`;
       var downtimeMessage = [t('Scheduled server maintenance'), downtimeDate];
     }
+
     return (
         <header className="mdl-layout__header">
           <div className="mdl-layout__header-row">
@@ -209,22 +356,39 @@ var MainHeader = React.createClass({
                 {downtimeMessage[1]}
               </div>
             :null}
-            <div className="mdl-layout__header-searchers">
-              { this.state.headerFilters == 'library' && 
-                <ListSearch searchContext={this.state.libraryFiltersContext} />
-              }
-              { this.state.headerFilters == 'library' && 
-                <ListTagFilter searchContext={this.state.libraryFiltersContext} />
-              }
-              { this.state.headerFilters == 'forms' && 
-                <ListSearch searchContext={this.state.formFiltersContext} />
-              }
-              { this.state.headerFilters == 'forms' && 
-                <ListTagFilter searchContext={this.state.formFiltersContext} />
-              }
-            </div>
+            {this.state.headerFilters && 
+              <div className="mdl-layout__header-searchers">
+                { this.state.headerFilters == 'library' && 
+                  <ListSearch searchContext={this.state.libraryFiltersContext} placeholderText={t('Search Library')} />
+                }
+                { this.state.headerFilters == 'library' && 
+                  <ListTagFilter searchContext={this.state.libraryFiltersContext} />
+                }
+                { this.state.headerFilters == 'forms' && 
+                  <ListSearch searchContext={this.state.formFiltersContext} placeholderText={t('Search Projects')} />
+                }
+                { this.state.headerFilters == 'forms' && 
+                  <ListTagFilter searchContext={this.state.formFiltersContext} />
+                }
+              </div>
+            }
+            { this.state.showFormViewHeader && !this.state.headerFilters &&  
+              <bem.FormView__title>
+                <bem.FormView__name>
+                  {this.state.asset.name}
+                </bem.FormView__name>
+                <bem.FormView__description className="is-edge">
+                  {this.state.asset.description}
+                </bem.FormView__description>
+              </bem.FormView__title>
+            }
             {this.renderAccountNavMenu()}
           </div>
+          { this.state.showFormViewHeader && 
+            <bem.FormView__header>
+              {this.renderFormViewHeader()}
+            </bem.FormView__header>
+          }
         </header>
       );
   },

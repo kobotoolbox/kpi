@@ -25,6 +25,7 @@ dj_database_url
 django-braces
 django-debug-toolbar
 django-extensions
+django-jsonbfield
 django-oauth-toolkit
 django-registration-redux
 django-ses
@@ -43,6 +44,7 @@ kombu
 lxml
 oauthlib
 psycopg2
+pymongo
 python_dateutil
 pytz
 raven

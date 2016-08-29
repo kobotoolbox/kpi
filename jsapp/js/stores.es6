@@ -146,8 +146,8 @@ var pageStateStore = Reflux.createStore({
       assetNavIntentOpen: navIsOpen,
       assetNavExpanded: false,
       showFixedDrawer: false,
-      // sidebarIsOpen: false,
-      // sidebarIntentOpen: false,
+      headerHidden: false,
+      drawerHidden: false,
     };
   },
   setState (chz) {
@@ -227,12 +227,21 @@ var pageStateStore = Reflux.createStore({
       });
     }
   },
-  setFormBuilderFocus (tf) {
+  setDrawerHidden (tf) {
     var val = !!tf;
-    if (val !== this.state.formBuilderFocus) {
-      this.state.formBuilderFocus = val;
+    if (val !== this.state.drawerHidden) {
+      this.state.drawerHidden = val;
       this.trigger({
-        formBuilderFocus: val
+        drawerHidden: val
+      });
+    }
+  },
+  setHeaderHidden (tf) {
+    var val = !!tf;
+    if (val !== this.state.headerHidden) {
+      this.state.headerHidden = val;
+      this.trigger({
+        headerHidden: val
       });
     }
   },
@@ -352,6 +361,27 @@ var sessionStore = Reflux.createStore({
         localStorage.removeItem('downtimeNoticeSeen');
       }
     }
+    var nestedArrToChoiceObjs = function (_s) {
+      return {
+        value: _s[0],
+        label: _s[1],
+      };
+    };
+    if (acct.available_sectors) {
+      acct.available_sectors = acct.available_sectors.map(
+        nestedArrToChoiceObjs);
+    }
+    if (acct.available_countries) {
+      acct.available_countries = acct.available_countries.map(
+        nestedArrToChoiceObjs);
+    }
+    if (acct.languages) {
+      acct.languages = acct.languages.map(nestedArrToChoiceObjs);
+    }
+    if (acct.all_languages) {
+      acct.all_languages = acct.all_languages.map(nestedArrToChoiceObjs);
+    }
+
     this.trigger({
       isLoggedIn: true,
       sessionIsLoggedIn: true,

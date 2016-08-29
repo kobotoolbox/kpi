@@ -4,8 +4,24 @@ import json
 import re
 import requests
 
-from fabric.api import cd, env, prefix, run
+from fabric.api import cd, env, prefix, run as run_
 
+
+def run(*args, **kwargs):
+    '''
+    After running the following:
+
+        export NVM_DIR="/home/ubuntu/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
+
+    as was originally in `.bashrc` and is now in `.profile`, the output of
+    `run()` included escape sequence garbage. I could not figure out how NVM
+    was causing this or how to stop it, but passing `pty=False` to every
+    invocation of `run()` seems a viable workaround.
+    '''
+
+    kwargs['pty'] = False
+    return run_(*args, **kwargs)
 
 def kobo_workon(venv_name):
     return prefix('kobo_workon %s' % venv_name)
@@ -88,7 +104,7 @@ def deploy_ref(deployment_name, ref):
             run("npm run build-production")
 
             # KPI and KF share a virtualenv but have distinct settings modules
-            with prefix('DJANGO_SETTINGS_MODULE=kobo_playground.settings'):
+            with prefix('DJANGO_SETTINGS_MODULE=kobo.settings'):
                 run("python manage.py syncdb")
                 run("python manage.py migrate")
                 run("python manage.py collectstatic --noinput")
@@ -164,5 +180,5 @@ def transfer_data(deployment_name):
     setup_env(deployment_name)
     with cd(env.kpi_path):
         with kobo_workon(env.kpi_virtualenv_name):
-            with prefix('DJANGO_SETTINGS_MODULE=kobo_playground.settings'):
+            with prefix('DJANGO_SETTINGS_MODULE=kobo.settings'):
                 run('python manage.py import_survey_drafts_from_dkobo --allusers')

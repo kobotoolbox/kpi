@@ -16,6 +16,7 @@ from rest_framework import exceptions, status
 from rest_framework.authtoken.models import Token
 
 from base_backend import BaseDeploymentBackend
+from .kc_reader.utils import instance_count
 
 
 class KobocatDeploymentException(exceptions.APIException):
@@ -183,11 +184,24 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         return json_response
 
-
     @property
     def timestamp(self):
         try:
             return self.backend_response['date_modified']
+        except KeyError:
+            return None
+
+    @property
+    def xform_id_string(self):
+        return self.asset._deployment_data.get('backend_response', {}).get('id_string')
+
+    @property
+    def mongo_userform_id(self):
+        try:
+            backend_response = self.asset._deployment_data['backend_response']
+            users = backend_response['users']
+            owner = filter(lambda u: u['role'] == 'owner', users)[0]['user']
+            return '{}_{}'.format(owner, self.xform_id_string)
         except KeyError:
             return None
 
@@ -334,6 +348,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             logging.error('Received invalid JSON from Enketo', exc_info=True)
             return {}
         for discard in ('enketo_id', 'code', 'preview_iframe_url'):
-            try: del links[discard]
-            except KeyError: pass
+            try:
+                del links[discard]
+            except KeyError:
+                pass
         return links
+
+    def _submission_count(self):
+        _deployment_data = self.asset._deployment_data
+        id_string = _deployment_data['backend_response']['id_string']
+        # avoid migrations from being created for kc_reader mocked models
+        # there should be a better way to do this, right?
+        return instance_count(xform_id_string=id_string,
+                              user_id=self.asset.owner.pk,
+                              )

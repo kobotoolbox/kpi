@@ -20,12 +20,5 @@
 {% endblock %}
 
 {% block script %}
-
-    {% if use_minified_script %}
-        <script src="{% static "compiled/bundle.min.js" %}"></script>
-    {% else %}
-        <script src="{% static "compiled/bundle.js" %}"></script>
-    {% endif %}
-
 {% endblock %}
 

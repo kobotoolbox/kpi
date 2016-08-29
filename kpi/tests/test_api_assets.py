@@ -48,6 +48,7 @@ class AssetsDetailApiTests(APITestCase):
         url = reverse('asset-list')
         data = {'content': '{}', 'asset_type': 'empty'}
         self.r = self.client.post(url, data, format='json')
+        self.asset = Asset.objects.get(uid=self.r.data.get('uid'))
         self.asset_url = self.r.data['url']
         self.assertEqual(self.r.status_code, status.HTTP_201_CREATED)
         self.asset_uid = self.r.data['uid']
@@ -85,6 +86,41 @@ class AssetsDetailApiTests(APITestCase):
         self.assertEqual(response2.data.get('deployment__active'), True)
         self.assertEqual(response2.data['has_deployment'], True)
 
+    def test_can_clone_asset(self):
+        response = self.client.post(reverse('asset-list'),
+                                    format='json',
+                                    data={
+                                       'clone_from': self.r.data.get('uid'),
+                                       'name': 'clones_name',
+                                    })
+        self.assertEqual(response.status_code, 201)
+        new_asset = Asset.objects.get(uid=response.data.get('uid'))
+        self.assertEqual(new_asset.content, {})
+        self.assertEqual(new_asset.name, 'clones_name')
+
+    def test_can_clone_version_of_asset(self):
+        v1_uid = self.asset.asset_versions.first().uid
+        self.asset.content = {'survey': [{'type': 'note', 'label': 'v2'}]}
+        self.asset.save()
+        self.assertEqual(self.asset.asset_versions.count(), 2)
+        v2_uid = self.asset.asset_versions.first().uid
+        self.assertNotEqual(v1_uid, v2_uid)
+
+        self.asset.content = {'survey': [{'type': 'note', 'label': 'v3'}]}
+        self.asset.save()
+        self.assertEqual(self.asset.asset_versions.count(), 3)
+        response = self.client.post(reverse('asset-list'),
+                                    format='json',
+                                    data={
+                                       'clone_from_version_id': v2_uid,
+                                       'clone_from': self.r.data.get('uid'),
+                                       'name': 'clones_name',
+                                    })
+
+        self.assertEqual(response.status_code, 201)
+        new_asset = Asset.objects.get(uid=response.data.get('uid'))
+        self.assertEqual(new_asset.content['survey'][0]['label'], 'v2')
+
 
 class AssetsXmlExportApiTests(KpiTestCase):
     fixtures = ['test_data']
@@ -118,15 +154,15 @@ class AssetsXmlExportApiTests(KpiTestCase):
         self.assertEqual(title_elts[0].text, asset_name)
 
     def test_xml_export_auto_title(self):
-        content= {'settings': [{'form_id': 'no_title_asset'}],
-                 'survey': [{'label': 'Q1 Label.', 'type': 'decimal'}]}
+        content = {'settings': [{'form_id': 'no_title_asset'}],
+                   'survey': [{'label': 'Q1 Label.', 'type': 'decimal'}]}
         self.login('someuser', 'someuser')
-        asset= self.create_asset('', json.dumps(content), format='json')
-        response= self.client.get(reverse('asset-detail',
-                                          kwargs={'uid':asset.uid, 'format': 'xml'}))
+        asset = self.create_asset('', json.dumps(content), format='json')
+        response = self.client.get(reverse('asset-detail',
+                                           kwargs={'uid': asset.uid, 'format': 'xml'}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        xml= etree.fromstring(response.content)
-        title_elts= xml.xpath('./*[local-name()="head"]/*[local-name()="title"]')
+        xml = etree.fromstring(response.content)
+        title_elts = xml.xpath('./*[local-name()="head"]/*[local-name()="title"]')
         self.assertEqual(len(title_elts), 1)
         self.assertNotEqual(title_elts[0].text, '')
 
@@ -256,3 +292,17 @@ class ObjectRelationshipsTests(APITestCase):
         self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
         req = self.client.get(surv_url)
         self.assertIn('/collections/%s' % (other_coll.uid), req.data['parent'])
+
+
+class AssetsSettingsFieldTest(KpiTestCase):
+    fixtures = ['test_data']
+
+    def test_query_settings(self):
+        asset_title= 'asset_title'
+        content= {'settings': [{'id_string': 'titled_asset'}],
+                 'survey': [{'label': 'Q1 Label.', 'type': 'decimal'}]}
+        self.login('someuser', 'someuser')
+        asset= self.create_asset(None, json.dumps(content), format='json')
+        self.assert_object_in_object_list(asset)
+        # Note: This is not an API method, but an ORM one.
+        self.assertFalse(Asset.objects.filter(settings__id_string='titled_asset'))

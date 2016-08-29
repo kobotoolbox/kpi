@@ -6,6 +6,7 @@ import searches from '../searches';
 import mixins from '../mixins';
 import stores from '../stores';
 import bem from '../bem';
+import mdl from '../libs/rest_framework/material';
 import AssetRow from './assetrow';
 import {
   parsePermissions,
@@ -87,6 +88,27 @@ var SearchCollectionList = React.createClass({
         </bem.AssetListSorts>
       );
   },
+  renderGroupedHeadings () {
+    return (
+        <bem.AssetListSorts className="mdl-grid">
+          <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--5-col mdl-cell--3-col-tablet">
+            {t('Name')}
+          </bem.AssetListSorts__item>
+          <bem.AssetListSorts__item m={'owner'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet">
+            {t('Shared by')}
+          </bem.AssetListSorts__item>
+          <bem.AssetListSorts__item m={'created'} className="mdl-cell mdl-cell--2-col mdl-cell--hide-tablet">
+            {t('Created')}
+          </bem.AssetListSorts__item>
+          <bem.AssetListSorts__item m={'modified'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet">
+            {t('Last Modified')}
+          </bem.AssetListSorts__item>
+          <bem.AssetListSorts__item m={'questions'} className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet">
+            {t('Questions')}
+          </bem.AssetListSorts__item>
+        </bem.AssetListSorts>
+      );
+  },
   renderGroupedResults () {
     return ['Deployed', 'Draft', 'Archived' /*, 'deleted'*/].map(
       (category) => {
@@ -94,12 +116,13 @@ var SearchCollectionList = React.createClass({
         if (this.state.defaultQueryCategorizedResultsLists[category].length > 0) {
           return [
             <bem.AssetList__heading m={[category, categoryVisible ? 'visible' : 'collapsed']} 
-                                    onClick={this.toggleCategory(category)}>
+                                    // onClick={this.toggleCategory(category)}
+                                    >
               {t(category)}
               {` (${this.state.defaultQueryCategorizedResultsLists[category].length})`}
             </bem.AssetList__heading>,
             <bem.AssetItems m={[category, categoryVisible ? 'visible' : 'collapsed']}>
-              {this.renderHeadings()}
+              {this.renderGroupedHeadings()}
               {
                 (()=>{
                   if (this.state.searchResultsDisplayed) {
@@ -170,6 +193,26 @@ var SearchCollectionList = React.createClass({
                     </bem.Loading>
                   );
                 } else if (s.defaultQueryState === 'done') {
+                  if (s.defaultQueryCount < 1) {
+                    if (s.defaultQueryFor.assetType == 'asset_type:survey') {
+                      return (
+                        <bem.Loading>
+                          <bem.Loading__inner>
+                            {t("Let's get started by creating your first project. Click the New button to create a new form.")} 
+                          </bem.Loading__inner>
+                        </bem.Loading>
+                      );
+                    } else {
+                      return (
+                        <bem.Loading>
+                          <bem.Loading__inner>
+                            {t("Let's get started by creating your first library question or question block. Click the New button to create a new question or block.")} 
+                          </bem.Loading__inner>
+                        </bem.Loading>
+                      );
+                    }
+                  }
+
                   if (display == 'grouped') {
                     return this.renderGroupedResults();
                   } else {
@@ -185,6 +228,9 @@ var SearchCollectionList = React.createClass({
         </bem.List>
       );
   },
+  componentDidUpdate() {
+    mdl.upgradeDom();
+  }
 });
 
 export default SearchCollectionList;

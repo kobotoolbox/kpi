@@ -58,7 +58,7 @@
 }
 
 // Focus mode for form builder, disable drawer, header
-.mdl-layout.page-wrapper--formbuilder-focus {
+.mdl-layout.page-wrapper--header-hidden.mdl-layout.page-wrapper--drawer-hidden {
   .mdl-layout__content {
     margin: 0px;
     width: 100%;
@@ -153,6 +153,7 @@
   position: relative;
   color:$cool-gray;
   cursor: pointer;
+  white-space: nowrap;
 
   > i:first-child {
     margin-right: 6px;
@@ -175,13 +176,114 @@
   }
 }
 
-.reactTooltip.place-bottom {
-  background-color: #8a9aa4 !important;
-  &:after {
-    border-bottom: 8px solid #8a9aa4 !important;
+// bordered button style
+.mdl-button.mdl-button--bordered {
+  border:1px solid unquote("rgb(#{$color-primary})");
+  color: unquote("rgb(#{$color-primary})");
+  padding:0px 40px;
+  text-transform: uppercase;
+}
+
+// iframe default styles 
+iframe {
+  border:none;
+}
+
+// modal forms 
+.form-modal__item {
+  margin-bottom: 15px;
+  label {
+    font-weight: 500;
+    font-size:16px;
+    color:$cool-gray;
+    &.long {
+      padding-top: 5px;
+      margin-bottom: 10px;
+    }
+  }
+
+  label:not(.inline) {
+    display: block;
+    padding-bottom: 5px;
+  }
+
+  input[type="text"], 
+  input[type="email"], 
+  input[type="password"], 
+  select, 
+  textarea {
+    width:100%;
+    padding:6px 10px;
+    font-size:15px;
+    border:2px solid $cool-gray;
+  }
+
+  textarea {
+    min-height: 120px;
+  }
+
+  input[type="checkbox"] {
+    font-size: 20px;
+    margin-right: 5px;
+  }
+
+  .Select-control {
+    border:2px solid $cool-gray;
+    border-radius: 0px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+  &--actions {
+    text-align: right;
+    padding-top: 10px;
   }
 }
 
-.reactTooltip.show {
-  opacity: 1 !important;
+// UI MDL Popover
+
+.ui-mdl-popover {
+  position: relative;
+  text-align: left;
+  button {
+    border:none;
+    background-color: transparent;
+    margin-left: 4px;
+    font-weight: 400;
+    color: $cool-gray;
+    cursor: pointer;
+    padding: 4px 6px;
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 22px;
+    &:hover {
+      background-color: transparent;
+      color: unquote("rgb(#{$color-accent})");
+    }
+  }
+  ul {
+    text-align: left;
+    > a {
+      min-width: 200px;
+    }
+  }
 }
+
+// Scrollbar overrides
+
+::-webkit-scrollbar {
+  width: 0.8em;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #DEDEDE;
+  background-color: transparent;
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #DEDEDE;
+  outline: none;
+  border-radius: 8px;
+}
+

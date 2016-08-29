@@ -8,8 +8,6 @@ class BaseDeploymentBackend:
 
     def store_data(self, vals={}):
         self.asset._deployment_data.update(vals)
-        # should we automatically save?
-        self.asset.save()
 
     @property
     def backend(self):
@@ -25,4 +23,16 @@ class BaseDeploymentBackend:
 
     @property
     def version(self):
+        raise NotImplementedError('Use `asset.deployment.version_id`')
+
+    @property
+    def version_id(self):
         return self.asset._deployment_data.get('version', None)
+
+    @property
+    def submission_count(self):
+        return self._submission_count()
+
+    @property
+    def mongo_userform_id(self):
+        return None

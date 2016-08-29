@@ -4,7 +4,7 @@
 @import "./fonts/k-icons/k-icons";
 @import "../../node_modules/font-awesome/scss/font-awesome";
 
-@import "../../node_modules/react-tooltip/dist/react-tooltip";
+// @import "../../node_modules/react-tooltip/dist/react-tooltip";
 @import "./libs/alertify";
 @import "./libs/react-tagsinput";
 @import "./libs/react-select";
@@ -24,6 +24,10 @@ $newformButtonColor: mix(#2196f3, grayscale(#2196f3), 38%);
 
 $newformCircleWidthHeight: 55px;
 
+@import "./components/kobo.bem.ui";
+@import "./components/kobo.modal";
+@import "./components/kobo.tooltips";
+
 @import "./components/kobo.navigation";
 @import "./components/kobo.drawer";
 @import "./components/kobo.drawer.lists";
@@ -31,6 +35,7 @@ $newformCircleWidthHeight: 55px;
 
 @import "./kobo";
 
+@import "./components/kobo.form-builder";
 @import "./components/kobo.collection-header";
 @import "./components/kobo.collection-asset-list";
 @import "./components/kobo.list-view";
@@ -39,10 +44,9 @@ $newformCircleWidthHeight: 55px;
 @import "./components/kobo.lib-nav";
 @import "./components/kobo.lib-list";
 @import "./components/kobo.form-view";
-@import "./components/kobo.form-builder";
-@import "./components/kobo.bem.ui";
-@import "./components/kobo.modal";
+@import "./components/kobo.report-view";
 @import "./components/kobo.asset-type-icon";
+@import "./components/kobo.account-settings";
 @import "./libs/pygments-theme";
 
 // TO BE PHASED OUT

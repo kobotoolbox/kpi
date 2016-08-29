@@ -17,6 +17,15 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 'active': active,
             })
 
+    def redeploy(self, active=None):
+        '''
+        Replace (overwrite) the deployment, keeping the same identifier, and
+        optionally changing whether the deployment is active
+        '''
+        if active is None:
+            active = self.active
+        self.set_active(active)
+
     def set_active(self, active):
         self.store_data({
                 'active': bool(active),
@@ -32,3 +41,17 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             'preview_url': 'https://enke.to/preview/::self',
             # 'preview_iframe_url': 'https://enke.to/preview/i/::self',
         }
+
+    def _submission_count(self):
+        submissions = self.asset._deployment_data.get('submissions', [])
+        return len(submissions)
+
+    def _mock_submission(self, submission):
+        submissions = self.asset._deployment_data.get('submissions', [])
+        submissions.append(submission)
+        self.store_data({
+            'submissions': submissions,
+            })
+
+    def _get_submissions(self):
+        return self.asset._deployment_data.get('submissions', [])
