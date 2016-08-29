@@ -230,6 +230,9 @@ class Command(BaseCommand):
                                 non_content_operation = 'HASH'
                                 backend_response['hash'] = xform.prefixed_hash
                                 asset.save()
+                        # Per #857, force an update if the titles don't match
+                        if xform.title != asset.name:
+                            update_existing = True
 
                         if not update_existing:
                             # No update needed. Skip to the next form
@@ -296,10 +299,13 @@ class Command(BaseCommand):
                             deployment_data['date_modified'])
                         asset.content = asset_content
                         asset.save()
-                        # The first save handles pulling the form title from
-                        # the settings sheet. If this user already has a
-                        # different but identically-named asset, append
-                        # `xform.id_string` in parentheses for clarification
+                        # The first save pulls the form title from the settings
+                        # sheet, but this may not match the KC title, which
+                        # should take precedence per #857
+                        asset.name = xform.title
+                        # If this user already has a different but
+                        # identically-named asset, append `xform.id_string` in
+                        # parentheses for clarification
                         if Asset.objects.exclude(pk=asset.pk).filter(
                                 owner=user, name=asset.name).exists():
                             if asset.name and len(asset.name.strip()):
@@ -307,8 +313,6 @@ class Command(BaseCommand):
                                     asset.name, xform.id_string)
                             else:
                                 asset.name = xform.id_string
-                            # Don't call `asset.save()` since `store_data()`
-                            # handles saving the asset
                         # Copy the deployment-related data
                         kc_deployment = KobocatDeploymentBackend(asset)
                         kc_deployment.store_data({
@@ -319,6 +323,9 @@ class Command(BaseCommand):
                             'backend_response': deployment_data,
                             'version': asset.version_id
                         })
+                        # Save again since `store_data()` no longer saves
+                        # anything to the database
+                        asset.save()
                         if update_existing:
                             print_tabular(
                                 'UPDATE',
