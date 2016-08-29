@@ -52,3 +52,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.store_data({
             'submissions': submissions,
             })
+
+    def _get_submissions(self):
+        return self.asset._deployment_data.get('submissions', [])
