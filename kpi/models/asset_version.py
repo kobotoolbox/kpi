@@ -39,6 +39,13 @@ class AssetVersion(models.Model):
                                     autoname=True,
                                     deprecated_autoname=legacy_names)
 
+    def to_formpack_schema(self):
+        return {
+            'content': self.version_content,
+            'version': self.uid,
+            'version_id_key': '__version__',
+        }
+
     def _content_hash(self):
         # used to determine changes in the content from version to version
         # not saved, only compared with other asset_versions (in tests and
