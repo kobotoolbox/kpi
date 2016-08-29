@@ -300,7 +300,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         '''
         # self.store_data is an alias for
         # self.asset._deployment_data.update(...)
-        # self.asset.save()
         url = self.external_to_internal_url(
             self.backend_response['url'])
         payload = {
