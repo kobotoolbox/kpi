@@ -19,6 +19,7 @@ from reversion import revisions as reversion
 
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.expand_content import expand_content
+from formpack.utils.json_hash import json_hash
 from .object_permission import ObjectPermission, ObjectPermissionMixin
 from ..fields import KpiUidField
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
@@ -322,12 +323,17 @@ class Asset(ObjectPermissionMixin,
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})
         specifieds = self.report_styles.get(SPECIFIC_REPORTS_KEY, {})
+        kuids_to_variable_names = self.report_styles.get('kuid_names', {})
         for row in self.content.get('survey', []):
-            if '$kuid' in row and row['$kuid'] not in specifieds:
+            # if '$kuid' not in row:
+            row['$kuid'] = json_hash(row['name'])
+            kuids_to_variable_names[row['name']] = row['$kuid']
+            if row['$kuid'] not in specifieds:
                 specifieds[row['$kuid']] = {}
         self.report_styles = {
             DEFAULT_REPORTS_KEY: default,
             SPECIFIC_REPORTS_KEY: specifieds,
+            'kuid_names': kuids_to_variable_names,
         }
 
     def _strip_empty_rows(self, arr, required_key='type'):

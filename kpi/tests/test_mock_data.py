@@ -7,6 +7,7 @@ from collections import OrderedDict
 from django.contrib.auth.models import User
 from django.test import TestCase
 
+from kobo.apps.reports import report_data
 from formpack import FormPack
 
 from kpi.models import Asset
@@ -96,6 +97,10 @@ class MockDataReports(TestCase):
         schemas = [v.to_formpack_schema() for v in self.asset.deployed_versions]
         self.fp = FormPack(versions=schemas, id_string=self.asset.uid)
         self.vs = self.fp.versions.keys()
+
+    def test_kobo_apps_reports_report_data(self):
+        values = report_data.data_by_name(self.asset)
+        self.assertEqual(len(values), 17)
 
     def test_has_report_styles(self):
         self.assertTrue(self.asset.report_styles is not None)

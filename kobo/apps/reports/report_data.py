@@ -48,6 +48,33 @@ def _get_row_by_kuid_or_name(asset_content, kuid):
     return {}
 
 
+def data_by_name(asset, field_names=None, submission_stream=[], report_styles=None,
+                 lang=None, fields=None, split_by=None):
+    schemas = [v.to_formpack_schema() for v in asset.deployed_versions]
+    pack = FormPack(versions=schemas, id_string=asset.uid)
+    _all_versions = pack.versions.keys()
+    report = pack.autoreport(versions=_all_versions)
+    if field_names is None:
+        field_names = [field.name for field in
+                       pack.get_fields_for_versions(versions=_all_versions)]
+    if report_styles is None:
+        report_styles = asset.report_styles
+    specified_styles = report_styles.get('specified', {})
+    kuids = report_styles.get('kuid_names', {})
+    return [
+        {
+            'name': field.name,
+            'data': stat,
+            'kuid': kuids[field.name],
+            'style': specified_styles[kuids[field.name]],
+        } for (field, label_or_name, stat
+               ) in report.get_stats(submission_stream,
+                                     fields=field_names,
+                                     lang=lang,
+                                     split_by=split_by)
+    ]
+
+
 def data(asset, kuids, lang=None, fields=None, split_by=None):
     _deployed_versions = asset.asset_versions.filter(deployed=True)
 
@@ -72,6 +99,7 @@ def data(asset, kuids, lang=None, fields=None, split_by=None):
     pack = FormPack(schemas)
     _all_versions = pack.versions.keys()
     report = pack.autoreport(versions=_all_versions)
+
     fields = fields or [field.name for field in pack.get_fields_for_versions(versions=_all_versions)]
     translations = pack.available_translations
     lang = lang or next(iter(translations), None)
