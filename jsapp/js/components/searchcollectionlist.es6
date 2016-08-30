@@ -25,7 +25,7 @@ var SearchCollectionList = React.createClass({
     var selectedCategories = {
       'Draft': true,
       'Deployed': true, 
-      'Archived': false
+      'Archived': true
     }
     return {
       selectedCategories: selectedCategories,

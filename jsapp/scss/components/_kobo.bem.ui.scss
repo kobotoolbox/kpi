@@ -69,32 +69,6 @@
   }
 }
 
-// Sharing form header
-.k-sharing__header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-  .user--pill {
-    display: flex;
-    padding-right: 20px;
-    span.fa-stack {
-      margin-right: 5px;
-    }
-    a.user-profile-link {
-      font-size: 1.1em;
-      font-weight: 600;
-    }
-    .user--pill__name {
-      line-height: 1.2em;
-      padding-top: 4px;
-    }
-  }
-}
-
-.k-sharing__title {
-  width: 100%;
-}
-
 .text-small {
   font-size: 0.85em;
   opacity: .75;
@@ -184,6 +158,12 @@
   text-transform: uppercase;
 }
 
+// bordered button style
+.mdl-button.mdl-button--bordered.mdl-button--gray-border {
+  border:1px solid $cool-gray;
+  color: $cool-gray;
+}
+
 // iframe default styles 
 iframe {
   border:none;
@@ -193,9 +173,9 @@ iframe {
 .form-modal__item {
   margin-bottom: 15px;
   label {
-    font-weight: 500;
-    font-size:16px;
-    color:$cool-gray;
+    font-weight: 400;
+    font-size:14px;
+    color:#4A4A4A;
     &.long {
       padding-top: 5px;
       margin-bottom: 10px;
@@ -215,7 +195,7 @@ iframe {
     width:100%;
     padding:6px 10px;
     font-size:15px;
-    border:2px solid $cool-gray;
+    border:1px solid $cool-gray;
   }
 
   textarea {
@@ -268,6 +248,60 @@ iframe {
     }
   }
 }
+
+// UI Switch toggles -- bem.ToggleSwitch
+.toggle-switch {
+  min-height: 30px;
+}
+.toggle-switch input {
+  opacity: 0;
+  position: absolute;
+  visibility: hidden;
+}
+
+.toggle-switch label {
+  display: inline-block;
+  background: lighten($cool-gray, 20%);
+  width: 4em;
+  height: 1.5em;
+  border-radius: 1em;
+  position: relative;
+  cursor: pointer;
+}
+
+.toggle-switch label .switch {
+  position: absolute;
+  width: 1.3em;
+  height: 1.3em;
+  margin-top: 0.1em;
+  margin-left: 0.1em;
+  border-radius: 1.3em;
+  background: darken($cool-gray, 10%);
+  box-shadow: 5px 0px 28px -9px rgba(0, 0, 0, 0.75);
+  transition: transform .2s ease-in;
+}
+
+.toggle-switch input:checked + label .switch {
+  background: $cool-green;
+  transform: translatex(2.5em);
+  transition: transform .2s ease-in;
+}
+
+.toggle-switch label .text {
+  position: absolute;
+  height: 1.3em;
+  margin-top: 0.2em;
+  margin-left: 0.5em;
+  text-transform: uppercase;
+  left: 1.2em;
+  color:darken($cool-gray, 10%);
+}
+
+.toggle-switch input:checked + label .text {
+  color:$cool-green;
+  left: 0px;
+}
+
 
 // Scrollbar overrides
 

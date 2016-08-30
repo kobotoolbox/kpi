@@ -392,6 +392,12 @@ var LibrarySidebar = React.createClass({
                 <i />
                 {t('add to library')}
               </bem.CollectionNav__link>
+              <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
+                <bem.CollectionNav__button m={['upload', 'upload-block']} className="mdl-menu__item">
+                  <i className='fa fa-icon fa-cloud fa-fw' />
+                  {t('upload')}
+                </bem.CollectionNav__button>
+              </Dropzone>
               <bem.CollectionNav__button key={'new-collection'} m={['new', 'new-collection']} className="mdl-menu__item"
                   onClick={this.createCollection}>
                 <i />

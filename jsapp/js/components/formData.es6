@@ -82,10 +82,11 @@ var FormData = React.createClass({
             <bem.FormView>
               <bem.FormView__wrapper>
                 <bem.FormView__cell m='iframe'>
-                  {this.state.name != undefined && this.state.currentRoute.name == 'form-data-settings' && 
-                    <ProjectSettingsEditor asset={this.state} />
+                  {this.state.name != undefined && this.state.currentRoute.name == 'form-data-settings' ? 
+                    <ProjectSettingsEditor asset={this.state} iframeUrl={iframeUrl} />
+                  : 
+                    <iframe src={iframeUrl} />
                   }
-                  <iframe src={iframeUrl} />
                 </bem.FormView__cell>
               </bem.FormView__wrapper>              
             </bem.FormView>
