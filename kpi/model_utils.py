@@ -2,6 +2,7 @@ import contextlib
 import copy
 import re
 import logging
+from django.apps import apps
 from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User, Permission
@@ -70,7 +71,7 @@ def _load_library_content(structure):
     collection = Collection.objects.create(
         owner=structure['owner'], name=collection_name)
 
-    with haystack.signal_processor.defer():
+    with apps.get_app_config('haystack').signal_processor.defer():
         for block_name, rows in grouped.items():
             if block_name is None:
                 for (row, row_tags) in rows:
