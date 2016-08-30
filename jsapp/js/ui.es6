@@ -126,6 +126,10 @@ ui.Modal = React.createClass({
 });
 
 ui.Modal.Footer = React.createClass({
+  doneClick (evt) {
+    alert('done!');
+    this.props.onClose.call(evt);
+  },
   render () {
     return <div className="modal-footer">{this.props.children}</div>;
   }

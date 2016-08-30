@@ -26,6 +26,7 @@ import {
 
 var ProjectSettings = React.createClass({
   mixins: [
+    Navigation,
     Reflux.ListenerMixin,
   ],
   nameChange (evt) {
@@ -73,6 +74,7 @@ var ProjectSettings = React.createClass({
         sessionLoaded: true,
       });
     });
+
   },
   onSubmit (evt) {
     evt.preventDefault();
@@ -96,9 +98,42 @@ var ProjectSettings = React.createClass({
     var acct = session.currentAccount;
     var sectors = acct.available_sectors;
     var countries = acct.available_countries;
+
+    if (this.state.permissions && this.state.owner) {
+      var perms = this.state.permissions;
+      var owner = this.state.owner;
+
+      var sharedWith = [];
+      perms.forEach(function(perm) {
+        if (perm.user__username != owner && perm.user__username != 'AnonymousUser')
+          sharedWith.push(perm.user__username);
+      });
+    }
+
     return (
-      <bem.FormModal>
-        <bem.FormModal__form onSubmit={this.onSubmit}>
+      <bem.FormModal__form onSubmit={this.onSubmit}>
+        <bem.FormModal__item m='actions'>
+        <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--bordered">
+            {this.props.submitButtonValue}
+          </button>
+        </bem.FormModal__item>
+        <bem.FormModal__item m='wrapper'>
+          <bem.FormModal__item m='sharing'>
+            <a href={this.makeHref('form-sharing', {assetid: this.state.assetid})} className="mdl-button mdl-js-button mdl-button--bordered mdl-button--gray-border">
+              {t('Share')}
+            </a>
+
+            <label>{t('Sharing Permissions')}</label>
+            <label className="long">
+              {t('Allow others to access your project.')}
+            </label>
+            {sharedWith.length > 0 &&
+              t('Shared with ')
+            }
+            {sharedWith.map((user)=> {
+              return (<span className="shared-with">{user}</span>);
+            })}
+          </bem.FormModal__item>
           <bem.FormModal__item>
             <label htmlFor="name">
               {t('Project Name')}
@@ -163,14 +198,9 @@ var ProjectSettings = React.createClass({
               {t('Share the sector and country with developers')}
             </label>
           </bem.FormModal__item>
-
-          <bem.FormModal__item m='actions'>
-          <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--bordered">
-              {this.props.submitButtonValue}
-            </button>
-          </bem.FormModal__item>
-        </bem.FormModal__form>
-      </bem.FormModal>
+          <iframe src={this.props.iframeUrl} />
+        </bem.FormModal__item>
+      </bem.FormModal__form>
     );
   },
 });
@@ -229,13 +259,19 @@ export var ProjectSettingsEditor = React.createClass({
     );
   },
   render () {
-    let initialData = {name: this.props.asset.name};
+    let initialData = {
+      name: this.props.asset.name,
+      permissions: this.props.asset.permissions,
+      owner: this.props.asset.owner__username,
+      assetid: this.props.asset.uid
+    };
     Object.assign(initialData, this.props.asset.settings);
     return (
       <ProjectSettings
         onSubmit={this.updateAsset}
-        submitButtonValue={t('Update project')}
+        submitButtonValue={t('Save Changes')}
         initialData={initialData}
+        iframeUrl={this.props.iframeUrl}
       />
     );
   },
