@@ -272,18 +272,19 @@ export var ProjectDownloads = React.createClass({
   handleSubmit (e) {
     e.preventDefault();
     if (!this.state.type.endsWith('_legacy')) {
-        let url = this.props.asset.deployment__data_download_links[
-          this.state.type
-        ];
-        if (this.state.type == 'xls' || this.state.type == 'csv') {
-          let params = $.param({
-            lang: this.state.lang,
-            hierarchy_in_labels: this.state.hierInLabels,
-            group_sep: this.state.groupSep,
-          });
-          redirectTo(`${url}?${params}`);
-        }
+      let url = this.props.asset.deployment__data_download_links[
+        this.state.type
+      ];
+      if (this.state.type == 'xls' || this.state.type == 'csv') {
+        let params = $.param({
+          lang: this.state.lang,
+          hierarchy_in_labels: this.state.hierInLabels,
+          group_sep: this.state.groupSep,
+        });
+        redirectTo(`${url}?${params}`);
+      } else {
         redirectTo(url);
+      }
     }
   },
   render () {
