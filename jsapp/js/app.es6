@@ -1228,13 +1228,14 @@ var AssetSharing = React.createClass({
               </button>
             </bem.FormModal__item>
           </form>
-
-          <PublicPermDiv 
+          {kind != 'collection' && !isLibrary(this.context.router) && 
+            <PublicPermDiv 
               uid={uid}
               publicPerm={this.state.public_permission}
               kind={kind}
               objectUrl={objectUrl}
-          />
+            />
+          }
         </ui.Modal.Body>
         <ui.Modal.Footer>
           <button onClick={this.routeBack}>{t('Done')}</button>
