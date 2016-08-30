@@ -48,8 +48,8 @@ def _get_row_by_kuid_or_name(asset_content, kuid):
     return {}
 
 
-def data_by_name(asset, field_names=None, submission_stream=[], report_styles=None,
-                 lang=None, fields=None, split_by=None):
+def data_by_name(asset, field_names=None, submission_stream=[],
+                 report_styles=None, lang=None, fields=None, split_by=None):
     schemas = [v.to_formpack_schema() for v in asset.deployed_versions]
     pack = FormPack(versions=schemas, id_string=asset.uid)
     _all_versions = pack.versions.keys()
