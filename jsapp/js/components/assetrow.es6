@@ -6,6 +6,7 @@ import bem from '../bem';
 import ui from '../ui';
 import stores from '../stores';
 import mixins from '../mixins';
+import {dataInterface} from '../dataInterface';
 import {
   formatTime,
   anonUsername,
@@ -50,6 +51,33 @@ var AssetRow = React.createClass({
         displayTags: tagsToggle,
       });
   },
+  componentDidMount () {
+    this.prepParentCollection();
+  },
+  componentWillReceiveProps () {
+  },
+  prepParentCollection () {
+    this.setState({
+      parent: this.props.parent,
+    });
+  },
+  moveToCollection (evt) {
+    var uid = this.props.uid;
+    var collid = '/collections/' + evt.currentTarget.dataset.collid + '/';
+    var parent = evt.currentTarget.dataset.parent;
+
+    if (parent == 'true') {
+      collid = null;
+    } 
+
+    dataInterface.patchAsset(uid, {
+      parent: collid,
+    }).done(()=>{
+      this.setState({
+        parent: collid,
+      });
+    });
+  },
   preventDefault (evt) {
     evt.preventDefault();
   },
@@ -60,17 +88,33 @@ var AssetRow = React.createClass({
     var _rc = this.props.summary && this.props.summary.row_count;
     var baseName = isLibrary(this.context.router) ? 'library-' : '';
     var isCollection = this.props.kind === 'collection',
-        hrefTo = isCollection ? 'collection-page' : `${baseName}form-landing`,
+        hrefTo = isCollection ? 'collection-page' : `form-landing`,
         hrefKey = isCollection ? 'uid' : 'assetid',
         hrefParams = {},
-        tags = this.props.tags || [];
+        tags = this.props.tags || [],
+        ownedCollections = [];
     if (isCollection) {
       _rc = this.props.assets_count + this.props.children_count;
     }
     var isDeployable = !isCollection && this.props.asset_type && this.props.asset_type === 'survey';
     hrefParams[hrefKey] = this.props.uid;
- 
-    // check-round icon temporarily removed from selected asset
+    
+    if (isLibrary(this.context.router)) {
+      hrefTo = `${baseName}form-edit`;
+      parent = this.state.parent || undefined;
+      ownedCollections = this.props.ownedCollections.map(function(c){
+        var p = false;
+        if (parent != undefined && parent.indexOf(c.uid) !== -1) {
+          p = true;
+        }
+        return {
+          value: c.uid,
+          label: c.name || c.uid,
+          hasParent: p
+        };
+      });
+    }
+
     return (
         <bem.AssetRow m={{
                             // 'selected': this.props.isSelected,
@@ -87,7 +131,6 @@ var AssetRow = React.createClass({
               m={'asset-details'}
               key={'asset-details'}
               onClick={this.clickAssetButton}
-              data-action='view'
               data-asset-type={this.props.kind}
               >
             <bem.AssetRow__cell m={'title'} 
@@ -165,9 +208,12 @@ var AssetRow = React.createClass({
  
           <bem.AssetRow__buttons onClick={this.clickAssetButton}>
             <bem.AssetRow__actionIcon
-                m='edit' key='edit'
-                data-action='edit' data-tip={t('Edit')}
-                data-asset-type={this.props.kind} data-disabled={false}
+                m='edit' 
+                key='edit'
+                data-action='edit' 
+                data-tip={t('Edit')}
+                data-asset-type={this.props.kind} 
+                data-disabled={false}
                 >
               <i className='k-icon-edit' />
             </bem.AssetRow__actionIcon>
@@ -179,9 +225,21 @@ var AssetRow = React.createClass({
                 >
               <i className='k-icon-tag' />
             </bem.AssetRow__actionIcon>
+
+            <bem.AssetRow__actionIcon
+                m='sharing'
+                key='sharing'
+                data-action='sharing'
+                data-asset-type={this.props.kind} 
+                data-tip= {t('Share')}
+                data-disabled={false}
+                >
+              <i className='k-icon-share' />
+            </bem.AssetRow__actionIcon>
+
             <bem.AssetRow__actionIcon
                 m='clone' key='clone'
-                data-action='clone' data-tip={t('Clone this project')}
+                data-action='clone' data-tip={t('Clone')}
                 data-asset-type={this.props.kind} data-disabled={false}
                 >
               <i className='k-icon-clone' />
@@ -239,13 +297,35 @@ var AssetRow = React.createClass({
                 })
               }
               { this.props.asset_type && this.props.asset_type != 'survey' &&
-                <bem.AssetRow__actionIcon
-                    m='delete' key='delete'
-                    data-action='delete' data-tip={t('Delete')}
-                    data-asset-type={this.props.kind} data-disabled={false}
-                    >
-                  <i className='k-icon-trash' />
-                </bem.AssetRow__actionIcon>
+                <ui.MDLPopoverMenu id={"more-" + this.props.uid}>
+                  <bem.PopoverMenu__link
+                        m={'delete'}
+                        data-action={'delete'}
+                        data-asset-type={this.props.kind}
+                      >
+                    <i className="k-icon-trash" />
+                    {t('Delete')}
+                  </bem.PopoverMenu__link>
+                  <bem.PopoverMenu__heading>
+                    {t('Move to')}
+                  </bem.PopoverMenu__heading>
+                  {ownedCollections.map((col)=>{
+                    return (
+                        <bem.PopoverMenu__item
+                         onClick={this.moveToCollection}
+                         data-collid={col.value} 
+                         data-parent={col.hasParent ? 'true' : 'false'} 
+                         key={col.value}
+                         m='move-coll-item'>
+                            <i className="k-icon-folder" />
+                            {col.label}
+                            {col.hasParent && 
+                              <i className="fa fa-check" />
+                            }
+                        </bem.PopoverMenu__item>
+                      );
+                  })}
+                </ui.MDLPopoverMenu>
               }
           </bem.AssetRow__buttons>
         </bem.AssetRow>

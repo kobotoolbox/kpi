@@ -5,12 +5,14 @@ import {Navigation} from 'react-router';
 import searches from '../searches';
 import mixins from '../mixins';
 import stores from '../stores';
+import {dataInterface} from '../dataInterface';
 import bem from '../bem';
 import mdl from '../libs/rest_framework/material';
 import AssetRow from './assetrow';
 import {
   parsePermissions,
   t,
+  isLibrary,
 } from '../utils';
 
 var SearchCollectionList = React.createClass({
@@ -29,6 +31,7 @@ var SearchCollectionList = React.createClass({
     }
     return {
       selectedCategories: selectedCategories,
+      ownedCollections: []
     };
   },
   getDefaultProps () {
@@ -39,23 +42,40 @@ var SearchCollectionList = React.createClass({
   },
   componentDidMount () {
     this.listenTo(this.searchStore, this.searchChanged);
+    this.queryCollections();
   },
   componentWillReceiveProps () {
     this.listenTo(this.searchStore, this.searchChanged);
+    this.queryCollections();
   },
   searchChanged (searchStoreState) {
     this.setState(searchStoreState);
   },
+  queryCollections () {
+    if (isLibrary(this.context.router)) {
+      dataInterface.listCollections().then((collections)=>{
+        this.setState({
+          ownedCollections: collections.results.filter((value) => {
+            return value.access_type === 'owned';
+          })
+        });
+      });
+    }
+  },
+
   renderAssetRow (resource) {
     var currentUsername = stores.session.currentAccount && stores.session.currentAccount.username;
     var perm = parsePermissions(resource.owner, resource.permissions);
     var isSelected = stores.selectedAsset.uid === resource.uid;
+    var ownedCollections = this.state.ownedCollections;
+
     return (
         <this.props.assetRowClass key={resource.uid}
                       currentUsername={currentUsername}
                       perm={perm}
                       onActionButtonClick={this.onActionButtonClick}
                       isSelected={isSelected}
+                      ownedCollections={ownedCollections}
                       deleting={resource.deleting}
                       {...resource}
                         />
