@@ -173,9 +173,9 @@ iframe {
 .form-modal__item {
   margin-bottom: 15px;
   label {
-    font-weight: 500;
-    font-size:16px;
-    color:$cool-gray;
+    font-weight: 400;
+    font-size:14px;
+    color:#4A4A4A;
     &.long {
       padding-top: 5px;
       margin-bottom: 10px;
@@ -195,7 +195,7 @@ iframe {
     width:100%;
     padding:6px 10px;
     font-size:15px;
-    border:2px solid $cool-gray;
+    border:1px solid $cool-gray;
   }
 
   textarea {
@@ -250,6 +250,9 @@ iframe {
 }
 
 // UI Switch toggles -- bem.ToggleSwitch
+.toggle-switch {
+  min-height: 30px;
+}
 .toggle-switch input {
   opacity: 0;
   position: absolute;

@@ -792,19 +792,18 @@ var PublicPermDiv = React.createClass({
 
     return (
       <bem.FormModal__item m='perms-link'>
+        <bem.ToggleSwitch onClick={this.togglePerms} >
+          <input type="checkbox" checked={this.props.publicPerm ? true : false} onChange={this.togglePerms} />
+          <label>
+            <span className="switch" />
+            <span className="text">
+              {this.props.publicPerm ? 'On' : 'Off'}
+            </span>
+            </label>
+        </bem.ToggleSwitch>
         <label>
-          {t('Link Sharing')}
+          {t('Link to share')}
         </label>
-          <span>{this.props.publicPerm ? t('Anyone with link can view') : t('Only specific people can access')} </span>
-          <bem.ToggleSwitch onClick={this.togglePerms} >
-            <input type="checkbox" checked={this.props.publicPerm ? true : false} onChange={this.togglePerms} />
-            <label>
-              <span className="switch" />
-              <span className="text">
-                {this.props.publicPerm ? 'On' : 'Off'}
-              </span>
-              </label>
-          </bem.ToggleSwitch>
         { this.props.publicPerm && 
           <input type="text" value={url} readOnly />
         }
@@ -1196,20 +1195,26 @@ var AssetSharing = React.createClass({
       <ui.Modal open onClose={this.routeBack} title={t('Sharing Permissions')}>
         <ui.Modal.Body className="modal-sharing">
 
-          <bem.UserRow>
-            <bem.UserRow__avatar>
-              <img src={defaultGravatarImage} />
-            </bem.UserRow__avatar>
-            <bem.UserRow__name>
-              <div>{this.state.asset.owner__username}</div>
-              <bem.UserRow__email>email@email.com</bem.UserRow__email>
-            </bem.UserRow__name>
-            <bem.UserRow__role>{t('is owner')}</bem.UserRow__role>
-          </bem.UserRow>
+          <bem.FormModal__item>
+            <label>
+              {t('Who has access')}
+            </label>
+            <bem.UserRow>
+              <bem.UserRow__avatar>
+                <img src={defaultGravatarImage} />
+              </bem.UserRow__avatar>
+              <bem.UserRow__name>
+                <div>{this.state.asset.owner__username}</div>
+                <bem.UserRow__email>email@email.com</bem.UserRow__email>
+              </bem.UserRow__name>
+              <bem.UserRow__role>{t('is owner')}</bem.UserRow__role>
+            </bem.UserRow>
 
-          {perms.map((perm)=> {
-            return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
-          })}
+            {perms.map((perm)=> {
+              return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
+            })}
+
+          </bem.FormModal__item>
 
           <form onSubmit={this.addInitialUserPermission} className="sharing-form__user">
             
