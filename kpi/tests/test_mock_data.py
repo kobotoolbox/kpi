@@ -99,17 +99,32 @@ class MockDataReports(TestCase):
         schemas = [v.to_formpack_schema() for v in self.asset.deployed_versions]
         self.fp = FormPack(versions=schemas, id_string=self.asset.uid)
         self.vs = self.fp.versions.keys()
+        self.submissions = self.asset.deployment._get_submissions()
 
     def test_kobo_apps_reports_report_data(self):
-        submissions = self.asset.deployment._get_submissions()
         values = report_data.data_by_name(self.asset,
-                                          submission_stream=submissions)
+                                          submission_stream=self.submissions)
         expected_names = ["Select_one", "Select_Many", "Text", "Number",
                           "Decimal", "Date", "Time", "Date_and_time", "GPS",
                           "Photo", "Audio", "Video", "Barcode", "Acknowledge",
                           "calculation", "start", "end"]
         self.assertEqual([v['name'] for v in values], expected_names)
         self.assertEqual(len(values), 17)
+
+    def test_kobo_apps_reports_report_data_subset(self):
+        values = report_data.data_by_name(self.asset,
+                                          field_names=('Select_one',),
+                                          submission_stream=self.submissions)
+        self.assertEqual(values[0]['data']['frequency'][0][0],
+                         u'First option')
+
+    def test_kobo_apps_reports_report_data_translation(self):
+        values = report_data.data_by_name(self.asset,
+                                          lang='Arabic',
+                                          field_names=('Select_one',),
+                                          submission_stream=self.submissions)
+        self.assertEqual(values[0]['data']['frequency'][0][0],
+                         u'\u0627\u0644\u062e\u064a\u0627\u0631 \u0627\u0644\u0623\u0648\u0644')
 
     def test_has_report_styles(self):
         self.assertTrue(self.asset.report_styles is not None)
