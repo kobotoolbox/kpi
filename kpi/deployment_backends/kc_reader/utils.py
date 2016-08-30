@@ -39,7 +39,9 @@ def get_kc_profile_data(user_id):
         else:
             kc_name = field
         value = getattr(profile, kc_name)
-        if not isinstance(value, basestring):
+        # When a field contains JSON (e.g. `metadata`), it gets loaded as a
+        # `dict`. Convert it back to a string representation
+        if isinstance(value, dict):
             value = json.dumps(value)
         result[field] = value
     return result
