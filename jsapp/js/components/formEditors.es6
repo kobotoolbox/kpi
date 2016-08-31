@@ -291,10 +291,10 @@ export var ProjectDownloads = React.createClass({
     let translations = this.props.asset.content.translations;
     return (
       <bem.FormView>
-        <bem.FormView__wrapper>
-          <bem.FormView__form onSubmit={this.handleSubmit}>
+        <bem.FormView__cell>
+          <bem.FormModal__form onSubmit={this.handleSubmit}>
             {[
-              <bem.FormView__cell>
+              <bem.FormModal__item>
                 <label htmlFor="type">{t('Select export type')}</label>
                 <select name="type" value={this.state.type}
                     onChange={this.typeChange}>
@@ -307,9 +307,9 @@ export var ProjectDownloads = React.createClass({
                   <option value="analyser_legacy">Excel Analyser</option>
                   <option value="spss_labels">SPSS Labels</option>
                 </select>
-              </bem.FormView__cell>
+              </bem.FormModal__item>
             , this.state.type == 'xls' || this.state.type == 'csv' ? [
-                <bem.FormView__cell>
+                <bem.FormModal__item>
                   <label htmlFor="lang">{t('Value and header format')}</label>
                   <select name="lang" value={this.state.lang}
                       onChange={this.langChange}>
@@ -323,8 +323,8 @@ export var ProjectDownloads = React.createClass({
                       })
                     }
                   </select>
-                </bem.FormView__cell>,
-                <bem.FormView__cell>
+                </bem.FormModal__item>,
+                <bem.FormModal__item>
                   <label htmlFor="hierarchy_in_labels">
                     {t('Include groups in headers')}
                   </label>
@@ -332,32 +332,34 @@ export var ProjectDownloads = React.createClass({
                     value={this.state.hierInLabels}
                     onChange={this.hierInLabelsChange}
                   />
-                </bem.FormView__cell>,
+                </bem.FormModal__item>,
                 this.state.hierInLabels ?
-                  <bem.FormView__cell>
+                  <bem.FormModal__item>
                     <label htmlFor="group_sep">{t('Group separator')}</label>
                     <input type="text" name="group_sep"
                       value={this.state.groupSep}
                       onChange={this.groupSepChange}
                     />
-                  </bem.FormView__cell>
+                  </bem.FormModal__item>
                 : null
               ] : null
             , this.state.type.endsWith('_legacy') ?
-              <bem.FormView__cell m='iframe'>
+              <bem.FormModal__item m='iframe'>
                 <iframe src={
                     this.props.asset.deployment__data_download_links[
                       this.state.type]
                 }>
                 </iframe>
-              </bem.FormView__cell>
+              </bem.FormModal__item>
             :
-              <bem.FormView__cell>
-                <input type="submit" value={t('Download')} />
-              </bem.FormView__cell>
+              <bem.FormModal__item>
+                <input type="submit" 
+                       value={t('Download')} 
+                       className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"/>
+              </bem.FormModal__item>
             ]}
-          </bem.FormView__form>
-        </bem.FormView__wrapper>
+          </bem.FormModal__form>
+        </bem.FormView__cell>
       </bem.FormView>
     );
   },
