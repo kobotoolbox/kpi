@@ -54,9 +54,6 @@ bem.LibNav__count = bem.LibNav.__('count');
 bem.LibNav__expandedToggle = bem.LibNav.__('expandedToggle');
 bem.LibNav__logo = bem.LibNav.__('logo');
 
-bem.LibNav__tags = bem.LibNav.__('tags');
-bem.LibNav__tag = bem.LibNav.__('tag', '<span>');
-
 bem.LibList = BEM('lib-list', '<ul>');
 bem.LibList__item = bem.LibList.__('item', '<li>');
 bem.LibList__tags = bem.LibList.__('tags');
@@ -224,6 +221,7 @@ bem.uiPanel__body = bem.uiPanel.__('body');
 bem.Drawer = bem('drawer');
 
 bem.tagSelect = BEM('tag-select');
+bem.collectionFilter = BEM('collection-filter');
 
 bem.create = BEM;
 
