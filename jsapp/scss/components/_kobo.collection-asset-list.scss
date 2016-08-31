@@ -19,7 +19,7 @@
       top: 0px;
       position: absolute;
     }
-    &.asset-list-sorts__item--questions {
+    &.asset-list-sorts__item--questions, &.asset-list-sorts__item--submissions {
       text-align: right;
       &:after {
         display: none;
