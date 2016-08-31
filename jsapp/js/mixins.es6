@@ -25,7 +25,10 @@ import {
   notify,
   isLibrary,
 } from './utils';
-import {ProjectSettingsEditor} from './components/formEditors';
+import {
+  ProjectSettingsEditor,
+  ProjectDownloads
+} from './components/formEditors';
  
 var AssetTypeIcon = bem.create('asset-type-icon');
  

@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import React from 'react/addons';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
@@ -22,6 +23,7 @@ import actions from '../actions';
 import {dataInterface} from '../dataInterface';
 import {
   t,
+  redirectTo,
 } from '../utils';
 
 var ProjectSettings = React.createClass({
@@ -273,6 +275,128 @@ export var ProjectSettingsEditor = React.createClass({
         initialData={initialData}
         iframeUrl={this.props.iframeUrl}
       />
+    );
+  },
+});
+
+export var ProjectDownloads = React.createClass({
+  getInitialState () {
+    return {
+      type: 'xls',
+      lang: '_default',
+      hierInLabels: false,
+      groupSep: '/',
+    };
+  },
+  handleChange (e, attr) {
+    if (e.target) {
+      if (e.target.type == 'checkbox') {
+        var val = e.target.checked;
+      } else {
+        var val = e.target.value;
+      }
+    } else {
+      // react-select just passes a string
+      var val = e;
+    }
+    this.setState({[attr]: val});
+  },
+  typeChange (e) {this.handleChange(e, 'type');},
+  langChange (e) {this.handleChange(e, 'lang');},
+  hierInLabelsChange (e) {this.handleChange(e, 'hierInLabels');},
+  groupSepChange (e) {this.handleChange(e, 'groupSep');},
+  handleSubmit (e) {
+    e.preventDefault();
+    if (!this.state.type.endsWith('_legacy')) {
+      let url = this.props.asset.deployment__data_download_links[
+        this.state.type
+      ];
+      if (this.state.type == 'xls' || this.state.type == 'csv') {
+        let params = $.param({
+          lang: this.state.lang,
+          hierarchy_in_labels: this.state.hierInLabels,
+          group_sep: this.state.groupSep,
+        });
+        redirectTo(`${url}?${params}`);
+      } else {
+        redirectTo(url);
+      }
+    }
+  },
+  render () {
+    let translations = this.props.asset.content.translations;
+    return (
+      <bem.FormView>
+        <bem.FormView__cell>
+          <bem.FormModal__form onSubmit={this.handleSubmit}>
+            {[
+              <bem.FormModal__item>
+                <label htmlFor="type">{t('Select export type')}</label>
+                <select name="type" value={this.state.type}
+                    onChange={this.typeChange}>
+                  <option value="xls">XLS</option>
+                  <option value="xls_legacy">XLS (legacy)</option>
+                  <option value="csv">CSV</option>
+                  <option value="csv_legacy">CSV (legacy)</option>
+                  <option value="zip_legacy">Media Attachments (ZIP)</option>
+                  <option value="kml_legacy">GPS coordinates (KML)</option>
+                  <option value="analyser_legacy">Excel Analyser</option>
+                  <option value="spss_labels">SPSS Labels</option>
+                </select>
+              </bem.FormModal__item>
+            , this.state.type == 'xls' || this.state.type == 'csv' ? [
+                <bem.FormModal__item>
+                  <label htmlFor="lang">{t('Value and header format')}</label>
+                  <select name="lang" value={this.state.lang}
+                      onChange={this.langChange}>
+                    <option value="xml">XML values and headers</option>
+                    <option value="_default">Labels</option>
+                    {
+                      translations && translations.map((t) => {
+                        if (t) {
+                          return <option value={t}>{t}</option>;
+                        }
+                      })
+                    }
+                  </select>
+                </bem.FormModal__item>,
+                <bem.FormModal__item>
+                  <label htmlFor="hierarchy_in_labels">
+                    {t('Include groups in headers')}
+                  </label>
+                  <input type="checkbox" name="hierarchy_in_labels"
+                    value={this.state.hierInLabels}
+                    onChange={this.hierInLabelsChange}
+                  />
+                </bem.FormModal__item>,
+                this.state.hierInLabels ?
+                  <bem.FormModal__item>
+                    <label htmlFor="group_sep">{t('Group separator')}</label>
+                    <input type="text" name="group_sep"
+                      value={this.state.groupSep}
+                      onChange={this.groupSepChange}
+                    />
+                  </bem.FormModal__item>
+                : null
+              ] : null
+            , this.state.type.endsWith('_legacy') ?
+              <bem.FormModal__item m='iframe'>
+                <iframe src={
+                    this.props.asset.deployment__data_download_links[
+                      this.state.type]
+                }>
+                </iframe>
+              </bem.FormModal__item>
+            :
+              <bem.FormModal__item>
+                <input type="submit" 
+                       value={t('Download')} 
+                       className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"/>
+              </bem.FormModal__item>
+            ]}
+          </bem.FormModal__form>
+        </bem.FormView__cell>
+      </bem.FormView>
     );
   },
 });
