@@ -324,12 +324,16 @@ class Asset(ObjectPermissionMixin,
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})
         specifieds = self.report_styles.get(SPECIFIC_REPORTS_KEY, {})
         kuids_to_variable_names = self.report_styles.get('kuid_names', {})
-        for row in self.content.get('survey', []):
-            # if '$kuid' not in row:
-            row['$kuid'] = json_hash(row['name'])
-            kuids_to_variable_names[row['name']] = row['$kuid']
-            if row['$kuid'] not in specifieds:
-                specifieds[row['$kuid']] = {}
+        for (index, row) in enumerate(self.content.get('survey', [])):
+            if '$kuid' not in row:
+                if 'name' in row:
+                    row['$kuid'] = json_hash([self.uid, row['name']])
+                else:
+                    row['$kuid'] = json_hash([self.uid, index, row])
+            _identifier = row.get('name', row['$kuid'])
+            kuids_to_variable_names[_identifier] = row['$kuid']
+            if _identifier not in specifieds:
+                specifieds[_identifier] = {}
         self.report_styles = {
             DEFAULT_REPORTS_KEY: default,
             SPECIFIC_REPORTS_KEY: specifieds,

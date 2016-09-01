@@ -249,20 +249,22 @@ var Reports = React.createClass({
     // });
     stores.allAssets.whenLoaded(uid, (asset)=>{
       let rowsByKuid = {};
-      let kuids = [];
+      let rowsByIdentifier = {};
+      let names = [];
       let reportStyles = asset.report_styles;
       let defaultReportStyle = reportStyles.default;
       let specifiedReportStyles = reportStyles.specified;
 
       if (asset.content.survey != undefined) {
         asset.content.survey.forEach(function(r){
-          let $kuid = r.$kuid,
-            style = specifiedReportStyles[$kuid];
+          let $identifier = r.name || r.$kuid,
+            style = specifiedReportStyles[$identifier];
           r._reportStyle = style;
           rowsByKuid[r.$kuid] = r;
+          rowsByIdentifier[$identifier] = r;
         });
 
-        dataInterface.getReportData({uid: uid, kuids: kuids}).done((data)=>{
+        dataInterface.getReportData({uid: uid, identifiers: identifiers}).done((data)=>{
 
           var dataWithResponses = [];
           data.list.forEach(function(row){
@@ -274,6 +276,7 @@ var Reports = React.createClass({
           this.setState({
             asset: asset,
             rowsByKuid: rowsByKuid,
+            rowsByIdentifier: rowsByIdentifier,
             reportStyles: asset.report_styles,
             reportData: dataWithResponses,
           });

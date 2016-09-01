@@ -102,7 +102,7 @@ class MockDataReports(TestCase):
         self.submissions = self.asset.deployment._get_submissions()
 
     def test_kobo_apps_reports_report_data(self):
-        values = report_data.data_by_name(self.asset,
+        values = report_data.data_by_identifiers(self.asset,
                                           submission_stream=self.submissions)
         expected_names = ["Select_one", "Select_Many", "Text", "Number",
                           "Decimal", "Date", "Time", "Date_and_time", "GPS",
@@ -112,14 +112,14 @@ class MockDataReports(TestCase):
         self.assertEqual(len(values), 17)
 
     def test_kobo_apps_reports_report_data_subset(self):
-        values = report_data.data_by_name(self.asset,
+        values = report_data.data_by_identifiers(self.asset,
                                           field_names=('Select_one',),
                                           submission_stream=self.submissions)
         self.assertEqual(values[0]['data']['frequency'][0][0],
                          u'First option')
 
     def test_kobo_apps_reports_report_data_translation(self):
-        values = report_data.data_by_name(self.asset,
+        values = report_data.data_by_identifiers(self.asset,
                                           lang='Arabic',
                                           field_names=('Select_one',),
                                           submission_stream=self.submissions)

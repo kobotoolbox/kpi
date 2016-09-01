@@ -112,12 +112,12 @@ var dataInterface;
       });
     },
     getReportData (data) {
-      let kuidString;
-      if (data.kuids) {
-        kuidString = `?kuids=${data.kuids.join(',')}`
+      let identifierString;
+      if (data.identifiers) {
+        identifierString = `?names=${data.identifiers.join(',')}`
       }
       return $ajax({
-        url: `${rootUrl}/reports/${data.uid}/${kuidString}`,
+        url: `${rootUrl}/reports/${data.uid}/${identifierString}`,
       });
     },
     createTemporaryAssetSnapshot ({source}) {
