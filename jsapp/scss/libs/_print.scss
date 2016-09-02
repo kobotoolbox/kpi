@@ -11,6 +11,11 @@
   .k-drawer + .mdl-layout__content {
     margin-left: 0px;
   }
+  .mdl-layout__content {
+    position: static;
+    height: inherit !important;
+    display: block !important;
+  }
   .form-view__reportButtons {
     display: none;
   }
@@ -18,11 +23,24 @@
     padding-left: 0px;
     padding-right: 0px;
   }
-  // .report-view__item {
-  //   page-break-before: always;
-  // }
-  // .report-view__itemContent table,
-  // .report-view__itemContent tbody {
-  //   page-break-inside: avoid;
-  // }
+  table tbody,
+  table {
+    page-break-inside: avoid;
+  }
+  a[href]:after,
+  abbr[title]:after {
+    content: "";
+  }
+  .form-view__row {
+    display: block;
+  }
+  .form-view__cell {
+    width: auto;
+  }
+}
+
+@media only screen {
+  .print-only {
+    display: none;
+  }
 }

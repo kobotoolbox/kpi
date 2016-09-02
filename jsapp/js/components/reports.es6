@@ -518,6 +518,9 @@ var Reports = React.createClass({
                 : null
               }
               <bem.ReportView__wrap>
+                <bem.PrintOnly>
+                  <h3>{asset.name}</h3>
+                </bem.PrintOnly>
                 <bem.ReportView__warning>
                   <h4>{t('Warning')}</h4>
                   <p>{t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. ')}</p>

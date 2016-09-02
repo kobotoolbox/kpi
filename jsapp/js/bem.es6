@@ -226,6 +226,8 @@ bem.Drawer = bem('drawer');
 
 bem.tagSelect = BEM('tag-select');
 
+bem.PrintOnly = BEM('print-only');
+
 bem.create = BEM;
 
 export default bem;
