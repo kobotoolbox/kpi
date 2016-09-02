@@ -1,0 +1,28 @@
+@media only print {
+  body {
+    background: transparent !important;
+  }
+  .mdl-layout__header {
+    display: none;
+  }
+  .k-drawer {
+    display: none;
+  }
+  .k-drawer + .mdl-layout__content {
+    margin-left: 0px;
+  }
+  .form-view__reportButtons {
+    display: none;
+  }
+  .report-view__chart {
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+  // .report-view__item {
+  //   page-break-before: always;
+  // }
+  // .report-view__itemContent table,
+  // .report-view__itemContent tbody {
+  //   page-break-inside: avoid;
+  // }
+}

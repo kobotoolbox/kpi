@@ -24,16 +24,15 @@ $newformButtonColor: mix(#2196f3, grayscale(#2196f3), 38%);
 
 $newformCircleWidthHeight: 55px;
 
-@import "./components/kobo.bem.ui";
-@import "./components/kobo.modal";
-@import "./components/kobo.tooltips";
-
-@import "./components/kobo.navigation";
-@import "./components/kobo.drawer";
-@import "./components/kobo.drawer.lists";
-@import "./components/asset-dashboard";
-
-@import "./kobo";
+@media only screen {
+  @import "./components/kobo.bem.ui";
+  @import "./components/kobo.modal";
+  @import "./components/kobo.tooltips";
+  @import "./components/kobo.navigation";
+  @import "./components/kobo.drawer";
+  @import "./components/kobo.drawer.lists";
+  @import "./kobo";
+}
 
 @import "./components/kobo.form-builder";
 @import "./components/kobo.collection-header";
@@ -50,8 +49,8 @@ $newformCircleWidthHeight: 55px;
 @import "./components/kobo.sharing-modal";
 @import "./libs/pygments-theme";
 
-// TO BE PHASED OUT
-@import "./components/kobo.asset-view";
+// Print stylesheet
+@import "./libs/print";
 
 .k-invisible {
   visibility: hidden;
@@ -60,3 +59,6 @@ $newformCircleWidthHeight: 55px;
 body.hide-edge .is-edge {
   display: none !important;
 }
+
+// TO BE PHASED OUT
+@import "./components/kobo.asset-view";
