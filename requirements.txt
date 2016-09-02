@@ -4,7 +4,7 @@
 #
 #    pip-compile requirements.in
 #
--e git+https://github.com/kobotoolbox/formpack.git@kobocat-requirement
+-e git+https://github.com/kobotoolbox/formpack.git@kobocat-requirement#egg=formpack
 -e git+https://github.com/kobotoolbox/pyxform.git@master#egg=pyxform
 -e git+https://github.com/jnm/whoosh@master#egg=Whoosh
 amqp==1.4.9
