@@ -8,7 +8,7 @@
 -e git+https://github.com/kobotoolbox/pyxform.git@master#egg=pyxform
 
 # Formpack
--e git+https://github.com/kobotoolbox/formpack.git@master#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@kobocat-requirement
 
 # Regular PyPI packages
 Django<1.9
