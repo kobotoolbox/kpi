@@ -329,6 +329,11 @@ var Reports = React.createClass({
       showExpandedReport: !this.state.showExpandedReport,
     });
   },
+  launchPrinting () {
+    this.toggleExpandedReports();
+    setTimeout(window.print, 150);
+    setTimeout(this.toggleExpandedReports, 300);
+  },
   renderReportButtons () {
     return (
       <bem.FormView__reportButtons>
@@ -398,11 +403,14 @@ var Reports = React.createClass({
         </ul> 
  
         <button className="mdl-button mdl-js-button mdl-button--icon report-button__expand"
-                onClick={this.toggleExpandedReports} data-tip={t('Expand')}>
+                onClick={this.toggleExpandedReports} 
+                data-tip={t('Expand')}>
           <i className="k-icon-expand" />
         </button>
  
-        <button className="mdl-button mdl-js-button mdl-button--icon report-button__print" data-tip={t('Print')}>
+        <button className="mdl-button mdl-js-button mdl-button--icon report-button__print" 
+                onClick={this.launchPrinting} 
+                data-tip={t('Print')}>
           <i className="k-icon-print" />
         </button>
  
