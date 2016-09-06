@@ -2,10 +2,15 @@
   body {
     background: transparent !important;
   }
-  .mdl-layout__header {
-    display: none;
+  body .kpiapp,
+  body .mdl-wrapper,
+  body .mdl-layout,
+  body .ui-panel,
+  body .ui-panel__body,
+  body .with-formView-header .mdl-layout__content {
+    height: auto;
   }
-  .k-drawer {
+  .k-drawer, .mdl-layout__header {
     display: none;
   }
   .k-drawer + .mdl-layout__content {
@@ -18,12 +23,10 @@
     padding-left: 0px;
     padding-right: 0px;
   }
-  table tbody,
-  table {
+  table, table tbody {
     page-break-inside: avoid;
   }
-  a[href]:after,
-  abbr[title]:after {
+  a[href]:after, abbr[title]:after {
     content: "";
   }
   .form-view__row {
@@ -31,6 +34,19 @@
   }
   .form-view__cell {
     width: auto;
+  }
+  .report-view__chart {
+    // border: 3px solid red;
+    // page-break-before: auto;
+    // page-break-after: auto;
+    // page-break-inside: avoid;
+ 
+  }
+  .report-view__item {
+    display: block;
+    page-break-inside: avoid;
+    page-break-after: always;
+    border: 1px solid yellow;
   }
 }
 
