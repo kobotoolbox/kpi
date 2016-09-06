@@ -111,7 +111,7 @@ var ProjectSettings = React.createClass({
           sharedWith.push(perm.user__username);
       });
     }
-    console.log(this.state);
+
     return (
       <bem.FormModal__form onSubmit={this.onSubmit}>
         <bem.FormModal__item m='actions'>
