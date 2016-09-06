@@ -111,7 +111,7 @@ var ProjectSettings = React.createClass({
           sharedWith.push(perm.user__username);
       });
     }
-
+    console.log(this.state);
     return (
       <bem.FormModal__form onSubmit={this.onSubmit}>
         <bem.FormModal__item m='actions'>
@@ -120,22 +120,24 @@ var ProjectSettings = React.createClass({
           </button>
         </bem.FormModal__item>
         <bem.FormModal__item m='wrapper'>
-          <bem.FormModal__item m='sharing'>
-            <a href={this.makeHref('form-sharing', {assetid: this.state.assetid})} className="mdl-button mdl-js-button mdl-button--bordered mdl-button--gray-border">
-              {t('Share')}
-            </a>
+          {this.state.assetid && 
+            <bem.FormModal__item m='sharing'>
+              <a href={this.makeHref('form-sharing', {assetid: this.state.assetid})} className="mdl-button mdl-js-button mdl-button--bordered mdl-button--gray-border">
+                {t('Share')}
+              </a>
 
-            <label>{t('Sharing Permissions')}</label>
-            <label className="long">
-              {t('Allow others to access your project.')}
-            </label>
-            {sharedWith.length > 0 &&
-              t('Shared with ')
-            }
-            {sharedWith.map((user)=> {
-              return (<span className="shared-with">{user}</span>);
-            })}
-          </bem.FormModal__item>
+              <label>{t('Sharing Permissions')}</label>
+              <label className="long">
+                {t('Allow others to access your project.')}
+              </label>
+              {sharedWith.length > 0 &&
+                t('Shared with ')
+              }
+              {sharedWith.map((user)=> {
+                return (<span className="shared-with">{user}</span>);
+              })}
+            </bem.FormModal__item>
+          }
           <bem.FormModal__item>
             <label htmlFor="name">
               {t('Project Name')}
