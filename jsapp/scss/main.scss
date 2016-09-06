@@ -45,9 +45,6 @@ $newformCircleWidthHeight: 55px;
 @import "./components/kobo.sharing-modal";
 @import "./libs/pygments-theme";
 
-// Print stylesheet
-@import "./libs/print";
-
 .k-invisible {
   visibility: hidden;
 }
@@ -58,3 +55,6 @@ body.hide-edge .is-edge {
 
 // TO BE PHASED OUT
 @import "./components/kobo.asset-view";
+
+// Print stylesheet
+@import "./libs/print";

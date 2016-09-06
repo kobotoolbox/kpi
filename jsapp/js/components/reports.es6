@@ -330,9 +330,7 @@ var Reports = React.createClass({
     });
   },
   launchPrinting () {
-    this.toggleExpandedReports();
-    setTimeout(window.print, 150);
-    setTimeout(this.toggleExpandedReports, 300);
+    window.print();
   },
   renderReportButtons () {
     return (
