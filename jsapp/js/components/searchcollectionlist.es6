@@ -44,19 +44,28 @@ var SearchCollectionList = React.createClass({
     this.listenTo(this.searchStore, this.searchChanged);
     this.queryCollections();
   },
-  componentWillReceiveProps () {
-    this.listenTo(this.searchStore, this.searchChanged);
-    this.queryCollections();
-  },
   searchChanged (searchStoreState) {
     this.setState(searchStoreState);
+    if (searchStoreState.searchState === 'done')
+      this.queryCollections();
   },
   queryCollections () {
     if (isLibrary(this.context.router)) {
       dataInterface.listCollections().then((collections)=>{
         this.setState({
           ownedCollections: collections.results.filter((value) => {
-            return value.access_type === 'owned';
+            if (value.access_type === 'shared') {
+              // TODO: include shared assets with edit (change) permission for current user
+              // var hasChangePermission = false;
+              // value.permissions.forEach((perm, index) => {
+              //   if (perm.permission == 'change_collection')
+              //     hasChangePermission = true;
+              // });
+              // return hasChangePermission;
+              return false;
+            } else {
+              return value.access_type === 'owned';
+            }
           })
         });
       });
@@ -163,9 +172,6 @@ var SearchCollectionList = React.createClass({
     );    
   },
 
-  refreshSearch () {
-    this.searchValue.refresh();
-  },
   render () {
     var s = this.state;
     if (this.props.searchContext.store.filterTags == 'asset_type:survey') {

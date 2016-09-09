@@ -54,8 +54,6 @@ var AssetRow = React.createClass({
   componentDidMount () {
     this.prepParentCollection();
   },
-  componentWillReceiveProps () {
-  },
   prepParentCollection () {
     this.setState({
       parent: this.props.parent,
@@ -309,22 +307,25 @@ var AssetRow = React.createClass({
                   <bem.PopoverMenu__heading>
                     {t('Move to')}
                   </bem.PopoverMenu__heading>
-                  {ownedCollections.map((col)=>{
-                    return (
-                        <bem.PopoverMenu__item
-                         onClick={this.moveToCollection}
-                         data-collid={col.value} 
-                         data-parent={col.hasParent ? 'true' : 'false'} 
-                         key={col.value}
-                         m='move-coll-item'>
-                            <i className="k-icon-folder" />
-                            {col.label}
-                            {col.hasParent && 
-                              <i className="fa fa-check" />
-                            }
-                        </bem.PopoverMenu__item>
-                      );
-                  })}
+                  <bem.PopoverMenu__moveTo>
+                    {ownedCollections.map((col)=>{
+                      return (
+                          <bem.PopoverMenu__item
+                           onClick={this.moveToCollection}
+                           data-collid={col.value} 
+                           data-parent={col.hasParent ? 'true' : 'false'} 
+                           key={col.value}
+                           title={col.label}
+                           m='move-coll-item'>
+                              <i className="k-icon-folder" />
+                              {col.label}
+                              {col.hasParent && 
+                                <i className="fa fa-check" />
+                              }
+                          </bem.PopoverMenu__item>
+                        );
+                    })}
+                  </bem.PopoverMenu__moveTo>
                 </ui.MDLPopoverMenu>
               }
           </bem.AssetRow__buttons>

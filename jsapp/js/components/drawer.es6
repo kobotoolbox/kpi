@@ -275,6 +275,7 @@ var LibrarySidebar = React.createClass({
         name: val,
       }).then((data)=>{
         this.queryCollections();
+        this.searchValue.refresh();
       });
     });
   },
@@ -295,8 +296,6 @@ var LibrarySidebar = React.createClass({
       actions.resources.updateCollection(collectionUid, {name: val}).then(
         (data) => {
           this.queryCollections();
-          var popoverMenu = $(this.refs['collection-popover'].getDOMNode());
-          popoverMenu.fadeOut();
         }
       );
     });
@@ -429,7 +428,7 @@ var LibrarySidebar = React.createClass({
                   iconClass = 'k-icon-globe';
                   break;
                 case 'shared':
-                  iconClass = 'k-icon-folder-share';
+                  iconClass = 'k-icon-shared-folder';
               }
               return (
                   <bem.CollectionSidebar__item
