@@ -2,6 +2,7 @@ import React from 'react/addons';
 import Reflux from 'reflux';
 import _ from 'underscore';
 import {dataInterface} from '../dataInterface';
+import DocumentTitle from 'react-document-title';
 
 import actions from '../actions';
 import bem from '../bem';
@@ -142,6 +143,7 @@ export var AccountSettings = React.createClass({
     var accountName = stores.session.currentAccount.username;
 
     return (
+      <DocumentTitle title={`${accountName} | KoboToolbox`}>
       <ui.Panel>
         <bem.AccountSettings>
           <bem.AccountSettings__left>
@@ -310,6 +312,7 @@ export var AccountSettings = React.createClass({
           </bem.AccountSettings__right>
         </bem.AccountSettings>
       </ui.Panel>
+      </DocumentTitle>
     );
   }
 });

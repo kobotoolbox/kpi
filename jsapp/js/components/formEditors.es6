@@ -9,6 +9,7 @@ import existingFormMixin from '../editorMixins/existingForm';
 import Select from 'react-select';
 import ui from '../ui';
 import bem from '../bem';
+import DocumentTitle from 'react-document-title';
 
 import {Navigation} from 'react-router';
 import {session} from '../stores';
@@ -327,7 +328,10 @@ export var ProjectDownloads = React.createClass({
   },
   render () {
     let translations = this.props.asset.content.translations;
+    var docTitle = this.props.asset.name || t('Untitled');
+
     return (
+      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
       <bem.FormView>
         <bem.FormView__cell>
           <bem.FormModal__form onSubmit={this.handleSubmit}>
@@ -399,6 +403,7 @@ export var ProjectDownloads = React.createClass({
           </bem.FormModal__form>
         </bem.FormView__cell>
       </bem.FormView>
+      </DocumentTitle>
     );
   },
 });

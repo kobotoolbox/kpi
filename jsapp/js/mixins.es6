@@ -7,6 +7,7 @@ import {Link} from 'react-router';
 import mdl from './libs/rest_framework/material';
 import TagsInput from 'react-tagsinput';
 import ReactZeroClipboard from 'react-zeroclipboard';
+import DocumentTitle from 'react-document-title';
  
 import {dataInterface} from './dataInterface';
 import stores from './stores';
@@ -133,7 +134,9 @@ var dmix = {
     },
     survey: {
       innerRender: function () {
+        var docTitle = this.state.name || t('Untitled');
         return (
+          <DocumentTitle title={`${docTitle} | KoboToolbox`}>
             <bem.FormView m='scrollable'>
                 <bem.FormView__wrapper m='form'>
                   <bem.FormView__row>
@@ -150,6 +153,7 @@ var dmix = {
                   : null }
                 </bem.FormView__wrapper> 
             </bem.FormView>
+          </DocumentTitle>
           );
       }
     }
