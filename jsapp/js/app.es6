@@ -19,6 +19,7 @@ import {
   run,
 } from 'react-router';
 import Select from 'react-select';
+import moment from 'moment';
 
 import searches from './searches';
 import actions from './actions';
@@ -55,6 +56,7 @@ import {
   t,
   assign,
   isLibrary,
+  currentLang,
 } from './utils';
 
 mixins.permissions = {
@@ -846,6 +848,7 @@ var App = React.createClass({
     Reflux.connect(stores.pageState),
   ],
   getInitialState () {
+    moment.locale(currentLang());
     return assign({}, stores.pageState.state);
   },
   render() {
