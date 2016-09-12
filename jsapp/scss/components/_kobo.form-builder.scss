@@ -34,6 +34,17 @@
   height: calc(100% - 126px);
   overflow: auto;
   margin-top:15px;
+  margin-right: 0px;
+  transition:margin 0.2s;
+}
+
+@media screen and (min-width: 1100px) {
+  .page-wrapper--asset-nav-open {
+    .formBuilder__contents {
+      margin-right: 400px;
+      transition:margin 0.2s;
+    }
+  }
 }
 
 .form-wrap {

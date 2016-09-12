@@ -4,7 +4,6 @@
 @import "./fonts/k-icons/k-icons";
 @import "../../node_modules/font-awesome/scss/font-awesome";
 
-// @import "../../node_modules/react-tooltip/dist/react-tooltip";
 @import "./libs/alertify";
 @import "./libs/react-tagsinput";
 @import "./libs/react-select";
@@ -27,14 +26,10 @@ $newformCircleWidthHeight: 55px;
 @import "./components/kobo.bem.ui";
 @import "./components/kobo.modal";
 @import "./components/kobo.tooltips";
-
 @import "./components/kobo.navigation";
 @import "./components/kobo.drawer";
 @import "./components/kobo.drawer.lists";
-@import "./components/asset-dashboard";
-
 @import "./kobo";
-
 @import "./components/kobo.form-builder";
 @import "./components/kobo.collection-header";
 @import "./components/kobo.collection-asset-list";
@@ -50,9 +45,6 @@ $newformCircleWidthHeight: 55px;
 @import "./components/kobo.sharing-modal";
 @import "./libs/pygments-theme";
 
-// TO BE PHASED OUT
-@import "./components/kobo.asset-view";
-
 .k-invisible {
   visibility: hidden;
 }
@@ -60,3 +52,9 @@ $newformCircleWidthHeight: 55px;
 body.hide-edge .is-edge {
   display: none !important;
 }
+
+// TO BE PHASED OUT
+@import "./components/kobo.asset-view";
+
+// Print stylesheet
+@import "./libs/print";

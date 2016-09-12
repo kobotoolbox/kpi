@@ -85,6 +85,19 @@ def kc_forms_api_request(token, xform_pk, xlsform=False):
     headers = {u'Authorization':'Token ' + token.key}
     return requests.get(url, headers=headers)
 
+def make_name_for_asset(asset, xform):
+    desired_name = xform.title
+    if Asset.objects.exclude(pk=asset.pk).filter(
+            owner=asset.owner, name=desired_name).exists():
+        # The user already has an asset with this name. Append
+        # `xform.id_string` in parentheses for clarification
+        if desired_name and len(desired_name.strip()):
+            desired_name = u'{} ({})'.format(
+                desired_name, xform.id_string)
+        else:
+            desired_name = xform.id_string
+    return desired_name
+
 class XForm(models.Model):
     ''' A stripped-down version of `onadata.apps.logger.models.XForm`, included
     here so that we can access KC's data '''
@@ -227,15 +240,29 @@ class Command(BaseCommand):
                                 update_existing = False
                                 # We don't need an update, but we should copy
                                 # the hash from KC to KPI for future reference
-                                non_content_operation = 'HASH'
                                 backend_response['hash'] = xform.prefixed_hash
                                 asset.save()
-                        # Per #857, force an update if the titles don't match
-                        if xform.title != asset.name:
-                            update_existing = True
+                                print_tabular(
+                                    'HASH',
+                                    user.username,
+                                    xform.id_string,
+                                    asset.uid,
+                                    diff_str
+                                )
 
                         if not update_existing:
-                            # No update needed. Skip to the next form
+                            # Check to see if the asset name matches the xform
+                            # title. Per #857, the xform title takes priority.
+                            # The first check is a cheap one:
+                            if asset.name != xform.title:
+                                # Now do a full check of the name
+                                desired_name = make_name_for_asset(
+                                    asset, xform)
+                                if asset.name != desired_name:
+                                    asset.name = desired_name
+                                    asset.save()
+                                    non_content_operation = 'NAME'
+                            # No further update needed. Skip to the next form
                             print_tabular(
                                 non_content_operation,
                                 user.username,
@@ -299,20 +326,7 @@ class Command(BaseCommand):
                             deployment_data['date_modified'])
                         asset.content = asset_content
                         asset.save()
-                        # The first save pulls the form title from the settings
-                        # sheet, but this may not match the KC title, which
-                        # should take precedence per #857
-                        asset.name = xform.title
-                        # If this user already has a different but
-                        # identically-named asset, append `xform.id_string` in
-                        # parentheses for clarification
-                        if Asset.objects.exclude(pk=asset.pk).filter(
-                                owner=user, name=asset.name).exists():
-                            if asset.name and len(asset.name.strip()):
-                                asset.name = u'{} ({})'.format(
-                                    asset.name, xform.id_string)
-                            else:
-                                asset.name = xform.id_string
+                        asset.name = make_name_for_asset(asset, xform)
                         # Copy the deployment-related data
                         kc_deployment = KobocatDeploymentBackend(asset)
                         kc_deployment.store_data({
