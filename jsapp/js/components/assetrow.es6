@@ -141,18 +141,32 @@ var AssetRow = React.createClass({
                     this.props.asset_type == 'survey' ? 'mdl-cell--2-col mdl-cell--2-col-tablet' : 'mdl-cell--3-col mdl-cell--2-col-tablet']}>
               <span className="date date--modified">{formatTime(this.props.date_modified)}</span>
             </bem.AssetRow__cell>
-            <bem.AssetRow__cell m={'row-count'}
-                key={'row-count'}
-                className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet"
-                >
-              {()=>{
-                if (this.props.asset_type === 'question') {
-                  return '-';
-                } else {
-                  return _rc;
-                }
-              }()}
-            </bem.AssetRow__cell>
+            { this.props.asset_type == 'survey' &&
+              (
+                <bem.AssetRow__cell m={'submission-count'}
+                    key={'submisson-count'}
+                    className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet"
+                    >
+                  {
+                    this.props.deployment__submission_count ?
+                      this.props.deployment__submission_count : 0
+                  }
+                </bem.AssetRow__cell>
+              ) || (
+                <bem.AssetRow__cell m={'row-count'}
+                    key={'row-count'}
+                    className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet"
+                    >
+                  {()=>{
+                    if (this.props.asset_type === 'question') {
+                      return '-';
+                    } else {
+                      return _rc;
+                    }
+                  }()}
+                </bem.AssetRow__cell>
+              )
+            }
           </bem.AssetRow__cell>
           { this.state.displayTags &&
             <bem.AssetRow__cell m={'tags'}

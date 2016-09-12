@@ -15,7 +15,7 @@ from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
 
 from kobo.static_lists import SECTORS, COUNTRIES, LANGUAGES
-from hub.models import SitewideMessage
+from hub.models import SitewideMessage, ExtraUserDetail
 from .models import Asset
 from .models import AssetSnapshot
 from .models import Collection
@@ -30,6 +30,8 @@ from .models import OneTimeAuthenticationKey
 from .forms import USERNAME_REGEX, USERNAME_MAX_LENGTH
 from .forms import USERNAME_INVALID_MESSAGE
 from .utils.gravatar_url import gravatar_url
+from .deployment_backends.kc_reader.utils import get_kc_profile_data
+from .deployment_backends.kc_reader.utils import set_kc_require_auth
 
 
 class Paginated(LimitOffsetPagination):
@@ -395,6 +397,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     deployment__identifier = serializers.SerializerMethodField()
     deployment__active = serializers.SerializerMethodField()
     deployment__links = serializers.SerializerMethodField()
+    deployment__data_download_links = serializers.SerializerMethodField()
     deployment__submission_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -418,6 +421,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'deployment__identifier',
                   'deployment__links',
                   'deployment__active',
+                  'deployment__data_download_links',
                   'deployment__submission_count',
                   'report_styles',
                   'content',
@@ -542,6 +546,12 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         else:
             return {}
 
+    def get_deployment__data_download_links(self, obj):
+        if obj.has_deployment:
+            return obj.deployment.get_data_download_links()
+        else:
+            return {}
+
     def get_deployment__submission_count(self, obj):
         if not obj.has_deployment:
             return 0
@@ -601,6 +611,7 @@ class DeploymentSerializer(serializers.Serializer):
             # A regular PATCH request can update only the `active` field
             if 'active' in validated_data:
                 deployment.set_active(validated_data['active'])
+                asset.save()
         return deployment
 
 
@@ -658,6 +669,7 @@ class AssetListSerializer(AssetSerializer):
                   'deployed_version_id',
                   'deployment__identifier',
                   'deployment__active',
+                  'deployment__submission_count',
                   'permissions',
                   )
 
@@ -770,6 +782,12 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         rep['available_sectors'] = SECTORS
         rep['available_countries'] = COUNTRIES
         rep['all_languages'] = LANGUAGES
+        if not rep['extra_details']:
+            rep['extra_details'] = {}
+        # `require_auth` needs to be read from KC every time
+        if settings.KOBOCAT_URL and settings.KOBOCAT_INTERNAL_URL:
+            rep['extra_details']['require_auth'] = get_kc_profile_data(
+                obj.pk)['require_auth']
         return rep
 
     def update(self, instance, validated_data):
@@ -777,8 +795,15 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         # fields by default." --DRF
         extra_details = validated_data.pop('extra_details', False)
         if extra_details:
-            instance.extra_details.data.update(extra_details['data'])
-            instance.extra_details.save()
+            extra_details_obj, created = ExtraUserDetail.objects.get_or_create(
+                user=instance)
+            # `require_auth` needs to be written back to KC
+            if settings.KOBOCAT_URL and settings.KOBOCAT_INTERNAL_URL and \
+                    'require_auth' in extra_details['data']:
+                set_kc_require_auth(
+                    instance.pk, extra_details['data']['require_auth'])
+            extra_details_obj.data.update(extra_details['data'])
+            extra_details_obj.save()
         current_password = validated_data.pop('current_password', False)
         new_password = validated_data.pop('new_password', False)
         if all((current_password, new_password)):

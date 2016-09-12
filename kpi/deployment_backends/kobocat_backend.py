@@ -300,7 +300,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         '''
         # self.store_data is an alias for
         # self.asset._deployment_data.update(...)
-        # self.asset.save()
         url = self.external_to_internal_url(
             self.backend_response['url'])
         payload = {
@@ -352,6 +351,39 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 del links[discard]
             except KeyError:
                 pass
+        return links
+
+    def get_data_download_links(self):
+        exports_base_url = u'/'.join((
+            settings.KOBOCAT_URL.rstrip('/'),
+            self.asset.owner.username,
+            'exports',
+            self.backend_response['id_string']
+        ))
+        reports_base_url = u'/'.join((
+            settings.KOBOCAT_URL.rstrip('/'),
+            self.asset.owner.username,
+            'reports',
+            self.backend_response['id_string']
+        ))
+        forms_base_url = u'/'.join((
+            settings.KOBOCAT_URL.rstrip('/'),
+            self.asset.owner.username,
+            'forms',
+            self.backend_response['id_string']
+        ))
+        links = {
+            # To be displayed in iframes
+            'xls_legacy': u'/'.join((exports_base_url, 'xls/')),
+            'csv_legacy': u'/'.join((exports_base_url, 'csv/')),
+            'zip_legacy': u'/'.join((exports_base_url, 'zip/')),
+            'kml_legacy': u'/'.join((exports_base_url, 'kml/')),
+            'analyser_legacy': u'/'.join((exports_base_url, 'analyser/')),
+            # For GET requests that return files directly
+            'xls': u'/'.join((reports_base_url, 'export.xlsx')),
+            'csv': u'/'.join((reports_base_url, 'export.csv')),
+            'spss_labels': u'/'.join((forms_base_url, 'spss_labels.zip')),
+        }
         return links
 
     def _submission_count(self):

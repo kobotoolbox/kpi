@@ -153,6 +153,7 @@ bem.FormView__tabbar = bem.FormView.__('tabbar');
 bem.FormView__tabs = bem.FormView.__('tabs');
 bem.FormView__tab = bem.FormView.__('tab', '<a>');
 bem.FormView__button = bem.FormView.__('button', '<button>');
+bem.FormView__status = bem.FormView.__('status');
 bem.FormView__title = bem.FormView.__('title');
 bem.FormView__name = bem.FormView.__('name');
 bem.FormView__description = bem.FormView.__('description');
@@ -168,6 +169,7 @@ bem.FormView__link = bem.FormView.__('link', '<a>');
 bem.FormView__secondaryButtons = bem.FormView.__('secondaryButtons');
 bem.FormView__secondaryButton = bem.FormView.__('secondaryButton', '<button>');
 bem.FormView__reportButtons = bem.FormView.__('reportButtons');
+bem.FormView__form = bem.FormView.__('form', '<form>');
 
 bem.ReportView = BEM('report-view');
 bem.ReportView__wrap = bem.ReportView.__('wrap');
@@ -209,6 +211,14 @@ bem.AccountSettings__desc = bem.AccountSettings.__('desc');
 
 bem.ChangePassword = BEM('change-password');
 bem.ChangePassword__item = bem.FormModal.__('item');
+
+bem.UserRow = BEM('user-row');
+bem.UserRow__avatar = bem.UserRow.__('avatar');
+bem.UserRow__name = bem.UserRow.__('name');
+bem.UserRow__email = bem.UserRow.__('email');
+bem.UserRow__role = bem.UserRow.__('role');
+
+bem.ToggleSwitch = BEM('toggle-switch', '<label>');
 
 bem.uiPanel = BEM('ui-panel');
 bem.uiPanel__body = bem.uiPanel.__('body');

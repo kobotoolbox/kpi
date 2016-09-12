@@ -72,13 +72,13 @@ def setup_env(deployment_name):
                                              'requirements.txt')
 
 
-def deploy_ref(deployment_name, ref):
+def deploy_ref(deployment_name, ref, force=False):
     setup_env(deployment_name)
     with cd(env.kpi_path):
-        run("git fetch origin")
+        run("git fetch --all")
         # Make sure we're not moving to an older codebase
         git_output = run('git rev-list {}..HEAD --count 2>&1'.format(ref))
-        if int(git_output) > 0:
+        if int(git_output) > 0 and not force:
             raise Exception("The server's HEAD is already in front of the "
                 "commit to be deployed.")
         # We want to check out a specific commit, but this does leave the HEAD

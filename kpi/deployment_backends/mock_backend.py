@@ -42,6 +42,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             # 'preview_iframe_url': 'https://enke.to/preview/i/::self',
         }
 
+    def get_data_download_links(self):
+        return {}
+
     def _submission_count(self):
         submissions = self.asset._deployment_data.get('submissions', [])
         return len(submissions)

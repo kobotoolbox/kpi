@@ -135,16 +135,30 @@
 
   .form-view__cell--iframe {
     width:100%;
-    height: auto;
+    height: 100%;
+    overflow: hidden;
+
+    .form-modal__form {
+      height: 100%;
+    }
+
     iframe {
       width:100%;
       min-height: 800px;
       padding-right: 5px;
     }
 
-    .form-modal {
+    .form-modal__item--actions {
       padding:0px 40px;
-      padding-top: 20px;
+      padding-top: 10px;
+      height: 60px;
+      margin-bottom: 20px;
+    }
+
+    .form-modal__item--wrapper {
+      height: calc(100% - 80px);
+      overflow: auto;
+      padding:0px 40px;
     }
 
     .form-modal__item label.long {

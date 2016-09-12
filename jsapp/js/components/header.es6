@@ -280,7 +280,7 @@ var MainHeader = React.createClass({
             data-id='Form'>
               {t('Form')}
           </bem.FormView__tab>
-          { this.state.asset.deployment__identifier != undefined && this.state.asset.deployment__active ?
+          { this.state.asset.deployment__identifier != undefined && this.state.asset.has_deployment ?
             <ui.MDLPopoverMenu  id="more-data-tab" 
                                 button_label={t('Data')}
                                 button_type='text' 
@@ -324,6 +324,16 @@ var MainHeader = React.createClass({
               {t('Settings')}
           </bem.FormView__tab>
         </bem.FormView__tabs>
+        <bem.FormView__status>
+          { this.state.asset.has_deployment ?
+            <span>
+              {this.state.asset.deployment__active ? t('Deployed') : t('Archived')} 
+              &nbsp;({this.state.asset.deployment__submission_count} {t('submissions')})
+            </span>
+          : 
+            <span>{t('Undeployed draft')}</span>
+          }
+        </bem.FormView__status>
       </bem.FormView__tabbar>
     );
   },

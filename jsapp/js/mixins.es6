@@ -25,7 +25,10 @@ import {
   notify,
   isLibrary,
 } from './utils';
-import {ProjectSettingsEditor} from './components/formEditors';
+import {
+  ProjectSettingsEditor,
+  ProjectDownloads
+} from './components/formEditors';
  
 var AssetTypeIcon = bem.create('asset-type-icon');
  
@@ -78,7 +81,6 @@ var dmix = {
       innerRender: function () {
         return (
             <bem.AssetView m={['type-block']}>
-              {this.renderAncestors()}
               <ui.Panel margin='thin' className='ui-panel--overflowhidden'>
                 <bem.AssetView__content>
                   {this.renderName()}
@@ -106,7 +108,6 @@ var dmix = {
       innerRender: function () {
         return (
             <bem.AssetView m={['type-question']}>
-              {this.renderAncestors()}
               <ui.Panel margin='thin'>
                 <bem.AssetView__content>
                   {this.renderName()}
@@ -198,6 +199,10 @@ var dmix = {
                       </bem.PopoverMenu__link>
                     );
                 })}
+                <bem.PopoverMenu__link href={this.makeHref('form-sharing', {assetid: this.state.uid})}>
+                  <i className="k-icon-share"/>
+                  {t('Share this project')}
+                </bem.PopoverMenu__link>
                 <bem.PopoverMenu__link onClick={this.saveCloneAs}>
                   <i className="k-icon-clone"/>
                   {t('Clone this project')}

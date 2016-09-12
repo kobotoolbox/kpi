@@ -81,11 +81,11 @@
 .modal-title {
   margin: 0px;
   padding: 20px;
-  font-size: 22px;
+  font-size: 18px;
 }
 
 .modal-header {
-  color: $cool-green;
+  color: #2196F3;
   min-height: 30px;
   margin: -15px -20px 0;
 }
@@ -121,10 +121,13 @@ $modalXcolor: #d8d8d8;
 }
 
 .modal-footer {
-  text-align: center;
+  text-align: right;
 
   button {
     @extend .mdl-button, .mdl-button--colored, .mdl-button--raised;
+    text-transform: uppercase;
+    padding-left: 40px;
+    padding-right: 40px;
   }
 }
 

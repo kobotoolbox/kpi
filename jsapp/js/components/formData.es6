@@ -12,7 +12,10 @@ import Select from 'react-select';
 import ui from '../ui';
 import mixins from '../mixins';
 import mdl from '../libs/rest_framework/material';
-import {ProjectSettingsEditor} from '../components/formEditors';
+import {
+  ProjectSettingsEditor,
+  ProjectDownloads
+} from '../components/formEditors';
 
 import {
   assign,
@@ -64,8 +67,7 @@ var FormData = React.createClass({
           iframeUrl = report__base+'/export.html';
           break;
         case 'form-data-downloads':
-          iframeUrl = report__base+'/export/';
-          break;
+          return <ProjectDownloads asset={this.state} />;
         case 'form-data-gallery':
           iframeUrl = deployment__identifier+'/photos';
           break;
@@ -82,10 +84,11 @@ var FormData = React.createClass({
             <bem.FormView>
               <bem.FormView__wrapper>
                 <bem.FormView__cell m='iframe'>
-                  {this.state.name != undefined && this.state.currentRoute.name == 'form-data-settings' && 
-                    <ProjectSettingsEditor asset={this.state} />
+                  {this.state.name != undefined && this.state.currentRoute.name == 'form-data-settings' ? 
+                    <ProjectSettingsEditor asset={this.state} iframeUrl={iframeUrl} />
+                  : 
+                    <iframe src={iframeUrl} />
                   }
-                  <iframe src={iframeUrl} />
                 </bem.FormView__cell>
               </bem.FormView__wrapper>              
             </bem.FormView>
