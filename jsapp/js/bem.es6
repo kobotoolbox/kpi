@@ -54,9 +54,6 @@ bem.LibNav__count = bem.LibNav.__('count');
 bem.LibNav__expandedToggle = bem.LibNav.__('expandedToggle');
 bem.LibNav__logo = bem.LibNav.__('logo');
 
-bem.LibNav__tags = bem.LibNav.__('tags');
-bem.LibNav__tag = bem.LibNav.__('tag', '<span>');
-
 bem.LibList = BEM('lib-list', '<ul>');
 bem.LibList__item = bem.LibList.__('item', '<li>');
 bem.LibList__tags = bem.LibList.__('tags');
@@ -153,6 +150,7 @@ bem.FormView__tabbar = bem.FormView.__('tabbar');
 bem.FormView__tabs = bem.FormView.__('tabs');
 bem.FormView__tab = bem.FormView.__('tab', '<a>');
 bem.FormView__button = bem.FormView.__('button', '<button>');
+bem.FormView__status = bem.FormView.__('status');
 bem.FormView__title = bem.FormView.__('title');
 bem.FormView__name = bem.FormView.__('name');
 bem.FormView__description = bem.FormView.__('description');
@@ -225,6 +223,7 @@ bem.uiPanel__body = bem.uiPanel.__('body');
 bem.Drawer = bem('drawer');
 
 bem.tagSelect = BEM('tag-select');
+bem.collectionFilter = BEM('collection-filter');
 
 bem.PrintOnly = BEM('print-only');
 
