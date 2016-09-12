@@ -7,6 +7,7 @@ import Select from 'react-select';
 import ui from '../ui';
 import bem from '../bem';
 import actions from '../actions';
+import {dataInterface} from '../dataInterface';
 import searches from '../searches';
 import stores from '../stores';
 import AssetRow from './assetrow';
@@ -126,6 +127,70 @@ var ListTagFilter = React.createClass({
             value={this.getTagStringFromSearchStore()}
           />
       </bem.tagSelect>
+    );
+  },
+});
+
+var ListCollectionFilter = React.createClass({
+  mixins: [
+    searches.common,
+    Reflux.ListenerMixin,
+  ],
+  getDefaultProps () {
+    return {
+      searchContext: 'default',
+    };
+  },
+  getInitialState () {
+    return {
+      availableCollections: [],
+      collectionsLoaded: false,
+    };
+  },
+  componentDidMount () {
+    this.queryCollections();
+  },
+  queryCollections () {
+    dataInterface.listCollections().then((collections)=>{
+      var availableCollections = collections.results.filter((value) => {
+        return value.access_type !== 'public';
+      });
+
+      this.setState({
+        collectionsLoaded: true,
+        availableCollections: availableCollections.map(function(collection){
+          return {
+            label: collection.name,
+            value: collection.uid,
+          };
+        })
+      });
+
+    });
+  },
+  onCollectionChange (collectionUid) {
+    this.searchCollectionChange(collectionUid);
+  },
+  render () {
+    if (!this.state.collectionsLoaded) {
+      return (
+        <bem.collectionFilter>
+          {t('Collections are loading...')}
+        </bem.collectionFilter>
+        );
+    }
+    return (
+      <bem.collectionFilter>
+        <label>
+          {t('Filter by')}
+        </label>
+        <Select
+            name="collections"
+            placeholder={t('Select Collection Name')}
+            options={this.state.availableCollections}
+            onChange={this.onCollectionChange}
+          />
+      </bem.collectionFilter>
     );
   },
 });
@@ -297,5 +362,6 @@ export default {
   ListSearchDebug: ListSearchDebug,
   ListSearchSummary: ListSearchSummary,
   ListTagFilter: ListTagFilter,
+  ListCollectionFilter: ListCollectionFilter,
   ListExpandToggle: ListExpandToggle,
 };

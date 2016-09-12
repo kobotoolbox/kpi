@@ -43,6 +43,7 @@ import {ChangePassword, AccountSettings} from './components/accountSettings';
 import {
   ListSearch,
   ListTagFilter,
+  ListCollectionFilter,
   ListExpandToggle
 } from './components/list';
 
@@ -240,6 +241,7 @@ var AssetNavigatorListView = React.createClass({
     Reflux.ListenerMixin,
   ],
   componentDidMount () {
+    this.searchClear();
     this.listenTo(this.searchStore, this.searchStoreChanged);
   },
   getInitialState () {
@@ -460,36 +462,31 @@ var AssetNavigator = React.createClass({
     stores.pageState.toggleAssetNavIntentOpen();
   },
   render () {
-    let hidden = !this.state.assetNavIsOpen;
-    let hiddenClass = {hidden: hidden};
     return (
         <bem.LibNav m={{
               deactivated: !this.state.assetNavIsOpen
             }}>
-          <bem.LibNav__header>
-            <bem.LibNav__logo onClick={this.toggleOpen}>
-              <i />
-            </bem.LibNav__logo>
-            <bem.LibNav__search className={hiddenClass}>
-              <ListSearch
-                  placeholder={t('search library')}
-                  searchContext={this.state.searchContext}
-                />
-            </bem.LibNav__search>
-            <ListTagFilter
-                  searchContext={this.state.searchContext}
-                  hidden={hidden}
-                />
-            <ListExpandToggle
-                  searchContext={this.state.searchContext}
-                  hidden={hidden}
-                />
-          </bem.LibNav__header>
-          <bem.LibNav__content className={hiddenClass}>
-            <AssetNavigatorListView
-                  searchContext={this.state.searchContext}
-                />
-          </bem.LibNav__content>
+          {this.state.assetNavIsOpen && 
+            <bem.LibNav__header>
+              <bem.LibNav__logo onClick={this.toggleOpen}>
+                <i />
+              </bem.LibNav__logo>
+              <bem.LibNav__search>
+                <ListSearch
+                    placeholder={t('search library')}
+                    searchContext={this.state.searchContext}
+                  />
+              </bem.LibNav__search>
+              <ListTagFilter searchContext={this.state.searchContext} />
+              <ListCollectionFilter searchContext={this.state.searchContext} />
+              <ListExpandToggle searchContext={this.state.searchContext} />
+            </bem.LibNav__header>
+          }
+          {this.state.assetNavIsOpen && 
+            <bem.LibNav__content>
+              <AssetNavigatorListView searchContext={this.state.searchContext} />
+            </bem.LibNav__content>
+          }
           <bem.LibNav__footer />
         </bem.LibNav>
       );
