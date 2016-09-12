@@ -18,7 +18,7 @@ class DeployableMixin:
 
     def deploy(self, backend=False, active=True):
         if not self.has_deployment:
-            self.connect_deployment(backend=backend)
+            self.connect_deployment(backend=backend, active=active)
         else:
             self.deployment.redeploy(active=active)
         self._deployed = True

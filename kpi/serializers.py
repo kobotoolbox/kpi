@@ -572,11 +572,8 @@ class DeploymentSerializer(serializers.Serializer):
         # if no backend is provided, use the installation's default backend
         backend_id = validated_data.get('backend',
                                         settings.DEFAULT_DEPLOYMENT_BACKEND)
-
-        asset.connect_deployment(
-            backend=backend_id,
-            active=validated_data.get('active', False),
-        )
+        asset.deploy(backend=backend_id,
+                     active=validated_data.get('active', False))
         asset.save()
         return asset.deployment
 
@@ -598,8 +595,8 @@ class DeploymentSerializer(serializers.Serializer):
                 # We still can't deploy any version other than the current one
                 raise NotImplementedError(
                     'Only the current version can be deployed')
-            # Overwrite the contents of the form
-            deployment.redeploy(active=validated_data['active'])
+            asset.deploy(active=validated_data['active'])
+            asset.save()
         else:
             # A regular PATCH request can update only the `active` field
             if 'active' in validated_data:
