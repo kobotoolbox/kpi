@@ -48,10 +48,6 @@
   margin: 0px;
 }
 
-.page-wrapper--asset-nav-open .mdl-layout__content {
-  margin-right: 400px;
-}
-
 .k-form-header__inner {
   max-width: 1200px;
   display: flex;
@@ -208,7 +204,7 @@ iframe {
   }
 
   .Select-control {
-    border:2px solid $cool-gray;
+    border:1px solid $cool-gray;
     border-radius: 0px;
     padding-top: 5px;
     padding-bottom: 5px;

@@ -140,8 +140,8 @@ var SearchCollectionList = React.createClass({
           <bem.AssetListSorts__item m={'modified'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet">
             {t('Last Modified')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'questions'} className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet">
-            {t('Questions')}
+          <bem.AssetListSorts__item m={'submissions'} className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet">
+            {t('Submissions')}
           </bem.AssetListSorts__item>
         </bem.AssetListSorts>
       );
