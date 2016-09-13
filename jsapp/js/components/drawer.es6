@@ -248,15 +248,20 @@ var LibrarySidebar = React.createClass({
     }
     var data = $(evt.currentTarget).data();
     var collectionUid = false;
+    var collectionName = false;
     var publicCollection = false;
     if (data.collectionUid) {
       collectionUid = data.collectionUid;
+    }
+    if (data.collectionName) {
+      collectionName = data.collectionName;
     }
     if (data.publicCollection) {
       publicCollection = true;
     }
     this.quietUpdateStore({
       parentUid: collectionUid,
+      parentName: collectionName,
       allPublic: publicCollection
     });
     this.searchValue();
@@ -441,7 +446,8 @@ var LibrarySidebar = React.createClass({
                         !this.state.filteredByPublicCollection,
                     }}
                     onClick={this.clickFilterByCollection}
-                    data-collection-uid={collection.uid}
+                    data-collection-uid={collection.uid} 
+                    data-collection-name={collection.name}
                   >
                     { this.state.filteredCollectionUid === collection.uid &&
 

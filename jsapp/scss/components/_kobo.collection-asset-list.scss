@@ -44,13 +44,28 @@
   }
 }
 
-// regular, non-grouped list
+// regular, non-grouped list for library
+div.library {
+  height:100%;
+  margin-left: 8px;
+}
+
+.library__breadcrumb {
+  height:36px;
+  font-size: 18px;
+  line-height: 30px;
+  color: $cool-gray;
+  span {
+    padding-right: 8px;
+  }
+}
+
 .list--regular {
-  @extend .mdl-cell, .mdl-cell--12-col;
   flex-flow: column;
   margin: 0px !important;
   position: relative;
   height: calc(100% - 50px);
+  width:100%;
   .asset-list {
     height: calc(100% - 50px);
     overflow-y: auto;
@@ -61,10 +76,17 @@
     width: 33%;
     top: 10px;
   }
+  .asset-list, .asset-list-sorts {
+    background-color: #FFF;
+  }
+
+  .library__breadcrumb:not(.hidden) + .asset-list-sorts + .asset-list {
+    height: calc(100% - 86px); 
+  }
 }
 
 
-// grouped list
+// grouped list for Projects
 
 .list--grouped {
   height: 100%;

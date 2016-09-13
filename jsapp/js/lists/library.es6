@@ -117,8 +117,7 @@ var LibrarySearchableList = React.createClass({
   // },
   render () {
     return (
-      <ui.Panel>
-
+      <bem.Library>
         <SearchCollectionList
             showDefault={true}
             searchContext={this.state.searchContext}
@@ -129,7 +128,7 @@ var LibrarySearchableList = React.createClass({
             assetDescriptorPlural={t('library items')}
             searchContext={this.state.searchContext}
           />
-      </ui.Panel>
+      </bem.Library>
       );
   }
 });

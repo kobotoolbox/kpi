@@ -100,7 +100,15 @@ var SearchCollectionList = React.createClass({
     }.bind(this)
   },
   renderHeadings () {
-    return (
+    return [
+      (
+        <bem.Library_breadcrumb className={this.state.parentName ? '' : 'hidden'}>
+          <span>{t('Library')}</span>
+          <span className="separator"><i className="fa fa-caret-right" /></span>
+          <span>{this.state.parentName}</span>
+        </bem.Library_breadcrumb>
+      ),
+      (
         <bem.AssetListSorts className="mdl-grid">
           <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--6-col mdl-cell--3-col-tablet">
             {t('Name')}
@@ -115,7 +123,7 @@ var SearchCollectionList = React.createClass({
             {t('Questions')}
           </bem.AssetListSorts__item>
         </bem.AssetListSorts>
-      );
+      )];
   },
   renderGroupedHeadings () {
     return (
