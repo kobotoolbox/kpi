@@ -33,10 +33,7 @@ def data_by_identifiers(asset, field_names=None, submission_stream=None,
     if submission_stream is None:
         _userform_id = asset.deployment.mongo_userform_id
         submission_stream = get_instances_for_userform_id(_userform_id)
-    # we can filter deployed=True once asset_version.deployed is correctly set
-    # _deployed_versions = asset.asset_versions.filter(deployed=True)
-    _deployed_versions = asset.asset_versions.all()
-    schemas = [v.to_formpack_schema() for v in _deployed_versions]
+    schemas = [v.to_formpack_schema() for v in asset.deployed_versions]
     pack = FormPack(versions=schemas, id_string=asset.uid)
     _all_versions = pack.versions.keys()
     report = pack.autoreport(versions=_all_versions)
