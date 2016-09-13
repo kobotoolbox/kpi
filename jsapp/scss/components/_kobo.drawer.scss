@@ -5,7 +5,7 @@ $drawer-icons-column-width: 56px;
   height: calc(100% - 72px);
   top: $layout-desktop-header-height;
   margin-left: 4px;
-  width: $layout-drawer-width;
+  width: 240px;
   position: absolute;
   left: 0px;
   display: flex;
@@ -14,8 +14,10 @@ $drawer-icons-column-width: 56px;
   overflow: hidden;
 }
 
-.k-drawer + .mdl-layout__content {
-  margin-left: $layout-drawer-width + 8px;
+@media screen {
+  .mdl-layout__content {
+    margin-left: 248px;
+  }
 }
 
 .k-drawer__icons {
@@ -114,7 +116,7 @@ $drawer-icons-column-width: 56px;
   }
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 767px) {
   .k-drawer {
     position: fixed;
     z-index: 4;
@@ -127,7 +129,7 @@ $drawer-icons-column-width: 56px;
     left: 0px;
     width: 340px;
   }
-  .k-drawer + .mdl-layout__content {
+  .mdl-layout__content {
     margin-left: 0px;
   }
   .drawer__sidebar {

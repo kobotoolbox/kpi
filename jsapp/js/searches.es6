@@ -379,6 +379,13 @@ var commonMethods = {
     });
     this.searchValue();
   },
+  searchCollectionChange (collectionUid) {
+    this.quietUpdateStore({
+      parentUid: collectionUid
+    });
+    this.searchValue();
+  },
+
   searchChangeEvent (evt) {
     this.quietUpdateStore({
       searchString: evt.target.value,
