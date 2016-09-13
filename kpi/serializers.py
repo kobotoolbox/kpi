@@ -594,6 +594,7 @@ class DeploymentSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         asset = self.context['asset']
         deployment = self.context['asset'].deployment
+        latest_version = asset.latest_version
         if 'backend' in validated_data and \
                 validated_data['backend'] != deployment.backend:
             raise exceptions.ValidationError(
@@ -609,13 +610,19 @@ class DeploymentSerializer(serializers.Serializer):
                 # We still can't deploy any version other than the current one
                 raise NotImplementedError(
                     'Only the current version can be deployed')
+            latest_version.deployed = True
+            latest_version.save()
             asset.deploy(active=validated_data['active'])
-            asset.save()
+            asset.save(create_version=False,
+                       adjust_content=False)
         else:
             # A regular PATCH request can update only the `active` field
+            latest_version.deployed = True
+            latest_version.save()
             if 'active' in validated_data:
-                deployment.set_active(validated_data['active'])
-                asset.save()
+                asset.deploy(validated_data['active'])
+                asset.save(create_version=False,
+                           adjust_content=False)
         return deployment
 
 
