@@ -34,7 +34,7 @@ class MockDeployment(TestCase):
                  }
                 ]
             })
-        self.asset.deploy(backend='mock')
+        self.asset.deploy(backend='mock', active=False)
         self.asset.save()
 
     def test_deployment_creates_identifier(self):
