@@ -53,6 +53,9 @@ var AssetRow = React.createClass({
   preventDefault (evt) {
     evt.preventDefault();
   },
+  clearDropdown () {
+    $(this.getDOMNode()).find('.mdl-menu__container.is-visible').removeClass('is-visible');
+  },
   render () {
     var selfowned = this.props.owner__username === this.props.currentUsername;
     // var perm = this.props.perm;
@@ -82,6 +85,7 @@ var AssetRow = React.createClass({
                           }}
                         className="mdl-grid"
                         key={this.props.uid}
+                        onMouseLeave={this.clearDropdown}
                       >
           <bem.AssetRow__cell
               m={'asset-details'}
