@@ -3,23 +3,26 @@
   right: 0;
   bottom: 0px;
   width: 400px;
-  height: calc(100% - 120px);
+  height: calc(100% - 124px);
   background-color: #fff;
   border-left: 1px solid rgba(50, 50, 50, 0.2);
+  border-right: 1px solid rgba(50, 50, 50, 0.2);
   display: flex;
   flex-direction: column;
   transition: all .4s ease 0s;
-  -webkit-box-shadow: -5px 0px 5px 0px rgba(50, 50, 50, 0.07);
-  -moz-box-shadow: -5px 0px 5px 0px rgba(50, 50, 50, 0.07);
   box-shadow: -5px 0px 5px 0px rgba(50, 50, 50, 0.07);
   z-index: 4;
+  margin-right: 0px;
+  &--deactivated {
+    margin-right: -410px;
+  }
 }
 
 .lib-nav__content {
   padding: 0;
   overflow-y: auto;
   flex-grow: 1;
-  @extend .mdl-color--grey-100;
+  background-color: #F9F9F9;
   height: 0;
 }
 
@@ -51,20 +54,17 @@
   display: flex;
   flex-wrap: wrap;
   .Select {
-    padding: 10px;
+    padding: 5px;
     z-index: 1000;
     width: 100%;
   }
   .Select-control {
     border-color: transparent;
     border-bottom-color: #DDD;
+    border-radius: 0px;
   }
 }
 
-// .lib-nav__footer {
-//   height: $assetNavFooterHeight;
-//   margin-bottom: -1 * $assetNavFooterHeight;
-// }
 .lib-nav__search {
   margin: 0;
   height: 60px;
@@ -80,9 +80,6 @@
   }
 }
 
-// .lib-nav__header--deactivated {
-//   background-color: rgba(255,255,255,0.2);
-// }
 .lib-nav__logo {
   background-color: rgb(228, 228, 228);
   transition: all 0.3s ease 0s;
@@ -100,35 +97,6 @@
   }
 }
 
-.lib-nav--deactivated {
-  margin-right: -400px;
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-.lib-nav__tags {
-  max-height: 4em;
-  overflow: auto;
-  scroll: auto;
-  margin-left: -60px;
-}
-
-.lib-nav__tag {
-  margin-left: 3px;
-  font-size: 11px;
-  text-decoration: underline;
-  color: #555;
-  cursor: pointer;
-  padding: 1px;
-  &:after {
-    content: ' ';
-    text-decoration: none;
-  }
-  &.lib-nav__tag--selected {
-    background-color: #666;
-    color: #fff;
-  }
-}
-
 .lib-nav__expanded {
   display: flex;
   justify-content: space-around;
@@ -136,4 +104,33 @@
   padding-top: 4px;
   padding-bottom: 8px;
   border-bottom: 1px solid #DDD;
+}
+
+.lib-nav__header .tag-select,
+.lib-nav__header .collection-filter {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  padding: 4px 0px;
+  position: relative;
+  z-index: 100;
+  .Select-menu-outer {
+    max-width: 390px;
+  }
+  i.fa-search {
+    display: none;
+  }
+}
+
+.lib-nav__header .collection-filter {
+  z-index: 99;
+  label {
+    min-width: 90px;
+    text-align: right;
+    padding: 5px;
+    padding-top: 12px;
+  }
+  .Select-control {
+    border-color: #DDD !important;
+  }
 }

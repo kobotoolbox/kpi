@@ -332,6 +332,9 @@ var Reports = React.createClass({
       showExpandedReport: !this.state.showExpandedReport,
     });
   },
+  launchPrinting () {
+    window.print();
+  },
   renderReportButtons () {
     return (
       <bem.FormView__reportButtons>
@@ -401,11 +404,14 @@ var Reports = React.createClass({
         </ul> 
  
         <button className="mdl-button mdl-js-button mdl-button--icon report-button__expand"
-                onClick={this.toggleExpandedReports} data-tip={t('Expand')}>
+                onClick={this.toggleExpandedReports} 
+                data-tip={t('Expand')}>
           <i className="k-icon-expand" />
         </button>
  
-        <button className="mdl-button mdl-js-button mdl-button--icon report-button__print" data-tip={t('Print')}>
+        <button className="mdl-button mdl-js-button mdl-button--icon report-button__print" 
+                onClick={this.launchPrinting} 
+                data-tip={t('Print')}>
           <i className="k-icon-print" />
         </button>
  
@@ -521,6 +527,9 @@ var Reports = React.createClass({
                 : null
               }
               <bem.ReportView__wrap>
+                <bem.PrintOnly>
+                  <h3>{asset.name}</h3>
+                </bem.PrintOnly>
                 <bem.ReportView__warning>
                   <h4>{t('Warning')}</h4>
                   <p>{t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. ')}</p>
