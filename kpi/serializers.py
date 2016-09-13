@@ -582,9 +582,13 @@ class DeploymentSerializer(serializers.Serializer):
         # if no backend is provided, use the installation's default backend
         backend_id = validated_data.get('backend',
                                         settings.DEFAULT_DEPLOYMENT_BACKEND)
+        _version = asset.latest_version
+        _version.deployed = True
+        _version.save()
         asset.deploy(backend=backend_id,
                      active=validated_data.get('active', False))
-        asset.save()
+        asset.save(create_version=False,
+                   adjust_content=False)
         return asset.deployment
 
     def update(self, instance, validated_data):

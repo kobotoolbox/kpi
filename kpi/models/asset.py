@@ -231,7 +231,6 @@ class Asset(ObjectPermissionMixin,
     }
 
     def __init__(self, *args, **kwargs):
-        self._deployed = False
         super(Asset, self).__init__(*args, **kwargs)
         # Mind the depth
         self._initial_content_json = json.dumps(self.content)
@@ -266,8 +265,10 @@ class Asset(ObjectPermissionMixin,
         self.summary = analyzer.summary
 
     def save(self, *args, **kwargs):
-        # populate summary
-        if self.content is not None:
+        # in certain circumstances, we don't want content to
+        # be altered on save. (e.g. on asset.deploy())
+        _adjust_content = kwargs.pop('adjust_content', True)
+        if _adjust_content and self.content is not None:
             if 'survey' in self.content:
                 self._strip_empty_rows(
                     self.content['survey'], required_key='type')
@@ -282,6 +283,7 @@ class Asset(ObjectPermissionMixin,
                     del self.content['settings']
                 else:
                     self._pull_form_title_from_settings()
+        # populate summary
         self._populate_summary()
 
         # infer asset_type only between question and block
@@ -301,7 +303,9 @@ class Asset(ObjectPermissionMixin,
             self.asset_versions.create(name=self.name,
                                        version_content=self.content,
                                        _deployment_data=self._deployment_data,
-                                       deployed=self._deployed,
+                                       # asset_version.deployed is set in the
+                                       # DeploymentSerializer
+                                       deployed=False,
                                        )
 
     def to_clone_dict(self, version_uid=None):
