@@ -264,7 +264,7 @@ var Reports = React.createClass({
           rowsByIdentifier[$identifier] = r;
         });
 
-        dataInterface.getReportData({uid: uid, identifiers: identifiers}).done((data)=>{
+        dataInterface.getReportData({uid: uid, identifiers: names}).done((data)=>{
 
           var dataWithResponses = [];
           data.list.forEach(function(row){

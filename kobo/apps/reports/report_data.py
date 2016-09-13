@@ -27,10 +27,16 @@ def _vnames(asset, cache=False):
     return asset._available_report_uids
 
 
-def data_by_identifiers(asset, field_names=None, submission_stream=[],
+def data_by_identifiers(asset, field_names=None, submission_stream=None,
                         report_styles=None, lang=None, fields=None,
                         split_by=None):
-    schemas = [v.to_formpack_schema() for v in asset.deployed_versions]
+    if submission_stream is None:
+        _userform_id = asset.deployment.mongo_userform_id
+        submission_stream = get_instances_for_userform_id(_userform_id)
+    # we can filter deployed=True once asset_version.deployed is correctly set
+    # _deployed_versions = asset.asset_versions.filter(deployed=True)
+    _deployed_versions = asset.asset_versions.all()
+    schemas = [v.to_formpack_schema() for v in _deployed_versions]
     pack = FormPack(versions=schemas, id_string=asset.uid)
     _all_versions = pack.versions.keys()
     report = pack.autoreport(versions=_all_versions)
