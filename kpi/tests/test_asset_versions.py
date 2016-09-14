@@ -32,10 +32,15 @@ class AssetVersionTestCase(TestCase):
                                              'name': 'n2'})
         self.asset.save()
         self.assertEqual(self.asset.asset_versions.count(), 2)
+        v2 = self.asset.latest_version
         self.assertEqual(self.asset.latest_version.deployed, False)
 
-        self.asset.deploy(backend='mock')
-        self.asset.save()
+        self.asset.deploy(backend='mock', active=True)
+        self.asset.save(create_version=False,
+                        adjust_content=False)
+        # version did not increment
+        self.assertEqual(self.asset.asset_versions.count(), 2)
 
-        self.assertEqual(self.asset.asset_versions.count(), 3)
-        self.assertEqual(self.asset.latest_version.deployed, True)
+        # v2 now has 'deployed=True'
+        v2_ = AssetVersion.objects.get(uid=v2.uid)
+        self.assertEqual(v2_.deployed, True)

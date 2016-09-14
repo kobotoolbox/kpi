@@ -582,9 +582,9 @@ class DeploymentSerializer(serializers.Serializer):
         # if no backend is provided, use the installation's default backend
         backend_id = validated_data.get('backend',
                                         settings.DEFAULT_DEPLOYMENT_BACKEND)
-        _version = asset.latest_version
-        _version.deployed = True
-        _version.save()
+
+        # asset.deploy deploys the latest version and updates that versions'
+        # 'deployed' boolean value
         asset.deploy(backend=backend_id,
                      active=validated_data.get('active', False))
         asset.save(create_version=False,
@@ -593,36 +593,19 @@ class DeploymentSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
         asset = self.context['asset']
-        deployment = self.context['asset'].deployment
-        latest_version = asset.latest_version
+        deployment = asset.deployment
+
         if 'backend' in validated_data and \
                 validated_data['backend'] != deployment.backend:
             raise exceptions.ValidationError(
                 {'backend': 'This field cannot be modified after the initial '
                             'deployment.'})
-        # Is this a request to replace the content of the existing, deployed
-        # form?
-        if 'version_id' in validated_data:
-            # For now, don't check that
-            #   validated_data['version'] != str(deployment.version)
-            # Instead, send the update to KC even if the content is unchanged
-            if validated_data['version_id'] != str(asset.version_id):
-                # We still can't deploy any version other than the current one
-                raise NotImplementedError(
-                    'Only the current version can be deployed')
-            latest_version.deployed = True
-            latest_version.save()
-            asset.deploy(active=validated_data['active'])
+
+        # A regular PATCH request can update only the `active` field
+        if 'active' in validated_data:
+            asset.deploy(validated_data['active'])
             asset.save(create_version=False,
                        adjust_content=False)
-        else:
-            # A regular PATCH request can update only the `active` field
-            latest_version.deployed = True
-            latest_version.save()
-            if 'active' in validated_data:
-                asset.deploy(validated_data['active'])
-                asset.save(create_version=False,
-                           adjust_content=False)
         return deployment
 
 

@@ -17,11 +17,14 @@ class DeployableMixin:
             raise KeyError('connect_deployment requires an argument: backend')
 
     def deploy(self, backend=False, active=True):
+        '''this method could be called "deploy_latest_version()".'''
         if not self.has_deployment:
             self.connect_deployment(backend=backend, active=active)
         else:
             self.deployment.redeploy(active=active)
-        self._deployed = True
+        latest_version = self.latest_version
+        latest_version.deployed = True
+        latest_version.save()
 
     @property
     def has_deployment(self):

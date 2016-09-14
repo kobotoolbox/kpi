@@ -3,6 +3,8 @@
 
 from django.test import TestCase
 from kpi.models.asset import Asset
+from kpi.models.asset_version import AssetVersion
+
 
 class CreateDeployment(TestCase):
     def setUp(self):
@@ -54,19 +56,17 @@ class MockDeployment(TestCase):
         self.assertEqual(self.asset._deployment_data['active'], False)
 
     def test_redeploy(self):
+        av_count_0 = AssetVersion.objects.count()
         _v1_uid = self.asset.latest_version.uid
         self.asset.deployment.set_active(True)
-        self.asset.save()
+        av_count_1 = AssetVersion.objects.count()
         _v2_uid = self.asset.latest_version.uid
-        self.assertEqual(self.asset.latest_deployed_version.uid, _v2_uid)
 
-        # version uid changed
-        self.assertNotEqual(_v1_uid, _v2_uid)
+        # version should not have changed
 
-        self.assertEqual(self.asset._deployment_data['active'], True)
-        self.asset.deploy(active=True)
-        self.asset.save()
-        _v3_uid = self.asset.asset_versions.first().uid
+        self.assertEqual(av_count_0, av_count_1)
+        self.assertEqual(_v1_uid, _v2_uid)
+        # self.assertEqual(self.asset.latest_deployed_version.uid, _v2_uid)
 
-        # version uid changed
-        self.assertNotEqual(_v2_uid, _v3_uid)
+        self.asset.deployment.set_active(False)
+        self.assertEqual(self.asset._deployment_data['active'], False)
