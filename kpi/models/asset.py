@@ -419,7 +419,7 @@ class AssetSnapshot(models.Model, XlsExportable):
         if _no_source and asset and not asset_version:
             asset = kwargs.get('asset')
             kwargs['asset_version'] = asset.asset_versions.first()
-        return super(AssetSnapshot, self).__init__(*args, **kwargs)
+        super(AssetSnapshot, self).__init__(*args, **kwargs)
 
     @property
     def content(self):

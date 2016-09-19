@@ -6,7 +6,7 @@ class BaseDeploymentBackend:
     def __init__(self, asset):
         self.asset = asset
 
-    def store_data(self, vals={}):
+    def store_data(self, vals=None):
         self.asset._deployment_data.update(vals)
 
     @property

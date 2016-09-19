@@ -23,8 +23,7 @@ class KobocatDeploymentException(exceptions.APIException):
     def __init__(self, *args, **kwargs):
         if 'response' in kwargs:
             self.response = kwargs.pop('response')
-        return super(KobocatDeploymentException, self).__init__(
-            *args, **kwargs)
+        super(KobocatDeploymentException, self).__init__(*args, **kwargs)
 
     @property
     def invalid_form_id(self):
