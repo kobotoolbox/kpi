@@ -92,9 +92,11 @@ class TagStringMixin:
 
 class XlsExportable(object):
     def valid_xlsform_content(self):
-        _flattened_content = copy.deepcopy(self.content)
-        flatten_content(_flattened_content)
-        return to_xlsform_structure(_flattened_content)
+        try:
+            _c = flatten_content(self.content, in_place=False)
+        except Exception as e:
+            raise
+        return to_xlsform_structure(_c)
 
     def to_xls_io(self, extra_rows=None, extra_settings=None,
                   overwrite_settings=False):
@@ -242,7 +244,7 @@ class Asset(ObjectPermissionMixin,
     #     self.name = _version_to_restore.name
 
     def to_ss_structure(self):
-        return flatten_content(copy.deepcopy(self.content))
+        return flatten_content(self.content, in_place=False)
 
     def _pull_form_title_from_settings(self):
         if self.asset_type != 'survey':
@@ -273,7 +275,7 @@ class Asset(ObjectPermissionMixin,
                 self._strip_empty_rows(
                     self.content['survey'], required_key='type')
                 self._assign_kuids(self.content['survey'])
-                expand_content(self.content)
+                expand_content(self.content, in_place=True)
             if 'choices' in self.content:
                 self._strip_empty_rows(
                     self.content['choices'], required_key='name')
