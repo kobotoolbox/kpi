@@ -2,6 +2,9 @@
 import moment from 'moment';
 import alertify from 'alertifyjs';
 import $ from 'jquery';
+import cookie from 'react-cookie';
+
+export const LANGUAGE_COOKIE_NAME = 'django_language';
 
 export var assign = require('react/lib/Object.assign');
 
@@ -11,7 +14,7 @@ export function notify(msg, atype='success') {
 
 export function formatTime(timeStr) {
   var _m = moment(timeStr);
-  return _m.fromNow();
+  return _m.calendar(null, {sameElse: 'LL'});
 }
 
 export var anonUsername = 'AnonymousUser';
@@ -128,6 +131,10 @@ if (window.gettext) {
 export function t(str) {
   return _gettext(str);
 };
+export function currentLang() {
+  return cookie.load(LANGUAGE_COOKIE_NAME) || 'en';
+}
+
 
 log.t = function () {
   let _t = {};

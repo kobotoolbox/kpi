@@ -1,0 +1,58 @@
+@media print {
+  body {
+    background: transparent !important;
+    overflow: visible !important;
+  }
+  body .kpiapp,
+  body .mdl-wrapper,
+  body .mdl-layout,
+  body .ui-panel,
+  body .ui-panel__body,
+  body .mdl-layout__content,
+  body .mdl-layout__content > div {
+    height: auto !important;
+    overflow: visible;
+  }
+  body .mdl-layout {
+    display: block;
+    overflow: visible;
+    max-width: auto;
+  }
+  .mdl-layout__content {
+    // Fixes Firefox one-page print bug
+    display: block;
+    // Todo: fix bug with Chrome on Mac (at least), below line does not get applied
+    margin-left: 0px;
+  }
+  .k-drawer, .mdl-layout__header {
+    display: none;
+  }
+  .form-view__reportButtons {
+    display: none;
+  }
+  .report-view__chart {
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+  a[href]:after, abbr[title]:after {
+    content: "";
+  }
+  .form-view__row {
+    display: block;
+  }
+  .form-view__cell {
+    width: auto;
+  }
+  .report-view__chart {
+    page-break-inside: avoid;
+  }
+  .report-view__item {
+    page-break-inside: avoid;
+  }
+}
+
+@media only screen {
+  .print-only {
+    display: none;
+  }
+}

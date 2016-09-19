@@ -61,7 +61,7 @@ class AssetContentTests(AssetsTestCase):
               'name': 'q_yn',
               'label': 'Yes or No'}
         if select_from:
-            r1['select_from'] = select_from
+            r1['select_from_list_name'] = select_from
         return {'survey': [r1], 'choices': [
             {'list_name': 'yn', 'name': 'y', 'label': 'Yes'},
             {'list_name': 'yn', 'name': 'n', 'label': 'No'},
@@ -102,7 +102,7 @@ class AssetContentTests(AssetsTestCase):
         a1 = Asset.objects.create(content=content, asset_type='survey')
         r1 = a1.content.get('survey')[0]
         self.assertEqual(r1['type'], 'select_one')
-        self.assertEqual(r1['select_from'], 'abc')
+        self.assertEqual(r1['select_from_list_name'], 'abc')
 
 
 class AssetSettingsTests(AssetsTestCase):

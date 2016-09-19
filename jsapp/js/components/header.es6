@@ -9,14 +9,16 @@ import stores from '../stores';
 import Reflux from 'reflux';
 import bem from '../bem';
 import actions from '../actions';
-import {t, assign} from '../utils';
+import {
+  t,
+  assign,
+  currentLang,
+} from '../utils';
 import searches from '../searches';
 import cookie from 'react-cookie';
 import hotkey from 'react-hotkey';
 
 hotkey.activate();
-
-const LANGUAGE_COOKIE_NAME = 'django_language';
 
 import {
   ListSearch,
@@ -59,7 +61,7 @@ var MainHeader = React.createClass({
       showFormViewHeader: false,
       dataPopoverShowing: false, 
       asset: false,
-      currentLang: cookie.load(LANGUAGE_COOKIE_NAME) || 'en',
+      currentLang: currentLang(),
       libraryFiltersContext: searches.getSearchContext('library', {
         filterParams: {
           assetType: 'asset_type:question OR asset_type:block',

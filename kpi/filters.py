@@ -108,7 +108,7 @@ class SearchFilter(filters.BaseFilterBackend):
         if not search_backend.setup_complete:
             search_backend.setup()
         searcher = search_backend.index.searcher()
-        query = QueryParser('content', search_backend.index.schema).parse(
+        query = QueryParser('text', search_backend.index.schema).parse(
             request.query_params['q'])
         results = searcher.search(
             query, scored=False, sortedby=None, limit=None)
