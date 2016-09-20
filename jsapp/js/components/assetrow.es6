@@ -93,7 +93,8 @@ var AssetRow = React.createClass({
         hrefKey = isCollection ? 'uid' : 'assetid',
         hrefParams = {},
         tags = this.props.tags || [],
-        ownedCollections = [];
+        ownedCollections = [], 
+        parent = undefined;
     if (isCollection) {
       _rc = this.props.assets_count + this.props.children_count;
     }
