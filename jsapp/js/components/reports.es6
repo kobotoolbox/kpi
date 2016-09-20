@@ -252,13 +252,13 @@ var Reports = React.createClass({
       let rowsByIdentifier = {};
       let names = [];
       let reportStyles = asset.report_styles;
-      let defaultReportStyle = reportStyles.default;
-      let specifiedReportStyles = reportStyles.specified;
+      let defaultReportStyle = reportStyles.default || {};
+      let specifiedReportStyles = reportStyles.specified || {};
 
       if (asset.content.survey != undefined) {
         asset.content.survey.forEach(function(r){
           let $identifier = r.name || r.$kuid,
-            style = specifiedReportStyles[$identifier];
+            style = specifiedReportStyles[$identifier] || {};
           r._reportStyle = style;
           rowsByKuid[r.$kuid] = r;
           rowsByIdentifier[$identifier] = r;
