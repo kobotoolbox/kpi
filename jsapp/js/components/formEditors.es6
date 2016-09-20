@@ -24,6 +24,7 @@ import {dataInterface} from '../dataInterface';
 import {
   t,
   redirectTo,
+  assign,
 } from '../utils';
 
 var ProjectSettings = React.createClass({
@@ -66,7 +67,7 @@ var ProjectSettings = React.createClass({
       'share-metadata': false
     }
     if (this.props.initialData !== undefined) {
-      Object.assign(state, this.props.initialData);
+      assign(state, this.props.initialData);
     }
     return state;
   },
@@ -269,7 +270,7 @@ export var ProjectSettingsEditor = React.createClass({
       owner: this.props.asset.owner__username,
       assetid: this.props.asset.uid
     };
-    Object.assign(initialData, this.props.asset.settings);
+    assign(initialData, this.props.asset.settings);
     return (
       <ProjectSettings
         onSubmit={this.updateAsset}
