@@ -180,6 +180,7 @@ var MainHeader = React.createClass({
       var gravatar = stores.session.currentAccount.gravatar || defaultGravatarImage;
 
       langs = stores.session.currentAccount.languages;
+
       return (
         <bem.AccountBox>
           <bem.AccountBox__notifications className="is-edge">
@@ -197,42 +198,43 @@ var MainHeader = React.createClass({
             <bem.AccountBox__image>
               <img src={gravatar} />
             </bem.AccountBox__image>
-
-            { (this.state.accountMenuPopoverShowing) ? 
-              <bem.PopoverMenu ref='accountMenu-popover'>
-                <ul className="k-account__menu">
-                  <li className="k-account__submenu" key="settings">
-                    <a onClick={this.accountSettings} className="mdl-menu__item">
-                      <i className="k-icon-settings" />
-                      {t('Account Settings')}
-                    </a>
-                  </li>
-                  {leaveBetaUrl ?
-                    <li>
-                      <a href={leaveBetaUrl} className="mdl-menu__item">
-                        <i className="k-icon-settings" />
-                        {t('Leave Beta')}
-                      </a>
-                    </li>
-                  :null}
-                  <li className="k-lang__submenu" key="lang">
-                    <a className="mdl-menu__item">
-                      <i className="fa fa-globe" />
-                      {t('Language')}
-                    </a>
-                    <ul>
-                      {langs.map(this.renderLangItem)}
-                    </ul>
-                  </li>
-                  <li key="logout">
-                    <a onClick={this.logout} className="mdl-menu__item">
-                      <i className="k-icon-logout" /> 
-                      {t('Logout')}</a>
-                    </li>
-                </ul>
-              </bem.PopoverMenu>
-            : null }
           </bem.AccountBox__name>
+
+          { (this.state.accountMenuPopoverShowing) ? 
+            <bem.PopoverMenu ref='accountMenu-popover'>
+              <ul className="k-account__menu">
+                <li className="k-account__submenu" key="settings">
+                  <a onClick={this.accountSettings} className="mdl-menu__item">
+                    <i className="k-icon-settings" />
+                    {t('Account Settings')}
+                  </a>
+                </li>
+                {leaveBetaUrl ?
+                  <li>
+                    <a href={leaveBetaUrl} className="mdl-menu__item">
+                      <i className="k-icon-settings" />
+                      {t('Leave Beta')}
+                    </a>
+                  </li>
+                :null}
+                <li className="k-lang__submenu" key="lang">
+                  <a className="mdl-menu__item">
+                    <i className="fa fa-globe" />
+                    {t('Language')}
+                  </a>
+                  <ul>
+                    {langs.map(this.renderLangItem)}
+                  </ul>
+                </li>
+                <li key="logout">
+                  <a onClick={this.logout} className="mdl-menu__item">
+                    <i className="k-icon-logout" /> 
+                    {t('Logout')}</a>
+                  </li>
+              </ul>
+            </bem.PopoverMenu>
+          : null }
+
         </bem.AccountBox>
         );
     }
