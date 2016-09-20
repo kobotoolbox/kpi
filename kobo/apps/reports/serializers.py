@@ -2,7 +2,7 @@
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
-import report_data as get_report
+import report_data
 
 
 class ReportsListSerializer(serializers.BaseSerializer):
@@ -20,8 +20,8 @@ class ReportsDetailSerializer(serializers.BaseSerializer):
             vnames = filter(lambda x: len(x) > 1,
                             request.query_params.get('names', '').split(','))
         else:
-            vnames = get_report._vnames(obj)
-        _list = get_report.data_by_identifiers(obj, vnames)
+            vnames = None
+        _list = report_data.data_by_identifiers(obj, vnames)
 
         return {
             'url': reverse('reports-detail', args=(obj.uid,), request=request),

@@ -34,6 +34,16 @@ def data_by_identifiers(asset, field_names=None, submission_stream=None,
         _userform_id = asset.deployment.mongo_userform_id
         submission_stream = get_instances_for_userform_id(_userform_id)
     schemas = [v.to_formpack_schema() for v in asset.deployed_versions]
+
+    _version_id = schemas[0]['version']
+    _version_id_key = schemas[0].get('version_id_key', '__version__')
+
+    def _inject_version_id(result):
+        if _version_id_key not in result:
+            result[_version_id_key] = _version_id
+        return result
+    submission_stream = (_inject_version_id(result)
+                         for result in submission_stream)
     pack = FormPack(versions=schemas, id_string=asset.uid)
     _all_versions = pack.versions.keys()
     report = pack.autoreport(versions=_all_versions)
@@ -44,6 +54,7 @@ def data_by_identifiers(asset, field_names=None, submission_stream=None,
         report_styles = asset.report_styles
     specified_styles = report_styles.get('specified', {})
     kuids = report_styles.get('kuid_names', {})
+
     def _package_stat(field, label_or_name, stat):
         identifier = kuids.get(field.name)
         return {

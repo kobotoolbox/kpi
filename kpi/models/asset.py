@@ -363,11 +363,12 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def latest_version(self):
-        return self.asset_versions.first()
+        return self.asset_versions.order_by('-date_modified').first()
 
     @property
     def deployed_versions(self):
-        return self.asset_versions.filter(deployed=True)
+        return self.asset_versions.filter(deployed=True).order_by(
+                                          '-date_modified')
 
     @property
     def latest_deployed_version(self):

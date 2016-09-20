@@ -127,6 +127,45 @@ class MockDataReports(TestCase):
         self.assertEqual(values[0]['data']['frequency'][0][0],
                          u'\u0627\u0644\u062e\u064a\u0627\u0631 \u0627\u0644\u0623\u0648\u0644')
 
+    def test_export_works_if_no_version_value_provided_in_submission(self):
+        submissions = self.asset.deployment._get_submissions()
+
+        for submission in submissions:
+            del submission['__version__']
+
+        values = report_data.data_by_identifiers(self.asset,
+                                                 field_names=['Date', 'Decimal'],
+                                                 submission_stream=submissions)
+
+        (date_stats, decimal_stats) = values
+        self.assertEqual(date_stats['data'], {
+          'provided': 4,
+          'total_count': 4,
+          'stdev': 0.9574271077563381,
+          'median': 3.0,
+          'show_graph': False,
+          'mode': 3.5,
+          'not_provided': 0,
+          'mean': 2.75,
+        })
+        self.assertEqual(decimal_stats['data'], {
+            u'provided': 4, u'frequency': [
+                (u'2016-06-01', 1),
+                (u'2016-06-02', 1),
+                (u'2016-06-03', 1),
+                (u'2016-06-05', 1)
+            ],
+            u'show_graph': True,
+            u'not_provided': 0,
+            u'total_count': 4,
+            u'percentage': [
+                (u'2016-06-01', 25.0),
+                (u'2016-06-02', 25.0),
+                (u'2016-06-03', 25.0),
+                (u'2016-06-05', 25.0),
+            ]
+        })
+
     def test_has_report_styles(self):
         self.assertTrue(self.asset.report_styles is not None)
 
