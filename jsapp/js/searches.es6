@@ -37,6 +37,7 @@ const clearSearchState = {
   searchDebugQuery: false,
   searchResultsCount: 0,
   parentUid: false,
+  parentName: false,
   allPublic: false,
 };
 const initialState = assign({
@@ -129,6 +130,9 @@ function SearchContext(opts={}) {
       if (this.state.parentUid) {
         params.parentUid = `parent__uid:${this.state.parentUid}`;
       }
+      if (this.state.parentName) {
+        params.parentName = this.state.parentName;
+      }
       if (this.state.allPublic === true) {
         params.allPublic = true;
       }
@@ -167,6 +171,9 @@ function SearchContext(opts={}) {
       if ('allPublic' in searchParams) {
         queryData.all_public = searchParams.allPublic;
         delete searchParams.allPublic;
+      }
+      if ('parentName' in searchParams) {
+        delete searchParams.parentName;
       }
       paramGroups = paramGroups.concat(_.values(searchParams));
       if (paramGroups.length > 1) {

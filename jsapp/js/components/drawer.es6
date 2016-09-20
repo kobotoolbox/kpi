@@ -248,15 +248,20 @@ var LibrarySidebar = React.createClass({
     }
     var data = $(evt.currentTarget).data();
     var collectionUid = false;
+    var collectionName = false;
     var publicCollection = false;
     if (data.collectionUid) {
       collectionUid = data.collectionUid;
+    }
+    if (data.collectionName) {
+      collectionName = data.collectionName;
     }
     if (data.publicCollection) {
       publicCollection = true;
     }
     this.quietUpdateStore({
       parentUid: collectionUid,
+      parentName: collectionName,
       allPublic: publicCollection
     });
     this.searchValue();
@@ -275,6 +280,7 @@ var LibrarySidebar = React.createClass({
         name: val,
       }).then((data)=>{
         this.queryCollections();
+        this.searchValue.refresh();
       });
     });
   },
@@ -295,8 +301,6 @@ var LibrarySidebar = React.createClass({
       actions.resources.updateCollection(collectionUid, {name: val}).then(
         (data) => {
           this.queryCollections();
-          var popoverMenu = $(this.refs['collection-popover'].getDOMNode());
-          popoverMenu.fadeOut();
         }
       );
     });
@@ -426,11 +430,12 @@ var LibrarySidebar = React.createClass({
               switch (collection.access_type) {
                 case 'public':
                 case 'subscribed':
-                  iconClass = 'k-icon-globe';
+                  iconClass = 'k-icon-pubfolder';
                   break;
                 case 'shared':
-                  iconClass = 'k-icon-folder-share';
+                  iconClass = 'k-icon-shared-folder';
               }
+
               return (
                   <bem.CollectionSidebar__item
                     key={collection.uid}
@@ -442,24 +447,15 @@ var LibrarySidebar = React.createClass({
                         !this.state.filteredByPublicCollection,
                     }}
                     onClick={this.clickFilterByCollection}
-                    data-collection-uid={collection.uid}
+                    data-collection-uid={collection.uid} 
+                    data-collection-name={collection.name}
                   >
-                    { this.state.filteredCollectionUid === collection.uid &&
+                    { !this.state.filteredByPublicCollection && this.state.filteredCollectionUid === collection.uid &&
 
                       <ui.MDLPopoverMenu id={"cog-" + collection.uid}
                                         button_type='cog-icon' 
                                         classname='collection-cog'
                                         menuClasses='mdl-menu mdl-menu--bottom-left mdl-js-menu'>
-                        { collection.access_type === 'subscribed' &&
-
-                          <bem.PopoverMenu__link
-                              m={'unsubscribe'}
-                              onClick={this.unsubscribeCollection}
-                              data-collection-uid={collection.uid}
-                              >
-                            {t('Unsubscribe')}
-                          </bem.PopoverMenu__link>
-                        }
                         { collection.access_type === 'owned' && collection.discoverable_when_public &&
                           <bem.PopoverMenu__link
                               m={'make-private'}
@@ -478,31 +474,49 @@ var LibrarySidebar = React.createClass({
                             {t('Make Public')}
                           </bem.PopoverMenu__link>
                         }
+                        { collection.access_type !== 'subscribed' &&
+                          <bem.PopoverMenu__link
+                              m={'share'}
+                              href={sharingLink}
+                              >
+                            <i className="k-icon-share" />
+                            {t('Share')}
+                          </bem.PopoverMenu__link>
+                        }
 
-                        <bem.PopoverMenu__link
-                            m={'share'}
-                            href={sharingLink}
-                            >
-                          <i className="k-icon-share" />
-                          {t('Share')}
-                        </bem.PopoverMenu__link>
-                        <bem.PopoverMenu__link
-                            m={'rename'}
-                            onClick={this.renameCollection}
-                            data-collection-uid={collection.uid}
-                            data-collection-name={collection.name}
-                            >
-                          <i className="k-icon-edit" />
-                          {t('Rename')}
-                        </bem.PopoverMenu__link>
-                        <bem.PopoverMenu__link
-                            m={'delete'}
-                            onClick={this.deleteCollection}
-                            data-collection-uid={collection.uid}
-                            >
-                          <i className="k-icon-trash" />
-                          {t('Delete')}
-                        </bem.PopoverMenu__link>
+                        { collection.access_type !== 'subscribed' &&
+                          <bem.PopoverMenu__link
+                              m={'rename'}
+                              onClick={this.renameCollection}
+                              data-collection-uid={collection.uid}
+                              data-collection-name={collection.name}
+                              >
+                            <i className="k-icon-edit" />
+                            {t('Rename')}
+                          </bem.PopoverMenu__link>
+                        }
+                        { collection.access_type !== 'subscribed' &&
+                          <bem.PopoverMenu__link
+                              m={'delete'}
+                              onClick={this.deleteCollection}
+                              data-collection-uid={collection.uid}
+                              >
+                            <i className="k-icon-trash" />
+                            {t('Delete')}
+                          </bem.PopoverMenu__link>
+                        }
+                        { collection.access_type === 'subscribed' &&
+
+                          <bem.PopoverMenu__link
+                              m={'unsubscribe'}
+                              onClick={this.unsubscribeCollection}
+                              data-collection-uid={collection.uid}
+                              >
+                            <i className="k-icon-trash" />
+                            {t('Unsubscribe')}
+                          </bem.PopoverMenu__link>
+                        }
+
                       </ui.MDLPopoverMenu>
                     }
                     <i className={iconClass} />
@@ -543,26 +557,33 @@ var LibrarySidebar = React.createClass({
                     data-collection-uid={collection.uid}
                     data-public-collection={true}
                   >
-                    <i className="k-icon-globe" />
+                    {this.state.filteredCollectionUid === collection.uid && this.state.filteredByPublicCollection && 
+                      <ui.MDLPopoverMenu id={"pub-cog-" + collection.uid}
+                                        button_type='cog-icon' 
+                                        classname='collection-cog'
+                                        menuClasses='mdl-menu mdl-menu--bottom-left mdl-js-menu'>
+                        { collection.access_type === 'subscribed' ?
+                            <bem.PopoverMenu__link href={'#'}
+                              onClick={this.unsubscribeCollection}
+                              data-collection-uid={collection.uid}>
+                              <i className="k-icon-next" />
+                              {t('unsubscribe')}
+                            </bem.PopoverMenu__link>
+                          :
+                            <bem.PopoverMenu__link href={'#'}
+                              onClick={this.subscribeCollection}
+                              data-collection-uid={collection.uid}>
+                              <i className="k-icon-next" />
+                              {t('subscribe')}
+                            </bem.PopoverMenu__link>
+                        }
+                      </ui.MDLPopoverMenu>
+                    }
+                    <i className="k-icon-pubfolder" />
                     {collection.name}
                     <bem.CollectionSidebar__itembyline>
                     {t('by ___').replace('___', collection.owner__username)}
                     </bem.CollectionSidebar__itembyline>
-                    <bem.CollectionSidebar__itemactions>
-                      { collection.access_type === 'subscribed' ?
-                          <bem.CollectionSidebar__itemlink href={'#'}
-                            onClick={this.unsubscribeCollection}
-                            data-collection-uid={collection.uid}>
-                            {t('unsubscribe')}
-                          </bem.CollectionSidebar__itemlink>
-                        :
-                          <bem.CollectionSidebar__itemlink href={'#'}
-                            onClick={this.subscribeCollection}
-                            data-collection-uid={collection.uid}>
-                            {t('subscribe')}
-                          </bem.CollectionSidebar__itemlink>
-                      }
-                    </bem.CollectionSidebar__itemactions>
                   </bem.CollectionSidebar__item>
                 );
             })}

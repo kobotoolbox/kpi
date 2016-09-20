@@ -115,18 +115,20 @@ var ProjectSettings = React.createClass({
 
     return (
       <bem.FormModal__form onSubmit={this.onSubmit}>
-        <bem.FormModal__item m='actions'>
-        <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--bordered">
-            {this.props.submitButtonValue}
-          </button>
-        </bem.FormModal__item>
+        {this.props.context == 'existingForm' && 
+          <bem.FormModal__item m='actions'>
+          <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--bordered">
+              {this.props.submitButtonValue}
+            </button>
+          </bem.FormModal__item>
+        }
+
         <bem.FormModal__item m='wrapper'>
-          {this.state.assetid && 
+          {this.props.context == 'existingForm' && 
             <bem.FormModal__item m='sharing'>
               <a href={this.makeHref('form-sharing', {assetid: this.state.assetid})} className="mdl-button mdl-js-button mdl-button--bordered mdl-button--gray-border">
                 {t('Share')}
               </a>
-
               <label>{t('Sharing Permissions')}</label>
               <label className="long">
                 {t('Allow others to access your project.')}
@@ -203,7 +205,17 @@ var ProjectSettings = React.createClass({
               {t('Share the sector and country with developers')}
             </label>
           </bem.FormModal__item>
-          <iframe src={this.props.iframeUrl} />
+
+          {this.props.context == 'existingForm' && this.props.iframeUrl &&
+            <iframe src={this.props.iframeUrl} />
+          }
+          {this.props.context == 'newForm' &&
+            <bem.FormModal__item m='actions'>
+            <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--bordered">
+                {this.props.submitButtonValue}
+              </button>
+            </bem.FormModal__item>
+          }
         </bem.FormModal__item>
       </bem.FormModal__form>
     );
@@ -242,6 +254,7 @@ export var NewForm = React.createClass({
       <ProjectSettings
         onSubmit={this.createAsset}
         submitButtonValue={t('Create project')}
+        context='newForm'
       />
       </ui.Modal>
     );
@@ -277,6 +290,7 @@ export var ProjectSettingsEditor = React.createClass({
         submitButtonValue={t('Save Changes')}
         initialData={initialData}
         iframeUrl={this.props.iframeUrl}
+        context='existingForm'
       />
     );
   },

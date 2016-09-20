@@ -1318,6 +1318,10 @@ mixins.clickAssets = {
           this.transitionTo(`${this.baseName}form-landing`, {assetid: uid});
         });
       },
+      sharing: function(uid){
+        this.transitionTo(`${this.baseName}form-sharing`, {assetid: uid});
+      },
+
     }
   },
 };
