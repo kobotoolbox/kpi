@@ -5,6 +5,7 @@
   white-space: nowrap;
   transition: max-height 0.5s ease, opacity 0.5s ease;
   max-height: 200px;
+  min-height:55px;
   opacity: 1;
   position: relative;
   a, a:hover {
@@ -67,9 +68,14 @@
     text-align: right;
   }
 
+  .asset-row__cell--date-created, 
+  .asset-row__cell--date-modified {
+    font-size: 13px;
+  }
+
   > .asset-row__buttons {
     position: absolute;
-    top: 3px;
+    top: 8px;
     right: 0px;
     background:#FFF;
     width:0;
