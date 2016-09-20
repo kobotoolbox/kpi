@@ -688,8 +688,9 @@ export default assign({
   },
   render () {
     var isSurvey = this.app && !isLibrary(this.context.router);
+    var docTitle = this.state.name || t('Untitled');
     return (
-        <DocumentTitle title={this.state.name || t('Untitled')}>
+        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
           <ui.Panel m={'transparent'}>
             <bem.FormBuilder m={this.state.formStylePanelDisplayed ? 'formStyleDisplayed': null }>
               {this.renderSaveAndPreviewButtons()}

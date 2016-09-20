@@ -12,6 +12,8 @@ import Select from 'react-select';
 import ui from '../ui';
 import mixins from '../mixins';
 import mdl from '../libs/rest_framework/material';
+import DocumentTitle from 'react-document-title';
+
 import {
   ProjectSettingsEditor,
   ProjectDownloads
@@ -80,18 +82,22 @@ var FormData = React.createClass({
       }
     }
 
+    var docTitle = this.state.name || t('Untitled');
+
     return (
-            <bem.FormView>
-              <bem.FormView__wrapper>
-                <bem.FormView__cell m='iframe'>
-                  {this.state.name != undefined && this.state.currentRoute.name == 'form-data-settings' ? 
-                    <ProjectSettingsEditor asset={this.state} iframeUrl={iframeUrl} />
-                  : 
-                    <iframe src={iframeUrl} />
-                  }
-                </bem.FormView__cell>
-              </bem.FormView__wrapper>              
-            </bem.FormView>
+        <DocumentTitle title={`${docTitle} | KoboToolbox`}>      
+          <bem.FormView>
+            <bem.FormView__wrapper>
+              <bem.FormView__cell m='iframe'>
+                {this.state.name != undefined && this.state.currentRoute.name == 'form-data-settings' ? 
+                  <ProjectSettingsEditor asset={this.state} iframeUrl={iframeUrl} />
+                : 
+                  <iframe src={iframeUrl} />
+                }
+              </bem.FormView__cell>
+            </bem.FormView__wrapper>              
+          </bem.FormView>
+        </DocumentTitle>
       );
   },
   componentDidUpdate() {

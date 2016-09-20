@@ -9,6 +9,8 @@ import {dataInterface} from '../dataInterface';
 import bem from '../bem';
 import mdl from '../libs/rest_framework/material';
 import AssetRow from './assetrow';
+import DocumentTitle from 'react-document-title';
+
 import {
   parsePermissions,
   t,
@@ -182,12 +184,16 @@ var SearchCollectionList = React.createClass({
 
   render () {
     var s = this.state;
+    var docTitle = '';
     if (this.props.searchContext.store.filterTags == 'asset_type:survey') {
       var display = 'grouped';
+      docTitle = t('Projects');
     } else {
       var display = 'regular';
+      docTitle = t('Library');
     }
     return (
+      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.List m={display}>
           {
             (()=>{
@@ -260,6 +266,7 @@ var SearchCollectionList = React.createClass({
           }
           </bem.AssetList>
         </bem.List>
+      </DocumentTitle>
       );
   },
   componentDidUpdate() {
