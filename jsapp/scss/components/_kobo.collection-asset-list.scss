@@ -10,17 +10,19 @@
     padding-top: 20px;
     margin-top: 0px;
     margin-bottom: 0px;
+    font-size: 13px;
     &:after {
       content: '';
       height: 100%;
       width: 1px;
       background-color: transparentize($cool-gray, 0.7);
-      right: 2px;
+      right: -4px;
       top: 0px;
       position: absolute;
     }
-    &.asset-list-sorts__item--questions, &.asset-list-sorts__item--submissions {
-      text-align: right;
+    &.asset-list-sorts__item--questions, 
+    &.asset-list-sorts__item--submissions {
+      letter-spacing: -0.02em;
       &:after {
         display: none;
       }

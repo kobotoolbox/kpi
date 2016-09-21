@@ -20,6 +20,9 @@
     > .asset-row__cell {
       min-width: 0;
       vertical-align: top;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow:ellipsis;
     }
   }
   &:last-child {
@@ -61,11 +64,6 @@
   .asset-row__cell--tags {
     white-space: normal;
     padding-top: 30px;
-  }
-
-  .asset-row__cell--row-count {
-    position: relative;
-    text-align: right;
   }
 
   .asset-row__cell--date-created, 
