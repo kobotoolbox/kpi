@@ -172,6 +172,7 @@ if KPI_PREFIX and KPI_PREFIX != '/':
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'jsapp'),
     os.path.join(BASE_DIR, 'static'),
+    ('mocha', os.path.join(BASE_DIR, 'node_modules', 'mocha'),),
 )
 
 from cachebuster.detectors import git

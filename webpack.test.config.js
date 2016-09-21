@@ -11,5 +11,5 @@ module.exports = WebpackConfig({
   failOnError: true,
   outputDir: path.resolve(__dirname, 'test', 'compiled'),
   outputHash: false,
-  devTool: 'eval'
+  // devTool: 'eval'
 });

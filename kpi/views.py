@@ -95,6 +95,10 @@ def home(request):
     return TemplateResponse(request, "index.html")
 
 
+def browser_tests(request):
+    return TemplateResponse(request, "browser_tests.html")
+
+
 class NoUpdateModelViewSet(
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,

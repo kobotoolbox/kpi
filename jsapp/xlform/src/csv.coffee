@@ -175,6 +175,12 @@ module.exports = do ->
     # * Delimiters
     # * quoted fields
     # * and standard fields
+
+    ###
+    this regexp needs to be compiled with coffee-script 1.6.3
+    or, escape characters need to be escaped (see csv._objPattern
+    below this comment)
+
     csv._objPattern = ///
       (
         \ #{strDelimiter}
@@ -214,6 +220,9 @@ module.exports = do ->
         )
       )
     ///gi
+    ###
+
+    csv._objPattern = `new RegExp('(\\,|\\r?\\n|\\r|^)(?:"((?:(?:[^\\\\]|\\\\\\\\|[\\\\(?=")]"|[\\\\(?!")])*?))"|([^"\\,\\r\\n]*))', 'gi')`
 
     while arrMatches = csv._objPattern.exec(strData)
       strMatchedDelimiter = arrMatches[1]
