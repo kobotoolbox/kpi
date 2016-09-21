@@ -10,7 +10,6 @@ import bem from '../bem';
 import mdl from '../libs/rest_framework/material';
 import AssetRow from './assetrow';
 import DocumentTitle from 'react-document-title';
-import Waypoints from 'waypoints/lib/noframework.waypoints';
 import $ from 'jquery';
 
 import {
