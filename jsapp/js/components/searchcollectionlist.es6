@@ -10,6 +10,8 @@ import bem from '../bem';
 import mdl from '../libs/rest_framework/material';
 import AssetRow from './assetrow';
 import DocumentTitle from 'react-document-title';
+import Waypoints from 'waypoints/lib/noframework.waypoints';
+import $ from 'jquery';
 
 import {
   parsePermissions,
@@ -33,7 +35,8 @@ var SearchCollectionList = React.createClass({
     }
     return {
       selectedCategories: selectedCategories,
-      ownedCollections: []
+      ownedCollections: [],
+      fixedHeadings: ''
     };
   },
   getDefaultProps () {
@@ -70,6 +73,14 @@ var SearchCollectionList = React.createClass({
             }
           })
         });
+      });
+    }
+  },
+  handleScroll: function(event) {
+    if (this.props.searchContext.store.filterTags == 'asset_type:survey') {
+      let offset = $(event.target).children('.asset-list').offset().top;
+      this.setState({
+        fixedHeadings: offset < 0 ? 'fixed-headings' : ''
       });
     }
   },
@@ -194,7 +205,7 @@ var SearchCollectionList = React.createClass({
     }
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <bem.List m={display}>
+        <bem.List m={display} onScroll={this.handleScroll}>
           {
             (()=>{
               if (display == 'regular') {
@@ -202,7 +213,7 @@ var SearchCollectionList = React.createClass({
               }
             })()
           }
-          <bem.AssetList>
+          <bem.AssetList m={this.state.fixedHeadings}>
           {
             (()=>{
               if (s.searchResultsDisplayed) {

@@ -122,3 +122,31 @@ div.library {
     }
   }
 }
+
+// fixed headings when scrolling asset list
+
+.asset-list--fixed-headings {
+  .asset-list-sorts {
+    display: none;
+  }
+  > :nth-child(2) {
+    .asset-list-sorts {
+      display: flex;
+      position: fixed;
+      width:calc(100% - 270px);
+      top:62px;
+      background: #FFF;
+      z-index:99;
+      overflow: hidden;
+      box-shadow: 0px 2px 4px 2px rgba( 0, 0, 0, 0.04);
+    }
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .asset-list--fixed-headings {
+    > :nth-child(2) .asset-list-sorts {
+      width:calc(100% - 22px);
+    }
+  }
+}
