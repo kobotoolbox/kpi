@@ -11,6 +11,7 @@ import stores from '../stores';
 import Select from 'react-select';
 import ui from '../ui';
 import mdl from '../libs/rest_framework/material';
+import DocumentTitle from 'react-document-title';
 
 import ReportViewItem from './reportViewItem';
 
@@ -492,13 +493,16 @@ var Reports = React.createClass({
         rowsByKuid = this.state.rowsByKuid,
         explicitStyles,
         explicitStylesList = [],
-        defaultStyle;
+        defaultStyle, 
+        docTitle = t('Report');
     if (asset && asset.content) {
       explicitStyles = this.state.reportStyles.specified || {};
       defaultStyle = this.state.reportStyles.default || {};
 
       defaultStyle.graphWidth = this.state.graphWidth;
       defaultStyle.graphHeight = this.state.graphHeight;
+
+      docTitle = asset.name || t('Untitled');
     }
 
     let translations = false;
@@ -509,6 +513,7 @@ var Reports = React.createClass({
     }
 
     return (
+      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.ReportView>
           {this.renderReportButtons()}
           {this.state.asset ?
@@ -575,6 +580,7 @@ var Reports = React.createClass({
  
           : null}
         </bem.ReportView>
+      </DocumentTitle>
       );
   },
   componentDidUpdate() {

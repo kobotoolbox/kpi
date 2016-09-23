@@ -5,12 +5,16 @@ import {Navigation} from 'react-router';
 import searches from '../searches';
 import mixins from '../mixins';
 import stores from '../stores';
+import {dataInterface} from '../dataInterface';
 import bem from '../bem';
 import mdl from '../libs/rest_framework/material';
 import AssetRow from './assetrow';
+import DocumentTitle from 'react-document-title';
+
 import {
   parsePermissions,
   t,
+  isLibrary,
 } from '../utils';
 
 var SearchCollectionList = React.createClass({
@@ -29,6 +33,7 @@ var SearchCollectionList = React.createClass({
     }
     return {
       selectedCategories: selectedCategories,
+      ownedCollections: []
     };
   },
   getDefaultProps () {
@@ -39,23 +44,49 @@ var SearchCollectionList = React.createClass({
   },
   componentDidMount () {
     this.listenTo(this.searchStore, this.searchChanged);
-  },
-  componentWillReceiveProps () {
-    this.listenTo(this.searchStore, this.searchChanged);
+    this.queryCollections();
   },
   searchChanged (searchStoreState) {
     this.setState(searchStoreState);
+    if (searchStoreState.searchState === 'done')
+      this.queryCollections();
   },
+  queryCollections () {
+    if (isLibrary(this.context.router)) {
+      dataInterface.listCollections().then((collections)=>{
+        this.setState({
+          ownedCollections: collections.results.filter((value) => {
+            if (value.access_type === 'shared') {
+              // TODO: include shared assets with edit (change) permission for current user
+              // var hasChangePermission = false;
+              // value.permissions.forEach((perm, index) => {
+              //   if (perm.permission == 'change_collection')
+              //     hasChangePermission = true;
+              // });
+              // return hasChangePermission;
+              return false;
+            } else {
+              return value.access_type === 'owned';
+            }
+          })
+        });
+      });
+    }
+  },
+
   renderAssetRow (resource) {
     var currentUsername = stores.session.currentAccount && stores.session.currentAccount.username;
     var perm = parsePermissions(resource.owner, resource.permissions);
     var isSelected = stores.selectedAsset.uid === resource.uid;
+    var ownedCollections = this.state.ownedCollections;
+
     return (
         <this.props.assetRowClass key={resource.uid}
                       currentUsername={currentUsername}
                       perm={perm}
                       onActionButtonClick={this.onActionButtonClick}
                       isSelected={isSelected}
+                      ownedCollections={ownedCollections}
                       deleting={resource.deleting}
                       {...resource}
                         />
@@ -71,7 +102,15 @@ var SearchCollectionList = React.createClass({
     }.bind(this)
   },
   renderHeadings () {
-    return (
+    return [
+      (
+        <bem.Library_breadcrumb className={this.state.parentName ? '' : 'hidden'}>
+          <span>{t('Library')}</span>
+          <span className="separator"><i className="fa fa-caret-right" /></span>
+          <span>{this.state.parentName}</span>
+        </bem.Library_breadcrumb>
+      ),
+      (
         <bem.AssetListSorts className="mdl-grid">
           <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--6-col mdl-cell--3-col-tablet">
             {t('Name')}
@@ -86,7 +125,7 @@ var SearchCollectionList = React.createClass({
             {t('Questions')}
           </bem.AssetListSorts__item>
         </bem.AssetListSorts>
-      );
+      )];
   },
   renderGroupedHeadings () {
     return (
@@ -143,17 +182,18 @@ var SearchCollectionList = React.createClass({
     );    
   },
 
-  refreshSearch () {
-    this.searchValue.refresh();
-  },
   render () {
     var s = this.state;
+    var docTitle = '';
     if (this.props.searchContext.store.filterTags == 'asset_type:survey') {
       var display = 'grouped';
+      docTitle = t('Projects');
     } else {
       var display = 'regular';
+      docTitle = t('Library');
     }
     return (
+      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.List m={display}>
           {
             (()=>{
@@ -226,6 +266,7 @@ var SearchCollectionList = React.createClass({
           }
           </bem.AssetList>
         </bem.List>
+      </DocumentTitle>
       );
   },
   componentDidUpdate() {

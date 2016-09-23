@@ -9,6 +9,7 @@ import existingFormMixin from '../editorMixins/existingForm';
 import Select from 'react-select';
 import ui from '../ui';
 import bem from '../bem';
+import DocumentTitle from 'react-document-title';
 
 import {Navigation} from 'react-router';
 import {session} from '../stores';
@@ -24,6 +25,7 @@ import {dataInterface} from '../dataInterface';
 import {
   t,
   redirectTo,
+  assign,
 } from '../utils';
 
 var ProjectSettings = React.createClass({
@@ -66,7 +68,7 @@ var ProjectSettings = React.createClass({
       'share-metadata': false
     }
     if (this.props.initialData !== undefined) {
-      Object.assign(state, this.props.initialData);
+      assign(state, this.props.initialData);
     }
     return state;
   },
@@ -114,18 +116,20 @@ var ProjectSettings = React.createClass({
 
     return (
       <bem.FormModal__form onSubmit={this.onSubmit}>
-        <bem.FormModal__item m='actions'>
-        <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--bordered">
-            {this.props.submitButtonValue}
-          </button>
-        </bem.FormModal__item>
+        {this.props.context == 'existingForm' && 
+          <bem.FormModal__item m='actions'>
+          <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--bordered">
+              {this.props.submitButtonValue}
+            </button>
+          </bem.FormModal__item>
+        }
+
         <bem.FormModal__item m='wrapper'>
-          {this.state.assetid && 
+          {this.props.context == 'existingForm' && 
             <bem.FormModal__item m='sharing'>
               <a href={this.makeHref('form-sharing', {assetid: this.state.assetid})} className="mdl-button mdl-js-button mdl-button--bordered mdl-button--gray-border">
                 {t('Share')}
               </a>
-
               <label>{t('Sharing Permissions')}</label>
               <label className="long">
                 {t('Allow others to access your project.')}
@@ -202,7 +206,17 @@ var ProjectSettings = React.createClass({
               {t('Share the sector and country with developers')}
             </label>
           </bem.FormModal__item>
-          <iframe src={this.props.iframeUrl} />
+
+          {this.props.context == 'existingForm' && this.props.iframeUrl &&
+            <iframe src={this.props.iframeUrl} />
+          }
+          {this.props.context == 'newForm' &&
+            <bem.FormModal__item m='actions'>
+            <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--bordered">
+                {this.props.submitButtonValue}
+              </button>
+            </bem.FormModal__item>
+          }
         </bem.FormModal__item>
       </bem.FormModal__form>
     );
@@ -241,6 +255,7 @@ export var NewForm = React.createClass({
       <ProjectSettings
         onSubmit={this.createAsset}
         submitButtonValue={t('Create project')}
+        context='newForm'
       />
       </ui.Modal>
     );
@@ -269,13 +284,14 @@ export var ProjectSettingsEditor = React.createClass({
       owner: this.props.asset.owner__username,
       assetid: this.props.asset.uid
     };
-    Object.assign(initialData, this.props.asset.settings);
+    assign(initialData, this.props.asset.settings);
     return (
       <ProjectSettings
         onSubmit={this.updateAsset}
         submitButtonValue={t('Save Changes')}
         initialData={initialData}
         iframeUrl={this.props.iframeUrl}
+        context='existingForm'
       />
     );
   },
@@ -327,7 +343,10 @@ export var ProjectDownloads = React.createClass({
   },
   render () {
     let translations = this.props.asset.content.translations;
+    var docTitle = this.props.asset.name || t('Untitled');
+
     return (
+      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
       <bem.FormView>
         <bem.FormView__cell>
           <bem.FormModal__form onSubmit={this.handleSubmit}>
@@ -399,6 +418,7 @@ export var ProjectDownloads = React.createClass({
           </bem.FormModal__form>
         </bem.FormView__cell>
       </bem.FormView>
+      </DocumentTitle>
     );
   },
 });
