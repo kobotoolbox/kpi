@@ -1,9 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from django.conf import settings
-from formpack import FormPack
+from collections import OrderedDict
 
+from django.conf import settings
+
+from formpack import FormPack
 from .constants import (SPECIFIC_REPORTS_KEY, DEFAULT_REPORTS_KEY
                         )
 
@@ -47,9 +49,12 @@ def data_by_identifiers(asset, field_names=None, submission_stream=None,
     pack = FormPack(versions=schemas, id_string=asset.uid)
     _all_versions = pack.versions.keys()
     report = pack.autoreport(versions=_all_versions)
+    fields_by_name = OrderedDict([
+            (field.name, field) for field in
+                pack.get_fields_for_versions(versions=_all_versions)
+        ])
     if field_names is None:
-        field_names = [field.name for field in
-                       pack.get_fields_for_versions(versions=_all_versions)]
+        field_names = fields_by_name.keys()
     if report_styles is None:
         report_styles = asset.report_styles
     specified_styles = report_styles.get('specified', {})
@@ -69,6 +74,7 @@ def data_by_identifiers(asset, field_names=None, submission_stream=None,
                          'percentages': percentages})
         return {
             'name': field.name,
+            'row': {'type': fields_by_name.get(field.name).data_type},
             'data': stat,
             'kuid': identifier,
             'style': specified_styles.get(identifier, {}),

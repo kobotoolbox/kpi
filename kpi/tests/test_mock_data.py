@@ -117,6 +117,7 @@ class MockDataReports(TestCase):
                                                  field_names=('Select_one',),
                                                  submission_stream=self.submissions)
         self.assertEqual(values[0]['data']['frequencies'], (3, 1))
+        self.assertEqual(values[0]['row']['type'], 'select_one')
         self.assertEqual(values[0]['data']['percentages'], (75, 25))
         self.assertEqual(values[0]['data']['responses'], (u'First option', u'Second option'))
 
@@ -155,21 +156,13 @@ class MockDataReports(TestCase):
           'mean': 2.75,
         })
         self.assertEqual(decimal_stats['data'], {
-            u'provided': 4, u'frequency': [
-                (u'2016-06-01', 1),
-                (u'2016-06-02', 1),
-                (u'2016-06-03', 1),
-                (u'2016-06-05', 1)
-            ],
+            u'provided': 4,
+            u'frequencies': (1, 1, 1, 1),
             u'show_graph': True,
             u'not_provided': 0,
             u'total_count': 4,
-            u'percentage': [
-                (u'2016-06-01', 25.0),
-                (u'2016-06-02', 25.0),
-                (u'2016-06-03', 25.0),
-                (u'2016-06-05', 25.0),
-            ]
+            u'responses': (u'2016-06-01', u'2016-06-02', u'2016-06-03', u'2016-06-05'),
+            u'percentages': (25.0, 25.0, 25.0, 25.0),
         })
 
     def test_has_report_styles(self):
