@@ -57,6 +57,16 @@ def data_by_identifiers(asset, field_names=None, submission_stream=None,
 
     def _package_stat(field, label_or_name, stat):
         identifier = kuids.get(field.name)
+        freq = stat.pop('frequency', [])
+        if len(freq) > 0:
+            prcntg = stat.pop('percentage')
+            responses, frequencies = zip(*freq)
+            responses_percentage, percentages = zip(*prcntg)
+            if responses != responses_percentage:
+                raise ValueError('Frequency and percentage response lists mismatch.')
+            stat.update({'responses': responses,
+                         'frequencies': frequencies,
+                         'percentages': percentages})
         return {
             'name': field.name,
             'data': stat,

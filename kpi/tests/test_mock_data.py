@@ -114,18 +114,24 @@ class MockDataReports(TestCase):
 
     def test_kobo_apps_reports_report_data_subset(self):
         values = report_data.data_by_identifiers(self.asset,
-                                          field_names=('Select_one',),
-                                          submission_stream=self.submissions)
-        self.assertEqual(values[0]['data']['frequency'][0][0],
-                         u'First option')
+                                                 field_names=('Select_one',),
+                                                 submission_stream=self.submissions)
+        self.assertEqual(values[0]['data']['frequencies'], (3, 1))
+        self.assertEqual(values[0]['data']['percentages'], (75, 25))
+        self.assertEqual(values[0]['data']['responses'], (u'First option', u'Second option'))
 
     def test_kobo_apps_reports_report_data_translation(self):
         values = report_data.data_by_identifiers(self.asset,
                                           lang='Arabic',
                                           field_names=('Select_one',),
                                           submission_stream=self.submissions)
-        self.assertEqual(values[0]['data']['frequency'][0][0],
-                         u'\u0627\u0644\u062e\u064a\u0627\u0631 \u0627\u0644\u0623\u0648\u0644')
+        self.assertEqual(values[0]['data']['responses'],
+                         (  # response 1 in Arabic
+                          u'\u0627\u0644\u062e\u064a\u0627\u0631 '
+                          u'\u0627\u0644\u0623\u0648\u0644',
+                          # response 2 in Arabic
+                          u'\u0627\u0644\u062e\u064a\u0627\u0631 '
+                          u'\u0627\u0644\u062b\u0627\u0646\u064a'))
 
     def test_export_works_if_no_version_value_provided_in_submission(self):
         submissions = self.asset.deployment._get_submissions()
