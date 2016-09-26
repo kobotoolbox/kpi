@@ -22,7 +22,7 @@ before_script:
 script:
   - grunt copy:fonts
   - npm run build-production
-  - coverage run --source='.' manage.py test
+  - coverage run --source='hub,kpi,kobo' --omit='*/tests/*,*/migrations/*,*/management/commands/*' manage.py test
   - npm run test
 after_script:
   - coverage xml && python-codacy-coverage -r coverage.xml
