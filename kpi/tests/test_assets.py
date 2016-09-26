@@ -74,13 +74,13 @@ class AssetContentTests(AssetsTestCase):
         self.assertEqual(ss_struct[1]['relevant'], '')
 
     def test_flatten_relevant(self):
-        content = self._wrap_field('relevant', [{'$lookup': 'x'}])
+        content = self._wrap_field('relevant', [{'@lookup': 'x'}])
         a1 = Asset.objects.create(content=content, asset_type='survey')
         ss_struct = a1.to_ss_structure()['survey']
         self.assertEqual(ss_struct[1]['relevant'], '${x}')
 
     def test_flatten_constraints(self):
-        content = self._wrap_field('constraint', ['.', '>', {'$lookup': 'x'}])
+        content = self._wrap_field('constraint', ['.', '>', {'@lookup': 'x'}])
         a1 = Asset.objects.create(content=content, asset_type='survey')
         ss_struct = a1.to_ss_structure()['survey']
         self.assertEqual(ss_struct[1]['constraint'], '. > ${x}')

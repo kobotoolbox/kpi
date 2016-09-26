@@ -33,11 +33,23 @@ class AssetVersion(models.Model):
     class Meta:
         ordering = ['-date_modified']
 
+    def save(self, *args, **kwargs):
+        if self.deployed and self.deployed_content is None:
+            self.deployed_content = self._deployed_content()
+        super(AssetVersion, self).save(*args, **kwargs)
+
     def _deployed_content(self):
         legacy_names = self._reversion_version is not None
         return to_xlsform_structure(self.version_content,
                                     autoname=True,
                                     deprecated_autoname=legacy_names)
+
+    def to_formpack_schema(self):
+        return {
+            'content': self.deployed_content,
+            'version': self.uid,
+            'version_id_key': '__version__',
+        }
 
     def _content_hash(self):
         # used to determine changes in the content from version to version
@@ -48,3 +60,8 @@ class AssetVersion(models.Model):
                                    'deployed': self.deployed,
                                    }, sort_keys=True)
         return hashlib.sha1(_json_string).hexdigest()
+
+    def __unicode__(self):
+        return '{}@{} T{}{}'.format(self.asset.uid, self.uid,
+                    self.date_modified.strftime('%Y-%m-%d %H:%m'),
+                    ' (deployed)' if self.deployed else '')

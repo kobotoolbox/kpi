@@ -11,8 +11,7 @@ class KpiUidField(models.CharField):
     def __init__(self, uid_prefix):
         self.uid_prefix = uid_prefix
         total_length = len(uid_prefix) + UUID_LENGTH
-        return super(KpiUidField, self).__init__(
-            max_length=total_length, unique=True)
+        super(KpiUidField, self).__init__(max_length=total_length, unique=True)
 
     def deconstruct(self):
         name, path, args, kwargs = super(KpiUidField, self).deconstruct()
