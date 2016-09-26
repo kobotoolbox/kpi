@@ -33,10 +33,10 @@ class AssetVersion(models.Model):
     class Meta:
         ordering = ['-date_modified']
 
-    def save(self):
+    def save(self, *args, **kwargs):
         if self.deployed and self.deployed_content is None:
             self.deployed_content = self._deployed_content()
-        super(self, AssetVersion).save()
+        super(AssetVersion, self).save(*args, **kwargs)
 
     def _deployed_content(self):
         legacy_names = self._reversion_version is not None
