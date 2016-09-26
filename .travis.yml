@@ -22,8 +22,10 @@ before_script:
 script:
   - grunt copy:fonts
   - npm run build-production
-  - python manage.py test
+  - coverage run --source='.' manage.py test
   - npm run test
+after_script:
+  - coverage xml && python-codacy-coverage -r coverage.xml
 env:
   - PIP_DOWNLOAD_CACHE=$HOME/.pip-download-cache DJANGO_DEBUG=False DJANGO_SECRET_KEY=ZGtvYm90cmF2aXM DJANGO_SETTINGS_MODULE=kobo.settings DATABASE_URL="postgres://postgres@localhost:5432/travis_ci_test" TRAVIS_NODE_VERSION="6"
 install:
@@ -31,4 +33,5 @@ install:
   - npm install -g install npm@latest
   - npm config set strict-ssl false && npm install --save-dev
   - bower install
+  - pip install coverage codacy-coverage
   - pip install -r requirements.txt
