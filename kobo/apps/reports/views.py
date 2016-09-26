@@ -19,8 +19,7 @@ class ReportsViewSet(mixins.ListModelMixin,
     def get_queryset(self):
         # could be combined into a single query
         avs = set(AssetVersion.objects.filter(asset__owner=self.request.user,
-                                              # PM TEMPORARILY DISABLED THIS
-                                              # deployed=True
+                                              deployed=True,
                                               ).values_list('asset_id',
                                                             flat=True))
         return Asset.objects.filter(id__in=avs)

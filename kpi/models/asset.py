@@ -19,6 +19,7 @@ from reversion import revisions as reversion
 
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.expand_content import expand_content
+from formpack.utils.json_hash import json_hash
 from .object_permission import ObjectPermission, ObjectPermissionMixin
 from ..fields import KpiUidField
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
@@ -91,9 +92,11 @@ class TagStringMixin:
 
 class XlsExportable(object):
     def valid_xlsform_content(self):
-        _flattened_content = copy.deepcopy(self.content)
-        flatten_content(_flattened_content)
-        return to_xlsform_structure(_flattened_content)
+        try:
+            _c = flatten_content(self.content, in_place=False)
+        except Exception as e:
+            raise
+        return to_xlsform_structure(_c)
 
     def to_xls_io(self, extra_rows=None, extra_settings=None,
                   overwrite_settings=False):
@@ -230,7 +233,6 @@ class Asset(ObjectPermissionMixin,
     }
 
     def __init__(self, *args, **kwargs):
-        self._deployed = False
         super(Asset, self).__init__(*args, **kwargs)
         # Mind the depth
         self._initial_content_json = json.dumps(self.content)
@@ -242,7 +244,7 @@ class Asset(ObjectPermissionMixin,
     #     self.name = _version_to_restore.name
 
     def to_ss_structure(self):
-        return flatten_content(copy.deepcopy(self.content))
+        return flatten_content(self.content, in_place=False)
 
     def _pull_form_title_from_settings(self):
         if self.asset_type != 'survey':
@@ -265,13 +267,15 @@ class Asset(ObjectPermissionMixin,
         self.summary = analyzer.summary
 
     def save(self, *args, **kwargs):
-        # populate summary
-        if self.content is not None:
+        # in certain circumstances, we don't want content to
+        # be altered on save. (e.g. on asset.deploy())
+        _adjust_content = kwargs.pop('adjust_content', True)
+        if _adjust_content and self.content is not None:
             if 'survey' in self.content:
                 self._strip_empty_rows(
                     self.content['survey'], required_key='type')
                 self._assign_kuids(self.content['survey'])
-                expand_content(self.content)
+                expand_content(self.content, in_place=True)
             if 'choices' in self.content:
                 self._strip_empty_rows(
                     self.content['choices'], required_key='name')
@@ -281,6 +285,7 @@ class Asset(ObjectPermissionMixin,
                     del self.content['settings']
                 else:
                     self._pull_form_title_from_settings()
+        # populate summary
         self._populate_summary()
 
         # infer asset_type only between question and block
@@ -300,7 +305,9 @@ class Asset(ObjectPermissionMixin,
             self.asset_versions.create(name=self.name,
                                        version_content=self.content,
                                        _deployment_data=self._deployment_data,
-                                       deployed=self._deployed,
+                                       # asset_version.deployed is set in the
+                                       # DeploymentSerializer
+                                       deployed=False,
                                        )
 
     def to_clone_dict(self, version_uid=None):
@@ -322,12 +329,21 @@ class Asset(ObjectPermissionMixin,
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})
         specifieds = self.report_styles.get(SPECIFIC_REPORTS_KEY, {})
-        for row in self.content.get('survey', []):
-            if '$kuid' in row and row['$kuid'] not in specifieds:
-                specifieds[row['$kuid']] = {}
+        kuids_to_variable_names = self.report_styles.get('kuid_names', {})
+        for (index, row) in enumerate(self.content.get('survey', [])):
+            if '$kuid' not in row:
+                if 'name' in row:
+                    row['$kuid'] = json_hash([self.uid, row['name']])
+                else:
+                    row['$kuid'] = json_hash([self.uid, index, row])
+            _identifier = row.get('name', row['$kuid'])
+            kuids_to_variable_names[_identifier] = row['$kuid']
+            if _identifier not in specifieds:
+                specifieds[_identifier] = {}
         self.report_styles = {
             DEFAULT_REPORTS_KEY: default,
             SPECIFIC_REPORTS_KEY: specifieds,
+            'kuid_names': kuids_to_variable_names,
         }
 
     def _strip_empty_rows(self, arr, required_key='type'):
@@ -347,11 +363,16 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def latest_version(self):
-        return self.asset_versions.first()
+        return self.asset_versions.order_by('-date_modified').first()
+
+    @property
+    def deployed_versions(self):
+        return self.asset_versions.filter(deployed=True).order_by(
+                                          '-date_modified')
 
     @property
     def latest_deployed_version(self):
-        return self.asset_versions.filter(deployed=True).first()
+        return self.deployed_versions.first()
 
     @property
     def version_id(self):
@@ -401,7 +422,7 @@ class AssetSnapshot(models.Model, XlsExportable):
         if _no_source and asset and not asset_version:
             asset = kwargs.get('asset')
             kwargs['asset_version'] = asset.asset_versions.first()
-        return super(AssetSnapshot, self).__init__(*args, **kwargs)
+        super(AssetSnapshot, self).__init__(*args, **kwargs)
 
     @property
     def content(self):

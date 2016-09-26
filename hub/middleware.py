@@ -22,7 +22,7 @@ class OtherFormBuilderRedirectMiddleware(object):
             try:
                 # Requires Django 1.7
                 scheme = request.scheme
-            except:
+            except Exception:
                 scheme = 'https' if request.is_secure() else 'http'
             return HttpResponseRedirect(u'{}://{}{}'.format(
                 scheme, request.get_host(), preferred_prefix))

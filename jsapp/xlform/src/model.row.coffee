@@ -308,6 +308,11 @@ module.exports = do ->
 
       typeDetail = @get("type")
       tpVal = typeDetail.get("value")
+      select_from_list_name = @get("select_from_list_name")
+      if select_from_list_name and tpVal
+        tpVal = "#{tpVal} #{select_from_list_name.get('value')}"
+        typeDetail.set("value", tpVal, silent: true)
+
       processType = (rd, newType, ctxt)=>
         # if value changes, it could be set from an initialization value
         # or it could be changed elsewhere.
@@ -324,7 +329,8 @@ module.exports = do ->
           matchedList = @getSurvey().choices.get(p2)
           if matchedList
             typeDetail.set("list", matchedList)
-        typeDetail.set("orOther", p3, silent: true)  if p3 is "or_other"
+        if p3 is "or_other" or tpid in ["select_one_or_other", "select_multiple_or_other"]
+          typeDetail.set("orOther", p3, silent: true)
         if (rtp = $configs.lookupRowType(tpid))
           typeDetail.set("rowType", rtp, silent: true)
         else

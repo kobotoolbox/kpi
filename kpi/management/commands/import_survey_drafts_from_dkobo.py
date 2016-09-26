@@ -101,7 +101,9 @@ def _import_user_assets(from_user, to_user):
     for survey_draft in user_survey_drafts.all():
         try:
             new_asset = _import_asset(survey_draft, asset_type='survey')
-        except:
+        except KeyboardInterrupt:
+            raise
+        except Exception:
             message = (u'Failed to migrate survey draft with name="{}" '
                        u'and pk={}').format(survey_draft.name, survey_draft.pk)
             logging.error(message, exc_info=True)
