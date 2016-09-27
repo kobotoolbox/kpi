@@ -2,14 +2,13 @@
 from __future__ import unicode_literals
 
 from collections import OrderedDict
+from copy import deepcopy
 
 from django.conf import settings
-
 from formpack import FormPack
+
 from .constants import (SPECIFIC_REPORTS_KEY, DEFAULT_REPORTS_KEY
                         )
-
-from copy import deepcopy
 
 
 def get_instances_for_userform_id(userform_id, submission=None):
@@ -60,8 +59,7 @@ def data_by_identifiers(asset, field_names=None, submission_stream=None,
     specified_styles = report_styles.get('specified', {})
     kuids = report_styles.get('kuid_names', {})
 
-    def _package_stat(field, label_or_name, stat):
-        identifier = kuids.get(field.name)
+    def _stat_dict_to_array(stat):
         freq = stat.pop('frequency', [])
         if len(freq) > 0:
             prcntg = stat.pop('percentage')
@@ -72,6 +70,14 @@ def data_by_identifiers(asset, field_names=None, submission_stream=None,
             stat.update({'responses': responses,
                          'frequencies': frequencies,
                          'percentages': percentages})
+
+    def _package_stat(field, _, stat, split_by):
+        identifier = kuids.get(field.name)
+        if not split_by:
+            _stat_dict_to_array(stat)
+        elif 'values' in stat:
+            for _, sub_stat in stat['values']:
+                _stat_dict_to_array(sub_stat)
         return {
             'name': field.name,
             'row': {'type': fields_by_name.get(field.name).data_type},
@@ -79,7 +85,8 @@ def data_by_identifiers(asset, field_names=None, submission_stream=None,
             'kuid': identifier,
             'style': specified_styles.get(identifier, {}),
         }
-    return [_package_stat(*stat_tup) for
+
+    return [_package_stat(*stat_tup, split_by=split_by) for
             stat_tup in report.get_stats(submission_stream,
                                          fields=field_names,
                                          lang=lang,
