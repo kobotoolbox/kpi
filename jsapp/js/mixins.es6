@@ -6,7 +6,7 @@ import alertify from 'alertifyjs';
 import {Link} from 'react-router';
 import mdl from './libs/rest_framework/material';
 import TagsInput from 'react-tagsinput';
-import ReactZeroClipboard from 'react-zeroclipboard';
+import CopyToClipboard from 'react-copy-to-clipboard';
 import DocumentTitle from 'react-document-title';
  
 import {dataInterface} from './dataInterface';
@@ -500,9 +500,11 @@ var dmix = {
 
           {this.state.selectedCollectOption.value ?
             <bem.FormView__item m={'collect-links'}>
-              <ReactZeroClipboard text={this.state.selectedCollectOption.value} onAfterCopy={this.afterCopy}>
-                <a className="copy">copy</a>
-              </ReactZeroClipboard>
+              <CopyToClipboard text={this.state.selectedCollectOption.value}
+                onCopy={() => notify('copied to clipboard')}>
+                <a className="copy">Copy</a>
+              </CopyToClipboard>
+
               {this.state.selectedCollectOption.key != 'iframe_url' ?
                 <a href={this.state.selectedCollectOption.value} target="_blank" className="open">
                   {t('Open')}

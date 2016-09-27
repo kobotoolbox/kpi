@@ -309,6 +309,7 @@
     padding:4px 16px;
     text-transform: uppercase;
     display: inline-block;
+    cursor: pointer;
     &.copy {
       color:$cool-gray;
       transition:all 0.5s;
