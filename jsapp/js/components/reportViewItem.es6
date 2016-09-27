@@ -111,6 +111,10 @@ var ReportViewItem = React.createClass({
       chart_type = 'bar';
     }
 
+    var max_percentage = Math.max.apply(Math, this.props.data.percentages);    
+    max_percentage = max_percentage < 85 ? ((parseInt(max_percentage/10, 10)+1)*10) : 100;
+
+
     var opts = {
       type: chart_type,
       data: {
@@ -130,14 +134,24 @@ var ReportViewItem = React.createClass({
         scales: {
           xAxes: [{
             ticks: {
+              autoSkip:false,
               beginAtZero: true,
-              max: 100
+              max: max_percentage
+            },
+            barPercentage: 0.5,
+            gridLines: {
+              display: chart_type == 'horizontalBar' ? true : false
             }
           }],
           yAxes: [{
             ticks: {
+              autoSkip:false,
               beginAtZero: true,
-              max: 100
+              max: max_percentage
+            },
+            barPercentage: 0.5,
+            gridLines: {
+              display: chart_type == 'horizontalBar' ? false : true
             }
           }]
         },
@@ -152,24 +166,6 @@ var ReportViewItem = React.createClass({
       if (this.props.style.report_type == 'donut') {
         opts.options.cutoutPercentage = 50;
       }
-    }
-
-    if (chart_type == 'bar') {
-      opts.options.scales.xAxes = [{
-        barPercentage: 0.4,
-        gridLines: {
-          display: false,
-        },
-      }];
-    }
-
-    if (chart_type == 'horizontalBar') {
-      opts.options.scales.yAxes = [{
-        barPercentage: 0.4,
-        gridLines: {
-          display: false,
-        }
-      }];
     }
 
     if (this.props.style.report_type == 'area') {
