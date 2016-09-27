@@ -124,7 +124,7 @@ def _replace_deployment_ids(_AssetVersion, _Asset):
                 try:
                     uid = asset.asset_versions.get(_reversion_version_id=version_id).uid
                     asset._deployment_data['version_uid'] = uid
-                    asset.save(create_version=False)
+                    asset.save(adjust_content=False, create_version=False)
                 except ObjectDoesNotExist as e:
                     ids_not_counted.append(version_id)
 
