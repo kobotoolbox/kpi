@@ -239,6 +239,13 @@ var Reports = React.createClass({
     Reflux.ListenerMixin,
   ],
   componentDidMount () {
+    this.loadReportData([]);
+  },
+  componentWillUpdate (nextProps, nextState) {
+    if (this.state.groupBy != nextState.groupBy)
+      this.loadReportData(nextState.groupBy);
+  },
+  loadReportData(groupBy) {
     let uid = this.props.params.assetid;
     // PM note: this below seems to cause child reportViewItem's componentWillUpdate to run twice, causing odd animation issues
     // this.listenTo(actions.reports.setStyle.completed, (asset)=>{
@@ -265,13 +272,27 @@ var Reports = React.createClass({
           rowsByIdentifier[$identifier] = r;
         });
 
-        dataInterface.getReportData({uid: uid, identifiers: names}).done((data)=>{
-
+        dataInterface.getReportData({uid: uid, identifiers: names, group_by: groupBy}).done((data)=>{
           var dataWithResponses = [];
+
           data.list.forEach(function(row){
             if (row.data.responses != undefined) {
+              if (rowsByIdentifier[row.name] != undefined)
+                row.row.label = rowsByIdentifier[row.name].label;
+              else
+                row.row.label = t('untitled');
+
               dataWithResponses.push(row);
             }
+
+            if (row.data.values != undefined) {
+              if (rowsByIdentifier[row.name] != undefined)
+                row.row.label = rowsByIdentifier[row.name].label;
+              else
+                row.row.label = t('untitled');
+              dataWithResponses.push(row);
+            }
+
           });
 
           this.setState({
@@ -293,7 +314,14 @@ var Reports = React.createClass({
       graphWidth: "700",
       graphHeight: "250",
       translationIndex: 0,
+      groupBy: []
     };
+  },
+  groupDataBy(evt) {
+    var gb = evt.target.getAttribute('data-name') ? [evt.target.getAttribute('data-name')] : [];
+    this.setState({
+      groupBy: gb,
+    });
   },
   reportStyleChange (params, value) {
     let assetUid = this.state.asset.uid;
@@ -337,6 +365,7 @@ var Reports = React.createClass({
     window.print();
   },
   renderReportButtons () {
+
     return (
       <bem.FormView__reportButtons>
         <button className="mdl-button mdl-js-button"
@@ -344,7 +373,7 @@ var Reports = React.createClass({
           {t('Graph Settings')}
         </button>
  
-        <button className="mdl-button mdl-js-button"
+        <button className="mdl-button mdl-js-button is-edge"
                 id="report-language">
           {t('Language')}
           <i className="fa fa-caret-down"></i>
@@ -370,26 +399,38 @@ var Reports = React.createClass({
           <i className="fa fa-caret-down"></i>
         </button>
  
-        <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
-            htmlFor="report-groupby">
-          <li>
-            <a className="mdl-menu__item">
-              {t('Test group link 1')}
-            </a>
-          </li>
-          <li>
-            <a className="mdl-menu__item">
-              {t('Test group link 2')}
-            </a>
-          </li>
-        </ul> 
- 
-        <button className="mdl-button mdl-js-button"
+        {this.state.reportData && 
+          <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
+              htmlFor="report-groupby">
+            <li>
+              <a className="mdl-menu__item"
+                 data-name=''
+                 onClick={this.groupDataBy}>
+                    {t('No grouping')}
+              </a>
+            </li>
+            {this.state.reportData.map((row, i)=>{
+                if(i > 0) {
+                  return (
+                    <li>
+                      <a className="mdl-menu__item"
+                         data-name={row.name}
+                         onClick={this.groupDataBy}>{row.row.label}</a>
+                    </li>
+                  );
+                } else {
+                  return false;
+                }
+              })
+            }
+
+          </ul> 
+        } 
+        <button className="mdl-button mdl-js-button is-edge"
                 id="report-viewall">
           {t('View All')}
           <i className="fa fa-caret-down"></i>
         </button>
- 
         <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
             htmlFor="report-viewall">
           <li>
@@ -403,7 +444,7 @@ var Reports = React.createClass({
             </a>
           </li>
         </ul> 
- 
+
         <button className="mdl-button mdl-js-button mdl-button--icon report-button__expand"
                 onClick={this.toggleExpandedReports} 
                 data-tip={t('Expand')}>
@@ -544,9 +585,8 @@ var Reports = React.createClass({
                     <p>No report data</p>
                   :
                   reportData.map((rowContent)=>{
-                    let kuid = rowContent.$kuid;
                     return (
-                        <bem.ReportView__item title={rowContent.$kuid}>
+                        <bem.ReportView__item>
                           {/* style picker:
                           <IndividualReportStylePicker key={kuid}
                               row={row}

@@ -36,9 +36,8 @@ var ReportTable = React.createClass({
 
 var ReportViewItem = React.createClass({
   getInitialState () {
-    let p = this.props,
-      d = p.data,
-      s = {};
+    let s = this.props,
+      d = s.data;
       s.reportTable = [];
     if (d.percentages && d.responses && d.frequencies) {
       s.reportTable = _.zip(
@@ -47,21 +46,25 @@ var ReportViewItem = React.createClass({
           d.percentages,
         );
     }
+
     return s;
   },
   componentDidMount () {
     if (!this.refs.canvas) {
       return;
     }
-    if (this.props.data.show_graph) {
+    if (this.state.data.show_graph) {
       var opts = this.buildChartOptions();
       var canvas = this.refs.canvas.getDOMNode();
       var itemChart = new Chart(canvas, opts);
       this.setState({itemChart: itemChart});
     }
   },
-  componentWillUpdate () {
-    if (this.props.data.show_graph) {
+  componentWillUpdate (newProps) {
+    if (this.state.data != newProps.data) {
+      this.setState({data: newProps.data});
+    }
+    if (this.state.data.show_graph) {
       var canvas = this.refs.canvas.getDOMNode();
       var opts = this.buildChartOptions();
       let itemChart = this.state.itemChart;
@@ -72,10 +75,13 @@ var ReportViewItem = React.createClass({
     }
   },
   buildChartOptions () {
-    var chart_type = this.props.style.report_type || 'bar';
+    var data = this.state.data;
+    var chart_type = this.state.style.report_type || 'bar';
+    var max_percentage = 100;
+    var showLegend = false;
 
     // TODO: set as default globally in a higher level (PM)
-    var colors = this.props.style.report_colors || [
+    var colors = this.state.style.report_colors || [
       'rgba(52, 106, 200, 0.8)',
       'rgba(252, 74, 124, 0.8)',
       'rgba(250, 213, 99, 0.8)',
@@ -95,38 +101,53 @@ var ReportViewItem = React.createClass({
     Chart.defaults.global.elements.arc.backgroundColor = baseColor;
     Chart.defaults.global.maintainAspectRatio = false;
 
-    if (chart_type == 'donut') {
+    if (chart_type == 'donut')
       chart_type = 'pie';
-    }
 
-    if (chart_type == 'area') {
+    if (chart_type == 'area')
       chart_type = 'line';
-    }
 
-    if (chart_type == 'horizontal') {
+    if (chart_type == 'horizontal')
       chart_type = 'horizontalBar';
-    }
 
-    if (chart_type == 'vertical' || chart_type == 'bar_chart') {
+    if (chart_type == 'vertical' || chart_type == 'bar_chart')
       chart_type = 'bar';
+
+    var datasets = [];
+    if (data.values != undefined) {
+      data.responses = data.values[0][1].responses;
+      data.responses.forEach(function(r, i){
+        data.responses[i] = r.length > 20 ? r.substring(0,15) + '...' : r;
+      });
+      var allPercentages = [];
+      data.values.forEach(function(val, i){
+        var item = {};
+        item.label = val[0].length > 20 ? val[0].substring(0,15) + '...' : val[0];
+        item.data = val[1].percentages;
+        allPercentages = [...new Set([...allPercentages ,...val[1].percentages])];
+        item.backgroundColor = colors[i];
+        datasets.push(item);
+      });
+
+      max_percentage = Math.max.apply(Math, allPercentages);
+      showLegend = true;
+    } else {
+      max_percentage = Math.max.apply(Math, data.percentages);
+      datasets.push({data: data.percentages});
     }
 
-    var max_percentage = Math.max.apply(Math, this.props.data.percentages);    
     max_percentage = max_percentage < 85 ? ((parseInt(max_percentage/10, 10)+1)*10) : 100;
-
 
     var opts = {
       type: chart_type,
       data: {
-          labels: this.props.data.responses,
-          datasets: [{
-              data: this.props.data.percentages,
-          }]
+          labels: data.responses,
+          datasets: datasets
       },
       options: {
         events: [''],
         legend: {
-          display: false
+          display: showLegend
         },
         animation: {
           duration: 500
@@ -163,24 +184,25 @@ var ReportViewItem = React.createClass({
       opts.data.datasets[0].backgroundColor = colors;
       opts.options.scales = false;
 
-      if (this.props.style.report_type == 'donut') {
+      if (this.state.style.report_type == 'donut') {
         opts.options.cutoutPercentage = 50;
       }
     }
 
-    if (this.props.style.report_type == 'area') {
+    if (this.state.style.report_type == 'area') {
       opts.data.datasets[0].backgroundColor = colors[0];
     }
 
     return opts;
   },
   render () {
-    let p = this.props,
+    let p = this.state,
       d = p.data,
       r = p.row,
       _type = r.type;
+
     if (!_type) {
-      console.error('No type given for row: ', this.props);
+      console.error('No type given for row: ', this.state);
       return <p className='error'>{'Error displaying row: '}<code>{p.kuid}</code></p>;
     }
     if (_type.select_one || _type.select_multiple) {
@@ -192,7 +214,7 @@ var ReportViewItem = React.createClass({
       <div>
         <bem.ReportView__itemHeading>
           <h2>
-            {this.props.row.label}
+            {r.label}
           </h2>
           <bem.ReportView__headingMeta>
             <span className="type">
@@ -215,26 +237,14 @@ var ReportViewItem = React.createClass({
           </bem.ReportView__headingMeta>
         </bem.ReportView__itemHeading>
         <bem.ReportView__itemContent>
-          {this.props.data.show_graph && 
+          {d.show_graph && 
             <bem.ReportView__chart
-                style={{
-                  // height: this.props.style.graphHeight, 
-                  width: this.props.style.graphWidth, 
-                  }}>
+                style={{width: this.state.style.graphWidth}}>
               <canvas ref="canvas" />
             </bem.ReportView__chart>
           }
-          <code className="is-edge" style={{fontSize:10,lineHeight:'11px'}}>
-            <pre>
-              {JSON.stringify(this.props, null, 4)}
-            </pre>
-          </code>
-
-          <ReportTable
-            rows={this.state.reportTable}
-          />
+          <ReportTable rows={this.state.reportTable} />
         </bem.ReportView__itemContent>
-
       </div>
       );
   },
