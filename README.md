@@ -1,5 +1,7 @@
 KPI
 ===
+[![Build Status](https://travis-ci.org/kobotoolbox/kpi.svg)](https://travis-ci.org/kobotoolbox/kpi)
+[![Coverage Status](https://coveralls.io/repos/github/kobotoolbox/kpi/badge.svg)](https://coveralls.io/github/kobotoolbox/kpi)
 
 Python Dependencies
 -------------------
