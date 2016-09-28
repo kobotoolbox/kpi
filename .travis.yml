@@ -21,4 +21,11 @@ script:
   # Use `my_init` to run the normal initialization steps before running the tests.
   # NOTE: For some reason the `--rm` flag is needed for Compose to retain the accurate exit status.
   - echo 'Running KPI tests from `docker/run_tests.bash`.'
-  - docker-compose run --rm kpi my_init --skip-runit docker/run_tests.bash
+  - docker-compose run --name kpi_test_container kpi my_init --skip-runit docker/run_tests.bash
+
+after_script:
+  - cd "${KPI_SRC_DIR}"
+  - docker cp kpi_test_container:/srv/src/kpi/coverage.xml .
+  - pip install codacy-coverage && python-codacy-coverage -r coverage.xml
+  - docker cp kpi_test_container:/srv/src/kpi/.coverage .
+  - pip install python-coveralls && coveralls
