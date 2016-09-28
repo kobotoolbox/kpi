@@ -359,6 +359,14 @@ if 'RAVEN_DSN' in os.environ:
     RAVEN_CONFIG = {
         'dsn': os.environ['RAVEN_DSN'],
     }
+
+    # Set the `server_name` attribute. See https://docs.sentry.io/hosted/clients/python/advanced/
+    server_name = os.environ.get('RAVEN_SERVER_NAME')
+    server_name = server_name or os.environ.get('KOBOFORM_PUBLIC_SUBDOMAIN', '') + \
+        os.environ.get('PUBLIC_DOMAIN_NAME', '')
+    if server_name:
+        RAVEN_CONFIG.update({'name': server_name})
+
     try:
         RAVEN_CONFIG['release'] = raven.fetch_git_sha(BASE_DIR)
     except raven.exceptions.InvalidGitRepository:
