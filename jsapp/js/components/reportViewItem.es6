@@ -8,23 +8,34 @@ import {t} from '../utils';
 
 var ReportTable = React.createClass({
   render () {
+    let th = [''], rows = [];
+    if (this.props.type=='regular') {
+      th = [t('Value'), t('Frequency'), t('Percentage')];
+      rows = this.props.rows;
+    } else {
+      th = th.concat(this.props.rows[0][1].responses);
+      this.props.rows.map((row, i)=> {
+        var rowitem = [row[0]];
+        rowitem = rowitem.concat(row[1].percentages);
+        rows.push(rowitem);
+      });
+    }
     return (
         <table>
           <thead>
             <tr>
-              <th>{t('Value')}</th>
-              <th className="right-align">{t('Frequency')}</th>
-              <th className="right-align">{t('Percentage')}</th>
+              {th.map((t,i)=>{
+                return (<th key={i}>{t}</th>);
+              })}
             </tr>
           </thead>
           <tbody>
-            {this.props.rows.map((row)=>{
-              let [value, frequency, percentage] = row;
+            {rows.map((row)=>{
               return (
-                  <tr key={value}>
-                    <td>{value}</td>
-                    <td className="right-align">{frequency}</td>
-                    <td className="right-align">{percentage}</td>
+                  <tr key={row[0]}>
+                    {row.map((r,i)=>{
+                      return (<td key={i}>{r}</td>);
+                    })}
                   </tr>
                 );
             })}
@@ -61,6 +72,9 @@ var ReportViewItem = React.createClass({
     }
   },
   componentWillUpdate (newProps) {
+    if (this.state.style != newProps.style) {
+      this.setState({style: newProps.style});
+    }
     if (this.state.data != newProps.data) {
       this.setState({data: newProps.data});
     }
@@ -76,8 +90,9 @@ var ReportViewItem = React.createClass({
   },
   buildChartOptions () {
     var data = this.state.data;
-    var chart_type = this.state.style.report_type || 'bar';
-    var max_percentage = 100;
+    var chartType = this.state.style.report_type || 'bar';
+    var maxPercentage = 100;
+    var barPercentage = 0.5;
     var showLegend = false;
 
     // TODO: set as default globally in a higher level (PM)
@@ -101,47 +116,49 @@ var ReportViewItem = React.createClass({
     Chart.defaults.global.elements.arc.backgroundColor = baseColor;
     Chart.defaults.global.maintainAspectRatio = false;
 
-    if (chart_type == 'donut')
-      chart_type = 'pie';
+    if (chartType == 'donut')
+      chartType = 'pie';
 
-    if (chart_type == 'area')
-      chart_type = 'line';
+    if (chartType == 'area')
+      chartType = 'line';
 
-    if (chart_type == 'horizontal')
-      chart_type = 'horizontalBar';
+    if (chartType == 'horizontal')
+      chartType = 'horizontalBar';
 
-    if (chart_type == 'vertical' || chart_type == 'bar_chart')
-      chart_type = 'bar';
+    if (chartType == 'vertical' || chartType == 'bar_chart')
+      chartType = 'bar';
 
     var datasets = [];
     if (data.values != undefined) {
       data.responses = data.values[0][1].responses;
+      var data.graphLabels = [];
       data.responses.forEach(function(r, i){
-        data.responses[i] = r.length > 20 ? r.substring(0,15) + '...' : r;
+        data.graphLabels[i] = r.length > 20 ? r.substring(0,17) + '...' : r;
       });
       var allPercentages = [];
       data.values.forEach(function(val, i){
         var item = {};
-        item.label = val[0].length > 20 ? val[0].substring(0,15) + '...' : val[0];
+        item.label = val[0].length > 20 ? val[0].substring(0,17) + '...' : val[0];
         item.data = val[1].percentages;
         allPercentages = [...new Set([...allPercentages ,...val[1].percentages])];
         item.backgroundColor = colors[i];
         datasets.push(item);
       });
 
-      max_percentage = Math.max.apply(Math, allPercentages);
+      maxPercentage = Math.max.apply(Math, allPercentages);
+      barPercentage = 0.9;
       showLegend = true;
     } else {
-      max_percentage = Math.max.apply(Math, data.percentages);
+      maxPercentage = Math.max.apply(Math, data.percentages);
       datasets.push({data: data.percentages});
     }
 
-    max_percentage = max_percentage < 85 ? ((parseInt(max_percentage/10, 10)+1)*10) : 100;
+    maxPercentage = maxPercentage < 85 ? ((parseInt(maxPercentage/10, 10)+1)*10) : 100;
 
     var opts = {
-      type: chart_type,
+      type: chartType,
       data: {
-          labels: data.responses,
+          labels: data.graphLabels || data.responses,
           datasets: datasets
       },
       options: {
@@ -157,29 +174,29 @@ var ReportViewItem = React.createClass({
             ticks: {
               autoSkip:false,
               beginAtZero: true,
-              max: max_percentage
+              max: maxPercentage
             },
-            barPercentage: 0.5,
-            gridLines: {
-              display: chart_type == 'horizontalBar' ? true : false
-            }
+            barPercentage: barPercentage,
+            // gridLines: {
+            //   display: chartType == 'horizontalBar' ? true : false
+            // }
           }],
           yAxes: [{
             ticks: {
               autoSkip:false,
               beginAtZero: true,
-              max: max_percentage
+              max: maxPercentage
             },
-            barPercentage: 0.5,
-            gridLines: {
-              display: chart_type == 'horizontalBar' ? false : true
-            }
+            barPercentage: barPercentage,
+            // gridLines: {
+            //   display: chartType == 'horizontalBar' ? false : true
+            // }
           }]
         },
       }
     };
 
-    if (chart_type == 'pie') {
+    if (chartType == 'pie') {
       opts.options.legend.display = true;
       opts.data.datasets[0].backgroundColor = colors;
       opts.options.scales = false;
@@ -243,7 +260,11 @@ var ReportViewItem = React.createClass({
               <canvas ref="canvas" />
             </bem.ReportView__chart>
           }
-          <ReportTable rows={this.state.reportTable} />
+          {d.values ? 
+            <ReportTable rows={d.values} type='disaggregated' />
+            : 
+            <ReportTable rows={p.reportTable} type='regular'/>
+          }
         </bem.ReportView__itemContent>
       </div>
       );

@@ -410,17 +410,13 @@ var Reports = React.createClass({
               </a>
             </li>
             {this.state.reportData.map((row, i)=>{
-                if(i > 0) {
-                  return (
-                    <li>
-                      <a className="mdl-menu__item"
-                         data-name={row.name}
-                         onClick={this.groupDataBy}>{row.row.label}</a>
-                    </li>
-                  );
-                } else {
-                  return false;
-                }
+                return (
+                  <li>
+                    <a className="mdl-menu__item"
+                       data-name={row.name}
+                       onClick={this.groupDataBy}>{row.row.label}</a>
+                  </li>
+                );
               })
             }
 
