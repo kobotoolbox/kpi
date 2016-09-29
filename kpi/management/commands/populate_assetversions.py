@@ -130,4 +130,4 @@ def _replace_deployment_ids(_AssetVersion, _Asset):
 
     if len(ids_not_counted) > 0:
         print("""DeploymentIDs not found:
-                 {}""".format(json.dumps(passed_ids)))
+                 {}""".format(json.dumps(ids_not_counted)))
