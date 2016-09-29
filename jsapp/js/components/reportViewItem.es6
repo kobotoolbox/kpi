@@ -131,7 +131,7 @@ var ReportViewItem = React.createClass({
     var datasets = [];
     if (data.values != undefined) {
       data.responses = data.values[0][1].responses;
-      var data.graphLabels = [];
+      data.graphLabels = [];
       data.responses.forEach(function(r, i){
         data.graphLabels[i] = r.length > 20 ? r.substring(0,17) + '...' : r;
       });
