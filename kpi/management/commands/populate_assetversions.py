@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import gc
 import json
 
 from kpi.models import Asset, AssetVersion
@@ -43,7 +42,6 @@ def populate_assetversions(_Asset, _AssetVersion, _ReversionVersion,
 
     for _i in xrange(0, len(asset_ids)):
         _create_versions_for_asset_id(asset_ids[_i], _AssetVersion, _ReversionVersion)
-        gc.collect()
         if _i % 1000 == 0:
             print('on {} with {} created'.format(_i, _AssetVersion.objects.count()))
 
@@ -56,11 +54,18 @@ def _create_versions_for_asset_id(asset_id, _AssetVersion, _ReversionVersion):
     asset_versions = _ReversionVersion.objects.filter(content_type__app_label='kpi',
                                                       content_type__model='asset',
                                                       object_id_int=asset_id)
+
+    # BEGIN prevent duplicate AssetVersions
+    e_rids = _AssetVersion.objects.filter(
+        asset_id=asset_id
+    ).values_list('_reversion_version_id', flat=True)
+    asset_versions = asset_versions.exclude(id__in=e_rids)
+    # END prevent duplicate AssetVersions
+
     _deployed_version_ids = []
     _version_data = []
-    uncreated_asset_versions = []
     passed_ids = []
-    for asset_v in asset_versions.all():
+    for asset_v in asset_versions.iterator():
         if NULL_CHAR_REPR in asset_v.serialized_data:
             passed_ids.append(asset_v.id)
             continue
@@ -88,25 +93,12 @@ def _create_versions_for_asset_id(asset_id, _AssetVersion, _ReversionVersion):
               '(null characters, etc) '
               '{}'.format(json.dumps(passed_ids)))
 
-    _r_ids = []
     for version in _version_data:
-        _r_ids.append(version['_reversion_version_id'])
         version['deployed'] = version['_reversion_version_id'] in _deployed_version_ids
-        uncreated_asset_versions.append(_AssetVersion(**version))
-
-    # BEGIN prevent duplicate AssetVersions
-    e_rids = _AssetVersion.objects.filter(
-        _reversion_version_id__in=_r_ids).values_list(
-        '_reversion_version_id', flat=True)
-    if len(e_rids) > 0:
-        uncreated_asset_versions = filter(lambda a:
-                                          a._reversion_version_id not in e_rids,
-                                          uncreated_asset_versions)
-    # END prevent duplicate AssetVersions
-
-    _AssetVersion.objects.bulk_create(
-        uncreated_asset_versions
-    )
+        # It seems silly to continue using bulk_create() now that we're saving
+        # objects individually, but doing so is useful because it bypasses the
+        # save() method
+        _AssetVersion.objects.bulk_create((_AssetVersion(**version),))
 
 
 def _replace_deployment_ids(_AssetVersion, _Asset):
