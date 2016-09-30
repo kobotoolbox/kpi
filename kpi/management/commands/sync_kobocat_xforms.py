@@ -337,13 +337,7 @@ class Command(BaseCommand):
                             'backend_response': deployment_data,
                             'version': asset.version_id
                         })
-                        # 3007b250 began requiring the in-memory-only attribute
-                        # `asset._deployed` to be set; then 178f8df removed
-                        # that and started setting `deployed = True` on the
-                        # latest version of the asset
                         asset._mark_latest_version_as_deployed()
-                        # Save again since `store_data()` no longer saves
-                        # anything to the database
                         asset.save()
                         if update_existing:
                             print_tabular(
