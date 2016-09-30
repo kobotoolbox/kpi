@@ -123,8 +123,10 @@ def _replace_deployment_ids(_AssetVersion, _Asset):
             if isinstance(version_id, int):
                 try:
                     uid = asset.asset_versions.get(_reversion_version_id=version_id).uid
-                    asset._deployment_data['version_uid'] = uid
-                    asset.save(adjust_content=False, create_version=False)
+                    if 'version_uid' not in asset._deployment_data or \
+                            asset._deployment_data['version_uid'] != uid:
+                        asset._deployment_data['version_uid'] = uid
+                        asset.save(adjust_content=False, create_version=False)
                 except ObjectDoesNotExist as e:
                     ids_not_counted.append(version_id)
 
