@@ -8,6 +8,7 @@ ENV KPI_SRC_DIR=/srv/src/kpi \
     KPI_NODE_PATH=/srv/node_modules \
     BOWER_COMPONENTS_DIR=/srv/bower_components
 
+
 ###############################
 # Prepare to install Node 6.x #
 ###############################

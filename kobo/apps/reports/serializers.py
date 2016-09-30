@@ -21,7 +21,10 @@ class ReportsDetailSerializer(serializers.BaseSerializer):
                             request.query_params.get('names', '').split(','))
         else:
             vnames = None
-        _list = report_data.data_by_identifiers(obj, vnames)
+
+        split_by = request.query_params.get('split_by', None)
+
+        _list = report_data.data_by_identifiers(obj, vnames, split_by=split_by)
 
         return {
             'url': reverse('reports-detail', args=(obj.uid,), request=request),

@@ -7,8 +7,9 @@ ENV KPI_LOGS_DIR=/srv/logs \
     GRUNT_BUILD_DIR=/srv/grunt_build \
     GRUNT_FONTS_DIR=/srv/grunt_fonts \
     WEBPACK_STATS_PATH=/srv/webpack-stats.json \
-    # The mountpoint of a volume shared with the nginx container. Static files will
-    # be copied there.
+    DJANGO_SETTINGS_MODULE=kobo.settings \
+    # The mountpoint of a volume shared with the `nginx` container. Static files will
+    #   be copied there.
     NGINX_STATIC_DIR=/srv/static
 
 
@@ -101,7 +102,6 @@ RUN ln -s "${KPI_NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
 # Organize static assets. #
 ###########################
 
-ENV DJANGO_SETTINGS_MODULE kobo.settings
 RUN python manage.py collectstatic --noinput
 
 

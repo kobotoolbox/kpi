@@ -46,7 +46,7 @@ class AssetVersion(models.Model):
 
     def to_formpack_schema(self):
         return {
-            'content': self.deployed_content,
+            'content': self.deployed_content or self._deployed_content(),
             'version': self.uid,
             'version_id_key': '__version__',
         }

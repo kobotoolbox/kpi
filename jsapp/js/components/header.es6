@@ -292,12 +292,13 @@ var MainHeader = React.createClass({
                 <bem.PopoverMenu__link m={'report-in-kpi'}
                     href={this.makeHref('form-reports', {assetid: this.state.assetid})}>
                   <i className="k-icon-report" />
-                  {t('Report in KPI')}
+                  {t('Reports')}
                 </bem.PopoverMenu__link>
                 <bem.PopoverMenu__link m={'report'}
-                    href={this.makeHref('form-data-report', {assetid: this.state.assetid})}>
+                    href={this.makeHref('form-data-report', {assetid: this.state.assetid})}
+                    className="is-edge">
                   <i className="k-icon-report" />
-                  {t('Report in KC')}
+                  {t('Reports (legacy)')}
                 </bem.PopoverMenu__link>
                 <bem.PopoverMenu__link m={'table'}
                     href={this.makeHref('form-data-table', {assetid: this.state.assetid})}>

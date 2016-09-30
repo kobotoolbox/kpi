@@ -62,18 +62,19 @@
       padding: 8px;
       background-color: lighten($cool-gray, 10%);
       color: white;
-      text-align: left;
+      text-align: right;
       font-weight: normal;
       font-size: 14px;
-      &.right-align {
-        text-align: right;
+      &:first-child {
+        text-align: left;
       }
     }
     tbody tr td {
       border-bottom: 1px solid #CCC;
       padding: 8px;
-      &.right-align {
-        text-align: right;
+      text-align: right;
+      &:first-child {
+        text-align: left;
       }
     }
   }

@@ -34,7 +34,7 @@ import {
 var AssetTypeIcon = bem.create('asset-type-icon');
  
 var mixins = {};
- 
+
 mixins.taggedAsset = {
   mixins: [
     React.addons.LinkedStateMixin
@@ -673,7 +673,9 @@ var dmix = {
           onComplete: () => {
             notify(t('redeployed form'));
             actions.resources.loadAsset({id: asset.uid});
-            onComplete(asset);
+            if (onComplete) {
+              onComplete(asset);
+            }
           }
         });
         // keep the dialog open
@@ -702,7 +704,9 @@ var dmix = {
         onComplete: () => {
           notify(t('deployed form'));
           actions.resources.loadAsset({id: asset.uid});
-          onComplete(asset);
+          if (onComplete) {
+            onComplete(asset);
+          }
         }
       });
     } else {
