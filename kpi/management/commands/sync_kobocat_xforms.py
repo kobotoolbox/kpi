@@ -337,8 +337,7 @@ class Command(BaseCommand):
                             'backend_response': deployment_data,
                             'version': asset.version_id
                         })
-                        # Save again since `store_data()` no longer saves
-                        # anything to the database
+                        asset._mark_latest_version_as_deployed()
                         asset.save()
                         if update_existing:
                             print_tabular(
