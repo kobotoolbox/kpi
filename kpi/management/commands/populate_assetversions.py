@@ -84,9 +84,9 @@ def _create_versions_for_asset_id(asset_id, _AssetVersion, _ReversionVersion):
         })
 
     if len(passed_ids) > 0:
-        print("""Skipped invalid versions:
-                 (null characters, etc)
-                 {}""".format(json.dumps(passed_ids)))
+        print('Skipped invalid versions: '
+              '(null characters, etc) '
+              '{}'.format(json.dumps(passed_ids)))
 
     _r_ids = []
     for version in _version_data:
@@ -131,5 +131,5 @@ def _replace_deployment_ids(_AssetVersion, _Asset):
                     ids_not_counted.append(version_id)
 
     if len(ids_not_counted) > 0:
-        print("""DeploymentIDs not found:
-                 {}""".format(json.dumps(ids_not_counted)))
+        print('DeploymentIDs not found: '
+              '{}'.format(json.dumps(ids_not_counted)))
