@@ -22,6 +22,23 @@ do ->
       $inputParser.loadChoiceLists($surveys.pizza_survey.main().choices, list)
 
     describe '. parse()"', ->
+      it 'flattens translated lists', ->
+        results = $inputParser.parseArr('survey', [
+            {type: 'text', name: 'q1', label: ['q1x', 'q1y']},
+            {type: 'text', name: 'q2', label: ['q2x', 'q2y']},
+          ], ['lx', 'ly'])
+        expect(results).toEqual([
+            {
+              type: 'text', name: 'q1',
+              'label::lx': 'q1x',
+              'label::ly': 'q1y',
+            },
+            {
+              type: 'text', name: 'q2',
+              'label::lx': 'q2x',
+              'label::ly': 'q2y',
+            },
+          ])
       it 'parses group hierarchy', ->
         results = $inputParser.parseArr('survey', [
             {type: 'begin group', name: 'grp1'},
