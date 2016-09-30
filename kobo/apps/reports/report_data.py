@@ -56,7 +56,7 @@ def data_by_identifiers(asset, field_names=None, submission_stream=None,
         ])
     if field_names is None:
         field_names = fields_by_name.keys()
-    if split_by and (split_by not in field_names):
+    if split_by and (split_by not in fields_by_name):
         raise serializers.ValidationError(_("`split_by` field '{}' not found.").format(split_by))
     if split_by and (fields_by_name[split_by].data_type != 'select_one'):
         raise serializers.ValidationError(_("`split_by` field '{}' is not a select one question.").
