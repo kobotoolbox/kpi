@@ -14,7 +14,7 @@
   overflow: visible;
   position: relative;
   margin-top: 8px;
-  transition: all .4s ease 0s;
+  // transition removed due to printing bug in Chrome
 }
 
 .ui-panel {
