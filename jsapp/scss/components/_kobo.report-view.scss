@@ -135,57 +135,64 @@
   }
 }
 
-  .form-view__cell--iframe {
-    width:100%;
+.form-view__cell--iframe {
+  width:100%;
+  height: 100%;
+  overflow: hidden;
+
+  .form-modal__form {
     height: 100%;
-    overflow: hidden;
+  }
 
-    .form-modal__form {
-      height: 100%;
-    }
+  iframe {
+    width:100%;
+    min-height: 800px;
+    padding-right: 5px;
+  }
 
-    iframe {
-      width:100%;
-      min-height: 800px;
-      padding-right: 5px;
-    }
+  .form-modal__item--actions {
+    padding:0px 40px;
+    padding-top: 10px;
+    height: 60px;
+    margin-bottom: 20px;
+  }
 
-    .form-modal__item--actions {
-      padding:0px 40px;
-      padding-top: 10px;
-      height: 60px;
-      margin-bottom: 20px;
-    }
+  .form-modal__item--wrapper {
+    height: calc(100% - 80px);
+    overflow: auto;
+    padding:0px 40px;
+  }
 
-    .form-modal__item--wrapper {
-      height: calc(100% - 80px);
-      overflow: auto;
-      padding:0px 40px;
-    }
+  .form-modal__item label.long {
+    font-weight: 400;
+    font-size: 14px;
+  }
 
-    .form-modal__item label.long {
-      font-weight: 400;
-      font-size: 14px;
-    }
+  .form-modal__item textarea {
+    min-height: 80px;
+    margin-bottom: 10px;
+  }
 
-    .form-modal__item textarea {
-      min-height: 80px;
-      margin-bottom: 10px;
-    }
-
-    .form-modal__item--sector {
-      width: 48%;
-      margin-right: 2%;
-      float: left;
-    }
-    .form-modal__item--country {
-      width: 50%;
-      float: left;
-      &:after {
-        clear:both;
-      }
+  .form-modal__item--sector {
+    width: 48%;
+    margin-right: 2%;
+    float: left;
+  }
+  .form-modal__item--country {
+    width: 50%;
+    float: left;
+    &:after {
+      clear:both;
     }
   }
+}
+
+.form-modal__item--downloads {
+  iframe {
+    min-width: 100%;
+    min-height:400px;
+  }
+}
 
 // report graph settings
 .graph-settings {

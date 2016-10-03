@@ -10,14 +10,11 @@ $drawer-icons-column-width: 56px;
   left: 0px;
   display: flex;
   flex-direction: row;
-  transition: all 0.3s;
   overflow: hidden;
 }
 
-@media screen {
-  .mdl-layout__content {
-    margin-left: 248px;
-  }
+.mdl-layout__content {
+  margin-left: 248px;
 }
 
 .k-drawer__icons {

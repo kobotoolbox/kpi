@@ -365,6 +365,18 @@ var Reports = React.createClass({
     window.print();
   },
   renderReportButtons () {
+    var rows = this.state.rowsByIdentifier || {};
+    var groupByList = [{
+      'label': t("No grouping"),
+      'name': ''
+    }];
+    for (var key in rows) {
+      if (rows.hasOwnProperty(key) 
+          && rows[key].hasOwnProperty('type')
+          && rows[key].type == 'select_one') {
+        groupByList.push(rows[key]);
+      }
+    }
 
     return (
       <bem.FormView__reportButtons>
@@ -393,35 +405,31 @@ var Reports = React.createClass({
           </li>
         </ul> 
  
-        <button className="mdl-button mdl-js-button"
-                id="report-groupby">
-          {t('Group By')}
-          <i className="fa fa-caret-down"></i>
-        </button>
- 
-        {this.state.reportData && 
+        {groupByList.length > 1 && 
+          <button className="mdl-button mdl-js-button"
+                  id="report-groupby">
+            {t('Group By')}
+            <i className="fa fa-caret-down"></i>
+          </button>
+        }
+
+        {groupByList.length > 1 && 
           <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
               htmlFor="report-groupby">
-            <li>
-              <a className="mdl-menu__item"
-                 data-name=''
-                 onClick={this.groupDataBy}>
-                    {t('No grouping')}
-              </a>
-            </li>
-            {this.state.reportData.map((row, i)=>{
+            {groupByList.map((row)=>{
                 return (
                   <li>
                     <a className="mdl-menu__item"
                        data-name={row.name}
-                       onClick={this.groupDataBy}>{row.row.label}</a>
+                       onClick={this.groupDataBy}>{row.label}</a>
                   </li>
                 );
               })
             }
 
           </ul> 
-        } 
+        }
+
         <button className="mdl-button mdl-js-button is-edge"
                 id="report-viewall">
           {t('View All')}
