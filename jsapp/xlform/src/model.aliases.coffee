@@ -17,8 +17,12 @@ module.exports = do ->
     score: [
         "begin score",
         "end score",
+        "begin_score",
+        "end_score",
       ]
     rank: [
+        "begin_rank",
+        "end_rank",
         "begin rank",
         "end rank",
       ]
