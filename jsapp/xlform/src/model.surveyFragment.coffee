@@ -6,6 +6,7 @@ $row = require './model.row'
 $aliases = require './model.aliases'
 $utils = require './model.utils'
 $configs = require './model.configs'
+$surveyDetail = require './model.surveyDetail'
 
 module.exports = do ->
 
@@ -258,6 +259,8 @@ module.exports = do ->
       throw new Error("Invalid type at this stage: #{type}")
 
     if type in formSettingsTypes
+      # e.g. "today"
+      throw new Error("#{type} is not properly handled as a SurveyDetail")
       $surveyDetail.SurveyDetail
     else if type is 'score'
       $row.Row
