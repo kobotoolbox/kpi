@@ -401,7 +401,7 @@ export var ProjectDownloads = React.createClass({
                 : null
               ] : null
             , this.state.type.endsWith('_legacy') ?
-              <bem.FormModal__item m='iframe'>
+              <bem.FormModal__item m='downloads'>
                 <iframe src={
                     this.props.asset.deployment__data_download_links[
                       this.state.type]
