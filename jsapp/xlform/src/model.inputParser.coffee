@@ -31,17 +31,17 @@ module.exports = do ->
     for key, val of item
       if _.isArray(val)
         delete item[key]
-        _.map(translations, (translation, i)->
+        _.map(translations, (_t, i)->
           _translated_val = val[i]
-          if translation
-            lang_str = "#{key}::#{translation}"
+          if _t and _t isnt translations.preferred_translation
+            lang_str = "#{key}::#{_t}"
           else
             lang_str = key
           item[lang_str] = _translated_val
         )
     item
 
-  parseArr = (type='survey', sArr, translations)->
+  parseArr = (type='survey', sArr, translations=false)->
     counts = {
       open: {}
       close: {}
@@ -73,15 +73,16 @@ module.exports = do ->
 
     for item in sArr
       _groupAtts = $aliases.q.testGroupable(item.type)
+
+      if translations and translations.length > 0
+        item = flatten_translated_fields(item, translations)
+
       if _groupAtts
         if _groupAtts.begin
           _pushGrp(_groupAtts.type, item)
         else
           _popGrp(_groupAtts, item.type)
       else
-
-        if translations and translations.length > 0
-          item = flatten_translated_fields(item, translations)
         _curGrp().push(item)
 
     if grpStack.length isnt 1
@@ -95,9 +96,18 @@ module.exports = do ->
   inputParser.parseArr = parseArr
   inputParser.parse = (o)->
     translations = o.translations or false
+    if translations and '#null_translation' of o
+      translations.preferred_translation = o['#null_translation']
+      if o['#null_translation'] isnt null and null in translations
+        translations[translations.indexOf(null)] = 'UNNAMED'
+
     # sorts groups and repeats into groups and repeats (recreates the structure)
     if o.survey
       o.survey = parseArr('survey', o.survey, translations)
+
+    if o.choices
+      o.choices = parseArr('choices', o.choices, translations)
+
     # settings is sometimes packaged as an array length=1
     if o.settings and _.isArray(o.settings) and o.settings.length is 1
       o.settings = o.settings[0]

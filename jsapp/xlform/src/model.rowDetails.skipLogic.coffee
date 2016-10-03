@@ -54,7 +54,6 @@ class rowDetailsSkipLogic.SkipLogicCriterion extends Backbone.Model
     # old_question_type = @neverDefined?.increment_coffee_ref()
     # old_question_type = (if `this._get_question()` then this._get_question().get_type()) or { name: null }
     old_question_type = @_get_question()?.get_type?() or { name: null }
-    console.log('old_question_type: ', old_question_type, ' via ', @_get_question())
     @set('question_cid', cid)
     question_type = @_get_question().get_type()
 

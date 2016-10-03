@@ -129,6 +129,13 @@ module.exports = do ->
       @d.append(@t)
       @d.append(@c)
       @$el.html(@d)
+      _tt = @model.getSurvey().getSurvey().translations
+      if _tt and _tt.secondary_translation
+        _t_opt = @model.get("label::#{_tt.secondary_translation}")
+        $("<small>").html("""
+            <span>🌐&nbsp;-&nbsp;</span>
+            <span class="translated-text">#{_t_opt}</span>
+          """).appendTo(@$el)
       @
     keyupinput: (evt)->
       ifield = @$("input.inplace_field")
