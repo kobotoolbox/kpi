@@ -96,16 +96,7 @@ var ReportViewItem = React.createClass({
     var showLegend = false;
 
     // TODO: set as default globally in a higher level (PM)
-    var colors = this.state.style.report_colors || [
-      'rgba(52, 106, 200, 0.8)',
-      'rgba(252, 74, 124, 0.8)',
-      'rgba(250, 213, 99, 0.8)',
-      'rgba(113, 230, 33, 0.8)',
-      'rgba(78, 203, 255, 0.8)',
-      'rgba(253, 190, 76, 0.8)',
-      'rgba(77, 124, 244, 0.8)',
-      'rgba(33, 231, 184, 0.8)'
-    ];
+    var colors = this.buildChartColors(); 
 
     var baseColor = colors[0];
     Chart.defaults.global.elements.rectangle.backgroundColor = baseColor;
@@ -211,6 +202,32 @@ var ReportViewItem = React.createClass({
     }
 
     return opts;
+  },
+  buildChartColors () {
+    var colors = this.state.style.report_colors || [
+      'rgba(52, 106, 200, 0.8)',
+      'rgba(252, 74, 124, 0.8)',
+      'rgba(250, 213, 99, 0.8)',
+      'rgba(113, 230, 33, 0.8)',
+      'rgba(78, 203, 255, 0.8)',
+      'rgba(253, 190, 76, 0.8)',
+      'rgba(77, 124, 244, 0.8)',
+      'rgba(33, 231, 184, 0.8)'
+    ];
+
+    var c1 = colors.slice(0).map((c,i)=>{
+      c = c.replace("1)", "0.75)");
+      return c.replace("0.8", "0.5");
+    });
+    colors = colors.concat(c1);
+
+    var c2 = colors.slice(0).map((c,i)=>{
+      c = c.replace("1)", "0.5)");
+      return c.replace("0.8", "0.25");
+    });
+    colors = colors.concat(c2);
+
+    return colors;
   },
   render () {
     let p = this.state,
