@@ -67,6 +67,20 @@ class AssetContentTests(AssetsTestCase):
             {'list_name': 'yn', 'name': 'n', 'label': 'No'},
         ]}
 
+    def test_rename_null_translation(self):
+        '''
+        This allows a workaround to enable multi-translation editing in the
+        form builder which focuses on the "null" language.
+        '''
+        self.asset = Asset.objects.create(content={'survey': [
+            {'label': ['lang1', 'lang2'], 'type': 'text', 'name': 'q1'},
+        ],
+            'translations': ['lang1', None],
+            '#null_translation': 'lang2',
+        })
+        self.assertEqual(self.asset.content['translations'], ['lang1', 'lang2'])
+        self.assertTrue('#null_translation' not in self.asset.content)
+
     def test_flatten_empty_relevant(self):
         content = self._wrap_field('relevant', [])
         a1 = Asset.objects.create(content=content, asset_type='survey')
@@ -158,7 +172,8 @@ class AssetSettingsTests(AssetsTestCase):
                                   owner=self.user,
                                   asset_type='survey')
         # settingslist
-        settings = a1.content['settings'][0]
+        settings = a1.content['settings']
+        self.assertEqual(a1.asset_type, 'survey')
         self.assertTrue('form_title' not in settings)
         self.assertEqual(a1.name, 'abcxyz')
 

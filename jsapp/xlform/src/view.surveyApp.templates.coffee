@@ -104,7 +104,7 @@ module.exports = do ->
           <p class="survey-header__description" hidden>
             <hgroup class="survey-header__inner container">
               <h1 class="survey-header__title">
-                <span class="form-title">#{survey.settings.get("form_title")}</span>
+                <span class="form-title">#{survey.settings.get("form_title") || _t("untitled")}</span>
               </h1>
             </hgroup>
           </p>

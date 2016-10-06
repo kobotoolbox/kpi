@@ -9,10 +9,14 @@ class AssetVersionTestCase(TestCase):
     def test_init_asset_version(self):
         av_count = AssetVersion.objects.count()
         _content = {
-                'survey': [{'type': 'note', 'label': 'Read me', 'name': 'n1'}]
+                'survey': [{'type': 'note', 'label': ['Read me'], 'name': 'n1'}],
+                'translations': [None],
             }
         new_asset = Asset.objects.create(asset_type='survey', content=_content)
-        self.assertEqual(_content, new_asset.latest_version.version_content)
+        _vc = new_asset.latest_version.version_content
+        for row in _vc['survey']:
+            row.pop('$kuid')
+        self.assertEqual(_content, _vc)
         self.assertEqual(av_count + 1, AssetVersion.objects.count())
         new_asset.content['survey'].append({'type': 'note',
                                             'label': 'Read me 2',

@@ -19,6 +19,7 @@ from reversion import revisions as reversion
 
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.expand_content import expand_content
+from kpi.utils.standardize_content import standardize_content
 from formpack.utils.json_hash import json_hash
 from .object_permission import ObjectPermission, ObjectPermissionMixin
 from ..fields import KpiUidField
@@ -246,18 +247,6 @@ class Asset(ObjectPermissionMixin,
     def to_ss_structure(self):
         return flatten_content(self.content, in_place=False)
 
-    def _pull_form_title_from_settings(self):
-        if self.asset_type != 'survey':
-            return
-
-        # settingslist
-        if len(self.content['settings']) > 0:
-            settings = self.content['settings'][0]
-            if 'form_title' in settings:
-                self.name = settings['form_title']
-                del settings['form_title']
-                self.content['settings'] = [settings]
-
     def _populate_summary(self):
         if self.content is None:
             self.content = {}
@@ -266,25 +255,51 @@ class Asset(ObjectPermissionMixin,
         analyzer = AssetContentAnalyzer(**self.content)
         self.summary = analyzer.summary
 
+    def _adjust_content_on_save(self):
+        '''
+        This is called on save by default if content exists.
+        Can be disabled / skipped by calling with parameter:
+        asset.save(adjust_content=False)
+        '''
+        content = standardize_content(self.content)
+
+        # to get around the form builder's way of handling translations where
+        # the interface focuses on the "null translation" and shows other ones
+        # in advanced settings, we allow the builder to attach a parameter which
+        # says what to name the null translation.
+        name_null_translation = content.pop('#null_translation', None)
+        if name_null_translation:
+            try:
+                _null_index = content['translations'].index(None)
+            except ValueError as e:
+                raise ValueError('Cannot save translation name: {}'.format(
+                                 name_null_translation))
+            content['translations'][_null_index] = name_null_translation
+
+        if 'survey' in content:
+            self._strip_empty_rows(
+                content['survey'], required_key='type')
+            self._assign_kuids(content['survey'])
+        if 'choices' in content:
+            self._strip_empty_rows(
+                content['choices'], required_key='name')
+            self._assign_kuids(content['choices'])
+        if 'settings' in content:
+            if self.asset_type != 'survey':
+                del content['settings']
+            else:
+                if 'form_title' in content['settings']:
+                    self.name = content['settings'].pop('form_title')
+        self.content = content
+
     def save(self, *args, **kwargs):
         # in certain circumstances, we don't want content to
         # be altered on save. (e.g. on asset.deploy())
         _adjust_content = kwargs.pop('adjust_content', True)
+
         if _adjust_content and self.content is not None:
-            if 'survey' in self.content:
-                self._strip_empty_rows(
-                    self.content['survey'], required_key='type')
-                self._assign_kuids(self.content['survey'])
-                expand_content(self.content, in_place=True)
-            if 'choices' in self.content:
-                self._strip_empty_rows(
-                    self.content['choices'], required_key='name')
-                self._assign_kuids(self.content['choices'])
-            if 'settings' in self.content:
-                if self.asset_type != 'survey':
-                    del self.content['settings']
-                else:
-                    self._pull_form_title_from_settings()
+            self._adjust_content_on_save()
+
         # populate summary
         self._populate_summary()
 
@@ -347,6 +362,7 @@ class Asset(ObjectPermissionMixin,
         }
 
     def _strip_empty_rows(self, arr, required_key='type'):
+        # move this to formpack?
         arr[:] = [row for row in arr if required_key in row]
 
     def _assign_kuids(self, arr):
