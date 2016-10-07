@@ -129,7 +129,11 @@ module.exports = do ->
       @d.append(@t)
       @d.append(@c)
       @$el.html(@d)
-      _tt = @model.getSurvey().getSurvey().translations
+      try
+        _tt = @model.getSurvey().getSurvey().translations
+      catch err
+        _tt = false
+
       if _tt and _tt.secondary_translation
         _t_opt = @model.get("label::#{_tt.secondary_translation}")
         $("<small>").html("""

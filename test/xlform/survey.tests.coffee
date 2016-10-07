@@ -108,7 +108,8 @@ do ->
       expect(@survey.toJSON()).toEqual({
           'survey': [
             {
-              'type': {'select_one': 'yesno'},
+              'type': 'select_one',
+              'select_from_list_name': 'yesno',
               'name': 'yn',
               'label': 'YesNo',
               'required': 'true'
@@ -125,7 +126,10 @@ do ->
                 'name': 'no'
               }
             ]
-          }
+          },
+          'translations': [
+            null
+          ],
         })
     describe 'survey row reordering', ->
       beforeEach ->

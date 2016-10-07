@@ -18,7 +18,6 @@ from taggit.models import Tag
 from reversion import revisions as reversion
 
 from formpack.utils.flatten_content import flatten_content
-from formpack.utils.expand_content import expand_content
 from kpi.utils.standardize_content import standardize_content
 from formpack.utils.json_hash import json_hash
 from .object_permission import ObjectPermission, ObjectPermissionMixin

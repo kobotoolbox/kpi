@@ -13,10 +13,10 @@ do ->
         @survey = $survey.Survey.load {
             survey: [
               ["type", "name", "label", "kobo--rank-items"],
-              {type: "begin rank", name: "koborank", label: "Label", "kobo--rank-items": "needs"},
+              {type: "begin_rank", name: "koborank", label: "Label", "kobo--rank-items": "needs"},
               ["rank__level", "rnk1", "Rank Level 1"],
               ["rank__level", "rnk2", "Rank Level 2"],
-              {type: "end rank"},
+              {type: "end_rank"},
             ],
             'choices': [
               ['list name', 'name', 'label'],
@@ -53,8 +53,8 @@ do ->
             cr1, cr2, cr3, cr_end] = pkg.survey.rowObjects
           expect(r1.label).toEqual(cr1.label)
           expect(r1['kobo--rank-items']).not.toEqual(cr1['kobo--rank-items'])
-          expect(r_end.type).toEqual('end rank')
-          expect(cr_end.type).toEqual('end rank')
+          expect(r_end.type).toEqual('end_rank')
+          expect(cr_end.type).toEqual('end_rank')
           expect(_.pluck(pkg.choices.rowObjects, 'name')).toEqual([
               "food", "water", "shelter",
               "food", "water", "shelter",
@@ -66,8 +66,8 @@ do ->
             cr1, cr2, cr3, cr_end] = pkg.survey
           expect(r1.label).toEqual(cr1.label)
           expect(r1['kobo--rank-items']).not.toEqual(cr1['kobo--rank-items'])
-          expect(r_end.type).toEqual('end rank')
-          expect(cr_end.type).toEqual('end rank')
+          expect(r_end.type).toEqual('end_rank')
+          expect(cr_end.type).toEqual('end_rank')
           # each choice in pkg.choices comes in this format:
           #   list_name: [
           #     {name: 'name', label: 'label'}
@@ -109,7 +109,7 @@ do ->
       it 'scores can be exported', ->
         output = @survey.toJSON()
         expect(output.survey.length).toBe(4)
-        expect(output.survey[0].type).toBe('begin score')
+        expect(output.survey[0].type).toBe('begin_score')
         expect(output['choices']).toBeDefined()
         expect(output['choices']['koboskorechoices']).toEqual(
             [ {name: 'ok', label: 'Okay'}, {name: 'not_ok', label: 'Not okay'} ]

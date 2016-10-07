@@ -119,7 +119,8 @@ class AssetsDetailApiTests(APITestCase):
 
         self.assertEqual(response.status_code, 201)
         new_asset = Asset.objects.get(uid=response.data.get('uid'))
-        self.assertEqual(new_asset.content['survey'][0]['label'], 'v2')
+        self.assertEqual(new_asset.content['survey'][0]['label'], ['v2'])
+        self.assertEqual(new_asset.content['translations'], [None])
 
 
 class AssetsXmlExportApiTests(KpiTestCase):

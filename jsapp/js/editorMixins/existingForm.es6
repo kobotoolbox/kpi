@@ -6,7 +6,6 @@ import {
 } from '../utils';
 
 import stores from '../stores';
-import dkobo_xlform from '../../xlform/src/_xlform.init';
 
 export default {
   editorState: 'existing',
