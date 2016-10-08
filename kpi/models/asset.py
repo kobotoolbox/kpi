@@ -14,11 +14,11 @@ from jsonfield import JSONField
 from jsonbfield.fields import JSONField as JSONBField
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
-from taggit.models import Tag
-from reversion import revisions as reversion
 
 from formpack.utils.flatten_content import flatten_content
 from kpi.utils.standardize_content import standardize_content
+from kpi.utils.autoname import (autoname_fields_in_place,
+                                autovalue_choices_in_place)
 from formpack.utils.json_hash import json_hash
 from .object_permission import ObjectPermission, ObjectPermissionMixin
 from ..fields import KpiUidField
@@ -264,25 +264,24 @@ class Asset(ObjectPermissionMixin,
 
         # to get around the form builder's way of handling translations where
         # the interface focuses on the "null translation" and shows other ones
-        # in advanced settings, we allow the builder to attach a parameter which
-        # says what to name the null translation.
-        name_null_translation = content.pop('#null_translation', None)
-        if name_null_translation:
-            try:
-                _null_index = content['translations'].index(None)
-            except ValueError as e:
-                raise ValueError('Cannot save translation name: {}'.format(
-                                 name_null_translation))
-            content['translations'][_null_index] = name_null_translation
+        # in advanced settings, we allow the builder to attach a parameter
+        # which says what to name the null translation.
+        if '#null_translation' in content:
+            self._rename_null_translation(content,
+                                          content.pop('#null_translation'))
 
         if 'survey' in content:
             self._strip_empty_rows(
                 content['survey'], required_key='type')
             self._assign_kuids(content['survey'])
+            autoname_fields_in_place(content,
+                                     destination_key='$autoname')
         if 'choices' in content:
             self._strip_empty_rows(
                 content['choices'], required_key='name')
             self._assign_kuids(content['choices'])
+            autovalue_choices_in_place(content,
+                                       destination_key='$autovalue')
         if 'settings' in content:
             if self.asset_type != 'survey':
                 del content['settings']
@@ -291,12 +290,23 @@ class Asset(ObjectPermissionMixin,
                     self.name = content['settings'].pop('form_title')
         self.content = content
 
+    def _rename_null_translation(self, content, new_name):
+        if new_name in content['translations']:
+            raise ValueError('Cannot save translation with duplicate '
+                             'name: {}'.format(new_name))
+
+        try:
+            _null_index = content['translations'].index(None)
+        except ValueError as e:
+            raise ValueError('Cannot save translation name: {}'.format(
+                             new_name))
+        content['translations'][_null_index] = new_name
+
+
     def save(self, *args, **kwargs):
         # in certain circumstances, we don't want content to
         # be altered on save. (e.g. on asset.deploy())
-        _adjust_content = kwargs.pop('adjust_content', True)
-
-        if _adjust_content and self.content is not None:
+        if kwargs.pop('adjust_content', True) and self.content is not None:
             self._adjust_content_on_save()
 
         # populate summary

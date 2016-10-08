@@ -3,11 +3,15 @@
 from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
 import re
+from copy import deepcopy
 
 from django.test import TestCase
 
+from kpi.utils.standardize_content import standardize_content
 from kpi.utils.sluggify import sluggify, sluggify_label
-from kpi.utils.autoname import autoname_fields
+from kpi.utils.autoname import autoname_fields, autoname_fields_to_field
+from kpi.utils.autoname import autovalue_choices
+
 
 
 class UtilsTestCase(TestCase):
@@ -56,8 +60,12 @@ class UtilsTestCase(TestCase):
             if isinstance(name, basestring):
                 row['name'] = name
             arr.append(row)
-        _named = autoname_fields({'survey': arr})
+        _content = deepcopy({'survey': arr})
+        _named = autoname_fields(_content, in_place=False)
         self.assertEqual(expected, [r['name'] for r in _named])
+        _politely = autoname_fields_to_field(_content, to_field='$autoname')
+        _polite_names = [field.get('$autoname') for field in _politely.get('survey')]
+        self.assertEqual(_polite_names, [r['name'] for r in _named])
 
     def test_autonamer(self):
         self._assertAutonames(
@@ -104,3 +112,21 @@ class UtilsTestCase(TestCase):
                 'abc_002',
                 'abc_001',
             ])
+
+    def test_autovalue_choices(self):
+        surv = {
+            'survey': [
+                {u'type': 'select_multiple',
+                 u'select_from_list_name': 'xxx'},
+            ],
+            'choices': [
+                {'list_name': 'xxx', 'label': 'A B C'},
+                {'list_name': 'xxx', 'label': 'D E F'},
+            ],
+            'settings': {},
+        }
+        cx = autovalue_choices(surv)
+        # select_multiple choice values cannot have spaces!!
+        # something like this would be necessary for #960
+        # assert cx['choices'][0]['name'] == 'A_B_C'
+        assert cx['choices'][0]['name'] == 'A B C'

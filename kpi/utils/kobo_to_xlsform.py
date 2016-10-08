@@ -328,7 +328,7 @@ def to_xlsform_structure(surv,
                 _parse_contents_of_kobo_structures(surv)
 
     if 'choices' in surv and autovalue_choices:
-        surv['choices'] = autovalue_choices_fn(surv.get('choices', []))
+        surv['choices'] = autovalue_choices_fn(surv)
 
     for kobo_custom_sheet_name in filter(_is_kobo_specific, surv.keys()):
         del surv[kobo_custom_sheet_name]

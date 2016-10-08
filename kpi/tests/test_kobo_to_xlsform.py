@@ -49,9 +49,9 @@ score_s = [
 ]
 
 items = [
-    {'list name': 'items', 'name': 'a', 'label': 'A a a'},
-    {'list name': 'items', 'name': 'b', 'label': 'B b b'},
-    {'list name': 'items', 'name': 'c', 'label': 'C c c'},
+    {'list_name': 'items', 'name': 'a', 'label': 'A a a'},
+    {'list_name': 'items', 'name': 'b', 'label': 'B b b'},
+    {'list_name': 'items', 'name': 'c', 'label': 'C c c'},
 ]
 
 class K2XSubModules(TestCase):
