@@ -46,13 +46,17 @@ module.exports = do ->
           'begin repeat',
           'begin score',
           'begin_group',
+          'begin_rank',
           'begin_repeat',
+          'begin_score',
           'end group',
           'end rank',
           'end repeat',
           'end score',
           'end_group',
+          'end_rank',
           'end_repeat',
+          'end_score',
           ])
       it '[availableSheetNames]', ->
         expectSorted($aliases.q.requiredSheetNameList()).toEqual([

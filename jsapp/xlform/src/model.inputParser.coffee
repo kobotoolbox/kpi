@@ -95,7 +95,7 @@ module.exports = do ->
 
   inputParser.parseArr = parseArr
   inputParser.parse = (o)->
-    translations = o.translations or false
+    translations = o.translations or [null]
     if translations and '#null_translation' of o
       translations.preferred_translation = o['#null_translation']
       if o['#null_translation'] isnt null and null in translations

@@ -32,7 +32,7 @@ module.exports = do ->
       @choices = new $choices.ChoiceLists([], _parent: @)
       $inputParser.loadChoiceLists(options.choices || [], @choices)
 
-      @translations = options.translations or false
+      @translations = options.translations or [null]
       if @translations
         # if 'preferred_translation' is set, then any reference to a null translation
         # is actually a reference to the preferred translation.
