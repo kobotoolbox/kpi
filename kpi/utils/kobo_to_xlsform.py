@@ -58,11 +58,11 @@ class KoboRankGroup(GroupHandler):
     #survey
     |     type    | name |    label     | kobo--rank-items |
     |-------------|------|--------------|------------------|
-    | begin rank  | rnk  | Top 3 needs? | needs            |
+    | begin_rank  | rnk  | Top 3 needs? | needs            |
     | rank__level | n1   | 1st need     |                  |
     | rank__level | n2   | 2nd need     |                  |
     | rank__level | n3   | 3rd need     |                  |
-    | end rank    |      |              |                  |
+    | end_rank    |      |              |                  |
     #choices
     | list name |   name  |  label  |
     |-----------|---------|---------|
@@ -151,7 +151,7 @@ class KoboRankGroup(GroupHandler):
 
     def handle_row(self, row):
         rtype = row.get('type')
-        if rtype == 'end rank':
+        if rtype == 'end_rank':
             self._rows.append({'type': 'end group'})
             self.finish()
             return False
@@ -159,7 +159,7 @@ class KoboRankGroup(GroupHandler):
             self.add_level(row)
         else:
             raise TypeError("'%(type)': KoboRank groups can only contain rows"
-                            " with type='rank__level' (or 'end rank')" % row)
+                            " with type='rank__level' (or 'end_rank')" % row)
 
 
 class KoboScoreGroup(GroupHandler):
@@ -174,10 +174,10 @@ class KoboScoreGroup(GroupHandler):
         #survey
         |     type    |  name | label | kobo--score-choices | required |
         |-------------|-------|-------|---------------------|----------|
-        | begin score | skore | Score | skorechoices        | true     |
+        | begin_score | skore | Score | skorechoices        | true     |
         | score__row  | skr1  | Q1    |                     |          |
         | score__row  | skr2  | Q2    |                     |          |
-        | end score   |       |       |                     |          |
+        | end_score   |       |       |                     |          |
         #choices
         |  list name   | name |  label   |
         |--------------|------|----------|
@@ -248,9 +248,9 @@ class KoboScoreGroup(GroupHandler):
         self._rows.append(row)
 
     def handle_row(self, row):
-        if row.get('type') == 'end score':
+        if row.get('type') == 'end_score':
             self._rows.append({
-                    'type': 'end group',
+                    'type': 'end_group',
                 })
             self.finish()
             return False
@@ -260,11 +260,13 @@ class KoboScoreGroup(GroupHandler):
         else:
             raise TypeError("'%s': KoboScore groups"
                             " can only contain rows with type='score__row'"
-                            " (or 'end score')" % row.get('type'))
+                            " (or 'end_score')" % row.get('type'))
 
 KOBO_CUSTOM_TYPE_HANDLERS = {
     'begin score': KoboScoreGroup,
     'begin rank': KoboRankGroup,
+    'begin_score': KoboScoreGroup,
+    'begin_rank': KoboRankGroup,
 }
 
 
@@ -328,7 +330,7 @@ def to_xlsform_structure(surv,
                 _parse_contents_of_kobo_structures(surv)
 
     if 'choices' in surv and autovalue_choices:
-        surv['choices'] = autovalue_choices_fn(surv)
+        autovalue_choices_fn(surv, in_place=True)
 
     for kobo_custom_sheet_name in filter(_is_kobo_specific, surv.keys()):
         del surv[kobo_custom_sheet_name]
