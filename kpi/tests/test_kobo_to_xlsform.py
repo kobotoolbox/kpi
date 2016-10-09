@@ -38,7 +38,7 @@ rank_s = [
 
 score_s = [
     {
-        'type': 'begin score',
+        'type': 'begin_score',
         'name': 'x',
         COLS['score-choices']: 'items',
         'relevant': 'ghijkl',
@@ -53,6 +53,7 @@ items = [
     {'list_name': 'items', 'name': 'b', 'label': 'B b b'},
     {'list_name': 'items', 'name': 'c', 'label': 'C c c'},
 ]
+
 
 class K2XSubModules(TestCase):
     def test_sluggify_valid_xml(self):

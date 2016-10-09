@@ -3,9 +3,9 @@ import string
 import random
 import json
 from copy import deepcopy
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
-from kpi.utils.sluggify import sluggify_label, is_valid_nodeName
+from kpi.utils.sluggify import sluggify, sluggify_label, is_valid_nodeName
 
 
 def _increment(name):
@@ -25,6 +25,10 @@ def _is_group_end(row):
     row_type = row['type']
     return isinstance(row_type, basestring) and \
         (row_type.startswith('end ') or row_type.startswith('end_'))
+
+
+def _first_non_falsey_item(_list):
+    return next((l for l in _list if l), None)
 
 
 def autoname_fields__depr(surv_content):
@@ -100,7 +104,10 @@ def autoname_fields_in_place(surv_content, destination_key):
     for row in filter(lambda r: not _has_name(r), rows_needing_names):
         if 'label' in row:
             if isinstance(row['label'], list):
-                _label = next((l for l in row['label'] if l), None)
+                # in this case, label is a list of translations.
+                # for simplicity, we pick the first non-falsey value
+                # to use as a basis for the generated name
+                _label = _first_non_falsey_item(row['label'])
             else:
                 _label = row['label']
             if _label:
@@ -115,7 +122,6 @@ def autoname_fields_in_place(surv_content, destination_key):
             _slug += ('_' + row['$kuid'])
         _assign_row_to_name(row, sluggify_label(_slug, other_names.keys()))
 
-    assert len(other_names) == len(rows_needing_names)
     return surv_list
 
 
@@ -126,21 +132,48 @@ def sluggify_valid_xml__depr(name):
     return out
 
 
-def autovalue_choices(surv_choices, in_place=False):
+def autovalue_choices(surv_choices, in_place=False, destination_key='name'):
     if in_place:
-        autovalue_choices_in_place(surv_choices, 'name')
+        autovalue_choices_in_place(surv_choices, destination_key)
     else:
         _content = deepcopy(surv_choices)
-        autovalue_choices_in_place(_content, 'name')
+        autovalue_choices_in_place(_content, destination_key)
         return _content
 
 
-def autovalue_choices_in_place(surv_content, destination_key, ensure_unique=True):
-    surv_choices = surv_content.get('choices', [])
-    for choice in surv_choices:
-        # this has to change to prevent spaces in choice values (see kpi#960)
-        if 'name' not in choice:
-            choice['name'] = choice['label']
+def autovalue_choices_in_place(surv_content, destination_key):
+    '''
+    choice names must have spaces removed because select-multiple
+    results are presented in a space-delimited string.
 
-        if 'list name' in choice:
-            raise ValueError('Error: standardized asset content needed')
+    we have been ensuring that choice names are unique to
+    avoid errors leading to submission of ambiguous responses.
+    '''
+    surv_choices = surv_content.get('choices', [])
+    choice_value_key = 'name'
+    choices = OrderedDict()
+    for choice in surv_choices:
+        _list_name = choice['list_name']
+        if _list_name not in choices:
+            choices[_list_name] = []
+        choices[_list_name].append(choice)
+
+    for (list_name, choice_list) in choices.iteritems():
+        previous_values = []
+        for choice in choice_list:
+            if choice_value_key in choice:
+                _slug = choice[choice_value_key]
+            else:
+                if isinstance(choice['label'], list):
+                    _slug = _first_non_falsey_item(choice['label'])
+                else:
+                    _slug = choice['label']
+
+            choice[destination_key] = sluggify(_slug, {
+                'replaceNonWordCharacters': False,
+                'underscores': True,
+                'preventDuplicateUnderscores': True,
+                'lowerCase': False,
+                'preventDuplicates': previous_values,
+            })
+            previous_values.append(choice[destination_key])

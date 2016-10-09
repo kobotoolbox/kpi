@@ -4,6 +4,7 @@ from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
 
 import xml.etree.ElementTree as ET
+import md5
 import re
 
 DEFAULT_OPTS = {
@@ -21,8 +22,6 @@ DEFAULT_OPTS = {
     'preventDuplicates': False,
     'incrementorPadding': False,
 }
-
-import md5
 
 def sluggify(_str, _opts):
     '''

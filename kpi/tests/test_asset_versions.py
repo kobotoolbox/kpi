@@ -10,6 +10,7 @@ class AssetVersionTestCase(TestCase):
         av_count = AssetVersion.objects.count()
         _content = {
                 u'survey': [{u'type': u'note', u'label': [u'Read me'], u'name': u'n1'}],
+                u'translated': ['label'],
                 u'translations': [None],
             }
         new_asset = Asset.objects.create(asset_type='survey', content=_content)
