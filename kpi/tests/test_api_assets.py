@@ -168,7 +168,7 @@ class AssetsXmlExportApiTests(KpiTestCase):
         self.assertNotEqual(title_elts[0].text, '')
 
     def test_xml_export_group(self):
-        example_formbuilder_output= {'survey': [{"type": "begin group",
+        example_formbuilder_output= {'survey': [{"type": "begin_group",
                                                  "relevant": "",
                                                  "appearance": "",
                                                  "name": "group_hl3hw45",
@@ -176,7 +176,7 @@ class AssetsXmlExportApiTests(KpiTestCase):
                                                 {"required": "true",
                                                  "type": "decimal",
                                                  "label": "Question 1 Label"},
-                                                {"type": "end group"}],
+                                                {"type": "end_group"}],
                                      "settings": [{"form_title": "",
                                                    "form_id": "group_form"}]}
 

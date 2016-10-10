@@ -1,10 +1,3 @@
-UNCHARTABLE_TYPES = [
-    'begin group',
-    'end group',
-    'begin repeat',
-    'end repeat',
-    'note',
-]
 
 CHARTABLE_TYPES = [
     'select_one',

@@ -33,7 +33,7 @@ rank_s = [
     },
     {'type': 'rank__level', 'name': 'rl1'},
     {'type': 'rank__level', 'name': 'rl2', 'appearance': 'overridden'},
-    {'type': 'end rank'},
+    {'type': 'end_rank'},
 ]
 
 score_s = [
@@ -45,7 +45,7 @@ score_s = [
     },
     {'type': 'score__row', 'name': 'rl1'},
     {'type': 'score__row', 'name': 'rl2', 'appearance': 'overridden'},
-    {'type': 'end score'},
+    {'type': 'end_score'},
 ]
 
 items = [
@@ -87,7 +87,7 @@ class Converter(TestCase):
         surv = result['survey']
         self.assertEqual(len(surv), 5)
         self.assertEqual(surv[0]['appearance'], 'field-list')
-        self.assertEqual(surv[0]['type'], 'begin group')
+        self.assertEqual(surv[0]['type'], 'begin_group')
         self.assertEqual(surv[0]['relevant'], 'abcdef')
 
         self.assertEqual(surv[1]['type'], 'note')
@@ -100,7 +100,7 @@ class Converter(TestCase):
 
         self.assertEqual(surv[3]['appearance'], 'overridden')
 
-        self.assertEqual(surv[4]['type'], 'end group')
+        self.assertEqual(surv[4]['type'], 'end_group')
         self.assertEqual(len(surv[4].keys()), 1)
 
     def test_score_conversion(self):
@@ -108,7 +108,7 @@ class Converter(TestCase):
         surv = result['survey']
         self.assertEqual(len(surv), 5)
         self.assertEqual(surv[0]['appearance'], 'field-list')
-        self.assertEqual(surv[0]['type'], 'begin group')
+        self.assertEqual(surv[0]['type'], 'begin_group')
         self.assertEqual(surv[0]['relevant'], 'ghijkl')
 
         self.assertEqual(surv[1]['type'], 'select_one items')
@@ -120,7 +120,7 @@ class Converter(TestCase):
 
         self.assertEqual(surv[3]['appearance'], 'overridden')
 
-        self.assertEqual(surv[4]['type'], 'end group')
+        self.assertEqual(surv[4]['type'], 'end_group')
         self.assertEqual(len(surv[4].keys()), 1)
 
     def test_duplicate_question_names(self):

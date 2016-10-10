@@ -74,7 +74,7 @@ class KoboRankGroup(GroupHandler):
     #survey
     |       type       |    name   |    label     | appearance | required |             constraint            |
     |------------------|-----------|--------------|------------|----------|-----------------------------------|
-    | begin group      | rnk       |              | field-list |          |                                   |
+    | begin_group      | rnk       |              | field-list |          |                                   |
     | note             | rnk_label | Top 3 needs? |            |          |                                   |
     | select_one needs | n1        | 1st need     | minimal    | true     |                                   |
     | select_one needs | n2        | 2nd need     | minimal    | true     | ${n2} != ${n1}                    |
@@ -94,7 +94,7 @@ class KoboRankGroup(GroupHandler):
         _name = initial_row.get('name')
         self._previous_levels = []
 
-        begin_group = {'type': 'begin group',
+        begin_group = {'type': 'begin_group',
                        'name': _name,
                        'appearance': 'field-list'}
 
@@ -152,7 +152,7 @@ class KoboRankGroup(GroupHandler):
     def handle_row(self, row):
         rtype = row.get('type')
         if rtype == 'end_rank':
-            self._rows.append({'type': 'end group'})
+            self._rows.append({'type': 'end_group'})
             self.finish()
             return False
         elif rtype == 'rank__level':
@@ -188,7 +188,7 @@ class KoboScoreGroup(GroupHandler):
         #survey
         |           type          |     name     | label |  appearance  | required |
         |-------------------------|--------------|-------|--------------|----------|
-        | begin group             | skore        |       | field-list   |          |
+        | begin_group             | skore        |       | field-list   |          |
         | select_one skorechoices | skore_header | Score | label        |          |
         | select_one skorechoices | skr1         | Q1    | list-nolabel | true     |
         | select_one skorechoices | skr2         | Q2    | list-nolabel | true     |
@@ -205,7 +205,7 @@ class KoboScoreGroup(GroupHandler):
         initial_row_type = initial_row.get('type')
         _name = initial_row.get('name')
 
-        begin_group = {'type': 'begin group',
+        begin_group = {'type': 'begin_group',
                        'name': _name,
                        'appearance': 'field-list'}
 

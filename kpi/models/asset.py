@@ -471,7 +471,7 @@ class AssetSnapshot(models.Model, XlsExportable):
 
         # Delete empty `relevant` attributes from `begin group` elements.
         for i_row, row in enumerate(source['survey']):
-            if (row['type'] == 'begin group') and (row.get('relevant') == ''):
+            if (row['type'] == 'begin_group') and (row.get('relevant') == ''):
                 del source['survey'][i_row]['relevant']
 
         # form_title is now always stored in the model
