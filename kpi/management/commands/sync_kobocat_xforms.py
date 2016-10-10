@@ -306,8 +306,11 @@ class Command(BaseCommand):
                                 response.status_code)
                         ]
                         print_tabular(*error_information)
-                        logging.error(u'sync_kobocat_xforms: {}'.format(
-                            u', '.join(error_information)))
+                        # Don't spam the log when KC responds with 404, which
+                        # indicates that the form's XLS is missing from S3
+                        if response.status_code != 404:
+                            logging.error(u'sync_kobocat_xforms: {}'.format(
+                                u', '.join(error_information)))
                         continue
                     deployment_data = response.json()
                     with transaction.atomic():
