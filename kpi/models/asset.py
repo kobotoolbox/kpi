@@ -1,9 +1,11 @@
 import re
-import six
 import copy
 import json
+import StringIO
 from collections import OrderedDict
 
+import xlwt
+import six
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import MultipleObjectsReturned
 from django.db import models
@@ -20,6 +22,7 @@ from kpi.utils.standardize_content import standardize_content
 from kpi.utils.autoname import (autoname_fields_in_place,
                                 autovalue_choices_in_place)
 from formpack.utils.json_hash import json_hash
+from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
 from .object_permission import ObjectPermission, ObjectPermissionMixin
 from ..fields import KpiUidField
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
@@ -105,10 +108,7 @@ class XlsExportable(object):
             `{'sheet name': {'column name': 'cell value'}`
         Extra settings may be included as a dictionary of
             `{'setting name': 'setting value'}` '''
-        if extra_rows is None:
-            extra_rows = {}
-        import xlwt
-        import StringIO
+
         try:
             def _add_contents_to_sheet(sheet, contents):
                 cols = []
@@ -125,32 +125,29 @@ class XlsExportable(object):
                             sheet.write(ri + 1, ci, val)
             # The extra rows and settings should persist within this function
             # and its return value *only*. Calling deepcopy() is required to
-            # achive this isolation.
-            ss_dict = copy.deepcopy(self.valid_xlsform_content())
-            for extra_row_sheet_name, extra_row in extra_rows.iteritems():
-                extra_row_sheet = ss_dict.get(extra_row_sheet_name, [])
-                extra_row_sheet.append(extra_row)
-                ss_dict[extra_row_sheet_name] = extra_row_sheet
+            # achieve this isolation.
+            _c = copy.deepcopy(self.content)
             if extra_settings:
-                for setting_name, setting_value in extra_settings.iteritems():
-                    settings_sheet = ss_dict.get('settings', [{}])
-                    if not len(settings_sheet):
-                        settings_sheet.append({})
-                    settings_row = settings_sheet[0]
-                    if not overwrite_settings:
-                        assert setting_name not in settings_row, (
-                            u'Setting `{}` already exists, but '
-                            u'`overwrite_settings` is False'.format(
-                                setting_name)
-                            )
-                    settings_row[setting_name] = setting_value
+                _c['settings'].update(extra_settings)
+            if extra_rows:
+                for sheet_name, rows in extra_rows.items():
+                    if sheet_name not in _c:
+                        _c[sheet_name] = []
+                    _c[sheet_name] += rows
+
+            ss_dict = flatten_to_spreadsheet_content(_c, **{
+                    'remove_columns': [
+                        '$autoname',
+                        '$kuid',
+                        '$autovalue',
+                        'select_from_list_name',
+                    ],
+                })
 
             workbook = xlwt.Workbook()
-            for sheet_name in ss_dict.keys():
-                # pyxform.xls2json_backends adds "_header" items for each sheet....
-                if not re.match(r".*_header$", sheet_name):
-                    cur_sheet = workbook.add_sheet(sheet_name)
-                    _add_contents_to_sheet(cur_sheet, ss_dict[sheet_name])
+            for (sheet_name, contents) in ss_dict.iteritems():
+                cur_sheet = workbook.add_sheet(sheet_name)
+                _add_contents_to_sheet(cur_sheet, contents)
         except Exception as e:
             raise Exception("asset.content improperly formatted for XLS "
                             "export: %s" % repr(e))
@@ -163,13 +160,16 @@ class XlsExportable(object):
         ''' Records the version in the `settings` sheet and as a `calculate`
         question '''
         extra_rows = {
-            'survey': {
-                'name': '__version__',
-                'type': 'calculate',
-                # wraps the version id in quotes: 'v12345'
-                'calculation': '\'{}\''.format(self.version_id)
-            }
+            'survey': [
+                {
+                    'name': '__version__',
+                    'type': 'calculate',
+                    # wraps the version id in quotes: 'v12345'
+                    'calculation': '\'{}\''.format(self.version_id)
+                }
+            ],
         }
+
         extra_settings = {'version': self.version_id}
         return self.to_xls_io(
             extra_rows=extra_rows,
@@ -278,7 +278,7 @@ class Asset(ObjectPermissionMixin,
                                      destination_key='$autoname')
         if 'choices' in content:
             self._strip_empty_rows(
-                content['choices'], required_key='name')
+                content['choices'], required_key='list_name')
             self._assign_kuids(content['choices'])
             autovalue_choices_in_place(content,
                                        destination_key='$autovalue')
