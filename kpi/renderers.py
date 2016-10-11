@@ -47,4 +47,4 @@ class XlsRenderer(renderers.BaseRenderer):
 
     def render(self, data, media_type=None, renderer_context=None):
         asset = renderer_context['view'].get_object()
-        return asset.to_xls_io()
+        return asset.to_versioned_xls_io()

@@ -55,6 +55,6 @@ class AssetContentAnalyzer(object):
             'default_translation': self.default_translation,
             'geo': geo,
             'labels': labels[0:5],
-            'columns': keys.keys(),
+            'columns': filter(lambda k: not k.startswith('$'), keys.keys()),
         }
         return summary

@@ -17,6 +17,7 @@ from jsonbfield.fields import JSONField as JSONBField
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 
+from formpack import FormPack
 from formpack.utils.flatten_content import flatten_content
 from kpi.utils.standardize_content import (standardize_content,
                                            standardize_content_in_place)
@@ -245,6 +246,13 @@ class Asset(ObjectPermissionMixin,
     def to_ss_structure(self):
         return flatten_content(self.content, in_place=False)
 
+    def to_ordered_ss_structure(self):
+        return flatten_to_spreadsheet_content(self.content, **{
+                'remove_columns': [
+                    'select_from_list_name',
+                ]
+            })
+
     def _populate_summary(self):
         if self.content is None:
             self.content = {}
@@ -453,85 +461,56 @@ class AssetSnapshot(models.Model, XlsExportable):
         return self.source
 
     def generate_xml_from_source(self, source, **opts):
-        import pyxform
-        import tempfile
-        summary = {}
+        if opts.get('include_note') and 'survey' in source:
+            _translations = source.get('translations', [])
+            _label = opts.get('include_note')
+            if len(_translations) > 0:
+                _label = [_label for t in _translations]
+            source['survey'].append({u'type': u'note',
+                                     u'name': u'prepended_note',
+                                     u'label': _label})
+        _title = opts.get('title', 'Snapshot')
+        _id_string = opts.get('id_string', 'snapshot')
         warnings = []
-        default_name = None
-        default_language = u'default'
-        default_id_string = u'xform_id_string'
-        # settingslist
-        if 'settings' in source and len(source['settings']) > 0:
-            settings = source['settings'][0]
-        else:
-            settings = {}
-
-        settings.setdefault('id_string', default_id_string)
-
-        # Delete empty `relevant` attributes from `begin group` elements.
-        for i_row, row in enumerate(source['survey']):
-            if (row['type'] == 'begin_group') and (row.get('relevant') == ''):
-                del source['survey'][i_row]['relevant']
-
-        # form_title is now always stored in the model
-        # (removed from the settings sheet until export)
-        default_form_title= (hasattr(self.asset, 'name') and self.asset.name) or 'Untitled'
-        settings.setdefault('form_title', default_form_title)
-
-        if opts.get('include_note'):
-            source['survey'].insert(0, {'type': 'note',
-                                    'label': opts['include_note']})
-        source['settings'] = [settings]
+        self.details = {}
         try:
-            dict_repr = pyxform.xls2json.workbook_to_json(
-                source, default_name, default_language, warnings)
-
-            for k in (u'name', u'id_string', u'sms_keyword'):
-                dict_repr.setdefault(k, default_id_string)
-                if not isinstance(dict_repr[k], basestring):
-                    dict_repr[k]= default_id_string
-
-            survey = pyxform.builder.create_survey_element_from_dict(dict_repr)
-            with tempfile.NamedTemporaryFile(suffix='.xml') as named_tmp:
-                survey.print_xform_to_file(
-                    path=named_tmp.name, validate=True, warnings=warnings)
-                named_tmp.seek(0)
-                self.xml = named_tmp.read()
-            summary.update({
-                u'default_name': default_name,
-                u'id_string': 'random',
-                u'default_language': default_language,
+            self.xml = FormPack({'content': source},
+                                id_string=_id_string,
+                                title=_title)[0].to_xml(warnings=warnings)
+            self.details.update({
+                u'status': u'success',
                 u'warnings': warnings,
             })
-            summary['status'] = 'success'
-        except Exception, e:
-            summary.update({
-                u'error_type': type(e).__name__,
-                u'error': unicode(e),
+        except Exception as err:
+            self.details.update({
+                u'status': u'failure',
+                u'error_type': type(err).__name__,
+                u'error': unicode(err),
                 u'warnings': warnings,
             })
-        self.details = summary
 
     def save(self, *args, **kwargs):
         if self.source is None:
             self.source = copy.deepcopy(self.asset.content)
-        else:
-            standardize_content_in_place(self.source)
-            if 'survey' in self.source:
-                autoname_fields_in_place(self.source,
-                                         destination_key='$autoname')
-            if 'choices' in self.source:
-                autovalue_choices_in_place(self.source,
-                                           destination_key='$autovalue')
-        note = False
+        standardize_content_in_place(self.source)
+        if 'survey' in self.source:
+            autoname_fields_in_place(self.source,
+                                     destination_key='$autoname')
+            for row in self.source['survey']:
+                row['name'] = row['$autoname']
+        if 'choices' in self.source:
+            autovalue_choices_in_place(self.source,
+                                       destination_key='$autovalue')
+            for row in self.source['choices']:
+                row['name'] = row['$autovalue']
+        note = None
         if self.asset and self.asset.asset_type in ['question', 'block'] and \
                 len(self.asset.summary['languages']) == 0:
             asset_type = self.asset.asset_type
             note = 'Note: This item is a ASSET_TYPE and ' + \
                    'must be included in a form before deploying'
             note = note.replace('ASSET_TYPE', asset_type)
-        self.generate_xml_from_source(self.valid_xlsform_content(),
-                                      include_note=note)
+        self.generate_xml_from_source(self.source, include_note=note)
         return super(AssetSnapshot, self).save(*args, **kwargs)
 
 
