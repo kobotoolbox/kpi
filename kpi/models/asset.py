@@ -232,11 +232,6 @@ class Asset(ObjectPermissionMixin,
         'change_collection': 'change_asset'
     }
 
-    def __init__(self, *args, **kwargs):
-        super(Asset, self).__init__(*args, **kwargs)
-        # Mind the depth
-        self._initial_content_json = json.dumps(self.content)
-
     # todo: test and implement this method
     # def restore_version(self, uid):
     #     _version_to_restore = self.asset_versions.get(uid=uid)
