@@ -67,7 +67,7 @@ module.exports = do ->
       ['today'],
       ['simserial'],
       ['subscriberid'],
-      ['phonenumber'],
+      ['phonenumber', 'phone_number'],
     ]
 
   aliases.custom = q
