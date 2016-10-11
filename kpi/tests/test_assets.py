@@ -185,6 +185,39 @@ class AssetSettingsTests(AssetsTestCase):
         self.assertTrue('<h:title>abcxyz</h:title>' in export.xml)
         self.assertTrue('<xid_stringx id="xid_stringx">' in export.xml)
 
+
+class AssetScoreTestCase(TestCase):
+    fixtures = ['test_data']
+
+    def test_score_can_be_exported(self):
+        _matrix_score = {
+            u'survey': [
+                {u'name': u'start', u'type': u'start'},
+                {u'name': u'end', u'type': u'end'},
+                {u'kobo--score-choices': u'nb7ud55',
+                 u'label': [u'Los Angeles'],
+                 u'required': True,
+                 u'type': u'begin_score'},
+                {u'label': [u'Food'], u'type': u'score__row'},
+                {u'label': [u'Music'], u'type': u'score__row'},
+                {u'label': [u'Night life'], u'type': u'score__row'},
+                {u'label': [u'Housing'], u'type': u'score__row'},
+                {u'label': [u'Culture'], u'type': u'score__row'},
+                {u'type': u'end_score'}],
+            u'choices': [
+                {u'label': [u'Great'],
+                 u'list_name': u'nb7ud55'},
+                {u'label': [u'OK'],
+                 u'list_name': u'nb7ud55'},
+                {u'label': [u'Bad'],
+                 u'list_name': u'nb7ud55'}],
+            u'settings': {},
+        }
+        a1 = Asset.objects.create(content=_matrix_score)
+        export = a1.get_export()
+        self.assertTrue(export.xml != '')
+
+
 # TODO: test values of "valid_xlsform_content"
 
 # class ReadAssetsTests(AssetsTestCase):
