@@ -294,43 +294,52 @@ def _is_kobo_specific(name):
     return re.search(r'^kobo--', name)
 
 
-def remove_empty_expressions(survey_content):
+def remove_empty_expressions(content):
     # xls2json_backends.csv_to_dict(), called by dkobo, omits 'name' keys
     # whose values are blank. Since we read JSON from the form builder
     # instead of CSV, however, we have to tolerate not only missing names
     # but blank ones as well.
-    for surv_row in survey_content:
+    for surv_row in content.get('survey'):
         for skip_key in ['appearance', 'relevant', 'bind']:
             if skip_key in surv_row and surv_row[skip_key] == '':
                 del surv_row[skip_key]
 
 
+def replace_field_with_autofield(content, sheet_name, _to, _from):
+    for row in content[sheet_name]:
+        _auto = row.pop(_from, None)
+        if _auto:
+            row[_to] = _auto
+
+
 def to_xlsform_structure(surv,
-                         autoname=True,
                          deprecated_autoname=False,
-                         autovalue_choices=True,
                          extract_rank_and_score=True,
+                         move_autonames=False,
                          ):
 
     if 'survey' in surv:
         for survey_row in surv['survey']:
             if 'type' in survey_row and isinstance(survey_row['type'], dict):
+                # this issue is taken care of in 'standardize_content(...)'
+                # but keeping it around just in case.
                 _srt = survey_row['type']
                 survey_row['type'] = '{} {}'.format(_srt.keys()[0],
                                                     _srt.values()[0])
-        remove_empty_expressions(surv['survey'])
+
+        # this is also done in asset.save()
+        remove_empty_expressions(surv)
+        if move_autonames:
+            replace_field_with_autofield(surv, 'survey', 'name', '$autoname')
 
         if deprecated_autoname:
             surv['survey'] = autoname_fields__depr(surv)
-        elif autoname:
-            surv['survey'] = autoname_fields(surv)
 
         if extract_rank_and_score:
             (surv['survey'], features_used) = \
                 _parse_contents_of_kobo_structures(surv)
-
-    if 'choices' in surv and autovalue_choices:
-        autovalue_choices_fn(surv, in_place=True)
+    if move_autonames and 'choices' in surv:
+        replace_field_with_autofield(surv, 'choices', 'name', '$autovalue')
 
     for kobo_custom_sheet_name in filter(_is_kobo_specific, surv.keys()):
         del surv[kobo_custom_sheet_name]

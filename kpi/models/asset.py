@@ -18,7 +18,8 @@ from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 
 from formpack.utils.flatten_content import flatten_content
-from kpi.utils.standardize_content import standardize_content
+from kpi.utils.standardize_content import (standardize_content,
+                                           standardize_content_in_place)
 from kpi.utils.autoname import (autoname_fields_in_place,
                                 autovalue_choices_in_place)
 from formpack.utils.json_hash import json_hash
@@ -26,7 +27,8 @@ from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
 from .object_permission import ObjectPermission, ObjectPermissionMixin
 from ..fields import KpiUidField
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
-from ..utils.kobo_to_xlsform import to_xlsform_structure
+from ..utils.kobo_to_xlsform import (to_xlsform_structure,
+                                     remove_empty_expressions)
 from ..utils.random_id import random_id
 from ..deployment_backends.mixin import DeployableMixin
 from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
@@ -95,11 +97,8 @@ class TagStringMixin:
 
 class XlsExportable(object):
     def valid_xlsform_content(self):
-        try:
-            _c = flatten_content(self.content, in_place=False)
-        except Exception as e:
-            raise
-        return to_xlsform_structure(_c)
+        _c = flatten_content(self.content, in_place=False)
+        return to_xlsform_structure(_c, move_autonames=True)
 
     def to_xls_io(self, extra_rows=None, extra_settings=None,
                   overwrite_settings=False):
@@ -276,6 +275,7 @@ class Asset(ObjectPermissionMixin,
             self._assign_kuids(content['survey'])
             autoname_fields_in_place(content,
                                      destination_key='$autoname')
+            remove_empty_expressions(content)
         if 'choices' in content:
             self._strip_empty_rows(
                 content['choices'], required_key='list_name')
@@ -297,11 +297,10 @@ class Asset(ObjectPermissionMixin,
 
         try:
             _null_index = content['translations'].index(None)
-        except ValueError as e:
+        except ValueError:
             raise ValueError('Cannot save translation name: {}'.format(
                              new_name))
         content['translations'][_null_index] = new_name
-
 
     def save(self, *args, **kwargs):
         # in certain circumstances, we don't want content to
@@ -516,6 +515,14 @@ class AssetSnapshot(models.Model, XlsExportable):
     def save(self, *args, **kwargs):
         if self.source is None:
             self.source = copy.deepcopy(self.asset.content)
+        else:
+            standardize_content_in_place(self.source)
+            if 'survey' in self.source:
+                autoname_fields_in_place(self.source,
+                                         destination_key='$autoname')
+            if 'choices' in self.source:
+                autovalue_choices_in_place(self.source,
+                                           destination_key='$autovalue')
         note = False
         if self.asset and self.asset.asset_type in ['question', 'block'] and \
                 len(self.asset.summary['languages']) == 0:

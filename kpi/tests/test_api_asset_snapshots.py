@@ -1,5 +1,3 @@
-import json
-
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
@@ -29,3 +27,5 @@ class TestAssetSnapshotList(KpiTestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED,
                          msg=response.data)
+        xml_resp = self.client.get(response.data['xml'])
+        self.assertTrue(len(xml_resp.content) > 0)
