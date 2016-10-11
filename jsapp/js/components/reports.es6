@@ -11,6 +11,7 @@ import stores from '../stores';
 import Select from 'react-select';
 import ui from '../ui';
 import mdl from '../libs/rest_framework/material';
+import DocumentTitle from 'react-document-title';
 
 import ReportViewItem from './reportViewItem';
 
@@ -238,6 +239,13 @@ var Reports = React.createClass({
     Reflux.ListenerMixin,
   ],
   componentDidMount () {
+    this.loadReportData([]);
+  },
+  componentWillUpdate (nextProps, nextState) {
+    if (this.state.groupBy != nextState.groupBy)
+      this.loadReportData(nextState.groupBy);
+  },
+  loadReportData(groupBy) {
     let uid = this.props.params.assetid;
     // PM note: this below seems to cause child reportViewItem's componentWillUpdate to run twice, causing odd animation issues
     // this.listenTo(actions.reports.setStyle.completed, (asset)=>{
@@ -264,13 +272,27 @@ var Reports = React.createClass({
           rowsByIdentifier[$identifier] = r;
         });
 
-        dataInterface.getReportData({uid: uid, identifiers: names}).done((data)=>{
-
+        dataInterface.getReportData({uid: uid, identifiers: names, group_by: groupBy}).done((data)=>{
           var dataWithResponses = [];
+
           data.list.forEach(function(row){
             if (row.data.responses != undefined) {
+              if (rowsByIdentifier[row.name] != undefined)
+                row.row.label = rowsByIdentifier[row.name].label;
+              else
+                row.row.label = t('untitled');
+
               dataWithResponses.push(row);
             }
+
+            if (row.data.values != undefined) {
+              if (rowsByIdentifier[row.name] != undefined)
+                row.row.label = rowsByIdentifier[row.name].label;
+              else
+                row.row.label = t('untitled');
+              dataWithResponses.push(row);
+            }
+
           });
 
           this.setState({
@@ -292,7 +314,14 @@ var Reports = React.createClass({
       graphWidth: "700",
       graphHeight: "250",
       translationIndex: 0,
+      groupBy: []
     };
+  },
+  groupDataBy(evt) {
+    var gb = evt.target.getAttribute('data-name') ? [evt.target.getAttribute('data-name')] : [];
+    this.setState({
+      groupBy: gb,
+    });
   },
   reportStyleChange (params, value) {
     let assetUid = this.state.asset.uid;
@@ -336,6 +365,19 @@ var Reports = React.createClass({
     window.print();
   },
   renderReportButtons () {
+    var rows = this.state.rowsByIdentifier || {};
+    var groupByList = [{
+      'label': t("No grouping"),
+      'name': ''
+    }];
+    for (var key in rows) {
+      if (rows.hasOwnProperty(key) 
+          && rows[key].hasOwnProperty('type')
+          && rows[key].type == 'select_one') {
+        groupByList.push(rows[key]);
+      }
+    }
+
     return (
       <bem.FormView__reportButtons>
         <button className="mdl-button mdl-js-button"
@@ -343,7 +385,7 @@ var Reports = React.createClass({
           {t('Graph Settings')}
         </button>
  
-        <button className="mdl-button mdl-js-button"
+        <button className="mdl-button mdl-js-button is-edge"
                 id="report-language">
           {t('Language')}
           <i className="fa fa-caret-down"></i>
@@ -363,32 +405,36 @@ var Reports = React.createClass({
           </li>
         </ul> 
  
-        <button className="mdl-button mdl-js-button"
-                id="report-groupby">
-          {t('Group By')}
-          <i className="fa fa-caret-down"></i>
-        </button>
- 
-        <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
-            htmlFor="report-groupby">
-          <li>
-            <a className="mdl-menu__item">
-              {t('Test group link 1')}
-            </a>
-          </li>
-          <li>
-            <a className="mdl-menu__item">
-              {t('Test group link 2')}
-            </a>
-          </li>
-        </ul> 
- 
-        <button className="mdl-button mdl-js-button"
+        {groupByList.length > 1 && 
+          <button className="mdl-button mdl-js-button"
+                  id="report-groupby">
+            {t('Group By')}
+            <i className="fa fa-caret-down"></i>
+          </button>
+        }
+
+        {groupByList.length > 1 && 
+          <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
+              htmlFor="report-groupby">
+            {groupByList.map((row)=>{
+                return (
+                  <li>
+                    <a className="mdl-menu__item"
+                       data-name={row.name}
+                       onClick={this.groupDataBy}>{row.label}</a>
+                  </li>
+                );
+              })
+            }
+
+          </ul> 
+        }
+
+        <button className="mdl-button mdl-js-button is-edge"
                 id="report-viewall">
           {t('View All')}
           <i className="fa fa-caret-down"></i>
         </button>
- 
         <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
             htmlFor="report-viewall">
           <li>
@@ -402,7 +448,7 @@ var Reports = React.createClass({
             </a>
           </li>
         </ul> 
- 
+
         <button className="mdl-button mdl-js-button mdl-button--icon report-button__expand"
                 onClick={this.toggleExpandedReports} 
                 data-tip={t('Expand')}>
@@ -492,13 +538,16 @@ var Reports = React.createClass({
         rowsByKuid = this.state.rowsByKuid,
         explicitStyles,
         explicitStylesList = [],
-        defaultStyle;
+        defaultStyle, 
+        docTitle = t('Report');
     if (asset && asset.content) {
       explicitStyles = this.state.reportStyles.specified || {};
       defaultStyle = this.state.reportStyles.default || {};
 
       defaultStyle.graphWidth = this.state.graphWidth;
       defaultStyle.graphHeight = this.state.graphHeight;
+
+      docTitle = asset.name || t('Untitled');
     }
 
     let translations = false;
@@ -509,6 +558,7 @@ var Reports = React.createClass({
     }
 
     return (
+      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.ReportView>
           {this.renderReportButtons()}
           {this.state.asset ?
@@ -539,9 +589,8 @@ var Reports = React.createClass({
                     <p>No report data</p>
                   :
                   reportData.map((rowContent)=>{
-                    let kuid = rowContent.$kuid;
                     return (
-                        <bem.ReportView__item title={rowContent.$kuid}>
+                        <bem.ReportView__item>
                           {/* style picker:
                           <IndividualReportStylePicker key={kuid}
                               row={row}
@@ -575,6 +624,7 @@ var Reports = React.createClass({
  
           : null}
         </bem.ReportView>
+      </DocumentTitle>
       );
   },
   componentDidUpdate() {

@@ -6,7 +6,8 @@ import alertify from 'alertifyjs';
 import {Link} from 'react-router';
 import mdl from './libs/rest_framework/material';
 import TagsInput from 'react-tagsinput';
-import ReactZeroClipboard from 'react-zeroclipboard';
+import CopyToClipboard from 'react-copy-to-clipboard';
+import DocumentTitle from 'react-document-title';
  
 import {dataInterface} from './dataInterface';
 import stores from './stores';
@@ -33,7 +34,7 @@ import {
 var AssetTypeIcon = bem.create('asset-type-icon');
  
 var mixins = {};
- 
+
 mixins.taggedAsset = {
   mixins: [
     React.addons.LinkedStateMixin
@@ -133,7 +134,9 @@ var dmix = {
     },
     survey: {
       innerRender: function () {
+        var docTitle = this.state.name || t('Untitled');
         return (
+          <DocumentTitle title={`${docTitle} | KoboToolbox`}>
             <bem.FormView m='scrollable'>
                 <bem.FormView__wrapper m='form'>
                   <bem.FormView__row>
@@ -150,6 +153,7 @@ var dmix = {
                   : null }
                 </bem.FormView__wrapper> 
             </bem.FormView>
+          </DocumentTitle>
           );
       }
     }
@@ -496,9 +500,11 @@ var dmix = {
 
           {this.state.selectedCollectOption.value ?
             <bem.FormView__item m={'collect-links'}>
-              <ReactZeroClipboard text={this.state.selectedCollectOption.value} onAfterCopy={this.afterCopy}>
-                <a className="copy">copy</a>
-              </ReactZeroClipboard>
+              <CopyToClipboard text={this.state.selectedCollectOption.value}
+                onCopy={() => notify('copied to clipboard')}>
+                <a className="copy">Copy</a>
+              </CopyToClipboard>
+
               {this.state.selectedCollectOption.key != 'iframe_url' ?
                 <a href={this.state.selectedCollectOption.value} target="_blank" className="open">
                   {t('Open')}
@@ -667,7 +673,9 @@ var dmix = {
           onComplete: () => {
             notify(t('redeployed form'));
             actions.resources.loadAsset({id: asset.uid});
-            onComplete(asset);
+            if (onComplete) {
+              onComplete(asset);
+            }
           }
         });
         // keep the dialog open
@@ -696,7 +704,9 @@ var dmix = {
         onComplete: () => {
           notify(t('deployed form'));
           actions.resources.loadAsset({id: asset.uid});
-          onComplete(asset);
+          if (onComplete) {
+            onComplete(asset);
+          }
         }
       });
     } else {
@@ -1318,6 +1328,10 @@ mixins.clickAssets = {
           this.transitionTo(`${this.baseName}form-landing`, {assetid: uid});
         });
       },
+      sharing: function(uid){
+        this.transitionTo(`${this.baseName}form-sharing`, {assetid: uid});
+      },
+
     }
   },
 };

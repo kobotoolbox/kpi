@@ -112,20 +112,64 @@ class MockDataReports(TestCase):
         self.assertEqual([v['name'] for v in values], expected_names)
         self.assertEqual(len(values), 17)
 
+    def test_kobo_apps_reports_report_data_split_by(self):
+        values = report_data.data_by_identifiers(self.asset,
+                                          split_by="Select_one",
+                                          field_names=["Date"],
+                                          submission_stream=self.submissions)
+        self.assertEqual(values[0]['data']['values'], [
+                (u'2016-06-01',
+                  {u'responses': (u'First option', u'Second option'),
+                   u'frequencies': (1,             0),
+                   u'percentages': (25.0,          0.0)}),
+                (u'2016-06-02',
+                  {u'responses': (u'First option', u'Second option'),
+                   u'frequencies': (1,             0),
+                   u'percentages': (25.0,          0.0)}),
+                (u'2016-06-03',
+                  {u'responses': (u'First option', u'Second option'),
+                   u'frequencies': (0,             1),
+                   u'percentages': (0.0,           25.0)}),
+                (u'2016-06-05',
+                  {u'responses': (u'First option', u'Second option'),
+                   u'frequencies': (1,              0),
+                   u'percentages': (25.0,           0.0)}),
+          ])
+
+    def test_kobo_apps_reports_report_data_split_by_translated(self):
+        values = report_data.data_by_identifiers(self.asset,
+                                                 split_by="Select_one",
+                                                 lang="Arabic",
+                                                 field_names=["Date"],
+                                                 submission_stream=self.submissions)
+        responses = set()
+        for rv in OrderedDict(values[0]['data']['values']).values():
+            responses.update(rv.get('responses'))
+        expected = set([u'\u0627\u0644\u062e\u064a\u0627\u0631 \u0627\u0644\u0623\u0648\u0644',
+                             u'\u0627\u0644\u062e\u064a\u0627\u0631 \u0627\u0644\u062b\u0627\u0646\u064a'])
+        self.assertEqual(responses, expected)
+
     def test_kobo_apps_reports_report_data_subset(self):
         values = report_data.data_by_identifiers(self.asset,
-                                          field_names=('Select_one',),
-                                          submission_stream=self.submissions)
-        self.assertEqual(values[0]['data']['frequency'][0][0],
-                         u'First option')
+                                                 field_names=('Select_one',),
+                                                 submission_stream=self.submissions)
+        self.assertEqual(values[0]['data']['frequencies'], (3, 1))
+        self.assertEqual(values[0]['row']['type'], 'select_one')
+        self.assertEqual(values[0]['data']['percentages'], (75, 25))
+        self.assertEqual(values[0]['data']['responses'], (u'First option', u'Second option'))
 
     def test_kobo_apps_reports_report_data_translation(self):
         values = report_data.data_by_identifiers(self.asset,
                                           lang='Arabic',
                                           field_names=('Select_one',),
                                           submission_stream=self.submissions)
-        self.assertEqual(values[0]['data']['frequency'][0][0],
-                         u'\u0627\u0644\u062e\u064a\u0627\u0631 \u0627\u0644\u0623\u0648\u0644')
+        self.assertEqual(values[0]['data']['responses'],
+                         (  # response 1 in Arabic
+                          u'\u0627\u0644\u062e\u064a\u0627\u0631 '
+                          u'\u0627\u0644\u0623\u0648\u0644',
+                          # response 2 in Arabic
+                          u'\u0627\u0644\u062e\u064a\u0627\u0631 '
+                          u'\u0627\u0644\u062b\u0627\u0646\u064a'))
 
     def test_export_works_if_no_version_value_provided_in_submission(self):
         submissions = self.asset.deployment._get_submissions()
@@ -149,21 +193,13 @@ class MockDataReports(TestCase):
           'mean': 2.75,
         })
         self.assertEqual(decimal_stats['data'], {
-            u'provided': 4, u'frequency': [
-                (u'2016-06-01', 1),
-                (u'2016-06-02', 1),
-                (u'2016-06-03', 1),
-                (u'2016-06-05', 1)
-            ],
+            u'provided': 4,
+            u'frequencies': (1, 1, 1, 1),
             u'show_graph': True,
             u'not_provided': 0,
             u'total_count': 4,
-            u'percentage': [
-                (u'2016-06-01', 25.0),
-                (u'2016-06-02', 25.0),
-                (u'2016-06-03', 25.0),
-                (u'2016-06-05', 25.0),
-            ]
+            u'responses': (u'2016-06-01', u'2016-06-02', u'2016-06-03', u'2016-06-05'),
+            u'percentages': (25.0, 25.0, 25.0, 25.0),
         })
 
     def test_has_report_styles(self):

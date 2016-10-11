@@ -22,6 +22,12 @@ class DeployableMixin:
             self.connect_deployment(backend=backend, active=active)
         else:
             self.deployment.redeploy(active=active)
+        self._mark_latest_version_as_deployed()
+
+    def _mark_latest_version_as_deployed(self):
+        ''' `sync_kobocat_xforms` calls this, since it manipulates
+        `_deployment_data` directly. Everything else should probably call
+        `deploy()` above '''
         latest_version = self.latest_version
         latest_version.deployed = True
         latest_version.save()

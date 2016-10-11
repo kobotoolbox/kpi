@@ -116,6 +116,9 @@ var dataInterface;
       if (data.identifiers) {
         identifierString = `?names=${data.identifiers.join(',')}`
       }
+      if (data.group_by != '')
+        identifierString += `&split_by=${data.group_by}`
+
       return $ajax({
         url: `${rootUrl}/reports/${data.uid}/${identifierString}`,
       });

@@ -27,13 +27,13 @@ export default {
     });
   },
   navigateBack () {
-    var routeName = `${isLibrary(this.context.router) ? 'library-' : ''}form-landing`;
+    var routeName = isLibrary(this.context.router) ? 'library' : 'forms';
     if (!this.needsSave()) {
-      this.transitionTo(routeName, {assetid: this.props.params.assetid});
+      this.transitionTo(routeName);
     } else {
       customConfirmAsync(t('you have unsaved changes. leave form without saving?'))
         .done(() => {
-          this.transitionTo(routeName, {assetid: this.props.params.assetid});
+          this.transitionTo(routeName);
         });
     }
   },

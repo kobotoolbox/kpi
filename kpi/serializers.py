@@ -781,7 +781,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         # `require_auth` needs to be read from KC every time
         if settings.KOBOCAT_URL and settings.KOBOCAT_INTERNAL_URL:
             rep['extra_details']['require_auth'] = get_kc_profile_data(
-                obj.pk)['require_auth']
+                obj.pk).get('require_auth', False)
         return rep
 
     def update(self, instance, validated_data):

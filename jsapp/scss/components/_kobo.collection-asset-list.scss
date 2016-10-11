@@ -10,17 +10,19 @@
     padding-top: 20px;
     margin-top: 0px;
     margin-bottom: 0px;
+    font-size: 13px;
     &:after {
       content: '';
       height: 100%;
       width: 1px;
       background-color: transparentize($cool-gray, 0.7);
-      right: 2px;
+      right: -4px;
       top: 0px;
       position: absolute;
     }
-    &.asset-list-sorts__item--questions, &.asset-list-sorts__item--submissions {
-      text-align: right;
+    &.asset-list-sorts__item--questions, 
+    &.asset-list-sorts__item--submissions {
+      letter-spacing: -0.02em;
       &:after {
         display: none;
       }
@@ -44,13 +46,28 @@
   }
 }
 
-// regular, non-grouped list
+// regular, non-grouped list for library
+div.library {
+  height:100%;
+  margin-left: 8px;
+}
+
+.library__breadcrumb {
+  height:36px;
+  font-size: 18px;
+  line-height: 30px;
+  color: $cool-gray;
+  span {
+    padding-right: 8px;
+  }
+}
+
 .list--regular {
-  @extend .mdl-cell, .mdl-cell--12-col;
   flex-flow: column;
   margin: 0px !important;
   position: relative;
   height: calc(100% - 50px);
+  width:100%;
   .asset-list {
     height: calc(100% - 50px);
     overflow-y: auto;
@@ -61,10 +78,17 @@
     width: 33%;
     top: 10px;
   }
+  .asset-list, .asset-list-sorts {
+    background-color: #FFF;
+  }
+
+  .library__breadcrumb:not(.hidden) + .asset-list-sorts + .asset-list {
+    height: calc(100% - 86px); 
+  }
 }
 
 
-// grouped list
+// grouped list for Projects
 
 .list--grouped {
   height: 100%;
@@ -97,6 +121,34 @@
     }
     + .asset-list__heading {
       margin-top: 20px;
+    }
+  }
+}
+
+// fixed headings when scrolling asset list
+
+.asset-list--fixed-headings {
+  .asset-list-sorts {
+    display: none;
+  }
+  > :nth-child(2) {
+    .asset-list-sorts {
+      display: flex;
+      position: fixed;
+      width:calc(100% - 270px);
+      top:62px;
+      background: #FFF;
+      z-index:99;
+      overflow: hidden;
+      box-shadow: 0px 2px 4px 2px rgba( 0, 0, 0, 0.04);
+    }
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .asset-list--fixed-headings {
+    > :nth-child(2) .asset-list-sorts {
+      width:calc(100% - 22px);
     }
   }
 }

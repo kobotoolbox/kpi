@@ -62,6 +62,7 @@ $headerAccountTextColor: #dbedf7;
   }
   .account-box {
     margin-left: auto;
+    position: relative;
   }
   .account-box__notifications {
     display: inline-block;
@@ -91,7 +92,6 @@ $headerAccountTextColor: #dbedf7;
     display: inline-block;
     vertical-align: middle;
     color: $layout-nav-color;
-    position: relative;
     cursor: pointer;
     margin-top: 4px;
     background-color: transparent;
@@ -108,25 +108,24 @@ $headerAccountTextColor: #dbedf7;
       font-size: 16px;
       color: $headerAccountTextColor;
     }
-    .k-account__menu {
+  }
+  .k-account__menu {
+    position: absolute;
+    top: 22px;
+    right: -12px;
+    background-color: darken($layout-header-bg-color, 5%);
+    margin: 0px;
+    padding: 8px 0px;
+    &:before {
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 15px solid darken($layout-header-bg-color, 5%);
       position: absolute;
-      top: 24px;
-      right: -15px;
-      background-color: darken($layout-header-bg-color, 5%);
-      // box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5), inset 0 1px 3px 0 rgba(0, 0, 0, 0.5);
-      margin: 0px;
-      padding: 8px 0px;
-      &:before {
-        width: 0;
-        height: 0;
-        border-left: 15px solid transparent;
-        border-right: 15px solid transparent;
-        border-bottom: 15px solid darken($layout-header-bg-color, 5%);
-        position: absolute;
-        top: -10px;
-        content: '';
-        right: 30px;
-      }
+      top: -10px;
+      content: '';
+      right: 26px;
     }
   }
   .account-box__image {
@@ -364,7 +363,7 @@ $headerAccountTextColor: #dbedf7;
   display: none;
 }
 
-@media screen and (max-width: 767px) {
+@media screen and (max-width: 768px) {
   .k-burger {
     display: block;
     margin-right: 10px;
@@ -376,7 +375,7 @@ $headerAccountTextColor: #dbedf7;
     .mdl-layout-title {
       width: 180px;
     }
-    .Select {
+    .tag-select {
       display: none;
     }
     .search {

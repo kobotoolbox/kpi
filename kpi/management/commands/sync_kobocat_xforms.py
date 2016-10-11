@@ -67,7 +67,7 @@ def xlsform_to_kpi_content_schema(xlsform):
     # Remove the __version__ calculate question
     content['survey'] = [
         row for row in content['survey'] if not (
-            'calculation' in row and row['type'] == 'calculate' and
+            'calculation' in row and row.get('type') == 'calculate' and
             row['name'] == '__version__'
         )
     ]
@@ -337,8 +337,7 @@ class Command(BaseCommand):
                             'backend_response': deployment_data,
                             'version': asset.version_id
                         })
-                        # Save again since `store_data()` no longer saves
-                        # anything to the database
+                        asset._mark_latest_version_as_deployed()
                         asset.save()
                         if update_existing:
                             print_tabular(

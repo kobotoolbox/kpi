@@ -74,6 +74,9 @@ bem.CollectionNav__link = bem.CollectionNav.__('link', '<a>');
 bem.CollectionNav__searchcancel = bem.CollectionNav.__('searchcancel', '<i>');
 bem.CollectionNav__searchicon = bem.CollectionNav.__('searchicon', '<i>');
 
+bem.Library = bem('library');
+bem.Library_breadcrumb = bem.Library.__('breadcrumb');
+
 bem.List = bem('list');
 bem.AssetList = bem('asset-list');
 bem.AssetList__heading = bem.AssetList.__('heading');
@@ -190,6 +193,8 @@ bem.FormModal__item = bem.FormModal.__('item');
 
 bem.PopoverMenu = bem('popover-menu');
 bem.PopoverMenu__item = bem.PopoverMenu.__('item');
+bem.PopoverMenu__heading = bem.PopoverMenu.__('heading');
+bem.PopoverMenu__moveTo = bem.PopoverMenu.__('moveTo');
 bem.PopoverMenu__link = bem.PopoverMenu.__('link', '<a>');
 
 bem.AccountBox = BEM('account-box');

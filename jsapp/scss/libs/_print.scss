@@ -18,10 +18,9 @@
     overflow: visible;
     max-width: auto;
   }
-  .mdl-layout__content {
+  body .mdl-layout__content {
     // Fixes Firefox one-page print bug
     display: block;
-    // Todo: fix bug with Chrome on Mac (at least), below line does not get applied
     margin-left: 0px;
   }
   .k-drawer, .mdl-layout__header {
@@ -46,9 +45,19 @@
   .report-view__chart {
     page-break-inside: avoid;
   }
-  .report-view__item {
-    page-break-inside: avoid;
+  // .report-view__item {
+    // page-break-inside: avoid;
+  // }
+  .report-view__itemContent table {
+    margin-left:0%;
+    width:100%;
   }
+
+  // Fix Chrome printing headers overlap bug
+  thead { 
+    display: table-row-group 
+  }
+
 }
 
 @media only screen {
