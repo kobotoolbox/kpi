@@ -623,7 +623,7 @@ class AssetViewSet(viewsets.ModelViewSet):
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def table_view(self, request, *args, **kwargs):
         sa = self.get_object()
-        md_table = ss_structure_to_mdtable(sa.to_ss_structure())
+        md_table = ss_structure_to_mdtable(sa.to_ordered_ss_structure())
         return Response(md_table.strip())
 
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])

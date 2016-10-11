@@ -64,6 +64,7 @@ six==1.10.0
 sqlparse==0.1.19
 static3==0.7.0
 statistics==1.0.3.5
+tabulate==0.7.5
 transifex-client==0.11
 unicodecsv==0.14.1
 urllib3==1.15.1           # via transifex-client

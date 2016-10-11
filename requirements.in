@@ -54,6 +54,7 @@ six
 sqlparse
 static3
 transifex-client
+tabulate
 unicodecsv
 uWSGI
 whitenoise
