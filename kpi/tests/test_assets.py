@@ -15,8 +15,14 @@ class AssetsTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.all()[0]
         self.asset = Asset.objects.create(content={'survey': [
-            {'type': 'text', 'label': 'Question 1', 'name': 'q1', 'kuid': 'abc'},
-            {'type': 'text', 'label': 'Question 2', 'name': 'q2', 'kuid': 'def'},
+            {u'type': u'text',
+             u'label': u'Question 1',
+             u'name': u'q1',
+             u'$kuid': u'abc'},
+            {u'type': u'text',
+             u'label': u'Question 2',
+             u'name': u'q2',
+             u'$kuid': u'def'},
         ]}, owner=self.user)
         self.sa = self.asset
 
@@ -162,10 +168,15 @@ class AssetSettingsTests(AssetsTestCase):
         self.assertTrue('settings' not in a1.content)
 
     def test_surveys_retain_settings(self):
-        a1 = Asset.objects.create(content=self._content(), owner=self.user,
+        _content = self._content()
+        _content['settings'] = {
+            'style': 'pages',
+        }
+        a1 = Asset.objects.create(content=_content, owner=self.user,
                                   asset_type='survey')
         self.assertEqual(a1.asset_type, 'survey')
         self.assertTrue('settings' in a1.content)
+        self.assertEqual(a1.content['settings'].get('style'), 'pages')
 
     def test_surveys_move_form_title_to_name(self):
         a1 = Asset.objects.create(content=self._content('abcxyz'),

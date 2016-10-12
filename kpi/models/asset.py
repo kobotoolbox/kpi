@@ -273,25 +273,24 @@ class Asset(ObjectPermissionMixin,
             self._rename_null_translation(content,
                                           content.pop('#null_translation'))
 
-        if 'survey' in content:
-            self._strip_empty_rows(
-                content['survey'], required_key='type')
-            self._assign_kuids(content['survey'])
-            autoname_fields_in_place(content,
-                                     destination_key='$autoname')
-            remove_empty_expressions(content)
+        self._strip_empty_rows(
+            content['survey'], required_key='type')
+        self._assign_kuids(content['survey'])
+        autoname_fields_in_place(content,
+                                 destination_key='$autoname')
+        remove_empty_expressions(content)
         if 'choices' in content:
             self._strip_empty_rows(
                 content['choices'], required_key='list_name')
             self._assign_kuids(content['choices'])
             autovalue_choices_in_place(content,
                                        destination_key='$autovalue')
-        if 'settings' in content:
-            if self.asset_type != 'survey':
-                del content['settings']
-            else:
-                if 'form_title' in content['settings']:
-                    self.name = content['settings'].pop('form_title')
+
+        if self.asset_type != 'survey':
+            del content['settings']
+        else:
+            if 'form_title' in content['settings']:
+                self.name = content['settings'].pop('form_title')
         self.content = content
 
     def _rename_null_translation(self, content, new_name):

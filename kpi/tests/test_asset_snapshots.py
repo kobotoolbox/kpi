@@ -14,10 +14,10 @@ class AssetSnapshotsTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.all()[0]
         self.asset = Asset.objects.create(content={'survey': [
-            {'type': 'text', 'label': 'Question 1', 'name': 'q1', 'kuid': 'abc'},
-            {'type': 'text', 'label': 'Question 2', 'name': 'q2', 'kuid': 'def'},
+            {'type': 'text', 'label': 'Question 1', 'name': 'q1', '$kuid': 'abc'},
+            {'type': 'text', 'label': 'Question 2', 'name': 'q2', '$kuid': 'def'},
         ],
-            'settings': [{}]
+            'settings': {},
         }, owner=self.user)
         self.asset_snapshot = AssetSnapshot.objects.create(asset=self.asset)
         self.sa = self.asset
