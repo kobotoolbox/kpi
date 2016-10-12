@@ -305,11 +305,15 @@ def remove_empty_expressions(content):
                 del surv_row[skip_key]
 
 
-def replace_field_with_autofield(content, sheet_name, _to, _from):
-    for row in content[sheet_name]:
-        _auto = row.pop(_from, None)
+def replace_with_autofields(content):
+    for row in content.get('survey', []):
+        _auto = row.pop('$autoname', None)
         if _auto:
-            row[_to] = _auto
+            row['name'] = _auto
+    for row in content.get('choices', []):
+        _auto = row.pop('$autovalue', None)
+        if _auto:
+            row['name'] = _auto
 
 
 def to_xlsform_structure(surv,
@@ -329,8 +333,6 @@ def to_xlsform_structure(surv,
 
         # this is also done in asset.save()
         remove_empty_expressions(surv)
-        if move_autonames:
-            replace_field_with_autofield(surv, 'survey', 'name', '$autoname')
 
         if deprecated_autoname:
             surv['survey'] = autoname_fields__depr(surv)
@@ -338,8 +340,9 @@ def to_xlsform_structure(surv,
         if extract_rank_and_score:
             (surv['survey'], features_used) = \
                 _parse_contents_of_kobo_structures(surv)
-    if move_autonames and 'choices' in surv:
-        replace_field_with_autofield(surv, 'choices', 'name', '$autovalue')
+
+    if move_autonames:
+        replace_with_autofields(surv)
 
     for kobo_custom_sheet_name in filter(_is_kobo_specific, surv.keys()):
         del surv[kobo_custom_sheet_name]

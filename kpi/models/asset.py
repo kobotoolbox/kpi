@@ -29,7 +29,7 @@ from .object_permission import ObjectPermission, ObjectPermissionMixin
 from ..fields import KpiUidField
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
 from ..utils.kobo_to_xlsform import (to_xlsform_structure,
-                                     replace_field_with_autofield,
+                                     replace_with_autofields,
                                      remove_empty_expressions)
 from ..utils.random_id import random_id
 from ..deployment_backends.mixin import DeployableMixin
@@ -492,13 +492,10 @@ class AssetSnapshot(models.Model, XlsExportable):
         if 'survey' in self.source:
             autoname_fields_in_place(self.source,
                                      destination_key='$autoname')
-            replace_field_with_autofield(self.source, 'survey',
-                                         _to='name', _from='$autoname')
         if 'choices' in self.source:
             autovalue_choices_in_place(self.source,
                                        destination_key='$autovalue')
-            replace_field_with_autofield(self.source, 'choices',
-                                         _to='name', _from='$autovalue')
+        replace_with_autofields(self.source)
         note = None
         if self.asset and self.asset.asset_type in ['question', 'block'] and \
                 len(self.asset.summary['languages']) == 0:
