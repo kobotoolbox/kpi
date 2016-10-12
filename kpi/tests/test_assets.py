@@ -194,7 +194,7 @@ class AssetSettingsTests(AssetsTestCase):
                                   asset_type='survey')
         export = a1.get_export()
         self.assertTrue('<h:title>abcxyz</h:title>' in export.xml)
-        self.assertTrue('<xid_stringx id="xid_stringx">' in export.xml)
+        self.assertTrue('<data id="xid_stringx">' in export.xml)
 
 
 class AssetScoreTestCase(TestCase):
@@ -203,8 +203,6 @@ class AssetScoreTestCase(TestCase):
     def test_score_can_be_exported(self):
         _matrix_score = {
             u'survey': [
-                {u'name': u'start', u'type': u'start'},
-                {u'name': u'end', u'type': u'end'},
                 {u'kobo--score-choices': u'nb7ud55',
                  u'label': [u'Los Angeles'],
                  u'required': True,

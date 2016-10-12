@@ -29,6 +29,7 @@ from .object_permission import ObjectPermission, ObjectPermissionMixin
 from ..fields import KpiUidField
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
 from ..utils.kobo_to_xlsform import (to_xlsform_structure,
+                                     expand_rank_and_score_in_place,
                                      replace_with_autofields,
                                      remove_empty_expressions)
 from ..utils.random_id import random_id
@@ -458,34 +459,41 @@ class AssetSnapshot(models.Model, XlsExportable):
     def content(self):
         return self.source
 
-    def generate_xml_from_source(self, source, **opts):
-        if opts.get('include_note') and 'survey' in source:
+    @staticmethod
+    def generate_xml_from_source(source,
+                                 include_note=False,
+                                 root_node_name='snapshot_xml',
+                                 form_title='Snapshot XML',
+                                 id_string='snapshot_xml'):
+        if include_note and 'survey' in source:
             _translations = source.get('translations', [])
-            _label = opts.get('include_note')
+            _label = include_note
             if len(_translations) > 0:
                 _label = [_label for t in _translations]
             source['survey'].append({u'type': u'note',
                                      u'name': u'prepended_note',
                                      u'label': _label})
-        _title = opts.get('title', 'Snapshot')
-        _id_string = opts.get('id_string', 'snapshot')
+        expand_rank_and_score_in_place(source)
+        replace_with_autofields(source)
         warnings = []
-        self.details = {}
+        details = {}
         try:
-            self.xml = FormPack({'content': source},
-                                id_string=_id_string,
-                                title=_title)[0].to_xml(warnings=warnings)
-            self.details.update({
+            xml = FormPack({'content': source},
+                                root_node_name=root_node_name,
+                                id_string=id_string,
+                                title=form_title)[0].to_xml(warnings=warnings)
+            details.update({
                 u'status': u'success',
                 u'warnings': warnings,
             })
         except Exception as err:
-            self.details.update({
+            details.update({
                 u'status': u'failure',
                 u'error_type': type(err).__name__,
                 u'error': unicode(err),
                 u'warnings': warnings,
             })
+        return (xml, details)
 
     def save(self, *args, **kwargs):
         if self.source is None:
@@ -497,15 +505,27 @@ class AssetSnapshot(models.Model, XlsExportable):
         if 'choices' in self.source:
             autovalue_choices_in_place(self.source,
                                        destination_key='$autovalue')
-        replace_with_autofields(self.source)
         note = None
+        form_title = 'Snapshot'
+        id_string = self.source['settings'].get('id_string', False)
+        if self.asset:
+            form_title = self.asset.name or form_title
+            if not id_string:
+                id_string = self.asset.uid
+        if not id_string:
+            id_string = 'snapshot'
         if self.asset and self.asset.asset_type in ['question', 'block'] and \
                 len(self.asset.summary['languages']) == 0:
             asset_type = self.asset.asset_type
             note = 'Note: This item is a ASSET_TYPE and ' + \
                    'must be included in a form before deploying'
             note = note.replace('ASSET_TYPE', asset_type)
-        self.generate_xml_from_source(self.source, include_note=note)
+        (self.xml, self.details) = \
+            AssetSnapshot.generate_xml_from_source(copy.deepcopy(self.source),
+                                                   include_note=note,
+                                                   root_node_name='data',
+                                                   form_title=form_title,
+                                                   id_string=id_string)
         return super(AssetSnapshot, self).save(*args, **kwargs)
 
 
