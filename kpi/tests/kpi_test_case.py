@@ -72,7 +72,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
             self.login(owner.username, owner_password)
 
         if content is None:
-            content= ''
+            content = ''
 
         kwargs.update(
             {'name': name, 'content': content, 'asset_type': 'empty'}
@@ -83,7 +83,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         if owner and owner_password:
             self.client.logout()
 
-        asset= self.url_to_obj(response.data['url'])
+        asset = self.url_to_obj(response.data['url'])
         return asset
 
     def assert_child_of(self, child, parent_collection, owner=None,

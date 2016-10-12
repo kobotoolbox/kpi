@@ -30,6 +30,7 @@ class AssetVersionTestCase(TestCase):
                 ],
                 u'translated': [u'label'],
                 u'translations': [None],
+                u'settings': {},
             })
         self.assertEqual(av_count + 1, AssetVersion.objects.count())
         new_asset.content['survey'].append({u'type': u'note',
