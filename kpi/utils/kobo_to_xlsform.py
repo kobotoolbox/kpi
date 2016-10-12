@@ -91,11 +91,11 @@ class KoboRankGroup(GroupHandler):
     description = '''Ask a user to rank a number of things.'''
 
     def begin(self, initial_row):
-        _name = initial_row.get('name')
+        _name = initial_row.get('$autoname')
         self._previous_levels = []
 
         begin_group = {'type': 'begin_group',
-                       'name': _name,
+                       '$autoname': _name,
                        'appearance': 'field-list'}
 
         if 'required' in initial_row:
@@ -117,7 +117,7 @@ class KoboRankGroup(GroupHandler):
                     COLS['rank-items'],
                     COLS['rank-cmessage'],
                 ))
-        initial_row.update({'name': '%s_label' % _name,
+        initial_row.update({'$autoname': '%s_label' % _name,
                             'type': 'note'})
         self._rows = [
             begin_group,
@@ -133,7 +133,7 @@ class KoboRankGroup(GroupHandler):
         return ' and '.join(strs)
 
     def add_level(self, row):
-        row_name = row['name']
+        row_name = row['$autoname']
         appearance = row.get('appearance') or 'minimal'
         # all ranking sub-questions are required
         row.update({
@@ -203,10 +203,10 @@ class KoboScoreGroup(GroupHandler):
 
     def begin(self, initial_row):
         initial_row_type = initial_row.get('type')
-        _name = initial_row.get('name')
+        _name = initial_row['$autoname']
 
         begin_group = {'type': 'begin_group',
-                       'name': _name,
+                       '$autoname': _name,
                        'appearance': 'field-list'}
 
         if 'required' in initial_row:
@@ -228,7 +228,7 @@ class KoboScoreGroup(GroupHandler):
                 ))
         initial_row.update({
             'type': self._common_type,
-            'name': '%s_header' % _name,
+            '$autoname': '%s_header' % _name,
             'appearance': 'label',
             })
 
@@ -290,8 +290,8 @@ def _parse_contents_of_kobo_structures(ss_structure):
     return (base_handler.survey_contents, features_used)
 
 
-def _is_kobo_specific(name):
-    return re.search(r'^kobo--', name)
+def _is_kobo_specific(sheet_name):
+    return re.search(r'^kobo--', sheet_name)
 
 
 def remove_empty_expressions(content):
@@ -338,6 +338,7 @@ def to_xlsform_structure(surv,
             surv['survey'] = autoname_fields__depr(surv)
 
         if extract_rank_and_score:
+            expand_rank_and_score_in_place(surv)
             (surv['survey'], features_used) = \
                 _parse_contents_of_kobo_structures(surv)
 
@@ -347,3 +348,8 @@ def to_xlsform_structure(surv,
     for kobo_custom_sheet_name in filter(_is_kobo_specific, surv.keys()):
         del surv[kobo_custom_sheet_name]
     return surv
+
+
+def expand_rank_and_score_in_place(surv):
+    (surv['survey'], features_used) = \
+        _parse_contents_of_kobo_structures(surv)

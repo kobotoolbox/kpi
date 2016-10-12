@@ -25,33 +25,33 @@ COLS = {
 
 rank_s = [
     {
-        'type': 'begin rank',
-        'name': 'x',
+        'type': 'begin_rank',
+        '$autoname': 'x',
         COLS['rank-cmessage']: 'Rank Message',
         COLS['rank-items']: 'items',
         'relevant': 'abcdef',
     },
-    {'type': 'rank__level', 'name': 'rl1'},
-    {'type': 'rank__level', 'name': 'rl2', 'appearance': 'overridden'},
+    {'type': 'rank__level', '$autoname': 'rl1'},
+    {'type': 'rank__level', '$autoname': 'rl2', 'appearance': 'overridden'},
     {'type': 'end_rank'},
 ]
 
 score_s = [
     {
         'type': 'begin_score',
-        'name': 'x',
+        '$autoname': 'x',
         COLS['score-choices']: 'items',
         'relevant': 'ghijkl',
     },
-    {'type': 'score__row', 'name': 'rl1'},
-    {'type': 'score__row', 'name': 'rl2', 'appearance': 'overridden'},
+    {'type': 'score__row', '$autoname': 'rl1'},
+    {'type': 'score__row', '$autoname': 'rl2', 'appearance': 'overridden'},
     {'type': 'end_score'},
 ]
 
 items = [
-    {'list_name': 'items', 'name': 'a', 'label': 'A a a'},
-    {'list_name': 'items', 'name': 'b', 'label': 'B b b'},
-    {'list_name': 'items', 'name': 'c', 'label': 'C c c'},
+    {'list_name': 'items', '$autoname': 'a', 'label': 'A a a'},
+    {'list_name': 'items', '$autoname': 'b', 'label': 'B b b'},
+    {'list_name': 'items', '$autoname': 'c', 'label': 'C c c'},
 ]
 
 
@@ -80,6 +80,7 @@ class K2XSubModules(TestCase):
     #     for case in self.cases:
     #         [inp, expected] = case
     #         self.assertEqual(_sluggify_valid_xml(inp[0], names=inp[1]), expected)
+
 
 class Converter(TestCase):
     def test_rank_conversion(self):

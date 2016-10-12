@@ -30,14 +30,14 @@ class AssetsListApiTests(APITestCase):
         """
         url = reverse('asset-list')
         data = {
-            'content': json.dumps({}),
+            'content': '{}',
             'asset_type': 'empty',
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED,
                          msg=response.data)
         sa = Asset.objects.order_by('date_created').last()
-        self.assertEqual(sa.content, {})
+        self.assertEqual(sa.content, {'survey': []})
 
 
 class AssetsDetailApiTests(APITestCase):
@@ -95,7 +95,7 @@ class AssetsDetailApiTests(APITestCase):
                                     })
         self.assertEqual(response.status_code, 201)
         new_asset = Asset.objects.get(uid=response.data.get('uid'))
-        self.assertEqual(new_asset.content, {})
+        self.assertEqual(new_asset.content, {'survey': []})
         self.assertEqual(new_asset.name, 'clones_name')
 
     def test_can_clone_version_of_asset(self):
