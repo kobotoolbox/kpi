@@ -487,6 +487,7 @@ class AssetSnapshot(models.Model, XlsExportable):
                 u'warnings': warnings,
             })
         except Exception as err:
+            xml = None
             details.update({
                 u'status': u'failure',
                 u'error_type': type(err).__name__,
