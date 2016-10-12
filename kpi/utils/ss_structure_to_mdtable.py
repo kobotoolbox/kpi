@@ -47,9 +47,3 @@ def ss_structure_to_mdtable(content):
                                             headers=headers,
                                             tablefmt="orgtbl"))
     return '\n\n'.join(output)
-
-def list_to_mdtable(ll):
-    outstrs = []
-    for row in ll:
-        outstrs.append("| %s |" % (" | ".join(row)))
-    return "\n".join(outstrs)
