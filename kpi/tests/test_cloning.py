@@ -17,6 +17,7 @@ from ..views import (
 from .kpi_test_case import KpiTestCase
 from .test_assets import AssetsTestCase
 
+
 class TestCloningOrm(AssetsTestCase):
     def test_clone_asset_version(self):
         self.asset.content['survey'][0]['type'] = 'integer'
@@ -54,7 +55,6 @@ class TestCloning(KpiTestCase):
         kwargs.update({'clone_from': original_asset.uid})
         expected_status_code = kwargs.pop('expected_status_code',
                                           status.HTTP_201_CREATED)
-
         response = self.client.post(reverse('asset-list'), kwargs)
         self.assertEqual(response.status_code, expected_status_code)
 

@@ -308,7 +308,10 @@ class Asset(ObjectPermissionMixin,
     def save(self, *args, **kwargs):
         # in certain circumstances, we don't want content to
         # be altered on save. (e.g. on asset.deploy())
-        if kwargs.pop('adjust_content', True) and self.content is not None:
+        if self.content is None:
+            self.content = {}
+
+        if kwargs.pop('adjust_content', True):
             self._adjust_content_on_save()
 
         # populate summary
