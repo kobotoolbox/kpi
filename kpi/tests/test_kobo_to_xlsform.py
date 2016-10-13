@@ -94,8 +94,9 @@ class Converter(TestCase):
         self.assertEqual(surv[1]['type'], 'note')
         self.assertEqual(surv[1].get('relevant', None), None)
 
-        self.assertEqual(surv[2]['required'], 'true')
+        self.assertEqual(surv[2]['required'], True)
         self.assertEqual(surv[2]['type'], 'select_one items')
+        # self.assertEqual(surv[2]['select_from_list_name'], 'items')
         self.assertTrue('constraint' not in surv[2].keys())
         self.assertEqual(surv[2].get('constraint_message'), 'Rank Message')
 
@@ -112,12 +113,14 @@ class Converter(TestCase):
         self.assertEqual(surv[0]['type'], 'begin_group')
         self.assertEqual(surv[0]['relevant'], 'ghijkl')
 
-        self.assertEqual(surv[1]['type'], 'select_one items')
+        self.assertEqual(surv[1]['type'], 'select_one')
+        self.assertEqual(surv[1]['select_from_list_name'], 'items')
         self.assertEqual(surv[1]['appearance'], 'label')
         self.assertEqual(surv[1].get('relevant', None), None)
 
         self.assertEqual(surv[2]['appearance'], 'list-nolabel')
-        self.assertEqual(surv[2]['type'], 'select_one items')
+        self.assertEqual(surv[2]['type'], 'select_one')
+        self.assertEqual(surv[2]['select_from_list_name'], 'items')
 
         self.assertEqual(surv[3]['appearance'], 'overridden')
 
