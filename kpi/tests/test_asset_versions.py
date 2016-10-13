@@ -2,6 +2,8 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from copy import deepcopy
 
+from formpack.utils.expand_content import SCHEMA_VERSION
+
 from ..models import Asset
 from ..models import AssetVersion
 
@@ -21,6 +23,7 @@ class AssetVersionTestCase(TestCase):
         for row in _vc['survey']:
             row.pop('$kuid')
             row.pop('$autoname')
+            row.pop('$prev', None)
 
         self.assertEqual(_vc, {
                 u'survey': [
@@ -28,6 +31,7 @@ class AssetVersionTestCase(TestCase):
                      u'label': [u'Read me'],
                      u'name': u'n1'},
                 ],
+                u'schema': SCHEMA_VERSION,
                 u'translated': [u'label'],
                 u'translations': [None],
                 u'settings': {},

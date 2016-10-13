@@ -9,7 +9,9 @@ from rest_framework.test import APITestCase
 from kpi.models import Asset
 from kpi.models import Collection
 from .kpi_test_case import KpiTestCase
+from formpack.utils.expand_content import SCHEMA_VERSION
 
+EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION}
 
 class AssetsListApiTests(APITestCase):
     fixtures = ['test_data']
@@ -37,7 +39,7 @@ class AssetsListApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED,
                          msg=response.data)
         sa = Asset.objects.order_by('date_created').last()
-        self.assertEqual(sa.content, {'survey': []})
+        self.assertEqual(sa.content, EMPTY_SURVEY)
 
 
 class AssetsDetailApiTests(APITestCase):
@@ -95,7 +97,7 @@ class AssetsDetailApiTests(APITestCase):
                                     })
         self.assertEqual(response.status_code, 201)
         new_asset = Asset.objects.get(uid=response.data.get('uid'))
-        self.assertEqual(new_asset.content, {'survey': []})
+        self.assertEqual(new_asset.content, EMPTY_SURVEY)
         self.assertEqual(new_asset.name, 'clones_name')
 
     def test_can_clone_version_of_asset(self):

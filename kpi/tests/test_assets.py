@@ -1,4 +1,5 @@
 import re
+from collections import OrderedDict
 
 from django.contrib.auth.models import User, AnonymousUser
 from django.core.exceptions import ValidationError
@@ -7,7 +8,6 @@ from django.test import TestCase
 from kpi.models import Asset
 from kpi.models import Collection
 from kpi.models.object_permission import get_all_objects_for_user
-
 
 class AssetsTestCase(TestCase):
     fixtures = ['test_data']
@@ -23,7 +23,7 @@ class AssetsTestCase(TestCase):
              u'label': u'Question 2',
              u'name': u'q2',
              u'$kuid': u'def'},
-        ]}, owner=self.user)
+        ]}, owner=self.user, asset_type='survey')
         self.sa = self.asset
 
 
@@ -123,6 +123,37 @@ class AssetContentTests(AssetsTestCase):
         r1 = a1.content.get('survey')[0]
         self.assertEqual(r1['type'], 'select_one')
         self.assertEqual(r1['select_from_list_name'], 'abc')
+
+    def test_get_standardized_content(self):
+        def _asset_with_content(_c):
+            asset = Asset.objects.create(asset_type='survey', content=_c)
+            return (asset.valid_ordered_xlsform_content(),
+                    False,
+                    )
+        (x1, c1) = _asset_with_content({
+            'survey': [
+                {'type': 'text', 'label': '_asset_with_content'}
+            ]
+        })
+        self.assertTrue(None not in [x.get('name')
+                                     for x in x1['survey']])
+
+    def test_convert_content_to_ordered_dicts(self):
+        _c = self.asset.valid_ordered_xlsform_content(
+            extra_rows={
+                'survey': [
+                    {'type': 'note', 'label': ['wee'
+                     for _ in self.asset.content.get('translations')]
+                     },
+                ]
+            },
+            extra_settings={
+                'asdf': 'jkl',
+            }
+        )
+        self.assertTrue(isinstance(_c, OrderedDict))
+        self.assertTrue(_c.keys(), ['survey', 'settings'])
+        self.assertTrue(isinstance(_c['survey'][0], OrderedDict))
 
 
 class AssetSettingsTests(AssetsTestCase):

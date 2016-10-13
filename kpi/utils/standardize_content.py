@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 from formpack.utils.replace_aliases import replace_aliases
-from formpack.utils.expand_content import expand_content
+from formpack.utils.expand_content import expand_content, SCHEMA_VERSION
 
 ALLOWED_TYPES = {
     u'score__row': True,
@@ -19,6 +19,14 @@ ALLOWED_TYPES = {
         u'end rank',
     ],
 }
+
+
+def needs_standardization(_c):
+    if not isinstance(_c, dict):
+        raise ValueError("Content argument needs to be a dict")
+    if 'schema' in _c and _c['schema'] is SCHEMA_VERSION:
+        return False
+    return True
 
 
 def standardize_content(content):

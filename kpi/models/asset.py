@@ -1,3 +1,7 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# 😬
+
 import re
 import copy
 import json
@@ -19,12 +23,13 @@ from taggit.utils import require_instance_manager
 
 from formpack import FormPack
 from formpack.utils.flatten_content import flatten_content
+from formpack.utils.json_hash import json_hash
+from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
 from kpi.utils.standardize_content import (standardize_content,
+                                           needs_standardization,
                                            standardize_content_in_place)
 from kpi.utils.autoname import (autoname_fields_in_place,
                                 autovalue_choices_in_place)
-from formpack.utils.json_hash import json_hash
-from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
 from .object_permission import ObjectPermission, ObjectPermissionMixin
 from ..fields import KpiUidField
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
@@ -99,12 +104,51 @@ class TagStringMixin:
 
 
 class XlsExportable(object):
-    def valid_xlsform_content(self):
-        _c = flatten_content(self.content, in_place=False)
+    def standardized_content_copy(self):
+        if needs_standardization(self.content):
+            _c = standardize_content(self.content)
+        else:
+            _c = copy.deepcopy(self.content)
+        autoname_fields_in_place(_c, '$autoname')
+        return _c
+
+    def flattened_content_copy(self):
+        _c = self.standardized_content_copy()
+        flatten_content(_c, in_place=True)
         return to_xlsform_structure(_c, move_autonames=True)
 
-    def to_xls_io(self, extra_rows=None, extra_settings=None,
-                  overwrite_settings=False):
+    def valid_xlsform_content(self):
+        return self.flattened_content_copy()
+
+    def valid_ordered_xlsform_content(self,
+                                      extra_rows=None,
+                                      extra_settings=None):
+        _c = self.standardized_content_copy()
+        replace_with_autofields(_c)
+
+        if extra_settings:
+            _c['settings'].update(extra_settings)
+        if extra_rows:
+            for sheet_name, rows in extra_rows.items():
+                if sheet_name not in _c:
+                    _c[sheet_name] = []
+                _c[sheet_name] += rows
+
+        _c = flatten_to_spreadsheet_content(_c, **{
+                    'remove_columns': [
+                        '$autoname',
+                        '$kuid',
+                        '$autovalue',
+                        '$prev',
+                        'select_from_list_name',
+                    ],
+                    'remove_sheets': [
+                        'schema',
+                    ],
+                })
+        return _c
+
+    def to_xls_io(self, **kwargs):
         ''' To append rows to one or more sheets, pass `extra_rows` as a
         dictionary of dictionaries in the following format:
             `{'sheet name': {'column name': 'cell value'}`
@@ -128,23 +172,7 @@ class XlsExportable(object):
             # The extra rows and settings should persist within this function
             # and its return value *only*. Calling deepcopy() is required to
             # achieve this isolation.
-            _c = copy.deepcopy(self.content)
-            if extra_settings:
-                _c['settings'].update(extra_settings)
-            if extra_rows:
-                for sheet_name, rows in extra_rows.items():
-                    if sheet_name not in _c:
-                        _c[sheet_name] = []
-                    _c[sheet_name] += rows
-
-            ss_dict = flatten_to_spreadsheet_content(_c, **{
-                    'remove_columns': [
-                        '$autoname',
-                        '$kuid',
-                        '$autovalue',
-                        'select_from_list_name',
-                    ],
-                })
+            ss_dict = self.valid_ordered_xlsform_content(**kwargs)
 
             workbook = xlwt.Workbook()
             for (sheet_name, contents) in ss_dict.iteritems():
@@ -277,6 +305,7 @@ class Asset(ObjectPermissionMixin,
         self._strip_empty_rows(
             content['survey'], required_key='type')
         self._assign_kuids(content['survey'])
+        # self._assign_sequence(content['survey'])
         autoname_fields_in_place(content,
                                  destination_key='$autoname')
         remove_empty_expressions(content)
@@ -385,6 +414,14 @@ class Asset(ObjectPermissionMixin,
             if '$kuid' not in row:
                 row['$kuid'] = random_id(9)
 
+    '''
+    def _assign_sequence(self, arr):
+        if len(arr) > 0:
+            arr[0]['$prev'] = None
+        for i in range(1, len(arr)):
+            arr[i]['$prev'] = arr[i-1]['$kuid']
+    '''
+
     def get_ancestors_or_none(self):
         # ancestors are ordered from farthest to nearest
         if self.parent is not None:
@@ -487,7 +524,7 @@ class AssetSnapshot(models.Model, XlsExportable):
                 u'warnings': warnings,
             })
         except Exception as err:
-            xml = None
+            xml = ''
             details.update({
                 u'status': u'failure',
                 u'error_type': type(err).__name__,
