@@ -204,7 +204,6 @@ class XlsExportable(object):
         return self.to_xls_io(
             extra_rows=extra_rows,
             extra_settings=extra_settings,
-            overwrite_settings=True
         )
 
 
