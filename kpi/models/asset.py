@@ -36,7 +36,7 @@ from ..utils.asset_content_analyzer import AssetContentAnalyzer
 from ..utils.kobo_to_xlsform import (to_xlsform_structure,
                                      expand_rank_and_score_in_place,
                                      replace_with_autofields,
-                                     remove_empty_expressions)
+                                     remove_empty_expressions_in_place)
 from ..utils.random_id import random_id
 from ..deployment_backends.mixin import DeployableMixin
 from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
@@ -102,16 +102,97 @@ class TagStringMixin:
         intended_tags = value.split(',')
         self.tags.set(*intended_tags)
 
+FLATTEN_OPTS = {
+    'remove_columns': [
+        '$autoname',
+        '$kuid',
+        '$autovalue',
+        '$prev',
+        'select_from_list_name',
+    ],
+    'remove_sheets': [
+        'schema',
+    ],
+}
+
+
+class FormpackXLSFormUtils(object):
+    def _standardize(self, content):
+        if needs_standardization(content):
+            standardize_content_in_place(content)
+            return True
+        else:
+            return False
+
+    def _autoname(self, content):
+        autoname_fields_in_place(content, '$autoname')
+        autovalue_choices_in_place(content, '$autovalue')
+
+    def _populate_fields_with_autofields(self, content):
+        replace_with_autofields(content)
+
+    def _expand_kobo_qs(self, content):
+        expand_rank_and_score_in_place(content)
+
+    def _append(self, content, **sheet_data):
+        if 'survey' in sheet_data:
+            content['survey'] += sheet_data['survey']
+        if 'settings' in sheet_data:
+            content['settings'].update(sheet_data['settings'])
+
+    def _xlsform_structure(self, content, ordered=True):
+        if ordered:
+            flatten_to_spreadsheet_content(content, in_place=True,
+                                           **FLATTEN_OPTS)
+        else:
+            flatten_content(content, in_place=True, **FLATTEN_OPTS)
+
+    def _assign_kuids(self, content):
+        for row in content['survey']:
+            if '$kuid' not in row:
+                row['$kuid'] = random_id(9)
+        for row in content.get('choices', []):
+            if '$kuid' not in row:
+                row['$kuid'] = random_id(9)
+
+    def _link_list_items(self, content):
+        arr = content['survey']
+        if len(arr) > 0:
+            arr[0]['$prev'] = None
+        for i in range(1, len(arr)):
+            arr[i]['$prev'] = arr[i-1]['$kuid']
+
+    def _remove_empty_expressions(self, content):
+        remove_empty_expressions_in_place(content)
+
+    def _strip_empty_rows(self, content, vals=None):
+        if vals is None:
+            vals = {
+                u'survey': u'type',
+                u'choices': u'list_name',
+            }
+        for (sheet_name, required_key) in vals.iteritems():
+            arr = content.get(sheet_name, [])
+            arr[:] = [row for row in arr if required_key in row]
+
+    def pop_setting(self, content, *args):
+        if 'settings' in content:
+            return content['settings'].pop(*args)
+
+    def _rename_null_translation(self, content, new_name):
+        if new_name in content['translations']:
+            raise ValueError('Cannot save translation with duplicate '
+                             'name: {}'.format(new_name))
+
+        try:
+            _null_index = content['translations'].index(None)
+        except ValueError:
+            raise ValueError('Cannot save translation name: {}'.format(
+                             new_name))
+        content['translations'][_null_index] = new_name
+
 
 class XlsExportable(object):
-    def standardized_content_copy(self):
-        if needs_standardization(self.content):
-            _c = standardize_content(self.content)
-        else:
-            _c = copy.deepcopy(self.content)
-        autoname_fields_in_place(_c, '$autoname')
-        return _c
-
     def flattened_content_copy(self):
         _c = self.standardized_content_copy()
         flatten_content(_c, in_place=True)
@@ -123,30 +204,19 @@ class XlsExportable(object):
     def valid_ordered_xlsform_content(self,
                                       extra_rows=None,
                                       extra_settings=None):
-        _c = self.standardized_content_copy()
-        replace_with_autofields(_c)
+        # currently, this method depends on "FormpackXLSFormUtils"
+        content = copy.deepcopy(self.content)
 
-        if extra_settings:
-            _c['settings'].update(extra_settings)
-        if extra_rows:
-            for sheet_name, rows in extra_rows.items():
-                if sheet_name not in _c:
-                    _c[sheet_name] = []
-                _c[sheet_name] += rows
+        self._standardize(content)
 
-        _c = flatten_to_spreadsheet_content(_c, **{
-                    'remove_columns': [
-                        '$autoname',
-                        '$kuid',
-                        '$autovalue',
-                        '$prev',
-                        'select_from_list_name',
-                    ],
-                    'remove_sheets': [
-                        'schema',
-                    ],
-                })
-        return _c
+        self._expand_kobo_qs(content)
+        self._autoname(content)
+        self._assign_kuids(content)
+
+        content = OrderedDict(content)
+        self._xlsform_structure(content, ordered=True)
+
+        return content
 
     def to_xls_io(self, **kwargs):
         ''' To append rows to one or more sheets, pass `extra_rows` as a
@@ -211,6 +281,7 @@ class Asset(ObjectPermissionMixin,
             TagStringMixin,
             DeployableMixin,
             XlsExportable,
+            FormpackXLSFormUtils,
             models.Model):
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)
@@ -291,48 +362,29 @@ class Asset(ObjectPermissionMixin,
         Can be disabled / skipped by calling with parameter:
         asset.save(adjust_content=False)
         '''
-        content = standardize_content(self.content)
+        self._standardize(self.content)
 
         # to get around the form builder's way of handling translations where
         # the interface focuses on the "null translation" and shows other ones
         # in advanced settings, we allow the builder to attach a parameter
         # which says what to name the null translation.
-        if '#null_translation' in content:
-            self._rename_null_translation(content,
-                                          content.pop('#null_translation'))
+        if '#null_translation' in self.content:
+            self._rename_null_translation(self.content,
+                                          self.content.pop('#null_translation')
+                                          )
 
-        self._strip_empty_rows(
-            content['survey'], required_key='type')
-        self._assign_kuids(content['survey'])
-        # self._assign_sequence(content['survey'])
-        autoname_fields_in_place(content,
-                                 destination_key='$autoname')
-        remove_empty_expressions(content)
-        if 'choices' in content:
-            self._strip_empty_rows(
-                content['choices'], required_key='list_name')
-            self._assign_kuids(content['choices'])
-            autovalue_choices_in_place(content,
-                                       destination_key='$autovalue')
+        self._strip_empty_rows(self.content)
+        self._assign_kuids(self.content)
+        self._autoname(self.content)
+        self._link_list_items(self.content)
+        self._remove_empty_expressions(self.content)
 
-        if self.asset_type != 'survey':
-            del content['settings']
+        if self.asset_type != 'survey' and 'settings' in self.content:
+            del self.content['settings']
         else:
-            if 'form_title' in content['settings']:
-                self.name = content['settings'].pop('form_title')
-        self.content = content
-
-    def _rename_null_translation(self, content, new_name):
-        if new_name in content['translations']:
-            raise ValueError('Cannot save translation with duplicate '
-                             'name: {}'.format(new_name))
-
-        try:
-            _null_index = content['translations'].index(None)
-        except ValueError:
-            raise ValueError('Cannot save translation name: {}'.format(
-                             new_name))
-        content['translations'][_null_index] = new_name
+            _title = self.pop_setting(self.content, 'form_title', None)
+            if _title is not None:
+                self.name = _title
 
     def save(self, *args, **kwargs):
         # in certain circumstances, we don't want content to
@@ -403,23 +455,6 @@ class Asset(ObjectPermissionMixin,
             SPECIFIC_REPORTS_KEY: specifieds,
             'kuid_names': kuids_to_variable_names,
         }
-
-    def _strip_empty_rows(self, arr, required_key='type'):
-        # move this to formpack?
-        arr[:] = [row for row in arr if required_key in row]
-
-    def _assign_kuids(self, arr):
-        for row in arr:
-            if '$kuid' not in row:
-                row['$kuid'] = random_id(9)
-
-    '''
-    def _assign_sequence(self, arr):
-        if len(arr) > 0:
-            arr[0]['$prev'] = None
-        for i in range(1, len(arr)):
-            arr[i]['$prev'] = arr[i-1]['$kuid']
-    '''
 
     def get_ancestors_or_none(self):
         # ancestors are ordered from farthest to nearest
