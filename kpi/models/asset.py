@@ -103,13 +103,15 @@ class TagStringMixin:
         self.tags.set(*intended_tags)
 
 FLATTEN_OPTS = {
-    'remove_columns': [
-        '$autoname',
-        '$kuid',
-        '$autovalue',
-        '$prev',
-        'select_from_list_name',
-    ],
+    'remove_columns': {
+        'survey': [
+            '$autoname',
+            '$kuid',
+            '$autovalue',
+            '$prev',
+            'select_from_list_name',
+        ]
+    },
     'remove_sheets': [
         'schema',
     ],
@@ -135,13 +137,18 @@ class FormpackXLSFormUtils(object):
         expand_rank_and_score_in_place(content)
 
     def _append(self, content, **sheet_data):
-        if 'survey' in sheet_data:
-            content['survey'] += sheet_data['survey']
-        if 'settings' in sheet_data:
-            content['settings'].update(sheet_data['settings'])
+        settings = sheet_data.pop('settings', None)
+        if settings:
+            content['settings'].update(settings)
+        for (sht, rows) in sheet_data.items():
+            if sht in content:
+                content[sht] += rows
 
     def _xlsform_structure(self, content, ordered=True):
         if ordered:
+            if not isinstance(content, OrderedDict):
+                raise TypeError('content must be an ordered dict if '
+                                'ordered=True')
             flatten_to_spreadsheet_content(content, in_place=True,
                                            **FLATTEN_OPTS)
         else:
@@ -202,28 +209,27 @@ class XlsExportable(object):
         return self.flattened_content_copy()
 
     def valid_ordered_xlsform_content(self,
-                                      extra_rows=None,
-                                      extra_settings=None):
+                                      append=None):
         # currently, this method depends on "FormpackXLSFormUtils"
         content = copy.deepcopy(self.content)
-
+        if append:
+            self._append(content, **append)
         self._standardize(content)
-
         self._expand_kobo_qs(content)
         self._autoname(content)
         self._assign_kuids(content)
-
+        self._populate_fields_with_autofields(content)
         content = OrderedDict(content)
         self._xlsform_structure(content, ordered=True)
-
         return content
 
     def to_xls_io(self, **kwargs):
-        ''' To append rows to one or more sheets, pass `extra_rows` as a
+        ''' To append rows to one or more sheets, pass `append` as a
         dictionary of dictionaries in the following format:
-            `{'sheet name': {'column name': 'cell value'}`
-        Extra settings may be included as a dictionary of
-            `{'setting name': 'setting value'}` '''
+            `{'sheet name': [{'column name': 'cell value'}]}`
+        Extra settings may be included as a dictionary in the same
+        parameter.
+            `{'settings': {'setting name': 'setting value'}}` '''
 
         try:
             def _add_contents_to_sheet(sheet, contents):
@@ -268,12 +274,12 @@ class XlsExportable(object):
                     'calculation': '\'{}\''.format(self.version_id)
                 }
             ],
+            'settings': {
+                'version': self.version_id,
+            }
         }
-
-        extra_settings = {'version': self.version_id}
         return self.to_xls_io(
-            extra_rows=extra_rows,
-            extra_settings=extra_settings,
+            append=extra_rows,
         )
 
 
@@ -343,9 +349,11 @@ class Asset(ObjectPermissionMixin,
 
     def to_ordered_ss_structure(self):
         return flatten_to_spreadsheet_content(self.content, **{
-                'remove_columns': [
-                    'select_from_list_name',
-                ]
+                'remove_columns': {
+                    'survey': [
+                        'select_from_list_name',
+                    ]
+                }
             })
 
     def _populate_summary(self):

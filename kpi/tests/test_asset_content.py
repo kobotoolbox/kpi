@@ -221,19 +221,23 @@ def test_score_to_xlsform_structure():
     _rows = content['survey']
     for row in _rows:
         assert row.keys() == [u'type', u'name', u'label', u'appearance', u'required']
-    assert _rows[0] == {u'type': u'begin_group',
+
+    def _drws(n):
+        return dict(_rows[n])
+
+    assert _drws(0) == {u'type': u'begin_group',
                         u'appearance': u'field-list',
                         u'label': None,
                         u'required': None,
                         u'name': u'Rate_Los_Angeles',
                         }
-    assert _rows[1] == {u'type': u'select_one nb7ud55',
+    assert _drws(1) == {u'type': u'select_one nb7ud55',
                         u'appearance': u'label',
                         u'required': None,
                         u'name': u'Rate_Los_Angeles_header',
                         u'label': u'Rate Los Angeles',
                         }
-    assert _rows[2] == {u'type': u'select_one nb7ud55',
+    assert _drws(2) == {u'type': u'select_one nb7ud55',
                         u'appearance': u'list-nolabel',
                         u'name': u'Food',
                         u'label': u'Food',
