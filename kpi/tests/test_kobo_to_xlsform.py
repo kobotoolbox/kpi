@@ -95,7 +95,8 @@ class Converter(TestCase):
         self.assertEqual(surv[1].get('relevant', None), None)
 
         self.assertEqual(surv[2]['required'], True)
-        self.assertEqual(surv[2]['type'], 'select_one items')
+        self.assertEqual(surv[2]['type'], 'select_one')
+        self.assertEqual(surv[2]['select_from_list_name'], 'items')
         # self.assertEqual(surv[2]['select_from_list_name'], 'items')
         self.assertTrue('constraint' not in surv[2].keys())
         self.assertEqual(surv[2].get('constraint_message'), 'Rank Message')

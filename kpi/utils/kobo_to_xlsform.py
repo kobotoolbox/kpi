@@ -97,9 +97,9 @@ class KoboRankGroup(GroupHandler):
         super(KoboRankGroup, self).begin(initial_row)
         self._previous_levels = []
 
-        begin_group = {'type': 'begin_group',
-                       '$autoname': self.name,
-                       'appearance': 'field-list'}
+        begin_group = {u'type': u'begin_group',
+                       u'name': self.name,
+                       u'appearance': u'field-list'}
 
         if 'required' in initial_row:
             del initial_row['required']
@@ -140,7 +140,8 @@ class KoboRankGroup(GroupHandler):
         appearance = row.get('appearance') or 'minimal'
         # all ranking sub-questions are required
         row.update({
-            'type': 'select_one %s' % self._rank_itemset,
+            'type': 'select_one',
+            'select_from_list_name': self._rank_itemset,
             'required': True,
             'constraint_message': self._rank_constraint_message,
             'appearance': appearance,

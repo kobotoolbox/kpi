@@ -13,6 +13,46 @@ def _asset_constructor(fn):
     return _new
 
 
+def rank_asset_content():
+    return {
+        u'survey': [
+            {u'type': 'begin_rank', 'label': 'Top 3 needs?',
+                'kobo--rank-items': 'needs',
+                'kobo--rank-constraint-message': 'Rank these things'},
+            {u'type': 'rank__level', 'label': '1st need'},
+            {u'type': 'rank__level', 'label': '2nd need'},
+            {u'type': 'rank__level', 'label': '3rd need'},
+            {u'type': 'end_rank'}
+        ],
+        u'choices': [
+            {u'list_name': 'needs', u'label': 'Food'},
+            {u'list_name': 'needs', u'label': 'Water'},
+            {u'list_name': 'needs', u'label': 'Shelter'},
+        ],
+        u'settings': {},
+    }
+
+def rank_asset_named_content():
+    return {
+        u'survey': [
+            {u'type': 'begin_rank', 'label': 'Top 3 needs?',
+                'name': 'rank_q',
+                'kobo--rank-items': 'needs',
+                'kobo--rank-constraint-message': 'Rank these things'},
+            {u'type': 'rank__level', 'label': '1st need', 'name': 'r1'},
+            {u'type': 'rank__level', 'label': '2nd need', 'name': 'r2'},
+            {u'type': 'rank__level', 'label': '3rd need', 'name': 'r3'},
+            {u'type': 'end_rank'}
+        ],
+        u'choices': [
+            {u'list_name': 'needs', u'label': 'Food', 'name': 'fd'},
+            {u'list_name': 'needs', u'label': 'Water', 'name': 'h2o'},
+            {u'list_name': 'needs', u'label': 'Shelter', 'name': 'sh'},
+        ],
+        u'settings': {},
+    }
+
+
 def score_asset_content():
     return {
         u'survey': [
@@ -179,8 +219,8 @@ def test_save_transformations():
     # save complete!
 
 
-def _compile_score_content(content):
-    a1 = score_asset()
+def _compile_asset_content(content):
+    a1 = Asset(asset_type='survey', content={})
     a1._standardize(content)
     a1._strip_empty_rows(content)
     a1._assign_kuids(content)
@@ -204,9 +244,41 @@ def _score_item(_r):
     ]
 
 
+def test_rank_to_xlsform_structure():
+    # a1 = Asset(asset_type='survey', content={})
+    content = _compile_asset_content(rank_asset_content())
+    _rows = [[_r.get('name'), _r.get('$autoname'), _r.get('type'),
+             _r.get('appearance')]
+             for _r in content['survey']]
+    assert len(_rows[0:3]) == 3
+    assert _rows[0:3] == [
+    #   name             $_autoname      type            appearance
+        [u'Top_3_needs', u'Top_3_needs', u'begin_group', u'field-list'],
+        [u'Top_3_needs_label', u'Top_3_needs_label', u'note', None],
+        [None, u'_1st_need', u'select_one', u'minimal'],
+    ]
+    assert _rows[5] == [None, None, 'end_group', None]
+
+
+def test_named_rank_to_xlsform_structure():
+    # a1 = Asset(asset_type='survey', content={})
+    content = _compile_asset_content(rank_asset_named_content())
+    _rows = [[_r.get('name'), _r.get('$autoname'), _r.get('type'),
+             _r.get('appearance')]
+             for _r in content['survey']]
+    assert len(_rows[0:3]) == 3
+    assert _rows[0:3] == [
+    #   name        $_autoname type            appearance
+        [u'rank_q', u'rank_q', u'begin_group', u'field-list'],
+        [u'rank_q_label', u'rank_q_label', u'note', None],
+        [u'r1', u'r1', u'select_one', u'minimal'],
+    ]
+    assert _rows[5] == [None, None, 'end_group', None]
+
+
 def test_score_to_xlsform_structure():
     a1 = score_asset()
-    content = _compile_score_content(score_asset_content())
+    content = _compile_asset_content(score_asset_content())
     a1._populate_fields_with_autofields(content)
     assert content['settings'] == {}
     a1._append(content, settings={
@@ -220,7 +292,8 @@ def test_score_to_xlsform_structure():
 
     _rows = content['survey']
     for row in _rows:
-        assert row.keys() == [u'type', u'name', u'label', u'appearance', u'required']
+        assert row.keys() == [u'type', u'name', u'label', u'appearance',
+                              u'required']
 
     def _drws(n):
         return dict(_rows[n])
@@ -246,7 +319,7 @@ def test_score_to_xlsform_structure():
 
 
 def test_score_question_compiles():
-    content = _compile_score_content(score_asset_content())
+    content = _compile_asset_content(score_asset_content())
     _rows = content['survey']
 
     assert _rows[0]['name'] == 'Rate_Los_Angeles'
@@ -266,7 +339,7 @@ def test_score_question_compiles():
 
 
 def test_named_score_question_compiles():
-    content = _compile_score_content({
+    content = _compile_asset_content({
         u'survey': [
             {u'kobo--score-choices': u'nb7ud55',
              u'label': [u'Rate Los Angeles'],
