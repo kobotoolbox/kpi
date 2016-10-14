@@ -21,7 +21,7 @@ billiard
 boto
 celery
 dj-static
-dj_database_url
+dj-database-url
 django-braces
 django-debug-toolbar
 django-extensions
@@ -57,3 +57,8 @@ uWSGI
 whitenoise
 xlrd
 xlwt
+
+# These packages allow `requests` to support SNI
+pyopenssl
+ndg-httpsclient
+pyasn1
