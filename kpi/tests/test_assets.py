@@ -127,7 +127,7 @@ class AssetContentTests(AssetsTestCase):
     def test_get_standardized_content(self):
         def _asset_with_content(_c):
             asset = Asset.objects.create(asset_type='survey', content=_c)
-            return asset.valid_ordered_xlsform_content()
+            return asset.ordered_xlsform_content()
         x1 = _asset_with_content({
             'survey': [
                 {'type': 'text', 'label': '_asset_with_content'}
@@ -137,7 +137,7 @@ class AssetContentTests(AssetsTestCase):
                                      for x in x1['survey']])
 
     def test_convert_content_to_ordered_dicts(self):
-        _c = self.asset.valid_ordered_xlsform_content(
+        _c = self.asset.ordered_xlsform_content(
             append={
                 'survey': [
                     {'type': 'note', 'label': ['wee'

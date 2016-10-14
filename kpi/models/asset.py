@@ -107,9 +107,12 @@ FLATTEN_OPTS = {
         'survey': [
             '$autoname',
             '$kuid',
-            '$autovalue',
             '$prev',
             'select_from_list_name',
+            '_or_other',
+        ],
+        'choices': [
+            '$autovalue',
         ]
     },
     'remove_sheets': [
@@ -208,29 +211,38 @@ class XlsExportable(object):
     def valid_xlsform_content(self):
         return self.flattened_content_copy()
 
-    def valid_ordered_xlsform_content(self,
-                                      append=None):
+    def ordered_xlsform_content(self,
+                                kobo_specific_types=False,
+                                append=None):
         # currently, this method depends on "FormpackXLSFormUtils"
         content = copy.deepcopy(self.content)
         if append:
             self._append(content, **append)
         self._standardize(content)
-        self._expand_kobo_qs(content)
-        self._autoname(content)
-        self._assign_kuids(content)
-        self._populate_fields_with_autofields(content)
+        if not kobo_specific_types:
+            self._expand_kobo_qs(content)
+            self._autoname(content)
+            self._assign_kuids(content)
+            self._populate_fields_with_autofields(content)
         content = OrderedDict(content)
         self._xlsform_structure(content, ordered=True)
         return content
 
-    def to_xls_io(self, **kwargs):
+    def to_xls_io(self, versioned=False, **kwargs):
         ''' To append rows to one or more sheets, pass `append` as a
         dictionary of dictionaries in the following format:
             `{'sheet name': [{'column name': 'cell value'}]}`
         Extra settings may be included as a dictionary in the same
         parameter.
             `{'settings': {'setting name': 'setting value'}}` '''
-
+        if versioned:
+            kwargs['append'
+                   ] = {'survey': [
+                        {'name': '__version__',
+                         'calculation': '\'{}\''.format(self.version_id),
+                         'type': 'calculate'}
+                        ],
+                        'settings': {'version': self.version_id}}
         try:
             def _add_contents_to_sheet(sheet, contents):
                 cols = []
@@ -248,7 +260,7 @@ class XlsExportable(object):
             # The extra rows and settings should persist within this function
             # and its return value *only*. Calling deepcopy() is required to
             # achieve this isolation.
-            ss_dict = self.valid_ordered_xlsform_content(**kwargs)
+            ss_dict = self.ordered_xlsform_content(**kwargs)
 
             workbook = xlwt.Workbook()
             for (sheet_name, contents) in ss_dict.iteritems():
@@ -261,26 +273,6 @@ class XlsExportable(object):
         workbook.save(string_io)
         string_io.seek(0)
         return string_io
-
-    def to_versioned_xls_io(self):
-        ''' Records the version in the `settings` sheet and as a `calculate`
-        question '''
-        extra_rows = {
-            'survey': [
-                {
-                    'name': '__version__',
-                    'type': 'calculate',
-                    # wraps the version id in quotes: 'v12345'
-                    'calculation': '\'{}\''.format(self.version_id)
-                }
-            ],
-            'settings': {
-                'version': self.version_id,
-            }
-        }
-        return self.to_xls_io(
-            append=extra_rows,
-        )
 
 
 class Asset(ObjectPermissionMixin,
