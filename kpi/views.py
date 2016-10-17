@@ -623,8 +623,9 @@ class AssetViewSet(viewsets.ModelViewSet):
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def table_view(self, request, *args, **kwargs):
         sa = self.get_object()
-        md_table = ss_structure_to_mdtable(sa.to_ordered_ss_structure())
-        return Response(md_table.strip())
+        md_table = ss_structure_to_mdtable(sa.ordered_xlsform_content())
+        return Response('<!doctype html>\n'
+                        '<html><body><code><pre>' + md_table.strip())
 
     @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
     def xls(self, request, *args, **kwargs):
@@ -633,7 +634,7 @@ class AssetViewSet(viewsets.ModelViewSet):
     @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
     def xform(self, request, *args, **kwargs):
         asset = self.get_object()
-        export = asset.get_export(regenerate=True)
+        export = asset._snapshot(regenerate=True)
         # TODO-- forward to AssetSnapshotViewset.xform
         response_data = copy.copy(export.details)
         options = {

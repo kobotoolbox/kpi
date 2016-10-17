@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 import re
 import string
 import random
@@ -5,7 +8,10 @@ import json
 from copy import deepcopy
 from collections import OrderedDict, defaultdict
 
-from kpi.utils.sluggify import sluggify, sluggify_label, is_valid_nodeName
+from kpi.utils.sluggify import (sluggify, sluggify_label, is_valid_nodeName)
+
+
+
 
 
 def _increment(name):
@@ -97,8 +103,13 @@ def autoname_fields_in_place(surv_content, destination_key):
     # cycle through existing names ane ensure that names are valid and unique
     for row in filter(lambda r: _has_name(r), rows_needing_names):
         _name = row['name']
+        _attempt_count = 0
         while (not is_valid_nodeName(_name) or _name in other_names):
-            _name = sluggify_label(_name, other_names=other_names.keys())
+            _name = sluggify_label(_name,
+                                   other_names=other_names.keys())
+            if _attempt_count > 1000:
+                raise RuntimeError('Loop error: valid_name')
+            _attempt_count += 1
         _assign_row_to_name(row, _name)
 
     for row in filter(lambda r: not _has_name(r), rows_needing_names):
@@ -111,7 +122,9 @@ def autoname_fields_in_place(surv_content, destination_key):
             else:
                 _label = row['label']
             if _label:
-                _name = sluggify_label(_label, other_names=other_names.keys())
+                _name = sluggify_label(_label,
+                                       other_names=other_names.keys(),
+                                       characterLimit=40)
                 _assign_row_to_name(row, _name)
                 continue
 
@@ -120,7 +133,10 @@ def autoname_fields_in_place(surv_content, destination_key):
         _slug = row['type']
         if '$kuid' in row:
             _slug += ('_' + row['$kuid'])
-        _assign_row_to_name(row, sluggify_label(_slug, other_names.keys()))
+        _assign_row_to_name(row, sluggify_label(_slug,
+                                                other_names=other_names.keys(),
+                                                characterLimit=40,
+                                                ))
 
     return surv_list
 

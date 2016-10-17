@@ -2,6 +2,7 @@ import base64
 from io import BytesIO
 import re
 import logging
+from os.path import splitext
 from collections import defaultdict
 from django.db import models
 from django.conf import settings
@@ -167,7 +168,7 @@ class ImportTask(models.Model):
             orm_obj.save()
 
     def _parse_b64_upload(self, base64_encoded_upload, messages, **kwargs):
-        filename = kwargs.get('filename')
+        filename = splitext(kwargs.get('filename', ''))[0]
         library = kwargs.get('library')
         survey_dict = _b64_xls_to_dict(base64_encoded_upload)
         survey_dict_keys = survey_dict.keys()
@@ -198,7 +199,6 @@ class ImportTask(models.Model):
             messages['created'].append({
                     'uid': collection.uid,
                     'kind': 'collection',
-                    'filename': filename,
                     'owner__username': self.user.username,
                 })
         elif 'survey' in survey_dict_keys:
@@ -213,6 +213,7 @@ class ImportTask(models.Model):
                     owner=self.user,
                     content=survey_dict,
                     asset_type=asset_type,
+                    summary={'filename': filename},
                 )
                 msg_key = 'created'
             else:
@@ -225,7 +226,6 @@ class ImportTask(models.Model):
                     'uid': asset.uid,
                     'summary': asset.summary,
                     'kind': 'asset',
-                    'filename': filename,
                     'owner__username': self.user.username,
                 })
         else:

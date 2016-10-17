@@ -155,6 +155,7 @@ class AssetContentTests(AssetsTestCase):
         self.assertEqual(_c['settings'][0]['asdf'], 'jkl')
         self.assertEqual(_c['survey'][-1]['type'], 'note')
 
+
 class AssetSettingsTests(AssetsTestCase):
     def _content(self, form_title='some form title'):
         return {
@@ -190,12 +191,12 @@ class AssetSettingsTests(AssetsTestCase):
     def test_blocks_strip_settings(self):
         a1 = Asset.objects.create(content=self._content(), owner=self.user,
                                   asset_type='block')
-        self.assertTrue('settings' not in a1.content)
+        self.assertEqual(a1.content['settings'], {})
 
     def test_questions_strip_settings(self):
         a1 = Asset.objects.create(content=self._content(), owner=self.user,
                                   asset_type='question')
-        self.assertTrue('settings' not in a1.content)
+        self.assertEqual(a1.content['settings'], {})
 
     def test_surveys_retain_settings(self):
         _content = self._content()
@@ -222,7 +223,7 @@ class AssetSettingsTests(AssetsTestCase):
         a1 = Asset.objects.create(content=self._content('abcxyz'),
                                   owner=self.user,
                                   asset_type='survey')
-        export = a1.get_export()
+        export = a1.snapshot
         self.assertTrue('<h:title>abcxyz</h:title>' in export.xml)
         self.assertTrue('<data id="xid_stringx">' in export.xml)
 
@@ -252,9 +253,10 @@ class AssetScoreTestCase(TestCase):
                  u'list_name': u'nb7ud55'}],
             u'settings': {},
         }
-        a1 = Asset.objects.create(content=_matrix_score)
-        export = a1.get_export()
-        self.assertTrue(export.xml != '')
+        a1 = Asset.objects.create(content=_matrix_score, asset_type='survey')
+        _snapshot = a1.snapshot
+        self.assertNotEqual(_snapshot.xml, '')
+        self.assertNotEqual(_snapshot.details['status'], 'failure')
 
 
 # TODO: test values of "valid_xlsform_content"

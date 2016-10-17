@@ -33,6 +33,7 @@ from kpi.utils.autoname import (autoname_fields_in_place,
 from .object_permission import ObjectPermission, ObjectPermissionMixin
 from ..fields import KpiUidField
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
+from ..utils.sluggify import sluggify_label
 from ..utils.kobo_to_xlsform import (to_xlsform_structure,
                                      expand_rank_and_score_in_place,
                                      replace_with_autofields,
@@ -113,6 +114,7 @@ FLATTEN_OPTS = {
         ],
         'choices': [
             '$autovalue',
+            '$kuid',
         ]
     },
     'remove_sheets': [
@@ -288,7 +290,7 @@ class Asset(ObjectPermissionMixin,
     summary = JSONField(null=True, default=dict)
     report_styles = JSONBField(default=dict)
     asset_type = models.CharField(
-        choices=ASSET_TYPES, max_length=20, default='text')
+        choices=ASSET_TYPES, max_length=20, default='survey')
     parent = models.ForeignKey(
         'Collection', related_name='assets', null=True, blank=True)
     owner = models.ForeignKey('auth.User', related_name='assets', null=True)
@@ -299,7 +301,7 @@ class Asset(ObjectPermissionMixin,
 
     # _deployment_data should be accessed through the `deployment` property
     # provided by `DeployableMixin`
-    _deployment_data = JSONField(default={})
+    _deployment_data = JSONField(default=dict)
 
     permissions = GenericRelation(ObjectPermission)
 
@@ -339,15 +341,6 @@ class Asset(ObjectPermissionMixin,
     def to_ss_structure(self):
         return flatten_content(self.content, in_place=False)
 
-    def to_ordered_ss_structure(self):
-        return flatten_to_spreadsheet_content(self.content, **{
-                'remove_columns': {
-                    'survey': [
-                        'select_from_list_name',
-                    ]
-                }
-            })
-
     def _populate_summary(self):
         if self.content is None:
             self.content = {}
@@ -356,14 +349,13 @@ class Asset(ObjectPermissionMixin,
         analyzer = AssetContentAnalyzer(**self.content)
         self.summary = analyzer.summary
 
-    def _adjust_content_on_save(self):
+    def adjust_content_on_save(self):
         '''
         This is called on save by default if content exists.
         Can be disabled / skipped by calling with parameter:
         asset.save(adjust_content=False)
         '''
         self._standardize(self.content)
-
         # to get around the form builder's way of handling translations where
         # the interface focuses on the "null translation" and shows other ones
         # in advanced settings, we allow the builder to attach a parameter
@@ -379,21 +371,33 @@ class Asset(ObjectPermissionMixin,
         self._link_list_items(self.content)
         self._remove_empty_expressions(self.content)
 
-        if self.asset_type != 'survey' and 'settings' in self.content:
-            del self.content['settings']
-        else:
-            _title = self.pop_setting(self.content, 'form_title', None)
-            if _title is not None:
-                self.name = _title
+        settings = self.content['settings']
+        _title = settings.pop('form_title', None)
+        id_string = settings.get('id_string')
+        filename = self.summary.pop('filename', None)
+        if filename:
+            # if we have filename available, set the id_string
+            # and/or form_title from the filename.
+            if not id_string:
+                id_string = sluggify_label(filename)
+                settings['id_string'] = id_string
+            if not _title:
+                _title = filename
+        if self.asset_type != 'survey':
+            # instead of deleting the settings, simply clear them out
+            self.content['settings'] = {}
+
+        if _title is not None:
+            self.name = _title
 
     def save(self, *args, **kwargs):
-        # in certain circumstances, we don't want content to
-        # be altered on save. (e.g. on asset.deploy())
         if self.content is None:
             self.content = {}
 
+        # in certain circumstances, we don't want content to
+        # be altered on save. (e.g. on asset.deploy())
         if kwargs.pop('adjust_content', True):
-            self._adjust_content_on_save()
+            self.adjust_content_on_save()
 
         # populate summary
         self._populate_summary()
@@ -482,22 +486,47 @@ class Asset(ObjectPermissionMixin,
         if latest_version:
             return latest_version.uid
 
-    def get_export(self, regenerate=True, version_id=False):
-        if version_id:
-            asset_version = self.asset_versions.get(uid=version_id)
-        else:
-            asset_version = self.asset_versions.first()
+    @property
+    def snapshot(self):
+        return self._snapshot(regenerate=False)
 
-        (snapshot, _created) = AssetSnapshot.objects.get_or_create(
-            asset=self,
-            asset_version=asset_version)
+    def _snapshot(self, regenerate=True):
+        asset_version = self.asset_versions.first()
+
+        _note = None
+        if self.asset_type in ['question', 'block']:
+            _note = ('Note: This item is a {} and must be included in '
+                     'a form before deploying'.format(self.asset_type))
+
+        try:
+            snapshot = AssetSnapshot.objects.get(asset=self,
+                                                 asset_version=asset_version)
+            if regenerate:
+                snapshot.delete()
+                snapshot = False
+        except AssetSnapshot.DoesNotExist:
+            snapshot = False
+
+        if not snapshot:
+            if self.name != '':
+                form_title = self.name
+            else:
+                _settings = self.content.get('settings', {})
+                form_title = _settings.get('id_string', 'Untitled')
+
+            self._append(self.content, settings={
+                'form_title': form_title,
+            })
+            snapshot = AssetSnapshot.objects.create(asset=self,
+                                                    asset_version=asset_version,
+                                                    source=self.content)
         return snapshot
 
     def __unicode__(self):
         return u'{} ({})'.format(self.name, self.uid)
 
 
-class AssetSnapshot(models.Model, XlsExportable):
+class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
     '''
     This model serves as a cache of the XML that was exported by the installed
     version of pyxform.
@@ -507,7 +536,7 @@ class AssetSnapshot(models.Model, XlsExportable):
     '''
     xml = models.TextField()
     source = JSONField(null=True)
-    details = JSONField(default={})
+    details = JSONField(default=dict)
     owner = models.ForeignKey('auth.User', related_name='asset_snapshots', null=True)
     asset = models.ForeignKey(Asset, null=True)
     _reversion_version_id = models.IntegerField(null=True)
@@ -517,25 +546,44 @@ class AssetSnapshot(models.Model, XlsExportable):
     date_created = models.DateTimeField(auto_now_add=True)
     uid = KpiUidField(uid_prefix='s')
 
-    def __init__(self, *args, **kwargs):
-        asset = kwargs.get('asset')
-        asset_version = kwargs.get('asset_version')
-        _no_source = not kwargs.get('source')
-        if _no_source and asset and not asset_version:
-            asset = kwargs.get('asset')
-            kwargs['asset_version'] = asset.asset_versions.first()
-        super(AssetSnapshot, self).__init__(*args, **kwargs)
-
     @property
     def content(self):
         return self.source
 
-    @staticmethod
-    def generate_xml_from_source(source,
+    def save(self, *args, **kwargs):
+        _note = self.details.pop('note', None)
+        _source = copy.deepcopy(self.source)
+        if _source is None:
+            _source = {}
+        self._standardize(_source)
+        self._strip_empty_rows(_source)
+        self._assign_kuids(_source)
+        self._autoname(_source)
+        self._remove_empty_expressions(_source)
+        _settings = _source.get('settings', {})
+        form_title = _settings.get('form_title')
+        id_string = _settings.get('id_string')
+
+        (self.xml, self.details) = \
+            self.generate_xml_from_source(_source,
+                                          include_note=_note,
+                                          root_node_name='data',
+                                          form_title=form_title,
+                                          id_string=id_string)
+        self.source = _source
+        return super(AssetSnapshot, self).save(*args, **kwargs)
+
+    def generate_xml_from_source(self,
+                                 source,
                                  include_note=False,
                                  root_node_name='snapshot_xml',
-                                 form_title='Snapshot XML',
-                                 id_string='snapshot_xml'):
+                                 form_title=None,
+                                 id_string=None):
+        if form_title is None:
+            form_title = 'Snapshot XML'
+        if id_string is None:
+            id_string = 'snapshot_xml'
+
         if include_note and 'survey' in source:
             _translations = source.get('translations', [])
             _label = include_note
@@ -544,8 +592,10 @@ class AssetSnapshot(models.Model, XlsExportable):
             source['survey'].append({u'type': u'note',
                                      u'name': u'prepended_note',
                                      u'label': _label})
-        expand_rank_and_score_in_place(source)
-        replace_with_autofields(source)
+
+        self._expand_kobo_qs(source)
+        self._populate_fields_with_autofields(source)
+
         warnings = []
         details = {}
         try:
@@ -567,38 +617,6 @@ class AssetSnapshot(models.Model, XlsExportable):
             })
         return (xml, details)
 
-    def save(self, *args, **kwargs):
-        if self.source is None:
-            self.source = copy.deepcopy(self.asset.content)
-        standardize_content_in_place(self.source)
-        if 'survey' in self.source:
-            autoname_fields_in_place(self.source,
-                                     destination_key='$autoname')
-        if 'choices' in self.source:
-            autovalue_choices_in_place(self.source,
-                                       destination_key='$autovalue')
-        note = None
-        form_title = 'Snapshot'
-        id_string = self.source['settings'].get('id_string', False)
-        if self.asset:
-            form_title = self.asset.name or form_title
-            if not id_string:
-                id_string = self.asset.uid
-        if not id_string:
-            id_string = 'snapshot'
-        if self.asset and self.asset.asset_type in ['question', 'block'] and \
-                len(self.asset.summary['languages']) == 0:
-            asset_type = self.asset.asset_type
-            note = 'Note: This item is a ASSET_TYPE and ' + \
-                   'must be included in a form before deploying'
-            note = note.replace('ASSET_TYPE', asset_type)
-        (self.xml, self.details) = \
-            AssetSnapshot.generate_xml_from_source(copy.deepcopy(self.source),
-                                                   include_note=note,
-                                                   root_node_name='data',
-                                                   form_title=form_title,
-                                                   id_string=id_string)
-        return super(AssetSnapshot, self).save(*args, **kwargs)
 
 
 @receiver(models.signals.post_delete, sender=Asset)

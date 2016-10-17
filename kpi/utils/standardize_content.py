@@ -24,9 +24,7 @@ ALLOWED_TYPES = {
 def needs_standardization(_c):
     if not isinstance(_c, dict):
         raise ValueError("Content argument needs to be a dict")
-    if 'schema' in _c and _c['schema'] is SCHEMA_VERSION:
-        return False
-    return True
+    return not _c.get('schema') is SCHEMA_VERSION
 
 
 def standardize_content(content):

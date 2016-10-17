@@ -8,6 +8,19 @@ import inspect
 from copy import deepcopy
 
 
+def test_expand_twice():
+    a1 = Asset(asset_type='survey', content={'survey': [{'type': 'note',
+                                             'label::English': 'english',
+                                             'hint::English': 'hint',
+                                             }]})
+    a1.adjust_content_on_save()
+    assert 'translations' in a1.content
+    assert len(a1.content['translations']) > 0
+    assert 'translated' in a1.content
+    assert len(a1.content['translated']) > 0
+    assert sorted(a1.content['translated']) == ['hint', 'label']
+
+
 def _asset_constructor(fn):
     def _new(): return Asset(asset_type='survey', content=fn())
     return _new
@@ -191,6 +204,51 @@ def test_standardization_of_nonstandard_asset():
     # at this point, asset.save() is complete.
 
 
+def test_autoname_shortens_long_names():
+    def _name_to_autoname(rows):
+        s = Asset(asset_type='survey', content={})
+        rows = [dict({'type': 'text'}, **row) for row in rows]
+        content = {'survey': rows}
+        s._autoname(content)
+        return [r['$autoname'] for r in content.get('survey', [])]
+
+    LONG_NAME = ('four_score_and_seven_years_ago_our_fathers_brought_forth_on_'
+                 'this_contintent')
+
+    # names are not shortened by default, because they were explicitly set
+    assert _name_to_autoname([
+        {'name': LONG_NAME}
+    ]) == [LONG_NAME]
+
+    # if there is a name conflict we should throw a meaningful error
+    # however, since this behavior is already present, it might be
+    assert _name_to_autoname([
+        {'name': LONG_NAME},
+        {'name': LONG_NAME},
+    ]) == [
+        LONG_NAME,
+        LONG_NAME + '_001',
+    ]
+
+    long_label = ('Four score and seven years ago, our fathers brought forth'
+                  ' on this contintent')
+    assert _name_to_autoname([
+        {'label': long_label},
+        {'label': long_label},
+    ]) == [
+        'Four_score_and_seven_h_on_this_contintent',
+        'Four_score_and_seven_h_on_this_contintent_001',
+    ]
+
+    assert _name_to_autoname([{'label': x} for x in [
+        "What is your favorite all-time place to go swimming?",
+        "What is your favorite all-time place to go running?",
+        "What is your favorite all-time place to go to relax?",
+    ]]) ==  ['What_is_your_favorit_place_to_go_swimming',
+             'What_is_your_favorit_place_to_go_running',
+             'What_is_your_favorit_place_to_go_to_relax']
+
+
 def test_remove_empty_expressions():
     a1 = Asset(asset_type='survey', content={})
 
@@ -250,7 +308,6 @@ def test_rank_to_xlsform_structure():
     _rows = [[_r.get('name'), _r.get('$autoname'), _r.get('type'),
              _r.get('appearance')]
              for _r in content['survey']]
-    assert len(_rows[0:3]) == 3
     assert _rows[0:3] == [
     #   name             $_autoname      type            appearance
         [u'Top_3_needs', u'Top_3_needs', u'begin_group', u'field-list'],
@@ -379,3 +436,4 @@ def test_named_score_question_compiles():
         [u'end_group', False,
             u'$kuid']
     ]
+
