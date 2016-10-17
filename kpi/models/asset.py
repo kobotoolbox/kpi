@@ -203,6 +203,15 @@ class FormpackXLSFormUtils(object):
                              new_name))
         content['translations'][_null_index] = new_name
 
+    def _has_translations(self, content, min_count=1):
+        return len(content.get('translations', [])) >= min_count
+
+    def _rename_translation(self, content, _from, _to):
+        _ts = self.content.get('translations')
+        if _to in _ts:
+            raise ValueError('Duplicate translation: {}'.format(_to))
+        _ts[_ts.index(_from)] = _to
+
 
 class XlsExportable(object):
     def flattened_content_copy(self):
@@ -360,10 +369,9 @@ class Asset(ObjectPermissionMixin,
         # the interface focuses on the "null translation" and shows other ones
         # in advanced settings, we allow the builder to attach a parameter
         # which says what to name the null translation.
-        if '#null_translation' in self.content:
-            self._rename_null_translation(self.content,
-                                          self.content.pop('#null_translation')
-                                          )
+        _null_translation_as = self.content.pop('#null_translation', None)
+        if _null_translation_as:
+            self._rename_translation(self.content, None, _null_translation_as)
 
         self._strip_empty_rows(self.content)
         self._assign_kuids(self.content)
@@ -423,6 +431,11 @@ class Asset(ObjectPermissionMixin,
                                        # DeploymentSerializer
                                        deployed=False,
                                        )
+
+    def rename_translation(self, _from, _to):
+        if not self._has_translations(self.content, 2):
+            raise ValueError('no translations available')
+        self._rename_translation(self.content, _from, _to)
 
     def to_clone_dict(self, version_uid=None):
         if version_uid:
