@@ -4,7 +4,6 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
-
 -e git+https://github.com/kobotoolbox/formpack.git@1.4#egg=formpack
 -e git+https://github.com/kobotoolbox/pyxform.git@master#egg=pyxform
 -e git+https://github.com/jnm/whoosh@master#egg=Whoosh
@@ -14,13 +13,10 @@ begins==0.9
 billiard==3.3.0.23
 boto==2.40.0
 celery==3.1.23
-contextlib2==0.5.3        # via raven
 cffi==1.8.3               # via cryptography
-cssselect==0.9.2          # via pyquery
+contextlib2==0.5.3        # via raven
 cryptography==1.5.2       # via pyopenssl
 cssselect==0.9.2          # via pyquery
-cyordereddict==1.0.0
-dj-database-url==0.4.1
 cyordereddict==1.0.0
 dj-database-url==0.4.1
 dj-static==0.0.6
@@ -43,8 +39,8 @@ Django==1.8.13            # via django-debug-toolbar, django-haystack, django-js
 djangorestframework==3.3.3
 docutils==0.12            # via statistics
 ecdsa==0.13               # via paramiko
-Fabric==1.11.1
 enum34==1.1.6             # via cryptography
+Fabric==1.11.1
 funcsigs==1.0.2           # via begins
 functools32==3.2.3.post2  # via jsonschema
 gunicorn==19.4.5
@@ -59,7 +55,6 @@ Markdown==2.6.6
 MarkupSafe==0.23          # via jinja2
 ndg-httpsclient==0.4.2
 oauthlib==1.0.3
-ordereddict==1.1          # via funcsigs
 paramiko==1.17.0          # via fabric
 path.py==8.1.2
 psycopg2==2.6.1
