@@ -36,6 +36,8 @@ class CreateAssetSnapshots(AssetSnapshotsTestCase):
         ae = AssetSnapshot.objects.create(asset=self.asset)
         ae_count2 = AssetSnapshot.objects.count()
         self.assertTrue(len(ae.uid) > 0)
+        self.assertEqual(ae.source, self.asset.latest_version.version_content)
+        self.assertEqual(ae.owner, self.asset.owner)
         self.assertEqual(ae_count + 1, ae_count2)
 
     def test_create_assetless_snapshot(self):
