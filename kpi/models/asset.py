@@ -564,6 +564,13 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
         return self.source
 
     def save(self, *args, **kwargs):
+        if self.asset is not None:
+            if self.asset_version is None:
+                self.asset_version = self.asset.latest_version
+            if self.source is None:
+                self.source = self.asset_version.version_content
+            if self.owner is None:
+                self.owner = self.asset.owner
         _note = self.details.pop('note', None)
         _source = copy.deepcopy(self.source)
         if _source is None:
@@ -606,13 +613,14 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
                                      u'name': u'prepended_note',
                                      u'label': _label})
 
-        self._expand_kobo_qs(source)
-        self._populate_fields_with_autofields(source)
+        source_copy = copy.deepcopy(source)
+        self._expand_kobo_qs(source_copy)
+        self._populate_fields_with_autofields(source_copy)
 
         warnings = []
         details = {}
         try:
-            xml = FormPack({'content': source},
+            xml = FormPack({'content': source_copy},
                                 root_node_name=root_node_name,
                                 id_string=id_string,
                                 title=form_title)[0].to_xml(warnings=warnings)
