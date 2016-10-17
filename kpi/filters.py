@@ -1,13 +1,16 @@
+import haystack
 from distutils.util import strtobool
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
-from rest_framework import filters
 from haystack.backends.whoosh_backend import WhooshSearchBackend
-from whoosh.qparser import QueryParser
-from haystack.query import SearchQuerySet
+from haystack.constants import DJANGO_CT, ITERATOR_LOAD_PER_QUERY
 from haystack.inputs import Raw
-from haystack.constants import ITERATOR_LOAD_PER_QUERY
+from haystack.query import SearchQuerySet
+from haystack.utils import get_model_ct
+from rest_framework import filters
+from whoosh.qparser import QueryParser
+from whoosh.query import Term, And
 
 from .models.object_permission import get_objects_for_user, get_anonymous_user
 
@@ -108,10 +111,26 @@ class SearchFilter(filters.BaseFilterBackend):
         if not search_backend.setup_complete:
             search_backend.setup()
         searcher = search_backend.index.searcher()
-        query = QueryParser('text', search_backend.index.schema).parse(
+        # Parse the user's query
+        user_query = QueryParser('text', search_backend.index.schema).parse(
             request.query_params['q'])
+        # Construct a query to restrict the search to the appropriate model
+        filter_query = Term(DJANGO_CT, get_model_ct(queryset.model))
+        # Does the search index for this model have a field that allows
+        # filtering by permissions?
+        haystack_index = haystack.connections[
+            'default'].get_unified_index().get_index(queryset.model)
+        if hasattr(haystack_index, 'users_granted_permission'):
+            # Also restrict the search to records that the user can access
+            filter_query &= Term(
+                'users_granted_permission', request.user.username)
         results = searcher.search(
-            query, scored=False, sortedby=None, limit=None)
+            user_query,
+            filter=filter_query,
+            scored=False,
+            sortedby=None,
+            limit=None
+        )
         pk_type = type(queryset_pks[0])
         results_pks = {
             # Coerce each `django_id` from unicode to the appropriate type,

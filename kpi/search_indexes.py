@@ -1,6 +1,7 @@
 import re
 from haystack import indexes
 from taggit.models import Tag
+
 from .models import Asset, Collection
 
 class FieldPreparersMixin:
@@ -10,6 +11,7 @@ class FieldPreparersMixin:
     We'll find commas (and spaces, to mimic Gmail) and replace them with dashes.
     '''
     COMMA_SPACE_RE = re.compile('[, ]')
+
     def _escape_comma_space(self, string, repl='-'):
         return re.sub(self.COMMA_SPACE_RE, repl, string)
 
@@ -18,16 +20,21 @@ class FieldPreparersMixin:
             self._escape_comma_space(t.name)
             for t in obj.tags.all()
         ]
+
     def prepare_name__exact(self, obj):
         return self._escape_comma_space(obj.name)
+
     def prepare_asset_type(self, obj):
         return self._escape_comma_space(obj.asset_type)
+
     def prepare_owner__username__exact(self, obj):
         if obj.owner:
             return self._escape_comma_space(obj.owner.username)
+
     def prepare_parent__name__exact(self, obj):
         if obj.parent:
             return self._escape_comma_space(obj.parent.name)
+
     def prepare_parent__uid(self, obj):
         '''
         Trivial method needed because MultiValueField(model_attr='parent__uid')
@@ -35,10 +42,14 @@ class FieldPreparersMixin:
         '''
         if obj.parent:
             return obj.parent.uid
+
     def prepare_ancestor__uid(self, obj):
         ancestors = obj.get_ancestors_or_none()
         if ancestors:
             return [a.uid for a in ancestors]
+
+    def prepare_users_granted_permission(self, obj):
+        return [u.username for u in obj.get_users_with_perms()]
 
 
 class AssetIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixin):
@@ -65,6 +76,7 @@ class AssetIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixin):
     has_deployment = indexes.MultiValueField()
     deployment__identifier = indexes.MultiValueField()
     deployment__active = indexes.MultiValueField()
+    users_granted_permission = indexes.MultiValueField()
 
     def prepare_has_deployment(self, obj):
         return str(obj.has_deployment).lower()
@@ -95,6 +107,7 @@ class CollectionIndex(indexes.SearchIndex, indexes.Indexable, FieldPreparersMixi
     owner__username__exact = indexes.MultiValueField()
     parent__name__exact = indexes.MultiValueField()
     parent__uid = indexes.MultiValueField()
+    users_granted_permission = indexes.MultiValueField()
     def get_model(self):
         return Collection
 
