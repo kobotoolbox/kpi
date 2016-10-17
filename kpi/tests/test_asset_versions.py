@@ -1,5 +1,8 @@
 from django.contrib.auth.models import User
 from django.test import TestCase
+from copy import deepcopy
+
+from formpack.utils.expand_content import SCHEMA_VERSION
 
 from ..models import Asset
 from ..models import AssetVersion
@@ -9,14 +12,34 @@ class AssetVersionTestCase(TestCase):
     def test_init_asset_version(self):
         av_count = AssetVersion.objects.count()
         _content = {
-                'survey': [{'type': 'note', 'label': 'Read me', 'name': 'n1'}]
+                u'survey': [
+                    {u'type': u'note',
+                     u'label': u'Read me',
+                     u'name': u'n1'}
+                ],
             }
         new_asset = Asset.objects.create(asset_type='survey', content=_content)
-        self.assertEqual(_content, new_asset.latest_version.version_content)
+        _vc = deepcopy(new_asset.latest_version.version_content)
+        for row in _vc['survey']:
+            row.pop('$kuid')
+            row.pop('$autoname')
+            row.pop('$prev', None)
+
+        self.assertEqual(_vc, {
+                u'survey': [
+                    {u'type': u'note',
+                     u'label': [u'Read me'],
+                     u'name': u'n1'},
+                ],
+                u'schema': SCHEMA_VERSION,
+                u'translated': [u'label'],
+                u'translations': [None],
+                u'settings': {},
+            })
         self.assertEqual(av_count + 1, AssetVersion.objects.count())
-        new_asset.content['survey'].append({'type': 'note',
-                                            'label': 'Read me 2',
-                                            'name': 'n2'})
+        new_asset.content['survey'].append({u'type': u'note',
+                                            u'label': u'Read me 2',
+                                            u'name': u'n2'})
         new_asset.save()
         self.assertEqual(av_count + 2, AssetVersion.objects.count())
 

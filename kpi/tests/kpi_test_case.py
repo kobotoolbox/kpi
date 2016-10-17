@@ -72,10 +72,10 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
             self.login(owner.username, owner_password)
 
         if content is None:
-            content= ''
+            content = ''
 
         kwargs.update(
-            {'name': name, 'content': content, 'asset_type': 'empty'}
+            {'name': name, 'content': content, 'asset_type': 'survey'}
         )
         response= self.client.post(reverse('asset-list'), kwargs)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -83,7 +83,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         if owner and owner_password:
             self.client.logout()
 
-        asset= self.url_to_obj(response.data['url'])
+        asset = self.url_to_obj(response.data['url'])
         return asset
 
     def assert_child_of(self, child, parent_collection, owner=None,

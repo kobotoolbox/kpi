@@ -1,4 +1,5 @@
 import re
+from collections import OrderedDict
 
 from django.contrib.auth.models import User, AnonymousUser
 from django.core.exceptions import ValidationError
@@ -8,16 +9,21 @@ from kpi.models import Asset
 from kpi.models import Collection
 from kpi.models.object_permission import get_all_objects_for_user
 
-
 class AssetsTestCase(TestCase):
     fixtures = ['test_data']
 
     def setUp(self):
         self.user = User.objects.all()[0]
         self.asset = Asset.objects.create(content={'survey': [
-            {'type': 'text', 'label': 'Question 1', 'name': 'q1', 'kuid': 'abc'},
-            {'type': 'text', 'label': 'Question 2', 'name': 'q2', 'kuid': 'def'},
-        ]}, owner=self.user)
+            {u'type': u'text',
+             u'label': u'Question 1',
+             u'name': u'q1',
+             u'$kuid': u'abc'},
+            {u'type': u'text',
+             u'label': u'Question 2',
+             u'name': u'q2',
+             u'$kuid': u'def'},
+        ]}, owner=self.user, asset_type='survey')
         self.sa = self.asset
 
 
@@ -67,6 +73,50 @@ class AssetContentTests(AssetsTestCase):
             {'list_name': 'yn', 'name': 'n', 'label': 'No'},
         ]}
 
+    def test_rename_null_translation(self):
+        '''
+        This allows a workaround to enable multi-translation editing in the
+        form builder which focuses on the "null" language.
+        '''
+        self.asset = Asset.objects.create(content={'survey': [
+            {'label': ['lang1', 'lang2'], 'type': 'text', 'name': 'q1'},
+        ],
+            'translations': ['lang1', None],
+            '#null_translation': 'lang2',
+        })
+        self.assertEqual(self.asset.content['translations'], ['lang1', 'lang2'])
+        self.assertTrue('#null_translation' not in self.asset.content)
+
+    def test_rename_translation(self):
+        '''
+        This allows a workaround to enable multi-translation editing in the
+        form builder which focuses on the "null" language.
+        '''
+        self.asset = Asset.objects.create(content={'survey': [
+            {'label': ['lang1', 'lang2'], 'type': 'text', 'name': 'q1'},
+        ],
+            'translations': ['lang1', None],
+        })
+        self.asset.rename_translation(None, 'lang2')
+        self.assertEqual(self.asset.content['translations'], ['lang1', 'lang2'])
+
+    def test_rename_translation_fail(self):
+        '''
+        This allows a workaround to enable multi-translation editing in the
+        form builder which focuses on the "null" language.
+        '''
+        self.asset = Asset.objects.create(content={'survey': [
+            {'label': ['lang1', 'lang2'], 'type': 'text', 'name': 'q1'},
+        ],
+            'translations': ['lang1', None],
+        })
+        try:
+            self.asset.rename_translation('lang1', None)
+            # shouldnt get here
+            self.fail()
+        except:
+            self.assertEqual(self.asset.content.get('translations'), ['lang1', None])
+
     def test_flatten_empty_relevant(self):
         content = self._wrap_field('relevant', [])
         a1 = Asset.objects.create(content=content, asset_type='survey')
@@ -104,6 +154,37 @@ class AssetContentTests(AssetsTestCase):
         self.assertEqual(r1['type'], 'select_one')
         self.assertEqual(r1['select_from_list_name'], 'abc')
 
+    def test_get_standardized_content(self):
+        def _asset_with_content(_c):
+            asset = Asset.objects.create(asset_type='survey', content=_c)
+            return asset.ordered_xlsform_content()
+        x1 = _asset_with_content({
+            'survey': [
+                {'type': 'text', 'label': '_asset_with_content'}
+            ]
+        })
+        self.assertTrue(None not in [x.get('name')
+                                     for x in x1['survey']])
+
+    def test_convert_content_to_ordered_dicts(self):
+        _c = self.asset.ordered_xlsform_content(
+            append={
+                'survey': [
+                    {'type': 'note', 'label': ['wee'
+                     for _ in self.asset.content.get('translations')]
+                     },
+                ],
+                'settings': {
+                    'asdf': 'jkl',
+                }
+            },
+        )
+        self.assertTrue(isinstance(_c, OrderedDict))
+        self.assertTrue(_c.keys(), ['survey', 'settings'])
+        self.assertTrue(isinstance(_c['survey'][0], OrderedDict))
+        self.assertEqual(_c['settings'][0]['asdf'], 'jkl')
+        self.assertEqual(_c['survey'][-1]['type'], 'note')
+
 
 class AssetSettingsTests(AssetsTestCase):
     def _content(self, form_title='some form title'):
@@ -140,25 +221,31 @@ class AssetSettingsTests(AssetsTestCase):
     def test_blocks_strip_settings(self):
         a1 = Asset.objects.create(content=self._content(), owner=self.user,
                                   asset_type='block')
-        self.assertTrue('settings' not in a1.content)
+        self.assertEqual(a1.content['settings'], {})
 
     def test_questions_strip_settings(self):
         a1 = Asset.objects.create(content=self._content(), owner=self.user,
                                   asset_type='question')
-        self.assertTrue('settings' not in a1.content)
+        self.assertEqual(a1.content['settings'], {})
 
     def test_surveys_retain_settings(self):
-        a1 = Asset.objects.create(content=self._content(), owner=self.user,
+        _content = self._content()
+        _content['settings'] = {
+            'style': 'pages',
+        }
+        a1 = Asset.objects.create(content=_content, owner=self.user,
                                   asset_type='survey')
         self.assertEqual(a1.asset_type, 'survey')
         self.assertTrue('settings' in a1.content)
+        self.assertEqual(a1.content['settings'].get('style'), 'pages')
 
     def test_surveys_move_form_title_to_name(self):
         a1 = Asset.objects.create(content=self._content('abcxyz'),
                                   owner=self.user,
                                   asset_type='survey')
         # settingslist
-        settings = a1.content['settings'][0]
+        settings = a1.content['settings']
+        self.assertEqual(a1.asset_type, 'survey')
         self.assertTrue('form_title' not in settings)
         self.assertEqual(a1.name, 'abcxyz')
 
@@ -166,9 +253,41 @@ class AssetSettingsTests(AssetsTestCase):
         a1 = Asset.objects.create(content=self._content('abcxyz'),
                                   owner=self.user,
                                   asset_type='survey')
-        export = a1.get_export()
+        export = a1.snapshot
         self.assertTrue('<h:title>abcxyz</h:title>' in export.xml)
-        self.assertTrue('<xid_stringx id="xid_stringx">' in export.xml)
+        self.assertTrue('<data id="xid_stringx">' in export.xml)
+
+
+class AssetScoreTestCase(TestCase):
+    fixtures = ['test_data']
+
+    def test_score_can_be_exported(self):
+        _matrix_score = {
+            u'survey': [
+                {u'kobo--score-choices': u'nb7ud55',
+                 u'label': [u'Los Angeles'],
+                 u'required': True,
+                 u'type': u'begin_score'},
+                {u'label': [u'Food'], u'type': u'score__row'},
+                {u'label': [u'Music'], u'type': u'score__row'},
+                {u'label': [u'Night life'], u'type': u'score__row'},
+                {u'label': [u'Housing'], u'type': u'score__row'},
+                {u'label': [u'Culture'], u'type': u'score__row'},
+                {u'type': u'end_score'}],
+            u'choices': [
+                {u'label': [u'Great'],
+                 u'list_name': u'nb7ud55'},
+                {u'label': [u'OK'],
+                 u'list_name': u'nb7ud55'},
+                {u'label': [u'Bad'],
+                 u'list_name': u'nb7ud55'}],
+            u'settings': {},
+        }
+        a1 = Asset.objects.create(content=_matrix_score, asset_type='survey')
+        _snapshot = a1.snapshot
+        self.assertNotEqual(_snapshot.xml, '')
+        self.assertNotEqual(_snapshot.details['status'], 'failure')
+
 
 # TODO: test values of "valid_xlsform_content"
 

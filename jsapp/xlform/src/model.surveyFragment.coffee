@@ -6,6 +6,7 @@ $row = require './model.row'
 $aliases = require './model.aliases'
 $utils = require './model.utils'
 $configs = require './model.configs'
+$surveyDetail = require './model.surveyDetail'
 
 module.exports = do ->
 
@@ -240,14 +241,14 @@ module.exports = do ->
         for k, val of group.attributes
           if k isnt '_isRepeat'
             out[k] = val.getValue()
-        out.type = "begin #{group._groupOrRepeatKey()}"
+        out.type = "begin_#{group._groupOrRepeatKey()}"
         out
     groupEnd: ->
       group = @
       export_relevant_values: (surv, shts)-> surv.push(@toJSON())
-      toJSON: ()-> type: "end #{group._groupOrRepeatKey()}"
+      toJSON: ()-> type: "end_#{group._groupOrRepeatKey()}"
 
-  INVALID_TYPES_AT_THIS_STAGE = ['begin group', 'end group', 'begin repeat', 'end repeat']
+  INVALID_TYPES_AT_THIS_STAGE = ['begin_group', 'end_group', 'begin_repeat', 'end_repeat']
   _determineConstructorByParams = (obj)->
     formSettingsTypes = do ->
       for key, val of $configs.defaultSurveyDetails
@@ -258,6 +259,8 @@ module.exports = do ->
       throw new Error("Invalid type at this stage: #{type}")
 
     if type in formSettingsTypes
+      # e.g. "today"
+      throw new Error("#{type} is not properly handled as a SurveyDetail")
       $surveyDetail.SurveyDetail
     else if type is 'score'
       $row.Row

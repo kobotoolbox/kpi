@@ -40,9 +40,12 @@ class AssetVersion(models.Model):
 
     def _deployed_content(self):
         legacy_names = self._reversion_version is not None
-        return to_xlsform_structure(self.version_content,
-                                    autoname=True,
-                                    deprecated_autoname=legacy_names)
+        if legacy_names:
+            return to_xlsform_structure(self.version_content,
+                                        deprecated_autoname=True)
+        else:
+            return to_xlsform_structure(self.version_content,
+                                        move_autonames=True)
 
     def to_formpack_schema(self):
         return {

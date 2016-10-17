@@ -1,4 +1,5 @@
 {expect} = require('../helper/fauxChai')
+_ = require('underscore')
 
 $model = require("../../jsapp/xlform/src/_model")
 
@@ -204,14 +205,14 @@ xlform_survey_model = ($model)->
       # expect(setToInvalidList).toThrow()
       ``
   describe "groups", ->
-    it "can add a group", ->
+    it "cannot add a group by adding a row type=group", ->
       @pizzaSurvey.addRow type: "text", name: "pizza", hint: "pizza", label: "pizza"
       expect(@pizzaSurvey.rows.last() instanceof $model.Row).toBe(true)
       expect(@pizzaSurvey.rows.length).toBe(2)
       @pizzaSurvey.addRow type: "group", name: "group"
       expect(@pizzaSurvey.rows.length).toBe(3)
       grp = @pizzaSurvey.rows.last()
-      expect(grp instanceof $model.RowError).toBe(true)
+      expect(grp instanceof $model.BaseRow).toBe(true)
   describe "automatic naming", ->
     it "can import questions without names", ->
       survey = @createSurvey([

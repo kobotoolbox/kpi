@@ -3,11 +3,14 @@
 from __future__ import (unicode_literals, print_function,
                         absolute_import, division)
 import re
+from copy import deepcopy
 
 from django.test import TestCase
 
+from kpi.utils.standardize_content import standardize_content
 from kpi.utils.sluggify import sluggify, sluggify_label
-from kpi.utils.autoname import autoname_fields
+from kpi.utils.autoname import autoname_fields, autoname_fields_to_field
+from kpi.utils.autoname import autovalue_choices_in_place
 
 
 class UtilsTestCase(TestCase):
@@ -56,8 +59,13 @@ class UtilsTestCase(TestCase):
             if isinstance(name, basestring):
                 row['name'] = name
             arr.append(row)
-        _named = autoname_fields({'survey': arr})
+        _content = deepcopy({'survey': arr})
+        _named = autoname_fields(_content, in_place=False)
         self.assertEqual(expected, [r['name'] for r in _named])
+        _politely = autoname_fields_to_field(_content, to_field='$autoname')
+        _polite_names = [field.get('$autoname')
+                         for field in _politely.get('survey')]
+        self.assertEqual(_polite_names, [r['name'] for r in _named])
 
     def test_autonamer(self):
         self._assertAutonames(
@@ -104,3 +112,49 @@ class UtilsTestCase(TestCase):
                 'abc_002',
                 'abc_001',
             ])
+
+    def test_autovalue_choices(self):
+        surv = {
+            'survey': [
+                {u'type': 'select_multiple',
+                 u'select_from_list_name': 'xxx'},
+            ],
+            'choices': [
+                {'list_name': 'xxx', 'label': 'A B C'},
+                {'list_name': 'xxx', 'label': 'D E F'},
+            ],
+            'settings': {},
+        }
+        autovalue_choices_in_place(surv, destination_key='$autovalue')
+        self.assertEqual(surv['choices'][0]['$autovalue'], 'A_B_C')
+
+
+    def test_autovalue_choices(self):
+        surv = {
+            'choices': [
+                {'list_name': 'xxx', 'label': 'A B C', 'name': 'D_E_F'},
+                {'list_name': 'xxx', 'label': 'D E F'},
+            ],
+        }
+        autovalue_choices_in_place(surv, destination_key='$autovalue')
+        self.assertEqual(surv['choices'][0]['$autovalue'], 'D_E_F')
+        self.assertEqual(surv['choices'][1]['$autovalue'], 'D_E_F_001')
+
+
+    def test_autovalue_choices_arabic(self):
+        surv = {
+            'survey': [
+                {u'type': 'select_multiple',
+                 u'select_from_list_name': 'xxx'},
+            ],
+            'choices': [
+                {'list_name': 'xxx', 'label': u'العربية', 'name': u'العربية'},
+                {'list_name': 'xxx', 'label': u'العربية', 'name': u'العربية'},
+            ],
+            'settings': {},
+        }
+        autovalue_choices_in_place(surv, '$autovalue')
+        self.assertEqual(surv['choices'][0]['$autovalue'], 'العربية')
+        part1 = u'العربية'
+        part2 = '_001'
+        self.assertEqual(surv['choices'][1]['$autovalue'], part1 + part2)

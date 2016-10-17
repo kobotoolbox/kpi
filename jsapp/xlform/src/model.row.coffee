@@ -66,8 +66,9 @@ module.exports = do ->
       outObj = {}
       for [key, val] in @attributesArray()
         if key is 'type' and val.get('typeId') in ['select_one', 'select_multiple']
-          result = {}
-          result[val.get('typeId')] = val.get('listName')
+          outObj['type'] = val.get('typeId')
+          outObj['select_from_list_name'] = val.get('listName')
+          continue
         else
           result = @getValue(key)
         unless @hidden
@@ -117,9 +118,9 @@ module.exports = do ->
       rr._afterIterator = (cb, ctxt)->
         obj =
           export_relevant_values: (surv, addl)->
-            surv.push(type: "end #{rr._beginEndKey()}")
+            surv.push(type: "end_#{rr._beginEndKey()}")
           toJSON: ()->
-            type: "end #{rr._beginEndKey()}"
+            type: "end_#{rr._beginEndKey()}"
         cb(obj)  if ctxt.includeGroupEnds
 
       _toJSON = rr.toJSON
@@ -161,7 +162,7 @@ module.exports = do ->
 
       rr.toJSON = ()->
         out = _toJSON.call(rr)
-        out.type = "begin #{rr._beginEndKey()}"
+        out.type = "begin_#{rr._beginEndKey()}"
         if typeof @_additionalJson is 'function'
           _.extend(out, @_additionalJson())
         out
@@ -210,7 +211,7 @@ module.exports = do ->
       if @_rankLevels
         additionalSheets['choices'].add(@_rankLevels)
       begin_xlsformrow = _.clone(@toJSON2())
-      begin_xlsformrow.type = "begin rank"
+      begin_xlsformrow.type = "begin_rank"
       begin_xlsformrow['kobo--rank-items'] = @getList().get('name')
       survey_arr.push(begin_xlsformrow)
       ``
@@ -257,7 +258,7 @@ module.exports = do ->
       if score_list
         additionalSheets['choices'].add(score_list)
       output = _.clone(@toJSON2())
-      output.type = "begin score"
+      output.type = "begin_score"
       output['kobo--score-choices'] = @getList().get('name')
       survey_arr.push(output)
       ``

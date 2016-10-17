@@ -45,6 +45,7 @@ lxml
 oauthlib
 psycopg2
 pymongo
+pytest-django
 python_dateutil
 pytz
 raven
@@ -54,6 +55,7 @@ six
 sqlparse
 static3
 transifex-client
+tabulate
 unicodecsv
 uWSGI
 whitenoise

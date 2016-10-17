@@ -4,7 +4,7 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
--e git+https://github.com/kobotoolbox/formpack.git@1.2#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@ordered-spreadsheets#egg=formpack
 -e git+https://github.com/kobotoolbox/pyxform.git@master#egg=pyxform
 -e git+https://github.com/jnm/whoosh@master#egg=Whoosh
 amqp==1.4.9
@@ -55,6 +55,8 @@ PyExcelerate==0.6.7
 Pygments==2.1.3
 pymongo==3.3.0
 pyquery==1.2.11
+pytest==3.0.3
+pytest-django==3.0.0
 python-dateutil==2.5.3
 pytz==2016.4
 raven==5.16.0
@@ -64,6 +66,7 @@ six==1.10.0
 sqlparse==0.1.19
 static3==0.7.0
 statistics==1.0.3.5
+tabulate==0.7.5
 transifex-client==0.11
 unicodecsv==0.14.1
 urllib3==1.15.1           # via transifex-client

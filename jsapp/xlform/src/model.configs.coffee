@@ -30,7 +30,7 @@ module.exports = do ->
     end_time:
       name: "end"
       label: "end time"
-      description: "tecords when the survey was marked as completed"
+      description: "records when the survey was marked as completed"
       default: true
       asJson:
         type: "end"

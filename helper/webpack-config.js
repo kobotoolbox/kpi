@@ -20,6 +20,8 @@ module.exports = function (options) {
     hot: false,
     https: false,
     optimize: false,
+    // if webpack is building too slowly, set "browserTests" to false
+    browserTests: true,
     outputDir: path.resolve(__dirname, '../jsapp/compiled/'),
     outputHash: true,
     port: 3000,
@@ -31,8 +33,11 @@ module.exports = function (options) {
   options = merge(defaultOptions, options || {});
 
   var entry = {
-    app: options.entry || path.join(__dirname, '../jsapp/js/main.es6'),
+    app: options.entry || path.join(__dirname, '..', 'jsapp', 'js', 'main.es6'),
   };
+  if (options.browserTests) {
+    entry.tests = path.resolve(__dirname, '..', 'test', 'index');
+  }
 
   var scssIncludePaths = ['',
     '~',

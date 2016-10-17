@@ -43,8 +43,11 @@ class GroupHandler(RowHandler):
     def __init__(self, base_handler):
         self._base_handler = base_handler
 
-    def begin(self, row):
+    def begin(self, initial_row):
         self._rows = []
+        self.initial_row_type = initial_row.get('type')
+        self.name_key = 'name' if ('name' in initial_row) else '$autoname'
+        self.name = initial_row[self.name_key]
 
     def finish(self):
         survey_contents = self._base_handler.survey_contents
@@ -58,11 +61,11 @@ class KoboRankGroup(GroupHandler):
     #survey
     |     type    | name |    label     | kobo--rank-items |
     |-------------|------|--------------|------------------|
-    | begin rank  | rnk  | Top 3 needs? | needs            |
+    | begin_rank  | rnk  | Top 3 needs? | needs            |
     | rank__level | n1   | 1st need     |                  |
     | rank__level | n2   | 2nd need     |                  |
     | rank__level | n3   | 3rd need     |                  |
-    | end rank    |      |              |                  |
+    | end_rank    |      |              |                  |
     #choices
     | list name |   name  |  label  |
     |-----------|---------|---------|
@@ -74,7 +77,7 @@ class KoboRankGroup(GroupHandler):
     #survey
     |       type       |    name   |    label     | appearance | required |             constraint            |
     |------------------|-----------|--------------|------------|----------|-----------------------------------|
-    | begin group      | rnk       |              | field-list |          |                                   |
+    | begin_group      | rnk       |              | field-list |          |                                   |
     | note             | rnk_label | Top 3 needs? |            |          |                                   |
     | select_one needs | n1        | 1st need     | minimal    | true     |                                   |
     | select_one needs | n2        | 2nd need     | minimal    | true     | ${n2} != ${n1}                    |
@@ -91,20 +94,18 @@ class KoboRankGroup(GroupHandler):
     description = '''Ask a user to rank a number of things.'''
 
     def begin(self, initial_row):
-        _name = initial_row.get('name')
+        super(KoboRankGroup, self).begin(initial_row)
         self._previous_levels = []
 
-        begin_group = {'type': 'begin group',
-                       'name': _name,
-                       'appearance': 'field-list'}
+        begin_group = {u'type': u'begin_group',
+                       u'name': self.name,
+                       u'appearance': u'field-list'}
 
         if 'required' in initial_row:
             del initial_row['required']
         if 'relevant' in initial_row:
             begin_group['relevant'] = initial_row['relevant']
             del initial_row['relevant']
-
-        initial_row_type = initial_row.get('type')
 
         try:
             self._rank_itemset = initial_row[COLS['rank-items']]
@@ -113,12 +114,14 @@ class KoboRankGroup(GroupHandler):
             del initial_row[COLS['rank-cmessage']]
         except KeyError:
             raise KeyError("Row with type: %s must have columns: %s and %s" % (
-                    initial_row_type,
+                    self.initial_row_type,
                     COLS['rank-items'],
                     COLS['rank-cmessage'],
                 ))
-        initial_row.update({'name': '%s_label' % _name,
-                            'type': 'note'})
+        initial_row.update({'type': 'note',
+                            'name': '%s_label' % self.name,
+                            'type': 'note',
+                            })
         self._rows = [
             begin_group,
             initial_row,
@@ -133,12 +136,13 @@ class KoboRankGroup(GroupHandler):
         return ' and '.join(strs)
 
     def add_level(self, row):
-        row_name = row['name']
+        row_name = row['$autoname']
         appearance = row.get('appearance') or 'minimal'
         # all ranking sub-questions are required
         row.update({
-            'type': 'select_one %s' % self._rank_itemset,
-            'required': 'true',
+            'type': 'select_one',
+            'select_from_list_name': self._rank_itemset,
+            'required': True,
             'constraint_message': self._rank_constraint_message,
             'appearance': appearance,
             })
@@ -151,15 +155,15 @@ class KoboRankGroup(GroupHandler):
 
     def handle_row(self, row):
         rtype = row.get('type')
-        if rtype == 'end rank':
-            self._rows.append({'type': 'end group'})
+        if rtype == 'end_rank':
+            self._rows.append({'type': 'end_group'})
             self.finish()
             return False
         elif rtype == 'rank__level':
             self.add_level(row)
         else:
             raise TypeError("'%(type)': KoboRank groups can only contain rows"
-                            " with type='rank__level' (or 'end rank')" % row)
+                            " with type='rank__level' (or 'end_rank')" % row)
 
 
 class KoboScoreGroup(GroupHandler):
@@ -174,10 +178,10 @@ class KoboScoreGroup(GroupHandler):
         #survey
         |     type    |  name | label | kobo--score-choices | required |
         |-------------|-------|-------|---------------------|----------|
-        | begin score | skore | Score | skorechoices        | true     |
-        | score__row  | skr1  | Q1    |                     |          |
-        | score__row  | skr2  | Q2    |                     |          |
-        | end score   |       |       |                     |          |
+        | begin_score |       | Score | skorechoices        | true     |
+        | score__row  |       | Q1    |                     |          |
+        | score__row  |       | Q2    |                     |          |
+        | end_score   |       |       |                     |          |
         #choices
         |  list name   | name |  label   |
         |--------------|------|----------|
@@ -188,8 +192,8 @@ class KoboScoreGroup(GroupHandler):
         #survey
         |           type          |     name     | label |  appearance  | required |
         |-------------------------|--------------|-------|--------------|----------|
-        | begin group             | skore        |       | field-list   |          |
-        | select_one skorechoices | skore_header | Score | label        |          |
+        | begin_group             | Score        |       | field-list   |          |
+        | select_one skorechoices | Score_header | Score | label        |          |
         | select_one skorechoices | skr1         | Q1    | list-nolabel | true     |
         | select_one skorechoices | skr2         | Q2    | list-nolabel | true     |
         | end group               |              |       |              |          |
@@ -202,12 +206,11 @@ class KoboScoreGroup(GroupHandler):
         self._base_handler = base_handler
 
     def begin(self, initial_row):
-        initial_row_type = initial_row.get('type')
-        _name = initial_row.get('name')
+        super(KoboScoreGroup, self).begin(initial_row)
 
-        begin_group = {'type': 'begin group',
-                       'name': _name,
-                       'appearance': 'field-list'}
+        begin_group = {u'type': u'begin_group',
+                       u'appearance': u'field-list'}
+        begin_group[u'name'] = self.name
 
         if 'required' in initial_row:
             self._initial_row_required = initial_row['required']
@@ -219,19 +222,21 @@ class KoboScoreGroup(GroupHandler):
 
         try:
             choice_colname = initial_row[COLS['score-choices']]
-            self._common_type = 'select_one %s' % choice_colname
+            self._common = {
+                u'type': u'select_one',
+                u'select_from_list_name': choice_colname,
+            }
             del initial_row[COLS['score-choices']]
         except KeyError:
             raise KeyError("Row with type: %s must have a column: %s" % (
-                    initial_row_type,
+                    self.initial_row_type,
                     COLS['score-choices'],
                 ))
         initial_row.update({
-            'type': self._common_type,
-            'name': '%s_header' % _name,
+            'name': '%s_header' % self.name,
             'appearance': 'label',
-            })
-
+        })
+        initial_row.update(self._common)
         self._rows = [
             begin_group,
             initial_row,
@@ -239,18 +244,17 @@ class KoboScoreGroup(GroupHandler):
 
     def add_row(self, row):
         appearance = row.get('appearance') or 'list-nolabel'
-        row.update({'type': self._common_type,
-                    'appearance': appearance,
-                    })
+        row['appearance'] = appearance
+        row.update(self._common)
         if hasattr(self, '_initial_row_required') and \
                 self._initial_row_required:
-            row.update({'required': 'true'})
+            row.update({u'required': True})
         self._rows.append(row)
 
     def handle_row(self, row):
-        if row.get('type') == 'end score':
+        if row.get('type') == 'end_score':
             self._rows.append({
-                    'type': 'end group',
+                    u'type': u'end_group',
                 })
             self.finish()
             return False
@@ -260,11 +264,13 @@ class KoboScoreGroup(GroupHandler):
         else:
             raise TypeError("'%s': KoboScore groups"
                             " can only contain rows with type='score__row'"
-                            " (or 'end score')" % row.get('type'))
+                            " (or 'end_score')" % row.get('type'))
 
 KOBO_CUSTOM_TYPE_HANDLERS = {
     'begin score': KoboScoreGroup,
     'begin rank': KoboRankGroup,
+    'begin_score': KoboScoreGroup,
+    'begin_rank': KoboRankGroup,
 }
 
 
@@ -288,48 +294,66 @@ def _parse_contents_of_kobo_structures(ss_structure):
     return (base_handler.survey_contents, features_used)
 
 
-def _is_kobo_specific(name):
-    return re.search(r'^kobo--', name)
+def _is_kobo_specific(sheet_name):
+    return re.search(r'^kobo--', sheet_name)
 
 
-def remove_empty_expressions(survey_content):
+def remove_empty_expressions_in_place(content):
     # xls2json_backends.csv_to_dict(), called by dkobo, omits 'name' keys
     # whose values are blank. Since we read JSON from the form builder
     # instead of CSV, however, we have to tolerate not only missing names
     # but blank ones as well.
-    for surv_row in survey_content:
+    for surv_row in content.get('survey'):
         for skip_key in ['appearance', 'relevant', 'bind']:
-            if skip_key in surv_row and surv_row[skip_key] == '':
+            if skip_key in surv_row and surv_row[skip_key] in ['', None]:
                 del surv_row[skip_key]
 
 
+def replace_with_autofields(content):
+    for row in content.get('survey', []):
+        _auto = row.pop('$autoname', None)
+        if _auto:
+            row['name'] = _auto
+    for row in content.get('choices', []):
+        _auto = row.pop('$autovalue', None)
+        if _auto:
+            row['name'] = _auto
+
+
 def to_xlsform_structure(surv,
-                         autoname=True,
                          deprecated_autoname=False,
-                         autovalue_choices=True,
                          extract_rank_and_score=True,
+                         move_autonames=False,
                          ):
 
     if 'survey' in surv:
         for survey_row in surv['survey']:
             if 'type' in survey_row and isinstance(survey_row['type'], dict):
+                # this issue is taken care of in 'standardize_content(...)'
+                # but keeping it around just in case.
                 _srt = survey_row['type']
                 survey_row['type'] = '{} {}'.format(_srt.keys()[0],
                                                     _srt.values()[0])
-        remove_empty_expressions(surv['survey'])
+
+        # this is also done in asset.save()
+        remove_empty_expressions_in_place(surv)
 
         if deprecated_autoname:
             surv['survey'] = autoname_fields__depr(surv)
-        elif autoname:
-            surv['survey'] = autoname_fields(surv)
 
         if extract_rank_and_score:
+            expand_rank_and_score_in_place(surv)
             (surv['survey'], features_used) = \
                 _parse_contents_of_kobo_structures(surv)
 
-    if 'choices' in surv and autovalue_choices:
-        surv['choices'] = autovalue_choices_fn(surv.get('choices', []))
+    if move_autonames:
+        replace_with_autofields(surv)
 
     for kobo_custom_sheet_name in filter(_is_kobo_specific, surv.keys()):
         del surv[kobo_custom_sheet_name]
     return surv
+
+
+def expand_rank_and_score_in_place(surv):
+    (surv['survey'], features_used) = \
+        _parse_contents_of_kobo_structures(surv)
