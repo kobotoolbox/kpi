@@ -16,13 +16,13 @@ class AssetContentAnalyzer(object):
 
     def get_summary(self):
         row_count = 0
-        languages = set()
         geo = False
         labels = []
         metas = set()
         types = set()
         summary_errors = []
         keys = OrderedDict()
+        naming_conflicts = []
         if not self.survey:
             return {}
 
@@ -30,6 +30,8 @@ class AssetContentAnalyzer(object):
             # pyxform's csv_to_dict() returns an OrderedDict, so we have to be
             # more tolerant than `type(row) == dict`
             if isinstance(row, dict):
+                if '$given_name' in row:
+                    naming_conflicts.append(row['$given_name'])
                 _type = row.get('type')
                 _label = row.get('label')
                 if _type in GEO_TYPES:
@@ -57,4 +59,6 @@ class AssetContentAnalyzer(object):
             'labels': labels[0:5],
             'columns': filter(lambda k: not k.startswith('$'), keys.keys()),
         }
+        if len(naming_conflicts) > 0:
+            summary['naming_conflicts'] = naming_conflicts
         return summary
