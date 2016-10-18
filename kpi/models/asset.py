@@ -141,9 +141,23 @@ class FormpackXLSFormUtils(object):
     def _expand_kobo_qs(self, content):
         expand_rank_and_score_in_place(content)
 
+    def _ensure_settings(self, content):
+        # asset.settings should exist already, but
+        # on some legacy forms it might not
+        _settings = content.get('settings', {})
+        if isinstance(_settings, list):
+            if len(_settings) > 0:
+                _settings = _settings[0]
+            else:
+                _settings = {}
+        if not isinstance(_settings, dict):
+            _settings = {}
+        content['settings'] = _settings
+
     def _append(self, content, **sheet_data):
         settings = sheet_data.pop('settings', None)
         if settings:
+            self._ensure_settings(content)
             content['settings'].update(settings)
         for (sht, rows) in sheet_data.items():
             if sht in content:
@@ -517,6 +531,12 @@ class Asset(ObjectPermissionMixin,
             if regenerate:
                 snapshot.delete()
                 snapshot = False
+        except AssetSnapshot.MultipleObjectsReturned:
+            # how did multiple snapshots get here?
+            snaps = AssetSnapshot.objects.filter(asset=self,
+                                                 asset_version=asset_version)
+            snaps.delete()
+            snapshot = False
         except AssetSnapshot.DoesNotExist:
             snapshot = False
 

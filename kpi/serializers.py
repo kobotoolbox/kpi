@@ -327,12 +327,9 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
             if not self.context['request'].user.has_perm('view_asset', asset):
                 # The client is not allowed to snapshot this asset
                 raise exceptions.PermissionDenied
-            asset_version = asset.asset_versions.first()
-            try:
-                snapshot = AssetSnapshot.objects.get(asset=asset,
-                                                     asset_version=asset_version)
-            except AssetSnapshot.DoesNotExist as e:
-                snapshot = AssetSnapshot.objects.create(**validated_data)
+            # asset.snapshot pulls , by default, a snapshot for the latest
+            # version.
+            snapshot = asset.snapshot
         elif source:
             # The client provided source directly; no need to copy anything
             # For tidiness, pop off unused fields. `None` avoids KeyError
