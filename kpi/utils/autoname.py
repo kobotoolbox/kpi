@@ -113,7 +113,7 @@ def autoname_fields_in_place(surv_content, destination_key):
         if _name in other_names:
             # We cannot automatically rename these because the names could be
             # referenced in a skip logic string.
-            raise ValueError('Duplicate names: {}')
+            raise ValueError('Duplicate names: {}'.format(_name))
         _assign_row_to_name(row, _name)
 
     for row in filter(lambda r: not _has_name(r), rows_needing_names):
