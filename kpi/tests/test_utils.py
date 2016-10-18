@@ -55,9 +55,7 @@ class UtilsTestCase(TestCase):
             if isinstance(name, dict):
                 row = name
             else:
-                row = {'type': 'text', 'label': 'ABC {}'.format(len(arr) + 1)}
-            if isinstance(name, basestring):
-                row['name'] = name
+                row = {'type': 'text', 'label': name, '$kuid': 'kUiD'}
             arr.append(row)
         _content = deepcopy({'survey': arr})
         _named = autoname_fields(_content, in_place=False)
@@ -77,7 +75,7 @@ class UtilsTestCase(TestCase):
             ], expected=[
                 'abc',
                 'def',
-                'ABC_3',
+                'text_kUiD',
                 'jwef',
             ])
         self._assertAutonames(
@@ -93,7 +91,7 @@ class UtilsTestCase(TestCase):
         self._assertAutonames(
             names=[
                 'abc',
-                'abc_002',
+                {'name': 'abc_002', 'type': 'note'},
                 'abc',
                 'abc',
             ], expected=[
@@ -104,13 +102,13 @@ class UtilsTestCase(TestCase):
             ])
         self._assertAutonames(
             names=[
-                'abc',
                 {'label': 'abc', 'type': 'text'},
-                'abc',
+                {'label': 'abc', 'type': 'text'},
+                {'label': 'abc', 'type': 'text'},
             ], expected=[
                 'abc',
-                'abc_002',
                 'abc_001',
+                'abc_002',
             ])
 
     def test_autovalue_choices(self):
