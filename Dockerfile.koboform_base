@@ -6,7 +6,8 @@ FROM kobotoolbox/base-kobos:latest
 
 ENV KPI_SRC_DIR=/srv/src/kpi \
     KPI_NODE_PATH=/srv/node_modules \
-    BOWER_COMPONENTS_DIR=/srv/bower_components
+    BOWER_COMPONENTS_DIR=/srv/bower_components \
+    NPM_CACHE_DIR=/srv/npm_cache
 
 
 ###############################
@@ -44,11 +45,14 @@ RUN pip-sync /srv/tmp/base_requirements.txt 1>/dev/null
 
 COPY ./package.json ${KPI_SRC_DIR}/
 WORKDIR ${KPI_SRC_DIR}/
-RUN mkdir -p "${KPI_NODE_PATH}" && \
+COPY ./docker/cache/npm/ ${NPM_CACHE_DIR}/
+RUN npm config set cache "${NPM_CACHE_DIR}" && \
+    mkdir -p "${KPI_NODE_PATH}" && \
     ln -s "${KPI_NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
     # Try error-prone `npm install` step twice.
     npm install --quiet || npm install --quiet && \ 
     mv "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json
+RUN rm -rf "${NPM_CACHE_DIR}" && mkdir "${NPM_CACHE_DIR}"
 ENV PATH $PATH:${KPI_NODE_PATH}/.bin
 
 
