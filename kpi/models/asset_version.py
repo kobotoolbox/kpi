@@ -10,6 +10,8 @@ from reversion.models import Version
 from ..fields import KpiUidField
 from ..utils.kobo_to_xlsform import to_xlsform_structure
 
+from formpack.utils.expand_content import expand_content
+
 DEFAULT_DATETIME = datetime.datetime(2010, 1, 1)
 
 
@@ -46,7 +48,7 @@ class AssetVersion(models.Model):
 
     def to_formpack_schema(self):
         return {
-            'content': self._deployed_content(),
+            'content': expand_content(self._deployed_content()),
             'version': self.uid,
             'version_id_key': '__version__',
         }
