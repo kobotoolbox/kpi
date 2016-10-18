@@ -109,10 +109,19 @@ def autoname_fields_in_place(surv_content, destination_key):
     # cycle through existing names ane ensure that names are valid and unique
     for row in filter(lambda r: _has_name(r), rows_needing_names):
         _name = row['name']
-        if _name in other_names:
-            # We cannot automatically rename these because the names could be
-            # referenced in a skip logic string.
-            raise ValueError('Duplicate names: {}'.format(_name))
+        _attempt_count = 0
+        while (not is_valid_nodeName(_name) or _name in other_names):
+            # this will be necessary for untangling skip logic
+            row['$given_name'] = _name
+            _name = sluggify_label(_name,
+                                   other_names=other_names.keys())
+            if _name == '' and '$kuid' in row:
+                _name = '{}_{}'.format(row['type'], row['$kuid'])
+            elif _name == '':
+                _name = row['type']
+            if _attempt_count > 1000:
+                raise RuntimeError('Loop error: valid_name')
+            _attempt_count += 1
         _assign_row_to_name(row, _name)
 
     for row in filter(lambda r: not _has_name(r), rows_needing_names):
