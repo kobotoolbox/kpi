@@ -10,7 +10,7 @@ from collections import OrderedDict, defaultdict
 
 from kpi.utils.sluggify import (sluggify, sluggify_label, is_valid_nodeName)
 
-
+from formpack.utils.json_hash import json_hash
 
 
 
@@ -51,8 +51,7 @@ def autoname_fields__depr(surv_content):
             if 'label' in surv_row:
                 next_name = sluggify_valid_xml__depr(surv_row['label'])
             else:
-                raise ValueError('Label cannot be translated: %s' %
-                                 json.dumps(surv_row))
+                next_name = 'unnamable_row_{}'.format(json_hash(surv_row))
             while next_name in kuid_names.values():
                 next_name = _increment(next_name)
             if 'kuid' not in surv_row:
