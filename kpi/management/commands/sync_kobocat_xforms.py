@@ -67,8 +67,8 @@ def xlsform_to_kpi_content_schema(xlsform):
     # Remove the __version__ calculate question
     content['survey'] = [
         row for row in content['survey'] if not (
-            'calculation' in row and row.get('type') == 'calculate' and
-            row['name'] == '__version__'
+            'calculation' in row and row.get('type', None) == 'calculate' and
+            row.get('name', None) == '__version__'
         )
     ]
     # a temporary fix to the problem of list_name alias
