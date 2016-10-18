@@ -1,7 +1,11 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# 😬
 
 from kpi.models import Asset
 from pprint import pprint
 from collections import OrderedDict
+import pytest
 import json
 import string
 import inspect
@@ -222,13 +226,11 @@ def test_autoname_shortens_long_names():
 
     # if there is a name conflict we should throw a meaningful error
     # however, since this behavior is already present, it might be
-    assert _name_to_autoname([
-        {'name': LONG_NAME},
-        {'name': LONG_NAME},
-    ]) == [
-        LONG_NAME,
-        LONG_NAME + '_001',
-    ]
+    with pytest.raises(ValueError):
+        _name_to_autoname([
+            {'name': LONG_NAME},
+            {'name': LONG_NAME},
+        ])
 
     long_label = ('Four score and seven years ago, our fathers brought forth'
                   ' on this contintent')
@@ -436,4 +438,3 @@ def test_named_score_question_compiles():
         [u'end_group', False,
             u'$kuid']
     ]
-

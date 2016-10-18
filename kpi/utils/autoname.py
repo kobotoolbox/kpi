@@ -86,6 +86,13 @@ def autoname_fields(surv_content, in_place=False):
         return _content_copy.get('survey')
 
 
+def create_type_kuid_name(row):
+    if '$kuid' in row:
+        return '{}_{}'.format(row['type'], row['$kuid'])
+    else:
+        return row['type']
+
+
 def autoname_fields_in_place(surv_content, destination_key):
     surv_list = surv_content.get('survey')
     other_names = OrderedDict()
@@ -103,13 +110,10 @@ def autoname_fields_in_place(surv_content, destination_key):
     # cycle through existing names ane ensure that names are valid and unique
     for row in filter(lambda r: _has_name(r), rows_needing_names):
         _name = row['name']
-        _attempt_count = 0
-        while (not is_valid_nodeName(_name) or _name in other_names):
-            _name = sluggify_label(_name,
-                                   other_names=other_names.keys())
-            if _attempt_count > 1000:
-                raise RuntimeError('Loop error: valid_name')
-            _attempt_count += 1
+        if _name in other_names:
+            # We cannot automatically rename these because the names could be
+            # referenced in a skip logic string.
+            raise ValueError('Duplicate names: {}')
         _assign_row_to_name(row, _name)
 
     for row in filter(lambda r: not _has_name(r), rows_needing_names):
