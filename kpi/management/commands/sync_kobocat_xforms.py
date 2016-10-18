@@ -241,7 +241,7 @@ class Command(BaseCommand):
                                 # We don't need an update, but we should copy
                                 # the hash from KC to KPI for future reference
                                 backend_response['hash'] = xform.prefixed_hash
-                                asset.save()
+                                asset.save(adjust_content=False)
                                 print_tabular(
                                     'HASH',
                                     user.username,
@@ -260,7 +260,7 @@ class Command(BaseCommand):
                                     asset, xform)
                                 if asset.name != desired_name:
                                     asset.name = desired_name
-                                    asset.save()
+                                    asset.save(adjust_content=False)
                                     non_content_operation = 'NAME'
                             # No further update needed. Skip to the next form
                             print_tabular(
@@ -317,9 +317,7 @@ class Command(BaseCommand):
                         if not update_existing:
                             # This is an orphaned KC form. Build a new asset to
                             # match it
-                            asset = Asset()
-                            asset.asset_type = 'survey'
-                            asset.owner = user
+                            asset = Asset(asset_type='survey', owner=user)
                             asset.date_created = dateutil.parser.parse(
                                 deployment_data['date_created'])
                         # Update the asset's modification date and content
@@ -327,8 +325,12 @@ class Command(BaseCommand):
                         # one being updated
                         asset.date_modified = dateutil.parser.parse(
                             deployment_data['date_modified'])
+                        # we may want to do standardize the content (by calling
+                        # `asset._standardize(asset_content)`), but this also
+                        # could cause errors on unexpected forms so we can
+                        # defer this until later.
                         asset.content = asset_content
-                        asset.save()
+                        asset.save(adjust_content=False)
                         asset.name = make_name_for_asset(asset, xform)
                         # Copy the deployment-related data
                         kc_deployment = KobocatDeploymentBackend(asset)
