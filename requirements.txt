@@ -29,7 +29,7 @@ django-jsonbfield==0.1.0
 django-markitup==2.3.1
 django-mptt==0.8.6
 django-oauth-toolkit==0.10.0
-django-registration-redux==1.4
+django-registration-redux==1.3 # DO NOT UPGRADE TO 1.4 WITHOUT TESTING!
 django-reversion==1.10.2
 django-ses==0.7.1
 django-taggit==0.21.3
