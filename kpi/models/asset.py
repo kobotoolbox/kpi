@@ -181,6 +181,14 @@ class FormpackXLSFormUtils(object):
             if '$kuid' not in row:
                 row['$kuid'] = random_id(9)
 
+    def _strip_kuids(self, content):
+        # this is important when stripping out kobo-specific types because the
+        # $kuid field in the xform prevents cascading selects from rendering
+        for row in content['survey']:
+            row.pop('$kuid', None)
+        for row in content.get('choices', []):
+            row.pop('$kuid', None)
+
     def _link_list_items(self, content):
         arr = content['survey']
         if len(arr) > 0:
@@ -247,8 +255,8 @@ class XlsExportable(object):
         if not kobo_specific_types:
             self._expand_kobo_qs(content)
             self._autoname(content)
-            self._assign_kuids(content)
             self._populate_fields_with_autofields(content)
+            self._strip_kuids(content)
         content = OrderedDict(content)
         self._xlsform_structure(content, ordered=True)
         return content
@@ -598,7 +606,6 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
             _source = {}
         self._standardize(_source)
         self._strip_empty_rows(_source)
-        self._assign_kuids(_source)
         self._autoname(_source)
         self._remove_empty_expressions(_source)
         _settings = _source.get('settings', {})
@@ -637,6 +644,7 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
         source_copy = copy.deepcopy(source)
         self._expand_kobo_qs(source_copy)
         self._populate_fields_with_autofields(source_copy)
+        self._strip_kuids(source_copy)
 
         warnings = []
         details = {}
