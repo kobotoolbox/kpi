@@ -316,7 +316,7 @@ class AssetScoreTestCase(TestCase):
         self.assertNotEqual(_snapshot.details['status'], 'failure')
 
 
-class AssetSnapshotXmlTestCase(TestCase):
+class AssetSnapshotXmlTestCase(AssetSettingsTests):
     def test_cascading_select_xform(self):
         asset = Asset.objects.create(asset_type='survey',
                                      content=CASCADE_CONTENT)
