@@ -5,8 +5,7 @@
 #    pip-compile --output-file requirements.txt requirements.in
 #
 -e git+https://github.com/kobotoolbox/formpack.git@1.4#egg=formpack
--e git+https://github.com/kobotoolbox/pyxform.git@master#egg=pyxform
--e git+https://github.com/jnm/whoosh@master#egg=Whoosh
+-e git+https://github.com/kobotoolbox/pyxform.git@6dfff060fc2ad6c575c6a7d953c381d2180e6833#egg=pyxform
 amqp==1.4.9
 anyjson==0.3.3
 begins==0.9
@@ -84,6 +83,7 @@ unicodecsv==0.14.1
 urllib3==1.15.1           # via transifex-client
 uWSGI==2.0.13
 whitenoise==3.0
+Whoosh==2.7.4
 xlrd==0.8.0
 xlwt==1.0.0
 
