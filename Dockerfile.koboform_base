@@ -46,8 +46,14 @@ COPY ./package.json ${KPI_SRC_DIR}/
 WORKDIR ${KPI_SRC_DIR}/
 RUN mkdir -p "${KPI_NODE_PATH}" && \
     ln -s "${KPI_NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
-    # Try error-prone `npm install` step twice.
-    npm install --quiet || npm install --quiet && \ 
+    # Try error-prone `npm install` step multiple times.
+    return_status='0' && \
+    for trial_number in $(seq 1 4); do \
+        npm install --quiet || return_status="$?" && \
+        if [ "${return_status}" = '0' ]; then break; fi && \
+        echo "\`npm install\` trial ${trial_number} failed." \ 
+    ; done && \
+    if [ "${return_status}" != '0' ]; then exit "${return_status}"; fi && \
     mv "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json
 ENV PATH $PATH:${KPI_NODE_PATH}/.bin
 
