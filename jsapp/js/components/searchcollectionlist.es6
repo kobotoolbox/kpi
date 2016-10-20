@@ -79,7 +79,7 @@ var SearchCollectionList = React.createClass({
     if (this.props.searchContext.store.filterTags == 'asset_type:survey') {
       let offset = $(event.target).children('.asset-list').offset().top;
       this.setState({
-        fixedHeadings: offset < 0 ? 'fixed-headings' : ''
+        fixedHeadings: offset < -55 ? 'fixed-headings' : ''
       });
     }
   },

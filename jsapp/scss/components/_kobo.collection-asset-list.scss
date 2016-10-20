@@ -73,6 +73,7 @@ div.library {
     overflow-y: auto;
     overflow-x: hidden;
     width: 100%;
+    padding-bottom: 100px;
   }
   .asset-row > .asset-row__buttons {
     width: 33%;
@@ -99,6 +100,7 @@ div.library {
   .asset-list {
     min-height: 300px;
     margin-bottom: 4px;
+    padding-bottom: 100px;
     > .loading {
       margin-top:110px;
     }
@@ -128,9 +130,13 @@ div.library {
 // fixed headings when scrolling asset list
 
 .asset-list--fixed-headings {
-  .asset-list-sorts {
-    display: none;
-  }
+  padding-top: 50px;
+  // .asset-list-sorts {
+  //   display: none;
+  // }
+  // TODO: since one of the table headings is now fixed, the others should be hidden
+  // But this causes a display bug when scrolling currently 
+  // (since.asset-list height changes if these elements are hidden)
   > :nth-child(2) {
     .asset-list-sorts {
       display: flex;
