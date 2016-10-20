@@ -50,6 +50,8 @@ def autoname_fields__depr(surv_content):
                 continue
             if 'label' in surv_row:
                 next_name = sluggify_valid_xml__depr(surv_row['label'])
+            elif surv_row.get('type') == 'group':
+                next_name = sluggify_valid_xml__depr('Grp')
             else:
                 next_name = 'unnamable_row_{}'.format(json_hash(surv_row))
             while next_name in kuid_names.values():
