@@ -27,15 +27,13 @@ class AssetContentAnalyzer(object):
             return {}
 
         for row in self.survey:
-            # pyxform's csv_to_dict() returns an OrderedDict, so we have to be
-            # more tolerant than `type(row) == dict`
             if isinstance(row, dict):
                 _type = row.get('type')
                 _label = row.get('label')
                 if _type in GEO_TYPES:
                     geo = True
 
-                if not _type or _type.startswith('end'):
+                if not _type or isinstance(_type, dict) or _type.startswith('end'):
                     summary_errors.append(row)
                     continue
                 if _type in META_TYPES:
