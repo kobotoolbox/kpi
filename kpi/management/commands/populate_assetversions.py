@@ -39,7 +39,7 @@ def populate_assetversions(_Asset, _AssetVersion, _ReversionVersion,
     _cur = _Asset.objects.filter(asset_type='survey')
     if filter_usernames:
         _cur = _cur.filter(owner__username__in=filter_usernames)
-    asset_ids = _cur.order_by('date_modified').values_list('id', flat=True)
+    asset_ids = _cur.order_by('-date_modified').values_list('id', flat=True)
 
     for _i in xrange(0, len(asset_ids)):
         _create_versions_for_asset_id(asset_ids[_i], _AssetVersion, _ReversionVersion)
