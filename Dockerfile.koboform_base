@@ -35,7 +35,8 @@ RUN bash /tmp/setup_6.x.bash && \
 RUN pip install --quiet --upgrade pip==8.1.1 && \
     pip install --quiet pip-tools
 COPY ./requirements.txt /srv/tmp/base_requirements.txt
-RUN pip-sync /srv/tmp/base_requirements.txt 1>/dev/null
+RUN pip-sync /srv/tmp/base_requirements.txt 1>/dev/null && \
+    rm -rf ~/.cache/pip
 
 
 ###########################
@@ -56,6 +57,7 @@ RUN mkdir -p "${KPI_NODE_PATH}" && \
         echo "\`npm install\` trial ${trial_number} failed." \ 
     ; done && \
     if [ "${return_status}" != '0' ]; then exit "${return_status}"; fi && \
+    npm cache clean && \
     mv "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json && \
     mv "${KPI_SRC_DIR}/npm_install_log.txt" /srv/tmp/
 ENV PATH $PATH:${KPI_NODE_PATH}/.bin
@@ -70,5 +72,6 @@ RUN mkdir -p "${BOWER_COMPONENTS_DIR}" && \
     mkdir -p "${KPI_SRC_DIR}/jsapp/xlform/" && \
     ln -s "${BOWER_COMPONENTS_DIR}/" "${KPI_SRC_DIR}/jsapp/xlform/components" && \
     bower install --quiet --allow-root --config.interactive=false && \
+    bower cache clean --allow-root && \
     mv "${KPI_SRC_DIR}/bower.json" /srv/tmp/base_bower.json && \
     mv "${KPI_SRC_DIR}/.bowerrc" /srv/tmp/base_bowerrc
