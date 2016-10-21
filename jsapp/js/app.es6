@@ -1204,7 +1204,6 @@ var AssetSharing = React.createClass({
               </bem.UserRow__avatar>
               <bem.UserRow__name>
                 <div>{this.state.asset.owner__username}</div>
-                <bem.UserRow__email>email@email.com</bem.UserRow__email>
               </bem.UserRow__name>
               <bem.UserRow__role>{t('is owner')}</bem.UserRow__role>
             </bem.UserRow>
