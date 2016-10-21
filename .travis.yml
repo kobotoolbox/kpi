@@ -1,3 +1,7 @@
+# Don't double-build PR commits. See: http://stackoverflow.com/a/31882307/1877326
+branches:
+  only: 
+    - master
 sudo:
   false
 language: python
