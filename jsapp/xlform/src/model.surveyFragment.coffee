@@ -186,6 +186,7 @@ module.exports = do ->
             @set key, obj.value(@)
           else
             @set key, obj
+      @ensureKuid()
       typeIsRepeat = @get('type') is 'repeat'
       @set('_isRepeat', typeIsRepeat)
       @convertAttributesToRowDetails()
@@ -245,8 +246,15 @@ module.exports = do ->
         out
     groupEnd: ->
       group = @
-      export_relevant_values: (surv, shts)-> surv.push(@toJSON())
-      toJSON: ()-> type: "end_#{group._groupOrRepeatKey()}"
+      _kuid = @getValue("$kuid")
+      _as_json =
+        type: "end_#{@_groupOrRepeatKey()}"
+        $kuid: "/#{_kuid}"
+
+      export_relevant_values: (surv, shts)->
+        surv.push _.extend {}, _as_json
+      toJSON: ()->
+        _.extend {}, _as_json
 
   INVALID_TYPES_AT_THIS_STAGE = ['begin_group', 'end_group', 'begin_repeat', 'end_repeat']
   _determineConstructorByParams = (obj)->

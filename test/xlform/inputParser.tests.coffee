@@ -92,14 +92,25 @@ do ->
 
       it 'parses nested groups hierarchy', ->
         results = $inputParser.parseArr('survey', [
-            {type: 'begin group', name: 'grp1'},
-            {type: 'begin group', name: 'grp2'},
-            {type: 'text', name: 'q1'},
-            {type: 'text', name: 'q2'},
-            {type: 'end group'},
-            {type: 'end group'},
+            {type: 'begin group', name: 'grp1', '$kuid': 'aaa'},
+            {type: 'begin group', name: 'grp2', '$kuid': 'bbb'},
+            {type: 'text', name: 'q1', '$kuid': 'ccc'},
+            {type: 'text', name: 'q2', '$kuid': 'ddd'},
+            {type: 'end group', '$kuid': 'eee'},
+            {type: 'end group', '$kuid': 'fff'},
           ])
-        expect(results).toEqual([ { type : 'group', name : 'grp1', __rows : [ { type : 'group', name : 'grp2', __rows : [ { type : 'text', name : 'q1' }, { type : 'text', name : 'q2' } ] } ] } ])
+        expect(results).toEqual([{
+          type : 'group',
+          name : 'grp1',
+          '$kuid': 'aaa',
+          __rows : [
+            {type: 'group',
+            name : 'grp2',
+            '$kuid': 'bbb',
+            __rows : [
+              { type : 'text', name : 'q1', '$kuid': 'ccc' },
+              { type : 'text', name : 'q2', '$kuid': 'ddd' }
+            ]}]}])
       it 'parses non-grouped list of questions', ->
         results = $inputParser.parseArr('survey', [
             {type: 'text', name: 'q1'},

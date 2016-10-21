@@ -16,6 +16,8 @@ module.exports =
       chaiExpect(x).eql(y)
     toBeTruthy: ->
       chaiExpect(x).to.be.ok
+    toBeUndefined: ->
+      chaiExpect(x).to.be.a('undefined')
     'not':
       toEqual: (y)->
         chaiExpect(x).to.not.eql(y)
@@ -25,3 +27,5 @@ module.exports =
         chaiExpect(x).to.not.throw(e)
       toBeTruthy: ->
         chaiExpect(x).to.not.be.ok
+      toBeDefined: ->
+        chaiExpect(x).to.be.a('undefined')

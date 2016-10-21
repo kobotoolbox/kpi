@@ -29,13 +29,17 @@ do ->
       it 'can import a simple rank group', ->
         rankRow = @survey.rows.at(0)
         expect(rankRow.get('kobo--rank-items').get('value')).toBeDefined()
+        expect(rankRow.get('$kuid').get('value')).toBeDefined()
         expect(rankRow).toBeDefined()
         expect(rankRow._rankRows.length).toBe(2)
+        rankRow._rankRows.forEach (row)->
+          expect(row.get('$kuid')).toBeDefined()
         expect(rankRow._rankLevels.options.length).toBe(3)
 
       describe 'clone a rank group', ->
         beforeEach ->
           @rankRow = @survey.rows.at(0)
+          expect(@rankRow.get('$kuid').get('value')).toBeDefined()
           expect(@rankRow.get('kobo--rank-items').get('value')).toBeDefined()
           @clonedRow = @rankRow.clone()
           @survey._insertRowInPlace(@clonedRow, previous: @rankRow)
@@ -52,9 +56,13 @@ do ->
           [r1, r2, r3, r_end,
             cr1, cr2, cr3, cr_end] = pkg.survey.rowObjects
           expect(r1.label).toEqual(cr1.label)
+          expect(r1['$kuid']).toBeDefined()
+          expect(r1.type).toEqual('begin_rank')
           expect(r1['kobo--rank-items']).not.toEqual(cr1['kobo--rank-items'])
           expect(r_end.type).toEqual('end_rank')
           expect(cr_end.type).toEqual('end_rank')
+          expect(r_end.$kuid).toEqual("/" + r1.$kuid)
+          expect(cr_end.$kuid).toEqual("/" + cr1.$kuid)
           expect(_.pluck(pkg.choices.rowObjects, 'name')).toEqual([
               "food", "water", "shelter",
               "food", "water", "shelter",
@@ -65,9 +73,13 @@ do ->
           [r1, r2, r3, r_end,
             cr1, cr2, cr3, cr_end] = pkg.survey
           expect(r1.label).toEqual(cr1.label)
+          expect(r1['$kuid']).toBeDefined()
           expect(r1['kobo--rank-items']).not.toEqual(cr1['kobo--rank-items'])
           expect(r_end.type).toEqual('end_rank')
           expect(cr_end.type).toEqual('end_rank')
+          expect(r_end['$kuid']).toBeDefined()
+          expect(cr_end['$kuid']).toBeDefined()
+
           # each choice in pkg.choices comes in this format:
           #   list_name: [
           #     {name: 'name', label: 'label'}
@@ -95,7 +107,7 @@ do ->
               {type: "end score"},
             ],
             'choices': [
-              ['list name', 'name', 'label'],
+              ['list_name', 'name', 'label'],
               ['koboskorechoices', 'ok', 'Okay'],
               ['koboskorechoices', 'not_ok', 'Not okay'],
             ],
@@ -375,3 +387,114 @@ do ->
         it 'can break apart outer group', ->
           @g2.splitApart()
           expect(@getNames(@survey)).toEqual(['grp1', 'q1', 'q2'])
+
+
+describe 'kuids', ->
+  survey_content ={
+    group: ->
+      {
+        survey: [
+          ['type', 'name', 'label', '$kuid'],
+          {type: 'begin_group', name: 'grp', label: 'Group', '$kuid': 'abc'},
+          ['note', 'n1', 'Note 1', 'def'],
+          {type: 'end_group',  '$kuid': '/abc (never parsed)'},
+        ],
+      }
+    rank: ->
+      {
+        survey: [
+          ['type', 'name', 'label', '$kuid'],
+          {type: 'begin_rank', name: 'koborank', label: 'Label', 'kobo--rank-items': 'needs', '$kuid': 'abc'},
+          ['rank__level', 'rnk1', 'Rank Level 1', 'def'],
+          ['rank__level', 'rnk2', 'Rank Level 2', 'ghi'],
+          {type: 'end_rank',  '$kuid': '/abc (never parsed)'},
+        ],
+        'choices': [
+          ['list_name', 'name', 'label', '$kuid'],
+          ['needs', 'food', 'Food', 'mno'],
+          ['needs', 'water', 'Water', 'pqr'],
+          ['needs', 'shelter', 'Shelter', 'stu'],
+        ],
+      }
+    score: ->
+      {
+        survey: [
+          ['type', 'name', 'label', '$kuid'],
+          {type: 'begin_score', name: 'koboscore', label: 'Label', "kobo--score-choices": 'scores', '$kuid': 'abcd'},
+          ['score__row', 'sc1', 'Rank Level 1', 'efgh'],
+          {type: 'end_score',  '$kuid': '/abcd (never parsed)'},
+        ],
+        'choices': [
+          ['list_name', 'name', 'label', '$kuid'],
+          ['scores', 'bad', 'Bad', 'mnop'],
+          ['scores', 'ok', 'Ok', 'qrst'],
+          ['scores', 'good', 'Good', 'uvwx'],
+        ],
+      }
+  }
+
+  describe 'passed to export', ->
+    it 'for group', ->
+      survey = $survey.Survey.load survey_content.group()
+      content = survey.toFlatJSON()
+      [r0, r1, r2] = content.survey
+      expect(r0.$kuid).toEqual('abc')
+      expect(r1.$kuid).toEqual('def')
+      expect(r2.$kuid).toEqual('/abc')
+
+    it 'for rank survey', ->
+      survey = $survey.Survey.load survey_content.rank()
+      content = survey.toFlatJSON()
+      [r0, r1, r2, r3] = content.survey
+      expect(r0.$kuid).toEqual('abc')
+      expect(r1.$kuid).toEqual('def')
+      expect(r2.$kuid).toEqual('ghi')
+      expect(r3.$kuid).toEqual('/abc')
+
+      [c0, c1, c2, c3] = content.choices
+      expect(
+          (c.$kuid for c in content.choices)
+          ).toEqual(['mno', 'pqr', 'stu'])
+
+    it 'for score survey', ->
+      survey = $survey.Survey.load survey_content.score()
+      content = survey.toFlatJSON()
+      [r0, r1, r2, r3] = content.survey
+      expect(r0.$kuid).toEqual('abcd')
+      expect(r1.$kuid).toEqual('efgh')
+      expect(r2.$kuid).toEqual('/abcd')
+
+      [c0, c1, c2] = content.choices
+      expect(
+          (c.$kuid for c in content.choices)
+          ).toEqual(['mnop', 'qrst', 'uvwx'])
+
+  describe 'preserved from import', ->
+    it 'for group', ->
+      survey = $survey.Survey.load survey_content.group()
+      grp1 = survey.rows.at(0)
+      expect(grp1.isGroup()).toBeTruthy()
+      expect(grp1.getValue('$kuid')).toEqual('abc')
+      expect(grp1.rows.at(0).getValue('$kuid')).toEqual('def')
+
+    it 'for rank survey', ->
+      survey = $survey.Survey.load survey_content.rank()
+
+      r0 = survey.rows.at(0)
+      r1 = r0._rankRows.at(0)
+      r2 = r0._rankRows.at(1) 
+      expect(r0.getValue('$kuid')).toBe('abc')
+      expect(r1.attributes.$kuid).toBe('def')
+      expect(r2.attributes.$kuid).toBe('ghi')
+
+    it 'for score survey', ->
+      survey = $survey.Survey.load survey_content.score()
+      r0 = survey.rows.at(0)
+      expect(r0.getValue('$kuid')).toBe('abcd')
+      r1 = r0._scoreRows.at(0)
+      expect(r1.attributes.$kuid).toBe('efgh')
+
+      [c1, c2, c3] = survey.choices.at(0).options.models
+      expect(c1.getValue('$kuid')).toEqual('mnop')
+      expect(c2.getValue('$kuid')).toEqual('qrst')
+      expect(c3.getValue('$kuid')).toEqual('uvwx')

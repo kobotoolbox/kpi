@@ -135,6 +135,8 @@ module.exports = do ->
       @survey.on 'rows-add', @reset, @
       @survey.on 'rows-remove', @reset, @
       @survey.on "row-detail-change", (row, key, val, ctxt)=>
+        if key.match(/^\$/)
+          return
         evtCode = "row-detail-change-#{key}"
         @$(".on-#{evtCode}").trigger(evtCode, row, key, val, ctxt)
       @$el.on "choice-list-update", (evt, clId) =>
