@@ -34,7 +34,8 @@ class Command(BaseCommand):
 
 
 def populate_assetversions(_Asset, _AssetVersion, _ReversionVersion,
-                           filter_usernames=None):
+                           filter_usernames=None, historical_models=False):
+    ''' Set `historical_models` to `True` when calling from a migration '''
     _cur = _Asset.objects.filter(asset_type='survey')
     if filter_usernames:
         _cur = _cur.filter(owner__username__in=filter_usernames)
@@ -46,7 +47,7 @@ def populate_assetversions(_Asset, _AssetVersion, _ReversionVersion,
             print('on {} with {} created'.format(_i, _AssetVersion.objects.count()))
 
     print('created {} AssetVersion records'.format(_AssetVersion.objects.count()))
-    _replace_deployment_ids(_AssetVersion, _Asset)
+    _replace_deployment_ids(_AssetVersion, _Asset, historical_models)
     print('migrated deployment ids')
 
 
@@ -101,7 +102,7 @@ def _create_versions_for_asset_id(asset_id, _AssetVersion, _ReversionVersion):
         _AssetVersion.objects.bulk_create((_AssetVersion(**version),))
 
 
-def _replace_deployment_ids(_AssetVersion, _Asset):
+def _replace_deployment_ids(_AssetVersion, _Asset, historical_models):
     # this needs to be run in a migration after all of the AssetVersions have been created
     # from the reversion.models.Version instances
     a_ids = set(_AssetVersion.objects.filter(deployed=True
@@ -118,7 +119,14 @@ def _replace_deployment_ids(_AssetVersion, _Asset):
                     if 'version_uid' not in asset._deployment_data or \
                             asset._deployment_data['version_uid'] != uid:
                         asset._deployment_data['version_uid'] = uid
-                        asset.save(adjust_content=False, create_version=False)
+                        # "you will NOT have custom save() methods called on
+                        # objects when you access them in migrations"
+                        # (https://docs.djangoproject.com/en/1.8/topics/migrations/#historical-models)
+                        if historical_models:
+                            asset.save()
+                        else:
+                            asset.save(
+                                adjust_content=False, create_version=False)
                 except ObjectDoesNotExist as e:
                     ids_not_counted.append(version_id)
 
