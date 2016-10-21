@@ -1316,8 +1316,12 @@ mixins.clickAssets = {
       delete: function(uid/*, evt*/){
         var q_ = t('You are about to permanently delete this form. Are you sure you want to continue?');
         customConfirmAsync(q_)
-          .done(function(){
-            actions.resources.deleteAsset({uid: uid});
+          .done(() => {
+            actions.resources.deleteAsset({uid: uid}, {
+              onComplete: ()=> {
+                this.refreshSearch && this.refreshSearch();
+              }
+            });
           });
       },
       deploy: function(uid){

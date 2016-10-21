@@ -168,7 +168,7 @@ var SearchCollectionList = React.createClass({
                                     // onClick={this.toggleCategory(category)}
                                     >
               {t(category)}
-              {` (${this.state.defaultQueryCategorizedResultsLists[category].length})`}
+              {this.state.searchResultsDisplayed ? ` (${this.state.searchResultsCategorizedResultsLists[category].length})` : ` (${this.state.defaultQueryCategorizedResultsLists[category].length})`}
             </bem.AssetList__heading>,
             <bem.AssetItems m={[category, categoryVisible ? 'visible' : 'collapsed']}>
               {this.renderGroupedHeadings()}
