@@ -35,7 +35,8 @@ var SearchCollectionList = React.createClass({
     return {
       selectedCategories: selectedCategories,
       ownedCollections: [],
-      fixedHeadings: ''
+      fixedHeadings: '',
+      fixedHeadingsWidth: 'auto'
     };
   },
   getDefaultProps () {
@@ -79,7 +80,8 @@ var SearchCollectionList = React.createClass({
     if (this.props.searchContext.store.filterTags == 'asset_type:survey') {
       let offset = $(event.target).children('.asset-list').offset().top;
       this.setState({
-        fixedHeadings: offset < -55 ? 'fixed-headings' : ''
+        fixedHeadings: offset < -55 ? 'fixed-headings' : '',
+        fixedHeadingsWidth: offset < -55 ? $(event.target).children('.asset-list').width() + 'px' : 'auto',
       });
     }
   },
@@ -139,7 +141,7 @@ var SearchCollectionList = React.createClass({
   },
   renderGroupedHeadings () {
     return (
-        <bem.AssetListSorts className="mdl-grid">
+        <bem.AssetListSorts className="mdl-grid" style={{width: this.state.fixedHeadingsWidth}}>
           <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--5-col mdl-cell--3-col-tablet">
             {t('Name')}
           </bem.AssetListSorts__item>
