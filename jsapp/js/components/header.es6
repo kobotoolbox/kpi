@@ -271,6 +271,15 @@ var MainHeader = React.createClass({
     }
   },
   renderFormViewHeader () {
+    var canUpdateSettings = false;
+    if (this.state.currentAccount) {
+    var currentUsername = this.state.currentAccount.username;
+      if (currentUsername == this.state.asset.owner__username)
+        canUpdateSettings = true;
+      if (this.state.asset && this.state.asset.access.change[currentUsername])
+        canUpdateSettings = true;
+    }
+
     return (
       <bem.FormView__tabbar>
         <bem.FormView__tabs>
@@ -322,12 +331,14 @@ var MainHeader = React.createClass({
                 </bem.PopoverMenu__link>
             </ui.MDLPopoverMenu>
           : null }
-          <bem.FormView__tab 
-            m='settings' 
-            className={this.state.activeRoute == '/forms/:assetid/data/settings' ? 'active' : ''} 
-            href={this.makeHref('form-data-settings', {assetid: this.state.assetid})}>
-              {t('Settings')}
-          </bem.FormView__tab>
+          {canUpdateSettings && 
+            <bem.FormView__tab 
+              m='settings' 
+              className={this.state.activeRoute == '/forms/:assetid/data/settings' ? 'active' : ''} 
+              href={this.makeHref('form-data-settings', {assetid: this.state.assetid})}>
+                {t('Settings')}
+            </bem.FormView__tab>
+          }
         </bem.FormView__tabs>
         <bem.FormView__status>
           { this.state.asset.has_deployment ?

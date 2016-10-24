@@ -161,26 +161,30 @@ var dmix = {
   renderEditPreviewButtons () {
     var downloadable = !!this.state.downloads[0],
         downloads = this.state.downloads;
+
     return (
         <bem.FormView__group m='buttons'>
-          <bem.FormView__link m={['edit', {
-              disabled: !this.state.userCanEdit,
-                }]}
-              href={this.makeHref('form-edit', {assetid: this.state.uid})}
-              data-tip={t('Edit in Form Builder')}>
-            <i className="k-icon-edit" />
-          </bem.FormView__link>
+          {this.state.userCanEdit && 
+            <bem.FormView__link m='edit'
+                href={this.makeHref('form-edit', {assetid: this.state.uid})}
+                data-tip={this.state.userCanEdit ? t('Edit in Form Builder') : t('View in Form Builder')}>
+              <i className="k-icon-edit" />
+            </bem.FormView__link>
+          }
           <bem.FormView__link m='preview'
             href={this.makeHref('form-preview-enketo', {assetid: this.state.uid})}
             data-tip={t('Preview')}>
             <i className="k-icon-view" />
           </bem.FormView__link>
-          <bem.FormView__link m={'deploy'}
-            onClick={this.deployAsset}
-            data-tip={this.state.has_deployment ? t('redeploy') : t('deploy')}>
-            <i className="k-icon-deploy" />
-          </bem.FormView__link>
-          <Dropzone fileInput onDropFiles={this.onDrop}
+          {this.state.userCanEdit && 
+            <bem.FormView__link m={'deploy'}
+              onClick={this.deployAsset}
+              data-tip={this.state.has_deployment ? t('redeploy') : t('deploy')}>
+              <i className="k-icon-deploy" />
+            </bem.FormView__link>
+          }
+          {this.state.userCanEdit && 
+            <Dropzone fileInput onDropFiles={this.onDrop}
                   disabled={!this.state.userCanEdit}>
               <bem.FormView__link m={['upload', {
                 disabled: !this.state.userCanEdit
@@ -189,30 +193,33 @@ var dmix = {
                 <i className="k-icon-replace" />
               </bem.FormView__link>
             </Dropzone>
-            { downloadable &&
-              <ui.MDLPopoverMenu id={"more-dl-popover"}>
-                <bem.PopoverMenu__item>
-                  <i className="k-icon-download" />
-                  {t('Download as')}
-                </bem.PopoverMenu__item>
-                {downloads.map((dl)=>{
-                  return (
-                      <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
-                          key={`dl-${dl.format}`}>
-                        {dl.format}
-                      </bem.PopoverMenu__link>
-                    );
-                })}
+          }
+          { downloadable &&
+            <ui.MDLPopoverMenu id={"more-dl-popover"}>
+              <bem.PopoverMenu__item>
+                <i className="k-icon-download" />
+                {t('Download as')}
+              </bem.PopoverMenu__item>
+              {downloads.map((dl)=>{
+                return (
+                    <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
+                        key={`dl-${dl.format}`}>
+                      {dl.format}
+                    </bem.PopoverMenu__link>
+                  );
+              })}
+              {this.state.userCanEdit && 
                 <bem.PopoverMenu__link href={this.makeHref('form-sharing', {assetid: this.state.uid})}>
                   <i className="k-icon-share"/>
                   {t('Share this project')}
                 </bem.PopoverMenu__link>
-                <bem.PopoverMenu__link onClick={this.saveCloneAs}>
-                  <i className="k-icon-clone"/>
-                  {t('Clone this project')}
-                </bem.PopoverMenu__link>
-             </ui.MDLPopoverMenu>
-            }
+              }
+              <bem.PopoverMenu__link onClick={this.saveCloneAs}>
+                <i className="k-icon-clone"/>
+                {t('Clone this project')}
+              </bem.PopoverMenu__link>
+            </ui.MDLPopoverMenu>
+          }
         </bem.FormView__group>
       );
   },

@@ -100,6 +100,10 @@ var AssetRow = React.createClass({
     }
     var isDeployable = !isCollection && this.props.asset_type && this.props.asset_type === 'survey';
     hrefParams[hrefKey] = this.props.uid;
+
+    var userCanEdit = false;
+    if (selfowned || this.props.access.change[this.props.currentUsername] || stores.session.currentAccount.is_superuser)
+      userCanEdit = true;
     
     if (isLibrary(this.context.router)) {
       hrefTo = `${baseName}form-edit`;
@@ -224,36 +228,39 @@ var AssetRow = React.createClass({
           }
  
           <bem.AssetRow__buttons onClick={this.clickAssetButton}>
-            <bem.AssetRow__actionIcon
-                m='edit' 
-                key='edit'
-                data-action='edit' 
-                data-tip={t('Edit')}
-                data-asset-type={this.props.kind} 
-                data-disabled={false}
-                >
-              <i className='k-icon-edit' />
-            </bem.AssetRow__actionIcon>
- 
-            <bem.AssetRow__actionIcon
-                m='tagsToggle'
-                onClick={this.clickTagsToggle}
-                data-tip= {t('Tags')}
-                >
-              <i className='k-icon-tag' />
-            </bem.AssetRow__actionIcon>
-
-            <bem.AssetRow__actionIcon
-                m='sharing'
-                key='sharing'
-                data-action='sharing'
-                data-asset-type={this.props.kind} 
-                data-tip= {t('Share')}
-                data-disabled={false}
-                >
-              <i className='k-icon-share' />
-            </bem.AssetRow__actionIcon>
-
+            {userCanEdit && 
+              <bem.AssetRow__actionIcon
+                  m='edit' 
+                  key='edit'
+                  data-action='edit' 
+                  data-tip={t('Edit')}
+                  data-asset-type={this.props.kind} 
+                  data-disabled={false}
+                  >
+                <i className='k-icon-edit' />
+              </bem.AssetRow__actionIcon>
+            } 
+            {userCanEdit && 
+              <bem.AssetRow__actionIcon
+                  m='tagsToggle'
+                  onClick={this.clickTagsToggle}
+                  data-tip= {t('Tags')}
+                  >
+                <i className='k-icon-tag' />
+              </bem.AssetRow__actionIcon>
+            }
+            {userCanEdit && 
+              <bem.AssetRow__actionIcon
+                  m='sharing'
+                  key='sharing'
+                  data-action='sharing'
+                  data-asset-type={this.props.kind} 
+                  data-tip= {t('Share')}
+                  data-disabled={false}
+                  >
+                <i className='k-icon-share' />
+              </bem.AssetRow__actionIcon>
+            }
             <bem.AssetRow__actionIcon
                 m='clone' key='clone'
                 data-action='clone' data-tip={t('Clone')}
@@ -269,7 +276,7 @@ var AssetRow = React.createClass({
               <i className='k-icon-download-1' />
             </bem.AssetRow__actionIcon>
  
-              { this.props.asset_type && this.props.asset_type === 'survey' &&
+              { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit &&
                 <ui.MDLPopoverMenu id={"more-" + this.props.uid}>
                   { isDeployable &&
                     <bem.PopoverMenu__link 
