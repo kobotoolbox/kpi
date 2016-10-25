@@ -164,12 +164,17 @@ var dmix = {
 
     return (
         <bem.FormView__group m='buttons'>
-          {this.state.userCanEdit && 
+          {this.state.userCanEdit ?
             <bem.FormView__link m='edit'
                 href={this.makeHref('form-edit', {assetid: this.state.uid})}
-                data-tip={this.state.userCanEdit ? t('Edit in Form Builder') : t('View in Form Builder')}>
+                data-tip={t('Edit in Form Builder')}>
               <i className="k-icon-edit" />
             </bem.FormView__link>
+          : 
+            <bem.FormView__link m={['edit', 'disabled']}
+                data-tip={t('Editing capabilities not granted, you can only view this form')}>
+              <i className="k-icon-edit" />
+            </bem.FormView__link>          
           }
           <bem.FormView__link m='preview'
             href={this.makeHref('form-preview-enketo', {assetid: this.state.uid})}
