@@ -33,6 +33,7 @@ module.exports = do ->
     _parse_sheets = (repr)->
       # If a sheet has a first-row which is an array, that array will be treated as column
       # headers and any subsequent array-rows will be matched up
+
       for shtName, sheet of repr
         if _.isArray(sheet) and sheet.length > 0 and _.isArray(sheet[0])
           out_sheet = []

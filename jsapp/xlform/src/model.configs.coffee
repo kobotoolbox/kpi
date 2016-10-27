@@ -199,6 +199,8 @@ module.exports = do ->
 
     exp
 
+  configs.autoset_kuid = true
+
   configs.columnOrder = do ->
     (key)->
       if -1 is configs.columns.indexOf key

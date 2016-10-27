@@ -22,7 +22,12 @@ module.exports = do ->
         delete attributes[key]
       super(attributes, options)
 
+    ensureKuid: ->
+      if '$kuid' not of @attributes
+        @set '$kuid', $utils.txtid()
+
     initialize: ->
+      @ensureKuid()
       @convertAttributesToRowDetails()
 
     isError: -> false
@@ -34,6 +39,10 @@ module.exports = do ->
       arr = ([k, v] for k, v of @attributes)
       arr.sort (a,b)-> if a[1]._order < b[1]._order then -1 else 1
       arr
+
+    isGroup: ->
+      @constructor.kls is "Group"
+
     isInGroup: ->
       @_parent?._parent?.constructor.kls is "Group"
 
@@ -60,7 +69,7 @@ module.exports = do ->
       questions
 
     export_relevant_values: (survey_arr, additionalSheets)->
-      survey_arr.push(@toJSON2())
+      survey_arr.push @toJSON2()
 
     toJSON2: ->
       outObj = {}
@@ -91,6 +100,9 @@ module.exports = do ->
 
   class SimpleRow extends Backbone.Model
     finalize: -> ``
+    simpleEnsureKuid: ->
+      if '$kuid' not of @attributes
+        @set('$kuid', $utils.txtid())
     getTypeId: -> @get('type')
     linkUp: ->
     _isSelectQuestion: ()-> false
@@ -100,6 +112,7 @@ module.exports = do ->
 
   class RankRow extends SimpleRow
     initialize: ->
+      @simpleEnsureKuid()
       @set('type', 'rank__level')
     export_relevant_values: (surv, sheets)->
       surv.push @attributes
@@ -114,13 +127,16 @@ module.exports = do ->
           rr[key] = val
       _.each @, extend_to_row
       extend_to_row(@forEachRow, 'forEachRow')
+      _begin_kuid = rr.getValue('$kuid', false)
+      _end_json = @end_json({"$kuid": "/#{_begin_kuid}"})
 
       rr._afterIterator = (cb, ctxt)->
         obj =
           export_relevant_values: (surv, addl)->
-            surv.push(type: "end_#{rr._beginEndKey()}")
-          toJSON: ()->
-            type: "end_#{rr._beginEndKey()}"
+            surv.push _.extend({}, _end_json)
+          toJSON: ->
+            _.extend({}, _end_json)
+
         cb(obj)  if ctxt.includeGroupEnds
 
       _toJSON = rr.toJSON
@@ -161,11 +177,9 @@ module.exports = do ->
         r2
 
       rr.toJSON = ()->
-        out = _toJSON.call(rr)
-        out.type = "begin_#{rr._beginEndKey()}"
-        if typeof @_additionalJson is 'function'
-          _.extend(out, @_additionalJson())
-        out
+        _.extend _toJSON.call(rr), {
+          'type': "begin_#{rr._beginEndKey()}"
+        }, @_additionalJson?()
 
       _.each @constructor.prototype, extend_to_row
       if rr.attributes.__rows
@@ -175,6 +189,9 @@ module.exports = do ->
 
     getValue: (which)->
       @get(which)
+
+    end_json: (mrg={})->
+      _.extend({type: "end_#{@_beginEndKey()}"}, mrg)
 
     forEachRow: (cb, ctx)->
       cb(@)
@@ -221,6 +238,7 @@ module.exports = do ->
   class ScoreRow extends SimpleRow
     initialize: ->
       @set('type', 'score__row')
+      @simpleEnsureKuid()
     export_relevant_values: (surv, sheets)->
       surv.push(@attributes)
 
@@ -299,6 +317,8 @@ module.exports = do ->
             newVals[vk] = if ("function" is typeof vv) then vv() else vv
           @set key, newVals
 
+      if '$kuid' not of @attributes
+        @set '$kuid', $utils.txtid()
 
       if @attributes.type is 'score'
         new ScoreMixin(@)

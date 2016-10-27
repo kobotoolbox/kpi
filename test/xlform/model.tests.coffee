@@ -213,6 +213,19 @@ xlform_survey_model = ($model)->
       expect(@pizzaSurvey.rows.length).toBe(3)
       grp = @pizzaSurvey.rows.last()
       expect(grp instanceof $model.BaseRow).toBe(true)
+
+    it "exports group to json", ->
+      @pizzaSurvey.addRow type: "text", name: "pizza", hint: "pizza", label: "pizza"
+      expect(@pizzaSurvey.rows.last() instanceof $model.Row).toBe(true)
+      expect(@pizzaSurvey.rows.length).toBe(2)
+      @pizzaSurvey.addRow type: "group", name: "group"
+      expect(@pizzaSurvey.rows.length).toBe(3)
+      grp = @pizzaSurvey.rows.last()
+      _as_json = @pizzaSurvey.toFlatJSON()
+      survey_kuids = _as_json.survey.map((r)=>r['$kuid'])
+      for kuid in survey_kuids
+        expect(kuid).toBeDefined()
+
   describe "automatic naming", ->
     it "can import questions without names", ->
       survey = @createSurvey([

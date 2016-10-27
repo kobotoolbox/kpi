@@ -105,7 +105,11 @@ do ->
 
     it 'loads a multiple choice survey', ->
       @_load_csv(surveys.withChoices)
-      expect(@survey.toJSON()).toEqual({
+      _results = @survey.toJSON()
+      for row in _results.survey
+        expect(row['$kuid']).toBeDefined()
+        delete row['$kuid']
+      expect(_results).toEqual({
           'survey': [
             {
               'type': 'select_one',
