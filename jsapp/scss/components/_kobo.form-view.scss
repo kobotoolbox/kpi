@@ -238,6 +238,9 @@
   &:hover {
     color: unquote("rgb(#{$color-primary})");
   }
+  &--disabled, &--disabled:hover {
+    color: lighten($cool-gray, 15%);
+  }
 
   i.k-icon-edit {
     font-size: 22px;
