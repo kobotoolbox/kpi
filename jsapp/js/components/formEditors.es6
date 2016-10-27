@@ -208,7 +208,7 @@ var ProjectSettings = React.createClass({
           </bem.FormModal__item>
 
           {this.props.context == 'existingForm' && this.props.iframeUrl &&
-            <iframe src={this.props.iframeUrl} />
+            <iframe src={this.props.iframeUrl} className="kc-settings-iframe" />
           }
           {this.props.context == 'newForm' &&
             <bem.FormModal__item m='actions'>

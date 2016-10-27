@@ -146,8 +146,15 @@
 
   iframe {
     width:100%;
-    min-height: 800px;
+    height:100%;
+    overflow: auto;
     padding-right: 5px;
+    &.kc-settings-iframe {
+      min-height:800px;
+      border:none;
+      border-top:1px solid #DDD;
+      margin-top: 20px;
+    }
   }
 
   .form-modal__item--actions {

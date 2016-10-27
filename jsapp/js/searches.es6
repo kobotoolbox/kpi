@@ -392,11 +392,13 @@ var commonMethods = {
     });
     this.searchValue();
   },
-
   searchChangeEvent (evt) {
     this.quietUpdateStore({
       searchString: evt.target.value,
     });
+    this.debouncedSearch();
+  },
+  refreshSearch () {
     this.debouncedSearch();
   },
   searchClear () {
