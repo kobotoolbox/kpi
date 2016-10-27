@@ -196,6 +196,13 @@ class FormpackXLSFormUtils(object):
         for i in range(1, len(arr)):
             arr[i]['$prev'] = arr[i-1]['$kuid']
 
+    def _unlink_list_items(self, content):
+        arr = content['survey']
+        for row in arr:
+            if '$kuid' in row:
+                del row['$kuid']
+
+
     def _remove_empty_expressions(self, content):
         remove_empty_expressions_in_place(content)
 
@@ -398,7 +405,7 @@ class Asset(ObjectPermissionMixin,
         self._strip_empty_rows(self.content)
         self._assign_kuids(self.content)
         self._autoname(self.content)
-        self._link_list_items(self.content)
+        self._unlink_list_items(self.content)
         self._remove_empty_expressions(self.content)
 
         settings = self.content['settings']
