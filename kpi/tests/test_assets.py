@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import re
 from collections import OrderedDict
 
@@ -8,6 +11,37 @@ from django.test import TestCase
 from kpi.models import Asset
 from kpi.models import Collection
 from kpi.models.object_permission import get_all_objects_for_user
+
+# move this into a fixture file?
+# note: this is not a very robust example of a cascading select
+CASCADE_CONTENT = {u'survey': [{u'type': u'select_one',
+                                u'select_from_list_name': u'country',
+                                u'label': [u'country'],
+                                u'required': True},
+                               {u'type': u'select_one',
+                                u'select_from_list_name': u'region',
+                                u'label': [u'region'],
+                                u'choice_filter': u'country=${country}',
+                                u'required': True},
+                               {u'type': u'select_one',
+                                u'select_from_list_name': u'town',
+                                u'label': [u'region'],
+                                u'choice_filter': u'region=${region}',
+                                u'required': True}],
+                   u'choices': [{u'label': [u'France'],
+                                 u'list_name': u'country',
+                                 u'name': u'france'},
+                                {u'country': u'france',
+                                 u'label': [u'\xcele-de-France'],
+                                 u'list_name': u'region',
+                                 u'name': u'ile-de-france'},
+                                {u'region': u'ile-de-france',
+                                 u'label': [u'Paris'],
+                                 u'list_name': u'town',
+                                 u'name': u'paris'}],
+                   u'translated': [u'label'],
+                   u'translations': [None]}
+
 
 class AssetsTestCase(TestCase):
     fixtures = ['test_data']
@@ -249,13 +283,6 @@ class AssetSettingsTests(AssetsTestCase):
         self.assertTrue('form_title' not in settings)
         self.assertEqual(a1.name, 'abcxyz')
 
-    def test_surveys_exported_to_xml_have_id_string_and_title(self):
-        a1 = Asset.objects.create(content=self._content('abcxyz'),
-                                  owner=self.user,
-                                  asset_type='survey')
-        export = a1.snapshot
-        self.assertTrue('<h:title>abcxyz</h:title>' in export.xml)
-        self.assertTrue('<data id="xid_stringx">' in export.xml)
 
 
 class AssetScoreTestCase(TestCase):
@@ -287,6 +314,37 @@ class AssetScoreTestCase(TestCase):
         _snapshot = a1.snapshot
         self.assertNotEqual(_snapshot.xml, '')
         self.assertNotEqual(_snapshot.details['status'], 'failure')
+
+
+class AssetSnapshotXmlTestCase(AssetSettingsTests):
+    def test_cascading_select_xform(self):
+        asset = Asset.objects.create(asset_type='survey',
+                                     content=CASCADE_CONTENT)
+        # kuids automatically populated by asset.save()
+        survey_kuids = [row.get('$kuid') for row in asset.content.get('survey')]
+        choices_kuids = [row.get('$kuid') for row in asset.content.get('choices')]
+        self.assertTrue(None not in survey_kuids)
+        self.assertTrue(None not in choices_kuids)
+        # asset.snapshot.xml generates a document that does not have any
+        # "$kuid" or "<$kuid>x</$kuid>" elements
+        _xml = asset.snapshot.xml
+
+        # as is in every xform:
+        self.assertTrue('<instance>' in _xml)
+        # specific to this cascading select form:
+        self.assertTrue('<instance id="town">' in _xml)
+        self.assertTrue('<instance id="region">' in _xml)
+        self.assertTrue('<instance id="country">' in _xml)
+
+        self.assertTrue('$kuid' not in _xml)
+
+    def test_surveys_exported_to_xml_have_id_string_and_title(self):
+        a1 = Asset.objects.create(content=self._content('abcxyz'),
+                                  owner=self.user,
+                                  asset_type='survey')
+        export = a1.snapshot
+        self.assertTrue('<h:title>abcxyz</h:title>' in export.xml)
+        self.assertTrue('<data id="xid_stringx">' in export.xml)
 
 
 # TODO: test values of "valid_xlsform_content"

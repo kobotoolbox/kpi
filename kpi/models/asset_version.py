@@ -10,6 +10,8 @@ from reversion.models import Version
 from ..fields import KpiUidField
 from ..utils.kobo_to_xlsform import to_xlsform_structure
 
+from formpack.utils.expand_content import expand_content
+
 DEFAULT_DATETIME = datetime.datetime(2010, 1, 1)
 
 
@@ -33,12 +35,9 @@ class AssetVersion(models.Model):
     class Meta:
         ordering = ['-date_modified']
 
-    def save(self, *args, **kwargs):
-        if self.deployed and self.deployed_content is None:
-            self.deployed_content = self._deployed_content()
-        super(AssetVersion, self).save(*args, **kwargs)
-
     def _deployed_content(self):
+        if self.deployed_content is not None:
+            return self.deployed_content
         legacy_names = self._reversion_version is not None
         if legacy_names:
             return to_xlsform_structure(self.version_content,
@@ -49,7 +48,7 @@ class AssetVersion(models.Model):
 
     def to_formpack_schema(self):
         return {
-            'content': self.deployed_content or self._deployed_content(),
+            'content': expand_content(self._deployed_content()),
             'version': self.uid,
             'version_id_key': '__version__',
         }

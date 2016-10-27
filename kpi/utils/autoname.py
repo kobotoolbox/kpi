@@ -10,7 +10,7 @@ from collections import OrderedDict, defaultdict
 
 from kpi.utils.sluggify import (sluggify, sluggify_label, is_valid_nodeName)
 
-
+from formpack.utils.json_hash import json_hash
 
 
 
@@ -50,9 +50,10 @@ def autoname_fields__depr(surv_content):
                 continue
             if 'label' in surv_row:
                 next_name = sluggify_valid_xml__depr(surv_row['label'])
+            elif surv_row.get('type') == 'group':
+                next_name = sluggify_valid_xml__depr('Grp')
             else:
-                raise ValueError('Label cannot be translated: %s' %
-                                 json.dumps(surv_row))
+                next_name = 'unnamable_row_{}'.format(json_hash(surv_row))
             while next_name in kuid_names.values():
                 next_name = _increment(next_name)
             if 'kuid' not in surv_row:
@@ -110,10 +111,19 @@ def autoname_fields_in_place(surv_content, destination_key):
     # cycle through existing names ane ensure that names are valid and unique
     for row in filter(lambda r: _has_name(r), rows_needing_names):
         _name = row['name']
-        if _name in other_names:
-            # We cannot automatically rename these because the names could be
-            # referenced in a skip logic string.
-            raise ValueError('Duplicate names: {}'.format(_name))
+        _attempt_count = 0
+        while (not is_valid_nodeName(_name) or _name in other_names):
+            # this will be necessary for untangling skip logic
+            row['$given_name'] = _name
+            _name = sluggify_label(_name,
+                                   other_names=other_names.keys())
+            if _name == '' and '$kuid' in row:
+                _name = '{}_{}'.format(row['type'], row['$kuid'])
+            elif _name == '':
+                _name = row['type']
+            if _attempt_count > 1000:
+                raise RuntimeError('Loop error: valid_name')
+            _attempt_count += 1
         _assign_row_to_name(row, _name)
 
     for row in filter(lambda r: not _has_name(r), rows_needing_names):
