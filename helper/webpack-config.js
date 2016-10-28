@@ -15,7 +15,6 @@ module.exports = function (options) {
     debug: false,
     extractCss: false,
     failOnError: false,
-    hash: false,
     host: '0.0.0.0',
     hot: false,
     https: false,
@@ -116,7 +115,7 @@ module.exports = function (options) {
     }
   ];
 
-  if (options.hash) {
+  if (options.outputHash) {
     loaders.push({
       test: /\.(png|jpg|gif)$/,
       loader: 'file-loader?name=[hash].[ext]'
@@ -141,7 +140,9 @@ module.exports = function (options) {
   ];
 
   if (options.extractCss) {
-    plugins.push(new ExtractTextPlugin('[name].css'));
+    plugins.push(new ExtractTextPlugin(
+      options.outputHash ? "[name]-[hash].css" : "[name].css"
+      ));
   }
 
   if (options.hot) {
