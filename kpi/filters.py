@@ -5,7 +5,6 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
 from haystack.backends.whoosh_backend import WhooshSearchBackend
 from haystack.constants import DJANGO_CT, ITERATOR_LOAD_PER_QUERY
-from haystack.inputs import Raw
 from haystack.query import SearchQuerySet
 from haystack.utils import get_model_ct
 from rest_framework import filters
@@ -95,8 +94,29 @@ class SearchFilter(filters.BaseFilterBackend):
                 request.query_params['parent'] == ''):
             # Empty string means query for null parent
             queryset = queryset.filter(parent=None)
-        if 'q' not in request.query_params:
+        try:
+            q = request.query_params['q']
+        except KeyError:
             return queryset
+        # Short-circuit some commonly used queries
+        COMMON_QUERY_TO_ORM_FILTER = {
+            'asset_type:block': {'asset_type': 'block'},
+            'asset_type:question': {'asset_type': 'question'},
+            'asset_type:survey': {'asset_type': 'survey'},
+            'asset_type:question OR asset_type:block': {
+                'asset_type__in': ('question', 'block')
+            }
+        }
+        try:
+            return queryset.filter(**COMMON_QUERY_TO_ORM_FILTER[q])
+        except KeyError:
+            # We don't know how to short-circuit this query; pass it along to
+            # the search engine
+            pass
+        except FieldError:
+            # The user passed a query we recognized as commonly-used, but the
+            # field was invalid for the requested model
+            return queryset.none()
         queryset_pks = list(queryset.values_list('pk', flat=True))
         if not len(queryset_pks):
             return queryset
@@ -110,10 +130,8 @@ class SearchFilter(filters.BaseFilterBackend):
                 'Only the Whoosh search engine is supported at this time')
         if not search_backend.setup_complete:
             search_backend.setup()
-        searcher = search_backend.index.searcher()
         # Parse the user's query
-        user_query = QueryParser('text', search_backend.index.schema).parse(
-            request.query_params['q'])
+        user_query = QueryParser('text', search_backend.index.schema).parse(q)
         # Construct a query to restrict the search to the appropriate model
         filter_query = Term(DJANGO_CT, get_model_ct(queryset.model))
         # Does the search index for this model have a field that allows
@@ -124,19 +142,27 @@ class SearchFilter(filters.BaseFilterBackend):
             # Also restrict the search to records that the user can access
             filter_query &= Term(
                 'users_granted_permission', request.user.username)
-        results = searcher.search(
-            user_query,
-            filter=filter_query,
-            scored=False,
-            sortedby=None,
-            limit=None
-        )
-        pk_type = type(queryset_pks[0])
-        results_pks = {
-            # Coerce each `django_id` from unicode to the appropriate type,
-            # usually `int`
-            pk_type((x['django_id'])) for x in results
-        }
+        with search_backend.index.searcher() as searcher:
+            results = searcher.search(
+                user_query,
+                filter=filter_query,
+                scored=False,
+                sortedby=None,
+                limit=None
+            )
+            if not results:
+                # We got nothing; is the search index even valid?
+                if not searcher.search(filter_query, limit=1):
+                    # Thre's not a single entry in the search index for this
+                    # model; assume the index is invalid and return the
+                    # queryset untouched
+                    return queryset
+            pk_type = type(queryset_pks[0])
+            results_pks = {
+                # Coerce each `django_id` from unicode to the appropriate type,
+                # usually `int`
+                pk_type((x['django_id'])) for x in results
+            }
         filter_pks = results_pks.intersection(queryset_pks)
         return queryset.filter(pk__in=filter_pks)
 
