@@ -13,6 +13,7 @@ import {
   t,
   assign,
   currentLang,
+  LANGUAGE_COOKIE_NAME,
 } from '../utils';
 import searches from '../searches';
 import cookie from 'react-cookie';
