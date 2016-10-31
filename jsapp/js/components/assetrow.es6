@@ -121,6 +121,8 @@ var AssetRow = React.createClass({
       });
     }
 
+    console.log(this.props);
+
     return (
         <bem.AssetRow m={{
                             // 'selected': this.props.isSelected,
@@ -157,9 +159,7 @@ var AssetRow = React.createClass({
               </bem.AssetRow__celllink>
               { this.props.asset_type && this.props.asset_type === 'survey' &&
                 <bem.AssetRow__description>
-                  <span className="is-edge">
-                    N/A
-                  </span>
+                    {this.props.settings.description}
                 </bem.AssetRow__description>
               }
             </bem.AssetRow__cell>

@@ -45,7 +45,7 @@
 
   .asset-row__celllink--name {
     display: inline-block;
-    max-width:95%;
+    max-width:96%;
     text-overflow: ellipsis;
     overflow: hidden;
     font-size: 15px;
@@ -61,6 +61,9 @@
     display: block;
     color: $cool-gray;
     font-size: 13px;
+    max-width:96%;
+    text-overflow: ellipsis;
+    overflow: hidden;
   }
 
   .asset-row__cell--tags {

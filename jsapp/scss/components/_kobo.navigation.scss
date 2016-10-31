@@ -437,7 +437,8 @@ $headerAccountTextColor: #dbedf7;
   overflow: hidden;
   .form-view__name {
     font-size: 18px;
-    padding-top: 8px;
+    padding-top: 6px;
+    padding-bottom: 3px;
     min-width: 0;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -460,7 +461,7 @@ $headerAccountTextColor: #dbedf7;
   }
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 767px) {
   .form-view__title {
     display: none;
   }

@@ -101,9 +101,12 @@
     > .form-view__label {
       text-align: right;
       display: inline-block;
-      width:15%;
+      width:12%;
+      &--date {
+        width:16%;
+      }
       &--version {
-        width:55%;
+        width:60%;
         text-align: left;
       }
     }
@@ -114,10 +117,14 @@
     padding:8px 0px;
     > .form-view__item {
       text-align: right;
+      vertical-align: top;
       display: inline-block;
-      width:15%;
+      width:12%;
+      &--date {
+        width:16%;
+      }
       &--version {
-        width:55%;
+        width:60%;
         text-align: left;
       }
     }
@@ -162,15 +169,17 @@
 
   &--deploy-count {
     display: inline-block;
-    width: 150px;
+    width: 110px;
     padding:0px;
     text-align: left;
+    vertical-align: top;
   }
   &--buttons {
     display: inline-block;
-    width:calc(100% - 151px);
+    width:calc(100% - 111px);
     text-align: right;
     padding: 0px;
+    vertical-align: top;
   }
 
 }
@@ -247,13 +256,15 @@
     line-height: 22px;
     margin-right: -10px;
   }
+  &--upload {
+    margin-left: 0px;
+  }
 }
 
 #more-dl-popover {
   padding-top: 0px;
   font-size: 18px;
   line-height: 18px;
-  margin-left: 10px;
 }
 
 .form-view__item--collect {

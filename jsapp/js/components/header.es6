@@ -403,9 +403,11 @@ var MainHeader = React.createClass({
                 <bem.FormView__name>
                   {this.state.asset.name}
                 </bem.FormView__name>
-                <bem.FormView__description className="is-edge">
-                  {this.state.asset.description}
-                </bem.FormView__description>
+                { this.state.asset && this.state.asset.settings && 
+                  <bem.FormView__description>
+                    {this.state.asset.settings.description || t('Description goes here.')}
+                  </bem.FormView__description>
+                }
               </bem.FormView__title>
             }
             {this.renderAccountNavMenu()}
