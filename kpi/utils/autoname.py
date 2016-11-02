@@ -87,13 +87,6 @@ def autoname_fields(surv_content, in_place=False):
         return _content_copy.get('survey')
 
 
-def create_type_kuid_name(row):
-    if '$kuid' in row:
-        return '{}_{}'.format(row['type'], row['$kuid'])
-    else:
-        return row['type']
-
-
 def autoname_fields_in_place(surv_content, destination_key):
     surv_list = surv_content.get('survey')
     other_names = OrderedDict()
@@ -191,19 +184,18 @@ def autovalue_choices_in_place(surv_content, destination_key):
     for (list_name, choice_list) in choices.iteritems():
         previous_values = []
         for choice in choice_list:
-            if choice_value_key in choice:
-                _slug = choice[choice_value_key]
+            if choice_value_key in choice and choice[choice_value_key]:
+                choice[destination_key] = choice[choice_value_key]
             else:
                 if isinstance(choice['label'], list):
                     _slug = _first_non_falsey_item(choice['label'])
                 else:
                     _slug = choice['label']
-
-            choice[destination_key] = sluggify(_slug, {
-                'replaceNonWordCharacters': False,
-                'underscores': True,
-                'preventDuplicateUnderscores': True,
-                'lowerCase': False,
-                'preventDuplicates': previous_values,
-            })
+                choice[destination_key] = sluggify(_slug, {
+                    'replaceNonWordCharacters': False,
+                    'underscores': True,
+                    'preventDuplicateUnderscores': True,
+                    'lowerCase': False,
+                    'preventDuplicates': previous_values,
+                })
             previous_values.append(choice[destination_key])

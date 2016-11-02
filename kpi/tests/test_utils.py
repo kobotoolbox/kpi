@@ -126,6 +126,16 @@ class UtilsTestCase(TestCase):
         autovalue_choices_in_place(surv, destination_key='$autovalue')
         self.assertEqual(surv['choices'][0]['$autovalue'], 'A_B_C')
 
+    def test_autovalue_does_not_change_when_name_exists(self):
+        surv = {
+            'choices': [
+                {'list_name': 'xxx', 'label': 'A B C', 'name': 'A__B_C'},
+                {'list_name': 'xxx', 'label': 'A B C'},
+            ],
+        }
+        autovalue_choices_in_place(surv, destination_key='$autovalue')
+        self.assertEqual(surv['choices'][0]['$autovalue'], 'A__B_C')
+        self.assertEqual(surv['choices'][1]['$autovalue'], 'A_B_C')
 
     def test_autovalue_choices(self):
         surv = {
@@ -146,8 +156,8 @@ class UtilsTestCase(TestCase):
                  u'select_from_list_name': 'xxx'},
             ],
             'choices': [
-                {'list_name': 'xxx', 'label': u'العربية', 'name': u'العربية'},
-                {'list_name': 'xxx', 'label': u'العربية', 'name': u'العربية'},
+                {'list_name': 'xxx', 'label': u'العربية'},
+                {'list_name': 'xxx', 'label': u'العربية'},
             ],
             'settings': {},
         }
