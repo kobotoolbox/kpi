@@ -858,10 +858,8 @@ var dmix = {
     if (VALID_ASSET_UPLOAD_FILE_TYPES.indexOf(file.type) === -1) {
       var err = `Invalid filetype: '${file.type}'`;
       console.error(err);
-      alertify.error(err);
-    } else {
-      this.dropFiles(files);
     }
+    this.dropFiles(files);
   },
   summaryDetails () {
     return (
