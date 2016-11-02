@@ -16,7 +16,6 @@ addons:
       - libpcre3
       - libpcre3-dev
       - libpq-dev
-      # - ttfautohint
 cache:
   directories:
     - $HOME/.pip-download-cache
