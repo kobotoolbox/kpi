@@ -426,7 +426,7 @@ $headerAccountTextColor: #dbedf7;
   }
 }
 
-// Form title + desc in header
+// Form title + desc in header, editable
 
 .form-view__title {
   vertical-align: middle;
@@ -435,29 +435,34 @@ $headerAccountTextColor: #dbedf7;
   flex-shrink: 1;
   flex-grow: 1;
   overflow: hidden;
-  .form-view__name {
-    font-size: 18px;
-    padding-top: 6px;
-    padding-bottom: 3px;
+  input {
+    border:none;
+    border-radius: 0px;
     min-width: 0;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
     display: inline-block;
-    max-width: calc(100% - 5px);
+    width: calc(100% - 5px);
+    background:transparent;
+    padding:0px;
+    margin:0px;
+    opacity: 1;
+    &::-webkit-input-placeholder {
+      color: $cool-gray;
+      font-style: italic;
+      opacity: 0.7;
+    }
   }
-  .form-view__description {
+  input[name='title'] {
+    color: #FFF;
+    font-size: 18px;
+    padding-top: 5px;
+  }
+  input[name='description'] {
     color: $cool-gray;
-    margin: 0px;
+    font-size: 13px;
     margin-top: -2px;
-    padding: 0px;
-    line-height: 1em;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-    display: block;
-    min-height: 18px;
-    max-width: calc(100% - 5px);
   }
 }
 

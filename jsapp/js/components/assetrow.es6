@@ -121,8 +121,6 @@ var AssetRow = React.createClass({
       });
     }
 
-    console.log(this.props);
-
     return (
         <bem.AssetRow m={{
                             // 'selected': this.props.isSelected,

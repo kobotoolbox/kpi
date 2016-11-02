@@ -3,6 +3,7 @@ import {Link,Navigation} from 'react-router';
 import mdl from '../libs/rest_framework/material';
 import Select from 'react-select';
 import moment from 'moment';
+import alertify from 'alertifyjs';
 import ui from '../ui';
 
 import stores from '../stores';
@@ -27,6 +28,7 @@ import {
 
 var leaveBetaUrl = stores.pageState.leaveBetaUrl;
 var cookieDomain = stores.pageState.cookieDomain;
+let typingTimer;
 
 function langsToValues (langs) {
   return langs.map(function(lang) {
@@ -353,11 +355,47 @@ var MainHeader = React.createClass({
       </bem.FormView__tabbar>
     );
   },
+  assetTitleChange (e) {
+    var asset = this.state.asset;
+    if (e.target.name == 'title')
+      asset.name = e.target.value;
+    else
+      asset.settings.description = e.target.value;
+
+    this.setState({
+      asset: asset
+    });
+
+    clearTimeout(typingTimer);
+
+    typingTimer = setTimeout(() => { 
+      if (!this.state.asset.name.trim()) {
+        alertify.error(t('Please enter a title for your project'));
+      } else {
+        actions.resources.updateAsset(
+          this.state.asset.uid,
+          {
+            name: this.state.asset.name,
+            settings: JSON.stringify({
+              description: this.state.asset.settings.description,
+            }),
+          }
+        );
+      }
+    }, 1000);
+
+  },
   render () {
     if (stores.session && stores.session.currentAccount && stores.session.currentAccount.downtimeDate) {
       var mTime = moment(stores.session.currentAccount.downtimeDate);
       var downtimeDate = `${mTime.fromNow()} (${mTime.calendar()})`;
       var downtimeMessage = [t('Scheduled server maintenance'), downtimeDate];
+    }
+
+    var userCanEditAsset = false;
+    if (this.state.asset) {
+      if (stores.session.currentAccount.is_superuser || this.state.currentAccount.username == this.state.asset.owner__username || this.state.asset.access.change[this.state.currentAccount.username])
+        userCanEditAsset = true;
     }
 
     return (
@@ -400,13 +438,21 @@ var MainHeader = React.createClass({
             }
             { this.state.showFormViewHeader && !this.state.headerFilters &&  
               <bem.FormView__title>
-                <bem.FormView__name>
-                  {this.state.asset.name}
-                </bem.FormView__name>
+                <input type="text"
+                      name="title"
+                      placeholder={userCanEditAsset ? t('Project title') : ''}
+                      value={this.state.asset.name ? this.state.asset.name : ''}
+                      onChange={this.assetTitleChange}
+                      disabled={!userCanEditAsset}
+                />
                 { this.state.asset && this.state.asset.settings && 
-                  <bem.FormView__description>
-                    {this.state.asset.settings.description || t('Description goes here.')}
-                  </bem.FormView__description>
+                  <input type="text"
+                        name="description"
+                        placeholder={t('Project description')}
+                        value={this.state.asset.settings.description ? this.state.asset.settings.description : ''}
+                        onChange={this.assetTitleChange}
+                        disabled={!userCanEditAsset}
+                  />
                 }
               </bem.FormView__title>
             }
