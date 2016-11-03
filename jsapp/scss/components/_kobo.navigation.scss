@@ -439,20 +439,23 @@ $headerAccountTextColor: #dbedf7;
     display: inline-block;
     flex-shrink: 1;
     flex-grow: 1;
+    max-width: calc(100% - 360px);
+    .form-view__name,
+    .form-view__name > div,
+    .form-view__description,
+    .form-view__description > div {
+        width: 100%;
+    }
     input {
-        border: none;
-        border-radius: 0px;
-        min-width: 0;
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
-        display: inline-block;
-        width: calc(100% - 5px);
+        min-width: 150px;
+        max-width: 100%;
         background: transparent;
-        padding: 0px;
+        padding: 2px 5px;
         margin: 0px;
-        opacity: 1;
-        border-bottom: 1px solid transparent;
+        border: 1px solid transparent;
         // keep these pseudo-states separate
         &::-webkit-input-placeholder {
             color: darken($cool-gray, 10%);
@@ -461,21 +464,21 @@ $headerAccountTextColor: #dbedf7;
             color: darken($cool-gray, 10%);
         }
         &:hover {
-            border-bottom: 1px solid unquote("rgba(#{$color-primary}, 0.7)");
+            border: 1px solid unquote("rgba(#{$color-primary}, 0.8)");
         }
         &:focus {
-            border-bottom: 1px solid unquote("rgba(#{$color-primary}, 1)");
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid unquote("rgba(#{$color-primary}, 1)");
         }
     }
     input[name='title'] {
         color: #FFF;
         font-size: 18px;
-        padding-top: 5px;
     }
     input[name='description'] {
         color: $cool-gray;
         font-size: 13px;
-        margin-top: -2px;
+        margin-top: -4px;
         &::-webkit-input-placeholder {
             font-style: italic;
         }

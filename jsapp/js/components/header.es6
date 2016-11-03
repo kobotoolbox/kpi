@@ -19,6 +19,7 @@ import {
 import searches from '../searches';
 import cookie from 'react-cookie';
 import hotkey from 'react-hotkey';
+import AutosizeInput from 'react-input-autosize';
 
 hotkey.activate();
 
@@ -439,23 +440,25 @@ var MainHeader = React.createClass({
             }
             { this.state.showFormViewHeader && !this.state.headerFilters &&  
               <bem.FormView__title>
-                <span data-tip={t('click to edit')} className="hide-tooltip__onfocus">
-                  <input type="text"
+                <bem.FormView__name data-tip={t('click to edit')} className="hide-tooltip__onfocus">
+                  <AutosizeInput type="text"
                         name="title"
                         placeholder={userCanEditAsset ? t('Project title') : ''}
                         value={this.state.asset.name ? this.state.asset.name : ''}
                         onChange={this.assetTitleChange}
                         disabled={!userCanEditAsset}
                   />
-                </span>
+                </bem.FormView__name>
                 { this.state.asset && this.state.asset.settings && 
-                  <input type="text"
+                  <bem.FormView__description>
+                    <AutosizeInput type="text"
                       name="description"
                       placeholder={t('Project description')}
                       value={this.state.asset.settings.description ? this.state.asset.settings.description : ''}
                       onChange={this.assetTitleChange}
                       disabled={!userCanEditAsset}
-                  />
+                    />
+                </bem.FormView__description>
                 }
               </bem.FormView__title>
             }
