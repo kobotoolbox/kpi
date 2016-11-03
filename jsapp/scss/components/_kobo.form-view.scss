@@ -119,8 +119,11 @@
       text-align: right;
       vertical-align: top;
       display: inline-block;
-      width:15%;
+      width:12%;
       vertical-align: top;
+      &--date {
+        width:16%;
+      }
       &--version {
         width:60%;
         text-align: left;
@@ -149,7 +152,7 @@
     }
   }
 
-  &--historyHidden .form-view__group--history-contents{
+  &--historyHidden .form-view__group--history-contents {
     max-height: 0px;
     overflow:hidden;
     transition: 0.5s all;
