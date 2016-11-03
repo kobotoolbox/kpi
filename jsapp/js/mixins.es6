@@ -849,17 +849,17 @@ var dmix = {
       throw new Error(errMsg);
     }
     const VALID_ASSET_UPLOAD_FILE_TYPES = [
+      'application/xls',
       'application/vnd.ms-excel',
+      'application/vnd.openxmlformats',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     ];
     var file = files[0];
     if (VALID_ASSET_UPLOAD_FILE_TYPES.indexOf(file.type) === -1) {
       var err = `Invalid filetype: '${file.type}'`;
       console.error(err);
-      alertify.error(err);
-    } else {
-      this.dropFiles(files);
     }
+    this.dropFiles(files);
   },
   summaryDetails () {
     return (
