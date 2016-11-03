@@ -119,13 +119,14 @@
       text-align: right;
       vertical-align: top;
       display: inline-block;
-      width:12%;
-      &--date {
-        width:16%;
-      }
+      width:15%;
+      vertical-align: top;
       &--version {
         width:60%;
         text-align: left;
+      }
+      &--lang > span {
+        display: block;
       }
     }
   }

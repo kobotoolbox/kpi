@@ -672,11 +672,11 @@ var dmix = {
   reDeployConfirm (asset, onComplete) {
     let dialog = alertify.dialog('confirm');
     let opts = {
-      title: t('overwrite existing deployment on kobocat'),
-      message: t('this form has already been deployed. are you sure you ' +
-                 'want overwrite the existing deployment? this action ' +
-                 'cannot be undone. consider deploying a clone instead.'),
-      labels: {ok: t('ok'), cancel: t('cancel')},
+      title: t('Overwrite existing deployment on kobocat'),
+      message: t('This form has already been deployed. Are you sure you ' +
+                 'want overwrite the existing deployment? This action ' +
+                 'cannot be undone. Consider deploying a clone instead.'),
+      labels: {ok: t('Ok'), cancel: t('Cancel')},
       onok: (evt, val) => {
         let ok_button = dialog.elements.buttons.primary.firstChild;
         ok_button.disabled = true;
@@ -849,17 +849,17 @@ var dmix = {
       throw new Error(errMsg);
     }
     const VALID_ASSET_UPLOAD_FILE_TYPES = [
+      'application/xls',
       'application/vnd.ms-excel',
+      'application/vnd.openxmlformats',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     ];
     var file = files[0];
     if (VALID_ASSET_UPLOAD_FILE_TYPES.indexOf(file.type) === -1) {
       var err = `Invalid filetype: '${file.type}'`;
       console.error(err);
-      alertify.error(err);
-    } else {
-      this.dropFiles(files);
     }
+    this.dropFiles(files);
   },
   summaryDetails () {
     return (

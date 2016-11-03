@@ -182,3 +182,66 @@ $errorColor: #E60C0C;
   height: 15px;
   cursor: pointer;
 }
+
+// alertify modal styling
+
+.alertify .ajs-header {
+  margin: -10px;
+  padding: 10px;
+  padding-bottom: 20px;
+  font-size: 18px;  
+  color: #2196F3;
+}
+
+.alertify.ajs-closable .ajs-commands button.ajs-close {
+  background:transparent;
+}
+
+.alertify.ajs-closable .ajs-commands button.ajs-close:before {
+  content: '\E806';
+  font-family: 'k-icons';
+  font-size: 18px;
+  color:#D8D8D8;
+}
+
+.alertify.ajs-closable .ajs-commands {
+  margin:0px;
+  top: 5px;
+  right: 5px;
+  padding:10px;
+}
+
+.alertify .ajs-content {
+  pre {
+    background: #F9F9F9;
+    max-height: 250px;
+    overflow: auto;
+    padding:15px;
+  }
+  code {
+    white-space: normal;
+  }
+}
+
+.alertify .ajs-footer {
+  padding:15px;
+
+  .ajs-buttons.ajs-primary {
+    text-align: right;
+  }
+
+  button {
+    @extend .mdl-button;
+    text-transform: uppercase;
+    padding-left: 20px;
+    padding-right: 20px;
+    &.ajs-ok {
+      padding-left: 40px;
+      padding-right: 40px;
+      @extend .mdl-button--colored, .mdl-button--raised;
+    }
+    &.ajs-cancel {
+      @extend .mdl-button--bordered;
+    }
+  }
+}
