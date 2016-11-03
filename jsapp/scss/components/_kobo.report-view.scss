@@ -1,6 +1,7 @@
 .report-view {
   height: calc(100% - 8px);
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x:hidden;
 }
 
 @media screen and (min-width: 961px) {

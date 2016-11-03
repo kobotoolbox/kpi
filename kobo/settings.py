@@ -62,6 +62,7 @@ INSTALLED_APPS = (
     'haystack',
     'kobo.apps.KpiConfig',
     'hub',
+    'loginas',
     'webpack_loader',
     'registration',         # Order is important
     'django.contrib.admin', # Must come AFTER registration
@@ -150,6 +151,8 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+CAN_LOGIN_AS = lambda request, target_user: request.user.is_superuser
 
 
 # Static files (CSS, JavaScript, Images)

@@ -49,6 +49,7 @@ Jinja2==2.8               # via pyexcelerate
 jsonfield==1.0.3
 jsonschema==2.5.1
 kombu==3.0.35
+django-loginas==0.2.3
 lxml==2.3.4
 Markdown==2.6.6
 MarkupSafe==0.23          # via jinja2

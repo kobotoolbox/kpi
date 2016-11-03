@@ -14,6 +14,7 @@ import {
   t,
   assign,
   currentLang,
+  LANGUAGE_COOKIE_NAME,
 } from '../utils';
 import searches from '../searches';
 import cookie from 'react-cookie';
@@ -438,20 +439,22 @@ var MainHeader = React.createClass({
             }
             { this.state.showFormViewHeader && !this.state.headerFilters &&  
               <bem.FormView__title>
-                <input type="text"
-                      name="title"
-                      placeholder={userCanEditAsset ? t('Project title') : ''}
-                      value={this.state.asset.name ? this.state.asset.name : ''}
-                      onChange={this.assetTitleChange}
-                      disabled={!userCanEditAsset}
-                />
-                { this.state.asset && this.state.asset.settings && 
+                <span data-tip={t('click to edit')} className="hide-tooltip__onfocus">
                   <input type="text"
-                        name="description"
-                        placeholder={t('Project description')}
-                        value={this.state.asset.settings.description ? this.state.asset.settings.description : ''}
+                        name="title"
+                        placeholder={userCanEditAsset ? t('Project title') : ''}
+                        value={this.state.asset.name ? this.state.asset.name : ''}
                         onChange={this.assetTitleChange}
                         disabled={!userCanEditAsset}
+                  />
+                </span>
+                { this.state.asset && this.state.asset.settings && 
+                  <input type="text"
+                      name="description"
+                      placeholder={t('Project description')}
+                      value={this.state.asset.settings.description ? this.state.asset.settings.description : ''}
+                      onChange={this.assetTitleChange}
+                      disabled={!userCanEditAsset}
                   />
                 }
               </bem.FormView__title>
