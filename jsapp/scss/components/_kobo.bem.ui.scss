@@ -152,6 +152,9 @@
   color: unquote("rgb(#{$color-primary})");
   padding:0px 40px;
   text-transform: uppercase;
+  &:hover {
+    background:transparent;
+  }
 }
 
 // bordered button style

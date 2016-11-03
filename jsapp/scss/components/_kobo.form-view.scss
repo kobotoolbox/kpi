@@ -116,9 +116,13 @@
       text-align: right;
       display: inline-block;
       width:15%;
+      vertical-align: top;
       &--version {
         width:55%;
         text-align: left;
+      }
+      &--lang > span {
+        display: block;
       }
     }
   }
