@@ -384,7 +384,7 @@ var MainHeader = React.createClass({
           }
         );
       }
-    }, 1000);
+    }, 1500);
 
   },
   render () {
