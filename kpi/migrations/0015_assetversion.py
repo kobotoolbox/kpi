@@ -36,7 +36,6 @@ def copy_reversion_to_assetversion(apps, schema_editor):
         populate_assetversions(apps.get_model('kpi', 'Asset'),
                                apps.get_model('kpi', 'AssetVersion'),
                                apps.get_model('reversion', 'Version'),
-                               historical_models=True,
                                )
 
 
