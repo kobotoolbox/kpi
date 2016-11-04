@@ -672,10 +672,10 @@ var dmix = {
   reDeployConfirm (asset, onComplete) {
     let dialog = alertify.dialog('confirm');
     let opts = {
-      title: t('Overwrite existing deployment on kobocat'),
+      title: t('Overwrite existing deployment'),
       message: t('This form has already been deployed. Are you sure you ' +
-                 'want overwrite the existing deployment? This action ' +
-                 'cannot be undone. Consider deploying a clone instead.'),
+                 'want overwrite the existing deployment? ' +
+                 '<br/><br/><strong>This action cannot be undone.</strong>'),
       labels: {ok: t('Ok'), cancel: t('Cancel')},
       onok: (evt, val) => {
         let ok_button = dialog.elements.buttons.primary.firstChild;
