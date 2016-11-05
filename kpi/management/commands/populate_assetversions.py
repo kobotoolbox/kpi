@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import json
+import time
 
 from kpi.models import Asset, AssetVersion
 from reversion.models import Version
@@ -34,8 +35,7 @@ class Command(BaseCommand):
 
 
 def populate_assetversions(_Asset, _AssetVersion, _ReversionVersion,
-                           filter_usernames=None, historical_models=False):
-    ''' Set `historical_models` to `True` when calling from a migration '''
+                           filter_usernames=None):
     _cur = _Asset.objects.filter(asset_type='survey')
     if filter_usernames:
         _cur = _cur.filter(owner__username__in=filter_usernames)
@@ -47,7 +47,7 @@ def populate_assetversions(_Asset, _AssetVersion, _ReversionVersion,
             print('on {} with {} created'.format(_i, _AssetVersion.objects.count()))
 
     print('created {} AssetVersion records'.format(_AssetVersion.objects.count()))
-    _replace_deployment_ids(_AssetVersion, _Asset, historical_models)
+    _replace_deployment_ids(_AssetVersion, _Asset)
     print('migrated deployment ids')
 
 
@@ -102,33 +102,43 @@ def _create_versions_for_asset_id(asset_id, _AssetVersion, _ReversionVersion):
         _AssetVersion.objects.bulk_create((_AssetVersion(**version),))
 
 
-def _replace_deployment_ids(_AssetVersion, _Asset, historical_models):
+def _replace_deployment_ids(_AssetVersion, _Asset):
     # this needs to be run in a migration after all of the AssetVersions have been created
     # from the reversion.models.Version instances
     a_ids = set(_AssetVersion.objects.filter(deployed=True
                                              ).values_list('asset_id', flat=True
                                                            ))
     ids_not_counted = []
+    a_ids_len = len(a_ids)
+    a_ids_done = 0
     with disable_auto_field_update(_Asset, 'date_modified'):
+        start_time = time.time()
         for a_id in a_ids:
-            asset = _Asset.objects.get(id=a_id)
+            # `only()` saves about 8/1000s per iteration
+            asset = _Asset.objects.only('_deployment_data').get(id=a_id)
             version_id = asset._deployment_data['version']
             if isinstance(version_id, int):
                 try:
-                    uid = asset.asset_versions.get(_reversion_version_id=version_id).uid
+                    # `only()` saves about 5/1000s per iteration
+                    uid = asset.asset_versions.only('uid').get(
+                        _reversion_version_id=version_id).uid
                     if 'version_uid' not in asset._deployment_data or \
                             asset._deployment_data['version_uid'] != uid:
                         asset._deployment_data['version_uid'] = uid
-                        # "you will NOT have custom save() methods called on
-                        # objects when you access them in migrations"
-                        # (https://docs.djangoproject.com/en/1.8/topics/migrations/#historical-models)
-                        if historical_models:
-                            asset.save()
-                        else:
-                            asset.save(
-                                adjust_content=False, create_version=False)
+                        # `update()` saves about 7/1000s per iteration
+                        _Asset.objects.filter(id=asset.id).update(
+                            _deployment_data=asset._deployment_data)
                 except ObjectDoesNotExist as e:
                     ids_not_counted.append(version_id)
+            a_ids_done += 1
+            if a_ids_done % 100 == 0:
+                elapsed = time.time() - start_time
+                print 'Completed {}/{} ({}%); est\'d time left: {}s'.format(
+                    a_ids_done,
+                    a_ids_len,
+                    a_ids_done * float(100) / a_ids_len,
+                    elapsed / a_ids_done * (a_ids_len - a_ids_done)
+                )
 
     if len(ids_not_counted) > 0:
         print('DeploymentIDs not found: '
