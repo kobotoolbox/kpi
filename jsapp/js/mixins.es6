@@ -460,7 +460,7 @@ var dmix = {
           break;
         case 'preview_url':
           label = t('View only');
-          desc = t('Use this version fpr testing, getting feedback. Does not allow submitting data. ');
+          desc = t('Use this version for testing, getting feedback. Does not allow submitting data. ');
           break;
       }
  
