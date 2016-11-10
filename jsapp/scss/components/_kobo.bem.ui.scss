@@ -152,6 +152,9 @@
   color: unquote("rgb(#{$color-primary})");
   padding:0px 40px;
   text-transform: uppercase;
+  &:hover {
+    background:transparent;
+  }
 }
 
 // bordered button style
@@ -195,7 +198,7 @@ iframe {
   }
 
   textarea {
-    min-height: 120px;
+    min-height: 80px;
   }
 
   input[type="checkbox"] {

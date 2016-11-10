@@ -460,7 +460,7 @@ var dmix = {
           break;
         case 'preview_url':
           label = t('View only');
-          desc = t('Use this version fpr testing, getting feedback. Does not allow submitting data. ');
+          desc = t('Use this version for testing, getting feedback. Does not allow submitting data. ');
           break;
       }
  
@@ -672,11 +672,11 @@ var dmix = {
   reDeployConfirm (asset, onComplete) {
     let dialog = alertify.dialog('confirm');
     let opts = {
-      title: t('overwrite existing deployment on kobocat'),
-      message: t('this form has already been deployed. are you sure you ' +
-                 'want overwrite the existing deployment? this action ' +
-                 'cannot be undone. consider deploying a clone instead.'),
-      labels: {ok: t('ok'), cancel: t('cancel')},
+      title: t('Overwrite existing deployment'),
+      message: t('This form has already been deployed. Are you sure you ' +
+                 'want overwrite the existing deployment? ' +
+                 '<br/><br/><strong>This action cannot be undone.</strong>'),
+      labels: {ok: t('Ok'), cancel: t('Cancel')},
       onok: (evt, val) => {
         let ok_button = dialog.elements.buttons.primary.firstChild;
         ok_button.disabled = true;
