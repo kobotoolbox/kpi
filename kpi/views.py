@@ -291,6 +291,15 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     lookup_field = 'username'
 
+    @detail_route(renderer_classes=[renderers.StaticHTMLRenderer])
+    def avatar(self, request, username=None):
+        try:
+            return HttpResponseRedirect(
+                gravatar_url(User.objects.get(username=username).email)
+            )
+        except User.DoesNotExist as e:
+            raise Http404
+
     def __init__(self, *args, **kwargs):
         super(UserViewSet, self).__init__(*args, **kwargs)
         self.authentication_classes += [ApplicationTokenAuthentication]
