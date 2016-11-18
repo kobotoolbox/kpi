@@ -19,23 +19,27 @@ python manage.py syncdb --noinput
 echo 'Running migrations.'
 python manage.py migrate --noinput
 
-if [[ ! -d "${KPI_SRC_DIR}/node_modules" ]]; then
+if [[ ! -L "${KPI_SRC_DIR}/node_modules" ]] || [[ ! -d "${KPI_SRC_DIR}/node_modules" ]]; then
     echo "Restoring \`npm\` packages to \`${KPI_SRC_DIR}/node_modules\`."
+    rm -rf "${KPI_SRC_DIR}/node_modules"
     ln -s "${KPI_NODE_PATH}" "${KPI_SRC_DIR}/node_modules"
 fi
 
-if [[ ! -d "${KPI_SRC_DIR}/jsapp/xlform/components" ]]; then
+if [[ ! -L "${KPI_SRC_DIR}/jsapp/xlform/components" ]] || [[ ! -d "${KPI_SRC_DIR}/jsapp/xlform/components" ]]; then
     echo "Restoring \`bower\` components to \`${KPI_SRC_DIR}/jsapp/xlform/components\`."
+    rm -rf "${KPI_SRC_DIR}/jsapp/xlform/components"
     ln -s "${BOWER_COMPONENTS_DIR}/" "${KPI_SRC_DIR}/jsapp/xlform/components"
 fi
 
-if [[ ! -d "${KPI_SRC_DIR}/jsapp/compiled" ]]; then
+if [[ ! -L "${KPI_SRC_DIR}/jsapp/compiled" ]] || [[ ! -d "${KPI_SRC_DIR}/jsapp/compiled" ]]; then
     echo "Restoring \`grunt\` build directory to \`${KPI_SRC_DIR}/jsapp/compiled\`."
+    rm -rf "${KPI_SRC_DIR}/jsapp/compiled"
     ln -s "${GRUNT_BUILD_DIR}" "${KPI_SRC_DIR}/jsapp/compiled"
 fi
 
-if [[ ! -d "${KPI_SRC_DIR}/jsapp/fonts" ]]; then
+if [[ ! -L "${KPI_SRC_DIR}/jsapp/fonts" ]] || [[ ! -d "${KPI_SRC_DIR}/jsapp/fonts" ]]; then
     echo "Restoring \`grunt\` fonts directory to \`${KPI_SRC_DIR}/jsapp/fonts\`."
+    rm -rf "${KPI_SRC_DIR}/jsapp/fonts"
     ln -s "${GRUNT_FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts"
 fi
 
