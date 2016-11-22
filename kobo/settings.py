@@ -72,6 +72,7 @@ INSTALLED_APPS = (
     'rest_framework.authtoken',
     'oauth2_provider',
     'markitup',
+    'django_digest'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -461,4 +462,3 @@ else:
 MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
-
