@@ -54,7 +54,6 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'cachebuster',
     'django.contrib.staticfiles',
     'reversion',
     'debug_toolbar',
@@ -179,9 +178,6 @@ STATICFILES_DIRS = (
     ('mocha', os.path.join(BASE_DIR, 'node_modules', 'mocha'),),
 )
 
-from cachebuster.detectors import git
-CACHEBUSTER_UNIQUE_STRING = git.unique_string(__file__)[:6]
-
 if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
     STATICFILES_DIRS = STATICFILES_DIRS + (
         os.path.join(BASE_DIR, 'dkobo', 'jsapp'),
@@ -204,7 +200,6 @@ REST_FRAMEWORK = {
 TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
     'kpi.context_processors.external_service_tokens',
     'kpi.context_processors.email',
-    'kpi.context_processors.git_commit',
     'kpi.context_processors.sitewide_messages',
 )
 
