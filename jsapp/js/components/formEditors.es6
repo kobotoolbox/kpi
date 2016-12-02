@@ -325,7 +325,7 @@ export var ProjectDownloads = React.createClass({
   groupSepChange (e) {this.handleChange(e, 'groupSep');},
   handleSubmit (e) {
     e.preventDefault();
-    if (!this.state.type.endsWith('_legacy')) {
+    if (!this.state.type.indexOf('_legacy') > 0) {
       let url = this.props.asset.deployment__data_download_links[
         this.state.type
       ];
@@ -400,7 +400,7 @@ export var ProjectDownloads = React.createClass({
                   </bem.FormModal__item>
                 : null
               ] : null
-            , this.state.type.endsWith('_legacy') ?
+            , this.state.type.indexOf('_legacy') > 0 ?
               <bem.FormModal__item m='downloads'>
                 <iframe src={
                     this.props.asset.deployment__data_download_links[
