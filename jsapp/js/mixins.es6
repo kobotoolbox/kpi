@@ -476,6 +476,7 @@ var dmix = {
  
     var kc_server = document.createElement('a');
     kc_server.href = this.state.deployment__identifier;
+    var kobocollect_url = kc_server.origin + '/' + this.state.owner__username;
  
     return (
       <bem.FormView__row m="collecting">
@@ -547,7 +548,7 @@ var dmix = {
               {t('on your Android device.')}
             </li>
             <li>{t('Click on')} <i className="k-icon-more-actions"></i> {t('to open settings.')}</li>
-            <li>{t('Enter the server URL') + ' ' + kc_server.origin + ' ' + t('and your username and password')}</li>
+            <li>{t('Enter the server URL') + ' ' + kobocollect_url + ' ' + t('and your username and password')}</li>
             <li>{t('Open "Get Blank Form" and select this project. ')}</li>
             <li>{t('Open "Enter Data."')}</li>
           </ol>
