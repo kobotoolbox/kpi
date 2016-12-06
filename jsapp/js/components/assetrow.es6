@@ -1,4 +1,5 @@
 import React from 'react/addons';
+import Dropzone from '../libs/dropzone';
 import {Navigation} from 'react-router';
 import $ from 'jquery';
  
@@ -20,7 +21,8 @@ var AssetTypeIcon = bem.create('asset-type-icon');
 var AssetRow = React.createClass({
   mixins: [
     Navigation,
-    mixins.taggedAsset
+    mixins.taggedAsset,
+    mixins.droppable
   ],
   getInitialState () {
     return {tags: this.props.tags};
@@ -81,6 +83,27 @@ var AssetRow = React.createClass({
   },
   clearDropdown () {
     $(this.getDOMNode()).find('.mdl-menu__container.is-visible').removeClass('is-visible');
+  },
+  onDrop (files) {
+    if (files.length === 0) {
+      return;
+    } else if (files.length> 1) {
+      var errMsg = t('Only 1 file can be uploaded in this case');
+      alertify.error(errMsg);
+      throw new Error(errMsg);
+    }
+    const VALID_ASSET_UPLOAD_FILE_TYPES = [
+      'application/xls',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ];
+    var file = files[0];
+    if (VALID_ASSET_UPLOAD_FILE_TYPES.indexOf(file.type) === -1) {
+      var err = `Invalid filetype: '${file.type}'`;
+      console.error(err);
+    }
+    this.dropFiles(files);
   },
   render () {
     var selfowned = this.props.owner__username === this.props.currentUsername;
@@ -285,14 +308,16 @@ var AssetRow = React.createClass({
                       {this.props.deployed_version_id === null ? t('Deploy this project') : t('Redeploy this project')}
                     </bem.PopoverMenu__link>
                   }
-                  <bem.PopoverMenu__link
-                        m={'refresh'}
-                        data-action={'refresh'}
-                        data-asset-type={this.props.kind}
-                      >
-                    <i className="k-icon-replace" />
-                    {t('Replace with XLS')}
-                  </bem.PopoverMenu__link>
+                  <Dropzone fileInput onDropFiles={this.onDrop}>
+                    <bem.PopoverMenu__link
+                          m={'refresh'}
+                          data-action={'refresh'}
+                          data-asset-type={this.props.kind}
+                        >
+                      <i className="k-icon-replace" />
+                      {t('Replace with XLS')}
+                    </bem.PopoverMenu__link>
+                  </Dropzone>
                   <bem.PopoverMenu__link
                         m={'delete'}
                         data-action={'delete'}

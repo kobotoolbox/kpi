@@ -1031,6 +1031,7 @@ mixins.droppable = {
               alertify.error(t('Could not redirect to asset.'));
             } else if (isCurrentPage) {
               actions.resources.loadAsset({id: assetUid});
+              notify(t('Replace operation completed'));
             } else {
               this.transitionTo(`${baseName}form-landing`, {assetid: assetUid});
             }
