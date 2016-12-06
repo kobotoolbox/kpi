@@ -324,6 +324,7 @@ WEBPACK_LOADER = {
     'DEFAULT': {
         'BUNDLE_DIR_NAME': 'jsapp/compiled/',
         'POLL_INTERVAL': 0.5,
+        'TIMEOUT': 5,
     }
 }
 
