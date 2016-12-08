@@ -440,24 +440,22 @@ var dmix = {
         offline_url: {
           label: t('Online-Offline (multiple submission)'),
           desc: t('This allows online and offline submissions and is the best option for collecting data in the field. ')
-        }, 
+        },
         url: {
           label: t('Online-Only (multiple submissions)'),
           desc: t('This is the best option when entering many records at once on a computer, e.g. for transcribing paper records')
-        }, 
+        },
         iframe_url: {
           label: t('Embeddable web form code'),
           desc: t('Use this html5 code snippet to integrate your form on your own website using smaller margins. ')
-        }, 
+        },
         preview_url: {
           label: t('View only'),
           desc: t('Use this version for testing, getting feedback. Does not allow submitting data. ')
-        }, 
+        }
     };
 
     var deployment__links_list = [];
-    var label = undefined;
-    var desc = undefined;
     var value = undefined;
  
     for (var key in available__links) {
