@@ -27,6 +27,14 @@ BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 # Secret key must match that used by KoBoCAT when sharing sessions
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '@25)**hc^rjaiagb4#&q*84hr*uscsxwr-cv#0joiwj$))obyk')
 
+# Optionally treat proxied connections as secure.
+# See: https://docs.djangoproject.com/en/1.8/ref/settings/#secure-proxy-ssl-header.
+# Example environment: `export SECURE_PROXY_SSL_HEADER='HTTP_X_FORWARDED_PROTO, https'`.
+# SECURITY WARNING: If enabled, outer web server must filter out the `X-Forwarded-Proto` header.
+if 'SECURE_PROXY_SSL_HEADER' in os.environ:
+    SECURE_PROXY_SSL_HEADER = tuple((substring.strip() for substring in
+                                     os.environ['SECURE_PROXY_SSL_HEADER'].split(',')))
+
 UPCOMING_DOWNTIME = False
 
 # Domain must not exclude KoBoCAT when sharing sessions
