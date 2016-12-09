@@ -325,7 +325,8 @@ export var ProjectDownloads = React.createClass({
   groupSepChange (e) {this.handleChange(e, 'groupSep');},
   handleSubmit (e) {
     e.preventDefault();
-    if (!this.state.type.indexOf('_legacy') > 0) {
+
+    if (this.state.type.indexOf('_legacy') < 0) {
       let url = this.props.asset.deployment__data_download_links[
         this.state.type
       ];
