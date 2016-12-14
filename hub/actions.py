@@ -13,6 +13,8 @@ from django.template.response import TemplateResponse
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy, ugettext as _
 
+from kpi.deployment_backends.kc_reader.shadow_models import _ReadOnlyModel
+
 def delete_related_objects(modeladmin, request, queryset):
     """
     Action that deletes related objects for the selected items.
@@ -45,7 +47,7 @@ def delete_related_objects(modeladmin, request, queryset):
                 # element. We can skip it since delete() on the first
                 # level of related objects will cascade.
                 continue
-            else:
+            elif not isinstance(obj, _ReadOnlyModel):
                 first_level_related_objects.append(obj)
 
     # Populate deletable_objects, a data structure of (string representations
