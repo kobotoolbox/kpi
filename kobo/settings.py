@@ -8,13 +8,18 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.7/ref/settings/
 """
 
-from django.conf import global_settings
-
+from datetime import timedelta
+import multiprocessing
 import os
 
+from cachebuster.detectors import git
+from django.conf import global_settings
+from django.conf.global_settings import LANGUAGES as _available_langs
+from django.utils.translation import get_language_info
 import dj_database_url
-import multiprocessing
+
 from pymongo import MongoClient
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -142,8 +147,6 @@ for db in DATABASES.values():
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
-from django.conf.global_settings import LANGUAGES as _available_langs
-from django.utils.translation import get_language_info
 
 _available_langs = dict(_available_langs)
 LANGUAGES = [(lang_code, get_language_info(lang_code)['name_local'])
@@ -187,7 +190,6 @@ STATICFILES_DIRS = (
     ('mocha', os.path.join(BASE_DIR, 'node_modules', 'mocha'),),
 )
 
-from cachebuster.detectors import git
 CACHEBUSTER_UNIQUE_STRING = git.unique_string(__file__)[:6]
 
 if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
@@ -294,9 +296,7 @@ CELERYD_MAX_TASKS_PER_CHILD = int(os.environ.get(
     'CELERYD_MAX_TASKS_PER_CHILD', 7))
 
 # Uncomment to enable failsafe search indexing
-#from datetime import timedelta
 
-from datetime import timedelta
 CELERYBEAT_SCHEDULE = {
     # Update the Haystack index twice per day to catch any stragglers that
     # might have gotten past haystack.signals.RealtimeSignalProcessor
@@ -308,9 +308,13 @@ CELERYBEAT_SCHEDULE = {
 
 if 'KOBOCAT_URL' in os.environ:
     # Create/update KPI assets to match KC forms
+    SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES = int(os.environ.get('SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES',
+                                                            '30'))
     CELERYBEAT_SCHEDULE['sync-kobocat-xforms'] = {
         'task': 'kpi.tasks.sync_kobocat_xforms',
-        'schedule': timedelta(minutes=30),
+        'schedule': timedelta(minutes=SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES),
+        'options': {'queue': 'sync_kobocat_xforms_queue',
+                    'expires': SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES /2. * 60},
     }
 
 '''
