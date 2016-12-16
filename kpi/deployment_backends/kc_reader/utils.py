@@ -1,6 +1,12 @@
 import json
-from .shadow_models import _models, safe_kc_read
+
+from django.conf import settings
+from django.contrib.auth.models import User
 from django.db import ProgrammingError
+from rest_framework.authtoken.models import Token
+import requests
+
+from .shadow_models import _models, safe_kc_read
 
 
 @safe_kc_read
@@ -46,10 +52,29 @@ def get_kc_profile_data(user_id):
         result[field] = value
     return result
 
+
 def set_kc_require_auth(user_id, require_auth):
-    ''' WRITES to KC's UserProfile.require_auth '''
+    '''
+    Configure whether or not authentication is required to see and submit data to a user's projects.
+    WRITES to KC's UserProfile.require_auth
+
+    :param int user_id: ID/primary key of the :py:class:`User` object.
+    :param bool require_auth: The desired setting.
+    '''
+
+    # Get/generate the user's auth. token.
+    user = User.objects.get(pk=user_id)
+    token, is_new = Token.objects.get_or_create(user=user)
+
+    # Trigger the user's KoBoCAT profile to be generated if it doesn't exist.
+    url = settings.KOBOCAT_URL + '/api/v1/user'
+    response = requests.get(url, headers={'Authorization': 'Token ' + token.key})
+    if not response.status_code == 200:
+        raise RuntimeError('Bad HTTP status code `{}` when retrieving KoBoCAT user profile'
+                           ' for `{}`.'.format(response.status_code, user.username))
+
     try:
-        profile, created = _models.UserProfile.objects.get_or_create(
+        profile = _models.UserProfile.objects.get(
             user_id=user_id)
         if profile.require_auth != require_auth:
             profile.require_auth = require_auth
