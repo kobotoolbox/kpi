@@ -1,10 +1,10 @@
-import os
 import json
+import os
 import re
-import requests
 
 from fabric.api import cd, env, run as run_, sudo as sudo_
 from fabric.contrib import files
+import requests
 
 
 SERVICE_NAME = 'kpi'
@@ -49,7 +49,7 @@ def check_key_filename(deployment_configs):
             deployment_configs['key_filename']
         )
         if not os.path.exists(deployment_configs['key_filename']):
-            raise Exception("Cannot find required permissions file: %s" %
+            raise Exception("Cannot find required SSH key file: %s" %
                             deployment_configs['key_filename'])
 
 
