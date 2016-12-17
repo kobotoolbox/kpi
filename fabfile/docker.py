@@ -71,35 +71,39 @@ def setup_env(deployment_name):
 def deploy(deployment_name, branch='master'):
     setup_env(deployment_name)
     build_dir = run("mktemp --tmpdir='{}' -d".format(env.build_root))
-    with cd(build_dir):
-        # Shallow clone the requested branch to a temporary directory
-        run("git clone --quiet --depth=1 --branch='{}' '{}' .".format(
-            branch, GIT_REPO))
-        # Note which commit is at the tip of the cloned branch
-        cloned_commit = run("git show --no-patch")
-        # Build the image
-        run("docker build -t '{}' .".format(IMAGE_NAME))
-        # Clean up
-        run("find -delete")
-    run("rmdir '{}'".format(build_dir))
-    with cd(env.docker_config_path):
-        # Run the new image
-        run("docker-compose stop '{}'".format(SERVICE_NAME))
-        run("docker-compose rm -f --all '{}'".format(SERVICE_NAME))
-        run("docker-compose up -d '{}'".format(SERVICE_NAME))
-        running_commit = run(
-            "docker exec $(docker-compose ps -q '{service}') bash -c '"
-            "cd \"${src_dir_var}\" && git show --no-patch'".format(
-                service=SERVICE_NAME,
-                src_dir_var=CONTAINER_SRC_DIR_ENV_VAR
+    try:
+        with cd(build_dir):
+            # Shallow clone the requested branch to a temporary directory
+            run("git clone --quiet --depth=1 --branch='{}' '{}' .".format(
+                branch, GIT_REPO))
+            # Note which commit is at the tip of the cloned branch
+            cloned_commit = run("git show --no-patch")
+            # Build the image
+            run("docker build -t '{}' .".format(IMAGE_NAME))
+        with cd(env.docker_config_path):
+            # Run the new image
+            run("docker-compose stop '{}'".format(SERVICE_NAME))
+            run("docker-compose rm -f --all '{}'".format(SERVICE_NAME))
+            run("docker-compose up -d '{}'".format(SERVICE_NAME))
+            running_commit = run(
+                "docker exec $(docker-compose ps -q '{service}') bash -c '"
+                "cd \"${src_dir_var}\" && git show --no-patch'".format(
+                    service=SERVICE_NAME,
+                    src_dir_var=CONTAINER_SRC_DIR_ENV_VAR
+                )
             )
-        )
-    with cd(env.static_path):
-        # Write the date and running commit to a publicly-accessible file
-        sudo("(date; echo) > '{}'".format(UPDATE_STATIC_FILE))
-        files.append(UPDATE_STATIC_FILE, running_commit, use_sudo=True)
-    if running_commit != cloned_commit:
-        raise Exception(
-            'The running commit does not match the tip of the cloned branch! '
-            'Make sure docker-compose.yml is set to use {}'.format(IMAGE_NAME)
-        )
+        with cd(env.static_path):
+            # Write the date and running commit to a publicly-accessible file
+            sudo("(date; echo) > '{}'".format(UPDATE_STATIC_FILE))
+            files.append(UPDATE_STATIC_FILE, running_commit, use_sudo=True)
+        if running_commit != cloned_commit:
+            raise Exception(
+                'The running commit does not match the tip of the cloned'
+                'branch! Make sure docker-compose.yml is set to use {}'.format(
+                    IMAGE_NAME)
+            )
+    finally:
+        # Clean up no matter what!
+        with cd(build_dir):
+            run("find -delete")
+        run("rmdir '{}'".format(build_dir))
