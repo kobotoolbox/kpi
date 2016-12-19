@@ -1,10 +1,10 @@
-import os
-import sys
 import json
+import os
 import re
-import requests
+import sys
 
 from fabric.api import cd, env, prefix, run as run_
+import requests
 
 
 def run(*args, **kwargs):
@@ -49,7 +49,7 @@ def check_key_filename(deployment_configs):
             deployment_configs['key_filename']
         )
         if not os.path.exists(deployment_configs['key_filename']):
-            exit_with_error("Cannot find required permissions file: %s" %
+            exit_with_error("Cannot find required SSH key file: %s" %
                             deployment_configs['key_filename'])
 
 
@@ -116,62 +116,8 @@ def deploy_ref(deployment_name, ref, force=False):
     run("sudo service uwsgi reload")
 
 
-# NOTE non-master branch
 def deploy(deployment_name, branch='master'):
     deploy_ref(deployment_name, 'origin/{}'.format(branch))
-
-
-def deploy_passing(deployment_name, branch='master'):
-    ''' Deploy the latest code on the given branch that's
-    been marked passing by Travis CI. '''
-    print 'Asking Travis CI for the hash of the latest passing commit...'
-    desired_commit = get_last_successfully_built_commit(branch)
-    print 'Found passing commit {} for branch {}!'.format(desired_commit,
-        branch)
-    deploy_ref(deployment_name, desired_commit)
-
-
-def get_last_successfully_built_commit(branch):
-    raise NotImplementedError('No CI for KPI yet.')
-    ''' Returns the hash of the latest successfully built commit
-    on the given branch according to Travis CI. '''
-
-    API_ENDPOINT='https://api.travis-ci.org/'
-    REPO_SLUG='kobotoolbox/kpi'
-    COMMON_HEADERS={'accept': 'application/vnd.travis-ci.2+json'}
-
-    ''' Travis only lets us specify `number`, `after_number`, and `event_type`.
-    It'd be great to filter by state and branch, but it seems we can't
-    (http://docs.travis-ci.com/api/?http#builds). '''
-
-    request = requests.get(
-        '{}repos/{}/builds'.format(API_ENDPOINT, REPO_SLUG),
-        headers=COMMON_HEADERS
-    )
-    if request.status_code != 200:
-        raise Exception('Travis returned unexpected code {}.'.format(
-            request.status_code
-        ))
-    response = json.loads(request.text)
-
-    builds = response['builds']
-    commits = {commit['id']: commit for commit in response['commits']}
-
-    for build in builds:
-        if build['state'] != 'passed' or build['pull_request']:
-            # No interest in non-passing builds or PRs
-            continue
-        commit = commits[build['commit_id']]
-        if commit['branch'] == branch:
-            # Assumes the builds are in descending chronological order
-            if re.match('^[0-9a-f]+$', commit['sha']) is None:
-                raise Exception('Travis returned the invalid SHA {}.'.format(
-                    commit['sha']))
-            return commit['sha']
-
-    raise Exception("Couldn't find a passing build for the branch {}. "
-        "This could be due to pagination, in which case this code "
-        "must be made more robust!".format(branch))
 
 
 def transfer_data(deployment_name):
