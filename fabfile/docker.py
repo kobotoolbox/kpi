@@ -1,10 +1,8 @@
 import json
 import os
-import re
 
 from fabric.api import cd, env, run as run_, sudo as sudo_
 from fabric.contrib import files
-import requests
 
 
 SERVICE_NAME = 'kpi'

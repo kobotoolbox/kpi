@@ -1,10 +1,8 @@
 import json
 import os
-import re
 import sys
 
 from fabric.api import cd, env, prefix, run as run_
-import requests
 
 
 def run(*args, **kwargs):
