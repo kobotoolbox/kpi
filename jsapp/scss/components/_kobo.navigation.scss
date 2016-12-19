@@ -63,6 +63,10 @@ $headerAccountTextColor: #dbedf7;
     .account-box {
         margin-left: auto;
         position: relative;
+        padding-bottom:5px;
+        &:hover {
+            background-color: darken($layout-header-bg-color, 2.5%);
+        }
     }
     .account-box__notifications {
         display: inline-block;

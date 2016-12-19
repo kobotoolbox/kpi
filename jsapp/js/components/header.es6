@@ -195,7 +195,8 @@ var MainHeader = React.createClass({
           </bem.AccountBox__notifications>
           <bem.AccountBox__name
               onClick={this.toggleAccountMenuPopover}
-              onBlur={this.toggleAccountMenuPopover}>
+              onBlur={this.toggleAccountMenuPopover} 
+              tabIndex="-1">
             <bem.AccountBox__username>
               {accountName}
             </bem.AccountBox__username>
