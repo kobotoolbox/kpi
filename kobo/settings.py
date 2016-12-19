@@ -381,8 +381,10 @@ if 'RAVEN_DSN' in os.environ:
 
     # Set the `server_name` attribute. See https://docs.sentry.io/hosted/clients/python/advanced/
     server_name = os.environ.get('RAVEN_SERVER_NAME')
-    server_name = server_name or os.environ.get('KOBOFORM_PUBLIC_SUBDOMAIN', '') + \
-        os.environ.get('PUBLIC_DOMAIN_NAME', '')
+    server_name = server_name or '.'.join(filter(None, (
+        os.environ.get('KOBOFORM_PUBLIC_SUBDOMAIN', None),
+        os.environ.get('PUBLIC_DOMAIN_NAME', None)
+    )))
     if server_name:
         RAVEN_CONFIG.update({'name': server_name})
 
