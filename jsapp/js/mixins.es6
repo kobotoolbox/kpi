@@ -203,7 +203,7 @@ var dmix = {
             <ui.MDLPopoverMenu id={"more-dl-popover"}>
               <bem.PopoverMenu__item>
                 <i className="k-icon-download" />
-                {t('Download as')}
+                {t('Download form as')}
               </bem.PopoverMenu__item>
               {downloads.map((dl)=>{
                 return (
