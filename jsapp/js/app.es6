@@ -1633,5 +1633,11 @@ var routes = (
 export function runRoutes(el) {
   run(routes, function (Handler) {
     React.render(<Handler />, el);
+
+    var curRoutes = this.getCurrentRoutes();
+    actions.navigation.routeUpdate({
+        names: curRoutes.map(function(route) { return route.name; })
+    });
+
   });
 }
