@@ -8,13 +8,18 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.7/ref/settings/
 """
 
-from django.conf import global_settings
-
+from datetime import timedelta
+import multiprocessing
 import os
 
+from cachebuster.detectors import git
+from django.conf import global_settings
+from django.conf.global_settings import LANGUAGES as _available_langs
+from django.utils.translation import get_language_info
 import dj_database_url
-import multiprocessing
+
 from pymongo import MongoClient
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -26,6 +31,14 @@ BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 # Secret key must match that used by KoBoCAT when sharing sessions
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '@25)**hc^rjaiagb4#&q*84hr*uscsxwr-cv#0joiwj$))obyk')
+
+# Optionally treat proxied connections as secure.
+# See: https://docs.djangoproject.com/en/1.8/ref/settings/#secure-proxy-ssl-header.
+# Example environment: `export SECURE_PROXY_SSL_HEADER='HTTP_X_FORWARDED_PROTO, https'`.
+# SECURITY WARNING: If enabled, outer web server must filter out the `X-Forwarded-Proto` header.
+if 'SECURE_PROXY_SSL_HEADER' in os.environ:
+    SECURE_PROXY_SSL_HEADER = tuple((substring.strip() for substring in
+                                     os.environ['SECURE_PROXY_SSL_HEADER'].split(',')))
 
 UPCOMING_DOWNTIME = False
 
@@ -133,8 +146,6 @@ for db in DATABASES.values():
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
-from django.conf.global_settings import LANGUAGES as _available_langs
-from django.utils.translation import get_language_info
 
 _available_langs = dict(_available_langs)
 LANGUAGES = [(lang_code, get_language_info(lang_code)['name_local'])
@@ -281,9 +292,7 @@ CELERYD_MAX_TASKS_PER_CHILD = int(os.environ.get(
     'CELERYD_MAX_TASKS_PER_CHILD', 7))
 
 # Uncomment to enable failsafe search indexing
-#from datetime import timedelta
 
-from datetime import timedelta
 CELERYBEAT_SCHEDULE = {
     # Update the Haystack index twice per day to catch any stragglers that
     # might have gotten past haystack.signals.RealtimeSignalProcessor
@@ -295,9 +304,13 @@ CELERYBEAT_SCHEDULE = {
 
 if 'KOBOCAT_URL' in os.environ:
     # Create/update KPI assets to match KC forms
+    SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES = int(os.environ.get('SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES',
+                                                            '30'))
     CELERYBEAT_SCHEDULE['sync-kobocat-xforms'] = {
         'task': 'kpi.tasks.sync_kobocat_xforms',
-        'schedule': timedelta(minutes=30),
+        'schedule': timedelta(minutes=SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES),
+        'options': {'queue': 'sync_kobocat_xforms_queue',
+                    'expires': SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES /2. * 60},
     }
 
 '''
@@ -319,6 +332,7 @@ WEBPACK_LOADER = {
     'DEFAULT': {
         'BUNDLE_DIR_NAME': 'jsapp/compiled/',
         'POLL_INTERVAL': 0.5,
+        'TIMEOUT': 5,
     }
 }
 
@@ -367,8 +381,10 @@ if 'RAVEN_DSN' in os.environ:
 
     # Set the `server_name` attribute. See https://docs.sentry.io/hosted/clients/python/advanced/
     server_name = os.environ.get('RAVEN_SERVER_NAME')
-    server_name = server_name or os.environ.get('KOBOFORM_PUBLIC_SUBDOMAIN', '') + \
-        os.environ.get('PUBLIC_DOMAIN_NAME', '')
+    server_name = server_name or '.'.join(filter(None, (
+        os.environ.get('KOBOFORM_PUBLIC_SUBDOMAIN', None),
+        os.environ.get('PUBLIC_DOMAIN_NAME', None)
+    )))
     if server_name:
         RAVEN_CONFIG.update({'name': server_name})
 

@@ -137,6 +137,10 @@ ENV C_FORCE_ROOT="true"
 RUN ln -s "${KPI_SRC_DIR}/docker/init.bash" /etc/my_init.d/10_init_kpi.bash && \
     rm -rf /etc/service/wsgi && \
     mkdir -p /etc/service/uwsgi && \
-    ln -s "${KPI_SRC_DIR}/docker/run_uwsgi.bash" /etc/service/uwsgi/run
+    ln -s "${KPI_SRC_DIR}/docker/run_uwsgi.bash" /etc/service/uwsgi/run && \
+    mkdir -p /etc/service/celery && \
+    ln -s "${KPI_SRC_DIR}/docker/run_celery.bash" /etc/service/celery/run && \
+    mkdir -p /etc/service/celery_sync_kobocat_xforms && \
+    ln -s "${KPI_SRC_DIR}/docker/run_celery_sync_kobocat_xforms.bash" /etc/service/celery_sync_kobocat_xforms/run
 
 EXPOSE 8000

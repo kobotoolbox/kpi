@@ -27,13 +27,23 @@ export default {
     });
   },
   navigateBack () {
-    var routeName = isLibrary(this.context.router) ? 'library' : 'forms';
+    var routeName = 'forms';
+    var params = {};
+    if (isLibrary(this.context.router)) {
+      routeName = 'library';
+    } else {
+      if (stores.history.previousRoute == 'form-landing') {
+        routeName = 'form-landing';
+        params = {assetid: this.props.params.assetid};
+      }
+    }
+
     if (!this.needsSave()) {
-      this.transitionTo(routeName);
+      this.transitionTo(routeName, params);
     } else {
       customConfirmAsync(t('you have unsaved changes. leave form without saving?'))
         .done(() => {
-          this.transitionTo(routeName);
+          this.transitionTo(routeName, params);
         });
     }
   },

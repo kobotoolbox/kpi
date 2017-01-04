@@ -54,6 +54,7 @@ var historyStore = Reflux.createStore({
       this.history = [];
     }
     this.listenTo(actions.navigation.historyPush, this.historyPush);
+    this.listenTo(actions.navigation.routeUpdate, this.routeUpdate);
     this.listenTo(actions.auth.logout.completed, this.historyClear);
     this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
   },
@@ -79,6 +80,12 @@ var historyStore = Reflux.createStore({
     ];
     localStorage.setItem(this.__historyKey, JSON.stringify(this.history));
     this.trigger(this.history);
+  },
+  routeUpdate (routes) {
+    const routeName = routes.names[routes.names.length - 1] || routes.names[routes.names.length - 2];
+    if (this.currentRoute)
+      this.previousRoute = this.currentRoute;
+    this.currentRoute = routeName;
   }
 });
 

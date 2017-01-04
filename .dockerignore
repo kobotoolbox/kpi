@@ -4,6 +4,5 @@ jsapp/xlform/components
 jsapp/compiled
 jsapp/fonts
 staticfiles
-*.pyc
+**/*.pyc
 webpack-stats.json
-

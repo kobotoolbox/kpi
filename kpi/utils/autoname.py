@@ -176,7 +176,9 @@ def autovalue_choices_in_place(surv_content, destination_key):
     choice_value_key = 'name'
     choices = OrderedDict()
     for choice in surv_choices:
-        _list_name = choice['list_name']
+        _list_name = choice.get('list_name')
+        if _list_name in ['', None]:
+            continue
         if _list_name not in choices:
             choices[_list_name] = []
         choices[_list_name].append(choice)

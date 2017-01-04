@@ -1,4 +1,5 @@
 import React from 'react/addons';
+import Dropzone from '../libs/dropzone';
 import {Navigation} from 'react-router';
 import $ from 'jquery';
  
@@ -20,7 +21,8 @@ var AssetTypeIcon = bem.create('asset-type-icon');
 var AssetRow = React.createClass({
   mixins: [
     Navigation,
-    mixins.taggedAsset
+    mixins.taggedAsset,
+    mixins.droppable
   ],
   getInitialState () {
     return {tags: this.props.tags};
@@ -81,6 +83,27 @@ var AssetRow = React.createClass({
   },
   clearDropdown () {
     $(this.getDOMNode()).find('.mdl-menu__container.is-visible').removeClass('is-visible');
+  },
+  onDrop (files) {
+    if (files.length === 0) {
+      return;
+    } else if (files.length> 1) {
+      var errMsg = t('Only 1 file can be uploaded in this case');
+      alertify.error(errMsg);
+      throw new Error(errMsg);
+    }
+    const VALID_ASSET_UPLOAD_FILE_TYPES = [
+      'application/xls',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ];
+    var file = files[0];
+    if (VALID_ASSET_UPLOAD_FILE_TYPES.indexOf(file.type) === -1) {
+      var err = `Invalid filetype: '${file.type}'`;
+      console.error(err);
+    }
+    this.dropFiles(files);
   },
   render () {
     var selfowned = this.props.owner__username === this.props.currentUsername;
@@ -266,71 +289,49 @@ var AssetRow = React.createClass({
                 >
               <i className='k-icon-clone' />
             </bem.AssetRow__actionIcon>
-            <bem.AssetRow__actionIcon
-                m='download' key='download'
-                data-action='download' data-tip={t('Download')}
-                data-asset-type={this.props.kind} data-disabled={false}
-                >
-              <i className='k-icon-download-1' />
-            </bem.AssetRow__actionIcon>
  
-              { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit &&
-                <ui.MDLPopoverMenu id={"more-" + this.props.uid}>
-                  { isDeployable &&
-                    <bem.PopoverMenu__link 
-                        m={'deploy'}
-                        data-action={'deploy'} 
-                        data-asset-type={this.props.kind}>
-                      <i className="k-icon-deploy" />
-                      {this.props.deployed_version_id === null ? t('Deploy this project') : t('Redeploy this project')}
+              <ui.MDLPopoverMenu id={"more-" + this.props.uid}>
+                { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit && isDeployable &&
+                  <bem.PopoverMenu__link 
+                      m={'deploy'}
+                      data-action={'deploy'} 
+                      data-asset-type={this.props.kind}>
+                    <i className="k-icon-deploy" />
+                    {this.props.deployed_version_id === null ? t('Deploy this project') : t('Redeploy this project')}
+                  </bem.PopoverMenu__link>
+                }
+                { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit &&
+                  <Dropzone fileInput onDropFiles={this.onDrop}>
+                    <bem.PopoverMenu__link
+                          m={'refresh'}
+                          data-action={'refresh'}
+                          data-asset-type={this.props.kind}
+                        >
+                      <i className="k-icon-replace" />
+                      {t('Replace with XLS')}
                     </bem.PopoverMenu__link>
-                  }
-                  <bem.PopoverMenu__link
-                        m={'refresh'}
-                        data-action={'refresh'}
-                        data-asset-type={this.props.kind}
-                      >
-                    <i className="k-icon-replace" />
-                    {t('Replace with XLS')}
-                  </bem.PopoverMenu__link>
-                  <bem.PopoverMenu__link
-                        m={'delete'}
-                        data-action={'delete'}
-                        data-asset-type={this.props.kind}
-                      >
-                    <i className="k-icon-trash" />
-                    {t('Delete')}
-                  </bem.PopoverMenu__link>
-                </ui.MDLPopoverMenu>
-              }
-              { this.props.kind === 'collection' &&
-                [/*'view',*/ 'sharing'].map((actn)=>{
+                  </Dropzone>
+                }
+                { this.props.downloads && this.props.downloads.length > 0 &&
+                  <bem.PopoverMenu__heading>
+                    {t('Download form as')}
+                  </bem.PopoverMenu__heading>
+                }
+                {this.props.downloads.map((dl)=>{
                   return (
-                        <bem.AssetRow__actionIcon
-                          m={actn === 'view' ? 'view-collection' : actn}
-                            data-action={actn}
-                            data-asset-type={this.props.kind}
-                            data-disabled={false}
-                            data-tip={actn}
-                            >
-                          <i />
-                        </bem.AssetRow__actionIcon>
-                      );
-                })
-              }
-              { this.props.asset_type && this.props.asset_type != 'survey' &&
-                <ui.MDLPopoverMenu id={"more-" + this.props.uid}>
-                  <bem.PopoverMenu__link
-                        m={'delete'}
-                        data-action={'delete'}
-                        data-asset-type={this.props.kind}
-                      >
-                    <i className="k-icon-trash" />
-                    {t('Delete')}
-                  </bem.PopoverMenu__link>
+                      <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
+                          key={`dl-${dl.format}`}>
+                        {dl.format}
+                      </bem.PopoverMenu__link>
+                    );
+                })}
+
+                { this.props.asset_type && this.props.asset_type != 'survey' && ownedCollections.length > 0 &&
                   <bem.PopoverMenu__heading>
                     {t('Move to')}
                   </bem.PopoverMenu__heading>
+                }
+                { this.props.asset_type && this.props.asset_type != 'survey' && ownedCollections.length > 0 &&
                   <bem.PopoverMenu__moveTo>
                     {ownedCollections.map((col)=>{
                       return (
@@ -350,7 +351,33 @@ var AssetRow = React.createClass({
                         );
                     })}
                   </bem.PopoverMenu__moveTo>
-                </ui.MDLPopoverMenu>
+                }
+
+                {userCanEdit &&
+                  <bem.PopoverMenu__link
+                        m={'delete'}
+                        data-action={'delete'}
+                        data-asset-type={this.props.kind}
+                      >
+                    <i className="k-icon-trash" />
+                    {t('Delete')}
+                  </bem.PopoverMenu__link>
+                }
+              </ui.MDLPopoverMenu>
+              { this.props.kind === 'collection' &&
+                [/*'view',*/ 'sharing'].map((actn)=>{
+                  return (
+                        <bem.AssetRow__actionIcon
+                          m={actn === 'view' ? 'view-collection' : actn}
+                            data-action={actn}
+                            data-asset-type={this.props.kind}
+                            data-disabled={false}
+                            data-tip={actn}
+                            >
+                          <i />
+                        </bem.AssetRow__actionIcon>
+                      );
+                })
               }
           </bem.AssetRow__buttons>
         </bem.AssetRow>
