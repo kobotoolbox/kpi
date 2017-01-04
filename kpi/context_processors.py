@@ -10,16 +10,12 @@ def external_service_tokens(request):
         out['google_analytics_token'] = settings.GOOGLE_ANALYTICS_TOKEN
     return out
 
+
 def email(request):
     out = {}
     # 'kpi_protocol' used in the activation_email.txt template
     out['kpi_protocol'] = request.META.get('wsgi.url_scheme', 'http')
     return out
-
-def git_commit(request):
-    return {
-        'git_commit': settings.CACHEBUSTER_UNIQUE_STRING,
-    }
 
 
 def sitewide_messages(request):
