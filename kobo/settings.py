@@ -12,7 +12,6 @@ from datetime import timedelta
 import multiprocessing
 import os
 
-from cachebuster.detectors import git
 from django.conf import global_settings
 from django.conf.global_settings import LANGUAGES as _available_langs
 from django.utils.translation import get_language_info
