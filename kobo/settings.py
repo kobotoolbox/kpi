@@ -178,9 +178,11 @@ KPI_PREFIX = False if KPI_PREFIX.lower() == 'false' else KPI_PREFIX
 
 # KPI_PREFIX should be set in the environment when running in a subdirectory
 if KPI_PREFIX and KPI_PREFIX != '/':
-    STATIC_URL = '{}/{}'.format(KPI_PREFIX, STATIC_URL)
-    from django.conf.global_settings import LOGIN_URL
-    LOGIN_URL = '{}/{}'.format(KPI_PREFIX, LOGIN_URL)
+    KPI_PREFIX= '/' + os.environ['KPI_PREFIX'].strip('/') + '/'
+    STATIC_URL= KPI_PREFIX + STATIC_URL.lstrip('/')
+    from django.conf.global_settings import LOGIN_URL, LOGIN_REDIRECT_URL
+    LOGIN_URL= KPI_PREFIX + LOGIN_URL.lstrip('/')
+    LOGIN_REDIRECT_URL= KPI_PREFIX + LOGIN_REDIRECT_URL.lstrip('/')
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'jsapp'),
