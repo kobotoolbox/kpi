@@ -11,6 +11,7 @@ from rest_framework import filters
 from whoosh.qparser import QueryParser
 from whoosh.query import Term, And
 
+from .models import Asset
 from .models.object_permission import get_objects_for_user, get_anonymous_user
 
 
@@ -83,6 +84,23 @@ class KpiObjectPermissionsFilter(object):
                 subscribed = public.none()
 
         return owned_and_explicitly_shared | subscribed
+
+
+class RelatedAssetPermissionsFilter(KpiObjectPermissionsFilter):
+    ''' Uses KpiObjectPermissionsFilter to determine which assets the user
+    may access, and then filters the provided queryset to include only objects
+    related to those assets. The queryset's model must be related to `Asset`
+    via a field named `asset`. '''
+
+    def filter_queryset(self, request, queryset, view):
+        available_assets = super(
+            RelatedAssetPermissionsFilter, self
+        ).filter_queryset(
+            request=request,
+            queryset=Asset.objects.all(),
+            view=view
+        )
+        return queryset.filter(asset__in=available_assets)
 
 
 class SearchFilter(filters.BaseFilterBackend):

@@ -76,13 +76,33 @@ class TestAssetSnapshotList(KpiTestCase):
         snapshot_url = reverse('assetsnapshot-detail', args=(snapshot_uid,))
         asset = AssetSnapshot.objects.get(uid=snapshot_uid).asset
         another_user = User.objects.get(username='anotheruser')
-        # log in as the owner and share the asset
+        # Log in as the owner and share the asset
         self.client.login(username='someuser', password='someuser')
         self.add_perm(asset, another_user, 'view_')
         self.client.logout()
-        # log in as the user who was just granted permission
+        # Log in as the user who was just granted permission
         self.client.login(username='anotheruser', password='anotheruser')
         detail_response = self.client.get(snapshot_url)
         self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             creation_response.data['source'], detail_response.data['source'])
+
+    def test_anon_can_access_snapshot_xml(self):
+        # Behavior for Enketo integration; see
+        # AssetSnapshotViewSet.get_queryset()
+        creation_response = self._create_asset_snapshot_from_asset()
+        snapshot_uid = creation_response.data['uid']
+        snapshot_url = reverse('assetsnapshot-detail', args=(snapshot_uid,))
+        # Non-XML endpoints should not be public
+        detail_response = self.client.get(snapshot_url)
+        self.assertIn(detail_response.status_code, (
+            status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND
+        ))
+        # Test both DRF conventions of specifying the format
+        snapshot_xml_urls = (
+            snapshot_url.rstrip('/') + '.xml',
+            snapshot_url + '?format=xml',
+        )
+        for xml_url in snapshot_xml_urls:
+            detail_response = self.client.get(xml_url)
+            self.assertEqual(detail_response.status_code, status.HTTP_200_OK)

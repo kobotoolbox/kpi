@@ -313,6 +313,9 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         source = validated_data.get('source', None)
 
         # Force owner to be the requesting user
+        # NB: validated_data is not used when linking to an existing asset
+        # without specifying source; in that case, the snapshot owner is the
+        # asset's owner, even if a different user makes the request
         validated_data['owner'] = self.context['request'].user
 
         # TODO: Move to a validator?
