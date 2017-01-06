@@ -50,6 +50,11 @@ class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
     perms_map['OPTIONS']= perms_map['GET']
     perms_map['HEAD']= perms_map['GET']
 
+
 class PostMappedToChangePermission(IsOwnerOrReadOnly):
+    '''
+    Maps POST requests to the change_model permission instead of DRF's default
+    of add_model
+    '''
     perms_map = IsOwnerOrReadOnly.perms_map
     perms_map['POST'] = ['%(app_label)s.change_%(model_name)s']

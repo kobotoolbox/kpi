@@ -38,7 +38,7 @@ from rest_framework.authtoken.models import Token
 from taggit.models import Tag
 
 from .filters import KpiAssignedObjectPermissionsFilter
-from .filters import KpiObjectPermissionsFilter
+from .filters import KpiObjectPermissionsFilter, RelatedAssetPermissionsFilter
 from .filters import SearchFilter
 from .highlighters import highlight_xform
 from hub.models import SitewideMessage
@@ -462,26 +462,23 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
 class AssetSnapshotViewSet(NoUpdateModelViewSet):
     serializer_class = AssetSnapshotSerializer
     lookup_field = 'uid'
-    queryset = AssetSnapshot.objects.none()
-    # permission_classes = (IsOwnerOrReadOnly,)
+    queryset = AssetSnapshot.objects.all()
 
     renderer_classes = NoUpdateModelViewSet.renderer_classes + [
         AssetSnapshotXFormRenderer,
     ]
 
-    def get_queryset(self):
+    def filter_queryset(self, queryset):
         if (self.action == 'retrieve' and
                 self.request.accepted_renderer.format == 'xml'):
             # The XML renderer is totally public and serves anyone, so
-            # /asset_snapshot/valid_uid/.xml is world-readable, even though
-            # /asset_snapshot/valid_uid/ requires ownership
-            return AssetSnapshot.objects.all()
-
-        user = self.request.user
-        if not user.is_anonymous():
-            return AssetSnapshot.objects.filter(owner=user)
+            # /asset_snapshot/valid_uid.xml is world-readable, even though
+            # /asset_snapshot/valid_uid/ requires ownership. Return the
+            # queryset unfiltered
+            return queryset
         else:
-            return AssetSnapshot.objects.none()
+            return RelatedAssetPermissionsFilter().filter_queryset(
+                self.request, queryset, view=self)
 
     @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
     def xform(self, request, *args, **kwargs):
