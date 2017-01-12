@@ -70,3 +70,8 @@ class MockDeployment(TestCase):
 
         self.asset.deployment.set_active(False)
         self.assertEqual(self.asset._deployment_data['active'], False)
+
+    def test_delete(self):
+        self.assertTrue(self.asset.has_deployment)
+        self.asset.deployment.delete()
+        self.assertFalse(self.asset.has_deployment)

@@ -312,11 +312,15 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         })
 
     def delete(self):
-        url = self.external_to_internal_url(
-            self.backend_response['url'])
-        self._kobocat_request('DELETE', url, None)
-        self.asset._deployment_data = {}
-        self.asset.save()
+        ''' WARNING! Deletes all submitted data! '''
+        url = self.external_to_internal_url(self.backend_response['url'])
+        try:
+            self._kobocat_request('DELETE', url, None)
+        except KobocatDeploymentException as e:
+            if hasattr(e, 'response') and e.response.status_code == 404:
+                # The KC project is already gone!
+                pass
+        super(KobocatDeploymentBackend, self).delete()
 
     def get_enketo_survey_links(self):
         data = {

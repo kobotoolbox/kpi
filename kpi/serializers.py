@@ -513,8 +513,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                        .get('request', None))
 
     def get_deployed_version_id(self, obj):
+        if not obj.has_deployment:
+            return
         if obj.asset_versions.filter(deployed=True).exists():
-            if obj.has_deployment and isinstance(obj.deployment.version_id, int):
+            if isinstance(obj.deployment.version_id, int):
                 # this can be removed once the 'replace_deployment_ids'
                 # migration has been run
                 v_id = obj.deployment.version_id

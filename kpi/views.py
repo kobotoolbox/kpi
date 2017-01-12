@@ -721,6 +721,11 @@ class AssetViewSet(viewsets.ModelViewSet):
             user = get_anonymous_user()
         serializer.save(owner=user)
 
+    def perform_destroy(self, instance):
+        if hasattr(instance, 'has_deployment') and instance.has_deployment:
+            instance.deployment.delete()
+        return super(AssetViewSet, self).perform_destroy(instance)
+
     def finalize_response(self, request, response, *args, **kwargs):
         ''' Manipulate the headers as appropriate for the requested format.
         See https://github.com/tomchristie/django-rest-framework/issues/1041#issuecomment-22709658.
