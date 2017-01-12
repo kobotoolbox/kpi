@@ -605,7 +605,7 @@ class DeploymentSerializer(serializers.Serializer):
 
         # A regular PATCH request can update only the `active` field
         if 'active' in validated_data:
-            asset.deploy(validated_data['active'])
+            deployment.set_active(validated_data['active'])
             asset.save(create_version=False,
                        adjust_content=False)
         return deployment

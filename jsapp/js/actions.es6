@@ -141,6 +141,12 @@ actions.resources = Reflux.createActions({
       'failed'
     ]
   },
+  setDeploymentActive: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
   createSnapshot: {
     children: [
       'completed',
@@ -427,6 +433,23 @@ actions.resources.deployAsset.failed.listen(function(data, dialog_or_alert){
   alertify.alert(t('unable to deploy'), failure_message);
 });
 
+actions.resources.setDeploymentActive.listen(
+  function(details, params={}) {
+    var onComplete;
+    if (params && params.onComplete) {
+      onComplete = params.onComplete;
+    }
+    dataInterface.setDeploymentActive(details)
+      .done(function(/*result*/){
+        actions.resources.setDeploymentActive.completed(details);
+        if (onComplete) {
+          onComplete(details);
+        }
+      })
+      .fail(actions.resources.setDeploymentActive.failed);
+  }
+);
+
 actions.reports = Reflux.createActions({
   setStyle: {
     children: [
@@ -471,6 +494,7 @@ actions.resources.deleteAsset.listen(function(details, params={}){
     })
     .fail(actions.resources.deleteAsset.failed);
 });
+
 actions.resources.readCollection.listen(function(details){
   dataInterface.readCollection(details)
       .done(actions.resources.readCollection.completed)

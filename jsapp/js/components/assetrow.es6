@@ -353,6 +353,19 @@ var AssetRow = React.createClass({
                   </bem.PopoverMenu__moveTo>
                 }
 
+                {/* penar, this is just proof-of-concept stuff */
+                  this.props.asset_type && this.props.asset_type === 'survey' && this.props.has_deployment && userCanEdit &&
+                  <bem.PopoverMenu__link
+                        m={'archive'}
+                        data-action={'archive'}
+                        data-asset-type={this.props.kind}
+                        data-deployment-active={this.props.deployment__active}
+                      >
+                    <i className="k-icon-archived" />
+                    {t('toggle archived state')}
+                  </bem.PopoverMenu__link>
+                }
+
                 {userCanEdit &&
                   <bem.PopoverMenu__link
                         m={'delete'}

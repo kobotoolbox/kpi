@@ -250,6 +250,16 @@ class Command(BaseCommand):
                                     diff_str
                                 )
 
+                        # Force an update of the asset deployment's active
+                        # state does not match the xform's downloadable state
+                        if (
+                                asset._deployment_data['active'] !=
+                                    xform.downloadable or
+                                backend_response['downloadable'] !=
+                                    xform.downloadable
+                        ):
+                            update_existing = True
+
                         if not update_existing:
                             # Check to see if the asset name matches the xform
                             # title. Per #857, the xform title takes priority.

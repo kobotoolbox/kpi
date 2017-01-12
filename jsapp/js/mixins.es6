@@ -784,7 +784,9 @@ var dmix = {
                 {dvcount > 0 ? `v${dvcount}` : ''}
                 <span>
                   &nbsp;
-                  {this.state.deployment__active ? t('(deployed)') : t('(undeployed draft)')}
+                  {this.state.deployment__active ? t('(deployed)') :
+                    this.state.has_deployment ? t('(archived)') :
+                      t('(undeployed draft)')}
                 </span>
               </bem.FormView__group>
               {this.renderEditPreviewButtons()}
@@ -1345,6 +1347,17 @@ mixins.clickAssets = {
           // to call `transitionTo()` from within `deployAsset()`
           this.transitionTo(`${this.baseName}form-landing`, {assetid: uid});
         });
+      },
+      archive: function(uid, evt) {
+        let asset = stores.selectedAsset.asset;
+        let data = evt.actionIcon ? evt.actionIcon.dataset : evt.currentTarget.dataset;
+        actions.resources.setDeploymentActive(
+          {
+            asset: asset,
+            active: !(data.deploymentActive === true || data.deploymentActive === 'true')
+          },
+          {onComplete: ()=> {this.refreshSearch && this.refreshSearch();}}
+        );
       },
       sharing: function(uid){
         this.transitionTo(`${this.baseName}form-sharing`, {assetid: uid});

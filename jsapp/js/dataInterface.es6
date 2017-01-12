@@ -337,6 +337,15 @@ var dataInterface;
         data: data
       });
     },
+    setDeploymentActive ({asset, active}) {
+      return $ajax({
+        method: 'PATCH',
+        url: `${asset.url}deployment/`,
+        data: {
+          active: active
+        }
+      });
+    },
     postCreateBase64EncodedImport (contents) {
       var formData = new FormData();
       Object.keys(contents).forEach(function(key){
