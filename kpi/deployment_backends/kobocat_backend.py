@@ -320,6 +320,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             if hasattr(e, 'response') and e.response.status_code == 404:
                 # The KC project is already gone!
                 pass
+            else:
+                raise
         super(KobocatDeploymentBackend, self).delete()
 
     def get_enketo_survey_links(self):
