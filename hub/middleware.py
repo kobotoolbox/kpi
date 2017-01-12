@@ -18,7 +18,7 @@ class OtherFormBuilderRedirectMiddleware(object):
         preferred_prefix = self.PREFERENCE_TO_PREFIX[preferred_builder_key]
         prefix_length = max(1, len(request.path) - len(request.path_info))
         prefix = request.path[:prefix_length]
-        if prefix != preferred_prefix:
+        if prefix.strip('/') != preferred_prefix.strip('/'):
             try:
                 # Requires Django 1.7
                 scheme = request.scheme
