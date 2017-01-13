@@ -148,7 +148,7 @@ var dmix = {
                     </bem.FormView__cell>
                   </bem.FormView__row>
  
-                  { this.state.has_deployment ?
+                  { this.state.has_deployment && this.state.deployment__active ?
                     this.renderInstructions()
                   : null }
                 </bem.FormView__wrapper> 
@@ -1350,14 +1350,32 @@ mixins.clickAssets = {
       },
       archive: function(uid, evt) {
         let asset = stores.selectedAsset.asset;
-        let data = evt.actionIcon ? evt.actionIcon.dataset : evt.currentTarget.dataset;
-        actions.resources.setDeploymentActive(
-          {
-            asset: asset,
-            active: !(data.deploymentActive === true || data.deploymentActive === 'true')
+        let dialog = alertify.dialog('confirm');
+        let parent = this;
+
+        let opts = {
+          title: t('Archive project'),
+          message: t('Are you sure you want to archive this project? ' +
+                     '<br/><br/><strong>Your form will not accept submissions while it is archived.</strong>'),
+          labels: {ok: t('Archive'), cancel: t('Cancel')},
+          onok: (evt, val) => {
+            actions.resources.setDeploymentActive(
+              {
+                asset: asset,
+                active: false
+              },
+              {onComplete: ()=> {
+                this.refreshSearch && this.refreshSearch();
+                notify(t('archived project'));
+              }}
+            );
           },
-          {onComplete: ()=> {this.refreshSearch && this.refreshSearch();}}
-        );
+          oncancel: () => {
+            dialog.destroy();
+          }
+        };
+        dialog.set(opts).show();
+
       },
       sharing: function(uid){
         this.transitionTo(`${this.baseName}form-sharing`, {assetid: uid});
