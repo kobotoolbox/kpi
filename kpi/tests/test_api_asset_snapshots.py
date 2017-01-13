@@ -21,7 +21,7 @@ class TestAssetSnapshotList(KpiTestCase):
                     }
                  '''
 
-    def test_create_asset_snapshot_from_source(self):
+    def _create_asset_snapshot_from_source(self):
         self.client.login(username='someuser', password='someuser')
         url = reverse('assetsnapshot-list')
 
@@ -31,6 +31,21 @@ class TestAssetSnapshotList(KpiTestCase):
                          msg=response.data)
         xml_resp = self.client.get(response.data['xml'])
         self.assertTrue(len(xml_resp.content) > 0)
+        self.client.logout()
+        return response
+
+    def test_create_asset_snapshot_from_source(self):
+        self._create_asset_snapshot_from_source()
+
+    def test_owner_can_access_snapshot_from_source(self):
+        creation_response = self._create_asset_snapshot_from_source()
+        snapshot_uid = creation_response.data['uid']
+        snapshot_url = reverse('assetsnapshot-detail', args=(snapshot_uid,))
+        self.client.login(username='someuser', password='someuser')
+        detail_response = self.client.get(snapshot_url)
+        self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            creation_response.data['source'], detail_response.data['source'])
 
     def _create_asset_snapshot_from_asset(self):
         self.client.login(username='someuser', password='someuser')
