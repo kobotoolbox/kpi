@@ -1,13 +1,12 @@
 import json
 import os
 
-from fabric.api import cd, env, run as run_, sudo as sudo_
+from fabric.api import cd, env, run, sudo
 from fabric.contrib import files
 
 
 SERVICE_NAME = 'kpi'
 GIT_REPO = 'https://github.com/kobotoolbox/{}.git'.format(SERVICE_NAME)
-IMAGE_NAME = 'fabric/{}:autobuild'.format(SERVICE_NAME)
 CONTAINER_SRC_DIR_ENV_VAR = '{}_SRC_DIR'.format(SERVICE_NAME.upper())
 UPDATE_STATIC_FILE = '{}/LAST_UPDATE.txt'.format(SERVICE_NAME)
 # These must be defined in deployments.json
@@ -27,16 +26,16 @@ else:
     raise Exception("Cannot find {}".format(deployments_file))
 
 
-def run(*args, **kwargs):
+def run_no_pty(*args, **kwargs):
     # Avoids control characters being returned in the output
     kwargs['pty'] = False
-    return run_(*args, **kwargs)
+    return run(*args, **kwargs)
 
 
-def sudo(*args, **kwargs):
+def sudo_no_pty(*args, **kwargs):
     # Avoids control characters being returned in the output
     kwargs['pty'] = False
-    return sudo_(*args, **kwargs)
+    return sudo(*args, **kwargs)
 
 
 def setup_env(deployment_name):
@@ -63,7 +62,7 @@ def deploy(deployment_name, branch='master'):
         run("git clone --quiet --depth=1 --branch='{}' '{}' .".format(
             branch, GIT_REPO))
         # Note which commit is at the tip of the cloned branch
-        cloned_commit = run("git show --no-patch")
+        cloned_commit = run_no_pty("git show --no-patch")
     with cd(env.docker_config_path):
         # Build the image
         run("docker-compose build '{}'".format(SERVICE_NAME))
@@ -71,7 +70,7 @@ def deploy(deployment_name, branch='master'):
         run("docker-compose stop '{}'".format(SERVICE_NAME))
         run("docker-compose rm -f '{}'".format(SERVICE_NAME))
         run("docker-compose up -d '{}'".format(SERVICE_NAME))
-        running_commit = run(
+        running_commit = run_no_pty(
             "docker exec $(docker-compose ps -q '{service}') bash -c '"
             "cd \"${src_dir_var}\" && git show --no-patch'".format(
                 service=SERVICE_NAME,
@@ -85,6 +84,6 @@ def deploy(deployment_name, branch='master'):
     if running_commit != cloned_commit:
         raise Exception(
             'The running commit does not match the tip of the cloned'
-            'branch! Make sure docker-compose.yml is set to use {}'.format(
-                IMAGE_NAME)
+            'branch! Make sure docker-compose.yml is set to build from '
+            '{}'.format(build_dir)
         )

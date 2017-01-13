@@ -2,24 +2,7 @@ import json
 import os
 import sys
 
-from fabric.api import cd, env, prefix, run as run_
-
-
-def run(*args, **kwargs):
-    '''
-    After running the following:
-
-        export NVM_DIR="/home/ubuntu/.nvm"
-        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
-
-    as was originally in `.bashrc` and is now in `.profile`, the output of
-    `run()` included escape sequence garbage. I could not figure out how NVM
-    was causing this or how to stop it, but passing `pty=False` to every
-    invocation of `run()` seems a viable workaround.
-    '''
-
-    kwargs['pty'] = False
-    return run_(*args, **kwargs)
+from fabric.api import cd, env, prefix, run
 
 def kobo_workon(venv_name):
     return prefix('kobo_workon %s' % venv_name)
@@ -38,6 +21,11 @@ def exit_with_error(message):
     print message
     sys.exit(1)
 
+
+def run_no_pty(*args, **kwargs):
+    # Avoids control characters being returned in the output
+    kwargs['pty'] = False
+    return run(*args, **kwargs)
 
 def check_key_filename(deployment_configs):
     if 'key_filename' in deployment_configs and \
@@ -75,7 +63,8 @@ def deploy_ref(deployment_name, ref, force=False):
     with cd(env.kpi_path):
         run("git fetch --all")
         # Make sure we're not moving to an older codebase
-        git_output = run('git rev-list {}..HEAD --count 2>&1'.format(ref))
+        git_output = run_no_pty(
+            'git rev-list {}..HEAD --count 2>&1'.format(ref))
         if int(git_output) > 0 and not force:
             raise Exception("The server's HEAD is already in front of the "
                 "commit to be deployed.")
@@ -83,7 +72,7 @@ def deploy_ref(deployment_name, ref, force=False):
         # detached. Perhaps consider using `git reset`.
         run('git checkout {}'.format(ref))
         # Report if the working directory is unclean.
-        git_output = run('git status --porcelain')
+        git_output = run_no_pty('git status --porcelain')
         if len(git_output):
             run('git status')
             print('WARNING: The working directory is unclean. See above.')
