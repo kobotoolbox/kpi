@@ -14,6 +14,7 @@ import stores from './stores';
 import bem from './bem';
 import actions from './actions';
 import ui from './ui';
+import $ from 'jquery';
 
 import {
   formatTime,
@@ -1330,15 +1331,44 @@ mixins.clickAssets = {
         this.transitionTo(`${this.baseName}form-edit`, {assetid: uid});
       },
       delete: function(uid/*, evt*/){
+        let asset = stores.selectedAsset.asset;
+        console.log(asset);
         var q_ = t('You are about to permanently delete this form. Are you sure you want to continue?');
-        customConfirmAsync(q_)
-          .done(() => {
+        let dialog = alertify.dialog('confirm');
+        let opts = {
+          title: t('Delete project'),
+          message: t('<strong>You are about to permanently delete this form. Are you sure you want to continue?</strong> ' +
+            '<br/><br/><label><input class="alertify-toggle" type="checkbox" /> All data gathered for this form will be deleted</label>' +
+            '<br/><label><input class="alertify-toggle" type="checkbox" /> All questions created for this form will be deleted</label>' +
+            '<br/><label><input class="alertify-toggle" type="checkbox" /> The form associated with this project will be deleted</label>' +
+            '<br/><label><input class="alertify-toggle" type="checkbox" /> <strong>I understand that this action is permanent and unrecoverable</strong></label><br/><br/>'),
+          labels: {ok: t('Delete'), cancel: t('Cancel')},
+          onshow: (evt) => {
+            let ok_button = dialog.elements.buttons.primary.firstChild;
+            ok_button.disabled = true;
+            var $els = $('.alertify-toggle');
+            $($els).change(function() {
+              ok_button.disabled = false;
+              $($els).each(function( index ) {
+                if (!$(this).prop('checked')) {
+                  ok_button.disabled = true;
+                } 
+              });
+            });
+            $()
+          },
+          onok: (evt, val) => {
             actions.resources.deleteAsset({uid: uid}, {
               onComplete: ()=> {
                 this.refreshSearch && this.refreshSearch();
               }
             });
-          });
+          },
+          oncancel: () => {
+            dialog.destroy();
+          }
+        };
+        dialog.set(opts).show();
       },
       deploy: function(uid){
         let asset = stores.selectedAsset.asset;
@@ -1351,8 +1381,6 @@ mixins.clickAssets = {
       archive: function(uid, evt) {
         let asset = stores.selectedAsset.asset;
         let dialog = alertify.dialog('confirm');
-        let parent = this;
-
         let opts = {
           title: t('Archive project'),
           message: t('Are you sure you want to archive this project? ' +
