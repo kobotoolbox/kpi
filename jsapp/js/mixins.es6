@@ -1344,7 +1344,7 @@ mixins.clickAssets = {
           onshow: (evt) => {
             let ok_button = dialog.elements.buttons.primary.firstChild;
             ok_button.disabled = true;
-            var $els = $('.alertify-toggle');
+            var $els = $('.alertify-toggle input');
             $($els).change(function() {
               ok_button.disabled = false;
               $($els).each(function( index ) {
