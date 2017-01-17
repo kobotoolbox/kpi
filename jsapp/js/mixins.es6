@@ -1332,16 +1332,14 @@ mixins.clickAssets = {
       },
       delete: function(uid/*, evt*/){
         let asset = stores.selectedAsset.asset;
-        console.log(asset);
-        var q_ = t('You are about to permanently delete this form. Are you sure you want to continue?');
         let dialog = alertify.dialog('confirm');
         let opts = {
-          title: t('Delete project'),
-          message: t('<strong>You are about to permanently delete this form. Are you sure you want to continue?</strong> ' +
-            '<br/><br/><label><input class="alertify-toggle" type="checkbox" /> All data gathered for this form will be deleted</label>' +
-            '<br/><label><input class="alertify-toggle" type="checkbox" /> All questions created for this form will be deleted</label>' +
-            '<br/><label><input class="alertify-toggle" type="checkbox" /> The form associated with this project will be deleted</label>' +
-            '<br/><label><input class="alertify-toggle" type="checkbox" /> <strong>I understand that this action is permanent and unrecoverable</strong></label><br/><br/>'),
+          title: t('Delete Project'),
+          message: t('You are about to permanently delete this form. </strong> ' +
+            '<label class="alertify-toggle"><input type="checkbox"/> ' + t('All data gathered for this form will be deleted.') + '</label>' +
+            '<label class="alertify-toggle"><input type="checkbox"/> ' + t('All questions created for this form will be deleted.') + '</label>' +
+            '<label class="alertify-toggle"><input type="checkbox"/> ' + t('The form associated with this project will be deleted.') + '</label>' +
+            '<label class="alertify-toggle alertify-toggle-important"><input type="checkbox" /> ' + t('I understand that if I delete this project I will not be able to recover it.') + '</label>'),
           labels: {ok: t('Delete'), cancel: t('Cancel')},
           onshow: (evt) => {
             let ok_button = dialog.elements.buttons.primary.firstChild;
