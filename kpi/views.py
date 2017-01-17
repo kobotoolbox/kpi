@@ -477,8 +477,12 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
             # queryset unfiltered
             return queryset
         else:
-            return RelatedAssetPermissionsFilter().filter_queryset(
-                self.request, queryset, view=self)
+            user = self.request.user
+            owned_snapshots = queryset.none()
+            if not user.is_anonymous():
+                owned_snapshots = queryset.filter(owner=user)
+            return owned_snapshots | RelatedAssetPermissionsFilter(
+                ).filter_queryset(self.request, queryset, view=self)
 
     @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
     def xform(self, request, *args, **kwargs):
