@@ -1380,9 +1380,9 @@ mixins.clickAssets = {
         let asset = stores.selectedAsset.asset;
         let dialog = alertify.dialog('confirm');
         let opts = {
-          title: t('Archive project'),
+          title: t('Archive Project'),
           message: t('Are you sure you want to archive this project? ' +
-                     '<br/><br/><strong>Your form will not accept submissions while it is archived.</strong>'),
+                     '<br/><br/><strong>' + t('Your form will not accept submissions while it is archived.') + '</strong>'),
           labels: {ok: t('Archive'), cancel: t('Cancel')},
           onok: (evt, val) => {
             actions.resources.setDeploymentActive(
