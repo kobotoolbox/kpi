@@ -286,7 +286,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 'version': self.asset.version_id,
             })
         except KobocatDeploymentException as e:
-            if e.response.status_code == 404:
+            if hasattr(e, 'response') and e.response.status_code == 404:
                 # Whoops, the KC project we thought we were going to overwrite
                 # is gone! Try a standard deployment instead
                 return self.connect(self.identifier, active)
