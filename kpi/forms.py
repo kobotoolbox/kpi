@@ -9,8 +9,9 @@ from kobo.static_lists import SECTORS, COUNTRIES
 USERNAME_REGEX = r'^[a-z][a-z0-9_]+$'
 USERNAME_MAX_LENGTH = 30
 USERNAME_INVALID_MESSAGE = _(
-    'A username may only contain lowercase letters, numbers, and '
-    'underscores (_).'
+    'Usernames must be between 2 and 30 characters in length, '
+    'and may only consist of lowercase letters, numbers, '
+    'and underscores, where the first character must be a letter.'
 )
 
 
