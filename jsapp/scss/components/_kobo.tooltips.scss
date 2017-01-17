@@ -1,86 +1,94 @@
 // Our own, css-only tooltips
 
 [data-tip] {
-    position: relative;
-    &:after {
-        content: attr(data-tip);
-        font-size: 13px;
-        line-height: 1.35em;
-        color: white;
-        background-color: darken($cool-gray, 10%);
-        padding: 10px 20px;
-        border-radius: 6px;
-        position: absolute;
-        top: calc(100% + 10px);
-        left: 50%;
-        transform: translate(-50%, 0);
-        z-index: 2;
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.5s;
-        white-space: nowrap;
-    }
-    &:before {
-        border-bottom: 10px solid darken($cool-gray, 10%);
-        border-left: 10px solid transparent;
-        border-right: 10px solid transparent;
-        position: absolute;
-        top: 100%;
-        content: "";
-        width: 0;
-        height: 0;
-        left: 50%;
-        transform: translate(-50%, 0);
-        z-index: 2;
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.5s;
-    }
+  position: relative;
+  &:after {
+    content: attr(data-tip);
+    font-size: 13px;
+    line-height: 1.35em;
+    color: white;
+    background-color: darken($cool-gray, 10%);
+    padding: 10px 20px;
+    border-radius: 6px;
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    transform: translate(-50%, 0);
+    z-index: 2;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s;
+    white-space: nowrap;
+  }
+  &:before {
+    border-bottom: 10px solid darken($cool-gray, 10%);
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    position: absolute;
+    top: 100%;
+    content: "";
+    width: 0;
+    height: 0;
+    left: 50%;
+    transform: translate(-50%, 0);
+    z-index: 2;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s;
+  }
 }
 
 [data-tip]:hover::after,
 [data-tip]:hover::before {
-    opacity: 1;
-    visibility: visible;
+  opacity: 1;
+  visibility: visible;
 }
 
 // Modify positioning for sidebar elements
 
 .k-drawer {
-    [data-tip]:after {
-        left: 100%;
-        top: 50%;
-        transform: translate(0, -50%);
-    }
-    [data-tip]:before {
-        left: calc(100% - 6px);
-        top: 50%;
-        transform: translate(0, -50%);
-        border-right: 10px solid darken($cool-gray, 10%);
-        border-bottom: 10px solid transparent;
-        border-top: 10px solid transparent;
-        border-left: none;
-    }
+  [data-tip]:after {
+    left: 100%;
+    top: 50%;
+    transform: translate(0, -50%);
+  }
+  [data-tip]:before {
+    left: calc(100% - 6px);
+    top: 50%;
+    transform: translate(0, -50%);
+    border-right: 10px solid darken($cool-gray, 10%);
+    border-bottom: 10px solid transparent;
+    border-top: 10px solid transparent;
+    border-left: none;
+  }
+}
+
+// right aligned tooltips
+
+.right-tooltip {
+  [data-tip]:after {
+    transform: translate(-95%, 0);
+  }
 }
 
 // more actions in asset-row adjustment
 .asset-row .ui-mdl-popover [data-tip]:after {
-    left: -50%;
+  left: -50%;
 }
 
 // hide on focus
 
 .hide-tooltip__onfocus[data-tip]:focus::after,
 .hide-tooltip__onfocus[data-tip]:focus::before {
-    display: none;
+  display: none;
 }
 
 // Modify positioning to header tooltips
 
 .mdl-layout__header [data-tip]:after {
-    left: 50px;
+  left: 50px;
 }
 
 .mdl-layout__header [data-tip]:before {
-    left: 50px;
+  left: 50px;
 }
