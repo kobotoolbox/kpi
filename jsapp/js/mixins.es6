@@ -1006,16 +1006,17 @@ var dmix = {
 mixins.dmix = dmix;
  
 mixins.droppable = {
-  _forEachDroppedFile (evt, file/*, params={}*/) {
+  _forEachDroppedFile (evt, file, params={}) {
     var library = isLibrary(this.context.router);
     var baseName = library ? 'library-' : '';
+    var url = params.url || this.state.url;
     dataInterface.postCreateBase64EncodedImport(assign({
         base64Encoded: evt.target.result,
         name: file.name,
         library: library,
         lastModified: file.lastModified,
-      }, this.state.url ? {
-        destination: this.state.url,
+      }, url ? {
+        destination: url,
       } : null
     )).then((data)=> {
       window.setTimeout((()=>{
@@ -1031,10 +1032,11 @@ mixins.droppable = {
               alertify.error(t('Could not redirect to asset.'));
             } else if (isCurrentPage) {
               actions.resources.loadAsset({id: assetUid});
-              notify(t('Replace operation completed'));
             } else {
               this.transitionTo(`${baseName}form-landing`, {assetid: assetUid});
             }
+            if (url)
+              notify(t('Replace operation completed'));
           }
           // If the import task didn't complete immediately, inform the user accordingly.
           else if (importData.status === 'processing') {
