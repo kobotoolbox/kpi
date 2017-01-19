@@ -174,15 +174,17 @@ STATIC_URL = '/static/'
 # Following the uWSGI mountpoint convention, this should have a leading slash
 # but no trailing slash
 KPI_PREFIX = os.environ.get('KPI_PREFIX', 'False')
-KPI_PREFIX = False if KPI_PREFIX.lower() == 'false' else KPI_PREFIX
+if KPI_PREFIX.lower() == 'false':
+    KPI_PREFIX = False
+else:
+    KPI_PREFIX = '/' + KPI_PREFIX.strip('/')
 
 # KPI_PREFIX should be set in the environment when running in a subdirectory
 if KPI_PREFIX and KPI_PREFIX != '/':
-    KPI_PREFIX= '/' + os.environ['KPI_PREFIX'].strip('/') + '/'
-    STATIC_URL= KPI_PREFIX + STATIC_URL.lstrip('/')
+    STATIC_URL = KPI_PREFIX + '/' + STATIC_URL.lstrip('/')
     from django.conf.global_settings import LOGIN_URL, LOGIN_REDIRECT_URL
-    LOGIN_URL= KPI_PREFIX + LOGIN_URL.lstrip('/')
-    LOGIN_REDIRECT_URL= KPI_PREFIX + LOGIN_REDIRECT_URL.lstrip('/')
+    LOGIN_URL = KPI_PREFIX + '/' + LOGIN_URL.lstrip('/')
+    LOGIN_REDIRECT_URL = KPI_PREFIX + '/' + LOGIN_REDIRECT_URL.lstrip('/')
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'jsapp'),
@@ -235,7 +237,10 @@ else:
 # Following the uWSGI mountpoint convention, this should have a leading slash
 # but no trailing slash
 DKOBO_PREFIX = os.environ.get('DKOBO_PREFIX', 'False')
-DKOBO_PREFIX = False if DKOBO_PREFIX.lower() == 'false' else DKOBO_PREFIX
+if DKOBO_PREFIX.lower() == 'false':
+    DKOBO_PREFIX = False
+else:
+    DKOBO_PREFIX = '/' + DKOBO_PREFIX.strip('/')
 
 ''' Haystack search settings '''
 WHOOSH_PATH = os.path.join(
