@@ -2,6 +2,7 @@ global = @
 
 _ = require 'underscore'
 Backbone = require 'backbone'
+alertify = require 'alertifyjs'
 base = require './model.base'
 $configs = require './model.configs'
 $utils = require './model.utils'
@@ -441,6 +442,7 @@ module.exports = do ->
       @_error = options.error
       unless global.xlfHideWarnings
         console?.error("Error creating row: [#{options.error}]", obj)
+        alertify.error("Error creating row: [#{options.error}]");
       super(obj, options)
     isError: -> true
     getValue: (what)->

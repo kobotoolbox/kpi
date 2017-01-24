@@ -341,3 +341,15 @@
     color:$cool-gray;
   }
 }
+
+.survey-editor {
+  > ul > li:last-child {
+    padding-bottom: 48px;
+  }
+  .ui-sortable-placeholder.lib-list__item {
+    border:1px dashed #d9dde1;
+    visibility:visible !important;
+    min-height:80px;
+    padding:0px;
+  }  
+}
