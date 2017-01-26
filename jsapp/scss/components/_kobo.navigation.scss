@@ -544,3 +544,26 @@ a.form-view__tab {
         }
     }
 }
+
+.git-rev {
+    display: none;
+}
+
+@media screen and (min-width: 768px) {
+    .git-rev {
+        display: block;
+        position: fixed;
+        bottom: 0px;
+        left: 256px;
+        z-index:100;
+        .git-rev__item {
+            color: white;
+            opacity: 0.75;
+            background: darken($cool-green, 10%);
+            margin-right:5px;
+            padding:6px 12px;
+            display: inline-block;
+            font-size: 12px;
+        }
+    }
+}

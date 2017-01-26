@@ -15,6 +15,7 @@ import {
   assign,
   currentLang,
   LANGUAGE_COOKIE_NAME,
+  notify
 } from '../utils';
 import searches from '../searches';
 import cookie from 'react-cookie';
@@ -248,6 +249,23 @@ var MainHeader = React.createClass({
           <span>{t('not logged in')}</span>
     );
   },
+  renderGitRevInfo () {
+    if (stores.session.currentAccount && stores.session.currentAccount.git_rev) {
+      var gitRev = stores.session.currentAccount.git_rev;
+      return (
+        <bem.GitRev>
+          <bem.GitRev__item>
+            branch: {gitRev.branch}
+          </bem.GitRev__item>
+          <bem.GitRev__item>
+            commit: {gitRev.short}
+          </bem.GitRev__item>
+        </bem.GitRev>
+      );
+    }
+
+    return false;
+  },
   toggleFixedDrawer() {
     stores.pageState.toggleFixedDrawer();
   },
@@ -466,6 +484,7 @@ var MainHeader = React.createClass({
               {this.renderFormViewHeader()}
             </bem.FormView__header>
           }
+          {this.renderGitRevInfo()}
         </header>
       );
   },
