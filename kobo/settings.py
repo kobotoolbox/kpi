@@ -462,6 +462,9 @@ for git_rev_key, git_command in (
         GIT_REV[git_rev_key] = False
 if GIT_REV['branch'] == 'HEAD':
     GIT_REV['branch'] = False
+# Only superusers will be able to see this information unless
+# EXPOSE_GIT_REV=TRUE is set in the environment
+EXPOSE_GIT_REV = os.environ.get('EXPOSE_GIT_REV', '').upper() == 'TRUE'
 
 
 ''' Since this project handles user creation but shares its database with

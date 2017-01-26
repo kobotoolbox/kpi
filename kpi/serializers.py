@@ -767,7 +767,11 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         return settings.LANGUAGES
 
     def get_git_rev(self, obj):
-        return settings.GIT_REV
+        request = self.context.get('request', False)
+        if settings.EXPOSE_GIT_REV or (request and request.user.is_superuser):
+            return settings.GIT_REV
+        else:
+            return False
 
     def to_representation(self, obj):
         if obj.is_anonymous():
