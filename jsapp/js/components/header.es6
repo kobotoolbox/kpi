@@ -15,7 +15,6 @@ import {
   assign,
   currentLang,
   LANGUAGE_COOKIE_NAME,
-  notify
 } from '../utils';
 import searches from '../searches';
 import cookie from 'react-cookie';
