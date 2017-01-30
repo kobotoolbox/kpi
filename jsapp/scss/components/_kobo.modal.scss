@@ -183,7 +183,7 @@ $errorColor: #E60C0C;
   cursor: pointer;
 }
 
-// alertify modal styling
+// alertify overrides
 
 .alertify .ajs-header {
   margin: -10px;
@@ -245,3 +245,27 @@ $errorColor: #E60C0C;
     }
   }
 }
+
+.alertify-notifier {
+  .ajs-message, 
+  .ajs-message.ajs-error, 
+  .ajs-message.ajs-success, 
+  .ajs-message.ajs-warning {
+    background:#484b5a;
+    color: white;
+    padding:25px;
+    width:auto;
+    min-width: 300px;
+    max-width:400px;
+  }
+  .ajs-message .ajs-close {
+    background-image:none;
+    background:transparent;
+    right: 15px;
+    top: 50%;
+    margin-top: -10px;
+    opacity: 0.8;
+    @extend .k-icon, .k-icon-close;
+  }
+}
+
