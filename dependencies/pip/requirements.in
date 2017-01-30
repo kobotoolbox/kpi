@@ -26,6 +26,7 @@ boto
 celery
 dj-static
 dj-database-url
+django-axes
 django-braces
 django-debug-toolbar
 django-extensions

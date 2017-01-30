@@ -19,6 +19,7 @@ cssselect==1.0.1          # via pyquery
 cyordereddict==1.0.0
 dj-database-url==0.4.2
 dj-static==0.0.6
+django-axes==2.3.2
 django-braces==1.11.0
 django-debug-toolbar==1.6
 django-extensions==1.7.6
