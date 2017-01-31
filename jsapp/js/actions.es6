@@ -400,31 +400,31 @@ actions.resources.deployAsset.failed.listen(function(data, dialog_or_alert){
     // setContent() removes the input box, but the value is retained
     var msg;
     if (data.status == 500 && data.responseJSON && data.responseJSON.error) {
-      msg = `<code><pre>${data.responseJSON.error}</pre></code>`;
+      msg = `<pre>${data.responseJSON.error}</pre>`;
     } else if (data.status == 500 && data.responseText) {
-      msg = `<code><pre>${data.responseText}</pre></code>`;
+      msg = `<pre>${data.responseText}</pre>`;
     } else {
-      msg = t('please check your connection and try again.');
+      msg = t('Please check your connection and try again.');
     }
     failure_message = `
+      <p>${t('The server encountered an error while trying to deploy the project. If this problem persists, please contact <a href="mailto:support@kobotoolbox.org">support@kobotoolbox.org</a>.')}</p>
       <p>${msg}</p>
-      <p>${t('if this problem persists, contact support@kobotoolbox.org')}</p>
     `;
   } else if(!!data.responseJSON.xform_id_string){
     // TODO: now that the id_string is automatically generated, this failure
     // mode probably doesn't need special handling
     failure_message = `
-      <p>${t('the form id was not valid.')}</p>
-      <p>${t('if this problem persists, contact support@kobotoolbox.org')}</p>
-      <p><code>${data.responseJSON.xform_id_string}</code></p>
+      <p>${t('The form id was not valid.')}</p>
+      <p>${t('If this problem persists, please contact support@kobotoolbox.org')}</p>
+      <p><pre>${data.responseJSON.xform_id_string}</pre></p>
     `;
   } else if(!!data.responseJSON.detail) {
     failure_message = `
-      <p>${t('your form cannot be deployed because it contains errors:')}</p>
-      <p><code>${data.responseJSON.detail}</code></p>
+      <p>${t('Your form cannot be deployed because it contains errors:')}</p>
+      <p><pre>${data.responseJSON.detail}</pre></p>
     `;
   }
-  alertify.alert(t('unable to deploy'), failure_message);
+  alertify.alert(t('Unable to deploy'), failure_message);
 });
 
 actions.reports = Reflux.createActions({

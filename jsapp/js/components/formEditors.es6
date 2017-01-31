@@ -252,11 +252,13 @@ export var NewForm = React.createClass({
   render () {
     return (
       <ui.Modal open onClose={this.routeBack} title={t('Create New Project from Scratch')}>
-      <ProjectSettings
-        onSubmit={this.createAsset}
-        submitButtonValue={t('Create project')}
-        context='newForm'
-      />
+        <ui.Modal.Body>
+          <ProjectSettings
+            onSubmit={this.createAsset}
+            submitButtonValue={t('Create project')}
+            context='newForm'
+          />
+        </ui.Modal.Body>
       </ui.Modal>
     );
   },
