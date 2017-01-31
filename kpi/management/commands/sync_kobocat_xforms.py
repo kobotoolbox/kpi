@@ -198,7 +198,9 @@ class Command(BaseCommand):
             xforms = user.xforms.all()
             for xform in xforms:
                 try:
-                    if xform.uuid in kpi_deployed_uuids:
+                    if xform.uuid not in kpi_deployed_uuids:
+                        update_existing = False
+                    else:
                         # This KC form already has a corresponding KPI asset,
                         # but the user may have directly updated the form on KC
                         # after deploying from KPI. If so, then the KPI asset
@@ -260,6 +262,14 @@ class Command(BaseCommand):
                         ):
                             update_existing = True
 
+                        # Force an update if the asset deployment's identifier
+                        # does not match this KoBoCAT
+                        if (
+                                settings.KOBOCAT_URL not in
+                                    asset._deployment_data['identifier']
+                        ):
+                            update_existing = True
+
                         if not update_existing:
                             # Check to see if the asset name matches the xform
                             # title. Per #857, the xform title takes priority.
@@ -281,8 +291,6 @@ class Command(BaseCommand):
                                 diff_str
                             )
                             continue
-                    else:
-                        update_existing = False
                     # Load the xlsform from the KC API to avoid having to deal
                     # with S3 credentials, etc.
                     response = kc_forms_api_request(
