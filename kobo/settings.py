@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 from datetime import timedelta
 import multiprocessing
 import os
+import subprocess
 
 from django.conf import global_settings
 from django.conf.global_settings import LANGUAGES as _available_langs
@@ -443,6 +444,28 @@ if 'RAVEN_DSN' in os.environ:
             },
         },
     }
+
+
+''' Try to identify the running codebase. Based upon
+https://github.com/tblobaum/git-rev/blob/master/index.js '''
+GIT_REV = {}
+for git_rev_key, git_command in (
+        ('short', ('git', 'rev-parse', '--short', 'HEAD')),
+        ('long', ('git', 'rev-parse', 'HEAD')),
+        ('branch', ('git', 'rev-parse', '--abbrev-ref', 'HEAD')),
+        ('tag', ('git', 'describe', '--exact-match', '--tags')),
+):
+    try:
+        GIT_REV[git_rev_key] = subprocess.check_output(
+            git_command, stderr=subprocess.STDOUT).strip()
+    except (OSError, subprocess.CalledProcessError) as e:
+        GIT_REV[git_rev_key] = False
+if GIT_REV['branch'] == 'HEAD':
+    GIT_REV['branch'] = False
+# Only superusers will be able to see this information unless
+# EXPOSE_GIT_REV=TRUE is set in the environment
+EXPOSE_GIT_REV = os.environ.get('EXPOSE_GIT_REV', '').upper() == 'TRUE'
+
 
 ''' Since this project handles user creation but shares its database with
 KoBoCAT, we must handle the model-level permission assignment that would've
