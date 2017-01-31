@@ -51,4 +51,10 @@ fi
 echo "Copying static files to nginx volume..."
 rsync -aq --chown=www-data "${KPI_SRC_DIR}/staticfiles/" "${NGINX_STATIC_DIR}/"
 
+rm -rf /etc/profile.d/pydev_debugger.bash.sh
+if [[ -d /srv/pydev_orig && ! -z "${KPI_PATH_FROM_ECLIPSE_TO_PYTHON_PAIRS}" ]]; then
+    echo 'Enabling PyDev remote debugging.'
+    "${KPI_SRC_DIR}/docker/setup_pydev.bash"
+fi
+
 echo 'KoBoForm initialization completed.'

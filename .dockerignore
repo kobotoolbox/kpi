@@ -6,3 +6,5 @@ jsapp/fonts
 staticfiles
 **/*.pyc
 webpack-stats.json
+locale
+
