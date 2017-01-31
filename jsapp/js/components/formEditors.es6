@@ -109,7 +109,7 @@ var ProjectSettings = React.createClass({
 
       var sharedWith = [];
       perms.forEach(function(perm) {
-        if (perm.user__username != owner && perm.user__username != 'AnonymousUser')
+        if (perm.user__username != owner && perm.user__username != 'AnonymousUser' && sharedWith.indexOf(perm.user__username) < 0)
           sharedWith.push(perm.user__username);
       });
     }
