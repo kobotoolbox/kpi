@@ -103,7 +103,7 @@ var AssetRow = React.createClass({
       var err = `Invalid filetype: '${file.type}'`;
       console.error(err);
     }
-    this.dropFiles(files);
+    this.dropFiles(files, {url: this.props.url});
   },
   render () {
     var selfowned = this.props.owner__username === this.props.currentUsername;

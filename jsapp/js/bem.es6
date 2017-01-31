@@ -232,6 +232,9 @@ bem.collectionFilter = BEM('collection-filter');
 
 bem.PrintOnly = BEM('print-only');
 
+bem.GitRev = BEM('git-rev');
+bem.GitRev__item = bem.GitRev.__('item', '<div>');
+
 bem.create = BEM;
 
 export default bem;
