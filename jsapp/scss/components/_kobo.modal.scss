@@ -5,7 +5,7 @@
   z-index: 20;
   top: 0px;
   left: 0px;
-  background-color: rgba(37, 50, 65, 0.8) !important;
+  background-color: rgba(255, 255, 255, 0.4) !important;
 }
 
 .modal-open {
@@ -17,7 +17,7 @@
   max-width: 90%;
   max-height: 95%;
   overflow-x: auto;
-  box-shadow: 2px 4px 8px 0px rgba(0, 0, 0, 0.3);
+  box-shadow: 2px 2px 15px 2px rgba(0,0,0,0.15);
 }
 
 .modal-content {
@@ -80,27 +80,23 @@
 
 .modal-title {
   margin: 0px;
-  padding: 20px;
+  padding: 20px 30px;
   font-size: 18px;
 }
 
 .modal-header {
-  color: #2196F3;
   min-height: 30px;
   margin: -15px -20px 0;
 }
 
 .modal-body {
-  padding: 20px 15px;
-
-  .modal-titled & {
-    padding: 30px 15px;
-  }
+  padding: 10px;
 }
 
 .modal-footer {
   min-height: 60px;
   padding-top: 10px;
+  padding-right: 10px;
 }
 
 $modalXcolor: #d8d8d8;
@@ -132,6 +128,7 @@ $modalXcolor: #d8d8d8;
 }
 
 .enketo-holder {
+  margin-top: 20px;
   .enketo-loading-message {
     p {
       text-align: center;
@@ -142,21 +139,6 @@ $modalXcolor: #d8d8d8;
       color: #3FA2EE;
       font-size: 20px;
     }
-  }
-}
-
-$errorColor: #E60C0C;
-
-.modal-error {
-  color: darken($errorColor, 20%);
-
-  .modal-title {
-    background-color: $errorColor;
-    color: mix(#fff, $errorColor, 95%);
-  }
-
-  .modal-x {
-    color: mix(#fff, $errorColor, 95%);
   }
 }
 
@@ -183,16 +165,30 @@ $errorColor: #E60C0C;
   cursor: pointer;
 }
 
-// alertify modal styling
+// alertify overrides
+
+.alertify .ajs-dimmer {
+  background-color:#FFF;
+  opacity: 0.4;
+}
 
 .alertify .ajs-header {
   margin: -10px;
   padding: 10px;
   padding-bottom: 20px;
-  font-size: 18px;  
-  color: #2196F3;
+  font-size: 18px;
 }
 
+.alertify .ajs-dialog {
+  box-shadow: 2px 2px 15px 2px rgba(0,0,0,0.15);
+}
+
+.alertify.ajs-closable .ajs-commands button {
+  width:20px;
+  height:20px;
+  margin-left: 5px;
+  padding:0px;
+}
 .alertify.ajs-closable .ajs-commands button.ajs-close {
   background:transparent;
 }
@@ -206,20 +202,22 @@ $errorColor: #E60C0C;
 
 .alertify.ajs-closable .ajs-commands {
   margin:0px;
-  top: 5px;
-  right: 5px;
-  padding:10px;
+  top: 20px;
+  right: 20px;
+  padding:0px;
 }
 
-.alertify .ajs-content {
+.alertify .ajs-body .ajs-content {
+  padding-right: 0px;
+  padding-left: 0px;
   pre {
-    background: #F9F9F9;
-    max-height: 250px;
+    max-height: 300px;
     overflow: auto;
-    padding:15px;
-  }
-  code {
-    white-space: normal;
+    word-wrap:break-word;
+    max-width:100%;
+    padding-right:20px;
+    white-space: initial;
+    font-size: 12px;
   }
 }
 
@@ -245,3 +243,27 @@ $errorColor: #E60C0C;
     }
   }
 }
+
+.alertify-notifier {
+  .ajs-message, 
+  .ajs-message.ajs-error, 
+  .ajs-message.ajs-success, 
+  .ajs-message.ajs-warning {
+    background:#484b5a;
+    color: white;
+    padding:25px;
+    width:auto;
+    min-width: 300px;
+    max-width:400px;
+  }
+  .ajs-message .ajs-close {
+    background-image:none;
+    background:transparent;
+    right: 15px;
+    top: 50%;
+    margin-top: -10px;
+    opacity: 0.8;
+    @extend .k-icon, .k-icon-close;
+  }
+}
+
