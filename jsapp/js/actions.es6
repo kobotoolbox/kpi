@@ -415,7 +415,7 @@ actions.resources.deployAsset.failed.listen(function(data, dialog_or_alert){
     // mode probably doesn't need special handling
     failure_message = `
       <p>${t('The form id was not valid.')}</p>
-      <p>${t('If this problem persists, please contact support@kobotoolbox.org')}</p>
+      <p>${t('If this problem persists, please contact <a href="mailto:support@kobotoolbox.org">support@kobotoolbox.org</a>.')}</p>
       <p><pre>${data.responseJSON.xform_id_string}</pre></p>
     `;
   } else if(!!data.responseJSON.detail) {
