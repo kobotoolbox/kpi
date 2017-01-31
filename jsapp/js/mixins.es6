@@ -1335,11 +1335,11 @@ mixins.clickAssets = {
         let dialog = alertify.dialog('confirm');
         let opts = {
           title: t('Delete Project'),
-          message: t('You are about to permanently delete this form. </strong> ' +
-            '<label class="alertify-toggle"><input type="checkbox"/> ' + t('All data gathered for this form will be deleted.') + '</label>' +
-            '<label class="alertify-toggle"><input type="checkbox"/> ' + t('All questions created for this form will be deleted.') + '</label>' +
-            '<label class="alertify-toggle"><input type="checkbox"/> ' + t('The form associated with this project will be deleted.') + '</label>' +
-            '<label class="alertify-toggle alertify-toggle-important"><input type="checkbox" /> ' + t('I understand that if I delete this project I will not be able to recover it.') + '</label>'),
+          message: `${t('You are about to permanently delete this form.')}
+            <label class="alertify-toggle"><input type="checkbox"/> ${t('All data gathered for this form will be deleted.')}</label>
+            <label class="alertify-toggle"><input type="checkbox"/> ${t('All questions created for this form will be deleted.')}</label>
+            <label class="alertify-toggle"><input type="checkbox"/> ${t('The form associated with this project will be deleted.')}</label>
+            <label class="alertify-toggle alertify-toggle-important"><input type="checkbox" /> ${t('I understand that if I delete this project I will not be able to recover it.')}</label> `,
           labels: {ok: t('Delete'), cancel: t('Cancel')},
           onshow: (evt) => {
             let ok_button = dialog.elements.buttons.primary.firstChild;
@@ -1381,8 +1381,8 @@ mixins.clickAssets = {
         let dialog = alertify.dialog('confirm');
         let opts = {
           title: t('Archive Project'),
-          message: t('Are you sure you want to archive this project? ' +
-                     '<br/><br/><strong>' + t('Your form will not accept submissions while it is archived.') + '</strong>'),
+          message: `${t('Are you sure you want to archive this project?')} <br/><br/>
+                     <strong>${t('Your form will not accept submissions while it is archived.')}</strong>`,
           labels: {ok: t('Archive'), cancel: t('Cancel')},
           onok: (evt, val) => {
             actions.resources.setDeploymentActive(
