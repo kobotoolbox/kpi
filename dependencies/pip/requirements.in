@@ -41,6 +41,7 @@ django-loginas==0.2.3
 django-markitup
 django-mptt
 django-reversion
+django-simple-captcha
 django-taggit
 djangorestframework
 drf-extensions

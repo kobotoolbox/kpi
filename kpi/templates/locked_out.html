@@ -1,0 +1,11 @@
+
+<form action="" method="post">
+    {% csrf_token %}
+
+    {{ form.captcha.errors }}
+    {{ form.captcha }}
+
+    <div class="form-actions">
+        <input type="submit" value="Submit" />
+    </div>
+</form>

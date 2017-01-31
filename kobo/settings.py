@@ -16,9 +16,8 @@ import subprocess
 from django.conf import global_settings
 from django.conf.global_settings import LOGIN_URL
 from django.utils.translation import get_language_info
-import dj_database_url
-
 from pymongo import MongoClient
+import dj_database_url
 
 from static_lists import NATIVE_LANGUAGE_NAMES
 
@@ -88,6 +87,7 @@ INSTALLED_APPS = (
     'markitup',
     'django_digest',
     'axes',
+    'captcha',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -527,4 +527,10 @@ MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
+
 # `django_axes`: http://django-axes.readthedocs.io/en/latest/configuration.html#customizing-axes
+AXES_LOGIN_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = 1
+AXES_LOCKOUT_URL = '/locked'
+if os.environ.get('AXES_BEHIND_REVERSE_PROXY', 'False').lower() == 'true':
+    AXES_BEHIND_REVERSE_PROXY = True

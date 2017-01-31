@@ -1,8 +1,12 @@
 fontforge
 gettext
 git-core
+libfreetype6-dev
+libjpeg-dev
 libpcre3
 libpcre3-dev
 libpq-dev
+libz-dev
 nodejs
+python-dev
 ttfautohint

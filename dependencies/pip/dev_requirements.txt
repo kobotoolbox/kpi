@@ -33,6 +33,7 @@ django-oauth-toolkit==0.11.0
 django-registration-redux==1.3
 django-reversion==2.0.8
 django-ses==0.8.1
+django-simple-captcha==0.5.5
 django-taggit==0.22.0
 django-toolbelt==0.0.1
 django-webpack-loader==0.4.1
@@ -56,8 +57,10 @@ markdown==2.6.8
 markupsafe==0.23          # via jinja2
 ndg-httpsclient==0.4.2
 oauthlib==1.1.2
+olefile==0.44             # via pillow
 paramiko==2.1.1           # via fabric
 path.py==8.1.2
+pillow==4.1.0             # via django-simple-captcha
 psycopg2==2.6.2
 py==1.4.32                # via pytest
 pyasn1==0.2.2

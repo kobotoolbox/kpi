@@ -4,15 +4,21 @@ import copy
 import json
 import datetime
 
+from axes.decorators import get_ip
+from axes.utils import reset
+from captcha.fields import CaptchaField
+from django import forms
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.core.urlresolvers import reverse_lazy
 from django.db import transaction
 from django.db.models import Q, Count
 from django.forms import model_to_dict
 from django.http import Http404, HttpResponseBadRequest, HttpResponseRedirect
 from django.utils.http import is_safe_url
-from django.shortcuts import get_object_or_404, resolve_url
+from django.shortcuts import get_object_or_404, render_to_response, resolve_url
+from django.template.context import RequestContext
 from django.template.response import TemplateResponse
 from django.conf import settings
 from django.views.decorators.http import require_POST
@@ -807,3 +813,21 @@ class UserCollectionSubscriptionViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+class AxesCaptchaForm(forms.Form):
+    captcha = CaptchaField()
+
+
+def locked_out(request):
+    if request.POST:
+        form = AxesCaptchaForm(request.POST)
+        if form.is_valid():
+            ip = get_ip(request)
+            reset(ip=ip)
+            return HttpResponseRedirect(reverse_lazy('kpi-root'))
+    else:
+        form = AxesCaptchaForm()
+
+    return render_to_response('locked_out.html', dict(form=form),
+                              context_instance=RequestContext(request))
