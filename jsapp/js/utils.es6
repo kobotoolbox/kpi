@@ -9,7 +9,7 @@ export const LANGUAGE_COOKIE_NAME = 'django_language';
 
 export var assign = require('react/lib/Object.assign');
 
-alertify.defaults.notifier.delay = 300;
+alertify.defaults.notifier.delay = 10;
 alertify.defaults.notifier.position = 'bottom-left';
 alertify.defaults.notifier.closeButton = true;
 
