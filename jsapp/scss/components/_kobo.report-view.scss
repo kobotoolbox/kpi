@@ -203,38 +203,9 @@
 }
 
 // report graph settings
-.graph-settings {
-  margin-top: -30px;
-}
-
-.graph-settings__buttons {
-  text-align: right;
-  margin-top: 20px;
-  button {
-    border: 2px solid $cool-gray;
-    color: $cool-gray;
-    font-weight: 500;
-    font-size: 15px;
-    margin-right: 15px;
-    min-width: 110px;
-    text-align: center;
-    text-transform: uppercase;
-    &:hover, &.primary:hover {
-      color: #333;
-      border-color: #333;
-      background-color: transparent;
-    }
-    &.primary {
-      color: unquote("rgb(#{$color-primary})");
-      border-color: unquote("rgb(#{$color-primary})");
-    }
-  }
-}
 
 .graph-settings__charttype, .graph-settings__colors {
-  padding: 30px 10px;
-  min-height: 400px;
-  margin-bottom: 20px;
+  padding: 20px 10px;
   &:after {
     content: '';
     clear: both;
