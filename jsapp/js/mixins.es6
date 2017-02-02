@@ -14,6 +14,7 @@ import stores from './stores';
 import bem from './bem';
 import actions from './actions';
 import ui from './ui';
+import $ from 'jquery';
 
 import {
   formatTime,
@@ -148,7 +149,7 @@ var dmix = {
                     </bem.FormView__cell>
                   </bem.FormView__row>
  
-                  { this.state.has_deployment ?
+                  { this.state.has_deployment && this.state.deployment__active ?
                     this.renderInstructions()
                   : null }
                 </bem.FormView__wrapper> 
@@ -784,7 +785,9 @@ var dmix = {
                 {dvcount > 0 ? `v${dvcount}` : ''}
                 <span>
                   &nbsp;
-                  {this.state.deployment__active ? t('(deployed)') : t('(undeployed draft)')}
+                  {this.state.deployment__active ? t('(deployed)') :
+                    this.state.has_deployment ? t('(archived)') :
+                      t('(undeployed draft)')}
                 </span>
               </bem.FormView__group>
               {this.renderEditPreviewButtons()}
@@ -1330,15 +1333,42 @@ mixins.clickAssets = {
         this.transitionTo(`${this.baseName}form-edit`, {assetid: uid});
       },
       delete: function(uid/*, evt*/){
-        var q_ = t('You are about to permanently delete this form. Are you sure you want to continue?');
-        customConfirmAsync(q_)
-          .done(() => {
+        let asset = stores.selectedAsset.asset;
+        let dialog = alertify.dialog('confirm');
+        let opts = {
+          title: t('Delete Project'),
+          message: `${t('You are about to permanently delete this form.')}
+            <label class="alertify-toggle"><input type="checkbox"/> ${t('All data gathered for this form will be deleted.')}</label>
+            <label class="alertify-toggle"><input type="checkbox"/> ${t('All questions created for this form will be deleted.')}</label>
+            <label class="alertify-toggle"><input type="checkbox"/> ${t('The form associated with this project will be deleted.')}</label>
+            <label class="alertify-toggle alertify-toggle-important"><input type="checkbox" /> ${t('I understand that if I delete this project I will not be able to recover it.')}</label> `,
+          labels: {ok: t('Delete'), cancel: t('Cancel')},
+          onshow: (evt) => {
+            let ok_button = dialog.elements.buttons.primary.firstChild;
+            ok_button.disabled = true;
+            var $els = $('.alertify-toggle input');
+            $($els).change(function() {
+              ok_button.disabled = false;
+              $($els).each(function( index ) {
+                if (!$(this).prop('checked')) {
+                  ok_button.disabled = true;
+                } 
+              });
+            });
+            $()
+          },
+          onok: (evt, val) => {
             actions.resources.deleteAsset({uid: uid}, {
               onComplete: ()=> {
                 this.refreshSearch && this.refreshSearch();
               }
             });
-          });
+          },
+          oncancel: () => {
+            dialog.destroy();
+          }
+        };
+        dialog.set(opts).show();
       },
       deploy: function(uid){
         let asset = stores.selectedAsset.asset;
@@ -1347,6 +1377,33 @@ mixins.clickAssets = {
           // to call `transitionTo()` from within `deployAsset()`
           this.transitionTo(`${this.baseName}form-landing`, {assetid: uid});
         });
+      },
+      archive: function(uid, evt) {
+        let asset = stores.selectedAsset.asset;
+        let dialog = alertify.dialog('confirm');
+        let opts = {
+          title: t('Archive Project'),
+          message: `${t('Are you sure you want to archive this project?')} <br/><br/>
+                     <strong>${t('Your form will not accept submissions while it is archived.')}</strong>`,
+          labels: {ok: t('Archive'), cancel: t('Cancel')},
+          onok: (evt, val) => {
+            actions.resources.setDeploymentActive(
+              {
+                asset: asset,
+                active: false
+              },
+              {onComplete: ()=> {
+                this.refreshSearch && this.refreshSearch();
+                notify(t('archived project'));
+              }}
+            );
+          },
+          oncancel: () => {
+            dialog.destroy();
+          }
+        };
+        dialog.set(opts).show();
+
       },
       sharing: function(uid){
         this.transitionTo(`${this.baseName}form-sharing`, {assetid: uid});

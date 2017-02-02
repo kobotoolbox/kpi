@@ -336,8 +336,11 @@
     }
   }
 
-  i.k-icon-help {
-    font-size: 26px;
-    color:$cool-gray;
+  .cascade-help {
+    text-align: right;
+    i {
+      font-size: 26px;
+      color:$cool-gray;
+    }
   }
 }

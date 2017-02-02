@@ -161,35 +161,27 @@ var SearchCollectionList = React.createClass({
       );
   },
   renderGroupedResults () {
-    return ['Deployed', 'Draft', 'Archived' /*, 'deleted'*/].map(
+    var searchResultsBucket = 'defaultQueryCategorizedResultsLists';
+    if (this.state.searchResultsDisplayed)
+      searchResultsBucket = 'searchResultsCategorizedResultsLists';
+
+    return ['Deployed', 'Draft', 'Archived'].map(
       (category) => {
-        var categoryVisible = this.state.selectedCategories[category];
-        if (this.state.defaultQueryCategorizedResultsLists[category].length > 0) {
-          return [
-            <bem.AssetList__heading m={[category, categoryVisible ? 'visible' : 'collapsed']} 
-                                    // onClick={this.toggleCategory(category)}
-                                    >
-              {t(category)}
-              {this.state.searchResultsDisplayed ? ` (${this.state.searchResultsCategorizedResultsLists[category].length})` : ` (${this.state.defaultQueryCategorizedResultsLists[category].length})`}
-            </bem.AssetList__heading>,
-            <bem.AssetItems m={[category, categoryVisible ? 'visible' : 'collapsed']}>
-              {this.renderGroupedHeadings()}
-              {
-                (()=>{
-                  if (this.state.searchResultsDisplayed) {
-                    return this.state.searchResultsCategorizedResultsLists[category].map(
-                      this.renderAssetRow)
-                  } else {
-                    return this.state.defaultQueryCategorizedResultsLists[category].map(
-                      this.renderAssetRow)
-                  }
-                })()
-              }
-            </bem.AssetItems>
-          ];
-        } else {
-          return false;
-        }
+        return [
+          <bem.AssetList__heading m={['visible']}>
+            {t(category)}
+            {` (${this.state[searchResultsBucket][category].length})`}
+          </bem.AssetList__heading>,
+          <bem.AssetItems m={['visible']}>
+            {this.state[searchResultsBucket][category].length > 0 && this.renderGroupedHeadings()}
+            {
+              (()=>{
+                return this.state[[searchResultsBucket]][category].map(
+                  this.renderAssetRow)
+              })()
+            }
+          </bem.AssetItems>
+        ];
       }
     );    
   },

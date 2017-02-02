@@ -483,53 +483,55 @@ var Reports = React.createClass({
     }
     return (
       <bem.GraphSettings>
-        <div className="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
-          <div className="mdl-tabs__tab-bar">
-              <a href="#graph-type" className="mdl-tabs__tab is-active">
-                {t('Chart Type')}
-              </a>
-              <a href="#graph-colors" className="mdl-tabs__tab">
-                {t('Colors')}
-              </a>
-              <a href="#graph-labels" className="mdl-tabs__tab">
-                {t('Size')}
-              </a>
-          </div>
- 
-          <div className="mdl-tabs__panel is-active" id="graph-type">
-            <DefaultChartTypePicker
-                defaultStyle={defaultStyle}
-                onChange={this.reportStyleChange}
-                translationIndex={this.state.translationIndex}
-              />
-          </div>
-          <div className="mdl-tabs__panel" id="graph-colors">
-            <DefaultChartColorsPicker
-                defaultStyle={defaultStyle}
-                onChange={this.reportStyleChange}
-                translationIndex={this.state.translationIndex}
-              />
-          </div>
-          <div className="mdl-tabs__panel graph-tab__size" id="graph-labels">
-            <SizeSliderInput 
-                        name="width" min="300" max="900" default={this.state.graphWidth} 
-                        label={t('Width: ')} 
-                        onChange={this.reportSizeChange} />
-            <div className="is-edge">
+        <ui.Modal.Body>
+          <div className="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
+            <div className="mdl-tabs__tab-bar">
+                <a href="#graph-type" className="mdl-tabs__tab is-active">
+                  {t('Chart Type')}
+                </a>
+                <a href="#graph-colors" className="mdl-tabs__tab">
+                  {t('Colors')}
+                </a>
+                <a href="#graph-labels" className="mdl-tabs__tab">
+                  {t('Size')}
+                </a>
+            </div>
+   
+            <div className="mdl-tabs__panel is-active" id="graph-type">
+              <DefaultChartTypePicker
+                  defaultStyle={defaultStyle}
+                  onChange={this.reportStyleChange}
+                  translationIndex={this.state.translationIndex}
+                />
+            </div>
+            <div className="mdl-tabs__panel" id="graph-colors">
+              <DefaultChartColorsPicker
+                  defaultStyle={defaultStyle}
+                  onChange={this.reportStyleChange}
+                  translationIndex={this.state.translationIndex}
+                />
+            </div>
+            <div className="mdl-tabs__panel graph-tab__size" id="graph-labels">
               <SizeSliderInput 
-                        name="height" min="200" max="500" default={this.state.graphHeight}
-                        label={t('Height: ')} 
-                        onChange={this.reportSizeChange} />
+                          name="width" min="300" max="900" default={this.state.graphWidth} 
+                          label={t('Width: ')} 
+                          onChange={this.reportSizeChange} />
+              <div className="is-edge">
+                <SizeSliderInput 
+                          name="height" min="200" max="500" default={this.state.graphHeight}
+                          label={t('Height: ')} 
+                          onChange={this.reportSizeChange} />
+              </div>
             </div>
           </div>
-        </div>
+        </ui.Modal.Body>
  
-        <bem.GraphSettings__buttons>
+        <ui.Modal.Footer>
           <button className="mdl-button mdl-js-button primary"
                   onClick={this.toggleReportGraphSettings}>
             {t('Done')}
           </button>
-        </bem.GraphSettings__buttons>
+        </ui.Modal.Footer>
       </bem.GraphSettings>
     );
   },
@@ -555,6 +557,29 @@ var Reports = React.createClass({
 
     for (var i = reportData.length - 1; i >= 0; i--) {;
       reportData[i].style = defaultStyle;
+    }
+
+    if (this.state.reportData === undefined) {
+      return (
+        <bem.Loading>
+          <bem.Loading__inner>
+            <i />
+            {t('loading...')}
+          </bem.Loading__inner>
+        </bem.Loading>
+      );
+    }
+
+    if (this.state.reportData && reportData.length === 0) {
+      return (
+        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+          <bem.Loading>
+            <bem.Loading__inner>
+              {t('This report has no data.')}
+            </bem.Loading__inner>
+          </bem.Loading>
+        </DocumentTitle>
+      );
     }
 
     return (
@@ -585,9 +610,6 @@ var Reports = React.createClass({
                   <p>{t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. ')}</p>
                 </bem.ReportView__warning>
                 {
-                  reportData.length === 0 ?
-                    <p>No report data</p>
-                  :
                   reportData.map((rowContent)=>{
                     return (
                         <bem.ReportView__item>
@@ -617,9 +639,7 @@ var Reports = React.createClass({
           }
           {this.state.showReportGraphSettings ?
             <ui.Modal open onClose={this.toggleReportGraphSettings} title={t('Global Graph Settings')}>
-              <ui.Modal.Body>
-                {this.renderReportGraphSettings()}
-              </ui.Modal.Body>
+              {this.renderReportGraphSettings()}
             </ui.Modal>
  
           : null}

@@ -2,12 +2,15 @@
 # -*- coding: utf-8 -*-
 
 
-class BaseDeploymentBackend:
+class BaseDeploymentBackend(object):
     def __init__(self, asset):
         self.asset = asset
 
     def store_data(self, vals=None):
         self.asset._deployment_data.update(vals)
+
+    def delete(self):
+        self.asset._deployment_data.clear()
 
     @property
     def backend(self):

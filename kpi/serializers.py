@@ -513,8 +513,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                        .get('request', None))
 
     def get_deployed_version_id(self, obj):
+        if not obj.has_deployment:
+            return
         if obj.asset_versions.filter(deployed=True).exists():
-            if obj.has_deployment and isinstance(obj.deployment.version_id, int):
+            if isinstance(obj.deployment.version_id, int):
                 # this can be removed once the 'replace_deployment_ids'
                 # migration has been run
                 v_id = obj.deployment.version_id
@@ -603,7 +605,7 @@ class DeploymentSerializer(serializers.Serializer):
 
         # A regular PATCH request can update only the `active` field
         if 'active' in validated_data:
-            asset.deploy(validated_data['active'])
+            deployment.set_active(validated_data['active'])
             asset.save(create_version=False,
                        adjust_content=False)
         return deployment
