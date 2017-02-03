@@ -265,10 +265,12 @@ var Reports = React.createClass({
 
       if (asset.content.survey != undefined) {
         asset.content.survey.forEach(function(r){
-          let $identifier = r.name || r.$kuid,
+          let $identifier = r.$autoname || r.name,
             style = specifiedReportStyles[$identifier] || {};
           r._reportStyle = style;
-          rowsByKuid[r.$kuid] = r;
+          if (r.$kuid) {
+            rowsByKuid[r.$kuid] = r;
+          }
           rowsByIdentifier[$identifier] = r;
         });
 
@@ -276,20 +278,21 @@ var Reports = React.createClass({
           var dataWithResponses = [];
 
           data.list.forEach(function(row){
-            if (row.data.responses != undefined) {
-              if (rowsByIdentifier[row.name] != undefined)
+            if (row.data.responses !== undefined) {
+              if (rowsByIdentifier[row.name] !== undefined) {
                 row.row.label = rowsByIdentifier[row.name].label;
-              else
+              } else {
                 row.row.label = t('untitled');
-
+              }
               dataWithResponses.push(row);
             }
 
-            if (row.data.values != undefined) {
-              if (rowsByIdentifier[row.name] != undefined)
+            if (row.data.values !== undefined) {
+              if (rowsByIdentifier[row.name] !== undefined) {
                 row.row.label = rowsByIdentifier[row.name].label;
-              else
+              } else {
                 row.row.label = t('untitled');
+              }
               dataWithResponses.push(row);
             }
 
