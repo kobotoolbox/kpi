@@ -480,7 +480,7 @@ class Asset(ObjectPermissionMixin,
 
     def clone(self, version_uid=None):
         # not currently used, but this is how "to_clone_dict" should work
-        Asset.objects.create(**self.to_clone_dict(version_uid))
+        return Asset.objects.create(**self.to_clone_dict(version_uid))
 
     def revert_to_version(self, version_uid):
         av = self.asset_versions.get(uid=version_uid)
