@@ -119,17 +119,13 @@ def _xform_to_asset_content(xform):
     user = xform.user
     response = _kc_forms_api_request(user.auth_token, xform.pk, xlsform=True)
     if response.status_code == 404:
-        raise SyncKCXFormsWarning([
-            user.username,
-            xform.id_string,
+        raise SyncKCXFormsWarning(
             u'unable to load xls ({})'.format(response.status_code)
-        ])
+        )
     elif response.status_code != 200:
-        raise SyncKCXFormsError([
-            user.username,
-            xform.id_string,
+        raise SyncKCXFormsError(
             u'unable to load xls ({})'.format(response.status_code)
-        ])
+        )
     # Convert the xlsform to KPI JSON
     xls_io = io.BytesIO(response.content)
     if xform.xls.name.endswith('.csv'):
@@ -389,6 +385,7 @@ class Command(BaseCommand):
                             e.message
                         ]
                         self._print_tabular(*error_information)
+                        continue
                     except SyncKCXFormsError as e:
                         error_information = [
                             'FAIL',
@@ -399,6 +396,7 @@ class Command(BaseCommand):
                         self._print_tabular(*error_information)
                         logging.exception(u'sync_kobocat_xforms: {}'.format(
                             u', '.join(error_information)))
+                        continue
 
                     if content_changed or metadata_changed:
                         asset.save(adjust_content=False)
