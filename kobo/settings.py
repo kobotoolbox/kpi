@@ -15,6 +15,7 @@ import subprocess
 
 from django.conf import global_settings
 from django.conf.global_settings import LANGUAGES as _available_langs
+from django.conf.global_settings import LOGIN_URL
 from django.utils.translation import get_language_info
 import dj_database_url
 
@@ -183,7 +184,6 @@ else:
 # KPI_PREFIX should be set in the environment when running in a subdirectory
 if KPI_PREFIX and KPI_PREFIX != '/':
     STATIC_URL = KPI_PREFIX + '/' + STATIC_URL.lstrip('/')
-    from django.conf.global_settings import LOGIN_URL, LOGIN_REDIRECT_URL
     LOGIN_URL = KPI_PREFIX + '/' + LOGIN_URL.lstrip('/')
     LOGIN_REDIRECT_URL = KPI_PREFIX + '/' + LOGIN_REDIRECT_URL.lstrip('/')
 
