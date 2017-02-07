@@ -76,12 +76,25 @@ describe " translations set proper values ", ->
           ]
         translations: ["L1", "L2"]
       )
-    expect(survey._preferred_translation).toEqual("L1")
+    src = $inputParser.parse(
+        survey: [
+            type: "text"
+            label: ["VAL1_L1", "VAL2_L2"],
+            name: "val1",
+          ]
+        translations: ["L1", "L2"]
+      )
+    expect(src['null_translation']).toEqual("L1")
+    expect(src.translations[0]).toEqual(null)
+
+    # expect(survey._preferred_translation).toEqual("L1")
     expect(survey._secondary_translation).toEqual("L2")
-    r0 = survey.toJSON().survey[0]
-    expect(r0['label::L1']).toBeDefined()
+    _sjson = survey.toJSON()
+    r0 = _sjson.survey[0]
+    expect(r0['label']).toBeDefined()
     expect(r0['label::L2']).toBeDefined()
-    expect(r0.label).toBeUndefined()
+    # expect(r0.label).toBeUndefined()
+    expect(_sjson['#null_translation']).toEqual('L1')
 
   it 'example 3', ->
     survey = process(

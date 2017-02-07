@@ -95,11 +95,13 @@ module.exports = do ->
 
   inputParser.parseArr = parseArr
   inputParser.parse = (o)->
-    translations = o.translations or [null]
-    if translations and '#null_translation' of o
-      translations.preferred_translation = o['#null_translation']
-      if o['#null_translation'] isnt null and null in translations
-        translations[translations.indexOf(null)] = 'UNNAMED'
+    translations = o.translations
+    if translations
+      if translations.indexOf(null) is -1
+        o.null_translation = translations[0]
+        translations[0] = null
+    else
+      translations = [null]
 
     # sorts groups and repeats into groups and repeats (recreates the structure)
     if o.survey
@@ -111,6 +113,9 @@ module.exports = do ->
     # settings is sometimes packaged as an array length=1
     if o.settings and _.isArray(o.settings) and o.settings.length is 1
       o.settings = o.settings[0]
+
+    o.translations = translations
+
     o
 
   inputParser.loadChoiceLists = (passedChoices, choices)->
