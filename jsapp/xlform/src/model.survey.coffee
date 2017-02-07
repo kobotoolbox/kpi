@@ -32,14 +32,14 @@ module.exports = do ->
       @choices = new $choices.ChoiceLists([], _parent: @)
       $inputParser.loadChoiceLists(options.choices || [], @choices)
 
-      @translations = options.translations or [null]
-      if @translations
+      if options.translations
+        @translations = options.translations
         # if 'preferred_translation' is set, then any reference to a null translation
         # is actually a reference to the preferred translation.
         if @translations.preferred_translation
           _pt_index = @translations.indexOf(@translations.preferred_translation)
           if _pt_index is -1
-            throw new Error("Translation #{@translations.preferred_translation} "
+            throw new Error("Translation #{@translations.preferred_translation} " +
                             "not found in list: #{@translations.join(', ')}")
           if not @translations.secondary_translation
             # the secondary_translation is the next available translation in the list
@@ -56,6 +56,14 @@ module.exports = do ->
           @translations.preferred_translation = @translations[_null_index]
           _next_translation_index = (_null_index + 1) % @translations.length
           @translations.secondary_translation = @translations[_next_translation_index]
+      else
+        @translations = [null]
+
+      if options['#null_translation']
+        @null_translation = options['#null_translation']
+
+      @_preferred_translation = @translations[0]
+      @_secondary_translation = @translations[1]
 
       if options.survey
         if !$inputParser.hasBeenParsed(options)
@@ -154,10 +162,8 @@ module.exports = do ->
       addlSheets =
         choices: new $choices.ChoiceLists()
 
-
-      # pass interface parameters back to the server
-      if @translations and @translations.preferred_translation isnt null
-        obj['#null_translation'] = @translations.preferred_translation
+      if @null_translation
+        obj['#null_translation'] = @null_translation
 
       # in case we had to rename the null translation to "UNNAMED" in order
       # to "focus" the form builder on a named translation
