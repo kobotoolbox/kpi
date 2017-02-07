@@ -361,60 +361,60 @@ class Command(BaseCommand):
             # Use our stub model to access KC's XForm objects
             xforms = user.xforms.all()
             for xform in xforms:
-                with transaction.atomic():
-                    if xform.uuid not in xform_uuids_to_asset_pks:
-                        # This is an orphaned KC form. Build a new asset to
-                        # match
-                        asset = Asset(asset_type='survey', owner=user)
-                        asset.name = _make_name_for_asset(asset, xform)
-                    else:
-                        asset = Asset.objects.get(
-                            pk=xform_uuids_to_asset_pks[xform.uuid])
+                try:
+                    with transaction.atomic():
+                        if xform.uuid not in xform_uuids_to_asset_pks:
+                            # This is an orphaned KC form. Build a new asset to
+                            # match
+                            asset = Asset(asset_type='survey', owner=user)
+                            asset.name = _make_name_for_asset(asset, xform)
+                        else:
+                            asset = Asset.objects.get(
+                                pk=xform_uuids_to_asset_pks[xform.uuid])
 
-                    changes = []
-                    try:
-                        content_changed = _sync_form_content(
-                            asset, xform, changes)
-                        metadata_changed = _sync_form_metadata(
-                            asset, xform, changes)
-                    except SyncKCXFormsWarning as e:
-                        error_information = [
-                            'WARN',
-                            user.username,
-                            xform.id_string,
-                            e.message
-                        ]
-                        self._print_tabular(*error_information)
-                        continue
-                    except SyncKCXFormsError as e:
-                        error_information = [
-                            'FAIL',
-                            user.username,
-                            xform.id_string,
-                            e.message
-                        ]
-                        self._print_tabular(*error_information)
-                        logging.exception(u'sync_kobocat_xforms: {}'.format(
-                            u', '.join(error_information)))
-                        continue
+                        changes = []
+                        try:
+                            content_changed = _sync_form_content(
+                                asset, xform, changes)
+                            metadata_changed = _sync_form_metadata(
+                                asset, xform, changes)
+                        except SyncKCXFormsWarning as e:
+                            error_information = [
+                                'WARN',
+                                user.username,
+                                xform.id_string,
+                                e.message
+                            ]
+                            self._print_tabular(*error_information)
+                            continue
 
-                    if content_changed or metadata_changed:
-                        asset.save(adjust_content=False)
-                        if content_changed:
-                            asset._mark_latest_version_as_deployed()
-                        self._print_tabular(
-                            ','.join(changes),
-                            user.username,
-                            xform.id_string,
-                            asset.uid
-                        )
-                    else:
-                        self._print_tabular(
-                            'NOOP',
-                            user.username,
-                            xform.id_string,
-                            asset.uid
-                        )
+                        if content_changed or metadata_changed:
+                            asset.save(adjust_content=False)
+                            if content_changed:
+                                asset._mark_latest_version_as_deployed()
+                            self._print_tabular(
+                                ','.join(changes),
+                                user.username,
+                                xform.id_string,
+                                asset.uid
+                            )
+                        else:
+                            self._print_tabular(
+                                'NOOP',
+                                user.username,
+                                xform.id_string,
+                                asset.uid
+                            )
+                except Exception as e:
+                    error_information = [
+                        'FAIL',
+                        user.username,
+                        xform.id_string,
+                        repr(e)
+                    ]
+                    self._print_tabular(*error_information)
+                    logging.exception(u'sync_kobocat_xforms: {}'.format(
+                        u', '.join(error_information)))
 
         _set_auto_field_update(Asset, "date_created", True)
         _set_auto_field_update(Asset, "date_modified", True)
