@@ -96,10 +96,18 @@ module.exports = do ->
   inputParser.parseArr = parseArr
   inputParser.parse = (o)->
     translations = o.translations
+    if o['#null_translation']
+      _existing_null_translation = o['#null_translation']
+      delete o['#null_translation']
+
     if translations
       if translations.indexOf(null) is -1
-        o.null_translation = translations[0]
+        if _existing_null_translation
+          throw new Error('null_translation set, but cannot be found')
+        o._null_translation = translations[0]
         translations[0] = null
+      else if _existing_null_translation
+        o._null_translation = _existing_null_translation
     else
       translations = [null]
 

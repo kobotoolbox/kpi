@@ -52,6 +52,22 @@ describe " translations set proper values ", ->
     _json = survey.toJSON()
     expect(_json['#null_translation']).toEqual('XYZ')
 
+  it 'fails with invalid null_translation', ->
+    run = ->
+      survey = process(
+          survey: [
+              type: "text"
+              label: ["VAL1_NULL", "VAL2_L2"],
+              name: "val1",
+            ]
+          translations: ["L1", "L2"]
+          '#null_translation': 'XYZ'
+        )
+    # "#null_translation" is set, but refers to a value in "translations"
+    # but in this case there is no null in the translations list so it should
+    # throw an error
+    expect(run).toThrow()
+
   it 'example 1', ->
     survey = process(
         survey: [
@@ -84,16 +100,14 @@ describe " translations set proper values ", ->
           ]
         translations: ["L1", "L2"]
       )
-    expect(src['null_translation']).toEqual("L1")
+    expect(src['_null_translation']).toEqual("L1")
     expect(src.translations[0]).toEqual(null)
 
-    # expect(survey._preferred_translation).toEqual("L1")
     expect(survey._secondary_translation).toEqual("L2")
     _sjson = survey.toJSON()
     r0 = _sjson.survey[0]
     expect(r0['label']).toBeDefined()
     expect(r0['label::L2']).toBeDefined()
-    # expect(r0.label).toBeUndefined()
     expect(_sjson['#null_translation']).toEqual('L1')
 
   it 'example 3', ->

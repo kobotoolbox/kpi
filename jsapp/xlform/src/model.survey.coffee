@@ -34,33 +34,11 @@ module.exports = do ->
 
       if options.translations
         @translations = options.translations
-        # if 'preferred_translation' is set, then any reference to a null translation
-        # is actually a reference to the preferred translation.
-        if @translations.preferred_translation
-          _pt_index = @translations.indexOf(@translations.preferred_translation)
-          if _pt_index is -1
-            throw new Error("Translation #{@translations.preferred_translation} " +
-                            "not found in list: #{@translations.join(', ')}")
-          if not @translations.secondary_translation
-            # the secondary_translation is the next available translation in the list
-            @translations.secondary_translation = @translations[if _pt_index is 0 then 1 else 0]
-        else if -1 is @translations.indexOf(null)
-          # if no null translation exists, set the first two translations as the
-          # preferred and secondary
-          @translations.preferred_translation = @translations[0]
-          @translations.secondary_translation = @translations[1]
-        else
-          # if a null translation exists (e.g. with a column "label" in a survey with
-          # other "label::lang" columns) then it is the "preferred_translation" by default
-          _null_index = @translations.indexOf(null)
-          @translations.preferred_translation = @translations[_null_index]
-          _next_translation_index = (_null_index + 1) % @translations.length
-          @translations.secondary_translation = @translations[_next_translation_index]
       else
         @translations = [null]
 
-      if options['#null_translation']
-        @null_translation = options['#null_translation']
+      if options['_null_translation']
+        @null_translation = options['_null_translation']
 
       @_preferred_translation = @translations[0]
       @_secondary_translation = @translations[1]
@@ -164,11 +142,6 @@ module.exports = do ->
 
       if @null_translation
         obj['#null_translation'] = @null_translation
-
-      # in case we had to rename the null translation to "UNNAMED" in order
-      # to "focus" the form builder on a named translation
-      if @translations and 'UNNAMED' in @translations
-        obj['#replace_with_null_translation'] = 'UNNAMED'
 
       obj.translations = [].concat(@translations)
 
