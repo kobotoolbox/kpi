@@ -398,6 +398,19 @@ module.exports = do ->
 
       return newRow
 
+    getTranslatedColumnKey: (col, whichone="primary")->
+      if whichone is "secondary"
+        _t = @getSurvey()._secondary_translation
+      else
+        _t = @getSurvey()._preferred_translation
+      _key = "#{col}"
+      if _t isnt null
+        _key += "::#{_t}"
+      _key
+
+    getLabel: (whichone="primary")->
+      @getValue @getTranslatedColumnKey("label", whichone)
+
     finalize: ->
       existing_name = @getValue("name")
       unless existing_name

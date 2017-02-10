@@ -79,9 +79,13 @@ describe " translations set proper values ", ->
       )
     expect(survey._preferred_translation).toEqual(null)
     expect(survey._secondary_translation).toEqual("L2")
-    r0 = survey.toJSON().survey[0]
-    expect(r0['label']).toBeDefined()
-    expect(r0['label::L2']).toBeDefined()
+    r0 = survey.rows.at(0)
+    expect(r0.getLabel('primary')).toEqual('VAL1_NULL')
+    expect(r0.getLabel('secondary')).toEqual('VAL2_L2')
+
+    rj0 = survey.toJSON().survey[0]
+    expect(rj0['label']).toBeDefined()
+    expect(rj0['label::L2']).toBeDefined()
 
   it 'example 2', ->
     survey = process(
@@ -105,23 +109,26 @@ describe " translations set proper values ", ->
 
     expect(survey._secondary_translation).toEqual("L2")
     _sjson = survey.toJSON()
-    r0 = _sjson.survey[0]
-    expect(r0['label']).toBeDefined()
-    expect(r0['label::L2']).toBeDefined()
+
+    r0 = survey.rows.at(0)
+    expect(r0.getLabel('primary')).toEqual('VAL1_L1')
+    expect(r0.getLabel('secondary')).toEqual('VAL2_L2')
+
+    rj0 = _sjson.survey[0]
+    expect(rj0['label']).toBeDefined()
+    expect(rj0['label::L2']).toBeDefined()
     expect(_sjson['#null_translation']).toEqual('L1')
 
   it 'example 3', ->
-    survey = process(
-      survey: [
-          type: "text"
-          label: ["VAL1_L2", "VAL2_NULL"],
-          name: "val1",
-        ]
-      translations: ["L2", null]
-    )
-    expect(survey._preferred_translation).toEqual("L2")
-    expect(survey._secondary_translation).toEqual(null)
-    r0 = survey.toJSON().survey[0]
-    expect(r0['label::L2']).toBeDefined()
-    expect(r0['label']).toBeDefined()
+    run = ->
+      survey = process(
+        survey: [
+            type: "text"
+            label: ["VAL1_L2", "VAL2_NULL"],
+            name: "val1",
+          ]
+        translations: ["L2", null]
+      )
+    # run()
+    expect(run).toThrow('translations need to be reordered')
 

@@ -29,8 +29,8 @@ module.exports = do ->
           warnings_html += """<p class="survey-warnings__warning">#{warning}</p>"""
         warnings_html += """<button class="survey-warnings__close-button js-close-warning">x</button></div>"""
       if survey.translations
-        t0 = survey.translations.preferred_translation
-        t1 = survey.translations.secondary_translation
+        t0 = survey._preferred_translation
+        t1 = survey._secondary_translation
         print_translation = (tx)-> if tx is null then "Unnamed translation" else tx
         translations_content = "#{print_translation(t0)}"
         if t1

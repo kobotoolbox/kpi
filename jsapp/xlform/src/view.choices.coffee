@@ -129,14 +129,12 @@ module.exports = do ->
       @d.append(@t)
       @d.append(@c)
       @$el.html(@d)
-      try
-        _tt = @model.getSurvey().getSurvey().translations
-      catch err
-        _tt = false
 
-      if _tt and _tt.secondary_translation
-        _t_opt = @model.get("label::#{_tt.secondary_translation}")
-        $("<small>").html("""
+      _survey = @model.getSurvey().getSurvey()
+      _secondary_translation = _survey._secondary_translation
+      if _secondary_translation isnt undefined
+        _t_opt = @model.get("label::#{_secondary_translation}")
+        $("<small>", {className: 'secondary-translation'}).html("""
             <span>🌐&nbsp;-&nbsp;</span>
             <span class="translated-text">#{_t_opt}</span>
           """).appendTo(@$el)

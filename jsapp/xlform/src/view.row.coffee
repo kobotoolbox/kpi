@@ -65,6 +65,7 @@ module.exports = do ->
     _renderRow: ->
       @$el.html $viewTemplates.$$render('row.xlfRowView', @surveyView)
       @$label = @$('.card__header-title')
+      @$sub_label = @$('.card__header-subtitle')
       @$card = @$('.card')
       @$header = @$('.card__header')
       context = {warnings: []}
@@ -75,6 +76,9 @@ module.exports = do ->
         @listView = new $viewChoices.ListView(model: cl, rowView: @).render()
 
       @cardSettingsWrap = @$('.card__settings').eq(0)
+      _second_translation = @surveyView.survey._secondary_translation
+      if _second_translation isnt undefined
+        @$sub_label.html(@model.getLabel('secondary')).show()
       @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)
       for [key, val] in @model.attributesArray() when key is 'label' or key is 'type'
         view = new $viewRowDetail.DetailView(model: val, rowView: @)

@@ -65,6 +65,16 @@
         cursor:text;
         // white-space: pre;
     }
+    .card__header-subtitle {
+        margin: 10px 0 0 0;
+        color: #aaa;
+        font-size: 12px;
+
+        &:before {
+            content: '🌐 - ';
+            opacity: 0.5;
+        }
+    }
     &.card--shaded .card__header-title {
         opacity:0.3;
     }

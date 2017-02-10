@@ -33,7 +33,7 @@ module.exports = do ->
         delete item[key]
         _.map(translations, (_t, i)->
           _translated_val = val[i]
-          if _t and _t isnt translations.preferred_translation
+          if _t
             lang_str = "#{key}::#{_t}"
           else
             lang_str = key
@@ -101,12 +101,18 @@ module.exports = do ->
       delete o['#null_translation']
 
     if translations
-      if translations.indexOf(null) is -1
+      if translations.indexOf(null) is -1 # there is no unnamed translation
         if _existing_null_translation
           throw new Error('null_translation set, but cannot be found')
         o._null_translation = translations[0]
         translations[0] = null
-      else if _existing_null_translation
+      else if translations.indexOf(null) > 0
+        throw new Error("""
+                        null_translation must be the first (primary) translation
+                        translations need to be reordered or unnamed translation needs
+                        to be given a name
+                        """)
+      else if _existing_null_translation # there is already an active null translation
         o._null_translation = _existing_null_translation
     else
       translations = [null]
