@@ -410,27 +410,27 @@ actions.resources.deployAsset.failed.listen(function(data, dialog_or_alert){
     } else if (data.status == 500 && data.responseText) {
       msg = `<pre>${data.responseText}</pre>`;
     } else {
-      msg = t('Please check your connection and try again.');
+      msg = t('please check your connection and try again.');
     }
     failure_message = `
-      <p>${t('The server encountered an error while trying to deploy the project. If this problem persists, please contact <a href="mailto:support@kobotoolbox.org">support@kobotoolbox.org</a>.')}</p>
+      <p>${t('if this problem persists, contact support@kobotoolbox.org')}</p>
       <p>${msg}</p>
     `;
   } else if(!!data.responseJSON.xform_id_string){
     // TODO: now that the id_string is automatically generated, this failure
     // mode probably doesn't need special handling
     failure_message = `
-      <p>${t('The form id was not valid.')}</p>
-      <p>${t('If this problem persists, please contact <a href="mailto:support@kobotoolbox.org">support@kobotoolbox.org</a>.')}</p>
+      <p>${t('your form id was not valid:')}</p>
       <p><pre>${data.responseJSON.xform_id_string}</pre></p>
+      <p>${t('if this problem persists, contact support@kobotoolbox.org')}</p>
     `;
   } else if(!!data.responseJSON.detail) {
     failure_message = `
-      <p>${t('Your form cannot be deployed because it contains errors:')}</p>
+      <p>${t('your form cannot be deployed because it contains errors:')}</p>
       <p><pre>${data.responseJSON.detail}</pre></p>
     `;
   }
-  alertify.alert(t('Unable to deploy'), failure_message);
+  alertify.alert(t('unable to deploy'), failure_message);
 });
 
 actions.resources.setDeploymentActive.listen(
