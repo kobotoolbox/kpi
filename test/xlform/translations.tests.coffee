@@ -80,8 +80,8 @@ describe " translations set proper values ", ->
     expect(survey._translation_1).toEqual(null)
     expect(survey._translation_2).toEqual("L2")
     r0 = survey.rows.at(0)
-    expect(r0.getLabel('primary')).toEqual('VAL1_NULL')
-    expect(r0.getLabel('secondary')).toEqual('VAL2_L2')
+    expect(r0.getLabel('_1')).toEqual('VAL1_NULL')
+    expect(r0.getLabel('_2')).toEqual('VAL2_L2')
 
     rj0 = survey.toJSON().survey[0]
     expect(rj0['label']).toBeDefined()
@@ -111,8 +111,8 @@ describe " translations set proper values ", ->
     _sjson = survey.toJSON()
 
     r0 = survey.rows.at(0)
-    expect(r0.getLabel('primary')).toEqual('VAL1_L1')
-    expect(r0.getLabel('secondary')).toEqual('VAL2_L2')
+    expect(r0.getLabel('_1')).toEqual('VAL1_L1')
+    expect(r0.getLabel('_2')).toEqual('VAL2_L2')
 
     rj0 = _sjson.survey[0]
     expect(rj0['label']).toBeDefined()

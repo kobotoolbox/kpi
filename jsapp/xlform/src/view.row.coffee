@@ -78,7 +78,7 @@ module.exports = do ->
       @cardSettingsWrap = @$('.card__settings').eq(0)
       _second_translation = @surveyView.survey._translation_2
       if _second_translation isnt undefined
-        @$sub_label.html(@model.getLabel('secondary')).show()
+        @$sub_label.html(@model.getLabel('_2')).show()
       @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)
       for [key, val] in @model.attributesArray() when key is 'label' or key is 'type'
         view = new $viewRowDetail.DetailView(model: val, rowView: @)

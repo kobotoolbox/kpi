@@ -399,7 +399,7 @@ module.exports = do ->
       return newRow
 
     getTranslatedColumnKey: (col, whichone="primary")->
-      if whichone is "secondary"
+      if whichone is "_2"
         _t = @getSurvey()._translation_2
       else
         _t = @getSurvey()._translation_1
