@@ -31,14 +31,14 @@ describe " translations set proper values ", ->
     expect(survey2._preferred_translation).toEqual(null)
     expect(survey2._secondary_translation).toEqual(undefined)
 
-  it 'does not have null_translation value when none set', ->
+  it 'does not have active_translation_name value when none set', ->
     survey_json = process(
         survey: [type: "text", label: ["VAL1"], name: "val1"]
         translations: [null]
       ).toJSON()
-    expect(survey_json['#null_translation']).toBeUndefined()
+    expect(survey_json['#active_translation_name']).toBeUndefined()
 
-  it 'passes thru null_translation', ->
+  it 'passes thru active_translation_name', ->
     survey = process(
         survey: [
             type: "text"
@@ -46,13 +46,13 @@ describe " translations set proper values ", ->
             name: "val1",
           ]
         translations: [null, "L2"]
-        '#null_translation': 'XYZ'
+        '#active_translation_name': 'XYZ'
       )
-    expect(survey.null_translation).toEqual('XYZ')
+    expect(survey.active_translation_name).toEqual('XYZ')
     _json = survey.toJSON()
-    expect(_json['#null_translation']).toEqual('XYZ')
+    expect(_json['#active_translation_name']).toEqual('XYZ')
 
-  it 'fails with invalid null_translation', ->
+  it 'fails with invalid active_translation_name', ->
     run = ->
       survey = process(
           survey: [
@@ -61,9 +61,9 @@ describe " translations set proper values ", ->
               name: "val1",
             ]
           translations: ["L1", "L2"]
-          '#null_translation': 'XYZ'
+          '#active_translation_name': 'XYZ'
         )
-    # "#null_translation" is set, but refers to a value in "translations"
+    # "#active_translation_name" is set, but refers to a value in "translations"
     # but in this case there is no null in the translations list so it should
     # throw an error
     expect(run).toThrow()
@@ -104,7 +104,7 @@ describe " translations set proper values ", ->
           ]
         translations: ["L1", "L2"]
       )
-    expect(src['_null_translation']).toEqual("L1")
+    expect(src['_active_translation_name']).toEqual("L1")
     expect(src.translations[0]).toEqual(null)
 
     expect(survey._secondary_translation).toEqual("L2")
@@ -117,7 +117,7 @@ describe " translations set proper values ", ->
     rj0 = _sjson.survey[0]
     expect(rj0['label']).toBeDefined()
     expect(rj0['label::L2']).toBeDefined()
-    expect(_sjson['#null_translation']).toEqual('L1')
+    expect(_sjson['#active_translation_name']).toEqual('L1')
 
   it 'example 3', ->
     run = ->

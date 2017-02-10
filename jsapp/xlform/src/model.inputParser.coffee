@@ -96,24 +96,24 @@ module.exports = do ->
   inputParser.parseArr = parseArr
   inputParser.parse = (o)->
     translations = o.translations
-    if o['#null_translation']
-      _existing_null_translation = o['#null_translation']
-      delete o['#null_translation']
+    if o['#active_translation_name']
+      _existing_active_translation_name = o['#active_translation_name']
+      delete o['#active_translation_name']
 
     if translations
       if translations.indexOf(null) is -1 # there is no unnamed translation
-        if _existing_null_translation
-          throw new Error('null_translation set, but cannot be found')
-        o._null_translation = translations[0]
+        if _existing_active_translation_name
+          throw new Error('active translation set, but cannot be found')
+        o._active_translation_name = translations[0]
         translations[0] = null
       else if translations.indexOf(null) > 0
         throw new Error("""
-                        null_translation must be the first (primary) translation
+                        unnamed translation must be the first (primary) translation
                         translations need to be reordered or unnamed translation needs
                         to be given a name
                         """)
-      else if _existing_null_translation # there is already an active null translation
-        o._null_translation = _existing_null_translation
+      else if _existing_active_translation_name # there is already an active null translation
+        o._active_translation_name = _existing_active_translation_name
     else
       translations = [null]
 

@@ -37,8 +37,8 @@ module.exports = do ->
       else
         @translations = [null]
 
-      if options['_null_translation']
-        @null_translation = options['_null_translation']
+      if options['_active_translation_name']
+        @active_translation_name = options['_active_translation_name']
 
       @_preferred_translation = @translations[0]
       @_secondary_translation = @translations[1]
@@ -140,8 +140,8 @@ module.exports = do ->
       addlSheets =
         choices: new $choices.ChoiceLists()
 
-      if @null_translation
-        obj['#null_translation'] = @null_translation
+      if @active_translation_name
+        obj['#active_translation_name'] = @active_translation_name
 
       obj.translations = [].concat(@translations)
 

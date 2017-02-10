@@ -398,7 +398,7 @@ class Asset(ObjectPermissionMixin,
         # the interface focuses on the "null translation" and shows other ones
         # in advanced settings, we allow the builder to attach a parameter
         # which says what to name the null translation.
-        _null_translation_as = self.content.pop('#null_translation', None)
+        _null_translation_as = self.content.pop('#active_translation_name', None)
         if _null_translation_as:
             self._rename_translation(self.content, None, _null_translation_as)
 
