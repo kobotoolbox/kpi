@@ -25,11 +25,11 @@ describe " translations set proper values ", ->
         translations: [null]
       )
 
-    expect(survey1._preferred_translation).toEqual(null)
-    expect(survey1._secondary_translation).toEqual(undefined)
+    expect(survey1._translation_1).toEqual(null)
+    expect(survey1._translation_2).toEqual(undefined)
 
-    expect(survey2._preferred_translation).toEqual(null)
-    expect(survey2._secondary_translation).toEqual(undefined)
+    expect(survey2._translation_1).toEqual(null)
+    expect(survey2._translation_2).toEqual(undefined)
 
   it 'does not have active_translation_name value when none set', ->
     survey_json = process(
@@ -77,8 +77,8 @@ describe " translations set proper values ", ->
           ]
         translations: [null, "L2"]
       )
-    expect(survey._preferred_translation).toEqual(null)
-    expect(survey._secondary_translation).toEqual("L2")
+    expect(survey._translation_1).toEqual(null)
+    expect(survey._translation_2).toEqual("L2")
     r0 = survey.rows.at(0)
     expect(r0.getLabel('primary')).toEqual('VAL1_NULL')
     expect(r0.getLabel('secondary')).toEqual('VAL2_L2')
@@ -107,7 +107,7 @@ describe " translations set proper values ", ->
     expect(src['_active_translation_name']).toEqual("L1")
     expect(src.translations[0]).toEqual(null)
 
-    expect(survey._secondary_translation).toEqual("L2")
+    expect(survey._translation_2).toEqual("L2")
     _sjson = survey.toJSON()
 
     r0 = survey.rows.at(0)

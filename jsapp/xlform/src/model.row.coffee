@@ -400,9 +400,9 @@ module.exports = do ->
 
     getTranslatedColumnKey: (col, whichone="primary")->
       if whichone is "secondary"
-        _t = @getSurvey()._secondary_translation
+        _t = @getSurvey()._translation_2
       else
-        _t = @getSurvey()._preferred_translation
+        _t = @getSurvey()._translation_1
       _key = "#{col}"
       if _t isnt null
         _key += "::#{_t}"

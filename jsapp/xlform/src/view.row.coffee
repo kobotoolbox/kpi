@@ -76,7 +76,7 @@ module.exports = do ->
         @listView = new $viewChoices.ListView(model: cl, rowView: @).render()
 
       @cardSettingsWrap = @$('.card__settings').eq(0)
-      _second_translation = @surveyView.survey._secondary_translation
+      _second_translation = @surveyView.survey._translation_2
       if _second_translation isnt undefined
         @$sub_label.html(@model.getLabel('secondary')).show()
       @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)

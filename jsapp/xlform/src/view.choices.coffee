@@ -131,9 +131,9 @@ module.exports = do ->
       @$el.html(@d)
 
       _survey = @model.getSurvey().getSurvey()
-      _secondary_translation = _survey._secondary_translation
-      if _secondary_translation isnt undefined
-        _t_opt = @model.get("label::#{_secondary_translation}")
+      _translation_2 = _survey._translation_2
+      if _translation_2 isnt undefined
+        _t_opt = @model.get("label::#{_translation_2}")
         $("<small>", {className: 'secondary-translation'}).html("""
             <span>🌐&nbsp;-&nbsp;</span>
             <span class="translated-text">#{_t_opt}</span>

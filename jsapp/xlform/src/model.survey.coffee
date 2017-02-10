@@ -40,8 +40,8 @@ module.exports = do ->
       if options['_active_translation_name']
         @active_translation_name = options['_active_translation_name']
 
-      @_preferred_translation = @translations[0]
-      @_secondary_translation = @translations[1]
+      @_translation_1 = @translations[0]
+      @_translation_2 = @translations[1]
 
       if options.survey
         if !$inputParser.hasBeenParsed(options)
