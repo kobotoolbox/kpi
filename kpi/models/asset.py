@@ -235,6 +235,30 @@ class FormpackXLSFormUtils(object):
     def _has_translations(self, content, min_count=1):
         return len(content.get('translations', [])) >= min_count
 
+    def _prioritize_translation(self, content, translation_name):
+        _content = self.content
+        _translations = _content.get('translations')
+        if translation_name not in _translations:
+            return
+        _tindex = _translations.index(translation_name)
+        _translated = _content.get('translated', [])
+        if _tindex > 0:
+            for row in _content.get('survey'):
+                for col in _translated:
+                    _translated_cells = row[col]
+                    _translated_cells.insert(0, _translated_cells.pop(_tindex))
+            for row in _content.get('choices'):
+                for col in _translated:
+                    _translated_cells = row[col]
+                    _translated_cells.insert(0, _translated_cells.pop(_tindex))
+            _translations.insert(0, _translations.pop(_tindex))
+
+    def _reorder_translations(self, content, translations):
+        _ts = translations[:]
+        _ts.reverse()
+        for _tname in _ts:
+            self._prioritize_translation(content, _tname)
+
     def _rename_translation(self, content, _from, _to):
         _ts = self.content.get('translations')
         if _to in _ts:
