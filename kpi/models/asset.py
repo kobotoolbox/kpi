@@ -288,17 +288,17 @@ class FormpackXLSFormUtils(object):
             raise ValueError('translation cannot be found')
         _tindex = -1 if is_new else _translations.index(translation_name)
         if is_new or (_tindex > 0):
-            for row in content.get('survey'):
+            for row in content.get('survey', []):
                 for col in _translated:
                     if is_new:
-                        val = '[{}] {}'.format(translation_name, row[col][0])
+                        val = '{}'.format(row[col][0])
                     else:
                         val = row[col].pop(_tindex)
                     row[col].insert(0, val)
-            for row in content.get('choices'):
+            for row in content.get('choices', []):
                 for col in _translated:
                     if is_new:
-                        val = '[{}] {}'.format(translation_name, row[col][0])
+                        val = '{}'.format(row[col][0])
                     else:
                         val = row[col].pop(_tindex)
                     row[col].insert(0, val)
@@ -310,10 +310,10 @@ class FormpackXLSFormUtils(object):
     def _remove_last_translation(self, content):
         content.get('translations').pop()
         _translated = content.get('translated', [])
-        for row in content.get('survey'):
+        for row in content.get('survey', []):
             for col in _translated:
                 row[col].pop()
-        for row in content.get('choices'):
+        for row in content.get('choices', []):
             for col in _translated:
                 row[col].pop()
 
