@@ -5,7 +5,7 @@
   z-index: 20;
   top: 0px;
   left: 0px;
-  background-color: rgba(37, 50, 65, 0.8) !important;
+  background-color: rgba(255, 255, 255, 0.4) !important;
 }
 
 .modal-open {
@@ -17,7 +17,7 @@
   max-width: 90%;
   max-height: 95%;
   overflow-x: auto;
-  box-shadow: 2px 4px 8px 0px rgba(0, 0, 0, 0.3);
+  box-shadow: 2px 2px 15px 2px rgba(0,0,0,0.15);
 }
 
 .modal-content {
@@ -80,27 +80,23 @@
 
 .modal-title {
   margin: 0px;
-  padding: 20px;
+  padding: 20px 30px;
   font-size: 18px;
 }
 
 .modal-header {
-  color: #2196F3;
   min-height: 30px;
   margin: -15px -20px 0;
 }
 
 .modal-body {
-  padding: 20px 15px;
-
-  .modal-titled & {
-    padding: 30px 15px;
-  }
+  padding: 10px;
 }
 
 .modal-footer {
   min-height: 60px;
   padding-top: 10px;
+  padding-right: 10px;
 }
 
 $modalXcolor: #d8d8d8;
@@ -132,6 +128,7 @@ $modalXcolor: #d8d8d8;
 }
 
 .enketo-holder {
+  margin-top: 20px;
   .enketo-loading-message {
     p {
       text-align: center;
@@ -142,21 +139,6 @@ $modalXcolor: #d8d8d8;
       color: #3FA2EE;
       font-size: 20px;
     }
-  }
-}
-
-$errorColor: #E60C0C;
-
-.modal-error {
-  color: darken($errorColor, 20%);
-
-  .modal-title {
-    background-color: $errorColor;
-    color: mix(#fff, $errorColor, 95%);
-  }
-
-  .modal-x {
-    color: mix(#fff, $errorColor, 95%);
   }
 }
 
@@ -183,16 +165,31 @@ $errorColor: #E60C0C;
   cursor: pointer;
 }
 
-// alertify modal styling
+// alertify overrides
 
-.alertify .ajs-header {
-  margin: -10px;
-  padding: 10px;
-  padding-bottom: 20px;
-  font-size: 18px;  
-  color: #2196F3;
+.alertify .ajs-dimmer {
+  background-color:#FFF;
+  opacity: 0.4;
 }
 
+.alertify .ajs-dialog {
+  box-shadow: 2px 2px 15px 2px rgba(0,0,0,0.15);
+}
+
+.alertify .ajs-header {
+  margin: 0px;
+  padding: 0px;
+  padding-bottom: 18px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.alertify.ajs-closable .ajs-commands button {
+  width:24px;
+  height:24px;
+  margin-left: 5px;
+  padding:0px;
+}
 .alertify.ajs-closable .ajs-commands button.ajs-close {
   background:transparent;
 }
@@ -206,25 +203,32 @@ $errorColor: #E60C0C;
 
 .alertify.ajs-closable .ajs-commands {
   margin:0px;
-  top: 5px;
-  right: 5px;
-  padding:10px;
+  top: 20px;
+  right: 20px;
+  padding:0px;
 }
 
-.alertify .ajs-content {
+.alertify .ajs-body .ajs-content {
+  padding:0px;
   pre {
-    background: #F9F9F9;
-    max-height: 250px;
+    max-height: 300px;
     overflow: auto;
-    padding:15px;
+    word-wrap:break-word;
+    max-width:100%;
+    padding-right:20px;
+    white-space: initial;
+    font-size: 12px;
   }
-  code {
-    white-space: normal;
-  }
+}
+
+.alertify .ajs-dialog {
+  max-width: 550px;
+  padding:30px 30px 0 30px;
 }
 
 .alertify .ajs-footer {
-  padding:15px;
+  margin: -4px;
+  padding:17px 0px;
 
   .ajs-buttons.ajs-primary {
     text-align: right;
@@ -236,12 +240,56 @@ $errorColor: #E60C0C;
     padding-left: 20px;
     padding-right: 20px;
     &.ajs-ok {
-      padding-left: 40px;
-      padding-right: 40px;
       @extend .mdl-button--colored, .mdl-button--raised;
     }
     &.ajs-cancel {
-      @extend .mdl-button--bordered;
+      @extend .mdl-button--colored;
     }
+  }
+}
+
+.alertify-notifier {
+  .ajs-message, 
+  .ajs-message.ajs-error, 
+  .ajs-message.ajs-success, 
+  .ajs-message.ajs-warning {
+    background:#484b5a;
+    color: white;
+    padding:17px 24px;
+    padding-right:44px;
+    width:auto;
+    min-width: 320px;
+    max-width:460px;
+    line-height: 1.3em;
+  }
+  .ajs-message .ajs-close {
+    background-image:none;
+    background:transparent;
+    right: 15px;
+    top: 50%;
+    margin-top: -10px;
+    opacity: 0.5;
+    @extend .k-icon, .k-icon-close;
+    color: white;
+  }
+}
+
+.alertify-toggle {
+  // border:2px solid red;
+  display: block;
+  padding-bottom: 5px;
+  padding-top:5px;
+  input {
+    margin-right: 5px;
+  }
+  &:first-child {
+    padding-top: 15px;
+  }
+  &.alertify-toggle-important {
+    margin-top: 20px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    border-top: 1px solid #EDEDED;
+    font-weight: bold;
   }
 }

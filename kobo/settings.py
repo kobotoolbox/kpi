@@ -15,6 +15,7 @@ import subprocess
 
 from django.conf import global_settings
 from django.conf.global_settings import LANGUAGES as _available_langs
+from django.conf.global_settings import LOGIN_URL
 from django.utils.translation import get_language_info
 import dj_database_url
 
@@ -183,7 +184,6 @@ else:
 # KPI_PREFIX should be set in the environment when running in a subdirectory
 if KPI_PREFIX and KPI_PREFIX != '/':
     STATIC_URL = KPI_PREFIX + '/' + STATIC_URL.lstrip('/')
-    from django.conf.global_settings import LOGIN_URL, LOGIN_REDIRECT_URL
     LOGIN_URL = KPI_PREFIX + '/' + LOGIN_URL.lstrip('/')
     LOGIN_REDIRECT_URL = KPI_PREFIX + '/' + LOGIN_REDIRECT_URL.lstrip('/')
 
@@ -282,6 +282,7 @@ ENKETO_API_TOKEN = os.environ.get('ENKETO_API_TOKEN', 'enketorules')
 ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 
 ''' Celery configuration '''
+
 if os.environ.get('SKIP_CELERY', 'False') == 'True':
     # helpful for certain debugging
     CELERY_ALWAYS_EAGER = True
@@ -298,11 +299,15 @@ if multiprocessing.cpu_count() > CELERYD_MAX_CONCURRENCY:
 CELERYD_MAX_TASKS_PER_CHILD = int(os.environ.get(
     'CELERYD_MAX_TASKS_PER_CHILD', 7))
 
-# Uncomment to enable failsafe search indexing
+# Default to a 30-minute soft time limit and a 35-minute hard time limit
+CELERYD_TASK_TIME_LIMIT = int(os.environ.get('CELERYD_TASK_TIME_LIMIT', 2100))
+CELERYD_TASK_SOFT_TIME_LIMIT = int(os.environ.get(
+    'CELERYD_TASK_SOFT_TIME_LIMIT', 1800))
 
 CELERYBEAT_SCHEDULE = {
-    # Update the Haystack index twice per day to catch any stragglers that
-    # might have gotten past haystack.signals.RealtimeSignalProcessor
+    # Failsafe search indexing: update the Haystack index twice per day to
+    # catch any stragglers that might have gotten past
+    # haystack.signals.RealtimeSignalProcessor
     #'update-search-index': {
     #    'task': 'kpi.tasks.update_search_index',
     #    'schedule': timedelta(hours=12)

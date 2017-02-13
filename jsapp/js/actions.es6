@@ -141,6 +141,12 @@ actions.resources = Reflux.createActions({
       'failed'
     ]
   },
+  setDeploymentActive: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
   createSnapshot: {
     children: [
       'completed',
@@ -400,32 +406,49 @@ actions.resources.deployAsset.failed.listen(function(data, dialog_or_alert){
     // setContent() removes the input box, but the value is retained
     var msg;
     if (data.status == 500 && data.responseJSON && data.responseJSON.error) {
-      msg = `<code><pre>${data.responseJSON.error}</pre></code>`;
+      msg = `<pre>${data.responseJSON.error}</pre>`;
     } else if (data.status == 500 && data.responseText) {
-      msg = `<code><pre>${data.responseText}</pre></code>`;
+      msg = `<pre>${data.responseText}</pre>`;
     } else {
       msg = t('please check your connection and try again.');
     }
     failure_message = `
-      <p>${msg}</p>
       <p>${t('if this problem persists, contact support@kobotoolbox.org')}</p>
+      <p>${msg}</p>
     `;
   } else if(!!data.responseJSON.xform_id_string){
     // TODO: now that the id_string is automatically generated, this failure
     // mode probably doesn't need special handling
     failure_message = `
-      <p>${t('the form id was not valid.')}</p>
+      <p>${t('your form id was not valid:')}</p>
+      <p><pre>${data.responseJSON.xform_id_string}</pre></p>
       <p>${t('if this problem persists, contact support@kobotoolbox.org')}</p>
-      <p><code>${data.responseJSON.xform_id_string}</code></p>
     `;
   } else if(!!data.responseJSON.detail) {
     failure_message = `
       <p>${t('your form cannot be deployed because it contains errors:')}</p>
-      <p><code>${data.responseJSON.detail}</code></p>
+      <p><pre>${data.responseJSON.detail}</pre></p>
     `;
   }
   alertify.alert(t('unable to deploy'), failure_message);
 });
+
+actions.resources.setDeploymentActive.listen(
+  function(details, params={}) {
+    var onComplete;
+    if (params && params.onComplete) {
+      onComplete = params.onComplete;
+    }
+    dataInterface.setDeploymentActive(details)
+      .done(function(/*result*/){
+        actions.resources.setDeploymentActive.completed(details);
+        if (onComplete) {
+          onComplete(details);
+        }
+      })
+      .fail(actions.resources.setDeploymentActive.failed);
+  }
+);
 
 actions.reports = Reflux.createActions({
   setStyle: {
@@ -471,6 +494,7 @@ actions.resources.deleteAsset.listen(function(details, params={}){
     })
     .fail(actions.resources.deleteAsset.failed);
 });
+
 actions.resources.readCollection.listen(function(details){
   dataInterface.readCollection(details)
       .done(actions.resources.readCollection.completed)

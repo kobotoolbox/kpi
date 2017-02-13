@@ -1,6 +1,5 @@
 import StringIO
 import datetime
-import dateutil.parser
 import io
 import json
 import logging
@@ -27,6 +26,15 @@ from .import_survey_drafts_from_dkobo import _set_auto_field_update
 
 TIMESTAMP_DIFFERENCE_TOLERANCE = datetime.timedelta(seconds=30)
 
+
+class SyncKCXFormsError(Exception):
+    pass
+
+
+class SyncKCXFormsWarning(Exception):
+    pass
+
+
 def _add_contents_to_sheet(sheet, contents):
     ''' Copied from dkobo/koboform/pyxform_utils.py '''
     cols = []
@@ -42,7 +50,8 @@ def _add_contents_to_sheet(sheet, contents):
             if val:
                 sheet.write(ri+1, ci, val)
 
-def convert_dict_to_xls(ss_dict):
+
+def _convert_dict_to_xls(ss_dict):
     ''' Copied from dkobo/koboform/pyxform_utils.py '''
     workbook = xlwt.Workbook()
     for sheet_name in ss_dict.keys():
@@ -58,7 +67,8 @@ def convert_dict_to_xls(ss_dict):
     string_io.seek(0)
     return string_io
 
-def xlsform_to_kpi_content_schema(xlsform):
+
+def _xlsform_to_kpi_content_schema(xlsform):
     '''
     parses xlsform structure into json representation
     of spreadsheet structure.
@@ -76,7 +86,8 @@ def xlsform_to_kpi_content_schema(xlsform):
     return json.loads(re.sub('list name', 'list_name',
                   json.dumps(content, indent=4)))
 
-def kc_forms_api_request(token, xform_pk, xlsform=False):
+
+def _kc_forms_api_request(token, xform_pk, xlsform=False):
     ''' Returns a `Response` object '''
     url = '{}/api/v1/forms/{}'.format(
         settings.KOBOCAT_INTERNAL_URL, xform_pk)
@@ -85,10 +96,13 @@ def kc_forms_api_request(token, xform_pk, xlsform=False):
     headers = {u'Authorization':'Token ' + token.key}
     return requests.get(url, headers=headers)
 
-def make_name_for_asset(asset, xform):
+
+def _make_name_for_asset(asset, xform):
     desired_name = xform.title
-    if Asset.objects.exclude(pk=asset.pk).filter(
-            owner=asset.owner, name=desired_name).exists():
+    other_assets = Asset.objects.filter(owner=asset.owner)
+    if asset.pk:
+        other_assets.exclude(pk=asset.pk)
+    if other_assets.filter(name=desired_name).exists():
         # The user already has an asset with this name. Append
         # `xform.id_string` in parentheses for clarification
         if desired_name and len(desired_name.strip()):
@@ -97,6 +111,152 @@ def make_name_for_asset(asset, xform):
         else:
             desired_name = xform.id_string
     return desired_name
+
+
+def _xform_to_asset_content(xform):
+    # Load the xlsform from the KC API to avoid having to deal
+    # with S3 credentials, etc.
+    user = xform.user
+    response = _kc_forms_api_request(user.auth_token, xform.pk, xlsform=True)
+    if response.status_code == 404:
+        raise SyncKCXFormsWarning(
+            u'unable to load xls ({})'.format(response.status_code)
+        )
+    elif response.status_code != 200:
+        raise SyncKCXFormsError(
+            u'unable to load xls ({})'.format(response.status_code)
+        )
+    # Convert the xlsform to KPI JSON
+    xls_io = io.BytesIO(response.content)
+    if xform.xls.name.endswith('.csv'):
+        dict_repr = xls2json_backends.csv_to_dict(xls_io)
+        xls_io = _convert_dict_to_xls(dict_repr)
+    asset_content = _xlsform_to_kpi_content_schema(xls_io)
+    return asset_content
+
+
+def _get_kc_backend_response(xform):
+    # Get the form data from KC
+    user = xform.user
+    response = _kc_forms_api_request(user.auth_token, xform.pk)
+    if response.status_code == 404:
+        raise SyncKCXFormsWarning([
+            user.username,
+            xform.id_string,
+            'unable to load form data ({})'.format(response.status_code)
+        ])
+    elif response.status_code != 200:
+        raise SyncKCXFormsError([
+            user.username,
+            xform.id_string,
+            'unable to load form data ({})'.format(response.status_code)
+        ])
+    backend_response = response.json()
+    return backend_response
+
+
+def _sync_form_content(asset, xform, changes):
+    ''' Returns `True` and appends to `changes` if it modifies `asset`; does
+    not save anything '''
+    if not asset.has_deployment:
+        # A brand-new asset
+        asset.content = _xform_to_asset_content(xform)
+        asset.date_created = xform.date_created
+        asset.date_modified = xform.date_modified
+        changes.append('CREATE CONTENT')
+        return True
+
+    modified = False
+    # First, compare hashes to see if the KC form content
+    # has changed since the last deployment
+    backend_response = asset._deployment_data['backend_response']
+    if 'hash' in backend_response:
+        if backend_response['hash'] != xform.prefixed_hash:
+            asset.content = _xform_to_asset_content(xform)
+            asset.date_modified = xform.date_modified
+            modified = True
+            changes.append('UPDATE')
+    else:
+        # KC's `date_modified` is nearly useless (see
+        # https://github.com/kobotoolbox/kpi/issues/661#issuecomment-218073765).
+        # Still, in cases where KPI does not yet know the hash, comparing
+        # timestamps can sometimes avoid creating duplicate asset versions
+        time_diff = xform.date_modified - asset.date_modified
+        # If KC timestamp is close enough to the KPI timestamp, we assume the
+        # KC form content was not updated since the last KPI deployment
+        if time_diff <= TIMESTAMP_DIFFERENCE_TOLERANCE:
+            # We don't need an update, but we should copy the hash from KC to
+            # KPI for future reference
+            backend_response['hash'] = xform.prefixed_hash
+            modified = True
+            changes.append('HASH')
+        else:
+            asset.content = _xform_to_asset_content(xform)
+            asset.date_modified = xform.date_modified
+            modified = True
+            changes.append('UPDATE')
+    return modified
+
+
+def _sync_form_metadata(asset, xform, changes):
+    ''' Returns `True` and appends to `changes` if it modifies `asset`; does
+    not save anything '''
+    user = xform.user
+    if not asset.has_deployment:
+        # A brand-new asset
+        asset.date_created = xform.date_created
+        kc_deployment = KobocatDeploymentBackend(asset)
+        kc_deployment.store_data({
+            'backend': 'kobocat',
+            'identifier': KobocatDeploymentBackend.make_identifier(
+                user.username, xform.id_string),
+            'active': xform.downloadable,
+            'backend_response': _get_kc_backend_response(xform),
+            'version': asset.version_id
+        })
+        changes.append('CREATE METADATA')
+        return True
+
+    modified = False
+    fetch_backend_response = False
+    deployment_data = asset._deployment_data
+    backend_response = deployment_data['backend_response']
+
+    if (
+            deployment_data['active'] != xform.downloadable or
+            backend_response['downloadable'] != xform.downloadable
+    ):
+        deployment_data['active'] = xform.downloadable
+        modified = True
+        fetch_backend_response = True
+        changes.append('ACTIVE')
+
+    if settings.KOBOCAT_URL not in deployment_data['identifier']:
+        # Issue #1122
+        deployment_data[
+            'identifier'] = KobocatDeploymentBackend.make_identifier(
+                user.username, xform.id_string)
+        fetch_backend_response = True
+        modified = True
+        changes.append('IDENTIFIER')
+
+    # Check to see if the asset name matches the xform title. Per #857, the
+    # xform title takes priority.  The first check is a cheap one:
+    if asset.name != xform.title:
+        # Now do a full check of the name
+        desired_name = _make_name_for_asset(asset, xform)
+        if asset.name != desired_name:
+            asset.name = desired_name
+            modified = True
+            changes.append('NAME')
+
+    if fetch_backend_response:
+        deployment_data[
+            'backend_response'] = _get_kc_backend_response(xform)
+        modified = True
+
+    return modified
+
 
 class XForm(models.Model):
     ''' A stripped-down version of `onadata.apps.logger.models.XForm`, included
@@ -147,28 +307,26 @@ class Command(BaseCommand):
                     help='Do not output status messages'),
     )
 
+    def _print_str(self, string):
+        if not self._quiet:
+            print string
+
+    def _print_tabular(self, *args):
+        self._print_str(u'\t'.join(map(lambda x: u'{}'.format(x), args)))
+
     def handle(self, *args, **options):
         if not settings.KOBOCAT_URL or not settings.KOBOCAT_INTERNAL_URL:
             raise ImproperlyConfigured(
                 'Both KOBOCAT_URL and KOBOCAT_INTERNAL_URL must be '
                 'configured before using this command'
             )
-        if options.get('quiet'):
-            # Do not output anything
-            def print_str(string): pass
-        else:
-            # Output status messages
-            def print_str(string): print string
-
-        def print_tabular(*args):
-            print_str(u'\t'.join(map(lambda x: u'{}'.format(x), args)))
-
+        self._quiet = options.get('quiet')
         users = User.objects.all()
-        print_str('%d total users' % users.count())
+        self._print_str('%d total users' % users.count())
         # A specific user or everyone?
         if options.get('username'):
             users = User.objects.filter(username=options.get('username'))
-        print_str('%d users selected' % users.count())
+        self._print_str('%d users selected' % users.count())
         # Only users who prefer KPI or all users?
         if not options.get('all_users'):
             users = users.filter(
@@ -176,188 +334,76 @@ class Command(BaseCommand):
                     FormBuilderPreference.KPI) |
                 models.Q(formbuilderpreference=None) # KPI is the default now
             )
-            print_str('%d of selected users prefer KPI' % users.count())
+            self._print_str('%d of selected users prefer KPI' % users.count())
 
         # We'll be copying the date fields from KC, so don't auto-update them
         _set_auto_field_update(Asset, "date_created", False)
         _set_auto_field_update(Asset, "date_modified", False)
 
         for user in users:
-            (token, created) = Token.objects.get_or_create(user=user)
+            # Make sure the user has a token for access to KC's API
+            Token.objects.get_or_create(user=user)
+
             existing_surveys = user.assets.filter(asset_type='survey')
 
             # Each asset that the user has already deployed to KC should have a
             # form uuid stored in its deployment data
-            kpi_deployed_uuids = {}
+            xform_uuids_to_asset_pks = {}
             for existing_survey in existing_surveys:
                 dd = existing_survey._deployment_data
-                if 'backend_response' in dd:
-                    kpi_deployed_uuids[dd['backend_response']['uuid']] = \
-                        existing_survey.pk
+                try:
+                    backend_response = dd['backend_response']
+                except KeyError:
+                    continue
+                xform_uuids_to_asset_pks[backend_response['uuid']] = \
+                    existing_survey.pk
+
             # Use our stub model to access KC's XForm objects
             xforms = user.xforms.all()
             for xform in xforms:
                 try:
-                    if xform.uuid in kpi_deployed_uuids:
-                        # This KC form already has a corresponding KPI asset,
-                        # but the user may have directly updated the form on KC
-                        # after deploying from KPI. If so, then the KPI asset
-                        # must be updated with the contents of the KC form
-                        asset = user.assets.get(
-                            pk=kpi_deployed_uuids[xform.uuid])
-                        non_content_operation = 'NOOP'
-                        # First, compare hashes to see if the KC form content
-                        # has changed since the last deployment
-                        backend_response = asset._deployment_data[
-                            'backend_response']
-                        if 'hash' in backend_response:
-                            update_existing = backend_response['hash'] \
-                                != xform.prefixed_hash
-                            diff_str = 'hashes {}'.format(
-                                'differ' if update_existing else 'match')
-                        else:
-                            # KC's `date_modified` is nearly useless, because
-                            # every new submission changes it to the current
-                            # time, and when there are no submissions, merely
-                            # loading the projects list does the same (see
-                            # https://github.com/kobotoolbox/kpi/issues/661#issuecomment-218073765).
-                            # Still, in cases where KPI does not yet know the
-                            # hash, comparing timestamps can sometimes save us
-                            # from creating duplicate asset versions
-                            time_diff = xform.date_modified - asset.date_modified
-                            # Format the timedelta in a sane way, per
-                            # http://stackoverflow.com/a/8408947
-                            if time_diff < datetime.timedelta(0):
-                                diff_str = '-{}'.format(-time_diff)
-                            else:
-                                diff_str = '+{}'.format(time_diff)
-                            # If KC timestamp is sufficiently ahead of the KPI
-                            # timestamp, we assume the KC form content was
-                            # updated since the last KPI deployment
-                            if time_diff > TIMESTAMP_DIFFERENCE_TOLERANCE:
-                                update_existing = True
-                            else:
-                                update_existing = False
-                                # We don't need an update, but we should copy
-                                # the hash from KC to KPI for future reference
-                                backend_response['hash'] = xform.prefixed_hash
-                                asset.save(adjust_content=False)
-                                print_tabular(
-                                    'HASH',
-                                    user.username,
-                                    xform.id_string,
-                                    asset.uid,
-                                    diff_str
-                                )
-
-                        if not update_existing:
-                            # Check to see if the asset name matches the xform
-                            # title. Per #857, the xform title takes priority.
-                            # The first check is a cheap one:
-                            if asset.name != xform.title:
-                                # Now do a full check of the name
-                                desired_name = make_name_for_asset(
-                                    asset, xform)
-                                if asset.name != desired_name:
-                                    asset.name = desired_name
-                                    asset.save(adjust_content=False)
-                                    non_content_operation = 'NAME'
-                            # No further update needed. Skip to the next form
-                            print_tabular(
-                                non_content_operation,
-                                user.username,
-                                xform.id_string,
-                                asset.uid,
-                                diff_str
-                            )
-                            continue
-                    else:
-                        update_existing = False
-                    # Load the xlsform from the KC API to avoid having to deal
-                    # with S3 credentials, etc.
-                    response = kc_forms_api_request(
-                        token, xform.pk, xlsform=True)
-                    if response.status_code != 200:
-                        error_information = [
-                            'FAIL',
-                            user.username,
-                            xform.id_string,
-                            u'unable to load xls ({})'.format(
-                                response.status_code)
-                        ]
-                        print_tabular(*error_information)
-                        logging.warning(u'sync_kobocat_xforms: {}'.format(
-                            u', '.join(error_information)))
-                        continue
-                    # Convert the xlsform to KPI JSON
-                    xls_io = io.BytesIO(response.content)
-                    if xform.xls.name.endswith('.csv'):
-                        dict_repr = xls2json_backends.csv_to_dict(xls_io)
-                        xls_io = convert_dict_to_xls(dict_repr)
-                    asset_content = xlsform_to_kpi_content_schema(xls_io)
-                    # Get the form data from KC
-                    response = kc_forms_api_request(token, xform.pk)
-                    if response.status_code != 200:
-                        error_information = [
-                            'FAIL',
-                            user.username,
-                            xform.id_string,
-                            'unable to load form data ({})'.format(
-                                response.status_code)
-                        ]
-                        print_tabular(*error_information)
-                        # Don't spam the log when KC responds with 404, which
-                        # indicates that the form's XLS is missing from S3
-                        if response.status_code != 404:
-                            logging.error(u'sync_kobocat_xforms: {}'.format(
-                                u', '.join(error_information)))
-                        continue
-                    deployment_data = response.json()
                     with transaction.atomic():
-                        if not update_existing:
+                        if xform.uuid not in xform_uuids_to_asset_pks:
                             # This is an orphaned KC form. Build a new asset to
-                            # match it
+                            # match
                             asset = Asset(asset_type='survey', owner=user)
-                            asset.date_created = dateutil.parser.parse(
-                                deployment_data['date_created'])
-                        # Update the asset's modification date and content
-                        # regardless of whether it's a new asset or an existing
-                        # one being updated
-                        asset.date_modified = dateutil.parser.parse(
-                            deployment_data['date_modified'])
-                        # we may want to do standardize the content (by calling
-                        # `asset._standardize(asset_content)`), but this also
-                        # could cause errors on unexpected forms so we can
-                        # defer this until later.
-                        asset.content = asset_content
-                        asset.save(adjust_content=False)
-                        asset.name = make_name_for_asset(asset, xform)
-                        # Copy the deployment-related data
-                        kc_deployment = KobocatDeploymentBackend(asset)
-                        kc_deployment.store_data({
-                            'backend': 'kobocat',
-                            'identifier': kc_deployment.make_identifier(
-                                user.username, xform.id_string),
-                            'active': xform.downloadable,
-                            'backend_response': deployment_data,
-                            'version': asset.version_id
-                        })
-                        asset._mark_latest_version_as_deployed()
-                        asset.save()
-                        if update_existing:
-                            print_tabular(
-                                'UPDATE',
+                            asset.name = _make_name_for_asset(asset, xform)
+                        else:
+                            asset = Asset.objects.get(
+                                pk=xform_uuids_to_asset_pks[xform.uuid])
+
+                        changes = []
+                        try:
+                            content_changed = _sync_form_content(
+                                asset, xform, changes)
+                            metadata_changed = _sync_form_metadata(
+                                asset, xform, changes)
+                        except SyncKCXFormsWarning as e:
+                            error_information = [
+                                'WARN',
                                 user.username,
                                 xform.id_string,
-                                asset.uid,
-                                diff_str
+                                e.message
+                            ]
+                            self._print_tabular(*error_information)
+                            continue
+
+                        if content_changed or metadata_changed:
+                            asset.save(adjust_content=False)
+                            if content_changed:
+                                asset._mark_latest_version_as_deployed()
+                            self._print_tabular(
+                                ','.join(changes),
+                                user.username,
+                                xform.id_string,
+                                asset.uid
                             )
                         else:
-                            print_tabular(
-                                'CREATE',
+                            self._print_tabular(
+                                'NOOP',
                                 user.username,
                                 xform.id_string,
-                                asset.uid,
+                                asset.uid
                             )
                 except Exception as e:
                     error_information = [
@@ -366,7 +412,7 @@ class Command(BaseCommand):
                         xform.id_string,
                         repr(e)
                     ]
-                    print_tabular(*error_information)
+                    self._print_tabular(*error_information)
                     logging.exception(u'sync_kobocat_xforms: {}'.format(
                         u', '.join(error_information)))
 
