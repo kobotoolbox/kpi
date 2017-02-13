@@ -410,7 +410,11 @@ module.exports = do ->
       _key
 
     getLabel: (whichone="primary")->
-      @getValue @getTranslatedColumnKey("label", whichone)
+      _col = @getTranslatedColumnKey("label", whichone)
+      if _col of @attributes
+        @getValue _col
+      else
+        null
 
     finalize: ->
       existing_name = @getValue("name")
