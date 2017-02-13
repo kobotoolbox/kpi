@@ -387,27 +387,7 @@ var Reports = React.createClass({
                 onClick={this.toggleReportGraphSettings}>
           {t('Graph Settings')}
         </button>
- 
-        <button className="mdl-button mdl-js-button is-edge"
-                id="report-language">
-          {t('Language')}
-          <i className="fa fa-caret-down"></i>
-        </button>
- 
-        <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
-            htmlFor="report-language">
-          <li>
-            <a className="mdl-menu__item">
-              {t('Test link 1')}
-            </a>
-          </li>
-          <li>
-            <a className="mdl-menu__item">
-              {t('Test link 2')}
-            </a>
-          </li>
-        </ul> 
- 
+  
         {groupByList.length > 1 && 
           <button className="mdl-button mdl-js-button"
                   id="report-groupby">
@@ -432,25 +412,6 @@ var Reports = React.createClass({
 
           </ul> 
         }
-
-        <button className="mdl-button mdl-js-button is-edge"
-                id="report-viewall">
-          {t('View All')}
-          <i className="fa fa-caret-down"></i>
-        </button>
-        <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
-            htmlFor="report-viewall">
-          <li>
-            <a className="mdl-menu__item">
-              {t('Test view all 1')}
-            </a>
-          </li>
-          <li>
-            <a className="mdl-menu__item">
-              {t('Test view all 2')}
-            </a>
-          </li>
-        </ul> 
 
         <button className="mdl-button mdl-js-button mdl-button--icon report-button__expand"
                 onClick={this.toggleExpandedReports} 
