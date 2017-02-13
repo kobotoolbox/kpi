@@ -29,31 +29,33 @@ def _track_changes(t1, t2):
 
 
 def compare_translations(t1, t2):
-    if json.dumps(t1) == json.dumps(t2):
-        return {
-            TRANSLATIONS_EQUAL: True,
-        }
-    if json.dumps(sorted(t1)) == json.dumps(sorted(t2)):
-        return {
-            TRANSLATIONS_OUT_OF_ORDER: True,
-        }
+    _s1 = set(t1)
+    _s2 = set(t2)
     if len(t1) == len(t2):
         params = _track_changes(t1, t2)
+        if params['diff_count'] == 0:
+            return {
+                TRANSLATIONS_EQUAL: True,
+            }
+        if _s1 == _s2:
+            return {
+                TRANSLATIONS_OUT_OF_ORDER: True,
+            }
         if params['diff_count'] == 1:
             return {
                 TRANSLATION_RENAMED: params
             }
-        elif params['diff_count'] > 1:
+        if params['diff_count'] > 1:
             return {
                 TRANSLATIONS_MULTIPLE_CHANGES: params
             }
     if len(t1) == len(t2) - 1:
-        _added = list(set(t2) - set(t1))
+        _added = list(_s2 - _s1)
         if len(_added) == 1:
             return {
                 TRANSLATION_ADDED: _added[0],
             }
-    elif len(t1) == len(t2) + 1:
+    if len(t1) == len(t2) + 1:
         _removed = list(set(t1) - set(t2))
         if len(_removed) == 1:
             return {

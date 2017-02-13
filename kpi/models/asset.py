@@ -38,6 +38,16 @@ from ..utils.kobo_to_xlsform import (to_xlsform_structure,
                                      expand_rank_and_score_in_place,
                                      replace_with_autofields,
                                      remove_empty_expressions_in_place)
+from ..utils.asset_translation_utils import (
+        compare_translations,
+        # TRANSLATIONS_EQUAL,
+        TRANSLATIONS_OUT_OF_ORDER,
+        TRANSLATION_RENAMED,
+        TRANSLATION_DELETED,
+        TRANSLATION_ADDED,
+        TRANSLATION_CHANGE_UNSUPPORTED,
+        TRANSLATIONS_MULTIPLE_CHANGES,
+    )
 from ..utils.random_id import random_id
 from ..deployment_backends.mixin import DeployableMixin
 from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
@@ -235,23 +245,80 @@ class FormpackXLSFormUtils(object):
     def _has_translations(self, content, min_count=1):
         return len(content.get('translations', [])) >= min_count
 
-    def _prioritize_translation(self, content, translation_name):
-        _content = self.content
-        _translations = _content.get('translations')
-        if translation_name not in _translations:
-            return
-        _tindex = _translations.index(translation_name)
-        _translated = _content.get('translated', [])
-        if _tindex > 0:
-            for row in _content.get('survey'):
+    def update_translation_list(self, translation_list):
+        existing_ts = self.content.get('translations', [])
+        params = compare_translations(existing_ts,
+                                      translation_list)
+        if None in translation_list and translation_list[0] is not None:
+            raise ValueError('Unnamed translation must be first in '
+                             'list of translations')
+        if TRANSLATIONS_OUT_OF_ORDER in params:
+            self._reorder_translations(self.content, translation_list)
+        elif TRANSLATION_RENAMED in params:
+            _change = params[TRANSLATION_RENAMED]['changes'][0]
+            self._rename_translation(self.content, _change['from'],
+                                     _change['to'])
+        elif TRANSLATION_ADDED in params:
+            if None in existing_ts:
+                raise ValueError('cannot add translation if an unnamed translation exists')
+            self._prepend_translation(self.content, params[TRANSLATION_ADDED])
+        elif TRANSLATION_DELETED in params:
+            if params[TRANSLATION_DELETED] != existing_ts[-1]:
+                raise ValueError('you can only delete the last translation of the asset')
+            self._remove_last_translation(self.content)
+        else:
+            for chg in [
+                        TRANSLATIONS_MULTIPLE_CHANGES,
+                        TRANSLATION_CHANGE_UNSUPPORTED,
+                        ]:
+                if chg in params:
+                    raise ValueError(
+                        'Unsupported change: "{}": {}'.format(
+                            chg,
+                            params[chg]
+                            )
+                    )
+
+    def _prioritize_translation(self, content, translation_name, is_new=False):
+        _translations = content.get('translations')
+        _translated = content.get('translated', [])
+        if is_new and (translation_name in _translations):
+            raise ValueError('cannot add existing translation')
+        elif (not is_new) and (translation_name not in _translations):
+            raise ValueError('translation cannot be found')
+        _tindex = -1 if is_new else _translations.index(translation_name)
+        if is_new or (_tindex > 0):
+            for row in content.get('survey'):
                 for col in _translated:
-                    _translated_cells = row[col]
-                    _translated_cells.insert(0, _translated_cells.pop(_tindex))
-            for row in _content.get('choices'):
+                    if is_new:
+                        val = '[{}] {}'.format(translation_name, row[col][0])
+                    else:
+                        val = row[col].pop(_tindex)
+                    row[col].insert(0, val)
+            for row in content.get('choices'):
                 for col in _translated:
-                    _translated_cells = row[col]
-                    _translated_cells.insert(0, _translated_cells.pop(_tindex))
-            _translations.insert(0, _translations.pop(_tindex))
+                    if is_new:
+                        val = '[{}] {}'.format(translation_name, row[col][0])
+                    else:
+                        val = row[col].pop(_tindex)
+                    row[col].insert(0, val)
+            if is_new:
+                _translations.insert(0, translation_name)
+            else:
+                _translations.insert(0, _translations.pop(_tindex))
+
+    def _remove_last_translation(self, content):
+        content.get('translations').pop()
+        _translated = content.get('translated', [])
+        for row in content.get('survey'):
+            for col in _translated:
+                row[col].pop()
+        for row in content.get('choices'):
+            for col in _translated:
+                row[col].pop()
+
+    def _prepend_translation(self, content, translation_name):
+        self._prioritize_translation(content, translation_name, is_new=True)
 
     def _reorder_translations(self, content, translations):
         _ts = translations[:]

@@ -30,17 +30,6 @@ from .models import OneTimeAuthenticationKey
 from .forms import USERNAME_REGEX, USERNAME_MAX_LENGTH
 from .forms import USERNAME_INVALID_MESSAGE
 from .utils.gravatar_url import gravatar_url
-from .utils.asset_translation_utils import (
-        compare_translations,
-        # TRANSLATIONS_EQUAL,
-        TRANSLATIONS_OUT_OF_ORDER,
-        TRANSLATION_RENAMED,
-        TRANSLATION_DELETED,
-        TRANSLATION_ADDED,
-        TRANSLATION_CHANGE_UNSUPPORTED,
-        TRANSLATIONS_MULTIPLE_CHANGES,
-    )
-
 
 from .deployment_backends.kc_reader.utils import get_kc_profile_data
 from .deployment_backends.kc_reader.utils import set_kc_require_auth
@@ -60,7 +49,7 @@ class WritableJSONField(serializers.Field):
     """ Serializer for JSONField -- required to make field writable"""
 
     def __init__(self, **kwargs):
-        self.allow_blank= kwargs.pop('allow_blank', False)
+        self.allow_blank = kwargs.pop('allow_blank', False)
         super(WritableJSONField, self).__init__(**kwargs)
 
     def to_internal_value(self, data):
@@ -463,36 +452,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         _has_translations = 'translations' in _req_data
         _has_content = 'content' in _req_data
         if _has_translations and not _has_content:
-            # if 'translations' in content and 'survey' not in content:
-            existing_ts = asset_content.get('translations', [])
-            suggested_ts = json.loads(_req_data['translations'])
-            params = compare_translations(
-                existing_ts,
-                suggested_ts)
-            if TRANSLATIONS_OUT_OF_ORDER in params:
-                asset._reorder_translations(asset_content, suggested_ts)
-            elif TRANSLATION_RENAMED in params:
-                _change = params[TRANSLATION_RENAMED]['changes'][0]
-                asset._rename_translation(asset_content, _change['from'],
-                                          _change['to'])
-            elif TRANSLATIONS_MULTIPLE_CHANGES in params:
-                raise serializers.ValidationError(
-                        'Too many translation changes: {} > 1'.format(
-                            params['diff_count'])
-                    )
-            else:
-                for chg in [
-                            TRANSLATION_CHANGE_UNSUPPORTED,
-                            TRANSLATION_DELETED,
-                            TRANSLATION_ADDED,
-                            ]:
-                    if chg in params:
-                        raise serializers.ValidationError(
-                            'Unsupported change: "{}": {}'.format(
-                                chg,
-                                params[chg]
-                                )
-                        )
+            translations_list = json.loads(_req_data['translations'])
+            try:
+                asset.update_translation_list(translations_list)
+            except ValueError as err:
+                raise serializers.ValidationError(err.message)
             validated_data['content'] = asset_content
         return super(AssetSerializer, self).update(asset, validated_data)
 
