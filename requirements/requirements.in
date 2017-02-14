@@ -14,7 +14,6 @@ python-digest==1.7
 
 # Regular PyPI packages
 Django<1.9
-Fabric
 Markdown
 Pygments
 amqp
@@ -50,13 +49,11 @@ pymongo
 pytest-django
 python_dateutil
 pytz
-raven
 requests
 shortuuid
 six
 sqlparse
 static3
-transifex-client
 tabulate
 unicodecsv
 uWSGI

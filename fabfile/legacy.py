@@ -55,7 +55,7 @@ def setup_env(deployment_name):
                                      'kobo-uwsgi-master.pid')
     env.kpi_path = os.path.join(env.home, env.kpi_path)
     env.pip_requirements_file = os.path.join(env.kpi_path,
-                                             'requirements.txt')
+                                             'requirements/external_services.txt')
 
 
 def deploy_ref(deployment_name, ref, force=False):

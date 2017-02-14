@@ -38,4 +38,5 @@ install:
   - npm config set strict-ssl false && npm install --save-dev
   - bower install
   - pip install coverage codacy-coverage python-coveralls
-  - pip install -r requirements.txt
+  - pip install pip-tools
+  - pip-sync requirements/requirements.txt
