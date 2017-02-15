@@ -18,6 +18,7 @@ from kobo.static_lists import SECTORS, COUNTRIES, LANGUAGES
 from hub.models import SitewideMessage, ExtraUserDetail
 from .models import Asset
 from .models import AssetSnapshot
+from .models import AssetVersion
 from .models import Collection
 from .models import CollectionChildrenQuerySet
 from .models import UserCollectionSubscription
@@ -671,18 +672,41 @@ class AssetListSerializer(AssetSerializer):
                   )
 
 
-class AssetVersionListSerializer(AssetSerializer):
-    date_deployed = serializers.SerializerMethodField()
-    version_id = serializers.SerializerMethodField()
+class AssetVersionSerializer(serializers.Serializer):
+    uid = serializers.ReadOnlyField()
+    content = serializers.SerializerMethodField(read_only=True)
+    date_deployed = serializers.SerializerMethodField(read_only=True)
+    date_modified = serializers.CharField(read_only=True)
+
+    def get_content(self, obj):
+        return obj.version_content
 
     def get_date_deployed(self, obj):
+        return obj.deployed and obj.date_modified
+
+    def get_date_modified(self, obj):
         return obj.date_modified
 
     def get_version_id(self, obj):
         return obj.uid
 
-    class Meta(AssetSerializer.Meta):
-        fields = ('version_id', 'date_deployed')
+    class Meta:
+        model = AssetVersion
+        fields = (
+                    'version_id',
+                    'date_deployed',
+                    'date_modified',
+                    'content',
+                  )
+
+
+class AssetVersionListSerializer(AssetVersionSerializer):
+    class Meta(AssetVersionSerializer.Meta):
+        fields = (
+                    'version_id',
+                    'date_deployed',
+                    'date_modified',
+                  )
 
 
 class AssetUrlListSerializer(AssetSerializer):

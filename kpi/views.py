@@ -34,6 +34,7 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.authtoken.models import Token
+from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from taggit.models import Tag
 
@@ -45,6 +46,7 @@ from hub.models import SitewideMessage
 from .models import (
     Collection,
     Asset,
+    AssetVersion,
     AssetSnapshot,
     ImportTask,
     ObjectPermission,
@@ -68,6 +70,8 @@ from .renderers import (
     XlsRenderer,)
 from .serializers import (
     AssetSerializer, AssetListSerializer,
+    AssetVersionListSerializer,
+    AssetVersionSerializer,
     AssetSnapshotSerializer,
     SitewideMessageSerializer,
     CollectionSerializer, CollectionListSerializer,
@@ -520,7 +524,29 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
             return Response(response_data, template_name='preview_error.html')
 
 
-class AssetViewSet(viewsets.ModelViewSet):
+class VersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+    model = AssetVersion
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return AssetVersionListSerializer
+        else:
+            return AssetVersionSerializer
+
+    def get_queryset(self):
+        _asset_uid = self.get_parents_query_dict()['asset']
+        _deployed = self.request.query_params.get('deployed', None)
+        _queryset = self.model.objects.filter(asset__uid=_asset_uid)
+        if _deployed is not None:
+            _queryset = _queryset.filter(deployed=_deployed)
+        if 'pk' in self.kwargs:
+            return _queryset.filter(uid=self.kwargs['pk'])
+        else:
+            return _queryset.filter(asset__uid=_asset_uid)
+
+
+
+class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     * Assign a asset to a collection <span class='label label-warning'>partially implemented</span>
     * Run a partial update of a asset <span class='label label-danger'>TODO</span>
