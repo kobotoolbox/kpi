@@ -132,7 +132,7 @@ def autoname_fields_in_place(surv_content, destination_key):
                 _name = sluggify_label(_label,
                                        other_names=other_names.keys(),
                                        characterLimit=40)
-                if _name != '_':
+                if _name not in ['', '_']:
                     _assign_row_to_name(row, _name)
                     continue
 
