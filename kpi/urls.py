@@ -6,7 +6,7 @@ from rest_framework_extensions.routers import ExtendedDefaultRouter
 
 from kpi.views import (
     AssetViewSet,
-    VersionViewSet,
+    AssetVersionViewSet,
     AssetSnapshotViewSet,
     UserViewSet,
     CurrentUserViewSet,
@@ -29,7 +29,7 @@ from hub.views import switch_builder
 router = ExtendedDefaultRouter()
 asset_routes = router.register(r'assets', AssetViewSet)
 asset_routes.register(r'versions',
-                      VersionViewSet,
+                      AssetVersionViewSet,
                       base_name='asset-versions',
                       parents_query_lookups=['asset'],
                       )

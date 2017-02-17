@@ -672,20 +672,31 @@ class AssetListSerializer(AssetSerializer):
                   )
 
 
-class AssetVersionSerializer(serializers.Serializer):
+class AssetVersionListSerializer(serializers.Serializer):
     uid = serializers.ReadOnlyField()
-    content = serializers.SerializerMethodField(read_only=True)
+    url = serializers.SerializerMethodField()
     date_deployed = serializers.SerializerMethodField(read_only=True)
     date_modified = serializers.CharField(read_only=True)
-
-    def get_content(self, obj):
-        return obj.version_content
 
     def get_date_deployed(self, obj):
         return obj.deployed and obj.date_modified
 
     def get_date_modified(self, obj):
         return obj.date_modified
+
+    def get_url(self, obj):
+        request = self.context.get('request', None)
+        return '{}versions/{}/'.format(
+            reverse('asset-detail', args=(obj.asset.uid,), request=request),
+            obj.uid,
+            )
+
+
+class AssetVersionSerializer(AssetVersionListSerializer):
+    content = serializers.SerializerMethodField(read_only=True)
+
+    def get_content(self, obj):
+        return obj.version_content
 
     def get_version_id(self, obj):
         return obj.uid
@@ -700,15 +711,6 @@ class AssetVersionSerializer(serializers.Serializer):
                   )
 
 
-class AssetVersionListSerializer(AssetVersionSerializer):
-    class Meta(AssetVersionSerializer.Meta):
-        fields = (
-                    'version_id',
-                    'date_deployed',
-                    'date_modified',
-                  )
-
-
 class AssetUrlListSerializer(AssetSerializer):
     class Meta(AssetSerializer.Meta):
         fields = ('url',)
@@ -716,6 +718,7 @@ class AssetUrlListSerializer(AssetSerializer):
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     assets = serializers.SerializerMethodField()
+
     def get_assets(self, obj):
         paginator = LimitOffsetPagination()
         paginator.default_limit = 10

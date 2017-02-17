@@ -524,8 +524,9 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
             return Response(response_data, template_name='preview_error.html')
 
 
-class VersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     model = AssetVersion
+    lookup_field = 'uid'
 
     def get_serializer_class(self):
         if self.action == 'list':
