@@ -61,7 +61,7 @@ def sluggify(_str, _opts):
         else:
             regex = '\W+'
         _str = re.sub(regex, '_', _str)
-        if re.search('_$', _str):
+        if _str != '_' and re.search('_$', _str):
             _str = re.sub('_$', '', _str)
 
     if opts['characterLimit']:
