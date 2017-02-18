@@ -39,6 +39,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from taggit.models import Tag
 
 from .filters import KpiAssignedObjectPermissionsFilter
+from .filters import AssetOwnerFilterBackend
 from .filters import KpiObjectPermissionsFilter, RelatedAssetPermissionsFilter
 from .filters import SearchFilter
 from .highlighters import highlight_xform
@@ -527,6 +528,9 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
 class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     model = AssetVersion
     lookup_field = 'uid'
+    filter_backends = (
+            AssetOwnerFilterBackend,
+        )
 
     def get_serializer_class(self):
         if self.action == 'list':
