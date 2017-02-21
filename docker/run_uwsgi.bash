@@ -6,7 +6,6 @@ source /etc/profile
 KPI_WEB_SERVER="${KPI_WEB_SERVER:-uWSGI}"
 uwsgi_command="/usr/local/bin/uwsgi --ini ${KPI_SRC_DIR}/uwsgi.ini"
 if [[ "${KPI_WEB_SERVER,,}" == 'uwsgi' && -z "${NEW_RELIC_LICENSE_KEY}" ]]; then
-    # Use the uWSGI application server.
     echo 'Running `kpi` container with uWSGI application server.'
     exec ${uwsgi_command}
 elif [[ "${KPI_WEB_SERVER,,}" == 'uwsgi' && ! -z "${NEW_RELIC_LICENSE_KEY}" ]]; then
