@@ -1361,11 +1361,13 @@ mixins.clickAssets = {
             actions.resources.deleteAsset({uid: uid}, {
               onComplete: ()=> {
                 this.refreshSearch && this.refreshSearch();
+                $('.alertify-toggle input').prop("checked", false);
               }
             });
           },
           oncancel: () => {
             dialog.destroy();
+            $('.alertify-toggle input').prop("checked", false);
           }
         };
         dialog.set(opts).show();
