@@ -685,7 +685,7 @@ class AssetVersionListSerializer(serializers.Serializer):
         return obj.date_modified
 
     def get_url(self, obj):
-        return reverse('asset-versions-detail', args=(obj.asset.uid, obj.uid),
+        return reverse('asset-version-detail', args=(obj.asset.uid, obj.uid),
                        request=self.context.get('request', None))
 
 
