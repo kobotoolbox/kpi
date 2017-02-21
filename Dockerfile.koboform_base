@@ -31,8 +31,7 @@ RUN bash /tmp/setup_6.x.bash && \
 # Install `pip` packages. #
 ###########################
 
-# FIXME: Temporarily install an older version of `pip` until `pip-tools` 1.7.
-RUN pip install --quiet --upgrade pip==8.1.1 && \
+RUN pip install --quiet --upgrade pip && \
     pip install --quiet pip-tools
 COPY ./requirements/external_services.txt /srv/tmp/base__external_services.txt
 RUN pip-sync /srv/tmp/base__external_services.txt 1>/dev/null && \
@@ -54,7 +53,7 @@ RUN mkdir -p "${KPI_NODE_PATH}" && \
         phantomjs_error="$(grep 'ERR' npm_install_log.txt | grep -q 'phantomjs' && echo 'True' || echo 'False')" && \
         if [ "${phantomjs_error}" = 'True' ]; then npm uninstall phantomjs node-sass \
         ; elif [ "${return_status}" = '0' ]; then break; fi && \
-        echo "\`npm install\` trial ${trial_number} failed." \ 
+        echo "\`npm install\` trial ${trial_number} failed." \
     ; done && \
     if [ "${return_status}" != '0' ]; then exit "${return_status}"; fi && \
     npm cache clean && \
