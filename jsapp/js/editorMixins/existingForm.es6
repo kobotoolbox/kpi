@@ -20,6 +20,7 @@ export default {
     stores.allAssets.whenLoaded(uid, (asset) => {
       this.launchAppForSurveyContent(asset.content, {
         name: asset.name,
+        translations: asset.content && asset.content.translations.slice(0),
         settings__style: asset.settings__style,
         asset_uid: asset.uid,
         asset_type: asset.asset_type,
