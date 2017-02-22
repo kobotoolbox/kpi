@@ -153,9 +153,10 @@ class AssetContentTests(AssetsTestCase):
             {'label': ['lang1', 'lang2'], 'type': 'text', 'name': 'q1'},
         ],
             'translations': ['lang1', None],
-            '#null_translation': 'lang2',
+            '#active_translation_name': 'lang2',
         })
         self.assertEqual(self.asset.content['translations'], ['lang1', 'lang2'])
+        self.assertTrue('#active_translation_name' not in self.asset.content)
         self.assertTrue('#null_translation' not in self.asset.content)
 
     def test_rename_translation(self):
@@ -168,6 +169,10 @@ class AssetContentTests(AssetsTestCase):
         ],
             'translations': ['lang1', None],
         })
+        _content = self.asset.content
+        self.assertTrue('translated' in _content)
+        self.assertEqual(_content['translated'], ['label'])
+
         self.asset.rename_translation(None, 'lang2')
         self.assertEqual(self.asset.content['translations'], ['lang1', 'lang2'])
 
