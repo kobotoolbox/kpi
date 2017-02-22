@@ -329,7 +329,7 @@ var dataInterface;
       var method = 'POST';
       if (redeployment) {
         method = 'PATCH';
-        data.version = asset.version_id;
+        data.version_id = asset.version_id;
       }
       return $ajax({
         method: method,
