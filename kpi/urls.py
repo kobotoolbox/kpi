@@ -30,7 +30,7 @@ router = ExtendedDefaultRouter()
 asset_routes = router.register(r'assets', AssetViewSet)
 asset_routes.register(r'versions',
                       AssetVersionViewSet,
-                      base_name='asset-versions',
+                      base_name='asset-version',
                       parents_query_lookups=['asset'],
                       )
 
