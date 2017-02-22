@@ -17,11 +17,11 @@ ENV KPI_LOGS_DIR=/srv/logs \
 # Install any additional `apt` packages. #
 ##########################################
 
-COPY ./requirements/apt_requirements.txt "${KPI_SRC_DIR}/requirements/"
-# Only install if the current version of `requirements/apt_requirements.txt` differs from the one used in the base image.
-RUN if ! diff "${KPI_SRC_DIR}/requirements/apt_requirements.txt" /srv/tmp/base__apt_requirements.txt; then \
+COPY ./dependencies/apt_requirements.txt "${KPI_SRC_DIR}/dependencies/"
+# Only install if the current version of `dependencies/apt_requirements.txt` differs from the one used in the base image.
+RUN if ! diff "${KPI_SRC_DIR}/dependencies/apt_requirements.txt" /srv/tmp/base__apt_requirements.txt; then \
         apt-get update -qq && \
-        apt-get install -qqy $(cat "${KPI_SRC_DIR}/requirements/apt_requirements.txt") && \
+        apt-get install -qqy $(cat "${KPI_SRC_DIR}/dependencies/apt_requirements.txt") && \
         apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \ 
     ; fi
 
@@ -30,10 +30,10 @@ RUN if ! diff "${KPI_SRC_DIR}/requirements/apt_requirements.txt" /srv/tmp/base__
 # Re-sync `pip` packages. #
 ###########################
 
-COPY ./requirements/external_services.txt "${KPI_SRC_DIR}/requirements/"
-# Only install if the current version of `requirements/external_services.txt` differs from the one used in the base image.
-RUN if ! diff "${KPI_SRC_DIR}/requirements/external_services.txt" /srv/tmp/base__external_services.txt; then \
-        pip-sync "${KPI_SRC_DIR}/requirements/external_services.txt" 1>/dev/null \
+COPY ./dependencies/pip/external_services.txt "${KPI_SRC_DIR}/dependencies/pip/"
+# Only install if the current version of `dependencies/pip/external_services.txt` differs from the one used in the base image.
+RUN if ! diff "${KPI_SRC_DIR}/dependencies/pip/external_services.txt" /srv/tmp/base__external_services.txt; then \
+        pip-sync "${KPI_SRC_DIR}/dependencies/pip/external_services.txt" 1>/dev/null \
     ; fi
 
 
