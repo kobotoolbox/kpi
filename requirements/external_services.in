@@ -1,0 +1,7 @@
+# File for use with `pip-compile`; see https://github.com/nvie/pip-tools
+
+-r requirements.in
+
+newrelic
+raven
+transifex-client
