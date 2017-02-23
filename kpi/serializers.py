@@ -588,14 +588,18 @@ class DeploymentSerializer(serializers.Serializer):
     active = serializers.BooleanField(required=False)
     version_id = serializers.CharField(required=False)
 
-    def create(self, validated_data):
-        asset = self.context['asset']
+    @staticmethod
+    def _raise_unless_current_version(asset, validated_data):
         # Stop if the requester attempts to deploy any version of the asset
         # except the current one
         if 'version_id' in validated_data and \
                 validated_data['version_id'] != str(asset.version_id):
             raise NotImplementedError(
                 'Only the current version_id can be deployed')
+
+    def create(self, validated_data):
+        asset = self.context['asset']
+        self._raise_unless_current_version(asset, validated_data)
         # if no backend is provided, use the installation's default backend
         backend_id = validated_data.get('backend',
                                         settings.DEFAULT_DEPLOYMENT_BACKEND)
@@ -609,6 +613,9 @@ class DeploymentSerializer(serializers.Serializer):
         return asset.deployment
 
     def update(self, instance, validated_data):
+        ''' If a `version_id` is provided and differs from the current
+        deployment's `version_id`, the asset will be redeployed. Otherwise,
+        only the `active` field will be updated '''
         asset = self.context['asset']
         deployment = asset.deployment
 
@@ -618,11 +625,20 @@ class DeploymentSerializer(serializers.Serializer):
                 {'backend': 'This field cannot be modified after the initial '
                             'deployment.'})
 
-        # A regular PATCH request can update only the `active` field
-        if 'active' in validated_data:
+        if ('version_id' in validated_data and
+                validated_data['version_id'] != deployment.version_id):
+            # Request specified a `version_id` that differs from the current
+            # deployment's; redeploy
+            self._raise_unless_current_version(asset, validated_data)
+            asset.deploy(
+                backend=deployment.backend,
+                active=validated_data.get('active', deployment.active)
+            )
+        elif 'active' in validated_data:
+            # Set the `active` flag without touching the rest of the deployment
             deployment.set_active(validated_data['active'])
-            asset.save(create_version=False,
-                       adjust_content=False)
+
+        asset.save(create_version=False, adjust_content=False)
         return deployment
 
 

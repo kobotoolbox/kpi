@@ -5,7 +5,7 @@
 -e git+https://github.com/kobotoolbox/pyxform.git@6dfff060fc2ad6c575c6a7d953c381d2180e6833#egg=pyxform
 
 # Formpack
--e git+https://github.com/kobotoolbox/formpack.git@1.4#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@1b5e8bab8c1327db6b7e37ad578359f3a97124d3#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
@@ -14,7 +14,6 @@ python-digest==1.7
 
 # Regular PyPI packages
 Django<1.9
-Fabric
 Markdown
 Pygments
 amqp
@@ -50,13 +49,11 @@ pymongo
 pytest-django
 python_dateutil
 pytz
-raven
 requests
 shortuuid
 six
 sqlparse
 static3
-transifex-client
 tabulate
 unicodecsv
 uWSGI

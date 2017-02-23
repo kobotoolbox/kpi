@@ -138,8 +138,9 @@ def autoname_fields_in_place(surv_content, destination_key):
                 _name = sluggify_label(_label,
                                        other_names=other_names.keys(),
                                        characterLimit=40)
-                _assign_row_to_name(row, _name)
-                continue
+                if _name != '_':
+                    _assign_row_to_name(row, _name)
+                    continue
 
         # if no labels can be used, then use a combination of type (which is
         # always available) and kuid, which should always be unique

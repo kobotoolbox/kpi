@@ -69,7 +69,9 @@ def deploy(deployment_name, branch='master'):
         # Run the new image
         run("docker-compose stop '{}'".format(SERVICE_NAME))
         run("docker-compose rm -f '{}'".format(SERVICE_NAME))
-        run("docker-compose up -d '{}'".format(SERVICE_NAME))
+        # Don't specify a service name to avoid "Cannot link to a non running
+        # container"
+        run("docker-compose up -d")
         running_commit = run_no_pty(
             "docker exec $(docker-compose ps -q '{service}') bash -c '"
             "cd \"${src_dir_var}\" && git show --no-patch'".format(

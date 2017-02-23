@@ -37,5 +37,7 @@ install:
   - npm install -g install npm@latest
   - npm config set strict-ssl false && npm install --save-dev
   - bower install
+  - pip install --upgrade 'pip>=8.0' wheel
+  - pip install pip-tools
+  - pip-sync requirements/requirements.txt
   - pip install coverage codacy-coverage python-coveralls
-  - pip install -r requirements.txt
