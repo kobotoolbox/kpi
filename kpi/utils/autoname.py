@@ -110,6 +110,12 @@ def autoname_fields_in_place(surv_content, destination_key):
             row['$given_name'] = _name
             _name = sluggify_label(_name,
                                    other_names=other_names.keys())
+            # We might be able to remove these next 4 lines because
+            # sluggify_label shouldn't be returning an empty string
+            # and these fields already have names (_has_name(r)==True).
+            # However, these lines were added when testing a large set
+            # of forms so it's possible some edge cases (e.g. arabic)
+            # still permit it
             if _name == '' and '$kuid' in row:
                 _name = '{}_{}'.format(row['type'], row['$kuid'])
             elif _name == '':
