@@ -39,7 +39,6 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from taggit.models import Tag
 
 from .filters import KpiAssignedObjectPermissionsFilter
-from .filters import AssetOwnerFilterBackend
 from .filters import KpiObjectPermissionsFilter, RelatedAssetPermissionsFilter
 from .filters import SearchFilter
 from .highlighters import highlight_xform
@@ -525,30 +524,24 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
             return Response(response_data, template_name='preview_error.html')
 
 
-class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+class AssetVersionViewSet(NoUpdateModelViewSet):
     model = AssetVersion
     lookup_field = 'uid'
-    filter_backends = (
-            AssetOwnerFilterBackend,
-        )
+    queryset = AssetVersion.objects.all()
+
+    def filter_queryset(self, queryset):
+        user = self.request.user
+        owned_versions = queryset.none()
+        if not user.is_anonymous():
+            owned_versions = queryset.filter(asset__owner=user)
+        return owned_versions | RelatedAssetPermissionsFilter(
+            ).filter_queryset(self.request, queryset, view=self)
 
     def get_serializer_class(self):
         if self.action == 'list':
             return AssetVersionListSerializer
         else:
             return AssetVersionSerializer
-
-    def get_queryset(self):
-        _asset_uid = self.get_parents_query_dict()['asset']
-        _deployed = self.request.query_params.get('deployed', None)
-        _queryset = self.model.objects.filter(asset__uid=_asset_uid)
-        if _deployed is not None:
-            _queryset = _queryset.filter(deployed=_deployed)
-        if 'pk' in self.kwargs:
-            return _queryset.filter(uid=self.kwargs['pk'])
-        else:
-            return _queryset.filter(asset__uid=_asset_uid)
-
 
 
 class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
