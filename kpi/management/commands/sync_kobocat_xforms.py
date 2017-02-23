@@ -198,9 +198,11 @@ def _sync_form_content(asset, xform, changes):
     return modified
 
 
-def _sync_form_metadata(asset, xform, changes):
-    ''' Returns `True` and appends to `changes` if it modifies `asset`; does
-    not save anything '''
+def _sync_form_metadata(asset, xform, grant_kpi_view, changes):
+    ''' Returns `True` and appends to `changes` if it modifies `asset`. Does
+    not save anything unless `grant_kpi_view` is `True`; in that case, an
+    asset with no primary key will be saved to allow permissions to be assigned
+    to it '''
     user = xform.user
     if not asset.has_deployment:
         # A brand-new asset
@@ -215,6 +217,16 @@ def _sync_form_metadata(asset, xform, changes):
             'version': asset.version_id
         })
         changes.append('CREATE METADATA')
+        if grant_kpi_view:
+            if not asset.pk:
+                # Asset must have a primary key before working with its
+                # permissions
+                asset.save(adjust_content=False)
+            affected_users = _sync_permissions(
+                asset, kc_deployment.backend_response)
+            if affected_users:
+                changes.append(
+                    u'PERMISSIONS({})'.format('|'.join(affected_users)))
         return True
 
     modified = False
@@ -222,10 +234,8 @@ def _sync_form_metadata(asset, xform, changes):
     deployment_data = asset._deployment_data
     backend_response = deployment_data['backend_response']
 
-    if (
-            deployment_data['active'] != xform.downloadable or
-            backend_response['downloadable'] != xform.downloadable
-    ):
+    if (deployment_data['active'] != xform.downloadable or
+            backend_response['downloadable'] != xform.downloadable):
         deployment_data['active'] = xform.downloadable
         modified = True
         fetch_backend_response = True
@@ -255,7 +265,49 @@ def _sync_form_metadata(asset, xform, changes):
             'backend_response'] = _get_kc_backend_response(xform)
         modified = True
 
+    if grant_kpi_view:
+        if fetch_backend_response:
+            # Already have the latest backend response
+            backend_response = deployment_data['backend_response']
+        else:
+            # Must fetch the backend response to check for KC perm changes
+            backend_response = _get_kc_backend_response(xform)
+        affected_users = _sync_permissions(asset, backend_response)
+        if affected_users:
+            modified = True
+            changes.append(
+                u'PERMISSIONS({})'.format('|'.join(affected_users)))
+
     return modified
+
+
+def _sync_permissions(asset, backend_response):
+    ''' Examines the permissions listed in `backend_response['users']` and
+    assigns appropriate permissions to the `asset` '''
+    PERMISSIONS_MAP = { # keys are KC's codenames, values are KPI's
+        'change_xform': 'view_asset', # "Can Edit" in KC UI
+        'view_xform': 'view_asset', # "Can View" in KC UI
+        'report_xform': 'view_asset', # "Can submit to" in KC UI
+    }
+    affected_users = set()
+    for kc_entry in backend_response['users']:
+        if kc_entry['role'] == 'owner':
+            continue
+        user = User.objects.get(username=kc_entry['user'])
+        unique_kpi_perms = set()
+        for kc_perm in kc_entry['permissions']:
+            try:
+                kpi_perm = PERMISSIONS_MAP[kc_perm]
+            except KeyError:
+                pass
+            else:
+                unique_kpi_perms.add(kpi_perm)
+        for unique_kpi_perm in unique_kpi_perms:
+            if not user.has_perm(unique_kpi_perm, asset):
+                asset.assign_perm(user, unique_kpi_perm)
+                affected_users.add(user.username)
+
+    return affected_users
 
 
 class XForm(models.Model):
@@ -305,6 +357,15 @@ class Command(BaseCommand):
                     dest='quiet',
                     default=False,
                     help='Do not output status messages'),
+        make_option('--grant-kpi-view-permission',
+                    action='store_true',
+                    dest='grant_kpi_view',
+                    default=False,
+                    help='For each shared KC form, grant `view_asset` in KPI '
+                         'to all users who have access to the form in KC. '
+                         'WARNING: this is a one-way operation! Users will '
+                         'retain their `view_asset` permission in KPI even if '
+                         'their KC access is revoked.'),
     )
 
     def _print_str(self, string):
@@ -321,6 +382,7 @@ class Command(BaseCommand):
                 'configured before using this command'
             )
         self._quiet = options.get('quiet')
+        grant_kpi_view = options.get('grant_kpi_view')
         users = User.objects.all()
         self._print_str('%d total users' % users.count())
         # A specific user or everyone?
@@ -377,7 +439,7 @@ class Command(BaseCommand):
                             content_changed = _sync_form_content(
                                 asset, xform, changes)
                             metadata_changed = _sync_form_metadata(
-                                asset, xform, changes)
+                                asset, xform, grant_kpi_view, changes)
                         except SyncKCXFormsWarning as e:
                             error_information = [
                                 'WARN',
