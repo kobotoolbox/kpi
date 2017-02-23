@@ -226,6 +226,9 @@ TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
 TRACKJS_TOKEN = os.environ.get('TRACKJS_TOKEN')
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 
+KOBO_SUPPORT_URL = os.environ.get('KOBO_SUPPORT_URL', 'http://support.kobotoolbox.org/')
+KOBO_SUPPORT_EMAIL = os.environ.get('KOBO_SUPPORT_EMAIL', 'support@kobotoolbox.org')
+
 # replace this with the pointer to the kobocat server, if it exists
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat/')
 KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL',

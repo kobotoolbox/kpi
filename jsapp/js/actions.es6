@@ -4,6 +4,7 @@ import {
   log,
   t,
   notify,
+  replaceSupportEmail,
 } from './utils';
 
 var Reflux = require('reflux');
@@ -413,7 +414,7 @@ actions.resources.deployAsset.failed.listen(function(data, dialog_or_alert){
       msg = t('please check your connection and try again.');
     }
     failure_message = `
-      <p>${t('if this problem persists, contact support@kobotoolbox.org')}</p>
+      <p>${replaceSupportEmail(t('if this problem persists, contact support@kobotoolbox.org'))}</p>
       <p>${msg}</p>
     `;
   } else if(!!data.responseJSON.xform_id_string){
@@ -422,7 +423,7 @@ actions.resources.deployAsset.failed.listen(function(data, dialog_or_alert){
     failure_message = `
       <p>${t('your form id was not valid:')}</p>
       <p><pre>${data.responseJSON.xform_id_string}</pre></p>
-      <p>${t('if this problem persists, contact support@kobotoolbox.org')}</p>
+      <p>${replaceSupportEmail(t('if this problem persists, contact support@kobotoolbox.org'))}</p>
     `;
   } else if(!!data.responseJSON.detail) {
     failure_message = `

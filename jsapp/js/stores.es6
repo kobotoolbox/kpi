@@ -9,6 +9,7 @@ import {
   t,
   notify,
   assign,
+  setSupportDetails,
 } from './utils';
 
 function changes(orig_obj, new_obj) {
@@ -367,6 +368,9 @@ var sessionStore = Reflux.createStore({
       if ('downtimeNoticeSeen' in window.localStorage) {
         localStorage.removeItem('downtimeNoticeSeen');
       }
+    }
+    if (acct.support) {
+      setSupportDetails(acct.support)
     }
     var nestedArrToChoiceObjs = function (_s) {
       return {
