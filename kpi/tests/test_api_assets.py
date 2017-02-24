@@ -2,6 +2,7 @@ import json
 
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+from formpack.utils.expand_content import SCHEMA_VERSION
 from lxml import etree
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -9,8 +10,9 @@ from rest_framework.test import APITestCase
 from kpi.models import Asset
 from kpi.models import AssetVersion
 from kpi.models import Collection
+
 from .kpi_test_case import KpiTestCase
-from formpack.utils.expand_content import SCHEMA_VERSION
+
 
 EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}
 
@@ -51,7 +53,7 @@ class AssetVersionApiTests(APITestCase):
         self.asset = Asset.objects.first()
         self.asset.save()
         self.version = self.asset.asset_versions.first()
-        self.version_list_url = reverse('asset-version-list',
+        self.version_list_url = reverse('assetversion-list',
                                         args=(self.asset.uid,))
 
     def test_asset_version(self):
@@ -70,7 +72,7 @@ class AssetVersionApiTests(APITestCase):
         self.client.login(username='someuser', password='someuser')
         resp = self.client.get(self.version_list_url, format='json')
         self.assertEqual(resp.data['count'], 0)
-        _version_detail_url = reverse('asset-version-detail',
+        _version_detail_url = reverse('assetversion-detail',
                                       args=(self.asset.uid, self.version.uid))
         resp2 = self.client.get(_version_detail_url)
         self.assertEqual(resp2.status_code, status.HTTP_404_NOT_FOUND)

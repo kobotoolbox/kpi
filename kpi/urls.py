@@ -1,9 +1,11 @@
 from django.conf.urls import url, include
 from django.views.i18n import javascript_catalog
-from hub.views import ExtraDetailRegistrationView
-from rest_framework.routers import DefaultRouter
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
+from hub.views import ExtraDetailRegistrationView
+from hub.views import switch_builder
+from kobo.apps.reports.views import ReportsViewSet
+from kpi.forms import RegistrationForm
 from kpi.views import (
     AssetViewSet,
     AssetVersionViewSet,
@@ -19,18 +21,15 @@ from kpi.views import (
     OneTimeAuthenticationKeyViewSet,
     UserCollectionSubscriptionViewSet,
 )
-
-from kpi.views import home, one_time_login, browser_tests
-from kobo.apps.reports.views import ReportsViewSet
 from kpi.views import authorized_application_authenticate_user
-from kpi.forms import RegistrationForm
-from hub.views import switch_builder
+from kpi.views import home, one_time_login, browser_tests
+
 
 router = ExtendedDefaultRouter()
 asset_routes = router.register(r'assets', AssetViewSet)
 asset_routes.register(r'versions',
                       AssetVersionViewSet,
-                      base_name='asset-version',
+                      base_name='assetversion',
                       parents_query_lookups=['asset'],
                       )
 

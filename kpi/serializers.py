@@ -1,38 +1,39 @@
+from collections import OrderedDict
 import datetime
 import json
-from collections import OrderedDict
 
+from django.conf import settings
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import get_script_prefix, resolve, Resolver404
 from django.db import transaction
-from django.utils.six.moves.urllib import parse as urlparse
-from django.conf import settings
 from rest_framework import serializers, exceptions
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.reverse import reverse_lazy, reverse
 from taggit.models import Tag
 
-from kobo.static_lists import SECTORS, COUNTRIES, LANGUAGES
+from django.utils.six.moves.urllib import parse as urlparse
 from hub.models import SitewideMessage, ExtraUserDetail
+from kobo.static_lists import SECTORS, COUNTRIES, LANGUAGES
+
+from .deployment_backends.kc_reader.utils import get_kc_profile_data
+from .deployment_backends.kc_reader.utils import set_kc_require_auth
+from .forms import USERNAME_INVALID_MESSAGE
+from .forms import USERNAME_REGEX, USERNAME_MAX_LENGTH
 from .models import Asset
 from .models import AssetSnapshot
 from .models import AssetVersion
 from .models import Collection
 from .models import CollectionChildrenQuerySet
-from .models import UserCollectionSubscription
 from .models import ImportTask
 from .models import ObjectPermission
-from .models.object_permission import get_anonymous_user, get_objects_for_user
-from .models.asset import ASSET_TYPES
-from .models import TagUid
 from .models import OneTimeAuthenticationKey
-from .forms import USERNAME_REGEX, USERNAME_MAX_LENGTH
-from .forms import USERNAME_INVALID_MESSAGE
+from .models import TagUid
+from .models import UserCollectionSubscription
+from .models.asset import ASSET_TYPES
+from .models.object_permission import get_anonymous_user, get_objects_for_user
 from .utils.gravatar_url import gravatar_url
-from .deployment_backends.kc_reader.utils import get_kc_profile_data
-from .deployment_backends.kc_reader.utils import set_kc_require_auth
 
 
 class Paginated(LimitOffsetPagination):
@@ -701,7 +702,7 @@ class AssetVersionListSerializer(serializers.Serializer):
         return obj.date_modified
 
     def get_url(self, obj):
-        return reverse('asset-version-detail', args=(obj.asset.uid, obj.uid),
+        return reverse('assetversion-detail', args=(obj.asset.uid, obj.uid),
                        request=self.context.get('request', None))
 
 
