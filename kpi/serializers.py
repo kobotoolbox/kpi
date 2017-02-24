@@ -697,9 +697,6 @@ class AssetVersionListSerializer(serializers.Serializer):
     def get_date_deployed(self, obj):
         return obj.deployed and obj.date_modified
 
-    def get_date_modified(self, obj):
-        return obj.date_modified
-
     def get_url(self, obj):
         return reverse('asset-version-detail', args=(obj.asset.uid, obj.uid),
                        request=self.context.get('request', None))
