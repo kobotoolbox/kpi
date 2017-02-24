@@ -18,6 +18,7 @@ from kobo.static_lists import SECTORS, COUNTRIES, LANGUAGES
 from hub.models import SitewideMessage, ExtraUserDetail
 from .models import Asset
 from .models import AssetSnapshot
+from .models import AssetVersion
 from .models import Collection
 from .models import CollectionChildrenQuerySet
 from .models import UserCollectionSubscription
@@ -702,18 +703,37 @@ class AssetListSerializer(AssetSerializer):
                   )
 
 
-class AssetVersionListSerializer(AssetSerializer):
-    date_deployed = serializers.SerializerMethodField()
-    version_id = serializers.SerializerMethodField()
+class AssetVersionListSerializer(serializers.Serializer):
+    uid = serializers.ReadOnlyField()
+    url = serializers.SerializerMethodField()
+    date_deployed = serializers.SerializerMethodField(read_only=True)
+    date_modified = serializers.CharField(read_only=True)
 
     def get_date_deployed(self, obj):
-        return obj.date_modified
+        return obj.deployed and obj.date_modified
+
+    def get_url(self, obj):
+        return reverse('asset-version-detail', args=(obj.asset.uid, obj.uid),
+                       request=self.context.get('request', None))
+
+
+class AssetVersionSerializer(AssetVersionListSerializer):
+    content = serializers.SerializerMethodField(read_only=True)
+
+    def get_content(self, obj):
+        return obj.version_content
 
     def get_version_id(self, obj):
         return obj.uid
 
-    class Meta(AssetSerializer.Meta):
-        fields = ('version_id', 'date_deployed')
+    class Meta:
+        model = AssetVersion
+        fields = (
+                    'version_id',
+                    'date_deployed',
+                    'date_modified',
+                    'content',
+                  )
 
 
 class AssetUrlListSerializer(AssetSerializer):
@@ -723,6 +743,7 @@ class AssetUrlListSerializer(AssetSerializer):
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     assets = serializers.SerializerMethodField()
+
     def get_assets(self, obj):
         paginator = LimitOffsetPagination()
         paginator.default_limit = 10

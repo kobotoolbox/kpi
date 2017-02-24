@@ -2,9 +2,11 @@ from django.conf.urls import url, include
 from django.views.i18n import javascript_catalog
 from hub.views import ExtraDetailRegistrationView
 from rest_framework.routers import DefaultRouter
+from rest_framework_extensions.routers import ExtendedDefaultRouter
 
 from kpi.views import (
     AssetViewSet,
+    AssetVersionViewSet,
     AssetSnapshotViewSet,
     UserViewSet,
     CurrentUserViewSet,
@@ -24,8 +26,15 @@ from kpi.views import authorized_application_authenticate_user
 from kpi.forms import RegistrationForm
 from hub.views import switch_builder
 
-router = DefaultRouter()
-router.register(r'assets', AssetViewSet)
+router = ExtendedDefaultRouter()
+asset_routes = router.register(r'assets', AssetViewSet)
+asset_routes.register(r'versions',
+                      AssetVersionViewSet,
+                      base_name='asset-version',
+                      parents_query_lookups=['asset'],
+                      )
+
+
 router.register(r'asset_snapshots', AssetSnapshotViewSet)
 router.register(
     r'collection_subscriptions', UserCollectionSubscriptionViewSet)
