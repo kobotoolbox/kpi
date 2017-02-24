@@ -389,7 +389,10 @@ class Command(BaseCommand):
                             continue
 
                         if content_changed or metadata_changed:
+                            # preserve the original "asset.content"
                             asset.save(adjust_content=False)
+                            # save a new version with standardized content
+                            asset.save()
                             if content_changed:
                                 asset._mark_latest_version_as_deployed()
                             self._print_tabular(

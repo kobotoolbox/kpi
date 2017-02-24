@@ -20,9 +20,10 @@ module.exports = do ->
       if cardText.find('.card__buttons__multioptions.js-expand-multioptions').length is 0
         cardText.prepend $.parseHTML($viewTemplates.row.expandChoiceList())
       @$el.html (@ul = $("<ul>", class: @ulClasses))
+      _ts = @model.getSurvey().translations
       if @row.get("type").get("rowType").specifyChoice
         for option, i in @model.options.models
-          new OptionView(model: option, cl: @model).render().$el.appendTo @ul
+          new OptionView(model: option, cl: @model, translations: _ts).render().$el.appendTo @ul
         if i == 0
           while i < 2
             @addEmptyOption("Option #{++i}")
@@ -54,7 +55,8 @@ module.exports = do ->
     addEmptyOption: (label)->
       emptyOpt = new $choices.Option(label: label)
       @model.options.add(emptyOpt)
-      new OptionView(model: emptyOpt, cl: @model).render().$el.appendTo @ul
+      _translations = @model.getSurvey().translations
+      new OptionView(model: emptyOpt, cl: @model, translations: _translations).render().$el.appendTo @ul
       lis = @ul.find('li')
       if lis.length == 2
         lis.find('.js-remove-option').removeClass('hidden')
@@ -73,7 +75,7 @@ module.exports = do ->
 
   class OptionView extends $baseView
     tagName: "li"
-    className: "multioptions__option  xlf-option-view xlf-option-view--depr"
+    className: "multioptions__option xlf-option-view xlf-option-view--depr"
     events:
       "keyup input": "keyupinput"
       "click .js-remove-option": "remove"
@@ -129,15 +131,17 @@ module.exports = do ->
       @d.append(@t)
       @d.append(@c)
       @$el.html(@d)
-      try
-        _tt = @model.getSurvey().getSurvey().translations
-      catch err
-        _tt = false
 
-      if _tt and _tt.secondary_translation
-        _t_opt = @model.get("label::#{_tt.secondary_translation}")
-        $("<small>").html("""
-            <span>🌐&nbsp;-&nbsp;</span>
+      _translation_2 = @options.translations[1]
+      if _translation_2 isnt undefined
+        _t_opt = @model.get("label::#{_translation_2}")
+        if !_t_opt
+          _no_t = _t("No translation")
+          _klss = ["card__option-translation",
+                   "card__option-translation--empty"].join(" ")
+          _t_opt = """<span class="#{_klss}">#{_no_t}</span>"""
+        $("<small>", {className: 'secondary-translation'}).html("""
+            <span>+&nbsp;</span>
             <span class="translated-text">#{_t_opt}</span>
           """).appendTo(@$el)
       @

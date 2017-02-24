@@ -1,24 +1,9 @@
 {% extends "rest_framework/base.html" %}
 
-{# Override this template in your own templates directory to customize #}
-{% block title %}KoBoForm API{% endblock %}
+{% block title %}KoBoToolbox Form Building API{% endblock %}
 
 {% block branding %}
     <a class='navbar-brand' rel="nofollow" href='http://kobotoolbox.org/'>
-        KoBoForm API <span class="version">0.1</span>
+        KoBoToolbox Form Building API
     </a>
 {% endblock %}
-
-{% block head %}
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    {{ block.super }}
-{% endblock %}
-{% block bootstrap_theme %}
-    {% load staticfiles %}
-    {% load render_bundle from webpack_loader %}
-    {% render_bundle 'app' 'css' %}
-{% endblock %}
-
-{% block script %}
-{% endblock %}
-

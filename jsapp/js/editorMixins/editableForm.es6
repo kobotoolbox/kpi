@@ -450,6 +450,8 @@ export default assign({
       saveButtonText,
     } = this.buttonStates();
 
+    let translations = this.state.translations || [];
+
     return (
         <bem.FormBuilderHeader>
           <bem.FormBuilderHeader__row m={['first', allButtonsDisabled ? 'disabled' : null]}>
@@ -549,6 +551,21 @@ export default assign({
                 </bem.FormBuilderHeader__button>
               : null }
 
+            </bem.FormBuilderHeader__cell>
+            <bem.FormBuilderHeader__cell m="translations">
+              {
+                (translations.length < 2) ?
+                <p>
+                  {translations[0]}
+                </p>
+                :
+                <p>
+                  {translations[0]}
+                  <small>
+                    {translations[1]}
+                  </small>
+                </p>
+              }
             </bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__cell m={'spacer'} />
             <bem.FormBuilderHeader__cell m={'library-toggle'} >

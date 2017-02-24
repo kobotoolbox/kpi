@@ -30,6 +30,7 @@ from .models import OneTimeAuthenticationKey
 from .forms import USERNAME_REGEX, USERNAME_MAX_LENGTH
 from .forms import USERNAME_INVALID_MESSAGE
 from .utils.gravatar_url import gravatar_url
+
 from .deployment_backends.kc_reader.utils import get_kc_profile_data
 from .deployment_backends.kc_reader.utils import set_kc_require_auth
 
@@ -48,7 +49,7 @@ class WritableJSONField(serializers.Field):
     """ Serializer for JSONField -- required to make field writable"""
 
     def __init__(self, **kwargs):
-        self.allow_blank= kwargs.pop('allow_blank', False)
+        self.allow_blank = kwargs.pop('allow_blank', False)
         super(WritableJSONField, self).__init__(**kwargs)
 
     def to_internal_value(self, data):
@@ -444,6 +445,20 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 'read_only': True,
             },
         }
+
+    def update(self, asset, validated_data):
+        asset_content = asset.content
+        _req_data = self.context['request'].data
+        _has_translations = 'translations' in _req_data
+        _has_content = 'content' in _req_data
+        if _has_translations and not _has_content:
+            translations_list = json.loads(_req_data['translations'])
+            try:
+                asset.update_translation_list(translations_list)
+            except ValueError as err:
+                raise serializers.ValidationError(err.message)
+            validated_data['content'] = asset_content
+        return super(AssetSerializer, self).update(asset, validated_data)
 
     def get_fields(self, *args, **kwargs):
         fields = super(AssetSerializer, self).get_fields(*args, **kwargs)

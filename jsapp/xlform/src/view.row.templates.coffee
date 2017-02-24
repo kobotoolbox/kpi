@@ -62,6 +62,7 @@ module.exports = do ->
           </div>
           <div class="card__text">
             <span class="card__header-title js-cancel-select-row js-cancel-sort"></span>
+            <p class="card__header-subtitle js-cancel-select-row js-cancel-sort" style="display:none"></p>
           </div>
           <div class="card__buttons">
             <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="fa fa-cog"></i></span>

@@ -135,7 +135,8 @@ var dmix = {
     },
     survey: {
       innerRender: function () {
-        var docTitle = this.state.name || t('Untitled');
+        let docTitle = this.state.name || t('Untitled');
+        let formList = this.makeHref('forms');
         return (
           <DocumentTitle title={`${docTitle} | KoboToolbox`}>
             <bem.FormView m='scrollable'>
@@ -143,6 +144,10 @@ var dmix = {
                   <bem.FormView__row>
                     <bem.FormView__cell m='overview'>
                       <bem.FormView__label m='title'>
+                        <bem.FormView__link
+                          m='close'
+                          href={formList}
+                        />
                         {t('Form Overview')}
                       </bem.FormView__label>
                       {this.renderDeployments()}
