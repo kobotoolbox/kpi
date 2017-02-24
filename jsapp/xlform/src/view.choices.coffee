@@ -141,7 +141,7 @@ module.exports = do ->
                    "card__option-translation--empty"].join(" ")
           _t_opt = """<span class="#{_klss}">#{_no_t}</span>"""
         $("<small>", {className: 'secondary-translation'}).html("""
-            <span>🌐&nbsp;-&nbsp;</span>
+            <span>+&nbsp;</span>
             <span class="translated-text">#{_t_opt}</span>
           """).appendTo(@$el)
       @

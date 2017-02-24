@@ -36,7 +36,7 @@ module.exports = do ->
         if t1
           translations_content += " [<small>#{print_translation(t1)}</small>]"
       else
-        translations_content = "1&times;🌐"
+        translations_content = ""
 
       """
         <div class="sub-header-bar">
