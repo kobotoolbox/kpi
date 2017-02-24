@@ -212,9 +212,17 @@ class FormpackXLSFormUtils(object):
             if '$kuid' in row:
                 del row['$kuid']
 
-
     def _remove_empty_expressions(self, content):
         remove_empty_expressions_in_place(content)
+
+    def _adjust_active_translation(self, content):
+        # to get around the form builder's way of handling translations where
+        # the interface focuses on the "null translation" and shows other ones
+        # in advanced settings, we allow the builder to attach a parameter
+        # which says what to name the null translation.
+        _null_translation_as = content.pop('#active_translation_name', None)
+        if _null_translation_as:
+            self._rename_translation(content, None, _null_translation_as)
 
     def _strip_empty_rows(self, content, vals=None):
         if vals is None:
@@ -327,7 +335,7 @@ class FormpackXLSFormUtils(object):
             self._prioritize_translation(content, _tname)
 
     def _rename_translation(self, content, _from, _to):
-        _ts = self.content.get('translations')
+        _ts = content.get('translations')
         if _to in _ts:
             raise ValueError('Duplicate translation: {}'.format(_to))
         _ts[_ts.index(_from)] = _to
@@ -485,14 +493,8 @@ class Asset(ObjectPermissionMixin,
         asset.save(adjust_content=False)
         '''
         self._standardize(self.content)
-        # to get around the form builder's way of handling translations where
-        # the interface focuses on the "null translation" and shows other ones
-        # in advanced settings, we allow the builder to attach a parameter
-        # which says what to name the null translation.
-        _null_translation_as = self.content.pop('#active_translation_name', None)
-        if _null_translation_as:
-            self._rename_translation(self.content, None, _null_translation_as)
 
+        self._adjust_active_translation(self.content)
         self._strip_empty_rows(self.content)
         self._assign_kuids(self.content)
         self._autoname(self.content)
@@ -708,6 +710,7 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
         if _source is None:
             _source = {}
         self._standardize(_source)
+        self._adjust_active_translation(_source)
         self._strip_empty_rows(_source)
         self._autoname(_source)
         self._remove_empty_expressions(_source)
