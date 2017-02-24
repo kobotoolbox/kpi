@@ -3,6 +3,7 @@
 # 😬
 
 from kpi.models import Asset
+from kpi.utils.sluggify import sluggify_label
 from pprint import pprint
 from collections import OrderedDict
 import pytest
@@ -303,6 +304,15 @@ def _score_item(_r):
         r.pop('$autoname', False),
         u' '.join(sorted(r.keys())),
     ]
+
+
+def test_sluggify_arabic():
+    # this "_" value will get replaced with something else by `autoname`
+    ll = sluggify_label(u'مرحبا بالعالم')
+    assert ll == '_'
+
+    ll = sluggify_label(u'بالعالم')
+    assert ll == '_'
 
 
 def test_rank_to_xlsform_structure():
