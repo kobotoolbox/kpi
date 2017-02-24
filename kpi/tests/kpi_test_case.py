@@ -10,7 +10,8 @@ from django.core.urlresolvers import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from ..models.asset import Asset
+from ..models import Asset
+from ..models import AssetVersion
 from ..models.collection import Collection
 # FIXME: Remove the following line when the permissions API is in place.
 from .test_permissions import BasePermissionsTestCase
@@ -31,23 +32,58 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         '''
 
         kwargs= dict()
-        if username and password:
-            kwargs= {'username': username, 'password': password}
+        if username:
+            # If `password` wasn't supplied, assume it to be the same as `username`.
+            kwargs= {'username': username, 'password': password or username}
         self.assertEqual(self.client.login(**kwargs), expect_success)
 
-    def _url_to_uid(self, url):
+    @staticmethod
+    def _url_to_uid(url):
         return re.match(r'.+/(.+)/.*$', url).groups()[0]
 
-    def url_to_obj(self, url):
-        uid= re.match(r'.+/(.+)/.*$', url).groups()[0]
+    @staticmethod
+    def uid_to_obj(uid):
         if uid.startswith('c'):
             klass= Collection
         elif uid.startswith('a'):
             klass= Asset
+        elif uid.startswith('v'):
+            klass = AssetVersion
         else:
             raise NotImplementedError()
         obj= klass.objects.get(uid=uid)
         return obj
+
+    @staticmethod
+    def url_to_obj(url):
+        uid= re.match(r'.+/(.+)/.*$', url).groups()[0]
+        return KpiTestCase.uid_to_obj(uid)
+
+    @staticmethod
+    def get_detail_url(obj):
+        view_name = obj._meta.model_name + '-detail'
+        kwargs = {'uid': obj.uid}
+
+        # `AssetVersion` lookups require the `parent_lookup_asset` parameter.
+        if isinstance(obj, AssetVersion):
+            kwargs = {'parent_lookup_asset': obj.asset.uid}
+
+        url = reverse(view_name, kwargs=kwargs)
+        return url
+
+    @staticmethod
+    def get_list_url(object_or_class, asset_version_parent=None):
+        view_name = object_or_class._meta.model_name + '-list'
+
+        kwargs = dict()
+        # `AssetVersion` lookups require the `parent_lookup_asset` parameter.
+        if isinstance(object_or_class, AssetVersion):
+            kwargs = {'parent_lookup_asset': object_or_class.asset.uid}
+        elif (object_or_class == AssetVersion) and (asset_version_parent is not None):
+            kwargs = {'parent_lookup_asset': asset_version_parent.uid}
+
+        url = reverse(view_name, kwargs=kwargs)
+        return url
 
     def create_collection(self, name, owner=None, owner_password=None,
                           **kwargs):
@@ -64,12 +100,15 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         collection= self.url_to_obj(response.data['url'])
         return collection
 
-    def create_asset(self, name, content=None, owner=None,
+    def create_asset(self, name=None, content=None, owner=None,
                      owner_password=None, **kwargs):
         if owner and owner_password:
             if isinstance(owner, basestring):
                 self.login(owner.username, owner_password)
             self.login(owner.username, owner_password)
+
+        if name is None:
+            name = ''
 
         if content is None:
             content = ''
@@ -97,9 +136,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         self.assertEqual(
             parent_detail_response.status_code, status.HTTP_200_OK)
 
-        child_view_name= child._meta.model_name + '-detail'
-        child_url= reverse(child_view_name,
-                           kwargs={'uid': child.uid})
+        child_url = self.get_detail_url(child)
         child_detail_response= self.client.get(child_url)
         self.assertEqual(child_detail_response.status_code, status.HTTP_200_OK)
 
@@ -128,9 +165,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         parent_url= reverse('collection-detail',
                             kwargs={'uid': parent_collection.uid})
 
-        child_view_name= child._meta.model_name + '-detail'
-        child_url= reverse(child_view_name,
-                           kwargs={'uid': child.uid})
+        child_url= self.get_detail_url(child)
         response= self.client.patch(child_url, {'parent': parent_url})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assert_child_of(child, parent_collection, owner, owner_password)
@@ -193,8 +228,8 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
 
     def assert_object_in_object_list(self, obj, user=None, password=None,
                                      in_list=True, msg=None):
-        view_name= obj._meta.model_name + '-list'
-        url= reverse(view_name)
+
+        url= self.get_list_url(obj)
 
         if user and password:
             self.login(user.username, password)
@@ -220,8 +255,7 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
 
     def assert_detail_viewable(self, obj, user=None, password=None,
                                viewable=True, msg=None):
-        view_name= obj._meta.model_name + '-detail'
-        url= reverse(view_name, kwargs={'uid': obj.uid})
+        url = self.get_detail_url(obj)
 
         if user and password:
             self.login(user.username, password)
@@ -242,3 +276,12 @@ class KpiTestCase(APITestCase, BasePermissionsTestCase):
         self.assert_object_in_object_list(
             obj, user, password, in_list=viewable)
         self.assert_detail_viewable(obj, user, password, viewable)
+
+    def get_object_list(self, model_class, asset_version_parent=None):
+        url = self.get_list_url(model_class, asset_version_parent)
+        response = self.client.get(url)
+        result_uids = [result['uid'] for result in response.data['results']]
+        return [self.uid_to_obj(uid) for uid in result_uids]
+
+    def get_asset_versions(self, asset):
+        return self.get_object_list(AssetVersion, asset)
