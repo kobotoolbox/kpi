@@ -1,11 +1,12 @@
-from django.contrib.auth.models import User
-from django.test import TestCase
 from copy import deepcopy
 
+from django.contrib.auth.models import User
+from django.test import TestCase
 from formpack.utils.expand_content import SCHEMA_VERSION
 
 from ..models import Asset
 from ..models import AssetVersion
+from .kpi_test_case import KpiTestCase
 
 
 class AssetVersionTestCase(TestCase):
@@ -67,3 +68,32 @@ class AssetVersionTestCase(TestCase):
         # v2 now has 'deployed=True'
         v2_ = AssetVersion.objects.get(uid=v2.uid)
         self.assertEqual(v2_.deployed, True)
+
+
+class AssetVersionSharingTestCase(KpiTestCase):
+    '''
+    Test accessibility of `AssetVersion` objects based on sharing their associated `Asset` objects.
+    '''
+
+    def setUp(self):
+        KpiTestCase.setUp(self)
+        self.login('someuser')
+        self.sharing_asset = self.create_asset()
+        self.sharing_versions = self.get_asset_versions(self.sharing_asset)
+        self.sharing_v0 = self.sharing_versions[0]
+        self.client.logout()
+
+    def test_owner_can_view_version(self):
+        self.login('someuser')
+        self.assert_object_in_object_list(self.sharing_v0)
+
+    def test_peer_cannot_view_unshared_version(self):
+        self.login('anotheruser')
+        self.assert_object_in_object_list(self.sharing_v0, in_list=False)
+
+    def test_peer_can_view_shared_version(self):
+        anotheruser = User.objects.get(username='anotheruser')
+        self.add_perm(self.sharing_asset, anotheruser, 'view')
+
+        self.login('anotheruser')
+        self.assert_object_in_object_list(self.sharing_v0, in_list=True)

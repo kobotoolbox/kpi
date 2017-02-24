@@ -1,24 +1,22 @@
-from distutils.util import strtobool
 from itertools import chain
 import copy
-import json
 import datetime
+import json
 
+from django.conf import settings
 from django.contrib.auth import login
-from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.db import transaction
-from django.db.models import Q, Count
+from django.db.models import Q
 from django.forms import model_to_dict
 from django.http import Http404, HttpResponseBadRequest, HttpResponseRedirect
-from django.utils.http import is_safe_url
 from django.shortcuts import get_object_or_404, resolve_url
 from django.template.response import TemplateResponse
-from django.conf import settings
-from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
+from django.utils.http import is_safe_url
 from django.utils.translation import ugettext_lazy as _
-
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from rest_framework import (
     viewsets,
     mixins,
@@ -26,23 +24,24 @@ from rest_framework import (
     status,
     exceptions,
 )
+from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
-from rest_framework.decorators import renderer_classes
-from rest_framework.decorators import detail_route
 from rest_framework.decorators import authentication_classes
+from rest_framework.decorators import detail_route
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from rest_framework.authtoken.models import Token
 from rest_framework_extensions.mixins import NestedViewSetMixin
-
 from taggit.models import Tag
+
+from deployment_backends.backends import DEPLOYMENT_BACKENDS
+from hub.models import SitewideMessage
 
 from .filters import KpiAssignedObjectPermissionsFilter
 from .filters import KpiObjectPermissionsFilter, RelatedAssetPermissionsFilter
 from .filters import SearchFilter
 from .highlighters import highlight_xform
-from hub.models import SitewideMessage
+from .model_utils import disable_auto_field_update
 from .models import (
     Collection,
     Asset,
@@ -53,10 +52,9 @@ from .models import (
     AuthorizedApplication,
     OneTimeAuthenticationKey,
     UserCollectionSubscription,
-    )
-from .models.object_permission import get_anonymous_user, get_objects_for_user
+)
 from .models.authorized_application import ApplicationTokenAuthentication
-from .model_utils import disable_auto_field_update
+from .models.object_permission import get_anonymous_user, get_objects_for_user
 from .permissions import (
     IsOwnerOrReadOnly,
     PostMappedToChangePermission,
@@ -84,11 +82,10 @@ from .serializers import (
     OneTimeAuthenticationKeySerializer,
     DeploymentSerializer,
     UserCollectionSubscriptionSerializer,)
-from .utils.gravatar_url import gravatar_url
+from .tasks import import_in_background
 from .utils.kobo_to_xlsform import to_xlsform_structure
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
-from .tasks import import_in_background
-from deployment_backends.backends import DEPLOYMENT_BACKENDS
+
 
 CLONE_ARG_NAME = 'clone_from'
 COLLECTION_CLONE_FIELDS = {'name'}
@@ -534,8 +531,8 @@ class AssetVersionViewSet(NoUpdateModelViewSet):
         owned_versions = queryset.none()
         if not user.is_anonymous():
             owned_versions = queryset.filter(asset__owner=user)
-        return owned_versions | RelatedAssetPermissionsFilter(
-            ).filter_queryset(self.request, queryset, view=self)
+        return owned_versions | RelatedAssetPermissionsFilter().filter_queryset(
+            self.request, queryset, view=self)
 
     def get_serializer_class(self):
         if self.action == 'list':
