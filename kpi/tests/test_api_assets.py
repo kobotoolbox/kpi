@@ -14,6 +14,7 @@ from formpack.utils.expand_content import SCHEMA_VERSION
 
 EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}
 
+
 class AssetsListApiTests(APITestCase):
     fixtures = ['test_data']
 

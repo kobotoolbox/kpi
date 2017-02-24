@@ -544,11 +544,7 @@ class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         _queryset = self.model.objects.filter(asset__uid=_asset_uid)
         if _deployed is not None:
             _queryset = _queryset.filter(deployed=_deployed)
-        if 'pk' in self.kwargs:
-            return _queryset.filter(uid=self.kwargs['pk'])
-        else:
-            return _queryset.filter(asset__uid=_asset_uid)
-
+        return _queryset.filter(asset__uid=_asset_uid)
 
 
 class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
