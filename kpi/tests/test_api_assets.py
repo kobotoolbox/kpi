@@ -16,6 +16,7 @@ from .kpi_test_case import KpiTestCase
 
 EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}
 
+
 class AssetsListApiTests(APITestCase):
     fixtures = ['test_data']
 

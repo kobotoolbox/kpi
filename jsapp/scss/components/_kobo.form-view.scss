@@ -55,6 +55,12 @@
   }
 }
 
+.form-view__link--close {
+  @extend .k-icon, .k-icon-close;
+  float: right;
+  margin-right: -10px;
+}
+
 // FIXME: rename this
 .form-view__cell {
 	.asset-view__label {
