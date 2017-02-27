@@ -135,7 +135,8 @@ var dmix = {
     },
     survey: {
       innerRender: function () {
-        var docTitle = this.state.name || t('Untitled');
+        let docTitle = this.state.name || t('Untitled');
+        let formList = this.makeHref('forms');
         return (
           <DocumentTitle title={`${docTitle} | KoboToolbox`}>
             <bem.FormView m='scrollable'>
@@ -143,6 +144,10 @@ var dmix = {
                   <bem.FormView__row>
                     <bem.FormView__cell m='overview'>
                       <bem.FormView__label m='title'>
+                        <bem.FormView__link
+                          m='close'
+                          href={formList}
+                        />
                         {t('Form Overview')}
                       </bem.FormView__label>
                       {this.renderDeployments()}
@@ -1335,39 +1340,51 @@ mixins.clickAssets = {
       delete: function(uid/*, evt*/){
         let asset = stores.selectedAsset.asset;
         let dialog = alertify.dialog('confirm');
-        let opts = {
-          title: t('Delete Project'),
-          message: `${t('You are about to permanently delete this form.')}
+        let deployed = asset.has_deployment;
+        let msg, onshow;
+        let onok = (evt, val) => {
+          actions.resources.deleteAsset({uid: uid}, {
+            onComplete: ()=> {
+              this.refreshSearch && this.refreshSearch();
+            }
+          });
+        };
+
+        if (!deployed) {
+          msg = t('You are about to permanently delete this draft.');
+        } else {
+          msg = `
+            ${t('You are about to permanently delete this form.')}
             <label class="alertify-toggle"><input type="checkbox"/> ${t('All data gathered for this form will be deleted.')}</label>
             <label class="alertify-toggle"><input type="checkbox"/> ${t('All questions created for this form will be deleted.')}</label>
             <label class="alertify-toggle"><input type="checkbox"/> ${t('The form associated with this project will be deleted.')}</label>
-            <label class="alertify-toggle alertify-toggle-important"><input type="checkbox" /> ${t('I understand that if I delete this project I will not be able to recover it.')}</label> `,
-          labels: {ok: t('Delete'), cancel: t('Cancel')},
-          onshow: (evt) => {
+            <label class="alertify-toggle alertify-toggle-important"><input type="checkbox" /> ${t('I understand that if I delete this project I will not be able to recover it.')}</label>
+          `;
+          onshow = (evt) => {
             let ok_button = dialog.elements.buttons.primary.firstChild;
+            let $els = $('.alertify-toggle input');
             ok_button.disabled = true;
-            var $els = $('.alertify-toggle input');
-            $($els).change(function() {
+            $els.change(function () {
               ok_button.disabled = false;
-              $($els).each(function( index ) {
+              $els.each(function ( index ) {
                 if (!$(this).prop('checked')) {
                   ok_button.disabled = true;
-                } 
+                }
               });
             });
-            $()
+          };
+        }
+        let opts = {
+          title: t('Delete Project'),
+          message: msg,
+          labels: {
+            ok: t('Delete'),
+            cancel: t('Cancel')
           },
-          onok: (evt, val) => {
-            actions.resources.deleteAsset({uid: uid}, {
-              onComplete: ()=> {
-                this.refreshSearch && this.refreshSearch();
-                $('.alertify-toggle input').prop("checked", false);
-              }
-            });
-          },
+          onshow: onshow,
+          onok: onok,
           oncancel: () => {
             dialog.destroy();
-            $('.alertify-toggle input').prop("checked", false);
           }
         };
         dialog.set(opts).show();

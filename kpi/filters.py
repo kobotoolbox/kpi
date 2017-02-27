@@ -15,6 +15,15 @@ from .models import Asset
 from .models.object_permission import get_objects_for_user, get_anonymous_user
 
 
+class AssetOwnerFilterBackend(filters.BaseFilterBackend):
+    """
+    For use with AssetVersions
+    Restricts access to items that are owned by the current user
+    """
+    def filter_queryset(self, request, queryset, view):
+        return queryset.filter(asset__owner=request.user)
+
+
 class KpiObjectPermissionsFilter(object):
     perm_format = '%(app_label)s.view_%(model_name)s'
 

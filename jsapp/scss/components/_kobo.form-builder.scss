@@ -145,6 +145,22 @@
       width:calc(100% - 400px);
       padding:0px 20px;
     }
+    &--translations {
+      p {
+        margin: 0 0 0 10px;
+        line-height: 15px;
+        padding-top: 10px;
+        font-size: 11px;
+
+        small {
+          display: block;
+          color: #888;
+          &:before {
+            content: '+ ';
+          }
+        }
+      }
+    }
 
     &--buttonsTopRight {
       width:280px;

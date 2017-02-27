@@ -18,6 +18,7 @@ from kobo.static_lists import SECTORS, COUNTRIES, LANGUAGES
 from hub.models import SitewideMessage, ExtraUserDetail
 from .models import Asset
 from .models import AssetSnapshot
+from .models import AssetVersion
 from .models import Collection
 from .models import CollectionChildrenQuerySet
 from .models import UserCollectionSubscription
@@ -30,6 +31,7 @@ from .models import OneTimeAuthenticationKey
 from .forms import USERNAME_REGEX, USERNAME_MAX_LENGTH
 from .forms import USERNAME_INVALID_MESSAGE
 from .utils.gravatar_url import gravatar_url
+
 from .deployment_backends.kc_reader.utils import get_kc_profile_data
 from .deployment_backends.kc_reader.utils import set_kc_require_auth
 
@@ -48,7 +50,7 @@ class WritableJSONField(serializers.Field):
     """ Serializer for JSONField -- required to make field writable"""
 
     def __init__(self, **kwargs):
-        self.allow_blank= kwargs.pop('allow_blank', False)
+        self.allow_blank = kwargs.pop('allow_blank', False)
         super(WritableJSONField, self).__init__(**kwargs)
 
     def to_internal_value(self, data):
@@ -445,6 +447,20 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             },
         }
 
+    def update(self, asset, validated_data):
+        asset_content = asset.content
+        _req_data = self.context['request'].data
+        _has_translations = 'translations' in _req_data
+        _has_content = 'content' in _req_data
+        if _has_translations and not _has_content:
+            translations_list = json.loads(_req_data['translations'])
+            try:
+                asset.update_translation_list(translations_list)
+            except ValueError as err:
+                raise serializers.ValidationError(err.message)
+            validated_data['content'] = asset_content
+        return super(AssetSerializer, self).update(asset, validated_data)
+
     def get_fields(self, *args, **kwargs):
         fields = super(AssetSerializer, self).get_fields(*args, **kwargs)
         user = self.context['request'].user
@@ -573,14 +589,18 @@ class DeploymentSerializer(serializers.Serializer):
     active = serializers.BooleanField(required=False)
     version_id = serializers.CharField(required=False)
 
-    def create(self, validated_data):
-        asset = self.context['asset']
+    @staticmethod
+    def _raise_unless_current_version(asset, validated_data):
         # Stop if the requester attempts to deploy any version of the asset
         # except the current one
         if 'version_id' in validated_data and \
                 validated_data['version_id'] != str(asset.version_id):
             raise NotImplementedError(
                 'Only the current version_id can be deployed')
+
+    def create(self, validated_data):
+        asset = self.context['asset']
+        self._raise_unless_current_version(asset, validated_data)
         # if no backend is provided, use the installation's default backend
         backend_id = validated_data.get('backend',
                                         settings.DEFAULT_DEPLOYMENT_BACKEND)
@@ -594,6 +614,9 @@ class DeploymentSerializer(serializers.Serializer):
         return asset.deployment
 
     def update(self, instance, validated_data):
+        ''' If a `version_id` is provided and differs from the current
+        deployment's `version_id`, the asset will be redeployed. Otherwise,
+        only the `active` field will be updated '''
         asset = self.context['asset']
         deployment = asset.deployment
 
@@ -603,11 +626,20 @@ class DeploymentSerializer(serializers.Serializer):
                 {'backend': 'This field cannot be modified after the initial '
                             'deployment.'})
 
-        # A regular PATCH request can update only the `active` field
-        if 'active' in validated_data:
+        if ('version_id' in validated_data and
+                validated_data['version_id'] != deployment.version_id):
+            # Request specified a `version_id` that differs from the current
+            # deployment's; redeploy
+            self._raise_unless_current_version(asset, validated_data)
+            asset.deploy(
+                backend=deployment.backend,
+                active=validated_data.get('active', deployment.active)
+            )
+        elif 'active' in validated_data:
+            # Set the `active` flag without touching the rest of the deployment
             deployment.set_active(validated_data['active'])
-            asset.save(create_version=False,
-                       adjust_content=False)
+
+        asset.save(create_version=False, adjust_content=False)
         return deployment
 
 
@@ -671,18 +703,37 @@ class AssetListSerializer(AssetSerializer):
                   )
 
 
-class AssetVersionListSerializer(AssetSerializer):
-    date_deployed = serializers.SerializerMethodField()
-    version_id = serializers.SerializerMethodField()
+class AssetVersionListSerializer(serializers.Serializer):
+    uid = serializers.ReadOnlyField()
+    url = serializers.SerializerMethodField()
+    date_deployed = serializers.SerializerMethodField(read_only=True)
+    date_modified = serializers.CharField(read_only=True)
 
     def get_date_deployed(self, obj):
-        return obj.date_modified
+        return obj.deployed and obj.date_modified
+
+    def get_url(self, obj):
+        return reverse('asset-version-detail', args=(obj.asset.uid, obj.uid),
+                       request=self.context.get('request', None))
+
+
+class AssetVersionSerializer(AssetVersionListSerializer):
+    content = serializers.SerializerMethodField(read_only=True)
+
+    def get_content(self, obj):
+        return obj.version_content
 
     def get_version_id(self, obj):
         return obj.uid
 
-    class Meta(AssetSerializer.Meta):
-        fields = ('version_id', 'date_deployed')
+    class Meta:
+        model = AssetVersion
+        fields = (
+                    'version_id',
+                    'date_deployed',
+                    'date_modified',
+                    'content',
+                  )
 
 
 class AssetUrlListSerializer(AssetSerializer):
@@ -692,6 +743,7 @@ class AssetUrlListSerializer(AssetSerializer):
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     assets = serializers.SerializerMethodField()
+
     def get_assets(self, obj):
         paginator = LimitOffsetPagination()
         paginator.default_limit = 10

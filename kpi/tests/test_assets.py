@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import re
+import json
 from collections import OrderedDict
+from copy import deepcopy
 
 from django.contrib.auth.models import User, AnonymousUser
 from django.core.exceptions import ValidationError
@@ -60,7 +62,6 @@ class AssetsTestCase(TestCase):
         ]}, owner=self.user, asset_type='survey')
         self.sa = self.asset
 
-
 class CreateAssetVersions(AssetsTestCase):
 
     def test_asset_with_versions(self):
@@ -83,6 +84,42 @@ class CreateAssetVersions(AssetsTestCase):
         self.assertEqual(_list_tag_names(), ['tag1'])
         self.asset.tags.add('tag2')
         self.assertEqual(_list_tag_names(), ['tag1', 'tag2'])
+
+    def test_asset_can_be_reverted(self):
+        # TODO: figure out why kuids are changing
+        #       note: this is fixed by calling `self.asset.save()`
+        #       at the beginning of this method
+        _content = deepcopy(self.asset.content)
+        # _kuid1 = _content['survey'][0]['$kuid']
+        _content_copy = deepcopy(_content)
+        # remove this next line when todo is fixed
+        self.asset._strip_kuids(_content_copy)
+        _c1 = json.dumps(_content_copy, sort_keys=True)
+        surv_l = len(_content['survey'])
+        self.assertEqual(surv_l, 2)
+        self.asset.content['survey'].append({
+            'type': 'integer',
+            'label': 'Number'
+        })
+        av1_uid = self.asset.asset_versions.all()[0].uid
+        self.asset.save()
+        aa = Asset.objects.get(uid=self.asset.uid)
+        surv_l_2 = len(aa.content['survey'])
+        self.assertEqual(surv_l_2, 3)
+        aa.revert_to_version(av1_uid)
+
+        aa = Asset.objects.get(uid=self.asset.uid)
+        _content_copy2 = deepcopy(aa.content)
+        # remove this next line when todo is fixed
+        self.asset._strip_kuids(_content_copy2)
+        _c3 = json.dumps(_content_copy2, sort_keys=True)
+        # _kuid3 = aa.content['survey'][0]['$kuid']
+        surv_l_3 = len(aa.content['survey'])
+
+        # self.assertEqual(_kuid1, _kuid3)
+        self.assertEqual(surv_l_3, 2)
+        self.assertEqual(_c1, _c3)
+
 
     def test_asset_can_be_anonymous(self):
         anon_asset = Asset.objects.create(content=self.asset.content)
@@ -116,9 +153,10 @@ class AssetContentTests(AssetsTestCase):
             {'label': ['lang1', 'lang2'], 'type': 'text', 'name': 'q1'},
         ],
             'translations': ['lang1', None],
-            '#null_translation': 'lang2',
+            '#active_translation_name': 'lang2',
         })
         self.assertEqual(self.asset.content['translations'], ['lang1', 'lang2'])
+        self.assertTrue('#active_translation_name' not in self.asset.content)
         self.assertTrue('#null_translation' not in self.asset.content)
 
     def test_rename_translation(self):
@@ -131,6 +169,10 @@ class AssetContentTests(AssetsTestCase):
         ],
             'translations': ['lang1', None],
         })
+        _content = self.asset.content
+        self.assertTrue('translated' in _content)
+        self.assertEqual(_content['translated'], ['label'])
+
         self.asset.rename_translation(None, 'lang2')
         self.assertEqual(self.asset.content['translations'], ['lang1', 'lang2'])
 

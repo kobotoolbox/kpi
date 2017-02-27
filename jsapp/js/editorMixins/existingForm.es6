@@ -18,8 +18,11 @@ export default {
   componentDidMount () {
     let uid = this.props.params.assetid;
     stores.allAssets.whenLoaded(uid, (asset) => {
+      let translations = (asset.content && asset.content.translations
+                          && asset.content.translations.slice(0)) || [];
       this.launchAppForSurveyContent(asset.content, {
         name: asset.name,
+        translations: translations,
         settings__style: asset.settings__style,
         asset_uid: asset.uid,
         asset_type: asset.asset_type,
@@ -32,9 +35,11 @@ export default {
     if (isLibrary(this.context.router)) {
       routeName = 'library';
     } else {
-      if (stores.history.previousRoute == 'form-landing') {
+      if (stores.history.currentRoute === 'form-edit') {
         routeName = 'form-landing';
-        params = {assetid: this.props.params.assetid};
+        params = {
+          assetid: this.props.params.assetid,
+        };
       }
     }
 

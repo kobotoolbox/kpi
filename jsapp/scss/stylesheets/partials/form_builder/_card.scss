@@ -65,6 +65,27 @@
         cursor:text;
         // white-space: pre;
     }
+    .card__header-subtitle {
+        margin: 10px 0 0 0;
+        color: #aaa;
+        font-size: 12px;
+
+        &:before {
+            content: '+ ';
+            opacity: 0.5;
+        }
+    }
+    .card__header-subtitle-empty-value {
+        border: 1px solid #ffdbdb;
+        padding: 2px 3px;
+        border-radius: 3px;
+        background-color: #fff8f8;
+    }
+    .card__option-translation {
+        &--empty {
+            opacity: 0.6;
+        }
+    }
     &.card--shaded .card__header-title {
         opacity:0.3;
     }
