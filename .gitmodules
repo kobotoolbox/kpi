@@ -1,3 +1,4 @@
 [submodule "locale"]
 	path = locale
 	url = https://github.com/kobotoolbox/form-builder-translations
+	branch = master

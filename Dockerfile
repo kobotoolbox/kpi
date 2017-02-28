@@ -111,7 +111,7 @@ RUN python manage.py collectstatic --noinput
 #####################################
 
 RUN git submodule init && \
-    git submodule update && \
+    git submodule update --remote && \
     python manage.py compilemessages
 
 
