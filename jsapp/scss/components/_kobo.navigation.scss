@@ -6,7 +6,7 @@ $headerAccountTextColor: #dbedf7;
     background-color: $layout-header-bg-color;
     @extend .mdl-shadow--2dp;
     position: absolute;
-    min-height: 56px;
+    min-height: 64px;
     width: 100%;
     z-index: 0;
 }
@@ -46,19 +46,19 @@ $headerAccountTextColor: #dbedf7;
 .mdl-layout__header {
     background-color: transparent;
     box-shadow: none !important;
-    min-height: 56px;
+    min-height: $layout-desktop-header-height;
     margin-left: 0px;
     width: 100%;
     z-index: auto;
     .mdl-layout__header-row {
-        height: 56px;
+        height: $layout-desktop-header-height;
         padding: 0px 20px;
     }
     .mdl-placeholder {
         margin-left: auto;
     }
     .mdl-layout-title {
-        width: 230px;
+        width: 252px;
     }
     .account-box {
         margin-left: auto;
@@ -143,8 +143,8 @@ $headerAccountTextColor: #dbedf7;
         }
     }
     .account-box__logo {
-        width: 185px;
-        height: 46px;
+        width: 155px;
+        height: 36px;
         background: url("../img/kobologo.svg") no-repeat left bottom;
         background-size: contain;
         display: block;
@@ -320,48 +320,37 @@ $headerAccountTextColor: #dbedf7;
     .mdl-layout__header-searchers {
         flex-grow: 1;
     }
-    .search, .tag-select {
+    .search {
         vertical-align: middle;
-        margin: 0px 10px;
+        margin: 0px 6px;
         display: inline-block;
-        width: calc(50% - 20px);
+        width: 60%;
         position: relative;
     }
     .search {
         ::-webkit-input-placeholder {
-            color: #a7acb6;
+            color: #FFF;
         }
         :-ms-input-placeholder {
-            color: #a7acb6;
+            color: #FFF;
         }
         .k-search__input {
-            color: #dbedf7;
+            color: #FFF;
             border: none;
             border-radius: 0px;
-            padding: 6px 12px;
-            padding-left: 32px;
-            background-color: rgba(255, 255, 255, 0.2);
-            font-size: 14px;
+            padding: 10px 12px;
+            padding-left: 42px;
+            background-color: rgba(255, 255, 255, 0.1);
+            font-size: 16px;
             position: relative;
             width: 99%;
         }
         .search__icon {
             @extend .fa, .fa-search;
             position: absolute;
-            top: 7px;
-            left: 8px;
-            color: #dbedf7;
-            &:before {
-                font-size: 18px;
-            }
-        }
-    }
-    .tag-select {
-        i {
-            position: absolute;
-            top: 7px;
-            left: 8px;
-            color: #dbedf7;
+            top: 11px;
+            left: 12px;
+            color: #FFF;
             &:before {
                 font-size: 18px;
             }

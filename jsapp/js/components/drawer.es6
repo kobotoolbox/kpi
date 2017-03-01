@@ -151,23 +151,6 @@ var FormSidebar = React.createClass({
   render () {
     return (
       <bem.FormSidebar__wrapper>
-        {this.state.headerBreadcrumb.map((item, n)=>{
-          if (n < 1) {
-            return (
-              <div className="header-breadcrumb__item" key={`bc${n}`}>
-                {
-                  ('to' in item) ?
-                  <Link to={item.to} params={item.params}>{item.label}</Link>
-                  :
-                  <a href={item.href}>{item.label}</a>
-                }
-              </div>
-            );
-          } else {
-            return '';
-          }
-        })}
-
         <bem.CollectionNav>
           <bem.CollectionNav__actions className="k-form-list-actions">
             <button id="sidebar-menu"
@@ -367,22 +350,6 @@ var LibrarySidebar = React.createClass({
   render () {
     return (
       <bem.CollectionsWrapper>
-        {this.state.headerBreadcrumb.map((item, n)=>{
-          if (n < 1) {
-            return (
-              <div className="header-breadcrumb__item" key={`bc${n}`}>
-                {
-                  ('to' in item) ?
-                  <Link to={item.to} params={item.params}>{item.label}</Link>
-                  :
-                  <a href={item.href}>{item.label}</a>
-                }
-              </div>
-            );
-          } else {
-            return '';
-          }
-        })}
 
         <bem.CollectionNav>
           <bem.CollectionNav__actions className="k-form-list-actions">

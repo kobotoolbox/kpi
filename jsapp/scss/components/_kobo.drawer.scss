@@ -1,11 +1,9 @@
-$drawer-icons-column-width: 56px;
+// drawer (sidebar)
 
-// drawer layout size
 .k-drawer {
-  height: calc(100% - 72px);
-  top: $layout-desktop-header-height;
-  margin-left: 4px;
-  width: 240px;
+  height: calc(100% - 65px);
+  top: 65px;
+  width: 270px;
   position: absolute;
   left: 0px;
   display: flex;
@@ -14,14 +12,15 @@ $drawer-icons-column-width: 56px;
 }
 
 .mdl-layout__content {
-  margin-left: 248px;
+  margin-left: 270px;
 }
 
 .k-drawer__icons {
   display: flex;
   flex-direction: column;
-  width: 56px;
+  width: 58px;
   height: 100%;
+  border-right:1px solid #D9DADD;
 }
 
 .k-drawer__link {
@@ -60,19 +59,9 @@ $drawer-icons-column-width: 56px;
 }
 
 .drawer__sidebar {
-  width: calc(100% - 50px);
+  width: calc(100% - 58px);
   height: 100%;
-  padding: 10px;
-  padding-bottom: 0px;
-  .header-breadcrumb__item {
-    text-align: center;
-    font-size: 18px;
-    margin-bottom: 10px;
-    a {
-      color: #8A9AA4;
-      font-weight: normal;
-    }
-  }
+  padding: 14px;
   .k-drawer__close {
     display: none;
   }
@@ -88,11 +77,12 @@ $drawer-icons-column-width: 56px;
   margin-bottom: 10px;
   position: relative;
   > button {
-    min-width: 120px;
+    width: 100%;
     text-transform: uppercase;
   }
   .mdl-menu__container {
-    right: 21px !important;
+    right: 0px !important;
+    margin-top: 2px;
   }
 }
 

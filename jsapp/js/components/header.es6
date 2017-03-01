@@ -441,14 +441,8 @@ var MainHeader = React.createClass({
                 { this.state.headerFilters == 'library' && 
                   <ListSearch searchContext={this.state.libraryFiltersContext} placeholderText={t('Search Library')} />
                 }
-                { this.state.headerFilters == 'library' && 
-                  <ListTagFilter searchContext={this.state.libraryFiltersContext} />
-                }
                 { this.state.headerFilters == 'forms' && 
                   <ListSearch searchContext={this.state.formFiltersContext} placeholderText={t('Search Projects')} />
-                }
-                { this.state.headerFilters == 'forms' && 
-                  <ListTagFilter searchContext={this.state.formFiltersContext} />
                 }
               </div>
             }
