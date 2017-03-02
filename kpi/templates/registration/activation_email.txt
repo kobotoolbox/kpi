@@ -1,6 +1,8 @@
 Thanks for signing up with KoBoToolbox!
 
-Confirming your account will give you full access to KoBoToolbox applications. Please visit the following url:
+Confirming your account will give you full access to KoBoToolbox applications. Please visit the following url to finish activation of your new account.
+
+{{user}}
 
 {{ kpi_protocol }}://{{ site.domain }}/accounts/activate/{{activation_key}}/
 
