@@ -1,5 +1,6 @@
 import contextlib
 import haystack
+import logging
 from django.apps import apps as kpi_apps
 from django.db import models
 from django.conf import settings
@@ -15,6 +16,8 @@ def update_object_in_search_index(obj):
             type(obj))
     except haystack.exceptions.NotHandled:
         # There's nothing to update because this type of object is not indexed
+        logging.warning(
+            'No search index for type {}'.format(type(obj)), exc_info=True)
         return
     index.update_object(obj)
 
