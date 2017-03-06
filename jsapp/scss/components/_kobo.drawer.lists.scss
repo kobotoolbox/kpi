@@ -120,51 +120,39 @@
 
 .form-sidebar {
   height: calc(100% - 80px);
+  margin-top:10px;
   overflow-y: auto;
   overflow-x: hidden;
-  &__item {
-    margin-bottom: 15px;
-    overflow-x:hidden;
-  }
 
   &__itemlink {
     display: block;
-    // start multiline ellipsis webkit only
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;  
-    overflow: hidden;
+    opacity: 0.5;
+    line-height: 1em;
     text-overflow: ellipsis;
-    max-height: 4.2em;
-    word-wrap: break-word;
-    // end multiline ellipsis webkit only
-    color: #5C676E;
-    cursor: pointer;
-    font-weight: 400;
-    line-height: 1.4em;
+    white-space: nowrap;
+    overflow: hidden;
+    color: $layout-text-color;
+    font-weight: normal;
     &:hover {
-      color:unquote("rgb(#{$color-primary})");
+      opacity: 1;
     }
   }
 
-  &__label {
-    color: #5C676E;
-    font-weight: 600;
-    padding-bottom: 5px;
-    padding-top: 15px;
-    font-size: 0.9em;
+  &__label, &__grouping {
+    color: $layout-text-color;
     cursor: pointer;
+    opacity: 0.5;
 
     i {
-      font-size:18px;
-      margin-right:6px;
+      font-size:36px;
+      margin-right:2px;
       vertical-align: middle;
       display: inline-block;
       @extend .k-icon;
     }
 
     &--Deployed i {
-      @extend .k-icon-active;
+      @extend .k-icon-deployed;
     }
     &--Draft i {
       @extend .k-icon-drafts;
@@ -176,17 +164,33 @@
     &--visible {
       opacity: 1;
     }
+
+    span {
+      vertical-align: middle;
+    }
+  }
+
+  &__label {
+    padding:3px 0px;
+    position: relative;
+    .form-sidebar__label-count {
+      position: absolute;
+      right: 0px;
+      top: 9px;
+      padding:2px 4px;
+      width:35px;
+      border-radius: 40px;
+      background: #E6E6E8;
+      text-align: center;
+    }
+  }
+
+  &__grouping {
+    padding-left: 10px;
+    &--collapsed {
+      height: 0px;
+      overflow: hidden;
+    }
   }
 }
 
-.form-sidebar__grouping {
-  padding-left: 28px;
-  padding-right: 10px;
-  margin-bottom: 10px;
-  margin-right: -10px;
-  font-size:0.9em;
-  &--collapsed {
-    height: 0px;
-    overflow: hidden;
-  }
-}

@@ -53,6 +53,7 @@ var SidebarFormsList = React.createClass({
     return (
         <bem.FormSidebar__item key={resource.uid}>
           <bem.FormSidebar__itemlink href={this.makeHref(`${baseName}form-landing`, {assetid: resource.uid})}>
+            <i />
             <ui.SidebarAssetName {...resource} />
           </bem.FormSidebar__itemlink>
         </bem.FormSidebar__item>
@@ -71,6 +72,10 @@ var SidebarFormsList = React.createClass({
     var s = this.state;
     return (
       <bem.FormSidebar>
+        <bem.FormSidebar__label m={'active-projects'}>
+          <i className="k-icon-projects" />
+          {t('Active Projects')}
+        </bem.FormSidebar__label>
         {
           (() => {
             if (s.defaultQueryState === 'loading') {
@@ -94,7 +99,9 @@ var SidebarFormsList = React.createClass({
                                             onClick={this.toggleCategory(category)}>
                       <i />
                       {t(category)}
-                      {` (${s.defaultQueryCategorizedResultsLists[category].length})`}
+                      <bem.FormSidebar__labelCount>
+                        {s.defaultQueryCategorizedResultsLists[category].length}
+                      </bem.FormSidebar__labelCount>
                     </bem.FormSidebar__label>,
                     <bem.FormSidebar__grouping m={[category, categoryVisible ? 'visible' : 'collapsed']}>
                       {

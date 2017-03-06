@@ -3,23 +3,22 @@
   white-space: nowrap;
   border-bottom: 1px solid transparentize($cool-gray, 0.7);
   > .asset-list-sorts__item {
-    color: $cool-gray;
+    opacity: 0.8;
     font-weight: 500;
     position: relative;
     padding: 10px 0px;
     padding-top: 20px;
     margin-top: 0px;
     margin-bottom: 0px;
-    font-size: 13px;
-    &:after {
-      content: '';
-      height: 100%;
-      width: 1px;
-      background-color: transparentize($cool-gray, 0.7);
-      right: -4px;
-      top: 0px;
-      position: absolute;
-    }
+    // &:after {
+    //   content: '';
+    //   height: 100%;
+    //   width: 1px;
+    //   background-color: transparentize($cool-gray, 0.7);
+    //   right: -4px;
+    //   top: 0px;
+    //   position: absolute;
+    // }
     &.asset-list-sorts__item--questions, 
     &.asset-list-sorts__item--submissions {
       letter-spacing: -0.02em;
@@ -93,23 +92,27 @@ div.library {
 
 .list--grouped {
   height: 100%;
-  margin: 0px 8px;
   overflow-y: auto;
-  width: calc(100% - 0.8em);
+  width: 100%;
   overflow-x:hidden;
   .asset-list {
     min-height: 300px;
     margin-bottom: 4px;
-    padding-bottom: 100px;
+    padding-bottom: 240px; // must be > more actions dropdown height
     > .loading {
       margin-top:110px;
     }
   }
-  .asset-list__heading {
-    margin: 10px;
+  .list__heading {
+    margin-top: 14px;
     font-size: 18px;
-    color: $cool-gray;
-    // cursor: pointer;
+    font-weight: 500;
+  }
+
+  .list__subheading {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-weight: 600;
   }
   .asset-items {
     @extend .mdl-shadow--2dp;
@@ -131,17 +134,14 @@ div.library {
 
 .asset-list--fixed-headings {
   padding-top: 50px;
-  // .asset-list-sorts {
-  //   display: none;
-  // }
-  // TODO: since one of the table headings is now fixed, the others should be hidden
-  // But this causes a display bug when scrolling currently 
-  // (since.asset-list height changes if these elements are hidden)
-  > :nth-child(2) {
+  .asset-list-sorts {
+    display: none;
+  }
+  > .asset-items--1 {
     .asset-list-sorts {
       display: flex;
       position: fixed;
-      top:62px;
+      top:70px;
       background: #FFF;
       z-index:99;
       overflow: hidden;
@@ -152,7 +152,7 @@ div.library {
 
 @media screen and (max-width: 767px) {
   .asset-list--fixed-headings {
-    > :nth-child(2) .asset-list-sorts {
+    > .asset-items--1 .asset-list-sorts {
       width:calc(100% - 22px);
     }
   }

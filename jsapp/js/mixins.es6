@@ -553,7 +553,7 @@ var dmix = {
               &nbsp;
               {t('on your Android device.')}
             </li>
-            <li>{t('Click on')} <i className="k-icon-more-actions"></i> {t('to open settings.')}</li>
+            <li>{t('Click on')} <i className="k-icon-more"></i> {t('to open settings.')}</li>
             <li>{t('Enter the server URL') + ' ' + kobocollect_url + ' ' + t('and your username and password')}</li>
             <li>{t('Open "Get Blank Form" and select this project. ')}</li>
             <li>{t('Open "Enter Data."')}</li>

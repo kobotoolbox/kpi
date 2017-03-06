@@ -80,8 +80,8 @@ var SearchCollectionList = React.createClass({
     if (this.props.searchContext.store.filterTags == 'asset_type:survey') {
       let offset = $(event.target).children('.asset-list').offset().top;
       this.setState({
-        fixedHeadings: offset < -55 ? 'fixed-headings' : '',
-        fixedHeadingsWidth: offset < -55 ? $(event.target).children('.asset-list').width() + 'px' : 'auto',
+        fixedHeadings: offset < -105 ? 'fixed-headings' : '',
+        fixedHeadingsWidth: offset < -105 ? $(event.target).children('.asset-list').width() + 'px' : 'auto',
       });
     }
   },
@@ -165,15 +165,17 @@ var SearchCollectionList = React.createClass({
     if (this.state.searchResultsDisplayed)
       searchResultsBucket = 'searchResultsCategorizedResultsLists';
 
-    return ['Deployed', 'Draft', 'Archived'].map(
-      (category) => {
+    var results = ['Deployed', 'Draft', 'Archived'].map(
+      (category, i) => {
+        if (this.state[searchResultsBucket][category].length < 1) {
+          return []
+        }
         return [
-          <bem.AssetList__heading m={['visible']}>
+          <bem.List__subheading>
             {t(category)}
-            {` (${this.state[searchResultsBucket][category].length})`}
-          </bem.AssetList__heading>,
-          <bem.AssetItems m={['visible']}>
-            {this.state[searchResultsBucket][category].length > 0 && this.renderGroupedHeadings()}
+          </bem.List__subheading>,
+          <bem.AssetItems m={i+1}>
+            {this.renderGroupedHeadings()}
             {
               (()=>{
                 return this.state[[searchResultsBucket]][category].map(
@@ -183,7 +185,13 @@ var SearchCollectionList = React.createClass({
           </bem.AssetItems>
         ];
       }
-    );    
+    );
+
+    return [
+      <bem.List__heading>
+        {t('Active Projects')}
+      </bem.List__heading>,
+      results];
   },
 
   render () {

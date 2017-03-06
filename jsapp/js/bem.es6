@@ -78,8 +78,9 @@ bem.Library = bem('library');
 bem.Library_breadcrumb = bem.Library.__('breadcrumb');
 
 bem.List = bem('list');
+bem.List__heading = bem.List.__('heading');
+bem.List__subheading = bem.List.__('subheading');
 bem.AssetList = bem('asset-list');
-bem.AssetList__heading = bem.AssetList.__('heading');
 bem.AssetItems = bem('asset-items', '<ul>');
 
 bem.CollectionSidebar = bem('collection-sidebar');
@@ -93,6 +94,7 @@ bem.FormSidebar = bem('form-sidebar');
 bem.FormSidebar__wrapper = bem.FormSidebar.__('wrapper');
 bem.FormSidebar__item = bem.FormSidebar.__('item');
 bem.FormSidebar__label = bem.FormSidebar.__('label');
+bem.FormSidebar__labelCount = bem.FormSidebar.__('label-count', '<span>');
 bem.FormSidebar__grouping = bem.FormSidebar.__('grouping');
 bem.FormSidebar__itemlink = bem.FormSidebar.__('itemlink', '<a>');
 

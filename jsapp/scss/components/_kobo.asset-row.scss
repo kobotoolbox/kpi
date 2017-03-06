@@ -48,9 +48,10 @@
     max-width:  96%;
     text-overflow: ellipsis;
     overflow: hidden;
-    font-size: 15px;
+    font-size: 14px;
     vertical-align: top;
     padding: 4px 0px;
+    opacity: 0.8;
   }
 
   .asset-type-icon + .asset-row__celllink--name {

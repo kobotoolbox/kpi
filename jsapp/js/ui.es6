@@ -226,11 +226,11 @@ ui.MDLPopoverMenu = React.createClass({
                 </button>
               : button_type == 'cog-icon' ?
                 <button id={id} className="mdl-js-button">
-                  <i className="k-icon-settings-small" />
+                  <i className="k-icon-settings" />
                 </button>                
               :
                 <button id={id} className="mdl-js-button" data-tip={button_tip}>
-                  <i className="k-icon-more-actions" />
+                  <i className="k-icon-more" />
                 </button>                
               }
             <div htmlFor={id} className={menuClasses}>

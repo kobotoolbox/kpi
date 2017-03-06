@@ -397,10 +397,10 @@ var LibrarySidebar = React.createClass({
               switch (collection.access_type) {
                 case 'public':
                 case 'subscribed':
-                  iconClass = 'k-icon-pubfolder';
+                  iconClass = 'k-icon-folder-public';
                   break;
                 case 'shared':
-                  iconClass = 'k-icon-shared-folder';
+                  iconClass = 'k-icon-folder-shared';
               }
 
               return (
@@ -546,7 +546,7 @@ var LibrarySidebar = React.createClass({
                         }
                       </ui.MDLPopoverMenu>
                     }
-                    <i className="k-icon-pubfolder" />
+                    <i className="k-icon-folder-public" />
                     {collection.name}
                     <bem.CollectionSidebar__itembyline>
                     {t('by ___').replace('___', collection.owner__username)}

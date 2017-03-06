@@ -26,10 +26,15 @@
 .k-drawer__link {
   font-size: 36px;
   text-align: center;
-  color: unquote("rgb(#{$color-primary})");
-  padding: 16px 0px;
-  &.library {
+  color: #bfc0c4;
+  padding: 4px 0px;
+  border-left: 3px solid transparent;
+  &:first-child {
+    margin-top:20px;
+  }
+  &.active {
     color: $cool-green;
+    border-left: 3px solid $cool-green;
   }
 }
 
@@ -61,7 +66,7 @@
 .drawer__sidebar {
   width: calc(100% - 58px);
   height: 100%;
-  padding: 14px;
+  padding: 20px 14px;
   .k-drawer__close {
     display: none;
   }
@@ -79,6 +84,8 @@
   > button {
     width: 100%;
     text-transform: uppercase;
+    height: 40px;
+    line-height: 40px;
   }
   .mdl-menu__container {
     right: 0px !important;

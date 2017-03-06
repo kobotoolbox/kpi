@@ -324,7 +324,7 @@ var MainHeader = React.createClass({
                 </bem.PopoverMenu__link>
                 <bem.PopoverMenu__link m={'table'}
                     href={this.makeHref('form-data-table', {assetid: this.state.assetid})}>
-                  <i className="k-icon-results" />
+                  <i className="k-icon-table" />
                   {t('Table')}
                 </bem.PopoverMenu__link>
                 <bem.PopoverMenu__link m={'gallery'}
@@ -334,7 +334,7 @@ var MainHeader = React.createClass({
                 </bem.PopoverMenu__link>
                 <bem.PopoverMenu__link m={'downloads'}
                     href={this.makeHref('form-data-downloads', {assetid: this.state.assetid})}>
-                  <i className="k-icon-download-1" />
+                  <i className="k-icon-download" />
                   {t('Downloads')}
                 </bem.PopoverMenu__link>
                 <bem.PopoverMenu__link m={'map'}
