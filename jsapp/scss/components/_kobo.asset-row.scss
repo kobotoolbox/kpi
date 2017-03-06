@@ -4,7 +4,6 @@
   padding: 4px 12px;
   white-space: nowrap;
   transition: max-height 0.5s ease, opacity 0.5s ease;
-  max-height: 200px;
   min-height:55px;
   opacity: 1;
   position: relative;
@@ -44,8 +43,8 @@
   }
 
   .asset-row__celllink--name {
-    display: block;
-    max-width:  96%;
+    display: inline-block;
+    width: 98%;
     text-overflow: ellipsis;
     overflow: hidden;
     font-size: 14px;
@@ -55,7 +54,7 @@
   }
 
   .asset-type-icon + .asset-row__celllink--name {
-    max-width: calc(100% - 50px);
+    width: calc(100% - 50px);
   }
 
   .asset-row__description {
