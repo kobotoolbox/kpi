@@ -107,12 +107,12 @@
     "webpack-dev-server": "^1.10.1"
   },
   "scripts": {
-    "build": "webpack --config webpack.config.js --progress --colors",
+    "build": "webpack --config webpack/prod.config.js --progress --colors",
     "icons": "grunt webfont:icons",
-    "build-production": "webpack --config webpack.prod.config.js --progress --colors",
-    "watch": "node webpack.dev.server.js",
-    "test-server": "node webpack.test.server.js",
-    "test": "webpack --config webpack.test.config.js --progress --colors && mocha-phantomjs test/tests.html"
+    "build-production": "npm run build && echo 'WARNING: npm run build-production DEPRECATED! PLEASE USE npm run build INSTEAD'",
+    "watch": "node webpack/dev.server.js",
+    "test-server": "node webpack/test.server.js",
+    "test": "webpack --config webpack/test.config.js --progress --colors && mocha-phantomjs test/tests.html"
   },
   "repository": {
     "type": "git",
