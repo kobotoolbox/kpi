@@ -119,15 +119,22 @@
 .popover-menu__link, .popover-menu__item {
   background-color: #FFF;
   display: block;
-  padding: 10px;
+  padding: 6px 10px;
+  padding-right: 16px;
   position: relative;
   color:$cool-gray;
   cursor: pointer;
   white-space: nowrap;
 
   > i:first-child {
-    margin-right: 6px;
-    font-size: 18px;
+    margin-right: 4px;
+    font-size: 32px;
+    width:28px;
+    vertical-align: middle;
+  }
+
+  span {
+    vertical-align: middle;
   }
 
 }
@@ -231,10 +238,10 @@ iframe {
     font-weight: 400;
     color: $cool-gray;
     cursor: pointer;
-    padding: 4px 6px;
+    padding:0px;
     display: inline-block;
     vertical-align: middle;
-    font-size: 22px;
+    font-size: 36px;
     &:hover {
       background-color: transparent;
       color: unquote("rgb(#{$color-accent})");

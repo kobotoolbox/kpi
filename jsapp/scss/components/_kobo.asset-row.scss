@@ -1,3 +1,5 @@
+$hover-asset-row: #F2F2F3;
+
 .asset-row {
   list-style-type: none;
   border-top: 1px solid transparentize($cool-gray, 0.7);
@@ -7,6 +9,9 @@
   min-height:55px;
   opacity: 1;
   position: relative;
+  &:hover {
+    background: $hover-asset-row;
+  }
   a, a:hover {
     color: $black;
     text-decoration: none;
@@ -80,7 +85,7 @@
     position: absolute;
     top: 8px;
     right: 0px;
-    background:#FFF;
+    background: $hover-asset-row;
     width:0;
     overflow: hidden;
     opacity: 0;
@@ -95,10 +100,8 @@
     font-weight: 400;
     color: $cool-gray;
     cursor: pointer;
-    padding: 4px 6px;
     display: inline-block;
     vertical-align: middle;
-    font-size: 22px;
     &:hover {
       background-color: transparent;
       color: unquote("rgb(#{$color-accent})");
@@ -108,11 +111,7 @@
     }
     i:before {
       margin:0px;
-      font-size: 22px;
-    }
-    &.asset-row__action-icon--edit i:before {
-      font-size: 26px;
-      // adjust edit icon (pencil) size, since in font file it is smaller than other fonts
+      font-size: 36px;
     }
   }
   &--display-tags .asset-row__action-icon--tagsToggle {
@@ -123,16 +122,7 @@
   .popover-menu__link, 
   .popover-menu__item {
     font-size: 14px;
-    padding: 8px 15px;
     color: $cool-gray;
-    i {
-      width:30px;
-      margin-right: 5px;
-      display: inline-block;
-      &:before {
-        font-size: 18px;
-      }
-    }
   }
 
   .popover-menu__item--move-coll-item {

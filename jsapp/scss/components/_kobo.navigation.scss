@@ -51,7 +51,7 @@ $headerAccountTextColor: #dbedf7;
     width: 100%;
     z-index: auto;
     .mdl-layout__header-row {
-        height: $layout-desktop-header-height;
+        height: 54px;
         padding: 0px 20px;
     }
     .mdl-placeholder {
@@ -407,15 +407,15 @@ $headerAccountTextColor: #dbedf7;
 
 .form-view__status {
     position: absolute;
-    right: 40px;
-    top: 8px;
+    right: 36px;
+    top: 10px;
     display: none;
     color: $cool-gray;
 }
 
 @media screen and (min-width: 769px) {
     .form-view__tabbar .form-view__tabs {
-        padding-left: 260px;
+        padding-left: 280px;
     }
 }
 

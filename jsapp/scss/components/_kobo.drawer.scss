@@ -39,26 +39,23 @@
 }
 
 .k-drawer__icons-bottom {
-  height: 100px;
-  padding-top: 10px;
-  border-top: solid 1px #CDCDCD;
-  background-color: #F5F5F5;
+  left: 0px;
+  bottom:0px;
+  position: absolute;
+  width: 58px;
   .k-drawer__link {
     padding: 0px;
-    margin-bottom: 10px;
-    font-size: 13px;
+    margin-bottom: 5px;
     display: block;
-    text-align: left;
-    color: #5C676E;
+    text-align: center;
     font-weight: normal;
     position: relative;
-    i {
-      font-size: 22px;
-      margin-right: 8px;
-      vertical-align: text-bottom;
+    color:lighten($black, 50%);
+    &:hover {
+      color: unquote("rgb(#{$color-primary})");
     }
-    span {
-      text-transform: capitalize;
+    i {
+      font-size: 32px;
     }
   }
 }
@@ -71,7 +68,7 @@
     display: none;
   }
   .form-sidebar__wrapper, .collections-wrapper {
-    height: calc(100% - 110px);
+    height: 100%;
   }
 }
 

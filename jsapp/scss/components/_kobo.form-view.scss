@@ -248,12 +248,12 @@
 
 // buttons in forms 
 .form-view__link {
-  font-size:18px;
+  font-size:32px;
   line-height: 18px;
-  margin-left: 10px;
   padding:0px 10px;
   color: $cool-gray;
   cursor: pointer;
+  vertical-align: middle;
   &:hover {
     color: unquote("rgb(#{$color-primary})");
   }
@@ -261,20 +261,21 @@
     color: lighten($cool-gray, 15%);
   }
 
-  i.k-icon-edit {
-    font-size: 22px;
-    line-height: 22px;
-    margin-right: -10px;
-  }
-  &--upload {
-    margin-left: 0px;
-  }
+  // i.k-icon-edit {
+  //   font-size: 22px;
+  //   line-height: 22px;
+  //   margin-right: -10px;
+  // }
+  // &--upload {
+  //   margin-left: 0px;
+  // }
 }
 
 #more-dl-popover {
   padding-top: 0px;
-  font-size: 18px;
+  font-size: 32px;
   line-height: 18px;
+  vertical-align: middle;
 }
 
 .form-view__item--collect {
