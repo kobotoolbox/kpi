@@ -363,7 +363,7 @@ var LibrarySidebar = React.createClass({
                     className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
               {t('new')}
             </button>
-            <ul htmlFor="sidebar-menu" className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect">
+            <ul htmlFor="sidebar-menu" className="mdl-menu mdl-js-menu mdl-js-ripple-effect">
               <bem.CollectionNav__link key={'new-asset'} m={['new', 'new-block']} className="mdl-menu__item"
                   href={this.makeHref('library-new-form')}>
                 <i />
@@ -385,32 +385,32 @@ var LibrarySidebar = React.createClass({
         </bem.CollectionNav>
 
         { this.state.sidebarCollections &&
-          <bem.CollectionSidebar>
-            <bem.CollectionSidebar__item
+          <bem.FormSidebar>
+            <bem.FormSidebar__label
               key='allitems'
               m={{
                   toplevel: true,
                   selected: !this.state.showPublicCollections,
                 }} onClick={this.clickFilterByCollection}>
-              <i className="fa fa-caret-down" />
-              <i className="k-icon-folder" />
-              {t('My Library')}
-            </bem.CollectionSidebar__item>
+                  <i className="k-icon-library" />
+                  {t('My Library')}
+            </bem.FormSidebar__label>
+            <bem.FormSidebar__grouping>
             {this.state.sidebarCollections.map((collection)=>{
               var editLink = this.makeHref('collection-page', {uid: collection.uid}),
                 sharingLink = this.makeHref('collection-sharing', {assetid: collection.uid});
               var iconClass = 'k-icon-folder';
-              switch (collection.access_type) {
-                case 'public':
-                case 'subscribed':
-                  iconClass = 'k-icon-folder-public';
-                  break;
-                case 'shared':
-                  iconClass = 'k-icon-folder-shared';
-              }
+              // switch (collection.access_type) {
+              //   case 'public':
+              //   case 'subscribed':
+              //     iconClass = 'k-icon-folder-public';
+              //     break;
+              //   case 'shared':
+              //     iconClass = 'k-icon-folder-shared';
+              // }
 
               return (
-                  <bem.CollectionSidebar__item
+                  <bem.FormSidebar__label
                     key={collection.uid}
                     m={{
                       collection: true,
@@ -423,12 +423,15 @@ var LibrarySidebar = React.createClass({
                     data-collection-uid={collection.uid} 
                     data-collection-name={collection.name}
                   >
+                    <bem.FormSidebar__itemlink>
+                      <i className={iconClass} />
+                      {collection.name}
+                    </bem.FormSidebar__itemlink>
                     { !this.state.filteredByPublicCollection && this.state.filteredCollectionUid === collection.uid &&
+                      <ui.MDLPopoverMenu id={"actions-" + collection.uid}
 
-                      <ui.MDLPopoverMenu id={"cog-" + collection.uid}
-                                        button_type='cog-icon' 
-                                        classname='collection-cog'
-                                        menuClasses='mdl-menu mdl-menu--bottom-left mdl-js-menu'>
+                                        button_type='no-tip' 
+                                        menuClasses='mdl-menu mdl-js-menu'>
                         { collection.access_type === 'owned' && collection.discoverable_when_public &&
                           <bem.PopoverMenu__link
                               m={'make-private'}
@@ -492,32 +495,25 @@ var LibrarySidebar = React.createClass({
 
                       </ui.MDLPopoverMenu>
                     }
-                    <i className={iconClass} />
-                    {collection.name}
-                    { collection.access_type !== 'owned' ?
-                        <bem.CollectionSidebar__itembyline>
-                        {t('by ___').replace('___', collection.owner__username)}
-                        </bem.CollectionSidebar__itembyline>
-                      : null
-                    }
-                  </bem.CollectionSidebar__item>
+                  </bem.FormSidebar__label>
                 );
             })}
-            <bem.CollectionSidebar__item
+            </bem.FormSidebar__grouping>
+            <bem.FormSidebar__label
               key='public'
               m={{
                   toplevel: true,
                   selected: this.state.showPublicCollections,
                 }} onClick={this.clickShowPublicCollections}>
-              <i className="fa fa-caret-down" />
               <i className="k-icon-globe" />
               {t('Public Collections')}
-            </bem.CollectionSidebar__item>
+            </bem.FormSidebar__label>
+            <bem.FormSidebar__grouping>
             {this.state.sidebarPublicCollections.map((collection)=>{
               var editLink = this.makeHref('collection-page', {uid: collection.uid}),
                 sharingLink = this.makeHref('collection-sharing', {assetid: collection.uid});
               return (
-                  <bem.CollectionSidebar__item
+                  <bem.FormSidebar__label
                     key={collection.uid}
                     m={{
                       collection: true,
@@ -530,37 +526,37 @@ var LibrarySidebar = React.createClass({
                     data-collection-uid={collection.uid}
                     data-public-collection={true}
                   >
-                    {this.state.filteredCollectionUid === collection.uid && this.state.filteredByPublicCollection && 
-                      <ui.MDLPopoverMenu id={"pub-cog-" + collection.uid}
-                                        button_type='cog-icon' 
-                                        classname='collection-cog'
-                                        menuClasses='mdl-menu mdl-menu--bottom-left mdl-js-menu'>
-                        { collection.access_type === 'subscribed' ?
-                            <bem.PopoverMenu__link href={'#'}
-                              onClick={this.unsubscribeCollection}
-                              data-collection-uid={collection.uid}>
-                              <i className="k-icon-next" />
-                              {t('unsubscribe')}
-                            </bem.PopoverMenu__link>
-                          :
-                            <bem.PopoverMenu__link href={'#'}
-                              onClick={this.subscribeCollection}
-                              data-collection-uid={collection.uid}>
-                              <i className="k-icon-next" />
-                              {t('subscribe')}
-                            </bem.PopoverMenu__link>
-                        }
-                      </ui.MDLPopoverMenu>
-                    }
                     <i className="k-icon-folder-public" />
                     {collection.name}
                     <bem.CollectionSidebar__itembyline>
                     {t('by ___').replace('___', collection.owner__username)}
                     </bem.CollectionSidebar__itembyline>
-                  </bem.CollectionSidebar__item>
+                    {this.state.filteredCollectionUid === collection.uid && this.state.filteredByPublicCollection && 
+                      <ui.MDLPopoverMenu id={"pub-more-" + collection.uid}
+                                          button_type='no-tip' 
+                                          menuClasses='mdl-menu mdl-menu--bottom-left mdl-js-menu'>
+                          { collection.access_type === 'subscribed' ?
+                              <bem.PopoverMenu__link href={'#'}
+                                onClick={this.unsubscribeCollection}
+                                data-collection-uid={collection.uid}>
+                                <i className="k-icon-next" />
+                                {t('unsubscribe')}
+                              </bem.PopoverMenu__link>
+                            :
+                              <bem.PopoverMenu__link href={'#'}
+                                onClick={this.subscribeCollection}
+                                data-collection-uid={collection.uid}>
+                                <i className="k-icon-next" />
+                                {t('subscribe')}
+                              </bem.PopoverMenu__link>
+                          }
+                        </ui.MDLPopoverMenu>
+                      }
+                  </bem.FormSidebar__label>
                 );
             })}
-          </bem.CollectionSidebar>
+            </bem.FormSidebar__grouping>
+          </bem.FormSidebar>
         }
       </bem.CollectionsWrapper>
       );

@@ -224,9 +224,9 @@ ui.MDLPopoverMenu = React.createClass({
                   {button_label}
                   <i className={caretClass} />
                 </button>
-              : button_type == 'cog-icon' ?
+              : button_type == 'no-tip' ?
                 <button id={id} className="mdl-js-button">
-                  <i className="k-icon-settings" />
+                  <i className="k-icon-more" />
                 </button>                
               :
                 <button id={id} className="mdl-js-button" data-tip={button_tip}>

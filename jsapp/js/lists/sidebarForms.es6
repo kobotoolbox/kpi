@@ -72,10 +72,13 @@ var SidebarFormsList = React.createClass({
     var s = this.state;
     return (
       <bem.FormSidebar>
-        <bem.FormSidebar__label m={'active-projects'}>
-          <i className="k-icon-projects" />
-          {t('Active Projects')}
-        </bem.FormSidebar__label>
+        { 
+          s.defaultQueryState === 'done' && 
+          <bem.FormSidebar__label m={'active-projects'}>
+            <i className="k-icon-projects" />
+            {t('Active Projects')}
+          </bem.FormSidebar__label>
+        }
         {
           (() => {
             if (s.defaultQueryState === 'loading') {
