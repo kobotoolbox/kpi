@@ -144,6 +144,8 @@ var AssetRow = React.createClass({
       });
     }
 
+    console.log(this.props.asset_type);
+
     return (
         <bem.AssetRow m={{
                             // 'selected': this.props.isSelected,
@@ -166,8 +168,11 @@ var AssetRow = React.createClass({
             <bem.AssetRow__cell m={'title'} 
                 className={['mdl-cell', 
                     this.props.asset_type == 'survey' ? 'mdl-cell--5-col mdl-cell--3-col-tablet' : 'mdl-cell--6-col mdl-cell--3-col-tablet']}>
-              { this.props.asset_type && this.props.asset_type != 'survey' &&
-                <AssetTypeIcon m={[this.props.asset_type]} ><i /></AssetTypeIcon>
+              { this.props.asset_type && this.props.asset_type == 'block' &&
+                <i className="row-icon k-icon-questions-block" />
+              }
+              { this.props.asset_type && this.props.asset_type == 'question' &&
+                <i className="row-icon k-icon-question" />
               }
               <bem.AssetRow__celllink m={['name', this.props.name ? 'titled' : 'untitled']}
                     data-kind={this.props.kind}

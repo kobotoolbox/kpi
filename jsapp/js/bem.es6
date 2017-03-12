@@ -22,6 +22,7 @@ bem.AssetRow__tags__tag   = bem.AssetRow.__('tags__tag', '<span>');
 bem.AssetRow__tags__notags = bem.AssetRow.__('tags__notags', '<span>');
 bem.AssetRow__actionIcon  = bem.AssetRow.__('action-icon', '<a>');
 bem.AssetRow__buttons        = bem.AssetRow.__('buttons');
+bem.AssetRow__typeIcon  = bem.AssetRow.__('type-icon', '<span>');
 
 bem.FormBuilder = bem('formBuilder');
 bem.FormBuilder__row = bem.FormBuilder.__('row');
@@ -83,13 +84,6 @@ bem.List__subheading = bem.List.__('subheading');
 bem.AssetList = bem('asset-list');
 bem.AssetItems = bem('asset-items', '<ul>');
 
-bem.CollectionSidebar = bem('collection-sidebar');
-bem.CollectionSidebar__item = bem.CollectionSidebar.__('item');
-bem.CollectionSidebar__itembyline = bem('collection-sidebar__itembyline', '<span>');
-bem.CollectionSidebar__itemCog = bem.CollectionSidebar.__('itemCog', '<button>');
-bem.CollectionSidebar__itemactions = bem('collection-sidebar__itemactions', '<div>');
-bem.CollectionSidebar__itemlink = bem.CollectionSidebar.__('itemlink', '<a>');
-
 bem.FormSidebar = bem('form-sidebar');
 bem.FormSidebar__wrapper = bem.FormSidebar.__('wrapper');
 bem.FormSidebar__item = bem.FormSidebar.__('item');
@@ -97,6 +91,8 @@ bem.FormSidebar__label = bem.FormSidebar.__('label');
 bem.FormSidebar__labelCount = bem.FormSidebar.__('label-count', '<span>');
 bem.FormSidebar__grouping = bem.FormSidebar.__('grouping');
 bem.FormSidebar__itemlink = bem.FormSidebar.__('itemlink', '<a>');
+bem.FormSidebar__iteminner = bem.FormSidebar.__('iteminner', '<span>');
+bem.FormSidebar__itembyline = bem.FormSidebar.__('itembyline', '<span>');
 
 bem.AssetListSorts = bem('asset-list-sorts', '<div>');
 bem.AssetListSorts__item = bem.AssetListSorts.__('item');

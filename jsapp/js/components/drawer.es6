@@ -29,103 +29,6 @@ import SidebarFormsList from '../lists/sidebarForms';
 
 var leaveBetaUrl = stores.pageState.leaveBetaUrl;
 
-class DrawerLink extends React.Component {
-  onClick (evt) {
-    if (!this.props.href) {
-      evt.preventDefault();
-    }
-    if (this.props.onClick) {
-      this.props.onClick(evt);
-    }
-  }
-  render () {
-    var icon_class = (this.props['ki-icon'] == undefined ? `fa fa-globe` : `k-icon-${this.props['ki-icon']}`);
-    var icon = (<i className={icon_class}></i>);
-    var classNames = [this.props.class, 'k-drawer__link'];
-
-    var link;
-    if (this.props.linkto) {
-      link = (
-        <Link to={this.props.linkto}
-            className={classNames.join(' ')}
-            activeClassName='active'
-            data-tip={this.props.label}>
-          {icon}
-        </Link>
-      );
-    } else {
-      link = (
-        <a href={this.props.href || '#'}
-            className={classNames.join(' ')}
-            onClick={this.onClick}
-            data-tip={this.props.label}>
-            {icon}
-        </a>
-      );
-    }
-    return link;
-  }
-}
-
-var Drawer = React.createClass({
-  mixins: [
-    searches.common,
-    mixins.droppable,
-    Navigation,
-    Reflux.connect(stores.session),
-    Reflux.connect(stores.pageState)
-  ],
-  toggleFixedDrawer() {
-    stores.pageState.toggleFixedDrawer();
-  },
-  render () {
-    return (
-          <bem.Drawer className='k-drawer'>
-            <nav className='k-drawer__icons'>
-              <DrawerLink label={t('Projects')} linkto='forms' ki-icon='projects' class='projects'/>
-              <DrawerLink label={t('Library')} linkto='library' ki-icon='library' class='library' />
-            </nav>
-
-            <div className="drawer__sidebar">
-              <button className="mdl-button mdl-button--icon k-drawer__close" onClick={this.toggleFixedDrawer}>
-                <i className="k-icon-close"></i>
-              </button>
-              { isLibrary(this.context.router)
-                ? <LibrarySidebar />
-                : <FormSidebar />
-              }
-            </div>
-
-            <div className='k-drawer__icons-bottom'>
-              { stores.session.currentAccount ?
-                <a href={stores.session.currentAccount.projects_url} 
-                   className='k-drawer__link' 
-                   target="_blank"
-                   data-tip={t('Projects (legacy)')}>
-                  <i className="k-icon k-icon-globe" />
-                </a>
-              : null }
-              <a href='https://github.com/kobotoolbox/' 
-                 className='k-drawer__link' 
-                 target="_blank"
-                 data-tip={t('source')}>
-                <i className="k-icon k-icon-github" />
-              </a>
-              <a href='http://support.kobotoolbox.org/' 
-                 className='k-drawer__link' 
-                 target="_blank"
-                 data-tip={t('help')}>
-                <i className="k-icon k-icon-help" />
-              </a>
-            </div>
-          </bem.Drawer>
-      );
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
-  }
-});
-
 var FormSidebar = React.createClass({
   mixins: [
     searches.common,
@@ -222,6 +125,7 @@ var LibrarySidebar = React.createClass({
   setStates() {
     this.setState({
       headerFilters: 'library',
+      publicCollectionsVisible: false,
       searchContext: searches.getSearchContext('library', {
         filterParams: {
           assetType: 'asset_type:question OR asset_type:block',
@@ -261,6 +165,9 @@ var LibrarySidebar = React.createClass({
     this.transitionTo('library');
   },
   clickShowPublicCollections (evt) {
+    this.setState({
+      publicCollectionsVisible: !this.state.publicCollectionsVisible,
+    });
     //TODO: show the collections in the main pane?
   },
   createCollection () {
@@ -354,6 +261,7 @@ var LibrarySidebar = React.createClass({
     };
   },
   render () {
+
     return (
       <bem.CollectionsWrapper>
 
@@ -388,29 +296,27 @@ var LibrarySidebar = React.createClass({
           <bem.FormSidebar>
             <bem.FormSidebar__label
               key='allitems'
-              m={{
-                  toplevel: true,
-                  selected: !this.state.showPublicCollections,
-                }} onClick={this.clickFilterByCollection}>
+              m={{selected: !this.state.publicCollectionsVisible}} 
+              onClick={this.clickFilterByCollection}>
                   <i className="k-icon-library" />
                   {t('My Library')}
+              <bem.FormSidebar__labelCount>
+                {this.state.sidebarCollections.length}
+              </bem.FormSidebar__labelCount>
+
             </bem.FormSidebar__label>
             <bem.FormSidebar__grouping>
             {this.state.sidebarCollections.map((collection)=>{
               var editLink = this.makeHref('collection-page', {uid: collection.uid}),
                 sharingLink = this.makeHref('collection-sharing', {assetid: collection.uid});
               var iconClass = 'k-icon-folder';
-              // switch (collection.access_type) {
-              //   case 'public':
-              //   case 'subscribed':
-              //     iconClass = 'k-icon-folder-public';
-              //     break;
-              //   case 'shared':
-              //     iconClass = 'k-icon-folder-shared';
-              // }
+              if (collection.discoverable_when_public)
+                iconClass = 'k-icon-folder-public';
+              if (collection.access_type == 'shared')
+                iconClass = 'k-icon-folder-shared';
 
               return (
-                  <bem.FormSidebar__label
+                  <bem.FormSidebar__item
                     key={collection.uid}
                     m={{
                       collection: true,
@@ -418,20 +324,18 @@ var LibrarySidebar = React.createClass({
                         this.state.filteredCollectionUid ===
                           collection.uid &&
                         !this.state.filteredByPublicCollection,
-                    }}
-                    onClick={this.clickFilterByCollection}
-                    data-collection-uid={collection.uid} 
-                    data-collection-name={collection.name}
-                  >
-                    <bem.FormSidebar__itemlink>
+                    }}>
+                    <bem.FormSidebar__itemlink
+                      onClick={this.clickFilterByCollection}
+                      data-collection-uid={collection.uid} 
+                      data-collection-name={collection.name}>
                       <i className={iconClass} />
                       {collection.name}
                     </bem.FormSidebar__itemlink>
                     { !this.state.filteredByPublicCollection && this.state.filteredCollectionUid === collection.uid &&
                       <ui.MDLPopoverMenu id={"actions-" + collection.uid}
-
                                         button_type='no-tip' 
-                                        menuClasses='mdl-menu mdl-js-menu'>
+                                        menuClasses='mdl-menu mdl-menu--bottom-right mdl-js-menu'>
                         { collection.access_type === 'owned' && collection.discoverable_when_public &&
                           <bem.PopoverMenu__link
                               m={'make-private'}
@@ -495,25 +399,26 @@ var LibrarySidebar = React.createClass({
 
                       </ui.MDLPopoverMenu>
                     }
-                  </bem.FormSidebar__label>
+                  </bem.FormSidebar__item>
                 );
             })}
             </bem.FormSidebar__grouping>
             <bem.FormSidebar__label
               key='public'
-              m={{
-                  toplevel: true,
-                  selected: this.state.showPublicCollections,
-                }} onClick={this.clickShowPublicCollections}>
+              m={{selected: this.state.publicCollectionsVisible}} 
+              onClick={this.clickShowPublicCollections}>
               <i className="k-icon-globe" />
               {t('Public Collections')}
+              <bem.FormSidebar__labelCount>
+                {this.state.sidebarPublicCollections.length}
+              </bem.FormSidebar__labelCount>
             </bem.FormSidebar__label>
-            <bem.FormSidebar__grouping>
+            <bem.FormSidebar__grouping m={[this.state.publicCollectionsVisible ? 'visible' : 'collapsed']}>
             {this.state.sidebarPublicCollections.map((collection)=>{
               var editLink = this.makeHref('collection-page', {uid: collection.uid}),
                 sharingLink = this.makeHref('collection-sharing', {assetid: collection.uid});
               return (
-                  <bem.FormSidebar__label
+                  <bem.FormSidebar__item
                     key={collection.uid}
                     m={{
                       collection: true,
@@ -522,19 +427,23 @@ var LibrarySidebar = React.createClass({
                           collection.uid &&
                         this.state.filteredByPublicCollection,
                     }}
-                    onClick={this.clickFilterByCollection}
-                    data-collection-uid={collection.uid}
-                    data-public-collection={true}
-                  >
-                    <i className="k-icon-folder-public" />
-                    {collection.name}
-                    <bem.CollectionSidebar__itembyline>
-                    {t('by ___').replace('___', collection.owner__username)}
-                    </bem.CollectionSidebar__itembyline>
+                  > 
+                    <bem.FormSidebar__itemlink
+                      onClick={this.clickFilterByCollection}
+                      data-collection-uid={collection.uid}
+                      data-public-collection={true}>
+                        <i className="k-icon-folder-public" />
+                        <bem.FormSidebar__iteminner>
+                          {collection.name}
+                          <bem.FormSidebar__itembyline>
+                            {t('by ___').replace('___', collection.owner__username)}
+                          </bem.FormSidebar__itembyline>
+                        </bem.FormSidebar__iteminner>
+                    </bem.FormSidebar__itemlink>
                     {this.state.filteredCollectionUid === collection.uid && this.state.filteredByPublicCollection && 
                       <ui.MDLPopoverMenu id={"pub-more-" + collection.uid}
                                           button_type='no-tip' 
-                                          menuClasses='mdl-menu mdl-menu--bottom-left mdl-js-menu'>
+                                          menuClasses='mdl-menu mdl-menu--bottom-right mdl-js-menu'>
                           { collection.access_type === 'subscribed' ?
                               <bem.PopoverMenu__link href={'#'}
                                 onClick={this.unsubscribeCollection}
@@ -552,7 +461,7 @@ var LibrarySidebar = React.createClass({
                           }
                         </ui.MDLPopoverMenu>
                       }
-                  </bem.FormSidebar__label>
+                  </bem.FormSidebar__item>
                 );
             })}
             </bem.FormSidebar__grouping>
@@ -567,4 +476,100 @@ var LibrarySidebar = React.createClass({
 
 });
 
+class DrawerLink extends React.Component {
+  onClick (evt) {
+    if (!this.props.href) {
+      evt.preventDefault();
+    }
+    if (this.props.onClick) {
+      this.props.onClick(evt);
+    }
+  }
+  render () {
+    var icon_class = (this.props['ki-icon'] == undefined ? `fa fa-globe` : `k-icon-${this.props['ki-icon']}`);
+    var icon = (<i className={icon_class}></i>);
+    var classNames = [this.props.class, 'k-drawer__link'];
+
+    var link;
+    if (this.props.linkto) {
+      link = (
+        <Link to={this.props.linkto}
+            className={classNames.join(' ')}
+            activeClassName='active'
+            data-tip={this.props.label}>
+          {icon}
+        </Link>
+      );
+    } else {
+      link = (
+        <a href={this.props.href || '#'}
+            className={classNames.join(' ')}
+            onClick={this.onClick}
+            data-tip={this.props.label}>
+            {icon}
+        </a>
+      );
+    }
+    return link;
+  }
+}
+
+var Drawer = React.createClass({
+  mixins: [
+    searches.common,
+    mixins.droppable,
+    Navigation,
+    Reflux.connect(stores.session),
+    Reflux.connect(stores.pageState)
+  ],
+  toggleFixedDrawer() {
+    stores.pageState.toggleFixedDrawer();
+  },
+  render () {
+    return (
+          <bem.Drawer className='k-drawer'>
+            <nav className='k-drawer__icons'>
+              <DrawerLink label={t('Projects')} linkto='forms' ki-icon='projects' class='projects'/>
+              <DrawerLink label={t('Library')} linkto='library' ki-icon='library' class='library' />
+            </nav>
+
+            <div className="drawer__sidebar">
+              <button className="mdl-button mdl-button--icon k-drawer__close" onClick={this.toggleFixedDrawer}>
+                <i className="k-icon-close"></i>
+              </button>
+              { isLibrary(this.context.router)
+                ? <LibrarySidebar />
+                : <FormSidebar />
+              }
+            </div>
+
+            <div className='k-drawer__icons-bottom'>
+              { stores.session.currentAccount ?
+                <a href={stores.session.currentAccount.projects_url} 
+                   className='k-drawer__link' 
+                   target="_blank"
+                   data-tip={t('Projects (legacy)')}>
+                  <i className="k-icon k-icon-globe" />
+                </a>
+              : null }
+              <a href='https://github.com/kobotoolbox/' 
+                 className='k-drawer__link' 
+                 target="_blank"
+                 data-tip={t('source')}>
+                <i className="k-icon k-icon-github" />
+              </a>
+              <a href='http://support.kobotoolbox.org/' 
+                 className='k-drawer__link' 
+                 target="_blank"
+                 data-tip={t('help')}>
+                <i className="k-icon k-icon-help" />
+              </a>
+            </div>
+          </bem.Drawer>
+      );
+  },
+  componentDidUpdate() {
+    mdl.upgradeDom();
+  }
+});
 export default Drawer;

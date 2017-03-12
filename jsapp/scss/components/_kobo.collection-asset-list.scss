@@ -45,34 +45,47 @@
   }
 }
 
+.list__heading {
+  margin-top: 14px;
+  display: block;
+  font-size: 18px;
+  font-weight: 500;
+  span, i {
+    vertical-align: middle;
+  }
+  span.parent {
+    font-weight: normal;
+    color: lighten($layout-text-color, 10%);
+  }
+  i {
+    font-size: 24px;
+  }
+}
+
+.list__subheading {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
 // regular, non-grouped list for library
 div.library {
   height:100%;
-  margin-left: 8px;
-}
-
-.library__breadcrumb {
-  height:36px;
-  font-size: 18px;
-  line-height: 30px;
-  color: $cool-gray;
-  span {
-    padding-right: 8px;
-  }
+  overflow: hidden;
 }
 
 .list--regular {
   flex-flow: column;
   margin: 0px !important;
   position: relative;
-  height: calc(100% - 50px);
+  height: calc(100% - 58px);
   width:100%;
   .asset-list {
-    height: calc(100% - 50px);
+    height: calc(100% - 75px);
     overflow-y: auto;
     overflow-x: hidden;
     width: 100%;
-    padding-bottom: 100px;
+    padding-bottom: 260px;
   }
   .asset-row > .asset-row__buttons {
     width: 33%;
@@ -81,9 +94,8 @@ div.library {
   .asset-list, .asset-list-sorts {
     background-color: #FFF;
   }
-
-  .library__breadcrumb:not(.hidden) + .asset-list-sorts + .asset-list {
-    height: calc(100% - 86px); 
+  .asset-list-sorts {
+    margin-top: 5px;
   }
 }
 
@@ -102,17 +114,6 @@ div.library {
     > .loading {
       margin-top:110px;
     }
-  }
-  .list__heading {
-    margin-top: 14px;
-    font-size: 18px;
-    font-weight: 500;
-  }
-
-  .list__subheading {
-    margin-top: 20px;
-    margin-bottom: 10px;
-    font-weight: 600;
   }
   .asset-items {
     @extend .mdl-shadow--2dp;

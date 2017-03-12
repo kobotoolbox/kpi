@@ -116,11 +116,15 @@ var SearchCollectionList = React.createClass({
   renderHeadings () {
     return [
       (
-        <bem.Library_breadcrumb className={this.state.parentName ? '' : 'hidden'}>
-          <span>{t('Library')}</span>
-          <span className="separator"><i className="fa fa-caret-right" /></span>
-          <span>{this.state.parentName}</span>
-        </bem.Library_breadcrumb>
+        <bem.List__heading>
+          <span className={this.state.parentName ? 'parent' : ''}>{t('My Library')}</span>
+          {this.state.parentName &&
+            <span>
+              <i className="k-icon-next" />
+              <span>{this.state.parentName}</span>
+            </span>
+          }
+        </bem.List__heading>
       ),
       (
         <bem.AssetListSorts className="mdl-grid">

@@ -55,10 +55,16 @@ $hover-asset-row: #F2F2F3;
     font-size: 14px;
     vertical-align: top;
     padding: 4px 0px;
-    opacity: 0.8;
   }
 
-  .asset-type-icon + .asset-row__celllink--name {
+  .row-icon {
+    font-size:32px;
+    margin-left: -5px;
+    margin-right: 5px;
+    opacity: 0.6; 
+    vertical-align: middle;
+  }
+  .row-icon + .asset-row__celllink--name {
     width: calc(100% - 50px);
   }
 
