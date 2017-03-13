@@ -129,29 +129,28 @@ $hover-asset-row: #F2F2F3;
   .popover-menu__item {
     font-size: 14px;
     color: $cool-gray;
+    span, i {
+      vertical-align: middle;
+    }
   }
 
   .popover-menu__item--move-coll-item {
     position: relative;
-    padding-right: 35px;
-    &:hover {
-      color: darken($cool-gray, 20%);
-    }
-    i {
-      vertical-align: top;
-    }
-    i.fa {
-      position: absolute;
-      font-size: 14px;
-      right: -10px;
-      margin-right: 0px;
-    }
+    text-align: left;
+    padding-right:35px;
     span {
       display: inline-block;
       max-width: 150px;
       overflow: hidden;
       text-overflow:ellipsis;
       word-wrap:break-word;
+    }
+    span + span {
+      position: absolute;
+      right: 12px;
+      top: 10px;
+      padding-right: 0px;
+      font-size: 24px;
     }
   }
 
@@ -205,8 +204,3 @@ $hover-asset-row: #F2F2F3;
     overflow-x:hidden;
   }
 }
-
-.popover-menu__link--dl-xml {
-  border-bottom: 1px solid lighten($cool-gray, 25%);
-}
-

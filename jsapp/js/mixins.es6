@@ -207,15 +207,13 @@ var dmix = {
           }
           { downloadable &&
             <ui.MDLPopoverMenu id={"more-dl-popover"}>
-              <bem.PopoverMenu__item>
-                <i className="k-icon-download" />
-                {t('Download form as')}
-              </bem.PopoverMenu__item>
               {downloads.map((dl)=>{
                 return (
                     <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
                         key={`dl-${dl.format}`}>
-                      {dl.format}
+                      <i className={`k-icon-${dl.format}-file`}/>
+                      {t('Download')}&nbsp;
+                      {dl.format.toString().toUpperCase()}
                     </bem.PopoverMenu__link>
                   );
               })}

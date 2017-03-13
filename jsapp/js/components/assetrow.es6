@@ -143,9 +143,6 @@ var AssetRow = React.createClass({
         };
       });
     }
-
-    console.log(this.props.asset_type);
-
     return (
         <bem.AssetRow m={{
                             // 'selected': this.props.isSelected,
@@ -317,16 +314,13 @@ var AssetRow = React.createClass({
                     </bem.PopoverMenu__link>
                   </Dropzone>
                 }
-                { this.props.downloads && this.props.downloads.length > 0 &&
-                  <bem.PopoverMenu__heading>
-                    {t('Download form as')}
-                  </bem.PopoverMenu__heading>
-                }
                 {this.props.downloads.map((dl)=>{
                   return (
                       <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
                           key={`dl-${dl.format}`}>
-                        {dl.format}
+                        <i className={`k-icon-${dl.format}-file`}/>
+                        {t('Download')}&nbsp;
+                        {dl.format.toString().toUpperCase()}
                       </bem.PopoverMenu__link>
                     );
                 })}
@@ -339,6 +333,7 @@ var AssetRow = React.createClass({
                 { this.props.asset_type && this.props.asset_type != 'survey' && ownedCollections.length > 0 &&
                   <bem.PopoverMenu__moveTo>
                     {ownedCollections.map((col)=>{
+                      console.log(col.hasParent);
                       return (
                           <bem.PopoverMenu__item
                            onClick={this.moveToCollection}
@@ -350,7 +345,7 @@ var AssetRow = React.createClass({
                               <i className="k-icon-folder" />
                               {col.label}
                               {col.hasParent && 
-                                <i className="fa fa-check" />
+                                <span className="has-parent">&bull;</span>
                               }
                           </bem.PopoverMenu__item>
                         );

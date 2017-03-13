@@ -137,17 +137,11 @@
     vertical-align: middle;
   }
 
-}
-
-.popover-menu__link {
-  &--dl-xls, &--dl-xml {
-    text-transform: uppercase;
-    padding-left: 50px !important;
-  }
   &:hover {
     background-color: #eff0f1;
     color:$cool-gray;
   }
+
   &.active {
     color: unquote("rgb(#{$color-primary})");
   }

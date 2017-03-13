@@ -51,14 +51,14 @@ $headerAccountTextColor: #dbedf7;
     width: 100%;
     z-index: auto;
     .mdl-layout__header-row {
-        height: 54px;
+        height: 63px;
         padding: 0px 20px;
     }
     .mdl-placeholder {
         margin-left: auto;
     }
     .mdl-layout-title {
-        width: 252px;
+        width: 244px;
     }
     .account-box {
         margin-left: auto;
@@ -75,7 +75,7 @@ $headerAccountTextColor: #dbedf7;
         margin-top: 4px;
         position: relative;
         i {
-            font-size: 18px;
+            font-size: 24px;
             color: $headerAccountTextColor;
         }
     }
@@ -160,13 +160,16 @@ $headerAccountTextColor: #dbedf7;
         font-size: 16px;
         text-transform: capitalize;
         i {
-            font-size: 24px;
-            width: 30px;
-            margin-right: 12px;
+            font-size: 32px;
+            width: 32px;
+            margin-right: 6px;
             display: inline-block;
         }
         &:hover {
             background-color: $nav-menu-item-bg-active;
+        }
+        span, i {
+            vertical-align: middle;
         }
     }
     .k-lang__submenu, .k-account__submenu {
@@ -529,7 +532,7 @@ a.form-view__tab {
     .popover-menu__link {
         font-weight: normal;
         i {
-            font-size: 24px;
+            font-size: 32px;
             margin-right: 8px;
         }
     }

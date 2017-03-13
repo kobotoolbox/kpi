@@ -224,7 +224,7 @@ var MainHeader = React.createClass({
                 :null}
                 <li className="k-lang__submenu" key="lang">
                   <a className="mdl-menu__item">
-                    <i className="fa fa-globe" />
+                    <i className="k-icon-globe" />
                     {t('Language')}
                   </a>
                   <ul>
