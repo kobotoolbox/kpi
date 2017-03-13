@@ -145,7 +145,6 @@ var pageStateStore = Reflux.createStore({
       navIsOpen = false;
     }
     this.state = {
-      headerBreadcrumb: [],
       // drawerIsVisible: false,
       // headerSearch: true,
       assetNavPresent: false,
@@ -251,12 +250,6 @@ var pageStateStore = Reflux.createStore({
         headerHidden: val
       });
     }
-  },
-  setHeaderBreadcrumb (newBreadcrumb) {
-      var _changes = {};
-      _changes.headerBreadcrumb = newBreadcrumb;
-      assign(this.state, _changes);
-      this.trigger(_changes);
   }
 });
 

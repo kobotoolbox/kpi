@@ -15,6 +15,7 @@ import {
   assign,
   currentLang,
   LANGUAGE_COOKIE_NAME,
+  stringToColor,
 } from '../utils';
 import searches from '../searches';
 import cookie from 'react-cookie';
@@ -176,14 +177,15 @@ var MainHeader = React.createClass({
   },
 
   renderAccountNavMenu () {
-    var defaultGravatarImage = `${window.location.protocol}//www.gravatar.com/avatar/64e1b8d34f425d19e1ee2ea7236d3028?s=40`;
     var langs = [];
 
     if (stores.session.currentAccount) {
       var accountName = stores.session.currentAccount.username;
-      var gravatar = stores.session.currentAccount.gravatar || defaultGravatarImage;
-
       langs = stores.session.currentAccount.languages;
+
+      var initialsStyle = {
+        background: `#${stringToColor(accountName, 20)}`
+      };
 
       return (
         <bem.AccountBox>
@@ -197,12 +199,9 @@ var MainHeader = React.createClass({
               onClick={this.toggleAccountMenuPopover}
               onBlur={this.toggleAccountMenuPopover} 
               tabIndex="-1">
-            <bem.AccountBox__username>
-              {accountName}
-            </bem.AccountBox__username>
-            <bem.AccountBox__image>
-              <img src={gravatar} />
-            </bem.AccountBox__image>
+            <bem.AccountBox__initials style={initialsStyle}>
+              {accountName.charAt(0)}
+            </bem.AccountBox__initials>
           </bem.AccountBox__name>
 
           { (this.state.accountMenuPopoverShowing) ? 
@@ -273,98 +272,6 @@ var MainHeader = React.createClass({
       message: stores.session.currentAccount.downtimeMessage,
       icon: 'gears',
     });
-  },
-  toggleDataPopover (evt) {
-    var isBlur = evt.type === 'blur',
-        $popoverMenu;
-    if (isBlur) {
-      $popoverMenu = $(this.refs['data-popover'].getDOMNode());
-      // if we setState and immediately hide popover then the
-      // download links will not register as clicked
-      $popoverMenu.fadeOut(250, () => {
-        this.setState({
-          dataPopoverShowing: false,
-        });
-      });
-    } else {
-      this.setState({
-        dataPopoverShowing: true,
-      });
-    }
-  },
-  renderFormViewHeader () {
-    return (
-      <bem.FormView__tabbar>
-        <bem.FormView__tabs>
-          <bem.FormView__tab className="is-edge" m='summary' >
-            {t('Summary')}
-          </bem.FormView__tab>
-          <bem.FormView__tab 
-            m='form' 
-            className={this.state.activeRoute == '/forms/:assetid' ? 'active' : ''} 
-            href={this.makeHref('form-landing', {assetid: this.state.assetid})}
-            data-id='Form'>
-              {t('Form')}
-          </bem.FormView__tab>
-          { this.state.asset.deployment__identifier != undefined && this.state.asset.has_deployment ?
-            <ui.MDLPopoverMenu  id="more-data-tab" 
-                                button_label={t('Data')}
-                                button_type='text' 
-                                classname='form-view__button--data'>
-                <bem.PopoverMenu__link m={'report-in-kpi'}
-                    href={this.makeHref('form-reports', {assetid: this.state.assetid})}>
-                  <i className="k-icon-report" />
-                  {t('Reports')}
-                </bem.PopoverMenu__link>
-                <bem.PopoverMenu__link m={'report'}
-                    href={this.makeHref('form-data-report', {assetid: this.state.assetid})}
-                    className="is-edge">
-                  <i className="k-icon-report" />
-                  {t('Reports (legacy)')}
-                </bem.PopoverMenu__link>
-                <bem.PopoverMenu__link m={'table'}
-                    href={this.makeHref('form-data-table', {assetid: this.state.assetid})}>
-                  <i className="k-icon-table" />
-                  {t('Table')}
-                </bem.PopoverMenu__link>
-                <bem.PopoverMenu__link m={'gallery'}
-                    href={this.makeHref('form-data-gallery', {assetid: this.state.assetid})}>
-                  <i className="k-icon-photo-gallery" />
-                  {t('Gallery')}
-                </bem.PopoverMenu__link>
-                <bem.PopoverMenu__link m={'downloads'}
-                    href={this.makeHref('form-data-downloads', {assetid: this.state.assetid})}>
-                  <i className="k-icon-download" />
-                  {t('Downloads')}
-                </bem.PopoverMenu__link>
-                <bem.PopoverMenu__link m={'map'}
-                    href={this.makeHref('form-data-map', {assetid: this.state.assetid})}>
-                  <i className="k-icon-map-view" />
-                  {t('Map')}
-                </bem.PopoverMenu__link>
-            </ui.MDLPopoverMenu>
-          : null }
-          {this.userCanEditAsset() && 
-            <bem.FormView__tab 
-              m='settings' 
-              className={this.state.activeRoute == '/forms/:assetid/data/settings' ? 'active' : ''} 
-              href={this.makeHref('form-data-settings', {assetid: this.state.assetid})}>
-                {t('Settings')}
-            </bem.FormView__tab>
-          }
-        </bem.FormView__tabs>
-        <bem.FormView__status>
-          { this.state.asset.has_deployment ?
-            <span>
-              {this.state.asset.deployment__active ? t('Deployed') : t('Archived')} 
-              &nbsp;({this.state.asset.deployment__submission_count} {t('submissions')})
-            </span>
-          : 
-            <span>{t('Undeployed draft')}</span>
-          }
-        </bem.FormView__status>
-      </bem.FormView__tabbar>
-    );
   },
   assetTitleChange (e) {
     var asset = this.state.asset;
@@ -448,6 +355,11 @@ var MainHeader = React.createClass({
             }
             { this.state.showFormViewHeader && !this.state.headerFilters &&  
               <bem.FormView__title>
+                { this.state.asset.has_deployment ?
+                  <i className="k-icon-deployed" />
+                :
+                  <i className="k-icon-drafts" />
+                }
                 <bem.FormView__name data-tip={t('click to edit')} className="hide-tooltip__onfocus">
                   <AutosizeInput type="text"
                         name="title"
@@ -457,7 +369,7 @@ var MainHeader = React.createClass({
                         disabled={!userCanEditAsset}
                   />
                 </bem.FormView__name>
-                { this.state.asset && this.state.asset.settings && 
+                {/*this.state.asset && this.state.asset.settings && 
                   <bem.FormView__description>
                     <AutosizeInput type="text"
                       name="description"
@@ -467,16 +379,16 @@ var MainHeader = React.createClass({
                       disabled={!userCanEditAsset}
                     />
                 </bem.FormView__description>
+                */}
+                { this.state.asset.has_deployment &&
+                  <bem.FormView__subs>
+                    {this.state.asset.deployment__submission_count} {t('submissions')}
+                  </bem.FormView__subs>
                 }
               </bem.FormView__title>
             }
             {this.renderAccountNavMenu()}
           </div>
-          { this.state.showFormViewHeader && 
-            <bem.FormView__header>
-              {this.renderFormViewHeader()}
-            </bem.FormView__header>
-          }
           {this.renderGitRevInfo()}
         </header>
       );

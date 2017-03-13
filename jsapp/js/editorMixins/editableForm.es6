@@ -204,39 +204,6 @@ export default assign({
   componentDidMount() {
     document.querySelector('.page-wrapper__content').addEventListener('scroll', this.handleScroll);
     this.listenTo(stores.surveyState, this.surveyStateChanged);
-    this.setBreadcrumb();
-  },
-  setBreadcrumb (params={}) {
-    let library = isLibrary(this.context.router);
-    var baseName = library ? 'library-' : '';
-    let bcData = [
-      {
-        'label': library ? t('Library') : t('Projects'),
-        'to': library ? 'library' : 'forms',
-      }
-    ];
-    if (this.editorState === 'new') {
-      bcData.push({
-        label: t('new'),
-        to: `${baseName}new-form`,
-      });
-    } else {
-      let uid = params.asset_uid || this.state.asset_uid || this.props.params.assetid,
-          asset_type = params.asset_type || this.state.asset_type || 'asset';
-      bcData.push({
-        label: t(`view-${asset_type}`),
-        to: `${baseName}form-landing`,
-        params: {assetid: uid},
-      });
-      bcData.push({
-        label: t(`edit-${asset_type}`),
-        to: `${baseName}form-edit`,
-        params: {assetid: uid},
-      });
-    }
-
-    stores.pageState.setHeaderBreadcrumb(bcData);
-
   },
   componentWillUnmount () {
     if (this.app && this.app.survey) {
@@ -692,10 +659,6 @@ export default assign({
       survey.on('change', this.onSurveyChange);
     }
 
-    this.setBreadcrumb({
-      asset_uid: _state.asset_uid,
-      asset_type: _state.asset_type,
-    });
     this.setState(_state);
   },
   clearPreviewError () {

@@ -9,6 +9,7 @@
   transition:all 0.5s;
   visibility: visible;
   opacity: 1;
+  align-items: 'center';
 
   &--deleted {
     min-height: 0px;

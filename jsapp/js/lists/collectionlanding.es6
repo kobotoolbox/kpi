@@ -64,12 +64,6 @@ var CollectionLanding = React.createClass({
   ],
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setHeaderBreadcrumb([
-        {'label': t('library'), 'to': 'library'},
-        {'label': t('Collection'), 'to': 'collection-page', 'params': {
-          uid: params.uid
-        }}
-      ]);
       stores.pageState.setAssetNavPresent(false);
       stores.pageState.setDrawerHidden(false);
       stores.pageState.setHeaderHidden(false);

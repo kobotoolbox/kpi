@@ -10,10 +10,11 @@
 }
 
 .mdl-layout__content {
-  height: calc(100% - 72px);
-  overflow: visible;
+  height: calc(100% - 66px);
   position: relative;
-  margin-top: 8px;
+  margin-top: 9px;
+  flex-grow:0;
+  overflow: hidden;
   // transition removed due to printing bug in Chrome
 }
 

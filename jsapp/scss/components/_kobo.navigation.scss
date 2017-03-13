@@ -11,38 +11,6 @@ $headerAccountTextColor: #dbedf7;
     z-index: 0;
 }
 
-.with-formView-header .k-header__bar:after {
-    background-color: white;
-    content: '';
-    height: 37px;
-    width: 100%;
-    z-index: 0;
-    @extend .mdl-shadow--2dp;
-    position: absolute;
-    top: 56px;
-}
-
-.account-box__alert {
-    color: rgb(33, 182, 243);
-    position: absolute;
-    left: 51px;
-    top: 4px;
-    height: 47px;
-    padding: 6px 5px;
-    background-color: #414553;
-    line-height: 17px;
-    font-size: 12px;
-    strong {
-        font-weight: bold;
-        text-transform: uppercase;
-        font-size: 10px;
-    }
-    &:hover {
-        background-color: #585d6c;
-        cursor: pointer;
-    }
-}
-
 .mdl-layout__header {
     background-color: transparent;
     box-shadow: none !important;
@@ -63,10 +31,7 @@ $headerAccountTextColor: #dbedf7;
     .account-box {
         margin-left: auto;
         position: relative;
-        padding-bottom:5px;
-        &:hover {
-            background-color: darken($layout-header-bg-color, 2.5%);
-        }
+        max-width: 115px;
     }
     .account-box__notifications {
         display: inline-block;
@@ -97,21 +62,9 @@ $headerAccountTextColor: #dbedf7;
         vertical-align: middle;
         color: $layout-nav-color;
         cursor: pointer;
-        margin-top: 4px;
         background-color: transparent;
         border: none;
-        .account-box__username {
-            display: inline-block;
-            vertical-align: middle;
-            margin-right: 4px;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: 180px;
-            overflow: hidden;
-            padding: 0px 8px;
-            font-size: 16px;
-            color: $headerAccountTextColor;
-        }
+        max-width: 100%;
     }
     .k-account__menu {
         position: absolute;
@@ -127,24 +80,24 @@ $headerAccountTextColor: #dbedf7;
             border-right: 15px solid transparent;
             border-bottom: 15px solid darken($layout-header-bg-color, 5%);
             position: absolute;
-            top: -10px;
+            top: -8px;
             content: '';
-            right: 26px;
+            right: 14px;
         }
     }
-    .account-box__image {
-        width: 24px;
-        display: inline-block;
-        margin-right: 12px;
-        img {
-            width: 24px;
-            height: 24px;
-            border-radius: 12px;
-        }
-    }
+    // .account-box__image {
+    //     width: 24px;
+    //     display: inline-block;
+    //     margin-right: 12px;
+    //     img {
+    //         width: 24px;
+    //         height: 24px;
+    //         border-radius: 12px;
+    //     }
+    // }
     .account-box__logo {
-        width: 155px;
-        height: 36px;
+        width: 175px;
+        height: 40px;
         background: url("../img/kobologo.svg") no-repeat left bottom;
         background-size: contain;
         display: block;
@@ -386,62 +339,39 @@ $headerAccountTextColor: #dbedf7;
     }
 }
 
-// form view header (white bar)
-
-.with-formView-header .mdl-layout__content,
-.with-formView-header .k-drawer {
-    height: calc(100% - 108px);
-}
-
-.with-formView-header .k-drawer {
-    top: 105px;
-}
-
-.form-view__tabbar {
-    width: 100%;
-    height: 37px;
-    position: relative;
-}
-
-.form-view__tabs {
-    position: relative;
-    margin: 0 auto;
-}
-
-.form-view__status {
-    position: absolute;
-    right: 36px;
-    top: 10px;
-    display: none;
-    color: $cool-gray;
-}
-
-@media screen and (min-width: 769px) {
-    .form-view__tabbar .form-view__tabs {
-        padding-left: 280px;
-    }
-}
-
-@media screen and (min-width: 481px) {
-    .form-view__status {
-        display: block;
-    }
-}
-
 // Form title + desc in header, editable
 
 .form-view__title {
     vertical-align: middle;
-    margin: 0px 10px;
+    margin: 0px;
+    display: flex;
+    width: calc(100% - 300px);
     display: inline-block;
-    flex-shrink: 1;
-    flex-grow: 1;
-    max-width: calc(100% - 360px);
-    .form-view__name,
-    .form-view__name > div,
-    .form-view__description,
-    .form-view__description > div {
-        width: 100%;
+    > i {
+        font-size: 38px;
+        vertical-align: middle;
+        width:32px;
+        color: #FFF;
+        opacity: 0.25;
+    }
+    .form-view__name {
+        width:70%;
+        display: inline-block;
+        vertical-align: middle;
+        > div {
+            width: 100%;
+            display: inline-block;
+        }
+    }
+    .form-view__subs {
+        display: inline-block;
+        vertical-align: middle;
+        width: 22%;
+        text-align: right;
+        overflow:hidden;
+        height: 22px;
+        font-size: 16px;
+        opacity: 0.6;
     }
     input {
         text-overflow: ellipsis;
@@ -472,17 +402,29 @@ $headerAccountTextColor: #dbedf7;
         color: #FFF;
         font-size: 18px;
     }
-    input[name='description'] {
-        color: $cool-gray;
-        font-size: 13px;
-        margin-top: -4px;
-        &::-webkit-input-placeholder {
-            font-style: italic;
+    // input[name='description'] {
+    //     color: $cool-gray;
+    //     font-size: 13px;
+    //     margin-top: -4px;
+    //     &::-webkit-input-placeholder {
+    //         font-style: italic;
+    //     }
+    //     &::-ms-input-placeholder {
+    //         font-style: italic;
+    //     }
+    // }
+}
+
+@media screen and (max-width: 959px) {
+    .form-view__title {
+        .form-view__name {
+            width:80%;
         }
-        &::-ms-input-placeholder {
-            font-style: italic;
+        .form-view__subs {
+            width: 10%;
         }
     }
+
 }
 
 @media screen and (max-width: 767px) {
@@ -490,6 +432,17 @@ $headerAccountTextColor: #dbedf7;
         display: none;
     }
 }
+
+// Initials avatar, used in header and account settings
+.account-box__initials {
+    padding:6px 10px;
+    border-radius: 36px;
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 18px;
+    color: $headerAccountTextColor;
+}
+
 
 a.form-view__tab {
     background: transparent;

@@ -14,6 +14,7 @@ import {
   assign,
   t,
   log,
+  stringToColor,
 } from '../utils';
 
 
@@ -138,16 +139,19 @@ export var AccountSettings = React.createClass({
       );
     }
 
-    var defaultGravatarImage = `${window.location.protocol}//www.gravatar.com/avatar/64e1b8d34f425d19e1ee2ea7236d3028?s=40`;
-    var gravatar = stores.session.currentAccount.gravatar || defaultGravatarImage;
     var accountName = stores.session.currentAccount.username;
+    var initialsStyle = {
+      background: `#${stringToColor(accountName, 20)}`
+    };
 
     return (
       <DocumentTitle title={`${accountName} | KoboToolbox`}>
       <ui.Panel>
         <bem.AccountSettings>
           <bem.AccountSettings__left>
-            <img src={gravatar} />
+            <bem.AccountBox__initials style={initialsStyle}>
+              {accountName.charAt(0)}
+            </bem.AccountBox__initials>            
           </bem.AccountSettings__left>
           <bem.AccountSettings__right>
             <bem.AccountSettings__item m='actions'>

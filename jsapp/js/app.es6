@@ -39,6 +39,7 @@ import {
 
 import Reports from './components/reports';
 import FormData from './components/formData';
+import FormViewTabs from './components/formViewTabs';
 import {ChangePassword, AccountSettings} from './components/accountSettings';
 
 import {
@@ -57,6 +58,7 @@ import {
   assign,
   isLibrary,
   currentLang,
+  stringToColor,
 } from './utils';
 
 mixins.permissions = {
@@ -92,53 +94,6 @@ mixins.permissions = {
   }
 };
 
-class UserDropdown extends React.Component {
-  logout (evt) {
-    evt.preventDefault();
-    actions.auth.logout();
-  }
-
-  render () {
-    var username = this.props.username || 'unk';
-    return (
-          <ul className="dropdown-menu dropdown-menu-right">
-            <li className="link">
-              <Link to="user-profile"
-                  params={{username: username}}>
-                {{username}} {t('profile')}
-              </Link>
-            </li>
-            <li className="divider"></li>
-            <li className="link">
-              <a href="#" onClick={ this.logout.bind(this) }>
-                {t('logout')}
-              </a>
-            </li>
-          </ul>
-      );
-  }
-}
-class UserIcon extends React.Component {
-  render () {
-    /* defaultGravatarImage for admin@admin.com */
-    var defaultGravatarImage = 'http://www.gravatar.com/avatar/64e1b8d34f425d19e1ee2ea7236d3028?s=40';
-    var imgSrc = this.props.img || defaultGravatarImage;
-    return (
-        <a href="#" className="dropdown-toggle" data-toggle="dropdown">
-          <img src={imgSrc} className="gravatar-img" />
-        </a>
-      );
-  }
-}
-/*
-var RecentHistoryDropdownBase = React.createClass({
-  mixins: [Reflux.ListenerMixin],
-  getInitialState () {
-    return { items: [] };
-  },
-  render () {}
-});
-*/
 
 class ItemDropdown extends React.Component {
   render () {
@@ -716,8 +671,9 @@ var UserPermDiv = React.createClass({
 
   },
   render () {
-    // TODO: get user's avatar, email from API
-    var defaultGravatarImage = `${window.location.protocol}//www.gravatar.com/avatar/64e1b8d34f425d19e1ee2ea7236d3028?s=40`;
+    var initialsStyle = {
+      background: `#${stringToColor(this.props.username, 20)}`
+    };
 
     var currentPerm = '';
     var cans = this.props.can;
@@ -736,10 +692,13 @@ var UserPermDiv = React.createClass({
     return (
       <bem.UserRow m={cans.view || cans.change ? 'regular' : 'deleted'}>
         <bem.UserRow__avatar>
-          <img src={defaultGravatarImage} />
+          <bem.AccountBox__initials style={initialsStyle}>
+            {this.props.username.charAt(0)}
+          </bem.AccountBox__initials>
         </bem.UserRow__avatar>
         <bem.UserRow__name>
-          <div><UserProfileLink username={this.props.username} /></div>
+          {this.props.username}
+          {/*<div><UserProfileLink username= /></div>*/}
         </bem.UserRow__name>
         <bem.UserRow__role>
           <Select
@@ -850,17 +809,22 @@ var App = React.createClass({
     moment.locale(currentLang());
     return assign({}, stores.pageState.state);
   },
+  componentWillMount() {
+    this.setState(assign({
+        routes: this.context.router.getCurrentRoutes()
+      }
+    ));
+  },
+  componentWillReceiveProps() {
+    this.setState(assign({
+        routes: this.context.router.getCurrentRoutes()
+      }
+    ));
+  },
   render() {
-    var currentRoutes = this.context.router.getCurrentRoutes();
-    var activeRouteName = currentRoutes[currentRoutes.length - 1];
-    var currentRouteClass = '';
-    if (currentRoutes[2] != undefined && currentRoutes[2].path == '/forms/:assetid') {
-      currentRouteClass = 'with-formView-header';
-    }
-
     return (
       <DocumentTitle title="KoBoToolbox">
-        <div className={"mdl-wrapper " + currentRouteClass}>
+        <div className="mdl-wrapper">
           { !this.state.headerHidden && 
             <div className="k-header__bar"></div>
           }
@@ -871,24 +835,27 @@ var App = React.createClass({
               'header-hidden': this.state.headerHidden,
               'drawer-hidden': this.state.drawerHidden,
                 }} className="mdl-layout mdl-layout--fixed-header">
-              { this.state.modalMessage ?
+              { this.state.modalMessage &&
                 <ui.Modal open small onClose={()=>{stores.pageState.hideModal()}} icon={this.state.modalIcon}>
                   <ui.Modal.Body>
                     {stores.pageState.state.modalMessage}
                   </ui.Modal.Body>
                 </ui.Modal>
-              : null}
+              }
               { !this.state.headerHidden &&
                 <MainHeader/>
               }
               { !this.state.drawerHidden &&
                 <Drawer/>
               }
-              <bem.PageWrapper__content m={{
-                'navigator-open': this.state.assetNavigatorIsOpen,
-                'navigator-present': this.state.assetNavigator,
-                  }}
-                className="mdl-layout__content">
+              <bem.PageWrapper__content className="mdl-layout__content">
+                {this.state.routes[2] && this.state.routes[2].name == 'form-landing' &&
+                  <FormViewTabs type={'top'} />
+                }
+                { this.state.routes[2] && this.state.routes[2].name == 'form-landing' &&
+                  this.state.routes[3] && this.state.routes[3].name != 'form-data-settings' &&
+                  <FormViewTabs type={'side'} />
+                }
                 <RouteHandler appstate={this.state} />
               </bem.PageWrapper__content>
               { this.state.assetNavPresent ?
@@ -900,8 +867,6 @@ var App = React.createClass({
     );
   },
   componentDidUpdate() {
-    // Material Design Lite
-    // This upgrades all upgradable components (i.e. with 'mdl-js-*' class)
     mdl.upgradeDom();
   }
 });
@@ -930,15 +895,6 @@ var Forms = React.createClass({
         transition.redirect('collection-page', {
           uid: params.assetid
         });
-      } else {
-        stores.pageState.setHeaderBreadcrumb(
-          [
-            {
-              label: t('Projects'),
-              'to': 'forms'
-            }
-          ]
-        );
       }
       callback();
     }
@@ -1187,8 +1143,9 @@ var AssetSharing = React.createClass({
         );
     }
 
-    // TODO: get user's own avatar
-    var defaultGravatarImage = `${window.location.protocol}//www.gravatar.com/avatar/64e1b8d34f425d19e1ee2ea7236d3028?s=40`;
+    var initialsStyle = {
+      background: `#${stringToColor(this.state.asset.owner__username, 20)}`
+    };
 
     return (
       <ui.Modal open onClose={this.routeBack} title={t('Sharing Permissions')}>
@@ -1200,7 +1157,9 @@ var AssetSharing = React.createClass({
             </label>
             <bem.UserRow>
               <bem.UserRow__avatar>
-                <img src={defaultGravatarImage} />
+                <bem.AccountBox__initials style={initialsStyle}>
+                  {this.state.asset.owner__username.charAt(0)}
+                </bem.AccountBox__initials>
               </bem.UserRow__avatar>
               <bem.UserRow__name>
                 <div>{this.state.asset.owner__username}</div>
@@ -1263,16 +1222,6 @@ var FormEnketoPreview = React.createClass({
       actions.resources.createSnapshot({
         asset: asset.url,
       });
-      let bcRoot;
-      if (asset.asset_type === 'survey') {
-        bcRoot = {'label': t('Projects'), 'to': 'forms'};
-      } else {
-        bcRoot = {'label': t('Library'), 'to': 'library'};
-      }
-      stores.pageState.setHeaderBreadcrumb([
-        bcRoot,
-        {'label': t('Preview')}
-      ]);
     });
     this.listenTo(stores.snapshots, this.snapshotCreation);
 
@@ -1341,18 +1290,10 @@ var FormLanding = React.createClass({
     mixins.droppable,
     mixins.taggedAsset,
     mixins.dmix,
-    mixins.ancestorBreadcrumb,
     Reflux.ListenerMixin
   ],
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {
-      var headerBreadcrumb = [
-        {
-          'label': t('Projects'),
-          'to': 'forms',
-        }
-      ];
-      stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
       stores.pageState.setAssetNavPresent(false);
       stores.pageState.setDrawerHidden(false);
       stores.pageState.setHeaderHidden(false);
@@ -1502,58 +1443,6 @@ var SectionNotFound = React.createClass({
   }
 });
 
-var Demo = React.createClass({
-  render () {
-    return (
-      <div>
-        <Demo.asset name="d1" uid="aLARjo7WkhpWhe2su4hkcU" />
-        <Demo.asset name="d2" uid="aFH2NwaPdfqYiwPoVsqFHF" />
-        <Demo.asset name="d3" uid="aLJYYUjjYcDSfsFarFPygw" />
-      </div>
-      );
-  }
-});
-var DemoCollections = React.createClass({
-  render () {
-    return (
-        <div>
-          <Demo.collection name="root"
-                  msg={'loading your surveys'} />
-          <Demo.collection name="random"
-                  msg={'loading a random collection'} />
-          <Demo.collection uid="c5Q4Tg3hVx23PbwgYcApCP"
-                  msg={'loading assets in a question library'} />
-        </div>
-      );
-  }
-});
-
-
-Demo.asset = React.createClass({
-  mixins: [
-    Navigation,
-    mixins.droppable,
-    mixins.dmix,
-    Reflux.ListenerMixin
-  ],
-  render () {
-    return this._createPanel();
-  }
-});
-
-Demo.collection = React.createClass({
-  mixins: [
-    Navigation,
-    mixins.cmix,
-    mixins.ancestorBreadcrumb,
-    mixins.droppable,
-    Reflux.ListenerMixin,
-  ],
-  render () {
-    return this._createPanel();
-  }
-});
-
 var formRouteChildren = (baseName) => {
   if (baseName === undefined) {
     baseName = '';
@@ -1602,8 +1491,6 @@ var routes = (
       <DefaultRoute handler={FormsSearchableList} />
       <NotFoundRoute handler={FormNotFound} />
     </Route>
-    <Route name="demo" handler={Demo} />
-    <Route name="demo2" handler={DemoCollections} />
 
     <Route name="collections">
       <Route name="collection-page" path=":uid" handler={CollectionLanding} />

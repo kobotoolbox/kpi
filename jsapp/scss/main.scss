@@ -52,8 +52,5 @@ body.hide-edge .is-edge {
   display: none !important;
 }
 
-// TO BE PHASED OUT
-@import "./components/kobo.asset-view";
-
 // Print stylesheet
 @import "./libs/print";

@@ -1,18 +1,36 @@
 .form-view {
   height: 100%;
-  padding: 8px;
-  padding-top: 4px;
 }
 
-.form-view__wrapper {
+.form-view__toptabs {
+  background: white;
+  text-align: center;
+  height:40px;
+  border-bottom:1px solid #E7E7E8;
+}
+
+.form-view__sidetabs {
+  border-right:1px solid #E7E7E8;
+  width: 180px;
+  height:100%;
+  overflow: hidden;
+  float: left;
+  background: white;
+}
+
+.form-view__toptabs + .form-view {
   width: 100%;
   height: 100%;
   overflow: auto;
-  padding-top: 8px;
-  &--data {
-    overflow: visible;
-  }
 }
+
+.form-view__sidetabs + div:not(.modal-backdrop) {
+  width: calc(100% - 180px);
+  height:100%;
+  overflow: auto;
+}
+
+// OLD UI ELEMENTS
 
 .form-view__header--expandedReport + .form-view__wrapper--Report {
   height: calc(100% - 96px);
