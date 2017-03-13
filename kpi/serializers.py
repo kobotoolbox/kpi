@@ -781,6 +781,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
     server_time = serializers.SerializerMethodField()
     projects_url = serializers.SerializerMethodField()
+    support = serializers.SerializerMethodField()
     gravatar = serializers.SerializerMethodField()
     languages = serializers.SerializerMethodField()
     extra_details = WritableJSONField(source='extra_details.data')
@@ -797,6 +798,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'email',
             'server_time',
             'projects_url',
+            'support',
             'is_superuser',
             'gravatar',
             'is_staff',
@@ -813,6 +815,12 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 
     def get_projects_url(self, obj):
         return '/'.join((settings.KOBOCAT_URL, obj.username))
+
+    def get_support(self, obj):
+        return {
+            'email': settings.KOBO_SUPPORT_EMAIL,
+            'url': settings.KOBO_SUPPORT_URL,
+        }
 
     def get_gravatar(self, obj):
         return gravatar_url(obj.email)
