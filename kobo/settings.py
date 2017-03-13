@@ -226,9 +226,6 @@ TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
 TRACKJS_TOKEN = os.environ.get('TRACKJS_TOKEN')
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 
-KOBO_SUPPORT_URL = os.environ.get('KOBO_SUPPORT_URL', 'http://support.kobotoolbox.org/')
-KOBO_SUPPORT_EMAIL = os.environ.get('KOBO_SUPPORT_EMAIL', 'support@kobotoolbox.org')
-
 # replace this with the pointer to the kobocat server, if it exists
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat/')
 KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL',
@@ -377,6 +374,9 @@ if os.environ.get('EMAIL_USE_TLS'):
 if os.environ.get('DEFAULT_FROM_EMAIL'):
     DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
     SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+KOBO_SUPPORT_URL = os.environ.get('KOBO_SUPPORT_URL', 'http://support.kobotoolbox.org/')
+KOBO_SUPPORT_EMAIL = os.environ.get('KOBO_SUPPORT_EMAIL') or os.environ.get('DEFAULT_FROM_EMAIL', 'support@kobotoolbox.org')
 
 if os.environ.get('AWS_ACCESS_KEY_ID'):
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
