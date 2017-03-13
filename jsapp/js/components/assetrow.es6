@@ -333,7 +333,6 @@ var AssetRow = React.createClass({
                 { this.props.asset_type && this.props.asset_type != 'survey' && ownedCollections.length > 0 &&
                   <bem.PopoverMenu__moveTo>
                     {ownedCollections.map((col)=>{
-                      console.log(col.hasParent);
                       return (
                           <bem.PopoverMenu__item
                            onClick={this.moveToCollection}
