@@ -20,6 +20,16 @@ var FormViewTabs = React.createClass({
     Reflux.ListenerMixin,
     Navigation
   ],
+  getInitialState() {
+    var dataTabs = ['form-reports', 'form-data-report', 'form-data-table', 'form-data-gallery', 'form-data-downloads', 'form-data-map'];
+    var formTabs = [];
+    var settingsTabs = [];
+    return {
+      dataTabs: dataTabs,
+      formTabs: formTabs,
+      settingsTabs: settingsTabs
+    };
+  },
   componentWillMount() {
     this.setStates();
   },
@@ -31,7 +41,6 @@ var FormViewTabs = React.createClass({
     this.setState(assign(currentParams));
 
     var currentRoutes = this.context.router.getCurrentRoutes();
-    console.log(currentRoutes);
     var activeRoute = currentRoutes[currentRoutes.length - 1];
     this.setState({
       activeRoute: activeRoute.path,
@@ -57,6 +66,7 @@ var FormViewTabs = React.createClass({
     return false;
   },
   renderTopTabs () {
+    var activeRoute = this.state.activeRouteName;
     return (
       <bem.FormView__toptabs>
         <bem.FormView__tab 
@@ -72,7 +82,7 @@ var FormViewTabs = React.createClass({
         { this.state.asset && this.state.asset.deployment__identifier != undefined && this.state.asset.has_deployment && this.state.asset.deployment__submission_count > 0 && 
           <bem.FormView__tab 
             m='data' 
-            className={this.state.activeRoute == '/forms/:assetid/reports' ? 'active' : ''} 
+            className={this.state.dataTabs.indexOf(activeRoute) > -1 ? 'active' : ''} 
             href={this.makeHref('form-reports', {assetid: this.state.assetid})}
             data-id='Data'>
               {t('Data')}
@@ -90,45 +100,31 @@ var FormViewTabs = React.createClass({
     );
   },
   renderFormSideTabs() {
-  	console.log(this.state);
+  	var activeRoute = this.state.activeRouteName;
+    var sideTabs = [];
+
+    if (activeRoute != undefined && this.state.dataTabs.indexOf(activeRoute) > -1 ) {
+     sideTabs = [
+        {label: t('Reports'), icon: 'k-icon-report', path: 'form-reports'},
+        {label: t('Reports (legacy)'), icon: 'k-icon-report', path: 'form-data-report', className: 'is-edge'},
+        {label: t('Table'), icon: 'k-icon-table', path: 'form-data-table'},
+        {label: t('Gallery'), icon: 'k-icon-photo-gallery', path: 'form-data-gallery'},
+        {label: t('Downloads'), icon: 'k-icon-download', path: 'form-data-downloads'},
+        {label: t('Map'), icon: 'k-icon-map-view', path: 'form-data-map'},
+      ];
+    }
+
   	return (
   		<bem.FormView__sidetabs> 
-	        { this.state.activeRouteName && this.state.activeRouteName == 'form-reports' && 
-            <bem.FormView__tabs>
-                <bem.FormView__tab m={'report-in-kpi'}
-                    href={this.makeHref('form-reports', {assetid: this.state.assetid})}>
-                  <i className="k-icon-report" />
-                  {t('Reports')}
-                </bem.FormView__tab>
-                <bem.FormView__tab m={'report'}
-                    href={this.makeHref('form-data-report', {assetid: this.state.assetid})}
-                    className="is-edge">
-                  <i className="k-icon-report" />
-                  {t('Reports (legacy)')}
-                </bem.FormView__tab>
-                <bem.FormView__tab m={'table'}
-                    href={this.makeHref('form-data-table', {assetid: this.state.assetid})}>
-                  <i className="k-icon-table" />
-                  {t('Table')}
-                </bem.FormView__tab>
-                <bem.FormView__tab m={'gallery'}
-                    href={this.makeHref('form-data-gallery', {assetid: this.state.assetid})}>
-                  <i className="k-icon-photo-gallery" />
-                  {t('Gallery')}
-                </bem.FormView__tab>
-                <bem.FormView__tab m={'downloads'}
-                    href={this.makeHref('form-data-downloads', {assetid: this.state.assetid})}>
-                  <i className="k-icon-download" />
-                  {t('Downloads')}
-                </bem.FormView__tab>
-                <bem.FormView__tab m={'map'}
-                    href={this.makeHref('form-data-map', {assetid: this.state.assetid})}>
-                  <i className="k-icon-map-view" />
-                  {t('Map')}
-                </bem.FormView__tab>
-            </bem.FormView__tabs>
-          }
-
+        { sideTabs.map((item, ind) => 
+          <bem.FormView__tab
+              key={ind} 
+              className={[item.className, activeRoute == item.path ? 'active' : '']}
+              href={this.makeHref(item.path, {assetid: this.state.assetid})} >
+            <i className={item.icon} />
+            {item.label}
+          </bem.FormView__tab>
+        )}
   		</bem.FormView__sidetabs>
   	);
   },

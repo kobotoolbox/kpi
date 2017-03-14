@@ -392,7 +392,7 @@ var Reports = React.createClass({
           <button className="mdl-button mdl-js-button"
                   id="report-groupby">
             {t('Group By')}
-            <i className="fa fa-caret-down"></i>
+            <i className="fa fa-angle-down"></i>
           </button>
         }
 

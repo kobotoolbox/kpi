@@ -500,7 +500,7 @@ export default assign({
                     data-tip={t('Web form layout')} >
                     <i className="k-icon-grid" />
                     {t('Layout')}
-                    <i className="fa fa-caret-down" />
+                    <i className="fa fa-angle-down" />
                   </bem.FormBuilderHeader__button>
                 </bem.FormBuilderHeader__item>
               : null }

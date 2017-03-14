@@ -49,12 +49,12 @@
     text-align: center;
     font-weight: normal;
     position: relative;
-    color:lighten($black, 50%);
+    color:lighten($black, 30%);
     &:hover {
       color: unquote("rgb(#{$color-primary})");
     }
     i {
-      font-size: 32px;
+      font-size: 38px;
     }
   }
 }

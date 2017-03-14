@@ -849,10 +849,10 @@ var App = React.createClass({
                 <Drawer/>
               }
               <bem.PageWrapper__content className="mdl-layout__content">
-                {this.state.routes[2] && this.state.routes[2].name == 'form-landing' &&
+                { !this.state.drawerHidden && this.state.routes[2] && this.state.routes[2].name == 'form-landing' &&
                   <FormViewTabs type={'top'} />
                 }
-                { this.state.routes[2] && this.state.routes[2].name == 'form-landing' &&
+                { !this.state.drawerHidden && this.state.routes[2] && this.state.routes[2].name == 'form-landing' &&
                   this.state.routes[3] && this.state.routes[3].name != 'form-data-settings' &&
                   <FormViewTabs type={'side'} />
                 }

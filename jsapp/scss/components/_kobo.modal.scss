@@ -110,7 +110,9 @@ $modalXcolor: #d8d8d8;
   font-size: 20px;
   color: $modalXcolor;
   cursor: pointer;
-
+  i {
+    font-size: 32px;
+  }
   &:hover {
     color: darken($modalXcolor, 20%);
   }

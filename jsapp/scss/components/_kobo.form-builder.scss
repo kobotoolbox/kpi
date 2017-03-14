@@ -180,25 +180,27 @@
       margin-left: 75px;
       .formBuilder-header__item {
         display: inline-block;
-        border-left:1px solid #8A9AA4;
-        border-right:1px solid #8A9AA4;
+        border-left:1px solid $cool-gray;
+        border-right:1px solid $cool-gray;
         margin:4px;
         padding:0px 6px;
       }
 
       button {
-        color: #8A9AA4;
+        color: $cool-gray;
         overflow: visible;
+        vertical-align: middle;
         &:hover, &:focus, &:focus:not(:active) {
           background-color: transparent;
         }
         &:hover {
-          color: #333;
+          color: $black;
         }
         i {
-          font-size: 18px;
-          &.k-icon-cascading {
-            font-size: 14px;
+          font-size: 28px;
+          vertical-align: middle;
+          &.fa {
+            font-size: 20px;
           }
         }
       }
@@ -220,7 +222,7 @@
 .formBuilder-header__close {
   border:none;
   background-color: transparent;
-  font-size: 20px;
+  font-size: 32px;
   color: #D8D8D8;
   cursor: pointer;
   &:hover {

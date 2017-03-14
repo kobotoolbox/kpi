@@ -1,11 +1,11 @@
-.form-view {
+.form-view__wrapper {
   height: 100%;
 }
 
 .form-view__toptabs {
   background: white;
   text-align: center;
-  height:40px;
+  height:48px;
   border-bottom:1px solid #E7E7E8;
 }
 
@@ -20,15 +20,81 @@
 
 .form-view__toptabs + .form-view {
   width: 100%;
-  height: 100%;
+  height: calc(100% - 48px);
   overflow: auto;
 }
 
 .form-view__sidetabs + div:not(.modal-backdrop) {
   width: calc(100% - 180px);
-  height:100%;
+  height: calc(100% - 48px);
   overflow: auto;
 }
+
+.form-view__toptabs {
+  a.form-view__tab {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 13px 30px;
+      text-transform: uppercase;
+      margin-right: 10px;
+      font-size: 15px;
+      cursor: pointer;
+      position: relative;
+      color: $cool-gray;
+      font-weight: normal;
+      display: inline-block;
+      &.active, &:hover {
+        color: $black;
+        border-bottom: 2px solid $cool-green;
+      }
+  }
+}
+
+.form-view__sidetabs {
+  padding-top:20px;
+  a.form-view__tab {
+      background: transparent;
+      border: none;
+      padding: 6px 10px;
+      border-left:2px solid transparent;
+      font-size: 14px;
+      margin-top: 4px;
+      cursor: pointer;
+      position: relative;
+      color: $cool-gray;
+      font-weight: normal;
+      display: block;
+      &.active, &:hover {
+          color: $cool-green;
+          border-left:2px solid $cool-green;
+      }
+      i {
+        font-size: 36px;
+        vertical-align: middle;
+        margin-right: 6px;
+      }
+      span {
+        vertical-align: middle;
+      }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // OLD UI ELEMENTS
 

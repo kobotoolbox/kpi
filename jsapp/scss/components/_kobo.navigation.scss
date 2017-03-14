@@ -443,54 +443,6 @@ $headerAccountTextColor: #dbedf7;
     color: $headerAccountTextColor;
 }
 
-
-a.form-view__tab {
-    background: transparent;
-    border: none;
-    border-bottom: 3px solid transparent;
-    padding: 12px 10px 4px;
-    text-transform: uppercase;
-    margin-right: 20px;
-    font-size: 15px;
-    cursor: pointer;
-    position: relative;
-    color: #444;
-    font-weight: normal;
-    display: inline-block;
-    &.active, &:hover {
-        border-bottom: 3px solid $cool-green;
-    }
-}
-
-.form-view__button--data {
-    display: inline;
-    position: relative;
-    button {
-        background: transparent;
-        border: none;
-        border-bottom: 3px solid transparent;
-        padding: 12px 10px 4px;
-        text-transform: uppercase;
-        margin-right: 20px;
-        font-size: 15px;
-        cursor: pointer;
-        position: relative;
-        color: #444;
-        font-weight: normal;
-        > i {
-            margin-left: 4px;
-            opacity: 0.5;
-        }
-    }
-    .popover-menu__link {
-        font-weight: normal;
-        i {
-            font-size: 32px;
-            margin-right: 8px;
-        }
-    }
-}
-
 .git-rev {
     display: none;
 }
@@ -500,15 +452,15 @@ a.form-view__tab {
         display: block;
         position: fixed;
         bottom: 0px;
-        left: 270px;
+        left: 80px;
         z-index:100;
         .git-rev__item {
             color: white;
-            opacity: 0.75;
+            opacity: 0.85;
             background: darken($cool-green, 10%);
-            margin-right:5px;
+            margin-top:5px;
             padding:6px 12px;
-            display: inline-block;
+            display: block;
             font-size: 12px;
         }
     }
