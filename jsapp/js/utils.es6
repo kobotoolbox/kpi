@@ -136,6 +136,31 @@ if (window.gettext) {
 export function t(str) {
   return _gettext(str);
 };
+
+
+// these values may appear in transifex (esp. email) and need to
+// be replaced in all the translations before removing this hard
+// coded value.
+const originalSupportEmail = 'support@kobotoolbox.org';
+const originalSupportUrl = 'http://support.kobotoolbox.org';
+
+let supportDetails = {
+  url: originalSupportUrl,
+  email: originalSupportEmail,
+};
+
+export function setSupportDetails(details) {
+  assign(supportDetails, details);
+}
+
+export function replaceSupportEmail(str) {
+  return str.replace(originalSupportEmail, supportDetails.email);
+}
+
+export function supportUrl() {
+  return supportDetails.url;
+}
+
 export function currentLang() {
   return cookie.load(LANGUAGE_COOKIE_NAME) || 'en';
 }
