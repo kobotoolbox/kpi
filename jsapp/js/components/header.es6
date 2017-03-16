@@ -354,13 +354,13 @@ var MainHeader = React.createClass({
               </div>
             }
             { this.state.showFormViewHeader && !this.state.headerFilters &&  
-              <bem.FormView__title>
+              <bem.FormTitle>
                 { this.state.asset.has_deployment ?
                   <i className="k-icon-deployed" />
                 :
                   <i className="k-icon-drafts" />
                 }
-                <bem.FormView__name data-tip={t('click to edit')} className="hide-tooltip__onfocus">
+                <bem.FormTitle__name data-tip={t('click to edit')} className="hide-tooltip__onfocus">
                   <AutosizeInput type="text"
                         name="title"
                         placeholder={userCanEditAsset ? t('Project title') : ''}
@@ -368,24 +368,13 @@ var MainHeader = React.createClass({
                         onChange={this.assetTitleChange}
                         disabled={!userCanEditAsset}
                   />
-                </bem.FormView__name>
-                {/*this.state.asset && this.state.asset.settings && 
-                  <bem.FormView__description>
-                    <AutosizeInput type="text"
-                      name="description"
-                      placeholder={t('Project description')}
-                      value={this.state.asset.settings.description ? this.state.asset.settings.description : ''}
-                      onChange={this.assetTitleChange}
-                      disabled={!userCanEditAsset}
-                    />
-                </bem.FormView__description>
-                */}
+                </bem.FormTitle__name>
                 { this.state.asset.has_deployment &&
-                  <bem.FormView__subs>
+                  <bem.FormTitle__submissions>
                     {this.state.asset.deployment__submission_count} {t('submissions')}
-                  </bem.FormView__subs>
+                  </bem.FormTitle__submissions>
                 }
-              </bem.FormView__title>
+              </bem.FormTitle>
             }
             {this.renderAccountNavMenu()}
           </div>

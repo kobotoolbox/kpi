@@ -22,8 +22,8 @@ var FormViewTabs = React.createClass({
   ],
   getInitialState() {
     var dataTabs = ['form-reports', 'form-data-report', 'form-data-table', 'form-data-gallery', 'form-data-downloads', 'form-data-map'];
-    var formTabs = [];
-    var settingsTabs = [];
+    var formTabs = ['form-landing', 'form-collect-web', 'form-collect-android'];
+    var settingsTabs = ['form-settings', 'form-settings-kobocat'];
     return {
       dataTabs: dataTabs,
       formTabs: formTabs,
@@ -42,6 +42,9 @@ var FormViewTabs = React.createClass({
 
     var currentRoutes = this.context.router.getCurrentRoutes();
     var activeRoute = currentRoutes[currentRoutes.length - 1];
+    // hacky fix to undefined route name for FormLanding
+    if (activeRoute.path == '/forms/:assetid')
+      activeRoute.name = 'form-landing';
     this.setState({
       activeRoute: activeRoute.path,
       activeRouteName: activeRoute.name
@@ -71,7 +74,7 @@ var FormViewTabs = React.createClass({
       <bem.FormView__toptabs>
         <bem.FormView__tab 
           m='form' 
-          className={this.state.activeRoute == '/forms/:assetid' ? 'active' : ''} 
+          className={this.state.formTabs.indexOf(activeRoute) > -1 ? 'active' : ''} 
           href={this.makeHref('form-landing', {assetid: this.state.assetid})}
           data-id='Form'>
             {t('Form')}
@@ -91,8 +94,8 @@ var FormViewTabs = React.createClass({
         {this.userCanEditAsset() && 
           <bem.FormView__tab 
             m='settings' 
-            className={this.state.activeRoute == '/forms/:assetid/data/settings' ? 'active' : ''} 
-            href={this.makeHref('form-data-settings', {assetid: this.state.assetid})}>
+            className={this.state.activeRoute == '/forms/:assetid/settings' ? 'active' : ''} 
+            href={this.makeHref('form-settings', {assetid: this.state.assetid})}>
               {t('Settings')}
           </bem.FormView__tab>
         }
@@ -114,19 +117,38 @@ var FormViewTabs = React.createClass({
       ];
     }
 
-  	return (
-  		<bem.FormView__sidetabs> 
-        { sideTabs.map((item, ind) => 
-          <bem.FormView__tab
-              key={ind} 
-              className={[item.className, activeRoute == item.path ? 'active' : '']}
-              href={this.makeHref(item.path, {assetid: this.state.assetid})} >
-            <i className={item.icon} />
-            {item.label}
-          </bem.FormView__tab>
-        )}
-  		</bem.FormView__sidetabs>
-  	);
+    if (this.state.asset && this.state.asset.deployment__active && activeRoute != undefined && this.state.formTabs.indexOf(activeRoute) > -1 ) {
+       sideTabs = [
+          {label: t('Form overview'), icon: 'k-icon-form-overview', path: 'form-landing'},
+          {label: t('Collect data'), icon: 'k-icon-webform', path: 'form-collect-web'},
+          {label: t('Android app'), icon: 'k-icon-mobile-form', path: 'form-collect-android'}
+        ];
+    }
+
+    if (this.state.asset && this.state.asset.deployment__active && activeRoute != undefined && this.state.settingsTabs.indexOf(activeRoute) > -1 ) {
+       sideTabs = [
+          {label: t('General settings'), icon: 'k-icon-information', path: 'form-settings'},
+          {label: t('Kobocat settings'), icon: 'k-icon-projects', path: 'form-settings-kobocat'}
+        ];
+    }
+
+    if (sideTabs.length > 0) {
+    	return (
+    		<bem.FormView__sidetabs> 
+          { sideTabs.map((item, ind) => 
+            <bem.FormView__tab
+                key={ind} 
+                className={[item.className, activeRoute == item.path ? 'active' : '']}
+                href={this.makeHref(item.path, {assetid: this.state.assetid})} >
+              <i className={item.icon} />
+              {item.label}
+            </bem.FormView__tab>
+          )}
+    		</bem.FormView__sidetabs>
+    	);
+    }
+
+    return false;
   },
   render() {
   	if (this.props.type == 'top') {

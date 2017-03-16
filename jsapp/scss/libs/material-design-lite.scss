@@ -71,6 +71,11 @@ body {
     box-shadow: 0 1px 1px 0 rgba(0, 0, 0, $shadow-key-penumbra-opacity), 0 2px 0px -1px rgba(0, 0, 0, $shadow-key-umbra-opacity), 0 1px 2px 0 rgba(0, 0, 0, $shadow-ambient-shadow-opacity);
 }
 
+@mixin box-shadow {
+    box-shadow: 0 0 2px 0 rgba(0,0,0,0.06), 0 2px 2px 0 rgba(0,0,0,0.12);
+    border-radius: 2px;
+}
+
 .mdl-button {
     text-transform: none;
     font-weight: 400;
@@ -92,8 +97,7 @@ span.svg-icon {
     }
 }
 
-// faster spinning icons
-// based on fa-spin
+// faster spinning icons, based on fa-spin
 .k-spin {
     -webkit-animation: fa-spin 1.2s infinite linear;
     animation: fa-spin 1.2s infinite linear;

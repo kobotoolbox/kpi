@@ -38,7 +38,8 @@ import {
 } from './components/formEditors';
 
 import Reports from './components/reports';
-import FormData from './components/formData';
+import FormLanding from './components/formLanding';
+import FormSubScreens from './components/formSubScreens';
 import FormViewTabs from './components/formViewTabs';
 import {ChangePassword, AccountSettings} from './components/accountSettings';
 
@@ -853,7 +854,6 @@ var App = React.createClass({
                   <FormViewTabs type={'top'} />
                 }
                 { !this.state.drawerHidden && this.state.routes[2] && this.state.routes[2].name == 'form-landing' &&
-                  this.state.routes[3] && this.state.routes[3].name != 'form-data-settings' &&
                   <FormViewTabs type={'side'} />
                 }
                 <RouteHandler appstate={this.state} />
@@ -1284,28 +1284,6 @@ var FormEnketoPreview = React.createClass({
   }
 });
 
-var FormLanding = React.createClass({
-  mixins: [
-    Navigation,
-    mixins.droppable,
-    mixins.taggedAsset,
-    mixins.dmix,
-    Reflux.ListenerMixin
-  ],
-  statics: {
-    willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setAssetNavPresent(false);
-      stores.pageState.setDrawerHidden(false);
-      stores.pageState.setHeaderHidden(false);
-      actions.resources.loadAsset({id: params.assetid});
-      callback();
-    }
-  },
-  render () {
-    return this._createPanel();
-  }
-});
-
 var LibrarySearchableList = require('./lists/library');
 var FormsSearchableList = require('./lists/forms');
 var CollectionList = require('./lists/collection');
@@ -1316,7 +1294,11 @@ var FormNotFound = React.createClass({
   render () {
     return (
         <ui.Panel>
-          {t('path not found / recognized')}
+          <bem.Loading>
+            <bem.Loading__inner>
+              {t('path not found / recognized')}
+            </bem.Loading__inner>
+          </bem.Loading>
         </ui.Panel>
       );
   }
@@ -1479,12 +1461,15 @@ var routes = (
         <Route name="form-reports" path="reports" handler={Reports} />
         <Route name="form-preview-enketo" path="preview" handler={FormEnketoPreview} />
         <Route name='form-edit' path="edit" handler={FormPage} />
-        <Route name='form-data-report' path="data/report" handler={FormData} />
-        <Route name='form-data-table' path="data/table" handler={FormData} />
-        <Route name='form-data-downloads' path="data/downloads" handler={FormData} />
-        <Route name='form-data-gallery' path="data/gallery" handler={FormData} />
-        <Route name='form-data-map' path="data/map" handler={FormData} />
-        <Route name='form-data-settings' path="data/settings" handler={FormData} />
+        <Route name='form-data-report' path="data/report" handler={FormSubScreens} />
+        <Route name='form-data-table' path="data/table" handler={FormSubScreens} />
+        <Route name='form-data-downloads' path="data/downloads" handler={FormSubScreens} />
+        <Route name='form-data-gallery' path="data/gallery" handler={FormSubScreens} />
+        <Route name='form-data-map' path="data/map" handler={FormSubScreens} />
+        <Route name='form-settings' path="settings" handler={FormSubScreens} />
+        <Route name='form-settings-kobocat' path="settings/kobocat" handler={FormSubScreens} />
+        <Route name='form-collect-web' path="collect" handler={FormSubScreens} />
+        <Route name='form-collect-android' path="android" handler={FormSubScreens} />
         <DefaultRoute handler={FormLanding} />
       </Route>
 

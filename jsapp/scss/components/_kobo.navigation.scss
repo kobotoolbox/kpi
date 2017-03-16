@@ -341,7 +341,7 @@ $headerAccountTextColor: #dbedf7;
 
 // Form title + desc in header, editable
 
-.form-view__title {
+.form-title {
     vertical-align: middle;
     margin: 0px;
     display: flex;
@@ -350,23 +350,22 @@ $headerAccountTextColor: #dbedf7;
     > i {
         font-size: 38px;
         vertical-align: middle;
-        width:32px;
+        width:38px;
         color: #FFF;
         opacity: 0.25;
     }
-    .form-view__name {
-        width:70%;
+    &__name {
+        width:calc(70% - 40px);
         display: inline-block;
         vertical-align: middle;
         > div {
             width: 100%;
-            display: inline-block;
         }
     }
-    .form-view__subs {
+    &__submissions {
         display: inline-block;
         vertical-align: middle;
-        width: 22%;
+        width: 30%;
         text-align: right;
         overflow:hidden;
         height: 22px;
@@ -377,8 +376,7 @@ $headerAccountTextColor: #dbedf7;
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
-        min-width: 150px;
-        max-width: 100%;
+        width: 100%;
         background: transparent;
         padding: 2px 5px;
         margin: 0px;

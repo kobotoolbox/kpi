@@ -10,12 +10,12 @@
 }
 
 .mdl-layout__content {
-  height: calc(100% - 66px);
+  height: calc(100% - 97px);
   position: relative;
-  margin-top: 9px;
+  margin-top: 20px;
   flex-grow:0;
   overflow: hidden;
-  // transition removed due to printing bug in Chrome
+  @include box-shadow;
 }
 
 .ui-panel {
@@ -24,8 +24,7 @@
 }
 
 .ui-panel__body {
-  @extend .mdl-grid, .mdl-grid--no-spacing, .mdl-shadow--2dp;
-  background: #FFF;
+  @extend .mdl-grid, .mdl-grid--no-spacing;
   padding: 0;
   height: 100%;
   flex-direction: column;
@@ -63,6 +62,15 @@
   }
   .ui-panel {
     margin: 0px;
+  }
+}
+
+// Expanded report layout, disable drawer
+.mdl-layout.page-wrapper--drawer-hidden .mdl-layout__content {
+  margin-left: 16px;
+  .report-view {
+    height: 100%;
+    overflow: auto;
   }
 }
 

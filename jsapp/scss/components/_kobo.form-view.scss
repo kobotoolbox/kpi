@@ -1,7 +1,3 @@
-.form-view__wrapper {
-  height: 100%;
-}
-
 .form-view__toptabs {
   background: white;
   text-align: center;
@@ -16,15 +12,18 @@
   overflow: hidden;
   float: left;
   background: white;
+  padding-top:20px;
 }
 
-.form-view__toptabs + .form-view {
+.form-view {
   width: 100%;
   height: calc(100% - 48px);
   overflow: auto;
+  background: #F8F8F8;
 }
 
-.form-view__sidetabs + div:not(.modal-backdrop) {
+.form-view__sidetabs + .form-view, 
+.form-view__sidetabs + .report-view {
   width: calc(100% - 180px);
   height: calc(100% - 48px);
   overflow: auto;
@@ -52,7 +51,6 @@
 }
 
 .form-view__sidetabs {
-  padding-top:20px;
   a.form-view__tab {
       background: transparent;
       border: none;
@@ -80,261 +78,171 @@
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// OLD UI ELEMENTS
-
-.form-view__header--expandedReport + .form-view__wrapper--Report {
-  height: calc(100% - 96px);
-}
-
 .form-view__row {
-  display: flex;
-  justify-content:space-around;
-  margin-bottom: 8px;
+  margin: 40px;
+  margin-right: 44px;
+  + .form-view__row {
+    margin-top: 0px;
+  }
 }
 
 .form-view__cell {
-  @extend .mdl-shadow--2dp;
-  background-color: #FFF;
-  padding: 15px;
-  margin-right:8px;
-  &--overview {
-    width:100%;
+  &--box {
+    @include box-shadow;
+    background-color: #FFF;
   }
-  &:last-child {
-  	margin-right: 0px;
+  &--columns {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
-  &--collecting-webforms {
-    width:55%;
+  &--bordertop {
+    border-top: 1px solid #DDD;
   }
-  &--collecting-android {
-    width:45%;
+  &--padding {
+    padding: 30px;
   }
-}
-
-.form-view__label {
-  font-size: 14px;
-  color: $cool-gray;
-  &--title {
-    font-size: 16px;
-    color: $cool-green;
-  }
-  &--white {
-    color: white;
-  }
-}
-
-.form-view__link--close {
-  @extend .k-icon, .k-icon-close;
-  float: right;
-  margin-right: -10px;
-}
-
-// FIXME: rename this
-.form-view__cell {
-	.asset-view__label {
-		display: block;
-		text-align: center;
-		padding-bottom: 5px;
-	}
-	.asset-view__span--val {
-		display: block;
-		text-align: center;
-		font-size: 18px;
-		color:$cool-green;
-	}
-	.asset-view__col--date-modified, 
-	.asset-view__langs {
-		padding-bottom: 8px;
-		margin: 8px;
-		margin-top: 0px;
-		border-bottom: 1px solid #CCC;
-	}
-}
-
-.form-view__group {
-	text-align: center;
-	padding: 8px;
-  padding-bottom: 12px;
-
-  .dropzone {
-    display: inline;
-  }
-
-  &--actions {
-    text-align: right;
-  }
-
-  &--deployments {
-    padding:0px;
-  }
-
-  &--headings {
-    padding:0px;
-    padding-top: 15px;
-    padding-bottom: 5px;
-    > .form-view__label {
-      text-align: right;
-      display: inline-block;
-      width:12%;
-      &--date {
-        width:16%;
-      }
-      &--version {
-        width:60%;
-        text-align: left;
-      }
-    }
-  }
-
-  &--deploy-row {
-    border-top:1px solid #DDD;
-    padding:8px 0px;
-    > .form-view__item {
-      text-align: right;
-      vertical-align: top;
-      display: inline-block;
-      width:12%;
-      vertical-align: top;
-      &--date {
-        width:16%;
-      }
-      &--version {
-        width:60%;
-        text-align: left;
-      }
-      &--lang > span {
-        display: block;
-      }
-    }
-  }
-
-  &--history {
-    border-top:1px solid #DDD;
-    padding:0px;
-    text-align: right;
-    button {
-      border:none;
-      text-align: right;
-      padding:6px 20px;
-      font-size: 14px;
-      cursor: pointer;
-      background-color: #FFF;
-      opacity: 0.5;
-      &:hover {
-        opacity: 1;
-      }
-    }
-  }
-
-  &--historyHidden .form-view__group--history-contents {
-    max-height: 0px;
-    overflow:hidden;
-    transition: 0.5s all;
-  }
-  &--historyExpanded .form-view__group--history-contents {
-    max-height: 4000px;
-    overflow:auto;
-    transition: 0.5s all;
-  }
-
-  &--history-contents {
-    padding:0px;
-    padding-bottom: 10px;
-    > .form-view__group:last-child {
-      border-bottom: 1px solid #DDD;
-    }
-  }
-
-  &--deploy-count {
-    display: inline-block;
-    width: 110px;
-    padding:0px;
-    text-align: left;
-    vertical-align: top;
+  &--label {
+    font-size: 14px;
+    color: $black;
+    font-weight: 500;
+    padding-bottom:8px;
   }
   &--buttons {
-    display: inline-block;
-    width:calc(100% - 111px);
-    text-align: right;
-    padding: 0px;
-    vertical-align: top;
+    a.mdl-button {
+      text-transform: uppercase;
+      padding-left: 30px;
+      padding-right: 30px;
+    }
   }
-
-}
-
-.form-view__label--previous-versions {
-  text-align: left;
-  padding: 12px 0px;
-}
-
-.form-view__banner {
-  height:240px;
-  margin:-15px;
-  margin-bottom: 15px;
-  background: $cool-green url("~../img/graphic_macbook.png") center center no-repeat;
-  background-size: contain; 
-  position: relative;
-  &--android {
-    background: #07cfba url("~../img/graphic_phone.png") center center no-repeat;
-    background-size: cover; 
-  }
-  > .form-view__label {
-    font-size:18px;
-    padding:15px;
-    position: absolute;
-    bottom: 0px;
-  }
-}
-
-.form-view__cell--collecting-android {
-  li i {
-    vertical-align: middle;
+  &--date {
+    font-weight: normal;
+    font-style: italic;
+    font-size: 12px;
     opacity: 0.8;
   }
-}
-
-.form-view__row--collecting {
-  position: relative;
-  .form-view__group--collecting-overlay {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-color: unquote("rgba(#{$color-primary}, 0.9)");
-    left: 0px;
-    top: 0px;    
-    padding:12%;
-    @extend .mdl-shadow--2dp;
+  &--languages {
+    span:first-child {
+      font-weight: bold;
+    }
+    span {
+      margin-right:10px;
+    }
   }
-  .form-view__group--desc {
-    max-width: 240px;
-    margin: 0 auto;
-    color: white;
-    font-size: 16px;
-    font-weight: 600;
+  &--questions {
+    align-items: flex-start;
+    .question-count {
+      font-size:28px;
+      padding-top: 15px;
+    }
+  }
+  &--question-list {
+    margin-left:40px;
+    max-height: 300px;
+    padding:10px 0px;
+    overflow: auto;
+    flex-grow:2;
+    > div {
+      margin-bottom:15px;
+      font-size: 16px;
+    }
+    > div > i {
+      margin-right:25px;
+      opacity: 0.3;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    > div > span {
+      vertical-align: middle;
+      display: inline-block;
+      width:calc(100% - 60px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  &--centered {
+    text-align: center;
+    button {
+      text-transform: uppercase;
+    }
+  }
+  &--deployed {
+    margin-left: 10px;
+    display: inline-block;
+    padding:6px;
+    background-color: #daf6f9;
+    border-radius: 2px;
+  }
+  &--warning {
+    margin:15px;
+    margin-top: 0px;
+    border-top:15px solid #FFF;
+    padding:10px;
+    background: #F8F8F8;
+    i {
+      color: #FFB775;
+      font-size: 32px;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+    span {
+      vertical-align: middle;
+    }
+  }
+  &--collect-row {
+    position: relative;
+    padding-right:180px;
+    a.collect-link {
+      display: block;
+      margin-bottom: 10px;
+      color: $black;
+    }
+    &:hover {
+      background: #F2F2F3;
+    }
+    a.copy {
+      position: absolute;
+      right: 30px;
+      top: 30px;
+      cursor: pointer;
+      display: none;
+      text-transform: uppercase;
+    }
+    &:hover a.copy {
+      display: block;
+    }
+    + .form-view__cell--collect-row {
+      border-top: 1px solid #DDD;
+    }
+  }
+  &--collect-android {
+    ol {
+      margin:0;
+      padding:0;
+      margin-left: 1em;
+      li {
+        margin-bottom: 10px;
+        padding:5px;
+      }
+    }
+
+    code {
+      padding: 4px;
+      border:1px solid #F2F2F2;
+      background: #F8F8F8;
+      margin-left: 5px;
+      margin-right: 5px;
+    }
   }
 }
 
 // buttons in forms 
 .form-view__link {
-  font-size:32px;
+  font-size:36px;
   line-height: 18px;
-  padding:0px 10px;
+  padding:0px 5px;
   color: $cool-gray;
   cursor: pointer;
   vertical-align: middle;
@@ -344,97 +252,51 @@
   &--disabled, &--disabled:hover {
     color: lighten($cool-gray, 15%);
   }
-
-  // i.k-icon-edit {
-  //   font-size: 22px;
-  //   line-height: 22px;
-  //   margin-right: -10px;
-  // }
-  // &--upload {
-  //   margin-left: 0px;
-  // }
 }
 
-#more-dl-popover {
-  padding-top: 0px;
-  font-size: 32px;
-  line-height: 18px;
-  vertical-align: middle;
-}
+.form-view__group {
+  .dropzone {
+    display: inline;
+  }
 
-.form-view__item--collect {
-  position: relative;
-  display: block;
-  button {
-    border:2px solid $cool-gray;
-    width:100%;
-    margin:20px 0px;
-    padding:6px 10px;
-    border-radius: none;
-    cursor: pointer;
-    text-align: left;
-    font-size: 13px;
-    background-color: transparent;
-    color: $cool-gray;
-    padding-right: 32px;
-    position: relative;
-    &:focus, &:hover {
-      color: unquote("rgb(#{$color-primary})");
-    }
-    i {
-      position: absolute;
-      right: 10px;
-      top: 2px;
-      font-size: 24px;
-    }
-  }
-  .mdl-menu, .mdl-menu__container {
-    min-width: 300px;
-    width:100%;
-  }
-  .popover-menu__link {
-    display: block;
-    width: 100%;
-    white-space: normal;
-    border-bottom: 1px solid #DDD;
-    span.label {
-      display: block;
-      font-size: 14px;
-      padding-top: 5px;
-    }
-    span.desc {
-      display: block;
-      font-size: 13px;
-      font-weight: normal;
-    }
-  }
-}
-
-.form-view__item--collect-links {
-  text-align: right;
-  padding-top: 10px;
-  display: block;
-  a {
-    padding:4px 16px;
-    text-transform: uppercase;
-    display: inline-block;
-    cursor: pointer;
-    &.copy {
-      color:$cool-gray;
-      transition:all 0.5s;
-      &:focus, &:active {
-        color: unquote("rgb(#{$color-primary})");
+  &--items {
+    padding:0px;
+    > .form-view__label {
+      text-align: right;
+      display: inline-block;
+      width:25%;
+      padding:10px;
+      &--version {
+        width:36%;
+        text-align: left;
       }
     }
+    + .form-view__group--items {
+      border-top:1px solid #DDD;      
+    }
+  }
+
+  &.historyHidden .toggled {
+    display: none;
+  }
+
+  &.historyExpanded .toggled {
+    display: block;
   }
 }
 
-.collect-link {
-  color:$cool-gray;
-  i {
-    margin-left: 6px;
-  }
-  &:hover {
-    color: unquote("rgb(#{$color-primary})");
-  }
+.form-view--form-settings, 
+.form-view--form-data-downloads {
+  background: #FFF;
+  padding:40px;
 }
+
+
+// OLD UI ELEMENTS
+
+.form-view__link--close {
+  @extend .k-icon, .k-icon-close;
+  float: right;
+  margin-right: -10px;
+}
+

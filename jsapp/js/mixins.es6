@@ -6,7 +6,6 @@ import alertify from 'alertifyjs';
 import {Link} from 'react-router';
 import mdl from './libs/rest_framework/material';
 import TagsInput from 'react-tagsinput';
-import CopyToClipboard from 'react-copy-to-clipboard';
 import DocumentTitle from 'react-document-title';
  
 import {dataInterface} from './dataInterface';
@@ -18,6 +17,7 @@ import $ from 'jquery';
 
 import {
   formatTime,
+  currentLang,
   customConfirm,
   customConfirmAsync,
   customPromptAsync,
@@ -31,6 +31,8 @@ import {
   ProjectSettingsEditor,
   ProjectDownloads
 } from './components/formEditors';
+
+import icons from '../xlform/src/view.icons';
   
 var mixins = {};
 
@@ -76,371 +78,8 @@ mixins.taggedAsset = {
 };
  
 var dmix = {
-  assetTypeRenderers: {
-    block: {
-      innerRender: function () {
-        return (
-            <div m={[this.state.name ? 'named' : 'untitled']}>
-              <ui.AssetName {...this.state} />
-            </div>
-          );
-      }
-    },
-    question: {
-      innerRender: function () {
-        return (
-            <div m={[this.state.name ? 'named' : 'untitled']}>
-              <ui.AssetName {...this.state} />
-            </div>
-          );
-      },
-    },
-    survey: {
-      innerRender: function () {
-        let docTitle = this.state.name || t('Untitled');
-        let formList = this.makeHref('forms');
-        return (
-          <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-            <bem.FormView__wrapper m='form'>
-              <bem.FormView__row>
-                <bem.FormView__cell m='overview'>
-                  <bem.FormView__label m='title'>
-                    <bem.FormView__link
-                      m='close'
-                      href={formList}
-                    />
-                    {t('Form Overview')}
-                  </bem.FormView__label>
-                  {this.renderDeployments()}
-                </bem.FormView__cell>
-              </bem.FormView__row>
-
-              { this.state.has_deployment && this.state.deployment__active ?
-                this.renderInstructions()
-              : null }
-            </bem.FormView__wrapper> 
-          </DocumentTitle>
-          );
-      }
-    }
-  },
-  renderDeployments () {
-    var dvcount = this.state.deployed_versions.length;
-    return (
-        <bem.FormView__group m="deployments">
-          <bem.FormView__group m="headings">
-            <bem.FormView__label m='version'>
-              {t('Current Version')}
-            </bem.FormView__label>
-            <bem.FormView__label m='date'>
-              {t('Modified Date')}
-            </bem.FormView__label>
-            <bem.FormView__label m='lang'>
-              {t('Languages')}
-            </bem.FormView__label>
-            <bem.FormView__label m='questions'>
-              {t('Questions')}
-            </bem.FormView__label>
-          </bem.FormView__group>
-          <bem.FormView__group m="deploy-row">
-            <bem.FormView__item m='version'>
-              <bem.FormView__group m="deploy-count">
-                {dvcount > 0 ? `v${dvcount}` : ''}
-                <span>
-                  &nbsp;
-                  {this.state.deployment__active ? t('(deployed)') :
-                    this.state.has_deployment ? t('(archived)') :
-                      t('(undeployed draft)')}
-                </span>
-              </bem.FormView__group>
-              {this.renderEditPreviewButtons()}
-            </bem.FormView__item>
-            <bem.FormView__item m='date'>
-              {formatTime(this.state.date_modified)}
-            </bem.FormView__item>
-            <bem.FormView__item m='lang'>
-              {this.state.summary.languages}
-            </bem.FormView__item>
-            <bem.FormView__item m='questions'>
-              {this.state.summary.row_count}
-            </bem.FormView__item>
-          </bem.FormView__group>
- 
-          {this.state.deployed_versions.length > 0 &&
-            <bem.FormView__group m={["history", this.state.historyExpanded ? 'historyExpanded' : 'historyHidden']}>
-              <bem.FormView__group m="history-contents">
-                <bem.FormView__label m='previous-versions'>
-                  {t('Previous Versions')}
-                </bem.FormView__label>
- 
-                {this.state.deployed_versions.map((item, n) => {
-                  return (
-                    <bem.FormView__group m="deploy-row">
-                      <bem.FormView__item m='version'>
-                        {`v${dvcount-n}`}
-                        <bem.FormView__group m='buttons'>
-                          <bem.FormView__link m='clone'
-                              data-version-id={item.version_id}
-                              data-tip={t('Clone as new project')}
-                              onClick={this.saveCloneAs}>
-                            <i className="k-icon-clone" />
-                          </bem.FormView__link>
-                        </bem.FormView__group>
-                      </bem.FormView__item>
-                      <bem.FormView__item m='date'>
-                        {formatTime(item.date_deployed)}
-                      </bem.FormView__item>
- 
-                      <bem.FormView__item m='lang'></bem.FormView__item>
-                      <bem.FormView__item m='questions'></bem.FormView__item>
-                    </bem.FormView__group>
-                  );
-                })}
-              </bem.FormView__group>
- 
-              <bem.FormView__button onClick={this.toggleDeploymentHistory}>
-                {this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
-              </bem.FormView__button>
- 
-            </bem.FormView__group>
-          }
-        </bem.FormView__group>
-      );
-  },
-  renderInstructions () {
-    var deployment__links = this.state.deployment__links;
-    var available__links = {
-        offline_url: {
-          label: t('Online-Offline (multiple submission)'),
-          desc: t('This allows online and offline submissions and is the best option for collecting data in the field. ')
-        },
-        url: {
-          label: t('Online-Only (multiple submissions)'),
-          desc: t('This is the best option when entering many records at once on a computer, e.g. for transcribing paper records')
-        },
-        iframe_url: {
-          label: t('Embeddable web form code'),
-          desc: t('Use this html5 code snippet to integrate your form on your own website using smaller margins. ')
-        },
-        preview_url: {
-          label: t('View only'),
-          desc: t('Use this version for testing, getting feedback. Does not allow submitting data. ')
-        }
-    };
-
-    var deployment__links_list = [];
-    var value = undefined;
- 
-    for (var key in available__links) {
-      if (key == 'iframe_url')
-        value = '<iframe src="'+deployment__links[key]+'" width="800" height="600"></iframe>';
-      else
-        value = deployment__links[key];
-
-      deployment__links_list.push(
-        {
-          key: key,
-          value: value,
-          label: available__links[key].label,
-          desc: available__links[key].desc
-        }
-      );
-    }
- 
-    var kc_server = document.createElement('a');
-    kc_server.href = this.state.deployment__identifier;
-    var kobocollect_url = kc_server.origin + '/' + this.state.owner__username;
- 
-    return (
-      <bem.FormView__row m="collecting">
-        <bem.FormView__cell m='collecting-webforms'>
-          <bem.FormView__banner m="webforms">
-            <bem.FormView__label m='white'>
-              {t('Collecting Data with Web Forms')}
-            </bem.FormView__label>
-          </bem.FormView__banner>
-          <a href="http://support.kobotoolbox.org/customer/en/portal/articles/1653790-collecting-data-through-web-forms"
-             className="collect-link collect-link__web"
-             target="_blank">
-            {t('Learn more')}
-            <i className="fa fa-arrow-right"></i>
-          </a>
-
-          <ui.MDLPopoverMenu id={"collect-options"}
-                            button_type='text' 
-                            button_label={this.state.selectedCollectOption.label != null ? t(this.state.selectedCollectOption.label) : t('Choose an option')}
-                            classname='form-view__item--collect'
-                            menuClasses='mdl-menu mdl-menu--top-right mdl-js-menu'
-                            caretClass='fa fa-caret-up'>
-            {deployment__links_list.map((c)=>{
-              return (
-                  <bem.PopoverMenu__link  key={`c-${c.value}`}
-                                          onClick={this.setSelectedCollectOption(c)}
-                                          className={this.state.selectedCollectOption.value == c.value ? 'active' : null}>
-                    <span className="label">{c.label}</span>
-                    <span className="desc">{c.desc}</span>
-                  </bem.PopoverMenu__link>
-                );
-            })}
-          </ui.MDLPopoverMenu>
-
-          {this.state.selectedCollectOption.value ?
-            <bem.FormView__item m={'collect-links'}>
-              <CopyToClipboard text={this.state.selectedCollectOption.value}
-                onCopy={() => notify('copied to clipboard')}>
-                <a className="copy">Copy</a>
-              </CopyToClipboard>
-
-              {this.state.selectedCollectOption.key != 'iframe_url' ?
-                <a href={this.state.selectedCollectOption.value} target="_blank" className="open">
-                  {t('Open')}
-                </a>
-              : null }
-            </bem.FormView__item>
-          : null }
-        </bem.FormView__cell>
-        <bem.FormView__cell m='collecting-android'>
-          <bem.FormView__banner m="android">
-            <bem.FormView__label m='white'>
-              {t('Collecting Data with Android App')}
-            </bem.FormView__label>
-          </bem.FormView__banner>
-          <a href="http://support.kobotoolbox.org/customer/en/portal/articles/1653782-collecting-data-with-kobocollect-on-android"
-             className="collect-link collect-link__android"
-             target="_blank">
-            {t('Learn more')}
-            <i className="fa fa-arrow-right"></i>
-          </a>
- 
-          <ol>
-            <li>
-              {t('Install')}
-              &nbsp;
-              <a href="https://play.google.com/store/apps/details?id=org.koboc.collect.android&hl=en" target="_blank">KoboCollect</a>
-              &nbsp;
-              {t('on your Android device.')}
-            </li>
-            <li>{t('Click on')} <i className="k-icon-more"></i> {t('to open settings.')}</li>
-            <li>{t('Enter the server URL') + ' ' + kobocollect_url + ' ' + t('and your username and password')}</li>
-            <li>{t('Open "Get Blank Form" and select this project. ')}</li>
-            <li>{t('Open "Enter Data."')}</li>
-          </ol>
-        </bem.FormView__cell>
-      </bem.FormView__row>
-      );
-  },
-  renderFormViewHeader () {
-    return (
-      <bem.FormView__tabbar>
-        <bem.FormView__tabs>
-          <bem.FormView__tab className="is-edge" m='summary' >
-            {t('Summary')}
-          </bem.FormView__tab>
-          <bem.FormView__tab 
-            m='form' 
-            className={this.state.activeRoute == '/forms/:assetid' ? 'active' : ''} 
-            href={this.makeHref('form-landing', {assetid: this.state.uid})}
-            data-id='Form'>
-              {t('Form')}
-          </bem.FormView__tab>
-          { this.state.deployment__identifier != undefined && this.state.has_deployment && this.state.deployment__submission_count > 0 && 
-            <bem.FormView__tab 
-              m='data' 
-              className={this.state.activeRoute == '/forms/:assetid/reports' ? 'active' : ''} 
-              href={this.makeHref('form-reports', {assetid: this.state.uid})}
-              data-id='Data'>
-                {t('Data')}
-            </bem.FormView__tab>
-          }
-          {this.state.userCanEdit && 
-            <bem.FormView__tab 
-              m='settings' 
-              className={this.state.activeRoute == '/forms/:assetid/data/settings' ? 'active' : ''} 
-              href={this.makeHref('form-data-settings', {assetid: this.state.uid})}>
-                {t('Settings')}
-            </bem.FormView__tab>
-          }
-        </bem.FormView__tabs>
-      </bem.FormView__tabbar>
-    );
-  },
-  renderEditPreviewButtons () {
-    var downloadable = !!this.state.downloads[0],
-        downloads = this.state.downloads;
-
-    return (
-        <bem.FormView__group m='buttons'>
-          {this.state.userCanEdit ?
-            <bem.FormView__link m='edit'
-                href={this.makeHref('form-edit', {assetid: this.state.uid})}
-                data-tip={t('Edit in Form Builder')}>
-              <i className="k-icon-edit" />
-            </bem.FormView__link>
-          : 
-            <bem.FormView__link m={['edit', 'disabled']}
-                data-tip={t('Editing capabilities not granted, you can only view this form')}>
-              <i className="k-icon-edit" />
-            </bem.FormView__link>          
-          }
-          <bem.FormView__link m='preview'
-            href={this.makeHref('form-preview-enketo', {assetid: this.state.uid})}
-            data-tip={t('Preview')}>
-            <i className="k-icon-view" />
-          </bem.FormView__link>
-          {this.state.userCanEdit && 
-            <bem.FormView__link m={'deploy'}
-              onClick={this.deployAsset}
-              data-tip={this.state.has_deployment ? t('redeploy') : t('deploy')}>
-              <i className="k-icon-deploy" />
-            </bem.FormView__link>
-          }
-          {this.state.userCanEdit && 
-            <Dropzone fileInput onDropFiles={this.onDrop}
-                  disabled={!this.state.userCanEdit}>
-              <bem.FormView__link m={['upload', {
-                disabled: !this.state.userCanEdit
-                  }]}
-                  data-tip={t('Replace with XLS')}>
-                <i className="k-icon-replace" />
-              </bem.FormView__link>
-            </Dropzone>
-          }
-          { downloadable &&
-            <ui.MDLPopoverMenu id={"more-dl-popover"}>
-              {downloads.map((dl)=>{
-                return (
-                    <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
-                        key={`dl-${dl.format}`}>
-                      <i className={`k-icon-${dl.format}-file`}/>
-                      {t('Download')}&nbsp;
-                      {dl.format.toString().toUpperCase()}
-                    </bem.PopoverMenu__link>
-                  );
-              })}
-              {this.state.userCanEdit && 
-                <bem.PopoverMenu__link href={this.makeHref('form-sharing', {assetid: this.state.uid})}>
-                  <i className="k-icon-share"/>
-                  {t('Share this project')}
-                </bem.PopoverMenu__link>
-              }
-              <bem.PopoverMenu__link onClick={this.saveCloneAs}>
-                <i className="k-icon-clone"/>
-                {t('Clone this project')}
-              </bem.PopoverMenu__link>
-            </ui.MDLPopoverMenu>
-          }
-        </bem.FormView__group>
-      );
-  },
   afterCopy() {
     notify(t('copied to clipboard'));
-  },
-  setSelectedCollectOption(c) {
-    return function (e) {
-      this.setState({
-        selectedCollectOption: c,
-      });
-    }.bind(this)
   },
   saveCloneAs (evt) {
     let version_id = evt.currentTarget.dataset.versionId;
@@ -598,8 +237,6 @@ var dmix = {
       userCanEdit: false,
       userCanView: true,
       historyExpanded: false,
-      collectionOptionList: [],
-      selectedCollectOption: {},
       showReportGraphSettings: false,
       currentUsername: stores.session.currentAccount && stores.session.currentAccount.username,
     };
@@ -608,37 +245,15 @@ var dmix = {
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid,
       asset = data[uid];
     if (asset) {
-      if (!this.extended_by_asset_type) {
- 
-        var _mx = dmix.assetTypeRenderers[asset.asset_type];
-        if ('asset_type' in asset && _mx) {
-          assign(this, _mx, {
-            extended_by_asset_type: true
-          });
-        }
-      }
       this.setState(assign({},
           data[uid],
           this.getCurrentUserPermissions(data[uid], this.state)
         ));
     }
   },
-  collectionStoreChange ({collectionList}) {
-    this.setState({
-      collectionOptionList:
-        collectionList.map(function(c){
-            return {
-              value: c.uid,
-              label: c.name || c.uid,
-            };
-          })
-    });
-  },
   componentDidMount () {
     this.listenTo(stores.session, this.dmixSessionStoreChange);
     this.listenTo(stores.asset, this.dmixAssetStoreChange);
-    this.listenTo(stores.collections, this.collectionStoreChange);
-    actions.resources.listCollections();
  
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
     if (this.props.randdelay && uid) {
@@ -648,26 +263,9 @@ var dmix = {
     } else if (uid) {
       actions.resources.loadAsset({id: uid});
     }
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
-  },
-  innerRender () {
-    return (
-      <ui.Panel>
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      </ui.Panel>
-      );
-  },
-  _createPanel () {
-    return this.innerRender();
   }
 };
+
 mixins.dmix = dmix;
  
 mixins.droppable = {

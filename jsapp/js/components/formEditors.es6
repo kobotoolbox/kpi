@@ -207,9 +207,6 @@ var ProjectSettings = React.createClass({
             </label>
           </bem.FormModal__item>
 
-          {this.props.context == 'existingForm' && this.props.iframeUrl &&
-            <iframe src={this.props.iframeUrl} className="kc-settings-iframe" />
-          }
           {this.props.context == 'newForm' &&
             <bem.FormModal__item m='actions'>
             <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--bordered">
@@ -292,7 +289,6 @@ export var ProjectSettingsEditor = React.createClass({
         onSubmit={this.updateAsset}
         submitButtonValue={t('Save Changes')}
         initialData={initialData}
-        iframeUrl={this.props.iframeUrl}
         context='existingForm'
       />
     );
@@ -350,77 +346,75 @@ export var ProjectDownloads = React.createClass({
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-      <bem.FormView>
-        <bem.FormView__cell>
-          <bem.FormModal__form onSubmit={this.handleSubmit}>
-            {[
+      <bem.FormView__cell>
+        <bem.FormModal__form onSubmit={this.handleSubmit}>
+          {[
+            <bem.FormModal__item>
+              <label htmlFor="type">{t('Select export type')}</label>
+              <select name="type" value={this.state.type}
+                  onChange={this.typeChange}>
+                <option value="xls">XLS</option>
+                <option value="xls_legacy">XLS (legacy)</option>
+                <option value="csv">CSV</option>
+                <option value="csv_legacy">CSV (legacy)</option>
+                <option value="zip_legacy">Media Attachments (ZIP)</option>
+                <option value="kml_legacy">GPS coordinates (KML)</option>
+                <option value="analyser_legacy">Excel Analyser</option>
+                <option value="spss_labels">SPSS Labels</option>
+              </select>
+            </bem.FormModal__item>
+          , this.state.type == 'xls' || this.state.type == 'csv' ? [
               <bem.FormModal__item>
-                <label htmlFor="type">{t('Select export type')}</label>
-                <select name="type" value={this.state.type}
-                    onChange={this.typeChange}>
-                  <option value="xls">XLS</option>
-                  <option value="xls_legacy">XLS (legacy)</option>
-                  <option value="csv">CSV</option>
-                  <option value="csv_legacy">CSV (legacy)</option>
-                  <option value="zip_legacy">Media Attachments (ZIP)</option>
-                  <option value="kml_legacy">GPS coordinates (KML)</option>
-                  <option value="analyser_legacy">Excel Analyser</option>
-                  <option value="spss_labels">SPSS Labels</option>
+                <label htmlFor="lang">{t('Value and header format')}</label>
+                <select name="lang" value={this.state.lang}
+                    onChange={this.langChange}>
+                  <option value="xml">XML values and headers</option>
+                  <option value="_default">Labels</option>
+                  {
+                    translations && translations.map((t) => {
+                      if (t) {
+                        return <option value={t}>{t}</option>;
+                      }
+                    })
+                  }
                 </select>
-              </bem.FormModal__item>
-            , this.state.type == 'xls' || this.state.type == 'csv' ? [
-                <bem.FormModal__item>
-                  <label htmlFor="lang">{t('Value and header format')}</label>
-                  <select name="lang" value={this.state.lang}
-                      onChange={this.langChange}>
-                    <option value="xml">XML values and headers</option>
-                    <option value="_default">Labels</option>
-                    {
-                      translations && translations.map((t) => {
-                        if (t) {
-                          return <option value={t}>{t}</option>;
-                        }
-                      })
-                    }
-                  </select>
-                </bem.FormModal__item>,
-                <bem.FormModal__item>
-                  <label htmlFor="hierarchy_in_labels">
-                    {t('Include groups in headers')}
-                  </label>
-                  <input type="checkbox" name="hierarchy_in_labels"
-                    value={this.state.hierInLabels}
-                    onChange={this.hierInLabelsChange}
-                  />
-                </bem.FormModal__item>,
-                this.state.hierInLabels ?
-                  <bem.FormModal__item>
-                    <label htmlFor="group_sep">{t('Group separator')}</label>
-                    <input type="text" name="group_sep"
-                      value={this.state.groupSep}
-                      onChange={this.groupSepChange}
-                    />
-                  </bem.FormModal__item>
-                : null
-              ] : null
-            , this.state.type.indexOf('_legacy') > 0 ?
-              <bem.FormModal__item m='downloads'>
-                <iframe src={
-                    this.props.asset.deployment__data_download_links[
-                      this.state.type]
-                }>
-                </iframe>
-              </bem.FormModal__item>
-            :
+              </bem.FormModal__item>,
               <bem.FormModal__item>
-                <input type="submit" 
-                       value={t('Download')} 
-                       className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"/>
-              </bem.FormModal__item>
-            ]}
-          </bem.FormModal__form>
-        </bem.FormView__cell>
-      </bem.FormView>
+                <label htmlFor="hierarchy_in_labels">
+                  {t('Include groups in headers')}
+                </label>
+                <input type="checkbox" name="hierarchy_in_labels"
+                  value={this.state.hierInLabels}
+                  onChange={this.hierInLabelsChange}
+                />
+              </bem.FormModal__item>,
+              this.state.hierInLabels ?
+                <bem.FormModal__item>
+                  <label htmlFor="group_sep">{t('Group separator')}</label>
+                  <input type="text" name="group_sep"
+                    value={this.state.groupSep}
+                    onChange={this.groupSepChange}
+                  />
+                </bem.FormModal__item>
+              : null
+            ] : null
+          , this.state.type.indexOf('_legacy') > 0 ?
+            <bem.FormModal__item m='downloads'>
+              <iframe src={
+                  this.props.asset.deployment__data_download_links[
+                    this.state.type]
+              }>
+              </iframe>
+            </bem.FormModal__item>
+          :
+            <bem.FormModal__item>
+              <input type="submit" 
+                     value={t('Download')} 
+                     className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"/>
+            </bem.FormModal__item>
+          ]}
+        </bem.FormModal__form>
+      </bem.FormView__cell>
       </DocumentTitle>
     );
   },
