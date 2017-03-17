@@ -60,11 +60,13 @@ var FormSubScreens = React.createClass({
   },
   render () {
     var formClass = '';
-    if (this.state.deployment__identifier != undefined) {
-      var deployment__identifier = this.state.deployment__identifier;
-      var report__base = deployment__identifier.replace('/forms/', '/reports/');
-      var iframeUrl = '';
-      var subscreen = undefined;
+    var iframeUrl = '', report__base = '', subscreen = undefined;
+
+    if (this.state.uid != undefined) {
+      if (this.state.deployment__identifier != undefined) {
+        var deployment__identifier = this.state.deployment__identifier;
+        var report__base = deployment__identifier.replace('/forms/', '/reports/');
+      }
       switch(this.state.currentRoute.name) {
         case 'form-data-report':
           iframeUrl = report__base+'/digest.html';
@@ -94,6 +96,7 @@ var FormSubScreens = React.createClass({
           return this.renderCollectAndroid();
           break;
       }
+
       formClass = this.state.currentRoute.name;
     }
 
@@ -152,8 +155,9 @@ var FormSubScreens = React.createClass({
           desc: available__links[key].desc
         }
       );
+
     }
-  
+
     return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>      
           <bem.FormView>
@@ -167,8 +171,16 @@ var FormSubScreens = React.createClass({
                 {deployment__links_list.map((c)=>{
                   return (
                       <bem.FormView__cell m={['collect-row', 'padding']} key={`c-${c.value}`}>
-                        <a className="collect-link" href={c.value}>{c.label}</a>
+                        {c.key != 'iframe_url' ? 
+                          <a className="collect-link" target="_blank" href={c.value}>{c.label}</a>
+                        :
+                          <a className="collect-link" target="_blank">{c.label}</a>
+                        }
+                        
                         <div className="desc">{c.desc}</div>
+                        {c.key == 'iframe_url' && 
+                          <code>{c.value}</code>
+                        }
                         <CopyToClipboard text={c.value} onCopy={() => notify('copied to clipboard')}>
                           <a className="copy mdl-button mdl-js-button mdl-button--colored">{t('Copy link')}</a>
                         </CopyToClipboard>

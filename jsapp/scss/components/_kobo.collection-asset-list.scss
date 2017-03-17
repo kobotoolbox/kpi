@@ -115,7 +115,7 @@ div.library {
     }
   }
   .asset-items {
-    @extend .mdl-shadow--2dp;
+    @include box-shadow;
     background: #FFF;
     position: relative;
     &--visible {

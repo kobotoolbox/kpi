@@ -15,7 +15,10 @@
   margin-top: 20px;
   flex-grow:0;
   overflow: hidden;
-  @include box-shadow;
+  margin-right: 16px;
+  &.page-wrapper__content--form-landing {
+    @include box-shadow;
+  }
 }
 
 .ui-panel {

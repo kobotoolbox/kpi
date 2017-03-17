@@ -823,6 +823,9 @@ var App = React.createClass({
     ));
   },
   render() {
+    var showFormViewTabs = false;
+    if (!this.state.drawerHidden && this.state.routes[2] && this.state.routes[2].name == 'form-landing') 
+      showFormViewTabs = true;
     return (
       <DocumentTitle title="KoBoToolbox">
         <div className="mdl-wrapper">
@@ -849,13 +852,9 @@ var App = React.createClass({
               { !this.state.drawerHidden &&
                 <Drawer/>
               }
-              <bem.PageWrapper__content className="mdl-layout__content">
-                { !this.state.drawerHidden && this.state.routes[2] && this.state.routes[2].name == 'form-landing' &&
-                  <FormViewTabs type={'top'} />
-                }
-                { !this.state.drawerHidden && this.state.routes[2] && this.state.routes[2].name == 'form-landing' &&
-                  <FormViewTabs type={'side'} />
-                }
+              <bem.PageWrapper__content className='mdl-layout__content' m={showFormViewTabs ? 'form-landing' : ''}>
+                <FormViewTabs type={'top'} show={showFormViewTabs} />
+                <FormViewTabs type={'side'} show={showFormViewTabs} />
                 <RouteHandler appstate={this.state} />
               </bem.PageWrapper__content>
               { this.state.assetNavPresent ?

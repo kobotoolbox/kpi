@@ -138,7 +138,7 @@
   }
   &--question-list {
     margin-left:40px;
-    max-height: 300px;
+    max-height: 260px;
     padding:10px 0px;
     overflow: auto;
     flex-grow:2;
@@ -215,6 +215,14 @@
     }
     + .form-view__cell--collect-row {
       border-top: 1px solid #DDD;
+    }
+    code {
+      display: block;
+      background: #F8F8F8;
+      padding:10px;
+      margin-top: 15px;
+      border:1px solid #DDD;
+      font-size: 0.9em;
     }
   }
   &--collect-android {

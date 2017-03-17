@@ -151,6 +151,8 @@ var FormViewTabs = React.createClass({
     return false;
   },
   render() {
+    if (!this.props.show)
+      return false;
   	if (this.props.type == 'top') {
   		return (
   			this.renderTopTabs()
