@@ -220,6 +220,14 @@ var LibrarySidebar = React.createClass({
       this.queryCollections();
     });
   },
+  sharingModal (evt) {
+    evt.preventDefault();
+    var collectionUid = $(evt.currentTarget).data('collection-uid');
+    stores.pageState.showModal({
+      type: 'sharing', 
+      assetid: collectionUid
+    });
+  },
   setCollectionDiscoverability (discoverable, collection) {
     return (evt) => {
       evt.preventDefault();
@@ -308,8 +316,7 @@ var LibrarySidebar = React.createClass({
             </bem.FormSidebar__label>
             <bem.FormSidebar__grouping>
             {this.state.sidebarCollections.map((collection)=>{
-              var editLink = this.makeHref('collection-page', {uid: collection.uid}),
-                sharingLink = this.makeHref('collection-sharing', {assetid: collection.uid});
+              var editLink = this.makeHref('collection-page', {uid: collection.uid});
               var iconClass = 'k-icon-folder';
               if (collection.discoverable_when_public)
                 iconClass = 'k-icon-folder-public';
@@ -358,7 +365,8 @@ var LibrarySidebar = React.createClass({
                         { collection.access_type !== 'subscribed' &&
                           <bem.PopoverMenu__link
                               m={'share'}
-                              href={sharingLink}
+                              onClick={this.sharingModal}
+                              data-collection-uid={collection.uid}
                               >
                             <i className="k-icon-share" />
                             {t('Share')}
@@ -416,8 +424,7 @@ var LibrarySidebar = React.createClass({
             </bem.FormSidebar__label>
             <bem.FormSidebar__grouping m={[this.state.publicCollectionsVisible ? 'visible' : 'collapsed']}>
             {this.state.sidebarPublicCollections.map((collection)=>{
-              var editLink = this.makeHref('collection-page', {uid: collection.uid}),
-                sharingLink = this.makeHref('collection-sharing', {assetid: collection.uid});
+              var editLink = this.makeHref('collection-page', {uid: collection.uid});
               return (
                   <bem.FormSidebar__item
                     key={collection.uid}

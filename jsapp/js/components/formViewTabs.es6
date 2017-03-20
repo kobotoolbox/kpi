@@ -23,7 +23,7 @@ var FormViewTabs = React.createClass({
   getInitialState() {
     var dataTabs = ['form-reports', 'form-data-report', 'form-data-table', 'form-data-gallery', 'form-data-downloads', 'form-data-map'];
     var formTabs = ['form-landing', 'form-collect-web', 'form-collect-android'];
-    var settingsTabs = ['form-settings', 'form-settings-kobocat'];
+    var settingsTabs = ['form-settings', 'form-settings-sharing', 'form-settings-kobocat'];
     return {
       dataTabs: dataTabs,
       formTabs: formTabs,
@@ -94,7 +94,7 @@ var FormViewTabs = React.createClass({
         {this.userCanEditAsset() && 
           <bem.FormView__tab 
             m='settings' 
-            className={this.state.activeRoute == '/forms/:assetid/settings' ? 'active' : ''} 
+            className={this.state.settingsTabs.indexOf(activeRoute) > -1 ? 'active' : ''} 
             href={this.makeHref('form-settings', {assetid: this.state.assetid})}>
               {t('Settings')}
           </bem.FormView__tab>
@@ -128,6 +128,7 @@ var FormViewTabs = React.createClass({
     if (this.state.asset && this.state.asset.deployment__active && activeRoute != undefined && this.state.settingsTabs.indexOf(activeRoute) > -1 ) {
        sideTabs = [
           {label: t('General settings'), icon: 'k-icon-information', path: 'form-settings'},
+          {label: t('Sharing'), icon: 'k-icon-share', path: 'form-settings-sharing'},
           {label: t('Kobocat settings'), icon: 'k-icon-projects', path: 'form-settings-kobocat'}
         ];
     }

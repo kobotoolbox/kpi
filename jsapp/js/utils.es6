@@ -189,7 +189,7 @@ export function isLibrary(router) {
 
 export function stringToColor(str, prc) {
   // Check for lightness/darkness
-  var prc = typeof prc === 'number' ? prc : -10;
+  var prc = typeof prc === 'number' ? prc : 5;
   var hash = function(word) {
       var h = 0;
       for (var i = 0; i < word.length; i++) {

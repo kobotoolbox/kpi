@@ -141,7 +141,7 @@ export var AccountSettings = React.createClass({
 
     var accountName = stores.session.currentAccount.username;
     var initialsStyle = {
-      background: `#${stringToColor(accountName, 20)}`
+      background: `#${stringToColor(accountName)}`
     };
 
     return (

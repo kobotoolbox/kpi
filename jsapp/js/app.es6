@@ -41,6 +41,7 @@ import Reports from './components/reports';
 import FormLanding from './components/formLanding';
 import FormSubScreens from './components/formSubScreens';
 import FormViewTabs from './components/formViewTabs';
+import Modal from './components/modal';
 import {ChangePassword, AccountSettings} from './components/accountSettings';
 
 import {
@@ -58,8 +59,7 @@ import {
   t,
   assign,
   isLibrary,
-  currentLang,
-  stringToColor,
+  currentLang
 } from './utils';
 
 mixins.permissions = {
@@ -640,136 +640,6 @@ class UserProfileLink extends React.Component {
   }
 }
 
-class SharingButton extends React.Component {
-  render () {
-    return <div className="btn-group">
-              <Link to="form-sharing" params={{assetid: this.props.uid}} className="btn btn-default">
-                Sharing
-                &nbsp;&nbsp;
-                <i className='fa fa-lg fa-user-plus fa-user' />
-              </Link>
-            </div>;
-  }
-}
-
-var UserPermDiv = React.createClass({
-  mixins: [
-    Navigation,
-    mixins.permissions,
-  ],
-  PermOnChange(permName) {
-    var cans = this.props.can;
-    if (permName != '') {
-      this.setPerm(permName, this.props);
-      if (permName == 'view' && cans.change)
-        this.removePerm('change', cans.change, this.props.uid);
-    } else {
-      if (cans.view)
-        this.removePerm('view', cans.view, this.props.uid);
-      if (cans.change)
-        this.removePerm('change', cans.change, this.props.uid);
-    }
-
-  },
-  render () {
-    var initialsStyle = {
-      background: `#${stringToColor(this.props.username, 20)}`
-    };
-
-    var currentPerm = '';
-    var cans = this.props.can;
-
-    if (cans.change) {
-      var currentPerm = 'change';
-    } else if (cans.view) {
-      var currentPerm = 'view';
-    }
-
-    var availablePermissions = [
-      {value: 'view', label: t('Can View')},
-      {value: 'change', label: t('Can Edit')}
-    ];
-
-    return (
-      <bem.UserRow m={cans.view || cans.change ? 'regular' : 'deleted'}>
-        <bem.UserRow__avatar>
-          <bem.AccountBox__initials style={initialsStyle}>
-            {this.props.username.charAt(0)}
-          </bem.AccountBox__initials>
-        </bem.UserRow__avatar>
-        <bem.UserRow__name>
-          {this.props.username}
-          {/*<div><UserProfileLink username= /></div>*/}
-        </bem.UserRow__name>
-        <bem.UserRow__role>
-          <Select
-            name='userPerms'
-            value={currentPerm}
-            clearable={true}
-            options={availablePermissions}
-            onChange={this.PermOnChange}
-          />
-        </bem.UserRow__role>
-      </bem.UserRow>      
-      );
-  }
-});
-
-var PublicPermDiv = React.createClass({
-  mixins: [
-    Navigation,
-    mixins.permissions,
-  ],
-  togglePerms() {
-    if (this.props.publicPerm)
-      this.removePerm('view',this.props.publicPerm, this.props.uid);
-    else
-      this.setPerm('view', {
-          username: anonUsername,
-          uid: this.props.uid,
-          kind: this.props.kind,
-          objectUrl: this.props.objectUrl
-        }
-      );
-  },
-  render () {
-    var uid = this.props.uid;
-
-    switch (this.props.kind) {
-      case 'collection':
-        var href = this.makeHref('collection-page', {uid: uid});
-      break;
-      default: 
-        var href = this.makeHref('form-landing', {assetid: uid});
-    }
-
-    if (isLibrary(this.context.router))
-      href = this.makeHref('library-form-landing', {assetid: uid});
-
-    var url = `${window.location.protocol}//${window.location.host}/${href}`;
-
-    return (
-      <bem.FormModal__item m='perms-link'>
-        <bem.ToggleSwitch onClick={this.togglePerms} >
-          <input type="checkbox" checked={this.props.publicPerm ? true : false} onChange={this.togglePerms} />
-          <label>
-            <span className="switch" />
-            <span className="text">
-              {this.props.publicPerm ? 'On' : 'Off'}
-            </span>
-            </label>
-        </bem.ToggleSwitch>
-        <label>
-          {t('Link to share')}
-        </label>
-        { this.props.publicPerm && 
-          <input type="text" value={url} readOnly />
-        }
-      </bem.FormModal__item>
-    );
-  }
-});
-
 class KoBo extends React.Component {
   render () {
     return (
@@ -826,6 +696,7 @@ var App = React.createClass({
     var showFormViewTabs = false;
     if (!this.state.drawerHidden && this.state.routes[2] && this.state.routes[2].name == 'form-landing') 
       showFormViewTabs = true;
+
     return (
       <DocumentTitle title="KoBoToolbox">
         <div className="mdl-wrapper">
@@ -839,13 +710,10 @@ var App = React.createClass({
               'header-hidden': this.state.headerHidden,
               'drawer-hidden': this.state.drawerHidden,
                 }} className="mdl-layout mdl-layout--fixed-header">
-              { this.state.modalMessage &&
-                <ui.Modal open small onClose={()=>{stores.pageState.hideModal()}} icon={this.state.modalIcon}>
-                  <ui.Modal.Body>
-                    {stores.pageState.state.modalMessage}
-                  </ui.Modal.Body>
-                </ui.Modal>
+              { this.state.modal &&
+                <Modal params={this.state.modal} />
               }
+
               { !this.state.headerHidden &&
                 <MainHeader/>
               }
@@ -1021,193 +889,6 @@ var FormXform = React.createClass({
         );
     }
   }
-});
-
-var AssetSharing = React.createClass({
-  mixins: [
-    Navigation,
-    Reflux.connectFilter(assetStore, function(data){
-      var uid = this.props.params.assetid,
-        asset = data[uid];
-      if (asset) {
-        return {
-          asset: asset,
-          permissions: asset.permissions,
-          owner: asset.owner__username,
-          pperms: parsePermissions(asset.owner__username, asset.permissions),
-          public_permission: getAnonymousUserPermission(asset.permissions),
-          related_users: assetStore.relatedUsers[uid]
-        };
-      }
-    }),
-    mixins.permissions,
-    Reflux.ListenerMixin
-  ],
-
-  statics: {
-    willTransitionTo: function(transition, params, idk, callback) {
-      actions.resources.loadAsset({id: params.assetid});
-      callback();
-    }
-  },
-  componentDidMount () {
-    this.listenTo(stores.userExists, this.userExistsStoreChange);
-  },
-  userExistsStoreChange (checked, result) {
-    var inpVal = this.usernameFieldValue();
-    if (inpVal === result) {
-      var newStatus = checked[result] ? 'success' : 'error';
-      this.setState({
-        userInputStatus: newStatus
-      });
-    }
-  },
-  usernameField () {
-    return this.refs.usernameInput.getDOMNode();
-  },
-  usernameFieldValue () {
-    return this.usernameField().value;
-  },
-  usernameCheck (evt) {
-    var username = evt.target.value;
-    if (username && username.length > 3) {
-      var result = stores.userExists.checkUsername(username);
-      if (result === undefined) {
-        actions.misc.checkUsername(username);
-      } else {
-        log(result ? 'success' : 'error');
-        this.setState({
-          userInputStatus: result ? 'success' : 'error'
-        });
-      }
-    } else {
-      this.setState({
-        userInputStatus: false
-      });
-    }
-  },
-  getInitialState () {
-    return {
-      userInputStatus: false
-    };
-  },
-  addInitialUserPermission (evt) {
-    evt.preventDefault();
-    var username = this.usernameFieldValue();
-    if (stores.userExists.checkUsername(username)) {
-      actions.permissions.assignPerm({
-        username: username,
-        uid: this.props.params.assetid,
-        kind: this.state.asset.kind,
-        objectUrl: this.props.objectUrl,
-        role: 'view'
-      });
-      this.usernameField().value = '';
-    }
-  },
-  routeBack () {
-    history.back();
-  },
-  render () {
-    var inpStatus = this.state.userInputStatus;
-    if (!this.state.pperms) {
-      return (
-          <i className="fa fa-spin" />
-        );
-    }
-    var _perms = this.state.pperms;
-    var perms = this.state.related_users.map(function(username){
-      var currentPerm = _perms.filter(function(p){
-        return p.username === username;
-      })[0];
-      if (currentPerm) {
-        return currentPerm;
-      } else {
-        return {
-          username: username,
-          can: {}
-        };
-      }
-    });
-    var btnKls = classNames('mdl-button','mdl-js-button','mdl-button--raised','mdl-button--colored', 
-                            inpStatus === 'success' ? 'mdl-button--colored' : 'hidden');
-
-    var uid = this.state.asset.uid;
-    var kind = this.state.asset.kind;
-    var objectUrl = this.state.asset.url;
-
-    if (!perms) {
-      return (
-          <p>loading</p>
-        );
-    }
-
-    var initialsStyle = {
-      background: `#${stringToColor(this.state.asset.owner__username, 20)}`
-    };
-
-    return (
-      <ui.Modal open onClose={this.routeBack} title={t('Sharing Permissions')}>
-        <ui.Modal.Body className="modal-sharing">
-
-          <bem.FormModal__item>
-            <label>
-              {t('Who has access')}
-            </label>
-            <bem.UserRow>
-              <bem.UserRow__avatar>
-                <bem.AccountBox__initials style={initialsStyle}>
-                  {this.state.asset.owner__username.charAt(0)}
-                </bem.AccountBox__initials>
-              </bem.UserRow__avatar>
-              <bem.UserRow__name>
-                <div>{this.state.asset.owner__username}</div>
-              </bem.UserRow__name>
-              <bem.UserRow__role>{t('is owner')}</bem.UserRow__role>
-            </bem.UserRow>
-
-            {perms.map((perm)=> {
-              return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
-            })}
-
-          </bem.FormModal__item>
-
-          <form onSubmit={this.addInitialUserPermission} className="sharing-form__user">
-            
-            <bem.FormModal__item m='perms-user'>
-              <label htmlFor="permsUser">
-                {t('Invite people and specify access rights')}
-              </label>
-              <input type="text"
-                  id="permsUser" 
-                  ref='usernameInput'
-                  placeholder={t('Enter a username')}
-                  onKeyUp={this.usernameCheck}
-              />
-              <button className={btnKls}>
-                <i className="fa fa-fw fa-lg fa-plus" />
-              </button>
-            </bem.FormModal__item>
-          </form>
-          {kind != 'collection' && !isLibrary(this.context.router) && 
-            <PublicPermDiv 
-              uid={uid}
-              publicPerm={this.state.public_permission}
-              kind={kind}
-              objectUrl={objectUrl}
-            />
-          }
-        </ui.Modal.Body>
-        <ui.Modal.Footer>
-          <button onClick={this.routeBack}>{t('Done')}</button>
-        </ui.Modal.Footer>
-      </ui.Modal>
-      );
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
-  }
-
 });
 
 var FormEnketoPreview = React.createClass({
@@ -1432,7 +1113,6 @@ var formRouteChildren = (baseName) => {
     <Route name={`${baseName}form-download`} path="download" handler={FormDownload} />,
     <Route name={`${baseName}form-json`} path="json" handler={FormJson} />,
     <Route name={`${baseName}form-xform`} path="xform" handler={FormXform} />,
-    <Route name={`${baseName}form-sharing`} path="sharing" handler={AssetSharing} />,
     <Route name={`${baseName}form-preview-enketo`} path="preview" handler={FormEnketoPreview} />,
     <Route name={`${baseName}form-edit`} path="edit" handler={FormPage} />
   ];
@@ -1456,7 +1136,6 @@ var routes = (
         <Route name="form-download" path="download" handler={FormDownload} />
         <Route name="form-json" path="json" handler={FormJson} />
         <Route name="form-xform" path="xform" handler={FormXform} />
-        <Route name="form-sharing" path="sharing" handler={AssetSharing} />
         <Route name="form-reports" path="reports" handler={Reports} />
         <Route name="form-preview-enketo" path="preview" handler={FormEnketoPreview} />
         <Route name='form-edit' path="edit" handler={FormPage} />
@@ -1467,6 +1146,7 @@ var routes = (
         <Route name='form-data-map' path="data/map" handler={FormSubScreens} />
         <Route name='form-settings' path="settings" handler={FormSubScreens} />
         <Route name='form-settings-kobocat' path="settings/kobocat" handler={FormSubScreens} />
+        <Route name='form-settings-sharing' path="settings/sharing" handler={FormSubScreens} />
         <Route name='form-collect-web' path="collect" handler={FormSubScreens} />
         <Route name='form-collect-android' path="android" handler={FormSubScreens} />
         <DefaultRoute handler={FormLanding} />
@@ -1478,7 +1158,6 @@ var routes = (
 
     <Route name="collections">
       <Route name="collection-page" path=":uid" handler={CollectionLanding} />
-      <Route name="collection-sharing" path=":assetid/sharing" handler={AssetSharing} />
       <DefaultRoute handler={CollectionList} />
     </Route>
 

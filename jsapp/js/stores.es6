@@ -210,10 +210,9 @@ var pageStateStore = Reflux.createStore({
     assign(this.state, _changes);
     this.trigger(_changes);
   },
-  showModal ({message, icon}) {
+  showModal (params) {
     this.setState({
-      modalMessage: message,
-      modalIcon: icon,
+      modal: params
     });
   },
   hideModal () {
@@ -221,8 +220,7 @@ var pageStateStore = Reflux.createStore({
       this._onHideModal();
     }
     this.setState({
-      modalMessage: false,
-      modalIcon: false,
+      modal: false
     });
   },
   setAssetNavPresent (tf) {

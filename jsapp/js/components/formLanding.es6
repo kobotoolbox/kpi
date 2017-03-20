@@ -326,7 +326,7 @@ var FormLanding = React.createClass({
                   );
               })}
               {this.state.userCanEdit && 
-                <bem.PopoverMenu__link href={this.makeHref('form-sharing', {assetid: this.state.uid})}>
+                <bem.PopoverMenu__link href={this.makeHref('form-settings-sharing', {assetid: this.state.uid})}>
                   <i className="k-icon-share"/>
                   {t('Share this project')}
                 </bem.PopoverMenu__link>
@@ -380,7 +380,7 @@ var FormLanding = React.createClass({
                 </bem.FormView__cell>
               }
               {this.renderFormInfo()}
-              {this.state.summary && this.state.summary.languages && 
+              {this.state.summary && this.state.summary.languages && this.state.summary.languages[0] != null && 
                 this.renderFormLanguages()
               }
               {this.state.summary.row_count > 0 && 

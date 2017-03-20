@@ -184,7 +184,7 @@ var MainHeader = React.createClass({
       langs = stores.session.currentAccount.languages;
 
       var initialsStyle = {
-        background: `#${stringToColor(accountName, 20)}`
+        background: `#${stringToColor(accountName)}`
       };
 
       return (
@@ -267,12 +267,12 @@ var MainHeader = React.createClass({
   toggleFixedDrawer() {
     stores.pageState.toggleFixedDrawer();
   },
-  showDowntimeNotificationBox () {
-    stores.pageState.showModal({
-      message: stores.session.currentAccount.downtimeMessage,
-      icon: 'gears',
-    });
-  },
+  // showDowntimeNotificationBox () {
+  //   stores.pageState.showModal({
+  //     message: stores.session.currentAccount.downtimeMessage,
+  //     icon: 'gears',
+  //   });
+  // },
   assetTitleChange (e) {
     var asset = this.state.asset;
     if (e.target.name == 'title')
@@ -337,7 +337,7 @@ var MainHeader = React.createClass({
               </a>
             </span>
             {downtimeMessage ?
-              <div className="account-box__alert" onClick={this.showDowntimeNotificationBox}>
+              <div className="account-box__alert">
                 <strong>{downtimeMessage[0]}</strong>
                 <br />
                 {downtimeMessage[1]}
@@ -355,7 +355,7 @@ var MainHeader = React.createClass({
             }
             { this.state.showFormViewHeader && !this.state.headerFilters &&  
               <bem.FormTitle>
-                { this.state.asset.has_deployment ?
+                { this.state.asset && this.state.asset.has_deployment ?
                   <i className="k-icon-deployed" />
                 :
                   <i className="k-icon-drafts" />

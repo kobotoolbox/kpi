@@ -184,13 +184,31 @@ iframe {
 // modal forms 
 .form-modal__item {
   margin-bottom: 15px;
+  &--sector, &--country {
+    width:50%;
+    float: left;
+  }
+
+  &--sector .Select {
+    margin-right: 30px;
+  }
+
+  &--metadata-share {
+    padding-top: 20px;
+    clear: both;
+    input[type="checkbox"] {
+      margin-top: 8px;
+    }
+  }
+
   label {
-    font-weight: 400;
-    font-size:14px;
-    color:#4A4A4A;
+    font-weight: normal;
+    font-size:12px;
+    color:lighten($black, 40%);
     &.long {
       padding-top: 5px;
       margin-bottom: 10px;
+      font-size: 14px;
     }
   }
 
@@ -199,28 +217,33 @@ iframe {
     padding-bottom: 5px;
   }
 
+  label.next-to-checkbox {
+    display: inline-block !important;
+    margin-left: 10px;
+    max-width: 90%;
+    vertical-align: top;
+  }
+
   input[type="text"], 
   input[type="email"], 
   input[type="password"], 
   select, 
   textarea {
     width:100%;
-    padding:6px 10px;
+    padding:6px 0px;
     font-size:15px;
-    border:1px solid $cool-gray;
-  }
-
-  textarea {
-    min-height: 80px;
+    border:1px solid transparent;
+    border-bottom-color: lighten($black, 40%);
   }
 
   input[type="checkbox"] {
     font-size: 20px;
-    margin-right: 5px;
+    vertical-align: top;
   }
 
   .Select-control {
-    border:1px solid $cool-gray;
+    border:1px solid transparent;
+    border-bottom-color: lighten($black, 40%);
     border-radius: 0px;
     padding-top: 5px;
     padding-bottom: 5px;

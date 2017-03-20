@@ -31,7 +31,8 @@ var FormSubScreens = React.createClass({
   mixins: [
     Navigation,
     Reflux.ListenerMixin,
-    mixins.dmix
+    mixins.dmix,
+    mixins.shareAsset
   ],
   updateRouteState () {
     var currentRoutes = this.context.router.getCurrentRoutes();
@@ -88,6 +89,9 @@ var FormSubScreens = React.createClass({
           break;
         case 'form-settings-kobocat':
           iframeUrl = deployment__identifier+'/form_settings';
+          break;
+        case 'form-settings-sharing':
+          return this.renderSharing();
           break;
         case 'form-collect-web': 
           return this.renderCollectWeb();
@@ -170,7 +174,7 @@ var FormSubScreens = React.createClass({
               <bem.FormView__cell m='box'>
                 {deployment__links_list.map((c)=>{
                   return (
-                      <bem.FormView__cell m={['collect-row', 'padding']} key={`c-${c.value}`}>
+                      <bem.FormView__cell m={['collect-row']} key={`c-${c.value}`}>
                         {c.key != 'iframe_url' ? 
                           <a className="collect-link" target="_blank" href={c.value}>{c.label}</a>
                         :
@@ -233,9 +237,24 @@ var FormSubScreens = React.createClass({
                       href="https://play.google.com/store/apps/details?id=org.koboc.collect.android&hl=en">
                     {t('Download KoboCollect')}
                   </a>
+                  <bem.FormView__cell>
+                    <a href="http://support.kobotoolbox.org/customer/en/portal/articles/1653782-collecting-data-with-kobocollect-on-android">
+                      {t('Learn more about KoboCollect')}
+                    </a>
+                  </bem.FormView__cell>
                 </bem.FormView__cell>
               </bem.FormView__cell>
             </bem.FormView__row>
+          </bem.FormView>
+        </DocumentTitle>
+    );
+  },
+  renderSharing() {
+    var docTitle = this.state.name || t('Untitled');
+    return (
+        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+          <bem.FormView m={'settings-sharing'}>
+            {this.sharingForm()}
           </bem.FormView>
         </DocumentTitle>
     );

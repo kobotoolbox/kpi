@@ -116,32 +116,7 @@ var ProjectSettings = React.createClass({
 
     return (
       <bem.FormModal__form onSubmit={this.onSubmit}>
-        {this.props.context == 'existingForm' && 
-          <bem.FormModal__item m='actions'>
-          <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--bordered">
-              {this.props.submitButtonValue}
-            </button>
-          </bem.FormModal__item>
-        }
-
         <bem.FormModal__item m='wrapper'>
-          {this.props.context == 'existingForm' && 
-            <bem.FormModal__item m='sharing'>
-              <a href={this.makeHref('form-sharing', {assetid: this.state.assetid})} className="mdl-button mdl-js-button mdl-button--bordered mdl-button--gray-border">
-                {t('Share')}
-              </a>
-              <label>{t('Sharing Permissions')}</label>
-              <label className="long">
-                {t('Allow others to access your project.')}
-              </label>
-              {sharedWith.length > 0 &&
-                t('Shared with ')
-              }
-              {sharedWith.map((user)=> {
-                return (<span className="shared-with">{user}</span>);
-              })}
-            </bem.FormModal__item>
-          }
           <bem.FormModal__item>
             <label htmlFor="name">
               {t('Project Name')}
@@ -191,29 +166,24 @@ var ProjectSettings = React.createClass({
               options={countries}
             />
           </bem.FormModal__item>
-          <bem.FormModal__item>
-            <label className="long">
-              {t('Help KoboToolbox improve this product by sharing the sector and country where this project will be deployed.')}
-              {t('All the information is submitted anonymously, and will not include the project name or description listed above.')}
-            </label>
-
+          <bem.FormModal__item m='metadata-share'>
             <input type="checkbox"
                 id="share-metadata"
                 checked={this.state['share-metadata']}
                 onChange={this.shareMetadataChange}
               />
-            <label htmlFor="share-metadata" className="inline">
-              {t('Share the sector and country with developers')}
+            <label className="long next-to-checkbox" htmlFor="share-metadata">
+              {t('Help KoboToolbox improve this product by sharing the sector and country where this project will be deployed.')}
+              &nbsp;
+              {t('All the information is submitted anonymously, and will not include the project name or description listed above.')}
             </label>
           </bem.FormModal__item>
 
-          {this.props.context == 'newForm' &&
-            <bem.FormModal__item m='actions'>
-            <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--bordered">
-                {this.props.submitButtonValue}
-              </button>
-            </bem.FormModal__item>
-          }
+          <bem.FormModal__item m='actions'>
+          <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+              {this.props.submitButtonValue}
+            </button>
+          </bem.FormModal__item>
         </bem.FormModal__item>
       </bem.FormModal__form>
     );

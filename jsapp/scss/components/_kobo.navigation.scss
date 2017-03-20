@@ -431,14 +431,17 @@ $headerAccountTextColor: #dbedf7;
     }
 }
 
-// Initials avatar, used in header and account settings
+// Initials avatar, used in header, sharing modal and account settings
 .account-box__initials {
+    width:36px;
+    text-align: center;
+    text-transform: uppercase;
     padding:6px 10px;
     border-radius: 36px;
     display: inline-block;
     vertical-align: middle;
     font-size: 18px;
-    color: $headerAccountTextColor;
+    color: #FFF;
 }
 
 .git-rev {
