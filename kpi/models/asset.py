@@ -758,8 +758,7 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
             xml = FormPack({'content': source_copy},
                                 root_node_name=root_node_name,
                                 id_string=id_string,
-                                title=form_title,
-                                ellipsize_title=False)[0].to_xml(warnings=warnings)
+                                title=form_title)[0].to_xml(warnings=warnings)
             details.update({
                 u'status': u'success',
                 u'warnings': warnings,
