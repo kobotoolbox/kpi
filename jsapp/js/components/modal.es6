@@ -109,19 +109,20 @@ var Modal = React.createClass({
                 context='newForm'
               />
             }
-            { this.props.params.type == 'enketo-preview' && this.state.enketopreviewlink ?
-                <div className='enketo-holder'>
-                  <iframe src={this.state.enketopreviewlink} />
-                </div>
-                :
-                <bem.Loading>
-                  <bem.Loading__inner>
-                    <i />
-                    {t('loading...')}
-                  </bem.Loading__inner>
-                </bem.Loading>
+            { this.props.params.type == 'enketo-preview' && this.state.enketopreviewlink &&
+              <div className='enketo-holder'>
+                <iframe src={this.state.enketopreviewlink} />
+              </div>
             }
-            { this.state.error && 
+            { this.props.params.type == 'enketo-preview' && !this.state.enketopreviewlink &&
+              <bem.Loading>
+                <bem.Loading__inner>
+                  <i />
+                  {t('loading...')}
+                </bem.Loading__inner>
+              </bem.Loading>
+            }
+            { this.props.params.type == 'enketo-preview' && this.state.error && 
               <div>
                 {this.state.message}
               </div>

@@ -173,7 +173,6 @@ var FormSubScreens = React.createClass({
               </bem.FormView__cell>
               <bem.FormView__cell m='box'>
                 {deployment__links_list.map((c)=>{
-                  console.log(c);
                   return (
                       <bem.FormView__cell m={['collect-row']} key={`c-${c.key}`}>
                         {c.key != 'iframe_url' ? 
