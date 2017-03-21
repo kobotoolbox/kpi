@@ -158,128 +158,6 @@ var FormLanding = React.createClass({
       </bem.FormView__row>
       );
   },
-  renderInstructions () {
-    var deployment__links = this.state.deployment__links;
-    var available__links = {
-        offline_url: {
-          label: t('Online-Offline (multiple submission)'),
-          desc: t('This allows online and offline submissions and is the best option for collecting data in the field. ')
-        },
-        url: {
-          label: t('Online-Only (multiple submissions)'),
-          desc: t('This is the best option when entering many records at once on a computer, e.g. for transcribing paper records')
-        },
-        iframe_url: {
-          label: t('Embeddable web form code'),
-          desc: t('Use this html5 code snippet to integrate your form on your own website using smaller margins. ')
-        },
-        preview_url: {
-          label: t('View only'),
-          desc: t('Use this version for testing, getting feedback. Does not allow submitting data. ')
-        }
-    };
-
-    var deployment__links_list = [];
-    var value = undefined;
- 
-    for (var key in available__links) {
-      if (key == 'iframe_url')
-        value = '<iframe src="'+deployment__links[key]+'" width="800" height="600"></iframe>';
-      else
-        value = deployment__links[key];
-
-      deployment__links_list.push(
-        {
-          key: key,
-          value: value,
-          label: available__links[key].label,
-          desc: available__links[key].desc
-        }
-      );
-    }
- 
-    var kc_server = document.createElement('a');
-    kc_server.href = this.state.deployment__identifier;
-    var kobocollect_url = kc_server.origin + '/' + this.state.owner__username;
- 
-    return (
-      <bem.FormView__row m="collecting">
-        <bem.FormView__cell m='collecting-webforms'>
-          <bem.FormView__banner m="webforms">
-            <bem.FormView__label m='white'>
-              {t('Collecting Data with Web Forms')}
-            </bem.FormView__label>
-          </bem.FormView__banner>
-          <a href="http://support.kobotoolbox.org/customer/en/portal/articles/1653790-collecting-data-through-web-forms"
-             className="collect-link collect-link__web"
-             target="_blank">
-            {t('Learn more')}
-            <i className="fa fa-arrow-right"></i>
-          </a>
-
-          <ui.MDLPopoverMenu id={"collect-options"}
-                            button_type='text' 
-                            button_label={this.state.selectedCollectOption.label != null ? t(this.state.selectedCollectOption.label) : t('Choose an option')}
-                            classname='form-view__item--collect'
-                            menuClasses='mdl-menu mdl-menu--top-right mdl-js-menu'
-                            caretClass='fa fa-caret-up'>
-            {deployment__links_list.map((c)=>{
-              return (
-                  <bem.PopoverMenu__link  key={`c-${c.value}`}
-                                          onClick={this.setSelectedCollectOption(c)}
-                                          className={this.state.selectedCollectOption.value == c.value ? 'active' : null}>
-                    <span className="label">{c.label}</span>
-                    <span className="desc">{c.desc}</span>
-                  </bem.PopoverMenu__link>
-                );
-            })}
-          </ui.MDLPopoverMenu>
-
-          {this.state.selectedCollectOption.value ?
-            <bem.FormView__item m={'collect-links'}>
-              <CopyToClipboard text={this.state.selectedCollectOption.value}
-                onCopy={() => notify('copied to clipboard')}>
-                <a className="copy">Copy</a>
-              </CopyToClipboard>
-
-              {this.state.selectedCollectOption.key != 'iframe_url' ?
-                <a href={this.state.selectedCollectOption.value} target="_blank" className="open">
-                  {t('Open')}
-                </a>
-              : null }
-            </bem.FormView__item>
-          : null }
-        </bem.FormView__cell>
-        <bem.FormView__cell m='collecting-android'>
-          <bem.FormView__banner m="android">
-            <bem.FormView__label m='white'>
-              {t('Collecting Data with Android App')}
-            </bem.FormView__label>
-          </bem.FormView__banner>
-          <a href="http://support.kobotoolbox.org/customer/en/portal/articles/1653782-collecting-data-with-kobocollect-on-android"
-             className="collect-link collect-link__android"
-             target="_blank">
-            {t('Learn more')}
-            <i className="fa fa-arrow-right"></i>
-          </a>
- 
-          <ol>
-            <li>
-              {t('Install')}
-              &nbsp;
-              <a href="https://play.google.com/store/apps/details?id=org.koboc.collect.android&hl=en" target="_blank">KoboCollect</a>
-              &nbsp;
-              {t('on your Android device.')}
-            </li>
-            <li>{t('Click on')} <i className="k-icon-more"></i> {t('to open settings.')}</li>
-            <li>{t('Enter the server URL') + ' ' + kobocollect_url + ' ' + t('and your username and password')}</li>
-            <li>{t('Open "Get Blank Form" and select this project. ')}</li>
-            <li>{t('Open "Enter Data."')}</li>
-          </ol>
-        </bem.FormView__cell>
-      </bem.FormView__row>
-      );
-  },
   renderButtons () {
     var downloadable = false;
     var downloads = [];
@@ -313,8 +191,10 @@ var FormLanding = React.createClass({
               </bem.FormView__link>
             </Dropzone>
           }
-          { downloadable &&
-            <ui.MDLPopoverMenu id={"more-dl-popover"}>
+
+          <ui.PopoverMenu type='formLanding-menu' 
+                      triggerLabel={<i className="k-icon-more" />} 
+                      triggerTip={t('More Actions')}>
               {downloads.map((dl)=>{
                 return (
                     <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
@@ -335,8 +215,7 @@ var FormLanding = React.createClass({
                 <i className="k-icon-clone"/>
                 {t('Clone this project')}
               </bem.PopoverMenu__link>
-            </ui.MDLPopoverMenu>
-          }
+          </ui.PopoverMenu>
         </bem.FormView__group>
       );
   },

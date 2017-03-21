@@ -67,9 +67,6 @@ $headerAccountTextColor: #dbedf7;
         max-width: 100%;
     }
     .k-account__menu {
-        position: absolute;
-        top: 22px;
-        right: -12px;
         background-color: darken($layout-header-bg-color, 5%);
         margin: 0px;
         padding: 8px 0px;

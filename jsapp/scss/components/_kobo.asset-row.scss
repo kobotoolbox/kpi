@@ -12,11 +12,6 @@ $hover-asset-row: #F2F2F3;
   &:hover {
     background: $hover-asset-row;
   }
-  a, a:hover {
-    color: $black;
-    text-decoration: none;
-    font-weight: 400;
-  }
   > .asset-row__cell {
     width: 100%;
     display: flex;
@@ -125,39 +120,12 @@ $hover-asset-row: #F2F2F3;
     color: unquote("rgb(#{$color-accent})");      
   }
 
-  .popover-menu__link, 
-  .popover-menu__item {
-    font-size: 14px;
-    color: $cool-gray;
-    span, i {
-      vertical-align: middle;
-    }
+  a.asset-row__celllink {
+      color: $black;    
   }
-
-  .popover-menu__item--move-coll-item {
-    position: relative;
-    text-align: left;
-    padding-right:35px;
-    span {
-      display: inline-block;
-      max-width: 150px;
-      overflow: hidden;
-      text-overflow:ellipsis;
-      word-wrap:break-word;
-    }
-    span + span {
-      position: absolute;
-      right: 12px;
-      top: 10px;
-      padding-right: 0px;
-      font-size: 24px;
-    }
-  }
-
   &:hover {
     .asset-row__name {
       font-weight: 500;
-      color: #222;
     }
 
     > .asset-row__buttons {
@@ -170,37 +138,5 @@ $hover-asset-row: #F2F2F3;
     .date--modified {
       visibility: hidden;
     }
-  }
-
-  .mdl-menu__container {
-    right: 0px;
-    overflow: visible;
-    margin-top: -4px;
-    margin-right: -3px;
-    .mdl-menu__outline {
-      transition:opacity 0.3s;
-      @include shadow-1dp;
-    }
-    .mdl-menu {
-      transition:opacity 0.3s;
-      padding-top:0px;
-      padding-bottom:0px;
-      background-color: #FFF;
-      overflow: visible;
-    }
-  }
-
-  .popover-menu__heading {
-    padding:8px 15px;
-    color: $cool-gray;
-    border-top: 1px solid lighten($cool-gray, 25%);
-    border-bottom: 1px solid lighten($cool-gray, 25%);
-    margin:5px 0px;
-  }
-
-  .popover-menu__moveTo {
-    max-height: 250px;
-    overflow:auto;
-    overflow-x:hidden;
   }
 }

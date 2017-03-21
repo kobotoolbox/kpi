@@ -183,9 +183,8 @@ var MainHeader = React.createClass({
       var accountName = stores.session.currentAccount.username;
       langs = stores.session.currentAccount.languages;
 
-      var initialsStyle = {
-        background: `#${stringToColor(accountName)}`
-      };
+      var initialsStyle = {background: `#${stringToColor(accountName)}`};
+      var accountMenuLabel = <bem.AccountBox__initials style={initialsStyle}>{accountName.charAt(0)}</bem.AccountBox__initials>;
 
       return (
         <bem.AccountBox>
@@ -195,17 +194,9 @@ var MainHeader = React.createClass({
               2 
             </bem.AccountBox__notifications__count>
           </bem.AccountBox__notifications>
-          <bem.AccountBox__name
-              onClick={this.toggleAccountMenuPopover}
-              onBlur={this.toggleAccountMenuPopover} 
-              tabIndex="-1">
-            <bem.AccountBox__initials style={initialsStyle}>
-              {accountName.charAt(0)}
-            </bem.AccountBox__initials>
-          </bem.AccountBox__name>
-
-          { (this.state.accountMenuPopoverShowing) ? 
-            <bem.PopoverMenu ref='accountMenu-popover'>
+          <ui.PopoverMenu type='account-menu' 
+                          triggerLabel={accountMenuLabel} 
+                          buttonType='text'>
               <ul className="k-account__menu">
                 <li className="k-account__submenu" key="settings">
                   <a onClick={this.accountSettings} className="mdl-menu__item">
@@ -236,9 +227,7 @@ var MainHeader = React.createClass({
                     {t('Logout')}</a>
                   </li>
               </ul>
-            </bem.PopoverMenu>
-          : null }
-
+          </ui.PopoverMenu>
         </bem.AccountBox>
         );
     }

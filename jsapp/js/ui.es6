@@ -2,7 +2,7 @@ import React from 'react/addons';
 import _ from 'underscore';
 
 import bem from './bem';
-import {t} from './utils';
+import {t, assign} from './utils';
 import classNames from 'classnames';
 
 var hotkey = require('react-hotkey');
@@ -208,38 +208,65 @@ ui.AssetName = React.createClass({
   }
 });
 
-ui.MDLPopoverMenu = React.createClass({
+ui.PopoverMenu = React.createClass({
+  getInitialState () {
+    return assign({
+      popoverVisible: false,
+      placement: 'below'
+    });
+
+  },
+  toggle(evt) {
+    var isBlur = evt.type === 'blur',
+        $popoverMenu;
+    if (this.state.popoverVisible || isBlur) {
+        $popoverMenu = $(evt.target).parents('.popover-menu').find('.popover-menu__content');
+        // if we setState and immediately hide popover then links will not register as clicked
+        $popoverMenu.fadeOut(250, () => {
+          this.setState({
+            popoverVisible: false,
+          });
+        });
+    } else {
+      this.setState({
+        popoverVisible: true,
+      });
+    }
+    // 
+    if (this.props.type == 'assetrow-menu' && !this.state.popoverVisible) {
+      var $assetRowOffset = $(evt.target).parents('.asset-row').offset().top;
+      var $assetListHeight = $(evt.target).parents('.page-wrapper__content').height();
+      console.log($(window).height());
+      console.log($assetListHeight);
+      if ($assetListHeight - $assetRowOffset < 250) {
+        this.setState({
+          placement: 'above',
+        });        
+      }
+    }
+  },
+  componentWillReceiveProps(nextProps) {
+    if (this.state.popoverVisible && nextProps.clearPopover) {
+      this.setState({
+        popoverVisible: false
+      });
+    }
+  },
   render () {
-    var id = this.props.id;
-    var button_tip = this.props.button_tip || t('More Actions');
-    var button_type = this.props.button_type || 'icon';
-    var caretClass = this.props.caretClass || 'fa fa-angle-down';
-    var button_label = this.props.button_label;
-    var classname = this.props.classname || 'ui-mdl-popover';
-    var menuClasses = this.props.menuClasses || 'mdl-menu mdl-menu--bottom-right mdl-js-menu';
     return (
-          <span className={classname}>
-              { button_type == 'text' ?
-                <button id={id} className="mdl-js-button">
-                  {button_label}
-                  <i className={caretClass} />
-                </button>
-              : button_type == 'no-tip' ?
-                <button id={id} className="mdl-js-button">
-                  <i className="k-icon-more" />
-                </button>                
-              :
-                <button id={id} className="mdl-js-button" data-tip={button_tip}>
-                  <i className="k-icon-more" />
-                </button>                
-              }
-            <div htmlFor={id} className={menuClasses}>
-              {this.props.children}
-            </div>
-          </span>
+      <bem.PopoverMenu m={[this.props.type, this.state.placement]}>
+        <bem.PopoverMenu__toggle onClick={this.toggle} onBlur={this.toggle} data-tip={this.props.triggerTip}>
+          {this.props.triggerLabel}
+        </bem.PopoverMenu__toggle>
+        {this.state.popoverVisible && 
+          <bem.PopoverMenu__content>
+            {this.props.children}
+          </bem.PopoverMenu__content>
+        }
+      </bem.PopoverMenu>
+
     );
   }
 });
-
 
 export default ui;

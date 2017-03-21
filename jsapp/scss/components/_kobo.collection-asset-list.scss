@@ -7,7 +7,7 @@
     font-weight: 500;
     position: relative;
     padding: 10px 0px;
-    padding-top: 20px;
+    padding-top: 19px;
     margin-top: 0px;
     margin-bottom: 0px;
     // &:after {
@@ -108,8 +108,7 @@ div.library {
   overflow-x:hidden;
   .asset-list {
     min-height: 300px;
-    margin-bottom: 4px;
-    padding-bottom: 240px; // must be > more actions dropdown height
+    padding-bottom: 50px;
     > .loading {
       margin-top:110px;
     }
@@ -134,9 +133,9 @@ div.library {
 
 .asset-list--fixed-headings {
   padding-top: 50px;
-  .asset-list-sorts {
-    display: none;
-  }
+  // .asset-list-sorts {
+  //   display: none;
+  // }
   > .asset-items--1 {
     .asset-list-sorts {
       display: flex;

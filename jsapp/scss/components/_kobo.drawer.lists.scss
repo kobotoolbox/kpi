@@ -86,13 +86,19 @@
     }
     &--selected {
       color: lighten($layout-text-color, 10%);
-      .ui-mdl-popover {
+      .popover-menu {
         position: absolute;
         right: -5px;
-        top: -5px;
+        top: 0px;
         margin:0px;
         button {
-          margin-left: 0px;
+          color:$cool-gray;
+          &:hover {
+            color: unquote("rgb(#{$color-accent})");
+          }
+        }
+        .popover-menu__content {
+          margin-right: 20px;
         }
       }
       .form-sidebar__itemlink {

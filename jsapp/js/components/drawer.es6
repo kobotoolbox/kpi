@@ -347,9 +347,8 @@ var LibrarySidebar = React.createClass({
                       {collection.name}
                     </bem.FormSidebar__itemlink>
                     { !this.state.filteredByPublicCollection && this.state.filteredCollectionUid === collection.uid &&
-                      <ui.MDLPopoverMenu id={"actions-" + collection.uid}
-                                        button_type='no-tip' 
-                                        menuClasses='mdl-menu mdl-menu--bottom-right mdl-js-menu'>
+                      <ui.PopoverMenu type='collectionSidebarPublic-menu' 
+                          triggerLabel={<i className="k-icon-more" />}>
                         { collection.access_type === 'owned' && collection.discoverable_when_public &&
                           <bem.PopoverMenu__link
                               m={'make-private'}
@@ -412,7 +411,7 @@ var LibrarySidebar = React.createClass({
                           </bem.PopoverMenu__link>
                         }
 
-                      </ui.MDLPopoverMenu>
+                      </ui.PopoverMenu>
                     }
                   </bem.FormSidebar__item>
                 );
@@ -455,9 +454,8 @@ var LibrarySidebar = React.createClass({
                         </bem.FormSidebar__iteminner>
                     </bem.FormSidebar__itemlink>
                     {this.state.filteredCollectionUid === collection.uid && this.state.filteredByPublicCollection && 
-                      <ui.MDLPopoverMenu id={"pub-more-" + collection.uid}
-                                          button_type='no-tip' 
-                                          menuClasses='mdl-menu mdl-menu--bottom-right mdl-js-menu'>
+                      <ui.PopoverMenu type='collectionSidebar-menu' 
+                          triggerLabel={<i className="k-icon-more" />}>
                           { collection.access_type === 'subscribed' ?
                               <bem.PopoverMenu__link href={'#'}
                                 onClick={this.unsubscribeCollection}
@@ -473,7 +471,7 @@ var LibrarySidebar = React.createClass({
                                 {t('subscribe')}
                               </bem.PopoverMenu__link>
                           }
-                        </ui.MDLPopoverMenu>
+                        </ui.PopoverMenu>
                       }
                   </bem.FormSidebar__item>
                 );

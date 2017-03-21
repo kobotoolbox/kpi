@@ -168,10 +168,12 @@ bem.FormModal__form = bem.FormModal.__('form', '<form>');
 bem.FormModal__item = bem.FormModal.__('item');
 
 bem.PopoverMenu = bem('popover-menu');
+bem.PopoverMenu__content = bem.PopoverMenu.__('content');
+bem.PopoverMenu__toggle = bem.PopoverMenu.__('toggle', '<button>');
+bem.PopoverMenu__link = bem.PopoverMenu.__('link', '<a>');
 bem.PopoverMenu__item = bem.PopoverMenu.__('item');
 bem.PopoverMenu__heading = bem.PopoverMenu.__('heading');
 bem.PopoverMenu__moveTo = bem.PopoverMenu.__('moveTo');
-bem.PopoverMenu__link = bem.PopoverMenu.__('link', '<a>');
 
 bem.AccountBox = BEM('account-box');
 bem.AccountBox__notifications = bem.AccountBox.__('notifications');

@@ -25,7 +25,10 @@ var AssetRow = React.createClass({
     mixins.droppable
   ],
   getInitialState () {
-    return {tags: this.props.tags};
+    return {
+      tags: this.props.tags,
+      clearPopover: false
+    };
   },
   // clickAsset (evt) {
   //   // this click was not intended for a button
@@ -81,8 +84,10 @@ var AssetRow = React.createClass({
   preventDefault (evt) {
     evt.preventDefault();
   },
-  clearDropdown () {
-    $(this.getDOMNode()).find('.mdl-menu__container.is-visible').removeClass('is-visible');
+  clearPopover () {
+    this.setState({
+      clearPopover: true,
+    });
   },
   onDrop (files) {
     if (files.length === 0) {
@@ -145,16 +150,13 @@ var AssetRow = React.createClass({
     }
     return (
         <bem.AssetRow m={{
-                            // 'selected': this.props.isSelected,
-                            // 'active': this.props.isSelected,
-                            // 'inactive': !this.props.isSelected,
                             'display-tags': this.state.displayTags,
                             'deleted': this.props.deleted,
                             'deleting': this.props.deleting,
                           }}
                         className="mdl-grid"
                         key={this.props.uid}
-                        onMouseLeave={this.clearDropdown}
+                        onMouseLeave={this.clearPopover}
                       >
           <bem.AssetRow__cell
               m={'asset-details'}
@@ -291,105 +293,107 @@ var AssetRow = React.createClass({
                 >
               <i className='k-icon-clone' />
             </bem.AssetRow__actionIcon>
- 
-              <ui.MDLPopoverMenu id={"more-" + this.props.uid}>
-                { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit && isDeployable &&
-                  <bem.PopoverMenu__link 
-                      m={'deploy'}
-                      data-action={'deploy'} 
-                      data-asset-type={this.props.kind}>
-                    <i className="k-icon-deploy" />
-                    {this.props.deployed_version_id === null ? t('Deploy this project') : t('Redeploy this project')}
-                  </bem.PopoverMenu__link>
-                }
-                { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit &&
-                  <Dropzone fileInput onDropFiles={this.onDrop}>
-                    <bem.PopoverMenu__link
-                          m={'refresh'}
-                          data-action={'refresh'}
+            { this.props.kind === 'collection' &&
+              [/*'view',*/ 'sharing'].map((actn)=>{
+                return (
+                      <bem.AssetRow__actionIcon
+                        m={actn === 'view' ? 'view-collection' : actn}
+                          data-action={actn}
                           data-asset-type={this.props.kind}
-                        >
-                      <i className="k-icon-replace" />
-                      {t('Replace with XLS')}
-                    </bem.PopoverMenu__link>
-                  </Dropzone>
-                }
-                {this.props.downloads.map((dl)=>{
-                  return (
-                      <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
-                          key={`dl-${dl.format}`}>
-                        <i className={`k-icon-${dl.format}-file`}/>
-                        {t('Download')}&nbsp;
-                        {dl.format.toString().toUpperCase()}
-                      </bem.PopoverMenu__link>
+                          data-disabled={false}
+                          data-tip={actn}
+                          >
+                        <i />
+                      </bem.AssetRow__actionIcon>
                     );
-                })}
+              })
+            } 
+            <ui.PopoverMenu type='assetrow-menu' 
+                        triggerLabel={<i className="k-icon-more" />} 
+                        triggerTip={t('More Actions')}
+                        clearPopover={this.state.clearPopover}>
 
-                { this.props.asset_type && this.props.asset_type != 'survey' && ownedCollections.length > 0 &&
-                  <bem.PopoverMenu__heading>
-                    {t('Move to')}
-                  </bem.PopoverMenu__heading>
-                }
-                { this.props.asset_type && this.props.asset_type != 'survey' && ownedCollections.length > 0 &&
-                  <bem.PopoverMenu__moveTo>
-                    {ownedCollections.map((col)=>{
-                      return (
-                          <bem.PopoverMenu__item
-                           onClick={this.moveToCollection}
-                           data-collid={col.value} 
-                           data-parent={col.hasParent ? 'true' : 'false'} 
-                           key={col.value}
-                           title={col.label}
-                           m='move-coll-item'>
-                              <i className="k-icon-folder" />
-                              {col.label}
-                              {col.hasParent && 
-                                <span className="has-parent">&bull;</span>
-                              }
-                          </bem.PopoverMenu__item>
-                        );
-                    })}
-                  </bem.PopoverMenu__moveTo>
-                }
-
-                {/* penar, this is just proof-of-concept stuff */
-                  this.props.asset_type && this.props.asset_type === 'survey' && this.props.has_deployment && this.props.deployment__active && userCanEdit &&
-                  <bem.PopoverMenu__link
-                        m={'archive'}
-                        data-action={'archive'}
-                        data-asset-type={this.props.kind}
-                      >
-                    <i className="k-icon-archived" />
-                    {t('Archive')}
-                  </bem.PopoverMenu__link>
-                }
-
-                {userCanEdit &&
-                  <bem.PopoverMenu__link
-                        m={'delete'}
-                        data-action={'delete'}
-                        data-asset-type={this.props.kind}
-                      >
-                    <i className="k-icon-trash" />
-                    {t('Delete')}
-                  </bem.PopoverMenu__link>
-                }
-              </ui.MDLPopoverMenu>
-              { this.props.kind === 'collection' &&
-                [/*'view',*/ 'sharing'].map((actn)=>{
-                  return (
-                        <bem.AssetRow__actionIcon
-                          m={actn === 'view' ? 'view-collection' : actn}
-                            data-action={actn}
-                            data-asset-type={this.props.kind}
-                            data-disabled={false}
-                            data-tip={actn}
-                            >
-                          <i />
-                        </bem.AssetRow__actionIcon>
-                      );
-                })
+              { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit && isDeployable &&
+                <bem.PopoverMenu__link 
+                    m={'deploy'}
+                    data-action={'deploy'} 
+                    data-asset-type={this.props.kind}>
+                  <i className="k-icon-deploy" />
+                  {this.props.deployed_version_id === null ? t('Deploy this project') : t('Redeploy this project')}
+                </bem.PopoverMenu__link>
               }
+              { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit &&
+                <Dropzone fileInput onDropFiles={this.onDrop}>
+                  <bem.PopoverMenu__link
+                        m={'refresh'}
+                        data-action={'refresh'}
+                        data-asset-type={this.props.kind}
+                      >
+                    <i className="k-icon-replace" />
+                    {t('Replace with XLS')}
+                  </bem.PopoverMenu__link>
+                </Dropzone>
+              }
+              {this.props.downloads.map((dl)=>{
+                return (
+                    <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
+                        key={`dl-${dl.format}`}>
+                      <i className={`k-icon-${dl.format}-file`}/>
+                      {t('Download')}&nbsp;
+                      {dl.format.toString().toUpperCase()}
+                    </bem.PopoverMenu__link>
+                  );
+              })}
+
+              { this.props.asset_type && this.props.asset_type != 'survey' && ownedCollections.length > 0 &&
+                <bem.PopoverMenu__heading>
+                  {t('Move to')}
+                </bem.PopoverMenu__heading>
+              }
+              { this.props.asset_type && this.props.asset_type != 'survey' && ownedCollections.length > 0 &&
+                <bem.PopoverMenu__moveTo>
+                  {ownedCollections.map((col)=>{
+                    return (
+                        <bem.PopoverMenu__item
+                         onClick={this.moveToCollection}
+                         data-collid={col.value} 
+                         data-parent={col.hasParent ? 'true' : 'false'} 
+                         key={col.value}
+                         title={col.label}
+                         m='move-coll-item'>
+                            <i className="k-icon-folder" />
+                            {col.label}
+                            {col.hasParent && 
+                              <span className="has-parent">&bull;</span>
+                            }
+                        </bem.PopoverMenu__item>
+                      );
+                  })}
+                </bem.PopoverMenu__moveTo>
+              }
+
+              { this.props.asset_type && this.props.asset_type === 'survey' && this.props.has_deployment && this.props.deployment__active && userCanEdit &&
+                <bem.PopoverMenu__link
+                      m={'archive'}
+                      data-action={'archive'}
+                      data-asset-type={this.props.kind}
+                    >
+                  <i className="k-icon-archived" />
+                  {t('Archive')}
+                </bem.PopoverMenu__link>
+              }
+
+              {userCanEdit &&
+                <bem.PopoverMenu__link
+                      m={'delete'}
+                      data-action={'delete'}
+                      data-asset-type={this.props.kind}
+                    >
+                  <i className="k-icon-trash" />
+                  {t('Delete')}
+                </bem.PopoverMenu__link>
+              }
+            </ui.PopoverMenu>
           </bem.AssetRow__buttons>
         </bem.AssetRow>
       );
