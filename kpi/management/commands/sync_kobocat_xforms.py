@@ -11,7 +11,8 @@ from optparse import make_option
 from pyxform import xls2json_backends
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import get_storage_class
 from django.core.management.base import BaseCommand
@@ -21,7 +22,7 @@ from rest_framework.authtoken.models import Token
 from formpack.utils.xls_to_ss_structure import xls_to_dicts
 from hub.models import FormBuilderPreference
 from ...deployment_backends.kobocat_backend import KobocatDeploymentBackend
-from ...models import Asset
+from ...models import Asset, ObjectPermission
 from .import_survey_drafts_from_dkobo import _set_auto_field_update
 
 TIMESTAMP_DIFFERENCE_TOLERANCE = datetime.timedelta(seconds=30)
@@ -198,11 +199,10 @@ def _sync_form_content(asset, xform, changes):
     return modified
 
 
-def _sync_form_metadata(asset, xform, grant_kpi_view, changes):
-    ''' Returns `True` and appends to `changes` if it modifies `asset`. Does
-    not save anything unless `grant_kpi_view` is `True`; in that case, an
-    asset with no primary key will be saved to allow permissions to be assigned
-    to it '''
+def _sync_form_metadata(asset, xform, changes):
+    ''' Returns `True` and appends to `changes` if it modifies `asset`. If
+    `asset` has no primary key, it will be saved to allow permissions to be
+    assigned to it '''
     user = xform.user
     if not asset.has_deployment:
         # A brand-new asset
@@ -217,16 +217,12 @@ def _sync_form_metadata(asset, xform, grant_kpi_view, changes):
             'version': asset.version_id
         })
         changes.append('CREATE METADATA')
-        if grant_kpi_view:
-            if not asset.pk:
-                # Asset must have a primary key before working with its
-                # permissions
-                asset.save(adjust_content=False)
-            affected_users = _sync_permissions(
-                asset, kc_deployment.backend_response)
-            if affected_users:
-                changes.append(
-                    u'PERMISSIONS({})'.format('|'.join(affected_users)))
+        # `_sync_permissions()` will save `asset` if it has no `pk`
+        affected_users = _sync_permissions(
+            asset, kc_deployment.backend_response)
+        if affected_users:
+            changes.append(
+                u'PERMISSIONS({})'.format('|'.join(affected_users)))
         return True
 
     modified = False
@@ -265,18 +261,16 @@ def _sync_form_metadata(asset, xform, grant_kpi_view, changes):
             'backend_response'] = _get_kc_backend_response(xform)
         modified = True
 
-    if grant_kpi_view:
-        if fetch_backend_response:
-            # Already have the latest backend response
-            backend_response = deployment_data['backend_response']
-        else:
-            # Must fetch the backend response to check for KC perm changes
-            backend_response = _get_kc_backend_response(xform)
-        affected_users = _sync_permissions(asset, backend_response)
-        if affected_users:
-            modified = True
-            changes.append(
-                u'PERMISSIONS({})'.format('|'.join(affected_users)))
+    if fetch_backend_response:
+        # Already have the latest backend response
+        backend_response = deployment_data['backend_response']
+    else:
+        # Must fetch the backend response to check for KC perm changes
+        backend_response = _get_kc_backend_response(xform)
+    affected_users = _sync_permissions(asset, backend_response)
+    if affected_users:
+        modified = True
+        changes.append(u'PERMISSIONS({})'.format('|'.join(affected_users)))
 
     return modified
 
@@ -285,11 +279,18 @@ def _sync_permissions(asset, backend_response):
     ''' Examines the permissions listed in `backend_response['users']` and
     assigns appropriate permissions to the `asset` '''
     PERMISSIONS_MAP = { # keys are KC's codenames, values are KPI's
-        'change_xform': 'view_asset', # "Can Edit" in KC UI
-        'view_xform': 'view_asset', # "Can View" in KC UI
-        'report_xform': 'view_asset', # "Can submit to" in KC UI
+        'change_xform': 'change_submissions', # "Can Edit" in KC UI
+        'view_xform': 'view_submissions', # "Can View" in KC UI
+        'report_xform': 'add_submissions', # "Can submit to" in KC UI
     }
-    affected_users = set()
+
+    # TEMPORARY Issue #1161: If the user doesn't have the minimum permission
+    # already, the `from_kc_only` flag will be set
+    MINIMUM_KPI_PERMISSION = 'view_asset'
+    asset_ct = ContentType.objects.get_for_model(Asset)
+
+    affected_usernames = set()
+    granted_usernames = set()
     for kc_entry in backend_response['users']:
         if kc_entry['role'] == 'owner':
             continue
@@ -302,12 +303,50 @@ def _sync_permissions(asset, backend_response):
                 pass
             else:
                 unique_kpi_perms.add(kpi_perm)
-        for unique_kpi_perm in unique_kpi_perms:
-            if not user.has_perm(unique_kpi_perm, asset):
-                asset.assign_perm(user, unique_kpi_perm)
-                affected_users.add(user.username)
+        if unique_kpi_perms:
+            if not asset.pk:
+                # Asset must have a primary key before working with its
+                # permissions
+                asset.save(adjust_content=False)
 
-    return affected_users
+            # TEMPORARY Issue #1161
+            if not user.has_perm(MINIMUM_KPI_PERMISSION, asset):
+                # Mark this user's access as exclusively our doing
+                flag_perm = Permission.objects.get(
+                    content_type=asset_ct, codename='from_kc_only')
+                ObjectPermission.objects.get_or_create(
+                    user=user,
+                    permission=flag_perm,
+                    content_type=asset_ct,
+                    object_id=asset.pk
+                )
+            granted_usernames.add(user.username)
+
+            for unique_kpi_perm in unique_kpi_perms:
+                if not user.has_perm(unique_kpi_perm, asset):
+                    asset.assign_perm(user, unique_kpi_perm)
+                    affected_usernames.add(user.username)
+
+    # TEMPORARY Issue #1161: Purge permissions from KPI if the `from_kc_only`
+    # flag is set and a corresponding KC permission no longer exists
+    if asset.pk:
+        purgeable_user_ids = ObjectPermission.objects.filter(
+            permission__codename='from_kc_only',
+            content_type=asset_ct,
+            object_id=asset.pk
+        ).exclude(user__username__in=granted_usernames).values_list(
+            'user', flat=True)
+        revoked_perms = ObjectPermission.objects.filter(
+            user_id__in=purgeable_user_ids,
+            content_type=asset_ct,
+            object_id=asset.pk
+        )
+        revoked_usernames = list(revoked_perms.values_list(
+            'user__username', flat=True))
+        revoked_perms.delete()
+        affected_usernames.update(revoked_usernames)
+
+    return affected_usernames
 
 
 class XForm(models.Model):
@@ -356,16 +395,7 @@ class Command(BaseCommand):
                     action='store_true',
                     dest='quiet',
                     default=False,
-                    help='Do not output status messages'),
-        make_option('--grant-kpi-view-permission',
-                    action='store_true',
-                    dest='grant_kpi_view',
-                    default=False,
-                    help='For each shared KC form, grant `view_asset` in KPI '
-                         'to all users who have access to the form in KC. '
-                         'WARNING: this is a one-way operation! Users will '
-                         'retain their `view_asset` permission in KPI even if '
-                         'their KC access is revoked.'),
+                    help='Do not output status messages')
     )
 
     def _print_str(self, string):
@@ -382,7 +412,6 @@ class Command(BaseCommand):
                 'configured before using this command'
             )
         self._quiet = options.get('quiet')
-        grant_kpi_view = options.get('grant_kpi_view')
         users = User.objects.all()
         self._print_str('%d total users' % users.count())
         # A specific user or everyone?
@@ -439,7 +468,7 @@ class Command(BaseCommand):
                             content_changed = _sync_form_content(
                                 asset, xform, changes)
                             metadata_changed = _sync_form_metadata(
-                                asset, xform, grant_kpi_view, changes)
+                                asset, xform, changes)
                         except SyncKCXFormsWarning as e:
                             error_information = [
                                 'WARN',

@@ -463,7 +463,11 @@ class Asset(ObjectPermissionMixin,
             ('change_submissions', _('Can modify submitted data for asset')),
             ('delete_submissions', _('Can delete submitted data for asset')),
             ('share_submissions', _("Can change sharing settings for "
-                                    "asset's submitted data"))
+                                    "asset's submitted data")),
+            # TEMPORARY Issue #1161: A flag to indicate that permissions came
+            # solely from `sync_kobocat_xforms` and not from any user
+            # interaction with KPI
+            ('from_kc_only', 'INTERNAL USE ONLY; DO NOT ASSIGN')
         )
 
     # Assignable permissions that are stored in the database
