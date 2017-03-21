@@ -58,6 +58,12 @@ var FormSidebar = React.createClass({
       })
     });
   },
+  newFormModal (evt) {
+    evt.preventDefault();
+    stores.pageState.showModal({
+      type: 'new-form'
+    });
+  },
   render () {
     return (
       <bem.FormSidebar__wrapper>
@@ -69,7 +75,7 @@ var FormSidebar = React.createClass({
             </button>
             <ul htmlFor="sidebar-menu" className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect">
               <bem.CollectionNav__link className="mdl-menu__item" m={['new', 'new-block']}
-                  href={this.makeHref('new-form')}>
+                  onClick={this.newFormModal}>
                 <i />
                 {t('new form')}
               </bem.CollectionNav__link>

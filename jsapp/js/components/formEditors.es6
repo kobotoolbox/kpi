@@ -28,7 +28,7 @@ import {
   assign,
 } from '../utils';
 
-var ProjectSettings = React.createClass({
+export var ProjectSettings = React.createClass({
   mixins: [
     Navigation,
     Reflux.ListenerMixin,
@@ -186,47 +186,6 @@ var ProjectSettings = React.createClass({
           </bem.FormModal__item>
         </bem.FormModal__item>
       </bem.FormModal__form>
-    );
-  },
-});
-
-export var NewForm = React.createClass({
-  mixins: [
-    Navigation,
-  ],
-  createAsset (settingsComponent) {
-    dataInterface.createResource({
-      name: settingsComponent.state.name,
-      settings: JSON.stringify({
-        description: settingsComponent.state.description,
-        sector: settingsComponent.state.sector,
-        country: settingsComponent.state.country,
-        'share-metadata': settingsComponent.state['share-metadata']
-      }),
-      asset_type: 'survey',
-    }).done((asset) => {
-      var isNewForm = false;
-      if (isNewForm) {
-        this.transitionTo('form-landing', {assetid: asset.uid})
-      } else {
-        this.transitionTo('form-edit', {assetid: asset.uid})
-      }
-    });
-  },
-  routeBack () {
-    this.transitionTo('forms');
-  },
-  render () {
-    return (
-      <ui.Modal open onClose={this.routeBack} title={t('Create New Project from Scratch')}>
-        <ui.Modal.Body>
-          <ProjectSettings
-            onSubmit={this.createAsset}
-            submitButtonValue={t('Create project')}
-            context='newForm'
-          />
-        </ui.Modal.Body>
-      </ui.Modal>
     );
   },
 });

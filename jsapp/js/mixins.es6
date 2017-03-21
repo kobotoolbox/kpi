@@ -402,9 +402,6 @@ mixins.clickAssets = {
       },
     },
     asset: {
-      new: function(/*uid, evt*/){
-        this.transitionTo('new-form');
-      },
       view: function(uid/*, evt*/){
         this.transitionTo(`${this.baseName}form-landing`, {assetid: uid});
       },

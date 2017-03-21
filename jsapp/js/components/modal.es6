@@ -1,6 +1,7 @@
 import React from 'react/addons';
 import Reflux from 'reflux';
 import {Navigation} from 'react-router';
+import {dataInterface} from '../dataInterface';
 import actions from '../actions';
 import bem from '../bem';
 import ui from '../ui';
@@ -13,9 +14,12 @@ import {
   assign,
 } from '../utils';
 
+import {ProjectSettings} from '../components/formEditors';
+
 var Modal = React.createClass({
   mixins: [
-    mixins.shareAsset
+    mixins.shareAsset,
+    Navigation
   ],
   getInitialState() {
     return {
@@ -32,7 +36,32 @@ var Modal = React.createClass({
           title: t('Sharing Permissions')
         });
         break;
+      case 'new-form':
+        this.setState({
+          title: t('Create New Project from Scratch')
+        });
+        break;
 		}  	
+  },
+  createNewForm (settingsComponent) {
+    dataInterface.createResource({
+      name: settingsComponent.state.name,
+      settings: JSON.stringify({
+        description: settingsComponent.state.description,
+        sector: settingsComponent.state.sector,
+        country: settingsComponent.state.country,
+        'share-metadata': settingsComponent.state['share-metadata']
+      }),
+      asset_type: 'survey',
+    }).done((asset) => {
+      var isNewForm = false;
+      if (isNewForm) {
+        this.transitionTo('form-landing', {assetid: asset.uid})
+      } else {
+        this.transitionTo('form-edit', {assetid: asset.uid})
+      }
+      stores.pageState.hideModal();
+    });
   },
   render() {
   	return (
@@ -41,6 +70,13 @@ var Modal = React.createClass({
 	        	{this.props.params.type == 'sharing' &&
 	          	this.sharingForm()
 	        	}
+            {this.props.params.type == 'new-form' &&
+              <ProjectSettings
+                onSubmit={this.createNewForm}
+                submitButtonValue={t('Create project')}
+                context='newForm'
+              />
+            }
 	        </ui.Modal.Body>
 	      </ui.Modal>
   		)

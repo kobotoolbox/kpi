@@ -32,7 +32,6 @@ import mixins from './mixins';
 import MainHeader from './components/header';
 import Drawer from './components/drawer';
 import {
-  NewForm,
   AddToLibrary,
   FormPage,
 } from './components/formEditors';
@@ -1130,8 +1129,6 @@ var routes = (
     </Route>
 
     <Route name="forms" handler={Forms}>
-      <Route name="new-form" path="new" handler={NewForm} />
-
       <Route name="form-landing" path="/forms/:assetid"> 
         <Route name="form-download" path="download" handler={FormDownload} />
         <Route name="form-json" path="json" handler={FormJson} />

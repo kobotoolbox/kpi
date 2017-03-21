@@ -5,7 +5,7 @@
   z-index: 20;
   top: 0px;
   left: 0px;
-  background-color: rgba(255, 255, 255, 0.4) !important;
+  background-color: rgba(0, 0, 0, 0.4) !important;
 }
 
 .modal-open {
@@ -17,30 +17,12 @@
   max-width: 90%;
   max-height: 95%;
   overflow-x: auto;
-  box-shadow: 2px 2px 15px 2px rgba(0,0,0,0.15);
+  box-shadow: 0 0 12px 0 rgba(0,0,0,0.06), 0 12px 12px 0 rgba(0,0,0,0.12);
 }
 
 .modal-content {
-  .modal--withicon & {
-    padding-left: 110px;
-    padding-bottom: 30px;
-  }
-
   background-color: #FFF;
   padding: 15px 20px;
-}
-
-.modal_icon {
-  width: 92px;
-  height: 57px;
-  position: absolute;
-  top: 45px;
-  left: 18px;
-
-  &--gears {
-    background-image: url("../img/maintenance_gears.png");
-    background-size: cover;
-  }
 }
 
 .modal-large {
@@ -85,12 +67,15 @@
 }
 
 .modal-header {
-  min-height: 30px;
+  min-height: 70px;
   margin: -15px -20px 0;
+  background: $cool-blue;
+  color: #FFF;
 }
 
 .modal-body {
-  padding: 10px;
+  padding: 15px;
+  padding-top: 30px;
 }
 
 .modal-footer {
@@ -99,22 +84,20 @@
   padding-right: 10px;
 }
 
-$modalXcolor: #d8d8d8;
-
 .modal-x {
   position: absolute;
   background-color: transparent;
   top: 0;
   right: 0;
-  padding: 25px;
+  padding: 20px;
   font-size: 20px;
-  color: $modalXcolor;
+  color: #FFF;
   cursor: pointer;
   i {
     font-size: 32px;
   }
   &:hover {
-    color: darken($modalXcolor, 20%);
+    opacity: 0.7;
   }
 }
 

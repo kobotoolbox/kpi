@@ -353,9 +353,9 @@ var MainHeader = React.createClass({
                 }
               </div>
             }
-            { this.state.showFormViewHeader && !this.state.headerFilters &&  
+            { this.state.showFormViewHeader && !this.state.headerFilters && this.state.asset &&
               <bem.FormTitle>
-                { this.state.asset && this.state.asset.has_deployment ?
+                { this.state.asset.has_deployment ?
                   <i className="k-icon-deployed" />
                 :
                   <i className="k-icon-drafts" />
