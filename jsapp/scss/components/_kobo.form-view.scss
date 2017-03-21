@@ -30,23 +30,29 @@
 }
 
 .form-view__toptabs {
+  position: relative;
   a.form-view__tab {
-      background: transparent;
-      border: none;
-      border-bottom: 2px solid transparent;
-      padding: 13px 30px;
-      text-transform: uppercase;
-      margin-right: 10px;
-      font-size: 15px;
-      cursor: pointer;
-      position: relative;
-      color: $cool-gray;
-      font-weight: normal;
-      display: inline-block;
-      &.active, &:hover {
-        color: $black;
-        border-bottom: 2px solid $cool-green;
-      }
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 13px 30px;
+    text-transform: uppercase;
+    margin-right: 10px;
+    font-size: 15px;
+    cursor: pointer;
+    position: relative;
+    color: $cool-gray;
+    font-weight: normal;
+    display: inline-block;
+    &.active, &:hover {
+      color: $black;
+      border-bottom: 2px solid $cool-green;
+    }
+  }
+  a.form-view__link--close {
+    position: absolute;
+    right: 0px;
+    top: 5px;
   }
 }
 
@@ -305,13 +311,3 @@
   background: #FFF;
   padding:40px;
 }
-
-
-// OLD UI ELEMENTS
-
-.form-view__link--close {
-  @extend .k-icon, .k-icon-close;
-  float: right;
-  margin-right: -10px;
-}
-

@@ -99,6 +99,12 @@ var FormViewTabs = React.createClass({
               {t('Settings')}
           </bem.FormView__tab>
         }
+
+        <bem.FormView__link m='close'
+          href={this.makeHref('forms')}>
+          <i className="k-icon-close" />
+        </bem.FormView__link>
+
       </bem.FormView__toptabs>
     );
   },
