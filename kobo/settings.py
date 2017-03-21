@@ -318,6 +318,15 @@ if 'KOBOCAT_URL' in os.environ:
     # Create/update KPI assets to match KC forms
     SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES = int(os.environ.get('SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES',
                                                             '30'))
+    # Create view permission in KPI when KC form is shared? Default is False.
+    # WARNING: this is a one-way operation! Users will retain their
+    # `view_asset` permission in KPI even if their KC access is revoked.
+    # This setting affects only the periodic task run by Celery. When using the
+    # management command, refer to `--grant-kpi-view-permission`
+    SYNC_KOBOCAT_XFORMS_GRANT_KPI_VIEW_PERMISSION = os.environ.get(
+        'SYNC_KOBOCAT_XFORMS_GRANT_KPI_VIEW_PERMISSION', 'False'
+    ).lower() == 'true'
+
     CELERYBEAT_SCHEDULE['sync-kobocat-xforms'] = {
         'task': 'kpi.tasks.sync_kobocat_xforms',
         'schedule': timedelta(minutes=SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES),
