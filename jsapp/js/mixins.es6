@@ -728,7 +728,8 @@ mixins.shareAsset = {
   },
   getInitialState () {
     return {
-      userInputStatus: false
+      userInputStatus: false,
+      permInput: 'view'
     };
   },
   addInitialUserPermission (evt) {
@@ -740,10 +741,15 @@ mixins.shareAsset = {
         uid: this.props.params.assetid,
         kind: this.state.asset.kind,
         objectUrl: this.props.objectUrl,
-        role: 'view'
+        role: this.state.permInput
       });
       this.usernameField().value = '';
     }
+  },
+  updatePermInput(permName) {
+    this.setState({
+      permInput: permName
+    });
   },
   sharingForm () {
     var inpStatus = this.state.userInputStatus;
@@ -766,8 +772,12 @@ mixins.shareAsset = {
         };
       }
     });
-    var btnKls = classNames('mdl-button','mdl-js-button','mdl-button--raised','mdl-button--colored', 
-                            inpStatus === 'success' ? 'mdl-button--colored' : 'hidden');
+    var btnKls = classNames('mdl-button','mdl-js-button', inpStatus === 'success' ? 'mdl-button--colored' : 'mdl-button--disabled');
+
+    var availablePermissions = [
+      {value: 'view', label: t('Can View')},
+      {value: 'change', label: t('Can Edit')}
+    ];
 
     var uid = this.state.asset.uid;
     var kind = this.state.asset.kind;
@@ -809,19 +819,27 @@ mixins.shareAsset = {
         </bem.FormModal__item>
 
         <bem.FormModal__form onSubmit={this.addInitialUserPermission} className="sharing-form__user">
-          <bem.FormModal__item m='perms-user'>
             <bem.FormView__cell m='label'>
               {t('Invite collaborators')}
             </bem.FormView__cell>
-            <input type="text"
-                id="permsUser" 
-                ref='usernameInput'
-                placeholder={t('Enter a username')}
-                onKeyUp={this.usernameCheck}
-            />
-            <button className={btnKls}>
-              <i className="fa fa-fw fa-lg fa-plus" />
-            </button>
+            <bem.FormModal__item m='perms-user'>
+              <input type="text"
+                  id="permsUser" 
+                  ref='usernameInput'
+                  placeholder={t('Enter a username')}
+                  onKeyUp={this.usernameCheck}
+              />
+              <Select
+                  id='permGiven'
+                  ref='permInput'
+                  value='view'
+                  clearable={false}
+                  options={availablePermissions}
+                  onChange={this.updatePermInput}
+              />
+              <button className={btnKls}>
+                  {t('invite')}
+              </button>
           </bem.FormModal__item>
         </bem.FormModal__form>
 

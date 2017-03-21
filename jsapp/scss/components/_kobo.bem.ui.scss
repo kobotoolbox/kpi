@@ -236,6 +236,21 @@ button.popover-menu__toggle {
   }
 }
 
+.popover-menu--new-menu {
+  width: 100%;
+  margin-bottom: 10px;
+  .popover-menu__content {
+    right: 0px;
+    width: 100%;
+  }
+}
+
+.popover-menu--new-menu button.popover-menu__toggle {
+  @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
+  text-align: center;
+  width: 100%;
+}
+
 // bordered button style
 .mdl-button.mdl-button--bordered {
   border:1px solid unquote("rgb(#{$color-primary})");

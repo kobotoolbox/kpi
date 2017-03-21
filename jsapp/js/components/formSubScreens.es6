@@ -173,21 +173,24 @@ var FormSubScreens = React.createClass({
               </bem.FormView__cell>
               <bem.FormView__cell m='box'>
                 {deployment__links_list.map((c)=>{
+                  console.log(c);
                   return (
-                      <bem.FormView__cell m={['collect-row']} key={`c-${c.value}`}>
+                      <bem.FormView__cell m={['collect-row']} key={`c-${c.key}`}>
                         {c.key != 'iframe_url' ? 
                           <a className="collect-link" target="_blank" href={c.value}>{c.label}</a>
                         :
-                          <a className="collect-link" target="_blank">{c.label}</a>
+                          <a className="collect-link">{c.label}</a>
                         }
                         
                         <div className="desc">{c.desc}</div>
                         {c.key == 'iframe_url' && 
                           <code>{c.value}</code>
                         }
-                        <CopyToClipboard text={c.value} onCopy={() => notify('copied to clipboard')}>
-                          <a className="copy mdl-button mdl-js-button mdl-button--colored">{t('Copy link')}</a>
-                        </CopyToClipboard>
+                        {c.key != 'iframe_url' && 
+                          <CopyToClipboard text={c.value} options={{debug: true}} onCopy={() => notify('copied to clipboard')}>
+                            <a className="copy mdl-button mdl-js-button mdl-button--colored">{t('Copy link')}</a>
+                          </CopyToClipboard>
+                        }
                       </bem.FormView__cell>
                     );
                 })}

@@ -67,27 +67,19 @@ var FormSidebar = React.createClass({
   render () {
     return (
       <bem.FormSidebar__wrapper>
-        <bem.CollectionNav>
-          <bem.CollectionNav__actions className="k-form-list-actions">
-            <button id="sidebar-menu"
-                    className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-              {t('new')}
-            </button>
-            <ul htmlFor="sidebar-menu" className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect">
-              <bem.CollectionNav__link className="mdl-menu__item" m={['new', 'new-block']}
-                  onClick={this.newFormModal}>
-                <i />
-                {t('new form')}
-              </bem.CollectionNav__link>
-              <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
-                <bem.CollectionNav__button m={['upload', 'upload-block']} className="mdl-menu__item">
-                  <i className='fa fa-icon fa-cloud fa-fw' />
-                  {t('upload')}
-                </bem.CollectionNav__button>
-              </Dropzone>
-            </ul>
-          </bem.CollectionNav__actions>
-        </bem.CollectionNav>
+        <ui.PopoverMenu type='new-menu' 
+            triggerLabel={t('new')}>
+            <bem.PopoverMenu__link onClick={this.newFormModal}>
+              <i className="k-icon-projects" />
+              {t('Project')}
+            </bem.PopoverMenu__link>
+            <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
+              <bem.PopoverMenu__link>
+                <i className="k-icon-upload" />
+                {t('upload')}
+              </bem.PopoverMenu__link>
+            </Dropzone>
+        </ui.PopoverMenu>
         <SidebarFormsList/>
       </bem.FormSidebar__wrapper>
     );
@@ -279,33 +271,23 @@ var LibrarySidebar = React.createClass({
 
     return (
       <bem.CollectionsWrapper>
-
-        <bem.CollectionNav>
-          <bem.CollectionNav__actions className="k-form-list-actions">
-            <button id="sidebar-menu"
-                    className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-              {t('new')}
-            </button>
-            <ul htmlFor="sidebar-menu" className="mdl-menu mdl-js-menu mdl-js-ripple-effect">
-              <bem.CollectionNav__link key={'new-asset'} m={['new', 'new-block']} className="mdl-menu__item"
-                  href={this.makeHref('library-new-form')}>
-                <i />
-                {t('add to library')}
-              </bem.CollectionNav__link>
-              <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
-                <bem.CollectionNav__button m={['upload', 'upload-block']} className="mdl-menu__item">
-                  <i className='fa fa-icon fa-cloud fa-fw' />
-                  {t('upload')}
-                </bem.CollectionNav__button>
-              </Dropzone>
-              <bem.CollectionNav__button key={'new-collection'} m={['new', 'new-collection']} className="mdl-menu__item"
-                  onClick={this.createCollection}>
-                <i />
-                {t('new collection')}
-              </bem.CollectionNav__button>
-            </ul>
-          </bem.CollectionNav__actions>
-        </bem.CollectionNav>
+        <ui.PopoverMenu type='new-menu' 
+            triggerLabel={t('new')}>
+            <bem.PopoverMenu__link href={this.makeHref('library-new-form')}>
+              <i className="k-icon-question" />
+              {t('Question')}
+            </bem.PopoverMenu__link>
+            <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
+              <bem.PopoverMenu__link>
+                <i className="k-icon-upload" />
+                {t('upload')}
+              </bem.PopoverMenu__link>
+            </Dropzone>
+            <bem.PopoverMenu__link onClick={this.createCollection}>
+              <i className="k-icon-folder" />
+              {t('collection')}
+          </bem.PopoverMenu__link>
+        </ui.PopoverMenu>
 
         { this.state.sidebarCollections &&
           <bem.FormSidebar>
