@@ -36,7 +36,6 @@ bem.FormBuilderHeader__button = bem.FormBuilderHeader.__('button', '<button>');
 bem.FormBuilderHeader__close = bem.FormBuilderHeader.__('close', '<button>');
 
 bem.FormMeta = bem('form-meta');
-bem.FormMeta__preview = bem.FormMeta.__('preview');
 bem.FormMeta__content = bem.FormMeta.__('content');
 bem.FormMeta__button = bem.FormMeta.__('button');
 

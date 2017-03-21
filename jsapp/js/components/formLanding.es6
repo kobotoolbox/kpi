@@ -42,6 +42,13 @@ var FormLanding = React.createClass({
       callback();
     }
   },
+  enketoPreviewModal (evt) {
+    evt.preventDefault();
+    stores.pageState.showModal({
+      type: 'enketo-preview',
+      assetid: this.state.uid
+    });
+  },
   renderFormInfo () {
     var dvcount = this.state.deployed_versions.length;
     return (
@@ -176,7 +183,7 @@ var FormLanding = React.createClass({
             </bem.FormView__link>
           }
           <bem.FormView__link m='preview'
-            href={this.makeHref('form-preview-enketo', {assetid: this.state.uid})}
+            onClick={this.enketoPreviewModal}
             data-tip={t('Preview')}>
             <i className="k-icon-view" />
           </bem.FormView__link>

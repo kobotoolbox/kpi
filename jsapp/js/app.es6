@@ -61,39 +61,6 @@ import {
   currentLang
 } from './utils';
 
-mixins.permissions = {
-  removePerm (permName, permObject, content_object_uid) {
-    actions.permissions.removePerm({
-      permission_url: permObject.url,
-      content_object_uid: content_object_uid
-    });
-  },
-  // PM: temporarily disabled
-  // removeCollectionPublicPerm (collection, publicPerm) {
-  //   return (evt) => {
-  //     evt.preventDefault();
-  //     if (collection.discoverable_when_public) {
-  //       actions.permissions.setCollectionDiscoverability(
-  //         collection.uid, false
-  //       );
-  //     }
-  //     actions.permissions.removePerm({
-  //       permission_url: publicPerm.url,
-  //       content_object_uid: collection.uid
-  //     });
-  //   };
-  // },
-  setPerm (permName, props) {
-    actions.permissions.assignPerm({
-      username: props.username,
-      uid: props.uid,
-      kind: props.kind,
-      objectUrl: props.objectUrl,
-      role: permName
-    });
-  }
-};
-
 
 class ItemDropdown extends React.Component {
   render () {
@@ -890,79 +857,6 @@ var FormXform = React.createClass({
   }
 });
 
-var FormEnketoPreview = React.createClass({
-  mixins: [
-    Navigation,
-    Reflux.ListenerMixin,
-  ],
-  componentDidMount () {
-    var uid = this.props.params.assetid;
-    stores.allAssets.whenLoaded(uid, function(asset){
-      actions.resources.createSnapshot({
-        asset: asset.url,
-      });
-    });
-    this.listenTo(stores.snapshots, this.snapshotCreation);
-
-  },
-  getInitialState () {
-    return {
-      enketopreviewlink: false,
-      error: false
-    };
-  },
-  snapshotCreation (data) {
-    if (data.success) {
-      // var uid = this.props.params.assetid;
-      this.setState({
-        enketopreviewlink: data.enketopreviewlink
-      });
-    } else {
-      this.setState({
-        message: data.error,
-        error: true
-      });
-    }
-  },
-  routeBack () {
-    var params = this.context.router.getCurrentParams();
-    var baseName = isLibrary(this.context.router) ? 'library-' : '';
-    this.transitionTo(`${baseName}form-landing`, {assetid: params.assetid});
-  },
-  render () {
-    if (this.state.error) {
-      return (
-        <ui.Modal open onClose={this.routeBack}
-              title={t('Error generating preview')}
-              error
-            >
-          <ui.Modal.Body>
-            {this.state.message}
-          </ui.Modal.Body>
-        </ui.Modal>
-        );
-    }
-    return (
-      <ui.Modal open onClose={this.routeBack} className='modal-large'>
-        <ui.Modal.Body>
-          { this.state.enketopreviewlink ?
-              <div className='enketo-holder'>
-                <iframe src={this.state.enketopreviewlink} />
-              </div>
-              :
-              <bem.Loading>
-                <bem.Loading__inner>
-                  <i />
-                  {t('loading...')}
-                </bem.Loading__inner>
-              </bem.Loading>
-          }
-        </ui.Modal.Body>
-      </ui.Modal>
-    );
-  }
-});
-
 var LibrarySearchableList = require('./lists/library');
 var FormsSearchableList = require('./lists/forms');
 var CollectionList = require('./lists/collection');
@@ -1112,7 +1006,6 @@ var formRouteChildren = (baseName) => {
     <Route name={`${baseName}form-download`} path="download" handler={FormDownload} />,
     <Route name={`${baseName}form-json`} path="json" handler={FormJson} />,
     <Route name={`${baseName}form-xform`} path="xform" handler={FormXform} />,
-    <Route name={`${baseName}form-preview-enketo`} path="preview" handler={FormEnketoPreview} />,
     <Route name={`${baseName}form-edit`} path="edit" handler={FormPage} />
   ];
 }
@@ -1134,7 +1027,6 @@ var routes = (
         <Route name="form-json" path="json" handler={FormJson} />
         <Route name="form-xform" path="xform" handler={FormXform} />
         <Route name="form-reports" path="reports" handler={Reports} />
-        <Route name="form-preview-enketo" path="preview" handler={FormEnketoPreview} />
         <Route name='form-edit' path="edit" handler={FormPage} />
         <Route name='form-data-report' path="data/report" handler={FormSubScreens} />
         <Route name='form-data-table' path="data/table" handler={FormSubScreens} />
