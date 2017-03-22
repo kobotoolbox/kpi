@@ -48,3 +48,4 @@ test = t("This question could not be imported. Please re-create it manually. Ple
 
 test = t("This question will only be displayed if the following conditions apply");
 test = t("You can add questions, notes, prompts, or other fields by clicking on the '+' sign below.");
+test = t("Value:");

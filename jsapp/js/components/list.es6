@@ -121,6 +121,7 @@ var ListTagFilter = React.createClass({
             name="tags"
             multi={true}
             placeholder={t('Search Tags')}
+            noResultsText={t('No results found')}
             options={this.state.availableTags}
             onChange={this.onTagChange}
             className={this.props.hidden ? 'hidden' : null}
