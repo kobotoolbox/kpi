@@ -170,7 +170,7 @@ var LibrarySidebar = React.createClass({
     //TODO: show the collections in the main pane?
   },
   createCollection () {
-    customPromptAsync('collection name?').then((val)=>{
+    customPromptAsync(t('Please enter the name of your new Collection. Collections can help you better organize your library, and it is possible to share each collection with different people.')).then((val)=>{
       dataInterface.createCollection({
         name: val,
       }).then((data)=>{
@@ -192,7 +192,7 @@ var LibrarySidebar = React.createClass({
     var collectionName = $(evt.currentTarget).data('collection-name');
 
     evt.preventDefault();
-    customPromptAsync('collection name?', collectionName).then((val)=>{
+    customPromptAsync(t('Please enter the name of your new Collection.'), collectionName).then((val)=>{
       actions.resources.updateCollection(collectionUid, {name: val}).then(
         (data) => {
           this.queryCollections();
