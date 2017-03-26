@@ -287,9 +287,13 @@ var AssetRow = React.createClass({
               </bem.AssetRow__actionIcon>
             }
             <bem.AssetRow__actionIcon
-                m='clone' key='clone'
-                data-action='clone' data-tip={t('Clone')}
-                data-asset-type={this.props.kind} data-disabled={false}
+                m='clone'
+                key='clone'
+                data-action='clone'
+                data-tip={t('Clone')}
+                data-asset-type={this.props.kind}
+                data-asset-name={this.props.name}
+                data-disabled={false}
                 >
               <i className='k-icon-clone' />
             </bem.AssetRow__actionIcon>

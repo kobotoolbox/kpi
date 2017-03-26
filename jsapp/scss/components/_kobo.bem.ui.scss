@@ -347,6 +347,15 @@ iframe {
   }
 }
 
+.ajs-content input[type="text"],
+.ajs-content textarea {
+  width:100%;
+  padding:6px 0px;
+  font-size:15px;
+  border:1px solid transparent;
+  border-bottom-color: lighten($black, 40%);
+}
+
 // UI MDL Popover
 
 .ui-mdl-popover {

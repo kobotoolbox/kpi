@@ -25,7 +25,6 @@ import {
   currentLang,
   customConfirm,
   customConfirmAsync,
-  customPromptAsync,
   log,
   t,
   assign,
@@ -90,8 +89,15 @@ var dmix = {
   saveCloneAs (evt) {
     let version_id = evt.currentTarget.dataset.versionId;
     var baseName = isLibrary(this.context.router) ? 'library-' : '';
-    customPromptAsync(t('new form name'))
-      .then((value) => {
+    let name = `${t('Clone of')} ${this.state.name}`;
+
+    let dialog = alertify.dialog('prompt');
+    let opts = {
+      title: t('Clone form'),
+      message: t('Enter the name of the cloned form'),
+      value: name,
+      labels: {ok: t('Ok'), cancel: t('Cancel')},
+      onok: (evt, value) => {
         let uid = this.props.params.assetid;
         actions.resources.cloneAsset({
           uid: uid,
@@ -99,12 +105,22 @@ var dmix = {
           version_id: version_id,
         }, {
           onComplete: (asset) => {
+            dialog.destroy();
             this.transitionTo(`${baseName}form-landing`, {
               assetid: asset.uid,
             });
           }
         });
-      });
+
+        // keep the dialog open
+        return false;
+      },
+      oncancel: () => {
+        dialog.destroy();
+      }
+    };
+    dialog.set(opts).show();
+
   },
   reDeployConfirm (asset, onComplete) {
     let dialog = alertify.dialog('confirm');
@@ -405,18 +421,34 @@ mixins.clickAssets = {
       view: function(uid/*, evt*/){
         this.transitionTo(`${this.baseName}form-landing`, {assetid: uid});
       },
-      clone: function(uid/*, evt*/){
-        customPromptAsync(t('new name?'))
-          .then((value) => {
+      clone: function(uid, evt){
+        let assetName = $(evt.target).closest('[data-action]').data('asset-name') || t('untitled');
+        let name = `${t('Clone of')} ${assetName}`;
+        let dialog = alertify.dialog('prompt');
+        let opts = {
+          title: t('Clone form'),
+          message: t('Enter the name of the cloned form'),
+          value: name,
+          labels: {ok: t('Ok'), cancel: t('Cancel')},
+          onok: (evt, value) => {
             actions.resources.cloneAsset({
               uid: uid,
               name: value,
             }, {
-              onComplete: (asset) => {
-                this.refreshSearch && this.refreshSearch();
-              }
+            onComplete: (asset) => {
+              dialog.destroy();
+              this.refreshSearch && this.refreshSearch();
+            }
             });
-          });
+            // keep the dialog open
+            return false;
+          },
+          oncancel: () => {
+            dialog.destroy();
+          }
+        };
+        dialog.set(opts).show();
+
       },
       download: function(uid/*, evt*/){
         this.transitionTo(`${this.baseName}form-download`, {assetid: uid});
