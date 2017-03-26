@@ -42,6 +42,17 @@ var FormLanding = React.createClass({
       callback();
     }
   },
+  getInitialState () {
+    return {
+      questionLanguageIndex: 0
+    };
+  },
+  componentWillReceiveProps() {
+    this.setState({
+        questionLanguageIndex: 0
+      }
+    );
+  },
   enketoPreviewModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
@@ -81,8 +92,25 @@ var FormLanding = React.createClass({
     return (
       <bem.FormView__cell m={['padding', 'bordertop', 'languages']}>
         {t('Languages')}
-        {this.state.summary.languages}
+        {this.state.summary.languages.map((l, i)=>{
+          return (
+              <bem.FormView__cell key={`lang-${i}`} m='langButton' 
+                className={this.state.questionLanguageIndex == i ? 'active' : ''}
+                onClick={this.updateQuestionListLanguage}
+                data-index={i}>
+                {l}
+              </bem.FormView__cell>
+            );
+        })}
+
       </bem.FormView__cell>
+    );
+  },
+  updateQuestionListLanguage (evt) {
+    let i = evt.currentTarget.dataset.index;
+    this.setState({
+        questionLanguageIndex: i
+      }
     );
   },
   renderQuestionsSummary () {
@@ -100,7 +128,7 @@ var FormLanding = React.createClass({
             return (
                 <div key={`survey-${i}`}>
                   <i className={`fa fa-fw ${faClass}`} />
-                  <span>{s.label[0]}</span>
+                  <span>{s.label[this.state.questionLanguageIndex]}</span>
                 </div>
               );
           })}

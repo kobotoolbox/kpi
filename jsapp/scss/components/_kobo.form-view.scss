@@ -131,9 +131,16 @@
     span:first-child {
       font-weight: bold;
     }
-    span {
-      margin-right:10px;
-    }
+  }
+  &--langButton {
+    margin-left:15px;
+    display: inline-block;
+    padding:6px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  &--langButton.active {
+    background:#E6E6E8;
   }
   &--questions {
     align-items: flex-start;
