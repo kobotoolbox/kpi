@@ -82,7 +82,6 @@ div.library {
   .asset-list {
     height: calc(100% - 75px);
     overflow-y: auto;
-    overflow-x: hidden;
     width: 100%;
     padding-bottom: 260px;
   }
@@ -105,7 +104,6 @@ div.library {
   height: 100%;
   overflow-y: auto;
   width: 100%;
-  overflow-x:hidden;
   .asset-list {
     min-height: 300px;
     padding-bottom: 50px;

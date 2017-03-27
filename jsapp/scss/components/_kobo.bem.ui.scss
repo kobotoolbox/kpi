@@ -14,10 +14,11 @@
   position: relative;
   margin-top: 20px;
   flex-grow:0;
-  overflow: hidden;
   margin-right: 16px;
+  overflow: hidden;
   &.page-wrapper__content--form-landing {
     @include box-shadow;
+    height: calc(100% - 102px);
   }
 }
 
@@ -275,7 +276,7 @@ iframe {
 
 // modal forms 
 .form-modal__item {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   &--sector, &--country {
     width:50%;
     float: left;
@@ -306,7 +307,6 @@ iframe {
 
   label:not(.inline) {
     display: block;
-    padding-bottom: 5px;
   }
 
   label.next-to-checkbox {
@@ -325,7 +325,16 @@ iframe {
     padding:6px 0px;
     font-size:15px;
     border:1px solid transparent;
-    border-bottom-color: lighten($black, 40%);
+    border-bottom-color: $divider-color;
+    &:focus {
+      border-bottom-color: $cool-gray;
+    }
+  }
+
+  textarea {
+    overflow: hidden;
+    resize: none;
+    height: auto;
   }
 
   input[type="checkbox"] {
@@ -335,10 +344,15 @@ iframe {
 
   .Select-control {
     border:1px solid transparent;
-    border-bottom-color: lighten($black, 40%);
+    border-bottom-color: $divider-color;
     border-radius: 0px;
     padding-top: 5px;
     padding-bottom: 5px;
+    padding-left: 0px;
+    .Select-placeholder {
+      padding-left: 0px;
+      color: $black;
+    }
   }
 
   &--actions {

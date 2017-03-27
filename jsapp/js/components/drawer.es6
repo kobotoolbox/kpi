@@ -40,7 +40,9 @@ var FormSidebar = React.createClass({
     this.searchDefault();
   },
   getInitialState () {
-    return assign({}, stores.pageState.state);
+    return assign({
+      currentAssetId: false
+    }, stores.pageState.state);
   },
   componentWillMount() {
     this.setStates();
@@ -65,6 +67,7 @@ var FormSidebar = React.createClass({
   render () {
     return (
       <bem.FormSidebar__wrapper>
+        {this.state.currentAssetId}
         <ui.PopoverMenu type='new-menu' 
             triggerLabel={t('new')}>
             <bem.PopoverMenu__link onClick={this.newFormModal}>

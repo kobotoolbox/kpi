@@ -9,15 +9,19 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
-    color: lighten($layout-text-color, 30%);
+    color: lighten($black, 40%);
     font-weight: normal;
     &:hover {
-      color: lighten($layout-text-color, 10%);
+      color: lighten($black, 10%);
     }
   }
 
+  &__itemlink--active {
+    color: lighten($black, 10%);
+  }
+
   &__label, &__grouping {
-    color: lighten($layout-text-color, 30%);
+    color: lighten($black, 40%);
     cursor: pointer;
 
     i {
@@ -59,9 +63,9 @@
       text-align: center;
     }
 
-    &--visible, &--selected {
-      color: lighten($layout-text-color, 10%);
-    } 
+    // &--visible, &--selected {
+    //   color: lighten($black, 10%);
+    // } 
   }
 
   &__grouping {
@@ -85,7 +89,7 @@
       }
     }
     &--selected {
-      color: lighten($layout-text-color, 10%);
+      color: lighten($black, 10%);
       .popover-menu {
         position: absolute;
         right: -5px;
@@ -102,7 +106,7 @@
         }
       }
       .form-sidebar__itemlink {
-        color: lighten($layout-text-color, 10%);
+        color: lighten($black, 10%);
         margin-right:32px;
         text-overflow: clip;
       }

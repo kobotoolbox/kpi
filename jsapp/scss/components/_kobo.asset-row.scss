@@ -2,7 +2,7 @@ $hover-asset-row: #F2F2F3;
 
 .asset-row {
   list-style-type: none;
-  border-top: 1px solid transparentize($cool-gray, 0.7);
+  border-top: 1px solid $divider-color;
   padding: 4px 12px;
   white-space: nowrap;
   transition: max-height 0.5s ease, opacity 0.5s ease;
@@ -25,7 +25,7 @@ $hover-asset-row: #F2F2F3;
     }
   }
   &:last-child {
-    border-bottom: 1px solid transparentize($cool-gray, 0.7);
+    border-top: 1px solid $divider-color;
   }
 
   &--deleting {

@@ -783,7 +783,7 @@ mixins.shareAsset = {
         };
       }
     });
-    var btnKls = classNames('mdl-button','mdl-js-button', inpStatus === 'success' ? 'mdl-button--colored' : 'mdl-button--disabled');
+    var btnKls = classNames('mdl-button','mdl-js-button', 'mdl-button--raised', inpStatus === 'success' ? 'mdl-button--colored' : 'mdl-button--disabled');
 
     var availablePermissions = [
       {value: 'view', label: t('Can View')},

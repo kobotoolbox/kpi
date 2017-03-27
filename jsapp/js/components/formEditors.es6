@@ -39,8 +39,10 @@ export var ProjectSettings = React.createClass({
     });
   },
   descriptionChange (evt) {
+    let descriptionHeight = $(evt.target).prop('scrollHeight');
     this.setState({
-      description: evt.target.value
+      description: evt.target.value,
+      textareaHeight: descriptionHeight
     });
   },
   countryChange (val) {
@@ -65,7 +67,8 @@ export var ProjectSettings = React.createClass({
       description: '',
       sector: '',
       country: '',
-      'share-metadata': false
+      textareaHeight: '',
+      'share-metadata': false,
     }
     if (this.props.initialData !== undefined) {
       assign(state, this.props.initialData);
@@ -77,6 +80,11 @@ export var ProjectSettings = React.createClass({
       this.setState({
         sessionLoaded: true,
       });
+    });
+
+    let descriptionHeight = $('textarea#description').prop('scrollHeight');
+    this.setState({
+      textareaHeight: descriptionHeight
     });
 
   },
@@ -137,7 +145,11 @@ export var ProjectSettings = React.createClass({
                 placeholder={t('Enter short description here')}
                 value={this.state.description}
                 onChange={this.descriptionChange}
+                rows="1"
+                style={{height: this.state.textareaHeight + 'px'}}
               />
+          </bem.FormModal__item>
+          <bem.FormModal__item>
             <label className="long">
               {t('Please specify the country and the sector where this project will be deployed. ')}
               {t('This information will be used to help you filter results on the project list page.')}

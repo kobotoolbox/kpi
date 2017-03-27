@@ -86,26 +86,16 @@
     padding:10px;
     @include box-shadow;
     border-bottom: 0px;
+    padding-left: 10px;
+    .Select-placeholder {
+      padding-left: 10px;
+    }
   }
+
 }
 
 .form-modal__item--perms-link {
   input[type="checkbox"] {
     margin-top: 8px;
-  }
-}
-
-.form-modal__item--sharing {
-  border:1px solid lighten($cool-gray, 20%);
-  margin:20px 0px;
-  padding:20px;
-  a.mdl-button {
-    float: right;
-  }
-  .shared-with:after {
-    content: ', ';
-  }
-  .shared-with:last-child:after {
-    content: '';
   }
 }

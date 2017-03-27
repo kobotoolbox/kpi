@@ -2,11 +2,11 @@
   background: white;
   text-align: center;
   height:48px;
-  border-bottom:1px solid #E7E7E8;
+  border-bottom:1px solid $divider-color;
 }
 
 .form-view__sidetabs {
-  border-right:1px solid #E7E7E8;
+  border-right:1px solid $divider-color;
   width: 180px;
   height:100%;
   overflow: hidden;
@@ -44,9 +44,12 @@
     color: $cool-gray;
     font-weight: normal;
     display: inline-block;
-    &.active, &:hover {
+    &.active {
       color: $black;
       border-bottom: 2px solid $cool-green;
+    }
+    &:hover {
+      color: $black;
     }
   }
   a.form-view__link--close {
@@ -69,9 +72,12 @@
       color: $cool-gray;
       font-weight: normal;
       display: block;
-      &.active, &:hover {
+      &.active {
           color: $cool-green;
           border-left:2px solid $cool-green;
+      }
+      &:hover {
+        color: $cool-green;        
       }
       i {
         font-size: 36px;
@@ -86,7 +92,7 @@
 
 .form-view__row {
   margin: 40px;
-  margin-right: 44px;
+  margin-right:44px;
   + .form-view__row {
     margin-top: 0px;
   }
@@ -112,7 +118,15 @@
     font-size: 14px;
     color: $black;
     font-weight: 500;
-    padding-bottom:8px;
+    padding-bottom:20px;
+  }
+  &--first {
+    position: relative;
+    .form-view__group {
+      position: absolute;
+      right: 0px;
+      top: -12px;
+    }
   }
   &--buttons {
     a.mdl-button {
@@ -145,7 +159,7 @@
   &--questions {
     align-items: flex-start;
     .question-count {
-      font-size:28px;
+      font-size:36px;
       padding-top: 15px;
     }
   }
@@ -157,7 +171,7 @@
     flex-grow:2;
     > div {
       margin-bottom:15px;
-      font-size: 16px;
+      font-size: 14px;
     }
     > div > i {
       margin-right:25px;
@@ -288,18 +302,26 @@
 
   &--items {
     padding:0px;
+    border-top:1px solid $divider-color;
     > .form-view__label {
       text-align: right;
       display: inline-block;
-      width:25%;
+      width:30%;
       padding:10px;
+      vertical-align: middle;
       &--version {
-        width:36%;
+        width:39%;
         text-align: left;
       }
     }
-    + .form-view__group--items {
-      border-top:1px solid #DDD;      
+    .form-view__link {
+      opacity: 0.4;
+    }
+    &:hover {
+      background: $hover-asset-row;
+      .form-view__link {
+        opacity: 1;
+      }
     }
   }
 
@@ -309,6 +331,10 @@
 
   &.historyExpanded .toggled {
     display: block;
+  }
+
+  &--headings {
+    font-weight: 600;
   }
 }
 

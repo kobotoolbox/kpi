@@ -44,6 +44,11 @@ var SidebarFormsList = React.createClass({
   },
   componentWillReceiveProps () {
     this.listenTo(this.searchStore, this.searchChanged);
+
+    var currentParams = this.context.router.getCurrentParams();
+    this.setState({
+      currentAssetId: currentParams.assetid || false
+    });
   },
   searchChanged (searchStoreState) {
     this.setState(searchStoreState);
@@ -52,7 +57,9 @@ var SidebarFormsList = React.createClass({
     var baseName = isLibrary(this.context.router) ? 'library-' : '';
     return (
         <bem.FormSidebar__item key={resource.uid}>
-          <bem.FormSidebar__itemlink href={this.makeHref(`${baseName}form-landing`, {assetid: resource.uid})}>
+          <bem.FormSidebar__itemlink 
+              href={this.makeHref(`${baseName}form-landing`, {assetid: resource.uid})}
+              m={this.state.currentAssetId == resource.uid ? 'active' : ''}>
             <i />
             <ui.SidebarAssetName {...resource} />
           </bem.FormSidebar__itemlink>

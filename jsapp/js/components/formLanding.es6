@@ -147,7 +147,7 @@ var FormLanding = React.createClass({
         </bem.FormView__cell>
         <bem.FormView__cell m='box'>
           <bem.FormView__group m="deployments" className={this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'}>
-            <bem.FormView__group m="items">
+            <bem.FormView__group m={['items', 'headings']}>
               <bem.FormView__label m='version'>{t('Version')}</bem.FormView__label>
               <bem.FormView__label m='date'>{t('Last modified')}</bem.FormView__label>
               {/*<bem.FormView__label m='lang'>{t('Languages')}</bem.FormView__label>*/}
@@ -274,7 +274,7 @@ var FormLanding = React.createClass({
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m='form'>
           <bem.FormView__row>
-            <bem.FormView__cell m='columns'>
+            <bem.FormView__cell m={['columns', 'first']}>
               <bem.FormView__cell m='label'>
                 {this.state.deployment__active ? t('Current version') :
                   this.state.has_deployment ? t('Archived version') :

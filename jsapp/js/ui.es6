@@ -236,8 +236,6 @@ ui.PopoverMenu = React.createClass({
     if (this.props.type == 'assetrow-menu' && !this.state.popoverVisible) {
       var $assetRowOffset = $(evt.target).parents('.asset-row').offset().top;
       var $assetListHeight = $(evt.target).parents('.page-wrapper__content').height();
-      console.log($(window).height());
-      console.log($assetListHeight);
       if ($assetListHeight - $assetRowOffset < 250) {
         this.setState({
           placement: 'above',
