@@ -23,6 +23,7 @@ import {
   getAnonymousUserPermission,
   anonUsername,
   isLibrary,
+  supportUrl,
 } from '../utils';
 
 import SidebarFormsList from '../lists/sidebarForms';
@@ -106,10 +107,12 @@ var Drawer = React.createClass({
                   <i className="k-icon k-icon-github" />
                   {t('source')}
                 </a>
-                <a href='http://support.kobotoolbox.org/' className='k-drawer__link' target="_blank">
-                  <i className="k-icon k-icon-help" />
-                  {t('help')}
-                </a>
+                { stores.session.currentAccount ?
+                  <a href={supportUrl()} className='k-drawer__link' target="_blank">
+                    <i className="k-icon k-icon-help" />
+                    {t('help')}
+                  </a>
+                : null}
               </div>
             </div>
           </bem.Drawer>
