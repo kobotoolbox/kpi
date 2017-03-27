@@ -17,8 +17,6 @@ import mixins from '../mixins';
 
 import {
   t,
-  customPromptAsync,
-  customConfirmAsync,
   assign,
   getAnonymousUserPermission,
   anonUsername,
@@ -170,35 +168,78 @@ var LibrarySidebar = React.createClass({
     //TODO: show the collections in the main pane?
   },
   createCollection () {
-    customPromptAsync(t('Please enter the name of your new Collection. Collections can help you better organize your library, and it is possible to share each collection with different people.')).then((val)=>{
-      dataInterface.createCollection({
-        name: val,
-      }).then((data)=>{
-        this.queryCollections();
-        this.searchValue.refresh();
-      });
-    });
+    let dialog = alertify.dialog('prompt');
+    let opts = {
+      title: t('Create collection'),
+      message: t('Please enter the name of your new Collection. Collections can help you better organize your library, and it is possible to share each collection with different people.'),
+      labels: {ok: t('Create collection'), cancel: t('Cancel')},
+      onok: (evt, val) => {
+        dataInterface.createCollection({
+          name: val,
+        }).then((data)=>{
+          this.queryCollections();
+          this.searchValue.refresh();
+          dialog.destroy();
+        });
+        // keep the dialog open
+        return false;
+      },
+      oncancel: () => {
+        dialog.destroy();
+      }
+    };
+    dialog.set(opts).show();
+
   },
   deleteCollection (evt) {
     evt.preventDefault();
     var collectionUid = $(evt.currentTarget).data('collection-uid');
-    customConfirmAsync('are you sure you want to delete this collection? this action is not reversible').then(()=>{
-      var qc = () => this.queryCollections();
-      dataInterface.deleteCollection({uid: collectionUid}).then(qc).catch(qc);
-    });
+    let dialog = alertify.dialog('confirm');
+    let opts = {
+      title: t('Delete collection'),
+      message: t('are you sure you want to delete this collection? this action is not reversible'),
+      labels: {ok: t('Delete'), cancel: t('Cancel')},
+      onok: (evt, val) => {
+        dataInterface.deleteCollection({uid: collectionUid}).then((data)=> {
+          this.queryCollections();
+          dialog.destroy();
+        }).fail((jqxhr)=> {
+          alertify.error(t('Failed to delete collection.'));
+        });
+      },
+      oncancel: () => {
+        dialog.destroy();
+      }
+    };
+    dialog.set(opts).show();
+
   },
   renameCollection (evt) {
     var collectionUid = $(evt.currentTarget).data('collection-uid');
     var collectionName = $(evt.currentTarget).data('collection-name');
 
-    evt.preventDefault();
-    customPromptAsync(t('Please enter the name of your new Collection.'), collectionName).then((val)=>{
-      actions.resources.updateCollection(collectionUid, {name: val}).then(
-        (data) => {
-          this.queryCollections();
-        }
-      );
-    });
+    let dialog = alertify.dialog('prompt');
+    let opts = {
+      title: t('Rename collection'),
+      message: t('Please enter the name of your new collection.'),
+      value: collectionName,
+      labels: {ok: t('Ok'), cancel: t('Cancel')},
+      onok: (evt, val) => {
+        actions.resources.updateCollection(collectionUid, {name: val}).then(
+          (data) => {
+            this.queryCollections();
+            dialog.destroy();
+          }
+        );
+        // keep the dialog open
+        return false;
+      },
+      oncancel: () => {
+        dialog.destroy();
+      }
+    };
+    dialog.set(opts).show();
+
   },
   subscribeCollection (evt) {
     evt.preventDefault();

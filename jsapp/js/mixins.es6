@@ -23,8 +23,6 @@ import {
   anonUsername,
   formatTime,
   currentLang,
-  customConfirm,
-  customConfirmAsync,
   log,
   t,
   assign,
@@ -398,25 +396,6 @@ mixins.clickAssets = {
     }
   },
   click: {
-    collection: {
-      sharing: function(uid/*, evt*/){
-        stores.pageState.showModal({
-          type: 'sharing', 
-          assetid: uid
-        });
-
-      },
-      view: function(uid/*, evt*/){
-        this.transitionTo('collection-page', {uid: uid});
-      },
-      delete: function(uid/*, evt*/){
-        var q_ = t('Warning! You are about to delete this collection with all its questions and blocks. Are you sure you want to continue?');
-        customConfirmAsync(q_)
-          .done(function(){
-            actions.resources.deleteCollection({uid: uid});
-          });
-      },
-    },
     asset: {
       view: function(uid/*, evt*/){
         this.transitionTo(`${this.baseName}form-landing`, {assetid: uid});
