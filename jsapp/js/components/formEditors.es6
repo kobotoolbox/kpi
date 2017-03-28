@@ -358,14 +358,14 @@ export var ProjectDownloads = React.createClass({
                 <label htmlFor="type">{t('Select export type')}</label>
                 <select name="type" value={this.state.type}
                     onChange={this.typeChange}>
-                  <option value="xls">XLS</option>
-                  <option value="xls_legacy">XLS (legacy)</option>
-                  <option value="csv">CSV</option>
-                  <option value="csv_legacy">CSV (legacy)</option>
-                  <option value="zip_legacy">Media Attachments (ZIP)</option>
-                  <option value="kml_legacy">GPS coordinates (KML)</option>
-                  <option value="analyser_legacy">Excel Analyser</option>
-                  <option value="spss_labels">SPSS Labels</option>
+                  <option value="xls">{t('XLS')}</option>
+                  <option value="xls_legacy">{t('XLS (legacy)')}</option>
+                  <option value="csv">{t('CSV')}</option>
+                  <option value="csv_legacy">{t('CSV (legacy)')}</option>
+                  <option value="zip_legacy">{t('Media Attachments (ZIP)')}</option>
+                  <option value="kml_legacy">{t('GPS coordinates (KML)')}</option>
+                  <option value="analyser_legacy">{t('Excel Analyser')}</option>
+                  <option value="spss_labels">{t('SPSS Labels')}</option>
                 </select>
               </bem.FormModal__item>
             , this.state.type == 'xls' || this.state.type == 'csv' ? [
@@ -373,8 +373,8 @@ export var ProjectDownloads = React.createClass({
                   <label htmlFor="lang">{t('Value and header format')}</label>
                   <select name="lang" value={this.state.lang}
                       onChange={this.langChange}>
-                    <option value="xml">XML values and headers</option>
-                    <option value="_default">Labels</option>
+                    <option value="xml">{t('XML values and headers')}</option>
+                    <option value="_default">{t('Labels')}</option>
                     {
                       translations && translations.map((t) => {
                         if (t) {

@@ -101,7 +101,7 @@ module.exports = do ->
       @field """<input type="text" name="#{key}" id="#{cid}" class="#{input_class}" />""", cid, key_label
 
     checkbox: (cid, key, key_label = key, input_label = 'Yes') ->
-      input_label = _t(input_label)
+      input_label = _t('Yes')
       @field """<input type="checkbox" name="#{key}" id="#{cid}"/> <label for="#{cid}">#{input_label}</label>""", cid, key_label
 
     dropdown: (cid, key, values, key_label = key) ->

@@ -87,7 +87,7 @@ module.exports = do ->
       super
       @$handCode = $("""
         <div class="card__settings__fields__field">
-          <label for="#{@context.helper_factory.current_question.cid}-handcode">Validation Code:</label>
+          <label for="#{@context.helper_factory.current_question.cid}-handcode">#{_t("Validation Code:")}</label>
           <span class="settings__input">
             <input type="text" name="constraint" id="#{@context.helper_factory.current_question.cid}-handcode" class="text" value="#{@criteria}">
           </span>
