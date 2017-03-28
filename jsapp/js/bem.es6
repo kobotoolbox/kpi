@@ -196,8 +196,6 @@ bem.UserRow__name = bem.UserRow.__('name');
 bem.UserRow__email = bem.UserRow.__('email');
 bem.UserRow__role = bem.UserRow.__('role');
 
-bem.ToggleSwitch = BEM('toggle-switch', '<label>');
-
 bem.uiPanel = BEM('ui-panel');
 bem.uiPanel__body = bem.uiPanel.__('body');
 

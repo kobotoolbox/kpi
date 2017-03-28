@@ -126,6 +126,8 @@
       position: absolute;
       right: 0px;
       top: -12px;
+      min-width: 200px;
+      text-align: right;
     }
   }
   &--buttons {
@@ -213,9 +215,12 @@
       font-size: 32px;
       margin-right: 10px;
       vertical-align: middle;
+      display: inline-block;
     }
     span {
       vertical-align: middle;
+      display: inline-block;
+      width: calc(100% - 48px);
     }
   }
   &--collect-row {
@@ -344,3 +349,51 @@
   background: #FFF;
   padding:40px;
 }
+
+@media screen and (max-width: 767px) {
+  .form-view__sidetabs {
+    width:50px;
+    padding-top: 0px;
+    a.form-view__tab {
+      padding: 6px;
+      span {
+        display: none;
+      }
+    }
+  }
+  .form-view__toptabs {
+    height:39px;
+    a.form-view__tab {
+      font-size: 13px;
+      padding: 8px 14px;
+    }
+    a.form-view__link {
+      font-size: 28px;
+    }
+  }
+  .form-view__sidetabs + .form-view, .form-view__sidetabs + .report-view {
+    width: calc(100% - 50px);
+    overflow-x: hidden;
+  }
+
+  .form-view {
+    height: calc(100% - 39px);
+    overflow-x: hidden;
+    a.form-view__link {
+      font-size: 32px;
+      padding: 0px 3px;
+    }
+  }
+  .form-view__row {
+    margin:16px;
+  }
+  .form-view__cell--question-list {
+    margin-left: 20px;
+  }
+  .form-view--form-settings,
+  .form-view--settings-sharing, 
+  .form-view--form-data-downloads {
+    padding: 20px;
+  }
+}
+

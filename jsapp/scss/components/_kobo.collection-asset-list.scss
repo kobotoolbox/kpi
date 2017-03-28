@@ -2,6 +2,7 @@
   padding: 0px 12px;
   white-space: nowrap;
   border-bottom: 1px solid transparentize($cool-gray, 0.7);
+  overflow: hidden;
   > .asset-list-sorts__item {
     opacity: 0.8;
     font-weight: 500;
@@ -10,15 +11,9 @@
     padding-top: 19px;
     margin-top: 0px;
     margin-bottom: 0px;
-    // &:after {
-    //   content: '';
-    //   height: 100%;
-    //   width: 1px;
-    //   background-color: transparentize($cool-gray, 0.7);
-    //   right: -4px;
-    //   top: 0px;
-    //   position: absolute;
-    // }
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     &.asset-list-sorts__item--questions, 
     &.asset-list-sorts__item--submissions {
       letter-spacing: -0.02em;
@@ -78,7 +73,7 @@ div.library {
   margin: 0px !important;
   position: relative;
   height: calc(100% - 58px);
-  width:100%;
+  width:calc(100% - 6px);
   .asset-list {
     height: calc(100% - 75px);
     overflow-y: auto;
@@ -103,7 +98,8 @@ div.library {
 .list--grouped {
   height: 100%;
   overflow-y: auto;
-  width: 100%;
+  padding-left: 3px;
+  padding-right: 12px;
   .asset-list {
     min-height: 300px;
     padding-bottom: 50px;
@@ -115,6 +111,7 @@ div.library {
     @include box-shadow;
     background: #FFF;
     position: relative;
+    overflow: visible;
     &--visible {
     }
     &--collapsed {
@@ -131,9 +128,6 @@ div.library {
 
 .asset-list--fixed-headings {
   padding-top: 50px;
-  // .asset-list-sorts {
-  //   display: none;
-  // }
   > .asset-items--1 {
     .asset-list-sorts {
       display: flex;
@@ -152,5 +146,14 @@ div.library {
     > .asset-items--1 .asset-list-sorts {
       width:calc(100% - 22px);
     }
+  }
+
+  .list--grouped, .list--regular {
+    padding-left: 0px;
+    padding-right: 0px;
+    width: 100%;
+  }
+  .list__heading, .list__subheading {
+    padding-left: 12px;
   }
 }

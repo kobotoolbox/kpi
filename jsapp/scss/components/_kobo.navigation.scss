@@ -318,20 +318,28 @@ $headerAccountTextColor: #dbedf7;
 @media screen and (max-width: 768px) {
     .k-burger {
         display: block;
-        margin-right: 10px;
+        margin-right: 6px;
+        padding: 0px;
     }
     .mdl-layout__header {
         .account-box__logo {
-            max-width: 90%;
+            max-width: 85%;
         }
         .mdl-layout-title {
-            width: 180px;
-        }
-        .tag-select {
-            display: none;
+            width: 160px;
         }
         .search {
-            width: 90%;
+            width: 80%;
+            position: absolute;
+            display: none;
+        }
+        .mdl-layout__header-row {
+            padding:0px 12px;
+        }
+        .form-title {
+            width: calc(100% - 240px);
+            overflow: hidden;
+            margin-right: 10px;
         }
     }
 }
@@ -423,9 +431,10 @@ $headerAccountTextColor: #dbedf7;
 }
 
 @media screen and (max-width: 767px) {
-    .form-view__title {
+    .form-view__title, .form-title__submissions {
         display: none;
     }
+    
 }
 
 // Initials avatar, used in header, sharing modal and account settings

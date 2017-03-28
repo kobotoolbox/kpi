@@ -128,16 +128,16 @@ var SearchCollectionList = React.createClass({
       ),
       (
         <bem.AssetListSorts className="mdl-grid">
-          <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--6-col mdl-cell--3-col-tablet">
+          <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--6-col mdl-cell--3-col-tablet mdl-cell--2-col-phone">
             {t('Name')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'owner'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet">
+          <bem.AssetListSorts__item m={'owner'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--hide-phone">
             {t('Owner')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'modified'} className="mdl-cell mdl-cell--3-col mdl-cell--2-col-tablet">
+          <bem.AssetListSorts__item m={'modified'} className="mdl-cell mdl-cell--3-col mdl-cell--2-col-tablet mdl-cell--1-col-phone">
             {t('Last Modified')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'questions'} className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet">
+          <bem.AssetListSorts__item m={'questions'} className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--1-col-phone">
             {t('Questions')}
           </bem.AssetListSorts__item>
         </bem.AssetListSorts>
@@ -146,19 +146,19 @@ var SearchCollectionList = React.createClass({
   renderGroupedHeadings () {
     return (
         <bem.AssetListSorts className="mdl-grid" style={{width: this.state.fixedHeadingsWidth}}>
-          <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--5-col mdl-cell--3-col-tablet">
+          <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--5-col mdl-cell--3-col-tablet mdl-cell--2-col-phone">
             {t('Name')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'owner'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet">
+          <bem.AssetListSorts__item m={'owner'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--hide-phone">
             {t('Shared by')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'created'} className="mdl-cell mdl-cell--2-col mdl-cell--hide-tablet">
+          <bem.AssetListSorts__item m={'created'} className="mdl-cell mdl-cell--2-col mdl-cell--hide-tablet mdl-cell--hide-phone">
             {t('Created')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'modified'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet">
+          <bem.AssetListSorts__item m={'modified'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone">
             {t('Last Modified')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'submissions'} className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet">
+          <bem.AssetListSorts__item m={'submissions'} className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--1-col-phone">
             {t('Submissions')}
           </bem.AssetListSorts__item>
         </bem.AssetListSorts>
