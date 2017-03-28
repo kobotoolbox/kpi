@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from celery import shared_task
 from django.core.management import call_command
+from django.conf import settings
 from .models import ImportTask
 
 @shared_task
@@ -14,4 +15,10 @@ def import_in_background(import_task_uid):
 
 @shared_task
 def sync_kobocat_xforms(username=None, quiet=True):
-    call_command('sync_kobocat_xforms', username=username, quiet=quiet)
+    call_command(
+        'sync_kobocat_xforms',
+        username=username,
+        quiet=quiet,
+        grant_kpi_view=getattr(
+            settings, 'SYNC_KOBOCAT_XFORMS_GRANT_KPI_VIEW_PERMISSION', False)
+    )
