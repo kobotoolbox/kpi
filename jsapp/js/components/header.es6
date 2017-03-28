@@ -149,38 +149,21 @@ var MainHeader = React.createClass({
   },
   renderLangItem(lang) {
     return (
-      <li key={lang.value}>
-        <a data-key={lang.value} onClick={this.languageChange}
-          className="mdl-menu__item">{lang.label}</a>
-      </li>
+      <bem.AccountBox__menuLI key={lang.value}>
+        <bem.AccountBox__menuLink onClick={this.languageChange} data-key={lang.value}>
+          {lang.label}
+        </bem.AccountBox__menuLink>
+      </bem.AccountBox__menuLI>
     );
-  },
-  toggleAccountMenuPopover (evt) {
-    var isBlur = evt.type === 'blur',
-        $popoverMenu;
-    if (this.state.accountMenuPopoverShowing || isBlur) {
-      if (this.refs['accountMenu-popover'] != undefined) {
-        $popoverMenu = $(this.refs['accountMenu-popover'].getDOMNode());
-        // if we setState and immediately hide popover then the
-        // links will not register as clicked
-        $popoverMenu.fadeOut(250, () => {
-          this.setState({
-            accountMenuPopoverShowing: false,
-          });
-        });
-      }
-    } else {
-      this.setState({
-        accountMenuPopoverShowing: true,
-      });
-    }
   },
 
   renderAccountNavMenu () {
     var langs = [];
 
     if (stores.session.currentAccount) {
+      console.log(stores.session.currentAccount);
       var accountName = stores.session.currentAccount.username;
+      var accountEmail = stores.session.currentAccount.email;
       langs = stores.session.currentAccount.languages;
 
       var initialsStyle = {background: `#${stringToColor(accountName)}`};
@@ -188,21 +171,54 @@ var MainHeader = React.createClass({
 
       return (
         <bem.AccountBox>
-          <bem.AccountBox__notifications className="is-edge">
+          {/*<bem.AccountBox__notifications className="is-edge">
             <i className="fa fa-bell"></i> 
-            <bem.AccountBox__notifications__count>
-              2 
-            </bem.AccountBox__notifications__count>
-          </bem.AccountBox__notifications>
+            <bem.AccountBox__notifications__count> 2 </bem.AccountBox__notifications__count>
+          </bem.AccountBox__notifications>*/}
           <ui.PopoverMenu type='account-menu' 
                           triggerLabel={accountMenuLabel} 
                           buttonType='text'>
-              <ul className="k-account__menu">
-                <li className="k-account__submenu" key="settings">
-                  <a onClick={this.accountSettings} className="mdl-menu__item">
-                    <i className="k-icon-settings" />
+              <bem.AccountBox__menu>
+                <bem.AccountBox__menuLI>
+                  <bem.AccountBox__menuItem m={'avatar'}>
+                    {accountMenuLabel} 
+                  </bem.AccountBox__menuItem>
+                  <bem.AccountBox__menuItem m={'mini-profile'}>
+                    <span className="account-username">{accountName}</span>
+                    {accountEmail} 
+                  </bem.AccountBox__menuItem>
+                  <bem.AccountBox__menuItem m={'settings'}>
+                    <button onClick={this.accountSettings} className="mdl-button mdl-button--raised mdl-button--colored">
+                      {t('Account Settings')}
+                    </button>
+                  </bem.AccountBox__menuItem>
+                </bem.AccountBox__menuLI>
+                <bem.AccountBox__menuLI m={'lang'}>
+                  <bem.AccountBox__menuLink>
+                    <i className="k-icon-language" /> 
+                    {t('Language')}
+                  </bem.AccountBox__menuLink>
+                  <ul>
+                    {langs.map(this.renderLangItem)}
+                  </ul>
+                </bem.AccountBox__menuLI>
+                <bem.AccountBox__menuLI m={'logout'}>
+                  <bem.AccountBox__menuLink onClick={this.logout}>
+                    <i className="k-icon-logout" /> 
+                    {t('Logout')}
+                  </bem.AccountBox__menuLink>
+                </bem.AccountBox__menuLI>
+              </bem.AccountBox__menu>
+              {/*<ul className="k-account__menu">
+                <li className="k-account__miniprofile" key="settings">
+                  {accountMenuLabel} 
+                  <div className="k-account__details">
+                    {accountName} 
+                    {accountEmail} 
+                  </div>
+                  <button onClick={this.accountSettings} className="mdl-button mdl-button--raised mdl-button--colored">
                     {t('Account Settings')}
-                  </a>
+                  </button>
                 </li>
                 {leaveBetaUrl ?
                   <li>
@@ -226,7 +242,7 @@ var MainHeader = React.createClass({
                     <i className="k-icon-logout" /> 
                     {t('Logout')}</a>
                   </li>
-              </ul>
+              </ul>*/}
           </ui.PopoverMenu>
         </bem.AccountBox>
         );
@@ -322,7 +338,7 @@ var MainHeader = React.createClass({
             </button>
             <span className='mdl-layout-title'>
               <a href='/'>
-                <bem.AccountBox__logo />
+                <bem.Header__logo />
               </a>
             </span>
             {downtimeMessage ?

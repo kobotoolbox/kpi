@@ -28,6 +28,13 @@ $headerAccountTextColor: #dbedf7;
     .mdl-layout-title {
         width: 244px;
     }
+    .header__logo {
+        width: 175px;
+        height: 40px;
+        background: url("../img/kobologo.svg") no-repeat left bottom;
+        background-size: contain;
+        display: block;
+    }
     .account-box {
         margin-left: auto;
         position: relative;
@@ -66,210 +73,7 @@ $headerAccountTextColor: #dbedf7;
         border: none;
         max-width: 100%;
     }
-    .k-account__menu {
-        background-color: darken($layout-header-bg-color, 5%);
-        margin: 0px;
-        padding: 8px 0px;
-        &:before {
-            width: 0;
-            height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-bottom: 15px solid darken($layout-header-bg-color, 5%);
-            position: absolute;
-            top: -8px;
-            content: '';
-            right: 14px;
-        }
-    }
-    // .account-box__image {
-    //     width: 24px;
-    //     display: inline-block;
-    //     margin-right: 12px;
-    //     img {
-    //         width: 24px;
-    //         height: 24px;
-    //         border-radius: 12px;
-    //     }
-    // }
-    .account-box__logo {
-        width: 175px;
-        height: 40px;
-        background: url("../img/kobologo.svg") no-repeat left bottom;
-        background-size: contain;
-        display: block;
-    }
-    .mdl-menu__item {
-        color: $layout-nav-color;
-        opacity: 1;
-        padding-left: 12px;
-        padding-right: 54px;
-        height: 36px;
-        line-height: 36px;
-        vertical-align: middle;
-        font-size: 16px;
-        text-transform: capitalize;
-        i {
-            font-size: 32px;
-            width: 32px;
-            margin-right: 6px;
-            display: inline-block;
-        }
-        &:hover {
-            background-color: $nav-menu-item-bg-active;
-        }
-        span, i {
-            vertical-align: middle;
-        }
-    }
-    .k-lang__submenu, .k-account__submenu {
-        position: relative;
-        ul {
-            position: absolute;
-            right: 100%;
-            top: 0px;
-            background-color: darken($layout-header-bg-color, 5%);
-            transition: all 0.5s;
-            max-height: 0px;
-            opacity: 0;
-            overflow: hidden;
-        }
-        &:hover > ul {
-            transition: all 0.5s;
-            max-height: 1000px;
-            opacity: 1;
-            overflow: visible;
-        }
-    }
-    .Select {
-        width: 100%;
-    }
-    .Select-control,
-    .is-open > .Select-control,
-    .is-focused > .Select-control {
-        position: relative;
-        overflow: hidden;
-        background-color: rgba(255, 255, 255, 0.2);
-        border-radius: 0px;
-        border: none;
-        height: 31px;
-        .Select-arrow-zone {
-            background: transparent;
-        }
-        .Select-arrow {
-            border-top: 8px solid transparent;
-            border-bottom: 8px solid transparent;
-            border-left: 8px solid #dbedf7;
-            right: 4px;
-            top: 8px;
-        }
-        .Select-placeholder {
-            color: #a7acb6;
-            padding: 5px 32px;
-            text-align: left;
-            font-size: 14px;
-        }
-        .Select-input {
-            margin: 0px;
-            margin-left: 32px;
-            border: none;
-        }
-        .Select-input > input {
-            color: #dbedf7;
-            font-size: 14px;
-            height: 20px;
-            margin: 0;
-            margin-top: 4px;
-            padding: 0px;
-        }
-        .Select-item + .Select-input {
-            margin-left: 10px;
-        }
-        .Select-item {
-            background-color: darken($nav-menu-item-bg-active, 5%);
-            border-radius: 6px;
-            padding-right: 4px;
-            padding-top: 2px;
-            border: none;
-            color: #FFF;
-            font-size: 0.9em;
-            flex-shrink: 1;
-            min-width: 40px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            display: inline-block;
-            span {
-                vertical-align: baseline;
-            }
-        }
-        .Select-item-label {
-            display: inline;
-        }
-        .Select-item-label .Select-item-label__a {
-            color: #FFF;
-        }
-        .Select-item-icon {
-            border-right: none;
-            border-bottom-left-radius: 6px;
-            border-top-left-radius: 6px;
-            color: #dbedf7;
-            padding: 0px;
-            padding-left: 4px;
-            &:hover,
-            &:focus {
-                background-color: transparent;
-                color: #FFF;
-            }
-            &:active {
-                background-color: transparent;
-            }
-        }
-    }
-    .is-focused:not(.is-open) > .Select-control {
-        border: none;
-        box-shadow: none;
-    }
-    .Select.is-multi .Select-input {
-        padding: 0px;
-    }
-    .Select.is-multi .Select-control {
-        display: flex;
-        flex-wrap: nowrap;
-        padding-right: 25px;
-    }
-    .Select-menu-outer {
-        background-color: darken($nav-menu-item-bg, 5%);
-        border: none;
-        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
-        color: white;
-        margin-top: 6px;
-    }
-    .Select-option {
-        color: #FFF;
-    }
-    .Select-option.is-focused {
-        background-color: $nav-menu-item-bg-active;
-        color: #FFF;
-    }
-    .Select-option.is-disabled {
-        color: rgba(255, 255, 255, 0.5);
-    }
-    .Select-noresults {
-        color: #DDD;
-    }
-    .Select-clear {
-        color: #dbedf7;
-        background: #717e95;
-        font-size: 22px;
-        padding: 4px;
-        right: 4px;
-        border-radius: 0px;
-        top: 2px;
-        &:hover {
-            color: #FFF;
-        }
-    }
+
     .mdl-layout__header-searchers {
         flex-grow: 1;
     }
@@ -308,6 +112,87 @@ $headerAccountTextColor: #dbedf7;
                 font-size: 18px;
             }
         }
+    }
+}
+
+.popover-menu--account-menu {
+    .popover-menu__content {
+        min-width: 240px;
+    }
+}
+
+.account-box__menu {
+    min-width:270px;
+    .account-box__menu-item--avatar {
+        display: inline-block;
+        margin-right: 15px;
+        vertical-align: top;
+    }
+    .account-box__menu-item--mini-profile {
+        color: $black;
+        display: inline-block;
+        width:calc(100% - 70px);
+        span {
+            display: inline-block;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            width: 100%;
+        }
+        .account-username {
+            font-size: 18px;
+        }
+    }
+    .account-box__menu-item--settings {
+        text-align: right;
+    }
+    .account-box__menu-li {
+        padding: 15px;
+        padding-bottom: 15px;
+        a {
+            color: $cool-gray;
+            cursor: pointer;
+            i {
+                font-size: 32px;
+                vertical-align: middle;
+            }
+            span {
+                vertical-align: middle;
+            }
+            &:hover {
+                color: unquote("rgb(#{$color-primary})");
+            }
+        }
+    }
+    .account-box__menu-li--lang {
+        position: relative;
+        border-top:1px solid $divider-color;
+        padding-bottom: 5px;
+        ul {
+            position: absolute;
+            right: 100%;
+            top: 0px;
+            background-color: #FFF;
+            color: $black;
+            min-width: 120px;
+            transition: all 0.5s;
+            max-height: 0px;
+            opacity: 0;
+            overflow: hidden;
+            @include box-shadow;
+            li {
+                padding: 12px;
+            }
+        }
+        &:hover > ul {
+            transition: all 0.5s;
+            max-height: 1000px;
+            opacity: 1;
+            overflow: visible;
+        }
+    }
+    .account-box__menu-li--logout {
+        padding-top: 5px;
     }
 }
 
@@ -450,6 +335,14 @@ $headerAccountTextColor: #dbedf7;
     color: #FFF;
 }
 
+.account-box__menu-item--avatar {
+    .account-box__initials {
+        width:48px;
+        padding:10px;
+        border-radius: 48px;
+        font-size: 24px;
+    }
+}
 .git-rev {
     display: none;
 }
