@@ -1,5 +1,6 @@
 import datetime
 import json
+import pytz
 from collections import OrderedDict
 
 from django.contrib.auth.models import User, Permission
@@ -780,6 +781,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 class CurrentUserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
     server_time = serializers.SerializerMethodField()
+    date_joined = serializers.SerializerMethodField()
     projects_url = serializers.SerializerMethodField()
     support = serializers.SerializerMethodField()
     gravatar = serializers.SerializerMethodField()
@@ -797,6 +799,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'last_name',
             'email',
             'server_time',
+            'date_joined',
             'projects_url',
             'support',
             'is_superuser',
@@ -811,7 +814,12 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         )
 
     def get_server_time(self, obj):
-        return datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+        return datetime.datetime.now(tz=pytz.UTC).strftime(
+            '%Y-%m-%dT%H:%M:%SZ')
+
+    def get_date_joined(self, obj):
+        return obj.date_joined.astimezone(pytz.UTC).strftime(
+            '%Y-%m-%dT%H:%M:%SZ')
 
     def get_projects_url(self, obj):
         return '/'.join((settings.KOBOCAT_URL, obj.username))

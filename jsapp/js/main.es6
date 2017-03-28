@@ -29,9 +29,3 @@ if (document.head.querySelector('meta[name=kpi-root-url]')) {
 } else {
   console.error('no kpi-root-url meta tag set. skipping react-router init');
 }
-
-// Begin Intercom integration
-if(window.Intercom) {
-  window.Intercom("boot", {app_id: window.IntercomAppId});
-}
-// End Intercom integration

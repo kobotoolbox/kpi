@@ -895,7 +895,6 @@ var App = React.createClass({
                 <AssetNavigator />
               : null }
           </bem.PageWrapper>
-          <IntercomIntegration />
         </div>
       </DocumentTitle>
     );
@@ -1552,23 +1551,6 @@ Demo.collection = React.createClass({
   ],
   render () {
     return this._createPanel();
-  }
-});
-
-var IntercomIntegration = React.createClass({
-  mixins: [
-    Reflux.ListenerMixin
-  ],
-  componentDidMount () {
-    this.listenTo(actions.navigation.routeUpdate, this.routeUpdate);
-  },
-  routeUpdate (routes) {
-    if (window.Intercom) {
-      window.Intercom("update");
-    }
-  },
-  render() {
-    return false;
   }
 });
 
