@@ -6,11 +6,11 @@ KPI
 
 Python Dependencies
 -------------------
-Python dependencies are listed in [`requirements/requirements.in`](./requirements/requirements.in) and [`requirements/external_services.in`](requirements/external_services.in) and, which are then compiled to [`requirements/requirements.txt`](./requirements/requirements.txt) and [`requirements/external_services.txt`](./requirements/external_services.txt) by [`pip-compile`](https://github.com/nvie/pip-tools). You may use `pip` directly with either compiled list, but consider using instead the `pip-sync` command provided by [pip-tools](https://github.com/nvie/pip-tools). Do not add new dependencies directly to `requirements/requirements.txt` or `requirements/external_services.txt`; instead, update [`requirements/requirements.in`](./requirements/requirements.in) and/or [`requirements/external_services.in`], and `pip-compile` **both** after any changes to either.
+Python dependencies are managed with `pip-compile` and `pip-sync` from the [`pip-tools`](https://github.com/jazzband/pip-tools/) package. The dependencies are listed in [`dependencies/pip/`](./dependencies/pip/), with core requirements in [`dependencies/pip/requirements.in`](./dependencies/pip/requirements.in). You may use `pip` directly with one of the compiled `dependencies/pip/*.txt` files, but consider using instead the `pip-sync`. **Do not** add new dependencies directly to the *compiled* `dependencies/pip/*.txt` files; instead, update the relevant the *source* `dependencies/pip/*.in` file(s), and execute `make pip_compile` after any changes. You can pass arguments to `pip-compile` with e.g. `make pip_compile ARGS='--upgrade-package=xlwt'`. To force building, use `make --always-make ...`.
 
 Ubuntu 16.04 `apt` Dependencies
 -------------------------------
-`apt` dependencies for Ubuntu 16.04 are listed in [`requirements/apt_requirements.txt`](requirements/apt_requirements.txt) and can be installed with e.g. `apt-get install $(cat requirements/apt_requirements.txt)`.
+`apt` dependencies for Ubuntu 16.04 are listed in [`dependencies/apt_requirements.txt`](dependencies/apt_requirements.txt) and can be installed with e.g. `apt-get install $(cat dependencies/apt_requirements.txt)`.
 
 Downloading and compiling the translations
 ------------------------------------------

@@ -20,7 +20,7 @@ ADD https://deb.nodesource.com/setup_6.x /tmp/setup_6.x.bash
 # Install `apt` packages. #
 ###########################
 
-COPY ./requirements/apt_requirements.txt /srv/tmp/base__apt_requirements.txt
+COPY ./dependencies/apt_requirements.txt /srv/tmp/base__apt_requirements.txt
 RUN bash /tmp/setup_6.x.bash && \
     apt-get update -qq && \
     apt-get install -qqy $(cat /srv/tmp/base__apt_requirements.txt) && \
@@ -33,7 +33,7 @@ RUN bash /tmp/setup_6.x.bash && \
 
 RUN pip install --quiet --upgrade pip && \
     pip install --quiet pip-tools
-COPY ./requirements/external_services.txt /srv/tmp/base__external_services.txt
+COPY ./dependencies/pip/external_services.txt /srv/tmp/base__external_services.txt
 RUN pip-sync /srv/tmp/base__external_services.txt 1>/dev/null && \
     rm -rf ~/.cache/pip
 
