@@ -814,6 +814,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         )
 
     def get_server_time(self, obj):
+        # Currently unused on the front end
         return datetime.datetime.now(tz=pytz.UTC).strftime(
             '%Y-%m-%dT%H:%M:%SZ')
 

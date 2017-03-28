@@ -344,12 +344,6 @@ var sessionStore = Reflux.createStore({
   triggerAnonymous (/*data*/) {},
   triggerLoggedIn (acct) {
     this.currentAccount = acct;
-
-    if (acct.system_time) {
-      // appears to be unused. the serializer sends `server_time`
-      acct.sysDate = new Date(Date.parse(acct.system_time));
-      acct.curDate = new Date();
-    }
     if (acct.upcoming_downtime) {
       var downtimeString = acct.upcoming_downtime[0];
       acct.downtimeDate = new Date(Date.parse(acct.upcoming_downtime[0]));
