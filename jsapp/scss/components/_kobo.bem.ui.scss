@@ -164,8 +164,10 @@ button.popover-menu__toggle {
   top: 100%;
 }
 
-.popover-menu--above .popover-menu__content {
+.popover-menu--above .popover-menu__content, 
+.popover-menu--viewby-menu .popover-menu__content {
   bottom: 100%;
+  top: auto;
 }
 
 .popover-menu__link, 
@@ -178,6 +180,8 @@ button.popover-menu__toggle {
   color:$cool-gray;
   cursor: pointer;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow:ellipsis;
 
   > i:first-child {
     margin-right: 4px;

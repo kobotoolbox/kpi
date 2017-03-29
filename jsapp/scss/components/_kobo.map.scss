@@ -1,0 +1,139 @@
+.form-view--form-data-map,
+.form-view__map,
+#data-map {
+  height: 100%;
+  width: 100%;
+}
+
+.form-view__map {
+	position: relative;
+	.form-view__map-button {
+		position: absolute;
+		right: 12px;
+		top: 68px;
+		padding: 4px;
+		@include box-shadow;
+		border-radius: 6px;
+		background: white;
+		z-index: 700;
+		cursor: pointer;
+		color: lighten($black, 40%);
+		&--heatmap {
+			top: 125px;
+		}
+		&.active,
+		&:hover {
+			color: $black;
+		}
+		i {
+			font-size: 36px;
+		}
+	}
+}
+
+.popover-menu--viewby-menu {
+	position: absolute;
+	bottom: 15px;
+	left: 15px;
+	z-index: 700;
+	button {
+		min-width: 160px;
+		background: #FFF;
+		@include box-shadow;
+		border-radius: 6px;
+		padding:12px;
+		text-align: left;
+		color: $cool-gray;
+	}
+	.popover-menu__content {
+	  right: auto;
+	  left: 0px;
+	  max-width: 240px;
+	  overflow: auto;
+	  max-height: 300px;
+	}
+
+}
+
+body .leaflet-control-layers, 
+.leaflet-touch .leaflet-control-layers {
+	border:none;
+	border-radius: 6px !important; 
+	@include box-shadow;
+	margin-right: 12px;
+	margin-top: 12px;
+}
+
+.form-view__map-list {
+	position: absolute;
+	bottom: 60px;
+	left: 15px;
+	z-index: 689;
+	max-height: 200px;
+	width:200px;
+	overflow: auto;
+	padding:5px;
+	background: #FFF;
+	@include box-shadow;
+	.map-marker-item {
+		padding:5px;
+	}
+	span {
+		vertical-align: middle;
+		display: inline-block;
+	}
+	span.map-marker {
+		margin-right: 8px;
+		text-align: center;
+		line-height: 30px;
+	}
+	span.map-marker-label {
+		width: calc(100% - 42px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+	}
+}
+
+// marker colors
+
+.map-marker {
+  width: 30px;
+  height: 30px;
+  background: rgba(255, 50, 0, 0.4);
+  border: 1px solid #FFF;
+  border-radius: 30px;
+}
+
+.map-marker {
+	&-0 {
+		background: rgba(52, 106, 200, 0.4);
+	}
+	&-1 {
+		background: rgba(250, 213, 99, 0.4);
+	}
+	&-2 {
+		background: rgba(113, 230, 33, 0.4);
+	}
+	&-3 {
+		background: rgba(78, 203, 255, 0.4);
+	}
+	&-4 {
+		background: rgba(253, 190, 76, 0.4);
+	}
+	&-5 {
+		background: rgba(77, 124, 244, 0.4);
+	}
+	&-6 {
+		background: rgba(33, 231, 184, 0.4);
+	}
+	&-7 {
+		background: rgba(35, 195, 210, 0.4);
+	}
+	&-8 {
+		background: rgba(128, 21, 246, 0.4);
+	}
+	&-9 {
+		background: rgba(238, 165, 1, 0.4);
+	}
+}

@@ -20,6 +20,8 @@ import {
   ProjectDownloads
 } from '../components/formEditors';
 
+import FormMap from '../components/formMap';
+
 import {
   assign,
   t,
@@ -85,7 +87,11 @@ var FormSubScreens = React.createClass({
           iframeUrl = deployment__identifier+'/photos';
           break;
         case 'form-data-map':
-          iframeUrl = deployment__identifier+'/map';
+          subscreen = <FormMap asset={this.state} />;
+          // iframeUrl = deployment__identifier+'/map';
+          break;
+        case 'form-data-map-filtered':
+          subscreen = <FormMap asset={this.state} kuid={this.props.params.kuid}/>;
           break;
         case 'form-settings-kobocat':
           iframeUrl = deployment__identifier+'/form_settings';

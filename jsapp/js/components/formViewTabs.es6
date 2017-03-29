@@ -21,7 +21,7 @@ var FormViewTabs = React.createClass({
     Navigation
   ],
   getInitialState() {
-    var dataTabs = ['form-reports', 'form-data-report', 'form-data-table', 'form-data-gallery', 'form-data-downloads', 'form-data-map'];
+    var dataTabs = ['form-reports', 'form-data-report', 'form-data-table', 'form-data-gallery', 'form-data-downloads', 'form-data-map', 'form-data-map-filtered'];
     var formTabs = ['form-landing', 'form-collect-web', 'form-collect-android'];
     var settingsTabs = ['form-settings', 'form-settings-sharing', 'form-settings-kobocat'];
     return {

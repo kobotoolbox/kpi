@@ -1033,6 +1033,7 @@ var routes = (
         <Route name='form-data-downloads' path="data/downloads" handler={FormSubScreens} />
         <Route name='form-data-gallery' path="data/gallery" handler={FormSubScreens} />
         <Route name='form-data-map' path="data/map" handler={FormSubScreens} />
+        <Route name='form-data-map-filtered' path="data/map/:kuid" handler={FormSubScreens} />
         <Route name='form-settings' path="settings" handler={FormSubScreens} />
         <Route name='form-settings-kobocat' path="settings/kobocat" handler={FormSubScreens} />
         <Route name='form-settings-sharing' path="settings/sharing" handler={FormSubScreens} />

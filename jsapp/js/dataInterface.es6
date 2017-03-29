@@ -254,6 +254,15 @@ var dataInterface;
     getAssetContent ({id}) {
       return $.getJSON(`${rootUrl}/assets/${id}/content/`);
     },
+    getMapSubmissions (params) {
+      console.log(params);
+      // TODO: connect to real data
+      if (params.kuid)
+        return $.getJSON(`http://localhost:3000/test-data-map-filtered.json`);
+      if (!params.kuid)
+        return $.getJSON(`http://localhost:3000/test-data-map.json`);
+    },
+
     getImportDetails ({uid}) {
       return $.getJSON(`${rootUrl}/imports/${uid}/`);
     },
