@@ -161,7 +161,6 @@ var MainHeader = React.createClass({
     var langs = [];
 
     if (stores.session.currentAccount) {
-      console.log(stores.session.currentAccount);
       var accountName = stores.session.currentAccount.username;
       var accountEmail = stores.session.currentAccount.email;
       langs = stores.session.currentAccount.languages;
