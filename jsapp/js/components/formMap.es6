@@ -25,13 +25,22 @@ var FormMap = React.createClass({
     Reflux.ListenerMixin
   ],
   getInitialState () {
+  	let survey = this.props.asset.content.survey;
+  	var hasGeoPoint = false;
+  	survey.forEach(function(s) {
+  		console.log(s.type);
+  		if (s.type == 'geopoint')
+  			hasGeoPoint = true;
+  	});
+
     return {
       map: false,
       markers: false,
       heatmap: false,
       markersVisible: true,
       markerMap: false,
-      fields: []
+      fields: [],
+      hasGeoPoint: hasGeoPoint
     };
   },
   componentDidMount () {
@@ -67,11 +76,9 @@ var FormMap = React.createClass({
 		    "Mapbox Outdoors": outdoors,
 		    "Mapbox Satellite": satellite
 		};
+  	// TODO: add additional base layers, i.e. Google Maps?
 
 		L.control.layers(baseLayers).addTo(map);
-
-  	// TODO: additional layers, i.e. Google Maps?
-
     this.setState({
         map: map,
         fields: fields
@@ -167,7 +174,7 @@ var FormMap = React.createClass({
 				var heatmap = L.heatLayer(heatmapPoints, {
 					minOpacity: 0.25,
 					radius: 20,
-					blur: 10
+					blur: 8
 				});
 
 				if (!_self.state.markersVisible) {
@@ -247,6 +254,18 @@ var FormMap = React.createClass({
   	}
   },
   render () {
+  	if (!this.state.hasGeoPoint) {
+      return (
+        <ui.Panel>
+          <bem.Loading>
+            <bem.Loading__inner>
+              {t('This form does not have a "geopoint" field, therefore a map is not available.')}
+            </bem.Loading__inner>
+          </bem.Loading>
+        </ui.Panel>
+      );  		
+  	}
+
   	var fields = this.state.fields;
   	var label = t('View Options')
   	if (this.props.kuid != undefined) {
@@ -281,7 +300,7 @@ var FormMap = React.createClass({
                 );
             })}
         </ui.PopoverMenu>
-        {this.state.markerMap && 
+        {this.state.markerMap && this.state.markersVisible && 
         	<bem.FormView__mapList>
             {Object.keys(this.state.markerMap).map((m, i)=>{
               return (
@@ -296,6 +315,13 @@ var FormMap = React.createClass({
                 );
             })}
         	</bem.FormView__mapList>
+        }
+        {!this.state.markers && !this.state.heatmap && 
+          <bem.Loading>
+            <bem.Loading__inner>
+              <i />
+            </bem.Loading__inner>
+          </bem.Loading>
         }
         <div id="data-map"></div>
       </bem.FormView__map>
