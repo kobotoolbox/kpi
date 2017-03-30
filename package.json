@@ -59,6 +59,8 @@
     "jquery-ui": "1.10.4",
     "jquery.scrollto": "^2.1.0",
     "json-loader": "^0.5.2",
+    "leaflet": "^1.0.3",
+    "leaflet.heat": "^0.2.0",
     "less": "^2.5.1",
     "less-loader": "^2.2.0",
     "load-grunt-tasks": "^3.2.0",
