@@ -2,7 +2,7 @@ import React from 'react';
 import Reflux from 'reflux';
 import Dropzone from '../libs/dropzone';
 import _ from 'underscore';
-
+import { Link } from 'react-router';
 import actions from '../actions';
 import bem from '../bem';
 import stores from '../stores';
@@ -26,7 +26,6 @@ import {
 var FormLanding = React.createClass({
   mixins: [
     mixins.droppable,
-    mixins.taggedAsset,
     mixins.dmix,
     Reflux.ListenerMixin
   ],
@@ -70,11 +69,9 @@ var FormLanding = React.createClass({
           </bem.FormView__cell>
           <bem.FormView__cell m='buttons'>
             {this.state.userCanEdit ?
-              <a className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
-                  href={this.makeHref('form-edit', {assetid: this.state.uid})}>
+              <Link to={`/forms/${this.state.uid}/edit`} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
                 {t('edit form')}
-              </a>
-              
+              </Link>              
             : 
               <a className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored disabled"
                   data-tip={t('Editing capabilities not granted, you can only view this form')}>
@@ -238,10 +235,10 @@ var FormLanding = React.createClass({
                   );
               })}
               {this.state.userCanEdit && 
-                <bem.PopoverMenu__link href={this.makeHref('form-settings-sharing', {assetid: this.state.uid})}>
+                <Link to={`/forms/${this.state.uid}/settings/sharing`} className='popover-menu__link'>
                   <i className="k-icon-share"/>
                   {t('Share this project')}
-                </bem.PopoverMenu__link>
+                </Link>
               }
               <bem.PopoverMenu__link onClick={this.saveCloneAs}>
                 <i className="k-icon-clone"/>
@@ -279,7 +276,7 @@ var FormLanding = React.createClass({
               </bem.FormView__cell>
               <bem.FormView__cell>
                 {this.renderButtons()}
-                <bem.FormView__link m='close' href={this.makeHref('forms')} className='is-edge' />
+                <bem.FormView__link m='close' href='/forms' className='is-edge' />
               </bem.FormView__cell>
             </bem.FormView__cell>
             <bem.FormView__cell m='box'>

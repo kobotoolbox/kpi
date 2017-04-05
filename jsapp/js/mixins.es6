@@ -4,9 +4,8 @@ import Reflux from 'reflux';
 import Dropzone from './libs/dropzone';
 import Select from 'react-select';
 import alertify from 'alertifyjs';
-import {Link} from 'react-router';
+import {Link, browserHistory} from 'react-router';
 import mdl from './libs/rest_framework/material';
-import TagsInput from 'react-tagsinput';
 import DocumentTitle from 'react-document-title';
 import classNames from 'classnames';
 
@@ -39,54 +38,12 @@ import icons from '../xlform/src/view.icons';
   
 var mixins = {};
 
-mixins.taggedAsset = {
-  // mixins: [
-  //   React.addons.LinkedStateMixin
-  // ],
-  tagChange (tags/*, changedTag*/) {
-    var uid = this.props.uid || this.props.params.assetid;
-    actions.resources.updateAsset(uid, {
-      tag_string: tags.join(',')
-    });
-  },
-  linkTagState () {
-    // because onChange doesn't work when valueLink is specified.
-    var that = this, ls = this.linkState('tags'), rc = ls.requestChange;
-    ls.requestChange = function(...args) {
-      that.tagChange(...args);
-      rc.apply(this, args);
-    };
-    return ls;
-  },
-  adaptInputSize (e) {
-    var l = e.target.value.length;
-    e.target.size = l + 5;
-  },
-  renderTaggedAssetTags () {
-    var transform = function(tag) {
-      // Behavior should match KpiTaggableManager.add()
-      return tag.trim().replace(/ /g, '-');
-    };
-    // react-tagsinput splits on tab (9) and enter (13) by default; we want to
-    // split on comma (188) as well
-    var addKeys = [9, 13, 188];
-    return (
-      <div>
-        <TagsInput ref="tags" classNamespace="k"
-          valueLink={this.linkTagState()} transform={transform} onKeyUp={this.adaptInputSize}
-          addKeys={addKeys} placeholder={t('#tags +')}/>
-      </div>
-    );
-  }
-};
- 
 var dmix = {
   afterCopy() {
     notify(t('copied to clipboard'));
   },
   saveCloneAs (evt) {
     let version_id = evt.currentTarget.dataset.versionId;
-    var baseName = isLibrary(this.context.router) ? 'library-' : '';
     let name = `${t('Clone of')} ${this.state.name}`;
 
     let dialog = alertify.dialog('prompt');
@@ -104,9 +61,7 @@ var dmix = {
         }, {
           onComplete: (asset) => {
             dialog.destroy();
-            this.transitionTo(`${baseName}form-landing`, {
-              assetid: asset.uid,
-            });
+            browserHistory.push(`/forms/${asset.uid}`);
           }
         });
 
@@ -318,7 +273,7 @@ mixins.droppable = {
               } else if (library) {
                 this.searchDefault();
               } else {
-                this.transitionTo('form-landing', {assetid: assetUid});
+                browserHistory.push(`/forms/${assetUid}`);
               }
               if (url) {
                 notify(t('Replace operation completed'));
@@ -377,37 +332,18 @@ mixins.collectionList = {
 };
  
 mixins.clickAssets = {
-  onActionButtonClick (evt) {
-    var data = evt.actionIcon ? evt.actionIcon.dataset : evt.currentTarget.dataset;
-    var assetType = data.assetType,
-        action = data.action,
-        // disabled = data.disabled === 'true',
-        uid = stores.selectedAsset.uid,
-        result;
-    this.baseName = isLibrary(this.context.router) ? 'library-' : '';
-    // var click = this.click;
-    if (action === 'new') {
-      result = this.click.asset.new.call(this);
-    } else if (this.click[assetType] && this.click[assetType][action]) {
-      result = this.click[assetType][action].call(this, uid, evt);
-    }
-    if (result !== false) {
-      evt.preventDefault();
-    }
+  onActionButtonClick (action, uid, name) {
+    this.click.asset[action].call(this, uid, name);
   },
   click: {
     asset: {
-      view: function(uid/*, evt*/){
-        this.transitionTo(`${this.baseName}form-landing`, {assetid: uid});
-      },
-      clone: function(uid, evt){
-        let assetName = $(evt.target).closest('[data-action]').data('asset-name') || t('untitled');
-        let name = `${t('Clone of')} ${assetName}`;
+      clone: function(uid, name){
+        let newName = `${t('Clone of')} ${name}`;
         let dialog = alertify.dialog('prompt');
         let opts = {
           title: t('Clone form'),
           message: t('Enter the name of the cloned form'),
-          value: name,
+          value: newName,
           labels: {ok: t('Ok'), cancel: t('Cancel')},
           onok: (evt, value) => {
             actions.resources.cloneAsset({
@@ -416,6 +352,7 @@ mixins.clickAssets = {
             }, {
             onComplete: (asset) => {
               dialog.destroy();
+              notify(t('cloned project created'));
               this.refreshSearch && this.refreshSearch();
             }
             });
@@ -429,13 +366,10 @@ mixins.clickAssets = {
         dialog.set(opts).show();
 
       },
-      download: function(uid/*, evt*/){
-        this.transitionTo(`${this.baseName}form-download`, {assetid: uid});
-      },
       edit: function (uid) {
-        this.transitionTo(`${this.baseName}form-edit`, {assetid: uid});
+        browserHistory.push(`/forms/${uid}/edit`);
       },
-      delete: function(uid/*, evt*/){
+      delete: function(uid){
         let asset = stores.selectedAsset.asset;
         let dialog = alertify.dialog('confirm');
         let deployed = asset.has_deployment;
@@ -444,6 +378,7 @@ mixins.clickAssets = {
           actions.resources.deleteAsset({uid: uid}, {
             onComplete: ()=> {
               this.refreshSearch && this.refreshSearch();
+              notify(t('project deleted permanently'));
               $('.alertify-toggle input').prop("checked", false);
             }
           });
@@ -494,10 +429,10 @@ mixins.clickAssets = {
         dmix.deployAsset(asset, () => {
           // this callback is a kludge and here because I can't figure out how
           // to call `transitionTo()` from within `deployAsset()`
-          this.transitionTo(`${this.baseName}form-landing`, {assetid: uid});
+          browserHistory.push(`/forms/${uid}`);
         });
       },
-      archive: function(uid, evt) {
+      archive: function(uid) {
         let asset = stores.selectedAsset.asset;
         let dialog = alertify.dialog('confirm');
         let opts = {
@@ -568,307 +503,25 @@ mixins.permissions = {
   }
 };
 
-var UserPermDiv = React.createClass({
-  mixins: [
-    mixins.permissions,
-  ],
-  PermOnChange(permName) {
-    var cans = this.props.can;
-    if (permName != '') {
-      this.setPerm(permName, this.props);
-      if (permName == 'view' && cans.change)
-        this.removePerm('change', cans.change, this.props.uid);
-    } else {
-      if (cans.view)
-        this.removePerm('view', cans.view, this.props.uid);
-      if (cans.change)
-        this.removePerm('change', cans.change, this.props.uid);
-    }
-
+mixins.contextRouter = {
+  contextTypes: {
+    router: React.PropTypes.object
   },
-  render () {
-    var initialsStyle = {
-      background: `#${stringToColor(this.props.username)}`
-    };
-
-    var currentPerm = '';
-    var cans = this.props.can;
-
-    if (cans.change) {
-      var currentPerm = 'change';
-    } else if (cans.view) {
-      var currentPerm = 'view';
-    }
-
-    var availablePermissions = [
-      {value: 'view', label: t('Can View')},
-      {value: 'change', label: t('Can Edit')}
-    ];
-
-    return (
-      <bem.UserRow m={cans.view || cans.change ? 'regular' : 'deleted'}>
-        <bem.UserRow__avatar>
-          <bem.AccountBox__initials style={initialsStyle}>
-            {this.props.username.charAt(0)}
-          </bem.AccountBox__initials>
-        </bem.UserRow__avatar>
-        <bem.UserRow__name>
-          {this.props.username}
-          {/*<div><UserProfileLink username= /></div>*/}
-        </bem.UserRow__name>
-        <bem.UserRow__role>
-          <Select
-            name='userPerms'
-            value={currentPerm}
-            clearable={true}
-            options={availablePermissions}
-            onChange={this.PermOnChange}
-          />
-        </bem.UserRow__role>
-      </bem.UserRow>      
-      );
-  }
-});
-
-var PublicPermDiv = React.createClass({
-  mixins: [
-    mixins.permissions
-  ],
-  togglePerms() {
-    if (this.props.publicPerm)
-      this.removePerm('view',this.props.publicPerm, this.props.uid);
-    else
-      this.setPerm('view', {
-          username: anonUsername,
-          uid: this.props.uid,
-          kind: this.props.kind,
-          objectUrl: this.props.objectUrl
-        }
-      );
+  isFormList () {
+    return this.context.router.isActive('forms') && this.context.router.params.assetid == undefined;
   },
-  render () {
-    var uid = this.props.uid;
-
-    switch (this.props.kind) {
-      case 'collection':
-        var href = this.makeHref('collection-page', {uid: uid});
-      break;
-      default: 
-        var href = this.makeHref('form-landing', {assetid: uid});
-    }
-
-    if (isLibrary(this.context.router))
-      href = this.makeHref('library-form-landing', {assetid: uid});
-
-    var url = `${window.location.protocol}//${window.location.host}/${href}`;
-
-    return (
-      <bem.FormModal__item m='perms-link'>
-          <input type="checkbox" checked={this.props.publicPerm ? true : false} onChange={this.togglePerms} />
-        <label className="long next-to-checkbox">
-          {t('Share by link')}
-        </label>
-        { this.props.publicPerm && 
-          <bem.FormModal__item>
-            <label>
-              {t('Shareable link')}
-            </label>
-            <input type="text" value={url} readOnly />
-          </bem.FormModal__item>
-        }
-      </bem.FormModal__item>
-    );
-  }
-});
-
-mixins.shareAsset = {
-  mixins: [
-    mixins.permissions,
-    // Reflux.connectFilter(stores.asset, function(data){
-    //   var uid = this.props.params.assetid,
-    //     asset = data[uid];
-    //   if (asset) {
-    //     return {
-    //       asset: asset,
-    //       permissions: asset.permissions,
-    //       owner: asset.owner__username,
-    //       pperms: parsePermissions(asset.owner__username, asset.permissions),
-    //       public_permission: getAnonymousUserPermission(asset.permissions),
-    //       related_users: stores.asset.relatedUsers[uid]
-    //     };
-    //   }
-    // })
-  ],
-  componentDidMount () {
-    this.listenTo(stores.userExists, this.userExistsStoreChange);
+  isLibrary () {
+    return this.context.router.isActive('library');
   },
-  userExistsStoreChange (checked, result) {
-    var inpVal = this.usernameFieldValue();
-    if (inpVal === result) {
-      var newStatus = checked[result] ? 'success' : 'error';
-      this.setState({
-        userInputStatus: newStatus
-      });
-    }
+  isFormSingle () {
+    return this.context.router.isActive('forms') && this.context.router.params.assetid != undefined;
   },
-  usernameField () {
-    return this.refs.usernameInput.getDOMNode();
+  currentAssetID () {
+    return this.context.router.params.assetid;
   },
-  usernameFieldValue () {
-    return this.usernameField().value;
+  isActiveRoute (path, indexOnly = false) {
+    return this.context.router.isActive(path, indexOnly);
   },
-  usernameCheck (evt) {
-    var username = evt.target.value;
-    if (username && username.length > 3) {
-      var result = stores.userExists.checkUsername(username);
-      if (result === undefined) {
-        actions.misc.checkUsername(username);
-      } else {
-        log(result ? 'success' : 'error');
-        this.setState({
-          userInputStatus: result ? 'success' : 'error'
-        });
-      }
-    } else {
-      this.setState({
-        userInputStatus: false
-      });
-    }
-  },
-  getInitialState () {
-    return {
-      userInputStatus: false,
-      permInput: 'view'
-    };
-  },
-  addInitialUserPermission (evt) {
-    evt.preventDefault();
-    var username = this.usernameFieldValue();
-    if (stores.userExists.checkUsername(username)) {
-      actions.permissions.assignPerm({
-        username: username,
-        uid: this.props.params.assetid,
-        kind: this.state.asset.kind,
-        objectUrl: this.props.objectUrl,
-        role: this.state.permInput
-      });
-      this.usernameField().value = '';
-    }
-  },
-  updatePermInput(permName) {
-    this.setState({
-      permInput: permName
-    });
-  },
-  sharingForm () {
-    var inpStatus = this.state.userInputStatus;
-    if (!this.state.pperms) {
-      return (
-          <i className="fa fa-spin" />
-        );
-    }
-    var _perms = this.state.pperms;
-    var perms = this.state.related_users.map(function(username){
-      var currentPerm = _perms.filter(function(p){
-        return p.username === username;
-      })[0];
-      if (currentPerm) {
-        return currentPerm;
-      } else {
-        return {
-          username: username,
-          can: {}
-        };
-      }
-    });
-    var btnKls = classNames('mdl-button','mdl-js-button', 'mdl-button--raised', inpStatus === 'success' ? 'mdl-button--colored' : 'mdl-button--disabled');
 
-    var availablePermissions = [
-      {value: 'view', label: t('Can View')},
-      {value: 'change', label: t('Can Edit')}
-    ];
-
-    var uid = this.state.asset.uid;
-    var kind = this.state.asset.kind;
-    var asset_type = this.state.asset.asset_type;
-    var objectUrl = this.state.asset.url;
-
-    if (!perms) {
-      return (
-          <p>loading</p>
-        );
-    }
-
-    var initialsStyle = {
-      background: `#${stringToColor(this.state.asset.owner__username)}`
-    };
-
-    return (
-      <bem.FormModal>
-        <bem.FormModal__item>
-          <bem.FormView__cell m='label'>
-            {t('Who has access')}
-          </bem.FormView__cell>
-          <bem.UserRow>
-            <bem.UserRow__avatar>
-              <bem.AccountBox__initials style={initialsStyle}>
-                {this.state.asset.owner__username.charAt(0)}
-              </bem.AccountBox__initials>
-            </bem.UserRow__avatar>
-            <bem.UserRow__name>
-              <div>{this.state.asset.owner__username}</div>
-            </bem.UserRow__name>
-            <bem.UserRow__role>{t('is owner')}</bem.UserRow__role>
-          </bem.UserRow>
-
-          {perms.map((perm)=> {
-            return <UserPermDiv key={`perm.${uid}.${perm.username}`} ref={perm.username} uid={uid} kind={kind} objectUrl={objectUrl} {...perm} />;
-          })}
-
-        </bem.FormModal__item>
-
-        <bem.FormModal__form onSubmit={this.addInitialUserPermission} className="sharing-form__user">
-            <bem.FormView__cell m='label'>
-              {t('Invite collaborators')}
-            </bem.FormView__cell>
-            <bem.FormModal__item m='perms-user'>
-              <input type="text"
-                  id="permsUser" 
-                  ref='usernameInput'
-                  placeholder={t('Enter a username')}
-                  onKeyUp={this.usernameCheck}
-              />
-              <Select
-                  id='permGiven'
-                  ref='permInput'
-                  value='view'
-                  clearable={false}
-                  options={availablePermissions}
-                  onChange={this.updatePermInput}
-              />
-              <button className={btnKls}>
-                  {t('invite')}
-              </button>
-          </bem.FormModal__item>
-        </bem.FormModal__form>
-
-        { kind != 'collection' && asset_type == 'survey' && 
-          <bem.FormView__cell>
-            <bem.FormView__cell m='label'>
-              {t('Select share settings')}
-            </bem.FormView__cell>
-            <PublicPermDiv 
-              uid={uid}
-              publicPerm={this.state.public_permission}
-              kind={kind}
-              objectUrl={objectUrl}
-            />
-          </bem.FormView__cell>
-        }
-      </bem.FormModal>
-    );
-  }
-};
-
- 
+}
 export default mixins;

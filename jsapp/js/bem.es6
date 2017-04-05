@@ -13,7 +13,6 @@ bem.Loading__inner = bem.Loading.__('inner');
 bem.AssetRow = BEM('asset-row', '<li>');
 bem.AssetRow__cell        = bem.AssetRow.__('cell');
 
-bem.AssetRow__celllink    = bem.AssetRow.__('celllink', '<a>');
 bem.AssetRow__cellmeta    = bem.AssetRow.__('cellmeta');
 bem.AssetRow__name        = bem.AssetRow.__('name', '<span>');
 bem.AssetRow__description = bem.AssetRow.__('description', '<span>');

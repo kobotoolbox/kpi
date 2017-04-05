@@ -10,6 +10,7 @@ import stores from '../stores';
 import Reflux from 'reflux';
 import bem from '../bem';
 import actions from '../actions';
+import mixins from '../mixins';
 import {
   t,
   assign,
@@ -47,7 +48,8 @@ var MainHeader = React.createClass({
     Reflux.connect(stores.session, 'session'),
     Reflux.connect(stores.pageState, 'pageState'),
     Reflux.ListenerMixin,
-    hotkey.Mixin('handleHotkey')
+    hotkey.Mixin('handleHotkey'),
+    mixins.contextRouter
   ],
   handleHotkey: function(e) {
     if (e.altKey && (e.keyCode == '69' || e.keyCode == '186')) {
@@ -62,7 +64,6 @@ var MainHeader = React.createClass({
     });
 
     return assign({
-      showFormViewHeader: false,
       dataPopoverShowing: false, 
       asset: false,
       currentLang: currentLang(),
@@ -78,8 +79,7 @@ var MainHeader = React.createClass({
         },
         filterTags: 'asset_type:survey',
       }),
-      _langIndex: 0,
-      headerFilters: 'forms'
+      _langIndex: 0
     }, stores.pageState.state);
   },
   componentWillMount() {
@@ -87,7 +87,9 @@ var MainHeader = React.createClass({
     this.setStates();
   },
   assetLoad(data) {
-    var asset = data[this.state.assetid];
+    var assetid = this.currentAssetID();
+    var asset = data[assetid];
+
     this.setState(assign({
         asset: asset
       }
@@ -101,36 +103,6 @@ var MainHeader = React.createClass({
   },
   setStates() {
     this.listenTo(stores.asset, this.assetLoad);
-    console.log(this.props);
-    // var currentParams = this.context.router.getCurrentParams();
-    // this.setState(assign(currentParams));
-
-    // var currentRoutes = this.context.router.getCurrentRoutes();
-    // var activeRoute = currentRoutes[currentRoutes.length - 1];
-
-    // switch(activeRoute.path) {
-    //   case '/forms':
-    //     this.setState({headerFilters: 'forms'});
-    //     break;
-    //   case '/library':
-    //     this.setState({headerFilters: 'library'});
-    //     break;
-    //   default:
-    //     this.setState({headerFilters: false});
-    //     break;
-    // }
-
-    // if (currentRoutes[2] != undefined && currentRoutes[2].path == '/forms/:assetid') {
-    //   this.setState({
-    //     showFormViewHeader: true, 
-    //     activeRoute: activeRoute.path
-    //   });
-    // } else {
-    //   this.setState({
-    //     showFormViewHeader: false, 
-    //     activeRoute: false
-    //   });    
-    // }
   },
   languageChange (evt) {
     var langCode = $(evt.target).data('key');
@@ -156,7 +128,6 @@ var MainHeader = React.createClass({
       </bem.AccountBox__menuLI>
     );
   },
-
   renderAccountNavMenu () {
     var langs = [];
 
@@ -271,12 +242,6 @@ var MainHeader = React.createClass({
   toggleFixedDrawer() {
     stores.pageState.toggleFixedDrawer();
   },
-  // showDowntimeNotificationBox () {
-  //   stores.pageState.showModal({
-  //     message: stores.session.currentAccount.downtimeMessage,
-  //     icon: 'gears',
-  //   });
-  // },
   assetTitleChange (e) {
     var asset = this.state.asset;
     if (e.target.name == 'title')
@@ -317,12 +282,6 @@ var MainHeader = React.createClass({
     return false;
   },
   render () {
-    if (stores.session && stores.session.currentAccount && stores.session.currentAccount.downtimeDate) {
-      var mTime = moment(stores.session.currentAccount.downtimeDate);
-      var downtimeDate = `${mTime.fromNow()} (${mTime.calendar()})`;
-      var downtimeMessage = [t('Scheduled server maintenance'), downtimeDate];
-    }
-
     var userCanEditAsset = this.userCanEditAsset();
 
     return (
@@ -340,24 +299,17 @@ var MainHeader = React.createClass({
                 <bem.Header__logo />
               </a>
             </span>
-            {downtimeMessage ?
-              <div className="account-box__alert">
-                <strong>{downtimeMessage[0]}</strong>
-                <br />
-                {downtimeMessage[1]}
-              </div>
-            :null}
-            {this.state.headerFilters && 
+            { this.isFormList() && 
               <div className="mdl-layout__header-searchers">
-                { this.state.headerFilters == 'library' && 
-                  <ListSearch searchContext={this.state.libraryFiltersContext} placeholderText={t('Search Library')} />
-                }
-                { this.state.headerFilters == 'forms' && 
-                  <ListSearch searchContext={this.state.formFiltersContext} placeholderText={t('Search Projects')} />
-                }
+                <ListSearch searchContext={this.state.formFiltersContext} placeholderText={t('Search Projects')} />
               </div>
             }
-            { this.state.showFormViewHeader && !this.state.headerFilters && this.state.asset &&
+            { this.isLibrary() && 
+              <div className="mdl-layout__header-searchers">
+                <ListSearch searchContext={this.state.libraryFiltersContext} placeholderText={t('Search Library')} />
+              </div>
+            }
+            { this.isFormSingle() && this.state.asset &&
               <bem.FormTitle>
                 { this.state.asset.has_deployment ?
                   <i className="k-icon-deployed" />

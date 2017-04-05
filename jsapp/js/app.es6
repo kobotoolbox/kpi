@@ -643,7 +643,6 @@ var App = React.createClass({
   // componentWillMount() {},
   // componentWillReceiveProps() {},
   render() {
-    // console.log(this.props);
     var showFormViewTabs = false;
     if (!this.state.drawerHidden && this.props.routes[2] && this.props.routes[2].name == 'form-landing') 
       showFormViewTabs = true;
@@ -661,19 +660,19 @@ var App = React.createClass({
               'header-hidden': this.state.headerHidden,
               'drawer-hidden': this.state.drawerHidden,
                 }} className="mdl-layout mdl-layout--fixed-header">
-              {/*{ this.state.modal &&*/}
-                {/*<Modal params={this.state.modal} />*/}
-              {/*}*/}
+              { this.state.pageState && this.state.pageState.modal &&
+                <Modal params={this.state.pageState.modal} />
+              }
 
               { !this.state.headerHidden &&
-                <MainHeader {...this.props}/>
+                <MainHeader/>
               }
               { !this.state.drawerHidden &&
-                <Drawer {...this.props}/>
+                <Drawer/>
               }
               <bem.PageWrapper__content className='mdl-layout__content' m={showFormViewTabs ? 'form-landing' : ''}>
-                {/*<FormViewTabs type={'top'} show={showFormViewTabs} />*/}
-                {/*<FormViewTabs type={'side'} show={showFormViewTabs} />*/}
+                <FormViewTabs type={'top'} show={showFormViewTabs} />
+                <FormViewTabs type={'side'} show={showFormViewTabs} />
                 {this.props.children}
                 {/*{React.cloneElement(this.props.children, {appstate: this.state})}*/}
 
@@ -969,19 +968,28 @@ var routes = (
         {/*<Route name="form-download" path="download" component={FormDownload} />*/}
         <Route name="form-json" path="json" component={FormJson} />
         <Route name="form-xform" path="xform" component={FormXform} />
-        <Route name="form-reports" path="reports" component={Reports} />
+        {/*<Route name="form-reports" path="reports" component={Reports} />*/}
         <Route name='form-edit' path="edit" component={FormPage} />
-        <Route name='form-data-report' path="data/report" component={FormSubScreens} />
+        <Route name='form-data-report' path="data/report" component={Reports} />
+        <Route name='form-data-report-legacy' path="data/report-legacy" component={FormSubScreens} />
         <Route name='form-data-table' path="data/table" component={FormSubScreens} />
         <Route name='form-data-downloads' path="data/downloads" component={FormSubScreens} />
         <Route name='form-data-gallery' path="data/gallery" component={FormSubScreens} />
         <Route name='form-data-map' path="data/map" component={FormSubScreens} />
-        <Route name='form-settings' path="settings" component={FormSubScreens} />
-        <Route name='form-settings-kobocat' path="settings/kobocat" component={FormSubScreens} />
-        <Route name='form-settings-sharing' path="settings/sharing" component={FormSubScreens} />
-        <Route name='form-collect-web' path="collect" component={FormSubScreens} />
-        <Route name='form-collect-android' path="android" component={FormSubScreens} />
-        <IndexRoute component={FormLanding} />
+
+        <Route path="settings">
+          <IndexRoute component={FormSubScreens} />
+          <Route path="kobocat" component={FormSubScreens} />
+          <Route path="sharing" component={FormSubScreens} />
+        </Route>
+
+        <Route path="landing">
+          <IndexRoute component={FormLanding} />
+          <Route name='form-collect-web' path="collect" component={FormSubScreens} />
+          <Route name='form-collect-android' path="android" component={FormSubScreens} />
+        </Route>
+
+        <IndexRedirect to="landing" />
       </Route>
 
       <Route path="*" component={FormNotFound} />

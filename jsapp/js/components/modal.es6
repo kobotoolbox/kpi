@@ -14,10 +14,10 @@ import {
 } from '../utils';
 
 import {ProjectSettings} from '../components/formEditors';
+import SharingForm from '../components/sharingForm';
 
 var Modal = React.createClass({
   mixins: [
-    mixins.shareAsset,
     Reflux.ListenerMixin
   ],
   getInitialState() {
@@ -32,8 +32,6 @@ var Modal = React.createClass({
   	var type = this.props.params.type;
     switch(type) {
       case 'sharing':
-    		var uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
-		    actions.resources.loadAsset({id: uid});
         this.setState({
           title: t('Sharing Permissions')
         });
@@ -98,7 +96,7 @@ var Modal = React.createClass({
 	      <ui.Modal open onClose={()=>{stores.pageState.hideModal()}} title={this.state.title} className={this.state.modalClass}>
 	        <ui.Modal.Body>
 	        	{ this.props.params.type == 'sharing' &&
-	          	this.sharingForm()
+	          	<SharingForm uid={this.props.params.assetid} />
 	        	}
             { this.props.params.type == 'new-form' &&
               <ProjectSettings

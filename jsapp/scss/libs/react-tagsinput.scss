@@ -1,8 +1,3 @@
-// $tagBorderColor: #a5d24a;
-// $tagBgColor: #cde69c;
-// $tagTextColor: #638421;
-// $tagBorderColor: unquote("rgb(#{$color-accent})");
-// $tagBgColor: unquote("rgba(#{$color-accent}, 0.8)");
 
 $tagBgColor: #a6b3ba;
 $tagTextColor: white;
@@ -12,7 +7,7 @@ $wrapBorderColor: transparent;
 $invalidBgColor: #fbd8db;
 $invalidColor: #90111a;
 
-.k-tagsinput-tag {
+.react-tagsinput-tag {
   background-color: $tagBgColor;
   color: $tagTextColor;
   font-weight: 400;
@@ -25,7 +20,7 @@ $invalidColor: #90111a;
 }
 
 /* a.k-tagsinput-remove */
-.k-tagsinput-remove {
+.react-tagsinput-remove {
   cursor: pointer;
   color: $tagTextColor !important;
   opacity: 0.6;
@@ -36,7 +31,7 @@ $invalidColor: #90111a;
   }
 }
 
-.k-tagsinput-input {
+.react-tagsinput-input {
   background: transparent;
   border: 0 none;
   color: $innerInputCursorColor;
@@ -50,15 +45,15 @@ $invalidColor: #90111a;
   min-width: 90px;
 }
 
-.k-tagsinput-invalid {
+.react-tagsinput-invalid {
   background-color: $invalidBgColor;
   color: $invalidColor;
 }
 
-.k-tagsinput-validating {
+.react-tagsinput-validating {
   background: #fffacd;
 }
 
-.k-tags-save-button {
+.react-tags-save-button {
   float: left;
 }
