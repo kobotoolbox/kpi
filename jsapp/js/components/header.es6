@@ -1,5 +1,5 @@
-import React from 'react/addons';
-import {Link,Navigation} from 'react-router';
+import React from 'react';
+import { browserHistory } from 'react-router';
 import mdl from '../libs/rest_framework/material';
 import Select from 'react-select';
 import moment from 'moment';
@@ -44,11 +44,10 @@ function langsToValues (langs) {
 
 var MainHeader = React.createClass({
   mixins: [
-    Reflux.connect(stores.session),
-    Reflux.connect(stores.pageState),
+    Reflux.connect(stores.session, 'session'),
+    Reflux.connect(stores.pageState, 'pageState'),
     Reflux.ListenerMixin,
-    hotkey.Mixin('handleHotkey'),
-    Navigation
+    hotkey.Mixin('handleHotkey')
   ],
   handleHotkey: function(e) {
     if (e.altKey && (e.keyCode == '69' || e.keyCode == '186')) {
@@ -80,6 +79,7 @@ var MainHeader = React.createClass({
         filterTags: 'asset_type:survey',
       }),
       _langIndex: 0,
+      headerFilters: 'forms'
     }, stores.pageState.state);
   },
   componentWillMount() {
@@ -97,40 +97,40 @@ var MainHeader = React.createClass({
     actions.auth.logout();
   },
   accountSettings () {
-    this.transitionTo('account-settings');
+    browserHistory.push('account-settings');
   },
   setStates() {
     this.listenTo(stores.asset, this.assetLoad);
+    console.log(this.props);
+    // var currentParams = this.context.router.getCurrentParams();
+    // this.setState(assign(currentParams));
 
-    var currentParams = this.context.router.getCurrentParams();
-    this.setState(assign(currentParams));
+    // var currentRoutes = this.context.router.getCurrentRoutes();
+    // var activeRoute = currentRoutes[currentRoutes.length - 1];
 
-    var currentRoutes = this.context.router.getCurrentRoutes();
-    var activeRoute = currentRoutes[currentRoutes.length - 1];
+    // switch(activeRoute.path) {
+    //   case '/forms':
+    //     this.setState({headerFilters: 'forms'});
+    //     break;
+    //   case '/library':
+    //     this.setState({headerFilters: 'library'});
+    //     break;
+    //   default:
+    //     this.setState({headerFilters: false});
+    //     break;
+    // }
 
-    switch(activeRoute.path) {
-      case '/forms':
-        this.setState({headerFilters: 'forms'});
-        break;
-      case '/library':
-        this.setState({headerFilters: 'library'});
-        break;
-      default:
-        this.setState({headerFilters: false});
-        break;
-    }
-
-    if (currentRoutes[2] != undefined && currentRoutes[2].path == '/forms/:assetid') {
-      this.setState({
-        showFormViewHeader: true, 
-        activeRoute: activeRoute.path
-      });
-    } else {
-      this.setState({
-        showFormViewHeader: false, 
-        activeRoute: false
-      });    
-    }
+    // if (currentRoutes[2] != undefined && currentRoutes[2].path == '/forms/:assetid') {
+    //   this.setState({
+    //     showFormViewHeader: true, 
+    //     activeRoute: activeRoute.path
+    //   });
+    // } else {
+    //   this.setState({
+    //     showFormViewHeader: false, 
+    //     activeRoute: false
+    //   });    
+    // }
   },
   languageChange (evt) {
     var langCode = $(evt.target).data('key');

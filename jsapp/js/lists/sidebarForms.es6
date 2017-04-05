@@ -1,6 +1,5 @@
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
-import {Navigation} from 'react-router';
 
 import mixins from '../mixins';
 import bem from '../bem';
@@ -19,9 +18,8 @@ import {
 var SidebarFormsList = React.createClass({
   mixins: [
     searches.common,
-    Navigation,
     Reflux.ListenerMixin,
-    Reflux.connect(stores.pageState)
+    Reflux.connect(stores.pageState, 'pageState')
   ],
   getInitialState () {
     var selectedCategories = {
@@ -45,10 +43,10 @@ var SidebarFormsList = React.createClass({
   componentWillReceiveProps () {
     this.listenTo(this.searchStore, this.searchChanged);
 
-    var currentParams = this.context.router.getCurrentParams();
-    this.setState({
-      currentAssetId: currentParams.assetid || false
-    });
+    // var currentParams = this.context.router.getCurrentParams();
+    // this.setState({
+    //   currentAssetId: currentParams.assetid || false
+    // });
   },
   searchChanged (searchStoreState) {
     this.setState(searchStoreState);
@@ -58,7 +56,7 @@ var SidebarFormsList = React.createClass({
     return (
         <bem.FormSidebar__item key={resource.uid}>
           <bem.FormSidebar__itemlink 
-              href={this.makeHref(`${baseName}form-landing`, {assetid: resource.uid})}
+              href={`/form/${resource.uid}`}
               m={this.state.currentAssetId == resource.uid ? 'active' : ''}>
             <i />
             <ui.SidebarAssetName {...resource} />

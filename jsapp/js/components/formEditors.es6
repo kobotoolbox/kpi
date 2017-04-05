@@ -1,5 +1,5 @@
 import $ from 'jquery';
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 
@@ -11,11 +11,9 @@ import ui from '../ui';
 import bem from '../bem';
 import DocumentTitle from 'react-document-title';
 
-import {Navigation} from 'react-router';
 import {session} from '../stores';
 
 let newFormMixins = [
-    Navigation,
     Reflux.ListenerMixin,
     editableFormMixin,
     newFormMixin,
@@ -30,7 +28,6 @@ import {
 
 export var ProjectSettings = React.createClass({
   mixins: [
-    Navigation,
     Reflux.ListenerMixin,
   ],
   nameChange (evt) {
@@ -367,7 +364,6 @@ export var AddToLibrary = React.createClass({
 });
 
 let existingFormMixins = [
-    Navigation,
     Reflux.ListenerMixin,
     editableFormMixin,
     existingFormMixin,

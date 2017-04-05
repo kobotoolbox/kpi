@@ -1,6 +1,9 @@
-import {runRoutes} from './app';
+import RunRoutes from './app';
 import $ from 'jquery';
 import cookie from 'react-cookie';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { Router, Route, browserHistory, IndexRoute } from 'react-router';
 
 require('../scss/main.scss');
 
@@ -25,7 +28,7 @@ $.ajaxSetup({
 });
 
 if (document.head.querySelector('meta[name=kpi-root-url]')) {
-  runRoutes(el);
+  ReactDOM.render(<RunRoutes />, el);
 } else {
   console.error('no kpi-root-url meta tag set. skipping react-router init');
 }

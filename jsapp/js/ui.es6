@@ -1,4 +1,4 @@
-import React from 'react/addons';
+import React from 'react';
 import _ from 'underscore';
 
 import bem from './bem';

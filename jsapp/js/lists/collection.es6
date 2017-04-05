@@ -1,6 +1,5 @@
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
-import {Navigation} from 'react-router';
 import Dropzone from '../libs/dropzone';
 import mdl from '../libs/rest_framework/material';
 
@@ -23,9 +22,8 @@ var CollectionList = React.createClass({
     mixins.collectionList,
     mixins.droppable,
     mixins.clickAssets,
-    Navigation,
     Reflux.ListenerMixin,
-    Reflux.connect(stores.selectedAsset),
+    Reflux.connect(stores.selectedAsset, 'selectedAsset'),
   ],
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {

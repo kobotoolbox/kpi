@@ -1,6 +1,5 @@
-import React from 'react/addons';
+import React from 'react';
 import Dropzone from '../libs/dropzone';
-import {Navigation} from 'react-router';
 import $ from 'jquery';
  
 import bem from '../bem';
@@ -20,7 +19,6 @@ var AssetTypeIcon = bem.create('asset-type-icon');
  
 var AssetRow = React.createClass({
   mixins: [
-    Navigation,
     mixins.taggedAsset,
     mixins.droppable
   ],
@@ -176,7 +174,7 @@ var AssetRow = React.createClass({
               <bem.AssetRow__celllink m={['name', this.props.name ? 'titled' : 'untitled']}
                     data-kind={this.props.kind}
                     data-asset-type={this.props.kind}
-                    href={this.makeHref( hrefTo, hrefParams)}
+                    href={hrefTo}
                   >
                 <bem.AssetRow__name>
                   <ui.AssetName {...this.props} />

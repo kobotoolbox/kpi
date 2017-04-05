@@ -1,6 +1,5 @@
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
-import {Navigation} from 'react-router';
 import {dataInterface} from '../dataInterface';
 import actions from '../actions';
 import bem from '../bem';
@@ -19,7 +18,6 @@ import {ProjectSettings} from '../components/formEditors';
 var Modal = React.createClass({
   mixins: [
     mixins.shareAsset,
-    Navigation,
     Reflux.ListenerMixin
   ],
   getInitialState() {

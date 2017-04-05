@@ -1,7 +1,6 @@
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
-import {Link} from 'react-router';
-import {Navigation} from 'react-router';
+import { Link } from 'react-router';
 import Dropzone from '../libs/dropzone';
 import Select from 'react-select';
 import mdl from '../libs/rest_framework/material';
@@ -32,9 +31,8 @@ var FormSidebar = React.createClass({
   mixins: [
     searches.common,
     mixins.droppable,
-    Navigation,
-    Reflux.connect(stores.session),
-    Reflux.connect(stores.pageState)
+    Reflux.connect(stores.session, 'session'),
+    Reflux.connect(stores.pageState, 'pageState')
   ],
   componentDidMount () {
     this.searchDefault();
@@ -95,9 +93,8 @@ var LibrarySidebar = React.createClass({
   mixins: [
     searches.common,
     mixins.droppable,
-    Navigation,
-    Reflux.connect(stores.session),
-    Reflux.connect(stores.pageState)
+    Reflux.connect(stores.session, 'session'),
+    Reflux.connect(stores.pageState, 'pageState')
   ],
   queryCollections () {
     dataInterface.listCollections().then((collections)=>{
@@ -556,9 +553,8 @@ var Drawer = React.createClass({
   mixins: [
     searches.common,
     mixins.droppable,
-    Navigation,
-    Reflux.connect(stores.session),
-    Reflux.connect(stores.pageState)
+    Reflux.connect(stores.session, 'session'),
+    Reflux.connect(stores.pageState, 'pageState')
   ],
   toggleFixedDrawer() {
     stores.pageState.toggleFixedDrawer();

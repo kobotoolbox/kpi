@@ -1,5 +1,5 @@
 // Generate a SVG use:xlink tag using our icon sprites
-import React from 'react/addons';
+import React from 'react';
 var svgSprite = require('../../img/icons-sprite.svg');
 
 var SVGIcon = React.createClass({

@@ -1,10 +1,8 @@
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
 import Dropzone from '../libs/dropzone';
 import _ from 'underscore';
-import {
-  Navigation,
-} from 'react-router';
+
 import actions from '../actions';
 import bem from '../bem';
 import stores from '../stores';
@@ -27,7 +25,6 @@ import {
 
 var FormLanding = React.createClass({
   mixins: [
-    Navigation,
     mixins.droppable,
     mixins.taggedAsset,
     mixins.dmix,

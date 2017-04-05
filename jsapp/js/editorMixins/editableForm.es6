@@ -1,4 +1,4 @@
-import React from 'react/addons';
+import React from 'react';
 import $ from 'jquery';
 import mdl from '../libs/rest_framework/material';
 import Select from 'react-select';

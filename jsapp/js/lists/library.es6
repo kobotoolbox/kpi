@@ -1,7 +1,5 @@
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
-import {Navigation} from 'react-router';
-// import Dropzone from '../libs/dropzone';
 
 import searches from '../searches';
 import mixins from '../mixins';
@@ -19,8 +17,7 @@ var LibrarySearchableList = React.createClass({
   mixins: [
     searches.common,
     mixins.droppable,
-    Navigation,
-    Reflux.ListenerMixin,
+    Reflux.ListenerMixin
   ],
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {

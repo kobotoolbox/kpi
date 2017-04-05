@@ -1,10 +1,8 @@
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
 import _ from 'underscore';
 import {dataInterface} from '../dataInterface';
-import {
-  Navigation,
-} from 'react-router';
+
 import actions from '../actions';
 import bem from '../bem';
 import stores from '../stores';
@@ -235,7 +233,6 @@ var SizeSliderInput = React.createClass({
 
 var Reports = React.createClass({
   mixins: [
-    Navigation,
     Reflux.ListenerMixin,
   ],
   componentDidMount () {

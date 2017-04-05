@@ -1,4 +1,4 @@
-import React from 'react/addons';
+import React from 'react';
 import bem from '../bem';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import _ from 'underscore';

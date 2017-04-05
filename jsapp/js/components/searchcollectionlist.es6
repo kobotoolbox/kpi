@@ -1,6 +1,5 @@
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
-import {Navigation} from 'react-router';
 
 import searches from '../searches';
 import mixins from '../mixins';
@@ -21,9 +20,8 @@ import {
 var SearchCollectionList = React.createClass({
   mixins: [
     searches.common,
-    Navigation,
     mixins.clickAssets,
-    Reflux.connect(stores.selectedAsset),
+    Reflux.connect(stores.selectedAsset, 'selectedAsset'),
     Reflux.ListenerMixin,
   ],
   getInitialState () {
@@ -116,7 +114,7 @@ var SearchCollectionList = React.createClass({
   renderHeadings () {
     return [
       (
-        <bem.List__heading>
+        <bem.List__heading key='1'>
           <span className={this.state.parentName ? 'parent' : ''}>{t('My Library')}</span>
           {this.state.parentName &&
             <span>
@@ -127,7 +125,7 @@ var SearchCollectionList = React.createClass({
         </bem.List__heading>
       ),
       (
-        <bem.AssetListSorts className="mdl-grid">
+        <bem.AssetListSorts className="mdl-grid" key='2'>
           <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--6-col mdl-cell--3-col-tablet mdl-cell--2-col-phone">
             {t('Name')}
           </bem.AssetListSorts__item>
@@ -175,10 +173,10 @@ var SearchCollectionList = React.createClass({
           return []
         }
         return [
-          <bem.List__subheading>
+          <bem.List__subheading key={i}>
             {t(category)}
           </bem.List__subheading>,
-          <bem.AssetItems m={i+1}>
+          <bem.AssetItems m={i+1} key={i+2}>
             {this.renderGroupedHeadings()}
             {
               (()=>{
@@ -192,7 +190,7 @@ var SearchCollectionList = React.createClass({
     );
 
     return [
-      <bem.List__heading>
+      <bem.List__heading key="h1">
         {t('Active Projects')}
       </bem.List__heading>,
       results];

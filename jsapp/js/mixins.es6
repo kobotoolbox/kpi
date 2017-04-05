@@ -1,10 +1,10 @@
 /*eslint no-unused-vars:0*/
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
 import Dropzone from './libs/dropzone';
 import Select from 'react-select';
 import alertify from 'alertifyjs';
-import {Link, Navigation} from 'react-router';
+import {Link} from 'react-router';
 import mdl from './libs/rest_framework/material';
 import TagsInput from 'react-tagsinput';
 import DocumentTitle from 'react-document-title';
@@ -40,9 +40,9 @@ import icons from '../xlform/src/view.icons';
 var mixins = {};
 
 mixins.taggedAsset = {
-  mixins: [
-    React.addons.LinkedStateMixin
-  ],
+  // mixins: [
+  //   React.addons.LinkedStateMixin
+  // ],
   tagChange (tags/*, changedTag*/) {
     var uid = this.props.uid || this.props.params.assetid;
     actions.resources.updateAsset(uid, {
@@ -570,7 +570,6 @@ mixins.permissions = {
 
 var UserPermDiv = React.createClass({
   mixins: [
-    Navigation,
     mixins.permissions,
   ],
   PermOnChange(permName) {
@@ -633,7 +632,6 @@ var UserPermDiv = React.createClass({
 
 var PublicPermDiv = React.createClass({
   mixins: [
-    Navigation,
     mixins.permissions
   ],
   togglePerms() {
@@ -686,20 +684,20 @@ var PublicPermDiv = React.createClass({
 mixins.shareAsset = {
   mixins: [
     mixins.permissions,
-    Reflux.connectFilter(stores.asset, function(data){
-      var uid = this.props.params.assetid,
-        asset = data[uid];
-      if (asset) {
-        return {
-          asset: asset,
-          permissions: asset.permissions,
-          owner: asset.owner__username,
-          pperms: parsePermissions(asset.owner__username, asset.permissions),
-          public_permission: getAnonymousUserPermission(asset.permissions),
-          related_users: stores.asset.relatedUsers[uid]
-        };
-      }
-    })
+    // Reflux.connectFilter(stores.asset, function(data){
+    //   var uid = this.props.params.assetid,
+    //     asset = data[uid];
+    //   if (asset) {
+    //     return {
+    //       asset: asset,
+    //       permissions: asset.permissions,
+    //       owner: asset.owner__username,
+    //       pperms: parsePermissions(asset.owner__username, asset.permissions),
+    //       public_permission: getAnonymousUserPermission(asset.permissions),
+    //       related_users: stores.asset.relatedUsers[uid]
+    //     };
+    //   }
+    // })
   ],
   componentDidMount () {
     this.listenTo(stores.userExists, this.userExistsStoreChange);

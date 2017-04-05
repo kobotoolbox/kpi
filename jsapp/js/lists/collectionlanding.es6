@@ -1,7 +1,6 @@
 import _ from 'underscore';
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
-import {Navigation} from 'react-router';
 import mdl from '../libs/rest_framework/material';
 import Dropzone from '../libs/dropzone';
 
@@ -55,12 +54,10 @@ var extendCollectionToStateMixin = {
 var CollectionLanding = React.createClass({
   mixins: [
     extendCollectionToStateMixin,
-    // mixins.collectionList,
     mixins.droppable,
     mixins.clickAssets,
-    Navigation,
     Reflux.ListenerMixin,
-    Reflux.connect(stores.selectedAsset),
+    Reflux.connect(stores.selectedAsset, 'selectedAsset'),
   ],
   statics: {
     willTransitionTo: function(transition, params, idk, callback) {

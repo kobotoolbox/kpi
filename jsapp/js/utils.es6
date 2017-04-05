@@ -7,7 +7,7 @@ import Promise from 'es6-promise';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
-export var assign = require('react/lib/Object.assign');
+export var assign = require('object-assign');
 
 alertify.defaults.notifier.delay = 10;
 alertify.defaults.notifier.position = 'bottom-left';
@@ -184,7 +184,8 @@ export var randString = function () {
 };
 
 export function isLibrary(router) {
-  return !!router.getCurrentPathname().match(/library/);
+  return false;
+  // return !!router.getCurrentPathname().match(/library/);
 }
 
 export function stringToColor(str, prc) {

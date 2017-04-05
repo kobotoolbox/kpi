@@ -1,9 +1,6 @@
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
 import _ from 'underscore';
-import {
-  Navigation,
-} from 'react-router';
 import bem from '../bem';
 import stores from '../stores';
 import mdl from '../libs/rest_framework/material';
@@ -15,10 +12,9 @@ import {
 
 var FormViewTabs = React.createClass({
   mixins: [
-    Reflux.connect(stores.session),
-    Reflux.connect(stores.pageState),
-    Reflux.ListenerMixin,
-    Navigation
+    Reflux.connect(stores.session, 'session'),
+    Reflux.connect(stores.pageState, 'pageState'),
+    Reflux.ListenerMixin
   ],
   getInitialState() {
     var dataTabs = ['form-reports', 'form-data-report', 'form-data-table', 'form-data-gallery', 'form-data-downloads', 'form-data-map'];
@@ -37,6 +33,7 @@ var FormViewTabs = React.createClass({
     this.setStates();
   },
   setStates() {
+    console.log(this.props);
     var currentParams = this.context.router.getCurrentParams();
     this.setState(assign(currentParams));
 
