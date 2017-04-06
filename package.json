@@ -96,7 +96,6 @@
     "react-tagsinput": "^3.15.1",
     "reflux": "^6.4.1",
     "reflux-core": "^1.0.0",
-    "reflux-promise": "pmusaraj/reflux-promise",
     "rimraf": "^2.4.3",
     "roboto-fontface": "^0.4.5",
     "sass-loader": "^2.0.1",
