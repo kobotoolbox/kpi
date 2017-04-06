@@ -116,13 +116,15 @@ var sessionStore = stores.session;
 var AssetNavigatorListView = React.createClass({
   mixins: [
     searches.common,
+    Reflux.ListenerMixin
   ],
   componentDidMount () {
     this.searchClear();
     this.listenTo(this.searchStore, this.searchStoreChanged);
   },
-  getInitialState () {
-    return {};
+  componentWillReceiveProps () {
+    this.searchClear();
+    this.listenTo(this.searchStore, this.searchStoreChanged);
   },
   searchStoreChanged (searchStoreState) {
     this.setState(searchStoreState);
@@ -634,9 +636,9 @@ var App = React.createClass({
                 {this.props.children}
 
               </bem.PageWrapper__content>
-              { this.state.assetNavPresent ?
+              { this.isFormBuilder() &&
                 <AssetNavigator />
-              : null }
+              }
           </bem.PageWrapper>
         </div>
       </DocumentTitle>

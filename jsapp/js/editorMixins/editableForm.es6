@@ -292,9 +292,6 @@ export default assign({
       this.setState({
         enketopreviewOverlay: content.enketopreviewlink,
       });
-      stores.pageState.setDrawerHidden(true);
-      stores.pageState.setHeaderHidden(true);
-      stores.pageState.setAssetNavPresent(false);
     }).fail((jqxhr) => {
       let err = jqxhr.responseJSON.error;
       this.setState({
@@ -587,17 +584,11 @@ export default assign({
     this.setState({
       enketopreviewOverlay: false
     });
-    stores.pageState.setDrawerHidden(true);
-    stores.pageState.setHeaderHidden(true);
-    stores.pageState.setAssetNavPresent(true);
   },
   hideCascade () {
     this.setState({
       showCascadePopup: false
     });
-    stores.pageState.setDrawerHidden(true);
-    stores.pageState.setHeaderHidden(true);
-    stores.pageState.setAssetNavPresent(true);
   },
   launchAppForSurveyContent (survey, _state={}) {
     if (_state.name) {
