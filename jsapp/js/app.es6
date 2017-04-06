@@ -6,7 +6,7 @@ require('jquery-ui/sortable');
 
 import mdl from './libs/rest_framework/material';
 import React from 'react';
-import { render } from 'react-dom';
+import ReactDOM from 'react-dom';
 import classNames from 'classnames';
 import DocumentTitle from 'react-document-title';
 import Reflux from 'reflux';
@@ -107,55 +107,6 @@ class ItemDropdownDivider extends React.Component {
   }
 }
 
-/*
-var LoginForm = React.createClass({
-  done (...args) {
-    log(args, this);
-  },
-
-  fail (...args) {
-    log(args, this);
-  },
-
-  handleSubmit (evt) {
-    evt.preventDefault();
-    var username = this.refs.username.getDOMNode().value;
-    var password = this.refs.password.getDOMNode().value;
-    actions.auth.login({
-      username: username,
-      password: password
-    });
-  },
-  render () {
-    return (
-      <div className="col-md-4 pull-right">
-        <form action="/api-auth/login/" className="form-inline" onSubmit={this.handleSubmit}>
-          <div className="form-group">
-            <input type="text" ref="username" placeholder="username" className="form-control input-sm" />
-            <input type="password" ref="password" placeholder="password" className="form-control input-sm" />
-            <button type="submit" className="btn btn-default btn-sm">{t('log in')}</button>
-          </div>
-        </form>
-      </div>
-      );
-  }
-});
-
-var LiLink = React.createClass({
-  render () {
-    var liClass = this.props.active ? 'active' : '';
-    var href = this.props.href || '#';
-    var linkText = this.props.children || 'Link';
-    var srOnly = this.props.srOnly;
-
-    if (srOnly) {
-      srOnly = (<span className="sr-only">{srOnly}</span>)
-    }
-    return <li className={liClass}><a href={href}>{linkText} {srOnly}</a></li>
-  }
-});
-*/
-
 var assetStore = stores.asset;
 var sessionStore = stores.session;
 
@@ -178,7 +129,8 @@ var AssetNavigatorListView = React.createClass({
     if (!this.refs.liblist) {
       return;
     }
-    var $el = $(this.refs.liblist.getDOMNode());
+
+    var $el = $(ReactDOM.findDOMNode(this.refs.liblist));
     if ($el.hasClass('ui-sortable')) {
       $el.sortable('destroy');
     }
@@ -314,7 +266,8 @@ var AssetNavigator = React.createClass({
     return this.imports.filter((i)=> i.status === n );
   },
   searchFieldValue () {
-    return this.refs.navigatorSearchBox.refs.inp.getDOMNode().value;
+    return ReactDOM.findDOMNode(this.refs.navigatorSearchBox.refs.inp).value;
+    // return this.refs.navigatorSearchBox.refs.inp.getDOMNode().value;
   },
   liveSearch () {
     var queryInput = this.searchFieldValue(),
@@ -635,13 +588,12 @@ var FormInput = React.createClass({
 var App = React.createClass({
   mixins: [
     Reflux.connect(stores.pageState, 'pageState'),
+    mixins.contextRouter
   ],
   getInitialState () {
     moment.locale(currentLang());
     return assign({}, stores.pageState.state);
   },
-  // componentWillMount() {},
-  // componentWillReceiveProps() {},
   render() {
     var showFormViewTabs = false;
     if (!this.state.drawerHidden && this.props.routes[2] && this.props.routes[2].name == 'form-landing') 
@@ -657,24 +609,27 @@ var App = React.createClass({
               'asset-nav-present': this.state.assetNavPresent,
               'asset-nav-open': this.state.assetNavIsOpen && this.state.assetNavPresent,
               'fixed-drawer': this.state.showFixedDrawer,
-              'header-hidden': this.state.headerHidden,
-              'drawer-hidden': this.state.drawerHidden,
+              'header-hidden': this.isFormBuilder(),
+              'drawer-hidden': this.isFormBuilder(),
                 }} className="mdl-layout mdl-layout--fixed-header">
               { this.state.pageState && this.state.pageState.modal &&
                 <Modal params={this.state.pageState.modal} />
               }
 
-              { !this.state.headerHidden &&
+              { !this.isFormBuilder() &&
                 <MainHeader/>
               }
-              { !this.state.drawerHidden &&
+              { !this.isFormBuilder() &&
                 <Drawer/>
               }
               <bem.PageWrapper__content className='mdl-layout__content' m={showFormViewTabs ? 'form-landing' : ''}>
-                <FormViewTabs type={'top'} show={showFormViewTabs} />
-                <FormViewTabs type={'side'} show={showFormViewTabs} />
+                { !this.isFormBuilder() &&
+                  <FormViewTabs type={'top'} show={showFormViewTabs} />
+                }
+                { !this.isFormBuilder() &&
+                  <FormViewTabs type={'side'} show={showFormViewTabs} />
+                }
                 {this.props.children}
-                {/*{React.cloneElement(this.props.children, {appstate: this.state})}*/}
 
               </bem.PageWrapper__content>
               { this.state.assetNavPresent ?
@@ -766,12 +721,12 @@ var Forms = React.createClass({
 // });
 
 var FormJson = React.createClass({
-  statics: {
-    willTransitionTo: function(transition, params, idk, callback) {
-      actions.resources.loadAsset({id: params.assetid});
-      callback();
-    }
-  },
+  // statics: {
+  //   willTransitionTo: function(transition, params, idk, callback) {
+  //     actions.resources.loadAsset({id: params.assetid});
+  //     callback();
+  //   }
+  // },
   componentDidMount () {
     this.listenTo(assetStore, this.assetStoreTriggered);
   },
@@ -833,9 +788,6 @@ var FormXform = React.createClass({
 
 var LibrarySearchableList = require('./lists/library');
 var FormsSearchableList = require('./lists/forms');
-var CollectionList = require('./lists/collection');
-
-var CollectionLanding = require('./lists/collectionlanding');
 
 var FormNotFound = React.createClass({
   render () {
@@ -968,20 +920,7 @@ var routes = (
         {/*<Route name="form-download" path="download" component={FormDownload} />*/}
         <Route name="form-json" path="json" component={FormJson} />
         <Route name="form-xform" path="xform" component={FormXform} />
-        {/*<Route name="form-reports" path="reports" component={Reports} />*/}
         <Route name='form-edit' path="edit" component={FormPage} />
-        <Route name='form-data-report' path="data/report" component={Reports} />
-        <Route name='form-data-report-legacy' path="data/report-legacy" component={FormSubScreens} />
-        <Route name='form-data-table' path="data/table" component={FormSubScreens} />
-        <Route name='form-data-downloads' path="data/downloads" component={FormSubScreens} />
-        <Route name='form-data-gallery' path="data/gallery" component={FormSubScreens} />
-        <Route name='form-data-map' path="data/map" component={FormSubScreens} />
-
-        <Route path="settings">
-          <IndexRoute component={FormSubScreens} />
-          <Route path="kobocat" component={FormSubScreens} />
-          <Route path="sharing" component={FormSubScreens} />
-        </Route>
 
         <Route path="landing">
           <IndexRoute component={FormLanding} />
@@ -989,28 +928,27 @@ var routes = (
           <Route name='form-collect-android' path="android" component={FormSubScreens} />
         </Route>
 
+        <Route path="data">
+          <Route name='form-data-report' path="report" component={Reports} />
+          <Route name='form-data-report-legacy' path="report-legacy" component={FormSubScreens} />
+          <Route name='form-data-table' path="table" component={FormSubScreens} />
+          <Route name='form-data-downloads' path="downloads" component={FormSubScreens} />
+          <Route name='form-data-gallery' path="gallery" component={FormSubScreens} />
+          <Route name='form-data-map' path="map" component={FormSubScreens} />
+          <IndexRedirect to="report" />
+        </Route>
+
+        <Route path="settings">
+          <IndexRoute component={FormSubScreens} />
+          <Route path="kobocat" component={FormSubScreens} />
+          <Route path="sharing" component={FormSubScreens} />
+        </Route>
+
         <IndexRedirect to="landing" />
       </Route>
 
       <Route path="*" component={FormNotFound} />
     </Route>
-
-{/*    <Route name="collections">
-      <Route name="collection-page" path=":uid" component={CollectionLanding} />
-      <IndexRoute component={CollectionList} />
-    </Route>
-
-    <Route name="users">
-      <IndexRoute name="users-list" component={UserList} />
-      <Route name="user-profile" component={UserProfile}
-              path="/users/:username" />
-    </Route>
-*/}
-
-    {/*<Route name="public" component={Public}>
-      <Route name="public-builder" component={Builder} />
-    </Route>*/}
-    {/*<Route name="profile" component={SelfProfile} />*/}
 
     <Route path="*" component={SectionNotFound} />
   </Route>

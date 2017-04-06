@@ -23,14 +23,6 @@ var FormsSearchableList = React.createClass({
     mixins.droppable,
     Reflux.ListenerMixin
   ],
-  statics: {
-    willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setAssetNavPresent(false);
-      stores.pageState.setDrawerHidden(false);
-      stores.pageState.setHeaderHidden(false);
-      callback();
-    }
-  },
   componentDidMount () {
     this.searchDefault();
   },

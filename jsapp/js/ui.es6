@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import _ from 'underscore';
 
 import bem from './bem';
@@ -12,10 +13,10 @@ var ui = {};
 
 ui.SmallInputBox = React.createClass({
   getValue () {
-    return this.refs.inp.getDOMNode().value;
+    return ReactDOM.findDOMNode(this.refs.inp).value;
   },
   setValue (v) {
-    this.refs.inp.getDOMNode().value = v;
+    ReactDOM.findDOMNode(this.refs.inp).value = v;
   },
   render () {
     var elemId = _.uniqueId('elem');
@@ -36,10 +37,10 @@ ui.SmallInputBox = React.createClass({
 
 ui.SearchBox = React.createClass({
   getValue () {
-    return this.refs.inp.getDOMNode().value;
+    return ReactDOM.findDOMNode(this.refs.inp).value;
   },
   setValue (v) {
-    this.refs.inp.getDOMNode().value = v;
+    ReactDOM.findDOMNode(this.refs.inp).value = v;
   },
   render () {
     var elemId = _.uniqueId('elem');

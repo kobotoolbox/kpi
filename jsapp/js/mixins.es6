@@ -91,9 +91,6 @@ var dmix = {
           onComplete: () => {
             notify(t('redeployed form'));
             actions.resources.loadAsset({id: asset.uid});
-            if (onComplete) {
-              onComplete(asset);
-            }
           }
         });
         // keep the dialog open
@@ -122,9 +119,7 @@ var dmix = {
         onComplete: () => {
           notify(t('deployed form'));
           actions.resources.loadAsset({id: asset.uid});
-          if (onComplete) {
-            onComplete(asset);
-          }
+          browserHistory.push(`/forms/${asset.uid}`);
         }
       });
     } else {
@@ -426,11 +421,7 @@ mixins.clickAssets = {
       },
       deploy: function(uid){
         let asset = stores.selectedAsset.asset;
-        dmix.deployAsset(asset, () => {
-          // this callback is a kludge and here because I can't figure out how
-          // to call `transitionTo()` from within `deployAsset()`
-          browserHistory.push(`/forms/${uid}`);
-        });
+        dmix.deployAsset(asset);
       },
       archive: function(uid) {
         let asset = stores.selectedAsset.asset;
@@ -521,6 +512,19 @@ mixins.contextRouter = {
   },
   isActiveRoute (path, indexOnly = false) {
     return this.context.router.isActive(path, indexOnly);
+  },
+  isFormBuilder () {
+    if (this.context.router.isActive(`/library/new`))
+      return true; 
+    
+    if (this.context.router.params.assetid == undefined)
+      return false
+
+    var assetid = this.context.router.params.assetid;
+    if (this.context.router.isActive(`/library/${assetid}/edit`))
+      return true;
+
+    return this.context.router.isActive(`/forms/${assetid}/edit`);
   },
 
 }

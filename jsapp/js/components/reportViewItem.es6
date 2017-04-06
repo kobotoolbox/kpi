@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import _ from 'underscore';
 import Chart from 'chart.js';
 import bem from '../bem';
@@ -66,7 +67,8 @@ var ReportViewItem = React.createClass({
     }
     if (this.state.data.show_graph) {
       var opts = this.buildChartOptions();
-      var canvas = this.refs.canvas.getDOMNode();
+
+      var canvas = ReactDOM.findDOMNode(this.refs.canvas);
       var itemChart = new Chart(canvas, opts);
       this.setState({itemChart: itemChart});
     }
@@ -79,7 +81,7 @@ var ReportViewItem = React.createClass({
       this.setState({data: newProps.data});
     }
     if (this.state.data.show_graph) {
-      var canvas = this.refs.canvas.getDOMNode();
+      var canvas = ReactDOM.findDOMNode(this.refs.canvas);
       var opts = this.buildChartOptions();
       let itemChart = this.state.itemChart;
       if (itemChart !== undefined) {

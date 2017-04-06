@@ -1,6 +1,6 @@
+import {browserHistory} from 'react-router';
 import {
   customConfirmAsync,
-  // log,
   t,
 } from '../utils';
 
@@ -21,11 +21,11 @@ export default {
   },
   navigateBack () {
     if (!this.needsSave()) {
-      this.transitionTo(this.listRoute);
+      browserHistory.push('/library');
     } else {
       customConfirmAsync(t('you have unsaved changes. leave form without saving?'))
         .done(() => {
-          this.transitionTo(this.listRoute);
+          browserHistory.push('/library');
         });
     }
   },

@@ -29,15 +29,6 @@ var FormLanding = React.createClass({
     mixins.dmix,
     Reflux.ListenerMixin
   ],
-  statics: {
-    willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setAssetNavPresent(false);
-      stores.pageState.setDrawerHidden(false);
-      stores.pageState.setHeaderHidden(false);
-      actions.resources.loadAsset({id: params.assetid});
-      callback();
-    }
-  },
   getInitialState () {
     return {
       questionLanguageIndex: 0

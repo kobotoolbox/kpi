@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import $ from 'jquery';
 import mdl from '../libs/rest_framework/material';
 import Select from 'react-select';
@@ -6,6 +7,7 @@ import _ from 'underscore';
 import DocumentTitle from 'react-document-title';
 import SurveyScope from '../models/surveyScope';
 import cascadeMixin from './cascadeMixin';
+import {Link, browserHistory} from 'react-router';
 
 import {
   surveyToValidJson,
@@ -28,8 +30,6 @@ import dkobo_xlform from '../../xlform/src/_xlform.init';
 import {dataInterface} from '../dataInterface';
 
 import hotkey from 'react-hotkey';
-
-var errorLoadingFormSupportUrl = 'http://support.kobotoolbox.org/';
 
 var FormStyle__panel = bem('form-style__panel'),
     FormStyle__row = bem('form-style'),
@@ -205,6 +205,9 @@ export default assign({
     document.querySelector('.page-wrapper__content').addEventListener('scroll', this.handleScroll);
     this.listenTo(stores.surveyState, this.surveyStateChanged);
   },
+  componentWillMount() {
+    document.body.classList.add('hide-edge');
+  },
   componentWillUnmount () {
     if (this.app && this.app.survey) {
       document.querySelector('.page-wrapper__content').removeEventListener('scroll', this.handleScroll);
@@ -213,29 +216,24 @@ export default assign({
     this.unpreventClosingTab();
   },
   componentDidUpdate() {
-    // Material Design Lite
-    // This upgrades all upgradable components (i.e. with 'mdl-js-*' class)
     mdl.upgradeDom();
   },
-  statics: {
-    willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setAssetNavPresent(true);
-      stores.pageState.setDrawerHidden(true);
-      stores.pageState.setHeaderHidden(true);
-      if (params.assetid && params.assetid[0] === 'c') {
-        transition.redirect('collection-page', {uid: params.assetid});
-      } else {
-        callback();
-      }
-    }
-  },
+  // statics: {
+  //   willTransitionTo: function(transition, params, idk, callback) {
+  //     stores.pageState.setAssetNavPresent(true);
+  //     stores.pageState.setDrawerHidden(true);
+  //     stores.pageState.setHeaderHidden(true);
+  //     if (params.assetid && params.assetid[0] === 'c') {
+  //       transition.redirect('collection-page', {uid: params.assetid});
+  //     } else {
+  //       callback();
+  //     }
+  //   }
+  // },
   handleHotkey: function(e) {
     if (e.altKey && e.keyCode == '69') {
       document.body.classList.toggle('hide-edge');
     }
-  },
-  componentWillMount() {
-    document.body.classList.add('hide-edge');
   },
   surveyStateChanged (state) {
     this.setState(state);
@@ -331,15 +329,17 @@ export default assign({
       params.name = this.state.name;
     }
     if (this.editorState === 'new') {
-      var library = isLibrary(this.context.router);
-      var baseName = library ? 'library-' : '';
-      params.asset_type = library ? 'block' : 'survey';
+      console.log('new save');
+      // var library = isLibrary(this.context.router);
+      // var baseName = library ? 'library-' : '';
+      params.asset_type = 'block';
       actions.resources.createResource(params)
         .then((asset) => {
-          this.transitionTo(`${baseName}form-edit`, {assetid: asset.uid});
+          browserHistory.push(`/library/${asset.uid}/edit`);
         })
     } else {
       // update existing
+      console.log('update existing');
       var assetId = this.props.params.assetid;
       actions.resources.updateAsset(assetId, params)
         .then(() => {
@@ -573,7 +573,6 @@ export default assign({
   },
   renderNotLoadedMessage () {
     if (this.state.surveyLoadError) {
-      var baseName = isLibrary(this.context.router) ? 'library-' : '';
       return (
           <ErrorMessage>
             <ErrorMessage__strong>
@@ -583,18 +582,9 @@ export default assign({
               {this.state.surveyLoadError}
             </p>
             <div>
-              <ErrorMessage__link m="raised"
-                  href={this.makeHref(`${baseName}form-landing`, {
-                    assetid: this.props.params.assetid,
-                  })}>
+              <Link to={`/forms/${this.props.params.assetid}`}>
                 {t('Back')}
-              </ErrorMessage__link>
-              <ErrorMessage__link m="help"
-                  href={errorLoadingFormSupportUrl}>
-                <i className={'k-icon-help'}
-                  data-tip={t('Ask support about this error')}
-                  />
-              </ErrorMessage__link>
+              </Link>
             </div>
           </ErrorMessage>
         );
@@ -652,7 +642,7 @@ export default assign({
         stateStore: stores.surveyState,
         ngScope: skp,
       });
-      this.app.$el.appendTo(this.refs['form-wrap'].getDOMNode());
+      this.app.$el.appendTo(ReactDOM.findDOMNode(this.refs['form-wrap']));
       this.app.render();
       survey.rows.on('change', this.onSurveyChange);
       survey.rows.on('sort', this.onSurveyChange);

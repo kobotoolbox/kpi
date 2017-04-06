@@ -19,14 +19,6 @@ var LibrarySearchableList = React.createClass({
     mixins.droppable,
     Reflux.ListenerMixin
   ],
-  statics: {
-    willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setAssetNavPresent(false);
-      stores.pageState.setDrawerHidden(false);
-      stores.pageState.setHeaderHidden(false);
-      callback();
-    }
-  },
   queryCollections () {
     dataInterface.listCollections().then((collections)=>{
       this.setState({

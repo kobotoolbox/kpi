@@ -7,6 +7,7 @@ import ui from '../ui';
 import stores from '../stores';
 import mixins from '../mixins';
 import mdl from '../libs/rest_framework/material';
+import {browserHistory} from 'react-router';
 
 import {
   t,
@@ -68,12 +69,7 @@ var Modal = React.createClass({
       }),
       asset_type: 'survey',
     }).done((asset) => {
-      var isNewForm = false;
-      if (isNewForm) {
-        this.transitionTo('form-landing', {assetid: asset.uid})
-      } else {
-        this.transitionTo('form-edit', {assetid: asset.uid})
-      }
+      browserHistory.push(`/forms/${asset.uid}/edit`);
       stores.pageState.hideModal();
     });
   },
