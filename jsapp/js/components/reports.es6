@@ -396,9 +396,9 @@ var Reports = React.createClass({
         {groupByList.length > 1 && 
           <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
               htmlFor="report-groupby">
-            {groupByList.map((row)=>{
+            {groupByList.map((row, i)=>{
                 return (
-                  <li>
+                  <li key={i}>
                     <a className="mdl-menu__item"
                        data-name={row.name}
                        onClick={this.groupDataBy}>{row.label}</a>
@@ -571,9 +571,9 @@ var Reports = React.createClass({
                   <p>{t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. ')}</p>
                 </bem.ReportView__warning>
                 {
-                  reportData.map((rowContent)=>{
+                  reportData.map((rowContent, i)=>{
                     return (
-                        <bem.ReportView__item>
+                        <bem.ReportView__item key={i}>
                           {/* style picker:
                           <IndividualReportStylePicker key={kuid}
                               row={row}

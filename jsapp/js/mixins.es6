@@ -3,7 +3,7 @@ import React from 'react';
 import Reflux from 'reflux';
 import Select from 'react-select';
 import alertify from 'alertifyjs';
-import {Link, browserHistory} from 'react-router';
+import {Link, hashHistory} from 'react-router';
 import mdl from './libs/rest_framework/material';
 import DocumentTitle from 'react-document-title';
 import classNames from 'classnames';
@@ -60,7 +60,7 @@ var dmix = {
         }, {
           onComplete: (asset) => {
             dialog.destroy();
-            browserHistory.push(`/forms/${asset.uid}`);
+            hashHistory.push(`/forms/${asset.uid}`);
           }
         });
 
@@ -118,7 +118,7 @@ var dmix = {
         onComplete: () => {
           notify(t('deployed form'));
           actions.resources.loadAsset({id: asset.uid});
-          browserHistory.push(`/forms/${asset.uid}`);
+          hashHistory.push(`/forms/${asset.uid}`);
         }
       });
     } else {
@@ -270,7 +270,7 @@ mixins.droppable = {
               } else if (library) {
                 this.searchDefault();
               } else {
-                browserHistory.push(`/forms/${assetUid}`);
+                hashHistory.push(`/forms/${assetUid}`);
               }
               if (url) {
                 notify(t('Replace operation completed'));
@@ -329,6 +329,9 @@ mixins.collectionList = {
 };
  
 mixins.clickAssets = {
+  contextTypes: {
+    router: React.PropTypes.object
+  },
   onActionButtonClick (action, uid, name) {
     this.click.asset[action].call(this, uid, name);
   },
@@ -364,7 +367,10 @@ mixins.clickAssets = {
 
       },
       edit: function (uid) {
-        browserHistory.push(`/forms/${uid}/edit`);
+        if (this.context.router.isActive('library'))
+          hashHistory.push(`/library/${uid}/edit`);
+        else
+          hashHistory.push(`/forms/${uid}/edit`);
       },
       delete: function(uid){
         let asset = stores.selectedAsset.asset;

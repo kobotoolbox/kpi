@@ -257,7 +257,7 @@ var FormSubScreens = React.createClass({
     var docTitle = this.state.name || t('Untitled');
     return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          <bem.FormView>
+          <bem.FormView m='form-data-downloads'>
             <ProjectDownloads asset={this.state} />
           </bem.FormView>
         </DocumentTitle>

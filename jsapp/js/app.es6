@@ -16,9 +16,10 @@ import {
   IndexRedirect,
   Link,
   Route,
-  browserHistory,
+  hashHistory,
   Router
 } from 'react-router';
+
 import Select from 'react-select';
 import moment from 'moment';
 
@@ -957,7 +958,7 @@ var routes = (
 class RunRoutes extends React.Component {
   render() {
     return (
-      <Router history={browserHistory}>
+      <Router history={hashHistory}>
         {routes}
       </Router>
     );

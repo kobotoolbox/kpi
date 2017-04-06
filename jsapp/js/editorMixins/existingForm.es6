@@ -1,6 +1,6 @@
 import React from 'react';
 import mixins from '../mixins';
-import {browserHistory} from 'react-router';
+import {hashHistory} from 'react-router';
 
 import {
   t,
@@ -41,11 +41,11 @@ export default {
       path = '/library';
 
     if (!this.needsSave()) {
-      browserHistory.push(path);
+      hashHistory.push(path);
     } else {
       customConfirmAsync(t('you have unsaved changes. leave form without saving?'))
         .done(() => {
-          browserHistory.push(path);
+          hashHistory.push(path);
         });
     }
   },

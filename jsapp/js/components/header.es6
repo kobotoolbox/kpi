@@ -1,5 +1,5 @@
 import React from 'react';
-import { browserHistory } from 'react-router';
+import { hashHistory } from 'react-router';
 import mdl from '../libs/rest_framework/material';
 import Select from 'react-select';
 import moment from 'moment';
@@ -99,7 +99,7 @@ var MainHeader = React.createClass({
     actions.auth.logout();
   },
   accountSettings () {
-    browserHistory.push('account-settings');
+    hashHistory.push('account-settings');
   },
   setStates() {
     this.listenTo(stores.asset, this.assetLoad);

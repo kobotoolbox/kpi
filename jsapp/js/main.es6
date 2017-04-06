@@ -3,7 +3,6 @@ import $ from 'jquery';
 import cookie from 'react-cookie';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Router, Route, browserHistory, IndexRoute } from 'react-router';
 
 require('../scss/main.scss');
 

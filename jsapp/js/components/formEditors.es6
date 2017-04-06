@@ -287,7 +287,7 @@ export var ProjectDownloads = React.createClass({
       <bem.FormView__cell>
         <bem.FormModal__form onSubmit={this.handleSubmit}>
           {[
-            <bem.FormModal__item>
+            <bem.FormModal__item key={'t'}>
               <label htmlFor="type">{t('Select export type')}</label>
               <select name="type" value={this.state.type}
                   onChange={this.typeChange}>
@@ -302,22 +302,22 @@ export var ProjectDownloads = React.createClass({
               </select>
             </bem.FormModal__item>
           , this.state.type == 'xls' || this.state.type == 'csv' ? [
-              <bem.FormModal__item>
+              <bem.FormModal__item key={'x'}>
                 <label htmlFor="lang">{t('Value and header format')}</label>
                 <select name="lang" value={this.state.lang}
                     onChange={this.langChange}>
                   <option value="xml">{t('XML values and headers')}</option>
                   <option value="_default">{t('Labels')}</option>
                   {
-                    translations && translations.map((t) => {
+                    translations && translations.map((t, i) => {
                       if (t) {
-                        return <option value={t}>{t}</option>;
+                        return <option value={t} key={i}>{t}</option>;
                       }
                     })
                   }
                 </select>
               </bem.FormModal__item>,
-              <bem.FormModal__item>
+              <bem.FormModal__item key={'h'}>
                 <label htmlFor="hierarchy_in_labels">
                   {t('Include groups in headers')}
                 </label>
@@ -327,7 +327,7 @@ export var ProjectDownloads = React.createClass({
                 />
               </bem.FormModal__item>,
               this.state.hierInLabels ?
-                <bem.FormModal__item>
+                <bem.FormModal__item key={'g'}>
                   <label htmlFor="group_sep">{t('Group separator')}</label>
                   <input type="text" name="group_sep"
                     value={this.state.groupSep}
@@ -337,7 +337,7 @@ export var ProjectDownloads = React.createClass({
               : null
             ] : null
           , this.state.type.indexOf('_legacy') > 0 ?
-            <bem.FormModal__item m='downloads'>
+            <bem.FormModal__item m='downloads' key={'d'}>
               <iframe src={
                   this.props.asset.deployment__data_download_links[
                     this.state.type]
@@ -345,7 +345,7 @@ export var ProjectDownloads = React.createClass({
               </iframe>
             </bem.FormModal__item>
           :
-            <bem.FormModal__item>
+            <bem.FormModal__item key={'s'}>
               <input type="submit" 
                      value={t('Download')} 
                      className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"/>

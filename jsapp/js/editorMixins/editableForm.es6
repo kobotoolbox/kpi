@@ -7,7 +7,7 @@ import _ from 'underscore';
 import DocumentTitle from 'react-document-title';
 import SurveyScope from '../models/surveyScope';
 import cascadeMixin from './cascadeMixin';
-import {Link, browserHistory} from 'react-router';
+import {Link, hashHistory} from 'react-router';
 
 import {
   surveyToValidJson,
@@ -320,7 +320,7 @@ export default assign({
       params.asset_type = 'block';
       actions.resources.createResource.triggerAsync(params)
         .then((asset) => {
-          browserHistory.push(`/library`);
+          hashHistory.push(`/library`);
         })
     } else {
       // update existing
@@ -566,7 +566,7 @@ export default assign({
               {this.state.surveyLoadError}
             </p>
             <div>
-              <a onClick={browserHistory.goBack} href='#'>
+              <a onClick={hashHistory.goBack} href='#'>
                 {t('Back')}
               </a>
             </div>

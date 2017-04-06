@@ -1,4 +1,4 @@
-import {browserHistory} from 'react-router';
+import {hashHistory} from 'react-router';
 import {
   customConfirmAsync,
   t,
@@ -19,11 +19,11 @@ export default {
   },
   navigateBack () {
     if (!this.needsSave()) {
-      browserHistory.push('/library');
+      hashHistory.push('/library');
     } else {
       customConfirmAsync(t('you have unsaved changes. leave form without saving?'))
         .done(() => {
-          browserHistory.push('/library');
+          hashHistory.push('/library');
         });
     }
   },

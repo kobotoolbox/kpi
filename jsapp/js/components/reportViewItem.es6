@@ -5,7 +5,7 @@ import Chart from 'chart.js';
 import bem from '../bem';
 import $ from 'jquery';
 
-import {t} from '../utils';
+import {t, assign} from '../utils';
 
 var ReportTable = React.createClass({
   render () {
@@ -48,18 +48,20 @@ var ReportTable = React.createClass({
 
 var ReportViewItem = React.createClass({
   getInitialState () {
-    let s = this.props,
-      d = s.data;
-      s.reportTable = [];
+
+    var d = this.props.data, reportTable = [];
     if (d.percentages && d.responses && d.frequencies) {
-      s.reportTable = _.zip(
+      reportTable = _.zip(
           d.responses,
           d.frequencies,
           d.percentages,
         );
     }
 
-    return s;
+    return {
+      ...this.props,
+      reportTable: reportTable
+    };
   },
   componentDidMount () {
     if (!this.refs.canvas) {
@@ -275,7 +277,7 @@ var ReportViewItem = React.createClass({
         <bem.ReportView__itemContent>
           {d.show_graph && 
             <bem.ReportView__chart
-                style={{width: this.state.style.graphWidth}}>
+                style={{width: this.state.style.graphWidth + 'px'}}>
               <canvas ref="canvas" />
             </bem.ReportView__chart>
           }
