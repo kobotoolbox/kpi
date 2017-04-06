@@ -158,6 +158,12 @@ button.popover-menu__toggle {
   box-shadow: 0 0 8px 0 rgba(0,0,0,0.06), 0 8px 8px 0 rgba(0,0,0,0.12);
   z-index: 10;
   right: -10px;
+  &--hidden {
+    display: none;
+  }
+  &--visible {
+    display: block;
+  }
 }
 
 .popover-menu--below .popover-menu__content {

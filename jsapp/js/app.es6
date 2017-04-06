@@ -35,6 +35,7 @@ import Drawer from './components/drawer';
 import {
   AddToLibrary,
   FormPage,
+  LibraryPage
 } from './components/formEditors';
 
 import Reports from './components/reports';
@@ -659,7 +660,7 @@ var Loading = React.createClass({
   }
 });
 
-var Forms = React.createClass({
+// var Forms = React.createClass({
   // mixins: [
   //   Navigation
   // ],
@@ -673,10 +674,10 @@ var Forms = React.createClass({
   //     callback();
   //   }
   // },
-  render () {
-    return this.props.children;
-  }
-});
+  // render () {
+    // return this.props.children;
+  // }
+// });
 
 // var FormDownload = React.createClass({
 //   statics: {
@@ -900,20 +901,19 @@ var routes = (
     <Route name="account-settings" path="account-settings" component={AccountSettings} />
     <Route name="change-password" component={ChangePassword} />
 
-    <Route name="library" path="library">
+    <Route name="library" path="library" >
       <Route name="library-new-form" path="new" component={AddToLibrary} />
       <Route name="library-form-landing" path="/library/:assetid">
         {/*<Route name="library-form-download" path="download" handler={FormDownload} />,*/}
-        <Route name="library-form-json" path="json" handler={FormJson} />,
-        <Route name="library-form-xform" path="xform" handler={FormXform} />,
-        <Route name="library-form-edit" path="edit" handler={FormPage} />
-        <IndexRoute component={FormLanding} />
+        <Route name="library-form-json" path="json" component={FormJson} />,
+        <Route name="library-form-xform" path="xform" component={FormXform} />,
+        <Route name="library-form-edit" path="edit" component={LibraryPage} />
       </Route>
       <IndexRoute component={LibrarySearchableList} />
     </Route>
 
     <IndexRedirect to="forms" />
-    <Route name="forms" path="forms" component={Forms}>
+    <Route name="forms" path="forms" >
       <IndexRoute component={FormsSearchableList} />
 
       <Route name="form-landing" path="/forms/:assetid"> 

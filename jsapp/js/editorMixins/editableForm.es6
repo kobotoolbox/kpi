@@ -218,18 +218,6 @@ export default assign({
   componentDidUpdate() {
     mdl.upgradeDom();
   },
-  // statics: {
-  //   willTransitionTo: function(transition, params, idk, callback) {
-  //     stores.pageState.setAssetNavPresent(true);
-  //     stores.pageState.setDrawerHidden(true);
-  //     stores.pageState.setHeaderHidden(true);
-  //     if (params.assetid && params.assetid[0] === 'c') {
-  //       transition.redirect('collection-page', {uid: params.assetid});
-  //     } else {
-  //       callback();
-  //     }
-  //   }
-  // },
   handleHotkey: function(e) {
     if (e.altKey && e.keyCode == '69') {
       document.body.classList.toggle('hide-edge');
@@ -329,19 +317,15 @@ export default assign({
       params.name = this.state.name;
     }
     if (this.editorState === 'new') {
-      console.log('new save');
-      // var library = isLibrary(this.context.router);
-      // var baseName = library ? 'library-' : '';
       params.asset_type = 'block';
-      actions.resources.createResource(params)
+      actions.resources.createResource.triggerAsync(params)
         .then((asset) => {
-          browserHistory.push(`/library/${asset.uid}/edit`);
+          browserHistory.push(`/library`);
         })
     } else {
       // update existing
-      console.log('update existing');
       var assetId = this.props.params.assetid;
-      actions.resources.updateAsset(assetId, params)
+      actions.resources.updateAsset.triggerAsync(assetId, params)
         .then(() => {
           this.saveFormComplete();
         });
@@ -582,9 +566,9 @@ export default assign({
               {this.state.surveyLoadError}
             </p>
             <div>
-              <Link to={`/forms/${this.props.params.assetid}`}>
+              <a onClick={browserHistory.goBack} href='#'>
                 {t('Back')}
-              </Link>
+              </a>
             </div>
           </ErrorMessage>
         );

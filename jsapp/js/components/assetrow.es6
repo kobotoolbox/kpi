@@ -1,5 +1,5 @@
 import React from 'react';
-import Dropzone from '../libs/dropzone';
+import Dropzone from 'react-dropzone';
 import $ from 'jquery';
 import { Link } from 'react-router'; 
 import bem from '../bem';
@@ -14,7 +14,8 @@ import {
   formatTime,
   anonUsername,
   t,
-  assign
+  assign,
+  validFileTypes
 } from '../utils';
   
 var AssetRow = React.createClass({
@@ -87,26 +88,11 @@ var AssetRow = React.createClass({
       clearPopover: true,
     });
   },
-  onDrop (files) {
+  onDrop (files, rejectedFiles) {
     if (files.length === 0) {
       return;
-    } else if (files.length> 1) {
-      var errMsg = t('Only 1 file can be uploaded in this case');
-      alertify.error(errMsg);
-      throw new Error(errMsg);
     }
-    const VALID_ASSET_UPLOAD_FILE_TYPES = [
-      'application/xls',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    ];
-    var file = files[0];
-    if (VALID_ASSET_UPLOAD_FILE_TYPES.indexOf(file.type) === -1) {
-      var err = `Invalid filetype: '${file.type}'`;
-      console.error(err);
-    }
-    this.dropFiles(files, {url: this.props.url});
+    this.dropFiles(files, rejectedFiles, {url: this.props.url});
   },
   render () {
     var selfowned = this.props.owner__username === this.props.currentUsername;
@@ -320,7 +306,10 @@ var AssetRow = React.createClass({
                 </bem.PopoverMenu__link>
               }
               { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit &&
-                <Dropzone fileInput onDropFiles={this.onDrop}>
+                <Dropzone onDrop={this.onDrop} 
+                          multiple={false} 
+                          className='dropzone' 
+                          accept={validFileTypes()}>
                   <bem.PopoverMenu__link
                         m={'refresh'}
                         data-action={'refresh'}

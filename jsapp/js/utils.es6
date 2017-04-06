@@ -219,3 +219,13 @@ export function stringToColor(str, prc) {
   };
   return shade(int_to_rgba(hash(str)), prc);
 }
+
+export function validFileTypes() {
+  const VALID_ASSET_UPLOAD_FILE_TYPES = [
+    'application/xls',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ];
+  return VALID_ASSET_UPLOAD_FILE_TYPES.join(',');
+}

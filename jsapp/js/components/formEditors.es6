@@ -359,8 +359,7 @@ export var ProjectDownloads = React.createClass({
 });
 
 export var AddToLibrary = React.createClass({
-  mixins: newFormMixins,
-  listRoute: 'library',
+  mixins: newFormMixins
 });
 
 let existingFormMixins = [
@@ -370,11 +369,9 @@ let existingFormMixins = [
 ];
 
 export var FormPage = React.createClass({
-  mixins: existingFormMixins,
-  listRoute: 'forms',
+  mixins: existingFormMixins
 });
 
 export var LibraryPage = React.createClass({
-  mixins: existingFormMixins,
-  listRoute: 'library',
+  mixins: existingFormMixins
 });

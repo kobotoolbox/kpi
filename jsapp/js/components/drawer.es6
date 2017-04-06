@@ -1,7 +1,7 @@
 import React from 'react';
 import Reflux from 'reflux';
 import { Link } from 'react-router';
-import Dropzone from '../libs/dropzone';
+import Dropzone from 'react-dropzone';
 import Select from 'react-select';
 import mdl from '../libs/rest_framework/material';
 
@@ -20,7 +20,8 @@ import {
   assign,
   getAnonymousUserPermission,
   anonUsername,
-  supportUrl
+  supportUrl,
+  validFileTypes
 } from '../utils';
 
 import SidebarFormsList from '../lists/sidebarForms';
@@ -39,7 +40,8 @@ var FormSidebar = React.createClass({
   },
   getInitialState () {
     return assign({
-      currentAssetId: false
+      currentAssetId: false,
+      files: []
     }, stores.pageState.state);
   },
   componentWillMount() {
@@ -72,7 +74,10 @@ var FormSidebar = React.createClass({
               <i className="k-icon-projects" />
               {t('Project')}
             </bem.PopoverMenu__link>
-            <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
+            <Dropzone onDrop={this.dropFiles} 
+                      multiple={false} 
+                      className='dropzone'
+                      accept={validFileTypes()}>
               <bem.PopoverMenu__link>
                 <i className="k-icon-upload" />
                 {t('upload')}

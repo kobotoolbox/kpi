@@ -1,7 +1,6 @@
 /*eslint no-unused-vars:0*/
 import React from 'react';
 import Reflux from 'reflux';
-import Dropzone from './libs/dropzone';
 import Select from 'react-select';
 import alertify from 'alertifyjs';
 import {Link, browserHistory} from 'react-router';
@@ -239,8 +238,11 @@ var dmix = {
 mixins.dmix = dmix;
  
 mixins.droppable = {
+  contextTypes: {
+    router: React.PropTypes.object
+  },
   _forEachDroppedFile (evt, file, params={}) {
-    var library = isLibrary(this.context.router);
+    var library = this.context.router.isActive('library');
     var url = params.url || this.state.url;
     dataInterface.postCreateBase64EncodedImport(assign({
         base64Encoded: evt.target.result,
@@ -298,7 +300,7 @@ mixins.droppable = {
       alertify.error(t('Failed to create import.'));
     });
   },
-  dropFiles (files, params={}) {
+  dropFiles (files, rejectedFiles, params={}) {
     files.map((file) => {
       var reader = new FileReader();
       reader.onload = (e)=>{

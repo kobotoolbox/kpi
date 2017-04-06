@@ -1,6 +1,6 @@
 import React from 'react';
 import Reflux from 'reflux';
-import Dropzone from '../libs/dropzone';
+import Dropzone from 'react-dropzone';
 import _ from 'underscore';
 import { Link } from 'react-router';
 import actions from '../actions';
@@ -21,6 +21,7 @@ import {
   t,
   log,
   notify,
+  validFileTypes
 } from '../utils';
 
 var FormLanding = React.createClass({
@@ -109,7 +110,12 @@ var FormLanding = React.createClass({
         <bem.FormView__cell m={['question-list']}>
           {survey.map((s, i)=>{
             if (s.label == undefined) return false;
-            var faClass = `fa-${icons._byId[s.type].attributes.faClass}`;
+            var icon = icons._byId[s.type];
+            if (!icon) {
+              return false;
+            }
+
+            var faClass = `fa-${icon.attributes.faClass}`;
             return (
                 <div key={`survey-${i}`}>
                   <i className={`fa fa-fw ${faClass}`} />
@@ -201,12 +207,11 @@ var FormLanding = React.createClass({
             <i className="k-icon-view" />
           </bem.FormView__link>
           {this.state.userCanEdit && 
-            <Dropzone fileInput onDropFiles={this.onDrop}
-                  disabled={!this.state.userCanEdit}>
-              <bem.FormView__link m={['upload', {
-                disabled: !this.state.userCanEdit
-                  }]}
-                  data-tip={t('Replace with XLS')}>
+            <Dropzone onDrop={this.dropFiles} 
+                          multiple={false} 
+                          className='dropzone' 
+                          accept={validFileTypes()}>
+              <bem.FormView__link m='upload' data-tip={t('Replace with XLS')}>
                 <i className="k-icon-replace" />
               </bem.FormView__link>
             </Dropzone>

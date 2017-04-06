@@ -1,7 +1,7 @@
 import React from 'react';
 import Reflux from 'reflux';
 import { Link } from 'react-router';
-import Dropzone from '../libs/dropzone';
+import Dropzone from 'react-dropzone';
 import Select from 'react-select';
 import alertify from 'alertifyjs';
 
@@ -15,7 +15,8 @@ import mixins from '../mixins';
 
 import {
   t,
-  assign
+  assign,
+  validFileTypes
 } from '../utils';
 
 import SidebarFormsList from '../lists/sidebarForms';
@@ -157,7 +158,7 @@ var LibrarySidebar = React.createClass({
       value: collectionName,
       labels: {ok: t('Ok'), cancel: t('Cancel')},
       onok: (evt, val) => {
-        actions.resources.updateCollection(collectionUid, {name: val}).then(
+        actions.resources.updateCollection.triggerAsync(collectionUid, {name: val}).then(
           (data) => {
             this.queryCollections();
             dialog.destroy();
@@ -249,7 +250,10 @@ var LibrarySidebar = React.createClass({
               <i className="k-icon-question" />
               {t('Question')}
             </Link>
-            <Dropzone onDropFiles={this.dropFiles} params={{destination: false}} fileInput>
+            <Dropzone onDrop={this.dropFiles} 
+                          multiple={false} 
+                          className='dropzone' 
+                          accept={validFileTypes()}>
               <bem.PopoverMenu__link>
                 <i className="k-icon-upload" />
                 {t('upload')}

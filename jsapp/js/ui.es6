@@ -163,7 +163,6 @@ ui.BreadcrumbItem = React.createClass({
   }
 });
 
-
 var SidebarAssetName = bem.create('sidebar-asset-name', '<span>');
 
 ui.SidebarAssetName = React.createClass({
@@ -223,11 +222,11 @@ ui.PopoverMenu = React.createClass({
     if (this.state.popoverVisible || isBlur) {
         $popoverMenu = $(evt.target).parents('.popover-menu').find('.popover-menu__content');
         // if we setState and immediately hide popover then links will not register as clicked
-        $popoverMenu.fadeOut(250, () => {
+        window.setTimeout(()=>{
           this.setState({
             popoverVisible: false,
           });
-        });
+        }, 500);
     } else {
       this.setState({
         popoverVisible: true,
@@ -257,11 +256,9 @@ ui.PopoverMenu = React.createClass({
         <bem.PopoverMenu__toggle onClick={this.toggle} onBlur={this.toggle} data-tip={this.props.triggerTip}>
           {this.props.triggerLabel}
         </bem.PopoverMenu__toggle>
-        {this.state.popoverVisible && 
-          <bem.PopoverMenu__content>
+          <bem.PopoverMenu__content m={this.state.popoverVisible ? 'visible' : 'hidden'}>
             {this.props.children}
           </bem.PopoverMenu__content>
-        }
       </bem.PopoverMenu>
 
     );

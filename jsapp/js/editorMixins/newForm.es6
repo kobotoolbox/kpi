@@ -15,9 +15,7 @@ export default {
     };
   },
   componentDidMount () {
-    this.launchAppForSurveyContent(
-        this.listRoute == 'library' ? {survey: []} : null
-      );
+    this.launchAppForSurveyContent();
   },
   navigateBack () {
     if (!this.needsSave()) {
