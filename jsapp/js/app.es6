@@ -599,10 +599,7 @@ var App = React.createClass({
     return assign({}, stores.pageState.state);
   },
   render() {
-    var showFormViewTabs = false;
-    if (!this.state.drawerHidden && this.props.routes[2] && this.props.routes[2].name == 'form-landing') 
-      showFormViewTabs = true;
-
+    var assetid = this.props.params.assetid || '';
     return (
       <DocumentTitle title="KoBoToolbox">
         <div className="mdl-wrapper">
@@ -621,17 +618,17 @@ var App = React.createClass({
               }
 
               { !this.isFormBuilder() &&
-                <MainHeader/>
+                <MainHeader assetid={assetid}/>
               }
               { !this.isFormBuilder() &&
                 <Drawer/>
               }
-              <bem.PageWrapper__content className='mdl-layout__content' m={showFormViewTabs ? 'form-landing' : ''}>
+              <bem.PageWrapper__content className='mdl-layout__content' m={this.isFormSingle() ? 'form-landing' : ''}>
                 { !this.isFormBuilder() &&
-                  <FormViewTabs type={'top'} show={showFormViewTabs} />
+                  <FormViewTabs type={'top'} show={this.isFormSingle()} />
                 }
                 { !this.isFormBuilder() &&
-                  <FormViewTabs type={'side'} show={showFormViewTabs} />
+                  <FormViewTabs type={'side'} show={this.isFormSingle()} />
                 }
                 {this.props.children}
 
@@ -725,14 +722,13 @@ var Loading = React.createClass({
 // });
 
 var FormJson = React.createClass({
-  // statics: {
-  //   willTransitionTo: function(transition, params, idk, callback) {
-  //     actions.resources.loadAsset({id: params.assetid});
-  //     callback();
-  //   }
-  // },
+  mixins: [
+    Reflux.ListenerMixin
+  ],
   componentDidMount () {
-    this.listenTo(assetStore, this.assetStoreTriggered);
+    this.listenTo(stores.asset, this.assetStoreTriggered);
+    actions.resources.loadAsset({id: this.props.params.assetid});
+
   },
   assetStoreTriggered (data, uid) {
     this.setState({
@@ -747,13 +743,15 @@ var FormJson = React.createClass({
   render () {
     return (
         <ui.Panel>
-          <pre>
+          <bem.FormView>
+            <pre>
             <code>
               { this.state.assetcontent ?
                 JSON.stringify(this.state.assetcontent, null, 4)
              : null }
             </code>
-          </pre>
+            </pre>
+          </bem.FormView>
         </ui.Panel>
       );
   }
@@ -778,13 +776,22 @@ var FormXform = React.createClass({
   render () {
     if (!this.state.xformLoaded) {
       return (
-          <p>XForm is loading</p>
+        <ui.Panel>
+          <bem.Loading>
+            <bem.Loading__inner>
+              <p>XForm is loading</p>
+            </bem.Loading__inner>
+          </bem.Loading>
+        </ui.Panel>
+
         );
     } else {
       return (
-          <div className="pygment"
-                    dangerouslySetInnerHTML={this.state.xformHtml}
-                  />
+        <ui.Panel>
+          <bem.FormView>
+            <div className="pygment" dangerouslySetInnerHTML={this.state.xformHtml} />
+          </bem.FormView>
+        </ui.Panel>
         );
     }
   }
@@ -901,43 +908,43 @@ var SectionNotFound = React.createClass({
 
 var routes = (
   <Route name="home" path="/" component={App}>
-    <Route name="account-settings" path="account-settings" component={AccountSettings} />
-    <Route name="change-password" component={ChangePassword} />
+    <Route path="account-settings" component={AccountSettings} />
+    <Route path="change-password" component={ChangePassword} />
 
-    <Route name="library" path="library" >
-      <Route name="library-new-form" path="new" component={AddToLibrary} />
-      <Route name="library-form-landing" path="/library/:assetid">
+    <Route path="library" >
+      <Route path="new" component={AddToLibrary} />
+      <Route path="/library/:assetid">
         {/*<Route name="library-form-download" path="download" handler={FormDownload} />,*/}
-        <Route name="library-form-json" path="json" component={FormJson} />,
-        <Route name="library-form-xform" path="xform" component={FormXform} />,
-        <Route name="library-form-edit" path="edit" component={LibraryPage} />
+        <Route path="json" component={FormJson} />,
+        <Route path="xform" component={FormXform} />,
+        <Route path="edit" component={LibraryPage} />
       </Route>
       <IndexRoute component={LibrarySearchableList} />
     </Route>
 
     <IndexRedirect to="forms" />
-    <Route name="forms" path="forms" >
+    <Route path="forms" >
       <IndexRoute component={FormsSearchableList} />
 
-      <Route name="form-landing" path="/forms/:assetid"> 
+      <Route path="/forms/:assetid"> 
         {/*<Route name="form-download" path="download" component={FormDownload} />*/}
-        <Route name="form-json" path="json" component={FormJson} />
-        <Route name="form-xform" path="xform" component={FormXform} />
-        <Route name='form-edit' path="edit" component={FormPage} />
+        <Route path="json" component={FormJson} />
+        <Route path="xform" component={FormXform} />
+        <Route path="edit" component={FormPage} />
 
         <Route path="landing">
           <IndexRoute component={FormLanding} />
-          <Route name='form-collect-web' path="collect" component={FormSubScreens} />
-          <Route name='form-collect-android' path="android" component={FormSubScreens} />
+          <Route path="collect" component={FormSubScreens} />
+          <Route path="android" component={FormSubScreens} />
         </Route>
 
         <Route path="data">
-          <Route name='form-data-report' path="report" component={Reports} />
-          <Route name='form-data-report-legacy' path="report-legacy" component={FormSubScreens} />
-          <Route name='form-data-table' path="table" component={FormSubScreens} />
-          <Route name='form-data-downloads' path="downloads" component={FormSubScreens} />
-          <Route name='form-data-gallery' path="gallery" component={FormSubScreens} />
-          <Route name='form-data-map' path="map" component={FormSubScreens} />
+          <Route path="report" component={Reports} />
+          <Route path="report-legacy" component={FormSubScreens} />
+          <Route path="table" component={FormSubScreens} />
+          <Route path="downloads" component={FormSubScreens} />
+          <Route path="gallery" component={FormSubScreens} />
+          <Route path="map" component={FormSubScreens} />
           <IndexRedirect to="report" />
         </Route>
 

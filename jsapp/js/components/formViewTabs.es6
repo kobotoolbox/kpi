@@ -19,23 +19,7 @@ var FormViewTabs = React.createClass({
     Reflux.ListenerMixin,
     mixins.contextRouter
   ],
-  getInitialState() {
-    var dataTabs = ['form-reports', 'form-data-report', 'form-data-table', 'form-data-gallery', 'form-data-downloads', 'form-data-map'];
-    var formTabs = ['form-landing', 'form-collect-web', 'form-collect-android'];
-    var settingsTabs = ['form-settings', 'form-settings-sharing', 'form-settings-kobocat'];
-    return {
-      dataTabs: dataTabs,
-      formTabs: formTabs,
-      settingsTabs: settingsTabs
-    };
-  },
-  componentWillMount() {
-    this.setStates();
-  },
-  componentWillReceiveProps() {
-    this.setStates();
-  },
-  setStates() {
+  componentDidMount() {
     this.listenTo(stores.asset, this.assetLoad);
   },
   assetLoad(data) {

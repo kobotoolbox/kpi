@@ -11,30 +11,6 @@ hotkey.activate();
 
 var ui = {};
 
-ui.SmallInputBox = React.createClass({
-  getValue () {
-    return ReactDOM.findDOMNode(this.refs.inp).value;
-  },
-  setValue (v) {
-    ReactDOM.findDOMNode(this.refs.inp).value = v;
-  },
-  render () {
-    var elemId = _.uniqueId('elem');
-    var value = this.props.value;
-    var mdlKls = 'mdl-textfield mdl-js-textfield mdl-textfield--full-width';
-    if (value) {
-      mdlKls += ' is-dirty';
-    }
-    return (
-        <div className={mdlKls}>
-          <input type="text" ref='inp' className="mdl-textfield__input" value={value}
-              onKeyUp={this.props.onKeyUp} onChange={this.props.onChange} id={elemId} />
-          <label className="mdl-textfield__label" htmlFor={elemId} >{this.props.placeholder}</label>
-        </div>
-      );
-  }
-});
-
 ui.SearchBox = React.createClass({
   getValue () {
     return ReactDOM.findDOMNode(this.refs.inp).value;
@@ -139,27 +115,6 @@ ui.Modal.Footer = React.createClass({
 ui.Modal.Body = React.createClass({
   render () {
     return <div className="modal-body">{this.props.children}</div>;
-  }
-});
-
-
-ui.Breadcrumb = React.createClass({
-  render () {
-    return (
-        <ul className="ui-breadcrumb">
-          {this.props.children}
-        </ul>
-      );
-  }
-});
-
-ui.BreadcrumbItem = React.createClass({
-  render () {
-    return (
-        <li className="ui-breadcrumb__item">
-          {this.props.children}
-        </li>
-      );
   }
 });
 

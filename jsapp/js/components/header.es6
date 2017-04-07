@@ -82,12 +82,12 @@ var MainHeader = React.createClass({
       _langIndex: 0
     }, stores.pageState.state);
   },
-  componentWillMount() {
+  componentDidMount() {
     document.body.classList.add('hide-edge');
-    this.setStates();
+    this.listenTo(stores.asset, this.assetLoad);
   },
   assetLoad(data) {
-    var assetid = this.currentAssetID();
+    var assetid = this.props.assetid;
     var asset = data[assetid];
 
     this.setState(assign({
@@ -100,9 +100,6 @@ var MainHeader = React.createClass({
   },
   accountSettings () {
     hashHistory.push('account-settings');
-  },
-  setStates() {
-    this.listenTo(stores.asset, this.assetLoad);
   },
   languageChange (evt) {
     var langCode = $(evt.target).data('key');
@@ -341,8 +338,9 @@ var MainHeader = React.createClass({
   componentDidUpdate() {
     mdl.upgradeDom();
   },
-  componentWillReceiveProps() {
-    this.setStates();
+  componentWillReceiveProps(nextProps) {
+    if (this.props != nextProps)
+      actions.resources.loadAsset({id: this.props.assetid});
   }
 });
 

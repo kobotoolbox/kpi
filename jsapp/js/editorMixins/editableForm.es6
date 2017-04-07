@@ -196,6 +196,7 @@ export default assign({
       multioptionsExpanded: true,
       surveyAppRendered: false,
       currentName: 'name',
+      name: ''
     };
   },
   mixins: [
@@ -408,12 +409,9 @@ export default assign({
               <i className="k-icon-projects" />
             </bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__cell m={'name'} >
-              <ui.SmallInputBox
-                  ref='form-name'
-                  value={name}
-                  onChange={this.nameChange}
-                  placeholder={t('form name')}
-                />
+              <div className='mdl-textfield mdl-js-textfield mdl-textfield--full-width'>
+                <input type="text" onChange={this.nameChange} className="mdl-textfield__input" value={this.state.name} id="nameField"/>
+              </div>
             </bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__cell m={'buttonsTopRight'} >
 
