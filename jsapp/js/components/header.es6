@@ -339,8 +339,8 @@ var MainHeader = React.createClass({
     mdl.upgradeDom();
   },
   componentWillReceiveProps(nextProps) {
-    if (this.props != nextProps)
-      actions.resources.loadAsset({id: this.props.assetid});
+    if (this.props.assetid != nextProps.assetid && nextProps.assetid != null)
+      actions.resources.loadAsset({id: nextProps.assetid});
   }
 });
 

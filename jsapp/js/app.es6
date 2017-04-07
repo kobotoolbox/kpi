@@ -599,7 +599,7 @@ var App = React.createClass({
     return assign({}, stores.pageState.state);
   },
   render() {
-    var assetid = this.props.params.assetid || '';
+    var assetid = this.props.params.assetid || null;
     return (
       <DocumentTitle title="KoBoToolbox">
         <div className="mdl-wrapper">
