@@ -116,6 +116,10 @@ module.exports = do ->
         else
           vals2set.value = value
         @set(vals2set)
+      else if @key is "required" and !value
+        @set({
+          value: false,
+        })
       @_order = $configs.columnOrder(@key)
       @postInitialize()
 
