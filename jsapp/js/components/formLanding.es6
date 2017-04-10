@@ -277,7 +277,7 @@ var FormLanding = React.createClass({
             </bem.FormView__cell>
             <bem.FormView__cell m='box'>
               {this.state.deployed_versions.length > 0 &&
-                this.state.deployed_version_id != this.state.version_id &&
+                this.state.deployed_version_id != this.state.version_id && this.state.deployment__active && 
                 <bem.FormView__cell m='warning'>
                   <i className="k-icon-alert" />
                   {t('If you want to make these changes public, you must deploy this form')}
