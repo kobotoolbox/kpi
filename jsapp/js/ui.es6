@@ -175,7 +175,8 @@ ui.PopoverMenu = React.createClass({
   toggle(evt) {
     var isBlur = evt.type === 'blur',
         $popoverMenu;
-    console.log(evt.type);
+    
+
     if (this.state.popoverVisible || isBlur) {
         $popoverMenu = $(evt.target).parents('.popover-menu').find('.popover-menu__content');
         this.setState({
@@ -183,6 +184,9 @@ ui.PopoverMenu = React.createClass({
         });
         // if we setState and immediately hide popover then links will not register as clicked
         window.setTimeout(()=>{
+          if (!this.isMounted())
+            return false;
+
           this.setState({
             popoverVisible: false,
             popoverHiding: false

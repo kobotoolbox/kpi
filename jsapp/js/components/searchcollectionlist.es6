@@ -14,7 +14,6 @@ import $ from 'jquery';
 import {
   parsePermissions,
   t,
-  isLibrary,
 } from '../utils';
 
 var SearchCollectionList = React.createClass({
@@ -53,7 +52,7 @@ var SearchCollectionList = React.createClass({
       this.queryCollections();
   },
   queryCollections () {
-    if (isLibrary(this.context.router)) {
+    if (this.props.searchContext.store.filterTags != 'asset_type:survey') {
       dataInterface.listCollections().then((collections)=>{
         this.setState({
           ownedCollections: collections.results.filter((value) => {

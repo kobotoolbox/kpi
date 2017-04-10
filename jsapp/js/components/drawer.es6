@@ -18,7 +18,6 @@ import LibrarySidebar from '../components/librarySidebar';
 import {
   t,
   assign,
-  getAnonymousUserPermission,
   anonUsername,
   supportUrl,
   validFileTypes

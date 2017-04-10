@@ -16,7 +16,9 @@ import mixins from '../mixins';
 import {
   t,
   assign,
-  validFileTypes
+  validFileTypes,
+  getAnonymousUserPermission,
+  anonUsername
 } from '../utils';
 
 import SidebarFormsList from '../lists/sidebarForms';
@@ -222,7 +224,7 @@ var LibrarySidebar = React.createClass({
       }
       if (permDeferred) {
         var discovDeferred = permDeferred.then(() => {
-          actions.permissions.setCollectionDiscoverability(
+          actions.permissions.setCollectionDiscoverability.triggerAsync(
             collection.uid, discoverable
           );
         }).catch((jqxhr) => {
@@ -232,7 +234,7 @@ var LibrarySidebar = React.createClass({
           }
         });
       } else {
-        var discovDeferred = actions.permissions.setCollectionDiscoverability(
+        var discovDeferred = actions.permissions.setCollectionDiscoverability.triggerAsync(
           collection.uid, discoverable
         );
       }
