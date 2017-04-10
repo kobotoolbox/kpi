@@ -1,3 +1,4 @@
+from collections import defaultdict
 from django.apps import apps
 from django.db import models, transaction
 from django.core.exceptions import ValidationError, ImproperlyConfigured
@@ -320,26 +321,31 @@ class ObjectPermissionMixin(object):
         if self.editors_can_change_permissions and (
             codename is None or codename.startswith('share_')):
             # Everyone with change_ should also get share_
-            change_permission = Permission.objects.get(
+            change_permissions = Permission.objects.filter(
                 content_type=content_type,
                 codename__startswith='change_'
             )
-            share_permission = Permission.objects.get(
-                content_type=content_type,
-                codename__startswith='share_'
-            )
-            for user_id, permission_id in effective_perms_copy:
-                if permission_id == change_permission.pk:
-                    effective_perms.add((user_id, share_permission.pk))
+            for change_permission in change_permissions:
+                share_permission_codename = re.sub(
+                    '^change_', 'share_', change_permission.codename, 1)
+                share_permission = Permission.objects.get(
+                    content_type=content_type,
+                    codename=share_permission_codename
+                )
+                for user_id, permission_id in effective_perms_copy:
+                    if permission_id == change_permission.pk:
+                        effective_perms.add((user_id, share_permission.pk))
         # The owner has the delete_ permission
         if self.owner is not None and (
-            user is None or user.pk == self.owner.pk) and (
-            codename is None or codename.startswith('delete_')):
-            delete_permission = Permission.objects.get(
+                user is None or user.pk == self.owner.pk) and (
+                codename is None or codename.startswith('delete_')
+        ):
+            delete_permissions = Permission.objects.filter(
                 content_type=content_type,
                 codename__startswith='delete_'
-            )
-            effective_perms.add((self.owner.pk, delete_permission.pk))
+            ).values_list('pk', flat=True)
+            for delete_permission in delete_permissions:
+                effective_perms.add((self.owner.pk, delete_permission))
         # We may have calculated more permissions for anonymous users
         # than they are allowed to have. Remove them.
         if user is None or user.pk == settings.ANONYMOUS_USER_ID:
@@ -519,6 +525,39 @@ class ObjectPermissionMixin(object):
         if return_instead_of_creating:
             return objects_to_return
 
+    def _get_implied_perms(self, explicit_perm, reverse=False):
+        """ Determine which permissions are implied by `explicit_perm` based on
+        the `IMPLIED_PERMISSIONS` attribute.
+        :param explicit_perm str: The `codename` of the explicitly-assigned
+            permission.
+        :param reverse bool: When `True`, exchange the keys and values of
+            `IMPLIED_PERMISSIONS`. Useful for working with `deny=True`
+            permissions. Defaults to `False`.
+        :rtype: set of `codename`s
+        """
+        implied_perms_dict = getattr(self, 'IMPLIED_PERMISSIONS', {})
+        if reverse:
+            reverse_perms_dict = defaultdict(list)
+            for src_perm, dest_perms in implied_perms_dict.iteritems():
+                for dest_perm in dest_perms:
+                    reverse_perms_dict[dest_perm].append(src_perm)
+            implied_perms_dict = reverse_perms_dict
+
+        perms_to_process = [explicit_perm]
+        result = set()
+        while perms_to_process:
+            this_explicit_perm = perms_to_process.pop()
+            try:
+                implied_perms = implied_perms_dict[this_explicit_perm]
+            except KeyError:
+                continue
+            if result.intersection(implied_perms):
+                raise ImproperlyConfigured(
+                    'Loop in IMPLIED_PERMISSIONS for {}'.format(type(self)))
+            perms_to_process.extend(implied_perms)
+            result.update(implied_perms)
+        return result
+
     @transaction.atomic
     def assign_perm(self, user_obj, perm, deny=False, defer_recalc=False):
         ''' Assign user_obj the given perm on this object. To break
@@ -571,15 +610,12 @@ class ObjectPermissionMixin(object):
             deny=deny,
             inherited=False
         )
-        # Granting change implies granting view
-        if codename.startswith('change_') and not deny:
-            change_codename = re.sub('^change_', 'view_', codename)
-            self.assign_perm(user_obj, change_codename, defer_recalc=True)
-        # Denying view implies denying change
-        if deny and codename.startswith('view_'):
-            change_codename = re.sub('^view_', 'change_', codename)
-            self.assign_perm(user_obj, change_codename,
-                             deny=True, defer_recalc=True)
+        # Resolve implied permissions, e.g. granting change implies granting
+        # view
+        implied_perms = self._get_implied_perms(codename, reverse=deny)
+        for implied_perm in implied_perms:
+            self.assign_perm(
+                user_obj, implied_perm, deny=deny, defer_recalc=True)
         # We might have been called by ourself to assign a related
         # permission. In that case, don't recalculate here.
         if defer_recalc:

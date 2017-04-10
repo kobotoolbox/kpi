@@ -15,6 +15,7 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.db import models
 from django.db import transaction
 from django.dispatch import receiver
+from django.utils.translation import ugettext_lazy as _
 import jsonbfield.fields
 from jsonfield import JSONField
 from jsonbfield.fields import JSONField as JSONBField
@@ -454,12 +455,25 @@ class Asset(ObjectPermissionMixin,
         permissions = (
             # change_, add_, and delete_asset are provided automatically
             # by Django
-            ('view_asset', 'Can view asset'),
-            ('share_asset', "Can change this asset's sharing settings"),
+            ('view_asset', _('Can view asset')),
+            ('share_asset', _("Can change asset's sharing settings")),
+            # Permissions for collected data, i.e. submissions
+            ('add_submissions', _('Can submit data to asset')),
+            ('view_submissions', _('Can view submitted data for asset')),
+            ('change_submissions', _('Can modify submitted data for asset')),
+            ('delete_submissions', _('Can delete submitted data for asset')),
+            ('share_submissions', _("Can change sharing settings for "
+                                    "asset's submitted data"))
         )
 
     # Assignable permissions that are stored in the database
-    ASSIGNABLE_PERMISSIONS = ('view_asset', 'change_asset')
+    ASSIGNABLE_PERMISSIONS = (
+        'view_asset',
+        'change_asset',
+        'add_submissions',
+        'view_submissions',
+        'change_submissions'
+    )
     # Calculated permissions that are neither directly assignable nor stored
     # in the database, but instead implied by assignable permissions
     CALCULATED_PERMISSIONS = ('share_asset', 'delete_asset')
@@ -467,6 +481,14 @@ class Asset(ObjectPermissionMixin,
     MAPPED_PARENT_PERMISSIONS = {
         'view_collection': 'view_asset',
         'change_collection': 'change_asset'
+    }
+    # Granting some permissions implies also granting other permissions
+    IMPLIED_PERMISSIONS = {
+        # Format: explicit: (implied, implied, ...)
+        'change_asset': ('view_asset',),
+        'add_submissions': ('view_asset',),
+        'view_submissions': ('view_asset',),
+        'change_submissions': ('view_submissions',)
     }
 
     # todo: test and implement this method
