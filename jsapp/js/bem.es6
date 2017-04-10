@@ -9,6 +9,7 @@ bem.PageWrapper__content = bem.PageWrapper.__('content');
 
 bem.Loading = BEM('loading');
 bem.Loading__inner = bem.Loading.__('inner');
+bem.Loading__msg = bem.Loading.__('msg');
 
 bem.AssetRow = BEM('asset-row', '<li>');
 bem.AssetRow__cell        = bem.AssetRow.__('cell');

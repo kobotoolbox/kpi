@@ -37,6 +37,15 @@ var Modal = React.createClass({
           title: t('Sharing Permissions')
         });
         break;
+      case 'uploading-xls':
+        console.log(this.props.params);
+        var filename = this.props.params.file.name || '';
+        this.setState({
+          title: t('Uploading XLS form'),
+          message: t('Uploading: ') + filename
+        });
+        break;
+
       case 'new-form':
         this.setState({
           title: t('Create New Project from Scratch')
@@ -117,6 +126,18 @@ var Modal = React.createClass({
             { this.props.params.type == 'enketo-preview' && this.state.error && 
               <div>
                 {this.state.message}
+              </div>
+            }
+            { this.props.params.type == 'uploading-xls' && 
+              <div>
+                <bem.Loading>
+                  <bem.Loading__inner>
+                    <i />
+                    <bem.Loading__msg>{this.state.message}</bem.Loading__msg>
+                  </bem.Loading__inner>
+                </bem.Loading>
+
+
               </div>
             }
 

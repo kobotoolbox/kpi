@@ -244,6 +244,13 @@ mixins.droppable = {
   _forEachDroppedFile (evt, file, params={}) {
     var library = this.context.router.isActive('library');
     var url = params.url || this.state.url;
+
+    stores.pageState.showModal({
+      type: 'uploading-xls',
+      file: file,
+      url: url
+    });
+
     dataInterface.postCreateBase64EncodedImport(assign({
         base64Encoded: evt.target.result,
         name: file.name,
@@ -294,6 +301,8 @@ mixins.droppable = {
           alertify.error(t('Import Failed.'));
           log('import failed', failData);
         });
+
+        stores.pageState.hideModal();
       }), 2500);
     }).fail((jqxhr)=> {
       log('Failed to create import: ', jqxhr);
