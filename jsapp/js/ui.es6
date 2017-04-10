@@ -167,6 +167,7 @@ ui.PopoverMenu = React.createClass({
   getInitialState () {
     return assign({
       popoverVisible: false,
+      popoverHiding: false,
       placement: 'below'
     });
 
@@ -174,12 +175,17 @@ ui.PopoverMenu = React.createClass({
   toggle(evt) {
     var isBlur = evt.type === 'blur',
         $popoverMenu;
+    console.log(evt.type);
     if (this.state.popoverVisible || isBlur) {
         $popoverMenu = $(evt.target).parents('.popover-menu').find('.popover-menu__content');
+        this.setState({
+          popoverHiding: true
+        });
         // if we setState and immediately hide popover then links will not register as clicked
         window.setTimeout(()=>{
           this.setState({
             popoverVisible: false,
+            popoverHiding: false
           });
         }, 500);
     } else {
@@ -208,12 +214,12 @@ ui.PopoverMenu = React.createClass({
   render () {
     return (
       <bem.PopoverMenu m={[this.props.type, this.state.placement]}>
-        <bem.PopoverMenu__toggle onClick={this.toggle} onBlur={this.toggle} data-tip={this.props.triggerTip}>
+        <bem.PopoverMenu__toggle onClick={this.toggle} onBlur={this.toggle} data-tip={this.props.triggerTip} tabIndex='1'>
           {this.props.triggerLabel}
         </bem.PopoverMenu__toggle>
-          <bem.PopoverMenu__content m={this.state.popoverVisible ? 'visible' : 'hidden'}>
-            {this.props.children}
-          </bem.PopoverMenu__content>
+        <bem.PopoverMenu__content m={[this.state.popoverHiding ? 'hiding' : '', this.state.popoverVisible ? 'visible' : 'hidden']}>
+          {this.props.children}
+        </bem.PopoverMenu__content>
       </bem.PopoverMenu>
 
     );

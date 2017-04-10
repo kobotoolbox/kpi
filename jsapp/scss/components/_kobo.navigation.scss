@@ -182,6 +182,7 @@ $headerAccountTextColor: #dbedf7;
             @include box-shadow;
             li {
                 padding: 12px;
+                text-transform: capitalize;
             }
         }
         &:hover > ul {

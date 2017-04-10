@@ -140,7 +140,7 @@
   vertical-align: middle;
 }
 
-button.popover-menu__toggle {
+.popover-menu__toggle {
   background: transparent;
   border: none;
   margin: 0;
@@ -161,6 +161,12 @@ button.popover-menu__toggle {
   box-shadow: 0 0 8px 0 rgba(0,0,0,0.06), 0 8px 8px 0 rgba(0,0,0,0.12);
   z-index: 10;
   right: -10px;
+  transition: opacity 0.35s;
+  opacity: 1;
+  &--hiding {
+    opacity: 0;
+    transition: opacity 0.35s;
+  }
   &--hidden {
     display: none;
   }
@@ -268,7 +274,7 @@ button.popover-menu__toggle {
   }
 }
 
-.popover-menu--new-menu button.popover-menu__toggle {
+.popover-menu--new-menu .popover-menu__toggle {
   @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
   text-align: center;
   width: 100%;

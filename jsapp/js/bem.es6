@@ -168,7 +168,7 @@ bem.FormModal__item = bem.FormModal.__('item');
 
 bem.PopoverMenu = bem('popover-menu');
 bem.PopoverMenu__content = bem.PopoverMenu.__('content');
-bem.PopoverMenu__toggle = bem.PopoverMenu.__('toggle', '<button>');
+bem.PopoverMenu__toggle = bem.PopoverMenu.__('toggle', '<a>');
 bem.PopoverMenu__link = bem.PopoverMenu.__('link', '<a>');
 bem.PopoverMenu__item = bem.PopoverMenu.__('item');
 bem.PopoverMenu__heading = bem.PopoverMenu.__('heading');
