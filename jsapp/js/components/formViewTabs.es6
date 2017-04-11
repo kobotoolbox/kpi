@@ -101,11 +101,11 @@ var FormViewTabs = React.createClass({
     }
 
     if (this.state.asset && this.state.asset.deployment__active && this.isActiveRoute(`/forms/${this.state.assetid}/settings`)) {
-       sideTabs = [
-          {label: t('General settings'), icon: 'k-icon-information', path: `/forms/${this.state.assetid}/settings`},
-          {label: t('Sharing'), icon: 'k-icon-share', path: `/forms/${this.state.assetid}/settings/sharing`},
-          {label: t('Kobocat settings'), icon: 'k-icon-projects', path: `/forms/${this.state.assetid}/settings/kobocat`}
-        ];
+       // sideTabs = [
+       //    {label: t('General settings'), icon: 'k-icon-information', path: `/forms/${this.state.assetid}/settings`},
+       //    {label: t('Sharing'), icon: 'k-icon-share', path: `/forms/${this.state.assetid}/settings/sharing`},
+       //    {label: t('Kobocat settings'), icon: 'k-icon-projects', path: `/forms/${this.state.assetid}/settings/kobocat`}
+       //  ];
     }
 
     if (sideTabs.length > 0) {

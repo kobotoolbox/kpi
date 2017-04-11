@@ -121,6 +121,13 @@ export var ProjectSettings = React.createClass({
 
     return (
       <bem.FormModal__form onSubmit={this.onSubmit}>
+        {this.props.context == 'existingForm' && 
+          <bem.FormModal__item m={['actions', 'fixed']}>
+            <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+              {this.props.submitButtonValue}
+            </button>
+          </bem.FormModal__item>
+        }
         <bem.FormModal__item m='wrapper'>
           <bem.FormModal__item>
             <label htmlFor="name">
@@ -187,12 +194,18 @@ export var ProjectSettings = React.createClass({
               {t('All the information is submitted anonymously, and will not include the project name or description listed above.')}
             </label>
           </bem.FormModal__item>
+          {this.props.context != 'existingForm' ?
+            <bem.FormModal__item m='actions'>
+              <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                {this.props.submitButtonValue}
+              </button>
+            </bem.FormModal__item>
+          :
+            <bem.FormView__cell m='iframe'>
+              <iframe src={this.props.iframeUrl} className="kc-settings-iframe" />
+            </bem.FormView__cell>
 
-          <bem.FormModal__item m='actions'>
-          <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-              {this.props.submitButtonValue}
-            </button>
-          </bem.FormModal__item>
+          }
         </bem.FormModal__item>
       </bem.FormModal__form>
     );

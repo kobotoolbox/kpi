@@ -68,18 +68,19 @@ var FormSubScreens = React.createClass({
         case `/forms/${this.state.uid}/data/map`:
           iframeUrl = deployment__identifier+'/map';
           break;
-        case `/forms/${this.state.uid}/settings/kobocat`:
-          iframeUrl = deployment__identifier+'/form_settings';
-          break;
+        // case `/forms/${this.state.uid}/settings/kobocat`:
+        //   iframeUrl = deployment__identifier+'/form_settings';
+        //   break;
         case `/forms/${this.state.uid}/data/downloads`:
           return this.renderProjectDownloads();
           break;
         case `/forms/${this.state.uid}/settings`:
-          return this.renderSettingsEditor();
+          iframeUrl = deployment__identifier+'/form_settings';
+          return this.renderSettingsEditor(iframeUrl);
           break;
-        case `/forms/${this.state.uid}/settings/sharing`:
-          return this.renderSharing();
-          break;
+        // case `/forms/${this.state.uid}/settings/sharing`:
+        //   return this.renderSharing();
+        //   break;
         case `/forms/${this.state.uid}/landing/collect`:
           return this.renderCollectWeb();
           break;
@@ -243,12 +244,12 @@ var FormSubScreens = React.createClass({
         </DocumentTitle>
     );
   },
-  renderSettingsEditor() {
+  renderSettingsEditor(iframeUrl) {
     var docTitle = this.state.name || t('Untitled');
     return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
           <bem.FormView m='form-settings'>
-            <ProjectSettingsEditor asset={this.state} />
+            <ProjectSettingsEditor asset={this.state} iframeUrl={iframeUrl} />
           </bem.FormView>
         </DocumentTitle>
     );

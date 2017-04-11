@@ -99,6 +99,13 @@ var FormLanding = React.createClass({
       }
     );
   },
+  sharingModal (evt) {
+    evt.preventDefault();
+    stores.pageState.showModal({
+      type: 'sharing', 
+      assetid: this.state.uid
+    });
+  },
   renderQuestionsSummary () {
     var survey = this.state.content.survey || [];
     return (
@@ -231,10 +238,10 @@ var FormLanding = React.createClass({
                   );
               })}
               {this.state.userCanEdit && 
-                <Link to={`/forms/${this.state.uid}/settings/sharing`} className='popover-menu__link'>
+                <bem.PopoverMenu__link onClick={this.sharingModal}>
                   <i className="k-icon-share"/>
                   {t('Share this project')}
-                </Link>
+                </bem.PopoverMenu__link>
               }
               <bem.PopoverMenu__link onClick={this.saveCloneAs}>
                 <i className="k-icon-clone"/>
