@@ -954,6 +954,9 @@ var routes = (
           <Route path="sharing" component={FormSubScreens} />
         </Route>
 
+        {/* used to force refresh form screens */}
+        <Route path="reset" component={FormSubScreens} />
+
         <IndexRedirect to="landing" />
       </Route>
 

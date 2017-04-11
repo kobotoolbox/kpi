@@ -1,10 +1,11 @@
+import $ from 'jquery';
 import React from 'react';
 import Reflux from 'reflux';
 import _ from 'underscore';
 import bem from '../bem';
 import stores from '../stores';
 import mdl from '../libs/rest_framework/material';
-import { Link } from 'react-router'; 
+import { Link, hashHistory } from 'react-router'; 
 import mixins from '../mixins';
 
 import {
@@ -40,6 +41,18 @@ var FormViewTabs = React.createClass({
 
     return false;
   },
+  triggerRefresh (evt) {
+    if ($(evt.target).hasClass('active')) {
+      hashHistory.push(`/forms/${this.state.assetid}/reset`);
+      
+      var path = evt.target.getAttribute('data-path');
+      window.setTimeout(function(){
+        hashHistory.push(path);
+      }, 50);
+
+      evt.preventDefault();
+    }
+  },
   renderTopTabs () {
     return (
       <bem.FormView__toptabs>
@@ -54,7 +67,7 @@ var FormViewTabs = React.createClass({
         </bem.FormView__tab>
         { this.state.asset && this.state.asset.deployment__identifier != undefined && this.state.asset.has_deployment && this.state.asset.deployment__submission_count > 0 && 
           <Link 
-            to={`/forms/${this.state.assetid}/data/report`}
+            to={`/forms/${this.state.assetid}/data`}
             className='form-view__tab'
             activeClassName='active'>
             {t('Data')}
@@ -100,13 +113,13 @@ var FormViewTabs = React.createClass({
         ];
     }
 
-    if (this.state.asset && this.state.asset.deployment__active && this.isActiveRoute(`/forms/${this.state.assetid}/settings`)) {
+    // if (this.state.asset && this.state.asset.deployment__active && this.isActiveRoute(`/forms/${this.state.assetid}/settings`)) {
        // sideTabs = [
        //    {label: t('General settings'), icon: 'k-icon-information', path: `/forms/${this.state.assetid}/settings`},
        //    {label: t('Sharing'), icon: 'k-icon-share', path: `/forms/${this.state.assetid}/settings/sharing`},
        //    {label: t('Kobocat settings'), icon: 'k-icon-projects', path: `/forms/${this.state.assetid}/settings/kobocat`}
        //  ];
-    }
+    // }
 
     if (sideTabs.length > 0) {
     	return (
@@ -117,7 +130,9 @@ var FormViewTabs = React.createClass({
               key={ind} 
               activeClassName='active'
               onlyActiveOnIndex={true}
-              className={`form-view__tab ${item.className}`}>
+              className={`form-view__tab ${item.className}`}
+              data-path={item.path}
+              onClick={this.triggerRefresh}>
                 <i className={item.icon} />
                 {item.label}
             </Link>

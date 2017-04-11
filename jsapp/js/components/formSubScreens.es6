@@ -87,6 +87,9 @@ var FormSubScreens = React.createClass({
         case `/forms/${this.state.uid}/landing/android`:
           return this.renderCollectAndroid();
           break;
+        case `/forms/${this.state.uid}/reset`:
+          return this.renderReset();
+          break;
       }
     }
 
@@ -262,6 +265,16 @@ var FormSubScreens = React.createClass({
             <ProjectDownloads asset={this.state} />
           </bem.FormView>
         </DocumentTitle>
+    );
+  },
+  renderReset() {
+    return (
+      <bem.Loading>
+        <bem.Loading__inner>
+          <i />
+          {t('loading...')}
+        </bem.Loading__inner>
+      </bem.Loading>
     );
   },
   componentDidUpdate() {
