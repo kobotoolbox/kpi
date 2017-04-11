@@ -194,15 +194,18 @@ export var ProjectSettings = React.createClass({
               {t('All the information is submitted anonymously, and will not include the project name or description listed above.')}
             </label>
           </bem.FormModal__item>
-          {this.props.context != 'existingForm' ?
+
+          {this.props.context != 'existingForm' &&
             <bem.FormModal__item m='actions'>
               <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
                 {this.props.submitButtonValue}
               </button>
             </bem.FormModal__item>
-          :
+          }
+
+          {this.props.context == 'existingForm' && this.props.iframeUrl &&
             <bem.FormView__cell m='iframe'>
-              <iframe src={this.props.iframeUrl} className="kc-settings-iframe" />
+              <iframe src={this.props.iframeUrl} />
             </bem.FormView__cell>
 
           }
@@ -235,12 +238,14 @@ export var ProjectSettingsEditor = React.createClass({
       assetid: this.props.asset.uid
     };
     assign(initialData, this.props.asset.settings);
+
     return (
       <ProjectSettings
         onSubmit={this.updateAsset}
         submitButtonValue={t('Save Changes')}
         initialData={initialData}
         context='existingForm'
+        iframeUrl={this.props.iframeUrl}
       />
     );
   },

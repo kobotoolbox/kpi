@@ -46,13 +46,11 @@ var FormSubScreens = React.createClass({
 
   },
   render () {
-    var formClass = '';
-    var iframeUrl = '', report__base = '';
+    var formClass = '', iframeUrl = '', report__base = '', deployment__identifier = '';
 
     if (this.state.uid != undefined) {
       if (this.state.deployment__identifier != undefined) {
         var deployment__identifier = this.state.deployment__identifier;
-
         var report__base = deployment__identifier.replace('/forms/', '/reports/');
       }
       switch(this.props.location.pathname) {
@@ -75,7 +73,8 @@ var FormSubScreens = React.createClass({
           return this.renderProjectDownloads();
           break;
         case `/forms/${this.state.uid}/settings`:
-          iframeUrl = deployment__identifier+'/form_settings';
+          if (deployment__identifier != '')
+            iframeUrl = deployment__identifier+'/form_settings';
           return this.renderSettingsEditor(iframeUrl);
           break;
         // case `/forms/${this.state.uid}/settings/sharing`:
