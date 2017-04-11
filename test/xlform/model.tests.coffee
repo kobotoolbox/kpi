@@ -160,6 +160,25 @@ xlform_survey_model = ($model)->
       # scsv = @createSurveyCsv ["text,text,text,text"]
       # @dumpAndLoad scsv
 
+    it "captures required values", ->
+      srv = $model.Survey.loadDict({
+          survey: [
+            {
+              type: 'text',
+              name: 'q1',
+              required: true
+            },
+            {
+              type: 'text',
+              name: 'q2',
+              required: false
+            }
+          ]
+        })
+      exported = srv.toJSON()
+      expect(exported.survey[0]['required']).toEqual('true')
+      expect(exported.survey[1]['required']).toEqual('false')
+
     it "tries a few question types", ->
       srv = @createSurvey ["text,text,text,text"]
       row1 = srv.rows.at(0)
