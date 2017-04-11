@@ -1,11 +1,9 @@
-.form-view--form-data-map,
-.form-view__map,
 #data-map {
   height: 100%;
   width: 100%;
 }
 
-.form-view__map {
+.form-view--map {
 	position: relative;
 	.form-view__map-button {
 		position: absolute;
@@ -36,7 +34,7 @@
 	bottom: 15px;
 	left: 15px;
 	z-index: 700;
-	button {
+	.popover-menu__toggle {
 		min-width: 160px;
 		background: #FFF;
 		@include box-shadow;

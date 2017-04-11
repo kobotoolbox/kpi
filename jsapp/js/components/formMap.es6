@@ -1,6 +1,5 @@
 import React from 'react';
 import L from 'leaflet/dist/leaflet';
-import HeatLayer from 'leaflet.heat/dist/leaflet-heat';
 import Reflux from 'reflux';
 import _ from 'underscore';
 import {dataInterface} from '../dataInterface';
@@ -8,9 +7,13 @@ import {hashHistory} from 'react-router';
 import bem from '../bem';
 import stores from '../stores';
 import ui from '../ui';
-// import $ from 'jquery';
 
 import 'leaflet/dist/leaflet.css';
+
+import 'leaflet.heat/dist/leaflet-heat';
+import 'leaflet.markercluster/dist/leaflet.markercluster';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 
 import {
   assign,
@@ -126,8 +129,12 @@ var FormMap = React.createClass({
 		    		prepPoints.push(L.marker(item._geolocation, {icon: icon}));
 		    	}
 		    });
-
-				var markers = L.featureGroup(prepPoints);
+        if(params.kuid != undefined) {
+          var markers = L.featureGroup(prepPoints);
+        } else {
+          var markers = L.markerClusterGroup();
+          markers.addLayers(prepPoints);
+        }
 				markers.addTo(map);
 				map.fitBounds(markers.getBounds());
 
@@ -247,7 +254,6 @@ var FormMap = React.createClass({
   	}
   },
   render () {
-    console.log(this.state.markerMap);
   	if (!this.state.hasGeoPoint) {
       return (
         <ui.Panel>
