@@ -350,6 +350,41 @@
   padding:40px;
 }
 
+.form-view.form-view--form-settings {
+  overflow: initial;
+  .form-modal__form {
+    height: 100%;
+    .form-modal__item--wrapper {
+      height: calc(100% - 70px);
+      overflow: auto;
+      .form-view__cell--iframe {
+        height: 820px;
+      }
+    }
+  }
+}
+
+.form-view__cell--iframe {
+  width:100%;
+  height: 100%;
+  overflow: hidden;
+
+  iframe {
+    width:100%;
+    height:100%;
+    overflow: auto;
+    padding-right: 5px;
+  }
+
+}
+
+.form-modal__item--downloads {
+  iframe {
+    min-width: 100%;
+    min-height:400px;
+  }
+}
+
 @media screen and (max-width: 767px) {
   .form-view__sidetabs {
     width:50px;

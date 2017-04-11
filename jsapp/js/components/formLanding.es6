@@ -1,10 +1,8 @@
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
-import Dropzone from '../libs/dropzone';
+import Dropzone from 'react-dropzone';
 import _ from 'underscore';
-import {
-  Navigation,
-} from 'react-router';
+import { Link } from 'react-router';
 import actions from '../actions';
 import bem from '../bem';
 import stores from '../stores';
@@ -23,25 +21,15 @@ import {
   t,
   log,
   notify,
+  validFileTypes
 } from '../utils';
 
 var FormLanding = React.createClass({
   mixins: [
-    Navigation,
     mixins.droppable,
-    mixins.taggedAsset,
     mixins.dmix,
     Reflux.ListenerMixin
   ],
-  statics: {
-    willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setAssetNavPresent(false);
-      stores.pageState.setDrawerHidden(false);
-      stores.pageState.setHeaderHidden(false);
-      actions.resources.loadAsset({id: params.assetid});
-      callback();
-    }
-  },
   getInitialState () {
     return {
       questionLanguageIndex: 0
@@ -73,11 +61,9 @@ var FormLanding = React.createClass({
           </bem.FormView__cell>
           <bem.FormView__cell m='buttons'>
             {this.state.userCanEdit ?
-              <a className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
-                  href={this.makeHref('form-edit', {assetid: this.state.uid})}>
+              <Link to={`/forms/${this.state.uid}/edit`} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
                 {t('edit form')}
-              </a>
-              
+              </Link>              
             : 
               <a className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored disabled"
                   data-tip={t('Editing capabilities not granted, you can only view this form')}>
@@ -113,6 +99,13 @@ var FormLanding = React.createClass({
       }
     );
   },
+  sharingModal (evt) {
+    evt.preventDefault();
+    stores.pageState.showModal({
+      type: 'sharing', 
+      assetid: this.state.uid
+    });
+  },
   renderQuestionsSummary () {
     var survey = this.state.content.survey || [];
     return (
@@ -124,7 +117,12 @@ var FormLanding = React.createClass({
         <bem.FormView__cell m={['question-list']}>
           {survey.map((s, i)=>{
             if (s.label == undefined) return false;
-            var faClass = `fa-${icons._byId[s.type].attributes.faClass}`;
+            var icon = icons._byId[s.type];
+            if (!icon) {
+              return false;
+            }
+
+            var faClass = `fa-${icon.attributes.faClass}`;
             return (
                 <div key={`survey-${i}`}>
                   <i className={`fa fa-fw ${faClass}`} />
@@ -216,12 +214,11 @@ var FormLanding = React.createClass({
             <i className="k-icon-view" />
           </bem.FormView__link>
           {this.state.userCanEdit && 
-            <Dropzone fileInput onDropFiles={this.onDrop}
-                  disabled={!this.state.userCanEdit}>
-              <bem.FormView__link m={['upload', {
-                disabled: !this.state.userCanEdit
-                  }]}
-                  data-tip={t('Replace with XLS')}>
+            <Dropzone onDrop={this.dropFiles} 
+                          multiple={false} 
+                          className='dropzone' 
+                          accept={validFileTypes()}>
+              <bem.FormView__link m='upload' data-tip={t('Replace with XLS')}>
                 <i className="k-icon-replace" />
               </bem.FormView__link>
             </Dropzone>
@@ -241,7 +238,7 @@ var FormLanding = React.createClass({
                   );
               })}
               {this.state.userCanEdit && 
-                <bem.PopoverMenu__link href={this.makeHref('form-settings-sharing', {assetid: this.state.uid})}>
+                <bem.PopoverMenu__link onClick={this.sharingModal}>
                   <i className="k-icon-share"/>
                   {t('Share this project')}
                 </bem.PopoverMenu__link>
@@ -282,12 +279,12 @@ var FormLanding = React.createClass({
               </bem.FormView__cell>
               <bem.FormView__cell>
                 {this.renderButtons()}
-                <bem.FormView__link m='close' href={this.makeHref('forms')} className='is-edge' />
+                <bem.FormView__link m='close' href='/forms' className='is-edge' />
               </bem.FormView__cell>
             </bem.FormView__cell>
             <bem.FormView__cell m='box'>
               {this.state.deployed_versions.length > 0 &&
-                this.state.deployed_version_id != this.state.version_id &&
+                this.state.deployed_version_id != this.state.version_id && this.state.deployment__active && 
                 <bem.FormView__cell m='warning'>
                   <i className="k-icon-alert" />
                   {t('If you want to make these changes public, you must deploy this form')}

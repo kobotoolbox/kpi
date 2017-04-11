@@ -1,28 +1,27 @@
-import React from 'react/addons';
-import Dropzone from '../libs/dropzone';
-import {Navigation} from 'react-router';
+import React from 'react';
+import Dropzone from 'react-dropzone';
 import $ from 'jquery';
- 
+import { Link } from 'react-router'; 
 import bem from '../bem';
 import ui from '../ui';
 import stores from '../stores';
 import mixins from '../mixins';
 import {dataInterface} from '../dataInterface';
+
+import TagInput from '../components/tagInput';
+
 import {
   formatTime,
   anonUsername,
   t,
   assign,
-  isLibrary,
+  validFileTypes
 } from '../utils';
- 
-var AssetTypeIcon = bem.create('asset-type-icon');
- 
+  
 var AssetRow = React.createClass({
   mixins: [
-    Navigation,
-    mixins.taggedAsset,
-    mixins.droppable
+    mixins.droppable,
+    mixins.contextRouter
   ],
   getInitialState () {
     return {
@@ -44,10 +43,10 @@ var AssetRow = React.createClass({
   clickAssetButton (evt) {
     var clickedActionIcon = $(evt.target).closest('[data-action]').get(0);
     if (clickedActionIcon) {
+      var action = clickedActionIcon.getAttribute('data-action');
+      var name = clickedActionIcon.getAttribute('data-asset-name') || t('untitled');
       stores.selectedAsset.toggleSelect(this.props.uid, true);
-      this.props.onActionButtonClick(assign(evt, {
-        actionIcon: clickedActionIcon,
-      }));
+      this.props.onActionButtonClick(action, this.props.uid, name);
     }
   },
   clickTagsToggle (evt) {
@@ -89,52 +88,32 @@ var AssetRow = React.createClass({
       clearPopover: true,
     });
   },
-  onDrop (files) {
+  onDrop (files, rejectedFiles) {
     if (files.length === 0) {
       return;
-    } else if (files.length> 1) {
-      var errMsg = t('Only 1 file can be uploaded in this case');
-      alertify.error(errMsg);
-      throw new Error(errMsg);
     }
-    const VALID_ASSET_UPLOAD_FILE_TYPES = [
-      'application/xls',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    ];
-    var file = files[0];
-    if (VALID_ASSET_UPLOAD_FILE_TYPES.indexOf(file.type) === -1) {
-      var err = `Invalid filetype: '${file.type}'`;
-      console.error(err);
-    }
-    this.dropFiles(files, {url: this.props.url});
+    this.dropFiles(files, rejectedFiles, {url: this.props.url});
   },
   render () {
     var selfowned = this.props.owner__username === this.props.currentUsername;
-    // var perm = this.props.perm;
+
     var isPublic = this.props.owner__username === anonUsername;
     var _rc = this.props.summary && this.props.summary.row_count;
-    var baseName = isLibrary(this.context.router) ? 'library-' : '';
-    var isCollection = this.props.kind === 'collection',
-        hrefTo = isCollection ? 'collection-page' : `form-landing`,
-        hrefKey = isCollection ? 'uid' : 'assetid',
-        hrefParams = {},
+
+    var hrefTo = `/forms/${this.props.uid}`,
+        linkClassName = this.props.name ? 'asset-row__celllink--titled' : 'asset-row__celllink--untitled',
         tags = this.props.tags || [],
         ownedCollections = [], 
         parent = undefined;
-    if (isCollection) {
-      _rc = this.props.assets_count + this.props.children_count;
-    }
-    var isDeployable = !isCollection && this.props.asset_type && this.props.asset_type === 'survey';
-    hrefParams[hrefKey] = this.props.uid;
+
+    var isDeployable = this.props.asset_type && this.props.asset_type === 'survey';
 
     var userCanEdit = false;
     if (selfowned || this.props.access.change[this.props.currentUsername] || stores.session.currentAccount.is_superuser)
       userCanEdit = true;
-    
-    if (isLibrary(this.context.router)) {
-      hrefTo = `${baseName}form-edit`;
+      
+    if (this.isLibrary()) {
+      hrefTo = `/library/${this.props.uid}/edit`;
       parent = this.state.parent || undefined;
       ownedCollections = this.props.ownedCollections.map(function(c){
         var p = false;
@@ -148,6 +127,7 @@ var AssetRow = React.createClass({
         };
       });
     }
+
     return (
         <bem.AssetRow m={{
                             'display-tags': this.state.displayTags,
@@ -173,15 +153,14 @@ var AssetRow = React.createClass({
               { this.props.asset_type && this.props.asset_type == 'question' &&
                 <i className="row-icon k-icon-question" />
               }
-              <bem.AssetRow__celllink m={['name', this.props.name ? 'titled' : 'untitled']}
+              <Link to={hrefTo}
                     data-kind={this.props.kind}
                     data-asset-type={this.props.kind}
-                    href={this.makeHref( hrefTo, hrefParams)}
-                  >
+                    className={`asset-row__celllink asset-row__celllink-name ${linkClassName}`}>
                 <bem.AssetRow__name>
                   <ui.AssetName {...this.props} />
                 </bem.AssetRow__name>
-              </bem.AssetRow__celllink>
+              </Link>
               { this.props.asset_type && this.props.asset_type === 'survey' &&
                 <bem.AssetRow__description>
                     {this.props.settings.description}
@@ -248,7 +227,7 @@ var AssetRow = React.createClass({
                 key={'tags'}
                 className="mdl-cell mdl-cell--12-col"
                 >
-              {this.renderTaggedAssetTags()}
+              <TagInput uid={this.props.uid} tags={this.props.tags} />
             </bem.AssetRow__cell>
           }
  
@@ -327,7 +306,10 @@ var AssetRow = React.createClass({
                 </bem.PopoverMenu__link>
               }
               { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit &&
-                <Dropzone fileInput onDropFiles={this.onDrop}>
+                <Dropzone onDrop={this.onDrop} 
+                          multiple={false} 
+                          className='dropzone' 
+                          accept={validFileTypes()}>
                   <bem.PopoverMenu__link
                         m={'refresh'}
                         data-action={'refresh'}

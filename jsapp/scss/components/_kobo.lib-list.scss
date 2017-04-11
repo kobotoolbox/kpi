@@ -55,9 +55,6 @@
 
   @extend .clearfix;
 
-  .lib-list__tag {
-    @extend .k-tagsinput-tag;
-  }
 }
 
 .lib-list__dragbox {

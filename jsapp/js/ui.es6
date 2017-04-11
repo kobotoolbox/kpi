@@ -1,4 +1,5 @@
-import React from 'react/addons';
+import React from 'react';
+import ReactDOM from 'react-dom';
 import _ from 'underscore';
 
 import bem from './bem';
@@ -10,36 +11,12 @@ hotkey.activate();
 
 var ui = {};
 
-ui.SmallInputBox = React.createClass({
-  getValue () {
-    return this.refs.inp.getDOMNode().value;
-  },
-  setValue (v) {
-    this.refs.inp.getDOMNode().value = v;
-  },
-  render () {
-    var elemId = _.uniqueId('elem');
-    var value = this.props.value;
-    var mdlKls = 'mdl-textfield mdl-js-textfield mdl-textfield--full-width';
-    if (value) {
-      mdlKls += ' is-dirty';
-    }
-    return (
-        <div className={mdlKls}>
-          <input type="text" ref='inp' className="mdl-textfield__input" value={value}
-              onKeyUp={this.props.onKeyUp} onChange={this.props.onChange} id={elemId} />
-          <label className="mdl-textfield__label" htmlFor={elemId} >{this.props.placeholder}</label>
-        </div>
-      );
-  }
-});
-
 ui.SearchBox = React.createClass({
   getValue () {
-    return this.refs.inp.getDOMNode().value;
+    return ReactDOM.findDOMNode(this.refs.inp).value;
   },
   setValue (v) {
-    this.refs.inp.getDOMNode().value = v;
+    ReactDOM.findDOMNode(this.refs.inp).value = v;
   },
   render () {
     var elemId = _.uniqueId('elem');
@@ -141,28 +118,6 @@ ui.Modal.Body = React.createClass({
   }
 });
 
-
-ui.Breadcrumb = React.createClass({
-  render () {
-    return (
-        <ul className="ui-breadcrumb">
-          {this.props.children}
-        </ul>
-      );
-  }
-});
-
-ui.BreadcrumbItem = React.createClass({
-  render () {
-    return (
-        <li className="ui-breadcrumb__item">
-          {this.props.children}
-        </li>
-      );
-  }
-});
-
-
 var SidebarAssetName = bem.create('sidebar-asset-name', '<span>');
 
 ui.SidebarAssetName = React.createClass({
@@ -212,6 +167,7 @@ ui.PopoverMenu = React.createClass({
   getInitialState () {
     return assign({
       popoverVisible: false,
+      popoverHiding: false,
       placement: 'below'
     });
 
@@ -219,14 +175,23 @@ ui.PopoverMenu = React.createClass({
   toggle(evt) {
     var isBlur = evt.type === 'blur',
         $popoverMenu;
+    
+
     if (this.state.popoverVisible || isBlur) {
         $popoverMenu = $(evt.target).parents('.popover-menu').find('.popover-menu__content');
+        this.setState({
+          popoverHiding: true
+        });
         // if we setState and immediately hide popover then links will not register as clicked
-        $popoverMenu.fadeOut(250, () => {
+        window.setTimeout(()=>{
+          if (!this.isMounted())
+            return false;
+
           this.setState({
             popoverVisible: false,
+            popoverHiding: false
           });
-        });
+        }, 500);
     } else {
       this.setState({
         popoverVisible: true,
@@ -253,14 +218,12 @@ ui.PopoverMenu = React.createClass({
   render () {
     return (
       <bem.PopoverMenu m={[this.props.type, this.state.placement]}>
-        <bem.PopoverMenu__toggle onClick={this.toggle} onBlur={this.toggle} data-tip={this.props.triggerTip}>
+        <bem.PopoverMenu__toggle onClick={this.toggle} onBlur={this.toggle} data-tip={this.props.triggerTip} tabIndex='1'>
           {this.props.triggerLabel}
         </bem.PopoverMenu__toggle>
-        {this.state.popoverVisible && 
-          <bem.PopoverMenu__content>
-            {this.props.children}
-          </bem.PopoverMenu__content>
-        }
+        <bem.PopoverMenu__content m={[this.state.popoverHiding ? 'hiding' : '', this.state.popoverVisible ? 'visible' : 'hidden']}>
+          {this.props.children}
+        </bem.PopoverMenu__content>
       </bem.PopoverMenu>
 
     );

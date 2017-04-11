@@ -1,14 +1,14 @@
-import React from 'react/addons';
+import React from 'react';
 import L from 'leaflet/dist/leaflet';
 import HeatLayer from 'leaflet.heat/dist/leaflet-heat';
 import Reflux from 'reflux';
 import _ from 'underscore';
 import {dataInterface} from '../dataInterface';
-import {Navigation} from 'react-router';
+import {hashHistory} from 'react-router';
 import bem from '../bem';
 import stores from '../stores';
 import ui from '../ui';
-import $ from 'jquery';
+// import $ from 'jquery';
 
 import 'leaflet/dist/leaflet.css';
 
@@ -21,14 +21,12 @@ import {
 
 var FormMap = React.createClass({
   mixins: [
-    Navigation,
     Reflux.ListenerMixin
   ],
   getInitialState () {
   	let survey = this.props.asset.content.survey;
   	var hasGeoPoint = false;
   	survey.forEach(function(s) {
-  		console.log(s.type);
   		if (s.type == 'geopoint')
   			hasGeoPoint = true;
   	});
@@ -220,16 +218,11 @@ var FormMap = React.createClass({
   	}
   },
   filterMap (evt) {
-    let kuid = $(evt.target).data('kuid') || undefined;
+    let kuid = evt.target.getAttribute('data-kuid') || undefined;
     if (kuid != undefined) {
-	    this.transitionTo(`form-data-map-filtered`, {
-	    	assetid: this.props.asset.uid, 
-	    	kuid: kuid
-	    });
+      hashHistory.push(`/forms/${this.props.asset.uid}/data/map/${kuid}`);
     } else {
-	    this.transitionTo(`form-data-map`, {
-	    	assetid: this.props.asset.uid
-	    });
+      hashHistory.push(`/forms/${this.props.asset.uid}/data/map`);
     }
   },
   componentWillReceiveProps (nextProps) {
@@ -254,6 +247,7 @@ var FormMap = React.createClass({
   	}
   },
   render () {
+    console.log(this.state.markerMap);
   	if (!this.state.hasGeoPoint) {
       return (
         <ui.Panel>
@@ -277,7 +271,7 @@ var FormMap = React.createClass({
   	}
 
     return (
-    	<bem.FormView__map>
+    	<bem.FormView m='map'>
     		<bem.FormView__mapButton m={'markers'} 
     			onClick={this.showMarkers}
     			className={this.state.markersVisible ? 'active': ''}>
@@ -324,7 +318,7 @@ var FormMap = React.createClass({
           </bem.Loading>
         }
         <div id="data-map"></div>
-      </bem.FormView__map>
+      </bem.FormView>
       );
   }
 })

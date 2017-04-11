@@ -1,6 +1,5 @@
 import _ from 'underscore';
-import React from 'react/addons';
-import {Navigation} from 'react-router';
+import React from 'react';
 import Reflux from 'reflux';
 import Select from 'react-select';
 
@@ -20,7 +19,6 @@ var ListSearch = React.createClass({
   mixins: [
     searches.common,
     Reflux.ListenerMixin,
-    Navigation,
   ],
   getDefaultProps () {
     return {
@@ -252,7 +250,6 @@ var ListSearchSummary = React.createClass({
   mixins: [
     searches.common,
     Reflux.ListenerMixin,
-    Navigation,
   ],
   componentDidMount () {
     this.listenTo(this.searchStore, this.searchChanged);
@@ -317,7 +314,6 @@ var ListSearchDebug = React.createClass({
   mixins: [
     searches.common,
     Reflux.ListenerMixin,
-    Navigation,
   ],
   getDefaultProps () {
     return {

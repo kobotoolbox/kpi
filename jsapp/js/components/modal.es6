@@ -1,6 +1,5 @@
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
-import {Navigation} from 'react-router';
 import {dataInterface} from '../dataInterface';
 import actions from '../actions';
 import bem from '../bem';
@@ -8,6 +7,7 @@ import ui from '../ui';
 import stores from '../stores';
 import mixins from '../mixins';
 import mdl from '../libs/rest_framework/material';
+import {hashHistory} from 'react-router';
 
 import {
   t,
@@ -15,11 +15,10 @@ import {
 } from '../utils';
 
 import {ProjectSettings} from '../components/formEditors';
+import SharingForm from '../components/sharingForm';
 
 var Modal = React.createClass({
   mixins: [
-    mixins.shareAsset,
-    Navigation,
     Reflux.ListenerMixin
   ],
   getInitialState() {
@@ -34,12 +33,18 @@ var Modal = React.createClass({
   	var type = this.props.params.type;
     switch(type) {
       case 'sharing':
-    		var uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
-		    actions.resources.loadAsset({id: uid});
         this.setState({
           title: t('Sharing Permissions')
         });
         break;
+      case 'uploading-xls':
+        var filename = this.props.params.file.name || '';
+        this.setState({
+          title: t('Uploading XLS form'),
+          message: t('Uploading: ') + filename
+        });
+        break;
+
       case 'new-form':
         this.setState({
           title: t('Create New Project from Scratch')
@@ -72,12 +77,7 @@ var Modal = React.createClass({
       }),
       asset_type: 'survey',
     }).done((asset) => {
-      var isNewForm = false;
-      if (isNewForm) {
-        this.transitionTo('form-landing', {assetid: asset.uid})
-      } else {
-        this.transitionTo('form-edit', {assetid: asset.uid})
-      }
+      hashHistory.push(`/forms/${asset.uid}/edit`);
       stores.pageState.hideModal();
     });
   },
@@ -100,7 +100,7 @@ var Modal = React.createClass({
 	      <ui.Modal open onClose={()=>{stores.pageState.hideModal()}} title={this.state.title} className={this.state.modalClass}>
 	        <ui.Modal.Body>
 	        	{ this.props.params.type == 'sharing' &&
-	          	this.sharingForm()
+	          	<SharingForm uid={this.props.params.assetid} />
 	        	}
             { this.props.params.type == 'new-form' &&
               <ProjectSettings
@@ -125,6 +125,18 @@ var Modal = React.createClass({
             { this.props.params.type == 'enketo-preview' && this.state.error && 
               <div>
                 {this.state.message}
+              </div>
+            }
+            { this.props.params.type == 'uploading-xls' && 
+              <div>
+                <bem.Loading>
+                  <bem.Loading__inner>
+                    <i />
+                    <bem.Loading__msg>{this.state.message}</bem.Loading__msg>
+                  </bem.Loading__inner>
+                </bem.Loading>
+
+
               </div>
             }
 

@@ -9,11 +9,11 @@ bem.PageWrapper__content = bem.PageWrapper.__('content');
 
 bem.Loading = BEM('loading');
 bem.Loading__inner = bem.Loading.__('inner');
+bem.Loading__msg = bem.Loading.__('msg');
 
 bem.AssetRow = BEM('asset-row', '<li>');
 bem.AssetRow__cell        = bem.AssetRow.__('cell');
 
-bem.AssetRow__celllink    = bem.AssetRow.__('celllink', '<a>');
 bem.AssetRow__cellmeta    = bem.AssetRow.__('cellmeta');
 bem.AssetRow__name        = bem.AssetRow.__('name', '<span>');
 bem.AssetRow__description = bem.AssetRow.__('description', '<span>');
@@ -172,7 +172,7 @@ bem.FormModal__item = bem.FormModal.__('item');
 
 bem.PopoverMenu = bem('popover-menu');
 bem.PopoverMenu__content = bem.PopoverMenu.__('content');
-bem.PopoverMenu__toggle = bem.PopoverMenu.__('toggle', '<button>');
+bem.PopoverMenu__toggle = bem.PopoverMenu.__('toggle', '<a>');
 bem.PopoverMenu__link = bem.PopoverMenu.__('link', '<a>');
 bem.PopoverMenu__item = bem.PopoverMenu.__('item');
 bem.PopoverMenu__heading = bem.PopoverMenu.__('heading');

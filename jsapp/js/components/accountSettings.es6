@@ -1,4 +1,4 @@
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
 import _ from 'underscore';
 import {dataInterface} from '../dataInterface';
@@ -20,7 +20,7 @@ import {
 
 export var AccountSettings = React.createClass({
   mixins: [
-    Reflux.connect(stores.session),
+    Reflux.connect(stores.session, 'session'),
     Reflux.ListenerMixin,
   ],
   getStateFromCurrentAccount(currentAccount) {
@@ -317,7 +317,7 @@ export var AccountSettings = React.createClass({
 
 export var ChangePassword = React.createClass({
   mixins: [
-    Reflux.connect(stores.session),
+    Reflux.connect(stores.session, 'session'),
     Reflux.ListenerMixin
   ],
   getInitialState () {

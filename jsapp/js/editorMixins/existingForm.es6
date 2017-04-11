@@ -1,14 +1,20 @@
+import React from 'react';
+import mixins from '../mixins';
+import {hashHistory} from 'react-router';
+
 import {
   t,
   log,
-  customConfirmAsync,
-  isLibrary,
+  customConfirmAsync
 } from '../utils';
 
 import stores from '../stores';
 
 export default {
   editorState: 'existing',
+  contextTypes: {
+    router: React.PropTypes.object
+  },
   getInitialState () {
     return {
       kind: 'asset',
@@ -30,25 +36,16 @@ export default {
     });
   },
   navigateBack () {
-    var routeName = 'forms';
-    var params = {};
-    if (isLibrary(this.context.router)) {
-      routeName = 'library';
-    } else {
-      if (stores.history.currentRoute === 'form-edit') {
-        routeName = 'form-landing';
-        params = {
-          assetid: this.props.params.assetid,
-        };
-      }
-    }
+    var path = '/forms';
+    if (this.context.router.isActive('library'))
+      path = '/library';
 
     if (!this.needsSave()) {
-      this.transitionTo(routeName, params);
+      hashHistory.push(path);
     } else {
       customConfirmAsync(t('you have unsaved changes. leave form without saving?'))
         .done(() => {
-          this.transitionTo(routeName, params);
+          hashHistory.push(path);
         });
     }
   },

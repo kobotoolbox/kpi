@@ -1,10 +1,8 @@
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
 import _ from 'underscore';
 import {dataInterface} from '../dataInterface';
-import {
-  Navigation,
-} from 'react-router';
+
 import actions from '../actions';
 import bem from '../bem';
 import stores from '../stores';
@@ -14,6 +12,7 @@ import mixins from '../mixins';
 import mdl from '../libs/rest_framework/material';
 import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
+import SharingForm from '../components/sharingForm';
 
 import {
   ProjectSettingsEditor,
@@ -31,19 +30,10 @@ import {
 
 var FormSubScreens = React.createClass({
   mixins: [
-    Navigation,
     Reflux.ListenerMixin,
     mixins.dmix,
-    mixins.shareAsset
+    mixins.contextRouter
   ],
-  updateRouteState () {
-    var currentRoutes = this.context.router.getCurrentRoutes();
-    var activeRoute = currentRoutes[currentRoutes.length - 1];
-    this.setState(assign({
-        currentRoute: activeRoute
-      }
-    ));
-  },
   componentDidMount () {
     this.listenTo(stores.session, this.dmixSessionStoreChange);
     this.listenTo(stores.asset, this.dmixAssetStoreChange);
@@ -56,72 +46,65 @@ var FormSubScreens = React.createClass({
       actions.resources.loadAsset({id: uid});
     }
 
-    this.updateRouteState();
-  },
-  componentWillReceiveProps () {
-    this.updateRouteState();
   },
   render () {
-    var formClass = '';
-    var iframeUrl = '', report__base = '', subscreen = undefined;
+    var formClass = '', iframeUrl = '', report__base = '', deployment__identifier = '';
 
     if (this.state.uid != undefined) {
       if (this.state.deployment__identifier != undefined) {
         var deployment__identifier = this.state.deployment__identifier;
         var report__base = deployment__identifier.replace('/forms/', '/reports/');
       }
-      switch(this.state.currentRoute.name) {
-        case 'form-data-report':
+      switch(this.props.location.pathname) {
+        case `/forms/${this.state.uid}/data/report-legacy`:
           iframeUrl = report__base+'/digest.html';
           break;
-        case 'form-data-table':
+        case `/forms/${this.state.uid}/data/table`:
           iframeUrl = report__base+'/export.html';
           break;
-        case 'form-data-downloads':
-          subscreen = <ProjectDownloads asset={this.state} />;
-          break;
-        case 'form-settings':
-          subscreen = <ProjectSettingsEditor asset={this.state} />;
-          break;
-        case 'form-data-gallery':
+        case `/forms/${this.state.uid}/data/gallery`:
           iframeUrl = deployment__identifier+'/photos';
           break;
-        case 'form-data-map':
-          subscreen = <FormMap asset={this.state} />;
-          // iframeUrl = deployment__identifier+'/map';
+        case `/forms/${this.state.uid}/data/map`:
+          return <FormMap asset={this.state} />;
           break;
-        case 'form-data-map-filtered':
-          subscreen = <FormMap asset={this.state} kuid={this.props.params.kuid}/>;
+        case `/forms/${this.state.uid}/data/map/${this.props.params.kuid}`:
+          return <FormMap asset={this.state} kuid={this.props.params.kuid}/>;
           break;
-        case 'form-settings-kobocat':
-          iframeUrl = deployment__identifier+'/form_settings';
+        // case `/forms/${this.state.uid}/settings/kobocat`:
+        //   iframeUrl = deployment__identifier+'/form_settings';
+        //   break;
+        case `/forms/${this.state.uid}/data/downloads`:
+          return this.renderProjectDownloads();
           break;
-        case 'form-settings-sharing':
-          return this.renderSharing();
+        case `/forms/${this.state.uid}/settings`:
+          if (deployment__identifier != '')
+            iframeUrl = deployment__identifier+'/form_settings';
+          return this.renderSettingsEditor(iframeUrl);
           break;
-        case 'form-collect-web': 
+        // case `/forms/${this.state.uid}/settings/sharing`:
+        //   return this.renderSharing();
+        //   break;
+        case `/forms/${this.state.uid}/landing/collect`:
           return this.renderCollectWeb();
           break;
-        case 'form-collect-android': 
+        case `/forms/${this.state.uid}/landing/android`:
           return this.renderCollectAndroid();
           break;
+        case `/forms/${this.state.uid}/reset`:
+          return this.renderReset();
+          break;
       }
-
-      formClass = this.state.currentRoute.name;
     }
 
     var docTitle = this.state.name || t('Untitled');
 
     return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>      
-          <bem.FormView m={formClass}>
-            {subscreen != undefined ? 
-              {subscreen}
-            : 
-              <bem.FormView__cell m='iframe'>
-                <iframe src={iframeUrl} />
-              </bem.FormView__cell>
-            }
+          <bem.FormView>
+            <bem.FormView__cell m='iframe'>
+              <iframe src={iframeUrl} />
+            </bem.FormView__cell>
           </bem.FormView>
         </DocumentTitle>
       );
@@ -129,6 +112,7 @@ var FormSubScreens = React.createClass({
   renderCollectWeb () {
     var docTitle = this.state.name || t('Untitled');
     var deployment__links = this.state.deployment__links;
+
     var available__links = {
         offline_url: {
           label: t('Online-Offline (multiple submission)'),
@@ -262,9 +246,39 @@ var FormSubScreens = React.createClass({
     return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
           <bem.FormView m={'settings-sharing'}>
-            {this.sharingForm()}
+            <SharingForm />
           </bem.FormView>
         </DocumentTitle>
+    );
+  },
+  renderSettingsEditor(iframeUrl) {
+    var docTitle = this.state.name || t('Untitled');
+    return (
+        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+          <bem.FormView m='form-settings'>
+            <ProjectSettingsEditor asset={this.state} iframeUrl={iframeUrl} />
+          </bem.FormView>
+        </DocumentTitle>
+    );
+  },  
+  renderProjectDownloads() {
+    var docTitle = this.state.name || t('Untitled');
+    return (
+        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+          <bem.FormView m='form-data-downloads'>
+            <ProjectDownloads asset={this.state} />
+          </bem.FormView>
+        </DocumentTitle>
+    );
+  },
+  renderReset() {
+    return (
+      <bem.Loading>
+        <bem.Loading__inner>
+          <i />
+          {t('loading...')}
+        </bem.Loading__inner>
+      </bem.Loading>
     );
   },
   componentDidUpdate() {

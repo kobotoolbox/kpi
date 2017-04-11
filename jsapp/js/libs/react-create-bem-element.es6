@@ -35,7 +35,7 @@
 */
 import React from 'react';
 import classNames from 'classnames';
-import assign from 'react/lib/Object.assign';
+import assign from 'object-assign';
 
 /* eslint-disable no-console */
 var bemClasses = false;

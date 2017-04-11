@@ -1,7 +1,6 @@
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
-import {Navigation} from 'react-router';
-
+import { Link } from 'react-router';
 import mixins from '../mixins';
 import bem from '../bem';
 import ui from '../ui';
@@ -12,16 +11,14 @@ import SearchCollectionList from '../components/searchcollectionlist';
 import {
   parsePermissions,
   t,
-  assign,
-  isLibrary
+  assign
 } from '../utils';
 
 var SidebarFormsList = React.createClass({
   mixins: [
     searches.common,
-    Navigation,
     Reflux.ListenerMixin,
-    Reflux.connect(stores.pageState)
+    Reflux.connect(stores.pageState, 'pageState')
   ],
   getInitialState () {
     var selectedCategories = {
@@ -44,25 +41,17 @@ var SidebarFormsList = React.createClass({
   },
   componentWillReceiveProps () {
     this.listenTo(this.searchStore, this.searchChanged);
-
-    var currentParams = this.context.router.getCurrentParams();
-    this.setState({
-      currentAssetId: currentParams.assetid || false
-    });
   },
   searchChanged (searchStoreState) {
     this.setState(searchStoreState);
   },
   renderMiniAssetRow (resource) {
-    var baseName = isLibrary(this.context.router) ? 'library-' : '';
     return (
         <bem.FormSidebar__item key={resource.uid}>
-          <bem.FormSidebar__itemlink 
-              href={this.makeHref(`${baseName}form-landing`, {assetid: resource.uid})}
-              m={this.state.currentAssetId == resource.uid ? 'active' : ''}>
+          <Link to={`/forms/${resource.uid}`} className='form-sidebar__itemlink'>
             <i />
             <ui.SidebarAssetName {...resource} />
-          </bem.FormSidebar__itemlink>
+          </Link>
         </bem.FormSidebar__item>
       );
   },
@@ -81,7 +70,7 @@ var SidebarFormsList = React.createClass({
       <bem.FormSidebar>
         { 
           s.defaultQueryState === 'done' && 
-          <bem.FormSidebar__label m={'active-projects'}>
+          <bem.FormSidebar__label m={'active-projects'} className="is-edge">
             <i className="k-icon-projects" />
             {t('Active Projects')}
           </bem.FormSidebar__label>

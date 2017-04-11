@@ -5,19 +5,21 @@ require('jquery.scrollto');
 require('jquery-ui/sortable');
 
 import mdl from './libs/rest_framework/material';
-import React from 'react/addons';
+import React from 'react';
+import ReactDOM from 'react-dom';
 import classNames from 'classnames';
 import DocumentTitle from 'react-document-title';
 import Reflux from 'reflux';
+
 import {
-  Navigation,
-  DefaultRoute,
+  IndexRoute,
+  IndexRedirect,
   Link,
   Route,
-  RouteHandler,
-  NotFoundRoute,
-  run,
+  hashHistory,
+  Router
 } from 'react-router';
+
 import Select from 'react-select';
 import moment from 'moment';
 
@@ -34,6 +36,7 @@ import Drawer from './components/drawer';
 import {
   AddToLibrary,
   FormPage,
+  LibraryPage
 } from './components/formEditors';
 
 import Reports from './components/reports';
@@ -106,55 +109,6 @@ class ItemDropdownDivider extends React.Component {
   }
 }
 
-/*
-var LoginForm = React.createClass({
-  done (...args) {
-    log(args, this);
-  },
-
-  fail (...args) {
-    log(args, this);
-  },
-
-  handleSubmit (evt) {
-    evt.preventDefault();
-    var username = this.refs.username.getDOMNode().value;
-    var password = this.refs.password.getDOMNode().value;
-    actions.auth.login({
-      username: username,
-      password: password
-    });
-  },
-  render () {
-    return (
-      <div className="col-md-4 pull-right">
-        <form action="/api-auth/login/" className="form-inline" onSubmit={this.handleSubmit}>
-          <div className="form-group">
-            <input type="text" ref="username" placeholder="username" className="form-control input-sm" />
-            <input type="password" ref="password" placeholder="password" className="form-control input-sm" />
-            <button type="submit" className="btn btn-default btn-sm">{t('log in')}</button>
-          </div>
-        </form>
-      </div>
-      );
-  }
-});
-
-var LiLink = React.createClass({
-  render () {
-    var liClass = this.props.active ? 'active' : '';
-    var href = this.props.href || '#';
-    var linkText = this.props.children || 'Link';
-    var srOnly = this.props.srOnly;
-
-    if (srOnly) {
-      srOnly = (<span className="sr-only">{srOnly}</span>)
-    }
-    return <li className={liClass}><a href={href}>{linkText} {srOnly}</a></li>
-  }
-});
-*/
-
 var assetStore = stores.asset;
 var sessionStore = stores.session;
 
@@ -162,14 +116,15 @@ var sessionStore = stores.session;
 var AssetNavigatorListView = React.createClass({
   mixins: [
     searches.common,
-    Reflux.ListenerMixin,
+    Reflux.ListenerMixin
   ],
   componentDidMount () {
     this.searchClear();
     this.listenTo(this.searchStore, this.searchStoreChanged);
   },
-  getInitialState () {
-    return {};
+  componentWillReceiveProps () {
+    this.searchClear();
+    this.listenTo(this.searchStore, this.searchStoreChanged);
   },
   searchStoreChanged (searchStoreState) {
     this.setState(searchStoreState);
@@ -178,7 +133,8 @@ var AssetNavigatorListView = React.createClass({
     if (!this.refs.liblist) {
       return;
     }
-    var $el = $(this.refs.liblist.getDOMNode());
+
+    var $el = $(ReactDOM.findDOMNode(this.refs.liblist));
     if ($el.hasClass('ui-sortable')) {
       $el.sortable('destroy');
     }
@@ -276,8 +232,6 @@ var AssetNavigatorListView = React.createClass({
 var AssetNavigator = React.createClass({
   mixins: [
     mixins.droppable,
-    Navigation,
-    Reflux.ListenerMixin,
     Reflux.connectFilter(stores.assetSearch, 'searchResults', function(results){
       if (this.searchFieldValue() === results.query) {
         return results;
@@ -316,7 +270,8 @@ var AssetNavigator = React.createClass({
     return this.imports.filter((i)=> i.status === n );
   },
   searchFieldValue () {
-    return this.refs.navigatorSearchBox.refs.inp.getDOMNode().value;
+    return ReactDOM.findDOMNode(this.refs.navigatorSearchBox.refs.inp).value;
+    // return this.refs.navigatorSearchBox.refs.inp.getDOMNode().value;
   },
   liveSearch () {
     var queryInput = this.searchFieldValue(),
@@ -634,35 +589,17 @@ var FormInput = React.createClass({
 });
 */
 
-/* Routes:
-*/
 var App = React.createClass({
   mixins: [
-    Reflux.ListenerMixin,
-    Navigation,
-    Reflux.connect(stores.pageState),
+    Reflux.connect(stores.pageState, 'pageState'),
+    mixins.contextRouter
   ],
   getInitialState () {
     moment.locale(currentLang());
     return assign({}, stores.pageState.state);
   },
-  componentWillMount() {
-    this.setState(assign({
-        routes: this.context.router.getCurrentRoutes()
-      }
-    ));
-  },
-  componentWillReceiveProps() {
-    this.setState(assign({
-        routes: this.context.router.getCurrentRoutes()
-      }
-    ));
-  },
   render() {
-    var showFormViewTabs = false;
-    if (!this.state.drawerHidden && this.state.routes[2] && this.state.routes[2].name == 'form-landing') 
-      showFormViewTabs = true;
-
+    var assetid = this.props.params.assetid || null;
     return (
       <DocumentTitle title="KoBoToolbox">
         <div className="mdl-wrapper">
@@ -673,27 +610,32 @@ var App = React.createClass({
               'asset-nav-present': this.state.assetNavPresent,
               'asset-nav-open': this.state.assetNavIsOpen && this.state.assetNavPresent,
               'fixed-drawer': this.state.showFixedDrawer,
-              'header-hidden': this.state.headerHidden,
-              'drawer-hidden': this.state.drawerHidden,
+              'header-hidden': this.isFormBuilder(),
+              'drawer-hidden': this.isFormBuilder(),
                 }} className="mdl-layout mdl-layout--fixed-header">
-              { this.state.modal &&
-                <Modal params={this.state.modal} />
+              { this.state.pageState && this.state.pageState.modal &&
+                <Modal params={this.state.pageState.modal} />
               }
 
-              { !this.state.headerHidden &&
-                <MainHeader/>
+              { !this.isFormBuilder() &&
+                <MainHeader assetid={assetid}/>
               }
-              { !this.state.drawerHidden &&
+              { !this.isFormBuilder() &&
                 <Drawer/>
               }
-              <bem.PageWrapper__content className='mdl-layout__content' m={showFormViewTabs ? 'form-landing' : ''}>
-                <FormViewTabs type={'top'} show={showFormViewTabs} />
-                <FormViewTabs type={'side'} show={showFormViewTabs} />
-                <RouteHandler appstate={this.state} />
+              <bem.PageWrapper__content className='mdl-layout__content' m={this.isFormSingle() ? 'form-landing' : ''}>
+                { !this.isFormBuilder() &&
+                  <FormViewTabs type={'top'} show={this.isFormSingle()} />
+                }
+                { !this.isFormBuilder() &&
+                  <FormViewTabs type={'side'} show={this.isFormSingle()} />
+                }
+                {this.props.children}
+
               </bem.PageWrapper__content>
-              { this.state.assetNavPresent ?
+              { this.isFormBuilder() &&
                 <AssetNavigator />
-              : null }
+              }
           </bem.PageWrapper>
         </div>
       </DocumentTitle>
@@ -718,84 +660,75 @@ var Loading = React.createClass({
   }
 });
 
-var Forms = React.createClass({
-  mixins: [
-    Navigation
-  ],
-  statics: {
-    willTransitionTo: function(transition, params, idk, callback) {
-      if (params.assetid && params.assetid[0] === 'c') {
-        transition.redirect('collection-page', {
-          uid: params.assetid
-        });
-      }
-      callback();
-    }
-  },
-  render () {
-    return <RouteHandler />;
-  }
-});
+// var Forms = React.createClass({
+  // mixins: [
+  //   Navigation
+  // ],
+  // statics: {
+  //   willTransitionTo: function(transition, params, idk, callback) {
+  //     if (params.assetid && params.assetid[0] === 'c') {
+  //       transition.redirect('collection-page', {
+  //         uid: params.assetid
+  //       });
+  //     }
+  //     callback();
+  //   }
+  // },
+  // render () {
+    // return this.props.children;
+  // }
+// });
 
-var FormDownload = React.createClass({
-  mixins: [
-    Navigation,
-    Reflux.ListenerMixin
-  ],
-  statics: {
-    willTransitionTo: function(transition, params, idk, callback) {
-      actions.resources.loadAsset({id: params.assetid});
-      callback();
-    }
-  },
-  componentDidMount () {
-    this.listenTo(assetStore, this.assetStoreTriggered);
-  },
-  getInitialState () {
-    return {
-      downloads: []
-    };
-  },
-  assetStoreTriggered (data, uid) {
-    this.setState({
-      downloads: data[uid].downloads
-    });
-  },
-  render () {
-    return (
-        <ui.Panel>
-          <ul>
-            {
-              this.state.downloads.map(function(item){
-                var fmt = `download-format-${item.format}`;
-                return (
-                    <li>
-                      <a href={item.url} ref={fmt}>
-                        {t(fmt)}
-                      </a>
-                    </li>
-                  );
-              })
-            }
-          </ul>
-        </ui.Panel>
-      );
-  }
-});
+// var FormDownload = React.createClass({
+//   statics: {
+//     willTransitionTo: function(transition, params, idk, callback) {
+//       actions.resources.loadAsset({id: params.assetid});
+//       callback();
+//     }
+//   },
+//   componentDidMount () {
+//     this.listenTo(assetStore, this.assetStoreTriggered);
+//   },
+//   getInitialState () {
+//     return {
+//       downloads: []
+//     };
+//   },
+//   assetStoreTriggered (data, uid) {
+//     this.setState({
+//       downloads: data[uid].downloads
+//     });
+//   },
+//   render () {
+//     return (
+//         <ui.Panel>
+//           <ul>
+//             {
+//               this.state.downloads.map(function(item){
+//                 var fmt = `download-format-${item.format}`;
+//                 return (
+//                     <li>
+//                       <a href={item.url} ref={fmt}>
+//                         {t(fmt)}
+//                       </a>
+//                     </li>
+//                   );
+//               })
+//             }
+//           </ul>
+//         </ui.Panel>
+//       );
+//   }
+// });
 
 var FormJson = React.createClass({
   mixins: [
-    Navigation,
     Reflux.ListenerMixin
   ],
-  statics: {
-    willTransitionTo: function(transition, params, idk, callback) {
-      actions.resources.loadAsset({id: params.assetid});
-      callback();
-    }
-  },
   componentDidMount () {
-    this.listenTo(assetStore, this.assetStoreTriggered);
+    this.listenTo(stores.asset, this.assetStoreTriggered);
+    actions.resources.loadAsset({id: this.props.params.assetid});
+
   },
   assetStoreTriggered (data, uid) {
     this.setState({
@@ -810,23 +743,21 @@ var FormJson = React.createClass({
   render () {
     return (
         <ui.Panel>
-          <pre>
+          <bem.FormView>
+            <pre>
             <code>
               { this.state.assetcontent ?
                 JSON.stringify(this.state.assetcontent, null, 4)
              : null }
             </code>
-          </pre>
+            </pre>
+          </bem.FormView>
         </ui.Panel>
       );
   }
 });
 
 var FormXform = React.createClass({
-  mixins: [
-    Navigation,
-    Reflux.ListenerMixin
-  ],
   componentDidMount () {
     dataInterface.getAssetXformView(this.props.params.assetid).done((content)=>{
       this.setState({
@@ -845,13 +776,22 @@ var FormXform = React.createClass({
   render () {
     if (!this.state.xformLoaded) {
       return (
-          <p>XForm is loading</p>
+        <ui.Panel>
+          <bem.Loading>
+            <bem.Loading__inner>
+              <p>XForm is loading</p>
+            </bem.Loading__inner>
+          </bem.Loading>
+        </ui.Panel>
+
         );
     } else {
       return (
-          <div className="pygment"
-                    dangerouslySetInnerHTML={this.state.xformHtml}
-                  />
+        <ui.Panel>
+          <bem.FormView>
+            <div className="pygment" dangerouslySetInnerHTML={this.state.xformHtml} />
+          </bem.FormView>
+        </ui.Panel>
         );
     }
   }
@@ -859,9 +799,6 @@ var FormXform = React.createClass({
 
 var LibrarySearchableList = require('./lists/library');
 var FormsSearchableList = require('./lists/forms');
-var CollectionList = require('./lists/collection');
-
-var CollectionLanding = require('./lists/collectionlanding');
 
 var FormNotFound = React.createClass({
   render () {
@@ -927,25 +864,25 @@ var Public = React.createClass({
   }
 });
 
-var Builder = React.createClass({
-  mixins: [Navigation],
-  render () {
-    var _routes = stringifyRoutes(this.context.router);
-    return (
-      <ui.Panel className="k-div--builder">
-        <h1 className="page-header">Builder</h1>
-        <hr />
-        <pre>
-          <code>
-            {_routes}
-            <hr />
-            {JSON.stringify(this.context.router.getCurrentParams(), null, 4)}
-          </code>
-        </pre>
-      </ui.Panel>
-      );
-  }
-});
+// var Builder = React.createClass({
+//   mixins: [Navigation],
+//   render () {
+//     var _routes = stringifyRoutes(this.context.router);
+//     return (
+//       <ui.Panel className="k-div--builder">
+//         <h1 className="page-header">Builder</h1>
+//         <hr />
+//         <pre>
+//           <code>
+//             {_routes}
+//             <hr />
+//             {JSON.stringify(this.context.router.getCurrentParams(), null, 4)}
+//           </code>
+//         </pre>
+//       </ui.Panel>
+//       );
+//   }
+// });
 
 var SelfProfile = React.createClass({
   render () {
@@ -957,35 +894,6 @@ var SelfProfile = React.createClass({
   }
 });
 
-var Home = React.createClass({
-  mixins: [
-    Navigation,
-    Reflux.ListenerMixin
-  ],
-  componentDidMount () {
-    this.listenTo(sessionStore, this.sessionStoreChange);
-  },
-  sessionStoreChange (x, y, z) {
-    log('sessionStoreChange ', x, y, z);
-  },
-  statics: {
-    willTransitionTo (transition) {
-      transition.redirect('forms');
-    }
-  },
-  render () {
-    return (
-      <ui.Panel className="k-div--home">
-        <h1>Home</h1>
-        <hr />
-        Please log in and click "forms"
-      </ui.Panel>
-      );
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
-  }
-});
 
 var SectionNotFound = React.createClass({
   render () {
@@ -998,86 +906,76 @@ var SectionNotFound = React.createClass({
   }
 });
 
-var formRouteChildren = (baseName) => {
-  if (baseName === undefined) {
-    baseName = '';
-  }
-  return [
-    <Route name={`${baseName}form-download`} path="download" handler={FormDownload} />,
-    <Route name={`${baseName}form-json`} path="json" handler={FormJson} />,
-    <Route name={`${baseName}form-xform`} path="xform" handler={FormXform} />,
-    <Route name={`${baseName}form-edit`} path="edit" handler={FormPage} />
-  ];
-}
-
 var routes = (
-  <Route name="home" path="/" handler={App}>
-    <Route name="library">
-      <Route name="library-new-form" path="new" handler={AddToLibrary} />
-      <Route name="library-form-landing" path="/library/:assetid">
-        {formRouteChildren('library-')}
-        <DefaultRoute handler={FormLanding} />
+  <Route name="home" path="/" component={App}>
+    <Route path="account-settings" component={AccountSettings} />
+    <Route path="change-password" component={ChangePassword} />
+
+    <Route path="library" >
+      <Route path="new" component={AddToLibrary} />
+      <Route path="/library/:assetid">
+        {/*<Route name="library-form-download" path="download" handler={FormDownload} />,*/}
+        <Route path="json" component={FormJson} />,
+        <Route path="xform" component={FormXform} />,
+        <Route path="edit" component={LibraryPage} />
       </Route>
-      <DefaultRoute handler={LibrarySearchableList} />
+      <IndexRoute component={LibrarySearchableList} />
     </Route>
 
-    <Route name="forms" handler={Forms}>
-      <Route name="form-landing" path="/forms/:assetid"> 
-        <Route name="form-download" path="download" handler={FormDownload} />
-        <Route name="form-json" path="json" handler={FormJson} />
-        <Route name="form-xform" path="xform" handler={FormXform} />
-        <Route name="form-reports" path="reports" handler={Reports} />
-        <Route name='form-edit' path="edit" handler={FormPage} />
-        <Route name='form-data-report' path="data/report" handler={FormSubScreens} />
-        <Route name='form-data-table' path="data/table" handler={FormSubScreens} />
-        <Route name='form-data-downloads' path="data/downloads" handler={FormSubScreens} />
-        <Route name='form-data-gallery' path="data/gallery" handler={FormSubScreens} />
-        <Route name='form-data-map' path="data/map" handler={FormSubScreens} />
-        <Route name='form-data-map-filtered' path="data/map/:kuid" handler={FormSubScreens} />
-        <Route name='form-settings' path="settings" handler={FormSubScreens} />
-        <Route name='form-settings-kobocat' path="settings/kobocat" handler={FormSubScreens} />
-        <Route name='form-settings-sharing' path="settings/sharing" handler={FormSubScreens} />
-        <Route name='form-collect-web' path="collect" handler={FormSubScreens} />
-        <Route name='form-collect-android' path="android" handler={FormSubScreens} />
-        <DefaultRoute handler={FormLanding} />
+    <IndexRedirect to="forms" />
+    <Route path="forms" >
+      <IndexRoute component={FormsSearchableList} />
+
+      <Route path="/forms/:assetid"> 
+        {/*<Route name="form-download" path="download" component={FormDownload} />*/}
+        <Route path="json" component={FormJson} />
+        <Route path="xform" component={FormXform} />
+        <Route path="edit" component={FormPage} />
+
+        <Route path="landing">
+          <IndexRoute component={FormLanding} />
+          <Route path="collect" component={FormSubScreens} />
+          <Route path="android" component={FormSubScreens} />
+        </Route>
+
+        <Route path="data">
+          <Route path="report" component={Reports} />
+          <Route path="report-legacy" component={FormSubScreens} />
+          <Route path="table" component={FormSubScreens} />
+          <Route path="downloads" component={FormSubScreens} />
+          <Route path="gallery" component={FormSubScreens} />
+          <Route path="map" component={FormSubScreens} />
+          <Route path="map/:kuid" component={FormSubScreens} />
+          <IndexRedirect to="report" />
+        </Route>
+
+        <Route path="settings">
+          <IndexRoute component={FormSubScreens} />
+          <Route path="kobocat" component={FormSubScreens} />
+          <Route path="sharing" component={FormSubScreens} />
+        </Route>
+
+        {/* used to force refresh form screens */}
+        <Route path="reset" component={FormSubScreens} />
+
+        <IndexRedirect to="landing" />
       </Route>
 
-      <DefaultRoute handler={FormsSearchableList} />
-      <NotFoundRoute handler={FormNotFound} />
+      <Route path="*" component={FormNotFound} />
     </Route>
 
-    <Route name="collections">
-      <Route name="collection-page" path=":uid" handler={CollectionLanding} />
-      <DefaultRoute handler={CollectionList} />
-    </Route>
-
-    <Route name="users">
-      <DefaultRoute name="users-list" handler={UserList} />
-      <Route name="user-profile" handler={UserProfile}
-              path="/users/:username" />
-    </Route>
-
-    <Route name="account-settings" handler={AccountSettings} />
-    <Route name="change-password" handler={ChangePassword} />
-
-    <Route name="public" handler={Public}>
-      <Route name="public-builder" handler={Builder} />
-    </Route>
-    <Route name="profile" handler={SelfProfile} />
-
-    <DefaultRoute handler={Home} />
-    <NotFoundRoute handler={SectionNotFound} />
+    <Route path="*" component={SectionNotFound} />
   </Route>
 );
 
-export function runRoutes(el) {
-  run(routes, function (Handler) {
-    React.render(<Handler />, el);
-
-    var curRoutes = this.getCurrentRoutes();
-    actions.navigation.routeUpdate({
-        names: curRoutes.map(function(route) { return route.name; })
-    });
-
-  });
+class RunRoutes extends React.Component {
+  render() {
+    return (
+      <Router history={hashHistory}>
+        {routes}
+      </Router>
+    );
+  }
 }
+
+export default RunRoutes;
