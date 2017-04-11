@@ -189,7 +189,7 @@ var SearchCollectionList = React.createClass({
     );
 
     return [
-      <bem.List__heading key="h1">
+      <bem.List__heading key="h1" className="is-edge">
         {t('Active Projects')}
       </bem.List__heading>,
       results];

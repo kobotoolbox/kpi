@@ -70,7 +70,7 @@ var SidebarFormsList = React.createClass({
       <bem.FormSidebar>
         { 
           s.defaultQueryState === 'done' && 
-          <bem.FormSidebar__label m={'active-projects'}>
+          <bem.FormSidebar__label m={'active-projects'} className="is-edge">
             <i className="k-icon-projects" />
             {t('Active Projects')}
           </bem.FormSidebar__label>
