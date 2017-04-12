@@ -596,7 +596,15 @@ var App = React.createClass({
   ],
   getInitialState () {
     moment.locale(currentLang());
-    return assign({}, stores.pageState.state);
+    return assign({
+      pageState: {
+        showFixedDrawer: false
+      }
+    }, stores.pageState.state);
+  },
+  componentWillReceiveProps() {
+    if (this.state.pageState.showFixedDrawer)
+      stores.pageState.setState({showFixedDrawer: false});
   },
   render() {
     var assetid = this.props.params.assetid || null;
@@ -609,7 +617,7 @@ var App = React.createClass({
           <bem.PageWrapper m={{
               'asset-nav-present': this.state.assetNavPresent,
               'asset-nav-open': this.state.assetNavIsOpen && this.state.assetNavPresent,
-              'fixed-drawer': this.state.showFixedDrawer,
+              'fixed-drawer': this.state.pageState.showFixedDrawer,
               'header-hidden': this.isFormBuilder(),
               'drawer-hidden': this.isFormBuilder(),
                 }} className="mdl-layout mdl-layout--fixed-header">

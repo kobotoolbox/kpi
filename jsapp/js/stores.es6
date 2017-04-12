@@ -164,30 +164,6 @@ var pageStateStore = Reflux.createStore({
       this.trigger(changed);
     }
   },
-  // setTopPanel (height, isFixed) {
-  //   var changed = changes(this.state, {
-  //     bgTopPanelHeight: height,
-  //     bgTopPanelFixed: isFixed
-  //   });
-
-  //   if (changed) {
-  //     assign(this.state, changed);
-  //     this.trigger(changed);
-  //   }
-  // },
-  // toggleSidebarIntentOpen () {
-  //   var newIntent = !this.state.sidebarIntentOpen,
-  //       isOpen = this.state.sidebarIsOpen,
-  //       changes = {
-  //         sidebarIntentOpen: newIntent
-  //       };
-  //   // xor
-  //   if ( (isOpen || newIntent) && !(isOpen && newIntent) ) {
-  //     changes.sidebarIsOpen = !isOpen;
-  //   }
-  //   assign(this.state, changes);
-  //   this.trigger(changes);
-  // },
   toggleFixedDrawer () {
     var _changes = {};
     var newval = !this.state.showFixedDrawer;

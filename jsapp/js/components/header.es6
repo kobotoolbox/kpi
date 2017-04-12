@@ -176,40 +176,6 @@ var MainHeader = React.createClass({
                   </bem.AccountBox__menuLink>
                 </bem.AccountBox__menuLI>
               </bem.AccountBox__menu>
-              {/*<ul className="k-account__menu">
-                <li className="k-account__miniprofile" key="settings">
-                  {accountMenuLabel} 
-                  <div className="k-account__details">
-                    {accountName} 
-                    {accountEmail} 
-                  </div>
-                  <button onClick={this.accountSettings} className="mdl-button mdl-button--raised mdl-button--colored">
-                    {t('Account Settings')}
-                  </button>
-                </li>
-                {leaveBetaUrl ?
-                  <li>
-                    <a href={leaveBetaUrl} className="mdl-menu__item">
-                      <i className="k-icon-settings" />
-                      {t('Leave Beta')}
-                    </a>
-                  </li>
-                :null}
-                <li className="k-lang__submenu" key="lang">
-                  <a className="mdl-menu__item">
-                    <i className="k-icon-language" />
-                    {t('Language')}
-                  </a>
-                  <ul>
-                    {langs.map(this.renderLangItem)}
-                  </ul>
-                </li>
-                <li key="logout">
-                  <a onClick={this.logout} className="mdl-menu__item">
-                    <i className="k-icon-logout" /> 
-                    {t('Logout')}</a>
-                  </li>
-              </ul>*/}
           </ui.PopoverMenu>
         </bem.AccountBox>
         );
@@ -285,11 +251,7 @@ var MainHeader = React.createClass({
         <header className="mdl-layout__header">
           <div className="mdl-layout__header-row">
             <button className="mdl-button mdl-button--icon k-burger" onClick={this.toggleFixedDrawer}>
-            { this.state.showFixedDrawer ?
-              <i className="fa fa-close"></i>
-            : 
               <i className="fa fa-bars"></i>
-            }
             </button>
             <span className='mdl-layout-title'>
               <a href='/'>
