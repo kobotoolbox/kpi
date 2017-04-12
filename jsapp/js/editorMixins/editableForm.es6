@@ -7,6 +7,7 @@ import _ from 'underscore';
 import DocumentTitle from 'react-document-title';
 import SurveyScope from '../models/surveyScope';
 import cascadeMixin from './cascadeMixin';
+import AssetNavigator from './assetNavigator';
 import {Link, hashHistory} from 'react-router';
 
 import {
@@ -635,6 +636,7 @@ export default assign({
     return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
           <ui.Panel m={'transparent'}>
+            <AssetNavigator />
             <bem.FormBuilder m={this.state.formStylePanelDisplayed ? 'formStyleDisplayed': null }>
               {this.renderSaveAndPreviewButtons()}
 

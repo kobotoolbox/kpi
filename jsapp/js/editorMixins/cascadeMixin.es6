@@ -28,7 +28,6 @@ export default {
       cascadeTextareaValue: '',
       cascadeLastSelectedRowIndex: lastSelectedRowIndex,
     });
-    stores.pageState.setAssetNavPresent(false);
   },
   cancelCascade () {
     this.setState({

@@ -1,7 +1,6 @@
 /*eslint no-unused-vars:0*/
 import React from 'react';
 import Reflux from 'reflux';
-import Select from 'react-select';
 import alertify from 'alertifyjs';
 import {Link, hashHistory} from 'react-router';
 import mdl from './libs/rest_framework/material';
@@ -28,10 +27,6 @@ import {
   isLibrary,
   stringToColor
 } from './utils';
-import {
-  ProjectSettingsEditor,
-  ProjectDownloads
-} from './components/formEditors';
 
 import icons from '../xlform/src/view.icons';
   

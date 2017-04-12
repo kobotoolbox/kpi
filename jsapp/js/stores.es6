@@ -199,15 +199,6 @@ var pageStateStore = Reflux.createStore({
       modal: false
     });
   },
-  setAssetNavPresent (tf) {
-    var val = !!tf;
-    if (val !== this.state.assetNavPresent) {
-      this.state.assetNavPresent = val;
-      this.trigger({
-        assetNavPresent: val
-      });
-    }
-  },
   setDrawerHidden (tf) {
     var val = !!tf;
     if (val !== this.state.drawerHidden) {
