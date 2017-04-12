@@ -146,7 +146,7 @@ var MainHeader = React.createClass({
                           triggerLabel={accountMenuLabel} 
                           buttonType='text'>
               <bem.AccountBox__menu>
-                <bem.AccountBox__menuLI>
+                <bem.AccountBox__menuLI key='1'>
                   <bem.AccountBox__menuItem m={'avatar'}>
                     {accountMenuLabel} 
                   </bem.AccountBox__menuItem>
@@ -160,7 +160,7 @@ var MainHeader = React.createClass({
                     </button>
                   </bem.AccountBox__menuItem>
                 </bem.AccountBox__menuLI>
-                <bem.AccountBox__menuLI m={'lang'}>
+                <bem.AccountBox__menuLI m={'lang'} key='2'>
                   <bem.AccountBox__menuLink>
                     <i className="k-icon-language" /> 
                     {t('Language')}
@@ -169,7 +169,7 @@ var MainHeader = React.createClass({
                     {langs.map(this.renderLangItem)}
                   </ul>
                 </bem.AccountBox__menuLI>
-                <bem.AccountBox__menuLI m={'logout'}>
+                <bem.AccountBox__menuLI m={'logout'} key='3'>
                   <bem.AccountBox__menuLink onClick={this.logout}>
                     <i className="k-icon-logout" /> 
                     {t('Logout')}

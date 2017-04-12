@@ -146,6 +146,12 @@
   margin: 0;
   padding: 0;
   cursor: pointer;
+  color:$cool-gray;
+  display: inline-block;
+  vertical-align: middle;
+  &:hover {
+    color: unquote("rgb(#{$color-accent})");
+  }
   i {
     margin:0px;
     font-size: 36px;
@@ -258,14 +264,6 @@
 .popover-menu--assetrow-menu, 
 .popover-menu--formLanding-menu {
   margin-left: 4px;
-  button {
-    display: inline-block;
-    vertical-align: middle;
-    color: $cool-gray;
-    &:hover {
-      color: unquote("rgb(#{$color-accent})");
-    }
-  }
   .popover-menu__content {
     right: 10px;
   }
