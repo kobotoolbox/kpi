@@ -8,25 +8,29 @@ class UserListTests(APITestCase):
     def setUp(self):
         self.client.login(username='admin', password='pass')
 
-    def test_user_list_succeeds(self):
+    def test_user_list_forbidden(self):
         """
-        we can query for user list
+        we cannot query the entire user list
         """
         url = reverse('user-list')
         response = self.client.get(url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_user_page_succeeds(self):
         """
-        we can query for user list
+        we can retrieve user details
         """
-        url = reverse('user-detail', args=['admin'])
+        username = 'admin'
+        url = reverse('user-detail', args=[username])
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('username', response.data)
+        self.assertEqual(response.data['username'], username)
 
     def test_invalid_user_fails(self):
         """
-        we can query for user list
+        verify that a 404 is returned when trying to retrieve details for an
+        invalid user
         """
         url = reverse('user-detail', args=['nonexistentuser'])
         response = self.client.get(url, format='json')

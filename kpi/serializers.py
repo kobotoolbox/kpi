@@ -931,20 +931,6 @@ class CreateUserSerializer(serializers.ModelSerializer):
         return user
 
 
-class UserListSerializer(UserSerializer):
-    assets_count = serializers.SerializerMethodField('_assets_count')
-    collections_count = serializers.SerializerMethodField('_collections_count')
-
-    def _collections_count(self, obj):
-        return obj.owned_collections.count()
-
-    def _assets_count(self, obj):
-        return obj.assets.count()
-
-    class Meta(UserSerializer.Meta):
-        fields = ('url', 'username', 'assets_count', 'collections_count',)
-
-
 class CollectionChildrenSerializer(serializers.Serializer):
     def to_representation(self, value):
         if isinstance(value, Collection):
