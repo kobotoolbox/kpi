@@ -45,7 +45,7 @@ fi
 
 if [[ ! -d "${KPI_SRC_DIR}/staticfiles" ]] || ! python "${KPI_SRC_DIR}/docker/check_kpi_prefix_outdated.py"; then
     echo 'Building static files from live code.'
-    (cd "${KPI_SRC_DIR}" && npm run build-production && python manage.py collectstatic --noinput)
+    (cd "${KPI_SRC_DIR}" && npm run build && python manage.py collectstatic --noinput)
 fi
 
 echo "Copying static files to nginx volume..."
