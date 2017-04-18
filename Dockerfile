@@ -68,7 +68,7 @@ RUN if ! diff "${KPI_SRC_DIR}/bower.json" /srv/tmp/base_bower.json && \
 COPY ./Gruntfile.js ${KPI_SRC_DIR}/
 COPY ./webpack ${KPI_SRC_DIR}/
 COPY ./.eslintrc ${KPI_SRC_DIR}/.eslintrc
-COPY ./helper/webpack-config.js ${KPI_SRC_DIR}/helper/webpack-config.js
+COPY ./webpack/webpack-config.js ${KPI_SRC_DIR}/webpack/webpack-config.js
 COPY ./test ${KPI_SRC_DIR}/test
 
 COPY ./jsapp ${KPI_SRC_DIR}/jsapp
