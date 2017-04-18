@@ -334,7 +334,20 @@ def _sync_permissions(asset, xform):
         if user == xform.user_id:
             # No need sync the owner's permissions
             continue
-
+        # KC does not assign implied permissions, so we have to do the work of
+        # resolving them
+        implied_perms = set()
+        for p in expected_perms:
+            implied_perms.update(asset._get_implied_perms(KPI_CODENAMES[p]))
+        # Only consider relevant implied permissions
+        implied_perms.intersection_update(KPI_CODENAMES.values())
+        # Convert from permission codenames back to PKs
+        kpi_codenames_to_pks = dict(
+            zip(KPI_CODENAMES.values(), KPI_CODENAMES.keys())
+        )
+        expected_perms.update(
+            map(lambda codename: kpi_codenames_to_pks[codename], implied_perms)
+        )
         user_obj = User.objects.get(pk=user)
         all_kpi_perms = current_kpi_perms[user]
         mapped_kpi_perms = current_kpi_perms[user].intersection(
