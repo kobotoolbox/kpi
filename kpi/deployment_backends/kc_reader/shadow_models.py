@@ -1,3 +1,5 @@
+import os
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.db import ProgrammingError
@@ -33,6 +35,12 @@ class LazyModelGroup:
         if not hasattr(self, '_Instance'):
             self._define()
         return self._Instance
+
+    @property
+    def Attachment(self):
+        if not hasattr(self, '_Attachment'):
+            self._define()
+        return self._Attachment
 
     @property
     def UserProfile(self):
@@ -72,6 +80,21 @@ class LazyModelGroup:
                                       default=u'submitted_via_web')
             uuid = models.CharField(max_length=249, default=u'')
 
+        class _ReadOnlyAttachment(_ReadOnlyModel):
+            class Meta:
+                managed = False
+                db_table = 'logger_attachment'
+                verbose_name = 'attachment'
+                verbose_name_plural = 'attachments'
+
+            instance = models.ForeignKey(_ReadOnlyInstance, related_name="attachments")
+            media_file = models.FileField(max_length=380)
+            mimetype = models.CharField(max_length=50, null=False, blank=True, default='')
+
+            @property
+            def filename(self):
+                return os.path.basename(self.media_file.name)
+
         class _UserProfile(models.Model):
             '''
             From onadata/apps/main/models/user_profile.py
@@ -108,6 +131,7 @@ class LazyModelGroup:
 
         self._XForm = _ReadOnlyXform
         self._Instance = _ReadOnlyInstance
+        self._Attachment = _ReadOnlyAttachment
         self._UserProfile = _UserProfile
 
 _models = LazyModelGroup()
