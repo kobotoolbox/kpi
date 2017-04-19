@@ -65,8 +65,8 @@ RUN if ! diff "${KPI_SRC_DIR}/bower.json" /srv/tmp/base_bower.json && \
 # Build client code. #
 ######################
 
-COPY ./Gruntfile.js ${KPI_SRC_DIR}/
-COPY ./webpack ${KPI_SRC_DIR}/
+COPY ./Gruntfile.js ${KPI_SRC_DIR}/Gruntfile.js
+COPY ./webpack ${KPI_SRC_DIR}/webpack
 COPY ./.eslintrc ${KPI_SRC_DIR}/.eslintrc
 COPY ./test ${KPI_SRC_DIR}/test
 
