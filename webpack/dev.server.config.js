@@ -1,6 +1,6 @@
 var publicPath = 'http://localhost:3000/static/compiled/';
 
-var webpackConfigs = require('./helper/webpack-config')({
+var webpackConfigs = require('./webpack-config')({
   saveStats: true,
   hot: true,
   inline: true,

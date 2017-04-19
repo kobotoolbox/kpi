@@ -88,7 +88,7 @@ def deploy_ref(deployment_name, ref, force=False):
             run("bower install")
             run("npm install")
             run("grunt buildall")
-            run("npm run build-production")
+            run("npm run build")
 
             # KPI and KF share a virtualenv but have distinct settings modules
             with prefix('DJANGO_SETTINGS_MODULE=kobo.settings'):

@@ -1,6 +1,6 @@
 // you should not need to edit this file.
 // make edits to the corresponding '.config' file
-var configs = require('./webpack.dev.server.config');
+var configs = require('./dev.server.config');
 
 var WebpackDevServer = require('webpack-dev-server');
 var webpack = require('webpack');
