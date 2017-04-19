@@ -165,7 +165,7 @@ var SharingForm = React.createClass({
   },
   usernameCheck (evt) {
     var username = evt.target.value;
-    if (username && username.length > 3) {
+    if (username && username.length > 1) {
       var result = stores.userExists.checkUsername(username);
       if (result === undefined) {
         actions.misc.checkUsername(username);

@@ -79,6 +79,11 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
     # Calculated permissions that are neither directly assignable nor stored
     # in the database, but instead implied by assignable permissions
     CALCULATED_PERMISSIONS = ('share_collection', 'delete_collection')
+    # Granting some permissions implies also granting other permissions
+    IMPLIED_PERMISSIONS = {
+        # Format: explicit: (implied, implied, ...)
+        'change_collection': ('view_collection',),
+    }
 
     def delete_with_deferred_indexing(self):
         ''' Defer Haystack indexing, delete all child assets, then delete
