@@ -99,41 +99,21 @@ module.exports = function (options) {
         ) : scssLoader.join('!')
     },
     {
-      test: /\.sass$/,
-      loader: 'style-loader!css-loader!postcss-loader!sass-loader?indentedSyntax=sass'
-    },
-    {
-      test: /\.less$/,
-      loader: 'style-loader!css-loader!postcss-loader!less-loader'
-    },
-    {
       test: /\.coffee$/,
       loader: "coffee-loader",
     },
     { test: /\.(coffee\.md|litcoffee)$/,
       loader: "coffee-loader?literate"
+    },
+    {
+      test: /\.(png|jpg|gif)$/,
+      loader: 'file-loader?name=[name].[ext]'
+    },
+    {
+      test: /\.(ttf|eot|svg|woff(2)?)(\S+)?$/,
+      loader: 'file-loader?name=[name].[ext]'
     }
   ];
-
-  if (options.outputHash) {
-    loaders.push({
-      test: /\.(png|jpg|gif)$/,
-      loader: 'file-loader?name=[hash].[ext]'
-    });
-    loaders.push({
-      test: /\.(ttf|eot|svg|woff(2)?)(\S+)?$/,
-      loader: 'file-loader?name=[hash].[ext]'
-    });
-  } else {
-    loaders.push({
-      test: /\.(png|jpg|gif)$/,
-      loader: 'file-loader?name=[name].[ext]'
-    });
-    loaders.push({
-      test: /\.(ttf|eot|svg|woff(2)?)(\S+)?$/,
-      loader: 'file-loader?name=[name].[ext]'
-    });
-  }
 
   var plugins = [
     new webpack.NoErrorsPlugin(),

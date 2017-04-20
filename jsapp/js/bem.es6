@@ -97,13 +97,6 @@ bem.FormSidebar__itembyline = bem.FormSidebar.__('itembyline', '<span>');
 bem.AssetListSorts = bem('asset-list-sorts', '<div>');
 bem.AssetListSorts__item = bem.AssetListSorts.__('item');
 
-bem.CollectionHeader = bem('collection-header');
-bem.CollectionHeader__item = bem.CollectionHeader.__('item');
-bem.CollectionHeader__input = bem.CollectionHeader.__('input', '<input>');
-bem.CollectionHeader__buttonRow = bem('collection-header__button-row');
-bem.CollectionHeader__iconwrap = bem.CollectionHeader.__('iconwrap');
-bem.CollectionHeader__buttonGroup = bem('collection-header__button-group');
-
 bem.Message = BEM('message');
 
 bem.ListView = BEM('list-view');
