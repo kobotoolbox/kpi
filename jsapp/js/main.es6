@@ -29,4 +29,3 @@ if (document.head.querySelector('meta[name=kpi-root-url]')) {
 } else {
   console.error('no kpi-root-url meta tag set. skipping react-router init');
 }
-

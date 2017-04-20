@@ -344,10 +344,6 @@ var sessionStore = Reflux.createStore({
   triggerAnonymous (/*data*/) {},
   triggerLoggedIn (acct) {
     this.currentAccount = acct;
-    if (acct.system_time) {
-      acct.sysDate = new Date(Date.parse(acct.system_time));
-      acct.curDate = new Date();
-    }
     if (acct.upcoming_downtime) {
       var downtimeString = acct.upcoming_downtime[0];
       acct.downtimeDate = new Date(Date.parse(acct.upcoming_downtime[0]));
@@ -618,6 +614,35 @@ stores.collections = Reflux.createStore({
     this.trigger(this.state);
   }
 });
+
+if (window.Intercom) {
+  var IntercomStore = Reflux.createStore({
+    init () {
+      this.listenTo(actions.navigation.routeUpdate, this.routeUpdate);
+      this.listenTo(actions.auth.verifyLogin.loggedin, this.loggedIn);
+      this.listenTo(actions.auth.logout.completed, this.loggedOut);
+    },
+    routeUpdate (routes) {
+      window.Intercom("update");
+    },
+    loggedIn (acct) {
+      let userData = {
+        'user_id': [acct.username, window.location.host].join('@'),
+        'username': acct.username,
+        'email': acct.email,
+        'name': acct.extra_details.name ? acct.extra_details.name :
+                  [acct.first_name, acct.last_name].join(),
+        'created_at': Math.floor(
+          (new Date(acct.date_joined)).getTime() / 1000),
+        'app_id': window.IntercomAppId
+      }
+      window.Intercom("boot", userData);
+    },
+    loggedOut () {
+      window.Intercom('shutdown');
+    }
+  });
+}
 
 assign(stores, {
   history: historyStore,
