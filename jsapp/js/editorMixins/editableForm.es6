@@ -396,9 +396,9 @@ export default assign({
               <i className="k-icon-projects" />
             </bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__cell m={'name'} >
-              <div className='mdl-textfield mdl-js-textfield mdl-textfield--full-width'>
-                <input type="text" onChange={this.nameChange} className="mdl-textfield__input" value={this.state.name} id="nameField"/>
-              </div>
+              <bem.FormModal__item>
+                <input type="text" onChange={this.nameChange} value={this.state.name} id="nameField"/>
+              </bem.FormModal__item>
             </bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__cell m={'buttonsTopRight'} >
 

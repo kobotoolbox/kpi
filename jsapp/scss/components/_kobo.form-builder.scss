@@ -27,13 +27,13 @@
 }
 
 .formBuilder-header {
-  height: 110px;
+  height: 125px;
 }
 
 .formBuilder__contents {
   height: calc(100% - 125px);
   overflow: auto;
-  margin-top:16px;
+  margin-top:8px;
   margin-right: 0px;
   transition:margin 0.2s;
 }
@@ -143,7 +143,8 @@
 
     &--name {
       width:calc(100% - 400px);
-      padding:0px 20px;
+      padding-left: 20px;
+      padding-top: 20px;
     }
     &--translations {
       p {

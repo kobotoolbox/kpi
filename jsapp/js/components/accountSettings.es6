@@ -190,7 +190,7 @@ export var AccountSettings = React.createClass({
               </bem.AccountSettings__item>
               <bem.AccountSettings__item m='password'>
                 <a href='/#/change-password'
-                    className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                    className="mdl-button mdl-button--raised mdl-button--colored">
                   {t('Modify Password')}
                 </a>
               </bem.AccountSettings__item>
@@ -427,7 +427,7 @@ export var ChangePassword = React.createClass({
             </bem.ChangePassword__item>
             <bem.ChangePassword__item  m='actions'>
               <button onClick={this.changePassword}
-                      className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                      className="mdl-button mdl-button--raised mdl-button--colored">
                 {t('Save Changes')}
               </button>
             </bem.ChangePassword__item>

@@ -197,17 +197,23 @@ $headerAccountTextColor: #dbedf7;
     }
 }
 
-.k-burger {
+.mdl-button--icon {
     display: none;
 }
 
 @media screen and (max-width: 768px) {
-    .k-burger {
-        display: block;
-        margin-right: 6px;
-        padding: 0px;
-    }
     .mdl-layout__header {
+        .mdl-button--icon {
+            display: block;
+            margin-right: 8px;
+            padding: 0px;
+            color: #FFF;
+            i {
+                line-height: 1.5em;
+                display: inline-block;
+                font-size: 24px;
+            }
+        }
         .account-box__logo {
             max-width: 85%;
         }

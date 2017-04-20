@@ -29,7 +29,6 @@
   height: 50px;
   width: 100%;
   flex-grow: 0;
-  color: $greyish-brown;
   text-align: right;
   padding: 15px;
   > div {
@@ -49,7 +48,7 @@
   }
   span.parent {
     font-weight: normal;
-    color: lighten($layout-text-color, 10%);
+    color: lighten($black, 10%);
   }
   i {
     font-size: 24px;

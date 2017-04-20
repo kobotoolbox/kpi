@@ -249,7 +249,7 @@ var MainHeader = React.createClass({
     return (
         <header className="mdl-layout__header">
           <div className="mdl-layout__header-row">
-            <button className="mdl-button mdl-button--icon k-burger" onClick={this.toggleFixedDrawer}>
+            <button className="mdl-button mdl-button--icon" onClick={this.toggleFixedDrawer}>
               <i className="fa fa-bars"></i>
             </button>
             <span className='mdl-layout-title'>

@@ -65,11 +65,6 @@
   margin: 0px;
 }
 
-.k-form-header__inner {
-  max-width: 1200px;
-  display: flex;
-}
-
 // Focus mode for form builder, disable drawer, header
 .mdl-layout.page-wrapper--header-hidden.mdl-layout.page-wrapper--drawer-hidden {
   .mdl-layout__content {
@@ -150,7 +145,7 @@
   display: inline-block;
   vertical-align: middle;
   &:hover {
-    color: unquote("rgb(#{$color-accent})");
+    color: $cool-blue;
   }
   i {
     margin:0px;
@@ -280,25 +275,20 @@
 
 .popover-menu--new-menu .popover-menu__toggle {
   @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
-  text-align: center;
   width: 100%;
 }
 
-// bordered button style
-.mdl-button.mdl-button--bordered {
-  border:1px solid unquote("rgb(#{$color-primary})");
-  color: unquote("rgb(#{$color-primary})");
-  padding:0px 40px;
-  text-transform: uppercase;
-  &:hover {
-    background:transparent;
+.popover-menu--groupby-menu {
+  .popover-menu__toggle {
+    @extend .mdl-button;
+    text-transform: uppercase;
+    &:after {
+      content: '\f107';
+      font-family: 'FontAwesome';
+      font-size: 18px;
+      margin-left: 5px;
+    }
   }
-}
-
-// bordered button style
-.mdl-button.mdl-button--bordered.mdl-button--gray-border {
-  border:1px solid $cool-gray;
-  color: $cool-gray;
 }
 
 // iframe default styles 
@@ -358,8 +348,10 @@ iframe {
     font-size:15px;
     border:1px solid transparent;
     border-bottom-color: $divider-color;
+    transition: border-color 0.3s;
     &:focus {
-      border-bottom-color: $cool-gray;
+      transition: border-color 0.3s;
+      border-bottom-color: $cool-blue;
     }
   }
 
@@ -402,33 +394,19 @@ iframe {
   border-bottom-color: lighten($black, 40%);
 }
 
-// UI MDL Popover
+// Misc elements
 
-.ui-mdl-popover {
-  position: relative;
-  text-align: left;
-  button {
-    border:none;
-    background-color: transparent;
-    margin-left: 4px;
-    font-weight: 400;
-    color: $cool-gray;
-    cursor: pointer;
-    padding:0px;
-    display: inline-block;
-    vertical-align: middle;
-    font-size: 36px;
-    &:hover {
-      background-color: transparent;
-      color: unquote("rgb(#{$color-accent})");
-    }
+span.svg-icon {
+  svg {
+    max-width: 100%;
+    max-height: 100%;
   }
-  ul {
-    text-align: left;
-    > a {
-      min-width: 200px;
-    }
-  }
+}
+
+// faster spinning icons, based on fa-spin
+.k-spin {
+  -webkit-animation: fa-spin 1.2s infinite linear;
+  animation: fa-spin 1.2s infinite linear;
 }
 
 // Scrollbar overrides

@@ -307,23 +307,6 @@ class KoBo extends React.Component {
   }
 }
 
-/*
-var FormInput = React.createClass({
-  render () {
-    return (
-        <div className="form-group">
-          <div className="mdl-textfield mdl-js-textfield">
-            <input className="mdl-textfield__input" type="text" id={this.props.id}
-                  onChange={this.props.onChange} />
-            <label className="mdl-textfield__label" htmlFor={this.props.id}>{this.props.label}</label>
-
-          </div>
-        </div>
-      );
-  }
-});
-*/
-
 var App = React.createClass({
   mixins: [
     Reflux.connect(stores.pageState, 'pageState'),
@@ -332,12 +315,11 @@ var App = React.createClass({
   getInitialState () {
     moment.locale(currentLang());
     return assign({
-      pageState: {
-        showFixedDrawer: false
-      }
-    }, stores.pageState.state);
+      pageState: stores.pageState.state
+    });
   },
   componentWillReceiveProps() {
+    // slide out drawer overlay on every page change (better mobile experience)
     if (this.state.pageState.showFixedDrawer)
       stores.pageState.setState({showFixedDrawer: false});
   },
@@ -346,22 +328,22 @@ var App = React.createClass({
     return (
       <DocumentTitle title="KoBoToolbox">
         <div className="mdl-wrapper">
-          { !this.state.headerHidden && 
+          { !this.state.pageState.headerHidden && 
             <div className="k-header__bar"></div>
           }
           <bem.PageWrapper m={{
               'fixed-drawer': this.state.pageState.showFixedDrawer,
-              'header-hidden': this.isFormBuilder(),
-              'drawer-hidden': this.isFormBuilder(),
+              'header-hidden': (this.isFormBuilder() || this.state.pageState.headerHidden),
+              'drawer-hidden': (this.isFormBuilder() || this.state.pageState.drawerHidden),
                 }} className="mdl-layout mdl-layout--fixed-header">
-              { this.state.pageState && this.state.pageState.modal &&
+              { this.state.pageState.modal &&
                 <Modal params={this.state.pageState.modal} />
               }
 
-              { !this.isFormBuilder() &&
+              { !this.isFormBuilder() && !this.state.pageState.headerHidden && 
                 <MainHeader assetid={assetid}/>
               }
-              { !this.isFormBuilder() &&
+              { !this.isFormBuilder() && !this.state.pageState.drawerHidden &&
                 <Drawer/>
               }
               <bem.PageWrapper__content className='mdl-layout__content' m={this.isFormSingle() ? 'form-landing' : ''}>

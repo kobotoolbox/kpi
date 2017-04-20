@@ -1,4 +1,4 @@
-@import "./libs/material-design-lite";
+@import "./libs/mdl";
 
 @import "./fonts/roboto";
 @import "./fonts/k-icons/k-icons";
@@ -9,7 +9,7 @@
 @import "./libs/react-tagsinput";
 @import "./libs/react-select";
 
-@import "./components/kobo.bem.ui";
+@import "./components/_kobo.bem.ui";
 @import "./components/kobo.modal";
 @import "./components/kobo.tooltips";
 @import "./components/kobo.navigation";

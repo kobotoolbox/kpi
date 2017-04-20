@@ -146,15 +146,12 @@ var pageStateStore = Reflux.createStore({
       navIsOpen = false;
     }
     this.state = {
-      // drawerIsVisible: false,
-      // headerSearch: true,
-      assetNavPresent: false,
       assetNavIsOpen: navIsOpen,
       assetNavIntentOpen: navIsOpen,
       assetNavExpanded: false,
       showFixedDrawer: false,
       headerHidden: false,
-      drawerHidden: false,
+      drawerHidden: false
     };
   },
   setState (chz) {
@@ -199,22 +196,15 @@ var pageStateStore = Reflux.createStore({
       modal: false
     });
   },
-  setDrawerHidden (tf) {
+  hideDrawerAndHeader (tf) {
     var val = !!tf;
     if (val !== this.state.drawerHidden) {
-      this.state.drawerHidden = val;
-      this.trigger({
-        drawerHidden: val
-      });
-    }
-  },
-  setHeaderHidden (tf) {
-    var val = !!tf;
-    if (val !== this.state.headerHidden) {
-      this.state.headerHidden = val;
-      this.trigger({
+      var _changes = {
+        drawerHidden: val,
         headerHidden: val
-      });
+      };
+      assign(this.state, _changes);
+      this.trigger(this.state);
     }
   }
 });
