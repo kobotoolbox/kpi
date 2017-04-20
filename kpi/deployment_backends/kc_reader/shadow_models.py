@@ -95,6 +95,13 @@ class LazyModelGroup:
             def filename(self):
                 return os.path.basename(self.media_file.name)
 
+            @property
+            def can_view_submission(self):
+                # TODO: Only attachments synced to s3 should be viewable by other users
+                # Can determine this by looking at media_file upload properties
+                # Alternatively, can move this into User Profile or Asset permissions logic
+                return True
+
         class _UserProfile(models.Model):
             '''
             From onadata/apps/main/models/user_profile.py
