@@ -3,7 +3,6 @@ import Reflux from 'reflux';
 import { Link } from 'react-router';
 import Dropzone from 'react-dropzone';
 import Select from 'react-select';
-import mdl from '../libs/rest_framework/material';
 
 import {dataInterface} from '../dataInterface';
 import actions from '../actions';
@@ -180,9 +179,9 @@ var Drawer = React.createClass({
         </div>
       </bem.Drawer>
       );
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
+  // },
+  // componentDidUpdate() {
+  //   mdl.upgradeDom();
   }
 });
 

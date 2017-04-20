@@ -6,7 +6,6 @@ import mixins from '../mixins';
 import stores from '../stores';
 import {dataInterface} from '../dataInterface';
 import bem from '../bem';
-import mdl from '../libs/rest_framework/material';
 import AssetRow from './assetrow';
 import DocumentTitle from 'react-document-title';
 import $ from 'jquery';
@@ -281,9 +280,6 @@ var SearchCollectionList = React.createClass({
         </bem.List>
       </DocumentTitle>
       );
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   }
 });
 

@@ -8,7 +8,6 @@ import bem from '../bem';
 import stores from '../stores';
 import Select from 'react-select';
 import ui from '../ui';
-import mdl from '../libs/rest_framework/material';
 import DocumentTitle from 'react-document-title';
 
 import ReportViewItem from './reportViewItem';
@@ -607,9 +606,6 @@ var Reports = React.createClass({
         </bem.ReportView>
       </DocumentTitle>
       );
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   }
 
 })

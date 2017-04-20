@@ -3,7 +3,6 @@ import React from 'react';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import {Link, hashHistory} from 'react-router';
-import mdl from './libs/rest_framework/material';
 import DocumentTitle from 'react-document-title';
 import classNames from 'classnames';
 

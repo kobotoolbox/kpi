@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import $ from 'jquery';
-import mdl from '../libs/rest_framework/material';
 import Select from 'react-select';
 import _ from 'underscore';
 import DocumentTitle from 'react-document-title';
@@ -67,9 +66,6 @@ var FormSettingsEditor = React.createClass({
   },
   focusSelect () {
     this.refs.webformStyle.focus();
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   }
 });
 
@@ -83,10 +79,6 @@ var FormCheckbox = React.createClass({
           </label>
         </div>
       );
-  },
-  componentDidUpdate() {
-    // TODO: upgrade specific element only (as opposed to whole DOM)
-    mdl.upgradeDom();
   }
 });
 
@@ -100,9 +92,6 @@ var FormSettingsBox = React.createClass({
       phoneMeta: [],
       styleValue: 'field-list'
     };
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   },
   componentDidMount () {
     this.updateState();
@@ -216,9 +205,6 @@ export default assign({
       this.app.survey.off('change');
     }
     this.unpreventClosingTab();
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   },
   handleHotkey: function(e) {
     if (e.altKey && e.keyCode == '69') {

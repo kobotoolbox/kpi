@@ -1,6 +1,5 @@
 import React from 'react';
 import { hashHistory } from 'react-router';
-import mdl from '../libs/rest_framework/material';
 import Select from 'react-select';
 import moment from 'moment';
 import alertify from 'alertifyjs';
@@ -296,9 +295,6 @@ var MainHeader = React.createClass({
           {this.renderGitRevInfo()}
         </header>
       );
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   },
   componentWillReceiveProps(nextProps) {
     if (this.props.assetid != nextProps.assetid && nextProps.assetid != null)

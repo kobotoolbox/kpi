@@ -4,7 +4,7 @@ window.$ = $;
 require('jquery.scrollto');
 require('jquery-ui/sortable');
 
-import mdl from './libs/rest_framework/material';
+// import mdl from './libs/rest_framework/material';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import classNames from 'classnames';
@@ -378,9 +378,9 @@ var App = React.createClass({
         </div>
       </DocumentTitle>
     );
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
+  // },
+  // componentDidUpdate() {
+  //   mdl.upgradeDom();
   }
 });
 
