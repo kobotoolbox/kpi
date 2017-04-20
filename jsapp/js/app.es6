@@ -346,7 +346,7 @@ var App = React.createClass({
     return (
       <DocumentTitle title="KoBoToolbox">
         <div className="mdl-wrapper">
-          { !this.state.headerHidden && 
+          { !this.state.headerHidden &&
             <div className="k-header__bar"></div>
           }
           <bem.PageWrapper m={{
@@ -664,7 +664,7 @@ var routes = (
     <Route path="forms" >
       <IndexRoute component={FormsSearchableList} />
 
-      <Route path="/forms/:assetid"> 
+      <Route path="/forms/:assetid">
         {/*<Route name="form-download" path="download" component={FormDownload} />*/}
         <Route path="json" component={FormJson} />
         <Route path="xform" component={FormXform} />

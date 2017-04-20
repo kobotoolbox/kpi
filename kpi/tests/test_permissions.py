@@ -28,10 +28,9 @@ class BasePermissionsTestCase(TestCase):
         :return: The computed permission name.
         :rtype: str
         '''
-        perm_name= Permission.objects.get(
-            content_type=ContentType.objects.get_for_model(model_instance),
-            codename__startswith=perm_name_prefix
-        ).natural_key()[0]
+        if not perm_name_prefix[-1] == '_':
+            perm_name_prefix += '_'
+        perm_name = perm_name_prefix + model_instance._meta.model_name
         return perm_name
 
     def _test_add_perm(self, obj, perm_name_prefix, user):
@@ -167,6 +166,35 @@ class PermissionsTestCase(BasePermissionsTestCase):
         self._test_add_and_remove_perm(self.admin_collection, 'view_', self.someuser)
         self._test_add_and_remove_perm(self.admin_collection, 'change_', self.someuser)
 
+    def test_add_submission_permission(self):
+        codenames = (
+            'add_submissions',
+            'view_submissions',
+            'change_submissions' # Must be last since it implies `view_submissions`
+        )
+        asset = self.admin_asset
+        grantee = self.someuser
+        for codename in codenames:
+            self.assertFalse(grantee.has_perm(codename, asset))
+            asset.assign_perm(grantee, codename)
+            self.assertTrue(grantee.has_perm(codename, asset))
+
+    def test_remove_submission_permission(self):
+        codenames = (
+            'add_submissions',
+            'view_submissions',
+            'change_submissions' # Must be last since it implies `view_submissions`
+        )
+        asset = self.admin_asset
+        grantee = self.someuser
+        for codename in codenames:
+            self.assertFalse(grantee.has_perm(codename, asset))
+            asset.assign_perm(grantee, codename)
+            self.assertTrue(grantee.has_perm(codename, asset))
+        for codename in reversed(codenames):
+            asset.remove_perm(grantee, codename)
+            self.assertFalse(grantee.has_perm(codename, asset))
+
     def test_add_asset_inherited_permission(self):
         self.admin_collection.assets.add(self.admin_asset)
         self._test_add_inherited_perm(self.admin_collection, 'view_',
@@ -180,6 +208,152 @@ class PermissionsTestCase(BasePermissionsTestCase):
                                              self.someuser, self.admin_asset)
         self._test_add_remove_inherited_perm(self.admin_collection, 'change_',
                                              self.someuser, self.admin_asset)
+
+    def test_implied_asset_grant_permissions(self):
+        implications = {
+            'change_asset': ('view_asset',),
+            'add_submissions': ('view_asset',),
+            'view_submissions': ('view_asset',),
+            'change_submissions': ('view_asset', 'view_submissions'),
+        }
+        asset = self.admin_asset
+        grantee = self.someuser
+
+        # Prevent extra `share_` permissions from being assigned
+        original_eds_can_change_perms = asset.editors_can_change_permissions
+        asset.editors_can_change_permissions = False
+
+        for explicit, implied in implications.iteritems():
+            # Make sure the slate is clean
+            self.assertListEqual(list(asset.get_perms(grantee)), [])
+            # Assign the explicit permission
+            asset.assign_perm(grantee, explicit)
+            # Verify that only the expected permissions have been granted
+            expected = [explicit]
+            expected.extend(implied)
+            self.assertListEqual(
+                sorted(asset.get_perms(grantee)), sorted(expected))
+            # Wipe the slate
+            asset.remove_perm(grantee, explicit)
+            for i in implied:
+                asset.remove_perm(grantee, i)
+
+        # Restore original setting governing `share_` permissions
+        asset.editors_can_change_permissions = original_eds_can_change_perms
+
+    def test_implied_asset_deny_permissions(self):
+        asset = self.admin_asset
+        grantee = self.someuser
+
+        # Prevent extra `share_` permissions from being assigned
+        original_eds_can_change_perms = asset.editors_can_change_permissions
+        asset.editors_can_change_permissions = False
+
+        expected_lineage = [
+            #  (___)
+            #  (o o)___________________________________________/
+            #   @@ `                                           \
+            #    \ __________________________________________, /
+            #    //                                          //
+            #   ^^                                          ^^
+            'view_asset', 'view_submissions', 'change_submissions']
+        self.assertListEqual(list(asset.get_perms(grantee)), [])
+        # Assigning the tail should bring the head and body along
+        asset.assign_perm(grantee, expected_lineage[-1])
+        self.assertListEqual(
+            sorted(asset.get_perms(grantee)), sorted(expected_lineage))
+        # Denying the head should deny the body and tail as well
+        asset.assign_perm(grantee, expected_lineage[0], deny=True)
+        self.assertListEqual(list(asset.get_perms(grantee)), [])
+
+        # Restore original setting governing `share_` permissions
+        asset.editors_can_change_permissions = original_eds_can_change_perms
+
+    def test_implied_collection_permissions(self):
+        grantee = self.someuser
+        collection = self.admin_collection
+
+        # Prevent extra `share_` permissions from being assigned
+        original_eds_can_change_perms = collection.editors_can_change_permissions
+        collection.editors_can_change_permissions = False
+
+        self.assertListEqual(list(collection.get_perms(grantee)), [])
+        collection.assign_perm(grantee, 'change_collection')
+        self.assertListEqual(
+            sorted(collection.get_perms(grantee)), [
+                'change_collection',
+                'view_collection'
+            ]
+        )
+        # Now deny view and make sure change is revoked as well
+        collection.assign_perm(grantee, 'view_collection', deny=True)
+        self.assertListEqual(list(collection.get_perms(grantee)), [])
+
+        # Restore original setting governing `share_` permissions
+        collection.editors_can_change_permissions = original_eds_can_change_perms
+
+    def test_calculated_owner_permissions(self):
+        asset = self.admin_asset
+        collection = self.admin_collection
+        asset_owner_permissions = [
+            'add_submissions',
+            'change_asset',
+            'change_submissions',
+            'delete_asset',
+            'delete_submissions',
+            'share_asset',
+            'share_submissions',
+            'view_asset',
+            'view_submissions'
+        ]
+        collection_owner_permissions = [
+            'change_collection',
+            'delete_collection',
+            'share_collection',
+            'view_collection'
+        ]
+        self.assertListEqual(
+            sorted(asset.get_perms(asset.owner)), asset_owner_permissions)
+        self.assertListEqual(
+            sorted(collection.get_perms(collection.owner)),
+            collection_owner_permissions
+        )
+
+    def test_calculated_editor_permissions(self):
+        grantee = self.someuser
+        asset = self.admin_asset
+        collection = self.admin_collection
+        asset_editor_permissions = [
+            'change_asset',
+            'share_asset',
+            'view_asset'
+        ]
+        collection_editor_permissions = [
+            'change_collection',
+            'share_collection',
+            'view_collection'
+        ]
+        asset.assign_perm(grantee, 'change_asset')
+        self.assertListEqual(
+            sorted(asset.get_perms(grantee)), asset_editor_permissions)
+        collection.assign_perm(grantee, 'change_collection')
+        self.assertListEqual(
+            sorted(collection.get_perms(grantee)),
+            collection_editor_permissions
+        )
+
+    def test_calculated_submission_editor_permissions(self):
+        grantee = self.someuser
+        asset = self.admin_asset
+        submission_editor_permissions = [
+            'change_submissions',
+            'share_submissions',
+            'view_asset',
+            'view_submissions',
+        ]
+        asset.assign_perm(grantee, 'change_submissions')
+        self.assertListEqual(
+            sorted(asset.get_perms(grantee)), submission_editor_permissions)
 
     def test_get_objects_for_user(self):
         admin_assets= get_all_objects_for_user(self.admin, Asset)

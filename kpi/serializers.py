@@ -253,7 +253,16 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
         content_object = validated_data['content_object']
         user = validated_data['user']
         perm = validated_data['permission'].codename
-        return content_object.assign_perm(user, perm)
+        with transaction.atomic():
+            # TEMPORARY Issue #1161: something other than KC is setting a
+            # permission; clear the `from_kc_only` flag
+            ObjectPermission.objects.filter(
+                user=user,
+                permission__codename='from_kc_only',
+                object_id=content_object.id,
+                content_type=ContentType.objects.get_for_model(content_object)
+            ).delete()
+            return content_object.assign_perm(user, perm)
 
 
 class AncestorCollectionsSerializer(serializers.HyperlinkedModelSerializer):
@@ -929,20 +938,6 @@ class CreateUserSerializer(serializers.ModelSerializer):
                 pass
         user.save()
         return user
-
-
-class UserListSerializer(UserSerializer):
-    assets_count = serializers.SerializerMethodField('_assets_count')
-    collections_count = serializers.SerializerMethodField('_collections_count')
-
-    def _collections_count(self, obj):
-        return obj.owned_collections.count()
-
-    def _assets_count(self, obj):
-        return obj.assets.count()
-
-    class Meta(UserSerializer.Meta):
-        fields = ('url', 'username', 'assets_count', 'collections_count',)
 
 
 class CollectionChildrenSerializer(serializers.Serializer):
