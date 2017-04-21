@@ -98,7 +98,7 @@
         button {
           color:$cool-gray;
           &:hover {
-            color: unquote("rgb(#{$color-accent})");
+            color: $cool-blue;
           }
         }
         .popover-menu__content {

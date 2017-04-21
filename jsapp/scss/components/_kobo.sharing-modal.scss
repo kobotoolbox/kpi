@@ -70,7 +70,7 @@
   background: #F8F8F8;
   padding: 15px;
 	input[type="text"] {
-		width:calc(100% - 280px);
+		width:calc(100% - 240px);
     border-bottom: 0px;
     display: inline-block;
     padding:10px;
@@ -85,7 +85,7 @@
 	}
   .Select {
     display: inline-block;
-    width:140px;
+    width:120px;
     vertical-align: middle;
     margin-right: 10px;
   }
@@ -96,6 +96,7 @@
     padding-left: 10px;
     .Select-value {
       line-height: 40px;
+      padding-left: 10px;
     }
     .Select-placeholder {
       padding-left: 10px;
@@ -106,4 +107,10 @@
 
 .form-modal__item--shareable-link {
   margin-top: 10px;
+}
+
+@media screen and (min-width: 768px) {
+  .form-modal__item--perms-user {
+    min-width: 520px;
+  }
 }

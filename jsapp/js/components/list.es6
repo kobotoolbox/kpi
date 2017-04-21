@@ -251,9 +251,9 @@ var ListExpandToggle = React.createClass({
           {count} {t('assets found')}
         </bem.LibNav__count>
         <bem.LibNav__expandedToggle>
-          <label className='mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect' htmlFor='expandedToggleCheckbox'>
-            <input type='checkbox' className='mdl-checkbox__input' id='expandedToggleCheckbox' checked={this.state.assetNavExpanded} onChange={this.handleChange} />
-            <span className='mdl-checkbox__label'>{t('expand details')} {this.state.assetNavExpanded}</span>
+          <input type='checkbox' className='mdl-checkbox__input' id='expandedToggleCheckbox' checked={this.state.assetNavExpanded} onChange={this.handleChange} />
+          <label htmlFor='expandedToggleCheckbox'>
+            {t('expand details')}
           </label>
         </bem.LibNav__expandedToggle>
       </bem.LibNav__expanded>

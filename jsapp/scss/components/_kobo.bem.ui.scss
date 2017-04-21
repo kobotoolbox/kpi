@@ -366,18 +366,46 @@ iframe {
     vertical-align: top;
   }
 
-  .Select-control {
-    border:1px solid transparent;
-    border-bottom-color: $divider-color;
-    border-radius: 0px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    padding-left: 0px;
-    .Select-placeholder {
-      padding-left: 0px;
-      color: $black;
+  .Select.is-focused {
+    .Select-control {
+      box-shadow: none;
     }
   }
+
+  .Select-control {
+    border:none;
+    border-bottom: 1px solid $divider-color;
+    border-radius: 0px;
+    padding-left: 0px;
+    height: 33px;
+    font-size: 15px;
+    .Select-placeholder {
+      padding-left: 0px;
+      color: $cool-gray;
+      font-size: 15px;
+    }
+    .Select-value {
+      color: $cool-gray;
+      padding-left: 0px;
+      font-size: 15px;
+    }
+    input {
+      padding-left: 0px;
+    }
+    .Select-input {
+      height: 33px;
+      > input {
+        padding-bottom: 10px;
+      }
+    }
+  }
+
+  .Select-menu-outer {
+    font-size: 15px;
+    border: 1px solid lighten($divider-color, 20%);
+    @include box-shadow;
+  }
+
 
   &--actions {
     text-align: right;
@@ -391,7 +419,12 @@ iframe {
   padding:6px 0px;
   font-size:15px;
   border:1px solid transparent;
-  border-bottom-color: lighten($black, 40%);
+  border-bottom-color: $divider-color;
+  transition: border-color 0.3s;
+  &:focus {
+    transition: border-color 0.3s;
+    border-bottom-color: $cool-blue;
+  }
 }
 
 // Misc elements

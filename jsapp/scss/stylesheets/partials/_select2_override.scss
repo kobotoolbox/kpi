@@ -3,39 +3,42 @@ Overrides to Select2 CSS Defaults
 */
 
 .select2-search input {
-    font-family: $preferred_font;
-    border-radius: 0px;
+  font-family: $font;
+  border-radius: 0px;
 }
 
 .select2-container-multi .select2-choices .select2-search-field input {
-    font-family: $preferred_font;
+  font-family: $font;
 }
 
 .select2-container-multi .select2-choices .select2-search-choice {
-    background-color: #5cb2ee;
-    background-image: none;
-    border: none;
-    border-radius: 2px;
-    box-shadow: none;
-    color: #FFF;
-    cursor: default;
-    line-height: 13px;
-    font-size: 12px;
-    padding: 3px 5px 3px 18px;
+  background-color: #5cb2ee;
+  background-image: none;
+  border: none;
+  border-radius: 2px;
+  box-shadow: none;
+  color: #FFF;
+  cursor: default;
+  line-height: 13px;
+  font-size: 12px;
+  padding: 3px 5px 3px 18px;
 }
+
 .select2-container-multi .select2-choices .select2-search-choice-focus {
-    background: #5cb2ee;
+  background: #5cb2ee;
 }
+
 .select2-search-choice-close {
-    background: none !important;
-    font-family: 'FontAwesome';
-    display: block;
-    font-size: 12px;
-    height: 12px;
-    color: #FFF;
-    width: 12px;
+  background: none !important;
+  font-family: 'FontAwesome';
+  display: block;
+  font-size: 12px;
+  height: 12px;
+  color: #FFF;
+  width: 12px;
 }
+
 .select2-search-choice-close:before {
-    content: "\f00d";
-    opacity: 0.6;
+  content: "\f00d";
+  opacity: 0.6;
 }
