@@ -94,7 +94,9 @@ export var AccountSettings = React.createClass({
     if(stores.session && stores.session.currentAccount) {
       return this.getStateFromCurrentAccount(stores.session.currentAccount);
     }
-    return {};
+    return {
+      textareaHeight: ''
+    };
   },
   handleChange (e, attr) {
     if (e.target) {
@@ -115,7 +117,13 @@ export var AccountSettings = React.createClass({
   organizationWebsiteChange (e) {this.handleChange(e, 'organizationWebsite');},
   primarySectorChange (e) {this.handleChange(e, 'primarySector');},
   genderChange (e) {this.handleChange(e, 'gender');},
-  bioChange (e) {this.handleChange(e, 'bio');},
+  bioChange (e) {
+    let descriptionHeight = $(e.target).prop('scrollHeight');
+    this.setState({
+      textareaHeight: descriptionHeight
+    });
+    this.handleChange(e, 'bio');
+  },
   phoneNumberChange (e) {this.handleChange(e, 'phoneNumber');},
   addressChange (e) {this.handleChange(e, 'address');},
   cityChange (e) {this.handleChange(e, 'city');},
@@ -143,6 +151,9 @@ export var AccountSettings = React.createClass({
     var initialsStyle = {
       background: `#${stringToColor(accountName)}`
     };
+
+    let bHeight = $('textarea#bio').prop('scrollHeight');
+    var bioHeight = Math.max(bHeight, this.state.textareaHeight);
 
     return (
       <DocumentTitle title={`${accountName} | KoboToolbox`}>
@@ -235,7 +246,11 @@ export var AccountSettings = React.createClass({
               <bem.AccountSettings__item>
                 <label>
                   {t('Bio')}
-                  <textarea value={this.state.bio}
+                  <textarea 
+                    value={this.state.bio}
+                    rows="1"
+                    id="bio"
+                    style={{height: bioHeight + 'px'}}
                     onChange={this.bioChange} />
                 </label>
               </bem.AccountSettings__item>
