@@ -8,6 +8,7 @@ from kpi.views import (
     AssetViewSet,
     AssetVersionViewSet,
     AssetSnapshotViewSet,
+    AttachmentViewSet,
     UserViewSet,
     CurrentUserViewSet,
     CollectionViewSet,
@@ -33,6 +34,7 @@ asset_routes.register(r'versions',
                       base_name='asset-version',
                       parents_query_lookups=['asset'],
                       )
+router.register(r'attachments', AttachmentViewSet, base_name='attachment')
 
 
 router.register(r'asset_snapshots', AssetSnapshotViewSet)

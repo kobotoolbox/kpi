@@ -74,6 +74,7 @@ from .serializers import (
     AssetVersionListSerializer,
     AssetVersionSerializer,
     AssetSnapshotSerializer,
+    AttachmentSerializer,
     SitewideMessageSerializer,
     CollectionSerializer, CollectionListSerializer,
     UserSerializer,
@@ -90,6 +91,7 @@ from .utils.kobo_to_xlsform import to_xlsform_structure
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from .tasks import import_in_background
 from deployment_backends.backends import DEPLOYMENT_BACKENDS
+from deployment_backends.kc_reader.shadow_models import _models
 
 CLONE_ARG_NAME = 'clone_from'
 COLLECTION_CLONE_FIELDS = {'name'}
@@ -460,6 +462,29 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
                 'uid': import_task.uid,
                 'status': ImportTask.PROCESSING
             }, status.HTTP_201_CREATED)
+
+
+class AttachmentViewSet(viewsets.ReadOnlyModelViewSet):
+    lookup_field = 'pk'
+    queryset = _models.Attachment.objects.all()
+    serializer_class = AttachmentSerializer
+    renderer_classes = (
+        renderers.JSONRenderer,
+        renderers.BrowsableAPIRenderer)
+
+    def retrieve(self, request, *args, **kwargs):
+        self.object = self.get_object()
+
+        filename = request.query_params.get('filename')
+        serializer = self.get_serializer(self.object)
+
+        if filename:
+            if filename == self.object.media_file.name:
+                return Response(serializer.get_download_url(self.object))
+            else:
+                raise Http404(_("Filename '%s' not found." % filename))
+
+        return Response(serializer.data)
 
 
 class AssetSnapshotViewSet(NoUpdateModelViewSet):

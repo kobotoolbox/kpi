@@ -34,7 +34,7 @@ from .utils.gravatar_url import gravatar_url
 
 from .deployment_backends.kc_reader.utils import get_kc_profile_data
 from .deployment_backends.kc_reader.utils import set_kc_require_auth
-
+from .deployment_backends.kc_reader.shadow_models import _models
 
 class Paginated(LimitOffsetPagination):
 
@@ -748,6 +748,25 @@ class AssetVersionSerializer(AssetVersionListSerializer):
 class AssetUrlListSerializer(AssetSerializer):
     class Meta(AssetSerializer.Meta):
         fields = ('url',)
+
+        
+class AttachmentSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='attachment-detail',
+                                               lookup_field='pk')
+
+    download_url = serializers.SerializerMethodField()
+    xform = serializers.ReadOnlyField(source='instance.xform.pk')
+    instance = serializers.ReadOnlyField(source='instance.pk')
+    filename = serializers.ReadOnlyField(source='media_file.name')
+
+    class Meta:
+        fields = ('url', 'filename', 'mimetype', 'id', 'xform',
+                  'instance', 'download_url')
+        lookup_field = 'pk'
+        model = _models.Attachment
+
+    def get_download_url(self, obj):
+        return obj.media_file.url if obj.media_file.url else None
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
