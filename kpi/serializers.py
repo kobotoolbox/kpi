@@ -28,13 +28,38 @@ from .models.object_permission import get_anonymous_user, get_objects_for_user
 from .models.asset import ASSET_TYPES
 from .models import TagUid
 from .models import OneTimeAuthenticationKey
+#import shadow Attachment models
+from .deployment_backends.kc_reader.shadow_models import _models
+
+
 from .forms import USERNAME_REGEX, USERNAME_MAX_LENGTH
 from .forms import USERNAME_INVALID_MESSAGE
 from .utils.gravatar_url import gravatar_url
 
 from .deployment_backends.kc_reader.utils import get_kc_profile_data
 from .deployment_backends.kc_reader.utils import set_kc_require_auth
+from .deployment_backends.kc_reader.utils import check_obj
+from .utils.image_tools import image_url
 
+def dict_key_for_value(_dict, value):
+    """
+    This function is used to get key by value in a dictionary
+    """
+    return _dict.keys()[_dict.values().index(value)]
+
+def get_path(data, question_name, path_list=[]):
+    name = data.get('name')
+    if name == question_name:
+        return '/'.join(path_list)
+    elif data.get('children') is not None:
+        for node in data.get('children'):
+            path_list.append(node.get('name'))
+            path = get_path(node, question_name, path_list)
+            if path is not None:
+                return path
+            else:
+                del path_list[len(path_list) - 1]
+    return None
 
 class Paginated(LimitOffsetPagination):
 
@@ -1156,3 +1181,46 @@ class UserCollectionSubscriptionSerializer(serializers.ModelSerializer):
         model = UserCollectionSubscription
         lookup_field = 'uid'
         fields = ('url', 'collection', 'uid')
+
+class AttachmentSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='attachment-detail',
+                                               lookup_field='pk')
+    # field_xpath = serializers.SerializerMethodField()
+    download_url = serializers.SerializerMethodField()
+    small_download_url = serializers.SerializerMethodField()
+    medium_download_url = serializers.SerializerMethodField()
+    xform = serializers.ReadOnlyField(source='instance.xform.pk')
+    instance = serializers.ReadOnlyField(source='instance.pk')
+    filename = serializers.ReadOnlyField(source='media_file.name')
+
+    class Meta:
+        # fields = ('url', 'filename', 'mimetype', 'field_xpath', 'id', 'xform',
+        #           'instance', 'download_url', 'small_download_url',
+        #           'medium_download_url')
+        fields = ('url', 'filename', 'mimetype', 'id', 'xform',
+                  'instance', 'download_url', 'small_download_url',
+                  'medium_download_url')
+        lookup_field = 'pk'
+        model = _models.Attachment
+
+    @check_obj
+    def get_download_url(self, obj):
+        return obj.media_file.url if obj.media_file.url else None
+
+    def get_small_download_url(self, obj):
+        if obj.mimetype.startswith('image'):
+            return image_url(obj, 'small')
+
+    def get_medium_download_url(self, obj):
+        if obj.mimetype.startswith('image'):
+            return image_url(obj, 'medium')
+
+    # def get_field_xpath(self, obj):
+    #     qa_dict = obj.instance.get_dict()
+    #     if obj.filename not in qa_dict.values():
+    #         return None
+    #
+    #     question_name = dict_key_for_value(qa_dict, obj.filename)
+    #     data = json.loads(obj.instance.xform.json)
+    #
+    #     return get_path(data, question_name)

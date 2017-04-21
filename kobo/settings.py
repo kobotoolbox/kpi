@@ -510,3 +510,13 @@ else:
 MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
+
+# IMAGE TOOLS Variables
+THUMB_CONF = {
+    'large': {'size': 1280, 'suffix': '-large'},
+    'medium': {'size': 640, 'suffix': '-medium'},
+    'small': {'size': 240, 'suffix': '-small'},
+}
+# order of thumbnails from largest to smallest
+THUMB_ORDER = ['large', 'medium', 'small']
+IMG_FILE_TYPE = 'jpg'
