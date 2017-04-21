@@ -121,10 +121,10 @@ $hover-asset-row: #F2F2F3;
   }
 
   a.asset-row__celllink {
-      color: lighten($black, 20%);
+    color: lighten($black, 20%);
+    display: block;
   }
   &:hover {
-
     > .asset-row__buttons {
       opacity: 1;
       width:43%;
@@ -134,6 +134,9 @@ $hover-asset-row: #F2F2F3;
 
     .date--modified {
       visibility: hidden;
+    }
+    a.asset-row__celllink {
+      color: $black;
     }
   }
 }
