@@ -63,10 +63,10 @@ class LazyModelGroup:
             date_modified = models.DateTimeField()
             uuid = models.CharField(max_length=249, default=u'')
 
-            def data_dictionary(self):
-                from onadata.apps.viewer.models.data_dictionary import\
-                    DataDictionary
-                return DataDictionary.objects.get(pk=self.pk)
+            # def data_dictionary(self):
+            #     from onadata.apps.viewer.models.data_dictionary import\
+            #         DataDictionary
+            #     return DataDictionary.objects.get(pk=self.pk)
 
         class _ReadOnlyInstance(_ReadOnlyModel):
             class Meta:
