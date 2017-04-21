@@ -5,7 +5,6 @@ from django.utils.translation import ugettext_lazy
 
 from jsonfield import JSONField
 
-
 class ReadOnlyModelError(ValueError):
     pass
 
@@ -20,6 +19,9 @@ class _ReadOnlyModel(models.Model):
     def delete(self, *args, **kwargs):
         raise ReadOnlyModelError('Cannot delete read-only-model')
 
+    @classmethod
+    def upload_to(self, *args, **kwargs):
+        raise ReadOnlyModelError('Cannot use read-only-model to upload assets')
 
 class LazyModelGroup:
     @property
@@ -33,6 +35,12 @@ class LazyModelGroup:
         if not hasattr(self, '_Instance'):
             self._define()
         return self._Instance
+
+    @property
+    def Attachment(self):
+        if not hasattr(self, '_Attachment'):
+            self._define()
+        return self._Attachment
 
     @property
     def UserProfile(self):
@@ -55,6 +63,11 @@ class LazyModelGroup:
             date_modified = models.DateTimeField()
             uuid = models.CharField(max_length=249, default=u'')
 
+            def data_dictionary(self):
+                from onadata.apps.viewer.models.data_dictionary import\
+                    DataDictionary
+                return DataDictionary.objects.get(pk=self.pk)
+
         class _ReadOnlyInstance(_ReadOnlyModel):
             class Meta:
                 managed = False
@@ -71,6 +84,33 @@ class LazyModelGroup:
             status = models.CharField(max_length=20,
                                       default=u'submitted_via_web')
             uuid = models.CharField(max_length=249, default=u'')
+
+            # def get_dict(self, force_new=False, flat=True):
+            #     """Return a python object representation of this instance's XML."""
+            #     self._set_parser()
+
+            # def _set_parser(self):
+            #     if not hasattr(self, "_parser"):
+            #         self._parser = XFormInstanceParser(
+            #             self.xml, self.obj.xform.data_dictionary())
+
+        class _ReadOnlyAttachment(_ReadOnlyModel):
+            '''
+            From onadata/apps/logger/models/attachment.py
+            '''
+            class Meta:
+                managed = False
+                db_table = 'logger_attachment'
+                verbose_name = 'attachment'
+                verbose_name_plural = 'attachments'
+
+            instance = models.ForeignKey(_ReadOnlyInstance, related_name="attachments")
+            media_file = models.FileField(upload_to=_ReadOnlyModel.upload_to, max_length=380)
+            mimetype = models.CharField(max_length=50, null=False, blank=True, default='')
+
+            @classmethod
+            def can_view_submission(self):
+                return True
 
         class _UserProfile(models.Model):
             '''
@@ -109,6 +149,7 @@ class LazyModelGroup:
         self._XForm = _ReadOnlyXform
         self._Instance = _ReadOnlyInstance
         self._UserProfile = _UserProfile
+        self._Attachment = _ReadOnlyAttachment
 
 _models = LazyModelGroup()
 
