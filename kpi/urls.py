@@ -18,6 +18,7 @@ from kpi.views import (
     AuthorizedApplicationUserViewSet,
     OneTimeAuthenticationKeyViewSet,
     UserCollectionSubscriptionViewSet,
+    AttachmentViewSet,
 )
 
 from kpi.views import home, one_time_login, browser_tests
@@ -51,6 +52,8 @@ router.register(r'authorized_application/users',
                 base_name='authorized_applications')
 router.register(r'authorized_application/one_time_authentication_keys',
                 OneTimeAuthenticationKeyViewSet)
+#Attachment Routes
+router.register(r'media', AttachmentViewSet, base_name='attachment')
 
 # Apps whose translations should be available in the client code.
 js_info_dict = {
@@ -78,7 +81,9 @@ urlpatterns = [
     ),
     url(r'^browser_tests/$', browser_tests),
     url(r'^authorized_application/one_time_login/$', one_time_login),
-    url(r'^hub/switch_builder$', switch_builder, name='toggle-preferred-builder'),
+    url(r'^hub/switch_builder$', switch_builder,
+        name='toggle-preferred-builder'),
     # Translation catalog for client code.
-    url(r'^jsi18n/$', javascript_catalog, js_info_dict, name='javascript-catalog'),
+    url(r'^jsi18n/$', javascript_catalog,
+        js_info_dict, name='javascript-catalog'),
 ]
