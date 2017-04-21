@@ -9,7 +9,6 @@ import stores from '../stores';
 import Select from 'react-select';
 import ui from '../ui';
 import mixins from '../mixins';
-// import mdl from '../libs/rest_framework/material';
 import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import icons from '../../xlform/src/view.icons';
@@ -305,9 +304,6 @@ var FormLanding = React.createClass({
         </bem.FormView> 
       </DocumentTitle>
       );
-  // },
-  // componentDidUpdate() {
-  //   mdl.upgradeDom();
   }
 
 })

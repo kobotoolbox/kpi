@@ -179,9 +179,6 @@ var Drawer = React.createClass({
         </div>
       </bem.Drawer>
       );
-  // },
-  // componentDidUpdate() {
-  //   mdl.upgradeDom();
   }
 });
 
