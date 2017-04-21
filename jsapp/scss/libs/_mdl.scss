@@ -1,35 +1,20 @@
-// Color definitions
-@import "~material-design-lite/src/color-definitions";
+// Theming variables, mixins and includes
 
-$azure: "35, 149, 243";
 $black: #414453;
 $cool-gray: lighten($black, 30%);
+$cool-blue: #2095f3;
 $cool-green: #52c5d0;
 $cool-red: #ff556a;
-$cool-blue: #2095f3;
 $divider-color: #e7e7e8;
-
-$color-primary: $azure !default;
-$color-accent: $azure !default;
-
-$preferred_font: "Roboto", "Helvetica", "Arial", sans-serif !default;
 $performance_font: "Roboto", "Helvetica", "Arial", sans-serif !default;
-
 $layout-text-color: #414453 !default;
 $layout-nav-color: white !default;
 $layout-header-bg-color: #414453 !default;
 $layout-drawer-nav-link-color: #7d8a93 !default;
 $layout-drawer-nav-link-active-bg: #f9f9f9 !default;
 
-@import "~material-design-lite/src/variables";
-@import "~material-design-lite/src/mixins";
-
-.mdl-shadow--2dp {
-  @include shadow-2dp;
-}
-
-.mdl-shadow--3dp {
-  @include shadow-3dp;
+@mixin shadow-2dp {
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
 }
 
 @mixin box-shadow {
@@ -37,7 +22,6 @@ $layout-drawer-nav-link-active-bg: #f9f9f9 !default;
   border-radius: 2px;
 }
 
-@import "~material-design-lite/src/typography/typography";
 @import "~material-design-lite/src/grid/grid";
 @import "~material-design-lite/src/layout/layout";
 
@@ -49,4 +33,23 @@ html {
 
 body {
   background: #F5F5F5;
+}
+
+html, body {
+  font-family: $performance_font;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+a {
+  color: $cool-blue;
+}
+
+p {
+  margin-bottom: 16px;
+}
+
+h3, h4, h5, h6 {
+  font-weight: 400;
 }

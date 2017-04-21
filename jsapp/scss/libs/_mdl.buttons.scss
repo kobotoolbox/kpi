@@ -47,7 +47,7 @@ input.mdl-button[type="submit"] {
 // Raised buttons
 .mdl-button--raised {
   background: $cool-blue;
-  @include box-shadow();
+  @include box-shadow;
   text-transform: uppercase;
 
   &.mdl-button--colored {

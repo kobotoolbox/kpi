@@ -51,7 +51,7 @@
     position: relative;
     color: lighten($black, 40%);
     &:hover {
-      color: unquote("rgb(#{$color-primary})");
+      color: $cool-blue;
     }
     i {
       font-size: 38px;

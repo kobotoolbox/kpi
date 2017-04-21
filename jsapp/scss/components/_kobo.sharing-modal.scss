@@ -29,18 +29,22 @@
   }
   &__role {
     flex:0;
-    min-width: 130px;
+    min-width: 160px;
     text-align: right;
     line-height: 2.2em;
   }
 
   .Select {
-    .Select-arrow {
-      right:35px;
+    .Select-arrow-zone {
+      position: absolute;
+      right:15px;
+      top: 2px;
+      padding-right: 0px;
     }
-    .Select-clear {
+    .Select-clear-zone {
+      position: absolute;
       right:0px;
-      padding-top: 4px;
+      top: 4px;
     }
     .Select-control {
       border:none !important;
@@ -49,6 +53,9 @@
     .Select-placeholder {
       padding-top: 4px;
       padding-bottom: 4px;
+    }
+    .Select-value {
+      padding-right: 40px;
     }
   }
 
@@ -83,10 +90,13 @@
     margin-right: 10px;
   }
   .Select-control {
-    padding:10px;
+    padding:4px 10px;
     @include box-shadow;
     border-bottom: 0px;
     padding-left: 10px;
+    .Select-value {
+      line-height: 40px;
+    }
     .Select-placeholder {
       padding-left: 10px;
     }
@@ -94,8 +104,6 @@
 
 }
 
-.form-modal__item--perms-link {
-  input[type="checkbox"] {
-    margin-top: 8px;
-  }
+.form-modal__item--shareable-link {
+  margin-top: 10px;
 }

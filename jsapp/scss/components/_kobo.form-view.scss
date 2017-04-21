@@ -293,7 +293,7 @@
   cursor: pointer;
   vertical-align: middle;
   &:hover {
-    color: unquote("rgb(#{$color-primary})");
+    color: $cool-blue;
   }
   &--disabled, &--disabled:hover {
     color: lighten($cool-gray, 15%);

@@ -5,6 +5,7 @@
 }
 .report-view__warning {
   background-color: #FFF;
+  @include box-shadow;
   padding: 8px 24px;
   p {
     font-size: 13px;
@@ -21,7 +22,7 @@
 
 .report-view__item {
   background-color: #FFF;
-  @extend .mdl-shadow--3dp;
+  @include box-shadow;
   margin: 15px 0px;
 }
 
@@ -141,7 +142,7 @@
     cursor: pointer;
   }
   input:checked + label {
-    border:2px solid unquote("rgb(#{$color-primary})");
+    border:2px solid $cool-blue;
   }
   &--vertical {
     background-image: url("~../img/chart-vertical.png");

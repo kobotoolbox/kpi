@@ -4,7 +4,7 @@ $headerAccountTextColor: #dbedf7;
 
 .k-header__bar {
     background-color: $layout-header-bg-color;
-    @extend .mdl-shadow--2dp;
+    @include shadow-2dp;
     position: absolute;
     min-height: 64px;
     width: 100%;
@@ -129,9 +129,12 @@ $headerAccountTextColor: #dbedf7;
         vertical-align: top;
     }
     .account-box__menu-item--mini-profile {
-        color: $black;
+        color: $cool-gray;
         display: inline-block;
         width:calc(100% - 70px);
+        line-height: 20px;
+        margin-top: 5px;
+        margin-bottom: 12px;
         span {
             display: inline-block;
             text-overflow: ellipsis;
@@ -152,6 +155,8 @@ $headerAccountTextColor: #dbedf7;
         a {
             color: $cool-gray;
             cursor: pointer;
+            font-weight: normal;
+            display: block;
             i {
                 font-size: 32px;
                 vertical-align: middle;
@@ -160,7 +165,7 @@ $headerAccountTextColor: #dbedf7;
                 vertical-align: middle;
             }
             &:hover {
-                color: unquote("rgb(#{$color-primary})");
+                color: $cool-blue;
             }
         }
     }
@@ -173,16 +178,21 @@ $headerAccountTextColor: #dbedf7;
             right: 100%;
             top: 0px;
             background-color: #FFF;
-            color: $black;
-            min-width: 120px;
+            color: $cool-gray;
+            min-width: 140px;
             transition: all 0.5s;
             max-height: 0px;
             opacity: 0;
             overflow: hidden;
+            padding:8px 0px;
             @include box-shadow;
             li {
-                padding: 12px;
+                padding: 10px 15px;
                 text-transform: capitalize;
+                border-bottom:1px solid $divider-color;
+                &:last-child {
+                    border-bottom: 0px;
+                }
             }
         }
         &:hover > ul {
@@ -197,7 +207,7 @@ $headerAccountTextColor: #dbedf7;
     }
 }
 
-.mdl-button--icon {
+.mdl-layout__header .mdl-button--icon {
     display: none;
 }
 
@@ -275,9 +285,10 @@ $headerAccountTextColor: #dbedf7;
         overflow: hidden;
         width: 100%;
         background: transparent;
-        padding: 2px 5px;
+        padding: 3px 6px;
         margin: 0px;
-        border: 1px solid transparent;
+        border:none;
+        border-bottom: 1px solid transparent;
         // keep these pseudo-states separate
         &::-webkit-input-placeholder {
             color: darken($cool-gray, 10%);
@@ -286,11 +297,11 @@ $headerAccountTextColor: #dbedf7;
             color: darken($cool-gray, 10%);
         }
         &:hover {
-            border: 1px solid unquote("rgba(#{$color-primary}, 0.8)");
+            border-bottom: 1px solid $cool-blue;
         }
         &:focus {
             background: rgba(255, 255, 255, 0.05);
-            border: 1px solid unquote("rgba(#{$color-primary}, 1)");
+            border-bottom: 1px solid $cool-blue;
         }
     }
     input[name='title'] {
