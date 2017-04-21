@@ -215,6 +215,15 @@ bem.PrintOnly = BEM('print-only');
 bem.GitRev = BEM('git-rev');
 bem.GitRev__item = bem.GitRev.__('item', '<div>');
 
+// used in subsections gallery
+bem.AssetGallery = BEM('asset-gallery');
+bem.AssetGallery__heading = bem.AssetGallery.__('heading');
+bem.AssetGallery__count = bem.AssetGallery.__('heading__count', '<span>');
+bem.AssetGallery__grid = bem.AssetGallery.__('grid', '<div>');
+bem.AssetGallery__gridItem = bem.AssetGallery.__('grid-item', '<div>');
+bem.AssetGallery__gridLink = bem.AssetGallery.__('grid-item__grid-link', '<a>');
+bem.AssetGallery__popover = bem.AssetGallery.__('popover', '<div>');
+
 bem.create = BEM;
 
 export default bem;

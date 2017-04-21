@@ -61,7 +61,7 @@ var FormSubScreens = React.createClass({
           iframeUrl = report__base+'/export.html';
           break;
         case `/forms/${this.state.uid}/data/gallery`:
-          iframeUrl = deployment__identifier+'/photos';
+          return this.renderCollection();
           break;
         case `/forms/${this.state.uid}/data/map`:
           iframeUrl = deployment__identifier+'/map';
@@ -95,7 +95,7 @@ var FormSubScreens = React.createClass({
     var docTitle = this.state.name || t('Untitled');
 
     return (
-        <DocumentTitle title={`${docTitle} | KoboToolbox`}>      
+        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
           <bem.FormView>
             <bem.FormView__cell m='iframe'>
               <iframe src={iframeUrl} />
@@ -103,6 +103,103 @@ var FormSubScreens = React.createClass({
           </bem.FormView>
         </DocumentTitle>
       );
+  },
+  renderCollection () {
+    var docTitle = this.state.name || t('Untitled');
+    var deployment__identifier = this.state.deployment__identifier;
+    var iframeUrl = deployment__identifier+'/photos';
+    var uid = '2d2ebe6357924842ad2f21ac3da38338/682e5deb-c4c2-4f13-842f-19589f5df6bc';
+    var attachments_host = 'http://172.17.0.1:8001/media/wolejkoa/attachments/';
+    var data = {
+      assets: [
+        {
+          "download_url": "http://172.17.0.1:8001/media/wolejkoa/attachments/2d2ebe6357924842ad2f21ac3da38338/682e5deb-c4c2-4f13-842f-19589f5df6bc/test-9_3_0-large.jpeg",
+          "small_download_url": "http://example.com/api/v1/media/1-small.jpg",
+          "medium_download_url": "http://example.com/api/v1/media/1-medium.jpg",
+          "filename": "test-9_3_0-large.jpeg",
+          "id": 1,
+          "instance": 1,
+          "mimetype": "image/jpeg",
+          "url": "http://example.com/api/v1/media/1",
+          "xform": 1
+        },
+        {
+          "download_url": "http://172.17.0.1:8001/media/wolejkoa/attachments/2d2ebe6357924842ad2f21ac3da38338/682e5deb-c4c2-4f13-842f-19589f5df6bc/test-9_3_0-large.jpeg",
+          "small_download_url": "http://example.com/api/v1/media/1-small.jpg",
+          "medium_download_url": "http://example.com/api/v1/media/1-medium.jpg",
+          "filename": "test-9_3_0-large.jpeg",
+          "id": 1,
+          "instance": 1,
+          "mimetype": "image/jpeg",
+          "url": "http://example.com/api/v1/media/1",
+          "xform": 1
+        },
+        {
+          "download_url": "http://172.17.0.1:8001/media/wolejkoa/attachments/2d2ebe6357924842ad2f21ac3da38338/682e5deb-c4c2-4f13-842f-19589f5df6bc/test-9_3_0-large.jpeg",
+          "small_download_url": "http://example.com/api/v1/media/1-small.jpg",
+          "medium_download_url": "http://example.com/api/v1/media/1-medium.jpg",
+          "filename": "test-9_3_0-large.jpeg",
+          "id": 1,
+          "instance": 1,
+          "mimetype": "image/jpeg",
+          "url": "http://example.com/api/v1/media/1",
+          "xform": 1
+        },
+        {
+          "download_url": "http://172.17.0.1:8001/media/wolejkoa/attachments/2d2ebe6357924842ad2f21ac3da38338/682e5deb-c4c2-4f13-842f-19589f5df6bc/test-9_3_0-large.jpeg",
+          "small_download_url": "http://example.com/api/v1/media/1-small.jpg",
+          "medium_download_url": "http://example.com/api/v1/media/1-medium.jpg",
+          "filename": "test-9_3_0-large.jpeg",
+          "id": 1,
+          "instance": 1,
+          "mimetype": "image/jpeg",
+          "url": "http://example.com/api/v1/media/1",
+          "xform": 1
+        },
+        {
+          "download_url": "http://172.17.0.1:8001/media/wolejkoa/attachments/2d2ebe6357924842ad2f21ac3da38338/682e5deb-c4c2-4f13-842f-19589f5df6bc/test-9_3_0-large.jpeg",
+          "small_download_url": "http://example.com/api/v1/media/1-small.jpg",
+          "medium_download_url": "http://example.com/api/v1/media/1-medium.jpg",
+          "filename": "test-9_3_0-large.jpeg",
+          "id": 1,
+          "instance": 1,
+          "mimetype": "image/jpeg",
+          "url": "http://example.com/api/v1/media/1",
+          "xform": 1
+        }
+      ]
+    }
+    return (
+      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+        <bem.AssetGallery>
+          <bem.AssetGallery__heading>
+            <div className="col6">
+              <bem.AssetGallery__count>
+                <strong>{t(data.assets.length)} Images</strong>
+              </bem.AssetGallery__count>
+            </div>
+            <div className="col6">
+              <p>RIGHT</p>
+            </div>
+          </bem.AssetGallery__heading>
+          <bem.AssetGallery__grid>
+          {data.assets.map(function(asset, i) {
+            var divStyle = {
+              backgroundImage: 'url(' + asset.download_url + ')',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'center center', 
+              backgroundSize: 'cover'
+            }
+            return (
+              <bem.AssetGallery__gridItem className="col4 one-one" style={divStyle}>
+                <bem.AssetGallery__gridLink></bem.AssetGallery__gridLink>
+              </bem.AssetGallery__gridItem>
+            );
+          })}
+          </bem.AssetGallery__grid>
+        </bem.AssetGallery>
+      </DocumentTitle>
+    );
   },
   renderCollectWeb () {
     var docTitle = this.state.name || t('Untitled');
@@ -129,7 +226,7 @@ var FormSubScreens = React.createClass({
 
     var deployment__links_list = [];
     var value = undefined;
- 
+
     for (var key in available__links) {
       if (key == 'iframe_url')
         value = '<iframe src="'+deployment__links[key]+'" width="800" height="600"></iframe>';
@@ -148,7 +245,7 @@ var FormSubScreens = React.createClass({
     }
 
     return (
-        <DocumentTitle title={`${docTitle} | KoboToolbox`}>      
+        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
           <bem.FormView>
             <bem.FormView__row>
               <bem.FormView__cell m='columns'>
@@ -160,17 +257,17 @@ var FormSubScreens = React.createClass({
                 {deployment__links_list.map((c)=>{
                   return (
                       <bem.FormView__cell m={['collect-row']} key={`c-${c.key}`}>
-                        {c.key != 'iframe_url' ? 
+                        {c.key != 'iframe_url' ?
                           <a className="collect-link" target="_blank" href={c.value}>{c.label}</a>
                         :
                           <a className="collect-link">{c.label}</a>
                         }
-                        
+
                         <div className="desc">{c.desc}</div>
-                        {c.key == 'iframe_url' && 
+                        {c.key == 'iframe_url' &&
                           <code>{c.value}</code>
                         }
-                        {c.key != 'iframe_url' && 
+                        {c.key != 'iframe_url' &&
                           <CopyToClipboard text={c.value} options={{debug: true}} onCopy={() => notify('copied to clipboard')}>
                             <a className="copy mdl-button mdl-js-button mdl-button--colored">{t('Copy link')}</a>
                           </CopyToClipboard>
@@ -192,7 +289,7 @@ var FormSubScreens = React.createClass({
     var kobocollect_url = kc_server.origin + '/' + this.state.owner__username;
 
     return (
-        <DocumentTitle title={`${docTitle} | KoboToolbox`}>      
+        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
           <bem.FormView>
             <bem.FormView__row>
               <bem.FormView__cell m='columns'>
@@ -255,7 +352,7 @@ var FormSubScreens = React.createClass({
           </bem.FormView>
         </DocumentTitle>
     );
-  },  
+  },
   renderProjectDownloads() {
     var docTitle = this.state.name || t('Untitled');
     return (
