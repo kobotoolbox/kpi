@@ -61,7 +61,7 @@ def setup_env(deployment_name):
 def deploy_ref(deployment_name, ref, force=False):
     setup_env(deployment_name)
     with cd(env.kpi_path):
-        run("git fetch --all")
+        run("git fetch --all --tags")
         # Make sure we're not moving to an older codebase
         git_output = run_no_pty(
             'git rev-list {}..HEAD --count 2>&1'.format(ref))
@@ -103,8 +103,8 @@ def deploy_ref(deployment_name, ref, force=False):
     run("sudo service uwsgi reload")
 
 
-def deploy(deployment_name, branch='master'):
-    deploy_ref(deployment_name, 'origin/{}'.format(branch))
+def deploy(deployment_name, branch='origin/master'):
+    deploy_ref(deployment_name, branch)
 
 
 def transfer_data(deployment_name):
