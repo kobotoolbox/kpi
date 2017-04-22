@@ -100,6 +100,7 @@ def deploy_ref(deployment_name, ref, force=False):
         run("date > LAST_UPDATE.txt")
 
     run("sudo restart kpi_celeryd")
+    run("sudo restart kpi_sync_kobocat_xforms_celeryd")
     run("sudo service uwsgi reload")
 
 
