@@ -242,8 +242,7 @@ def _sync_form_metadata(asset, xform, changes):
         })
         changes.append('CREATE METADATA')
         # `_sync_permissions()` will save `asset` if it has no `pk`
-        affected_users = _sync_permissions(
-            asset, kc_deployment.backend_response)
+        affected_users = _sync_permissions(asset, xform)
         if affected_users:
             changes.append(
                 u'PERMISSIONS({})'.format('|'.join(affected_users)))
