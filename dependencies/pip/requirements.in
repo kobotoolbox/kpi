@@ -12,6 +12,9 @@
 python-digest==1.7
 -e git+https://github.com/dimagi/django-digest@0eb1c921329dd187c343b61acfbec4e98450136e#egg=django_digest
 
+# django-guardian must match KoBoCAT's version
+django-guardian==1.4.1
+
 # Regular PyPI packages
 Django<1.9
 Markdown

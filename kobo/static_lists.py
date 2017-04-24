@@ -1,9 +1,6 @@
 from django.utils.translation import ugettext_lazy as _
 
-'''
-This file is a place to store static, translatable lists (or tuples!). Choice
-lists for registration fields were the original application.
-'''
+# This file is a place to store static, translatable strings
 
 SECTORS = (
     # (value, human-readable label)
@@ -34,26 +31,23 @@ SECTORS = (
     ("Other", _("Other")),
 )
 
-'''
-You might generate such a list of countries with code like this:
-
-    from __future__ import print_function
-    import requests
-    import sys
-
-    url = 'https://www.humanitarianresponse.info/api/v1.0/locations?filter[admin_level]=0'
-    while url:
-        print('Fetching', url, file=sys.stderr)
-        response = requests.get(url)
-        j = response.json()
-        if 'next' in j:
-            url = j['next']['href']
-        else:
-            url = None
-        for d in j['data']:
-            print("({}, _({}))".format(repr(d['iso3']), repr(d['label'])))
-'''
-
+# You might generate such a list of countries with code like this:
+#
+#     from __future__ import print_function
+#     import requests
+#     import sys
+#
+#     url = 'https://www.humanitarianresponse.info/api/v1.0/locations?filter[admin_level]=0'
+#     while url:
+#         print('Fetching', url, file=sys.stderr)
+#         response = requests.get(url)
+#         j = response.json()
+#         if 'next' in j:
+#             url = j['next']['href']
+#         else:
+#             url = None
+#         for d in j['data']:
+#             print("({}, _({}))".format(repr(d['iso3']), repr(d['label'])))
 COUNTRIES = (
     # (value, human-readable label)
     (u'AFG', _(u'Afghanistan')),
@@ -308,19 +302,17 @@ COUNTRIES = (
     (u'ZWE', _(u'Zimbabwe')),
 )
 
-'''
-You might generate such a list of languages with code like this:
-
-    import requests
-    url = 'http://loc.gov/standards/iso639-2/ISO-639-2_utf-8.txt'
-    response = requests.get(url)
-    for line in response.iter_lines():
-        # Wow, the LOC does not specify an encoding in the response!
-        line = line.decode(response.apparent_encoding)
-        fields = line.strip().split('|')
-        if fields[2]:
-            print '({}, _({})),'.format(repr(fields[2]), repr(fields[3]))
-'''
+# You might generate such a list of languages with code like this:
+#
+#     import requests
+#     url = 'http://loc.gov/standards/iso639-2/ISO-639-2_utf-8.txt'
+#     response = requests.get(url)
+#     for line in response.iter_lines():
+#         # Wow, the LOC does not specify an encoding in the response!
+#         line = line.decode(response.apparent_encoding)
+#         fields = line.strip().split('|')
+#         if fields[2]:
+#             print '({}, _({})),'.format(repr(fields[2]), repr(fields[3]))
 LANGUAGES = (
     # (value, human-readable label)
     (u'aa', _(u'Afar')),
@@ -508,3 +500,10 @@ LANGUAGES = (
     (u'za', _(u'Zhuang; Chuang')),
     (u'zu', _(u'Zulu')),
 )
+
+# Django itself does not support all languages, so we cannot always rely upon
+# `django.utils.translation.get_language_info()` to provide native language
+# names for our translations
+NATIVE_LANGUAGE_NAMES = {
+    u'ku': u'\u0643\u0648\u0631\u062f\u06cc',
+}
