@@ -43,6 +43,7 @@ from .filters import KpiAssignedObjectPermissionsFilter
 from .filters import AssetOwnerFilterBackend
 from .filters import KpiObjectPermissionsFilter, RelatedAssetPermissionsFilter
 from .filters import SearchFilter
+from .filters import AttachmentFilter
 from .highlighters import highlight_xform
 from hub.models import SitewideMessage
 from .models import (
@@ -474,10 +475,14 @@ class AttachmentViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'pk'
     queryset = _models.Attachment.objects.all()
     serializer_class = AttachmentSerializer
+    filter_backends = (
+        AttachmentFilter,
+    )
     renderer_classes = (
         renderers.JSONRenderer,
         renderers.BrowsableAPIRenderer,
-        MediaFileRenderer)
+        MediaFileRenderer
+    )
 
     def retrieve(self, request, *args, **kwargs):
         self.object = self.get_object()
