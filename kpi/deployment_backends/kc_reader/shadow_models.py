@@ -9,7 +9,6 @@ from hashlib import md5
 
 from jsonfield import JSONField
 
-
 class ReadOnlyModelError(ValueError):
     pass
 
@@ -24,6 +23,9 @@ class _ReadOnlyModel(models.Model):
     def delete(self, *args, **kwargs):
         raise ReadOnlyModelError('Cannot delete read-only-model')
 
+    @classmethod
+    def upload_to(self, *args, **kwargs):
+        raise ReadOnlyModelError('Cannot use read-only-model to upload assets')
 
 class LazyModelGroup:
     @property
@@ -55,6 +57,7 @@ class LazyModelGroup:
         MODEL_NAME_MAPPING = {
             '_readonlyxform': ('logger', 'xform'),
             '_readonlyinstance': ('logger', 'instance'),
+            '_readonlyattachment': ('logger', 'attachment'),
             '_userprofile': ('main', 'userprofile')
         }
         try:
@@ -117,7 +120,7 @@ class LazyModelGroup:
                 verbose_name_plural = 'attachments'
 
             instance = models.ForeignKey(_ReadOnlyInstance, related_name="attachments")
-            media_file = models.FileField(max_length=380)
+            media_file = models.FileField(upload_to=_ReadOnlyModel.upload_to, max_length=380)
             mimetype = models.CharField(max_length=50, null=False, blank=True, default='')
 
             @property
@@ -129,6 +132,7 @@ class LazyModelGroup:
                 # TODO: Only attachments synced to s3 should be viewable by other users
                 # Can determine this by looking at media_file upload properties
                 # Alternatively, can move this into User Profile or Asset permissions logic
+
                 return True
 
         class _UserProfile(models.Model):

@@ -55,8 +55,10 @@ markdown==2.6.8
 markupsafe==0.23          # via jinja2
 ndg-httpsclient==0.4.2
 oauthlib==1.1.2
+olefile==0.44             # via pillow
 paramiko==2.1.1           # via fabric
 path.py==8.1.2
+pillow==4.1.0
 psycopg2==2.6.2
 py==1.4.32                # via pytest
 pyasn1==0.2.2

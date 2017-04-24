@@ -34,8 +34,6 @@ asset_routes.register(r'versions',
                       base_name='asset-version',
                       parents_query_lookups=['asset'],
                       )
-router.register(r'attachments', AttachmentViewSet, base_name='attachment')
-
 
 router.register(r'asset_snapshots', AssetSnapshotViewSet)
 router.register(
@@ -43,6 +41,7 @@ router.register(
 router.register(r'collections', CollectionViewSet)
 router.register(r'users', UserViewSet)
 router.register(r'tags', TagViewSet)
+router.register(r'attachments', AttachmentViewSet, base_name='attachment')
 router.register(r'permissions', ObjectPermissionViewSet)
 router.register(r'reports', ReportsViewSet, base_name='reports')
 router.register(r'imports', ImportTaskViewSet)
@@ -80,7 +79,9 @@ urlpatterns = [
     ),
     url(r'^browser_tests/$', browser_tests),
     url(r'^authorized_application/one_time_login/$', one_time_login),
-    url(r'^hub/switch_builder$', switch_builder, name='toggle-preferred-builder'),
+    url(r'^hub/switch_builder$', switch_builder,
+        name='toggle-preferred-builder'),
     # Translation catalog for client code.
-    url(r'^jsi18n/$', javascript_catalog, js_info_dict, name='javascript-catalog'),
+    url(r'^jsi18n/$', javascript_catalog,
+        js_info_dict, name='javascript-catalog'),
 ]
