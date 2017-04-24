@@ -6,25 +6,50 @@ import logging
 import re
 import requests
 import xlwt
-from hashlib import md5
+from collections import defaultdict
 from optparse import make_option
 from pyxform import xls2json_backends
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import get_storage_class
 from django.core.management.base import BaseCommand
 from django.db import models, transaction
+from guardian.models import UserObjectPermission
 from rest_framework.authtoken.models import Token
 
 from formpack.utils.xls_to_ss_structure import xls_to_dicts
 from hub.models import FormBuilderPreference
 from ...deployment_backends.kobocat_backend import KobocatDeploymentBackend
-from ...models import Asset
+from ...deployment_backends.kc_reader.shadow_models import _models
+from ...models import Asset, ObjectPermission
 from .import_survey_drafts_from_dkobo import _set_auto_field_update
 
 TIMESTAMP_DIFFERENCE_TOLERANCE = datetime.timedelta(seconds=30)
+
+PERMISSIONS_MAP = { # keys are KC's codenames, values are KPI's
+    'change_xform': 'change_submissions', # "Can Edit" in KC UI
+    'view_xform': 'view_submissions', # "Can View" in KC UI
+    'report_xform': 'add_submissions', # "Can submit to" in KC UI
+}
+
+# Optimization
+ASSET_CT = ContentType.objects.get_for_model(Asset)
+FROM_KC_ONLY_PERMISSION = Permission.objects.get(
+    content_type=ASSET_CT, codename='from_kc_only')
+XFORM_CT = _models.get_content_type_for_model(_models.XForm)
+# Replace codenames with Permission PKs, remembering the codenames
+KPI_CODENAMES = {}
+for kc_codename, kpi_codename in PERMISSIONS_MAP.items():
+    kc_perm_pk = Permission.objects.get(
+        content_type=XFORM_CT, codename=kc_codename).pk
+    kpi_perm_pk = Permission.objects.get(
+        content_type=ASSET_CT, codename=kpi_codename).pk
+    del PERMISSIONS_MAP[kc_codename]
+    PERMISSIONS_MAP[kc_perm_pk] = kpi_perm_pk
+    KPI_CODENAMES[kpi_perm_pk] = kpi_codename
 
 
 class SyncKCXFormsError(Exception):
@@ -199,8 +224,9 @@ def _sync_form_content(asset, xform, changes):
 
 
 def _sync_form_metadata(asset, xform, changes):
-    ''' Returns `True` and appends to `changes` if it modifies `asset`; does
-    not save anything '''
+    ''' Returns `True` and appends to `changes` if it modifies `asset`. If
+    `asset` has no primary key, it will be saved to allow permissions to be
+    assigned to it '''
     user = xform.user
     if not asset.has_deployment:
         # A brand-new asset
@@ -215,6 +241,11 @@ def _sync_form_metadata(asset, xform, changes):
             'version': asset.version_id
         })
         changes.append('CREATE METADATA')
+        # `_sync_permissions()` will save `asset` if it has no `pk`
+        affected_users = _sync_permissions(asset, xform)
+        if affected_users:
+            changes.append(
+                u'PERMISSIONS({})'.format('|'.join(affected_users)))
         return True
 
     modified = False
@@ -222,10 +253,8 @@ def _sync_form_metadata(asset, xform, changes):
     deployment_data = asset._deployment_data
     backend_response = deployment_data['backend_response']
 
-    if (
-            deployment_data['active'] != xform.downloadable or
-            backend_response['downloadable'] != xform.downloadable
-    ):
+    if (deployment_data['active'] != xform.downloadable or
+            backend_response['downloadable'] != xform.downloadable):
         deployment_data['active'] = xform.downloadable
         modified = True
         fetch_backend_response = True
@@ -255,37 +284,107 @@ def _sync_form_metadata(asset, xform, changes):
             'backend_response'] = _get_kc_backend_response(xform)
         modified = True
 
+    affected_users = _sync_permissions(asset, xform)
+    if affected_users:
+        modified = True
+        changes.append(u'PERMISSIONS({})'.format('|'.join(affected_users)))
+
     return modified
 
 
-class XForm(models.Model):
-    ''' A stripped-down version of `onadata.apps.logger.models.XForm`, included
-    here so that we can access KC's data '''
-    class Meta:
-        app_label = 'logger'
-    XFORM_TITLE_LENGTH = 255
-    MAX_ID_LENGTH = 100
-    xls = models.FileField(null=True)
-    xml = models.TextField()
-    user = models.ForeignKey(User, related_name='xforms', null=True)
-    downloadable = models.BooleanField(default=True)
-    id_string = models.SlugField(
-        editable=False,
-        max_length=MAX_ID_LENGTH
-    )
-    title = models.CharField(editable=False, max_length=XFORM_TITLE_LENGTH)
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_modified = models.DateTimeField(auto_now=True)
-    uuid = models.CharField(max_length=32, default=u'')
+def _sync_permissions(asset, xform):
+    # Get all applicable KC permissions set for this xform
+    xform_user_perms = UserObjectPermission.objects.filter(
+        permission_id__in=PERMISSIONS_MAP.keys(),
+        content_type=XFORM_CT,
+        object_pk=xform.pk
+    ).values_list('user', 'permission')
 
-    @property
-    def hash(self):
-        return u'%s' % md5(self.xml.encode('utf8')).hexdigest()
+    if not xform_user_perms and not asset.pk:
+        # Nothing to do
+        return []
 
-    @property
-    def prefixed_hash(self):
-        ''' Matches what's returned by the KC API '''
-        return u"md5:%s" % self.hash
+    if not asset.pk:
+        # Asset must have a primary key before working with its permissions
+        asset.save()
+
+    # Translate KC permissions to KPI permissions and store as dictionary of
+    # { user: set(perm1, perm2, ...) }
+    translated_kc_perms = defaultdict(set)
+    for user, kc_permission in xform_user_perms:
+        translated_kc_perms[user].add(PERMISSIONS_MAP[kc_permission])
+
+    # Get existing KPI permissions in same dictionary format
+    current_kpi_perms = defaultdict(set)
+    for user, kpi_permission in ObjectPermission.objects.filter(
+                deny=False,
+                content_type=ASSET_CT,
+                object_id=asset.pk
+            ).values_list('user', 'permission'):
+        current_kpi_perms[user].add(kpi_permission)
+
+    # Look for users in KPI but not in KC. Their permissions may have come from
+    # KC but were later revoked
+    for user in set(current_kpi_perms.keys()).difference(translated_kc_perms):
+        translated_kc_perms[user] = set()
+
+    affected_usernames = []
+    for user, expected_perms in translated_kc_perms.iteritems():
+        if user == xform.user_id:
+            # No need sync the owner's permissions
+            continue
+        # KC does not assign implied permissions, so we have to do the work of
+        # resolving them
+        implied_perms = set()
+        for p in expected_perms:
+            implied_perms.update(asset._get_implied_perms(KPI_CODENAMES[p]))
+        # Only consider relevant implied permissions
+        implied_perms.intersection_update(KPI_CODENAMES.values())
+        # Convert from permission codenames back to PKs
+        kpi_codenames_to_pks = dict(
+            zip(KPI_CODENAMES.values(), KPI_CODENAMES.keys())
+        )
+        expected_perms.update(
+            map(lambda codename: kpi_codenames_to_pks[codename], implied_perms)
+        )
+        user_obj = User.objects.get(pk=user)
+        all_kpi_perms = current_kpi_perms[user]
+        mapped_kpi_perms = current_kpi_perms[user].intersection(
+            PERMISSIONS_MAP.values())
+        perms_to_assign = expected_perms.difference(mapped_kpi_perms)
+        perms_to_revoke = mapped_kpi_perms.difference(expected_perms)
+        all_revoked = perms_to_revoke and not bool(
+            mapped_kpi_perms.difference(perms_to_revoke))
+        if not all_kpi_perms and perms_to_assign:
+            # The user has no existing KPI permissions; assign a special flag
+            # permission noting that their only reason for access is this
+            # synchronization script
+            ObjectPermission.objects.get_or_create(
+                user_id=user,
+                permission=FROM_KC_ONLY_PERMISSION,
+                content_type=ASSET_CT,
+                object_id=asset.pk
+            )
+        for p in perms_to_assign:
+            asset.assign_perm(user_obj, KPI_CODENAMES[p])
+        for p in perms_to_revoke:
+            asset.remove_perm(user_obj, KPI_CODENAMES[p])
+        if all_revoked and FROM_KC_ONLY_PERMISSION.pk in all_kpi_perms:
+            # This user's KPI access came only from this script, and now all KC
+            # permissions have been removed. Purge all KPI grant permissions,
+            # even the non-mapped ones, in order to clean up prerequisite
+            # permissions (e.g. 'view_asset' is a prerequisite of
+            # 'view_submissions')
+            ObjectPermission.objects.filter(
+                user_id=user,
+                deny=False,
+                content_type=ASSET_CT,
+                object_id=asset.pk
+            ).delete()
+        if perms_to_assign or perms_to_revoke:
+            affected_usernames.append(user_obj.username)
+
+    return affected_usernames
 
 
 class Command(BaseCommand):
@@ -304,7 +403,7 @@ class Command(BaseCommand):
                     action='store_true',
                     dest='quiet',
                     default=False,
-                    help='Do not output status messages'),
+                    help='Do not output status messages')
     )
 
     def _print_str(self, string):
@@ -320,8 +419,14 @@ class Command(BaseCommand):
                 'Both KOBOCAT_URL and KOBOCAT_INTERNAL_URL must be '
                 'configured before using this command'
             )
+        # FIXME: Remove this warning altogether
+        self.stderr.write(
+            'INFO: Please disregard warning guardian.W001\n')
         self._quiet = options.get('quiet')
         users = User.objects.all()
+        # Do a basic query just to make sure the lazy XForm model is loaded
+        if not _models.XForm.objects.exists():
+            return
         self._print_str('%d total users' % users.count())
         # A specific user or everyone?
         if options.get('username'):

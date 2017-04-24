@@ -14,12 +14,13 @@ import os
 import subprocess
 
 from django.conf import global_settings
-from django.conf.global_settings import LANGUAGES as _available_langs
 from django.conf.global_settings import LOGIN_URL
 from django.utils.translation import get_language_info
 import dj_database_url
 
 from pymongo import MongoClient
+
+from static_lists import NATIVE_LANGUAGE_NAMES
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -147,10 +148,23 @@ for db in DATABASES.values():
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
+def get_native_language_name(lang_code):
+    try:
+        return get_language_info(lang_code)['name_local']
+    except KeyError:
+        pass
+    try:
+        return NATIVE_LANGUAGE_NAMES[lang_code]
+    except KeyError:
+        raise KeyError(u'Please add an entry for {} to '
+                       u'kobo.static_lists.NATIVE_LANGUAGE_NAMES and try '
+                       u'again.'.format(lang_code))
 
-_available_langs = dict(_available_langs)
-LANGUAGES = [(lang_code, get_language_info(lang_code)['name_local'])
-             for lang_code in os.environ.get('DJANGO_LANGUAGE_CODES', 'en').split(' ')]
+LANGUAGES = [
+    (lang_code, get_native_language_name(lang_code))
+        for lang_code in os.environ.get(
+            'DJANGO_LANGUAGE_CODES', 'en').split(' ')
+]
 
 LANGUAGE_CODE = 'en-us'
 
@@ -225,6 +239,7 @@ TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
 
 TRACKJS_TOKEN = os.environ.get('TRACKJS_TOKEN')
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
+INTERCOM_APP_ID = os.environ.get('INTERCOM_APP_ID')
 
 # replace this with the pointer to the kobocat server, if it exists
 KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat/')

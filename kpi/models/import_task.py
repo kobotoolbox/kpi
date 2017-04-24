@@ -74,7 +74,6 @@ class ImportTask(models.Model):
                 raise Exception('only recently created imports can be executed')
             self.status = self.PROCESSING
             self.save(update_fields=['status'])
-            library = self.data.get('library')
             dest_item = dest_kls = has_necessary_perm = False
 
             if 'destination' in self.data and self.data['destination']:
@@ -190,6 +189,9 @@ class ImportTask(models.Model):
             if not library:
                 raise ValueError('a library cannot be imported into the'
                                  ' form list')
+            if 'survey' in survey_dict_keys:
+                raise ValueError('An import cannot have both "survey" and'
+                                 ' "library" sheets.')
             if destination:
                 raise SyntaxError('libraries cannot be imported into assets')
             collection = _load_library_content({

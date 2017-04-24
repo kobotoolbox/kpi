@@ -65,10 +65,9 @@ RUN if ! diff "${KPI_SRC_DIR}/bower.json" /srv/tmp/base_bower.json && \
 # Build client code. #
 ######################
 
-COPY ./Gruntfile.js ${KPI_SRC_DIR}/
-COPY ./webpack* ${KPI_SRC_DIR}/
+COPY ./Gruntfile.js ${KPI_SRC_DIR}/Gruntfile.js
+COPY ./webpack ${KPI_SRC_DIR}/webpack
 COPY ./.eslintrc ${KPI_SRC_DIR}/.eslintrc
-COPY ./helper/webpack-config.js ${KPI_SRC_DIR}/helper/webpack-config.js
 COPY ./test ${KPI_SRC_DIR}/test
 
 COPY ./jsapp ${KPI_SRC_DIR}/jsapp
@@ -81,7 +80,7 @@ RUN mkdir "${GRUNT_BUILD_DIR}" && \
     # FIXME: Move `webpack-stats.json` to some build target directory so these ad-hoc workarounds don't continue to accumulate.
     ln -s "${WEBPACK_STATS_PATH}" webpack-stats.json
 
-RUN grunt copy && npm run build-production
+RUN grunt copy && npm run build
 
 
 ###############################################
@@ -120,7 +119,6 @@ RUN git submodule init && \
 #################################################################
 
 RUN mkdir -p "${KPI_LOGS_DIR}/" "${KPI_WHOOSH_DIR}/" "${KPI_SRC_DIR}/emails"
-VOLUME "${KPI_LOGS_DIR}/" "${KPI_WHOOSH_DIR}/" "${KPI_SRC_DIR}/emails"
 
 
 #################################################
