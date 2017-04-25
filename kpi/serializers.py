@@ -776,14 +776,12 @@ class AssetUrlListSerializer(AssetSerializer):
 
         
 class AttachmentSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='attachment-detail',
-                                               lookup_field='pk')
-
+    url = serializers.SerializerMethodField()
     download_url = serializers.SerializerMethodField()
     small_download_url = serializers.SerializerMethodField()
     medium_download_url = serializers.SerializerMethodField()
-    xform = serializers.ReadOnlyField(source='instance.xform.pk')
-    instance = serializers.ReadOnlyField(source='instance.pk')
+    xform = serializers.ReadOnlyField(source='instance.xform.id_string')
+    instance = serializers.ReadOnlyField(source='instance.uuid')
     filename = serializers.ReadOnlyField(source='media_file.name')
 
     class Meta:
@@ -792,6 +790,10 @@ class AttachmentSerializer(serializers.ModelSerializer):
                   'medium_download_url')
         lookup_field = 'pk'
         model = _models.Attachment
+
+    def get_url(self, obj):
+        return reverse('asset-attachment-detail', args=(obj.instance.xform.id_string, obj.id,),
+                       request=self.context.get('request', None))
 
     @check_obj
     def get_download_url(self, obj):

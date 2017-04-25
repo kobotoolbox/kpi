@@ -34,6 +34,11 @@ asset_routes.register(r'versions',
                       base_name='asset-version',
                       parents_query_lookups=['asset'],
                       )
+asset_routes.register(r'attachments',
+                      AttachmentViewSet,
+                      base_name='asset-attachment',
+                      parents_query_lookups=['asset'],
+                      )
 
 router.register(r'asset_snapshots', AssetSnapshotViewSet)
 router.register(
@@ -41,7 +46,7 @@ router.register(
 router.register(r'collections', CollectionViewSet)
 router.register(r'users', UserViewSet)
 router.register(r'tags', TagViewSet)
-router.register(r'attachments', AttachmentViewSet, base_name='attachment')
+#router.register(r'attachments', AttachmentViewSet, base_name='attachment')
 router.register(r'permissions', ObjectPermissionViewSet)
 router.register(r'reports', ReportsViewSet, base_name='reports')
 router.register(r'imports', ImportTaskViewSet)

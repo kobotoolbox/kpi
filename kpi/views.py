@@ -471,9 +471,8 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
             }, status.HTTP_201_CREATED)
 
 
-class AttachmentViewSet(viewsets.ReadOnlyModelViewSet):
+class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     lookup_field = 'pk'
-    queryset = _models.Attachment.objects.all()
     serializer_class = AttachmentSerializer
     filter_backends = (
         AttachmentFilter,
@@ -483,6 +482,11 @@ class AttachmentViewSet(viewsets.ReadOnlyModelViewSet):
         renderers.BrowsableAPIRenderer,
         MediaFileRenderer
     )
+
+    def get_queryset(self):
+        _asset_uid = self.get_parents_query_dict()['asset']
+        _queryset = _models.Attachment.objects.all()
+        return _queryset.filter(instance__xform__id_string=_asset_uid)
 
     def retrieve(self, request, *args, **kwargs):
         self.object = self.get_object()
