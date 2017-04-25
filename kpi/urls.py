@@ -46,7 +46,6 @@ router.register(
 router.register(r'collections', CollectionViewSet)
 router.register(r'users', UserViewSet)
 router.register(r'tags', TagViewSet)
-#router.register(r'attachments', AttachmentViewSet, base_name='attachment')
 router.register(r'permissions', ObjectPermissionViewSet)
 router.register(r'reports', ReportsViewSet, base_name='reports')
 router.register(r'imports', ImportTaskViewSet)

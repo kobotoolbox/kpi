@@ -485,8 +485,11 @@ class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         _asset_uid = self.get_parents_query_dict()['asset']
-        _queryset = _models.Attachment.objects.all()
-        return _queryset.filter(instance__xform__id_string=_asset_uid)
+        asset = Asset.objects.get(uid=_asset_uid)
+        if not asset or not asset.has_deployment:
+            raise Http404
+        xform_id = asset.deployment.identifier.split('/')[-1]
+        return _models.Attachment.objects.filter(instance__xform__id_string=xform_id)
 
     def retrieve(self, request, *args, **kwargs):
         self.object = self.get_object()
