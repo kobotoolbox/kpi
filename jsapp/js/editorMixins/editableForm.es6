@@ -326,17 +326,26 @@ export default assign({
       var assetId = this.props.params.assetid;
       actions.resources.updateAsset.triggerAsync(assetId, params)
         .then(() => {
-          this.saveFormComplete();
+          this.unpreventClosingTab();
+          this.setState({
+            asset_updated: update_states.UP_TO_DATE,
+            surveySaveFail: false,
+          });
+        })
+        .catch((resp) => {
+          this.setState({
+            surveySaveFail: {
+              error: resp.statusText,
+              uid: params.uid,
+              name: params.name,
+              content: params.content,
+            },
+            asset_updated: update_states.SAVE_FAILED,
+          });
         });
     }
     this.setState({
       asset_updated: update_states.PENDING_UPDATE,
-    });
-  },
-  saveFormComplete () {
-    this.unpreventClosingTab();
-    this.setState({
-      asset_updated: update_states.UP_TO_DATE,
     });
   },
   handleScroll(evt) {
@@ -379,6 +388,8 @@ export default assign({
     }
     if (this.editorState === 'new') {
       ooo.saveButtonText = t('create');
+    } else if (this.state.surveySaveFail) {
+      ooo.saveButtonText = t('save failed (retry)');
     } else {
       ooo.saveButtonText = t('save');
     }
@@ -423,6 +434,7 @@ export default assign({
               <bem.FormBuilderHeader__button m={['save', {
                     savepending: this.state.asset_updated === update_states.PENDING_UPDATE,
                     savecomplete: this.state.asset_updated === update_states.UP_TO_DATE,
+                    savefailed: this.state.asset_updated === update_states.SAVE_FAILED,
                     saveneeded: this.state.asset_updated === update_states.UNSAVED_CHANGES,
                   }]} onClick={this.saveForm} className="disabled"
                   disabled={!this.state.surveyAppRendered || !!this.state.surveyLoadError}>
@@ -641,6 +653,30 @@ export default assign({
               {this.renderSaveAndPreviewButtons()}
 
               <bem.FormBuilder__contents>
+                {this.state.surveySaveFail ?
+                  <bem.FormMeta m='message'>
+                    <bem.FormMeta__content>
+                      <h3>
+                      {
+                        t('save failed')
+                      }
+                      </h3>
+                      <p>
+                        {this.state.surveySaveFail.error == 'error' ?
+                          t('Lost internet connection?')
+                          :
+                          this.state.surveySaveFail.error
+                        }
+                      </p>
+                      <p>
+                        {t('If you would like to save changes, please do not close' +
+                           ' this tab. Retry saving from a better connection until' +
+                           ' you see the "succesfully updated" message.')}
+                      </p>
+                    </bem.FormMeta__content>
+                  </bem.FormMeta>
+                :null}
+
                 { isSurvey ?
                   <FormSettingsBox survey={this.app.survey} {...this.state} />
                 : null }

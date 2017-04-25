@@ -262,6 +262,25 @@
     }
   }
 
+  &.formBuilder-header__button--savefailed {
+    background-color: #b32a2a;
+
+    // forcefully override mdl-lite colors
+    &:hover, &:focus:not(:active) {
+      background-color: #b32a2a;
+    }
+
+    > i {
+      @extend .fa-exclamation-circle;
+      font-size: 22px;
+      line-height: 39px;
+      display: inline-block;
+    }
+    > i + span {
+      display: none;
+    }
+  }
+
   &.formBuilder-header__button--saveneeded:after {
     content: '*';
     color: white;
@@ -304,7 +323,6 @@
   margin:8px 75px;
   margin-bottom: 16px;
   margin-right: 60px;
-
 }
 
 .form-meta__button--metasummary {
