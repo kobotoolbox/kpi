@@ -483,6 +483,10 @@ class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         MediaFileRenderer
     )
 
+    def get_serializer_context(self):
+        _asset_uid = self.get_parents_query_dict()['asset']
+        return {'request': self.request, 'asset': _asset_uid}
+
     def get_queryset(self):
         _asset_uid = self.get_parents_query_dict()['asset']
         asset = Asset.objects.get(uid=_asset_uid)

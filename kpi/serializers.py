@@ -792,7 +792,8 @@ class AttachmentSerializer(serializers.ModelSerializer):
         model = _models.Attachment
 
     def get_url(self, obj):
-        return reverse('asset-attachment-detail', args=(obj.instance.xform.id_string, obj.id,),
+        asset = self.context.get('asset', obj.instance.xform.id_string)
+        return reverse('asset-attachment-detail', args=(asset, obj.id,),
                        request=self.context.get('request', None))
 
     @check_obj
