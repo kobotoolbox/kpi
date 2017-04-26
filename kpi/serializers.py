@@ -812,6 +812,7 @@ class AttachmentSerializer(serializers.ModelSerializer):
 
 
 class AttachmentPagination(LimitOffsetPagination):
+    #TODO: Convert this into a HybridPagination util, override with AttachmentPagination limits
     default_limit = 10
     max_limit = 100
     page_query_param = 'page'
@@ -881,7 +882,6 @@ class AttachmentPagination(LimitOffsetPagination):
 
         return next_link
 
-
     def get_previous_link(self):
         prev_link = super(AttachmentPagination, self).get_previous_link()
         if prev_link:
@@ -912,6 +912,16 @@ class AttachmentPagination(LimitOffsetPagination):
                 prev_page = replace_query_param(prev_page, self.page_size_query_param, self.limit)
 
         return prev_page
+
+    def get_html_context(self):
+        html_json = super(AttachmentPagination, self).get_html_context()
+        for (i, page_link) in enumerate(html_json['page_links']):
+            link = remove_query_param(page_link.url, self.page_query_param)
+            link = remove_query_param(link, self.page_size_query_param)
+            link = replace_query_param(link, self.limit_query_param, self.limit)
+            html_json['page_links'][i] = page_link._replace(url=link)
+
+        return html_json
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
