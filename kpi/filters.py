@@ -222,12 +222,15 @@ class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
 
 
 class AttachmentFilter(filters.BaseFilterBackend):
-    """
-    For use with AssetVersions
-    Restricts access to items that are owned by the current user
-    """
     def filter_queryset(self, request, queryset, view):
         type = request.query_params.get('type')
+        group_by = request.query_params.get('group_by')
+
         if type:
-            return queryset.filter(mimetype__istartswith=type)
+            queryset = queryset.filter(mimetype__istartswith=type.lower())
+
+        if group_by and group_by == 'submission':
+            queryset = queryset.order_by('instance__id', 'pk')
+        else:
+            queryset = queryset.order_by('pk')
         return queryset
