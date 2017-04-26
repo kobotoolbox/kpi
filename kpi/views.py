@@ -78,6 +78,7 @@ from .serializers import (
     AssetVersionSerializer,
     AssetSnapshotSerializer,
     AttachmentSerializer,
+    AttachmentPagination,
     SitewideMessageSerializer,
     CollectionSerializer, CollectionListSerializer,
     UserSerializer,
@@ -474,6 +475,7 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
 class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     lookup_field = 'pk'
     serializer_class = AttachmentSerializer
+    pagination_class = AttachmentPagination
     filter_backends = (
         AttachmentFilter,
     )

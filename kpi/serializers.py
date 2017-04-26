@@ -11,8 +11,10 @@ from django.db import transaction
 from django.utils.six.moves.urllib import parse as urlparse
 from django.conf import settings
 from rest_framework import serializers, exceptions
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.pagination import LimitOffsetPagination, _positive_int
+from rest_framework.response import Response
 from rest_framework.reverse import reverse_lazy, reverse
+from rest_framework.utils.urls import replace_query_param, remove_query_param
 from taggit.models import Tag
 
 from kobo.static_lists import SECTORS, COUNTRIES, LANGUAGES
@@ -774,7 +776,7 @@ class AssetUrlListSerializer(AssetSerializer):
     class Meta(AssetSerializer.Meta):
         fields = ('url',)
 
-        
+
 class AttachmentSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
     download_url = serializers.SerializerMethodField()
@@ -807,6 +809,109 @@ class AttachmentSerializer(serializers.ModelSerializer):
     def get_medium_download_url(self, obj):
         if obj.mimetype.startswith('image'):
             return image_url(obj, 'medium')
+
+
+class AttachmentPagination(LimitOffsetPagination):
+    default_limit = 10
+    max_limit = 100
+    page_query_param = 'page'
+    page_size_query_param = 'page_size'
+
+    def paginate_queryset(self, queryset, request, view=None):
+        self.page = self.get_page(request)
+        return super(AttachmentPagination, self).paginate_queryset(queryset, request, view)
+
+    def get_paginated_response(self, data):
+        return Response(OrderedDict([
+            ('count', self.count),
+            ('next', self.get_next_link()),
+            ('next_page', self.get_next_page()),
+            ('previous', self.get_previous_link()),
+            ('previous_page', self.get_previous_page()),
+            ('results', data)
+        ]))
+
+    def get_limit(self, request):
+        # Handles case where API request specifies page_size instead of limit
+        if not self.limit_query_param in request.query_params:
+            try:
+                return _positive_int(
+                    request.query_params[self.page_size_query_param],
+                    cutoff=self.max_limit
+                )
+            except (KeyError, ValueError):
+                pass
+
+        return super(AttachmentPagination, self).get_limit(request)
+
+    def get_offset(self, request):
+        # Handles case where API request specifies page instead of offset
+        if not self.offset_query_param in request.query_params:
+            try:
+                page = _positive_int(
+                    request.query_params[self.page_query_param],
+                    strict=True
+                )
+                limit = self.get_limit(request)
+                return (page-1) * limit
+            except (KeyError, ValueError):
+                pass
+        return super(AttachmentPagination, self).get_offset(request)
+
+    def get_page(self, request):
+        # Parse the page number if provided in the query request
+        if self.page_query_param in request.query_params:
+            try:
+                return _positive_int(
+                    request.query_params[self.page_query_param],
+                    strict=True
+                )
+            except (KeyError, ValueError):
+                pass
+
+        limit = self.get_limit(request)
+        offset = self.get_offset(request)
+        return int(offset / limit) + 1
+
+    def get_next_link(self):
+        next_link = super(AttachmentPagination, self).get_next_link()
+        if next_link:
+            next_link = remove_query_param(next_link, self.page_query_param)
+            next_link = remove_query_param(next_link, self.page_size_query_param)
+
+        return next_link
+
+
+    def get_previous_link(self):
+        prev_link = super(AttachmentPagination, self).get_previous_link()
+        if prev_link:
+            prev_link = remove_query_param(prev_link, self.page_query_param)
+            prev_link = remove_query_param(prev_link, self.page_size_query_param)
+
+        return prev_link
+
+    def get_next_page(self):
+        next_page = self.get_next_link()
+        if next_page:
+            next_page = remove_query_param(next_page, self.limit_query_param)
+            next_page = remove_query_param(next_page, self.offset_query_param)
+            next_page = replace_query_param(next_page, self.page_query_param, self.page+1)
+            if self.limit != self.default_limit:
+                next_page = replace_query_param(next_page, self.page_size_query_param, self.limit)
+
+        return next_page
+
+    def get_previous_page(self):
+        prev_page = super(AttachmentPagination, self).get_previous_link()
+        if prev_page:
+            prev_page = remove_query_param(prev_page, self.limit_query_param)
+            prev_page = remove_query_param(prev_page, self.offset_query_param)
+            if self.page > 1:
+                prev_page = replace_query_param(prev_page, self.page_query_param, self.page-1)
+            if self.limit != self.default_limit:
+                prev_page = replace_query_param(prev_page, self.page_size_query_param, self.limit)
+
+        return prev_page
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
