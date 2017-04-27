@@ -399,6 +399,15 @@ if os.environ.get('AWS_ACCESS_KEY_ID'):
     AWS_SES_REGION_NAME = os.environ.get('AWS_SES_REGION_NAME')
     AWS_SES_REGION_ENDPOINT = os.environ.get('AWS_SES_REGION_ENDPOINT')
 
+'''
+    S3 configuration
+    Set to match Kobocat's config
+'''
+if os.environ.get('KOBOCAT_DEFAULT_FILE_STORAGE'):
+    DEFAULT_FILE_STORAGE = os.environ.get('KOBOCAT_DEFAULT_FILE_STORAGE')
+    AWS_STORAGE_BUCKET_NAME = os.environ.get('KOBOCAT_AWS_STORAGE_BUCKET_NAME')
+    AWS_DEFAULT_ACL = 'private'
+
 ''' Sentry configuration '''
 if 'RAVEN_DSN' in os.environ:
     import raven
