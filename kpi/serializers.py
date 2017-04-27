@@ -784,14 +784,29 @@ class AttachmentSerializer(serializers.ModelSerializer):
     medium_download_url = serializers.SerializerMethodField()
     xform = serializers.ReadOnlyField(source='instance.xform.id_string')
     instance = serializers.ReadOnlyField(source='instance.uuid')
-    filename = serializers.ReadOnlyField(source='media_file.name')
+    path = serializers.ReadOnlyField(source='media_file.name')
+    filename = serializers.SerializerMethodField()
+    question = serializers.SerializerMethodField()
+    can_view_submission = serializers.SerializerMethodField()
+    date_created = serializers.ReadOnlyField(source='instance.date_created')
+    date_modified = serializers.ReadOnlyField(source='instance.date_modified')
 
     class Meta:
-        fields = ('url', 'filename', 'mimetype', 'id', 'xform',
-                  'instance', 'download_url', 'small_download_url',
-                  'medium_download_url')
+        fields = ('url', 'filename', 'path', 'mimetype', 'id', 'xform',
+                  'instance', 'question', 'can_view_submission',
+                  'download_url', 'small_download_url', 'medium_download_url',
+                  'date_created', 'date_modified')
         lookup_field = 'pk'
         model = _models.Attachment
+
+    def get_filename(self, obj):
+        return obj.filename
+
+    def get_question(self, obj):
+        return obj.question
+
+    def get_can_view_submission(self, obj):
+        return obj.can_view_submission
 
     def get_url(self, obj):
         asset = self.context.get('asset', obj.instance.xform.id_string)

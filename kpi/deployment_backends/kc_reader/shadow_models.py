@@ -103,6 +103,7 @@ class LazyModelGroup:
                 verbose_name_plural = 'instances'
 
             xml = models.TextField()
+            json = JSONField(default={}, null=False)
             user = models.ForeignKey(User, null=True)
             xform = models.ForeignKey(_ReadOnlyXform, related_name='instances')
             date_created = models.DateTimeField()
@@ -126,6 +127,14 @@ class LazyModelGroup:
             @property
             def filename(self):
                 return os.path.basename(self.media_file.name)
+
+            @property
+            def question(self):
+                qa_dict = self.instance.json
+                if self.filename not in qa_dict.values():
+                    return None
+
+                return qa_dict.keys()[qa_dict.values().index(self.filename)]
 
             @property
             def can_view_submission(self):
