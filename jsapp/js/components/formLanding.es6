@@ -54,19 +54,19 @@ var FormLanding = React.createClass({
           <bem.FormView__cell m='label'>
             {dvcount > 0 ? `v${dvcount}` : ''}
             <bem.FormView__cell m='date'>
-              {t('Last modified: ')}
+              {t('Last Modified')}&nbsp;:&nbsp;
               {formatTime(this.state.date_modified)}
             </bem.FormView__cell>
           </bem.FormView__cell>
           <bem.FormView__cell m='buttons'>
             {this.state.userCanEdit ?
               <Link to={`/forms/${this.state.uid}/edit`} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-                {t('edit form')}
+                {t('edit')}
               </Link>              
             : 
               <a className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored disabled"
                   data-tip={t('Editing capabilities not granted, you can only view this form')}>
-                {t('edit form')}
+                {t('edit')}
               </a>
             }
           </bem.FormView__cell>
@@ -146,7 +146,7 @@ var FormLanding = React.createClass({
           <bem.FormView__group m="deployments" className={this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'}>
             <bem.FormView__group m={['items', 'headings']}>
               <bem.FormView__label m='version'>{t('Version')}</bem.FormView__label>
-              <bem.FormView__label m='date'>{t('Last modified')}</bem.FormView__label>
+              <bem.FormView__label m='date'>{t('Last Modified')}</bem.FormView__label>
               {/*<bem.FormView__label m='lang'>{t('Languages')}</bem.FormView__label>*/}
               {/*<bem.FormView__label m='questions'>{t('Questions')}</bem.FormView__label>*/}
               <bem.FormView__label m='clone'>{t('Clone')}</bem.FormView__label>
