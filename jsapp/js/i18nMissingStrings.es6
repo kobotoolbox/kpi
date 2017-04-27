@@ -110,3 +110,8 @@ test= t("Are you sure you want to delete this question?");
 test= t("Select One");
 test= t("Select Many");
 test= t("Unable to deploy");
+
+// Temporary strings from upcoming UI
+test = t("Current version");
+test = t("Form history");
+test = t("Version");
