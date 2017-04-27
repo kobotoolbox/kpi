@@ -229,7 +229,10 @@ class AttachmentFilter(filters.BaseFilterBackend):
         if type:
             queryset = queryset.filter(mimetype__istartswith=type.lower())
 
-        if group_by and group_by == 'submission':
+        if group_by and group_by == 'question':
+            queryset = sorted(queryset.order_by('-pk'),
+                              key=lambda att: att.question)
+        elif group_by and group_by == 'submission':
             queryset = queryset.order_by('-instance__id', 'pk')
         else:
             queryset = queryset.order_by('-pk')
