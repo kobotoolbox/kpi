@@ -535,6 +535,16 @@ MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
+# Set MEDIA_URL to be Kobocat storage location
+MEDIA_URL= '/' + os.environ.get('KOBOCAT_MEDIA_URL', 'media').strip('/') + '/'
+if os.environ.get('KOBOCAT_ROOT_URI_PREFIX'):
+    KOBOCAT_ROOT_URI_PREFIX= '/' + os.environ['KOBOCAT_ROOT_URI_PREFIX'].strip('/') + '/'
+    MEDIA_URL= KOBOCAT_ROOT_URI_PREFIX + MEDIA_URL.lstrip('/')
+
+# TODO: Only append KOBOCAT_URL to MEDIA_URL if AWS s3 settings not enabled?
+if KOBOCAT_URL:
+    MEDIA_URL = KOBOCAT_URL.strip('/') + MEDIA_URL
+
 # IMAGE TOOLS Variables
 THUMB_CONF = {
     'large': {'size': 1280, 'suffix': '-large'},
