@@ -231,7 +231,7 @@ class AttachmentFilter(filters.BaseFilterBackend):
 
         if order_by and order_by == 'question':
             queryset = sorted(queryset.order_by('-pk'),
-                              key=lambda att: att.get('question', {}).get('number', att.id))
+                              key=lambda att: att.question_index)
         elif order_by and order_by == 'submission':
             queryset = queryset.order_by('-instance__id', 'pk')
         else:
