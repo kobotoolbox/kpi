@@ -250,13 +250,6 @@ if 'KOBOCAT_URL' in os.environ:
 else:
     DEFAULT_DEPLOYMENT_BACKEND = 'mock'
 
-# Set default MEDIA_URL that points to KC location
-KOBOCAT_ROOT_URI_PREFIX = KOBOCAT_URL.strip('/') + '/'
-if os.environ.get('KOBOCAT_ROOT_URI_PREFIX'):
-    KOBOCAT_ROOT_URI_PREFIX += os.environ['KOBOCAT_ROOT_URI_PREFIX'].strip('/') + '/'
-
-MEDIA_URL = KOBOCAT_ROOT_URI_PREFIX + os.environ.get('KOBOCAT_MEDIA_URL', 'media').strip('/') + '/'
-
 # Following the uWSGI mountpoint convention, this should have a leading slash
 # but no trailing slash
 DKOBO_PREFIX = os.environ.get('DKOBO_PREFIX', 'False')
