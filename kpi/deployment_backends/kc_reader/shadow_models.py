@@ -8,6 +8,8 @@ from django.utils.translation import ugettext_lazy
 from hashlib import md5
 
 from jsonfield import JSONField
+from collections import OrderedDict
+
 
 class ReadOnlyModelError(ValueError):
     pass
@@ -99,7 +101,12 @@ class LazyModelGroup:
             @property
             def questions(self):
                 try:
-                    return json.loads(self.json).get('children', [])
+                    questions = json.loads(self.json).get('children', [])
+                    for index, question in enumerate(questions):
+                        question.pop('bind', None)
+                        question['number'] = index+1
+
+                    return questions
                 except ValueError:
                     return []
 
@@ -121,6 +128,22 @@ class LazyModelGroup:
             status = models.CharField(max_length=20,
                                       default=u'submitted_via_web')
             uuid = models.CharField(max_length=249, default=u'')
+
+            @property
+            def submission(self):
+                try:
+                    username = self.xform.user.username
+                except ValueError:
+                    username = None
+
+                return OrderedDict({
+                    'xform_id': self.xform.id_string,
+                    'instance_uuid': self.uuid,
+                    'username': username,
+                    'status': self.status,
+                    'date_created': self.date_created,
+                    'date_modified': self.date_modified
+                })
 
         class _ReadOnlyAttachment(_ReadOnlyModel):
             class Meta:
@@ -146,13 +169,13 @@ class LazyModelGroup:
                 return qa_dict.keys()[qa_dict.values().index(self.filename)]
 
             @property
-            def question_number(self):
+            def question(self):
                 if not self.question_name or not self.instance.xform.questions:
                     return None
 
-                for index, question in enumerate(self.instance.xform.questions):
+                for question in self.instance.xform.questions:
                     if question['name'] == self.question_name:
-                        return index+1
+                        return question
 
                 return None
 

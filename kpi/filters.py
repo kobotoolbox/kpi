@@ -224,15 +224,15 @@ class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
 class AttachmentFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         type = request.query_params.get('type')
-        group_by = request.query_params.get('group_by')
+        order_by = request.query_params.get('order_by')
 
         if type:
             queryset = queryset.filter(mimetype__istartswith=type.lower())
 
-        if group_by and group_by == 'question':
+        if order_by and order_by == 'question':
             queryset = sorted(queryset.order_by('-pk'),
-                              key=lambda att: att.question_number)
-        elif group_by and group_by == 'submission':
+                              key=lambda att: att.get('question', {}).get('number', att.id))
+        elif order_by and order_by == 'submission':
             queryset = queryset.order_by('-instance__id', 'pk')
         else:
             queryset = queryset.order_by('-pk')
