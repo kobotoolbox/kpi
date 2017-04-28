@@ -180,6 +180,13 @@ class LazyModelGroup:
                 return None
 
             @property
+            def question_index(self):
+                if not self.question:
+                    return self.id
+
+                return self.question['number'] or self.question_name
+
+            @property
             def can_view_submission(self):
                 # TODO: Only attachments synced to s3 should be viewable by other users
                 # Can determine this by looking at media_file upload properties
