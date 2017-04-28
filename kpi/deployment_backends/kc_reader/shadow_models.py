@@ -1,5 +1,5 @@
 import os
-
+import json
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -78,6 +78,7 @@ class LazyModelGroup:
             XFORM_TITLE_LENGTH = 255
             xls = models.FileField(null=True)
             xml = models.TextField()
+            json = models.TextField(default=u'')
             user = models.ForeignKey(User, related_name='xforms', null=True)
             downloadable = models.BooleanField(default=True)
             id_string = models.SlugField()
@@ -94,6 +95,14 @@ class LazyModelGroup:
             def prefixed_hash(self):
                 ''' Matches what's returned by the KC API '''
                 return u"md5:%s" % self.hash
+
+            @property
+            def questions(self):
+                try:
+                    return json.loads(self.json).get('children', [])
+                except ValueError:
+                    return []
+
 
         class _ReadOnlyInstance(_ReadOnlyModel):
             class Meta:
@@ -129,12 +138,23 @@ class LazyModelGroup:
                 return os.path.basename(self.media_file.name)
 
             @property
-            def question(self):
+            def question_name(self):
                 qa_dict = self.instance.json
                 if self.filename not in qa_dict.values():
                     return None
 
                 return qa_dict.keys()[qa_dict.values().index(self.filename)]
+
+            @property
+            def question_number(self):
+                if not self.question_name or not self.instance.xform.questions:
+                    return None
+
+                for index, question in enumerate(self.instance.xform.questions):
+                    if question['name'] == self.question_name:
+                        return index+1
+
+                return None
 
             @property
             def can_view_submission(self):
