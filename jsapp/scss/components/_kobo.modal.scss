@@ -280,3 +280,12 @@
     max-width: 90%;
   }
 }
+
+/**
+ * React Modal Styles
+ */
+.ReactModal{
+  &__Overlay{
+    z-index: 9;
+  }
+}

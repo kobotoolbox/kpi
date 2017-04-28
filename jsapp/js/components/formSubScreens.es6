@@ -2,7 +2,6 @@ import React from 'react';
 import Reflux from 'reflux';
 import _ from 'underscore';
 import {dataInterface} from '../dataInterface';
-
 import actions from '../actions';
 import bem from '../bem';
 import stores from '../stores';
@@ -13,6 +12,8 @@ import mdl from '../libs/rest_framework/material';
 import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import SharingForm from '../components/sharingForm';
+import CollectionFilter from '../components/collection/collectionFilter';
+import CollectionGallery from '../components/collection/collectionGallery';
 
 import {
   ProjectSettingsEditor,
@@ -107,9 +108,6 @@ var FormSubScreens = React.createClass({
   renderCollection () {
     var docTitle = this.state.name || t('Untitled');
     var deployment__identifier = this.state.deployment__identifier;
-    var iframeUrl = deployment__identifier+'/photos';
-    var uid = '2d2ebe6357924842ad2f21ac3da38338/682e5deb-c4c2-4f13-842f-19589f5df6bc';
-    var attachments_host = 'http://172.17.0.1:8001/media/wolejkoa/attachments/';
     var data = {
       assets: [
         {
@@ -171,35 +169,12 @@ var FormSubScreens = React.createClass({
     }
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <bem.AssetGallery>
-          <bem.AssetGallery__heading>
-            <div className="col6">
-              <bem.AssetGallery__count>
-                <strong>{t(data.assets.length)} Images</strong>
-              </bem.AssetGallery__count>
-            </div>
-            <div className="col6">
-              <p>RIGHT</p>
-            </div>
-          </bem.AssetGallery__heading>
-          <bem.AssetGallery__grid>
-          {data.assets.map(function(asset, i) {
-            var divStyle = {
-              backgroundImage: 'url(' + asset.download_url + ')',
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'center center', 
-              backgroundSize: 'cover'
-            }
-            return (
-              <bem.AssetGallery__gridItem className="col4 one-one" style={divStyle}>
-                <bem.AssetGallery__gridLink></bem.AssetGallery__gridLink>
-              </bem.AssetGallery__gridItem>
-            );
-          })}
-          </bem.AssetGallery__grid>
-        </bem.AssetGallery>
+        <CollectionGallery />
       </DocumentTitle>
     );
+  },
+  renderCollectionPopup() {
+
   },
   renderCollectWeb () {
     var docTitle = this.state.name || t('Untitled');

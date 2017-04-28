@@ -9,6 +9,7 @@
 @import "./libs/react-tagsinput";
 @import "./libs/react-select";
 
+
 // TODO: phase out these colors from collection header
 $kcol-view: mix(#7b1fa2, grayscale(#7b1fa2), 38%);
 $kcol-edit: mix(#009688, grayscale(#009688), 38%);
@@ -43,7 +44,7 @@ $newformCircleWidthHeight: 55px;
 @import "./components/kobo.report-view";
 @import "./components/kobo.account-settings";
 @import "./components/kobo.sharing-modal";
-@import "./components/kobo.asset-gallery";
+@import "./components/kobo.collection-asset-gallery";
 @import "./libs/pygments-theme";
 
 .k-invisible {
