@@ -107,5 +107,7 @@ def image_url(attachment, suffix):
                         resize_local_env(filename)
                     return image_url(attachment, suffix)
             else:
-                return None
+                # Fallback to Kobocat location if not stored in s3 (if KC location exists)
+                filename = url.split('/')[-1]
+                return url.replace(filename, get_path(filename, size))
     return url
