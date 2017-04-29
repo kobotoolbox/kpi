@@ -93,10 +93,10 @@
         .card__text:after {
             content: '*';
             position: absolute;
-            top: 2px;
-            left: -17px;
-            color: #9c9c9c;
-            font-size: 15px;
+            top: -0.15em;
+            left: -9px;
+            color: #bbb;
+            font-size: 11px;
         }
     }
 }
