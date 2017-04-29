@@ -93,7 +93,8 @@ module.exports = do ->
         view.render().insertInDOM(@)
         if key == 'label'
           @make_label_editable(view)
-
+      if @model.getValue('required')
+        @$card.addClass('card--required')
       @
 
     toggleSettings: (show)->
