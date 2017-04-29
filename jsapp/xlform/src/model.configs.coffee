@@ -218,7 +218,7 @@ module.exports = do ->
       value: ""
       _hideUnlessChanged: true
     required:
-      value: true
+      value: false
       _hideUnlessChanged: true
     relevant:
       value: ""
