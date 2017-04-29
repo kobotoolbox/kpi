@@ -39,6 +39,7 @@
         vertical-align: middle;
         width: 99%;
         position: relative;
+
         &.activated {
             color: #8595A5;
         }
@@ -99,8 +100,11 @@
             font-size: 11px;
         }
         &.card--selectquestion {
-            .card__text:after {
-                left: -21px;
+            .card__text {
+                padding-left: 10px;
+                &:after {
+                    left: 1px;
+                }
             }
         }
     }
