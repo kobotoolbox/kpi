@@ -98,6 +98,11 @@
             color: #bbb;
             font-size: 11px;
         }
+        &.card--selectquestion {
+            .card__text:after {
+                left: -21px;
+            }
+        }
     }
 }
 
