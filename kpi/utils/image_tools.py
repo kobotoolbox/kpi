@@ -109,5 +109,10 @@ def image_url(attachment, suffix):
             else:
                 # Fallback to Kobocat location if not stored in s3 (if KC location exists)
                 filename = url.split('/')[-1]
-                return url.replace(filename, get_path(filename, size))
+                url = url.replace(filename, get_path(filename, size))
+                req = requests.get(url)
+                if req.status_code == 200:
+                    return url
+
+                return None
     return url
