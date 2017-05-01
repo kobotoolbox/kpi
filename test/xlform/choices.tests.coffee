@@ -167,6 +167,12 @@ module.exports = do ->
       describe 'Clone method', ->
         it 'Clones itself and all of its options', ->
           yesnoClone = @yesno.clone()
+          # cloned choiceList must be available
+          # to get current translation. so this test
+          # will fail in the same way the clone button
+          # fails on questions with choice lists
+          surv = yesnoClone.getSurvey()
+
           expect(yesnoClone.options.length).toBe 2
           expect(yesnoClone.options.at(0).get('name')).toBe 'yes'
           expect(yesnoClone.options.at(1).get('name')).toBe 'no'

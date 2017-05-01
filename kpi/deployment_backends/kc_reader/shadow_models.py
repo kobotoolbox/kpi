@@ -1,7 +1,9 @@
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db import ProgrammingError
 from django.utils.translation import ugettext_lazy
+from hashlib import md5
 
 from jsonfield import JSONField
 
@@ -40,6 +42,20 @@ class LazyModelGroup:
             self._define()
         return self._UserProfile
 
+    @staticmethod
+    def get_content_type_for_model(model):
+        MODEL_NAME_MAPPING = {
+            '_readonlyxform': ('logger', 'xform'),
+            '_readonlyinstance': ('logger', 'instance'),
+            '_userprofile': ('main', 'userprofile')
+        }
+        try:
+            app_label, model_name = MODEL_NAME_MAPPING[model._meta.model_name]
+        except KeyError:
+            raise NotImplementedError
+        return ContentType.objects.get(app_label=app_label, model=model_name)
+
+
     def _define(self):
         class _ReadOnlyXform(_ReadOnlyModel):
             class Meta:
@@ -48,12 +64,25 @@ class LazyModelGroup:
                 verbose_name = 'xform'
                 verbose_name_plural = 'xforms'
 
+            XFORM_TITLE_LENGTH = 255
+            xls = models.FileField(null=True)
             xml = models.TextField()
-            user = models.ForeignKey(User, null=True)
+            user = models.ForeignKey(User, related_name='xforms', null=True)
+            downloadable = models.BooleanField(default=True)
             id_string = models.SlugField()
+            title = models.CharField(max_length=XFORM_TITLE_LENGTH)
             date_created = models.DateTimeField()
             date_modified = models.DateTimeField()
-            uuid = models.CharField(max_length=249, default=u'')
+            uuid = models.CharField(max_length=32, default=u'')
+
+            @property
+            def hash(self):
+                return u'%s' % md5(self.xml.encode('utf8')).hexdigest()
+
+            @property
+            def prefixed_hash(self):
+                ''' Matches what's returned by the KC API '''
+                return u"md5:%s" % self.hash
 
         class _ReadOnlyInstance(_ReadOnlyModel):
             class Meta:

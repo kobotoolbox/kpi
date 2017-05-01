@@ -41,7 +41,12 @@
                ["change_asset", "kpi", "asset"],
                ["delete_asset", "kpi", "asset"],
                ["share_asset", "kpi", "asset"],
-               ["view_asset", "kpi", "asset"]
+               ["view_asset", "kpi", "asset"],
+               ["add_submissions", "kpi", "asset"],
+               ["change_submissions", "kpi", "asset"],
+               ["delete_submissions", "kpi", "asset"],
+               ["share_submissions", "kpi", "asset"],
+               ["view_submissions", "kpi", "asset"]
             ]
         },
         "model": "auth.user",
@@ -71,13 +76,17 @@
                ["change_asset", "kpi", "asset"],
                ["delete_asset", "kpi", "asset"],
                ["share_asset", "kpi", "asset"],
-               ["view_asset", "kpi", "asset"]
+               ["view_asset", "kpi", "asset"],
+               ["add_submissions", "kpi", "asset"],
+               ["change_submissions", "kpi", "asset"],
+               ["delete_submissions", "kpi", "asset"],
+               ["share_submissions", "kpi", "asset"],
+               ["view_submissions", "kpi", "asset"]
             ]
         },
         "model": "auth.user",
         "pk": 3
-    }
-    ,
+    },
     {
         "model": "kpi.asset",
         "pk": 1,

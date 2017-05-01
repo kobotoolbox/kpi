@@ -140,7 +140,10 @@ module.exports = do ->
     clone: () ->
       json = @toJSON()
       delete json.name
-      return new choices.ChoiceList(json)
+      return _.assign(
+          new choices.ChoiceList(json),
+          collection: @collection
+        )
 
     toJSON: ()->
       @finalize()

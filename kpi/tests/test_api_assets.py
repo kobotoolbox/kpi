@@ -42,6 +42,16 @@ class AssetsListApiTests(APITestCase):
                          msg=response.data)
         sa = Asset.objects.order_by('date_created').last()
         self.assertEqual(sa.content, EMPTY_SURVEY)
+        return response
+
+    def test_delete_asset(self):
+        self.client.logout()
+        self.client.login(username='anotheruser', password='anotheruser')
+        creation_response = self.test_create_asset()
+        asset_url = creation_response.data['url']
+        response = self.client.delete(asset_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK,
+                         msg=response.data)
 
 
 class AssetVersionApiTests(APITestCase):
