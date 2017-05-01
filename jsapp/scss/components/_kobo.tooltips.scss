@@ -2,6 +2,7 @@
 
 [data-tip] {
   position: relative;
+
   &:after {
     content: attr(data-tip);
     font-size: 13px;
@@ -20,6 +21,7 @@
     transition: opacity 0.5s;
     white-space: nowrap;
   }
+
   &:before {
     border-bottom: 10px solid darken($cool-gray, 10%);
     border-left: 10px solid transparent;
@@ -52,6 +54,7 @@
     top: 50%;
     transform: translate(0, -50%);
   }
+
   [data-tip]:before {
     left: calc(100% - 6px);
     top: 50%;
@@ -74,13 +77,6 @@
 // more actions in asset-row adjustment
 .asset-row .popover-menu [data-tip]:after {
   left: -70%;
-}
-
-// hide on focus
-
-.hide-tooltip__onfocus[data-tip]:focus::after,
-.hide-tooltip__onfocus[data-tip]:focus::before {
-  display: none;
 }
 
 // Modify positioning to header tooltips

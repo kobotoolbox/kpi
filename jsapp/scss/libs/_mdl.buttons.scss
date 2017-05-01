@@ -22,14 +22,19 @@
   outline: none;
   cursor: pointer;
   color: $cool-gray;
+
   &::-moz-focus-inner {
     border: 0;
   }
+
   &:hover {
     color: $black;
   }
+
   &.mdl-button--colored {
     color: $cool-blue;
+    text-transform: uppercase;
+
     &:hover {
       color: darken($cool-blue, 20%);
     }
@@ -43,11 +48,15 @@ input.mdl-button[type="submit"] {
 // Raised buttons
 .mdl-button--raised {
   background: $cool-blue;
+
   @include box-shadow;
+
   text-transform: uppercase;
+
   &.mdl-button--colored {
     background: $cool-blue;
     color: #FFF;
+
     &:hover {
       background-color: darken($cool-blue, 5%);
       color: #FFF;
@@ -61,6 +70,7 @@ input.mdl-button[type="submit"] {
   margin-right: 0;
   padding: 0;
   overflow: hidden;
+
   i {
     font-size: 32px;
   }
@@ -77,11 +87,13 @@ input.mdl-button[type="submit"] {
   height: 50px;
   line-height: 50px;
   padding: 0px 32px;
+
   &:hover {
     opacity: 1;
     color: #FFF;
     transition: opacity 0.2s;
   }
+
   &.active {
     opacity: 1;
     border-bottom: 2px solid white;
@@ -108,6 +120,7 @@ input.mdl-button[type="submit"] {
       box-shadow: none;
     }
   }
+
   &--colored {
     // Bump up specificity by using [disabled] twice.
     &[disabled][disabled],

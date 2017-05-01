@@ -13,11 +13,13 @@
   height: calc(100% - 97px);
   position: relative;
   margin-top: 20px;
-  flex-grow:0;
+  flex-grow: 0;
   margin-right: 12px;
   overflow: hidden;
+
   &.page-wrapper__content--form-landing {
     @include box-shadow;
+
     height: calc(100% - 102px);
     margin-right: 18px;
   }
@@ -28,6 +30,7 @@
     margin-right: 0px;
     margin-top: 10px;
     height: calc(100% - 74px);
+
     &.page-wrapper__content--form-landing {
       margin-right: 0px;
       height: calc(100% - 76px);
@@ -42,18 +45,23 @@
 
 .ui-panel__body {
   @extend .mdl-grid, .mdl-grid--no-spacing;
+
   padding: 0;
   height: 100%;
   flex-direction: column;
+
   > .asset-view__content,
   > .formBuilder {
     @extend .mdl-cell, .mdl-cell--12-col;
+
     flex-flow: column;
     margin: 0px !important;
   }
+
   > .asset-view__content {
     height: 100%;
   }
+
   > .formBuilder {
     height: 100%;
   }
@@ -72,6 +80,7 @@
     width: 100%;
     height: 100%;
   }
+
   .ui-panel {
     margin: 0px;
   }
@@ -80,6 +89,7 @@
 // Expanded report layout, disable drawer
 .mdl-layout.page-wrapper--drawer-hidden .mdl-layout__content {
   margin-left: 16px;
+
   .report-view {
     height: 100%;
     overflow: auto;
@@ -99,6 +109,7 @@
 
 .message--loading {
   text-align: center;
+
   > i:first-child {
     @extend .fa, .fa-fw, .fa-circle-o-notch, .k-spin;
   }
@@ -112,17 +123,21 @@
   width: 100%;
   font-size: 18px;
   opacity: 0.8;
+
   i:first-child {
     @extend .fa, .k-spin, .fa-circle-o-notch;
+
     margin-right: 12px;
     vertical-align: middle;
     font-size: 24px;
   }
+
   &__inner {
     display: table-cell;
     vertical-align: middle;
     text-align: center;
   }
+
   &__msg {
     padding-top: 10px;
   }
@@ -141,36 +156,41 @@
   margin: 0;
   padding: 0;
   cursor: pointer;
-  color:$cool-gray;
+  color: $cool-gray;
   display: inline-block;
   vertical-align: middle;
+
   &:hover {
     color: $cool-blue;
   }
+
   i {
-    margin:0px;
+    margin: 0px;
     font-size: 36px;
   }
 }
 
 .popover-menu__content {
   position: absolute;
-  min-width:160px;
+  min-width: 160px;
   max-width: 300px;
   text-align: left;
   background: #FFF;
-  box-shadow: 0 0 8px 0 rgba(0,0,0,0.06), 0 8px 8px 0 rgba(0,0,0,0.12);
+  box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.06), 0 8px 8px 0 rgba(0, 0, 0, 0.12);
   z-index: 10;
   right: -10px;
   transition: opacity 0.35s;
   opacity: 1;
+
   &--hiding {
     opacity: 0;
     transition: opacity 0.35s;
   }
+
   &--hidden {
     display: none;
   }
+
   &--visible {
     display: block;
   }
@@ -184,21 +204,21 @@
   bottom: 100%;
 }
 
-.popover-menu__link, 
+.popover-menu__link,
 .popover-menu__item {
   background-color: #FFF;
   display: block;
   padding: 6px 10px;
   padding-right: 16px;
   position: relative;
-  color:$cool-gray;
+  color: $cool-gray;
   cursor: pointer;
   white-space: nowrap;
 
   > i:first-child {
     margin-right: 4px;
     font-size: 32px;
-    width:28px;
+    width: 28px;
     vertical-align: middle;
   }
 
@@ -208,7 +228,7 @@
 
   &:hover {
     background-color: #eff0f1;
-    color:$cool-gray;
+    color: $cool-gray;
   }
 
   &.active {
@@ -218,8 +238,8 @@
 
 .popover-menu__moveTo {
   max-height: 180px;
-  overflow:auto;
-  overflow-x:hidden;
+  overflow: auto;
+  overflow-x: hidden;
   background-color: #F9F9F9;
   border-bottom: 1px solid lighten($cool-gray, 25%);
 }
@@ -228,16 +248,18 @@
   background-color: #F9F9F9;
   position: relative;
   text-align: left;
-  padding-right:35px;
+  padding-right: 35px;
   padding-top: 3px;
   padding-bottom: 3px;
+
   span {
     display: inline-block;
     max-width: 150px;
     overflow: hidden;
-    text-overflow:ellipsis;
-    word-wrap:break-word;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
   }
+
   .has-parent {
     position: absolute;
     right: 12px;
@@ -249,16 +271,17 @@
 }
 
 .popover-menu__heading {
-  padding:8px 15px;
+  padding: 8px 15px;
   color: $cool-gray;
   border-top: 1px solid lighten($cool-gray, 25%);
   background-color: #F9F9F9;
-  margin:0px;
+  margin: 0px;
 }
 
-.popover-menu--assetrow-menu, 
+.popover-menu--assetrow-menu,
 .popover-menu--formLanding-menu {
   margin-left: 4px;
+
   .popover-menu__content {
     right: 10px;
   }
@@ -267,6 +290,7 @@
 .popover-menu--new-menu {
   width: 100%;
   margin-bottom: 10px;
+
   .popover-menu__content {
     right: 0px;
     width: 100%;
@@ -275,13 +299,16 @@
 
 .popover-menu--new-menu .popover-menu__toggle {
   @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
+
   width: 100%;
 }
 
 .popover-menu--groupby-menu {
   .popover-menu__toggle {
     @extend .mdl-button;
+
     text-transform: uppercase;
+
     &:after {
       content: '\f107';
       font-family: 'FontAwesome';
@@ -291,16 +318,75 @@
   }
 }
 
-// iframe default styles 
-iframe {
-  border:none;
+.popover-menu--collectData-menu {
+  .popover-menu__toggle {
+    padding: 8px 12px;
+    padding-right: 90px;
+    background: #F8F8F8;
+    position: relative;
+
+    @include box-shadow;
+
+    &:hover {
+      color: $cool-gray;
+    }
+
+    &:after {
+      position: absolute;
+      right: 10px;
+      top: 8px;
+      content: '\f0d7';
+      font-family: 'FontAwesome';
+      font-size: 16px;
+    }
+  }
+
+  .popover-menu__content {
+    min-width: 520px;
+    max-width: 660px;
+    top: auto;
+    bottom: -60px;
+    right: auto;
+    left: 10px;
+
+    .popover-menu__link {
+      max-width: 100%;
+      white-space: normal;
+      padding: 16px;
+      border-bottom: 1px solid $divider-color;
+      border-left: 2px solid transparent;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .collect-data-label {
+        font-weight: 600;
+        color: $black;
+      }
+
+      .collect-data-desc {
+        font-size: 13px;
+      }
+
+      &:hover {
+        border-left: 2px solid $cool-green;
+      }
+    }
+  }
 }
 
-// modal forms 
+// iframe default styles
+iframe {
+  border: none;
+}
+
+// modal forms
 .form-modal__item {
   margin-bottom: 20px;
+
   &--sector, &--country {
-    width:50%;
+    width: 50%;
     float: left;
   }
 
@@ -311,6 +397,7 @@ iframe {
   &--metadata-share {
     padding-top: 20px;
     clear: both;
+
     input[type="checkbox"] {
       margin-top: 8px;
     }
@@ -318,8 +405,9 @@ iframe {
 
   label {
     font-weight: normal;
-    font-size:12px;
-    color:lighten($black, 40%);
+    font-size: 12px;
+    color: lighten($black, 40%);
+
     &.long {
       padding-top: 5px;
       margin-bottom: 10px;
@@ -338,17 +426,18 @@ iframe {
     vertical-align: top;
   }
 
-  input[type="text"], 
-  input[type="email"], 
-  input[type="password"], 
-  select, 
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  select,
   textarea {
-    width:100%;
-    padding:6px 0px;
-    font-size:15px;
-    border:1px solid transparent;
+    width: 100%;
+    padding: 6px 0px;
+    font-size: 15px;
+    border: 1px solid transparent;
     border-bottom-color: $divider-color;
     transition: border-color 0.3s;
+
     &:focus {
       transition: border-color 0.3s;
       border-bottom-color: $cool-blue;
@@ -373,27 +462,32 @@ iframe {
   }
 
   .Select-control {
-    border:none;
+    border: none;
     border-bottom: 1px solid $divider-color;
     border-radius: 0px;
     padding-left: 0px;
     height: 33px;
     font-size: 15px;
+
     .Select-placeholder {
       padding-left: 0px;
       color: $cool-gray;
       font-size: 15px;
     }
+
     .Select-value {
       color: $cool-gray;
       padding-left: 0px;
       font-size: 15px;
     }
+
     input {
       padding-left: 0px;
     }
+
     .Select-input {
       height: 33px;
+
       > input {
         padding-bottom: 10px;
       }
@@ -403,9 +497,9 @@ iframe {
   .Select-menu-outer {
     font-size: 15px;
     border: 1px solid lighten($divider-color, 20%);
+
     @include box-shadow;
   }
-
 
   &--actions {
     text-align: right;
@@ -415,12 +509,13 @@ iframe {
 
 .ajs-content input[type="text"],
 .ajs-content textarea {
-  width:100%;
-  padding:6px 0px;
-  font-size:15px;
-  border:1px solid transparent;
+  width: 100%;
+  padding: 6px 0px;
+  font-size: 15px;
+  border: 1px solid transparent;
   border-bottom-color: $divider-color;
   transition: border-color 0.3s;
+
   &:focus {
     transition: border-color 0.3s;
     border-bottom-color: $cool-blue;
@@ -477,11 +572,18 @@ span.svg-icon {
     padding-left: 35px;
     cursor: pointer;
     font-size: 1rem;
+    -webkit-user-select: none;
 
-    -webkit-user-select: none; /* webkit (safari, chrome) browsers */
-    -moz-user-select: none; /* mozilla browsers */
-    -khtml-user-select: none; /* webkit (konqueror) browsers */
-    -ms-user-select: none; /* IE10+ */
+    /* webkit (safari, chrome) browsers */
+    -moz-user-select: none;
+
+    /* mozilla browsers */
+    -khtml-user-select: none;
+
+    /* webkit (konqueror) browsers */
+    -ms-user-select: none;
+
+    /* IE10+ */
   }
 
   + label:after {
@@ -493,6 +595,7 @@ span.svg-icon {
     content: '';
     left: 0;
     position: absolute;
+
     /* .1s delay is for check animation */
     transition: border .25s, background-color .25s, width .20s .1s, height .20s .1s, top .20s .1s, left .20s .1s;
     z-index: 1;
@@ -505,7 +608,6 @@ span.svg-icon {
     border: 3px solid transparent;
     left: 6px;
     top: 10px;
-
     -webkit-transform: rotateZ(37deg);
     transform: rotateZ(37deg);
     -webkit-transform-origin: 20% 40%;
@@ -534,7 +636,6 @@ span.svg-icon {
       border-bottom: 2px solid #FFF;
       -webkit-transform: rotateZ(37deg);
       transform: rotateZ(37deg);
-
       -webkit-transform-origin: 100% 100%;
       transform-origin: 100% 100%;
     }
@@ -548,5 +649,4 @@ span.svg-icon {
       z-index: 0;
     }
   }
-
 }
