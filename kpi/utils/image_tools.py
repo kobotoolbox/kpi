@@ -113,6 +113,11 @@ def image_url(attachment, suffix):
                 req = requests.get(url)
                 if req.status_code == 200:
                     return url
+                elif settings.KOBOCAT_URL:
+                    media_file = attachment.media_file.name
+                    url = settings.KOBOCAT_URL.strip("/") + "/attachment/" + suffix + "?media_file=" + media_file
+                    req = requests.get(url)
+                    return req.url
 
                 return None
     return url
