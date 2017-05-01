@@ -95,29 +95,29 @@ def image_url(attachment, suffix):
             size = settings.THUMB_CONF[suffix]['suffix']
             filename = attachment.media_file.name
             if default_storage.exists(filename):
-                return {'filename': filename, 'size': size, 'exists':  True}
                 if default_storage.exists(get_path(filename, size)) and\
                         default_storage.size(get_path(filename, size)) > 0:
                     url = default_storage.url(
                         get_path(filename, size))
+
                 else:
                     if default_storage.__class__ != fs.__class__:
                         resize(filename)
                     else:
                         resize_local_env(filename)
                     return image_url(attachment, suffix)
-            else:
+            elif settings.KOBOCAT_URL:
                 # Fallback to Kobocat location if not stored in s3 (if KC location exists)
                 filename = url.split('/')[-1]
-                url = url.replace(filename, get_path(filename, size))
+                url = settings.KOBOCAT_URL.strip("/") + url.replace(filename, get_path(filename, size))
                 req = requests.get(url)
                 if req.status_code == 200:
                     return url
-                elif settings.KOBOCAT_URL:
+                else:
                     media_file = attachment.media_file.name
                     url = settings.KOBOCAT_URL.strip("/") + "/attachment/" + suffix + "?media_file=" + media_file
                     req = requests.get(url)
                     return req.url
-
+            else:
                 return None
     return url

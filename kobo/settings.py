@@ -25,6 +25,7 @@ from static_lists import NATIVE_LANGUAGE_NAMES
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+KOBOCAT_DIR = os.path.abspath(os.path.join(BASE_DIR, '../kobocat'))
 
 
 # Quick-start development settings - unsuitable for production
@@ -541,9 +542,12 @@ if os.environ.get('KOBOCAT_ROOT_URI_PREFIX'):
     KOBOCAT_ROOT_URI_PREFIX= '/' + os.environ['KOBOCAT_ROOT_URI_PREFIX'].strip('/') + '/'
     MEDIA_URL= KOBOCAT_ROOT_URI_PREFIX + MEDIA_URL.lstrip('/')
 
+MEDIA_ROOT = os.path.join(KOBOCAT_DIR, 'media/')
+
+
 # TODO: Only append KOBOCAT_URL to MEDIA_URL if AWS s3 settings not enabled?
-if KOBOCAT_URL:
-    MEDIA_URL = KOBOCAT_URL.strip('/') + MEDIA_URL
+#if KOBOCAT_URL:
+#    MEDIA_URL = KOBOCAT_URL.strip('/') + MEDIA_URL
 
 # IMAGE TOOLS Variables
 THUMB_CONF = {

@@ -1,5 +1,6 @@
 from django.conf.urls import url, include
 from django.views.i18n import javascript_catalog
+from django.conf import settings
 from hub.views import ExtraDetailRegistrationView
 from rest_framework.routers import DefaultRouter
 from rest_framework_extensions.routers import ExtendedDefaultRouter
@@ -88,4 +89,8 @@ urlpatterns = [
     # Translation catalog for client code.
     url(r'^jsi18n/$', javascript_catalog,
         js_info_dict, name='javascript-catalog'),
+
+    # static media
+    url(r'^media/(?P<path>.*)$', 'django.views.static.serve',
+        {'document_root': settings.MEDIA_ROOT}),
 ]
