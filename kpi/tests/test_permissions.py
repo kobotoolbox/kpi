@@ -149,6 +149,23 @@ class PermissionsTestCase(BasePermissionsTestCase):
             {'type': 'text', 'label': 'Question 1', 'name': 'q1', 'kuid': 'abc'},
             {'type': 'text', 'label': 'Question 2', 'name': 'q2', 'kuid': 'def'},
         ]}, owner=self.admin)
+        self.asset_owner_permissions = [
+            'add_submissions',
+            'change_asset',
+            'change_submissions',
+            'delete_asset',
+            'delete_submissions',
+            'share_asset',
+            'share_submissions',
+            'view_asset',
+            'view_submissions'
+        ]
+        self.collection_owner_permissions = [
+            'change_collection',
+            'delete_collection',
+            'share_collection',
+            'view_collection'
+        ]
 
     def test_add_asset_permission(self):
         self._test_add_perm(self.admin_asset, 'view_', self.someuser)
@@ -295,29 +312,29 @@ class PermissionsTestCase(BasePermissionsTestCase):
     def test_calculated_owner_permissions(self):
         asset = self.admin_asset
         collection = self.admin_collection
-        asset_owner_permissions = [
-            'add_submissions',
-            'change_asset',
-            'change_submissions',
-            'delete_asset',
-            'delete_submissions',
-            'share_asset',
-            'share_submissions',
-            'view_asset',
-            'view_submissions'
-        ]
-        collection_owner_permissions = [
-            'change_collection',
-            'delete_collection',
-            'share_collection',
-            'view_collection'
-        ]
         self.assertListEqual(
-            sorted(asset.get_perms(asset.owner)), asset_owner_permissions)
+            sorted(asset.get_perms(asset.owner)), self.asset_owner_permissions)
         self.assertListEqual(
             sorted(collection.get_perms(collection.owner)),
-            collection_owner_permissions
+            self.collection_owner_permissions
         )
+
+    def test_owner_permissions_individually(self):
+        asset = Asset.objects.create(owner=self.someuser)
+        collection = Collection.objects.create(owner=self.someuser)
+        failure_message = 'Owner missing {}'
+        for p in self.asset_owner_permissions:
+            self.assertTrue(
+                asset.owner.has_perm(p, asset), msg=failure_message.format(p))
+            self.assertTrue(
+                asset.has_perm(asset.owner, p), msg=failure_message.format(p))
+        for p in self.collection_owner_permissions:
+            self.assertTrue(
+                collection.owner.has_perm(p, collection),
+                msg=failure_message.format(p))
+            self.assertTrue(
+                collection.has_perm(collection.owner, p),
+                msg=failure_message.format(p))
 
     def test_calculated_editor_permissions(self):
         grantee = self.someuser
