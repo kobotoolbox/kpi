@@ -38,6 +38,8 @@ module.exports = do ->
       el = opts.el || @$('input[type=checkbox]').get(0)
       $el = $(el)
       changing = false
+      _requiredBox = @model.key is "required"
+
       reflectValueInEl = ()=>
         if !changing
           val = @model.get('value')
@@ -48,6 +50,8 @@ module.exports = do ->
       $el.on 'change', ()=>
         changing = true
         @model.set('value', $el.prop('checked'))
+        if _requiredBox
+          $el.parents('.card').eq(0).toggleClass('card--required', $el.prop('checked'))
         changing = false
     listenForInputChange: (opts={})->
       # listens to checkboxes and input fields and ensures

@@ -160,6 +160,34 @@ xlform_survey_model = ($model)->
       # scsv = @createSurveyCsv ["text,text,text,text"]
       # @dumpAndLoad scsv
 
+    it "reflects correct required value", ->
+      processed_required = (val)->
+        $model.Survey.loadDict({
+          survey: [
+              {type: 'text',
+              name: 'nm',
+              required: val}
+            ]
+          }).toFlatJSON().survey[0].required
+
+      # being very thorough in the things that can reflect required
+      # true/false values
+      expect(processed_required('true')).toEqual('true')
+      expect(processed_required('TRUE')).toEqual('true')
+      expect(processed_required('yes')).toEqual('true')
+      expect(processed_required('YES')).toEqual('true')
+      expect(processed_required(true)).toEqual('true')
+
+      expect(processed_required('false')).toEqual('false')
+      expect(processed_required('FALSE')).toEqual('false')
+      expect(processed_required('NO')).toEqual('false')
+      expect(processed_required('no')).toEqual('false')
+      expect(processed_required(false)).toEqual('false')
+
+      expect(processed_required(`undefined`)).toEqual('false')
+      expect(processed_required('')).toEqual('false')
+
+
     it "captures required values", ->
       srv = $model.Survey.loadDict({
           survey: [
