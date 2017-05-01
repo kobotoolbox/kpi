@@ -173,9 +173,6 @@ var FormSubScreens = React.createClass({
       </DocumentTitle>
     );
   },
-  renderCollectionPopup() {
-
-  },
   renderCollectWeb () {
     var docTitle = this.state.name || t('Untitled');
     var deployment__links = this.state.deployment__links;

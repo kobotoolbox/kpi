@@ -288,4 +288,15 @@
   &__Overlay{
     z-index: 9;
   }
+  &__Content{
+    overflow: hidden !important;
+    padding: 0 !important;
+    .close-modal{
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 25px;
+      cursor: pointer;
+    }
+  }
 }

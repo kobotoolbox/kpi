@@ -9,7 +9,6 @@ var CollectionsField = React.createClass({
 	propTypes: {
 		label: React.PropTypes.string,
 		searchable: React.PropTypes.bool,
-		isOpen: React.PropTypes.bool
 	},
 	toggleFilterSelect(event){
 		const fieldInput = this.refs.filterSelect;
@@ -24,7 +23,7 @@ var CollectionsField = React.createClass({
 		return {
 			label: 'States:',
 			searchable: true,
-			isOpen: this.props.isOpen !== null ? this.props.isOpen : false,
+			// isOpen: this.props.isOpen !== null ? this.props.isOpen : false,
 		};
 	},
 	getInitialState () {

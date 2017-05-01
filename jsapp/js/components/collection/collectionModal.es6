@@ -2,7 +2,8 @@ import React from 'react';
 import Modal from 'react-modal';
 import bem from '../../bem';
 import ui from '../../ui';
-import Carousel from './CollectionModalCarousel';
+import Carousel from './collectionModalCarousel';
+import Sidebar from './collectionModalSidebar';
 
 const COLLECTIONS = require('../../data/collections');
 
@@ -21,18 +22,14 @@ var CollectionsModal = React.createClass({
 			  isOpen={this.props.show}
 			  contentLabel="Modal" >
 	      <bem.AssetGallery__modal>
-					<button type="button" className="close" onClick={this.props.onHide}>
-						<span>&times;</span>
-					</button>
+					<i className="close-modal" onClick={this.props.onHide}>&times;</i>
 	        <ui.Modal.Body>
-						<div className="col8">
-							<Carousel/>
-						</div>
-						<div className="col4">
-		          <p>{this.props.assetID}</p>
-							<p>{this.props.assetTitle}</p>
-							<p>{this.props.assetDate}</p>
-						</div>
+						<bem.AssetGallery__modalCarousel className="col8">
+							<Carousel />
+						</bem.AssetGallery__modalCarousel>
+						<bem.AssetGallery__modalSidebar className="col4">
+							<Sidebar />
+						</bem.AssetGallery__modalSidebar>
 	        </ui.Modal.Body>
 	      </bem.AssetGallery__modal>
 			</Modal>
