@@ -6,24 +6,28 @@ $hover-asset-row: #F2F2F3;
   padding: 4px 12px;
   white-space: nowrap;
   transition: max-height 0.5s ease, opacity 0.5s ease;
-  min-height:55px;
+  min-height: 55px;
   opacity: 1;
   position: relative;
+
   &:hover {
     background: $hover-asset-row;
   }
+
   > .asset-row__cell {
     width: 100%;
     display: flex;
     align-items: center;
+
     > .asset-row__cell {
       min-width: 0;
       vertical-align: top;
       white-space: nowrap;
       overflow: hidden;
-      text-overflow:ellipsis;
+      text-overflow: ellipsis;
     }
   }
+
   &:last-child {
     border-top: 1px solid $divider-color;
   }
@@ -38,7 +42,7 @@ $hover-asset-row: #F2F2F3;
     max-height: 0px;
     min-height: 0px;
     padding: 0px;
-    border:none;
+    border: none;
     overflow: hidden;
   }
 
@@ -53,12 +57,13 @@ $hover-asset-row: #F2F2F3;
   }
 
   .row-icon {
-    font-size:32px;
+    font-size: 32px;
     margin-left: -5px;
     margin-right: 5px;
-    opacity: 0.6; 
+    opacity: 0.6;
     vertical-align: middle;
   }
+
   .row-icon + .asset-row__celllink--name {
     width: calc(100% - 50px);
   }
@@ -67,7 +72,7 @@ $hover-asset-row: #F2F2F3;
     display: block;
     color: $cool-gray;
     font-size: 13px;
-    max-width:96%;
+    max-width: 96%;
     text-overflow: ellipsis;
     overflow: hidden;
   }
@@ -77,9 +82,14 @@ $hover-asset-row: #F2F2F3;
     padding-top: 30px;
   }
 
-  .asset-row__cell--date-created, 
+  .asset-row__cell--date-created,
   .asset-row__cell--date-modified {
     font-size: 13px;
+  }
+
+  .asset-row__cell--submission-count,
+  .asset-row__cell--row-count {
+    text-align: right;
   }
 
   > .asset-row__buttons {
@@ -87,15 +97,16 @@ $hover-asset-row: #F2F2F3;
     top: 8px;
     right: 0px;
     background: $hover-asset-row;
-    width:0;
+    width: 0;
     overflow: hidden;
     opacity: 0;
     text-align: right;
-    transition:0.3s opacity;
+    transition: 0.3s opacity;
     padding-right: 6px;
     height: calc(100% - 10px);
-    max-height:45px;
+    max-height: 45px;
   }
+
   .asset-row__action-icon {
     margin-left: 4px;
     font-weight: 400;
@@ -103,18 +114,22 @@ $hover-asset-row: #F2F2F3;
     cursor: pointer;
     display: inline-block;
     vertical-align: middle;
+
     &:hover {
       background-color: transparent;
       color: $cool-blue;
     }
+
     &.asset-row__action-icon--view-collection i {
       @extend .k-icon, .k-icon-folder;
     }
+
     i:before {
-      margin:0px;
+      margin: 0px;
       font-size: 36px;
     }
   }
+
   &--display-tags .asset-row__action-icon--tagsToggle {
     background-color: transparent;
     color: $cool-blue;
@@ -124,21 +139,24 @@ $hover-asset-row: #F2F2F3;
     color: lighten($black, 20%);
     display: block;
   }
+
   i.row-icon + a.asset-row__celllink {
     display: inline-block;
     width: calc(100% - 40px);
   }
+
   &:hover {
     > .asset-row__buttons {
       opacity: 1;
-      width:43%;
+      width: 33%;
       overflow: visible;
-      transition:0.3s opacity;
+      transition: 0.3s opacity;
     }
 
     .date--modified {
       visibility: hidden;
     }
+
     a.asset-row__celllink {
       color: $black;
     }
