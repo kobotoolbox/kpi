@@ -64,10 +64,10 @@ class KoboMatrixGroupHandler(GroupHandler):
         | end_group     |                |            |            |          |
 
         # choices
-        |  list name   | name |  label   |
-        |--------------|------|----------|
-        | skorechoices | c1   | Choice 1 |
-        | skorechoices | c2   | Choice 2 |
+        | list name   | name | label |
+        |-------------|------|-------|
+        | yn          | yes  | Yes   |
+        | yn          | no   | No    |
         """
         self._base_handler = base_handler
 
@@ -130,23 +130,27 @@ class KoboMatrixGroupHandler(GroupHandler):
                   },
                  {'type': 'note',
                   'name': '{}_note'.format(_base_name),
-                  'label': self._format_all_labels(item.get('label'), self.row_header_wrap),
+                  'label': self._format_all_labels(item.get('label'),
+                                                   self.row_header_wrap),
                   'required': False,
                   'appearance': 'w1',
                   }]
-        mids = [
-            {'type': col['type'],
-             'name': '_'.join([_base_name, col['name']]),
-             'appearance': 'w2',
-             'label': self._format_all_labels([
-                    '-'.join([_item_name, _label])
-                    for _label in col.get('label')
-                ], self.span_wrap),
-             'required': col.get('required', False),
-             }
-            for col in cols
-        ]
-        return start + mids + [{'type': 'end_group'}]
+
+        def _make_row(col):
+            out = {'type': col['type'],
+                   'name': '_'.join([_base_name, col['name']]),
+                   'appearance': 'w2',
+                   'label': self._format_all_labels([
+                       '-'.join([_item_name, _label])
+                       for _label in col.get('label')
+                   ], self.span_wrap),
+                   'required': col.get('required', False),
+                   }
+            if 'select_from_list_name' in col:
+                out['select_from_list_name'] = col['select_from_list_name']
+            return out
+
+        return start + [_make_row(col) for col in cols] + [{'type': 'end_group'}]
 
     def handle_row(self, row):
         if row.get('type') == self.end_type:
