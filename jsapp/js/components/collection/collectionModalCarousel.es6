@@ -8,64 +8,7 @@ const CollectionsModalCarousel = React.createClass({
   getInitialState() {
     return {
       index: 0,
-      direction: null,
-      items: [
-        {
-          "download_url": "http://172.17.0.1:8001/media/wolejkoa/attachments/2d2ebe6357924842ad2f21ac3da38338/682e5deb-c4c2-4f13-842f-19589f5df6bc/test-9_3_0-large.jpeg",
-          "small_download_url": "http://example.com/api/v1/media/1-small.jpg",
-          "medium_download_url": "http://example.com/api/v1/media/1-medium.jpg",
-          "filename": "test-9_3_0-large.jpeg",
-          "id": 1,
-          "instance": 1,
-          "mimetype": "image/jpeg",
-          "url": "http://example.com/api/v1/media/1",
-          "xform": 1
-        },
-        {
-          "download_url": "http://172.17.0.1:8001/media/wolejkoa/attachments/2d2ebe6357924842ad2f21ac3da38338/682e5deb-c4c2-4f13-842f-19589f5df6bc/test-9_3_0-large.jpeg",
-          "small_download_url": "http://example.com/api/v1/media/1-small.jpg",
-          "medium_download_url": "http://example.com/api/v1/media/1-medium.jpg",
-          "filename": "test-9_3_0-large.jpeg",
-          "id": 1,
-          "instance": 1,
-          "mimetype": "image/jpeg",
-          "url": "http://example.com/api/v1/media/1",
-          "xform": 1
-        },
-        {
-          "download_url": "http://172.17.0.1:8001/media/wolejkoa/attachments/2d2ebe6357924842ad2f21ac3da38338/682e5deb-c4c2-4f13-842f-19589f5df6bc/test-9_3_0-large.jpeg",
-          "small_download_url": "http://example.com/api/v1/media/1-small.jpg",
-          "medium_download_url": "http://example.com/api/v1/media/1-medium.jpg",
-          "filename": "test-9_3_0-large.jpeg",
-          "id": 1,
-          "instance": 1,
-          "mimetype": "image/jpeg",
-          "url": "http://example.com/api/v1/media/1",
-          "xform": 1
-        },
-        {
-          "download_url": "http://172.17.0.1:8001/media/wolejkoa/attachments/2d2ebe6357924842ad2f21ac3da38338/682e5deb-c4c2-4f13-842f-19589f5df6bc/test-9_3_0-large.jpeg",
-          "small_download_url": "http://example.com/api/v1/media/1-small.jpg",
-          "medium_download_url": "http://example.com/api/v1/media/1-medium.jpg",
-          "filename": "test-9_3_0-large.jpeg",
-          "id": 1,
-          "instance": 1,
-          "mimetype": "image/jpeg",
-          "url": "http://example.com/api/v1/media/1",
-          "xform": 1
-        },
-        {
-          "download_url": "http://172.17.0.1:8001/media/wolejkoa/attachments/2d2ebe6357924842ad2f21ac3da38338/682e5deb-c4c2-4f13-842f-19589f5df6bc/test-9_3_0-large.jpeg",
-          "small_download_url": "http://example.com/api/v1/media/1-small.jpg",
-          "medium_download_url": "http://example.com/api/v1/media/1-medium.jpg",
-          "filename": "test-9_3_0-large.jpeg",
-          "id": 1,
-          "instance": 1,
-          "mimetype": "image/jpeg",
-          "url": "http://example.com/api/v1/media/1",
-          "xform": 1
-        }
-      ]
+      direction: null
     };
   },
 
@@ -86,7 +29,9 @@ const CollectionsModalCarousel = React.createClass({
       infinite: false,
       speed: 500,
       slidesToShow: 1,
-      slidesToScroll: 1
+      slidesToScroll: 1,
+      nextArrow: <RightNavButton/>,
+      prevArrow: <LeftNavButton/>
     }
     return (
       <Slider {...settings}>
@@ -122,7 +67,16 @@ let RightNavButton = React.createClass({
   render() {
     return (
       <button {...this.props}>
-        <i className="material-icons">add</i>
+        <i className="material-icons">chevron_right</i>
+      </button>
+    )
+  }
+});
+let LeftNavButton = React.createClass({
+  render() {
+    return (
+      <button {...this.props}>
+        <i className="material-icons">chevron_left</i>
       </button>
     )
   }

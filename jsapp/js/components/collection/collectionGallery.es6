@@ -102,6 +102,7 @@ var CollectionsModal = React.createClass({
     }
 		return (
       <bem.AssetGallery>
+				<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
         <bem.AssetGallery__heading>
           <div className="col6">
             <bem.AssetGallery__count>

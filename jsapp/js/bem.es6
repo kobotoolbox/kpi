@@ -226,6 +226,7 @@ bem.AssetGallery__gridLink = bem.AssetGallery.__('grid-item__grid-link', '<a>');
 bem.AssetGallery__gridItemOverlay = bem.AssetGallery.__('grid-item__overlay', '<div>');
 bem.AssetGallery__modal = bem.AssetGallery.__('modal', '<div>');
 bem.AssetGallery__modalCarousel = bem.AssetGallery.__('modal__carousel', '<div>');
+bem.AssetGallery__modalCarouselTopbar = bem.AssetGallery.__('modal__carousel__topbar', '<div>');
 bem.AssetGallery__modalSidebar = bem.AssetGallery.__('modal__sidebar', '<div>');
 
 bem.create = BEM;

@@ -109,10 +109,50 @@
                 vertical-align: middle;
                 display: inline-block;
                 width: 100%;
+                height: auto;
               }
             }
           }
         }
+      }
+    }
+    &__carousel{
+      position: relative;
+      .toggle-info{
+        display:none;
+      }
+      &__topbar{
+        position: absolute;
+        color: #fff;
+        z-index: 9;
+        width: 100%;
+        height: 90px;
+        &.show{
+          &--hover{
+            background: -webkit-gradient(linear, 0% 40%, 0% 100%, from(#000), to(transparent));
+          }
+        }
+      }
+      &.full-screen{
+        width: 100% !important;
+        .toggle-info{
+          display: inline-block;
+        }
+      }
+    }
+    &__sidebar{
+      transition: transform 0.3s ease-in-out;
+      &.open{
+        .toggle-info{
+          float: right;
+          font-size: 30px;
+          margin: 10px;
+          cursor: pointer;
+        }
+      }
+      &.closed{
+        width: 0% !important;
+        display: none !important;
       }
     }
   }
