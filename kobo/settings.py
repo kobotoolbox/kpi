@@ -169,7 +169,7 @@ LANGUAGES = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = os.environ.get('TIME_ZONE', 'UTC')
 
 LOCALE_PATHS= (os.path.join(BASE_DIR, 'locale'),)
 
