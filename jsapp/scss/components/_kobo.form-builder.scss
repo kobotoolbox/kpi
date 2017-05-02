@@ -121,6 +121,7 @@
     &--first {
       background-color: #FFF;
       height: 75px;
+      position: relative;
     }
 
     &--second {
@@ -151,9 +152,13 @@
     }
 
     &--name {
-      width: calc(100% - 400px);
+      width: calc(100% - 350px);
       padding-left: 20px;
       padding-top: 20px;
+
+      input {
+        border-radius: 0px;
+      }
     }
 
     &--translations {
@@ -175,7 +180,7 @@
     }
 
     &--buttonsTopRight {
-      width: 280px;
+      width: 270px;
       text-align: right;
       align-self: center;
     }
@@ -239,14 +244,16 @@
 }
 
 .formBuilder-header__close {
+  margin-left: 10px;
+  margin-top: -12px;
   border: none;
-  background-color: transparent;
-  font-size: 32px;
-  color: #D8D8D8;
+  color: lighten($cool-gray, 20%);
   cursor: pointer;
 
+  @extend .mdl-button, .mdl-button--icon;
+
   &:hover {
-    color: darken(#D8D8D8, 20%);
+    color: $cool-gray;
   }
 }
 
@@ -417,12 +424,21 @@
 // FORM BUILDER SMALL SCREEN ADJUSTMENTS
 
 @media screen and (max-width: 767px) {
+  .formBuilder-header__cell--project-icon {
+    display: none;
+  }
+
   .formBuilder-header__cell--name {
-    width: calc(100% - 140px);
+    width: calc(100% - 175px);
   }
 
   .formBuilder-header__cell--buttonsTopRight {
-    width: 140px;
+    width: 175px;
+
+    .formBuilder-header__button--save {
+      max-width: 120px;
+      text-overflow: ellipsis;
+    }
   }
 
   .formBuilder-header__cell--buttons {

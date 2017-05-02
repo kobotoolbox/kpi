@@ -414,14 +414,15 @@ export default assign({
                 <i />
                 {saveButtonText}
               </bem.FormBuilderHeader__button>
-            </bem.FormBuilderHeader__cell>
-            <bem.FormBuilderHeader__cell m={'close'} >
+
               <bem.FormBuilderHeader__close m={[{
                     'close-warning': this.needsSave(),
                   }]} onClick={this.navigateBack}>
                 <i className="k-icon-close"></i>
               </bem.FormBuilderHeader__close>
+
             </bem.FormBuilderHeader__cell>
+
           </bem.FormBuilderHeader__row>
           <bem.FormBuilderHeader__row m={'second'} >
             <bem.FormBuilderHeader__cell m={'buttons'} >
