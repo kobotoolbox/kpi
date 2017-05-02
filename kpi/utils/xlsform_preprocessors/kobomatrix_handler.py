@@ -1,6 +1,6 @@
-from base_handlers import GroupHandler
+import re
 
-from pprint import pprint
+from base_handlers import GroupHandler
 
 SPAN_WRAP = '<span style="display:none">{}</span>'
 HEADER_WRAP = '**{}**'
@@ -85,11 +85,25 @@ class KoboMatrixGroupHandler(GroupHandler):
     def finish(self):
         survey_contents = self._base_handler.survey_contents
 
-        for item in self._header(self.name, self.item_labels, self._rows):
+        first_column_width = 1
+        total_width = reduce(lambda n, r: n + r.get('_column_width'),
+                             self._rows,
+                             first_column_width)
+
+        total_width = 'w{}'.format(total_width)
+        first_column_width = 'w{}'.format(first_column_width)
+
+        for item in self._header(self.name, self.item_labels, self._rows,
+                                 total_width=total_width,
+                                 first_column_width=first_column_width,
+                                 ):
             survey_contents.append(item)
 
         for item in self.items:
-            for row in self._rows_for_item(self.name, item, self._rows):
+            for row in self._rows_for_item(self.name, item, self._rows,
+                                           total_width,
+                                           first_column_width,
+                                           ):
                 survey_contents.append(row)
 
     def _format_all_labels(self, labels, template):
@@ -97,22 +111,25 @@ class KoboMatrixGroupHandler(GroupHandler):
             template.format(_l) for _l in labels
         ]
 
-    def _header(self, name, items_label, cols):
+    def _header(self, name, items_label, cols,
+                total_width,
+                first_column_width='w1',
+                ):
         header_name = '_'.join([name, 'header'])
         start = [{'type': 'begin_group',
                   'name': header_name,
-                  'appearance': 'w7',
+                  'appearance': total_width,
                   },
                  {'type': 'note',
                   'name': '{}_note'.format(header_name),
-                  'appearance': 'w1',
+                  'appearance': first_column_width,
                   'required': False,
                   'label': self._format_all_labels(items_label, self.header_wrap),
                   }]
 
         mids = [
             {'type': 'note',
-             'appearance': 'w2',
+             'appearance': 'w{}'.format(col.get('_column_width')),
              'required': False,
              'label': self._format_all_labels(col.get('label'), self.header_wrap),
              'name': '_'.join([header_name, col.get('name')])
@@ -121,24 +138,27 @@ class KoboMatrixGroupHandler(GroupHandler):
         ]
         return start + mids + [{'type': 'end_group'}]
 
-    def _rows_for_item(self, name, item, cols):
+    def _rows_for_item(self, name, item, cols,
+                       total_width,
+                       first_column_width='w1',
+                       ):
         _item_name = item.get('name')
         _base_name = '_'.join([name, _item_name])
         start = [{'type': 'begin_group',
                   'name': _base_name,
-                  'appearance': 'w7',
+                  'appearance': total_width,
                   },
                  {'type': 'note',
                   'name': '{}_note'.format(_base_name),
                   'label': self._format_all_labels(item.get('label'),
                                                    self.row_header_wrap),
                   'required': False,
-                  'appearance': 'w1',
+                  'appearance': first_column_width,
                   }]
 
         def _make_row(col):
             _type = col['type']
-            _appearance = ['w2']
+            _appearance = ['w{}'.format(col.get('_column_width'))]
             if _type in ['select_one', 'select_multiple']:
                 _appearance.append('horizontal-compact')
             else:
@@ -163,5 +183,7 @@ class KoboMatrixGroupHandler(GroupHandler):
             self.finish()
             return False
         else:
+            _appearance_re = re.match('^w(\d+)$', row.get('appearance', ''))
+            row['_column_width'] = 2 if not _appearance_re else int(_appearance_re.groups()[0])
             self._rows.append(row)
             return self
