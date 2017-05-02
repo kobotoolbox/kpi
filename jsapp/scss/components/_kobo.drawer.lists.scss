@@ -102,15 +102,14 @@
 
       .popover-menu {
         position: absolute;
-        right: -5px;
-        top: 0px;
+        right: -4px;
+        top: -2px;
         margin: 0px;
 
-        button {
-          color: $cool-gray;
-
-          &:hover {
-            color: $cool-blue;
+        .popover-menu__toggle {
+          i {
+            margin-left: 0px;
+            line-height: 1em;
           }
         }
 
@@ -139,14 +138,14 @@
     padding-left: 15px;
     margin: 5px 0px;
 
-    i {
-      font-size: 30px;
-      vertical-align: middle;
-      display: inline-block;
-    }
-
     .form-sidebar__itemlink {
       padding: 0px;
+
+      i {
+        font-size: 32px;
+        vertical-align: middle;
+        display: inline-block;
+      }
     }
   }
 }

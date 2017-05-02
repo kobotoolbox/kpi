@@ -36,9 +36,6 @@ var FormLanding = React.createClass({
       selectedCollectMethod: 'offline_url'
     };
   },
-  componentDidUpdate() {
-    console.log(this.state);
-  },
   componentWillReceiveProps() {
     this.setState({
         questionLanguageIndex: 0
@@ -329,11 +326,8 @@ var FormLanding = React.createClass({
   },
   setCollectMethod(evt) {
     var method = $(evt.target).parents('.popover-menu__link').data('method');
-    var value = this.state.deployment__links[method];
-    console.log(value);
     this.setState({
-        selectedCollectMethod: method,
-        selectedCollectValue: value
+        selectedCollectMethod: method
       }
     );
   },

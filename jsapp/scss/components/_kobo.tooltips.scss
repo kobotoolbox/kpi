@@ -9,25 +9,26 @@
     line-height: 1.35em;
     color: white;
     background-color: darken($cool-gray, 10%);
-    padding: 10px 20px;
-    border-radius: 6px;
+    padding: 6px 12px;
     position: absolute;
-    top: calc(100% + 10px);
+    top: 96%;
     left: 50%;
     transform: translate(-50%, 0);
     z-index: 2;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.5s;
+    transition: opacity 0.3s;
     white-space: nowrap;
+
+    @include box-shadow;
   }
 
   &:before {
-    border-bottom: 10px solid darken($cool-gray, 10%);
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
+    border-bottom: 5px solid darken($cool-gray, 10%);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
     position: absolute;
-    top: 100%;
+    top: calc(96% - 5px);
     content: "";
     width: 0;
     height: 0;
@@ -36,7 +37,7 @@
     z-index: 2;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.5s;
+    transition: opacity 0.3s;
   }
 }
 
@@ -50,18 +51,18 @@
 
 .k-drawer {
   [data-tip]:after {
-    left: 100%;
+    left: 95%;
     top: 50%;
     transform: translate(0, -50%);
   }
 
   [data-tip]:before {
-    left: calc(100% - 6px);
+    left: calc(95% - 5px);
     top: 50%;
     transform: translate(0, -50%);
-    border-right: 10px solid darken($cool-gray, 10%);
-    border-bottom: 10px solid transparent;
-    border-top: 10px solid transparent;
+    border-right: 5px solid darken($cool-gray, 10%);
+    border-bottom: 5px solid transparent;
+    border-top: 5px solid transparent;
     border-left: none;
   }
 }
@@ -76,7 +77,7 @@
 
 // more actions in asset-row adjustment
 .asset-row .popover-menu [data-tip]:after {
-  left: -70%;
+  left: -60%;
 }
 
 // Modify positioning to header tooltips
