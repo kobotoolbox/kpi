@@ -137,9 +137,15 @@ class KoboMatrixGroupHandler(GroupHandler):
                   }]
 
         def _make_row(col):
-            out = {'type': col['type'],
+            _type = col['type']
+            _appearance = ['w2']
+            if _type in ['select_one', 'select_multiple']:
+                _appearance.append('horizontal-compact')
+            else:
+                _appearance.append('no-label')
+            out = {'type': _type,
                    'name': '_'.join([_base_name, col['name']]),
-                   'appearance': 'w2',
+                   'appearance': ' '.join(_appearance),
                    'label': self._format_all_labels([
                        '-'.join([_item_name, _label])
                        for _label in col.get('label')

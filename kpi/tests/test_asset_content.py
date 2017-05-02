@@ -480,7 +480,7 @@ def kobomatrix_content():
 
 def test_kobomatrix_content():
     content = _compile_asset_content(kobomatrix_content())
-    pattern = ['w7', 'w1', 'w2', 'w2', 'w2', None]
+    pattern = ['w7', 'w1', 'w2', 'w2', 'w2', '']
     _survey = content.get('survey')
     _names = [r.get('name') for r in _survey]
     _labls = [r.get('label', [None])[0] for r in _survey]
@@ -488,7 +488,24 @@ def test_kobomatrix_content():
     _reqds = [r.get('required', None) for r in _survey]
 
     # appearance fields match
-    assert [r.get('appearance') for r in _survey] == pattern * 4
+    assert [r.get('appearance', '').split(' ')[0] for r in _survey] == (
+            pattern * 4)
+    _appearances = [r.get('appearance') for r in _survey]
+    assert _appearances[7:11] == ['w1',
+                                  'w2 horizontal-compact',
+                                  'w2 horizontal-compact',
+                                  'w2 no-label',
+                                  ]
+    assert _appearances[13:17] == ['w1',
+                                   'w2 horizontal-compact',
+                                   'w2 horizontal-compact',
+                                   'w2 no-label',
+                                   ]
+    assert _appearances[19:23] == ['w1',
+                                   'w2 horizontal-compact',
+                                   'w2 horizontal-compact',
+                                   'w2 no-label',
+                                   ]
 
     # names match
     assert _names == ['m1_header',
