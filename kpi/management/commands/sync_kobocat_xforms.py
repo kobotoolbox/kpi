@@ -23,7 +23,7 @@ from rest_framework.authtoken.models import Token
 from formpack.utils.xls_to_ss_structure import xls_to_dicts
 from hub.models import FormBuilderPreference
 from ...deployment_backends.kobocat_backend import KobocatDeploymentBackend
-from ...deployment_backends.kc_reader.shadow_models import _models
+from ...deployment_backends.kc_access.shadow_models import _models
 from ...models import Asset, ObjectPermission
 from .import_survey_drafts_from_dkobo import _set_auto_field_update
 
