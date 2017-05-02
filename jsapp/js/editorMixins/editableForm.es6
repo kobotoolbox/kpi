@@ -464,7 +464,7 @@ export default assign({
                   }} onClick={this.openFormStylePanel} 
                     data-tip={t('Web form layout')} >
                     <i className="k-icon-grid" />
-                    {t('Layout')}
+                    <span>{t('Layout')}</span>
                     <i className="fa fa-angle-down" />
                   </bem.FormBuilderHeader__button>
                 </bem.FormBuilderHeader__item>
