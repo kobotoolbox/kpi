@@ -76,7 +76,7 @@ class MockDataReports(TestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        self.user = User.objects.all()[0]
+        self.user = User.objects.get(username='someuser')
 
         self.asset = Asset.objects.create(content=deepcopy(F1), owner=self.user)
 

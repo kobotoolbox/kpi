@@ -49,7 +49,7 @@ class AssetsTestCase(TestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        self.user = User.objects.all()[0]
+        self.user = User.objects.get(username='someuser')
         self.asset = Asset.objects.create(content={'survey': [
             {u'type': u'text',
              u'label': u'Question 1',
@@ -432,10 +432,10 @@ class ShareAssetsTest(AssetsTestCase):
         self.assertEqual(user.has_perm(perm, self.asset), False)
 
     def test_user_view_permission(self):
-        self.grant_and_revoke_standalone(self.someuser, 'view_asset')
+        self.grant_and_revoke_standalone(self.anotheruser, 'view_asset')
 
     def test_user_change_permission(self):
-        self.grant_and_revoke_standalone(self.someuser, 'change_asset')
+        self.grant_and_revoke_standalone(self.anotheruser, 'change_asset')
 
     def grant_and_revoke_parent(self, user, perm):
         # Collection permissions have different suffixes
@@ -449,10 +449,10 @@ class ShareAssetsTest(AssetsTestCase):
         self.assertEqual(user.has_perm(perm, self.asset_in_coll), False)
 
     def test_user_inherited_view_permission(self):
-        self.grant_and_revoke_parent(self.someuser, 'view_asset')
+        self.grant_and_revoke_parent(self.anotheruser, 'view_asset')
 
     def test_user_inherited_change_permission(self):
-        self.grant_and_revoke_parent(self.someuser, 'change_asset')
+        self.grant_and_revoke_parent(self.anotheruser, 'change_asset')
 
     def assign_collection_asset_perms(self, user, collection_perm, asset_perm,
                                       collection_deny=False, asset_deny=False,
@@ -471,7 +471,7 @@ class ShareAssetsTest(AssetsTestCase):
                          not asset_deny)
 
     def test_user_view_collection_change_asset(self, asset_first=False):
-        user = self.someuser
+        user = self.anotheruser
         self.assign_collection_asset_perms(
             user,
             'view_collection',
@@ -480,7 +480,7 @@ class ShareAssetsTest(AssetsTestCase):
         )
 
     def test_user_change_collection_view_asset(self, asset_first=False):
-        user = self.someuser
+        user = self.anotheruser
         self.assign_collection_asset_perms(
             user,
             'change_collection',
@@ -494,7 +494,7 @@ class ShareAssetsTest(AssetsTestCase):
                          True)
 
     def test_user_change_collection_deny_asset(self, asset_first=False):
-        user = self.someuser
+        user = self.anotheruser
         self.assign_collection_asset_perms(
             user,
             'change_collection',
@@ -527,17 +527,17 @@ class ShareAssetsTest(AssetsTestCase):
         )
         # The other user should have nothing yet
         self.assertEqual(
-            get_all_objects_for_user(self.someuser, Asset).count(),
+            get_all_objects_for_user(self.anotheruser, Asset).count(),
             0
         )
         # Grant access and verify the result
-        self.asset.assign_perm(self.someuser, 'view_asset')
+        self.asset.assign_perm(self.anotheruser, 'view_asset')
         self.assertEqual(
             # Without coercion, django.db.models.query.ValuesListQuerySet isn't
             # a real list and will fail the comparison.
             list(
                 get_all_objects_for_user(
-                    self.someuser,
+                    self.anotheruser,
                     Asset
                 ).values_list('pk', flat=True)
             ),
@@ -551,9 +551,6 @@ class ShareAssetsTest(AssetsTestCase):
         ))
 
     def test_share_asset_permission_is_not_inherited(self):
-        # Change self.coll so that its owner isn't a superuser
-        self.coll.owner = User.objects.get(username='someuser')
-        self.coll.save()
         # Give the child asset a different owner
         self.asset_in_coll.owner = User.objects.get(username='anotheruser')
         # The change permission is inherited; prevent it from allowing
@@ -567,18 +564,18 @@ class ShareAssetsTest(AssetsTestCase):
         ))
 
     def test_change_permission_provides_share_permission(self):
-        someuser = User.objects.get(username='someuser')
-        self.assertFalse(someuser.has_perm(
+        anotheruser = User.objects.get(username='anotheruser')
+        self.assertFalse(anotheruser.has_perm(
             'change_asset', self.asset))
         # Grant the change permission and make sure it provides
         # share_asset
-        self.asset.assign_perm(someuser, 'change_asset')
-        self.assertTrue(someuser.has_perm(
+        self.asset.assign_perm(anotheruser, 'change_asset')
+        self.assertTrue(anotheruser.has_perm(
             'share_asset', self.asset))
-        # Restrict share_asset to the owner and make sure someuser loses
+        # Restrict share_asset to the owner and make sure anotheruser loses
         # the permission
         self.asset.editors_can_change_permissions = False
-        self.assertFalse(someuser.has_perm(
+        self.assertFalse(anotheruser.has_perm(
             'share_asset', self.asset))
 
     def test_anonymous_view_permission_on_standalone_asset(self):
@@ -610,13 +607,13 @@ class ShareAssetsTest(AssetsTestCase):
     def test_anonymous_as_baseline_for_authenticated(self):
         ''' If the public can view an object, then all users should be able
         to do the same. '''
-        # No one should have any permission yet
-        for user_obj in AnonymousUser(), self.someuser:
+        # Neither anonymous nor `anotheruser` should have any permission yet
+        for user_obj in AnonymousUser(), self.anotheruser:
             self.assertFalse(user_obj.has_perm(
                 'view_asset', self.asset))
         # Grant to anonymous
         self.asset.assign_perm(AnonymousUser(), 'view_asset')
-        # Check that both anonymous and someuser can view
-        for user_obj in AnonymousUser(), self.someuser:
+        # Check that both anonymous and `anotheruser` can view
+        for user_obj in AnonymousUser(), self.anotheruser:
             self.assertTrue(user_obj.has_perm(
                 'view_asset', self.asset))
