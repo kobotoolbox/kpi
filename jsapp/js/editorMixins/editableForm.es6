@@ -641,7 +641,9 @@ export default assign({
               <ui.Modal open large
                   onClose={this.hidePreview} title={t('Form Preview')}>
                 <ui.Modal.Body>
-                  <iframe src={this.state.enketopreviewOverlay} />
+                  <div className="enketo-holder">
+                    <iframe src={this.state.enketopreviewOverlay} />
+                  </div>
                 </ui.Modal.Body>
               </ui.Modal>
 

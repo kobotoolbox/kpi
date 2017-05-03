@@ -1,5 +1,5 @@
 .form-sidebar {
-  height: calc(100% - 40px);
+  height: calc(100% - 55px);
   margin-top: 10px;
   overflow-y: auto;
   overflow-x: hidden;
@@ -86,6 +86,8 @@
     display: block;
     position: relative;
     padding-left: 30px;
+    padding-top: 3px;
+    padding-bottom: 4px;
 
     .form-sidebar__iteminner {
       display: inline-block;

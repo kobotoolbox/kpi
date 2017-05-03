@@ -42,7 +42,7 @@
     font-size: 15px;
     cursor: pointer;
     position: relative;
-    color: $cool-gray;
+    color: lighten($cool-gray, 10%);
     font-weight: normal;
     display: inline-block;
 
@@ -67,13 +67,12 @@
   a.form-view__tab {
     background: transparent;
     border: none;
-    padding: 6px 10px;
+    padding: 6px;
     border-left: 2px solid transparent;
     font-size: 14px;
-    margin-top: 4px;
     cursor: pointer;
     position: relative;
-    color: $cool-gray;
+    color: lighten($cool-gray, 10%);
     font-weight: normal;
     display: block;
 
@@ -104,6 +103,10 @@
 
   + .form-view__row {
     margin-top: 0px;
+  }
+
+  &.historyHidden {
+    margin-top: -15px;
   }
 
   &.historyHidden .form-view__cell--history-label,

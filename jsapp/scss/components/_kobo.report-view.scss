@@ -98,8 +98,10 @@
 // report buttons
 .form-view__reportButtons {
   padding: 15px 0px;
-  button {
+  button:not(.mdl-button--icon) {
     text-transform: uppercase;
+  }
+  button {
     i.fa {
       font-size: 18px;
       margin-left: 8px;
@@ -108,6 +110,7 @@
       float: right;
       margin-right: 0px;
       margin-left: 8px;
+      overflow: visible;
     }
   }
   + .form-view__cell--iframe {

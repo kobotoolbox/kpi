@@ -168,10 +168,10 @@ var FormLanding = React.createClass({
                   <bem.FormView__label m='date'>
                     {formatTime(item.date_deployed)}
                   </bem.FormView__label>
-                  <bem.FormView__label m='clone'>
+                  <bem.FormView__label m='clone' className="right-tooltip">
                       <bem.FormView__link m='clone'
                           data-version-id={item.uid}
-                          data-tip={t('Clone as new project')}
+                          data-tip={t('Clone this version as a new project')}
                           onClick={this.saveCloneAs}>
                         <i className="k-icon-clone" />
                       </bem.FormView__link>
@@ -183,7 +183,7 @@ var FormLanding = React.createClass({
         </bem.FormView__cell>
         {this.state.deployed_versions.length > 1 &&
           <bem.FormView__cell m={['centered']}>
-            <button className="mdl-button mdl-js-button mdl-button--colored" onClick={this.toggleDeploymentHistory}>
+            <button className="mdl-button mdl-button--colored" onClick={this.toggleDeploymentHistory}>
               {this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
             </button>
           </bem.FormView__cell>
