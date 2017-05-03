@@ -70,8 +70,8 @@ def resize(filename):
             conf[key]['suffix']) for key in settings.THUMB_ORDER]
 
 
-def resize_local_env(filename):
-    default_storage = get_storage_class()()
+def resize_local_env(filename, fs=None):
+    default_storage = fs if fs else get_storage_class()()
     path = default_storage.path(filename)
     image = Image.open(path)
     conf = settings.THUMB_CONF
@@ -106,10 +106,20 @@ def image_url(attachment, suffix):
                     else:
                         resize_local_env(filename)
                     return image_url(attachment, suffix)
+            elif default_storage.__class__ != fs.__class__ and fs.exists(filename):
+                # Fallback to local file system storage if default storage is AWS
+                if fs.exists(get_path(filename, size)) and \
+                                fs.size(get_path(filename, size)) > 0:
+                    url = fs.url(
+                        get_path(filename, size))
+                else:
+                    resize_local_env(filename, fs)
+                    return image_url(attachment, suffix)
             elif settings.KOBOCAT_URL:
                 # Fallback to Kobocat location if not stored in s3 (if KC location exists)
                 filename = url.split('/')[-1]
-                url = settings.KOBOCAT_URL.strip("/") + url.replace(filename, get_path(filename, size))
+                url = settings.KOBOCAT_URL.strip("/") + settings.MEDIA_URL + attachment.media_file.name
+                url.replace(filename, get_path(filename, size))
                 req = requests.get(url)
                 if req.status_code == 200:
                     return url

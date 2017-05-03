@@ -544,11 +544,6 @@ if os.environ.get('KOBOCAT_ROOT_URI_PREFIX'):
 
 MEDIA_ROOT = os.path.join(KOBOCAT_DIR, 'media/')
 
-
-# TODO: Only append KOBOCAT_URL to MEDIA_URL if AWS s3 settings not enabled?
-#if KOBOCAT_URL:
-#    MEDIA_URL = KOBOCAT_URL.strip('/') + MEDIA_URL
-
 # IMAGE TOOLS Variables
 THUMB_CONF = {
     'large': {'size': 1280, 'suffix': '-large'},
