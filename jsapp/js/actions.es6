@@ -344,7 +344,6 @@ actions.resources.updateAsset.listen(function(uid, values){
     })
     .fail(function(resp){
       actions.resources.updateAsset.failed(resp);
-      notify(t('save failed'));
     });
 });
 

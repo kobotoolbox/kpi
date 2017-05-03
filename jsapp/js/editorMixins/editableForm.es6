@@ -9,6 +9,7 @@ import SurveyScope from '../models/surveyScope';
 import cascadeMixin from './cascadeMixin';
 import AssetNavigator from './assetNavigator';
 import {Link, hashHistory} from 'react-router';
+import alertify from 'alertifyjs';
 
 import {
   surveyToValidJson,
@@ -333,14 +334,23 @@ export default assign({
           });
         })
         .catch((resp) => {
+          var errorMsg = `${t('Your changes could not be saved, likely because of a lost internet connection.')}&nbsp;
+                         ${t('Keep this window open and try saving again while using a better connection.')}`;
+          if (resp.statusText != 'error')
+            errorMsg = resp.statusText;
+
+          alertify.defaults.theme.ok = "ajs-cancel";
+          let dialog = alertify.dialog('alert');
+          let opts = {
+            title: t('Error saving form'),
+            message: errorMsg,
+            label: t('Dismiss'),
+          };
+          dialog.set(opts).show();
+
           this.setState({
-            surveySaveFail: {
-              error: resp.statusText,
-              uid: params.uid,
-              name: params.name,
-              content: params.content,
-            },
-            asset_updated: update_states.SAVE_FAILED,
+            surveySaveFail: true,
+            asset_updated: update_states.SAVE_FAILED
           });
         });
     }
@@ -389,7 +399,7 @@ export default assign({
     if (this.editorState === 'new') {
       ooo.saveButtonText = t('create');
     } else if (this.state.surveySaveFail) {
-      ooo.saveButtonText = t('save failed (retry)');
+      ooo.saveButtonText = `${t('save')} (${t('retry')}) `;
     } else {
       ooo.saveButtonText = t('save');
     }
@@ -653,29 +663,6 @@ export default assign({
               {this.renderSaveAndPreviewButtons()}
 
               <bem.FormBuilder__contents>
-                {this.state.surveySaveFail ?
-                  <bem.FormMeta m='message'>
-                    <bem.FormMeta__content>
-                      <h3>
-                      {
-                        t('save failed')
-                      }
-                      </h3>
-                      <p>
-                        {this.state.surveySaveFail.error == 'error' ?
-                          t('Lost internet connection?')
-                          :
-                          this.state.surveySaveFail.error
-                        }
-                      </p>
-                      <p>
-                        {t('If you would like to save changes, please do not close' +
-                           ' this tab. Retry saving from a better connection until' +
-                           ' you see the "succesfully updated" message.')}
-                      </p>
-                    </bem.FormMeta__content>
-                  </bem.FormMeta>
-                :null}
 
                 { isSurvey ?
                   <FormSettingsBox survey={this.app.survey} {...this.state} />
