@@ -3,6 +3,7 @@ import Reflux from 'reflux';
 import _ from 'underscore';
 import {dataInterface} from '../dataInterface';
 import DocumentTitle from 'react-document-title';
+import TextareaAutosize from 'react-autosize-textarea';
 
 import actions from '../actions';
 import bem from '../bem';
@@ -16,7 +17,6 @@ import {
   log,
   stringToColor,
 } from '../utils';
-
 
 export var AccountSettings = React.createClass({
   mixins: [
@@ -94,9 +94,6 @@ export var AccountSettings = React.createClass({
     if(stores.session && stores.session.currentAccount) {
       return this.getStateFromCurrentAccount(stores.session.currentAccount);
     }
-    return {
-      textareaHeight: ''
-    };
   },
   handleChange (e, attr) {
     if (e.target) {
@@ -117,13 +114,7 @@ export var AccountSettings = React.createClass({
   organizationWebsiteChange (e) {this.handleChange(e, 'organizationWebsite');},
   primarySectorChange (e) {this.handleChange(e, 'primarySector');},
   genderChange (e) {this.handleChange(e, 'gender');},
-  bioChange (e) {
-    let descriptionHeight = $(e.target).prop('scrollHeight');
-    this.setState({
-      textareaHeight: descriptionHeight
-    });
-    this.handleChange(e, 'bio');
-  },
+  bioChange (e) {this.handleChange(e, 'bio');},
   phoneNumberChange (e) {this.handleChange(e, 'phoneNumber');},
   addressChange (e) {this.handleChange(e, 'address');},
   cityChange (e) {this.handleChange(e, 'city');},
@@ -134,6 +125,7 @@ export var AccountSettings = React.createClass({
   linkedinChange (e) {this.handleChange(e, 'linkedin');},
   instagramChange (e) {this.handleChange(e, 'instagram');},
   metadataChange (e) {this.handleChange(e, 'metadata');},
+
   render () {
     if(!stores.session || !stores.session.currentAccount) {
       return (
@@ -151,9 +143,6 @@ export var AccountSettings = React.createClass({
     var initialsStyle = {
       background: `#${stringToColor(accountName)}`
     };
-
-    let bHeight = $('textarea#bio').prop('scrollHeight');
-    var bioHeight = Math.max(bHeight, this.state.textareaHeight);
 
     return (
       <DocumentTitle title={`${accountName} | KoboToolbox`}>
@@ -246,12 +235,7 @@ export var AccountSettings = React.createClass({
               <bem.AccountSettings__item>
                 <label>
                   {t('Bio')}
-                  <textarea 
-                    value={this.state.bio}
-                    rows="1"
-                    id="bio"
-                    style={{height: bioHeight + 'px'}}
-                    onChange={this.bioChange} />
+                  <TextareaAutosize onChange={this.bioChange} value={this.state.bio} id="bio" />
                 </label>
               </bem.AccountSettings__item>
 
