@@ -334,7 +334,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         }
         try:
             response = requests.post(
-                u'{}/{}'.format(
+                u'{}{}'.format(
                     settings.ENKETO_SERVER, settings.ENKETO_SURVEY_ENDPOINT),
                 # bare tuple implies basic auth
                 auth=(settings.ENKETO_API_TOKEN, ''),
