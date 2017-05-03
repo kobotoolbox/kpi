@@ -814,23 +814,32 @@ class AttachmentSerializer(serializers.ModelSerializer):
                        request=self.context.get('request', None))
 
     def get_download_url(self, obj):
+        request = self.context.get('request')
         if obj.mimetype.startswith('image'):
-            return image_url(obj, 'original')
-        return obj.media_file.url if obj.media_file.url else None
+            result = image_url(obj, 'original')
+        else:
+            result = obj.media_file.url if obj.media_file.url else None
+        return result if not request else request.build_absolute_uri(result)
 
     def get_small_download_url(self, obj):
         if obj.mimetype.startswith('image'):
-            return image_url(obj, 'small')
+            request = self.context.get('request')
+            result = image_url(obj, 'small')
+            return result if not request else request.build_absolute_uri(result)
         return None
 
     def get_medium_download_url(self, obj):
         if obj.mimetype.startswith('image'):
-            return image_url(obj, 'medium')
+            request = self.context.get('request')
+            result = image_url(obj, 'medium')
+            return result if not request else request.build_absolute_uri(result)
         return None
 
     def get_large_download_url(self, obj):
         if obj.mimetype.startswith('image'):
-            return image_url(obj, 'large')
+            request = self.context.get('request')
+            result = image_url(obj, 'large')
+            return result if not request else request.build_absolute_uri(result)
         return None
 
 
