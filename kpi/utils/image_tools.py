@@ -86,14 +86,30 @@ def image_url(attachment, suffix):
     e.g large, medium, small, or generate required thumbnail
     '''
     url = attachment.media_file.url
+    default_storage = get_storage_class()()
+    fs = get_storage_class('django.core.files.storage.FileSystemStorage')()
+    filename = attachment.media_file.name
     if suffix == 'original':
-        return url
+        if default_storage.exists(filename):
+            return url
+        elif default_storage.__class__ != fs.__class__ and fs.exists(filename):
+            return fs.url(filename)
+        elif settings.KOBOCAT_URL:
+            url = settings.KOBOCAT_URL.strip("/") + settings.MEDIA_URL + attachment.media_file.name
+            req = requests.get(url)
+            if req.status_code == 200:
+                return url
+            else:
+                url = settings.KOBOCAT_URL.strip("/") + "/attachment/" + suffix + "?media_file=" + filename
+                req = requests.get(url)
+                if req.status_code == 302:
+                    return req.url
+                return url
+        else:
+            return None
     else:
-        default_storage = get_storage_class()()
-        fs = get_storage_class('django.core.files.storage.FileSystemStorage')()
         if suffix in settings.THUMB_CONF:
             size = settings.THUMB_CONF[suffix]['suffix']
-            filename = attachment.media_file.name
             if default_storage.exists(filename):
                 if default_storage.exists(get_path(filename, size)) and\
                         default_storage.size(get_path(filename, size)) > 0:
@@ -107,9 +123,9 @@ def image_url(attachment, suffix):
                         resize_local_env(filename)
                     return image_url(attachment, suffix)
             elif default_storage.__class__ != fs.__class__ and fs.exists(filename):
-                # Fallback to local file system storage if default storage is AWS
+                # Fallback to local storage if default storage is AWS
                 if fs.exists(get_path(filename, size)) and \
-                                fs.size(get_path(filename, size)) > 0:
+                        fs.size(get_path(filename, size)) > 0:
                     url = fs.url(
                         get_path(filename, size))
                 else:
@@ -127,7 +143,9 @@ def image_url(attachment, suffix):
                     media_file = attachment.media_file.name
                     url = settings.KOBOCAT_URL.strip("/") + "/attachment/" + suffix + "?media_file=" + media_file
                     req = requests.get(url)
-                    return req.url
+                    if req.status_code == 302:
+                        return req.url
+                    return url
             else:
                 return None
     return url
