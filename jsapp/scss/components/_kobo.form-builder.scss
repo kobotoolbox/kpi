@@ -262,7 +262,7 @@
     }
   }
 
-  &.formBuilder-header__button--saveneeded:after {
+  &.formBuilder-header__button--savefailed:after, &.formBuilder-header__button--saveneeded:after {
     content: '*';
     color: white;
   }
@@ -304,7 +304,6 @@
   margin:8px 75px;
   margin-bottom: 16px;
   margin-right: 60px;
-
 }
 
 .form-meta__button--metasummary {
