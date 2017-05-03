@@ -4,6 +4,7 @@
   "description": "kobotoolbox api dashboard",
   "main": "Gruntfile.js",
   "dependencies": {
+    "react-autosize-textarea": "^0.4.3",
     "react-hotkey": "^0.7.0"
   },
   "devDependencies": {

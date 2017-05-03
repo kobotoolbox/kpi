@@ -22,7 +22,7 @@ var UserPermDiv = React.createClass({
   ],
   PermOnChange(perm) {
     var cans = this.props.can;
-    if (perm != null) {
+    if (perm) {
       var permName = perm.value;
       this.setPerm(permName, this.props);
       if (permName == 'view' && cans.change)
