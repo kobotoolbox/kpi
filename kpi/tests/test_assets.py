@@ -414,14 +414,10 @@ class ShareAssetsTest(AssetsTestCase):
         super(ShareAssetsTest, self).setUp()
         self.someuser = User.objects.get(username='someuser')
         self.anotheruser = User.objects.get(username='anotheruser')
-        # FIXME: `self.user` is anonymous
         self.coll = Collection.objects.create(owner=self.user)
         # Make a copy of self.asset and put it inside self.coll
-        self.asset_in_coll = self.asset
-        self.asset_in_coll.pk = None
-        self.asset_in_coll.uid = ''
+        self.asset_in_coll = self.asset.clone()
         self.asset_in_coll.parent = self.coll
-        # FIXME: `self.asset_in_coll is self.asset` evaluates to `True`?!?
         self.asset_in_coll.save()
 
     def grant_and_revoke_standalone(self, user, perm):
