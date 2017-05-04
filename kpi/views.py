@@ -78,6 +78,7 @@ from .serializers import (
     AssetVersionSerializer,
     AssetSnapshotSerializer,
     AttachmentSerializer,
+    AttachmentListSerializer,
     AttachmentPagination,
     SitewideMessageSerializer,
     CollectionSerializer, CollectionListSerializer,
@@ -484,6 +485,12 @@ class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         renderers.BrowsableAPIRenderer,
         MediaFileRenderer
     )
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return AttachmentListSerializer
+        else:
+            return AttachmentSerializer
 
     def get_serializer_context(self):
         _asset_uid = self.get_parents_query_dict()['asset']

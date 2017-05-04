@@ -814,33 +814,34 @@ class AttachmentSerializer(serializers.ModelSerializer):
                        request=self.context.get('request', None))
 
     def get_download_url(self, obj):
-        request = self.context.get('request')
-        if obj.mimetype.startswith('image'):
-            result = image_url(obj, 'original')
-        else:
-            result = obj.media_file.url if obj.media_file.url else None
-        return result if not request or not result else request.build_absolute_uri(result)
+        return self._get_download_url(obj, 'original')
 
     def get_small_download_url(self, obj):
-        if obj.mimetype.startswith('image'):
-            request = self.context.get('request')
-            result = image_url(obj, 'small')
-            return result if not request or not result else request.build_absolute_uri(result)
-        return None
+        return self._get_download_url(obj, 'small')
+
 
     def get_medium_download_url(self, obj):
+        return self._get_download_url(obj, 'medium')
+
+
+    def get_large_download_url(self, obj):
+        return self._get_download_url(obj, 'large')
+
+    def _get_download_url(self, obj, size):
         if obj.mimetype.startswith('image'):
             request = self.context.get('request')
-            result = image_url(obj, 'medium')
+            result = image_url(obj, size)
             return result if not request or not result else request.build_absolute_uri(result)
         return None
 
-    def get_large_download_url(self, obj):
-        if obj.mimetype.startswith('image'):
-            request = self.context.get('request')
-            result = image_url(obj, 'large')
-            return result if not request or not result else request.build_absolute_uri(result)
-        return None
+class AttachmentListSerializer(AttachmentSerializer):
+    class Meta(AttachmentSerializer.Meta):
+        fields = ('url', 'filename', 'short_filename', 'mimetype', 'id',
+                  'submission', 'can_view_submission', 'question', 'download_url')
+
+    @check_obj
+    def get_download_url(self, obj):
+        return obj.media_file.url if obj.media_file.url else None
 
 
 class AttachmentPagination(LimitOffsetPagination):
