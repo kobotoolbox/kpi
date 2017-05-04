@@ -1,4 +1,4 @@
-KPI TEST BRANCH MERGE
+KPI
 ===
 
 [![Build Status](https://travis-ci.org/kobotoolbox/kpi.svg?branch=develop)](https://travis-ci.org/kobotoolbox/kpi)
