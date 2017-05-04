@@ -36,9 +36,9 @@ def get_dimensions((width, height), longest_side):
     return flat(width, height)
 
 
-def _save_thumbnails(image, path, size, suffix):
+def _save_thumbnails(image, path, size, suffix, fs=None):
+    default_storage = fs if fs else get_storage_class()()
     nm = NamedTemporaryFile(suffix='.%s' % settings.IMG_FILE_TYPE)
-    default_storage = get_storage_class()()
     try:
         # Ensure conversion to float in operations
         image.thumbnail(
@@ -56,8 +56,8 @@ def _save_thumbnails(image, path, size, suffix):
     nm.close()
 
 
-def resize(filename):
-    default_storage = get_storage_class()()
+def resize(filename, fs=None):
+    default_storage = fs if fs else get_storage_class()()
     path = default_storage.url(filename)
     req = requests.get(path)
     if req.status_code == 200:
@@ -67,7 +67,7 @@ def resize(filename):
         [_save_thumbnails(
             image, filename,
             conf[key]['size'],
-            conf[key]['suffix']) for key in settings.THUMB_ORDER]
+            conf[key]['suffix'], default_storage) for key in settings.THUMB_ORDER]
 
 
 def resize_local_env(filename, fs=None):
@@ -78,10 +78,10 @@ def resize_local_env(filename, fs=None):
 
     [_save_thumbnails(
         image, path, conf[key]['size'],
-        conf[key]['suffix']) for key in settings.THUMB_ORDER]
+        conf[key]['suffix'], default_storage) for key in settings.THUMB_ORDER]
 
 
-def image_url(attachment, suffix):
+def image_url(attachment, suffix, total=0, limit=5):
     '''Return url of an image given size(@param suffix)
     e.g large, medium, small, or generate required thumbnail
     '''
@@ -107,13 +107,17 @@ def image_url(attachment, suffix):
                 return url
         else:
             return None
+    elif total > limit:
+        # Max number of recursive tries to fetch image being resized reached
+        # Return None to prevent infinite loop
+        return None
     else:
         if suffix in settings.THUMB_CONF:
             size = settings.THUMB_CONF[suffix]['suffix']
             if default_storage.exists(filename):
                 if default_storage.exists(get_path(filename, size)) and\
                         default_storage.size(get_path(filename, size)) > 0:
-                    url = default_storage.url(
+                    return default_storage.url(
                         get_path(filename, size))
 
                 else:
@@ -121,16 +125,16 @@ def image_url(attachment, suffix):
                         resize(filename)
                     else:
                         resize_local_env(filename)
-                    return image_url(attachment, suffix)
+                    return image_url(attachment, suffix, total+1)
             elif default_storage.__class__ != fs.__class__ and fs.exists(filename):
                 # Fallback to local storage if default storage is AWS
                 if fs.exists(get_path(filename, size)) and \
                         fs.size(get_path(filename, size)) > 0:
-                    url = fs.url(
+                    return fs.url(
                         get_path(filename, size))
                 else:
                     resize_local_env(filename, fs)
-                    return image_url(attachment, suffix)
+                    return image_url(attachment, suffix, total+1)
             elif settings.KOBOCAT_URL:
                 # Fallback to Kobocat location if not stored in s3 (if KC location exists)
                 url = settings.KOBOCAT_URL.strip("/") + settings.MEDIA_URL + attachment.media_file.name
