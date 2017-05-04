@@ -11,14 +11,6 @@ const CollectionsModalCarousel = React.createClass({
       direction: null
     };
   },
-
-  handleSelect(selectedIndex, e) {
-    console.log('selected=' + selectedIndex + ', direction=' + e.direction);
-    this.setState({
-      index: selectedIndex,
-      direction: e.direction
-    });
-  },
   renderItem: function(item, key){
     return <CarouselItem item={item} key={key} {...this.props} />;
   },

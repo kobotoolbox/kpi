@@ -4,6 +4,7 @@ import bem from '../../bem';
 import ui from '../../ui';
 import CollectionModal from './collectionModal';
 import CollectionFilter from './collectionFilter';
+import {dataInterface} from '../../dataInterface';
 
 const COLLECTIONS = require('../../data/collections');
 
@@ -103,6 +104,7 @@ var CollectionsModal = React.createClass({
 		return (
       <bem.AssetGallery>
 				<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
+				<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
         <bem.AssetGallery__heading>
           <div className="col6">
             <bem.AssetGallery__count>

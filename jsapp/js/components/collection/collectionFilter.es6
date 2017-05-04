@@ -55,7 +55,7 @@ var CollectionsField = React.createClass({
 		return (
 			<bem.AssetGallery__headingSearchFilter className="section">
 				<Select ref="collectionSelect" options={options} simpleValue clearable={this.state.clearable} name="selected-collection" disabled={this.state.disabled} value={this.state.collectionValue} onChange={this.updateCollectionValue} searchable={this.state.searchable} />
-				<Select ref="filterSelect" options={filters} simpleValue name="selected-filter" disabled={this.state.disabled} value={this.state.filter} onChange={this.switchFilter} searchable={false} />
+				<Select ref="filterSelect" className="icon-button-select" options={filters} simpleValue name="selected-filter" disabled={this.state.disabled} value={this.state.filter} onChange={this.switchFilter} searchable={false} />
 			</bem.AssetGallery__headingSearchFilter>
 		);
 	}

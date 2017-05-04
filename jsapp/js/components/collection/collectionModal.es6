@@ -32,8 +32,8 @@ var CollectionsModal = React.createClass({
 	        <ui.Modal.Body>
 						<bem.AssetGallery__modalCarousel className={"col8 "+ (this.state.infoOpen ? '' : 'full-screen')}>
 							<bem.AssetGallery__modalCarouselTopbar className={this.state.infoOpen ? 'show' : 'show--hover'}>
-								<i className="toggle-info material-icons" onClick={this.toggleInfo}>info_outline</i>
 								<i className="close-modal material-icons" onClick={this.props.onHide}>keyboard_backspace</i>
+								<i className="toggle-info material-icons" onClick={this.toggleInfo}>info_outline</i>
 							</bem.AssetGallery__modalCarouselTopbar>
 							<Carousel />
 						</bem.AssetGallery__modalCarousel>
@@ -47,5 +47,6 @@ var CollectionsModal = React.createClass({
 		);
 	}
 });
+
 
 module.exports = CollectionsModal;

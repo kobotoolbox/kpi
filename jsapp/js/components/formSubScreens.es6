@@ -108,6 +108,7 @@ var FormSubScreens = React.createClass({
   renderCollection () {
     var docTitle = this.state.name || t('Untitled');
     var deployment__identifier = this.state.deployment__identifier;
+    dataInterface.getGalleryImages(this.state.uid);
     var data = {
       assets: [
         {

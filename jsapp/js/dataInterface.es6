@@ -322,6 +322,15 @@ var dataInterface;
         return $.getJSON(`${rootUrl}/collections/${params.id}/`);
       }
     },
+    getGalleryImages (uid){
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/attachments`,
+        method: 'GET',
+        data: {
+          type: 'image'
+        }
+      });
+    },
     deployAsset (asset, redeployment) {
       var data = {
         'active': true,

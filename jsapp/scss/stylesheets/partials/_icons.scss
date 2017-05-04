@@ -19,7 +19,7 @@
 }
 
 // ==========================================================================
-// custom icons for a few response types  
+// custom icons for a few response types
 // ==========================================================================
 
 .fa.green {
@@ -32,9 +32,9 @@
     border-radius: 4px;
 }
 
-.fa.fa-lato-text:before, 
-.fa.fa-lato-integer:before, 
-.fa.fa-lato-decimal:before, 
+.fa.fa-lato-text:before,
+.fa.fa-lato-integer:before,
+.fa.fa-lato-decimal:before,
 .fa.fa-lato-calculate:before {
     font-family: $preferred_font;
     font-weight: 600;
@@ -118,3 +118,4 @@
 // .btn:focus .icon--blue {
 //     color: #179dd0;
 // }
+//
