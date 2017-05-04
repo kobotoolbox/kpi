@@ -255,6 +255,12 @@ class PermissionsTestCase(BasePermissionsTestCase):
                 asset.remove_perm(grantee, i)
 
     def test_remove_implied_asset_permissions(self):
+        r"""
+            Assign `change_submissions` on an asset to a user, expecting
+            `view_asset` and `view_submissions` to be automatically assigned as
+            well. Then, remove `view_asset` and expect `view_submissions` and
+            `change_submissions` likewise to be removed.
+        """
         asset = self.admin_asset
         grantee = self.someuser
 
@@ -279,6 +285,13 @@ class PermissionsTestCase(BasePermissionsTestCase):
         self.assertListEqual(list(asset.get_perms(grantee)), [])
 
     def test_implied_asset_deny_permissions(self):
+        r"""
+            Grant `change_collection` to a user on a collection, expecting the
+            same user to receive `view_asset` and `change_asset` on a child
+            asset of that collection. Then, revoke `view_asset` on the child
+            from the user and verify that deny records are created for all
+            assignable permissions on that asset.
+        """
         asset = self.admin_asset
         collection = self.admin_collection
         grantee = self.someuser
@@ -315,6 +328,11 @@ class PermissionsTestCase(BasePermissionsTestCase):
         )
 
     def test_contradict_implied_asset_deny_permissions(self):
+        r"""
+            When all assignable permissions are denied, verify that granting
+            `change_submissions` also grants `view_submissions` and
+            `view_asset`. Make sure that other deny records are left intact.
+        """
         asset = self.admin_asset
         collection = self.admin_collection
         grantee = self.someuser

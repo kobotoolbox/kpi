@@ -582,8 +582,19 @@ class ObjectPermissionMixin(object):
             self, user_obj, perm, deny=False, defer_recalc=False,
             skip_kc=False
     ):
-        ''' Assign user_obj the given perm on this object. To break
-        inheritance from a parent object, use deny=True. '''
+        r"""
+            Assign `user_obj` the given `perm` on this object, or break
+            inheritance from a parent object. By default, recalculate
+            descendant objects' permissions and apply any applicable KC
+            permissions.
+            :type user_obj: :py:class:`User` or :py:class:`AnonymousUser`
+            :param perm str: The `codename` of the `Permission`
+            :param deny bool: When `True`, break inheritance from parent object
+            :param defer_recalc bool: When `True`, skip recalculating
+                descendants
+            :param skip_kc bool: When `True`, skip assignment of applicable KC
+                permissions
+        """
         app_label, codename = perm_parse(perm, self)
         if codename not in self.get_assignable_permissions():
             # Some permissions are calculated and not stored in the database
@@ -716,15 +727,24 @@ class ObjectPermissionMixin(object):
 
     @transaction.atomic
     def remove_perm(self, user_obj, perm, defer_recalc=False, skip_kc=False):
-        ''' Revoke perm on this object from user_obj. May delete granted
-        permissions or add deny permissions as appropriate:
-        Current access      Action
-        ==============      ======
-        None                None
-        Direct              Remove direct permission
-        Inherited           Add deny permission
-        Direct & Inherited  Remove direct permission; add deny permission
-        '''
+        r"""
+            Revoke the given `perm` on this object from `user_obj`. By default,
+            recalculate descendant objects' permissions and remove any
+            applicable KC permissions.  May delete granted permissions or add
+            deny permissions as appropriate:
+            Current access      Action
+            ==============      ======
+            None                None
+            Direct              Remove direct permission
+            Inherited           Add deny permission
+            Direct & Inherited  Remove direct permission; add deny permission
+            :type user_obj: :py:class:`User` or :py:class:`AnonymousUser`
+            :param perm str: The `codename` of the `Permission`
+            :param defer_recalc bool: When `True`, skip recalculating
+                descendants
+            :param skip_kc bool: When `True`, skip assignment of applicable KC
+                permissions
+        """
         if isinstance(user_obj, AnonymousUser):
             # Get the User database representation for AnonymousUser
             user_obj = get_anonymous_user()

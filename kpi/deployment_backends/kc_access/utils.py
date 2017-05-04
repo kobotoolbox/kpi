@@ -89,6 +89,13 @@ def set_kc_require_auth(user_id, require_auth):
 
 
 def _get_content_type_kwargs(obj):
+    r"""
+        Given an `obj` with a `KC_CONTENT_TYPE_KWARGS` dictionary attribute,
+        prepend `content_type__` to each key in that dictionary and return the
+        result.
+        :param obj: Object with `KC_CONTENT_TYPE_KWARGS` dictionary attribute
+        :rtype dict(str, str)
+    """
     try:
         content_type_kwargs = obj.KC_CONTENT_TYPE_KWARGS
     except AttributeError:
@@ -96,7 +103,7 @@ def _get_content_type_kwargs(obj):
             'Model {} has a KC_PERMISSIONS_MAP attribute but lacks '
             'KC_CONTENT_TYPE_KWARGS'.format(obj._meta.model_name)
         )
-    # Append 'content_type__' to each field name in KC_CONTENT_TYPE_KWARGS
+    # Prepend 'content_type__' to each field name in KC_CONTENT_TYPE_KWARGS
     content_type_kwargs = {
         'content_type__' + k: v for k, v in content_type_kwargs.iteritems()
     }
@@ -104,6 +111,14 @@ def _get_content_type_kwargs(obj):
 
 
 def _get_applicable_kc_permissions(obj, kpi_codenames):
+    r"""
+        Given one KPI permission codename as a single string, or many codenames
+        as an iterable, return the corresponding KC permissions as a list of
+        `Permission` objects.
+        :param obj: Object with `KC_PERMISSIONS_MAP` dictionary attribute
+        :type kpi_codenames: str or list(str)
+        :rtype list(:py:class:`Permission`)
+    """
     if not settings.KOBOCAT_URL or not settings.KOBOCAT_INTERNAL_URL:
         return []
     try:
@@ -135,12 +150,23 @@ def _get_xform_id_for_asset(asset):
 
 @transaction.atomic()
 def assign_applicable_kc_permissions(obj, user, kpi_codenames):
+    r"""
+        Assign the `user` the applicable KC permissions to `obj`, if any
+        exists, given one KPI permission codename as a single string or many
+        codenames as an iterable. If `obj` is not a :py:class:`Asset` or does
+        not have a deployment, take no action.
+        :param obj: Any Django model instance
+        :type user: :py:class:`User` or :py:class:`AnonymousUser`
+        :type kpi_codenames: str or list(str)
+    """
     if not obj._meta.model_name == 'asset':
         return
     permissions = _get_applicable_kc_permissions(obj, kpi_codenames)
     if not permissions:
         return
     xform_id = _get_xform_id_for_asset(obj)
+    if not xform_id:
+        return
     xform_content_type = ContentType.objects.get(**obj.KC_CONTENT_TYPE_KWARGS)
     kc_permissions_already_assigned = UserObjectPermission.objects.filter(
         user=user, permission__in=permissions, object_pk=xform_id,
@@ -162,12 +188,23 @@ def assign_applicable_kc_permissions(obj, user, kpi_codenames):
 
 @transaction.atomic()
 def remove_applicable_kc_permissions(obj, user, kpi_codenames):
+    r"""
+        Remove the `user` the applicable KC permissions from `obj`, if any
+        exists, given one KPI permission codename as a single string or many
+        codenames as an iterable. If `obj` is not a :py:class:`Asset` or does
+        not have a deployment, take no action.
+        :param obj: Any Django model instance
+        :type user: :py:class:`User` or :py:class:`AnonymousUser`
+        :type kpi_codenames: str or list(str)
+    """
     if not obj._meta.model_name == 'asset':
         return
     permissions = _get_applicable_kc_permissions(obj, kpi_codenames)
     if not permissions:
         return
     xform_id = _get_xform_id_for_asset(obj)
+    if not xform_id:
+        return
     content_type_kwargs = _get_content_type_kwargs(obj)
     # Do NOT try to `print` or do anything else that would `repr()` this
     # queryset, or you'll be greeted by
@@ -181,6 +218,12 @@ def remove_applicable_kc_permissions(obj, user, kpi_codenames):
 
 @register_check()
 def guardian_message(app_configs, **kwargs):
+    r"""
+        Including `guardian` in `INSTALLED_APPS` but not using its
+        authentication backend causes Guardian to raise a warning through the
+        Django system check framework. Here we raise our own warning
+        instructing the administrator to ignore Guardian's warning.
+    """
     return [
         Warning(
             '*** Please disregard warning guardian.W001. ***',

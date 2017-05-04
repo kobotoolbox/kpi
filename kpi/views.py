@@ -125,6 +125,17 @@ class ObjectPermissionViewSet(NoUpdateModelViewSet):
     filter_backends = (KpiAssignedObjectPermissionsFilter, )
 
     def _requesting_user_can_share(self, affected_object, codename):
+        r"""
+            Return `True` if `self.request.user` is allowed to grant and revoke
+            `codename` on `affected_object`. For `Collection`, this is always
+            the same as checking that `self.request.user` has the
+            `share_collection` permission on `affected_object`. For `Asset`,
+            the result is determined by either `share_asset` or
+            `share_submissions`, depending on the `codename`.
+            :type affected_object: :py:class:Asset or :py:class:Collection
+            :type codename: str
+            :rtype bool
+        """
         model_name = affected_object._meta.model_name
         if model_name == 'asset' and codename.endswith('_submissions'):
             share_permission = 'share_submissions'
