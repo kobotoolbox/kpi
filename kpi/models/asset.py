@@ -480,7 +480,12 @@ class Asset(ObjectPermissionMixin,
     )
     # Calculated permissions that are neither directly assignable nor stored
     # in the database, but instead implied by assignable permissions
-    CALCULATED_PERMISSIONS = ('share_asset', 'delete_asset')
+    CALCULATED_PERMISSIONS = (
+        'share_asset',
+        'delete_asset',
+        'share_submissions',
+        'delete_submissions'
+    )
     # Certain Collection permissions carry over to Asset
     MAPPED_PARENT_PERMISSIONS = {
         'view_collection': 'view_asset',

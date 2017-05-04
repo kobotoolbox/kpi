@@ -319,7 +319,8 @@ class ObjectPermissionMixin(object):
         else:
             effective_perms_copy = copy.copy(effective_perms)
         if self.editors_can_change_permissions and (
-            codename is None or codename.startswith('share_')):
+                codename is None or codename.startswith('share_')
+        ):
             # Everyone with change_ should also get share_
             change_permissions = Permission.objects.filter(
                 content_type=content_type,
@@ -328,6 +329,13 @@ class ObjectPermissionMixin(object):
             for change_permission in change_permissions:
                 share_permission_codename = re.sub(
                     '^change_', 'share_', change_permission.codename, 1)
+                if (codename is not None and
+                        share_permission_codename != codename
+                ):
+                    # If the caller specified `codename`, skip anything that
+                    # doesn't match exactly. Necessary because `Asset` has
+                    # `*_submissions` in addition to `*_asset`
+                    continue
                 share_permission = Permission.objects.get(
                     content_type=content_type,
                     codename=share_permission_codename
@@ -343,9 +351,16 @@ class ObjectPermissionMixin(object):
             delete_permissions = Permission.objects.filter(
                 content_type=content_type,
                 codename__startswith='delete_'
-            ).values_list('pk', flat=True)
+            )
             for delete_permission in delete_permissions:
-                effective_perms.add((self.owner.pk, delete_permission))
+                if (codename is not None and
+                        delete_permission.codename != codename
+                ):
+                    # If the caller specified `codename`, skip anything that
+                    # doesn't match exactly. Necessary because `Asset` has
+                    # `delete_submissions` in addition to `delete_asset`
+                    continue
+                effective_perms.add((self.owner.pk, delete_permission.pk))
         # We may have calculated more permissions for anonymous users
         # than they are allowed to have. Remove them.
         if user is None or user.pk == settings.ANONYMOUS_USER_ID:

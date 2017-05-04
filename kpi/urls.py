@@ -1,5 +1,6 @@
 from django.conf.urls import url, include
 from django.views.i18n import javascript_catalog
+from django.conf import settings
 from hub.views import ExtraDetailRegistrationView
 from rest_framework.routers import DefaultRouter
 from rest_framework_extensions.routers import ExtendedDefaultRouter
@@ -8,6 +9,7 @@ from kpi.views import (
     AssetViewSet,
     AssetVersionViewSet,
     AssetSnapshotViewSet,
+    AttachmentViewSet,
     UserViewSet,
     CurrentUserViewSet,
     CollectionViewSet,
@@ -33,7 +35,11 @@ asset_routes.register(r'versions',
                       base_name='asset-version',
                       parents_query_lookups=['asset'],
                       )
-
+asset_routes.register(r'attachments',
+                      AttachmentViewSet,
+                      base_name='asset-attachment',
+                      parents_query_lookups=['asset'],
+                      )
 
 router.register(r'asset_snapshots', AssetSnapshotViewSet)
 router.register(
@@ -78,8 +84,13 @@ urlpatterns = [
     ),
     url(r'^browser_tests/$', browser_tests),
     url(r'^authorized_application/one_time_login/$', one_time_login),
-    url(r'^hub/switch_builder$', switch_builder, name='toggle-preferred-builder'),
+    url(r'^hub/switch_builder$', switch_builder,
+        name='toggle-preferred-builder'),
     # Translation catalog for client code.
-    url(r'^jsi18n/$', javascript_catalog, js_info_dict, name='javascript-catalog'),
-    # url(r'^.*', home),
+    url(r'^jsi18n/$', javascript_catalog,
+        js_info_dict, name='javascript-catalog'),
+
+    # static media
+    url(r'^media/(?P<path>.*)$', 'django.views.static.serve',
+        {'document_root': settings.MEDIA_ROOT}),
 ]

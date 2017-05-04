@@ -65,13 +65,13 @@ do ->
           expect(@row.get(key).get('value'))
       it 'text is required', ->
         @populateRow(type: 'text')
-        @expectValue('required').toBe(true)
+        @expectValue('required').toBe(false)
       it 'select one is required', ->
         @populateRow(type: 'select_one')
-        @expectValue('required').toBe(true)
+        @expectValue('required').toBe(false)
       it 'integer is required', ->
         @populateRow(type: 'integer')
-        @expectValue('required').toBe(true)
+        @expectValue('required').toBe(false)
       it 'geopoint is not required', ->
         @populateRow(type: 'geopoint')
         @expectValue('required').toBe(false)
@@ -116,7 +116,7 @@ do ->
               'select_from_list_name': 'yesno',
               'name': 'yn',
               'label': 'YesNo',
-              'required': 'true'
+              'required': 'false'
             }
           ],
           'choices': {
