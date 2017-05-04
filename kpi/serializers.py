@@ -782,20 +782,21 @@ class AttachmentSerializer(serializers.ModelSerializer):
     download_url = serializers.SerializerMethodField()
     small_download_url = serializers.SerializerMethodField()
     medium_download_url = serializers.SerializerMethodField()
-    path = serializers.ReadOnlyField(source='media_file.name')
-    filename = serializers.SerializerMethodField()
+    large_download_url = serializers.SerializerMethodField()
+    filename = serializers.ReadOnlyField(source='media_file.name')
+    short_filename = serializers.SerializerMethodField()
     question = serializers.SerializerMethodField()
     submission = serializers.SerializerMethodField()
     can_view_submission = serializers.SerializerMethodField()
 
     class Meta:
-        fields = ('url', 'filename', 'path', 'mimetype', 'id', 'submission',
-                  'can_view_submission', 'question', 'download_url',
-                  'small_download_url', 'medium_download_url')
+        fields = ('url', 'filename', 'short_filename', 'mimetype', 'id',
+                  'submission', 'can_view_submission', 'question', 'download_url',
+                  'small_download_url', 'medium_download_url', 'large_download_url')
         lookup_field = 'pk'
         model = _models.Attachment
 
-    def get_filename(self, obj):
+    def get_short_filename(self, obj):
         return obj.filename
 
     def get_question(self, obj):
@@ -812,17 +813,34 @@ class AttachmentSerializer(serializers.ModelSerializer):
         return reverse('asset-attachment-detail', args=(asset, obj.id,),
                        request=self.context.get('request', None))
 
-    @check_obj
     def get_download_url(self, obj):
-        return obj.media_file.url if obj.media_file.url else None
+        request = self.context.get('request')
+        if obj.mimetype.startswith('image'):
+            result = image_url(obj, 'original')
+        else:
+            result = obj.media_file.url if obj.media_file.url else None
+        return result if not request else request.build_absolute_uri(result)
 
     def get_small_download_url(self, obj):
         if obj.mimetype.startswith('image'):
-            return image_url(obj, 'small')
+            request = self.context.get('request')
+            result = image_url(obj, 'small')
+            return result if not request else request.build_absolute_uri(result)
+        return None
 
     def get_medium_download_url(self, obj):
         if obj.mimetype.startswith('image'):
-            return image_url(obj, 'medium')
+            request = self.context.get('request')
+            result = image_url(obj, 'medium')
+            return result if not request else request.build_absolute_uri(result)
+        return None
+
+    def get_large_download_url(self, obj):
+        if obj.mimetype.startswith('image'):
+            request = self.context.get('request')
+            result = image_url(obj, 'large')
+            return result if not request else request.build_absolute_uri(result)
+        return None
 
 
 class AttachmentPagination(LimitOffsetPagination):
