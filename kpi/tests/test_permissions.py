@@ -237,7 +237,6 @@ class PermissionsTestCase(BasePermissionsTestCase):
         grantee = self.someuser
 
         # Prevent extra `share_` permissions from being assigned
-        original_eds_can_change_perms = asset.editors_can_change_permissions
         asset.editors_can_change_permissions = False
 
         for explicit, implied in implications.iteritems():
@@ -255,15 +254,11 @@ class PermissionsTestCase(BasePermissionsTestCase):
             for i in implied:
                 asset.remove_perm(grantee, i)
 
-        # Restore original setting governing `share_` permissions
-        asset.editors_can_change_permissions = original_eds_can_change_perms
-
-    def test_implied_asset_deny_permissions(self):
+    def test_remove_implied_asset_permissions(self):
         asset = self.admin_asset
         grantee = self.someuser
 
         # Prevent extra `share_` permissions from being assigned
-        original_eds_can_change_perms = asset.editors_can_change_permissions
         asset.editors_can_change_permissions = False
 
         expected_lineage = [
@@ -279,19 +274,88 @@ class PermissionsTestCase(BasePermissionsTestCase):
         asset.assign_perm(grantee, expected_lineage[-1])
         self.assertListEqual(
             sorted(asset.get_perms(grantee)), sorted(expected_lineage))
-        # Denying the head should deny the body and tail as well
-        asset.assign_perm(grantee, expected_lineage[0], deny=True)
+        # Removing the head should remove the body and tail as well
+        asset.remove_perm(grantee, expected_lineage[0])
         self.assertListEqual(list(asset.get_perms(grantee)), [])
 
-        # Restore original setting governing `share_` permissions
-        asset.editors_can_change_permissions = original_eds_can_change_perms
+    def test_implied_asset_deny_permissions(self):
+        asset = self.admin_asset
+        collection = self.admin_collection
+        grantee = self.someuser
+
+        # Prevent extra `share_` permissions from being assigned
+        asset.editors_can_change_permissions = False
+
+        collection.assets.add(asset)
+        self.assertListEqual(list(collection.get_perms(grantee)), [])
+        self.assertListEqual(list(asset.get_perms(grantee)), [])
+
+        # Granting `change_collection` should grant `change_asset` and
+        # `view_asset` on the child asset
+        collection.assign_perm(grantee, 'change_collection')
+        self.assertListEqual(
+            sorted(asset.get_perms(grantee)), ['change_asset','view_asset'])
+
+        # Removing `view_asset` should deny all child permissions
+        asset.remove_perm(grantee, 'view_asset')
+        self.assertListEqual(list(asset.get_perms(grantee)), [])
+
+        # Check that there actually deny permissions
+        self.assertListEqual(
+            sorted(asset.permissions.filter(
+                user=grantee, deny=True).values_list(
+                    'permission__codename', flat=True)
+            ), [
+                'add_submissions',
+                'change_asset',
+                'change_submissions',
+                'view_asset',
+                'view_submissions'
+            ]
+        )
+
+    def test_contradict_implied_asset_deny_permissions(self):
+        asset = self.admin_asset
+        collection = self.admin_collection
+        grantee = self.someuser
+
+        self.test_implied_asset_deny_permissions()
+        self.assertListEqual(
+            sorted(asset.permissions.filter(
+                user=grantee, deny=True).values_list(
+                    'permission__codename', flat=True)
+            ), [
+                'add_submissions',
+                'change_asset',
+                'change_submissions',
+                'view_asset',
+                'view_submissions'
+            ]
+        )
+
+        # Assign `change_submissions`, which contradicts denial of
+        # `view_asset`, `change_asset`, and `view_submissions`
+        asset.assign_perm(grantee, 'change_submissions')
+
+        resulting_perms = list(
+            asset.permissions.filter(user=grantee).values_list(
+            'permission__codename', 'deny').order_by('permission__codename')
+        )
+        expected_perms = [
+            # codename, deny
+            ('add_submissions', True),
+            ('change_asset', True),
+            ('change_submissions', False),
+            ('view_asset', False),
+            ('view_submissions', False)
+        ]
+        self.assertListEqual(resulting_perms, expected_perms)
 
     def test_implied_collection_permissions(self):
         grantee = self.someuser
         collection = self.admin_collection
 
         # Prevent extra `share_` permissions from being assigned
-        original_eds_can_change_perms = collection.editors_can_change_permissions
         collection.editors_can_change_permissions = False
 
         self.assertListEqual(list(collection.get_perms(grantee)), [])
@@ -305,9 +369,6 @@ class PermissionsTestCase(BasePermissionsTestCase):
         # Now deny view and make sure change is revoked as well
         collection.assign_perm(grantee, 'view_collection', deny=True)
         self.assertListEqual(list(collection.get_perms(grantee)), [])
-
-        # Restore original setting governing `share_` permissions
-        collection.editors_can_change_permissions = original_eds_can_change_perms
 
     def test_calculated_owner_permissions(self):
         asset = self.admin_asset

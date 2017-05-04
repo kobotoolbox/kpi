@@ -36,6 +36,7 @@ class KobocatDeploymentException(exceptions.APIException):
         )
         return self.detail in invalid_form_id_responses
 
+
 class KobocatDeploymentBackend(BaseDeploymentBackend):
     '''
     Used to deploy a project into KC. Stores the project identifiers in the

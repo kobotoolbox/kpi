@@ -11,6 +11,10 @@ import copy
 import re
 
 from ..fields import KpiUidField
+from ..deployment_backends.kc_access.utils import (
+    remove_applicable_kc_permissions,
+    assign_applicable_kc_permissions
+)
 
 
 def perm_parse(perm, obj=None):
@@ -574,14 +578,18 @@ class ObjectPermissionMixin(object):
         return result
 
     @transaction.atomic
-    def assign_perm(self, user_obj, perm, deny=False, defer_recalc=False):
+    def assign_perm(
+            self, user_obj, perm, deny=False, defer_recalc=False,
+            skip_kc=False
+    ):
         ''' Assign user_obj the given perm on this object. To break
         inheritance from a parent object, use deny=True. '''
         app_label, codename = perm_parse(perm, self)
         if codename not in self.get_assignable_permissions():
             # Some permissions are calculated and not stored in the database
-            raise ValidationError('{} cannot be assigned explicitly.'.format(
-                codename)
+            raise ValidationError(
+                '{} cannot be assigned explicitly to {} objects.'.format(
+                    codename, self._meta.model_name)
             )
         if isinstance(user_obj, AnonymousUser) or (
             user_obj.pk == settings.ANONYMOUS_USER_ID
@@ -612,11 +620,18 @@ class ObjectPermissionMixin(object):
             # The user already has this permission directly applied
             return identical_existing_perm.first()
         # Remove any explicitly-defined contradictory grants or denials
-        existing_perms.filter(user=user_obj,
+        contradictory_perms = existing_perms.filter(user=user_obj,
             permission_id=perm_model.pk,
             deny=not deny,
             inherited=False
-        ).delete()
+        )
+        contradictory_codenames = list(contradictory_perms.values_list(
+            'permission__codename', flat=True))
+        contradictory_perms.delete()
+        # Check if any KC permissions should be removed as well
+        if deny and not skip_kc:
+            remove_applicable_kc_permissions(
+                self, user_obj, contradictory_codenames)
         # Create the new permission
         new_permission = ObjectPermission.objects.create(
             content_object=self,
@@ -625,6 +640,9 @@ class ObjectPermissionMixin(object):
             deny=deny,
             inherited=False
         )
+        # Assign any applicable KC permissions
+        if not deny and not skip_kc:
+            assign_applicable_kc_permissions(self, user_obj, codename)
         # Resolve implied permissions, e.g. granting change implies granting
         # view
         implied_perms = self._get_implied_perms(codename, reverse=deny)
@@ -697,7 +715,7 @@ class ObjectPermissionMixin(object):
         return result
 
     @transaction.atomic
-    def remove_perm(self, user_obj, perm, defer_recalc=False):
+    def remove_perm(self, user_obj, perm, defer_recalc=False, skip_kc=False):
         ''' Revoke perm on this object from user_obj. May delete granted
         permissions or add deny permissions as appropriate:
         Current access      Action
@@ -724,10 +742,12 @@ class ObjectPermissionMixin(object):
         )
         direct_permissions = all_permissions.filter(inherited=False)
         inherited_permissions = all_permissions.filter(inherited=True)
-        # Revoking view implies revoking change
-        if codename.startswith('view_'):
-            change_codename = re.sub('^view_', 'change_', codename)
-            self.remove_perm(user_obj, change_codename, defer_recalc=True)
+        # Resolve implied permissions, e.g. revoking view implies revoking
+        # change
+        implied_perms = self._get_implied_perms(codename, reverse=True)
+        for implied_perm in implied_perms:
+            self.remove_perm(
+                user_obj, implied_perm, defer_recalc=True)
         # Delete directly assigned permissions, if any
         direct_permissions.delete()
         if inherited_permissions.exists():
@@ -735,6 +755,9 @@ class ObjectPermissionMixin(object):
             inherited_permissions.delete()
             # Add a deny permission to block future inheritance
             self.assign_perm(user_obj, perm, deny=True, defer_recalc=True)
+        # Remove any applicable KC permissions
+        if not skip_kc:
+            remove_applicable_kc_permissions(self, user_obj, codename)
         # We might have been called by ourself to assign a related
         # permission. In that case, don't recalculate here.
         if defer_recalc:

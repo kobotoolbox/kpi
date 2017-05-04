@@ -124,17 +124,23 @@ class ObjectPermissionViewSet(NoUpdateModelViewSet):
     lookup_field = 'uid'
     filter_backends = (KpiAssignedObjectPermissionsFilter, )
 
-    def _requesting_user_can_share(self, affected_object):
-        share_permission = 'share_{}'.format(affected_object._meta.model_name)
+    def _requesting_user_can_share(self, affected_object, codename):
+        model_name = affected_object._meta.model_name
+        if model_name == 'asset' and codename.endswith('_submissions'):
+            share_permission = 'share_submissions'
+        else:
+            share_permission = 'share_{}'.format(model_name)
         return affected_object.has_perm(self.request.user, share_permission)
 
     def perform_create(self, serializer):
         # Make sure the requesting user has the share_ permission on
         # the affected object
-        affected_object = serializer.validated_data['content_object']
-        if not self._requesting_user_can_share(affected_object):
-            raise exceptions.PermissionDenied()
-        serializer.save()
+        with transaction.atomic():
+            affected_object = serializer.validated_data['content_object']
+            codename = serializer.validated_data['permission'].codename
+            if not self._requesting_user_can_share(affected_object, codename):
+                raise exceptions.PermissionDenied()
+            serializer.save()
 
     def perform_destroy(self, instance):
         # Only directly-applied permissions may be modified; forbid deleting
@@ -146,13 +152,15 @@ class ObjectPermissionViewSet(NoUpdateModelViewSet):
             )
         # Make sure the requesting user has the share_ permission on
         # the affected object
-        affected_object = instance.content_object
-        if not self._requesting_user_can_share(affected_object):
-            raise exceptions.PermissionDenied()
-        instance.content_object.remove_perm(
-            instance.user,
-            instance.permission.codename
-        )
+        with transaction.atomic():
+            affected_object = instance.content_object
+            codename = instance.permission.codename
+            if not self._requesting_user_can_share(affected_object, codename):
+                raise exceptions.PermissionDenied()
+            instance.content_object.remove_perm(
+                instance.user,
+                instance.permission.codename
+            )
 
 class CollectionViewSet(viewsets.ModelViewSet):
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()

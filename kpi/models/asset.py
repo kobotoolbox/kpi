@@ -499,6 +499,13 @@ class Asset(ObjectPermissionMixin,
         'view_submissions': ('view_asset',),
         'change_submissions': ('view_submissions',)
     }
+    # Some permissions must be copied to KC
+    KC_PERMISSIONS_MAP = { # keys are KC's codenames, values are KPI's
+        'change_submissions': 'change_xform', # "Can Edit" in KC UI
+        'view_submissions': 'view_xform', # "Can View" in KC UI
+        'add_submissions': 'report_xform', # "Can submit to" in KC UI
+    }
+    KC_CONTENT_TYPE_KWARGS = {'app_label': 'logger', 'model': 'xform'}
 
     # todo: test and implement this method
     # def restore_version(self, uid):
