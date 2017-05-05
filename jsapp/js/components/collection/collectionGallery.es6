@@ -28,8 +28,8 @@ var CollectionsModal = React.createClass({
 			}
 		};
 	},
-	loadGalleryData: function(uid) {
-		dataInterface.getGalleryImages(uid).done((response)=>{
+	loadGalleryData: function(uid, filter) {
+		dataInterface.filterGalleryImages(uid, filter).done((response)=>{
 			console.log(response);
 			this.setState({
         assets: response
@@ -55,7 +55,7 @@ var CollectionsModal = React.createClass({
     this.refs.title.style.color = '#F00';
   },
 	componentDidMount: function(){
-		this.loadGalleryData(this.props.uid);
+		this.loadGalleryData(this.props.uid, 'question');
 	},
 	render () {
 		console.log(this.state.assets);
@@ -70,7 +70,7 @@ var CollectionsModal = React.createClass({
             </bem.AssetGallery__count>
           </div>
           <div className="col6">
-            <CollectionFilter />
+            <CollectionFilter {...this.props}/>
           </div>
         </bem.AssetGallery__heading>
         <bem.AssetGallery__grid>

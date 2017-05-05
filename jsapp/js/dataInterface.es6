@@ -331,6 +331,16 @@ var dataInterface;
         }
       });
     },
+    filterGalleryImages (uid, filter_by){
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/attachments`,
+        method: 'GET',
+        data: {
+          type: 'image',
+          order_by: filter_by
+        }
+      });
+    },
     deployAsset (asset, redeployment) {
       var data = {
         'active': true,
