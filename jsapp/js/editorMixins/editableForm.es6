@@ -8,6 +8,7 @@ import SurveyScope from '../models/surveyScope';
 import cascadeMixin from './cascadeMixin';
 import AssetNavigator from './assetNavigator';
 import {Link, hashHistory} from 'react-router';
+import alertify from 'alertifyjs';
 
 import {
   surveyToValidJson,
@@ -311,17 +312,35 @@ export default assign({
       var assetId = this.props.params.assetid;
       actions.resources.updateAsset.triggerAsync(assetId, params)
         .then(() => {
-          this.saveFormComplete();
+          this.unpreventClosingTab();
+          this.setState({
+            asset_updated: update_states.UP_TO_DATE,
+            surveySaveFail: false,
+          });
+        })
+        .catch((resp) => {
+          var errorMsg = `${t('Your changes could not be saved, likely because of a lost internet connection.')}&nbsp;
+                         ${t('Keep this window open and try saving again while using a better connection.')}`;
+          if (resp.statusText != 'error')
+            errorMsg = resp.statusText;
+
+          alertify.defaults.theme.ok = "ajs-cancel";
+          let dialog = alertify.dialog('alert');
+          let opts = {
+            title: t('Error saving form'),
+            message: errorMsg,
+            label: t('Dismiss'),
+          };
+          dialog.set(opts).show();
+
+          this.setState({
+            surveySaveFail: true,
+            asset_updated: update_states.SAVE_FAILED
+          });
         });
     }
     this.setState({
       asset_updated: update_states.PENDING_UPDATE,
-    });
-  },
-  saveFormComplete () {
-    this.unpreventClosingTab();
-    this.setState({
-      asset_updated: update_states.UP_TO_DATE,
     });
   },
   handleScroll(evt) {
@@ -364,6 +383,8 @@ export default assign({
     }
     if (this.editorState === 'new') {
       ooo.saveButtonText = t('create');
+    } else if (this.state.surveySaveFail) {
+      ooo.saveButtonText = `${t('save')} (${t('retry')}) `;
     } else {
       ooo.saveButtonText = t('save');
     }
@@ -408,6 +429,7 @@ export default assign({
               <bem.FormBuilderHeader__button m={['save', {
                     savepending: this.state.asset_updated === update_states.PENDING_UPDATE,
                     savecomplete: this.state.asset_updated === update_states.UP_TO_DATE,
+                    savefailed: this.state.asset_updated === update_states.SAVE_FAILED,
                     saveneeded: this.state.asset_updated === update_states.UNSAVED_CHANGES,
                   }]} onClick={this.saveForm} className="disabled"
                   disabled={!this.state.surveyAppRendered || !!this.state.surveyLoadError}>
@@ -627,6 +649,7 @@ export default assign({
               {this.renderSaveAndPreviewButtons()}
 
               <bem.FormBuilder__contents>
+
                 { isSurvey ?
                   <FormSettingsBox survey={this.app.survey} {...this.state} />
                 : null }
