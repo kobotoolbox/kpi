@@ -78,6 +78,7 @@ from .serializers import (
     AssetVersionSerializer,
     AssetSnapshotSerializer,
     AttachmentSerializer,
+    AttachmentListSerializer,
     AttachmentPagination,
     SitewideMessageSerializer,
     CollectionSerializer, CollectionListSerializer,
@@ -485,6 +486,12 @@ class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         MediaFileRenderer
     )
 
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return AttachmentListSerializer
+        else:
+            return AttachmentSerializer
+
     def get_serializer_context(self):
         _asset_uid = self.get_parents_query_dict()['asset']
         return {'request': self.request, 'asset': _asset_uid}
@@ -499,6 +506,7 @@ class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         self.object = self.get_object()
+        serializer = self.get_serializer(self.object)
 
         if hasattr(request, 'accepted_renderer'):
             if isinstance(request.accepted_renderer, MediaFileRenderer) \
@@ -508,11 +516,21 @@ class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
                 return Response(data, content_type=self.object.mimetype)
 
         filename = request.query_params.get('filename')
-        serializer = self.get_serializer(self.object)
-
         if filename:
-            if filename == self.object.media_file.name:
-                return Response(serializer.get_download_url(self.object))
+            source = None
+            if filename == self.object.media_file.name \
+                    or filename == self.object.filename:
+                size = request.query_params.get('size')
+                if (size == 'small'):
+                    source = serializer.get_small_download_url(self.object)
+                elif (size == 'medium'):
+                    source = serializer.get_medium_download_url(self.object)
+                elif (size == 'large'):
+                    source = serializer.get_large_download_url(self.object)
+                else:
+                    source = serializer.get_download_url(self.object)
+            if source:
+                return HttpResponseRedirect(source)
             else:
                 raise Http404(_("Filename '%s' not found." % filename))
 
