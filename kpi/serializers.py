@@ -842,7 +842,10 @@ class AttachmentListSerializer(AttachmentSerializer):
 
     @check_obj
     def get_download_url(self, obj):
-        return obj.media_file.url if obj.media_file.url else None
+        if obj.media_file.url:
+            request = self.context.get('request')
+            return obj.media_file.url if not request else request.build_absolute_uri(obj.media_file.url)
+        return None
 
     @check_obj
     def _get_download_url(self, obj, size):
