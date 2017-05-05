@@ -6,6 +6,7 @@ const update_states = {
   UNSAVED_CHANGES: -1,
   UP_TO_DATE: true,
   PENDING_UPDATE: false,
+  SAVE_FAILED: 'SAVE_FAILED',
 };
 
 const AVAILABLE_FORM_STYLES = [

@@ -342,8 +342,8 @@ actions.resources.updateAsset.listen(function(uid, values){
       actions.resources.updateAsset.completed(asset);
       notify(t('successfully updated'));
     })
-    .fail(function(...args){
-      actions.resources.updateAsset.failed(...args);
+    .fail(function(resp){
+      actions.resources.updateAsset.failed(resp);
     });
 });
 

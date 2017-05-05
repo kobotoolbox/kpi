@@ -155,7 +155,7 @@
 
 .alertify .ajs-dimmer {
   background-color: #FFF;
-  opacity: 0.4;
+  opacity: 0.55;
 }
 
 .alertify .ajs-dialog {
@@ -231,6 +231,9 @@
     }
     &.ajs-cancel {
       @extend .mdl-button--colored;
+      &:focus, &:focus:not(:active) {
+        background: transparent;
+      }
     }
   }
 }
