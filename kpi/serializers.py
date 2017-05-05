@@ -837,11 +837,20 @@ class AttachmentSerializer(serializers.ModelSerializer):
 class AttachmentListSerializer(AttachmentSerializer):
     class Meta(AttachmentSerializer.Meta):
         fields = ('url', 'filename', 'short_filename', 'mimetype', 'id',
-                  'submission', 'can_view_submission', 'question', 'download_url')
+                  'submission', 'can_view_submission', 'question', 'download_url',
+                  'small_download_url', 'medium_download_url', 'large_download_url')
 
     @check_obj
     def get_download_url(self, obj):
         return obj.media_file.url if obj.media_file.url else None
+
+    @check_obj
+    def _get_download_url(self, obj, size):
+        url = self.get_url(obj)
+        if url and obj.media_file.url:
+            return url.rstrip('/') + '?filename=%s&size=%s' % (obj.media_file.name, size)
+
+        return None
 
 
 class AttachmentPagination(LimitOffsetPagination):
