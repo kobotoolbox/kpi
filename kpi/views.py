@@ -4,12 +4,13 @@ import copy
 import json
 import datetime
 
-from axes.decorators import get_ip
-from axes.utils import reset
+import axes.decorators
+import axes.utils
 from captcha.fields import CaptchaField
 from django import forms
-from django.contrib.auth import login
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
+from django.contrib.auth.views import login
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse_lazy
 from django.db import transaction
@@ -24,7 +25,6 @@ from django.conf import settings
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.translation import ugettext_lazy as _
-
 from rest_framework import (
     viewsets,
     mixins,
@@ -41,7 +41,6 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.authtoken.models import Token
 from rest_framework_extensions.mixins import NestedViewSetMixin
-
 from taggit.models import Tag
 
 from .filters import KpiAssignedObjectPermissionsFilter
@@ -815,19 +814,18 @@ class UserCollectionSubscriptionViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 
-class AxesCaptchaForm(forms.Form):
-    captcha = CaptchaField()
+def login_locked(request):
+    class AxesCaptchaForm(forms.Form):
+        captcha = CaptchaField()
 
-
-def locked_out(request):
     if request.POST:
+        # import ipdb; ipdb.set_trace()
         form = AxesCaptchaForm(request.POST)
         if form.is_valid():
-            ip = get_ip(request)
-            reset(ip=ip)
+            client_ip = axes.decorators.get_ip(request)
+            axes.utils.reset(ip=client_ip)
             return HttpResponseRedirect(reverse_lazy('kpi-root'))
     else:
         form = AxesCaptchaForm()
 
-    return render_to_response('locked_out.html', dict(form=form),
-                              context_instance=RequestContext(request))
+    return render_to_response('login_locked.html', dict(form=form), context_instance=RequestContext(request))

@@ -1,31 +1,35 @@
+import axes.decorators
 from django.conf.urls import url, include
+from django.contrib.auth.views import login
 from django.views.i18n import javascript_catalog
-from hub.views import ExtraDetailRegistrationView
 from rest_framework.routers import DefaultRouter
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
+from hub.views import ExtraDetailRegistrationView
+from hub.views import switch_builder
+from kobo.apps.reports.views import ReportsViewSet
+from kpi.forms import RegistrationForm
 from kpi.views import (
-    AssetViewSet,
-    AssetVersionViewSet,
     AssetSnapshotViewSet,
-    UserViewSet,
-    CurrentUserViewSet,
-    CollectionViewSet,
-    TagViewSet,
-    ImportTaskViewSet,
-    ObjectPermissionViewSet,
-    SitewideMessageViewSet,
+    AssetVersionViewSet,
+    AssetViewSet,
+    authorized_application_authenticate_user,
     AuthorizedApplicationUserViewSet,
+    browser_tests,
+    CollectionViewSet,
+    CurrentUserViewSet,
+    home,
+    ImportTaskViewSet,
+    login_locked,
+    ObjectPermissionViewSet,
+    one_time_login,
     OneTimeAuthenticationKeyViewSet,
+    SitewideMessageViewSet,
+    TagViewSet,
     UserCollectionSubscriptionViewSet,
-    locked_out,
+    UserViewSet,
 )
 
-from kpi.views import home, one_time_login, browser_tests
-from kobo.apps.reports.views import ReportsViewSet
-from kpi.views import authorized_application_authenticate_user
-from kpi.forms import RegistrationForm
-from hub.views import switch_builder
 
 router = ExtendedDefaultRouter()
 asset_routes = router.register(r'assets', AssetViewSet)
@@ -71,6 +75,7 @@ urlpatterns = [
         form_class=RegistrationForm), name='registration_register'),
     url(r'^accounts/logout/', 'django.contrib.auth.views.logout',
         {'next_page': '/'}),
+    url(r'^accounts/login/$', axes.decorators.watch_login(login)),
     url(r'^accounts/', include('registration.backends.default.urls')),
     url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     url(
@@ -83,7 +88,7 @@ urlpatterns = [
     # Translation catalog for client code.
     url(r'^jsi18n/$', javascript_catalog, js_info_dict, name='javascript-catalog'),
     # http://django-axes.readthedocs.io/en/latest/captcha.html
-    url(r'^locked/$', locked_out, name='locked_out'),
+    url(r'^login_locked/$', login_locked),
     # http://django-simple-captcha.readthedocs.io/en/latest/usage.html
     url(r'^captcha/', include('captcha.urls')),
 ]

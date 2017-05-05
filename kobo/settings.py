@@ -531,6 +531,8 @@ MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 # `django_axes`: http://django-axes.readthedocs.io/en/latest/configuration.html#customizing-axes
 AXES_LOGIN_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1
-AXES_LOCKOUT_URL = '/locked'
-if os.environ.get('AXES_BEHIND_REVERSE_PROXY', 'False').lower() == 'true':
+AXES_LOCKOUT_URL = '/login_locked/'
+if os.environ.get('AXES_BEHIND_REVERSE_PROXY', 'True').lower() == 'true':
     AXES_BEHIND_REVERSE_PROXY = True
+    AXES_REVERSE_PROXY_HEADER = os.environ.get('AXES_REVERSE_PROXY_HEADER', 'HTTP_X_FORWARDED_FOR')
+

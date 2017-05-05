@@ -1,0 +1,22 @@
+{% extends "registration.html" %}
+{% load staticfiles %}
+
+{% block content %}
+<div class="registration__bg">
+
+    <form action="" method="post" class="registration registration--login">
+        <div class="registration--logo"><a href="/"><img src="{% static 'img/kobologo.svg' %}"/></a></div>
+        <p class="registration__message  registration__message--complete">Login locked due to failed attempts.</p>
+        {% csrf_token %}
+
+        {{ form.captcha.errors }}
+        {{ form.captcha }}
+
+        <div class="form-actions">
+            <input type="submit" value="Unlock" class="registration__action"/>
+        </div>
+    </form>
+    
+    <div class="registration__credit"><a href="https://flic.kr/p/9v4mC5" title="Muhkjar refugee camp" target="_blank">Photo</a> by UNAMID / <a href="https://creativecommons.org/licenses/by-nc-nd/2.0/" target="_blank">by-nc-nd</a></div>
+</div>
+{% endblock %}
