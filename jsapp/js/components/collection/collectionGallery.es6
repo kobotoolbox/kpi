@@ -14,13 +14,29 @@ var CollectionsModal = React.createClass({
 		label: React.PropTypes.string,
 		searchable: React.PropTypes.bool,
 	},
-  getInitialState: function() {
-    return {
-      showModal: false
-    };
-  },
+	getInitialState: function() {
+		return {
+			showModal: false,
+			assets: {
+				count: 0,
+				results: [
+					{
+						download_url: '',
+						filename: ''
+					}
+				]
+			}
+		};
+	},
+	loadGalleryData: function(uid) {
+		dataInterface.getGalleryImages(uid).done((response)=>{
+			console.log(response);
+			this.setState({
+        assets: response
+      });
+    });
+	},
   openModal: function(asset) {
-		console.log(asset);
     this.setState({ showModal: true, assetId: asset.id, assetDate: asset.filename, assetName: asset.filename });
   },
   closeModal: function() {
@@ -38,69 +54,11 @@ var CollectionsModal = React.createClass({
     // when ready, we can access the available refs.
     this.refs.title.style.color = '#F00';
   },
-	getSelectedItem: function () {
-
+	componentDidMount: function(){
+		this.loadGalleryData(this.props.uid);
 	},
 	render () {
-    var data = {
-      assets: [
-        {
-          "download_url": "http://172.17.0.1:8001/media/wolejkoa/attachments/2d2ebe6357924842ad2f21ac3da38338/682e5deb-c4c2-4f13-842f-19589f5df6bc/test-9_3_0-large.jpeg",
-          "small_download_url": "http://example.com/api/v1/media/1-small.jpg",
-          "medium_download_url": "http://example.com/api/v1/media/1-medium.jpg",
-          "filename": "test-9_3_0-large.jpeg",
-          "id": 1,
-          "instance": 1,
-          "mimetype": "image/jpeg",
-          "url": "http://example.com/api/v1/media/1",
-          "xform": 1
-        },
-        {
-          "download_url": "http://172.17.0.1:8001/media/wolejkoa/attachments/2d2ebe6357924842ad2f21ac3da38338/682e5deb-c4c2-4f13-842f-19589f5df6bc/test-9_3_0-large.jpeg",
-          "small_download_url": "http://example.com/api/v1/media/1-small.jpg",
-          "medium_download_url": "http://example.com/api/v1/media/1-medium.jpg",
-          "filename": "test-9_3_0-large.jpeg",
-          "id": 1,
-          "instance": 1,
-          "mimetype": "image/jpeg",
-          "url": "http://example.com/api/v1/media/1",
-          "xform": 1
-        },
-        {
-          "download_url": "http://172.17.0.1:8001/media/wolejkoa/attachments/2d2ebe6357924842ad2f21ac3da38338/682e5deb-c4c2-4f13-842f-19589f5df6bc/test-9_3_0-large.jpeg",
-          "small_download_url": "http://example.com/api/v1/media/1-small.jpg",
-          "medium_download_url": "http://example.com/api/v1/media/1-medium.jpg",
-          "filename": "test-9_3_0-large.jpeg",
-          "id": 1,
-          "instance": 1,
-          "mimetype": "image/jpeg",
-          "url": "http://example.com/api/v1/media/1",
-          "xform": 1
-        },
-        {
-          "download_url": "http://172.17.0.1:8001/media/wolejkoa/attachments/2d2ebe6357924842ad2f21ac3da38338/682e5deb-c4c2-4f13-842f-19589f5df6bc/test-9_3_0-large.jpeg",
-          "small_download_url": "http://example.com/api/v1/media/1-small.jpg",
-          "medium_download_url": "http://example.com/api/v1/media/1-medium.jpg",
-          "filename": "test-9_3_0-large.jpeg",
-          "id": 1,
-          "instance": 1,
-          "mimetype": "image/jpeg",
-          "url": "http://example.com/api/v1/media/1",
-          "xform": 1
-        },
-        {
-          "download_url": "http://172.17.0.1:8001/media/wolejkoa/attachments/2d2ebe6357924842ad2f21ac3da38338/682e5deb-c4c2-4f13-842f-19589f5df6bc/test-9_3_0-large.jpeg",
-          "small_download_url": "http://example.com/api/v1/media/1-small.jpg",
-          "medium_download_url": "http://example.com/api/v1/media/1-medium.jpg",
-          "filename": "test-9_3_0-large.jpeg",
-          "id": 1,
-          "instance": 1,
-          "mimetype": "image/jpeg",
-          "url": "http://example.com/api/v1/media/1",
-          "xform": 1
-        }
-      ]
-    }
+		console.log(this.state.assets);
 		return (
       <bem.AssetGallery>
 				<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
@@ -108,7 +66,7 @@ var CollectionsModal = React.createClass({
         <bem.AssetGallery__heading>
           <div className="col6">
             <bem.AssetGallery__count>
-              <strong>{data.assets.length} Images</strong>
+              <strong>{this.state.assets.count} Images</strong>
             </bem.AssetGallery__count>
           </div>
           <div className="col6">
@@ -116,9 +74,9 @@ var CollectionsModal = React.createClass({
           </div>
         </bem.AssetGallery__heading>
         <bem.AssetGallery__grid>
-        {data.assets.map(function(asset, i) {
+        {this.state.assets.results.map(function(asset, i) {
           var divStyle = {
-            backgroundImage: 'url(' + asset.download_url + ')',
+            backgroundImage: 'url('+ asset.download_url + ')',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center center',
             backgroundSize: 'cover'
