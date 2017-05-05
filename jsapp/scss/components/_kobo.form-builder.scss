@@ -121,10 +121,7 @@
     &--first {
       background-color: #FFF;
       height: 75px;
-<<<<<<< HEAD
       position: relative;
-=======
->>>>>>> deprecate-mdl
     }
 
     &--second {
@@ -155,11 +152,7 @@
     }
 
     &--name {
-<<<<<<< HEAD
       width: calc(100% - 350px);
-=======
-      width: calc(100% - 400px);
->>>>>>> deprecate-mdl
       padding-left: 20px;
       padding-top: 20px;
 
@@ -258,6 +251,7 @@
   cursor: pointer;
 
   @extend .mdl-button, .mdl-button--icon;
+
   &:hover {
     color: $cool-gray;
   }
