@@ -72,6 +72,118 @@ class Paginated(LimitOffsetPagination):
         return reverse_lazy('api-root', request=self.context.get('request'))
 
 
+class HybridPagination(LimitOffsetPagination):
+    max_limit = 100
+    default_limit = max_limit
+    page_query_param = 'page'
+    page_size_query_param = 'page_size'
+
+    def paginate_queryset(self, queryset, request, view=None):
+        self.page = self.get_page(request)
+        return super(HybridPagination, self).paginate_queryset(queryset, request, view)
+
+    def get_paginated_response(self, data):
+        return Response(OrderedDict([
+            ('count', self.count),
+            ('next', self.get_next_link()),
+            ('next_page', self.get_next_page()),
+            ('previous', self.get_previous_link()),
+            ('previous_page', self.get_previous_page()),
+            ('results', data)
+        ]))
+
+    def get_limit(self, request):
+        # Handles case where API request specifies page_size instead of limit
+        if not self.limit_query_param in request.query_params:
+            try:
+                return _positive_int(
+                    request.query_params[self.page_size_query_param],
+                    cutoff=self.max_limit
+                )
+            except (KeyError, ValueError):
+                pass
+
+        return super(HybridPagination, self).get_limit(request)
+
+    def get_offset(self, request):
+        # Handles case where API request specifies page instead of offset
+        if not self.offset_query_param in request.query_params:
+            try:
+                page = _positive_int(
+                    request.query_params[self.page_query_param],
+                    strict=True
+                )
+                limit = self.get_limit(request)
+                return (page-1) * limit
+            except (KeyError, ValueError):
+                pass
+        return super(HybridPagination, self).get_offset(request)
+
+    def get_page(self, request):
+        # Parse the page number if provided in the query request
+        if self.page_query_param in request.query_params:
+            try:
+                return _positive_int(
+                    request.query_params[self.page_query_param],
+                    strict=True
+                )
+            except (KeyError, ValueError):
+                pass
+
+        limit = self.get_limit(request)
+        offset = self.get_offset(request)
+        return int(offset / limit) + 1
+
+    def get_next_link(self):
+        next_link = super(HybridPagination, self).get_next_link()
+        if next_link:
+            next_link = remove_query_param(next_link, self.page_query_param)
+            next_link = remove_query_param(next_link, self.page_size_query_param)
+
+        return next_link
+
+    def get_previous_link(self):
+        prev_link = super(HybridPagination, self).get_previous_link()
+        if prev_link:
+            prev_link = remove_query_param(prev_link, self.page_query_param)
+            prev_link = remove_query_param(prev_link, self.page_size_query_param)
+
+        return prev_link
+
+    def get_next_page(self):
+        next_page = self.get_next_link()
+        if next_page:
+            next_page = remove_query_param(next_page, self.limit_query_param)
+            next_page = remove_query_param(next_page, self.offset_query_param)
+            next_page = replace_query_param(next_page, self.page_query_param, self.page+1)
+            if self.limit != self.default_limit:
+                next_page = replace_query_param(next_page, self.page_size_query_param, self.limit)
+
+        return next_page
+
+    def get_previous_page(self):
+        prev_page = super(HybridPagination, self).get_previous_link()
+        if prev_page:
+            prev_page = remove_query_param(prev_page, self.limit_query_param)
+            prev_page = remove_query_param(prev_page, self.offset_query_param)
+            if self.page > 1:
+                prev_page = replace_query_param(prev_page, self.page_query_param, self.page-1)
+            if self.limit != self.default_limit:
+                prev_page = replace_query_param(prev_page, self.page_size_query_param, self.limit)
+
+        return prev_page
+
+    def get_html_context(self):
+        html_json = super(HybridPagination, self).get_html_context()
+        for (i, page_link) in enumerate(html_json['page_links']):
+            link = remove_query_param(page_link.url, self.page_query_param)
+            link = remove_query_param(link, self.page_size_query_param)
+            link = replace_query_param(link, self.limit_query_param, self.limit)
+            html_json['page_links'][i] = page_link._replace(url=link)
+
+        return html_json
+
+
 class WritableJSONField(serializers.Field):
 
     """ Serializer for JSONField -- required to make field writable"""
@@ -856,118 +968,8 @@ class AttachmentListSerializer(AttachmentSerializer):
         return None
 
 
-class AttachmentPagination(LimitOffsetPagination):
-    #TODO: Convert this into a HybridPagination util, override with AttachmentPagination limits
+class AttachmentPagination(HybridPagination):
     default_limit = 10
-    max_limit = 100
-    page_query_param = 'page'
-    page_size_query_param = 'page_size'
-
-    def paginate_queryset(self, queryset, request, view=None):
-        self.page = self.get_page(request)
-        return super(AttachmentPagination, self).paginate_queryset(queryset, request, view)
-
-    def get_paginated_response(self, data):
-        return Response(OrderedDict([
-            ('count', self.count),
-            ('next', self.get_next_link()),
-            ('next_page', self.get_next_page()),
-            ('previous', self.get_previous_link()),
-            ('previous_page', self.get_previous_page()),
-            ('results', data)
-        ]))
-
-    def get_limit(self, request):
-        # Handles case where API request specifies page_size instead of limit
-        if not self.limit_query_param in request.query_params:
-            try:
-                return _positive_int(
-                    request.query_params[self.page_size_query_param],
-                    cutoff=self.max_limit
-                )
-            except (KeyError, ValueError):
-                pass
-
-        return super(AttachmentPagination, self).get_limit(request)
-
-    def get_offset(self, request):
-        # Handles case where API request specifies page instead of offset
-        if not self.offset_query_param in request.query_params:
-            try:
-                page = _positive_int(
-                    request.query_params[self.page_query_param],
-                    strict=True
-                )
-                limit = self.get_limit(request)
-                return (page-1) * limit
-            except (KeyError, ValueError):
-                pass
-        return super(AttachmentPagination, self).get_offset(request)
-
-    def get_page(self, request):
-        # Parse the page number if provided in the query request
-        if self.page_query_param in request.query_params:
-            try:
-                return _positive_int(
-                    request.query_params[self.page_query_param],
-                    strict=True
-                )
-            except (KeyError, ValueError):
-                pass
-
-        limit = self.get_limit(request)
-        offset = self.get_offset(request)
-        return int(offset / limit) + 1
-
-    def get_next_link(self):
-        next_link = super(AttachmentPagination, self).get_next_link()
-        if next_link:
-            next_link = remove_query_param(next_link, self.page_query_param)
-            next_link = remove_query_param(next_link, self.page_size_query_param)
-
-        return next_link
-
-    def get_previous_link(self):
-        prev_link = super(AttachmentPagination, self).get_previous_link()
-        if prev_link:
-            prev_link = remove_query_param(prev_link, self.page_query_param)
-            prev_link = remove_query_param(prev_link, self.page_size_query_param)
-
-        return prev_link
-
-    def get_next_page(self):
-        next_page = self.get_next_link()
-        if next_page:
-            next_page = remove_query_param(next_page, self.limit_query_param)
-            next_page = remove_query_param(next_page, self.offset_query_param)
-            next_page = replace_query_param(next_page, self.page_query_param, self.page+1)
-            if self.limit != self.default_limit:
-                next_page = replace_query_param(next_page, self.page_size_query_param, self.limit)
-
-        return next_page
-
-    def get_previous_page(self):
-        prev_page = super(AttachmentPagination, self).get_previous_link()
-        if prev_page:
-            prev_page = remove_query_param(prev_page, self.limit_query_param)
-            prev_page = remove_query_param(prev_page, self.offset_query_param)
-            if self.page > 1:
-                prev_page = replace_query_param(prev_page, self.page_query_param, self.page-1)
-            if self.limit != self.default_limit:
-                prev_page = replace_query_param(prev_page, self.page_size_query_param, self.limit)
-
-        return prev_page
-
-    def get_html_context(self):
-        html_json = super(AttachmentPagination, self).get_html_context()
-        for (i, page_link) in enumerate(html_json['page_links']):
-            link = remove_query_param(page_link.url, self.page_query_param)
-            link = remove_query_param(link, self.page_size_query_param)
-            link = replace_query_param(link, self.limit_query_param, self.limit)
-            html_json['page_links'][i] = page_link._replace(url=link)
-
-        return html_json
-
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     assets = serializers.SerializerMethodField()

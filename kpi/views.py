@@ -476,7 +476,6 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
 class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     lookup_field = 'pk'
     serializer_class = AttachmentSerializer
-    pagination_class = AttachmentPagination
     filter_backends = (
         AttachmentFilter,
     )
@@ -503,6 +502,22 @@ class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
             raise Http404
         xform_id = asset.deployment.identifier.split('/')[-1]
         return _models.Attachment.objects.filter(instance__xform__id_string=xform_id)
+
+    def get_paginator(self, queryset):
+        paginator = AttachmentPagination()
+        return paginator
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        paginator = self.get_paginator(queryset)
+        page = paginator.paginate_queryset(queryset, request)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
 
     def retrieve(self, request, *args, **kwargs):
         self.object = self.get_object()
