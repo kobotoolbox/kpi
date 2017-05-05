@@ -100,7 +100,7 @@ def image_url(attachment, suffix, total=0, limit=5):
             if req.status_code == 200:
                 return url
             else:
-                url = settings.KOBOCAT_URL.strip("/") + "/attachment/" + suffix + "?media_file=" + filename
+                url = settings.KOBOCAT_URL.strip("/") + "/attachment/%s?media_file=%s" % (suffix, filename)
                 req = requests.get(url)
                 if req.status_code == 302:
                     return req.url
@@ -143,8 +143,7 @@ def image_url(attachment, suffix, total=0, limit=5):
                 if req.status_code == 200:
                     return url
                 else:
-                    media_file = attachment.media_file.name
-                    url = settings.KOBOCAT_URL.strip("/") + "/attachment/" + suffix + "?media_file=" + media_file
+                    url = settings.KOBOCAT_URL.strip("/") + "/attachment/%s?media_file=%s" % (suffix, filename)
                     req = requests.get(url)
                     if req.status_code == 302:
                         return req.url
