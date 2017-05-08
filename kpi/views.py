@@ -78,8 +78,8 @@ from .serializers import (
     AssetVersionSerializer,
     AssetSnapshotSerializer,
     AttachmentSerializer, AttachmentListSerializer, AttachmentPagination,
-    QuestionSerializer,
-    SubmissionSerializer,
+    QuestionSerializer, QuestionPagination,
+    SubmissionSerializer, SubmissionPagination,
     SitewideMessageSerializer,
     CollectionSerializer, CollectionListSerializer,
     UserSerializer,
@@ -515,9 +515,12 @@ class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         return _models.Attachment.objects.filter(instance__xform__id_string=xform_id)
 
     def get_paginator(self):
-        if self._group_by():
+        if self._group_by() and self._group_by() == 'question':
             #TODO: We need more reliable nested pagination
-            paginator = None
+            paginator = QuestionPagination()
+        elif self._group_by() and self._group_by() == 'submission':
+            #TODO: We need more reliable nested pagination
+            paginator = SubmissionPagination()
         else:
             paginator = AttachmentPagination()
         return paginator

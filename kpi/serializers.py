@@ -997,16 +997,19 @@ class QuestionSerializer(serializers.Serializer):
     label = serializers.CharField(read_only=True)
     attachments = serializers.SerializerMethodField()
 
-    def get_attachments(self, qdict):
+    def get_attachments(self, sdict):
         paginator = AttachmentPagination()
-        paginator.default_limit = 5
+        paginator.default_limit = 2
         page = paginator.paginate_queryset(
-            queryset=qdict['attachments'],
+            queryset=sdict['attachments'],
             request=self.context.get('request', None)
         )
         serializer = AttachmentListSerializer(
             page, many=True, read_only=True, context=self.context)
         return paginator.get_raw_paginated_response(serializer.data)
+
+class QuestionPagination(HybridPagination):
+    default_limit = 2
 
 
 class SubmissionSerializer(serializers.Serializer):
@@ -1028,6 +1031,10 @@ class SubmissionSerializer(serializers.Serializer):
         serializer = AttachmentListSerializer(
             page, many=True, read_only=True, context=self.context)
         return paginator.get_raw_paginated_response(serializer.data)
+
+class SubmissionPagination(HybridPagination):
+    default_limit = 5
+
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     assets = serializers.SerializerMethodField()
