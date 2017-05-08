@@ -1008,6 +1008,27 @@ class QuestionSerializer(serializers.Serializer):
             page, many=True, read_only=True, context=self.context)
         return paginator.get_raw_paginated_response(serializer.data)
 
+
+class SubmissionSerializer(serializers.Serializer):
+    instance_uuid = serializers.CharField(read_only=True)
+    username = serializers.CharField(read_only=True)
+    xform_id = serializers.CharField(read_only=True)
+    status = serializers.CharField(read_only=True)
+    date_created = serializers.DateTimeField(read_only=True)
+    date_modified = serializers.DateTimeField(read_only=True)
+    attachments = serializers.SerializerMethodField()
+
+    def get_attachments(self, qdict):
+        paginator = AttachmentPagination()
+        paginator.default_limit = 5
+        page = paginator.paginate_queryset(
+            queryset=qdict['attachments'],
+            request=self.context.get('request', None)
+        )
+        serializer = AttachmentListSerializer(
+            page, many=True, read_only=True, context=self.context)
+        return paginator.get_raw_paginated_response(serializer.data)
+
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     assets = serializers.SerializerMethodField()
 

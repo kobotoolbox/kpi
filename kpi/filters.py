@@ -247,6 +247,13 @@ class AttachmentFilter(filters.BaseFilterBackend):
 
         elif order_by and order_by == 'submission':
             queryset = queryset.order_by('-instance__id', 'pk')
+            if group_by and group_by == 'submission':
+                result = []
+                for sid, attachments in groupby(queryset, lambda att: (att.instance.uuid, att.instance.submission)):
+                    submission = sid[1] if sid[1] else {'instance_uuid': sid[0]}
+                    submission['attachments'] = list(attachments)
+                    result.append(submission)
+                return result
         else:
             queryset = queryset.order_by('-pk')
         return queryset
