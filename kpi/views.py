@@ -499,7 +499,9 @@ class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
 
     def get_serializer_context(self):
         _asset_uid = self.get_parents_query_dict()['asset']
-        return {'request': self.request, 'asset': _asset_uid}
+        return {'request': self.request,
+                'asset': _asset_uid,
+                'group_by': self._group_by()}
 
     def get_queryset(self):
         _asset_uid = self.get_parents_query_dict()['asset']
