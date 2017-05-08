@@ -208,6 +208,7 @@
         color: $cool-gray;
         overflow: visible;
         vertical-align: middle;
+        padding: 0px 4px;
 
         &:hover, &:focus, &:focus:not(:active) {
           background-color: transparent;
@@ -218,7 +219,7 @@
         }
 
         i {
-          font-size: 28px;
+          font-size: 32px;
           vertical-align: middle;
 
           &.fa {
