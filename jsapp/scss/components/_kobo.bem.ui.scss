@@ -65,11 +65,6 @@
   margin: 0px;
 }
 
-.k-form-header__inner {
-  max-width: 1200px;
-  display: flex;
-}
-
 // Focus mode for form builder, disable drawer, header
 .mdl-layout.page-wrapper--header-hidden.mdl-layout.page-wrapper--drawer-hidden {
   .mdl-layout__content {
@@ -150,7 +145,7 @@
   display: inline-block;
   vertical-align: middle;
   &:hover {
-    color: unquote("rgb(#{$color-accent})");
+    color: $cool-blue;
   }
   i {
     margin:0px;
@@ -217,7 +212,7 @@
   }
 
   &.active {
-    color: unquote("rgb(#{$color-primary})");
+    color: $cool-blue;
   }
 }
 
@@ -280,25 +275,20 @@
 
 .popover-menu--new-menu .popover-menu__toggle {
   @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
-  text-align: center;
   width: 100%;
 }
 
-// bordered button style
-.mdl-button.mdl-button--bordered {
-  border:1px solid unquote("rgb(#{$color-primary})");
-  color: unquote("rgb(#{$color-primary})");
-  padding:0px 40px;
-  text-transform: uppercase;
-  &:hover {
-    background:transparent;
+.popover-menu--groupby-menu {
+  .popover-menu__toggle {
+    @extend .mdl-button;
+    text-transform: uppercase;
+    &:after {
+      content: '\f107';
+      font-family: 'FontAwesome';
+      font-size: 18px;
+      margin-left: 5px;
+    }
   }
-}
-
-// bordered button style
-.mdl-button.mdl-button--bordered.mdl-button--gray-border {
-  border:1px solid $cool-gray;
-  color: $cool-gray;
 }
 
 // iframe default styles 
@@ -358,8 +348,10 @@ iframe {
     font-size:15px;
     border:1px solid transparent;
     border-bottom-color: $divider-color;
+    transition: border-color 0.3s;
     &:focus {
-      border-bottom-color: $cool-gray;
+      transition: border-color 0.3s;
+      border-bottom-color: $cool-blue;
     }
   }
 
@@ -374,18 +366,46 @@ iframe {
     vertical-align: top;
   }
 
-  .Select-control {
-    border:1px solid transparent;
-    border-bottom-color: $divider-color;
-    border-radius: 0px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    padding-left: 0px;
-    .Select-placeholder {
-      padding-left: 0px;
-      color: $black;
+  .Select.is-focused {
+    .Select-control {
+      box-shadow: none;
     }
   }
+
+  .Select-control {
+    border:none;
+    border-bottom: 1px solid $divider-color;
+    border-radius: 0px;
+    padding-left: 0px;
+    height: 33px;
+    font-size: 15px;
+    .Select-placeholder {
+      padding-left: 0px;
+      color: $cool-gray;
+      font-size: 15px;
+    }
+    .Select-value {
+      color: $cool-gray;
+      padding-left: 0px;
+      font-size: 15px;
+    }
+    input {
+      padding-left: 0px;
+    }
+    .Select-input {
+      height: 33px;
+      > input {
+        padding-bottom: 10px;
+      }
+    }
+  }
+
+  .Select-menu-outer {
+    font-size: 15px;
+    border: 1px solid lighten($divider-color, 20%);
+    @include box-shadow;
+  }
+
 
   &--actions {
     text-align: right;
@@ -399,36 +419,27 @@ iframe {
   padding:6px 0px;
   font-size:15px;
   border:1px solid transparent;
-  border-bottom-color: lighten($black, 40%);
+  border-bottom-color: $divider-color;
+  transition: border-color 0.3s;
+  &:focus {
+    transition: border-color 0.3s;
+    border-bottom-color: $cool-blue;
+  }
 }
 
-// UI MDL Popover
+// Misc elements
 
-.ui-mdl-popover {
-  position: relative;
-  text-align: left;
-  button {
-    border:none;
-    background-color: transparent;
-    margin-left: 4px;
-    font-weight: 400;
-    color: $cool-gray;
-    cursor: pointer;
-    padding:0px;
-    display: inline-block;
-    vertical-align: middle;
-    font-size: 36px;
-    &:hover {
-      background-color: transparent;
-      color: unquote("rgb(#{$color-accent})");
-    }
+span.svg-icon {
+  svg {
+    max-width: 100%;
+    max-height: 100%;
   }
-  ul {
-    text-align: left;
-    > a {
-      min-width: 200px;
-    }
-  }
+}
+
+// faster spinning icons, based on fa-spin
+.k-spin {
+  -webkit-animation: fa-spin 1.2s infinite linear;
+  animation: fa-spin 1.2s infinite linear;
 }
 
 // Scrollbar overrides
@@ -449,3 +460,93 @@ iframe {
   border-radius: 8px;
 }
 
+// Checkboxes
+
+// Remove default checkbox
+[type="checkbox"]:not(:checked),
+[type="checkbox"]:checked {
+  position: absolute;
+  left: -9999px;
+  opacity: 0;
+}
+
+// Checkbox Styles
+[type="checkbox"] {
+  + label {
+    position: relative;
+    padding-left: 35px;
+    cursor: pointer;
+    font-size: 1rem;
+
+    -webkit-user-select: none; /* webkit (safari, chrome) browsers */
+    -moz-user-select: none; /* mozilla browsers */
+    -khtml-user-select: none; /* webkit (konqueror) browsers */
+    -ms-user-select: none; /* IE10+ */
+  }
+
+  + label:after {
+    border-radius: 2px;
+  }
+
+  + label:before,
+  + label:after {
+    content: '';
+    left: 0;
+    position: absolute;
+    /* .1s delay is for check animation */
+    transition: border .25s, background-color .25s, width .20s .1s, height .20s .1s, top .20s .1s, left .20s .1s;
+    z-index: 1;
+  }
+
+  // Unchecked style
+  &:not(:checked) + label:before {
+    width: 0;
+    height: 0;
+    border: 3px solid transparent;
+    left: 6px;
+    top: 10px;
+
+    -webkit-transform: rotateZ(37deg);
+    transform: rotateZ(37deg);
+    -webkit-transform-origin: 20% 40%;
+    transform-origin: 100% 100%;
+  }
+
+  &:not(:checked) + label:after {
+    height: 20px;
+    width: 20px;
+    background-color: transparent;
+    border: 1px solid lighten($cool-gray, 20%);
+    top: 0px;
+    z-index: 0;
+  }
+
+  // Checked style
+  &:checked {
+    + label:before {
+      top: 2px;
+      left: 1px;
+      width: 6px;
+      height: 11px;
+      border-top: 2px solid transparent;
+      border-left: 2px solid transparent;
+      border-right: 2px solid #FFF;
+      border-bottom: 2px solid #FFF;
+      -webkit-transform: rotateZ(37deg);
+      transform: rotateZ(37deg);
+
+      -webkit-transform-origin: 100% 100%;
+      transform-origin: 100% 100%;
+    }
+
+    + label:after {
+      top: 0;
+      width: 20px;
+      height: 20px;
+      border: 1px solid $cool-blue;
+      background-color: $cool-blue;
+      z-index: 0;
+    }
+  }
+
+}

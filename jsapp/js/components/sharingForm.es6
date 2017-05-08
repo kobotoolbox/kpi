@@ -22,8 +22,8 @@ var UserPermDiv = React.createClass({
   ],
   PermOnChange(perm) {
     var cans = this.props.can;
-    var permName = perm.value;
-    if (permName != '') {
+    if (perm) {
+      var permName = perm.value;
       this.setPerm(permName, this.props);
       if (permName == 'view' && cans.change)
         this.removePerm('change', cans.change, this.props.uid);
@@ -103,12 +103,13 @@ var PublicPermDiv = React.createClass({
 
     return (
       <bem.FormModal__item m='perms-link'>
-          <input type="checkbox" checked={this.props.publicPerm ? true : false} onChange={this.togglePerms} />
-        <label className="long next-to-checkbox">
-          {t('Share by link')}
-        </label>
+        <input  type="checkbox" 
+                checked={this.props.publicPerm ? true : false} 
+                onChange={this.togglePerms} 
+                id="share-by-link"/>
+        <label htmlFor="share-by-link">{t('Share by link')}</label>
         { this.props.publicPerm && 
-          <bem.FormModal__item>
+          <bem.FormModal__item m='shareable-link'>
             <label>
               {t('Shareable link')}
             </label>

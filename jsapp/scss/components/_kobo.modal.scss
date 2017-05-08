@@ -58,7 +58,7 @@
 
 .modal-title {
   margin: 0px;
-  padding: 20px 30px;
+  padding: 24px 30px;
   font-size: 18px;
 }
 
@@ -105,6 +105,13 @@
     padding-left: 40px;
     padding-right: 40px;
   }
+}
+
+// modal tabs
+.modal-tabs {
+  background: $cool-blue;
+  color: #FFF;
+  margin: 0px -20px;
 }
 
 .enketo-holder {

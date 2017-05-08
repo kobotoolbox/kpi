@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import $ from 'jquery';
-import mdl from '../libs/rest_framework/material';
 import Select from 'react-select';
 import _ from 'underscore';
 import DocumentTitle from 'react-document-title';
@@ -48,15 +47,14 @@ var FormSettingsEditor = React.createClass({
   render () {
     return (
           <div className="mdl-grid">
-            <div className="mdl-cell mdl-cell--1-col" />
-            <div className="mdl-cell mdl-cell--5-col">
+            <div className="mdl-cell mdl-cell--4-col">
               {this.props.meta.map((mtype) => {
                 return (
                     <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
                   );
               })}
             </div>
-            <div className="mdl-cell mdl-cell--5-col">
+            <div className="mdl-cell mdl-cell--4-col">
               {this.props.phoneMeta.map((mtype) => {
                 return (
                     <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
@@ -68,9 +66,6 @@ var FormSettingsEditor = React.createClass({
   },
   focusSelect () {
     this.refs.webformStyle.focus();
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   }
 });
 
@@ -78,16 +73,12 @@ var FormCheckbox = React.createClass({
   render () {
     return (
         <div className="form-group">
-          <label className="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" htmlFor={this.props.name} >
-            <input type="checkbox" className="mdl-checkbox__input" id={this.props.name} checked={this.props.value} onChange={this.props.onChange} />
-            <span className="mdl-checkbox__label">{this.props.label}</span>
+          <input type="checkbox" id={this.props.name} checked={this.props.value} onChange={this.props.onChange} />
+          <label htmlFor={this.props.name}>
+            {this.props.label}
           </label>
         </div>
       );
-  },
-  componentDidUpdate() {
-    // TODO: upgrade specific element only (as opposed to whole DOM)
-    mdl.upgradeDom();
   }
 });
 
@@ -101,9 +92,6 @@ var FormSettingsBox = React.createClass({
       phoneMeta: [],
       styleValue: 'field-list'
     };
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   },
   componentDidMount () {
     this.updateState();
@@ -217,9 +205,6 @@ export default assign({
       this.app.survey.off('change');
     }
     this.unpreventClosingTab();
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   },
   handleHotkey: function(e) {
     if (e.altKey && e.keyCode == '69') {
@@ -431,9 +416,9 @@ export default assign({
               <i className="k-icon-projects" />
             </bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__cell m={'name'} >
-              <div className='mdl-textfield mdl-js-textfield mdl-textfield--full-width'>
-                <input type="text" onChange={this.nameChange} className="mdl-textfield__input" value={this.state.name} id="nameField"/>
-              </div>
+              <bem.FormModal__item>
+                <input type="text" onChange={this.nameChange} value={this.state.name} id="nameField"/>
+              </bem.FormModal__item>
             </bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__cell m={'buttonsTopRight'} >
 

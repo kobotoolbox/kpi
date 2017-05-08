@@ -103,10 +103,6 @@ ui.Modal = React.createClass({
 });
 
 ui.Modal.Footer = React.createClass({
-  doneClick (evt) {
-    alert('done!');
-    this.props.onClose.call(evt);
-  },
   render () {
     return <div className="modal-footer">{this.props.children}</div>;
   }
@@ -115,6 +111,12 @@ ui.Modal.Footer = React.createClass({
 ui.Modal.Body = React.createClass({
   render () {
     return <div className="modal-body">{this.props.children}</div>;
+  }
+});
+
+ui.Modal.Tabs = React.createClass({
+  render () {
+    return <div className="modal-tabs">{this.props.children}</div>;
   }
 });
 

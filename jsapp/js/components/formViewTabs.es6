@@ -4,7 +4,6 @@ import Reflux from 'reflux';
 import _ from 'underscore';
 import bem from '../bem';
 import stores from '../stores';
-import mdl from '../libs/rest_framework/material';
 import { Link, hashHistory } from 'react-router'; 
 import mixins from '../mixins';
 
@@ -156,9 +155,6 @@ var FormViewTabs = React.createClass({
   			this.renderFormSideTabs()
 	  	);
 	  }
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   }
 
 })

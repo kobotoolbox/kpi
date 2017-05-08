@@ -9,7 +9,6 @@ import stores from '../stores';
 import Select from 'react-select';
 import ui from '../ui';
 import mixins from '../mixins';
-import mdl from '../libs/rest_framework/material';
 import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import SharingForm from '../components/sharingForm';
@@ -275,9 +274,6 @@ var FormSubScreens = React.createClass({
         </bem.Loading__inner>
       </bem.Loading>
     );
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   }
 
 })

@@ -8,7 +8,6 @@ import bem from '../bem';
 import stores from '../stores';
 import Select from 'react-select';
 import ui from '../ui';
-import mdl from '../libs/rest_framework/material';
 import DocumentTitle from 'react-document-title';
 
 import ReportViewItem from './reportViewItem';
@@ -41,9 +40,9 @@ var DefaultChartTypePicker = React.createClass({
     });
   },
   render () {
-    var radioButtons = reportStyles.map(function(style){
+    var radioButtons = reportStyles.map(function(style, i){
        return (
-          <bem.GraphSettings__radio m={style.value}>
+          <bem.GraphSettings__radio m={style.value} key={i}>
               <input type="radio" name="chart_type" 
                 value={style.value} 
                 checked={this.props.defaultStyle.report_type === style.value} 
@@ -143,7 +142,7 @@ var DefaultChartColorsPicker = React.createClass({
   render () {
     var radioButtons = reportColorSets.map(function(set, index){
        return (
-          <bem.GraphSettings__radio>
+          <bem.GraphSettings__radio key={index}>
               <input type="radio" name="chart_colors" 
                 value={index} 
                 checked={this.props.defaultStyle.report_colors === reportColorSets[index].colors} 
@@ -151,9 +150,9 @@ var DefaultChartColorsPicker = React.createClass({
                 id={'type-' + set.label} />
               <label htmlFor={'type-' + set.label}>
                {
-                  reportColorSets[index].colors.map(function(color){
+                  reportColorSets[index].colors.map(function(color, i){
                        return (
-                          <div style={{backgroundColor: color}}>
+                          <div style={{backgroundColor: color}} key={i}>
                           </div>
                        );
                     }, this)               
@@ -172,31 +171,31 @@ var DefaultChartColorsPicker = React.createClass({
 });
 
 
-var IndividualReportStylePicker = React.createClass({
-  specificReportStyleChange (value) {
-    this.props.onChange({
-      kuid: this.props.row.$kuid,
-    }, {
-      report_type: value || false,
-    });
-  },
-  render () {
-    let kuid = this.props.row.$kuid;
-    return (
-        <div>
-          <Select
-            name={`report_type__${kuid}`}
-            value={this.props.style.report_type}
-            clearable={true}
-            clearValueText={t('none')}
-            placeholder={t('report type')}
-            options={reportStyles}
-            onChange={this.specificReportStyleChange}
-          />
-        </div>
-      );
-  },
-});
+// var IndividualReportStylePicker = React.createClass({
+//   specificReportStyleChange (value) {
+//     this.props.onChange({
+//       kuid: this.props.row.$kuid,
+//     }, {
+//       report_type: value || false,
+//     });
+//   },
+//   render () {
+//     let kuid = this.props.row.$kuid;
+//     return (
+//         <div>
+//           <Select
+//             name={`report_type__${kuid}`}
+//             value={this.props.style.report_type}
+//             clearable={true}
+//             clearValueText={t('none')}
+//             placeholder={t('report type')}
+//             options={reportStyles}
+//             onChange={this.specificReportStyleChange}
+//           />
+//         </div>
+//       );
+//   },
+// });
 
 var SizeSliderInput = React.createClass({
   getInitialState: function() {
@@ -214,11 +213,10 @@ var SizeSliderInput = React.createClass({
     return (
       <div className="slider-item">
         <label> 
-          {this.props.label}
-          {this.state.value}
+          {this.props.label}&nbsp;{this.state.value}
         </label>
         <input 
-          className="mdl-slider mdl-js-slider"
+          className="mdl-slider"
           id={this.props.name}
           type="range" 
           min={this.props.min} 
@@ -314,7 +312,8 @@ var Reports = React.createClass({
       graphWidth: "700",
       graphHeight: "250",
       translationIndex: 0,
-      groupBy: []
+      groupBy: [],
+      activeModalTab: 0
     };
   },
   groupDataBy(evt) {
@@ -356,10 +355,14 @@ var Reports = React.createClass({
     });
   },
   toggleExpandedReports () {
-    stores.pageState.setDrawerHidden(!this.state.showExpandedReport);
+    stores.pageState.hideDrawerAndHeader(!this.state.showExpandedReport);
     this.setState({
       showExpandedReport: !this.state.showExpandedReport,
     });
+  },
+  componentWillUnmount() {
+    if (this.state.showExpandedReport)
+      stores.pageState.hideDrawerAndHeader(!this.state.showExpandedReport);
   },
   launchPrinting () {
     window.print();
@@ -380,43 +383,33 @@ var Reports = React.createClass({
 
     return (
       <bem.FormView__reportButtons>
-        <button className="mdl-button mdl-js-button"
-                onClick={this.toggleReportGraphSettings}>
+        <button className="mdl-button" onClick={this.toggleReportGraphSettings}>
           {t('Graph Settings')}
         </button>
-  
-        {groupByList.length > 1 && 
-          <button className="mdl-button mdl-js-button"
-                  id="report-groupby">
-            {t('Group By')}
-            <i className="fa fa-angle-down"></i>
-          </button>
-        }
 
         {groupByList.length > 1 && 
-          <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
-              htmlFor="report-groupby">
-            {groupByList.map((row, i)=>{
-                return (
-                  <li key={i}>
-                    <a className="mdl-menu__item"
-                       data-name={row.name}
-                       onClick={this.groupDataBy}>{row.label}</a>
-                  </li>
-                );
-              })
-            }
-
-          </ul> 
+          <ui.PopoverMenu type='groupby-menu' 
+              triggerLabel={t('Group By')}>
+              {groupByList.map((row, i)=>{
+                  return (
+                    <bem.PopoverMenu__link key={i}
+                        data-name={row.name}
+                        onClick={this.groupDataBy}>
+                         {row.label}
+                    </bem.PopoverMenu__link>
+                  );
+                })
+              }
+          </ui.PopoverMenu> 
         }
 
-        <button className="mdl-button mdl-js-button mdl-button--icon report-button__expand"
+        <button className="mdl-button mdl-button--icon report-button__expand"
                 onClick={this.toggleExpandedReports} 
                 data-tip={t('Expand')}>
           <i className="k-icon-expand" />
         </button>
  
-        <button className="mdl-button mdl-js-button mdl-button--icon report-button__print" 
+        <button className="mdl-button mdl-button--icon report-button__print" 
                 onClick={this.launchPrinting} 
                 data-tip={t('Print')}>
           <i className="k-icon-print" />
@@ -424,6 +417,12 @@ var Reports = React.createClass({
  
       </bem.FormView__reportButtons>
     );
+  },
+  toggleTab(evt) {
+    var i = evt.target.getAttribute('data-index');
+    this.setState({
+      activeModalTab: parseInt(i),
+    });
   },
   renderReportGraphSettings () {
     let asset = this.state.asset,
@@ -442,53 +441,64 @@ var Reports = React.createClass({
     for (var i = reportData.length - 1; i >= 0; i--) {;
       reportData[i].style = defaultStyle;
     }
+
+    var tabs = [t('Chart Type'), t('Colors'), t('Size')];
+
+    var modalTabs = tabs.map(function(tab, i){
+      return (
+        <button className={`mdl-button mdl-button--tab ${this.state.activeModalTab === i ? 'active' : ''}`}
+                onClick={this.toggleTab}
+                data-index={i}
+                key={i}>
+          {tab}
+        </button>
+      );
+    }, this);
+
     return (
       <bem.GraphSettings>
+        <ui.Modal.Tabs>
+          {modalTabs}
+        </ui.Modal.Tabs>
         <ui.Modal.Body>
-          <div className="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
-            <div className="mdl-tabs__tab-bar">
-                <a href="#graph-type" className="mdl-tabs__tab is-active">
-                  {t('Chart Type')}
-                </a>
-                <a href="#graph-colors" className="mdl-tabs__tab">
-                  {t('Colors')}
-                </a>
-                <a href="#graph-labels" className="mdl-tabs__tab">
-                  {t('Size')}
-                </a>
-            </div>
-   
-            <div className="mdl-tabs__panel is-active" id="graph-type">
-              <DefaultChartTypePicker
+          <div className="tabs-content">
+            {this.state.activeModalTab === 0 &&
+              <div id="graph-type">
+                <DefaultChartTypePicker
                   defaultStyle={defaultStyle}
                   onChange={this.reportStyleChange}
                   translationIndex={this.state.translationIndex}
                 />
-            </div>
-            <div className="mdl-tabs__panel" id="graph-colors">
-              <DefaultChartColorsPicker
-                  defaultStyle={defaultStyle}
-                  onChange={this.reportStyleChange}
-                  translationIndex={this.state.translationIndex}
-                />
-            </div>
-            <div className="mdl-tabs__panel graph-tab__size" id="graph-labels">
-              <SizeSliderInput 
-                          name="width" min="300" max="900" default={this.state.graphWidth} 
-                          label={t('Width: ')} 
-                          onChange={this.reportSizeChange} />
-              <div className="is-edge">
-                <SizeSliderInput 
-                          name="height" min="200" max="500" default={this.state.graphHeight}
-                          label={t('Height: ')} 
-                          onChange={this.reportSizeChange} />
               </div>
-            </div>
+            }
+            {this.state.activeModalTab === 1 &&
+              <div id="graph-colors">
+                <DefaultChartColorsPicker
+                  defaultStyle={defaultStyle}
+                  onChange={this.reportStyleChange}
+                  translationIndex={this.state.translationIndex}
+                />
+              </div>
+            }
+            {this.state.activeModalTab === 2 &&
+              <div className="graph-tab__size" id="graph-labels">
+                <SizeSliderInput 
+                      name="width" min="300" max="900" default={this.state.graphWidth} 
+                      label={t('Width: ')} 
+                      onChange={this.reportSizeChange} />
+                <div className="is-edge">
+                  <SizeSliderInput 
+                      name="height" min="200" max="500" default={this.state.graphHeight}
+                      label={t('Height: ')} 
+                      onChange={this.reportSizeChange} />
+                </div>
+              </div>
+            }
           </div>
         </ui.Modal.Body>
  
         <ui.Modal.Footer>
-          <button className="mdl-button mdl-js-button primary"
+          <button className="mdl-button primary"
                   onClick={this.toggleReportGraphSettings}>
             {t('Done')}
           </button>
@@ -607,9 +617,6 @@ var Reports = React.createClass({
         </bem.ReportView>
       </DocumentTitle>
       );
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   }
 
 })

@@ -194,7 +194,8 @@ var ReportViewItem = React.createClass({
     if (chartType == 'pie') {
       opts.options.legend.display = true;
       opts.data.datasets[0].backgroundColor = colors;
-      opts.options.scales = false;
+      opts.options.scales.xAxes = [];
+      opts.options.scales.yAxes = [];
 
       if (this.state.style.report_type == 'donut') {
         opts.options.cutoutPercentage = 50;

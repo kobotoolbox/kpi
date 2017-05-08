@@ -3,6 +3,7 @@ import Reflux from 'reflux';
 import _ from 'underscore';
 import {dataInterface} from '../dataInterface';
 import DocumentTitle from 'react-document-title';
+import TextareaAutosize from 'react-autosize-textarea';
 
 import actions from '../actions';
 import bem from '../bem';
@@ -16,7 +17,6 @@ import {
   log,
   stringToColor,
 } from '../utils';
-
 
 export var AccountSettings = React.createClass({
   mixins: [
@@ -94,7 +94,6 @@ export var AccountSettings = React.createClass({
     if(stores.session && stores.session.currentAccount) {
       return this.getStateFromCurrentAccount(stores.session.currentAccount);
     }
-    return {};
   },
   handleChange (e, attr) {
     if (e.target) {
@@ -126,6 +125,7 @@ export var AccountSettings = React.createClass({
   linkedinChange (e) {this.handleChange(e, 'linkedin');},
   instagramChange (e) {this.handleChange(e, 'instagram');},
   metadataChange (e) {this.handleChange(e, 'metadata');},
+
   render () {
     if(!stores.session || !stores.session.currentAccount) {
       return (
@@ -190,7 +190,7 @@ export var AccountSettings = React.createClass({
               </bem.AccountSettings__item>
               <bem.AccountSettings__item m='password'>
                 <a href='/#/change-password'
-                    className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                    className="mdl-button mdl-button--raised mdl-button--colored">
                   {t('Modify Password')}
                 </a>
               </bem.AccountSettings__item>
@@ -235,8 +235,7 @@ export var AccountSettings = React.createClass({
               <bem.AccountSettings__item>
                 <label>
                   {t('Bio')}
-                  <textarea value={this.state.bio}
-                    onChange={this.bioChange} />
+                  <TextareaAutosize onChange={this.bioChange} value={this.state.bio} id="bio" />
                 </label>
               </bem.AccountSettings__item>
 
@@ -427,7 +426,7 @@ export var ChangePassword = React.createClass({
             </bem.ChangePassword__item>
             <bem.ChangePassword__item  m='actions'>
               <button onClick={this.changePassword}
-                      className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                      className="mdl-button mdl-button--raised mdl-button--colored">
                 {t('Save Changes')}
               </button>
             </bem.ChangePassword__item>

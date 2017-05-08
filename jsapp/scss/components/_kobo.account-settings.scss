@@ -52,20 +52,18 @@
   }
   .form-modal__item--social {
     clear: both;
-    border-top: 1px solid #DDD;
-    margin-top: 20px;
-    padding-top: 20px;
     label {
       position: relative;
       i {
         position: absolute;
-        font-size: 20px;
-        top: 7px;
-        left: 12px;
-        opacity: 0.8;
+        font-size: 24px;
+        top: 10px;
+        left: 4px;
       }
       input {
-        padding-left: 60px;
+        margin-top: 8px;
+        padding-left: 40px;
+        max-width: 400px;
       }
     }
   }

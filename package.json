@@ -4,6 +4,7 @@
   "description": "kobotoolbox api dashboard",
   "main": "Gruntfile.js",
   "dependencies": {
+    "react-autosize-textarea": "^0.4.3",
     "react-hotkey": "^0.7.0"
   },
   "devDependencies": {
@@ -67,8 +68,6 @@
     "lodash.isarray": "^3.0.4",
     "lodash.merge": "^3.3.2",
     "lodash.restparam": "^3.6.1",
-    "material-design-icons": "^2.0.0",
-    "material-design-lite": "^1.0.2",
     "mime-types": "^2.1.8",
     "mocha": "^2.3.4",
     "mocha-phantomjs": "^4.0.2",

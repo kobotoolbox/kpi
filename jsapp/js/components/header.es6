@@ -1,6 +1,5 @@
 import React from 'react';
 import { hashHistory } from 'react-router';
-import mdl from '../libs/rest_framework/material';
 import Select from 'react-select';
 import moment from 'moment';
 import alertify from 'alertifyjs';
@@ -250,7 +249,7 @@ var MainHeader = React.createClass({
     return (
         <header className="mdl-layout__header">
           <div className="mdl-layout__header-row">
-            <button className="mdl-button mdl-button--icon k-burger" onClick={this.toggleFixedDrawer}>
+            <button className="mdl-button mdl-button--icon" onClick={this.toggleFixedDrawer}>
               <i className="fa fa-bars"></i>
             </button>
             <span className='mdl-layout-title'>
@@ -296,9 +295,6 @@ var MainHeader = React.createClass({
           {this.renderGitRevInfo()}
         </header>
       );
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   },
   componentWillReceiveProps(nextProps) {
     if (this.props.assetid != nextProps.assetid && nextProps.assetid != null)

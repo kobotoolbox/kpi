@@ -3,7 +3,6 @@ import React from 'react';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import {Link, hashHistory} from 'react-router';
-import mdl from './libs/rest_framework/material';
 import DocumentTitle from 'react-document-title';
 import classNames from 'classnames';
 
@@ -396,10 +395,10 @@ mixins.clickAssets = {
         } else {
           msg = `
             ${t('You are about to permanently delete this form.')}
-            <label class="alertify-toggle"><input type="checkbox"/> ${t('All data gathered for this form will be deleted.')}</label>
-            <label class="alertify-toggle"><input type="checkbox"/> ${t('All questions created for this form will be deleted.')}</label>
-            <label class="alertify-toggle"><input type="checkbox"/> ${t('The form associated with this project will be deleted.')}</label>
-            <label class="alertify-toggle alertify-toggle-important"><input type="checkbox" /> ${t('I understand that if I delete this project I will not be able to recover it.')}</label>
+            <div class="alertify-toggle"><input type="checkbox" id="dt1"/> <label for="dt1">${t('All data gathered for this form will be deleted.')}</label></div>
+            <div class="alertify-toggle"><input type="checkbox" id="dt2"/> <label for="dt2">${t('All questions created for this form will be deleted.')}</label></div>
+            <div class="alertify-toggle"><input type="checkbox" id="dt3"/> <label for="dt3">${t('The form associated with this project will be deleted.')}</label></div>
+            <div class="alertify-toggle alertify-toggle-important"><input type="checkbox" id="dt4"/> <label for="dt4">${t('I understand that if I delete this project I will not be able to recover it.')}</label></div>
           `;
           onshow = (evt) => {
             let ok_button = dialog.elements.buttons.primary.firstChild;
