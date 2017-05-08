@@ -1,4 +1,5 @@
 import haystack
+from itertools import groupby
 from distutils.util import strtobool
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
@@ -224,7 +225,11 @@ class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
 class AttachmentFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         type = request.query_params.get('type')
-        order_by = request.query_params.get('order_by')
+        group_by = request.query_params.get('group_by')
+
+        # sorting is a prerequisite for group by queries
+        # override order_by with group by value
+        order_by = group_by or request.query_params.get('order_by')
 
         if type:
             queryset = queryset.filter(mimetype__istartswith=type.lower())
@@ -232,6 +237,14 @@ class AttachmentFilter(filters.BaseFilterBackend):
         if order_by and order_by == 'question':
             queryset = sorted(queryset.order_by('-pk'),
                               key=lambda att: att.question_index)
+            if group_by and group_by == 'question':
+                result = []
+                for qid, attachments in groupby(queryset, lambda att: (att.question_index, att.question)):
+                    question = qid[1] if qid[1] else {'number': qid[0]}
+                    question['attachments'] = list(attachments)
+                    result.append(question)
+                return result
+
         elif order_by and order_by == 'submission':
             queryset = queryset.order_by('-instance__id', 'pk')
         else:

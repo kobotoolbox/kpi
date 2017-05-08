@@ -77,9 +77,8 @@ from .serializers import (
     AssetVersionListSerializer,
     AssetVersionSerializer,
     AssetSnapshotSerializer,
-    AttachmentSerializer,
-    AttachmentListSerializer,
-    AttachmentPagination,
+    AttachmentSerializer, AttachmentListSerializer, AttachmentPagination,
+    QuestionSerializer, QuestionPagination,
     SitewideMessageSerializer,
     CollectionSerializer, CollectionListSerializer,
     UserSerializer,
@@ -485,8 +484,15 @@ class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         MediaFileRenderer
     )
 
+    def _group_by(self):
+        if not self.request:
+            return None
+        return self.request.query_params.get('group_by')
+
     def get_serializer_class(self):
         if self.action == 'list':
+            if self._group_by() == 'question':
+                return QuestionSerializer
             return AttachmentListSerializer
         else:
             return AttachmentSerializer
@@ -503,13 +509,22 @@ class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         xform_id = asset.deployment.identifier.split('/')[-1]
         return _models.Attachment.objects.filter(instance__xform__id_string=xform_id)
 
-    def get_paginator(self, queryset):
-        paginator = AttachmentPagination()
+    def get_paginator(self):
+        if self._group_by() == 'question':
+            paginator = QuestionPagination()
+        else:
+            paginator = AttachmentPagination()
         return paginator
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        paginator = self.get_paginator(queryset)
+        #group_by = request.query_params.get('group_by')
+        #if group_by and group_by == 'question':
+        #    for question in queryset:
+        #        serializer = self.get_serializer(question['attachments'], many=True)
+        #        question['attachments'] = serializer.data
+        #    return Response(queryset)
+        paginator = self.get_paginator()
         page = paginator.paginate_queryset(queryset, request)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
