@@ -997,7 +997,7 @@ class QuestionPagination(HybridPagination):
     nested = True
 
     def _get_count(self, queryset):
-        if self.nested:
+        if self.nested and len(queryset) > 0:
             return reduce(
                 lambda x, y: x+y,
                 map(lambda question: len(question['attachments']), queryset)
@@ -1006,7 +1006,7 @@ class QuestionPagination(HybridPagination):
             return len(queryset)
 
     def _get_range(self, queryset, start, end):
-        if self.nested:
+        if self.nested and len(queryset) > 0:
             result = []
             attachment_index = 0
             include_question = False
@@ -1066,7 +1066,7 @@ class SubmissionPagination(HybridPagination):
     nested = True
 
     def _get_count(self, queryset):
-        if self.nested:
+        if self.nested and len(queryset) > 0:
             return reduce(
                 lambda x, y: x+y,
                 map(lambda submission: len(submission['attachments']), queryset)
@@ -1075,7 +1075,7 @@ class SubmissionPagination(HybridPagination):
             return len(queryset)
 
     def _get_range(self, queryset, start, end):
-        if self.nested:
+        if self.nested and len(queryset) > 0:
             result = []
             attachment_index = 0
             include_submission = False
