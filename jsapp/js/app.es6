@@ -1225,6 +1225,7 @@ var AssetSharing = React.createClass({
                   ref='usernameInput'
                   placeholder={t('Enter a username')}
                   onKeyUp={this.usernameCheck}
+                  onChange={this.usernameCheck}
               />
               <button className={btnKls}>
                 <i className="fa fa-fw fa-lg fa-plus" />
