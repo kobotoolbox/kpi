@@ -979,16 +979,6 @@ class AttachmentListSerializer(AttachmentSerializer):
 class AttachmentPagination(HybridPagination):
     default_limit = 10
 
-    def get_raw_paginated_response(self, data):
-        return OrderedDict([
-            ('count', self.count),
-            ('next', self.get_next_link()),
-            ('next_page', self.get_next_page()),
-            ('previous', self.get_previous_link()),
-            ('previous_page', self.get_previous_page()),
-            ('results', data)
-        ])
-
 
 class QuestionSerializer(serializers.Serializer):
     number = serializers.IntegerField(read_only=True)
@@ -997,19 +987,64 @@ class QuestionSerializer(serializers.Serializer):
     label = serializers.CharField(read_only=True)
     attachments = serializers.SerializerMethodField()
 
-    def get_attachments(self, sdict):
-        paginator = AttachmentPagination()
-        paginator.default_limit = 2
-        page = paginator.paginate_queryset(
-            queryset=sdict['attachments'],
-            request=self.context.get('request', None)
-        )
+    def get_attachments(self, qdict):
         serializer = AttachmentListSerializer(
-            page, many=True, read_only=True, context=self.context)
-        return paginator.get_raw_paginated_response(serializer.data)
+            qdict['attachments'], many=True, read_only=True, context=self.context)
+        return serializer.data
 
 class QuestionPagination(HybridPagination):
-    default_limit = 2
+    default_limit = 10
+    nested = True
+
+    def _get_count(self, queryset):
+        if self.nested:
+            return reduce(
+                lambda x, y: x+y,
+                map(lambda question: len(question['attachments']), queryset)
+            )
+        else:
+            return len(queryset)
+
+    def _get_range(self, queryset, start, end):
+        if self.nested:
+            result = []
+            attachment_index = 0
+            include_question = False
+            for question in queryset:
+                size = len(question['attachments'])
+                start_range = 0
+                if not include_question and (attachment_index + size) > start:
+                    include_question = True
+                    start_range = start-attachment_index
+                if include_question:
+                    end_range = (end - attachment_index) if (attachment_index + size) >= end else size
+                    question['attachments'] = list(question['attachments'][start_range:end_range])
+                    result.append(question)
+
+                attachment_index += size
+                if attachment_index >= end:
+                    break
+
+            return result
+        else:
+            return list(queryset[start:end])
+
+    def paginate_queryset(self, queryset, request, view=None):
+        self.count = self._get_count(queryset)
+        self.limit = self.get_limit(request)
+        self.page = self.get_page(request)
+        if self.limit is None:
+            return None
+
+        self.offset = self.get_offset(request)
+        self.request = request
+        if self.count > self.limit and self.template is not None:
+            self.display_page_controls = True
+
+        if self.count == 0 or self.offset > self.count:
+            return []
+
+        return self._get_range(queryset, self.offset, self.offset+self.limit)
 
 
 class SubmissionSerializer(serializers.Serializer):
@@ -1021,19 +1056,64 @@ class SubmissionSerializer(serializers.Serializer):
     date_modified = serializers.DateTimeField(read_only=True)
     attachments = serializers.SerializerMethodField()
 
-    def get_attachments(self, qdict):
-        paginator = AttachmentPagination()
-        paginator.default_limit = 5
-        page = paginator.paginate_queryset(
-            queryset=qdict['attachments'],
-            request=self.context.get('request', None)
-        )
+    def get_attachments(self, sdict):
         serializer = AttachmentListSerializer(
-            page, many=True, read_only=True, context=self.context)
-        return paginator.get_raw_paginated_response(serializer.data)
+            sdict['attachments'], many=True, read_only=True, context=self.context)
+        return serializer.data
 
 class SubmissionPagination(HybridPagination):
-    default_limit = 5
+    default_limit = 10
+    nested = True
+
+    def _get_count(self, queryset):
+        if self.nested:
+            return reduce(
+                lambda x, y: x+y,
+                map(lambda submission: len(submission['attachments']), queryset)
+            )
+        else:
+            return len(queryset)
+
+    def _get_range(self, queryset, start, end):
+        if self.nested:
+            result = []
+            attachment_index = 0
+            include_submission = False
+            for submission in queryset:
+                size = len(submission['attachments'])
+                start_range = 0
+                if not include_submission and (attachment_index + size) > start:
+                    include_submission = True
+                    start_range = start-attachment_index
+                if include_submission:
+                    end_range = (end - attachment_index) if (attachment_index + size) >= end else size
+                    submission['attachments'] = list(submission['attachments'][start_range:end_range])
+                    result.append(submission)
+
+                attachment_index += size
+                if attachment_index >= end:
+                    break
+
+            return result
+        else:
+            return list(queryset[start:end])
+
+    def paginate_queryset(self, queryset, request, view=None):
+        self.count = self._get_count(queryset)
+        self.limit = self.get_limit(request)
+        self.page = self.get_page(request)
+        if self.limit is None:
+            return None
+
+        self.offset = self.get_offset(request)
+        self.request = request
+        if self.count > self.limit and self.template is not None:
+            self.display_page_controls = True
+
+        if self.count == 0 or self.offset > self.count:
+            return []
+
+        return self._get_range(queryset, self.offset, self.offset+self.limit)
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):

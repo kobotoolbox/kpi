@@ -516,10 +516,8 @@ class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
 
     def get_paginator(self):
         if self._group_by() and self._group_by() == 'question':
-            #TODO: We need more reliable nested pagination
             paginator = QuestionPagination()
         elif self._group_by() and self._group_by() == 'submission':
-            #TODO: We need more reliable nested pagination
             paginator = SubmissionPagination()
         else:
             paginator = AttachmentPagination()
