@@ -78,7 +78,7 @@ from .serializers import (
     AssetVersionSerializer,
     AssetSnapshotSerializer,
     AttachmentSerializer, AttachmentListSerializer, AttachmentPagination,
-    QuestionSerializer, QuestionPagination,
+    QuestionSerializer,
     SitewideMessageSerializer,
     CollectionSerializer, CollectionListSerializer,
     UserSerializer,
@@ -511,24 +511,19 @@ class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
 
     def get_paginator(self):
         if self._group_by() == 'question':
-            paginator = QuestionPagination()
+            paginator = None
         else:
             paginator = AttachmentPagination()
         return paginator
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        #group_by = request.query_params.get('group_by')
-        #if group_by and group_by == 'question':
-        #    for question in queryset:
-        #        serializer = self.get_serializer(question['attachments'], many=True)
-        #        question['attachments'] = serializer.data
-        #    return Response(queryset)
         paginator = self.get_paginator()
-        page = paginator.paginate_queryset(queryset, request)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return paginator.get_paginated_response(serializer.data)
+        if paginator:
+            page = paginator.paginate_queryset(queryset, request)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return paginator.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)

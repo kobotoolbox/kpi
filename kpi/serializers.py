@@ -971,6 +971,16 @@ class AttachmentListSerializer(AttachmentSerializer):
 class AttachmentPagination(HybridPagination):
     default_limit = 10
 
+    def get_raw_paginated_response(self, data):
+        return OrderedDict([
+            ('count', self.count),
+            ('next', self.get_next_link()),
+            ('next_page', self.get_next_page()),
+            ('previous', self.get_previous_link()),
+            ('previous_page', self.get_previous_page()),
+            ('results', data)
+        ])
+
 
 class QuestionSerializer(serializers.Serializer):
     number = serializers.IntegerField(read_only=True)
@@ -980,7 +990,7 @@ class QuestionSerializer(serializers.Serializer):
     attachments = serializers.SerializerMethodField()
 
     def get_attachments(self, qdict):
-        paginator = HybridPagination()
+        paginator = AttachmentPagination()
         paginator.default_limit = 5
         page = paginator.paginate_queryset(
             queryset=qdict['attachments'],
@@ -988,10 +998,7 @@ class QuestionSerializer(serializers.Serializer):
         )
         serializer = AttachmentListSerializer(
             page, many=True, read_only=True, context=self.context)
-        return paginator.get_paginated_response(serializer.data)
-
-class QuestionPagination(HybridPagination):
-    default_limit = 2
+        return paginator.get_raw_paginated_response(serializer.data)
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     assets = serializers.SerializerMethodField()
