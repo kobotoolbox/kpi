@@ -289,6 +289,7 @@ var SharingForm = React.createClass({
                   ref='usernameInput'
                   placeholder={t('Enter a username')}
                   onKeyUp={this.usernameCheck}
+                  onChange={this.usernameCheck}
               />
               <Select
                   id='permGiven'
