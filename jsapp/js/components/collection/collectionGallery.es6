@@ -6,8 +6,6 @@ import CollectionModal from './collectionModal';
 import CollectionFilter from './collectionFilter';
 import {dataInterface} from '../../dataInterface';
 
-const COLLECTIONS = require('../../data/collections');
-
 var CollectionsModal = React.createClass({
 	displayName: 'CollectionsModal',
 	propTypes: {
@@ -22,7 +20,10 @@ var CollectionsModal = React.createClass({
 				results: [
 					{
 						download_url: '',
-						filename: ''
+						filename: '',
+						question: {
+							label: ''
+						}
 					}
 				]
 			}
@@ -30,35 +31,22 @@ var CollectionsModal = React.createClass({
 	},
 	loadGalleryData: function(uid, filter) {
 		dataInterface.filterGalleryImages(uid, filter).done((response)=>{
-			console.log(response);
 			this.setState({
         assets: response
       });
+	    localStorage.setItem('assets', JSON.stringify(response));
     });
 	},
-  openModal: function(asset) {
-    this.setState({ showModal: true, assetId: asset.id, assetDate: asset.filename, assetName: asset.filename });
+  openModal: function(asset, index) {
+    this.setState({ showModal: true, assetID: asset.id, assetIndex: index });
   },
   closeModal: function() {
     this.setState({ showModal: false });
-  },
-  handleModalCloseRequest: function() {
-    // opportunity to validate something and keep the modal open even if it
-    // requested to be closed
-    this.setState({ showModal: false });
-  },
-  handleInputChange: function() {
-    this.setState({ foo: 'bar' });
-  },
-  handleOnAfterOpenModal: function() {
-    // when ready, we can access the available refs.
-    this.refs.title.style.color = '#F00';
   },
 	componentDidMount: function(){
 		this.loadGalleryData(this.props.uid, 'question');
 	},
 	render () {
-		console.log(this.state.assets);
 		return (
       <bem.AssetGallery>
 				<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
@@ -82,17 +70,17 @@ var CollectionsModal = React.createClass({
             backgroundSize: 'cover'
           }
           return (
-            <bem.AssetGallery__gridItem key={i} className="col4 one-one" style={divStyle} onClick={() => this.openModal(asset)} >
+            <bem.AssetGallery__gridItem key={i} className="col4 one-one" style={divStyle} onClick={() => this.openModal(asset, i)} >
               <bem.AssetGallery__gridItemOverlay>
                 <div className="text">
-                  <h5>{asset.filename}</h5>
+                  <h5>{asset.question.label}</h5>
                 </div>
               </bem.AssetGallery__gridItemOverlay>
             </bem.AssetGallery__gridItem>
           );
         }.bind(this))}
         </bem.AssetGallery__grid>
-        <CollectionModal show={this.state.showModal} onHide={this.closeModal} assetID={this.state.assetId} assetDate={this.state.assetDate} assetName={this.state.assetName}/>
+        <CollectionModal show={this.state.showModal} onHide={this.closeModal} assetID={this.state.assetID} assetIndex={this.state.assetID} {...this.props}/>
       </bem.AssetGallery>
 		);
 	}
