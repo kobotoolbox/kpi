@@ -61,7 +61,7 @@ var FormLanding = React.createClass({
               {t('Last Modified')}&nbsp;:&nbsp;
               {formatTime(this.state.date_modified)}&nbsp;-&nbsp;
               <span className="question-count">
-                {this.state.summary.row_count}&nbsp;
+                {this.state.summary.row_count || '0'}&nbsp;
                 {t('questions')}
                 </span>
             </bem.FormView__cell>
