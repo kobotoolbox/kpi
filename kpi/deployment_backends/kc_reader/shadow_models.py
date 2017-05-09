@@ -184,7 +184,7 @@ class LazyModelGroup:
                 if not self.question:
                     return self.id
 
-                return self.question['number'] or self.question_name
+                return self.question['number']
 
             @property
             def can_view_submission(self):
