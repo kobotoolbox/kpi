@@ -42,7 +42,7 @@ djangorestframework==3.3.3
 docutils==0.12            # via statistics
 drf-extensions==0.3.1
 enum34==1.1.6             # via cryptography
-funcsigs==1.0.2           # via begins
+funcsigs==1.0.2           # via begins, mock
 functools32==3.2.3.post2  # via jsonschema
 gunicorn==19.4.5
 idna==2.1                 # via cryptography
@@ -54,11 +54,13 @@ kombu==3.0.35
 lxml==2.3.4
 markdown==2.6.6
 markupsafe==0.23          # via jinja2
+mock==2.0.0
 ndg-httpsclient==0.4.2
 newrelic==2.84.0.64
 oauthlib==1.0.3
 olefile==0.44             # via pillow
 path.py==8.1.2
+pbr==3.0.0                # via mock
 pillow==4.1.0
 psycopg2==2.6.1
 py==1.4.31                # via pytest

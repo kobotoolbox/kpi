@@ -47,6 +47,7 @@ gunicorn
 jsonfield
 kombu
 lxml
+mock==2.0.0
 oauthlib
 psycopg2
 pymongo
