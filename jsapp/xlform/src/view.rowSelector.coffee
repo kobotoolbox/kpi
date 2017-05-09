@@ -48,10 +48,6 @@ module.exports = do ->
           if evt.which == 27
             @shrink()
 
-        $('body').on 'mousedown.cancel_add_question', (evt) =>
-          if $(evt.target).closest('.line.expanded').length == 0
-            @shrink()
-
       else
         $(window).on 'keydown.cancel_add_question',  (evt) =>
           # user presses the escape key
