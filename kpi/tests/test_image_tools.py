@@ -75,3 +75,12 @@ class ImageToolsTestCase(TestCase):
             expected = image_tools.get_path(filename, suffix)
             result = image_tools.image_url(attachment, size)
             self.assertEqual(result, self.MEDIA_URL.rstrip('/') + expected)
+
+    @patch('kpi.utils.image_tools.get_storage_class')
+    def test_unknown_image_size(self, mock_get_storage_class):
+        mock_get_storage_class.return_value = MagicMock(return_value=self.storage_mock)
+        filename = '/path/to/my/test/image.jpg'
+        attachment = self._mock_attachment(filename)
+
+        result = image_tools.image_url(attachment, 'unknown')
+        self.assertEqual(result, attachment.media_file.url)
