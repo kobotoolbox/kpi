@@ -54,12 +54,24 @@ class ImageToolsTestCase(TestCase):
         self.storage_mock = self._mock_storage()
 
     @patch('kpi.utils.image_tools.get_storage_class')
-    @patch('kpi.utils.image_tools.resize', MagicMock(name='resize'))
-    @patch('kpi.utils.image_tools.resize_local_env', MagicMock(name='resize_local_env'))
     def test_original_image(self, mock_get_storage_class):
         mock_get_storage_class.return_value = MagicMock(return_value=self.storage_mock)
         filename = '/path/to/my/test/image.jpg'
         attachment = self._mock_attachment(filename)
 
-        url = image_tools.image_url(attachment, 'original')
-        self.assertEqual(url, self.MEDIA_URL.rstrip('/') + filename)
+        result = image_tools.image_url(attachment, 'original')
+        self.assertEqual(result, self.MEDIA_URL.rstrip('/') + filename)
+
+    @patch('kpi.utils.image_tools.get_storage_class')
+    @patch('kpi.utils.image_tools.resize', MagicMock(name='resize'))
+    @patch('kpi.utils.image_tools.resize_local_env', MagicMock(name='resize_local_env'))
+    def test_resized_image(self, mock_get_storage_class):
+        mock_get_storage_class.return_value = MagicMock(return_value=self.storage_mock)
+        filename = '/path/to/my/test/image.jpg'
+        attachment = self._mock_attachment(filename)
+
+        for size in settings.THUMB_ORDER:
+            suffix = settings.THUMB_CONF[size]['suffix']
+            expected = image_tools.get_path(filename, suffix)
+            result = image_tools.image_url(attachment, size)
+            self.assertEqual(result, self.MEDIA_URL.rstrip('/') + expected)
