@@ -3,7 +3,7 @@
 import os
 from django.conf import settings
 from django.test import TestCase
-from mock import patch, Mock, MagicMock
+from mock import patch, MagicMock
 from django.core.files import File
 from django.core.files.storage import Storage
 from kpi.deployment_backends.kc_reader.shadow_models import _models
@@ -44,7 +44,7 @@ class ImageToolsTestCase(TestCase):
         media_file.url = self.MEDIA_URL.rstrip('/') + filename
         media_file.size = self._get_size(filename)
 
-        attachment = MagicMock(spec=File, name='AttachmentMock', absolutespec=True)
+        attachment = MagicMock(spec=_models.Attachment, name='AttachmentMock', absolutespec=True)
         attachment.media_file = media_file
         attachment.mimetype = mimetype
 
