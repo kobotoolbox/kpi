@@ -2,7 +2,6 @@ import React from 'react';
 import Modal from 'react-modal';
 import bem from '../../bem';
 import ui from '../../ui';
-import axios from 'axios';
 import {dataInterface} from '../../dataInterface';
 import Slider from 'react-slick';
 
@@ -14,6 +13,14 @@ var CollectionsModal = React.createClass({
 			infoOpen: true,
 			assetID: this.props.assetID,
 			assetIndex: this.props.assetIndex,
+			selectedAsset: {
+				question: {
+					label: ''
+				},
+				submission: {
+					date_created: ''
+				}
+			},
 			assets: {
 				count: 0,
 				results: [
@@ -51,10 +58,19 @@ var CollectionsModal = React.createClass({
 		this.loadGalleryData(this.props.uid, 'question');
 	},
 	modalData() {
+		console.log(this.state);
 		this.goToSlide(this.state.assetIndex);
 	},
 	goToSlide(index) {
 		this.refs.slider.slickGoTo(index);
+	},
+	updateSelectedAsset(index) {
+		let current = this.state.assets.results[index];
+		this.setState({
+			selectedAsset: current,
+			assetIndex: index
+		});
+		this.goToSlide(index);
 	},
 	render () {
 		const settings = {
@@ -92,11 +108,32 @@ var CollectionsModal = React.createClass({
 						</bem.AssetGallery__modalCarousel>
 						<bem.AssetGallery__modalSidebar className={"col4 " + (this.state.infoOpen ? 'open' : 'closed')}>
 							<i className="toggle-info material-icons" onClick={this.toggleInfo}>close</i>
-							<p>{this.state.assetURL}</p>
 							<div>
-								<div className="light-grey-bg">
-									<h2>Information</h2>
+								<div className="info__outer">
+									<div className="light-grey-bg">
+										<h3>Information</h3>
+									</div>
+									<div className="info__inner padding--20">
+										<h6>{this.state.selectedAsset.question.label}</h6>
+										<p>{this.state.selectedAsset.submission.date_created}</p>
+									</div>
 								</div>
+								<bem.AssetGallery__modalSidebarGrid className="padding--20">
+								{this.state.assets.results.map(function(asset, i) {
+									var divStyle = {
+										backgroundImage: 'url('+ asset.download_url + ')',
+										backgroundRepeat: 'no-repeat',
+										backgroundPosition: 'center center',
+										backgroundSize: 'cover'
+									}
+									return (
+										<bem.AssetGallery__modalSidebarGridItem key={i} className="col6" onClick={() => this.updateSelectedAsset(i)}>
+											<div className={"one-one " + (asset.id !== this.state.assetID ? 'show' : 'hidden')} style={divStyle}>
+											</div>
+										</bem.AssetGallery__modalSidebarGridItem>
+									);
+								}.bind(this))}
+								</bem.AssetGallery__modalSidebarGrid>
 							</div>
 						</bem.AssetGallery__modalSidebar>
 	        </ui.Modal.Body>

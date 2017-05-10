@@ -228,6 +228,8 @@ bem.AssetGallery__modal = bem.AssetGallery.__('modal', '<div>');
 bem.AssetGallery__modalCarousel = bem.AssetGallery.__('modal__carousel', '<div>');
 bem.AssetGallery__modalCarouselTopbar = bem.AssetGallery.__('modal__carousel__topbar', '<div>');
 bem.AssetGallery__modalSidebar = bem.AssetGallery.__('modal__sidebar', '<div>');
+bem.AssetGallery__modalSidebarGrid = bem.AssetGallery.__('modal__sidebar__grid', '<div>');
+bem.AssetGallery__modalSidebarGridItem = bem.AssetGallery.__('modal__sidebar__grid-item', '<div>');
 
 bem.create = BEM;
 

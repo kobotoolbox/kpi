@@ -17,7 +17,9 @@
     bottom: 0;
   }
 }
-
+.one-one{
+  @include aspect-ratio(1,1)
+}
 .asset-gallery{
   >div{
     padding: 40px 40px 0px 40px;
@@ -38,16 +40,13 @@
   }
   &__grid{
     flex-wrap: wrap;
+    >div{
+      width: 100%;
+    }
     &-item{
       $root: &;
       margin: 0 15px 15px 0;
-
-      // &:nth-child(3n){
-      //   margin-right: 0;
-      // }
-      &.one-one{
-        @include aspect-ratio(1,1)
-      }
+      display: inline-block;
       &.col6{
         width: 50%;
       }
@@ -209,19 +208,37 @@
     &__sidebar{
       &.open{
         opacity: 1;
-        >div{
-          padding: 20px;
-        }
         .toggle-info{
           float: right;
           font-size: 30px;
           margin: 10px;
           cursor: pointer;
         }
+        .info{
+          h3{
+            margin: 0;
+            padding: 20px;
+          }
+        }
       }
       &.closed{
         width: 0px !important;
         opacity: 0 !important;
+      }
+      &__grid{
+        display: flex;
+        flex-wrap: wrap;
+        &-item{
+          >div{
+            margin: 5px;
+          }
+          &.col6{
+            width: 50%;
+          }
+          img{
+            width: 100%;
+          }
+        }
       }
     }
   }

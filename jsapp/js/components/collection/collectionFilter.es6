@@ -13,17 +13,17 @@ var CollectionsField = React.createClass({
 	getDefaultProps () {
 		return {
 			label: 'Group By:',
-			searchable: true,
-			// isOpen: this.props.isOpen !== null ? this.props.isOpen : false,
+			searchable: false
 		};
 	},
 	getInitialState () {
 		return {
 			filter: {
 				source: 'question',
-				options: []
+				options: [],
+				filterText: ''
 			},
-			searchable: true,
+			searchable: false,
 			clearable: true
 		};
 	},
@@ -41,13 +41,10 @@ var CollectionsField = React.createClass({
 		});
 	},
 	getOptions (data) {
-		console.log(data);
 		var options = [];
-		console.log(data.results.length);
 		for (var i = 0; i < data.results.length; i++){
 			var asset = data.results[i];
 			if(asset.question !== undefined){
-				console.log(asset.question.label);
 				options.push({label: asset.question.label, value: asset.question.label});
 			}else{
 				options.push({value: 'record-'+i, label:'record-'+i});
@@ -68,7 +65,7 @@ var CollectionsField = React.createClass({
 		var filters = COLLECTIONS.filters;
 		return (
 			<bem.AssetGallery__headingSearchFilter className="section">
-				<Select ref="collectionSelect" options={this.state.filter.options} simpleValue clearable={this.state.clearable} name="selected-collection" disabled={this.state.disabled} value={this.state.collectionValue} onChange={this.updateCollectionValue} searchable={this.state.searchable} />
+				<Select ref="collectionSelect" options={this.state.filter.options} simpleValue clearable={this.state.clearable} name="selected-collection" disabled={this.state.disabled} value={this.state.collectionValue} onChange={this.props.filterHandler} searchable={this.state.searchable} />
 				<Select ref="filterSelect" className="icon-button-select" options={filters} simpleValue name="selected-filter" disabled={this.state.disabled} value={this.state.filter.source} onChange={this.switchFilter} searchable={false} />
 			</bem.AssetGallery__headingSearchFilter>
 		);
