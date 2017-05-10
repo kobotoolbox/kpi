@@ -476,7 +476,10 @@
     padding-top: 0px;
 
     a.form-view__tab {
-      padding: 6px;
+      padding: 4px;
+      font-size: 11px;
+      text-align: center;
+      display: block;
 
       span {
         display: none;
@@ -514,6 +517,7 @@
 
   .form-view__row {
     margin: 16px;
+    margin-bottom: 24px;
   }
 
   .form-view__cell--question-list {

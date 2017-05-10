@@ -488,6 +488,18 @@
   }
 }
 
+@media screen and (max-width: 767px) {
+  .formBuilder-header__cell--library-toggle {
+    display: none;
+  }
+}
+
+@media screen and (pointer: coarse) {
+  .formBuilder-header__cell--library-toggle {
+    display: none;
+  }
+}
+
 @media screen and (max-width: 480px) {
   .formBuilder-header__cell--buttons button {
     padding: 0px;

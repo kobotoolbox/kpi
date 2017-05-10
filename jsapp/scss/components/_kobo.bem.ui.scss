@@ -376,6 +376,24 @@
   }
 }
 
+@media screen and (max-width: 767px) {
+  .popover-menu--collectData-menu {
+    .popover-menu__toggle {
+      padding-right: 40px;
+    }
+
+    .popover-menu__content {
+      min-width: 320px;
+      max-width: 360px;
+      left: 0px;
+
+      .collect-data-desc {
+        font-size: inherit;
+      }
+    }
+  }
+}
+
 // iframe default styles
 iframe {
   border: none;
@@ -504,6 +522,15 @@ iframe {
   &--actions {
     text-align: right;
     padding-top: 10px;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .form-modal__item {
+    select {
+      max-width: 90%;
+      background: #DEDEDE;
+    }
   }
 }
 

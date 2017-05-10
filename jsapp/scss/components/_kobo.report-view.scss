@@ -1,17 +1,22 @@
 @media screen and (min-width: 961px) {
   .report-view {
-    padding:0px 60px;
-  }    
+    padding: 0px 60px;
+  }
 }
+
 .report-view__warning {
   background-color: #FFF;
+
   @include box-shadow;
+
   padding: 8px 24px;
+
   p {
     font-size: 13px;
     line-height: 1.3em;
     color: $cool-gray;
   }
+
   h4 {
     color: $cool-red;
     margin: 0px;
@@ -22,7 +27,9 @@
 
 .report-view__item {
   background-color: #FFF;
+
   @include box-shadow;
+
   margin: 15px 0px;
 }
 
@@ -30,6 +37,7 @@
   padding: 10px 24px;
   border-left: 5px solid $cool-green;
   border-bottom: 1px solid #CCC;
+
   h2 {
     margin: 0px;
     color: $cool-green;
@@ -37,9 +45,11 @@
     font-weight: normal;
     line-height: 1.35em;
   }
+
   .report-view__headingMeta {
     opacity: 0.6;
     font-size: 11px;
+
     .type {
       text-transform: uppercase;
     }
@@ -48,11 +58,14 @@
 
 .report-view__itemContent {
   padding: 10px 24px;
+  position: relative;
+
   table {
     width: 100%;
     border: 0px;
     margin: 20px 0px;
     border-spacing: 0px;
+
     thead th {
       margin: 0px;
       padding: 8px;
@@ -61,14 +74,17 @@
       text-align: right;
       font-weight: normal;
       font-size: 14px;
+
       &:first-child {
         text-align: left;
       }
     }
+
     tbody tr td {
       border-bottom: 1px solid #CCC;
       padding: 8px;
       text-align: right;
+
       &:first-child {
         text-align: left;
       }
@@ -78,34 +94,38 @@
 
 @media screen and (min-width: 961px) {
   .report-view__itemContent table {
-    width:80%;
+    width: 80%;
     margin-left: 10%;
-  }    
+  }
 }
 
 .report-view__chart {
-  margin:0 auto;
-  padding:20px 50px;
-  max-width:100% !important;
+  margin: 0 auto;
+  padding: 20px 50px;
+  max-width: 100% !important;
   max-height: 350px !important;
+
   canvas {
     width: 100% !important;
     height: auto !important;
-    margin:0 auto;
+    margin: 0 auto;
   }
 }
 
 // report buttons
 .form-view__reportButtons {
   padding: 15px 0px;
+
   button:not(.mdl-button--icon) {
     text-transform: uppercase;
   }
+
   button {
     i.fa {
       font-size: 18px;
       margin-left: 8px;
     }
+
     &.report-button__expand, &.report-button__print {
       float: right;
       margin-right: 0px;
@@ -113,16 +133,17 @@
       overflow: visible;
     }
   }
+
   + .form-view__cell--iframe {
     height: calc(100% - 60px);
   }
 }
 
-
 // report graph settings
 
 .graph-settings__charttype, .graph-settings__colors {
   padding: 20px 10px;
+
   &:after {
     content: '';
     clear: both;
@@ -135,33 +156,42 @@
   background-size: auto 80%;
   background-position: top center;
   background-repeat: no-repeat;
+
   input {
     display: none;
   }
+
   label {
-    border:2px solid white;
+    border: 2px solid white;
     display: block;
     width: 100%;
     cursor: pointer;
   }
+
   input:checked + label {
-    border:2px solid $cool-blue;
+    border: 2px solid $cool-blue;
   }
+
   &--vertical {
     background-image: url("~../img/chart-vertical.png");
   }
+
   &--horizontal {
     background-image: url("~../img/chart-horizontal.png");
   }
+
   &--donut {
     background-image: url("~../img/chart-donut.png");
   }
+
   &--area {
     background-image: url("~../img/chart-area.png");
   }
+
   &--pie {
     background-image: url("~../img/chart-pie.png");
   }
+
   &--line {
     background-image: url("~../img/chart-line.png");
   }
@@ -173,20 +203,23 @@
     height: 100px;
     margin-bottom: 20px;
     float: left;
+
     label {
       padding-top: 80px;
     }
-  } 
+  }
 }
 
 .graph-settings__colors {
   .graph-settings__radio {
     margin-bottom: 10px;
+
     label {
-      padding:4px;
+      padding: 4px;
       padding-top: 8px;
       width: 380px;
-      margin:0 auto;
+      margin: 0 auto;
+
       > div {
         display: inline-block;
         width: 40px;
@@ -197,15 +230,18 @@
 }
 
 .graph-tab__size {
-  padding:20px;
+  padding: 20px;
+
   .slider-item {
     padding: 10px;
     display: flex;
+
     > label {
-      width:100px;
+      width: 100px;
     }
+
     > div {
-      flex-grow:1;
+      flex-grow: 1;
     }
   }
 }

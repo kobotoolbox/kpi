@@ -362,18 +362,6 @@ $headerAccountTextColor: #dbedf7;
     font-size: 18px;
     min-width: 100%;
   }
-
-  // input[name='description'] {
-  //     color: $cool-gray;
-  //     font-size: 13px;
-  //     margin-top: -4px;
-  //     &::-webkit-input-placeholder {
-  //         font-style: italic;
-  //     }
-  //     &::-ms-input-placeholder {
-  //         font-style: italic;
-  //     }
-  // }
 }
 
 @media screen and (max-width: 959px) {
@@ -389,8 +377,32 @@ $headerAccountTextColor: #dbedf7;
 }
 
 @media screen and (max-width: 767px) {
-  .form-view__title, .form-title__submissions {
+  .form-title__submissions {
     display: none;
+  }
+
+  .mdl-layout__header {
+    .mdl-layout-title {
+      width: 40px;
+    }
+
+    .form-title {
+      width: calc(100% - 100px);
+
+      .form-title__name {
+        width: 100%;
+      }
+
+      > i {
+        display: none;
+      }
+    }
+
+    .header__logo {
+      background: url("../img/kobologoS.svg") no-repeat left center;
+      background-size: 125%;
+      width: 40px;
+    }
   }
 }
 
@@ -436,6 +448,25 @@ $headerAccountTextColor: #dbedf7;
       padding: 6px 12px;
       display: block;
       font-size: 12px;
+    }
+  }
+}
+
+// temporary fix for language menu on touch devices
+@media screen and (pointer: coarse) {
+  .account-box__menu .account-box__menu-li--lang {
+    ul {
+      opacity: 1;
+      position: static;
+      border: 1px solid $divider-color;
+      margin-left: 12px;
+      padding: 0px;
+      max-height: 1000px;
+      box-shadow: none;
+
+      li {
+        padding: 6px 18px;
+      }
     }
   }
 }

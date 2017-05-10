@@ -129,3 +129,9 @@ input.mdl-button[type="submit"] {
     }
   }
 }
+
+@media screen and (max-width: 767px) {
+  .mdl-button {
+    padding: 0px 12px;
+  }
+}
