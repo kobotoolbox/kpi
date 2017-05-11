@@ -400,3 +400,33 @@ $nested-btn--addrow-height: 24px;
     // https://github.com/csswizardry/CSS-Guidelines#important
     display: none !important;
 }
+
+
+// appending placeholder 'kobomatrix' styles for @penar
+.kobomatrix {
+    display: table;
+    width: 100%;
+}
+
+.matrix-cols--header {
+    display: table-row;
+    .matrix-cols__col {
+        display: table-cell;
+    }
+}
+
+.matrix-items {
+    display: table-row-group;
+}
+
+.matrix-items__item {
+    display: table-row;
+    .matrix-cols {
+        display: table-column-group;
+    }
+    .matrix-items__itemattr, .matrix-cols__col {
+        display: table-cell;
+        padding: 5px;
+    }
+}
+
