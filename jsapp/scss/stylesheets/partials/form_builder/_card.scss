@@ -25,7 +25,6 @@
         background: white;
         cursor: move;
         position: relative;
-
     }
 
     .bleeding-edge .card__header {
@@ -40,6 +39,7 @@
         vertical-align: middle;
         width: 99%;
         position: relative;
+
         &.activated {
             color: #8595A5;
         }
@@ -88,6 +88,25 @@
     }
     &.card--shaded .card__header-title {
         opacity:0.3;
+    }
+
+    &--required {
+        .card__text:after {
+            content: '*';
+            position: absolute;
+            top: -0.15em;
+            left: -9px;
+            color: #bbb;
+            font-size: 11px;
+        }
+        &.card--selectquestion {
+            .card__text {
+                padding-left: 10px;
+                &:after {
+                    left: 1px;
+                }
+            }
+        }
     }
 }
 
