@@ -1,4 +1,4 @@
-import React from 'react/addons';
+import React from 'react';
 import bem from 'js/bem';
 
 const Matrix = bem.create('kobomatrix', '<div>'),
