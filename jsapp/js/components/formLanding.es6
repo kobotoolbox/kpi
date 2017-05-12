@@ -217,7 +217,7 @@ var FormLanding = React.createClass({
         <bem.FormView__cell m='box'>
           <bem.FormView__cell m={['columns', 'padding']}>
             <bem.FormView__cell>
-              <ui.PopoverMenu type='collectData-menu' triggerLabel={available_links[chosenMethod].label}>
+              <ui.PopoverMenu type='collectData-menu' triggerLabel={available_links.get(chosenMethod).label}>
                 {deployment__links_list.map((c)=>{
                   return (
                       <bem.PopoverMenu__link m={['collect-row']} 
@@ -262,7 +262,7 @@ var FormLanding = React.createClass({
           </bem.FormView__cell>
           <bem.FormView__cell m={['padding', 'bordertop', 'collect-meta']}>
             {chosenMethod != 'android' &&
-              available_links[chosenMethod].desc
+              available_links.get(chosenMethod).desc
             }
 
             {chosenMethod == 'iframe_url' &&
