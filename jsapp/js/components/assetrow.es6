@@ -146,7 +146,7 @@ var AssetRow = React.createClass({
               >
             <bem.AssetRow__cell m={'title'} 
                 className={['mdl-cell', 
-                    this.props.asset_type == 'survey' ? 'mdl-cell--5-col mdl-cell--3-col-tablet mdl-cell--2-col-phone' : 'mdl-cell--7-col mdl-cell--4-col-tablet mdl-cell--2-col-phone']}>
+                    this.props.asset_type == 'survey' ? 'mdl-cell--5-col mdl-cell--4-col-tablet mdl-cell--2-col-phone' : 'mdl-cell--7-col mdl-cell--4-col-tablet mdl-cell--2-col-phone']}>
               { this.props.asset_type && (this.props.asset_type == 'block' || this.props.asset_type == 'question') &&
                 <i className={`row-icon ${_rc > 1 ? 'block' : 'question'}`}>
                   {_rc}
@@ -169,7 +169,7 @@ var AssetRow = React.createClass({
             <bem.AssetRow__cell m={'userlink'}
                 key={'userlink'}
                   className={['mdl-cell', 
-                  this.props.asset_type == 'survey' ? 'mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--hide-phone' : 'mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone']}>
+                  this.props.asset_type == 'survey' ? 'mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--hide-phone' : 'mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone']}>
               { this.props.asset_type == 'survey' &&
                 <span>
                 {selfowned ? ' ' : this.props.owner__username}
@@ -191,8 +191,7 @@ var AssetRow = React.createClass({
             }
             <bem.AssetRow__cell m={'date-modified'}
                 key={'date-modified'}
-                className={['mdl-cell', 
-                    this.props.asset_type == 'survey' ? 'mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone' : 'mdl-cell--3-col mdl-cell--2-col-tablet mdl-cell--1-col-phone']}>
+                className={['mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone']}>
               <span className="date date--modified">{formatTime(this.props.date_modified)}</span>
             </bem.AssetRow__cell>
             { this.props.asset_type == 'survey' &&

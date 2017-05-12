@@ -18,7 +18,8 @@ var SidebarFormsList = React.createClass({
   mixins: [
     searches.common,
     Reflux.ListenerMixin,
-    Reflux.connect(stores.pageState, 'pageState')
+    Reflux.connect(stores.pageState, 'pageState'),
+    mixins.contextRouter
   ],
   getInitialState () {
     var selectedCategories = {
@@ -46,10 +47,13 @@ var SidebarFormsList = React.createClass({
     this.setState(searchStoreState);
   },
   renderMiniAssetRow (resource) {
+    var active = '';
+    if (resource.uid == this.currentAssetID())
+      active = ' active';
+
     return (
-        <bem.FormSidebar__item key={resource.uid}>
-          <Link to={`/forms/${resource.uid}`} className='form-sidebar__itemlink'>
-            <i />
+        <bem.FormSidebar__item key={resource.uid} className={active}>
+          <Link to={`/forms/${resource.uid}`} className={`form-sidebar__itemlink`}>
             <ui.SidebarAssetName {...resource} />
           </Link>
         </bem.FormSidebar__item>

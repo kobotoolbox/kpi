@@ -104,14 +104,6 @@ var FormViewTabs = React.createClass({
       ];
     }
 
-    if (this.state.asset && this.state.asset.deployment__active && this.isActiveRoute(`/forms/${this.state.assetid}/landing`)) {
-       sideTabs = [
-          {label: t('Form overview'), icon: 'k-icon-form-overview', path: `/forms/${this.state.assetid}/landing`},
-          {label: t('Collect data'), icon: 'k-icon-webform', path: `/forms/${this.state.assetid}/landing/collect`},
-          {label: t('Android app'), icon: 'k-icon-mobile-form', path: `/forms/${this.state.assetid}/landing/android`}
-        ];
-    }
-
     // if (this.state.asset && this.state.asset.deployment__active && this.isActiveRoute(`/forms/${this.state.assetid}/settings`)) {
        // sideTabs = [
        //    {label: t('General settings'), icon: 'k-icon-information', path: `/forms/${this.state.assetid}/settings`},

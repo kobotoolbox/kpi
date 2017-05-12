@@ -97,6 +97,11 @@ $hover-asset-row: #F2F2F3;
     font-size: 13px;
   }
 
+  .asset-row__cell--submission-count,
+  .asset-row__cell--row-count {
+    text-align: right;
+  }
+
   > .asset-row__buttons {
     position: absolute;
     top: 8px;
@@ -153,7 +158,7 @@ $hover-asset-row: #F2F2F3;
   &:hover {
     > .asset-row__buttons {
       opacity: 1;
-      width: 43%;
+      width: 33%;
       overflow: visible;
       transition: 0.3s opacity;
     }
@@ -165,5 +170,11 @@ $hover-asset-row: #F2F2F3;
     a.asset-row__celllink {
       color: $black;
     }
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .asset-row:hover > .asset-row__buttons {
+    width: 49%;
   }
 }

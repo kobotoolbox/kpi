@@ -171,32 +171,6 @@ var DefaultChartColorsPicker = React.createClass({
 });
 
 
-// var IndividualReportStylePicker = React.createClass({
-//   specificReportStyleChange (value) {
-//     this.props.onChange({
-//       kuid: this.props.row.$kuid,
-//     }, {
-//       report_type: value || false,
-//     });
-//   },
-//   render () {
-//     let kuid = this.props.row.$kuid;
-//     return (
-//         <div>
-//           <Select
-//             name={`report_type__${kuid}`}
-//             value={this.props.style.report_type}
-//             clearable={true}
-//             clearValueText={t('none')}
-//             placeholder={t('report type')}
-//             options={reportStyles}
-//             onChange={this.specificReportStyleChange}
-//           />
-//         </div>
-//       );
-//   },
-// });
-
 var SizeSliderInput = React.createClass({
   getInitialState: function() {
     return {value: this.props.default};

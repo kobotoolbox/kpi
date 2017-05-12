@@ -1,23 +1,22 @@
 .form-sidebar {
-  height: calc(100% - 40px);
-  margin-top:10px;
+  height: calc(100% - 55px);
+  margin-top: 10px;
   overflow-y: auto;
   overflow-x: hidden;
+
   &__itemlink {
     display: block;
     line-height: 1em;
+    padding: 8px 0px;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
     color: lighten($black, 40%);
     font-weight: normal;
+
     &:hover {
       color: lighten($black, 10%);
     }
-  }
-
-  &__itemlink--active {
-    color: lighten($black, 10%);
   }
 
   &__label, &__grouping {
@@ -25,11 +24,12 @@
     cursor: pointer;
 
     i {
-      font-size:36px;
-      margin-right:0px;
+      font-size: 36px;
+      margin-right: 0px;
       margin-left: -4px;
       vertical-align: middle;
       display: inline-block;
+
       @extend .k-icon;
     }
 
@@ -38,26 +38,28 @@
     }
 
     &--Deployed i {
-      @extend .k-icon-deployed;
+      @extend .k-icon-deploy;
     }
+
     &--Draft i {
       @extend .k-icon-drafts;
     }
+
     &--Archived i {
       @extend .k-icon-archived;
     }
-
   }
 
   &__label {
-    padding:3px 0px;
+    padding: 3px 0px;
     position: relative;
+
     .form-sidebar__label-count {
       position: absolute;
       right: 0px;
       top: 9px;
-      padding:2px 3px;
-      width:32px;
+      padding: 2px 3px;
+      width: 32px;
       border-radius: 40px;
       background: #E6E6E8;
       text-align: center;
@@ -65,13 +67,16 @@
 
     // &--visible, &--selected {
     //   color: lighten($black, 10%);
-    // } 
+    // }
+ 
   }
 
   &__grouping {
-    padding-left: 6px;
+    margin-top: 6px;
+    margin-bottom: 12px;
 
     &--collapsed {
+      margin: 0px;
       height: 0px;
       overflow: hidden;
     }
@@ -80,38 +85,69 @@
   &__item {
     display: block;
     position: relative;
+    padding-left: 30px;
+    padding-top: 3px;
+    padding-bottom: 4px;
+
     .form-sidebar__iteminner {
       display: inline-block;
+
       .form-sidebar__itembyline {
         display: block;
         font-size: 0.85em;
         opacity: 0.6;
       }
     }
+
     &--selected {
-      color: lighten($black, 10%);
+      background: #ededee;
+
       .popover-menu {
         position: absolute;
-        right: -5px;
-        top: 0px;
-        margin:0px;
-        button {
-          color:$cool-gray;
-          &:hover {
-            color: $cool-blue;
+        right: -4px;
+        top: -2px;
+        margin: 0px;
+
+        .popover-menu__toggle {
+          i {
+            margin-left: 0px;
+            line-height: 1em;
           }
         }
+
         .popover-menu__content {
           margin-right: 20px;
         }
       }
+
       .form-sidebar__itemlink {
-        color: lighten($black, 10%);
-        margin-right:32px;
+        color: $cool-green;
+        margin-right: 32px;
         text-overflow: clip;
+      }
+    }
+
+    &.active {
+      background: #ededee;
+
+      .form-sidebar__itemlink {
+        color: $cool-green;
       }
     }
   }
 
-}
+  &__item--collection {
+    padding-left: 15px;
+    margin: 5px 0px;
 
+    .form-sidebar__itemlink {
+      padding: 0px;
+
+      i {
+        font-size: 32px;
+        vertical-align: middle;
+        display: inline-block;
+      }
+    }
+  }
+}

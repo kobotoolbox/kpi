@@ -650,8 +650,6 @@ var routes = (
 
         <Route path="landing">
           <IndexRoute component={FormLanding} />
-          <Route path="collect" component={FormSubScreens} />
-          <Route path="android" component={FormSubScreens} />
         </Route>
 
         <Route path="data">

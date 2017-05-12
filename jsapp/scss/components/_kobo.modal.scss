@@ -115,7 +115,8 @@
 }
 
 .enketo-holder {
-  margin-top: 20px;
+  // resets modal window paddings
+  margin: -30px -35px;
   .enketo-loading-message {
     p {
       text-align: center;
