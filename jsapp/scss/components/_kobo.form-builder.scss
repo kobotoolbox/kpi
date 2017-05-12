@@ -121,6 +121,7 @@
     &--first {
       background-color: #FFF;
       height: 75px;
+      position: relative;
     }
 
     &--second {
@@ -151,9 +152,13 @@
     }
 
     &--name {
-      width: calc(100% - 400px);
+      width: calc(100% - 350px);
       padding-left: 20px;
       padding-top: 20px;
+
+      input {
+        border-radius: 0px;
+      }
     }
 
     &--translations {
@@ -175,7 +180,7 @@
     }
 
     &--buttonsTopRight {
-      width: 280px;
+      width: 270px;
       text-align: right;
       align-self: center;
     }
@@ -203,6 +208,7 @@
         color: $cool-gray;
         overflow: visible;
         vertical-align: middle;
+        padding: 0px 4px;
 
         &:hover, &:focus, &:focus:not(:active) {
           background-color: transparent;
@@ -213,7 +219,7 @@
         }
 
         i {
-          font-size: 28px;
+          font-size: 32px;
           vertical-align: middle;
 
           &.fa {
@@ -239,14 +245,16 @@
 }
 
 .formBuilder-header__close {
+  margin-left: 10px;
+  margin-top: -12px;
   border: none;
-  background-color: transparent;
-  font-size: 32px;
-  color: #D8D8D8;
+  color: lighten($cool-gray, 20%);
   cursor: pointer;
 
+  @extend .mdl-button, .mdl-button--icon;
+
   &:hover {
-    color: darken(#D8D8D8, 20%);
+    color: $cool-gray;
   }
 }
 
@@ -411,5 +419,167 @@
     visibility: visible !important;
     min-height: 80px;
     padding: 0px;
+  }
+}
+
+// FORM BUILDER SMALL SCREEN ADJUSTMENTS
+
+@media screen and (max-width: 767px) {
+  .formBuilder-header__cell--project-icon {
+    display: none;
+  }
+
+  .formBuilder-header__cell--name {
+    width: calc(100% - 175px);
+  }
+
+  .formBuilder-header__cell--buttonsTopRight {
+    width: 175px;
+
+    .formBuilder-header__button--save {
+      max-width: 120px;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .formBuilder-header__cell--buttons {
+    margin-left: 10px;
+
+    button {
+      padding: 0px 6px;
+
+      i {
+        margin-right: 0px;
+      }
+    }
+
+    .formBuilder-header__button--formstyle {
+      i.fa-angle-down {
+        display: none;
+      }
+    }
+
+    .formBuilder-header__item {
+      border-left: none;
+      border-right: none;
+      margin: 4px 0px;
+      padding: 0px;
+    }
+  }
+
+  .formBuilder-header__cell--library-toggle {
+    width: 150px;
+    max-width: 35%;
+
+    button {
+      min-width: 60px;
+      max-width: 100%;
+      padding: 0px 12px;
+    }
+  }
+
+  .form-wrap {
+    padding: 0px 25px;
+  }
+
+  .form-meta {
+    margin: 16px 25px;
+    margin-right: 0px;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .formBuilder-header__cell--library-toggle {
+    display: none;
+  }
+}
+
+@media screen and (pointer: coarse) {
+  .formBuilder-header__cell--library-toggle {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .formBuilder-header__cell--buttons button {
+    padding: 0px;
+    border-radius: 0px;
+  }
+
+  .form-style__panel {
+    margin: 0px;
+    padding: 8px 16px;
+  }
+
+  .formBuilder-header__button--formstyle {
+    span {
+      display: none;
+    }
+  }
+
+  .card--selectquestion__expansion {
+    padding-right: 5px;
+    padding-left: 25px;
+  }
+
+  .multioptions__option {
+    div.editable-wrapper {
+      width: 65%;
+    }
+
+    code {
+      width: 33%;
+      margin-left: 1%;
+      margin-right: 0px;
+
+      label {
+        font-size: 10px;
+        padding-left: 2px;
+        width: 24%;
+      }
+
+      span, .editable-container {
+        padding-right: 2px;
+        width: 64%;
+        overflow: hidden;
+      }
+    }
+  }
+
+  .form-wrap {
+    padding: 0px 15px;
+  }
+
+  .btn--addrow {
+    left: -40px;
+  }
+
+  .card__settings__content {
+    padding: 20px;
+    padding-right: 10px;
+  }
+
+  .card__settings__fields__field {
+    > label {
+      text-align: left;
+      margin-right: 1%;
+    }
+
+    .settings__input {
+      input[type="text"] {
+        border: 1px solid #DDD;
+      }
+    }
+  }
+
+  .questiontypelist__item {
+    text-align: center;
+    background: #F8F8F8;
+
+    i {
+      display: block;
+      margin: 0 auto;
+      margin-bottom: 5px;
+    }
   }
 }

@@ -436,14 +436,15 @@ export default assign({
                 <i />
                 {saveButtonText}
               </bem.FormBuilderHeader__button>
-            </bem.FormBuilderHeader__cell>
-            <bem.FormBuilderHeader__cell m={'close'} >
+
               <bem.FormBuilderHeader__close m={[{
                     'close-warning': this.needsSave(),
                   }]} onClick={this.navigateBack}>
                 <i className="k-icon-close"></i>
               </bem.FormBuilderHeader__close>
+
             </bem.FormBuilderHeader__cell>
+
           </bem.FormBuilderHeader__row>
           <bem.FormBuilderHeader__row m={'second'} >
             <bem.FormBuilderHeader__cell m={'buttons'} >
@@ -486,7 +487,7 @@ export default assign({
                   }} onClick={this.openFormStylePanel} 
                     data-tip={t('Web form layout')} >
                     <i className="k-icon-grid" />
-                    {t('Layout')}
+                    <span>{t('Layout')}</span>
                     <i className="fa fa-angle-down" />
                   </bem.FormBuilderHeader__button>
                 </bem.FormBuilderHeader__item>
@@ -663,7 +664,9 @@ export default assign({
               <ui.Modal open large
                   onClose={this.hidePreview} title={t('Form Preview')}>
                 <ui.Modal.Body>
-                  <iframe src={this.state.enketopreviewOverlay} />
+                  <div className="enketo-holder">
+                    <iframe src={this.state.enketopreviewOverlay} />
+                  </div>
                 </ui.Modal.Body>
               </ui.Modal>
 
