@@ -146,7 +146,7 @@ var AssetRow = React.createClass({
               >
             <bem.AssetRow__cell m={'title'} 
                 className={['mdl-cell', 
-                    this.props.asset_type == 'survey' ? 'mdl-cell--5-col mdl-cell--4-col-tablet mdl-cell--2-col-phone' : 'mdl-cell--7-col mdl-cell--4-col-tablet mdl-cell--2-col-phone']}>
+                    this.props.asset_type == 'survey' ? 'mdl-cell--5-col mdl-cell--4-col-tablet mdl-cell--2-col-phone' : 'mdl-cell--8-col mdl-cell--5-col-tablet mdl-cell--2-col-phone']}>
               { this.props.asset_type && (this.props.asset_type == 'block' || this.props.asset_type == 'question') &&
                 <i className={`row-icon ${_rc > 1 ? 'block' : 'question'}`}>
                   {_rc}
