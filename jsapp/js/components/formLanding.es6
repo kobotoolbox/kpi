@@ -1,6 +1,7 @@
 import React from 'react';
 import Reflux from 'reflux';
 import Dropzone from 'react-dropzone';
+import Map from 'es6-map';
 import _ from 'underscore';
 import { Link } from 'react-router';
 import actions from '../actions';
@@ -194,40 +195,39 @@ var FormLanding = React.createClass({
   renderCollectData () {
     var deployment__links = this.state.deployment__links;
 
-    var available__links = {
-        offline_url: {
+    var available_links = new Map([
+        ['offline_url', {
           label: t('Online-Offline (multiple submission)'),
           desc: t('This allows online and offline submissions and is the best option for collecting data in the field. ')
-        },
-        url: {
+        }],
+        ['url', {
           label: t('Online-Only (multiple submissions)'),
           desc: t('This is the best option when entering many records at once on a computer, e.g. for transcribing paper records')
-        },
-        iframe_url: {
+        }],
+        ['iframe_url', {
           label: t('Embeddable web form code'),
           desc: t('Use this html5 code snippet to integrate your form on your own website using smaller margins. ')
-        },
-        preview_url: {
+        }],
+        ['preview_url', {
           label: t('View only'),
           desc: t('Use this version for testing, getting feedback. Does not allow submitting data. ')
-        },
-        android: {
+        }],
+        ['android', {
           label: t('Android application'),
           desc: t('Use this option to collect data in the field with your Android device.')
-        }
-    };
+        }],
+    ]);
 
     var deployment__links_list = [];
-    for (var key in available__links) {
+    available_links.forEach(function (value, key) {
       deployment__links_list.push(
         {
           key: key,
-          label: available__links[key].label,
-          desc: available__links[key].desc
+          label: value.label,
+          desc: value.desc,
         }
       );
-
-    }
+    });
 
     var chosenMethod = this.state.selectedCollectMethod;
 
@@ -245,7 +245,7 @@ var FormLanding = React.createClass({
         <bem.FormView__cell m='box'>
           <bem.FormView__cell m={['columns', 'padding']}>
             <bem.FormView__cell>
-              <ui.PopoverMenu type='collectData-menu' triggerLabel={available__links[chosenMethod].label}>
+              <ui.PopoverMenu type='collectData-menu' triggerLabel={available_links[chosenMethod].label}>
                 {deployment__links_list.map((c)=>{
                   return (
                       <bem.PopoverMenu__link m={['collect-row']} 
@@ -290,7 +290,7 @@ var FormLanding = React.createClass({
           </bem.FormView__cell>
           <bem.FormView__cell m={['padding', 'bordertop', 'collect-meta']}>
             {chosenMethod != 'android' &&
-              available__links[chosenMethod].desc
+              available_links[chosenMethod].desc
             }
 
             {chosenMethod == 'iframe_url' &&
