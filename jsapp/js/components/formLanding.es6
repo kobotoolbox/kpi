@@ -111,34 +111,6 @@ var FormLanding = React.createClass({
       assetid: this.state.uid
     });
   },
-  // renderQuestionsSummary () {
-  //   var survey = this.state.content.survey || [];
-  //   return (
-  //     <bem.FormView__cell m={['padding', 'bordertop', 'questions', 'columns']}>
-  //       <bem.FormView__cell m='label'>
-  //         <div>{t('Questions')}</div>
-  //         <div className="question-count">{this.state.summary.row_count}</div>
-  //       </bem.FormView__cell>
-  //       <bem.FormView__cell m={['question-list']}>
-  //         {survey.map((s, i)=>{
-  //           if (s.label == undefined) return false;
-  //           var icon = icons._byId[s.type];
-  //           if (!icon) {
-  //             return false;
-  //           }
-
-  //           var faClass = `fa-${icon.attributes.faClass}`;
-  //           return (
-  //               <div key={`survey-${i}`}>
-  //                 <i className={`fa fa-fw ${faClass}`} />
-  //                 <span>{s.label[this.state.questionLanguageIndex]}</span>
-  //               </div>
-  //             );
-  //         })}
-  //       </bem.FormView__cell>
-  //     </bem.FormView__cell>
-  //   );
-  // },
   renderHistory () {
     var dvcount = this.state.deployed_versions.length;
     return (
