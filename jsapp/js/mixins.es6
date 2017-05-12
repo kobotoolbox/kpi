@@ -377,6 +377,12 @@ mixins.clickAssets = {
       },
       delete: function(uid){
         let asset = stores.selectedAsset.asset;
+        var assetTypeLabel = t('project');
+
+        if (asset.asset_type != 'survey') {
+          assetTypeLabel = t('library item');
+        }
+
         let dialog = alertify.dialog('confirm');
         let deployed = asset.has_deployment;
         let msg, onshow;
@@ -384,14 +390,17 @@ mixins.clickAssets = {
           actions.resources.deleteAsset({uid: uid}, {
             onComplete: ()=> {
               this.refreshSearch && this.refreshSearch();
-              notify(t('project deleted permanently'));
+              notify(`${assetTypeLabel} ${t('deleted permanently')}`);
               $('.alertify-toggle input').prop("checked", false);
             }
           });
         };
 
         if (!deployed) {
-          msg = t('You are about to permanently delete this draft.');
+          if (asset.asset_type != 'survey')
+            msg = t('You are about to permanently delete this item from your library.');
+          else
+            msg = t('You are about to permanently delete this draft.');
         } else {
           msg = `
             ${t('You are about to permanently delete this form.')}
@@ -415,7 +424,7 @@ mixins.clickAssets = {
           };
         }
         let opts = {
-          title: t('Delete Project'),
+          title: `${t('Delete')} ${assetTypeLabel}`,
           message: msg,
           labels: {
             ok: t('Delete'),
