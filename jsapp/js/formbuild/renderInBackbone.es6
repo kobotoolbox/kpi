@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import {KoboMatrix} from './build.kobomatrix';
 
 /*
@@ -17,5 +18,5 @@ class KoboMatrixRow {
 export function renderKobomatrix (view) {
   let $el = view.$el;
   let model = view.model;
-  React.render(<KoboMatrix model={new KoboMatrixRow(model)} />, $el.get(0));
+  ReactDOM.render(<KoboMatrix model={new KoboMatrixRow(model)} />, $el.get(0));
 }
