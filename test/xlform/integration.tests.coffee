@@ -85,6 +85,22 @@ do ->
         expect(last_row_reqd).toBe(false)
         @expectReqCheckbox(@div.find('.survey__row').eq(2)).toBe(last_row_reqd)
 
+      it 'new geotrace questions not marked as required', ->
+        @app.survey.rows.add(type: 'geotrace', label: 'hello world')
+        last_row = @app.survey.rows.last()
+        last_row_reqd = last_row.getValue('required')
+        # depends on model configs
+        expect(last_row_reqd).toBe(false)
+        @expectReqCheckbox(@div.find('.survey__row').eq(2)).toBe(last_row_reqd)
+
+      it 'new geoshape questions not marked as required', ->
+        @app.survey.rows.add(type: 'geoshape', label: 'hello world')
+        last_row = @app.survey.rows.last()
+        last_row_reqd = last_row.getValue('required')
+        # depends on model configs
+        expect(last_row_reqd).toBe(false)
+        @expectReqCheckbox(@div.find('.survey__row').eq(2)).toBe(last_row_reqd)
+
     it 'has group html structure', ->
       @load_group_csv()
       expect(@survey.rows.length).toBe(2)
