@@ -4,14 +4,15 @@ import os
 import json
 import datetime
 
-from unittest import skip
 from django.test import TestCase, RequestFactory
 from django.conf import settings
 from django.db.models import FileField
 from django.contrib.auth.models import User
+from rest_framework_extensions.settings import extensions_api_settings
 from mock import patch, MagicMock
 from kpi.models import Asset
 from kpi.utils import image_tools
+from django_mock_queries.query import MockModel, MockSet
 from kpi.views import AttachmentViewSet
 from kpi.deployment_backends.kc_reader.shadow_models import _models
 
@@ -30,6 +31,16 @@ class AttachmentViewsetTestCase(TestCase):
         media_file.url = self.MEDIA_URL.rstrip('/') + filename
         media_file.size = size
         return media_file
+
+    def _generateAsset(self, uid):
+        asset = MagicMock(spec=Asset, name='AssetMock', return_value=True)
+        asset.pk = 1
+        asset.uid = uid
+        deployment = MagicMock(name="Deployment")
+        deployment.identifier = uid
+        asset.deployment = deployment
+        asset.has_deployment = True
+        return asset
 
     def _generateXForm(self, id_string, title='Test XForm', user=None, questions=[]):
         xform = _models.XForm(
@@ -87,19 +98,19 @@ class AttachmentViewsetTestCase(TestCase):
             self.questions[1]['name']: self.filename2.split('/')[-1]
         }
         self.user = User.objects.get(username='someuser')
-        self.asset = Asset.objects.get(pk=1)
+        self.asset = self._generateAsset('someassetid')
 
         # Generate one XForm
         self._generateXForm(self.asset.uid, user=self.user, questions=self.questions)
 
         # Generate two Instances
         self._generateInstance(
-            '498ff009-5c59-4bfa-b266-c67597f759ef',
+            'SOME-INSTANCE-UUID',
             self.SAVED_XFORMS[0],
             answers=self.answers
         )
         self._generateInstance(
-            '30f96573-0030-41a4-8e43-c5e1d8635391',
+            'ANOTHER-INSTANCE-UUID',
             self.SAVED_XFORMS[0],
             answers=self.answers
         )
@@ -122,6 +133,9 @@ class AttachmentViewsetTestCase(TestCase):
             self.filename2
         )
 
+        self.parent_qs = MockSet(self.asset)
+        self.qs = MockSet(*self.SAVED_ATTACHMENTS)
+
     def setUp(self):
         self._setUpData()
         self.factory = RequestFactory()
@@ -131,3 +145,25 @@ class AttachmentViewsetTestCase(TestCase):
         self.list_view = AttachmentViewSet.as_view({
             'get': 'list'
         })
+
+
+    def test_list_view(self):
+        with patch('kpi.deployment_backends.kc_reader.shadow_models._models.Attachment.objects', self.qs):
+            with patch('kpi.models.Asset.objects', self.parent_qs):
+                url = '/assets/%s/attachmments' % self.asset.uid
+                request = self.factory.get(url)
+                request.user = self.user
+                response = self.list_view(request, parent_lookup_asset=self.asset.uid)
+                self.assertEqual(response.status_code, 200)
+
+
+    @patch('kpi.serializers.image_url', MagicMock(side_effect=lambda att, size: att.media_file.url))
+    def test_retrieve_view(self):
+        with patch('kpi.deployment_backends.kc_reader.shadow_models._models.Attachment.objects', self.qs):
+            with patch('kpi.models.Asset.objects', self.parent_qs):
+                pk = self.SAVED_ATTACHMENTS[-1].pk
+                url = '/assets/%s/attachmments/%s' % (self.asset.uid, pk)
+                request = self.factory.get(url)
+                request.user = self.user
+                response = self.retrieve_view(request, parent_lookup_asset=self.asset.uid, pk=pk)
+                self.assertEqual(response.status_code, 200)
