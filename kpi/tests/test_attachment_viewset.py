@@ -53,7 +53,7 @@ class AttachmentViewsetTestCase(TestCase):
         return xform
 
     def _generateInstance(self, uuid, xform, status='test status', answers={}):
-        now = datetime.datetime.now().strftime('%s')
+        now = datetime.datetime.now()
         instance = _models.Instance(
             pk=len(self.SAVED_INSTANCES) + 1,
             uuid=uuid,
@@ -239,3 +239,88 @@ class AttachmentViewsetTestCase(TestCase):
                 response = self.retrieve_view(request, parent_lookup_asset=self.asset.uid, pk=pk)
 
                 self.assertEqual(response.status_code, 404)
+
+
+    def test_list_view_filter_by_type(self):
+        with patch('kpi.deployment_backends.kc_reader.shadow_models._models.Attachment.objects', self.qs):
+            with patch('kpi.models.Asset.objects', self.parent_qs):
+                type = 'image'
+                url = '/assets/%s/attachmments?type=%s' % (self.asset.uid, type)
+                request = self.factory.get(url)
+                request.user = self.user
+                response = self.list_view(request, parent_lookup_asset=self.asset.uid)
+                self.assertEqual(response.status_code, 200)
+                data = response.data
+                self.assertEquals(data['count'], len(self.SAVED_ATTACHMENTS)) # All attachments have image mimetype
+                self.assertIsNone(data['previous'])
+                self.assertIsNone(data['next'])
+                self.assertIsNone(data['previous_page'])
+                self.assertIsNone(data['next_page'])
+                self.assertEquals(len(data['results']), len(self.SAVED_ATTACHMENTS))
+
+
+    def test_list_view_paging(self):
+        with patch('kpi.deployment_backends.kc_reader.shadow_models._models.Attachment.objects', self.qs):
+            with patch('kpi.models.Asset.objects', self.parent_qs):
+                page_size = 2
+                url = '/assets/%s/attachmments?page_size=%s' % (self.asset.uid, page_size)
+                request = self.factory.get(url)
+                request.user = self.user
+                response = self.list_view(request, parent_lookup_asset=self.asset.uid)
+                self.assertEqual(response.status_code, 200)
+                data = response.data
+                self.assertEquals(data['count'], len(self.SAVED_ATTACHMENTS))
+                self.assertIsNone(data['previous'])
+                self.assertIsNone(data['previous_page'])
+                self.assertIsNotNone(data['next'])
+                self.assertTrue('limit=2' in data['next'])
+                self.assertTrue('offset=2' in data['next'])
+                self.assertIsNotNone(data['next_page'])
+                self.assertTrue('page=2' in data['next_page'])
+                self.assertTrue('page_size=2' in data['next_page'])
+                self.assertEquals(len(data['results']), page_size)
+
+
+    def test_list_view_group_by_submission(self):
+        with patch('kpi.deployment_backends.kc_reader.shadow_models._models.Attachment.objects', self.qs):
+            with patch('kpi.models.Asset.objects', self.parent_qs):
+                group_by = 'submission'
+                url = '/assets/%s/attachmments?group_by=%s' % (self.asset.uid, group_by)
+                request = self.factory.get(url)
+                request.user = self.user
+                response = self.list_view(request, parent_lookup_asset=self.asset.uid)
+                self.assertEqual(response.status_code, 200)
+                data = response.data
+                self.assertEquals(data['count'], len(self.SAVED_ATTACHMENTS)) # Remember, it's paged by Attachment
+                self.assertIsNone(data['previous'])
+                self.assertIsNone(data['next'])
+                self.assertIsNone(data['previous_page'])
+                self.assertIsNone(data['next_page'])
+                self.assertEquals(len(data['results']), len(self.SAVED_INSTANCES))
+                for submission in data['results']:
+                    self.assertIsNotNone(submission['instance_uuid'])
+                    self.assertIsNotNone(submission['date_created'])
+                    self.assertIsNotNone(submission['date_modified'])
+                    self.assertEqual(len(submission['attachments']), 2) # 2 attachments linked to each instance
+
+
+    def test_list_view_group_by_question(self):
+        with patch('kpi.deployment_backends.kc_reader.shadow_models._models.Attachment.objects', self.qs):
+            with patch('kpi.models.Asset.objects', self.parent_qs):
+                group_by = 'question'
+                url = '/assets/%s/attachmments?group_by=%s' % (self.asset.uid, group_by)
+                request = self.factory.get(url)
+                request.user = self.user
+                response = self.list_view(request, parent_lookup_asset=self.asset.uid)
+                self.assertEqual(response.status_code, 200)
+                data = response.data
+                self.assertEquals(data['count'], len(self.SAVED_ATTACHMENTS)) # Remember, it's paged by Attachment
+                self.assertIsNone(data['previous'])
+                self.assertIsNone(data['next'])
+                self.assertIsNone(data['previous_page'])
+                self.assertIsNone(data['next_page'])
+                self.assertEquals(len(data['results']), len(self.questions))
+                for question in data['results']:
+                    self.assertIsNotNone(question['number'])
+                    self.assertIsNotNone(question['name'])
+                    self.assertEqual(len(question['attachments']), 2)  # 2 attachments linked to each question
