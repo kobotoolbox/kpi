@@ -19,7 +19,7 @@ var CollectionsField = React.createClass({
 	getInitialState () {
 		return {
 			filter: {
-				source: 'question',
+				source: 'Group By Question',
 				options: [],
 				filterText: ''
 			},
@@ -31,26 +31,13 @@ var CollectionsField = React.createClass({
 		var newFilter = value;
 		console.log('Filter changed to ' + newFilter);
 		dataInterface.filterGalleryImages(this.props.uid, newFilter).done((response)=>{
-			var options = this.getOptions(response);
+			// var options = this.getOptions(response);
 			this.setState({
 				filter: {
-					source: newFilter,
-					options: options
+					source: newFilter
 				}
 			});
 		});
-	},
-	getOptions (data) {
-		var options = [];
-		for (var i = 0; i < data.results.length; i++){
-			var asset = data.results[i];
-			if(asset.question !== undefined){
-				options.push({label: asset.question.label, value: asset.question.label});
-			}else{
-				options.push({value: 'record-'+i, label:'record-'+i});
-			}
-		}
-		return options;
 	},
 	updateCollectionValue (newValue) {
 		console.log('Changed to ' + newValue);
@@ -62,10 +49,13 @@ var CollectionsField = React.createClass({
 		this.refs.collectionSelect.focus();
 	},
 	render () {
-		var filters = COLLECTIONS.filters;
+		var filters = [
+			{value: 'Group by Question', label: 'Group by Question'},
+			{value: 'Group by Record', label: 'Group by Record'}
+		]
 		return (
 			<bem.AssetGallery__headingSearchFilter className="section">
-				<Select ref="collectionSelect" options={this.state.filter.options} simpleValue clearable={this.state.clearable} name="selected-collection" disabled={this.state.disabled} value={this.state.collectionValue} onChange={this.props.filterHandler} searchable={this.state.searchable} />
+				<div className="text-display"><span>{this.state.filter.source}</span></div>
 				<Select ref="filterSelect" className="icon-button-select" options={filters} simpleValue name="selected-filter" disabled={this.state.disabled} value={this.state.filter.source} onChange={this.switchFilter} searchable={false} />
 			</bem.AssetGallery__headingSearchFilter>
 		);

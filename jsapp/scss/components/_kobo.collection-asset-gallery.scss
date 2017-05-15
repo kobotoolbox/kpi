@@ -74,6 +74,16 @@
     justify-content: space-between;
     &__search-filter{
       min-width: 300px;
+      .text-display{
+        display: inline-block;
+        padding: 10px;
+        border-radius: 2px;
+        border: solid 1px #ccc;
+        background-color: #fff;
+        width: 220px;
+        box-shadow:0px 1px 1px #ccc;
+        color: #ccc;
+      }
       .Select--single{
         display: inline-block;
         &:first-child{
@@ -202,6 +212,7 @@
         width: 100% !important;
         .toggle-info{
           display: inline-block;
+          color: #55B5C1;
         }
       }
     }
@@ -215,9 +226,18 @@
           cursor: pointer;
         }
         .info{
-          h3{
-            margin: 0;
-            padding: 20px;
+          &__outer{
+            h4{
+              margin-top: 0;
+              padding: 15px;
+            }
+          }
+          &__inner{
+            border-bottom: solid 1px #ccc;
+            margin-bottom: 20px;
+            h5{
+              margin-top: 0;
+            }
           }
         }
       }
@@ -229,6 +249,9 @@
         display: flex;
         flex-wrap: wrap;
         &-item{
+          &.selected{
+            border: solid 2px #55B5C1;
+          }
           >div{
             margin: 5px;
           }

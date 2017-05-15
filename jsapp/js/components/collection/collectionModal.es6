@@ -11,8 +11,8 @@ var CollectionsModal = React.createClass({
 		this.toggleInfo = this.toggleInfo.bind(this);
 		return {
 			infoOpen: true,
-			assetID: this.props.assetID,
-			assetIndex: this.props.assetIndex,
+			activeID: this.props.activeID,
+			activeIndex: this.props.activeIndex,
 			selectedAsset: {
 				question: {
 					label: ''
@@ -56,10 +56,11 @@ var CollectionsModal = React.createClass({
 	},
 	componentDidMount: function(){
 		this.loadGalleryData(this.props.uid, 'question');
+		console.log(this.state);
 	},
 	modalData() {
 		console.log(this.state);
-		this.goToSlide(this.state.assetIndex);
+		this.goToSlide(this.state.activeIndex);
 	},
 	goToSlide(index) {
 		this.refs.slider.slickGoTo(index);
@@ -111,9 +112,9 @@ var CollectionsModal = React.createClass({
 							<div>
 								<div className="info__outer">
 									<div className="light-grey-bg">
-										<h3>Information</h3>
+										<h4>Information</h4>
 									</div>
-									<div className="info__inner padding--20">
+									<div className="info__inner padding--15">
 										<h6>{this.state.selectedAsset.question.label}</h6>
 										<p>{this.state.selectedAsset.submission.date_created}</p>
 									</div>
