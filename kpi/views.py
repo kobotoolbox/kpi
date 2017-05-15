@@ -7,6 +7,7 @@ import datetime
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import Q, Count
 from django.forms import model_to_dict
@@ -509,7 +510,10 @@ class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         _asset_uid = self.get_parents_query_dict()['asset']
-        asset = Asset.objects.get(uid=_asset_uid)
+        try:
+            asset = Asset.objects.get(uid=_asset_uid)
+        except ObjectDoesNotExist:
+            asset = None
         if not asset or not asset.has_deployment:
             raise Http404
         xform_id = asset.deployment.identifier.split('/')[-1]

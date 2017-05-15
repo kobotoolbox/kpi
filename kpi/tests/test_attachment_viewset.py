@@ -8,7 +8,6 @@ from django.test import TestCase, RequestFactory
 from django.conf import settings
 from django.db.models import FileField
 from django.contrib.auth.models import User
-from rest_framework_extensions.settings import extensions_api_settings
 from mock import patch, MagicMock
 from kpi.models import Asset
 from kpi.utils import image_tools
@@ -133,8 +132,8 @@ class AttachmentViewsetTestCase(TestCase):
             self.filename2
         )
 
-        self.parent_qs = MockSet(self.asset)
-        self.qs = MockSet(*self.SAVED_ATTACHMENTS)
+        self.parent_qs = MockSet(self.asset, model=MagicMock(spec=Asset, return_value=True))
+        self.qs = MockSet(*self.SAVED_ATTACHMENTS, model=_models.Attachment)
 
     def setUp(self):
         self._setUpData()
@@ -164,6 +163,35 @@ class AttachmentViewsetTestCase(TestCase):
                 self.assertEquals(len(data['results']), len(self.SAVED_ATTACHMENTS))
 
 
+    def test_list_view_no_results(self):
+        empty = MockSet(model=_models.Attachment)
+        with patch('kpi.deployment_backends.kc_reader.shadow_models._models.Attachment.objects', empty):
+            with patch('kpi.models.Asset.objects', self.parent_qs):
+                url = '/assets/%s/attachmments' % self.asset.uid
+                request = self.factory.get(url)
+                request.user = self.user
+                response = self.list_view(request, parent_lookup_asset=self.asset.uid)
+                self.assertEqual(response.status_code, 200)
+                data = response.data
+                self.assertEquals(data['count'], 0)
+                self.assertIsNone(data['previous'])
+                self.assertIsNone(data['next'])
+                self.assertIsNone(data['previous_page'])
+                self.assertIsNone(data['next_page'])
+                self.assertEquals(len(data['results']), 0)
+
+
+    def test_list_view_asset_not_found(self):
+        with patch('kpi.deployment_backends.kc_reader.shadow_models._models.Attachment.objects', self.qs):
+            empty = MockSet(model=Asset)
+            with patch('kpi.models.Asset.objects', empty):
+                url = '/assets/%s/attachmments' % self.asset.uid
+                request = self.factory.get(url)
+                request.user = self.user
+                response = self.list_view(request, parent_lookup_asset=self.asset.uid)
+                self.assertEqual(response.status_code, 404)
+
+
     @patch('kpi.serializers.image_url', MagicMock(side_effect=lambda att, size: att.media_file.url))
     def test_retrieve_view(self):
         with patch('kpi.deployment_backends.kc_reader.shadow_models._models.Attachment.objects', self.qs):
@@ -186,3 +214,28 @@ class AttachmentViewsetTestCase(TestCase):
                 self.assertIsNotNone(data['question'])
                 self.assertIsNotNone(data['submission'])
 
+
+    def test_retrieve_view_attachment_not_found(self):
+        empty = MockSet(model=_models.Attachment)
+        with patch('kpi.deployment_backends.kc_reader.shadow_models._models.Attachment.objects', empty):
+            with patch('kpi.models.Asset.objects', self.parent_qs):
+                pk = self.SAVED_ATTACHMENTS[-1].pk
+                url = '/assets/%s/attachmments/%s' % (self.asset.uid, pk)
+                request = self.factory.get(url)
+                request.user = self.user
+                response = self.retrieve_view(request, parent_lookup_asset=self.asset.uid, pk=pk)
+
+                self.assertEqual(response.status_code, 404)
+
+
+    def test_retrieve_view_asset_not_found(self):
+        with patch('kpi.deployment_backends.kc_reader.shadow_models._models.Attachment.objects', self.qs):
+            empty = MockSet(model=Asset)
+            with patch('kpi.models.Asset.objects', empty):
+                pk = self.SAVED_ATTACHMENTS[-1].pk
+                url = '/assets/%s/attachmments/%s' % (self.asset.uid, pk)
+                request = self.factory.get(url)
+                request.user = self.user
+                response = self.retrieve_view(request, parent_lookup_asset=self.asset.uid, pk=pk)
+
+                self.assertEqual(response.status_code, 404)
