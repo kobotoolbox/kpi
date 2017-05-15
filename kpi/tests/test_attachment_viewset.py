@@ -155,15 +155,34 @@ class AttachmentViewsetTestCase(TestCase):
                 request.user = self.user
                 response = self.list_view(request, parent_lookup_asset=self.asset.uid)
                 self.assertEqual(response.status_code, 200)
+                data = response.data
+                self.assertEquals(data['count'], len(self.SAVED_ATTACHMENTS))
+                self.assertIsNone(data['previous'])
+                self.assertIsNone(data['next'])
+                self.assertIsNone(data['previous_page'])
+                self.assertIsNone(data['next_page'])
+                self.assertEquals(len(data['results']), len(self.SAVED_ATTACHMENTS))
 
 
     @patch('kpi.serializers.image_url', MagicMock(side_effect=lambda att, size: att.media_file.url))
     def test_retrieve_view(self):
         with patch('kpi.deployment_backends.kc_reader.shadow_models._models.Attachment.objects', self.qs):
             with patch('kpi.models.Asset.objects', self.parent_qs):
-                pk = self.SAVED_ATTACHMENTS[-1].pk
+                expected = self.SAVED_ATTACHMENTS[-1]
+                pk = expected.pk
                 url = '/assets/%s/attachmments/%s' % (self.asset.uid, pk)
                 request = self.factory.get(url)
                 request.user = self.user
                 response = self.retrieve_view(request, parent_lookup_asset=self.asset.uid, pk=pk)
+
                 self.assertEqual(response.status_code, 200)
+                data = response.data
+                self.assertEquals(expected.id, data['id'])
+                self.assertEquals(expected.media_file.name, data['filename'])
+                self.assertEquals(expected.filename, data['short_filename'])
+                self.assertEquals(expected.mimetype, data['mimetype'])
+                self.assertEquals(expected.media_file.url, data['download_url'])
+                self.assertEquals(expected.can_view_submission, data['can_view_submission'])
+                self.assertIsNotNone(data['question'])
+                self.assertIsNotNone(data['submission'])
+
