@@ -259,6 +259,24 @@ class AttachmentViewsetTestCase(TestCase):
                 self.assertEquals(len(data['results']), len(self.SAVED_ATTACHMENTS))
 
 
+    def test_list_view_filter_by_non_image_type(self):
+        with patch('kpi.deployment_backends.kc_reader.shadow_models._models.Attachment.objects', self.qs):
+            with patch('kpi.models.Asset.objects', self.parent_qs):
+                type = 'survey'
+                url = '/assets/%s/attachmments?type=%s' % (self.asset.uid, type)
+                request = self.factory.get(url)
+                request.user = self.user
+                response = self.list_view(request, parent_lookup_asset=self.asset.uid)
+                self.assertEqual(response.status_code, 200)
+                data = response.data
+                self.assertEquals(data['count'], 0) # Non image mimetype returns no results
+                self.assertIsNone(data['previous'])
+                self.assertIsNone(data['next'])
+                self.assertIsNone(data['previous_page'])
+                self.assertIsNone(data['next_page'])
+                self.assertEquals(len(data['results']), 0)
+
+
     def test_list_view_paging(self):
         with patch('kpi.deployment_backends.kc_reader.shadow_models._models.Attachment.objects', self.qs):
             with patch('kpi.models.Asset.objects', self.parent_qs):
@@ -324,3 +342,50 @@ class AttachmentViewsetTestCase(TestCase):
                     self.assertIsNotNone(question['number'])
                     self.assertIsNotNone(question['name'])
                     self.assertEqual(len(question['attachments']), 2)  # 2 attachments linked to each question
+
+
+    @patch('kpi.serializers.image_url', MagicMock(side_effect=lambda att, size: att.media_file.url))
+    def test_retrieve_view_raw_image(self):
+        with patch('kpi.deployment_backends.kc_reader.shadow_models._models.Attachment.objects', self.qs):
+            with patch('kpi.models.Asset.objects', self.parent_qs):
+                expected = self.SAVED_ATTACHMENTS[-1]
+                pk = expected.pk
+                filename = expected.media_file.name
+                url = '/assets/%s/attachmments/%s?filename=%s' % (self.asset.uid, pk, filename)
+                request = self.factory.get(url)
+                request.user = self.user
+                response = self.retrieve_view(request, parent_lookup_asset=self.asset.uid, pk=pk)
+
+                self.assertEqual(response.status_code, 302)
+                self.assertEqual(response.url, expected.media_file.url)
+
+
+    @patch('kpi.serializers.image_url', MagicMock(side_effect=lambda att, size: att.media_file.url))
+    def test_retrieve_view_resized_raw_image(self):
+        with patch('kpi.deployment_backends.kc_reader.shadow_models._models.Attachment.objects', self.qs):
+            with patch('kpi.models.Asset.objects', self.parent_qs):
+                expected = self.SAVED_ATTACHMENTS[-1]
+                pk = expected.pk
+                filename = expected.media_file.name
+                size = 'small'
+                url = '/assets/%s/attachmments/%s?filename=%s&size=%s' % (self.asset.uid, pk, filename, size)
+                request = self.factory.get(url)
+                request.user = self.user
+                response = self.retrieve_view(request, parent_lookup_asset=self.asset.uid, pk=pk)
+
+                self.assertEqual(response.status_code, 302)
+                self.assertEqual(response.url, expected.media_file.url) # True since we're mocking image_url :)
+
+
+    def test_retrieve_view_raw_image_does_not_exist(self):
+        with patch('kpi.deployment_backends.kc_reader.shadow_models._models.Attachment.objects', self.qs):
+            with patch('kpi.models.Asset.objects', self.parent_qs):
+                expected = self.SAVED_ATTACHMENTS[-1]
+                pk = expected.pk
+                filename = '/path/to/bad/image.jpg'
+                url = '/assets/%s/attachmments/%s?filename=%s' % (self.asset.uid, pk, filename)
+                request = self.factory.get(url)
+                request.user = self.user
+                response = self.retrieve_view(request, parent_lookup_asset=self.asset.uid, pk=pk)
+
+                self.assertEqual(response.status_code, 404)
