@@ -49,6 +49,9 @@ var CollectionsGallery = React.createClass({
       });
     });
 	},
+	componentDidMount: function(){
+		this.loadGalleryData(this.props.uid, 'question');
+	},
 
 	// MODAL
 
@@ -67,9 +70,6 @@ var CollectionsGallery = React.createClass({
 		this.setState(prevState => ({
 			infoOpen: !prevState.infoOpen
 		}));
-	},
-	componentDidMount: function(){
-		this.loadGalleryData(this.props.uid, 'question');
 	},
 
 	// SLIDER
@@ -108,7 +108,7 @@ var CollectionsGallery = React.createClass({
 					source: newFilter
 				}
 			});
-			console.log(response);
+			
 		});
 	},
 
