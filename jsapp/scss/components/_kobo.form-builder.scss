@@ -314,6 +314,10 @@
     border: 1px solid #5D6971;
     color: #5D6971;
   }
+
+  &[disabled] {
+    color: lighten($cool-gray, 20%) !important;
+  }
 }
 
 // FORM STYLE SETTINGS

@@ -464,15 +464,13 @@ export default assign({
                   <i className="k-icon-view-all" />
                 </bem.FormBuilderHeader__button>
               : null }
-              { groupable ?
-                <bem.FormBuilderHeader__button m={['group', {
-                      groupable: groupable
-                    }]} onClick={this.groupQuestions}
-                    disabled={!groupable}
-                    data-tip={t('Create group with selected questions')}>
-                  <i className="k-icon-group" />
-                </bem.FormBuilderHeader__button>
-              : null }
+              <bem.FormBuilderHeader__button m={['group', {
+                    groupable: groupable
+                  }]} onClick={this.groupQuestions}
+                  disabled={!groupable}
+                  data-tip={groupable ? t('Create group with selected questions') : t('Grouping disabled. Please select at least one question.')}>
+                <i className="k-icon-group" />
+              </bem.FormBuilderHeader__button>
               <bem.FormBuilderHeader__button m={['download']}
                   data-tip={t('Download form')} 
                   className="is-edge">

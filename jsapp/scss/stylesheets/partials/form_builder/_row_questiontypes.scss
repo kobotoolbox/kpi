@@ -49,18 +49,19 @@
 
 .row__questiontypes__close {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  background-color: #C5CACF;
-  color: white;
+  top: 3px;
+  right: 3px;
+  color: #555;
+  background: transparent;
   border: 0 none;
-  border-radius: 3px;
   font-family: $font;
   font-weight: 600;
-  padding: 1px 3px;
+  padding: 4px;
   line-height: 1em;
+  font-size: 16px;
+  cursor: pointer;
   &:hover {
-    background-color: darken(#c5cacf, 20%);
+    color: darken(#999, 30%);
   }
 }
 
@@ -80,27 +81,30 @@ input.row__questiontypes__new-question-name {
   height: 68px;
   padding: 15px 10px;
   margin-bottom: 20px;
-  input {
-    width: 72%;
-    padding: 6px;
-    border: 1px solid #78C4FD;
-    font-size: 15px;
-  }
-  button {
-    padding: 8px;
-    text-align: center;
-    color: white;
-    font-weight: 600;
-    margin-bottom: 15px;
-    background: #39BF6E;
-    border: none;
-    border-bottom: 2px solid darken(#39bf6e, 10%);
-    font-size: 14px;
-    width: 25%;
-    margin-left: 2%;
-  }
-  input, button {
-    float: left;
+  form {
+    input {
+      width: 72%;
+      padding: 6px;
+      border: 1px solid #78C4FD;
+      font-size: 15px;
+    }
+    button {
+      padding: 8px;
+      text-align: center;
+      color: white;
+      font-weight: 600;
+      margin-bottom: 15px;
+      background: #39BF6E;
+      border: none;
+      border-bottom: 2px solid darken(#39bf6e, 10%);
+      font-size: 14px;
+      width: 25%;
+      margin-left: 2%;
+      cursor: pointer;
+    }
+    input, button {
+      float: left;
+    }
   }
 }
 
