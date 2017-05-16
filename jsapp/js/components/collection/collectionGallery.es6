@@ -24,21 +24,13 @@ var CollectionsGallery = React.createClass({
 			infoOpen: true,
 			filter: {
 				source: 'question',
-				label: '',
+				label: 'Group by Question',
 				searchable: false,
 				clearable: false
 			},
 			assets: {
 				count: 0,
-				results: [
-					{
-						download_url: '',
-						filename: '',
-						question: {
-							label: ''
-						}
-					}
-				]
+				results: []
 			}
 		};
 	},
@@ -100,15 +92,30 @@ var CollectionsGallery = React.createClass({
 	// FILTER
 
 	switchFilter (value) {
+		let filters = [
+			{value: 'question', label: 'Group by Question'},
+			{value: 'submission', label: 'Group by Record'}
+		]
+		var label;
 		var newFilter = value;
+		for (var i = 0 ; i < filters.length; i++){
+			console.log(filters[i]);
+			if (filters[i].value == newFilter){
+				console.log(newFilter);
+				console.log(filters[i].value);
+				label = filters[i].label;
+			}
+		}
 		console.log('Filter changed to ' + newFilter);
 		dataInterface.filterGalleryImages(this.props.uid, newFilter).done((response)=>{
 			this.setState({
 				filter: {
-					source: newFilter
-				}
+					source: newFilter,
+					label: label
+				},
+				assets: response
 			});
-			
+
 		});
 	},
 
@@ -142,30 +149,37 @@ var CollectionsGallery = React.createClass({
           </div>
           <div className="col6">
 						<bem.AssetGallery__headingSearchFilter className="section">
-							<div className="text-display"><span>{this.state.filter.source}</span></div>
+							<div className="text-display"><span>{this.state.filter.label}</span></div>
 							<Select ref="filterSelect" className="icon-button-select" options={filters} simpleValue name="selected-filter" disabled={this.state.disabled} value={this.state.filter.source} onChange={this.switchFilter} searchable={false} />
 						</bem.AssetGallery__headingSearchFilter>
           </div>
         </bem.AssetGallery__heading>
         <bem.AssetGallery__grid>
-        {this.state.assets.results.map(function(asset, i) {
-          var divStyle = {
-            backgroundImage: 'url('+ asset.download_url + ')',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center center',
-	          backgroundSize: 'cover'
-	          }
-	          return (
-	            <bem.AssetGallery__gridItem key={i} data-name={asset.question.label} className="col4 one-one" style={divStyle} onClick={() => this.openModal(asset, i)} >
-	              <bem.AssetGallery__gridItemOverlay>
-	                <div className="text">
-	                  <h5>{asset.question.label}</h5>
-	                </div>
-	              </bem.AssetGallery__gridItemOverlay>
-	            </bem.AssetGallery__gridItem>
-	          );
-	        }.bind(this))}
-	        </bem.AssetGallery__grid>
+	        {this.state.assets.results.map(function(record, i) {
+						return (
+							<div key={'record'+i}>
+								<h5>{this.state.filter.source === 'question' ? 'Question #' : 'Record #'}{i}</h5>
+								{record.attachments.map(function(item, j) {
+									var divStyle = {
+										backgroundImage: 'url('+ item.download_url + ')',
+										backgroundRepeat: 'no-repeat',
+										backgroundPosition: 'center center',
+										backgroundSize: 'cover'
+									}
+									return (
+										<bem.AssetGallery__gridItem key={item.number} className="col4 one-one" style={divStyle} onClick={() => this.openModal(item, i)} >
+											<bem.AssetGallery__gridItemOverlay>
+												<div className="text">
+													<h5>TEST</h5>
+												</div>
+											</bem.AssetGallery__gridItemOverlay>
+										</bem.AssetGallery__gridItem>
+									);
+								}.bind(this))}
+							</div>
+						)
+					}.bind(this))}
+	      </bem.AssetGallery__grid>
 					<Modal
 					  isOpen={this.state.showModal}
 					  contentLabel="Modal" >
@@ -242,6 +256,26 @@ let LeftNavButton = React.createClass({
     )
   }
 });
-
+let GridItems = React.createClass({
+  render() {
+		{this.props.children.map(function(item, i) {
+			var divStyle = {
+				backgroundImage: 'url('+ item.download_url + ')',
+				backgroundRepeat: 'no-repeat',
+				backgroundPosition: 'center center',
+				backgroundSize: 'cover'
+			}
+			return (
+				<bem.AssetGallery__gridItem key={item.number} className="col4 one-one" style={divStyle} onClick={() => this.openModal(item, i)} >
+					<bem.AssetGallery__gridItemOverlay>
+						<div className="text">
+							<h5>TEST</h5>
+						</div>
+					</bem.AssetGallery__gridItemOverlay>
+				</bem.AssetGallery__gridItem>
+			);
+		}.bind(this))}
+  }
+});
 
 module.exports = CollectionsGallery;

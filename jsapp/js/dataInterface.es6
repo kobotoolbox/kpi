@@ -337,7 +337,7 @@ var dataInterface;
         method: 'GET',
         data: {
           type: 'image',
-          order_by: filter_by
+          group_by: filter_by
         }
       });
     },
