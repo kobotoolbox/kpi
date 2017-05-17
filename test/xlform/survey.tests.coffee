@@ -75,6 +75,12 @@ do ->
       it 'geopoint is not required', ->
         @populateRow(type: 'geopoint')
         @expectValue('required').toBe(false)
+      it 'geotrace is not required', ->
+        @populateRow(type: 'geotrace')
+        @expectValue('required').toBe(false)
+      it 'geoshape is not required', ->
+        @populateRow(type: 'geoshape')
+        @expectValue('required').toBe(false)
       it 'note is not required', ->
         @populateRow(type: 'note')
         @expectValue('required').toBe(false)
