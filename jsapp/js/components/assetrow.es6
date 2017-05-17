@@ -98,7 +98,7 @@ var AssetRow = React.createClass({
     var selfowned = this.props.owner__username === this.props.currentUsername;
 
     var isPublic = this.props.owner__username === anonUsername;
-    var _rc = this.props.summary && this.props.summary.row_count;
+    var _rc = this.props.summary && this.props.summary.row_count || 0;
 
     var hrefTo = `/forms/${this.props.uid}`,
         linkClassName = this.props.name ? 'asset-row__celllink--titled' : 'asset-row__celllink--untitled',
@@ -146,12 +146,11 @@ var AssetRow = React.createClass({
               >
             <bem.AssetRow__cell m={'title'} 
                 className={['mdl-cell', 
-                    this.props.asset_type == 'survey' ? 'mdl-cell--5-col mdl-cell--3-col-tablet mdl-cell--2-col-phone' : 'mdl-cell--6-col mdl-cell--3-col-tablet mdl-cell--2-col-phone']}>
-              { this.props.asset_type && this.props.asset_type == 'block' &&
-                <i className="row-icon k-icon-questions-block" />
-              }
-              { this.props.asset_type && this.props.asset_type == 'question' &&
-                <i className="row-icon k-icon-question" />
+                    this.props.asset_type == 'survey' ? 'mdl-cell--5-col mdl-cell--4-col-tablet mdl-cell--2-col-phone' : 'mdl-cell--8-col mdl-cell--5-col-tablet mdl-cell--2-col-phone']}>
+              { this.props.asset_type && (this.props.asset_type == 'block' || this.props.asset_type == 'question') &&
+                <i className={`row-icon ${_rc > 1 ? 'block' : 'question'}`}>
+                  {_rc}
+                </i>
               }
               <Link to={hrefTo}
                     data-kind={this.props.kind}
@@ -167,16 +166,21 @@ var AssetRow = React.createClass({
                 </bem.AssetRow__description>
               }
             </bem.AssetRow__cell>
-            { this.props.asset_type == 'survey' &&
-              <bem.AssetRow__cell m={'userlink'} key={'userlink'} className={['mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--hide-phone']}>
-                  {selfowned ? ' ' : this.props.owner__username}
-              </bem.AssetRow__cell>
-            }
-            { this.props.asset_type != 'survey' &&
-              <bem.AssetRow__cell m={'userlink'} key={'userlink'} className={['mdl-cell mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--hide-phone']}>
-                  {selfowned ? t('me') : this.props.owner__username}
-              </bem.AssetRow__cell>
-            }
+            <bem.AssetRow__cell m={'userlink'}
+                key={'userlink'}
+                  className={['mdl-cell', 
+                  this.props.asset_type == 'survey' ? 'mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--hide-phone' : 'mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone']}>
+              { this.props.asset_type == 'survey' &&
+                <span>
+                {selfowned ? ' ' : this.props.owner__username}
+                </span>
+              }
+              { this.props.asset_type != 'survey' &&
+                <span>
+                {selfowned ? t('me') : this.props.owner__username}
+                </span>
+              }
+            </bem.AssetRow__cell>
             { this.props.asset_type == 'survey' &&
               <bem.AssetRow__cell m={'date-created'}
                   key={'date-created'}
@@ -191,30 +195,15 @@ var AssetRow = React.createClass({
               <span className="date date--modified">{formatTime(this.props.date_modified)}</span>
             </bem.AssetRow__cell>
             { this.props.asset_type == 'survey' &&
-              (
                 <bem.AssetRow__cell m={'submission-count'}
                     key={'submisson-count'}
-                    className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone"
+                    className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--1-col-phone"
                     >
                   {
                     this.props.deployment__submission_count ?
                       this.props.deployment__submission_count : 0
                   }
                 </bem.AssetRow__cell>
-              ) || (
-                <bem.AssetRow__cell m={'row-count'}
-                    key={'row-count'}
-                    className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone"
-                    >
-                  {()=>{
-                    if (this.props.asset_type === 'question') {
-                      return '-';
-                    } else {
-                      return _rc;
-                    }
-                  }()}
-                </bem.AssetRow__cell>
-              )
             }
           </bem.AssetRow__cell>
           { this.state.displayTags &&

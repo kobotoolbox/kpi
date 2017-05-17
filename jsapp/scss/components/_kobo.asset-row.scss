@@ -57,11 +57,21 @@ $hover-asset-row: #F2F2F3;
   }
 
   .row-icon {
-    font-size: 32px;
-    margin-left: -5px;
-    margin-right: 5px;
-    opacity: 0.6;
     vertical-align: middle;
+    border: 1px solid $cool-green;
+    font-size: 13px;
+    color: $cool-green;
+    width: 36px;
+    border-radius: 10px;
+    display: inline-block;
+    margin-right: 10px;
+    text-align: center;
+    font-style: normal;
+
+    &.block {
+      color: white;
+      background: $cool-green;
+    }
   }
 
   .row-icon + .asset-row__celllink--name {
@@ -142,7 +152,7 @@ $hover-asset-row: #F2F2F3;
 
   i.row-icon + a.asset-row__celllink {
     display: inline-block;
-    width: calc(100% - 40px);
+    width: calc(100% - 48px);
   }
 
   &:hover {
