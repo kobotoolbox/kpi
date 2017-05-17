@@ -52,34 +52,31 @@ var FormMap = React.createClass({
     	}
     });
 
-  	var map = L.map('data-map');
+  	var map = L.map('data-map', {maxZoom: 17});
 
-  	// TODO: replace with mapbox access_token
-  	var access_token = 'pk.eyJ1IjoicG11c2FyYWoiLCJhIjoiVnZtLXQ0VSJ9.uY47lDvekggYlZ4DgptuAA';
-  	var mboxBase = 'https://api.mapbox.com/styles/v1/mapbox/';
-		var streets = L.tileLayer(`${mboxBase}streets-v10/tiles/256/{z}/{x}/{y}?access_token=${access_token}`, {
-		    attribution: 'Imagery © <a href="http://mapbox.com">Mapbox</a>',
-		    maxZoom: 18
+		var streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+		    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        subdomains: ['a', 'b', 'c']
 		});
 		streets.addTo(map);
 
-		var outdoors = L.tileLayer(`${mboxBase}outdoors-v10/tiles/256/{z}/{x}/{y}?access_token=${access_token}`, {
-		    attribution: 'Imagery © <a href="http://mapbox.com">Mapbox</a>',
-		    maxZoom: 18
+		var outdoors = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+        attribution: 'Map data: &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
 		});
-		var satellite = L.tileLayer(`${mboxBase}satellite-streets-v10/tiles/256/{z}/{x}/{y}?access_token=${access_token}`, {
-		    attribution: 'Imagery © <a href="http://mapbox.com">Mapbox</a>',
-		    maxZoom: 18
-		});
+
+    var satellite = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+      }
+    );
 
 		var baseLayers = {
-		    "Mapbox Streets": streets,
-		    "Mapbox Outdoors": outdoors,
-		    "Mapbox Satellite": satellite
+		    "OpenStreetMap": streets,
+		    "OpenTopoMap": outdoors,
+		    "ESRI World Imagery": satellite
 		};
-  	// TODO: add additional base layers, i.e. Google Maps?
 
 		L.control.layers(baseLayers).addTo(map);
+
     this.setState({
         map: map,
         fields: fields
