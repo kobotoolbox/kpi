@@ -1,10 +1,13 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import re
 
 from base_handlers import GroupHandler
 
-SPAN_WRAP = '<span style="display:none">{}</span>'
-HEADER_WRAP = '**{}**'
-ROW_HEADER_WRAP = '##### {}'
+SPAN_WRAP = u'<span style="display:none">{}</span>'
+HEADER_WRAP = u'**{}**'
+ROW_HEADER_WRAP = u'##### {}'
 
 
 class KoboMatrixGroupHandler(GroupHandler):
@@ -116,6 +119,7 @@ class KoboMatrixGroupHandler(GroupHandler):
                 first_column_width='w1',
                 ):
         header_name = '_'.join([name, 'header'])
+
         start = [{'type': 'begin_group',
                   'name': header_name,
                   'appearance': total_width,

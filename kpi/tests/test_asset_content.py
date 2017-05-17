@@ -458,7 +458,7 @@ def kobomatrix_content():
         u'survey': [
             {u'type': 'begin_kobomatrix',
                 'name': 'm1',
-                'label': 'Items',
+                'label': u'Itéms',
                 'kobo--matrix_list': 'car_bike_tv',
                 },
             {u'type': 'select_one', 'select_from_list_name': 'yn',
@@ -535,14 +535,14 @@ def test_kobomatrix_content():
                       ]
 
     assert _none_labels == [True, False, False, False, False, True] * 4
-    assert _labls[1:5] == ['**Items**',
-                           '**Possess?**',
-                           '**Necessary?**',
-                           '**Number**',
+    assert _labls[1:5] == [u'**Itéms**',
+                           u'**Possess?**',
+                           u'**Necessary?**',
+                           u'**Number**',
                            ]
 
     def _span(item):
-        return '<span style="display:none">{}</span>'.format(item)
+        return u'<span style="display:none">{}</span>'.format(item)
 
     assert _labls[7:11] == ['##### Car',
                             _span('car-Possess?'),
