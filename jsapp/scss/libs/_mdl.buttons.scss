@@ -1,0 +1,137 @@
+// Inspired but simplified version of MDL buttons
+
+// The button component. Defaults to a flat button.
+.mdl-button {
+  text-decoration: none;
+  text-align: center;
+  font-weight: normal;
+  font-size: 14px;
+  letter-spacing: 0;
+  height: 40px;
+  line-height: 40px;
+  padding: 0px 24px;
+  margin: 0;
+  border: none;
+  border-radius: 2px;
+  vertical-align: middle;
+  background: transparent;
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  transition: background-color 0.2s, color 0.2s;
+  outline: none;
+  cursor: pointer;
+  color: $cool-gray;
+
+  &::-moz-focus-inner {
+    border: 0;
+  }
+
+  &:hover {
+    color: $black;
+  }
+
+  &.mdl-button--colored {
+    color: $cool-blue;
+    text-transform: uppercase;
+
+    &:hover {
+      color: darken($cool-blue, 20%);
+    }
+  }
+}
+
+input.mdl-button[type="submit"] {
+  -webkit-appearance: none;
+}
+
+// Raised buttons
+.mdl-button--raised {
+  background: $cool-blue;
+
+  @include box-shadow;
+
+  text-transform: uppercase;
+
+  &.mdl-button--colored {
+    background: $cool-blue;
+    color: #FFF;
+
+    &:hover {
+      background-color: darken($cool-blue, 5%);
+      color: #FFF;
+    }
+  }
+}
+
+// Icon buttons
+.mdl-button--icon {
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0;
+  overflow: hidden;
+
+  i {
+    font-size: 32px;
+  }
+}
+
+// Tab buttons
+.mdl-button--tab {
+  color: #FFF;
+  opacity: 0.7;
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
+  text-transform: uppercase;
+  transition: opacity 0.2s;
+  height: 50px;
+  line-height: 50px;
+  padding: 0px 32px;
+
+  &:hover {
+    opacity: 1;
+    color: #FFF;
+    transition: opacity 0.2s;
+  }
+
+  &.active {
+    opacity: 1;
+    border-bottom: 2px solid white;
+  }
+}
+
+// Disabled buttons
+
+.mdl-button {
+  // Bump up specificity by using [disabled] twice.
+  &[disabled][disabled],
+  &.mdl-button--disabled.mdl-button--disabled {
+    color: #999;
+    cursor: default;
+    background-color: transparent;
+  }
+
+  &--raised {
+    // Bump up specificity by using [disabled] twice.
+    &[disabled][disabled],
+    &.mdl-button--disabled.mdl-button--disabled {
+      background-color: #DDD;
+      color: #999;
+      box-shadow: none;
+    }
+  }
+
+  &--colored {
+    // Bump up specificity by using [disabled] twice.
+    &[disabled][disabled],
+    &.mdl-button--disabled.mdl-button--disabled {
+      color: #999;
+    }
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .mdl-button {
+    padding: 0px 12px;
+  }
+}

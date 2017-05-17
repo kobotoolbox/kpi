@@ -1,10 +1,8 @@
 /*eslint no-unused-vars:0*/
 import React from 'react';
 import Reflux from 'reflux';
-import Select from 'react-select';
 import alertify from 'alertifyjs';
 import {Link, hashHistory} from 'react-router';
-import mdl from './libs/rest_framework/material';
 import DocumentTitle from 'react-document-title';
 import classNames from 'classnames';
 
@@ -28,10 +26,6 @@ import {
   isLibrary,
   stringToColor
 } from './utils';
-import {
-  ProjectSettingsEditor,
-  ProjectDownloads
-} from './components/formEditors';
 
 import icons from '../xlform/src/view.icons';
   
@@ -383,6 +377,12 @@ mixins.clickAssets = {
       },
       delete: function(uid){
         let asset = stores.selectedAsset.asset;
+        var assetTypeLabel = t('project');
+
+        if (asset.asset_type != 'survey') {
+          assetTypeLabel = t('library item');
+        }
+
         let dialog = alertify.dialog('confirm');
         let deployed = asset.has_deployment;
         let msg, onshow;
@@ -390,21 +390,24 @@ mixins.clickAssets = {
           actions.resources.deleteAsset({uid: uid}, {
             onComplete: ()=> {
               this.refreshSearch && this.refreshSearch();
-              notify(t('project deleted permanently'));
+              notify(`${assetTypeLabel} ${t('deleted permanently')}`);
               $('.alertify-toggle input').prop("checked", false);
             }
           });
         };
 
         if (!deployed) {
-          msg = t('You are about to permanently delete this draft.');
+          if (asset.asset_type != 'survey')
+            msg = t('You are about to permanently delete this item from your library.');
+          else
+            msg = t('You are about to permanently delete this draft.');
         } else {
           msg = `
             ${t('You are about to permanently delete this form.')}
-            <label class="alertify-toggle"><input type="checkbox"/> ${t('All data gathered for this form will be deleted.')}</label>
-            <label class="alertify-toggle"><input type="checkbox"/> ${t('All questions created for this form will be deleted.')}</label>
-            <label class="alertify-toggle"><input type="checkbox"/> ${t('The form associated with this project will be deleted.')}</label>
-            <label class="alertify-toggle alertify-toggle-important"><input type="checkbox" /> ${t('I understand that if I delete this project I will not be able to recover it.')}</label>
+            <div class="alertify-toggle"><input type="checkbox" id="dt1"/> <label for="dt1">${t('All data gathered for this form will be deleted.')}</label></div>
+            <div class="alertify-toggle"><input type="checkbox" id="dt2"/> <label for="dt2">${t('All questions created for this form will be deleted.')}</label></div>
+            <div class="alertify-toggle"><input type="checkbox" id="dt3"/> <label for="dt3">${t('The form associated with this project will be deleted.')}</label></div>
+            <div class="alertify-toggle alertify-toggle-important"><input type="checkbox" id="dt4"/> <label for="dt4">${t('I understand that if I delete this project I will not be able to recover it.')}</label></div>
           `;
           onshow = (evt) => {
             let ok_button = dialog.elements.buttons.primary.firstChild;
@@ -421,7 +424,7 @@ mixins.clickAssets = {
           };
         }
         let opts = {
-          title: t('Delete Project'),
+          title: `${t('Delete')} ${assetTypeLabel}`,
           message: msg,
           labels: {
             ok: t('Delete'),

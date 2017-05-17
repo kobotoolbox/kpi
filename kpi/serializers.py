@@ -1,5 +1,6 @@
 import datetime
 import json
+import pytz
 from collections import OrderedDict
 
 from django.contrib.auth.models import User, Permission
@@ -253,7 +254,16 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
         content_object = validated_data['content_object']
         user = validated_data['user']
         perm = validated_data['permission'].codename
-        return content_object.assign_perm(user, perm)
+        with transaction.atomic():
+            # TEMPORARY Issue #1161: something other than KC is setting a
+            # permission; clear the `from_kc_only` flag
+            ObjectPermission.objects.filter(
+                user=user,
+                permission__codename='from_kc_only',
+                object_id=content_object.id,
+                content_type=ContentType.objects.get_for_model(content_object)
+            ).delete()
+            return content_object.assign_perm(user, perm)
 
 
 class AncestorCollectionsSerializer(serializers.HyperlinkedModelSerializer):
@@ -780,6 +790,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 class CurrentUserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
     server_time = serializers.SerializerMethodField()
+    date_joined = serializers.SerializerMethodField()
     projects_url = serializers.SerializerMethodField()
     support = serializers.SerializerMethodField()
     gravatar = serializers.SerializerMethodField()
@@ -797,6 +808,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'last_name',
             'email',
             'server_time',
+            'date_joined',
             'projects_url',
             'support',
             'is_superuser',
@@ -811,7 +823,13 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         )
 
     def get_server_time(self, obj):
-        return datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+        # Currently unused on the front end
+        return datetime.datetime.now(tz=pytz.UTC).strftime(
+            '%Y-%m-%dT%H:%M:%SZ')
+
+    def get_date_joined(self, obj):
+        return obj.date_joined.astimezone(pytz.UTC).strftime(
+            '%Y-%m-%dT%H:%M:%SZ')
 
     def get_projects_url(self, obj):
         return '/'.join((settings.KOBOCAT_URL, obj.username))
@@ -929,20 +947,6 @@ class CreateUserSerializer(serializers.ModelSerializer):
                 pass
         user.save()
         return user
-
-
-class UserListSerializer(UserSerializer):
-    assets_count = serializers.SerializerMethodField('_assets_count')
-    collections_count = serializers.SerializerMethodField('_collections_count')
-
-    def _collections_count(self, obj):
-        return obj.owned_collections.count()
-
-    def _assets_count(self, obj):
-        return obj.assets.count()
-
-    class Meta(UserSerializer.Meta):
-        fields = ('url', 'username', 'assets_count', 'collections_count',)
 
 
 class CollectionChildrenSerializer(serializers.Serializer):

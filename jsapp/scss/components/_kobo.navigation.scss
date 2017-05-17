@@ -3,366 +3,470 @@
 $headerAccountTextColor: #dbedf7;
 
 .k-header__bar {
-    background-color: $layout-header-bg-color;
-    @extend .mdl-shadow--2dp;
-    position: absolute;
-    min-height: 64px;
-    width: 100%;
-    z-index: 0;
+  background-color: $layout-header-bg-color;
+
+  @include shadow-2dp;
+
+  position: absolute;
+  min-height: 64px;
+  width: 100%;
+  z-index: 0;
 }
 
 .mdl-layout__header {
+  background-color: transparent;
+  box-shadow: none !important;
+  min-height: $layout-desktop-header-height;
+  margin-left: 0px;
+  width: 100%;
+  z-index: auto;
+
+  .mdl-layout__header-row {
+    height: 63px;
+    padding: 0px 20px;
+  }
+
+  .mdl-placeholder {
+    margin-left: auto;
+  }
+
+  .mdl-layout-title {
+    width: 244px;
+  }
+
+  .header__logo {
+    width: 175px;
+    height: 40px;
+    background: url("../img/kobologo.svg") no-repeat left bottom;
+    background-size: contain;
+    display: block;
+  }
+
+  .account-box {
+    margin-left: auto;
+    position: relative;
+    max-width: 115px;
+  }
+
+  .account-box__notifications {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0px 32px;
+    margin-top: 4px;
+    position: relative;
+
+    i {
+      font-size: 24px;
+      color: $headerAccountTextColor;
+    }
+  }
+
+  .account-box__notifications__count {
+    background-color: #FF5469;
+    color: white;
+    padding: 1px 5px;
+    font-weight: bold;
+    border-radius: 15px;
+    position: absolute;
+    font-size: 11px;
+    line-height: 15px;
+    top: -8px;
+    left: 10px;
+    border: 1px solid $layout-header-bg-color;
+  }
+
+  .account-box__name {
+    display: inline-block;
+    vertical-align: middle;
+    color: $layout-nav-color;
+    cursor: pointer;
     background-color: transparent;
-    box-shadow: none !important;
-    min-height: $layout-desktop-header-height;
-    margin-left: 0px;
-    width: 100%;
-    z-index: auto;
-    .mdl-layout__header-row {
-        height: 63px;
-        padding: 0px 20px;
-    }
-    .mdl-placeholder {
-        margin-left: auto;
-    }
-    .mdl-layout-title {
-        width: 244px;
-    }
-    .header__logo {
-        width: 175px;
-        height: 40px;
-        background: url("../img/kobologo.svg") no-repeat left bottom;
-        background-size: contain;
-        display: block;
-    }
-    .account-box {
-        margin-left: auto;
-        position: relative;
-        max-width: 115px;
-    }
-    .account-box__notifications {
-        display: inline-block;
-        vertical-align: middle;
-        margin: 0px 32px;
-        margin-top: 4px;
-        position: relative;
-        i {
-            font-size: 24px;
-            color: $headerAccountTextColor;
-        }
-    }
-    .account-box__notifications__count {
-        background-color: #FF5469;
-        color: white;
-        padding: 1px 5px;
-        font-weight: bold;
-        border-radius: 15px;
-        position: absolute;
-        font-size: 11px;
-        line-height: 15px;
-        top: -8px;
-        left: 10px;
-        border: 1px solid $layout-header-bg-color;
-    }
-    .account-box__name {
-        display: inline-block;
-        vertical-align: middle;
-        color: $layout-nav-color;
-        cursor: pointer;
-        background-color: transparent;
-        border: none;
-        max-width: 100%;
+    border: none;
+    max-width: 100%;
+  }
+
+  .mdl-layout__header-searchers {
+    flex-grow: 1;
+  }
+
+  .search {
+    vertical-align: middle;
+    margin: 0px 6px;
+    display: inline-block;
+    width: 60%;
+    position: relative;
+  }
+
+  .search {
+    ::-webkit-input-placeholder {
+      color: #FFF;
     }
 
-    .mdl-layout__header-searchers {
-        flex-grow: 1;
+    :-ms-input-placeholder {
+      color: #FFF;
     }
-    .search {
-        vertical-align: middle;
-        margin: 0px 6px;
-        display: inline-block;
-        width: 60%;
-        position: relative;
+
+    .k-search__input {
+      color: #FFF;
+      border: none;
+      border-radius: 0px;
+      padding: 10px 12px;
+      padding-left: 42px;
+      background-color: rgba(255, 255, 255, 0.1);
+      font-size: 16px;
+      position: relative;
+      width: 99%;
     }
-    .search {
-        ::-webkit-input-placeholder {
-            color: #FFF;
-        }
-        :-ms-input-placeholder {
-            color: #FFF;
-        }
-        .k-search__input {
-            color: #FFF;
-            border: none;
-            border-radius: 0px;
-            padding: 10px 12px;
-            padding-left: 42px;
-            background-color: rgba(255, 255, 255, 0.1);
-            font-size: 16px;
-            position: relative;
-            width: 99%;
-        }
-        .search__icon {
-            @extend .fa, .fa-search;
-            position: absolute;
-            top: 11px;
-            left: 12px;
-            color: #FFF;
-            &:before {
-                font-size: 18px;
-            }
-        }
+
+    .search__icon {
+      @extend .fa, .fa-search;
+
+      position: absolute;
+      top: 11px;
+      left: 12px;
+      color: #FFF;
+
+      &:before {
+        font-size: 18px;
+      }
     }
+  }
 }
 
 .popover-menu--account-menu {
-    .popover-menu__content {
-        min-width: 240px;
-    }
+  .popover-menu__content {
+    min-width: 240px;
+  }
 }
 
 .account-box__menu {
-    min-width:270px;
-    .account-box__menu-item--avatar {
-        display: inline-block;
-        margin-right: 15px;
-        vertical-align: top;
+  min-width: 270px;
+
+  .account-box__menu-item--avatar {
+    display: inline-block;
+    margin-right: 15px;
+    vertical-align: top;
+  }
+
+  .account-box__menu-item--mini-profile {
+    color: $cool-gray;
+    display: inline-block;
+    width: calc(100% - 70px);
+    line-height: 20px;
+    margin-top: 5px;
+    margin-bottom: 12px;
+
+    span {
+      display: inline-block;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      width: 100%;
     }
-    .account-box__menu-item--mini-profile {
-        color: $black;
-        display: inline-block;
-        width:calc(100% - 70px);
-        span {
-            display: inline-block;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            overflow: hidden;
-            width: 100%;
+
+    .account-username {
+      font-size: 18px;
+    }
+  }
+
+  .account-box__menu-item--settings {
+    text-align: right;
+  }
+
+  .account-box__menu-li {
+    padding: 15px;
+    padding-bottom: 15px;
+
+    a {
+      color: $cool-gray;
+      cursor: pointer;
+      font-weight: normal;
+      display: block;
+
+      i {
+        font-size: 32px;
+        vertical-align: middle;
+      }
+
+      span {
+        vertical-align: middle;
+      }
+
+      &:hover {
+        color: $cool-blue;
+      }
+    }
+  }
+
+  .account-box__menu-li--lang {
+    position: relative;
+    border-top: 1px solid $divider-color;
+    padding-bottom: 5px;
+
+    ul {
+      position: absolute;
+      right: 100%;
+      top: 0px;
+      background-color: #FFF;
+      color: $cool-gray;
+      min-width: 140px;
+      transition: all 0.5s;
+      max-height: 0px;
+      opacity: 0;
+      overflow: hidden;
+      padding: 8px 0px;
+
+      @include box-shadow;
+
+      li {
+        padding: 10px 15px;
+        text-transform: capitalize;
+        border-bottom: 1px solid $divider-color;
+
+        &:last-child {
+          border-bottom: 0px;
         }
-        .account-username {
-            font-size: 18px;
-        }
+      }
     }
-    .account-box__menu-item--settings {
-        text-align: right;
+
+    &:hover > ul {
+      transition: all 0.5s;
+      max-height: 1000px;
+      opacity: 1;
+      overflow: visible;
     }
-    .account-box__menu-li {
-        padding: 15px;
-        padding-bottom: 15px;
-        a {
-            color: $cool-gray;
-            cursor: pointer;
-            i {
-                font-size: 32px;
-                vertical-align: middle;
-            }
-            span {
-                vertical-align: middle;
-            }
-            &:hover {
-                color: unquote("rgb(#{$color-primary})");
-            }
-        }
-    }
-    .account-box__menu-li--lang {
-        position: relative;
-        border-top:1px solid $divider-color;
-        padding-bottom: 5px;
-        ul {
-            position: absolute;
-            right: 100%;
-            top: 0px;
-            background-color: #FFF;
-            color: $black;
-            min-width: 120px;
-            transition: all 0.5s;
-            max-height: 0px;
-            opacity: 0;
-            overflow: hidden;
-            @include box-shadow;
-            li {
-                padding: 12px;
-                text-transform: capitalize;
-            }
-        }
-        &:hover > ul {
-            transition: all 0.5s;
-            max-height: 1000px;
-            opacity: 1;
-            overflow: visible;
-        }
-    }
-    .account-box__menu-li--logout {
-        padding-top: 5px;
-    }
+  }
+
+  .account-box__menu-li--logout {
+    padding-top: 5px;
+  }
 }
 
-.k-burger {
-    display: none;
+.mdl-layout__header .mdl-button--icon {
+  display: none;
 }
 
 @media screen and (max-width: 768px) {
-    .k-burger {
-        display: block;
-        margin-right: 6px;
-        padding: 0px;
+  .mdl-layout__header {
+    .mdl-button--icon {
+      display: block;
+      margin-right: 8px;
+      padding: 0px;
+      color: #FFF;
+
+      i {
+        line-height: 1.5em;
+        display: inline-block;
+        font-size: 24px;
+      }
     }
-    .mdl-layout__header {
-        .account-box__logo {
-            max-width: 85%;
-        }
-        .mdl-layout-title {
-            width: 160px;
-        }
-        .search {
-            width: 80%;
-            position: absolute;
-            display: none;
-        }
-        .mdl-layout__header-row {
-            padding:0px 12px;
-        }
-        .form-title {
-            width: calc(100% - 240px);
-            overflow: hidden;
-            margin-right: 10px;
-        }
+
+    .account-box__logo {
+      max-width: 85%;
     }
+
+    .mdl-layout-title {
+      width: 160px;
+    }
+
+    .search {
+      width: 80%;
+      position: absolute;
+      display: none;
+    }
+
+    .mdl-layout__header-row {
+      padding: 0px 12px;
+    }
+
+    .form-title {
+      width: calc(100% - 240px);
+      overflow: hidden;
+      margin-right: 10px;
+    }
+  }
 }
 
 // Form title + desc in header, editable
 
 .form-title {
+  vertical-align: middle;
+  margin: 0px;
+  display: flex;
+  width: calc(100% - 300px);
+  display: inline-block;
+
+  > i {
+    font-size: 38px;
     vertical-align: middle;
-    margin: 0px;
-    display: flex;
-    width: calc(100% - 300px);
+    width: 38px;
+    color: #FFF;
+    opacity: 0.25;
+  }
+
+  &__name {
+    width: calc(70% - 40px);
     display: inline-block;
-    > i {
-        font-size: 38px;
-        vertical-align: middle;
-        width:38px;
-        color: #FFF;
-        opacity: 0.25;
+    vertical-align: middle;
+
+    > div {
+      width: 100%;
     }
-    &__name {
-        width:calc(70% - 40px);
-        display: inline-block;
-        vertical-align: middle;
-        > div {
-            width: 100%;
-        }
+  }
+
+  &__submissions {
+    display: inline-block;
+    vertical-align: middle;
+    width: 30%;
+    text-align: right;
+    overflow: hidden;
+    height: 24px;
+    line-height: 24px;
+    font-size: 14px;
+    opacity: 0.6;
+    color: #FFF;
+  }
+
+  input {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 100%;
+    background: transparent;
+    padding: 3px 6px;
+    margin: 0px;
+    border: none;
+    border-bottom: 1px solid transparent;
+
+    // keep these pseudo-states separate
+    &::-webkit-input-placeholder {
+      color: darken($cool-gray, 10%);
     }
-    &__submissions {
-        display: inline-block;
-        vertical-align: middle;
-        width: 30%;
-        text-align: right;
-        overflow:hidden;
-        height: 22px;
-        font-size: 16px;
-        opacity: 0.6;
+
+    &:-ms-input-placeholder {
+      color: darken($cool-gray, 10%);
     }
-    input {
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        overflow: hidden;
-        width: 100%;
-        background: transparent;
-        padding: 2px 5px;
-        margin: 0px;
-        border: 1px solid transparent;
-        // keep these pseudo-states separate
-        &::-webkit-input-placeholder {
-            color: darken($cool-gray, 10%);
-        }
-        &:-ms-input-placeholder {
-            color: darken($cool-gray, 10%);
-        }
-        &:hover {
-            border: 1px solid unquote("rgba(#{$color-primary}, 0.8)");
-        }
-        &:focus {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid unquote("rgba(#{$color-primary}, 1)");
-        }
+
+    &:hover {
+      border-bottom: 1px solid $cool-blue;
     }
-    input[name='title'] {
-        color: #FFF;
-        font-size: 18px;
+
+    &:focus {
+      background: rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid $cool-blue;
     }
-    // input[name='description'] {
-    //     color: $cool-gray;
-    //     font-size: 13px;
-    //     margin-top: -4px;
-    //     &::-webkit-input-placeholder {
-    //         font-style: italic;
-    //     }
-    //     &::-ms-input-placeholder {
-    //         font-style: italic;
-    //     }
-    // }
+  }
+
+  input[name='title'] {
+    color: #FFF;
+    font-size: 18px;
+    min-width: 100%;
+  }
 }
 
 @media screen and (max-width: 959px) {
-    .form-view__title {
-        .form-view__name {
-            width:80%;
-        }
-        .form-view__subs {
-            width: 10%;
-        }
+  .form-view__title {
+    .form-view__name {
+      width: 80%;
     }
 
+    .form-view__subs {
+      width: 10%;
+    }
+  }
 }
 
 @media screen and (max-width: 767px) {
-    .form-view__title, .form-title__submissions {
-        display: none;
+  .form-title__submissions {
+    display: none;
+  }
+
+  .mdl-layout__header {
+    .mdl-layout-title {
+      width: 40px;
     }
-    
+
+    .form-title {
+      width: calc(100% - 100px);
+
+      .form-title__name {
+        width: 100%;
+      }
+
+      > i {
+        display: none;
+      }
+    }
+
+    .header__logo {
+      background: url("../img/kobologoS.svg") no-repeat left center;
+      background-size: 125%;
+      width: 40px;
+    }
+  }
 }
 
 // Initials avatar, used in header, sharing modal and account settings
 .account-box__initials {
-    width:32px;
-    text-align: center;
-    text-transform: uppercase;
-    padding:6px;
-    border-radius: 32px;
-    display: inline-block;
-    vertical-align: middle;
-    font-size: 16px;
-    color: #FFF;
+  width: 32px;
+  text-align: center;
+  text-transform: uppercase;
+  padding: 6px;
+  border-radius: 32px;
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 16px;
+  color: #FFF;
 }
 
 .account-box__menu-item--avatar {
-    .account-box__initials {
-        width:48px;
-        padding:10px;
-        border-radius: 48px;
-        font-size: 24px;
-    }
+  .account-box__initials {
+    width: 48px;
+    padding: 10px;
+    border-radius: 48px;
+    font-size: 24px;
+  }
 }
+
 .git-rev {
-    display: none;
+  display: none;
 }
 
 @media screen and (min-width: 768px) {
-    .git-rev {
-        display: block;
-        position: fixed;
-        bottom: 0px;
-        left: 80px;
-        z-index:100;
-        .git-rev__item {
-            color: white;
-            opacity: 0.85;
-            background: darken($cool-green, 10%);
-            margin-top:5px;
-            padding:6px 12px;
-            display: block;
-            font-size: 12px;
-        }
+  .git-rev {
+    display: block;
+    position: fixed;
+    bottom: 0px;
+    left: 80px;
+    z-index: 100;
+
+    .git-rev__item {
+      color: white;
+      opacity: 0.85;
+      background: darken($cool-green, 10%);
+      margin-top: 5px;
+      padding: 6px 12px;
+      display: block;
+      font-size: 12px;
     }
+  }
+}
+
+// temporary fix for language menu on touch devices
+@media screen and (pointer: coarse) {
+  .account-box__menu .account-box__menu-li--lang {
+    ul {
+      opacity: 1;
+      position: static;
+      border: 1px solid $divider-color;
+      margin-left: 12px;
+      padding: 0px;
+      max-height: 1000px;
+      box-shadow: none;
+
+      li {
+        padding: 6px 18px;
+      }
+    }
+  }
 }

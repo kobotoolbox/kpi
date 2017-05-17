@@ -10,6 +10,7 @@ import Select from 'react-select';
 import ui from '../ui';
 import bem from '../bem';
 import DocumentTitle from 'react-document-title';
+import TextareaAutosize from 'react-autosize-textarea';
 
 import {session} from '../stores';
 
@@ -36,10 +37,8 @@ export var ProjectSettings = React.createClass({
     });
   },
   descriptionChange (evt) {
-    let descriptionHeight = $(evt.target).prop('scrollHeight');
     this.setState({
-      description: evt.target.value,
-      textareaHeight: descriptionHeight
+      description: evt.target.value
     });
   },
   countryChange (val) {
@@ -64,7 +63,6 @@ export var ProjectSettings = React.createClass({
       description: '',
       sector: '',
       country: '',
-      textareaHeight: '',
       'share-metadata': false,
     }
     if (this.props.initialData !== undefined) {
@@ -77,11 +75,6 @@ export var ProjectSettings = React.createClass({
       this.setState({
         sessionLoaded: true,
       });
-    });
-
-    let descriptionHeight = $('textarea#description').prop('scrollHeight');
-    this.setState({
-      textareaHeight: descriptionHeight
     });
 
   },
@@ -144,14 +137,10 @@ export var ProjectSettings = React.createClass({
             <label htmlFor="description">
               {t('Description')}
             </label>
-            <textarea type="text"
-                id="description"
-                placeholder={t('Enter short description here')}
-                value={this.state.description}
-                onChange={this.descriptionChange}
-                rows="1"
-                style={{height: this.state.textareaHeight + 'px'}}
-              />
+            <TextareaAutosize 
+              onChange={this.descriptionChange} 
+              value={this.state.description} 
+              placeholder={t('Enter short description here')} />
           </bem.FormModal__item>
           <bem.FormModal__item>
             <label className="long">
@@ -188,7 +177,7 @@ export var ProjectSettings = React.createClass({
                 checked={this.state['share-metadata']}
                 onChange={this.shareMetadataChange}
               />
-            <label className="long next-to-checkbox" htmlFor="share-metadata">
+            <label htmlFor="share-metadata">
               {t('Help KoboToolbox improve this product by sharing the sector and country where this project will be deployed.')}
               &nbsp;
               {t('All the information is submitted anonymously, and will not include the project name or description listed above.')}

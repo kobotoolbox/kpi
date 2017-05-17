@@ -8,6 +8,8 @@ def external_service_tokens(request):
         out['trackjs_token'] = settings.TRACKJS_TOKEN
     if settings.GOOGLE_ANALYTICS_TOKEN:
         out['google_analytics_token'] = settings.GOOGLE_ANALYTICS_TOKEN
+    if settings.INTERCOM_APP_ID:
+        out['intercom_app_id'] = settings.INTERCOM_APP_ID
     return out
 
 

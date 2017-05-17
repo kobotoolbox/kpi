@@ -167,20 +167,16 @@ var AssetRow = React.createClass({
                 </bem.AssetRow__description>
               }
             </bem.AssetRow__cell>
-            <bem.AssetRow__cell m={'userlink'}
-                key={'userlink'}
-                  className={['mdl-cell', 'mdl-cell--2-col', 'mdl-cell--2-col-tablet', 'mdl-cell--hide-phone']}>
-              { this.props.asset_type == 'survey' &&
-                <span>
-                {selfowned ? ' ' : this.props.owner__username}
-                </span>
-              }
-              { this.props.asset_type != 'survey' &&
-                <span>
-                {selfowned ? t('me') : this.props.owner__username}
-                </span>
-              }
-            </bem.AssetRow__cell>
+            { this.props.asset_type == 'survey' &&
+              <bem.AssetRow__cell m={'userlink'} key={'userlink'} className={['mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--hide-phone']}>
+                  {selfowned ? ' ' : this.props.owner__username}
+              </bem.AssetRow__cell>
+            }
+            { this.props.asset_type != 'survey' &&
+              <bem.AssetRow__cell m={'userlink'} key={'userlink'} className={['mdl-cell mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--hide-phone']}>
+                  {selfowned ? t('me') : this.props.owner__username}
+              </bem.AssetRow__cell>
+            }
             { this.props.asset_type == 'survey' &&
               <bem.AssetRow__cell m={'date-created'}
                   key={'date-created'}
@@ -191,15 +187,14 @@ var AssetRow = React.createClass({
             }
             <bem.AssetRow__cell m={'date-modified'}
                 key={'date-modified'}
-                className={['mdl-cell', 
-                    this.props.asset_type == 'survey' ? 'mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone' : 'mdl-cell--3-col mdl-cell--2-col-tablet mdl-cell--1-col-phone']}>
+                className={['mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone']}>
               <span className="date date--modified">{formatTime(this.props.date_modified)}</span>
             </bem.AssetRow__cell>
             { this.props.asset_type == 'survey' &&
               (
                 <bem.AssetRow__cell m={'submission-count'}
                     key={'submisson-count'}
-                    className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--1-col-phone"
+                    className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone"
                     >
                   {
                     this.props.deployment__submission_count ?
@@ -209,7 +204,7 @@ var AssetRow = React.createClass({
               ) || (
                 <bem.AssetRow__cell m={'row-count'}
                     key={'row-count'}
-                    className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--1-col-phone"
+                    className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone"
                     >
                   {()=>{
                     if (this.props.asset_type === 'question') {

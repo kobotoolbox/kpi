@@ -1,6 +1,5 @@
 import React from 'react';
 import { hashHistory } from 'react-router';
-import mdl from '../libs/rest_framework/material';
 import Select from 'react-select';
 import moment from 'moment';
 import alertify from 'alertifyjs';
@@ -21,7 +20,6 @@ import {
 import searches from '../searches';
 import cookie from 'react-cookie';
 import hotkey from 'react-hotkey';
-import AutosizeInput from 'react-input-autosize';
 
 hotkey.activate();
 
@@ -146,7 +144,7 @@ var MainHeader = React.createClass({
                           triggerLabel={accountMenuLabel} 
                           buttonType='text'>
               <bem.AccountBox__menu>
-                <bem.AccountBox__menuLI>
+                <bem.AccountBox__menuLI key='1'>
                   <bem.AccountBox__menuItem m={'avatar'}>
                     {accountMenuLabel} 
                   </bem.AccountBox__menuItem>
@@ -160,7 +158,7 @@ var MainHeader = React.createClass({
                     </button>
                   </bem.AccountBox__menuItem>
                 </bem.AccountBox__menuLI>
-                <bem.AccountBox__menuLI m={'lang'}>
+                <bem.AccountBox__menuLI m={'lang'} key='2'>
                   <bem.AccountBox__menuLink>
                     <i className="k-icon-language" /> 
                     {t('Language')}
@@ -169,47 +167,13 @@ var MainHeader = React.createClass({
                     {langs.map(this.renderLangItem)}
                   </ul>
                 </bem.AccountBox__menuLI>
-                <bem.AccountBox__menuLI m={'logout'}>
+                <bem.AccountBox__menuLI m={'logout'} key='3'>
                   <bem.AccountBox__menuLink onClick={this.logout}>
                     <i className="k-icon-logout" /> 
                     {t('Logout')}
                   </bem.AccountBox__menuLink>
                 </bem.AccountBox__menuLI>
               </bem.AccountBox__menu>
-              {/*<ul className="k-account__menu">
-                <li className="k-account__miniprofile" key="settings">
-                  {accountMenuLabel} 
-                  <div className="k-account__details">
-                    {accountName} 
-                    {accountEmail} 
-                  </div>
-                  <button onClick={this.accountSettings} className="mdl-button mdl-button--raised mdl-button--colored">
-                    {t('Account Settings')}
-                  </button>
-                </li>
-                {leaveBetaUrl ?
-                  <li>
-                    <a href={leaveBetaUrl} className="mdl-menu__item">
-                      <i className="k-icon-settings" />
-                      {t('Leave Beta')}
-                    </a>
-                  </li>
-                :null}
-                <li className="k-lang__submenu" key="lang">
-                  <a className="mdl-menu__item">
-                    <i className="k-icon-language" />
-                    {t('Language')}
-                  </a>
-                  <ul>
-                    {langs.map(this.renderLangItem)}
-                  </ul>
-                </li>
-                <li key="logout">
-                  <a onClick={this.logout} className="mdl-menu__item">
-                    <i className="k-icon-logout" /> 
-                    {t('Logout')}</a>
-                  </li>
-              </ul>*/}
           </ui.PopoverMenu>
         </bem.AccountBox>
         );
@@ -284,12 +248,8 @@ var MainHeader = React.createClass({
     return (
         <header className="mdl-layout__header">
           <div className="mdl-layout__header-row">
-            <button className="mdl-button mdl-button--icon k-burger" onClick={this.toggleFixedDrawer}>
-            { this.state.showFixedDrawer ?
-              <i className="fa fa-close"></i>
-            : 
+            <button className="mdl-button mdl-button--icon" onClick={this.toggleFixedDrawer}>
               <i className="fa fa-bars"></i>
-            }
             </button>
             <span className='mdl-layout-title'>
               <a href='/'>
@@ -309,12 +269,12 @@ var MainHeader = React.createClass({
             { this.isFormSingle() && this.state.asset &&
               <bem.FormTitle>
                 { this.state.asset.has_deployment ?
-                  <i className="k-icon-deployed" />
+                  <i className="k-icon-deploy" />
                 :
                   <i className="k-icon-drafts" />
                 }
-                <bem.FormTitle__name data-tip={t('click to edit')} className="hide-tooltip__onfocus">
-                  <AutosizeInput type="text"
+                <bem.FormTitle__name data-tip={t('click to edit')}>
+                  <input type="text"
                         name="title"
                         placeholder={userCanEditAsset ? t('Project title') : ''}
                         value={this.state.asset.name ? this.state.asset.name : ''}
@@ -334,9 +294,6 @@ var MainHeader = React.createClass({
           {this.renderGitRevInfo()}
         </header>
       );
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   },
   componentWillReceiveProps(nextProps) {
     if (this.props.assetid != nextProps.assetid && nextProps.assetid != null)

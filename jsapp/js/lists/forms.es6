@@ -1,6 +1,5 @@
 import React from 'react';
 import Reflux from 'reflux';
-import mdl from '../libs/rest_framework/material';
 
 import searches from '../searches';
 import mixins from '../mixins';
@@ -53,9 +52,6 @@ var FormsSearchableList = React.createClass({
           searchContext={this.state.searchContext}
         />
       );
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   }});
 
 export default FormsSearchableList;

@@ -1,4 +1,4 @@
-var WebpackConfig = require('./helper/webpack-config');
+var WebpackConfig = require('./webpack-config');
 var publicPath = (process.env.KPI_PREFIX === '/' ? '' : (process.env.KPI_PREFIX || '')) + '/static/compiled/';
 
 module.exports = WebpackConfig({

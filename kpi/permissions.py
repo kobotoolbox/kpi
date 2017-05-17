@@ -22,15 +22,9 @@ def get_perm_name(perm_name_prefix, model_instance):
     :return: The computed permission name.
     :rtype: str
     '''
-
     if not perm_name_prefix[-1] == '_':
-        perm_name_prefix+= '_'
-
-    perm_name= Permission.objects.get(
-        content_type=ContentType.objects.get_for_model(model_instance),
-        codename__startswith=perm_name_prefix
-    ).natural_key()[0]
-
+        perm_name_prefix += '_'
+    perm_name = perm_name_prefix + model_instance._meta.model_name
     return perm_name
 
 

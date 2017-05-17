@@ -48,10 +48,6 @@ module.exports = do ->
           if evt.which == 27
             @shrink()
 
-        $('body').on 'mousedown.cancel_add_question', (evt) =>
-          if $(evt.target).closest('.line.expanded').length == 0
-            @shrink()
-
       else
         $(window).on 'keydown.cancel_add_question',  (evt) =>
           # user presses the escape key
@@ -85,6 +81,8 @@ module.exports = do ->
       @line.find("div").eq(0).fadeOut 250, =>
         @line.empty()
       @line.parents(".survey-editor__null-top-row").removeClass "expanded"
+      if (@line.parents('.survey-editor').find('.survey__row').length)
+        @line.parents(".survey-editor__null-top-row").addClass "survey-editor__null-top-row--hidden"
       @line.removeClass "expanded"
       @line.animate height: "0"
       if @reversible

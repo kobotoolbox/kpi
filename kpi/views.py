@@ -76,7 +76,7 @@ from .serializers import (
     AssetSnapshotSerializer,
     SitewideMessageSerializer,
     CollectionSerializer, CollectionListSerializer,
-    UserSerializer, UserListSerializer,
+    UserSerializer,
     CurrentUserSerializer, CreateUserSerializer,
     TagSerializer, TagListSerializer,
     ImportTaskSerializer, ImportTaskListSerializer,
@@ -288,9 +288,10 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
             return TagSerializer
 
 
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
+class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     """
-    This viewset automatically provides `list` and `detail` actions.
+    This viewset provides only the `detail` action; `list` is *not* provided to
+    avoid disclosing every username in the database
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -300,11 +301,8 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         super(UserViewSet, self).__init__(*args, **kwargs)
         self.authentication_classes += [ApplicationTokenAuthentication]
 
-    def get_serializer_class(self):
-        if self.action == 'list':
-            return UserListSerializer
-        else:
-            return UserSerializer
+    def list(self, request, *args, **kwargs):
+        raise exceptions.PermissionDenied()
 
 
 class CurrentUserViewSet(viewsets.ModelViewSet):

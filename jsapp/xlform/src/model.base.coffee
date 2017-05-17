@@ -82,6 +82,14 @@ module.exports = do ->
         parent = parent._parent
       parent
 
+  _innerValue = (val)->
+    # occasionally, the value passed to rowDetail
+    # is an object, which evaluates to true
+    if _.isObject(val)
+      val.value
+    else
+      val
+
   class base.RowDetail extends base.BaseModel
     idAttribute: "name"
     validation: () =>
@@ -107,7 +115,16 @@ module.exports = do ->
       # In the quick fix, this is done in the view for 'required' rowDetails
       # (grep: XLF.configs.truthyValues)
 
-      if value not in [undefined, false, null]
+      if @key is "required"
+        _val = _innerValue(value)
+        if _.isString(_val)
+          _val = _val.toLowerCase()
+        @set({
+          value: (
+              _val in ['yes', 'true', true]
+            )
+        })
+      else if value not in [undefined, false, null]
         vals2set = {}
         if _.isString(value) || _.isNumber(value)
           vals2set.value = value
@@ -116,6 +133,7 @@ module.exports = do ->
         else
           vals2set.value = value
         @set(vals2set)
+
       @_order = $configs.columnOrder(@key)
       @postInitialize()
 

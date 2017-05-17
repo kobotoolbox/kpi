@@ -38,11 +38,10 @@ module.exports = do ->
       parent_element = selector.parent()
       parent_element.find('.error-message').remove()
       current_value = selector.text().replace new RegExp(String.fromCharCode(160), 'g'), ''
-
       edit_box = $('<input />', type:'text', value: current_value, class:'js-cancel-sort js-blur-on-select-row')
       selector.after edit_box
       selector.hide()
-      edit_box.focus()
+      edit_box.select()
 
       commit_edit = () ->
         parent_element.find('.error-message').remove()

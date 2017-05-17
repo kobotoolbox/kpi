@@ -1,0 +1,55 @@
+// Theming variables, mixins and includes
+
+$black: #414453;
+$cool-gray: lighten($black, 30%);
+$cool-blue: #2095f3;
+$cool-green: #52c5d0;
+$cool-red: #ff556a;
+$divider-color: #e7e7e8;
+$font: "Roboto", "Helvetica", "Arial", sans-serif !default;
+$layout-text-color: #414453 !default;
+$layout-nav-color: white !default;
+$layout-header-bg-color: #414453 !default;
+$layout-drawer-nav-link-color: #7d8a93 !default;
+$layout-drawer-nav-link-active-bg: #f9f9f9 !default;
+$layout-desktop-header-height: 64px;
+
+@mixin shadow-2dp {
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+}
+
+@mixin box-shadow {
+  box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.06), 0 2px 2px 0 rgba(0, 0, 0, 0.12);
+  border-radius: 2px;
+}
+
+html {
+  color: lighten($black, 20%);
+}
+
+body {
+  background: #F5F5F5;
+}
+
+html, body, input, textarea, select, button {
+  font-family: $font;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+a {
+  color: $cool-blue;
+}
+
+p {
+  margin-bottom: 16px;
+}
+
+h3, h4, h5, h6 {
+  font-weight: 400;
+}
+
+@import "mdl.layout";
+@import "mdl.grid";
+@import "mdl.buttons";

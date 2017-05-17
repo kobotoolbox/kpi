@@ -58,7 +58,7 @@
 
 .modal-title {
   margin: 0px;
-  padding: 20px 30px;
+  padding: 24px 30px;
   font-size: 18px;
 }
 
@@ -107,8 +107,16 @@
   }
 }
 
+// modal tabs
+.modal-tabs {
+  background: $cool-blue;
+  color: #FFF;
+  margin: 0px -20px;
+}
+
 .enketo-holder {
-  margin-top: 20px;
+  // resets modal window paddings
+  margin: -30px -35px;
   .enketo-loading-message {
     p {
       text-align: center;
@@ -148,7 +156,7 @@
 
 .alertify .ajs-dimmer {
   background-color: #FFF;
-  opacity: 0.4;
+  opacity: 0.55;
 }
 
 .alertify .ajs-dialog {
@@ -224,6 +232,9 @@
     }
     &.ajs-cancel {
       @extend .mdl-button--colored;
+      &:focus, &:focus:not(:active) {
+        background: transparent;
+      }
     }
   }
 }
