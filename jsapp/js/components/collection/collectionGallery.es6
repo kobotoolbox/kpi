@@ -31,7 +31,11 @@ var CollectionsGallery = React.createClass({
 			},
 			assets: {
 				count: 0,
-				results: []
+				results: [
+					{
+						attachments: []
+					}
+				]
 			}
 		};
 	},
@@ -87,11 +91,12 @@ var CollectionsGallery = React.createClass({
 		}
 	},
 	handleCarouselChange: function(currentSlide, nextSlide){
-		let current = this.state.assets.results[nextSlide];
+		let record = this.state.assets.results[this.state.activeParentIndex];
+		let attachment = record.attachments[nextSlide];
 		this.setState({
 			activeIndex: nextSlide,
-			activeTitle: current.question.label,
-			activeDate: current.submission.date_created
+			activeTitle: record.label || attachment.question.label,
+			activeDate: record.date_created || attachment.submission.date_created
 		});
 	},
 	goToSlide(index) {
@@ -134,6 +139,7 @@ var CollectionsGallery = React.createClass({
 			infinite: false,
 			speed: 500,
 			slidesToShow: 1,
+			slide: 'slide',
 			slidesToScroll: 1,
 			initialSlide: this.state.activeIndex,
 			nextArrow: <RightNavButton/>,
@@ -196,7 +202,13 @@ var CollectionsGallery = React.createClass({
 										<i className="toggle-info material-icons" onClick={this.toggleInfo}>info_outline</i>
 									</bem.AssetGallery__modalCarouselTopbar>
 									<Slider ref="slider" {...settings} beforeChange={this.handleCarouselChange}>
-										<Slides record={this.state.assets.results[this.state.activeParentIndex]}/>
+										{this.state.assets.results[this.state.activeParentIndex].attachments.map(function (item) {
+											return (
+												<div key={item.id}>
+													<img alt="900x500" src={item.large_download_url}/>
+												</div>
+											)
+										})}
 									</Slider>
 								</bem.AssetGallery__modalCarousel>
 								<bem.AssetGallery__modalSidebar className={"col4 " + (this.state.infoOpen ? 'open' : 'closed')}>
@@ -207,28 +219,34 @@ var CollectionsGallery = React.createClass({
 												<h4>Information</h4>
 											</div>
 											<div className="info__inner margin--15">
+												<p>{this.state.filter.source === 'question' ? 'Question #' : 'Record #'}{this.state.activeParentIndex}</p>
 												<h3>{this.state.activeTitle}</h3>
 												<p>{this.state.activeDate}</p>
 											</div>
 										</div>
 										<bem.AssetGallery__modalSidebarGrid className="padding--10">
 										{this.state.assets.results.map(function(record, i) {
-											<div key={i}>
-												{record.attachments.map(function(item, j) {
-													var divStyle = {
-														backgroundImage: 'url('+ item.download_url + ')',
-														backgroundRepeat: 'no-repeat',
-														backgroundPosition: 'center center',
-														backgroundSize: 'cover'
-													}
-													return (
-														<bem.AssetGallery__modalSidebarGridItem key={j} className="col6" onClick={() => this.updateActiveAsset(j)}>
-															<div className="one-one" style={divStyle}></div>
-														</bem.AssetGallery__modalSidebarGridItem>
-													)
-												}.bind(this))}
-											</div>
-										})}
+											return (
+												<div key={i}>
+													<h5>{this.state.filter.source === 'question' ? 'Question #' : 'Record #'}{i}</h5>
+													{record.attachments.map(function(item, j) {
+														if (this.state.activeIndex !== j){ // if the item is not the active attachment
+															var divStyle = {
+																backgroundImage: 'url('+ item.download_url + ')',
+																backgroundRepeat: 'no-repeat',
+																backgroundPosition: 'center center',
+																backgroundSize: 'cover'
+															}
+															return (
+																<bem.AssetGallery__modalSidebarGridItem key={j} className="col6" onClick={() => this.updateActiveAsset(j)}>
+																	<div className="one-one" style={divStyle}></div>
+																</bem.AssetGallery__modalSidebarGridItem>
+															)
+														}
+													}.bind(this))}
+												</div>
+											)
+										}.bind(this))}
 										</bem.AssetGallery__modalSidebarGrid>
 									</div>
 								</bem.AssetGallery__modalSidebar>
@@ -257,14 +275,6 @@ let LeftNavButton = React.createClass({
       </button>
     )
   }
-});
-let Slides = React.createClass({
-	 render: function() {
-		 var slidesList = this.props.record.attachments.map(function(item){
-			 return <div className="slick-slide" key={item.id}><img alt="900x500" src={item.large_download_url}/></div>
-		 })
-    return <div>{slidesList}</div>
-	 }
 });
 
 module.exports = CollectionsGallery;
