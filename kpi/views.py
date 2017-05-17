@@ -819,7 +819,6 @@ def login_locked(request):
         captcha = CaptchaField()
 
     if request.POST:
-        # import ipdb; ipdb.set_trace()
         form = AxesCaptchaForm(request.POST)
         if form.is_valid():
             client_ip = axes.decorators.get_ip(request)
