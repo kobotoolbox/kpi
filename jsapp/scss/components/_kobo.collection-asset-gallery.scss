@@ -212,6 +212,9 @@
             background: -webkit-gradient(linear, 0% 40%, 0% 100%, from(#000), to(transparent));
           }
         }
+        .close-modal{
+            cursor: pointer;
+        }
       }
       &.full-screen{
         width: 100% !important;
