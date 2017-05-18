@@ -12,6 +12,8 @@ var webpackDevServerConfigs = {
   hot: true,
   inline: true,
   historyApiFallback: true,
+  disableHostCheck: true,
+  headers: { 'Access-Control-Allow-Origin': '*' }
 };
 
 module.exports = {
