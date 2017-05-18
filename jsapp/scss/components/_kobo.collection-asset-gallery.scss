@@ -196,17 +196,18 @@
       position: relative;
       .toggle-info{
         display:none;
+        cursor: pointer;
       }
       &__topbar{
         position: absolute;
         color: #fff;
         z-index: 9;
         width: 100%;
+        padding: 15px;
         &.show{
           &--hover{
             display: flex;
             flex-wrap: nowrap;
-            padding: 35px;
             justify-content: space-between;
             background: -webkit-gradient(linear, 0% 40%, 0% 100%, from(#000), to(transparent));
           }
