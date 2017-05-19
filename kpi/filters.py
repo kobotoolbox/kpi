@@ -239,9 +239,11 @@ class AttachmentFilter(filters.BaseFilterBackend):
                               key=lambda att: att.question_index)
             if group_by and group_by == 'question':
                 result = []
-                for qid, attachments in groupby(queryset, lambda att: (att.question_index, att.question)):
+                for index, (qid, attachments) in \
+                        enumerate(groupby(queryset, lambda att: (att.question_index, att.question))):
                     question = qid[1] if qid[1] else {'number': qid[0]}
                     question['attachments'] = list(attachments)
+                    question['index'] = index
                     result.append(question)
                 return result
 
@@ -250,9 +252,11 @@ class AttachmentFilter(filters.BaseFilterBackend):
                               key=lambda att: (att.instance.id * -1, att.question_index))
             if group_by and group_by == 'submission':
                 result = []
-                for sid, attachments in groupby(queryset, lambda att: (att.instance.uuid, att.instance.submission)):
+                for index, (sid, attachments) in \
+                        enumerate(groupby(queryset, lambda att: (att.instance.uuid, att.instance.submission))):
                     submission = sid[1] if sid[1] else {'instance_uuid': sid[0]}
                     submission['attachments'] = list(attachments)
+                    submission['index'] = index
                     result.append(submission)
                 return result
         else:

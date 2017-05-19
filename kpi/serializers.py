@@ -981,6 +981,7 @@ class AttachmentPagination(HybridPagination):
 
 
 class QuestionSerializer(serializers.Serializer):
+    index = serializers.IntegerField(read_only=True)
     number = serializers.IntegerField(read_only=True)
     type = serializers.CharField(read_only=True)
     name = serializers.CharField(read_only=True)
@@ -1048,6 +1049,7 @@ class QuestionPagination(HybridPagination):
 
 
 class SubmissionSerializer(serializers.Serializer):
+    index = serializers.IntegerField(read_only=True)
     instance_uuid = serializers.CharField(read_only=True)
     username = serializers.CharField(read_only=True)
     xform_id = serializers.CharField(read_only=True)

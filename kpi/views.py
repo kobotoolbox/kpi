@@ -530,14 +530,23 @@ class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        paginator = self.get_paginator()
+        index = request.query_params.get('index')
+        if index:
+            try:
+                index = int(index)
+                queryset = queryset[index]
+            except (ValueError, IndexError):
+                raise Http404(_("Index '%s' out of range" % index))
+
+        is_many = False if index is not None else True
+        paginator = self.get_paginator() if is_many else None
         if paginator:
             page = paginator.paginate_queryset(queryset, request)
             if page is not None:
                 serializer = self.get_serializer(page, many=True)
                 return paginator.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = self.get_serializer(queryset, many=is_many)
         return Response(serializer.data)
 
 
