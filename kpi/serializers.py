@@ -11,8 +11,10 @@ from django.db import transaction
 from django.utils.six.moves.urllib import parse as urlparse
 from django.conf import settings
 from rest_framework import serializers, exceptions
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.pagination import LimitOffsetPagination, _positive_int
+from rest_framework.response import Response
 from rest_framework.reverse import reverse_lazy, reverse
+from rest_framework.utils.urls import replace_query_param, remove_query_param
 from taggit.models import Tag
 
 from kobo.static_lists import SECTORS, COUNTRIES, LANGUAGES
@@ -29,13 +31,37 @@ from .models.object_permission import get_anonymous_user, get_objects_for_user
 from .models.asset import ASSET_TYPES
 from .models import TagUid
 from .models import OneTimeAuthenticationKey
+
+
 from .forms import USERNAME_REGEX, USERNAME_MAX_LENGTH
 from .forms import USERNAME_INVALID_MESSAGE
 from .utils.gravatar_url import gravatar_url
 
 from .deployment_backends.kc_reader.utils import get_kc_profile_data
 from .deployment_backends.kc_reader.utils import set_kc_require_auth
+from .deployment_backends.kc_reader.shadow_models import _models
+from .deployment_backends.kc_reader.utils import check_obj
+from .utils.image_tools import image_url
 
+def dict_key_for_value(_dict, value):
+    """
+    This function is used to get key by value in a dictionary
+    """
+    return _dict.keys()[_dict.values().index(value)]
+
+def get_path(data, question_name, path_list=[]):
+    name = data.get('name')
+    if name == question_name:
+        return '/'.join(path_list)
+    elif data.get('children') is not None:
+        for node in data.get('children'):
+            path_list.append(node.get('name'))
+            path = get_path(node, question_name, path_list)
+            if path is not None:
+                return path
+            else:
+                del path_list[len(path_list) - 1]
+    return None
 
 class Paginated(LimitOffsetPagination):
 
@@ -44,6 +70,118 @@ class Paginated(LimitOffsetPagination):
 
     def get_parent_url(self, obj):
         return reverse_lazy('api-root', request=self.context.get('request'))
+
+
+class HybridPagination(LimitOffsetPagination):
+    max_limit = 100
+    default_limit = max_limit
+    page_query_param = 'page'
+    page_size_query_param = 'page_size'
+
+    def paginate_queryset(self, queryset, request, view=None):
+        self.page = self.get_page(request)
+        return super(HybridPagination, self).paginate_queryset(queryset, request, view)
+
+    def get_paginated_response(self, data):
+        return Response(OrderedDict([
+            ('count', self.count),
+            ('next', self.get_next_link()),
+            ('next_page', self.get_next_page()),
+            ('previous', self.get_previous_link()),
+            ('previous_page', self.get_previous_page()),
+            ('results', data)
+        ]))
+
+    def get_limit(self, request):
+        # Handles case where API request specifies page_size instead of limit
+        if not self.limit_query_param in request.query_params:
+            try:
+                return _positive_int(
+                    request.query_params[self.page_size_query_param],
+                    cutoff=self.max_limit
+                )
+            except (KeyError, ValueError):
+                pass
+
+        return super(HybridPagination, self).get_limit(request)
+
+    def get_offset(self, request):
+        # Handles case where API request specifies page instead of offset
+        if not self.offset_query_param in request.query_params:
+            try:
+                page = _positive_int(
+                    request.query_params[self.page_query_param],
+                    strict=True
+                )
+                limit = self.get_limit(request)
+                return (page-1) * limit
+            except (KeyError, ValueError):
+                pass
+        return super(HybridPagination, self).get_offset(request)
+
+    def get_page(self, request):
+        # Parse the page number if provided in the query request
+        if self.page_query_param in request.query_params:
+            try:
+                return _positive_int(
+                    request.query_params[self.page_query_param],
+                    strict=True
+                )
+            except (KeyError, ValueError):
+                pass
+
+        limit = self.get_limit(request)
+        offset = self.get_offset(request)
+        return int(offset / limit) + 1
+
+    def get_next_link(self):
+        next_link = super(HybridPagination, self).get_next_link()
+        if next_link:
+            next_link = remove_query_param(next_link, self.page_query_param)
+            next_link = remove_query_param(next_link, self.page_size_query_param)
+
+        return next_link
+
+    def get_previous_link(self):
+        prev_link = super(HybridPagination, self).get_previous_link()
+        if prev_link:
+            prev_link = remove_query_param(prev_link, self.page_query_param)
+            prev_link = remove_query_param(prev_link, self.page_size_query_param)
+
+        return prev_link
+
+    def get_next_page(self):
+        next_page = self.get_next_link()
+        if next_page:
+            next_page = remove_query_param(next_page, self.limit_query_param)
+            next_page = remove_query_param(next_page, self.offset_query_param)
+            next_page = replace_query_param(next_page, self.page_query_param, self.page+1)
+            if self.limit != self.default_limit:
+                next_page = replace_query_param(next_page, self.page_size_query_param, self.limit)
+
+        return next_page
+
+    def get_previous_page(self):
+        prev_page = super(HybridPagination, self).get_previous_link()
+        if prev_page:
+            prev_page = remove_query_param(prev_page, self.limit_query_param)
+            prev_page = remove_query_param(prev_page, self.offset_query_param)
+            if self.page > 1:
+                prev_page = replace_query_param(prev_page, self.page_query_param, self.page-1)
+            if self.limit != self.default_limit:
+                prev_page = replace_query_param(prev_page, self.page_size_query_param, self.limit)
+
+        return prev_page
+
+    def get_html_context(self):
+        html_json = super(HybridPagination, self).get_html_context()
+        for (i, page_link) in enumerate(html_json['page_links']):
+            link = remove_query_param(page_link.url, self.page_query_param)
+            link = remove_query_param(link, self.page_size_query_param)
+            link = replace_query_param(link, self.limit_query_param, self.limit)
+            html_json['page_links'][i] = page_link._replace(url=link)
+
+        return html_json
 
 
 class WritableJSONField(serializers.Field):
@@ -749,6 +887,233 @@ class AssetVersionSerializer(AssetVersionListSerializer):
 class AssetUrlListSerializer(AssetSerializer):
     class Meta(AssetSerializer.Meta):
         fields = ('url',)
+
+
+class AttachmentSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+    download_url = serializers.SerializerMethodField()
+    small_download_url = serializers.SerializerMethodField()
+    medium_download_url = serializers.SerializerMethodField()
+    large_download_url = serializers.SerializerMethodField()
+    filename = serializers.ReadOnlyField(source='media_file.name')
+    short_filename = serializers.SerializerMethodField()
+    question = serializers.SerializerMethodField()
+    submission = serializers.SerializerMethodField()
+    can_view_submission = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = ('url', 'filename', 'short_filename', 'mimetype', 'id',
+                  'submission', 'can_view_submission', 'question', 'download_url',
+                  'small_download_url', 'medium_download_url', 'large_download_url')
+        lookup_field = 'pk'
+        model = _models.Attachment
+
+    def get_short_filename(self, obj):
+        return obj.filename
+
+    def get_question(self, obj):
+        return obj.question
+
+    def get_submission(self, obj):
+        return obj.instance.submission
+
+    def get_can_view_submission(self, obj):
+        return obj.can_view_submission
+
+    def get_url(self, obj):
+        asset = self.context.get('asset', obj.instance.xform.id_string)
+        return reverse('asset-attachment-detail', args=(asset, obj.id,),
+                       request=self.context.get('request', None))
+
+    def get_download_url(self, obj):
+        return self._get_download_url(obj, 'original')
+
+    def get_small_download_url(self, obj):
+        return self._get_download_url(obj, 'small')
+
+
+    def get_medium_download_url(self, obj):
+        return self._get_download_url(obj, 'medium')
+
+
+    def get_large_download_url(self, obj):
+        return self._get_download_url(obj, 'large')
+
+    def _get_download_url(self, obj, size):
+        if obj.mimetype.startswith('image'):
+            request = self.context.get('request')
+            result = image_url(obj, size)
+            return result if not request or not result else request.build_absolute_uri(result)
+        return None
+
+class AttachmentListSerializer(AttachmentSerializer):
+    class Meta(AttachmentSerializer.Meta):
+        fields = ('url', 'filename', 'short_filename', 'mimetype', 'id',
+                  'submission', 'can_view_submission', 'question', 'download_url',
+                  'small_download_url', 'medium_download_url', 'large_download_url')
+
+    @check_obj
+    def get_download_url(self, obj):
+        if obj.media_file.url:
+            request = self.context.get('request')
+            return obj.media_file.url if not request else request.build_absolute_uri(obj.media_file.url)
+        return None
+
+    @check_obj
+    def _get_download_url(self, obj, size):
+        url = self.get_url(obj)
+        if url and obj.media_file.url:
+            return url.rstrip('/') + '?filename=%s&size=%s' % (obj.media_file.name, size)
+
+        return None
+
+    def to_representation(self, obj):
+        rep = super(AttachmentListSerializer, self).to_representation(obj)
+        group_by = self.context.get('group_by')
+        if group_by and group_by == 'question':
+            rep.pop('question', None)
+        elif group_by and group_by == 'submission':
+            rep.pop('submission', None)
+        return rep
+
+class AttachmentPagination(HybridPagination):
+    default_limit = 10
+
+
+class QuestionSerializer(serializers.Serializer):
+    number = serializers.IntegerField(read_only=True)
+    type = serializers.CharField(read_only=True)
+    name = serializers.CharField(read_only=True)
+    label = serializers.CharField(read_only=True)
+    attachments = serializers.SerializerMethodField()
+
+    def get_attachments(self, qdict):
+        serializer = AttachmentListSerializer(
+            qdict['attachments'], many=True, read_only=True, context=self.context)
+        return serializer.data
+
+class QuestionPagination(HybridPagination):
+    default_limit = 10
+    nested = True
+
+    def _get_count(self, queryset):
+        if self.nested and len(queryset) > 0:
+            return reduce(
+                lambda x, y: x+y,
+                map(lambda question: len(question['attachments']), queryset)
+            )
+        else:
+            return len(queryset)
+
+    def _get_range(self, queryset, start, end):
+        if self.nested and len(queryset) > 0:
+            result = []
+            attachment_index = 0
+            include_question = False
+            for question in queryset:
+                size = len(question['attachments'])
+                start_range = 0
+                if not include_question and (attachment_index + size) > start:
+                    include_question = True
+                    start_range = start-attachment_index
+                if include_question:
+                    end_range = (end - attachment_index) if (attachment_index + size) >= end else size
+                    question['attachments'] = list(question['attachments'][start_range:end_range])
+                    result.append(question)
+
+                attachment_index += size
+                if attachment_index >= end:
+                    break
+
+            return result
+        else:
+            return list(queryset[start:end])
+
+    def paginate_queryset(self, queryset, request, view=None):
+        self.count = self._get_count(queryset)
+        self.limit = self.get_limit(request)
+        self.page = self.get_page(request)
+        if self.limit is None:
+            return None
+
+        self.offset = self.get_offset(request)
+        self.request = request
+        if self.count > self.limit and self.template is not None:
+            self.display_page_controls = True
+
+        if self.count == 0 or self.offset > self.count:
+            return []
+
+        return self._get_range(queryset, self.offset, self.offset+self.limit)
+
+
+class SubmissionSerializer(serializers.Serializer):
+    instance_uuid = serializers.CharField(read_only=True)
+    username = serializers.CharField(read_only=True)
+    xform_id = serializers.CharField(read_only=True)
+    status = serializers.CharField(read_only=True)
+    date_created = serializers.DateTimeField(read_only=True)
+    date_modified = serializers.DateTimeField(read_only=True)
+    attachments = serializers.SerializerMethodField()
+
+    def get_attachments(self, sdict):
+        serializer = AttachmentListSerializer(
+            sdict['attachments'], many=True, read_only=True, context=self.context)
+        return serializer.data
+
+class SubmissionPagination(HybridPagination):
+    default_limit = 10
+    nested = True
+
+    def _get_count(self, queryset):
+        if self.nested and len(queryset) > 0:
+            return reduce(
+                lambda x, y: x+y,
+                map(lambda submission: len(submission['attachments']), queryset)
+            )
+        else:
+            return len(queryset)
+
+    def _get_range(self, queryset, start, end):
+        if self.nested and len(queryset) > 0:
+            result = []
+            attachment_index = 0
+            include_submission = False
+            for submission in queryset:
+                size = len(submission['attachments'])
+                start_range = 0
+                if not include_submission and (attachment_index + size) > start:
+                    include_submission = True
+                    start_range = start-attachment_index
+                if include_submission:
+                    end_range = (end - attachment_index) if (attachment_index + size) >= end else size
+                    submission['attachments'] = list(submission['attachments'][start_range:end_range])
+                    result.append(submission)
+
+                attachment_index += size
+                if attachment_index >= end:
+                    break
+
+            return result
+        else:
+            return list(queryset[start:end])
+
+    def paginate_queryset(self, queryset, request, view=None):
+        self.count = self._get_count(queryset)
+        self.limit = self.get_limit(request)
+        self.page = self.get_page(request)
+        if self.limit is None:
+            return None
+
+        self.offset = self.get_offset(request)
+        self.request = request
+        if self.count > self.limit and self.template is not None:
+            self.display_page_controls = True
+
+        if self.count == 0 or self.offset > self.count:
+            return []
+
+        return self._get_range(queryset, self.offset, self.offset+self.limit)
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
