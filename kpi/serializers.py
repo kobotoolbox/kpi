@@ -986,12 +986,44 @@ class QuestionSerializer(serializers.Serializer):
     type = serializers.CharField(read_only=True)
     name = serializers.CharField(read_only=True)
     label = serializers.CharField(read_only=True)
+    url = serializers.SerializerMethodField()
     attachments = serializers.SerializerMethodField()
 
+    def get_url(self, qdict):
+        request = self.context.get('request', None)
+        if not request:
+            return None
+        url = request.build_absolute_uri()
+        return replace_query_param(url, 'index', qdict['index'])
+
     def get_attachments(self, qdict):
+        paginator = HybridPagination()
+        paginator.default_limit = 5
+        page = paginator.paginate_queryset(
+            queryset=qdict['attachments'],
+            request=self.context.get('request', None)
+        )
         serializer = AttachmentListSerializer(
-            qdict['attachments'], many=True, read_only=True, context=self.context)
-        return serializer.data
+            page, many=True, read_only=True, context=self.context)
+
+        attachments = OrderedDict([
+            ('count', paginator.count),
+            ('next', paginator.get_next_link()),
+            ('next_page', paginator.get_next_page()),
+            ('previous', paginator.get_previous_link()),
+            ('previous_page', paginator.get_previous_page()),
+            ('results', serializer.data)
+        ])
+        if attachments['next']:
+            attachments['next'] = replace_query_param(attachments['next'], 'index', qdict['index'])
+        if attachments['next_page']:
+            attachments['next_page'] = replace_query_param(attachments['next_page'], 'index', qdict['index'])
+        if attachments['previous']:
+            attachments['previous'] = replace_query_param(attachments['previous'], 'index', qdict['index'])
+        if attachments['previous_page']:
+            attachments['previous_page'] = replace_query_param(attachments['previous_page'], 'index', qdict['index'])
+
+        return attachments
 
 
 class SubmissionSerializer(serializers.Serializer):

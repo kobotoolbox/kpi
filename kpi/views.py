@@ -80,7 +80,7 @@ from .serializers import (
     AssetVersionSerializer,
     AssetSnapshotSerializer,
     AttachmentSerializer, AttachmentListSerializer, AttachmentPagination,
-    QuestionSerializer, QuestionPagination,
+    QuestionSerializer,
     SubmissionSerializer, SubmissionPagination,
     SitewideMessageSerializer,
     CollectionSerializer, CollectionListSerializer,
