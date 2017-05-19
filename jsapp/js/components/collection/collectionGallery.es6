@@ -179,7 +179,7 @@ var CollectionsGallery = React.createClass({
 										backgroundSize: 'cover'
 									}
 									var timestamp = (this.state.filter.source === 'question') ? new Date(item.submission.date_created) : new Date(record.date_created);
-									var formattedDate = moment(timestamp).format('MM-DD-YYYY h:mm:ssa');
+									var formattedDate = moment(timestamp).format('DD-MMM-YYYY h:mm:ssa');
 									return (
 										<bem.AssetGallery__gridItem key={j} className="col4 one-one" style={divStyle} onClick={() => this.openModal(i, j)} >
 											<bem.AssetGallery__gridItemOverlay>
