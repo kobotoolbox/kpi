@@ -7,6 +7,7 @@ import Slider from 'react-slick';
 import CollectionModal from './collectionModal';
 import CollectionFilter from './collectionFilter';
 import {dataInterface} from '../../dataInterface';
+import moment from 'moment';
 
 var CollectionsGallery = React.createClass({
 	displayName: 'CollectionsGallery',
@@ -42,9 +43,9 @@ var CollectionsGallery = React.createClass({
 	loadGalleryData: function(uid, filter) {
 		dataInterface.filterGalleryImages(uid, filter).done((response)=>{
 			this.setState({
-        assets: response
-      });
-    });
+				assets: response
+			});
+		});
 	},
 	componentDidMount: function(){
 		this.loadGalleryData(this.props.uid, 'question');
@@ -52,12 +53,12 @@ var CollectionsGallery = React.createClass({
 
 	// MODAL
 
-  openModal: function(record_index, attachment_index) {
+	openModal: function(record_index, attachment_index) {
 		let record = this.state.assets.results[record_index];
 		let attachment = record.attachments[attachment_index]
 		console.log(record);
 		console.log(attachment_index);
-    this.setState({
+		this.setState({
 			showModal: true,
 			activeID: attachment.id,
 			activeIndex: attachment_index,
@@ -65,10 +66,10 @@ var CollectionsGallery = React.createClass({
 			activeTitle: record.label || attachment.question.label,
 			activeDate: record.date_created || attachment.submission.date_created
 		});
-  },
-  closeModal: function() {
-    this.setState({ showModal: false });
-  },
+	},
+	closeModal: function() {
+		this.setState({ showModal: false });
+	},
 	toggleInfo(){
 		this.setState(prevState => ({
 			infoOpen: !prevState.infoOpen
@@ -150,26 +151,26 @@ var CollectionsGallery = React.createClass({
 			{value: 'submission', label: 'Group by Record'}
 		]
 		return (
-      <bem.AssetGallery>
+			<bem.AssetGallery>
 				<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
-        <bem.AssetGallery__heading>
-          <div className="col6">
-            <bem.AssetGallery__count>
-              <strong>{this.state.assets.count} Images</strong>
-            </bem.AssetGallery__count>
-          </div>
-          <div className="col6">
+				<bem.AssetGallery__heading>
+					<div className="col6">
+						<bem.AssetGallery__count>
+							<strong>{this.state.assets.count} Images</strong>
+						</bem.AssetGallery__count>
+					</div>
+					<div className="col6">
 						<bem.AssetGallery__headingSearchFilter className="section">
 							<div className="text-display"><span>{this.state.filter.label}</span></div>
 							<Select ref="filterSelect" className="icon-button-select" options={filters} simpleValue name="selected-filter" disabled={this.state.disabled} value={this.state.filter.source} onChange={this.switchFilter} searchable={false} />
 						</bem.AssetGallery__headingSearchFilter>
-          </div>
-        </bem.AssetGallery__heading>
-        <bem.AssetGallery__grid>
-	        {this.state.assets.results.map(function(record, i) {
+					</div>
+				</bem.AssetGallery__heading>
+				<bem.AssetGallery__grid>
+					{this.state.assets.results.map(function(record, i) {
 						return (
 							<div key={i}>
-								<h5>{this.state.filter.source === 'question' ? 'Question #' : 'Record #'}{i}</h5>
+								<h5>{this.state.filter.source === 'question' ? record.label : 'Record #'+ parseInt(i+1) }</h5>
 								{record.attachments.map(function(item, j) {
 									var divStyle = {
 										backgroundImage: 'url('+ item.download_url + ')',
@@ -177,11 +178,14 @@ var CollectionsGallery = React.createClass({
 										backgroundPosition: 'center center',
 										backgroundSize: 'cover'
 									}
+									var timestamp = (this.state.filter.source === 'question') ? new Date(item.submission.date_created) : new Date(record.date_created);
+									var formattedDate = moment(timestamp).format('MM-DD-YYYY h:mm:ssa');
 									return (
 										<bem.AssetGallery__gridItem key={j} className="col4 one-one" style={divStyle} onClick={() => this.openModal(i, j)} >
 											<bem.AssetGallery__gridItemOverlay>
 												<div className="text">
-													<h5>{record.label || item.question.label}</h5>
+													<h5>{this.state.filter.source === 'question' ? 'Record #' + parseInt(j+1) : item.question.label}</h5>
+													<p>{formattedDate}</p>
 												</div>
 											</bem.AssetGallery__gridItemOverlay>
 										</bem.AssetGallery__gridItem>
@@ -190,41 +194,39 @@ var CollectionsGallery = React.createClass({
 							</div>
 						)
 					}.bind(this))}
-	      </bem.AssetGallery__grid>
-					<Modal
-					  isOpen={this.state.showModal}
-					  contentLabel="Modal" >
-			      <bem.AssetGallery__modal>
-			        <ui.Modal.Body>
-								<bem.AssetGallery__modalCarousel className={"col8 "+ (this.state.infoOpen ? '' : 'full-screen')}>
-									<bem.AssetGallery__modalCarouselTopbar className={this.state.infoOpen ? 'show' : 'show--hover'}>
-										<i className="close-modal material-icons" onClick={this.closeModal}>keyboard_backspace</i>
-										<i className="toggle-info material-icons" onClick={this.toggleInfo}>info_outline</i>
-									</bem.AssetGallery__modalCarouselTopbar>
-									<Slider ref="slider" {...settings} beforeChange={this.handleCarouselChange}>
-										{this.state.assets.results[this.state.activeParentIndex].attachments.map(function (item) {
-											return (
-												<div key={item.id}>
-													<img alt="900x500" src={item.large_download_url}/>
-												</div>
-											)
-										})}
-									</Slider>
-								</bem.AssetGallery__modalCarousel>
-								<bem.AssetGallery__modalSidebar className={"col4 " + (this.state.infoOpen ? 'open' : 'closed')}>
-									<i className="toggle-info material-icons" onClick={this.toggleInfo}>close</i>
-									<div>
-										<div className="info__outer">
-											<div className="light-grey-bg">
-												<h4>Information</h4>
+				</bem.AssetGallery__grid>
+				<Modal isOpen={this.state.showModal} contentLabel="Modal" >
+					<bem.AssetGallery__modal>
+						<ui.Modal.Body>
+							<bem.AssetGallery__modalCarousel className={"col8 "+ (this.state.infoOpen ? '' : 'full-screen')}>
+								<bem.AssetGallery__modalCarouselTopbar className={this.state.infoOpen ? 'show' : 'show--hover'}>
+									<i className="close-modal material-icons" onClick={this.closeModal}>keyboard_backspace</i>
+									<i className="toggle-info material-icons" onClick={this.toggleInfo}>info_outline</i>
+								</bem.AssetGallery__modalCarouselTopbar>
+								<Slider ref="slider" {...settings} beforeChange={this.handleCarouselChange}>
+									{this.state.assets.results[this.state.activeParentIndex].attachments.map(function (item) {
+										return (
+											<div key={item.id}>
+												<img alt="900x500" src={item.large_download_url}/>
 											</div>
-											<div className="info__inner margin--15">
-												<p>{this.state.filter.source === 'question' ? 'Question #' : 'Record #'}{this.state.activeParentIndex}</p>
-												<h3>{this.state.activeTitle}</h3>
-												<p>{this.state.activeDate}</p>
-											</div>
+										)
+									})}
+								</Slider>
+							</bem.AssetGallery__modalCarousel>
+							<bem.AssetGallery__modalSidebar className={"col4 " + (this.state.infoOpen ? 'open' : 'closed')}>
+								<i className="toggle-info material-icons" onClick={this.toggleInfo}>close</i>
+								<div>
+									<div className="info__outer">
+										<div className="light-grey-bg">
+											<h4>Information</h4>
 										</div>
-										<bem.AssetGallery__modalSidebarGrid className="padding--10">
+										<div className="info__inner margin--15">
+											<p>{this.state.filter.source === 'question' ? 'Question #' : 'Record #'}{this.state.activeParentIndex}</p>
+											<h3>{this.state.activeTitle}</h3>
+											<p>{this.state.activeDate}</p>
+										</div>
+									</div>
+									<bem.AssetGallery__modalSidebarGrid className="padding--10">
 										{this.state.assets.results.map(function(record, i) {
 											return (
 												<div key={i}>
@@ -247,34 +249,34 @@ var CollectionsGallery = React.createClass({
 												</div>
 											)
 										}.bind(this))}
-										</bem.AssetGallery__modalSidebarGrid>
-									</div>
-								</bem.AssetGallery__modalSidebar>
-			        </ui.Modal.Body>
-			      </bem.AssetGallery__modal>
-					</Modal>
-      </bem.AssetGallery>
+									</bem.AssetGallery__modalSidebarGrid>
+								</div>
+							</bem.AssetGallery__modalSidebar>
+						</ui.Modal.Body>
+					</bem.AssetGallery__modal>
+				</Modal>
+			</bem.AssetGallery>
 		);
 	}
 });
 
 let RightNavButton = React.createClass({
-  render() {
-    return (
-      <button {...this.props}>
-        <i className="material-icons">chevron_right</i>
-      </button>
-    )
-  }
+	render() {
+		return (
+			<button {...this.props}>
+				<i className="material-icons">chevron_right</i>
+			</button>
+		)
+	}
 });
 let LeftNavButton = React.createClass({
-  render() {
-    return (
-      <button {...this.props}>
-        <i className="material-icons">chevron_left</i>
-      </button>
-    )
-  }
+	render() {
+		return (
+			<button {...this.props}>
+				<i className="material-icons">chevron_left</i>
+			</button>
+		)
+	}
 });
 
 module.exports = CollectionsGallery;
