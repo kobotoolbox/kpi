@@ -993,60 +993,6 @@ class QuestionSerializer(serializers.Serializer):
             qdict['attachments'], many=True, read_only=True, context=self.context)
         return serializer.data
 
-class QuestionPagination(HybridPagination):
-    default_limit = 10
-    nested = True
-
-    def _get_count(self, queryset):
-        if self.nested and len(queryset) > 0:
-            return reduce(
-                lambda x, y: x+y,
-                map(lambda question: len(question['attachments']), queryset)
-            )
-        else:
-            return len(queryset)
-
-    def _get_range(self, queryset, start, end):
-        if self.nested and len(queryset) > 0:
-            result = []
-            attachment_index = 0
-            include_question = False
-            for question in queryset:
-                size = len(question['attachments'])
-                start_range = 0
-                if not include_question and (attachment_index + size) > start:
-                    include_question = True
-                    start_range = start-attachment_index
-                if include_question:
-                    end_range = (end - attachment_index) if (attachment_index + size) >= end else size
-                    question['attachments'] = list(question['attachments'][start_range:end_range])
-                    result.append(question)
-
-                attachment_index += size
-                if attachment_index >= end:
-                    break
-
-            return result
-        else:
-            return list(queryset[start:end])
-
-    def paginate_queryset(self, queryset, request, view=None):
-        self.count = self._get_count(queryset)
-        self.limit = self.get_limit(request)
-        self.page = self.get_page(request)
-        if self.limit is None:
-            return None
-
-        self.offset = self.get_offset(request)
-        self.request = request
-        if self.count > self.limit and self.template is not None:
-            self.display_page_controls = True
-
-        if self.count == 0 or self.offset > self.count:
-            return []
-
-        return self._get_range(queryset, self.offset, self.offset+self.limit)
-
 
 class SubmissionSerializer(serializers.Serializer):
     index = serializers.IntegerField(read_only=True)
@@ -1064,58 +1010,7 @@ class SubmissionSerializer(serializers.Serializer):
         return serializer.data
 
 class SubmissionPagination(HybridPagination):
-    default_limit = 10
-    nested = True
-
-    def _get_count(self, queryset):
-        if self.nested and len(queryset) > 0:
-            return reduce(
-                lambda x, y: x+y,
-                map(lambda submission: len(submission['attachments']), queryset)
-            )
-        else:
-            return len(queryset)
-
-    def _get_range(self, queryset, start, end):
-        if self.nested and len(queryset) > 0:
-            result = []
-            attachment_index = 0
-            include_submission = False
-            for submission in queryset:
-                size = len(submission['attachments'])
-                start_range = 0
-                if not include_submission and (attachment_index + size) > start:
-                    include_submission = True
-                    start_range = start-attachment_index
-                if include_submission:
-                    end_range = (end - attachment_index) if (attachment_index + size) >= end else size
-                    submission['attachments'] = list(submission['attachments'][start_range:end_range])
-                    result.append(submission)
-
-                attachment_index += size
-                if attachment_index >= end:
-                    break
-
-            return result
-        else:
-            return list(queryset[start:end])
-
-    def paginate_queryset(self, queryset, request, view=None):
-        self.count = self._get_count(queryset)
-        self.limit = self.get_limit(request)
-        self.page = self.get_page(request)
-        if self.limit is None:
-            return None
-
-        self.offset = self.get_offset(request)
-        self.request = request
-        if self.count > self.limit and self.template is not None:
-            self.display_page_controls = True
-
-        if self.count == 0 or self.offset > self.count:
-            return []
-
-        return self._get_range(queryset, self.offset, self.offset+self.limit)
+    default_limit = 5
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
