@@ -309,17 +309,20 @@ class AttachmentViewsetTestCase(TestCase):
                 response = self.list_view(request, parent_lookup_asset=self.asset.uid)
                 self.assertEqual(response.status_code, 200)
                 data = response.data
-                self.assertEquals(data['count'], len(self.SAVED_ATTACHMENTS)) # Remember, it's paged by Attachment
-                self.assertIsNone(data['previous'])
+                self.assertEquals(data['count'], len(self.SAVED_INSTANCES))
+                self.assertIsNone(data['previous']) # paging per submission
                 self.assertIsNone(data['next'])
                 self.assertIsNone(data['previous_page'])
                 self.assertIsNone(data['next_page'])
                 self.assertEquals(len(data['results']), len(self.SAVED_INSTANCES))
-                for submission in data['results']:
+                for index, submission in enumerate(data['results']):
+                    self.assertEqual(submission['index'], index)
                     self.assertIsNotNone(submission['instance_uuid'])
                     self.assertIsNotNone(submission['date_created'])
                     self.assertIsNotNone(submission['date_modified'])
-                    self.assertEqual(len(submission['attachments']), 2) # 2 attachments linked to each instance
+                    attachments = submission['attachments']
+                    self.assertEqual(attachments['count'], 2)  # 2 attachments linked to each instance
+                    self.assertEqual(len(attachments['results']), 2)
 
 
     def test_list_view_group_by_question(self):
@@ -332,17 +335,19 @@ class AttachmentViewsetTestCase(TestCase):
                 response = self.list_view(request, parent_lookup_asset=self.asset.uid)
                 self.assertEqual(response.status_code, 200)
                 data = response.data
-                self.assertEquals(data['count'], len(self.SAVED_ATTACHMENTS)) # Remember, it's paged by Attachment
-                self.assertIsNone(data['previous'])
-                self.assertIsNone(data['next'])
-                self.assertIsNone(data['previous_page'])
-                self.assertIsNone(data['next_page'])
+                self.assertEquals(data['count'], len(self.questions))
                 self.assertEquals(len(data['results']), len(self.questions))
-                for question in data['results']:
+                for index, question in enumerate(data['results']):
+                    self.assertEqual(question['index'], index)
                     self.assertIsNotNone(question['number'])
                     self.assertIsNotNone(question['name'])
-                    self.assertEqual(len(question['attachments']), 2)  # 2 attachments linked to each question
-
+                    attachments = question['attachments']
+                    self.assertEqual(attachments['count'], 2)  # 2 attachments linked to each question
+                    self.assertIsNone(attachments['previous'])  # paging per attachments per question
+                    self.assertIsNone(attachments['next'])
+                    self.assertIsNone(attachments['previous_page'])
+                    self.assertIsNone(attachments['next_page'])
+                    self.assertEqual(len(attachments['results']), 2)
 
     @patch('kpi.serializers.image_url', MagicMock(side_effect=lambda att, size: att.media_file.url))
     def test_retrieve_view_raw_image(self):
