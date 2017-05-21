@@ -994,6 +994,10 @@ class QuestionSerializer(serializers.Serializer):
         if not request:
             return None
         url = request.build_absolute_uri()
+        url = remove_query_param(url, 'limit')
+        url = remove_query_param(url, 'offset')
+        url = remove_query_param(url, 'page')
+        url = remove_query_param(url, 'page_size')
         return replace_query_param(url, 'index', qdict['index'])
 
     def get_attachments(self, qdict):
@@ -1025,6 +1029,18 @@ class QuestionSerializer(serializers.Serializer):
 
         return attachments
 
+class QuestionPagination(HybridPagination):
+    # Not really a paginator
+
+    def paginate_queryset(self, queryset, request, view=None):
+        return queryset
+
+    def get_paginated_response(self, data):
+        return Response(OrderedDict([
+            ('count', len(data)),
+            ('results', data)
+        ]))
+
 
 class SubmissionSerializer(serializers.Serializer):
     index = serializers.IntegerField(read_only=True)
@@ -1034,12 +1050,27 @@ class SubmissionSerializer(serializers.Serializer):
     status = serializers.CharField(read_only=True)
     date_created = serializers.DateTimeField(read_only=True)
     date_modified = serializers.DateTimeField(read_only=True)
+    url = serializers.SerializerMethodField()
     attachments = serializers.SerializerMethodField()
+
+    def get_url(self, sdict):
+        request = self.context.get('request', None)
+        if not request:
+            return None
+        url = request.build_absolute_uri()
+        url = remove_query_param(url, 'limit')
+        url = remove_query_param(url, 'offset')
+        url = remove_query_param(url, 'page')
+        url = remove_query_param(url, 'page_size')
+        return replace_query_param(url, 'index', sdict['index'])
 
     def get_attachments(self, sdict):
         serializer = AttachmentListSerializer(
             sdict['attachments'], many=True, read_only=True, context=self.context)
-        return serializer.data
+        return OrderedDict([
+            ('count', len(sdict['attachments'])),
+            ('results', serializer.data)
+        ])
 
 class SubmissionPagination(HybridPagination):
     default_limit = 5

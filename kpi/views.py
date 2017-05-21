@@ -80,7 +80,7 @@ from .serializers import (
     AssetVersionSerializer,
     AssetSnapshotSerializer,
     AttachmentSerializer, AttachmentListSerializer, AttachmentPagination,
-    QuestionSerializer,
+    QuestionSerializer, QuestionPagination,
     SubmissionSerializer, SubmissionPagination,
     SitewideMessageSerializer,
     CollectionSerializer, CollectionListSerializer,
@@ -521,7 +521,7 @@ class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
 
     def get_paginator(self):
         if self._group_by() and self._group_by() == 'question':
-            paginator = None
+            paginator = QuestionPagination()
         elif self._group_by() and self._group_by() == 'submission':
             paginator = SubmissionPagination()
         else:
