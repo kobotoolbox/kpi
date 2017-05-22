@@ -981,139 +981,122 @@ class AttachmentPagination(HybridPagination):
 
 
 class QuestionSerializer(serializers.Serializer):
+    index = serializers.IntegerField(read_only=True)
     number = serializers.IntegerField(read_only=True)
     type = serializers.CharField(read_only=True)
     name = serializers.CharField(read_only=True)
     label = serializers.CharField(read_only=True)
+    url = serializers.SerializerMethodField()
     attachments = serializers.SerializerMethodField()
 
+    def get_url(self, qdict):
+        request = self.context.get('request', None)
+        if not request:
+            return None
+        url = request.build_absolute_uri()
+        url = remove_query_param(url, 'limit')
+        url = remove_query_param(url, 'offset')
+        url = remove_query_param(url, 'page')
+        url = remove_query_param(url, 'page_size')
+        return replace_query_param(url, 'index', qdict['index'])
+
     def get_attachments(self, qdict):
+        paginator = HybridPagination()
+        paginator.default_limit = 5
+        page = paginator.paginate_queryset(
+            queryset=qdict['attachments'],
+            request=self.context.get('request', None)
+        )
         serializer = AttachmentListSerializer(
-            qdict['attachments'], many=True, read_only=True, context=self.context)
-        return serializer.data
+            page, many=True, read_only=True, context=self.context)
+
+        attachments = OrderedDict([
+            ('count', paginator.count),
+            ('next', paginator.get_next_link()),
+            ('next_page', paginator.get_next_page()),
+            ('previous', paginator.get_previous_link()),
+            ('previous_page', paginator.get_previous_page()),
+            ('results', serializer.data)
+        ])
+        if attachments['next']:
+            attachments['next'] = replace_query_param(attachments['next'], 'index', qdict['index'])
+        if attachments['next_page']:
+            attachments['next_page'] = replace_query_param(attachments['next_page'], 'index', qdict['index'])
+        if attachments['previous']:
+            attachments['previous'] = replace_query_param(attachments['previous'], 'index', qdict['index'])
+        if attachments['previous_page']:
+            attachments['previous_page'] = replace_query_param(attachments['previous_page'], 'index', qdict['index'])
+
+        return attachments
 
 class QuestionPagination(HybridPagination):
-    default_limit = 10
-    nested = True
-
-    def _get_count(self, queryset):
-        if self.nested and len(queryset) > 0:
-            return reduce(
-                lambda x, y: x+y,
-                map(lambda question: len(question['attachments']), queryset)
-            )
-        else:
-            return len(queryset)
-
-    def _get_range(self, queryset, start, end):
-        if self.nested and len(queryset) > 0:
-            result = []
-            attachment_index = 0
-            include_question = False
-            for question in queryset:
-                size = len(question['attachments'])
-                start_range = 0
-                if not include_question and (attachment_index + size) > start:
-                    include_question = True
-                    start_range = start-attachment_index
-                if include_question:
-                    end_range = (end - attachment_index) if (attachment_index + size) >= end else size
-                    question['attachments'] = list(question['attachments'][start_range:end_range])
-                    result.append(question)
-
-                attachment_index += size
-                if attachment_index >= end:
-                    break
-
-            return result
-        else:
-            return list(queryset[start:end])
+    # Not really a paginator
 
     def paginate_queryset(self, queryset, request, view=None):
-        self.count = self._get_count(queryset)
-        self.limit = self.get_limit(request)
-        self.page = self.get_page(request)
-        if self.limit is None:
-            return None
+        self.attachments_count = self.get_attachments_count(queryset)
+        return queryset
 
-        self.offset = self.get_offset(request)
-        self.request = request
-        if self.count > self.limit and self.template is not None:
-            self.display_page_controls = True
+    def get_paginated_response(self, data):
+        return Response(OrderedDict([
+            ('count', len(data)),
+            ('attachments_count', self.attachments_count),
+            ('results', data)
+        ]))
 
-        if self.count == 0 or self.offset > self.count:
-            return []
-
-        return self._get_range(queryset, self.offset, self.offset+self.limit)
+    def get_attachments_count(self, queryset):
+        return reduce(lambda x, y: x + y, map(lambda question: len(question['attachments']), queryset))
 
 
 class SubmissionSerializer(serializers.Serializer):
+    index = serializers.IntegerField(read_only=True)
     instance_uuid = serializers.CharField(read_only=True)
     username = serializers.CharField(read_only=True)
     xform_id = serializers.CharField(read_only=True)
     status = serializers.CharField(read_only=True)
     date_created = serializers.DateTimeField(read_only=True)
     date_modified = serializers.DateTimeField(read_only=True)
+    url = serializers.SerializerMethodField()
     attachments = serializers.SerializerMethodField()
+
+    def get_url(self, sdict):
+        request = self.context.get('request', None)
+        if not request:
+            return None
+        url = request.build_absolute_uri()
+        url = remove_query_param(url, 'limit')
+        url = remove_query_param(url, 'offset')
+        url = remove_query_param(url, 'page')
+        url = remove_query_param(url, 'page_size')
+        return replace_query_param(url, 'index', sdict['index'])
 
     def get_attachments(self, sdict):
         serializer = AttachmentListSerializer(
             sdict['attachments'], many=True, read_only=True, context=self.context)
-        return serializer.data
+        return OrderedDict([
+            ('count', len(sdict['attachments'])),
+            ('results', serializer.data)
+        ])
 
 class SubmissionPagination(HybridPagination):
-    default_limit = 10
-    nested = True
-
-    def _get_count(self, queryset):
-        if self.nested and len(queryset) > 0:
-            return reduce(
-                lambda x, y: x+y,
-                map(lambda submission: len(submission['attachments']), queryset)
-            )
-        else:
-            return len(queryset)
-
-    def _get_range(self, queryset, start, end):
-        if self.nested and len(queryset) > 0:
-            result = []
-            attachment_index = 0
-            include_submission = False
-            for submission in queryset:
-                size = len(submission['attachments'])
-                start_range = 0
-                if not include_submission and (attachment_index + size) > start:
-                    include_submission = True
-                    start_range = start-attachment_index
-                if include_submission:
-                    end_range = (end - attachment_index) if (attachment_index + size) >= end else size
-                    submission['attachments'] = list(submission['attachments'][start_range:end_range])
-                    result.append(submission)
-
-                attachment_index += size
-                if attachment_index >= end:
-                    break
-
-            return result
-        else:
-            return list(queryset[start:end])
+    default_limit = 5
 
     def paginate_queryset(self, queryset, request, view=None):
-        self.count = self._get_count(queryset)
-        self.limit = self.get_limit(request)
-        self.page = self.get_page(request)
-        if self.limit is None:
-            return None
+        self.attachments_count = self.get_attachments_count(queryset)
+        return super(SubmissionPagination, self).paginate_queryset(queryset, request, view)
 
-        self.offset = self.get_offset(request)
-        self.request = request
-        if self.count > self.limit and self.template is not None:
-            self.display_page_controls = True
+    def get_paginated_response(self, data):
+        return Response(OrderedDict([
+            ('count', self.count),
+            ('next', self.get_next_link()),
+            ('next_page', self.get_next_page()),
+            ('previous', self.get_previous_link()),
+            ('previous_page', self.get_previous_page()),
+            ('attachments_count', self.attachments_count),
+            ('results', data)
+        ]))
 
-        if self.count == 0 or self.offset > self.count:
-            return []
-
-        return self._get_range(queryset, self.offset, self.offset+self.limit)
+    def get_attachments_count(self, queryset):
+        return reduce(lambda x, y: x + y, map(lambda question: len(question['attachments']), queryset))
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):

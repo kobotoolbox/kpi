@@ -23,7 +23,7 @@ cache:
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
 script:
-  - grunt copy:fonts
+  - gulp copy
   - npm run build
   - coverage run --source='hub,kpi,kobo' --omit='*/tests/*,*/migrations/*,*/management/commands/*' manage.py test
   - npm run test

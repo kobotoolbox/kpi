@@ -8,9 +8,7 @@ import stores from '../stores';
 import Select from 'react-select';
 import ui from '../ui';
 import mixins from '../mixins';
-import mdl from '../libs/rest_framework/material';
 import DocumentTitle from 'react-document-title';
-import CopyToClipboard from 'react-copy-to-clipboard';
 import SharingForm from '../components/sharingForm';
 import CollectionFilter from '../components/collection/collectionFilter';
 import CollectionGallery from '../components/collection/collectionGallery';
@@ -81,12 +79,6 @@ var FormSubScreens = React.createClass({
         // case `/forms/${this.state.uid}/settings/sharing`:
         //   return this.renderSharing();
         //   break;
-        case `/forms/${this.state.uid}/landing/collect`:
-          return this.renderCollectWeb();
-          break;
-        case `/forms/${this.state.uid}/landing/android`:
-          return this.renderCollectAndroid();
-          break;
         case `/forms/${this.state.uid}/reset`:
           return this.renderReset();
           break;
@@ -285,9 +277,6 @@ var FormSubScreens = React.createClass({
         </bem.Loading__inner>
       </bem.Loading>
     );
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   }
 
 })

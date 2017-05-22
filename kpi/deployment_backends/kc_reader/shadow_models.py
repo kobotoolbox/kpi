@@ -133,7 +133,7 @@ class LazyModelGroup:
             def submission(self):
                 try:
                     username = self.xform.user.username
-                except ValueError:
+                except:
                     username = None
 
                 return OrderedDict({

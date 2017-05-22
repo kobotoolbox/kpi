@@ -1,6 +1,5 @@
 import React from 'react';
 import { hashHistory } from 'react-router';
-import mdl from '../libs/rest_framework/material';
 import Select from 'react-select';
 import moment from 'moment';
 import alertify from 'alertifyjs';
@@ -21,7 +20,6 @@ import {
 import searches from '../searches';
 import cookie from 'react-cookie';
 import hotkey from 'react-hotkey';
-import AutosizeInput from 'react-input-autosize';
 
 hotkey.activate();
 
@@ -250,7 +248,7 @@ var MainHeader = React.createClass({
     return (
         <header className="mdl-layout__header">
           <div className="mdl-layout__header-row">
-            <button className="mdl-button mdl-button--icon k-burger" onClick={this.toggleFixedDrawer}>
+            <button className="mdl-button mdl-button--icon" onClick={this.toggleFixedDrawer}>
               <i className="fa fa-bars"></i>
             </button>
             <span className='mdl-layout-title'>
@@ -271,12 +269,12 @@ var MainHeader = React.createClass({
             { this.isFormSingle() && this.state.asset &&
               <bem.FormTitle>
                 { this.state.asset.has_deployment ?
-                  <i className="k-icon-deployed" />
+                  <i className="k-icon-deploy" />
                 :
                   <i className="k-icon-drafts" />
                 }
-                <bem.FormTitle__name data-tip={t('click to edit')} className="hide-tooltip__onfocus">
-                  <AutosizeInput type="text"
+                <bem.FormTitle__name data-tip={t('click to edit')}>
+                  <input type="text"
                         name="title"
                         placeholder={userCanEditAsset ? t('Project title') : ''}
                         value={this.state.asset.name ? this.state.asset.name : ''}
@@ -296,9 +294,6 @@ var MainHeader = React.createClass({
           {this.renderGitRevInfo()}
         </header>
       );
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   },
   componentWillReceiveProps(nextProps) {
     if (this.props.assetid != nextProps.assetid && nextProps.assetid != null)

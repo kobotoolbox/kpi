@@ -3,78 +3,77 @@ Overrides to jquery tags input CSS
 */
 
 .question__tags {
-    @extend %card-expansion;
-    margin-top: -10px !important;
-    padding-top: 6px;
+  @extend %card-expansion;
+  margin-top: -10px !important;
+  padding-top: 6px;
 }
 
 .question__tags div.tagsinput {
-    border:none;
-    max-width:695px;
+  border: none;
+  max-width: 695px;
 }
 
 div.tagsinput span.tag {
-    background: #5cb2ee;
-    border: none;
-    color: #FFF;
-    font-family: $preferred_font;
-    font-size: 12px;
-    margin: 0px 4px;
-    padding: 0px 6px;
-    padding-left: 20px;
-    text-decoration: none;
-    border-radius: 2px;
-    font-weight: normal;
-    position: relative;
-} 
+  background: #5cb2ee;
+  border: none;
+  color: #FFF;
+  font-family: $font;
+  font-size: 12px;
+  margin: 0px 4px;
+  padding: 0px 6px;
+  padding-left: 20px;
+  text-decoration: none;
+  border-radius: 2px;
+  font-weight: normal;
+  position: relative;
+}
 
 div.tagsinput input {
-    border: none;
-    color: #222;
-    font-family: $preferred_font;
-    font-size: 12px;
-    margin: 0 5px;
-    padding: 5px;
-    min-width: 80px;
+  border: none;
+  color: #222;
+  font-family: $font;
+  font-size: 12px;
+  margin: 0 5px;
+  padding: 5px;
+  min-width: 80px;
 }
 
 div.tagsinput span.tag a {
-    color: #5cb2ee;
-    font-size: 1px;
-    font-weight: normal;
-    text-decoration: none;
-    position: absolute;
-    left: 5px;
-
+  color: #5cb2ee;
+  font-size: 1px;
+  font-weight: normal;
+  text-decoration: none;
+  position: absolute;
+  left: 5px;
 }
 
 div.tagsinput span.tag a:before {
-    content: "\f00d";
-    opacity: 0.6;
-    font-family: 'FontAwesome';
-    font-size: 12px;
-    color: #FFF;
+  content: "\f00d";
+  opacity: 0.6;
+  font-family: 'FontAwesome';
+  font-size: 12px;
+  color: #FFF;
 }
 
 ul.ui-autocomplete.ui-widget-content.ui-widget {
-    max-width:680px !important;
-    border:1px solid #DDD;
-    li {
-        padding:5px;
-        background: white;
-        font-size: 12px;
-        &:hover {
-            background: #3875d7;
-            a {
-                color: #FFF !important;
-                border:none !important;
-                background:none !important;
-                font-weight: normal !important;
-            }
-        }
-        a {
-            font-weight: normal;
-            color: #222;
-        }
+  max-width: 680px !important;
+  border: 1px solid #DDD;
+  li {
+    padding: 5px;
+    background: white;
+    font-size: 12px;
+    &:hover {
+      background: #3875d7;
+      a {
+        color: #FFF !important;
+        border: none !important;
+        background: none !important;
+        font-weight: normal !important;
+      }
     }
+    a {
+      font-weight: normal;
+      color: #222;
+    }
+  }
 }

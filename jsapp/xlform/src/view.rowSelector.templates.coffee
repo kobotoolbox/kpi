@@ -27,6 +27,7 @@ module.exports = do ->
   xlfRowSelector.namer = () ->
     """
       <div class="row__questiontypes row__questiontypes--namer">
+        #{closeRowSelectorButton}
         <form class="row__questiontypes__form" action="javascript:void(0);" >
           <input type="text" class="js-cancel-sort mdl-textfield__input" />
           <button> + #{_t("Add Question")} </button>

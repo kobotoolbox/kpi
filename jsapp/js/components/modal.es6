@@ -6,7 +6,6 @@ import bem from '../bem';
 import ui from '../ui';
 import stores from '../stores';
 import mixins from '../mixins';
-import mdl from '../libs/rest_framework/material';
 import {hashHistory} from 'react-router';
 
 import {
@@ -143,9 +142,6 @@ var Modal = React.createClass({
 	        </ui.Modal.Body>
 	      </ui.Modal>
   		)
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   }
 
 })
