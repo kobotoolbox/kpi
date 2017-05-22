@@ -9,6 +9,7 @@ import CollectionFilter from './collectionFilter';
 import {dataInterface} from '../../dataInterface';
 import moment from 'moment';
 
+
 var CollectionsGallery = React.createClass({
 	displayName: 'CollectionsGallery',
 	propTypes: {
@@ -130,6 +131,26 @@ var CollectionsGallery = React.createClass({
 		});
 	},
 
+	// Pagination
+
+	loadMore(filter, index){
+		dataInterface.filterGalleryImages(this.props.uid, filter).done((response)=>{
+			console.log("Response:");
+			console.log(response);
+			let assets = this.state.assets;
+			console.log("Old Assets:");
+			console.log(assets);
+			console.log("New Index attachments");
+			console.log(response.results[index].attachments);
+
+			assets.results[index].attachments.push(...response.results[index].attachments);
+			console.log("New Assets:");
+			console.log(assets);
+			this.setState({
+				assets,
+			})
+		});
+	},
 	// RENDER
 
 	render () {
@@ -191,6 +212,9 @@ var CollectionsGallery = React.createClass({
 										</bem.AssetGallery__gridItem>
 									);
 								}.bind(this))}
+								<div>
+									<button onClick={() => this.loadMore(this.state.filter.source, i)}>Load More</button>
+								</div>
 							</div>
 						)
 					}.bind(this))}

@@ -88,13 +88,8 @@ urlpatterns = [
     url(r'^hub/switch_builder$', switch_builder,
         name='toggle-preferred-builder'),
     # Translation catalog for client code.
-<<<<<<< HEAD
-    url(r'^jsi18n/$', javascript_catalog,
-        js_info_dict, name='javascript-catalog'),
-=======
     url(r'^jsi18n/$', javascript_catalog, js_info_dict, name='javascript-catalog'),
     url(r'^token/$', TokenView.as_view(), name='token'),
->>>>>>> develop
 
     # static media
     url(r'^media/(?P<path>.*)$', 'django.views.static.serve',
