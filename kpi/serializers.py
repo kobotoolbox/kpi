@@ -1033,13 +1033,18 @@ class QuestionPagination(HybridPagination):
     # Not really a paginator
 
     def paginate_queryset(self, queryset, request, view=None):
+        self.attachments_count = self.get_attachments_count(queryset)
         return queryset
 
     def get_paginated_response(self, data):
         return Response(OrderedDict([
             ('count', len(data)),
+            ('attachments_count', self.attachments_count),
             ('results', data)
         ]))
+
+    def get_attachments_count(self, queryset):
+        return reduce(lambda x, y: x + y, map(lambda question: len(question['attachments']), queryset))
 
 
 class SubmissionSerializer(serializers.Serializer):
@@ -1074,6 +1079,24 @@ class SubmissionSerializer(serializers.Serializer):
 
 class SubmissionPagination(HybridPagination):
     default_limit = 5
+
+    def paginate_queryset(self, queryset, request, view=None):
+        self.attachments_count = self.get_attachments_count(queryset)
+        return super(SubmissionPagination, self).paginate_queryset(queryset, request, view)
+
+    def get_paginated_response(self, data):
+        return Response(OrderedDict([
+            ('count', self.count),
+            ('next', self.get_next_link()),
+            ('next_page', self.get_next_page()),
+            ('previous', self.get_previous_link()),
+            ('previous_page', self.get_previous_page()),
+            ('attachments_count', self.attachments_count),
+            ('results', data)
+        ]))
+
+    def get_attachments_count(self, queryset):
+        return reduce(lambda x, y: x + y, map(lambda question: len(question['attachments']), queryset))
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):

@@ -314,6 +314,7 @@ class AttachmentViewsetTestCase(TestCase):
                 self.assertIsNone(data['next'])
                 self.assertIsNone(data['previous_page'])
                 self.assertIsNone(data['next_page'])
+                self.assertEquals(data['attachments_count'], len(self.SAVED_ATTACHMENTS))
                 self.assertEquals(len(data['results']), len(self.SAVED_INSTANCES))
                 for index, submission in enumerate(data['results']):
                     self.assertEqual(submission['index'], index)
@@ -336,6 +337,7 @@ class AttachmentViewsetTestCase(TestCase):
                 self.assertEqual(response.status_code, 200)
                 data = response.data
                 self.assertEquals(data['count'], len(self.questions))
+                self.assertEquals(data['attachments_count'], len(self.SAVED_ATTACHMENTS))
                 self.assertEquals(len(data['results']), len(self.questions))
                 for index, question in enumerate(data['results']):
                     self.assertEqual(question['index'], index)
