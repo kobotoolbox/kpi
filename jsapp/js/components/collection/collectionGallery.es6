@@ -108,8 +108,6 @@ var CollectionsGallery = React.createClass({
     openModal: function(record_index, attachment_index) {
         let record = this.state.assets.results[record_index];
         let attachment = record.attachments.results[attachment_index]
-        console.log(record);
-        console.log(attachment_index);
         this.setState({
             showModal: true,
             activeID: attachment.id,
@@ -143,6 +141,8 @@ var CollectionsGallery = React.createClass({
         }
     },
     handleCarouselChange: function(currentSlide, nextSlide) {
+        console.log("Changed!");
+        console.log(currentSlide, nextSlide);
         let record = this.state.assets.results[this.state.activeParentIndex];
         let attachment = record.attachments.results[nextSlide];
         this.setState({
@@ -215,6 +215,7 @@ var CollectionsGallery = React.createClass({
                                                 backgroundPosition: 'center center',
                                                 backgroundSize: 'cover'
                                             }
+
                                             var timestamp = (this.state.filter.source === 'question')
                                                 ? new Date(item.submission.date_created)
                                                 : new Date(record.date_created);
@@ -251,7 +252,6 @@ var CollectionsGallery = React.createClass({
 									<Slider ref="slider" {...settings} beforeChange={this.handleCarouselChange}>
 										{this.state.assets.results[this.state.activeParentIndex].attachments.results.map(function (item) {
 											return (
-
 												<div key={item.id}>
 													<img alt="900x500" src={item.large_download_url}/>
 												</div>
@@ -313,8 +313,9 @@ var CollectionsGallery = React.createClass({
 //Slider Navigation
 let RightNavButton = React.createClass({
     render() {
+        const {className, onClick} = this.props;
         return (
-            <button {...this.props}>
+            <button onClick={onClick} className={className}>
                 <i className="material-icons">chevron_right</i>
             </button>
         )
@@ -322,8 +323,9 @@ let RightNavButton = React.createClass({
 });
 let LeftNavButton = React.createClass({
     render() {
+        const {className, onClick} = this.props;
         return (
-            <button {...this.props}>
+            <button onClick={onClick} className={className}>
                 <i className="material-icons">chevron_left</i>
             </button>
         )
