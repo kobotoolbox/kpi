@@ -42,9 +42,15 @@
         display: flex;
     }
     &__grid{
+        h5{
+            font-size: 1.5em;
+            margin: 15px 0px;
+            font-weight: normal;
+        }
         flex-wrap: wrap;
         >div{
             width: 100%;
+            margin: 20px 0px;
         }
         &-item{
             $root: &;

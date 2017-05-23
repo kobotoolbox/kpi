@@ -53,10 +53,6 @@ var CollectionsGallery = React.createClass({
     loadMoreAttachments(filter, index, page) {
         return dataInterface.loadQuestionAttachment(this.props.uid, filter, index, page, this.state.defaultPageSize).done((response) => {
             let assets = this.state.assets;
-            console.log("Old Assets:");
-            console.log(assets);
-            console.log("New Index attachments");
-            console.log(response.attachments.results);
             assets.results[index].attachments.results.push(...response.attachments.results);
             this.setState({assets});
         });
@@ -64,14 +60,8 @@ var CollectionsGallery = React.createClass({
 
 	loadMoreRecords(filter, page) {
         return dataInterface.loadMoreRecords(this.props.uid, filter, page, this.state.defaultPageSize).done((response) => {
-            let assets = this.state.assets;
-            console.log("Old Assets:");
-            console.log(assets);
-            console.log("New Index attachments");
-            console.log(response.results);
+            let assets = this.state.assets
             assets.results.push(...response.results);
-            console.log("New Assets:");
-            console.log(assets);
             this.setState({assets});
         });
     },
