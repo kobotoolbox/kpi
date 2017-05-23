@@ -103,18 +103,23 @@ var CollectionsGallery = React.createClass({
             this.setState({assets});
         });
     },
-
+    formatDate : function(myDate){
+        let timestamp = moment(new Date(myDate)).format('DD-MMM-YYYY h:mm:ssa');
+        // console.log(myDate, " => DATE FORMATTING => ", timestamp);
+        return timestamp;
+    },
     // MODAL
     openModal: function(record_index, attachment_index) {
         let record = this.state.assets.results[record_index];
-        let attachment = record.attachments.results[attachment_index]
+        let attachment = record.attachments.results[attachment_index];
+        var timestamp = record.date_created || attachment.submission.date_created
         this.setState({
             showModal: true,
             activeID: attachment.id,
             activeIndex: attachment_index,
             activeParentIndex: record_index,
             activeTitle: record.label || attachment.question.label,
-            activeDate: record.date_created || attachment.submission.date_created
+            activeDate: this.formatDate(timestamp)
         });
     },
     closeModal: function() {
@@ -130,19 +135,18 @@ var CollectionsGallery = React.createClass({
     updateActiveAsset(record_index, attachment_index) {
         let record = this.state.assets.results[record_index];
         let attachment = record.attachments[attachment_index];
+        let timestamp = record.date_created || attachment.submission.date_created;
         this.setState({
             activeIndex: attachment_index,
             activeParentIndex: record_index,
             activeTitle: record.label || attachment.question.label,
-            activeDate: record.date_created || attachment.submission.date_created
+            activeDate: this.formatDate(timestamp)
         });
         if (this.refs.slider) {
             this.goToSlide(attachment_index);
         }
     },
     handleCarouselChange: function(currentSlide, nextSlide) {
-        console.log("Changed!");
-        console.log(currentSlide, nextSlide);
         let record = this.state.assets.results[this.state.activeParentIndex];
         let attachment = record.attachments.results[nextSlide];
         this.setState({
@@ -216,10 +220,8 @@ var CollectionsGallery = React.createClass({
                                                 backgroundSize: 'cover'
                                             }
 
-                                            var timestamp = (this.state.filter.source === 'question')
-                                                ? new Date(item.submission.date_created)
-                                                : new Date(record.date_created);
-                                            var formattedDate = moment(timestamp).format('DD-MMM-YYYY h:mm:ssa');
+                                            var timestamp = (this.state.filter.source === 'question') ? item.submission.date_created : record.date_created
+                                            var formattedDate = this.formatDate(timestamp)
                                             return (
                                                 <bem.AssetGallery__gridItem key={j} className="col4 one-one" style={divStyle} onClick={() => this.openModal(i, j)}>
                                                     <bem.AssetGallery__gridItemOverlay>
