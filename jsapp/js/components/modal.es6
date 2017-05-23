@@ -39,7 +39,7 @@ var Modal = React.createClass({
       case 'uploading-xls':
         var filename = this.props.params.file.name || '';
         this.setState({
-          title: t('Uploading XLS form'),
+          title: t('Uploading XLS file'),
           message: t('Uploading: ') + filename
         });
         break;
