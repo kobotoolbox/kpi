@@ -234,6 +234,13 @@
             }
         }
         &__sidebar{
+            h3{
+                font-weight: 400;
+                font-size: 1.75em;
+            }
+            // h5{
+            //     color: #2095F3;
+            // }
             &.open{
                 opacity: 1;
                 .toggle-info{
@@ -252,6 +259,7 @@
                     &__inner{
                         border-bottom: solid 1px #ccc;
                         margin-bottom: 20px;
+                        padding: 0 15px;
                         h5{
                             margin-top: 0;
                         }

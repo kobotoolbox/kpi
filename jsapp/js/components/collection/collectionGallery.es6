@@ -112,14 +112,13 @@ var CollectionsGallery = React.createClass({
     openModal: function(record_index, attachment_index) {
         let record = this.state.assets.results[record_index];
         let attachment = record.attachments.results[attachment_index];
-        var timestamp = record.date_created || attachment.submission.date_created
         this.setState({
             showModal: true,
             activeID: attachment.id,
             activeIndex: attachment_index,
             activeParentIndex: record_index,
             activeTitle: record.label || attachment.question.label,
-            activeDate: this.formatDate(timestamp)
+            activeDate: this.formatDate(record.date_created || attachment.submission.date_created)
         });
     },
     closeModal: function() {
@@ -135,12 +134,11 @@ var CollectionsGallery = React.createClass({
     updateActiveAsset(record_index, attachment_index) {
         let record = this.state.assets.results[record_index];
         let attachment = record.attachments[attachment_index];
-        let timestamp = record.date_created || attachment.submission.date_created;
         this.setState({
             activeIndex: attachment_index,
             activeParentIndex: record_index,
             activeTitle: record.label || attachment.question.label,
-            activeDate: this.formatDate(timestamp)
+            activeDate: this.formatDate(record.date_created || attachment.submission.date_created)
         });
         if (this.refs.slider) {
             this.goToSlide(attachment_index);
@@ -152,7 +150,7 @@ var CollectionsGallery = React.createClass({
         this.setState({
             activeIndex: nextSlide,
             activeTitle: record.label || attachment.question.label,
-            activeDate: record.date_created || attachment.submission.date_created
+            activeDate: this.formatDate(record.date_created || attachment.submission.date_created)
         });
     },
     goToSlide(index) {
@@ -184,64 +182,17 @@ var CollectionsGallery = React.createClass({
             }
         ]
         if (this.state.assets.loaded) {
+            // TODO Create A GalleryModal class!!!
             return (
                 <bem.AssetGallery>
                     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
-                    <bem.AssetGallery__heading>
-                        <div className="col6">
-                            <bem.AssetGallery__count>
-                                <strong>{this.state.assets.attachments_count} Images</strong>
-                            </bem.AssetGallery__count>
-                        </div>
-                        <div className="col6">
-                            <bem.AssetGallery__headingSearchFilter className="section">
-                                <div className="text-display">
-                                    <span>{this.state.filter.label}</span>
-                                </div>
-                                <Select ref="filterSelect" className="icon-button-select" options={filters} simpleValue name="selected-filter" disabled={this.state.disabled} value={this.state.filter.source} onChange={this.switchFilter} searchable={false}/>
-                            </bem.AssetGallery__headingSearchFilter>
-                        </div>
-                    </bem.AssetGallery__heading>
-                    <bem.AssetGallery__grid>
-                        {this.state.assets.results.map(function(record, i) {
-                            if (typeof record.attachments.results == "undefined" || record.attachments.results.length === 0) {
-                                return null;
-                            } else {
-                                return (
-                                    <div key={i}>
-                                        <h5>{this.state.filter.source === 'question'
-                                                ? record.label
-                                                : 'Record #' + parseInt(i + 1)}</h5>
-                                        {record.attachments.results.map(function(item, j) {
-                                            var divStyle = {
-                                                backgroundImage: 'url(' + item.download_url + ')',
-                                                backgroundRepeat: 'no-repeat',
-                                                backgroundPosition: 'center center',
-                                                backgroundSize: 'cover'
-                                            }
 
-                                            var timestamp = (this.state.filter.source === 'question') ? item.submission.date_created : record.date_created
-                                            var formattedDate = this.formatDate(timestamp)
-                                            return (
-                                                <bem.AssetGallery__gridItem key={j} className="col4 one-one" style={divStyle} onClick={() => this.openModal(i, j)}>
-                                                    <bem.AssetGallery__gridItemOverlay>
-                                                        <div className="text">
-                                                            <h5>{this.state.filter.source === 'question'
-                                                                    ? 'Record #' + parseInt(j + 1)
-                                                                    : item.question.label}</h5>
-                                                            <p>{formattedDate}</p>
-                                                        </div>
-                                                    </bem.AssetGallery__gridItemOverlay>
-                                                </bem.AssetGallery__gridItem>
-                                            );
-                                        }.bind(this))}
-                                        <LoadMoreAttachmentsBtn index={i} filter={this.state.filter.source} loadMore={this.loadMoreAttachments} count={record.attachments.count}/>
-                                    </div>
-                                );
-                            }
-                        }.bind(this))}
-						<LoadMoreRecordsBtn filter={this.state.filter.source} loadMore={this.loadMoreRecords} count={this.state.assets.count}/>
-                    </bem.AssetGallery__grid>
+                    <GalleryHeading attachments_count={this.state.assets.attachments_count}
+                        currentFilter={this.state.filter} filters={filters} switchFilter={this.switchFilter}/>
+                    <GalleryGrid  results={this.state.assets.results} count={this.state.assets}
+                        currentFilter={this.state.filter} loadMoreAttachments={this.loadMoreAttachments}
+                         loadMoreRecords={this.loadMoreRecords} formatDate={this.formatDate}
+                         openModal={this.openModal}/>
 
                     <Modal isOpen={this.state.showModal} contentLabel="Modal" >
 						<bem.AssetGallery__modal>
@@ -268,13 +219,13 @@ var CollectionsGallery = React.createClass({
 											<div className="light-grey-bg">
 												<h4>Information</h4>
 											</div>
-											<div className="info__inner margin--15">
-												<p>{this.state.filter.source === 'question' ? 'Question #' : 'Record #'}{this.state.activeParentIndex}</p>
+											<div className="info__inner">
+												<p>{this.state.filter.source === 'question' ? 'Record #' : 'Question #'}{this.state.activeParentIndex + 1}</p>
 												<h3>{this.state.activeTitle}</h3>
 												<p>{this.state.activeDate}</p>
 											</div>
 										</div>
-										<bem.AssetGallery__modalSidebarGrid className="padding--10">
+										<bem.AssetGallery__modalSidebarGrid className="padding--15">
 											{this.state.assets.results.map(function(record, i) {
 												return (
 													<div key={i}>
@@ -309,6 +260,86 @@ var CollectionsGallery = React.createClass({
         } else {
             return null;
         }
+    }
+});
+
+let GalleryHeading = React.createClass({
+    render(){
+        return (
+            <bem.AssetGallery__heading>
+                <div className="col6">
+                    <bem.AssetGallery__count>
+                        <strong>{this.props.attachments_count} Images</strong>
+                    </bem.AssetGallery__count>
+                </div>
+                <div className="col6">
+                    <bem.AssetGallery__headingSearchFilter className="section">
+                        <div className="text-display">
+                            <span>{this.props.currentFilter.label}</span>
+                        </div>
+                        <Select ref="filterSelect" className="icon-button-select" options={this.props.filters} simpleValue name="selected-filter" value={this.props.currentFilter.source} onChange={this.props.switchFilter} searchable={false}/>
+                    </bem.AssetGallery__headingSearchFilter>
+                </div>
+            </bem.AssetGallery__heading>
+        )
+    }
+});
+
+let GalleryGrid = React.createClass({
+    render(){
+        return (
+            <bem.AssetGallery__grid>
+                {this.props.results.map(function(record, i) {
+                    if (typeof record.attachments.results == "undefined" || record.attachments.results.length === 0) {
+                        return null;
+                    } else {
+                        return (
+                            <div key={i}>
+                                <GalleryGridItem currentFilter={this.props.currentFilter} currentIndex={i} record={record}
+                                    formatDate={this.props.formatDate} openModal={this.props.openModal} loadMoreAttachments={this.props.loadMoreAttachments}/>
+                            </div>
+                        );
+                    }
+                }.bind(this))}
+                <LoadMoreRecordsBtn filter={this.props.currentFilter.source} loadMore={this.props.loadMoreRecords} count={this.props.count}/>
+            </bem.AssetGallery__grid>
+        )
+    }
+});
+
+let GalleryGridItem = React.createClass({
+    render(){
+        return (
+            <div>
+                <h5>{this.props.currentFilter.source === 'question'
+                        ? this.props.record.label
+                        : 'Record #' + parseInt(this.props.currentIndex + 1)}</h5>
+                {this.props.record.attachments.results.map(function(item, j) {
+                    var divStyle = {
+                        backgroundImage: 'url(' + item.download_url + ')',
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'center center',
+                        backgroundSize: 'cover'
+                    }
+
+                    var timestamp = (this.props.currentFilter.source === 'question') ? item.submission.date_created : this.props.record.date_created;
+                    var formattedDate = this.props.formatDate(timestamp)
+                    return (
+                        <bem.AssetGallery__gridItem key={j} className="col4 one-one" style={divStyle} onClick={() => this.props.openModal(this.props.currentIndex , j)}>
+                            <bem.AssetGallery__gridItemOverlay>
+                                <div className="text">
+                                    <h5>{this.props.currentFilter.source === 'question'
+                                            ? 'Record #' + parseInt(j + 1)
+                                            : item.question.label}</h5>
+                                    <p>{formattedDate}</p>
+                                </div>
+                            </bem.AssetGallery__gridItemOverlay>
+                        </bem.AssetGallery__gridItem>
+                    );
+                }.bind(this))}
+                <LoadMoreAttachmentsBtn index={this.props.currentIndex} filter={this.props.currentFilter.source} loadMore={this.props.loadMoreAttachments} count={this.props.record.attachments.count}/>
+            </div>
+        );
     }
 });
 
@@ -373,7 +404,7 @@ let LoadMoreRecordsBtn = React.createClass({
         let enabled = (this.props.count / (newPage + 1) > 1)
             ? true
             : false;
-        console.log("Enabled: ", enabled);
+        // console.log("Enabled: ", enabled);
         this.setState({page: newPage, enabled: enabled});
     },
     render: function() {
