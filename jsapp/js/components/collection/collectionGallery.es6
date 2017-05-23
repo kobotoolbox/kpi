@@ -45,7 +45,7 @@ var CollectionsGallery = React.createClass({
         };
     },
     loadGalleryData: function(uid, filter) {
-        dataInterface.filterGalleryImages(uid, filter).done((response) => {
+        dataInterface.filterGalleryImages(uid, filter, this.state.defaultPageSize).done((response) => {
             response.loaded = true;
             this.setState({
                 assets: response
@@ -73,7 +73,10 @@ var CollectionsGallery = React.createClass({
                 label = filters[i].label;
             }
         }
-        dataInterface.filterGalleryImages(this.props.uid, newFilter).done((response) => {
+        dataInterface.filterGalleryImages(this.props.uid, newFilter, this.state.defaultPageSize).done((response) => {
+            response.loaded = true;
+            this.setState(this.getInitialState());
+            this.forceUpdate();
             this.setState({
                 filter: {
                     source: newFilter,
@@ -81,7 +84,6 @@ var CollectionsGallery = React.createClass({
                 },
                 assets: response
             });
-
         });
     },
 
@@ -95,6 +97,7 @@ var CollectionsGallery = React.createClass({
     },
 	loadMoreRecords(filter, page) {
         return dataInterface.loadMoreRecords(this.props.uid, filter, page, this.state.defaultPageSize).done((response) => {
+            console.log(response);
             let assets = this.state.assets
             assets.results.push(...response.results);
             this.setState({assets});
@@ -248,6 +251,7 @@ var CollectionsGallery = React.createClass({
 									<Slider ref="slider" {...settings} beforeChange={this.handleCarouselChange}>
 										{this.state.assets.results[this.state.activeParentIndex].attachments.results.map(function (item) {
 											return (
+
 												<div key={item.id}>
 													<img alt="900x500" src={item.large_download_url}/>
 												</div>
@@ -271,7 +275,7 @@ var CollectionsGallery = React.createClass({
 										<bem.AssetGallery__modalSidebarGrid className="padding--10">
 											{this.state.assets.results.map(function(record, i) {
 												return (
-													<div key={'AssetGallery__modalSidebarGrid'+i}>
+													<div key={i}>
 														<h5>{this.state.filter.source === 'question' ? 'Question #' : 'Record #'}{i}</h5>
 														{record.attachments.results.map(function(item, j) {
 															if (this.state.activeIndex !== j){ // if the item is not the active attachment
@@ -282,7 +286,7 @@ var CollectionsGallery = React.createClass({
 																	backgroundSize: 'cover'
 																}
 																return (
-																	<bem.AssetGallery__modalSidebarGridItem key={'AssetGallery__modalSidebarGridItem_'+i+'_'+j} className="col6" onClick={() => this.updateActiveAsset(j)}>
+																	<bem.AssetGallery__modalSidebarGridItem key={j} className="col6" onClick={() => this.updateActiveAsset(j)}>
 																		<div className="one-one" style={divStyle}></div>
 																	</bem.AssetGallery__modalSidebarGridItem>
 																)
@@ -337,6 +341,7 @@ let LoadMoreAttachmentsBtn = React.createClass({
         let enabled = (this.props.count / (newPage + 1) > 1)
             ? true
             : false;
+        console.log(enabled);
         this.setState({page: newPage, enabled: enabled});
     },
     render: function() {
@@ -360,6 +365,7 @@ let LoadMoreRecordsBtn = React.createClass({
         let newPage = this.state.page + 1;
         this.props.loadMore(this.props.filter, this.state.page);
         console.log("COUNT:", this.props.count);
+        console.log(this.props.count / (newPage + 1));
         let enabled = (this.props.count / (newPage + 1) > 1)
             ? true
             : false;

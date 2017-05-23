@@ -331,14 +331,14 @@ var dataInterface;
         }
       });
     },
-    filterGalleryImages (uid, filter_by){
+    filterGalleryImages (uid, filter_by, page_size){
       return $ajax({
         url: `${rootUrl}/assets/${uid}/attachments`,
         method: 'GET',
         data: {
           type: 'image',
           group_by: filter_by,
-          limit: 2
+          limit: page_size
         }
       });
     },
@@ -350,8 +350,8 @@ var dataInterface;
           type: 'image',
           group_by: filter_by,
           index: index,
-          'page_size': page_size,
-          'page': page
+          page_size: page_size,
+          page: page
         }
       });
     },
@@ -362,8 +362,8 @@ var dataInterface;
         data: {
           type: 'image',
           group_by: filter_by,
-          'page_size': page_size,
-          'page': page
+          page_size: page_size,
+          page: page
         }
       });
     },
