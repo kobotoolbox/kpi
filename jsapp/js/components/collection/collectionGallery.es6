@@ -14,6 +14,7 @@ var CollectionsGallery = React.createClass({
     propTypes: {
         label: React.PropTypes.string
     },
+    //Init
     getInitialState: function() {
         this.toggleInfo = this.toggleInfo.bind(this);
         return {
@@ -34,6 +35,7 @@ var CollectionsGallery = React.createClass({
             },
             assets: {
                 count: 0,
+                loaded: false,
                 results: [
                     {
                         attachments: []
@@ -44,88 +46,16 @@ var CollectionsGallery = React.createClass({
     },
     loadGalleryData: function(uid, filter) {
         dataInterface.filterGalleryImages(uid, filter).done((response) => {
-            this.setState({assets: response});
+            response.loaded = true;
+            this.setState({
+                assets: response
+            });
         });
     },
-
-    // Pagination
-
-    loadMoreAttachments(filter, index, page) {
-        return dataInterface.loadQuestionAttachment(this.props.uid, filter, index, page, this.state.defaultPageSize).done((response) => {
-            let assets = this.state.assets;
-            assets.results[index].attachments.results.push(...response.attachments.results);
-            this.setState({assets});
-        });
-    },
-
-	loadMoreRecords(filter, page) {
-        return dataInterface.loadMoreRecords(this.props.uid, filter, page, this.state.defaultPageSize).done((response) => {
-            let assets = this.state.assets
-            assets.results.push(...response.results);
-            this.setState({assets});
-        });
-    },
-
     componentDidMount: function() {
         this.loadGalleryData(this.props.uid, 'question');
-        this.setState({galleryLoaded: true});
     },
-
-    // MODAL
-
-    openModal: function(record_index, attachment_index) {
-        let record = this.state.assets.results[record_index];
-        let attachment = record.attachments[attachment_index]
-        console.log(record);
-        console.log(attachment_index);
-        this.setState({
-            showModal: true,
-            activeID: attachment.id,
-            activeIndex: attachment_index,
-            activeParentIndex: record_index,
-            activeTitle: record.label || attachment.question.label,
-            activeDate: record.date_created || attachment.submission.date_created
-        });
-    },
-    closeModal: function() {
-        this.setState({showModal: false});
-    },
-    toggleInfo() {
-        this.setState(prevState => ({
-            infoOpen: !prevState.infoOpen
-        }));
-    },
-
-    // SLIDER
-
-    updateActiveAsset(record_index, attachment_index) {
-        let record = this.state.assets.results[record_index];
-        let attachment = record.attachments[attachment_index];
-        this.setState({
-            activeIndex: attachment_index,
-            activeParentIndex: record_index,
-            activeTitle: record.label || attachment.question.label,
-            activeDate: record.date_created || attachment.submission.date_created
-        });
-        if (this.refs.slider) {
-            this.goToSlide(attachment_index);
-        }
-    },
-    handleCarouselChange: function(currentSlide, nextSlide) {
-        let record = this.state.assets.results[this.state.activeParentIndex];
-        let attachment = record.attachments[nextSlide];
-        this.setState({
-            activeIndex: nextSlide,
-            activeTitle: record.label || attachment.question.label,
-            activeDate: record.date_created || attachment.submission.date_created
-        });
-    },
-    goToSlide(index) {
-        this.refs.slider.slickGoTo(index);
-    },
-
     // FILTER
-
     switchFilter(value) {
         let filters = [
             {
@@ -155,8 +85,74 @@ var CollectionsGallery = React.createClass({
         });
     },
 
-    // RENDER
+    // Pagination
+    loadMoreAttachments(filter, index, page) {
+        return dataInterface.loadQuestionAttachment(this.props.uid, filter, index, page, this.state.defaultPageSize).done((response) => {
+            let assets = this.state.assets;
+            assets.results[index].attachments.results.push(...response.attachments.results);
+            this.setState({assets});
+        });
+    },
+	loadMoreRecords(filter, page) {
+        return dataInterface.loadMoreRecords(this.props.uid, filter, page, this.state.defaultPageSize).done((response) => {
+            let assets = this.state.assets
+            assets.results.push(...response.results);
+            this.setState({assets});
+        });
+    },
 
+    // MODAL
+    openModal: function(record_index, attachment_index) {
+        let record = this.state.assets.results[record_index];
+        let attachment = record.attachments.results[attachment_index]
+        console.log(record);
+        console.log(attachment_index);
+        this.setState({
+            showModal: true,
+            activeID: attachment.id,
+            activeIndex: attachment_index,
+            activeParentIndex: record_index,
+            activeTitle: record.label || attachment.question.label,
+            activeDate: record.date_created || attachment.submission.date_created
+        });
+    },
+    closeModal: function() {
+        this.setState({showModal: false});
+    },
+    toggleInfo() {
+        this.setState(prevState => ({
+            infoOpen: !prevState.infoOpen
+        }));
+    },
+
+    // SLIDER
+    updateActiveAsset(record_index, attachment_index) {
+        let record = this.state.assets.results[record_index];
+        let attachment = record.attachments[attachment_index];
+        this.setState({
+            activeIndex: attachment_index,
+            activeParentIndex: record_index,
+            activeTitle: record.label || attachment.question.label,
+            activeDate: record.date_created || attachment.submission.date_created
+        });
+        if (this.refs.slider) {
+            this.goToSlide(attachment_index);
+        }
+    },
+    handleCarouselChange: function(currentSlide, nextSlide) {
+        let record = this.state.assets.results[this.state.activeParentIndex];
+        let attachment = record.attachments.results[nextSlide];
+        this.setState({
+            activeIndex: nextSlide,
+            activeTitle: record.label || attachment.question.label,
+            activeDate: record.date_created || attachment.submission.date_created
+        });
+    },
+    goToSlide(index) {
+        this.refs.slider.slickGoTo(index);
+    },
+
+    // RENDER
     render() {
         const settings = {
             dots: false,
@@ -180,7 +176,7 @@ var CollectionsGallery = React.createClass({
                 label: 'Group by Record'
             }
         ]
-        if (this.state.galleryLoaded && typeof this.state.galleryLoaded != "undefined") {
+        if (this.state.assets.loaded) {
             return (
                 <bem.AssetGallery>
                     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
@@ -240,7 +236,8 @@ var CollectionsGallery = React.createClass({
                         }.bind(this))}
 						<LoadMoreRecordsBtn filter={this.state.filter.source} loadMore={this.loadMoreRecords} count={this.state.assets.count}/>
                     </bem.AssetGallery__grid>
-                    {/* <Modal isOpen={this.state.showModal} contentLabel="Modal" >
+
+                    <Modal isOpen={this.state.showModal} contentLabel="Modal" >
 						<bem.AssetGallery__modal>
 							<ui.Modal.Body>
 								<bem.AssetGallery__modalCarousel className={"col8 "+ (this.state.infoOpen ? '' : 'full-screen')}>
@@ -249,7 +246,7 @@ var CollectionsGallery = React.createClass({
 										<i className="toggle-info material-icons" onClick={this.toggleInfo}>info_outline</i>
 									</bem.AssetGallery__modalCarouselTopbar>
 									<Slider ref="slider" {...settings} beforeChange={this.handleCarouselChange}>
-										{this.state.assets.results[this.state.activeParentIndex].attachments.map(function (item) {
+										{this.state.assets.results[this.state.activeParentIndex].attachments.results.map(function (item) {
 											return (
 												<div key={item.id}>
 													<img alt="900x500" src={item.large_download_url}/>
@@ -276,7 +273,7 @@ var CollectionsGallery = React.createClass({
 												return (
 													<div key={i}>
 														<h5>{this.state.filter.source === 'question' ? 'Question #' : 'Record #'}{i}</h5>
-														{record.attachments.map(function(item, j) {
+														{record.attachments.results.map(function(item, j) {
 															if (this.state.activeIndex !== j){ // if the item is not the active attachment
 																var divStyle = {
 																	backgroundImage: 'url('+ item.download_url + ')',
@@ -299,7 +296,7 @@ var CollectionsGallery = React.createClass({
 								</bem.AssetGallery__modalSidebar>
 							</ui.Modal.Body>
 						</bem.AssetGallery__modal>
-					</Modal> */}
+					</Modal>
                 </bem.AssetGallery>
             );
 
@@ -309,6 +306,7 @@ var CollectionsGallery = React.createClass({
     }
 });
 
+//Slider Navigation
 let RightNavButton = React.createClass({
     render() {
         return (
@@ -328,6 +326,7 @@ let LeftNavButton = React.createClass({
     }
 });
 
+//Load More Buttons
 let LoadMoreAttachmentsBtn = React.createClass({
     getInitialState: function() {
         return {page: 2, enabled: true};
