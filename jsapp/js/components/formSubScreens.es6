@@ -172,11 +172,11 @@ var FormSubScreens = React.createClass({
                         {c.key == 'iframe_url' &&
                           <code>{c.value}</code>
                         }
-                        {c.key != 'iframe_url' &&
+                        {/* {c.key != 'iframe_url' &&
                           <CopyToClipboard text={c.value} options={{debug: true}} onCopy={() => notify('copied to clipboard')}>
                             <a className="copy mdl-button mdl-js-button mdl-button--colored">{t('Copy link')}</a>
                           </CopyToClipboard>
-                        }
+                        } */}
                       </bem.FormView__cell>
                     );
                 })}

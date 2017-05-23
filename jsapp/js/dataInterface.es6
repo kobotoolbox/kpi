@@ -337,8 +337,23 @@ var dataInterface;
         method: 'GET',
         data: {
           type: 'image',
-          group_by: filter_by
+          group_by: filter_by,
+          limit: 2
         }
+      });
+    },
+    paginateGalleryImages (uid, filter_by, index, page, page_size, callback){
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/attachments`,
+        method: 'GET',
+        data: {
+          type: 'image',
+          group_by: filter_by,
+          index: index,
+          'page_size': page_size,
+          'page': page
+        },
+        success: callback
       });
     },
     deployAsset (asset, redeployment) {
