@@ -271,7 +271,7 @@ var CollectionsGallery = React.createClass({
 										<bem.AssetGallery__modalSidebarGrid className="padding--10">
 											{this.state.assets.results.map(function(record, i) {
 												return (
-													<div key={i}>
+													<div key={'AssetGallery__modalSidebarGrid'+i}>
 														<h5>{this.state.filter.source === 'question' ? 'Question #' : 'Record #'}{i}</h5>
 														{record.attachments.results.map(function(item, j) {
 															if (this.state.activeIndex !== j){ // if the item is not the active attachment
@@ -282,7 +282,7 @@ var CollectionsGallery = React.createClass({
 																	backgroundSize: 'cover'
 																}
 																return (
-																	<bem.AssetGallery__modalSidebarGridItem key={j} className="col6" onClick={() => this.updateActiveAsset(j)}>
+																	<bem.AssetGallery__modalSidebarGridItem key={'AssetGallery__modalSidebarGridItem_'+i+'_'+j} className="col6" onClick={() => this.updateActiveAsset(j)}>
 																		<div className="one-one" style={divStyle}></div>
 																	</bem.AssetGallery__modalSidebarGridItem>
 																)
