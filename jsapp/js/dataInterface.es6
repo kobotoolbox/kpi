@@ -342,7 +342,7 @@ var dataInterface;
         }
       });
     },
-    paginateGalleryImages (uid, filter_by, index, page, page_size, callback){
+    loadQuestionAttachment (uid, filter_by, index, page, page_size){
       return $ajax({
         url: `${rootUrl}/assets/${uid}/attachments`,
         method: 'GET',
@@ -352,8 +352,19 @@ var dataInterface;
           index: index,
           'page_size': page_size,
           'page': page
-        },
-        success: callback
+        }
+      });
+    },
+    loadMoreRecords (uid, filter_by, page, page_size){
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/attachments`,
+        method: 'GET',
+        data: {
+          type: 'image',
+          group_by: filter_by,
+          'page_size': page_size,
+          'page': page
+        }
       });
     },
     deployAsset (asset, redeployment) {
