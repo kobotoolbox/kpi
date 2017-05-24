@@ -250,7 +250,9 @@ let GalleryModal = React.createClass({
                                 <i className="toggle-info material-icons" onClick={this.props.toggleInfo}>info_outline</i>
                             </bem.AssetGallery__modalCarouselTopbar>
                             <Slider ref="slider" {...this.props.settings} beforeChange={this.props.handleCarouselChange}>
-                                {this.props.results.map(function (item) {
+                                {this.props.results.map(function (item, i) {
+                                    console.log("This is the item!");
+                                    console.log(i);
                                     return (
                                         <div key={item.id}>
                                             <img alt="900x500" src={item.large_download_url}/>
@@ -293,7 +295,7 @@ let GalleryModalSidebar = React.createClass({
                             <h4>Information</h4>
                         </div>
                         <div className="info__inner">
-                            <p>{this.props.filter === 'question' ? 'Record #' : 'Question #'}{this.props.activeParentIndex + 1}</p>
+                            <p>Record #{this.props.filter === 'question' ? this.props.activeIndex + 1 : this.props.activeParentIndex + 1}</p>
                             <h3>{this.props.title}</h3>
                             <p>{this.props.date}</p>
                         </div>
@@ -365,7 +367,11 @@ let GalleryHeading = React.createClass({
 
 let GalleryGrid = React.createClass({
     getInitialState: function() {
-        return {page: 2, hasMoreRecords: true, loadMoreRecordsBtn: null};
+        return {
+            page: 2,
+            hasMoreRecords: true,
+            loadMoreRecordsBtn: null
+        };
     },
     loadMoreRecords: function() {
         let newPage = this.state.page + 1;
@@ -380,23 +386,19 @@ let GalleryGrid = React.createClass({
         return (
             <bem.AssetGallery__grid>
                 {this.props.results.map(function(record, i) {
-                    // if (typeof record.attachments.results == "undefined" || record.attachments.results.length === 0) {
-                    //     return null;
-                    // } else {
-                        return (
-                            <div key={i}>
-                                <GalleryGridItem
-                                    currentFilter={this.props.currentFilter}
-                                    currentIndex={i}
-                                    record={record}
-                                    count={this.props.count}
-                                    pageSize={this.props.pageSize}
-                                    formatDate={this.props.formatDate}
-                                    openModal={this.props.openModal}
-                                    loadMoreAttachments={this.props.loadMoreAttachments}/>
-                            </div>
-                        );
-                    // }
+                    return (
+                        <div key={i}>
+                            <GalleryGridItem
+                                currentFilter={this.props.currentFilter}
+                                currentIndex={i}
+                                record={record}
+                                count={this.props.count}
+                                pageSize={this.props.pageSize}
+                                formatDate={this.props.formatDate}
+                                openModal={this.props.openModal}
+                                loadMoreAttachments={this.props.loadMoreAttachments}/>
+                        </div>
+                    );
                 }.bind(this))}
 
                 <div>{this.state.loadMoreRecordsBtn}</div>
@@ -408,7 +410,11 @@ let GalleryGrid = React.createClass({
 
 let GalleryGridItem = React.createClass({
     getInitialState: function() {
-        return {page: 2, hasMoreAttachments: true, LoadMoreAttachmentsBtn: null};
+        return {
+            page: 2,
+            hasMoreAttachments: true,
+            LoadMoreAttachmentsBtn: null
+        };
     },
     loadMoreAttachments: function() {
         let newPage = this.state.page + 1;
