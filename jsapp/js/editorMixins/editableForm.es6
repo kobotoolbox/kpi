@@ -31,8 +31,6 @@ import actions from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import {dataInterface} from '../dataInterface';
 
-import hotkey from 'react-hotkey';
-
 var FormStyle__panel = bem('form-style__panel'),
     FormStyle__row = bem('form-style'),
     FormStyle__panelheader = bem('form-style__panelheader'),
@@ -190,18 +188,6 @@ class FormSettingsBox extends React.Component {
 };
 
 export default assign({
-  getInitialState () {
-    return {
-      asset_updated: update_states.UP_TO_DATE,
-      multioptionsExpanded: true,
-      surveyAppRendered: false,
-      currentName: 'name',
-      name: ''
-    };
-  },
-  mixins: [
-    hotkey.Mixin('handleHotkey'),
-  ],
   componentDidMount() {
     if (this.state.editorState == 'existing') {
       let uid = this.props.params.assetid;
@@ -223,20 +209,12 @@ export default assign({
     document.querySelector('.page-wrapper__content').addEventListener('scroll', this.handleScroll);
     this.listenTo(stores.surveyState, this.surveyStateChanged);
   },
-  componentWillMount() {
-    document.body.classList.add('hide-edge');
-  },
   componentWillUnmount () {
     if (this.app && this.app.survey) {
       document.querySelector('.page-wrapper__content').removeEventListener('scroll', this.handleScroll);
       this.app.survey.off('change');
     }
     this.unpreventClosingTab();
-  },
-  handleHotkey: function(e) {
-    if (e.altKey && e.keyCode == '69') {
-      document.body.classList.toggle('hide-edge');
-    }
   },
   surveyStateChanged (state) {
     this.setState(state);

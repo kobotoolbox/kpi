@@ -26,6 +26,10 @@ import {
   assign,
 } from '../utils';
 
+import {
+  update_states,
+} from '../constants';
+
 export class ProjectSettings extends React.Component {
   constructor(props){
     super(props);
@@ -375,6 +379,10 @@ export class AddToLibrary extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      asset_updated: update_states.UP_TO_DATE,
+      multioptionsExpanded: true,
+      surveyAppRendered: false,
+      name: '',
       kind: 'asset',
       asset: false,
       editorState: 'new',
@@ -401,6 +409,10 @@ export class FormPage extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      asset_updated: update_states.UP_TO_DATE,
+      multioptionsExpanded: true,
+      surveyAppRendered: false,
+      name: '',
       editorState: 'existing',
       backRoute: '/forms'
     };
@@ -412,6 +424,10 @@ export class LibraryPage extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      asset_updated: update_states.UP_TO_DATE,
+      multioptionsExpanded: true,
+      surveyAppRendered: false,
+      name: '',
       editorState: 'existing',
       backRoute: '/library'
     };
