@@ -195,15 +195,6 @@ var dmix = {
       this.getCurrentUserPermissions(this.state, {currentUsername: currentUsername})
     ));
   },
-  getInitialState () {
-    return {
-      userCanEdit: false,
-      userCanView: true,
-      historyExpanded: false,
-      showReportGraphSettings: false,
-      currentUsername: stores.session.currentAccount && stores.session.currentAccount.username,
-    };
-  },
   dmixAssetStoreChange (data) {
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid,
       asset = data[uid];
@@ -213,6 +204,15 @@ var dmix = {
           this.getCurrentUserPermissions(data[uid], this.state)
         ));
     }
+  },
+  componentWillMount () {
+    this.setState({
+      userCanEdit: false,
+      userCanView: true,
+      historyExpanded: false,
+      showReportGraphSettings: false,
+      currentUsername: stores.session.currentAccount && stores.session.currentAccount.username,
+    });
   },
   componentDidMount () {
     this.listenTo(stores.session, this.dmixSessionStoreChange);

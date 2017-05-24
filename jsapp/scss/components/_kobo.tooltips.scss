@@ -69,10 +69,9 @@
 
   // right aligned tooltips
 
-  .right-tooltip {
-    [data-tip]:after {
-      transform: translate(-95%, 0);
-    }
+  .right-tooltip [data-tip]:after,
+  .right-tooltip[data-tip]:after {
+    transform: translate(-95%, 0);
   }
 
   // more actions in asset-row adjustment

@@ -320,7 +320,8 @@ export class FormLanding extends React.Component {
               <i className="k-icon-edit" />
             </Link>
           : 
-            <bem.FormView__link m={'edit'}
+            <bem.FormView__link m={['edit', 'disabled']}
+              className="right-tooltip"
               data-tip={t('Editing capabilities not granted, you can only view this form')}>
               <i className="k-icon-edit" />
             </bem.FormView__link>
