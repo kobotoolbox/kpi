@@ -5,10 +5,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
-
-import newFormMixin from '../editorMixins/newForm';
 import editableFormMixin from '../editorMixins/editableForm';
-import existingFormMixin from '../editorMixins/existingForm';
 import Select from 'react-select';
 import ui from '../ui';
 import bem from '../bem';
@@ -19,8 +16,7 @@ import {session} from '../stores';
 
 let newFormMixins = [
     Reflux.ListenerMixin,
-    editableFormMixin,
-    newFormMixin,
+    editableFormMixin
 ];
 import actions from '../actions';
 import {dataInterface} from '../dataInterface';
@@ -380,8 +376,11 @@ export class AddToLibrary extends React.Component {
     super(props);
     this.state = {
       kind: 'asset',
-      asset: false
+      asset: false,
+      editorState: 'new',
+      backRoute: '/library'
     };
+    autoBind(this);
   }
 }
 
@@ -391,8 +390,7 @@ newFormMixins.forEach(function(mixin) {
 
 let existingFormMixins = [
     Reflux.ListenerMixin,
-    editableFormMixin,
-    existingFormMixin,
+    editableFormMixin
 ];
 
 let contextTypes = {
@@ -402,20 +400,29 @@ let contextTypes = {
 export class FormPage extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      editorState: 'existing',
+      backRoute: '/forms'
+    };
+    autoBind(this);
   }
 }
 
 export class LibraryPage extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      editorState: 'existing',
+      backRoute: '/library'
+    };
+    autoBind(this);
   }
 }
 
 existingFormMixins.forEach(function(mixin) {
   reactMixin(FormPage.prototype, mixin);
   reactMixin(LibraryPage.prototype, mixin);
-  FormPage.contextTypes = contextTypes;
-  LibraryPage.contextTypes = contextTypes;
 });
+
+FormPage.contextTypes = contextTypes;
+LibraryPage.contextTypes = contextTypes;

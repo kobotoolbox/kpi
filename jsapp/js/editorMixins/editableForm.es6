@@ -17,7 +17,6 @@ import {
   notify,
   assign,
   t,
-  isLibrary,
 } from '../utils';
 
 import {
@@ -204,6 +203,23 @@ export default assign({
     hotkey.Mixin('handleHotkey'),
   ],
   componentDidMount() {
+    if (this.state.editorState == 'existing') {
+      let uid = this.props.params.assetid;
+      stores.allAssets.whenLoaded(uid, (asset) => {
+        let translations = (asset.content && asset.content.translations
+                            && asset.content.translations.slice(0)) || [];
+        this.launchAppForSurveyContent(asset.content, {
+          name: asset.name,
+          translations: translations,
+          settings__style: asset.settings__style,
+          asset_uid: asset.uid,
+          asset_type: asset.asset_type,
+        });
+      });
+    } else {
+      this.launchAppForSurveyContent();
+    }
+
     document.querySelector('.page-wrapper__content').addEventListener('scroll', this.handleScroll);
     this.listenTo(stores.surveyState, this.surveyStateChanged);
   },
@@ -312,7 +328,7 @@ export default assign({
     if (this.state.name) {
       params.name = this.state.name;
     }
-    if (this.editorState === 'new') {
+    if (this.state.editorState === 'new') {
       params.asset_type = 'block';
       actions.resources.createResource.triggerAsync(params)
         .then((asset) => {
@@ -389,10 +405,10 @@ export default assign({
         return hasSelect;
       })(); // todo: only true if survey has select questions
       ooo.name = this.state.name;
-      ooo.hasSettings = !isLibrary(this.context.router);
+      ooo.hasSettings = this.constructor.name === 'FormPage';
       ooo.styleValue = this.state.settings__style;
     }
-    if (this.editorState === 'new') {
+    if (this.state.editorState === 'new') {
       ooo.saveButtonText = t('create');
     } else if (this.state.surveySaveFail) {
       ooo.saveButtonText = `${t('save')} (${t('retry')}) `;
@@ -647,8 +663,20 @@ export default assign({
       enketopreviewError: false,
     });
   },
+  navigateBack() {
+    var backRoute = this.state.backRoute;
+    if (!this.needsSave()) {
+      hashHistory.push(backRoute);
+    } else {
+      customConfirmAsync(t('you have unsaved changes. leave form without saving?'))
+        .done(() => {
+          hashHistory.push(backRoute);
+        });
+    }
+  },
+
   render () {
-    var isSurvey = this.app && !isLibrary(this.context.router);
+    var isSurvey = this.app && this.constructor.name === 'FormPage';
     var docTitle = this.state.name || t('Untitled');
     return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
