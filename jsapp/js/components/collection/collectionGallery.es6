@@ -187,79 +187,153 @@ var CollectionsGallery = React.createClass({
                 <bem.AssetGallery>
                     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
 
-                    <GalleryHeading attachments_count={this.state.assets.attachments_count}
-                        currentFilter={this.state.filter} filters={filters} switchFilter={this.switchFilter}/>
-                    <GalleryGrid  results={this.state.assets.results} count={this.state.assets.count}
-                        currentFilter={this.state.filter} loadMoreAttachments={this.loadMoreAttachments}
-                         loadMoreRecords={this.loadMoreRecords} formatDate={this.formatDate}
-                         openModal={this.openModal} pageSize={this.state.defaultPageSize}/>
+                    <GalleryHeading
+                        attachments_count={this.state.assets.attachments_count}
+                        currentFilter={this.state.filter}
+                        filters={filters}
+                        switchFilter={this.switchFilter}/>
 
-                    <Modal isOpen={this.state.showModal} contentLabel="Modal" >
-						<bem.AssetGallery__modal>
-							<ui.Modal.Body>
-								<bem.AssetGallery__modalCarousel className={"col8 "+ (this.state.infoOpen ? '' : 'full-screen')}>
-									<bem.AssetGallery__modalCarouselTopbar className={this.state.infoOpen ? 'show' : 'show--hover'}>
-										<i className="close-modal material-icons" onClick={this.closeModal}>keyboard_backspace</i>
-										<i className="toggle-info material-icons" onClick={this.toggleInfo}>info_outline</i>
-									</bem.AssetGallery__modalCarouselTopbar>
-									<Slider ref="slider" {...settings} beforeChange={this.handleCarouselChange}>
-										{this.state.assets.results[this.state.activeParentIndex].attachments.results.map(function (item) {
-											return (
-												<div key={item.id}>
-													<img alt="900x500" src={item.large_download_url}/>
-												</div>
-											)
-										})}
-									</Slider>
-								</bem.AssetGallery__modalCarousel>
-								<bem.AssetGallery__modalSidebar className={"col4 " + (this.state.infoOpen ? 'open' : 'closed')}>
-									<i className="toggle-info material-icons" onClick={this.toggleInfo}>close</i>
-									<div>
-										<div className="info__outer">
-											<div className="light-grey-bg">
-												<h4>Information</h4>
-											</div>
-											<div className="info__inner">
-												<p>{this.state.filter.source === 'question' ? 'Record #' : 'Question #'}{this.state.activeParentIndex + 1}</p>
-												<h3>{this.state.activeTitle}</h3>
-												<p>{this.state.activeDate}</p>
-											</div>
-										</div>
-										<bem.AssetGallery__modalSidebarGrid className="padding--15">
-											{this.state.assets.results.map(function(record, i) {
-												return (
-													<div key={i}>
-														<h5>{this.state.filter.source === 'question' ? 'Question #' : 'Record #'}{i}</h5>
-														{record.attachments.results.map(function(item, j) {
-															if (this.state.activeIndex !== j){ // if the item is not the active attachment
-																var divStyle = {
-																	backgroundImage: 'url('+ item.download_url + ')',
-																	backgroundRepeat: 'no-repeat',
-																	backgroundPosition: 'center center',
-																	backgroundSize: 'cover'
-																}
-																return (
-																	<bem.AssetGallery__modalSidebarGridItem key={j} className="col6" onClick={() => this.updateActiveAsset(j)}>
-																		<div className="one-one" style={divStyle}></div>
-																	</bem.AssetGallery__modalSidebarGridItem>
-																)
-															}
-														}.bind(this))}
-													</div>
-												)
-											}.bind(this))}
-										</bem.AssetGallery__modalSidebarGrid>
-									</div>
-								</bem.AssetGallery__modalSidebar>
-							</ui.Modal.Body>
-						</bem.AssetGallery__modal>
-					</Modal>
+                    <GalleryGrid
+                        results={this.state.assets.results}
+                        count={this.state.assets.count}
+                        currentFilter={this.state.filter}
+                        loadMoreAttachments={this.loadMoreAttachments}
+                        loadMoreRecords={this.loadMoreRecords}
+                        formatDate={this.formatDate}
+                        openModal={this.openModal}
+                        pageSize={this.state.defaultPageSize}/>
+
+                    <GalleryModal
+                        showModal={this.state.showModal}
+                        infoOpen={this.state.infoOpen}
+                        settings={settings}
+                        results={this.state.assets.results[this.state.activeParentIndex].attachments.results}
+                        closeModal={this.closeModal}
+                        toggleInfo={this.toggleInfo}
+                        handleCarouselChange={this.handleCarouselChange}
+
+                        filter={this.state.filter.source}
+                        activeIndex={this.state.activeIndex}
+                        date={this.state.activeDate}
+                        title={this.state.activeTitle}
+                        activeParentIndex={this.state.activeParentIndex}
+                    />
+
                 </bem.AssetGallery>
             );
 
         } else {
             return null;
         }
+    }
+});
+
+let GalleryModal = React.createClass({
+    // getInitialState: function(){
+    //     return{
+    //         modalIsOpen : ,
+    //         modalInfoOpen:
+    //     }
+    // },
+    render(){
+        return (
+            <Modal isOpen={this.props.showModal} contentLabel="Modal" >
+                <bem.AssetGallery__modal>
+                    <ui.Modal.Body>
+                        <bem.AssetGallery__modalCarousel className={"col8 "+ (this.props.infoOpen ? '' : 'full-screen')}>
+                            <bem.AssetGallery__modalCarouselTopbar className={this.props.infoOpen ? 'show' : 'show--hover'}>
+                                <i className="close-modal material-icons" onClick={this.props.closeModal}>keyboard_backspace</i>
+                                <i className="toggle-info material-icons" onClick={this.props.toggleInfo}>info_outline</i>
+                            </bem.AssetGallery__modalCarouselTopbar>
+                            <Slider ref="slider" {...this.props.settings} beforeChange={this.props.handleCarouselChange}>
+                                {this.props.results.map(function (item) {
+                                    return (
+                                        <div key={item.id}>
+                                            <img alt="900x500" src={item.large_download_url}/>
+                                        </div>
+                                    )
+                                })}
+                            </Slider>
+                        </bem.AssetGallery__modalCarousel>
+
+                        <GalleryModalSidebar
+                            results={this.props.results}
+                            isInfoOpen={this.props.infoOpen}
+                            toggleInfo={this.props.toggleInfo}
+                            filter={this.props.filter}
+                            activeIndex={this.props.activeIndex}
+                            activeParentIndex={this.props.activeParentIndex}
+                            title={this.props.title}
+                            date={this.props.date} />
+
+                    </ui.Modal.Body>
+                </bem.AssetGallery__modal>
+            </Modal>
+        );
+    }
+});
+
+let GalleryModalSidebar = React.createClass({
+    getInitialState: function(){
+        return {
+            status:  (this.props.isInfoOpen) ? 'open' : 'closed',
+        }
+    },
+    render(){
+        return (
+            <bem.AssetGallery__modalSidebar className={"col4 " + this.state.status}>
+                <i className="toggle-info material-icons" onClick={this.props.toggleInfo}>close</i>
+                <div>
+                    <div className="info__outer">
+                        <div className="light-grey-bg">
+                            <h4>Information</h4>
+                        </div>
+                        <div className="info__inner">
+                            <p>{this.props.filter === 'question' ? 'Record #' : 'Question #'}{this.props.activeParentIndex + 1}</p>
+                            <h3>{this.props.title}</h3>
+                            <p>{this.props.date}</p>
+                        </div>
+                    </div>
+
+                    <GalleryModalSidebarGrid
+                        results={this.props.results}
+                        filter={this.props.filter}
+                        activeIndex={this.props.activeIndex}/>
+                </div>
+            </bem.AssetGallery__modalSidebar>
+        );
+    }
+});
+
+let GalleryModalSidebarGrid = React.createClass({
+    render(){
+        return (
+            <bem.AssetGallery__modalSidebarGrid className="padding--15">
+                {this.props.results.map(function(item, j) {
+                    if (this.props.activeIndex !== j){ // if the item is not the active attachment
+                        var divStyle = {
+                            backgroundImage: 'url('+ item.download_url + ')',
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'center center',
+                            backgroundSize: 'cover'
+                        }
+                        return (
+                            <bem.AssetGallery__modalSidebarGridItem key={j} className="col6" onClick={() => this.updateActiveAsset(j)}>
+                                <div className="one-one" style={divStyle}></div>
+                            </bem.AssetGallery__modalSidebarGridItem>
+                        )
+                    }
+                }.bind(this))}
+                {/* {this.props.results.map(function(record, i) {
+                    return (
+                        <div key={i}>
+                            <h5>{this.props.filter === 'question' ? 'Record #' : 'Question #'}{i}</h5>
+
+                        </div>
+                    )
+                }.bind(this))} */}
+            </bem.AssetGallery__modalSidebarGrid>
+        );
     }
 });
 
@@ -307,8 +381,15 @@ let GalleryGrid = React.createClass({
                     } else {
                         return (
                             <div key={i}>
-                                <GalleryGridItem currentFilter={this.props.currentFilter} currentIndex={i} record={record} count={this.props.count} pageSize={this.props.pageSize}
-                                    formatDate={this.props.formatDate} openModal={this.props.openModal} loadMoreAttachments={this.props.loadMoreAttachments}/>
+                                <GalleryGridItem
+                                    currentFilter={this.props.currentFilter}
+                                    currentIndex={i}
+                                    record={record}
+                                    count={this.props.count}
+                                    pageSize={this.props.pageSize}
+                                    formatDate={this.props.formatDate}
+                                    openModal={this.props.openModal}
+                                    loadMoreAttachments={this.props.loadMoreAttachments}/>
                             </div>
                         );
                     }
