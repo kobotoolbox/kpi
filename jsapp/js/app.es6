@@ -59,6 +59,8 @@ import {
   currentLang
 } from './utils';
 
+import hotkey from 'react-hotkey';
+hotkey.activate();
 
 class ItemDropdown extends React.Component {
   render () {
@@ -322,6 +324,11 @@ class App extends React.Component {
     if (this.state.pageState.showFixedDrawer)
       stores.pageState.setState({showFixedDrawer: false});
   }
+  handleHotkey (e) {
+    if (e.altKey && (e.keyCode == '69' || e.keyCode == '186')) {
+      document.body.classList.toggle('hide-edge');
+    }
+  }
   render() {
     var assetid = this.props.params.assetid || null;
     return (
@@ -367,6 +374,7 @@ App.contextTypes = {
 };
 
 reactMixin(App.prototype, Reflux.connect(stores.pageState, 'pageState'));
+reactMixin(App.prototype, hotkey.Mixin('handleHotkey'));
 reactMixin(App.prototype, mixins.contextRouter);
 
 // intended to provide a component we can export to html

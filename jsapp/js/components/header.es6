@@ -22,9 +22,6 @@ import {
 } from '../utils';
 import searches from '../searches';
 import cookie from 'react-cookie';
-import hotkey from 'react-hotkey';
-
-hotkey.activate();
 
 import {
   ListSearch,
@@ -70,11 +67,6 @@ class MainHeader extends Reflux.Component {
       stores.pageState
     ];
     autoBind(this);
-  }
-  handleHotkey (e) {
-    if (e.altKey && (e.keyCode == '69' || e.keyCode == '186')) {
-      document.body.classList.toggle('hide-edge');
-    }
   }
   getInitialState () {
     this.listenTo(stores.session, ({currentAccount}) => {
@@ -324,7 +316,6 @@ class MainHeader extends Reflux.Component {
 };
 
 reactMixin(MainHeader.prototype, Reflux.ListenerMixin);
-reactMixin(MainHeader.prototype, hotkey.Mixin('handleHotkey'));
 reactMixin(MainHeader.prototype, mixins.contextRouter);
 
 MainHeader.contextTypes = {
