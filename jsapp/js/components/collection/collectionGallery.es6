@@ -189,10 +189,10 @@ var CollectionsGallery = React.createClass({
 
                     <GalleryHeading attachments_count={this.state.assets.attachments_count}
                         currentFilter={this.state.filter} filters={filters} switchFilter={this.switchFilter}/>
-                    <GalleryGrid  results={this.state.assets.results} count={this.state.assets}
+                    <GalleryGrid  results={this.state.assets.results} count={this.state.assets.count}
                         currentFilter={this.state.filter} loadMoreAttachments={this.loadMoreAttachments}
                          loadMoreRecords={this.loadMoreRecords} formatDate={this.formatDate}
-                         openModal={this.openModal}/>
+                         openModal={this.openModal} pageSize={this.state.defaultPageSize}/>
 
                     <Modal isOpen={this.state.showModal} contentLabel="Modal" >
 						<bem.AssetGallery__modal>
@@ -286,7 +286,19 @@ let GalleryHeading = React.createClass({
 });
 
 let GalleryGrid = React.createClass({
+    getInitialState: function() {
+        return {page: 2, hasMoreRecords: true, loadMoreRecordsBtn: null};
+    },
+    loadMoreRecords: function() {
+        let newPage = this.state.page + 1;
+        this.props.loadMoreRecords(this.props.currentFilter.source, this.state.page);
+        let hasMoreRecords = (this.props.count > (newPage + this.props.pageSize))
+            ? true
+            : false;
+        this.setState({page: newPage, hasMoreRecords: hasMoreRecords});
+    },
     render(){
+        this.state.loadMoreRecordsBtn = (this.state.hasMoreRecords && this.props.currentFilter.source=='submission') ? <button onClick={this.loadMoreRecords}>Load more</button> : null;
         return (
             <bem.AssetGallery__grid>
                 {this.props.results.map(function(record, i) {
@@ -295,20 +307,35 @@ let GalleryGrid = React.createClass({
                     } else {
                         return (
                             <div key={i}>
-                                <GalleryGridItem currentFilter={this.props.currentFilter} currentIndex={i} record={record}
+                                <GalleryGridItem currentFilter={this.props.currentFilter} currentIndex={i} record={record} count={this.props.count} pageSize={this.props.pageSize}
                                     formatDate={this.props.formatDate} openModal={this.props.openModal} loadMoreAttachments={this.props.loadMoreAttachments}/>
                             </div>
                         );
                     }
+                    console.log("HAS is it maxed?: ", i+1 , " Count: ", this.props.count );
                 }.bind(this))}
-                <LoadMoreRecordsBtn filter={this.props.currentFilter.source} loadMore={this.props.loadMoreRecords} count={this.props.count}/>
+
+                {/*  LOAD MORE RECORDS BTN */}
+                <div>{this.state.loadMoreRecordsBtn}</div>
             </bem.AssetGallery__grid>
         )
     }
 });
 
 let GalleryGridItem = React.createClass({
+    getInitialState: function() {
+        return {page: 2, hasMoreAttachments: true, loadMoreBtn: null};
+    },
+    loadMoreAttachments: function() {
+        let newPage = this.state.page + 1;
+        this.props.loadMoreAttachments(this.props.currentFilter.source, this.props.currentIndex, this.state.page);
+        let hasMoreAttachments = (this.props.count > newPage )
+            ? true
+            : false;
+        this.setState({page: newPage, hasMoreAttachments: hasMoreAttachments});
+    },
     render(){
+        this.state.loadMoreBtn = (this.state.hasMoreAttachments  && this.props.currentFilter.source === 'question') ? <button onClick={this.loadMoreAttachments}>Load more</button> : null;
         return (
             <div>
                 <h5>{this.props.currentFilter.source === 'question'
@@ -337,7 +364,11 @@ let GalleryGridItem = React.createClass({
                         </bem.AssetGallery__gridItem>
                     );
                 }.bind(this))}
-                <LoadMoreAttachmentsBtn index={this.props.currentIndex} filter={this.props.currentFilter.source} loadMore={this.props.loadMoreAttachments} count={this.props.record.attachments.count}/>
+
+                {/*  LOAD MORE ATTACHMENTS*/}
+                <div>
+                    {this.state.loadMoreBtn}
+                </div>
             </div>
         );
     }
@@ -354,6 +385,7 @@ let RightNavButton = React.createClass({
         )
     }
 });
+
 let LeftNavButton = React.createClass({
     render() {
         const {className, onClick} = this.props;
@@ -365,59 +397,60 @@ let LeftNavButton = React.createClass({
     }
 });
 
-//Load More Buttons
-let LoadMoreAttachmentsBtn = React.createClass({
-    getInitialState: function() {
-        return {page: 2, enabled: true};
-    },
-    handleClick: function() {
-        let newPage = this.state.page + 1;
-        this.props.loadMore(this.props.filter, this.props.index, this.state.page);
-        let enabled = (this.props.count / (newPage + 1) > 1)
-            ? true
-            : false;
-        console.log(enabled);
-        this.setState({page: newPage, enabled: enabled});
-    },
-    render: function() {
-        let btn = null;
-        if (this.state.enabled && this.props.filter == 'question') {
-            btn = (
-                <div>
-                    <button onClick={this.handleClick}>Load more</button>
-                </div>
-            );
-        }
-        return btn;
-    }
-});
 
-let LoadMoreRecordsBtn = React.createClass({
-    getInitialState: function() {
-        return {page: 2, enabled: true};
-    },
-    handleClick: function() {
-        let newPage = this.state.page + 1;
-        this.props.loadMore(this.props.filter, this.state.page);
-        console.log("COUNT:", this.props.count);
-        console.log(this.props.count / (newPage + 1));
-        let enabled = (this.props.count / (newPage + 1) > 1)
-            ? true
-            : false;
-        // console.log("Enabled: ", enabled);
-        this.setState({page: newPage, enabled: enabled});
-    },
-    render: function() {
-        let btn = null;
-        if (this.state.enabled && this.props.filter == 'submission') {
-            btn = (
-                <div>
-                    <button onClick={this.handleClick}>Load more</button>
-                </div>
-            );
-        }
-        return btn;
-    }
-})
+// //Load More Buttons
+// let LoadMoreAttachmentsBtn = React.createClass({
+//     getInitialState: function() {
+//         return {page: 2, enabled: true};
+//     },
+//     handleClick: function() {
+//         let newPage = this.state.page + 1;
+//         this.props.loadMore(this.props.filter, this.props.index, this.state.page);
+//         let enabled = (this.props.count / (newPage + 1) > 1)
+//             ? true
+//             : false;
+//         console.log(enabled);
+//         this.setState({page: newPage, enabled: enabled});
+//     },
+//     render: function() {
+//         let btn = null;
+//         if (this.state.enabled && this.props.filter == 'question') {
+//             btn = (
+//                 <div>
+//                     <button onClick={this.handleClick}>Load more</button>
+//                 </div>
+//             );
+//         }
+//         return btn;
+//     }
+// });
+
+// let LoadMoreRecordsBtn = React.createClass({
+//     getInitialState: function() {
+//         return {page: 2, enabled: true};
+//     },
+//     handleClick: function() {
+//         let newPage = this.state.page + 1;
+//         this.props.loadMore(this.props.filter, this.state.page);
+//         console.log("COUNT:", this.props.count);
+//         console.log(this.props.count / (newPage + 1));
+//         let enabled = (this.props.count / (newPage + 1) > 1)
+//             ? true
+//             : false;
+//         // console.log("Enabled: ", enabled);
+//         this.setState({page: newPage, enabled: enabled});
+//     },
+//     render: function() {
+//         let btn = null;
+//         if (this.state.enabled && this.props.filter == 'submission') {
+//             btn = (
+//                 <div>
+//                     <button onClick={this.handleClick}>Load more</button>
+//                 </div>
+//             );
+//         }
+//         return btn;
+//     }
+// })
 
 module.exports = CollectionsGallery;
