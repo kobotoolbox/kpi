@@ -1,4 +1,6 @@
 import React from 'react';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {dataInterface} from '../dataInterface';
 import actions from '../actions';
@@ -16,18 +18,17 @@ import {
 import {ProjectSettings} from '../components/formEditors';
 import SharingForm from '../components/sharingForm';
 
-var Modal = React.createClass({
-  mixins: [
-    Reflux.ListenerMixin
-  ],
-  getInitialState() {
-    return {
+class Modal extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
       type: false,
       enketopreviewlink: false,
       error: false,
       modalClass: false
     };
-  },
+    autoBind(this);
+  }
   componentDidMount () {
   	var type = this.props.params.type;
     switch(type) {
@@ -64,7 +65,7 @@ var Modal = React.createClass({
         });
         break;
 		}  	
-  },
+  }
   createNewForm (settingsComponent) {
     dataInterface.createResource({
       name: settingsComponent.state.name,
@@ -79,7 +80,7 @@ var Modal = React.createClass({
       hashHistory.push(`/forms/${asset.uid}/edit`);
       stores.pageState.hideModal();
     });
-  },
+  }
   enketoSnapshotCreation (data) {
     if (data.success) {
       // var uid = this.props.params.assetid;
@@ -92,7 +93,7 @@ var Modal = React.createClass({
         error: true
       });
     }
-  },
+  }
 
   render() {
   	return (
@@ -144,6 +145,8 @@ var Modal = React.createClass({
   		)
   }
 
-})
+};
+
+reactMixin(Modal.prototype, Reflux.ListenerMixin);
 
 export default Modal;

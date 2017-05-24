@@ -1,4 +1,6 @@
 import React from 'react';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import _ from 'underscore';
 import {dataInterface} from '../dataInterface';
@@ -31,14 +33,18 @@ let reportStyles = [
   labelVal('Line'),
 ];
 
-var DefaultChartTypePicker = React.createClass({
+class DefaultChartTypePicker extends React.Component {
+  constructor(props) {
+    super(props);
+    autoBind(this);
+  }
   defaultReportStyleChange (e) {
     this.props.onChange({
       default: true,
     }, {
       report_type: e.currentTarget.value || 'bar'
     });
-  },
+  }
   render () {
     var radioButtons = reportStyles.map(function(style, i){
        return (
@@ -60,8 +66,8 @@ var DefaultChartTypePicker = React.createClass({
           {radioButtons}
         </bem.GraphSettings__charttype>
       );
-  },
-});
+  }
+};
 
 let reportColorSets = [
   {
@@ -131,14 +137,18 @@ let reportColorSets = [
   }
 ];
 
-var DefaultChartColorsPicker = React.createClass({
+class DefaultChartColorsPicker extends React.Component {
+  constructor(props) {
+    super(props);
+    autoBind(this);
+  }
   defaultReportColorsChange (e) {
     this.props.onChange({
       default: true,
     }, {
       report_colors: reportColorSets[e.currentTarget.value].colors || reportColorSets[0].colors
     });
-  },
+  }
   render () {
     var radioButtons = reportColorSets.map(function(set, index){
        return (
@@ -167,23 +177,23 @@ var DefaultChartColorsPicker = React.createClass({
           {radioButtons}
         </bem.GraphSettings__colors>
       );
-  },
-});
-
-
-var SizeSliderInput = React.createClass({
-  getInitialState: function() {
-    return {value: this.props.default};
-  },
-  handleChange: function(event) {
+  }
+};
+class SizeSliderInput extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {value: this.props.default};
+    autoBind(this);
+  }
+  handleChange (event) {
     this.props.onChange({
       value: event.target.value,
       id: this.props.name
     });
 
     this.setState({value: event.target.value});
-  },
-  render: function() {
+  }
+  render () {
     return (
       <div className="slider-item">
         <label> 
@@ -200,20 +210,28 @@ var SizeSliderInput = React.createClass({
           step="5" />
       </div>
     );
-  },
-});
+  }
+};
 
-var Reports = React.createClass({
-  mixins: [
-    Reflux.ListenerMixin,
-  ],
+class Reports extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      graphWidth: "700",
+      graphHeight: "250",
+      translationIndex: 0,
+      groupBy: [],
+      activeModalTab: 0
+    };
+    autoBind(this);
+  }
   componentDidMount () {
     this.loadReportData([]);
-  },
+  }
   componentWillUpdate (nextProps, nextState) {
     if (this.state.groupBy != nextState.groupBy)
       this.loadReportData(nextState.groupBy);
-  },
+  }
   loadReportData(groupBy) {
     let uid = this.props.params.assetid;
     // PM note: this below seems to cause child reportViewItem's componentWillUpdate to run twice, causing odd animation issues
@@ -280,22 +298,13 @@ var Reports = React.createClass({
         console.error('Survey not defined.');
       }
     });
-  },
-  getInitialState () {
-    return {
-      graphWidth: "700",
-      graphHeight: "250",
-      translationIndex: 0,
-      groupBy: [],
-      activeModalTab: 0
-    };
-  },
+  }
   groupDataBy(evt) {
     var gb = evt.target.getAttribute('data-name') ? [evt.target.getAttribute('data-name')] : [];
     this.setState({
       groupBy: gb,
     });
-  },
+  }
   reportStyleChange (params, value) {
     let assetUid = this.state.asset.uid;
     let sett_ = this.state.reportStyles;
@@ -312,35 +321,35 @@ var Reports = React.createClass({
     this.setState({
       reportStyles: sett_,
     });
-  },
+  }
   reportSizeChange (params, value) {
     if (params.id == 'width') {
       this.setState({graphWidth: params.value});
     } else {
       this.setState({graphHeight: params.value});
     }
-  },
+  }
   translationIndexChange (val) {
     this.setState({translationIndex: val});
-  },
+  }
   toggleReportGraphSettings () {
     this.setState({
       showReportGraphSettings: !this.state.showReportGraphSettings,
     });
-  },
+  }
   toggleExpandedReports () {
     stores.pageState.hideDrawerAndHeader(!this.state.showExpandedReport);
     this.setState({
       showExpandedReport: !this.state.showExpandedReport,
     });
-  },
+  }
   componentWillUnmount() {
     if (this.state.showExpandedReport)
       stores.pageState.hideDrawerAndHeader(!this.state.showExpandedReport);
-  },
+  }
   launchPrinting () {
     window.print();
-  },
+  }
   renderReportButtons () {
     var rows = this.state.rowsByIdentifier || {};
     var groupByList = [{
@@ -391,13 +400,13 @@ var Reports = React.createClass({
  
       </bem.FormView__reportButtons>
     );
-  },
+  }
   toggleTab(evt) {
     var i = evt.target.getAttribute('data-index');
     this.setState({
       activeModalTab: parseInt(i),
     });
-  },
+  }
   renderReportGraphSettings () {
     let asset = this.state.asset,
         rowsByKuid = this.state.rowsByKuid,
@@ -479,7 +488,7 @@ var Reports = React.createClass({
         </ui.Modal.Footer>
       </bem.GraphSettings>
     );
-  },
+  }
   render () {
     let asset = this.state.asset,
         rowsByKuid = this.state.rowsByKuid,
@@ -593,6 +602,8 @@ var Reports = React.createClass({
       );
   }
 
-})
+}
+
+reactMixin(Reports.prototype, Reflux.ListenerMixin);
 
 export default Reports;

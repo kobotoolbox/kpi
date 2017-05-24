@@ -8,12 +8,6 @@ import dkobo_xlform from '../../xlform/src/_xlform.init';
 
 export default {
   editorState: 'new',
-  getInitialState () {
-    return {
-      kind: 'asset',
-      asset: false
-    };
-  },
   componentDidMount () {
     this.launchAppForSurveyContent();
   },

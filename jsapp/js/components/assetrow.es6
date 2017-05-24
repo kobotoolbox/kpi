@@ -1,4 +1,7 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import Dropzone from 'react-dropzone';
 import $ from 'jquery';
 import { Link } from 'react-router'; 
@@ -17,18 +20,16 @@ import {
   assign,
   validFileTypes
 } from '../utils';
-  
-var AssetRow = React.createClass({
-  mixins: [
-    mixins.droppable,
-    mixins.contextRouter
-  ],
-  getInitialState () {
-    return {
+
+class AssetRow extends React.Component {
+  constructor(props){
+    super(props);
+    this.state = {
       tags: this.props.tags,
       clearPopover: false
     };
-  },
+    autoBind(this);
+  }
   // clickAsset (evt) {
   //   // this click was not intended for a button
   //   evt.nativeEvent.preventDefault();
@@ -39,7 +40,7 @@ var AssetRow = React.createClass({
   //   // otherwise, toggle selection (unselect if already selected)
   //   // let forceSelect = (stores.selectedAsset.uid === false);
   //   // stores.selectedAsset.toggleSelect(this.props.uid, forceSelect);
-  // },
+  // }
   clickAssetButton (evt) {
     var clickedActionIcon = $(evt.target).closest('[data-action]').get(0);
     if (clickedActionIcon) {
@@ -48,21 +49,21 @@ var AssetRow = React.createClass({
       stores.selectedAsset.toggleSelect(this.props.uid, true);
       this.props.onActionButtonClick(action, this.props.uid, name);
     }
-  },
+  }
   clickTagsToggle (evt) {
     var tagsToggle = !this.state.displayTags;
       this.setState({
         displayTags: tagsToggle,
       });
-  },
+  }
   componentDidMount () {
     this.prepParentCollection();
-  },
+  }
   prepParentCollection () {
     this.setState({
       parent: this.props.parent,
     });
-  },
+  }
   moveToCollection (evt) {
     var uid = this.props.uid;
     var collid = '/collections/' + evt.currentTarget.dataset.collid + '/';
@@ -79,21 +80,21 @@ var AssetRow = React.createClass({
         parent: collid,
       });
     });
-  },
+  }
   preventDefault (evt) {
     evt.preventDefault();
-  },
+  }
   clearPopover () {
     this.setState({
       clearPopover: true,
     });
-  },
+  }
   onDrop (files, rejectedFiles) {
     if (files.length === 0) {
       return;
     }
     this.dropFiles(files, rejectedFiles, {url: this.props.url});
-  },
+  }
   render () {
     var selfowned = this.props.owner__username === this.props.currentUsername;
 
@@ -368,6 +369,13 @@ var AssetRow = React.createClass({
         </bem.AssetRow>
       );
   }
-});
- 
+};
+
+reactMixin(AssetRow.prototype, mixins.droppable);
+reactMixin(AssetRow.prototype, mixins.contextRouter);
+
+AssetRow.contextTypes = {
+  router: PropTypes.object
+};
+
 export default AssetRow;

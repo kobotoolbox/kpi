@@ -1,4 +1,5 @@
 import React from 'react';
+import autoBind from 'react-autobind';
 import TagsInput from 'react-tagsinput';
 import stores from '../stores';
 import actions from '../actions';
@@ -8,6 +9,7 @@ class TagInput extends React.Component {
   constructor(props) {
     super(props)
     this.state = {tags: props.tags, tag: ''}
+    autoBind(this);
   }
 
   handleChange(tags) {

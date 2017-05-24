@@ -6,8 +6,11 @@ require('jquery-ui/sortable');
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import DocumentTitle from 'react-document-title';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 
 import {
@@ -306,22 +309,19 @@ class KoBo extends React.Component {
   }
 }
 
-var App = React.createClass({
-  mixins: [
-    Reflux.connect(stores.pageState, 'pageState'),
-    mixins.contextRouter
-  ],
-  getInitialState () {
+class App extends React.Component {
+  constructor(props) {
+    super(props);
     moment.locale(currentLang());
-    return assign({
+    this.state = assign({
       pageState: stores.pageState.state
     });
-  },
+  }
   componentWillReceiveProps() {
     // slide out drawer overlay on every page change (better mobile experience)
     if (this.state.pageState.showFixedDrawer)
       stores.pageState.setState({showFixedDrawer: false});
-  },
+  }
   render() {
     var assetid = this.props.params.assetid || null;
     return (
@@ -360,10 +360,18 @@ var App = React.createClass({
       </DocumentTitle>
     );
   }
-});
+};
+
+App.contextTypes = {
+  router: PropTypes.object
+};
+
+reactMixin(App.prototype, Reflux.connect(stores.pageState, 'pageState'));
+reactMixin(App.prototype, mixins.contextRouter);
 
 // intended to provide a component we can export to html
-var Loading = React.createClass({
+
+class Loading extends React.Component {
   render () {
     return (
         <bem.Loading>
@@ -374,7 +382,7 @@ var Loading = React.createClass({
         </bem.Loading>
       );
   }
-});
+};
 
 // var Forms = React.createClass({
   // mixins: [
@@ -437,25 +445,24 @@ var Loading = React.createClass({
 //   }
 // });
 
-var FormJson = React.createClass({
-  mixins: [
-    Reflux.ListenerMixin
-  ],
+class FormJson extends React.Component {
+  constructor (props) {
+    super(props);
+    this.state = {
+      assetcontent: false
+    };
+    autoBind(this);
+  }
   componentDidMount () {
     this.listenTo(stores.asset, this.assetStoreTriggered);
     actions.resources.loadAsset({id: this.props.params.assetid});
 
-  },
+  }
   assetStoreTriggered (data, uid) {
     this.setState({
       assetcontent: data[uid].content
     });
-  },
-  getInitialState () {
-    return {
-      assetcontent: false
-    };
-  },
+  }
   render () {
     return (
         <ui.Panel>
@@ -471,9 +478,17 @@ var FormJson = React.createClass({
         </ui.Panel>
       );
   }
-});
+};
 
-var FormXform = React.createClass({
+reactMixin(FormJson.prototype, Reflux.ListenerMixin);
+
+class FormXform extends React.Component {
+  constructor (props) {
+    super(props);
+    this.state = {
+      xformLoaded: false
+    };
+  }
   componentDidMount () {
     dataInterface.getAssetXformView(this.props.params.assetid).done((content)=>{
       this.setState({
@@ -483,12 +498,7 @@ var FormXform = React.createClass({
         },
       });
     });
-  },
-  getInitialState () {
-    return {
-      xformLoaded: false
-    };
-  },
+  }
   render () {
     if (!this.state.xformLoaded) {
       return (
@@ -511,12 +521,12 @@ var FormXform = React.createClass({
         );
     }
   }
-});
+};
 
 var LibrarySearchableList = require('./lists/library');
 var FormsSearchableList = require('./lists/forms');
 
-var FormNotFound = React.createClass({
+class FormNotFound extends React.Component {
   render () {
     return (
         <ui.Panel>
@@ -528,9 +538,9 @@ var FormNotFound = React.createClass({
         </ui.Panel>
       );
   }
-});
+};
 
-var UserList = React.createClass({
+class UserList extends React.Component {
   render () {
     return (
         <ui.Panel className="k-div--userlist">
@@ -538,9 +548,12 @@ var UserList = React.createClass({
         </ui.Panel>
       );
   }
-});
+};
 
-var UserProfile = React.createClass({
+class UserProfile extends React.Component {
+  constructor (props) {
+    super(props);
+  }
   render () {
     var username = this.props.username;
     return (
@@ -568,9 +581,9 @@ var UserProfile = React.createClass({
         </ui.Panel>
       );
   }
-});
+};
 
-var Public = React.createClass({
+class Public extends React.Component {
   render () {
     return (
       <div>
@@ -578,7 +591,7 @@ var Public = React.createClass({
       </div>
       );
   }
-});
+};
 
 // var Builder = React.createClass({
 //   mixins: [Navigation],
@@ -600,7 +613,7 @@ var Public = React.createClass({
 //   }
 // });
 
-var SelfProfile = React.createClass({
+class SelfProfile extends React.Component {
   render () {
     return (
         <ui.Panel className="k-div--selfprofile">
@@ -608,10 +621,9 @@ var SelfProfile = React.createClass({
         </ui.Panel>
       );
   }
-});
+};
 
-
-var SectionNotFound = React.createClass({
+class SectionNotFound extends React.Component {
   render () {
     return (
         <ui.Panel className="k404">
@@ -620,7 +632,7 @@ var SectionNotFound = React.createClass({
         </ui.Panel>
       );
   }
-});
+};
 
 var routes = (
   <Route name="home" path="/" component={App}>

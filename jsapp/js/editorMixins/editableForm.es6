@@ -1,5 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import $ from 'jquery';
 import Select from 'react-select';
 import _ from 'underscore';
@@ -43,7 +45,11 @@ var ErrorMessage = bem.create('error-message'),
 
 var webformStylesSupportUrl = "http://support.kobotoolbox.org/customer/en/portal/articles/2108533";
 
-var FormSettingsEditor = React.createClass({
+class FormSettingsEditor extends React.Component {
+  constructor(props) {
+    super(props);
+    autoBind(this);
+  }
   render () {
     return (
           <div className="mdl-grid">
@@ -63,13 +69,16 @@ var FormSettingsEditor = React.createClass({
             </div>
           </div>
       );
-  },
+  }
   focusSelect () {
     this.refs.webformStyle.focus();
   }
-});
+};
 
-var FormCheckbox = React.createClass({
+class FormCheckbox extends React.Component {
+  constructor(props) {
+    super(props);
+  }
   render () {
     return (
         <div className="form-group">
@@ -80,32 +89,34 @@ var FormCheckbox = React.createClass({
         </div>
       );
   }
-});
+};
 
-var FormSettingsBox = React.createClass({
-  getInitialState () {
+class FormSettingsBox extends React.Component {
+  constructor(props) {
+    super(props);
     var formId = this.props.survey.settings.get('form_id');
-    return {
+    this.state = {
       formSettingsExpanded: false,
       xform_id_string: formId,
       meta: [],
       phoneMeta: [],
       styleValue: 'field-list'
     };
-  },
+    autoBind(this);
+  }
   componentDidMount () {
     this.updateState();
-  },
+  }
   updateState (newState={}) {
     'start end today deviceid'.split(' ').forEach(this.passValueIntoObj('meta', newState));
     'username simserial subscriberid phonenumber'.split(' ').map(this.passValueIntoObj('phoneMeta', newState));
     this.setState(newState);
-  },
+  }
   getSurveyDetail (sdId) {
     return this.props.survey.surveyDetails.filter(function(sd){
       return sd.attributes.name === sdId;
     })[0];
-  },
+  }
   passValueIntoObj (category, newState) {
     newState[category] = [];
     return (id) => {
@@ -114,13 +125,13 @@ var FormSettingsBox = React.createClass({
         newState[category].push(assign({}, sd.attributes));
       }
     };
-  },
+  }
   onCheckboxChange (evt) {
     this.getSurveyDetail(evt.target.id).set('value', evt.target.checked);
     this.updateState({
       asset_updated: update_states.UNSAVED_CHANGES,
     });
-  },
+  }
   onFieldChange (evt) {
     var fieldId = evt.target.id,
         value = evt.target.value;
@@ -130,19 +141,19 @@ var FormSettingsBox = React.createClass({
     this.setState({
       xform_id_string: this.props.survey.settings.get('form_id')
     });
-  },
+  }
   toggleSettingsEdit () {
     this.setState({
       formSettingsExpanded: !this.state.formSettingsExpanded
     });
-  },
+  }
   onStyleChange (evt) {
     var newStyle = evt.target.value;
     this.props.survey.settings.set('style', newStyle);
     this.setState({
       styleValue: newStyle
     });
-  },
+  }
   render () {
     var metaData = [].concat(this.state.meta).concat(this.state.phoneMeta).filter(function(item){
       return item.value;
@@ -176,8 +187,8 @@ var FormSettingsBox = React.createClass({
           {metaContent}
         </bem.FormMeta>
       );
-  },
-});
+  }
+};
 
 export default assign({
   getInitialState () {

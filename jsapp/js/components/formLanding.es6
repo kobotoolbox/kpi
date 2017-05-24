@@ -1,4 +1,7 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import Dropzone from 'react-dropzone';
 import Map from 'es6-map';
@@ -25,31 +28,28 @@ import {
   validFileTypes
 } from '../utils';
 
-var FormLanding = React.createClass({
-  mixins: [
-    mixins.droppable,
-    mixins.dmix,
-    Reflux.ListenerMixin
-  ],
-  getInitialState () {
-    return {
+export class FormLanding extends React.Component {
+  constructor(props){
+    super(props);
+    this.state = {
       questionLanguageIndex: 0,
       selectedCollectMethod: 'offline_url'
     };
-  },
+    autoBind(this);
+  }
   componentWillReceiveProps() {
     this.setState({
         questionLanguageIndex: 0
       }
     );
-  },
+  }
   enketoPreviewModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
       type: 'enketo-preview',
       assetid: this.state.uid
     });
-  },
+  }
   renderFormInfo () {
     var dvcount = this.state.deployed_versions.length;
     return (
@@ -78,7 +78,7 @@ var FormLanding = React.createClass({
           </bem.FormView__cell>
         </bem.FormView__cell>
       );
-  },
+  }
   renderFormLanguages () {
     return (
       <bem.FormView__cell m={['padding', 'bordertop', 'languages']}>
@@ -96,21 +96,21 @@ var FormLanding = React.createClass({
 
       </bem.FormView__cell>
     );
-  },
+  }
   updateQuestionListLanguage (evt) {
     let i = evt.currentTarget.dataset.index;
     this.setState({
         questionLanguageIndex: i
       }
     );
-  },
+  }
   sharingModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
       type: 'sharing', 
       assetid: this.state.uid
     });
-  },
+  }
   renderHistory () {
     var dvcount = this.state.deployed_versions.length;
     return (
@@ -163,7 +163,7 @@ var FormLanding = React.createClass({
         }
       </bem.FormView__row>
       );
-  },
+  }
   renderCollectData () {
     var deployment__links = this.state.deployment__links;
 
@@ -295,14 +295,14 @@ var FormLanding = React.createClass({
         </bem.FormView__cell>
       </bem.FormView__row>
     );
-  },
+  }
   setCollectMethod(evt) {
     var method = $(evt.target).parents('.popover-menu__link').data('method');
     this.setState({
         selectedCollectMethod: method
       }
     );
-  },
+  }
   renderButtons () {
     var downloadable = false;
     var downloads = [];
@@ -367,7 +367,7 @@ var FormLanding = React.createClass({
           </ui.PopoverMenu>
         </bem.FormView__group>
       );
-  },
+  }
   render () {
     var docTitle = this.state.name || t('Untitled');
 
@@ -423,6 +423,14 @@ var FormLanding = React.createClass({
       );
   }
 
-})
+};
+
+reactMixin(FormLanding.prototype, mixins.droppable);
+reactMixin(FormLanding.prototype, mixins.dmix);
+reactMixin(FormLanding.prototype, Reflux.ListenerMixin);
+
+FormLanding.contextTypes = {
+  router: PropTypes.object
+};
 
 export default FormLanding;

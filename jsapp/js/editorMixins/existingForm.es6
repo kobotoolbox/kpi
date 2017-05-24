@@ -12,15 +12,6 @@ import stores from '../stores';
 
 export default {
   editorState: 'existing',
-  contextTypes: {
-    router: React.PropTypes.object
-  },
-  getInitialState () {
-    return {
-      kind: 'asset',
-      asset: false
-    };
-  },
   componentDidMount () {
     let uid = this.props.params.assetid;
     stores.allAssets.whenLoaded(uid, (asset) => {

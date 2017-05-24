@@ -232,9 +232,6 @@ var dmix = {
 mixins.dmix = dmix;
  
 mixins.droppable = {
-  contextTypes: {
-    router: React.PropTypes.object
-  },
   _forEachDroppedFile (evt, file, params={}) {
     var library = this.context.router.isActive('library');
     var url = params.url || this.state.url;
@@ -332,9 +329,6 @@ mixins.collectionList = {
 };
  
 mixins.clickAssets = {
-  contextTypes: {
-    router: React.PropTypes.object
-  },
   onActionButtonClick (action, uid, name) {
     this.click.asset[action].call(this, uid, name);
   },
@@ -515,9 +509,6 @@ mixins.permissions = {
 };
 
 mixins.contextRouter = {
-  contextTypes: {
-    router: React.PropTypes.object
-  },
   isFormList () {
     return this.context.router.isActive('forms') && this.context.router.params.assetid == undefined;
   },
