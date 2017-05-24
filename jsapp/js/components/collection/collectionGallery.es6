@@ -55,6 +55,13 @@ var CollectionsGallery = React.createClass({
     componentDidMount: function() {
         this.loadGalleryData(this.props.uid, 'question');
     },
+
+    formatDate : function(myDate){
+        let timestamp = moment(new Date(myDate)).format('DD-MMM-YYYY h:mm:ssa');
+        // console.log(myDate, " => DATE FORMATTING => ", timestamp);
+        return timestamp;
+    },
+
     // FILTER
     switchFilter(value) {
         let filters = [
@@ -87,6 +94,7 @@ var CollectionsGallery = React.createClass({
         });
     },
 
+
     // Pagination
     loadMoreAttachments(filter, index, page) {
         return dataInterface.loadQuestionAttachment(this.props.uid, filter, index, page, this.state.defaultPageSize).done((response) => {
@@ -103,11 +111,7 @@ var CollectionsGallery = React.createClass({
             this.setState({assets});
         });
     },
-    formatDate : function(myDate){
-        let timestamp = moment(new Date(myDate)).format('DD-MMM-YYYY h:mm:ssa');
-        // console.log(myDate, " => DATE FORMATTING => ", timestamp);
-        return timestamp;
-    },
+
     // MODAL
     openModal: function(record_index, attachment_index) {
         let record = this.state.assets.results[record_index];
@@ -144,6 +148,7 @@ var CollectionsGallery = React.createClass({
             this.goToSlide(attachment_index);
         }
     },
+
     handleCarouselChange: function(currentSlide, nextSlide) {
         let record = this.state.assets.results[this.state.activeParentIndex];
         let attachment = record.attachments.results[nextSlide];
@@ -186,7 +191,6 @@ var CollectionsGallery = React.createClass({
             return (
                 <bem.AssetGallery>
                     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
-
                     <GalleryHeading
                         attachments_count={this.state.assets.attachments_count}
                         currentFilter={this.state.filter}
@@ -376,9 +380,9 @@ let GalleryGrid = React.createClass({
         return (
             <bem.AssetGallery__grid>
                 {this.props.results.map(function(record, i) {
-                    if (typeof record.attachments.results == "undefined" || record.attachments.results.length === 0) {
-                        return null;
-                    } else {
+                    // if (typeof record.attachments.results == "undefined" || record.attachments.results.length === 0) {
+                    //     return null;
+                    // } else {
                         return (
                             <div key={i}>
                                 <GalleryGridItem
@@ -392,12 +396,11 @@ let GalleryGrid = React.createClass({
                                     loadMoreAttachments={this.props.loadMoreAttachments}/>
                             </div>
                         );
-                    }
-                    console.log("HAS is it maxed?: ", i+1 , " Count: ", this.props.count );
+                    // }
                 }.bind(this))}
 
-                {/*  LOAD MORE RECORDS BTN */}
                 <div>{this.state.loadMoreRecordsBtn}</div>
+
             </bem.AssetGallery__grid>
         )
     }
@@ -405,18 +408,18 @@ let GalleryGrid = React.createClass({
 
 let GalleryGridItem = React.createClass({
     getInitialState: function() {
-        return {page: 2, hasMoreAttachments: true, loadMoreBtn: null};
+        return {page: 2, hasMoreAttachments: true, LoadMoreAttachmentsBtn: null};
     },
     loadMoreAttachments: function() {
         let newPage = this.state.page + 1;
         this.props.loadMoreAttachments(this.props.currentFilter.source, this.props.currentIndex, this.state.page);
-        let hasMoreAttachments = (this.props.count > newPage )
+        let hasMoreAttachments = (this.props.count > newPage + this.props.pageSize)
             ? true
             : false;
         this.setState({page: newPage, hasMoreAttachments: hasMoreAttachments});
     },
     render(){
-        this.state.loadMoreBtn = (this.state.hasMoreAttachments  && this.props.currentFilter.source === 'question') ? <button onClick={this.loadMoreAttachments}>Load more</button> : null;
+        this.state.LoadMoreAttachmentsBtn = (this.state.hasMoreAttachments  && this.props.currentFilter.source === 'question') ? <button onClick={this.loadMoreAttachments}>Load more</button> : null;
         return (
             <div>
                 <h5>{this.props.currentFilter.source === 'question'
@@ -446,10 +449,10 @@ let GalleryGridItem = React.createClass({
                     );
                 }.bind(this))}
 
-                {/*  LOAD MORE ATTACHMENTS*/}
                 <div>
-                    {this.state.loadMoreBtn}
+                    {this.state.LoadMoreAttachmentsBtn}
                 </div>
+
             </div>
         );
     }
@@ -477,61 +480,5 @@ let LeftNavButton = React.createClass({
         )
     }
 });
-
-
-// //Load More Buttons
-// let LoadMoreAttachmentsBtn = React.createClass({
-//     getInitialState: function() {
-//         return {page: 2, enabled: true};
-//     },
-//     handleClick: function() {
-//         let newPage = this.state.page + 1;
-//         this.props.loadMore(this.props.filter, this.props.index, this.state.page);
-//         let enabled = (this.props.count / (newPage + 1) > 1)
-//             ? true
-//             : false;
-//         console.log(enabled);
-//         this.setState({page: newPage, enabled: enabled});
-//     },
-//     render: function() {
-//         let btn = null;
-//         if (this.state.enabled && this.props.filter == 'question') {
-//             btn = (
-//                 <div>
-//                     <button onClick={this.handleClick}>Load more</button>
-//                 </div>
-//             );
-//         }
-//         return btn;
-//     }
-// });
-
-// let LoadMoreRecordsBtn = React.createClass({
-//     getInitialState: function() {
-//         return {page: 2, enabled: true};
-//     },
-//     handleClick: function() {
-//         let newPage = this.state.page + 1;
-//         this.props.loadMore(this.props.filter, this.state.page);
-//         console.log("COUNT:", this.props.count);
-//         console.log(this.props.count / (newPage + 1));
-//         let enabled = (this.props.count / (newPage + 1) > 1)
-//             ? true
-//             : false;
-//         // console.log("Enabled: ", enabled);
-//         this.setState({page: newPage, enabled: enabled});
-//     },
-//     render: function() {
-//         let btn = null;
-//         if (this.state.enabled && this.props.filter == 'submission') {
-//             btn = (
-//                 <div>
-//                     <button onClick={this.handleClick}>Load more</button>
-//                 </div>
-//             );
-//         }
-//         return btn;
-//     }
-// })
 
 module.exports = CollectionsGallery;
