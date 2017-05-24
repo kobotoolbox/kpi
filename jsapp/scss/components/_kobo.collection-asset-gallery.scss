@@ -37,11 +37,14 @@
             width: 268px;
         }
     }
-
-    &__grid, &__heading{
+    &__heading{
         display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
+
     &__grid{
+        display: flex;
         h5{
             font-size: 1.5em;
             margin: 15px 0px;
@@ -85,6 +88,7 @@
             min-width: 300px;
             display: flex;
             align-items: center;
+            justify-content: center;
             .text-display{
                 display: inline-block;
                 padding: 10px;
@@ -97,6 +101,7 @@
             }
             .Select--single{
                 display: inline-block;
+                margin-left: 20px;
                 &:first-child{
                     min-width: 240px;
                 }

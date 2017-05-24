@@ -395,7 +395,7 @@ let GalleryGrid = React.createClass({
         this.setState({page: newPage, hasMoreRecords: hasMoreRecords});
     },
     render(){
-        this.state.loadMoreRecordsBtn = (this.state.hasMoreRecords && this.props.currentFilter.source=='submission') ? <button onClick={this.loadMoreRecords}>Load more</button> : null;
+        this.state.loadMoreRecordsBtn = (this.state.hasMoreRecords && this.props.currentFilter.source=='submission') ? <button onClick={this.loadMoreRecords} className='mdl-button mdl-button--raised mdl-button--colored'>Load more</button> : null;
         return (
             <bem.AssetGallery__grid>
                 {this.props.results.map(function(record, i) {
@@ -438,7 +438,7 @@ let GalleryGridItem = React.createClass({
         this.setState({page: newPage, hasMoreAttachments: hasMoreAttachments});
     },
     render(){
-        this.state.LoadMoreAttachmentsBtn = (this.state.hasMoreAttachments  && this.props.currentFilter.source === 'question') ? <button onClick={this.loadMoreAttachments}>Load more</button> : null;
+        this.state.LoadMoreAttachmentsBtn = (this.state.hasMoreAttachments  && this.props.currentFilter.source === 'question') ? <button onClick={this.loadMoreAttachments} className='mdl-button mdl-button--raised mdl-button--colored'>Load more</button> : null;
         return (
             <div>
                 <h5>{this.props.currentFilter.source === 'question'
