@@ -342,7 +342,7 @@ var dataInterface;
         }
       });
     },
-    loadQuestionAttachment (uid, filter_by, index, page, page_size){
+    loadQuestionAttachment (uid, filter_by, index, page, page_size, callback){
       return $ajax({
         url: `${rootUrl}/assets/${uid}/attachments`,
         method: 'GET',
@@ -353,7 +353,7 @@ var dataInterface;
           page_size: page_size,
           page: page
         }
-      });
+    }).done(callback);
     },
     loadMoreRecords (uid, filter_by, page, page_size){
       return $ajax({

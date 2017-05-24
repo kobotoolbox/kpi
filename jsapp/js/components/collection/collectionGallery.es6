@@ -1,11 +1,11 @@
 import React from 'react';
-import Modal from 'react-modal';
+// import Modal from 'react-modal';
 import bem from '../../bem';
 import ui from '../../ui';
 import Select from 'react-select';
 import Slider from 'react-slick';
 import CollectionModal from './collectionModal';
-import CollectionFilter from './collectionFilter';
+// import CollectionFilter from './collectionFilter';
 import {dataInterface} from '../../dataInterface';
 import moment from 'moment';
 
@@ -20,6 +20,8 @@ var CollectionsGallery = React.createClass({
         return {
             defaultPageSize: 2,
             hasMoreAttachments: true,
+            hasMoreRecords: true,
+            page: 2,
             showModal: false,
             activeIndex: 0,
             activeID: null,
@@ -47,6 +49,7 @@ var CollectionsGallery = React.createClass({
     loadGalleryData: function(uid, filter) {
         dataInterface.filterGalleryImages(uid, filter, this.state.defaultPageSize).done((response) => {
             response.loaded = true;
+            console.log(response);
             this.setState({
                 assets: response
             });
@@ -94,23 +97,30 @@ var CollectionsGallery = React.createClass({
         });
     },
 
-
     // Pagination
-    loadMoreAttachments(filter, index, page) {
-        return dataInterface.loadQuestionAttachment(this.props.uid, filter, index, page, this.state.defaultPageSize).done((response) => {
-            let assets = this.state.assets;
-            assets.results[index].attachments.results.push(...response.attachments.results);
-            this.setState({assets});
+    loadMoreAttachments(galleryIndex, page, callback) {
+        this.state.assets.loaded = false;
+        return dataInterface.loadQuestionAttachment(this.props.uid, this.state.filter.source, galleryIndex, page, this.state.defaultPageSize, callback).done((response) => {
+            let assets = this.state.assets
+            assets.loaded = true;
+            assets.results[galleryIndex].attachments.results.push(...response.attachments.results);
+            assets.loaded= true;
+            if(callback){
+                callback(response);
+            }
         });
     },
-	loadMoreRecords(filter, page) {
-        return dataInterface.loadMoreRecords(this.props.uid, filter, page, this.state.defaultPageSize).done((response) => {
+	loadMoreRecords() {
+        this.state.assets.loaded = false;
+        return dataInterface.loadMoreRecords(this.props.uid, this.state.filter.source, this.state.page, this.state.defaultPageSize).done((response) => {
             let assets = this.state.assets
+            assets.loaded = true;
             assets.results.push(...response.results);
             this.setState({assets});
+            let newPage = this.state.page + 1;
+            this.setState({page: newPage, hasMoreRecords: response.next});
         });
     },
-
     // MODAL
     openModal: function(record_index, attachment_index) {
         let record = this.state.assets.results[record_index];
@@ -132,8 +142,19 @@ var CollectionsGallery = React.createClass({
             infoOpen: !prevState.infoOpen
         }));
     },
-
-    // SLIDER
+    goToSlide(index) {
+        this.refs.slider.slickGoTo(index);
+    },
+    //Modal Custom
+    handleCarouselChange: function(currentSlide, nextSlide) {
+        let record = this.state.assets.results[this.state.activeParentIndex];
+        let attachment = record.attachments.results[nextSlide];
+        this.setState({
+            activeIndex: nextSlide,
+            activeTitle: record.label || attachment.question.label,
+            activeDate: this.formatDate(record.date_created || attachment.submission.date_created)
+        });
+    },
     updateActiveAsset(record_index, attachment_index) {
         let record = this.state.assets.results[record_index];
         let attachment = record.attachments[attachment_index];
@@ -148,34 +169,9 @@ var CollectionsGallery = React.createClass({
         }
     },
 
-    handleCarouselChange: function(currentSlide, nextSlide) {
-        let record = this.state.assets.results[this.state.activeParentIndex];
-        let attachment = record.attachments.results[nextSlide];
-        this.setState({
-            activeIndex: nextSlide,
-            activeTitle: record.label || attachment.question.label,
-            activeDate: this.formatDate(record.date_created || attachment.submission.date_created)
-        });
-    },
-    goToSlide(index) {
-        this.refs.slider.slickGoTo(index);
-    },
-
     // RENDER
     render() {
-        const settings = {
-            dots: false,
-            fade: true,
-            lazyLoad: true,
-            infinite: false,
-            speed: 500,
-            slidesToShow: 1,
-            slide: 'slide',
-            slidesToScroll: 1,
-            initialSlide: this.state.activeIndex,
-            nextArrow: <RightNavButton/>,
-            prevArrow: <LeftNavButton/>
-        }
+
         let filters = [
             {
                 value: 'question',
@@ -186,7 +182,7 @@ var CollectionsGallery = React.createClass({
             }
         ]
         if (this.state.assets.loaded) {
-            // TODO Create A GalleryModal class!!!
+            // TODO Create A CollectionModal class!!!
             return (
                 <bem.AssetGallery>
                     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
@@ -196,20 +192,33 @@ var CollectionsGallery = React.createClass({
                         filters={filters}
                         switchFilter={this.switchFilter}/>
 
-                    <GalleryGrid
-                        results={this.state.assets.results}
-                        count={this.state.assets.count}
-                        currentFilter={this.state.filter}
-                        loadMoreAttachments={this.loadMoreAttachments}
-                        loadMoreRecords={this.loadMoreRecords}
-                        formatDate={this.formatDate}
-                        openModal={this.openModal}
-                        pageSize={this.state.defaultPageSize}/>
+                        <bem.AssetGallery__grid>
+                            {this.state.assets.results.map(function(record, i) {
+                                let galleryTitle =  (this.state.filter.source === 'question') ? record.label : 'Record #' + parseInt(i + 1);
+                                return (
+                                    <GalleryGrid
+                                        galleryTitle={galleryTitle}
+                                        uid={this.props.uid}
+                                        key={i}
+                                        galleryIndex={i}
+                                        record={record}
+                                        loadMoreAttachments={this.loadMoreAttachments}
+                                        count={this.state.assets.count}
+                                        currentFilter={this.state.filter.source}
+                                        assets={this.state.assets}
+                                        formatDate={this.formatDate}
+                                        openModal={this.openModal}
+                                        pageSize={this.state.defaultPageSize}/>
+                                    );
+                                }.bind(this))}
 
-                    <GalleryModal
+                            <div>{(this.state.hasMoreRecords && this.state.filter.source=='submission') ? <button onClick={this.loadMoreRecords} className='mdl-button mdl-button--raised mdl-button--colored'>Load more</button> : null}</div>
+
+                        </bem.AssetGallery__grid>
+                    {/*  TODO move modal inside gallery and pass local props */}
+                    <CollectionModal
                         showModal={this.state.showModal}
                         infoOpen={this.state.infoOpen}
-                        settings={settings}
                         results={this.state.assets.results[this.state.activeParentIndex].attachments.results}
                         closeModal={this.closeModal}
                         toggleInfo={this.toggleInfo}
@@ -221,7 +230,6 @@ var CollectionsGallery = React.createClass({
                         date={this.state.activeDate}
                         title={this.state.activeTitle}
                         activeParentIndex={this.state.activeParentIndex}
-
                     />
 
                 </bem.AssetGallery>
@@ -230,129 +238,6 @@ var CollectionsGallery = React.createClass({
         } else {
             return null;
         }
-    }
-});
-
-let GalleryModal = React.createClass({
-    // getInitialState: function(){
-    //     return{
-    //         modalIsOpen : ,
-    //         modalInfoOpen:
-    //     }
-    // },
-    render(){
-        return (
-            <Modal isOpen={this.props.showModal} contentLabel="Modal" >
-                <bem.AssetGallery__modal>
-                    <ui.Modal.Body>
-                        <bem.AssetGallery__modalCarousel className={"col8 "+ (this.props.infoOpen ? '' : 'full-screen')}>
-                            <bem.AssetGallery__modalCarouselTopbar className={this.props.infoOpen ? 'show' : 'show--hover'}>
-                                <i className="close-modal material-icons" onClick={this.props.closeModal}>keyboard_backspace</i>
-                                <i className="toggle-info material-icons" onClick={this.props.toggleInfo}>info_outline</i>
-                            </bem.AssetGallery__modalCarouselTopbar>
-                            <Slider ref="slider" {...this.props.settings} beforeChange={this.props.handleCarouselChange}>
-                                {this.props.results.map(function (item, i) {
-                                    return (
-                                        <div key={item.id}>
-                                            <img alt="900x500" src={item.large_download_url}/>
-                                        </div>
-                                    )
-                                })}
-                            </Slider>
-                        </bem.AssetGallery__modalCarousel>
-
-                        <GalleryModalSidebar
-                            results={this.props.results}
-                            isInfoOpen={this.props.infoOpen}
-                            toggleInfo={this.props.toggleInfo}
-                            filter={this.props.filter}
-                            activeIndex={this.props.activeIndex}
-                            activeParentIndex={this.props.activeParentIndex}
-                            title={this.props.title}
-                            date={this.props.date}
-
-                            updateActiveAsset={this.props.updateActiveAsset}
-                        />
-
-                    </ui.Modal.Body>
-                </bem.AssetGallery__modal>
-            </Modal>
-        );
-    }
-});
-
-let GalleryModalSidebar = React.createClass({
-    getInitialState: function(){
-        return {
-            status:  (this.props.isInfoOpen) ? 'open' : 'closed',
-        }
-    },
-    render(){
-        let currentRecordIndex = (this.props.filter === 'question' ? this.props.activeIndex + 1 : this.props.activeParentIndex + 1);
-        return (
-            <bem.AssetGallery__modalSidebar className={"col4 " + this.state.status}>
-                <i className="toggle-info material-icons" onClick={this.props.toggleInfo}>close</i>
-                <div>
-                    <div className="info__outer">
-                        <div className="light-grey-bg">
-                            <h4>Information</h4>
-                        </div>
-                        <div className="info__inner">
-                            <p>Record #{currentRecordIndex}</p>
-                            <h3>{this.props.title}</h3>
-                            <p>{this.props.date}</p>
-                        </div>
-                    </div>
-
-                    <GalleryModalSidebarGrid
-                        results={this.props.results}
-                        filter={this.props.filter}
-                        currentRecordIndex={currentRecordIndex}
-                        currentQuestion={this.props.title}
-                        activeIndex={this.props.activeIndex}
-                        activeParentIndex={this.props.activeParentIndex}
-                        updateActiveAsset={this.props.updateActiveAsset}
-                        date={this.props.date}
-                    />
-                </div>
-            </bem.AssetGallery__modalSidebar>
-        );
-    }
-});
-
-let GalleryModalSidebarGrid = React.createClass({
-    getInitialState: function() {
-        return {
-            maxItems: 2,
-            count : 0
-        };
-    },
-    render(){
-        let gridLabel = (this.props.filter === 'submission' ? 'Record #' + this.props.currentRecordIndex : this.props.currentQuestion);
-        let moreforItem = null;
-        return (
-            <div className="padding--15">
-                <h5>More for {gridLabel}</h5>
-                <bem.AssetGallery__modalSidebarGrid>
-
-                    {this.props.results.map(function(item, j) {
-                        if (this.props.activeIndex !== j){ // if the item is not the active attachment
-                            var divStyle = {
-                                backgroundImage: 'url('+ item.download_url + ')',
-                                backgroundRepeat: 'no-repeat',
-                                backgroundPosition: 'center center',
-                                backgroundSize: 'cover'
-                            }
-                            return (
-                                <bem.AssetGallery__modalSidebarGridItem key={j} className="col6" onClick={() => this.props.updateActiveAsset(this.props)}>
-                                    <div className="one-one" style={divStyle}></div>
-                                </bem.AssetGallery__modalSidebarGridItem>
-                            )
-                        }
-                    }.bind(this))}
-                </bem.AssetGallery__modalSidebarGrid>
-            </div>
-        );
     }
 });
 
@@ -382,122 +267,67 @@ let GalleryGrid = React.createClass({
     getInitialState: function() {
         return {
             page: 2,
-            hasMoreRecords: true,
-            loadMoreRecordsBtn: null
+            hasMoreAttachments: true,
         };
     },
-    loadMoreRecords: function() {
-        let newPage = this.state.page + 1;
-        this.props.loadMoreRecords(this.props.currentFilter.source, this.state.page);
-        let hasMoreRecords = (this.props.count > (newPage + this.props.pageSize))
-            ? true
-            : false;
-        this.setState({page: newPage, hasMoreRecords: hasMoreRecords});
+    loadMoreAttachments: function() {
+        this.props.assets.loaded = false;
+        let that =this;
+        let res = this.props.loadMoreAttachments(this.props.galleryIndex, this.state.page, function(response){
+            let newPage = this.state.page + 1;
+            this.setState({page: newPage, hasMoreAttachments: response.attachments.next});
+            this.props.assets.loaded = true;
+        }.bind(this));
     },
     render(){
-        this.state.loadMoreRecordsBtn = (this.state.hasMoreRecords && this.props.currentFilter.source=='submission') ? <button onClick={this.loadMoreRecords} className='mdl-button mdl-button--raised mdl-button--colored'>Load more</button> : null;
         return (
-            <bem.AssetGallery__grid>
-                {this.props.results.map(function(record, i) {
+
+            <div key={this.props.galleryIndex} >
+                <h2>{this.props.galleryTitle}</h2>
+                {this.props.record.attachments.results.map(function(item, j) {
+                    var timestamp = (this.props.currentFilter === 'question') ? item.submission.date_created : this.props.record.date_created;
                     return (
-                        <div key={i}>
-                            <GalleryGridItem
-                                currentFilter={this.props.currentFilter}
-                                currentIndex={i}
-                                record={record}
-                                count={this.props.count}
-                                pageSize={this.props.pageSize}
-                                formatDate={this.props.formatDate}
-                                openModal={this.props.openModal}
-                                loadMoreAttachments={this.props.loadMoreAttachments}/>
-                        </div>
+                        <GalleryGridItem
+                            key={j}
+                            date={this.props.formatDate(timestamp)}
+                            itemTitle={this.props.currentFilter === 'question' ? 'Record #' + parseInt(j + 1) : item.question.label}
+                            download_url={item.download_url}
+                            galleryIndex={this.props.galleryIndex}
+                            itemIndex={j}
+                            openModal={this.props.openModal}
+                        />
                     );
                 }.bind(this))}
 
-                <div>{this.state.loadMoreRecordsBtn}</div>
-
-            </bem.AssetGallery__grid>
+                <div>
+                    {(this.state.hasMoreAttachments  && this.props.currentFilter === 'question') ? <button onClick={this.loadMoreAttachments} className='mdl-button mdl-button--raised mdl-button--colored'>Load more</button> : null}
+                </div>
+            </div>
         )
     }
 });
 
 let GalleryGridItem = React.createClass({
-    getInitialState: function() {
-        return {
-            page: 2,
-            hasMoreAttachments: true,
-            LoadMoreAttachmentsBtn: null
-        };
-    },
-    loadMoreAttachments: function() {
-        let newPage = this.state.page + 1;
-        this.props.loadMoreAttachments(this.props.currentFilter.source, this.props.currentIndex, this.state.page);
-        let hasMoreAttachments = (this.props.count > newPage + this.props.pageSize)
-            ? true
-            : false;
-        this.setState({page: newPage, hasMoreAttachments: hasMoreAttachments});
-    },
     render(){
-        this.state.LoadMoreAttachmentsBtn = (this.state.hasMoreAttachments  && this.props.currentFilter.source === 'question') ? <button onClick={this.loadMoreAttachments} className='mdl-button mdl-button--raised mdl-button--colored'>Load more</button> : null;
+        let itemStyle = {
+            backgroundImage: 'url(' + this.props.download_url + ')',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center center',
+            backgroundSize: 'cover'
+        }
         return (
-            <div>
-                <h5>{this.props.currentFilter.source === 'question'
-                        ? this.props.record.label
-                        : 'Record #' + parseInt(this.props.currentIndex + 1)}</h5>
-                {this.props.record.attachments.results.map(function(item, j) {
-                    var divStyle = {
-                        backgroundImage: 'url(' + item.download_url + ')',
-                        backgroundRepeat: 'no-repeat',
-                        backgroundPosition: 'center center',
-                        backgroundSize: 'cover'
-                    }
-
-                    var timestamp = (this.props.currentFilter.source === 'question') ? item.submission.date_created : this.props.record.date_created;
-                    var formattedDate = this.props.formatDate(timestamp)
-                    return (
-                        <bem.AssetGallery__gridItem key={j} className="col4 one-one" style={divStyle} onClick={() => this.props.openModal(this.props.currentIndex , j)}>
-                            <bem.AssetGallery__gridItemOverlay>
-                                <div className="text">
-                                    <h5>{this.props.currentFilter.source === 'question'
-                                            ? 'Record #' + parseInt(j + 1)
-                                            : item.question.label}</h5>
-                                    <p>{formattedDate}</p>
-                                </div>
-                            </bem.AssetGallery__gridItemOverlay>
-                        </bem.AssetGallery__gridItem>
-                    );
-                }.bind(this))}
-
-                <div>
-                    {this.state.LoadMoreAttachmentsBtn}
-                </div>
-
-            </div>
+            <bem.AssetGallery__gridItem className="col4 one-one" style={itemStyle} onClick={() => this.props.openModal(this.props.galleryIndex , this.props.itemIndex)}>
+                <bem.AssetGallery__gridItemOverlay>
+                    <div className="text">
+                        <h5>{this.props.itemTitle}</h5>
+                        <p>{this.props.date}</p>
+                    </div>
+                </bem.AssetGallery__gridItemOverlay>
+            </bem.AssetGallery__gridItem>
         );
     }
 });
 
-//Slider Navigation
-let RightNavButton = React.createClass({
-    render() {
-        const {className, onClick} = this.props;
-        return (
-            <button onClick={onClick} className={className}>
-                <i className="material-icons">chevron_right</i>
-            </button>
-        )
-    }
-});
 
-let LeftNavButton = React.createClass({
-    render() {
-        const {className, onClick} = this.props;
-        return (
-            <button onClick={onClick} className={className}>
-                <i className="material-icons">chevron_left</i>
-            </button>
-        )
-    }
-});
 
 module.exports = CollectionsGallery;
