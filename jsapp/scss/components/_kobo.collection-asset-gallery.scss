@@ -238,9 +238,12 @@
                 font-weight: 400;
                 font-size: 1.75em;
             }
-            // h5{
-            //     color: #2095F3;
-            // }
+            h5{
+                color: #2095F3;
+                margin: 0;
+                font-weight: bold;
+                font-size: 1.1em;
+            }
             &.open{
                 opacity: 1;
                 .toggle-info{
@@ -270,6 +273,7 @@
                 width: 0px !important;
                 opacity: 0 !important;
             }
+
             &__grid{
                 display: flex;
                 flex-wrap: wrap;

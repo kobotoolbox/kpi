@@ -105,7 +105,6 @@ var CollectionsGallery = React.createClass({
     },
 	loadMoreRecords(filter, page) {
         return dataInterface.loadMoreRecords(this.props.uid, filter, page, this.state.defaultPageSize).done((response) => {
-            console.log(response);
             let assets = this.state.assets
             assets.results.push(...response.results);
             this.setState({assets});
@@ -215,12 +214,14 @@ var CollectionsGallery = React.createClass({
                         closeModal={this.closeModal}
                         toggleInfo={this.toggleInfo}
                         handleCarouselChange={this.handleCarouselChange}
+                        updateActiveAsset={this.updateActiveAsset}
 
                         filter={this.state.filter.source}
                         activeIndex={this.state.activeIndex}
                         date={this.state.activeDate}
                         title={this.state.activeTitle}
                         activeParentIndex={this.state.activeParentIndex}
+
                     />
 
                 </bem.AssetGallery>
@@ -251,8 +252,6 @@ let GalleryModal = React.createClass({
                             </bem.AssetGallery__modalCarouselTopbar>
                             <Slider ref="slider" {...this.props.settings} beforeChange={this.props.handleCarouselChange}>
                                 {this.props.results.map(function (item, i) {
-                                    console.log("This is the item!");
-                                    console.log(i);
                                     return (
                                         <div key={item.id}>
                                             <img alt="900x500" src={item.large_download_url}/>
@@ -270,7 +269,10 @@ let GalleryModal = React.createClass({
                             activeIndex={this.props.activeIndex}
                             activeParentIndex={this.props.activeParentIndex}
                             title={this.props.title}
-                            date={this.props.date} />
+                            date={this.props.date}
+
+                            updateActiveAsset={this.props.updateActiveAsset}
+                        />
 
                     </ui.Modal.Body>
                 </bem.AssetGallery__modal>
@@ -286,6 +288,7 @@ let GalleryModalSidebar = React.createClass({
         }
     },
     render(){
+        let currentRecordIndex = (this.props.filter === 'question' ? this.props.activeIndex + 1 : this.props.activeParentIndex + 1);
         return (
             <bem.AssetGallery__modalSidebar className={"col4 " + this.state.status}>
                 <i className="toggle-info material-icons" onClick={this.props.toggleInfo}>close</i>
@@ -295,7 +298,7 @@ let GalleryModalSidebar = React.createClass({
                             <h4>Information</h4>
                         </div>
                         <div className="info__inner">
-                            <p>Record #{this.props.filter === 'question' ? this.props.activeIndex + 1 : this.props.activeParentIndex + 1}</p>
+                            <p>Record #{currentRecordIndex}</p>
                             <h3>{this.props.title}</h3>
                             <p>{this.props.date}</p>
                         </div>
@@ -304,7 +307,13 @@ let GalleryModalSidebar = React.createClass({
                     <GalleryModalSidebarGrid
                         results={this.props.results}
                         filter={this.props.filter}
-                        activeIndex={this.props.activeIndex}/>
+                        currentRecordIndex={currentRecordIndex}
+                        currentQuestion={this.props.title}
+                        activeIndex={this.props.activeIndex}
+                        activeParentIndex={this.props.activeParentIndex}
+                        updateActiveAsset={this.props.updateActiveAsset}
+                        date={this.props.date}
+                    />
                 </div>
             </bem.AssetGallery__modalSidebar>
         );
@@ -312,33 +321,37 @@ let GalleryModalSidebar = React.createClass({
 });
 
 let GalleryModalSidebarGrid = React.createClass({
+    getInitialState: function() {
+        return {
+            maxItems: 2,
+            count : 0
+        };
+    },
     render(){
+        let gridLabel = (this.props.filter === 'submission' ? 'Record #' + this.props.currentRecordIndex : this.props.currentQuestion);
+        let moreforItem = null;
         return (
-            <bem.AssetGallery__modalSidebarGrid className="padding--15">
-                {this.props.results.map(function(item, j) {
-                    if (this.props.activeIndex !== j){ // if the item is not the active attachment
-                        var divStyle = {
-                            backgroundImage: 'url('+ item.download_url + ')',
-                            backgroundRepeat: 'no-repeat',
-                            backgroundPosition: 'center center',
-                            backgroundSize: 'cover'
-                        }
-                        return (
-                            <bem.AssetGallery__modalSidebarGridItem key={j} className="col6" onClick={() => this.updateActiveAsset(j)}>
-                                <div className="one-one" style={divStyle}></div>
-                            </bem.AssetGallery__modalSidebarGridItem>
-                        )
-                    }
-                }.bind(this))}
-                {/* {this.props.results.map(function(record, i) {
-                    return (
-                        <div key={i}>
-                            <h5>{this.props.filter === 'question' ? 'Record #' : 'Question #'}{i}</h5>
+            <div className="padding--15">
+                <h5>More for {gridLabel}</h5>
+                <bem.AssetGallery__modalSidebarGrid>
 
-                        </div>
-                    )
-                }.bind(this))} */}
-            </bem.AssetGallery__modalSidebarGrid>
+                    {this.props.results.map(function(item, j) {
+                        if (this.props.activeIndex !== j){ // if the item is not the active attachment
+                            var divStyle = {
+                                backgroundImage: 'url('+ item.download_url + ')',
+                                backgroundRepeat: 'no-repeat',
+                                backgroundPosition: 'center center',
+                                backgroundSize: 'cover'
+                            }
+                            return (
+                                <bem.AssetGallery__modalSidebarGridItem key={j} className="col6" onClick={() => this.props.updateActiveAsset(this.props)}>
+                                    <div className="one-one" style={divStyle}></div>
+                                </bem.AssetGallery__modalSidebarGridItem>
+                            )
+                        }
+                    }.bind(this))}
+                </bem.AssetGallery__modalSidebarGrid>
+            </div>
         );
     }
 });
