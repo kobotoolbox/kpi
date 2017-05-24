@@ -186,7 +186,7 @@ var CollectionsGallery = React.createClass({
             return (
                 <bem.AssetGallery>
                     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
-                    <GalleryHeading
+                    <CollectionHeading
                         attachments_count={this.state.assets.attachments_count}
                         currentFilter={this.state.filter}
                         filters={filters}
@@ -196,7 +196,7 @@ var CollectionsGallery = React.createClass({
                             {this.state.assets.results.map(function(record, i) {
                                 let galleryTitle =  (this.state.filter.source === 'question') ? record.label : 'Record #' + parseInt(i + 1);
                                 return (
-                                    <GalleryGrid
+                                    <Collection
                                         galleryTitle={galleryTitle}
                                         uid={this.props.uid}
                                         key={i}
@@ -241,7 +241,7 @@ var CollectionsGallery = React.createClass({
     }
 });
 
-let GalleryHeading = React.createClass({
+let CollectionHeading = React.createClass({
     render(){
         return (
             <bem.AssetGallery__heading>
@@ -263,7 +263,7 @@ let GalleryHeading = React.createClass({
     }
 });
 
-let GalleryGrid = React.createClass({
+let Collection = React.createClass({
     getInitialState: function() {
         return {
             page: 2,
@@ -287,7 +287,7 @@ let GalleryGrid = React.createClass({
                 {this.props.record.attachments.results.map(function(item, j) {
                     var timestamp = (this.props.currentFilter === 'question') ? item.submission.date_created : this.props.record.date_created;
                     return (
-                        <GalleryGridItem
+                        <CollectionItem
                             key={j}
                             date={this.props.formatDate(timestamp)}
                             itemTitle={this.props.currentFilter === 'question' ? 'Record #' + parseInt(j + 1) : item.question.label}
@@ -307,7 +307,7 @@ let GalleryGrid = React.createClass({
     }
 });
 
-let GalleryGridItem = React.createClass({
+let CollectionItem = React.createClass({
     render(){
         let itemStyle = {
             backgroundImage: 'url(' + this.props.download_url + ')',
