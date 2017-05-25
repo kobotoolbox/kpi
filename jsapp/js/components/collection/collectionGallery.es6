@@ -19,8 +19,7 @@ var CollectionsGallery = React.createClass({
         this.toggleInfo = this.toggleInfo.bind(this);
         return {
             defaultPageSize: 2,
-            hasMoreAttachments: true,
-            hasMoreRecords: true,
+            hasMoreRecords: false,
             page: 2,
             showModal: false,
             activeIndex: 0,
@@ -50,7 +49,7 @@ var CollectionsGallery = React.createClass({
         dataInterface.filterGalleryImages(uid, filter, this.state.defaultPageSize).done((response) => {
             response.loaded = true;
             this.setState({
-                assets: response
+                assets: response,
             });
         });
     },
@@ -81,16 +80,19 @@ var CollectionsGallery = React.createClass({
                 label = filters[i].label;
             }
         }
+
         dataInterface.filterGalleryImages(this.props.uid, newFilter, this.state.defaultPageSize).done((response) => {
             response.loaded = true;
             this.setState(this.getInitialState());
             this.forceUpdate();
+
             this.setState({
                 filter: {
                     source: newFilter,
                     label: label
                 },
-                assets: response
+                assets: response,
+                hasMoreRecords: (newFilter == 'submission') ? response.next : this.state.hasMoreRecords //Check if more records exist!
             });
         });
     },
@@ -264,15 +266,22 @@ let Collection = React.createClass({
     getInitialState: function() {
         return {
             collectionPage: 2,
-            hasMoreAttachments: true,
+            hasMoreAttachments: false,
         };
+    },
+    toggleLoadMoreBtn: function(){
+        let currentlyLoadedCollectionAttachments =  this.state.collectionPage * this.props.defaultPageSize;
+        let collectionHasMore = (currentlyLoadedCollectionAttachments < this.props.collectionAttachmentsCount ) ? true : false;
+        this.setState({hasMoreAttachments: collectionHasMore});
+    },
+    componentDidMount(){
+        this.toggleLoadMoreBtn();
     },
     loadMoreAttachments: function() {
         this.props.loadMoreAttachments(this.props.collectionIndex, this.state.collectionPage, this.state);
-        let currentlyLoadedCollectionAttachments =  this.state.collectionPage * this.props.defaultPageSize;
-        let collectionHasMore = (currentlyLoadedCollectionAttachments < this.props.collectionAttachmentsCount ) ? true : false;
-        let newCollectionPage = (collectionHasMore) ? this.state.collectionPage + 1 : this.state.collectionPage;
-        this.setState({collectionPage: newCollectionPage, hasMoreAttachments: collectionHasMore});
+        this.toggleLoadMoreBtn();
+        let newCollectionPage = (this.state.hasMoreAttachments) ? this.state.collectionPage + 1 : this.state.collectionPage;
+        this.setState({collectionPage: newCollectionPage});
     },
     render(){
         return (
