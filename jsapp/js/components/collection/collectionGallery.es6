@@ -22,11 +22,11 @@ var CollectionsGallery = React.createClass({
             hasMoreRecords: false,
             page: 2,
             showModal: false,
-            activeIndex: 0,
+            collectionItemIndex: 0,
             activeID: null,
             activeTitle: null,
             activeDate: null,
-            activeParentIndex: 0,
+            collectionIndex: 0,
             infoOpen: true,
             filter: {
                 source: 'question',
@@ -124,8 +124,8 @@ var CollectionsGallery = React.createClass({
         this.setState({
             showModal: true,
             activeID: attachment.id,
-            activeIndex: attachment_index,
-            activeParentIndex: record_index,
+            collectionItemIndex: attachment_index,
+            collectionIndex: record_index,
             activeTitle: record.label || attachment.question.label,
             activeDate: this.formatDate(record.date_created || attachment.submission.date_created)
         });
@@ -143,10 +143,10 @@ var CollectionsGallery = React.createClass({
     },
     //Modal Custom
     handleCarouselChange: function(currentSlide, nextSlide) {
-        let record = this.state.assets.results[this.state.activeParentIndex];
+        let record = this.state.assets.results[this.state.collectionIndex];
         let attachment = record.attachments.results[nextSlide];
         this.setState({
-            activeIndex: nextSlide,
+            collectionItemIndex: nextSlide,
             activeTitle: record.label || attachment.question.label,
             activeDate: this.formatDate(record.date_created || attachment.submission.date_created)
         });
@@ -155,8 +155,8 @@ var CollectionsGallery = React.createClass({
         let record = this.state.assets.results[record_index];
         let attachment = record.attachments[attachment_index];
         this.setState({
-            activeIndex: attachment_index,
-            activeParentIndex: record_index,
+            collectionItemIndex: attachment_index,
+            collectionIndex: record_index,
             activeTitle: record.label || attachment.question.label,
             activeDate: this.formatDate(record.date_created || attachment.submission.date_created)
         });
@@ -178,7 +178,6 @@ var CollectionsGallery = React.createClass({
             }
         ]
         if (this.state.assets.loaded) {
-            // TODO Create A CollectionModal class!!!
             return (
                 <bem.AssetGallery>
                     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
@@ -218,17 +217,17 @@ var CollectionsGallery = React.createClass({
                     <CollectionModal
                         showModal={this.state.showModal}
                         infoOpen={this.state.infoOpen}
-                        results={this.state.assets.results[this.state.activeParentIndex].attachments.results}
+                        results={this.state.assets.results[this.state.collectionIndex].attachments.results}
                         closeModal={this.closeModal}
                         toggleInfo={this.toggleInfo}
                         handleCarouselChange={this.handleCarouselChange}
                         updateActiveAsset={this.updateActiveAsset}
 
                         filter={this.state.filter.source}
-                        activeIndex={this.state.activeIndex}
+                        collectionItemIndex={this.state.collectionItemIndex}
                         date={this.state.activeDate}
                         title={this.state.activeTitle}
-                        activeParentIndex={this.state.activeParentIndex}
+                        collectionIndex={this.state.collectionIndex}
                     />
 
                 </bem.AssetGallery>

@@ -23,7 +23,7 @@ let CollectionModal = React.createClass({
 			slidesToShow: 1,
 			slide: 'slide',
 			slidesToScroll: 1,
-			initialSlide: this.props.activeIndex,
+			initialSlide: this.props.collectionItemIndex,
 			nextArrow: <RightNavButton/>,
 			prevArrow: <LeftNavButton/>
 		}
@@ -52,8 +52,8 @@ let CollectionModal = React.createClass({
                             isInfoOpen={this.props.infoOpen}
                             toggleInfo={this.props.toggleInfo}
                             filter={this.props.filter}
-                            activeIndex={this.props.activeIndex}
-                            activeParentIndex={this.props.activeParentIndex}
+                            collectionItemIndex={this.props.collectionItemIndex}
+                            collectionIndex={this.props.collectionIndex}
                             title={this.props.title}
                             date={this.props.date}
 
@@ -74,7 +74,7 @@ let CollectionModalSidebar = React.createClass({
         }
     },
     render(){
-        let currentRecordIndex = (this.props.filter === 'question' ? this.props.activeIndex + 1 : this.props.activeParentIndex + 1);
+        let currentRecordIndex = (this.props.filter === 'question' ? this.props.collectionItemIndex + 1 : this.props.collectionIndex + 1);
         return (
             <bem.AssetGallery__modalSidebar className={"col4 " + this.state.status}>
                 <i className="toggle-info material-icons" onClick={this.props.toggleInfo}>close</i>
@@ -95,8 +95,8 @@ let CollectionModalSidebar = React.createClass({
                         filter={this.props.filter}
                         currentRecordIndex={currentRecordIndex}
                         currentQuestion={this.props.title}
-                        activeIndex={this.props.activeIndex}
-                        activeParentIndex={this.props.activeParentIndex}
+                        collectionItemIndex={this.props.collectionItemIndex}
+                        collectionIndex={this.props.collectionIndex}
                         updateActiveAsset={this.props.updateActiveAsset}
                         date={this.props.date}
                     />
@@ -122,7 +122,7 @@ let CollectionModalSidebarGrid = React.createClass({
                 <bem.AssetGallery__modalSidebarGrid>
 
                     {this.props.results.map(function(item, j) {
-                        if (this.props.activeIndex !== j){ // if the item is not the active attachment
+                        if (this.props.collectionItemIndex !== j){ // if the item is not the active attachment
                             var divStyle = {
                                 backgroundImage: 'url('+ item.download_url + ')',
                                 backgroundRepeat: 'no-repeat',
