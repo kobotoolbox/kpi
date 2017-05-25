@@ -49,7 +49,6 @@ var CollectionsGallery = React.createClass({
     loadGalleryData: function(uid, filter) {
         dataInterface.filterGalleryImages(uid, filter, this.state.defaultPageSize).done((response) => {
             response.loaded = true;
-            console.log(response);
             this.setState({
                 assets: response
             });
@@ -61,7 +60,6 @@ var CollectionsGallery = React.createClass({
 
     formatDate : function(myDate){
         let timestamp = moment(new Date(myDate)).format('DD-MMM-YYYY h:mm:ssa');
-        // console.log(myDate, " => DATE FORMATTING => ", timestamp);
         return timestamp;
     },
 
@@ -98,27 +96,23 @@ var CollectionsGallery = React.createClass({
     },
 
     // Pagination
-    loadMoreAttachments(galleryIndex, page, callback) {
+    loadMoreAttachments(collectionIndex, page, callback) {
         this.state.assets.loaded = false;
-        return dataInterface.loadQuestionAttachment(this.props.uid, this.state.filter.source, galleryIndex, page, this.state.defaultPageSize, callback).done((response) => {
-            let assets = this.state.assets
-            assets.loaded = true;
-            assets.results[galleryIndex].attachments.results.push(...response.attachments.results);
+        dataInterface.loadQuestionAttachment(this.props.uid, this.state.filter.source, collectionIndex, page, this.state.defaultPageSize).done((response) => {
+            let assets = this.state.assets;
+            assets.results[collectionIndex].attachments.results.push(...response.attachments.results);
             assets.loaded= true;
-            if(callback){
-                callback(response);
-            }
+            this.setState({assets});
         });
     },
 	loadMoreRecords() {
         this.state.assets.loaded = false;
         return dataInterface.loadMoreRecords(this.props.uid, this.state.filter.source, this.state.page, this.state.defaultPageSize).done((response) => {
-            let assets = this.state.assets
+            let assets = this.state.assets;
             assets.loaded = true;
             assets.results.push(...response.results);
             this.setState({assets});
-            let newPage = this.state.page + 1;
-            this.setState({page: newPage, hasMoreRecords: response.next});
+            this.setState({page: this.state.page + 1, hasMoreRecords: response.next});
         });
     },
     // MODAL
@@ -186,35 +180,38 @@ var CollectionsGallery = React.createClass({
             return (
                 <bem.AssetGallery>
                     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
+
                     <CollectionHeading
                         attachments_count={this.state.assets.attachments_count}
                         currentFilter={this.state.filter}
                         filters={filters}
                         switchFilter={this.switchFilter}/>
 
-                        <bem.AssetGallery__grid>
-                            {this.state.assets.results.map(function(record, i) {
-                                let galleryTitle =  (this.state.filter.source === 'question') ? record.label : 'Record #' + parseInt(i + 1);
-                                return (
-                                    <Collection
-                                        galleryTitle={galleryTitle}
-                                        uid={this.props.uid}
-                                        key={i}
-                                        galleryIndex={i}
-                                        record={record}
-                                        loadMoreAttachments={this.loadMoreAttachments}
-                                        count={this.state.assets.count}
-                                        currentFilter={this.state.filter.source}
-                                        assets={this.state.assets}
-                                        formatDate={this.formatDate}
-                                        openModal={this.openModal}
-                                        pageSize={this.state.defaultPageSize}/>
-                                    );
-                                }.bind(this))}
+                    <bem.AssetGallery__grid>
+                        {this.state.assets.results.map(function(record, i) {
+                            let collectionTitle =  (this.state.filter.source === 'question') ? record.label : 'Record #' + parseInt(i + 1);
+                            return (
+                                <Collection
+                                    key={i}
+                                    uid={this.props.uid}
+                                    collectionTitle={collectionTitle}
+                                    collectionIndex={i}
+                                    collectionItems={record.attachments.results}
+                                    collectionDate={record.date_created}
+                                    collectionAttachmentsCount={record.attachments.count}
+                                    loadMoreAttachments={this.loadMoreAttachments}
+                                    currentFilter={this.state.filter.source}
+                                    formatDate={this.formatDate}
+                                    openModal={this.openModal}
+                                    defaultPageSize={this.state.defaultPageSize}
+                                />
+                                );
+                            }.bind(this))}
 
-                            <div>{(this.state.hasMoreRecords && this.state.filter.source=='submission') ? <button onClick={this.loadMoreRecords} className='mdl-button mdl-button--raised mdl-button--colored'>Load more</button> : null}</div>
+                        <div>{(this.state.hasMoreRecords && this.state.filter.source=='submission') ? <button onClick={this.loadMoreRecords} className='mdl-button mdl-button--raised mdl-button--colored'>Load more</button> : null}</div>
 
-                        </bem.AssetGallery__grid>
+                    </bem.AssetGallery__grid>
+
                     {/*  TODO move modal inside gallery and pass local props */}
                     <CollectionModal
                         showModal={this.state.showModal}
@@ -266,34 +263,31 @@ let CollectionHeading = React.createClass({
 let Collection = React.createClass({
     getInitialState: function() {
         return {
-            page: 2,
+            collectionPage: 2,
             hasMoreAttachments: true,
         };
     },
     loadMoreAttachments: function() {
-        this.props.assets.loaded = false;
-        let that =this;
-        let res = this.props.loadMoreAttachments(this.props.galleryIndex, this.state.page, function(response){
-            let newPage = this.state.page + 1;
-            this.setState({page: newPage, hasMoreAttachments: response.attachments.next});
-            this.props.assets.loaded = true;
-        }.bind(this));
+        this.props.loadMoreAttachments(this.props.collectionIndex, this.state.collectionPage, this.state);
+        let currentlyLoadedCollectionAttachments =  this.state.collectionPage * this.props.defaultPageSize;
+        let collectionHasMore = (currentlyLoadedCollectionAttachments < this.props.collectionAttachmentsCount ) ? true : false;
+        let newCollectionPage = (collectionHasMore) ? this.state.collectionPage + 1 : this.state.collectionPage;
+        this.setState({collectionPage: newCollectionPage, hasMoreAttachments: collectionHasMore});
     },
     render(){
         return (
-
-            <div key={this.props.galleryIndex} >
-                <h2>{this.props.galleryTitle}</h2>
-                {this.props.record.attachments.results.map(function(item, j) {
-                    var timestamp = (this.props.currentFilter === 'question') ? item.submission.date_created : this.props.record.date_created;
+            <div key={this.props.collectionIndex}>
+                <h2>{this.props.collectionTitle}</h2>
+                {this.props.collectionItems.map(function(item, j) {
+                    var timestamp = (this.props.currentFilter === 'question') ? item.submission.date_created : this.props.collectionDate;
                     return (
                         <CollectionItem
                             key={j}
                             date={this.props.formatDate(timestamp)}
                             itemTitle={this.props.currentFilter === 'question' ? 'Record #' + parseInt(j + 1) : item.question.label}
                             download_url={item.download_url}
-                            galleryIndex={this.props.galleryIndex}
-                            itemIndex={j}
+                            collectionIndex={this.props.collectionIndex}
+                            collectionItemIndex={j}
                             openModal={this.props.openModal}
                         />
                     );
@@ -303,7 +297,7 @@ let Collection = React.createClass({
                     {(this.state.hasMoreAttachments  && this.props.currentFilter === 'question') ? <button onClick={this.loadMoreAttachments} className='mdl-button mdl-button--raised mdl-button--colored'>Load more</button> : null}
                 </div>
             </div>
-        )
+        );
     }
 });
 
@@ -316,7 +310,7 @@ let CollectionItem = React.createClass({
             backgroundSize: 'cover'
         }
         return (
-            <bem.AssetGallery__gridItem className="col4 one-one" style={itemStyle} onClick={() => this.props.openModal(this.props.galleryIndex , this.props.itemIndex)}>
+            <bem.AssetGallery__gridItem className="col4 one-one" style={itemStyle} onClick={() => this.props.openModal(this.props.collectionIndex , this.props.collectionItemIndex)}>
                 <bem.AssetGallery__gridItemOverlay>
                     <div className="text">
                         <h5>{this.props.itemTitle}</h5>
