@@ -59,6 +59,7 @@
             $root: &;
             margin: 0 15px 15px 0;
             display: inline-block;
+            cursor: pointer;
             &.col6{
                 width: 50%;
             }
@@ -115,6 +116,7 @@
                     background: url('../img/filter.png') no-repeat;
                     background-size: cover;
                     box-shadow: none;
+                    cursor: pointer;
                 }
                 .Select-placeholder{
                     display: none;
@@ -167,10 +169,15 @@
                             position: absolute;
                             width: 100%;
                             img{
-                                vertical-align: middle;
-                                display: inline-block;
-                                width: 100%;
-                                height: auto;
+                                // vertical-align: middle;
+                                // display: inline-block;
+                                // width: 100%;
+                                // height: auto;
+                                // max-width: 100%;
+                                display: block;
+                                height: 100%;
+                                margin: 0 auto;
+                                max-width: 100%;
                             }
                         }
                     }
@@ -208,6 +215,7 @@
         }
         &__carousel{
             position: relative;
+            height: 100%;
             .toggle-info{
                 display:none;
                 cursor: pointer;
