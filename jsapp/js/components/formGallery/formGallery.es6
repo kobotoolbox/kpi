@@ -3,16 +3,15 @@ import React from 'react';
 import bem from '../../bem';
 import ui from '../../ui';
 import ReactDOM from 'react-dom';
-import Select from 'react-select';
 import Slider from 'react-slick';
-import CollectionModal from './collectionModal';
-// import CollectionFilter from './collectionFilter';
+import FormGalleryModal from './formGalleryModal';
+import FormGalleryFilter from './formGalleryFilter';
 import {dataInterface} from '../../dataInterface';
 import moment from 'moment';
 import {t} from '../../utils';
 
-var CollectionsGallery = React.createClass({
-    displayName: 'CollectionsGallery',
+var FormGallery = React.createClass({
+    displayName: 'FormGallery',
     propTypes: {
         label: React.PropTypes.string
     },
@@ -187,7 +186,7 @@ var CollectionsGallery = React.createClass({
                 <bem.AssetGallery>
                     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
 
-                    <CollectionHeading
+                    <FormGalleryFilter
                         attachments_count={this.state.assets.attachments_count}
                         currentFilter={this.state.filter}
                         filters={filters}
@@ -202,7 +201,7 @@ var CollectionsGallery = React.createClass({
 
                             if(searchTermMatched){
                                 return (
-                                    <Collection
+                                    <FormGalleryGrid
                                         key={i}
                                         uid={this.props.uid}
                                         collectionTitle={collectionTitle}
@@ -229,7 +228,7 @@ var CollectionsGallery = React.createClass({
                     </bem.AssetGallery__grid>
 
                     {/*  TODO move modal inside gallery and pass local props */}
-                    <CollectionModal
+                    <FormGalleryModal
                         showModal={this.state.showModal}
                         infoOpen={this.state.infoOpen}
                         results={this.state.assets.results[this.state.collectionIndex].attachments.results}
@@ -254,36 +253,8 @@ var CollectionsGallery = React.createClass({
     }
 });
 
-let CollectionHeading = React.createClass({
 
-    render(){
-        return (
-            <bem.AssetGallery__heading>
-                <div className="col6">
-                    <bem.AssetGallery__count>
-                        <strong>{this.props.attachments_count} {t('Images')}</strong>
-                    </bem.AssetGallery__count>
-                </div>
-                <div className="col6">
-                    <bem.AssetGallery__headingSearchFilter className="section">
-                        <input className="text-display" placeholder={this.props.currentFilter.label} onChange={this.props.setSearchTerm}/>
-                        <Select
-                            ref="filterSelect"
-                            className="icon-button-select"
-                            options={this.props.filters}
-                            simpleValue
-                            name="selected-filter"
-                            value={this.props.currentFilter.source}
-                            onChange={this.props.switchFilter}
-                            searchable={false}/>
-                    </bem.AssetGallery__headingSearchFilter>
-                </div>
-            </bem.AssetGallery__heading>
-        )
-    }
-});
-
-let Collection = React.createClass({
+let FormGalleryGrid = React.createClass({
     getInitialState: function() {
         return {
             collectionPage: 1,
@@ -291,8 +262,8 @@ let Collection = React.createClass({
         };
     },
     toggleLoadMoreBtn: function(){
-        let currentlyLoadedCollectionAttachments =  this.state.collectionPage * this.props.defaultPageSize;
-        let collectionHasMore = (currentlyLoadedCollectionAttachments < this.props.collectionAttachmentsCount ) ? true : false;
+        let currentlyLoadedGalleryAttachments =  this.state.collectionPage * this.props.defaultPageSize;
+        let collectionHasMore = (currentlyLoadedGalleryAttachments < this.props.collectionAttachmentsCount ) ? true : false;
         this.setState({hasMoreAttachments: collectionHasMore});
     },
     componentDidMount(){
@@ -302,8 +273,8 @@ let Collection = React.createClass({
     loadMoreAttachments: function() {
         this.props.loadMoreAttachments(this.props.collectionIndex, this.state.collectionPage);
         this.toggleLoadMoreBtn();
-        let newCollectionPage = (this.state.hasMoreAttachments) ? this.state.collectionPage + 1 : this.state.collectionPage;
-        this.setState({collectionPage: newCollectionPage});
+        let newGalleryPage = (this.state.hasMoreAttachments) ? this.state.collectionPage + 1 : this.state.collectionPage;
+        this.setState({collectionPage: newGalleryPage});
     },
     render(){
         return (
@@ -312,7 +283,7 @@ let Collection = React.createClass({
                 {this.props.collectionItems.map(function(item, j) {
                     var timestamp = (this.props.currentFilter === 'question') ? item.submission.date_created : this.props.collectionDate;
                     return (
-                        <CollectionItem
+                        <FormGalleryGridItem
                             key={j}
                             date={this.props.formatDate(timestamp)}
                             itemTitle={this.props.currentFilter === 'question' ? t('Record') + ' #' + parseInt(j + 1) : item.question.label}
@@ -332,16 +303,12 @@ let Collection = React.createClass({
     }
 });
 
-let CollectionItem = React.createClass({
+let FormGalleryGridItem = React.createClass({
     componentDidMount() {
-        // Get the components DOM node
         var elem = ReactDOM.findDOMNode(this);
-      	// Set the opacity of the element to 0
       	elem.style.opacity = 0;
       	window.requestAnimationFrame(function() {
-      		// Now set a transition on the opacity
       		elem.style.transition = "opacity 500ms";
-      		// and set the opacity to 1
       		elem.style.opacity = 1;
       	});
     },
@@ -365,4 +332,4 @@ let CollectionItem = React.createClass({
     }
 });
 
-module.exports = CollectionsGallery;
+module.exports = FormGallery;

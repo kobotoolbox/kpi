@@ -10,8 +10,7 @@ import ui from '../ui';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import SharingForm from '../components/sharingForm';
-import CollectionFilter from '../components/collection/collectionFilter';
-import CollectionGallery from '../components/collection/collectionGallery';
+import FormGallery from '../components/formGallery/formGallery';
 
 import {
   ProjectSettingsEditor,
@@ -102,7 +101,7 @@ var FormSubScreens = React.createClass({
     var deployment__identifier = this.state.deployment__identifier;
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <CollectionGallery uid={this.state.uid}/>
+        <FormGallery uid={this.state.uid}/>
       </DocumentTitle>
     );
   },

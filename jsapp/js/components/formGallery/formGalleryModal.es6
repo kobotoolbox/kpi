@@ -6,13 +6,7 @@ import {dataInterface} from '../../dataInterface';
 import Slider from 'react-slick';
 import {t} from '../../utils';
 
-let CollectionModal = React.createClass({
-    // getInitialState: function(){
-    //     return{
-    //         modalIsOpen : ,
-    //         modalInfoOpen:
-    //     }
-    // },
+let FormGalleryModal = React.createClass({
 
     render(){
 		const settings = {
@@ -48,7 +42,7 @@ let CollectionModal = React.createClass({
                             </Slider>
                         </bem.AssetGallery__modalCarousel>
 
-                        <CollectionModalSidebar
+                        <FormGalleryModalSidebar
                             results={this.props.results}
                             isInfoOpen={this.props.infoOpen}
                             toggleInfo={this.props.toggleInfo}
@@ -68,7 +62,7 @@ let CollectionModal = React.createClass({
     }
 });
 
-let CollectionModalSidebar = React.createClass({
+let FormGalleryModalSidebar = React.createClass({
     getInitialState: function(){
         return {
             status:  (this.props.isInfoOpen) ? 'open' : 'closed',
@@ -91,7 +85,7 @@ let CollectionModalSidebar = React.createClass({
                         </div>
                     </div>
 
-                    <CollectionModalSidebarGrid
+                    <FormGalleryModalSidebarGrid
                         results={this.props.results}
                         filter={this.props.filter}
                         currentRecordIndex={currentRecordIndex}
@@ -107,7 +101,7 @@ let CollectionModalSidebar = React.createClass({
     }
 });
 
-let CollectionModalSidebarGrid = React.createClass({
+let FormGalleryModalSidebarGrid = React.createClass({
     getInitialState: function() {
         return {
             maxItems: 2,
@@ -169,4 +163,4 @@ let LeftNavButton = React.createClass({
 
 
 
-module.exports = CollectionModal;
+module.exports = FormGalleryModal;
