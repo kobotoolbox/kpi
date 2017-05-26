@@ -4,6 +4,7 @@ import bem from '../../bem';
 import ui from '../../ui';
 import {dataInterface} from '../../dataInterface';
 import Slider from 'react-slick';
+import {t} from '../../utils';
 
 let CollectionModal = React.createClass({
     // getInitialState: function(){
@@ -77,14 +78,14 @@ let CollectionModalSidebar = React.createClass({
         let currentRecordIndex = (this.props.filter === 'question' ? this.props.collectionItemIndex + 1 : this.props.collectionIndex + 1);
         return (
             <bem.AssetGallery__modalSidebar className={"col4 " + this.state.status}>
-                <i className="toggle-info material-icons" onClick={this.props.toggleInfo}>close</i>
+                <i className="toggle-info material-icons" onClick={this.props.toggleInfo}>{t('close')}</i>
                 <div>
                     <div className="info__outer">
                         <div className="light-grey-bg">
-                            <h4>Information</h4>
+                            <h4>{t('Information')}</h4>
                         </div>
                         <div className="info__inner">
-                            <p>Record #{currentRecordIndex}</p>
+                            <p>{t('Record')} #{currentRecordIndex}</p>
                             <h3>{this.props.title}</h3>
                             <p>{this.props.date}</p>
                         </div>

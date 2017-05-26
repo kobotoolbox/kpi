@@ -9,6 +9,7 @@ import CollectionModal from './collectionModal';
 // import CollectionFilter from './collectionFilter';
 import {dataInterface} from '../../dataInterface';
 import moment from 'moment';
+import {t} from '../../utils';
 
 var CollectionsGallery = React.createClass({
     displayName: 'CollectionsGallery',
@@ -32,7 +33,7 @@ var CollectionsGallery = React.createClass({
             searchTerm: '',
             filter: {
                 source: 'question',
-                label: 'Group by Question',
+                label: t('Group by Question'),
                 searchable: false,
                 clearable: false
             },
@@ -175,10 +176,10 @@ var CollectionsGallery = React.createClass({
         let filters = [
             {
                 value: 'question',
-                label: 'Group by Question'
+                label: t('Group by Question')
             }, {
                 value: 'submission',
-                label: 'Group by Record'
+                label: t('Group by Record')
             }
         ]
         if (this.state.assets.loaded) {
@@ -260,7 +261,7 @@ let CollectionHeading = React.createClass({
             <bem.AssetGallery__heading>
                 <div className="col6">
                     <bem.AssetGallery__count>
-                        <strong>{this.props.attachments_count} Images</strong>
+                        <strong>{this.props.attachments_count} {t('Images')}</strong>
                     </bem.AssetGallery__count>
                 </div>
                 <div className="col6">
@@ -314,7 +315,7 @@ let Collection = React.createClass({
                         <CollectionItem
                             key={j}
                             date={this.props.formatDate(timestamp)}
-                            itemTitle={this.props.currentFilter === 'question' ? 'Record #' + parseInt(j + 1) : item.question.label}
+                            itemTitle={this.props.currentFilter === 'question' ? t('Record') + ' #' + parseInt(j + 1) : item.question.label}
                             download_url={item.download_url}
                             collectionIndex={this.props.collectionIndex}
                             collectionItemIndex={j}
@@ -324,7 +325,7 @@ let Collection = React.createClass({
                 }.bind(this))}
 
                 <div className="form-view__cell form-view__cell--centered">
-                    {(this.state.hasMoreAttachments  && this.props.currentFilter === 'question') ? <button onClick={this.loadMoreAttachments} className='mdl-button mdl-button--colored'>Load more</button> : null}
+                    {(this.state.hasMoreAttachments  && this.props.currentFilter === 'question') ? <button onClick={this.loadMoreAttachments} className='mdl-button mdl-button--colored'>{t('Load More')}</button> : null}
                 </div>
             </div>
         );
@@ -363,7 +364,5 @@ let CollectionItem = React.createClass({
         );
     }
 });
-
-
 
 module.exports = CollectionsGallery;
