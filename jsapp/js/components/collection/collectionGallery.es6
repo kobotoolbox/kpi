@@ -21,7 +21,7 @@ var CollectionsGallery = React.createClass({
         return {
             defaultPageSize: 2,
             hasMoreRecords: false,
-            page: 1,
+            nextRecordsPage: 2,
             showModal: false,
             collectionItemIndex: 0,
             activeID: null,
@@ -51,15 +51,13 @@ var CollectionsGallery = React.createClass({
         dataInterface.filterGalleryImages(uid, filter, this.state.defaultPageSize).done((response) => {
             response.loaded = true;
             this.setState({
-                assets: response,
+                assets: response
             });
         });
     },
     componentDidMount: function() {
         this.loadGalleryData(this.props.uid, 'question');
-        this.setState({page: this.state.page + 1});
     },
-
     formatDate : function(myDate){
         let timestamp = moment(new Date(myDate)).format('DD-MMM-YYYY h:mm:ssa');
         return timestamp;
@@ -104,9 +102,9 @@ var CollectionsGallery = React.createClass({
     },
 
     // Pagination
-    loadMoreAttachments(collectionIndex, page, callback) {
+    loadMoreAttachments(collectionIndex, collectionPage) {
         this.state.assets.loaded = false;
-        dataInterface.loadQuestionAttachment(this.props.uid, this.state.filter.source, collectionIndex, page, this.state.defaultPageSize).done((response) => {
+        dataInterface.loadQuestionAttachment(this.props.uid, this.state.filter.source, collectionIndex, collectionPage, this.state.defaultPageSize).done((response) => {
             let assets = this.state.assets;
             assets.results[collectionIndex].attachments.results.push(...response.attachments.results);
             assets.loaded= true;
@@ -115,12 +113,12 @@ var CollectionsGallery = React.createClass({
     },
 	loadMoreRecords() {
         this.state.assets.loaded = false;
-        return dataInterface.loadMoreRecords(this.props.uid, this.state.filter.source, this.state.page, this.state.defaultPageSize).done((response) => {
+        console.log("Inside loadMoreRecords", this.state.nextRecordsPage);
+        return dataInterface.loadMoreRecords(this.props.uid, this.state.filter.source, this.state.nextRecordsPage, this.state.defaultPageSize).done((response) => {
             let assets = this.state.assets;
             assets.loaded = true;
             assets.results.push(...response.results);
-            this.setState({assets});
-            this.setState({page: this.state.page + 1, hasMoreRecords: response.next});
+            this.setState({assets, hasMoreRecords: response.next, nextRecordsPage: this.state.nextRecordsPage + 1});
         });
     },
     // MODAL
@@ -256,6 +254,7 @@ var CollectionsGallery = React.createClass({
 });
 
 let CollectionHeading = React.createClass({
+
     render(){
         return (
             <bem.AssetGallery__heading>
@@ -267,7 +266,15 @@ let CollectionHeading = React.createClass({
                 <div className="col6">
                     <bem.AssetGallery__headingSearchFilter className="section">
                         <input className="text-display" placeholder={this.props.currentFilter.label} onChange={this.props.setSearchTerm}/>
-                        <Select ref="filterSelect" className="icon-button-select" options={this.props.filters} simpleValue name="selected-filter" value={this.props.currentFilter.source} onChange={this.props.switchFilter} searchable={false}/>
+                        <Select
+                            ref="filterSelect"
+                            className="icon-button-select"
+                            options={this.props.filters}
+                            simpleValue
+                            name="selected-filter"
+                            value={this.props.currentFilter.source}
+                            onChange={this.props.switchFilter}
+                            searchable={false}/>
                     </bem.AssetGallery__headingSearchFilter>
                 </div>
             </bem.AssetGallery__heading>
@@ -292,7 +299,7 @@ let Collection = React.createClass({
         this.setState({collectionPage: this.state.collectionPage + 1});
     },
     loadMoreAttachments: function() {
-        this.props.loadMoreAttachments(this.props.collectionIndex, this.state.collectionPage, this.state);
+        this.props.loadMoreAttachments(this.props.collectionIndex, this.state.collectionPage);
         this.toggleLoadMoreBtn();
         let newCollectionPage = (this.state.hasMoreAttachments) ? this.state.collectionPage + 1 : this.state.collectionPage;
         this.setState({collectionPage: newCollectionPage});
