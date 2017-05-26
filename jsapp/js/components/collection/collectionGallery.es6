@@ -198,7 +198,7 @@ var CollectionsGallery = React.createClass({
                     <bem.AssetGallery__grid>
                         {this.state.assets.results.map(function(record, i) {
                             let collectionTitle =  (this.state.filter.source === 'question') ? record.label : 'Record #' + parseInt(i + 1);
-                            if(this.state.searchedTerm=='' || collectionTitle.includes(this.state.searchedTerm)){
+                            if(this.state.searchedTerm=='' || collectionTitle.match(new RegExp(this.state.searchedTerm, "i"))){
                                 return (
                                     <Collection
                                         key={i}
