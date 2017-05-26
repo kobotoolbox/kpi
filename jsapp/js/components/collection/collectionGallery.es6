@@ -29,6 +29,7 @@ var CollectionsGallery = React.createClass({
             activeDate: null,
             collectionIndex: 0,
             infoOpen: true,
+            searchedTerm: '',
             filter: {
                 source: 'question',
                 label: 'Group by Question',
@@ -97,6 +98,9 @@ var CollectionsGallery = React.createClass({
                 hasMoreRecords: (newFilter == 'submission') ? response.next : this.state.hasMoreRecords //Check if more records exist!
             });
         });
+    },
+    setSearchTerm(event){
+        this.setState({'searchedTerm': event.target.value});
     },
 
     // Pagination
@@ -188,27 +192,32 @@ var CollectionsGallery = React.createClass({
                         attachments_count={this.state.assets.attachments_count}
                         currentFilter={this.state.filter}
                         filters={filters}
-                        switchFilter={this.switchFilter}/>
+                        switchFilter={this.switchFilter}
+                        setSearchTerm={this.setSearchTerm}/>
 
                     <bem.AssetGallery__grid>
                         {this.state.assets.results.map(function(record, i) {
                             let collectionTitle =  (this.state.filter.source === 'question') ? record.label : 'Record #' + parseInt(i + 1);
-                            return (
-                                <Collection
-                                    key={i}
-                                    uid={this.props.uid}
-                                    collectionTitle={collectionTitle}
-                                    collectionIndex={i}
-                                    collectionItems={record.attachments.results}
-                                    collectionDate={record.date_created}
-                                    collectionAttachmentsCount={record.attachments.count}
-                                    loadMoreAttachments={this.loadMoreAttachments}
-                                    currentFilter={this.state.filter.source}
-                                    formatDate={this.formatDate}
-                                    openModal={this.openModal}
-                                    defaultPageSize={this.state.defaultPageSize}
-                                />
+                            if(this.state.searchedTerm=='' || collectionTitle.includes(this.state.searchedTerm)){
+                                return (
+                                    <Collection
+                                        key={i}
+                                        uid={this.props.uid}
+                                        collectionTitle={collectionTitle}
+                                        collectionIndex={i}
+                                        collectionItems={record.attachments.results}
+                                        collectionDate={record.date_created}
+                                        collectionAttachmentsCount={record.attachments.count}
+                                        loadMoreAttachments={this.loadMoreAttachments}
+                                        currentFilter={this.state.filter.source}
+                                        formatDate={this.formatDate}
+                                        openModal={this.openModal}
+                                        defaultPageSize={this.state.defaultPageSize}
+                                    />
                                 );
+                            }else{
+                                return null;
+                            }
                             }.bind(this))}
 
                         <div className="form-view__cell form-view__cell--centered">
@@ -254,9 +263,7 @@ let CollectionHeading = React.createClass({
                 </div>
                 <div className="col6">
                     <bem.AssetGallery__headingSearchFilter className="section">
-                        <div className="text-display">
-                            <span>{this.props.currentFilter.label}</span>
-                        </div>
+                        <input className="text-display" placeholder={this.props.currentFilter.label} onChange={this.props.setSearchTerm}/>
                         <Select ref="filterSelect" className="icon-button-select" options={this.props.filters} simpleValue name="selected-filter" value={this.props.currentFilter.source} onChange={this.props.switchFilter} searchable={false}/>
                     </bem.AssetGallery__headingSearchFilter>
                 </div>
