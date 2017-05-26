@@ -2,6 +2,7 @@ import React from 'react';
 // import Modal from 'react-modal';
 import bem from '../../bem';
 import ui from '../../ui';
+import ReactDOM from 'react-dom';
 import Select from 'react-select';
 import Slider from 'react-slick';
 import CollectionModal from './collectionModal';
@@ -192,9 +193,6 @@ var CollectionsGallery = React.createClass({
                     <bem.AssetGallery__grid>
                         {this.state.assets.results.map(function(record, i) {
                             let collectionTitle =  (this.state.filter.source === 'question') ? record.label : 'Record #' + parseInt(i + 1);
-                            console.log("record:");
-                            console.log(record);
-                            // let attachmentsCount = (this.state.filter.source == 'question') ? record.attachments.count;
                             return (
                                 <Collection
                                     key={i}
@@ -213,7 +211,9 @@ var CollectionsGallery = React.createClass({
                                 );
                             }.bind(this))}
 
-                        <div>{(this.state.hasMoreRecords && this.state.filter.source=='submission') ? <button onClick={this.loadMoreRecords} className='mdl-button mdl-button--raised mdl-button--colored'>Load more</button> : null}</div>
+                        <div className="form-view__cell form-view__cell--centered">
+                            {(this.state.hasMoreRecords && this.state.filter.source=='submission') ? <button onClick={this.loadMoreRecords} className='mdl-button mdl-button--colored'>Load more</button> : null}
+                        </div>
 
                     </bem.AssetGallery__grid>
 
@@ -306,8 +306,8 @@ let Collection = React.createClass({
                     );
                 }.bind(this))}
 
-                <div>
-                    {(this.state.hasMoreAttachments  && this.props.currentFilter === 'question') ? <button onClick={this.loadMoreAttachments} className='mdl-button mdl-button--raised mdl-button--colored'>Load more</button> : null}
+                <div className="form-view__cell form-view__cell--centered">
+                    {(this.state.hasMoreAttachments  && this.props.currentFilter === 'question') ? <button onClick={this.loadMoreAttachments} className='mdl-button mdl-button--colored'>Load more</button> : null}
                 </div>
             </div>
         );
@@ -315,6 +315,18 @@ let Collection = React.createClass({
 });
 
 let CollectionItem = React.createClass({
+    componentDidMount() {
+        // Get the components DOM node
+        var elem = ReactDOM.findDOMNode(this);
+      	// Set the opacity of the element to 0
+      	elem.style.opacity = 0;
+      	window.requestAnimationFrame(function() {
+      		// Now set a transition on the opacity
+      		elem.style.transition = "opacity 500ms";
+      		// and set the opacity to 1
+      		elem.style.opacity = 1;
+      	});
+    },
     render(){
         let itemStyle = {
             backgroundImage: 'url(' + this.props.download_url + ')',
