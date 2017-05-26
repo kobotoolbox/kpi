@@ -235,7 +235,7 @@ class AttachmentFilter(filters.BaseFilterBackend):
             queryset = queryset.filter(mimetype__istartswith=type.lower())
 
         if order_by and order_by == 'question':
-            queryset = sorted(queryset.order_by('-pk'),
+            queryset = sorted(queryset.order_by('pk'),
                               key=lambda att: att.question_index)
             if group_by and group_by == 'question':
                 result = []
@@ -248,8 +248,8 @@ class AttachmentFilter(filters.BaseFilterBackend):
                 return result
 
         elif order_by and order_by == 'submission':
-            queryset = sorted(queryset.order_by('-pk'),
-                              key=lambda att: (att.instance.id * -1, att.question_index))
+            queryset = sorted(queryset.order_by('pk'),
+                              key=lambda att: (att.instance.id, att.question_index))
             if group_by and group_by == 'submission':
                 result = []
                 for index, (sid, attachments) in \
@@ -260,5 +260,5 @@ class AttachmentFilter(filters.BaseFilterBackend):
                     result.append(submission)
                 return result
         else:
-            queryset = queryset.order_by('-pk')
+            queryset = queryset.order_by('pk')
         return queryset
