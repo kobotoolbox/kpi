@@ -29,7 +29,7 @@ var CollectionsGallery = React.createClass({
             activeDate: null,
             collectionIndex: 0,
             infoOpen: true,
-            searchedTerm: '',
+            searchTerm: '',
             filter: {
                 source: 'question',
                 label: 'Group by Question',
@@ -100,7 +100,7 @@ var CollectionsGallery = React.createClass({
         });
     },
     setSearchTerm(event){
-        this.setState({'searchedTerm': event.target.value});
+        this.setState({'searchTerm': event.target.value});
     },
 
     // Pagination
@@ -198,7 +198,10 @@ var CollectionsGallery = React.createClass({
                     <bem.AssetGallery__grid>
                         {this.state.assets.results.map(function(record, i) {
                             let collectionTitle =  (this.state.filter.source === 'question') ? record.label : 'Record #' + parseInt(i + 1);
-                            if(this.state.searchedTerm=='' || collectionTitle.match(new RegExp(this.state.searchedTerm, "i"))){
+                            let searchRegEx = new RegExp(this.state.searchTerm, "i");
+                            let searchTermMatched = this.state.searchTerm =='' || collectionTitle.match(searchRegEx) || this.formatDate(record.date_created).match(this.state.searchTerm);
+
+                            if(searchTermMatched){
                                 return (
                                     <Collection
                                         key={i}
