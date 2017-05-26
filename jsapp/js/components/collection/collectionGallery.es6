@@ -20,7 +20,7 @@ var CollectionsGallery = React.createClass({
         return {
             defaultPageSize: 2,
             hasMoreRecords: false,
-            page: 2,
+            page: 1,
             showModal: false,
             collectionItemIndex: 0,
             activeID: null,
@@ -55,6 +55,7 @@ var CollectionsGallery = React.createClass({
     },
     componentDidMount: function() {
         this.loadGalleryData(this.props.uid, 'question');
+        this.setState({page: this.state.page + 1});
     },
 
     formatDate : function(myDate){
@@ -191,6 +192,9 @@ var CollectionsGallery = React.createClass({
                     <bem.AssetGallery__grid>
                         {this.state.assets.results.map(function(record, i) {
                             let collectionTitle =  (this.state.filter.source === 'question') ? record.label : 'Record #' + parseInt(i + 1);
+                            console.log("record:");
+                            console.log(record);
+                            // let attachmentsCount = (this.state.filter.source == 'question') ? record.attachments.count;
                             return (
                                 <Collection
                                     key={i}
@@ -264,7 +268,7 @@ let CollectionHeading = React.createClass({
 let Collection = React.createClass({
     getInitialState: function() {
         return {
-            collectionPage: 2,
+            collectionPage: 1,
             hasMoreAttachments: false,
         };
     },
@@ -275,6 +279,7 @@ let Collection = React.createClass({
     },
     componentDidMount(){
         this.toggleLoadMoreBtn();
+        this.setState({collectionPage: this.state.collectionPage + 1});
     },
     loadMoreAttachments: function() {
         this.props.loadMoreAttachments(this.props.collectionIndex, this.state.collectionPage, this.state);

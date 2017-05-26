@@ -38,7 +38,6 @@ let CollectionModal = React.createClass({
                             </bem.AssetGallery__modalCarouselTopbar>
                             <Slider ref="slider" {...settings} beforeChange={this.props.handleCarouselChange}>
                                 {this.props.results.map(function (item, i) {
-                                    console.log(item);
                                     return (
                                         <div key={item.id}>
                                             <img alt={this.props.title} src={item.large_download_url}/>
