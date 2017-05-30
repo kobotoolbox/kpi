@@ -7,7 +7,6 @@ import Slider from 'react-slick';
 import {t} from '../../utils';
 
 let FormGalleryModal = React.createClass({
-
     render(){
 		const settings = {
 			dots: false,
@@ -18,7 +17,7 @@ let FormGalleryModal = React.createClass({
 			slidesToShow: 1,
 			slide: 'slide',
 			slidesToScroll: 1,
-			initialSlide: this.props.collectionItemIndex,
+			initialSlide: this.props.galleryItemIndex,
 			nextArrow: <RightNavButton/>,
 			prevArrow: <LeftNavButton/>
 		}
@@ -47,8 +46,8 @@ let FormGalleryModal = React.createClass({
                             isInfoOpen={this.props.infoOpen}
                             toggleInfo={this.props.toggleInfo}
                             filter={this.props.filter}
-                            collectionItemIndex={this.props.collectionItemIndex}
-                            collectionIndex={this.props.collectionIndex}
+                            galleryItemIndex={this.props.galleryItemIndex}
+                            galleryIndex={this.props.galleryIndex}
                             title={this.props.title}
                             date={this.props.date}
 
@@ -69,7 +68,7 @@ let FormGalleryModalSidebar = React.createClass({
         }
     },
     render(){
-        let currentRecordIndex = (this.props.filter === 'question' ? this.props.collectionItemIndex + 1 : this.props.collectionIndex + 1);
+        let currentRecordIndex = (this.props.filter === 'question' ? this.props.galleryItemIndex + 1 : this.props.galleryIndex + 1);
         return (
             <bem.AssetGallery__modalSidebar className={"col4 " + this.state.status}>
                 <i className="toggle-info k-icon-close" onClick={this.props.toggleInfo}></i>
@@ -90,8 +89,8 @@ let FormGalleryModalSidebar = React.createClass({
                         filter={this.props.filter}
                         currentRecordIndex={currentRecordIndex}
                         currentQuestion={this.props.title}
-                        collectionItemIndex={this.props.collectionItemIndex}
-                        collectionIndex={this.props.collectionIndex}
+                        galleryItemIndex={this.props.galleryItemIndex}
+                        galleryIndex={this.props.galleryIndex}
                         updateActiveAsset={this.props.updateActiveAsset}
                         date={this.props.date}
                     />
@@ -115,9 +114,8 @@ let FormGalleryModalSidebarGrid = React.createClass({
             <div className="padding--15">
                 <h5>More for {gridLabel}</h5>
                 <bem.AssetGallery__modalSidebarGrid>
-
                     {this.props.results.map(function(item, j) {
-                        if (this.props.collectionItemIndex !== j){ // if the item is not the active attachment
+                        if (this.props.galleryItemIndex !== j){ // if the item is not the active attachment
                             var divStyle = {
                                 backgroundImage: 'url('+ item.download_url + ')',
                                 backgroundRepeat: 'no-repeat',

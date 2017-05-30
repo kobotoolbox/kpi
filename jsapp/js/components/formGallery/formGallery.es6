@@ -1,7 +1,7 @@
 import React from 'react';
 // import Modal from 'react-modal';
 import bem from '../../bem';
-import ui from '../../ui';
+// import ui from '../../ui';
 import ReactDOM from 'react-dom';
 import Slider from 'react-slick';
 import FormGalleryModal from './formGalleryModal';
@@ -23,11 +23,11 @@ var FormGallery = React.createClass({
             hasMoreRecords: false,
             nextRecordsPage: 2,
             showModal: false,
-            collectionItemIndex: 0,
+            galleryItemIndex: 0,
             activeID: null,
             activeTitle: null,
             activeDate: null,
-            collectionIndex: 0,
+            galleryIndex: 0,
             infoOpen: true,
             searchTerm: '',
             filter: {
@@ -47,6 +47,13 @@ var FormGallery = React.createClass({
             }
         };
     },
+    componentDidMount: function() {
+        this.loadGalleryData(this.props.uid, 'question');
+    },
+    formatDate : function(myDate){
+        let timestamp = moment(new Date(myDate)).format('DD-MMM-YYYY h:mm:ssa');
+        return timestamp;
+    },
     loadGalleryData: function(uid, filter) {
         dataInterface.filterGalleryImages(uid, filter, this.state.defaultPageSize).done((response) => {
             response.loaded = true;
@@ -54,13 +61,6 @@ var FormGallery = React.createClass({
                 assets: response
             });
         });
-    },
-    componentDidMount: function() {
-        this.loadGalleryData(this.props.uid, 'question');
-    },
-    formatDate : function(myDate){
-        let timestamp = moment(new Date(myDate)).format('DD-MMM-YYYY h:mm:ssa');
-        return timestamp;
     },
 
     // FILTER
@@ -102,11 +102,11 @@ var FormGallery = React.createClass({
     },
 
     // Pagination
-    loadMoreAttachments(collectionIndex, collectionPage) {
+    loadMoreAttachments(galleryIndex, galleryPage) {
         this.state.assets.loaded = false;
-        dataInterface.loadQuestionAttachment(this.props.uid, this.state.filter.source, collectionIndex, collectionPage, this.state.defaultPageSize).done((response) => {
+        dataInterface.loadQuestionAttachment(this.props.uid, this.state.filter.source, galleryIndex, galleryPage, this.state.defaultPageSize).done((response) => {
             let assets = this.state.assets;
-            assets.results[collectionIndex].attachments.results.push(...response.attachments.results);
+            assets.results[galleryIndex].attachments.results.push(...response.attachments.results);
             assets.loaded= true;
             this.setState({assets});
         });
@@ -128,8 +128,8 @@ var FormGallery = React.createClass({
         this.setState({
             showModal: true,
             activeID: attachment.id,
-            collectionItemIndex: attachment_index,
-            collectionIndex: record_index,
+            galleryIndex: record_index,
+            galleryItemIndex: attachment_index,
             activeTitle: record.label || attachment.question.label,
             activeDate: this.formatDate(record.date_created || attachment.submission.date_created)
         });
@@ -138,19 +138,19 @@ var FormGallery = React.createClass({
         this.setState({showModal: false});
     },
     toggleInfo() {
-        this.setState(prevState => ({
-            infoOpen: !prevState.infoOpen
-        }));
+        this.setState({
+            infoOpen: !this.state.infoOpen
+        });
     },
     goToSlide(index) {
         this.refs.slider.slickGoTo(index);
     },
     //Modal Custom
     handleCarouselChange: function(currentSlide, nextSlide) {
-        let record = this.state.assets.results[this.state.collectionIndex];
+        let record = this.state.assets.results[this.state.galleryIndex];
         let attachment = record.attachments.results[nextSlide];
         this.setState({
-            collectionItemIndex: nextSlide,
+            galleryItemIndex: nextSlide,
             activeTitle: record.label || attachment.question.label,
             activeDate: this.formatDate(record.date_created || attachment.submission.date_created)
         });
@@ -159,8 +159,8 @@ var FormGallery = React.createClass({
         let record = this.state.assets.results[record_index];
         let attachment = record.attachments[attachment_index];
         this.setState({
-            collectionItemIndex: attachment_index,
-            collectionIndex: record_index,
+            galleryIndex: record_index,
+            galleryItemIndex: attachment_index,
             activeTitle: record.label || attachment.question.label,
             activeDate: this.formatDate(record.date_created || attachment.submission.date_created)
         });
@@ -193,20 +193,20 @@ var FormGallery = React.createClass({
 
 
                         {this.state.assets.results.map(function(record, i) {
-                            let collectionTitle =  (this.state.filter.source === 'question') ? record.label : 'Record #' + parseInt(i + 1);
+                            let galleryTitle =  (this.state.filter.source === 'question') ? record.label : 'Record #' + parseInt(i + 1);
                             let searchRegEx = new RegExp(this.state.searchTerm, "i");
-                            let searchTermMatched = this.state.searchTerm =='' || collectionTitle.match(searchRegEx) || this.formatDate(record.date_created).match(this.state.searchTerm);
+                            let searchTermMatched = this.state.searchTerm =='' || galleryTitle.match(searchRegEx) || this.formatDate(record.date_created).match(this.state.searchTerm);
 
                             if(searchTermMatched){
                                 return (
                                     <FormGalleryGrid
                                         key={i}
                                         uid={this.props.uid}
-                                        collectionTitle={collectionTitle}
-                                        collectionIndex={i}
-                                        collectionItems={record.attachments.results}
-                                        collectionDate={record.date_created}
-                                        collectionAttachmentsCount={record.attachments.count}
+                                        galleryTitle={galleryTitle}
+                                        galleryIndex={i}
+                                        galleryItems={record.attachments.results}
+                                        galleryDate={record.date_created}
+                                        galleryAttachmentsCount={record.attachments.count}
                                         loadMoreAttachments={this.loadMoreAttachments}
                                         currentFilter={this.state.filter.source}
                                         formatDate={this.formatDate}
@@ -229,17 +229,16 @@ var FormGallery = React.createClass({
                     <FormGalleryModal
                         showModal={this.state.showModal}
                         infoOpen={this.state.infoOpen}
-                        results={this.state.assets.results[this.state.collectionIndex].attachments.results}
+                        results={this.state.assets.results[this.state.galleryIndex].attachments.results}
                         closeModal={this.closeModal}
                         toggleInfo={this.toggleInfo}
                         handleCarouselChange={this.handleCarouselChange}
                         updateActiveAsset={this.updateActiveAsset}
-
                         filter={this.state.filter.source}
-                        collectionItemIndex={this.state.collectionItemIndex}
+                        galleryIndex={this.state.galleryIndex}
+                        galleryItemIndex={this.state.galleryItemIndex}
                         date={this.state.activeDate}
                         title={this.state.activeTitle}
-                        collectionIndex={this.state.collectionIndex}
                     />
 
                 </bem.AssetGallery>
@@ -255,40 +254,40 @@ var FormGallery = React.createClass({
 let FormGalleryGrid = React.createClass({
     getInitialState: function() {
         return {
-            collectionPage: 1,
+            galleryPage: 1,
             hasMoreAttachments: false,
         };
     },
     toggleLoadMoreBtn: function(){
-        let currentlyLoadedGalleryAttachments =  this.state.collectionPage * this.props.defaultPageSize;
-        let collectionHasMore = (currentlyLoadedGalleryAttachments < this.props.collectionAttachmentsCount ) ? true : false;
-        this.setState({hasMoreAttachments: collectionHasMore});
+        let currentlyLoadedGalleryAttachments =  this.state.galleryPage * this.props.defaultPageSize;
+        let galleryHasMore = (currentlyLoadedGalleryAttachments < this.props.galleryAttachmentsCount ) ? true : false;
+        this.setState({hasMoreAttachments: galleryHasMore});
     },
     componentDidMount(){
         this.toggleLoadMoreBtn();
-        this.setState({collectionPage: this.state.collectionPage + 1});
+        this.setState({galleryPage: this.state.galleryPage + 1});
     },
     loadMoreAttachments: function() {
-        this.props.loadMoreAttachments(this.props.collectionIndex, this.state.collectionPage);
+        this.props.loadMoreAttachments(this.props.galleryIndex, this.state.galleryPage);
         this.toggleLoadMoreBtn();
-        let newGalleryPage = (this.state.hasMoreAttachments) ? this.state.collectionPage + 1 : this.state.collectionPage;
-        this.setState({collectionPage: newGalleryPage});
+        let newGalleryPage = (this.state.hasMoreAttachments) ? this.state.galleryPage + 1 : this.state.galleryPage;
+        this.setState({galleryPage: newGalleryPage});
     },
     render(){
         return (
-            <div key={this.props.collectionIndex}>
-                <h2>{this.props.collectionTitle}</h2>
+            <div key={this.props.galleryIndex}>
+                <h2>{this.props.galleryTitle}</h2>
                 <bem.AssetGallery__grid>
-                    {this.props.collectionItems.map(function(item, j) {
-                        var timestamp = (this.props.currentFilter === 'question') ? item.submission.date_created : this.props.collectionDate;
+                    {this.props.galleryItems.map(function(item, j) {
+                        var timestamp = (this.props.currentFilter === 'question') ? item.submission.date_created : this.props.galleryDate;
                         return (
                             <FormGalleryGridItem
                                 key={j}
                                 date={this.props.formatDate(timestamp)}
                                 itemTitle={this.props.currentFilter === 'question' ? t('Record') + ' #' + parseInt(j + 1) : item.question.label}
                                 url={item.medium_download_url}
-                                collectionIndex={this.props.collectionIndex}
-                                collectionItemIndex={j}
+                                galleryIndex={this.props.galleryIndex}
+                                galleryItemIndex={j}
                                 openModal={this.props.openModal}
                             />
                         );
@@ -320,7 +319,7 @@ let FormGalleryGridItem = React.createClass({
             backgroundSize: 'cover'
         }
         return (
-            <bem.AssetGallery__gridItem className="col4 one-one" style={itemStyle} onClick={() => this.props.openModal(this.props.collectionIndex , this.props.collectionItemIndex)}>
+            <bem.AssetGallery__gridItem className="col4 one-one" style={itemStyle} onClick={() => this.props.openModal(this.props.galleryIndex , this.props.galleryItemIndex)}>
                 <bem.AssetGallery__gridItemOverlay>
                     <div className="text">
                         <h5>{this.props.itemTitle}</h5>
