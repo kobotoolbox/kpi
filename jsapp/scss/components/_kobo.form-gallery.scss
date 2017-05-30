@@ -25,10 +25,15 @@ $icon-font-size: 40px;
 .asset-gallery{
     height: 100%;
     overflow: auto;
-    padding: 40px 0 120px;
-    >div{
+    padding: 40px 0 100px;
+    > div:not(.form-view__cell){
         padding: 0px 40px;
+        margin-bottom: 40px;
+        &:last-of-type{
+            padding-bottom: 100px;
+        }
     }
+
     .styled-select {
         select {
             background: transparent;
@@ -120,7 +125,7 @@ $icon-font-size: 40px;
                     height: 30px;
                     border: none;
                     background: url('../img/filter.png') no-repeat;
-                    background-size: cover;
+                    // background-size: cover;
                     box-shadow: none;
                     cursor: pointer;
                 }
@@ -137,6 +142,9 @@ $icon-font-size: 40px;
                 }
                 .Select-arrow-zone{
                     display: none;
+                }
+                .Select-value{
+                    text-indent: -99999999px;
                 }
             }
         }
