@@ -2,12 +2,14 @@ import React from 'react';
 import Modal from 'react-modal';
 import bem from '../../bem';
 import ui from '../../ui';
-import {dataInterface} from '../../dataInterface';
+// import {dataInterface} from '../../dataInterface';
 import Slider from 'react-slick';
 import {t} from '../../utils';
 
 let FormGalleryModal = React.createClass({
     render(){
+        console.log("CUrrent inof state:");
+        console.log(this.props.isModalSidebarOpen);
 		const settings = {
 			dots: false,
 			fade: true,
@@ -25,8 +27,8 @@ let FormGalleryModal = React.createClass({
             <Modal isOpen={this.props.showModal} contentLabel="Modal" >
                 <bem.AssetGallery__modal>
                     <ui.Modal.Body>
-                        <bem.AssetGallery__modalCarousel className={"col8 "+ (this.props.infoOpen ? '' : 'full-screen')}>
-                            <bem.AssetGallery__modalCarouselTopbar className={this.props.infoOpen ? 'show' : 'show--hover'}>
+                        <bem.AssetGallery__modalCarousel className={"col8 "+ (this.props.isModalSidebarOpen ? '' : 'full-screen')}>
+                            <bem.AssetGallery__modalCarouselTopbar className={this.props.isModalSidebarOpen ? 'show' : 'show--hover'}>
                                 <i className="close-modal k-icon-prev" onClick={this.props.closeModal}></i>
                                 <i className="toggle-info k-icon-information" onClick={this.props.toggleInfo}></i>
                             </bem.AssetGallery__modalCarouselTopbar>
@@ -43,7 +45,7 @@ let FormGalleryModal = React.createClass({
 
                         <FormGalleryModalSidebar
                             results={this.props.results}
-                            isInfoOpen={this.props.infoOpen}
+                            isModalSidebarOpen={this.props.isModalSidebarOpen}
                             toggleInfo={this.props.toggleInfo}
                             filter={this.props.filter}
                             galleryItemIndex={this.props.galleryItemIndex}
@@ -62,15 +64,11 @@ let FormGalleryModal = React.createClass({
 });
 
 let FormGalleryModalSidebar = React.createClass({
-    getInitialState: function(){
-        return {
-            status:  (this.props.isInfoOpen) ? 'open' : 'closed',
-        }
-    },
     render(){
         let currentRecordIndex = (this.props.filter === 'question' ? this.props.galleryItemIndex + 1 : this.props.galleryIndex + 1);
+        let status = (this.props.isModalSidebarOpen) ? 'open' : 'closed';
         return (
-            <bem.AssetGallery__modalSidebar className={"col4 " + this.state.status}>
+            <bem.AssetGallery__modalSidebar className={"col4 " + status}>
                 <i className="toggle-info k-icon-close" onClick={this.props.toggleInfo}></i>
                 <div>
                     <div className="info__outer">
@@ -84,7 +82,7 @@ let FormGalleryModalSidebar = React.createClass({
                         </div>
                     </div>
 
-                    <FormGalleryModalSidebarGrid
+                    <FeaturedGridItems
                         results={this.props.results}
                         filter={this.props.filter}
                         currentRecordIndex={currentRecordIndex}
@@ -100,7 +98,7 @@ let FormGalleryModalSidebar = React.createClass({
     }
 });
 
-let FormGalleryModalSidebarGrid = React.createClass({
+let FeaturedGridItems = React.createClass({
     getInitialState: function() {
         return {
             maxItems: 2,
@@ -109,7 +107,6 @@ let FormGalleryModalSidebarGrid = React.createClass({
     },
     render(){
         let gridLabel = (this.props.filter === 'submission' ? 'Record #' + this.props.currentRecordIndex : this.props.currentQuestion);
-        let moreforItem = null;
         return (
             <div className="padding--15">
                 <h5>More for {gridLabel}</h5>

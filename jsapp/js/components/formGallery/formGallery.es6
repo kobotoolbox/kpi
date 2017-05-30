@@ -1,9 +1,6 @@
 import React from 'react';
-// import Modal from 'react-modal';
 import bem from '../../bem';
-// import ui from '../../ui';
 import ReactDOM from 'react-dom';
-import Slider from 'react-slick';
 import FormGalleryModal from './formGalleryModal';
 import FormGalleryFilter from './formGalleryFilter';
 import {dataInterface} from '../../dataInterface';
@@ -23,12 +20,12 @@ var FormGallery = React.createClass({
             hasMoreRecords: false,
             nextRecordsPage: 2,
             showModal: false,
-            galleryItemIndex: 0,
+            isModalSidebarOpen: true,
             activeID: null,
             activeTitle: null,
             activeDate: null,
             galleryIndex: 0,
-            infoOpen: true,
+            galleryItemIndex: 0,
             searchTerm: '',
             filter: {
                 source: 'question',
@@ -137,9 +134,9 @@ var FormGallery = React.createClass({
     closeModal: function() {
         this.setState({showModal: false});
     },
-    toggleInfo() {
+    toggleInfo(){
         this.setState({
-            infoOpen: !this.state.infoOpen
+            isModalSidebarOpen: !this.state.isModalSidebarOpen
         });
     },
     goToSlide(index) {
@@ -228,7 +225,7 @@ var FormGallery = React.createClass({
                     {/*  TODO move modal inside gallery and pass local props */}
                     <FormGalleryModal
                         showModal={this.state.showModal}
-                        infoOpen={this.state.infoOpen}
+                        isModalSidebarOpen={this.state.isModalSidebarOpen}
                         results={this.state.assets.results[this.state.galleryIndex].attachments.results}
                         closeModal={this.closeModal}
                         toggleInfo={this.toggleInfo}
