@@ -1,6 +1,7 @@
 @import "~slick-carousel/slick/slick.css";
 @import "~slick-carousel/slick/slick-theme.css";
 
+$icon-font-size: 40px;
 @mixin aspect-ratio($width, $height) {
     position: relative;
     &:before {
@@ -190,12 +191,12 @@
                     width: 60px;
                     background: rgba(0,0,0,0.6);
                     z-index: 8;
-                    .material-icons{
+                    .k-icon-next, .k-icon-prev{
                         color: #fff;
-                        font-size: 50px;
+                        font-size: 60px;
                     }
                     &.slick-disabled{
-                        .material-icons{
+                        .k-icon-next, .k-icon-prev{
                             opacity: 0.3;
                         }
                     }
@@ -226,7 +227,7 @@
                 color: #fff;
                 z-index: 9;
                 width: 100%;
-                padding: 15px;
+                padding: 10px;
                 &.show{
                     &--hover{
                         display: flex;
@@ -237,13 +238,15 @@
                 }
                 .close-modal{
                     cursor: pointer;
+                    font-size: $icon-font-size;
                 }
             }
             &.full-screen{
                 width: 100% !important;
                 .toggle-info{
                     display: inline-block;
-                    color: #55B5C1;
+                    color: #fff;
+                    font-size: $icon-font-size;
                 }
             }
         }
@@ -262,8 +265,8 @@
                 opacity: 1;
                 .toggle-info{
                     float: right;
-                    font-size: 30px;
-                    margin: 10px;
+                    font-size: $icon-font-size;
+                    margin: 7px;
                     cursor: pointer;
                 }
                 .info{

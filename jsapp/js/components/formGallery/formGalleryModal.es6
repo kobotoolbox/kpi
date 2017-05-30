@@ -28,8 +28,8 @@ let FormGalleryModal = React.createClass({
                     <ui.Modal.Body>
                         <bem.AssetGallery__modalCarousel className={"col8 "+ (this.props.infoOpen ? '' : 'full-screen')}>
                             <bem.AssetGallery__modalCarouselTopbar className={this.props.infoOpen ? 'show' : 'show--hover'}>
-                                <i className="close-modal material-icons" onClick={this.props.closeModal}>keyboard_backspace</i>
-                                <i className="toggle-info material-icons" onClick={this.props.toggleInfo}>info_outline</i>
+                                <i className="close-modal k-icon-prev" onClick={this.props.closeModal}></i>
+                                <i className="toggle-info k-icon-information" onClick={this.props.toggleInfo}></i>
                             </bem.AssetGallery__modalCarouselTopbar>
                             <Slider ref="slider" {...settings} beforeChange={this.props.handleCarouselChange}>
                                 {this.props.results.map(function (item, i) {
@@ -72,7 +72,7 @@ let FormGalleryModalSidebar = React.createClass({
         let currentRecordIndex = (this.props.filter === 'question' ? this.props.collectionItemIndex + 1 : this.props.collectionIndex + 1);
         return (
             <bem.AssetGallery__modalSidebar className={"col4 " + this.state.status}>
-                <i className="toggle-info material-icons" onClick={this.props.toggleInfo}>{t('close')}</i>
+                <i className="toggle-info k-icon-close" onClick={this.props.toggleInfo}></i>
                 <div>
                     <div className="info__outer">
                         <div className="light-grey-bg">
@@ -143,7 +143,7 @@ let RightNavButton = React.createClass({
         const {className, onClick} = this.props;
         return (
             <button onClick={onClick} className={className}>
-                <i className="material-icons">chevron_right</i>
+                <i className="k-icon-next"></i>
             </button>
         )
     }
@@ -154,7 +154,7 @@ let LeftNavButton = React.createClass({
         const {className, onClick} = this.props;
         return (
             <button onClick={onClick} className={className}>
-                <i className="material-icons">chevron_left</i>
+                <i className="k-icon-prev"></i>
             </button>
         )
     }

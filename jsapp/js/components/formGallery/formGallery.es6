@@ -184,8 +184,6 @@ var FormGallery = React.createClass({
         if (this.state.assets.loaded) {
             return (
                 <bem.AssetGallery>
-                    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
-
                     <FormGalleryFilter
                         attachments_count={this.state.assets.attachments_count}
                         currentFilter={this.state.filter}
