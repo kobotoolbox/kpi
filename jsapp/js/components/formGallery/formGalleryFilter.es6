@@ -24,6 +24,7 @@ let FormGalleryFilter = React.createClass({
                             name="selected-filter"
                             value={this.props.currentFilter.source}
                             onChange={this.props.switchFilter}
+                            autoBlur={true}
                             searchable={false}/>
                     </bem.AssetGallery__headingSearchFilter>
                 </div>

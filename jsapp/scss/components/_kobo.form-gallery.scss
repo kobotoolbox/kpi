@@ -18,6 +18,7 @@ $icon-font-size: 40px;
         bottom: 0;
     }
 }
+
 .one-one{
     @include aspect-ratio(1,1)
 }
@@ -130,9 +131,6 @@ $icon-font-size: 40px;
                     top: -5px;
                     right: 0px;
                     width: 200px;
-                }
-                .Select-multi-value-wrapper{
-                    display: none;
                 }
                 .Select-clear-zone{
                     display: none;

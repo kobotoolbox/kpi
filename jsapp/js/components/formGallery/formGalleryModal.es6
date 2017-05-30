@@ -7,9 +7,12 @@ import Slider from 'react-slick';
 import {t} from '../../utils';
 
 let FormGalleryModal = React.createClass({
+    componentDidUpdate : function(){
+        if (this.refs.slider) {
+            this.refs.slider.slickGoTo(this.props.galleryItemIndex);
+        }
+    },
     render(){
-        console.log("CUrrent inof state:");
-        console.log(this.props.isModalSidebarOpen);
 		const settings = {
 			dots: false,
 			fade: true,
@@ -52,7 +55,6 @@ let FormGalleryModal = React.createClass({
                             galleryIndex={this.props.galleryIndex}
                             title={this.props.title}
                             date={this.props.date}
-
                             updateActiveAsset={this.props.updateActiveAsset}
                         />
 
@@ -109,7 +111,7 @@ let FeaturedGridItems = React.createClass({
         let gridLabel = (this.props.filter === 'submission' ? 'Record #' + this.props.currentRecordIndex : this.props.currentQuestion);
         return (
             <div className="padding--15">
-                <h5>More for {gridLabel}</h5>
+                <h5>{t('More for') + " " + gridLabel}</h5>
                 <bem.AssetGallery__modalSidebarGrid>
                     {this.props.results.map(function(item, j) {
                         if (this.props.galleryItemIndex !== j){ // if the item is not the active attachment
@@ -120,7 +122,7 @@ let FeaturedGridItems = React.createClass({
                                 backgroundSize: 'cover'
                             }
                             return (
-                                <bem.AssetGallery__modalSidebarGridItem key={j} className="col6" onClick={() => this.props.updateActiveAsset(this.props)}>
+                                <bem.AssetGallery__modalSidebarGridItem key={j} className="col6" onClick={() => this.props.updateActiveAsset(this.props.galleryIndex, j)}>
                                     <div className="one-one" style={divStyle}></div>
                                 </bem.AssetGallery__modalSidebarGridItem>
                             )

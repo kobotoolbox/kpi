@@ -119,14 +119,14 @@ var FormGallery = React.createClass({
         });
     },
     // MODAL
-    openModal: function(record_index, attachment_index) {
-        let record = this.state.assets.results[record_index];
-        let attachment = record.attachments.results[attachment_index];
+    openModal: function(galleryIndex, galleryItemIndex) {
+        let record = this.state.assets.results[galleryIndex];
+        let attachment = record.attachments.results[galleryItemIndex];
         this.setState({
             showModal: true,
             activeID: attachment.id,
-            galleryIndex: record_index,
-            galleryItemIndex: attachment_index,
+            galleryIndex: galleryIndex,
+            galleryItemIndex: galleryItemIndex,
             activeTitle: record.label || attachment.question.label,
             activeDate: this.formatDate(record.date_created || attachment.submission.date_created)
         });
@@ -139,9 +139,6 @@ var FormGallery = React.createClass({
             isModalSidebarOpen: !this.state.isModalSidebarOpen
         });
     },
-    goToSlide(index) {
-        this.refs.slider.slickGoTo(index);
-    },
     //Modal Custom
     handleCarouselChange: function(currentSlide, nextSlide) {
         let record = this.state.assets.results[this.state.galleryIndex];
@@ -152,18 +149,15 @@ var FormGallery = React.createClass({
             activeDate: this.formatDate(record.date_created || attachment.submission.date_created)
         });
     },
-    updateActiveAsset(record_index, attachment_index) {
-        let record = this.state.assets.results[record_index];
-        let attachment = record.attachments[attachment_index];
+    updateActiveAsset(galleryIndex, galleryItemIndex) {
+        let record = this.state.assets.results[galleryIndex];
+        let attachment = record.attachments.results[galleryItemIndex];
         this.setState({
-            galleryIndex: record_index,
-            galleryItemIndex: attachment_index,
+            galleryIndex: galleryIndex,
+            galleryItemIndex: galleryItemIndex,
             activeTitle: record.label || attachment.question.label,
             activeDate: this.formatDate(record.date_created || attachment.submission.date_created)
         });
-        if (this.refs.slider) {
-            this.goToSlide(attachment_index);
-        }
     },
 
     // RENDER
@@ -222,7 +216,6 @@ var FormGallery = React.createClass({
                         {(this.state.hasMoreRecords && this.state.filter.source=='submission') ? <button onClick={this.loadMoreRecords} className='mdl-button mdl-button--colored'>Load more</button> : null}
                     </div>
 
-                    {/*  TODO move modal inside gallery and pass local props */}
                     <FormGalleryModal
                         showModal={this.state.showModal}
                         isModalSidebarOpen={this.state.isModalSidebarOpen}
