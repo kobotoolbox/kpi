@@ -191,7 +191,7 @@ var FormGallery = React.createClass({
                         switchFilter={this.switchFilter}
                         setSearchTerm={this.setSearchTerm}/>
 
-                    <bem.AssetGallery__grid>
+
                         {this.state.assets.results.map(function(record, i) {
                             let collectionTitle =  (this.state.filter.source === 'question') ? record.label : 'Record #' + parseInt(i + 1);
                             let searchRegEx = new RegExp(this.state.searchTerm, "i");
@@ -219,11 +219,11 @@ var FormGallery = React.createClass({
                             }
                             }.bind(this))}
 
-                        <div className="form-view__cell form-view__cell--centered">
-                            {(this.state.hasMoreRecords && this.state.filter.source=='submission') ? <button onClick={this.loadMoreRecords} className='mdl-button mdl-button--colored'>Load more</button> : null}
-                        </div>
 
-                    </bem.AssetGallery__grid>
+
+                    <div className="form-view__cell form-view__cell--centered">
+                        {(this.state.hasMoreRecords && this.state.filter.source=='submission') ? <button onClick={this.loadMoreRecords} className='mdl-button mdl-button--colored'>Load more</button> : null}
+                    </div>
 
                     {/*  TODO move modal inside gallery and pass local props */}
                     <FormGalleryModal
@@ -278,24 +278,26 @@ let FormGalleryGrid = React.createClass({
         return (
             <div key={this.props.collectionIndex}>
                 <h2>{this.props.collectionTitle}</h2>
-                {this.props.collectionItems.map(function(item, j) {
-                    var timestamp = (this.props.currentFilter === 'question') ? item.submission.date_created : this.props.collectionDate;
-                    return (
-                        <FormGalleryGridItem
-                            key={j}
-                            date={this.props.formatDate(timestamp)}
-                            itemTitle={this.props.currentFilter === 'question' ? t('Record') + ' #' + parseInt(j + 1) : item.question.label}
-                            download_url={item.download_url}
-                            collectionIndex={this.props.collectionIndex}
-                            collectionItemIndex={j}
-                            openModal={this.props.openModal}
-                        />
-                    );
-                }.bind(this))}
+                <bem.AssetGallery__grid>
+                    {this.props.collectionItems.map(function(item, j) {
+                        var timestamp = (this.props.currentFilter === 'question') ? item.submission.date_created : this.props.collectionDate;
+                        return (
+                            <FormGalleryGridItem
+                                key={j}
+                                date={this.props.formatDate(timestamp)}
+                                itemTitle={this.props.currentFilter === 'question' ? t('Record') + ' #' + parseInt(j + 1) : item.question.label}
+                                url={item.medium_download_url}
+                                collectionIndex={this.props.collectionIndex}
+                                collectionItemIndex={j}
+                                openModal={this.props.openModal}
+                            />
+                        );
+                    }.bind(this))}
 
-                <div className="form-view__cell form-view__cell--centered">
-                    {(this.state.hasMoreAttachments  && this.props.currentFilter === 'question') ? <button onClick={this.loadMoreAttachments} className='mdl-button mdl-button--colored'>{t('Load More')}</button> : null}
-                </div>
+                    <div className="form-view__cell form-view__cell--centered">
+                        {(this.state.hasMoreAttachments  && this.props.currentFilter === 'question') ? <button onClick={this.loadMoreAttachments} className='mdl-button mdl-button--colored'>{t('Load More')}</button> : null}
+                    </div>
+                </bem.AssetGallery__grid>
             </div>
         );
     }
@@ -312,7 +314,7 @@ let FormGalleryGridItem = React.createClass({
     },
     render(){
         let itemStyle = {
-            backgroundImage: 'url(' + this.props.download_url + ')',
+            backgroundImage: 'url(' + this.props.url + ')',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center center',
             backgroundSize: 'cover'

@@ -46,12 +46,14 @@ $icon-font-size: 40px;
 
     &__grid{
         display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-left: -10px;
         h5, h2{
             font-size: 1.5em;
             margin: 15px 0px;
             font-weight: normal;
         }
-        flex-wrap: wrap;
         >div{
             width: 100%;
             padding-top: 30px;
@@ -65,7 +67,9 @@ $icon-font-size: 40px;
                 width: 50%;
             }
             &.col4{
-                width: 31%;
+                display: inline-block;
+                margin: 10px 0 0 10px;
+                width: calc(100% * (1/3) - 10px - 1px);
             }
             &__overlay{
                 opacity: 0;
@@ -87,10 +91,10 @@ $icon-font-size: 40px;
         flex-wrap: nowrap;
         justify-content: space-between;
         &__search-filter{
-            min-width: 300px;
+            min-width: 250px;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
             .text-display{
                 display: inline-block;
                 padding: 10px;
