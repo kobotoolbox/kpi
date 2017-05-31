@@ -111,7 +111,6 @@ var FormGallery = React.createClass({
     },
 	loadMoreRecords() {
         this.state.assets.loaded = false;
-        console.log("Inside loadMoreRecords", this.state.nextRecordsPage);
         return dataInterface.loadMoreRecords(this.props.uid, this.state.filter.source, this.state.nextRecordsPage, this.state.defaultPageSize).done((response) => {
             let assets = this.state.assets;
             assets.loaded = true;

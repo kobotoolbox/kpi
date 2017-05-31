@@ -113,10 +113,7 @@ let FeaturedGridItems = React.createClass({
     },
     goToFilter: function(gridLabel){
         this.props.closeModal();
-        // document.getElementById('galleryFilter').value = gridLabel;
-
         this.props.setSearchTerm(gridLabel);
-        console.log(gridLabel);
     },
     render(){
         let gridLabel = (this.props.filter === 'submission' ? 'Record #' + this.props.currentRecordIndex : this.props.currentQuestion);
