@@ -215,7 +215,7 @@ var FormGallery = React.createClass({
 
 
                     <div className="form-view__cell form-view__cell--centered">
-                        {(this.state.hasMoreRecords && this.state.filter.source=='submission') ? <button onClick={this.loadMoreRecords} className='mdl-button mdl-button--colored'>Load more</button> : null}
+                        {(this.state.hasMoreRecords && this.state.filter.source=='submission' && this.state.searchTerm=='') ? <button onClick={this.loadMoreRecords} className='mdl-button mdl-button--colored'>Load more</button> : null}
                     </div>
 
                     <FormGalleryModal
