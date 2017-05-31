@@ -25,13 +25,16 @@ $icon-font-size: 40px;
 .asset-gallery{
     height: 100%;
     overflow: auto;
-    padding: 40px 0 100px;
+    padding: 40px 0 40px;
+    &:after {
+        content: "";
+        height: 100px;
+        display: block;
+    }
+
     > div:not(.form-view__cell){
         padding: 0px 40px;
         margin-bottom: 40px;
-        &:last-of-type{
-            padding-bottom: 100px;
-        }
     }
 
     .styled-select {
