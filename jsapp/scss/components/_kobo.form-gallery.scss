@@ -273,6 +273,7 @@ $icon-font-size: 40px;
                 margin: 0;
                 font-weight: bold;
                 font-size: 1.1em;
+                cursor: pointer;
             }
             &.open{
                 opacity: 1;
@@ -291,8 +292,7 @@ $icon-font-size: 40px;
                     }
                     &__inner{
                         border-bottom: solid 1px #ccc;
-                        margin-bottom: 20px;
-                        padding: 0 15px;
+                        margin: 0 15px 20px;
                         h5{
                             margin-top: 0;
                         }
@@ -307,15 +307,16 @@ $icon-font-size: 40px;
             &__grid{
                 display: flex;
                 flex-wrap: wrap;
+                justify-content: space-between;
+                margin: 5px 0;
                 &-item{
                     &.selected{
                         border: solid 2px #55B5C1;
                     }
-                    >div{
-                        margin: 5px;
-                    }
                     &.col6{
-                        width: 50%;
+                        display: inline-block;
+                        margin: 6px 0px;
+                        width: calc(100% * (1/2) - 6px - 1px);
                     }
                     img{
                         width: 100%;

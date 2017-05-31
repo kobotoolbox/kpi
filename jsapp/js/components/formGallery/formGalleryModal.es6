@@ -56,6 +56,8 @@ let FormGalleryModal = React.createClass({
                             title={this.props.title}
                             date={this.props.date}
                             updateActiveAsset={this.props.updateActiveAsset}
+                            closeModal={this.props.closeModal}
+                            setSearchTerm={this.props.setSearchTerm}
                         />
 
                     </ui.Modal.Body>
@@ -93,6 +95,8 @@ let FormGalleryModalSidebar = React.createClass({
                         galleryIndex={this.props.galleryIndex}
                         updateActiveAsset={this.props.updateActiveAsset}
                         date={this.props.date}
+                        closeModal={this.props.closeModal}
+                        setSearchTerm={this.props.setSearchTerm}
                     />
                 </div>
             </bem.AssetGallery__modalSidebar>
@@ -107,11 +111,18 @@ let FeaturedGridItems = React.createClass({
             count : 0
         };
     },
+    goToFilter: function(gridLabel){
+        this.props.closeModal();
+        // document.getElementById('galleryFilter').value = gridLabel;
+
+        this.props.setSearchTerm(gridLabel);
+        console.log(gridLabel);
+    },
     render(){
         let gridLabel = (this.props.filter === 'submission' ? 'Record #' + this.props.currentRecordIndex : this.props.currentQuestion);
         return (
             <div className="padding--15">
-                <h5>{t('More for') + " " + gridLabel}</h5>
+                <h5 onClick={() => this.goToFilter(gridLabel)}>{t('More for') + " " + gridLabel}</h5>
                 <bem.AssetGallery__modalSidebarGrid>
                     {this.props.results.map(function(item, j) {
                         if (this.props.galleryItemIndex !== j){ // if the item is not the active attachment

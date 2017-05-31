@@ -15,7 +15,7 @@ let FormGalleryFilter = React.createClass({
                 </div>
                 <div className="col6">
                     <bem.AssetGallery__headingSearchFilter className="section">
-                        <input className="text-display" placeholder={this.props.currentFilter.label} onChange={this.props.setSearchTerm}/>
+                        <input className="text-display" placeholder={this.props.currentFilter.label} onChange={this.props.setSearchTerm} value={this.props.searchTerm}/>
                         <Select
                             ref="filterSelect"
                             className="icon-button-select"

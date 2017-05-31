@@ -16,7 +16,7 @@ var FormGallery = React.createClass({
     getInitialState: function() {
         this.toggleInfo = this.toggleInfo.bind(this);
         return {
-            defaultPageSize: 2,
+            defaultPageSize: 5,
             hasMoreRecords: false,
             nextRecordsPage: 2,
             showModal: false,
@@ -94,8 +94,9 @@ var FormGallery = React.createClass({
             });
         });
     },
-    setSearchTerm(event){
-        this.setState({'searchTerm': event.target.value});
+    setSearchTerm(filter){
+        let term = (filter.target) ? filter.target.value : filter; //Check if an event was passed or string
+        this.setState({'searchTerm': term});
     },
 
     // Pagination
@@ -180,7 +181,8 @@ var FormGallery = React.createClass({
                         currentFilter={this.state.filter}
                         filters={filters}
                         switchFilter={this.switchFilter}
-                        setSearchTerm={this.setSearchTerm}/>
+                        setSearchTerm={this.setSearchTerm}
+                        searchTerm={this.state.searchTerm}/>
 
 
                         {this.state.assets.results.map(function(record, i) {
@@ -224,6 +226,7 @@ var FormGallery = React.createClass({
                         toggleInfo={this.toggleInfo}
                         handleCarouselChange={this.handleCarouselChange}
                         updateActiveAsset={this.updateActiveAsset}
+                        setSearchTerm={this.setSearchTerm}
                         filter={this.state.filter.source}
                         galleryIndex={this.state.galleryIndex}
                         galleryItemIndex={this.state.galleryItemIndex}
