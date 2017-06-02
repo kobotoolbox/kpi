@@ -303,11 +303,12 @@
   width: 100%;
 }
 
-.popover-menu--groupby-menu {
+.popover-menu--question-language {
   .popover-menu__toggle {
     @extend .mdl-button;
 
     text-transform: uppercase;
+    padding-left: 0px;
 
     &:after {
       content: '\f107';
@@ -315,6 +316,34 @@
       font-size: 18px;
       margin-left: 5px;
     }
+  }
+}
+
+.popover-menu--groupby-menu {
+  .popover-menu__toggle {
+    @extend .mdl-button;
+
+    text-transform: uppercase;
+    padding-left: 0px;
+
+    &:after {
+      content: '\f107';
+      font-family: 'FontAwesome';
+      font-size: 18px;
+      margin-left: 5px;
+    }
+  }
+
+  .popover-menu__content {
+    max-height: 500px;
+    min-width: 300px;
+    overflow: scroll;
+    right: auto;
+    left: 20px;
+  }
+
+  .popover-menu__link {
+    white-space: normal;
   }
 }
 

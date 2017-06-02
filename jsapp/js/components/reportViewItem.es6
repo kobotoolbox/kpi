@@ -249,11 +249,14 @@ var ReportViewItem = React.createClass({
     }
     _type = JSON.stringify(_type);
 
+    var questionLabel = r.label;
+    if (this.props.translations)
+      questionLabel = r.label[this.props.translationIndex];
     return (
       <div>
         <bem.ReportView__itemHeading>
           <h2>
-            {r.label}
+            {questionLabel}
           </h2>
           <bem.ReportView__headingMeta>
             <span className="type">
