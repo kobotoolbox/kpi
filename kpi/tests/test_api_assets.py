@@ -170,6 +170,29 @@ class AssetsDetailApiTests(APITestCase):
         self.assertEqual(new_asset.content['survey'][0]['label'], ['v2'])
         self.assertEqual(new_asset.content['translations'], [None])
 
+    def test_deployed_version_pagination(self):
+        PAGE_LENGTH = 100
+        version = self.asset.latest_version
+        preexisting_count = self.asset.deployed_versions.count()
+        version.deployed = True
+        for i in range(PAGE_LENGTH + 11):
+            version.uid = ''
+            version.pk = None
+            version.save()
+        self.assertEqual(
+            preexisting_count + PAGE_LENGTH + 11,
+            self.asset.deployed_versions.count()
+        )
+        response = self.client.get(self.asset_url, format='json')
+        self.assertEqual(
+            response.data['deployed_versions']['count'],
+            self.asset.deployed_versions.count()
+        )
+        self.assertEqual(
+            len(response.data['deployed_versions']['results']),
+            PAGE_LENGTH
+        )
+
 
 class AssetsXmlExportApiTests(KpiTestCase):
     fixtures = ['test_data']

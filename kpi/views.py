@@ -543,7 +543,15 @@ class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         _queryset = self.model.objects.filter(asset__uid=_asset_uid)
         if _deployed is not None:
             _queryset = _queryset.filter(deployed=_deployed)
-        return _queryset.filter(asset__uid=_asset_uid)
+        _queryset = _queryset.filter(asset__uid=_asset_uid)
+        if self.action == 'list':
+            # Save time by only retrieving fields from the DB that the
+            # serializer will use
+            _queryset = _queryset.only(
+                'uid', 'deployed', 'date_modified', 'asset_id')
+        # `AssetVersionListSerializer.get_url()` asks for the asset UID
+        _queryset = _queryset.select_related('asset__uid')
+        return _queryset
 
 
 class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
