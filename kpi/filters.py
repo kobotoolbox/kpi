@@ -230,12 +230,16 @@ class AttachmentFilter(filters.BaseFilterBackend):
         # sorting is a prerequisite for group by queries
         # override order_by with group by value
         order_by = group_by or request.query_params.get('order_by')
+        # Add a query param for sort
+        sort = 'pk'
+        if request.query_params.get('sort') == 'desc':
+            sort = '-pk'
 
         if type:
             queryset = queryset.filter(mimetype__istartswith=type.lower())
 
         if order_by and order_by == 'question':
-            queryset = sorted(queryset.order_by('pk'),
+            queryset = sorted(queryset.order_by(sort),
                               key=lambda att: att.question_index)
             if group_by and group_by == 'question':
                 result = []
@@ -248,7 +252,7 @@ class AttachmentFilter(filters.BaseFilterBackend):
                 return result
 
         elif order_by and order_by == 'submission':
-            queryset = sorted(queryset.order_by('pk'),
+            queryset = sorted(queryset.order_by(sort),
                               key=lambda att: (att.instance.id, att.question_index))
             if group_by and group_by == 'submission':
                 result = []
@@ -260,5 +264,5 @@ class AttachmentFilter(filters.BaseFilterBackend):
                     result.append(submission)
                 return result
         else:
-            queryset = queryset.order_by('pk')
+            queryset = queryset.order_by(sort)
         return queryset
