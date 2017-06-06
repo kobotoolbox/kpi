@@ -203,7 +203,7 @@ var FormGallery = React.createClass({
                         }else{
                             return null;
                         }
-                        }.bind(this))}
+                    }.bind(this))}
 
                     <div className="form-view__cell form-view__cell--centered loadmore-div">
                         {(this.state.hasMoreRecords && this.state.filter.source=='submission' && this.state.searchTerm=='') ? <button onClick={this.loadMoreRecords} className='mdl-button mdl-button--colored loadmore-button'>Load more</button> : null}
@@ -241,20 +241,34 @@ let FormGalleryGrid = React.createClass({
             hasMoreAttachments: false,
         };
     },
-    toggleLoadMoreBtn: function(){
+    updateHasMoreAttachments: function(){
         let currentlyLoadedGalleryAttachments =  this.state.galleryPage * this.props.defaultPageSize;
         let galleryHasMore = (currentlyLoadedGalleryAttachments < this.props.galleryAttachmentsCount ) ? true : false;
         this.setState({hasMoreAttachments: galleryHasMore});
     },
     componentDidMount(){
-        this.toggleLoadMoreBtn();
+        this.updateHasMoreAttachments();
         this.setState({galleryPage: this.state.galleryPage + 1});
     },
-    loadMoreAttachments: function() {
+    loadMoreAttachments: function(){
         this.props.loadMoreAttachments(this.props.galleryIndex, this.state.galleryPage);
-        this.toggleLoadMoreBtn();
+        this.updateHasMoreAttachments();
         let newGalleryPage = (this.state.hasMoreAttachments) ? this.state.galleryPage + 1 : this.state.galleryPage;
         this.setState({galleryPage: newGalleryPage});
+    },
+    toggleLoadMoreBtn : function(){
+        let loadMoreBtnCode = null;
+        if(this.state.hasMoreAttachments  && this.props.currentFilter === 'question'){
+            if(this.state.galleryPage <= 2){
+                loadMoreBtnCode = <button onClick={this.loadMoreAttachments} className='mdl-button mdl-button--colored loadmore-button'>{t('Load More')}</button>;
+            }else{
+                loadMoreBtnCode = <button onClick={this.showPaginatedModal} className='mdl-button mdl-button--colored loadmore-button'>{t('See '+this.props.galleryAttachmentsCount+' Images')}</button>
+            }
+        }
+        return loadMoreBtnCode;
+    },
+    showPaginatedModal: function(){
+
     },
     render(){
         return (
@@ -278,9 +292,11 @@ let FormGalleryGrid = React.createClass({
                     }.bind(this))}
                 </bem.AssetGallery__grid>
 
+
                 <div className="form-view__cell form-view__cell--centered loadmore-div">
-                    {(this.state.hasMoreAttachments  && this.props.currentFilter === 'question') ? <button onClick={this.loadMoreAttachments} className='mdl-button mdl-button--colored loadmore-button'>{t('Load More')}</button> : null}
+                    {this.toggleLoadMoreBtn()}
                 </div>
+
             </div>
         );
     }
