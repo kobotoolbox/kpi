@@ -119,7 +119,7 @@ let FeaturedGridItems = React.createClass({
                     {this.props.results.map(function(item, j) {
                         if (this.props.galleryItemIndex !== j){ // if the item is not the active attachment
                             var divStyle = {
-                                backgroundImage: 'url('+ item.download_url + ')',
+                                backgroundImage: 'url('+ item.medium_download_url + ')',
                                 backgroundRepeat: 'no-repeat',
                                 backgroundPosition: 'center center',
                                 backgroundSize: 'cover'

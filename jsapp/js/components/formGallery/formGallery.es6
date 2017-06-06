@@ -260,7 +260,7 @@ let FormGalleryGrid = React.createClass({
         return (
             <div key={this.props.galleryIndex}>
                 <h2>{this.props.galleryTitle}</h2>
-                
+
                 <bem.AssetGallery__grid>
                     {this.props.galleryItems.map(function(item, j) {
                         var timestamp = (this.props.currentFilter === 'question') ? item.submission.date_created : this.props.galleryDate;
@@ -269,7 +269,7 @@ let FormGalleryGrid = React.createClass({
                                 key={j}
                                 date={this.props.formatDate(timestamp)}
                                 itemTitle={this.props.currentFilter === 'question' ? t('Record') + ' ' + parseInt(j + 1) : item.question.label}
-                                url={item.medium_download_url}
+                                url={item.small_download_url}
                                 galleryIndex={this.props.galleryIndex}
                                 galleryItemIndex={j}
                                 openModal={this.props.openModal}
