@@ -44,7 +44,8 @@ $icon-font-size: 40px;
     > div:not(.form-view__cell){
         padding: 0px 40px;
         margin-bottom: 20px;
-        h2{
+
+        > h2{
             color: #6E777D;
             font-weight: normal;
         }
@@ -95,8 +96,19 @@ $icon-font-size: 40px;
             &.col4{
                 display: inline-block;
                 margin: 10px 0 0 10px;
+                width: calc(100% * (1/3) - 10px - 1px);
+            }
+            &.per-row6{
+                display: inline-block;
+                margin: 10px 0 0 10px;
                 width: calc(16.6666666667% - 10px - 1px);
                 height: 16.6666666667%;
+            }
+            &.per-row10{
+                display: inline-block;
+                margin: 10px 0 0 10px;
+                width: calc(10% - 10px - 1px);
+                height: 10%;
             }
             &__overlay{
                 opacity: 0;
@@ -346,24 +358,37 @@ $icon-font-size: 40px;
         }
     }
 }
-$paginated-modal-black: #424654;
+$paginated-modal-black: #414453;
+$paginated-modal-gray: #c3c5d0;
+
 .paginated-modal{
-    // padding: 0 10px;
+    .modal-content{
+        padding: 0px;
+    }
     .modal-body{
-        padding: 0px
+        padding: 0px;
+    }
+    .modal-header{
+        background: transparent;
+    }
+    .modal-x{
+        i{
+            color: $paginated-modal-gray;
+        }
+    }
+    .modal-open{
+        height: 90%;
+        width: 90%;
     }
     &__heading{
-        border-bottom: 1px solid gray;
-        padding:40px 20px 30px 20px;
-        .close-modal{
-            float: right;
-            font-size: 40px;
-            cursor: pointer;
-        }
-        h2{
+        border-bottom: 1px solid $paginated-modal-gray;
+        padding:0px 20px 30px 20px;
+        > h2{
             color: $paginated-modal-black;
             margin-bottom: 10px;
             font-size: 1.75em;
+            margin-top: 0;
+            font-weight: 500;
         }
         h4{
             color: $paginated-modal-black;
@@ -371,7 +396,11 @@ $paginated-modal-black: #424654;
             font-size: 1em;
         }
     }
-    &__pagination{
+    &__body{
+        padding: 20px;
+        &__pagination{
 
+        }
     }
+
 }

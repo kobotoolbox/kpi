@@ -1,8 +1,8 @@
 import React from 'react';
 import bem from '../../bem';
-import ReactDOM from 'react-dom';
 import FormGalleryModal from './formGalleryModal';
 import FormGalleryFilter from './formGalleryFilter';
+import FormGalleryGridItem from './formGalleryGridItem';
 import PaginatedModal from './paginatedModal';
 import {dataInterface} from '../../dataInterface';
 import moment from 'moment';
@@ -272,7 +272,6 @@ let FormGalleryGrid = React.createClass({
         return loadMoreBtnCode;
     },
     togglePaginatedModal: function(){
-        console.log(this.state.showPaginatedModal);
         this.setState({'showPaginatedModal': !this.state.showPaginatedModal });
     },
     render(){
@@ -286,6 +285,7 @@ let FormGalleryGrid = React.createClass({
                         return (
                             <FormGalleryGridItem
                                 key={j}
+                                itemsPerRow="6"
                                 date={this.props.formatDate(timestamp)}
                                 itemTitle={this.props.currentFilter === 'question' ? t('Record') + ' ' + parseInt(j + 1) : item.question.label}
                                 url={item.small_download_url}
@@ -297,7 +297,6 @@ let FormGalleryGrid = React.createClass({
                     }.bind(this))}
                 </bem.AssetGallery__grid>
 
-
                 <div className="form-view__cell form-view__cell--centered loadmore-div">
                     {this.toggleLoadMoreBtn()}
                 </div>
@@ -308,38 +307,14 @@ let FormGalleryGrid = React.createClass({
                     galleryTitle={this.props.galleryTitle}
                     currentlyLoadedGalleryAttachments={this.state.currentlyLoadedGalleryAttachments}
                     galleryAttachmentsCount={this.props.galleryAttachmentsCount}
-
+                    galleryItems={this.props.galleryItems}
+                    galleryDate={this.props.galleryDate}
+                    galleryIndex={this.props.galleryIndex}
+                    currentFilter={this.props.currentFilter}
+                    openModal={this.props.openModal}
+                    formatDate={this.props.formatDate}
                 />
             </div>
-        );
-    }
-});
-
-let FormGalleryGridItem = React.createClass({
-    componentDidMount() {
-        var elem = ReactDOM.findDOMNode(this);
-      	elem.style.opacity = 0;
-      	window.requestAnimationFrame(function() {
-      		elem.style.transition = "opacity 500ms";
-      		elem.style.opacity = 1;
-      	});
-    },
-    render(){
-        let itemStyle = {
-            backgroundImage: 'url(' + this.props.url + ')',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center center',
-            backgroundSize: 'cover'
-        }
-        return (
-            <bem.AssetGallery__gridItem className="col4 one-one" style={itemStyle} onClick={() => this.props.openModal(this.props.galleryIndex , this.props.galleryItemIndex)}>
-                <bem.AssetGallery__gridItemOverlay>
-                    <div className="text">
-                        <h5>{this.props.itemTitle}</h5>
-                        <p>{this.props.date}</p>
-                    </div>
-                </bem.AssetGallery__gridItemOverlay>
-            </bem.AssetGallery__gridItem>
         );
     }
 });
