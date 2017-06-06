@@ -3,6 +3,7 @@ import bem from '../../bem';
 import ReactDOM from 'react-dom';
 import FormGalleryModal from './formGalleryModal';
 import FormGalleryFilter from './formGalleryFilter';
+import PaginatedModal from './paginatedModal';
 import {dataInterface} from '../../dataInterface';
 import moment from 'moment';
 import {t} from '../../utils';
@@ -238,13 +239,16 @@ let FormGalleryGrid = React.createClass({
             galleryPage: 1,
             hasMoreAttachments: false,
             showPaginatedModal: false,
-
+            currentlyLoadedGalleryAttachments: 0
         };
     },
     updateHasMoreAttachments: function(){
         let currentlyLoadedGalleryAttachments =  this.state.galleryPage * this.props.defaultPageSize;
         let galleryHasMore = (currentlyLoadedGalleryAttachments < this.props.galleryAttachmentsCount ) ? true : false;
-        this.setState({hasMoreAttachments: galleryHasMore});
+        this.setState({
+            hasMoreAttachments: galleryHasMore,
+            currentlyLoadedGalleryAttachments
+        });
     },
     componentDidMount(){
         this.updateHasMoreAttachments();
@@ -268,7 +272,8 @@ let FormGalleryGrid = React.createClass({
         return loadMoreBtnCode;
     },
     togglePaginatedModal: function(){
-        this.setState({'showPaginatedModal': !showPaginatedModal });
+        console.log(this.state.showPaginatedModal);
+        this.setState({'showPaginatedModal': !this.state.showPaginatedModal });
     },
     render(){
         return (
@@ -297,6 +302,14 @@ let FormGalleryGrid = React.createClass({
                     {this.toggleLoadMoreBtn()}
                 </div>
 
+                <PaginatedModal
+                    show={this.state.showPaginatedModal}
+                    togglePaginatedModal={this.togglePaginatedModal}
+                    galleryTitle={this.props.galleryTitle}
+                    currentlyLoadedGalleryAttachments={this.state.currentlyLoadedGalleryAttachments}
+                    galleryAttachmentsCount={this.props.galleryAttachmentsCount}
+
+                />
             </div>
         );
     }

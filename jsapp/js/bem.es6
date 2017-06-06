@@ -224,6 +224,11 @@ bem.AssetGallery__modalSidebar = bem.AssetGallery.__('modal__sidebar', '<div>');
 bem.AssetGallery__modalSidebarGrid = bem.AssetGallery.__('modal__sidebar__grid', '<div>');
 bem.AssetGallery__modalSidebarGridItem = bem.AssetGallery.__('modal__sidebar__grid-item', '<div>');
 
+// Paginated Modal Elements:
+bem.PaginatedModal = BEM('paginated-modal');
+bem.PaginatedModal_heading = bem.PaginatedModal.__('heading');
+bem.PaginatedModal_pagination = bem.PaginatedModal.__('pagination');
+
 bem.create = BEM;
 
 export default bem;

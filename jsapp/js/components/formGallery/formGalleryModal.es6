@@ -27,14 +27,14 @@ let FormGalleryModal = React.createClass({
 			prevArrow: <LeftNavButton/>
 		}
         return (
-            <Modal isOpen={this.props.showModal} contentLabel="Modal" >
+            <Modal isOpen={this.props.showModal} contentLabel="Modal">
                 <bem.AssetGallery__modal>
                     <ui.Modal.Body>
                         <bem.AssetGallery__modalCarousel className="col8">
                             <Slider ref="slider" {...settings} beforeChange={this.props.handleCarouselChange}>
                                 {this.props.results.map(function (item, i) {
                                     return (
-                                        <div key={item.id}>
+                                        <div key={i}>
                                             <img alt={this.props.title} src={item.large_download_url}/>
                                         </div>
                                     )

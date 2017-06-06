@@ -346,3 +346,32 @@ $icon-font-size: 40px;
         }
     }
 }
+$paginated-modal-black: #424654;
+.paginated-modal{
+    // padding: 0 10px;
+    .modal-body{
+        padding: 0px
+    }
+    &__heading{
+        border-bottom: 1px solid gray;
+        padding:40px 20px 30px 20px;
+        .close-modal{
+            float: right;
+            font-size: 40px;
+            cursor: pointer;
+        }
+        h2{
+            color: $paginated-modal-black;
+            margin-bottom: 10px;
+            font-size: 1.75em;
+        }
+        h4{
+            color: $paginated-modal-black;
+            margin: 0px;
+            font-size: 1em;
+        }
+    }
+    &__pagination{
+
+    }
+}
