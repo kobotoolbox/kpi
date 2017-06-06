@@ -18,6 +18,10 @@ $icon-font-size: 40px;
         bottom: 0;
     }
 }
+.loadmore-div{
+    width: 100%;
+    padding-top: 30px;
+}
 .loadmore-button{
     font-weight: 500;
     &:hover{
@@ -39,7 +43,7 @@ $icon-font-size: 40px;
 
     > div:not(.form-view__cell){
         padding: 0px 40px;
-        margin-bottom: 30px;
+        margin-bottom: 20px;
         h2{
             color: #6E777D;
             font-weight: normal;
@@ -76,10 +80,10 @@ $icon-font-size: 40px;
             margin: 15px 0px;
             font-weight: normal;
         }
-        >div{
-            width: 100%;
-            padding-top: 30px;
-        }
+        // >div{
+        //     width: 100%;
+        //     padding-top: 30px;
+        // }
         &-item{
             $root: &;
             margin: 0 15px 15px 0;
@@ -91,14 +95,12 @@ $icon-font-size: 40px;
             &.col4{
                 display: inline-block;
                 margin: 10px 0 0 10px;
-                width: calc(100% * (1/6) - 10px - 1px);
-                height: 0;
-                padding-bottom: 12%; //TODO fix this.
+                width: calc(16.6666666667% - 10px - 1px);
+                height: 16.6666666667%;
             }
             &__overlay{
                 opacity: 0;
                 transition: 0.3s all ease-in-out;
-                // background: -webkit-gradient(linear, 0% 40%, 0% 110%, from(transparent), to(#000));
                 background: rgba(0,0,0, 0.7);
                 .text{
                     color: #fff;
@@ -156,7 +158,6 @@ $icon-font-size: 40px;
                     height: 30px;
                     border: none;
                     background: url('../img/filter.png') no-repeat;
-                    // background-size: cover;
                     box-shadow: none;
                     cursor: pointer;
                 }

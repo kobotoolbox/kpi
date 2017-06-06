@@ -178,37 +178,34 @@ var FormGallery = React.createClass({
                         setSearchTerm={this.setSearchTerm}
                         searchTerm={this.state.searchTerm}/>
 
+                    {this.state.assets.results.map(function(record, i) {
+                        let galleryTitle =  (this.state.filter.source === 'question') ? record.label : 'Record ' + parseInt(i + 1);
+                        let searchRegEx = new RegExp(this.state.searchTerm, "i");
+                        let searchTermMatched = this.state.searchTerm =='' || galleryTitle.match(searchRegEx) || this.formatDate(record.date_created).match(this.state.searchTerm);
 
-                        {this.state.assets.results.map(function(record, i) {
-                            let galleryTitle =  (this.state.filter.source === 'question') ? record.label : 'Record ' + parseInt(i + 1);
-                            let searchRegEx = new RegExp(this.state.searchTerm, "i");
-                            let searchTermMatched = this.state.searchTerm =='' || galleryTitle.match(searchRegEx) || this.formatDate(record.date_created).match(this.state.searchTerm);
+                        if(searchTermMatched){
+                            return (
+                                <FormGalleryGrid
+                                    key={i}
+                                    uid={this.props.uid}
+                                    galleryTitle={galleryTitle}
+                                    galleryIndex={i}
+                                    galleryItems={record.attachments.results}
+                                    galleryDate={record.date_created}
+                                    galleryAttachmentsCount={record.attachments.count}
+                                    loadMoreAttachments={this.loadMoreAttachments}
+                                    currentFilter={this.state.filter.source}
+                                    formatDate={this.formatDate}
+                                    openModal={this.openModal}
+                                    defaultPageSize={this.state.defaultPageSize}
+                                />
+                            );
+                        }else{
+                            return null;
+                        }
+                        }.bind(this))}
 
-                            if(searchTermMatched){
-                                return (
-                                    <FormGalleryGrid
-                                        key={i}
-                                        uid={this.props.uid}
-                                        galleryTitle={galleryTitle}
-                                        galleryIndex={i}
-                                        galleryItems={record.attachments.results}
-                                        galleryDate={record.date_created}
-                                        galleryAttachmentsCount={record.attachments.count}
-                                        loadMoreAttachments={this.loadMoreAttachments}
-                                        currentFilter={this.state.filter.source}
-                                        formatDate={this.formatDate}
-                                        openModal={this.openModal}
-                                        defaultPageSize={this.state.defaultPageSize}
-                                    />
-                                );
-                            }else{
-                                return null;
-                            }
-                            }.bind(this))}
-
-
-
-                    <div className="form-view__cell form-view__cell--centered">
+                    <div className="form-view__cell form-view__cell--centered loadmore-div">
                         {(this.state.hasMoreRecords && this.state.filter.source=='submission' && this.state.searchTerm=='') ? <button onClick={this.loadMoreRecords} className='mdl-button mdl-button--colored loadmore-button'>Load more</button> : null}
                     </div>
 
@@ -263,6 +260,7 @@ let FormGalleryGrid = React.createClass({
         return (
             <div key={this.props.galleryIndex}>
                 <h2>{this.props.galleryTitle}</h2>
+                
                 <bem.AssetGallery__grid>
                     {this.props.galleryItems.map(function(item, j) {
                         var timestamp = (this.props.currentFilter === 'question') ? item.submission.date_created : this.props.galleryDate;
@@ -278,11 +276,11 @@ let FormGalleryGrid = React.createClass({
                             />
                         );
                     }.bind(this))}
-
-                    <div className="form-view__cell form-view__cell--centered">
-                        {(this.state.hasMoreAttachments  && this.props.currentFilter === 'question') ? <button onClick={this.loadMoreAttachments} className='mdl-button mdl-button--colored loadmore-button'>{t('Load More')}</button> : null}
-                    </div>
                 </bem.AssetGallery__grid>
+
+                <div className="form-view__cell form-view__cell--centered loadmore-div">
+                    {(this.state.hasMoreAttachments  && this.props.currentFilter === 'question') ? <button onClick={this.loadMoreAttachments} className='mdl-button mdl-button--colored loadmore-button'>{t('Load More')}</button> : null}
+                </div>
             </div>
         );
     }

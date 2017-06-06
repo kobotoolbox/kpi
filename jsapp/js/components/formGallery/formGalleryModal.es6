@@ -45,7 +45,6 @@ let FormGalleryModal = React.createClass({
                         <FormGalleryModalSidebar
                             results={this.props.results}
                             isModalSidebarOpen={this.props.isModalSidebarOpen}
-                            toggleInfo={this.props.toggleInfo}
                             filter={this.props.filter}
                             galleryItemIndex={this.props.galleryItemIndex}
                             galleryIndex={this.props.galleryIndex}
