@@ -371,7 +371,7 @@ var Reports = React.createClass({
               {groupByList.map((row, i)=>{
                   return (
                     <bem.PopoverMenu__link key={i}
-                        data-name={row.name}
+                        data-name={row.name || row.$autoname}
                         onClick={this.groupDataBy}>
                          {this.state.translations ? row.label[this.state.translationIndex] : row.label}
                     </bem.PopoverMenu__link>
