@@ -30,7 +30,7 @@ let FormGalleryModal = React.createClass({
             <Modal isOpen={this.props.showModal} contentLabel="Modal" >
                 <bem.AssetGallery__modal>
                     <ui.Modal.Body>
-                        <bem.AssetGallery__modalCarousel className={"col8 "+ (this.props.isModalSidebarOpen ? '' : 'full-screen')}>
+                        <bem.AssetGallery__modalCarousel className="col8">
                             <Slider ref="slider" {...settings} beforeChange={this.props.handleCarouselChange}>
                                 {this.props.results.map(function (item, i) {
                                     return (
@@ -44,7 +44,6 @@ let FormGalleryModal = React.createClass({
 
                         <FormGalleryModalSidebar
                             results={this.props.results}
-                            isModalSidebarOpen={this.props.isModalSidebarOpen}
                             filter={this.props.filter}
                             galleryItemIndex={this.props.galleryItemIndex}
                             galleryIndex={this.props.galleryIndex}
@@ -65,9 +64,8 @@ let FormGalleryModal = React.createClass({
 let FormGalleryModalSidebar = React.createClass({
     render(){
         let currentRecordIndex = (this.props.filter === 'question' ? this.props.galleryItemIndex + 1 : this.props.galleryIndex + 1);
-        let status = (this.props.isModalSidebarOpen) ? 'open' : 'closed';
         return (
-            <bem.AssetGallery__modalSidebar className={"col4 " + status}>
+            <bem.AssetGallery__modalSidebar className="col4 open">
                 <i className="toggle-info k-icon-close" onClick={this.props.closeModal}></i>
                 <div>
                     <div className="info__outer">

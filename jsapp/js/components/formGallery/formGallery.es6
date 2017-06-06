@@ -19,7 +19,6 @@ var FormGallery = React.createClass({
             hasMoreRecords: false,
             nextRecordsPage: 2,
             showModal: false,
-            isModalSidebarOpen: true,
             activeID: null,
             activeTitle: null,
             activeDate: null,
@@ -211,7 +210,6 @@ var FormGallery = React.createClass({
 
                     <FormGalleryModal
                         showModal={this.state.showModal}
-                        isModalSidebarOpen={this.state.isModalSidebarOpen}
                         results={this.state.assets.results[this.state.galleryIndex].attachments.results}
                         closeModal={this.closeModal}
                         handleCarouselChange={this.handleCarouselChange}
@@ -239,6 +237,8 @@ let FormGalleryGrid = React.createClass({
         return {
             galleryPage: 1,
             hasMoreAttachments: false,
+            showPaginatedModal: false,
+
         };
     },
     updateHasMoreAttachments: function(){
@@ -262,13 +262,13 @@ let FormGalleryGrid = React.createClass({
             if(this.state.galleryPage <= 2){
                 loadMoreBtnCode = <button onClick={this.loadMoreAttachments} className='mdl-button mdl-button--colored loadmore-button'>{t('Load More')}</button>;
             }else{
-                loadMoreBtnCode = <button onClick={this.showPaginatedModal} className='mdl-button mdl-button--colored loadmore-button'>{t('See '+this.props.galleryAttachmentsCount+' Images')}</button>
+                loadMoreBtnCode = <button onClick={this.togglePaginatedModal} className='mdl-button mdl-button--colored loadmore-button'>{t('See '+this.props.galleryAttachmentsCount+' Images')}</button>
             }
         }
         return loadMoreBtnCode;
     },
-    showPaginatedModal: function(){
-
+    togglePaginatedModal: function(){
+        this.setState({'showPaginatedModal': !showPaginatedModal });
     },
     render(){
         return (
