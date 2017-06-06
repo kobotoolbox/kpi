@@ -524,12 +524,14 @@ var Reports = React.createClass({
 
     if (this.state.reportData === undefined) {
       return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
+        <bem.ReportView>
+          <bem.Loading>
+            <bem.Loading__inner>
+              <i />
+              {t('loading...')}
+            </bem.Loading__inner>
+          </bem.Loading>
+        </bem.ReportView>
       );
     }
 
