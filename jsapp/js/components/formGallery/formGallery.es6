@@ -16,7 +16,7 @@ var FormGallery = React.createClass({
     getInitialState: function() {
         this.toggleInfo = this.toggleInfo.bind(this);
         return {
-            defaultPageSize: 5,
+            defaultPageSize: 6,
             hasMoreRecords: false,
             nextRecordsPage: 2,
             showModal: false,
@@ -185,7 +185,7 @@ var FormGallery = React.createClass({
 
 
                         {this.state.assets.results.map(function(record, i) {
-                            let galleryTitle =  (this.state.filter.source === 'question') ? record.label : 'Record #' + parseInt(i + 1);
+                            let galleryTitle =  (this.state.filter.source === 'question') ? record.label : 'Record ' + parseInt(i + 1);
                             let searchRegEx = new RegExp(this.state.searchTerm, "i");
                             let searchTermMatched = this.state.searchTerm =='' || galleryTitle.match(searchRegEx) || this.formatDate(record.date_created).match(this.state.searchTerm);
 
@@ -214,7 +214,7 @@ var FormGallery = React.createClass({
 
 
                     <div className="form-view__cell form-view__cell--centered">
-                        {(this.state.hasMoreRecords && this.state.filter.source=='submission' && this.state.searchTerm=='') ? <button onClick={this.loadMoreRecords} className='mdl-button mdl-button--colored'>Load more</button> : null}
+                        {(this.state.hasMoreRecords && this.state.filter.source=='submission' && this.state.searchTerm=='') ? <button onClick={this.loadMoreRecords} className='mdl-button mdl-button--colored loadmore-button'>Load more</button> : null}
                     </div>
 
                     <FormGalleryModal
@@ -276,7 +276,7 @@ let FormGalleryGrid = React.createClass({
                             <FormGalleryGridItem
                                 key={j}
                                 date={this.props.formatDate(timestamp)}
-                                itemTitle={this.props.currentFilter === 'question' ? t('Record') + ' #' + parseInt(j + 1) : item.question.label}
+                                itemTitle={this.props.currentFilter === 'question' ? t('Record') + ' ' + parseInt(j + 1) : item.question.label}
                                 url={item.medium_download_url}
                                 galleryIndex={this.props.galleryIndex}
                                 galleryItemIndex={j}
@@ -286,7 +286,7 @@ let FormGalleryGrid = React.createClass({
                     }.bind(this))}
 
                     <div className="form-view__cell form-view__cell--centered">
-                        {(this.state.hasMoreAttachments  && this.props.currentFilter === 'question') ? <button onClick={this.loadMoreAttachments} className='mdl-button mdl-button--colored'>{t('Load More')}</button> : null}
+                        {(this.state.hasMoreAttachments  && this.props.currentFilter === 'question') ? <button onClick={this.loadMoreAttachments} className='mdl-button mdl-button--colored loadmore-button'>{t('Load More')}</button> : null}
                     </div>
                 </bem.AssetGallery__grid>
             </div>
