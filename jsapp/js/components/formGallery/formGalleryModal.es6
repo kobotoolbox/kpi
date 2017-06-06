@@ -31,10 +31,6 @@ let FormGalleryModal = React.createClass({
                 <bem.AssetGallery__modal>
                     <ui.Modal.Body>
                         <bem.AssetGallery__modalCarousel className={"col8 "+ (this.props.isModalSidebarOpen ? '' : 'full-screen')}>
-                            <bem.AssetGallery__modalCarouselTopbar className={this.props.isModalSidebarOpen ? 'show' : 'show--hover'}>
-                                <i className="close-modal k-icon-prev" onClick={this.props.closeModal}></i>
-                                <i className="toggle-info k-icon-information" onClick={this.props.toggleInfo}></i>
-                            </bem.AssetGallery__modalCarouselTopbar>
                             <Slider ref="slider" {...settings} beforeChange={this.props.handleCarouselChange}>
                                 {this.props.results.map(function (item, i) {
                                     return (
@@ -73,7 +69,7 @@ let FormGalleryModalSidebar = React.createClass({
         let status = (this.props.isModalSidebarOpen) ? 'open' : 'closed';
         return (
             <bem.AssetGallery__modalSidebar className={"col4 " + status}>
-                <i className="toggle-info k-icon-close" onClick={this.props.toggleInfo}></i>
+                <i className="toggle-info k-icon-close" onClick={this.props.closeModal}></i>
                 <div>
                     <div className="info__outer">
                         <div className="light-grey-bg">

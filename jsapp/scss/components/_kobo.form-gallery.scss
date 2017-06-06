@@ -259,10 +259,6 @@ $icon-font-size: 40px;
         &__carousel{
             position: relative;
             height: 100%;
-            .toggle-info{
-                display:none;
-                cursor: pointer;
-            }
             &__topbar{
                 position: absolute;
                 color: #fff;
@@ -284,11 +280,6 @@ $icon-font-size: 40px;
             }
             &.full-screen{
                 width: 100% !important;
-                .toggle-info{
-                    display: inline-block;
-                    color: #fff;
-                    font-size: $icon-font-size;
-                }
             }
         }
         &__sidebar{

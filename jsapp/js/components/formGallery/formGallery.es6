@@ -14,7 +14,6 @@ var FormGallery = React.createClass({
     },
     //Init
     getInitialState: function() {
-        this.toggleInfo = this.toggleInfo.bind(this);
         return {
             defaultPageSize: 6,
             hasMoreRecords: false,
@@ -134,11 +133,7 @@ var FormGallery = React.createClass({
     closeModal: function() {
         this.setState({showModal: false});
     },
-    toggleInfo(){
-        this.setState({
-            isModalSidebarOpen: !this.state.isModalSidebarOpen
-        });
-    },
+
     //Modal Custom
     handleCarouselChange: function(currentSlide, nextSlide) {
         let record = this.state.assets.results[this.state.galleryIndex];
@@ -222,7 +217,6 @@ var FormGallery = React.createClass({
                         isModalSidebarOpen={this.state.isModalSidebarOpen}
                         results={this.state.assets.results[this.state.galleryIndex].attachments.results}
                         closeModal={this.closeModal}
-                        toggleInfo={this.toggleInfo}
                         handleCarouselChange={this.handleCarouselChange}
                         updateActiveAsset={this.updateActiveAsset}
                         setSearchTerm={this.setSearchTerm}
