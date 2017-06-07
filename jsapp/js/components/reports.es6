@@ -19,7 +19,6 @@ import {
 } from '../utils';
 
 function labelVal(label, value) {
-  // returns {label: "Some Value", value: "some_value"} for react-select
   return {label: t(label), value: (value || label.toLowerCase().replace(/\W+/g, '_'))};
 }
 let reportStyles = [
@@ -273,7 +272,12 @@ var Reports = React.createClass({
             rowsByIdentifier: rowsByIdentifier,
             reportStyles: asset.report_styles,
             reportData: dataWithResponses,
-            translations: asset.content.translations.length > 1 ? true : false
+            translations: asset.content.translations.length > 1 ? true : false,
+            error: false
+          });
+        }).fail((err)=> {
+          this.setState({
+            error: err
           });
         });
       } else {
@@ -289,7 +293,8 @@ var Reports = React.createClass({
       translations: false,
       translationIndex: 0,
       groupBy: [],
-      activeModalTab: 0
+      activeModalTab: 0,
+      error: false
     };
   },
   groupDataBy(evt) {
@@ -526,10 +531,20 @@ var Reports = React.createClass({
       return (
         <bem.ReportView>
           <bem.Loading>
-            <bem.Loading__inner>
-              <i />
-              {t('loading...')}
-            </bem.Loading__inner>
+            {this.state.error === false ?
+              <bem.Loading__inner>
+                <i />
+                {t('loading...')}
+              </bem.Loading__inner>
+              : 
+              <bem.Loading__inner>
+                {t('This report cannot be loaded.')}
+                <br/>
+                <code>
+                  {this.state.error.statusText + ': ' + this.state.error.responseText}
+                </code>
+              </bem.Loading__inner>
+            }
           </bem.Loading>
         </bem.ReportView>
       );
@@ -538,11 +553,13 @@ var Reports = React.createClass({
     if (this.state.reportData && reportData.length === 0) {
       return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          <bem.Loading>
-            <bem.Loading__inner>
-              {t('This report has no data.')}
-            </bem.Loading__inner>
-          </bem.Loading>
+          <bem.ReportView>
+            <bem.Loading>
+              <bem.Loading__inner>
+                {t('This report has no data.')}
+              </bem.Loading__inner>
+            </bem.Loading>
+          </bem.ReportView>
         </DocumentTitle>
       );
     }

@@ -93,7 +93,7 @@ var FormViewTabs = React.createClass({
   renderFormSideTabs() {
     var sideTabs = [];
 
-    if (this.state.asset && this.state.asset.deployment__active && this.isActiveRoute(`/forms/${this.state.assetid}/data`)) {
+    if (this.state.asset && this.state.asset.has_deployment && this.isActiveRoute(`/forms/${this.state.assetid}/data`)) {
      sideTabs = [
         {label: t('Reports'), icon: 'k-icon-report', path: `/forms/${this.state.assetid}/data/report`},
         {label: t('Reports (legacy)'), icon: 'k-icon-report', path: `/forms/${this.state.assetid}/data/report-legacy`, className: 'is-edge'},
