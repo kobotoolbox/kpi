@@ -767,7 +767,7 @@ var dmix = {
     //       date_deployed: 'June 1 2016',
     //     }
     // ];
-    var dvcount = this.state.deployed_versions.length;
+    var dvcount = this.state.deployed_versions.count;
     return (
         <bem.FormView__group m="deployments">
           <bem.FormView__group m="headings">
@@ -808,14 +808,14 @@ var dmix = {
             </bem.FormView__item>
           </bem.FormView__group>
  
-          {this.state.deployed_versions.length > 0 &&
+          {this.state.deployed_versions.count > 0 &&
             <bem.FormView__group m={["history", this.state.historyExpanded ? 'historyExpanded' : 'historyHidden']}>
               <bem.FormView__group m="history-contents">
                 <bem.FormView__label m='previous-versions'>
                   {t('Previous Versions')}
                 </bem.FormView__label>
  
-                {this.state.deployed_versions.map((item, n) => {
+                {this.state.deployed_versions.results.map((item, n) => {
                   return (
                     <bem.FormView__group m="deploy-row">
                       <bem.FormView__item m='version'>
