@@ -51,6 +51,7 @@ var FormSubScreens = React.createClass({
         var deployment__identifier = this.state.deployment__identifier;
         var report__base = deployment__identifier.replace('/forms/', '/reports/');
       }
+
       switch(this.props.location.pathname) {
         case `/forms/${this.state.uid}/data/report-legacy`:
           iframeUrl = report__base+'/digest.html';
@@ -59,7 +60,7 @@ var FormSubScreens = React.createClass({
           iframeUrl = report__base+'/export.html';
           break;
         case `/forms/${this.state.uid}/data/gallery`:
-          return this.renderCollection();
+          return this.renderFormGallery();
           break;
         case `/forms/${this.state.uid}/data/map`:
           iframeUrl = deployment__identifier+'/map';
@@ -96,7 +97,7 @@ var FormSubScreens = React.createClass({
         </DocumentTitle>
       );
   },
-  renderCollection () {
+  renderFormGallery () {
     var docTitle = this.state.name || t('Untitled');
     var deployment__identifier = this.state.deployment__identifier;
     return (
