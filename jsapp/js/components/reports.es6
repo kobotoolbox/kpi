@@ -246,7 +246,8 @@ var Reports = React.createClass({
           var dataWithResponses = [];
 
           data.list.forEach(function(row){
-            if (row.data.responses !== undefined) {
+
+            if (row.data.responses || row.data.values || row.data.mean) {
               if (rowsByIdentifier[row.name] !== undefined) {
                 row.row.label = rowsByIdentifier[row.name].label;
               } else {
@@ -254,16 +255,6 @@ var Reports = React.createClass({
               }
               dataWithResponses.push(row);
             }
-
-            if (row.data.values !== undefined) {
-              if (rowsByIdentifier[row.name] !== undefined) {
-                row.row.label = rowsByIdentifier[row.name].label;
-              } else {
-                row.row.label = t('untitled');
-              }
-              dataWithResponses.push(row);
-            }
-
           });
 
           this.setState({

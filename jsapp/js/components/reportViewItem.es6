@@ -10,6 +10,28 @@ import {t, assign} from '../utils';
 var ReportTable = React.createClass({
   render () {
     let th = [''], rows = [];
+    if (this.props.type=='numerical') {
+      th = [t('Mean'), t('Median'), t('Mode'), t('Standard deviation')];
+      return (
+        <table>
+          <thead>
+            <tr>
+              {th.map((t,i)=>{
+                return (<th key={i}>{t}</th>);
+              })}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{this.props.rows.mean || t('N/A')}</td>
+              <td>{this.props.rows.median || t('N/A')}</td>
+              <td>{this.props.rows.mode || t('N/A')}</td>
+              <td>{this.props.rows.stdev || t('N/A')}</td>
+            </tr>
+          </tbody>
+        </table>
+      );
+    }
     if (this.props.type=='regular') {
       th = [t('Value'), t('Frequency'), t('Percentage')];
       rows = this.props.rows;
@@ -57,6 +79,9 @@ var ReportViewItem = React.createClass({
           d.percentages,
         );
     }
+
+    if (d.mean)
+      reportTable = false;
 
     return {
       ...this.props,
@@ -285,10 +310,14 @@ var ReportViewItem = React.createClass({
               <canvas ref="canvas" />
             </bem.ReportView__chart>
           }
-          {d.values ? 
+          {d.values &&
             <ReportTable rows={d.values} type='disaggregated' />
-            : 
+          }
+          {p.reportTable &&
             <ReportTable rows={p.reportTable} type='regular'/>
+          }
+          {d.mean &&
+            <ReportTable rows={d} type='numerical'/>
           }
         </bem.ReportView__itemContent>
       </div>
