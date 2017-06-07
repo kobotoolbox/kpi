@@ -64,7 +64,7 @@ def find_original_and_duplicate_versions(version_pks, asset_pk):
                 version._deployment_data,
                 version.version_content,
                 version.deployed
-            ))
+            ), sort_keys=True)
             digest = md5(serialized).digest()
             if digest in digests_to_first_version_pks:
                 duplicate_version_pks.append(version.pk)
