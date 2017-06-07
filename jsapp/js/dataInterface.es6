@@ -344,6 +344,7 @@ var dataInterface;
       });
     },
     loadQuestionAttachment (uid, filter_by, index, page, page_size, sort='asc'){
+        console.log(uid, filter_by, index, page, page_size, sort);
       return $ajax({
         url: `${rootUrl}/assets/${uid}/attachments`,
         method: 'GET',

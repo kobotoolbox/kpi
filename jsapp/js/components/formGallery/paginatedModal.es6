@@ -44,13 +44,12 @@ let PaginatedModal = React.createClass({
         this.resetGallery();
     },
     resetGallery: function(){
-        // this.setState({
-        //     attachments: []
-        // })
-        this.loadAttachments(1);
+        this.setState({'galleryLoaded' : false});
+        this.loadAttachments(1, true);
         this.setTotalPages();
         this.setActiveAttachmentsIndex(0);
         this.setState({'galleryLoaded' : true});
+        console.log(this.state);
     },
     setTotalPages: function() {
         let totalPages = Math.ceil(this.state.attachments_count / this.state.offset);
@@ -61,32 +60,36 @@ let PaginatedModal = React.createClass({
     },
     changeOffset: function(offset){
         console.log(offset);
-        this.setState({'offset': offset, 'galleryLoaded': false}, function(){
+        this.setState({'offset': offset}, function(){
             console.log(this.state.offset);
             this.resetGallery();
         });
-
     },
     goToPage: function(page) {
-        this.loadAttachments(page + 1);
-        this.setActiveAttachmentsIndex(page);
+        console.log(page.selected);
+        this.loadAttachments(page.selected + 1);
+        this.setActiveAttachmentsIndex(page.selected);
     },
-    loadAttachments: function(page) {
+    loadAttachments: function(page, reset=false) {
+        console.log("Load Page: ", page);
         if (this.state.attachments[page - 1] == undefined) {
             dataInterface.loadQuestionAttachment(this.props.uid, 'question', this.props.galleryIndex, page, this.state.offset, this.state.sortBy).done((response) => {
-                let newAttachments = this.state.attachments;
+                let newAttachments = (reset) ? this.state.attachments : [];
+                let currentAttachementsLoaded = (reset) ? response.attachments.results.length : this.state.currentAttachmentsLoaded + response.attachments.results.length;
                 newAttachments.push(response.attachments.results);
                 console.log(newAttachments);
                 this.setState({
                     'attachments': newAttachments,
-                    'currentAttachmentsLoaded': this.state.currentAttachmentsLoaded + response.attachments.results.length
+                    'currentAttachmentsLoaded': currentAttachementsLoaded
                 });
             });
         }
     },
     render() {
         let activeAttachmentsArray = this.state.attachments[this.state.activeAttachmentsIndex];
+
         if (activeAttachmentsArray != undefined && this.state.galleryLoaded) {
+            console.log(activeAttachmentsArray);
             return (
                 <bem.PaginatedModal>
                     <ui.Modal open large onClose={this.props.togglePaginatedModal}>
