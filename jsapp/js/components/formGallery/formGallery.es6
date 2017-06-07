@@ -58,7 +58,11 @@ var FormGallery = React.createClass({
             });
         });
     },
-
+    setAssets: function(nweAssets){
+        this.setState({
+            assets: nweAssets
+        });
+    },
     // FILTER
     switchFilter(value) {
         let filters = [
@@ -198,6 +202,7 @@ var FormGallery = React.createClass({
                                     formatDate={this.formatDate}
                                     openModal={this.openModal}
                                     defaultPageSize={this.state.defaultPageSize}
+                                    setAssets={this.setAssets}
                                 />
                             );
                         }else{
@@ -274,6 +279,26 @@ let FormGalleryGrid = React.createClass({
     togglePaginatedModal: function(){
         this.setState({'showPaginatedModal': !this.state.showPaginatedModal });
     },
+    displayPaginatedModal: function(){
+        if(this.state.showPaginatedModal){
+            return (
+                <PaginatedModal
+                    togglePaginatedModal={this.togglePaginatedModal}
+                    uid={this.props.uid}
+                    galleryTitle={this.props.galleryTitle}
+                    currentlyLoadedGalleryAttachments={this.state.currentlyLoadedGalleryAttachments}
+                    galleryAttachmentsCount={this.props.galleryAttachmentsCount}
+                    galleryItems={this.props.galleryItems}
+                    galleryDate={this.props.galleryDate}
+                    galleryIndex={this.props.galleryIndex}
+                    currentFilter={this.props.currentFilter}
+                    openModal={this.props.openModal}
+                    formatDate={this.props.formatDate}
+                    loadMoreAttachments={this.props.loadMoreAttachments}
+                />
+            );
+        }
+    },
     render(){
         return (
             <div key={this.props.galleryIndex}>
@@ -300,20 +325,8 @@ let FormGalleryGrid = React.createClass({
                 <div className="form-view__cell form-view__cell--centered loadmore-div">
                     {this.toggleLoadMoreBtn()}
                 </div>
-
-                <PaginatedModal
-                    show={this.state.showPaginatedModal}
-                    togglePaginatedModal={this.togglePaginatedModal}
-                    galleryTitle={this.props.galleryTitle}
-                    currentlyLoadedGalleryAttachments={this.state.currentlyLoadedGalleryAttachments}
-                    galleryAttachmentsCount={this.props.galleryAttachmentsCount}
-                    galleryItems={this.props.galleryItems}
-                    galleryDate={this.props.galleryDate}
-                    galleryIndex={this.props.galleryIndex}
-                    currentFilter={this.props.currentFilter}
-                    openModal={this.props.openModal}
-                    formatDate={this.props.formatDate}
-                />
+                
+                {this.displayPaginatedModal()}
             </div>
         );
     }

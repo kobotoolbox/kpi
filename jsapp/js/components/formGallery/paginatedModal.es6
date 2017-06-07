@@ -3,64 +3,144 @@ import React from 'react';
 import bem from '../../bem';
 import ui from '../../ui';
 import FormGalleryGridItem from './formGalleryGridItem';
-// import {dataInterface} from '../../dataInterface';
+import {dataInterface} from '../../dataInterface';
 import {t} from '../../utils';
+import ReactPaginate from 'react-paginate';
+import Select from 'react-select';
 
 let PaginatedModal = React.createClass({
-    getInitialState: function(){
+    getInitialState: function() {
         return {
-            perPage: 10,
-            perPageAvailableValues: [10, 25, 50, 100],
-            isOpen: false
+            offset: 4,
+            offsetValues: [
+                {
+                    value : 10,
+                    label: 10
+                },
+                {
+                    value : 25,
+                    label: 25
+                },
+                {
+                    value : 50,
+                    label: 50
+                },
+                {
+                    value : 100,
+                    label: 100
+                }
+            ],
+            isOpen: false,
+            sortBy: 'asc',
+            attachments: [],
+            attachments_count: this.props.galleryAttachmentsCount,
+            totalPages: 0,
+            currentAttachmentsLoaded: 0,
+            activeAttachmentsIndex: 0,
+            galleryLoaded: false
         }
     },
-    componentDidUpdate : function(){
+    componentDidMount: function() {
+        this.resetGallery();
+    },
+    resetGallery: function(){
+        // this.setState({
+        //     attachments: []
+        // })
+        this.loadAttachments(1);
+        this.setTotalPages();
+        this.setActiveAttachmentsIndex(0);
+        this.setState({'galleryLoaded' : true});
+    },
+    setTotalPages: function() {
+        let totalPages = Math.ceil(this.state.attachments_count / this.state.offset);
+        this.setState({'totalPages' : totalPages});
+    },
+    setActiveAttachmentsIndex: function(index) {
+        this.setState({'activeAttachmentsIndex': index});
+    },
+    changeOffset: function(offset){
+        console.log(offset);
+        this.setState({'offset': offset, 'galleryLoaded': false}, function(){
+            console.log(this.state.offset);
+            this.resetGallery();
+        });
 
     },
-    render(){
-        if(this.props.show){
+    goToPage: function(page) {
+        this.loadAttachments(page + 1);
+        this.setActiveAttachmentsIndex(page);
+    },
+    loadAttachments: function(page) {
+        if (this.state.attachments[page - 1] == undefined) {
+            dataInterface.loadQuestionAttachment(this.props.uid, 'question', this.props.galleryIndex, page, this.state.offset, this.state.sortBy).done((response) => {
+                let newAttachments = this.state.attachments;
+                newAttachments.push(response.attachments.results);
+                console.log(newAttachments);
+                this.setState({
+                    'attachments': newAttachments,
+                    'currentAttachmentsLoaded': this.state.currentAttachmentsLoaded + response.attachments.results.length
+                });
+            });
+        }
+    },
+    render() {
+        let activeAttachmentsArray = this.state.attachments[this.state.activeAttachmentsIndex];
+        if (activeAttachmentsArray != undefined && this.state.galleryLoaded) {
             return (
                 <bem.PaginatedModal>
                     <ui.Modal open large onClose={this.props.togglePaginatedModal}>
-                            <ui.Modal.Body>
-                                <bem.PaginatedModal_heading>
-                                    {/* <i className="close-modal k-icon-close" onClick={this.props.togglePaginatedModal}></i> */}
-                                    <h2>{t('All Photo of') + " " + this.props.galleryTitle}</h2>
-                                    <h4>{t('Showing')} <b>{this.props.currentlyLoadedGalleryAttachments}</b> {t('of')} <b>{this.props.galleryAttachmentsCount}</b></h4>
-                                </bem.PaginatedModal_heading>
-                                <bem.PaginatedModal_body>
-                                    <bem.PaginatedModal_pagination>
+                        <ui.Modal.Body>
+                            <bem.PaginatedModal_heading>
+                                <h2>{t('All Photo of') + " " + this.props.galleryTitle}</h2>
+                                <h4>{t('Showing')} <b>{this.state.currentAttachmentsLoaded}</b> {t('of')} <b>{this.props.galleryAttachmentsCount}</b></h4>
 
-                                    </bem.PaginatedModal_pagination>
+                                <Select
+                                    className="icon-button-select"
+                                    options={this.state.offsetValues}
+                                    simpleValue
+                                    name="selected-filter"
+                                    value={this.state.offsetValues.value}
+                                    onChange={this.changeOffset}
+                                    autoBlur={true}
+                                    searchable={false}/>
+
+                            </bem.PaginatedModal_heading>
+                            <bem.PaginatedModal_body>
+
+                                    <ReactPaginate previousLabel={"previous"}
+                                       nextLabel={"next"}
+                                       breakLabel={<a href="">...</a>}
+                                       breakClassName={"break-me"}
+                                       pageCount={this.state.totalPages}
+                                       marginPagesDisplayed={2}
+                                       pageRangeDisplayed={5}
+                                       onPageChange={this.goToPage}
+                                       containerClassName={"pagination"}
+                                       subContainerClassName={"pages pagination"}
+                                       activeClassName={"active"} />
+
                                     <bem.AssetGallery__grid>
-                                        {this.props.galleryItems.map(function(item, j) {
-                                            var timestamp = (this.props.currentFilter === 'question') ? item.submission.date_created : this.props.galleryDate;
-                                                return (
-                                                    <FormGalleryGridItem
-                                                        key={j}
-                                                        itemsPerRow="10"
-                                                        date={this.props.formatDate(timestamp)}
-                                                        itemTitle={this.props.currentFilter === 'question' ? t('Record') + ' ' + parseInt(j + 1) : item.question.label}
-                                                        url={item.small_download_url}
-                                                        galleryIndex={this.props.galleryIndex}
-                                                        galleryItemIndex={j}
-                                                        openModal={this.props.openModal}
-                                                    />
-                                                );
+                                        {activeAttachmentsArray.map(function(item, j) {
+                                            var timestamp = (this.props.currentFilter === 'question')
+                                                ? item.submission.date_created
+                                                : this.props.galleryDate;
+                                            return (<FormGalleryGridItem key={j} itemsPerRow="10" date={this.props.formatDate(timestamp)} itemTitle={this.props.currentFilter === 'question'
+                                                ? t('Record') + ' ' + parseInt(j + 1)
+                                                : item.question.label} url={item.small_download_url} galleryIndex={this.props.galleryIndex} galleryItemIndex={j} openModal={this.props.openModal}/>);
                                         }.bind(this))}
                                     </bem.AssetGallery__grid>
-                                </bem.PaginatedModal_body>
 
-
-                            </ui.Modal.Body>
+                            </bem.PaginatedModal_body>
+                        </ui.Modal.Body>
                     </ui.Modal>
                 </bem.PaginatedModal>
             )
         }else{
             return null;
         }
+
     }
 });
-
 
 module.exports = PaginatedModal;
