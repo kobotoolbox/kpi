@@ -339,7 +339,7 @@ var App = React.createClass({
                 <Modal params={this.state.pageState.modal} />
               }
 
-              { !this.isFormBuilder() && !this.state.pageState.headerHidden && 
+              { !this.isFormBuilder() && !this.state.pageState.headerHidden &&
                 <MainHeader assetid={assetid}/>
               }
               { !this.isFormBuilder() && !this.state.pageState.drawerHidden &&
@@ -642,7 +642,7 @@ var routes = (
     <Route path="forms" >
       <IndexRoute component={FormsSearchableList} />
 
-      <Route path="/forms/:assetid"> 
+      <Route path="/forms/:assetid">
         {/*<Route name="form-download" path="download" component={FormDownload} />*/}
         <Route path="json" component={FormJson} />
         <Route path="xform" component={FormXform} />

@@ -322,6 +322,51 @@ var dataInterface;
         return $.getJSON(`${rootUrl}/collections/${params.id}/`);
       }
     },
+    getGalleryImages (uid){
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/attachments`,
+        method: 'GET',
+        data: {
+          type: 'image'
+        }
+      });
+    },
+    filterGalleryImages (uid, filter_by, page_size){
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/attachments`,
+        method: 'GET',
+        data: {
+          type: 'image',
+          group_by: filter_by,
+          limit: page_size
+        }
+      });
+    },
+    loadQuestionAttachment (uid, filter_by, index, page, page_size){
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/attachments`,
+        method: 'GET',
+        data: {
+          type: 'image',
+          group_by: filter_by,
+          index: index,
+          page_size: page_size,
+          page: page
+        }
+      });
+    },
+    loadMoreRecords (uid, filter_by, page, page_size){
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/attachments`,
+        method: 'GET',
+        data: {
+          type: 'image',
+          group_by: filter_by,
+          page_size: page_size,
+          page: page
+        }
+      });
+    },
     deployAsset (asset, redeployment) {
       var data = {
         'active': true,

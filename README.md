@@ -36,7 +36,7 @@ Top-level (null-parent) assets and collections can be found by including `parent
 * `asset_type` (for assets only): a space- and comma-escaped representation of the asset's type string;
 * `text`: the search "document," which is built by [text templates](https://github.com/kobotoolbox/kpi/tree/master/kpi/templates/search/indexes/kpi).
 
-When the `q` parameter contains a search term without a specified field, e.g. `/collections/?q=health`, that term is matched against the search "document" (the `text` field). 
+When the `q` parameter contains a search term without a specified field, e.g. `/collections/?q=health`, that term is matched against the search "document" (the `text` field).
 
 Searching tags
 --------------

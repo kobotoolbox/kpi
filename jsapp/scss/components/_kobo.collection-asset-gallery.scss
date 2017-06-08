@@ -1,0 +1,297 @@
+@import "~slick-carousel/slick/slick.css";
+@import "~slick-carousel/slick/slick-theme.css";
+
+@mixin aspect-ratio($width, $height) {
+    position: relative;
+    &:before {
+        display: block;
+        content: "";
+        width: 100%;
+        padding-top: ($height / $width) * 100%;
+    }
+    > div, a {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+}
+.one-one{
+    @include aspect-ratio(1,1)
+}
+.asset-gallery{
+    height: 100%;
+    overflow: auto;
+    padding: 40px 0 60px;
+    >div{
+        padding: 0px 40px;
+    }
+    .styled-select {
+        select {
+            background: transparent;
+            border: none;
+            font-size: 14px;
+            height: 29px;
+            padding: 5px; /* If you add too much padding here, the options won't show in IE */
+            width: 268px;
+        }
+    }
+
+    &__grid, &__heading{
+        display: flex;
+    }
+    &__grid{
+        h5{
+            font-size: 1.5em;
+            margin: 15px 0px;
+            font-weight: normal;
+        }
+        flex-wrap: wrap;
+        >div{
+            width: 100%;
+            padding-top: 30px;
+        }
+        &-item{
+            $root: &;
+            margin: 0 15px 15px 0;
+            display: inline-block;
+            &.col6{
+                width: 50%;
+            }
+            &.col4{
+                width: 31%;
+            }
+            &__overlay{
+                opacity: 0;
+                transition: 0.3s all ease-in-out;
+                background: -webkit-gradient(linear, 0% 40%, 0% 110%, from(transparent), to(#000));
+                .text{
+                    color: #fff;
+                    position: absolute;
+                    bottom: 0;
+                    left: 10px;
+                }
+                #{$root}:hover & {
+                    opacity: 1;
+                }
+            }
+        }
+    }
+    &__heading{
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        &__search-filter{
+            min-width: 300px;
+            display: flex;
+            align-items: center;
+            .text-display{
+                display: inline-block;
+                padding: 10px;
+                border-radius: 2px;
+                border: solid 1px #ccc;
+                background-color: #fff;
+                width: 220px;
+                box-shadow:0px 1px 1px #ccc;
+                color: #ccc;
+            }
+            .Select--single{
+                display: inline-block;
+                &:first-child{
+                    min-width: 240px;
+                }
+            }
+            .icon-button-select{
+                .Select-control{
+                    border: none;
+                    width: 30px;
+                    height: 30px;
+                    border: none;
+                    background: url('../img/filter.png') no-repeat;
+                    background-size: cover;
+                    box-shadow: none;
+                }
+                .Select-placeholder{
+                    display: none;
+                }
+                .Select-menu-outer{
+                    top: -5px;
+                    right: 0px;
+                    width: 200px;
+                }
+                .Select-multi-value-wrapper{
+                    display: none;
+                }
+                .Select-clear-zone{
+                    display: none;
+                }
+                .Select-arrow-zone{
+                    display: none;
+                }
+            }
+        }
+    }
+    &__modal{
+        height: 100%;
+        .modal-body{
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            flex-wrap: wrap;
+            padding: 0;
+            .col8{
+                width: 75%;
+                background: #000;
+                display: inline-block;
+            }
+            .col4{
+                width: 25%;
+                background: #fff;
+                display: inline-block;
+            }
+            .slick-slider{
+                height: 100%;
+                .slick-list{
+                    height: 100%;
+                    .slick-track {
+                        height: 100%;
+                        .slick-slide {
+                            height: auto;
+                            top: 50%;
+                            transform: translateY(-50%);
+                            position: absolute;
+                            width: 100%;
+                            img{
+                                vertical-align: middle;
+                                display: inline-block;
+                                width: 100%;
+                                height: auto;
+                            }
+                        }
+                    }
+                }
+                /* SLICK ARROWS */
+                .slick-arrow{
+                    display: block;
+                    height: 100%;
+                    width: 60px;
+                    background: rgba(0,0,0,0.6);
+                    z-index: 8;
+                    .material-icons{
+                        color: #fff;
+                        font-size: 50px;
+                    }
+                    &.slick-disabled{
+                        .material-icons{
+                            opacity: 0.3;
+                        }
+                    }
+                    &.slick-next{
+                        right: 0;
+                        &:before{
+                            content: '';
+                        }
+                    }
+                    &.slick-prev{
+                        left: 0;
+                        &:before{
+                            content: '';
+                        }
+                    }
+                }
+            }
+        }
+        &__carousel{
+            position: relative;
+            .toggle-info{
+                display:none;
+                cursor: pointer;
+            }
+            &__topbar{
+                position: absolute;
+                color: #fff;
+                z-index: 9;
+                width: 100%;
+                padding: 15px;
+                &.show{
+                    &--hover{
+                        display: flex;
+                        flex-wrap: nowrap;
+                        justify-content: space-between;
+                        background: -webkit-gradient(linear, 0% 40%, 0% 100%, from(#000), to(transparent));
+                    }
+                }
+                .close-modal{
+                    cursor: pointer;
+                }
+            }
+            &.full-screen{
+                width: 100% !important;
+                .toggle-info{
+                    display: inline-block;
+                    color: #55B5C1;
+                }
+            }
+        }
+        &__sidebar{
+            h3{
+                font-weight: 400;
+                font-size: 1.75em;
+            }
+            h5{
+                color: #2095F3;
+                margin: 0;
+                font-weight: bold;
+                font-size: 1.1em;
+            }
+            &.open{
+                opacity: 1;
+                .toggle-info{
+                    float: right;
+                    font-size: 30px;
+                    margin: 10px;
+                    cursor: pointer;
+                }
+                .info{
+                    &__outer{
+                        h4{
+                            margin-top: 0;
+                            padding: 15px;
+                        }
+                    }
+                    &__inner{
+                        border-bottom: solid 1px #ccc;
+                        margin-bottom: 20px;
+                        padding: 0 15px;
+                        h5{
+                            margin-top: 0;
+                        }
+                    }
+                }
+            }
+            &.closed{
+                width: 0px !important;
+                opacity: 0 !important;
+            }
+
+            &__grid{
+                display: flex;
+                flex-wrap: wrap;
+                &-item{
+                    &.selected{
+                        border: solid 2px #55B5C1;
+                    }
+                    >div{
+                        margin: 5px;
+                    }
+                    &.col6{
+                        width: 50%;
+                    }
+                    img{
+                        width: 100%;
+                    }
+                }
+            }
+        }
+    }
+}
