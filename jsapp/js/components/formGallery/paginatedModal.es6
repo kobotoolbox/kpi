@@ -113,44 +113,22 @@ let PaginatedModal = React.createClass({
                 <ui.Modal open large onClose={this.props.togglePaginatedModal}>
                     <ui.Modal.Body>
                         <bem.PaginatedModal_heading>
-                            <h2>{t('All Photo of') + " " + this.props.galleryTitle} (Active index: {this.state.activeAttachmentsIndex})</h2>
+                            <h2>{t('All Photo of') + " " + this.props.galleryTitle}</h2>
                             <h4>{t('Showing')} <b>{this.state.currentAttachmentsLoaded}</b> {t('of')} <b>{this.props.galleryAttachmentsCount}</b></h4>
-
-                            <Select
-                                className="icon-button-select"
-                                options={this.state.offsetOptions}
-                                simpleValue
-                                name="selected-filter"
-                                value={this.state.offset}
-                                onChange={this.changeOffset}
-                                autoBlur={true}
-                                searchable={false}/>
-
-                            <Select
-                                className="icon-button-select"
-                                options={this.state.sortOptions}
-                                simpleValue
-                                name="selected-filter"
-                                value={this.state.sortValue}
-                                onChange={this.changeSort}
-                                autoBlur={true}
-                                searchable={false}/>
-
                         </bem.PaginatedModal_heading>
+
                         <bem.PaginatedModal_body>
 
-                            <ReactPaginate
-                                previousLabel={"Prev"}
-                                nextLabel={"Next"}
-                                breakLabel={'...'}
-                                breakClassName={"break-me"}
+                            <GalleryControls
+                                offsetOptions={this.state.offsetOptions}
+                                offsetValue={this.state.offset}
+                                changeOffset={this.changeOffset}
                                 pageCount={this.state.totalPages}
-                                marginPagesDisplayed={1}
-                                pageRangeDisplayed={3}
-                                onPageChange={this.goToPage}
-                                containerClassName={"pagination"}
-                                activeClassName={"active"}
-                                forcePage={this.state.activeAttachmentsIndex}
+                                goToPage={this.goToPage}
+                                activeAttachmentsIndex={this.state.activeAttachmentsIndex}
+                                sortOptions={this.state.sortOptions}
+                                sortValue={this.state.sortValue}
+                                changeSort={this.changeSort}
                             />
 
                             <bem.AssetGallery__grid>
@@ -173,8 +151,20 @@ let PaginatedModal = React.createClass({
                                 }
                             </bem.AssetGallery__grid>
 
+                            <GalleryControls
+                                offsetOptions={this.state.offsetOptions}
+                                offsetValue={this.state.offset}
+                                changeOffset={this.changeOffset}
+                                pageCount={this.state.totalPages}
+                                goToPage={this.goToPage}
+                                activeAttachmentsIndex={this.state.activeAttachmentsIndex}
+                                sortOptions={this.state.sortOptions}
+                                sortValue={this.state.sortValue}
+                                changeSort={this.changeSort}
+                            />
 
                         </bem.PaginatedModal_body>
+
                     </ui.Modal.Body>
                 </ui.Modal>
             </bem.PaginatedModal>
@@ -182,4 +172,59 @@ let PaginatedModal = React.createClass({
     }
 });
 
+
+let GalleryControls = React.createClass({
+
+    render(){
+        return(
+            <div className='gallery-controls'>
+                <div className='change-offset'>
+                    <label>{t('Per page:')}</label>
+                    <div className='form-modal__item'>
+                        <Select
+                            className="icon-button-select"
+                            options={this.props.offsetOptions}
+                            simpleValue
+                            name="selected-filter"
+                            value={this.props.offsetValue}
+                            onChange={this.props.changeOffset}
+                            autoBlur={true}
+                            searchable={false}
+                            clearable={false}
+                        />
+                    </div>
+                </div>
+                <div className='form-modal__item'>
+                    <ReactPaginate
+                        previousLabel={"Prev"}
+                        nextLabel={"Next"}
+                        breakLabel={'...'}
+                        breakClassName={"break-me"}
+                        pageCount={this.props.pageCount}
+                        marginPagesDisplayed={1}
+                        pageRangeDisplayed={3}
+                        onPageChange={this.props.goToPage}
+                        containerClassName={"pagination"}
+                        activeClassName={"active"}
+                        forcePage={this.props.activeAttachmentsIndex}
+                    />
+                </div>
+
+                <div className='form-modal__item change-sort'>
+                    <Select
+                        className="icon-button-select"
+                        options={this.props.sortOptions}
+                        simpleValue
+                        name="selected-filter"
+                        value={this.props.sortValue}
+                        onChange={this.props.changeSort}
+                        autoBlur={true}
+                        searchable={false}
+                        clearable={false}
+                    />
+                </div>
+            </div>
+        )
+    }
+})
 module.exports = PaginatedModal;
