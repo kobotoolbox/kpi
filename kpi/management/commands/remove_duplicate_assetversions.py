@@ -82,7 +82,7 @@ def find_original_and_duplicate_versions(version_pks, asset_pk):
     duplicate_version_pks = []
     for (digest, matches) in digests_to_first_version_pks.items():
         if len(matches) > 1:
-            duplicates_of[matches[0]]['pk'] = [m['uid'] for m in matches[1:]]
+            duplicates_of[matches[0]['pk']] = [m['uid'] for m in matches[1:]]
             duplicate_version_pks = duplicate_version_pks + [
                 m['pk'] for m in matches[1:]
             ]
@@ -206,6 +206,9 @@ class Command(BaseCommand):
                     # There are FKs (e.g. from `AssetSnapshot`) that require
                     # Django to take the slow path for cascade deletion
                     start = 0
+                    for (pk, uid_aliases) in duplicate_uids.iteritems():
+                        AssetVersion.objects.filter(id=pk).update(
+                            uid_aliases=uid_aliases)
                     while True:
                         this_batch_version_pks = pks_to_delete[
                             start:start + batch_size]
