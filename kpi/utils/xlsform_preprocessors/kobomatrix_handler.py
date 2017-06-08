@@ -1,13 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 
 import re
 
 from base_handlers import GroupHandler
 
-SPAN_WRAP = u'<span style="display:none">{}</span>'
-HEADER_WRAP = u'**{}**'
-ROW_HEADER_WRAP = u'##### {}'
+SPAN_WRAP = '<span style="display:none">{}</span>'
+HEADER_WRAP = '**{}**'
+ROW_HEADER_WRAP = '##### {}'
 
 
 class KoboMatrixGroupHandler(GroupHandler):

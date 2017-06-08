@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 # 😬
+from __future__ import unicode_literals
 
 from kpi.models import Asset
 from kpi.utils.sluggify import sluggify_label
@@ -456,25 +457,25 @@ def test_named_score_question_compiles():
 def kobomatrix_content():
     return {
         u'survey': [
-            {u'type': 'begin_kobomatrix',
+            {'type': 'begin_kobomatrix',
                 'name': 'm1',
-                'label': u'Itéms',
+                'label': 'Itéms',
                 'kobo--matrix_list': 'car_bike_tv',
-                },
-            {u'type': 'select_one', 'select_from_list_name': 'yn',
-              'label': 'Possess?', 'name': 'possess', 'required': True},
-            {u'type': 'select_one', 'select_from_list_name': 'yn',
-              'label': 'Necessary?', 'name': 'necess', 'required': True},
-            {u'type': 'integer',
-              'label': 'Number', 'name': 'number', 'required': True},
-            {u'type': 'end_kobomatrix'},
+             },
+            {'type': 'select_one', 'select_from_list_name': 'yn',
+             'label': 'Possess?', 'name': 'possess', 'required': True},
+            {'type': 'select_one', 'select_from_list_name': 'yn',
+             'label': 'Necessary?', 'name': 'necess', 'required': True},
+            {'type': 'integer',
+             'label': 'Number', 'name': 'number', 'required': True},
+            {'type': 'end_kobomatrix'},
         ],
-        u'choices': [
-            {u'list_name': 'car_bike_tv', u'label': 'Car', 'name': 'car'},
-            {u'list_name': 'car_bike_tv', u'label': 'Bike', 'name': 'bike'},
-            {u'list_name': 'car_bike_tv', u'label': 'TV', 'name': 'tv'},
+        'choices': [
+            {'list_name': 'car_bike_tv', 'label': 'Car', 'name': 'car'},
+            {'list_name': 'car_bike_tv', 'label': 'Bike', 'name': 'bike'},
+            {'list_name': 'car_bike_tv', 'label': 'TV', 'name': 'tv'},
         ],
-        u'settings': {},
+        'settings': {},
     }
 
 
@@ -535,14 +536,14 @@ def test_kobomatrix_content():
                       ]
 
     assert _none_labels == [True, False, False, False, False, True] * 4
-    assert _labls[1:5] == [u'**Itéms**',
-                           u'**Possess?**',
-                           u'**Necessary?**',
-                           u'**Number**',
+    assert _labls[1:5] == ['**Itéms**',
+                           '**Possess?**',
+                           '**Necessary?**',
+                           '**Number**',
                            ]
 
     def _span(item):
-        return u'<span style="display:none">{}</span>'.format(item)
+        return '<span style="display:none">{}</span>'.format(item)
 
     assert _labls[7:11] == ['##### Car',
                             _span('car-Possess?'),
