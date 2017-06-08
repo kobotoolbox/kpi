@@ -516,6 +516,16 @@ module.exports = do ->
         ops.EX #1
       ]
       name: 'geopoint'
+    geotrace:
+      operators: [
+        ops.EX #1
+      ]
+      name: 'geotrace'
+    geoshape:
+      operators: [
+        ops.EX #1
+      ]
+      name: 'geoshape'
     image:
       operators: [
         ops.EX #1
