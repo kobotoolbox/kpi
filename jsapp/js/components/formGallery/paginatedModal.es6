@@ -49,7 +49,6 @@ let PaginatedModal = React.createClass({
         this.setTotalPages();
         this.setActiveAttachmentsIndex(0);
         this.setState({'galleryLoaded' : true});
-        console.log(this.state);
     },
     setTotalPages: function() {
         let totalPages = Math.ceil(this.state.attachments_count / this.state.offset);
@@ -59,9 +58,7 @@ let PaginatedModal = React.createClass({
         this.setState({'activeAttachmentsIndex': index});
     },
     changeOffset: function(offset){
-        console.log(offset);
         this.setState({'offset': offset}, function(){
-            console.log(this.state.offset);
             this.resetGallery();
         });
     },
@@ -71,13 +68,13 @@ let PaginatedModal = React.createClass({
         this.setActiveAttachmentsIndex(page.selected);
     },
     loadAttachments: function(page, reset=false) {
-        console.log("Load Page: ", page);
-        if (this.state.attachments[page - 1] == undefined) {
+        if (this.state.attachments[page - 1] == undefined || reset==true) {
+            console.log(this.props.uid, 'question', this.props.galleryIndex, page, this.state.offset, this.state.sortBy);
             dataInterface.loadQuestionAttachment(this.props.uid, 'question', this.props.galleryIndex, page, this.state.offset, this.state.sortBy).done((response) => {
-                let newAttachments = (reset) ? this.state.attachments : [];
+                // If this is called with reset empty the attachments array otherwise set it to the value of attachments
+                let newAttachments = (!reset) ? this.state.attachments : [];
                 let currentAttachementsLoaded = (reset) ? response.attachments.results.length : this.state.currentAttachmentsLoaded + response.attachments.results.length;
                 newAttachments.push(response.attachments.results);
-                console.log(newAttachments);
                 this.setState({
                     'attachments': newAttachments,
                     'currentAttachmentsLoaded': currentAttachementsLoaded
