@@ -518,6 +518,12 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
                                       request=request,
                                       ),
                             )
+            deployment_data = snapshot.asset._deployment_data
+            if 'backend_response' in deployment_data:
+                preview_url += '{}/xformsManifest/{}'.format(
+                    settings.KOBOCAT_URL,
+                    deployment_data['backend_response']['metadata'][0]['xform'])
+
             return HttpResponseRedirect(preview_url)
         else:
             response_data = copy.copy(snapshot.details)
