@@ -14,6 +14,10 @@ let PaginatedModal = React.createClass({
             offset: 4,
             offsetValues: [
                 {
+                    value : 1,
+                    label: 1
+                },
+                {
                     value : 10,
                     label: 10
                 },
@@ -44,7 +48,7 @@ let PaginatedModal = React.createClass({
         this.resetGallery();
     },
     resetGallery: function(){
-        this.setState({'galleryLoaded' : false});
+        // this.setState({'galleryLoaded' : false});
         this.loadAttachments(1, true);
         this.setTotalPages();
         this.setActiveAttachmentsIndex(0);
@@ -55,6 +59,7 @@ let PaginatedModal = React.createClass({
         this.setState({'totalPages' : totalPages});
     },
     setActiveAttachmentsIndex: function(index) {
+        console.log("CUrrent Inedx: ", index);
         this.setState({'activeAttachmentsIndex': index});
     },
     changeOffset: function(offset){
@@ -63,23 +68,35 @@ let PaginatedModal = React.createClass({
         });
     },
     goToPage: function(page) {
-        console.log(page.selected);
-        this.loadAttachments(page.selected + 1);
-        this.setActiveAttachmentsIndex(page.selected);
-    },
-    loadAttachments: function(page, reset=false) {
-        if (this.state.attachments[page - 1] == undefined || reset==true) {
-            console.log(this.props.uid, 'question', this.props.galleryIndex, page, this.state.offset, this.state.sortBy);
-            dataInterface.loadQuestionAttachment(this.props.uid, 'question', this.props.galleryIndex, page, this.state.offset, this.state.sortBy).done((response) => {
-                // If this is called with reset empty the attachments array otherwise set it to the value of attachments
-                let newAttachments = (!reset) ? this.state.attachments : [];
-                let currentAttachementsLoaded = (reset) ? response.attachments.results.length : this.state.currentAttachmentsLoaded + response.attachments.results.length;
-                newAttachments.push(response.attachments.results);
-                this.setState({
-                    'attachments': newAttachments,
-                    'currentAttachmentsLoaded': currentAttachementsLoaded
-                });
+        console.log("goToPage:");
+        console.log(page.selected + 1);
+        let attachmentNextPage = page.selected+1;
+        let newActiveIndex = page.selected - 1;
+        if (this.state.attachments[attachmentNextPage] == undefined){
+            this.loadAttachments(attachmentNextPage, ()=>{
+                this.setActiveAttachmentsIndex(newActiveIndex);
             });
+        }else{
+            this.setActiveAttachmentsIndex(newActiveIndex);
+        }
+    },
+    loadAttachments: function(page, reset=false, callback) {
+        console.log(this.props.uid, 'question', this.props.galleryIndex, page, this.state.offset, this.state.sortBy);
+        dataInterface.loadQuestionAttachment(this.props.uid, 'question', this.props.galleryIndex, page, this.state.offset, this.state.sortBy).done((response) => {
+            // If this is called with reset empty the attachments array otherwise set it to the value of attachments
+            let newAttachments = (!reset) ? this.state.attachments : [];
+            let currentAttachementsLoaded = (reset) ? response.attachments.results.length : this.state.currentAttachmentsLoaded + response.attachments.results.length;
+            newAttachments.push(response.attachments.results);
+            console.log("newAttachments: ");
+            console.log(newAttachments);
+            this.setState({
+                'attachments': newAttachments,
+                'currentAttachmentsLoaded': currentAttachementsLoaded
+            });
+
+        });
+        if(callback){
+            callback();
         }
     },
     render() {
@@ -108,17 +125,17 @@ let PaginatedModal = React.createClass({
                             </bem.PaginatedModal_heading>
                             <bem.PaginatedModal_body>
 
-                                    <ReactPaginate previousLabel={"previous"}
-                                       nextLabel={"next"}
-                                       breakLabel={<a href="">...</a>}
+                                    <ReactPaginate previousLabel={"Prev"}
+                                       nextLabel={"Next"}
+                                       breakLabel={<a>...</a>}
                                        breakClassName={"break-me"}
                                        pageCount={this.state.totalPages}
-                                       marginPagesDisplayed={2}
-                                       pageRangeDisplayed={5}
+                                       marginPagesDisplayed={1}
+                                       pageRangeDisplayed={3}
                                        onPageChange={this.goToPage}
                                        containerClassName={"pagination"}
-                                       subContainerClassName={"pages pagination"}
-                                       activeClassName={"active"} />
+                                       activeClassName={"active"}
+                                    />
 
                                     <bem.AssetGallery__grid>
                                         {activeAttachmentsArray.map(function(item, j) {

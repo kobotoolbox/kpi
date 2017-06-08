@@ -358,8 +358,10 @@ $icon-font-size: 40px;
         }
     }
 }
+
 $paginated-modal-black: #414453;
 $paginated-modal-gray: #c3c5d0;
+$paginated-modal-blue: #1CC2D3;
 
 .paginated-modal{
     .modal-content{
@@ -403,4 +405,45 @@ $paginated-modal-gray: #c3c5d0;
         }
     }
 
+}
+
+ul.pagination{
+    font-size: 1.2em;
+    text-align: center;
+    li{
+      list-style: none;
+      cursor: pointer;
+      display: inline-block;
+      margin: 10px;
+      a{
+          transition: .3s ease-in-out;
+          color: $paginated-modal-black;
+          padding: 10px;
+          min-width: 40px;
+          display: block;
+      }
+      &.active{
+        a{
+            background: $paginated-modal-blue;
+            border-radius: 3px;
+            color: white;
+            font-weight: 600;
+        }
+        &:hover{
+            color: white;
+        }
+      }
+    }
+    li.next, li.previous{
+      &:hover{
+          a{
+            color: $paginated-modal-blue;
+          }
+      }
+      &.disabled{
+          a{
+            color: $paginated-modal-gray;
+          }
+      }
+    }
 }
