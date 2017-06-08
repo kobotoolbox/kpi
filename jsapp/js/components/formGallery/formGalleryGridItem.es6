@@ -1,16 +1,7 @@
 import React from 'react';
 import bem from '../../bem';
-import ReactDOM from 'react-dom';
 
 let FormGalleryGridItem = React.createClass({
-    componentDidMount() {
-        var elem = ReactDOM.findDOMNode(this);
-      	elem.style.opacity = 0;
-      	window.requestAnimationFrame(function() {
-      		elem.style.transition = "opacity 500ms";
-      		elem.style.opacity = 1;
-      	});
-    },
     render(){
         let itemStyle = {
             backgroundImage: 'url(' + this.props.url + ')',
@@ -32,6 +23,5 @@ let FormGalleryGridItem = React.createClass({
         );
     }
 });
-
 
 module.exports = FormGalleryGridItem;

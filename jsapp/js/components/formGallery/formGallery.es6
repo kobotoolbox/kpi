@@ -279,26 +279,7 @@ let FormGalleryGrid = React.createClass({
     togglePaginatedModal: function(){
         this.setState({'showPaginatedModal': !this.state.showPaginatedModal });
     },
-    displayPaginatedModal: function(){
-        if(this.state.showPaginatedModal){
-            return (
-                <PaginatedModal
-                    togglePaginatedModal={this.togglePaginatedModal}
-                    uid={this.props.uid}
-                    galleryTitle={this.props.galleryTitle}
-                    currentlyLoadedGalleryAttachments={this.state.currentlyLoadedGalleryAttachments}
-                    galleryAttachmentsCount={this.props.galleryAttachmentsCount}
-                    galleryItems={this.props.galleryItems}
-                    galleryDate={this.props.galleryDate}
-                    galleryIndex={this.props.galleryIndex}
-                    currentFilter={this.props.currentFilter}
-                    openModal={this.props.openModal}
-                    formatDate={this.props.formatDate}
-                    loadMoreAttachments={this.props.loadMoreAttachments}
-                />
-            );
-        }
-    },
+
     render(){
         return (
             <div key={this.props.galleryIndex}>
@@ -326,7 +307,22 @@ let FormGalleryGrid = React.createClass({
                     {this.toggleLoadMoreBtn()}
                 </div>
 
-                {this.displayPaginatedModal()}
+                {(this.state.showPaginatedModal) ?
+                        <PaginatedModal
+                            togglePaginatedModal={this.togglePaginatedModal}
+                            uid={this.props.uid}
+                            galleryTitle={this.props.galleryTitle}
+                            currentlyLoadedGalleryAttachments={this.state.currentlyLoadedGalleryAttachments}
+                            galleryAttachmentsCount={this.props.galleryAttachmentsCount}
+                            galleryItems={this.props.galleryItems}
+                            galleryDate={this.props.galleryDate}
+                            galleryIndex={this.props.galleryIndex}
+                            currentFilter={this.props.currentFilter}
+                            openModal={this.props.openModal}
+                            formatDate={this.props.formatDate}
+                            loadMoreAttachments={this.props.loadMoreAttachments}
+                        />
+                : null}
             </div>
         );
     }
