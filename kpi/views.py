@@ -7,6 +7,7 @@ import datetime
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import Q, Count
 from django.forms import model_to_dict
@@ -25,6 +26,7 @@ from rest_framework import (
     renderers,
     status,
     exceptions,
+    generics,
 )
 from rest_framework.decorators import api_view
 from rest_framework.decorators import renderer_classes
@@ -34,6 +36,7 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.authtoken.models import Token
+from rest_framework.views import APIView
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from taggit.models import Tag
@@ -42,6 +45,7 @@ from .filters import KpiAssignedObjectPermissionsFilter
 from .filters import AssetOwnerFilterBackend
 from .filters import KpiObjectPermissionsFilter, RelatedAssetPermissionsFilter
 from .filters import SearchFilter
+from .filters import AttachmentFilter
 from .highlighters import highlight_xform
 from hub.models import SitewideMessage
 from .models import (
@@ -54,7 +58,7 @@ from .models import (
     AuthorizedApplication,
     OneTimeAuthenticationKey,
     UserCollectionSubscription,
-    )
+)
 from .models.object_permission import get_anonymous_user, get_objects_for_user
 from .models.authorized_application import ApplicationTokenAuthentication
 from .model_utils import disable_auto_field_update
@@ -68,12 +72,16 @@ from .renderers import (
     SSJsonRenderer,
     XFormRenderer,
     AssetSnapshotXFormRenderer,
-    XlsRenderer,)
+    XlsRenderer,
+    MediaFileRenderer)
 from .serializers import (
     AssetSerializer, AssetListSerializer,
     AssetVersionListSerializer,
     AssetVersionSerializer,
     AssetSnapshotSerializer,
+    AttachmentSerializer, AttachmentListSerializer, AttachmentPagination,
+    QuestionSerializer, QuestionPagination,
+    SubmissionSerializer, SubmissionPagination,
     SitewideMessageSerializer,
     CollectionSerializer, CollectionListSerializer,
     UserSerializer,
@@ -84,12 +92,14 @@ from .serializers import (
     AuthorizedApplicationUserSerializer,
     OneTimeAuthenticationKeySerializer,
     DeploymentSerializer,
-    UserCollectionSubscriptionSerializer,)
+    UserCollectionSubscriptionSerializer,
+)
 from .utils.gravatar_url import gravatar_url
 from .utils.kobo_to_xlsform import to_xlsform_structure
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from .tasks import import_in_background
 from deployment_backends.backends import DEPLOYMENT_BACKENDS
+from deployment_backends.kc_reader.shadow_models import _models
 
 CLONE_ARG_NAME = 'clone_from'
 COLLECTION_CLONE_FIELDS = {'name'}
@@ -154,6 +164,7 @@ class ObjectPermissionViewSet(NoUpdateModelViewSet):
             instance.permission.codename
         )
 
+
 class CollectionViewSet(viewsets.ModelViewSet):
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
     queryset = Collection.objects.select_related(
@@ -173,22 +184,22 @@ class CollectionViewSet(viewsets.ModelViewSet):
     def _clone(self):
         # Clone an existing collection.
         original_uid = self.request.data[CLONE_ARG_NAME]
-        original_collection= get_object_or_404(Collection, uid=original_uid)
-        view_perm= get_perm_name('view', original_collection)
+        original_collection = get_object_or_404(Collection, uid=original_uid)
+        view_perm = get_perm_name('view', original_collection)
         if not self.request.user.has_perm(view_perm, original_collection):
             raise Http404
         else:
             # Copy the essential data from the original collection.
-            original_data= model_to_dict(original_collection)
-            cloned_data= {keep_field: original_data[keep_field]
-                          for keep_field in COLLECTION_CLONE_FIELDS}
+            original_data = model_to_dict(original_collection)
+            cloned_data = {keep_field: original_data[keep_field]
+                           for keep_field in COLLECTION_CLONE_FIELDS}
             if original_collection.tag_string:
-                cloned_data['tag_string']= original_collection.tag_string
+                cloned_data['tag_string'] = original_collection.tag_string
 
             # Pull any additionally provided parameters/overrides from the
             # request.
             for param in self.request.data:
-                cloned_data[param]= self.request.data[param]
+                cloned_data[param] = self.request.data[param]
             serializer = self.get_serializer(data=cloned_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
@@ -211,10 +222,10 @@ class CollectionViewSet(viewsets.ModelViewSet):
         ''' Only the owner is allowed to change `discoverable_when_public` '''
         original_collection = self.get_object()
         if (self.request.user != original_collection.owner and
-                'discoverable_when_public' in serializer.validated_data and
-                (serializer.validated_data['discoverable_when_public'] !=
-                    original_collection.discoverable_when_public)
-        ):
+            'discoverable_when_public' in serializer.validated_data and
+                    (serializer.validated_data['discoverable_when_public'] !=
+                     original_collection.discoverable_when_public)
+            ):
             raise exceptions.PermissionDenied()
 
         # Some fields shouldn't affect the modification date
@@ -231,7 +242,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
                     serializer, *args, **kwargs)
 
         return super(CollectionViewSet, self).perform_update(
-                serializer, *args, **kwargs)
+            serializer, *args, **kwargs)
 
     def perform_destroy(self, instance):
         instance.delete_with_deferred_indexing()
@@ -319,6 +330,7 @@ class AuthorizedApplicationUserViewSet(mixins.CreateModelMixin,
     queryset = User.objects.all()
     serializer_class = CreateUserSerializer
     lookup_field = 'username'
+
     def create(self, request, *args, **kwargs):
         if type(request.auth) is not AuthorizedApplication:
             # Only specially-authorized applications are allowed to create
@@ -372,6 +384,7 @@ class OneTimeAuthenticationKeyViewSet(
     authentication_classes = [ApplicationTokenAuthentication]
     queryset = OneTimeAuthenticationKey.objects.none()
     serializer_class = OneTimeAuthenticationKeySerializer
+
     def create(self, request, *args, **kwargs):
         if type(request.auth) is not AuthorizedApplication:
             # Only specially-authorized applications are allowed to create
@@ -437,7 +450,7 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
             return ImportTask.objects.none()
         else:
             return ImportTask.objects.filter(
-                        user=self.request.user).order_by('date_created')
+                user=self.request.user).order_by('date_created')
 
     def create(self, request, *args, **kwargs):
         if self.request.user.is_anonymous():
@@ -460,6 +473,114 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
                 'uid': import_task.uid,
                 'status': ImportTask.PROCESSING
             }, status.HTTP_201_CREATED)
+
+
+class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
+    lookup_field = 'pk'
+    serializer_class = AttachmentSerializer
+    filter_backends = (
+        AttachmentFilter,
+    )
+    renderer_classes = (
+        renderers.JSONRenderer,
+        renderers.BrowsableAPIRenderer,
+        MediaFileRenderer
+    )
+
+    def _group_by(self):
+        if not self.request:
+            return None
+        return self.request.query_params.get('group_by')
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            if self._group_by() == 'question':
+                return QuestionSerializer
+            if self._group_by() == 'submission':
+                return SubmissionSerializer
+            return AttachmentListSerializer
+        else:
+            return AttachmentSerializer
+
+    def get_serializer_context(self):
+        _asset_uid = self.get_parents_query_dict()['asset']
+        return {'request': self.request,
+                'asset': _asset_uid,
+                'group_by': self._group_by()}
+
+    def get_queryset(self):
+        _asset_uid = self.get_parents_query_dict()['asset']
+        try:
+            asset = Asset.objects.get(uid=_asset_uid)
+        except ObjectDoesNotExist:
+            asset = None
+        if not asset or not asset.has_deployment:
+            raise Http404
+        xform_id = asset.deployment.identifier.split('/')[-1]
+        return _models.Attachment.objects.filter(instance__xform__id_string=xform_id)
+
+    def get_paginator(self):
+        if self._group_by() and self._group_by() == 'question':
+            paginator = QuestionPagination()
+        elif self._group_by() and self._group_by() == 'submission':
+            paginator = SubmissionPagination()
+        else:
+            paginator = AttachmentPagination()
+        return paginator
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        index = request.query_params.get('index')
+        if index:
+            try:
+                index = int(index)
+                queryset = queryset[index]
+            except (ValueError, IndexError):
+                raise Http404(_("Index '%s' out of range" % index))
+
+        is_many = False if index is not None else True
+        paginator = self.get_paginator() if is_many else None
+        if paginator:
+            page = paginator.paginate_queryset(queryset, request)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return paginator.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=is_many)
+        return Response(serializer.data)
+
+
+    def retrieve(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(self.object)
+
+        if hasattr(request, 'accepted_renderer'):
+            if isinstance(request.accepted_renderer, MediaFileRenderer) \
+                    and self.object.media_file is not None:
+                data = self.object.media_file.read()
+
+                return Response(data, content_type=self.object.mimetype)
+
+        filename = request.query_params.get('filename')
+        if filename:
+            source = None
+            if filename == self.object.media_file.name \
+                    or filename == self.object.filename:
+                size = request.query_params.get('size')
+                if (size == 'small'):
+                    source = serializer.get_small_download_url(self.object)
+                elif (size == 'medium'):
+                    source = serializer.get_medium_download_url(self.object)
+                elif (size == 'large'):
+                    source = serializer.get_large_download_url(self.object)
+                else:
+                    source = serializer.get_download_url(self.object)
+            if source:
+                return HttpResponseRedirect(source)
+            else:
+                raise Http404(_("Filename '%s' not found." % filename))
+
+        return Response(serializer.data)
 
 
 class AssetSnapshotViewSet(NoUpdateModelViewSet):
@@ -485,7 +606,7 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
             if not user.is_anonymous():
                 owned_snapshots = queryset.filter(owner=user)
             return owned_snapshots | RelatedAssetPermissionsFilter(
-                ).filter_queryset(self.request, queryset, view=self)
+            ).filter_queryset(self.request, queryset, view=self)
 
     @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
     def xform(self, request, *args, **kwargs):
@@ -509,14 +630,14 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
         snapshot = self.get_object()
         if snapshot.details.get('status') == 'success':
             preview_url = "{}{}?form={}".format(
-                              settings.ENKETO_SERVER,
-                              settings.ENKETO_PREVIEW_URI,
-                              reverse(viewname='assetsnapshot-detail',
-                                      format='xml',
-                                      kwargs={'uid': snapshot.uid},
-                                      request=request,
-                                      ),
-                            )
+                settings.ENKETO_SERVER,
+                settings.ENKETO_PREVIEW_URI,
+                reverse(viewname='assetsnapshot-detail',
+                        format='xml',
+                        kwargs={'uid': snapshot.uid},
+                        request=request,
+                        ),
+            )
             return HttpResponseRedirect(preview_url)
         else:
             response_data = copy.copy(snapshot.details)
@@ -527,8 +648,8 @@ class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     model = AssetVersion
     lookup_field = 'uid'
     filter_backends = (
-            AssetOwnerFilterBackend,
-        )
+        AssetOwnerFilterBackend,
+    )
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -604,16 +725,18 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if not self.request.user.has_perm(view_perm, original_asset):
             raise Http404
         # TODO: Duplicate permissions if a user is cloning their own asset.
-        cloned_data = original_asset.to_clone_dict(version_uid=source_version.uid)
+        cloned_data = original_asset.to_clone_dict(
+            version_uid=source_version.uid)
         for key, val in self.request.data.iteritems():
             cloned_data.update(self.request.data.items())
-        # until we get content passed as a dict, transform the content obj to a str
+        # until we get content passed as a dict, transform the content obj to a
+        # str
         cloned_data['content'] = json.dumps(cloned_data['content'])
         return self.get_serializer(data=cloned_data)
 
     def create(self, request, *args, **kwargs):
         if CLONE_ARG_NAME in request.data:
-            serializer= self._get_clone_serializer()
+            serializer = self._get_clone_serializer()
         else:
             serializer = self.get_serializer(data=request.data)
 
@@ -668,7 +791,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             'full': True,
         }
         if export.xml != '':
-            response_data['highlighted_xform'] = highlight_xform(export.xml, **options)
+            response_data['highlighted_xform'] = highlight_xform(
+                export.xml, **options)
         return Response(response_data, template_name='highlighted_xform.html')
 
     @detail_route(
@@ -713,7 +837,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 raise exceptions.MethodNotAllowed(
                     method=request.method,
                     detail='Use PATCH to update an existing deployment'
-                    )
+                )
             serializer = DeploymentSerializer(
                 data=request.data,
                 context={'asset': asset}
@@ -786,7 +910,6 @@ class SitewideMessageViewSet(viewsets.ModelViewSet):
     queryset = SitewideMessage.objects.all()
     serializer_class = SitewideMessageSerializer
 
-
 class UserCollectionSubscriptionViewSet(viewsets.ModelViewSet):
     queryset = UserCollectionSubscription.objects.none()
     serializer_class = UserCollectionSubscriptionSerializer
@@ -807,3 +930,49 @@ class UserCollectionSubscriptionViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+class TokenView(APIView):
+    def _which_user(self, request):
+        '''
+        Determine the user from `request`, allowing superusers to specify
+        another user by passing the `username` query parameter
+        '''
+        if request.user.is_anonymous():
+            raise exceptions.NotAuthenticated()
+
+        if 'username' in request.query_params:
+            # Allow superusers to get others' tokens
+            if request.user.is_superuser:
+                user = get_object_or_404(
+                    User,
+                    username=request.query_params['username']
+                )
+            else:
+                raise exceptions.PermissionDenied()
+        else:
+            user = request.user
+        return user
+
+    def get(self, request, *args, **kwargs):
+        ''' Retrieve an existing token only '''
+        user = self._which_user(request)
+        token = get_object_or_404(Token, user=user)
+        return Response({'token': token.key})
+
+    def post(self, request, *args, **kwargs):
+        ''' Return a token, creating a new one if none exists '''
+        user = self._which_user(request)
+        token, created = Token.objects.get_or_create(user=user)
+        return Response(
+            {'token': token.key},
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK
+        )
+
+    def delete(self, request, *args, **kwargs):
+        ''' Delete an existing token and do not generate a new one '''
+        user = self._which_user(request)
+        with transaction.atomic():
+            token = get_object_or_404(Token, user=user)
+            token.delete()
+        return Response({}, status=status.HTTP_204_NO_CONTENT)
