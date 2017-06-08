@@ -10,7 +10,7 @@ import {t, assign} from '../utils';
 var ReportTable = React.createClass({
   render () {
     let th = [''], rows = [];
-    if (this.props.type=='numerical') {
+    if (this.props.type === 'numerical') {
       th = [t('Mean'), t('Median'), t('Mode'), t('Standard deviation')];
       return (
         <table>
@@ -32,7 +32,7 @@ var ReportTable = React.createClass({
         </table>
       );
     }
-    if (this.props.type=='regular') {
+    if (this.props.type === 'regular') {
       th = [t('Value'), t('Frequency'), t('Percentage')];
       rows = this.props.rows;
     } else {
@@ -136,17 +136,21 @@ var ReportViewItem = React.createClass({
     Chart.defaults.global.elements.arc.backgroundColor = baseColor;
     Chart.defaults.global.maintainAspectRatio = false;
 
-    if (chartType == 'donut')
+    if (chartType === 'donut') {
       chartType = 'pie';
+    }
 
-    if (chartType == 'area')
+    if (chartType === 'area') {
       chartType = 'line';
+    }
 
-    if (chartType == 'horizontal')
+    if (chartType === 'horizontal') {
       chartType = 'horizontalBar';
+    }
 
-    if (chartType == 'vertical' || chartType == 'bar_chart')
+    if (chartType === 'vertical' || chartType === 'bar_chart') {
       chartType = 'bar';
+    }
 
     var datasets = [];
     if (data.values != undefined) {
@@ -216,18 +220,18 @@ var ReportViewItem = React.createClass({
       }
     };
 
-    if (chartType == 'pie') {
+    if (chartType === 'pie') {
       opts.options.legend.display = true;
       opts.data.datasets[0].backgroundColor = colors;
       opts.options.scales.xAxes = [];
       opts.options.scales.yAxes = [];
 
-      if (this.state.style.report_type == 'donut') {
+      if (this.state.style.report_type === 'donut') {
         opts.options.cutoutPercentage = 50;
       }
     }
 
-    if (this.state.style.report_type == 'area') {
+    if (this.state.style.report_type === 'area') {
       opts.data.datasets[0].backgroundColor = colors[0];
     }
 
@@ -275,8 +279,9 @@ var ReportViewItem = React.createClass({
     _type = JSON.stringify(_type);
 
     var questionLabel = r.label;
-    if (this.props.translations)
+    if (this.props.translations) {
       questionLabel = r.label[this.props.translationIndex];
+    }
     return (
       <div>
         <bem.ReportView__itemHeading>
