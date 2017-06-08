@@ -325,7 +325,7 @@ let FormGalleryGrid = React.createClass({
                 <div className="form-view__cell form-view__cell--centered loadmore-div">
                     {this.toggleLoadMoreBtn()}
                 </div>
-                
+
                 {this.displayPaginatedModal()}
             </div>
         );

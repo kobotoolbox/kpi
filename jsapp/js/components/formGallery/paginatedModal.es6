@@ -11,8 +11,8 @@ import Select from 'react-select';
 let PaginatedModal = React.createClass({
     getInitialState: function() {
         return {
-            offset: 4,
-            offsetValues: [
+            offset: 1,
+            offsetOptions: [
                 {
                     value : 1,
                     label: 1
@@ -34,32 +34,45 @@ let PaginatedModal = React.createClass({
                     label: 100
                 }
             ],
+            sortOptions: [
+                {
+                    'label': t('Show latest first'),
+                    'value': 'desc'
+                },
+                {
+                    'label': t('Show oldest first'),
+                    'value': 'asc'
+                }
+            ],
             isOpen: false,
-            sortBy: 'asc',
+            sortValue: 'asc',
             attachments: [],
             attachments_count: this.props.galleryAttachmentsCount,
             totalPages: 0,
             currentAttachmentsLoaded: 0,
             activeAttachmentsIndex: 0,
-            galleryLoaded: false
+            // galleryLoaded: false
         }
     },
     componentDidMount: function() {
         this.resetGallery();
     },
     resetGallery: function(){
-        // this.setState({'galleryLoaded' : false});
-        this.loadAttachments(1, true);
+        this.setState({
+            // galleryLoaded: false,
+            attachments: [],
+            currentAttachmentsLoaded: 0
+        })
+        this.loadAttachments(1);
         this.setTotalPages();
         this.setActiveAttachmentsIndex(0);
-        this.setState({'galleryLoaded' : true});
+        // this.setState({'galleryLoaded' : true});
     },
     setTotalPages: function() {
         let totalPages = Math.ceil(this.state.attachments_count / this.state.offset);
         this.setState({'totalPages' : totalPages});
     },
     setActiveAttachmentsIndex: function(index) {
-        console.log("CUrrent Inedx: ", index);
         this.setState({'activeAttachmentsIndex': index});
     },
     changeOffset: function(offset){
@@ -67,12 +80,15 @@ let PaginatedModal = React.createClass({
             this.resetGallery();
         });
     },
+    changeSort: function(sort){
+        this.setState({'sortValue': sort}, function(){
+            this.resetGallery();
+        });
+    },
     goToPage: function(page) {
-        console.log("goToPage:");
-        console.log(page.selected + 1);
         let attachmentNextPage = page.selected+1;
-        let newActiveIndex = page.selected - 1;
-        if (this.state.attachments[attachmentNextPage] == undefined){
+        let newActiveIndex = page.selected;
+        if (this.state.attachments['page_'+attachmentNextPage] == undefined){
             this.loadAttachments(attachmentNextPage, ()=>{
                 this.setActiveAttachmentsIndex(newActiveIndex);
             });
@@ -80,82 +96,90 @@ let PaginatedModal = React.createClass({
             this.setActiveAttachmentsIndex(newActiveIndex);
         }
     },
-    loadAttachments: function(page, reset=false, callback) {
-        console.log(this.props.uid, 'question', this.props.galleryIndex, page, this.state.offset, this.state.sortBy);
-        dataInterface.loadQuestionAttachment(this.props.uid, 'question', this.props.galleryIndex, page, this.state.offset, this.state.sortBy).done((response) => {
-            // If this is called with reset empty the attachments array otherwise set it to the value of attachments
-            let newAttachments = (!reset) ? this.state.attachments : [];
-            let currentAttachementsLoaded = (reset) ? response.attachments.results.length : this.state.currentAttachmentsLoaded + response.attachments.results.length;
-            newAttachments.push(response.attachments.results);
-            console.log("newAttachments: ");
-            console.log(newAttachments);
+    loadAttachments: function(page, callback) {
+        dataInterface.loadQuestionAttachment(this.props.uid, 'question', this.props.galleryIndex, page, this.state.offset, this.state.sortValue).done((response) => {
+            let newAttachments = this.state.attachments;
+            let currentAttachementsLoaded = this.state.currentAttachmentsLoaded + response.attachments.results.length;
+            newAttachments['page_'+page] = response.attachments.results;
+
             this.setState({
                 'attachments': newAttachments,
                 'currentAttachmentsLoaded': currentAttachementsLoaded
             });
-
         });
         if(callback){
             callback();
         }
+
     },
+
     render() {
-        let activeAttachmentsArray = this.state.attachments[this.state.activeAttachmentsIndex];
+        let activeAttachmentsArray = this.state.attachments['page_'+(this.state.activeAttachmentsIndex+1)];
+        return (
+            <bem.PaginatedModal>
+                <ui.Modal open large onClose={this.props.togglePaginatedModal}>
+                    <ui.Modal.Body>
+                        <bem.PaginatedModal_heading>
+                            <h2>{t('All Photo of') + " " + this.props.galleryTitle} (Active index: {this.state.activeAttachmentsIndex})</h2>
+                            <h4>{t('Showing')} <b>{this.state.currentAttachmentsLoaded}</b> {t('of')} <b>{this.props.galleryAttachmentsCount}</b></h4>
 
-        if (activeAttachmentsArray != undefined && this.state.galleryLoaded) {
-            console.log(activeAttachmentsArray);
-            return (
-                <bem.PaginatedModal>
-                    <ui.Modal open large onClose={this.props.togglePaginatedModal}>
-                        <ui.Modal.Body>
-                            <bem.PaginatedModal_heading>
-                                <h2>{t('All Photo of') + " " + this.props.galleryTitle}</h2>
-                                <h4>{t('Showing')} <b>{this.state.currentAttachmentsLoaded}</b> {t('of')} <b>{this.props.galleryAttachmentsCount}</b></h4>
+                            <Select
+                                // className="icon-button-select"
+                                options={this.state.offsetOptions}
+                                simpleValue
+                                name="selected-filter"
+                                value={this.state.offset}
+                                onChange={this.changeOffset}
+                                autoBlur={true}
+                                searchable={false}/>
 
-                                <Select
-                                    className="icon-button-select"
-                                    options={this.state.offsetValues}
-                                    simpleValue
-                                    name="selected-filter"
-                                    value={this.state.offsetValues.value}
-                                    onChange={this.changeOffset}
-                                    autoBlur={true}
-                                    searchable={false}/>
+                            <Select
+                                // className="icon-button-select"
+                                options={this.state.sortOptions}
+                                simpleValue
+                                name="selected-filter"
+                                value={this.state.sortValue}
+                                onChange={this.changeSort}
+                                autoBlur={true}
+                                searchable={false}/>
 
-                            </bem.PaginatedModal_heading>
-                            <bem.PaginatedModal_body>
+                        </bem.PaginatedModal_heading>
+                        <bem.PaginatedModal_body>
 
-                                    <ReactPaginate previousLabel={"Prev"}
-                                       nextLabel={"Next"}
-                                       breakLabel={<a>...</a>}
-                                       breakClassName={"break-me"}
-                                       pageCount={this.state.totalPages}
-                                       marginPagesDisplayed={1}
-                                       pageRangeDisplayed={3}
-                                       onPageChange={this.goToPage}
-                                       containerClassName={"pagination"}
-                                       activeClassName={"active"}
-                                    />
+                            <ReactPaginate
+                                previousLabel={"Prev"}
+                                nextLabel={"Next"}
+                                breakLabel={'...'}
+                                breakClassName={"break-me"}
+                                pageCount={this.state.totalPages}
+                                marginPagesDisplayed={1}
+                                pageRangeDisplayed={3}
+                                onPageChange={this.goToPage}
+                                containerClassName={"pagination"}
+                                activeClassName={"active"}
+                                forcePage={this.state.activeAttachmentsIndex}
+                            />
 
-                                    <bem.AssetGallery__grid>
-                                        {activeAttachmentsArray.map(function(item, j) {
+                            <bem.AssetGallery__grid>
+                                {(activeAttachmentsArray != undefined) ?
+                                    activeAttachmentsArray.map(function(item, j) {
                                             var timestamp = (this.props.currentFilter === 'question')
-                                                ? item.submission.date_created
-                                                : this.props.galleryDate;
+                                            ? item.submission.date_created
+                                            : this.props.galleryDate;
                                             return (<FormGalleryGridItem key={j} itemsPerRow="10" date={this.props.formatDate(timestamp)} itemTitle={this.props.currentFilter === 'question'
-                                                ? t('Record') + ' ' + parseInt(j + 1)
-                                                : item.question.label} url={item.small_download_url} galleryIndex={this.props.galleryIndex} galleryItemIndex={j} openModal={this.props.openModal}/>);
-                                        }.bind(this))}
-                                    </bem.AssetGallery__grid>
+                                            ? t('Record') + ' ' + parseInt(j + 1)
+                                            : item.question.label} url={item.small_download_url} galleryIndex={this.props.galleryIndex} galleryItemIndex={j} openModal={this.props.openModal}/>);
+                                    }.bind(this)) : null
+                                }
+                            </bem.AssetGallery__grid>
 
-                            </bem.PaginatedModal_body>
-                        </ui.Modal.Body>
-                    </ui.Modal>
-                </bem.PaginatedModal>
-            )
-        }else{
-            return null;
-        }
+
+                        </bem.PaginatedModal_body>
+                    </ui.Modal.Body>
+                </ui.Modal>
+            </bem.PaginatedModal>
+        )
+
 
     }
 });
