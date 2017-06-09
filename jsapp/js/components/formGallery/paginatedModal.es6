@@ -114,7 +114,8 @@ let PaginatedModal = React.createClass({
                     <ui.Modal.Body>
                         <bem.PaginatedModal_heading>
                             <h2>{t('All Photo of') + " " + this.props.galleryTitle}</h2>
-                            <h4>{t('Showing')} <b>{this.state.currentAttachmentsLoaded}</b> {t('of')} <b>{this.props.galleryAttachmentsCount}</b></h4>
+                            {/* <h4>{t('Showing')} <b>{this.state.currentAttachmentsLoaded}</b> {t('of')} <b>{this.props.galleryAttachmentsCount}</b></h4> */}
+                            <h4>{t('Showing')} <b>{this.state.offset}</b> {t('of')} <b>{this.props.galleryAttachmentsCount}</b></h4>
                         </bem.PaginatedModal_heading>
 
                         <bem.PaginatedModal_body>
@@ -131,25 +132,27 @@ let PaginatedModal = React.createClass({
                                 changeSort={this.changeSort}
                             />
 
-                            <bem.AssetGallery__grid>
-                                {(this.state.attachments['page_'+(this.state.activeAttachmentsIndex+1)] != undefined) ?
-                                    this.state.attachments['page_'+(this.state.activeAttachmentsIndex+1)].map(function(item, j) {
-                                            var timestamp = (this.props.currentFilter === 'question') ? item.submission.date_created : this.props.galleryDate;
-                                            return (
-                                                <FormGalleryGridItem
-                                                    key={j}
-                                                    itemsPerRow="10"
-                                                    date={this.props.formatDate(timestamp)}
-                                                    itemTitle={this.props.currentFilter === 'question' ? t('Record') + ' ' + parseInt(j + 1) : item.question.label}
-                                                    url={item.small_download_url}
-                                                    galleryIndex={this.props.galleryIndex}
-                                                    galleryItemIndex={j}
-                                                    openModal={this.props.openModal}
-                                                />
-                                            );
-                                    }.bind(this)) : null
-                                }
-                            </bem.AssetGallery__grid>
+                            <div className="paginated-modal__body__gallery-wrapper">
+                                <bem.AssetGallery__grid>
+                                    {(this.state.attachments['page_'+(this.state.activeAttachmentsIndex+1)] != undefined) ?
+                                        this.state.attachments['page_'+(this.state.activeAttachmentsIndex+1)].map(function(item, j) {
+                                                var timestamp = (this.props.currentFilter === 'question') ? item.submission.date_created : this.props.galleryDate;
+                                                return (
+                                                    <FormGalleryGridItem
+                                                        key={j}
+                                                        itemsPerRow="10"
+                                                        date={this.props.formatDate(timestamp)}
+                                                        itemTitle={this.props.currentFilter === 'question' ? t('Record') + ' ' + parseInt(j + 1) : item.question.label}
+                                                        url={item.small_download_url}
+                                                        galleryIndex={this.props.galleryIndex}
+                                                        galleryItemIndex={j}
+                                                        openModal={this.props.openModal}
+                                                    />
+                                                );
+                                        }.bind(this)) : null
+                                    }
+                                </bem.AssetGallery__grid>
+                            </div>
 
                             <GalleryControls
                                 offsetOptions={this.state.offsetOptions}
@@ -161,6 +164,7 @@ let PaginatedModal = React.createClass({
                                 sortOptions={this.state.sortOptions}
                                 sortValue={this.state.sortValue}
                                 changeSort={this.changeSort}
+                                selectDirectionUp={true}
                             />
 
                         </bem.PaginatedModal_body>
@@ -174,10 +178,10 @@ let PaginatedModal = React.createClass({
 
 
 let GalleryControls = React.createClass({
-
     render(){
+        let selectDirectionClassName = (this.props.selectDirectionUp) ? 'select-direction-up' : '';
         return(
-            <div className='gallery-controls'>
+            <div className={'paginated-modal__body__gallery-controls '+ selectDirectionClassName}>
                 <div className='change-offset'>
                     <label>{t('Per page:')}</label>
                     <div className='form-modal__item'>

@@ -381,6 +381,7 @@ $paginated-modal-blue: #1CC2D3;
     .modal-open{
         height: 90%;
         width: 90%;
+        overflow-x: hidden;
     }
     &__heading{
         border-bottom: 1px solid $paginated-modal-gray;
@@ -400,11 +401,46 @@ $paginated-modal-blue: #1CC2D3;
     }
     &__body{
         padding: 0 20px;
+        &__gallery-controls{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex: 1;
+            flex-wrap: nowrap;
+            padding-top: 40px;
+            label{
+                display: block;
+                padding-bottom: 20px;
+                font-size: 1.3em;
+                padding-right: 10px;
+            }
+            .change-sort{
+                // flex-grow: 1;
+                .Select-control{
+                    min-width: 220px;
+                }
+            }
+            .change-offset{
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                .Select-control{
+                    min-width: 70px;
+                }
+            }
+            &.select-direction-up{
+                .Select-menu-outer{
+                    top: auto;
+                    bottom: 100%;
+                }
+            }
+        }
+        &__gallery-wrapper{
+            overflow-y: auto;
+            height: 50vh;
+        }
     }
-    &_footer{
-        border-bottom: 1px solid $paginated-modal-gray;
-        padding:0px 20px 30px 20px;
-    }
+
 
 }
 
@@ -446,33 +482,5 @@ ul.pagination{
             color: $paginated-modal-gray;
           }
       }
-    }
-}
-.gallery-controls{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex: 1;
-    flex-wrap: nowrap;
-    padding-top: 40px;
-    label{
-        display: block;
-        padding-bottom: 20px;
-        font-size: 1.3em;
-        padding-right: 10px;
-    }
-    .change-sort{
-        // flex-grow: 1;
-        .Select-control{
-            min-width: 220px;
-        }
-    }
-    .change-offset{
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        .Select-control{
-            min-width: 70px;
-        }
     }
 }
