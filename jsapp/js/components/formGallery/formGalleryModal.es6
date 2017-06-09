@@ -12,6 +12,10 @@ let FormGalleryModal = React.createClass({
             this.refs.slider.slickGoTo(this.props.galleryItemIndex);
         }
     },
+    handleCarouselChange(currentIndex, newIndex){
+        this.props.changeActiveGalleryIndex(newIndex);
+    },
+
     render(){
 		const settings = {
 			dots: false,
@@ -26,16 +30,21 @@ let FormGalleryModal = React.createClass({
 			nextArrow: <RightNavButton/>,
 			prevArrow: <LeftNavButton/>
 		}
+
+        let galleryTitle = this.props.activeGallery.label || this.props.activeGallery.attachments.results[this.props.galleryItemIndex].question.label;
+        let galleryDate = this.props.formatDate(this.props.activeGallery.date_created || this.props.activeGallery.attachments.results[this.props.galleryItemIndex].submission.date_created);
+
         return (
-            <Modal isOpen={this.props.showModal} contentLabel="Modal">
+            <Modal isOpen={true} contentLabel="Modal">
                 <bem.AssetGallery__modal>
                     <ui.Modal.Body>
+
                         <bem.AssetGallery__modalCarousel className="col8">
-                            <Slider ref="slider" {...settings} beforeChange={this.props.handleCarouselChange}>
-                                {this.props.results.map(function (item, i) {
+                            <Slider ref="slider" {...settings} beforeChange={this.handleCarouselChange}>
+                                {this.props.activeGallery.attachments.results.map(function (item, i) {
                                     return (
                                         <div key={i}>
-                                            <img alt={this.props.title} src={item.large_download_url}/>
+                                            <img alt={galleryTitle} src={item.large_download_url}/>
                                         </div>
                                     )
                                 }.bind(this))}
@@ -43,13 +52,13 @@ let FormGalleryModal = React.createClass({
                         </bem.AssetGallery__modalCarousel>
 
                         <FormGalleryModalSidebar
-                            results={this.props.results}
+                            activeGalleryAttachments={this.props.activeGallery.attachments.results}
                             filter={this.props.filter}
                             galleryItemIndex={this.props.galleryItemIndex}
-                            galleryIndex={this.props.galleryIndex}
-                            title={this.props.title}
-                            date={this.props.date}
-                            updateActiveAsset={this.props.updateActiveAsset}
+                            galleryTitle={galleryTitle}
+                            galleryIndex={this.props.activeGallery.index}
+                            date={galleryDate}
+                            changeActiveGalleryIndex={this.props.changeActiveGalleryIndex}
                             closeModal={this.props.closeModal}
                             setSearchTerm={this.props.setSearchTerm}
                         />
@@ -74,23 +83,20 @@ let FormGalleryModalSidebar = React.createClass({
                         </div>
                         <div className="info__inner">
                             <p>{t('Record')} #{currentRecordIndex}</p>
-                            <h3>{this.props.title}</h3>
+                            <h3>{this.props.galleryTitle}</h3>
                             <p>{this.props.date}</p>
                         </div>
                     </div>
 
-                    <FeaturedGridItems
-                        results={this.props.results}
-                        filter={this.props.filter}
-                        currentRecordIndex={currentRecordIndex}
-                        currentQuestion={this.props.title}
-                        galleryItemIndex={this.props.galleryItemIndex}
-                        galleryIndex={this.props.galleryIndex}
-                        updateActiveAsset={this.props.updateActiveAsset}
-                        date={this.props.date}
-                        closeModal={this.props.closeModal}
-                        setSearchTerm={this.props.setSearchTerm}
-                    />
+                    {(this.props.activeGalleryAttachments != undefined) ?
+                        <FeaturedGridItems
+                            activeGalleryAttachments={this.props.activeGalleryAttachments}
+                            galleryTitle={this.props.galleryTitle}
+                            galleryItemIndex={this.props.galleryItemIndex}
+                            changeActiveGalleryIndex={this.props.changeActiveGalleryIndex}
+                        />
+                    : null}
+
                 </div>
             </bem.AssetGallery__modalSidebar>
         );
@@ -109,12 +115,11 @@ let FeaturedGridItems = React.createClass({
         this.props.setSearchTerm(gridLabel);
     },
     render(){
-        let gridLabel = (this.props.filter === 'submission' ? 'Record #' + this.props.currentRecordIndex : this.props.currentQuestion);
         return (
             <div className="padding--15">
-                <h5 onClick={() => this.goToFilter(gridLabel)}>{t('More for') + " " + gridLabel}</h5>
+                <h5 onClick={() => this.goToFilter(this.props.galleryTitle)}>{t('More for') + " " + this.props.galleryTitle}</h5>
                 <bem.AssetGallery__modalSidebarGrid>
-                    {this.props.results.map(function(item, j) {
+                    {this.props.activeGalleryAttachments.map(function(item, j) {
                         if (this.props.galleryItemIndex !== j){ // if the item is not the active attachment
                             var divStyle = {
                                 backgroundImage: 'url('+ item.medium_download_url + ')',
@@ -123,7 +128,7 @@ let FeaturedGridItems = React.createClass({
                                 backgroundSize: 'cover'
                             }
                             return (
-                                <bem.AssetGallery__modalSidebarGridItem key={j} className="col6" onClick={() => this.props.updateActiveAsset(this.props.galleryIndex, j)}>
+                                <bem.AssetGallery__modalSidebarGridItem key={j} className="col6" onClick={() => this.props.changeActiveGalleryIndex(j)}>
                                     <div className="one-one" style={divStyle}></div>
                                 </bem.AssetGallery__modalSidebarGridItem>
                             )

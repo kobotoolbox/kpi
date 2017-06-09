@@ -20,7 +20,6 @@ var FormGallery = React.createClass({
             hasMoreRecords: false,
             nextRecordsPage: 2,
             showModal: false,
-            activeID: null,
             activeTitle: null,
             activeDate: null,
             galleryIndex: 0,
@@ -49,7 +48,8 @@ var FormGallery = React.createClass({
                         attachments: []
                     }
                 ]
-            }
+            },
+            activeModalGallery: []
         };
     },
     componentDidMount: function() {
@@ -121,45 +121,31 @@ var FormGallery = React.createClass({
             this.setState({assets, hasMoreRecords: response.next, nextRecordsPage: this.state.nextRecordsPage + 1});
         });
     },
-    // MODAL
-    openModal: function(galleryIndex, galleryItemIndex, galleryAttachments) {
-        let record = this.state.assets.results[galleryIndex];
-        let attachment = record.attachments.results[galleryItemIndex];
+    setModalAttachments : function(modalAttachments){
+        this.setAssets({
+            modalAttachments
+        });
+    },
+    openModal: function(gallery, galleryItemIndex) {
         this.setState({
             showModal: true,
-            activeID: attachment.id,
-            galleryIndex: galleryIndex,
+            activeModalGallery: gallery,
             galleryItemIndex: galleryItemIndex,
-            activeTitle: record.label || attachment.question.label,
-            activeDate: this.formatDate(record.date_created || attachment.submission.date_created)
         });
     },
     closeModal: function() {
-        this.setState({showModal: false});
-    },
-
-    //Modal Custom
-    handleCarouselChange: function(currentSlide, nextSlide) {
-        let record = this.state.assets.results[this.state.galleryIndex];
-        let attachment = record.attachments.results[nextSlide];
         this.setState({
-            galleryItemIndex: nextSlide,
-            activeTitle: record.label || attachment.question.label,
-            activeDate: this.formatDate(record.date_created || attachment.submission.date_created)
+            showModal: false,
+            activeModalGallery: [],
+            galleryItemIndex: 0
+
         });
     },
-    updateActiveAsset(galleryIndex, galleryItemIndex) {
-        let record = this.state.assets.results[galleryIndex];
-        let attachment = record.attachments.results[galleryItemIndex];
+    changeActiveGalleryIndex: function(newIndex) {
         this.setState({
-            galleryIndex: galleryIndex,
-            galleryItemIndex: galleryItemIndex,
-            activeTitle: record.label || attachment.question.label,
-            activeDate: this.formatDate(record.date_created || attachment.submission.date_created)
+            galleryItemIndex: newIndex,
         });
     },
-
-    // RENDER
     render() {
         if (this.state.assets.loaded) {
             return (
@@ -176,7 +162,6 @@ var FormGallery = React.createClass({
                         let galleryTitle =  (this.state.filter.source === 'question') ? record.label : 'Record ' + parseInt(i + 1);
                         let searchRegEx = new RegExp(this.state.searchTerm, "i");
                         let searchTermMatched = this.state.searchTerm =='' || galleryTitle.match(searchRegEx) || this.formatDate(record.date_created).match(this.state.searchTerm);
-
                         if(searchTermMatched){
                             return (
                                 <FormGalleryGrid
@@ -185,7 +170,7 @@ var FormGallery = React.createClass({
                                     galleryTitle={galleryTitle}
                                     galleryIndex={i}
                                     galleryItems={record.attachments.results}
-                                    galleryDate={record.date_created}
+                                    gallery={record}
                                     galleryAttachmentsCount={record.attachments.count}
                                     loadMoreAttachments={this.loadMoreAttachments}
                                     currentFilter={this.state.filter.source}
@@ -204,19 +189,19 @@ var FormGallery = React.createClass({
                         {(this.state.hasMoreRecords && this.state.filter.source=='submission' && this.state.searchTerm=='') ? <button onClick={this.loadMoreRecords} className='mdl-button mdl-button--colored loadmore-button'>Load more</button> : null}
                     </div>
 
-                    <FormGalleryModal
-                        showModal={this.state.showModal}
-                        results={this.state.assets.results[this.state.galleryIndex].attachments.results}
-                        closeModal={this.closeModal}
-                        handleCarouselChange={this.handleCarouselChange}
-                        updateActiveAsset={this.updateActiveAsset}
-                        setSearchTerm={this.setSearchTerm}
-                        filter={this.state.filter.source}
-                        galleryIndex={this.state.galleryIndex}
-                        galleryItemIndex={this.state.galleryItemIndex}
-                        date={this.state.activeDate}
-                        title={this.state.activeTitle}
-                    />
+                    {(this.state.showModal) ?
+                        <FormGalleryModal
+                            activeGallery={this.state.activeModalGallery}
+                            closeModal={this.closeModal}
+                            changeActiveGalleryIndex={this.changeActiveGalleryIndex}
+                            updateActiveAsset={this.updateActiveAsset}
+                            setSearchTerm={this.setSearchTerm}
+                            filter={this.state.filter.source}
+                            galleryItemIndex={this.state.galleryItemIndex}
+                            formatDate={this.formatDate}
+                        />
+                        : null
+                    }
 
                 </bem.AssetGallery>
             );
@@ -277,7 +262,7 @@ let FormGalleryGrid = React.createClass({
 
                 <bem.AssetGallery__grid>
                     {this.props.galleryItems.map(function(item, j) {
-                        var timestamp = (this.props.currentFilter === 'question') ? item.submission.date_created : this.props.galleryDate;
+                        var timestamp = (this.props.currentFilter === 'question') ? item.submission.date_created : this.props.gallery.date_created;
                         return (
                             <FormGalleryGridItem
                                 key={j}
@@ -285,7 +270,7 @@ let FormGalleryGrid = React.createClass({
                                 date={this.props.formatDate(timestamp)}
                                 itemTitle={this.props.currentFilter === 'question' ? t('Record') + ' ' + parseInt(j + 1) : item.question.label}
                                 url={item.small_download_url}
-                                galleryIndex={this.props.galleryIndex}
+                                gallery={this.props.gallery}
                                 galleryItemIndex={j}
                                 openModal={this.props.openModal}
                             />
@@ -310,7 +295,6 @@ let FormGalleryGrid = React.createClass({
                             currentFilter={this.props.currentFilter}
                             openModal={this.props.openModal}
                             formatDate={this.props.formatDate}
-                            loadMoreAttachments={this.props.loadMoreAttachments}
                         />
                 : null}
             </div>

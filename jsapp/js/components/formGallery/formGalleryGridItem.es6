@@ -12,7 +12,7 @@ let FormGalleryGridItem = React.createClass({
         let perRow = (this.props.itemsPerRow) ? this.props.itemsPerRow : 6;
         let itemClass= "per-row"+perRow+" one-one";
         return (
-            <bem.AssetGallery__gridItem className={itemClass} style={itemStyle} onClick={() => this.props.openModal(this.props.galleryIndex , this.props.galleryItemIndex)}>
+            <bem.AssetGallery__gridItem className={itemClass} style={itemStyle} onClick={() => this.props.openModal(this.props.gallery, this.props.galleryItemIndex)}>
                 <bem.AssetGallery__gridItemOverlay>
                     <div className="text">
                         <h5>{this.props.itemTitle}</h5>
