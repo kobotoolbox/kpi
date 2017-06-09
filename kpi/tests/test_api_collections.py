@@ -11,8 +11,8 @@ class CollectionsTests(APITestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        self.client.login(username='admin', password='pass')
-        user = User.objects.get(username='admin')
+        self.client.login(username='someuser', password='someuser')
+        user = User.objects.get(username='someuser')
         self.coll = Collection.objects.create(name='test collection', owner=user)
 
     def test_create_collection(self):

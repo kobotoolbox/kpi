@@ -13,7 +13,7 @@ from django.template.response import TemplateResponse
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy, ugettext as _
 
-from kpi.deployment_backends.kc_reader.shadow_models import _ReadOnlyModel
+from kpi.deployment_backends.kc_access.shadow_models import _ReadOnlyModel
 
 def delete_related_objects(modeladmin, request, queryset):
     """

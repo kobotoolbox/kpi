@@ -13,9 +13,9 @@ class CreateCollectionTests(TestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        self.user = User.objects.get(username='admin')
+        self.user = User.objects.get(username='someuser')
         self.coll = Collection.objects.create(owner=self.user)
-        self.asset= Asset.objects.get(name='fixture admin asset')
+        self.asset = Asset.objects.get(name='fixture asset')
         self.initial_asset_count= Asset.objects.count()
         self.initial_collection_count= Collection.objects.count()
 
@@ -66,9 +66,9 @@ class CreateCollectionTests(TestCase):
 
     def test_descendants_are_deleted_with_collection(self):
         child = Collection.objects.create(name='test_child_collection',
-                                          owner=User.objects.first(), parent=self.coll)
+                                          owner=self.user, parent=self.coll)
         grandchild = Collection.objects.create(name='test_child_collection',
-                                               owner=User.objects.first(), parent=child)
+                                               owner=self.user, parent=child)
         self.assertEqual(Collection.objects.count(), self.initial_collection_count + 2)
         _ = child.assets.create()
         _ = grandchild.assets.create()
@@ -99,7 +99,7 @@ class CreateCollectionTests(TestCase):
     def test_create_child_collection(self):
         self.assertEqual(Collection.objects.count(), 1)
         child = Collection.objects.create(name='test_child_collection',
-                                          owner=User.objects.first(), parent=self.coll)
+                                          owner=self.user, parent=self.coll)
         self.assertEqual(Collection.objects.count(), 2)
         self.assertEqual(self.coll.get_children()[0], child)
         self.assertEqual(self.coll.get_children().count(), 1)
@@ -110,7 +110,7 @@ class CreateCollectionTests(TestCase):
     def test_move_standalone_collection_into_collection(self):
         self.assertEqual(Collection.objects.count(), 1)
         standalone = Collection.objects.create(name='move_me',
-                                               owner=User.objects.first())
+                                               owner=self.user)
         self.assertEqual(Collection.objects.count(), 2)
         self.assertEqual(standalone.parent, None)
         standalone.parent = self.coll
@@ -123,7 +123,7 @@ class CreateCollectionTests(TestCase):
     def test_move_collection_from_collection_to_standalone(self):
         self.assertEqual(Collection.objects.count(), 1)
         child = Collection.objects.create(name='move_me_too',
-                                          owner=User.objects.first(), parent=self.coll)
+                                          owner=self.user, parent=self.coll)
         self.assertEqual(Collection.objects.count(), 2)
         self.assertEqual(child.parent, self.coll)
         child.parent = None
@@ -134,9 +134,9 @@ class CreateCollectionTests(TestCase):
     def test_move_collection_between_collections(self):
         self.assertEqual(Collection.objects.count(), 1)
         adoptive_parent = Collection.objects.create(name='adoptive_parent',
-                                                    owner=User.objects.first())
+                                                    owner=self.user)
         child = Collection.objects.create(name='on_the_move',
-                                          owner=User.objects.first(), parent=self.coll)
+                                          owner=self.user, parent=self.coll)
         self.assertEqual(Collection.objects.count(), 3)
         self.assertEqual(self.coll.get_children()[0], child)
         self.assertEqual(self.coll.get_children().count(), 1)
@@ -155,17 +155,18 @@ class ShareCollectionTests(TestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        self.superuser = User.objects.get(username='admin')
+        self.coll_owner = User.objects.create(username='coll_owner')
         self.someuser = User.objects.get(username='someuser')
         self.anotheruser = User.objects.get(username='anotheruser')
-        self.standalone_coll = Collection.objects.create(owner=self.superuser)
-        self.grandparent_coll = Collection.objects.create(owner=self.superuser)
+        self.standalone_coll = Collection.objects.create(owner=self.coll_owner)
+        self.grandparent_coll = Collection.objects.create(
+            owner=self.coll_owner)
         self.parent_coll = Collection.objects.create(
-            owner=self.superuser,
+            owner=self.coll_owner,
             parent=self.grandparent_coll
         )
         self.child_coll = Collection.objects.create(
-            owner=self.superuser,
+            owner=self.coll_owner,
             parent=self.parent_coll
         )
 
@@ -334,7 +335,7 @@ class ShareCollectionTests(TestCase):
     def test_query_all_collections_user_can_access(self):
         # The owner should have access to all owned collections
         self.assertEqual(
-            get_all_objects_for_user(self.superuser, Collection).count(),
+            get_all_objects_for_user(self.coll_owner, Collection).count(),
             4
         )
         # The other users should have nothing yet
@@ -411,9 +412,6 @@ class ShareCollectionTests(TestCase):
         ))
 
     def test_share_collection_permission_is_not_inherited(self):
-        # Change self.standalone_coll so that its owner isn't a superuser
-        self.standalone_coll.owner = self.someuser
-        self.standalone_coll.save()
         # Make a child collection whose owner is different than its parent's
         coll = Collection.objects.create(
             name="anotheruser's collection",
@@ -488,7 +486,7 @@ class DiscoverablePublicCollectionTests(TestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        self.user = User.objects.get(username='admin')
+        self.user = User.objects.get(username='someuser')
         self.anotheruser = User.objects.get(username='anotheruser')
         self.coll = Collection.objects.create(owner=self.user)
 
