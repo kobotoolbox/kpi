@@ -32,6 +32,15 @@ var FormGallery = React.createClass({
                 searchable: false,
                 clearable: false
             },
+            filterOptions:[
+                {
+                    value: 'question',
+                    label: t('Group by Question')
+                }, {
+                    value: 'submission',
+                    label: t('Group by Record')
+                }
+            ],
             assets: {
                 count: 0,
                 loaded: false,
@@ -50,8 +59,8 @@ var FormGallery = React.createClass({
         let timestamp = moment(new Date(myDate)).format('DD-MMM-YYYY h:mm:ssa');
         return timestamp;
     },
-    loadGalleryData: function(uid, filter) {
-        dataInterface.filterGalleryImages(uid, filter, this.state.defaultPageSize).done((response) => {
+    loadGalleryData: function(uid, selectedFilter) {
+        dataInterface.filterGalleryImages(uid, selectedFilter, this.state.defaultPageSize).done((response) => {
             response.loaded = true;
             this.setState({
                 assets: response
@@ -65,20 +74,11 @@ var FormGallery = React.createClass({
     },
     // FILTER
     switchFilter(value) {
-        let filters = [
-            {
-                value: 'question',
-                label: 'Group by Question'
-            }, {
-                value: 'submission',
-                label: 'Group by Record'
-            }
-        ]
         var label;
         var newFilter = value;
-        for (var i = 0; i < filters.length; i++) {
-            if (filters[i].value == newFilter) {
-                label = filters[i].label;
+        for (var i = 0; i < this.state.filterOptions.length; i++) {
+            if (this.state.filterOptions[i].value == newFilter) {
+                label = this.state.filterOptions[i].label;
             }
         }
 
@@ -122,7 +122,7 @@ var FormGallery = React.createClass({
         });
     },
     // MODAL
-    openModal: function(galleryIndex, galleryItemIndex) {
+    openModal: function(galleryIndex, galleryItemIndex, galleryAttachments) {
         let record = this.state.assets.results[galleryIndex];
         let attachment = record.attachments.results[galleryItemIndex];
         this.setState({
@@ -161,23 +161,13 @@ var FormGallery = React.createClass({
 
     // RENDER
     render() {
-
-        let filters = [
-            {
-                value: 'question',
-                label: t('Group by Question')
-            }, {
-                value: 'submission',
-                label: t('Group by Record')
-            }
-        ]
         if (this.state.assets.loaded) {
             return (
                 <bem.AssetGallery>
                     <FormGalleryFilter
                         attachments_count={this.state.assets.attachments_count}
                         currentFilter={this.state.filter}
-                        filters={filters}
+                        filters={this.state.filterOptions}
                         switchFilter={this.switchFilter}
                         setSearchTerm={this.setSearchTerm}
                         searchTerm={this.state.searchTerm}/>
