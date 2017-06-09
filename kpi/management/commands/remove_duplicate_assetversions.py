@@ -33,8 +33,7 @@ def find_original_and_duplicate_versions(version_pks, asset_pk):
         belong. This is required as a safety check.
     '''
     version_pks = sorted(version_pks)
-    digests_to_first_version_pks = {}
-    duplicate_version_pks = []
+    digests_to_first_version_pks = defaultdict(list)
 
     start = 0
     batch_size = 1
@@ -66,10 +65,10 @@ def find_original_and_duplicate_versions(version_pks, asset_pk):
                 version.deployed
             ), sort_keys=True)
             digest = md5(serialized).digest()
-            if digest in digests_to_first_version_pks:
-                duplicate_version_pks.append(version.pk)
-            else:
-                digests_to_first_version_pks[digest] = version.pk
+            digests_to_first_version_pks[digest].append({
+                'pk': version.pk,
+                'uid': version.uid,
+                })
 
         start += batch_size
 
@@ -79,10 +78,20 @@ def find_original_and_duplicate_versions(version_pks, asset_pk):
             batch_size = min(batch_size, MAX_BATCH_SIZE)
             batch_size_guessed = True
 
+    duplicates_of = {}
+    duplicate_version_pks = []
+    for (digest, matches) in digests_to_first_version_pks.items():
+        if len(matches) > 1:
+            duplicates_of[matches[0]['pk']] = [m['uid'] for m in matches[1:]]
+            duplicate_version_pks = duplicate_version_pks + [
+                m['pk'] for m in matches[1:]
+            ]
+
     return (
-        digests_to_first_version_pks.values(),
+        duplicates_of.keys(),
         duplicate_version_pks,
-        batch_size
+        duplicates_of,
+        batch_size,
     )
 
 
@@ -167,7 +176,7 @@ class Command(BaseCommand):
                 currently_deployed_pk = AssetVersion.objects.filter(
                     uid=currently_deployed_uid).values_list('pk', flat=True)
 
-                original_version_pks, duplicate_version_pks, \
+                original_version_pks, duplicate_version_pks, duplicate_uids, \
                     batch_size = find_original_and_duplicate_versions(
                         versions_for_assets[asset_pk], asset_pk)
                 pks_to_delete = duplicate_version_pks
@@ -197,6 +206,9 @@ class Command(BaseCommand):
                     # There are FKs (e.g. from `AssetSnapshot`) that require
                     # Django to take the slow path for cascade deletion
                     start = 0
+                    for (pk, uid_aliases) in duplicate_uids.iteritems():
+                        AssetVersion.objects.filter(id=pk).update(
+                            uid_aliases=uid_aliases)
                     while True:
                         this_batch_version_pks = pks_to_delete[
                             start:start + batch_size]
