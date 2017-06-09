@@ -22,8 +22,6 @@ var FormGallery = React.createClass({
             showModal: false,
             activeTitle: null,
             activeDate: null,
-            galleryIndex: 0,
-            galleryItemIndex: 0,
             searchTerm: '',
             filter: {
                 source: 'question',
@@ -49,7 +47,11 @@ var FormGallery = React.createClass({
                     }
                 ]
             },
-            activeModalGallery: []
+            activeModalGallery: [],
+            galleryIndex: 0,
+            galleryItemIndex: 0,
+            galleryTitle: '',
+            galleryDate: ''
         };
     },
     componentDidMount: function() {
@@ -121,17 +123,32 @@ var FormGallery = React.createClass({
             this.setState({assets, hasMoreRecords: response.next, nextRecordsPage: this.state.nextRecordsPage + 1});
         });
     },
-    setModalAttachments : function(modalAttachments){
-        this.setAssets({
-            modalAttachments
+    setActiveGalleryDateAndTitle: function(title, date){
+        this.setState({
+            galleryTitle: title,
+            galleryDate: date
         });
     },
-    openModal: function(gallery, galleryItemIndex) {
-        this.setState({
-            showModal: true,
-            activeModalGallery: gallery,
-            galleryItemIndex: galleryItemIndex,
-        });
+    openModal: function(gallery, galleryItemIndex, setGalleryTitleAndDate=true) {
+        if(setGalleryTitleAndDate){
+            let galleryTitle = gallery.label || gallery.attachments.results[this.state.galleryItemIndex].question.label;
+            let galleryDate = this.formatDate(gallery.date_created || gallery.attachments.results[this.state.galleryItemIndex].submission.date_created);
+            console.log(galleryTitle, galleryDate);
+            this.setState({
+                showModal: true,
+                activeModalGallery: gallery,
+                galleryItemIndex: galleryItemIndex,
+                galleryTitle: galleryTitle,
+                galleryDate: galleryDate
+            });
+        }else{
+            this.setState({
+                showModal: true,
+                activeModalGallery: gallery,
+                galleryItemIndex: galleryItemIndex
+            });
+        }
+
     },
     closeModal: function() {
         this.setState({
@@ -148,6 +165,7 @@ var FormGallery = React.createClass({
     },
     render() {
         if (this.state.assets.loaded) {
+            let modalFriendlyAttachments = (this.state.activeModalGallery.attachments) ? this.state.activeModalGallery.attachments.results : this.state.activeModalGallery;
             return (
                 <bem.AssetGallery>
                     <FormGalleryFilter
@@ -178,6 +196,7 @@ var FormGallery = React.createClass({
                                     openModal={this.openModal}
                                     defaultPageSize={this.state.defaultPageSize}
                                     setAssets={this.setAssets}
+                                    setActiveGalleryDateAndTitle={this.setActiveGalleryDateAndTitle}
                                 />
                             );
                         }else{
@@ -198,6 +217,9 @@ var FormGallery = React.createClass({
                             setSearchTerm={this.setSearchTerm}
                             filter={this.state.filter.source}
                             galleryItemIndex={this.state.galleryItemIndex}
+                            galleryTitle={this.state.galleryTitle}
+                            galleryDate={this.state.galleryDate}
+                            activeGalleryAttachments={modalFriendlyAttachments}
                             formatDate={this.formatDate}
                         />
                         : null
@@ -253,8 +275,8 @@ let FormGalleryGrid = React.createClass({
     },
     togglePaginatedModal: function(){
         this.setState({'showPaginatedModal': !this.state.showPaginatedModal });
+        this.props.setActiveGalleryDateAndTitle(this.props.galleryTitle, this.props.galleryDate);
     },
-
     render(){
         return (
             <div key={this.props.galleryIndex}>
@@ -286,10 +308,10 @@ let FormGalleryGrid = React.createClass({
                         <PaginatedModal
                             togglePaginatedModal={this.togglePaginatedModal}
                             uid={this.props.uid}
-                            galleryTitle={this.props.galleryTitle}
                             currentlyLoadedGalleryAttachments={this.state.currentlyLoadedGalleryAttachments}
                             galleryAttachmentsCount={this.props.galleryAttachmentsCount}
                             galleryItems={this.props.galleryItems}
+                            galleryTitle={this.props.galleryTitle}
                             galleryDate={this.props.galleryDate}
                             galleryIndex={this.props.galleryIndex}
                             currentFilter={this.props.currentFilter}

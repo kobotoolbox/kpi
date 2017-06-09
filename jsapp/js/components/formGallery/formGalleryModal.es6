@@ -30,9 +30,7 @@ let FormGalleryModal = React.createClass({
 			nextArrow: <RightNavButton/>,
 			prevArrow: <LeftNavButton/>
 		}
-
-        let galleryTitle = this.props.activeGallery.label || this.props.activeGallery.attachments.results[this.props.galleryItemIndex].question.label;
-        let galleryDate = this.props.formatDate(this.props.activeGallery.date_created || this.props.activeGallery.attachments.results[this.props.galleryItemIndex].submission.date_created);
+        console.log(this.props);
 
         return (
             <Modal isOpen={true} contentLabel="Modal">
@@ -41,10 +39,10 @@ let FormGalleryModal = React.createClass({
 
                         <bem.AssetGallery__modalCarousel className="col8">
                             <Slider ref="slider" {...settings} beforeChange={this.handleCarouselChange}>
-                                {this.props.activeGallery.attachments.results.map(function (item, i) {
+                                {this.props.activeGalleryAttachments.map(function (item, i) {
                                     return (
                                         <div key={i}>
-                                            <img alt={galleryTitle} src={item.large_download_url}/>
+                                            <img alt={this.props.galleryTitle} src={item.large_download_url}/>
                                         </div>
                                     )
                                 }.bind(this))}
@@ -52,12 +50,12 @@ let FormGalleryModal = React.createClass({
                         </bem.AssetGallery__modalCarousel>
 
                         <FormGalleryModalSidebar
-                            activeGalleryAttachments={this.props.activeGallery.attachments.results}
+                            activeGalleryAttachments={this.props.activeGalleryAttachments}
                             filter={this.props.filter}
                             galleryItemIndex={this.props.galleryItemIndex}
-                            galleryTitle={galleryTitle}
+                            galleryTitle={this.props.galleryTitle}
                             galleryIndex={this.props.activeGallery.index}
-                            date={galleryDate}
+                            date={this.props.galleryDate}
                             changeActiveGalleryIndex={this.props.changeActiveGalleryIndex}
                             closeModal={this.props.closeModal}
                             setSearchTerm={this.props.setSearchTerm}

@@ -11,11 +11,11 @@ import Select from 'react-select';
 let PaginatedModal = React.createClass({
     getInitialState: function() {
         return {
-            offset: 1,
+            offset: 3,
             offsetOptions: [
                 {
-                    value : 1,
-                    label: 1
+                    value : 3,
+                    label: 3
                 },
                 {
                     value : 10,
@@ -45,7 +45,8 @@ let PaginatedModal = React.createClass({
                 }
             ],
             sortValue: 'asc',
-            attachments: [],
+            paginated_attachments: [],
+            flat_attachments: [],
             attachments_count: this.props.galleryAttachmentsCount,
             totalPages: 0,
             currentAttachmentsLoaded: 0,
@@ -57,10 +58,11 @@ let PaginatedModal = React.createClass({
     },
     resetGallery: function(){
         this.setState({
-            attachments: [],
+            paginated_attachments: [],
+            flat_attachments: [],
             currentAttachmentsLoaded: 0
         })
-        this.loadAttachments(1);
+        this.loadPaginatedAttachments(1);
         this.setTotalPages();
         this.setActiveAttachmentsIndex(0);
     },
@@ -84,28 +86,45 @@ let PaginatedModal = React.createClass({
     goToPage: function(page) {
         let attachmentNextPage = page.selected+1;
         let newActiveIndex = page.selected;
-        if (this.state.attachments['page_'+attachmentNextPage] == undefined){
-            this.loadAttachments(attachmentNextPage, ()=>{
+        if (this.state.paginated_attachments['page_'+attachmentNextPage] == undefined){
+            this.loadPaginatedAttachments(attachmentNextPage, ()=>{
                 this.setActiveAttachmentsIndex(newActiveIndex);
             });
         }else{
             this.setActiveAttachmentsIndex(newActiveIndex);
         }
     },
-    loadAttachments: function(page, callback) {
+    loadPaginatedAttachments: function(page, callback) {
         dataInterface.loadQuestionAttachment(this.props.uid, 'question', this.props.galleryIndex, page, this.state.offset, this.state.sortValue).done((response) => {
-            let newAttachments = this.state.attachments;
+            let newPaginatedAttachments = this.state.paginated_attachments;
+            let newFlatAttachments = [];
             let currentAttachementsLoaded = this.state.currentAttachmentsLoaded + response.attachments.results.length;
-            newAttachments['page_'+page] = response.attachments.results;
+
+            newPaginatedAttachments['page_'+page] = response.attachments.results;
+            let newAttachmentsKeys =Object.keys(this.state.paginated_attachments).sort();
+            for(var i = 0; i< newAttachmentsKeys.length; i++){
+                var pageIndex = newAttachmentsKeys[i];
+                newFlatAttachments.push(...this.state.paginated_attachments[pageIndex]);
+            }
+
             this.setState({
-                'attachments': newAttachments,
+                'paginated_attachments': newPaginatedAttachments,
+                'flat_attachments': newFlatAttachments,
                 'currentAttachmentsLoaded': currentAttachementsLoaded
             });
         });
         if(callback){
             callback();
         }
-
+    },
+    findItemIndex: function(id){
+        var newIndex = null;
+        this.state.flat_attachments.filter((filteredItem, index) =>{
+            if(filteredItem.id == id){
+                newIndex = index;
+            }
+        });
+        return newIndex;
     },
     render() {
         return (
@@ -119,7 +138,6 @@ let PaginatedModal = React.createClass({
                         </bem.PaginatedModal_heading>
 
                         <bem.PaginatedModal_body>
-
                             <GalleryControls
                                 offsetOptions={this.state.offsetOptions}
                                 offsetValue={this.state.offset}
@@ -134,21 +152,22 @@ let PaginatedModal = React.createClass({
 
                             <div className="paginated-modal__body__gallery-wrapper">
                                 <bem.AssetGallery__grid>
-                                    {(this.state.attachments['page_'+(this.state.activeAttachmentsIndex+1)] != undefined) ?
-                                        this.state.attachments['page_'+(this.state.activeAttachmentsIndex+1)].map(function(item, j) {
-                                                var timestamp = (this.props.currentFilter === 'question') ? item.submission.date_created : this.props.galleryDate;
-                                                return (
-                                                    <FormGalleryGridItem
-                                                        key={j}
-                                                        itemsPerRow="10"
-                                                        date={this.props.formatDate(timestamp)}
-                                                        itemTitle={this.props.currentFilter === 'question' ? t('Record') + ' ' + parseInt(j + 1) : item.question.label}
-                                                        url={item.small_download_url}
-                                                        galleryIndex={this.props.galleryIndex}
-                                                        galleryItemIndex={j}
-                                                        openModal={this.props.openModal}
-                                                    />
-                                                );
+                                    {(this.state.paginated_attachments['page_'+(this.state.activeAttachmentsIndex+1)] != undefined) ?
+                                        this.state.paginated_attachments['page_'+(this.state.activeAttachmentsIndex+1)].map(function(item, j) {
+                                            var timestamp = (this.props.currentFilter === 'question') ? item.submission.date_created : this.props.galleryDate;
+                                            return (
+                                                <FormGalleryGridItem
+                                                    key={j}
+                                                    itemsPerRow="10"
+                                                    date={this.props.formatDate(timestamp)}
+                                                    itemTitle={this.props.currentFilter === 'question' ? t('Record') + ' ' + item.id : item.question.label}
+                                                    url={item.small_download_url}
+                                                    gallery={this.state.flat_attachments}
+                                                    galleryItemIndex={this.findItemIndex(item.id)}
+                                                    openModal={this.props.openModal}
+                                                    setGalleryDateAndTitleonModalOpen={false}
+                                                />
+                                            );
                                         }.bind(this)) : null
                                     }
                                 </bem.AssetGallery__grid>
