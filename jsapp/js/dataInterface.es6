@@ -167,7 +167,7 @@ var dataInterface;
       // Do we already have these URLs stored somewhere?
       var objectUrl = creds.objectUrl || `${rootUrl}/${creds.kind}s/${creds.uid}/`;
       var userUrl = `${rootUrl}/users/${creds.username}/`;
-      var codename = `${creds.role}_${creds.kind}`;
+      var codename = creds.role.includes('_submissions') ? creds.role : `${creds.role}_${creds.kind}`;
       return $ajax({
         url: `${rootUrl}/permissions/`,
         method: 'POST',

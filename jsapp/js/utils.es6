@@ -97,7 +97,7 @@ export function parsePermissions(owner, permissions) {
     return {
       username: username,
       can: perms[username].reduce((cans, perm)=> {
-        var permCode = perm.permission.split('_')[0];
+        var permCode = perm.permission.includes('_submissions') ? perm.permission : perm.permission.split('_')[0];
         cans[permCode] = perm;
         return cans;
       }, {})

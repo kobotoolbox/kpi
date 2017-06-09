@@ -6,7 +6,7 @@
   margin-bottom: 5px;
   padding-bottom: 5px;
   padding-top: 5px;
-  transition:all 0.5s;
+  transition: all 0.5s;
   visibility: visible;
   opacity: 1;
 
@@ -14,93 +14,128 @@
     min-height: 0px;
     max-height: 0px;
     overflow: hidden;
-    padding:0px;
+    padding: 0px;
     opacity: 0;
-    transition:all 0.5s;
+    transition: all 0.5s;
   }
 
   &__avatar {
     margin-right: 12px;
   }
+
   &__name {
-  	flex: 2;
+    flex: 2;
     line-height: 2.2em;
   }
+
   &__role {
     min-width: 160px;
     text-align: right;
     line-height: 2.2em;
+    max-height: 30px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-left: 15px;
+  }
+
+  &__cancel {
+    width: 24px;
+    margin-left: 6px;
+    display: inline-block;
+    font-size: 24px;
+    line-height: 1.2em;
+    cursor: pointer;
+    color: #D08B8C;
+    margin-right: -4px;
   }
 
   .Select {
     .Select-arrow-zone {
       position: absolute;
-      right:15px;
+      right: 15px;
       top: 2px;
       padding-right: 0px;
     }
+
     .Select-clear-zone {
       position: absolute;
-      right:0px;
+      right: 0px;
       top: 4px;
     }
+
     .Select-control {
-      border:none !important;
+      border: none !important;
       border-radius: none;
     }
+
     .Select-placeholder {
       padding-top: 4px;
       padding-bottom: 4px;
     }
+
     .Select-value {
       padding-right: 40px;
     }
   }
-
 }
 
 .sharing-form__user {
-  margin:30px 0px;
+  margin: 30px 0px;
 }
 
 .form-modal__item--perms-user {
-	position: relative;
+  position: relative;
   background: #F8F8F8;
   padding: 15px;
-	input[type="text"] {
-		width:calc(100% - 240px);
+
+  input[type="text"] {
+    width: calc(100% - 320px);
     border-bottom: 0px;
     display: inline-block;
-    padding:10px;
+    padding: 10px;
     vertical-align: middle;
+
     @include box-shadow;
+
     margin-right: 10px;
-	}
-	button {
+  }
+
+  button {
     vertical-align: middle;
     text-transform: uppercase;
-    margin-top:1px;
-	}
+    margin-top: 1px;
+  }
+
   .Select {
     display: inline-block;
-    width:120px;
+    width: 200px;
     vertical-align: middle;
     margin-right: 10px;
   }
+
   .Select-control {
-    padding:4px 10px;
+    padding: 4px 10px;
+
     @include box-shadow;
+
     border-bottom: 0px;
     padding-left: 10px;
+
+    .Select-input {
+      padding-left: 0px;
+      margin-left: -2px;
+    }
+
     .Select-value {
       line-height: 40px;
       padding-left: 10px;
     }
+
     .Select-placeholder {
       padding-left: 10px;
     }
   }
-
 }
 
 .form-modal__item--shareable-link {
@@ -109,6 +144,6 @@
 
 @media screen and (min-width: 768px) {
   .form-modal__item--perms-user {
-    min-width: 520px;
+    min-width: 560px;
   }
 }

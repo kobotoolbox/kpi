@@ -481,39 +481,6 @@ mixins.clickAssets = {
   },
 };
 
-mixins.permissions = {
-  removePerm (permName, permObject, content_object_uid) {
-    actions.permissions.removePerm({
-      permission_url: permObject.url,
-      content_object_uid: content_object_uid
-    });
-  },
-  // PM: temporarily disabled
-  // removeCollectionPublicPerm (collection, publicPerm) {
-  //   return (evt) => {
-  //     evt.preventDefault();
-  //     if (collection.discoverable_when_public) {
-  //       actions.permissions.setCollectionDiscoverability(
-  //         collection.uid, false
-  //       );
-  //     }
-  //     actions.permissions.removePerm({
-  //       permission_url: publicPerm.url,
-  //       content_object_uid: collection.uid
-  //     });
-  //   };
-  // },
-  setPerm (permName, props) {
-    actions.permissions.assignPerm({
-      username: props.username,
-      uid: props.uid,
-      kind: props.kind,
-      objectUrl: props.objectUrl,
-      role: permName
-    });
-  }
-};
-
 mixins.contextRouter = {
   contextTypes: {
     router: React.PropTypes.object

@@ -16,46 +16,36 @@ import {
   anonUsername
 } from '../utils';
 
-var UserPermDiv = React.createClass({
-  mixins: [
-    mixins.permissions,
-  ],
-  PermOnChange(perm) {
-    var cans = this.props.can;
-    if (perm) {
-      var permName = perm.value;
-      this.setPerm(permName, this.props);
-      if (permName == 'view' && cans.change)
-        this.removePerm('change', cans.change, this.props.uid);
-    } else {
-      if (cans.view)
-        this.removePerm('view', cans.view, this.props.uid);
-      if (cans.change)
-        this.removePerm('change', cans.change, this.props.uid);
-    }
+var availablePermissions = [
+  {value: 'view', label: t('Can View')},
+  {value: 'change', label: t('Can Edit')},
+  {value: 'view_submissions', label: t('Can View Submissions')},
+  {value: 'add_submissions', label: t('Can Add Submissions')},
+  {value: 'change_submissions', label: t('Can Edit Submissions')}
+];
 
+
+var UserPermDiv = React.createClass({
+  removePermissions() {
+    // removing view permission will include all other permissions
+    actions.permissions.removePerm({
+      permission_url: this.props.can.view.url,
+      content_object_uid: this.props.uid
+    });
   },
   render () {
     var initialsStyle = {
       background: `#${stringToColor(this.props.username)}`
     };
 
-    var currentPerm = '';
-    var cans = this.props.can;
-
-    if (cans.change) {
-      var currentPerm = 'change';
-    } else if (cans.view) {
-      var currentPerm = 'view';
+    var cans = [];
+    for(var key in this.props.can) {
+      var perm = availablePermissions.find(function (d) {return d.value === key}).label;
+      cans.push(perm);
     }
 
-    var availablePermissions = [
-      {value: 'view', label: t('Can View')},
-      {value: 'change', label: t('Can Edit')}
-    ];
-
     return (
-      <bem.UserRow m={cans.view || cans.change ? 'regular' : 'deleted'}>
+      <bem.UserRow m={cans.length > 0 ? 'regular' : 'deleted'}>
         <bem.UserRow__avatar>
           <bem.AccountBox__initials style={initialsStyle}>
             {this.props.username.charAt(0)}
@@ -63,37 +53,34 @@ var UserPermDiv = React.createClass({
         </bem.UserRow__avatar>
         <bem.UserRow__name>
           {this.props.username}
-          {/*<div><UserProfileLink username= /></div>*/}
         </bem.UserRow__name>
-        <bem.UserRow__role>
-          <Select
-            name='userPerms'
-            value={currentPerm}
-            clearable={true}
-            options={availablePermissions}
-            onChange={this.PermOnChange}
-          />
+        <bem.UserRow__role title={cans.join(', ')}>
+          {cans.join(', ')}
         </bem.UserRow__role>
+        <bem.UserRow__cancel onClick={this.removePermissions}>
+          <i className="k-icon k-icon-trash" />
+        </bem.UserRow__cancel>
       </bem.UserRow>      
       );
   }
 });
 
 var PublicPermDiv = React.createClass({
-  mixins: [
-    mixins.permissions
-  ],
   togglePerms() {
-    if (this.props.publicPerm)
-      this.removePerm('view',this.props.publicPerm, this.props.uid);
-    else
-      this.setPerm('view', {
-          username: anonUsername,
-          uid: this.props.uid,
-          kind: this.props.kind,
-          objectUrl: this.props.objectUrl
-        }
-      );
+    if (this.props.publicPerm) {
+      actions.permissions.removePerm({
+        permission_url: this.props.publicPerm.url,
+        content_object_uid: this.props.uid
+      });
+    } else {
+      actions.permissions.assignPerm({
+        username: anonUsername,
+        uid: this.props.uid,
+        kind: this.props.kind,
+        objectUrl: this.props.objectUrl,
+        role: 'view'
+      });
+    }
   },
   render () {
     var uid = this.props.uid;
@@ -123,7 +110,6 @@ var PublicPermDiv = React.createClass({
 
 var SharingForm = React.createClass({
   mixins: [
-    mixins.permissions,
     mixins.contextRouter,
     Reflux.ListenerMixin
   ],
@@ -233,12 +219,8 @@ var SharingForm = React.createClass({
         };
       }
     });
-    var btnKls = classNames('mdl-button','mdl-js-button', 'mdl-button--raised', inpStatus === 'success' ? 'mdl-button--colored' : 'mdl-button--disabled');
 
-    var availablePermissions = [
-      {value: 'view', label: t('Can View')},
-      {value: 'change', label: t('Can Edit')}
-    ];
+    var btnKls = classNames('mdl-button','mdl-js-button', 'mdl-button--raised', inpStatus === 'success' ? 'mdl-button--colored' : 'mdl-button--disabled');
 
     var uid = this.state.asset.uid;
     var kind = this.state.asset.kind;
