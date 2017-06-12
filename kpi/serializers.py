@@ -944,11 +944,7 @@ class AttachmentSerializer(serializers.ModelSerializer):
         if obj.mimetype.startswith('image'):
             request = self.context.get('request')
             result = image_url(obj, size)
-            print "\n \n GET DOWNLOAD URL result: " + urllib.urlencode(result) + " =====================================>\n \n"
-            # result = urllib.urlencode(image_url(obj, size))
-            download_url_output =  result if not request or not result else request.build_absolute_uri(result)
-            print "\n \n GET DOWNLOAD URL download_url_output: " + urllib.urlencode(download_url_output) + " =====================================>\n \n"
-            return download_url_output
+            return result if not request or not result else request.build_absolute_uri(result)
         return None
 
 class AttachmentListSerializer(AttachmentSerializer):
@@ -961,14 +957,14 @@ class AttachmentListSerializer(AttachmentSerializer):
     def get_download_url(self, obj):
         if obj.media_file.url:
             request = self.context.get('request')
-            return obj.media_file.url if not request else request.build_absolute_uri(obj.media_file.url)
+            return urllib.quote_plus(obj.media_file.url) if not request else request.build_absolute_uri(obj.media_file.url)
         return None
 
     @check_obj
     def _get_download_url(self, obj, size):
         url = self.get_url(obj)
         if url and obj.media_file.url:
-            return url.rstrip('/') + '?filename=%s&size=%s' % (obj.media_file.name, size)
+            return url.rstrip('/') + '?filename=%s&size=%s' % (urllib.quote_plus(obj.media_file.name), size)
 
         return None
 
