@@ -1044,7 +1044,12 @@ class QuestionPagination(HybridPagination):
         ]))
 
     def get_attachments_count(self, queryset):
-        return reduce(lambda x, y: x + y, map(lambda question: len(question['attachments']), queryset))
+        print "===================>\n"
+        print "===================>\n"
+        if(len(queryset)):
+            return reduce(lambda x, y: x + y, map(lambda question: len(question['attachments']), queryset))
+        else:
+            return 0
 
 
 class SubmissionSerializer(serializers.Serializer):
@@ -1096,7 +1101,11 @@ class SubmissionPagination(HybridPagination):
         ]))
 
     def get_attachments_count(self, queryset):
-        return reduce(lambda x, y: x + y, map(lambda question: len(question['attachments']), queryset))
+
+        if(len(queryset)):
+            return reduce(lambda x, y: x + y, map(lambda question: len(question['attachments']), queryset))
+        else:
+            return 0
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
