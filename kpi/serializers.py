@@ -943,8 +943,12 @@ class AttachmentSerializer(serializers.ModelSerializer):
     def _get_download_url(self, obj, size):
         if obj.mimetype.startswith('image'):
             request = self.context.get('request')
-            result = urllib.urlencode(image_url(obj, size))
-            return result if not request or not result else request.build_absolute_uri(result)
+            result = image_url(obj, size)
+            print "\n \n GET DOWNLOAD URL result: " + urllib.urlencode(result) + " =====================================>\n \n"
+            # result = urllib.urlencode(image_url(obj, size))
+            download_url_output =  result if not request or not result else request.build_absolute_uri(result)
+            print "\n \n GET DOWNLOAD URL download_url_output: " + urllib.urlencode(download_url_output) + " =====================================>\n \n"
+            return download_url_output
         return None
 
 class AttachmentListSerializer(AttachmentSerializer):

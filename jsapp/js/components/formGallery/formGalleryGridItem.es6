@@ -5,7 +5,7 @@ let FormGalleryGridItem = React.createClass({
     render(){
         console.log(this.props.url);
         let itemStyle = {
-            backgroundImage: 'url(' + this.props.url.replace(/ /g,"%20") + ')',
+            backgroundImage: 'url(' + this.props.url + ')',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center center',
             backgroundSize: 'cover'
