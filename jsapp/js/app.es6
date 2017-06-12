@@ -62,50 +62,6 @@ import {
 import hotkey from 'react-hotkey';
 hotkey.activate();
 
-class ItemDropdown extends React.Component {
-  render () {
-    return (
-        <div className="item dropdown">
-          <a href="#" className="dropdown-toggle" data-toggle="dropdown">
-            <i className={this.props.iconKls} />
-          </a>
-          <ul className="dropdown-menu dropdown-menu-right">
-            {this.props.children}
-          </ul>
-        </div>
-        );
-  }
-}
-
-class ItemDropdownItem extends React.Component {
-  render () {
-    var baseName = isLibrary(this.context.router) ? 'library-' : '';
-    return (
-          <li>
-            <Link to={`${baseName}form-edit`}
-                  params={{assetid: this.props.uid}}>
-              <i className={classNames('fa', 'fa-sm', this.props.faIcon)} />
-              &nbsp;
-              &nbsp;
-              {this.props.name || t('no name')}
-            </Link>
-          </li>
-      );
-  }
-}
-
-class ItemDropdownHeader extends React.Component {
-  render () {
-    return <li className="dropdown-header">{this.props.children}</li>;
-  }
-}
-
-class ItemDropdownDivider extends React.Component {
-  render () {
-    return <li className="divider" />;
-  }
-}
-
 var assetStore = stores.asset;
 var sessionStore = stores.session;
 
@@ -117,136 +73,6 @@ function stringifyRoutes(contextRouter) {
       href: r.path
     };
   }), null, 4);
-}
-
-class CloseButton extends React.Component {
-  render () {
-    return (
-      <Link to={this.props.to}
-            className={classNames('close-button', this.props.className)}
-            onClick={this.props.onClick}
-            title={this.props.title}>
-        <i className='fa fa-times' />
-      </Link>
-      );
-  }
-}
-
-class ButtonGroup extends React.Component {
-  constructor () {
-    super();
-    this.state = {
-      open: false
-    };
-  }
-  toggleExpandGroup (evt) {
-    evt.preventDefault();
-    this.setState({open: !this.state.open});
-  }
-  render () {
-    var icon = this.props.icon || false;
-    var href = this.props.href || '#';
-    var title = this.props.title;
-    var links = this.props.links || [];
-    var pullRight = this.props.pullRight;
-    var disabled = false;
-
-    var wrapClassnames = classNames('btn-group',
-                                  pullRight ? 'pull-right' : '',
-                                  this.state.open ? 'open' : ''
-                                  );
-    var mainClassnames = classNames('btn',
-                                  'btn-default',
-                                  disabled ? 'disabled' : ''
-                                  );
-    var caretClassnames = classNames('btn', 'btn-default', 'dropdown-toggle');
-
-    var mainLink, openLink, iconEl;
-
-    if (icon) {
-      iconEl = <i className={classNames('fa', 'fa-lg', `fa-${icon}`)} />;
-    }
-    mainLink = <a href={href}
-                  onClick={this.toggleExpandGroup.bind(this)}
-                  className={mainClassnames}>{title}&nbsp;&nbsp;{iconEl}</a>;
-
-    // var action = this.props.action || 'view';
-    if (links.length > 0) {
-      openLink = (
-        <a href="#" className={caretClassnames} onClick={this.toggleExpandGroup.bind(this)}><span className="caret" /></a>
-      );
-      links = (
-          <ul className="dropdown-menu">
-            {links.map((lnk)=> {
-              var _key = lnk.code;
-              return (<li key={_key}><a href={lnk.url}>{t(lnk.title || lnk.code)}</a></li>);
-            })}
-          </ul>
-        );
-    }
-
-    return (
-        <div className={wrapClassnames}>
-          {mainLink}
-          {openLink}
-          {links}
-        </div>
-      );
-  }
-}
-
-class DownloadButtons extends React.Component {
-  render () {
-    // var title = 'there are no available downloads';
-    var links = this.props.downloads.map((link) => {
-      return assign({
-        code: `download.${this.props.kind}.${link.format}`
-      }, link);
-    });
-    return (
-      <ButtonGroup href="#"
-                    links={links}
-                    kind={this.props.kind}
-                    disabled={links.length === 0}
-                    icon="cloud-download"
-                    title={t('download')} />
-      );
-  }
-}
-
-
-class UserProfileLink extends React.Component {
-  render () {
-    var before, after, icon;
-    if (this.props.icon) {
-      icon = (
-          <i className={`fa fa-${this.props.icon}`} />
-        );
-      if (this.props.iconBefore) {
-        before = icon;
-      } else {
-        after = icon;
-      }
-    }
-    return (
-          <Link to="user-profile"
-                className="user-profile-link"
-                params={{username: this.props.username}}>
-            {before}{this.props.username}{after}
-          </Link>
-    );
-  }
-}
-
-class KoBo extends React.Component {
-  render () {
-    return (
-        <span className='kobo'>
-          <span className='ko'>Ko</span>
-          <span className='bo'>Bo</span>
-        </span>
-      );
-  }
 }
 
 class App extends React.Component {
@@ -314,21 +140,6 @@ App.contextTypes = {
 reactMixin(App.prototype, Reflux.connect(stores.pageState, 'pageState'));
 reactMixin(App.prototype, hotkey.Mixin('handleHotkey'));
 reactMixin(App.prototype, mixins.contextRouter);
-
-// intended to provide a component we can export to html
-
-class Loading extends React.Component {
-  render () {
-    return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading kobotoolbox')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      );
-  }
-};
 
 class FormJson extends React.Component {
   constructor (props) {
@@ -420,69 +231,6 @@ class FormNotFound extends React.Component {
               {t('path not found / recognized')}
             </bem.Loading__inner>
           </bem.Loading>
-        </ui.Panel>
-      );
-  }
-};
-
-class UserList extends React.Component {
-  render () {
-    return (
-        <ui.Panel className="k-div--userlist">
-          <h1>{t('users')}</h1>
-        </ui.Panel>
-      );
-  }
-};
-
-class UserProfile extends React.Component {
-  constructor (props) {
-    super(props);
-  }
-  render () {
-    var username = this.props.username;
-    return (
-        <ui.Panel className="k-div--userprofile">
-          <h1>{t('user')}: {username}</h1>
-          <hr />
-          <div className="well">
-            <h3 className="page-header">
-              {t('my forms shared with user')}
-            </h3>
-            <div className="well-content">
-              <p>There are no forms shared with this user?</p>
-            </div>
-          </div>
-
-          <div className="well">
-            <h3 className="page-header">
-              {t('public forms')}
-            </h3>
-            <div className="well-content">
-              <p>This user has no public forms</p>
-            </div>
-          </div>
-
-        </ui.Panel>
-      );
-  }
-};
-
-class Public extends React.Component {
-  render () {
-    return (
-      <div>
-        <p>Public</p>
-      </div>
-      );
-  }
-};
-
-class SelfProfile extends React.Component {
-  render () {
-    return (
-        <ui.Panel className="k-div--selfprofile">
-          <em>{t('self profile')}</em>
         </ui.Panel>
       );
   }

@@ -90,6 +90,10 @@ class ReportViewItem extends React.Component {
           d.percentages,
         );
     }
+
+    if (d.mean)
+      reportTable = false;
+
     this.state = {
       ...this.props,
       reportTable: reportTable
