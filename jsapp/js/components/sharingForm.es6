@@ -105,7 +105,7 @@ class PublicPermDiv extends React.Component {
   render () {
     var uid = this.props.uid;
 
-    var href = `forms/${uid}`;
+    var href = `#/forms/${uid}`;
     var url = `${window.location.protocol}//${window.location.host}/${href}`;
 
     return (

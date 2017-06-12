@@ -21,7 +21,6 @@ import {
 } from '../utils';
 
 function labelVal(label, value) {
-  // returns {label: "Some Value", value: "some_value"} for react-select
   return {label: t(label), value: (value || label.toLowerCase().replace(/\W+/g, '_'))};
 }
 let reportStyles = [
@@ -221,7 +220,8 @@ class Reports extends React.Component {
       graphHeight: "250",
       translationIndex: 0,
       groupBy: [],
-      activeModalTab: 0
+      activeModalTab: 0,
+      error: false
     };
     autoBind(this);
   }
@@ -265,7 +265,8 @@ class Reports extends React.Component {
           var dataWithResponses = [];
 
           data.list.forEach(function(row){
-            if (row.data.responses !== undefined) {
+
+            if (row.data.responses || row.data.values || row.data.mean) {
               if (rowsByIdentifier[row.name] !== undefined) {
                 row.row.label = rowsByIdentifier[row.name].label;
               } else {
@@ -273,16 +274,6 @@ class Reports extends React.Component {
               }
               dataWithResponses.push(row);
             }
-
-            if (row.data.values !== undefined) {
-              if (rowsByIdentifier[row.name] !== undefined) {
-                row.row.label = rowsByIdentifier[row.name].label;
-              } else {
-                row.row.label = t('untitled');
-              }
-              dataWithResponses.push(row);
-            }
-
           });
 
           this.setState({
@@ -291,6 +282,12 @@ class Reports extends React.Component {
             rowsByIdentifier: rowsByIdentifier,
             reportStyles: asset.report_styles,
             reportData: dataWithResponses,
+            translations: asset.content.translations.length > 1 ? true : false,
+            error: false
+          });
+        }).fail((err)=> {
+          this.setState({
+            error: err
           });
         });
       } else {
@@ -329,8 +326,9 @@ class Reports extends React.Component {
       this.setState({graphHeight: params.value});
     }
   }
-  translationIndexChange (val) {
-    this.setState({translationIndex: val});
+  translationIndexChange (evt) {
+    var TI = evt.target.getAttribute('data-index') ? evt.target.getAttribute('data-index') : 0;
+    this.setState({translationIndex: TI});
   }
   toggleReportGraphSettings () {
     this.setState({
@@ -352,10 +350,7 @@ class Reports extends React.Component {
   }
   renderReportButtons () {
     var rows = this.state.rowsByIdentifier || {};
-    var groupByList = [{
-      'label': t("No grouping"),
-      'name': ''
-    }];
+    var groupByList = [];
     for (var key in rows) {
       if (rows.hasOwnProperty(key) 
           && rows[key].hasOwnProperty('type')
@@ -373,12 +368,32 @@ class Reports extends React.Component {
         {groupByList.length > 1 && 
           <ui.PopoverMenu type='groupby-menu' 
               triggerLabel={t('Group By')}>
+              <bem.PopoverMenu__link key='default' data-name='' onClick={this.groupDataBy}>
+                  {t("No grouping")}
+              </bem.PopoverMenu__link>
+
               {groupByList.map((row, i)=>{
                   return (
                     <bem.PopoverMenu__link key={i}
-                        data-name={row.name}
+                        data-name={row.name || row.$autoname}
                         onClick={this.groupDataBy}>
-                         {row.label}
+                         {this.state.translations ? row.label[this.state.translationIndex] : row.label}
+                    </bem.PopoverMenu__link>
+                  );
+                })
+              }
+          </ui.PopoverMenu> 
+        }
+
+        {this.state.translations && 
+          <ui.PopoverMenu type='question-language' 
+              triggerLabel={t('Translation')}>
+              {this.state.asset.content.translations.map((row, i)=>{
+                  return (
+                    <bem.PopoverMenu__link key={i}
+                        data-index={i}
+                        onClick={this.translationIndexChange}>
+                         {row}
                     </bem.PopoverMenu__link>
                   );
                 })
@@ -450,7 +465,6 @@ class Reports extends React.Component {
                 <DefaultChartTypePicker
                   defaultStyle={defaultStyle}
                   onChange={this.reportStyleChange}
-                  translationIndex={this.state.translationIndex}
                 />
               </div>
             }
@@ -459,7 +473,6 @@ class Reports extends React.Component {
                 <DefaultChartColorsPicker
                   defaultStyle={defaultStyle}
                   onChange={this.reportStyleChange}
-                  translationIndex={this.state.translationIndex}
                 />
               </div>
             }
@@ -504,9 +517,9 @@ class Reports extends React.Component {
       defaultStyle.graphHeight = this.state.graphHeight;
 
       docTitle = asset.name || t('Untitled');
+
     }
 
-    let translations = false;
     let reportData = this.state.reportData || [];
 
     for (var i = reportData.length - 1; i >= 0; i--) {;
@@ -515,23 +528,37 @@ class Reports extends React.Component {
 
     if (this.state.reportData === undefined) {
       return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
+        <bem.ReportView>
+          <bem.Loading>
+            {this.state.error === false ?
+              <bem.Loading__inner>
+                <i />
+                {t('loading...')}
+              </bem.Loading__inner>
+              : 
+              <bem.Loading__inner>
+                {t('This report cannot be loaded.')}
+                <br/>
+                <code>
+                  {this.state.error.statusText + ': ' + this.state.error.responseText}
+                </code>
+              </bem.Loading__inner>
+            }
+          </bem.Loading>
+        </bem.ReportView>
       );
     }
 
     if (this.state.reportData && reportData.length === 0) {
       return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          <bem.Loading>
-            <bem.Loading__inner>
-              {t('This report has no data.')}
-            </bem.Loading__inner>
-          </bem.Loading>
+          <bem.ReportView>
+            <bem.Loading>
+              <bem.Loading__inner>
+                {t('This report has no data.')}
+              </bem.Loading__inner>
+            </bem.Loading>
+          </bem.ReportView>
         </DocumentTitle>
       );
     }
@@ -541,48 +568,32 @@ class Reports extends React.Component {
         <bem.ReportView>
           {this.renderReportButtons()}
           {this.state.asset ?
-            <div>
+            <bem.ReportView__wrap>
+              <bem.PrintOnly>
+                <h3>{asset.name}</h3>
+              </bem.PrintOnly>
+              <bem.ReportView__warning>
+                <h4>{t('Warning')}</h4>
+                <p>{t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. ')}</p>
+              </bem.ReportView__warning>
               {
-                translations ?
-                  <Select
-                      name={`translation-switcher`}
-                      value={this.state.translationIndex}
-                      clearable={false}
-                      default={0}
-                      placeholder={t('Translation')}
-                      options={translations}
-                      onChange={this.translationIndexChange}
-                    />
-                : null
+                reportData.map((rowContent, i)=>{
+                  return (
+                      <bem.ReportView__item key={i}>
+                        {/* style picker:
+                        <IndividualReportStylePicker key={kuid}
+                            row={row}
+                            onChange={this.reportStyleChange}
+                            asset={asset}
+                            style={row.chartStyle}
+                          />
+                        */}
+                        <ReportViewItem {...rowContent} translations={this.state.translations} translationIndex={this.state.translationIndex} />
+                      </bem.ReportView__item>
+                    );
+                })
               }
-              <bem.ReportView__wrap>
-                <bem.PrintOnly>
-                  <h3>{asset.name}</h3>
-                </bem.PrintOnly>
-                <bem.ReportView__warning>
-                  <h4>{t('Warning')}</h4>
-                  <p>{t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. ')}</p>
-                </bem.ReportView__warning>
-                {
-                  reportData.map((rowContent, i)=>{
-                    return (
-                        <bem.ReportView__item key={i}>
-                          {/* style picker:
-                          <IndividualReportStylePicker key={kuid}
-                              row={row}
-                              onChange={this.reportStyleChange}
-                              translationIndex={this.state.translationIndex}
-                              asset={asset}
-                              style={row.chartStyle}
-                            />
-                          */}
-                          <ReportViewItem {...rowContent} />
-                        </bem.ReportView__item>
-                      );
-                  })
-                }
-              </bem.ReportView__wrap>
-            </div>
+            </bem.ReportView__wrap>
           :
             <bem.Loading>
               <bem.Loading__inner>
