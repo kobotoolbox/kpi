@@ -87,12 +87,11 @@ def deploy_ref(deployment_name, ref, force=False):
         with kobo_workon(env.kpi_virtualenv_name):
             run("bower install")
             run("npm install")
-            run("grunt buildall")
+            run("gulp copy")
             run("npm run build")
 
             # KPI and KF share a virtualenv but have distinct settings modules
             with prefix('DJANGO_SETTINGS_MODULE=kobo.settings'):
-                run("python manage.py syncdb")
                 run("python manage.py migrate")
                 run("python manage.py collectstatic --noinput")
 

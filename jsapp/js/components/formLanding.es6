@@ -415,7 +415,7 @@ var FormLanding = React.createClass({
           {this.state.deployed_versions.count > 0 &&
             this.renderHistory()
           }
-          {this.state.deployed_versions.length > 0 && this.state.deployment__active && 
+          {this.state.deployed_versions.count > 0 && this.state.deployment__active &&
             this.renderCollectData()
           }
         </bem.FormView> 
