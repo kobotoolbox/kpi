@@ -1,6 +1,7 @@
 import datetime
 import json
 import pytz
+import urllib
 from collections import OrderedDict
 
 from django.contrib.auth.models import User, Permission
@@ -942,7 +943,7 @@ class AttachmentSerializer(serializers.ModelSerializer):
     def _get_download_url(self, obj, size):
         if obj.mimetype.startswith('image'):
             request = self.context.get('request')
-            result = image_url(obj, size)
+            result = urllib.urlencode(image_url(obj, size))
             return result if not request or not result else request.build_absolute_uri(result)
         return None
 
@@ -1044,8 +1045,6 @@ class QuestionPagination(HybridPagination):
         ]))
 
     def get_attachments_count(self, queryset):
-        print "===================>\n"
-        print "===================>\n"
         if(len(queryset)):
             return reduce(lambda x, y: x + y, map(lambda question: len(question['attachments']), queryset))
         else:
