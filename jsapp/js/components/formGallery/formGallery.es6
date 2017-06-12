@@ -55,7 +55,10 @@ var FormGallery = React.createClass({
         };
     },
     componentDidMount: function() {
-        this.loadGalleryData(this.props.uid, 'question');
+        console.log(this.props.deploymentSubmissionCount);
+        if(this.props.deploymentSubmissionCount){
+            this.loadGalleryData(this.props.uid, 'question');
+        }
     },
     formatDate : function(myDate){
         let timestamp = moment(new Date(myDate)).format('DD-MMM-YYYY h:mm:ssa');
@@ -133,7 +136,6 @@ var FormGallery = React.createClass({
         if(setGalleryTitleAndDate){
             let galleryTitle = gallery.label || gallery.attachments.results[this.state.galleryItemIndex].question.label;
             let galleryDate = this.formatDate(gallery.date_created || gallery.attachments.results[this.state.galleryItemIndex].submission.date_created);
-            console.log(galleryTitle, galleryDate);
             this.setState({
                 showModal: true,
                 activeModalGallery: gallery,
@@ -164,7 +166,7 @@ var FormGallery = React.createClass({
         });
     },
     render() {
-        if (this.state.assets.loaded) {
+        if (this.state.assets.loaded && this.props.deploymentSubmissionCount) {
             let modalFriendlyAttachments = (this.state.activeModalGallery.attachments) ? this.state.activeModalGallery.attachments.results : this.state.activeModalGallery;
             return (
                 <bem.AssetGallery>

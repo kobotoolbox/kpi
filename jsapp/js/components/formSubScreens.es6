@@ -100,16 +100,16 @@ var FormSubScreens = React.createClass({
   renderFormGallery () {
     var docTitle = this.state.name || t('Untitled');
     var deployment__identifier = this.state.deployment__identifier;
+    var deploymentSubmissionCount = this.state.deployment__submission_count;
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <FormGallery uid={this.state.uid}/>
+        <FormGallery uid={this.state.uid} deploymentSubmissionCount={deploymentSubmissionCount}/>
       </DocumentTitle>
     );
   },
   renderCollectWeb () {
     var docTitle = this.state.name || t('Untitled');
     var deployment__links = this.state.deployment__links;
-
     var available__links = {
         offline_url: {
           label: t('Online-Offline (multiple submission)'),
