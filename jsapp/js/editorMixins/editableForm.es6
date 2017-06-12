@@ -643,6 +643,10 @@ export default assign({
   },
   navigateBack() {
     var backRoute = this.state.backRoute;
+    if (this.state.backRoute == '/forms') {
+      backRoute = `/forms/${this.state.asset_uid}`;
+    }
+
     if (!this.needsSave()) {
       hashHistory.push(backRoute);
     } else {
