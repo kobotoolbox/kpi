@@ -68,8 +68,14 @@ let FormGalleryModal = React.createClass({
 });
 
 let FormGalleryModalSidebar = React.createClass({
+    goToFilter: function(gridLabel){
+        this.props.closeModal();
+        this.props.setSearchTerm(gridLabel);
+    },
     render(){
         let currentRecordIndex = (this.props.filter === 'question' ? this.props.galleryItemIndex + 1 : this.props.galleryIndex + 1);
+        let featuredItems = this.props.activeGalleryAttachments.slice();
+        featuredItems.splice(this.props.galleryItemIndex, 1);
         return (
             <bem.AssetGallery__modalSidebar className="col4 open">
                 <i className="toggle-info k-icon-close" onClick={this.props.closeModal}></i>
@@ -86,12 +92,26 @@ let FormGalleryModalSidebar = React.createClass({
                     </div>
 
                     {(this.props.activeGalleryAttachments != undefined) ?
-                        <FeaturedGridItems
-                            activeGalleryAttachments={this.props.activeGalleryAttachments}
-                            galleryTitle={this.props.galleryTitle}
-                            galleryItemIndex={this.props.galleryItemIndex}
-                            changeActiveGalleryIndex={this.props.changeActiveGalleryIndex}
-                        />
+                        <div className="padding--15">
+                            <h5 onClick={() => this.goToFilter(this.props.galleryTitle)}>{t('More for') + " " + this.props.galleryTitle}</h5>
+                            <bem.AssetGallery__modalSidebarGrid>
+                                {featuredItems.filter((j, index) => (index < 6)).map(function(item, j) {
+
+                                    var divStyle = {
+                                        backgroundImage: 'url('+ item.medium_download_url + ')',
+                                        backgroundRepeat: 'no-repeat',
+                                        backgroundPosition: 'center center',
+                                        backgroundSize: 'cover'
+                                    }
+                                    return (
+                                        <bem.AssetGallery__modalSidebarGridItem key={j} className="col6" onClick={() => this.props.changeActiveGalleryIndex(j)}>
+                                            <div className="one-one" style={divStyle}></div>
+                                        </bem.AssetGallery__modalSidebarGridItem>
+                                    )
+
+                                }.bind(this))}
+                            </bem.AssetGallery__modalSidebarGrid>
+                        </div>
                     : null}
 
                 </div>
@@ -100,44 +120,6 @@ let FormGalleryModalSidebar = React.createClass({
     }
 });
 
-let FeaturedGridItems = React.createClass({
-    getInitialState: function() {
-        return {
-            maxItems: 2,
-            currentIndex : 0
-        };
-    },
-    goToFilter: function(gridLabel){
-        this.props.closeModal();
-        this.props.setSearchTerm(gridLabel);
-    },
-    render(){
-        let featuredItems = this.props.activeGalleryAttachments.slice();
-        featuredItems.splice(this.props.galleryItemIndex, 1);
-        return (
-            <div className="padding--15">
-                <h5 onClick={() => this.goToFilter(this.props.galleryTitle)}>{t('More for') + " " + this.props.galleryTitle}</h5>
-                <bem.AssetGallery__modalSidebarGrid>
-                    {featuredItems.filter((j, index) => (index < 6)).map(function(item, j) {
-
-                        var divStyle = {
-                            backgroundImage: 'url('+ item.medium_download_url + ')',
-                            backgroundRepeat: 'no-repeat',
-                            backgroundPosition: 'center center',
-                            backgroundSize: 'cover'
-                        }
-                        return (
-                            <bem.AssetGallery__modalSidebarGridItem key={j} className="col6" onClick={() => this.props.changeActiveGalleryIndex(j)}>
-                                <div className="one-one" style={divStyle}></div>
-                            </bem.AssetGallery__modalSidebarGridItem>
-                        )
-
-                    }.bind(this))}
-                </bem.AssetGallery__modalSidebarGrid>
-            </div>
-        );
-    }
-});
 
 //Slider Navigation
 let RightNavButton = React.createClass({
