@@ -189,6 +189,8 @@ class FormSettingsBox extends React.Component {
 
 export default assign({
   componentDidMount() {
+    document.body.classList.add('hide-edge');
+
     if (this.state.editorState == 'existing') {
       let uid = this.props.params.assetid;
       stores.allAssets.whenLoaded(uid, (asset) => {
