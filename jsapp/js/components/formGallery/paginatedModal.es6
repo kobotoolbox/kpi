@@ -11,12 +11,8 @@ import Select from 'react-select';
 let PaginatedModal = React.createClass({
     getInitialState: function() {
         return {
-            offset: 3,
+            offset: 10,
             offsetOptions: [
-                {
-                    value : 3,
-                    label: 3
-                },
                 {
                     value : 10,
                     label: 10
