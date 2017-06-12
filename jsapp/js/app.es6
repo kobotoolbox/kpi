@@ -110,68 +110,6 @@ var assetStore = stores.asset;
 var sessionStore = stores.session;
 
 
-/*
-var Icon = React.createClass({
-  render () {
-    var kls = classNames('fa', `fa-${this.props.fa}`, this.props.also);
-    return (
-      <i className={kls} />
-      );
-  }
-})
-class NavBarIcon extends React.Component {
-  render () {
-    var iconCls = classNames(`fa ${this.props.icon}`)
-    return (
-      <ul className='nav navbar-nav user'>
-        <li className='item'>
-          <i className={iconCls} title={this.props.title} />
-        </li>
-      </ul>
-      );
-  }
-}
-*/
-
-// class Header extends React.Component {
-//   render () {
-//     var small;
-//     if (this.props.small) {
-//       small = <small>{this.props.small}</small>;
-//     }
-//     return (
-//       <div className="row">
-//         <div className="col-lg-12">
-//           <h3 className="page-header">{this.props.title} {small}</h3>
-//         </div>
-//       </div>
-//       );
-//   }
-// }
-
-// class StackedIcon extends React.Component {
-//   render () {
-//     var size = this.props.size || 'lg';
-//     var backIcon = this.props.backIcon || 'square';
-//     var frontIcon = this.props.frontIcon || 'file-o';
-//     return (
-//         <span className={classNames('fa-stack', `fa-${size}`, this.props.className)}>
-//           <i className={`fa fa-${backIcon} fa-stack-2x`}></i>
-//           <i className={`fa fa-${frontIcon} fa-stack-1x fa-inverse`}></i>
-//         </span>
-//       );
-//   }
-// }
-
-/*
-var ActionLink = React.createClass({
-  render () {
-    return <bem.AssetRow__actionIcon {...this.props} />
-  }
-});
-var collectionAssetsStore = stores.collectionAssets;
-*/
-
 function stringifyRoutes(contextRouter) {
   return JSON.stringify(contextRouter.getCurrentRoutes().map(function(r){
     return {
@@ -392,67 +330,6 @@ class Loading extends React.Component {
   }
 };
 
-// var Forms = React.createClass({
-  // mixins: [
-  //   Navigation
-  // ],
-  // statics: {
-  //   willTransitionTo: function(transition, params, idk, callback) {
-  //     if (params.assetid && params.assetid[0] === 'c') {
-  //       transition.redirect('collection-page', {
-  //         uid: params.assetid
-  //       });
-  //     }
-  //     callback();
-  //   }
-  // },
-  // render () {
-    // return this.props.children;
-  // }
-// });
-
-// var FormDownload = React.createClass({
-//   statics: {
-//     willTransitionTo: function(transition, params, idk, callback) {
-//       actions.resources.loadAsset({id: params.assetid});
-//       callback();
-//     }
-//   },
-//   componentDidMount () {
-//     this.listenTo(assetStore, this.assetStoreTriggered);
-//   },
-//   getInitialState () {
-//     return {
-//       downloads: []
-//     };
-//   },
-//   assetStoreTriggered (data, uid) {
-//     this.setState({
-//       downloads: data[uid].downloads
-//     });
-//   },
-//   render () {
-//     return (
-//         <ui.Panel>
-//           <ul>
-//             {
-//               this.state.downloads.map(function(item){
-//                 var fmt = `download-format-${item.format}`;
-//                 return (
-//                     <li>
-//                       <a href={item.url} ref={fmt}>
-//                         {t(fmt)}
-//                       </a>
-//                     </li>
-//                   );
-//               })
-//             }
-//           </ul>
-//         </ui.Panel>
-//       );
-//   }
-// });
-
 class FormJson extends React.Component {
   constructor (props) {
     super(props);
@@ -600,26 +477,6 @@ class Public extends React.Component {
       );
   }
 };
-
-// var Builder = React.createClass({
-//   mixins: [Navigation],
-//   render () {
-//     var _routes = stringifyRoutes(this.context.router);
-//     return (
-//       <ui.Panel className="k-div--builder">
-//         <h1 className="page-header">Builder</h1>
-//         <hr />
-//         <pre>
-//           <code>
-//             {_routes}
-//             <hr />
-//             {JSON.stringify(this.context.router.getCurrentParams(), null, 4)}
-//           </code>
-//         </pre>
-//       </ui.Panel>
-//       );
-//   }
-// });
 
 class SelfProfile extends React.Component {
   render () {
