@@ -210,9 +210,9 @@ def _sync_form_content(asset, xform, changes):
         # If KC timestamp is close enough to the KPI timestamp, we assume the
         # KC form content was not updated since the last KPI deployment
         if time_diff <= TIMESTAMP_DIFFERENCE_TOLERANCE:
-            # We don't need an update, but we should copy the hash from KC to
-            # KPI for future reference
-            backend_response['hash'] = xform.prefixed_hash
+            # Don't update the content, but flip `modified` to `True` in order
+            # to refresh the backend response. This gets us a matching hash,
+            # among other things
             modified = True
             changes.append('HASH')
         else:
@@ -220,6 +220,13 @@ def _sync_form_content(asset, xform, changes):
             asset.date_modified = xform.date_modified
             modified = True
             changes.append('UPDATE')
+
+    if modified:
+        # It's important to update `deployment_data` with the new hash from KC;
+        # otherwise, we'll be re-syncing the same content forever (issue #1302)
+        asset._deployment_data[
+            'backend_response'] = _get_kc_backend_response(xform)
+
     return modified
 
 
@@ -280,8 +287,7 @@ def _sync_form_metadata(asset, xform, changes):
             changes.append('NAME')
 
     if fetch_backend_response:
-        deployment_data[
-            'backend_response'] = _get_kc_backend_response(xform)
+        deployment_data['backend_response'] = _get_kc_backend_response(xform)
         modified = True
 
     affected_users = _sync_permissions(asset, xform)
@@ -468,7 +474,6 @@ class Command(BaseCommand):
                 xform_uuids_to_asset_pks[backend_response['uuid']] = \
                     existing_survey.pk
 
-            # Use our stub model to access KC's XForm objects
             xforms = user.xforms.all()
             for xform in xforms:
                 try:

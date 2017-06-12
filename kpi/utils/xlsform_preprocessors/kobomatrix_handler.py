@@ -1,3 +1,7 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 import re
 
 from base_handlers import GroupHandler
@@ -116,6 +120,7 @@ class KoboMatrixGroupHandler(GroupHandler):
                 first_column_width='w1',
                 ):
         header_name = '_'.join([name, 'header'])
+
         start = [{'type': 'begin_group',
                   'name': header_name,
                   'appearance': total_width,
