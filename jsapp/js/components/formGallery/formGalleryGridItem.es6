@@ -3,7 +3,6 @@ import bem from '../../bem';
 
 let FormGalleryGridItem = React.createClass({
     render(){
-        console.log(this.props.url);
         let itemStyle = {
             backgroundImage: 'url(' + this.props.url + ')',
             backgroundRepeat: 'no-repeat',

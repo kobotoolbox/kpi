@@ -30,7 +30,6 @@ let FormGalleryModal = React.createClass({
 			nextArrow: <RightNavButton/>,
 			prevArrow: <LeftNavButton/>
 		}
-        console.log(this.props);
 
         return (
             <Modal isOpen={true} contentLabel="Modal">
@@ -105,7 +104,7 @@ let FeaturedGridItems = React.createClass({
     getInitialState: function() {
         return {
             maxItems: 2,
-            count : 0
+            currentIndex : 0
         };
     },
     goToFilter: function(gridLabel){
@@ -113,24 +112,26 @@ let FeaturedGridItems = React.createClass({
         this.props.setSearchTerm(gridLabel);
     },
     render(){
+        let featuredItems = this.props.activeGalleryAttachments.slice();
+        featuredItems.splice(this.props.galleryItemIndex, 1);
         return (
             <div className="padding--15">
                 <h5 onClick={() => this.goToFilter(this.props.galleryTitle)}>{t('More for') + " " + this.props.galleryTitle}</h5>
                 <bem.AssetGallery__modalSidebarGrid>
-                    {this.props.activeGalleryAttachments.map(function(item, j) {
-                        if (this.props.galleryItemIndex !== j){ // if the item is not the active attachment
-                            var divStyle = {
-                                backgroundImage: 'url('+ item.medium_download_url + ')',
-                                backgroundRepeat: 'no-repeat',
-                                backgroundPosition: 'center center',
-                                backgroundSize: 'cover'
-                            }
-                            return (
-                                <bem.AssetGallery__modalSidebarGridItem key={j} className="col6" onClick={() => this.props.changeActiveGalleryIndex(j)}>
-                                    <div className="one-one" style={divStyle}></div>
-                                </bem.AssetGallery__modalSidebarGridItem>
-                            )
+                    {featuredItems.filter((j, index) => (index < 6)).map(function(item, j) {
+
+                        var divStyle = {
+                            backgroundImage: 'url('+ item.medium_download_url + ')',
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'center center',
+                            backgroundSize: 'cover'
                         }
+                        return (
+                            <bem.AssetGallery__modalSidebarGridItem key={j} className="col6" onClick={() => this.props.changeActiveGalleryIndex(j)}>
+                                <div className="one-one" style={divStyle}></div>
+                            </bem.AssetGallery__modalSidebarGridItem>
+                        )
+
                     }.bind(this))}
                 </bem.AssetGallery__modalSidebarGrid>
             </div>

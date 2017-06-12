@@ -231,7 +231,10 @@ var FormGallery = React.createClass({
             );
 
         } else {
-            return null;
+
+            return (
+                <h3>This form does not have any media questions.</h3>
+            )
         }
     }
 });
