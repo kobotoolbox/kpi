@@ -8,6 +8,8 @@ import {
 } from './utils';
 
 var Reflux = require('reflux');
+import RefluxPromise from "./libs/reflux-promise";
+Reflux.use(RefluxPromise(window.Promise));
 
 var actions = {};
 
@@ -185,10 +187,7 @@ actions.resources = Reflux.createActions({
     ]
   },
   updateCollection: {
-    children: [
-      'completed',
-      'failed'
-    ]
+    asyncResult: true
   },
   deleteCollection: {
     children: [
@@ -215,16 +214,10 @@ actions.resources = Reflux.createActions({
     ],
   },
   createResource: {
-    children: [
-      'completed',
-      'failed'
-    ]
+    asyncResult: true
   },
   updateAsset: {
-    children: [
-      'completed',
-      'failed'
-    ]
+    asyncResult: true
   },
   notFound: {}
 });
@@ -344,17 +337,14 @@ actions.resources.listTags.completed.listen(function(results){
 });
 
 actions.resources.updateAsset.listen(function(uid, values){
-  return new Promise(function(resolve, reject){
-    dataInterface.patchAsset(uid, values)
-      .done(function(asset){
-        actions.resources.updateAsset.completed(asset);
-        notify(t('successfully updated'));
-        resolve(asset);
-      })
-      .fail(function(...args){
-        reject(args)
-      });
-  })
+  dataInterface.patchAsset(uid, values)
+    .done(function(asset){
+      actions.resources.updateAsset.completed(asset);
+      notify(t('successfully updated'));
+    })
+    .fail(function(resp){
+      actions.resources.updateAsset.failed(resp);
+    });
 });
 
 actions.resources.deployAsset.listen(
@@ -468,17 +458,13 @@ actions.reports.setStyle.listen(function(assetId, details){
 });
 
 actions.resources.createResource.listen(function(details){
-  return new Promise(function(resolve, reject){
-    dataInterface.createResource(details)
-      .done(function(asset){
-        actions.resources.createResource.completed(asset);
-        resolve(asset);
-      })
-      .fail(function(...args){
-        actions.resources.createResource.failed(...args)
-        reject(args);
-      });
-  });
+  dataInterface.createResource(details)
+    .done(function(asset){
+      actions.resources.createResource.completed(asset);
+    })
+    .fail(function(...args){
+      actions.resources.createResource.failed(...args)
+    });
 });
 
 actions.resources.deleteAsset.listen(function(details, params={}){
@@ -513,17 +499,14 @@ actions.resources.deleteCollection.listen(function(details){
 });
 
 actions.resources.updateCollection.listen(function(uid, values){
-  return new Promise(function(resolve, reject){
-    dataInterface.patchCollection(uid, values)
-      .done(function(asset){
-        actions.resources.updateCollection.completed(asset);
-        notify(t('successfully updated'));
-        resolve(asset);
-      })
-      .fail(function(...args){
-        reject(args)
-      });
-  })
+  dataInterface.patchCollection(uid, values)
+    .done(function(asset){
+      actions.resources.updateCollection.completed(asset);
+      notify(t('successfully updated'));
+    })
+    .fail(function(...args){
+      actions.resources.updateCollection.failed(...args);
+    });
 });
 
 actions.resources.cloneAsset.listen(function(details, opts={}){

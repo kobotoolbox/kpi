@@ -299,6 +299,11 @@ def _sync_form_metadata(asset, xform, changes):
 
 
 def _sync_permissions(asset, xform):
+    # Returns a list of affected users' usernames
+
+    if not settings.SYNC_KOBOCAT_PERMISSIONS:
+        return []
+
     # Get all applicable KC permissions set for this xform
     xform_user_perms = UserObjectPermission.objects.filter(
         permission_id__in=PERMISSIONS_MAP.keys(),

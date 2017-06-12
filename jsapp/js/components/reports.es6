@@ -1,16 +1,13 @@
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
 import _ from 'underscore';
 import {dataInterface} from '../dataInterface';
-import {
-  Navigation,
-} from 'react-router';
+
 import actions from '../actions';
 import bem from '../bem';
 import stores from '../stores';
 import Select from 'react-select';
 import ui from '../ui';
-import mdl from '../libs/rest_framework/material';
 import DocumentTitle from 'react-document-title';
 
 import ReportViewItem from './reportViewItem';
@@ -22,7 +19,6 @@ import {
 } from '../utils';
 
 function labelVal(label, value) {
-  // returns {label: "Some Value", value: "some_value"} for react-select
   return {label: t(label), value: (value || label.toLowerCase().replace(/\W+/g, '_'))};
 }
 let reportStyles = [
@@ -43,9 +39,9 @@ var DefaultChartTypePicker = React.createClass({
     });
   },
   render () {
-    var radioButtons = reportStyles.map(function(style){
+    var radioButtons = reportStyles.map(function(style, i){
        return (
-          <bem.GraphSettings__radio m={style.value}>
+          <bem.GraphSettings__radio m={style.value} key={i}>
               <input type="radio" name="chart_type" 
                 value={style.value} 
                 checked={this.props.defaultStyle.report_type === style.value} 
@@ -145,7 +141,7 @@ var DefaultChartColorsPicker = React.createClass({
   render () {
     var radioButtons = reportColorSets.map(function(set, index){
        return (
-          <bem.GraphSettings__radio>
+          <bem.GraphSettings__radio key={index}>
               <input type="radio" name="chart_colors" 
                 value={index} 
                 checked={this.props.defaultStyle.report_colors === reportColorSets[index].colors} 
@@ -153,9 +149,9 @@ var DefaultChartColorsPicker = React.createClass({
                 id={'type-' + set.label} />
               <label htmlFor={'type-' + set.label}>
                {
-                  reportColorSets[index].colors.map(function(color){
+                  reportColorSets[index].colors.map(function(color, i){
                        return (
-                          <div style={{backgroundColor: color}}>
+                          <div style={{backgroundColor: color}} key={i}>
                           </div>
                        );
                     }, this)               
@@ -174,32 +170,6 @@ var DefaultChartColorsPicker = React.createClass({
 });
 
 
-var IndividualReportStylePicker = React.createClass({
-  specificReportStyleChange (value) {
-    this.props.onChange({
-      kuid: this.props.row.$kuid,
-    }, {
-      report_type: value || false,
-    });
-  },
-  render () {
-    let kuid = this.props.row.$kuid;
-    return (
-        <div>
-          <Select
-            name={`report_type__${kuid}`}
-            value={this.props.style.report_type}
-            clearable={true}
-            clearValueText={t('none')}
-            placeholder={t('report type')}
-            options={reportStyles}
-            onChange={this.specificReportStyleChange}
-          />
-        </div>
-      );
-  },
-});
-
 var SizeSliderInput = React.createClass({
   getInitialState: function() {
     return {value: this.props.default};
@@ -216,11 +186,10 @@ var SizeSliderInput = React.createClass({
     return (
       <div className="slider-item">
         <label> 
-          {this.props.label}
-          {this.state.value}
+          {this.props.label}&nbsp;{this.state.value}
         </label>
         <input 
-          className="mdl-slider mdl-js-slider"
+          className="mdl-slider"
           id={this.props.name}
           type="range" 
           min={this.props.min} 
@@ -235,7 +204,6 @@ var SizeSliderInput = React.createClass({
 
 var Reports = React.createClass({
   mixins: [
-    Navigation,
     Reflux.ListenerMixin,
   ],
   componentDidMount () {
@@ -278,7 +246,8 @@ var Reports = React.createClass({
           var dataWithResponses = [];
 
           data.list.forEach(function(row){
-            if (row.data.responses !== undefined) {
+
+            if (row.data.responses || row.data.values || row.data.mean) {
               if (rowsByIdentifier[row.name] !== undefined) {
                 row.row.label = rowsByIdentifier[row.name].label;
               } else {
@@ -286,16 +255,6 @@ var Reports = React.createClass({
               }
               dataWithResponses.push(row);
             }
-
-            if (row.data.values !== undefined) {
-              if (rowsByIdentifier[row.name] !== undefined) {
-                row.row.label = rowsByIdentifier[row.name].label;
-              } else {
-                row.row.label = t('untitled');
-              }
-              dataWithResponses.push(row);
-            }
-
           });
 
           this.setState({
@@ -304,6 +263,12 @@ var Reports = React.createClass({
             rowsByIdentifier: rowsByIdentifier,
             reportStyles: asset.report_styles,
             reportData: dataWithResponses,
+            translations: asset.content.translations.length > 1 ? true : false,
+            error: false
+          });
+        }).fail((err)=> {
+          this.setState({
+            error: err
           });
         });
       } else {
@@ -316,8 +281,11 @@ var Reports = React.createClass({
     return {
       graphWidth: "700",
       graphHeight: "250",
+      translations: false,
       translationIndex: 0,
-      groupBy: []
+      groupBy: [],
+      activeModalTab: 0,
+      error: false
     };
   },
   groupDataBy(evt) {
@@ -350,8 +318,9 @@ var Reports = React.createClass({
       this.setState({graphHeight: params.value});
     }
   },
-  translationIndexChange (val) {
-    this.setState({translationIndex: val});
+  translationIndexChange (evt) {
+    var TI = evt.target.getAttribute('data-index') ? evt.target.getAttribute('data-index') : 0;
+    this.setState({translationIndex: TI});
   },
   toggleReportGraphSettings () {
     this.setState({
@@ -359,20 +328,21 @@ var Reports = React.createClass({
     });
   },
   toggleExpandedReports () {
-    stores.pageState.setDrawerHidden(!this.state.showExpandedReport);
+    stores.pageState.hideDrawerAndHeader(!this.state.showExpandedReport);
     this.setState({
       showExpandedReport: !this.state.showExpandedReport,
     });
+  },
+  componentWillUnmount() {
+    if (this.state.showExpandedReport)
+      stores.pageState.hideDrawerAndHeader(!this.state.showExpandedReport);
   },
   launchPrinting () {
     window.print();
   },
   renderReportButtons () {
     var rows = this.state.rowsByIdentifier || {};
-    var groupByList = [{
-      'label': t("No grouping"),
-      'name': ''
-    }];
+    var groupByList = [];
     for (var key in rows) {
       if (rows.hasOwnProperty(key) 
           && rows[key].hasOwnProperty('type')
@@ -383,43 +353,53 @@ var Reports = React.createClass({
 
     return (
       <bem.FormView__reportButtons>
-        <button className="mdl-button mdl-js-button"
-                onClick={this.toggleReportGraphSettings}>
+        <button className="mdl-button" onClick={this.toggleReportGraphSettings}>
           {t('Graph Settings')}
         </button>
-  
-        {groupByList.length > 1 && 
-          <button className="mdl-button mdl-js-button"
-                  id="report-groupby">
-            {t('Group By')}
-            <i className="fa fa-caret-down"></i>
-          </button>
-        }
 
         {groupByList.length > 1 && 
-          <ul className="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
-              htmlFor="report-groupby">
-            {groupByList.map((row)=>{
-                return (
-                  <li>
-                    <a className="mdl-menu__item"
-                       data-name={row.name}
-                       onClick={this.groupDataBy}>{row.label}</a>
-                  </li>
-                );
-              })
-            }
+          <ui.PopoverMenu type='groupby-menu' 
+              triggerLabel={t('Group By')}>
+              <bem.PopoverMenu__link key='default' data-name='' onClick={this.groupDataBy}>
+                  {t("No grouping")}
+              </bem.PopoverMenu__link>
 
-          </ul> 
+              {groupByList.map((row, i)=>{
+                  return (
+                    <bem.PopoverMenu__link key={i}
+                        data-name={row.name || row.$autoname}
+                        onClick={this.groupDataBy}>
+                         {this.state.translations ? row.label[this.state.translationIndex] : row.label}
+                    </bem.PopoverMenu__link>
+                  );
+                })
+              }
+          </ui.PopoverMenu> 
         }
 
-        <button className="mdl-button mdl-js-button mdl-button--icon report-button__expand"
+        {this.state.translations && 
+          <ui.PopoverMenu type='question-language' 
+              triggerLabel={t('Translation')}>
+              {this.state.asset.content.translations.map((row, i)=>{
+                  return (
+                    <bem.PopoverMenu__link key={i}
+                        data-index={i}
+                        onClick={this.translationIndexChange}>
+                         {row}
+                    </bem.PopoverMenu__link>
+                  );
+                })
+              }
+          </ui.PopoverMenu> 
+        }
+
+        <button className="mdl-button mdl-button--icon report-button__expand"
                 onClick={this.toggleExpandedReports} 
                 data-tip={t('Expand')}>
           <i className="k-icon-expand" />
         </button>
  
-        <button className="mdl-button mdl-js-button mdl-button--icon report-button__print" 
+        <button className="mdl-button mdl-button--icon report-button__print" 
                 onClick={this.launchPrinting} 
                 data-tip={t('Print')}>
           <i className="k-icon-print" />
@@ -427,6 +407,12 @@ var Reports = React.createClass({
  
       </bem.FormView__reportButtons>
     );
+  },
+  toggleTab(evt) {
+    var i = evt.target.getAttribute('data-index');
+    this.setState({
+      activeModalTab: parseInt(i),
+    });
   },
   renderReportGraphSettings () {
     let asset = this.state.asset,
@@ -445,53 +431,62 @@ var Reports = React.createClass({
     for (var i = reportData.length - 1; i >= 0; i--) {;
       reportData[i].style = defaultStyle;
     }
+
+    var tabs = [t('Chart Type'), t('Colors'), t('Size')];
+
+    var modalTabs = tabs.map(function(tab, i){
+      return (
+        <button className={`mdl-button mdl-button--tab ${this.state.activeModalTab === i ? 'active' : ''}`}
+                onClick={this.toggleTab}
+                data-index={i}
+                key={i}>
+          {tab}
+        </button>
+      );
+    }, this);
+
     return (
       <bem.GraphSettings>
+        <ui.Modal.Tabs>
+          {modalTabs}
+        </ui.Modal.Tabs>
         <ui.Modal.Body>
-          <div className="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
-            <div className="mdl-tabs__tab-bar">
-                <a href="#graph-type" className="mdl-tabs__tab is-active">
-                  {t('Chart Type')}
-                </a>
-                <a href="#graph-colors" className="mdl-tabs__tab">
-                  {t('Colors')}
-                </a>
-                <a href="#graph-labels" className="mdl-tabs__tab">
-                  {t('Size')}
-                </a>
-            </div>
-   
-            <div className="mdl-tabs__panel is-active" id="graph-type">
-              <DefaultChartTypePicker
+          <div className="tabs-content">
+            {this.state.activeModalTab === 0 &&
+              <div id="graph-type">
+                <DefaultChartTypePicker
                   defaultStyle={defaultStyle}
                   onChange={this.reportStyleChange}
-                  translationIndex={this.state.translationIndex}
                 />
-            </div>
-            <div className="mdl-tabs__panel" id="graph-colors">
-              <DefaultChartColorsPicker
-                  defaultStyle={defaultStyle}
-                  onChange={this.reportStyleChange}
-                  translationIndex={this.state.translationIndex}
-                />
-            </div>
-            <div className="mdl-tabs__panel graph-tab__size" id="graph-labels">
-              <SizeSliderInput 
-                          name="width" min="300" max="900" default={this.state.graphWidth} 
-                          label={t('Width: ')} 
-                          onChange={this.reportSizeChange} />
-              <div className="is-edge">
-                <SizeSliderInput 
-                          name="height" min="200" max="500" default={this.state.graphHeight}
-                          label={t('Height: ')} 
-                          onChange={this.reportSizeChange} />
               </div>
-            </div>
+            }
+            {this.state.activeModalTab === 1 &&
+              <div id="graph-colors">
+                <DefaultChartColorsPicker
+                  defaultStyle={defaultStyle}
+                  onChange={this.reportStyleChange}
+                />
+              </div>
+            }
+            {this.state.activeModalTab === 2 &&
+              <div className="graph-tab__size" id="graph-labels">
+                <SizeSliderInput 
+                      name="width" min="300" max="900" default={this.state.graphWidth} 
+                      label={t('Width: ')} 
+                      onChange={this.reportSizeChange} />
+                <div className="is-edge">
+                  <SizeSliderInput 
+                      name="height" min="200" max="500" default={this.state.graphHeight}
+                      label={t('Height: ')} 
+                      onChange={this.reportSizeChange} />
+                </div>
+              </div>
+            }
           </div>
         </ui.Modal.Body>
  
         <ui.Modal.Footer>
-          <button className="mdl-button mdl-js-button primary"
+          <button className="mdl-button primary"
                   onClick={this.toggleReportGraphSettings}>
             {t('Done')}
           </button>
@@ -514,9 +509,9 @@ var Reports = React.createClass({
       defaultStyle.graphHeight = this.state.graphHeight;
 
       docTitle = asset.name || t('Untitled');
+
     }
 
-    let translations = false;
     let reportData = this.state.reportData || [];
 
     for (var i = reportData.length - 1; i >= 0; i--) {;
@@ -525,23 +520,37 @@ var Reports = React.createClass({
 
     if (this.state.reportData === undefined) {
       return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
+        <bem.ReportView>
+          <bem.Loading>
+            {this.state.error === false ?
+              <bem.Loading__inner>
+                <i />
+                {t('loading...')}
+              </bem.Loading__inner>
+              : 
+              <bem.Loading__inner>
+                {t('This report cannot be loaded.')}
+                <br/>
+                <code>
+                  {this.state.error.statusText + ': ' + this.state.error.responseText}
+                </code>
+              </bem.Loading__inner>
+            }
+          </bem.Loading>
+        </bem.ReportView>
       );
     }
 
     if (this.state.reportData && reportData.length === 0) {
       return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          <bem.Loading>
-            <bem.Loading__inner>
-              {t('This report has no data.')}
-            </bem.Loading__inner>
-          </bem.Loading>
+          <bem.ReportView>
+            <bem.Loading>
+              <bem.Loading__inner>
+                {t('This report has no data.')}
+              </bem.Loading__inner>
+            </bem.Loading>
+          </bem.ReportView>
         </DocumentTitle>
       );
     }
@@ -551,48 +560,32 @@ var Reports = React.createClass({
         <bem.ReportView>
           {this.renderReportButtons()}
           {this.state.asset ?
-            <div>
+            <bem.ReportView__wrap>
+              <bem.PrintOnly>
+                <h3>{asset.name}</h3>
+              </bem.PrintOnly>
+              <bem.ReportView__warning>
+                <h4>{t('Warning')}</h4>
+                <p>{t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. ')}</p>
+              </bem.ReportView__warning>
               {
-                translations ?
-                  <Select
-                      name={`translation-switcher`}
-                      value={this.state.translationIndex}
-                      clearable={false}
-                      default={0}
-                      placeholder={t('Translation')}
-                      options={translations}
-                      onChange={this.translationIndexChange}
-                    />
-                : null
+                reportData.map((rowContent, i)=>{
+                  return (
+                      <bem.ReportView__item key={i}>
+                        {/* style picker:
+                        <IndividualReportStylePicker key={kuid}
+                            row={row}
+                            onChange={this.reportStyleChange}
+                            asset={asset}
+                            style={row.chartStyle}
+                          />
+                        */}
+                        <ReportViewItem {...rowContent} translations={this.state.translations} translationIndex={this.state.translationIndex} />
+                      </bem.ReportView__item>
+                    );
+                })
               }
-              <bem.ReportView__wrap>
-                <bem.PrintOnly>
-                  <h3>{asset.name}</h3>
-                </bem.PrintOnly>
-                <bem.ReportView__warning>
-                  <h4>{t('Warning')}</h4>
-                  <p>{t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. ')}</p>
-                </bem.ReportView__warning>
-                {
-                  reportData.map((rowContent)=>{
-                    return (
-                        <bem.ReportView__item>
-                          {/* style picker:
-                          <IndividualReportStylePicker key={kuid}
-                              row={row}
-                              onChange={this.reportStyleChange}
-                              translationIndex={this.state.translationIndex}
-                              asset={asset}
-                              style={row.chartStyle}
-                            />
-                          */}
-                          <ReportViewItem {...rowContent} />
-                        </bem.ReportView__item>
-                      );
-                  })
-                }
-              </bem.ReportView__wrap>
-            </div>
+            </bem.ReportView__wrap>
           :
             <bem.Loading>
               <bem.Loading__inner>
@@ -610,9 +603,6 @@ var Reports = React.createClass({
         </bem.ReportView>
       </DocumentTitle>
       );
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   }
 
 })

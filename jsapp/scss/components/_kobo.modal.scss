@@ -5,7 +5,7 @@
   z-index: 20;
   top: 0px;
   left: 0px;
-  background-color: rgba(255, 255, 255, 0.4) !important;
+  background-color: rgba(0, 0, 0, 0.4) !important;
 }
 
 .modal-open {
@@ -17,30 +17,12 @@
   max-width: 90%;
   max-height: 95%;
   overflow-x: auto;
-  box-shadow: 2px 2px 15px 2px rgba(0,0,0,0.15);
+  box-shadow: 0 0 12px 0 rgba(0, 0, 0, 0.06), 0 12px 12px 0 rgba(0, 0, 0, 0.12);
 }
 
 .modal-content {
-  .modal--withicon & {
-    padding-left: 110px;
-    padding-bottom: 30px;
-  }
-
   background-color: #FFF;
   padding: 15px 20px;
-}
-
-.modal_icon {
-  width: 92px;
-  height: 57px;
-  position: absolute;
-  top: 45px;
-  left: 18px;
-
-  &--gears {
-    background-image: url("../img/maintenance_gears.png");
-    background-size: cover;
-  }
 }
 
 .modal-large {
@@ -51,25 +33,21 @@
     align-items: stretch;
     display: flex;
   }
-
   .modal-content {
     height: 100%;
     width: 100%;
     display: flex;
     flex-direction: column;
   }
-
   .modal-body {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-
     .enketo-holder {
       flex-grow: 1;
       display: flex;
       flex-direction: column;
     }
-
     iframe {
       flex-grow: 1;
       border: 1px solid white;
@@ -80,17 +58,20 @@
 
 .modal-title {
   margin: 0px;
-  padding: 20px 30px;
+  padding: 24px 30px;
   font-size: 18px;
 }
 
 .modal-header {
-  min-height: 30px;
+  min-height: 70px;
   margin: -15px -20px 0;
+  background: $cool-blue;
+  color: #FFF;
 }
 
 .modal-body {
-  padding: 10px;
+  padding: 15px;
+  padding-top: 30px;
 }
 
 .modal-footer {
@@ -99,26 +80,25 @@
   padding-right: 10px;
 }
 
-$modalXcolor: #d8d8d8;
-
 .modal-x {
   position: absolute;
   background-color: transparent;
   top: 0;
   right: 0;
-  padding: 25px;
+  padding: 20px;
   font-size: 20px;
-  color: $modalXcolor;
+  color: #FFF;
   cursor: pointer;
-
+  i {
+    font-size: 32px;
+  }
   &:hover {
-    color: darken($modalXcolor, 20%);
+    opacity: 0.7;
   }
 }
 
 .modal-footer {
   text-align: right;
-
   button {
     @extend .mdl-button, .mdl-button--colored, .mdl-button--raised;
     text-transform: uppercase;
@@ -127,14 +107,21 @@ $modalXcolor: #d8d8d8;
   }
 }
 
+// modal tabs
+.modal-tabs {
+  background: $cool-blue;
+  color: #FFF;
+  margin: 0px -20px;
+}
+
 .enketo-holder {
-  margin-top: 20px;
+  // resets modal window paddings
+  margin: -30px -35px;
   .enketo-loading-message {
     p {
       text-align: center;
       font-weight: 600;
     }
-
     i:before {
       color: #3FA2EE;
       font-size: 20px;
@@ -168,12 +155,12 @@ $modalXcolor: #d8d8d8;
 // alertify overrides
 
 .alertify .ajs-dimmer {
-  background-color:#FFF;
-  opacity: 0.4;
+  background-color: #FFF;
+  opacity: 0.55;
 }
 
 .alertify .ajs-dialog {
-  box-shadow: 2px 2px 15px 2px rgba(0,0,0,0.15);
+  box-shadow: 2px 2px 15px 2px rgba(0, 0, 0, 0.15);
 }
 
 .alertify .ajs-header {
@@ -185,37 +172,40 @@ $modalXcolor: #d8d8d8;
 }
 
 .alertify.ajs-closable .ajs-commands button {
-  width:24px;
-  height:24px;
-  margin-left: 5px;
-  padding:0px;
+  width: 32px;
+  height: 32px;
+  padding: 0px;
 }
+
 .alertify.ajs-closable .ajs-commands button.ajs-close {
-  background:transparent;
+  background: transparent;
+  font-size: 32px;
+  color: lighten($cool-gray, 20%);
+  &:hover {
+    color: $cool-gray;
+  }
 }
 
 .alertify.ajs-closable .ajs-commands button.ajs-close:before {
   content: '\E806';
   font-family: 'k-icons';
-  font-size: 18px;
-  color:#D8D8D8;
 }
 
 .alertify.ajs-closable .ajs-commands {
-  margin:0px;
+  margin: 0px;
   top: 20px;
   right: 20px;
-  padding:0px;
+  padding: 0px;
 }
 
 .alertify .ajs-body .ajs-content {
-  padding:0px;
+  padding: 0px;
   pre {
     max-height: 300px;
     overflow: auto;
-    word-wrap:break-word;
-    max-width:100%;
-    padding-right:20px;
+    word-wrap: break-word;
+    max-width: 100%;
+    padding-right: 20px;
     white-space: initial;
     font-size: 12px;
   }
@@ -223,17 +213,15 @@ $modalXcolor: #d8d8d8;
 
 .alertify .ajs-dialog {
   max-width: 550px;
-  padding:30px 30px 0 30px;
+  padding: 30px 30px 0 30px;
 }
 
 .alertify .ajs-footer {
   margin: -4px;
-  padding:17px 0px;
-
+  padding: 17px 0px;
   .ajs-buttons.ajs-primary {
     text-align: right;
   }
-
   button {
     @extend .mdl-button;
     text-transform: uppercase;
@@ -244,27 +232,30 @@ $modalXcolor: #d8d8d8;
     }
     &.ajs-cancel {
       @extend .mdl-button--colored;
+      &:focus, &:focus:not(:active) {
+        background: transparent;
+      }
     }
   }
 }
 
 .alertify-notifier {
-  .ajs-message, 
-  .ajs-message.ajs-error, 
-  .ajs-message.ajs-success, 
+  .ajs-message,
+  .ajs-message.ajs-error,
+  .ajs-message.ajs-success,
   .ajs-message.ajs-warning {
-    background:#484b5a;
+    background: #484b5a;
     color: white;
-    padding:17px 24px;
-    padding-right:44px;
-    width:auto;
+    padding: 17px 24px;
+    padding-right: 44px;
+    width: auto;
     min-width: 320px;
-    max-width:460px;
+    max-width: 460px;
     line-height: 1.3em;
   }
   .ajs-message .ajs-close {
-    background-image:none;
-    background:transparent;
+    background-image: none;
+    background: transparent;
     right: 15px;
     top: 50%;
     margin-top: -10px;
@@ -278,7 +269,7 @@ $modalXcolor: #d8d8d8;
   // border:2px solid red;
   display: block;
   padding-bottom: 5px;
-  padding-top:5px;
+  padding-top: 5px;
   input {
     margin-right: 5px;
   }
@@ -291,5 +282,12 @@ $modalXcolor: #d8d8d8;
     padding-bottom: 20px;
     border-top: 1px solid #EDEDED;
     font-weight: bold;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .modal-open {
+    min-width: 90%;
+    max-width: 90%;
   }
 }

@@ -3,19 +3,19 @@
 // ==========================================================================
 
 .header-bar__top-level-menu-button {
-    display: inline-block;
-    vertical-align: top;
+  display: inline-block;
+  vertical-align: top;
 }
 
 .header-bar__top-level-menu-button > .fa {
-    padding: 12px 11px;
-    cursor: pointer;
-    color: rgba(29, 174, 227, 0.8);
+  padding: 12px 11px;
+  cursor: pointer;
+  color: rgba(29, 174, 227, 0.8);
 }
 
 .header-bar__top-level-menu-button:hover > .fa,
-.header-bar__top-level-menu-button:focus > .fa  {
-    color: #1daee3;
+.header-bar__top-level-menu-button:focus > .fa {
+  color: #1daee3;
 }
 
 // ==========================================================================
@@ -23,66 +23,64 @@
 // ==========================================================================
 
 .fa.green {
-    color: #2EB662;
+  color: #2EB662;
 }
 
 .fa.invert {
-    background-color: #35495D;
-    color: white;
-    border-radius: 4px;
+  background-color: #35495D;
+  color: white;
+  border-radius: 4px;
 }
 
-.fa.fa-lato-text:before, 
-.fa.fa-lato-integer:before, 
-.fa.fa-lato-decimal:before, 
+.fa.fa-lato-text:before,
+.fa.fa-lato-integer:before,
+.fa.fa-lato-decimal:before,
 .fa.fa-lato-calculate:before {
-    font-family: $preferred_font;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-
+  font-family: $font;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .fa.fa-lato-text:before {
-    content: "abc";
+  content: "abc";
 }
 
 .fa.fa-lato-integer:before {
-    content: "123";
-    font-size: 0.9em;
+  content: "123";
+  font-size: 0.9em;
 }
 
 .fa.fa-lato-decimal:before {
-    content: "1.0";
-    font-size: 0.9em;
+  content: "1.0";
+  font-size: 0.9em;
 }
 
 .fa.fa-lato-calculate:before {
-    content: "1+1";
-    font-size: 0.9em;
+  content: "1+1";
+  font-size: 0.9em;
 }
 
 .fa.clock-over:after {
-    content: "";
-    position: absolute;
-    margin-left: -20px;
-    margin-top: -6px;
-    background-color: white;
-    border-radius: 8px;
+  content: "";
+  position: absolute;
+  margin-left: -20px;
+  margin-top: -6px;
+  background-color: white;
+  border-radius: 8px;
 }
 
 .fa.clock-over:before {
-    margin-left: 5px;
+  margin-left: 5px;
 }
 
 .fa-folder-o .fa-plus {
-    color: #39BF6E;
-    position: absolute;
-    left: 10px;
-    top: 7px;
-    font-size: 0.7em;
-    font-weight: normal;
+  color: #39BF6E;
+  position: absolute;
+  left: 10px;
+  top: 7px;
+  font-size: 0.7em;
+  font-weight: normal;
 }
-
 
 // OLD ICONS
 

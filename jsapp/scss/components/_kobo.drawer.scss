@@ -1,115 +1,73 @@
-$drawer-icons-column-width: 56px;
+// drawer (sidebar)
 
-// drawer layout size
 .k-drawer {
-  height: calc(100% - 72px);
-  top: $layout-desktop-header-height;
-  margin-left: 4px;
-  width: 240px;
+  height: calc(100% - 66px);
+  top: 65px;
+  width: 270px;
   position: absolute;
   left: 0px;
   display: flex;
   flex-direction: row;
-  overflow: hidden;
 }
 
 .mdl-layout__content {
-  margin-left: 248px;
+  margin-left: 270px;
 }
 
 .k-drawer__icons {
   display: flex;
   flex-direction: column;
-  width: 56px;
+  width: 58px;
   height: 100%;
+  border-right: 1px solid #D9DADD;
 }
 
 .k-drawer__link {
-  font-size: 36px;
+  font-size: 42px;
   text-align: center;
-  color: unquote("rgb(#{$color-primary})");
-  padding: 16px 0px;
-  &.library {
+  color: lighten($black, 40%);
+  padding: 0px;
+  border-left: 3px solid transparent;
+  &:first-child {
+    margin-top: 20px;
+  }
+  &.active {
     color: $cool-green;
+    border-left: 3px solid $cool-green;
   }
 }
 
 .k-drawer__icons-bottom {
-  height: 100px;
-  padding-top: 10px;
-  border-top: solid 1px #CDCDCD;
-  background-color: #F5F5F5;
+  left: 0px;
+  bottom: 0px;
+  position: absolute;
+  width: 58px;
   .k-drawer__link {
     padding: 0px;
-    margin-bottom: 10px;
-    font-size: 13px;
+    margin-bottom: 5px;
     display: block;
-    text-align: left;
-    color: #5C676E;
+    text-align: center;
     font-weight: normal;
     position: relative;
-    i {
-      font-size: 22px;
-      margin-right: 8px;
-      vertical-align: text-bottom;
+    color: lighten($black, 40%);
+    &:hover {
+      color: $cool-blue;
     }
-    span {
-      text-transform: capitalize;
+    i {
+      font-size: 38px;
     }
   }
 }
 
 .drawer__sidebar {
-  width: calc(100% - 50px);
+  width: calc(100% - 58px);
   height: 100%;
-  padding: 10px;
-  padding-bottom: 0px;
-  .header-breadcrumb__item {
-    text-align: center;
-    font-size: 18px;
-    margin-bottom: 10px;
-    a {
-      color: #8A9AA4;
-      font-weight: normal;
-    }
-  }
+  padding: 20px 14px;
   .k-drawer__close {
     display: none;
   }
   .form-sidebar__wrapper, .collections-wrapper {
-    height: calc(100% - 110px);
-  }
-}
-
-// collection nav buttons and menu
-
-.collection-nav__actions {
-  text-align: center;
-  margin-bottom: 10px;
-  position: relative;
-  > button {
-    min-width: 120px;
-    text-transform: uppercase;
-  }
-  .mdl-menu__container {
-    right: 21px !important;
-  }
-}
-
-.collection-nav__button {
-  @extend .mdl-button;
-  min-width: 100%;
-  > i {
-    @extend .fa, .fa-cloud, .fa-fw;
-    margin-right: 12px;
-  }
-}
-
-.collection-nav__link {
-  @extend .mdl-button;
-  > i:first-child {
-    @extend .fa, .fa-fw, .fa-plus;
-    margin-right: 12px;
+    height: 100%;
   }
 }
 
@@ -117,10 +75,10 @@ $drawer-icons-column-width: 56px;
   .k-drawer {
     position: fixed;
     z-index: 4;
-    left: -256px;
+    left: -274px;
     transition: left 0.5s;
     background-color: #FFF;
-    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, $shadow-key-penumbra-opacity), 0 3px 1px -2px rgba(0, 0, 0, $shadow-key-umbra-opacity), 0 1px 5px 0 rgba(0, 0, 0, $shadow-ambient-shadow-opacity);
+    @include box-shadow;
   }
   .page-wrapper--fixed-drawer .k-drawer {
     left: 0px;

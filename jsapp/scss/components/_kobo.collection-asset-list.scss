@@ -2,31 +2,24 @@
   padding: 0px 12px;
   white-space: nowrap;
   border-bottom: 1px solid transparentize($cool-gray, 0.7);
+  overflow: hidden;
+
   > .asset-list-sorts__item {
-    color: $cool-gray;
+    opacity: 0.8;
     font-weight: 500;
     position: relative;
     padding: 10px 0px;
-    padding-top: 20px;
+    padding-top: 19px;
     margin-top: 0px;
     margin-bottom: 0px;
-    font-size: 13px;
-    &:after {
-      content: '';
-      height: 100%;
-      width: 1px;
-      background-color: transparentize($cool-gray, 0.7);
-      right: -4px;
-      top: 0px;
-      position: absolute;
-    }
-    &.asset-list-sorts__item--questions, 
-    &.asset-list-sorts__item--submissions {
-      letter-spacing: -0.02em;
-      &:after {
-        display: none;
-      }
-    }
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .asset-list-sorts__item--submissions {
+    text-align: right;
+    letter-spacing: -0.03em;
   }
 }
 
@@ -35,95 +28,124 @@
   height: 50px;
   width: 100%;
   flex-grow: 0;
-  color: $greyish-brown;
   text-align: right;
   padding: 15px;
+
   > div {
     display: inline;
   }
+
   div + div {
     margin-left: 5px;
   }
 }
 
-// regular, non-grouped list for library
-div.library {
-  height:100%;
-  margin-left: 8px;
+.list__heading {
+  display: block;
+  font-size: 18px;
+  font-weight: 500;
+
+  span, i {
+    vertical-align: middle;
+  }
+
+  span.parent {
+    font-weight: normal;
+    color: lighten($black, 10%);
+  }
+
+  i {
+    font-size: 24px;
+  }
 }
 
-.library__breadcrumb {
-  height:36px;
-  font-size: 18px;
-  line-height: 30px;
-  color: $cool-gray;
-  span {
-    padding-right: 8px;
-  }
+.list__subheading {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.list__heading.is-edge + .list__subheading {
+  margin-top: 0px;
+}
+
+// regular, non-grouped list for library
+div.library {
+  height: 100%;
+  overflow: hidden;
 }
 
 .list--regular {
   flex-flow: column;
   margin: 0px !important;
   position: relative;
-  height: calc(100% - 50px);
-  width:100%;
+  height: calc(100% - 58px);
+  width: calc(100% - 6px);
+
   .asset-list {
-    height: calc(100% - 50px);
+    height: calc(100% - 75px);
     overflow-y: auto;
-    overflow-x: hidden;
     width: 100%;
-    padding-bottom: 100px;
+    padding-bottom: 50px;
   }
+
   .asset-row > .asset-row__buttons {
     width: 33%;
     top: 10px;
   }
+
   .asset-list, .asset-list-sorts {
     background-color: #FFF;
   }
 
-  .library__breadcrumb:not(.hidden) + .asset-list-sorts + .asset-list {
-    height: calc(100% - 86px); 
+  .asset-list-sorts {
+    margin-top: 5px;
+  }
+
+  .asset-row__cell--date-modified,
+  .asset-list-sorts__item--modified {
+    text-align: right;
   }
 }
-
 
 // grouped list for Projects
 
 .list--grouped {
   height: 100%;
-  margin: 0px 8px;
   overflow-y: auto;
-  width: calc(100% - 0.8em);
-  overflow-x:hidden;
+  padding-left: 3px;
+  padding-right: 12px;
+
   .asset-list {
     min-height: 300px;
-    margin-bottom: 4px;
-    padding-bottom: 100px;
+    padding-bottom: 50px;
+
     > .loading {
-      margin-top:110px;
+      margin-top: 110px;
     }
   }
-  .asset-list__heading {
-    margin: 10px;
-    font-size: 18px;
-    color: $cool-gray;
-    // cursor: pointer;
-  }
+
   .asset-items {
-    @extend .mdl-shadow--2dp;
+    @include box-shadow;
+
     background: #FFF;
     position: relative;
-    &--visible {
-    }
+    overflow: visible;
+
+    &--visible {}
+
     &--collapsed {
       max-height: 0px;
       overflow: hidden;
     }
+
     + .asset-list__heading {
       margin-top: 20px;
     }
+  }
+
+  .asset-row__cell--submission-count {
+    text-align: right;
   }
 }
 
@@ -131,29 +153,52 @@ div.library {
 
 .asset-list--fixed-headings {
   padding-top: 50px;
-  // .asset-list-sorts {
-  //   display: none;
-  // }
-  // TODO: since one of the table headings is now fixed, the others should be hidden
-  // But this causes a display bug when scrolling currently 
-  // (since.asset-list height changes if these elements are hidden)
-  > :nth-child(2) {
+
+  > .asset-items--1 {
     .asset-list-sorts {
       display: flex;
       position: fixed;
-      top:62px;
+      top: 70px;
       background: #FFF;
-      z-index:99;
+      z-index: 99;
       overflow: hidden;
-      box-shadow: 0px 2px 4px 2px rgba( 0, 0, 0, 0.04);
+      box-shadow: 0px 2px 4px 2px rgba(0, 0, 0, 0.04);
     }
   }
 }
 
 @media screen and (max-width: 767px) {
   .asset-list--fixed-headings {
-    > :nth-child(2) .asset-list-sorts {
-      width:calc(100% - 22px);
+    > .asset-items--1 .asset-list-sorts {
+      width: calc(100% - 22px);
+    }
+  }
+
+  .list--grouped, .list--regular {
+    padding-left: 0px;
+    padding-right: 0px;
+    width: 100%;
+  }
+
+  .list__heading, .list__subheading {
+    padding-left: 12px;
+  }
+}
+
+@media screen and (min-width: 840px) {
+  .asset-list-sorts {
+    .asset-list-sorts__item--submissions {
+      margin: 0px -4px;
+      width: calc(8.33333% + 8px);
+    }
+  }
+}
+
+@media screen and (max-width: 839px) and (min-width: 480px) {
+  .asset-list-sorts {
+    .asset-list-sorts__item--submissions {
+      margin: 0px -4px;
+      width: calc(12.5% + 8px);
     }
   }
 }

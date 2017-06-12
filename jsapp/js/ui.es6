@@ -1,8 +1,9 @@
-import React from 'react/addons';
+import React from 'react';
+import ReactDOM from 'react-dom';
 import _ from 'underscore';
 
 import bem from './bem';
-import {t} from './utils';
+import {t, assign} from './utils';
 import classNames from 'classnames';
 
 var hotkey = require('react-hotkey');
@@ -10,36 +11,12 @@ hotkey.activate();
 
 var ui = {};
 
-ui.SmallInputBox = React.createClass({
-  getValue () {
-    return this.refs.inp.getDOMNode().value;
-  },
-  setValue (v) {
-    this.refs.inp.getDOMNode().value = v;
-  },
-  render () {
-    var elemId = _.uniqueId('elem');
-    var value = this.props.value;
-    var mdlKls = 'mdl-textfield mdl-js-textfield mdl-textfield--full-width';
-    if (value) {
-      mdlKls += ' is-dirty';
-    }
-    return (
-        <div className={mdlKls}>
-          <input type="text" ref='inp' className="mdl-textfield__input" value={value}
-              onKeyUp={this.props.onKeyUp} onChange={this.props.onChange} id={elemId} />
-          <label className="mdl-textfield__label" htmlFor={elemId} >{this.props.placeholder}</label>
-        </div>
-      );
-  }
-});
-
 ui.SearchBox = React.createClass({
   getValue () {
-    return this.refs.inp.getDOMNode().value;
+    return ReactDOM.findDOMNode(this.refs.inp).value;
   },
   setValue (v) {
-    this.refs.inp.getDOMNode().value = v;
+    ReactDOM.findDOMNode(this.refs.inp).value = v;
   },
   render () {
     var elemId = _.uniqueId('elem');
@@ -126,10 +103,6 @@ ui.Modal = React.createClass({
 });
 
 ui.Modal.Footer = React.createClass({
-  doneClick (evt) {
-    alert('done!');
-    this.props.onClose.call(evt);
-  },
   render () {
     return <div className="modal-footer">{this.props.children}</div>;
   }
@@ -141,27 +114,11 @@ ui.Modal.Body = React.createClass({
   }
 });
 
-
-ui.Breadcrumb = React.createClass({
+ui.Modal.Tabs = React.createClass({
   render () {
-    return (
-        <ul className="ui-breadcrumb">
-          {this.props.children}
-        </ul>
-      );
+    return <div className="modal-tabs">{this.props.children}</div>;
   }
 });
-
-ui.BreadcrumbItem = React.createClass({
-  render () {
-    return (
-        <li className="ui-breadcrumb__item">
-          {this.props.children}
-        </li>
-      );
-  }
-});
-
 
 var SidebarAssetName = bem.create('sidebar-asset-name', '<span>');
 
@@ -208,38 +165,71 @@ ui.AssetName = React.createClass({
   }
 });
 
-ui.MDLPopoverMenu = React.createClass({
+ui.PopoverMenu = React.createClass({
+  getInitialState () {
+    return assign({
+      popoverVisible: false,
+      popoverHiding: false,
+      placement: 'below'
+    });
+
+  },
+  toggle(evt) {
+    var isBlur = evt.type === 'blur',
+        $popoverMenu;
+    
+
+    if (this.state.popoverVisible || isBlur) {
+        $popoverMenu = $(evt.target).parents('.popover-menu').find('.popover-menu__content');
+        this.setState({
+          popoverHiding: true
+        });
+        // if we setState and immediately hide popover then links will not register as clicked
+        window.setTimeout(()=>{
+          if (!this.isMounted())
+            return false;
+
+          this.setState({
+            popoverVisible: false,
+            popoverHiding: false
+          });
+        }, 500);
+    } else {
+      this.setState({
+        popoverVisible: true,
+      });
+    }
+    // 
+    if (this.props.type == 'assetrow-menu' && !this.state.popoverVisible) {
+      var $assetRowOffset = $(evt.target).parents('.asset-row').offset().top;
+      var $assetListHeight = $(evt.target).parents('.page-wrapper__content').height();
+      if ($assetListHeight - $assetRowOffset < 250) {
+        this.setState({
+          placement: 'above',
+        });        
+      }
+    }
+  },
+  componentWillReceiveProps(nextProps) {
+    if (this.state.popoverVisible && nextProps.clearPopover) {
+      this.setState({
+        popoverVisible: false
+      });
+    }
+  },
   render () {
-    var id = this.props.id;
-    var button_tip = this.props.button_tip || t('More Actions');
-    var button_type = this.props.button_type || 'icon';
-    var caretClass = this.props.caretClass || 'fa fa-caret-down';
-    var button_label = this.props.button_label;
-    var classname = this.props.classname || 'ui-mdl-popover';
-    var menuClasses = this.props.menuClasses || 'mdl-menu mdl-menu--bottom-right mdl-js-menu';
     return (
-          <span className={classname}>
-              { button_type == 'text' ?
-                <button id={id} className="mdl-js-button">
-                  {button_label}
-                  <i className={caretClass} />
-                </button>
-              : button_type == 'cog-icon' ?
-                <button id={id} className="mdl-js-button">
-                  <i className="k-icon-settings-small" />
-                </button>                
-              :
-                <button id={id} className="mdl-js-button" data-tip={button_tip}>
-                  <i className="k-icon-more-actions" />
-                </button>                
-              }
-            <div htmlFor={id} className={menuClasses}>
-              {this.props.children}
-            </div>
-          </span>
+      <bem.PopoverMenu m={[this.props.type, this.state.placement]}>
+        <bem.PopoverMenu__toggle onClick={this.toggle} onBlur={this.toggle} data-tip={this.props.triggerTip} tabIndex='1'>
+          {this.props.triggerLabel}
+        </bem.PopoverMenu__toggle>
+        <bem.PopoverMenu__content m={[this.state.popoverHiding ? 'hiding' : '', this.state.popoverVisible ? 'visible' : 'hidden']}>
+          {this.props.children}
+        </bem.PopoverMenu__content>
+      </bem.PopoverMenu>
+
     );
   }
 });
-
 
 export default ui;

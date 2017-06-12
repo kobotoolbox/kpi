@@ -1,8 +1,5 @@
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
-import {Navigation} from 'react-router';
-// import Dropzone from '../libs/dropzone';
-import mdl from '../libs/rest_framework/material';
 
 import searches from '../searches';
 import mixins from '../mixins';
@@ -23,25 +20,8 @@ var FormsSearchableList = React.createClass({
   mixins: [
     searches.common,
     mixins.droppable,
-    Navigation,
-    Reflux.ListenerMixin,
+    Reflux.ListenerMixin
   ],
-  statics: {
-    willTransitionTo: function(transition, params, idk, callback) {
-
-      var headerBreadcrumb = [
-        {
-          'label': t('Projects'),
-        }
-      ];
-      stores.pageState.setHeaderBreadcrumb(headerBreadcrumb);
-
-      stores.pageState.setAssetNavPresent(false);
-      stores.pageState.setDrawerHidden(false);
-      stores.pageState.setHeaderHidden(false);
-      callback();
-    }
-  },
   componentDidMount () {
     this.searchDefault();
   },
@@ -72,9 +52,6 @@ var FormsSearchableList = React.createClass({
           searchContext={this.state.searchContext}
         />
       );
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   }});
 
 export default FormsSearchableList;

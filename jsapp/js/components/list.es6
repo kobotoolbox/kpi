@@ -1,6 +1,5 @@
 import _ from 'underscore';
-import React from 'react/addons';
-import {Navigation} from 'react-router';
+import React from 'react';
 import Reflux from 'reflux';
 import Select from 'react-select';
 
@@ -20,7 +19,6 @@ var ListSearch = React.createClass({
   mixins: [
     searches.common,
     Reflux.ListenerMixin,
-    Navigation,
   ],
   getDefaultProps () {
     return {
@@ -74,7 +72,17 @@ var ListTagFilter = React.createClass({
     if (searchStoreState.cleared) {
       // re-render to remove tags if the search was cleared
       this.setState(searchStoreState);
+    } else {
+      if (searchStoreState.searchTags) {
+        var tags = searchStoreState.searchTags.map(function(tag){
+          return tag.value;
+        }).join(',');
+        this.setState({
+          selectedTag: tags
+        });
+      }
     }
+
   },
   tagsLoaded (tags) {
     this.setState({
@@ -84,19 +92,12 @@ var ListTagFilter = React.createClass({
           label: tag.name,
           value: tag.name.replace(/\s/g, '-'),
         };
-      })
+      }),
+      selectedTag: ''
     });
   },
-  getTagStringFromSearchStore () {
-    if (!!this.searchStore.state.searchTags) {
-      return this.searchStore.state.searchTags.map(function(tag){
-        return tag.value;
-      }).join(',');
-    }
-    return '';
-  },
-  onTagChange (tagString, tagList) {
-    this.searchTagsChange(tagList);
+  onTagChange (tagString) {
+    this.searchTagsChange(tagString);
   },
   render () {
     if (!this.state.tagsLoaded) {
@@ -107,7 +108,7 @@ var ListTagFilter = React.createClass({
               name="tags"
               value=""
               disabled={true}
-              multi={true}
+              multi={false}
               placeholder={t('Tags are loading...')}
               className={this.props.hidden ? 'hidden' : null}
             />
@@ -125,7 +126,7 @@ var ListTagFilter = React.createClass({
             options={this.state.availableTags}
             onChange={this.onTagChange}
             className={this.props.hidden ? 'hidden' : null}
-            value={this.getTagStringFromSearchStore()}
+            value={this.state.selectedTag}
           />
       </bem.tagSelect>
     );
@@ -164,13 +165,24 @@ var ListCollectionFilter = React.createClass({
             label: collection.name,
             value: collection.uid,
           };
-        })
+        }),
+        selectedCollection: ''
       });
 
     });
   },
   onCollectionChange (collectionUid) {
-    this.searchCollectionChange(collectionUid);
+    if (collectionUid) {
+      this.searchCollectionChange(collectionUid.value);
+      this.setState({
+        selectedCollection: collectionUid.value
+      });
+    } else {
+      this.searchClear();
+      this.setState({
+        selectedCollection: ''
+      });
+    }
   },
   render () {
     if (!this.state.collectionsLoaded) {
@@ -190,6 +202,7 @@ var ListCollectionFilter = React.createClass({
             placeholder={t('Select Collection Name')}
             options={this.state.availableCollections}
             onChange={this.onCollectionChange}
+            value={this.state.selectedCollection}
           />
       </bem.collectionFilter>
     );
@@ -238,9 +251,9 @@ var ListExpandToggle = React.createClass({
           {count} {t('assets found')}
         </bem.LibNav__count>
         <bem.LibNav__expandedToggle>
-          <label className='mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect' htmlFor='expandedToggleCheckbox'>
-            <input type='checkbox' className='mdl-checkbox__input' id='expandedToggleCheckbox' checked={this.state.assetNavExpanded} onChange={this.handleChange} />
-            <span className='mdl-checkbox__label'>{t('expand details')} {this.state.assetNavExpanded}</span>
+          <input type='checkbox' className='mdl-checkbox__input' id='expandedToggleCheckbox' checked={this.state.assetNavExpanded} onChange={this.handleChange} />
+          <label htmlFor='expandedToggleCheckbox'>
+            {t('expand details')}
           </label>
         </bem.LibNav__expandedToggle>
       </bem.LibNav__expanded>
@@ -252,7 +265,6 @@ var ListSearchSummary = React.createClass({
   mixins: [
     searches.common,
     Reflux.ListenerMixin,
-    Navigation,
   ],
   componentDidMount () {
     this.listenTo(this.searchStore, this.searchChanged);
@@ -317,7 +329,6 @@ var ListSearchDebug = React.createClass({
   mixins: [
     searches.common,
     Reflux.ListenerMixin,
-    Navigation,
   ],
   getDefaultProps () {
     return {

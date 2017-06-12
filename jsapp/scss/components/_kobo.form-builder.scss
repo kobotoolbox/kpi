@@ -2,6 +2,7 @@
 
 .formBuilder {
   background-color: #FFF;
+
   &:before {
     content: ' ';
     width: 100%;
@@ -12,50 +13,54 @@
     z-index: -1;
     top: 0px;
   }
+
   &:after {
     content: ' ';
     width: 100%;
-    height: 46px;
+    height: 50px;
     background-color: #DDD;
     position: fixed;
     right: 0;
     z-index: -1;
     top: 75px;
     background-color: #F1F1F1;
-    box-shadow: 0px 2px 2px 0px rgba(0,0,0,0.22);
+    box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.22);
   }
 }
 
 .formBuilder-header {
-  height: 110px;
+  height: 125px;
 }
 
 .formBuilder__contents {
-  height: calc(100% - 126px);
+  height: calc(100% - 125px);
   overflow: auto;
-  margin-top:15px;
+  margin-top: 8px;
   margin-right: 0px;
-  transition:margin 0.2s;
+  transition: margin 0.2s;
 }
 
 @media screen and (min-width: 1100px) {
-  .page-wrapper--asset-nav-open {
+  .lib-nav--visible + .formBuilder {
     .formBuilder__contents {
       margin-right: 400px;
-      transition:margin 0.2s;
+      transition: margin 0.2s;
     }
   }
 }
 
 .form-wrap {
-  padding:0px 75px;
+  padding: 0px 75px;
   width: 100%;
   min-height: 200px;
+
   .survey-header, .sub-header-bar {
     display: none;
   }
+
   input, textarea {
     box-shadow: none;
+
     &:focus {
       box-shadow: none;
     }
@@ -99,6 +104,7 @@
   > .formBuilder-header {
     height: 280px;
   }
+
   .formBuilder__contents {
     height: calc(100% - 300px);
   }
@@ -109,42 +115,52 @@
 .formBuilder-header {
   &__row {
     display: flex;
-    flex-direction:row;
+    flex-direction: row;
     flex-wrap: nowrap;
+
     &--first {
       background-color: #FFF;
-      height:75px;
+      height: 75px;
+      position: relative;
     }
+
     &--second {
       background-color: #F1F1F1;
-      box-shadow: 0px 2px 2px 0px rgba(0,0,0,0.22);
+      box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.22);
     }
   }
 
   &__cell {
     &--project-icon {
       background-color: $cool-green;
-      width:75px;
+      width: 75px;
       text-align: center;
       vertical-align: middle;
-      height:75px;
+      height: 75px;
 
       i {
         color: #FFF;
-        font-size: 32px;
-        padding-top: 20px;
+        font-size: 48px;
+        padding-top: 14px;
         display: inline-block;
         vertical-align: middle;
+
         &:before {
-          margin-right:0px;
+          margin-right: 0px;
         }
       }
     }
 
     &--name {
-      width:calc(100% - 400px);
-      padding:0px 20px;
+      width: calc(100% - 350px);
+      padding-left: 20px;
+      padding-top: 20px;
+
+      input {
+        border-radius: 0px;
+      }
     }
+
     &--translations {
       p {
         margin: 0 0 0 10px;
@@ -155,6 +171,7 @@
         small {
           display: block;
           color: #888;
+
           &:before {
             content: '+ ';
           }
@@ -163,68 +180,81 @@
     }
 
     &--buttonsTopRight {
-      width:280px;
+      width: 270px;
       text-align: right;
-      align-self:center;
+      align-self: center;
     }
 
     &--close {
-      width:45px;
+      width: 45px;
       text-align: right;
-      padding:5px;
+      padding: 5px;
       margin-left: 5px;
     }
 
-    // second row 
+    // second row
     &--buttons {
       margin-left: 75px;
+
       .formBuilder-header__item {
         display: inline-block;
-        border-left:1px solid #8A9AA4;
-        border-right:1px solid #8A9AA4;
-        margin:4px;
-        padding:0px 6px;
+        border-left: 1px solid $cool-gray;
+        border-right: 1px solid $cool-gray;
+        margin: 4px;
+        padding: 0px 6px;
       }
 
       button {
-        color: #8A9AA4;
+        color: $cool-gray;
         overflow: visible;
+        vertical-align: middle;
+        padding: 0px 4px;
+
         &:hover, &:focus, &:focus:not(:active) {
           background-color: transparent;
         }
+
         &:hover {
-          color: #333;
+          color: $black;
         }
+
         i {
-          font-size: 18px;
-          &.k-icon-cascading {
-            font-size: 14px;
+          font-size: 32px;
+          vertical-align: middle;
+
+          &.fa {
+            font-size: 20px;
           }
         }
       }
     }
+
     &--spacer {
-      flex-grow:1;
+      flex-grow: 1;
     }
+
     &--library-toggle {
-      width:200px;
-      padding:5px;
+      width: 200px;
+      padding: 5px;
+
       button {
         min-width: 146px;
       }
     }
   }
-
 }
 
 .formBuilder-header__close {
-  border:none;
-  background-color: transparent;
-  font-size: 20px;
-  color: #D8D8D8;
+  margin-left: 10px;
+  margin-top: -12px;
+  border: none;
+  color: lighten($cool-gray, 20%);
   cursor: pointer;
+
+  @extend .mdl-button, .mdl-button--icon;
+
   &:hover {
-    color: darken(#D8D8D8, 20%);
+    color: $cool-gray;
   }
 }
 
@@ -233,6 +263,7 @@
 
   > i {
     @extend .fa, .fa-fw;
+
     margin-right: 5px;
   }
 
@@ -240,8 +271,10 @@
   &.formBuilder-header__button--save {
     margin-left: 10px;
     text-transform: uppercase;
-    min-width:85px;
+    min-width: 85px;
+
     @extend .mdl-button--colored, .mdl-button--raised;
+
     > i {
       display: none;
     }
@@ -251,31 +284,39 @@
   &.formBuilder-header__button--create-pending {
     > i {
       @extend .k-spin, .fa-circle-o-notch;
+
       font-size: 22px;
       line-height: 35px;
       display: inline-block;
     }
+
     > i + span {
       display: none;
     }
   }
 
-  &.formBuilder-header__button--saveneeded:after {
+  &.formBuilder-header__button--savefailed:after, &.formBuilder-header__button--saveneeded:after {
     content: '*';
     color: white;
   }
 
   &.formBuilder-header__button--share {
-    min-width:85px;
+    min-width: 85px;
     text-transform: uppercase;
+
     @extend .mdl-button--raised;
+
     background: #8595A1;
     color: white;
   }
 
   &.formBuilder-header__button--showLibrary {
-    border:1px solid #5D6971;
+    border: 1px solid #5D6971;
     color: #5D6971;
+  }
+
+  &[disabled] {
+    color: lighten($cool-gray, 20%) !important;
   }
 }
 
@@ -296,21 +337,26 @@
   margin: 8px 0;
 }
 
-// FORM META 
+// FORM META
 
 .form-meta {
-  margin:8px 75px;
+  margin: 8px 75px;
   margin-bottom: 16px;
   margin-right: 60px;
 
+  .form-group {
+    margin-bottom: 10px;
+  }
 }
 
 .form-meta__button--metasummary {
   background-color: #F7F7F7;
-  width:calc(100% - 80px);
+  width: calc(100% - 80px);
   text-align: left;
   text-transform: uppercase;
+
   @extend .mdl-button;
+
   span {
     margin: 0 5px;
   }
@@ -318,45 +364,51 @@
 
 .form-meta__button--expand {
   background-color: #F0F0F0;
+
   @extend .mdl-button;
+
   > i {
     @extend .fa, .fa-fw, .fa-cog;
   }
 }
 
+// CASCADE MODAL CONTENTS
 
- // CASCADE MODAL CONTENTS
-
- .cascade-popup {
+.cascade-popup {
   textarea {
     margin: 15px 0px;
     width: 100%;
     height: 220px;
-    border:2px solid $cool-gray;
+    border: 2px solid $cool-gray;
   }
+
   .cascade-popup__buttonWrapper {
     padding-top: 10px;
     text-align: right;
+
     button {
       @extend .mdl-button, .mdl-button--colored, .mdl-button--raised;
-      min-width:100px;
+
+      min-width: 100px;
     }
   }
 
   .cascade-popup__message {
     &--warning {
-      color:#FF5469;
+      color: #FF5469;
     }
+
     &--ready {
-      color:$cool-green;
+      color: $cool-green;
     }
   }
 
   .cascade-help {
     text-align: right;
+
     i {
       font-size: 26px;
-      color:$cool-gray;
+      color: $cool-gray;
     }
   }
 }
@@ -365,10 +417,173 @@
   > ul > li:last-child {
     padding-bottom: 48px;
   }
+
   .ui-sortable-placeholder.lib-list__item {
-    border:1px dashed #d9dde1;
-    visibility:visible !important;
-    min-height:80px;
-    padding:0px;
-  }  
+    border: 1px dashed #d9dde1;
+    visibility: visible !important;
+    min-height: 80px;
+    padding: 0px;
+  }
+}
+
+// FORM BUILDER SMALL SCREEN ADJUSTMENTS
+
+@media screen and (max-width: 767px) {
+  .formBuilder-header__cell--project-icon {
+    display: none;
+  }
+
+  .formBuilder-header__cell--name {
+    width: calc(100% - 175px);
+  }
+
+  .formBuilder-header__cell--buttonsTopRight {
+    width: 175px;
+
+    .formBuilder-header__button--save {
+      max-width: 120px;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .formBuilder-header__cell--buttons {
+    margin-left: 10px;
+
+    button {
+      padding: 0px 6px;
+
+      i {
+        margin-right: 0px;
+      }
+    }
+
+    .formBuilder-header__button--formstyle {
+      i.fa-angle-down {
+        display: none;
+      }
+    }
+
+    .formBuilder-header__item {
+      border-left: none;
+      border-right: none;
+      margin: 4px 0px;
+      padding: 0px;
+    }
+  }
+
+  .formBuilder-header__cell--library-toggle {
+    width: 150px;
+    max-width: 35%;
+
+    button {
+      min-width: 60px;
+      max-width: 100%;
+      padding: 0px 12px;
+    }
+  }
+
+  .form-wrap {
+    padding: 0px 25px;
+  }
+
+  .form-meta {
+    margin: 16px 25px;
+    margin-right: 0px;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .formBuilder-header__cell--library-toggle {
+    display: none;
+  }
+}
+
+@media screen and (pointer: coarse) {
+  .formBuilder-header__cell--library-toggle {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .formBuilder-header__cell--buttons button {
+    padding: 0px;
+    border-radius: 0px;
+  }
+
+  .form-style__panel {
+    margin: 0px;
+    padding: 8px 16px;
+  }
+
+  .formBuilder-header__button--formstyle {
+    span {
+      display: none;
+    }
+  }
+
+  .card--selectquestion__expansion {
+    padding-right: 5px;
+    padding-left: 25px;
+  }
+
+  .multioptions__option {
+    div.editable-wrapper {
+      width: 65%;
+    }
+
+    code {
+      width: 33%;
+      margin-left: 1%;
+      margin-right: 0px;
+
+      label {
+        font-size: 10px;
+        padding-left: 2px;
+        width: 24%;
+      }
+
+      span, .editable-container {
+        padding-right: 2px;
+        width: 64%;
+        overflow: hidden;
+      }
+    }
+  }
+
+  .form-wrap {
+    padding: 0px 15px;
+  }
+
+  .btn--addrow {
+    left: -40px;
+  }
+
+  .card__settings__content {
+    padding: 20px;
+    padding-right: 10px;
+  }
+
+  .card__settings__fields__field {
+    > label {
+      text-align: left;
+      margin-right: 1%;
+    }
+
+    .settings__input {
+      input[type="text"] {
+        border: 1px solid #DDD;
+      }
+    }
+  }
+
+  .questiontypelist__item {
+    text-align: center;
+    background: #F8F8F8;
+
+    i {
+      display: block;
+      margin: 0 auto;
+      margin-bottom: 5px;
+    }
+  }
 }

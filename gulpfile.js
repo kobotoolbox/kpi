@@ -30,6 +30,14 @@ gulp.task("browserify", function() {
             .pipe(gulp.dest(__dirname + "/tmp"));
 });
 
+gulp.task("copy", function () {
+    return gulp.src([
+          './node_modules/font-awesome/fonts/*',
+          './node_modules/roboto-fontface/fonts/*.wof*',
+          './jsapp/scss/fonts/k-icons/*',
+        ]).pipe(gulp.dest('./jsapp/fonts/'));
+});
+
 gulp.task("clean", function () {
     return gulp.src("tmp/tests-index-compiled.js", {read: false})
             .pipe(clean());

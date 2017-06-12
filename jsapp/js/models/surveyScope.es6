@@ -10,7 +10,7 @@ class SurveyScope {
   }
   add_row_to_question_library (row) {
     if (row.constructor.kls === 'Row') {
-      actions.resources.createResource({
+      actions.resources.createResource.triggerAsync({
         asset_type: 'question',
         content: JSON.stringify({
           survey: [

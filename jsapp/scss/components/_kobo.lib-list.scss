@@ -52,12 +52,13 @@
   line-height: 14px;
   font-size: 11px;
   padding-bottom: 6px;
-
   @extend .clearfix;
+}
 
-  .lib-list__tag {
-    @extend .k-tagsinput-tag;
-  }
+.lib-list__tag {
+  @extend .react-tagsinput-tag;
+  max-width: 90%;
+  overflow: hidden;
 }
 
 .lib-list__dragbox {

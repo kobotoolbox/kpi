@@ -1,7 +1,6 @@
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
-import {Navigation} from 'react-router';
-
+import { Link } from 'react-router';
 import mixins from '../mixins';
 import bem from '../bem';
 import ui from '../ui';
@@ -12,16 +11,15 @@ import SearchCollectionList from '../components/searchcollectionlist';
 import {
   parsePermissions,
   t,
-  assign,
-  isLibrary
+  assign
 } from '../utils';
 
 var SidebarFormsList = React.createClass({
   mixins: [
     searches.common,
-    Navigation,
     Reflux.ListenerMixin,
-    Reflux.connect(stores.pageState)
+    Reflux.connect(stores.pageState, 'pageState'),
+    mixins.contextRouter
   ],
   getInitialState () {
     var selectedCategories = {
@@ -49,12 +47,15 @@ var SidebarFormsList = React.createClass({
     this.setState(searchStoreState);
   },
   renderMiniAssetRow (resource) {
-    var baseName = isLibrary(this.context.router) ? 'library-' : '';
+    var active = '';
+    if (resource.uid == this.currentAssetID())
+      active = ' active';
+
     return (
-        <bem.FormSidebar__item key={resource.uid}>
-          <bem.FormSidebar__itemlink href={this.makeHref(`${baseName}form-landing`, {assetid: resource.uid})}>
+        <bem.FormSidebar__item key={resource.uid} className={active}>
+          <Link to={`/forms/${resource.uid}`} className={`form-sidebar__itemlink`}>
             <ui.SidebarAssetName {...resource} />
-          </bem.FormSidebar__itemlink>
+          </Link>
         </bem.FormSidebar__item>
       );
   },
@@ -71,6 +72,13 @@ var SidebarFormsList = React.createClass({
     var s = this.state;
     return (
       <bem.FormSidebar>
+        { 
+          s.defaultQueryState === 'done' && 
+          <bem.FormSidebar__label m={'active-projects'} className="is-edge">
+            <i className="k-icon-projects" />
+            {t('Active Projects')}
+          </bem.FormSidebar__label>
+        }
         {
           (() => {
             if (s.defaultQueryState === 'loading') {
@@ -94,7 +102,9 @@ var SidebarFormsList = React.createClass({
                                             onClick={this.toggleCategory(category)}>
                       <i />
                       {t(category)}
-                      {` (${s.defaultQueryCategorizedResultsLists[category].length})`}
+                      <bem.FormSidebar__labelCount>
+                        {s.defaultQueryCategorizedResultsLists[category].length}
+                      </bem.FormSidebar__labelCount>
                     </bem.FormSidebar__label>,
                     <bem.FormSidebar__grouping m={[category, categoryVisible ? 'visible' : 'collapsed']}>
                       {

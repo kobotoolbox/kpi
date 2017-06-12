@@ -1,8 +1,9 @@
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
 import _ from 'underscore';
 import {dataInterface} from '../dataInterface';
 import DocumentTitle from 'react-document-title';
+import TextareaAutosize from 'react-autosize-textarea';
 
 import actions from '../actions';
 import bem from '../bem';
@@ -14,12 +15,12 @@ import {
   assign,
   t,
   log,
+  stringToColor,
 } from '../utils';
-
 
 export var AccountSettings = React.createClass({
   mixins: [
-    Reflux.connect(stores.session),
+    Reflux.connect(stores.session, 'session'),
     Reflux.ListenerMixin,
   ],
   getStateFromCurrentAccount(currentAccount) {
@@ -93,7 +94,6 @@ export var AccountSettings = React.createClass({
     if(stores.session && stores.session.currentAccount) {
       return this.getStateFromCurrentAccount(stores.session.currentAccount);
     }
-    return {};
   },
   handleChange (e, attr) {
     if (e.target) {
@@ -125,6 +125,7 @@ export var AccountSettings = React.createClass({
   linkedinChange (e) {this.handleChange(e, 'linkedin');},
   instagramChange (e) {this.handleChange(e, 'instagram');},
   metadataChange (e) {this.handleChange(e, 'metadata');},
+
   render () {
     if(!stores.session || !stores.session.currentAccount) {
       return (
@@ -138,30 +139,27 @@ export var AccountSettings = React.createClass({
       );
     }
 
-    var defaultGravatarImage = `${window.location.protocol}//www.gravatar.com/avatar/64e1b8d34f425d19e1ee2ea7236d3028?s=40`;
-    var gravatar = stores.session.currentAccount.gravatar || defaultGravatarImage;
     var accountName = stores.session.currentAccount.username;
+    var initialsStyle = {
+      background: `#${stringToColor(accountName)}`
+    };
 
     return (
       <DocumentTitle title={`${accountName} | KoboToolbox`}>
       <ui.Panel>
         <bem.AccountSettings>
-          <bem.AccountSettings__left>
-            <img src={gravatar} />
-          </bem.AccountSettings__left>
-          <bem.AccountSettings__right>
+          <bem.AccountSettings__item m={'column'}>
             <bem.AccountSettings__item m='actions'>
               <button onClick={this.updateProfile}
-                      className="mdl-button mdl-js-button mdl-button--bordered">
+                      className="mdl-button mdl-button--raised mdl-button--colored">
                 {t('Save Changes')}
               </button>
             </bem.AccountSettings__item>
-
             <bem.AccountSettings__item m='username'>
+              <bem.AccountBox__initials style={initialsStyle}>
+                {accountName.charAt(0)}
+              </bem.AccountBox__initials>
               <h4>{accountName}</h4>
-              <bem.AccountSettings__desc className="is-edge">
-                {t('Your username, bio, and links appear on your public profile')}
-              </bem.AccountSettings__desc>
             </bem.AccountSettings__item>
             <bem.AccountSettings__item m='fields'>
               <bem.AccountSettings__item>
@@ -192,7 +190,7 @@ export var AccountSettings = React.createClass({
               </bem.AccountSettings__item>
               <bem.AccountSettings__item m='password'>
                 <a href='/#/change-password'
-                    className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                    className="mdl-button mdl-button--raised mdl-button--colored">
                   {t('Modify Password')}
                 </a>
               </bem.AccountSettings__item>
@@ -237,8 +235,7 @@ export var AccountSettings = React.createClass({
               <bem.AccountSettings__item>
                 <label>
                   {t('Bio')}
-                  <textarea value={this.state.bio}
-                    onChange={this.bioChange} />
+                  <TextareaAutosize onChange={this.bioChange} value={this.state.bio} id="bio" />
                 </label>
               </bem.AccountSettings__item>
 
@@ -309,7 +306,7 @@ export var AccountSettings = React.createClass({
                 </label>
               </bem.AccountSettings__item>
             </bem.AccountSettings__item>
-          </bem.AccountSettings__right>
+          </bem.AccountSettings__item>
         </bem.AccountSettings>
       </ui.Panel>
       </DocumentTitle>
@@ -319,7 +316,8 @@ export var AccountSettings = React.createClass({
 
 export var ChangePassword = React.createClass({
   mixins: [
-    Reflux.ListenerMixin,
+    Reflux.connect(stores.session, 'session'),
+    Reflux.ListenerMixin
   ],
   getInitialState () {
     this.errors = {};
@@ -369,44 +367,71 @@ export var ChangePassword = React.createClass({
     this.setState({verifyPassword: e.target.value});
   },
   render () {
+    if(!stores.session || !stores.session.currentAccount) {
+      return (
+        <ui.Panel>
+          <bem.AccountSettings>
+            <bem.AccountSettings__item>
+              {t('loading...')}
+            </bem.AccountSettings__item>
+          </bem.AccountSettings>
+        </ui.Panel>
+      );
+    }
+
+    var accountName = stores.session.currentAccount.username;
+    var initialsStyle = {
+      background: `#${stringToColor(accountName)}`
+    };
+
     return (
       <ui.Panel>
-        <bem.ChangePassword>
-          <h4>{t('Reset Password')}</h4>
-          <bem.ChangePassword__item>
-            <label>
-              {t('Current Password')}
-              <input type="password" value={this.state.currentPassword}
-                onChange={this.currentPasswordChange} />
-              {this.state.errors.currentPassword}
-            </label>
-            <a href={`${dataInterface.rootUrl}/accounts/password/reset/`}>
-              {t('Forgot Password?')}
-            </a>
-          </bem.ChangePassword__item>
-          <bem.ChangePassword__item>
-            <label>
-              {t('New Password')}
-              <input type="password" value={this.state.newPassword}
-                onChange={this.newPasswordChange} />
-              {this.state.errors.newPassword}
-            </label>
-          </bem.ChangePassword__item>
-          <bem.ChangePassword__item>
-            <label>
-              {t('Verify Password')}
-              <input type="password" value={this.state.verifyPassword}
-                onChange={this.verifyPasswordChange} />
-              {this.state.errors.verifyPassword}
-            </label>
-          </bem.ChangePassword__item>
-          <bem.ChangePassword__item  m='actions'>
-            <button onClick={this.changePassword}
-                    className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-              {t('Save Changes')}
-            </button>
-          </bem.ChangePassword__item>
-        </bem.ChangePassword>
+        <bem.AccountSettings>
+          <bem.ChangePassword>
+            <bem.AccountSettings__item m='username'>
+              <bem.AccountBox__initials style={initialsStyle}>
+                {accountName.charAt(0)}
+              </bem.AccountBox__initials>
+              <h4>{accountName}</h4>
+            </bem.AccountSettings__item>
+
+            <h4>{t('Reset Password')}</h4>
+
+            <bem.ChangePassword__item>
+              <label>
+                {t('Current Password')}
+                <input type="password" value={this.state.currentPassword}
+                  onChange={this.currentPasswordChange} />
+                {this.state.errors.currentPassword}
+              </label>
+              <a href={`${dataInterface.rootUrl}/accounts/password/reset/`}>
+                {t('Forgot Password?')}
+              </a>
+            </bem.ChangePassword__item>
+            <bem.ChangePassword__item>
+              <label>
+                {t('New Password')}
+                <input type="password" value={this.state.newPassword}
+                  onChange={this.newPasswordChange} />
+                {this.state.errors.newPassword}
+              </label>
+            </bem.ChangePassword__item>
+            <bem.ChangePassword__item>
+              <label>
+                {t('Verify Password')}
+                <input type="password" value={this.state.verifyPassword}
+                  onChange={this.verifyPasswordChange} />
+                {this.state.errors.verifyPassword}
+              </label>
+            </bem.ChangePassword__item>
+            <bem.ChangePassword__item  m='actions'>
+              <button onClick={this.changePassword}
+                      className="mdl-button mdl-button--raised mdl-button--colored">
+                {t('Save Changes')}
+              </button>
+            </bem.ChangePassword__item>
+          </bem.ChangePassword>
+        </bem.AccountSettings>
       </ui.Panel>
     );
   }

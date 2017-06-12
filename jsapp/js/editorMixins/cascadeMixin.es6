@@ -1,4 +1,5 @@
-import React from 'react/addons';
+import React from 'react';
+import ReactDOM from 'react-dom';
 import bem from '../bem';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import _ from 'underscore';
@@ -27,7 +28,6 @@ export default {
       cascadeTextareaValue: '',
       cascadeLastSelectedRowIndex: lastSelectedRowIndex,
     });
-    stores.pageState.setAssetNavPresent(false);
   },
   cancelCascade () {
     this.setState({
@@ -42,7 +42,7 @@ export default {
   },
   cascadePopopChange (evt) {
     var s = {
-      cascadeTextareaValue: this.refs.cascade.getDOMNode().value,
+      cascadeTextareaValue: ReactDOM.findDOMNode(this.refs.cascade).value,
     }
     // if (s.cascadeTextareaValue.length === 0) {
     //   return this.cancelCascade();

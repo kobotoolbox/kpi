@@ -1,31 +1,35 @@
+$hover-asset-row: #F2F2F3;
+
 .asset-row {
   list-style-type: none;
-  border-top: 1px solid transparentize($cool-gray, 0.7);
+  border-top: 1px solid $divider-color;
   padding: 4px 12px;
   white-space: nowrap;
   transition: max-height 0.5s ease, opacity 0.5s ease;
-  min-height:55px;
+  min-height: 55px;
   opacity: 1;
   position: relative;
-  a, a:hover {
-    color: $black;
-    text-decoration: none;
-    font-weight: 400;
+
+  &:hover {
+    background: $hover-asset-row;
   }
+
   > .asset-row__cell {
     width: 100%;
     display: flex;
     align-items: center;
+
     > .asset-row__cell {
       min-width: 0;
       vertical-align: top;
       white-space: nowrap;
       overflow: hidden;
-      text-overflow:ellipsis;
+      text-overflow: ellipsis;
     }
   }
+
   &:last-child {
-    border-bottom: 1px solid transparentize($cool-gray, 0.7);
+    border-top: 1px solid $divider-color;
   }
 
   &--deleting {
@@ -38,7 +42,7 @@
     max-height: 0px;
     min-height: 0px;
     padding: 0px;
-    border:none;
+    border: none;
     overflow: hidden;
   }
 
@@ -47,12 +51,30 @@
     width: 98%;
     text-overflow: ellipsis;
     overflow: hidden;
-    font-size: 15px;
+    font-size: 14px;
     vertical-align: top;
     padding: 4px 0px;
   }
 
-  .asset-type-icon + .asset-row__celllink--name {
+  .row-icon {
+    vertical-align: middle;
+    border: 1px solid $cool-green;
+    font-size: 13px;
+    color: $cool-green;
+    width: 36px;
+    border-radius: 10px;
+    display: inline-block;
+    margin-right: 10px;
+    text-align: center;
+    font-style: normal;
+
+    &.block {
+      color: white;
+      background: $cool-green;
+    }
+  }
+
+  .row-icon + .asset-row__celllink--name {
     width: calc(100% - 50px);
   }
 
@@ -60,7 +82,7 @@
     display: block;
     color: $cool-gray;
     font-size: 13px;
-    max-width:96%;
+    max-width: 96%;
     text-overflow: ellipsis;
     overflow: hidden;
   }
@@ -70,146 +92,89 @@
     padding-top: 30px;
   }
 
-  .asset-row__cell--date-created, 
+  .asset-row__cell--date-created,
   .asset-row__cell--date-modified {
     font-size: 13px;
+  }
+
+  .asset-row__cell--submission-count,
+  .asset-row__cell--row-count {
+    text-align: right;
   }
 
   > .asset-row__buttons {
     position: absolute;
     top: 8px;
     right: 0px;
-    background:#FFF;
-    width:0;
+    background: $hover-asset-row;
+    width: 0;
     overflow: hidden;
     opacity: 0;
     text-align: right;
-    transition:0.3s opacity;
+    transition: 0.3s opacity;
     padding-right: 6px;
     height: calc(100% - 10px);
-    max-height:45px;
+    max-height: 45px;
   }
+
   .asset-row__action-icon {
     margin-left: 4px;
     font-weight: 400;
     color: $cool-gray;
     cursor: pointer;
-    padding: 4px 6px;
     display: inline-block;
     vertical-align: middle;
-    font-size: 22px;
+
     &:hover {
       background-color: transparent;
-      color: unquote("rgb(#{$color-accent})");
+      color: $cool-blue;
     }
+
     &.asset-row__action-icon--view-collection i {
       @extend .k-icon, .k-icon-folder;
     }
+
     i:before {
-      margin:0px;
-      font-size: 22px;
-    }
-    &.asset-row__action-icon--edit i:before {
-      font-size: 26px;
-      // adjust edit icon (pencil) size, since in font file it is smaller than other fonts
+      margin: 0px;
+      font-size: 36px;
     }
   }
+
   &--display-tags .asset-row__action-icon--tagsToggle {
     background-color: transparent;
-    color: unquote("rgb(#{$color-accent})");      
+    color: $cool-blue;
   }
 
-  .popover-menu__link, 
-  .popover-menu__item {
-    font-size: 14px;
-    padding: 8px 15px;
-    color: $cool-gray;
-    i {
-      width:30px;
-      margin-right: 5px;
-      display: inline-block;
-      &:before {
-        font-size: 18px;
-      }
-    }
+  a.asset-row__celllink {
+    color: lighten($black, 20%);
+    display: block;
   }
 
-  .popover-menu__item--move-coll-item {
-    position: relative;
-    padding-right: 35px;
-    &:hover {
-      color: darken($cool-gray, 20%);
-    }
-    i {
-      vertical-align: top;
-    }
-    i.fa {
-      position: absolute;
-      font-size: 14px;
-      right: -10px;
-      margin-right: 0px;
-    }
-    span {
-      display: inline-block;
-      max-width: 150px;
-      overflow: hidden;
-      text-overflow:ellipsis;
-      word-wrap:break-word;
-    }
+  i.row-icon + a.asset-row__celllink {
+    display: inline-block;
+    width: calc(100% - 48px);
   }
 
   &:hover {
-    .asset-row__name {
-      font-weight: 500;
-      color: #222;
-    }
-
     > .asset-row__buttons {
       opacity: 1;
-      width:43%;
+      width: 33%;
       overflow: visible;
-      transition:0.3s opacity;
+      transition: 0.3s opacity;
     }
 
     .date--modified {
       visibility: hidden;
     }
-  }
 
-  .mdl-menu__container {
-    right: 0px;
-    overflow: visible;
-    margin-top: -4px;
-    margin-right: -3px;
-    .mdl-menu__outline {
-      transition:opacity 0.3s;
-      @include shadow-1dp;
+    a.asset-row__celllink {
+      color: $black;
     }
-    .mdl-menu {
-      transition:opacity 0.3s;
-      padding-top:0px;
-      padding-bottom:0px;
-      background-color: #FFF;
-      overflow: visible;
-    }
-  }
-
-  .popover-menu__heading {
-    padding:8px 15px;
-    color: $cool-gray;
-    border-top: 1px solid lighten($cool-gray, 25%);
-    border-bottom: 1px solid lighten($cool-gray, 25%);
-    margin:5px 0px;
-  }
-
-  .popover-menu__moveTo {
-    max-height: 250px;
-    overflow:auto;
-    overflow-x:hidden;
   }
 }
 
-.popover-menu__link--dl-xml {
-  border-bottom: 1px solid lighten($cool-gray, 25%);
+@media screen and (max-width: 767px) {
+  .asset-row:hover > .asset-row__buttons {
+    width: 55%;
+  }
 }
-

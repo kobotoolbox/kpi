@@ -3,568 +3,474 @@
 $headerAccountTextColor: #dbedf7;
 
 .k-header__bar {
-    background-color: $layout-header-bg-color;
-    @extend .mdl-shadow--2dp;
-    position: absolute;
-    min-height: 56px;
-    width: 100%;
-    z-index: 0;
-}
+  background-color: $layout-header-bg-color;
 
-.with-formView-header .k-header__bar:after {
-    background-color: white;
-    content: '';
-    height: 37px;
-    width: 100%;
-    z-index: 0;
-    @extend .mdl-shadow--2dp;
-    position: absolute;
-    top: 56px;
-}
+  @include shadow-2dp;
 
-.account-box__alert {
-    color: rgb(33, 182, 243);
-    position: absolute;
-    left: 51px;
-    top: 4px;
-    height: 47px;
-    padding: 6px 5px;
-    background-color: #414553;
-    line-height: 17px;
-    font-size: 12px;
-    strong {
-        font-weight: bold;
-        text-transform: uppercase;
-        font-size: 10px;
-    }
-    &:hover {
-        background-color: #585d6c;
-        cursor: pointer;
-    }
+  position: absolute;
+  min-height: 64px;
+  width: 100%;
+  z-index: 0;
 }
 
 .mdl-layout__header {
+  background-color: transparent;
+  box-shadow: none !important;
+  min-height: $layout-desktop-header-height;
+  margin-left: 0px;
+  width: 100%;
+  z-index: auto;
+
+  .mdl-layout__header-row {
+    height: 63px;
+    padding: 0px 20px;
+  }
+
+  .mdl-placeholder {
+    margin-left: auto;
+  }
+
+  .mdl-layout-title {
+    width: 244px;
+  }
+
+  .header__logo {
+    width: 175px;
+    height: 40px;
+    background: url("../img/kobologo.svg") no-repeat left bottom;
+    background-size: contain;
+    display: block;
+  }
+
+  .account-box {
+    margin-left: auto;
+    position: relative;
+    max-width: 115px;
+  }
+
+  .account-box__notifications {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0px 32px;
+    margin-top: 4px;
+    position: relative;
+
+    i {
+      font-size: 24px;
+      color: $headerAccountTextColor;
+    }
+  }
+
+  .account-box__notifications__count {
+    background-color: #FF5469;
+    color: white;
+    padding: 1px 5px;
+    font-weight: bold;
+    border-radius: 15px;
+    position: absolute;
+    font-size: 11px;
+    line-height: 15px;
+    top: -8px;
+    left: 10px;
+    border: 1px solid $layout-header-bg-color;
+  }
+
+  .account-box__name {
+    display: inline-block;
+    vertical-align: middle;
+    color: $layout-nav-color;
+    cursor: pointer;
     background-color: transparent;
-    box-shadow: none !important;
-    min-height: 56px;
-    margin-left: 0px;
-    width: 100%;
-    z-index: auto;
-    .mdl-layout__header-row {
-        height: 56px;
-        padding: 0px 20px;
+    border: none;
+    max-width: 100%;
+  }
+
+  .mdl-layout__header-searchers {
+    flex-grow: 1;
+  }
+
+  .search {
+    vertical-align: middle;
+    margin: 0px 6px;
+    display: inline-block;
+    width: 60%;
+    position: relative;
+  }
+
+  .search {
+    ::-webkit-input-placeholder {
+      color: #FFF;
     }
-    .mdl-placeholder {
-        margin-left: auto;
+
+    :-ms-input-placeholder {
+      color: #FFF;
     }
-    .mdl-layout-title {
-        width: 230px;
+
+    .k-search__input {
+      color: #FFF;
+      border: none;
+      border-radius: 0px;
+      padding: 10px 12px;
+      padding-left: 42px;
+      background-color: rgba(255, 255, 255, 0.1);
+      font-size: 16px;
+      position: relative;
+      width: 99%;
     }
-    .account-box {
-        margin-left: auto;
-        position: relative;
-        padding-bottom:5px;
-        &:hover {
-            background-color: darken($layout-header-bg-color, 2.5%);
-        }
+
+    .search__icon {
+      @extend .fa, .fa-search;
+
+      position: absolute;
+      top: 11px;
+      left: 12px;
+      color: #FFF;
+
+      &:before {
+        font-size: 18px;
+      }
     }
-    .account-box__notifications {
-        display: inline-block;
-        vertical-align: middle;
-        margin: 0px 32px;
-        margin-top: 4px;
-        position: relative;
-        i {
-            font-size: 18px;
-            color: $headerAccountTextColor;
-        }
-    }
-    .account-box__notifications__count {
-        background-color: #FF5469;
-        color: white;
-        padding: 1px 5px;
-        font-weight: bold;
-        border-radius: 15px;
-        position: absolute;
-        font-size: 11px;
-        line-height: 15px;
-        top: -8px;
-        left: 10px;
-        border: 1px solid $layout-header-bg-color;
-    }
-    .account-box__name {
-        display: inline-block;
-        vertical-align: middle;
-        color: $layout-nav-color;
-        cursor: pointer;
-        margin-top: 4px;
-        background-color: transparent;
-        border: none;
-        .account-box__username {
-            display: inline-block;
-            vertical-align: middle;
-            margin-right: 4px;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: 180px;
-            overflow: hidden;
-            padding: 0px 8px;
-            font-size: 16px;
-            color: $headerAccountTextColor;
-        }
-    }
-    .k-account__menu {
-        position: absolute;
-        top: 22px;
-        right: -12px;
-        background-color: darken($layout-header-bg-color, 5%);
-        margin: 0px;
-        padding: 8px 0px;
-        &:before {
-            width: 0;
-            height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-bottom: 15px solid darken($layout-header-bg-color, 5%);
-            position: absolute;
-            top: -10px;
-            content: '';
-            right: 26px;
-        }
-    }
-    .account-box__image {
-        width: 24px;
-        display: inline-block;
-        margin-right: 12px;
-        img {
-            width: 24px;
-            height: 24px;
-            border-radius: 12px;
-        }
-    }
-    .account-box__logo {
-        width: 185px;
-        height: 46px;
-        background: url("../img/kobologo.svg") no-repeat left bottom;
-        background-size: contain;
-        display: block;
-    }
-    .mdl-menu__item {
-        color: $layout-nav-color;
-        opacity: 1;
-        padding-left: 12px;
-        padding-right: 54px;
-        height: 36px;
-        line-height: 36px;
-        vertical-align: middle;
-        font-size: 16px;
-        text-transform: capitalize;
-        i {
-            font-size: 24px;
-            width: 30px;
-            margin-right: 12px;
-            display: inline-block;
-        }
-        &:hover {
-            background-color: $nav-menu-item-bg-active;
-        }
-    }
-    .k-lang__submenu, .k-account__submenu {
-        position: relative;
-        ul {
-            position: absolute;
-            right: 100%;
-            top: 0px;
-            background-color: darken($layout-header-bg-color, 5%);
-            transition: all 0.5s;
-            max-height: 0px;
-            opacity: 0;
-            overflow: hidden;
-        }
-        &:hover > ul {
-            transition: all 0.5s;
-            max-height: 1000px;
-            opacity: 1;
-            overflow: visible;
-        }
-    }
-    .Select {
-        width: 100%;
-    }
-    .Select-control,
-    .is-open > .Select-control,
-    .is-focused > .Select-control {
-        position: relative;
-        overflow: hidden;
-        background-color: rgba(255, 255, 255, 0.2);
-        border-radius: 0px;
-        border: none;
-        height: 31px;
-        .Select-arrow-zone {
-            background: transparent;
-        }
-        .Select-arrow {
-            border-top: 8px solid transparent;
-            border-bottom: 8px solid transparent;
-            border-left: 8px solid #dbedf7;
-            right: 4px;
-            top: 8px;
-        }
-        .Select-placeholder {
-            color: #a7acb6;
-            padding: 5px 32px;
-            text-align: left;
-            font-size: 14px;
-        }
-        .Select-input {
-            margin: 0px;
-            margin-left: 32px;
-            border: none;
-        }
-        .Select-input > input {
-            color: #dbedf7;
-            font-size: 14px;
-            height: 20px;
-            margin: 0;
-            margin-top: 4px;
-            padding: 0px;
-        }
-        .Select-item + .Select-input {
-            margin-left: 10px;
-        }
-        .Select-item {
-            background-color: darken($nav-menu-item-bg-active, 5%);
-            border-radius: 6px;
-            padding-right: 4px;
-            padding-top: 2px;
-            border: none;
-            color: #FFF;
-            font-size: 0.9em;
-            flex-shrink: 1;
-            min-width: 40px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            display: inline-block;
-            span {
-                vertical-align: baseline;
-            }
-        }
-        .Select-item-label {
-            display: inline;
-        }
-        .Select-item-label .Select-item-label__a {
-            color: #FFF;
-        }
-        .Select-item-icon {
-            border-right: none;
-            border-bottom-left-radius: 6px;
-            border-top-left-radius: 6px;
-            color: #dbedf7;
-            padding: 0px;
-            padding-left: 4px;
-            &:hover,
-            &:focus {
-                background-color: transparent;
-                color: #FFF;
-            }
-            &:active {
-                background-color: transparent;
-            }
-        }
-    }
-    .is-focused:not(.is-open) > .Select-control {
-        border: none;
-        box-shadow: none;
-    }
-    .Select.is-multi .Select-input {
-        padding: 0px;
-    }
-    .Select.is-multi .Select-control {
-        display: flex;
-        flex-wrap: nowrap;
-        padding-right: 25px;
-    }
-    .Select-menu-outer {
-        background-color: darken($nav-menu-item-bg, 5%);
-        border: none;
-        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
-        color: white;
-        margin-top: 6px;
-    }
-    .Select-option {
-        color: #FFF;
-    }
-    .Select-option.is-focused {
-        background-color: $nav-menu-item-bg-active;
-        color: #FFF;
-    }
-    .Select-option.is-disabled {
-        color: rgba(255, 255, 255, 0.5);
-    }
-    .Select-noresults {
-        color: #DDD;
-    }
-    .Select-clear {
-        color: #dbedf7;
-        background: #717e95;
-        font-size: 22px;
-        padding: 4px;
-        right: 4px;
-        border-radius: 0px;
-        top: 2px;
-        &:hover {
-            color: #FFF;
-        }
-    }
-    .mdl-layout__header-searchers {
-        flex-grow: 1;
-    }
-    .search, .tag-select {
-        vertical-align: middle;
-        margin: 0px 10px;
-        display: inline-block;
-        width: calc(50% - 20px);
-        position: relative;
-    }
-    .search {
-        ::-webkit-input-placeholder {
-            color: #a7acb6;
-        }
-        :-ms-input-placeholder {
-            color: #a7acb6;
-        }
-        .k-search__input {
-            color: #dbedf7;
-            border: none;
-            border-radius: 0px;
-            padding: 6px 12px;
-            padding-left: 32px;
-            background-color: rgba(255, 255, 255, 0.2);
-            font-size: 14px;
-            position: relative;
-            width: 99%;
-        }
-        .search__icon {
-            @extend .fa, .fa-search;
-            position: absolute;
-            top: 7px;
-            left: 8px;
-            color: #dbedf7;
-            &:before {
-                font-size: 18px;
-            }
-        }
-    }
-    .tag-select {
-        i {
-            position: absolute;
-            top: 7px;
-            left: 8px;
-            color: #dbedf7;
-            &:before {
-                font-size: 18px;
-            }
-        }
-    }
+  }
 }
 
-.k-burger {
-    display: none;
+.popover-menu--account-menu {
+  .popover-menu__content {
+    min-width: 240px;
+  }
+}
+
+.account-box__menu {
+  min-width: 270px;
+
+  .account-box__menu-item--avatar {
+    display: inline-block;
+    margin-right: 15px;
+    vertical-align: top;
+  }
+
+  .account-box__menu-item--mini-profile {
+    color: $cool-gray;
+    display: inline-block;
+    width: calc(100% - 70px);
+    line-height: 20px;
+    margin-top: 5px;
+    margin-bottom: 12px;
+
+    span {
+      display: inline-block;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .account-username {
+      font-size: 18px;
+    }
+  }
+
+  .account-box__menu-item--settings {
+    text-align: right;
+  }
+
+  .account-box__menu-li {
+    padding: 15px;
+    padding-bottom: 15px;
+
+    a {
+      color: $cool-gray;
+      cursor: pointer;
+      font-weight: normal;
+      display: block;
+
+      i {
+        font-size: 32px;
+        vertical-align: middle;
+      }
+
+      span {
+        vertical-align: middle;
+      }
+
+      &:hover {
+        color: $cool-blue;
+      }
+    }
+  }
+
+  .account-box__menu-li--lang {
+    position: relative;
+    border-top: 1px solid $divider-color;
+    padding-bottom: 5px;
+
+    ul {
+      position: absolute;
+      right: 100%;
+      top: 0px;
+      background-color: #FFF;
+      color: $cool-gray;
+      min-width: 140px;
+      transition: all 0.5s;
+      max-height: 0px;
+      opacity: 0;
+      overflow: hidden;
+      padding: 8px 0px;
+
+      @include box-shadow;
+
+      li {
+        padding: 10px 15px;
+        text-transform: capitalize;
+        border-bottom: 1px solid $divider-color;
+
+        &:last-child {
+          border-bottom: 0px;
+        }
+      }
+    }
+
+    &:hover > ul {
+      transition: all 0.5s;
+      max-height: 1000px;
+      opacity: 1;
+      overflow: visible;
+    }
+  }
+
+  .account-box__menu-li--logout {
+    padding-top: 5px;
+  }
+}
+
+.mdl-layout__header .mdl-button--icon {
+  display: none;
 }
 
 @media screen and (max-width: 768px) {
-    .k-burger {
-        display: block;
-        margin-right: 10px;
+  .mdl-layout__header {
+    .mdl-button--icon {
+      display: block;
+      margin-right: 8px;
+      padding: 0px;
+      color: #FFF;
+
+      i {
+        line-height: 1.5em;
+        display: inline-block;
+        font-size: 24px;
+      }
     }
-    .mdl-layout__header {
-        .account-box__logo {
-            max-width: 90%;
-        }
-        .mdl-layout-title {
-            width: 180px;
-        }
-        .tag-select {
-            display: none;
-        }
-        .search {
-            width: 90%;
-        }
+
+    .account-box__logo {
+      max-width: 85%;
     }
-}
 
-// form view header (white bar)
-
-.with-formView-header .mdl-layout__content,
-.with-formView-header .k-drawer {
-    height: calc(100% - 108px);
-}
-
-.with-formView-header .k-drawer {
-    top: 105px;
-}
-
-.form-view__tabbar {
-    width: 100%;
-    height: 37px;
-    position: relative;
-}
-
-.form-view__tabs {
-    position: relative;
-    margin: 0 auto;
-}
-
-.form-view__status {
-    position: absolute;
-    right: 40px;
-    top: 8px;
-    display: none;
-    color: $cool-gray;
-}
-
-@media screen and (min-width: 769px) {
-    .form-view__tabbar .form-view__tabs {
-        padding-left: 260px;
+    .mdl-layout-title {
+      width: 160px;
     }
-}
 
-@media screen and (min-width: 481px) {
-    .form-view__status {
-        display: block;
+    .search {
+      width: 80%;
+      position: absolute;
+      display: none;
     }
+
+    .mdl-layout__header-row {
+      padding: 0px 12px;
+    }
+
+    .form-title {
+      width: calc(100% - 240px);
+      overflow: hidden;
+      margin-right: 10px;
+    }
+  }
 }
 
 // Form title + desc in header, editable
 
-.form-view__title {
+.form-title {
+  vertical-align: middle;
+  margin: 0px;
+  display: flex;
+  width: calc(100% - 300px);
+  display: inline-block;
+
+  > i {
+    font-size: 38px;
     vertical-align: middle;
-    margin: 0px 10px;
+    width: 38px;
+    color: #FFF;
+    opacity: 0.25;
+  }
+
+  &__name {
+    width: calc(70% - 40px);
     display: inline-block;
-    flex-shrink: 1;
-    flex-grow: 1;
-    max-width: calc(100% - 360px);
-    .form-view__name,
-    .form-view__name > div,
-    .form-view__description,
-    .form-view__description > div {
-        width: 100%;
+    vertical-align: middle;
+
+    > div {
+      width: 100%;
     }
-    input {
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        overflow: hidden;
-        min-width: 150px;
-        max-width: 100%;
-        background: transparent;
-        padding: 2px 5px;
-        margin: 0px;
-        border: 1px solid transparent;
-        // keep these pseudo-states separate
-        &::-webkit-input-placeholder {
-            color: darken($cool-gray, 10%);
-        }
-        &:-ms-input-placeholder {
-            color: darken($cool-gray, 10%);
-        }
-        &:hover {
-            border: 1px solid unquote("rgba(#{$color-primary}, 0.8)");
-        }
-        &:focus {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid unquote("rgba(#{$color-primary}, 1)");
-        }
+  }
+
+  &__submissions {
+    display: inline-block;
+    vertical-align: middle;
+    width: 30%;
+    text-align: right;
+    overflow: hidden;
+    height: 24px;
+    line-height: 24px;
+    font-size: 14px;
+    opacity: 0.6;
+    color: #FFF;
+  }
+
+  input {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 100%;
+    background: transparent;
+    padding: 3px 6px;
+    margin: 0px;
+    border: none;
+    border-bottom: 1px solid transparent;
+
+    // keep these pseudo-states separate
+    &::-webkit-input-placeholder {
+      color: darken($cool-gray, 10%);
     }
-    input[name='title'] {
-        color: #FFF;
-        font-size: 18px;
+
+    &:-ms-input-placeholder {
+      color: darken($cool-gray, 10%);
     }
-    input[name='description'] {
-        color: $cool-gray;
-        font-size: 13px;
-        margin-top: -4px;
-        &::-webkit-input-placeholder {
-            font-style: italic;
-        }
-        &::-ms-input-placeholder {
-            font-style: italic;
-        }
+
+    &:hover {
+      border-bottom: 1px solid $cool-blue;
     }
+
+    &:focus {
+      background: rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid $cool-blue;
+    }
+  }
+
+  input[name='title'] {
+    color: #FFF;
+    font-size: 18px;
+    min-width: 100%;
+  }
+}
+
+@media screen and (max-width: 959px) {
+  .form-view__title {
+    .form-view__name {
+      width: 80%;
+    }
+
+    .form-view__subs {
+      width: 10%;
+    }
+  }
 }
 
 @media screen and (max-width: 767px) {
-    .form-view__title {
+  .form-title__submissions {
+    display: none;
+  }
+
+  .mdl-layout__header {
+    .mdl-layout-title {
+      width: 40px;
+    }
+
+    .form-title {
+      width: calc(100% - 110px);
+
+      input {
+        border-radius: 0px;
+      }
+
+      .form-title__name {
+        width: 100%;
+      }
+
+      > i {
         display: none;
+      }
     }
+
+    .header__logo {
+      background: url("../img/kobologoS.svg") no-repeat left center;
+      background-size: 125%;
+      width: 40px;
+    }
+  }
 }
 
-a.form-view__tab {
-    background: transparent;
-    border: none;
-    border-bottom: 3px solid transparent;
-    padding: 12px 10px 4px;
-    text-transform: uppercase;
-    margin-right: 20px;
-    font-size: 15px;
-    cursor: pointer;
-    position: relative;
-    color: #444;
-    font-weight: normal;
-    display: inline-block;
-    &.active, &:hover {
-        border-bottom: 3px solid $cool-green;
-    }
+// Initials avatar, used in header, sharing modal and account settings
+.account-box__initials {
+  width: 32px;
+  text-align: center;
+  text-transform: uppercase;
+  padding: 6px;
+  border-radius: 32px;
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 16px;
+  color: #FFF;
 }
 
-.form-view__button--data {
-    display: inline;
-    position: relative;
-    button {
-        background: transparent;
-        border: none;
-        border-bottom: 3px solid transparent;
-        padding: 12px 10px 4px;
-        text-transform: uppercase;
-        margin-right: 20px;
-        font-size: 15px;
-        cursor: pointer;
-        position: relative;
-        color: #444;
-        font-weight: normal;
-        > i {
-            margin-left: 4px;
-            opacity: 0.5;
-        }
-    }
-    .popover-menu__link {
-        font-weight: normal;
-        i {
-            font-size: 24px;
-            margin-right: 8px;
-        }
-    }
+.account-box__menu-item--avatar {
+  .account-box__initials {
+    width: 48px;
+    padding: 10px;
+    border-radius: 48px;
+    font-size: 24px;
+  }
 }
 
 .git-rev {
-    display: none;
+  display: none;
 }
 
 @media screen and (min-width: 768px) {
-    .git-rev {
-        display: block;
-        position: fixed;
-        bottom: 0px;
-        left: 256px;
-        z-index:100;
-        .git-rev__item {
-            color: white;
-            opacity: 0.75;
-            background: darken($cool-green, 10%);
-            margin-right:5px;
-            padding:6px 12px;
-            display: inline-block;
-            font-size: 12px;
-        }
+  .git-rev {
+    display: block;
+    position: fixed;
+    bottom: 0px;
+    left: 80px;
+    z-index: 100;
+
+    .git-rev__item {
+      color: white;
+      opacity: 0.85;
+      background: darken($cool-green, 10%);
+      margin-top: 5px;
+      padding: 6px 12px;
+      display: block;
+      font-size: 12px;
     }
+  }
+}
+
+// temporary fix for language menu on touch devices
+@media screen and (pointer: coarse) {
+  .account-box__menu .account-box__menu-li--lang {
+    ul {
+      opacity: 1;
+      position: static;
+      border: 1px solid $divider-color;
+      margin-left: 12px;
+      padding: 0px;
+      max-height: 1000px;
+      box-shadow: none;
+
+      li {
+        padding: 6px 18px;
+      }
+    }
+  }
 }

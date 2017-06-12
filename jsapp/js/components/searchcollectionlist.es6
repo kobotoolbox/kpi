@@ -1,13 +1,11 @@
-import React from 'react/addons';
+import React from 'react';
 import Reflux from 'reflux';
-import {Navigation} from 'react-router';
 
 import searches from '../searches';
 import mixins from '../mixins';
 import stores from '../stores';
 import {dataInterface} from '../dataInterface';
 import bem from '../bem';
-import mdl from '../libs/rest_framework/material';
 import AssetRow from './assetrow';
 import DocumentTitle from 'react-document-title';
 import $ from 'jquery';
@@ -15,15 +13,13 @@ import $ from 'jquery';
 import {
   parsePermissions,
   t,
-  isLibrary,
 } from '../utils';
 
 var SearchCollectionList = React.createClass({
   mixins: [
     searches.common,
-    Navigation,
     mixins.clickAssets,
-    Reflux.connect(stores.selectedAsset),
+    Reflux.connect(stores.selectedAsset, 'selectedAsset'),
     Reflux.ListenerMixin,
   ],
   getInitialState () {
@@ -55,7 +51,7 @@ var SearchCollectionList = React.createClass({
       this.queryCollections();
   },
   queryCollections () {
-    if (isLibrary(this.context.router)) {
+    if (this.props.searchContext.store.filterTags != 'asset_type:survey') {
       dataInterface.listCollections().then((collections)=>{
         this.setState({
           ownedCollections: collections.results.filter((value) => {
@@ -80,8 +76,8 @@ var SearchCollectionList = React.createClass({
     if (this.props.searchContext.store.filterTags == 'asset_type:survey') {
       let offset = $(event.target).children('.asset-list').offset().top;
       this.setState({
-        fixedHeadings: offset < -55 ? 'fixed-headings' : '',
-        fixedHeadingsWidth: offset < -55 ? $(event.target).children('.asset-list').width() + 'px' : 'auto',
+        fixedHeadings: offset < -105 ? 'fixed-headings' : '',
+        fixedHeadingsWidth: offset < -105 ? $(event.target).children('.asset-list').width() + 'px' : 'auto',
       });
     }
   },
@@ -116,25 +112,26 @@ var SearchCollectionList = React.createClass({
   renderHeadings () {
     return [
       (
-        <bem.Library_breadcrumb className={this.state.parentName ? '' : 'hidden'}>
-          <span>{t('Library')}</span>
-          <span className="separator"><i className="fa fa-caret-right" /></span>
-          <span>{this.state.parentName}</span>
-        </bem.Library_breadcrumb>
+        <bem.List__heading key='1'>
+          <span className={this.state.parentName ? 'parent' : ''}>{t('My Library')}</span>
+          {this.state.parentName &&
+            <span>
+              <i className="k-icon-next" />
+              <span>{this.state.parentName}</span>
+            </span>
+          }
+        </bem.List__heading>
       ),
       (
-        <bem.AssetListSorts className="mdl-grid">
-          <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--6-col mdl-cell--3-col-tablet">
+        <bem.AssetListSorts className="mdl-grid" key='2'>
+          <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--8-col mdl-cell--4-col-tablet mdl-cell--2-col-phone">
             {t('Name')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'owner'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet">
+          <bem.AssetListSorts__item m={'owner'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone">
             {t('Owner')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'modified'} className="mdl-cell mdl-cell--3-col mdl-cell--2-col-tablet">
+          <bem.AssetListSorts__item m={'modified'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone">
             {t('Last Modified')}
-          </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'questions'} className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet">
-            {t('Questions')}
           </bem.AssetListSorts__item>
         </bem.AssetListSorts>
       )];
@@ -142,20 +139,20 @@ var SearchCollectionList = React.createClass({
   renderGroupedHeadings () {
     return (
         <bem.AssetListSorts className="mdl-grid" style={{width: this.state.fixedHeadingsWidth}}>
-          <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--5-col mdl-cell--3-col-tablet">
+          <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--5-col mdl-cell--4-col-tablet mdl-cell--2-col-phone">
             {t('Name')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'owner'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet">
+          <bem.AssetListSorts__item m={'owner'} className="mdl-cell mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--hide-phone">
             {t('Shared by')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'created'} className="mdl-cell mdl-cell--2-col mdl-cell--hide-tablet">
+          <bem.AssetListSorts__item m={'created'} className="mdl-cell mdl-cell--2-col mdl-cell--hide-tablet mdl-cell--hide-phone">
             {t('Created')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'modified'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet">
+          <bem.AssetListSorts__item m={'modified'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone">
             {t('Last Modified')}
           </bem.AssetListSorts__item>
-          <bem.AssetListSorts__item m={'submissions'} className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet">
-            {t('Submissions')}
+          <bem.AssetListSorts__item m={'submissions'} className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--1-col-phone" >
+              {t('Submissions')}
           </bem.AssetListSorts__item>
         </bem.AssetListSorts>
       );
@@ -165,15 +162,17 @@ var SearchCollectionList = React.createClass({
     if (this.state.searchResultsDisplayed)
       searchResultsBucket = 'searchResultsCategorizedResultsLists';
 
-    return ['Deployed', 'Draft', 'Archived'].map(
-      (category) => {
+    var results = ['Deployed', 'Draft', 'Archived'].map(
+      (category, i) => {
+        if (this.state[searchResultsBucket][category].length < 1) {
+          return []
+        }
         return [
-          <bem.AssetList__heading m={['visible']}>
+          <bem.List__subheading key={i}>
             {t(category)}
-            {` (${this.state[searchResultsBucket][category].length})`}
-          </bem.AssetList__heading>,
-          <bem.AssetItems m={['visible']}>
-            {this.state[searchResultsBucket][category].length > 0 && this.renderGroupedHeadings()}
+          </bem.List__subheading>,
+          <bem.AssetItems m={i+1} key={i+2}>
+            {this.renderGroupedHeadings()}
             {
               (()=>{
                 return this.state[[searchResultsBucket]][category].map(
@@ -183,7 +182,13 @@ var SearchCollectionList = React.createClass({
           </bem.AssetItems>
         ];
       }
-    );    
+    );
+
+    return [
+      <bem.List__heading key="h1" className="is-edge">
+        {t('Active Projects')}
+      </bem.List__heading>,
+      results];
   },
 
   render () {
@@ -272,9 +277,6 @@ var SearchCollectionList = React.createClass({
         </bem.List>
       </DocumentTitle>
       );
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   }
 });
 

@@ -1,27 +1,13 @@
-@import "./libs/material-design-lite";
+@import "./libs/mdl";
 
 @import "./fonts/roboto";
 @import "./fonts/k-icons/k-icons";
-@import "../../node_modules/font-awesome/scss/font-awesome";
+@import "~font-awesome/scss/font-awesome";
+@import "~select2/select2.css";
 
 @import "./libs/alertify";
 @import "./libs/react-tagsinput";
 @import "./libs/react-select";
-
-// TODO: phase out these colors from collection header
-$kcol-view: mix(#7b1fa2, grayscale(#7b1fa2), 38%);
-$kcol-edit: mix(#009688, grayscale(#009688), 38%);
-$kcol-preview: mix(#ffc107, grayscale(#ffc107), 38%);
-$kcol-clone: mix(#2196f3, grayscale(#2196f3), 38%);
-$kcol-delete: mix(#ff5722, grayscale(#ff5722), 38%);
-$kcol-download: mix(#4caf50, grayscale(#4caf50), 38%);
-$kcol-deploy: rgb(92, 107, 192);
-
-$kcol-7: mix(#ff4081, grayscale(#ff4081), 38%);
-$kcol-8: mix(#00bcd4, grayscale(#00bcd4), 38%);
-$newformButtonColor: mix(#2196f3, grayscale(#2196f3), 38%);
-
-$newformCircleWidthHeight: 55px;
 
 @import "./components/kobo.bem.ui";
 @import "./components/kobo.modal";
@@ -31,7 +17,6 @@ $newformCircleWidthHeight: 55px;
 @import "./components/kobo.drawer.lists";
 @import "./kobo";
 @import "./components/kobo.form-builder";
-@import "./components/kobo.collection-header";
 @import "./components/kobo.collection-asset-list";
 @import "./components/kobo.list-view";
 @import "./components/kobo.asset-name";
@@ -40,10 +25,8 @@ $newformCircleWidthHeight: 55px;
 @import "./components/kobo.lib-list";
 @import "./components/kobo.form-view";
 @import "./components/kobo.report-view";
-@import "./components/kobo.asset-type-icon";
 @import "./components/kobo.account-settings";
 @import "./components/kobo.sharing-modal";
-@import "./libs/pygments-theme";
 
 .k-invisible {
   visibility: hidden;
@@ -52,9 +35,6 @@ $newformCircleWidthHeight: 55px;
 body.hide-edge .is-edge {
   display: none !important;
 }
-
-// TO BE PHASED OUT
-@import "./components/kobo.asset-view";
 
 // Print stylesheet
 @import "./libs/print";

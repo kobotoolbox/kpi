@@ -1,11 +1,14 @@
-import React from 'react/addons';
+import React from 'react';
+import ReactDOM from 'react-dom';
 import $ from 'jquery';
-import mdl from '../libs/rest_framework/material';
 import Select from 'react-select';
 import _ from 'underscore';
 import DocumentTitle from 'react-document-title';
 import SurveyScope from '../models/surveyScope';
 import cascadeMixin from './cascadeMixin';
+import AssetNavigator from './assetNavigator';
+import {Link, hashHistory} from 'react-router';
+import alertify from 'alertifyjs';
 
 import {
   surveyToValidJson,
@@ -29,8 +32,6 @@ import {dataInterface} from '../dataInterface';
 
 import hotkey from 'react-hotkey';
 
-var errorLoadingFormSupportUrl = 'http://support.kobotoolbox.org/';
-
 var FormStyle__panel = bem('form-style__panel'),
     FormStyle__row = bem('form-style'),
     FormStyle__panelheader = bem('form-style__panelheader'),
@@ -46,15 +47,14 @@ var FormSettingsEditor = React.createClass({
   render () {
     return (
           <div className="mdl-grid">
-            <div className="mdl-cell mdl-cell--1-col" />
-            <div className="mdl-cell mdl-cell--5-col">
+            <div className="mdl-cell mdl-cell--4-col">
               {this.props.meta.map((mtype) => {
                 return (
                     <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
                   );
               })}
             </div>
-            <div className="mdl-cell mdl-cell--5-col">
+            <div className="mdl-cell mdl-cell--4-col">
               {this.props.phoneMeta.map((mtype) => {
                 return (
                     <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
@@ -66,9 +66,6 @@ var FormSettingsEditor = React.createClass({
   },
   focusSelect () {
     this.refs.webformStyle.focus();
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   }
 });
 
@@ -76,16 +73,12 @@ var FormCheckbox = React.createClass({
   render () {
     return (
         <div className="form-group">
-          <label className="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" htmlFor={this.props.name} >
-            <input type="checkbox" className="mdl-checkbox__input" id={this.props.name} checked={this.props.value} onChange={this.props.onChange} />
-            <span className="mdl-checkbox__label">{this.props.label}</span>
+          <input type="checkbox" id={this.props.name} checked={this.props.value} onChange={this.props.onChange} />
+          <label htmlFor={this.props.name}>
+            {this.props.label}
           </label>
         </div>
       );
-  },
-  componentDidUpdate() {
-    // TODO: upgrade specific element only (as opposed to whole DOM)
-    mdl.upgradeDom();
   }
 });
 
@@ -99,9 +92,6 @@ var FormSettingsBox = React.createClass({
       phoneMeta: [],
       styleValue: 'field-list'
     };
-  },
-  componentDidUpdate() {
-    mdl.upgradeDom();
   },
   componentDidMount () {
     this.updateState();
@@ -196,6 +186,7 @@ export default assign({
       multioptionsExpanded: true,
       surveyAppRendered: false,
       currentName: 'name',
+      name: ''
     };
   },
   mixins: [
@@ -204,39 +195,9 @@ export default assign({
   componentDidMount() {
     document.querySelector('.page-wrapper__content').addEventListener('scroll', this.handleScroll);
     this.listenTo(stores.surveyState, this.surveyStateChanged);
-    this.setBreadcrumb();
   },
-  setBreadcrumb (params={}) {
-    let library = isLibrary(this.context.router);
-    var baseName = library ? 'library-' : '';
-    let bcData = [
-      {
-        'label': library ? t('Library') : t('Projects'),
-        'to': library ? 'library' : 'forms',
-      }
-    ];
-    if (this.editorState === 'new') {
-      bcData.push({
-        label: t('new'),
-        to: `${baseName}new-form`,
-      });
-    } else {
-      let uid = params.asset_uid || this.state.asset_uid || this.props.params.assetid,
-          asset_type = params.asset_type || this.state.asset_type || 'asset';
-      bcData.push({
-        label: t(`view-${asset_type}`),
-        to: `${baseName}form-landing`,
-        params: {assetid: uid},
-      });
-      bcData.push({
-        label: t(`edit-${asset_type}`),
-        to: `${baseName}form-edit`,
-        params: {assetid: uid},
-      });
-    }
-
-    stores.pageState.setHeaderBreadcrumb(bcData);
-
+  componentWillMount() {
+    document.body.classList.add('hide-edge');
   },
   componentWillUnmount () {
     if (this.app && this.app.survey) {
@@ -245,30 +206,10 @@ export default assign({
     }
     this.unpreventClosingTab();
   },
-  componentDidUpdate() {
-    // Material Design Lite
-    // This upgrades all upgradable components (i.e. with 'mdl-js-*' class)
-    mdl.upgradeDom();
-  },
-  statics: {
-    willTransitionTo: function(transition, params, idk, callback) {
-      stores.pageState.setAssetNavPresent(true);
-      stores.pageState.setDrawerHidden(true);
-      stores.pageState.setHeaderHidden(true);
-      if (params.assetid && params.assetid[0] === 'c') {
-        transition.redirect('collection-page', {uid: params.assetid});
-      } else {
-        callback();
-      }
-    }
-  },
   handleHotkey: function(e) {
     if (e.altKey && e.keyCode == '69') {
       document.body.classList.toggle('hide-edge');
     }
-  },
-  componentWillMount() {
-    document.body.classList.add('hide-edge');
   },
   surveyStateChanged (state) {
     this.setState(state);
@@ -339,9 +280,6 @@ export default assign({
       this.setState({
         enketopreviewOverlay: content.enketopreviewlink,
       });
-      stores.pageState.setDrawerHidden(true);
-      stores.pageState.setHeaderHidden(true);
-      stores.pageState.setAssetNavPresent(false);
     }).fail((jqxhr) => {
       let err = jqxhr.responseJSON.error;
       this.setState({
@@ -364,29 +302,45 @@ export default assign({
       params.name = this.state.name;
     }
     if (this.editorState === 'new') {
-      var library = isLibrary(this.context.router);
-      var baseName = library ? 'library-' : '';
-      params.asset_type = library ? 'block' : 'survey';
-      actions.resources.createResource(params)
+      params.asset_type = 'block';
+      actions.resources.createResource.triggerAsync(params)
         .then((asset) => {
-          this.transitionTo(`${baseName}form-edit`, {assetid: asset.uid});
+          hashHistory.push(`/library`);
         })
     } else {
       // update existing
       var assetId = this.props.params.assetid;
-      actions.resources.updateAsset(assetId, params)
+      actions.resources.updateAsset.triggerAsync(assetId, params)
         .then(() => {
-          this.saveFormComplete();
+          this.unpreventClosingTab();
+          this.setState({
+            asset_updated: update_states.UP_TO_DATE,
+            surveySaveFail: false,
+          });
+        })
+        .catch((resp) => {
+          var errorMsg = `${t('Your changes could not be saved, likely because of a lost internet connection.')}&nbsp;
+                         ${t('Keep this window open and try saving again while using a better connection.')}`;
+          if (resp.statusText != 'error')
+            errorMsg = resp.statusText;
+
+          alertify.defaults.theme.ok = "ajs-cancel";
+          let dialog = alertify.dialog('alert');
+          let opts = {
+            title: t('Error saving form'),
+            message: errorMsg,
+            label: t('Dismiss'),
+          };
+          dialog.set(opts).show();
+
+          this.setState({
+            surveySaveFail: true,
+            asset_updated: update_states.SAVE_FAILED
+          });
         });
     }
     this.setState({
       asset_updated: update_states.PENDING_UPDATE,
-    });
-  },
-  saveFormComplete () {
-    this.unpreventClosingTab();
-    this.setState({
-      asset_updated: update_states.UP_TO_DATE,
     });
   },
   handleScroll(evt) {
@@ -429,6 +383,8 @@ export default assign({
     }
     if (this.editorState === 'new') {
       ooo.saveButtonText = t('create');
+    } else if (this.state.surveySaveFail) {
+      ooo.saveButtonText = `${t('save')} (${t('retry')}) `;
     } else {
       ooo.saveButtonText = t('save');
     }
@@ -460,12 +416,9 @@ export default assign({
               <i className="k-icon-projects" />
             </bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__cell m={'name'} >
-              <ui.SmallInputBox
-                  ref='form-name'
-                  value={name}
-                  onChange={this.nameChange}
-                  placeholder={t('form name')}
-                />
+              <bem.FormModal__item>
+                <input type="text" onChange={this.nameChange} value={this.state.name} id="nameField"/>
+              </bem.FormModal__item>
             </bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__cell m={'buttonsTopRight'} >
 
@@ -476,20 +429,22 @@ export default assign({
               <bem.FormBuilderHeader__button m={['save', {
                     savepending: this.state.asset_updated === update_states.PENDING_UPDATE,
                     savecomplete: this.state.asset_updated === update_states.UP_TO_DATE,
+                    savefailed: this.state.asset_updated === update_states.SAVE_FAILED,
                     saveneeded: this.state.asset_updated === update_states.UNSAVED_CHANGES,
                   }]} onClick={this.saveForm} className="disabled"
                   disabled={!this.state.surveyAppRendered || !!this.state.surveyLoadError}>
                 <i />
                 {saveButtonText}
               </bem.FormBuilderHeader__button>
-            </bem.FormBuilderHeader__cell>
-            <bem.FormBuilderHeader__cell m={'close'} >
+
               <bem.FormBuilderHeader__close m={[{
                     'close-warning': this.needsSave(),
                   }]} onClick={this.navigateBack}>
                 <i className="k-icon-close"></i>
               </bem.FormBuilderHeader__close>
+
             </bem.FormBuilderHeader__cell>
+
           </bem.FormBuilderHeader__row>
           <bem.FormBuilderHeader__row m={'second'} >
             <bem.FormBuilderHeader__cell m={'buttons'} >
@@ -509,15 +464,13 @@ export default assign({
                   <i className="k-icon-view-all" />
                 </bem.FormBuilderHeader__button>
               : null }
-              { groupable ?
-                <bem.FormBuilderHeader__button m={['group', {
-                      groupable: groupable
-                    }]} onClick={this.groupQuestions}
-                    disabled={!groupable}
-                    data-tip={t('Create group with selected questions')}>
-                  <i className="k-icon-group" />
-                </bem.FormBuilderHeader__button>
-              : null }
+              <bem.FormBuilderHeader__button m={['group', {
+                    groupable: groupable
+                  }]} onClick={this.groupQuestions}
+                  disabled={!groupable}
+                  data-tip={groupable ? t('Create group with selected questions') : t('Grouping disabled. Please select at least one question.')}>
+                <i className="k-icon-group" />
+              </bem.FormBuilderHeader__button>
               <bem.FormBuilderHeader__button m={['download']}
                   data-tip={t('Download form')} 
                   className="is-edge">
@@ -532,8 +485,8 @@ export default assign({
                   }} onClick={this.openFormStylePanel} 
                     data-tip={t('Web form layout')} >
                     <i className="k-icon-grid" />
-                    {t('Layout')}
-                    <i className="fa fa-caret-down" />
+                    <span>{t('Layout')}</span>
+                    <i className="fa fa-angle-down" />
                   </bem.FormBuilderHeader__button>
                 </bem.FormBuilderHeader__item>
               : null }
@@ -606,7 +559,6 @@ export default assign({
   },
   renderNotLoadedMessage () {
     if (this.state.surveyLoadError) {
-      var baseName = isLibrary(this.context.router) ? 'library-' : '';
       return (
           <ErrorMessage>
             <ErrorMessage__strong>
@@ -616,18 +568,9 @@ export default assign({
               {this.state.surveyLoadError}
             </p>
             <div>
-              <ErrorMessage__link m="raised"
-                  href={this.makeHref(`${baseName}form-landing`, {
-                    assetid: this.props.params.assetid,
-                  })}>
+              <a onClick={hashHistory.goBack} href='#'>
                 {t('Back')}
-              </ErrorMessage__link>
-              <ErrorMessage__link m="help"
-                  href={errorLoadingFormSupportUrl}>
-                <i className={'k-icon-help'}
-                  data-tip={t('Ask support about this error')}
-                  />
-              </ErrorMessage__link>
+              </a>
             </div>
           </ErrorMessage>
         );
@@ -646,17 +589,11 @@ export default assign({
     this.setState({
       enketopreviewOverlay: false
     });
-    stores.pageState.setDrawerHidden(true);
-    stores.pageState.setHeaderHidden(true);
-    stores.pageState.setAssetNavPresent(true);
   },
   hideCascade () {
     this.setState({
       showCascadePopup: false
     });
-    stores.pageState.setDrawerHidden(true);
-    stores.pageState.setHeaderHidden(true);
-    stores.pageState.setAssetNavPresent(true);
   },
   launchAppForSurveyContent (survey, _state={}) {
     if (_state.name) {
@@ -685,17 +622,13 @@ export default assign({
         stateStore: stores.surveyState,
         ngScope: skp,
       });
-      this.app.$el.appendTo(this.refs['form-wrap'].getDOMNode());
+      this.app.$el.appendTo(ReactDOM.findDOMNode(this.refs['form-wrap']));
       this.app.render();
       survey.rows.on('change', this.onSurveyChange);
       survey.rows.on('sort', this.onSurveyChange);
       survey.on('change', this.onSurveyChange);
     }
 
-    this.setBreadcrumb({
-      asset_uid: _state.asset_uid,
-      asset_type: _state.asset_type,
-    });
     this.setState(_state);
   },
   clearPreviewError () {
@@ -709,10 +642,12 @@ export default assign({
     return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
           <ui.Panel m={'transparent'}>
+            <AssetNavigator />
             <bem.FormBuilder m={this.state.formStylePanelDisplayed ? 'formStyleDisplayed': null }>
               {this.renderSaveAndPreviewButtons()}
 
               <bem.FormBuilder__contents>
+
                 { isSurvey ?
                   <FormSettingsBox survey={this.app.survey} {...this.state} />
                 : null }
@@ -727,7 +662,9 @@ export default assign({
               <ui.Modal open large
                   onClose={this.hidePreview} title={t('Form Preview')}>
                 <ui.Modal.Body>
-                  <iframe src={this.state.enketopreviewOverlay} />
+                  <div className="enketo-holder">
+                    <iframe src={this.state.enketopreviewOverlay} />
+                  </div>
                 </ui.Modal.Body>
               </ui.Modal>
 
