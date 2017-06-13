@@ -11,7 +11,6 @@ import bem from '../bem';
 import {
   t, 
   parsePermissions, 
-  getAnonymousUserPermission,
   stringToColor,
   anonUsername
 } from '../utils';
@@ -66,10 +65,13 @@ var UserPermDiv = React.createClass({
 });
 
 var PublicPermDiv = React.createClass({
-  togglePerms() {
-    if (this.props.publicPerm) {
+  togglePerms(evt) {
+    var permRole = evt.currentTarget.dataset.perm;
+    var permission = this.props.publicPerms.filter(function(perm){ return perm.permission === permRole })[0];
+
+    if (permission) {
       actions.permissions.removePerm({
-        permission_url: this.props.publicPerm.url,
+        permission_url: permission.url,
         content_object_uid: this.props.uid
       });
     } else {
@@ -78,7 +80,7 @@ var PublicPermDiv = React.createClass({
         uid: this.props.uid,
         kind: this.props.kind,
         objectUrl: this.props.objectUrl,
-        role: 'view'
+        role: permRole === 'view_asset' ? 'view' : permRole
       });
     }
   },
@@ -88,19 +90,35 @@ var PublicPermDiv = React.createClass({
     var href = `#/forms/${uid}`;
     var url = `${window.location.protocol}//${window.location.host}/${href}`;
 
+    var anonCanView = this.props.publicPerms.filter(function(perm){ return perm.permission === 'view_asset' })[0];
+    var anonCanViewData = this.props.publicPerms.filter(function(perm){ return perm.permission === 'view_submissions' })[0];
+
     return (
-      <bem.FormModal__item m='perms-link'>
-        <input  type="checkbox" 
-                checked={this.props.publicPerm ? true : false} 
-                onChange={this.togglePerms} 
-                id="share-by-link"/>
-        <label htmlFor="share-by-link">{t('Share by link')}</label>
-        { this.props.publicPerm && 
-          <bem.FormModal__item m='shareable-link'>
-            <label>
-              {t('Shareable link')}
-            </label>
-            <input type="text" value={url} readOnly />
+      <bem.FormModal__item m='permissions'>
+        <bem.FormModal__item m='perms-link'>
+          <input  type="checkbox" 
+                  checked={anonCanView ? true : false} 
+                  onChange={this.togglePerms} 
+                  id="share-by-link"
+                  data-perm="view_asset"/>
+          <label htmlFor="share-by-link">{t('Share by link')}</label>
+          { anonCanView && 
+            <bem.FormModal__item m='shareable-link'>
+              <label>
+                {t('Shareable link')}
+              </label>
+              <input type="text" value={url} readOnly />
+            </bem.FormModal__item>
+          }
+        </bem.FormModal__item>
+        { this.props.deploymentActive && 
+          <bem.FormModal__item m='perms-public-data'>
+            <input  type="checkbox" 
+                  checked={anonCanViewData ? true : false} 
+                  onChange={this.togglePerms} 
+                  id="share-data-publicly"
+                  data-perm="view_submissions"/>
+            <label htmlFor="share-data-publicly">{t('Share data publicly')}</label>
           </bem.FormModal__item>
         }
       </bem.FormModal__item>
@@ -118,12 +136,13 @@ var SharingForm = React.createClass({
       asset = data[uid];
 
     if (asset) {
+
       this.setState({
         asset: asset,
         permissions: asset.permissions,
         owner: asset.owner__username,
         pperms: parsePermissions(asset.owner__username, asset.permissions),
-        public_permission: getAnonymousUserPermission(asset.permissions),
+        public_permissions: asset.permissions.filter(function(perm){ return perm.user__username === anonUsername }),
         related_users: stores.asset.relatedUsers[uid]
       });
     }
@@ -294,9 +313,10 @@ var SharingForm = React.createClass({
             </bem.FormView__cell>
             <PublicPermDiv 
               uid={uid}
-              publicPerm={this.state.public_permission}
+              publicPerms={this.state.public_permissions}
               kind={kind}
               objectUrl={objectUrl}
+              deploymentActive={this.state.asset.deployment__active}
             />
           </bem.FormView__cell>
         }
