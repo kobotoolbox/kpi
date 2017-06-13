@@ -506,6 +506,10 @@ class Asset(ObjectPermissionMixin,
         'add_submissions': 'report_xform', # "Can submit to" in KC UI
     }
     KC_CONTENT_TYPE_KWARGS = {'app_label': 'logger', 'model': 'xform'}
+    # KC records anonymous access as flags on the `XForm`
+    KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS = {
+        'view_submissions': {'shared': True, 'shared_data': True}
+    }
 
     # todo: test and implement this method
     # def restore_version(self, uid):
