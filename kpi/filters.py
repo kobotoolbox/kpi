@@ -224,7 +224,7 @@ class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
 
 class AttachmentFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
-        type = request.query_params.get('type')
+        attachments_type = request.query_params.get('type')
         group_by = request.query_params.get('group_by')
 
         # sorting is a prerequisite for group by queries
@@ -235,8 +235,8 @@ class AttachmentFilter(filters.BaseFilterBackend):
         if request.query_params.get('sort') == 'desc':
             sort = '-pk'
 
-        if type:
-            queryset = queryset.filter(mimetype__istartswith=type.lower())
+        if attachments_type:
+            queryset = queryset.filter(mimetype__istartswith=attachments_type.lower())
 
         if order_by and order_by == 'question':
             queryset = sorted(queryset.order_by(sort),
