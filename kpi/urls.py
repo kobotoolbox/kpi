@@ -89,6 +89,7 @@ urlpatterns = [
         name='toggle-preferred-builder'),
     # Translation catalog for client code.
     url(r'^jsi18n/$', javascript_catalog, js_info_dict, name='javascript-catalog'),
+    # url(r'^.*', home),
     url(r'^token/$', TokenView.as_view(), name='token'),
 
     # static media
