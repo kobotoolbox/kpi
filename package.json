@@ -93,7 +93,7 @@
     "script-loader": "^0.6.1",
     "select2": "3.5.2-browserify",
     "slick-carousel": "^1.6.0",
-    "style-loader": "^0.12.3",
+    "style-loader": "^0.16.1",
     "time-grunt": "^1.2.1",
     "underscore": "^1.8.3",
     "vinyl-source-stream": "^1.1.0",
