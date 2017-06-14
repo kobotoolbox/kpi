@@ -2,6 +2,7 @@ import React from 'react';
 import Reflux from 'reflux';
 import _ from 'underscore';
 import {dataInterface} from '../dataInterface';
+
 import actions from '../actions';
 import bem from '../bem';
 import stores from '../stores';
@@ -51,7 +52,6 @@ var FormSubScreens = React.createClass({
         var deployment__identifier = this.state.deployment__identifier;
         var report__base = deployment__identifier.replace('/forms/', '/reports/');
       }
-
       switch(this.props.location.pathname) {
         case `/forms/${this.state.uid}/data/report-legacy`:
           iframeUrl = report__base+'/digest.html';
