@@ -3,6 +3,7 @@
     background: transparent !important;
     overflow: visible !important;
   }
+
   body .kpiapp,
   body .mdl-wrapper,
   body .mdl-layout,
@@ -13,51 +14,67 @@
     height: auto !important;
     overflow: visible;
   }
+
   body .mdl-layout {
     display: block;
     overflow: visible;
     max-width: auto;
   }
+
   body .mdl-layout__content {
     // Fixes Firefox one-page print bug
     display: block;
     margin-left: 0px;
   }
+
   .k-drawer, .mdl-layout__header {
     display: none;
   }
+
   .form-view__reportButtons {
     display: none;
   }
+
   .report-view__chart {
     padding-left: 0px;
     padding-right: 0px;
   }
+
   a[href]:after, abbr[title]:after {
     content: "";
   }
+
   .form-view__row {
     display: block;
   }
+
   .form-view__cell {
     width: auto;
   }
+
   .report-view__chart {
     page-break-inside: avoid;
   }
-  // .report-view__item {
-    // page-break-inside: avoid;
-  // }
+
   .report-view__itemContent table {
-    margin-left:0%;
-    width:100%;
+    margin-left: 0%;
+    width: 100%;
+    page-break-inside: avoid;
   }
 
   // Fix Chrome printing headers overlap bug
-  thead { 
-    display: table-row-group 
+  thead {
+    display: table-row-group;
   }
 
+  .form-view__sidetabs,
+  .form-view__toptabs {
+    display: none;
+  }
+
+  .form-view__sidetabs + .report-view {
+    width: 100%;
+  }
 }
 
 @media only screen {

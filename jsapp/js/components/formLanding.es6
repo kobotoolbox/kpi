@@ -51,7 +51,7 @@ var FormLanding = React.createClass({
     });
   },
   renderFormInfo () {
-    var dvcount = this.state.deployed_versions.length;
+    var dvcount = this.state.deployed_versions.count;
     return (
         <bem.FormView__cell m={['columns', 'padding']}>
           <bem.FormView__cell>
@@ -112,7 +112,7 @@ var FormLanding = React.createClass({
     });
   },
   renderHistory () {
-    var dvcount = this.state.deployed_versions.length;
+    var dvcount = this.state.deployed_versions.count;
     return (
       <bem.FormView__row className={this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'}>
         <bem.FormView__cell m={['columns', 'history-label']}>
@@ -127,7 +127,7 @@ var FormLanding = React.createClass({
               <bem.FormView__label m='date'>{t('Last Modified')}</bem.FormView__label>
               <bem.FormView__label m='clone'>{t('Clone')}</bem.FormView__label>
             </bem.FormView__group>
-            {this.state.deployed_versions.map((item, n) => {
+            {this.state.deployed_versions.results.map((item, n) => {
               return (
                 <bem.FormView__group m="items" key={n} >
                   <bem.FormView__label m='version'>
@@ -154,7 +154,7 @@ var FormLanding = React.createClass({
             })}
           </bem.FormView__group>
         </bem.FormView__cell>
-        {this.state.deployed_versions.length > 1 &&
+        {this.state.deployed_versions.count > 1 &&
           <bem.FormView__cell m={['centered']}>
             <button className="mdl-button mdl-button--colored" onClick={this.toggleDeploymentHistory}>
               {this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
@@ -399,7 +399,7 @@ var FormLanding = React.createClass({
               </bem.FormView__cell>
             </bem.FormView__cell>
             <bem.FormView__cell m='box'>
-              {this.state.deployed_versions.length > 0 &&
+              {this.state.deployed_versions.count > 0 &&
                 this.state.deployed_version_id != this.state.version_id && this.state.deployment__active && 
                 <bem.FormView__cell m='warning'>
                   <i className="k-icon-alert" />
@@ -412,10 +412,10 @@ var FormLanding = React.createClass({
               }
             </bem.FormView__cell>
           </bem.FormView__row>
-          {this.state.deployed_versions.length > 0 &&
+          {this.state.deployed_versions.count > 0 &&
             this.renderHistory()
           }
-          {this.state.deployed_versions.length > 0 && this.state.deployment__active && 
+          {this.state.deployed_versions.count > 0 && this.state.deployment__active &&
             this.renderCollectData()
           }
         </bem.FormView> 

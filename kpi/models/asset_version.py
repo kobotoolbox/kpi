@@ -28,6 +28,7 @@ class AssetVersion(models.Model):
                                               on_delete=models.SET_NULL,
                                               )
     version_content = JSONBField()
+    uid_aliases = JSONBField(null=True)
     deployed_content = JSONBField(null=True)
     _deployment_data = JSONBField(default=False)
     deployed = models.BooleanField(default=False)

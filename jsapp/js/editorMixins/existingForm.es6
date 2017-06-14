@@ -36,7 +36,7 @@ export default {
     });
   },
   navigateBack () {
-    var path = '/forms';
+    var path = `/forms/${this.state.asset_uid}`;
     if (this.context.router.isActive('library'))
       path = '/library';
 
