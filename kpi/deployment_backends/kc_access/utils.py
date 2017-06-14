@@ -113,10 +113,11 @@ def _get_content_type_kwargs(obj):
 
 def _get_applicable_kc_permissions(obj, kpi_codenames):
     r"""
-        Given one KPI permission codename as a single string, or many codenames
-        as an iterable, return the corresponding KC permissions as a list of
-        `Permission` objects.
+        Given a KPI object and one KPI permission codename as a single string,
+        or many codenames as an iterable, return the corresponding KC
+        permissions as a list of `Permission` objects.
         :param obj: Object with `KC_PERMISSIONS_MAP` dictionary attribute
+        :param kpi_codenames: One or more codenames for KPI permissions
         :type kpi_codenames: str or list(str)
         :rtype list(:py:class:`Permission`)
     """
@@ -152,6 +153,20 @@ def _get_xform_id_for_asset(asset):
 
 def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
                                              remove=False):
+    r"""
+        Given a KPI object, one KPI permission codename as a single string (or
+        many codenames as an iterable), and the PK of a KC `XForm`, assume the
+        KPI codenames have been assigned to (or removed from) the anonymous
+        user and modify any corresponding flags on the `XForm` accordingly.
+        `obj.`
+        :param obj: Object with `KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS`
+            dictionary attribute
+        :param kpi_codenames: One or more codenames for KPI permissions
+        :type kpi_codenames: str or list(str)
+        :param xform_id: PK of the KC `XForm` associated with `obj`
+        :param remove: If `True`, apply the Boolean `not` operator to each
+            value in `KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS`
+    """
     if not settings.KOBOCAT_URL or not settings.KOBOCAT_INTERNAL_URL:
         return
     try:
