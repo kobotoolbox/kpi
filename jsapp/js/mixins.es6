@@ -188,12 +188,14 @@ var dmix = {
     };
   },
   dmixSessionStoreChange (val) {
-    var currentUsername = val && val.currentAccount && val.currentAccount.username;
-    this.setState(assign({
-        currentUsername: currentUsername
-      },
-      this.getCurrentUserPermissions(this.state, {currentUsername: currentUsername})
-    ));
+    if (val && val.currentAccount) {
+      var currentUsername = val && val.currentAccount && val.currentAccount.username;
+      this.setState(assign({
+          currentUsername: currentUsername
+        },
+        this.getCurrentUserPermissions(this.state, {currentUsername: currentUsername})
+      ));
+    }
   },
   dmixAssetStoreChange (data) {
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid,
