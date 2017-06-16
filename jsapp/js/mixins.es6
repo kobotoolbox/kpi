@@ -188,21 +188,14 @@ var dmix = {
     };
   },
   dmixSessionStoreChange (val) {
-    var currentUsername = val && val.currentAccount && val.currentAccount.username;
-    this.setState(assign({
-        currentUsername: currentUsername
-      },
-      this.getCurrentUserPermissions(this.state, {currentUsername: currentUsername})
-    ));
-  },
-  getInitialState () {
-    return {
-      userCanEdit: false,
-      userCanView: true,
-      historyExpanded: false,
-      showReportGraphSettings: false,
-      currentUsername: stores.session.currentAccount && stores.session.currentAccount.username,
-    };
+    if (val && val.currentAccount) {
+      var currentUsername = val && val.currentAccount && val.currentAccount.username;
+      this.setState(assign({
+          currentUsername: currentUsername
+        },
+        this.getCurrentUserPermissions(this.state, {currentUsername: currentUsername})
+      ));
+    }
   },
   dmixAssetStoreChange (data) {
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid,
@@ -213,6 +206,15 @@ var dmix = {
           this.getCurrentUserPermissions(data[uid], this.state)
         ));
     }
+  },
+  componentWillMount () {
+    this.setState({
+      userCanEdit: false,
+      userCanView: true,
+      historyExpanded: false,
+      showReportGraphSettings: false,
+      currentUsername: stores.session.currentAccount && stores.session.currentAccount.username,
+    });
   },
   componentDidMount () {
     this.listenTo(stores.session, this.dmixSessionStoreChange);
@@ -232,9 +234,6 @@ var dmix = {
 mixins.dmix = dmix;
  
 mixins.droppable = {
-  contextTypes: {
-    router: React.PropTypes.object
-  },
   _forEachDroppedFile (evt, file, params={}) {
     var library = this.context.router.isActive('library');
     var url = params.url || this.state.url;
@@ -332,9 +331,6 @@ mixins.collectionList = {
 };
  
 mixins.clickAssets = {
-  contextTypes: {
-    router: React.PropTypes.object
-  },
   onActionButtonClick (action, uid, name) {
     this.click.asset[action].call(this, uid, name);
   },
@@ -515,9 +511,6 @@ mixins.permissions = {
 };
 
 mixins.contextRouter = {
-  contextTypes: {
-    router: React.PropTypes.object
-  },
   isFormList () {
     return this.context.router.isActive('forms') && this.context.router.params.assetid == undefined;
   },

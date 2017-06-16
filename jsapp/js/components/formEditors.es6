@@ -1,11 +1,11 @@
 import $ from 'jquery';
 import React from 'react';
+import PropTypes from 'prop-types'
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
-
-import newFormMixin from '../editorMixins/newForm';
 import editableFormMixin from '../editorMixins/editableForm';
-import existingFormMixin from '../editorMixins/existingForm';
 import Select from 'react-select';
 import ui from '../ui';
 import bem from '../bem';
@@ -16,8 +16,7 @@ import {session} from '../stores';
 
 let newFormMixins = [
     Reflux.ListenerMixin,
-    editableFormMixin,
-    newFormMixin,
+    editableFormMixin
 ];
 import actions from '../actions';
 import {dataInterface} from '../dataInterface';
@@ -27,36 +26,13 @@ import {
   assign,
 } from '../utils';
 
-export var ProjectSettings = React.createClass({
-  mixins: [
-    Reflux.ListenerMixin,
-  ],
-  nameChange (evt) {
-    this.setState({
-      name: evt.target.value
-    });
-  },
-  descriptionChange (evt) {
-    this.setState({
-      description: evt.target.value
-    });
-  },
-  countryChange (val) {
-    this.setState({
-      country: val
-    });
-  },
-  sectorChange (val) {
-    this.setState({
-      sector: val
-    });
-  },
-  shareMetadataChange (evt) {
-    this.setState({
-      'share-metadata': evt.target.checked
-    });
-  },
-  getInitialState () {
+import {
+  update_states,
+} from '../constants';
+
+export class ProjectSettings extends React.Component {
+  constructor(props){
+    super(props);
     let state = {
       sessionLoaded: !!session.currentAccount,
       name: '',
@@ -68,8 +44,34 @@ export var ProjectSettings = React.createClass({
     if (this.props.initialData !== undefined) {
       assign(state, this.props.initialData);
     }
-    return state;
-  },
+    this.state = state;
+    autoBind(this);
+  }
+  nameChange (evt) {
+    this.setState({
+      name: evt.target.value
+    });
+  }
+  descriptionChange (evt) {
+    this.setState({
+      description: evt.target.value
+    });
+  }
+  countryChange (val) {
+    this.setState({
+      country: val
+    });
+  }
+  sectorChange (val) {
+    this.setState({
+      sector: val
+    });
+  }
+  shareMetadataChange (evt) {
+    this.setState({
+      'share-metadata': evt.target.checked
+    });
+  }
   componentDidMount () {
     this.listenTo(session, (session) => {
       this.setState({
@@ -77,7 +79,7 @@ export var ProjectSettings = React.createClass({
       });
     });
 
-  },
+  }
   onSubmit (evt) {
     evt.preventDefault();
     if (!this.state.name.trim()) {
@@ -85,7 +87,7 @@ export var ProjectSettings = React.createClass({
     } else {
       this.props.onSubmit(this);
     }
-  },
+  }
   render () {
     if (!this.state.sessionLoaded) {
       return (
@@ -201,10 +203,16 @@ export var ProjectSettings = React.createClass({
         </bem.FormModal__item>
       </bem.FormModal__form>
     );
-  },
-});
+  }
+};
 
-export var ProjectSettingsEditor = React.createClass({
+reactMixin(ProjectSettings.prototype, Reflux.ListenerMixin);
+
+export class ProjectSettingsEditor extends React.Component {
+  constructor(props){
+    super(props);
+    autoBind(this);
+  }
   updateAsset (settingsComponent) {
     actions.resources.updateAsset(
       this.props.asset.uid,
@@ -218,7 +226,7 @@ export var ProjectSettingsEditor = React.createClass({
         }),
       }
     );
-  },
+  }
   render () {
     let initialData = {
       name: this.props.asset.name,
@@ -237,18 +245,20 @@ export var ProjectSettingsEditor = React.createClass({
         iframeUrl={this.props.iframeUrl}
       />
     );
-  },
-});
+  }
+};
 
-export var ProjectDownloads = React.createClass({
-  getInitialState () {
-    return {
+export class ProjectDownloads extends React.Component {
+  constructor(props){
+    super(props);
+    this.state = {
       type: 'xls',
       lang: '_default',
       hierInLabels: false,
       groupSep: '/',
     };
-  },
+    autoBind(this);
+  }
   handleChange (e, attr) {
     if (e.target) {
       if (e.target.type == 'checkbox') {
@@ -261,11 +271,11 @@ export var ProjectDownloads = React.createClass({
       var val = e;
     }
     this.setState({[attr]: val});
-  },
-  typeChange (e) {this.handleChange(e, 'type');},
-  langChange (e) {this.handleChange(e, 'lang');},
-  hierInLabelsChange (e) {this.handleChange(e, 'hierInLabels');},
-  groupSepChange (e) {this.handleChange(e, 'groupSep');},
+  }
+  typeChange (e) {this.handleChange(e, 'type');}
+  langChange (e) {this.handleChange(e, 'lang');}
+  hierInLabelsChange (e) {this.handleChange(e, 'hierInLabels');}
+  groupSepChange (e) {this.handleChange(e, 'groupSep');}
   handleSubmit (e) {
     e.preventDefault();
 
@@ -284,7 +294,7 @@ export var ProjectDownloads = React.createClass({
         redirectTo(url);
       }
     }
-  },
+  }
   render () {
     let translations = this.props.asset.content.translations;
     var docTitle = this.props.asset.name || t('Untitled');
@@ -362,23 +372,73 @@ export var ProjectDownloads = React.createClass({
       </bem.FormView__cell>
       </DocumentTitle>
     );
-  },
-});
+  }
+};
 
-export var AddToLibrary = React.createClass({
-  mixins: newFormMixins
+export class AddToLibrary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      asset_updated: update_states.UP_TO_DATE,
+      multioptionsExpanded: true,
+      surveyAppRendered: false,
+      name: '',
+      kind: 'asset',
+      asset: false,
+      editorState: 'new',
+      backRoute: '/library'
+    };
+    autoBind(this);
+  }
+}
+
+newFormMixins.forEach(function(mixin) {
+  reactMixin(AddToLibrary.prototype, mixin);
 });
 
 let existingFormMixins = [
     Reflux.ListenerMixin,
-    editableFormMixin,
-    existingFormMixin,
+    editableFormMixin
 ];
 
-export var FormPage = React.createClass({
-  mixins: existingFormMixins
+let contextTypes = {
+  router: PropTypes.object
+};
+
+export class FormPage extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      asset_updated: update_states.UP_TO_DATE,
+      multioptionsExpanded: true,
+      surveyAppRendered: false,
+      name: '',
+      editorState: 'existing',
+      backRoute: '/forms'
+    };
+    autoBind(this);
+  }
+}
+
+export class LibraryPage extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      asset_updated: update_states.UP_TO_DATE,
+      multioptionsExpanded: true,
+      surveyAppRendered: false,
+      name: '',
+      editorState: 'existing',
+      backRoute: '/library'
+    };
+    autoBind(this);
+  }
+}
+
+existingFormMixins.forEach(function(mixin) {
+  reactMixin(FormPage.prototype, mixin);
+  reactMixin(LibraryPage.prototype, mixin);
 });
 
-export var LibraryPage = React.createClass({
-  mixins: existingFormMixins
-});
+FormPage.contextTypes = contextTypes;
+LibraryPage.contextTypes = contextTypes;

@@ -1,4 +1,7 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 
 import searches from '../searches';
@@ -13,23 +16,30 @@ import {
 } from '../components/list';
 import {t} from '../utils';
 
-var LibrarySearchableList = React.createClass({
-  mixins: [
-    searches.common,
-    mixins.droppable,
-    Reflux.ListenerMixin
-  ],
+class LibrarySearchableList extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      searchContext: searches.getSearchContext('library', {
+        filterParams: {
+          assetType: 'asset_type:question OR asset_type:block',
+        },
+        filterTags: 'asset_type:question OR asset_type:block',
+      })
+    };
+    autoBind(this);
+  }
   queryCollections () {
     dataInterface.listCollections().then((collections)=>{
       this.setState({
         sidebarCollections: collections.results,
       });
     });
-  },
+  }
   componentDidMount () {
     this.searchDefault();
     this.queryCollections();
-  },
+  }
   /*
   dropAction ({file, event}) {
     actions.resources.createAsset({
@@ -40,16 +50,6 @@ var LibrarySearchableList = React.createClass({
     });
   },
   */
-  getInitialState () {
-    return {
-      searchContext: searches.getSearchContext('library', {
-        filterParams: {
-          assetType: 'asset_type:question OR asset_type:block',
-        },
-        filterTags: 'asset_type:question OR asset_type:block',
-      })
-    };
-  },
   render () {
     return (
       <bem.Library>
@@ -66,6 +66,14 @@ var LibrarySearchableList = React.createClass({
       </bem.Library>
       );
   }
-});
+};
+
+LibrarySearchableList.contextTypes = {
+  router: PropTypes.object
+};
+
+reactMixin(LibrarySearchableList.prototype, searches.common);
+reactMixin(LibrarySearchableList.prototype, mixins.droppable);
+reactMixin(LibrarySearchableList.prototype, Reflux.ListenerMixin);
 
 export default LibrarySearchableList;

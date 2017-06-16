@@ -1,4 +1,7 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 
 import searches from '../searches';
@@ -15,41 +18,32 @@ import {
   t,
 } from '../utils';
 
-var SearchCollectionList = React.createClass({
-  mixins: [
-    searches.common,
-    mixins.clickAssets,
-    Reflux.connect(stores.selectedAsset, 'selectedAsset'),
-    Reflux.ListenerMixin,
-  ],
-  getInitialState () {
+class SearchCollectionList extends Reflux.Component {
+  constructor(props) {
+    super(props);
     var selectedCategories = {
       'Draft': true,
       'Deployed': true, 
       'Archived': true
-    }
-    return {
+    };
+    this.state = {
       selectedCategories: selectedCategories,
       ownedCollections: [],
       fixedHeadings: '',
       fixedHeadingsWidth: 'auto'
     };
-  },
-  getDefaultProps () {
-    return {
-      assetRowClass: AssetRow,
-      searchContext: 'default',
-    };
-  },
+    this.store = stores.selectedAsset;
+    autoBind(this);
+  }
   componentDidMount () {
     this.listenTo(this.searchStore, this.searchChanged);
     this.queryCollections();
-  },
+  }
   searchChanged (searchStoreState) {
     this.setState(searchStoreState);
     if (searchStoreState.searchState === 'done')
       this.queryCollections();
-  },
+  }
   queryCollections () {
     if (this.props.searchContext.store.filterTags != 'asset_type:survey') {
       dataInterface.listCollections().then((collections)=>{
@@ -71,8 +65,8 @@ var SearchCollectionList = React.createClass({
         });
       });
     }
-  },
-  handleScroll: function(event) {
+  }
+  handleScroll (event) {
     if (this.props.searchContext.store.filterTags == 'asset_type:survey') {
       let offset = $(event.target).children('.asset-list').offset().top;
       this.setState({
@@ -80,7 +74,7 @@ var SearchCollectionList = React.createClass({
         fixedHeadingsWidth: offset < -105 ? $(event.target).children('.asset-list').width() + 'px' : 'auto',
       });
     }
-  },
+  }
 
   renderAssetRow (resource) {
     var currentUsername = stores.session.currentAccount && stores.session.currentAccount.username;
@@ -99,7 +93,7 @@ var SearchCollectionList = React.createClass({
                       {...resource}
                         />
       );
-  },
+  }
   toggleCategory(c) {
     return function (e) {
     var selectedCategories = this.state.selectedCategories;
@@ -108,7 +102,7 @@ var SearchCollectionList = React.createClass({
         selectedCategories: selectedCategories,
       });
     }.bind(this)
-  },
+  }
   renderHeadings () {
     return [
       (
@@ -135,7 +129,7 @@ var SearchCollectionList = React.createClass({
           </bem.AssetListSorts__item>
         </bem.AssetListSorts>
       )];
-  },
+  }
   renderGroupedHeadings () {
     return (
         <bem.AssetListSorts className="mdl-grid" style={{width: this.state.fixedHeadingsWidth}}>
@@ -156,7 +150,7 @@ var SearchCollectionList = React.createClass({
           </bem.AssetListSorts__item>
         </bem.AssetListSorts>
       );
-  },
+  }
   renderGroupedResults () {
     var searchResultsBucket = 'defaultQueryCategorizedResultsLists';
     if (this.state.searchResultsDisplayed)
@@ -189,7 +183,7 @@ var SearchCollectionList = React.createClass({
         {t('Active Projects')}
       </bem.List__heading>,
       results];
-  },
+  }
 
   render () {
     var s = this.state;
@@ -278,6 +272,19 @@ var SearchCollectionList = React.createClass({
       </DocumentTitle>
       );
   }
-});
+};
+
+SearchCollectionList.defaultProps = {
+  assetRowClass: AssetRow,
+  searchContext: 'default',
+};
+
+SearchCollectionList.contextTypes = {
+  router: PropTypes.object
+};
+
+reactMixin(SearchCollectionList.prototype, searches.common);
+reactMixin(SearchCollectionList.prototype, mixins.clickAssets);
+reactMixin(SearchCollectionList.prototype, Reflux.ListenerMixin);
 
 export default SearchCollectionList;

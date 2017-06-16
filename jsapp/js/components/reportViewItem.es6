@@ -1,4 +1,5 @@
 import React from 'react';
+import autoBind from 'react-autobind';
 import ReactDOM from 'react-dom';
 import _ from 'underscore';
 import Chart from 'chart.js';
@@ -7,7 +8,10 @@ import $ from 'jquery';
 
 import {t, assign} from '../utils';
 
-var ReportTable = React.createClass({
+class ReportTable extends React.Component {
+  constructor(props) {
+    super(props);
+  }
   render () {
     let th = [''], rows = [];
     if (this.props.type === 'numerical') {
@@ -36,13 +40,20 @@ var ReportTable = React.createClass({
       th = [t('Value'), t('Frequency'), t('Percentage')];
       rows = this.props.rows;
     } else {
-      th = th.concat(this.props.rows[0][1].responses);
-      this.props.rows.map((row, i)=> {
-        var rowitem = [row[0]];
-        rowitem = rowitem.concat(row[1].percentages);
-        rows.push(rowitem);
-      });
+      if (this.props.rows.length > 0) {
+        th = th.concat(this.props.rows[0][1].responses);
+        this.props.rows.map((row, i)=> {
+          var rowitem = [row[0]];
+          rowitem = rowitem.concat(row[1].percentages);
+          rows.push(rowitem);
+        });
+      }
     }
+
+    if (rows.length === 0) {
+      return false;
+    }
+
     return (
         <table>
           <thead>
@@ -65,12 +76,12 @@ var ReportTable = React.createClass({
           </tbody>
         </table>
       )
-  },
-});
+  }
+};
 
-var ReportViewItem = React.createClass({
-  getInitialState () {
-
+class ReportViewItem extends React.Component {
+  constructor(props) {
+    super(props);
     var d = this.props.data, reportTable = [];
     if (d.percentages && d.responses && d.frequencies) {
       reportTable = _.zip(
@@ -83,11 +94,12 @@ var ReportViewItem = React.createClass({
     if (d.mean)
       reportTable = false;
 
-    return {
+    this.state = {
       ...this.props,
       reportTable: reportTable
     };
-  },
+    autoBind(this);
+  }
   componentDidMount () {
     if (!this.refs.canvas) {
       return;
@@ -99,7 +111,7 @@ var ReportViewItem = React.createClass({
       var itemChart = new Chart(canvas, opts);
       this.setState({itemChart: itemChart});
     }
-  },
+  }
   componentWillUpdate (newProps) {
     if (this.state.style != newProps.style) {
       this.setState({style: newProps.style});
@@ -116,7 +128,7 @@ var ReportViewItem = React.createClass({
         itemChart = new Chart(canvas, opts);
       }
     }
-  },
+  }
   buildChartOptions () {
     var data = this.state.data;
     var chartType = this.state.style.report_type || 'bar';
@@ -236,7 +248,7 @@ var ReportViewItem = React.createClass({
     }
 
     return opts;
-  },
+  }
   buildChartColors () {
     var colors = this.state.style.report_colors || [
       'rgba(52, 106, 200, 0.8)',
@@ -262,7 +274,7 @@ var ReportViewItem = React.createClass({
     colors = colors.concat(c2);
 
     return colors;
-  },
+  }
   render () {
     let p = this.state,
       d = p.data,
@@ -327,7 +339,7 @@ var ReportViewItem = React.createClass({
         </bem.ReportView__itemContent>
       </div>
       );
-  },
-});
+  }
+};
 
 export default ReportViewItem;

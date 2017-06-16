@@ -1,4 +1,7 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import { Link } from 'react-router';
 import Dropzone from 'react-dropzone';
@@ -26,25 +29,25 @@ import SidebarFormsList from '../lists/sidebarForms';
 
 var leaveBetaUrl = stores.pageState.leaveBetaUrl;
 
-var FormSidebar = React.createClass({
-  mixins: [
-    searches.common,
-    mixins.droppable,
-    Reflux.connect(stores.session, 'session'),
-    Reflux.connect(stores.pageState, 'pageState')
-  ],
-  componentDidMount () {
-    this.searchDefault();
-  },
-  getInitialState () {
-    return assign({
+class FormSidebar extends Reflux.Component {
+  constructor(props){
+    super(props);
+    this.state = assign({
       currentAssetId: false,
       files: []
     }, stores.pageState.state);
-  },
+    this.stores = [
+      stores.session,
+      stores.pageState
+    ];
+    autoBind(this);
+  }
+  componentDidMount () {
+    this.searchDefault();
+  }
   componentWillMount() {
     this.setStates();
-  },
+  }
   setStates() {
     this.setState({
       headerFilters: 'forms',
@@ -55,13 +58,13 @@ var FormSidebar = React.createClass({
         filterTags: 'asset_type:survey',
       })
     });
-  },
+  }
   newFormModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
       type: 'new-form'
     });
-  },
+  }
   render () {
     return (
       <bem.FormSidebar__wrapper>
@@ -85,14 +88,25 @@ var FormSidebar = React.createClass({
         <SidebarFormsList/>
       </bem.FormSidebar__wrapper>
     );
-  },
+  }
   componentWillReceiveProps() {
     this.setStates();
   }
 
-});
+};
+
+FormSidebar.contextTypes = {
+  router: PropTypes.object
+};
+
+reactMixin(FormSidebar.prototype, searches.common);
+reactMixin(FormSidebar.prototype, mixins.droppable);
 
 class DrawerLink extends React.Component {
+  constructor(props) {
+    super(props);
+    autoBind(this);
+  }
   onClick (evt) {
     if (!this.props.href) {
       evt.preventDefault();
@@ -130,17 +144,19 @@ class DrawerLink extends React.Component {
   }
 }
 
-var Drawer = React.createClass({
-  mixins: [
-    searches.common,
-    mixins.droppable,
-    Reflux.connect(stores.session, 'session'),
-    Reflux.connect(stores.pageState, 'pageState'),
-    mixins.contextRouter
-  ],
+class Drawer extends Reflux.Component {
+  constructor(props){
+    super(props);
+    autoBind(this);
+    this.state = assign(stores.session, stores.pageState);
+    this.stores = [
+      stores.session,
+      stores.pageState
+    ];
+  }
   toggleFixedDrawer() {
     stores.pageState.toggleFixedDrawer();
-  },
+  }
   render () {
     return (
       <bem.Drawer className='k-drawer'>
@@ -180,6 +196,14 @@ var Drawer = React.createClass({
       </bem.Drawer>
       );
   }
-});
+};
+
+reactMixin(Drawer.prototype, searches.common);
+reactMixin(Drawer.prototype, mixins.droppable);
+reactMixin(Drawer.prototype, mixins.contextRouter);
+
+Drawer.contextTypes = {
+  router: PropTypes.object
+};
 
 export default Drawer;

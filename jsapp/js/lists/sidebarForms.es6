@@ -1,4 +1,7 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import { Link } from 'react-router';
 import mixins from '../mixins';
@@ -14,20 +17,15 @@ import {
   assign
 } from '../utils';
 
-var SidebarFormsList = React.createClass({
-  mixins: [
-    searches.common,
-    Reflux.ListenerMixin,
-    Reflux.connect(stores.pageState, 'pageState'),
-    mixins.contextRouter
-  ],
-  getInitialState () {
+class SidebarFormsList extends Reflux.Component {
+  constructor(props) {
+    super(props);
     var selectedCategories = {
       'Draft': false,
       'Deployed': false, 
       'Archived': false
     }
-    return {
+    this.state = {
       selectedCategories: selectedCategories,
       searchContext: searches.getSearchContext('forms', {
         filterParams: {
@@ -36,16 +34,18 @@ var SidebarFormsList = React.createClass({
         filterTags: 'asset_type:survey',
       })
     };
-  },
+    this.store = stores.pageState;
+    autoBind(this);
+  }
   componentDidMount () {
     this.listenTo(this.searchStore, this.searchChanged);
-  },
+  }
   componentWillReceiveProps () {
     this.listenTo(this.searchStore, this.searchChanged);
-  },
+  }
   searchChanged (searchStoreState) {
     this.setState(searchStoreState);
-  },
+  }
   renderMiniAssetRow (resource) {
     var active = '';
     if (resource.uid == this.currentAssetID())
@@ -58,7 +58,7 @@ var SidebarFormsList = React.createClass({
           </Link>
         </bem.FormSidebar__item>
       );
-  },
+  }
   toggleCategory(c) {
     return function (e) {
     var selectedCategories = this.state.selectedCategories;
@@ -67,7 +67,7 @@ var SidebarFormsList = React.createClass({
         selectedCategories: selectedCategories,
       });
     }.bind(this)
-  },
+  }
   render () {
     var s = this.state;
     return (
@@ -124,7 +124,15 @@ var SidebarFormsList = React.createClass({
         </bem.FormSidebar__label>
       </bem.FormSidebar>
     );
-  },
-});
+  }
+};
+
+SidebarFormsList.contextTypes = {
+  router: PropTypes.object
+};
+
+reactMixin(SidebarFormsList.prototype, searches.common);
+reactMixin(SidebarFormsList.prototype, Reflux.ListenerMixin);
+reactMixin(SidebarFormsList.prototype, mixins.contextRouter);
 
 export default SidebarFormsList;

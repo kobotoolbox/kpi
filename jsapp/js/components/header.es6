@@ -1,4 +1,7 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import { hashHistory } from 'react-router';
 import Select from 'react-select';
 import moment from 'moment';
@@ -19,9 +22,6 @@ import {
 } from '../utils';
 import searches from '../searches';
 import cookie from 'react-cookie';
-import hotkey from 'react-hotkey';
-
-hotkey.activate();
 
 import {
   ListSearch,
@@ -41,19 +41,33 @@ function langsToValues (langs) {
   });
 }
 
-var MainHeader = React.createClass({
-  mixins: [
-    Reflux.connect(stores.session, 'session'),
-    Reflux.connect(stores.pageState, 'pageState'),
-    Reflux.ListenerMixin,
-    hotkey.Mixin('handleHotkey'),
-    mixins.contextRouter
-  ],
-  handleHotkey: function(e) {
-    if (e.altKey && (e.keyCode == '69' || e.keyCode == '186')) {
-      document.body.classList.toggle('hide-edge');
-    }
-  },
+class MainHeader extends Reflux.Component {
+  constructor(props){
+    super(props);
+    this.state = assign({
+      dataPopoverShowing: false, 
+      asset: false,
+      currentLang: currentLang(),
+      libraryFiltersContext: searches.getSearchContext('library', {
+        filterParams: {
+          assetType: 'asset_type:question OR asset_type:block',
+        },
+        filterTags: 'asset_type:question OR asset_type:block',
+      }),
+      formFiltersContext: searches.getSearchContext('forms', {
+        filterParams: {
+          assetType: 'asset_type:survey',
+        },
+        filterTags: 'asset_type:survey',
+      }),
+      _langIndex: 0
+    }, stores.pageState.state);
+    this.stores = [
+      stores.session,
+      stores.pageState
+    ];
+    autoBind(this);
+  }
   getInitialState () {
     this.listenTo(stores.session, ({currentAccount}) => {
       this.setState({
@@ -79,11 +93,11 @@ var MainHeader = React.createClass({
       }),
       _langIndex: 0
     }, stores.pageState.state);
-  },
+  }
   componentDidMount() {
     document.body.classList.add('hide-edge');
     this.listenTo(stores.asset, this.assetLoad);
-  },
+  }
   assetLoad(data) {
     var assetid = this.props.assetid;
     var asset = data[assetid];
@@ -92,13 +106,13 @@ var MainHeader = React.createClass({
         asset: asset
       }
     ));
-  },
+  }
   logout () {
     actions.auth.logout();
-  },
+  }
   accountSettings () {
     hashHistory.push('account-settings');
-  },
+  }
   languageChange (evt) {
     var langCode = $(evt.target).data('key');
     if (langCode) {
@@ -113,7 +127,7 @@ var MainHeader = React.createClass({
         window.alert(t('Please refresh the page'));
       }
     }
-  },
+  }
   renderLangItem(lang) {
     return (
       <bem.AccountBox__menuLI key={lang.value}>
@@ -122,7 +136,7 @@ var MainHeader = React.createClass({
         </bem.AccountBox__menuLink>
       </bem.AccountBox__menuLI>
     );
-  },
+  }
   renderAccountNavMenu () {
     var langs = [];
 
@@ -182,7 +196,7 @@ var MainHeader = React.createClass({
     return (
           <span>{t('not logged in')}</span>
     );
-  },
+  }
   renderGitRevInfo () {
     if (stores.session.currentAccount && stores.session.currentAccount.git_rev) {
       var gitRev = stores.session.currentAccount.git_rev;
@@ -199,10 +213,10 @@ var MainHeader = React.createClass({
     }
 
     return false;
-  },
+  }
   toggleFixedDrawer() {
     stores.pageState.toggleFixedDrawer();
-  },
+  }
   assetTitleChange (e) {
     var asset = this.state.asset;
     if (e.target.name == 'title')
@@ -232,7 +246,7 @@ var MainHeader = React.createClass({
       }
     }, 1500);
 
-  },
+  }
   userCanEditAsset() {
     if (stores.session.currentAccount && this.state.asset) {
       const currentAccount = stores.session.currentAccount;
@@ -241,7 +255,7 @@ var MainHeader = React.createClass({
     }
 
     return false;
-  },
+  }
   render () {
     var userCanEditAsset = this.userCanEditAsset();
 
@@ -294,11 +308,18 @@ var MainHeader = React.createClass({
           {this.renderGitRevInfo()}
         </header>
       );
-  },
+  }
   componentWillReceiveProps(nextProps) {
     if (this.props.assetid != nextProps.assetid && nextProps.assetid != null)
       actions.resources.loadAsset({id: nextProps.assetid});
   }
-});
+};
+
+reactMixin(MainHeader.prototype, Reflux.ListenerMixin);
+reactMixin(MainHeader.prototype, mixins.contextRouter);
+
+MainHeader.contextTypes = {
+  router: PropTypes.object
+};
 
 export default MainHeader;

@@ -1,4 +1,7 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import { Link } from 'react-router';
 import Dropzone from 'react-dropzone';
@@ -25,13 +28,16 @@ import SidebarFormsList from '../lists/sidebarForms';
 
 var leaveBetaUrl = stores.pageState.leaveBetaUrl;
 
-var LibrarySidebar = React.createClass({
-  mixins: [
-    searches.common,
-    mixins.droppable,
-    Reflux.connect(stores.session, 'session'),
-    Reflux.connect(stores.pageState, 'pageState')
-  ],
+class LibrarySidebar extends Reflux.Component {
+  constructor(props){
+    super(props);
+    this.state = assign({}, stores.pageState.state);
+    this.stores = [
+      stores.session,
+      stores.pageState
+    ];
+    autoBind(this);
+  }
   queryCollections () {
     dataInterface.listCollections().then((collections)=>{
       this.setState({
@@ -44,17 +50,14 @@ var LibrarySidebar = React.createClass({
         })
       });
     });
-  },
+  }
   componentDidMount () {
     this.searchDefault();
     this.queryCollections();
-  },
-  getInitialState () {
-    return assign({}, stores.pageState.state);
-  },
+  }
   componentWillMount() {
     this.setStates();
-  },
+  }
   setStates() {
     this.setState({
       headerFilters: 'library',
@@ -66,7 +69,7 @@ var LibrarySidebar = React.createClass({
         filterTags: 'asset_type:question OR asset_type:block',
       })
     });
-  },
+  }
   clickFilterByCollection (evt) {
     var target = $(evt.target);
     if (target.hasClass('collection-toggle')) {
@@ -95,13 +98,13 @@ var LibrarySidebar = React.createClass({
       filteredCollectionUid: collectionUid,
       filteredByPublicCollection: publicCollection,
     });
-  },
+  }
   clickShowPublicCollections (evt) {
     this.setState({
       publicCollectionsVisible: !this.state.publicCollectionsVisible,
     });
     //TODO: show the collections in the main pane?
-  },
+  }
   createCollection () {
     let dialog = alertify.dialog('prompt');
     let opts = {
@@ -125,7 +128,7 @@ var LibrarySidebar = React.createClass({
     };
     dialog.set(opts).show();
 
-  },
+  }
   deleteCollection (evt) {
     evt.preventDefault();
     var collectionUid = $(evt.currentTarget).data('collection-uid');
@@ -148,7 +151,7 @@ var LibrarySidebar = React.createClass({
     };
     dialog.set(opts).show();
 
-  },
+  }
   renameCollection (evt) {
     var collectionUid = $(evt.currentTarget).data('collection-uid');
     var collectionName = $(evt.currentTarget).data('collection-name');
@@ -175,7 +178,7 @@ var LibrarySidebar = React.createClass({
     };
     dialog.set(opts).show();
 
-  },
+  }
   subscribeCollection (evt) {
     evt.preventDefault();
     var collectionUid = $(evt.currentTarget).data('collection-uid');
@@ -184,7 +187,7 @@ var LibrarySidebar = React.createClass({
     }).then(() => {
       this.queryCollections();
     });
-  },
+  }
   unsubscribeCollection (evt) {
     evt.preventDefault();
     var collectionUid = $(evt.currentTarget).data('collection-uid');
@@ -193,7 +196,7 @@ var LibrarySidebar = React.createClass({
     }).then(() => {
       this.queryCollections();
     });
-  },
+  }
   sharingModal (evt) {
     evt.preventDefault();
     var collectionUid = $(evt.currentTarget).data('collection-uid');
@@ -201,7 +204,7 @@ var LibrarySidebar = React.createClass({
       type: 'sharing', 
       assetid: collectionUid
     });
-  },
+  }
   setCollectionDiscoverability (discoverable, collection) {
     return (evt) => {
       evt.preventDefault();
@@ -242,7 +245,7 @@ var LibrarySidebar = React.createClass({
         window.setTimeout(this.queryCollections, 1);
       });
     };
-  },
+  }
   render () {
     return (
       <bem.CollectionsWrapper>
@@ -439,11 +442,17 @@ var LibrarySidebar = React.createClass({
         }
       </bem.CollectionsWrapper>
       );
-  },
+  }
   componentWillReceiveProps() {
     this.setStates();
   }
-});
+};
 
+reactMixin(LibrarySidebar.prototype, searches.common);
+reactMixin(LibrarySidebar.prototype, mixins.droppable);
+
+LibrarySidebar.contextTypes = {
+  router: PropTypes.object
+};
 
 export default LibrarySidebar;

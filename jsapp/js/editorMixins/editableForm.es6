@@ -1,5 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import $ from 'jquery';
 import Select from 'react-select';
 import _ from 'underscore';
@@ -15,7 +17,6 @@ import {
   notify,
   assign,
   t,
-  isLibrary,
 } from '../utils';
 
 import {
@@ -30,8 +31,6 @@ import actions from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import {dataInterface} from '../dataInterface';
 
-import hotkey from 'react-hotkey';
-
 var FormStyle__panel = bem('form-style__panel'),
     FormStyle__row = bem('form-style'),
     FormStyle__panelheader = bem('form-style__panelheader'),
@@ -43,7 +42,11 @@ var ErrorMessage = bem.create('error-message'),
 
 var webformStylesSupportUrl = "http://support.kobotoolbox.org/customer/en/portal/articles/2108533";
 
-var FormSettingsEditor = React.createClass({
+class FormSettingsEditor extends React.Component {
+  constructor(props) {
+    super(props);
+    autoBind(this);
+  }
   render () {
     return (
           <div className="mdl-grid">
@@ -63,13 +66,16 @@ var FormSettingsEditor = React.createClass({
             </div>
           </div>
       );
-  },
+  }
   focusSelect () {
     this.refs.webformStyle.focus();
   }
-});
+};
 
-var FormCheckbox = React.createClass({
+class FormCheckbox extends React.Component {
+  constructor(props) {
+    super(props);
+  }
   render () {
     return (
         <div className="form-group">
@@ -80,32 +86,34 @@ var FormCheckbox = React.createClass({
         </div>
       );
   }
-});
+};
 
-var FormSettingsBox = React.createClass({
-  getInitialState () {
+class FormSettingsBox extends React.Component {
+  constructor(props) {
+    super(props);
     var formId = this.props.survey.settings.get('form_id');
-    return {
+    this.state = {
       formSettingsExpanded: false,
       xform_id_string: formId,
       meta: [],
       phoneMeta: [],
       styleValue: 'field-list'
     };
-  },
+    autoBind(this);
+  }
   componentDidMount () {
     this.updateState();
-  },
+  }
   updateState (newState={}) {
     'start end today deviceid'.split(' ').forEach(this.passValueIntoObj('meta', newState));
     'username simserial subscriberid phonenumber'.split(' ').map(this.passValueIntoObj('phoneMeta', newState));
     this.setState(newState);
-  },
+  }
   getSurveyDetail (sdId) {
     return this.props.survey.surveyDetails.filter(function(sd){
       return sd.attributes.name === sdId;
     })[0];
-  },
+  }
   passValueIntoObj (category, newState) {
     newState[category] = [];
     return (id) => {
@@ -114,13 +122,13 @@ var FormSettingsBox = React.createClass({
         newState[category].push(assign({}, sd.attributes));
       }
     };
-  },
+  }
   onCheckboxChange (evt) {
     this.getSurveyDetail(evt.target.id).set('value', evt.target.checked);
     this.updateState({
       asset_updated: update_states.UNSAVED_CHANGES,
     });
-  },
+  }
   onFieldChange (evt) {
     var fieldId = evt.target.id,
         value = evt.target.value;
@@ -130,12 +138,12 @@ var FormSettingsBox = React.createClass({
     this.setState({
       xform_id_string: this.props.survey.settings.get('form_id')
     });
-  },
+  }
   toggleSettingsEdit () {
     this.setState({
       formSettingsExpanded: !this.state.formSettingsExpanded
     });
-  },
+  }
   onStyleChange (evt) {
     // todo: test if this function is obsolete
     var newStyle = evt.target.value;
@@ -143,7 +151,7 @@ var FormSettingsBox = React.createClass({
     this.setState({
       styleValue: newStyle
     });
-  },
+  }
   render () {
     var metaData = [].concat(this.state.meta).concat(this.state.phoneMeta).filter(function(item){
       return item.value;
@@ -177,28 +185,32 @@ var FormSettingsBox = React.createClass({
           {metaContent}
         </bem.FormMeta>
       );
-  },
-});
+  }
+};
 
 export default assign({
-  getInitialState () {
-    return {
-      asset_updated: update_states.UP_TO_DATE,
-      multioptionsExpanded: true,
-      surveyAppRendered: false,
-      currentName: 'name',
-      name: ''
-    };
-  },
-  mixins: [
-    hotkey.Mixin('handleHotkey'),
-  ],
   componentDidMount() {
+    document.body.classList.add('hide-edge');
+
+    if (this.state.editorState == 'existing') {
+      let uid = this.props.params.assetid;
+      stores.allAssets.whenLoaded(uid, (asset) => {
+        let translations = (asset.content && asset.content.translations
+                            && asset.content.translations.slice(0)) || [];
+        this.launchAppForSurveyContent(asset.content, {
+          name: asset.name,
+          translations: translations,
+          settings__style: asset.settings__style,
+          asset_uid: asset.uid,
+          asset_type: asset.asset_type,
+        });
+      });
+    } else {
+      this.launchAppForSurveyContent();
+    }
+
     document.querySelector('.page-wrapper__content').addEventListener('scroll', this.handleScroll);
     this.listenTo(stores.surveyState, this.surveyStateChanged);
-  },
-  componentWillMount() {
-    document.body.classList.add('hide-edge');
   },
   componentWillUnmount () {
     if (this.app && this.app.survey) {
@@ -206,11 +218,6 @@ export default assign({
       this.app.survey.off('change');
     }
     this.unpreventClosingTab();
-  },
-  handleHotkey: function(e) {
-    if (e.altKey && e.keyCode == '69') {
-      document.body.classList.toggle('hide-edge');
-    }
   },
   surveyStateChanged (state) {
     this.setState(state);
@@ -301,7 +308,7 @@ export default assign({
     if (this.state.name) {
       params.name = this.state.name;
     }
-    if (this.editorState === 'new') {
+    if (this.state.editorState === 'new') {
       params.asset_type = 'block';
       actions.resources.createResource.triggerAsync(params)
         .then((asset) => {
@@ -378,10 +385,10 @@ export default assign({
         return hasSelect;
       })(); // todo: only true if survey has select questions
       ooo.name = this.state.name;
-      ooo.hasSettings = !isLibrary(this.context.router);
+      ooo.hasSettings = this.constructor.name === 'FormPage';
       ooo.styleValue = this.state.settings__style;
     }
-    if (this.editorState === 'new') {
+    if (this.state.editorState === 'new') {
       ooo.saveButtonText = t('create');
     } else if (this.state.surveySaveFail) {
       ooo.saveButtonText = `${t('save')} (${t('retry')}) `;
@@ -636,8 +643,24 @@ export default assign({
       enketopreviewError: false,
     });
   },
+  navigateBack() {
+    var backRoute = this.state.backRoute;
+    if (this.state.backRoute == '/forms') {
+      backRoute = `/forms/${this.state.asset_uid}`;
+    }
+
+    if (!this.needsSave()) {
+      hashHistory.push(backRoute);
+    } else {
+      customConfirmAsync(t('you have unsaved changes. leave form without saving?'))
+        .done(() => {
+          hashHistory.push(backRoute);
+        });
+    }
+  },
+
   render () {
-    var isSurvey = this.app && !isLibrary(this.context.router);
+    var isSurvey = this.app && this.constructor.name === 'FormPage';
     var docTitle = this.state.name || t('Untitled');
     return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
