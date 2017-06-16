@@ -801,7 +801,7 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
                 'src': source,
                 'id_string': id_string,
                 'uid': self.uid,
-                'message': err_message,
+                '_msg': err_message,
                 'warnings': warnings,
             })
             xml = ''
