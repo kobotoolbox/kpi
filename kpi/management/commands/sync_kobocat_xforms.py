@@ -23,17 +23,14 @@ from rest_framework.authtoken.models import Token
 from formpack.utils.xls_to_ss_structure import xls_to_dicts
 from hub.models import FormBuilderPreference
 from ...deployment_backends.kobocat_backend import KobocatDeploymentBackend
-from ...deployment_backends.kc_reader.shadow_models import _models
+from ...deployment_backends.kc_access.shadow_models import _models
 from ...models import Asset, ObjectPermission
 from .import_survey_drafts_from_dkobo import _set_auto_field_update
 
 TIMESTAMP_DIFFERENCE_TOLERANCE = datetime.timedelta(seconds=30)
 
-PERMISSIONS_MAP = { # keys are KC's codenames, values are KPI's
-    'change_xform': 'change_submissions', # "Can Edit" in KC UI
-    'view_xform': 'view_submissions', # "Can View" in KC UI
-    'report_xform': 'add_submissions', # "Can submit to" in KC UI
-}
+# Swap keys and values so that keys are KC's codenames and values are KPI's
+PERMISSIONS_MAP = {kc: kpi for kpi, kc in Asset.KC_PERMISSIONS_MAP.iteritems()}
 
 # Optimization
 ASSET_CT = ContentType.objects.get_for_model(Asset)
@@ -377,9 +374,9 @@ def _sync_permissions(asset, xform):
                 object_id=asset.pk
             )
         for p in perms_to_assign:
-            asset.assign_perm(user_obj, KPI_CODENAMES[p])
+            asset.assign_perm(user_obj, KPI_CODENAMES[p], skip_kc=True)
         for p in perms_to_revoke:
-            asset.remove_perm(user_obj, KPI_CODENAMES[p])
+            asset.remove_perm(user_obj, KPI_CODENAMES[p], skip_kc=True)
         if all_revoked and FROM_KC_ONLY_PERMISSION.pk in all_kpi_perms:
             # This user's KPI access came only from this script, and now all KC
             # permissions have been removed. Purge all KPI grant permissions,
@@ -430,9 +427,6 @@ class Command(BaseCommand):
                 'Both KOBOCAT_URL and KOBOCAT_INTERNAL_URL must be '
                 'configured before using this command'
             )
-        # FIXME: Remove this warning altogether
-        self.stderr.write(
-            'INFO: Please disregard warning guardian.W001\n')
         self._quiet = options.get('quiet')
         users = User.objects.all()
         # Do a basic query just to make sure the lazy XForm model is loaded

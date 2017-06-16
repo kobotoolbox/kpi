@@ -34,8 +34,8 @@ from .forms import USERNAME_REGEX, USERNAME_MAX_LENGTH
 from .forms import USERNAME_INVALID_MESSAGE
 from .utils.gravatar_url import gravatar_url
 
-from .deployment_backends.kc_reader.utils import get_kc_profile_data
-from .deployment_backends.kc_reader.utils import set_kc_require_auth
+from .deployment_backends.kc_access.utils import get_kc_profile_data
+from .deployment_backends.kc_access.utils import set_kc_require_auth
 
 
 class Paginated(LimitOffsetPagination):

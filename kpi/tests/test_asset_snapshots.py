@@ -12,7 +12,7 @@ class AssetSnapshotsTestCase(TestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        self.user = User.objects.all()[0]
+        self.user = User.objects.get(username='someuser')
         self.asset = Asset.objects.create(content={'survey': [
             {'type': 'text', 'label': 'Question 1', 'name': 'q1', '$kuid': 'abc'},
             {'type': 'text', 'label': 'Question 2', 'name': 'q2', '$kuid': 'def'},

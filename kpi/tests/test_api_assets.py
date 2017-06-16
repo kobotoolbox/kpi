@@ -19,11 +19,11 @@ class AssetsListApiTests(APITestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        self.client.login(username='admin', password='pass')
+        self.client.login(username='someuser', password='someuser')
 
     def test_login_as_other_users(self):
         self.client.logout()
-        self.client.login(username='someuser', password='someuser')
+        self.client.login(username='admin', password='pass')
         self.client.logout()
         self.client.login(username='anotheruser', password='anotheruser')
         self.client.logout()
@@ -58,7 +58,7 @@ class AssetVersionApiTests(APITestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        self.client.login(username='admin', password='pass')
+        self.client.login(username='someuser', password='someuser')
         self.asset = Asset.objects.first()
         self.asset.save()
         self.version = self.asset.asset_versions.first()
@@ -78,7 +78,7 @@ class AssetVersionApiTests(APITestCase):
 
     def test_restricted_access_to_version(self):
         self.client.logout()
-        self.client.login(username='someuser', password='someuser')
+        self.client.login(username='anotheruser', password='anotheruser')
         resp = self.client.get(self.version_list_url, format='json')
         self.assertEqual(resp.data['count'], 0)
         _version_detail_url = reverse('asset-version-detail',
@@ -92,7 +92,7 @@ class AssetsDetailApiTests(APITestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        self.client.login(username='admin', password='pass')
+        self.client.login(username='someuser', password='someuser')
         url = reverse('asset-list')
         data = {'content': '{}', 'asset_type': 'survey'}
         self.r = self.client.post(url, data, format='json')
@@ -266,8 +266,8 @@ class ObjectRelationshipsTests(APITestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        self.client.login(username='admin', password='pass')
-        self.user = User.objects.get(id=1)
+        self.client.login(username='someuser', password='someuser')
+        self.user = User.objects.get(username='someuser')
         self.surv = Asset.objects.create(content={'survey': [{"type": "text", "name": "q1"}]},
                                          owner=self.user,
                                          asset_type='survey')

@@ -86,7 +86,8 @@ INSTALLED_APPS = (
     'rest_framework.authtoken',
     'oauth2_provider',
     'markitup',
-    'django_digest'
+    'django_digest',
+    'guardian', # For access to KC permissions ONLY
 )
 
 MIDDLEWARE_CLASSES = (

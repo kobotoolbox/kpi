@@ -147,6 +147,6 @@ def safe_kc_read(func):
         try:
             return func(*args, **kwargs)
         except ProgrammingError as e:
-            raise ProgrammingError('kc_reader error accessing kobocat '
+            raise ProgrammingError('kc_access error accessing kobocat '
                                    'tables: {}'.format(e.message))
     return _wrapper

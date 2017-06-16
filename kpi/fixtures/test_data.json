@@ -92,14 +92,14 @@
         "pk": 1,
         "collection": 1,
         "fields": {
-            "name": "fixture admin asset",
+            "name": "fixture asset",
             "content": {"survey": [
                 {"type": "text", "label": "fixture q1", "name": "q1", "kuid": "abc"},
                 {"type": "text", "label": "fixture q2", "name": "q2", "kuid": "def"}
             ]},
             "date_created": "2015-02-12T19:52:14.406Z",
             "date_modified": "2015-02-12T19:52:14.406Z",
-            "owner": 1,
+            "owner": 2,
             "uid": "aPEANgNgTH3xzhJGcctURs"
         }
     },
