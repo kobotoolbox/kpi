@@ -8,6 +8,7 @@ from ..deployment_backends.kobocat_backend import KobocatDeploymentBackend
 from ..management.commands.import_survey_drafts_from_dkobo import \
     _set_auto_field_update
 
+
 def explode_assets(apps, schema_editor):
     AssetDeployment = apps.get_model('kpi', 'AssetDeployment')
     Asset = apps.get_model('kpi', 'Asset')
@@ -41,10 +42,24 @@ def explode_assets(apps, schema_editor):
             sys.stdout.flush()
     _set_auto_field_update(Asset, "date_created", True)
     _set_auto_field_update(Asset, "date_modified", True)
+
+    ContentType = apps.get_model('contenttypes', 'ContentType')
+    try:
+        ad_ct = ContentType.objects.get(app_label='kpi',
+                                        model='assetdeployment')
+        ad_ct.delete()
+    except ContentType.DoesNotExist:
+        pass
+
     print '  migrated {} assets'.format(assets_done)
     print '  !!! Only the most recent deployment of each asset has been'
     print '  !!! retained. Use the command `./manage.py sync_kobocat_xforms`'
     print '  !!! to create new assets for any orphaned KC forms.'
+
+
+def do_nothing(*args, **kwargs):
+    pass
+
 
 class Migration(migrations.Migration):
 
@@ -53,7 +68,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(explode_assets),
+        migrations.RunPython(explode_assets,
+                             reverse_code=do_nothing),
         migrations.RemoveField(
             model_name='assetdeployment',
             name='asset',
