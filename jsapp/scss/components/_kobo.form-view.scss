@@ -180,6 +180,10 @@
     display: inline-block;
   }
 
+  &--undeployed {
+    display: inline-block;
+  }
+
   &--date {
     font-weight: normal;
     opacity: 0.8;
@@ -532,5 +536,10 @@
 
   .form-view__cell--warning i {
     display: none;
+  }
+
+  .form-view__cell--date {
+    display: block;
+    margin-left: 0px;
   }
 }
