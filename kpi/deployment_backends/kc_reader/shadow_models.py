@@ -1,3 +1,5 @@
+import os
+import json
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -6,6 +8,7 @@ from django.utils.translation import ugettext_lazy
 from hashlib import md5
 
 from jsonfield import JSONField
+from collections import OrderedDict
 
 
 class ReadOnlyModelError(ValueError):
@@ -22,6 +25,9 @@ class _ReadOnlyModel(models.Model):
     def delete(self, *args, **kwargs):
         raise ReadOnlyModelError('Cannot delete read-only-model')
 
+    @classmethod
+    def upload_to(self, *args, **kwargs):
+        raise ReadOnlyModelError('Cannot use read-only-model to upload assets')
 
 class LazyModelGroup:
     @property
@@ -37,6 +43,12 @@ class LazyModelGroup:
         return self._Instance
 
     @property
+    def Attachment(self):
+        if not hasattr(self, '_Attachment'):
+            self._define()
+        return self._Attachment
+
+    @property
     def UserProfile(self):
         if not hasattr(self, '_UserProfile'):
             self._define()
@@ -47,6 +59,7 @@ class LazyModelGroup:
         MODEL_NAME_MAPPING = {
             '_readonlyxform': ('logger', 'xform'),
             '_readonlyinstance': ('logger', 'instance'),
+            '_readonlyattachment': ('logger', 'attachment'),
             '_userprofile': ('main', 'userprofile')
         }
         try:
@@ -67,6 +80,7 @@ class LazyModelGroup:
             XFORM_TITLE_LENGTH = 255
             xls = models.FileField(null=True)
             xml = models.TextField()
+            json = models.TextField(default=u'')
             user = models.ForeignKey(User, related_name='xforms', null=True)
             downloadable = models.BooleanField(default=True)
             id_string = models.SlugField()
@@ -84,6 +98,19 @@ class LazyModelGroup:
                 ''' Matches what's returned by the KC API '''
                 return u"md5:%s" % self.hash
 
+            @property
+            def questions(self):
+                try:
+                    questions = json.loads(self.json).get('children', [])
+                    for index, question in enumerate(questions):
+                        question.pop('bind', None)
+                        question['number'] = index+1
+
+                    return questions
+                except ValueError:
+                    return []
+
+
         class _ReadOnlyInstance(_ReadOnlyModel):
             class Meta:
                 managed = False
@@ -92,6 +119,7 @@ class LazyModelGroup:
                 verbose_name_plural = 'instances'
 
             xml = models.TextField()
+            json = JSONField(default={}, null=False)
             user = models.ForeignKey(User, null=True)
             xform = models.ForeignKey(_ReadOnlyXform, related_name='instances')
             date_created = models.DateTimeField()
@@ -100,6 +128,71 @@ class LazyModelGroup:
             status = models.CharField(max_length=20,
                                       default=u'submitted_via_web')
             uuid = models.CharField(max_length=249, default=u'')
+
+            @property
+            def submission(self):
+                try:
+                    username = self.xform.user.username
+                except:
+                    username = None
+
+                return OrderedDict({
+                    'xform_id': self.xform.id_string,
+                    'instance_uuid': self.uuid,
+                    'username': username,
+                    'status': self.status,
+                    'date_created': self.date_created,
+                    'date_modified': self.date_modified
+                })
+
+        class _ReadOnlyAttachment(_ReadOnlyModel):
+            class Meta:
+                managed = False
+                db_table = 'logger_attachment'
+                verbose_name = 'attachment'
+                verbose_name_plural = 'attachments'
+
+            instance = models.ForeignKey(_ReadOnlyInstance, related_name="attachments")
+            media_file = models.FileField(upload_to=_ReadOnlyModel.upload_to, max_length=380)
+            mimetype = models.CharField(max_length=50, null=False, blank=True, default='')
+
+            @property
+            def filename(self):
+                return os.path.basename(self.media_file.name)
+
+            @property
+            def question_name(self):
+                qa_dict = self.instance.json
+                if self.filename not in qa_dict.values():
+                    return None
+
+                return qa_dict.keys()[qa_dict.values().index(self.filename)]
+
+            @property
+            def question(self):
+                if not self.question_name or not self.instance.xform.questions:
+                    return None
+
+                for question in self.instance.xform.questions:
+                    if question['name'] == self.question_name:
+                        return question
+
+                return None
+
+            @property
+            def question_index(self):
+                if not self.question:
+                    return self.id
+
+                return self.question['number']
+
+            @property
+            def can_view_submission(self):
+                # TODO: Only attachments synced to s3 should be viewable by other users
+                # Can determine this by looking at media_file upload properties
+                # Alternatively, can move this into User Profile or Asset permissions logic
+
+                return True
 
         class _UserProfile(models.Model):
             '''
@@ -137,6 +230,7 @@ class LazyModelGroup:
 
         self._XForm = _ReadOnlyXform
         self._Instance = _ReadOnlyInstance
+        self._Attachment = _ReadOnlyAttachment
         self._UserProfile = _UserProfile
 
 _models = LazyModelGroup()
