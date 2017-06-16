@@ -52,12 +52,23 @@ export class FormLanding extends React.Component {
   }
   renderFormInfo () {
     var dvcount = this.state.deployed_versions.count;
+    var undeployedVersion = undefined;
+
+    if (this.state.deployed_version_id !== this.state.version_id && this.state.deployment__active) {
+      undeployedVersion = `(${t('undeployed')})`;
+      dvcount = dvcount + 1;
+    }
     return (
         <bem.FormView__cell m={['columns', 'padding']}>
           <bem.FormView__cell>
             <bem.FormView__cell m='version'>
               {dvcount > 0 ? `v${dvcount}` : ''}
             </bem.FormView__cell>
+            {undeployedVersion && 
+              <bem.FormView__cell m='undeployed'>
+                &nbsp;{undeployedVersion}
+              </bem.FormView__cell>
+            }
             <bem.FormView__cell m='date'>
               {t('Last Modified')}&nbsp;:&nbsp;
               {formatTime(this.state.date_modified)}&nbsp;-&nbsp;

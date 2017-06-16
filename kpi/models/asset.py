@@ -5,6 +5,7 @@
 import re
 import copy
 import json
+import logging
 import StringIO
 from collections import OrderedDict
 
@@ -795,11 +796,19 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
                 u'warnings': warnings,
             })
         except Exception as err:
+            err_message = unicode(err)
+            logging.error('Failed to generate xform for asset', extra={
+                'src': source,
+                'id_string': id_string,
+                'uid': self.uid,
+                'message': err_message,
+                'warnings': warnings,
+            })
             xml = ''
             details.update({
                 u'status': u'failure',
                 u'error_type': type(err).__name__,
-                u'error': unicode(err),
+                u'error': err_message,
                 u'warnings': warnings,
             })
         return (xml, details)

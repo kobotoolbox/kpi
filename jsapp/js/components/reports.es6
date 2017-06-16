@@ -296,6 +296,18 @@ class Reports extends React.Component {
       }
     });
   }
+  getInitialState () {
+    return {
+      graphWidth: "700",
+      graphHeight: "250",
+      translations: false,
+      translationIndex: 0,
+      groupBy: [],
+      activeModalTab: 0,
+      error: false,
+      reportLimit: 50
+    };
+  }
   groupDataBy(evt) {
     var gb = evt.target.getAttribute('data-name') ? [evt.target.getAttribute('data-name')] : [];
     this.setState({
@@ -502,6 +514,11 @@ class Reports extends React.Component {
       </bem.GraphSettings>
     );
   }
+  resetReportLimit () {
+    this.setState({
+      reportLimit: false,
+    });
+  }
   render () {
     let asset = this.state.asset,
         rowsByKuid = this.state.rowsByKuid,
@@ -517,10 +534,13 @@ class Reports extends React.Component {
       defaultStyle.graphHeight = this.state.graphHeight;
 
       docTitle = asset.name || t('Untitled');
-
     }
 
     let reportData = this.state.reportData || [];
+
+    if (this.state.reportLimit && reportData.length && reportData.length > this.state.reportLimit) {
+      reportData = reportData.slice(0, this.state.reportLimit);
+    }
 
     for (var i = reportData.length - 1; i >= 0; i--) {;
       reportData[i].style = defaultStyle;
@@ -572,6 +592,17 @@ class Reports extends React.Component {
               <bem.PrintOnly>
                 <h3>{asset.name}</h3>
               </bem.PrintOnly>
+              {this.state.reportLimit && reportData.length && this.state.reportData.length > this.state.reportLimit &&
+                <bem.FormView__cell m={['centered', 'reportLimit']}>
+                  <div>
+                    {t('For performance reasons, this report only includes the first ## questions.').replace('##', this.state.reportLimit)}
+                  </div>
+                  <button className="mdl-button mdl-button--colored" onClick={this.resetReportLimit}>
+                    {t('Show all (##)').replace('##', this.state.reportData.length)}
+                  </button>
+                </bem.FormView__cell>
+              }
+
               <bem.ReportView__warning>
                 <h4>{t('Warning')}</h4>
                 <p>{t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. ')}</p>

@@ -145,6 +145,7 @@ class FormSettingsBox extends React.Component {
     });
   }
   onStyleChange (evt) {
+    // todo: test if this function is obsolete
     var newStyle = evt.target.value;
     this.props.survey.settings.set('style', newStyle);
     this.setState({
@@ -221,10 +222,9 @@ export default assign({
   surveyStateChanged (state) {
     this.setState(state);
   },
-  onStyleChange (value) {
-    var newStyle = value;
+  onStyleChange ({value}) {
     this.setState({
-      settings__style: newStyle,
+      settings__style: value,
     });
   },
   onSurveyChange: _.debounce(function () {

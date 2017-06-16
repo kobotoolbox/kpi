@@ -164,7 +164,7 @@ class MainHeader extends Reflux.Component {
                   </bem.AccountBox__menuItem>
                   <bem.AccountBox__menuItem m={'mini-profile'}>
                     <span className="account-username">{accountName}</span>
-                    {accountEmail} 
+                    <span className="account-email">{accountEmail}</span>
                   </bem.AccountBox__menuItem>
                   <bem.AccountBox__menuItem m={'settings'}>
                     <button onClick={this.accountSettings} className="mdl-button mdl-button--raised mdl-button--colored">
