@@ -25,6 +25,7 @@ from static_lists import NATIVE_LANGUAGE_NAMES
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+KOBOCAT_DIR = os.path.abspath(os.path.join(BASE_DIR, '../kobocat'))
 
 
 # Quick-start development settings - unsuitable for production
@@ -404,6 +405,15 @@ if os.environ.get('AWS_ACCESS_KEY_ID'):
     AWS_SES_REGION_NAME = os.environ.get('AWS_SES_REGION_NAME')
     AWS_SES_REGION_ENDPOINT = os.environ.get('AWS_SES_REGION_ENDPOINT')
 
+'''
+    S3 configuration
+    Set to match Kobocat's config
+'''
+if os.environ.get('KOBOCAT_DEFAULT_FILE_STORAGE'):
+    DEFAULT_FILE_STORAGE = os.environ.get('KOBOCAT_DEFAULT_FILE_STORAGE')
+    AWS_STORAGE_BUCKET_NAME = os.environ.get('KOBOCAT_AWS_STORAGE_BUCKET_NAME')
+    AWS_DEFAULT_ACL = 'private'
+
 ''' Sentry configuration '''
 if 'RAVEN_DSN' in os.environ:
     import raven
@@ -530,3 +540,21 @@ else:
 MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
+
+# Set MEDIA_URL to be Kobocat storage location
+MEDIA_URL= '/' + os.environ.get('KOBOCAT_MEDIA_URL', 'media').strip('/') + '/'
+if os.environ.get('KOBOCAT_ROOT_URI_PREFIX'):
+    KOBOCAT_ROOT_URI_PREFIX= '/' + os.environ['KOBOCAT_ROOT_URI_PREFIX'].strip('/') + '/'
+    MEDIA_URL= KOBOCAT_ROOT_URI_PREFIX + MEDIA_URL.lstrip('/')
+
+MEDIA_ROOT = os.path.join(KOBOCAT_DIR, 'media/')
+
+# IMAGE TOOLS Variables
+THUMB_CONF = {
+    'large': {'size': 1280, 'suffix': '-large'},
+    'medium': {'size': 640, 'suffix': '-medium'},
+    'small': {'size': 240, 'suffix': '-small'},
+}
+# order of thumbnails from largest to smallest
+THUMB_ORDER = ['large', 'medium', 'small']
+IMG_FILE_TYPE = 'jpg'

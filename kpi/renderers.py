@@ -52,3 +52,13 @@ class XlsRenderer(renderers.BaseRenderer):
         asset = renderer_context['view'].get_object()
         return asset.to_xls_io(versioned=self.versioned,
                                kobo_specific_types=self.kobo_specific_types)
+
+
+class MediaFileRenderer(renderers.BaseRenderer):
+    media_type = '*/*'
+    format = None
+    charset = None
+    render_style = 'binary'
+
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        return data

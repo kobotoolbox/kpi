@@ -1,4 +1,5 @@
 import haystack
+from itertools import groupby
 from distutils.util import strtobool
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
@@ -219,3 +220,49 @@ class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
                 ).values_list('pk', flat=True)
             )
         return queryset.filter(pk__in=object_permission_ids)
+
+
+class AttachmentFilter(filters.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        attachments_type = request.query_params.get('type')
+        group_by = request.query_params.get('group_by')
+
+        # sorting is a prerequisite for group by queries
+        # override order_by with group by value
+        order_by = group_by or request.query_params.get('order_by')
+        # Add a query param for sort
+        sort = 'pk'
+        if request.query_params.get('sort') == 'desc':
+            sort = '-pk'
+
+        if attachments_type:
+            queryset = queryset.filter(mimetype__istartswith=attachments_type.lower())
+
+        if order_by and order_by == 'question':
+            queryset = sorted(queryset.order_by(sort),
+                              key=lambda att: att.question_index)
+            if group_by and group_by == 'question':
+                result = []
+                for index, (qid, attachments) in \
+                        enumerate(groupby(queryset, lambda att: (att.question_index, att.question))):
+                    question = qid[1] if qid[1] else {'number': qid[0]}
+                    question['attachments'] = list(attachments)
+                    question['index'] = index
+                    result.append(question)
+                return result
+
+        elif order_by and order_by == 'submission':
+            queryset = sorted(queryset.order_by(sort),
+                              key=lambda att: (att.instance.id, att.question_index))
+            if group_by and group_by == 'submission':
+                result = []
+                for index, (sid, attachments) in \
+                        enumerate(groupby(queryset, lambda att: (att.instance.uuid, att.instance.submission))):
+                    submission = sid[1] if sid[1] else {'instance_uuid': sid[0]}
+                    submission['attachments'] = list(attachments)
+                    submission['index'] = index
+                    result.append(submission)
+                return result
+        else:
+            queryset = queryset.order_by(sort)
+        return queryset

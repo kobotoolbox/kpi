@@ -11,7 +11,7 @@ from rest_framework.authtoken.models import Token
 import requests
 
 from .shadow_models import _models, safe_kc_read
-
+from functools import wraps
 
 @safe_kc_read
 def instance_count(xform_id_string, user_id):
@@ -87,6 +87,13 @@ def set_kc_require_auth(user_id, require_auth):
         raise ProgrammingError(u'set_kc_require_auth error accessing kobocat '
                                u'tables: {}'.format(e.message))
 
+def check_obj(f):
+    @wraps(f)
+    def with_check_obj(*args, **kwargs):
+        if args[0]:
+            return f(*args, **kwargs)
+
+    return with_check_obj
 
 def _get_content_type_kwargs(obj):
     r"""

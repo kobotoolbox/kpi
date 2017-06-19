@@ -65,6 +65,10 @@ textarea {
 :focus {
   outline: none;
 }
+.light-grey-bg{
+  background: #F8F8F8;
+  color: #000;
+}
 
 // ::-moz-selection {
 //     background: #b3d4fc;
@@ -75,3 +79,17 @@ textarea {
 //     background: #b3d4fc;
 //     text-shadow: none;
 // }
+//
+.margin{
+  &--15{
+    margin: 15px;
+  }
+}
+.padding{
+  &--10{
+    padding: 10px;
+  }
+  &--15{
+    padding: 15px;
+  }
+}

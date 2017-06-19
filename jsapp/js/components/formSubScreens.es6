@@ -14,6 +14,7 @@ import ui from '../ui';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import SharingForm from '../components/sharingForm';
+import FormGallery from '../components/formGallery/formGallery';
 
 import {
   ProjectSettingsEditor,
@@ -62,7 +63,7 @@ export class FormSubScreens extends React.Component {
           iframeUrl = report__base+'/export.html';
           break;
         case `/forms/${this.state.uid}/data/gallery`:
-          iframeUrl = deployment__identifier+'/photos';
+          return this.renderFormGallery();
           break;
         case `/forms/${this.state.uid}/data/map`:
           iframeUrl = deployment__identifier+'/map';
@@ -90,7 +91,7 @@ export class FormSubScreens extends React.Component {
     var docTitle = this.state.name || t('Untitled');
 
     return (
-        <DocumentTitle title={`${docTitle} | KoboToolbox`}>      
+        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
           <bem.FormView>
             <bem.FormView__cell m='iframe'>
               <iframe src={iframeUrl} />
@@ -98,7 +99,17 @@ export class FormSubScreens extends React.Component {
           </bem.FormView>
         </DocumentTitle>
       );
-  }
+  },
+  renderFormGallery () {
+    var docTitle = this.state.name || t('Untitled');
+    var deployment__identifier = this.state.deployment__identifier;
+    var deploymentSubmissionCount = this.state.deployment__submission_count;
+    return (
+      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+        <FormGallery uid={this.state.uid} deploymentSubmissionCount={deploymentSubmissionCount}/>
+      </DocumentTitle>
+    );
+  },
   renderSharing() {
     var docTitle = this.state.name || t('Untitled');
     return (
@@ -118,7 +129,7 @@ export class FormSubScreens extends React.Component {
           </bem.FormView>
         </DocumentTitle>
     );
-  }
+  },
   renderProjectDownloads() {
     var docTitle = this.state.name || t('Untitled');
     return (

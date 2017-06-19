@@ -208,6 +208,27 @@ bem.PrintOnly = BEM('print-only');
 bem.GitRev = BEM('git-rev');
 bem.GitRev__item = bem.GitRev.__('item', '<div>');
 
+// used in subsections gallery
+bem.AssetGallery = BEM('asset-gallery');
+bem.AssetGallery__heading = bem.AssetGallery.__('heading');
+bem.AssetGallery__headingSearchFilter = bem.AssetGallery.__('heading__search-filter');
+bem.AssetGallery__count = bem.AssetGallery.__('heading__count', '<span>');
+bem.AssetGallery__grid = bem.AssetGallery.__('grid', '<div>');
+bem.AssetGallery__gridItem = bem.AssetGallery.__('grid-item', '<div>');
+bem.AssetGallery__gridLink = bem.AssetGallery.__('grid-item__grid-link', '<a>');
+bem.AssetGallery__gridItemOverlay = bem.AssetGallery.__('grid-item__overlay', '<div>');
+bem.AssetGallery__modal = bem.AssetGallery.__('modal', '<div>');
+bem.AssetGallery__modalCarousel = bem.AssetGallery.__('modal__carousel', '<div>');
+bem.AssetGallery__modalCarouselTopbar = bem.AssetGallery.__('modal__carousel__topbar', '<div>');
+bem.AssetGallery__modalSidebar = bem.AssetGallery.__('modal__sidebar', '<div>');
+bem.AssetGallery__modalSidebarGrid = bem.AssetGallery.__('modal__sidebar__grid', '<div>');
+bem.AssetGallery__modalSidebarGridItem = bem.AssetGallery.__('modal__sidebar__grid-item', '<div>');
+
+// Paginated Modal Elements:
+bem.PaginatedModal = BEM('paginated-modal');
+bem.PaginatedModal_heading = bem.PaginatedModal.__('heading');
+bem.PaginatedModal_body = bem.PaginatedModal.__('body');
+
 bem.create = BEM;
 
 export default bem;
