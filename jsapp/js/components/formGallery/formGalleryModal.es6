@@ -89,54 +89,43 @@ let FormGalleryModalSidebar = React.createClass({
     featuredItems.splice(this.props.galleryItemIndex, 1);
     return (
       <bem.AssetGallery__modalSidebar className="col4 open">
-        <i
-          className="toggle-info k-icon-close"
-          onClick={this.props.closeModal}
-        />
-        <div>
-          <div className="info__outer">
-            <div className="light-grey-bg">
-              <h4>{t("Information")}</h4>
-            </div>
-            <div className="info__inner">
-              <p>{t("Record")} #{currentRecordIndex}</p>
-              <h3>{this.props.galleryTitle}</h3>
-              <p>{this.props.date}</p>
-            </div>
-          </div>
+        <i className="toggle-info k-icon-close" onClick={this.props.closeModal} />
+        <bem.AssetGallery__modalSidebarInfo>
+            <p>{t("Record")} #{currentRecordIndex}</p>
+            <h3>{this.props.galleryTitle}</h3>
+            <p>{this.props.date}</p>
+        </bem.AssetGallery__modalSidebarInfo>
 
-          {this.props.activeGalleryAttachments != undefined
-            ? <div className="padding--15">
-                <h5 onClick={() => this.goToFilter(this.props.galleryTitle)}>
-                  {t("More for") + " " + this.props.galleryTitle}
-                </h5>
-                <bem.AssetGallery__modalSidebarGrid>
-                  {featuredItems.filter((j, index) => index < 6).map(
-                    function(item, j) {
-                      var divStyle = {
-                        backgroundImage: "url(" +
-                          item.medium_download_url +
-                          ")",
-                        backgroundRepeat: "no-repeat",
-                        backgroundPosition: "center center",
-                        backgroundSize: "cover"
-                      };
-                      return (
-                        <bem.AssetGallery__modalSidebarGridItem
-                          key={j}
-                          className="col6"
-                          onClick={() => this.props.changeActiveGalleryIndex(j)}
-                        >
-                          <div className="one-one" style={divStyle} />
-                        </bem.AssetGallery__modalSidebarGridItem>
-                      );
-                    }.bind(this)
-                  )}
-                </bem.AssetGallery__modalSidebarGrid>
-              </div>
-            : null}
-
-        </div>
+        {this.props.activeGalleryAttachments != undefined && 
+          <bem.AssetGallery__modalSidebarGridWrap>
+            <h5 onClick={() => this.goToFilter(this.props.galleryTitle)}>
+              {t("More for") + " " + this.props.galleryTitle}
+            </h5>
+            <bem.AssetGallery__modalSidebarGrid>
+              {featuredItems.filter((j, index) => index < 6).map(
+                function(item, j) {
+                  var divStyle = {
+                    backgroundImage: "url(" +
+                      item.medium_download_url +
+                      ")",
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "center center",
+                    backgroundSize: "cover"
+                  };
+                  return (
+                    <bem.AssetGallery__modalSidebarGridItem
+                      key={j}
+                      className="col6"
+                      onClick={() => this.props.changeActiveGalleryIndex(j)}
+                    >
+                      <div className="one-one" style={divStyle} />
+                    </bem.AssetGallery__modalSidebarGridItem>
+                  );
+                }.bind(this)
+              )}
+            </bem.AssetGallery__modalSidebarGrid>
+          </bem.AssetGallery__modalSidebarGridWrap>
+        }
       </bem.AssetGallery__modalSidebar>
     );
   }

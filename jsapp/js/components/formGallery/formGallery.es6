@@ -56,7 +56,6 @@ var FormGallery = React.createClass({
     };
   },
   componentDidMount: function() {
-    console.log(this.props.deploymentSubmissionCount);
     if (this.props.deploymentSubmissionCount) {
       this.loadGalleryData(this.props.uid, "question");
     }

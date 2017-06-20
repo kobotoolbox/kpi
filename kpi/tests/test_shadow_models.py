@@ -7,8 +7,8 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models import FileField
 from mock import MagicMock
-from kpi.deployment_backends.kc_reader.shadow_models import ReadOnlyModelError
-from kpi.deployment_backends.kc_reader.shadow_models import _models
+from kpi.deployment_backends.kc_access.shadow_models import ReadOnlyModelError
+from kpi.deployment_backends.kc_access.shadow_models import _models
 
 
 class ShadowModelsTest(TestCase):

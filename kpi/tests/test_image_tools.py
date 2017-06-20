@@ -6,7 +6,7 @@ from django.test import TestCase
 from mock import patch, MagicMock
 from django.core.files import File
 from django.core.files.storage import Storage
-from kpi.deployment_backends.kc_reader.shadow_models import _models
+from kpi.deployment_backends.kc_access.shadow_models import _models
 from kpi.utils import image_tools
 
 

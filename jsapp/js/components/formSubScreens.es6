@@ -99,7 +99,7 @@ export class FormSubScreens extends React.Component {
           </bem.FormView>
         </DocumentTitle>
       );
-  },
+  }
   renderFormGallery () {
     var docTitle = this.state.name || t('Untitled');
     var deployment__identifier = this.state.deployment__identifier;
@@ -109,7 +109,7 @@ export class FormSubScreens extends React.Component {
         <FormGallery uid={this.state.uid} deploymentSubmissionCount={deploymentSubmissionCount}/>
       </DocumentTitle>
     );
-  },
+  }
   renderSharing() {
     var docTitle = this.state.name || t('Untitled');
     return (
@@ -129,7 +129,7 @@ export class FormSubScreens extends React.Component {
           </bem.FormView>
         </DocumentTitle>
     );
-  },
+  }
   renderProjectDownloads() {
     var docTitle = this.state.name || t('Untitled');
     return (
@@ -150,7 +150,6 @@ export class FormSubScreens extends React.Component {
       </bem.Loading>
     );
   }
-
 };
 
 reactMixin(FormSubScreens.prototype, Reflux.ListenerMixin);
