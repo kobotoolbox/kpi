@@ -74,13 +74,10 @@ class ImageToolsTestCase(TestCase):
         filename = '/path/to/my/test/image.jpg'
         attachment = self._mock_attachment(filename)
 
-        if settings.KOBOCAT_URL:
+        if settings.DEFAULT_DEPLOYMENT_BACKEND !='mock':
             expected = settings.KOBOCAT_URL.strip("/") + "/attachment/%s?media_file=%s" % ('original', filename)
-        else:
-            expected = None
-
-        result = image_tools.image_url(attachment, 'original')
-        self.assertEqual(result, expected)
+            result = image_tools.image_url(attachment, 'original')
+            self.assertEqual(result, expected)
 
 
     @patch('kpi.utils.image_tools.resize')
@@ -132,14 +129,11 @@ class ImageToolsTestCase(TestCase):
 
         filename = '/path/to/my/test/image.jpg'
         attachment = self._mock_attachment(filename)
-        for size in settings.THUMB_ORDER:
-            if settings.KOBOCAT_URL:
+        if settings.DEFAULT_DEPLOYMENT_BACKEND !='mock':
+            for size in settings.THUMB_ORDER:
                 expected = settings.KOBOCAT_URL.strip("/") + "/attachment/%s?media_file=%s" % (size, filename)
-            else:
-                expected = None
-
-            result = image_tools.image_url(attachment, size)
-            self.assertEqual(result, expected)
+                result = image_tools.image_url(attachment, size)
+                self.assertEqual(result, expected)
 
 
     @patch('kpi.utils.image_tools.get_storage_class')
