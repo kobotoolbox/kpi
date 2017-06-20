@@ -102,11 +102,15 @@ export class FormSubScreens extends React.Component {
   }
   renderFormGallery () {
     var docTitle = this.state.name || t('Untitled');
-    var deployment__identifier = this.state.deployment__identifier;
-    var deploymentSubmissionCount = this.state.deployment__submission_count;
+
+    let mediaQuestions = this.state.content.survey.filter(function(q){
+      if (q.type === 'image')
+        return true;
+    });
+
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <FormGallery uid={this.state.uid} deploymentSubmissionCount={deploymentSubmissionCount}/>
+        <FormGallery uid={this.state.uid} deploymentSubmissionCount={this.state.deployment__submission_count} mediaQuestions={mediaQuestions} />
       </DocumentTitle>
     );
   }

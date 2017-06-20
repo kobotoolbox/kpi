@@ -56,9 +56,8 @@ var FormGallery = React.createClass({
     };
   },
   componentDidMount: function() {
-    if (this.props.deploymentSubmissionCount) {
+    if (this.props.mediaQuestions.length)
       this.loadGalleryData(this.props.uid, "question");
-    }
   },
   formatDate: function(myDate) {
     let timestamp = moment(new Date(myDate)).format("DD-MMM-YYYY h:mm:ssa");
@@ -89,8 +88,7 @@ var FormGallery = React.createClass({
       }
     }
 
-    dataInterface
-      .filterGalleryImages(
+    dataInterface.filterGalleryImages(
         this.props.uid,
         newFilter,
         this.state.defaultPageSize
@@ -120,8 +118,7 @@ var FormGallery = React.createClass({
   // Pagination
   loadMoreAttachments(galleryIndex, galleryPage) {
     this.state.assets.loaded = false;
-    dataInterface
-      .loadQuestionAttachment(
+    dataInterface.loadQuestionAttachment(
         this.props.uid,
         this.state.filter.source,
         galleryIndex,
@@ -139,8 +136,7 @@ var FormGallery = React.createClass({
   },
   loadMoreRecords() {
     this.state.assets.loaded = false;
-    return dataInterface
-      .loadMoreRecords(
+    return dataInterface.loadMoreRecords(
         this.props.uid,
         this.state.filter.source,
         this.state.nextRecordsPage,
@@ -205,7 +201,26 @@ var FormGallery = React.createClass({
     });
   },
   render() {
-    if (this.state.assets.loaded && this.props.deploymentSubmissionCount) {
+    if (!this.state.assets.loaded) {
+      return (
+        <bem.AssetGallery>
+          <bem.Loading>
+            {this.props.mediaQuestions.length === 0 ?
+              <bem.Loading__inner>
+                {t('This form does not have any media questions.')}
+              </bem.Loading__inner>
+            : 
+              <bem.Loading__inner>
+                <i />
+                {t('loading...')}
+              </bem.Loading__inner>
+            }
+          </bem.Loading>
+        </bem.AssetGallery>
+        )
+    }
+
+    if (this.state.assets.loaded && this.props.mediaQuestions.length) {
       let modalFriendlyAttachments = this.state.activeModalGallery.attachments
         ? this.state.activeModalGallery.attachments.results
         : this.state.activeModalGallery;
@@ -224,7 +239,7 @@ var FormGallery = React.createClass({
             function(record, i) {
               let galleryTitle = this.state.filter.source === "question"
                 ? record.label
-                : "Record " + parseInt(i + 1);
+                : t("Record ") + parseInt(i + 1);
               let searchRegEx = new RegExp(this.state.searchTerm, "i");
               let searchTermMatched =
                 this.state.searchTerm == "" ||
@@ -287,11 +302,8 @@ var FormGallery = React.createClass({
                 formatDate={this.formatDate}
               />
             : null}
-
         </bem.AssetGallery>
       );
-    } else {
-      return <h3>This form does not have any media questions.</h3>;
     }
   }
 });
