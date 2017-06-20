@@ -55,8 +55,9 @@ $icon-font-size: 40px;
     margin-bottom: 20px;
 
     > h2 {
-      color: #6E777D;
+      color: $cool-gray;
       font-weight: normal;
+      font-size: 16px;
     }
   }
 
@@ -79,8 +80,7 @@ $icon-font-size: 40px;
     align-items: center;
 
     &__count {
-      color: #4E525F;
-      font-size: 1.2em;
+      color: $layout-header-bg-color;
     }
   }
 
@@ -387,6 +387,7 @@ $icon-font-size: 40px;
 
       &.open {
         opacity: 1;
+        overflow: auto;
 
         .toggle-info {
           float: right;
@@ -452,12 +453,10 @@ $icon-font-size: 40px;
       margin: 50px 30px 0px;
       padding-bottom: 20px;
       border-bottom: 1px solid $divider-color;
-      height: 150px;
     }
 
     &__sidebar-grid-wrap {
       margin: 30px;
-      height: calc(100% - 260px);
     }
   }
 }

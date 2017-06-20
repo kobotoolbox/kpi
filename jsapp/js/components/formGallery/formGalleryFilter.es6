@@ -14,7 +14,7 @@ export class FormGalleryFilter extends React.Component {
       <bem.AssetGallery__heading>
         <div className="col6">
           <bem.AssetGallery__count>
-            <strong>{this.props.attachments_count} {t("images")}</strong>
+            {this.props.attachments_count} {t("images")}
           </bem.AssetGallery__count>
         </div>
         <div className="col6">
