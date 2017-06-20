@@ -1,7 +1,7 @@
 import React from "react";
 import bem from "../../bem";
 
-let FormGalleryGridItem = React.createClass({
+export class FormGalleryGridItem extends React.Component {
   render() {
     let itemStyle = {
       backgroundImage: "url(" + this.props.url + ")",
@@ -31,6 +31,6 @@ let FormGalleryGridItem = React.createClass({
       </bem.AssetGallery__gridItem>
     );
   }
-});
+};
 
 module.exports = FormGalleryGridItem;

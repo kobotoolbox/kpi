@@ -4,20 +4,24 @@ import ui from "../../ui";
 import { t } from "../../utils";
 import Select from "react-select";
 
-let FormGalleryFilter = React.createClass({
+export class FormGalleryFilter extends React.Component {
+  constructor(props){
+    super(props);
+    this.state = {};
+  }
   render() {
     return (
       <bem.AssetGallery__heading>
         <div className="col6">
           <bem.AssetGallery__count>
-            <strong>{this.props.attachments_count} {t("Images")}</strong>
+            <strong>{this.props.attachments_count} {t("images")}</strong>
           </bem.AssetGallery__count>
         </div>
         <div className="col6">
           <bem.AssetGallery__headingSearchFilter className="section">
             <input
               className="text-display"
-              placeholder={this.props.currentFilter.label}
+              placeholder={t('Filter results')}
               onChange={this.props.setSearchTerm}
               value={this.props.searchTerm}
             />
@@ -37,6 +41,6 @@ let FormGalleryFilter = React.createClass({
       </bem.AssetGallery__heading>
     );
   }
-});
+};
 
 module.exports = FormGalleryFilter;

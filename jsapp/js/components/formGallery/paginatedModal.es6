@@ -8,9 +8,11 @@ import { t } from "../../utils";
 import ReactPaginate from "react-paginate";
 import Select from "react-select";
 
-let PaginatedModal = React.createClass({
-  getInitialState: function() {
-    return {
+export class PaginatedModal extends React.Component {
+  constructor(props) {
+    super(props);
+    autoBind(this);
+    this.state = {
       offset: 10,
       offsetOptions: [
         {
@@ -46,13 +48,15 @@ let PaginatedModal = React.createClass({
       attachments_count: this.props.galleryAttachmentsCount,
       totalPages: 0,
       currentAttachmentsLoaded: 0,
-      activeAttachmentsIndex: 0
+      activeAttachmentsIndex: 0      
     };
-  },
-  componentDidMount: function() {
+  }
+
+  componentDidMount() {
     this.resetGallery();
-  },
-  resetGallery: function() {
+  }
+
+  resetGallery() {
     this.setState({
       paginated_attachments: [],
       flat_attachments: [],
@@ -61,27 +65,27 @@ let PaginatedModal = React.createClass({
     this.loadPaginatedAttachments(1);
     this.setTotalPages();
     this.setActiveAttachmentsIndex(0);
-  },
-  setTotalPages: function() {
+  }
+  setTotalPages() {
     let totalPages = Math.ceil(
       this.state.attachments_count / this.state.offset
     );
     this.setState({ totalPages: totalPages });
-  },
-  setActiveAttachmentsIndex: function(index) {
+  }
+  setActiveAttachmentsIndex(index) {
     this.setState({ activeAttachmentsIndex: index });
-  },
-  changeOffset: function(offset) {
+  }
+  changeOffset(offset) {
     this.setState({ offset: offset }, function() {
       this.resetGallery();
     });
-  },
-  changeSort: function(sort) {
+  }
+  changeSort(sort) {
     this.setState({ sortValue: sort }, function() {
       this.resetGallery();
     });
-  },
-  goToPage: function(page) {
+  }
+  goToPage(page) {
     let attachmentNextPage = page.selected + 1;
     let newActiveIndex = page.selected;
     if (
@@ -94,8 +98,8 @@ let PaginatedModal = React.createClass({
     } else {
       this.setActiveAttachmentsIndex(newActiveIndex);
     }
-  },
-  loadPaginatedAttachments: function(page, callback) {
+  }
+  loadPaginatedAttachments(page, callback) {
     dataInterface
       .loadQuestionAttachment(
         this.props.uid,
@@ -132,8 +136,8 @@ let PaginatedModal = React.createClass({
     if (callback) {
       callback();
     }
-  },
-  findItemIndex: function(id) {
+  }
+  findItemIndex(id) {
     var newIndex = null;
     this.state.flat_attachments.filter((filteredItem, index) => {
       if (filteredItem.id == id) {
@@ -141,7 +145,7 @@ let PaginatedModal = React.createClass({
       }
     });
     return newIndex;
-  },
+  }
   render() {
     return (
       <bem.PaginatedModal>
@@ -230,9 +234,9 @@ let PaginatedModal = React.createClass({
       </bem.PaginatedModal>
     );
   }
-});
+};
 
-let GalleryControls = React.createClass({
+export class GalleryControls extends React.Component {
   render() {
     let selectDirectionClassName = this.props.selectDirectionUp
       ? "select-direction-up"
@@ -291,5 +295,6 @@ let GalleryControls = React.createClass({
       </div>
     );
   }
-});
+};
+
 module.exports = PaginatedModal;

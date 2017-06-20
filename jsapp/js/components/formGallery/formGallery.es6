@@ -1,4 +1,5 @@
 import React from "react";
+import autoBind from 'react-autobind';
 import bem from "../../bem";
 import FormGalleryModal from "./formGalleryModal";
 import FormGalleryFilter from "./formGalleryFilter";
@@ -8,14 +9,11 @@ import { dataInterface } from "../../dataInterface";
 import moment from "moment";
 import { t } from "../../utils";
 
-var FormGallery = React.createClass({
-  displayName: "FormGallery",
-  propTypes: {
-    label: React.PropTypes.string
-  },
-  //Init
-  getInitialState: function() {
-    return {
+export class FormGallery extends React.Component {
+  constructor(props) {
+    super(props);
+    autoBind(this);
+    this.state = {
       defaultPageSize: 6,
       hasMoreRecords: false,
       nextRecordsPage: 2,
@@ -25,18 +23,18 @@ var FormGallery = React.createClass({
       searchTerm: "",
       filter: {
         source: "question",
-        label: t("Group by Question"),
+        label: t("Group by question"),
         searchable: false,
         clearable: false
       },
       filterOptions: [
         {
           value: "question",
-          label: t("Group by Question")
+          label: t("Group by question")
         },
         {
           value: "submission",
-          label: t("Group by Record")
+          label: t("Group by record")
         }
       ],
       assets: {
@@ -54,16 +52,17 @@ var FormGallery = React.createClass({
       galleryTitle: "",
       galleryDate: ""
     };
-  },
-  componentDidMount: function() {
+  }
+
+  componentDidMount() {
     if (this.props.mediaQuestions.length)
       this.loadGalleryData(this.props.uid, "question");
-  },
-  formatDate: function(myDate) {
+  }
+  formatDate(myDate) {
     let timestamp = moment(new Date(myDate)).format("DD-MMM-YYYY h:mm:ssa");
     return timestamp;
-  },
-  loadGalleryData: function(uid, selectedFilter) {
+  }
+  loadGalleryData(uid, selectedFilter) {
     dataInterface
       .filterGalleryImages(uid, selectedFilter, this.state.defaultPageSize)
       .done(response => {
@@ -72,12 +71,12 @@ var FormGallery = React.createClass({
           assets: response
         });
       });
-  },
-  setAssets: function(nweAssets) {
+  }
+  setAssets(nweAssets) {
     this.setState({
       assets: nweAssets
     });
-  },
+  }
   // FILTER
   switchFilter(value) {
     var label;
@@ -109,11 +108,11 @@ var FormGallery = React.createClass({
             : this.state.hasMoreRecords //Check if more records exist!
         });
       });
-  },
+  }
   setSearchTerm(filter) {
     let term = filter.target ? filter.target.value : filter; //Check if an event was passed or string
     this.setState({ searchTerm: term });
-  },
+  }
 
   // Pagination
   loadMoreAttachments(galleryIndex, galleryPage) {
@@ -133,7 +132,7 @@ var FormGallery = React.createClass({
         assets.loaded = true;
         this.setState({ assets });
       });
-  },
+  }
   loadMoreRecords() {
     this.state.assets.loaded = false;
     return dataInterface.loadMoreRecords(
@@ -152,18 +151,14 @@ var FormGallery = React.createClass({
           nextRecordsPage: this.state.nextRecordsPage + 1
         });
       });
-  },
-  setActiveGalleryDateAndTitle: function(title, date) {
+  }
+  setActiveGalleryDateAndTitle(title, date) {
     this.setState({
       galleryTitle: title,
       galleryDate: date
     });
-  },
-  openModal: function(
-    gallery,
-    galleryItemIndex,
-    setGalleryTitleAndDate = true
-  ) {
+  }
+  openModal(gallery, galleryItemIndex, setGalleryTitleAndDate = true) {
     if (setGalleryTitleAndDate) {
       let galleryTitle =
         gallery.label ||
@@ -187,19 +182,19 @@ var FormGallery = React.createClass({
         galleryItemIndex: galleryItemIndex
       });
     }
-  },
-  closeModal: function() {
+  }
+  closeModal() {
     this.setState({
       showModal: false,
       activeModalGallery: [],
       galleryItemIndex: 0
     });
-  },
-  changeActiveGalleryIndex: function(newIndex) {
+  }
+  changeActiveGalleryIndex(newIndex) {
     this.setState({
       galleryItemIndex: newIndex
     });
-  },
+  }
   render() {
     if (!this.state.assets.loaded) {
       return (
@@ -306,18 +301,22 @@ var FormGallery = React.createClass({
       );
     }
   }
-});
+};
 
-let FormGalleryGrid = React.createClass({
-  getInitialState: function() {
-    return {
+
+export class FormGalleryGrid extends React.Component {
+  constructor(props) {
+    super(props);
+    autoBind(this);
+    this.state = {
       galleryPage: 1,
       hasMoreAttachments: false,
       showPaginatedModal: false,
       currentlyLoadedGalleryAttachments: 0
     };
-  },
-  updateHasMoreAttachments: function() {
+  }
+
+  updateHasMoreAttachments() {
     let currentlyLoadedGalleryAttachments =
       this.state.galleryPage * this.props.defaultPageSize;
     let galleryHasMore = currentlyLoadedGalleryAttachments <
@@ -328,12 +327,12 @@ let FormGalleryGrid = React.createClass({
       hasMoreAttachments: galleryHasMore,
       currentlyLoadedGalleryAttachments
     });
-  },
+  }
   componentDidMount() {
     this.updateHasMoreAttachments();
     this.setState({ galleryPage: this.state.galleryPage + 1 });
-  },
-  loadMoreAttachments: function() {
+  }
+  loadMoreAttachments() {
     this.props.loadMoreAttachments(
       this.props.galleryIndex,
       this.state.galleryPage
@@ -343,8 +342,8 @@ let FormGalleryGrid = React.createClass({
       ? this.state.galleryPage + 1
       : this.state.galleryPage;
     this.setState({ galleryPage: newGalleryPage });
-  },
-  toggleLoadMoreBtn: function() {
+  }
+  toggleLoadMoreBtn() {
     let loadMoreBtnCode = null;
     if (
       this.state.hasMoreAttachments && this.props.currentFilter === "question"
@@ -370,14 +369,14 @@ let FormGalleryGrid = React.createClass({
       }
     }
     return loadMoreBtnCode;
-  },
-  togglePaginatedModal: function() {
+  }
+  togglePaginatedModal() {
     this.setState({ showPaginatedModal: !this.state.showPaginatedModal });
     this.props.setActiveGalleryDateAndTitle(
       this.props.galleryTitle,
       this.props.galleryDate
     );
-  },
+  }
   render() {
     return (
       <div key={this.props.galleryIndex}>
@@ -433,6 +432,6 @@ let FormGalleryGrid = React.createClass({
       </div>
     );
   }
-});
+};
 
 module.exports = FormGallery;

@@ -134,8 +134,7 @@ $icon-font-size: 40px;
 
       &__overlay {
         opacity: 0;
-
-        // transition: 0.3s all ease-in-out;
+        transition: 0.2s all;
         background: rgba(0, 0, 0, 0.7);
 
         .text {
@@ -151,16 +150,23 @@ $icon-font-size: 40px;
             font-size: 1em;
             font-weight: normal;
             margin: 0px;
+            line-height: 1.25em;
+            max-height: 3.75em;
+            overflow: hidden;
           }
 
           p {
             position: absolute;
-            bottom: 0px;
+            bottom: -5px;
+            font-size: 0.85em;
+            line-height: 1.1em;
+            opacity: 0.7;
           }
         }
 
         #{$root}:hover & {
           opacity: 1;
+          transition: 0.3s all;
         }
       }
     }

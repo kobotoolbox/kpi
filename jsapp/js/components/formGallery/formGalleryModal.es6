@@ -1,20 +1,25 @@
 import React from "react";
+import autoBind from 'react-autobind';
 import Modal from "react-modal";
 import bem from "../../bem";
 import ui from "../../ui";
-// import {dataInterface} from '../../dataInterface';
 import Slider from "react-slick";
 import { t } from "../../utils";
 
-let FormGalleryModal = React.createClass({
-  componentDidUpdate: function() {
+export class FormGalleryModal extends React.Component {
+  constructor(props) {
+    super(props);
+    autoBind(this);
+  }
+
+  componentDidUpdate() {
     if (this.refs.slider) {
       this.refs.slider.slickGoTo(this.props.galleryItemIndex);
     }
-  },
+  }
   handleCarouselChange(currentIndex, newIndex) {
     this.props.changeActiveGalleryIndex(newIndex);
-  },
+  }
 
   render() {
     const settings = {
@@ -74,13 +79,13 @@ let FormGalleryModal = React.createClass({
       </Modal>
     );
   }
-});
+};
 
-let FormGalleryModalSidebar = React.createClass({
-  goToFilter: function(gridLabel) {
+export class FormGalleryModalSidebar extends React.Component {
+  goToFilter(gridLabel) {
     this.props.closeModal();
     this.props.setSearchTerm(gridLabel);
-  },
+  }
   render() {
     let currentRecordIndex = this.props.filter === "question"
       ? this.props.galleryItemIndex + 1
@@ -129,10 +134,9 @@ let FormGalleryModalSidebar = React.createClass({
       </bem.AssetGallery__modalSidebar>
     );
   }
-});
+};
 
-//Slider Navigation
-let RightNavButton = React.createClass({
+export class RightNavButton extends React.Component {
   render() {
     const { className, onClick } = this.props;
     return (
@@ -141,9 +145,9 @@ let RightNavButton = React.createClass({
       </button>
     );
   }
-});
+};
 
-let LeftNavButton = React.createClass({
+export class LeftNavButton extends React.Component {
   render() {
     const { className, onClick } = this.props;
     return (
@@ -152,6 +156,6 @@ let LeftNavButton = React.createClass({
       </button>
     );
   }
-});
+};
 
 module.exports = FormGalleryModal;
