@@ -205,14 +205,14 @@ $icon-font-size: 40px;
           position: relative;
 
           &:before {
-            content: '\e803';
+            content: '\e832';
             font-family: "k-icons";
             font-style: normal;
             font-weight: normal;
             font-size: 36px;
             position: absolute;
             top: 6px;
-            color: $cool-gray;
+            color: lighten($cool-gray, 10%);
           }
         }
 
