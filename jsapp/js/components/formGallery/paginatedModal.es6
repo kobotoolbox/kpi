@@ -152,7 +152,7 @@ export class PaginatedModal extends React.Component {
         <ui.Modal open large onClose={this.props.togglePaginatedModal}>
           <ui.Modal.Body>
             <bem.PaginatedModal_heading>
-              <h2>{t("All Photo of") + " " + this.props.galleryTitle}</h2>
+              <h2>{t("All photos of") + " " + this.props.galleryTitle}</h2>
               {/* <h4>{t('Showing')} <b>{this.state.currentAttachmentsLoaded}</b> {t('of')} <b>{this.props.galleryAttachmentsCount}</b></h4> */}
               <h4>
                 {t("Showing")}

@@ -234,7 +234,7 @@ export class FormGallery extends React.Component {
             function(record, i) {
               let galleryTitle = this.state.filter.source === "question"
                 ? record.label
-                : t("Record ") + parseInt(i + 1);
+                : t("Record") + " " + parseInt(i + 1);
               let searchRegEx = new RegExp(this.state.searchTerm, "i");
               let searchTermMatched =
                 this.state.searchTerm == "" ||
