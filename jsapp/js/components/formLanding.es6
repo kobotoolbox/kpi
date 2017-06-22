@@ -216,7 +216,7 @@ export class FormLanding extends React.Component {
 
     var kc_server = document.createElement('a');
     kc_server.href = this.state.deployment__identifier;
-    var kobocollect_url = kc_server.origin + '/' + this.state.owner__username;
+    var kobocollect_url = kc_server.origin;
 
     return (
       <bem.FormView__row>
