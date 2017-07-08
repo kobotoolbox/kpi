@@ -193,6 +193,8 @@ def disable_auto_field_update(kls, field_name):
     original_auto_now_add = field.auto_now_add
     field.auto_now = False
     field.auto_now_add = False
-    yield
-    field.auto_now = original_auto_now
-    field.auto_now_add = original_auto_now_add
+    try:
+        yield
+    finally:
+        field.auto_now = original_auto_now
+        field.auto_now_add = original_auto_now_add
