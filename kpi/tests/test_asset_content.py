@@ -463,6 +463,7 @@ def kobomatrix_content():
                 'kobo--matrix_list': 'car_bike_tv',
              },
             {'type': 'select_one', 'select_from_list_name': 'yn',
+             'constraint': '. = "yes"',
              'label': 'Possess?', 'name': 'possess', 'required': True},
             {'type': 'select_one', 'select_from_list_name': 'yn',
              'label': 'Necessary?', 'name': 'necess', 'required': True},
@@ -474,9 +475,19 @@ def kobomatrix_content():
             {'list_name': 'car_bike_tv', 'label': 'Car', 'name': 'car'},
             {'list_name': 'car_bike_tv', 'label': 'Bike', 'name': 'bike'},
             {'list_name': 'car_bike_tv', 'label': 'TV', 'name': 'tv'},
+            {'list_name': 'yn', 'label': 'Yes', 'name': 'yes'},
+            {'list_name': 'yn', 'label': 'No', 'name': 'no'},
         ],
         'settings': {},
     }
+
+
+def kobomatrix_content_with_custom_fields():
+    _content = kobomatrix_content()
+    _survey = _content['survey']
+    _survey[2].update({'required': "${possess} = 'yes'"})
+    _survey[3].update({'constraint': '. > 3'})
+    return _content
 
 
 def test_kobomatrix_content():
@@ -484,9 +495,13 @@ def test_kobomatrix_content():
     pattern = ['w7', 'w1', 'w2', 'w2', 'w2', '']
     _survey = content.get('survey')
     _names = [r.get('name') for r in _survey]
+    _constraints = [r.get('constraint') for r in _survey]
     _labls = [r.get('label', [None])[0] for r in _survey]
     _none_labels = [label is None for label in _labls]
     _reqds = [r.get('required', None) for r in _survey]
+
+    # assert constraints are not dropped
+    assert set(_constraints) == set([None, u'. = "yes"'])
 
     # appearance fields match
     assert [r.get('appearance', '').split(' ')[0] for r in _survey] == (
@@ -563,3 +578,48 @@ def test_kobomatrix_content():
     assert _reqds == [None, False, False, False, False, None] + (
                         [None, False, True, True, True, None] * 3
                     )
+
+
+def test_xpath_fields_in_kobomatrix_are_preserved():
+    _content = kobomatrix_content_with_custom_fields()
+    (r0, r1, r2, r3, r4) = _content['survey']
+    assert r2['required'] == "${possess} = 'yes'"
+    assert r3['constraint'] == '. > 3'
+
+    compiled_content = _compile_asset_content(_content)
+    assert len(compiled_content['survey']) == 24
+    _survey_content = compiled_content['survey']
+
+    def _necess_reqs(_set, item):
+        _req = item.get('required')
+        if item.get('name', '').endswith('_necess') and _req:
+            _set.update([_req])
+        return _set
+
+    def _possess_constraints(_set, item):
+        _constraint = item.get('constraint')
+        _set.update([_constraint])
+        return _set
+
+    assert reduce(_possess_constraints, _survey_content, set()) == set([
+        None,
+        '. = "yes"',
+        '. > 3',
+    ])
+
+    assert reduce(_necess_reqs, _survey_content, set()) == set([
+        "${m1_bike_possess} = 'yes'",
+        "${m1_car_possess} = 'yes'",
+        "${m1_tv_possess} = 'yes'",
+    ])
+
+
+def test_required_value_can_be_a_string():
+    content = _compile_asset_content({
+        'survey': [
+            {'type': 'text', 'name': 'abc'},
+            {'type': 'text', 'name': 'req_if_abc', 'required': "${abc} != ''"},
+        ],
+    })
+    r2 = content['survey'][1]
+    assert r2['required'] == "${abc} != ''"
