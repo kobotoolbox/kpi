@@ -161,6 +161,11 @@ class KoboMatrixGroupHandler(GroupHandler):
                   'appearance': first_column_width,
                   }]
 
+        mappings = dict([(
+                '${%s}' % col['$autoname'],
+                '${%s}' % '%s_%s' % (_base_name, col['$autoname'],),
+            ) for col in cols])
+
         def _make_row(col):
             _type = col['type']
             _appearance = ['w{}'.format(col.get('_column_width'))]
@@ -177,6 +182,16 @@ class KoboMatrixGroupHandler(GroupHandler):
                    ], self.span_wrap),
                    'required': col.get('required', False),
                    }
+            for key in ['relevant', 'constraint', 'required']:
+                if key in col and isinstance(col[key], basestring):
+                    _str = col[key]
+                    for (key2, val) in mappings.items():
+                        if key2 in _str:
+                            _str = _str.replace(key2, val)
+                    out[key] = _str
+                elif key in col:
+                    out[key] = col[key]
+
             if 'select_from_list_name' in col:
                 out['select_from_list_name'] = col['select_from_list_name']
             return out
