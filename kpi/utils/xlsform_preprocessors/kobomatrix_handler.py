@@ -7,8 +7,8 @@ import re
 from base_handlers import GroupHandler
 
 SPAN_WRAP = '<span style="display:none">{}</span>'
-HEADER_WRAP = '**{}**'
-ROW_HEADER_WRAP = '##### {}'
+HEADER_WRAP = '{}'
+ROW_HEADER_WRAP = '{}'
 
 
 class KoboMatrixGroupHandler(GroupHandler):

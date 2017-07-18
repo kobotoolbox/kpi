@@ -551,26 +551,26 @@ def test_kobomatrix_content():
                       ]
 
     assert _none_labels == [True, False, False, False, False, True] * 4
-    assert _labls[1:5] == ['**Itéms**',
-                           '**Possess?**',
-                           '**Necessary?**',
-                           '**Number**',
+    assert _labls[1:5] == ['Itéms',
+                           'Possess?',
+                           'Necessary?',
+                           'Number',
                            ]
 
     def _span(item):
         return '<span style="display:none">{}</span>'.format(item)
 
-    assert _labls[7:11] == ['##### Car',
+    assert _labls[7:11] == ['Car',
                             _span('car-Possess?'),
                             _span('car-Necessary?'),
                             _span('car-Number'),
                             ]
-    assert _labls[13:17] == ['##### Bike',
+    assert _labls[13:17] == ['Bike',
                              _span('bike-Possess?'),
                              _span('bike-Necessary?'),
                              _span('bike-Number'),
                              ]
-    assert _labls[19:23] == ['##### TV',
+    assert _labls[19:23] == ['TV',
                              _span('tv-Possess?'),
                              _span('tv-Necessary?'),
                              _span('tv-Number'),
