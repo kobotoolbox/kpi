@@ -268,6 +268,38 @@ def test_remove_empty_expressions():
     assert _r1(c1) == {}
 
 
+def _assert_equivalent_structures(c1, c2):
+    a1 = Asset(asset_type='survey', content={})
+    a1._standardize(c1)
+    a1._standardize(c2)
+    assert c1['survey'][0] == c2['survey'][0]
+    assert c1['translations'] == c2['translations']
+    assert c1 == c2
+
+
+def test_handles_aliases():
+    aliases = [
+    #   [correct, regrettable-alias]
+        ['label', 'caption'],
+        ['label::en', 'caption:en'],
+        ['label::en', 'caption::en'],
+        ['media::image', 'image'],
+        ['media::image::en', 'image::en'],
+    ]
+    for (a1, a2) in aliases:
+        c1 = {'survey': [
+                         {'type': 'text',
+                          'name': 'q1',
+                          a1: 'Q1'}
+              ]}
+        c2 = {'survey': [
+                         {'type': 'text',
+                          'name': 'q1',
+                          a2: 'Q1'}
+              ]}
+        _assert_equivalent_structures(c1, c2)
+
+
 def test_save_transformations():
     a1 = Asset(asset_type='survey', content={})
 
