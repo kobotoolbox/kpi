@@ -44,5 +44,10 @@ def standardize_content_in_place(content):
         content['settings'] = {}
     if 'survey' not in content:
         content['survey'] = []
+    # we run "replace_aliases" 2x to ensure that aliased columns don't prevent
+    # the proper expansion of the survey structure.
+    # if aliases start acting funky, see `formpack.utils.replace_aliases`
+    # and consider hard-coding accepted aliases in `formpack.utils.aliases` 
+    replace_aliases(content, in_place=True, allowed_types=ALLOWED_TYPES)
     expand_content(content, in_place=True)
     replace_aliases(content, in_place=True, allowed_types=ALLOWED_TYPES)
