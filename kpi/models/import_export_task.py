@@ -32,11 +32,9 @@ def _resolve_url_to_asset_or_collection(item_path):
         return ('collection', Collection.objects.get(uid=uid))
 
 
-class ImportTask(models.Model):
-    '''
-    someting that would be done after the file has uploaded
-    ...although we probably would need to store the file in a blob
-    '''
+class ImportExportTask(models.Model):
+    class Meta:
+        abstract = True
 
     CREATED = 'created'
     PROCESSING = 'processing'
@@ -55,9 +53,16 @@ class ImportTask(models.Model):
     messages = JSONField(default={})
     status = models.CharField(choices=STATUS_CHOICES, max_length=32,
                               default=CREATED)
-    uid = KpiUidField(uid_prefix='i')
     date_created = models.DateTimeField(auto_now_add=True)
     # date_expired = models.DateTimeField(null=True)
+
+
+class ImportTask(ImportExportTask):
+    uid = KpiUidField(uid_prefix='i')
+    '''
+    someting that would be done after the file has uploaded
+    ...although we probably would need to store the file in a blob
+    '''
 
     def run(self):
         '''
@@ -234,6 +239,24 @@ class ImportTask(models.Model):
         else:
             raise SyntaxError('xls upload must have one of these sheets: {}'
                               .format('survey, library'))
+
+
+def export_upload_to(self, filename):
+    '''
+    Please note that due to Python 2 limitations, you cannot serialize unbound
+    method functions (e.g. a method declared and used in the same class body).
+    Please move the function into the main module body to use migrations.  For
+    more information, see
+    https://docs.djangoproject.com/en/1.8/topics/migrations/#serializing-values
+    '''
+    return posixpath.join(self.user.username, 'exports', filename)
+
+
+class ExportTask(ImportExportTask):
+    uid = KpiUidField(uid_prefix='e')
+    last_submission_timestamp = models.DateTimeField(null=True)
+    result = models.FileField(upload_to=export_upload_to, max_length=380)
+
 
 def _b64_xls_to_dict(base64_encoded_upload):
     decoded_str = base64.b64decode(base64_encoded_upload)
