@@ -187,8 +187,10 @@ CAN_LOGIN_AS = lambda request, target_user: request.user.is_superuser
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
-STATIC_ROOT = 'staticfiles'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/' + os.environ.get('KPI_MEDIA_URL', 'media').strip('/') + '/'
 
 # Following the uWSGI mountpoint convention, this should have a leading slash
 # but no trailing slash
@@ -201,6 +203,7 @@ else:
 # KPI_PREFIX should be set in the environment when running in a subdirectory
 if KPI_PREFIX and KPI_PREFIX != '/':
     STATIC_URL = KPI_PREFIX + '/' + STATIC_URL.lstrip('/')
+    MEDIA_URL = KPI_PREFIX + '/' + MEDIA_URL.lstrip('/')
     LOGIN_URL = KPI_PREFIX + '/' + LOGIN_URL.lstrip('/')
     LOGIN_REDIRECT_URL = KPI_PREFIX + '/' + LOGIN_REDIRECT_URL.lstrip('/')
 
@@ -405,6 +408,13 @@ if os.environ.get('AWS_ACCESS_KEY_ID'):
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
     AWS_SES_REGION_NAME = os.environ.get('AWS_SES_REGION_NAME')
     AWS_SES_REGION_ENDPOINT = os.environ.get('AWS_SES_REGION_ENDPOINT')
+
+if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
+    # To use S3 storage, set this to `storages.backends.s3boto.S3BotoStorage`
+    DEFAULT_FILE_STORAGE = os.environ.get('KPI_DEFAULT_FILE_STORAGE')
+    if 'KPI_AWS_STORAGE_BUCKET_NAME' in os.environ:
+        AWS_STORAGE_BUCKET_NAME = os.environ.get('KPI_AWS_STORAGE_BUCKET_NAME')
+        AWS_DEFAULT_ACL = 'private'
 
 ''' Sentry configuration '''
 if 'RAVEN_DSN' in os.environ:
