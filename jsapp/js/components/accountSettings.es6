@@ -23,6 +23,10 @@ import {
 export class AccountSettings extends React.Component {
   constructor(props){
     super(props);
+    let state = {
+      requireAuth: false,
+    }
+    this.state = state;
     autoBind(this);
     if (stores.session && stores.session.currentAccount) {
       this.state = this.getStateFromCurrentAccount(stores.session.currentAccount);
@@ -165,11 +169,16 @@ export class AccountSettings extends React.Component {
             </bem.AccountSettings__item>
             <bem.AccountSettings__item m='fields'>
               <bem.AccountSettings__item>
-                <label>
+                <label htmlFor="requireAuth">
                   {t('Privacy')}
-                  <br/>
-                  <input type="checkbox" checked={this.state.requireAuth}
-                    onChange={this.requireAuthChange} />
+                </label>
+              </bem.AccountSettings__item>
+              <bem.AccountSettings__item>
+                <input type="checkbox" 
+                  id="requireAuth"
+                  checked={this.state.requireAuth}
+                  onChange={this.requireAuthChange} />
+                <label htmlFor="requireAuth">
                   {t('Require authentication to see forms and submit data')}
                 </label>
               </bem.AccountSettings__item>
