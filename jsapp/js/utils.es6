@@ -142,7 +142,7 @@ export function t(str) {
 // be replaced in all the translations before removing this hard
 // coded value.
 const originalSupportEmail = 'support@kobotoolbox.org';
-const originalSupportUrl = 'http://support.kobotoolbox.org';
+const originalSupportUrl = 'http://help.kobotoolbox.org';
 
 let supportDetails = {
   url: originalSupportUrl,
