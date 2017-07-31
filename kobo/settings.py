@@ -47,6 +47,7 @@ UPCOMING_DOWNTIME = False
 # Domain must not exclude KoBoCAT when sharing sessions
 if os.environ.get('CSRF_COOKIE_DOMAIN'):
     CSRF_COOKIE_DOMAIN = os.environ['CSRF_COOKIE_DOMAIN']
+    CSRF_COOKIE_NAME = 'kobo_csrftoken'
     SESSION_COOKIE_DOMAIN = CSRF_COOKIE_DOMAIN
     SESSION_COOKIE_NAME = 'kobonaut'
 

@@ -12,7 +12,9 @@ var el = (function(){
   return $d.get(0);
 })();
 
-window.csrftoken = cookie.load('csrftoken');
+var CSRF_TOKEN_KEY = 'kobo_csrftoken';
+
+window.csrftoken = cookie.load(CSRF_TOKEN_KEY);
 
 function csrfSafeMethod(method) {
     // these HTTP methods do not require CSRF protection
