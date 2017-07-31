@@ -98,7 +98,7 @@ class App extends React.Component {
     return (
       <DocumentTitle title="KoBoToolbox">
         <div className="mdl-wrapper">
-          { !this.state.pageState.headerHidden && 
+          { !this.isFormBuilder() && !this.state.pageState.headerHidden && 
             <div className="k-header__bar"></div>
           }
           <bem.PageWrapper m={{
