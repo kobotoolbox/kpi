@@ -335,13 +335,13 @@ export class ProjectDownloads extends React.Component {
                 </select>
               </bem.FormModal__item>,
               <bem.FormModal__item key={'h'}>
-                <label htmlFor="hierarchy_in_labels">
-                  {t('Include groups in headers')}
-                </label>
-                <input type="checkbox" name="hierarchy_in_labels"
+                <input type="checkbox" id="hierarchy_in_labels"
                   value={this.state.hierInLabels}
                   onChange={this.hierInLabelsChange}
                 />
+                <label htmlFor="hierarchy_in_labels">
+                  {t('Include groups in headers')}
+                </label>
               </bem.FormModal__item>,
               this.state.hierInLabels ?
                 <bem.FormModal__item key={'g'}>
