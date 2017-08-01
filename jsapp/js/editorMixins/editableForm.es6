@@ -52,6 +52,9 @@ class FormSettingsEditor extends React.Component {
           <div className="mdl-grid">
             <div className="mdl-cell mdl-cell--4-col">
               {this.props.meta.map((mtype) => {
+                if (!mtype.key) {
+                  mtype.key = `meta-${mtype.name}`;
+                }
                 return (
                     <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
                   );
@@ -59,6 +62,9 @@ class FormSettingsEditor extends React.Component {
             </div>
             <div className="mdl-cell mdl-cell--4-col">
               {this.props.phoneMeta.map((mtype) => {
+                if (!mtype.key) {
+                  mtype.key = `meta-${mtype.name}`;
+                }
                 return (
                     <FormCheckbox htmlFor={mtype} onChange={this.props.onCheckboxChange} {...mtype} />
                   );
@@ -153,7 +159,7 @@ class FormSettingsBox extends React.Component {
     });
   }
   render () {
-    var metaData = [].concat(this.state.meta).concat(this.state.phoneMeta).filter(function(item){
+    var metaData = [...this.state.meta, ...this.state.phoneMeta].filter(function(item){
       return item.value;
     }).map(function(item){
       return item.label;
@@ -606,12 +612,19 @@ export default assign({
     if (_state.name) {
       _state.savedName = _state.name;
     }
+    let isEmptySurvey = (
+        Object.keys(survey.settings).length === 0 &&
+        survey.survey.length === 0
+      );
 
     try {
       if (!survey) {
         survey = dkobo_xlform.model.Survey.create();
       } else {
         survey = dkobo_xlform.model.Survey.loadDict(survey);
+        if (isEmptySurvey) {
+          survey.surveyDetails.importDefaults();
+        }
       }
     } catch (err) {
       _state.surveyLoadError = err.message;
