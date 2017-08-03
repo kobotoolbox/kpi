@@ -224,6 +224,7 @@ export function validFileTypes() {
   const VALID_ASSET_UPLOAD_FILE_TYPES = [
     'application/xls',
     'application/vnd.ms-excel',
+    'application/octet-stream',
     'application/vnd.openxmlformats',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   ];
