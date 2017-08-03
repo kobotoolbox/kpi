@@ -227,7 +227,7 @@ export function validFileTypes() {
     'application/octet-stream',
     'application/vnd.openxmlformats',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    ''
+    '' // Keep this to fix issue with IE Edge sending an empty MIME type
   ];
   return VALID_ASSET_UPLOAD_FILE_TYPES.join(',');
 }
