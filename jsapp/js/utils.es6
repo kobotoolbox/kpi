@@ -227,6 +227,7 @@ export function validFileTypes() {
     'application/octet-stream',
     'application/vnd.openxmlformats',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ''
   ];
   return VALID_ASSET_UPLOAD_FILE_TYPES.join(',');
 }
