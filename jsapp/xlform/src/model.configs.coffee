@@ -246,6 +246,9 @@ module.exports = do ->
     constraint_message:
       value: ""
       _hideUnlessChanged: true
+    tags:
+      value: ''
+      _hideUnlessChanged: true
     appearance:
       value: ''
       _hideUnlessChanged: true

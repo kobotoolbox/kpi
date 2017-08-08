@@ -196,14 +196,15 @@
     }
 
     .hxlAttrs {
-      min-width: 50px;  
+      min-width: 200px;  
       width: calc(100% - 124px);
     }
 
     .select2-container-multi {
         vertical-align: top;
         display: table-cell;
-        border: 1px solid #e3e7ec;
+        border: 1px solid #CCC;
+        padding: 2px;
 
         .select2-choices {
             background-image: none !important;
@@ -214,10 +215,13 @@
               padding-bottom: 2px;
               padding-top: 2px;
             }
+            .select2-search-field input.select2-default {
+              min-width: 110px;
+            }
             .select2-search-choice {
               border-radius: 5px;
               font-weight: normal;
-              background: darken(#e3e7ec, 5%);
+              background: darken(#e3e7ec, 6%);
               color: #333;
               padding-left: 5px;
               padding-right: 18px;
@@ -241,5 +245,6 @@
     }
     .hxlAttrs.select2-container-multi {
         background: #FFF;
+        border-left: 0px;
     }
 }
