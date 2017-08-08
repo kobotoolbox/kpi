@@ -4,6 +4,8 @@ $modelUtils = require './model.utils'
 $configs = require './model.configs'
 $viewUtils = require './view.utils'
 $icons = require './view.icons'
+$hxl = require './view.rowDetail.hxlDict'
+
 $viewRowDetailSkipLogic = require './view.rowDetail.SkipLogic'
 $viewTemplates = require './view.templates'
 _t = require('utils').t
@@ -117,6 +119,14 @@ module.exports = do ->
       select += "</select>"
 
       @field select, cid, key_label
+
+    hxlTags: (cid, key, key_label = key, value, hxlTag, hxlAttrs) ->
+      tags = """<input type="text" name="#{key}" id="#{cid}" class="hxlValue hidden" />"""
+      tags += """ <div class="settings__hxl"><input id="#{cid}-tag" class="hxlTag" value="#{hxlTag}"/>"""
+      tags += """ <input id="#{cid}-attrs" class="hxlAttrs" value="#{hxlAttrs}" /></div>"""
+
+      @field tags, cid, key_label
+
     field: (input, cid, key_label) ->
       """
       <div class="card__settings__fields__field">
@@ -229,6 +239,52 @@ module.exports = do ->
   # insertInDom: (rowView)->
     #   # default behavior...
     #   rowView.defaultRowDetailParent.append(@el)
+
+  viewRowDetail.DetailViewMixins.tags =
+    html: ->
+      @fieldTab = "active"
+      @$el.addClass("card__settings__fields--#{@fieldTab}")
+      label = _t("HXL Tags")
+      hxlTags = @model.get("value").split(':')
+      hxlTag = hxlTags[1].split('+',1)
+      hxlAttrs = hxlTags[1].replace(hxlTag[0] + '+', '')
+      hxlAttrs = hxlAttrs.replace('+', ',')
+      viewRowDetail.Templates.hxlTags @cid, @model.key, label, @model.get("value"), hxlTag[0], hxlAttrs
+    afterRender: ->
+      @$el.find('input.hxlValue').eq(0).val(@model.get("value"))
+      @$el.find('.hxlTag').select2({
+          tags:$hxl.dict,
+          maximumSelectionSize: 1,
+          placeholder: _t('#tag')
+        })
+      @$el.find('.hxlAttrs').select2({
+          tags:[],
+          tokenSeparators: ['+'],
+          formatNoMatches: _t('Type attributes (hit Enter to separate)'),
+          placeholder: _t('attributes')
+        })
+
+      @$el.find('.hxlTag').on 'change', () => @_hxlUpdate()
+      @$el.find('.hxlAttrs').on 'change', () => @_hxlUpdate()
+
+      @listenForInputChange()
+
+    _hxlUpdate: (e)->
+      tag = @$el.find('input.hxlTag').val()
+      attrs = @$el.find('input.hxlAttrs').val()
+      attrs = attrs.replace(/,/g, '+')
+
+      if (tag)
+        @$el.find('input.hxlAttrs').select2('enable', true)
+        if (attrs)
+          val = 'hxl:'+tag+'+'+attrs
+        else
+          val = 'hxl:'+tag
+      else
+        val = ''
+        @$el.find('input.hxlAttrs').select2('enable', false)
+
+      @$el.find('input.hxlValue').val(val)
 
   viewRowDetail.DetailViewMixins.default =
     html: ->
