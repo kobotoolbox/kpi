@@ -613,12 +613,11 @@ export default assign({
       _state.savedName = _state.name;
     }
 
-    if (survey) {
       let isEmptySurvey = (
+          survey &&
           Object.keys(survey.settings).length === 0 &&
           survey.survey.length === 0
         );
-    }
 
     try {
       if (!survey) {
