@@ -16,6 +16,8 @@ import assetParserUtils from './assetParserUtils';
 var searchDataInterface = (function(){
   return {
     assets: function(data) {
+      // raise limit temporarily to 200
+      data.limit = 200;
       return $.ajax({
         url: `${dataInterface.rootUrl}/assets/`,
         dataType: 'json',
@@ -73,29 +75,32 @@ function SearchContext(opts={}) {
       this.state = {
         searchState: 'none',
       };
-      this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
+      // pmusaraj note: the gets overriden by onDeleteAssetCompleted in allAssetsStore
+      // this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
     },
-    onDeleteAssetCompleted (asset) {
-      var filterOutDeletedAsset = ({listName}) => {
-        // TODO: look into why sometimes this.state[listName] is not defined
-        if (this.state[listName] != undefined) {
-          let uid = asset.uid;
-          let listLength = this.state[listName].length;
-          let l = this.state[listName].filter(function(result){
-            return result.uid !== uid;
-          });
-          if (l.length !== listLength) {
-            let o = {};
-            o[listName] = l;
-            this.update(o);
-          }
-        }
-      };
-      filterOutDeletedAsset({listName: 'defaultQueryResultsList'});
-      if (this.state.searchResultsList && this.state.searchResultsList.length > 0) {
-        filterOutDeletedAsset({listName: 'searchResultsList'});
-      }
-    },
+    // onDeleteAssetCompleted (asset) {
+      // var filterOutDeletedAsset = ({listName}) => {
+      //   // TODO: look into why sometimes this.state[listName] is not defined
+      //   if (this.state[listName] != undefined) {
+      //     let uid = asset.uid;
+      //     let listLength = this.state[listName].length;
+      //     let l = this.state[listName].filter(function(result){
+      //       return result.uid !== uid;
+      //     });
+      //     if (l.length !== listLength) {
+      //       let o = {};
+      //       o[listName] = l;
+      //       if (listName == 'defaultQueryResultsList')
+      //         o.cacheAsDefaultSearch = true;
+      //       this.update(o);
+      //     }
+      //   }
+      // };
+      // filterOutDeletedAsset({listName: 'defaultQueryResultsList'});
+      // if (this.state.searchResultsList && this.state.searchResultsList.length > 0) {
+      //   filterOutDeletedAsset({listName: 'searchResultsList'});
+      // }
+    // },
     update (items) {
       this.quietUpdate(items);
       this.triggerState();
