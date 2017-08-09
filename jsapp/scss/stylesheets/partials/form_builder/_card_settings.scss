@@ -211,13 +211,6 @@
             background-color: transparent !important;
             border: none !important;
             box-shadow: none !important;
-            .select2-search-field input {
-              padding-bottom: 2px;
-              padding-top: 2px;
-            }
-            .select2-search-field input.select2-default {
-              min-width: 110px;
-            }
             .select2-search-choice {
               border-radius: 5px;
               font-weight: normal;
@@ -234,6 +227,13 @@
                   content: '\E806';
                 }
               }
+            }
+            .select2-search-field input {
+              padding-bottom: 2px;
+              padding-top: 2px;
+            }
+            .select2-search-field input.select2-input {
+              min-width: 100px;
             }
         }
 
