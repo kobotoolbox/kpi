@@ -16,7 +16,7 @@ import {
   surveyToValidJson,
   notify,
   assign,
-  t,
+  t
 } from '../utils';
 
 import {
@@ -612,10 +612,12 @@ export default assign({
     if (_state.name) {
       _state.savedName = _state.name;
     }
-    let isEmptySurvey = (
-        Object.keys(survey.settings).length === 0 &&
-        survey.survey.length === 0
-      );
+
+      let isEmptySurvey = (
+          survey &&
+          Object.keys(survey.settings).length === 0 &&
+          survey.survey.length === 0
+        );
 
     try {
       if (!survey) {
@@ -665,10 +667,19 @@ export default assign({
     if (!this.needsSave()) {
       hashHistory.push(backRoute);
     } else {
-      customConfirmAsync(t('you have unsaved changes. leave form without saving?'))
-        .done(() => {
+      let dialog = alertify.dialog('confirm');
+      let opts = {
+        title: t('you have unsaved changes. leave form without saving?'),
+        message: '',
+        labels: {ok: t('Yes, leave form'), cancel: t('Cancel')},
+        onok: (evt, val) => {
           hashHistory.push(backRoute);
-        });
+        },
+        oncancel: () => {
+          dialog.destroy();
+        }
+      };
+      dialog.set(opts).show();
     }
   },
 
