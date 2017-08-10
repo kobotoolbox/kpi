@@ -125,27 +125,6 @@ var dmix = {
       historyExpanded: !this.state.historyExpanded,
     });
   },
-  onDrop (files) {
-    if (files.length === 0) {
-      return;
-    } else if (files.length> 1) {
-      var errMsg = t('Only 1 file can be uploaded in this case');
-      alertify.error(errMsg);
-      throw new Error(errMsg);
-    }
-    const VALID_ASSET_UPLOAD_FILE_TYPES = [
-      'application/xls',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    ];
-    var file = files[0];
-    if (VALID_ASSET_UPLOAD_FILE_TYPES.indexOf(file.type) === -1) {
-      var err = `Invalid filetype: '${file.type}'`;
-      console.error(err);
-    }
-    this.dropFiles(files);
-  },
   summaryDetails () {
     return (
       <pre>
@@ -310,6 +289,11 @@ mixins.droppable = {
         f.call(this, e, file, params);
       };
       reader.readAsDataURL(file);
+    });
+
+    rejectedFiles.map((rej) => {
+      var errMsg = t('Upload error: could not recognize Excel file.');
+      alertify.error(errMsg);
     });
   }
 }; 
