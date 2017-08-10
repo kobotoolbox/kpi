@@ -1,5 +1,8 @@
 from celery import shared_task
 
+# Make sure this app is listed in `INSTALLED_APPS`; otherwise, Celery will
+# complain that the task is unregistered
+
 @shared_task
 def generate_user_report(output_filename):
     import csv
