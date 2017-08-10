@@ -39,6 +39,8 @@ class SidebarFormsList extends Reflux.Component {
   }
   componentDidMount () {
     this.listenTo(this.searchStore, this.searchChanged);
+    if (!this.isFormList())
+      this.searchDefault();
   }
   componentWillReceiveProps () {
     this.listenTo(this.searchStore, this.searchChanged);
@@ -70,6 +72,27 @@ class SidebarFormsList extends Reflux.Component {
   }
   render () {
     var s = this.state;
+    var activeItems = 'defaultQueryCategorizedResultsLists';
+
+    // sync sidebar with main list when it is not a search query, allows for deletes to update the sidebar as well
+    // this is a temporary fix, a proper fix needs to update defaultQueryCategorizedResultsLists when deleting/archiving/cloning
+    if (s.searchState === 'done' && 
+        (s.searchString === false || s.searchString === "") &&
+        s.searchResultsFor && 
+        s.searchResultsFor.assetType === 'asset_type:survey')
+      activeItems = 'searchResultsCategorizedResultsLists';
+
+    if (s.searchState === 'loading' && s.searchString === false ) {
+      return (
+        <bem.Loading>
+          <bem.Loading__inner>
+            <i />
+            {t('loading...')} 
+          </bem.Loading__inner>
+        </bem.Loading>
+      );
+    }
+
     return (
       <bem.FormSidebar>
         { 
@@ -94,7 +117,7 @@ class SidebarFormsList extends Reflux.Component {
               return ['Deployed', 'Draft', 'Archived' /*, 'Deleted'*/].map(
                 (category) => {
                   var categoryVisible = this.state.selectedCategories[category];
-                  if (s.defaultQueryCategorizedResultsLists[category].length < 1) {
+                  if (s[activeItems][category].length < 1) {
                     categoryVisible = false;
                   }
                   return [
@@ -103,13 +126,12 @@ class SidebarFormsList extends Reflux.Component {
                       <i />
                       {t(category)}
                       <bem.FormSidebar__labelCount>
-                        {s.defaultQueryCategorizedResultsLists[category].length}
+                        {s[activeItems][category].length}
                       </bem.FormSidebar__labelCount>
                     </bem.FormSidebar__label>,
                     <bem.FormSidebar__grouping m={[category, categoryVisible ? 'visible' : 'collapsed']}>
                       {
-                        s.defaultQueryCategorizedResultsLists[category].map(
-                          this.renderMiniAssetRow)
+                        s[activeItems][category].map(this.renderMiniAssetRow)
                       }
                     </bem.FormSidebar__grouping>
                   ];

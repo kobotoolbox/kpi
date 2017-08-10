@@ -42,9 +42,6 @@ class FormSidebar extends Reflux.Component {
     ];
     autoBind(this);
   }
-  componentDidMount () {
-    this.searchDefault();
-  }
   componentWillMount() {
     this.setStates();
   }
@@ -93,10 +90,6 @@ class FormSidebar extends Reflux.Component {
     this.setStates();
   }
 
-};
-
-FormSidebar.contextTypes = {
-  router: PropTypes.object
 };
 
 reactMixin(FormSidebar.prototype, searches.common);
