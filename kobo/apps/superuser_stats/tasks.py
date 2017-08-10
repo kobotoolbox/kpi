@@ -5,7 +5,7 @@ from celery import shared_task
 
 @shared_task
 def generate_user_report(output_filename):
-    import csv
+    import unicodecsv
     from django.core.files.storage import get_storage_class
     from django.contrib.auth.models import User
     from kpi.deployment_backends.kc_access.shadow_models import _models
@@ -92,7 +92,7 @@ def generate_user_report(output_filename):
 
     default_storage = get_storage_class()()
     with default_storage.open(output_filename, 'wb') as output_file:
-        writer = csv.writer(output_file)
+        writer = unicodecsv.writer(output_file)
         writer.writerow(columns)
         u = None
         while True:
