@@ -295,6 +295,12 @@ export class ProjectDownloads extends React.Component {
       }
     }
   }
+  componentDidMount () {
+    let translations = this.props.asset.content.translations;
+    if (translations.length > 1) {
+      this.setState({lang: translations[0]});
+    }
+  }
   render () {
     let translations = this.props.asset.content.translations;
     var docTitle = this.props.asset.name || t('Untitled');
@@ -324,7 +330,9 @@ export class ProjectDownloads extends React.Component {
                 <select name="lang" value={this.state.lang}
                     onChange={this.langChange}>
                   <option value="xml">{t('XML values and headers')}</option>
-                  <option value="_default">{t('Labels')}</option>
+                  { translations.length < 2 &&
+                    <option value="_default">{t('Labels')}</option>
+                  }
                   {
                     translations && translations.map((t, i) => {
                       if (t) {
