@@ -684,6 +684,7 @@ export default assign({
   },
 
   render () {
+    console.log(this.constructor.name);
     var isSurvey = this.app && this.constructor.name === 'FormPage';
     var docTitle = this.state.name || t('Untitled');
     return (
