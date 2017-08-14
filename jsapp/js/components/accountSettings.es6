@@ -332,7 +332,13 @@ export class ChangePassword extends React.Component {
   constructor (props) {
     super(props);
     this.errors = {};
-    this.state = {errors: this.errors};
+    this.state = {
+      errors: this.errors,
+      currentPassword: '',
+      newPassword: '',
+      verifyPassword: ''
+    };
+    autoBind(this);
   }
   componentDidMount () {
     this.listenTo(
