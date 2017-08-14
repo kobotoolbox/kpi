@@ -92,6 +92,10 @@ class FormSidebar extends Reflux.Component {
 
 };
 
+FormSidebar.contextTypes = {
+  router: PropTypes.object
+};
+
 reactMixin(FormSidebar.prototype, searches.common);
 reactMixin(FormSidebar.prototype, mixins.droppable);
 
