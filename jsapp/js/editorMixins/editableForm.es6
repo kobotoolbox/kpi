@@ -684,7 +684,7 @@ export default assign({
   },
 
   render () {
-    var isSurvey = this.app && this.constructor.name === 'FormPage';
+    var isSurvey = this.app && this.state.backRoute === '/forms';
     var docTitle = this.state.name || t('Untitled');
     return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
