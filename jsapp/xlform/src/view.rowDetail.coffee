@@ -241,7 +241,7 @@ module.exports = do ->
     #   # default behavior...
     #   rowView.defaultRowDetailParent.append(@el)
 
-  viewRowDetail.DetailViewMixins.tags =
+  viewRowDetail.DetailViewMixins.hxl =
     html: ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
