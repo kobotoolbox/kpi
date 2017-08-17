@@ -364,6 +364,41 @@ var dataInterface;
       var assetType = assetMapping[id[0]];
       return $.getJSON(`${rootUrl}/${assetType}/${id}/`);
     },
+    getToken() {
+      return $ajax({
+        url: `${rootUrl}/token/`,
+        method: 'GET'
+      });
+    },
+    getKCForm(url, token, uid) {
+      return $ajax({
+        url: `${url}/api/v1/forms?id_string=${uid}`,
+        method: 'GET',
+        headers: {
+          Authorization: `Token ${token}`
+        }
+      });
+    },
+    getKCFormData(url, token, formid) {
+      return $ajax({
+        url: `${url}/api/v1/data/${formid}`,
+        method: 'GET',
+        headers: {
+          Authorization: `Token ${token}`
+        }
+      });
+    },
+    getTableData(url, token) {
+      console.log(url)
+      return $ajax({
+        url: `http://192.168.120.163:8001/api/v1/forms/25`,
+        method: 'GET',
+        headers: {
+          Authorization: `Token ${token}`
+        }
+      });
+
+    },
     login: (creds)=> {
       return $ajax({ url: `${rootUrl}/api-auth/login/?next=/me/`, data: creds, method: 'POST'});
     }

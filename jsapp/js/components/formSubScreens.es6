@@ -14,6 +14,7 @@ import ui from '../ui';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import SharingForm from '../components/sharingForm';
+import DataTable from '../components/table';
 
 import {
   ProjectSettingsEditor,
@@ -59,7 +60,8 @@ export class FormSubScreens extends React.Component {
           iframeUrl = report__base+'/digest.html';
           break;
         case `/forms/${this.state.uid}/data/table`:
-          iframeUrl = report__base+'/export.html';
+          return this.renderTable();
+          // iframeUrl = report__base+'/export.html';
           break;
         case `/forms/${this.state.uid}/data/gallery`:
           iframeUrl = deployment__identifier+'/photos';
@@ -125,6 +127,16 @@ export class FormSubScreens extends React.Component {
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
           <bem.FormView m='form-data-downloads'>
             <ProjectDownloads asset={this.state} />
+          </bem.FormView>
+        </DocumentTitle>
+    );
+  }
+  renderTable() {
+    var docTitle = this.state.name || t('Untitled');
+    return (
+        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+          <bem.FormView m='form-data-table'>
+            <DataTable asset={this.state} />
           </bem.FormView>
         </DocumentTitle>
     );
