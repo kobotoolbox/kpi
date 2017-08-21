@@ -135,9 +135,7 @@ export class FormSubScreens extends React.Component {
     var docTitle = this.state.name || t('Untitled');
     return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          <bem.FormView m='form-data-table'>
-            <DataTable asset={this.state} />
-          </bem.FormView>
+          <DataTable asset={this.state} />
         </DocumentTitle>
     );
   }

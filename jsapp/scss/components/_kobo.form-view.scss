@@ -97,6 +97,17 @@
   }
 }
 
+.page-wrapper--header-hidden.page-wrapper--drawer-hidden {
+  .form-view__sidetabs {
+    width: 0px;
+  }
+
+  .form-view__sidetabs + .form-view,
+  .form-view__sidetabs + .report-view {
+    width: calc(100% - 1px);
+  }
+}
+
 .form-view__row {
   margin: 40px;
   margin-right: 44px;

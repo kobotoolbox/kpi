@@ -25,58 +25,64 @@ export class DataTable extends React.Component {
     this.state = {
     	loading: true,
     	tableData: [],
-    	columns: []
+    	columns: [],
+      showExpandedTable: false,
+      totalResults: 0,
+      showingResults: '1 - 30',
+      defaultPageSize: 30
     };
     autoBind(this);
 
   }
   componentDidMount() {
+    this.requestData();
+  }
 
-  	// TEMPORARY hook-up to KC API (NOT FOR PRODUCTION)
-  	// Only works with --disable-web-security flag in browser
+  requestData() {
+    // TEMPORARY hook-up to KC API (NOT FOR PRODUCTION)
+    // Only works with --disable-web-security flag in browser
     dataInterface.getToken().done((t) => {
-    	if (t && t.token) {
-		    var kc_server = document.createElement('a');
-		    kc_server.href = this.props.asset.deployment__identifier;
-		    let kc_url = kc_server.origin;
+      if (t && t.token) {
+        var kc_server = document.createElement('a');
+        kc_server.href = this.props.asset.deployment__identifier;
+        let kc_url = kc_server.origin;
 
-    		if (this.props.asset.uid) {
-    			let uid = this.props.asset.uid;
-    			dataInterface.getKCForm(kc_url, t.token, uid).done((form) => {
-    				if (form && form.length === 1) {
-    					form = form[0];
-		    			dataInterface.getKCFormData(kc_url, t.token, form.formid).done((data) => {
+        if (this.props.asset.uid) {
+          let uid = this.props.asset.uid;
+          dataInterface.getKCForm(kc_url, t.token, uid).done((form) => {
+            if (form && form.length === 1) {
+              form = form[0];
+              dataInterface.getKCFormData(kc_url, t.token, form.formid).done((data) => {
+                this.setState({
+                  loading: false,
+                  tableData: data,
+                  totalResults: data.length
+                })
 
-		    				this.setState({
-		    					loading: false,
-		    					tableData: data
-		    				})
+                this._prepColumns(data);
 
-		    				this._prepColumns(data);
-
-		    			}).fail((failData)=>{
-		      			console.log(failData);
-					    });
-    				}
-    			}).fail((failData)=>{
-      			console.log(failData);
-			    });
-    		}
-    	}
+              }).fail((failData)=>{
+                console.log(failData);
+              });
+            }
+          }).fail((failData)=>{
+            console.log(failData);
+          });
+        }
+      }
     }).fail((failData)=>{
       alert('failed token');
     });
   }
 
   _prepColumns(data) {
-  	console.log(data)
 		var uniqueKeys = Object.keys(data.reduce(function(result, obj) {
 		  return Object.assign(result, obj);
 		}, {}))
 
 		var columns = [];
     uniqueKeys.forEach(function(key){
-    	if (key.startsWith('_') || key.includes('/')) {
+    	if (key.includes('/')) {
     		// exclude these
     	} else {
       	columns.push({
@@ -92,6 +98,22 @@ export class DataTable extends React.Component {
 
   }
 
+  toggleExpandedTable () {
+    stores.pageState.hideDrawerAndHeader(!this.state.showExpandedTable);
+    this.setState({
+      showExpandedTable: !this.state.showExpandedTable,
+    });
+  }
+
+  componentWillUnmount() {
+    if (this.state.showExpandedTable)
+      stores.pageState.hideDrawerAndHeader(!this.state.showExpandedTable);
+  }
+
+  launchPrinting () {
+    window.print();
+  }
+
   render () {
   	if (this.state.loading) {
 	    return (
@@ -104,39 +126,41 @@ export class DataTable extends React.Component {
 	    );  		
   	}
 
-  const data = [{
-    name: 'Tanner Linsley',
-    age: 26,
-    friend: {
-      name: 'Jason Maurer',
-      age: 23,
-    }
-  }]
-
-  const columns = [{
-    Header: 'Name',
-    accessor: 'name' // String-based value accessors!
-  }, {
-    Header: 'Age',
-    accessor: 'age',
-    Cell: props => <span className='number'>{props.value}</span> // Custom cell components!
-  }, {
-    id: 'friendName', // Required because our accessor is not a string
-    Header: 'Friend Name',
-    accessor: d => d.friend.name // Custom value accessors!
-  }, {
-    Header: props => <span>Friend Age</span>, // Custom header components!
-    accessor: 'friend.age'
-  }]
+    const { tableData, columns, defaultPageSize } = this.state;
 
     return (
-      <bem.FormView>
+      <bem.FormView m='table'>
+        <bem.FormView__group m="table-header">
+          <bem.FormView__item m='table-meta'>
+            {`${this.state.showingResults} `}
+            {t('of')}
+            {` ${this.state.totalResults} `}
+            {t('results')}
+          </bem.FormView__item>
+          <bem.FormView__item m='table-buttons'>
+            <button className="mdl-button mdl-button--icon report-button__print" 
+                    onClick={this.launchPrinting} 
+                    data-tip={t('Print')}>
+              <i className="k-icon-print" />
+            </button>
+
+            <button className="mdl-button mdl-button--icon report-button__expand"
+                    onClick={this.toggleExpandedTable} 
+                    data-tip={t('Expand')}>
+              <i className="k-icon-expand" />
+            </button>   
+          </bem.FormView__item>
+        </bem.FormView__group>
 
 	  		<ReactTable
-  	  		data={this.state.tableData}
-    			columns={this.state.columns}
+  	  		data={tableData}
+    			columns={columns}
+          defaultPageSize={defaultPageSize}
+          filterable
+          pageSizeOptions={[30, 50, 100]}
+          minRows={1}
+          className={"-striped -highlight"}
 		  		/>
-
       </bem.FormView>
     );
   }

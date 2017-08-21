@@ -1,0 +1,30 @@
+.form-view--table {
+  padding: 0px 60px;
+
+  .form-view__group--table-header {
+    padding: 20px 0px;
+    display: flex;
+    justify-content: 'space-between';
+
+    .form-view__item--table-meta {
+      flex-grow: 1;
+      line-height: 40px;
+    }
+
+    .form-view__item--table-buttons {
+      flex-grow: 1;
+      text-align: right;
+
+      button {
+        overflow: visible;
+      }
+    }
+  }
+
+  .ReactTable {
+    border: 1px solid $divider-color;
+    background-color: #FFF;
+    z-index: 1;
+    font-size: 12px;
+  }
+}
