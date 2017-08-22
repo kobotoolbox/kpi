@@ -247,6 +247,7 @@ module.exports = do ->
       @$el.addClass("card__settings__fields--#{@fieldTab}")
       label = _t("HXL")
       hxlAttrs = ""
+      console.log(@model.get("value"))
       if (@model.get("value"))
         tags = @model.get("value").split(':')
         if (tags[1])
