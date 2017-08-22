@@ -23,22 +23,20 @@ export class DataTable extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-    	loading: true,
+    	loading: false,
     	tableData: [],
     	columns: [],
       showExpandedTable: false,
-      totalResults: 0,
-      showingResults: '1 - 30',
-      defaultPageSize: 30
+      defaultPageSize: 30,
+      pageSize: 30,
+      pages: null,
+      currentPage: 0
     };
-    autoBind(this);
-
-  }
-  componentDidMount() {
-    this.requestData();
+    autoBind(this);    
+    this.fetchData = this.fetchData.bind(this);
   }
 
-  requestData() {
+  requestData(pageSize, page, sort) {
     // TEMPORARY hook-up to KC API (NOT FOR PRODUCTION)
     // Only works with --disable-web-security flag in browser
     dataInterface.getToken().done((t) => {
@@ -52,11 +50,10 @@ export class DataTable extends React.Component {
           dataInterface.getKCForm(kc_url, t.token, uid).done((form) => {
             if (form && form.length === 1) {
               form = form[0];
-              dataInterface.getKCFormData(kc_url, t.token, form.formid).done((data) => {
+              dataInterface.getKCFormData(kc_url, t.token, form.formid, pageSize, page, sort).done((data) => {
                 this.setState({
                   loading: false,
-                  tableData: data,
-                  totalResults: data.length
+                  tableData: data
                 })
 
                 this._prepColumns(data);
@@ -71,7 +68,7 @@ export class DataTable extends React.Component {
         }
       }
     }).fail((failData)=>{
-      alert('failed token');
+      console.log(failData);
     });
   }
 
@@ -81,16 +78,20 @@ export class DataTable extends React.Component {
 		}, {}))
 
 		var columns = [];
+    var excludes = ['_uuid', '_xform_id_string', '__version__', '_attachments', '_notes', '_bamboo_dataset_id',
+                    'formhub/uuid', 'meta/instanceID', '_tags', '_geolocation', '_submitted_by'];
     uniqueKeys.forEach(function(key){
-    	if (key.includes('/')) {
-    		// exclude these
-    	} else {
+    	if (!excludes.includes(key)) {
       	columns.push({
   	    	Header: key,
     	  	accessor: key
 	      });
     	}
     });
+
+    columns.sort(function(a, b) {
+      return a.accessor.localeCompare(b.accessor);
+    })
 
 		this.setState({
 			columns: columns
@@ -114,27 +115,34 @@ export class DataTable extends React.Component {
     window.print();
   }
 
-  render () {
-  	if (this.state.loading) {
-	    return (
-	      <bem.Loading>
-	        <bem.Loading__inner>
-	          <i />
-	          {t('loading...')}
-	        </bem.Loading__inner>
-	      </bem.Loading>
-	    );  		
-  	}
+  fetchData(state, instance) {
+    // Whenever the table model changes, or the user sorts or changes pages, this method gets called and passed the current table model.
+    // You can set the `loading` prop of the table to true to use the built-in one or show you're own loading bar if you want.
+    this.setState({ 
+      loading: true,
+      pageSize: state.pageSize,
+      currentPage: state.page
+    });
+    // Request the data however you want.  Here, we'll use our mocked service we created earlier
+    // console.log(state.sorted);
+    this.requestData(state.pageSize, state.page * state.pageSize, state.sorted);
+    // this.requestData(state.pageSize,state.page,state.sorted,state.filtered);
+  }
 
-    const { tableData, columns, defaultPageSize } = this.state;
+  render () {
+    const { tableData, columns, defaultPageSize, loading, pageSize, currentPage } = this.state;
+    const pages = Math.floor(((this.props.asset.deployment__submission_count - 1) / pageSize) + 1);
+    const res1 = (currentPage * pageSize) + 1;
+    const res2 = Math.min((currentPage + 1) * pageSize, this.props.asset.deployment__submission_count);
+    const showingResults = `${res1} - ${res2}`;
 
     return (
       <bem.FormView m='table'>
         <bem.FormView__group m="table-header">
           <bem.FormView__item m='table-meta'>
-            {`${this.state.showingResults} `}
+            {`${showingResults} `}
             {t('of')}
-            {` ${this.state.totalResults} `}
+            {` ${this.props.asset.deployment__submission_count} `}
             {t('results')}
           </bem.FormView__item>
           <bem.FormView__item m='table-buttons'>
@@ -156,10 +164,13 @@ export class DataTable extends React.Component {
   	  		data={tableData}
     			columns={columns}
           defaultPageSize={defaultPageSize}
-          filterable
-          pageSizeOptions={[30, 50, 100]}
+          pageSizeOptions={[30, 50, 100, 200, 500]}
           minRows={1}
           className={"-striped -highlight"}
+          pages={pages}
+          manual
+          onFetchData={this.fetchData}
+          loading={loading}
 		  		/>
       </bem.FormView>
     );

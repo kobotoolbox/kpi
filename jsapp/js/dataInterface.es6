@@ -379,25 +379,20 @@ var dataInterface;
         }
       });
     },
-    getKCFormData(url, token, formid) {
+    getKCFormData(url, token, formid, pageSize, page, sort) {
+      var q = `${url}/api/v1/data/${formid}?limit=${pageSize}&start=${page}`;
+      if (sort.length > 0) {
+        var f = sort[0].id;
+        var s = sort[0].desc === true ? `&sort={"${f}":-1}` : `&sort={"${f}":1}`;
+        q = `${url}/api/v1/data/${formid}?limit=${pageSize}&start=${page}${s}`;
+      }
       return $ajax({
-        url: `${url}/api/v1/data/${formid}`,
+        url: q,
         method: 'GET',
         headers: {
           Authorization: `Token ${token}`
         }
       });
-    },
-    getTableData(url, token) {
-      console.log(url)
-      return $ajax({
-        url: `http://192.168.120.163:8001/api/v1/forms/25`,
-        method: 'GET',
-        headers: {
-          Authorization: `Token ${token}`
-        }
-      });
-
     },
     login: (creds)=> {
       return $ajax({ url: `${rootUrl}/api-auth/login/?next=/me/`, data: creds, method: 'POST'});
