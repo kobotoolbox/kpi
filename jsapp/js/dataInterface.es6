@@ -394,14 +394,6 @@ var dataInterface;
         }
       });
     },
-    getMapSubmissions (params) {
-      console.log(params);
-      // TODO: connect to real data
-      if (params.kuid)
-        return $.getJSON(`http://localhost:3000/test-data-map-filtered.json`);
-      if (!params.kuid)
-        return $.getJSON(`http://localhost:3000/test-data-map.json`);
-    },
     login: (creds)=> {
       return $ajax({ url: `${rootUrl}/api-auth/login/?next=/me/`, data: creds, method: 'POST'});
     }

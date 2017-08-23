@@ -246,32 +246,25 @@ export class FormMap extends React.Component {
 
   showMarkers () {
     var map = this.state.map;
-    var markers = this.state.markers;
-    var heatmap = this.state.heatmap;
-
-    if (map.hasLayer(heatmap)) {
-      map.addLayer(markers);
-      map.removeLayer(heatmap);
-      this.setState({
-          markersVisible: true
-        }
-      );
-    }
+    map.addLayer(this.state.markers);
+    map.removeLayer(this.state.heatmap);
+    this.setState({
+        markersVisible: true
+      }
+    );
   }
 
   showHeatmap () {
     var map = this.state.map;
-    var markers = this.state.markers;
-    var heatmap = this.state.heatmap;
+    // var markers = this.state.markers;
+    // var heatmap = this.state.heatmap;
 
-    if (map.hasLayer(markers)) {
-      map.addLayer(heatmap);
-      map.removeLayer(markers);
-      this.setState({
-          markersVisible: false
-        }
-      );
-    }
+    map.addLayer(this.state.heatmap);
+    map.removeLayer(this.state.markers);
+    this.setState({
+        markersVisible: false
+      }
+    );
   }
 
   filterMap (evt) {
