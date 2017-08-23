@@ -1,5 +1,8 @@
 import $ from 'jquery';
 import React from 'react';
+import PropTypes from 'prop-types';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import _ from 'underscore';
 import bem from '../bem';
@@ -12,16 +15,19 @@ import {
   assign,
 } from '../utils';
 
-var FormViewTabs = React.createClass({
-  mixins: [
-    Reflux.connect(stores.session, 'session'),
-    Reflux.connect(stores.pageState, 'pageState'),
-    Reflux.ListenerMixin,
-    mixins.contextRouter
-  ],
+class FormViewTabs extends Reflux.Component {
+  constructor(props){
+    super(props);
+    this.state = {};
+    this.stores = [
+      stores.session,
+      stores.pageState
+    ];
+    autoBind(this);
+  }
   componentDidMount() {
     this.listenTo(stores.asset, this.assetLoad);
-  },
+  }
   assetLoad(data) {
     var assetid = this.currentAssetID();
     var asset = data[assetid];
@@ -30,7 +36,7 @@ var FormViewTabs = React.createClass({
         assetid: assetid
       }
     ));
-  },
+  }
   userCanEditAsset() {
     if (stores.session.currentAccount && this.state.asset) {
       const currentAccount = stores.session.currentAccount;
@@ -39,7 +45,7 @@ var FormViewTabs = React.createClass({
     }
 
     return false;
-  },
+  }
   triggerRefresh (evt) {
     if ($(evt.target).hasClass('active')) {
       hashHistory.push(`/forms/${this.state.assetid}/reset`);
@@ -51,7 +57,7 @@ var FormViewTabs = React.createClass({
 
       evt.preventDefault();
     }
-  },
+  }
   renderTopTabs () {
     return (
       <bem.FormView__toptabs>
@@ -89,11 +95,11 @@ var FormViewTabs = React.createClass({
 
       </bem.FormView__toptabs>
     );
-  },
+  }
   renderFormSideTabs() {
     var sideTabs = [];
 
-    if (this.state.asset && this.state.asset.deployment__active && this.isActiveRoute(`/forms/${this.state.assetid}/data`)) {
+    if (this.state.asset && this.state.asset.has_deployment && this.isActiveRoute(`/forms/${this.state.assetid}/data`)) {
      sideTabs = [
         {label: t('Reports'), icon: 'k-icon-report', path: `/forms/${this.state.assetid}/data/report`},
         {label: t('Reports (legacy)'), icon: 'k-icon-report', path: `/forms/${this.state.assetid}/data/report-legacy`, className: 'is-edge'},
@@ -133,7 +139,7 @@ var FormViewTabs = React.createClass({
     }
 
     return false;
-  },
+  }
   render() {
     if (!this.props.show)
       return false;
@@ -149,6 +155,13 @@ var FormViewTabs = React.createClass({
 	  }
   }
 
-})
+};
+
+reactMixin(FormViewTabs.prototype, Reflux.ListenerMixin);
+reactMixin(FormViewTabs.prototype, mixins.contextRouter);
+
+FormViewTabs.contextTypes = {
+  router: PropTypes.object
+};
 
 export default FormViewTabs;

@@ -1,4 +1,7 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import Dropzone from 'react-dropzone';
 import $ from 'jquery';
 import { Link } from 'react-router'; 
@@ -17,18 +20,16 @@ import {
   assign,
   validFileTypes
 } from '../utils';
-  
-var AssetRow = React.createClass({
-  mixins: [
-    mixins.droppable,
-    mixins.contextRouter
-  ],
-  getInitialState () {
-    return {
+
+class AssetRow extends React.Component {
+  constructor(props){
+    super(props);
+    this.state = {
       tags: this.props.tags,
       clearPopover: false
     };
-  },
+    autoBind(this);
+  }
   // clickAsset (evt) {
   //   // this click was not intended for a button
   //   evt.nativeEvent.preventDefault();
@@ -39,7 +40,7 @@ var AssetRow = React.createClass({
   //   // otherwise, toggle selection (unselect if already selected)
   //   // let forceSelect = (stores.selectedAsset.uid === false);
   //   // stores.selectedAsset.toggleSelect(this.props.uid, forceSelect);
-  // },
+  // }
   clickAssetButton (evt) {
     var clickedActionIcon = $(evt.target).closest('[data-action]').get(0);
     if (clickedActionIcon) {
@@ -48,21 +49,21 @@ var AssetRow = React.createClass({
       stores.selectedAsset.toggleSelect(this.props.uid, true);
       this.props.onActionButtonClick(action, this.props.uid, name);
     }
-  },
+  }
   clickTagsToggle (evt) {
     var tagsToggle = !this.state.displayTags;
       this.setState({
         displayTags: tagsToggle,
       });
-  },
+  }
   componentDidMount () {
     this.prepParentCollection();
-  },
+  }
   prepParentCollection () {
     this.setState({
       parent: this.props.parent,
     });
-  },
+  }
   moveToCollection (evt) {
     var uid = this.props.uid;
     var collid = '/collections/' + evt.currentTarget.dataset.collid + '/';
@@ -79,26 +80,20 @@ var AssetRow = React.createClass({
         parent: collid,
       });
     });
-  },
+  }
   preventDefault (evt) {
     evt.preventDefault();
-  },
+  }
   clearPopover () {
     this.setState({
       clearPopover: true,
     });
-  },
-  onDrop (files, rejectedFiles) {
-    if (files.length === 0) {
-      return;
-    }
-    this.dropFiles(files, rejectedFiles, {url: this.props.url});
-  },
+  }
   render () {
     var selfowned = this.props.owner__username === this.props.currentUsername;
 
     var isPublic = this.props.owner__username === anonUsername;
-    var _rc = this.props.summary && this.props.summary.row_count;
+    var _rc = this.props.summary && this.props.summary.row_count || 0;
 
     var hrefTo = `/forms/${this.props.uid}`,
         linkClassName = this.props.name ? 'asset-row__celllink--titled' : 'asset-row__celllink--untitled',
@@ -146,12 +141,11 @@ var AssetRow = React.createClass({
               >
             <bem.AssetRow__cell m={'title'} 
                 className={['mdl-cell', 
-                    this.props.asset_type == 'survey' ? 'mdl-cell--5-col mdl-cell--3-col-tablet mdl-cell--2-col-phone' : 'mdl-cell--6-col mdl-cell--3-col-tablet mdl-cell--2-col-phone']}>
-              { this.props.asset_type && this.props.asset_type == 'block' &&
-                <i className="row-icon k-icon-questions-block" />
-              }
-              { this.props.asset_type && this.props.asset_type == 'question' &&
-                <i className="row-icon k-icon-question" />
+                    this.props.asset_type == 'survey' ? 'mdl-cell--5-col mdl-cell--4-col-tablet mdl-cell--2-col-phone' : 'mdl-cell--8-col mdl-cell--5-col-tablet mdl-cell--2-col-phone']}>
+              { this.props.asset_type && (this.props.asset_type == 'block' || this.props.asset_type == 'question') &&
+                <i className={`row-icon ${_rc > 1 ? 'block' : 'question'}`}>
+                  {_rc}
+                </i>
               }
               <Link to={hrefTo}
                     data-kind={this.props.kind}
@@ -167,16 +161,21 @@ var AssetRow = React.createClass({
                 </bem.AssetRow__description>
               }
             </bem.AssetRow__cell>
-            { this.props.asset_type == 'survey' &&
-              <bem.AssetRow__cell m={'userlink'} key={'userlink'} className={['mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--hide-phone']}>
-                  {selfowned ? ' ' : this.props.owner__username}
-              </bem.AssetRow__cell>
-            }
-            { this.props.asset_type != 'survey' &&
-              <bem.AssetRow__cell m={'userlink'} key={'userlink'} className={['mdl-cell mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--hide-phone']}>
-                  {selfowned ? t('me') : this.props.owner__username}
-              </bem.AssetRow__cell>
-            }
+            <bem.AssetRow__cell m={'userlink'}
+                key={'userlink'}
+                  className={['mdl-cell', 
+                  this.props.asset_type == 'survey' ? 'mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--hide-phone' : 'mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone']}>
+              { this.props.asset_type == 'survey' &&
+                <span>
+                {selfowned ? ' ' : this.props.owner__username}
+                </span>
+              }
+              { this.props.asset_type != 'survey' &&
+                <span>
+                {selfowned ? t('me') : this.props.owner__username}
+                </span>
+              }
+            </bem.AssetRow__cell>
             { this.props.asset_type == 'survey' &&
               <bem.AssetRow__cell m={'date-created'}
                   key={'date-created'}
@@ -191,30 +190,15 @@ var AssetRow = React.createClass({
               <span className="date date--modified">{formatTime(this.props.date_modified)}</span>
             </bem.AssetRow__cell>
             { this.props.asset_type == 'survey' &&
-              (
                 <bem.AssetRow__cell m={'submission-count'}
                     key={'submisson-count'}
-                    className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone"
+                    className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--1-col-phone"
                     >
                   {
                     this.props.deployment__submission_count ?
                       this.props.deployment__submission_count : 0
                   }
                 </bem.AssetRow__cell>
-              ) || (
-                <bem.AssetRow__cell m={'row-count'}
-                    key={'row-count'}
-                    className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone"
-                    >
-                  {()=>{
-                    if (this.props.asset_type === 'question') {
-                      return '-';
-                    } else {
-                      return _rc;
-                    }
-                  }()}
-                </bem.AssetRow__cell>
-              )
             }
           </bem.AssetRow__cell>
           { this.state.displayTags &&
@@ -301,9 +285,9 @@ var AssetRow = React.createClass({
                 </bem.PopoverMenu__link>
               }
               { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit &&
-                <Dropzone onDrop={this.onDrop} 
+                <Dropzone onDrop={this.dropFiles}
                           multiple={false} 
-                          className='dropzone' 
+                          className='dropzone'
                           accept={validFileTypes()}>
                   <bem.PopoverMenu__link
                         m={'refresh'}
@@ -379,6 +363,13 @@ var AssetRow = React.createClass({
         </bem.AssetRow>
       );
   }
-});
- 
+};
+
+reactMixin(AssetRow.prototype, mixins.droppable);
+reactMixin(AssetRow.prototype, mixins.contextRouter);
+
+AssetRow.contextTypes = {
+  router: PropTypes.object
+};
+
 export default AssetRow;

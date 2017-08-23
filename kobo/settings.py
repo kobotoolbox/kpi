@@ -86,7 +86,9 @@ INSTALLED_APPS = (
     'rest_framework.authtoken',
     'oauth2_provider',
     'markitup',
-    'django_digest'
+    'django_digest',
+    'kobo.apps.superuser_stats',
+    'guardian', # For access to KC permissions ONLY
 )
 
 MIDDLEWARE_CLASSES = (
@@ -330,15 +332,19 @@ CELERYBEAT_SCHEDULE = {
 }
 
 if 'KOBOCAT_URL' in os.environ:
-    # Create/update KPI assets to match KC forms
-    SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES = int(os.environ.get('SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES',
-                                                            '30'))
-    CELERYBEAT_SCHEDULE['sync-kobocat-xforms'] = {
-        'task': 'kpi.tasks.sync_kobocat_xforms',
-        'schedule': timedelta(minutes=SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES),
-        'options': {'queue': 'sync_kobocat_xforms_queue',
-                    'expires': SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES /2. * 60},
-    }
+    SYNC_KOBOCAT_XFORMS = (os.environ.get('SYNC_KOBOCAT_XFORMS', 'True') == 'True')
+    SYNC_KOBOCAT_PERMISSIONS = (
+        os.environ.get('SYNC_KOBOCAT_PERMISSIONS', 'True') == 'True')
+    if SYNC_KOBOCAT_XFORMS:
+        # Create/update KPI assets to match KC forms
+        SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES = int(
+            os.environ.get('SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES', '30'))
+        CELERYBEAT_SCHEDULE['sync-kobocat-xforms'] = {
+            'task': 'kpi.tasks.sync_kobocat_xforms',
+            'schedule': timedelta(minutes=SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES),
+            'options': {'queue': 'sync_kobocat_xforms_queue',
+                        'expires': SYNC_KOBOCAT_XFORMS_PERIOD_MINUTES /2. * 60},
+        }
 
 '''
 Distinct projects using Celery need their own queues. Example commands for
@@ -390,7 +396,7 @@ if os.environ.get('DEFAULT_FROM_EMAIL'):
     DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
     SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
-KOBO_SUPPORT_URL = os.environ.get('KOBO_SUPPORT_URL', 'http://support.kobotoolbox.org/')
+KOBO_SUPPORT_URL = os.environ.get('KOBO_SUPPORT_URL', 'http://help.kobotoolbox.org/')
 KOBO_SUPPORT_EMAIL = os.environ.get('KOBO_SUPPORT_EMAIL') or os.environ.get('DEFAULT_FROM_EMAIL', 'support@kobotoolbox.org')
 
 if os.environ.get('AWS_ACCESS_KEY_ID'):

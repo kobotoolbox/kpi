@@ -23,17 +23,14 @@ from rest_framework.authtoken.models import Token
 from formpack.utils.xls_to_ss_structure import xls_to_dicts
 from hub.models import FormBuilderPreference
 from ...deployment_backends.kobocat_backend import KobocatDeploymentBackend
-from ...deployment_backends.kc_reader.shadow_models import _models
+from ...deployment_backends.kc_access.shadow_models import _models
 from ...models import Asset, ObjectPermission
 from .import_survey_drafts_from_dkobo import _set_auto_field_update
 
 TIMESTAMP_DIFFERENCE_TOLERANCE = datetime.timedelta(seconds=30)
 
-PERMISSIONS_MAP = { # keys are KC's codenames, values are KPI's
-    'change_xform': 'change_submissions', # "Can Edit" in KC UI
-    'view_xform': 'view_submissions', # "Can View" in KC UI
-    'report_xform': 'add_submissions', # "Can submit to" in KC UI
-}
+# Swap keys and values so that keys are KC's codenames and values are KPI's
+PERMISSIONS_MAP = {kc: kpi for kpi, kc in Asset.KC_PERMISSIONS_MAP.iteritems()}
 
 # Optimization
 ASSET_CT = ContentType.objects.get_for_model(Asset)
@@ -210,9 +207,9 @@ def _sync_form_content(asset, xform, changes):
         # If KC timestamp is close enough to the KPI timestamp, we assume the
         # KC form content was not updated since the last KPI deployment
         if time_diff <= TIMESTAMP_DIFFERENCE_TOLERANCE:
-            # We don't need an update, but we should copy the hash from KC to
-            # KPI for future reference
-            backend_response['hash'] = xform.prefixed_hash
+            # Don't update the content, but flip `modified` to `True` in order
+            # to refresh the backend response. This gets us a matching hash,
+            # among other things
             modified = True
             changes.append('HASH')
         else:
@@ -220,6 +217,13 @@ def _sync_form_content(asset, xform, changes):
             asset.date_modified = xform.date_modified
             modified = True
             changes.append('UPDATE')
+
+    if modified:
+        # It's important to update `deployment_data` with the new hash from KC;
+        # otherwise, we'll be re-syncing the same content forever (issue #1302)
+        asset._deployment_data[
+            'backend_response'] = _get_kc_backend_response(xform)
+
     return modified
 
 
@@ -280,8 +284,7 @@ def _sync_form_metadata(asset, xform, changes):
             changes.append('NAME')
 
     if fetch_backend_response:
-        deployment_data[
-            'backend_response'] = _get_kc_backend_response(xform)
+        deployment_data['backend_response'] = _get_kc_backend_response(xform)
         modified = True
 
     affected_users = _sync_permissions(asset, xform)
@@ -293,6 +296,11 @@ def _sync_form_metadata(asset, xform, changes):
 
 
 def _sync_permissions(asset, xform):
+    # Returns a list of affected users' usernames
+
+    if not settings.SYNC_KOBOCAT_PERMISSIONS:
+        return []
+
     # Get all applicable KC permissions set for this xform
     xform_user_perms = UserObjectPermission.objects.filter(
         permission_id__in=PERMISSIONS_MAP.keys(),
@@ -366,9 +374,9 @@ def _sync_permissions(asset, xform):
                 object_id=asset.pk
             )
         for p in perms_to_assign:
-            asset.assign_perm(user_obj, KPI_CODENAMES[p])
+            asset.assign_perm(user_obj, KPI_CODENAMES[p], skip_kc=True)
         for p in perms_to_revoke:
-            asset.remove_perm(user_obj, KPI_CODENAMES[p])
+            asset.remove_perm(user_obj, KPI_CODENAMES[p], skip_kc=True)
         if all_revoked and FROM_KC_ONLY_PERMISSION.pk in all_kpi_perms:
             # This user's KPI access came only from this script, and now all KC
             # permissions have been removed. Purge all KPI grant permissions,
@@ -419,9 +427,6 @@ class Command(BaseCommand):
                 'Both KOBOCAT_URL and KOBOCAT_INTERNAL_URL must be '
                 'configured before using this command'
             )
-        # FIXME: Remove this warning altogether
-        self.stderr.write(
-            'INFO: Please disregard warning guardian.W001\n')
         self._quiet = options.get('quiet')
         users = User.objects.all()
         # Do a basic query just to make sure the lazy XForm model is loaded
@@ -463,7 +468,6 @@ class Command(BaseCommand):
                 xform_uuids_to_asset_pks[backend_response['uuid']] = \
                     existing_survey.pk
 
-            # Use our stub model to access KC's XForm objects
             xforms = user.xforms.all()
             for xform in xforms:
                 try:

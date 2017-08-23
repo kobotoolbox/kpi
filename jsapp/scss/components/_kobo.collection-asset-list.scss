@@ -15,15 +15,11 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
 
-    &.asset-list-sorts__item--questions,
-    &.asset-list-sorts__item--submissions {
-      text-align: right;
-
-      &:after {
-        display: none;
-      }
-    }
+  .asset-list-sorts__item--submissions {
+    text-align: right;
+    letter-spacing: -0.03em;
   }
 }
 
@@ -105,6 +101,11 @@ div.library {
   .asset-list-sorts {
     margin-top: 5px;
   }
+
+  .asset-row__cell--date-modified,
+  .asset-list-sorts__item--modified {
+    text-align: right;
+  }
 }
 
 // grouped list for Projects
@@ -142,6 +143,10 @@ div.library {
       margin-top: 20px;
     }
   }
+
+  .asset-row__cell--submission-count {
+    text-align: right;
+  }
 }
 
 // fixed headings when scrolling asset list
@@ -177,5 +182,23 @@ div.library {
 
   .list__heading, .list__subheading {
     padding-left: 12px;
+  }
+}
+
+@media screen and (min-width: 840px) {
+  .asset-list-sorts {
+    .asset-list-sorts__item--submissions {
+      margin: 0px -4px;
+      width: calc(8.33333% + 8px);
+    }
+  }
+}
+
+@media screen and (max-width: 839px) and (min-width: 480px) {
+  .asset-list-sorts {
+    .asset-list-sorts__item--submissions {
+      margin: 0px -4px;
+      width: calc(12.5% + 8px);
+    }
   }
 }

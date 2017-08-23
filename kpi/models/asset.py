@@ -5,6 +5,7 @@
 import re
 import copy
 import json
+import logging
 import StringIO
 from collections import OrderedDict
 
@@ -499,6 +500,13 @@ class Asset(ObjectPermissionMixin,
         'view_submissions': ('view_asset',),
         'change_submissions': ('view_submissions',)
     }
+    # Some permissions must be copied to KC
+    KC_PERMISSIONS_MAP = { # keys are KC's codenames, values are KPI's
+        'change_submissions': 'change_xform', # "Can Edit" in KC UI
+        'view_submissions': 'view_xform', # "Can View" in KC UI
+        'add_submissions': 'report_xform', # "Can submit to" in KC UI
+    }
+    KC_CONTENT_TYPE_KWARGS = {'app_label': 'logger', 'model': 'xform'}
 
     # todo: test and implement this method
     # def restore_version(self, uid):
@@ -795,11 +803,19 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
                 u'warnings': warnings,
             })
         except Exception as err:
+            err_message = unicode(err)
+            logging.error('Failed to generate xform for asset', extra={
+                'src': source,
+                'id_string': id_string,
+                'uid': self.uid,
+                '_msg': err_message,
+                'warnings': warnings,
+            })
             xml = ''
             details.update({
                 u'status': u'failure',
                 u'error_type': type(err).__name__,
-                u'error': unicode(err),
+                u'error': err_message,
                 u'warnings': warnings,
             })
         return (xml, details)

@@ -10,7 +10,7 @@ class CreateCollectionTests(TestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        self.user = User.objects.all()[0]
+        self.user = User.objects.get(username='someuser')
         self.coll = Collection.objects.create(owner=self.user)
         self.sa = Asset.objects.create(owner=self.user)
 

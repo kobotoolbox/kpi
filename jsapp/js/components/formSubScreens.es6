@@ -1,4 +1,7 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import _ from 'underscore';
 import {dataInterface} from '../dataInterface';
@@ -11,6 +14,7 @@ import ui from '../ui';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import SharingForm from '../components/sharingForm';
+import DataTable from '../components/table';
 
 import {
   ProjectSettingsEditor,
@@ -26,12 +30,12 @@ import {
   notify,
 } from '../utils';
 
-var FormSubScreens = React.createClass({
-  mixins: [
-    Reflux.ListenerMixin,
-    mixins.dmix,
-    mixins.contextRouter
-  ],
+export class FormSubScreens extends React.Component {
+  constructor(props){
+    super(props);
+    this.state = {};
+    autoBind(this);
+  }
   componentDidMount () {
     this.listenTo(stores.session, this.dmixSessionStoreChange);
     this.listenTo(stores.asset, this.dmixAssetStoreChange);
@@ -44,7 +48,7 @@ var FormSubScreens = React.createClass({
       actions.resources.loadAsset({id: uid});
     }
 
-  },
+  }
   render () {
     var formClass = '', iframeUrl = '', report__base = '', deployment__identifier = '';
 
@@ -58,7 +62,8 @@ var FormSubScreens = React.createClass({
           iframeUrl = report__base+'/digest.html';
           break;
         case `/forms/${this.state.uid}/data/table`:
-          iframeUrl = report__base+'/export.html';
+          return this.renderTable();
+          // iframeUrl = report__base+'/export.html';
           break;
         case `/forms/${this.state.uid}/data/gallery`:
           iframeUrl = deployment__identifier+'/photos';
@@ -100,7 +105,7 @@ var FormSubScreens = React.createClass({
           </bem.FormView>
         </DocumentTitle>
       );
-  },
+  }
   renderSharing() {
     var docTitle = this.state.name || t('Untitled');
     return (
@@ -110,7 +115,7 @@ var FormSubScreens = React.createClass({
           </bem.FormView>
         </DocumentTitle>
     );
-  },
+  }
   renderSettingsEditor(iframeUrl) {
     var docTitle = this.state.name || t('Untitled');
     return (
@@ -120,7 +125,7 @@ var FormSubScreens = React.createClass({
           </bem.FormView>
         </DocumentTitle>
     );
-  },  
+  }
   renderProjectDownloads() {
     var docTitle = this.state.name || t('Untitled');
     return (
@@ -130,7 +135,15 @@ var FormSubScreens = React.createClass({
           </bem.FormView>
         </DocumentTitle>
     );
-  },
+  }
+  renderTable() {
+    var docTitle = this.state.name || t('Untitled');
+    return (
+        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+          <DataTable asset={this.state} />
+        </DocumentTitle>
+    );
+  }
   renderReset() {
     return (
       <bem.Loading>
@@ -142,6 +155,14 @@ var FormSubScreens = React.createClass({
     );
   }
 
-})
+};
+
+reactMixin(FormSubScreens.prototype, Reflux.ListenerMixin);
+reactMixin(FormSubScreens.prototype, mixins.dmix);
+reactMixin(FormSubScreens.prototype, mixins.contextRouter);
+
+FormSubScreens.contextTypes = {
+  router: PropTypes.object
+};
 
 export default FormSubScreens;

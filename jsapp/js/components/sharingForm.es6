@@ -1,5 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import PropTypes from 'prop-types';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import TagsInput from 'react-tagsinput';
 import stores from '../stores';
@@ -16,10 +19,11 @@ import {
   anonUsername
 } from '../utils';
 
-var UserPermDiv = React.createClass({
-  mixins: [
-    mixins.permissions,
-  ],
+class UserPermDiv extends React.Component {
+  constructor(props) {
+    super(props);
+    autoBind(this);
+  }
   PermOnChange(perm) {
     var cans = this.props.can;
     if (perm) {
@@ -34,7 +38,7 @@ var UserPermDiv = React.createClass({
         this.removePerm('change', cans.change, this.props.uid);
     }
 
-  },
+  }
   render () {
     var initialsStyle = {
       background: `#${stringToColor(this.props.username)}`
@@ -77,12 +81,15 @@ var UserPermDiv = React.createClass({
       </bem.UserRow>      
       );
   }
-});
+};
 
-var PublicPermDiv = React.createClass({
-  mixins: [
-    mixins.permissions
-  ],
+reactMixin(UserPermDiv.prototype, mixins.permissions);
+
+class PublicPermDiv extends React.Component {
+  constructor(props) {
+    super(props);
+    autoBind(this);
+  }
   togglePerms() {
     if (this.props.publicPerm)
       this.removePerm('view',this.props.publicPerm, this.props.uid);
@@ -94,11 +101,11 @@ var PublicPermDiv = React.createClass({
           objectUrl: this.props.objectUrl
         }
       );
-  },
+  }
   render () {
     var uid = this.props.uid;
 
-    var href = `forms/${uid}`;
+    var href = `#/forms/${uid}`;
     var url = `${window.location.protocol}//${window.location.host}/${href}`;
 
     return (
@@ -119,14 +126,19 @@ var PublicPermDiv = React.createClass({
       </bem.FormModal__item>
     );
   }
-});
+};
 
-var SharingForm = React.createClass({
-  mixins: [
-    mixins.permissions,
-    mixins.contextRouter,
-    Reflux.ListenerMixin
-  ],
+reactMixin(PublicPermDiv.prototype, mixins.permissions);
+
+class SharingForm extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      userInputStatus: false,
+      permInput: 'view'
+    };
+    autoBind(this);
+  }
   assetChange (data) {
     var uid = this.props.uid || this.currentAssetID(),
       asset = data[uid];
@@ -141,14 +153,14 @@ var SharingForm = React.createClass({
         related_users: stores.asset.relatedUsers[uid]
       });
     }
-  },
+  }
   componentDidMount () {
     this.listenTo(stores.userExists, this.userExistsStoreChange);
     if (this.props.uid) {
       actions.resources.loadAsset({id: this.props.uid});
     }
     this.listenTo(stores.asset, this.assetChange);
-  },
+  }
   userExistsStoreChange (checked, result) {
     var inpVal = this.usernameFieldValue();
     if (inpVal === result) {
@@ -157,13 +169,13 @@ var SharingForm = React.createClass({
         userInputStatus: newStatus
       });
     }
-  },
+  }
   usernameField () {
     return ReactDOM.findDOMNode(this.refs.usernameInput);
-  },
+  }
   usernameFieldValue () {
     return this.usernameField().value;
-  },
+  }
   usernameCheck (evt) {
     var username = evt.target.value;
     if (username && username.length > 1) {
@@ -181,13 +193,7 @@ var SharingForm = React.createClass({
         userInputStatus: false
       });
     }
-  },
-  getInitialState () {
-    return {
-      userInputStatus: false,
-      permInput: 'view'
-    };
-  },
+  }
   addInitialUserPermission (evt) {
     evt.preventDefault();
     var username = this.usernameFieldValue();
@@ -201,12 +207,12 @@ var SharingForm = React.createClass({
       });
       this.usernameField().value = '';
     }
-  },
+  }
   updatePermInput(permName) {
     this.setState({
       permInput: permName.value
     });
-  },
+  }
   render () {
     var inpStatus = this.state.userInputStatus;
     if (!this.state.pperms) {
@@ -321,6 +327,14 @@ var SharingForm = React.createClass({
       </bem.FormModal>
     );
   }
-});
+};
+
+SharingForm.contextTypes = {
+  router: PropTypes.object
+};
+
+reactMixin(SharingForm.prototype, mixins.permissions);
+reactMixin(SharingForm.prototype, mixins.contextRouter);
+reactMixin(SharingForm.prototype, Reflux.ListenerMixin);
 
 export default SharingForm;

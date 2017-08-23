@@ -142,7 +142,7 @@ export function t(str) {
 // be replaced in all the translations before removing this hard
 // coded value.
 const originalSupportEmail = 'support@kobotoolbox.org';
-const originalSupportUrl = 'http://support.kobotoolbox.org';
+const originalSupportUrl = 'http://help.kobotoolbox.org';
 
 let supportDetails = {
   url: originalSupportUrl,
@@ -224,8 +224,10 @@ export function validFileTypes() {
   const VALID_ASSET_UPLOAD_FILE_TYPES = [
     'application/xls',
     'application/vnd.ms-excel',
+    'application/octet-stream',
     'application/vnd.openxmlformats',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    '' // Keep this to fix issue with IE Edge sending an empty MIME type
   ];
   return VALID_ASSET_UPLOAD_FILE_TYPES.join(',');
 }

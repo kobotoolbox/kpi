@@ -18,10 +18,12 @@ from kpi.views import (
     AuthorizedApplicationUserViewSet,
     OneTimeAuthenticationKeyViewSet,
     UserCollectionSubscriptionViewSet,
+    TokenView,
 )
 
 from kpi.views import home, one_time_login, browser_tests
 from kobo.apps.reports.views import ReportsViewSet
+from kobo.apps.superuser_stats.views import user_report, retrieve_user_report
 from kpi.views import authorized_application_authenticate_user
 from kpi.forms import RegistrationForm
 from hub.views import switch_builder
@@ -82,4 +84,10 @@ urlpatterns = [
     # Translation catalog for client code.
     url(r'^jsi18n/$', javascript_catalog, js_info_dict, name='javascript-catalog'),
     # url(r'^.*', home),
+    url(r'^token/$', TokenView.as_view(), name='token'),
+    # Statistics for superusers
+    url(r'^superuser_stats/user_report/$',
+        'kobo.apps.superuser_stats.views.user_report'),
+    url(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
+        'kobo.apps.superuser_stats.views.retrieve_user_report'),
 ]

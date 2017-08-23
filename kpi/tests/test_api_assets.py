@@ -19,11 +19,11 @@ class AssetsListApiTests(APITestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        self.client.login(username='admin', password='pass')
+        self.client.login(username='someuser', password='someuser')
 
     def test_login_as_other_users(self):
         self.client.logout()
-        self.client.login(username='someuser', password='someuser')
+        self.client.login(username='admin', password='pass')
         self.client.logout()
         self.client.login(username='anotheruser', password='anotheruser')
         self.client.logout()
@@ -58,7 +58,7 @@ class AssetVersionApiTests(APITestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        self.client.login(username='admin', password='pass')
+        self.client.login(username='someuser', password='someuser')
         self.asset = Asset.objects.first()
         self.asset.save()
         self.version = self.asset.asset_versions.first()
@@ -78,7 +78,7 @@ class AssetVersionApiTests(APITestCase):
 
     def test_restricted_access_to_version(self):
         self.client.logout()
-        self.client.login(username='someuser', password='someuser')
+        self.client.login(username='anotheruser', password='anotheruser')
         resp = self.client.get(self.version_list_url, format='json')
         self.assertEqual(resp.data['count'], 0)
         _version_detail_url = reverse('asset-version-detail',
@@ -92,7 +92,7 @@ class AssetsDetailApiTests(APITestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        self.client.login(username='admin', password='pass')
+        self.client.login(username='someuser', password='someuser')
         url = reverse('asset-list')
         data = {'content': '{}', 'asset_type': 'survey'}
         self.r = self.client.post(url, data, format='json')
@@ -170,6 +170,29 @@ class AssetsDetailApiTests(APITestCase):
         self.assertEqual(new_asset.content['survey'][0]['label'], ['v2'])
         self.assertEqual(new_asset.content['translations'], [None])
 
+    def test_deployed_version_pagination(self):
+        PAGE_LENGTH = 100
+        version = self.asset.latest_version
+        preexisting_count = self.asset.deployed_versions.count()
+        version.deployed = True
+        for i in range(PAGE_LENGTH + 11):
+            version.uid = ''
+            version.pk = None
+            version.save()
+        self.assertEqual(
+            preexisting_count + PAGE_LENGTH + 11,
+            self.asset.deployed_versions.count()
+        )
+        response = self.client.get(self.asset_url, format='json')
+        self.assertEqual(
+            response.data['deployed_versions']['count'],
+            self.asset.deployed_versions.count()
+        )
+        self.assertEqual(
+            len(response.data['deployed_versions']['results']),
+            PAGE_LENGTH
+        )
+
 
 class AssetsXmlExportApiTests(KpiTestCase):
     fixtures = ['test_data']
@@ -243,8 +266,8 @@ class ObjectRelationshipsTests(APITestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        self.client.login(username='admin', password='pass')
-        self.user = User.objects.get(id=1)
+        self.client.login(username='someuser', password='someuser')
+        self.user = User.objects.get(username='someuser')
         self.surv = Asset.objects.create(content={'survey': [{"type": "text", "name": "q1"}]},
                                          owner=self.user,
                                          asset_type='survey')

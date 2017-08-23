@@ -2,7 +2,7 @@ db.sqlite3
 *.pyc
 exported_survey_drafts
 node_modules
-src
+/src/
 kpi/static/components
 misc
 jsapp/compiled

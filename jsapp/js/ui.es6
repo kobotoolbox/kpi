@@ -1,5 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import _ from 'underscore';
 
 import bem from './bem';
@@ -9,15 +11,17 @@ import classNames from 'classnames';
 var hotkey = require('react-hotkey');
 hotkey.activate();
 
-var ui = {};
-
-ui.SearchBox = React.createClass({
+class SearchBox extends React.Component {
+  constructor (props) {
+    super(props);
+    autoBind(this);
+  }
   getValue () {
     return ReactDOM.findDOMNode(this.refs.inp).value;
-  },
+  }
   setValue (v) {
     ReactDOM.findDOMNode(this.refs.inp).value = v;
-  },
+  }
   render () {
     var elemId = _.uniqueId('elem');
     var value = this.props.value;
@@ -26,9 +30,12 @@ ui.SearchBox = React.createClass({
             onKeyUp={this.props.onKeyUp} onChange={this.props.onChange} id={elemId} placeholder={this.props.placeholder}/>
       );
   }
-});
+};
 
-ui.Panel = React.createClass({
+class Panel extends React.Component {
+  constructor(props) {
+    super(props);
+  }
   render () {
     return (
         <bem.uiPanel className={this.props.className} m={this.props.m}>
@@ -38,21 +45,24 @@ ui.Panel = React.createClass({
         </bem.uiPanel>
       );
   }
-});
+};
 
 
-ui.Modal = React.createClass({
-  mixins: [hotkey.Mixin('handleHotkey')],
-  handleHotkey: function(evt) {
+class Modal extends React.Component {
+  constructor (props) {
+    super(props);
+    autoBind(this);
+  }
+  handleHotkey (evt) {
     if (evt.keyCode === 27) {
       this.props.onClose.call(evt);
     }
-  },
+  }
   backdropClick (evt) {
     if (evt.currentTarget === evt.target) {
       this.props.onClose.call(evt);
     }
-  },
+  }
   renderTitle () {
     if (!this.props.title) {
       return null;
@@ -74,7 +84,7 @@ ui.Modal = React.createClass({
           </h4>
         );
     }
-  },
+  }
   render () {
     return (
       // m={['done', isSearch ? 'search' : 'default']}
@@ -100,39 +110,62 @@ ui.Modal = React.createClass({
       </div>
     );
   }
-});
+};
 
-ui.Modal.Footer = React.createClass({
+reactMixin(Modal.prototype, hotkey.Mixin('handleHotkey'));
+
+class Footer extends React.Component {
+  constructor(props) {
+    super(props);
+  }
   render () {
     return <div className="modal-footer">{this.props.children}</div>;
   }
-});
+};
 
-ui.Modal.Body = React.createClass({
+Modal.Footer = Footer;
+
+class Body extends React.Component {
+  constructor(props) {
+    super(props);
+  }
   render () {
     return <div className="modal-body">{this.props.children}</div>;
   }
-});
+};
 
-ui.Modal.Tabs = React.createClass({
+Modal.Body = Body;
+
+class Tabs extends React.Component {
+  constructor(props) {
+    super(props);
+  }
   render () {
     return <div className="modal-tabs">{this.props.children}</div>;
   }
-});
+};
 
-var SidebarAssetName = bem.create('sidebar-asset-name', '<span>');
+Modal.Tabs = Tabs;
 
-ui.SidebarAssetName = React.createClass({
+var BemSidebarAssetName = bem.create('sidebar-asset-name', '<span>');
+
+class SidebarAssetName extends React.Component {
+  constructor(props) {
+    super(props);
+  }
   render () {
     return (
-        <SidebarAssetName m={{noname: !this.props.name}}>
+        <BemSidebarAssetName m={{noname: !this.props.name}}>
           {this.props.name || t('No name')}
-        </SidebarAssetName>
+        </BemSidebarAssetName>
       );
   }
-});
+};
 
-ui.AssetName = React.createClass({
+class AssetName extends React.Component {
+  constructor(props) {
+    super(props);
+  }
   render () {
     var name = this.props.name,
         extra = false,
@@ -163,17 +196,18 @@ ui.AssetName = React.createClass({
         </span>
       );
   }
-});
+};
 
-ui.PopoverMenu = React.createClass({
-  getInitialState () {
-    return assign({
+class PopoverMenu extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = assign({
       popoverVisible: false,
       popoverHiding: false,
       placement: 'below'
     });
-
-  },
+    autoBind(this);
+  }
   toggle(evt) {
     var isBlur = evt.type === 'blur',
         $popoverMenu;
@@ -186,7 +220,7 @@ ui.PopoverMenu = React.createClass({
         });
         // if we setState and immediately hide popover then links will not register as clicked
         window.setTimeout(()=>{
-          if (!this.isMounted())
+          if (!ReactDOM.findDOMNode(this))
             return false;
 
           this.setState({
@@ -209,14 +243,14 @@ ui.PopoverMenu = React.createClass({
         });        
       }
     }
-  },
+  }
   componentWillReceiveProps(nextProps) {
     if (this.state.popoverVisible && nextProps.clearPopover) {
       this.setState({
         popoverVisible: false
       });
     }
-  },
+  }
   render () {
     return (
       <bem.PopoverMenu m={[this.props.type, this.state.placement]}>
@@ -230,6 +264,15 @@ ui.PopoverMenu = React.createClass({
 
     );
   }
-});
+};
+
+var ui = {
+  SearchBox: SearchBox,
+  Panel: Panel,
+  Modal: Modal,
+  SidebarAssetName: SidebarAssetName,
+  AssetName: AssetName,
+  PopoverMenu: PopoverMenu
+};
 
 export default ui;

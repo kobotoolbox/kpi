@@ -1,4 +1,6 @@
 import React from 'react';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import _ from 'underscore';
 import {dataInterface} from '../dataInterface';
@@ -18,11 +20,23 @@ import {
   stringToColor,
 } from '../utils';
 
-export var AccountSettings = React.createClass({
-  mixins: [
-    Reflux.connect(stores.session, 'session'),
-    Reflux.ListenerMixin,
-  ],
+export class AccountSettings extends React.Component {
+  constructor(props){
+    super(props);
+    let state = {
+      requireAuth: false,
+    }
+    this.state = state;
+    autoBind(this);
+    if (stores.session && stores.session.currentAccount) {
+      this.state = this.getStateFromCurrentAccount(stores.session.currentAccount);
+    }
+  }
+  componentDidMount() {
+    this.listenTo(stores.session, ({currentAccount}) => {
+      this.setState(this.getStateFromCurrentAccount(currentAccount));
+    });
+  }
   getStateFromCurrentAccount(currentAccount) {
     if (currentAccount.extra_details == undefined)
       currentAccount.extra_details = {};
@@ -63,7 +77,7 @@ export var AccountSettings = React.createClass({
         },
       ]
     };
-  },
+  }
   updateProfile () {
     actions.misc.updateProfile({
       email: this.state.email,
@@ -86,15 +100,7 @@ export var AccountSettings = React.createClass({
         metadata: this.state.metadata,
       })
     });
-  },
-  getInitialState () {
-    this.listenTo(stores.session, ({currentAccount}) => {
-      this.setState(this.getStateFromCurrentAccount(currentAccount));
-    });
-    if(stores.session && stores.session.currentAccount) {
-      return this.getStateFromCurrentAccount(stores.session.currentAccount);
-    }
-  },
+  }
   handleChange (e, attr) {
     if (e.target) {
       if (e.target.type == 'checkbox') {
@@ -107,24 +113,24 @@ export var AccountSettings = React.createClass({
       var val = e;
     }
     this.setState({[attr]: val});
-  },
-  nameChange (e) {this.handleChange(e, 'name');},
-  emailChange (e) {this.handleChange(e, 'email');},
-  organizationChange (e) {this.handleChange(e, 'organization');},
-  organizationWebsiteChange (e) {this.handleChange(e, 'organizationWebsite');},
-  primarySectorChange (e) {this.handleChange(e, 'primarySector');},
-  genderChange (e) {this.handleChange(e, 'gender');},
-  bioChange (e) {this.handleChange(e, 'bio');},
-  phoneNumberChange (e) {this.handleChange(e, 'phoneNumber');},
-  addressChange (e) {this.handleChange(e, 'address');},
-  cityChange (e) {this.handleChange(e, 'city');},
-  countryChange (e) {this.handleChange(e, 'country');},
-  defaultLanguageChange (e) {this.handleChange(e, 'defaultLanguage');},
-  requireAuthChange (e) {this.handleChange(e, 'requireAuth');},
-  twitterChange (e) {this.handleChange(e, 'twitter');},
-  linkedinChange (e) {this.handleChange(e, 'linkedin');},
-  instagramChange (e) {this.handleChange(e, 'instagram');},
-  metadataChange (e) {this.handleChange(e, 'metadata');},
+  }
+  nameChange (e) {this.handleChange(e, 'name');}
+  emailChange (e) {this.handleChange(e, 'email');}
+  organizationChange (e) {this.handleChange(e, 'organization');}
+  organizationWebsiteChange (e) {this.handleChange(e, 'organizationWebsite');}
+  primarySectorChange (e) {this.handleChange(e, 'primarySector');}
+  genderChange (e) {this.handleChange(e, 'gender');}
+  bioChange (e) {this.handleChange(e, 'bio');}
+  phoneNumberChange (e) {this.handleChange(e, 'phoneNumber');}
+  addressChange (e) {this.handleChange(e, 'address');}
+  cityChange (e) {this.handleChange(e, 'city');}
+  countryChange (e) {this.handleChange(e, 'country');}
+  defaultLanguageChange (e) {this.handleChange(e, 'defaultLanguage');}
+  requireAuthChange (e) {this.handleChange(e, 'requireAuth');}
+  twitterChange (e) {this.handleChange(e, 'twitter');}
+  linkedinChange (e) {this.handleChange(e, 'linkedin');}
+  instagramChange (e) {this.handleChange(e, 'instagram');}
+  metadataChange (e) {this.handleChange(e, 'metadata');}
 
   render () {
     if(!stores.session || !stores.session.currentAccount) {
@@ -163,11 +169,16 @@ export var AccountSettings = React.createClass({
             </bem.AccountSettings__item>
             <bem.AccountSettings__item m='fields'>
               <bem.AccountSettings__item>
-                <label>
+                <label htmlFor="requireAuth">
                   {t('Privacy')}
-                  <br/>
-                  <input type="checkbox" checked={this.state.requireAuth}
-                    onChange={this.requireAuthChange} />
+                </label>
+              </bem.AccountSettings__item>
+              <bem.AccountSettings__item>
+                <input type="checkbox" 
+                  id="requireAuth"
+                  checked={this.state.requireAuth}
+                  onChange={this.requireAuthChange} />
+                <label htmlFor="requireAuth">
                   {t('Require authentication to see forms and submit data')}
                 </label>
               </bem.AccountSettings__item>
@@ -312,26 +323,32 @@ export var AccountSettings = React.createClass({
       </DocumentTitle>
     );
   }
-});
+};
 
-export var ChangePassword = React.createClass({
-  mixins: [
-    Reflux.connect(stores.session, 'session'),
-    Reflux.ListenerMixin
-  ],
-  getInitialState () {
+reactMixin(AccountSettings.prototype, Reflux.connect(stores.session, 'session'));
+reactMixin(AccountSettings.prototype, Reflux.ListenerMixin);
+
+export class ChangePassword extends React.Component {
+  constructor (props) {
+    super(props);
     this.errors = {};
-    return {errors: this.errors};
-  },
+    this.state = {
+      errors: this.errors,
+      currentPassword: '',
+      newPassword: '',
+      verifyPassword: ''
+    };
+    autoBind(this);
+  }
   componentDidMount () {
     this.listenTo(
       actions.auth.changePassword.failed, this.changePasswordFailed);
-  },
+  }
   validateRequired (what) {
     if (!this.state[what]) {
       this.errors[what] = t('This field is required.');
     }
-  },
+  }
   changePassword () {
     this.errors = {};
     this.validateRequired('currentPassword');
@@ -347,7 +364,7 @@ export var ChangePassword = React.createClass({
       );
     }
     this.setState({errors: this.errors});
-  },
+  }
   changePasswordFailed (jqXHR) {
     if (jqXHR.responseJSON.current_password) {
       this.errors.currentPassword = jqXHR.responseJSON.current_password;
@@ -356,16 +373,16 @@ export var ChangePassword = React.createClass({
       this.errors.newPassword = jqXHR.responseJSON.new_password;
     }
     this.setState({errors: this.errors});
-  },
+  }
   currentPasswordChange (e) {
     this.setState({currentPassword: e.target.value});
-  },
+  }
   newPasswordChange (e) {
     this.setState({newPassword: e.target.value});
-  },
+  }
   verifyPasswordChange (e) {
     this.setState({verifyPassword: e.target.value});
-  },
+  }
   render () {
     if(!stores.session || !stores.session.currentAccount) {
       return (
@@ -435,4 +452,7 @@ export var ChangePassword = React.createClass({
       </ui.Panel>
     );
   }
-});
+};
+
+reactMixin(ChangePassword.prototype, Reflux.connect(stores.session, 'session'));
+reactMixin(ChangePassword.prototype, Reflux.ListenerMixin);
