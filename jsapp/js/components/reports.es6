@@ -218,10 +218,12 @@ class Reports extends React.Component {
     this.state = {
       graphWidth: "700",
       graphHeight: "250",
+      translations: false,
       translationIndex: 0,
       groupBy: [],
       activeModalTab: 0,
-      error: false
+      error: false,
+      showExpandedReport: false
     };
     autoBind(this);
   }
@@ -295,18 +297,6 @@ class Reports extends React.Component {
         console.error('Survey not defined.');
       }
     });
-  }
-  getInitialState () {
-    return {
-      graphWidth: "700",
-      graphHeight: "250",
-      translations: false,
-      translationIndex: 0,
-      groupBy: [],
-      activeModalTab: 0,
-      error: false,
-      reportLimit: 50
-    };
   }
   groupDataBy(evt) {
     var gb = evt.target.getAttribute('data-name') ? [evt.target.getAttribute('data-name')] : [];
