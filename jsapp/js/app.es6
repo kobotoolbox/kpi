@@ -284,7 +284,7 @@ var routes = (
           <Route path="downloads" component={FormSubScreens} />
           <Route path="gallery" component={FormSubScreens} />
           <Route path="map" component={FormSubScreens} />
-          <Route path="map/:kuid" component={FormSubScreens} />
+          <Route path="map/:viewby" component={FormSubScreens} />
           <IndexRedirect to="report" />
         </Route>
 

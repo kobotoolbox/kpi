@@ -254,15 +254,6 @@ var dataInterface;
     getAssetContent ({id}) {
       return $.getJSON(`${rootUrl}/assets/${id}/content/`);
     },
-    getMapSubmissions (params) {
-      console.log(params);
-      // TODO: connect to real data
-      if (params.kuid)
-        return $.getJSON(`http://localhost:3000/test-data-map-filtered.json`);
-      if (!params.kuid)
-        return $.getJSON(`http://localhost:3000/test-data-map.json`);
-    },
-
     getImportDetails ({uid}) {
       return $.getJSON(`${rootUrl}/imports/${uid}/`);
     },
@@ -390,7 +381,7 @@ var dataInterface;
     },
     getKCFormData(url, token, formid, pageSize, page, sort) {
       var q = `${url}/api/v1/data/${formid}?limit=${pageSize}&start=${page}`;
-      if (sort.length > 0) {
+      if (sort && sort.length) {
         var f = sort[0].id;
         var s = sort[0].desc === true ? `&sort={"${f}":-1}` : `&sort={"${f}":1}`;
         q = `${url}/api/v1/data/${formid}?limit=${pageSize}&start=${page}${s}`;
@@ -402,6 +393,14 @@ var dataInterface;
           Authorization: `Token ${token}`
         }
       });
+    },
+    getMapSubmissions (params) {
+      console.log(params);
+      // TODO: connect to real data
+      if (params.kuid)
+        return $.getJSON(`http://localhost:3000/test-data-map-filtered.json`);
+      if (!params.kuid)
+        return $.getJSON(`http://localhost:3000/test-data-map.json`);
     },
     login: (creds)=> {
       return $ajax({ url: `${rootUrl}/api-auth/login/?next=/me/`, data: creds, method: 'POST'});

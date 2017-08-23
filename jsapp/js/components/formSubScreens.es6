@@ -21,7 +21,7 @@ import {
   ProjectDownloads
 } from '../components/formEditors';
 
-import FormMap from '../components/formMap';
+import FormMap from '../components/map';
 
 import {
   assign,
@@ -62,8 +62,10 @@ export class FormSubScreens extends React.Component {
           iframeUrl = report__base+'/digest.html';
           break;
         case `/forms/${this.state.uid}/data/table`:
-          return this.renderTable();
-          // iframeUrl = report__base+'/export.html';
+          return <DataTable asset={this.state} />;
+          break;
+        case `/forms/${this.state.uid}/data/table-legacy`:
+          iframeUrl = report__base+'/export.html';
           break;
         case `/forms/${this.state.uid}/data/gallery`:
           iframeUrl = deployment__identifier+'/photos';
@@ -71,8 +73,8 @@ export class FormSubScreens extends React.Component {
         case `/forms/${this.state.uid}/data/map`:
           return <FormMap asset={this.state} />;
           break;
-        case `/forms/${this.state.uid}/data/map/${this.props.params.kuid}`:
-          return <FormMap asset={this.state} kuid={this.props.params.kuid}/>;
+        case `/forms/${this.state.uid}/data/map/${this.props.params.viewby}`:
+          return <FormMap asset={this.state} viewby={this.props.params.viewby}/>;
           break;
         // case `/forms/${this.state.uid}/settings/kobocat`:
         //   iframeUrl = deployment__identifier+'/form_settings';
@@ -133,14 +135,6 @@ export class FormSubScreens extends React.Component {
           <bem.FormView m='form-data-downloads'>
             <ProjectDownloads asset={this.state} />
           </bem.FormView>
-        </DocumentTitle>
-    );
-  }
-  renderTable() {
-    var docTitle = this.state.name || t('Untitled');
-    return (
-        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          <DataTable asset={this.state} />
         </DocumentTitle>
     );
   }
