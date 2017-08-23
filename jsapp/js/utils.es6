@@ -222,6 +222,8 @@ export function stringToColor(str, prc) {
 
 export function validFileTypes() {
   const VALID_ASSET_UPLOAD_FILE_TYPES = [
+    '.xls',
+    '.xlsx',
     'application/xls',
     'application/vnd.ms-excel',
     'application/octet-stream',
