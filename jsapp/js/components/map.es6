@@ -42,6 +42,7 @@ export class FormMap extends React.Component {
       markersVisible: true,
       markerMap: false,
       fields: [],
+      fieldsToQuery: ['_id', '_geolocation'],
       hasGeoPoint: hasGeoPoint
     };
 
@@ -87,17 +88,29 @@ export class FormMap extends React.Component {
 
     L.control.layers(baseLayers).addTo(map);
 
+    var fq = this.state.fieldsToQuery;
+    fields.forEach(function(f){
+      if (f.name) {
+        fq.push(f.name);
+      } else {
+        fq.push(f.$autoname);
+      }
+    });
+
+
     this.setState({
         map: map,
-        fields: fields
+        fields: fields,
+        fieldsToQuery: fq
+
       }
     );
 
-    this.getMarkers(2000,0,false,map);
-    this.getHeatMap(2000,0,false,map);
+    this.getMarkers(map, fq);
+    this.getHeatMap(map, fq);
   }
 
-  getMarkers(pageSize, page, sort, map) {
+  getMarkers(map, fields) {
     // TEMPORARY hook-up to KC API (NOT FOR PRODUCTION)
     // Only works with --disable-web-security flag in browser
     dataInterface.getToken().done((t) => {
@@ -109,7 +122,7 @@ export class FormMap extends React.Component {
         let uid = this.props.asset.uid;
         dataInterface.getKCForm(kc_url, t.token, uid).done((form) => {
           if (form && form.length === 1) {
-            dataInterface.getKCFormData(kc_url, t.token, form[0].formid, pageSize, page, sort).done((data) => {
+            dataInterface.getKCMapData(kc_url, t.token, form[0].formid, fields).done((data) => {
 
               // MARKERS PREP
               var prepPoints = [];
@@ -136,8 +149,8 @@ export class FormMap extends React.Component {
                       iconSize: [20, 20],
                     });
                   }
-
-                  prepPoints.push(L.marker(item._geolocation, {icon: icon}));
+                  // console.log(item);
+                  prepPoints.push(L.marker(item._geolocation, {icon: icon, sId: item._id}));
                 }
               });
 
@@ -148,7 +161,7 @@ export class FormMap extends React.Component {
                 markers.addLayers(prepPoints);
               }
 
-              markers.addTo(map);
+              markers.on('click', this.launchSubmissionModal).addTo(map);
               map.fitBounds(markers.getBounds());
 
               this.setState({
@@ -190,7 +203,7 @@ export class FormMap extends React.Component {
     return markerMap;
   }
 
-  getHeatMap (pageSize, page, sort, map) {
+  getHeatMap (map, fields) {
     var _self = this;
 
     // TEMPORARY hook-up to KC API (NOT FOR PRODUCTION)
@@ -204,7 +217,7 @@ export class FormMap extends React.Component {
         let uid = this.props.asset.uid;
         dataInterface.getKCForm(kc_url, t.token, uid).done((form) => {
           if (form && form.length === 1) {
-            dataInterface.getKCFormData(kc_url, t.token, form[0].formid, pageSize, page, sort).done((data) => {
+            dataInterface.getKCMapData(kc_url, t.token, form[0].formid, fields).done((data) => {
 
               // HEATMAP PREP
               var heatmapPoints = [];
@@ -241,7 +254,6 @@ export class FormMap extends React.Component {
       console.log(failData);
     });
 
-
   }
 
   showMarkers () {
@@ -256,8 +268,6 @@ export class FormMap extends React.Component {
 
   showHeatmap () {
     var map = this.state.map;
-    // var markers = this.state.markers;
-    // var heatmap = this.state.heatmap;
 
     map.addLayer(this.state.heatmap);
     map.removeLayer(this.state.markers);
@@ -291,9 +301,17 @@ export class FormMap extends React.Component {
       }
 
       window.setTimeout(()=>{
-        this.getMarkers(2000,0,false, map);
+        this.getMarkers(map, this.state.fieldsToQuery);
       }, 500);
     }
+  }
+
+  launchSubmissionModal (evt) {
+    stores.pageState.showModal({
+      type: 'submission',
+      sid: evt.layer.options.sId,
+      asset: this.props.asset
+    });
   }
 
   render () {

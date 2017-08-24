@@ -394,6 +394,27 @@ var dataInterface;
         }
       });
     },
+    getKCMapData(url, token, formid, fields) {
+      var q = `${url}/api/v1/data/${formid}?limit=2000&fields=${JSON.stringify(fields)}`;
+      return $ajax({
+        url: q,
+        method: 'GET',
+        headers: {
+          Authorization: `Token ${token}`
+        }
+      });
+    },
+    getKCSubmission(url, token, formid, sid) {
+      var q = `${url}/api/v1/data/${formid}/${sid}`;
+      return $ajax({
+        url: q,
+        method: 'GET',
+        headers: {
+          Authorization: `Token ${token}`
+        }
+      });
+    },
+
     login: (creds)=> {
       return $ajax({ url: `${rootUrl}/api-auth/login/?next=/me/`, data: creds, method: 'POST'});
     }

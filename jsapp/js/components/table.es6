@@ -77,7 +77,15 @@ export class DataTable extends React.Component {
 		  return Object.assign(result, obj);
 		}, {}))
 
-		var columns = [];
+		var columns = [{
+      Header: t(' '),
+      accessor: '___submission-link',
+      Cell: row => (
+        <span onClick={this.launchSubmissionModal} data-sid={row.row._id}>
+          {t('Open')}
+        </span>
+      )
+    }];
     var excludes = ['_uuid', '_xform_id_string', '__version__', '_attachments', '_notes', '_bamboo_dataset_id',
                     'formhub/uuid', 'meta/instanceID', '_tags', '_geolocation', '_submitted_by'];
     uniqueKeys.forEach(function(key){
@@ -127,6 +135,16 @@ export class DataTable extends React.Component {
     // console.log(state.sorted);
     this.requestData(state.pageSize, state.page * state.pageSize, state.sorted);
     // this.requestData(state.pageSize,state.page,state.sorted,state.filtered);
+  }
+
+  launchSubmissionModal (evt) {
+    const sid = evt.target.getAttribute('data-sid');
+
+    stores.pageState.showModal({
+      type: 'submission',
+      sid: sid,
+      asset: this.props.asset
+    });
   }
 
   render () {
