@@ -391,7 +391,7 @@ export default assign({
         return hasSelect;
       })(); // todo: only true if survey has select questions
       ooo.name = this.state.name;
-      ooo.hasSettings = this.constructor.name === 'FormPage';
+      ooo.hasSettings = this.state.backRoute === '/forms';
       ooo.styleValue = this.state.settings__style;
     }
     if (this.state.editorState === 'new') {
