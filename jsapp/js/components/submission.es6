@@ -4,50 +4,32 @@ import autoBind from 'react-autobind';
 import {dataInterface} from '../dataInterface';
 import bem from '../bem';
 import {t} from '../utils';
-
+import ui from '../ui';
 
 class Submission extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       submission: {},
-      loading: true
+      loading: true,
+      error: false
     };
     autoBind(this);
   }
   componentDidMount () {
-    // TEMPORARY hook-up to KC API (NOT FOR PRODUCTION)
-    // Only works with --disable-web-security flag in browser
-    let sid = this.props.sid;
-
-    dataInterface.getToken().done((t) => {
-      if (t && t.token) {
-        var kc_server = document.createElement('a');
-        kc_server.href = this.props.asset.deployment__identifier;
-        let kc_url = kc_server.origin;
-
-        let uid = this.props.asset.uid;
-        dataInterface.getKCForm(kc_url, t.token, uid).done((form) => {
-          if (form && form.length === 1) {
-            dataInterface.getKCSubmission(kc_url, t.token, form[0].formid, sid).done((data) => {
-
-              this.setState({
-                submission: data,
-                loading: false
-              });
-
-            }).fail((failData)=>{
-              console.log(failData);
-            });
-          }
-        }).fail((failData)=>{
-          console.log(failData);
-        });
-      }
-    }).fail((failData)=>{
-      console.log(failData);
+    dataInterface.getSubmission(this.props.asset.uid, this.props.sid).done((data) => {
+      this.setState({
+        submission: data,
+        loading: false
+      });
+    }).fail((error)=>{
+      if (error.responseText)
+        this.setState({error: error.responseText, loading: false});
+      else if (error.statusText)
+        this.setState({error: error.statusText, loading: false});
+      else
+        this.setState({error: t('Error: could not load data.'), loading: false});
     });
-
   }
 
   render () {
@@ -60,6 +42,18 @@ class Submission extends React.Component {
           </bem.Loading__inner>
         </bem.Loading>
       );
+    }
+
+    if (this.state.error) {
+      return (
+        <ui.Panel>
+          <bem.Loading>
+            <bem.Loading__inner>
+              {this.state.error}
+            </bem.Loading__inner>
+          </bem.Loading>
+        </ui.Panel>
+        )
     }
 
     const s = this.state.submission;

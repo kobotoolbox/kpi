@@ -1,5 +1,6 @@
 .form-view--table {
   padding: 0px 60px;
+  overflow: hidden;
 
   .form-view__group--table-header {
     padding: 20px 0px;
@@ -22,9 +23,68 @@
   }
 
   .ReactTable {
-    border: 1px solid $divider-color;
-    background-color: #FFF;
-    z-index: 1;
-    font-size: 12px;
+    border: none;
+    background: transparent;
+    height: calc(100% - 80px);
+
+    .rt-table {
+      border: 1px solid $divider-color;
+      background-color: #FFF;
+      font-size: 13px;
+    }
+
+    .rt-th, .rt-td {
+      padding: 12px 8px;
+    }
+
+    .rt-link {
+      color: $cool-blue;
+      cursor: pointer;
+    }
+
+    .rt-tr > .rt-td:first-child,
+    .rt-tr > .rt-th:first-child {
+      width: 50px !important;
+    }
+
+    .-pagination {
+      box-shadow: none;
+      border-top: none;
+
+      .-center {
+        flex: 2;
+      }
+
+      .-btn {
+        @extend .mdl-button, .mdl-button--colored;
+
+        &:hover {
+          background: transparent;
+        }
+      }
+    }
+
+    .pagination-bottom {
+      margin-top: 10px;
+      margin-bottom: 20px;
+    }
+
+    .-loading {
+      background: #F8F8F8;
+
+      .-loading-inner {
+        display: block;
+        text-align: center;
+        font-size: 18px;
+        opacity: 0.8;
+        color: $cool-gray;
+
+        i {
+          margin-right: 12px;
+          vertical-align: middle;
+          font-size: 24px;
+        }
+      }
+    }
   }
 }

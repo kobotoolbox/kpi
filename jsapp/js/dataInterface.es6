@@ -364,57 +364,28 @@ var dataInterface;
       var assetType = assetMapping[id[0]];
       return $.getJSON(`${rootUrl}/${assetType}/${id}/`);
     },
-    getToken() {
+    getSubmissions(uid, pageSize=100, page=0, sort=[], fields=[]) {
+      const query = `limit=${pageSize}&start=${page}`;
+      var s = '';
+      var f = '';
+      if (sort.length) {
+        s = sort[0].desc === true ? `&sort={"${sort[0].id}":-1}` : `&sort={"${sort[0].id}":1}`;
+      }
+      if (fields.length) {
+        f = `&fields=${JSON.stringify(fields)}`;
+      }
+      // console.log(`${rootUrl}/assets/${uid}/submissions?${query}${s}${f}`);
       return $ajax({
-        url: `${rootUrl}/token/`,
+        url: `${rootUrl}/assets/${uid}/submissions?${query}${s}${f}`,
         method: 'GET'
       });
     },
-    getKCForm(url, token, uid) {
+    getSubmission(uid, sid) {
       return $ajax({
-        url: `${url}/api/v1/forms?id_string=${uid}`,
-        method: 'GET',
-        headers: {
-          Authorization: `Token ${token}`
-        }
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}`,
+        method: 'GET'
       });
     },
-    getKCFormData(url, token, formid, pageSize, page, sort) {
-      var q = `${url}/api/v1/data/${formid}?limit=${pageSize}&start=${page}`;
-      if (sort && sort.length) {
-        var f = sort[0].id;
-        var s = sort[0].desc === true ? `&sort={"${f}":-1}` : `&sort={"${f}":1}`;
-        q = `${url}/api/v1/data/${formid}?limit=${pageSize}&start=${page}${s}`;
-      }
-      return $ajax({
-        url: q,
-        method: 'GET',
-        headers: {
-          Authorization: `Token ${token}`
-        }
-      });
-    },
-    getKCMapData(url, token, formid, fields) {
-      var q = `${url}/api/v1/data/${formid}?limit=2000&fields=${JSON.stringify(fields)}`;
-      return $ajax({
-        url: q,
-        method: 'GET',
-        headers: {
-          Authorization: `Token ${token}`
-        }
-      });
-    },
-    getKCSubmission(url, token, formid, sid) {
-      var q = `${url}/api/v1/data/${formid}/${sid}`;
-      return $ajax({
-        url: q,
-        method: 'GET',
-        headers: {
-          Authorization: `Token ${token}`
-        }
-      });
-    },
-
     login: (creds)=> {
       return $ajax({ url: `${rootUrl}/api-auth/login/?next=/me/`, data: creds, method: 'POST'});
     }

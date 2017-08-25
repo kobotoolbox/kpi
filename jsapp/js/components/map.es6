@@ -9,6 +9,7 @@ import {hashHistory} from 'react-router';
 import bem from '../bem';
 import stores from '../stores';
 import ui from '../ui';
+import alertify from 'alertifyjs';
 
 import L from 'leaflet/dist/leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -43,13 +44,18 @@ export class FormMap extends React.Component {
       markerMap: false,
       fields: [],
       fieldsToQuery: ['_id', '_geolocation'],
-      hasGeoPoint: hasGeoPoint
+      hasGeoPoint: hasGeoPoint,
+      submissions: [],
+      error: false
     };
 
     autoBind(this);    
   }
 
   componentDidMount () {
+    if (!this.state.hasGeoPoint)
+      return false;
+
     var fields = [];
     this.props.asset.content.survey.forEach(function(q){
       if (q.type == 'select_one' || q.type == 'select_multiple') {
@@ -97,91 +103,75 @@ export class FormMap extends React.Component {
       }
     });
 
-
     this.setState({
         map: map,
         fields: fields,
         fieldsToQuery: fq
-
       }
     );
 
-    this.getMarkers(map, fq);
-    this.getHeatMap(map, fq);
+    this.requestData(map);
   }
 
-  getMarkers(map, fields) {
-    // TEMPORARY hook-up to KC API (NOT FOR PRODUCTION)
-    // Only works with --disable-web-security flag in browser
-    dataInterface.getToken().done((t) => {
-      if (t && t.token) {
-        var kc_server = document.createElement('a');
-        kc_server.href = this.props.asset.deployment__identifier;
-        let kc_url = kc_server.origin;
-
-        let uid = this.props.asset.uid;
-        dataInterface.getKCForm(kc_url, t.token, uid).done((form) => {
-          if (form && form.length === 1) {
-            dataInterface.getKCMapData(kc_url, t.token, form[0].formid, fields).done((data) => {
-
-              // MARKERS PREP
-              var prepPoints = [];
-              var icon = L.divIcon({
-                className: 'map-marker',
-                iconSize: [20, 20],
-              });
-
-              var viewby = this.props.viewby || undefined;
-
-              if (viewby) {
-                var mapMarkers = this.prepFilteredMarkers(data, this.props.viewby);
-                this.setState({markerMap: mapMarkers});
-              } else {
-                this.setState({markerMap: false});
-              }
-
-              data.forEach(function(item){
-                if (item._geolocation && item._geolocation[0] && item._geolocation[1]) {
-                  if (viewby && mapMarkers != undefined) {
-                    var itemId = item[viewby];
-                    icon = L.divIcon({
-                      className: `map-marker map-marker-${mapMarkers[itemId].id}`,
-                      iconSize: [20, 20],
-                    });
-                  }
-                  // console.log(item);
-                  prepPoints.push(L.marker(item._geolocation, {icon: icon, sId: item._id}));
-                }
-              });
-
-              if (viewby) {
-                var markers = L.featureGroup(prepPoints);
-              } else {
-                var markers = L.markerClusterGroup();
-                markers.addLayers(prepPoints);
-              }
-
-              markers.on('click', this.launchSubmissionModal).addTo(map);
-              map.fitBounds(markers.getBounds());
-
-              this.setState({
-                  markers: markers
-                }
-              );
-              // END MARKERS PREP
-
-
-            }).fail((failData)=>{
-              console.log(failData);
-            });
-          }
-        }).fail((failData)=>{
-          console.log(failData);
-        });
-      }
-    }).fail((failData)=>{
-      console.log(failData);
+  requestData(map) {
+    // TODO: handle forms with over 2000 results
+    dataInterface.getSubmissions(this.props.asset.uid, 2000, 0, [], this.state.fieldsToQuery).done((data) => {
+      this.setState({submissions: data});
+      this.buildMarkers(map);
+      this.buildHeatMap(map);
+    }).fail((error)=>{
+      if (error.responseText)
+        this.setState({error: error.responseText, loading: false});
+      else if (error.statusText)
+        this.setState({error: error.statusText, loading: false});
+      else
+        this.setState({error: t('Error: could not load data.'), loading: false});
     });
+  } 
+
+  buildMarkers(map) {
+    var prepPoints = [];
+    var icon = L.divIcon({
+      className: 'map-marker',
+      iconSize: [20, 20],
+    });
+
+    var viewby = this.props.viewby || undefined;
+
+    if (viewby) {
+      var mapMarkers = this.prepFilteredMarkers(this.state.submissions, this.props.viewby);
+      this.setState({markerMap: mapMarkers});
+    } else {
+      this.setState({markerMap: false});
+    }
+
+    this.state.submissions.forEach(function(item){
+      if (item._geolocation && item._geolocation[0] && item._geolocation[1]) {
+        if (viewby && mapMarkers != undefined) {
+          var itemId = item[viewby];
+          icon = L.divIcon({
+            className: `map-marker map-marker-${mapMarkers[itemId].id}`,
+            iconSize: [20, 20],
+          });
+        }
+        prepPoints.push(L.marker(item._geolocation, {icon: icon, sId: item._id}));
+      }
+    });
+
+    if (viewby) {
+      var markers = L.featureGroup(prepPoints);
+    } else {
+      var markers = L.markerClusterGroup();
+      markers.addLayers(prepPoints);
+    }
+
+    markers.on('click', this.launchSubmissionModal).addTo(map);
+    map.fitBounds(markers.getBounds());
+
+    this.setState({
+        markers: markers
+      }
+    );
   }
 
   prepFilteredMarkers (data, viewby) {
@@ -203,57 +193,22 @@ export class FormMap extends React.Component {
     return markerMap;
   }
 
-  getHeatMap (map, fields) {
-    var _self = this;
-
-    // TEMPORARY hook-up to KC API (NOT FOR PRODUCTION)
-    // Only works with --disable-web-security flag in browser
-    dataInterface.getToken().done((t) => {
-      if (t && t.token) {
-        var kc_server = document.createElement('a');
-        kc_server.href = this.props.asset.deployment__identifier;
-        let kc_url = kc_server.origin;
-
-        let uid = this.props.asset.uid;
-        dataInterface.getKCForm(kc_url, t.token, uid).done((form) => {
-          if (form && form.length === 1) {
-            dataInterface.getKCMapData(kc_url, t.token, form[0].formid, fields).done((data) => {
-
-              // HEATMAP PREP
-              var heatmapPoints = [];
-              data.forEach(function(item){
-                if (item._geolocation && item._geolocation[0] && item._geolocation[1])
-                  heatmapPoints.push([item._geolocation[0], item._geolocation[1], 1]);
-              });
-              var heatmap = L.heatLayer(heatmapPoints, {
-                minOpacity: 0.25,
-                radius: 20,
-                blur: 8
-              });
-
-              if (!_self.state.markersVisible) {
-                map.addLayer(heatmap);
-              }
-
-              _self.setState({
-                  heatmap: heatmap
-                }
-              );
-              // END HEATMAP PREP
-
-
-            }).fail((failData)=>{
-              console.log(failData);
-            });
-          }
-        }).fail((failData)=>{
-          console.log(failData);
-        });
-      }
-    }).fail((failData)=>{
-      console.log(failData);
+  buildHeatMap (map) {
+    var heatmapPoints = [];
+    this.state.submissions.forEach(function(item){
+      if (item._geolocation && item._geolocation[0] && item._geolocation[1])
+        heatmapPoints.push([item._geolocation[0], item._geolocation[1], 1]);
+    });
+    var heatmap = L.heatLayer(heatmapPoints, {
+      minOpacity: 0.25,
+      radius: 20,
+      blur: 8
     });
 
+    if (!this.state.markersVisible) {
+      map.addLayer(heatmap);
+    }
+    this.setState({heatmap: heatmap});
   }
 
   showMarkers () {
@@ -287,22 +242,16 @@ export class FormMap extends React.Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    if (this.props.viewby != nextProps.kuid) {
+    if (this.props.viewby != undefined) {
+      this.setState({markersVisible: true});
+    }
+    if (this.props.viewby != nextProps.viewby) {
       var map = this.state.map;
       var markers = this.state.markers;
       var heatmap = this.state.heatmap;
-
-      if (map.hasLayer(markers)) {
-        map.removeLayer(markers);
-      }
-
-      if (map.hasLayer(heatmap)) {
-        map.removeLayer(heatmap);
-      }
-
-      window.setTimeout(()=>{
-        this.getMarkers(map, this.state.fieldsToQuery);
-      }, 500);
+      map.removeLayer(markers);
+      map.removeLayer(heatmap);
+      this.requestData(map);
     }
   }
 
@@ -327,6 +276,18 @@ export class FormMap extends React.Component {
       );      
     }
 
+    if (this.state.error) {
+      return (
+        <ui.Panel>
+          <bem.Loading>
+            <bem.Loading__inner>
+              {this.state.error}
+            </bem.Loading__inner>
+          </bem.Loading>
+        </ui.Panel>
+        )
+    }
+
     var fields = this.state.fields;
     var label = t('View Options');
     var viewby = this.props.viewby;
@@ -345,11 +306,13 @@ export class FormMap extends React.Component {
           className={this.state.markersVisible ? 'active': ''}>
           <i className="k-icon-pins" />
         </bem.FormView__mapButton>
-        <bem.FormView__mapButton m={'heatmap'} 
-          onClick={this.showHeatmap}
-          className={!this.state.markersVisible ? 'active': ''}>
-          <i className="k-icon-heatmap" />
-        </bem.FormView__mapButton>
+        {!viewby && 
+          <bem.FormView__mapButton m={'heatmap'} 
+            onClick={this.showHeatmap}
+            className={!this.state.markersVisible ? 'active': ''}>
+            <i className="k-icon-heatmap" />
+          </bem.FormView__mapButton>
+        }
         <ui.PopoverMenu type='viewby-menu' triggerLabel={label} m={'above'}>
             <bem.PopoverMenu__link key={'all'} onClick={this.filterMap}>
               {t('-- See all data --')}

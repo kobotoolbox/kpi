@@ -7,6 +7,7 @@ import {dataInterface} from '../dataInterface';
 
 import actions from '../actions';
 import bem from '../bem';
+import ui from '../ui';
 import stores from '../stores';
 import mixins from '../mixins';
 
@@ -30,45 +31,27 @@ export class DataTable extends React.Component {
       defaultPageSize: 30,
       pageSize: 30,
       pages: null,
-      currentPage: 0
+      currentPage: 0,
+      error: false
     };
     autoBind(this);    
     this.fetchData = this.fetchData.bind(this);
   }
 
   requestData(pageSize, page, sort) {
-    // TEMPORARY hook-up to KC API (NOT FOR PRODUCTION)
-    // Only works with --disable-web-security flag in browser
-    dataInterface.getToken().done((t) => {
-      if (t && t.token) {
-        var kc_server = document.createElement('a');
-        kc_server.href = this.props.asset.deployment__identifier;
-        let kc_url = kc_server.origin;
-
-        if (this.props.asset.uid) {
-          let uid = this.props.asset.uid;
-          dataInterface.getKCForm(kc_url, t.token, uid).done((form) => {
-            if (form && form.length === 1) {
-              form = form[0];
-              dataInterface.getKCFormData(kc_url, t.token, form.formid, pageSize, page, sort).done((data) => {
-                this.setState({
-                  loading: false,
-                  tableData: data
-                })
-
-                this._prepColumns(data);
-
-              }).fail((failData)=>{
-                console.log(failData);
-              });
-            }
-          }).fail((failData)=>{
-            console.log(failData);
-          });
-        }
-      }
-    }).fail((failData)=>{
-      console.log(failData);
+    dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort).done((data) => {
+      this.setState({
+        loading: false,
+        tableData: data
+      })
+      this._prepColumns(data);
+    }).fail((error)=>{
+      if (error.responseText)
+        this.setState({error: error.responseText, loading: false});
+      else if (error.statusText)
+        this.setState({error: error.statusText, loading: false});
+      else
+        this.setState({error: t('Error: could not load data.'), loading: false});
     });
   }
 
@@ -81,13 +64,14 @@ export class DataTable extends React.Component {
       Header: t(' '),
       accessor: '___submission-link',
       Cell: row => (
-        <span onClick={this.launchSubmissionModal} data-sid={row.row._id}>
+        <span onClick={this.launchSubmissionModal} data-sid={row.row._id}
+              className='rt-link'>
           {t('Open')}
         </span>
       )
     }];
     var excludes = ['_uuid', '_xform_id_string', '__version__', '_attachments', '_notes', '_bamboo_dataset_id',
-                    'formhub/uuid', 'meta/instanceID', '_tags', '_geolocation', '_submitted_by'];
+                    'formhub/uuid', 'meta/instanceID', '_tags', '_geolocation', '_submitted_by', '_status'];
     uniqueKeys.forEach(function(key){
     	if (!excludes.includes(key)) {
       	columns.push({
@@ -124,17 +108,12 @@ export class DataTable extends React.Component {
   }
 
   fetchData(state, instance) {
-    // Whenever the table model changes, or the user sorts or changes pages, this method gets called and passed the current table model.
-    // You can set the `loading` prop of the table to true to use the built-in one or show you're own loading bar if you want.
     this.setState({ 
       loading: true,
       pageSize: state.pageSize,
       currentPage: state.page
     });
-    // Request the data however you want.  Here, we'll use our mocked service we created earlier
-    // console.log(state.sorted);
     this.requestData(state.pageSize, state.page * state.pageSize, state.sorted);
-    // this.requestData(state.pageSize,state.page,state.sorted,state.filtered);
   }
 
   launchSubmissionModal (evt) {
@@ -148,6 +127,18 @@ export class DataTable extends React.Component {
   }
 
   render () {
+    if (this.state.error) {
+      return (
+        <ui.Panel>
+          <bem.Loading>
+            <bem.Loading__inner>
+              {this.state.error}
+            </bem.Loading__inner>
+          </bem.Loading>
+        </ui.Panel>
+        )
+    }
+
     const { tableData, columns, defaultPageSize, loading, pageSize, currentPage } = this.state;
     const pages = Math.floor(((this.props.asset.deployment__submission_count - 1) / pageSize) + 1);
     const res1 = (currentPage * pageSize) + 1;
@@ -164,7 +155,7 @@ export class DataTable extends React.Component {
             {t('results')}
           </bem.FormView__item>
           <bem.FormView__item m='table-buttons'>
-            <button className="mdl-button mdl-button--icon report-button__print" 
+            <button className="mdl-button mdl-button--icon report-button__print is-edge" 
                     onClick={this.launchPrinting} 
                     data-tip={t('Print')}>
               <i className="k-icon-print" />
@@ -189,6 +180,18 @@ export class DataTable extends React.Component {
           manual
           onFetchData={this.fetchData}
           loading={loading}
+          previousText={t('Prev')}
+          nextText={t('Next')}
+          loadingText={
+            <span>
+              <i className="fa k-spin fa-circle-o-notch" />
+              {t('Loading...')}
+            </span>
+          }
+          noDataText={t('No rows found')} // TODO: fix display
+          pageText={t('Page')}
+          ofText={t('of')}
+          rowsText={t('rows')}
 		  		/>
       </bem.FormView>
     );
