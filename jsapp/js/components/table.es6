@@ -32,7 +32,9 @@ export class DataTable extends React.Component {
       pageSize: 30,
       pages: null,
       currentPage: 0,
-      error: false
+      error: false,
+      showLabels: true,
+      showGroups: true
     };
     autoBind(this);    
     this.fetchData = this.fetchData.bind(this);
@@ -44,6 +46,7 @@ export class DataTable extends React.Component {
         loading: false,
         tableData: data
       })
+
       this._prepColumns(data);
     }).fail((error)=>{
       if (error.responseText)
@@ -60,9 +63,13 @@ export class DataTable extends React.Component {
 		  return Object.assign(result, obj);
 		}, {}))
 
+    let showLabels = this.state.showLabels;
+    let showGroups = this.state.showGroups;
+
 		var columns = [{
-      Header: t(' '),
-      accessor: '___submission-link',
+      Header: '',
+      accessor: 'sub-link',
+      index: '__1',
       Cell: row => (
         <span onClick={this.launchSubmissionModal} data-sid={row.row._id}
               className='rt-link'>
@@ -70,19 +77,91 @@ export class DataTable extends React.Component {
         </span>
       )
     }];
-    var excludes = ['_uuid', '_xform_id_string', '__version__', '_attachments', '_notes', '_bamboo_dataset_id',
-                    'formhub/uuid', 'meta/instanceID', '_tags', '_geolocation', '_submitted_by', '_status'];
+    var excludes = ['_xform_id_string', '_attachments', '_notes', '_bamboo_dataset_id',
+                    'formhub/uuid', '_tags', '_geolocation', '_submitted_by', '_status'];
+
+    let survey = this.props.asset.content.survey;
+    let choices = this.props.asset.content.choices;
+
     uniqueKeys.forEach(function(key){
     	if (!excludes.includes(key)) {
+        var q = undefined;
+        var groupQ = [];
+        if (key.includes('/') && key !== 'meta/instanceID') {
+          groupQ = key.split('/');
+          q = survey.find(o => o.name === groupQ[1] || o.$autoname == groupQ[1]);
+        } else {
+          q = survey.find(o => o.name === key || o.$autoname == key);
+        }
+
+        var index = key;
+
+        switch(key) {
+          case 'start':
+              index = '__2_start';
+              break;
+          case 'end':
+              index = '__3_end';
+              break;
+          case '__version__':
+              index = 'z_version';
+              break;
+          case '_id':
+              index = 'z_id';
+              break;
+          case '_submission_time':
+              index = 'z_sub_time';
+              break;
+          case '_uuid':
+              index = 'z_uuid';
+              break;
+          case 'meta/instanceID':
+              index = 'z_instanceID';
+              break;
+          default:
+              index = key;
+        }
+
       	columns.push({
-  	    	Header: key,
-    	  	accessor: key
+  	    	Header: h => {
+              var lbl = key.includes('/') && key !== 'meta/instanceID' ? key.split('/')[1] : key;
+              if (q && q.label && showLabels)
+                lbl = q.label[0];
+              // show Groups in labels, when selected
+              if (showGroups && groupQ && key.includes('/') && key !== 'meta/instanceID')
+                lbl = `${groupQ[0]} / ${lbl}`;
+
+              return lbl;
+            },
+    	  	accessor: key,
+          index: index,
+          question: q,
+          Cell: row => {
+              if (showLabels && q && q.type) {
+                // show proper labels for choice questions
+                if (q.type == 'select_one') {
+                  let choice = choices.find(o => o.name === row.value || o.$autoname == row.value);
+                  return choice && choice.label ? choice.label[0] : row.value;
+                }
+                if (q.type == 'select_multiple' && row.value) {
+                  let values = row.value.split(" ");
+                  var labels = [];
+                  values.forEach(function(v) {
+                    let choice = choices.find(o => o.name === v || o.$autoname == v);
+                    labels.push(choice.label[0]);
+                  });
+
+                  return labels.join(", ");
+                }
+              }
+              return row.value;
+            }
 	      });
     	}
     });
 
     columns.sort(function(a, b) {
-      return a.accessor.localeCompare(b.accessor);
+      return a.index.localeCompare(b.index);
     })
 
 		this.setState({
@@ -126,6 +205,27 @@ export class DataTable extends React.Component {
     });
   }
 
+  toggleLabels () {
+    this.setState({
+      showLabels: !this.state.showLabels
+    });
+
+    window.setTimeout(()=>{
+      this._prepColumns(this.state.tableData);
+    }, 300);
+  }
+
+  toggleGroups () {
+    this.setState({
+      showGroups: !this.state.showGroups
+    });
+
+    window.setTimeout(()=>{
+      this._prepColumns(this.state.tableData);
+    }, 300);
+
+  }
+
   render () {
     if (this.state.error) {
       return (
@@ -166,6 +266,18 @@ export class DataTable extends React.Component {
                     data-tip={t('Expand')}>
               <i className="k-icon-expand" />
             </button>   
+
+            <ui.PopoverMenu type='formTable-menu' 
+                        triggerLabel={<i className="k-icon-more" />} 
+                        triggerTip={t('More Actions')}>
+                <bem.PopoverMenu__link onClick={this.toggleLabels}>
+                  {t('Toggle labels / XML values')}
+                </bem.PopoverMenu__link>
+                <bem.PopoverMenu__link onClick={this.toggleGroups}>
+                  {t('Show/hide question groups')}
+                </bem.PopoverMenu__link>
+            </ui.PopoverMenu>
+
           </bem.FormView__item>
         </bem.FormView__group>
 
