@@ -137,7 +137,7 @@ export class DataTable extends React.Component {
           index: index,
           question: q,
           Cell: row => {
-              if (showLabels && q && q.type) {
+              if (showLabels && q && q.type && row.value) {
                 // show proper labels for choice questions
                 if (q.type == 'select_one') {
                   let choice = choices.find(o => o.name === row.value || o.$autoname == row.value);
