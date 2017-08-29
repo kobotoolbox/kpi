@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import datetime
 import json
 import pytz
@@ -8,6 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import get_script_prefix, resolve, Resolver404
 from django.db import transaction
+from django.db.utils import ProgrammingError
 from django.utils.six.moves.urllib import parse as urlparse
 from django.conf import settings
 from rest_framework import serializers, exceptions
@@ -858,6 +860,27 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         if settings.KOBOCAT_URL and settings.KOBOCAT_INTERNAL_URL:
             rep['extra_details']['require_auth'] = get_kc_profile_data(
                 obj.pk).get('require_auth', False)
+
+        # Count the number of dkobo SurveyDrafts to determine migration status
+        from kpi.management.commands.import_survey_drafts_from_dkobo import \
+            SurveyDraft
+        try:
+            SurveyDraft.objects.exists()
+        except ProgrammingError:
+            # dkobo is not installed. Freude, schöner Götterfunken
+            pass
+        else:
+            survey_drafts = SurveyDraft.objects.filter(user=obj)
+            rep['dkobo_survey_drafts'] = {
+                'total': survey_drafts.count(),
+                'non_migrated': survey_drafts.filter(kpi_asset_uid='').count(),
+                'migrate_url': u'{switch_builder}?beta=1&migrate=1'.format(
+                    switch_builder=reverse(
+                        'toggle-preferred-builder',
+                        request=self.context.get('request', None)
+                    )
+                )
+            }
         return rep
 
     def update(self, instance, validated_data):

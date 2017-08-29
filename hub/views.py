@@ -32,7 +32,10 @@ def switch_builder(request):
             quiet=True # squelches `print` statements
         )
         # Create/update KPI assets to match the user's KC forms
-        sync_kobocat_xforms(username=request.user.username)
+        if 'async' in request.GET:
+            sync_kobocat_xforms.delay(username=request.user.username)
+        else:
+            sync_kobocat_xforms(username=request.user.username)
 
     return HttpResponseRedirect('/')
 
