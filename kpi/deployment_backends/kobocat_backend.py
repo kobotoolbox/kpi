@@ -11,8 +11,11 @@ import posixpath
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.utils.translation import ugettext_lazy as _
 from pyxform.xls2json_backends import xls_to_dict
-from rest_framework import exceptions, status
+from rest_framework import exceptions, status, serializers
 from rest_framework.authtoken.models import Token
 
 from base_backend import BaseDeploymentBackend
@@ -400,3 +403,87 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return instance_count(xform_id_string=id_string,
                               user_id=self.asset.owner.pk,
                               )
+
+
+class KobocatDataProxyViewSetMixin(object):
+    '''
+    List, retrieve, and delete submission data for a deployed asset via the
+    KoBoCAT API.
+    '''
+    def _get_deployment(self, request):
+        '''
+        Presupposing the use of `NestedViewSetMixin`, return the deployment for
+        the asset specified by the KPI request
+        '''
+        asset_uid = self.get_parents_query_dict()['asset']
+        asset = get_object_or_404(self.parent_model, uid=asset_uid)
+        if not asset.has_deployment:
+            raise serializers.ValidationError(
+                _('The specified asset has not been deployed'))
+        if not isinstance(asset.deployment, KobocatDeploymentBackend):
+            raise NotImplementedError(
+                'This viewset can only be used with the KoBoCAT deployment '
+                'backend')
+        return asset.deployment
+
+    @staticmethod
+    def _kobocat_request(kpi_request, kc_request):
+        '''
+        Send `kc_request`, which must specify `method` and `url` at a minimum.
+        If `kpi_request`, i.e. the incoming request to be proxied, is
+        authenticated, logged-in user's API token will be added to
+        `kc_request.headers`
+        '''
+        user = kpi_request.user
+        if not user.is_anonymous() and user.pk != settings.ANONYMOUS_USER_ID:
+            token, created = Token.objects.get_or_create(user=user)
+            kc_request.headers['Authorization'] = 'Token %s' % token.key
+        session = requests.Session()
+        return session.send(kc_request.prepare())
+
+    @staticmethod
+    def _requests_response_to_django_response(requests_response):
+        '''
+        Convert a `requests.models.Response` into a `django.http.HttpResponse`
+        '''
+        HEADERS_TO_COPY = ('Content-Type', 'Content-Language')
+        django_response = HttpResponse()
+        for header in HEADERS_TO_COPY:
+            try:
+                django_response[header] = requests_response.headers[header]
+            except KeyError:
+                continue
+        django_response.status_code = requests_response.status_code
+        django_response.write(requests_response.content)
+        return django_response
+
+
+    def list(self, kpi_request, *args, **kwargs):
+        return self.retrieve(kpi_request, None, *args, **kwargs)
+
+    def retrieve(self, kpi_request, pk, *args, **kwargs):
+        deployment = self._get_deployment(kpi_request)
+        kc_url = '{kc_base}/api/v1/data/{formid}'.format(
+            kc_base=settings.KOBOCAT_INTERNAL_URL,
+            formid=deployment.backend_response['formid']
+        )
+        if pk is not None:
+            kc_url = '{list_url}/{pk}'.format(list_url=kc_url, pk=pk)
+        kc_request = requests.Request(
+            method='GET',
+            url=kc_url,
+            params=kpi_request.GET
+        )
+        kc_response = self._kobocat_request(kpi_request, kc_request)
+        return self._requests_response_to_django_response(kc_response)
+
+    def delete(self, kpi_request, pk, *args, **kwargs):
+        deployment = self._get_deployment(kpi_request)
+        kc_url = '{kc_base}/api/v1/data/{formid}/{instanceid}'.format(
+            kc_base=settings.KOBOCAT_INTERNAL_URL,
+            formid=deployment.backend_response['formid'],
+            instanceid=pk
+        )
+        kc_request = requests.Request(method='DELETE', url=kc_url)
+        kc_response = self._kobocat_request(kpi_request, kc_request)
+        return self._requests_response_to_django_response(kc_response)
