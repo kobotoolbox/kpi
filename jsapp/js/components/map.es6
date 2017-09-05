@@ -18,6 +18,8 @@ import 'leaflet.markercluster/dist/leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 
+import 'Leaflet.AutoLayers/src/leaflet-autolayers';
+
 import {
   assign,
   t,
@@ -46,7 +48,8 @@ export class FormMap extends React.Component {
       fieldsToQuery: ['_id', '_geolocation'],
       hasGeoPoint: hasGeoPoint,
       submissions: [],
-      error: false
+      error: false,
+      showExpandedMap: false
     };
 
     autoBind(this);    
@@ -92,7 +95,7 @@ export class FormMap extends React.Component {
         "Humanitarian": humanitarian
     };
 
-    L.control.layers(baseLayers).addTo(map);
+    L.control.autolayers({baseLayers: baseLayers, selectedOverlays: []}).addTo(map);
 
     var fq = this.state.fieldsToQuery;
     fields.forEach(function(f){
@@ -140,6 +143,7 @@ export class FormMap extends React.Component {
 
     if (viewby) {
       var mapMarkers = this.prepFilteredMarkers(this.state.submissions, this.props.viewby);
+      console.log(mapMarkers);
       this.setState({markerMap: mapMarkers});
     } else {
       this.setState({markerMap: false});
@@ -161,7 +165,8 @@ export class FormMap extends React.Component {
     if (viewby) {
       var markers = L.featureGroup(prepPoints);
     } else {
-      var markers = L.markerClusterGroup();
+
+      var markers = L.markerClusterGroup({maxClusterRadius: 15});
       markers.addLayers(prepPoints);
     }
 
@@ -175,16 +180,15 @@ export class FormMap extends React.Component {
   }
 
   prepFilteredMarkers (data, viewby) {
-
     var markerMap = new Object();
+
+    var idcounter = 0;
     data.forEach(function(listitem, i) {
       var m = listitem[viewby];
 
-      var l = i.toString();
-      var c = l[l.length - 1];
-
       if (markerMap[m] == null) {
-          markerMap[m] = {count: 1, id: c};
+          markerMap[m] = {count: 1, id: idcounter};
+          idcounter++;
       } else {
           markerMap[m]['count'] += 1;
       }
@@ -263,6 +267,16 @@ export class FormMap extends React.Component {
     });
   }
 
+  toggleExpandedMap () {
+    stores.pageState.hideDrawerAndHeader(!this.state.showExpandedMap);
+    this.setState({
+      showExpandedMap: !this.state.showExpandedMap,
+    });
+
+    var map = this.state.map;
+    setTimeout(function(){ map.invalidateSize()}, 300);
+  }
+
   render () {
     if (!this.state.hasGeoPoint) {
       return (
@@ -301,6 +315,11 @@ export class FormMap extends React.Component {
 
     return (
       <bem.FormView m='map'>
+        <bem.FormView__mapButton m={'expand'} 
+          onClick={this.toggleExpandedMap}
+          className={this.state.toggleExpandedMap ? 'active': ''}>
+          <i className="k-icon-expand" />
+        </bem.FormView__mapButton>
         <bem.FormView__mapButton m={'markers'} 
           onClick={this.showMarkers}
           className={this.state.markersVisible ? 'active': ''}>
