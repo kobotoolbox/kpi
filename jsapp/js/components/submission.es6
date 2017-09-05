@@ -26,6 +26,10 @@ class Submission extends React.Component {
         submission: data,
         loading: false
       });
+      // dataInterface.getEnketoEditLink(this.props.asset.uid, this.props.sid).done((data) => {
+      //   console.log(data);
+      // });
+
     }).fail((error)=>{
       if (error.responseText)
         this.setState({error: error.responseText, loading: false});
@@ -85,10 +89,10 @@ class Submission extends React.Component {
 
     return (
       <bem.FormModal>
-        <button onClick={this.editSubmission}
+        {/*<button onClick={this.editSubmission}
                 className="mdl-button mdl-button--raised mdl-button--colored">
           {t('Edit')}
-        </button>
+        </button>*/}
         <table>
           <thead>
           <tr>
