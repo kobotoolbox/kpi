@@ -3,8 +3,11 @@ import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
 import {dataInterface} from '../dataInterface';
 import bem from '../bem';
-import {t} from '../utils';
+import {t, notify} from '../utils';
+import stores from '../stores';
 import ui from '../ui';
+import alertify from 'alertifyjs';
+import icons from '../../xlform/src/view.icons';
 
 class Submission extends React.Component {
   constructor(props) {
@@ -12,11 +15,12 @@ class Submission extends React.Component {
     this.state = {
       submission: {},
       loading: true,
-      error: false
+      error: false,
+      enketoEditLink: false
     };
     autoBind(this);
   }
-  componentDidMount () {
+  componentDidMount() {
     dataInterface.getSubmission(this.props.asset.uid, this.props.sid).done((data) => {
       this.setState({
         submission: data,
@@ -30,6 +34,25 @@ class Submission extends React.Component {
       else
         this.setState({error: t('Error: could not load data.'), loading: false});
     });
+  }
+
+  deleteSubmission() {
+    let dialog = alertify.dialog('confirm');
+    let opts = {
+      title: t('Delete submission?'),
+      message: `${t('Are you sure you want to delete this submission?')} ${t('This action cannot be undone')}.`,
+      labels: {ok: t('Delete'), cancel: t('Cancel')},
+      onok: (evt, val) => {
+        dataInterface.deleteSubmission(this.props.asset.uid, this.props.sid).done((data) => {
+          stores.pageState.hideModal();
+          notify(t('submission deleted'));
+        });
+      },
+      oncancel: () => {
+        dialog.destroy();
+      }
+    };
+    dialog.set(opts).show();
   }
 
   render () {
@@ -62,10 +85,16 @@ class Submission extends React.Component {
 
     return (
       <bem.FormModal>
+        <button onClick={this.editSubmission}
+                className="mdl-button mdl-button--raised mdl-button--colored">
+          {t('Edit')}
+        </button>
         <table>
           <thead>
           <tr>
-            <td>{t('Question')}</td><td>{t('Response')}</td><td>{t('Type')}</td>
+            <th className="submission--question-type">{t('Type')}</th>
+            <th className="submission--question">{t('Question')}</th>
+            <th className="submission--response">{t('Response')}</th>
           </tr>
           </thead>
           <tbody>
@@ -80,16 +109,38 @@ class Submission extends React.Component {
                   response = choice.label[0];
               }
 
+              if (q.type=="select_multiple" && s[name]) {
+                var responses = s[name].split(' ');
+                var list = responses.map((r)=> {
+                  const choice = choices.find(x => x.name === r);
+                  if (choice && choice.label)
+                    return <li key={r}>{choice.label[0]}</li>;
+                })
+                response = <ul>{list}</ul>;
+              }
+
+              var icon = icons._byId[q.type];
+              var type = q.type;
+              if (icon) {
+                type = <i className={`fa fa-${icon.attributes.faClass}`}
+                          title={q.type}/>
+              }
+
               return (
                 <tr key={`row-${name}`}>
-                  <td>{q.label[0]}</td>
-                  <td>{response}</td>
-                  <td>{q.type}</td>
+                  <td className="submission--question-type">{type}</td>
+                  <td className="submission--question">{q.label[0]}</td>
+                  <td className="submission--response">{response}</td>
                 </tr>      
               );
             })}
           </tbody>
         </table>
+        <button onClick={this.deleteSubmission}
+                className="mdl-button mdl-button--colored mdl-button--danger">
+          {t('Delete Submission')}
+        </button>
+
       </bem.FormModal>
     );
   }

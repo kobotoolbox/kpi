@@ -107,6 +107,57 @@
   }
 }
 
+.modal-submission {
+  .modal-open {
+    background-color: #FFF;
+  }
+  .modal-header {
+    background-color: #F8F8F8;
+    color: $layout-text-color;
+  }
+  .modal-x {
+    color: $layout-text-color;
+  }
+  .form-modal {
+    text-align: right;
+    padding: 20px 0px;
+  }
+  table {
+    border: 1px solid #F6F6F6;
+    border-collapse: collapse;
+    width: 100%;
+    margin: 20px 0px;
+    text-align: left;
+    thead th {
+      font-weight: 600;
+      padding: 8px 12px;
+      background-color: #F6F6F6;
+      text-align: left;
+    }
+    tbody {
+      tr {
+        border-bottom: 1px solid $divider-color;        
+      }
+      td {
+        padding: 12px;
+        ul {
+          list-style: disc;
+          margin-left: 30px;
+        }
+      }
+    }
+    .submission--question-type {
+      width: 5%;
+    }
+    .submission--question {
+      width: 45%;
+    }
+    .submission--response {
+      width: 50%;
+    }
+  }
+}
+
 // modal tabs
 .modal-tabs {
   background: $cool-blue;

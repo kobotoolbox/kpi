@@ -374,7 +374,6 @@ var dataInterface;
       if (fields.length) {
         f = `&fields=${JSON.stringify(fields)}`;
       }
-      // console.log(`${rootUrl}/assets/${uid}/submissions?${query}${s}${f}`);
       return $ajax({
         url: `${rootUrl}/assets/${uid}/submissions?${query}${s}${f}`,
         method: 'GET'
@@ -383,6 +382,18 @@ var dataInterface;
     getSubmission(uid, sid) {
       return $ajax({
         url: `${rootUrl}/assets/${uid}/submissions/${sid}`,
+        method: 'GET'
+      });
+    },
+    deleteSubmission(uid, sid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}`,
+        method: 'DELETE'
+      });
+    },
+    getEnketoEditLink(uid, sid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}/enketo`,
         method: 'GET'
       });
     },
