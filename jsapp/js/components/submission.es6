@@ -60,6 +60,25 @@ class Submission extends React.Component {
     dialog.set(opts).show();
   }
 
+  renderAttachment(filename) {
+    const s = this.state.submission;
+    var download_url = null;
+    var fullImage = s._attachments.forEach(function(a) {
+      if (a.download_url.includes(filename)) {
+        download_url = a.download_url;
+      }
+    });
+
+    var kc_server = document.createElement('a');
+    kc_server.href = this.props.asset.deployment__identifier;
+    var kobocollect_url = kc_server.origin;
+
+    if (download_url)
+      return <img src={`${kobocollect_url}/${download_url}`} />
+    else
+      return filename;
+  }
+
   render () {
     if (this.state.loading) {
       return (
@@ -117,7 +136,7 @@ class Submission extends React.Component {
                   response = choice.label[0];
               }
 
-              if (q.type=="select_multiple" && s[name]) {
+              if (q.type === 'select_multiple' && s[name]) {
                 var responses = s[name].split(' ');
                 var list = responses.map((r)=> {
                   const choice = choices.find(x => x.name === r);
@@ -125,6 +144,10 @@ class Submission extends React.Component {
                     return <li key={r}>{choice.label[0]}</li>;
                 })
                 response = <ul>{list}</ul>;
+              }
+
+              if (q.type === 'image' && s[name]) {
+                response = this.renderAttachment(s[name]);
               }
 
               var icon = icons._byId[q.type];

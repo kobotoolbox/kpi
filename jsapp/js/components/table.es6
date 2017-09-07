@@ -18,6 +18,7 @@ import {
   t,
   log,
   notify,
+  formatTimeDate
 } from '../utils';
 
 export class DataTable extends React.Component {
@@ -77,87 +78,88 @@ export class DataTable extends React.Component {
         </span>
       )
     }];
-    var excludes = ['_xform_id_string', '_attachments', '_notes', '_bamboo_dataset_id',
-                    'formhub/uuid', '_tags', '_geolocation', '_submitted_by', '_status'];
+    var excludes = ['_xform_id_string', '_attachments', '_notes', '_bamboo_dataset_id', '_status',
+                    'formhub/uuid', '_tags', '_geolocation', '_submitted_by', 'meta/instanceID'];
 
     let survey = this.props.asset.content.survey;
     let choices = this.props.asset.content.choices;
+    console.log(uniqueKeys);
 
     uniqueKeys.forEach(function(key){
-    	if (!excludes.includes(key)) {
-        var q = undefined;
-        var groupQ = [];
-        if (key.includes('/') && key !== 'meta/instanceID') {
-          groupQ = key.split('/');
-          q = survey.find(o => o.name === groupQ[1] || o.$autoname == groupQ[1]);
-        } else {
-          q = survey.find(o => o.name === key || o.$autoname == key);
-        }
+      if (excludes.includes(key)) 
+        return false;
 
-        var index = key;
+      var q = undefined;
+      var groupQ = [];
+      if (key.includes('/')) {
+        groupQ = key.split('/');
+        q = survey.find(o => o.name === groupQ[1] || o.$autoname == groupQ[1]);
+      } else {
+        q = survey.find(o => o.name === key || o.$autoname == key);
+      }
 
-        switch(key) {
-          case 'start':
-              index = '__2_start';
-              break;
-          case 'end':
-              index = '__3_end';
-              break;
-          case '__version__':
-              index = 'z_version';
-              break;
-          case '_id':
-              index = 'z_id';
-              break;
-          case '_submission_time':
-              index = 'z_sub_time';
-              break;
-          case '_uuid':
-              index = 'z_uuid';
-              break;
-          case 'meta/instanceID':
-              index = 'z_instanceID';
-              break;
-          default:
-              index = key;
-        }
+      var index = key;
 
-      	columns.push({
-  	    	Header: h => {
-              var lbl = key.includes('/') && key !== 'meta/instanceID' ? key.split('/')[1] : key;
-              if (q && q.label && showLabels)
-                lbl = q.label[0];
-              // show Groups in labels, when selected
-              if (showGroups && groupQ && key.includes('/') && key !== 'meta/instanceID')
-                lbl = `${groupQ[0]} / ${lbl}`;
-
-              return lbl;
-            },
-    	  	accessor: key,
-          index: index,
-          question: q,
-          Cell: row => {
-              if (showLabels && q && q.type && row.value) {
-                // show proper labels for choice questions
-                if (q.type == 'select_one') {
-                  let choice = choices.find(o => o.name === row.value || o.$autoname == row.value);
-                  return choice && choice.label ? choice.label[0] : row.value;
-                }
-                if (q.type == 'select_multiple' && row.value) {
-                  let values = row.value.split(" ");
-                  var labels = [];
-                  values.forEach(function(v) {
-                    let choice = choices.find(o => o.name === v || o.$autoname == v);
-                    labels.push(choice.label[0]);
-                  });
-
-                  return labels.join(", ");
-                }
-              }
-              return row.value;
+      switch(key) {
+        case '__version__':
+            index = 'z1';
+            break;
+        case '_id':
+            index = 'z2';
+            break;
+        case '_uuid':
+            index = 'z3';
+            break;
+        case '_submission_time':
+            index = 'z4';
+            break;
+        default:
+          survey.map(function(x, i) {
+            if (x.name === key || x.$autoname === key) {
+              index = 'f' + i.toString();
             }
-	      });
-    	}
+          });
+      }
+
+    	columns.push({
+	    	Header: h => {
+            var lbl = key.includes('/') ? key.split('/')[1] : key;
+            if (q && q.label && showLabels)
+              lbl = q.label[0];
+            // show Groups in labels, when selected
+            if (showGroups && groupQ && key.includes('/') && key !== 'meta/instanceID')
+              lbl = `${groupQ[0]} / ${lbl}`;
+
+            return lbl;
+          },
+  	  	accessor: key,
+        index: index,
+        question: q,
+        Cell: row => {
+            if (showLabels && q && q.type && row.value) {
+              // show proper labels for choice questions
+              if (q.type == 'select_one') {
+                let choice = choices.find(o => o.name === row.value || o.$autoname == row.value);
+                return choice && choice.label ? choice.label[0] : row.value;
+              }
+              if (q.type == 'select_multiple' && row.value) {
+                let values = row.value.split(" ");
+                var labels = [];
+                values.forEach(function(v) {
+                  let choice = choices.find(o => o.name === v || o.$autoname == v);
+                  labels.push(choice.label[0]);
+                });
+
+                return labels.join(", ");
+              }
+              if (q.type == 'start' || q.type == 'end' || q.type == '_submission_time') {
+                return formatTimeDate(row.value);
+              }
+            }
+            return row.value;
+          }
+      });
+
     });
 
     columns.sort(function(a, b) {

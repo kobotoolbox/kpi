@@ -22,6 +22,11 @@ export function formatTime(timeStr) {
   return _m.calendar(null, {sameElse: 'LL'});
 }
 
+export function formatTimeDate(timeStr) {
+  var _m = moment(timeStr);
+  return _m.format('LLL');
+}
+
 export var anonUsername = 'AnonymousUser';
 export function getAnonymousUserPermission(permissions) {
   return permissions.filter(function(perm){

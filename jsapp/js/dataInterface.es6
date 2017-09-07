@@ -366,14 +366,13 @@ var dataInterface;
     },
     getSubmissions(uid, pageSize=100, page=0, sort=[], fields=[]) {
       const query = `limit=${pageSize}&start=${page}`;
-      var s = '';
+      var s = `&sort={"_id":-1}`; // default sort
       var f = '';
-      if (sort.length) {
+      if (sort.length)
         s = sort[0].desc === true ? `&sort={"${sort[0].id}":-1}` : `&sort={"${sort[0].id}":1}`;
-      }
-      if (fields.length) {
+      if (fields.length)
         f = `&fields=${JSON.stringify(fields)}`;
-      }
+      
       return $ajax({
         url: `${rootUrl}/assets/${uid}/submissions?${query}${s}${f}`,
         method: 'GET'
