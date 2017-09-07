@@ -45,37 +45,6 @@ export function surveyToValidJson(survey) {
   return JSON.stringify(survey.toFlatJSON());
 }
 
-export function customPromptAsync(msg, def) {
-  return new Promise(function(resolve, reject){
-    window.setTimeout(function(){
-      var val = window.prompt(msg, def);
-      if (val === null) {
-        reject(new Error('empty value'));
-      } else {
-        resolve(val);
-      }
-    }, 0);
-  });
-}
-
-export function customConfirmAsync(msg) {
-  var dfd = new $.Deferred();
-  window.setTimeout(function(){
-    var tf = window.confirm(msg);
-    dfd[ tf ? 'resolve' : 'reject' ](tf);
-  }, 0);
-  return dfd.promise();
-}
-
-export function customConfirm(msg) {
-  /*eslint no-alert: 0*/
-  return window.confirm(msg);
-}
-export function customPrompt(msg) {
-  /*eslint no-alert: 0*/
-  return window.prompt(msg);
-}
-
 export function redirectTo(href) {
   window.location.href = href;
 }
@@ -223,6 +192,15 @@ export function stringToColor(str, prc) {
       return color;
   };
   return shade(int_to_rgba(hash(str)), prc);
+}
+
+export function isAValidUrl(url) {
+  try {
+    new URL(url);
+    return true;
+  } catch(e) {
+    return false;
+  }
 }
 
 export function validFileTypes() {

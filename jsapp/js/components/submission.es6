@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
 import {dataInterface} from '../dataInterface';
 import bem from '../bem';
-import {t, notify} from '../utils';
+import {t, notify, isAValidUrl} from '../utils';
 import stores from '../stores';
 import ui from '../ui';
 import alertify from 'alertifyjs';
@@ -73,7 +73,9 @@ class Submission extends React.Component {
     kc_server.href = this.props.asset.deployment__identifier;
     var kobocollect_url = kc_server.origin;
 
-    if (download_url)
+    if (download_url && isAValidUrl(download_url))
+      return <img src={download_url} />
+    else if (download_url)
       return <img src={`${kobocollect_url}/${download_url}`} />
     else
       return filename;
