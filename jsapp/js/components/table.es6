@@ -83,7 +83,6 @@ export class DataTable extends React.Component {
 
     let survey = this.props.asset.content.survey;
     let choices = this.props.asset.content.choices;
-    console.log(uniqueKeys);
 
     uniqueKeys.forEach(function(key){
       if (excludes.includes(key)) 
