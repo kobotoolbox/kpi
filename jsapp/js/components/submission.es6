@@ -26,9 +26,10 @@ class Submission extends React.Component {
         submission: data,
         loading: false
       });
-      // dataInterface.getEnketoEditLink(this.props.asset.uid, this.props.sid).done((data) => {
-      //   console.log(data);
-      // });
+      dataInterface.getEnketoEditLink(this.props.asset.uid, this.props.sid).done((data) => {
+        if (data.url)
+          this.setState({enketoEditLink: data.url});
+      });
 
     }).fail((error)=>{
       if (error.responseText)
@@ -89,10 +90,13 @@ class Submission extends React.Component {
 
     return (
       <bem.FormModal>
-        {/*<button onClick={this.editSubmission}
-                className="mdl-button mdl-button--raised mdl-button--colored">
-          {t('Edit')}
-        </button>*/}
+        {this.state.enketoEditLink &&
+          <a href={this.state.enketoEditLink}
+             target="_blank"
+             className="mdl-button mdl-button--raised mdl-button--colored">
+            {t('Edit')}
+          </a>
+        }
         <table>
           <thead>
           <tr>
