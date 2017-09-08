@@ -62,6 +62,9 @@ module.exports = do ->
           @[@_rowAttributeName].add(subrow)
         delete rr.attributes.__rows
 
+    _kobomatrix_cols: ->
+      @rows
+
     _isSelectQuestion: -> false
     _beginEndKey: ->
       'kobomatrix'
