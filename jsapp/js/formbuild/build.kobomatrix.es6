@@ -1,14 +1,16 @@
 import React from 'react';
-import bem from 'js/bem';
+import { bemComponents } from 'js/libs/reactBemComponents';
 
-const Matrix = bem.create('kobomatrix', '<div>'),
-      MatrixCols = bem.create('matrix-cols'),
-      MatrixCols__col = bem.create('matrix-cols__col'),
-      MatrixCols__colattr = bem.create('matrix-cols__colattr', '<span>'),
-      MatrixItems = bem.create('matrix-items', '<ul>'),
-      MatrixItems__item = bem.create('matrix-items__item', '<li>'),
-      MatrixItems__itemattr = bem.create('matrix-items__itemattr', '<span>'),
-      MatrixButton = bem.create('kobomatrix-button', '<button>');
+const bem = bemComponents({
+  Matrix: 'kobomatrix',
+  MatrixCols: 'matrix-cols',
+  MatrixCols__col: 'matrix-cols__col',
+  MatrixCols__colattr: ['matrix-cols__colattr', '<span>'],
+  MatrixItems: ['matrix-items', '<ul>'],
+  MatrixItems__item: ['matrix-items__item', '<li>'],
+  MatrixItems__itemattr: ['matrix-items__itemattr', '<span>'],
+  MatrixButton: ['kobomatrix-button', '<button>'],
+});
 
 export var KoboMatrix = React.createClass({
   getInitialState() {
@@ -17,51 +19,51 @@ export var KoboMatrix = React.createClass({
   render () {
     let model = this.props.model;
     return (
-        <Matrix>
-          <MatrixCols m={'header'}>
-            <MatrixCols__col m={'label'} key={'label'}>
+        <bem.Matrix>
+          <bem.MatrixCols m={'header'}>
+            <bem.MatrixCols__col m={'label'} key={'label'}>
               {model.label}
-            </MatrixCols__col>
+            </bem.MatrixCols__col>
             {
               model.cols.map(function(col, n) {
                 return (
-                    <MatrixCols__col key={n} m={'header'}>
-                      <MatrixCols__colattr m={'label'}>
+                    <bem.MatrixCols__col key={n} m={'header'}>
+                      <bem.MatrixCols__colattr m={'label'}>
                         {col.get('label')}
-                      </MatrixCols__colattr>
-                      <MatrixCols__colattr m={'type'}>
+                      </bem.MatrixCols__colattr>
+                      <bem.MatrixCols__colattr m={'type'}>
                         {' ('}
                         {col.get('type')}
                         {')'}
-                      </MatrixCols__colattr>
-                    </MatrixCols__col>
+                      </bem.MatrixCols__colattr>
+                    </bem.MatrixCols__col>
                   );
               })
             }
-          </MatrixCols>
-          <MatrixItems>
+          </bem.MatrixCols>
+          <bem.MatrixItems>
             {
               model.items.map(function(item, n) {
                 return (
-                  <MatrixItems__item key={n}>
-                    <MatrixItems__itemattr m={'label'}>
+                  <bem.MatrixItems__item key={n}>
+                    <bem.MatrixItems__itemattr m={'label'}>
                       {item.getValue('label')}
-                    </MatrixItems__itemattr>
+                    </bem.MatrixItems__itemattr>
                     {
                       model.cols.map(function(col, nn) {
                         return (
-                            <MatrixCols__col>
+                            <bem.MatrixCols__col key={nn}>
                               {'🔘Yes  🔘No'}
-                            </MatrixCols__col>
+                            </bem.MatrixCols__col>
                           );
                       })
                     }
-                  </MatrixItems__item>
+                  </bem.MatrixItems__item>
                   );
               })
             }
-          </MatrixItems>
-        </Matrix>
+          </bem.MatrixItems>
+        </bem.Matrix>
       )
   }
 });
