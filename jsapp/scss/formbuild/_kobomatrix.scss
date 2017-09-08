@@ -1,0 +1,32 @@
+.kobomatrix {
+  display: table;
+  width: 100%;
+  padding: 23px 10px 23px 30px;
+  border: 1px solid #d9dde1;
+  margin-bottom: 4px;
+}
+
+.matrix-cols--header {
+  display: table-row;
+
+  .matrix-cols__col {
+    display: table-cell;
+  }
+}
+
+.matrix-items {
+  display: table-row-group;
+}
+
+.matrix-items__item {
+  display: table-row;
+
+  .matrix-cols {
+    display: table-column-group;
+  }
+
+  .matrix-items__itemattr, .matrix-cols__col {
+    display: table-cell;
+    padding: 5px;
+  }
+}

@@ -8,6 +8,7 @@ $viewTemplates = require './view.templates'
 $viewUtils = require './view.utils'
 $viewChoices = require './view.choices'
 $viewRowDetail = require './view.rowDetail'
+renderKobomatrix = require('js/formbuild/renderInBackbone').renderKobomatrix
 _t = require('utils').t
 
 module.exports = do ->
@@ -240,6 +241,10 @@ module.exports = do ->
         rows: 3
       ,
       transformFunction: (value) -> value
+
+  class KoboMatrixView extends RowView
+    _renderRow: ->
+      renderKobomatrix(@)
 
   class RankScoreView extends RowView
     _expandedRender: ->
@@ -507,5 +512,6 @@ module.exports = do ->
 
   RowView: RowView
   ScoreView: ScoreView
+  KoboMatrixView: KoboMatrixView
   GroupView: GroupView
   RankView: RankView
