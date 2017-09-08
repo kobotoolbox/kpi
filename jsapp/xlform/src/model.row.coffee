@@ -203,31 +203,6 @@ module.exports = do ->
   class RankRows extends Backbone.Collection
     model: RankRow
 
-  class KobomatrixRow extends Backbone.Model
-    _isSelectQuestion: -> false
-
-  class KobomatrixRows extends Backbone.Collection
-    model: KobomatrixRow
-
-  class KobomatrixMixin extends ScoreRankMixin
-    constructor: (rr)->
-      @_kobomatrix_columns = new KobomatrixRows()
-      @_rowAttributeName = '_kobomatrix_columns'
-      @_extendAll(rr)
-
-    _beginEndKey: ->
-      'kobomatrix'
-
-    linkUp: (ctx)->
-      @getList = ()=> @items
-      kobomatrix_list = @get('kobo--matrix_list')?.get('value')
-      if kobomatrix_list
-        @items = @getSurvey().choices.get(kobomatrix_list)
-      else
-        missing_list_err = _t('Missing advanced matrix list')
-        throw new Error("#{missing_list_err}: #{kobomatrix_list}")
-      @items
-
   class RankMixin extends ScoreRankMixin
     constructor: (rr)->
       @_rankRows = new RankRows()
@@ -352,9 +327,6 @@ module.exports = do ->
         new ScoreMixin(@)
       else if _type is 'rank'
         new RankMixin(@)
-      else if _type is 'kobomatrix'
-        new KobomatrixMixin(@)
-
       @convertAttributesToRowDetails()
 
       typeDetail = @get("type")

@@ -30,6 +30,10 @@ module.exports = do ->
         "begin rank",
         "end rank",
       ]
+    kobomatrix: [
+        "begin_kobomatrix",
+        "end_kobomatrix",
+      ]
 
   aliases = (name)-> aliases_dict[name] or [name]
 
