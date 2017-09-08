@@ -10,6 +10,7 @@ import bem from '../bem';
 import stores from '../stores';
 import ui from '../ui';
 import alertify from 'alertifyjs';
+import classNames from 'classnames';
 
 import L from 'leaflet/dist/leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -49,7 +50,8 @@ export class FormMap extends React.Component {
       hasGeoPoint: hasGeoPoint,
       submissions: [],
       error: false,
-      showExpandedMap: false
+      showExpandedMap: false,
+      showExpandedLegend: true
     };
 
     autoBind(this);    
@@ -143,8 +145,24 @@ export class FormMap extends React.Component {
 
     if (viewby) {
       var mapMarkers = this.prepFilteredMarkers(this.state.submissions, this.props.viewby);
-      console.log(mapMarkers);
-      this.setState({markerMap: mapMarkers});
+      var mM = [];
+      let choices = this.props.asset.content.choices;
+
+      Object.keys(mapMarkers).map(function(m, i) {
+        var lbl = choices.find(o => o.name === m || o.$autoname == m);
+
+        mM.push({
+          count: mapMarkers[m].count,
+          id: mapMarkers[m].id,
+          label: lbl ? lbl.label[0] : t('not set')
+        });
+      });
+
+      mM.sort(function(a, b) {
+        return a.count - b.count;
+      }).reverse();
+
+      this.setState({markerMap: mM});
     } else {
       this.setState({markerMap: false});
     }
@@ -162,21 +180,24 @@ export class FormMap extends React.Component {
       }
     });
 
-    if (viewby) {
-      var markers = L.featureGroup(prepPoints);
-    } else {
-
-      var markers = L.markerClusterGroup({maxClusterRadius: 15});
-      markers.addLayers(prepPoints);
-    }
-
-    markers.on('click', this.launchSubmissionModal).addTo(map);
-    map.fitBounds(markers.getBounds());
-
-    this.setState({
-        markers: markers
+    if (prepPoints.length > 0) {
+      if (viewby) {
+        var markers = L.featureGroup(prepPoints);
+      } else {
+        var markers = L.markerClusterGroup({maxClusterRadius: 15});
+        markers.addLayers(prepPoints);
       }
-    );
+
+      markers.on('click', this.launchSubmissionModal).addTo(map);
+      map.fitBounds(markers.getBounds());
+
+      this.setState({
+          markers: markers
+        }
+      );
+    } else {
+      this.setState({error: t('Error: could not load data.'), loading: false});
+    }
   }
 
   prepFilteredMarkers (data, viewby) {
@@ -277,6 +298,13 @@ export class FormMap extends React.Component {
     setTimeout(function(){ map.invalidateSize()}, 300);
   }
 
+  toggleLegend() {
+    this.setState({
+      showExpandedLegend: !this.state.showExpandedLegend,
+    });
+
+  }
+
   render () {
     if (!this.state.hasGeoPoint) {
       return (
@@ -346,19 +374,24 @@ export class FormMap extends React.Component {
             })}
         </ui.PopoverMenu>
         {this.state.markerMap && this.state.markersVisible && 
-          <bem.FormView__mapList>
-            {Object.keys(this.state.markerMap).map((m, i)=>{
-              return (
-                  <div key={`m-${i}`} className="map-marker-item">
-                    <span className={`map-marker map-marker-${this.state.markerMap[m].id}`}>
-                      {this.state.markerMap[m].count}
-                    </span>
-                    <span className={`map-marker-label`}>
-                      {m}
-                    </span>
-                  </div>
-                );
-            })}
+          <bem.FormView__mapList className={this.state.showExpandedLegend ? 'expanded' : 'collapsed'}>
+            <div className='maplist-contents'>
+              {this.state.markerMap.map((m, i)=>{
+                return (
+                    <div key={`m-${i}`} className="map-marker-item">
+                      <span className={`map-marker map-marker-${m.id}`}>
+                        {m.count}
+                      </span>
+                      <span className={`map-marker-label`}>
+                        {m.label}
+                      </span>
+                    </div>
+                  );
+              })}
+            </div>
+            <div className="maplist-legend" onClick={this.toggleLegend}>
+              <i className={classNames('fa', this.state.showExpandedLegend ? 'fa-angle-down' : 'fa-angle-up')} /> {t('Legend')}
+            </div>
           </bem.FormView__mapList>
         }
         {!this.state.markers && !this.state.heatmap && 

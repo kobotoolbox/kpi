@@ -91,7 +91,17 @@
 
 .page-wrapper--header-hidden.page-wrapper--drawer-hidden {
   .form-view--table {
-    padding: 0px 30px;
+    padding: 0px 20px;
     overflow: hidden;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .form-view--table {
+    padding: 0px 20px;
+  }
+
+  .form-view--table .ReactTable .pagination-bottom {
+    margin-bottom: 10px;
   }
 }

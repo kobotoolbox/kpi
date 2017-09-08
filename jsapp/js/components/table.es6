@@ -43,12 +43,16 @@ export class DataTable extends React.Component {
 
   requestData(pageSize, page, sort) {
     dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort).done((data) => {
-      this.setState({
-        loading: false,
-        tableData: data
-      })
+      if (data && data.length > 0) {
+        this.setState({
+          loading: false,
+          tableData: data
+        })
+        this._prepColumns(data);
+      } else {
+        this.setState({error: t('Error: could not load data.'), loading: false});
+      }
 
-      this._prepColumns(data);
     }).fail((error)=>{
       if (error.responseText)
         this.setState({error: error.responseText, loading: false});

@@ -491,10 +491,12 @@
     padding-top: 0px;
 
     a.form-view__tab {
-      padding: 4px;
-      font-size: 11px;
+      padding: 3px;
+      padding-left: 1px;
+      font-size: 10px;
       text-align: center;
       display: block;
+      letter-spacing: -0.05em;
 
       span {
         display: none;
@@ -506,7 +508,7 @@
     height: 39px;
 
     a.form-view__tab {
-      font-size: 13px;
+      font-size: 12px;
       padding: 8px 14px;
     }
 

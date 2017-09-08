@@ -363,7 +363,7 @@ class Reports extends React.Component {
 
     return (
       <bem.FormView__reportButtons>
-        <button className="mdl-button" onClick={this.toggleReportGraphSettings}>
+        <button className="mdl-button graph-settings" onClick={this.toggleReportGraphSettings}>
           {t('Graph Settings')}
         </button>
 

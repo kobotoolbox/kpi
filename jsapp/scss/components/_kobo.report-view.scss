@@ -253,3 +253,15 @@
     }
   }
 }
+
+@media screen and (max-width: 767px) {
+  .form-view__reportButtons button.graph-settings {
+    margin-left: 8px;
+  }
+
+  .form-view__reportButtons button.report-button__expand,
+  .form-view__reportButtons button.report-button__print {
+    margin-left: 0px;
+    padding: 0px 4px;
+  }
+}
