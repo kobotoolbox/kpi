@@ -60,11 +60,12 @@ class Submission extends React.Component {
     dialog.set(opts).show();
   }
 
-  renderAttachment(filename) {
+  renderAttachment(filename, type) {
     const s = this.state.submission;
     var download_url = null;
-    var fullImage = s._attachments.forEach(function(a) {
-      if (a.download_url.includes(filename)) {
+
+    s._attachments.forEach(function(a) {
+      if (a.download_url.includes(encodeURI(filename))) {
         download_url = a.download_url;
       }
     });
@@ -72,13 +73,22 @@ class Submission extends React.Component {
     var kc_server = document.createElement('a');
     kc_server.href = this.props.asset.deployment__identifier;
     var kobocollect_url = kc_server.origin;
+    if (type === 'image') {
+      if (download_url && isAValidUrl(download_url))
+        return <img src={download_url} />
+      else if (download_url)
+        return <img src={`${kobocollect_url}/${download_url}`} />
+      else
+        return filename;
+    } else {
+      if (download_url && isAValidUrl(download_url))
+        return <a href={download_url}>{filename}</a>
+      else if (download_url)
+        return <a href={download_url}>{filename}</a>
+      else
+        return filename;
 
-    if (download_url && isAValidUrl(download_url))
-      return <img src={download_url} />
-    else if (download_url)
-      return <img src={`${kobocollect_url}/${download_url}`} />
-    else
-      return filename;
+    }
   }
 
   render () {
@@ -127,13 +137,27 @@ class Submission extends React.Component {
           </tr>
           </thead>
           <tbody>
+            {s.start &&
+              <tr>
+                <td></td>
+                <td>{t('start')}</td>
+                <td>{s.start}</td>
+              </tr>
+            }
+            {s.end &&
+              <tr>
+                <td></td>
+                <td>{t('end')}</td>
+                <td>{s.end}</td>
+              </tr>
+            }
             {survey.map((q)=> {
               const name = q.name || q.$autoname;
               if (q.label == undefined) { return false;}
               var response = s[name];
 
               if (q.type=="select_one" && s[name]) {
-                const choice = choices.find(x => x.name === s[name]);
+                const choice = choices.find(x => x.list_name == q.select_from_list_name && x.name === s[name]);
                 if (choice && choice.label)
                   response = choice.label[0];
               }
@@ -141,15 +165,15 @@ class Submission extends React.Component {
               if (q.type === 'select_multiple' && s[name]) {
                 var responses = s[name].split(' ');
                 var list = responses.map((r)=> {
-                  const choice = choices.find(x => x.name === r);
+                  const choice = choices.find(x => x.list_name == q.select_from_list_name && x.name === r);
                   if (choice && choice.label)
                     return <li key={r}>{choice.label[0]}</li>;
                 })
                 response = <ul>{list}</ul>;
               }
 
-              if (q.type === 'image' && s[name]) {
-                response = this.renderAttachment(s[name]);
+              if (s[name] && (q.type === 'image' || q.type === 'audio' || q.type === 'video')) {
+                response = this.renderAttachment(s[name], q.type);
               }
 
               var icon = icons._byId[q.type];
@@ -167,6 +191,21 @@ class Submission extends React.Component {
                 </tr>      
               );
             })}
+            {s.__version__ &&
+              <tr>
+                <td></td>
+                <td>{t('__version__')}</td>
+                <td>{s.__version__}</td>
+              </tr>
+            }
+            {s['meta/instanceID'] &&
+              <tr>
+                <td></td>
+                <td>{t('instanceID')}</td>
+                <td>{s['meta/instanceID']}</td>
+              </tr>
+            }
+
           </tbody>
         </table>
         <button onClick={this.deleteSubmission}

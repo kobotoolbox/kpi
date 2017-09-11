@@ -7,6 +7,10 @@
 .mdl-layout {
   max-width: 1440px;
   margin: 0 auto;
+
+  &.page-wrapper--header-hidden.page-wrapper--drawer-hidden {
+    max-width: 100%;
+  }
 }
 
 .mdl-layout__content {
@@ -208,7 +212,7 @@
   top: 100%;
 }
 
-.popover-menu--above .popover-menu__content, 
+.popover-menu--above .popover-menu__content,
 .popover-menu--viewby-menu .popover-menu__content {
   bottom: 100%;
   top: auto;
@@ -225,7 +229,7 @@
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow:ellipsis;
+  text-overflow: ellipsis;
 
   > i:first-child {
     margin-right: 4px;

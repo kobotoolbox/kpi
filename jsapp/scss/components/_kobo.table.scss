@@ -34,17 +34,12 @@
     }
 
     .rt-th, .rt-td {
-      padding: 12px 8px;
+      padding: 8px;
     }
 
     .rt-link {
       color: $cool-blue;
       cursor: pointer;
-    }
-
-    .rt-tr > .rt-td:first-child,
-    .rt-tr > .rt-th:first-child {
-      width: 50px !important;
     }
 
     .-pagination {

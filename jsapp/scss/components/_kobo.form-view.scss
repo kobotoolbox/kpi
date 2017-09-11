@@ -105,6 +105,12 @@
   .form-view__sidetabs + .form-view,
   .form-view__sidetabs + .report-view {
     width: calc(100% - 1px);
+    height: 100%;
+    background: #F8F8F8;
+  }
+
+  .form-view__toptabs {
+    display: none;
   }
 }
 

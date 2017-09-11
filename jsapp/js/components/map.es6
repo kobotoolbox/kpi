@@ -134,6 +134,11 @@ export class FormMap extends React.Component {
     });
   } 
 
+  calculateClusterRadius(zoom) {
+   if(zoom >=12) {return 12;}
+   return 20;
+  }
+
   buildMarkers(map) {
     var prepPoints = [];
     var icon = L.divIcon({
@@ -184,7 +189,7 @@ export class FormMap extends React.Component {
       if (viewby) {
         var markers = L.featureGroup(prepPoints);
       } else {
-        var markers = L.markerClusterGroup({maxClusterRadius: 15});
+        var markers = L.markerClusterGroup({maxClusterRadius: this.calculateClusterRadius, disableClusteringAtZoom: 16});
         markers.addLayers(prepPoints);
       }
 

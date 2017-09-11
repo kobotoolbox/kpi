@@ -75,6 +75,7 @@ export class DataTable extends React.Component {
       Header: '',
       accessor: 'sub-link',
       index: '__1',
+      minWidth: 50,
       Cell: row => (
         <span onClick={this.launchSubmissionModal} data-sid={row.row._id}
               className='rt-link'>
@@ -104,17 +105,35 @@ export class DataTable extends React.Component {
       var index = key;
 
       switch(key) {
-        case '__version__':
+        case 'username':
             index = 'z1';
             break;
-        case '_id':
+        case 'simserial':
             index = 'z2';
             break;
-        case '_uuid':
+        case 'subscriberid':
             index = 'z3';
             break;
-        case '_submission_time':
+        case 'deviceid':
             index = 'z4';
+            break;
+        case 'phonenumber':
+            index = 'z5';
+            break;
+        case 'today':
+            index = 'z6';
+            break;
+        case '__version__':
+            index = 'z7';
+            break;
+        case '_id':
+            index = 'z8';
+            break;
+        case '_uuid':
+            index = 'z9';
+            break;
+        case '_submission_time':
+            index = 'z91';
             break;
         default:
           survey.map(function(x, i) {
@@ -142,14 +161,14 @@ export class DataTable extends React.Component {
             if (showLabels && q && q.type && row.value) {
               // show proper labels for choice questions
               if (q.type == 'select_one') {
-                let choice = choices.find(o => o.name === row.value || o.$autoname == row.value);
+                let choice = choices.find(o => o.list_name == q.select_from_list_name && (o.name === row.value || o.$autoname == row.value));
                 return choice && choice.label ? choice.label[0] : row.value;
               }
               if (q.type == 'select_multiple' && row.value) {
                 let values = row.value.split(" ");
                 var labels = [];
                 values.forEach(function(v) {
-                  let choice = choices.find(o => o.name === v || o.$autoname == v);
+                  let choice = choices.find(o => o.list_name == q.select_from_list_name && (o.name === v || o.$autoname == v));
                   labels.push(choice.label[0]);
                 });
 
@@ -268,7 +287,7 @@ export class DataTable extends React.Component {
 
             <button className="mdl-button mdl-button--icon report-button__expand"
                     onClick={this.toggleExpandedTable} 
-                    data-tip={t('Expand')}>
+                    data-tip={this.state.showExpandedTable ? t('Contract') : t('Expand')}>
               <i className="k-icon-expand" />
             </button>   
 
