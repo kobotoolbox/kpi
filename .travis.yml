@@ -31,9 +31,23 @@ after_script:
   - coverage xml && python-codacy-coverage -r coverage.xml
   - coveralls
 env:
-  - PIP_DOWNLOAD_CACHE=$HOME/.pip-download-cache DJANGO_DEBUG=False DJANGO_SECRET_KEY=ZGtvYm90cmF2aXM DJANGO_SETTINGS_MODULE=kobo.settings DATABASE_URL="postgres://postgres@localhost:5432/travis_ci_test" TRAVIS_NODE_VERSION="6"
+  # All about YAML line breaks: https://stackoverflow.com/a/21699210
+  - >-
+       PIP_DOWNLOAD_CACHE=$HOME/.pip-download-cache
+       DJANGO_DEBUG=False
+       DJANGO_SECRET_KEY=ZGtvYm90cmF2aXM
+       DJANGO_SETTINGS_MODULE=kobo.settings
+       DATABASE_URL="postgres://postgres@localhost:5432/travis_ci_test"
+       TRAVIS_NODE_VERSION="6"
+       PATH=$PATH:$HOME/build/kobotoolbox/kpi/node_modules/.bin/
 install:
-  - rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
+  -  >-
+        rm -rf ~/.nvm &&
+        git clone https://github.com/creationix/nvm.git ~/.nvm &&
+        (cd ~/.nvm &&
+        git checkout `git describe --abbrev=0 --tags`) &&
+        source ~/.nvm/nvm.sh &&
+        nvm install $TRAVIS_NODE_VERSION
   - npm install -g install npm@latest
   - npm config set strict-ssl false && npm install --save-dev
   - bower install
