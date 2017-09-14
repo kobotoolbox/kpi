@@ -244,7 +244,10 @@ module.exports = do ->
 
   class KoboMatrixView extends RowView
     _renderRow: ->
-      renderKobomatrix(@)
+      @$el.html $viewTemplates.row.koboMatrixView()
+      @matrix = @$('.card__kobomatrix')
+      renderKobomatrix(@, @matrix)
+      @
 
   class RankScoreView extends RowView
     _expandedRender: ->

@@ -97,6 +97,17 @@ module.exports = do ->
     #{expandingSpacerHtml}
     """
 
+  koboMatrixView = () ->
+      template = """
+      <div class="survey__row__item survey__row__item--question card js-select-row">
+        <div class="card__kobomatrix">
+      """
+      return template + """
+        </div>
+      </div>
+      #{expandingSpacerHtml}
+      """
+
   scoreView = (template_args={})->
     fillers = []
     cols = []
@@ -246,6 +257,7 @@ module.exports = do ->
   selectQuestionExpansion: selectQuestionExpansion
   groupView: groupView
   rowErrorView: rowErrorView
+  koboMatrixView: koboMatrixView
   scoreView: scoreView
   rankView: rankView
   groupSettingsView: groupSettingsView

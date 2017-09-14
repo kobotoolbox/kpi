@@ -60,8 +60,7 @@ class KoboMatrixRow {
   }
 }
 
-export function renderKobomatrix (view) {
-  let $el = view.$el;
+export function renderKobomatrix (view, el) {
   let model = new KoboMatrixRow(view.model);
-  ReactDOM.render(<KoboMatrix model={model} />, $el.get(0));
+  ReactDOM.render(<KoboMatrix model={model} />, el.get(0));
 }
