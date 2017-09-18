@@ -246,18 +246,27 @@ module.exports = do ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
       label = _t("HXL")
-      hxlAttrs = ""
-      console.log(@model.get("value"))
       if (@model.get("value"))
-        tags = @model.get("value").split(':')
-        if (tags[1])
-          hxlTag = tags[1].split('+',1)
-          if (tags[1].indexOf('+') > -1)
-            hxlAttrs = tags[1].replace(hxlTag[0] + '+', '')
-            hxlAttrs = hxlAttrs.replace(/\+/g, ',')
-          viewRowDetail.Templates.hxlTags @cid, @model.key, label, @model.get("value"), hxlTag[0], hxlAttrs
-        else
-          viewRowDetail.Templates.hxlTags @cid, @model.key, label
+        tags = @model.get("value")
+        hxlTag = ''
+        hxlAttrs = []
+        hxlAttrsString = ''
+
+        if _.isArray(tags)
+          _.map(tags, (_t, i)->
+            if (_t.indexOf('hxl:') > -1)
+              _t = _t.replace('hxl:','')
+              if (_t.indexOf('#') > -1)
+                hxlTag = _t
+              if (_t.indexOf('+') > -1)
+                _t = _t.replace('+','')
+                hxlAttrs.push(_t)
+          )
+
+        if _.isArray(hxlAttrs)
+          hxlAttrsString = hxlAttrs.join(',')
+
+        viewRowDetail.Templates.hxlTags @cid, @model.key, label, @model.get("value"), hxlTag, hxlAttrsString
       else
         viewRowDetail.Templates.hxlTags @cid, @model.key, label
     afterRender: ->
@@ -288,19 +297,21 @@ module.exports = do ->
 
       attrs = @$el.find('input.hxlAttrs').val()
       attrs = attrs.replace(/,/g, '+')
+      hxlArray = [];
 
       if (tag)
         @$el.find('input.hxlAttrs').select2('enable', true)
+        hxlArray.push('hxl:' + tag)
         if (attrs)
-          val = 'hxl:'+tag+'+'+attrs
-        else
-          val = 'hxl:'+tag
+          aA = attrs.split('+')
+          _.map(aA, (_a)->
+            hxlArray.push('hxl:+' + _a)
+          )
       else
-        val = ''
         @$el.find('input.hxlAttrs').select2('enable', false)
 
-      @$el.find('input.hxlValue').eq(0).val(val)
-      @$el.find('input.hxlValue').eq(0).trigger('change')
+      @model.set('value', hxlArray)
+      @model.trigger('change')
 
     _hxlTagSanitize: ()-> 
       tag = @$el.find('.hxlTag input.select2-input').val()
