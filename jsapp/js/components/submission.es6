@@ -116,6 +116,9 @@ class Submission extends React.Component {
     }
 
     const s = this.state.submission;
+    console.log(s);
+    console.log(this.props);
+    
     const survey = this.props.asset.content.survey;
     const choices = this.props.asset.content.choices;
 
@@ -128,6 +131,12 @@ class Submission extends React.Component {
             {t('Edit')}
           </a>
         }
+        <a onClick={this.deleteSubmission}
+                className="mdl-button mdl-button--icon mdl-button--colored mdl-button--danger right-tooltip"
+                data-tip={t('Delete submission')}>
+          <i className="k-icon-trash" />
+        </a>
+
         <table>
           <thead>
           <tr>
@@ -208,10 +217,6 @@ class Submission extends React.Component {
 
           </tbody>
         </table>
-        <button onClick={this.deleteSubmission}
-                className="mdl-button mdl-button--colored mdl-button--danger">
-          {t('Delete Submission')}
-        </button>
 
       </bem.FormModal>
     );
