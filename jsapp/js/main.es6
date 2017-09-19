@@ -28,6 +28,7 @@ $.ajaxSetup({
 
 if (document.head.querySelector('meta[name=kpi-root-url]')) {
   ReactDOM.render(<RunRoutes />, el);
+  if (module.hot) module.hot.accept('./app', () => ReactDOM.render(<RunRoutes />, el));
 } else {
   console.error('no kpi-root-url meta tag set. skipping react-router init');
 }
