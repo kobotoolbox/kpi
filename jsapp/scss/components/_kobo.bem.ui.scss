@@ -615,6 +615,10 @@ span.svg-icon {
   width: 0.8em;
 }
 
+::-webkit-scrollbar:horizontal {
+  height: 0.8em;
+}
+
 ::-webkit-scrollbar-track {
   background-color: #DEDEDE;
   background-color: transparent;
