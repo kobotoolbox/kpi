@@ -12,24 +12,46 @@ import icons from '../../xlform/src/view.icons';
 class Submission extends React.Component {
   constructor(props) {
     super(props);
+    console.log(props);
     this.state = {
       submission: {},
       loading: true,
       error: false,
-      enketoEditLink: false
+      enketoEditLink: false,
+      previous: -1, 
+      next: -1,
+      sid: props.sid
     };
     autoBind(this);
   }
   componentDidMount() {
-    dataInterface.getSubmission(this.props.asset.uid, this.props.sid).done((data) => {
+    this.getSubmission(this.props.asset.uid, this.state.sid);
+  }
+
+  getSubmission(assetUid, sid) {
+    dataInterface.getSubmission(assetUid, sid).done((data) => {
       this.setState({
         submission: data,
         loading: false
       });
-      dataInterface.getEnketoEditLink(this.props.asset.uid, this.props.sid).done((data) => {
+      dataInterface.getEnketoEditLink(assetUid, sid).done((data) => {
         if (data.url)
           this.setState({enketoEditLink: data.url});
       });
+
+      if (this.props.ids && sid) {
+        const c = this.props.ids.findIndex(k => k==sid);
+
+        if (c > 0)
+          this.setState({previous: this.props.ids[c - 1]});
+        else
+          this.setState({previous: -1});
+
+        if (c < this.props.ids.length)
+          this.setState({next: this.props.ids[c + 1]});
+        else
+          this.setState({next: -1});
+      }
 
     }).fail((error)=>{
       if (error.responseText)
@@ -38,7 +60,15 @@ class Submission extends React.Component {
         this.setState({error: error.statusText, loading: false});
       else
         this.setState({error: t('Error: could not load data.'), loading: false});
+    });    
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.setState({
+      sid: nextProps.sid
     });
+
+    this.getSubmission(nextProps.asset.uid, nextProps.sid);
   }
 
   deleteSubmission() {
@@ -91,6 +121,16 @@ class Submission extends React.Component {
     }
   }
 
+  switchSubmission(evt) {
+    const sid = evt.target.getAttribute('data-sid');
+    stores.pageState.showModal({
+      type: 'submission',
+      sid: sid,
+      asset: this.props.asset,
+      ids: this.props.ids
+    });
+  }
+
   render () {
     if (this.state.loading) {
       return (
@@ -116,14 +156,31 @@ class Submission extends React.Component {
     }
 
     const s = this.state.submission;
-    console.log(s);
-    console.log(this.props);
-    
     const survey = this.props.asset.content.survey;
     const choices = this.props.asset.content.choices;
 
     return (
       <bem.FormModal>
+        <div className="submission-pager">
+          {this.state.previous > -1 &&
+            <a onClick={this.switchSubmission}
+                  className="mdl-button mdl-button--colored"
+                  data-sid={this.state.previous}>
+              <i className="k-icon-prev" />
+              {t('Previous')}
+            </a>
+          }
+
+          {this.state.next > -1 &&
+            <a onClick={this.switchSubmission}
+                  className="mdl-button mdl-button--colored"
+                  data-sid={this.state.next}>
+              {t('Next')}
+              <i className="k-icon-next" />
+            </a>
+          }
+        </div>
+
         {this.state.enketoEditLink &&
           <a href={this.state.enketoEditLink}
              target="_blank"

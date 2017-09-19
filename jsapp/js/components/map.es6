@@ -286,10 +286,17 @@ export class FormMap extends React.Component {
   }
 
   launchSubmissionModal (evt) {
+    const td = this.state.submissions;
+    var ids = [];
+    td.forEach(function(r) {
+      ids.push(r._id);
+    })
+
     stores.pageState.showModal({
       type: 'submission',
       sid: evt.layer.options.sId,
-      asset: this.props.asset
+      asset: this.props.asset,
+      ids: ids
     });
   }
 

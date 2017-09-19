@@ -134,9 +134,18 @@
     padding-bottom: 20px;
   }
 
-  .mdl-button--icon {
+  .mdl-button--raised + .mdl-button--icon {
     margin-left: 30px;
     overflow: visible;
+  }
+
+  .submission-pager {
+    text-align: center;
+
+    a {
+      display: inline-block;
+      cursor: pointer;
+    }
   }
 
   table {

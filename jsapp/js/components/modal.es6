@@ -23,7 +23,6 @@ class Modal extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      type: false,
       enketopreviewlink: false,
       error: false,
       modalClass: false
@@ -68,7 +67,8 @@ class Modal extends React.Component {
       case 'submission':
         this.setState({
           title: t('Record #') + this.props.params.sid,
-          modalClass: 'modal-large modal-submission'
+          modalClass: 'modal-large modal-submission',
+          sid: this.props.params.sid
         });
       break;
 
@@ -103,6 +103,12 @@ class Modal extends React.Component {
     }
   }
 
+  componentWillReceiveProps(nextProps) {
+    this.setState({
+      title: t('Record #') + nextProps.params.sid,
+      sid: nextProps.params.sid
+    });
+  }
   render() {
   	return (
 	      <ui.Modal open onClose={()=>{stores.pageState.hideModal()}} title={this.state.title} className={this.state.modalClass}>
@@ -146,10 +152,8 @@ class Modal extends React.Component {
               </div>
             }
 
-            { this.props.params.type == 'submission' && 
-              <div>
-                <Submission sid={this.props.params.sid} asset={this.props.params.asset} />
-              </div>
+            { this.props.params.type == 'submission' && this.state.sid && 
+              <Submission sid={this.state.sid} asset={this.props.params.asset} ids={this.props.params.ids} />
             }
 
 	        </ui.Modal.Body>

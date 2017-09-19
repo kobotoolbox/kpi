@@ -28,6 +28,7 @@ export class DataTable extends React.Component {
     	loading: false,
     	tableData: [],
     	columns: [],
+      sids: [],
       showExpandedTable: false,
       defaultPageSize: 30,
       pageSize: 30,
@@ -221,11 +222,17 @@ export class DataTable extends React.Component {
 
   launchSubmissionModal (evt) {
     const sid = evt.target.getAttribute('data-sid');
+    const td = this.state.tableData;
+    var ids = [];
+    td.forEach(function(r) {
+      ids.push(r._id);
+    })
 
     stores.pageState.showModal({
       type: 'submission',
       sid: sid,
-      asset: this.props.asset
+      asset: this.props.asset,
+      ids: ids
     });
   }
 
