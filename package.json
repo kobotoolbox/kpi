@@ -4,7 +4,6 @@
   "description": "kobotoolbox api dashboard",
   "main": "gulpfile.js",
   "devDependencies": {
-    "Leaflet.AutoLayers": "git+https://github.com/aebadirad/Leaflet.AutoLayers",
     "alertifyjs": "^1.9.0",
     "async": "^1.4.2",
     "autoprefixer": "^7.1.1",

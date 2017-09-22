@@ -19,8 +19,6 @@ import 'leaflet.markercluster/dist/leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 
-import 'Leaflet.AutoLayers/src/leaflet-autolayers';
-
 import {
   assign,
   t,
@@ -97,7 +95,7 @@ export class FormMap extends React.Component {
         "Humanitarian": humanitarian
     };
 
-    L.control.autolayers({baseLayers: baseLayers, selectedOverlays: []}).addTo(map);
+    L.control.layers(baseLayers).addTo(map);
 
     var fq = this.state.fieldsToQuery;
     fields.forEach(function(f){
