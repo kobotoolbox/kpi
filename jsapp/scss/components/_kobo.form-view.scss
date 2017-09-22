@@ -27,6 +27,7 @@
   width: calc(100% - 180px);
   height: calc(100% - 48px);
   overflow: auto;
+  overflow-x: hidden;
 }
 
 .form-view__toptabs {
