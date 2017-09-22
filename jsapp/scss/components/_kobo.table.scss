@@ -1,6 +1,5 @@
 .form-view--table {
   padding: 0px 60px;
-  overflow: hidden;
 
   .form-view__group--table-header {
     padding: 20px 0px;
@@ -35,6 +34,11 @@
 
     .rt-tbody {
       overflow-x: hidden;
+      direction: rtl;
+
+      > div {
+        direction: ltr;
+      }
     }
 
     .rt-thead .rt-th:hover,

@@ -18,7 +18,7 @@
 .form-view {
   width: 100%;
   height: calc(100% - 48px);
-  overflow: auto;
+  overflow-y: auto;
   background: #F8F8F8;
 }
 
@@ -26,7 +26,11 @@
 .form-view__sidetabs + .report-view {
   width: calc(100% - 180px);
   height: calc(100% - 48px);
-  overflow: auto;
+  overflow-y: auto;
+}
+
+.form-view__sidetabs + .form-view--table {
+  overflow: hidden;
 }
 
 .form-view__toptabs {

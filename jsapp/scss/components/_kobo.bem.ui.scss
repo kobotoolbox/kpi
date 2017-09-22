@@ -7,6 +7,7 @@
 .mdl-layout {
   max-width: 1440px;
   margin: 0 auto;
+  overflow: hidden;
 
   &.page-wrapper--header-hidden.page-wrapper--drawer-hidden {
     max-width: 100%;
