@@ -17,6 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 from pyxform.xls2json_backends import xls_to_dict
 from rest_framework import exceptions, status, serializers
 from rest_framework.authtoken.models import Token
+from rest_framework.decorators import detail_route
 
 from base_backend import BaseDeploymentBackend
 from .kc_access.utils import instance_count
@@ -404,6 +405,26 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                               user_id=self.asset.owner.pk,
                               )
 
+    @property
+    def submission_list_url(self):
+        url = '{kc_base}/api/v1/data/{formid}'.format(
+            kc_base=settings.KOBOCAT_INTERNAL_URL,
+            formid=self.backend_response['formid']
+        )
+        return url
+
+    def get_submission_detail_url(self, submission_pk):
+        url = '{list_url}/{pk}'.format(
+            list_url=self.submission_list_url,
+            pk=submission_pk
+        )
+        return url
+
+    def get_submission_edit_url(self, submission_pk):
+        url = '{detail_url}/enketo'.format(
+            detail_url=self.get_submission_detail_url(submission_pk)
+        )
+        return url
 
 class KobocatDataProxyViewSetMixin(object):
     '''
@@ -463,12 +484,10 @@ class KobocatDataProxyViewSetMixin(object):
 
     def retrieve(self, kpi_request, pk, *args, **kwargs):
         deployment = self._get_deployment(kpi_request)
-        kc_url = '{kc_base}/api/v1/data/{formid}'.format(
-            kc_base=settings.KOBOCAT_INTERNAL_URL,
-            formid=deployment.backend_response['formid']
-        )
-        if pk is not None:
-            kc_url = '{list_url}/{pk}'.format(list_url=kc_url, pk=pk)
+        if pk is None:
+            kc_url = deployment.submission_list_url
+        else:
+            kc_url = deployment.get_submission_detail_url(pk)
         kc_request = requests.Request(
             method='GET',
             url=kc_url,
@@ -479,11 +498,19 @@ class KobocatDataProxyViewSetMixin(object):
 
     def delete(self, kpi_request, pk, *args, **kwargs):
         deployment = self._get_deployment(kpi_request)
-        kc_url = '{kc_base}/api/v1/data/{formid}/{instanceid}'.format(
-            kc_base=settings.KOBOCAT_INTERNAL_URL,
-            formid=deployment.backend_response['formid'],
-            instanceid=pk
-        )
+        kc_url = deployment.get_submission_detail_url(pk)
         kc_request = requests.Request(method='DELETE', url=kc_url)
+        kc_response = self._kobocat_request(kpi_request, kc_request)
+        return self._requests_response_to_django_response(kc_response)
+
+    @detail_route(methods=['get'])
+    def edit(self, kpi_request, pk, *args, **kwargs):
+        deployment = self._get_deployment(kpi_request)
+        kc_url = deployment.get_submission_edit_url(pk)
+        kc_request = requests.Request(
+            method='GET',
+            url=kc_url,
+            params=kpi_request.GET
+        )
         kc_response = self._kobocat_request(kpi_request, kc_request)
         return self._requests_response_to_django_response(kc_response)
