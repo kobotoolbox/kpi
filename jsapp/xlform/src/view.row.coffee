@@ -247,6 +247,20 @@ module.exports = do ->
       @$el.html $viewTemplates.row.koboMatrixView()
       @matrix = @$('.card__kobomatrix')
       renderKobomatrix(@, @matrix)
+      @$label = @$('.card__header-title')
+      @$card = @$('.card')
+      @$header = @$('.card__header')
+      context = {warnings: []}
+      console.log @model.get('label')
+      for [key, val] in @model.attributesArray() when key is 'label' or key is 'type'
+        view = new $viewRowDetail.DetailView(model: val, rowView: @)
+        if key == 'label' and @model.get('type').get('value') == 'calculate'
+          view.model = @model.get('calculation')
+          @model.finalize()
+          val.set('value', '')
+        view.render().insertInDOM(@)
+        if key == 'label'
+          @make_label_editable(view)
       @
 
   class RankScoreView extends RowView
