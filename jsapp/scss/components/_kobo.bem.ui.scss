@@ -245,7 +245,7 @@
 }
 
 .popover-menu__moveTo {
-  max-height: 180px;
+  max-height: 120px;
   overflow: auto;
   overflow-x: hidden;
   background-color: #F9F9F9;
@@ -257,8 +257,8 @@
   position: relative;
   text-align: left;
   padding-right: 35px;
-  padding-top: 3px;
-  padding-bottom: 3px;
+  padding-top: 0px;
+  padding-bottom: 0px;
 
   span {
     display: inline-block;
