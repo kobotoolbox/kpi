@@ -54,5 +54,5 @@ When the `q` parameter contains a search term without a specified field, e.g. `/
 Admin reports
 -------------
 There are several types of data reports available to superusers. 
-* Full list of users including their details provided during signup, number of deployed projects (XForm count), number of submissions, date joined, and last login: `<kpi server domain>/forms/superuser_stats/user_report/`. File being created is a CSV, so don't download immediately to wait for server to be finished writing to the file (it will download even if incomplete).
-* Monthly aggregate figures for number of forms, deployed projects, and submissions (from kobocat): `<kc server domain>/kobo/superuser_stats/`         
+* Full list of users including their details provided during signup, number of deployed projects (XForm count), number of submissions, date joined, and last login: `<kpi base url>/superuser_stats/user_report/`. File being created is a CSV, so don't download immediately to wait for server to be finished writing to the file (it will download even if incomplete).
+* Monthly aggregate figures for number of forms, deployed projects, and submissions (from kobocat): `<kc server domain>/<superuser username>/superuser_stats/`         
