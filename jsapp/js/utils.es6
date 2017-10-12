@@ -233,3 +233,48 @@ export function validFileTypes() {
   ];
   return VALID_ASSET_UPLOAD_FILE_TYPES.join(',');
 }
+
+export function koboMatrixParser(params) {
+  if (params.content)
+    var content = JSON.parse(params.content);
+  if (params.source)
+    var content = JSON.parse(params.source);
+
+  if (!content.survey)
+    return params;
+
+  var hasMatrix = false;
+  content.survey.forEach(function(s, i){
+    if (s.type === 'kobomatrix') {
+      hasMatrix = true;
+
+      var matrix = localStorage.getItem(`koboMatrix.${s.$kuid}`);
+      matrix = JSON.parse(matrix);
+
+      if (matrix != null) {
+        s.type = 'begin_kobomatrix';
+        content.survey.splice(i + 1, 0, {type: "end_kobomatrix", "$kuid": `/${s.$kuid}`});
+        for (var key of Object.keys(matrix)) {
+          if(matrix[key].type) {
+            i++;
+            content.survey.splice(i, 0, matrix[key]);
+          }
+        }
+
+        for (var k of Object.keys(matrix.choices)) {
+          content.choices.push(matrix[key][k]);
+        }
+
+      }
+    }
+  });
+
+  if (hasMatrix) {
+    if (params.content)
+      params.content = JSON.stringify(content);
+    if (params.source)
+      params.source = JSON.stringify(content);
+  }
+
+  return params;
+}

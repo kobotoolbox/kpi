@@ -243,6 +243,12 @@ module.exports = do ->
       transformFunction: (value) -> value
 
   class KoboMatrixView extends RowView
+    className: "survey__row survey__row--kobo-matrix"
+    _expandedRender: ->
+      super()
+      @$('.xlf-dv-required').hide()
+      @$("li[data-card-settings-tab-id='validation-criteria']").hide()
+      @$("li[data-card-settings-tab-id='skip-logic']").hide()
     _renderRow: ->
       @$el.html $viewTemplates.row.koboMatrixView()
       @matrix = @$('.card__kobomatrix')
@@ -251,7 +257,7 @@ module.exports = do ->
       @$card = @$('.card')
       @$header = @$('.card__header')
       context = {warnings: []}
-      console.log @model.get('label')
+
       for [key, val] in @model.attributesArray() when key is 'label' or key is 'type'
         view = new $viewRowDetail.DetailView(model: val, rowView: @)
         if key == 'label' and @model.get('type').get('value') == 'calculate'

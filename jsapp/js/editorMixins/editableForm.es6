@@ -11,12 +11,12 @@ import cascadeMixin from './cascadeMixin';
 import AssetNavigator from './assetNavigator';
 import {Link, hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
-
 import {
   surveyToValidJson,
   notify,
   assign,
-  t
+  t,
+  koboMatrixParser
 } from '../utils';
 
 import {
@@ -283,6 +283,9 @@ export default assign({
     var params = {
       source: surveyToValidJson(this.app.survey),
     };
+
+    params = koboMatrixParser(params);
+
     if (this.state.asset && this.state.asset.url) {
       params.asset = this.state.asset.url;
     }
@@ -314,6 +317,9 @@ export default assign({
     if (this.state.name) {
       params.name = this.state.name;
     }
+
+    params = koboMatrixParser(params);
+
     if (this.state.editorState === 'new') {
       params.asset_type = 'block';
       actions.resources.createResource.triggerAsync(params)
@@ -323,6 +329,7 @@ export default assign({
     } else {
       // update existing
       var assetId = this.props.params.assetid;
+
       actions.resources.updateAsset.triggerAsync(assetId, params)
         .then(() => {
           this.unpreventClosingTab();

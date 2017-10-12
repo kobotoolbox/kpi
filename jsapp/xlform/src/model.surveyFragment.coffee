@@ -62,6 +62,7 @@ module.exports = do ->
           @[@_rowAttributeName].add(subrow)
         delete rr.attributes.__rows
 
+
     _kobomatrix_cols: ->
       @rows
 
@@ -71,12 +72,19 @@ module.exports = do ->
 
     linkUp: (ctx)->
       @getList = ()=> @items
+      items = {}
       kobomatrix_list = @get('kobo--matrix_list')?.get('value')
       if kobomatrix_list
-        @items = @getSurvey().choices.get(kobomatrix_list)
+        items[kobomatrix_list] = @getSurvey().choices.get(kobomatrix_list)
       else
         missing_list_err = _t('Missing advanced matrix list')
         throw new Error("#{missing_list_err}: #{kobomatrix_list}")
+
+      @rows.each (row)=>
+        if listName = row.get('select_from_list_name')?.get('value')
+          items[listName] = @getSurvey().choices.get(listName)
+
+      @items = items
       @items
 
 

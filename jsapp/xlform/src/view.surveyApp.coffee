@@ -576,7 +576,6 @@ module.exports = do ->
           rv = new $rowView.ScoreView(model: row, ngScope: @ngScope, surveyView: @)
         else if row.get('type').getValue() is 'rank'
           rv = new $rowView.RankView(model: row, ngScope: @ngScope, surveyView: @)
-        else if row.get('type').getValue() is 'kobomatrix'
         else
           rv = new $rowView.RowView(model: row, ngScope: @ngScope, surveyView: @)
         @__rowViews.set(row.cid, rv)

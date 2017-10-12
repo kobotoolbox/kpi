@@ -1,9 +1,19 @@
+.card__kobomatrix {
+  border: 1px solid #d9dde1;
+  border-top: none;
+}
+
+.survey__row--selected {
+  > .survey__row__item > .card__kobomatrix {
+    border-color: #3fa2ee;
+    border-top: none;
+  }
+}
+
 .kobomatrix {
   display: table;
   width: 100%;
   padding: 23px 10px 23px 30px;
-  border: 1px solid #d9dde1;
-  margin-bottom: 4px;
 }
 
 .matrix-cols--header {
@@ -11,6 +21,30 @@
 
   .matrix-cols__col {
     display: table-cell;
+    padding: 5px;
+    text-align: center;
+    border-left: 1px solid #DDD;
+    position: relative;
+    padding-right: 30px;
+    vertical-align: middle;
+
+    &:first-child {
+      border-left: none;
+    }
+
+    .matrix-cols__colattr--type {
+      opacity: 0.3;
+      display: none;
+    }
+
+    i {
+      font-size: 24px;
+      opacity: 0.75;
+      position: absolute;
+      right: 3px;
+      top: 2px;
+      vertical-align: middle;
+    }
   }
 }
 
@@ -25,8 +59,29 @@
     display: table-column-group;
   }
 
-  .matrix-items__itemattr, .matrix-cols__col {
+  .matrix-items__itemattr,
+  .matrix-cols__col {
     display: table-cell;
     padding: 5px;
+    border-top: 1px solid #DDD;
+    vertical-align: middle;
+    position: relative;
+  }
+
+  .matrix-cols__col {
+    border-left: 1px solid #DDD;
+    text-align: center;
+  }
+
+  .matrix-items__itemattr {
+    padding-right: 30px;
+
+    i {
+      font-size: 24px;
+      vertical-align: middle;
+      position: absolute;
+      right: 3px;
+      opacity: 0.75;
+    }
   }
 }
