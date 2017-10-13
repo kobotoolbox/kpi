@@ -74,14 +74,18 @@
   }
 
   .matrix-items__itemattr {
-    padding-right: 30px;
+    &--new {
+      border-top: none;
+    }
+
+    input {
+      margin-right: 10px;
+    }
 
     i {
       font-size: 24px;
       vertical-align: middle;
-      position: absolute;
-      right: 3px;
-      opacity: 0.75;
+      cursor: pointer;
     }
   }
 }

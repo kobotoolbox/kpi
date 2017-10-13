@@ -1,6 +1,9 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import { bemComponents } from 'js/libs/reactBemComponents';
+import { t } from '../../utils';
+import { sluggify, txtid } from '../../../xlform/src/model.utils';
+import { Map } from 'immutable';
 
 const bem = bemComponents({
   Matrix: 'kobomatrix',
@@ -26,32 +29,85 @@ class KoboMatrix extends React.Component {
     autoBind(this);
   }
   colPopup (col) {
-    // console.log(col.toJS());
-  }
-  itemPopup (item) {
-    // console.log(item.toJS());
+    console.log(col.toJS());
   }
   componentDidMount() {
     const data = this.state.data;
     const kuid = this.state.kuid;
     localStorage.setItem(`koboMatrix.${kuid}`, JSON.stringify(data.toJS()));
   }
+
   handleChangeColLabel(e) {
     var colKuid = e.target.getAttribute('data-kuid');
     var data = this.state.data;
     data = data.setIn([colKuid, 'label'], e.target.value);
-    this.setState({
-      data: data
+    this.setState({data: data});
+    this.toLocalStorage(data);
+  }
+
+  autoName(val) {
+    var names = [];
+    const kobomatrix_list = this.state.kobomatrix_list;
+    this.state.data.get('choices').forEach(function(ch){
+      if (ch.get('list_name') == kobomatrix_list)
+        names.push(ch.get('$autovalue'));
+    }); 
+    return sluggify(val, {
+      preventDuplicates: names,
+      lowerCase: true,
+      lrstrip: true,
+      characterLimit: 14,
+      incrementorPadding: false,
+      validXmlTag: false
+    });
+  }
+
+  handleChangeRowLabel(e) {
+    const val = e.target.value, 
+          rowKuid = e.target.getAttribute('data-kuid'),
+          kobomatrix_list = this.state.kobomatrix_list;
+    var data = this.state.data;
+
+    data = data.setIn(['choices', rowKuid, '$autovalue'], this.autoName(val));
+    data = data.setIn(['choices', rowKuid, 'name'], this.autoName(val));
+    data = data.setIn(['choices', rowKuid, 'label'], val);
+
+    this.setState({data: data});
+    this.toLocalStorage(data);
+  }
+
+  newRow() {
+    var data = this.state.data;
+
+    const newRowKuid = txtid();
+    const newRow = Map({
+      label: t('Option'),
+      $autovalue: this.autoName(t('Option')),
+      name: this.autoName(t('Option')),
+      $kuid: newRowKuid,
+      list_name: this.state.kobomatrix_list
     });
 
-    var dataJS = data.toJS();
-    const kuid = this.state.kuid;
-    localStorage.setItem(`koboMatrix.${kuid}`, JSON.stringify(dataJS));
+    data = data.setIn(['choices', newRowKuid], newRow);
+
+    this.setState({data: data});
+    this.toLocalStorage(data);
+  }
+
+  deleteRow(e) {
+    const rowKuid = e.target.getAttribute('data-kuid');
+    var data = this.state.data.deleteIn(['choices', rowKuid]);
+    this.setState({data: data});
+    this.toLocalStorage(data);    
+  }
+
+  toLocalStorage(data) {
+    const dataJS = data.toJS();
+    localStorage.setItem(`koboMatrix.${this.state.kuid}`, JSON.stringify(dataJS));    
   }
 
   getListDetails (listName) {
-    const data = this.state.data, 
-          list = data.get('choices');
+    const list = this.state.data.get('choices');
     var _list = [];
 
     list.forEach(function(item){
@@ -104,8 +160,11 @@ class KoboMatrix extends React.Component {
                 return (
                   <bem.MatrixItems__item key={n}>
                     <bem.MatrixItems__itemattr m={'label'}>
-                      {item.label}
-                      <i className="k-icon-settings" onClick={_this.itemPopup.bind(this, item)}/>
+                      <input type="text" value={item.label} 
+                             onChange={_this.handleChangeRowLabel} 
+                             className="js-cancel-sort"
+                             data-kuid={item.$kuid} />
+                      <i className="k-icon-trash" onClick={_this.deleteRow} data-kuid={item.$kuid}/>
                     </bem.MatrixItems__itemattr>
                     {
                       cols.map(function(colKuid, nn) {
@@ -139,6 +198,12 @@ class KoboMatrix extends React.Component {
                 );
               })
             }
+            <bem.MatrixItems__item key={'new'}>
+              <bem.MatrixItems__itemattr m={'new'}>
+                <i className="k-icon-plus" 
+                    onClick={this.newRow}/>
+              </bem.MatrixItems__itemattr>
+            </bem.MatrixItems__item>
           </bem.MatrixItems>
         </bem.Matrix>
       )

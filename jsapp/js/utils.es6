@@ -262,7 +262,7 @@ export function koboMatrixParser(params) {
         }
 
         for (var k of Object.keys(matrix.choices)) {
-          content.choices.push(matrix[key][k]);
+          content.choices.push(matrix.choices[k]);
         }
 
       }
