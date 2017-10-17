@@ -6,6 +6,7 @@ require('jquery-ui/sortable');
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import DocumentTitle from 'react-document-title';
@@ -247,7 +248,7 @@ class SectionNotFound extends React.Component {
   }
 };
 
-var routes = (
+export var routes = (
   <Route name="home" path="/" component={App}>
     <Route path="account-settings" component={AccountSettings} />
     <Route path="change-password" component={ChangePassword} />
@@ -307,11 +308,14 @@ var routes = (
 );
 
 class RunRoutes extends React.Component {
+  componentDidMount(){
+    // when hot reloading, componentWillReceiveProps whines about changing the routes prop so this shuts that up
+    this.router.componentWillReceiveProps = function(){}
+  }
+
   render() {
     return (
-      <Router history={hashHistory}>
-        {routes}
-      </Router>
+      <Router history={hashHistory} ref={ref=>this.router = ref} routes={this.props.routes} />
     );
   }
 }
