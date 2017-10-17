@@ -4,11 +4,14 @@ import { bemComponents } from 'js/libs/reactBemComponents';
 import { t } from '../../utils';
 import { sluggify, txtid } from '../../../xlform/src/model.utils';
 import { Map } from 'immutable';
+import Select from 'react-select';
 
 const bem = bemComponents({
   Matrix: 'kobomatrix',
   MatrixCols: 'matrix-cols',
   MatrixCols__col: 'matrix-cols__col',
+  MatrixCols__settings: 'matrix-cols__settings',
+  MatrixCols__settings_inner: 'matrix-cols__settings_inner',
   MatrixCols__colattr: ['matrix-cols__colattr', '<span>'],
   MatrixItems: ['matrix-items', '<ul>'],
   MatrixItems__item: ['matrix-items__item', '<li>'],
@@ -24,26 +27,50 @@ class KoboMatrix extends React.Component {
     this.state = {
       data: props.model.data,
       kuid: props.model.kuid,
-      kobomatrix_list: props.model.kobomatrix_list
+      kobomatrix_list: props.model.kobomatrix_list,
+      expandedColKuid: false,
+      typeChoices: [
+        {
+          value: 'select_one',
+          label: t('Select One')
+        },
+        {
+          value: 'select_many',
+          label: t('Select Many')
+        },
+        {
+          value: 'text',
+          label: t('Text')
+        },
+        {
+          value: 'integer',
+          label: t('Number')
+        },
+      ]
     };
     autoBind(this);
   }
-  colPopup (col) {
-    console.log(col.toJS());
-  }
+
   componentDidMount() {
     const data = this.state.data;
     const kuid = this.state.kuid;
     localStorage.setItem(`koboMatrix.${kuid}`, JSON.stringify(data.toJS()));
   }
 
-  handleChangeColLabel(e) {
-    var colKuid = e.target.getAttribute('data-kuid');
-    var data = this.state.data;
-    data = data.setIn([colKuid, 'label'], e.target.value);
-    this.setState({data: data});
-    this.toLocalStorage(data);
+  colPopup (colKuid) {
+    if (this.state.expandedColKuid === colKuid )
+      this.setState({expandedColKuid: false});
+    else
+      this.setState({expandedColKuid: colKuid});
   }
+
+  // handleChangeColLabel(e) {
+  //   var colKuid = e.target.getAttribute('data-kuid');
+  //   var data = this.state.data;
+  //   data = data.setIn([colKuid, 'label'], e.target.value);
+  //   this.setState({data: data});
+  //   this.toLocalStorage(data);
+  // }
 
   autoName(val) {
     var names = [];
@@ -74,6 +101,28 @@ class KoboMatrix extends React.Component {
 
     this.setState({data: data});
     this.toLocalStorage(data);
+  }
+
+  colChange(e) {
+    const colKuid = this.state.expandedColKuid;
+    var data = this.state.data;
+    if (e.target) {
+      var type = e.target.getAttribute('data-type');
+      data = data.setIn([colKuid, type], e.target.value);
+    } else {
+      data = data.setIn([colKuid, 'type'], e.value);
+      if (!['select_one', 'select_many'].includes(e.value)) {
+        data = data.deleteIn([colKuid, 'select_from_list_name']);
+      } else {
+        data = data.setIn([colKuid, 'select_from_list_name'], 'yn'); // TODO
+      }
+    }
+    this.setState({data: data});
+    this.toLocalStorage(data);
+  }
+
+  getCol(colKuid, field) {
+    return this.state.data.getIn([colKuid, field]);
   }
 
   newRow() {
@@ -121,7 +170,8 @@ class KoboMatrix extends React.Component {
   render () {
     const data = this.state.data;
     const cols = data.get('cols'),
-          choices = data.get('choices');
+          choices = data.get('choices'),
+          expandedCol = this.state.expandedColKuid;
     var _this = this;
 
     var items = this.getListDetails(this.state.kobomatrix_list);
@@ -129,31 +179,52 @@ class KoboMatrix extends React.Component {
     return (
         <bem.Matrix>
           <bem.MatrixCols m={'header'}>
-            <bem.MatrixCols__col m={'label'} key={'label'}>
-              
-            </bem.MatrixCols__col>
+            <bem.MatrixCols__col m={'label'} key={'label'}></bem.MatrixCols__col>
             {
               cols.map(function(colKuid, n) {
                 let col = data.get(colKuid);
                 return (
-                    <bem.MatrixCols__col key={n} m={'header'}>
+                    <bem.MatrixCols__col key={n} m={'header'}
+                      className={expandedCol === colKuid ? 'active' : ''}>
                       <bem.MatrixCols__colattr m={'label'}>
-                        <input type="text" value={col.get('label')} 
-                               onChange={_this.handleChangeColLabel} 
-                               id={`input-C${n}`}
-                               className="js-cancel-sort"
-                               data-kuid={colKuid}
-                               />
+                        {col.get('label')}
                       </bem.MatrixCols__colattr>
                       <bem.MatrixCols__colattr m={'type'}>
                         {col.get('type')}
                       </bem.MatrixCols__colattr>
-                      <i className="k-icon-settings" onClick={_this.colPopup.bind(this, col)}/>
+                      <i className="k-icon-settings" onClick={_this.colPopup.bind(this, colKuid)}/>
                     </bem.MatrixCols__col>
                   );
               })
             }
           </bem.MatrixCols>
+          <bem.MatrixCols__settings className={expandedCol ? 'expanded' : ''}>
+            { expandedCol &&
+              <bem.MatrixCols__settings_inner>
+                <label>
+                  <span>{t('Response Type')}</span>
+                  <Select value={this.getCol(expandedCol, 'type')}
+                    clearable={false}
+                    options={this.state.typeChoices}
+                    onChange={this.colChange}></Select>
+                </label>
+                <label>
+                  <span>{t('Label')}</span>
+                  <input type="text" value={this.getCol(expandedCol, 'label')}
+                     onChange={this.colChange} 
+                     className="js-cancel-sort"
+                     data-type='label' />
+                </label>
+                <label>
+                  <span>{t('Data Column Name')}</span>
+                  <input type="text" value={this.getCol(expandedCol, 'name')}
+                     onChange={this.colChange} 
+                     className="js-cancel-sort"
+                     data-type='name' />
+                </label>
+              </bem.MatrixCols__settings_inner>
+            }
+          </bem.MatrixCols__settings>
           <bem.MatrixItems>
             {
               items.map(function(item, n) {

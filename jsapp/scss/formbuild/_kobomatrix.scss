@@ -11,22 +11,27 @@
 }
 
 .kobomatrix {
-  display: table;
   width: 100%;
   padding: 23px 10px 23px 30px;
 }
 
 .matrix-cols--header {
-  display: table-row;
+  display: flex;
+  flex-wrap: nowrap;
 
   .matrix-cols__col {
-    display: table-cell;
-    padding: 5px;
+    flex-grow: 1;
+    flex-basis: 0;
+    padding: 10px 20px;
     text-align: center;
     border-left: 1px solid #DDD;
     position: relative;
     padding-right: 30px;
     vertical-align: middle;
+
+    &.active {
+      background: #F8F8F8;
+    }
 
     &:first-child {
       border-left: none;
@@ -38,30 +43,61 @@
     }
 
     i {
-      font-size: 24px;
+      font-size: 28px;
       opacity: 0.75;
       position: absolute;
-      right: 3px;
-      top: 2px;
+      right: 4px;
+      top: 4px;
       vertical-align: middle;
     }
   }
 }
 
-.matrix-items {
-  display: table-row-group;
+.matrix-cols__settings {
+  width: 100%;
+  background: #F8F8F8;
+  border-left: 1px solid #DDD;
+  border-right: 1px solid #DDD;
+  padding: 15px;
+  display: none;
+
+  &.expanded {
+    display: block;
+  }
+
+  .matrix-cols__settings_inner {
+    text-align: left;
+    width: 500px;
+    margin: 0 auto;
+    padding: 0px 20px;
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+
+      > span {
+        display: inline-block;
+        width: 150px;
+        vertical-align: middle;
+      }
+
+      > div.Select, > input {
+        width: 310px;
+        display: inline-block;
+        vertical-align: middle;
+      }
+    }
+  }
 }
 
 .matrix-items__item {
-  display: table-row;
-
-  .matrix-cols {
-    display: table-column-group;
-  }
+  display: flex;
+  flex-wrap: nowrap;
 
   .matrix-items__itemattr,
   .matrix-cols__col {
-    display: table-cell;
+    flex-grow: 1;
+    flex-basis: 0;
     padding: 5px;
     border-top: 1px solid #DDD;
     vertical-align: middle;
