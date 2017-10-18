@@ -12,29 +12,52 @@
 
 .kobomatrix {
   width: 100%;
-  padding: 23px 10px 23px 30px;
+  padding: 23px 50px 23px 20px;
+  position: relative;
+
+  .matrix-items-new {
+    margin: 23px 0px;
+    overflow: hidden;
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    bottom: 0px;
+    width: 50px;
+    text-align: center;
+    padding-top: 10px;
+
+    i {
+      font-size: 24px;
+      cursor: pointer;
+
+      &:hover {
+        color: $cool-blue;
+      }
+    }
+  }
 }
 
 .matrix-cols--header {
   display: flex;
   flex-wrap: nowrap;
+  border-top: 1px solid #DDD;
+  border-left: 1px solid #DDD;
 
   .matrix-cols__col {
     flex-grow: 1;
     flex-basis: 0;
     padding: 10px 20px;
     text-align: center;
-    border-left: 1px solid #DDD;
+    border-right: 1px solid #DDD;
     position: relative;
     padding-right: 30px;
     vertical-align: middle;
+    border-top: 1px solid transparent;
+    margin-bottom: -1px;
 
     &.active {
       background: #F8F8F8;
-    }
-
-    &:first-child {
-      border-left: none;
+      border-bottom: 1px solid #F8F8F8;
     }
 
     .matrix-cols__colattr--type {
@@ -49,6 +72,11 @@
       right: 4px;
       top: 4px;
       vertical-align: middle;
+      cursor: pointer;
+
+      &:hover {
+        color: $cool-blue;
+      }
     }
   }
 }
@@ -56,8 +84,8 @@
 .matrix-cols__settings {
   width: 100%;
   background: #F8F8F8;
-  border-left: 1px solid #DDD;
-  border-right: 1px solid #DDD;
+  border: 1px solid #DDD;
+  border-bottom: none;
   padding: 15px;
   display: none;
 
@@ -86,6 +114,18 @@
         display: inline-block;
         vertical-align: middle;
       }
+
+      &.delete {
+        width: 100%;
+        text-align: right;
+        padding-top: 10px;
+
+        i {
+          font-size: 24px;
+          color: $cool-red;
+          cursor: pointer;
+        }
+      }
     }
   }
 }
@@ -105,23 +145,37 @@
   }
 
   .matrix-cols__col {
-    border-left: 1px solid #DDD;
+    border-right: 1px solid #DDD;
     text-align: center;
   }
 
   .matrix-items__itemattr {
-    &--new {
-      border-top: none;
-    }
+    border-right: 1px solid #DDD;
+    border-left: 1px solid #DDD;
 
     input {
       margin-right: 10px;
+      width: calc(100% - 40px);
     }
 
     i {
       font-size: 24px;
       vertical-align: middle;
       cursor: pointer;
+      color: $cool-red;
+    }
+
+    &--new {
+      border-right: none;
+      border-left: none;
+
+      i {
+        color: $cool-gray;
+
+        &:hover {
+          color: $cool-blue;
+        }
+      }
     }
   }
 }

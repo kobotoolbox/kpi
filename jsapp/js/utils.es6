@@ -250,15 +250,13 @@ export function koboMatrixParser(params) {
 
       var matrix = localStorage.getItem(`koboMatrix.${s.$kuid}`);
       matrix = JSON.parse(matrix);
-
       if (matrix != null) {
         s.type = 'begin_kobomatrix';
         content.survey.splice(i + 1, 0, {type: "end_kobomatrix", "$kuid": `/${s.$kuid}`});
-        for (var key of Object.keys(matrix)) {
-          if(matrix[key].type) {
-            i++;
-            content.survey.splice(i, 0, matrix[key]);
-          }
+
+        for(var kuid of matrix.cols){
+          i++;
+          content.survey.splice(i, 0, matrix[kuid]);
         }
 
         for (var k of Object.keys(matrix.choices)) {

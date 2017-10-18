@@ -5,6 +5,7 @@ import { t } from '../../utils';
 import { sluggify, txtid } from '../../../xlform/src/model.utils';
 import { Map } from 'immutable';
 import Select from 'react-select';
+import alertify from 'alertifyjs';
 
 const bem = bemComponents({
   Matrix: 'kobomatrix',
@@ -14,6 +15,7 @@ const bem = bemComponents({
   MatrixCols__settings_inner: 'matrix-cols__settings_inner',
   MatrixCols__colattr: ['matrix-cols__colattr', '<span>'],
   MatrixItems: ['matrix-items', '<ul>'],
+  MatrixItemsNewCol: ['matrix-items-new'],
   MatrixItems__item: ['matrix-items__item', '<li>'],
   MatrixItems__itemattr: ['matrix-items__itemattr', '<span>'],
   MatrixButton: ['kobomatrix-button', '<button>'],
@@ -64,21 +66,19 @@ class KoboMatrix extends React.Component {
       this.setState({expandedColKuid: colKuid});
   }
 
-  // handleChangeColLabel(e) {
-  //   var colKuid = e.target.getAttribute('data-kuid');
-  //   var data = this.state.data;
-  //   data = data.setIn([colKuid, 'label'], e.target.value);
-  //   this.setState({data: data});
-  //   this.toLocalStorage(data);
-  // }
-
   autoName(val) {
     var names = [];
     const kobomatrix_list = this.state.kobomatrix_list;
-    this.state.data.get('choices').forEach(function(ch){
+    var data = this.state.data;
+    data.get('choices').forEach(function(ch){
       if (ch.get('list_name') == kobomatrix_list)
         names.push(ch.get('$autovalue'));
-    }); 
+    });
+
+    data.get('cols').forEach(function(ch){
+      const col = data.get(ch);
+      names.push(col.get('$autoname'));
+    });
     return sluggify(val, {
       preventDuplicates: names,
       lowerCase: true,
@@ -114,7 +114,7 @@ class KoboMatrix extends React.Component {
       if (!['select_one', 'select_many'].includes(e.value)) {
         data = data.deleteIn([colKuid, 'select_from_list_name']);
       } else {
-        data = data.setIn([colKuid, 'select_from_list_name'], 'yn'); // TODO
+        data = data.setIn([colKuid, 'select_from_list_name'], 'yn'); // TODO: allow multiple choice lists
       }
     }
     this.setState({data: data});
@@ -143,12 +143,60 @@ class KoboMatrix extends React.Component {
     this.toLocalStorage(data);
   }
 
+  newColumn() {
+    var data = this.state.data;
+    const newColKuid = txtid();
+    const newCol = Map({
+      $autoname: this.autoName(t('Column')),
+      $kuid: newColKuid,
+      appearance: "w1",
+      constraint: "",
+      constraint_message: "",
+      default: "",
+      hint: "",
+      label: t('Column'),
+      name: this.autoName(t('Column')),
+      relevant: "",
+      required: "false",
+      type: "text",
+    });
+
+    data = data.set(newColKuid, newCol);
+    data = data.update('cols', list => list.push(newColKuid));
+    this.setState({data: data});
+    this.toLocalStorage(data);    
+  }
+
   deleteRow(e) {
     const rowKuid = e.target.getAttribute('data-kuid');
     var data = this.state.data.deleteIn(['choices', rowKuid]);
     this.setState({data: data});
     this.toLocalStorage(data);    
   }
+
+  deleteColumn(e) {
+    const colKuid = this.state.expandedColKuid;
+    var data = this.state.data;
+    var _this = this;
+    // const rowKuid = e.target.getAttribute('data-kuid');
+    // var data = this.state.data.deleteIn(['choices', rowKuid]);
+    let dialog = alertify.dialog('confirm');
+    let opts = {
+      title: t('Delete column'),
+      message: t('Are you sure you want to delete this column? This action cannot be undone.'),
+      labels: {ok: t('Delete'), cancel: t('Cancel')},
+      onok: (evt, val) => {
+        data = data.update('cols', cols => cols.filterNot(x => x === colKuid));
+        _this.setState({data: data, expandedColKuid: false});
+        _this.toLocalStorage(data);    
+      },
+      oncancel: () => {
+        dialog.destroy();
+      }
+    };
+    dialog.set(opts).show();
+  }
+
 
   toLocalStorage(data) {
     const dataJS = data.toJS();
@@ -222,6 +270,9 @@ class KoboMatrix extends React.Component {
                      className="js-cancel-sort"
                      data-type='name' />
                 </label>
+                <label className="delete">
+                  <i className="k-icon-trash" onClick={_this.deleteColumn} />
+                </label>
               </bem.MatrixCols__settings_inner>
             }
           </bem.MatrixCols__settings>
@@ -235,7 +286,7 @@ class KoboMatrix extends React.Component {
                              onChange={_this.handleChangeRowLabel} 
                              className="js-cancel-sort"
                              data-kuid={item.$kuid} />
-                      <i className="k-icon-trash" onClick={_this.deleteRow} data-kuid={item.$kuid}/>
+                      <i className="k-icon-trash" onClick={_this.deleteRow} data-kuid={item.$kuid} />
                     </bem.MatrixItems__itemattr>
                     {
                       cols.map(function(colKuid, nn) {
@@ -276,6 +327,9 @@ class KoboMatrix extends React.Component {
               </bem.MatrixItems__itemattr>
             </bem.MatrixItems__item>
           </bem.MatrixItems>
+          <bem.MatrixItemsNewCol>
+            <i className="k-icon-plus" onClick={this.newColumn} />
+          </bem.MatrixItemsNewCol>
         </bem.Matrix>
       )
   }
