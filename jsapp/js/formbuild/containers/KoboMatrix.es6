@@ -178,8 +178,6 @@ class KoboMatrix extends React.Component {
     const colKuid = this.state.expandedColKuid;
     var data = this.state.data;
     var _this = this;
-    // const rowKuid = e.target.getAttribute('data-kuid');
-    // var data = this.state.data.deleteIn(['choices', rowKuid]);
     let dialog = alertify.dialog('confirm');
     let opts = {
       title: t('Delete column'),
