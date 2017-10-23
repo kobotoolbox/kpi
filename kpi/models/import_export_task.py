@@ -1,16 +1,27 @@
+# FIXME: clean up these imports!
 import base64
+import pytz
 from io import BytesIO
+import datetime
+import dateutil.parser
 import re
 import logging
+import posixpath
+import tempfile
 from os.path import splitext
 from collections import defaultdict
-from django.db import models
+from django.db import models, transaction
 from django.conf import settings
+from django.core.files.base import ContentFile
 from django.core.urlresolvers import get_script_prefix, resolve
 from django.utils.six.moves.urllib import parse as urlparse
 from jsonfield import JSONField
 import requests
 from pyxform import xls2json_backends
+from private_storage.fields import PrivateFileField
+from kobo.apps.reports.report_data import build_formpack
+from formpack import FormPack
+import formpack.constants
 from ..fields import KpiUidField
 from ..models import Collection, Asset
 from ..model_utils import create_assets, _load_library_content
@@ -33,6 +44,11 @@ def _resolve_url_to_asset_or_collection(item_path):
 
 
 class ImportExportTask(models.Model):
+    '''
+    A common base model for asynchronous import and exports. Must be
+    subclassed to be useful. Subclasses must implement the `_run_task()` method
+    '''
+
     class Meta:
         abstract = True
 
@@ -56,6 +72,51 @@ class ImportExportTask(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     # date_expired = models.DateTimeField(null=True)
 
+    def run(self):
+        '''
+        Starts the import/export job by calling the subclass' `_run_task()`
+        method. Catches all exceptions!  Suitable to be called by an
+        asynchronous task runner (Celery)
+        '''
+        with transaction.atomic():
+            _refetched_self = self._meta.model.objects.get(pk=self.pk)
+            self.status = _refetched_self.status
+            del _refetched_self
+            if self.status == self.COMPLETE:
+                return
+            elif self.status != self.CREATED:
+                # possibly a concurrent task?
+                raise Exception(
+                    'only recently created {}s can be executed'.format(
+                        self._meta.model_name)
+                )
+            self.status = self.PROCESSING
+            self.save(update_fields=['status'])
+
+        msgs = defaultdict(list)
+        try:
+            # This method must be implemented by a subclass
+            self._run_task(msgs)
+            self.status = self.COMPLETE
+        except Exception, err:
+            msgs['error_type'] = type(err).__name__
+            msgs['error'] = err.message
+            self.status = self.ERROR
+            logging.error(
+                'Failed to run %s: %s' % (self._meta.model_name, repr(err)),
+                exc_info=True
+            )
+
+        self.messages.update(msgs)
+        try:
+            self.save(update_fields=['status', 'messages'])
+        except TypeError, e:
+            self.status = self.ERROR
+            logging.error('Failed to save %s: %s' % (self._meta.model_name,
+                                                   repr(e)),
+                          exc_info=True)
+            self.save(update_fields=['status'])
+
 
 class ImportTask(ImportExportTask):
     uid = KpiUidField(uid_prefix='i')
@@ -64,69 +125,42 @@ class ImportTask(ImportExportTask):
     ...although we probably would need to store the file in a blob
     '''
 
-    def run(self):
-        '''
-        this could take a while.
-        '''
-        if self.status == self.COMPLETE:
-            return
+    def _run_task(self, messages):
+        self.status = self.PROCESSING
+        self.save(update_fields=['status'])
+        dest_item = dest_kls = has_necessary_perm = False
 
-        _status = self.status
-        msgs = defaultdict(list)
-        try:
-            if self.status != self.CREATED:
-                # possibly a concurrent import?
-                raise Exception('only recently created imports can be executed')
-            self.status = self.PROCESSING
-            self.save(update_fields=['status'])
-            dest_item = dest_kls = has_necessary_perm = False
-
-            if 'destination' in self.data and self.data['destination']:
-                _d = self.data.get('destination')
-                (dest_kls, dest_item) = _resolve_url_to_asset_or_collection(_d)
-                necessary_perm = 'change_%s' % dest_kls
-                if not dest_item.has_perm(self.user, necessary_perm):
-                    raise exceptions.PermissionDenied('user cannot update %s' % kls)
-                else:
-                    has_necessary_perm = True
-
-            if 'url' in self.data:
-                self._load_assets_from_url(
-                    messages=msgs,
-                    url=self.data.get('url'),
-                    destination=dest_item,
-                    destination_kls=dest_kls,
-                    has_necessary_perm=has_necessary_perm,
-                )
-            elif 'base64Encoded' in self.data:
-                self._parse_b64_upload(
-                    base64_encoded_upload=self.data['base64Encoded'],
-                    filename=self.data.get('filename', None),
-                    messages=msgs,
-                    library=self.data.get('library', False),
-                    destination=dest_item,
-                    destination_kls=dest_kls,
-                    has_necessary_perm=has_necessary_perm,
-                )
+        if 'destination' in self.data and self.data['destination']:
+            _d = self.data.get('destination')
+            (dest_kls, dest_item) = _resolve_url_to_asset_or_collection(_d)
+            necessary_perm = 'change_%s' % dest_kls
+            if not dest_item.has_perm(self.user, necessary_perm):
+                raise exceptions.PermissionDenied('user cannot update %s' % kls)
             else:
-                raise Exception(
-                    'ImportTask data must contain `base64Encoded` or `url`'
-                )
-            _status = self.COMPLETE
-        except Exception, err:
-            msgs['error_type'] = type(err).__name__
-            msgs['error'] = err.message
-            _status = self.ERROR
+                has_necessary_perm = True
 
-        self.status = _status
-        self.messages.update(msgs)
-        try:
-            self.save(update_fields=['status', 'messages'])
-        except TypeError, e:
-            self.status = ImportTask.ERROR
-            logging.error('Failed to save import: %s' % repr(e),
-                          exc_info=True)
-            self.save(update_fields=['status'])
+        if 'url' in self.data:
+            self._load_assets_from_url(
+                messages=messages,
+                url=self.data.get('url'),
+                destination=dest_item,
+                destination_kls=dest_kls,
+                has_necessary_perm=has_necessary_perm,
+            )
+        elif 'base64Encoded' in self.data:
+            self._parse_b64_upload(
+                base64_encoded_upload=self.data['base64Encoded'],
+                filename=self.data.get('filename', None),
+                messages=messages,
+                library=self.data.get('library', False),
+                destination=dest_item,
+                destination_kls=dest_kls,
+                has_necessary_perm=has_necessary_perm,
+            )
+        else:
+            raise Exception(
+                'ImportTask data must contain `base64Encoded` or `url`'
+            )
 
     def _load_assets_from_url(self, url, messages, **kwargs):
         destination = kwargs.get('destination', False)
@@ -245,7 +279,7 @@ def export_upload_to(self, filename):
     '''
     Please note that due to Python 2 limitations, you cannot serialize unbound
     method functions (e.g. a method declared and used in the same class body).
-    Please move the function into the main module body to use migrations.  For
+    Please move the function into the main module body to use migrations. For
     more information, see
     https://docs.djangoproject.com/en/1.8/topics/migrations/#serializing-values
     '''
@@ -253,9 +287,184 @@ def export_upload_to(self, filename):
 
 
 class ExportTask(ImportExportTask):
+    '''
+    An (asynchronous) submission data export job. The instantiator must set the
+    `data` attribute to a dictionary with the following keys:
+    * `type`: required; `xls` or `csv`
+    * `source`: required; URL of a deployed `Asset`
+    * `lang`: optional; `xml` for XML names or the name of the language to be
+              used for labels. Leave unset, or use `_default` or `None`, for
+              labels in the default language
+    * `hierarchy_in_labels`: optional; when `true`, include the labels for all
+                             ancestor groups in each field label, separated by
+                             `group_sep`. Defaults to `False`
+    * `group_sep`: optional; separator to use when labels contain group
+                   hierarchy. Defaults to `/`
+    * `tag_cols_for_header`: optional; a list of tag columns in the form
+        definition to include as header rows in the export. For example, given
+        the following form definition:
+
+             | type    | name      | label                   | hxl       |
+             |---------|-----------|-------------------------|-----------|
+             | integer | displaced | How many are displaced? | #affected |
+
+        an export with `tag_cols_for_header = ['hxl']` might look like:
+
+             | How many persons are displaced? |
+             | #affected                       |
+             |---------------------------------|
+             | 123                             |
+
+        The default is `['hxl']`
+    '''
+
     uid = KpiUidField(uid_prefix='e')
-    last_submission_timestamp = models.DateTimeField(null=True)
-    result = models.FileField(upload_to=export_upload_to, max_length=380)
+    last_submission_time = models.DateTimeField(null=True)
+    result = PrivateFileField(upload_to=export_upload_to, max_length=380)
+
+    COPY_FIELDS = ('_id', '_uuid', '_submission_time')
+    TIMESTAMP_KEY = '_submission_time'
+
+    @staticmethod
+    def _build_export_filename(export, extension):
+        '''
+        Internal method to build the export filename based on the export title
+        (which should be set when calling the `FormPack()` constructor),
+        the label language, the current date and time, and the given
+        `extension`
+        '''
+        form_type = 'labels'
+        if not export.lang:
+            form_type = "values"
+        elif export.lang != "_default":
+            form_type = export.lang
+
+        return u"{title} - {form_type} - {date:%Y-%m-%d-%H-%M}.{ext}".format(
+            form_type=form_type,
+            date=datetime.datetime.utcnow(),
+            title=export.title,
+            ext=extension
+        )
+
+    def _build_export_options(self, pack):
+        '''
+        Internal method to build formpack `Export` constructor arguments based
+        on the options set in `self.data`
+        '''
+        hierarchy_in_labels = self.data.get(
+            'hierarchy_in_labels', ''
+        ).lower() == 'true'
+        group_sep = self.data.get('group_sep', '/')
+        translations = pack.available_translations
+        lang = self.data.get('lang', None) or next(iter(translations), None)
+        if lang == '_default':
+            lang = formpack.constants.UNTRANSLATED
+        tag_cols_for_header = self.data.get('tag_cols_for_header', ['hxl'])
+
+        return {
+            'versions': pack.versions.keys(),
+            'group_sep': group_sep,
+            'lang': lang,
+            'hierarchy_in_labels': hierarchy_in_labels,
+            'copy_fields': self.COPY_FIELDS,
+            'force_index': True,
+            'tag_cols_for_header': tag_cols_for_header,
+        }
+
+    def _record_last_submission_time(self, submission_stream):
+        '''
+        Internal generator that yields each submission in the given
+        `submission_stream` while recording the most recent submission
+        timestamp in `self.last_submission_time`
+        '''
+        # FIXME: Mongo has only per-second resolution. Brutal.
+        for submission in submission_stream:
+            try:
+                timestamp = submission[self.TIMESTAMP_KEY]
+            except KeyError:
+                pass
+            else:
+                timestamp = dateutil.parser.parse(timestamp)
+                # Mongo timestamps are UTC, but their string representation
+                # does not indicate that
+                timestamp = timestamp.replace(tzinfo=pytz.UTC)
+                if (
+                        self.last_submission_time is None or
+                        timestamp > self.last_submission_time
+                ):
+                    self.last_submission_time = timestamp
+            yield submission
+
+    def _run_task(self, messages):
+        '''
+        Generate the export and store the result in the `self.result`
+        `PrivateFileField`. Should be called by the `run()` method of the
+        superclass. The `submission_stream` method is provided for testing
+        '''
+        source_url = self.data.get('source', False)
+        if not source_url:
+            raise Exception('no source specified for the export')
+        source_type, source = _resolve_url_to_asset_or_collection(source_url)
+        if source_type != 'asset':
+            raise NotImplementedError(
+                'only an `Asset` may be exported at this time')
+        if not source.has_perm(self.user, 'view_submissions'):
+            # Unsure if DRF exceptions make sense here since we're not
+            # returning a HTTP response
+            raise exceptions.PermissionDenied(
+                'user cannot export this %s' % source._meta.model_name)
+        if not source.has_deployment:
+            raise Exception('the source must be deployed prior to export')
+        export_type = self.data.get('type', '').lower()
+        if export_type not in ('xls', 'csv'):
+            raise NotImplementedError(
+                'only `xls` and `csv` are valid export types')
+
+        if hasattr(source.deployment, '_get_submissions'):
+            # Currently used only for unit testing (`MockDeploymentBackend`)
+            # TODO: Have the KC backend also implement `_get_submissions()`?
+            submission_stream = source.deployment._get_submissions()
+        else:
+            submission_stream = None
+
+        pack, submission_stream = build_formpack(source, submission_stream)
+        # Wrap the submission stream in a generator that records the most
+        # recent timestamp
+        submission_stream = self._record_last_submission_time(
+            submission_stream)
+        options = self._build_export_options(pack)
+        export = pack.export(**options)
+        extension = 'xlsx' if export_type == 'xls' else export_type
+        filename = self._build_export_filename(export, extension)
+        self.result.save(filename, ContentFile(''))
+        # FileField files are opened read-only by default and must be
+        # closed and reopened to allow writing
+        # https://code.djangoproject.com/ticket/13809
+        self.result.close()
+        self.result.file.close()
+        self.result.open('wb')
+
+        if export_type == 'csv':
+            for line in export.to_csv(submission_stream):
+                self.result.write((line + u"\r\n").encode('utf-8'))
+        elif export_type == 'xls':
+            # XLSX export actually requires a filename (limitation of
+            # pyexcelerate?)
+            with tempfile.NamedTemporaryFile(
+                    prefix='export_xlsx', mode='rb'
+            ) as xlsx_output_file:
+                export.to_xlsx(xlsx_output_file.name, submission_stream)
+                while True:
+                    chunk = xlsx_output_file.read(8192)
+                    if chunk:
+                        self.result.write(chunk)
+                    else:
+                        break
+
+        # Restore the FileField to its typical state
+        self.result.close()
+        self.result.open('rb')
+        self.save(update_fields=['last_submission_time'])
 
 
 def _b64_xls_to_dict(base64_encoded_upload):

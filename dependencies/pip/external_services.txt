@@ -5,7 +5,7 @@
 #    pip-compile --output-file dependencies/pip/external_services.txt dependencies/pip/external_services.in
 #
 -e git+https://github.com/dimagi/django-digest@0eb1c921329dd187c343b61acfbec4e98450136e#egg=django_digest
--e git+https://github.com/kobotoolbox/formpack.git@e7428a0af798c006b38fe54ac804840c96b1ecd0#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@5f6110f86fadc8e9b0c52f17815c7b50446c2957#egg=formpack
 -e git+https://github.com/kobotoolbox/pyxform.git@2.017.36#egg=pyxform
 amqp==1.4.9
 anyjson==0.3.3
@@ -30,6 +30,7 @@ django-loginas==0.2.3
 django-markitup==3.0.0
 django-mptt==0.8.7
 django-oauth-toolkit==0.10.0
+django-private-storage==1.2.1
 django-registration-redux==1.3
 django-reversion==2.0.8
 django-ses==0.7.1

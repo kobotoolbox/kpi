@@ -21,6 +21,12 @@ def instance_count(xform_id_string, user_id):
                                            ).count()
 
 @safe_kc_read
+def last_submission_time(xform_id_string, user_id):
+    return _models.XForm.objects.get(
+        user_id=user_id, id_string=xform_id_string
+    ).last_submission_time
+
+@safe_kc_read
 def get_kc_profile_data(user_id):
     ''' Retrieve all fields from the user's KC profile (if it exists) and
     return them in a dictionary '''

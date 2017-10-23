@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import json
 
 from django.contrib.auth.models import User
@@ -379,3 +381,70 @@ class AssetsSettingsFieldTest(KpiTestCase):
         self.assert_object_in_object_list(asset)
         # Note: This is not an API method, but an ORM one.
         self.assertFalse(Asset.objects.filter(settings__id_string='titled_asset'))
+
+
+class AssetExportTaskTest(APITestCase):
+    fixtures = ['test_data']
+
+    def setUp(self):
+        self.client.login(username='someuser', password='someuser')
+        self.user = User.objects.get(username='someuser')
+        self.asset = Asset.objects.create(
+            content={'survey': [{"type": "text", "name": "q1"}]},
+            owner=self.user,
+            asset_type='survey',
+            name=u'тєѕт αѕѕєт'
+        )
+        self.asset.deploy(backend='mock', active=True)
+        self.asset.save()
+        v_uid = self.asset.latest_deployed_version.uid
+        submission = {
+            '__version__': v_uid,
+            'q1': u'¿Qué tal?'
+        }
+        self.asset.deployment._mock_submission(submission)
+        self.asset.save(create_version=False)
+
+    def test_owner_can_create_export(self):
+        post_url = reverse('exporttask-list')
+        asset_url = reverse('asset-detail', args=[self.asset.uid])
+        task_data = {
+            'source': asset_url,
+            'type': 'csv',
+            'async': 'false'
+        }
+        # Create the export task
+        response = self.client.post(post_url, task_data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # Task should complete right away since `async` is `false`
+        detail_response = self.client.get(response.data['url'])
+        self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(detail_response.data['status'], 'complete')
+        self.assertEqual(detail_response.data['messages'], {})
+        # Get the result file
+        result_response = self.client.get(detail_response.data['result'])
+        self.assertEqual(result_response.status_code, status.HTTP_200_OK)
+        result_content = ''.join(result_response.streaming_content)
+        expected_content = ''.join([
+            '"q1";"_id";"_uuid";"_submission_time";"_index"\r\n',
+            '"¿Qué tal?";"";"";"";"1"\r\n',
+        ])
+        self.assertEqual(result_content, expected_content)
+        return detail_response
+
+    def test_other_user_cannot_access_export(self):
+        detail_response = self.test_owner_can_create_export()
+        self.client.logout()
+        self.client.login(username='otheruser', password='otheruser')
+        response = self.client.get(detail_response.data['url'])
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        response = self.client.get(detail_response.data['result'])
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_anon_cannot_access_export(self):
+        detail_response = self.test_owner_can_create_export()
+        self.client.logout()
+        response = self.client.get(detail_response.data['url'])
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        response = self.client.get(detail_response.data['result'])
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

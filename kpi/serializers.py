@@ -26,7 +26,7 @@ from .models import AssetVersion
 from .models import Collection
 from .models import CollectionChildrenQuerySet
 from .models import UserCollectionSubscription
-from .models import ImportTask
+from .models import ImportTask, ExportTask
 from .models import ObjectPermission
 from .models.object_permission import get_anonymous_user, get_objects_for_user
 from .models.asset import ASSET_TYPES
@@ -720,6 +720,40 @@ class ImportTaskListSerializer(ImportTaskSerializer):
             'uid',
             'date_created',
         )
+
+
+class ExportTaskSerializer(serializers.HyperlinkedModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        lookup_field='uid',
+        view_name='exporttask-detail'
+    )
+    messages = ReadOnlyJSONField(required=False)
+
+    class Meta:
+        model = ExportTask
+        fields = (
+            'url',
+            'status',
+            'messages',
+            'uid',
+            'date_created',
+            'last_submission_time',
+            'result',
+        )
+        extra_kwargs = {
+            'status': {
+                'read_only': True,
+            },
+            'uid': {
+                'read_only': True,
+            },
+            'last_submission_time': {
+                'read_only': True,
+            },
+            'result': {
+                'read_only': True,
+            },
+        }
 
 
 class AssetListSerializer(AssetSerializer):

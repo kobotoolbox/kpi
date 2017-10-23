@@ -20,6 +20,59 @@ def get_instances_for_userform_id(userform_id, submission=None):
     return settings.MONGO_DB.instances.find(query)
 
 
+def build_formpack(asset, submission_stream=None):
+    '''
+    Return a tuple containing a `FormPack` instance and the iterable stream of
+    submissions for the given `asset`
+    '''
+    _versions = asset.deployed_versions
+    schemas = []
+    for v in asset.deployed_versions:
+        try:
+            schemas.append(v.to_formpack_schema())
+        # FIXME: should FormPack validation errors have their own
+        # exception class?
+        except TypeError as e:
+            # https://github.com/kobotoolbox/kpi/issues/1361
+            logging.error(
+                'Failed to get formpack schema for version: %s'
+                    % repr(e),
+                 exc_info=True
+            )
+    pack = FormPack(versions=schemas, title=asset.name, id_string=asset.uid)
+
+    # Find the AssetVersion UID for each deprecated reversion ID
+    _reversion_ids = dict([
+        (str(v._reversion_version_id), v.uid)
+            for v in _versions if v._reversion_version_id
+    ])
+
+    _version_id = schemas[0]['version'] # most recent version
+    _version_id_key = schemas[0].get('version_id_key', '__version__')
+
+    def _inject_version_id(result):
+        if _version_id_key not in result:
+            # this submission does not specify a version; assume the latest one
+            result[_version_id_key] = _version_id
+        elif result[_version_id_key] in _reversion_ids:
+            # this submission has a deprecated reversion ID; replace it with
+            # the UID of the corresponding AssetVersion
+            result[_version_id_key] = _reversion_ids[result[_version_id_key]]
+        return result
+
+    if submission_stream is None:
+        _userform_id = asset.deployment.mongo_userform_id
+        if not _userform_id.startswith(asset.owner.username):
+            raise Exception('asset has unexpected `mongo_userform_id`')
+        submission_stream = get_instances_for_userform_id(_userform_id)
+
+    submission_stream = (
+        _inject_version_id(result) for result in submission_stream
+    )
+
+    return pack, submission_stream
+
+
 def _vnames(asset, cache=False):
     if not cache or not hasattr(asset, '_available_report_uids'):
         content = deepcopy(asset.content)
@@ -33,31 +86,7 @@ def _vnames(asset, cache=False):
 def data_by_identifiers(asset, field_names=None, submission_stream=None,
                         report_styles=None, lang=None, fields=None,
                         split_by=None):
-    if submission_stream is None:
-        _userform_id = asset.deployment.mongo_userform_id
-        submission_stream = get_instances_for_userform_id(_userform_id)
-    _versions = asset.deployed_versions
-
-    # need ability to look up deprecated IDs
-    _reversion_ids = dict([
-        (str(v._reversion_version_id), v.uid)
-        for v in _versions if v._reversion_version_id
-    ])
-
-    schemas = [v.to_formpack_schema() for v in _versions]
-
-    _version_id = schemas[0]['version']
-    _version_id_key = schemas[0].get('version_id_key', '__version__')
-
-    def _inject_version_id(result):
-        if _version_id_key not in result:
-            result[_version_id_key] = _version_id
-        elif result[_version_id_key] in _reversion_ids:
-            result[_version_id_key] = _reversion_ids[result[_version_id_key]]
-        return result
-    submission_stream = (_inject_version_id(result)
-                         for result in submission_stream)
-    pack = FormPack(versions=schemas, id_string=asset.uid)
+    pack, submission_stream = build_formpack(asset, submission_stream)
     _all_versions = pack.versions.keys()
     report = pack.autoreport(versions=_all_versions)
     fields_by_name = OrderedDict([

@@ -5,7 +5,7 @@
 -e git+https://github.com/kobotoolbox/pyxform.git@2.017.36#egg=pyxform
 
 # Formpack
--e git+https://github.com/kobotoolbox/formpack.git@e7428a0af798c006b38fe54ac804840c96b1ecd0#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@5f6110f86fadc8e9b0c52f17815c7b50446c2957#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
@@ -41,6 +41,7 @@ django-markitup
 django-mptt
 django-reversion
 django-taggit
+django-private-storage
 djangorestframework
 drf-extensions
 gunicorn

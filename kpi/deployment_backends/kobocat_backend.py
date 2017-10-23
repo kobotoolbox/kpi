@@ -20,7 +20,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import detail_route
 
 from base_backend import BaseDeploymentBackend
-from .kc_access.utils import instance_count
+from .kc_access.utils import instance_count, last_submission_time
 
 
 class KobocatDeploymentException(exceptions.APIException):
@@ -425,6 +425,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             detail_url=self.get_submission_detail_url(submission_pk)
         )
         return url
+
+    def _last_submission_time(self):
+        _deployment_data = self.asset._deployment_data
+        id_string = _deployment_data['backend_response']['id_string']
+        return last_submission_time(
+            xform_id_string=id_string, user_id=self.asset.owner.pk)
+
 
 class KobocatDataProxyViewSetMixin(object):
     '''
