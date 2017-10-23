@@ -442,27 +442,25 @@ class ExportTask(ImportExportTask):
         # https://code.djangoproject.com/ticket/13809
         self.result.close()
         self.result.file.close()
-        self.result.open('wb')
-
-        if export_type == 'csv':
-            for line in export.to_csv(submission_stream):
-                self.result.write((line + u"\r\n").encode('utf-8'))
-        elif export_type == 'xls':
-            # XLSX export actually requires a filename (limitation of
-            # pyexcelerate?)
-            with tempfile.NamedTemporaryFile(
-                    prefix='export_xlsx', mode='rb'
-            ) as xlsx_output_file:
-                export.to_xlsx(xlsx_output_file.name, submission_stream)
-                while True:
-                    chunk = xlsx_output_file.read(8192)
-                    if chunk:
-                        self.result.write(chunk)
-                    else:
-                        break
+        with self.result.storage.open(self.result.name, 'wb') as output_file:
+            if export_type == 'csv':
+                for line in export.to_csv(submission_stream):
+                    output_file.write((line + u"\r\n").encode('utf-8'))
+            elif export_type == 'xls':
+                # XLSX export actually requires a filename (limitation of
+                # pyexcelerate?)
+                with tempfile.NamedTemporaryFile(
+                        prefix='export_xlsx', mode='rb'
+                ) as xlsx_output_file:
+                    export.to_xlsx(xlsx_output_file.name, submission_stream)
+                    while True:
+                        chunk = xlsx_output_file.read(8192)
+                        if chunk:
+                            output_file.write(chunk)
+                        else:
+                            break
 
         # Restore the FileField to its typical state
-        self.result.close()
         self.result.open('rb')
         self.save(update_fields=['last_submission_time'])
 
