@@ -24,6 +24,7 @@ import {
   t,
   redirectTo,
   assign,
+  notify,
 } from '../utils';
 
 import {
@@ -284,12 +285,38 @@ export class ProjectDownloads extends React.Component {
         this.state.type
       ];
       if (this.state.type == 'xls' || this.state.type == 'csv') {
-        let params = $.param({
+        // HACK HACK HACK //
+        url = `/exports/`; // TODO: have the backend pass the URL in the asset
+        let postData = {
+          async: false, // TODO: don't do this; poll for task completion
+          source: this.props.asset.url,
+          type: this.state.type,
           lang: this.state.lang,
           hierarchy_in_labels: this.state.hierInLabels,
           group_sep: this.state.groupSep,
+        };
+        $.ajax({
+          method: 'POST',
+          url: url,
+          data: postData
+        }).then((data) => {
+          notify(t('Your export is processing.'));
+          $.ajax({url: data.url}).then((taskData) => {
+            if(!!taskData.result) {
+              redirectTo(taskData.result);
+            } else {
+              alertify.error(t('Failed to retrieve the export.'));
+              log('export result invalid', taskData);
+            }
+          }).fail((taskFail) => {
+            alertify.error(t('Failed to retrieve the export task.'));
+            log('export task retrieval failed', taskFail);
+          });
+        }).fail((failData) => {
+          alertify.error(t('Failed to create the export.'));
+          log('export creation failed', failData);
         });
-        redirectTo(`${url}?${params}`);
+        ////////////////////
       } else {
         redirectTo(url);
       }
