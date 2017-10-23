@@ -23,6 +23,7 @@ amqp
 anyjson
 billiard
 boto
+boto3
 celery
 dj-static
 dj-database-url
@@ -41,6 +42,7 @@ django-markitup
 django-mptt
 django-reversion
 django-taggit
+django-storages
 django-private-storage
 djangorestframework
 drf-extensions
