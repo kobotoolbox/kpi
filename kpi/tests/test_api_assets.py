@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 
 import json
+import requests
 
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from lxml import etree
 from rest_framework import status
 from rest_framework.test import APITestCase
+from private_storage.storage.files import PrivateFileSystemStorage
 
 from kpi.models import Asset
 from kpi.models import AssetVersion
 from kpi.models import Collection
+from kpi.models import ExportTask
 from .kpi_test_case import KpiTestCase
 from formpack.utils.expand_content import SCHEMA_VERSION
 
@@ -405,6 +408,14 @@ class AssetExportTaskTest(APITestCase):
         self.asset.deployment._mock_submission(submission)
         self.asset.save(create_version=False)
 
+    def result_stored_locally(self, detail_response):
+        '''
+        Return `True` if the result is stored locally, or `False` if it's
+        housed externally (e.g. on Amazon S3)
+        '''
+        export_task = ExportTask.objects.get(uid=detail_response.data['uid'])
+        return isinstance(export_task.result.storage, PrivateFileSystemStorage)
+
     def test_owner_can_create_export(self):
         post_url = reverse('exporttask-list')
         asset_url = reverse('asset-detail', args=[self.asset.uid])
@@ -422,9 +433,13 @@ class AssetExportTaskTest(APITestCase):
         self.assertEqual(detail_response.data['status'], 'complete')
         self.assertEqual(detail_response.data['messages'], {})
         # Get the result file
-        result_response = self.client.get(detail_response.data['result'])
+        if self.result_stored_locally(detail_response):
+            result_response = self.client.get(detail_response.data['result'])
+            result_content = ''.join(result_response.streaming_content)
+        else:
+            result_response = requests.get(detail_response.data['result'])
+            result_content = result_response.content
         self.assertEqual(result_response.status_code, status.HTTP_200_OK)
-        result_content = ''.join(result_response.streaming_content)
         expected_content = ''.join([
             '"q1";"_id";"_uuid";"_submission_time";"_index"\r\n',
             '"¿Qué tal?";"";"";"";"1"\r\n',
@@ -438,13 +453,19 @@ class AssetExportTaskTest(APITestCase):
         self.client.login(username='otheruser', password='otheruser')
         response = self.client.get(detail_response.data['url'])
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        response = self.client.get(detail_response.data['result'])
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        if self.result_stored_locally(detail_response):
+            # This check only makes sense for locally-stored results, since S3
+            # uses query parameters in the URL for access control
+            response = self.client.get(detail_response.data['result'])
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_anon_cannot_access_export(self):
         detail_response = self.test_owner_can_create_export()
         self.client.logout()
         response = self.client.get(detail_response.data['url'])
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        response = self.client.get(detail_response.data['result'])
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        if self.result_stored_locally(detail_response):
+            # This check only makes sense for locally-stored results, since S3
+            # uses query parameters in the URL for access control
+            response = self.client.get(detail_response.data['result'])
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
