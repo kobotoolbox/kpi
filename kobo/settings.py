@@ -425,6 +425,9 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
             'private_storage.storage.s3boto3.PrivateS3BotoStorage'
         AWS_PRIVATE_STORAGE_BUCKET_NAME = AWS_STORAGE_BUCKET_NAME
 
+''' How long should user-generated export files be retained? '''
+EXPORT_TASK_RESULT_LIFESPAN = timedelta(days=45)
+
 ''' Sentry configuration '''
 if os.environ.get('RAVEN_DSN', False):
     import raven

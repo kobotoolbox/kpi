@@ -495,9 +495,25 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
     def get_queryset(self, *args, **kwargs):
         if self.request.user.is_anonymous():
             return ExportTask.objects.none()
-        else:
-            return ExportTask.objects.filter(
-                        user=self.request.user).order_by('date_created')
+
+        queryset = ExportTask.objects.filter(
+            user=self.request.user).order_by('date_created')
+
+        # Ultra-basic filtering by source URL or UID if `q=source:[URL|UID]`
+        # was provided
+        q = self.request.query_params.get('q', False)
+        if not q:
+            # No filter requested
+            return queryset
+        if not q.startswith('source:'):
+            # Filter requested that we don't understand; make it obvious by
+            # returning nothing
+            return ExportTask.objects.none()
+        q = q.lstrip('source:')
+        # This is exceedingly crude... but support for querying inside
+        # JSONField not available until Django 1.9
+        queryset = queryset.filter(data__contains=q)
+        return queryset
 
     def create(self, request, *args, **kwargs):
         if self.request.user.is_anonymous():
