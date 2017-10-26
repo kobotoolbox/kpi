@@ -17,7 +17,9 @@ const bem = bemComponents({
   MatrixItems: ['matrix-items', '<ul>'],
   MatrixItemsNewCol: ['matrix-items-new'],
   MatrixItems__item: ['matrix-items__item', '<li>'],
+  MatrixItems__itemrow: ['matrix-items__itemrow'],
   MatrixItems__itemattr: ['matrix-items__itemattr', '<span>'],
+  MatrixItems__itemsettings: ['matrix-items__itemsettings'],
   MatrixButton: ['kobomatrix-button', '<button>'],
 });
 
@@ -31,6 +33,7 @@ class KoboMatrix extends React.Component {
       kuid: props.model.kuid,
       kobomatrix_list: props.model.kobomatrix_list,
       expandedColKuid: false,
+      expandedRowKuid: false,
       typeChoices: [
         {
           value: 'select_one',
@@ -59,12 +62,20 @@ class KoboMatrix extends React.Component {
     localStorage.setItem(`koboMatrix.${kuid}`, JSON.stringify(data.toJS()));
   }
 
-  colPopup (colKuid) {
+  expandColumn(colKuid) {
     if (this.state.expandedColKuid === colKuid )
       this.setState({expandedColKuid: false});
     else
-      this.setState({expandedColKuid: colKuid});
+      this.setState({expandedColKuid: colKuid, expandedRowKuid: false});
   }
+
+  expandRow(rowKuid) {
+    if (this.state.expandedRowKuid === rowKuid )
+      this.setState({expandedRowKuid: false});
+    else
+      this.setState({expandedRowKuid: rowKuid, expandedColKuid: false});
+  }
+
 
   autoName(val) {
     var names = [];
@@ -98,6 +109,25 @@ class KoboMatrix extends React.Component {
     data = data.setIn(['choices', rowKuid, '$autovalue'], this.autoName(val));
     data = data.setIn(['choices', rowKuid, 'name'], this.autoName(val));
     data = data.setIn(['choices', rowKuid, 'label'], val);
+
+    this.setState({data: data});
+    this.toLocalStorage(data);
+  }
+
+  rowChange(e) {
+    const val = e.target.value, 
+          rowKuid = this.state.expandedRowKuid, 
+          type = e.target.getAttribute('data-type');
+    var data = this.state.data;
+
+    if (type === 'label') {
+      data = data.setIn(['choices', rowKuid, type], val);
+    }
+
+    if (type === 'name') {
+      data = data.setIn(['choices', rowKuid, 'name'], this.autoName(val));
+      data = data.setIn(['choices', rowKuid, '$autovalue'], this.autoName(val));
+    }
 
     this.setState({data: data});
     this.toLocalStorage(data);
@@ -195,7 +225,6 @@ class KoboMatrix extends React.Component {
     dialog.set(opts).show();
   }
 
-
   toLocalStorage(data) {
     const dataJS = data.toJS();
     localStorage.setItem(`koboMatrix.${this.state.kuid}`, JSON.stringify(dataJS));    
@@ -217,7 +246,8 @@ class KoboMatrix extends React.Component {
     const data = this.state.data;
     const cols = data.get('cols'),
           choices = data.get('choices'),
-          expandedCol = this.state.expandedColKuid;
+          expandedCol = this.state.expandedColKuid, 
+          expandedRow = this.state.expandedRowKuid;
     var _this = this;
 
     var items = this.getListDetails(this.state.kobomatrix_list);
@@ -238,7 +268,7 @@ class KoboMatrix extends React.Component {
                       <bem.MatrixCols__colattr m={'type'}>
                         {col.get('type')}
                       </bem.MatrixCols__colattr>
-                      <i className="k-icon-settings" onClick={_this.colPopup.bind(this, colKuid)}/>
+                      <i className="k-icon-settings" onClick={_this.expandColumn.bind(this, colKuid)} />
                     </bem.MatrixCols__col>
                   );
               })
@@ -277,52 +307,72 @@ class KoboMatrix extends React.Component {
           <bem.MatrixItems>
             {
               items.map(function(item, n) {
+                console.log(item);
                 return (
                   <bem.MatrixItems__item key={n}>
-                    <bem.MatrixItems__itemattr m={'label'}>
-                      <input type="text" value={item.label} 
-                             onChange={_this.handleChangeRowLabel} 
-                             className="js-cancel-sort"
-                             data-kuid={item.$kuid} />
-                      <i className="k-icon-trash" onClick={_this.deleteRow} data-kuid={item.$kuid} />
-                    </bem.MatrixItems__itemattr>
-                    {
-                      cols.map(function(colKuid, nn) {
-                        const col = data.get(colKuid),
-                          _listName = col.get('select_from_list_name'),
-                          _type = col.get('type');
+                    <bem.MatrixItems__itemrow>
+                      <bem.MatrixItems__itemattr m={'label'}>
+                        <label>{item.label}</label>
+                        <i className="k-icon-settings" onClick={_this.expandRow.bind(this, item.$kuid)} />
+                      </bem.MatrixItems__itemattr>
+                      {
+                        cols.map(function(colKuid, nn) {
+                          const col = data.get(colKuid),
+                            _listName = col.get('select_from_list_name'),
+                            _type = col.get('type');
 
-                        let _isUnderscores = false,
-                          contents = [];
-                        if (_listName) {
-                          let list = _this.getListDetails(_listName);
-                          let listStyleChar = '🔘';
-                          list.forEach(function(item){
-                            contents.push(`${listStyleChar} ${item.label}`);
-                          });
-                        } else {
-                          _isUnderscores = true;
-                          contents = ['_________'];
-                        }
-                        return (
-                          <bem.MatrixCols__col key={colKuid} m={{
-                            list: !!_listName,
-                            underscores: _isUnderscores,
-                          }}>
-                            {contents.join(' ')}
-                          </bem.MatrixCols__col>
-                        );
-                      })
-                    }
+                          let _isUnderscores = false,
+                            contents = [];
+                          if (_listName) {
+                            let list = _this.getListDetails(_listName);
+                            let listStyleChar = '🔘';
+                            list.forEach(function(item){
+                              contents.push(`${listStyleChar} ${item.label}`);
+                            });
+                          } else {
+                            _isUnderscores = true;
+                            contents = ['_________'];
+                          }
+                          return (
+                            <bem.MatrixCols__col key={colKuid} m={{
+                              list: !!_listName,
+                              underscores: _isUnderscores,
+                            }}>
+                              {contents.join(' ')}
+                            </bem.MatrixCols__col>
+                          );
+                        })
+                      }
+                    </bem.MatrixItems__itemrow>
+                    <bem.MatrixItems__itemsettings className={expandedRow === item.$kuid ? 'expanded' : ''}>
+                      { expandedRow && 
+                        <bem.MatrixCols__settings_inner>
+                          <label>
+                            <span>{t('Label')}</span>
+                            <input type="text" value={item.label}
+                               onChange={_this.rowChange} 
+                               className="js-cancel-sort"
+                               data-type='label' />
+                          </label>
+                          <label>
+                            <span>{t('Data Column Name')}</span>
+                            <input type="text" value={item.name}
+                               onChange={_this.rowChange} 
+                               className="js-cancel-sort"
+                               data-type='name' />
+                          </label>
+                          <label className="delete">
+                            <i className="k-icon-trash" onClick={_this.deleteRow} data-kuid={item.$kuid} />
+                          </label>
+                        </bem.MatrixCols__settings_inner>
+                      }
+                    </bem.MatrixItems__itemsettings>
                   </bem.MatrixItems__item>
                 );
               })
             }
-            <bem.MatrixItems__item key={'new'}>
-              <bem.MatrixItems__itemattr m={'new'}>
-                <i className="k-icon-plus" 
-                    onClick={this.newRow}/>
-              </bem.MatrixItems__itemattr>
+            <bem.MatrixItems__item key={'new'} m={'new'}>
+              <i className="k-icon-plus" onClick={this.newRow}/>
             </bem.MatrixItems__item>
           </bem.MatrixItems>
           <bem.MatrixItemsNewCol>

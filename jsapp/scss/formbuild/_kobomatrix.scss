@@ -92,47 +92,49 @@
   &.expanded {
     display: block;
   }
+}
 
-  .matrix-cols__settings_inner {
-    text-align: left;
-    width: 500px;
-    margin: 0 auto;
-    padding: 0px 20px;
+.matrix-cols__settings_inner {
+  text-align: left;
+  width: 500px;
+  margin: 0 auto;
+  padding: 0px 20px;
 
-    label {
-      display: block;
-      margin-bottom: 10px;
+  label {
+    display: block;
+    margin-bottom: 10px;
 
-      > span {
-        display: inline-block;
-        width: 150px;
-        vertical-align: middle;
-      }
+    > span {
+      display: inline-block;
+      width: 150px;
+      vertical-align: middle;
+    }
 
-      > div.Select, > input {
-        width: 310px;
-        display: inline-block;
-        vertical-align: middle;
-      }
+    > div.Select, > input {
+      width: 310px;
+      display: inline-block;
+      vertical-align: middle;
+    }
 
-      &.delete {
-        width: 100%;
-        text-align: right;
-        padding-top: 10px;
+    &.delete {
+      width: 100%;
+      text-align: right;
+      padding-top: 10px;
 
-        i {
-          font-size: 24px;
-          color: $cool-red;
-          cursor: pointer;
-        }
+      i {
+        font-size: 24px;
+        color: $cool-red;
+        cursor: pointer;
       }
     }
   }
 }
 
 .matrix-items__item {
-  display: flex;
-  flex-wrap: nowrap;
+  .matrix-items__itemrow {
+    display: flex;
+    flex-wrap: nowrap;
+  }
 
   .matrix-items__itemattr,
   .matrix-cols__col {
@@ -152,30 +154,61 @@
   .matrix-items__itemattr {
     border-right: 1px solid #DDD;
     border-left: 1px solid #DDD;
+    position: relative;
+    line-height: 28px;
 
-    input {
-      margin-right: 10px;
+    label {
+      margin-left: 5px;
       width: calc(100% - 40px);
+      display: inline-block;
     }
 
     i {
-      font-size: 24px;
+      font-size: 28px;
+      opacity: 0.75;
+      position: absolute;
+      right: 4px;
+      top: 4px;
       vertical-align: middle;
       cursor: pointer;
-      color: $cool-red;
+
+      &:hover {
+        color: $cool-blue;
+      }
     }
 
-    &--new {
-      border-right: none;
-      border-left: none;
+    &--settings {
+      flex-shkrink: 0;
+      flex-grow: 20;
+      background-color: pink;
+    }
+  }
 
-      i {
-        color: $cool-gray;
+  &--new {
+    border-top: 1px solid #DDD;
 
-        &:hover {
-          color: $cool-blue;
-        }
+    i {
+      font-size: 28px;
+      opacity: 0.75;
+      cursor: pointer;
+      color: $cool-gray;
+
+      &:hover {
+        color: $cool-blue;
       }
+    }
+  }
+
+  .matrix-items__itemsettings {
+    width: 100%;
+    background: #F8F8F8;
+    border: 1px solid #DDD;
+    border-bottom: none;
+    padding: 15px;
+    display: none;
+
+    &.expanded {
+      display: block;
     }
   }
 }
