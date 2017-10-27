@@ -12,11 +12,8 @@ class KoboMatrixRow {
     let obj2 = {};
     const _o = model;
     obj2.label = _o.getValue('label');
-    obj2.choiceLists = [];
     obj2.choices = {};
     Object.keys(_o.items).forEach(function(key) {
-      obj2.choiceLists.push(key);
-
       _o.items[key].options.map(( item ) => {
         const { $kuid } = item.attributes;
         item.attributes.list_name = key;

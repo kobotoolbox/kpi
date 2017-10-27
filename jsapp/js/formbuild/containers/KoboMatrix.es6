@@ -136,19 +136,91 @@ class KoboMatrix extends React.Component {
   colChange(e) {
     const colKuid = this.state.expandedColKuid;
     var data = this.state.data;
+    const val = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    const type = e.target.getAttribute('data-type');
+    data = data.setIn([colKuid, type], val);
 
-    if (e.target) {
-      const val = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
-      const type = e.target.getAttribute('data-type');
-      data = data.setIn([colKuid, type], val);
+    this.setState({data: data});
+    this.toLocalStorage(data);
+  }
+
+  colChangeType(e) {
+    const colKuid = this.state.expandedColKuid;
+    var data = this.state.data;
+    const newType = e.value;
+    const prevType = data.getIn([colKuid, 'type']);
+    var _this = this;
+
+    // warn only if existing column type is one of (Select One, Select Many)
+    // and new type is NOT one of (Select One, Select Many)
+    if (['select_one', 'select_many'].includes(prevType) && !['select_one', 'select_many'].includes(newType)) {
+      let dialog = alertify.dialog('confirm');
+      let opts = {
+        title: t('Change column type?'),
+        message: t('Are you sure you want to change the type? This action is irreversible, your existing option choices will be erased.'),
+        labels: {ok: t('Change type'), cancel: t('Cancel')},
+        onok: (evt, val) => {
+          data = data.setIn([colKuid, 'type'], newType);
+          data = data.deleteIn([colKuid, 'select_from_list_name']);
+          _this.setState({data: data});
+          _this.toLocalStorage(data);    
+        },
+        oncancel: () => {
+          dialog.destroy();
+        }
+      };
+      dialog.set(opts).show();
     } else {
-      data = data.setIn([colKuid, 'type'], e.value);
-      if (!['select_one', 'select_many'].includes(e.value)) {
-        data = data.deleteIn([colKuid, 'select_from_list_name']);
-      } else {
-        data = data.setIn([colKuid, 'select_from_list_name'], 'yn'); // TODO: allow multiple choice lists
+      data = data.setIn([colKuid, 'type'], newType);
+      const prevListName = data.getIn([colKuid, 'select_from_list_name']);
+      if (['select_one', 'select_many'].includes(newType) && prevListName === undefined) {
+        const newListId = txtid();
+        data = _this._addDefaultList(data, newListId);
+        data = data.setIn([colKuid, 'select_from_list_name'], newListId); // TODO: allow new list
       }
+      _this.setState({data: data});
+      _this.toLocalStorage(data);    
     }
+  }
+
+  _addDefaultList(data, newListId) {
+    const choice1kuid = txtid();
+    const choice1 = Map({
+        label: t('Option 1'),
+        $autovalue: this.autoName(t('Option 1')),
+        name: this.autoName(t('Option 1')),
+        $kuid: choice1kuid,
+        list_name: newListId
+      });
+    data = data.setIn(['choices', choice1kuid], choice1);
+
+    const choice2kuid = txtid();
+    const choice2 = Map({
+        label: t('Option 2'),
+        $autovalue: this.autoName(t('Option 2')),
+        name: this.autoName(t('Option 2')),
+        $kuid: choice2kuid,
+        list_name: newListId
+      });
+    data = data.setIn(['choices', choice2kuid], choice2);
+    return data;
+  }
+
+  choiceChange(e) {
+    const val = e.target.value, 
+          kuid = e.target.getAttribute('data-kuid'), 
+          type = e.target.getAttribute('data-type');
+    var data = this.state.data;
+
+    if (type === 'label') {
+      data = data.setIn(['choices', kuid, type], val);
+    }
+
+    if (type === 'name') {
+      data = data.setIn(['choices', kuid, 'name'], this.autoName(val));
+      data = data.setIn(['choices', kuid, '$autovalue'], this.autoName(val));
+    }
+
     this.setState({data: data});
     this.toLocalStorage(data);
   }
@@ -157,13 +229,18 @@ class KoboMatrix extends React.Component {
     return this.state.data.getIn([colKuid, field]);
   }
 
+  getChoiceField(kuid, field) {
+    return this.state.data.getIn(['choices', kuid, field]);
+  }
+
   getRequiredStatus(colKuid) {
     const val = this.state.data.getIn([colKuid, 'required']);
     return val == true || val == 'true' ? true : false;
   }
 
-  newRow() {
+  newChoiceOption(e) {
     var data = this.state.data;
+    const listName = e.target.getAttribute('data-list-name');
 
     const newRowKuid = txtid();
     const newRow = Map({
@@ -171,7 +248,7 @@ class KoboMatrix extends React.Component {
       $autovalue: this.autoName(t('Option')),
       name: this.autoName(t('Option')),
       $kuid: newRowKuid,
-      list_name: this.state.kobomatrix_list
+      list_name: listName
     });
 
     data = data.setIn(['choices', newRowKuid], newRow);
@@ -289,7 +366,7 @@ class KoboMatrix extends React.Component {
                   <Select value={this.getCol(expandedCol, 'type')}
                     clearable={false}
                     options={this.state.typeChoices}
-                    onChange={this.colChange}></Select>
+                    onChange={this.colChangeType}></Select>
                 </label>
                 <label>
                   <span>{t('Label')}</span>
@@ -316,9 +393,44 @@ class KoboMatrix extends React.Component {
                     data-type='required' />
                   <label htmlFor={`required-${expandedCol}`}></label>
                 </label>
-                <label className="delete">
-                  <i className="k-icon-trash" onClick={_this.deleteColumn} />
-                </label>
+                {this.getCol(expandedCol, 'select_from_list_name') && 
+                  <div className="matrix-cols__options">
+                    <div className="matrix-cols__options--row-head">
+                      <span>{t('Label')}</span>
+                      <span>{t('Data Column Name')}</span>
+                    </div>
+                    {
+                      choices.map(function(choice, ch) {
+                        if (choice.get('list_name') == _this.getCol(expandedCol, 'select_from_list_name')) {
+                          return (
+                            <div className="matrix-cols__options--row" key={ch}>
+                              <span>
+                                <input type="text" value={_this.getChoiceField(ch, 'label')}
+                                  onChange={_this.choiceChange} className="js-cancel-sort" 
+                                  data-type='label' data-kuid={ch} />
+                              </span>
+                              <span className="matrix-options__value">
+                                <input type="text" value={_this.getChoiceField(ch, 'name')}
+                                  onChange={_this.choiceChange} className="js-cancel-sort" 
+                                  data-type='name' data-kuid={ch} />
+                              </span>
+                              <span className="matrix-options__delete">
+                                <i className="k-icon-trash" onClick={_this.deleteRow} data-kuid={ch} />
+                              </span>
+                            </div>
+                          );
+                        }
+                      })
+                    }
+                    <div className="matrix-cols__options--row-foot">
+                      <i className="k-icon-plus" onClick={this.newChoiceOption} data-list-name={this.getCol(expandedCol, 'select_from_list_name')}/>
+                    </div>
+
+                  </div>
+                }
+                <div className="matrix-cols__delete">
+                  <span className="matrix-cols__delete-action" onClick={_this.deleteColumn}>{t('Delete column')} <i className="k-icon-trash" /></span>
+                </div>
               </bem.MatrixCols__settings_inner>
             }
           </bem.MatrixCols__settings>
@@ -378,9 +490,11 @@ class KoboMatrix extends React.Component {
                                className="js-cancel-sort"
                                data-type='name' />
                           </label>
-                          <label className="delete">
-                            <i className="k-icon-trash" onClick={_this.deleteRow} data-kuid={item.$kuid} />
-                          </label>
+                          <div className="matrix-cols__delete">
+                            <span className="matrix-cols__delete-action" onClick={_this.deleteRow} data-kuid={item.$kuid}>
+                              {t('Delete row')} <i className="k-icon-trash" />
+                            </span>
+                          </div>
                         </bem.MatrixCols__settings_inner>
                       }
                     </bem.MatrixItems__itemsettings>
@@ -389,7 +503,7 @@ class KoboMatrix extends React.Component {
               })
             }
             <bem.MatrixItems__item key={'new'} m={'new'}>
-              <i className="k-icon-plus" onClick={this.newRow}/>
+              <i className="k-icon-plus" onClick={this.newChoiceOption} data-list-name={this.state.kobomatrix_list}/>
             </bem.MatrixItems__item>
           </bem.MatrixItems>
           <bem.MatrixItemsNewCol>
