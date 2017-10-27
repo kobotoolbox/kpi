@@ -176,7 +176,7 @@ class KoboMatrix extends React.Component {
       if (['select_one', 'select_many'].includes(newType) && prevListName === undefined) {
         const newListId = txtid();
         data = _this._addDefaultList(data, newListId);
-        data = data.setIn([colKuid, 'select_from_list_name'], newListId); // TODO: allow new list
+        data = data.setIn([colKuid, 'select_from_list_name'], newListId);
       }
       _this.setState({data: data});
       _this.toLocalStorage(data);    
@@ -251,6 +251,7 @@ class KoboMatrix extends React.Component {
       list_name: listName
     });
 
+    // var choices = data.get('choices');
     data = data.setIn(['choices', newRowKuid], newRow);
 
     this.setState({data: data});
