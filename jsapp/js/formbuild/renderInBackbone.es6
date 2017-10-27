@@ -12,12 +12,12 @@ class KoboMatrixRow {
     let obj2 = {};
     const _o = model;
     obj2.label = _o.getValue('label');
-    obj2.choices = {};
+    var choices = {};
     Object.keys(_o.items).forEach(function(key) {
       _o.items[key].options.map(( item ) => {
         const { $kuid } = item.attributes;
         item.attributes.list_name = key;
-        obj2.choices[$kuid] = item.attributes;
+        choices[$kuid] = item.attributes;
       });
     });
 
@@ -34,6 +34,8 @@ class KoboMatrixRow {
     const _b = _o.toJSON();
     this.kobomatrix_list = _b['kobo--matrix_list'];
     this.data = fromJS(obj2);
+    var _c = fromJS(choices);
+    this.data = this.data.set('choices', _c.toOrderedMap());
     this.kuid = _b.$kuid;
   }
 }

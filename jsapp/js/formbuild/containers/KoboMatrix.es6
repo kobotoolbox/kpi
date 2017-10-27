@@ -77,19 +77,22 @@ class KoboMatrix extends React.Component {
   }
 
 
-  autoName(val) {
+  autoName(val, type, ln = false) {
     var names = [];
     const kobomatrix_list = this.state.kobomatrix_list;
     var data = this.state.data;
-    data.get('choices').forEach(function(ch){
-      if (ch.get('list_name') == kobomatrix_list)
-        names.push(ch.get('$autovalue'));
-    });
 
-    data.get('cols').forEach(function(ch){
-      const col = data.get(ch);
-      names.push(col.get('$autoname'));
-    });
+    if (type === 'column') {
+      data.get('cols').forEach(function(ch){
+        names.push(data.getIn([ch, '$autoname']));
+      });
+    } else {
+      data.get('choices').forEach(function(ch){
+        if (ch.get('list_name') == ln)
+          names.push(ch.get('$autovalue'));
+      });
+    }
+
     return sluggify(val, {
       preventDuplicates: names,
       lowerCase: true,
@@ -100,33 +103,20 @@ class KoboMatrix extends React.Component {
     });
   }
 
-  handleChangeRowLabel(e) {
-    const val = e.target.value, 
-          rowKuid = e.target.getAttribute('data-kuid'),
-          kobomatrix_list = this.state.kobomatrix_list;
-    var data = this.state.data;
-
-    data = data.setIn(['choices', rowKuid, '$autovalue'], this.autoName(val));
-    data = data.setIn(['choices', rowKuid, 'name'], this.autoName(val));
-    data = data.setIn(['choices', rowKuid, 'label'], val);
-
-    this.setState({data: data});
-    this.toLocalStorage(data);
-  }
-
   rowChange(e) {
-    const val = e.target.value, 
-          rowKuid = this.state.expandedRowKuid, 
+    const rowKuid = this.state.expandedRowKuid, 
           type = e.target.getAttribute('data-type');
     var data = this.state.data;
+    var val = e.target.value;
 
     if (type === 'label') {
       data = data.setIn(['choices', rowKuid, type], val);
     }
 
     if (type === 'name') {
-      data = data.setIn(['choices', rowKuid, 'name'], this.autoName(val));
-      data = data.setIn(['choices', rowKuid, '$autovalue'], this.autoName(val));
+      val = this.autoName(val, false, this.state.kobomatrix_list);
+      data = data.setIn(['choices', rowKuid, 'name'], val);
+      data = data.setIn(['choices', rowKuid, '$autovalue'], val);
     }
 
     this.setState({data: data});
@@ -185,20 +175,23 @@ class KoboMatrix extends React.Component {
 
   _addDefaultList(data, newListId) {
     const choice1kuid = txtid();
+    const val1 = this.autoName(t('Option 1'), false, newListId);
+
     const choice1 = Map({
         label: t('Option 1'),
-        $autovalue: this.autoName(t('Option 1')),
-        name: this.autoName(t('Option 1')),
+        $autovalue: val1,
+        name: val1,
         $kuid: choice1kuid,
         list_name: newListId
       });
     data = data.setIn(['choices', choice1kuid], choice1);
 
+    const val2 = this.autoName(t('Option 2'), false, newListId);
     const choice2kuid = txtid();
     const choice2 = Map({
         label: t('Option 2'),
-        $autovalue: this.autoName(t('Option 2')),
-        name: this.autoName(t('Option 2')),
+        $autovalue: val2,
+        name: val2,
         $kuid: choice2kuid,
         list_name: newListId
       });
@@ -207,18 +200,19 @@ class KoboMatrix extends React.Component {
   }
 
   choiceChange(e) {
-    const val = e.target.value, 
-          kuid = e.target.getAttribute('data-kuid'), 
+    const kuid = e.target.getAttribute('data-kuid'), 
           type = e.target.getAttribute('data-type');
     var data = this.state.data;
+    var val = e.target.value;
 
     if (type === 'label') {
       data = data.setIn(['choices', kuid, type], val);
     }
 
     if (type === 'name') {
-      data = data.setIn(['choices', kuid, 'name'], this.autoName(val));
-      data = data.setIn(['choices', kuid, '$autovalue'], this.autoName(val));
+      val = this.autoName(val, false, kuid);
+      data = data.setIn(['choices', kuid, 'name'], val);
+      data = data.setIn(['choices', kuid, '$autovalue'], val);
     }
 
     this.setState({data: data});
@@ -241,19 +235,17 @@ class KoboMatrix extends React.Component {
   newChoiceOption(e) {
     var data = this.state.data;
     const listName = e.target.getAttribute('data-list-name');
-
+    const val = this.autoName(t('Unlabelled'), false, listName);
     const newRowKuid = txtid();
     const newRow = Map({
-      label: t('Option'),
-      $autovalue: this.autoName(t('Option')),
-      name: this.autoName(t('Option')),
+      label: t('Unlabelled'),
+      $autovalue: val,
+      name: val,
       $kuid: newRowKuid,
       list_name: listName
     });
 
-    // var choices = data.get('choices');
     data = data.setIn(['choices', newRowKuid], newRow);
-
     this.setState({data: data});
     this.toLocalStorage(data);
   }
@@ -261,8 +253,9 @@ class KoboMatrix extends React.Component {
   newColumn() {
     var data = this.state.data;
     const newColKuid = txtid();
+    const cname = this.autoName(t('Column'), 'column');
     const newCol = Map({
-      $autoname: this.autoName(t('Column')),
+      $autoname: cname,
       $kuid: newColKuid,
       appearance: "w1",
       constraint: "",
@@ -270,7 +263,7 @@ class KoboMatrix extends React.Component {
       default: "",
       hint: "",
       label: t('Column'),
-      name: this.autoName(t('Column')),
+      name: cname,
       relevant: "",
       required: "false",
       type: "text",
