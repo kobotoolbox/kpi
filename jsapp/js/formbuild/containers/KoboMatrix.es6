@@ -136,9 +136,11 @@ class KoboMatrix extends React.Component {
   colChange(e) {
     const colKuid = this.state.expandedColKuid;
     var data = this.state.data;
+
     if (e.target) {
-      var type = e.target.getAttribute('data-type');
-      data = data.setIn([colKuid, type], e.target.value);
+      const val = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+      const type = e.target.getAttribute('data-type');
+      data = data.setIn([colKuid, type], val);
     } else {
       data = data.setIn([colKuid, 'type'], e.value);
       if (!['select_one', 'select_many'].includes(e.value)) {
@@ -153,6 +155,11 @@ class KoboMatrix extends React.Component {
 
   getCol(colKuid, field) {
     return this.state.data.getIn([colKuid, field]);
+  }
+
+  getRequiredStatus(colKuid) {
+    const val = this.state.data.getIn([colKuid, 'required']);
+    return val == true || val == 'true' ? true : false;
   }
 
   newRow() {
@@ -287,16 +294,27 @@ class KoboMatrix extends React.Component {
                 <label>
                   <span>{t('Label')}</span>
                   <input type="text" value={this.getCol(expandedCol, 'label')}
-                     onChange={this.colChange} 
-                     className="js-cancel-sort"
-                     data-type='label' />
+                    onChange={this.colChange} 
+                    className="js-cancel-sort"
+                    data-type='label' />
                 </label>
                 <label>
                   <span>{t('Data Column Name')}</span>
                   <input type="text" value={this.getCol(expandedCol, 'name')}
-                     onChange={this.colChange} 
-                     className="js-cancel-sort"
-                     data-type='name' />
+                    onChange={this.colChange} 
+                    className="js-cancel-sort"
+                    data-type='name' />
+                </label>
+                <label>
+                  <span>{t('Required')}</span>
+                  <input type="checkbox" 
+                    id={`required-${expandedCol}`}
+                    name={`required-${expandedCol}`}
+                    checked={this.getRequiredStatus(expandedCol)}
+                    onChange={this.colChange} 
+                    className="js-cancel-sort"
+                    data-type='required' />
+                  <label htmlFor={`required-${expandedCol}`}></label>
                 </label>
                 <label className="delete">
                   <i className="k-icon-trash" onClick={_this.deleteColumn} />
@@ -307,7 +325,6 @@ class KoboMatrix extends React.Component {
           <bem.MatrixItems>
             {
               items.map(function(item, n) {
-                console.log(item);
                 return (
                   <bem.MatrixItems__item key={n}>
                     <bem.MatrixItems__itemrow>

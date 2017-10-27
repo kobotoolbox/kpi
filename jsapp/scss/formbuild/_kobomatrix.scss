@@ -116,6 +116,12 @@
       vertical-align: middle;
     }
 
+    > input[type="text"] {
+      padding: 4px 8px;
+      border: 1px solid #CCC;
+      border-radius: 4px;
+    }
+
     &.delete {
       width: 100%;
       text-align: right;
@@ -126,6 +132,16 @@
         color: $cool-red;
         cursor: pointer;
       }
+    }
+
+    > label {
+      display: inline-block;
+
+      &:after {}
+    }
+
+    [type="checkbox"]:not(:checked) + label:after {
+      background-color: #FFF;
     }
   }
 }
@@ -175,12 +191,6 @@
       &:hover {
         color: $cool-blue;
       }
-    }
-
-    &--settings {
-      flex-shkrink: 0;
-      flex-grow: 20;
-      background-color: pink;
     }
   }
 
