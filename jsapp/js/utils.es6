@@ -244,25 +244,32 @@ export function koboMatrixParser(params) {
     return params;
 
   var hasMatrix = false;
+
+  // add open/close tags for kobomatrix groups
   content.survey.forEach(function(s, i){
     if (s.type === 'kobomatrix') {
+      s.type = 'begin_kobomatrix';
+      content.survey.splice(i + 1, 0, {type: "end_kobomatrix", "$kuid": `/${s.$kuid}`});
+    }
+  });
+
+  // add columns as items in the group
+  content.survey.forEach(function(s, i){
+    if (s.type === 'begin_kobomatrix') {
+      var j = i;
       hasMatrix = true;
-
       var matrix = localStorage.getItem(`koboMatrix.${s.$kuid}`);
-      matrix = JSON.parse(matrix);
-      if (matrix != null) {
-        s.type = 'begin_kobomatrix';
-        content.survey.splice(i + 1, 0, {type: "end_kobomatrix", "$kuid": `/${s.$kuid}`});
 
-        for(var kuid of matrix.cols){
-          i++;
-          content.survey.splice(i, 0, matrix[kuid]);
+      if (matrix != null) {
+        matrix = JSON.parse(matrix);
+        for (var kuid of matrix.cols) {
+          j++;
+          content.survey.splice(j, 0, matrix[kuid]);
         }
 
         for (var k of Object.keys(matrix.choices)) {
           content.choices.push(matrix.choices[k]);
         }
-
       }
     }
   });
