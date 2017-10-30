@@ -60,6 +60,22 @@ class KoboMatrix extends React.Component {
     const data = this.state.data;
     const kuid = this.state.kuid;
     localStorage.setItem(`koboMatrix.${kuid}`, JSON.stringify(data.toJS()));
+
+    // generate cols/rows for a new matrix
+    if (data.get('cols').size < 1 && data.get('choices').size < 1) {
+      this.generateDefault();
+    }
+  }
+
+  generateDefault() {
+    // TODO: find a better way to do this
+    this.newColumn();
+      window.setTimeout(()=>{
+        this.newColumn();
+        window.setTimeout(()=>{
+          this.newChoiceOption(false);
+        }, 500); 
+      }, 500); 
   }
 
   expandColumn(colKuid) {
@@ -233,8 +249,14 @@ class KoboMatrix extends React.Component {
   }
 
   newChoiceOption(e) {
-    var data = this.state.data;
-    const listName = e.target.getAttribute('data-list-name');
+    var data = this.state.data, 
+        listName = null;
+    if (e && e.target) {
+      listName = e.target.getAttribute('data-list-name');
+    } else {
+      listName = this.state.kobomatrix_list;
+    }
+
     const val = this.autoName(t('Unlabelled'), false, listName);
     const newRowKuid = txtid();
     const newRow = Map({
@@ -271,15 +293,29 @@ class KoboMatrix extends React.Component {
 
     data = data.set(newColKuid, newCol);
     data = data.update('cols', list => list.push(newColKuid));
+
     this.setState({data: data});
-    this.toLocalStorage(data);    
+    this.toLocalStorage(data);
   }
 
   deleteRow(e) {
     const rowKuid = e.target.getAttribute('data-kuid');
-    var data = this.state.data.deleteIn(['choices', rowKuid]);
-    this.setState({data: data});
-    this.toLocalStorage(data);    
+    var _this = this;
+    let dialog = alertify.dialog('confirm');
+    let opts = {
+      title: t('Delete row?'),
+      message: t('Are you sure you want to delete this row? This action cannot be undone.'),
+      labels: {ok: t('Delete'), cancel: t('Cancel')},
+      onok: (evt, val) => {
+        const data = _this.state.data.deleteIn(['choices', rowKuid]);
+        _this.setState({data: data});
+        _this.toLocalStorage(data);    
+      },
+      oncancel: () => {
+        dialog.destroy();
+      }
+    };
+    dialog.set(opts).show();
   }
 
   deleteColumn(e) {
@@ -288,7 +324,7 @@ class KoboMatrix extends React.Component {
     var _this = this;
     let dialog = alertify.dialog('confirm');
     let opts = {
-      title: t('Delete column'),
+      title: t('Delete column?'),
       message: t('Are you sure you want to delete this column? This action cannot be undone.'),
       labels: {ok: t('Delete'), cancel: t('Cancel')},
       onok: (evt, val) => {

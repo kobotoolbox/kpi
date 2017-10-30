@@ -9,6 +9,7 @@ $configs = require './model.configs'
 $surveyDetail = require './model.surveyDetail'
 
 module.exports = do ->
+  _t = require("utils").t
 
   surveyFragment = {}
 
@@ -57,6 +58,7 @@ module.exports = do ->
         }, @_additionalJson?()
 
       _.each @constructor.prototype, extend_to_row
+
       if rr.attributes.__rows
         for subrow in rr.attributes.__rows
           @[@_rowAttributeName].add(subrow)
@@ -74,11 +76,12 @@ module.exports = do ->
       @getList = ()=> @items
       items = {}
       kobomatrix_list = @get('kobo--matrix_list')?.get('value')
+
       if kobomatrix_list
         items[kobomatrix_list] = @getSurvey().choices.get(kobomatrix_list)
       else
-        missing_list_err = _t('Missing advanced matrix list')
-        throw new Error("#{missing_list_err}: #{kobomatrix_list}")
+        kobomatrix_list = @.set('kobo--matrix_list', "matrix_#{$utils.txtid()}")
+        items[kobomatrix_list] = @getSurvey().choices.create()
 
       @rows.each (row)=>
         if listName = row.get('select_from_list_name')?.get('value')

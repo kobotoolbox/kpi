@@ -106,6 +106,11 @@ module.exports = do ->
       grouping: "r5"
       id: "score"
     ,
+      label: _t("Question Matrix")
+      faClass: "th"
+      grouping: "r5"
+      id: "kobomatrix"
+    ,
       label: _t("Ranking")
       faClass: "sort-amount-desc"
       grouping: "r5"
