@@ -454,7 +454,7 @@ class ExportTask(ImportExportTask):
                 ) as xlsx_output_file:
                     export.to_xlsx(xlsx_output_file.name, submission_stream)
                     while True:
-                        chunk = xlsx_output_file.read(8192)
+                        chunk = xlsx_output_file.read(5 * 1024 * 1024)
                         if chunk:
                             output_file.write(chunk)
                         else:
