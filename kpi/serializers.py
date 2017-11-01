@@ -728,27 +728,19 @@ class ExportTaskSerializer(serializers.HyperlinkedModelSerializer):
         view_name='exporttask-detail'
     )
     messages = ReadOnlyJSONField(required=False)
-    source = serializers.SerializerMethodField()
-    date_expires = serializers.SerializerMethodField()
-
-    def get_source(self, obj):
-        return obj.data.get('source', None)
-
-    def get_date_expires(self, obj):
-        return obj.date_created + settings.EXPORT_TASK_RESULT_LIFESPAN
+    data = ReadOnlyJSONField()
 
     class Meta:
         model = ExportTask
         fields = (
             'url',
-            'source',
             'status',
             'messages',
             'uid',
             'date_created',
-            'date_expires',
             'last_submission_time',
             'result',
+            'data',
         )
         extra_kwargs = {
             'status': {
