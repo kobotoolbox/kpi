@@ -389,8 +389,7 @@
 }
 
 .form-view--form-settings,
-.form-view--settings-sharing,
-.form-view--form-data-downloads {
+.form-view--settings-sharing {
   background: #FFF;
   padding: 40px;
 }
@@ -407,6 +406,61 @@
 
       .form-view__cell--iframe {
         height: 820px;
+      }
+    }
+  }
+}
+
+.form-view.form-view--form-data-downloads {
+  .form-modal__item {
+    clear: left;
+
+    @media screen and (min-width: 960px) {
+      &:nth-child(1), &:nth-child(2) {
+        float: left;
+        width: 45%;
+        margin-right: 3%;
+        clear: none;
+      }
+    }
+
+    &:last-child {
+      margin-bottom: 0px;
+    }
+  }
+
+  .form-view__cell--exports-table {
+    .form-view__label {
+      text-align: left;
+
+      &--type {
+        width: 10%;
+        text-transform: uppercase;
+      }
+
+      &--date {
+        width: 50%;
+      }
+
+      &--action {
+        text-align: right;
+        width: 40%;
+      }
+    }
+
+    .form-view__group--headings {
+      .form-view__label--type {
+        text-transform: none;
+      }
+    }
+
+    @media screen and (max-width: 768px) {
+      .form-view__label {
+        width: 50%;
+      }
+
+      .form-view__label--type {
+        display: none;
       }
     }
   }
@@ -529,8 +583,7 @@
   }
 
   .form-view--form-settings,
-  .form-view--settings-sharing,
-  .form-view--form-data-downloads {
+  .form-view--settings-sharing {
     padding: 20px;
   }
 

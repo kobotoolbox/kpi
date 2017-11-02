@@ -122,11 +122,9 @@ export class FormSubScreens extends React.Component {
   renderProjectDownloads() {
     var docTitle = this.state.name || t('Untitled');
     return (
-        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          <bem.FormView m='form-data-downloads'>
-            <ProjectDownloads asset={this.state} />
-          </bem.FormView>
-        </DocumentTitle>
+      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+        <ProjectDownloads asset={this.state} />
+      </DocumentTitle>
     );
   }
   renderReset() {

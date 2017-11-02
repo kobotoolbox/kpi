@@ -264,6 +264,14 @@ var dataInterface;
         return $.getJSON(`${rootUrl}/assets/${params.id}/`);
       }
     },
+    getAssetExports (uid) {
+      return $ajax({
+        url: `${rootUrl}/exports/`,
+        data: {
+          q: `source:${uid}`
+        }
+      });
+    },
     getAssetXformView (uid) {
       return $ajax({
         url: `${rootUrl}/assets/${uid}/xform`,
