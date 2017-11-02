@@ -260,6 +260,7 @@ export class ProjectDownloads extends React.Component {
       groupSep: '/',
       exports: false
     };
+
     autoBind(this);
   }
   handleChange (e, attr) {
@@ -302,15 +303,15 @@ export class ProjectDownloads extends React.Component {
           data: postData
         }).done((data) => {
           $.ajax({url: data.url}).then((taskData) => {
+            // Start a polling Interval if export is not yet complete
             if (taskData.status !== 'complete') {
               notify(t('Your export is processing.'));
+              _this.pollingInterval  = setInterval(_this.refreshExport, 4000, taskData.url);
               this.getExports();
             } else {
               redirectTo(taskData.result);
+              this.getExports();
             }
-          }).done((taskData) => {
-            // update list of exports when async call is done
-            this.getExports();
           }).fail((taskFail) => {
             alertify.error(t('Failed to retrieve the export task.'));
             log('export task retrieval failed', taskFail);
@@ -334,9 +335,20 @@ export class ProjectDownloads extends React.Component {
   }
 
   componentWillUnmount() {
-    if (this.pollExports) {
-      clearTimeout(this.pollExports)
-    }
+     clearInterval(this.pollingInterval);
+  }
+
+  refreshExport(url) {
+    console.log('refreshExports');
+    console.log(url);
+    $.ajax({url: url}).then((taskData) => {
+      if (taskData.status === 'complete') {
+        clearInterval(this.pollingInterval);
+        this.getExports();
+      }
+    }).fail((taskFail) => {
+      clearInterval(this.pollingInterval);
+    });
   }
 
   getExports() {
