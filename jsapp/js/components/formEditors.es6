@@ -468,7 +468,7 @@ export class ProjectDownloads extends React.Component {
                               {t('Download')}
                             </a>
                           }
-                          {item.status == 'complete' &&
+                          {item.status == 'error' &&
                             <span data-tip={item.messages.error}>
                               {t('Export Failed')}
                             </span>
