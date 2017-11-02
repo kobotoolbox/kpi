@@ -306,7 +306,7 @@ export class ProjectDownloads extends React.Component {
             // Start a polling Interval if export is not yet complete
             if (taskData.status !== 'complete') {
               notify(t('Your export is processing.'));
-              _this.pollingInterval  = setInterval(_this.refreshExport, 4000, taskData.url);
+              _this.pollingInterval  = setInterval(_this.refreshExport, 3000, taskData.url);
               this.getExports();
             } else {
               redirectTo(taskData.result);
@@ -339,10 +339,8 @@ export class ProjectDownloads extends React.Component {
   }
 
   refreshExport(url) {
-    console.log('refreshExports');
-    console.log(url);
     $.ajax({url: url}).then((taskData) => {
-      if (taskData.status === 'complete') {
+      if (taskData.status !== 'processing') {
         clearInterval(this.pollingInterval);
         this.getExports();
       }
@@ -465,14 +463,18 @@ export class ProjectDownloads extends React.Component {
                           {formatTime(item.date_created)}
                         </bem.FormView__label>
                         <bem.FormView__label m='action'>
-                          {item.status == 'complete' ? 
+                          {item.status == 'complete' &&
                             <a className="mdl-button mdl-button--raised mdl-button--colored" href={item.result}>
                               {t('Download')}
                             </a>
-                          :
-                            <span>
-                              {item.status}
+                          }
+                          {item.status == 'complete' &&
+                            <span data-tip={item.messages.error}>
+                              {t('Export Failed')}
                             </span>
+                          }
+                          {item.status != 'error' && item.status != 'complete' &&
+                            <span>{t('processing...')}</span>
                           }
                         </bem.FormView__label>
                       </bem.FormView__group>
