@@ -499,20 +499,27 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
         queryset = ExportTask.objects.filter(
             user=self.request.user).order_by('date_created')
 
-        # Ultra-basic filtering by source URL or UID if `q=source:[URL|UID]`
-        # was provided
+        # Ultra-basic filtering by:
+        # * source URL or UID if `q=source:[URL|UID]` was provided;
+        # * comma-separated list of `ExportTask` UIDs if
+        #   `q=uid__in:[UID],[UID],...` was provided
         q = self.request.query_params.get('q', False)
         if not q:
             # No filter requested
             return queryset
-        if not q.startswith('source:'):
+        if q.startswith('source:'):
+            q = q.lstrip('source:')
+            # This is exceedingly crude... but support for querying inside
+            # JSONField not available until Django 1.9
+            queryset = queryset.filter(data__contains=q)
+        elif q.startswith('uid__in:'):
+            q = q.lstrip('uid__in:')
+            uids = [uid.strip() for uid in q.split(',')]
+            queryset = queryset.filter(uid__in=uids)
+        else:
             # Filter requested that we don't understand; make it obvious by
             # returning nothing
             return ExportTask.objects.none()
-        q = q.lstrip('source:')
-        # This is exceedingly crude... but support for querying inside
-        # JSONField not available until Django 1.9
-        queryset = queryset.filter(data__contains=q)
         return queryset
 
     def create(self, request, *args, **kwargs):
