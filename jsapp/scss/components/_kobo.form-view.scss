@@ -356,10 +356,11 @@
   &--items {
     padding: 0px;
     border-top: 1px solid $divider-color;
+    display: flex;
+    align-items: center;
 
     > .form-view__label {
       text-align: right;
-      display: inline-block;
       width: 30%;
       padding: 10px;
       vertical-align: middle;
@@ -370,21 +371,18 @@
       }
     }
 
-    .form-view__link {
-      opacity: 0.4;
-    }
-
     &:hover {
       background: $hover-asset-row;
-
-      .form-view__link {
-        opacity: 1;
-      }
     }
   }
 
   &--headings {
     font-weight: 600;
+    border-top: none;
+
+    &:hover {
+      background: transparent;
+    }
   }
 }
 
@@ -413,17 +411,6 @@
 
 .form-view.form-view--form-data-downloads {
   .form-modal__item {
-    clear: left;
-
-    @media screen and (min-width: 960px) {
-      &:nth-child(1), &:nth-child(2) {
-        float: left;
-        width: 45%;
-        margin-right: 3%;
-        clear: none;
-      }
-    }
-
     &:last-child {
       margin-bottom: 0px;
     }
@@ -438,13 +425,13 @@
         text-transform: uppercase;
       }
 
-      &--date {
-        width: 50%;
+      &--action {
+        flex-grow: 1;
+        text-align: right;
       }
 
-      &--action {
-        text-align: right;
-        width: 40%;
+      &--lang {
+        flex-shrink: 1;
       }
     }
 
@@ -454,12 +441,9 @@
       }
     }
 
-    @media screen and (max-width: 768px) {
-      .form-view__label {
-        width: 50%;
-      }
-
-      .form-view__label--type {
+    @media screen and (max-width: 980px) {
+      .form-view__label--date,
+      .form-view__label--include-groups {
         display: none;
       }
     }

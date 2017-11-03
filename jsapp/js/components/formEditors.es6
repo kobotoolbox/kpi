@@ -451,6 +451,8 @@ export class ProjectDownloads extends React.Component {
                   <bem.FormView__group m={['items', 'headings']}>
                     <bem.FormView__label m='type'>{t('Type')}</bem.FormView__label>
                     <bem.FormView__label m='date'>{t('Created')}</bem.FormView__label>
+                    <bem.FormView__label m='lang'>{t('Language')}</bem.FormView__label>
+                    <bem.FormView__label m='include-groups'>{t('Include Groups')}</bem.FormView__label>
                     <bem.FormView__label></bem.FormView__label>
                   </bem.FormView__group>
                   {this.state.exports.map((item, n) => {
@@ -462,10 +464,16 @@ export class ProjectDownloads extends React.Component {
                         <bem.FormView__label m='date'>
                           {formatTime(item.date_created)}
                         </bem.FormView__label>
+                        <bem.FormView__label m='lang'>
+                        {item.data.lang === "_default" ? t('Default') : item.data.lang}
+                        </bem.FormView__label>
+                        <bem.FormView__label m='include-groups'>
+                          {item.data.hierarchy_in_labels === "false" ? t('No') : t("Yes")}
+                        </bem.FormView__label>
                         <bem.FormView__label m='action'>
                           {item.status == 'complete' &&
-                            <a className="mdl-button mdl-button--raised mdl-button--colored" href={item.result}>
-                              {t('Download')}
+                            <a className="form-view__link" href={item.result} data-tip={t('Download')}>
+                              <i className="k-icon-download" />
                             </a>
                           }
                           {item.status == 'error' &&
