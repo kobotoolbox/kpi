@@ -25,7 +25,7 @@ export class DataTable extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-    	loading: false,
+    	loading: true,
     	tableData: [],
     	columns: [],
       sids: [],
@@ -278,7 +278,7 @@ export class DataTable extends React.Component {
 
     return (
       <bem.FormView m='table'>
-        <bem.FormView__group m="table-header">
+        <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
           <bem.FormView__item m='table-meta'>
             {`${showingResults} `}
             {t('of')}

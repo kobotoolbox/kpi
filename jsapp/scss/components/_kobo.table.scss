@@ -5,6 +5,12 @@
     padding: 20px 0px;
     display: flex;
     justify-content: 'space-between';
+    transition: 0.3s all;
+    opacity: 1;
+
+    &.form-view__group--table-loading {
+      opacity: 0.25;
+    }
 
     .form-view__item--table-meta {
       flex-grow: 1;
