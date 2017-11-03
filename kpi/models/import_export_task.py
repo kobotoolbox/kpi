@@ -108,8 +108,12 @@ class ImportExportTask(models.Model):
             )
 
         self.messages.update(msgs)
+        # Record the processing time for diagnostic purposes
+        self.data['processing_time_seconds'] = (
+            datetime.datetime.now(self.date_created.tzinfo) - self.date_created
+        ).total_seconds()
         try:
-            self.save(update_fields=['status', 'messages'])
+            self.save(update_fields=['status', 'messages', 'data'])
         except TypeError, e:
             self.status = self.ERROR
             logging.error('Failed to save %s: %s' % (self._meta.model_name,
