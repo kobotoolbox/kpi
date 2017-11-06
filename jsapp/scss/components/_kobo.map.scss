@@ -83,6 +83,11 @@
     border-radius: 5px;
     box-shadow: 0 0 5px 5px rgba(0, 0, 0, 0.15);
     bottom: calc(100% + 10px);
+
+    .popover-menu__heading {
+      padding-left: 10px;
+      padding-right: 10px;
+    }
   }
 }
 
@@ -220,14 +225,14 @@ body .leaflet-control-layers,
 .map-marker {
   width: 30px;
   height: 30px;
-  background: #CCC;
+  background: rgba(255, 50, 0, 0.4);
   border: 1px solid #FFF;
   border-radius: 30px;
 }
 
 .map-marker {
   &-0, &-0:after {
-    background: rgba(52, 106, 200, 0.4);
+    background: rgba(255, 50, 0, 0.4);
   }
 
   &-1, &-1:after {
@@ -235,7 +240,7 @@ body .leaflet-control-layers,
   }
 
   &-2, &-2:after {
-    background: rgba(250, 213, 80, 0.4);
+    background: rgba(255, 180, 50, 0.4);
   }
 
   &-3, &-3:after {
@@ -288,5 +293,25 @@ body .leaflet-control-layers,
 
   &-15, &-15:after {
     background: rgba(60, 223, 219, 0.4);
+  }
+
+  &-16, &-16:after {
+    background: rgba(52, 106, 200, 0.4);
+  }
+
+  &-17, &-17:after {
+    background: rgba(88, 20, 100, 0.4);
+  }
+
+  &-18, &-18:after {
+    background: rgba(50, 90, 10, 0.4);
+  }
+
+  &-19, &-19:after {
+    background: rgba(10, 180, 80, 0.4);
+  }
+
+  &-20, &-20:after {
+    background: rgba(230, 175, 25, 0.4);
   }
 }

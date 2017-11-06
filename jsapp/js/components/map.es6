@@ -114,6 +114,10 @@ export class FormMap extends React.Component {
       }
     );
 
+    if(this.props.asset.deployment__submission_count > 2000) {
+      notify(t('This map display is currently limited to 2000 records for performance reasons.'));
+    }
+
     this.requestData(map);
   }
 
@@ -350,10 +354,9 @@ export class FormMap extends React.Component {
 
     const fields = this.state.fields;
     const langIndex = this.state.langIndex;
-    const langs = this.props.asset.content.translations || [];
+    const langs = this.props.asset.content.translations.length > 1 ? this.props.asset.content.translations : [];
     var label = t('View Options');
     const viewby = this.props.viewby;
-    console.log(viewby);
 
     if (viewby) {
       fields.forEach(function(f){
@@ -397,7 +400,7 @@ export class FormMap extends React.Component {
                   </bem.PopoverMenu__link>
                 );
             })}
-            {langs.length > 0 && 
+            {langs.length > 1 && 
               <bem.PopoverMenu__heading>
                 {t('Language')}
               </bem.PopoverMenu__heading>
