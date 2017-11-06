@@ -22,7 +22,7 @@
     "bower": "^1.4.1",
     "browser-sync": "^2.10.1",
     "chai": "^3.4.1",
-    "chart.js": "^2.1.6",
+    "chart.js": "^2.7.1",
     "classnames": "^2.1.1",
     "coffee-loader": "^0.7.2",
     "coffee-script": "^1.10.0",
