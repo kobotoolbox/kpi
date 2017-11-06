@@ -49,7 +49,8 @@ export class FormMap extends React.Component {
       submissions: [],
       error: false,
       showExpandedMap: false,
-      showExpandedLegend: true
+      showExpandedLegend: true,
+      langIndex: 0
     };
 
     autoBind(this);    
@@ -153,11 +154,10 @@ export class FormMap extends React.Component {
 
       Object.keys(mapMarkers).map(function(m, i) {
         var lbl = choices.find(o => o.name === m || o.$autoname == m);
-
         mM.push({
           count: mapMarkers[m].count,
           id: mapMarkers[m].id,
-          label: lbl ? lbl.label[0] : t('not set')
+          labels: lbl ? lbl.label : undefined
         });
       });
 
@@ -269,6 +269,14 @@ export class FormMap extends React.Component {
     }
   }
 
+  filterLanguage (evt) {
+    let index = evt.target.getAttribute('data-index');
+    this.setState({
+        langIndex: index
+      }
+    );    
+  }
+
   componentWillReceiveProps (nextProps) {
     if (this.props.viewby != undefined) {
       this.setState({markersVisible: true});
@@ -340,14 +348,17 @@ export class FormMap extends React.Component {
         )
     }
 
-    var fields = this.state.fields;
+    const fields = this.state.fields;
+    const langIndex = this.state.langIndex;
+    const langs = this.props.asset.content.translations || [];
     var label = t('View Options');
-    var viewby = this.props.viewby;
+    const viewby = this.props.viewby;
+    console.log(viewby);
 
     if (viewby) {
       fields.forEach(function(f){
         if(viewby === f.name || viewby === f.$autoname)
-          label = `${t('Filtered by:')} ${f.label[0]}`;
+          label = `${t('Filtered by:')} ${f.label[langIndex]}`;
       });
     }
 
@@ -371,14 +382,32 @@ export class FormMap extends React.Component {
           </bem.FormView__mapButton>
         }
         <ui.PopoverMenu type='viewby-menu' triggerLabel={label} m={'above'}>
-            <bem.PopoverMenu__link key={'all'} onClick={this.filterMap}>
+            <bem.PopoverMenu__link key={'all'} onClick={this.filterMap} className={!viewby ? 'active': ''}>
               {t('-- See all data --')}
             </bem.PopoverMenu__link>
             {fields.map((f)=>{
+
               const name = f.name || f.$autoname;
               return (
-                  <bem.PopoverMenu__link data-name={name} key={`f-${name}`} onClick={this.filterMap}>
-                    {f.label[0]}
+                  <bem.PopoverMenu__link 
+                    data-name={name} key={`f-${name}`} 
+                    onClick={this.filterMap}
+                    className={viewby == name ? 'active': ''}>
+                    {f.label[langIndex]}
+                  </bem.PopoverMenu__link>
+                );
+            })}
+            {langs.length > 0 && 
+              <bem.PopoverMenu__heading>
+                {t('Language')}
+              </bem.PopoverMenu__heading>
+            }
+            {langs.map((l,i)=> {
+              return (
+                  <bem.PopoverMenu__link 
+                    data-index={i} className={this.state.langIndex == i ? 'active': ''}
+                    key={`l-${i}`} onClick={this.filterLanguage}>
+                    {l ? l : t('Default')}
                   </bem.PopoverMenu__link>
                 );
             })}
@@ -393,7 +422,7 @@ export class FormMap extends React.Component {
                         {m.count}
                       </span>
                       <span className={`map-marker-label`}>
-                        {m.label}
+                        {m.labels ? m.labels[langIndex] : t('not set')}
                       </span>
                     </div>
                   );
