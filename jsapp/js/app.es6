@@ -306,6 +306,13 @@ var routes = (
   </Route>
 );
 
+/* Send a pageview to Google Analytics for every change in routes */
+hashHistory.listen(function(loc) {
+  if (typeof ga == 'function') {
+    ga('send', 'pageview', window.location.hash);
+  }
+});
+
 class RunRoutes extends React.Component {
   render() {
     return (
