@@ -113,9 +113,12 @@ class KoboMatrix extends React.Component {
       preventDuplicates: names,
       lowerCase: true,
       lrstrip: true,
+      preventDuplicateUnderscores: true,
+      stripSpaces: true,
       characterLimit: 14,
       incrementorPadding: false,
-      validXmlTag: false
+      validXmlTag: false,
+      replaceNonWordCharacters: false
     });
   }
 
@@ -257,10 +260,10 @@ class KoboMatrix extends React.Component {
       listName = this.state.kobomatrix_list;
     }
 
-    const val = this.autoName(t('Unlabelled'), false, listName);
+    const val = this.autoName(t('Row'), false, listName);
     const newRowKuid = txtid();
     const newRow = Map({
-      label: t('Unlabelled'),
+      label: t('Row'),
       $autovalue: val,
       name: val,
       $kuid: newRowKuid,
@@ -406,7 +409,7 @@ class KoboMatrix extends React.Component {
                     data-type='label' />
                 </label>
                 <label>
-                  <span>{t('Data Column Name')}</span>
+                  <span>{t('Data Column Suffix')}</span>
                   <input type="text" value={this.getCol(expandedCol, 'name')}
                     onChange={this.colChange} 
                     className="js-cancel-sort"
@@ -514,7 +517,7 @@ class KoboMatrix extends React.Component {
                                data-type='label' />
                           </label>
                           <label>
-                            <span>{t('Data Column Name')}</span>
+                            <span>{t('Data Column Prefix')}</span>
                             <input type="text" value={item.name}
                                onChange={_this.rowChange} 
                                className="js-cancel-sort"

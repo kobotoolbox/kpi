@@ -247,6 +247,7 @@ module.exports = do ->
     _expandedRender: ->
       super()
       @$('.xlf-dv-required').hide()
+      @$('.xlf-dv-kobo--matrix_list').hide()
       @$("li[data-card-settings-tab-id='validation-criteria']").hide()
       @$("li[data-card-settings-tab-id='skip-logic']").hide()
     _renderRow: ->

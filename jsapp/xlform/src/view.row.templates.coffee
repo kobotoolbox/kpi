@@ -103,7 +103,7 @@ module.exports = do ->
         <div class="card__header">
           <div class="card__header--shade"><span></span></div>
           <div class="card__indicator">
-            <div class="noop card__indicator__icon"><i class="fa fa-fw card__header-icon"></i></div>
+            <div class="noop card__indicator__icon"><i class="fa fa-fw card__header-icon fa-table"></i></div>
           </div>
           <div class="card__text">
             <span class="card__header-title js-cancel-select-row js-cancel-sort"></span>

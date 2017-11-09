@@ -99,15 +99,13 @@ module.exports = do ->
       grouping: "r5"
       id: "geoshape"
     ,
-      label: _t("Matrix / Rating")
-      # faClass: "server"
-      # will look better but isn't available until FA 4.3
-      faClass: "th"
+      label: _t("Rating")
+      faClass: "server"
       grouping: "r5"
       id: "score"
     ,
       label: _t("Question Matrix")
-      faClass: "th"
+      faClass: "table"
       grouping: "r5"
       id: "kobomatrix"
     ,

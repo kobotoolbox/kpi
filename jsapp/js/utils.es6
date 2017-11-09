@@ -249,6 +249,7 @@ export function koboMatrixParser(params) {
   content.survey.forEach(function(s, i){
     if (s.type === 'kobomatrix') {
       s.type = 'begin_kobomatrix';
+      s.appearance = 'field-list';
       content.survey.splice(i + 1, 0, {type: "end_kobomatrix", "$kuid": `/${s.$kuid}`});
     }
   });
@@ -275,11 +276,14 @@ export function koboMatrixParser(params) {
   });
 
   if (hasMatrix) {
+    if(content.settings.length && content.settings[0].style != 'theme-grid') {
+      notify(t('Forms with a "Question Matrix" question only work correctly using the Grid theme. Please update your form\'s style accordingly (see Layout in the toolbar).'));
+    }
+
     if (params.content)
       params.content = JSON.stringify(content);
     if (params.source)
       params.source = JSON.stringify(content);
   }
-
   return params;
 }
