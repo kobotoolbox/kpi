@@ -114,11 +114,10 @@ class KoboMatrix extends React.Component {
       lowerCase: true,
       lrstrip: true,
       preventDuplicateUnderscores: true,
-      stripSpaces: true,
       characterLimit: 14,
       incrementorPadding: false,
       validXmlTag: false,
-      replaceNonWordCharacters: false
+      replaceNonWordCharacters: true
     });
   }
 
