@@ -32,6 +32,7 @@
 
 .formBuilder-header {
   height: 125px;
+  transition: margin 0.2s;
 }
 
 .formBuilder__contents {
@@ -45,6 +46,11 @@
 @media screen and (min-width: 1100px) {
   .lib-nav--visible + .formBuilder {
     .formBuilder__contents {
+      margin-right: 400px;
+      transition: margin 0.2s;
+    }
+
+    .form-style__panel--formstyle {
       margin-right: 400px;
       transition: margin 0.2s;
     }
