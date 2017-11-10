@@ -216,7 +216,7 @@ module.exports = do ->
       @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)
 
       # don't display columns that start with a $
-      for [key, val] in @model.attributesArray() when !key.match(/^\$/) and key not in ["label", "type", "select_from_list_name"]
+      for [key, val] in @model.attributesArray() when !key.match(/^\$/) and key not in ["label", "type", "select_from_list_name", 'kobo--matrix_list']
         new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
       @
 
@@ -247,7 +247,6 @@ module.exports = do ->
     _expandedRender: ->
       super()
       @$('.xlf-dv-required').hide()
-      @$('.xlf-dv-kobo--matrix_list').hide()
       @$("li[data-card-settings-tab-id='validation-criteria']").hide()
       @$("li[data-card-settings-tab-id='skip-logic']").hide()
     _renderRow: ->
