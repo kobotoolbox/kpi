@@ -497,19 +497,17 @@ export default assign({
                 <i className="k-icon-download" />
               </bem.FormBuilderHeader__button>
 
-              { hasSettings ?
-                <bem.FormBuilderHeader__item>
-                  <bem.FormBuilderHeader__button m={{
-                    formstyle: true,
-                    formstyleactive: this.state.formStylePanelDisplayed,
-                  }} onClick={this.openFormStylePanel} 
-                    data-tip={t('Web form layout')} >
-                    <i className="k-icon-grid" />
-                    <span>{t('Layout')}</span>
-                    <i className="fa fa-angle-down" />
-                  </bem.FormBuilderHeader__button>
-                </bem.FormBuilderHeader__item>
-              : null }
+              <bem.FormBuilderHeader__item>
+                <bem.FormBuilderHeader__button m={{
+                  formstyle: true,
+                  formstyleactive: this.state.formStylePanelDisplayed,
+                }} onClick={this.openFormStylePanel} 
+                  data-tip={t('Web form layout')} >
+                  <i className="k-icon-grid" />
+                  <span>{t('Layout')}</span>
+                  <i className="fa fa-angle-down" />
+                </bem.FormBuilderHeader__button>
+              </bem.FormBuilderHeader__item>
 
               <bem.FormBuilderHeader__button m={['attach']}
                   data-tip={t('Attach media files')}
@@ -554,7 +552,11 @@ export default assign({
                 {t('form style')}
               </FormStyle__panelheader>
               <FormStyle__paneltext>
-                {t('select the form style that you would like to use. this will only affect web forms.')}
+                { hasSettings ?
+                 t('select the form style that you would like to use. this will only affect web forms.')
+                : 
+                 t('select the form style. this will only affect the Enketo preview, and it will not be saved with the question or block.')
+              }
               </FormStyle__paneltext>
               <FormStyle__paneltext>
                 <a href={webformStylesSupportUrl}>

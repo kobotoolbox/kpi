@@ -335,7 +335,6 @@ module.exports = do ->
         @already_rendered = false
         @render(fixScroll: true)
       offOn 'click.deletescorecol', '.js-delete-scorecol', (evt)=>
-        log 'here'
         $et = $(evt.target)
         @model._scoreChoices.options.remove(get_choice($et.closest('th').data('cid')))
         @already_rendered = false
@@ -371,7 +370,6 @@ module.exports = do ->
       offOn 'keyup.namekey', '.scorelabel__edit', (evt)=>
         $ect = $(evt.currentTarget)
         $nameWrap = $ect.closest('.scorelabel').find('.scorelabel__name')
-        log $nameWrap
         $nameWrap.attr('data-automatic-name', $modelUtils.sluggify($ect.text(), validXmlTag: true))
 
       offOn 'input.choicechange', '.scorecell__label', (evt)=>
