@@ -315,12 +315,8 @@ tr .scorecell__radio:hover {
   }
 }
 
-// .rank__levels .rank_items__name {
-// &:before, &:after {
-//     content: "\"";
-// }
-// }
-.scorerank-beta-warning {
+.scorerank-beta-warning,
+.kobomatrix-warning {
   color: rgb(193, 128, 128);
   position: absolute;
   top: 0;
