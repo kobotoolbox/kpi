@@ -38,8 +38,9 @@
       font-size: 13px;
     }
 
-    .rt-tbody {
+    .rt-tbody, .rt-thead {
       overflow-x: hidden;
+      overflow-y: scroll;
       direction: rtl;
 
       > div {
