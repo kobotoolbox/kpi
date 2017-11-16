@@ -32,10 +32,12 @@
 
     &--heatmap {
       top: 118px;
+      z-index: 699;
     }
 
     &--expand {
       top: 12px;
+      z-index: 701;
     }
 
     &.active,

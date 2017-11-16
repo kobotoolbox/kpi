@@ -44,7 +44,6 @@ export class FormMap extends React.Component {
       markersVisible: true,
       markerMap: false,
       fields: [],
-      fieldsToQuery: ['_id', '_geolocation'],
       hasGeoPoint: hasGeoPoint,
       submissions: [],
       error: false,
@@ -98,32 +97,29 @@ export class FormMap extends React.Component {
 
     L.control.layers(baseLayers).addTo(map);
 
-    var fq = this.state.fieldsToQuery;
-    fields.forEach(function(f){
-      if (f.name) {
-        fq.push(f.name);
-      } else {
-        fq.push(f.$autoname);
-      }
-    });
-
     this.setState({
         map: map,
-        fields: fields,
-        fieldsToQuery: fq
+        fields: fields
       }
     );
 
-    if(this.props.asset.deployment__submission_count > 2000) {
-      notify(t('This map display is currently limited to 2000 records for performance reasons.'));
+    if(this.props.asset.deployment__submission_count > 5000) {
+      notify(t('This map display is currently limited to the first 5000 records for performance reasons.'));
     }
 
-    this.requestData(map);
+    this.requestData(map, this.props.viewby);
   }
 
-  requestData(map) {
-    // TODO: handle forms with over 2000 results
-    dataInterface.getSubmissions(this.props.asset.uid, 2000, 0, [], this.state.fieldsToQuery).done((data) => {
+  requestData(map, nextViewBy = '') {
+    var fq = ['_id', '_geolocation'];
+    if (nextViewBy) {
+      fq.push(nextViewBy);
+    }
+
+    const sort = [{id: '_id', desc: true}];
+
+    // TODO: handle forms with over 5000 results
+    dataInterface.getSubmissions(this.props.asset.uid, 5000, 0, sort, fq).done((data) => {
       this.setState({submissions: data});
       this.buildMarkers(map);
       this.buildHeatMap(map);
@@ -291,7 +287,7 @@ export class FormMap extends React.Component {
       var heatmap = this.state.heatmap;
       map.removeLayer(markers);
       map.removeLayer(heatmap);
-      this.requestData(map);
+      this.requestData(map, nextProps.viewby);
     }
   }
 
@@ -366,20 +362,23 @@ export class FormMap extends React.Component {
     }
 
     return (
-      <bem.FormView m='map'>
+      <bem.FormView m='map' className="right-tooltip">
         <bem.FormView__mapButton m={'expand'} 
           onClick={this.toggleExpandedMap}
+          data-tip={t('Toggle Fullscreen')}
           className={this.state.toggleExpandedMap ? 'active': ''}>
           <i className="k-icon-expand" />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton m={'markers'} 
           onClick={this.showMarkers}
+          data-tip={t('Show as points')}
           className={this.state.markersVisible ? 'active': ''}>
           <i className="k-icon-pins" />
         </bem.FormView__mapButton>
         {!viewby && 
           <bem.FormView__mapButton m={'heatmap'} 
             onClick={this.showHeatmap}
+            data-tip={t('Show as heatmap')}
             className={!this.state.markersVisible ? 'active': ''}>
             <i className="k-icon-heatmap" />
           </bem.FormView__mapButton>
