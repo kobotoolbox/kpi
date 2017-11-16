@@ -86,6 +86,11 @@
     box-shadow: 0 0 5px 5px rgba(0, 0, 0, 0.15);
     bottom: calc(100% + 10px);
 
+    .popover-menu__link.see-all {
+      background: #F9F9F9;
+      border-top: 1px solid $divider-color;
+    }
+
     .popover-menu__heading {
       padding-left: 10px;
       padding-right: 10px;
