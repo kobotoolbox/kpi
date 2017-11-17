@@ -16,6 +16,8 @@ import assetParserUtils from './assetParserUtils';
 var searchDataInterface = (function(){
   return {
     assets: function(data) {
+      // raise limit temporarily to 200
+      data.limit = 200;
       return $.ajax({
         url: `${dataInterface.rootUrl}/assets/`,
         dataType: 'json',
@@ -73,6 +75,7 @@ function SearchContext(opts={}) {
       this.state = {
         searchState: 'none',
       };
+
       this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
     },
     onDeleteAssetCompleted (asset) {

@@ -276,19 +276,22 @@ module.exports = do ->
           placeholder: _t('#tag'),
           tokenSeparators: ['+',',', ':'],
           formatSelectionTooBig: _t('Only one HXL tag allowed per question. ')
+          createSearchChoice: @_hxlTagCleanup
         })
       @$el.find('input.hxlAttrs').select2({
           tags:[],
           tokenSeparators: ['+',',', ':'],
           formatNoMatches: _t('Type attributes for this tag'),
           placeholder: _t('Attributes'),
+          createSearchChoice: @_hxlAttrCleanup
           allowClear: 1
         })
 
       @$el.find('input.hxlTag').on 'change', () => @_hxlUpdate()
       @$el.find('input.hxlAttrs').on 'change', () => @_hxlUpdate()
 
-      @$el.find('.hxlTag input.select2-input').on 'keyup', () => @_hxlTagSanitize()
+      @$el.find('input.hxlTag').on 'select2-selecting', (e) => @_hxlTagSelecting(e)
+      @$el.find('.hxlTag input.select2-input').on 'keyup', (e) => @_hxlTagSanitize(e)
 
       @listenForInputChange({el: @$el.find('input.hxlValue').eq(0)})
 
@@ -313,10 +316,26 @@ module.exports = do ->
       @model.set('value', hxlArray)
       @model.trigger('change')
 
-    _hxlTagSanitize: ()-> 
-      tag = @$el.find('.hxlTag input.select2-input').val()
-      if (tag && !tag.startsWith("#"))
-        @$el.find('.hxlTag input.select2-input').val("#" + tag)
+    _hxlTagCleanup: (term)->
+      if term.length >= 2
+        regex = /\W+/g
+        term = "#" + term.replace(regex, '').toLowerCase()
+        return {id: term, text: term}
+
+    _hxlTagSanitize: (e)->
+      if e.target.value.length >= 2
+        regex = /\W+/g
+        e.target.value = "#" + e.target.value.replace(regex, '')
+
+    _hxlTagSelecting: (e)->
+      if e.val.length < 2
+        e.preventDefault()
+
+    _hxlAttrCleanup: (term)->
+      regex = /\W+/g
+      term = term.replace(regex, '').toLowerCase()
+      return {id: term, text: term}
+
 
   viewRowDetail.DetailViewMixins.default =
     html: ->

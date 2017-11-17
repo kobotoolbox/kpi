@@ -91,6 +91,8 @@ from .utils.kobo_to_xlsform import to_xlsform_structure
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from .tasks import import_in_background
 from deployment_backends.backends import DEPLOYMENT_BACKENDS
+from deployment_backends.kobocat_backend import KobocatDataProxyViewSetMixin
+
 
 CLONE_ARG_NAME = 'clone_from'
 COLLECTION_CLONE_FIELDS = {'name'}
@@ -542,6 +544,14 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
             response_data = copy.copy(snapshot.details)
             return Response(response_data, template_name='preview_error.html')
 
+
+class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
+                        KobocatDataProxyViewSetMixin):
+    '''
+    TODO: Access the submission data directly instead of merely proxying to
+    KoBoCAT
+    '''
+    parent_model = Asset
 
 class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     model = AssetVersion

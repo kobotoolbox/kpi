@@ -8,6 +8,7 @@ from kpi.views import (
     AssetViewSet,
     AssetVersionViewSet,
     AssetSnapshotViewSet,
+    SubmissionViewSet,
     UserViewSet,
     CurrentUserViewSet,
     CollectionViewSet,
@@ -23,6 +24,7 @@ from kpi.views import (
 
 from kpi.views import home, one_time_login, browser_tests
 from kobo.apps.reports.views import ReportsViewSet
+from kobo.apps.superuser_stats.views import user_report, retrieve_user_report
 from kpi.views import authorized_application_authenticate_user
 from kpi.forms import RegistrationForm
 from hub.views import switch_builder
@@ -32,6 +34,11 @@ asset_routes = router.register(r'assets', AssetViewSet)
 asset_routes.register(r'versions',
                       AssetVersionViewSet,
                       base_name='asset-version',
+                      parents_query_lookups=['asset'],
+                      )
+asset_routes.register(r'submissions',
+                      SubmissionViewSet,
+                      base_name='submission',
                       parents_query_lookups=['asset'],
                       )
 
@@ -84,4 +91,9 @@ urlpatterns = [
     url(r'^jsi18n/$', javascript_catalog, js_info_dict, name='javascript-catalog'),
     # url(r'^.*', home),
     url(r'^token/$', TokenView.as_view(), name='token'),
+    # Statistics for superusers
+    url(r'^superuser_stats/user_report/$',
+        'kobo.apps.superuser_stats.views.user_report'),
+    url(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
+        'kobo.apps.superuser_stats.views.retrieve_user_report'),
 ]

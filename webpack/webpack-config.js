@@ -76,7 +76,7 @@ module.exports = function (options) {
     {
       test: /\.(js|jsx|es6)$/,
       exclude: /(node_modules|bower_components)/,
-      loader: 'react-hot-loader!babel-loader'
+      loader: 'react-hot-loader/webpack!babel-loader'
     },
     { // for third-party minified scripts, don't process require()
       test: /\.min\.js$/,
@@ -169,6 +169,7 @@ module.exports = function (options) {
   var config = {
     entry: Object.keys(entry).reduce(function (result, key) {
       result[key] = options.hot ? [
+        'react-hot-loader/patch',
         'webpack-dev-server/client?http://localhost:3000/',
         'webpack/hot/only-dev-server',
         entry[key]

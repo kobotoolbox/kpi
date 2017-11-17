@@ -6,7 +6,7 @@ from registration.backends.default.views import RegistrationView
 from registration.forms import RegistrationForm
 from rest_framework.decorators import api_view
 
-from kpi.tasks import sync_kobocat_xforms
+from kpi.tasks import sync_kobocat_xforms, import_survey_drafts_from_dkobo
 from .models import FormBuilderPreference, ExtraUserDetail
 
 # The `api_view` decorator allows authentication via DRF
@@ -24,15 +24,23 @@ def switch_builder(request):
             else FormBuilderPreference.DKOBO
         pref.save()
     if 'migrate' in request.GET:
+        if 'async' in request.GET:
+            # Optionally run these tasks in the background to avoid bogging
+            # down the app server (See
+            # https://github.com/kobotoolbox/kpi/issues/1437)
+            import_dkobo_func = import_survey_drafts_from_dkobo.delay
+            sync_kobocat_func = sync_kobocat_xforms.delay
+        else:
+            import_dkobo_func = import_survey_drafts_from_dkobo
+            sync_kobocat_func = sync_kobocat_xforms
         # TODO: don't start these tasks for if they're already running for this
         # particular user
-        call_command(
-            'import_survey_drafts_from_dkobo',
+        import_dkobo_func(
             username=request.user.username,
             quiet=True # squelches `print` statements
         )
         # Create/update KPI assets to match the user's KC forms
-        sync_kobocat_xforms(username=request.user.username)
+        sync_kobocat_func(username=request.user.username)
 
     return HttpResponseRedirect('/')
 

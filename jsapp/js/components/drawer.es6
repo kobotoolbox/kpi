@@ -42,9 +42,6 @@ class FormSidebar extends Reflux.Component {
     ];
     autoBind(this);
   }
-  componentDidMount () {
-    this.searchDefault();
-  }
   componentWillMount() {
     this.setStates();
   }

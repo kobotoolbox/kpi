@@ -87,6 +87,8 @@ INSTALLED_APPS = (
     'oauth2_provider',
     'markitup',
     'django_digest',
+    'kobo.apps.superuser_stats',
+    'kobo.apps.service_health',
     'guardian', # For access to KC permissions ONLY
 )
 

@@ -222,10 +222,14 @@ export function stringToColor(str, prc) {
 
 export function validFileTypes() {
   const VALID_ASSET_UPLOAD_FILE_TYPES = [
+    '.xls',
+    '.xlsx',
     'application/xls',
     'application/vnd.ms-excel',
+    'application/octet-stream',
     'application/vnd.openxmlformats',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    '' // Keep this to fix issue with IE Edge sending an empty MIME type
   ];
   return VALID_ASSET_UPLOAD_FILE_TYPES.join(',');
 }
