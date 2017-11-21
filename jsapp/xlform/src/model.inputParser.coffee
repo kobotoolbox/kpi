@@ -29,7 +29,7 @@ module.exports = do ->
 
   flatten_translated_fields = (item, translations)->
     for key, val of item
-      if _.isArray(val)
+      if _.isArray(val) and key != 'tags'
         delete item[key]
         _.map(translations, (_t, i)->
           _translated_val = val[i]
