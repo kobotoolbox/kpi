@@ -7,6 +7,11 @@
 .mdl-layout {
   max-width: 1440px;
   margin: 0 auto;
+  overflow: hidden;
+
+  &.page-wrapper--header-hidden.page-wrapper--drawer-hidden {
+    max-width: 100%;
+  }
 }
 
 .mdl-layout__content {
@@ -208,8 +213,10 @@
   top: 100%;
 }
 
-.popover-menu--above .popover-menu__content {
+.popover-menu--above .popover-menu__content,
+.popover-menu--viewby-menu .popover-menu__content {
   bottom: 100%;
+  top: auto;
 }
 
 .popover-menu__link,
@@ -222,6 +229,8 @@
   color: $cool-gray;
   cursor: pointer;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   > i:first-child {
     margin-right: 4px;
@@ -605,6 +614,10 @@ span.svg-icon {
 
 ::-webkit-scrollbar {
   width: 0.8em;
+}
+
+::-webkit-scrollbar:horizontal {
+  height: 0.8em;
 }
 
 ::-webkit-scrollbar-track {

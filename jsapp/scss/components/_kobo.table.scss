@@ -1,0 +1,132 @@
+.form-view--table {
+  padding: 0px 40px;
+
+  .form-view__group--table-header {
+    padding: 20px 0px;
+    display: flex;
+    justify-content: 'space-between';
+    transition: 0.3s all;
+    opacity: 1;
+
+    &.form-view__group--table-loading {
+      opacity: 0.25;
+    }
+
+    .form-view__item--table-meta {
+      flex-grow: 1;
+      line-height: 40px;
+    }
+
+    .form-view__item--table-buttons {
+      flex-grow: 1;
+      text-align: right;
+
+      button {
+        overflow: visible;
+      }
+    }
+  }
+
+  .ReactTable {
+    border: none;
+    background: transparent;
+    height: calc(100% - 80px);
+
+    .rt-table {
+      border: 1px solid $divider-color;
+      background-color: #FFF;
+      font-size: 13px;
+    }
+
+    .rt-tbody, .rt-thead {
+      overflow-x: hidden;
+      overflow-y: scroll;
+      direction: rtl;
+
+      > div {
+        direction: ltr;
+      }
+    }
+
+    .rt-thead .rt-th:hover,
+    .rt-thead .rt-td:hover {
+      background: rgba($cool-green, 0.05);
+    }
+
+    .rt-thead .rt-th.-sort-desc,
+    .rt-thead .rt-td.-sort-desc {
+      box-shadow: inset 0 -3px 0 0 rgba($cool-green, 0.8);
+    }
+
+    .rt-thead .rt-th.-sort-asc,
+    .rt-thead .rt-td.-sort-asc {
+      box-shadow: inset 0 3px 0 0 rgba($cool-green, 0.8);
+    }
+
+    .rt-th, .rt-td {
+      padding: 8px;
+    }
+
+    .rt-link {
+      color: $cool-blue;
+      cursor: pointer;
+    }
+
+    .-pagination {
+      box-shadow: none;
+      border-top: none;
+
+      .-center {
+        flex: 2;
+      }
+
+      .-btn {
+        @extend .mdl-button, .mdl-button--colored;
+
+        &:hover {
+          background: transparent;
+        }
+      }
+    }
+
+    .pagination-bottom {
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .-loading {
+      background: #F8F8F8;
+
+      .-loading-inner {
+        display: block;
+        text-align: center;
+        font-size: 18px;
+        opacity: 0.8;
+        color: $cool-gray;
+
+        i {
+          margin-right: 12px;
+          vertical-align: middle;
+          font-size: 24px;
+        }
+      }
+    }
+  }
+}
+
+.page-wrapper--header-hidden.page-wrapper--drawer-hidden {
+  .form-view--table {
+    padding: 0px 20px;
+    overflow: hidden;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .form-view--table {
+    padding: 0px 20px;
+  }
+
+  .form-view--table .ReactTable .pagination-bottom {
+    margin-bottom: 10px;
+  }
+}
