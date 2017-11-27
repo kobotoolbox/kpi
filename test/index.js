@@ -1,6 +1,6 @@
 window.jQuery = window.$ = require('jquery');
 require('jquery.scrollto');
-require('jquery-ui/sortable');
+require('jquery-ui/ui/widgets/sortable');
 
 require('./xlform/aliases.tests')
 require('./xlform/choices.tests')
