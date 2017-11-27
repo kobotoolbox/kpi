@@ -2,7 +2,7 @@ import $ from 'jquery';
 window.jQuery = $;
 window.$ = $;
 require('jquery.scrollto');
-require('jquery-ui/sortable');
+require('jquery-ui/ui/widgets/sortable');
 
 import React from 'react';
 import ReactDOM from 'react-dom';
