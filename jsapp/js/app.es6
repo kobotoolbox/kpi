@@ -2,7 +2,7 @@ import $ from 'jquery';
 window.jQuery = $;
 window.$ = $;
 require('jquery.scrollto');
-require('jquery-ui/sortable');
+require('jquery-ui/ui/widgets/sortable');
 
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -285,6 +285,7 @@ export var routes = (
           <Route path="downloads" component={FormSubScreens} />
           <Route path="gallery" component={FormSubScreens} />
           <Route path="map" component={FormSubScreens} />
+          <Route path="map/:viewby" component={FormSubScreens} />
           <IndexRedirect to="report" />
         </Route>
 

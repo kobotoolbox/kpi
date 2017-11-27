@@ -14,11 +14,14 @@ import ui from '../ui';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import SharingForm from '../components/sharingForm';
+import DataTable from '../components/table';
 
 import {
   ProjectSettingsEditor,
   ProjectDownloads
 } from '../components/formEditors';
+
+import FormMap from '../components/map';
 
 import {
   assign,
@@ -59,13 +62,19 @@ export class FormSubScreens extends React.Component {
           iframeUrl = report__base+'/digest.html';
           break;
         case `/forms/${this.state.uid}/data/table`:
+          return <DataTable asset={this.state} />;
+          break;
+        case `/forms/${this.state.uid}/data/table-legacy`:
           iframeUrl = report__base+'/export.html';
           break;
         case `/forms/${this.state.uid}/data/gallery`:
           iframeUrl = deployment__identifier+'/photos';
           break;
         case `/forms/${this.state.uid}/data/map`:
-          iframeUrl = deployment__identifier+'/map';
+          return <FormMap asset={this.state} />;
+          break;
+        case `/forms/${this.state.uid}/data/map/${this.props.params.viewby}`:
+          return <FormMap asset={this.state} viewby={this.props.params.viewby}/>;
           break;
         // case `/forms/${this.state.uid}/settings/kobocat`:
         //   iframeUrl = deployment__identifier+'/form_settings';

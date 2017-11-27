@@ -110,11 +110,15 @@
 
 .formBuilder--formStyleDisplayed {
   > .formBuilder-header {
-    height: 280px;
+    height: 260px;
   }
 
   .formBuilder__contents {
-    height: calc(100% - 300px);
+    height: calc(100% - 280px);
+  }
+
+  .formBuilder-header__button--formstyle {
+    color: $black;
   }
 }
 
@@ -334,6 +338,16 @@
   padding: 12px 12px 20px;
   margin: 12px 0;
   background-color: #eee;
+
+  .Select {
+    z-index: 4;
+    max-width: calc(100% - 40px);
+  }
+
+  i.k-icon-help {
+    font-size: 24px;
+    margin-left: 8px;
+  }
 }
 
 .form-style__panelheader {

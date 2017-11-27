@@ -40,7 +40,7 @@ var ErrorMessage = bem.create('error-message'),
     ErrorMessage__strong = bem.create('error-message__header', '<strong>'),
     ErrorMessage__link = bem.create('error-message__link', '<a>');
 
-var webformStylesSupportUrl = "http://support.kobotoolbox.org/customer/en/portal/articles/2108533";
+var webformStylesSupportUrl = "http://help.kobotoolbox.org/creating-forms/formbuilder/using-alternative-enketo-web-form-styles";
 
 class FormSettingsEditor extends React.Component {
   constructor(props) {
@@ -550,19 +550,19 @@ export default assign({
             <FormStyle__panel m='formstyle'>
               <FormStyle__panelheader>
                 {t('form style')}
+                <a href={webformStylesSupportUrl} target="_blank" data-tip={t('Read more about form styles')}>
+                  <i className="k-icon-help"></i>
+                </a>
               </FormStyle__panelheader>
               <FormStyle__paneltext>
                 { hasSettings ?
                  t('select the form style that you would like to use. this will only affect web forms.')
                 : 
                  t('select the form style. this will only affect the Enketo preview, and it will not be saved with the question or block.')
-              }
+                }
+
               </FormStyle__paneltext>
-              <FormStyle__paneltext>
-                <a href={webformStylesSupportUrl}>
-                  {t('read more...')}
-                </a>
-              </FormStyle__paneltext>
+
               <Select
                 name="webform-style"
                 ref="webformStyle"

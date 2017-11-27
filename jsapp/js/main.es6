@@ -5,6 +5,7 @@ import cookie from 'react-cookie';
 import React from 'react';
 import {render} from 'react-dom';
 
+
 require('../scss/main.scss');
 
 var el = (function(){

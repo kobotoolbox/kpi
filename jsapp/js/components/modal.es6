@@ -17,12 +17,12 @@ import {
 
 import {ProjectSettings} from '../components/formEditors';
 import SharingForm from '../components/sharingForm';
+import Submission from '../components/submission';
 
 class Modal extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      type: false,
       enketopreviewlink: false,
       error: false,
       modalClass: false
@@ -64,6 +64,14 @@ class Modal extends React.Component {
           modalClass: 'modal-large'
         });
         break;
+      case 'submission':
+        this.setState({
+          title: t('Record #') + this.props.params.sid,
+          modalClass: 'modal-large modal-submission',
+          sid: this.props.params.sid
+        });
+      break;
+
 		}  	
   }
   createNewForm (settingsComponent) {
@@ -95,6 +103,12 @@ class Modal extends React.Component {
     }
   }
 
+  componentWillReceiveProps(nextProps) {
+    this.setState({
+      title: t('Record #') + nextProps.params.sid,
+      sid: nextProps.params.sid
+    });
+  }
   render() {
   	return (
 	      <ui.Modal open onClose={()=>{stores.pageState.hideModal()}} title={this.state.title} className={this.state.modalClass}>
@@ -135,9 +149,11 @@ class Modal extends React.Component {
                     <bem.Loading__msg>{this.state.message}</bem.Loading__msg>
                   </bem.Loading__inner>
                 </bem.Loading>
-
-
               </div>
+            }
+
+            { this.props.params.type == 'submission' && this.state.sid && 
+              <Submission sid={this.state.sid} asset={this.props.params.asset} ids={this.props.params.ids} />
             }
 
 	        </ui.Modal.Body>

@@ -11,5 +11,6 @@ urlpatterns = [
     # https://github.com/stochastic-technologies/django-loginas
     url(r'^admin/', include('loginas.urls')),
     url(r'^', include('kpi.urls')),
+    url(r'^service_health/$', 'kobo.apps.service_health.views.service_health'),
     url(r'kobocat/', RedirectView.as_view(url=settings.KOBOCAT_URL, permanent=True)),
 ]

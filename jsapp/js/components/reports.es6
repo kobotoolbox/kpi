@@ -218,10 +218,12 @@ class Reports extends React.Component {
     this.state = {
       graphWidth: "700",
       graphHeight: "250",
+      translations: false,
       translationIndex: 0,
       groupBy: [],
       activeModalTab: 0,
-      error: false
+      error: false,
+      showExpandedReport: false
     };
     autoBind(this);
   }
@@ -298,18 +300,6 @@ class Reports extends React.Component {
       }
     });
   }
-  getInitialState () {
-    return {
-      graphWidth: "700",
-      graphHeight: "250",
-      translations: false,
-      translationIndex: 0,
-      groupBy: [],
-      activeModalTab: 0,
-      error: false,
-      reportLimit: 50
-    };
-  }
   groupDataBy(evt) {
     var gb = evt.target.getAttribute('data-name') ? [evt.target.getAttribute('data-name')] : [];
     this.setState({
@@ -375,7 +365,7 @@ class Reports extends React.Component {
 
     return (
       <bem.FormView__reportButtons>
-        <button className="mdl-button" onClick={this.toggleReportGraphSettings}>
+        <button className="mdl-button graph-settings" onClick={this.toggleReportGraphSettings}>
           {t('Graph Settings')}
         </button>
 

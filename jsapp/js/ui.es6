@@ -206,7 +206,14 @@ class PopoverMenu extends React.Component {
       popoverHiding: false,
       placement: 'below'
     });
+    this._mounted = false;
     autoBind(this);
+  }
+  componentDidMount() {
+    this._mounted = true;
+  }
+  componentWillUnmount() {
+    this._mounted = false;
   }
   toggle(evt) {
     var isBlur = evt.type === 'blur',
@@ -220,24 +227,24 @@ class PopoverMenu extends React.Component {
         });
         // if we setState and immediately hide popover then links will not register as clicked
         window.setTimeout(()=>{
-          if (!ReactDOM.findDOMNode(this))
+          if (!this._mounted)
             return false;
 
           this.setState({
             popoverVisible: false,
             popoverHiding: false
           });
-        }, 500);
+        }, 200);
     } else {
       this.setState({
         popoverVisible: true,
       });
     }
-    // 
+
     if (this.props.type == 'assetrow-menu' && !this.state.popoverVisible) {
       var $assetRowOffset = $(evt.target).parents('.asset-row').offset().top;
       var $assetListHeight = $(evt.target).parents('.page-wrapper__content').height();
-      if ($assetListHeight - $assetRowOffset < 250) {
+      if ($assetListHeight - $assetRowOffset < 150) {
         this.setState({
           placement: 'above',
         });        

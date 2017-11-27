@@ -1,6 +1,6 @@
 @media screen and (min-width: 961px) {
   .report-view {
-    padding: 0px 60px;
+    padding: 0px 40px;
   }
 }
 
@@ -147,6 +147,31 @@
   }
 }
 
+@media screen and (max-width: 999px) {
+  .form-view__reportButtons {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .form-view__reportButtons {
+    button.mdl-button {
+      font-size: 13px;
+    }
+
+    button.report-button__print {
+      display: none;
+    }
+
+    button.report-button__expand {
+      margin-left: 0px;
+      padding-left: 4px;
+      padding-right: 4px;
+    }
+  }
+}
+
 // report graph settings
 
 .graph-settings__charttype, .graph-settings__colors {
@@ -251,5 +276,17 @@
     > div {
       flex-grow: 1;
     }
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .form-view__reportButtons button.graph-settings {
+    margin-left: 8px;
+  }
+
+  .form-view__reportButtons button.report-button__expand,
+  .form-view__reportButtons button.report-button__print {
+    margin-left: 0px;
+    padding: 0px 4px;
   }
 }
