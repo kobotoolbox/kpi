@@ -13,12 +13,15 @@ class KoboMatrixRow {
     const _o = model;
     obj2.label = _o.getValue('label');
     var choices = {};
+
     Object.keys(_o.items).forEach(function(key) {
-      _o.items[key].options.map(( item ) => {
-        const { $kuid } = item.attributes;
-        item.attributes.list_name = key;
-        choices[$kuid] = item.attributes;
-      });
+      if (_o.items[key] && _o.items[key].options) {
+        _o.items[key].options.map(( item ) => {
+          const { $kuid } = item.attributes;
+          item.attributes.list_name = key;
+          choices[$kuid] = item.attributes;
+        });
+      }
     });
 
     obj2.cols = _o._kobomatrix_cols().map(( item ) => {
