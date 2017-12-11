@@ -104,8 +104,9 @@ class App extends React.Component {
           }
           <bem.PageWrapper m={{
               'fixed-drawer': this.state.pageState.showFixedDrawer,
-              'header-hidden': (this.isFormBuilder() || this.state.pageState.headerHidden),
-              'drawer-hidden': (this.isFormBuilder() || this.state.pageState.drawerHidden),
+              'header-hidden': this.state.pageState.headerHidden,
+              'drawer-hidden': this.state.pageState.drawerHidden,
+              'in-formbuilder': this.isFormBuilder()
                 }} className="mdl-layout mdl-layout--fixed-header">
               { this.state.pageState.modal &&
                 <Modal params={this.state.pageState.modal} />
@@ -307,6 +308,13 @@ export var routes = (
     <Route path="*" component={SectionNotFound} />
   </Route>
 );
+
+/* Send a pageview to Google Analytics for every change in routes */
+hashHistory.listen(function(loc) {
+  if (typeof ga == 'function') {
+    ga('send', 'pageview', window.location.hash);
+  }
+});
 
 class RunRoutes extends React.Component {
   componentDidMount(){

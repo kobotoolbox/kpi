@@ -8,10 +8,6 @@
   max-width: 1440px;
   margin: 0 auto;
   overflow: hidden;
-
-  &.page-wrapper--header-hidden.page-wrapper--drawer-hidden {
-    max-width: 100%;
-  }
 }
 
 .mdl-layout__content {
@@ -40,6 +36,16 @@
       margin-right: 0px;
       height: calc(100% - 76px);
     }
+  }
+}
+
+// full screen overrides (for expanded reports, table, maps, etc.)
+.mdl-layout.page-wrapper--header-hidden.page-wrapper--drawer-hidden {
+  max-width: 100%;
+
+  .mdl-layout__content.page-wrapper__content--form-landing {
+    box-shadow: none;
+    height: calc(100% - 40px);
   }
 }
 
@@ -79,7 +85,7 @@
 }
 
 // Focus mode for form builder, disable drawer, header
-.mdl-layout.page-wrapper--header-hidden.mdl-layout.page-wrapper--drawer-hidden {
+.mdl-layout.page-wrapper--in-formbuilder {
   .mdl-layout__content {
     margin: 0px;
     width: 100%;
