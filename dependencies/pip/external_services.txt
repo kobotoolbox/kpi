@@ -5,7 +5,7 @@
 #    pip-compile --output-file dependencies/pip/external_services.txt dependencies/pip/external_services.in
 #
 -e git+https://github.com/dimagi/django-digest@0eb1c921329dd187c343b61acfbec4e98450136e#egg=django_digest
--e git+https://github.com/kobotoolbox/formpack.git@e7428a0af798c006b38fe54ac804840c96b1ecd0#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@312686e34d2967a55a318cf319f8e859f8e0c9b4#egg=formpack
 -e git+https://github.com/kobotoolbox/pyxform.git@2.017.36#egg=pyxform
 amqp==1.4.9
 anyjson==0.3.3
@@ -57,7 +57,7 @@ ndg-httpsclient==0.4.2
 newrelic==2.84.0.64
 oauthlib==1.0.3
 path.py==8.1.2
-psycopg2==2.6.1
+psycopg2==2.7.3.2
 py==1.4.31                # via pytest
 pyasn1==0.1.9
 pycparser==2.14           # via cffi
