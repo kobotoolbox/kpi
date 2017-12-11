@@ -11,12 +11,12 @@ import cascadeMixin from './cascadeMixin';
 import AssetNavigator from './assetNavigator';
 import {Link, hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
-
 import {
   surveyToValidJson,
   notify,
   assign,
-  t
+  t,
+  koboMatrixParser
 } from '../utils';
 
 import {
@@ -40,7 +40,7 @@ var ErrorMessage = bem.create('error-message'),
     ErrorMessage__strong = bem.create('error-message__header', '<strong>'),
     ErrorMessage__link = bem.create('error-message__link', '<a>');
 
-var webformStylesSupportUrl = "http://support.kobotoolbox.org/customer/en/portal/articles/2108533";
+var webformStylesSupportUrl = "http://help.kobotoolbox.org/creating-forms/formbuilder/using-alternative-enketo-web-form-styles";
 
 class FormSettingsEditor extends React.Component {
   constructor(props) {
@@ -283,6 +283,9 @@ export default assign({
     var params = {
       source: surveyToValidJson(this.app.survey),
     };
+
+    params = koboMatrixParser(params);
+
     if (this.state.asset && this.state.asset.url) {
       params.asset = this.state.asset.url;
     }
@@ -314,6 +317,9 @@ export default assign({
     if (this.state.name) {
       params.name = this.state.name;
     }
+
+    params = koboMatrixParser(params);
+
     if (this.state.editorState === 'new') {
       params.asset_type = 'block';
       actions.resources.createResource.triggerAsync(params)
@@ -323,6 +329,7 @@ export default assign({
     } else {
       // update existing
       var assetId = this.props.params.assetid;
+
       actions.resources.updateAsset.triggerAsync(assetId, params)
         .then(() => {
           this.unpreventClosingTab();
@@ -490,19 +497,17 @@ export default assign({
                 <i className="k-icon-download" />
               </bem.FormBuilderHeader__button>
 
-              { hasSettings ?
-                <bem.FormBuilderHeader__item>
-                  <bem.FormBuilderHeader__button m={{
-                    formstyle: true,
-                    formstyleactive: this.state.formStylePanelDisplayed,
-                  }} onClick={this.openFormStylePanel} 
-                    data-tip={t('Web form layout')} >
-                    <i className="k-icon-grid" />
-                    <span>{t('Layout')}</span>
-                    <i className="fa fa-angle-down" />
-                  </bem.FormBuilderHeader__button>
-                </bem.FormBuilderHeader__item>
-              : null }
+              <bem.FormBuilderHeader__item>
+                <bem.FormBuilderHeader__button m={{
+                  formstyle: true,
+                  formstyleactive: this.state.formStylePanelDisplayed,
+                }} onClick={this.openFormStylePanel} 
+                  data-tip={t('Web form layout')} >
+                  <i className="k-icon-grid" />
+                  <span>{t('Layout')}</span>
+                  <i className="fa fa-angle-down" />
+                </bem.FormBuilderHeader__button>
+              </bem.FormBuilderHeader__item>
 
               <bem.FormBuilderHeader__button m={['attach']}
                   data-tip={t('Attach media files')}
@@ -545,15 +550,19 @@ export default assign({
             <FormStyle__panel m='formstyle'>
               <FormStyle__panelheader>
                 {t('form style')}
+                <a href={webformStylesSupportUrl} target="_blank" data-tip={t('Read more about form styles')}>
+                  <i className="k-icon-help"></i>
+                </a>
               </FormStyle__panelheader>
               <FormStyle__paneltext>
-                {t('select the form style that you would like to use. this will only affect web forms.')}
+                { hasSettings ?
+                 t('select the form style that you would like to use. this will only affect web forms.')
+                : 
+                 t('select the form style. this will only affect the Enketo preview, and it will not be saved with the question or block.')
+                }
+
               </FormStyle__paneltext>
-              <FormStyle__paneltext>
-                <a href={webformStylesSupportUrl}>
-                  {t('read more...')}
-                </a>
-              </FormStyle__paneltext>
+
               <Select
                 name="webform-style"
                 ref="webformStyle"

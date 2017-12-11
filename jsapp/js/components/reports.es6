@@ -271,6 +271,8 @@ class Reports extends React.Component {
             if (row.data.responses || row.data.values || row.data.mean) {
               if (rowsByIdentifier[row.name] !== undefined) {
                 row.row.label = rowsByIdentifier[row.name].label;
+              } else if (row.name !== undefined) {
+                row.row.label = row.name;
               } else {
                 row.row.label = t('untitled');
               }

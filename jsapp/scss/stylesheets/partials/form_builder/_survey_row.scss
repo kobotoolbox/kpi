@@ -4,302 +4,343 @@
 // ==========================================================================
 
 .survey__row {
-    &.survey__row--selected {
-        > .survey__row__item {
-            > .card__header {
-                border: $cardInSortBorderStyle;
-            }
-            &.group {
-                border: $cardInSortBorderStyle; 
-            }
-        }
-    }
+  &.survey__row--selected {
+    > .survey__row__item {
+      > .card__header {
+        border: $cardInSortBorderStyle;
+      }
 
-    .btn--addrow {
-        display: none;
+      &.group {
+        border: $cardInSortBorderStyle;
+      }
     }
-    &:hover { 
-        > .survey__row__spacer > .btn--addrow {
-            display: block;
-        }
+  }
+
+  .btn--addrow {
+    display: none;
+  }
+
+  &:hover {
+    > .survey__row__spacer > .btn--addrow {
+      display: block;
     }
+  }
 }
 
 // duplicated inside .btn--addrow, where
 // specificity is too low.
 .survey-editor--singlequestion .survey__row:hover > .survey__row__spacer > .btn--addrow {
-    display: none;
+  display: none;
 }
- 
+
 // a quick fix for the issue regarding adding matrix
 .survey__row--score, .survey__row--rank {
-    .card__buttons__button--add {
-        display: none;
-    }
+  .card__buttons__button--add {
+    display: none;
+  }
 }
 
 .score_preview, .rank_preview {
-    background-color: #fff;
-    margin-left: -16px;
+  background-color: #fff;
+  margin-left: -16px;
 }
+
 /*table.score_preview__table*/
 .score_preview__table {
-    width: 100%;
-    border-collapse: separate;
-}
-.rankcell__delete, .scorecell__delete, .scorerow__delete {
-    border: 0 none;
-    background-color: transparent;
-    float: right;
-    color: rgba(181, 15, 15, 0.33);
-    &:hover {
-        color: rgba(181, 15, 15, 1);
-    }
-}
-.scorecell__col {
-    border: 1px solid #ccc;
-    border-width: 1px 0 0.5px 1px;
-    text-align: center;
-    padding: 0;
-    &:nth-child(2) {
-        border-top-left-radius: 6px;
-    }
-    &:nth-last-child(2) {
-        border-top-right-radius: 6px;
-        border-right-width: 1px;
-    }
-}
-.scorerow--add {
-    button {
-        &:hover {
-            background-color: #d3d3d3;
-        }
-        cursor: pointer;
-        background-color: #f3f3f3;
-        font-weight: bold;
-        display: block;
-        width: 100%;
-        padding: 2px 6px;
-        border: 1px solid #ddd;
-    }
-}
-.scorecell--add {
-    vertical-align: bottom;
-    span {
-        &:hover {
-            background-color: #d3d3d3;
-        }
-        cursor: pointer;
-        background-color: #f3f3f3;
-        font-weight: bold;
-        display: inline-block;
-        padding: 2px 6px;
-        border-top-right-radius: 4px;
-        border-bottom-right-radius: 4px;
-        border: 1px solid #ddd;
-        border-width: 1px 1px 1px 0;
-    }
+  width: 100%;
+  border-collapse: separate;
 }
 
+.rankcell__delete, .scorecell__delete, .scorerow__delete {
+  border: 0 none;
+  background-color: transparent;
+  float: right;
+  color: rgba(181, 15, 15, 0.33);
+
+  &:hover {
+    color: rgba(181, 15, 15, 1);
+  }
+}
+
+.scorecell__col {
+  border: 1px solid #ccc;
+  border-width: 1px 0 0.5px 1px;
+  text-align: center;
+  padding: 0;
+
+  &:nth-child(2) {
+    border-top-left-radius: 6px;
+  }
+
+  &:nth-last-child(2) {
+    border-top-right-radius: 6px;
+    border-right-width: 1px;
+  }
+}
+
+.scorerow--add {
+  button {
+    &:hover {
+      background-color: #d3d3d3;
+    }
+
+    cursor: pointer;
+    background-color: #f3f3f3;
+    font-weight: bold;
+    display: block;
+    width: 100%;
+    padding: 2px 6px;
+    border: 1px solid #ddd;
+  }
+}
+
+.scorecell--add {
+  vertical-align: bottom;
+
+  span {
+    &:hover {
+      background-color: #d3d3d3;
+    }
+
+    cursor: pointer;
+    background-color: #f3f3f3;
+    font-weight: bold;
+    display: inline-block;
+    padding: 2px 6px;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+    border: 1px solid #ddd;
+    border-width: 1px 1px 1px 0;
+  }
+}
 
 $scorebordercolor: #ccc;
+
 tr:first-child .scorelabel {
-    border-top-width: 1px;
-    border-top-style: solid;
-    border-top-color: $scorebordercolor;
+  border-top-width: 1px;
+  border-top-style: solid;
+  border-top-color: $scorebordercolor;
 }
+
 .scorelabel {
-    border-left-width: 1px;
-    border-left-style: solid;
-    border-left-color: $scorebordercolor;
-    border-right-width: 1px;
-    border-right-style: solid;
-    border-right-color: #ddd;
+  border-left-width: 1px;
+  border-left-style: solid;
+  border-left-color: $scorebordercolor;
+  border-right-width: 1px;
+  border-right-style: solid;
+  border-right-color: #ddd;
 }
+
 .scorelabel, .scorecell__radio {
-    border-bottom: 1px dotted #ddd;
-    padding: 4px 6px;
+  border-bottom: 1px dotted #ddd;
+  padding: 4px 6px;
 }
 
 .scorecell__radio:last-child {
-    border-right-width: 1px;
-    border-right-style: solid;
-    border-right-color: $scorebordercolor;
+  border-right-width: 1px;
+  border-right-style: solid;
+  border-right-color: $scorebordercolor;
 }
+
 tr:last-child {
-    .scorelabel, .scorecell__radio {
-        border-bottom-width: 1px;
-        border-bottom-style: solid;
-        border-bottom-color: $scorebordercolor;
-    }
+  .scorelabel, .scorecell__radio {
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: $scorebordercolor;
+  }
 }
+
 .score__options {
-    background-color: #fff;
-    padding: 12px 0;
+  background-color: #fff;
+  padding: 12px 0;
 }
+
 .score__contents {
-    padding-left: 85px;
+  padding-left: 85px;
 }
+
 .scorecell__radio {
-    text-align: center;
-    input {
-        opacity: 0.4;
-    }
+  text-align: center;
+
+  input {
+    opacity: 0.4;
+  }
 }
+
 tr:hover .scorecell__radio {
-    background-color: #fafafa;
+  background-color: #fafafa;
 }
+
 tr .scorecell__radio:hover {
-    background-color: #f8f8f8;
+  background-color: #f8f8f8;
 }
+
 .rank__rows {
-    width: 40%;
+  width: 40%;
 }
+
 .rank__levels {
-    width: 60%;
+  width: 60%;
 }
 
 .rank__levels, .rank__rows {
-    float: left;
-    background-color: rgba(255,255,255,0.5);
-    padding: 4px 20px 18px 2px;
-    margin: 0;
+  float: left;
+  background-color: rgba(255, 255, 255, 0.5);
+  padding: 4px 20px 18px 2px;
+  margin: 0;
 }
 
 .rank_items__constraint_wrap, .rank_items__item, .rank_items__level {
-    padding: 5px 8px;
-    margin: 0 0 4px 0;
-    line-height: 12px;
+  padding: 5px 8px;
+  margin: 0 0 4px 0;
+  line-height: 12px;
 }
+
 .rank_items__constraint_message, .rank_items__constraint_explanation {
-    margin: 0;
+  margin: 0;
 }
+
 .rank_items__constraint_explanation {
-    font-size: 10px;
-    color: #888;
-    text-decoration: underline;
+  font-size: 10px;
+  color: #888;
+  text-decoration: underline;
 }
+
 .rank_items__level__label, .rank_items__item__label {
-    div {
-        display: inline;
-    }
-    br {
-        display: none;
+  div {
+    display: inline;
+  }
+
+  br {
+    display: none;
+  }
+}
+
+.rank_items__item, .rank_items__level {
+  border: 1px solid;
+  border-color: rgb(194, 176, 176) rgb(194, 176, 176) rgb(194, 176, 176) rgb(194, 176, 176);
+  border-radius: 4px;
+}
+
+.rank_items__constraint_message {
+  font-size: 92%;
+  color: #444;
+  font-style: italic;
+
+  &:before {
+    content: '✓';
+  }
+
+  &.rank_items__constraint_message--prelim {
+    &:before {
+      content: '';
     }
 
+    color: #777;
+  }
+
+  div {
+    display: inline;
+  }
+
+  br {
+    display: none;
+  }
 }
-.rank_items__item, .rank_items__level {
-    border: 1px solid;
-    border-color: rgb(194, 176, 176) rgb(194, 176, 176) rgb(194, 176, 176) rgb(194, 176, 176);
-    border-radius: 4px;
-}
-.rank_items__constraint_message {
-    font-size: 92%;
-    color: #444;
-    font-style: italic;
-    &:before {
-        content: '✓';
-    }
-    &.rank_items__constraint_message--prelim {
-        &:before {
-            content: '';
-        }
-        color: #777;
-    }
-    div {
-        display: inline;
-    }
-    br {
-        display: none;
-    }
-}
+
 .rank_items__add {
-    list-style-type: none;
-    button {
-        display: block;
-        width: 35%;
-        line-height: 10px;
-    }
+  list-style-type: none;
+
+  button {
+    display: block;
+    width: 35%;
+    line-height: 10px;
+  }
 }
 
 .scorecell__name {
-    margin: 0 0 -1px 0;
-    background-color: #f1f1f1;
-    color: #868686;
-    line-height: 13px;
-    font-size: 9px;
+  margin: 0 0 -1px 0;
+  background-color: #f1f1f1;
+  color: #868686;
+  line-height: 13px;
+  font-size: 9px;
 }
 
 .scorecell__name, .scorelabel__name {
-    display: block;
-    border-bottom: 1px dotted #ddd;
-    br {
-        display: none;
-    }
+  display: block;
+  border-bottom: 1px dotted #ddd;
+
+  br {
+    display: none;
+  }
 }
+
 .scorelabel__name, .rank__rows .rank_items__name {
-    opacity: 0.8;
+  opacity: 0.8;
 
-    &:before, &:after {
-        line-height: 20px;
-        margin: 0 3px;
-    }
-
+  &:before, &:after {
+    line-height: 20px;
+    margin: 0 3px;
+  }
 }
+
 .scorelabel__name--automatic, .scorecell__name--automatic {
-    &:before {
-        content: 'AUTOMATIC';
-        font-size: 10px;
-    }
+  &:before {
+    content: 'AUTOMATIC';
+    font-size: 10px;
+  }
 }
 
 .rank_items__name {
-    display: block;
-    br {
-        display: none;
-    }
-    div {
-        display: inline;
-    }
+  display: block;
+
+  br {
+    display: none;
+  }
+
+  div {
+    display: inline;
+  }
 }
-.rank_items__name--automatic  {
-    &:focus {
-        &:before {
-            content: '';
-        }
-    }
+
+.rank_items__name--automatic {
+  &:focus {
     &:before {
-        content: 'AUTOMATIC';
+      content: '';
     }
+  }
+
+  &:before {
+    content: 'AUTOMATIC';
+  }
 }
-// .rank__levels .rank_items__name {
-    // &:before, &:after {
-    //     content: "\"";
-    // }
-// }
-.scorerank-beta-warning {
-    color: rgb(193, 128, 128);
-    position: absolute;
-    top: 0;
-    right: 30px;
-    text-align: right;
-    margin: 0;
-    padding: 2px;
-    font-size: 12px;
+
+.scorerank-beta-warning,
+.kobomatrix-warning {
+  color: rgb(193, 128, 128);
+  position: absolute;
+  top: 0;
+  right: 30px;
+  text-align: right;
+  margin: 0;
+  padding: 2px;
+  font-size: 12px;
 }
+
 .scorecell__name, .scorelabel__name, .rank_items__name {
-    font-size: 90%;
-    color: #bbb;
-    &.prelim {
-        font-style: italic;
-        color: #ddd;
-    }
+  font-size: 90%;
+  color: #bbb;
+
+  &.prelim {
+    font-style: italic;
+    color: #ddd;
+  }
 }
 
 .insort {
-    .btn--addrow {
-        opacity: 0;
-    }
+  .btn--addrow {
+    opacity: 0;
+  }
 }
 
 // ==========================================================================
@@ -319,84 +360,87 @@ $nested-btn--addrow-height: 24px;
 //   div.btn--addrow
 //     i.fa.fa-plus ''
 .btn--addrow {
+  background-color: transparent;
+  width: 52px;
+  height: $btn--addrow-height + 2 * $click-area-btn--addrow-padding-tb;
+  position: absolute;
+  left: -50px;
+  top: -20px;
+
+  .fa {
+    background-color: $addButtonColor;
+    display: block;
+    width: 24px;
+    height: $btn--addrow-height;
+    line-height: $btn--addrow-height;
+    border-radius: $buttonBorderRadius;
+  }
+
+  // when debugging, it's helpful to mock :hover
+  // &:hover, &.hover {
+  &:hover {
     background-color: transparent;
-    width: 52px;
-    height: $btn--addrow-height + (2 * $click-area-btn--addrow-padding-tb);
-    position: absolute;
-    left: -50px;
-    top: -20px;
 
     .fa {
-        background-color: $addButtonColor;
-        display: block;
-        width: 24px;
-        height: $btn--addrow-height;
-        line-height: $btn--addrow-height;
-        border-radius: $buttonBorderRadius;
+      background-color: $addButtonColorHover;
     }
-
-    // when debugging, it's helpful to mock :hover
-    // &:hover, &.hover {
-    &:hover {
-        background-color: transparent;
-        .fa {
-            background-color: $addButtonColorHover;
-        }
-    }
-
+  }
 }
 
 .no-touch .btn--addrow {
-    padding: $click-area-btn--addrow-padding-tb 0 0 11px;
-    // z-index: 1;
+  padding: $click-area-btn--addrow-padding-tb 0 0 11px;
+
+  // z-index: 1;
 }
 
 .touch .btn--addrow {
-    height: 36px;
-    margin-top:5px;
-    padding-left: 10px;
+  height: 36px;
+  margin-top: 5px;
+  padding-left: 10px;
 }
 
 // inside group, the btn--addrow must be placed slightly differently
 // note: this compiles to
 // .group__rows .btn--addrow {...}
 .group__rows .btn--addrow {
-    left: -30px;
-    width: 40px;
-    height: $nested-btn--addrow-height + (2 * $click-area-nested-btn--addrow-padding-tb);
-    top: -30px;
-    padding: $click-area-nested-btn--addrow-padding-tb 0 0 3px;
-    z-index:101; // 101 so it is above .btn--addrow when last item in group
-    .fa {
-        width: 22px;
-        height: 22px;
-        line-height: 22px;
-    }
+  left: -30px;
+  width: 40px;
+  height: $nested-btn--addrow-height + 2 * $click-area-nested-btn--addrow-padding-tb;
+  top: -30px;
+  padding: $click-area-nested-btn--addrow-padding-tb 0 0 3px;
+  z-index: 101;
+
+  // 101 so it is above .btn--addrow when last item in group
+  .fa {
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+  }
 }
 
 .group__rows .group__rows .btn--addrow {
-    left:-24px;
-    z-index: 102;
-    width: 30px;
+  left: -24px;
+  z-index: 102;
+  width: 30px;
 }
 
 // not specific enough for all :hover cases
 .survey-editor--singlequestion .btn--addrow {
-    display: none;
+  display: none;
 }
 
 // touch device hacky fix to first row spacing
 .touch .survey-editor__null-top-row--hidden {
-    display: none;
+  display: none;
 }
 
 // display last row's button, but not for groups
 .survey-editor__list > .survey__row:not(.survey__row--group):last-child .btn--addrow {
-    display:block;
+  display: block;
 }
 
 // helper class
 .btn--hidden {
-    // https://github.com/csswizardry/CSS-Guidelines#important
-    display: none !important;
+  // https://github.com/csswizardry/CSS-Guidelines#important
+  display: none !important;
 }

@@ -321,11 +321,12 @@ module.exports = do ->
       if '$kuid' not of @attributes
         @set '$kuid', $utils.txtid()
 
-      if @attributes.type is 'score'
-        new ScoreMixin(@)
-      else if @attributes.type is 'rank'
-        new RankMixin(@)
+      _type = @getValue('type')
 
+      if _type is 'score'
+        new ScoreMixin(@)
+      else if _type is 'rank'
+        new RankMixin(@)
       @convertAttributesToRowDetails()
 
       typeDetail = @get("type")

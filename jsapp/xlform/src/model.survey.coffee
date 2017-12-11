@@ -99,7 +99,8 @@ module.exports = do ->
         if row.rows
           # item is a group
           group = row
-          group.forEachRow(((r)=> @_ensure_row_list_is_copied(r)), includeGroups: true)
+          if group.forEachRow
+            group.forEachRow(((r)=> @_ensure_row_list_is_copied(r)), includeGroups: true)
           @rows.add(group, at: index_incr)
         else
           @_ensure_row_list_is_copied(row)

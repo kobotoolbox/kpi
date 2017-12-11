@@ -216,3 +216,57 @@ export function validFileTypes() {
   ];
   return VALID_ASSET_UPLOAD_FILE_TYPES.join(',');
 }
+
+export function koboMatrixParser(params) {
+  if (params.content)
+    var content = JSON.parse(params.content);
+  if (params.source)
+    var content = JSON.parse(params.source);
+
+  if (!content.survey)
+    return params;
+
+  var hasMatrix = false;
+  var surveyLength = content.survey.length;
+
+  // add open/close tags for kobomatrix groups
+  for (var i = 0; i < surveyLength; i++) {
+    if (content.survey[i].type === 'kobomatrix') {
+      content.survey[i].type = 'begin_kobomatrix';
+      content.survey[i].appearance = 'field-list';
+      surveyLength++;
+      content.survey.splice(i + 1, 0, {type: "end_kobomatrix", "$kuid": `/${content.survey[i].$kuid}`});
+    }
+  }
+
+  // add columns as items in the group
+  for (i = 0; i < surveyLength; i++) {
+    if (content.survey[i].type === 'begin_kobomatrix') {
+      var j = i;
+      hasMatrix = true;
+      var matrix = localStorage.getItem(`koboMatrix.${content.survey[i].$kuid}`);
+
+      if (matrix != null) {
+        matrix = JSON.parse(matrix);
+        for (var kuid of matrix.cols) {
+          i++;
+          surveyLength++;
+          content.survey.splice(i, 0, matrix[kuid]);
+        }
+
+        for (var k of Object.keys(matrix.choices)) {
+          content.choices.push(matrix.choices[k]);
+        }
+      }
+      // TODO: handle corrupt matrix data
+    }
+  }
+
+  if (hasMatrix) {
+    if (params.content)
+      params.content = JSON.stringify(content);
+    if (params.source)
+      params.source = JSON.stringify(content);
+  }
+  return params;
+}
