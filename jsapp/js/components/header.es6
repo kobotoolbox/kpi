@@ -4,7 +4,6 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import { hashHistory } from 'react-router';
 import Select from 'react-select';
-import moment from 'moment';
 import alertify from 'alertifyjs';
 import ui from '../ui';
 

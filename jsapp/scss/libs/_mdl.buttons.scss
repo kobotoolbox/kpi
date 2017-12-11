@@ -39,6 +39,13 @@
       color: darken($cool-blue, 20%);
     }
   }
+
+  &.mdl-button--colored.mdl-button--danger {
+    color: $cool-red;
+    &:hover {
+      color: darken($cool-red, 20%);
+    }
+  }
 }
 
 input.mdl-button[type="submit"] {

@@ -1,4 +1,3 @@
-
 // ==========================================================================
 // Card settings tabs
 // ==========================================================================
@@ -11,127 +10,135 @@
 // TODO: this element might not be necessary
 
 .card__settings {
-    @extend %card-expansion;
+  @extend %card-expansion;
 }
 
 .card--selectquestion__expansion {
-    padding: 23px 10px 23px 60px;
+  padding: 23px 10px 23px 60px;
 }
 
 //== ul.card__settings__tabs
 .card__settings__tabs {
-    float: left;
-    width: 20%;
+  float: left;
+  width: 20%;
 }
+
 .card__settings__tab--response-type {
-    @extend %incomplete;
+  @extend %incomplete;
 }
 
 // note: this rule is only used with '@extend'
 %card__settings__tabs__tab {
-    padding: 6px 10px;
-    font-size: 11px;
-    font-weight: normal;
-    cursor: pointer;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: normal;
+  cursor: pointer;
 }
 
 //== ul.card__settings__tabs li.card__settings__tabs__tab
 // proposed: .card__settings__tabs__tab
 .card__settings__tabs li {
-    @extend %card__settings__tabs__tab;
-    &.card__settings__tabs__tab--active {
-        background: #E5E8EB;
-        font-weight: 600;        
-    }
-}
+  @extend %card__settings__tabs__tab;
 
+  &.card__settings__tabs__tab--active {
+    background: #E5E8EB;
+    font-weight: 600;
+  }
+}
 
 //== ul.card__settings__tabs li.card__settings__tabs__heading
 // proposed: .card__settings__tabs__heading
 .card__settings__tabs .heading {
-    @extend %card__settings__tabs__tab;
+  @extend %card__settings__tabs__tab;
 
-    border-bottom: $thinBorderStyle;
-    font-size: 13px;
-    padding: 8px 10px;
-    font-weight: 600;
-    margin-bottom: 3px;
+  border-bottom: $thinBorderStyle;
+  font-size: 13px;
+  padding: 8px 10px;
+  font-weight: 600;
+  margin-bottom: 3px;
 
-    //== i.fa
-    .fa {
-        color: $indicatorColor;
-        margin-right: 5px;
-    }
+  //== i.fa
+  .fa {
+    color: $indicatorColor;
+    margin-right: 5px;
+  }
 }
 
 .card__settings__content {
-    padding: 20px 30px;
-    margin-left: 20%;
-    border-left: $thinBorderStyle;
-    min-height: 152px;
+  padding: 20px 30px;
+  margin-left: 20%;
+  border-left: $thinBorderStyle;
+  min-height: 152px;
 }
 
 .card__settings__fields {
-    display: none;
+  display: none;
+  transition: height .3s;
+
+  // Temporary
+  &.card__settings__fields--active, &.active {
+    display: block;
     transition: height .3s;
-    // Temporary
-    &.card__settings__fields--active, &.active {
-        display: block;
-        transition: height .3s;
-    }
+  }
 }
+
 .card__settings__fields__field {
-    padding-top: 4px;
-    padding-bottom: 4px;
-    > label {
-        text-align: right;
-        width: 32%;
-        margin-right: 2%;
-        display: inline-block;
-        font-weight: 600;
-        vertical-align: middle;
-        text-transform: capitalize;
-        font-size: 12px;
-        line-height: 1.2em;
+  padding-top: 4px;
+  padding-bottom: 4px;
 
-        &.align-top {
-            vertical-align: top;
-            margin-top: 5px;
-        }
-    }
-    // possibly temporary
-    &.xlf-dv-constraint_message {
-        border-top:1px solid #d9dde1;
-        padding-top:15px;
-    }
-    input[type="text"] {
-        width:85%;
-        padding:2px;
-        font-size: 13px;
-    }
+  > label {
+    text-align: right;
+    width: 32%;
+    margin-right: 2%;
+    display: inline-block;
+    font-weight: 600;
+    vertical-align: middle;
+    text-transform: capitalize;
+    font-size: 12px;
+    line-height: 1.2em;
 
-    .settings__input {
-        width: 65%;
-        display: inline-block;
-        input.text {
-            display: inline-block;
-        }
+    &.align-top {
+      vertical-align: top;
+      margin-top: 5px;
     }
+  }
+
+  // possibly temporary
+  &.xlf-dv-constraint_message {
+    border-top: 1px solid #d9dde1;
+    padding-top: 15px;
+  }
+
+  input[type="text"] {
+    width: 85%;
+    padding: 2px;
+    font-size: 13px;
+  }
+
+  .settings__input {
+    width: 65%;
+    display: inline-block;
+    vertical-align: middle;
+
+    input.text {
+      display: inline-block;
+    }
+  }
 }
-
 
 .card__settings-close {
-    background: #C5CACF;
-    position: absolute;
-    right: 6px;
-    top:6px;
-    color: white;
-    padding: 3px;
-    border-radius: 3px;
-    cursor: pointer;
-    &:hover {
-        background: $linkColor;
-    }
+  background: #C5CACF;
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  color: white;
+  padding: 3px;
+  border-radius: 3px;
+  cursor: pointer;
+
+  &:hover {
+    background: $linkColor;
+  }
 }
 
 // ==========================================================================
@@ -140,18 +147,19 @@
 
 .editable-buttons button,
 .card__settingswrap button {
-    height: 28px;
-    margin: 3px 0;
-    border: 1px solid;
-    border-radius: 4px;
-    padding: 0 10px;
-    -webkit-appearance: none;
-    text-transform: capitalize;
-    color: #333;
-    background-color: #f8f8f8;
-    &:hover {
-        background-color: #f0f0f0;
-    }
+  height: 28px;
+  margin: 3px 0;
+  border: 1px solid;
+  border-radius: 4px;
+  padding: 0 10px;
+  -webkit-appearance: none;
+  text-transform: capitalize;
+  color: #333;
+  background-color: #f8f8f8;
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
 }
 
 // ==========================================================================
@@ -161,17 +169,82 @@
 
 // .advanced-details displayed only inside .card--expandedsettings
 .card {
+  .card__settings {
+    display: none;
+  }
+
+  &.card--expanded-settings {
     .card__settings {
-        display: none;
+      display: block;
     }
 
-    &.card--expanded-settings {
-        .card__settings {
-            display: block;
+    .card__buttons__button--settings {
+      @extend %activated-card-button;
+    }
+  }
+}
+
+// ==========================================================================
+// HXL Tags
+// ==========================================================================
+
+.settings__hxl {
+    background: #F8F8F8;
+    display: table-row;
+    .hxlTag {
+      width: 120px;
+    }
+
+    .hxlAttrs {
+      min-width: 200px;  
+      width: calc(100% - 124px);
+    }
+
+    .select2-container-multi {
+        vertical-align: top;
+        display: table-cell;
+        border: 1px solid #CCC;
+        padding: 2px;
+
+        .select2-choices {
+            background-image: none !important;
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            .select2-search-choice {
+              border-radius: 5px;
+              font-weight: normal;
+              background: darken(#e3e7ec, 6%);
+              color: #333;
+              padding-left: 5px;
+              padding-right: 18px;
+              .select2-search-choice-close {
+                left: auto;
+                right: 3px;
+                color: #666;
+                font-family: 'k-icons';
+                &:before {
+                  content: '\E806';
+                }
+              }
+            }
+            .select2-search-field input {
+              padding-bottom: 2px;
+              padding-top: 2px;
+            }
+            .select2-search-field input.select2-input {
+              min-width: 100px;
+            }
         }
 
-        .card__buttons__button--settings {
-            @extend %activated-card-button;
-        }
+    }
+    .select2-container-multi.select2-container-disabled {
+      .select2-choices .select2-search-choice {
+        opacity: 0.5;
+      }
+    }
+    .hxlAttrs.select2-container-multi {
+        background: #FFF;
+        border-left: 0px;
     }
 }

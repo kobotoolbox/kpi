@@ -7,7 +7,7 @@
 
 .form-view__sidetabs {
   border-right: 1px solid $divider-color;
-  width: 180px;
+  width: 170px;
   height: 100%;
   overflow: hidden;
   float: left;
@@ -18,15 +18,20 @@
 .form-view {
   width: 100%;
   height: calc(100% - 48px);
-  overflow: auto;
+  overflow-y: auto;
   background: #F8F8F8;
 }
 
 .form-view__sidetabs + .form-view,
 .form-view__sidetabs + .report-view {
-  width: calc(100% - 180px);
+  width: calc(100% - 170px);
   height: calc(100% - 48px);
   overflow: auto;
+  overflow-x: hidden;
+}
+
+.form-view__sidetabs + .form-view--table {
+  overflow: hidden;
 }
 
 .form-view__toptabs {
@@ -74,6 +79,7 @@
     position: relative;
     color: lighten($cool-gray, 10%);
     font-weight: normal;
+    letter-spacing: -0.01em;
     display: block;
 
     &.active {
@@ -88,12 +94,29 @@
     i {
       font-size: 36px;
       vertical-align: middle;
-      margin-right: 6px;
+      margin-right: 4px;
     }
 
     span {
       vertical-align: middle;
     }
+  }
+}
+
+.page-wrapper--header-hidden.page-wrapper--drawer-hidden {
+  .form-view__sidetabs {
+    width: 0px;
+  }
+
+  .form-view__sidetabs + .form-view,
+  .form-view__sidetabs + .report-view {
+    width: calc(100% - 1px);
+    height: 100%;
+    background: #F8F8F8;
+  }
+
+  .form-view__toptabs {
+    display: none;
   }
 }
 
@@ -480,10 +503,12 @@
     padding-top: 0px;
 
     a.form-view__tab {
-      padding: 4px;
-      font-size: 11px;
+      padding: 3px;
+      padding-left: 1px;
+      font-size: 10px;
       text-align: center;
       display: block;
+      letter-spacing: -0.05em;
 
       span {
         display: none;
@@ -495,7 +520,7 @@
     height: 39px;
 
     a.form-view__tab {
-      font-size: 13px;
+      font-size: 12px;
       padding: 8px 14px;
     }
 

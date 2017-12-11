@@ -165,11 +165,12 @@ class ReportViewItem extends React.Component {
     }
 
     var datasets = [];
+
     if (data.values != undefined) {
       data.responses = data.values[0][1].responses;
       data.graphLabels = [];
       data.responses.forEach(function(r, i){
-        data.graphLabels[i] = r.length > 20 ? r.substring(0,17) + '...' : r;
+        data.graphLabels[i] = r.length > 25 ? r.substring(0,22) + '...' : r;
       });
       var allPercentages = [];
       data.values.forEach(function(val, i){
@@ -187,10 +188,12 @@ class ReportViewItem extends React.Component {
     } else {
       maxPercentage = Math.max.apply(Math, data.percentages);
       datasets.push({data: data.percentages});
+      data.responses.forEach(function(r, i){
+        data.responses[i] = r.length > 25 ? r.substring(0,22) + '...' : r;
+      });
     }
 
     maxPercentage = maxPercentage < 85 ? ((parseInt(maxPercentage/10, 10)+1)*10) : 100;
-
     var opts = {
       type: chartType,
       data: {
@@ -198,6 +201,7 @@ class ReportViewItem extends React.Component {
           datasets: datasets
       },
       options: {
+        responsive: true,
         events: [''],
         legend: {
           display: showLegend
