@@ -89,24 +89,24 @@ export class FormLanding extends React.Component {
         </bem.FormView__cell>
       );
   }
-  renderFormLanguages () {
-    return (
-      <bem.FormView__cell m={['padding', 'bordertop', 'languages']}>
-        {t('Languages')}
-        {this.state.summary.languages.map((l, i)=>{
-          return (
-              <bem.FormView__cell key={`lang-${i}`} m='langButton' 
-                className={this.state.questionLanguageIndex == i ? 'active' : ''}
-                onClick={this.updateQuestionListLanguage}
-                data-index={i}>
-                {l}
-              </bem.FormView__cell>
-            );
-        })}
+  // renderFormLanguages () {
+  //   return (
+  //     <bem.FormView__cell m={['padding', 'bordertop', 'languages']}>
+  //       {t('Languages')}
+  //       {this.state.summary.languages.map((l, i)=>{
+  //         return (
+  //             <bem.FormView__cell key={`lang-${i}`} m='langButton' 
+  //               className={this.state.questionLanguageIndex == i ? 'active' : ''}
+  //               onClick={this.updateQuestionListLanguage}
+  //               data-index={i}>
+  //               {l}
+  //             </bem.FormView__cell>
+  //           );
+  //       })}
 
-      </bem.FormView__cell>
-    );
-  }
+  //     </bem.FormView__cell>
+  //   );
+  // }
   updateQuestionListLanguage (evt) {
     let i = evt.currentTarget.dataset.index;
     this.setState({
@@ -418,8 +418,8 @@ export class FormLanding extends React.Component {
                 </bem.FormView__cell>
               }
               {this.renderFormInfo()}
-              {this.state.summary && this.state.summary.languages && this.state.summary.languages[0] != null && 
-                this.renderFormLanguages()
+              {/*this.state.summary && this.state.summary.languages && this.state.summary.languages[0] != null && 
+                this.renderFormLanguages() */
               }
             </bem.FormView__cell>
           </bem.FormView__row>

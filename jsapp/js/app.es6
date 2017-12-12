@@ -44,6 +44,7 @@ import {
 
 import Reports from './components/reports';
 import FormLanding from './components/formLanding';
+import FormSummary from './components/formSummary';
 import FormSubScreens from './components/formSubScreens';
 import FormViewTabs from './components/formViewTabs';
 import Modal from './components/modal';
@@ -274,6 +275,10 @@ export var routes = (
         <Route path="json" component={FormJson} />
         <Route path="xform" component={FormXform} />
         <Route path="edit" component={FormPage} />
+
+        <Route path="summary">
+          <IndexRoute component={FormSummary} />
+        </Route>
 
         <Route path="landing">
           <IndexRoute component={FormLanding} />

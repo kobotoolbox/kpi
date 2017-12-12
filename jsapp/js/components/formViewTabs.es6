@@ -61,6 +61,14 @@ class FormViewTabs extends Reflux.Component {
   renderTopTabs () {
     return (
       <bem.FormView__toptabs>
+        { this.state.asset && this.state.asset.deployment__identifier != undefined && this.state.asset.has_deployment && this.state.asset.deployment__submission_count > 0 && 
+          <Link 
+            to={`/forms/${this.state.assetid}/summary`}
+            className='form-view__tab'
+            activeClassName='active'>
+            {t('Summary')}
+          </Link>
+        }
         <Link 
           to={`/forms/${this.state.assetid}/landing`}
           className='form-view__tab'

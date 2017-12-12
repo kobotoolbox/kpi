@@ -1,0 +1,174 @@
+.form-view__group--description-cols {
+  padding: 20px;
+  display: flex;
+
+  > .form-view__cell {
+    width: 50%;
+
+    .form-view__label {
+      font-size: 12px;
+      opacity: 0.6;
+    }
+  }
+}
+
+.form-view__cell--description {
+  border-top: 1px solid $divider-color;
+  padding: 20px;
+}
+
+.form-view__group--summary-details-cols {
+  > .form-view__cell {
+    border-bottom: 1px solid $divider-color;
+    padding: 15px 20px;
+    margin-bottom: 10px;
+
+    &:last-child {
+      margin-bottom: 0px;
+      border-bottom: none;
+      padding-bottom: 20px;
+    }
+
+    .form-view__label {
+      font-size: 12px;
+      opacity: 0.6;
+    }
+  }
+}
+
+.form-view__cell--subs-graph {
+  padding: 30px;
+  padding-bottom: 0px;
+
+  .form-view__cell--subs-graph-toggle {
+    padding-bottom: 20px;
+
+    a + a {
+      margin-left: 15px;
+    }
+
+    a {
+      display: inline-block;
+      padding: 8px;
+      color: $cool-blue;
+      cursor: pointer;
+      font-size: 16px;
+      background: transparent;
+
+      &.active {
+        color: $cool-gray;
+        background: #F8F8F8;
+      }
+    }
+  }
+}
+
+.form-view__group--submission-stats {
+  padding: 30px;
+  display: flex;
+
+  .form-view__cell {
+    background: #F8F8FA;
+    padding: 20px;
+    flex: 1;
+    margin-right: 10px;
+
+    &:last-child {
+      margin-right: 0px;
+    }
+  }
+
+  .subs-graph-number {
+    font-size: 32px;
+    font-weight: 600;
+    color: $cool-green;
+  }
+}
+
+.form-view__cell--data-tabs {
+  a {
+    display: block;
+    padding: 5px 10px;
+    color: $cool-gray;
+    border-bottom: 1px solid $divider-color;
+    position: relative;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: #F8F8FA;
+    }
+
+    i {
+      font-size: 32px;
+      margin-right: 6px;
+      vertical-align: middle;
+
+      &.fa {
+        font-size: 24px;
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        margin-top: -12px;
+        line-height: 24px;
+      }
+    }
+  }
+}
+
+.form-view__row--team {
+  position: relative;
+
+  .form-view__cell--box {
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .user-row {
+    margin: 0;
+    border-bottom: 0px;
+    margin-right: 0px;
+  }
+
+  a.team-sharing-button {
+    cursor: pointer;
+    color: $cool-gray;
+    position: absolute;
+    right: 0px;
+    top: -6px;
+
+    i {
+      font-size: 32px;
+    }
+
+    &:hover {
+      color: $cool-blue;
+    }
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .form-view--summary {
+    display: flex;
+
+    .form-view__column--left {
+      width: 75%;
+
+      .form-view__row {
+        margin-right: 0px;
+      }
+    }
+
+    .form-view__column--right {
+      width: 25%;
+
+      .form-view__row {
+        margin-left: 30px;
+        margin-right: 40px;
+      }
+    }
+  }
+}
