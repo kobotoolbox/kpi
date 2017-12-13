@@ -23,37 +23,41 @@ class FormSummary extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      subsCurrentPeriod: 0,
-      subsPreviousPeriod: 0,
+      subsCurrentPeriod: '',
+      subsPreviousPeriod: '',
       lastSubmission: false,
       submissionsChart: false,
+      chart: {},
       chartPeriod: 'week'
     };
     autoBind(this);
   }
   componentDidMount() {
-    this.getLatestSubmissionTime();
-    this.prepSubmissions();
+    this.getLatestSubmissionTime(this.props.params.assetid);
+    this.prepSubmissions(this.props.params.assetid);
+  }
+  componentWillReceiveProps(nextProps) {
+    this.getLatestSubmissionTime(nextProps.params.assetid);
+    this.prepSubmissions(nextProps.params.assetid);
   }
   componentDidUpdate(prevProps, prevState) {
     if (prevState.chartPeriod != this.state.chartPeriod) {
-      this.prepSubmissions();
+      this.getLatestSubmissionTime(this.props.params.assetid);
+      this.prepSubmissions(this.props.params.assetid);
     }
   }
-  prepSubmissions() {
+  prepSubmissions(assetid) {
     var wkStart = this.state.chartPeriod == 'week' ? moment().subtract(6, 'days') : moment().subtract(30, 'days');
     var lastWeekStart = this.state.chartPeriod == 'week' ? moment().subtract(13, 'days') : moment().subtract(60, 'days');
 
     var startOfWeek = moment().startOf('week');
 
     const query = `query={"_submission_time": {"$gte":"${wkStart.toISOString()}"}}&fields=["_id","_submission_time"]`;
-    dataInterface.getSubmissionsQuery(this.props.params.assetid, query).done((thisWeekSubs) => {
+    dataInterface.getSubmissionsQuery(assetid, query).done((thisWeekSubs) => {
       var subsCurrentPeriod = thisWeekSubs.length;
-      if (subsCurrentPeriod)
-        this.setState({submissionsChart: true});
 
       const q2 = `query={"_submission_time": {"$gte":"${lastWeekStart.toISOString()}"}}&fields=["_id"]`;
-      dataInterface.getSubmissionsQuery(this.props.params.assetid, q2).done((d) => {
+      dataInterface.getSubmissionsQuery(assetid, q2).done((d) => {
         if (subsCurrentPeriod > 0) {
           if (this.state.chartPeriod == 'week')
             var subsPerDay = [0,0,0,0,0,0,0];
@@ -105,23 +109,27 @@ class FormSummary extends React.Component {
           };
 
           const canvas = ReactDOM.findDOMNode(this.refs.canvas);
-          var submissionsChart = new Chart(canvas, opts);
+          if (canvas)
+            var submissionsChart = new Chart(canvas, opts);
         }
 
         this.setState({
           subsPreviousPeriod: d.length - subsCurrentPeriod,
-          submissionsChart: submissionsChart || false,
-          subsCurrentPeriod: subsCurrentPeriod
+          subsCurrentPeriod: subsCurrentPeriod,
+          submissionsChart: subsCurrentPeriod ? true : false
         });
       });
     });
 
   } 
-  getLatestSubmissionTime() {
+  getLatestSubmissionTime(assetid) {
     const fq = ['_id', '_submission_time'];
     const sort = [{id: '_id', desc: true}];
-    dataInterface.getSubmissions(this.props.params.assetid, 1, 0, sort, fq).done((data) => {
-      this.setState({lastSubmission: data[0]['_submission_time']});
+    dataInterface.getSubmissions(assetid, 1, 0, sort, fq).done((data) => {
+      if (data.length)
+        this.setState({lastSubmission: data[0]['_submission_time']});
+      else 
+        this.setState({lastSubmission: false});
     });
   }
   renderSubmissionsGraph() {
@@ -131,19 +139,17 @@ class FormSummary extends React.Component {
           {t('Submissions')}
         </bem.FormView__cell>
         <bem.FormView__cell m={['box']}>
-          {this.state.submissionsChart &&
-            <bem.FormView__cell m='subs-graph'>
-              <bem.FormView__cell m='subs-graph-toggle'>
-                <a onClick={this.showGraphWeek} className={this.state.chartPeriod=='week' ? 'active' : ''}>
-                  {t('Past 7 days')}
-                </a>
-                <a onClick={this.showGraphMonth} className={this.state.chartPeriod=='month' ? 'active' : ''}>
-                  {t('Past 31 days')}
-                </a>
-              </bem.FormView__cell>
-              <canvas ref="canvas" />
+          <bem.FormView__cell m='subs-graph'>
+            <bem.FormView__cell m='subs-graph-toggle'>
+              <a onClick={this.showGraphWeek} className={this.state.chartPeriod=='week' ? 'active' : ''}>
+                {t('Past 7 days')}
+              </a>
+              <a onClick={this.showGraphMonth} className={this.state.chartPeriod=='month' ? 'active' : ''}>
+                {t('Past 31 days')}
+              </a>
             </bem.FormView__cell>
-          }
+            <canvas ref="canvas" className={this.state.submissionsChart ? 'visible' : 'hidden'}/>
+          </bem.FormView__cell>
           <bem.FormView__group m={['submission-stats']}>
             <bem.FormView__cell>
               <span className="subs-graph-number">{this.state.subsCurrentPeriod}</span>
@@ -318,9 +324,7 @@ class FormSummary extends React.Component {
                 </bem.FormView__cell>
               </bem.FormView__row>
             }
-            { this.state.lastSubmission && 
-              this.renderSubmissionsGraph()
-            }
+            {this.renderSubmissionsGraph()}
            </bem.FormView__column>
 
           <bem.FormView__column m='right'>
@@ -370,15 +374,16 @@ class FormSummary extends React.Component {
                 </bem.FormView__group>
               </bem.FormView__cell>
             </bem.FormView__row>
-            <bem.FormView__row m='data-links'>
-              <bem.FormView__cell m='label'>
-                {t('Data')}
-              </bem.FormView__cell>
-              <bem.FormView__cell m='box'>
-                {this.renderDataTabs()}
-              </bem.FormView__cell>
-            </bem.FormView__row>
-
+            {this.state.deployment__submission_count > 0 &&
+              <bem.FormView__row m='data-links'>
+                <bem.FormView__cell m='label'>
+                  {t('Data')}
+                </bem.FormView__cell>
+                <bem.FormView__cell m='box'>
+                  {this.renderDataTabs()}
+                </bem.FormView__cell>
+              </bem.FormView__row>
+            }
             {this.state.permissions &&
               this.renderTeam()
             }  
