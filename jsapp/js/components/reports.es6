@@ -11,6 +11,7 @@ import stores from '../stores';
 import Select from 'react-select';
 import ui from '../ui';
 import DocumentTitle from 'react-document-title';
+import { txtid } from '../../xlform/src/model.utils';
 
 import ReportViewItem from './reportViewItem';
 
@@ -178,6 +179,7 @@ class DefaultChartColorsPicker extends React.Component {
       );
   }
 };
+
 class SizeSliderInput extends React.Component {
   constructor(props) {
     super(props);
@@ -212,6 +214,58 @@ class SizeSliderInput extends React.Component {
   }
 };
 
+class CustomReportSettings extends React.Component {
+  constructor(props) {
+    super(props);
+    autoBind(this);
+    this.state = {
+      title: ''
+    };
+
+  }
+  questionChange (e) {
+    console.log(e.currentTarget)
+    console.log(e.target.checked)
+    // this.props.onChange({
+    //   default: true,
+    // }, {
+    //   report_type: e.currentTarget.value || 'bar'
+    // });
+  }
+  titleChange (e) {
+    console.log(e.target.value)
+    this.setState({
+      title: e.target.value
+    });
+
+  }
+  render () {
+    var questionList = this.props.reportData.map(function(q, i){
+       return (
+          <div className='graph-settings__question' key={i}>
+              <input type="checkbox" name="chart_question" 
+                value={q.name} 
+                onChange={this.questionChange} 
+                data-name={q.name}
+                id={'q-' + q.name} />
+              <label htmlFor={'q-' + q.name}>
+                {q.row.label[0]}
+              </label>
+          </div>
+       );
+    }, this);
+
+    return (
+        <bem.GraphSettings__charttype>
+          <div className="custom-report--title">
+            <input type="text" name="title" value={this.state.title} placeholder={t('Untitled Report')} onChange={this.titleChange} />
+          </div>
+          <strong>{t('Include the following questions:')}</strong>
+          {questionList}
+        </bem.GraphSettings__charttype>
+      );
+  }
+};
 class Reports extends React.Component {
   constructor(props) {
     super(props);
@@ -223,7 +277,9 @@ class Reports extends React.Component {
       groupBy: [],
       activeModalTab: 0,
       error: false,
-      showExpandedReport: false
+      showExpandedReport: false,
+      reportLimit: 100,
+      customReports: false
     };
     autoBind(this);
   }
@@ -247,19 +303,19 @@ class Reports extends React.Component {
     stores.allAssets.whenLoaded(uid, (asset)=>{
       let rowsByKuid = {};
       let rowsByIdentifier = {};
-      let names = [];
-      let reportStyles = asset.report_styles;
-      let defaultReportStyle = reportStyles.default || {};
+      let names = [],
+          reportStyles = asset.report_styles;
+      reportStyles.default.report_type = 'vertical';
+
       let specifiedReportStyles = reportStyles.specified || {};
 
       if (asset.content.survey != undefined) {
         asset.content.survey.forEach(function(r){
-          let $identifier = r.$autoname || r.name,
-            style = specifiedReportStyles[$identifier] || {};
-          r._reportStyle = style;
           if (r.$kuid) {
             rowsByKuid[r.$kuid] = r;
           }
+
+          let $identifier = r.$autoname || r.name;
           rowsByIdentifier[$identifier] = r;
         });
 
@@ -284,7 +340,7 @@ class Reports extends React.Component {
             asset: asset,
             rowsByKuid: rowsByKuid,
             rowsByIdentifier: rowsByIdentifier,
-            reportStyles: asset.report_styles,
+            reportStyles: reportStyles,
             reportData: dataWithResponses,
             translations: asset.content.translations.length > 1 ? true : false,
             error: false
@@ -307,18 +363,17 @@ class Reports extends React.Component {
     });
   }
   reportStyleChange (params, value) {
+
     let assetUid = this.state.asset.uid;
     let sett_ = this.state.reportStyles;
     if (params.default) {
       assign(sett_.default, value);
-    } else if (params.kuid) {
-      let kuid = params.kuid;
-      if (!sett_.specified[kuid]) {
-        sett_.specified[kuid] = {};
-      }
-      assign(sett_.specified[kuid], value);
     }
+    // TODO: add custom report style set
+
+    console.log('sett ==> ', sett_);
     actions.reports.setStyle(assetUid, sett_);
+
     this.setState({
       reportStyles: sett_,
     });
@@ -352,6 +407,25 @@ class Reports extends React.Component {
   launchPrinting () {
     window.print();
   }
+  triggerNewReport() {
+    let assetUid = this.state.asset.uid;    
+    let sett_ = this.state.reportStyles;
+
+    var newid = txtid();
+    var newReport = {name: ''}
+
+    if (!sett_.custom) {
+      sett_.custom = {};
+    }
+
+    sett_.custom[newid] = newReport;
+
+    console.log('sett ==> ', sett_);
+    actions.reports.setStyle(assetUid, sett_);
+    this.setState({
+      reportStyles: sett_
+    });
+  }
   renderReportButtons () {
     var rows = this.state.rowsByIdentifier || {};
     var groupByList = [];
@@ -363,11 +437,35 @@ class Reports extends React.Component {
       }
     }
 
+    var customReports = this.state.reportStyles.custom || {};
+    var customReportsList = [];
+    for (var key in customReports) {
+      customReportsList.push(customReports[key]);
+    }
+    console.log(customReports);
+
     return (
       <bem.FormView__reportButtons>
-        <button className="mdl-button graph-settings" onClick={this.toggleReportGraphSettings}>
-          {t('Graph Settings')}
-        </button>
+        <ui.PopoverMenu type='custom-reports' 
+            triggerLabel={t('Custom Reports')}>
+            <bem.PopoverMenu__link key='default' data-name='' onClick={this.triggerDefaultReport}>
+                {t("Default")}
+            </bem.PopoverMenu__link>
+            {
+              Object.keys(customReports).map(function(m, i) {
+                console.log(m);
+                console.log(customReports[m]);
+                return (
+                  <bem.PopoverMenu__link key={m}>
+                      {customReports[m].name || t('Untitled report')}
+                  </bem.PopoverMenu__link>
+                );
+              })
+            }
+            <bem.PopoverMenu__link key='new' onClick={this.triggerNewReport}>
+                {t("Create New Report")}
+            </bem.PopoverMenu__link>
+        </ui.PopoverMenu> 
 
         {groupByList.length > 1 && 
           <ui.PopoverMenu type='groupby-menu' 
@@ -416,6 +514,12 @@ class Reports extends React.Component {
                 data-tip={t('Print')}>
           <i className="k-icon-print" />
         </button>
+
+        <button className="mdl-button mdl-button--icon report-button__settings" 
+                onClick={this.toggleReportGraphSettings} 
+                data-tip={t('Report Settings')}>
+          <i className="k-icon-settings" />
+        </button>
  
       </bem.FormView__reportButtons>
     );
@@ -429,11 +533,8 @@ class Reports extends React.Component {
   renderReportGraphSettings () {
     let asset = this.state.asset,
         rowsByKuid = this.state.rowsByKuid,
-        explicitStyles,
-        explicitStylesList = [],
         defaultStyle;
     if (asset && asset.content) {
-      explicitStyles = this.state.reportStyles.specified || {};
       defaultStyle = this.state.reportStyles.default || {};
     }
 
@@ -444,7 +545,7 @@ class Reports extends React.Component {
       reportData[i].style = defaultStyle;
     }
 
-    var tabs = [t('Chart Type'), t('Colors'), t('Size')];
+    var tabs = [t('Questions'), t('Chart Type'), t('Colors'), t('Size')];
 
     var modalTabs = tabs.map(function(tab, i){
       return (
@@ -464,7 +565,15 @@ class Reports extends React.Component {
         </ui.Modal.Tabs>
         <ui.Modal.Body>
           <div className="tabs-content">
-            {this.state.activeModalTab === 0 &&
+            {this.state.activeModalTab === 0 && 
+              <div className="graph-tab__size" id="graph-labels">
+                <CustomReportSettings
+                  reportData={reportData}
+                  //onChange={this.reportStyleChange}
+                  />
+              </div>
+            }
+            {this.state.activeModalTab === 1 &&
               <div id="graph-type">
                 <DefaultChartTypePicker
                   defaultStyle={defaultStyle}
@@ -472,15 +581,14 @@ class Reports extends React.Component {
                 />
               </div>
             }
-            {this.state.activeModalTab === 1 &&
+            {this.state.activeModalTab === 2 &&
               <div id="graph-colors">
                 <DefaultChartColorsPicker
                   defaultStyle={defaultStyle}
-                  onChange={this.reportStyleChange}
-                />
+                  onChange={this.reportStyleChange}/>
               </div>
             }
-            {this.state.activeModalTab === 2 &&
+            {this.state.activeModalTab === 3 && 
               <div className="graph-tab__size" id="graph-labels">
                 <SizeSliderInput 
                       name="width" min="300" max="900" default={this.state.graphWidth} 
@@ -514,14 +622,10 @@ class Reports extends React.Component {
   render () {
     let asset = this.state.asset,
         rowsByKuid = this.state.rowsByKuid,
-        explicitStyles,
-        explicitStylesList = [],
         defaultStyle, 
         docTitle = t('Report');
     if (asset && asset.content) {
-      explicitStyles = this.state.reportStyles.specified || {};
       defaultStyle = this.state.reportStyles.default || {};
-
       defaultStyle.graphWidth = this.state.graphWidth;
       defaultStyle.graphHeight = this.state.graphHeight;
 
@@ -626,7 +730,7 @@ class Reports extends React.Component {
             </bem.Loading>
           }
           {this.state.showReportGraphSettings ?
-            <ui.Modal open onClose={this.toggleReportGraphSettings} title={t('Global Graph Settings')}>
+            <ui.Modal open onClose={this.toggleReportGraphSettings} title={t('Report Settings')}>
               {this.renderReportGraphSettings()}
             </ui.Modal>
  

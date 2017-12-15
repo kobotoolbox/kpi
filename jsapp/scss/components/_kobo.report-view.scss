@@ -134,7 +134,8 @@
       margin-left: 8px;
     }
 
-    &.report-button__expand, &.report-button__print {
+    &.report-button__expand,
+    &.report-button__print, &.report-button__settings {
       float: right;
       margin-right: 0px;
       margin-left: 8px;
@@ -181,6 +182,13 @@
     content: '';
     clear: both;
     display: block;
+  }
+
+  strong {
+    margin-bottom: 20px;
+    display: block;
+    font-weight: 400;
+    color: $cool-gray;
   }
 }
 
@@ -279,8 +287,22 @@
   }
 }
 
+.graph-settings__question {
+  padding: 5px 0px;
+}
+
+.custom-report--title {
+  padding-bottom: 30px;
+
+  input {
+    width: 100%;
+    font-size: 20px;
+    font-weight: 300;
+  }
+}
+
 @media screen and (max-width: 767px) {
-  .form-view__reportButtons button.graph-settings {
+  .form-view__reportButtons button.custom-reports {
     margin-left: 8px;
   }
 
