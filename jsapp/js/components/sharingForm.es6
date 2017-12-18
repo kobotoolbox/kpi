@@ -18,7 +18,6 @@ import {
   anonUsername
 } from '../utils';
 
-<<<<<<< HEAD
 var availablePermissions = [
   {value: 'view', label: t('Can View')},
   {value: 'change', label: t('Can Edit')},
@@ -27,20 +26,17 @@ var availablePermissions = [
   {value: 'change_submissions', label: t('Can Edit Submissions')}
 ];
 
-
-var UserPermDiv = React.createClass({
+class UserPermDiv extends React.Component {
+  constructor(props) {
+    super(props);
+    autoBind(this);
+  }
   removePermissions() {
     // removing view permission will include all other permissions
     actions.permissions.removePerm({
       permission_url: this.props.can.view.url,
       content_object_uid: this.props.uid
     });
-  },
-=======
-class UserPermDiv extends React.Component {
-  constructor(props) {
-    super(props);
-    autoBind(this);
   }
   PermOnChange(perm) {
     var cans = this.props.can;
@@ -57,7 +53,6 @@ class UserPermDiv extends React.Component {
     }
 
   }
->>>>>>> master
   render () {
     var initialsStyle = {
       background: `#${stringToColor(this.props.username)}`
@@ -91,29 +86,28 @@ class UserPermDiv extends React.Component {
 };
 
 reactMixin(UserPermDiv.prototype, mixins.permissions);
+  
+  // pre-React upgrade
+  // togglePerms(evt) {
+  //   var permRole = evt.currentTarget.dataset.perm;
+  //   var permission = this.props.publicPerms.filter(function(perm){ return perm.permission === permRole })[0];
 
-<<<<<<< HEAD
-var PublicPermDiv = React.createClass({
-  togglePerms(evt) {
-    var permRole = evt.currentTarget.dataset.perm;
-    var permission = this.props.publicPerms.filter(function(perm){ return perm.permission === permRole })[0];
+  //   if (permission) {
+  //     actions.permissions.removePerm({
+  //       permission_url: permission.url,
+  //       content_object_uid: this.props.uid
+  //     });
+  //   } else {
+  //     actions.permissions.assignPerm({
+  //       username: anonUsername,
+  //       uid: this.props.uid,
+  //       kind: this.props.kind,
+  //       objectUrl: this.props.objectUrl,
+  //       role: permRole === 'view_asset' ? 'view' : permRole
+  //     });
+  //   }
+  // },
 
-    if (permission) {
-      actions.permissions.removePerm({
-        permission_url: permission.url,
-        content_object_uid: this.props.uid
-      });
-    } else {
-      actions.permissions.assignPerm({
-        username: anonUsername,
-        uid: this.props.uid,
-        kind: this.props.kind,
-        objectUrl: this.props.objectUrl,
-        role: permRole === 'view_asset' ? 'view' : permRole
-      });
-    }
-  },
-=======
 class PublicPermDiv extends React.Component {
   constructor(props) {
     super(props);
@@ -131,7 +125,6 @@ class PublicPermDiv extends React.Component {
         }
       );
   }
->>>>>>> master
   render () {
     var uid = this.props.uid;
 
@@ -176,13 +169,6 @@ class PublicPermDiv extends React.Component {
 
 reactMixin(PublicPermDiv.prototype, mixins.permissions);
 
-<<<<<<< HEAD
-var SharingForm = React.createClass({
-  mixins: [
-    mixins.contextRouter,
-    Reflux.ListenerMixin
-  ],
-=======
 class SharingForm extends React.Component {
   constructor(props) {
     super(props);
@@ -192,7 +178,6 @@ class SharingForm extends React.Component {
     };
     autoBind(this);
   }
->>>>>>> master
   assetChange (data) {
     var uid = this.props.uid || this.currentAssetID(),
       asset = data[uid];
