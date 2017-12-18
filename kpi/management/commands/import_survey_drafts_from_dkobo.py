@@ -116,7 +116,7 @@ def _import_user_assets(from_user, to_user):
             new_asset = _import_asset(qlib_asset, qlib, asset_type='block')
         except:
             message = (u'Failed to migrate library asset with name="{}" '
-                       u'and pk={}').format(survey_draft.name, survey_draft.pk)
+                       u'and pk={}').format(qlib_asset.name, qlib_asset.pk)
             logging.error(message, exc_info=True)
 
     _set_auto_field_update(Asset, "date_created", False)

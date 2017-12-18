@@ -134,6 +134,10 @@ bem.FormView__secondaryButton = bem.FormView.__('secondaryButton', '<button>');
 bem.FormView__reportButtons = bem.FormView.__('reportButtons');
 bem.FormView__form = bem.FormView.__('form', '<form>');
 
+bem.FormView__map = bem.FormView.__('map');
+bem.FormView__mapButton = bem.FormView.__('map-button');
+bem.FormView__mapList = bem.FormView.__('map-list');
+
 bem.FormTitle = BEM('form-title');
 bem.FormTitle__name = bem.FormTitle.__('name');
 bem.FormTitle__submissions = bem.FormTitle.__('submissions');

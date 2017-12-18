@@ -125,27 +125,6 @@ var dmix = {
       historyExpanded: !this.state.historyExpanded,
     });
   },
-  onDrop (files) {
-    if (files.length === 0) {
-      return;
-    } else if (files.length> 1) {
-      var errMsg = t('Only 1 file can be uploaded in this case');
-      alertify.error(errMsg);
-      throw new Error(errMsg);
-    }
-    const VALID_ASSET_UPLOAD_FILE_TYPES = [
-      'application/xls',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    ];
-    var file = files[0];
-    if (VALID_ASSET_UPLOAD_FILE_TYPES.indexOf(file.type) === -1) {
-      var err = `Invalid filetype: '${file.type}'`;
-      console.error(err);
-    }
-    this.dropFiles(files);
-  },
   summaryDetails () {
     return (
       <pre>
@@ -188,21 +167,14 @@ var dmix = {
     };
   },
   dmixSessionStoreChange (val) {
-    var currentUsername = val && val.currentAccount && val.currentAccount.username;
-    this.setState(assign({
-        currentUsername: currentUsername
-      },
-      this.getCurrentUserPermissions(this.state, {currentUsername: currentUsername})
-    ));
-  },
-  getInitialState () {
-    return {
-      userCanEdit: false,
-      userCanView: true,
-      historyExpanded: false,
-      showReportGraphSettings: false,
-      currentUsername: stores.session.currentAccount && stores.session.currentAccount.username,
-    };
+    if (val && val.currentAccount) {
+      var currentUsername = val && val.currentAccount && val.currentAccount.username;
+      this.setState(assign({
+          currentUsername: currentUsername
+        },
+        this.getCurrentUserPermissions(this.state, {currentUsername: currentUsername})
+      ));
+    }
   },
   dmixAssetStoreChange (data) {
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid,
@@ -213,6 +185,15 @@ var dmix = {
           this.getCurrentUserPermissions(data[uid], this.state)
         ));
     }
+  },
+  componentWillMount () {
+    this.setState({
+      userCanEdit: false,
+      userCanView: true,
+      historyExpanded: false,
+      showReportGraphSettings: false,
+      currentUsername: stores.session.currentAccount && stores.session.currentAccount.username,
+    });
   },
   componentDidMount () {
     this.listenTo(stores.session, this.dmixSessionStoreChange);
@@ -232,9 +213,6 @@ var dmix = {
 mixins.dmix = dmix;
  
 mixins.droppable = {
-  contextTypes: {
-    router: React.PropTypes.object
-  },
   _forEachDroppedFile (evt, file, params={}) {
     var library = this.context.router.isActive('library');
     var url = params.url || this.state.url;
@@ -312,6 +290,11 @@ mixins.droppable = {
       };
       reader.readAsDataURL(file);
     });
+
+    rejectedFiles.map((rej) => {
+      var errMsg = t('Upload error: could not recognize Excel file.');
+      alertify.error(errMsg);
+    });
   }
 }; 
  
@@ -332,9 +315,6 @@ mixins.collectionList = {
 };
  
 mixins.clickAssets = {
-  contextTypes: {
-    router: React.PropTypes.object
-  },
   onActionButtonClick (action, uid, name) {
     this.click.asset[action].call(this, uid, name);
   },
@@ -482,9 +462,6 @@ mixins.clickAssets = {
 };
 
 mixins.contextRouter = {
-  contextTypes: {
-    router: React.PropTypes.object
-  },
   isFormList () {
     return this.context.router.isActive('forms') && this.context.router.params.assetid == undefined;
   },

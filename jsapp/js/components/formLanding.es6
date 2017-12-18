@@ -1,4 +1,7 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import Dropzone from 'react-dropzone';
 import Map from 'es6-map';
@@ -12,7 +15,6 @@ import ui from '../ui';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
-import icons from '../../xlform/src/view.icons';
 import $ from 'jquery';
 
 import {
@@ -25,39 +27,47 @@ import {
   validFileTypes
 } from '../utils';
 
-var FormLanding = React.createClass({
-  mixins: [
-    mixins.droppable,
-    mixins.dmix,
-    Reflux.ListenerMixin
-  ],
-  getInitialState () {
-    return {
+export class FormLanding extends React.Component {
+  constructor(props){
+    super(props);
+    this.state = {
       questionLanguageIndex: 0,
       selectedCollectMethod: 'offline_url'
     };
-  },
+    autoBind(this);
+  }
   componentWillReceiveProps() {
     this.setState({
         questionLanguageIndex: 0
       }
     );
-  },
+  }
   enketoPreviewModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
       type: 'enketo-preview',
       assetid: this.state.uid
     });
-  },
+  }
   renderFormInfo () {
-    var dvcount = this.state.deployed_versions.length;
+    var dvcount = this.state.deployed_versions.count;
+    var undeployedVersion = undefined;
+
+    if (this.state.deployed_version_id !== this.state.version_id && this.state.deployment__active) {
+      undeployedVersion = `(${t('undeployed')})`;
+      dvcount = dvcount + 1;
+    }
     return (
         <bem.FormView__cell m={['columns', 'padding']}>
           <bem.FormView__cell>
             <bem.FormView__cell m='version'>
               {dvcount > 0 ? `v${dvcount}` : ''}
             </bem.FormView__cell>
+            {undeployedVersion && 
+              <bem.FormView__cell m='undeployed'>
+                &nbsp;{undeployedVersion}
+              </bem.FormView__cell>
+            }
             <bem.FormView__cell m='date'>
               {t('Last Modified')}&nbsp;:&nbsp;
               {formatTime(this.state.date_modified)}&nbsp;-&nbsp;
@@ -78,7 +88,7 @@ var FormLanding = React.createClass({
           </bem.FormView__cell>
         </bem.FormView__cell>
       );
-  },
+  }
   renderFormLanguages () {
     return (
       <bem.FormView__cell m={['padding', 'bordertop', 'languages']}>
@@ -96,23 +106,23 @@ var FormLanding = React.createClass({
 
       </bem.FormView__cell>
     );
-  },
+  }
   updateQuestionListLanguage (evt) {
     let i = evt.currentTarget.dataset.index;
     this.setState({
         questionLanguageIndex: i
       }
     );
-  },
+  }
   sharingModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
       type: 'sharing', 
       assetid: this.state.uid
     });
-  },
+  }
   renderHistory () {
-    var dvcount = this.state.deployed_versions.length;
+    var dvcount = this.state.deployed_versions.count;
     return (
       <bem.FormView__row className={this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'}>
         <bem.FormView__cell m={['columns', 'history-label']}>
@@ -127,7 +137,7 @@ var FormLanding = React.createClass({
               <bem.FormView__label m='date'>{t('Last Modified')}</bem.FormView__label>
               <bem.FormView__label m='clone'>{t('Clone')}</bem.FormView__label>
             </bem.FormView__group>
-            {this.state.deployed_versions.map((item, n) => {
+            {this.state.deployed_versions.results.map((item, n) => {
               return (
                 <bem.FormView__group m="items" key={n} >
                   <bem.FormView__label m='version'>
@@ -154,7 +164,7 @@ var FormLanding = React.createClass({
             })}
           </bem.FormView__group>
         </bem.FormView__cell>
-        {this.state.deployed_versions.length > 1 &&
+        {this.state.deployed_versions.count > 1 &&
           <bem.FormView__cell m={['centered']}>
             <button className="mdl-button mdl-button--colored" onClick={this.toggleDeploymentHistory}>
               {this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
@@ -163,7 +173,7 @@ var FormLanding = React.createClass({
         }
       </bem.FormView__row>
       );
-  },
+  }
   renderCollectData () {
     var deployment__links = this.state.deployment__links;
 
@@ -205,7 +215,7 @@ var FormLanding = React.createClass({
 
     var kc_server = document.createElement('a');
     kc_server.href = this.state.deployment__identifier;
-    var kobocollect_url = kc_server.origin + '/' + this.state.owner__username;
+    var kobocollect_url = kc_server.origin;
 
     return (
       <bem.FormView__row>
@@ -295,14 +305,14 @@ var FormLanding = React.createClass({
         </bem.FormView__cell>
       </bem.FormView__row>
     );
-  },
+  }
   setCollectMethod(evt) {
     var method = $(evt.target).parents('.popover-menu__link').data('method');
     this.setState({
         selectedCollectMethod: method
       }
     );
-  },
+  }
   renderButtons () {
     var downloadable = false;
     var downloads = [];
@@ -320,7 +330,8 @@ var FormLanding = React.createClass({
               <i className="k-icon-edit" />
             </Link>
           : 
-            <bem.FormView__link m={'edit'}
+            <bem.FormView__link m={['edit', 'disabled']}
+              className="right-tooltip"
               data-tip={t('Editing capabilities not granted, you can only view this form')}>
               <i className="k-icon-edit" />
             </bem.FormView__link>
@@ -367,7 +378,7 @@ var FormLanding = React.createClass({
           </ui.PopoverMenu>
         </bem.FormView__group>
       );
-  },
+  }
   render () {
     var docTitle = this.state.name || t('Untitled');
 
@@ -399,7 +410,7 @@ var FormLanding = React.createClass({
               </bem.FormView__cell>
             </bem.FormView__cell>
             <bem.FormView__cell m='box'>
-              {this.state.deployed_versions.length > 0 &&
+              {this.state.deployed_versions.count > 0 &&
                 this.state.deployed_version_id != this.state.version_id && this.state.deployment__active && 
                 <bem.FormView__cell m='warning'>
                   <i className="k-icon-alert" />
@@ -412,10 +423,10 @@ var FormLanding = React.createClass({
               }
             </bem.FormView__cell>
           </bem.FormView__row>
-          {this.state.deployed_versions.length > 0 &&
+          {this.state.deployed_versions.count > 0 &&
             this.renderHistory()
           }
-          {this.state.deployed_versions.length > 0 && this.state.deployment__active && 
+          {this.state.deployed_versions.count > 0 && this.state.deployment__active &&
             this.renderCollectData()
           }
         </bem.FormView> 
@@ -423,6 +434,14 @@ var FormLanding = React.createClass({
       );
   }
 
-})
+};
+
+reactMixin(FormLanding.prototype, mixins.droppable);
+reactMixin(FormLanding.prototype, mixins.dmix);
+reactMixin(FormLanding.prototype, Reflux.ListenerMixin);
+
+FormLanding.contextTypes = {
+  router: PropTypes.object
+};
 
 export default FormLanding;

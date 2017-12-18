@@ -1,5 +1,6 @@
 import Reflux from 'reflux';
 import cookie from 'react-cookie';
+import alertify from 'alertifyjs';
 
 import dkobo_xlform from '../xlform/src/_xlform.init';
 import assetParserUtils from './assetParserUtils';
@@ -336,6 +337,28 @@ var sessionStore = Reflux.createStore({
     if (acct.all_languages) {
       acct.all_languages = acct.all_languages.map(nestedArrToChoiceObjs);
     }
+    if (acct.dkobo_survey_drafts && acct.dkobo_survey_drafts.non_migrated) {
+      let wait_message = t(
+        `It may take several minutes for all of your survey drafts to finish
+        migrating from the legacy form builder. Refresh the page to view
+        newly-migrated drafts.`
+      );
+      let stuck_message = t(
+        `If this message persists longer than a few hours, click here to
+        restart the migration process.`
+      );
+      let notify_content = `${wait_message}<br/>
+        <a href="${acct.dkobo_survey_drafts.migrate_url}">${stuck_message}</a>
+        <small>
+        (${acct.dkobo_survey_drafts.non_migrated}/${acct.dkobo_survey_drafts.total})
+        </small>
+      `;
+      alertify.notify(
+        notify_content,
+        'warning',
+        0 // Persist until the user clicks the close button
+      );
+    }
 
     this.trigger({
       isLoggedIn: true,
@@ -574,12 +597,14 @@ if (window.Intercom) {
       window.Intercom("update");
     },
     loggedIn (acct) {
+      let name = acct.extra_details.name;
+      let legacyName = [
+        acct.first_name, acct.last_name].filter(val => val).join(' ');
       let userData = {
         'user_id': [acct.username, window.location.host].join('@'),
         'username': acct.username,
         'email': acct.email,
-        'name': acct.extra_details.name ? acct.extra_details.name :
-                  [acct.first_name, acct.last_name].join(),
+        'name': name ? name : legacyName ? legacyName : acct.username,
         'created_at': Math.floor(
           (new Date(acct.date_joined)).getTime() / 1000),
         'app_id': window.IntercomAppId

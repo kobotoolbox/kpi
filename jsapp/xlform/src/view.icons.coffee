@@ -50,7 +50,7 @@ module.exports = do ->
     ,
 
     # r3
-      label: _t("GPS")
+      label: _t("Point")
       faClass: "map-marker"
       grouping: "r3"
       id: "geopoint"
@@ -72,6 +72,11 @@ module.exports = do ->
     ,
 
     # r4
+      label: _t("Line")
+      faClass: "share-alt"
+      grouping: "r4"
+      id: "geotrace"
+    ,
       label: _t("Note")
       faClass: "bars"
       grouping: "r4"
@@ -87,24 +92,32 @@ module.exports = do ->
       grouping: "r4"
       id: "acknowledge"
     ,
-      label: _t("Calculate")
-      faClass: "lato-calculate"
-      grouping: "r4"
-      id: "calculate"
-    ,
 
     # r5
-      label: _t("Matrix / Rating")
-      # faClass: "server"
-      # will look better but isn't available until FA 4.3
-      faClass: "th"
+      label: _t("Area")
+      faClass: "square"
+      grouping: "r5"
+      id: "geoshape"
+    ,
+      label: _t("Rating")
+      faClass: "server"
       grouping: "r5"
       id: "score"
+    ,
+      label: _t("Question Matrix")
+      faClass: "table"
+      grouping: "r5"
+      id: "kobomatrix"
     ,
       label: _t("Ranking")
       faClass: "sort-amount-desc"
       grouping: "r5"
       id: "rank"
+    ,
+      label: _t("Calculate")
+      faClass: "lato-calculate"
+      grouping: "r4"
+      id: "calculate"
     ,
     ]
 

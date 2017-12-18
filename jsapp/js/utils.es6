@@ -22,6 +22,11 @@ export function formatTime(timeStr) {
   return _m.calendar(null, {sameElse: 'LL'});
 }
 
+export function formatTimeDate(timeStr) {
+  var _m = moment(timeStr);
+  return _m.format('LLL');
+}
+
 export var anonUsername = 'AnonymousUser';
 export function getAnonymousUserPermission(permissions) {
   return permissions.filter(function(perm){
@@ -38,37 +43,6 @@ export function surveyToValidJson(survey) {
   survey.toFlatJSON();
   // returning the result of the second call to "toFlatJSON()"
   return JSON.stringify(survey.toFlatJSON());
-}
-
-export function customPromptAsync(msg, def) {
-  return new Promise(function(resolve, reject){
-    window.setTimeout(function(){
-      var val = window.prompt(msg, def);
-      if (val === null) {
-        reject(new Error('empty value'));
-      } else {
-        resolve(val);
-      }
-    }, 0);
-  });
-}
-
-export function customConfirmAsync(msg) {
-  var dfd = new $.Deferred();
-  window.setTimeout(function(){
-    var tf = window.confirm(msg);
-    dfd[ tf ? 'resolve' : 'reject' ](tf);
-  }, 0);
-  return dfd.promise();
-}
-
-export function customConfirm(msg) {
-  /*eslint no-alert: 0*/
-  return window.confirm(msg);
-}
-export function customPrompt(msg) {
-  /*eslint no-alert: 0*/
-  return window.prompt(msg);
 }
 
 export function redirectTo(href) {
@@ -142,7 +116,7 @@ export function t(str) {
 // be replaced in all the translations before removing this hard
 // coded value.
 const originalSupportEmail = 'support@kobotoolbox.org';
-const originalSupportUrl = 'http://support.kobotoolbox.org';
+const originalSupportUrl = 'http://help.kobotoolbox.org';
 
 let supportDetails = {
   url: originalSupportUrl,
@@ -220,12 +194,79 @@ export function stringToColor(str, prc) {
   return shade(int_to_rgba(hash(str)), prc);
 }
 
+export function isAValidUrl(url) {
+  try {
+    new URL(url);
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
 export function validFileTypes() {
   const VALID_ASSET_UPLOAD_FILE_TYPES = [
+    '.xls',
+    '.xlsx',
     'application/xls',
     'application/vnd.ms-excel',
+    'application/octet-stream',
     'application/vnd.openxmlformats',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    '' // Keep this to fix issue with IE Edge sending an empty MIME type
   ];
   return VALID_ASSET_UPLOAD_FILE_TYPES.join(',');
+}
+
+export function koboMatrixParser(params) {
+  if (params.content)
+    var content = JSON.parse(params.content);
+  if (params.source)
+    var content = JSON.parse(params.source);
+
+  if (!content.survey)
+    return params;
+
+  var hasMatrix = false;
+  var surveyLength = content.survey.length;
+
+  // add open/close tags for kobomatrix groups
+  for (var i = 0; i < surveyLength; i++) {
+    if (content.survey[i].type === 'kobomatrix') {
+      content.survey[i].type = 'begin_kobomatrix';
+      content.survey[i].appearance = 'field-list';
+      surveyLength++;
+      content.survey.splice(i + 1, 0, {type: "end_kobomatrix", "$kuid": `/${content.survey[i].$kuid}`});
+    }
+  }
+
+  // add columns as items in the group
+  for (i = 0; i < surveyLength; i++) {
+    if (content.survey[i].type === 'begin_kobomatrix') {
+      var j = i;
+      hasMatrix = true;
+      var matrix = localStorage.getItem(`koboMatrix.${content.survey[i].$kuid}`);
+
+      if (matrix != null) {
+        matrix = JSON.parse(matrix);
+        for (var kuid of matrix.cols) {
+          i++;
+          surveyLength++;
+          content.survey.splice(i, 0, matrix[kuid]);
+        }
+
+        for (var k of Object.keys(matrix.choices)) {
+          content.choices.push(matrix.choices[k]);
+        }
+      }
+      // TODO: handle corrupt matrix data
+    }
+  }
+
+  if (hasMatrix) {
+    if (params.content)
+      params.content = JSON.stringify(content);
+    if (params.source)
+      params.source = JSON.stringify(content);
+  }
+  return params;
 }

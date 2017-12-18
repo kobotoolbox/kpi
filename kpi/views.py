@@ -34,6 +34,7 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.authtoken.models import Token
+from rest_framework.views import APIView
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from taggit.models import Tag
@@ -90,6 +91,8 @@ from .utils.kobo_to_xlsform import to_xlsform_structure
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from .tasks import import_in_background
 from deployment_backends.backends import DEPLOYMENT_BACKENDS
+from deployment_backends.kobocat_backend import KobocatDataProxyViewSetMixin
+
 
 CLONE_ARG_NAME = 'clone_from'
 COLLECTION_CLONE_FIELDS = {'name'}
@@ -542,6 +545,14 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
             return Response(response_data, template_name='preview_error.html')
 
 
+class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
+                        KobocatDataProxyViewSetMixin):
+    '''
+    TODO: Access the submission data directly instead of merely proxying to
+    KoBoCAT
+    '''
+    parent_model = Asset
+
 class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     model = AssetVersion
     lookup_field = 'uid'
@@ -561,7 +572,15 @@ class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         _queryset = self.model.objects.filter(asset__uid=_asset_uid)
         if _deployed is not None:
             _queryset = _queryset.filter(deployed=_deployed)
-        return _queryset.filter(asset__uid=_asset_uid)
+        _queryset = _queryset.filter(asset__uid=_asset_uid)
+        if self.action == 'list':
+            # Save time by only retrieving fields from the DB that the
+            # serializer will use
+            _queryset = _queryset.only(
+                'uid', 'deployed', 'date_modified', 'asset_id')
+        # `AssetVersionListSerializer.get_url()` asks for the asset UID
+        _queryset = _queryset.select_related('asset__uid')
+        return _queryset
 
 
 class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
@@ -826,3 +845,49 @@ class UserCollectionSubscriptionViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+class TokenView(APIView):
+    def _which_user(self, request):
+        '''
+        Determine the user from `request`, allowing superusers to specify
+        another user by passing the `username` query parameter
+        '''
+        if request.user.is_anonymous():
+            raise exceptions.NotAuthenticated()
+
+        if 'username' in request.query_params:
+            # Allow superusers to get others' tokens
+            if request.user.is_superuser:
+                user = get_object_or_404(
+                    User,
+                    username=request.query_params['username']
+                )
+            else:
+                raise exceptions.PermissionDenied()
+        else:
+            user = request.user
+        return user
+
+    def get(self, request, *args, **kwargs):
+        ''' Retrieve an existing token only '''
+        user = self._which_user(request)
+        token = get_object_or_404(Token, user=user)
+        return Response({'token': token.key})
+
+    def post(self, request, *args, **kwargs):
+        ''' Return a token, creating a new one if none exists '''
+        user = self._which_user(request)
+        token, created = Token.objects.get_or_create(user=user)
+        return Response(
+            {'token': token.key},
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK
+        )
+
+    def delete(self, request, *args, **kwargs):
+        ''' Delete an existing token and do not generate a new one '''
+        user = self._which_user(request)
+        with transaction.atomic():
+            token = get_object_or_404(Token, user=user)
+            token.delete()
+        return Response({}, status=status.HTTP_204_NO_CONTENT)

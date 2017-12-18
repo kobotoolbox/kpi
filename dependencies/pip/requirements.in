@@ -2,10 +2,10 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # Custom pyxform
--e git+https://github.com/kobotoolbox/pyxform.git@6dfff060fc2ad6c575c6a7d953c381d2180e6833#egg=pyxform
+-e git+https://github.com/kobotoolbox/pyxform.git@2.017.36#egg=pyxform
 
 # Formpack
--e git+https://github.com/kobotoolbox/formpack.git@e7428a0af798c006b38fe54ac804840c96b1ecd0#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@312686e34d2967a55a318cf319f8e859f8e0c9b4#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.

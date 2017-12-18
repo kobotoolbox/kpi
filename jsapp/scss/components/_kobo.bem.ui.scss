@@ -7,6 +7,7 @@
 .mdl-layout {
   max-width: 1440px;
   margin: 0 auto;
+  overflow: hidden;
 }
 
 .mdl-layout__content {
@@ -35,6 +36,16 @@
       margin-right: 0px;
       height: calc(100% - 76px);
     }
+  }
+}
+
+// full screen overrides (for expanded reports, table, maps, etc.)
+.mdl-layout.page-wrapper--header-hidden.page-wrapper--drawer-hidden {
+  max-width: 100%;
+
+  .mdl-layout__content.page-wrapper__content--form-landing {
+    box-shadow: none;
+    height: calc(100% - 40px);
   }
 }
 
@@ -74,7 +85,7 @@
 }
 
 // Focus mode for form builder, disable drawer, header
-.mdl-layout.page-wrapper--header-hidden.mdl-layout.page-wrapper--drawer-hidden {
+.mdl-layout.page-wrapper--in-formbuilder {
   .mdl-layout__content {
     margin: 0px;
     width: 100%;
@@ -208,8 +219,10 @@
   top: 100%;
 }
 
-.popover-menu--above .popover-menu__content {
+.popover-menu--above .popover-menu__content,
+.popover-menu--viewby-menu .popover-menu__content {
   bottom: 100%;
+  top: auto;
 }
 
 .popover-menu__link,
@@ -222,6 +235,8 @@
   color: $cool-gray;
   cursor: pointer;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   > i:first-child {
     margin-right: 4px;
@@ -245,7 +260,7 @@
 }
 
 .popover-menu__moveTo {
-  max-height: 180px;
+  max-height: 120px;
   overflow: auto;
   overflow-x: hidden;
   background-color: #F9F9F9;
@@ -257,8 +272,8 @@
   position: relative;
   text-align: left;
   padding-right: 35px;
-  padding-top: 3px;
-  padding-bottom: 3px;
+  padding-top: 0px;
+  padding-bottom: 0px;
 
   span {
     display: inline-block;
@@ -605,6 +620,10 @@ span.svg-icon {
 
 ::-webkit-scrollbar {
   width: 0.8em;
+}
+
+::-webkit-scrollbar:horizontal {
+  height: 0.8em;
 }
 
 ::-webkit-scrollbar-track {

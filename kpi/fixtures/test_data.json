@@ -102,5 +102,14 @@
             "owner": 2,
             "uid": "aPEANgNgTH3xzhJGcctURs"
         }
+    },
+    {
+        "model": "authtoken.token",
+        "pk": 1,
+        "fields": {
+            "key": "3a8da043dd1b669688dae523b015177a1d4201d5",
+            "created": "2017-05-09 10:49:34.273769-04",
+            "user": 3
+        }
     }
 ]

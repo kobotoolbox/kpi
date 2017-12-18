@@ -22,7 +22,7 @@ Downloading and compiling the translations
 
 Searching assets and collections
 --------------------------------
-Top-level (null-parent) assets and collections can be found by including `parent=` in the query string. For other searches, construct a string using the [Whoosh query language](https://pythonhosted.org/Whoosh/querylang.html) and pass it in as the `q` parameter, e.g. `/assets/?q=name:sanitation`. Fields indexed by Whoosh are:
+Top-level (null-parent) assets and collections can be found by including `parent=` in the query string. For other searches, construct a string using the [Whoosh query language](http://whoosh.readthedocs.io/en/latest/querylang.html) and pass it in as the `q` parameter, e.g. `/assets/?q=name:sanitation`. Fields indexed by Whoosh are:
 
 * `name`: a tokenized\* representation of the name;
 * `name__exact`: a space- and comma-escaped representation of the name, e.g. "Fun, Exciting Asset" would be indexed as "Fun--Exciting-Asset";
@@ -40,7 +40,7 @@ When the `q` parameter contains a search term without a specified field, e.g. `/
 
 Searching tags
 --------------
-Construct a string using the [Whoosh query language](https://pythonhosted.org/Whoosh/querylang.html) and pass it in as the `q` parameter, e.g. `/tags/?q=asset_type:block`. Fields indexed by Whoosh are:
+Construct a string using the [Whoosh query language](http://whoosh.readthedocs.io/en/latest/querylang.html) and pass it in as the `q` parameter, e.g. `/tags/?q=asset_type:block`. Fields indexed by Whoosh are:
 
 * `name__ngram`: the tag's name decomposed into n-grams, e.g. `?q=name__ngram:cat` would match tags named "dogs/cats" and "education";
 * `asset_type`: a multi-value field containing the types (e.g. `form`, `question`, `block`) of all tagged assets;
@@ -50,3 +50,9 @@ Construct a string using the [Whoosh query language](https://pythonhosted.org/Wh
 When the `q` parameter contains a search term without a specified field, e.g. `/tags/?q=health`, that term is matched against the search "document" (the `text` field).
 
 \* Implemented by Haystack as [a Whoosh TEXT field using the StemmingAnalyzer](https://github.com/django-haystack/django-haystack/blob/ad90028a22b4274b8df1f4698dd59ac0643f03d5/haystack/backends/whoosh_backend.py#L174). Unsuitable for exact matching.
+
+Admin reports
+-------------
+There are several types of data reports available to superusers. 
+* Full list of users including their details provided during signup, number of deployed projects (XForm count), number of submissions, date joined, and last login: `<kpi base url>/superuser_stats/user_report/`. File being created is a CSV, so don't download immediately to wait for server to be finished writing to the file (it will download even if incomplete).
+* Monthly aggregate figures for number of forms, deployed projects, and submissions (from kobocat): `<kc server domain>/<superuser username>/superuser_stats/`         

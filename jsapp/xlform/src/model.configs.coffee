@@ -105,6 +105,18 @@ module.exports = do ->
   Default values for rows of each question type
   ###
   configs.defaultsForType =
+    geotrace:
+      label:
+        value: "Record a line"
+      required:
+        value: false
+        _hideUnlessChanged: true
+    geoshape:
+      label:
+        value: "Record an area"
+      required:
+        value: false
+        _hideUnlessChanged: true
     geopoint:
       label:
         value: "Record your current location"
@@ -166,6 +178,8 @@ module.exports = do ->
       ["integer", "Integer"], #e.g. 42
       ["decimal", "Decimal"], #e.g. 3.14
       ["geopoint", "Geopoint (GPS)"], # Can use satelite GPS coordinates
+      ["geotrace", "Geotrace (GPS)"], # Can use satelite GPS coordinates
+      ["geoshape", "Geoshape (GPS)"], # Can use satelite GPS coordinates
       ["image", "Image", isMedia: true], # Can use phone camera, for example
       ["barcode", "Barcode"], # Can scan a barcode using the phone camera
       ["date", "Date"], #e.g. (4 July, 1776)
@@ -178,6 +192,7 @@ module.exports = do ->
       ["score", "Score"],
       ["score__row", "Score Row"],
       ["rank", "Rank"],
+      ["kobomatrix", "Advanced Matrix"],
       ["rank__level", "Rank Level"],
       ["select_multiple", "Multiple choice", orOtherOption: true, specifyChoice: true]
     ]
@@ -231,6 +246,9 @@ module.exports = do ->
       _hideUnlessChanged: true
     constraint_message:
       value: ""
+      _hideUnlessChanged: true
+    tags:
+      value: ''
       _hideUnlessChanged: true
     appearance:
       value: ''

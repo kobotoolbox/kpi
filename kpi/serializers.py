@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import datetime
 import json
 import pytz
@@ -8,6 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import get_script_prefix, resolve, Resolver404
 from django.db import transaction
+from django.db.utils import ProgrammingError
 from django.utils.six.moves.urllib import parse as urlparse
 from django.conf import settings
 from rest_framework import serializers, exceptions
@@ -17,6 +19,7 @@ from taggit.models import Tag
 
 from kobo.static_lists import SECTORS, COUNTRIES, LANGUAGES
 from hub.models import SitewideMessage, ExtraUserDetail
+from .fields import PaginatedApiField
 from .models import Asset
 from .models import AssetSnapshot
 from .models import AssetVersion
@@ -374,6 +377,41 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
                   )
 
 
+class AssetVersionListSerializer(serializers.Serializer):
+    # If you change these fields, please update the `only()` and
+    # `select_related()` calls  in `AssetVersionViewSet.get_queryset()`
+    uid = serializers.ReadOnlyField()
+    url = serializers.SerializerMethodField()
+    date_deployed = serializers.SerializerMethodField(read_only=True)
+    date_modified = serializers.CharField(read_only=True)
+
+    def get_date_deployed(self, obj):
+        return obj.deployed and obj.date_modified
+
+    def get_url(self, obj):
+        return reverse('asset-version-detail', args=(obj.asset.uid, obj.uid),
+                       request=self.context.get('request', None))
+
+
+class AssetVersionSerializer(AssetVersionListSerializer):
+    content = serializers.SerializerMethodField(read_only=True)
+
+    def get_content(self, obj):
+        return obj.version_content
+
+    def get_version_id(self, obj):
+        return obj.uid
+
+    class Meta:
+        model = AssetVersion
+        fields = (
+                    'version_id',
+                    'date_deployed',
+                    'date_modified',
+                    'content',
+                  )
+
+
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
     owner = RelativePrefixHyperlinkedRelatedField(
         view_name='user-detail', lookup_field='username', read_only=True)
@@ -405,7 +443,12 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     version_id = serializers.CharField(read_only=True)
     has_deployment = serializers.ReadOnlyField()
     deployed_version_id = serializers.SerializerMethodField()
-    deployed_versions = serializers.SerializerMethodField()
+    deployed_versions = PaginatedApiField(
+        serializer_class=AssetVersionListSerializer,
+        # Higher-than-normal limit since the client doesn't yet know how to
+        # request more than the first page
+        default_limit=100
+    )
     deployment__identifier = serializers.SerializerMethodField()
     deployment__active = serializers.SerializerMethodField()
     deployment__links = serializers.SerializerMethodField()
@@ -552,14 +595,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                     return obj.asset_versions.filter(deployed=True).first().uid
             else:
                 return obj.deployment.version_id
-
-    def get_deployed_versions(self, asset):
-        deployed_versioned_assets = asset.asset_versions.filter(deployed=True)
-        return AssetVersionListSerializer(
-            deployed_versioned_assets,
-            many=True,
-            context=self.context
-        ).data
 
     def get_deployment__identifier(self, obj):
         if obj.has_deployment:
@@ -713,62 +748,15 @@ class AssetListSerializer(AssetSerializer):
                   )
 
 
-class AssetVersionListSerializer(serializers.Serializer):
-    uid = serializers.ReadOnlyField()
-    url = serializers.SerializerMethodField()
-    date_deployed = serializers.SerializerMethodField(read_only=True)
-    date_modified = serializers.CharField(read_only=True)
-
-    def get_date_deployed(self, obj):
-        return obj.deployed and obj.date_modified
-
-    def get_url(self, obj):
-        return reverse('asset-version-detail', args=(obj.asset.uid, obj.uid),
-                       request=self.context.get('request', None))
-
-
-class AssetVersionSerializer(AssetVersionListSerializer):
-    content = serializers.SerializerMethodField(read_only=True)
-
-    def get_content(self, obj):
-        return obj.version_content
-
-    def get_version_id(self, obj):
-        return obj.uid
-
-    class Meta:
-        model = AssetVersion
-        fields = (
-                    'version_id',
-                    'date_deployed',
-                    'date_modified',
-                    'content',
-                  )
-
-
 class AssetUrlListSerializer(AssetSerializer):
     class Meta(AssetSerializer.Meta):
         fields = ('url',)
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
-    assets = serializers.SerializerMethodField()
-
-    def get_assets(self, obj):
-        paginator = LimitOffsetPagination()
-        paginator.default_limit = 10
-        page = paginator.paginate_queryset(
-            queryset=obj.assets.all(),
-            request=self.context.get('request', None)
-        )
-        serializer = AssetUrlListSerializer(
-            page, many=True, read_only=True, context=self.context)
-        return OrderedDict([
-            ('count', paginator.count),
-            ('next', paginator.get_next_link()),
-            ('previous', paginator.get_previous_link()),
-            ('results', serializer.data)
-        ])
+    assets = PaginatedApiField(
+        serializer_class=AssetUrlListSerializer
+    )
 
     class Meta:
         model = User
@@ -872,6 +860,27 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         if settings.KOBOCAT_URL and settings.KOBOCAT_INTERNAL_URL:
             rep['extra_details']['require_auth'] = get_kc_profile_data(
                 obj.pk).get('require_auth', False)
+
+        # Count the number of dkobo SurveyDrafts to determine migration status
+        from kpi.management.commands.import_survey_drafts_from_dkobo import \
+            SurveyDraft
+        try:
+            SurveyDraft.objects.exists()
+        except ProgrammingError:
+            # dkobo is not installed. Freude, schöner Götterfunken
+            pass
+        else:
+            survey_drafts = SurveyDraft.objects.filter(user=obj)
+            rep['dkobo_survey_drafts'] = {
+                'total': survey_drafts.count(),
+                'non_migrated': survey_drafts.filter(kpi_asset_uid='').count(),
+                'migrate_url': u'{switch_builder}?beta=1&migrate=1'.format(
+                    switch_builder=reverse(
+                        'toggle-preferred-builder',
+                        request=self.context.get('request', None)
+                    )
+                )
+            }
         return rep
 
     def update(self, instance, validated_data):
@@ -978,7 +987,22 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
     # ancestors are ordered from farthest to nearest
     ancestors = AncestorCollectionsSerializer(
         many=True, read_only=True, source='get_ancestors_or_none')
-    children = serializers.SerializerMethodField()
+    children = PaginatedApiField(
+        serializer_class=CollectionChildrenSerializer,
+        # "The value `source='*'` has a special meaning, and is used to indicate
+        # that the entire object should be passed through to the field"
+        # (http://www.django-rest-framework.org/api-guide/fields/#source).
+        source='*',
+        source_processor=lambda source: CollectionChildrenQuerySet(
+            source).select_related(
+                'owner', 'parent'
+            ).prefetch_related(
+                'permissions',
+                'permissions__permission',
+                'permissions__user',
+                'permissions__content_object',
+            ).all()
+    )
     permissions = ObjectPermissionSerializer(many=True, read_only=True)
     downloads = serializers.SerializerMethodField()
     tag_string = serializers.CharField(required=False)
@@ -1014,30 +1038,6 @@ class CollectionSerializer(serializers.HyperlinkedModelSerializer):
 
     def _get_tag_names(self, obj):
         return obj.tags.names()
-
-    def get_children(self, obj):
-        paginator = LimitOffsetPagination()
-        paginator.default_limit = 10
-        queryset = CollectionChildrenQuerySet(obj).select_related(
-            'owner', 'parent'
-        ).prefetch_related(
-            'permissions',
-            'permissions__permission',
-            'permissions__user',
-            'permissions__content_object',
-        ).all()
-        page = paginator.paginate_queryset(
-            queryset=queryset,
-            request=self.context.get('request', None)
-        )
-        serializer = CollectionChildrenSerializer(
-            page, read_only=True, many=True, context=self.context)
-        return OrderedDict([
-            ('count', paginator.count),
-            ('next', paginator.get_next_link()),
-            ('previous', paginator.get_previous_link()),
-            ('results', serializer.data)
-        ])
 
     def get_downloads(self, obj):
         request = self.context.get('request', None)

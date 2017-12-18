@@ -1,5 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import actions from '../actions';
 import stores from '../stores';
@@ -17,23 +19,23 @@ import {
   ListExpandToggle
 } from '../components/list';
 
-
-var AssetNavigatorListView = React.createClass({
-  mixins: [
-    searches.common,
-    Reflux.ListenerMixin
-  ],
+class AssetNavigatorListView extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {};
+    autoBind(this);
+  }
   componentDidMount () {
     this.searchClear();
     this.listenTo(this.searchStore, this.searchStoreChanged);
-  },
+  }
   componentWillReceiveProps () {
     this.searchClear();
     this.listenTo(this.searchStore, this.searchStoreChanged);
-  },
+  }
   searchStoreChanged (searchStoreState) {
     this.setState(searchStoreState);
-  },
+  }
   activateSortable() {
     if (!this.refs.liblist) {
       return;
@@ -55,7 +57,7 @@ var AssetNavigatorListView = React.createClass({
         $el.sortable('cancel');
       }
     });
-  },
+  }
   render () {
     var list,
         count,
@@ -134,33 +136,16 @@ var AssetNavigatorListView = React.createClass({
             </bem.LibList>
         );
     }
-  },
-});
+  }
+};
 
-var AssetNavigator = React.createClass({
-  mixins: [
-    Reflux.connectFilter(stores.assetSearch, 'searchResults', function(results){
-      if (this.searchFieldValue() === results.query) {
-        return results;
-      }
-    }),
-    Reflux.connect(stores.tags, 'tags')
-  ],
-  componentDidMount() {
-    this.listenTo(stores.assetLibrary, this.assetLibraryTrigger);
-    this.listenTo(stores.pageState, this.handlePageStateStore);
-    this.state.searchContext.mixin.searchDefault();
-  },
-  assetLibraryTrigger (res) {
-    this.setState({
-      assetLibraryItems: res
-    });
-  },
-  handlePageStateStore (state) {
-    this.setState(state);
-  },
-  getInitialState () {
-    return {
+reactMixin(AssetNavigatorListView.prototype, searches.common);
+reactMixin(AssetNavigatorListView.prototype, Reflux.ListenerMixin);
+
+class AssetNavigator extends Reflux.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
       searchResults: {},
       imports: [],
       searchContext: searches.getSearchContext('library', {
@@ -172,13 +157,33 @@ var AssetNavigator = React.createClass({
       assetNavIntentOpen: stores.pageState.state.assetNavIntentOpen,
       assetNavIsOpen: stores.pageState.state.assetNavIsOpen
     };
-  },
+    this.store = stores.tags;
+    autoBind(this);
+  }
+  componentDidMount() {
+    this.listenTo(stores.assetLibrary, this.assetLibraryTrigger);
+    this.listenTo(stores.pageState, this.handlePageStateStore);
+    this.state.searchContext.mixin.searchDefault();
+  }
+  filterSearchResults (results) {
+    if (this.searchFieldValue() === results.query) {
+      return results;
+    }
+  }
+  assetLibraryTrigger (res) {
+    this.setState({
+      assetLibraryItems: res
+    });
+  }
+  handlePageStateStore (state) {
+    this.setState(state);
+  }
   getImportsByStatus (n) {
     return this.imports.filter((i)=> i.status === n );
-  },
+  }
   searchFieldValue () {
     return ReactDOM.findDOMNode(this.refs.navigatorSearchBox.refs.inp).value;
-  },
+  }
   liveSearch () {
     var queryInput = this.searchFieldValue(),
       r;
@@ -192,7 +197,7 @@ var AssetNavigator = React.createClass({
         actions.search.assets(queryInput);
       }
     }
-  },
+  }
   _displayAssetLibraryItems () {
     var qresults = this.state.assetLibraryItems;
     // var alItems;
@@ -228,9 +233,9 @@ var AssetNavigator = React.createClass({
               </bem.LibList>
               );
     }
-  },
+  }
   renderSearchResults () {
-  },
+  }
   toggleTagSelected (tag) {
     var tags = this.state.selectedTags,
         _ti = tags.indexOf(tag);
@@ -242,10 +247,10 @@ var AssetNavigator = React.createClass({
     this.setState({
       selectedTags: tags
     });
-  },
+  }
   toggleOpen () {
     stores.pageState.toggleAssetNavIntentOpen();
-  },
+  }
   render () {
     return (
         <bem.LibNav m={{
@@ -277,6 +282,8 @@ var AssetNavigator = React.createClass({
         </bem.LibNav>
       );
   }
-});
+};
+
+reactMixin(AssetNavigator.prototype, Reflux.connectFilter(stores.assetSearch, 'searchResults', AssetNavigator.prototype.filterSearchResults));
 
 export default AssetNavigator;

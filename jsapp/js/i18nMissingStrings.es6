@@ -173,3 +173,4 @@ test = t("Warning! You are about to delete this collection with all its question
 test = t("new name?");
 test = t("Delete Project");
 test = t("More Actions");
+test = t("Archived");

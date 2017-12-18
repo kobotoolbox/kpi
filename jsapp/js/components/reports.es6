@@ -1,4 +1,6 @@
 import React from 'react';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import _ from 'underscore';
 import {dataInterface} from '../dataInterface';
@@ -30,14 +32,18 @@ let reportStyles = [
   labelVal('Line'),
 ];
 
-var DefaultChartTypePicker = React.createClass({
+class DefaultChartTypePicker extends React.Component {
+  constructor(props) {
+    super(props);
+    autoBind(this);
+  }
   defaultReportStyleChange (e) {
     this.props.onChange({
       default: true,
     }, {
       report_type: e.currentTarget.value || 'bar'
     });
-  },
+  }
   render () {
     var radioButtons = reportStyles.map(function(style, i){
        return (
@@ -59,8 +65,8 @@ var DefaultChartTypePicker = React.createClass({
           {radioButtons}
         </bem.GraphSettings__charttype>
       );
-  },
-});
+  }
+};
 
 let reportColorSets = [
   {
@@ -130,14 +136,18 @@ let reportColorSets = [
   }
 ];
 
-var DefaultChartColorsPicker = React.createClass({
+class DefaultChartColorsPicker extends React.Component {
+  constructor(props) {
+    super(props);
+    autoBind(this);
+  }
   defaultReportColorsChange (e) {
     this.props.onChange({
       default: true,
     }, {
       report_colors: reportColorSets[e.currentTarget.value].colors || reportColorSets[0].colors
     });
-  },
+  }
   render () {
     var radioButtons = reportColorSets.map(function(set, index){
        return (
@@ -166,23 +176,23 @@ var DefaultChartColorsPicker = React.createClass({
           {radioButtons}
         </bem.GraphSettings__colors>
       );
-  },
-});
-
-
-var SizeSliderInput = React.createClass({
-  getInitialState: function() {
-    return {value: this.props.default};
-  },
-  handleChange: function(event) {
+  }
+};
+class SizeSliderInput extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {value: this.props.default};
+    autoBind(this);
+  }
+  handleChange (event) {
     this.props.onChange({
       value: event.target.value,
       id: this.props.name
     });
 
     this.setState({value: event.target.value});
-  },
-  render: function() {
+  }
+  render () {
     return (
       <div className="slider-item">
         <label> 
@@ -199,20 +209,31 @@ var SizeSliderInput = React.createClass({
           step="5" />
       </div>
     );
-  },
-});
+  }
+};
 
-var Reports = React.createClass({
-  mixins: [
-    Reflux.ListenerMixin,
-  ],
+class Reports extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      graphWidth: "700",
+      graphHeight: "250",
+      translations: false,
+      translationIndex: 0,
+      groupBy: [],
+      activeModalTab: 0,
+      error: false,
+      showExpandedReport: false
+    };
+    autoBind(this);
+  }
   componentDidMount () {
     this.loadReportData([]);
-  },
+  }
   componentWillUpdate (nextProps, nextState) {
     if (this.state.groupBy != nextState.groupBy)
       this.loadReportData(nextState.groupBy);
-  },
+  }
   loadReportData(groupBy) {
     let uid = this.props.params.assetid;
     // PM note: this below seems to cause child reportViewItem's componentWillUpdate to run twice, causing odd animation issues
@@ -250,6 +271,8 @@ var Reports = React.createClass({
             if (row.data.responses || row.data.values || row.data.mean) {
               if (rowsByIdentifier[row.name] !== undefined) {
                 row.row.label = rowsByIdentifier[row.name].label;
+              } else if (row.name !== undefined) {
+                row.row.label = row.name;
               } else {
                 row.row.label = t('untitled');
               }
@@ -276,24 +299,13 @@ var Reports = React.createClass({
         console.error('Survey not defined.');
       }
     });
-  },
-  getInitialState () {
-    return {
-      graphWidth: "700",
-      graphHeight: "250",
-      translations: false,
-      translationIndex: 0,
-      groupBy: [],
-      activeModalTab: 0,
-      error: false
-    };
-  },
+  }
   groupDataBy(evt) {
     var gb = evt.target.getAttribute('data-name') ? [evt.target.getAttribute('data-name')] : [];
     this.setState({
       groupBy: gb,
     });
-  },
+  }
   reportStyleChange (params, value) {
     let assetUid = this.state.asset.uid;
     let sett_ = this.state.reportStyles;
@@ -310,36 +322,36 @@ var Reports = React.createClass({
     this.setState({
       reportStyles: sett_,
     });
-  },
+  }
   reportSizeChange (params, value) {
     if (params.id == 'width') {
       this.setState({graphWidth: params.value});
     } else {
       this.setState({graphHeight: params.value});
     }
-  },
+  }
   translationIndexChange (evt) {
     var TI = evt.target.getAttribute('data-index') ? evt.target.getAttribute('data-index') : 0;
     this.setState({translationIndex: TI});
-  },
+  }
   toggleReportGraphSettings () {
     this.setState({
       showReportGraphSettings: !this.state.showReportGraphSettings,
     });
-  },
+  }
   toggleExpandedReports () {
     stores.pageState.hideDrawerAndHeader(!this.state.showExpandedReport);
     this.setState({
       showExpandedReport: !this.state.showExpandedReport,
     });
-  },
+  }
   componentWillUnmount() {
     if (this.state.showExpandedReport)
       stores.pageState.hideDrawerAndHeader(!this.state.showExpandedReport);
-  },
+  }
   launchPrinting () {
     window.print();
-  },
+  }
   renderReportButtons () {
     var rows = this.state.rowsByIdentifier || {};
     var groupByList = [];
@@ -353,7 +365,7 @@ var Reports = React.createClass({
 
     return (
       <bem.FormView__reportButtons>
-        <button className="mdl-button" onClick={this.toggleReportGraphSettings}>
+        <button className="mdl-button graph-settings" onClick={this.toggleReportGraphSettings}>
           {t('Graph Settings')}
         </button>
 
@@ -407,13 +419,13 @@ var Reports = React.createClass({
  
       </bem.FormView__reportButtons>
     );
-  },
+  }
   toggleTab(evt) {
     var i = evt.target.getAttribute('data-index');
     this.setState({
       activeModalTab: parseInt(i),
     });
-  },
+  }
   renderReportGraphSettings () {
     let asset = this.state.asset,
         rowsByKuid = this.state.rowsByKuid,
@@ -493,7 +505,12 @@ var Reports = React.createClass({
         </ui.Modal.Footer>
       </bem.GraphSettings>
     );
-  },
+  }
+  resetReportLimit () {
+    this.setState({
+      reportLimit: false,
+    });
+  }
   render () {
     let asset = this.state.asset,
         rowsByKuid = this.state.rowsByKuid,
@@ -509,10 +526,13 @@ var Reports = React.createClass({
       defaultStyle.graphHeight = this.state.graphHeight;
 
       docTitle = asset.name || t('Untitled');
-
     }
 
     let reportData = this.state.reportData || [];
+
+    if (this.state.reportLimit && reportData.length && reportData.length > this.state.reportLimit) {
+      reportData = reportData.slice(0, this.state.reportLimit);
+    }
 
     for (var i = reportData.length - 1; i >= 0; i--) {;
       reportData[i].style = defaultStyle;
@@ -564,6 +584,17 @@ var Reports = React.createClass({
               <bem.PrintOnly>
                 <h3>{asset.name}</h3>
               </bem.PrintOnly>
+              {this.state.reportLimit && reportData.length && this.state.reportData.length > this.state.reportLimit &&
+                <bem.FormView__cell m={['centered', 'reportLimit']}>
+                  <div>
+                    {t('For performance reasons, this report only includes the first ## questions.').replace('##', this.state.reportLimit)}
+                  </div>
+                  <button className="mdl-button mdl-button--colored" onClick={this.resetReportLimit}>
+                    {t('Show all (##)').replace('##', this.state.reportData.length)}
+                  </button>
+                </bem.FormView__cell>
+              }
+
               <bem.ReportView__warning>
                 <h4>{t('Warning')}</h4>
                 <p>{t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. ')}</p>
@@ -605,6 +636,8 @@ var Reports = React.createClass({
       );
   }
 
-})
+}
+
+reactMixin(Reports.prototype, Reflux.ListenerMixin);
 
 export default Reports;

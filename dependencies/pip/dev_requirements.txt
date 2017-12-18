@@ -5,8 +5,8 @@
 #    pip-compile --output-file dependencies/pip/dev_requirements.txt dependencies/pip/dev_requirements.in
 #
 -e git+https://github.com/dimagi/django-digest@0eb1c921329dd187c343b61acfbec4e98450136e#egg=django_digest
--e git+https://github.com/kobotoolbox/formpack.git@e7428a0af798c006b38fe54ac804840c96b1ecd0#egg=formpack
--e git+https://github.com/kobotoolbox/pyxform.git@6dfff060fc2ad6c575c6a7d953c381d2180e6833#egg=pyxform
+-e git+https://github.com/kobotoolbox/formpack.git@312686e34d2967a55a318cf319f8e859f8e0c9b4#egg=formpack
+-e git+https://github.com/kobotoolbox/pyxform.git@2.017.36#egg=pyxform
 amqp==2.1.4
 anyjson==0.3.3
 begins==0.9
@@ -57,7 +57,7 @@ ndg-httpsclient==0.4.2
 oauthlib==1.1.2
 paramiko==2.1.1           # via fabric
 path.py==8.1.2
-psycopg2==2.6.2
+psycopg2==2.7.3.2
 py==1.4.32                # via pytest
 pyasn1==0.2.2
 pycparser==2.17           # via cffi

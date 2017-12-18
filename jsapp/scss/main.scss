@@ -4,6 +4,7 @@
 @import "./fonts/k-icons/k-icons";
 @import "~font-awesome/scss/font-awesome";
 @import "~select2/select2.css";
+@import "~react-table/react-table.css";
 
 @import "./libs/alertify";
 @import "./libs/react-tagsinput";
@@ -25,8 +26,12 @@
 @import "./components/kobo.lib-list";
 @import "./components/kobo.form-view";
 @import "./components/kobo.report-view";
+@import "./components/kobo.table";
 @import "./components/kobo.account-settings";
 @import "./components/kobo.sharing-modal";
+@import "./components/kobo.map";
+
+@import "./formbuild/kobomatrix";
 
 .k-invisible {
   visibility: hidden;
