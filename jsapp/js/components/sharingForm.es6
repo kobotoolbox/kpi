@@ -23,7 +23,8 @@ var availablePermissions = [
   {value: 'change', label: t('Can Edit')},
   {value: 'view_submissions', label: t('Can View Submissions')},
   {value: 'add_submissions', label: t('Can Add Submissions')},
-  {value: 'change_submissions', label: t('Can Edit Submissions')}
+  {value: 'change_submissions', label: t('Can Edit Submissions')},
+  {value: 'validate_submissions', label: t('Can Validate Submissions')}
 ];
 
 class UserPermDiv extends React.Component {
