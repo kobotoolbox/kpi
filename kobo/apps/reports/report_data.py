@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import itertools
 from collections import OrderedDict
 from copy import deepcopy
 
@@ -25,11 +26,15 @@ def build_formpack(asset, submission_stream=None):
     Return a tuple containing a `FormPack` instance and the iterable stream of
     submissions for the given `asset`
     '''
+    FUZZY_VERSION_ID_KEY = '_version_'
+    INFERRED_VERSION_ID_KEY = '__inferred_version__'
+
     _versions = asset.deployed_versions
     schemas = []
+    version_ids_newest_first = []
     for v in asset.deployed_versions:
         try:
-            schemas.append(v.to_formpack_schema())
+            fp_schema = v.to_formpack_schema()
         # FIXME: should FormPack validation errors have their own
         # exception class?
         except TypeError as e:
@@ -39,7 +44,13 @@ def build_formpack(asset, submission_stream=None):
                     % repr(e),
                  exc_info=True
             )
-    pack = FormPack(versions=schemas, title=asset.name, id_string=asset.uid)
+        else:
+            fp_schema['version_id_key'] = INFERRED_VERSION_ID_KEY
+            schemas.append(fp_schema)
+            version_ids_newest_first.append(v.uid)
+            if v.uid_aliases:
+                version_ids_newest_first.extend(v.uid_aliases)
+    pack = FormPack(versions=reversed(schemas), title=asset.name, id_string=asset.uid)
 
     # Find the AssetVersion UID for each deprecated reversion ID
     _reversion_ids = dict([
@@ -47,17 +58,32 @@ def build_formpack(asset, submission_stream=None):
             for v in _versions if v._reversion_version_id
     ])
 
-    _version_id = schemas[0]['version'] # most recent version
-    _version_id_key = schemas[0].get('version_id_key', '__version__')
-
-    def _inject_version_id(result):
-        if _version_id_key not in result:
-            # this submission does not specify a version; assume the latest one
-            result[_version_id_key] = _version_id
-        elif result[_version_id_key] in _reversion_ids:
-            # this submission has a deprecated reversion ID; replace it with
-            # the UID of the corresponding AssetVersion
-            result[_version_id_key] = _reversion_ids[result[_version_id_key]]
+    # A submission often contains many version keys, e.g. `__version__`,
+    # `_version_`, `_version__001`, `_version__002`, each with a different
+    # version id (see https://github.com/kobotoolbox/kpi/issues/1465). To cope,
+    # assume that the newest version of this asset whose id appears in the
+    # submission is the proper one to use
+    def _infer_version_id(result):
+        result_version_ids = [
+            val for key, val in result.iteritems()
+                if FUZZY_VERSION_ID_KEY in key
+        ]
+        # Replace any deprecated reversion IDs with the UIDs of their
+        # corresponding AssetVersions
+        result_version_ids = [
+            _reversion_ids[x] if x in _reversion_ids
+                else x for x in result_version_ids
+        ]
+        inferred_version_id = None
+        for extant_version_id in version_ids_newest_first:
+            if extant_version_id in result_version_ids:
+                inferred_version_id = extant_version_id
+                break
+        if not inferred_version_id:
+            # Fall back on the latest version
+            # TODO: log a warning?
+            inferred_version_id = version_ids_newest_first[0]
+        result[INFERRED_VERSION_ID_KEY] = inferred_version_id
         return result
 
     if submission_stream is None:
@@ -67,7 +93,7 @@ def build_formpack(asset, submission_stream=None):
         submission_stream = get_instances_for_userform_id(_userform_id)
 
     submission_stream = (
-        _inject_version_id(result) for result in submission_stream
+        _infer_version_id(result) for result in submission_stream
     )
 
     return pack, submission_stream
