@@ -12,6 +12,7 @@ import stores from '../stores';
 import mixins from '../mixins';
 
 import ReactTable from 'react-table'
+import Select from 'react-select';
 
 import {
   assign,
@@ -20,6 +21,21 @@ import {
   notify,
   formatTimeDate
 } from '../utils';
+
+var validationStatuses = [
+  {
+    value: 'validation_status_not_approved',
+    label: t('Not Approved')
+  },
+  {
+    value: 'validation_status_approved',
+    label: t('Approved')
+  },
+  {
+    value: 'validation_status_on_hold',
+    label: t('On Hold')
+  },
+];
 
 export class DataTable extends React.Component {
   constructor(props){
@@ -64,6 +80,21 @@ export class DataTable extends React.Component {
     });
   }
 
+  validationStatusChange(sid, index) {
+    var _this = this;
+
+    return function(selection) {
+      // console.log(_this.state);
+      const data = {"validation_status_uid": selection.value};
+      console.log(data);
+      dataInterface.updateSubmissionValidationStatus(_this.props.asset.uid, sid, data).done((result) => {
+        console.log(result);
+      }).fail((error)=>{
+        console.log(error);
+      });
+    }
+  }
+
   _prepColumns(data) {
 		var uniqueKeys = Object.keys(data.reduce(function(result, obj) {
 		  return Object.assign(result, obj);
@@ -83,9 +114,23 @@ export class DataTable extends React.Component {
           {t('Open')}
         </span>
       )
+    },
+    {
+      Header: t('Validation status'),
+      accessor: 'sub-status',
+      index: '__2',
+      minWidth: 150,
+      className: 'rt-status',
+      Cell: row => (
+        <Select value={row.row._validation_status}
+          options={validationStatuses}
+          onChange={this.validationStatusChange(row.row._id, row.index)}>
+        </Select>
+      )
     }];
+
     var excludes = ['_xform_id_string', '_attachments', '_notes', '_bamboo_dataset_id', '_status',
-                    'formhub/uuid', '_tags', '_geolocation', '_submitted_by', 'meta/instanceID'];
+                    'formhub/uuid', '_tags', '_geolocation', '_submitted_by', 'meta/instanceID','_validation_status'];
 
     let survey = this.props.asset.content.survey;
     let choices = this.props.asset.content.choices;

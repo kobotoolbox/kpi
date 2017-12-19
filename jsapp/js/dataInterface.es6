@@ -384,6 +384,13 @@ var dataInterface;
         method: 'GET'
       });
     },
+    updateSubmissionValidationStatus(uid, sid, data) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}`,
+        method: 'PATCH',
+        data: data
+      });
+    },
     deleteSubmission(uid, sid) {
       return $ajax({
         url: `${rootUrl}/assets/${uid}/submissions/${sid}`,
