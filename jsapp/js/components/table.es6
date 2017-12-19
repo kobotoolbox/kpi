@@ -15,27 +15,16 @@ import ReactTable from 'react-table'
 import Select from 'react-select';
 
 import {
+  VALIDATION_STATUSES
+} from '../constants';
+
+import {
   assign,
   t,
   log,
   notify,
   formatTimeDate
 } from '../utils';
-
-var validationStatuses = [
-  {
-    value: 'validation_status_not_approved',
-    label: t('Not Approved')
-  },
-  {
-    value: 'validation_status_approved',
-    label: t('Approved')
-  },
-  {
-    value: 'validation_status_on_hold',
-    label: t('On Hold')
-  },
-];
 
 export class DataTable extends React.Component {
   constructor(props){
@@ -84,13 +73,16 @@ export class DataTable extends React.Component {
     var _this = this;
 
     return function(selection) {
-      // console.log(_this.state);
       const data = {"validation_status_uid": selection.value};
-      console.log(data);
       dataInterface.updateSubmissionValidationStatus(_this.props.asset.uid, sid, data).done((result) => {
-        console.log(result);
+        if (result.uid) {
+          _this.state.tableData[index]._validation_status = result.uid;
+          _this.setState({tableData: _this.state.tableData});
+        } else {
+          console.error('error updating validation status');
+        }
       }).fail((error)=>{
-        console.log(error);
+        console.error(error);
       });
     }
   }
@@ -122,8 +114,10 @@ export class DataTable extends React.Component {
       minWidth: 150,
       className: 'rt-status',
       Cell: row => (
-        <Select value={row.row._validation_status}
-          options={validationStatuses}
+        <Select 
+          clearable={false}
+          value={this.state.tableData[row.index]._validation_status}
+          options={VALIDATION_STATUSES}
           onChange={this.validationStatusChange(row.row._id, row.index)}>
         </Select>
       )
