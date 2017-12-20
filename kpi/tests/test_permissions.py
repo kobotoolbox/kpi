@@ -144,6 +144,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
     def setUp(self):
         self.admin= User.objects.get(username='admin')
         self.someuser= User.objects.get(username='someuser')
+
         self.admin_collection= Collection.objects.create(owner=self.admin)
         self.admin_asset= Asset.objects.create(content={'survey': [
             {'type': 'text', 'label': 'Question 1', 'name': 'q1', 'kuid': 'abc'},
@@ -157,8 +158,9 @@ class PermissionsTestCase(BasePermissionsTestCase):
             'delete_submissions',
             'share_asset',
             'share_submissions',
+            'validate_submissions',
             'view_asset',
-            'view_submissions'
+            'view_submissions',
         ]
         self.collection_owner_permissions = [
             'change_collection',
@@ -187,6 +189,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
         codenames = (
             'add_submissions',
             'view_submissions',
+            'validate_submissions',
             'change_submissions' # Must be last since it implies `view_submissions`
         )
         asset = self.admin_asset
@@ -200,6 +203,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
         codenames = (
             'add_submissions',
             'view_submissions',
+            'validate_submissions',
             'change_submissions' # Must be last since it implies `view_submissions`
         )
         asset = self.admin_asset
@@ -232,6 +236,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
             'add_submissions': ('view_asset',),
             'view_submissions': ('view_asset',),
             'change_submissions': ('view_asset', 'view_submissions'),
+            'validate_submissions': ('view_asset', 'view_submissions'),
         }
         asset = self.admin_asset
         grantee = self.someuser
@@ -267,22 +272,29 @@ class PermissionsTestCase(BasePermissionsTestCase):
         # Prevent extra `share_` permissions from being assigned
         asset.editors_can_change_permissions = False
 
-        expected_lineage = [
+        common_expected_lineage = [
             #  (___)
             #  (o o)___________________________________________/
             #   @@ `                                           \
             #    \ __________________________________________, /
             #    //                                          //
             #   ^^                                          ^^
-            'view_asset', 'view_submissions', 'change_submissions']
-        self.assertListEqual(list(asset.get_perms(grantee)), [])
-        # Assigning the tail should bring the head and body along
-        asset.assign_perm(grantee, expected_lineage[-1])
-        self.assertListEqual(
-            sorted(asset.get_perms(grantee)), sorted(expected_lineage))
-        # Removing the head should remove the body and tail as well
-        asset.remove_perm(grantee, expected_lineage[0])
-        self.assertListEqual(list(asset.get_perms(grantee)), [])
+            'view_asset', 'view_submissions']
+        implied_permissions = ['change_submissions', 'validate_submissions']
+
+        for implied_permission in implied_permissions:
+            # Copy common lineage before appending submissions.
+            expected_lineage = list(common_expected_lineage)
+            expected_lineage.append(implied_permission)
+
+            self.assertListEqual(list(asset.get_perms(grantee)), [])
+            # Assigning the tail should bring the head and body along
+            asset.assign_perm(grantee, expected_lineage[-1])
+            self.assertListEqual(
+                sorted(asset.get_perms(grantee)), sorted(expected_lineage))
+            # Removing the head should remove the body and tail as well
+            asset.remove_perm(grantee, expected_lineage[0])
+            self.assertListEqual(list(asset.get_perms(grantee)), [])
 
     def test_implied_asset_deny_permissions(self):
         r"""
@@ -322,8 +334,9 @@ class PermissionsTestCase(BasePermissionsTestCase):
                 'add_submissions',
                 'change_asset',
                 'change_submissions',
+                'validate_submissions',
                 'view_asset',
-                'view_submissions'
+                'view_submissions',
             ]
         )
 
@@ -346,6 +359,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
                 'add_submissions',
                 'change_asset',
                 'change_submissions',
+                'validate_submissions',
                 'view_asset',
                 'view_submissions'
             ]
@@ -364,6 +378,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
             ('add_submissions', True),
             ('change_asset', True),
             ('change_submissions', False),
+            ('validate_submissions', True),
             ('view_asset', False),
             ('view_submissions', False)
         ]

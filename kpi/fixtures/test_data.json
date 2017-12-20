@@ -44,6 +44,7 @@
                ["view_asset", "kpi", "asset"],
                ["add_submissions", "kpi", "asset"],
                ["change_submissions", "kpi", "asset"],
+               ["validate_submissions", "kpi", "asset"],
                ["delete_submissions", "kpi", "asset"],
                ["share_submissions", "kpi", "asset"],
                ["view_submissions", "kpi", "asset"]
@@ -79,6 +80,7 @@
                ["view_asset", "kpi", "asset"],
                ["add_submissions", "kpi", "asset"],
                ["change_submissions", "kpi", "asset"],
+               ["validate_submissions", "kpi", "asset"],
                ["delete_submissions", "kpi", "asset"],
                ["share_submissions", "kpi", "asset"],
                ["view_submissions", "kpi", "asset"]
