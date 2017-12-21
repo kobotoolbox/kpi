@@ -151,8 +151,11 @@
 }
 
 .form-view__cell--summary-chart {
-  height: 275px;
   position: relative;
+
+  &.active {
+    height: 275px;
+  }
 }
 
 @media screen and (min-width: 768px) {

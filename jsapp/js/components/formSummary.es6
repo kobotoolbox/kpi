@@ -149,7 +149,7 @@ class FormSummary extends React.Component {
                 {t('Past 31 days')}
               </a>
             </bem.FormView__cell>
-            <bem.FormView__cell m='summary-chart'>
+            <bem.FormView__cell m={`summary-chart`} className={this.state.subsCurrentPeriod ? 'active' : 'inactive'}>
               <canvas ref="canvas" className={this.state.submissionsChart ? 'visible' : 'hidden'}/>
             </bem.FormView__cell>
           </bem.FormView__cell>
