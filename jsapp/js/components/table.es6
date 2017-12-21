@@ -109,7 +109,7 @@ export class DataTable extends React.Component {
     },
     {
       Header: t('Validation status'),
-      accessor: 'sub-status',
+      accessor: '{_validation_status.uid}',
       index: '__2',
       minWidth: 150,
       className: 'rt-status',
