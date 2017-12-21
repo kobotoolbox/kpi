@@ -90,6 +90,7 @@ class FormSummary extends React.Component {
               }]
             },
             options: {
+              maintainAspectRatio: false,
               responsive: true,
               events: [''],
               legend: {
@@ -123,11 +124,11 @@ class FormSummary extends React.Component {
 
   } 
   getLatestSubmissionTime(assetid) {
-    const fq = ['_id', '_submission_time'];
+    const fq = ['_id', 'end'];
     const sort = [{id: '_id', desc: true}];
     dataInterface.getSubmissions(assetid, 1, 0, sort, fq).done((data) => {
       if (data.length)
-        this.setState({lastSubmission: data[0]['_submission_time']});
+        this.setState({lastSubmission: data[0]['end']});
       else 
         this.setState({lastSubmission: false});
     });
@@ -148,7 +149,9 @@ class FormSummary extends React.Component {
                 {t('Past 31 days')}
               </a>
             </bem.FormView__cell>
-            <canvas ref="canvas" className={this.state.submissionsChart ? 'visible' : 'hidden'}/>
+            <bem.FormView__cell m='summary-chart'>
+              <canvas ref="canvas" className={this.state.submissionsChart ? 'visible' : 'hidden'}/>
+            </bem.FormView__cell>
           </bem.FormView__cell>
           <bem.FormView__group m={['submission-stats']}>
             <bem.FormView__cell>
