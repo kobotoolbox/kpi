@@ -18,7 +18,23 @@ const AVAILABLE_FORM_STYLES = [
   {value: 'theme-grid pages', label: t('Grid theme + Multiple pages + headings in ALL CAPS')},
 ];
 
+const VALIDATION_STATUSES = [
+  {
+    value: 'validation_status_not_approved',
+    label: t('Not Approved')
+  },
+  {
+    value: 'validation_status_approved',
+    label: t('Approved')
+  },
+  {
+    value: 'validation_status_on_hold',
+    label: t('On Hold')
+  },
+];
+
 export default {
   AVAILABLE_FORM_STYLES: AVAILABLE_FORM_STYLES,
   update_states: update_states,
+  VALIDATION_STATUSES: VALIDATION_STATUSES
 };

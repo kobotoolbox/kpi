@@ -139,9 +139,27 @@
     overflow: visible;
   }
 
-  .submission-pager {
-    text-align: center;
+  .form-modal__group {
+    display: flex;
+    justify-content: space-between;
 
+    &--validation-status {
+      justify-content: flex-end;
+      align-items: center;
+      margin-bottom: 20px;
+
+      input {
+        min-width: 100px;
+      }
+
+      .Select {
+        margin-left: 10px;
+        text-align: left;
+      }
+    }
+  }
+
+  .submission-pager {
     a {
       display: inline-block;
       cursor: pointer;
