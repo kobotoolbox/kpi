@@ -301,6 +301,11 @@
   }
 }
 
+.custom-report--footer {
+  margin: 15px 0px;
+  text-align: right;
+}
+
 @media screen and (max-width: 767px) {
   .form-view__reportButtons button.custom-reports {
     margin-left: 8px;

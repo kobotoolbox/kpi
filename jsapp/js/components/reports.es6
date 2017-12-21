@@ -214,58 +214,81 @@ class SizeSliderInput extends React.Component {
   }
 };
 
-class CustomReportSettings extends React.Component {
+class CustomReportForm extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
+    console.log(props);
     this.state = {
-      title: ''
+      customReport: props.customReport
     };
+  }
+  customReportNameChange(e) {
+    var r = this.state.customReport;
+    r.name = e.target.value;
+    this.setState({customReport: r});
+  }
+  customReportQuestionChange(e) {
+    var r = this.state.customReport;
+    var name = e.target.getAttribute('data-name');
 
+    if (e.target.checked) {
+      r.questions.push(name);
+    } else {
+      r.questions.splice(r.questions.indexOf(name), 1);
+    }
+    this.setState({customReport: r});
   }
-  questionChange (e) {
-    console.log(e.currentTarget)
-    console.log(e.target.checked)
-    // this.props.onChange({
-    //   default: true,
-    // }, {
-    //   report_type: e.currentTarget.value || 'bar'
-    // });
-  }
-  titleChange (e) {
-    console.log(e.target.value)
-    this.setState({
-      title: e.target.value
-    });
+  saveCustomReport() {
+    let assetUid = this.props.assetUid;
+    let rStyles = this.props.reportStyles;
+    const crid = this.state.customReport.crid;
 
+    if (!rStyles.default.custom) {
+      rStyles.default.custom = {};
+    }
+
+    rStyles.default.custom[crid] = this.state.customReport;
+    actions.reports.setStyle(assetUid, rStyles);
   }
+
   render () {
     var questionList = this.props.reportData.map(function(q, i){
-       return (
-          <div className='graph-settings__question' key={i}>
-              <input type="checkbox" name="chart_question" 
-                value={q.name} 
-                onChange={this.questionChange} 
-                data-name={q.name}
-                id={'q-' + q.name} />
-              <label htmlFor={'q-' + q.name}>
-                {q.row.label[0]}
-              </label>
-          </div>
-       );
+      return (
+        <div className='graph-settings__question' key={i}>
+            <input type="checkbox" name="chart_question" 
+              checked={this.state.customReport.questions.includes(q.name)}
+              onChange={this.customReportQuestionChange} 
+              data-name={q.name}
+              id={'q-' + q.name} />
+            <label htmlFor={'q-' + q.name}>
+              {q.row.label[0]}
+            </label>
+        </div>
+      );
     }, this);
 
     return (
-        <bem.GraphSettings__charttype>
-          <div className="custom-report--title">
-            <input type="text" name="title" value={this.state.title} placeholder={t('Untitled Report')} onChange={this.titleChange} />
-          </div>
-          <strong>{t('Include the following questions:')}</strong>
-          {questionList}
-        </bem.GraphSettings__charttype>
-      );
+      <div className="custom-report-form">
+        <div className="custom-report--title">
+          <input type="text" name="title" 
+                  value={this.state.customReport.name} 
+                  placeholder={t('Untitled Report')} 
+                  onChange={this.customReportNameChange} />
+        </div>
+        <strong>{t('Include the following questions:')}</strong>
+        {questionList}
+        <div className='custom-report--footer'>
+          <button className="mdl-button mdl-button--raised mdl-button--colored"
+                  onClick={this.saveCustomReport}>
+            {t('Save')}
+          </button>
+        </div>
+      </div>
+    );    
   }
 };
+
 class Reports extends React.Component {
   constructor(props) {
     super(props);
@@ -278,8 +301,11 @@ class Reports extends React.Component {
       activeModalTab: 0,
       error: false,
       showExpandedReport: false,
-      reportLimit: 100,
-      customReports: false
+      reportLimit: 200,
+      customReports: false,
+      showReportGraphSettings: false, 
+      showCustomReportModal: false,
+      currentCustomReport: false
     };
     autoBind(this);
   }
@@ -363,17 +389,15 @@ class Reports extends React.Component {
     });
   }
   reportStyleChange (params, value) {
-
     let assetUid = this.state.asset.uid;
     let sett_ = this.state.reportStyles;
     if (params.default) {
       assign(sett_.default, value);
     }
-    // TODO: add custom report style set
 
-    console.log('sett ==> ', sett_);
+    console.log(sett_.default);
+
     actions.reports.setStyle(assetUid, sett_);
-
     this.setState({
       reportStyles: sett_,
     });
@@ -394,6 +418,36 @@ class Reports extends React.Component {
       showReportGraphSettings: !this.state.showReportGraphSettings,
     });
   }
+  setCustomReport (e) {
+    var crid = e ? e.target.getAttribute('data-crid') : false;
+
+    if(!this.state.showCustomReportModal) {
+      if (crid) {
+        // existing report
+        console.log('existing report');
+        console.log(this.state.reportStyles.default.custom[crid]);
+        var currentCustomReport = this.state.reportStyles.default.custom[crid];
+      } else {
+        // new custom report
+        var currentCustomReport = {
+          crid: txtid(),
+          name: '',
+          questions: []
+        }
+      }
+      this.setState({currentCustomReport: currentCustomReport});
+    }
+  }
+  toggleCustomReportModal () {
+    if(!this.state.showCustomReportModal) {
+      this.setCustomReport();
+    }
+
+    this.setState({showCustomReportModal: !this.state.showCustomReportModal});
+  }
+  triggerDefaultReport() {
+    this.setState({currentCustomReport: false});
+  }
   toggleExpandedReports () {
     stores.pageState.hideDrawerAndHeader(!this.state.showExpandedReport);
     this.setState({
@@ -407,25 +461,6 @@ class Reports extends React.Component {
   launchPrinting () {
     window.print();
   }
-  triggerNewReport() {
-    let assetUid = this.state.asset.uid;    
-    let sett_ = this.state.reportStyles;
-
-    var newid = txtid();
-    var newReport = {name: ''}
-
-    if (!sett_.custom) {
-      sett_.custom = {};
-    }
-
-    sett_.custom[newid] = newReport;
-
-    console.log('sett ==> ', sett_);
-    actions.reports.setStyle(assetUid, sett_);
-    this.setState({
-      reportStyles: sett_
-    });
-  }
   renderReportButtons () {
     var rows = this.state.rowsByIdentifier || {};
     var groupByList = [];
@@ -437,32 +472,37 @@ class Reports extends React.Component {
       }
     }
 
-    var customReports = this.state.reportStyles.custom || {};
+    // TODO: custom report should be saved elsewhere, change when backend updates
+    var customReports = this.state.reportStyles.default.custom || {};
+
     var customReportsList = [];
     for (var key in customReports) {
       customReportsList.push(customReports[key]);
     }
-    console.log(customReports);
+
+    console.log(this.state.currentCustomReport);
+
+    var _this = this;
 
     return (
       <bem.FormView__reportButtons>
         <ui.PopoverMenu type='custom-reports' 
-            triggerLabel={t('Custom Reports')}>
+            triggerLabel={this.state.currentCustomReport ? this.state.currentCustomReport.name : t('Custom Reports')}>
             <bem.PopoverMenu__link key='default' data-name='' onClick={this.triggerDefaultReport}>
                 {t("Default")}
             </bem.PopoverMenu__link>
             {
               Object.keys(customReports).map(function(m, i) {
-                console.log(m);
-                console.log(customReports[m]);
                 return (
-                  <bem.PopoverMenu__link key={m}>
+                  <bem.PopoverMenu__link key={m} data-crid={m} onClick={_this.setCustomReport}>
                       {customReports[m].name || t('Untitled report')}
                   </bem.PopoverMenu__link>
                 );
               })
             }
-            <bem.PopoverMenu__link key='new' onClick={this.triggerNewReport}>
+            <bem.PopoverMenu__link 
+              key='new' 
+              onClick={this.toggleCustomReportModal}>
                 {t("Create New Report")}
             </bem.PopoverMenu__link>
         </ui.PopoverMenu> 
@@ -567,10 +607,7 @@ class Reports extends React.Component {
           <div className="tabs-content">
             {this.state.activeModalTab === 0 && 
               <div className="graph-tab__size" id="graph-labels">
-                <CustomReportSettings
-                  reportData={reportData}
-                  //onChange={this.reportStyleChange}
-                  />
+                Other settings here go?
               </div>
             }
             {this.state.activeModalTab === 1 &&
@@ -614,6 +651,19 @@ class Reports extends React.Component {
       </bem.GraphSettings>
     );
   }
+  renderCustomReportModal () {
+    return (
+      <bem.GraphSettings>
+        <ui.Modal.Body>
+          <CustomReportForm reportData={this.state.reportData} 
+                            customReport={this.state.currentCustomReport} 
+                            assetUid={this.state.asset.uid}
+                            reportStyles={this.state.reportStyles}
+                            />
+        </ui.Modal.Body>
+      </bem.GraphSettings>
+    );
+  }
   resetReportLimit () {
     this.setState({
       reportLimit: false,
@@ -640,6 +690,13 @@ class Reports extends React.Component {
 
     for (var i = reportData.length - 1; i >= 0; i--) {;
       reportData[i].style = defaultStyle;
+    }
+
+
+    if (this.state.currentCustomReport && reportData.length) {
+      const currentQuestions = this.state.currentCustomReport.questions;
+      var fullReportData = reportData;
+      reportData = fullReportData.filter(q => currentQuestions.includes(q.name));
     }
 
     if (this.state.reportData === undefined) {
@@ -735,6 +792,14 @@ class Reports extends React.Component {
             </ui.Modal>
  
           : null}
+ 
+          {this.state.showCustomReportModal ?
+            <ui.Modal open onClose={this.toggleCustomReportModal} title={t('Custom Report')}>
+              {this.renderCustomReportModal()}
+            </ui.Modal>
+ 
+          : null}
+
         </bem.ReportView>
       </DocumentTitle>
       );
