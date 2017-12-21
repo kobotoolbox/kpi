@@ -480,8 +480,6 @@ class Reports extends React.Component {
       customReportsList.push(customReports[key]);
     }
 
-    console.log(this.state.currentCustomReport);
-
     var _this = this;
 
     return (
@@ -692,8 +690,8 @@ class Reports extends React.Component {
       reportData[i].style = defaultStyle;
     }
 
-
-    if (this.state.currentCustomReport && reportData.length) {
+    console.log(this.state.currentCustomReport);
+    if (this.state.currentCustomReport && this.state.currentCustomReport.questions.length && reportData.length) {
       const currentQuestions = this.state.currentCustomReport.questions;
       var fullReportData = reportData;
       reportData = fullReportData.filter(q => currentQuestions.includes(q.name));
