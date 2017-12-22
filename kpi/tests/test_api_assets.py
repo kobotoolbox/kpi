@@ -193,6 +193,23 @@ class AssetsDetailApiTests(APITestCase):
             PAGE_LENGTH
         )
 
+    def test_report_custom_field(self):
+        # Check the default value
+        response = self.client.get(self.asset_url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['report_custom'], {})
+        # Update
+        test_data ={'some_report': 'my insightful report'}
+        response = self.client.patch(
+            self.asset_url, format='json',
+            data={'report_custom': json.dumps(test_data)}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Verify
+        response = self.client.get(self.asset_url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['report_custom'], test_data)
+
 
 class AssetsXmlExportApiTests(KpiTestCase):
     fixtures = ['test_data']
