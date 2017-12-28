@@ -24,6 +24,8 @@ import {
   t,
   redirectTo,
   assign,
+  notify,
+  formatTime
 } from '../utils';
 
 import {
@@ -256,7 +258,9 @@ export class ProjectDownloads extends React.Component {
       lang: '_default',
       hierInLabels: false,
       groupSep: '/',
+      exports: false
     };
+
     autoBind(this);
   }
   handleChange (e, attr) {
@@ -284,100 +288,216 @@ export class ProjectDownloads extends React.Component {
         this.state.type
       ];
       if (this.state.type == 'xls' || this.state.type == 'csv') {
-        let params = $.param({
+        url = `/exports/`; // TODO: have the backend pass the URL in the asset
+        let postData = {
+          source: this.props.asset.url,
+          type: this.state.type,
           lang: this.state.lang,
           hierarchy_in_labels: this.state.hierInLabels,
           group_sep: this.state.groupSep,
+        };
+        $.ajax({
+          method: 'POST',
+          url: url,
+          data: postData
+        }).done((data) => {
+          $.ajax({url: data.url}).then((taskData) => {
+            if (taskData.status !== 'complete') {
+              notify(t('Your export is processing.'));
+            } else {
+              redirectTo(taskData.result);
+            }
+            this.getExports();
+          }).fail((taskFail) => {
+            alertify.error(t('Failed to retrieve the export task.'));
+            log('export task retrieval failed', taskFail);
+          });
+        }).fail((failData) => {
+          alertify.error(t('Failed to create the export.'));
+          log('export creation failed', failData);
         });
-        redirectTo(`${url}?${params}`);
       } else {
         redirectTo(url);
       }
     }
   }
-  componentDidMount () {
+
+  componentDidMount() {
     let translations = this.props.asset.content.translations;
     if (translations.length > 1) {
       this.setState({lang: translations[0]});
     }
+    this.getExports();
   }
+
+  componentWillUnmount() {
+     clearInterval(this.pollingInterval);
+  }
+
+  refreshExport(url) {
+    $.ajax({url: url}).then((taskData) => {
+      if (taskData.status !== 'created' && taskData.status !== 'processing') {
+        this.getExports();
+      }
+    });
+  }
+
+  getExports() {
+    var _this = this;
+    clearInterval(this.pollingInterval);
+
+    dataInterface.getAssetExports(this.props.asset.uid).done((data)=>{
+      if (data.count > 0) {
+        this.setState({exports: data.results.reverse()});
+
+        // Start a polling Interval if there is at least one export is not yet complete
+        data.results.every(function(item){
+          if(item.status === 'created' || item.status === 'processing'){
+            _this.pollingInterval  = setInterval(_this.refreshExport, 4000, item.url);
+             return false;
+          } else {
+            return true;
+          }
+        });
+      } else {
+        this.setState({exports: false});
+      }
+    });
+  }
+
   render () {
     let translations = this.props.asset.content.translations;
     var docTitle = this.props.asset.name || t('Untitled');
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-      <bem.FormView__cell>
-        <bem.FormModal__form onSubmit={this.handleSubmit}>
-          {[
-            <bem.FormModal__item key={'t'}>
-              <label htmlFor="type">{t('Select export type')}</label>
-              <select name="type" value={this.state.type}
-                  onChange={this.typeChange}>
-                <option value="xls">{t('XLS')}</option>
-                <option value="xls_legacy">{t('XLS (legacy)')}</option>
-                <option value="csv">{t('CSV')}</option>
-                <option value="csv_legacy">{t('CSV (legacy)')}</option>
-                <option value="zip_legacy">{t('Media Attachments (ZIP)')}</option>
-                <option value="kml_legacy">{t('GPS coordinates (KML)')}</option>
-                <option value="analyser_legacy">{t('Excel Analyser')}</option>
-                <option value="spss_labels">{t('SPSS Labels')}</option>
-              </select>
-            </bem.FormModal__item>
-          , this.state.type == 'xls' || this.state.type == 'csv' ? [
-              <bem.FormModal__item key={'x'}>
-                <label htmlFor="lang">{t('Value and header format')}</label>
-                <select name="lang" value={this.state.lang}
-                    onChange={this.langChange}>
-                  <option value="xml">{t('XML values and headers')}</option>
-                  { translations.length < 2 &&
-                    <option value="_default">{t('Labels')}</option>
-                  }
-                  {
-                    translations && translations.map((t, i) => {
-                      if (t) {
-                        return <option value={t} key={i}>{t}</option>;
-                      }
-                    })
-                  }
-                </select>
-              </bem.FormModal__item>,
-              <bem.FormModal__item key={'h'}>
-                <input type="checkbox" id="hierarchy_in_labels"
-                  value={this.state.hierInLabels}
-                  onChange={this.hierInLabelsChange}
-                />
-                <label htmlFor="hierarchy_in_labels">
-                  {t('Include groups in headers')}
-                </label>
-              </bem.FormModal__item>,
-              this.state.hierInLabels ?
-                <bem.FormModal__item key={'g'}>
-                  <label htmlFor="group_sep">{t('Group separator')}</label>
-                  <input type="text" name="group_sep"
-                    value={this.state.groupSep}
-                    onChange={this.groupSepChange}
-                  />
-                </bem.FormModal__item>
-              : null
-            ] : null
-          , this.state.type.indexOf('_legacy') > 0 ?
-            <bem.FormModal__item m='downloads' key={'d'}>
-              <iframe src={
-                  this.props.asset.deployment__data_download_links[
-                    this.state.type]
-              }>
-              </iframe>
-            </bem.FormModal__item>
-          :
-            <bem.FormModal__item key={'s'}>
-              <input type="submit" 
-                     value={t('Download')} 
-                     className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"/>
-            </bem.FormModal__item>
-          ]}
-        </bem.FormModal__form>
-      </bem.FormView__cell>
+        <bem.FormView m='form-data-downloads'>
+          <bem.FormView__row>
+              <bem.FormView__cell m='label'>
+                {t('Download Data')}
+              </bem.FormView__cell>
+              <bem.FormView__cell m={['box', 'padding']}>
+                <bem.FormModal__form onSubmit={this.handleSubmit}>
+                  {[
+                    <bem.FormModal__item key={'t'}>
+                      <label htmlFor="type">{t('Select export type')}</label>
+                      <select name="type" value={this.state.type}
+                          onChange={this.typeChange}>
+                        <option value="xls">{t('XLS')}</option>
+                        <option value="xls_legacy">{t('XLS (legacy)')}</option>
+                        <option value="csv">{t('CSV')}</option>
+                        <option value="csv_legacy">{t('CSV (legacy)')}</option>
+                        <option value="zip_legacy">{t('Media Attachments (ZIP)')}</option>
+                        <option value="kml_legacy">{t('GPS coordinates (KML)')}</option>
+                        <option value="analyser_legacy">{t('Excel Analyser')}</option>
+                        <option value="spss_labels">{t('SPSS Labels')}</option>
+                      </select>
+                    </bem.FormModal__item>
+                  , this.state.type == 'xls' || this.state.type == 'csv' ? [
+                      <bem.FormModal__item key={'x'}>
+                        <label htmlFor="lang">{t('Value and header format')}</label>
+                        <select name="lang" value={this.state.lang}
+                            onChange={this.langChange}>
+                          <option value="xml">{t('XML values and headers')}</option>
+                          { translations.length < 2 &&
+                            <option value="_default">{t('Labels')}</option>
+                          }
+                          {
+                            translations && translations.map((t, i) => {
+                              if (t) {
+                                return <option value={t} key={i}>{t}</option>;
+                              }
+                            })
+                          }
+                        </select>
+                      </bem.FormModal__item>,
+                      <bem.FormModal__item key={'h'}>
+                        <input type="checkbox" id="hierarchy_in_labels"
+                          value={this.state.hierInLabels}
+                          onChange={this.hierInLabelsChange}
+                        />
+                        <label htmlFor="hierarchy_in_labels">
+                          {t('Include groups in headers')}
+                        </label>
+                      </bem.FormModal__item>,
+                      this.state.hierInLabels ?
+                        <bem.FormModal__item key={'g'}>
+                          <label htmlFor="group_sep">{t('Group separator')}</label>
+                          <input type="text" name="group_sep"
+                            value={this.state.groupSep}
+                            onChange={this.groupSepChange}
+                          />
+                        </bem.FormModal__item>
+                      : null
+                    ] : null
+                  , this.state.type.indexOf('_legacy') > 0 ?
+                    <bem.FormModal__item m='downloads' key={'d'}>
+                      <iframe src={
+                          this.props.asset.deployment__data_download_links[
+                            this.state.type]
+                      }>
+                      </iframe>
+                    </bem.FormModal__item>
+                  :
+                    <bem.FormModal__item key={'s'}>
+                      <input type="submit" 
+                             value={t('Export')} 
+                             className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"/>
+                    </bem.FormModal__item>
+                  ]}
+                </bem.FormModal__form>
+              </bem.FormView__cell>
+          </bem.FormView__row>
+          {this.state.exports && 
+            <bem.FormView__row>
+                <bem.FormView__cell m='label'>
+                  {t('Previous Exports')}
+                </bem.FormView__cell>
+                <bem.FormView__cell m={['box', 'exports-table']}>
+                  <bem.FormView__group m={['items', 'headings']}>
+                    <bem.FormView__label m='type'>{t('Type')}</bem.FormView__label>
+                    <bem.FormView__label m='date'>{t('Created')}</bem.FormView__label>
+                    <bem.FormView__label m='lang'>{t('Language')}</bem.FormView__label>
+                    <bem.FormView__label m='include-groups'>{t('Include Groups')}</bem.FormView__label>
+                    <bem.FormView__label></bem.FormView__label>
+                  </bem.FormView__group>
+                  {this.state.exports.map((item, n) => {
+                    return (
+                      <bem.FormView__group m="items" key={n} >
+                        <bem.FormView__label m='type'>
+                          {item.data.type}
+                        </bem.FormView__label>
+                        <bem.FormView__label m='date'>
+                          {formatTime(item.date_created)}
+                        </bem.FormView__label>
+                        <bem.FormView__label m='lang'>
+                        {item.data.lang === "_default" ? t('Default') : item.data.lang}
+                        </bem.FormView__label>
+                        <bem.FormView__label m='include-groups'>
+                          {item.data.hierarchy_in_labels === "false" ? t('No') : t("Yes")}
+                        </bem.FormView__label>
+                        <bem.FormView__label m='action'>
+                          {item.status == 'complete' &&
+                            <a className="form-view__link" href={item.result} data-tip={t('Download')}>
+                              <i className="k-icon-download" />
+                            </a>
+                          }
+                          {item.status == 'error' &&
+                            <span data-tip={item.messages.error}>
+                              {t('Export Failed')}
+                            </span>
+                          }
+                          {item.status != 'error' && item.status != 'complete' &&
+                            <span>{t('processing...')}</span>
+                          }
+                        </bem.FormView__label>
+                      </bem.FormView__group>
+                    );
+                  })}
+                </bem.FormView__cell>
+            </bem.FormView__row>
+          }
+        </bem.FormView>
       </DocumentTitle>
     );
   }

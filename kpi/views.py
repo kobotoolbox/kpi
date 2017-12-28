@@ -51,6 +51,7 @@ from .models import (
     AssetVersion,
     AssetSnapshot,
     ImportTask,
+    ExportTask,
     ObjectPermission,
     AuthorizedApplication,
     OneTimeAuthenticationKey,
@@ -58,6 +59,7 @@ from .models import (
     )
 from .models.object_permission import get_anonymous_user, get_objects_for_user
 from .models.authorized_application import ApplicationTokenAuthentication
+from .models.import_export_task import _resolve_url_to_asset_or_collection
 from .model_utils import disable_auto_field_update
 from .permissions import (
     IsOwnerOrReadOnly,
@@ -81,6 +83,7 @@ from .serializers import (
     CurrentUserSerializer, CreateUserSerializer,
     TagSerializer, TagListSerializer,
     ImportTaskSerializer, ImportTaskListSerializer,
+    ExportTaskSerializer,
     ObjectPermissionSerializer,
     AuthorizedApplicationUserSerializer,
     OneTimeAuthenticationKeySerializer,
@@ -89,7 +92,7 @@ from .serializers import (
 from .utils.gravatar_url import gravatar_url
 from .utils.kobo_to_xlsform import to_xlsform_structure
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
-from .tasks import import_in_background
+from .tasks import import_in_background, export_in_background
 from deployment_backends.backends import DEPLOYMENT_BACKENDS
 from deployment_backends.kobocat_backend import KobocatDataProxyViewSetMixin
 
@@ -482,6 +485,134 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
                 'uid': import_task.uid,
                 'status': ImportTask.PROCESSING
             }, status.HTTP_201_CREATED)
+
+
+class ExportTaskViewSet(NoUpdateModelViewSet):
+    queryset = ExportTask.objects.all()
+    serializer_class = ExportTaskSerializer
+    lookup_field = 'uid'
+
+    def get_queryset(self, *args, **kwargs):
+        if self.request.user.is_anonymous():
+            return ExportTask.objects.none()
+
+        queryset = ExportTask.objects.filter(
+            user=self.request.user).order_by('date_created')
+
+        # Ultra-basic filtering by:
+        # * source URL or UID if `q=source:[URL|UID]` was provided;
+        # * comma-separated list of `ExportTask` UIDs if
+        #   `q=uid__in:[UID],[UID],...` was provided
+        q = self.request.query_params.get('q', False)
+        if not q:
+            # No filter requested
+            return queryset
+        if q.startswith('source:'):
+            q = q.lstrip('source:')
+            # This is exceedingly crude... but support for querying inside
+            # JSONField not available until Django 1.9
+            queryset = queryset.filter(data__contains=q)
+        elif q.startswith('uid__in:'):
+            q = q.lstrip('uid__in:')
+            uids = [uid.strip() for uid in q.split(',')]
+            queryset = queryset.filter(uid__in=uids)
+        else:
+            # Filter requested that we don't understand; make it obvious by
+            # returning nothing
+            return ExportTask.objects.none()
+        return queryset
+
+    def create(self, request, *args, **kwargs):
+        if self.request.user.is_anonymous():
+            raise exceptions.NotAuthenticated()
+
+        # Read valid options from POST data
+        valid_options = (
+            'type',
+            'source',
+            'group_sep',
+            'lang',
+            'hierarchy_in_labels',
+            'async', # HACK to simplify ES6, see HACK below
+        )
+        task_data = {}
+        for opt in valid_options:
+            opt_val = request.POST.get(opt, None)
+            if opt_val is not None:
+                task_data[opt] = opt_val
+        # Complain if no source was specified
+        if not task_data.get('source', False):
+            raise exceptions.ValidationError(
+                {'source': 'This field is required.'})
+        # Get the source object
+        source_type, source = _resolve_url_to_asset_or_collection(
+            task_data['source'])
+        # Complain if it's not an Asset
+        if source_type != 'asset':
+            raise exceptions.ValidationError(
+                {'source': 'This field must specify an asset.'})
+        # Complain if it's not deployed
+        if not source.has_deployment:
+            raise exceptions.ValidationError(
+                {'source': 'The specified asset must be deployed.'})
+        '''
+        # Figure out if an existing export satisfies this request
+        with transaction.atomic():
+            # FIXME: What if a submission were modified?
+            # See onadata.apps.viewer.models.export.Export
+            last_submission_time = source.deployment.last_submission_time
+            # FIXME: Mongo has only per-second resolution. Brutal.
+            last_submission_time = datetime.datetime(
+                year=last_submission_time.year,
+                month=last_submission_time.month,
+                day=last_submission_time.day,
+                hour=last_submission_time.hour,
+                minute=last_submission_time.minute,
+                second=last_submission_time.second,
+                tzinfo=last_submission_time.tzinfo,
+            )
+            previous_exports = ExportTask.objects.filter(
+                last_submission_time=last_submission_time,
+                data__contains=task_data['source']
+            ).order_by('-date_created')
+            for previous_export in previous_exports:
+                match = True
+                for opt in valid_options:
+                    current_val = task_data.get(opt, None)
+                    previous_val = previous_export.data.get(opt, None)
+                    if current_val != previous_val:
+                        match = False
+                        break
+                if match:
+                    # No need to generate a new export; return the existing one
+                    # TODO: watch out for stuck exports
+                    return Response({
+                        'uid': previous_export.uid,
+                        'url': reverse(
+                            'exporttask-detail',
+                            kwargs={'uid': export_task.uid},
+                            request=request),
+                        'status': previous_export.status
+                    })
+        '''
+        # Create a new export task
+        export_task = ExportTask.objects.create(user=request.user,
+                                                data=task_data)
+        # Have Celery run the export in the background
+        # HACK temporary HACK so jnm doesn't have to write complicated ES6
+        # FIXME: unwise to allow user to run synchronous exports
+        if task_data.get('async', 'true') == 'false':
+            export_in_background(export_task_uid=export_task.uid)
+        else:
+            export_in_background.delay(export_task_uid=export_task.uid)
+        return Response({
+            'uid': export_task.uid,
+            'url': reverse(
+                'exporttask-detail',
+                kwargs={'uid': export_task.uid},
+                request=request),
+            'status': ExportTask.PROCESSING
+        }, status.HTTP_201_CREATED)
 
 
 class AssetSnapshotViewSet(NoUpdateModelViewSet):
