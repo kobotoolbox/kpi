@@ -199,7 +199,7 @@ class AssetsDetailApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['report_custom'], {})
         # Update
-        test_data ={'some_report': 'my insightful report'}
+        test_data = {'some_report': 'my insightful report'}
         response = self.client.patch(
             self.asset_url, format='json',
             data={'report_custom': json.dumps(test_data)}
