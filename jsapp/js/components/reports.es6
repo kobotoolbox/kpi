@@ -218,7 +218,7 @@ class CustomReportForm extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
-    console.log(props);
+
     this.state = {
       customReport: props.customReport
     };
@@ -289,6 +289,34 @@ class CustomReportForm extends React.Component {
   }
 };
 
+class ReportContents extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+  shouldComponentUpdate(nextProps, nextState) {
+    // to improve UI performance, don't refresh report while a modal window is visible
+    if (nextProps.parentState.showReportGraphSettings || nextProps.parentState.showCustomReportModal) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+  render () {
+    return (
+      <div>
+        {
+          this.props.reportData.map((rowContent, i)=>{
+            return (
+                <bem.ReportView__item key={i}>
+                  <ReportViewItem {...rowContent} translations={this.props.parentState.translations} translationIndex={this.props.parentState.translationIndex} />
+                </bem.ReportView__item>
+              );
+          })
+        }
+      </div>
+    );
+  }
+};
 class Reports extends React.Component {
   constructor(props) {
     super(props);
@@ -311,6 +339,7 @@ class Reports extends React.Component {
   }
   componentDidMount () {
     this.loadReportData([]);
+    this.listenTo(actions.reports.setStyle, this.reportStyleListener);
   }
   componentWillUpdate (nextProps, nextState) {
     if (this.state.groupBy != nextState.groupBy)
@@ -318,14 +347,6 @@ class Reports extends React.Component {
   }
   loadReportData(groupBy) {
     let uid = this.props.params.assetid;
-    // PM note: this below seems to cause child reportViewItem's componentWillUpdate to run twice, causing odd animation issues
-    // this.listenTo(actions.reports.setStyle.completed, (asset)=>{
-    //   if (asset.uid === uid) {
-    //     this.setState({
-    //       reportStyles: asset.report_styles,
-    //     });
-    //   }
-    // });
     stores.allAssets.whenLoaded(uid, (asset)=>{
       let rowsByKuid = {};
       let rowsByIdentifier = {};
@@ -383,10 +404,11 @@ class Reports extends React.Component {
     });
   }
   groupDataBy(evt) {
-    var gb = evt.target.getAttribute('data-name') ? [evt.target.getAttribute('data-name')] : [];
-    this.setState({
-      groupBy: gb,
-    });
+    var gb = evt.target.value ? [evt.target.value] : [];
+    this.setState({groupBy: gb});
+  }
+  reportStyleListener(asssetUid, reportStyles) {
+    this.setState({reportStyles: reportStyles, showCustomReportModal: false});
   }
   reportStyleChange (params, value) {
     let assetUid = this.state.asset.uid;
@@ -394,8 +416,6 @@ class Reports extends React.Component {
     if (params.default) {
       assign(sett_.default, value);
     }
-
-    console.log(sett_.default);
 
     actions.reports.setStyle(assetUid, sett_);
     this.setState({
@@ -410,8 +430,7 @@ class Reports extends React.Component {
     }
   }
   translationIndexChange (evt) {
-    var TI = evt.target.getAttribute('data-index') ? evt.target.getAttribute('data-index') : 0;
-    this.setState({translationIndex: TI});
+    this.setState({translationIndex: evt.target.value});
   }
   toggleReportGraphSettings () {
     this.setState({
@@ -424,8 +443,6 @@ class Reports extends React.Component {
     if(!this.state.showCustomReportModal) {
       if (crid) {
         // existing report
-        console.log('existing report');
-        console.log(this.state.reportStyles.default.custom[crid]);
         var currentCustomReport = this.state.reportStyles.default.custom[crid];
       } else {
         // new custom report
@@ -438,9 +455,21 @@ class Reports extends React.Component {
       this.setState({currentCustomReport: currentCustomReport});
     }
   }
+  editCustomReport () {
+    if(this.state.currentCustomReport) {
+      this.setState({showCustomReportModal: true});
+    }
+  }
   toggleCustomReportModal () {
     if(!this.state.showCustomReportModal) {
       this.setCustomReport();
+    } else {
+      if (this.state.currentCustomReport) {
+        var crid = this.state.currentCustomReport.crid;
+        if (this.state.reportStyles.default.custom[crid] == undefined) {
+          this.triggerDefaultReport();
+        }
+      }
     }
 
     this.setState({showCustomReportModal: !this.state.showCustomReportModal});
@@ -462,16 +491,6 @@ class Reports extends React.Component {
     window.print();
   }
   renderReportButtons () {
-    var rows = this.state.rowsByIdentifier || {};
-    var groupByList = [];
-    for (var key in rows) {
-      if (rows.hasOwnProperty(key) 
-          && rows[key].hasOwnProperty('type')
-          && rows[key].type == 'select_one') {
-        groupByList.push(rows[key]);
-      }
-    }
-
     // TODO: custom report should be saved elsewhere, change when backend updates
     var customReports = this.state.reportStyles.default.custom || {};
 
@@ -479,6 +498,7 @@ class Reports extends React.Component {
     for (var key in customReports) {
       customReportsList.push(customReports[key]);
     }
+    customReportsList.sort((a, b) => a.name.localeCompare(b.name));
 
     var _this = this;
 
@@ -486,14 +506,22 @@ class Reports extends React.Component {
       <bem.FormView__reportButtons>
         <ui.PopoverMenu type='custom-reports' 
             triggerLabel={this.state.currentCustomReport ? this.state.currentCustomReport.name : t('Custom Reports')}>
-            <bem.PopoverMenu__link key='default' data-name='' onClick={this.triggerDefaultReport}>
-                {t("Default")}
+            <bem.PopoverMenu__link 
+              key='default' 
+              data-name='' 
+              onClick={this.triggerDefaultReport}
+              className={!this.state.currentCustomReport ? 'active' : ''}>
+                {t("Default Report")}
             </bem.PopoverMenu__link>
             {
-              Object.keys(customReports).map(function(m, i) {
+              customReportsList.map(function(m) {
                 return (
-                  <bem.PopoverMenu__link key={m} data-crid={m} onClick={_this.setCustomReport}>
-                      {customReports[m].name || t('Untitled report')}
+                  <bem.PopoverMenu__link 
+                    key={m.crid} 
+                    data-crid={m.crid} 
+                    onClick={_this.setCustomReport}
+                    className={(_this.state.currentCustomReport && _this.state.currentCustomReport.crid == m.crid) ? 'active' : ''}>
+                      {m.name || t('Untitled report')}
                   </bem.PopoverMenu__link>
                 );
               })
@@ -505,40 +533,12 @@ class Reports extends React.Component {
             </bem.PopoverMenu__link>
         </ui.PopoverMenu> 
 
-        {groupByList.length > 1 && 
-          <ui.PopoverMenu type='groupby-menu' 
-              triggerLabel={t('Group By')}>
-              <bem.PopoverMenu__link key='default' data-name='' onClick={this.groupDataBy}>
-                  {t("No grouping")}
-              </bem.PopoverMenu__link>
-
-              {groupByList.map((row, i)=>{
-                  return (
-                    <bem.PopoverMenu__link key={i}
-                        data-name={row.name || row.$autoname}
-                        onClick={this.groupDataBy}>
-                         {this.state.translations ? row.label[this.state.translationIndex] : row.label}
-                    </bem.PopoverMenu__link>
-                  );
-                })
-              }
-          </ui.PopoverMenu> 
-        }
-
-        {this.state.translations && 
-          <ui.PopoverMenu type='question-language' 
-              triggerLabel={t('Translation')}>
-              {this.state.asset.content.translations.map((row, i)=>{
-                  return (
-                    <bem.PopoverMenu__link key={i}
-                        data-index={i}
-                        onClick={this.translationIndexChange}>
-                         {row}
-                    </bem.PopoverMenu__link>
-                  );
-                })
-              }
-          </ui.PopoverMenu> 
+        {this.state.currentCustomReport && 
+          <button className="mdl-button mdl-button--icon report-button__edit"
+                onClick={this.editCustomReport} 
+                data-tip={t('Edit This Report')}>
+            <i className="k-icon-edit" />
+          </button>
         }
 
         <button className="mdl-button mdl-button--icon report-button__expand"
@@ -576,14 +576,32 @@ class Reports extends React.Component {
       defaultStyle = this.state.reportStyles.default || {};
     }
 
-    let translations = false;
     let reportData = this.state.reportData || [];
 
     for (var i = reportData.length - 1; i >= 0; i--) {;
       reportData[i].style = defaultStyle;
     }
 
-    var tabs = [t('Questions'), t('Chart Type'), t('Colors'), t('Size')];
+    var rows = this.state.rowsByIdentifier || {};
+    var groupByList = [];
+    for (var key in rows) {
+      if (rows.hasOwnProperty(key) 
+          && rows[key].hasOwnProperty('type')
+          && rows[key].type == 'select_one') {
+        groupByList.push(rows[key]);
+      }
+    }
+
+
+    var tabs = [t('Chart Type'), t('Colors / Size')];
+
+    if (groupByList.length > 1) {
+      tabs.push(t('Group By'));
+    }
+
+    if (this.state.translations) {
+      tabs.push(t('Translation'));
+    }
 
     var modalTabs = tabs.map(function(tab, i){
       return (
@@ -603,12 +621,7 @@ class Reports extends React.Component {
         </ui.Modal.Tabs>
         <ui.Modal.Body>
           <div className="tabs-content">
-            {this.state.activeModalTab === 0 && 
-              <div className="graph-tab__size" id="graph-labels">
-                Other settings here go?
-              </div>
-            }
-            {this.state.activeModalTab === 1 &&
+            {this.state.activeModalTab === 0 &&
               <div id="graph-type">
                 <DefaultChartTypePicker
                   defaultStyle={defaultStyle}
@@ -616,15 +629,11 @@ class Reports extends React.Component {
                 />
               </div>
             }
-            {this.state.activeModalTab === 2 &&
+            {this.state.activeModalTab === 1 &&
               <div id="graph-colors">
                 <DefaultChartColorsPicker
                   defaultStyle={defaultStyle}
                   onChange={this.reportStyleChange}/>
-              </div>
-            }
-            {this.state.activeModalTab === 3 && 
-              <div className="graph-tab__size" id="graph-labels">
                 <SizeSliderInput 
                       name="width" min="300" max="900" default={this.state.graphWidth} 
                       label={t('Width: ')} 
@@ -637,6 +646,51 @@ class Reports extends React.Component {
                 </div>
               </div>
             }
+            {this.state.activeModalTab === 2 && groupByList.length > 1 && 
+              <div className="graph-tab__groupby" id="graph-labels">
+                <label htmlFor={'groupby-00'} key='00'>
+                  <input type="radio" name="group_by" 
+                    value={''}
+                    onChange={this.groupDataBy} 
+                    checked={this.state.groupBy.length === 0 ? true : false}
+                    id={'groupby-00'} />
+                      {t("No grouping")}
+                </label>
+
+                {groupByList.map((row, i)=>{
+                    var val = row.name || row.$autoname;
+                    return (
+                      <label htmlFor={'groupby-' + i} key={i}>
+                        <input type="radio" name="group_by" 
+                          value={val}
+                          onChange={this.groupDataBy} 
+                          checked={this.state.groupBy[0] === val ? true : false}
+                          id={'groupby-' + i} />
+                          {this.state.translations ? row.label[this.state.translationIndex] : row.label}
+                      </label>
+                    );
+                  })
+                }
+              </div>
+            }
+            {this.state.activeModalTab === 3 && this.state.translations && 
+              <div className="graph-tab__translation" id="graph-labels">
+                {this.state.asset.content.translations.map((row, i)=>{
+                    return (
+                      <label htmlFor={'translation-' + i} key={i}>
+                        <input type="radio" name="trnsltn"
+                          value={i}
+                          onChange={this.translationIndexChange}
+                          checked={this.state.asset.content.translations[this.state.translationIndex] === row ? true : false}
+                          id={'translation-' + i} />
+                        {row}
+                      </label>
+                    );
+                  })
+                }
+              </div>
+            }
+
           </div>
         </ui.Modal.Body>
  
@@ -680,20 +734,19 @@ class Reports extends React.Component {
       docTitle = asset.name || t('Untitled');
     }
 
-    let reportData = this.state.reportData || [];
+    var reportData = this.state.reportData || [];
 
     if (this.state.reportLimit && reportData.length && reportData.length > this.state.reportLimit) {
       reportData = reportData.slice(0, this.state.reportLimit);
     }
 
-    for (var i = reportData.length - 1; i >= 0; i--) {;
-      reportData[i].style = defaultStyle;
-    }
+    // for (var i = reportData.length - 1; i >= 0; i--) {;
+    //   reportData[i].style = defaultStyle;
+    // }
 
-    console.log(this.state.currentCustomReport);
     if (this.state.currentCustomReport && this.state.currentCustomReport.questions.length && reportData.length) {
       const currentQuestions = this.state.currentCustomReport.questions;
-      var fullReportData = reportData;
+      var fullReportData = this.state.reportData;
       reportData = fullReportData.filter(q => currentQuestions.includes(q.name));
     }
 
@@ -758,23 +811,9 @@ class Reports extends React.Component {
                 <h4>{t('Warning')}</h4>
                 <p>{t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. ')}</p>
               </bem.ReportView__warning>
-              {
-                reportData.map((rowContent, i)=>{
-                  return (
-                      <bem.ReportView__item key={i}>
-                        {/* style picker:
-                        <IndividualReportStylePicker key={kuid}
-                            row={row}
-                            onChange={this.reportStyleChange}
-                            asset={asset}
-                            style={row.chartStyle}
-                          />
-                        */}
-                        <ReportViewItem {...rowContent} translations={this.state.translations} translationIndex={this.state.translationIndex} />
-                      </bem.ReportView__item>
-                    );
-                })
-              }
+
+              <ReportContents parentState={this.state} reportData={reportData} />
+
             </bem.ReportView__wrap>
           :
             <bem.Loading>

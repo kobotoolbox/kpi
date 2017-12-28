@@ -134,6 +134,10 @@
       margin-left: 8px;
     }
 
+    &.report-button__edit {
+      overflow: visible;
+    }
+
     &.report-button__expand,
     &.report-button__print, &.report-button__settings {
       float: right;
@@ -268,14 +272,12 @@
       }
     }
   }
-}
 
-.graph-tab__size {
-  padding: 20px;
-
-  .slider-item {
+  + .slider-item {
     padding: 10px;
     display: flex;
+    width: 240px;
+    margin: 0 auto;
 
     > label {
       width: 100px;
@@ -283,6 +285,24 @@
 
     > div {
       flex-grow: 1;
+    }
+  }
+}
+
+.graph-tab__groupby,
+.graph-tab__translation {
+  padding: 20px 30px;
+
+  > label {
+    display: block;
+    padding: 8px 0px;
+    padding-left: 30px;
+    position: relative;
+    font-size: 14px;
+
+    input {
+      position: absolute;
+      left: 0px;
     }
   }
 }

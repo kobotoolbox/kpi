@@ -326,8 +326,7 @@
   width: 100%;
 }
 
-.popover-menu--question-language,
-.popover-menu--custom-reports {
+.popover-menu--question-language {
   .popover-menu__toggle {
     @extend .mdl-button;
 
@@ -343,7 +342,7 @@
   }
 }
 
-.popover-menu--groupby-menu {
+.popover-menu--custom-reports {
   .popover-menu__toggle {
     @extend .mdl-button;
 
