@@ -33,21 +33,25 @@
     align-items: stretch;
     display: flex;
   }
+
   .modal-content {
     height: 100%;
     width: 100%;
     display: flex;
     flex-direction: column;
   }
+
   .modal-body {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
+
     .enketo-holder {
       flex-grow: 1;
       display: flex;
       flex-direction: column;
     }
+
     iframe {
       flex-grow: 1;
       border: 1px solid white;
@@ -89,9 +93,11 @@
   font-size: 20px;
   color: #FFF;
   cursor: pointer;
+
   i {
     font-size: 32px;
   }
+
   &:hover {
     opacity: 0.7;
   }
@@ -99,11 +105,93 @@
 
 .modal-footer {
   text-align: right;
+
   button {
     @extend .mdl-button, .mdl-button--colored, .mdl-button--raised;
+
     text-transform: uppercase;
     padding-left: 40px;
     padding-right: 40px;
+  }
+}
+
+.modal-submission {
+  .modal-open {
+    background-color: #FFF;
+  }
+
+  .modal-header {
+    background-color: #F8F8F8;
+    color: $layout-text-color;
+  }
+
+  .modal-x {
+    color: $layout-text-color;
+  }
+
+  .form-modal {
+    text-align: right;
+    padding-bottom: 20px;
+  }
+
+  .mdl-button--raised + .mdl-button--icon {
+    margin-left: 30px;
+    overflow: visible;
+  }
+
+  .submission-pager {
+    text-align: center;
+
+    a {
+      display: inline-block;
+      cursor: pointer;
+    }
+  }
+
+  table {
+    border: 1px solid #F6F6F6;
+    border-collapse: collapse;
+    width: 100%;
+    margin: 20px 0px;
+    text-align: left;
+
+    thead th {
+      font-weight: 600;
+      padding: 8px 12px;
+      background-color: #F6F6F6;
+      text-align: left;
+    }
+
+    tbody {
+      tr {
+        border-bottom: 1px solid $divider-color;
+      }
+
+      td {
+        padding: 12px;
+
+        ul {
+          list-style: disc;
+          margin-left: 30px;
+        }
+      }
+    }
+
+    .submission--question-type {
+      width: 5%;
+    }
+
+    .submission--question {
+      width: 45%;
+    }
+
+    .submission--response {
+      width: 50%;
+
+      img {
+        max-width: 100%;
+      }
+    }
   }
 }
 
@@ -117,11 +205,13 @@
 .enketo-holder {
   // resets modal window paddings
   margin: -30px -35px;
+
   .enketo-loading-message {
     p {
       text-align: center;
       font-weight: 600;
     }
+
     i:before {
       color: #3FA2EE;
       font-size: 20px;
@@ -181,6 +271,7 @@
   background: transparent;
   font-size: 32px;
   color: lighten($cool-gray, 20%);
+
   &:hover {
     color: $cool-gray;
   }
@@ -200,6 +291,7 @@
 
 .alertify .ajs-body .ajs-content {
   padding: 0px;
+
   pre {
     max-height: 300px;
     overflow: auto;
@@ -219,19 +311,25 @@
 .alertify .ajs-footer {
   margin: -4px;
   padding: 17px 0px;
+
   .ajs-buttons.ajs-primary {
     text-align: right;
   }
+
   button {
     @extend .mdl-button;
+
     text-transform: uppercase;
     padding-left: 20px;
     padding-right: 20px;
+
     &.ajs-ok {
       @extend .mdl-button--colored, .mdl-button--raised;
     }
+
     &.ajs-cancel {
       @extend .mdl-button--colored;
+
       &:focus, &:focus:not(:active) {
         background: transparent;
       }
@@ -253,6 +351,7 @@
     max-width: 460px;
     line-height: 1.3em;
   }
+
   .ajs-message .ajs-close {
     background-image: none;
     background: transparent;
@@ -260,7 +359,9 @@
     top: 50%;
     margin-top: -10px;
     opacity: 0.5;
+
     @extend .k-icon, .k-icon-close;
+
     color: white;
   }
 }
@@ -270,12 +371,15 @@
   display: block;
   padding-bottom: 5px;
   padding-top: 5px;
+
   input {
     margin-right: 5px;
   }
+
   &:first-child {
     padding-top: 15px;
   }
+
   &.alertify-toggle-important {
     margin-top: 20px;
     padding-top: 20px;

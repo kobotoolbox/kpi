@@ -2,10 +2,11 @@ import $ from 'jquery';
 window.jQuery = $;
 window.$ = $;
 require('jquery.scrollto');
-require('jquery-ui/sortable');
+require('jquery-ui/ui/widgets/sortable');
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import DocumentTitle from 'react-document-title';
@@ -103,8 +104,9 @@ class App extends React.Component {
           }
           <bem.PageWrapper m={{
               'fixed-drawer': this.state.pageState.showFixedDrawer,
-              'header-hidden': (this.isFormBuilder() || this.state.pageState.headerHidden),
-              'drawer-hidden': (this.isFormBuilder() || this.state.pageState.drawerHidden),
+              'header-hidden': this.state.pageState.headerHidden,
+              'drawer-hidden': this.state.pageState.drawerHidden,
+              'in-formbuilder': this.isFormBuilder()
                 }} className="mdl-layout mdl-layout--fixed-header">
               { this.state.pageState.modal &&
                 <Modal params={this.state.pageState.modal} />
@@ -247,7 +249,7 @@ class SectionNotFound extends React.Component {
   }
 };
 
-var routes = (
+export var routes = (
   <Route name="home" path="/" component={App}>
     <Route path="account-settings" component={AccountSettings} />
     <Route path="change-password" component={ChangePassword} />
@@ -284,6 +286,7 @@ var routes = (
           <Route path="downloads" component={FormSubScreens} />
           <Route path="gallery" component={FormSubScreens} />
           <Route path="map" component={FormSubScreens} />
+          <Route path="map/:viewby" component={FormSubScreens} />
           <IndexRedirect to="report" />
         </Route>
 
@@ -306,12 +309,22 @@ var routes = (
   </Route>
 );
 
+/* Send a pageview to Google Analytics for every change in routes */
+hashHistory.listen(function(loc) {
+  if (typeof ga == 'function') {
+    ga('send', 'pageview', window.location.hash);
+  }
+});
+
 class RunRoutes extends React.Component {
+  componentDidMount(){
+    // when hot reloading, componentWillReceiveProps whines about changing the routes prop so this shuts that up
+    this.router.componentWillReceiveProps = function(){}
+  }
+
   render() {
     return (
-      <Router history={hashHistory}>
-        {routes}
-      </Router>
+      <Router history={hashHistory} ref={ref=>this.router = ref} routes={this.props.routes} />
     );
   }
 }

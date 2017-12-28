@@ -192,6 +192,7 @@ module.exports = do ->
       ["score", "Score"],
       ["score__row", "Score Row"],
       ["rank", "Rank"],
+      ["kobomatrix", "Advanced Matrix"],
       ["rank__level", "Rank Level"],
       ["select_multiple", "Multiple choice", orOtherOption: true, specifyChoice: true]
     ]
@@ -245,6 +246,9 @@ module.exports = do ->
       _hideUnlessChanged: true
     constraint_message:
       value: ""
+      _hideUnlessChanged: true
+    tags:
+      value: ''
       _hideUnlessChanged: true
     appearance:
       value: ''

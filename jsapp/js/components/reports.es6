@@ -218,10 +218,12 @@ class Reports extends React.Component {
     this.state = {
       graphWidth: "700",
       graphHeight: "250",
+      translations: false,
       translationIndex: 0,
       groupBy: [],
       activeModalTab: 0,
-      error: false
+      error: false,
+      showExpandedReport: false
     };
     autoBind(this);
   }
@@ -269,6 +271,8 @@ class Reports extends React.Component {
             if (row.data.responses || row.data.values || row.data.mean) {
               if (rowsByIdentifier[row.name] !== undefined) {
                 row.row.label = rowsByIdentifier[row.name].label;
+              } else if (row.name !== undefined) {
+                row.row.label = row.name;
               } else {
                 row.row.label = t('untitled');
               }
@@ -295,18 +299,6 @@ class Reports extends React.Component {
         console.error('Survey not defined.');
       }
     });
-  }
-  getInitialState () {
-    return {
-      graphWidth: "700",
-      graphHeight: "250",
-      translations: false,
-      translationIndex: 0,
-      groupBy: [],
-      activeModalTab: 0,
-      error: false,
-      reportLimit: 50
-    };
   }
   groupDataBy(evt) {
     var gb = evt.target.getAttribute('data-name') ? [evt.target.getAttribute('data-name')] : [];
@@ -373,7 +365,7 @@ class Reports extends React.Component {
 
     return (
       <bem.FormView__reportButtons>
-        <button className="mdl-button" onClick={this.toggleReportGraphSettings}>
+        <button className="mdl-button graph-settings" onClick={this.toggleReportGraphSettings}>
           {t('Graph Settings')}
         </button>
 

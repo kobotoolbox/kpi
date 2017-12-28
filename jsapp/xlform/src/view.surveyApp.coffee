@@ -564,12 +564,13 @@ module.exports = do ->
           $el.insertAfter(prevRowEl)
         else
           $el.appendTo($parentEl)
-
       view
 
     getViewForRow: (row)->
       unless (xlfrv = @__rowViews.get(row.cid))
-        if row.constructor.kls is 'Group'
+        if row.getValue('type') is 'kobomatrix'
+          rv = new $rowView.KoboMatrixView(model: row, ngScope: @ngScope, surveyView: @)
+        else if row.constructor.kls is 'Group'
           rv = new $rowView.GroupView(model: row, ngScope: @ngScope, surveyView: @)
         else if row.get('type').getValue() is 'score'
           rv = new $rowView.ScoreView(model: row, ngScope: @ngScope, surveyView: @)

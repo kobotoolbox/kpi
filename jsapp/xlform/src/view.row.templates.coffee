@@ -97,6 +97,33 @@ module.exports = do ->
     #{expandingSpacerHtml}
     """
 
+  koboMatrixView = () ->
+      template = """
+      <div class="survey__row__item survey__row__item--question card js-select-row">
+        <div class="card__header">
+          <div class="card__header--shade"><span></span></div>
+          <div class="card__indicator">
+            <div class="noop card__indicator__icon"><i class="fa fa-fw card__header-icon fa-table"></i></div>
+          </div>
+          <div class="card__text">
+            <span class="card__header-title js-cancel-select-row js-cancel-sort"></span>
+            <p class="card__header-subtitle js-cancel-select-row js-cancel-sort" style="display:none"></p>
+          </div>
+          <div class="card__buttons">
+            <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="fa fa-cog"></i></span>
+            <span class="card__buttons__button card__buttons__button--delete card__buttons__button--red js-delete-row" data-button-name="delete"><i class="fa fa-trash-o"></i></span>
+          </div>
+        </div>
+        <p class="kobomatrix-warning">#{_t("Note: The Matrix question type only works in Enketo web forms using the 'grid' style.")}</p>
+
+        <div class="card__kobomatrix">
+      """
+      return template + """
+        </div>
+      </div>
+      #{expandingSpacerHtml}
+      """
+
   scoreView = (template_args={})->
     fillers = []
     cols = []
@@ -246,6 +273,7 @@ module.exports = do ->
   selectQuestionExpansion: selectQuestionExpansion
   groupView: groupView
   rowErrorView: rowErrorView
+  koboMatrixView: koboMatrixView
   scoreView: scoreView
   rankView: rankView
   groupSettingsView: groupSettingsView

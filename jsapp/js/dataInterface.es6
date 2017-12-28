@@ -372,6 +372,38 @@ var dataInterface;
       var assetType = assetMapping[id[0]];
       return $.getJSON(`${rootUrl}/${assetType}/${id}/`);
     },
+    getSubmissions(uid, pageSize=100, page=0, sort=[], fields=[]) {
+      const query = `limit=${pageSize}&start=${page}`;
+      var s = `&sort={"_id":-1}`; // default sort
+      var f = '';
+      if (sort.length)
+        s = sort[0].desc === true ? `&sort={"${sort[0].id}":-1}` : `&sort={"${sort[0].id}":1}`;
+      if (fields.length)
+        f = `&fields=${JSON.stringify(fields)}`;
+      
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions?${query}${s}${f}`,
+        method: 'GET'
+      });
+    },
+    getSubmission(uid, sid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}`,
+        method: 'GET'
+      });
+    },
+    deleteSubmission(uid, sid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}`,
+        method: 'DELETE'
+      });
+    },
+    getEnketoEditLink(uid, sid) {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}/edit?return_url=url`,
+        method: 'GET'
+      });
+    },
     login: (creds)=> {
       return $ajax({ url: `${rootUrl}/api-auth/login/?next=/me/`, data: creds, method: 'POST'});
     }

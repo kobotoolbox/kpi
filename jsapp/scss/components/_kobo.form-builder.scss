@@ -1,6 +1,6 @@
 // FORM BUILDER MAIN LAYOUT
 @media screen and (min-width: 1400px) {
-  .page-wrapper--header-hidden.page-wrapper--drawer-hidden {
+  .page-wrapper--in-formbuilder {
     &:before {
       content: ' ';
       width: 100%;
@@ -32,6 +32,7 @@
 
 .formBuilder-header {
   height: 125px;
+  transition: margin 0.2s;
 }
 
 .formBuilder__contents {
@@ -45,6 +46,11 @@
 @media screen and (min-width: 1100px) {
   .lib-nav--visible + .formBuilder {
     .formBuilder__contents {
+      margin-right: 400px;
+      transition: margin 0.2s;
+    }
+
+    .form-style__panel--formstyle {
       margin-right: 400px;
       transition: margin 0.2s;
     }
@@ -104,11 +110,15 @@
 
 .formBuilder--formStyleDisplayed {
   > .formBuilder-header {
-    height: 280px;
+    height: 260px;
   }
 
   .formBuilder__contents {
-    height: calc(100% - 300px);
+    height: calc(100% - 280px);
+  }
+
+  .formBuilder-header__button--formstyle {
+    color: $black;
   }
 }
 
@@ -328,6 +338,16 @@
   padding: 12px 12px 20px;
   margin: 12px 0;
   background-color: #eee;
+
+  .Select {
+    z-index: 4;
+    max-width: calc(100% - 40px);
+  }
+
+  i.k-icon-help {
+    font-size: 24px;
+    margin-left: 8px;
+  }
 }
 
 .form-style__panelheader {

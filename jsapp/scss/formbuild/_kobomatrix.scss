@@ -1,0 +1,279 @@
+.card__kobomatrix {
+  border: 1px solid #d9dde1;
+  border-top: none;
+}
+
+.survey__row--selected {
+  > .survey__row__item > .card__kobomatrix {
+    border-color: #3fa2ee;
+    border-top: none;
+  }
+}
+
+.kobomatrix {
+  width: 100%;
+  padding: 23px 50px 23px 20px;
+  position: relative;
+  background: #FFF;
+
+  .matrix-items-new {
+    margin: 23px 0px;
+    overflow: hidden;
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    bottom: 0px;
+    width: 50px;
+    text-align: center;
+    padding-top: 10px;
+
+    i {
+      font-size: 24px;
+      cursor: pointer;
+
+      &:hover {
+        color: $cool-blue;
+      }
+    }
+  }
+}
+
+.matrix-cols--header {
+  display: flex;
+  flex-wrap: nowrap;
+  border-top: 1px solid #DDD;
+  border-left: 1px solid #DDD;
+
+  .matrix-cols__col {
+    flex-grow: 1;
+    flex-basis: 0;
+    padding: 10px 20px;
+    text-align: center;
+    border-right: 1px solid #DDD;
+    position: relative;
+    padding-right: 30px;
+    vertical-align: middle;
+    border-top: 1px solid transparent;
+    margin-bottom: -1px;
+
+    &.active {
+      background: #F8F8F8;
+      border-bottom: 1px solid #F8F8F8;
+    }
+
+    .matrix-cols__colattr--type {
+      opacity: 0.3;
+      display: none;
+    }
+
+    i {
+      font-size: 28px;
+      opacity: 0.75;
+      position: absolute;
+      right: 4px;
+      top: 4px;
+      vertical-align: middle;
+      cursor: pointer;
+
+      &:hover {
+        color: $cool-blue;
+      }
+    }
+  }
+}
+
+.matrix-cols__settings {
+  width: 100%;
+  background: #F8F8F8;
+  border: 1px solid #DDD;
+  border-bottom: none;
+  padding: 15px;
+  display: none;
+
+  &.expanded {
+    display: block;
+  }
+}
+
+.matrix-cols__settings_inner {
+  text-align: left;
+  width: 500px;
+  margin: 0 auto;
+  padding: 0px 20px;
+
+  label {
+    display: block;
+    margin-bottom: 10px;
+
+    > span {
+      display: inline-block;
+      width: 150px;
+      vertical-align: middle;
+    }
+
+    > div.Select, > input {
+      width: 310px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    > input[type="text"] {
+      padding: 4px 8px;
+      border: 1px solid #CCC;
+      border-radius: 4px;
+    }
+
+    > label {
+      display: inline-block;
+    }
+
+    [type="checkbox"]:not(:checked) + label:after {
+      background-color: #FFF;
+    }
+  }
+
+  .matrix-cols__delete {
+    width: 100%;
+    text-align: right;
+    padding: 10px 0px 10px;
+
+    span {
+      color: $cool-red;
+      cursor: pointer;
+    }
+
+    i {
+      font-size: 24px;
+      color: $cool-red;
+      cursor: pointer;
+      vertical-align: middle;
+    }
+  }
+}
+
+.matrix-cols__options {
+  background: #F1F1F1;
+  border: 1px solid #DDD;
+  padding: 10px;
+  margin: 20px 0px;
+  clear: both;
+}
+
+.matrix-cols__options--row-head,
+.matrix-cols__options--row {
+  span {
+    width: 44%;
+    display: inline-block;
+    margin: 5px;
+
+    input {
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid #DDD;
+    }
+
+    &.matrix-options__value {
+      opacity: 0.75;
+    }
+
+    &.matrix-options__delete {
+      width: 5%;
+      text-align: right;
+      margin-right: 0px;
+
+      i {
+        font-size: 24px;
+        color: $cool-red;
+        cursor: pointer;
+      }
+    }
+  }
+}
+
+.matrix-cols__options--row-foot {
+  i {
+    font-size: 24px;
+    cursor: pointer;
+
+    &:hover {
+      color: $cool-blue;
+    }
+  }
+}
+
+.matrix-items__item {
+  .matrix-items__itemrow {
+    display: flex;
+    flex-wrap: nowrap;
+  }
+
+  .matrix-items__itemattr,
+  .matrix-cols__col {
+    flex-grow: 1;
+    flex-basis: 0;
+    padding: 5px;
+    border-top: 1px solid #DDD;
+    vertical-align: middle;
+    position: relative;
+  }
+
+  .matrix-cols__col {
+    border-right: 1px solid #DDD;
+    text-align: center;
+  }
+
+  .matrix-items__itemattr {
+    border-right: 1px solid #DDD;
+    border-left: 1px solid #DDD;
+    position: relative;
+    line-height: 28px;
+
+    label {
+      margin-left: 5px;
+      width: calc(100% - 40px);
+      display: inline-block;
+    }
+
+    i {
+      font-size: 28px;
+      opacity: 0.75;
+      position: absolute;
+      right: 4px;
+      top: 4px;
+      vertical-align: middle;
+      cursor: pointer;
+
+      &:hover {
+        color: $cool-blue;
+      }
+    }
+  }
+
+  &--new {
+    border-top: 1px solid #DDD;
+
+    i {
+      font-size: 28px;
+      opacity: 0.75;
+      cursor: pointer;
+      color: $cool-gray;
+
+      &:hover {
+        color: $cool-blue;
+      }
+    }
+  }
+
+  .matrix-items__itemsettings {
+    width: 100%;
+    background: #F8F8F8;
+    border: 1px solid #DDD;
+    border-bottom: none;
+    padding: 15px;
+    display: none;
+
+    &.expanded {
+      display: block;
+    }
+  }
+}

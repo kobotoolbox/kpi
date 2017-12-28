@@ -15,7 +15,6 @@ import ui from '../ui';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
-import icons from '../../xlform/src/view.icons';
 import $ from 'jquery';
 
 import {

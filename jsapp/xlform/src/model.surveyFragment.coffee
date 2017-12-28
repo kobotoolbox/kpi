@@ -9,8 +9,87 @@ $configs = require './model.configs'
 $surveyDetail = require './model.surveyDetail'
 
 module.exports = do ->
+  _t = require("utils").t
 
   surveyFragment = {}
+
+  class KobomatrixRow extends Backbone.Model
+    _isSelectQuestion: -> false
+
+  class KobomatrixRows extends Backbone.Collection
+    model: KobomatrixRow
+
+  class KobomatrixMixin
+    constructor: (rr)->
+      @_kobomatrix_columns = new KobomatrixRows()
+      @_rowAttributeName = '_kobomatrix_columns'
+
+      extend_to_row = (val, key)=>
+        if _.isFunction(val)
+          rr[key] = (args...)->
+            val.apply(rr, args)
+        else
+          rr[key] = val
+      _.each @, extend_to_row
+      extend_to_row(@forEachRow, 'forEachRow')
+
+      _begin_kuid = rr.getValue('$kuid', false)
+      _end_json = {
+        "type": "end_#{@_beginEndKey()}"
+        "$kuid": "/#{_begin_kuid}"
+      }
+      rr._afterIterator = (cb, ctxt)->
+        obj =
+          export_relevant_values: (surv, addl)->
+            surv.push _.extend({}, _end_json)
+          toJSON: ->
+            _.extend({}, _end_json)
+
+        cb(obj)  if ctxt.includeGroupEnds
+
+      _toJSON = rr.toJSON
+
+      rr.clone = ()->
+        console.error('clone kobomatrix rows')
+
+      rr.toJSON = ()->
+        _.extend _toJSON.call(rr), {
+          'type': "begin_#{rr._beginEndKey()}"
+        }, @_additionalJson?()
+
+      _.each @constructor.prototype, extend_to_row
+
+      if rr.attributes.__rows
+        for subrow in rr.attributes.__rows
+          @[@_rowAttributeName].add(subrow)
+        delete rr.attributes.__rows
+
+
+    _kobomatrix_cols: ->
+      @rows
+
+    _isSelectQuestion: -> false
+    _beginEndKey: ->
+      'kobomatrix'
+
+    linkUp: (ctx)->
+      @getList = ()=> @items
+      items = {}
+      kobomatrix_list = @get('kobo--matrix_list')?.get('value')
+
+      if kobomatrix_list
+        items[kobomatrix_list] = @getSurvey().choices.get(kobomatrix_list)
+      else
+        kobomatrix_list = @.set('kobo--matrix_list', "matrix_#{$utils.txtid()}")
+        items[kobomatrix_list] = @getSurvey().choices.create()
+
+      @rows.each (row)=>
+        if listName = row.get('select_from_list_name')?.get('value')
+          items[listName] = @getSurvey().choices.get(listName)
+
+      @items = items
+      @items
+
 
   passFunctionToMetaModel = (obj, fname)->
     obj["__#{fname}"] = obj[fname]
@@ -190,6 +269,9 @@ module.exports = do ->
       typeIsRepeat = @get('type') is 'repeat'
       @set('_isRepeat', typeIsRepeat)
       @convertAttributesToRowDetails()
+      if @getValue('type') is 'kobomatrix'
+        new KobomatrixMixin(@)
+
 
 
     addRowAtIndex: (row, index) ->
@@ -272,7 +354,7 @@ module.exports = do ->
       $surveyDetail.SurveyDetail
     else if type is 'score'
       $row.Row
-    else if type in ['group', 'repeat']
+    else if type in ['group', 'repeat', 'kobomatrix']
       surveyFragment.Group
     else
       $row.Row

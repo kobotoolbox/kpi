@@ -6,6 +6,7 @@ import json
 from collections import OrderedDict
 from copy import deepcopy
 
+import xlrd
 from django.contrib.auth.models import User, AnonymousUser
 from django.core.exceptions import ValidationError
 from django.test import TestCase
@@ -260,6 +261,47 @@ class AssetContentTests(AssetsTestCase):
         self.assertTrue(isinstance(_c['survey'][0], OrderedDict))
         self.assertEqual(_c['settings'][0]['asdf'], 'jkl')
         self.assertEqual(_c['survey'][-1]['type'], 'note')
+
+    def test_to_xls_io_versioned_appended(self):
+        append = {
+            'survey': [
+                {'type': 'note', 'label': ['wee'
+                 for _ in self.asset.content.get('translations')]
+                 },
+            ],
+            'settings': {
+                'asdf': 'jkl',
+            }
+        }
+        xls_io = self.asset.to_xls_io(versioned=True, append=append)
+        workbook = xlrd.open_workbook(file_contents=xls_io.read())
+
+        survey_sheet = workbook.sheet_by_name('survey')
+        # `versioned=True` should add a calculate question to the the last row.
+        # The calculation (version uid) changes on each run, so don't look past
+        # the first two columns (type and name)
+        xls_version_row = [
+            cell.value for cell in survey_sheet.row(survey_sheet.nrows - 1)]
+        self.assertEqual(xls_version_row[:2], [u'calculate', u'__version__'])
+        # The next-to-last row should have the note question from `append`
+        xls_note_row = [
+            cell.value for cell in survey_sheet.row(survey_sheet.nrows - 2)]
+        expected_note_row = append['survey'][0].values()
+        # Slice the result to discard any extraneous empty cells
+        self.assertEqual(
+            xls_note_row[:len(expected_note_row)], expected_note_row)
+
+        settings_sheet = workbook.sheet_by_name('settings')
+        # Next-to-last column should have `version` setting
+        xls_version_col = [
+            cell.value for cell in settings_sheet.col(settings_sheet.ncols - 2)
+        ]
+        self.assertEqual(xls_version_col[0], 'version')
+        # Last column should have `asdf` setting from `append`
+        xls_asdf_col = [
+            cell.value for cell in settings_sheet.col(settings_sheet.ncols - 1)
+        ]
+        self.assertEqual(xls_asdf_col, ['asdf', 'jkl'])
 
 
 class AssetSettingsTests(AssetsTestCase):
