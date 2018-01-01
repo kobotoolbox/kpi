@@ -424,6 +424,9 @@ class ExportTask(ImportExportTask):
             raise NotImplementedError(
                 'only `xls` and `csv` are valid export types')
 
+        # Take this opportunity to do some housekeeping
+        self.log_and_mark_stuck_as_errored(self.user, source_url)
+
         if hasattr(source.deployment, '_get_submissions'):
             # Currently used only for unit testing (`MockDeploymentBackend`)
             # TODO: Have the KC backend also implement `_get_submissions()`?
@@ -467,6 +470,75 @@ class ExportTask(ImportExportTask):
         # Restore the FileField to its typical state
         self.result.open('rb')
         self.save(update_fields=['last_submission_time'])
+
+        # Now that a new export has completed successfully, remove any old
+        # exports in excess of the per-user, per-form limit
+        self.remove_excess(self.user, source_url)
+
+    @staticmethod
+    def _filter_by_source_kludge(queryset, source):
+        '''
+        A disposable way to filter a queryset by source URL.
+        TODO: make `data` a `JSONBField` and use proper filtering
+        '''
+        return queryset.filter(data__contains=source)
+
+    @classmethod
+    @transaction.atomic
+    def log_and_mark_stuck_as_errored(cls, user, source):
+        '''
+        Set the status to ERROR and log a warning for any export that's been in
+        an incomplete state for too long.
+
+        `source` is the source URL as included in the `data` attribute.
+        '''
+        # How long can an export possibly run, not including time spent waiting
+        # in the Celery queue?
+        max_export_run_time = getattr(
+            settings, 'CELERYD_TASK_TIME_LIMIT', 2100)
+        # Allow a generous grace period
+        max_allowed_export_age = datetime.timedelta(
+            seconds=max_export_run_time * 4)
+        this_moment = datetime.datetime.now(tz=pytz.UTC)
+        oldest_allowed_timestamp = this_moment - max_allowed_export_age
+        stuck_exports = cls.objects.filter(
+            user=user,
+            date_created__lt=oldest_allowed_timestamp
+        ).exclude(status__in=(cls.COMPLETE, cls.ERROR))
+        stuck_exports = cls._filter_by_source_kludge(stuck_exports, source)
+        for stuck_export in stuck_exports:
+            logging.warning(
+                u'Stuck export {}: type {}, username {}, source {}, '
+                'age {}'.format(
+                    stuck_export.uid,
+                    stuck_export.data.get('type'),
+                    stuck_export.user.username,
+                    stuck_export.data.get('source'),
+                    this_moment - stuck_export.date_created,
+                )
+            )
+            stuck_export.status = cls.ERROR
+            stuck_export.save()
+
+    @classmethod
+    @transaction.atomic
+    def remove_excess(cls, user, source):
+        '''
+        Remove a user's oldest exports if they have more than
+        settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM exports for a particular
+        form. Returns the number of exports removed.
+
+        `source` is the source URL as included in the `data` attribute.
+        '''
+        user_source_exports = cls._filter_by_source_kludge(
+            cls.objects.filter(user=user), source
+        ).order_by('-date_created')
+        # Oh, Django: "Cannot use 'limit' or 'offset' with delete."
+        excess_pks = user_source_exports[
+            settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM:
+        ].values_list('pk', flat=True)
+        cls.objects.filter(pk__in=excess_pks).delete()
+        return len(excess_pks)
 
 
 def _b64_xls_to_dict(base64_encoded_upload):

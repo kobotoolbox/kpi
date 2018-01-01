@@ -184,6 +184,9 @@ USE_TZ = True
 
 CAN_LOGIN_AS = lambda request, target_user: request.user.is_superuser
 
+# REMOVE the oldest if a user exceeds this many exports for a particular form
+MAXIMUM_EXPORTS_PER_USER_PER_FORM = 10
+
 # Private media file configuration
 PRIVATE_STORAGE_ROOT = os.path.join(BASE_DIR, 'media')
 PRIVATE_STORAGE_AUTH_FUNCTION = \

@@ -302,11 +302,7 @@ export class ProjectDownloads extends React.Component {
           data: postData
         }).done((data) => {
           $.ajax({url: data.url}).then((taskData) => {
-            if (taskData.status !== 'complete') {
-              notify(t('Your export is processing.'));
-            } else {
-              redirectTo(taskData.result);
-            }
+            this.checkForFastExport(data.url);
             this.getExports();
           }).fail((taskFail) => {
             alertify.error(t('Failed to retrieve the export task.'));
@@ -342,8 +338,30 @@ export class ProjectDownloads extends React.Component {
     });
   }
 
+  checkForFastExport(exportUrl) {
+    // Save the user some time and an extra click if their export completes
+    // very quickly
+    const maxChecks = 3;
+    const checkDelay = 500;
+
+    let checksDone = 0;
+    let checkInterval;
+    let checkFunc = () => {
+      $.ajax({url: exportUrl}).then((data) => {
+        if(++checksDone >= maxChecks || (data.status !== 'created' &&
+                                         data.status !== 'processing'))
+        {
+          clearInterval(checkInterval);
+          if(data.status === 'complete') {
+            redirectTo(data.result);
+          }
+        }
+      });
+    };
+    checkInterval = setInterval(checkFunc, checkDelay);
+  }
+
   getExports() {
-    var _this = this;
     clearInterval(this.pollingInterval);
 
     dataInterface.getAssetExports(this.props.asset.uid).done((data)=>{
@@ -351,10 +369,10 @@ export class ProjectDownloads extends React.Component {
         this.setState({exports: data.results.reverse()});
 
         // Start a polling Interval if there is at least one export is not yet complete
-        data.results.every(function(item){
+        data.results.every((item) => {
           if(item.status === 'created' || item.status === 'processing'){
-            _this.pollingInterval  = setInterval(_this.refreshExport, 4000, item.url);
-             return false;
+            this.pollingInterval = setInterval(this.refreshExport, 4000, item.url);
+            return false;
           } else {
             return true;
           }

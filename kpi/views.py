@@ -555,56 +555,11 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
         if not source.has_deployment:
             raise exceptions.ValidationError(
                 {'source': 'The specified asset must be deployed.'})
-        '''
-        # Figure out if an existing export satisfies this request
-        with transaction.atomic():
-            # FIXME: What if a submission were modified?
-            # See onadata.apps.viewer.models.export.Export
-            last_submission_time = source.deployment.last_submission_time
-            # FIXME: Mongo has only per-second resolution. Brutal.
-            last_submission_time = datetime.datetime(
-                year=last_submission_time.year,
-                month=last_submission_time.month,
-                day=last_submission_time.day,
-                hour=last_submission_time.hour,
-                minute=last_submission_time.minute,
-                second=last_submission_time.second,
-                tzinfo=last_submission_time.tzinfo,
-            )
-            previous_exports = ExportTask.objects.filter(
-                last_submission_time=last_submission_time,
-                data__contains=task_data['source']
-            ).order_by('-date_created')
-            for previous_export in previous_exports:
-                match = True
-                for opt in valid_options:
-                    current_val = task_data.get(opt, None)
-                    previous_val = previous_export.data.get(opt, None)
-                    if current_val != previous_val:
-                        match = False
-                        break
-                if match:
-                    # No need to generate a new export; return the existing one
-                    # TODO: watch out for stuck exports
-                    return Response({
-                        'uid': previous_export.uid,
-                        'url': reverse(
-                            'exporttask-detail',
-                            kwargs={'uid': export_task.uid},
-                            request=request),
-                        'status': previous_export.status
-                    })
-        '''
         # Create a new export task
         export_task = ExportTask.objects.create(user=request.user,
                                                 data=task_data)
         # Have Celery run the export in the background
-        # HACK temporary HACK so jnm doesn't have to write complicated ES6
-        # FIXME: unwise to allow user to run synchronous exports
-        if task_data.get('async', 'true') == 'false':
-            export_in_background(export_task_uid=export_task.uid)
-        else:
-            export_in_background.delay(export_task_uid=export_task.uid)
+        export_in_background.delay(export_task_uid=export_task.uid)
         return Response({
             'uid': export_task.uid,
             'url': reverse(

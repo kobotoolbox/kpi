@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import unittest
 import xlrd
+import datetime
+import unittest
 from collections import defaultdict
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
@@ -329,3 +331,83 @@ class MockDataExports(TestCase):
             result_row = [cell.value for cell in sheet.row(row_index)]
             self.assertEqual(result_row, expected_row)
             row_index += 1
+
+    def test_remove_excess(self):
+        task_data = {
+            'source': reverse('asset-detail', args=[self.asset.uid]),
+            'type': 'csv',
+        }
+        # Make an excessive amount of exports
+        excess_count = 5 + settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM
+        for _ in range(excess_count):
+            export_task = ExportTask()
+            export_task.user = self.user
+            export_task.data = task_data
+            export_task.save()
+        self.assertEqual(
+            excess_count,
+            ExportTask._filter_by_source_kludge(
+                ExportTask.objects.filter(
+                    user=self.user),
+                task_data['source']
+            ).count()
+        )
+        # Run one export, which invokes the cleanup logic
+        export_task.run()
+        self.assertEqual(export_task.status, ExportTask.COMPLETE)
+        # Verify the cleanup
+        self.assertEqual(
+            settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM,
+            ExportTask._filter_by_source_kludge(
+                ExportTask.objects.filter(
+                    user=self.user),
+                task_data['source']
+            ).count()
+        )
+
+    def test_log_and_mark_stuck_as_errored(self):
+        task_data = {
+            'source': reverse('asset-detail', args=[self.asset.uid]),
+            'type': 'csv',
+        }
+        self.assertEqual(
+            0,
+            ExportTask._filter_by_source_kludge(
+                ExportTask.objects.filter(
+                    user=self.user),
+                task_data['source']
+            ).count()
+        )
+        # Simulate a few stuck exports
+        for status in (ExportTask.CREATED, ExportTask.PROCESSING):
+            export_task = ExportTask()
+            export_task.user = self.user
+            export_task.data = task_data
+            export_task.status = status
+            export_task.save()
+            export_task.date_created = (
+                datetime.datetime.now() - datetime.timedelta(days=1))
+            export_task.save()
+        self.assertSequenceEqual(
+            [ExportTask.CREATED, ExportTask.PROCESSING],
+            ExportTask._filter_by_source_kludge(
+                ExportTask.objects.filter(
+                    user=self.user),
+                task_data['source']
+            ).order_by('pk').values_list('status', flat=True)
+        )
+        # Run another export, which invokes the cleanup logic
+        export_task = ExportTask()
+        export_task.user = self.user
+        export_task.data = task_data
+        export_task.save()
+        export_task.run()
+        # Verify that the stuck exports have been marked
+        self.assertSequenceEqual(
+            [ExportTask.ERROR, ExportTask.ERROR, ExportTask.COMPLETE],
+            ExportTask._filter_by_source_kludge(
+                ExportTask.objects.filter(
+                    user=self.user),
+                task_data['source']
+            ).order_by('pk').values_list('status', flat=True)
+        )

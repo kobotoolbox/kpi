@@ -3,6 +3,7 @@
 import json
 import requests
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from lxml import etree
@@ -407,6 +408,7 @@ class AssetExportTaskTest(APITestCase):
         }
         self.asset.deployment._mock_submission(submission)
         self.asset.save(create_version=False)
+        settings.CELERY_ALWAYS_EAGER = True
 
     def result_stored_locally(self, detail_response):
         '''
@@ -422,12 +424,11 @@ class AssetExportTaskTest(APITestCase):
         task_data = {
             'source': asset_url,
             'type': 'csv',
-            'async': 'false'
         }
         # Create the export task
         response = self.client.post(post_url, task_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # Task should complete right away since `async` is `false`
+        # Task should complete right away due to `CELERY_ALWAYS_EAGER`
         detail_response = self.client.get(response.data['url'])
         self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
         self.assertEqual(detail_response.data['status'], 'complete')
