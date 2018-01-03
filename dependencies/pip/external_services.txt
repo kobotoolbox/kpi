@@ -11,9 +11,9 @@ amqp==1.4.9
 anyjson==0.3.3
 begins==0.9
 billiard==3.3.0.23
-boto3==1.4.7
+boto3==1.5.8
 boto==2.40.0
-botocore==1.7.33          # via boto3, s3transfer
+botocore==1.8.22          # via boto3, s3transfer
 celery==3.1.23
 cffi==1.8.3               # via cryptography
 contextlib2==0.5.4        # via raven
