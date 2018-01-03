@@ -37,5 +37,9 @@ class BaseDeploymentBackend(object):
         return self._submission_count()
 
     @property
+    def last_submission_time(self):
+        return self._last_submission_time()
+
+    @property
     def mongo_userform_id(self):
         return None
