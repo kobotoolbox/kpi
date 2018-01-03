@@ -379,10 +379,11 @@
   &--items {
     padding: 0px;
     border-top: 1px solid $divider-color;
+    display: flex;
+    align-items: center;
 
     > .form-view__label {
       text-align: right;
-      display: inline-block;
       width: 30%;
       padding: 10px;
       vertical-align: middle;
@@ -393,27 +394,23 @@
       }
     }
 
-    .form-view__link {
-      opacity: 0.4;
-    }
-
     &:hover {
       background: $hover-asset-row;
-
-      .form-view__link {
-        opacity: 1;
-      }
     }
   }
 
   &--headings {
     font-weight: 600;
+    border-top: none;
+
+    &:hover {
+      background: transparent;
+    }
   }
 }
 
 .form-view--form-settings,
-.form-view--settings-sharing,
-.form-view--form-data-downloads {
+.form-view--settings-sharing {
   background: #FFF;
   padding: 40px;
 }
@@ -430,6 +427,47 @@
 
       .form-view__cell--iframe {
         height: 820px;
+      }
+    }
+  }
+}
+
+.form-view.form-view--form-data-downloads {
+  .form-modal__item {
+    &:last-child {
+      margin-bottom: 0px;
+    }
+  }
+
+  .form-view__cell--exports-table {
+    .form-view__label {
+      text-align: left;
+
+      &--type {
+        width: 10%;
+        text-transform: uppercase;
+      }
+
+      &--action {
+        flex-grow: 1;
+        text-align: right;
+      }
+
+      &--lang {
+        flex-shrink: 1;
+      }
+    }
+
+    .form-view__group--headings {
+      .form-view__label--type {
+        text-transform: none;
+      }
+    }
+
+    @media screen and (max-width: 980px) {
+      .form-view__label--date,
+      .form-view__label--include-groups {
+        display: none;
       }
     }
   }
@@ -554,8 +592,7 @@
   }
 
   .form-view--form-settings,
-  .form-view--settings-sharing,
-  .form-view--form-data-downloads {
+  .form-view--settings-sharing {
     padding: 20px;
   }
 

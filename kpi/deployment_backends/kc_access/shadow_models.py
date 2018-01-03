@@ -74,6 +74,7 @@ class LazyModelGroup:
             date_created = models.DateTimeField()
             date_modified = models.DateTimeField()
             uuid = models.CharField(max_length=32, default=u'')
+            last_submission_time = models.DateTimeField(blank=True, null=True)
 
             @property
             def hash(self):
