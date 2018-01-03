@@ -430,6 +430,7 @@ class Asset(ObjectPermissionMixin,
     content = JSONField(null=True)
     summary = JSONField(null=True, default=dict)
     report_styles = JSONBField(default=dict)
+    report_custom = JSONBField(default=dict)
     asset_type = models.CharField(
         choices=ASSET_TYPES, max_length=20, default='survey')
     parent = models.ForeignKey(

@@ -1,0 +1,616 @@
+[
+{
+  "fields": {
+    "deployed_content": null,
+    "uid_aliases": null,
+    "version_content": {
+      "settings": {},
+      "survey": [],
+      "schema": "1"
+    },
+    "date_modified": "2017-12-18T22:42:59.367Z",
+    "_reversion_version": null,
+    "name": "conflicting versions",
+    "_deployment_data": {},
+    "asset": 713928,
+    "deployed": false,
+    "uid": "vPx6Hxraceu8CnMYzhjEud"
+  },
+  "model": "kpi.assetversion",
+  "pk": 713929
+},
+{
+  "fields": {
+    "deployed_content": null,
+    "uid_aliases": null,
+    "version_content": {
+      "translated": [
+        "label"
+      ],
+      "translations": [
+        null
+      ],
+      "settings": {},
+      "survey": [
+        {
+          "$autoname": "start",
+          "$kuid": "c6cce177",
+          "type": "start",
+          "name": "start"
+        },
+        {
+          "$autoname": "end",
+          "$kuid": "1e077004",
+          "type": "end",
+          "name": "end"
+        },
+        {
+          "$autoname": "created_in_first_version",
+          "$kuid": "fa35b4f5",
+          "required": false,
+          "type": "text",
+          "label": [
+            "created in first version"
+          ]
+        }
+      ],
+      "schema": "1"
+    },
+    "date_modified": "2017-12-18T22:44:58.629Z",
+    "_reversion_version": null,
+    "name": "conflicting versions",
+    "_deployment_data": {},
+    "asset": 713928,
+    "deployed": true,
+    "uid": "vqu4EaVFry5MirsJcBbhsQ"
+  },
+  "model": "kpi.assetversion",
+  "pk": 713930
+},
+{
+  "fields": {
+    "deployed_content": null,
+    "uid_aliases": null,
+    "version_content": {
+      "translated": [
+        "label"
+      ],
+      "translations": [
+        null
+      ],
+      "settings": {
+        "version": "vqu4EaVFry5MirsJcBbhsQ"
+      },
+      "survey": [
+        {
+          "$autoname": "start",
+          "$kuid": "c6cce177",
+          "type": "start",
+          "name": "start"
+        },
+        {
+          "$autoname": "end",
+          "$kuid": "1e077004",
+          "type": "end",
+          "name": "end"
+        },
+        {
+          "name": "created_in_first_version",
+          "$autoname": "created_in_first_version",
+          "required": false,
+          "label": [
+            "created in first version"
+          ],
+          "$kuid": "944f54a5",
+          "type": "text"
+        },
+        {
+          "name": "created_in_second_version",
+          "$autoname": "created_in_second_version",
+          "required": false,
+          "label": [
+            "created in second version"
+          ],
+          "$kuid": "8ae22df8",
+          "type": "text"
+        },
+        {
+          "calculation": "'vqu4EaVFry5MirsJcBbhsQ'",
+          "$autoname": "__version__",
+          "$kuid": "e58fe792",
+          "type": "calculate",
+          "name": "__version__"
+        }
+      ],
+      "schema": "1"
+    },
+    "date_modified": "2017-12-18T22:46:10.730Z",
+    "_reversion_version": null,
+    "name": "conflicting versions",
+    "_deployment_data": {
+      "active": true,
+      "version": "vqu4EaVFry5MirsJcBbhsQ",
+      "backend": "mock",
+      "identifier": "mock://axD3Wc8ZnfgLXBcURRt5fM"
+    },
+    "asset": 713928,
+    "deployed": true,
+    "uid": "vnPWjPhx4VP6V24Cvn2EhG"
+  },
+  "model": "kpi.assetversion",
+  "pk": 713931
+},
+{
+  "fields": {
+    "deployed_content": null,
+    "uid_aliases": null,
+    "version_content": {
+      "translated": [
+        "label"
+      ],
+      "translations": [
+        null
+      ],
+      "settings": {
+        "version": "vnPWjPhx4VP6V24Cvn2EhG"
+      },
+      "survey": [
+        {
+          "$autoname": "start",
+          "$kuid": "c6cce177",
+          "type": "start",
+          "name": "start"
+        },
+        {
+          "$autoname": "end",
+          "$kuid": "1e077004",
+          "type": "end",
+          "name": "end"
+        },
+        {
+          "name": "created_in_first_version",
+          "$autoname": "created_in_first_version",
+          "required": false,
+          "label": [
+            "created in first version"
+          ],
+          "$kuid": "944f54a5",
+          "type": "text"
+        },
+        {
+          "name": "created_in_second_version",
+          "$autoname": "created_in_second_version",
+          "required": false,
+          "label": [
+            "created in second version"
+          ],
+          "$kuid": "8ae22df8",
+          "type": "text"
+        },
+        {
+          "name": "created_in_third_version",
+          "$autoname": "created_in_third_version",
+          "required": false,
+          "label": [
+            "created in third version"
+          ],
+          "$kuid": "366a79a3",
+          "type": "text"
+        },
+        {
+          "calculation": "'vqu4EaVFry5MirsJcBbhsQ'",
+          "$autoname": "__version__",
+          "$kuid": "e58fe792",
+          "type": "calculate",
+          "name": "__version__"
+        },
+        {
+          "name": "_version_",
+          "$given_name": "__version__",
+          "$autoname": "_version_",
+          "calculation": "'vnPWjPhx4VP6V24Cvn2EhG'",
+          "$kuid": "825d6c38",
+          "type": "calculate"
+        }
+      ],
+      "schema": "1"
+    },
+    "date_modified": "2017-12-18T22:47:50.127Z",
+    "_reversion_version": null,
+    "name": "conflicting versions",
+    "_deployment_data": {
+      "active": true,
+      "version": "vnPWjPhx4VP6V24Cvn2EhG",
+      "backend": "mock",
+      "identifier": "mock://axD3Wc8ZnfgLXBcURRt5fM"
+    },
+    "asset": 713928,
+    "deployed": true,
+    "uid": "vGcztYhnRo9CCLv7biByAt"
+  },
+  "model": "kpi.assetversion",
+  "pk": 713932
+},
+{
+  "fields": {
+    "deployed_content": null,
+    "uid_aliases": null,
+    "version_content": {
+      "translated": [
+        "label"
+      ],
+      "translations": [
+        null
+      ],
+      "settings": {
+        "version": "vGcztYhnRo9CCLv7biByAt"
+      },
+      "survey": [
+        {
+          "$autoname": "start",
+          "$kuid": "c6cce177",
+          "type": "start",
+          "name": "start"
+        },
+        {
+          "$autoname": "end",
+          "$kuid": "1e077004",
+          "type": "end",
+          "name": "end"
+        },
+        {
+          "name": "created_in_first_version",
+          "$autoname": "created_in_first_version",
+          "required": false,
+          "label": [
+            "created in first version"
+          ],
+          "$kuid": "944f54a5",
+          "type": "text"
+        },
+        {
+          "name": "created_in_second_version",
+          "$autoname": "created_in_second_version",
+          "required": false,
+          "label": [
+            "created in second version"
+          ],
+          "$kuid": "8ae22df8",
+          "type": "text"
+        },
+        {
+          "name": "created_in_third_version",
+          "$autoname": "created_in_third_version",
+          "required": false,
+          "label": [
+            "created in third version"
+          ],
+          "$kuid": "366a79a3",
+          "type": "text"
+        },
+        {
+          "name": "created_in_fourth_version",
+          "$autoname": "created_in_fourth_version",
+          "required": false,
+          "label": [
+            "created in fourth version"
+          ],
+          "$kuid": "a5567e86",
+          "type": "text"
+        },
+        {
+          "calculation": "'vqu4EaVFry5MirsJcBbhsQ'",
+          "$autoname": "__version__",
+          "$kuid": "e58fe792",
+          "type": "calculate",
+          "name": "__version__"
+        },
+        {
+          "name": "_version_",
+          "$given_name": "__version__",
+          "$autoname": "_version_",
+          "calculation": "'vnPWjPhx4VP6V24Cvn2EhG'",
+          "$kuid": "825d6c38",
+          "type": "calculate"
+        },
+        {
+          "name": "_version__001",
+          "$given_name": "__version__",
+          "$autoname": "_version__001",
+          "calculation": "'vGcztYhnRo9CCLv7biByAt'",
+          "$kuid": "049288be",
+          "type": "calculate"
+        }
+      ],
+      "schema": "1"
+    },
+    "date_modified": "2017-12-18T22:49:00.301Z",
+    "_reversion_version": null,
+    "name": "conflicting versions",
+    "_deployment_data": {
+      "active": true,
+      "version": "vGcztYhnRo9CCLv7biByAt",
+      "backend": "mock",
+      "identifier": "mock://axD3Wc8ZnfgLXBcURRt5fM"
+    },
+    "asset": 713928,
+    "deployed": true,
+    "uid": "vKYFpP4BG5593cJrsYSUgg"
+  },
+  "model": "kpi.assetversion",
+  "pk": 713933
+},
+{
+  "fields": {
+    "name": "conflicting versions",
+    "parent": null,
+    "date_modified": "2017-12-18T22:49:09.703Z",
+    "settings": {
+      "sector": "",
+      "country": "",
+      "share-metadata": false,
+      "description": ""
+    },
+    "report_styles": {
+      "default": {},
+      "kuid_names": {
+        "end": "1e077004",
+        "created_in_second_version": "8ae22df8",
+        "_version__001": "049288be",
+        "created_in_first_version": "944f54a5",
+        "fa35b4f5": "fa35b4f5",
+        "start": "c6cce177",
+        "created_in_third_version": "366a79a3",
+        "_version_": "825d6c38",
+        "__version__": "e58fe792",
+        "created_in_fourth_version": "a5567e86"
+      },
+      "specified": {
+        "end": {},
+        "created_in_second_version": {},
+        "_version__001": {},
+        "created_in_first_version": {},
+        "fa35b4f5": {},
+        "start": {},
+        "created_in_third_version": {},
+        "_version_": {},
+        "__version__": {},
+        "created_in_fourth_version": {}
+      }
+    },
+    "summary": {
+      "default_translation": null,
+      "naming_conflicts": [
+        "__version__",
+        "__version__"
+      ],
+      "labels": [
+        "created in first version",
+        "created in second version",
+        "created in third version",
+        "created in fourth version"
+      ],
+      "languages": [
+        null
+      ],
+      "row_count": 7,
+      "geo": false,
+      "columns": [
+        "name",
+        "required",
+        "label",
+        "type",
+        "calculation"
+      ]
+    },
+    "content": {
+      "translated": [
+        "label"
+      ],
+      "survey": [
+        {
+          "$autoname": "start",
+          "$kuid": "c6cce177",
+          "type": "start",
+          "name": "start"
+        },
+        {
+          "$autoname": "end",
+          "$kuid": "1e077004",
+          "type": "end",
+          "name": "end"
+        },
+        {
+          "name": "created_in_first_version",
+          "$autoname": "created_in_first_version",
+          "required": false,
+          "label": [
+            "created in first version"
+          ],
+          "$kuid": "944f54a5",
+          "type": "text"
+        },
+        {
+          "name": "created_in_second_version",
+          "$autoname": "created_in_second_version",
+          "required": false,
+          "label": [
+            "created in second version"
+          ],
+          "$kuid": "8ae22df8",
+          "type": "text"
+        },
+        {
+          "name": "created_in_third_version",
+          "$autoname": "created_in_third_version",
+          "required": false,
+          "label": [
+            "created in third version"
+          ],
+          "$kuid": "366a79a3",
+          "type": "text"
+        },
+        {
+          "name": "created_in_fourth_version",
+          "$autoname": "created_in_fourth_version",
+          "required": false,
+          "label": [
+            "created in fourth version"
+          ],
+          "$kuid": "a5567e86",
+          "type": "text"
+        },
+        {
+          "calculation": "'vqu4EaVFry5MirsJcBbhsQ'",
+          "$autoname": "__version__",
+          "$kuid": "e58fe792",
+          "type": "calculate",
+          "name": "__version__"
+        },
+        {
+          "name": "_version_",
+          "calculation": "'vnPWjPhx4VP6V24Cvn2EhG'",
+          "$autoname": "_version_",
+          "$given_name": "__version__",
+          "$kuid": "825d6c38",
+          "type": "calculate"
+        },
+        {
+          "name": "_version__001",
+          "calculation": "'vGcztYhnRo9CCLv7biByAt'",
+          "$autoname": "_version__001",
+          "$given_name": "__version__",
+          "$kuid": "049288be",
+          "type": "calculate"
+        }
+      ],
+      "schema": "1",
+      "translations": [
+        null
+      ],
+      "settings": {
+        "version": "vGcztYhnRo9CCLv7biByAt"
+      }
+    },
+    "_deployment_data": {
+      "active": true,
+      "version": "vKYFpP4BG5593cJrsYSUgg",
+      "backend": "mock",
+      "identifier": "mock://axD3Wc8ZnfgLXBcURRt5fM",
+      "submissions": [
+        {
+          "_id" : 713934,
+          "_notes" : [ ],
+          "meta/instanceID" : "uuid:be5817e1-dd67-42b0-a6bd-30bf5ecfe4d3",
+          "end" : "2017-12-18T17:47:09.000-05:00",
+          "created_in_second_version" : "submitted to second version (2)",
+          "_bamboo_dataset_id" : "",
+          "_uuid" : "be5817e1-dd67-42b0-a6bd-30bf5ecfe4d3",
+          "created_in_first_version" : "submitted to second version (1)",
+          "_tags" : [ ],
+          "_attachments" : [ ],
+          "_submission_time" : "2017-12-18T22:47:10",
+          "start" : "2017-12-18T17:46:22.000-05:00",
+          "_submitted_by" : null,
+          "_geolocation" : [
+            null,
+            null
+          ],
+          "_xform_id_string" : "axD3Wc8ZnfgLXBcURRt5fM",
+          "_userform_id" : "someuser_axD3Wc8ZnfgLXBcURRt5fM",
+          "_version_" : "vnPWjPhx4VP6V24Cvn2EhG",
+          "_status" : "submitted_via_web",
+          "__version__" : "vqu4EaVFry5MirsJcBbhsQ",
+          "formhub/uuid" : "d9e0d163e34c4524b5fd35b394f7aa26"
+        },
+        {
+          "_id" : 713935,
+          "_notes" : [ ],
+          "_version__001" : "vGcztYhnRo9CCLv7biByAt",
+          "_uuid" : "a95a0de5-06d2-43ab-b78f-fb2885ceac61",
+          "_bamboo_dataset_id" : "",
+          "_tags" : [ ],
+          "_submitted_by" : null,
+          "_xform_id_string" : "axD3Wc8ZnfgLXBcURRt5fM",
+          "created_in_third_version" : "submitted to third version (3)",
+          "meta/instanceID" : "uuid:a95a0de5-06d2-43ab-b78f-fb2885ceac61",
+          "formhub/uuid" : "d9e0d163e34c4524b5fd35b394f7aa26",
+          "end" : "2017-12-18T17:48:21.000-05:00",
+          "start" : "2017-12-18T17:48:09.000-05:00",
+          "_submission_time" : "2017-12-18T22:48:21",
+          "created_in_first_version" : "submitted to third version (1)",
+          "_attachments" : [ ],
+          "created_in_second_version" : "submitted to third version (2)",
+          "_geolocation" : [
+            null,
+            null
+          ],
+          "_userform_id" : "someuser_axD3Wc8ZnfgLXBcURRt5fM",
+          "_version_" : "vnPWjPhx4VP6V24Cvn2EhG",
+          "_status" : "submitted_via_web",
+          "__version__" : "vqu4EaVFry5MirsJcBbhsQ"
+        },
+        {
+          "_id" : 713936,
+          "_notes" : [ ],
+          "_version__001" : "vGcztYhnRo9CCLv7biByAt",
+          "_version__002" : "vKYFpP4BG5593cJrsYSUgg",
+          "_uuid" : "bcbfcdfc-891a-4513-80b3-d9b98bd87553",
+          "_bamboo_dataset_id" : "",
+          "_tags" : [ ],
+          "_submitted_by" : null,
+          "_xform_id_string" : "axD3Wc8ZnfgLXBcURRt5fM",
+          "created_in_third_version" : "submitted to fourth version (3)",
+          "meta/instanceID" : "uuid:bcbfcdfc-891a-4513-80b3-d9b98bd87553",
+          "formhub/uuid" : "d9e0d163e34c4524b5fd35b394f7aa26",
+          "end" : "2017-12-18T17:49:37.000-05:00",
+          "start" : "2017-12-18T17:49:19.000-05:00",
+          "_submission_time" : "2017-12-18T22:49:38",
+          "created_in_first_version" : "submitted to fourth version (1)",
+          "_attachments" : [ ],
+          "created_in_second_version" : "submitted to fourth version (2)",
+          "_geolocation" : [
+            null,
+            null
+          ],
+          "_userform_id" : "someuser_axD3Wc8ZnfgLXBcURRt5fM",
+          "_version_" : "vnPWjPhx4VP6V24Cvn2EhG",
+          "_status" : "submitted_via_web",
+          "__version__" : "vqu4EaVFry5MirsJcBbhsQ",
+          "created_in_fourth_version" : "submitted to fourth version (4)"
+        },
+        {
+          "_id" : 713937,
+          "_notes" : [ ],
+          "_uuid" : "a6bac3ac-c9aa-4556-a1c0-b1d44d51ca65",
+          "_bamboo_dataset_id" : "",
+          "_tags" : [ ],
+          "_submitted_by" : null,
+          "_xform_id_string" : "axD3Wc8ZnfgLXBcURRt5fM",
+          "meta/instanceID" : "uuid:a6bac3ac-c9aa-4556-a1c0-b1d44d51ca65",
+          "formhub/uuid" : "d9e0d163e34c4524b5fd35b394f7aa26",
+          "end" : "2017-12-18T17:45:26.000-05:00",
+          "_submission_time" : "2017-12-18T22:45:26",
+          "created_in_first_version" : "submitted to first version",
+          "_attachments" : [ ],
+          "start" : "2017-12-18T17:45:15.000-05:00",
+          "_geolocation" : [
+            null,
+            null
+          ],
+          "_userform_id" : "someuser_axD3Wc8ZnfgLXBcURRt5fM",
+          "_status" : "submitted_via_web",
+          "__version__" : "vqu4EaVFry5MirsJcBbhsQ"
+        }
+      ]
+    },
+    "editors_can_change_permissions": true,
+    "owner": 2,
+    "date_created": "2017-12-18T22:42:59.233Z",
+    "asset_type": "survey",
+    "uid": "axD3Wc8ZnfgLXBcURRt5fM"
+  },
+  "model": "kpi.asset",
+  "pk": 713928
+}
+]

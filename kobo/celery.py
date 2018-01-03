@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 import os
 import celery
+import logging
 
 from django.conf import settings
 
@@ -21,7 +22,7 @@ if hasattr(settings, 'RAVEN_CONFIG'):
     class RavenCelery(celery.Celery):
         def on_configure(self):
             # register a custom filter to filter out duplicate logs
-            register_logger_signal(raven_client)
+            register_logger_signal(raven_client, loglevel=logging.WARNING)
             # hook into the Celery error handler
             register_signal(raven_client)
     Celery = RavenCelery
