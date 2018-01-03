@@ -337,32 +337,42 @@ class MockDataExports(TestCase):
             'source': reverse('asset-detail', args=[self.asset.uid]),
             'type': 'csv',
         }
-        # Make an excessive amount of exports
+        # Create and run one export, so we can verify that it's `result` file
+        # is later deleted
+        export_task = ExportTask()
+        export_task.user = self.user
+        export_task.data = task_data
+        export_task.save()
+        export_task.run()
+        self.assertEqual(export_task.status, ExportTask.COMPLETE)
+        result = export_task.result
+        # Make an excessive amount of additional exports
         excess_count = 5 + settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM
         for _ in range(excess_count):
             export_task = ExportTask()
             export_task.user = self.user
             export_task.data = task_data
             export_task.save()
-        self.assertEqual(
-            excess_count,
-            ExportTask._filter_by_source_kludge(
-                ExportTask.objects.filter(
-                    user=self.user),
-                task_data['source']
-            ).count()
+        created_export_tasks = ExportTask._filter_by_source_kludge(
+            ExportTask.objects.filter(user=self.user),
+            task_data['source']
         )
-        # Run one export, which invokes the cleanup logic
+        self.assertEqual(excess_count + 1, created_export_tasks.count())
+        # Identify which exports should be kept
+        export_tasks_to_keep = created_export_tasks.order_by('-date_created')[
+            :settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM]
+        # Call `run()` once more since it invokes the cleanup logic
         export_task.run()
         self.assertEqual(export_task.status, ExportTask.COMPLETE)
         # Verify the cleanup
-        self.assertEqual(
-            settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM,
-            ExportTask._filter_by_source_kludge(
+        self.assertFalse(result.storage.exists(result.path))
+        self.assertListEqual( # assertSequenceEqual isn't working...
+            list(export_tasks_to_keep.values_list('pk', flat=True)),
+            list(ExportTask._filter_by_source_kludge(
                 ExportTask.objects.filter(
                     user=self.user),
                 task_data['source']
-            ).count()
+            ).order_by('-date_created').values_list('pk', flat=True))
         )
 
     def test_log_and_mark_stuck_as_errored(self):
@@ -385,8 +395,7 @@ class MockDataExports(TestCase):
             export_task.data = task_data
             export_task.status = status
             export_task.save()
-            export_task.date_created = (
-                datetime.datetime.now() - datetime.timedelta(days=1))
+            export_task.date_created -= datetime.timedelta(days=1)
             export_task.save()
         self.assertSequenceEqual(
             [ExportTask.CREATED, ExportTask.PROCESSING],

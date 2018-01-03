@@ -533,12 +533,13 @@ class ExportTask(ImportExportTask):
         user_source_exports = cls._filter_by_source_kludge(
             cls.objects.filter(user=user), source
         ).order_by('-date_created')
-        # Oh, Django: "Cannot use 'limit' or 'offset' with delete."
-        excess_pks = user_source_exports[
+        excess_exports = user_source_exports[
             settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM:
-        ].values_list('pk', flat=True)
-        cls.objects.filter(pk__in=excess_pks).delete()
-        return len(excess_pks)
+        ]
+        for export in excess_exports:
+            # The `result` file must be deleted manually
+            export.result.delete()
+            export.delete()
 
 
 def _b64_xls_to_dict(base64_encoded_upload):
