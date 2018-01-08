@@ -1,7 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
+import Reflux from 'reflux';
 import {dataInterface} from '../dataInterface';
+import actions from '../actions';
+import reactMixin from 'react-mixin';
 import bem from '../bem';
 import {t, notify, isAValidUrl} from '../utils';
 import stores from '../stores';
@@ -31,6 +34,14 @@ class Submission extends React.Component {
   }
   componentDidMount() {
     this.getSubmission(this.props.asset.uid, this.state.sid);
+    this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmission);
+  }
+
+  refreshSubmission(result, sid) {
+    if (result.uid) {
+      this.state.submission._validation_status = result;
+      this.setState({submission: this.state.submission});
+    }
   }
 
   getSubmission(assetUid, sid) {
@@ -138,16 +149,7 @@ class Submission extends React.Component {
 
   validationStatusChange(e) {
     const data = {"validation_status_uid": e.value};
-    dataInterface.updateSubmissionValidationStatus(this.props.asset.uid, this.state.sid, data).done((result) => {
-      if (result.uid) {
-        this.state.submission._validation_status = result;
-        this.setState({submission: this.state.submission});
-      } else {
-        console.error('error updating validation status');
-      }
-    }).fail((error)=>{
-      console.error(error);
-    });
+    actions.resources.updateSubmissionValidationStatus(this.props.asset.uid, this.state.sid, data);
   }
   render () {
     if (this.state.loading) {
@@ -310,5 +312,7 @@ class Submission extends React.Component {
     );
   }
 };
+
+reactMixin(Submission.prototype, Reflux.ListenerMixin);
 
 export default Submission;

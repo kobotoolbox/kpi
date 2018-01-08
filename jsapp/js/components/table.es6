@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
+import reactMixin from 'react-mixin';
 import _ from 'underscore';
 import {dataInterface} from '../dataInterface';
 
@@ -240,16 +241,27 @@ export class DataTable extends React.Component {
       showExpandedTable: !this.state.showExpandedTable,
     });
   }
-
+  componentDidMount() {
+    this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmission);
+  }
   componentWillUnmount() {
     if (this.state.showExpandedTable)
       stores.pageState.hideDrawerAndHeader(!this.state.showExpandedTable);
   }
-
+  refreshSubmission(result, sid) {
+    if (sid) {
+      var subIndex = this.state.tableData.findIndex(x => x._id === parseInt(sid));
+      if (subIndex) {
+        var newData = this.state.tableData;
+        newData[subIndex]._validation_status = result;
+        this.setState({tableData: newData});
+        this._prepColumns(newData);
+      }
+    }
+  }
   launchPrinting () {
     window.print();
   }
-
   fetchData(state, instance) {
     this.setState({ 
       loading: true,
@@ -258,7 +270,6 @@ export class DataTable extends React.Component {
     });
     this.requestData(state.pageSize, state.page * state.pageSize, state.sorted);
   }
-
   launchSubmissionModal (evt) {
     const sid = evt.target.getAttribute('data-sid');
     const td = this.state.tableData;
@@ -274,7 +285,6 @@ export class DataTable extends React.Component {
       ids: ids
     });
   }
-
   toggleLabels () {
     this.setState({
       showLabels: !this.state.showLabels
@@ -284,7 +294,6 @@ export class DataTable extends React.Component {
       this._prepColumns(this.state.tableData);
     }, 300);
   }
-
   toggleGroups () {
     this.setState({
       showGroups: !this.state.showGroups
@@ -293,9 +302,7 @@ export class DataTable extends React.Component {
     window.setTimeout(()=>{
       this._prepColumns(this.state.tableData);
     }, 300);
-
   }
-
   render () {
     if (this.state.error) {
       return (
@@ -380,4 +387,5 @@ export class DataTable extends React.Component {
   }
 };
 
+reactMixin(DataTable.prototype, Reflux.ListenerMixin);
 export default DataTable;
