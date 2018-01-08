@@ -1,4 +1,5 @@
 import json
+import logging
 from collections import Iterable
 
 from django.conf import settings
@@ -13,6 +14,24 @@ import requests
 from .shadow_models import _models, safe_kc_read
 
 
+class _KoboCatProfileException(Exception):
+    pass
+
+def _trigger_kc_profile_creation(user):
+    '''
+    Get the user's profile via the KC API, causing KC to create a KC
+    UserProfile if none exists already
+    '''
+    url = settings.KOBOCAT_URL + '/api/v1/user'
+    token, _ = Token.objects.get_or_create(user=user)
+    response = requests.get(
+        url, headers={'Authorization': 'Token ' + token.key})
+    if not response.status_code == 200:
+        raise _KoboCatProfileException(
+            'Bad HTTP status code `{}` when retrieving KoBoCAT user profile'
+            ' for `{}`.'.format(response.status_code, user.username))
+    return response
+
 @safe_kc_read
 def instance_count(xform_id_string, user_id):
     return _models.Instance.objects.filter(deleted_at__isnull=True,
@@ -21,13 +40,25 @@ def instance_count(xform_id_string, user_id):
                                            ).count()
 
 @safe_kc_read
+def last_submission_time(xform_id_string, user_id):
+    return _models.XForm.objects.get(
+        user_id=user_id, id_string=xform_id_string
+    ).last_submission_time
+
+@safe_kc_read
 def get_kc_profile_data(user_id):
-    ''' Retrieve all fields from the user's KC profile (if it exists) and
-    return them in a dictionary '''
+    '''
+    Retrieve all fields from the user's KC profile and  return them in a
+    dictionary
+    '''
     try:
         profile = _models.UserProfile.objects.get(user_id=user_id)
     except _models.UserProfile.DoesNotExist:
-        return {}
+        try:
+            _trigger_kc_profile_creation(User.objects.get(pk=user_id))
+        except _KoboCatProfileException:
+            logging.exception('Failed to create KoBoCAT user profile')
+            return {}
     fields = [
         # Use a (kc_name, new_name) tuple to rename a field
         'name',
@@ -59,33 +90,26 @@ def get_kc_profile_data(user_id):
 
 def set_kc_require_auth(user_id, require_auth):
     '''
-    Configure whether or not authentication is required to see and submit data to a user's projects.
+    Configure whether or not authentication is required to see and submit data
+    to a user's projects.
     WRITES to KC's UserProfile.require_auth
 
     :param int user_id: ID/primary key of the :py:class:`User` object.
     :param bool require_auth: The desired setting.
     '''
-
-    # Get/generate the user's auth. token.
     user = User.objects.get(pk=user_id)
-    token, is_new = Token.objects.get_or_create(user=user)
-
-    # Trigger the user's KoBoCAT profile to be generated if it doesn't exist.
-    url = settings.KOBOCAT_URL + '/api/v1/user'
-    response = requests.get(url, headers={'Authorization': 'Token ' + token.key})
-    if not response.status_code == 200:
-        raise RuntimeError('Bad HTTP status code `{}` when retrieving KoBoCAT user profile'
-                           ' for `{}`.'.format(response.status_code, user.username))
-
-    try:
-        profile = _models.UserProfile.objects.get(
-            user_id=user_id)
-        if profile.require_auth != require_auth:
-            profile.require_auth = require_auth
-            profile.save()
-    except ProgrammingError as e:
-        raise ProgrammingError(u'set_kc_require_auth error accessing kobocat '
-                               u'tables: {}'.format(e.message))
+    _trigger_kc_profile_creation(user)
+    token, _ = Token.objects.get_or_create(user=user)
+    with transaction.atomic():
+        try:
+            profile = _models.UserProfile.objects.get(user_id=user_id)
+        except ProgrammingError as e:
+            raise ProgrammingError(u'set_kc_require_auth error accessing '
+                                   u'kobocat tables: {}'.format(repr(e)))
+        else:
+            if profile.require_auth != require_auth:
+                profile.require_auth = require_auth
+                profile.save()
 
 
 def _get_content_type_kwargs(obj):
