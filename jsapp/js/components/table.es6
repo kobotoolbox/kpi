@@ -48,8 +48,21 @@ export class DataTable extends React.Component {
     this.fetchData = this.fetchData.bind(this);
   }
 
-  requestData(pageSize, page, sort) {
-    dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort).done((data) => {
+  requestData(pageSize, page, sort, filter) {
+    var filterQuery = '';
+
+    if (filter.length)
+      filterQuery = `&query={`;
+
+    filter.forEach(function(f, i) {
+      if (i === 0)
+        filterQuery += `"${f.id}":"${f.value.toLowerCase()}"`;
+    });
+
+    if (filter.length)
+      filterQuery += `}`;
+
+    dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort, [], filterQuery).done((data) => {
       if (data && data.length > 0) {
         this.setState({
           loading: false,
@@ -57,7 +70,15 @@ export class DataTable extends React.Component {
         })
         this._prepColumns(data);
       } else {
-        this.setState({error: t('Error: could not load data.'), loading: false});
+        if (filterQuery.length) {
+          this.setState({
+            loading: false
+          });
+          // TODO: debounce the queries and then enable this notification
+          // notify(t('Your filter did not return any results.'));
+        } else {
+          this.setState({error: t('Error: could not load data.'), loading: false});
+        }
       }
 
     }).fail((error)=>{
@@ -101,6 +122,7 @@ export class DataTable extends React.Component {
       accessor: 'sub-link',
       index: '__1',
       minWidth: 50,
+      filterable: false,
       Cell: row => (
         <span onClick={this.launchSubmissionModal} data-sid={row.row._id}
               className='rt-link'>
@@ -114,6 +136,18 @@ export class DataTable extends React.Component {
       index: '__2',
       minWidth: 150,
       className: 'rt-status',
+      Filter: ({ filter, onChange }) =>
+        <select
+          onChange={event => onChange(event.target.value)}
+          style={{ width: "100%" }}
+          value={filter ? filter.value : ""}>
+          <option value="">Show All</option>
+          {VALIDATION_STATUSES.map((item, n) => {
+            return (
+              <option value={item.value} key={n}>{item.label}</option>
+            );
+          })}
+        </select>,
       Cell: row => (
         <Select 
           clearable={false}
@@ -198,6 +232,7 @@ export class DataTable extends React.Component {
   	  	accessor: key,
         index: index,
         question: q,
+        filterable: false,
         Cell: row => {
             if (showLabels && q && q.type && row.value) {
               // show proper labels for choice questions
@@ -227,6 +262,14 @@ export class DataTable extends React.Component {
 
     columns.sort(function(a, b) {
       return a.index.localeCompare(b.index);
+    })
+
+    columns.forEach(function(col, ind) {
+      console.log(col);
+      if (col.question && (col.question.type === 'select_one' || col.question.type === 'select_multiple')) {
+        console.log(columns[ind]);
+        columns[ind].filterable = true;
+      }
     })
 
 		this.setState({
@@ -268,7 +311,7 @@ export class DataTable extends React.Component {
       pageSize: state.pageSize,
       currentPage: state.page
     });
-    this.requestData(state.pageSize, state.page * state.pageSize, state.sorted);
+    this.requestData(state.pageSize, state.page * state.pageSize, state.sorted, state.filtered);
   }
   launchSubmissionModal (evt) {
     const sid = evt.target.getAttribute('data-sid');
@@ -381,6 +424,7 @@ export class DataTable extends React.Component {
           pageText={t('Page')}
           ofText={t('of')}
           rowsText={t('rows')}
+          filterable          
 		  		/>
       </bem.FormView>
     );

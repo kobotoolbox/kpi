@@ -372,7 +372,7 @@ var dataInterface;
       var assetType = assetMapping[id[0]];
       return $.getJSON(`${rootUrl}/${assetType}/${id}/`);
     },
-    getSubmissions(uid, pageSize=100, page=0, sort=[], fields=[]) {
+    getSubmissions(uid, pageSize=100, page=0, sort=[], fields=[], filter='') {
       const query = `limit=${pageSize}&start=${page}`;
       var s = `&sort={"_id":-1}`; // default sort
       var f = '';
@@ -380,9 +380,9 @@ var dataInterface;
         s = sort[0].desc === true ? `&sort={"${sort[0].id}":-1}` : `&sort={"${sort[0].id}":1}`;
       if (fields.length)
         f = `&fields=${JSON.stringify(fields)}`;
-      
+      console.log(`${rootUrl}/assets/${uid}/submissions?${query}${s}${f}${filter}`);
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/submissions?${query}${s}${f}`,
+        url: `${rootUrl}/assets/${uid}/submissions?${query}${s}${f}${filter}`,
         method: 'GET'
       });
     },
