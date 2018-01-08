@@ -27,6 +27,11 @@ export function formatTimeDate(timeStr) {
   return _m.format('LLL');
 }
 
+export function formatDate(timeStr) {
+  var _m = moment(timeStr);
+  return _m.format('ll');
+}
+
 export var anonUsername = 'AnonymousUser';
 export function getAnonymousUserPermission(permissions) {
   return permissions.filter(function(perm){

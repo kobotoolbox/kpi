@@ -15,7 +15,7 @@ import moment from 'moment';
 import Chart from 'chart.js';
 
 import {
-  assign, t, formatTime, stringToColor
+  assign, t, formatTime, formatDate, stringToColor
 } from '../utils';
 
 
@@ -33,6 +33,7 @@ class FormSummary extends React.Component {
     autoBind(this);
   }
   componentDidMount() {
+    this.createChart();
     this.getLatestSubmissionTime(this.props.params.assetid);
     this.prepSubmissions(this.props.params.assetid);
   }
@@ -46,10 +47,38 @@ class FormSummary extends React.Component {
       this.prepSubmissions(this.props.params.assetid);
     }
   }
+  createChart() {
+    Chart.defaults.global.elements.rectangle.backgroundColor = 'rgba(61, 194, 212, 0.6)';
+    var opts = {
+      type: 'bar',
+      options: {
+        maintainAspectRatio: false,
+        responsive: true,
+        events: [''],
+        legend: {
+          display: false
+        },
+        scales: {
+          yAxes: [{
+            ticks: {
+              beginAtZero: true,
+              userCallback: function(label, index, labels) {
+                if (Math.floor(label) === label) {return label;}
+              },
+            }
+          }],
+        },
+      }
+    };
+
+    const canvas = ReactDOM.findDOMNode(this.refs.canvas);
+    if (canvas) {
+      this.submissionsChart = new Chart(canvas, opts);
+    }
+  }
   prepSubmissions(assetid) {
     var wkStart = this.state.chartPeriod == 'week' ? moment().subtract(6, 'days') : moment().subtract(30, 'days');
     var lastWeekStart = this.state.chartPeriod == 'week' ? moment().subtract(13, 'days') : moment().subtract(60, 'days');
-
     var startOfWeek = moment().startOf('week');
 
     const query = `query={"_submission_time": {"$gte":"${wkStart.toISOString()}"}}&fields=["_id","_submission_time"]`;
@@ -70,8 +99,6 @@ class FormSummary extends React.Component {
             subsPerDay[diff] += 1;
           });
 
-          Chart.defaults.global.elements.rectangle.backgroundColor = 'rgba(61, 194, 212, 0.6)';
-
           var dayLabels = [];
           var day = wkStart;
           var today = moment();
@@ -81,37 +108,9 @@ class FormSummary extends React.Component {
             day = day.clone().add(1, 'd');
           }
 
-          var opts = {
-            type: 'bar',
-            data: {
-              labels: dayLabels,
-              datasets: [{
-                data: subsPerDay,
-              }]
-            },
-            options: {
-              maintainAspectRatio: false,
-              responsive: true,
-              events: [''],
-              legend: {
-                display: false
-              },
-              scales: {
-                yAxes: [{
-                  ticks: {
-                    beginAtZero: true,
-                    userCallback: function(label, index, labels) {
-                      if (Math.floor(label) === label) {return label;}
-                    },
-                  }
-                }],
-              },
-            }
-          };
-
-          const canvas = ReactDOM.findDOMNode(this.refs.canvas);
-          if (canvas)
-            var submissionsChart = new Chart(canvas, opts);
+          this.submissionsChart.data.labels = dayLabels;
+          this.submissionsChart.data.datasets = [{data: subsPerDay}];
+          this.submissionsChart.update();
         }
 
         this.setState({
@@ -150,20 +149,30 @@ class FormSummary extends React.Component {
               </a>
             </bem.FormView__cell>
             <bem.FormView__cell m={`summary-chart`} className={this.state.subsCurrentPeriod ? 'active' : 'inactive'}>
-              <canvas ref="canvas" className={this.state.submissionsChart ? 'visible' : 'hidden'}/>
+              <canvas ref="canvas" className={this.state.submissionsChart ? 'visible' : ''}/>
             </bem.FormView__cell>
           </bem.FormView__cell>
           <bem.FormView__group m={['submission-stats']}>
             <bem.FormView__cell>
               <span className="subs-graph-number">{this.state.subsCurrentPeriod}</span>
               <bem.FormView__label>
-                {this.state.chartPeriod=='week' ? t('Past 7 days') : t('Past 31 days')}
+                {this.state.chartPeriod=='week' && 
+                  `${t('Today')} - ${formatDate(moment().subtract(6, 'days'))}`
+                }
+                {this.state.chartPeriod!='week' && 
+                  `${t('Today')} - ${formatDate(moment().subtract(30, 'days'))}`
+                }
               </bem.FormView__label>
             </bem.FormView__cell>
             <bem.FormView__cell>
               <span className="subs-graph-number">{this.state.subsPreviousPeriod}</span>
               <bem.FormView__label>
-              {this.state.chartPeriod=='week' ? t('Previous 7 days') : t('Previous 31 days')}
+                {this.state.chartPeriod=='week' && 
+                  `${formatDate(moment().subtract(7, 'days'))} - ${formatDate(moment().subtract(13, 'days'))}`
+                }
+                {this.state.chartPeriod!='week' && 
+                  `${formatDate(moment().subtract(31, 'days'))} - ${formatDate(moment().subtract(60, 'days'))}`
+                }
               </bem.FormView__label>
             </bem.FormView__cell>
             <bem.FormView__cell>

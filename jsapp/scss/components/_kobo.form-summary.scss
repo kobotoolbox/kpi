@@ -60,6 +60,20 @@
       &.active {
         color: $cool-gray;
         background: #F8F8F8;
+        position: relative;
+
+        &:after {
+          width: 0;
+          height: 0;
+          border-left: 10px solid transparent;
+          border-right: 10px solid transparent;
+          border-top: 10px solid #F8F8F8;
+          content: '';
+          position: absolute;
+          bottom: -9px;
+          left: 50%;
+          margin-left: -10px;
+        }
       }
     }
   }
@@ -154,9 +168,16 @@
 
 .form-view__cell--summary-chart {
   position: relative;
+  height: 0px;
+  overflow: hidden;
 
   &.active {
     height: 275px;
+    overflow: visible;
+
+    canvas {
+      height: 250px;
+    }
   }
 }
 
