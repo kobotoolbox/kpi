@@ -251,7 +251,7 @@ export class DataTable extends React.Component {
   refreshSubmission(result, sid) {
     if (sid) {
       var subIndex = this.state.tableData.findIndex(x => x._id === parseInt(sid));
-      if (subIndex) {
+      if (typeof subIndex !== "undefined" && this.state.tableData[subIndex]) {
         var newData = this.state.tableData;
         newData[subIndex]._validation_status = result;
         this.setState({tableData: newData});
