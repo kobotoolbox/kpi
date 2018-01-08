@@ -18,6 +18,8 @@
 }
 
 .form-view__group--summary-details-cols {
+  display: block;
+
   > .form-view__cell {
     border-bottom: 1px solid $divider-color;
     padding: 15px 20px;
