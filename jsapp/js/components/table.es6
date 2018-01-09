@@ -51,16 +51,15 @@ export class DataTable extends React.Component {
   requestData(pageSize, page, sort, filter) {
     var filterQuery = '';
 
-    if (filter.length)
+    if (filter.length) {
       filterQuery = `&query={`;
-
-    filter.forEach(function(f, i) {
-      if (i === 0)
+      filter.forEach(function(f, i) {
         filterQuery += `"${f.id}":"${f.value.toLowerCase()}"`;
-    });
-
-    if (filter.length)
+        if (i < filter.length - 1)
+          filterQuery += ',';
+      });
       filterQuery += `}`;
+    }
 
     dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort, [], filterQuery).done((data) => {
       if (data && data.length > 0) {
@@ -75,7 +74,7 @@ export class DataTable extends React.Component {
             loading: false
           });
           // TODO: debounce the queries and then enable this notification
-          // notify(t('Your filter did not return any results.'));
+          notify(t('The query did not return any results.'));
         } else {
           this.setState({error: t('Error: could not load data.'), loading: false});
         }
@@ -265,10 +264,20 @@ export class DataTable extends React.Component {
     })
 
     columns.forEach(function(col, ind) {
-      console.log(col);
       if (col.question && (col.question.type === 'select_one' || col.question.type === 'select_multiple')) {
-        console.log(columns[ind]);
         columns[ind].filterable = true;
+        columns[ind].Filter = ({ filter, onChange }) =>
+          <select
+            onChange={event => onChange(event.target.value)}
+            style={{ width: "100%" }}
+            value={filter ? filter.value : ""}>
+            <option value="">Show All</option>
+            {choices.filter(c => c.list_name === col.question.select_from_list_name).map((item, n) => {
+              return (
+                <option value={item.name} key={n}>{item.label[0]}</option>
+              );
+            })}
+          </select>;
       }
     })
 
@@ -424,7 +433,7 @@ export class DataTable extends React.Component {
           pageText={t('Page')}
           ofText={t('of')}
           rowsText={t('rows')}
-          filterable          
+          filterable
 		  		/>
       </bem.FormView>
     );

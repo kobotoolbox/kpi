@@ -380,7 +380,7 @@ var dataInterface;
         s = sort[0].desc === true ? `&sort={"${sort[0].id}":-1}` : `&sort={"${sort[0].id}":1}`;
       if (fields.length)
         f = `&fields=${JSON.stringify(fields)}`;
-      console.log(`${rootUrl}/assets/${uid}/submissions?${query}${s}${f}${filter}`);
+
       return $ajax({
         url: `${rootUrl}/assets/${uid}/submissions?${query}${s}${f}${filter}`,
         method: 'GET'
