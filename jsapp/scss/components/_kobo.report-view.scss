@@ -134,12 +134,13 @@
       margin-left: 8px;
     }
 
-    &.report-button__edit {
+    &.report-button__edit,
+    &.report-button__settings {
       overflow: visible;
     }
 
     &.report-button__expand,
-    &.report-button__print, &.report-button__settings {
+    &.report-button__print {
       float: right;
       margin-right: 0px;
       margin-left: 8px;
