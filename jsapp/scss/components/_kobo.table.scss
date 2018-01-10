@@ -23,6 +23,13 @@
 
       button {
         overflow: visible;
+
+        &.report-button__bulkUpdate {
+          i {
+            font-size: 36px;
+            color: $cool-blue !important;
+          }
+        }
       }
     }
   }
@@ -45,6 +52,11 @@
 
       > div {
         direction: ltr;
+      }
+
+      .table-header-checkbox {
+        min-height: 24px;
+        display: block;
       }
     }
 

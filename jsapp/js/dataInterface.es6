@@ -372,7 +372,7 @@ var dataInterface;
       var assetType = assetMapping[id[0]];
       return $.getJSON(`${rootUrl}/${assetType}/${id}/`);
     },
-    getSubmissions(uid, pageSize=100, page=0, sort=[], fields=[], filter='') {
+    getSubmissions(uid, pageSize=100, page=0, sort=[], fields=[], filter='', count=false) {
       const query = `limit=${pageSize}&start=${page}`;
       var s = `&sort={"_id":-1}`; // default sort
       var f = '';
@@ -380,6 +380,10 @@ var dataInterface;
         s = sort[0].desc === true ? `&sort={"${sort[0].id}":-1}` : `&sort={"${sort[0].id}":1}`;
       if (fields.length)
         f = `&fields=${JSON.stringify(fields)}`;
+      if (count)
+        filter += '&count=1';
+
+      console.log(`${rootUrl}/assets/${uid}/submissions?${query}${s}${f}${filter}`);
 
       return $ajax({
         url: `${rootUrl}/assets/${uid}/submissions?${query}${s}${f}${filter}`,
@@ -392,9 +396,18 @@ var dataInterface;
         method: 'GET'
       });
     },
+    patchSubmissions(uid, data) {
+      console.log(data);
+      console.log(`${rootUrl}/assets/${uid}/submissions/validation_statuses/`);
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions/validation_statuses/`,
+        method: 'PATCH',
+        data: data
+      });
+    },    
     updateSubmissionValidationStatus(uid, sid, data) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/submissions/${sid}/validation_status/`,
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}/validation_status`,
         method: 'PATCH',
         data: data
       });

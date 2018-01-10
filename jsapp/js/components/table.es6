@@ -11,6 +11,7 @@ import bem from '../bem';
 import ui from '../ui';
 import stores from '../stores';
 import mixins from '../mixins';
+import alertify from 'alertifyjs';
 
 import ReactTable from 'react-table'
 import Select from 'react-select';
@@ -42,7 +43,9 @@ export class DataTable extends React.Component {
       currentPage: 0,
       error: false,
       showLabels: true,
-      showGroups: true
+      showGroups: true,
+      resultsTotal: 0,
+      selectedRows: {}
     };
     autoBind(this);    
     this.fetchData = this.fetchData.bind(this);
@@ -54,11 +57,19 @@ export class DataTable extends React.Component {
     if (filter.length) {
       filterQuery = `&query={`;
       filter.forEach(function(f, i) {
-        filterQuery += `"${f.id}":"${f.value.toLowerCase()}"`;
+        console.log(f);
+        filterQuery += `"${f.id}":"${f.value}"`;
         if (i < filter.length - 1)
           filterQuery += ',';
       });
       filterQuery += `}`;
+      dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort, [], filterQuery, true).done((data) => {
+        if (data.count) {
+          this.setState({resultsTotal: data.count});
+        }
+      });
+    } else {
+      this.setState({resultsTotal: this.props.asset.deployment__submission_count});
     }
 
     dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort, [], filterQuery).done((data) => {
@@ -79,7 +90,6 @@ export class DataTable extends React.Component {
           this.setState({error: t('Error: could not load data.'), loading: false});
         }
       }
-
     }).fail((error)=>{
       if (error.responseText)
         this.setState({error: error.responseText, loading: false});
@@ -94,7 +104,7 @@ export class DataTable extends React.Component {
     var _this = this;
 
     return function(selection) {
-      const data = {"validation_status_uid": selection.value};
+      const data = {"validation_status__uid": selection.value};
       dataInterface.updateSubmissionValidationStatus(_this.props.asset.uid, sid, data).done((result) => {
         if (result.uid) {
           _this.state.tableData[index]._validation_status = result.uid;
@@ -117,11 +127,37 @@ export class DataTable extends React.Component {
     let showGroups = this.state.showGroups;
 
 		var columns = [{
+      Header: row => (
+          <div className="table-header-checkbox">
+            <input type="checkbox"
+              id={`ch-head`}
+              checked={Object.keys(this.state.selectedRows).length === this.state.pageSize ? true : false}
+              onChange={this.bulkSelectAllRows} />
+            <label htmlFor={`ch-head`}></label>
+          </div>
+        ),
+      accessor: 'sub-checkbox',
+      index: '__0',
+      minWidth: 45,
+      filterable: false,
+      sortable: false,
+      Cell: row => (
+        <div>
+          <input type="checkbox"
+              id={`ch-${row.row._id}`}
+              checked={this.state.selectedRows[row.row._id] ? true : false}
+              onChange={this.bulkUpdateChange} data-sid={row.row._id} />
+          <label htmlFor={`ch-${row.row._id}`}></label>
+        </div>
+      )
+    },
+    {
       Header: '',
       accessor: 'sub-link',
       index: '__1',
       minWidth: 50,
       filterable: false,
+      sortable: false,
       Cell: row => (
         <span onClick={this.launchSubmissionModal} data-sid={row.row._id}
               className='rt-link'>
@@ -264,7 +300,11 @@ export class DataTable extends React.Component {
     })
 
     columns.forEach(function(col, ind) {
-      if (col.question && (col.question.type === 'select_one' || col.question.type === 'select_multiple')) {
+      // TODO: see if this can work for select_multiple too
+      if (col.question && col.question.type) {
+        console.log(col.question.type);
+      }
+      if (col.question && col.question.type === 'select_one') {
         columns[ind].filterable = true;
         columns[ind].Filter = ({ filter, onChange }) =>
           <select
@@ -279,14 +319,16 @@ export class DataTable extends React.Component {
             })}
           </select>;
       }
+      if (col.question && (col.question.type === 'text' || col.question.type === 'integer'
+          || col.question.type === 'decimal')) {
+        columns[ind].filterable = true;
+      }
     })
 
 		this.setState({
 			columns: columns
 		})
-
   }
-
   toggleExpandedTable () {
     stores.pageState.hideDrawerAndHeader(!this.state.showExpandedTable);
     this.setState({
@@ -337,7 +379,68 @@ export class DataTable extends React.Component {
       ids: ids
     });
   }
-  toggleLabels () {
+  bulkUpdateChange(evt) {
+    const sid = evt.target.getAttribute('data-sid');
+    var selectedRows = this.state.selectedRows;
+
+    if (evt.target.checked) {
+      selectedRows[sid] = true;
+    } else {
+      delete selectedRows[sid];
+    }
+    this.setState({selectedRows: selectedRows});
+  }
+  bulkSelectAllRows(evt) {
+    var s = this.state.selectedRows;
+
+    this.state.tableData.forEach(function(r) {
+      console.log(r);
+      if (evt.target.checked) {
+        s[r._id] = true;
+      } else {
+        delete s[r._id];
+      }
+    })
+    console.log(s);
+    this.setState({selectedRows: s});
+  }
+  bulkUpdateStatus(evt) {
+    const sid = evt.target.getAttribute('data-sid');
+    var selectedRows = this.state.selectedRows;
+
+    if (evt.target.checked) {
+      selectedRows[sid] = true;
+    } else {
+      delete selectedRows[sid];
+    }
+    this.setState({selectedRows: selectedRows});
+  }
+  bulkUpdateStatus(evt) {
+    const val = evt.target.getAttribute('data-value');
+    let data = {
+      submissions_ids: Object.keys(this.state.selectedRows),
+      validation_status__uid: val
+    }
+
+    let dialog = alertify.dialog('confirm');
+    let opts = {
+      title: t('Update status of selected submissions'),
+      message: t('You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.').replace('##', Object.keys(this.state.selectedRows).length),
+      labels: {ok: t('Update Validation Status'), cancel: t('Cancel')},
+      onok: (evt, val) => {
+        dataInterface.patchSubmissions(this.props.asset.uid, data).done((res) => {
+        }).fail((jqxhr)=> {
+          console.log(jqxhr);
+          alertify.error(t('Failed to update status.'));
+        });
+      },
+      oncancel: () => {
+        dialog.destroy();
+      }
+    };
+    dialog.set(opts).show();
+  }
+  toggleLabels() {
     this.setState({
       showLabels: !this.state.showLabels
     });
@@ -368,10 +471,10 @@ export class DataTable extends React.Component {
         )
     }
 
-    const { tableData, columns, defaultPageSize, loading, pageSize, currentPage } = this.state;
-    const pages = Math.floor(((this.props.asset.deployment__submission_count - 1) / pageSize) + 1);
+    const { tableData, columns, defaultPageSize, loading, pageSize, currentPage, resultsTotal } = this.state;
+    const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1);
     const res1 = (currentPage * pageSize) + 1;
-    const res2 = Math.min((currentPage + 1) * pageSize, this.props.asset.deployment__submission_count);
+    const res2 = Math.min((currentPage + 1) * pageSize, resultsTotal);
     const showingResults = `${res1} - ${res2}`;
 
     return (
@@ -380,7 +483,7 @@ export class DataTable extends React.Component {
           <bem.FormView__item m='table-meta'>
             {`${showingResults} `}
             {t('of')}
-            {` ${this.props.asset.deployment__submission_count} `}
+            {` ${resultsTotal} `}
             {t('results')}
           </bem.FormView__item>
           <bem.FormView__item m='table-buttons'>
@@ -390,11 +493,29 @@ export class DataTable extends React.Component {
               <i className="k-icon-print" />
             </button>
 
+            {Object.keys(this.state.selectedRows).length > 0 &&
+              <ui.PopoverMenu type='bulkUpdate-menu' 
+                          triggerLabel={<i className="k-icon-settings" />} 
+                          triggerTip={t('Update Selected')}>
+                <bem.PopoverMenu__heading>
+                  {t('Updated status to:')}
+                </bem.PopoverMenu__heading>
+                {VALIDATION_STATUSES.map((item, n) => {
+                  return (
+                    <bem.PopoverMenu__link onClick={this.bulkUpdateStatus} data-value={item.value} key={n}>
+                      {item.label}
+                      </bem.PopoverMenu__link>
+                  );
+                })}
+              </ui.PopoverMenu>
+
+            }
+
             <button className="mdl-button mdl-button--icon report-button__expand"
                     onClick={this.toggleExpandedTable} 
                     data-tip={this.state.showExpandedTable ? t('Contract') : t('Expand')}>
               <i className="k-icon-expand" />
-            </button>   
+            </button>
 
             <ui.PopoverMenu type='formTable-menu' 
                         triggerLabel={<i className="k-icon-more" />} 
