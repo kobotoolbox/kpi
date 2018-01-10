@@ -17,7 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 from pyxform.xls2json_backends import xls_to_dict
 from rest_framework import exceptions, status, serializers
 from rest_framework.authtoken.models import Token
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import detail_route, list_route
 
 from base_backend import BaseDeploymentBackend
 from .kc_access.utils import instance_count, last_submission_time
@@ -561,6 +561,23 @@ class KobocatDataProxyViewSetMixin(object):
             http_method_params = {"params": kpi_request.GET}
 
         requests_params.update(http_method_params)
+        kc_request = requests.Request(**requests_params)
+        kc_response = self._kobocat_proxy_request(kpi_request, kc_request)
+
+        return self._requests_response_to_django_response(kc_response)
+
+
+    @list_route(methods=["PATCH"])
+    def validation_statuses(self, kpi_request, *args, **kwargs):
+        deployment = self._get_deployment(kpi_request)
+        kc_url = deployment.submission_list_url
+
+        requests_params = {
+            "method": kpi_request.method,
+            "url": kc_url,
+            "json": kpi_request.data
+        }
+
         kc_request = requests.Request(**requests_params)
         kc_response = self._kobocat_proxy_request(kpi_request, kc_request)
 
