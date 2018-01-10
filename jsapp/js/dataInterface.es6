@@ -402,7 +402,7 @@ var dataInterface;
       return $ajax({
         url: `${rootUrl}/assets/${uid}/submissions/validation_statuses/`,
         method: 'PATCH',
-        data: data
+        data: {'payload': JSON.stringify(data)}
       });
     },    
     updateSubmissionValidationStatus(uid, sid, data) {
