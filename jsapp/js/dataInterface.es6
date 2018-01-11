@@ -394,7 +394,6 @@ var dataInterface;
         method: 'GET'
       });
     },
-<<<<<<< HEAD
     patchSubmissions(uid, data) {
       return $ajax({
         url: `${rootUrl}/assets/${uid}/submissions/validation_statuses/`,
@@ -407,12 +406,10 @@ var dataInterface;
         url: `${rootUrl}/assets/${uid}/submissions/${sid}/validation_status`,
         method: 'PATCH',
         data: data
-=======
     getSubmissionsQuery(uid, query='') {
       return $ajax({
         url: `${rootUrl}/assets/${uid}/submissions?${query}`,
         method: 'GET'
->>>>>>> project-summary-v2
       });
     },
     deleteSubmission(uid, sid) {
