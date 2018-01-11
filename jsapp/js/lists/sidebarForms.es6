@@ -53,9 +53,11 @@ class SidebarFormsList extends Reflux.Component {
     if (resource.uid == this.currentAssetID())
       active = ' active';
 
+    const href = (resource.has_deployment && resource.deployment__active) ? `/forms/${resource.uid}/summary` : `/forms/${resource.uid}`;
+
     return (
         <bem.FormSidebar__item key={resource.uid} className={active}>
-          <Link to={`/forms/${resource.uid}`} className={`form-sidebar__itemlink`}>
+          <Link to={href} className={`form-sidebar__itemlink`}>
             <ui.SidebarAssetName {...resource} />
           </Link>
         </bem.FormSidebar__item>
