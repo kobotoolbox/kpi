@@ -45,19 +45,23 @@ export class DataTable extends React.Component {
       showLabels: true,
       showGroups: true,
       resultsTotal: 0,
-      selectedRows: {}
+      selectedRows: {},
+      fetchState: false
     };
     autoBind(this);    
     this.fetchData = this.fetchData.bind(this);
   }
 
-  requestData(pageSize, page, sort, filter) {
-    var filterQuery = '';
+  requestData(instance) {
+    let pageSize = instance.state.pageSize, 
+        page = instance.state.page * instance.state.pageSize, 
+        sort = instance.state.sorted, 
+        filter = instance.state.filtered, 
+        filterQuery = '';
 
     if (filter.length) {
       filterQuery = `&query={`;
       filter.forEach(function(f, i) {
-        console.log(f);
         filterQuery += `"${f.id}":"${f.value}"`;
         if (i < filter.length - 1)
           filterQuery += ',';
@@ -167,7 +171,7 @@ export class DataTable extends React.Component {
     },
     {
       Header: t('Validation status'),
-      accessor: '{_validation_status__uid}',
+      accessor: '_validation_status__uid',
       index: '__2',
       minWidth: 150,
       className: 'rt-status',
@@ -301,9 +305,6 @@ export class DataTable extends React.Component {
 
     columns.forEach(function(col, ind) {
       // TODO: see if this can work for select_multiple too
-      if (col.question && col.question.type) {
-        console.log(col.question.type);
-      }
       if (col.question && col.question.type === 'select_one') {
         columns[ind].filterable = true;
         columns[ind].Filter = ({ filter, onChange }) =>
@@ -359,10 +360,12 @@ export class DataTable extends React.Component {
   fetchData(state, instance) {
     this.setState({ 
       loading: true,
-      pageSize: state.pageSize,
-      currentPage: state.page
+      pageSize: instance.state.pageSize,
+      currentPage: instance.state.page,
+      fetchState: state,
+      fetchInstance: instance
     });
-    this.requestData(state.pageSize, state.page * state.pageSize, state.sorted, state.filtered);
+    this.requestData(instance);
   }
   launchSubmissionModal (evt) {
     const sid = evt.target.getAttribute('data-sid');
@@ -394,26 +397,14 @@ export class DataTable extends React.Component {
     var s = this.state.selectedRows;
 
     this.state.tableData.forEach(function(r) {
-      console.log(r);
       if (evt.target.checked) {
         s[r._id] = true;
       } else {
         delete s[r._id];
       }
     })
-    console.log(s);
-    this.setState({selectedRows: s});
-  }
-  bulkUpdateStatus(evt) {
-    const sid = evt.target.getAttribute('data-sid');
-    var selectedRows = this.state.selectedRows;
 
-    if (evt.target.checked) {
-      selectedRows[sid] = true;
-    } else {
-      delete selectedRows[sid];
-    }
-    this.setState({selectedRows: selectedRows});
+    this.setState({selectedRows: s});
   }
   bulkUpdateStatus(evt) {
     const val = evt.target.getAttribute('data-value');
@@ -429,8 +420,9 @@ export class DataTable extends React.Component {
       labels: {ok: t('Update Validation Status'), cancel: t('Cancel')},
       onok: (evt, val) => {
         dataInterface.patchSubmissions(this.props.asset.uid, data).done((res) => {
+          this.fetchData(this.state.fetchState, this.state.fetchInstance);
         }).fail((jqxhr)=> {
-          console.log(jqxhr);
+          console.error(jqxhr);
           alertify.error(t('Failed to update status.'));
         });
       },
@@ -494,9 +486,7 @@ export class DataTable extends React.Component {
             </button>
 
             {Object.keys(this.state.selectedRows).length > 0 &&
-              <ui.PopoverMenu type='bulkUpdate-menu' 
-                          triggerLabel={<i className="k-icon-settings" />} 
-                          triggerTip={t('Update Selected')}>
+              <ui.PopoverMenu type='bulkUpdate-menu' triggerLabel={t('Update Selected')} >
                 <bem.PopoverMenu__heading>
                   {t('Updated status to:')}
                 </bem.PopoverMenu__heading>

@@ -383,8 +383,6 @@ var dataInterface;
       if (count)
         filter += '&count=1';
 
-      console.log(`${rootUrl}/assets/${uid}/submissions?${query}${s}${f}${filter}`);
-
       return $ajax({
         url: `${rootUrl}/assets/${uid}/submissions?${query}${s}${f}${filter}`,
         method: 'GET'
@@ -397,8 +395,6 @@ var dataInterface;
       });
     },
     patchSubmissions(uid, data) {
-      console.log(data);
-      console.log(`${rootUrl}/assets/${uid}/submissions/validation_statuses/`);
       return $ajax({
         url: `${rootUrl}/assets/${uid}/submissions/validation_statuses/`,
         method: 'PATCH',
