@@ -131,6 +131,8 @@ class ReportViewItem extends React.Component {
   buildChartOptions () {
     var data = this.props.data;
     var chartType = this.props.style.report_type || 'bar';
+    // if (this.props.name == 'What_is_your_favorite_TV_Show')
+    //   chartType = 'area';
     var maxPercentage = 100;
     var barPercentage = 0.5;
     var showLegend = false;
@@ -282,7 +284,8 @@ class ReportViewItem extends React.Component {
     let p = this.props,
       d = p.data,
       r = p.row,
-      _type = r.type;
+      _type = r.type,
+      name = p.name;
 
     if (!_type) {
       console.error('No type given for row: ', this.props);
@@ -297,6 +300,7 @@ class ReportViewItem extends React.Component {
     if (this.props.translations) {
       questionLabel = r.label[this.props.translationIndex];
     }
+
     return (
       <div>
         <bem.ReportView__itemHeading>
@@ -322,6 +326,13 @@ class ReportViewItem extends React.Component {
               }
             </span>
           </bem.ReportView__headingMeta>
+          {d.show_graph && 
+            <button className="mdl-button mdl-button--icon report-button__question-settings"
+                  onClick={this.props.triggerQuestionSettings} 
+                  data-tip={t('Override Graph Style')}>
+              <i className="k-icon-more" data-question={name} />
+            </button>
+          }
         </bem.ReportView__itemHeading>
         <bem.ReportView__itemContent>
           {d.show_graph && 
