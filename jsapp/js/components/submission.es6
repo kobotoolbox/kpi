@@ -148,7 +148,7 @@ class Submission extends React.Component {
   }
 
   validationStatusChange(e) {
-    const data = {"validation_status_uid": e.value};
+    const data = {"validation_status__uid": e.value};
     actions.resources.updateSubmissionValidationStatus(this.props.asset.uid, this.state.sid, data);
   }
   render () {
