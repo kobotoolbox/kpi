@@ -328,7 +328,8 @@ class ReportViewItem extends React.Component {
           </bem.ReportView__headingMeta>
           {d.show_graph && 
             <button className="mdl-button mdl-button--icon report-button__question-settings"
-                  onClick={this.props.triggerQuestionSettings} 
+                  onClick={this.props.triggerQuestionSettings}
+                  data-question={name}
                   data-tip={t('Override Graph Style')}>
               <i className="k-icon-more" data-question={name} />
             </button>
