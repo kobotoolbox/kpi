@@ -107,7 +107,15 @@
   text-align: right;
 
   button {
-    @extend .mdl-button, .mdl-button--colored, .mdl-button--raised;
+    @extend .mdl-button;
+
+    &.primary {
+      @extend .mdl-button--colored, .mdl-button--raised;
+    }
+
+    &.reset {
+      @extend .mdl-button--colored, .mdl-button--danger;
+    }
 
     text-transform: uppercase;
     padding-left: 40px;

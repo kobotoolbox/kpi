@@ -318,10 +318,6 @@
   }
 }
 
-.graph-settings__question {
-  padding: 5px 0px;
-}
-
 .custom-report--title {
   padding-bottom: 30px;
 
@@ -329,6 +325,22 @@
     width: 100%;
     font-size: 20px;
     font-weight: 300;
+  }
+}
+
+.custom-report--questions {
+  height: 300px;
+  margin: 10px 0px;
+  overflow: auto;
+  width: 100%;
+
+  .graph-settings__question {
+    width: 100%;
+    padding: 5px 10px;
+
+    input[type="checkbox"] + label {
+      display: inline-block;
+    }
   }
 }
 

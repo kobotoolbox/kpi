@@ -203,7 +203,7 @@ class SizeSliderInput extends React.Component {
   }
   render () {
     return (
-      <div className="slider-item">
+      <div className="slider-item is-edge">
         <label> 
           {this.props.label}&nbsp;{this.state.value}
         </label>
@@ -253,8 +253,15 @@ class CustomReportForm extends React.Component {
     report_custom[crid] = this.state.customReport;
     actions.reports.setCustom(this.props.asset.uid, report_custom);
   }
+  deleteCustomReport() {
+    let report_custom = this.props.asset.report_custom;
+    const crid = this.state.customReport.crid;
 
+    delete report_custom[crid];
+    actions.reports.setCustom(this.props.asset.uid, report_custom);
+  }
   render () {
+    const crid = this.state.customReport.crid;
     var questionList = this.props.reportData.map(function(q, i){
       return (
         <div className='graph-settings__question' key={i}>
@@ -279,8 +286,16 @@ class CustomReportForm extends React.Component {
                   onChange={this.customReportNameChange} />
         </div>
         <strong>{t('Include the following questions:')}</strong>
-        {questionList}
+        <div className="custom-report--questions">
+          {questionList}
+        </div>
         <div className='custom-report--footer'>
+          {this.props.asset.report_custom[crid] &&
+            <button className="mdl-button mdl-button--colored mdl-button--danger" onClick={this.deleteCustomReport}>
+              {t('Delete')}
+            </button>
+          }
+
           <button className="mdl-button mdl-button--raised mdl-button--colored"
                   onClick={this.saveCustomReport}>
             {t('Save')}
@@ -291,55 +306,60 @@ class CustomReportForm extends React.Component {
   }
 };
 
-
 class QuestionGraphSettings extends React.Component {
   constructor(props) {
-    super(props);
-    autoBind(this);
+    super();
+
     this.state = {
       activeModalTab: 0,
-      reportStyle: {
+      rStyle: {
         report_type: false,
         report_colors: false,
         width: false
       }
     };
+
+    autoBind(this);
   }
   toggleTab(evt) {
     var i = evt.target.getAttribute('data-index');
     this.setState({activeModalTab: parseInt(i)});
   }
   componentDidMount() {
-    let _qn = this.props.question,
+    let _qn = this.props.question, 
         specificSettings = undefined;
+
     if (!this.props.parentState.currentCustomReport) {
       specificSettings = this.props.parentState.reportStyles.specified;
     } else {
       specificSettings = this.props.parentState.currentCustomReport.specified;
     }
 
-    if (specificSettings && specificSettings[_qn])
-      this.setState({reportStyle: specificSettings[_qn]});
+    if (specificSettings && Object.keys(specificSettings[_qn]).length) {
+      const rStyle = Object.assign({}, specificSettings[_qn]);
+      this.setState({rStyle: rStyle});
+    }
   }
-  saveQS() {
+  saveQS(reset) {
     let assetUid = this.props.parentState.asset.uid, 
         customReport = this.props.parentState.currentCustomReport,
         _qn = this.props.question;
 
     if (!customReport) {
       var sett_ = this.props.parentState.reportStyles;
-      sett_.specified[_qn] = this.state.reportStyle;
+      sett_.specified[_qn] = reset ? {} : this.state.rStyle;
       actions.reports.setStyle(assetUid, sett_);
     } else {
       let report_custom = this.props.parentState.asset.report_custom;
       if (report_custom[customReport.crid].specified === undefined)
         report_custom[customReport.crid].specified = {};
-      report_custom[customReport.crid].specified[_qn] = this.state.reportStyle;
+
+      report_custom[customReport.crid].specified[_qn] = reset ? {} : this.state.rStyle;
       actions.reports.setCustom(assetUid, report_custom);
     }
   }
   questionStyleChange(params, value) {
-    let styles = this.state.reportStyle;
+    var styles = this.state.rStyle;
 
     if (value && value.report_type)
       styles.report_type = value.report_type;
@@ -348,14 +368,13 @@ class QuestionGraphSettings extends React.Component {
     if (params && params.id == 'width')
       styles.width = params.value;
 
-    this.setState({reportStyle: styles});
+    this.setState({rStyle: styles});
   }
-
   render () {
     let asset = this.props.parentState.asset,
-        reportStyle = this.state.reportStyle;
+        reportStyle = this.state.rStyle;
 
-    var tabs = [t('Chart Type'), t('Colors / Size')];
+    var tabs = [t('Chart Type'), t('Colors')];
     var modalTabs = tabs.map(function(tab, i) {
       return (
         <button className={`mdl-button mdl-button--tab ${this.state.activeModalTab === i ? 'active' : ''}`}
@@ -397,7 +416,12 @@ class QuestionGraphSettings extends React.Component {
         </ui.Modal.Body>
  
         <ui.Modal.Footer>
-          <button className="mdl-button primary" onClick={this.saveQS}>
+          {(reportStyle.report_type || reportStyle.report_colors || reportStyle.width) &&
+            <button className="mdl-button reset" onClick={this.saveQS.bind(this, true)}>
+              {t('Reset')}
+            </button>
+          }
+          <button className="mdl-button primary" onClick={this.saveQS.bind(this, false)}>
             {t('Save')}
           </button>
         </ui.Modal.Footer>
@@ -546,7 +570,7 @@ class ReportStyleSettings extends React.Component {
       }
     }
 
-    var tabs = [t('Chart Type'), t('Colors / Size')];
+    var tabs = [t('Chart Type'), t('Colors')];
 
     if (groupByList.length > 1) {
       tabs.push(t('Group By'));
@@ -807,13 +831,24 @@ class Reports extends React.Component {
   }
   reportCustomListener(assetUid, reportCustom) {
     var crid = this.state.currentCustomReport.crid;
-    this.setState({
-      reportCustom: reportCustom, 
-      showCustomReportModal: false, 
-      showReportGraphSettings: false,
-      currentQuestionGraph: false,
-      groupBy: (reportCustom[crid].reportStyle && reportCustom[crid].reportStyle.groupDataBy) ? reportCustom[crid].reportStyle.groupDataBy : false
-    });
+    if (reportCustom[crid]) {
+      this.setState({
+        reportCustom: reportCustom, 
+        showCustomReportModal: false, 
+        showReportGraphSettings: false,
+        currentQuestionGraph: false,
+        groupBy: (reportCustom[crid].reportStyle && reportCustom[crid].reportStyle.groupDataBy) ? reportCustom[crid].reportStyle.groupDataBy : false
+      });
+    } else {
+      this.setState({
+        reportCustom: reportCustom, 
+        showCustomReportModal: false, 
+        showReportGraphSettings: false,
+        currentQuestionGraph: false,
+        currentCustomReport: false,
+        groupBy: reportStyles.default.groupDataBy
+      });
+    }
   }
   toggleReportGraphSettings () {
     this.setState({
