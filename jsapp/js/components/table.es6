@@ -220,6 +220,9 @@ export class DataTable extends React.Component {
         q = survey.find(o => o.name === key || o.$autoname == key);
       }
 
+      if (q && q.type === 'begin_repeat')
+        return false;
+
       var index = key;
 
       switch(key) {
