@@ -15,6 +15,10 @@
     .form-view__item--table-meta {
       flex-grow: 1;
       line-height: 40px;
+
+      a {
+        cursor: pointer;
+      }
     }
 
     .form-view__item--table-buttons {

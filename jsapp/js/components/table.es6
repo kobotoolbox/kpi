@@ -46,6 +46,7 @@ export class DataTable extends React.Component {
       showGroups: true,
       resultsTotal: 0,
       selectedRows: {},
+      selectAll: false,
       fetchState: false
     };
     autoBind(this);    
@@ -80,6 +81,8 @@ export class DataTable extends React.Component {
       if (data && data.length > 0) {
         this.setState({
           loading: false,
+          selectedRows: {},
+          selectAll: false,
           tableData: data
         })
         this._prepColumns(data);
@@ -129,13 +132,14 @@ export class DataTable extends React.Component {
 
     let showLabels = this.state.showLabels;
     let showGroups = this.state.showGroups;
+    let maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);
 
 		var columns = [{
       Header: row => (
           <div className="table-header-checkbox">
             <input type="checkbox"
               id={`ch-head`}
-              checked={Object.keys(this.state.selectedRows).length === this.state.pageSize ? true : false}
+              checked={Object.keys(this.state.selectedRows).length === maxPageRes ? true : false}
               onChange={this.bulkSelectAllRows} />
             <label htmlFor={`ch-head`}></label>
           </div>
@@ -394,7 +398,8 @@ export class DataTable extends React.Component {
     this.setState({selectedRows: selectedRows});
   }
   bulkSelectAllRows(evt) {
-    var s = this.state.selectedRows;
+    var s = this.state.selectedRows,
+        selectAll = this.state.selectAll;
 
     this.state.tableData.forEach(function(r) {
       if (evt.target.checked) {
@@ -404,13 +409,37 @@ export class DataTable extends React.Component {
       }
     })
 
-    this.setState({selectedRows: s});
+    this.setState({
+      selectedRows: s,
+      selectAll: false
+    });
   }
   bulkUpdateStatus(evt) {
-    const val = evt.target.getAttribute('data-value');
-    let data = {
-      submissions_ids: Object.keys(this.state.selectedRows),
-      validation_status__uid: val
+    const val = evt.target.getAttribute('data-value'),
+          selectAll = this.state.selectAll;
+    var d = null;
+
+    if (!selectAll) {
+      d = {
+        submissions_ids: Object.keys(this.state.selectedRows),
+        validation_status__uid: val
+      }
+    } else {
+      const f = this.state.fetchState.filtered;
+      if (f.length) {
+        d = {
+          query: {},
+          validation_status__uid: val
+        }
+        f.forEach(function(z) {
+          d.query[z.id] = z.value;
+        });
+      } else {
+        d = {
+          confirm: true,
+          validation_status__uid: val
+        }
+      }
     }
 
     let dialog = alertify.dialog('confirm');
@@ -419,7 +448,7 @@ export class DataTable extends React.Component {
       message: t('You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.').replace('##', Object.keys(this.state.selectedRows).length),
       labels: {ok: t('Update Validation Status'), cancel: t('Cancel')},
       onok: (evt, val) => {
-        dataInterface.patchSubmissions(this.props.asset.uid, data).done((res) => {
+        dataInterface.patchSubmissions(this.props.asset.uid, d).done((res) => {
           this.fetchData(this.state.fetchState, this.state.fetchInstance);
         }).fail((jqxhr)=> {
           console.error(jqxhr);
@@ -450,6 +479,54 @@ export class DataTable extends React.Component {
       this._prepColumns(this.state.tableData);
     }, 300);
   }
+  bulkSelectAll() {
+    this.setState({selectAll: true});
+  }
+  clearSelection() {
+    this.setState({selectAll: false, selectedRows: {}});
+  }
+  bulkSelectUI() {
+    if (!this.state.tableData.length) {
+      return false;
+    }
+
+    const { pageSize, currentPage, resultsTotal } = this.state;
+
+    const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1), 
+          res1 = (currentPage * pageSize) + 1, 
+          res2 = Math.min((currentPage + 1) * pageSize, resultsTotal), 
+          showingResults = `${res1} - ${res2} ${t('of')} ${resultsTotal} ${t('results')}`,
+          selected = this.state.selectedRows,
+          maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);;
+
+    if (Object.keys(selected).length == maxPageRes && resultsTotal > pageSize) {
+      return (
+        <bem.FormView__item m='table-meta'>
+        {this.state.selectAll ? 
+          <span>
+            {t('All ## submissions are selected. ').replace('##', resultsTotal)}
+            <a className="select-all" onClick={this.clearSelection}>
+              {t('Clear selection')}
+            </a>
+          </span>
+        :
+          <span>
+            {t('## submissions are selected. ').replace('##', Object.keys(selected).length)}
+            <a className="select-all" onClick={this.bulkSelectAll}>
+              {t('Select all ##').replace('##', resultsTotal)}
+            </a>
+          </span>
+        }
+        </bem.FormView__item>
+      );
+    } else {
+      return (
+        <bem.FormView__item m='table-meta'>
+          {showingResults}
+        </bem.FormView__item>
+      );
+    }
+  }
   render () {
     if (this.state.error) {
       return (
@@ -465,19 +542,11 @@ export class DataTable extends React.Component {
 
     const { tableData, columns, defaultPageSize, loading, pageSize, currentPage, resultsTotal } = this.state;
     const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1);
-    const res1 = (currentPage * pageSize) + 1;
-    const res2 = Math.min((currentPage + 1) * pageSize, resultsTotal);
-    const showingResults = `${res1} - ${res2}`;
 
     return (
       <bem.FormView m='table'>
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
-          <bem.FormView__item m='table-meta'>
-            {`${showingResults} `}
-            {t('of')}
-            {` ${resultsTotal} `}
-            {t('results')}
-          </bem.FormView__item>
+          {this.bulkSelectUI()}
           <bem.FormView__item m='table-buttons'>
             <button className="mdl-button mdl-button--icon report-button__print is-edge" 
                     onClick={this.launchPrinting} 
@@ -498,7 +567,6 @@ export class DataTable extends React.Component {
                   );
                 })}
               </ui.PopoverMenu>
-
             }
 
             <button className="mdl-button mdl-button--icon report-button__expand"
@@ -525,7 +593,7 @@ export class DataTable extends React.Component {
   	  		data={tableData}
     			columns={columns}
           defaultPageSize={defaultPageSize}
-          pageSizeOptions={[30, 50, 100, 200, 500]}
+          pageSizeOptions={[10, 30, 50, 100, 200, 500]}
           minRows={1}
           className={"-striped -highlight"}
           pages={pages}
