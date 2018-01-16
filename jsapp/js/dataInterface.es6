@@ -403,7 +403,7 @@ var dataInterface;
     },
     updateSubmissionValidationStatus(uid, sid, data) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/submissions/${sid}/validation_status`,
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}/validation_status/`,
         method: 'PATCH',
         data: data
       });
