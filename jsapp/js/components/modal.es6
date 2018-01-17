@@ -66,7 +66,7 @@ class Modal extends React.Component {
         break;
       case 'submission':
         this.setState({
-          title: t('Record #') + this.props.params.sid,
+          title: t('Individual Submission'),
           modalClass: 'modal-large modal-submission',
           sid: this.props.params.sid
         });
