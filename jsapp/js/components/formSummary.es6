@@ -273,7 +273,7 @@ class FormSummary extends React.Component {
 
     var team = [];
     this.state.permissions.forEach(function(p){
-      if (!team.includes(p.user__username))
+      if (!team.includes(p.user__username) && p.user__username != 'AnonymousUser')
         team.push(p.user__username);
     });
 
