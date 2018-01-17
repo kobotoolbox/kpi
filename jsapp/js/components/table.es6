@@ -62,7 +62,7 @@ export class DataTable extends React.Component {
     if (filter.length) {
       filterQuery = `&query={`;
       filter.forEach(function(f, i) {
-        filterQuery += `"${f.id}":"${f.value}"`;
+        filterQuery += `"${f.id}":{"$regex":"${f.value}"}`;
         if (i < filter.length - 1)
           filterQuery += ',';
       });
