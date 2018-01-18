@@ -19,12 +19,12 @@ import {
 } from '../utils';
 
 var availablePermissions = [
-  {value: 'view', label: t('Can View')},
-  {value: 'change', label: t('Can Edit')},
-  {value: 'view_submissions', label: t('Can View Submissions')},
-  {value: 'add_submissions', label: t('Can Add Submissions')},
-  {value: 'change_submissions', label: t('Can Edit Submissions')},
-  {value: 'validate_submissions', label: t('Can Validate Submissions')}
+  {value: 'view', label: t('View Form')},
+  {value: 'change', label: t('Edit Form')},
+  {value: 'view_submissions', label: t('View Submissions')},
+  {value: 'add_submissions', label: t('Add Submissions')},
+  {value: 'change_submissions', label: t('Edit Submissions')},
+  {value: 'validate_submissions', label: t('Validate Submissions')}
 ];
 
 class UserPermDiv extends React.Component {
@@ -87,44 +87,30 @@ class UserPermDiv extends React.Component {
 };
 
 reactMixin(UserPermDiv.prototype, mixins.permissions);
-  
-  // pre-React upgrade
-  // togglePerms(evt) {
-  //   var permRole = evt.currentTarget.dataset.perm;
-  //   var permission = this.props.publicPerms.filter(function(perm){ return perm.permission === permRole })[0];
-
-  //   if (permission) {
-  //     actions.permissions.removePerm({
-  //       permission_url: permission.url,
-  //       content_object_uid: this.props.uid
-  //     });
-  //   } else {
-  //     actions.permissions.assignPerm({
-  //       username: anonUsername,
-  //       uid: this.props.uid,
-  //       kind: this.props.kind,
-  //       objectUrl: this.props.objectUrl,
-  //       role: permRole === 'view_asset' ? 'view' : permRole
-  //     });
-  //   }
-  // },
 
 class PublicPermDiv extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
   }
-  togglePerms() {
-    if (this.props.publicPerm)
-      this.removePerm('view',this.props.publicPerm, this.props.uid);
-    else
-      this.setPerm('view', {
-          username: anonUsername,
-          uid: this.props.uid,
-          kind: this.props.kind,
-          objectUrl: this.props.objectUrl
-        }
-      );
+  togglePerms(evt) {
+    var permRole = evt.currentTarget.dataset.perm;
+    var permission = this.props.publicPerms.filter(function(perm){ return perm.permission === permRole })[0];
+
+    if (permission) {
+      actions.permissions.removePerm({
+        permission_url: permission.url,
+        content_object_uid: this.props.uid
+      });
+    } else {
+      actions.permissions.assignPerm({
+        username: anonUsername,
+        uid: this.props.uid,
+        kind: this.props.kind,
+        objectUrl: this.props.objectUrl,
+        role: permRole === 'view_asset' ? 'view' : permRole
+      });
+    }
   }
   render () {
     var uid = this.props.uid;
@@ -155,7 +141,7 @@ class PublicPermDiv extends React.Component {
         </bem.FormModal__item>
         { this.props.deploymentActive && 
           <bem.FormModal__item m='perms-public-data'>
-            <input  type="checkbox" 
+            <input type="checkbox" 
                   checked={anonCanViewData ? true : false} 
                   onChange={this.togglePerms} 
                   id="share-data-publicly"

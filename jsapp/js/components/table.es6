@@ -15,6 +15,7 @@ import alertify from 'alertifyjs';
 
 import ReactTable from 'react-table'
 import Select from 'react-select';
+import {DebounceInput} from 'react-debounce-input';
 
 import {
   VALIDATION_STATUSES
@@ -50,9 +51,7 @@ export class DataTable extends React.Component {
       fetchState: false
     };
     autoBind(this);    
-    this.fetchData = this.fetchData.bind(this);
   }
-
   requestData(instance) {
     let pageSize = instance.state.pageSize, 
         page = instance.state.page * instance.state.pageSize, 
@@ -63,7 +62,7 @@ export class DataTable extends React.Component {
     if (filter.length) {
       filterQuery = `&query={`;
       filter.forEach(function(f, i) {
-        filterQuery += `"${f.id}":"${f.value}"`;
+        filterQuery += `"${f.id}":{"$regex":"${f.value}"}`;
         if (i < filter.length - 1)
           filterQuery += ',';
       });
@@ -106,7 +105,6 @@ export class DataTable extends React.Component {
         this.setState({error: t('Error: could not load data.'), loading: false});
     });
   }
-
   validationStatusChange(sid, index) {
     var _this = this;
 
@@ -124,7 +122,6 @@ export class DataTable extends React.Component {
       });
     }
   }
-
   _prepColumns(data) {
 		var uniqueKeys = Object.keys(data.reduce(function(result, obj) {
 		  return Object.assign(result, obj);
@@ -219,6 +216,9 @@ export class DataTable extends React.Component {
       } else {
         q = survey.find(o => o.name === key || o.$autoname == key);
       }
+
+      if (q && q.type === 'begin_repeat')
+        return false;
 
       var index = key;
 
@@ -327,6 +327,11 @@ export class DataTable extends React.Component {
       if (col.question && (col.question.type === 'text' || col.question.type === 'integer'
           || col.question.type === 'decimal')) {
         columns[ind].filterable = true;
+        columns[ind].Filter = ({ filter, onChange }) =>
+          <DebounceInput
+            debounceTimeout={750}
+            onChange={event => onChange(event.target.value)}
+            style={{ width: "100%" }}/>;
       }
     })
 
@@ -555,7 +560,7 @@ export class DataTable extends React.Component {
             </button>
 
             {Object.keys(this.state.selectedRows).length > 0 &&
-              <ui.PopoverMenu type='bulkUpdate-menu' triggerLabel={t('Update Selected')} >
+              <ui.PopoverMenu type='bulkUpdate-menu' triggerLabel={t('Update selected')} >
                 <bem.PopoverMenu__heading>
                   {t('Updated status to:')}
                 </bem.PopoverMenu__heading>

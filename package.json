@@ -71,6 +71,7 @@
     "react-autosize-textarea": "^0.4.3",
     "react-cookie": "^0.2.3",
     "react-copy-to-clipboard": "^4.2.3",
+    "react-debounce-input": "^3.1.0",
     "react-document-title": "^2.0.2",
     "react-dom": "^15.6.0",
     "react-dropzone": "^4.1.0",
