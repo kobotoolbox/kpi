@@ -27,29 +27,24 @@ class Command(BaseCommand):
 
     def _get_next_chunk(self, last_id=None):
 
-        stop = False
         self.chunk_number += 1
+        assets = Asset.objects.all().order_by('pk')
+        if last_id:
+            assets = assets.filter(pk__gt=last_id)
 
-        while not stop:
-            assets = Asset.objects.all().order_by('pk')
-            if last_id:
-                assets = assets.filter(pk__gt=last_id)
+        assets = assets[:self.CHUNK_SIZE]
 
-            assets = assets[:self.CHUNK_SIZE]
-
-            if not assets.exists():
-                stop = True
-            else:
-                last_id = None
-                for asset in assets:
-                    owner = asset.owner
-                    if not owner.has_perm('validate_submissions', asset):
-                        asset.assign_perm(owner, 'validate_submissions')
-                    self._write_to_stdout()
-                    last_id = asset.id
-                # important to empty assets list to make the GC free some memory
-                assets = []
-                self._get_next_chunk(last_id)
+        if assets.exists():
+            last_id = None
+            for asset in assets:
+                owner = asset.owner
+                if not owner.has_perm('validate_submissions', asset):
+                    asset.assign_perm(owner, 'validate_submissions')
+                self._write_to_stdout()
+                last_id = asset.id
+            # important to empty assets list to make the GC free some memory
+            assets = []
+            self._get_next_chunk(last_id)
 
     def _write_to_stdout(self):
         self.counter += 1
