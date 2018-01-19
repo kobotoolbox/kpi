@@ -400,7 +400,11 @@ export class DataTable extends React.Component {
     } else {
       delete selectedRows[sid];
     }
-    this.setState({selectedRows: selectedRows});
+
+    this.setState({
+      selectedRows: selectedRows,
+      selectAll: false
+    });
   }
   bulkSelectAllRows(evt) {
     var s = this.state.selectedRows,
@@ -448,13 +452,15 @@ export class DataTable extends React.Component {
     }
 
     let dialog = alertify.dialog('confirm');
+    const sel = this.state.selectAll ? this.state.resultsTotal : Object.keys(this.state.selectedRows).length;
     let opts = {
       title: t('Update status of selected submissions'),
-      message: t('You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.').replace('##', Object.keys(this.state.selectedRows).length),
+      message: t('You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.').replace('##', sel),
       labels: {ok: t('Update Validation Status'), cancel: t('Cancel')},
       onok: (evt, val) => {
         dataInterface.patchSubmissions(this.props.asset.uid, d).done((res) => {
           this.fetchData(this.state.fetchState, this.state.fetchInstance);
+          this.setState({loading: true});
         }).fail((jqxhr)=> {
           console.error(jqxhr);
           alertify.error(t('Failed to update status.'));
@@ -500,37 +506,35 @@ export class DataTable extends React.Component {
     const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1), 
           res1 = (currentPage * pageSize) + 1, 
           res2 = Math.min((currentPage + 1) * pageSize, resultsTotal), 
-          showingResults = `${res1} - ${res2} ${t('of')} ${resultsTotal} ${t('results')}`,
+          showingResults = `${res1} - ${res2} ${t('of')} ${resultsTotal} ${t('results')}. `,
           selected = this.state.selectedRows,
           maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);;
 
-    if (Object.keys(selected).length == maxPageRes && resultsTotal > pageSize) {
-      return (
-        <bem.FormView__item m='table-meta'>
+          // 
+    return (
+      <bem.FormView__item m='table-meta'>
+        {showingResults}
         {this.state.selectAll ? 
           <span>
-            {t('All ## submissions are selected. ').replace('##', resultsTotal)}
+            {t('All ## selected. ').replace('##', resultsTotal)}
             <a className="select-all" onClick={this.clearSelection}>
               {t('Clear selection')}
             </a>
           </span>
         :
           <span>
-            {t('## submissions are selected. ').replace('##', Object.keys(selected).length)}
-            <a className="select-all" onClick={this.bulkSelectAll}>
-              {t('Select all ##').replace('##', resultsTotal)}
-            </a>
+            {Object.keys(selected).length > 0 &&
+              t('## selected. ').replace('##', Object.keys(selected).length)
+            }
+            {Object.keys(selected).length == maxPageRes && resultsTotal > pageSize &&
+              <a className="select-all" onClick={this.bulkSelectAll}>
+                {t('Select all ##').replace('##', resultsTotal)}
+              </a>
+            }
           </span>
         }
-        </bem.FormView__item>
-      );
-    } else {
-      return (
-        <bem.FormView__item m='table-meta'>
-          {showingResults}
-        </bem.FormView__item>
-      );
-    }
+      </bem.FormView__item>
+    );
   }
   render () {
     if (this.state.error) {
