@@ -106,6 +106,7 @@
 .page-wrapper--header-hidden.page-wrapper--drawer-hidden {
   .form-view__sidetabs {
     width: 0px;
+    border-right: none;
   }
 
   .form-view__sidetabs + .form-view,

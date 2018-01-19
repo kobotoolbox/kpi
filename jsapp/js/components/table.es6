@@ -174,7 +174,7 @@ export class DataTable extends React.Component {
       Header: t('Validation status'),
       accessor: '_validation_status__uid',
       index: '__2',
-      minWidth: 150,
+      minWidth: 130,
       className: 'rt-status',
       Filter: ({ filter, onChange }) =>
         <select
