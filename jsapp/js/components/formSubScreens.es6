@@ -47,25 +47,17 @@ export class FormSubScreens extends React.Component {
     } else if (uid) {
       actions.resources.loadAsset({id: uid});
     }
-
   }
   render () {
     if (!this.state.permissions)
       return false;
 
-    if (!this.userCan('view_submissions', this.state)) {
-      return (
-        <bem.FormView>
-          <bem.Loading>
-            <bem.Loading__inner>
-              <h3>
-                {t('Access Denied')}
-              </h3>
-              {t('You do not have permission to view this page.')}
-            </bem.Loading__inner>
-          </bem.Loading>
-        </bem.FormView>
-      );
+    if (this.props.location.pathname != `/forms/${this.state.uid}/settings` && !this.userCan('view_submissions', this.state)) {
+      return this.renderDenied();
+    }
+
+    if (this.props.location.pathname == `/forms/${this.state.uid}/settings` && !this.userCan('change_asset', this.state)) {
+      return this.renderDenied();
     }
 
     var formClass = '', iframeUrl = '', report__base = '', deployment__identifier = '';
@@ -105,9 +97,6 @@ export class FormSubScreens extends React.Component {
             iframeUrl = deployment__identifier+'/form_settings';
           return this.renderSettingsEditor(iframeUrl);
           break;
-        // case `/forms/${this.state.uid}/settings/sharing`:
-        //   return this.renderSharing();
-        //   break;
         case `/forms/${this.state.uid}/reset`:
           return this.renderReset();
           break;
@@ -125,16 +114,6 @@ export class FormSubScreens extends React.Component {
           </bem.FormView>
         </DocumentTitle>
       );
-  }
-  renderSharing() {
-    var docTitle = this.state.name || t('Untitled');
-    return (
-        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          <bem.FormView m={'settings-sharing'}>
-            <SharingForm />
-          </bem.FormView>
-        </DocumentTitle>
-    );
   }
   renderSettingsEditor(iframeUrl) {
     var docTitle = this.state.name || t('Untitled');
@@ -164,7 +143,20 @@ export class FormSubScreens extends React.Component {
       </bem.Loading>
     );
   }
-
+  renderDenied() {
+    return (
+      <bem.FormView>
+        <bem.Loading>
+          <bem.Loading__inner>
+            <h3>
+              {t('Access Denied')}
+            </h3>
+            {t('You do not have permission to view this page.')}
+          </bem.Loading__inner>
+        </bem.Loading>
+      </bem.FormView>
+    );
+  }
 };
 
 reactMixin(FormSubScreens.prototype, Reflux.ListenerMixin);
