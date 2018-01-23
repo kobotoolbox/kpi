@@ -53,7 +53,6 @@ import {ChangePassword, AccountSettings} from './components/accountSettings';
 import {
   getAnonymousUserPermission,
   anonUsername,
-  parsePermissions,
   log,
   t,
   assign,
@@ -63,10 +62,6 @@ import {
 
 import hotkey from 'react-hotkey';
 hotkey.activate();
-
-var assetStore = stores.asset;
-var sessionStore = stores.session;
-
 
 function stringifyRoutes(contextRouter) {
   return JSON.stringify(contextRouter.getCurrentRoutes().map(function(r){

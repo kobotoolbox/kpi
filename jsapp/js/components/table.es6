@@ -131,32 +131,37 @@ export class DataTable extends React.Component {
     let showGroups = this.state.showGroups;
     let maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);
 
-		var columns = [{
-      Header: row => (
-          <div className="table-header-checkbox">
+    var columns = [];
+
+    if (this.userCan('validate_submissions', this.props.asset)) {
+      columns.push({
+        Header: row => (
+            <div className="table-header-checkbox">
+              <input type="checkbox"
+                id={`ch-head`}
+                checked={Object.keys(this.state.selectedRows).length === maxPageRes ? true : false}
+                onChange={this.bulkSelectAllRows} />
+              <label htmlFor={`ch-head`}></label>
+            </div>
+          ),
+        accessor: 'sub-checkbox',
+        index: '__0',
+        minWidth: 45,
+        filterable: false,
+        sortable: false,
+        Cell: row => (
+          <div>
             <input type="checkbox"
-              id={`ch-head`}
-              checked={Object.keys(this.state.selectedRows).length === maxPageRes ? true : false}
-              onChange={this.bulkSelectAllRows} />
-            <label htmlFor={`ch-head`}></label>
+                id={`ch-${row.row._id}`}
+                checked={this.state.selectedRows[row.row._id] ? true : false}
+                onChange={this.bulkUpdateChange} data-sid={row.row._id} />
+            <label htmlFor={`ch-${row.row._id}`}></label>
           </div>
-        ),
-      accessor: 'sub-checkbox',
-      index: '__0',
-      minWidth: 45,
-      filterable: false,
-      sortable: false,
-      Cell: row => (
-        <div>
-          <input type="checkbox"
-              id={`ch-${row.row._id}`}
-              checked={this.state.selectedRows[row.row._id] ? true : false}
-              onChange={this.bulkUpdateChange} data-sid={row.row._id} />
-          <label htmlFor={`ch-${row.row._id}`}></label>
-        </div>
-      )
-    },
-    {
+        )
+      });
+    }
+
+    columns.push({
       Header: '',
       accessor: 'sub-link',
       index: '__1',
@@ -169,8 +174,9 @@ export class DataTable extends React.Component {
           {t('Open')}
         </span>
       )
-    },
-    {
+    });
+
+    columns.push({
       Header: t('Validation status'),
       accessor: '_validation_status__uid',
       index: '__2',
@@ -190,13 +196,14 @@ export class DataTable extends React.Component {
         </select>,
       Cell: row => (
         <Select 
+          disabled={!this.userCan('validate_submissions', this.props.asset)}
           clearable={false}
           value={this.state.tableData[row.index]._validation_status}
           options={VALIDATION_STATUSES}
           onChange={this.validationStatusChange(row.row._id, row.index)}>
         </Select>
       )
-    }];
+    });
 
     var excludes = ['_xform_id_string', '_attachments', '_notes', '_bamboo_dataset_id', '_status',
                     'formhub/uuid', '_tags', '_geolocation', '_submitted_by', 'meta/instanceID','_validation_status'];
@@ -629,4 +636,5 @@ export class DataTable extends React.Component {
 };
 
 reactMixin(DataTable.prototype, Reflux.ListenerMixin);
+reactMixin(DataTable.prototype, mixins.permissions);
 export default DataTable;

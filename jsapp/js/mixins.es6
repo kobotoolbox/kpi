@@ -15,7 +15,6 @@ import $ from 'jquery';
 
 import {
   getAnonymousUserPermission,
-  parsePermissions,
   anonUsername,
   formatTime,
   currentLang,
@@ -491,6 +490,21 @@ mixins.permissions = {
       objectUrl: props.objectUrl,
       role: permName
     });
+  },
+  userCan (permName, asset) {
+    if (!asset.permissions)
+      return false;
+
+    const currentUsername = stores.session.currentAccount.username;
+
+    if (asset.owner__username === currentUsername)
+      return true
+
+    // if (stores.session.currentAccount.is_superuser)
+    //   return true;
+
+    const userPerms = asset.permissions.filter(perm => perm.user__username === currentUsername);
+    return userPerms.some(p => p.permission === permName);
   }
 };
 

@@ -26,7 +26,8 @@ class AssetRow extends React.Component {
     super(props);
     this.state = {
       tags: this.props.tags,
-      clearPopover: false
+      clearPopover: false,
+      popoverVisible: false
     };
     autoBind(this);
   }
@@ -85,17 +86,18 @@ class AssetRow extends React.Component {
     evt.preventDefault();
   }
   clearPopover () {
-    this.setState({
-      clearPopover: true,
-    });
+    if (this.state.popoverVisible) {
+      this.setState({clearPopover: true, popoverVisible: false});
+    }
+  }
+  popoverSetVisible () {
+    this.setState({popoverVisible: true});
   }
   render () {
     var selfowned = this.props.owner__username === this.props.currentUsername;
-
-    var isPublic = this.props.owner__username === anonUsername;
     var _rc = this.props.summary && this.props.summary.row_count || 0;
 
-    var hrefTo = (this.props.has_deployment && this.props.deployment__active) ? `/forms/${this.props.uid}/summary` : `/forms/${this.props.uid}`,
+    var hrefTo = `/forms/${this.props.uid}`,
         linkClassName = this.props.name ? 'asset-row__celllink--titled' : 'asset-row__celllink--untitled',
         tags = this.props.tags || [],
         ownedCollections = [], 
@@ -103,10 +105,13 @@ class AssetRow extends React.Component {
 
     var isDeployable = this.props.asset_type && this.props.asset_type === 'survey';
 
-    var userCanEdit = false;
-    if (selfowned || this.props.access.change[this.props.currentUsername] || stores.session.currentAccount.is_superuser)
-      userCanEdit = true;
-      
+    const userCanEdit = this.userCan('change_asset', this.props);
+  
+    if (this.props.has_deployment && this.props.deployment__active && 
+        this.userCan('view_submissions', this.props)) {
+      hrefTo = `/forms/${this.props.uid}/summary`;
+    } 
+
     if (this.isLibrary()) {
       hrefTo = `/library/${this.props.uid}/edit`;
       parent = this.state.parent || undefined;
@@ -273,7 +278,8 @@ class AssetRow extends React.Component {
             <ui.PopoverMenu type='assetrow-menu' 
                         triggerLabel={<i className="k-icon-more" />} 
                         triggerTip={t('More Actions')}
-                        clearPopover={this.state.clearPopover}>
+                        clearPopover={this.state.clearPopover}
+                        popoverSetVisible={this.popoverSetVisible}>
 
               { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit && isDeployable &&
                 <bem.PopoverMenu__link 
@@ -366,6 +372,7 @@ class AssetRow extends React.Component {
 };
 
 reactMixin(AssetRow.prototype, mixins.droppable);
+reactMixin(AssetRow.prototype, mixins.permissions);
 reactMixin(AssetRow.prototype, mixins.contextRouter);
 
 AssetRow.contextTypes = {

@@ -32,19 +32,13 @@ class FormSummary extends React.Component {
     };
     autoBind(this);
   }
-  componentDidMount() {
-    this.createChart();
-    this.getLatestSubmissionTime(this.props.params.assetid);
-    this.prepSubmissions(this.props.params.assetid);
-  }
-  componentWillReceiveProps(nextProps) {
-    this.getLatestSubmissionTime(nextProps.params.assetid);
-    this.prepSubmissions(nextProps.params.assetid);
-  }
   componentDidUpdate(prevProps, prevState) {
-    if (prevState.chartPeriod != this.state.chartPeriod) {
-      this.getLatestSubmissionTime(this.props.params.assetid);
-      this.prepSubmissions(this.props.params.assetid);
+    if ((prevState.chartPeriod != this.state.chartPeriod) || (this.props.params != prevProps.params)) {
+      if (this.state.permissions && this.userCan('view_submissions', this.state)) {
+        this.createChart();
+        this.getLatestSubmissionTime(this.props.params.assetid);
+        this.prepSubmissions(this.props.params.assetid);
+      }
     }
   }
   createChart() {
@@ -203,21 +197,25 @@ class FormSummary extends React.Component {
             {t('Collect data')}
             <i className='fa fa-angle-right' />
         </Link>
-        <bem.PopoverMenu__link onClick={this.sharingModal}>
-          <i className="k-icon-share"/>
-          {t('Share form')}
-          <i className='fa fa-angle-right' />
-        </bem.PopoverMenu__link>
-        <Link 
-          to={`/forms/${this.state.uid}/edit`}
-          key={'edit'} 
-          className={`form-view__tab`}
-          data-path={`/forms/${this.state.uid}/edit`}
-          onClick={this.triggerRefresh}>
-            <i className='k-icon-edit' />
-            {t('Edit form')}
+        {this.userCan('change_asset', this.state) &&
+          <bem.PopoverMenu__link onClick={this.sharingModal}>
+            <i className="k-icon-share"/>
+            {t('Share form')}
             <i className='fa fa-angle-right' />
-        </Link>
+          </bem.PopoverMenu__link>
+        }
+        {this.userCan('change_asset', this.state) &&
+          <Link 
+            to={`/forms/${this.state.uid}/edit`}
+            key={'edit'} 
+            className={`form-view__tab`}
+            data-path={`/forms/${this.state.uid}/edit`}
+            onClick={this.triggerRefresh}>
+              <i className='k-icon-edit' />
+              {t('Edit form')}
+              <i className='fa fa-angle-right' />
+          </Link>
+        }
         <bem.PopoverMenu__link onClick={this.enketoPreviewModal}>
           <i className="k-icon-view" />
           {t('Preview form')}
@@ -301,6 +299,30 @@ class FormSummary extends React.Component {
   }
   render () {
     let docTitle = this.state.name || t('Untitled');
+
+    if (!this.state.permissions) {
+      return (
+        <bem.Loading>
+          <bem.Loading__inner>
+            <i />
+            {t('loading...')}
+          </bem.Loading__inner>
+        </bem.Loading>
+      );
+    }
+
+    if (!this.userCan('view_submissions', this.state)) {
+      return (
+        <bem.Loading>
+          <bem.Loading__inner>
+            <h3>
+              {t('Access Denied')}
+            </h3>
+            {t('You do not have permission to view this page.')}
+          </bem.Loading__inner>
+        </bem.Loading>
+      );
+    }
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
@@ -409,6 +431,7 @@ class FormSummary extends React.Component {
 }
 
 reactMixin(FormSummary.prototype, mixins.dmix);
+reactMixin(FormSummary.prototype, mixins.permissions);
 reactMixin(FormSummary.prototype, Reflux.ListenerMixin);
 
 export default FormSummary;

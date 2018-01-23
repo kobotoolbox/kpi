@@ -5,6 +5,7 @@ import Reflux from 'reflux';
 import {dataInterface} from '../dataInterface';
 import actions from '../actions';
 import reactMixin from 'react-mixin';
+import mixins from '../mixins';
 import bem from '../bem';
 import {t, notify, isAValidUrl} from '../utils';
 import stores from '../stores';
@@ -184,6 +185,7 @@ class Submission extends React.Component {
         <bem.FormModal__group m='validation-status'>
           <label>{t('Validation status')}</label>
           <Select 
+            disabled={!this.userCan('validate_submissions', this.props.asset)}
             clearable={false}
             value={s._validation_status ? s._validation_status.uid : ''}
             options={VALIDATION_STATUSES}
@@ -212,18 +214,20 @@ class Submission extends React.Component {
           </div>
 
           <div className="submission-actions">
-            {this.state.enketoEditLink &&
+            {this.userCan('change_submissions', this.props.asset) && this.state.enketoEditLink &&
               <a href={this.state.enketoEditLink}
                  target="_blank"
                  className="mdl-button mdl-button--raised mdl-button--colored">
                 {t('Edit')}
               </a>
             }
-            <a onClick={this.deleteSubmission}
+            {this.userCan('change_submissions', this.props.asset) &&
+              <a onClick={this.deleteSubmission}
                     className="mdl-button mdl-button--icon mdl-button--colored mdl-button--danger right-tooltip"
                     data-tip={t('Delete submission')}>
-              <i className="k-icon-trash" />
-            </a>
+                <i className="k-icon-trash" />
+              </a>
+            }
           </div>
         </bem.FormModal__group>
 
@@ -314,5 +318,6 @@ class Submission extends React.Component {
 };
 
 reactMixin(Submission.prototype, Reflux.ListenerMixin);
+reactMixin(Submission.prototype, mixins.permissions);
 
 export default Submission;

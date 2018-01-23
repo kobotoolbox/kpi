@@ -242,6 +242,7 @@ class PopoverMenu extends React.Component {
     }
 
     if (this.props.type == 'assetrow-menu' && !this.state.popoverVisible) {
+      this.props.popoverSetVisible();
       var $assetRowOffset = $(evt.target).parents('.asset-row').offset().top;
       var $assetListHeight = $(evt.target).parents('.page-wrapper__content').height();
       if ($assetListHeight - $assetRowOffset < 150) {

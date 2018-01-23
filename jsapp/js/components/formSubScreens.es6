@@ -50,6 +50,24 @@ export class FormSubScreens extends React.Component {
 
   }
   render () {
+    if (!this.state.permissions)
+      return false;
+
+    if (!this.userCan('view_submissions', this.state)) {
+      return (
+        <bem.FormView>
+          <bem.Loading>
+            <bem.Loading__inner>
+              <h3>
+                {t('Access Denied')}
+              </h3>
+              {t('You do not have permission to view this page.')}
+            </bem.Loading__inner>
+          </bem.Loading>
+        </bem.FormView>
+      );
+    }
+
     var formClass = '', iframeUrl = '', report__base = '', deployment__identifier = '';
 
     if (this.state.uid != undefined) {
@@ -151,6 +169,7 @@ export class FormSubScreens extends React.Component {
 
 reactMixin(FormSubScreens.prototype, Reflux.ListenerMixin);
 reactMixin(FormSubScreens.prototype, mixins.dmix);
+reactMixin(FormSubScreens.prototype, mixins.permissions);
 reactMixin(FormSubScreens.prototype, mixins.contextRouter);
 
 FormSubScreens.contextTypes = {

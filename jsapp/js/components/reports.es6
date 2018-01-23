@@ -1015,6 +1015,19 @@ class Reports extends React.Component {
   }
 
   render () {
+    if (this.state.asset === undefined) {
+      return (
+        <bem.ReportView>
+          <bem.Loading>
+              <bem.Loading__inner>
+                <i />
+                {t('loading...')}
+              </bem.Loading__inner>
+          </bem.Loading>
+        </bem.ReportView>
+      );
+    }
+
     let asset = this.state.asset,
         currentCustomReport = this.state.currentCustomReport,
         rowsByKuid = this.state.rowsByKuid,

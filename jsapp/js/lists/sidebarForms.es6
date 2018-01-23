@@ -11,11 +11,7 @@ import searches from '../searches';
 import stores from '../stores';
 import SearchCollectionList from '../components/searchcollectionlist';
 
-import {
-  parsePermissions,
-  t,
-  assign
-} from '../utils';
+import {t, assign} from '../utils';
 
 class SidebarFormsList extends Reflux.Component {
   constructor(props) {
@@ -48,20 +44,19 @@ class SidebarFormsList extends Reflux.Component {
   searchChanged (searchStoreState) {
     this.setState(searchStoreState);
   }
-  renderMiniAssetRow (resource) {
-    var active = '';
-    if (resource.uid == this.currentAssetID())
-      active = ' active';
+  renderMiniAssetRow (asset) {
+    var href = `/forms/${asset.uid}`;
 
-    const href = (resource.has_deployment && resource.deployment__active) ? `/forms/${resource.uid}/summary` : `/forms/${resource.uid}`;
+    if (this.userCan('view_submissions', asset) && asset.has_deployment && asset.deployment__active)
+      href = href + '/summary';
 
     return (
-        <bem.FormSidebar__item key={resource.uid} className={active}>
-          <Link to={href} className={`form-sidebar__itemlink`}>
-            <ui.SidebarAssetName {...resource} />
-          </Link>
-        </bem.FormSidebar__item>
-      );
+      <bem.FormSidebar__item key={asset.uid} className={asset.uid == this.currentAssetID() ? 'active' : ''}>
+        <Link to={href} className={`form-sidebar__itemlink`}>
+          <ui.SidebarAssetName {...asset} />
+        </Link>
+      </bem.FormSidebar__item>
+    );
   }
   toggleCategory(c) {
     return function (e) {
@@ -158,5 +153,6 @@ SidebarFormsList.contextTypes = {
 reactMixin(SidebarFormsList.prototype, searches.common);
 reactMixin(SidebarFormsList.prototype, Reflux.ListenerMixin);
 reactMixin(SidebarFormsList.prototype, mixins.contextRouter);
+reactMixin(SidebarFormsList.prototype, mixins.permissions);
 
 export default SidebarFormsList;
