@@ -32,14 +32,20 @@ class FormSummary extends React.Component {
     };
     autoBind(this);
   }
+  componentDidMount() {
+    this.prep();
+  }
   componentDidUpdate(prevProps, prevState) {
     if ((prevState.chartPeriod != this.state.chartPeriod) || (this.props.params != prevProps.params)) {
       if (this.state.permissions && this.userCan('view_submissions', this.state)) {
-        this.createChart();
-        this.getLatestSubmissionTime(this.props.params.assetid);
-        this.prepSubmissions(this.props.params.assetid);
+        this.prep();
       }
     }
+  }
+  prep() {
+    this.createChart();
+    this.getLatestSubmissionTime(this.props.params.assetid);
+    this.prepSubmissions(this.props.params.assetid);    
   }
   createChart() {
     Chart.defaults.global.elements.rectangle.backgroundColor = 'rgba(61, 194, 212, 0.6)';
@@ -71,6 +77,7 @@ class FormSummary extends React.Component {
     }
   }
   prepSubmissions(assetid) {
+    console.log('run prepSubmissions');
     var wkStart = this.state.chartPeriod == 'week' ? moment().subtract(6, 'days') : moment().subtract(30, 'days');
     var lastWeekStart = this.state.chartPeriod == 'week' ? moment().subtract(13, 'days') : moment().subtract(60, 'days');
     var startOfWeek = moment().startOf('week');
@@ -127,6 +134,7 @@ class FormSummary extends React.Component {
     });
   }
   renderSubmissionsGraph() {
+    console.log(this.state.subsCurrentPeriod);
     return (
       <bem.FormView__row m='summary-submissions'>
         <bem.FormView__cell m='label'>
