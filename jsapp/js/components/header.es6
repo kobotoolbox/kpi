@@ -250,7 +250,9 @@ class MainHeader extends Reflux.Component {
 
   }
   render () {
-    const userCanEditAsset = this.userCan('change_asset', this.state.asset);
+    var userCanEditAsset = false;
+    if (this.state.asset)
+      userCanEditAsset = this.userCan('change_asset', this.state.asset);
 
     return (
         <header className="mdl-layout__header">

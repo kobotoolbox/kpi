@@ -335,7 +335,7 @@ class QuestionGraphSettings extends React.Component {
       specificSettings = this.props.parentState.currentCustomReport.specified;
     }
 
-    if (specificSettings && Object.keys(specificSettings[_qn]).length) {
+    if (specificSettings && specificSettings[_qn] && Object.keys(specificSettings[_qn]).length) {
       const rStyle = Object.assign({}, specificSettings[_qn]);
       this.setState({rStyle: rStyle});
     }

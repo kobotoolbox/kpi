@@ -268,12 +268,14 @@ class FormSummary extends React.Component {
     });
   }
   renderTeam() {
-
     var team = [];
     this.state.permissions.forEach(function(p){
-      if (!team.includes(p.user__username) && p.user__username != 'AnonymousUser')
+      if (p.user__username && !team.includes(p.user__username) && p.user__username != 'AnonymousUser')
         team.push(p.user__username);
     });
+
+    if (team.length < 2)
+      return false;
 
     return (
       <bem.FormView__row m='team'>
@@ -418,9 +420,7 @@ class FormSummary extends React.Component {
                 </bem.FormView__cell>
               </bem.FormView__row>
             }
-            {this.state.permissions &&
-              this.renderTeam()
-            }  
+            {this.renderTeam()}
 
           </bem.FormView__column>
         </bem.FormView>
