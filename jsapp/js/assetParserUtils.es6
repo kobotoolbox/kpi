@@ -9,30 +9,30 @@ function parseTags (asset) {
   };
 }
 
-function parseResponsePermissions (resp) {
-  var out = {};
-  var pp = parsePermissions(resp.owner__username, resp.permissions);
-  out.parsedPermissions = pp;
+// function parseResponsePermissions (resp) {
+//   var out = {};
+//   var pp = parsePermissions(resp.owner__username, resp.permissions);
+//   out.parsedPermissions = pp;
 
-  var isPublic = !!resp.permissions.filter(function(pp_){
-    return pp_.user__username === 'AnonymousUser';
-  })[0];
+//   var isPublic = !!resp.permissions.filter(function(pp_){
+//     return pp_.user__username === 'AnonymousUser';
+//   })[0];
 
-  out.access = (()=>{
-    var viewers = {};
-    var changers = {};
-    pp.forEach(function(userPerm){
-      if (userPerm.can.view) {
-        viewers[userPerm.username] = true;
-      }
-      if (userPerm.can.change) {
-        changers[userPerm.username] = true;
-      }
-    });
-    return {view: viewers, change: changers, ownerUsername: resp.owner__username, isPublic: isPublic};
-  })();
-  return out;
-}
+//   out.access = (()=>{
+//     var viewers = {};
+//     var changers = {};
+//     pp.forEach(function(userPerm){
+//       if (userPerm.can.view) {
+//         viewers[userPerm.username] = true;
+//       }
+//       if (userPerm.can.change) {
+//         changers[userPerm.username] = true;
+//       }
+//     });
+//     return {view: viewers, change: changers, ownerUsername: resp.owner__username, isPublic: isPublic};
+//   })();
+//   return out;
+// }
 
 function parseSettings (asset) {
   var settings = asset.content && asset.content.settings;
@@ -54,12 +54,12 @@ function parseSettings (asset) {
 function parsed (asset) {
   return assign(asset,
       parseSettings(asset),
-      parseResponsePermissions(asset),
+      // parseResponsePermissions(asset),
       parseTags(asset));
 }
 
 module.exports = {
-  parseResponsePermissions: parseResponsePermissions,
+  // parseResponsePermissions: parseResponsePermissions,
   parseTags: parseTags,
   parsed: parsed,
 };

@@ -52,11 +52,13 @@ export class FormSubScreens extends React.Component {
     if (!this.state.permissions)
       return false;
 
-    if (this.props.location.pathname != `/forms/${this.state.uid}/settings` && !this.userCan('view_submissions', this.state)) {
+    if (this.props.location.pathname != `/forms/${this.state.uid}/settings` && 
+        !this.userCan('view_submissions', this.state)) {
       return this.renderDenied();
     }
 
-    if (this.props.location.pathname == `/forms/${this.state.uid}/settings` && !this.userCan('change_asset', this.state)) {
+    if (this.props.location.pathname == `/forms/${this.state.uid}/settings` && 
+        !this.userCan('change_asset', this.state)) {
       return this.renderDenied();
     }
 
