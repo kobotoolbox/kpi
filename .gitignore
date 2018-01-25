@@ -3,6 +3,8 @@ db.sqlite3
 exported_survey_drafts
 node_modules
 /src/
+.idea/
+package-lock.json
 kpi/static/components
 misc
 jsapp/compiled
