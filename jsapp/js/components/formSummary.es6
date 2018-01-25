@@ -26,16 +26,18 @@ class FormSummary extends React.Component {
       subsCurrentPeriod: '',
       subsPreviousPeriod: '',
       lastSubmission: false,
-      submissionsChart: false,
+      chartVisible: false,
       chart: {},
       chartPeriod: 'week'
     };
+    this.submissionsChart = false;
     autoBind(this);
   }
-  componentDidMount() {
-    this.prep();
-  }
   componentDidUpdate(prevProps, prevState) {
+    if(!this.submissionsChart) {
+      this.createChart();
+      this.prep();
+    }
     if ((prevState.chartPeriod != this.state.chartPeriod) || (this.props.params != prevProps.params)) {
       if (this.state.permissions && this.userCan('view_submissions', this.state)) {
         this.prep();
@@ -43,7 +45,6 @@ class FormSummary extends React.Component {
     }
   }
   prep() {
-    this.createChart();
     this.getLatestSubmissionTime(this.props.params.assetid);
     this.prepSubmissions(this.props.params.assetid);    
   }
@@ -77,7 +78,6 @@ class FormSummary extends React.Component {
     }
   }
   prepSubmissions(assetid) {
-    console.log('run prepSubmissions');
     var wkStart = this.state.chartPeriod == 'week' ? moment().subtract(6, 'days') : moment().subtract(30, 'days');
     var lastWeekStart = this.state.chartPeriod == 'week' ? moment().subtract(13, 'days') : moment().subtract(60, 'days');
     var startOfWeek = moment().startOf('week');
@@ -117,7 +117,7 @@ class FormSummary extends React.Component {
         this.setState({
           subsPreviousPeriod: d.length - subsCurrentPeriod,
           subsCurrentPeriod: subsCurrentPeriod,
-          submissionsChart: subsCurrentPeriod ? true : false
+          chartVisible: subsCurrentPeriod ? true : false
         });
       });
     });
@@ -134,7 +134,6 @@ class FormSummary extends React.Component {
     });
   }
   renderSubmissionsGraph() {
-    console.log(this.state.subsCurrentPeriod);
     return (
       <bem.FormView__row m='summary-submissions'>
         <bem.FormView__cell m='label'>
@@ -151,7 +150,10 @@ class FormSummary extends React.Component {
               </a>
             </bem.FormView__cell>
             <bem.FormView__cell m={`summary-chart`} className={this.state.subsCurrentPeriod ? 'active' : 'inactive'}>
-              <canvas ref="canvas" className={this.state.submissionsChart ? 'visible' : ''}/>
+              <canvas ref="canvas" className={this.state.chartVisible ? 'visible' : ''}/>
+            </bem.FormView__cell>
+            <bem.FormView__cell m={`chart-no-data`}>
+              <span>{t('No chart data available for current period.')}</span>
             </bem.FormView__cell>
           </bem.FormView__cell>
           <bem.FormView__group m={['submission-stats']}>
