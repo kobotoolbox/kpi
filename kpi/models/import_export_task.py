@@ -1,42 +1,47 @@
 # FIXME: clean up these imports!
 import base64
-import pytz
-from io import BytesIO
 import datetime
-import dateutil.parser
-import re
 import logging
 import posixpath
+import re
 import tempfile
-from os.path import splitext
 from collections import defaultdict
-from django.db import models, transaction
+from io import BytesIO
+from os.path import splitext
+
+import dateutil.parser
+import pytz
+import requests
+
+import formpack.constants
 from django.conf import settings
 from django.core.files.base import ContentFile
-from django.core.urlresolvers import get_script_prefix, resolve
+from django.core.urlresolvers import Resolver404, resolve
+from django.db import models, transaction
 from django.utils.six.moves.urllib import parse as urlparse
 from jsonfield import JSONField
-import requests
-from pyxform import xls2json_backends
-from private_storage.fields import PrivateFileField
 from kobo.apps.reports.report_data import build_formpack
-from formpack import FormPack
+from private_storage.fields import PrivateFileField
 from formpack.utils.string import ellipsize
-import formpack.constants
-from ..fields import KpiUidField
-from ..models import Collection, Asset
-from ..model_utils import create_assets, _load_library_content
-from ..zip_importer import HttpContentParse
+from pyxform import xls2json_backends
 from rest_framework import exceptions
+
+from ..fields import KpiUidField
+from ..model_utils import _load_library_content, create_assets
+from ..models import Asset, Collection
+from ..zip_importer import HttpContentParse
 
 
 def _resolve_url_to_asset_or_collection(item_path):
     if item_path.startswith(('http', 'https')):
         item_path = urlparse.urlparse(item_path).path
-        if settings.KPI_PREFIX and (settings.KPI_PREFIX != '/') and \
-                item_path.startswith(settings.KPI_PREFIX):
-            item_path = item_path.replace(settings.KPI_PREFIX, '', 1)
-    match = resolve(item_path)
+    try:
+        match = resolve(item_path)
+    except Resolver404:
+        # in case the app is mounted in uwsgi under a path (settings.KPI_PREFIX), we try to remove the prefix so
+        # item_path can be resolved
+        match = resolve(item_path.replace(settings.KPI_PREFIX, '', 1))
+
     uid = match.kwargs.get('uid')
     if match.url_name == 'asset-detail':
         return ('asset', Asset.objects.get(uid=uid))
@@ -140,7 +145,7 @@ class ImportTask(ImportExportTask):
             (dest_kls, dest_item) = _resolve_url_to_asset_or_collection(_d)
             necessary_perm = 'change_%s' % dest_kls
             if not dest_item.has_perm(self.user, necessary_perm):
-                raise exceptions.PermissionDenied('user cannot update %s' % kls)
+                raise exceptions.PermissionDenied('user cannot update %s' % dest_kls)
             else:
                 has_necessary_perm = True
 
@@ -270,15 +275,15 @@ class ImportTask(ImportExportTask):
             if destination:
                 raise SyntaxError('libraries cannot be imported into assets')
             collection = _load_library_content({
-                    'content': survey_dict,
-                    'owner': self.user,
-                    'name': filename
-                })
+                'content': survey_dict,
+                'owner': self.user,
+                'name': filename
+            })
             messages['created'].append({
-                    'uid': collection.uid,
-                    'kind': 'collection',
-                    'owner__username': self.user.username,
-                })
+                'uid': collection.uid,
+                'kind': 'collection',
+                'owner__username': self.user.username,
+            })
         elif 'survey' in survey_dict_keys:
             if not destination:
                 if library and len(survey_dict.get('survey')) > 1:
@@ -301,11 +306,11 @@ class ImportTask(ImportExportTask):
                 msg_key = 'updated'
 
             messages[msg_key].append({
-                    'uid': asset.uid,
-                    'summary': asset.summary,
-                    'kind': 'asset',
-                    'owner__username': self.user.username,
-                })
+                'uid': asset.uid,
+                'summary': asset.summary,
+                'kind': 'asset',
+                'owner__username': self.user.username,
+            })
         else:
             raise SyntaxError('xls upload must have one of these sheets: {}'
                               .format('survey, library'))
@@ -620,6 +625,7 @@ def _b64_xls_to_dict(base64_encoded_upload):
     decoded_str = base64.b64decode(base64_encoded_upload)
     survey_dict = xls2json_backends.xls_to_dict(BytesIO(decoded_str))
     return _strip_header_keys(survey_dict)
+
 
 def _strip_header_keys(survey_dict):
     for sheet_name, sheet in survey_dict.items():
