@@ -774,7 +774,7 @@ class Reports extends React.Component {
             error: false
           });
         }).fail((err)=> {
-          if (groupBy && !this.state.currentCustomReport && reportStyles.default.groupDataBy !== undefined) {
+          if (groupBy.length > 0 && !this.state.currentCustomReport && reportStyles.default.groupDataBy !== undefined) {
             // reset default report groupBy if it fails and notify user
             reportStyles.default.groupDataBy = [];
             this.setState({
