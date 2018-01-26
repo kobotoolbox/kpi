@@ -86,10 +86,11 @@
   .form-view__cell {
     background: #F8F8FA;
     padding: 20px;
-    flex: 1;
+    flex: 2;
     margin-right: 10px;
 
     &:last-child {
+      flex: 1;
       margin-right: 0px;
     }
   }
@@ -205,7 +206,7 @@
     display: flex;
 
     .form-view__column--left {
-      width: 75%;
+      width: 65%;
 
       .form-view__row {
         margin-right: 0px;
@@ -213,12 +214,24 @@
     }
 
     .form-view__column--right {
-      width: 25%;
+      width: 35%;
 
       .form-view__row {
         margin-left: 30px;
         margin-right: 40px;
       }
+    }
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .form-view--summary {
+    .form-view__column--left {
+      width: 70%;
+    }
+
+    .form-view__column--right {
+      width: 30%;
     }
   }
 }

@@ -152,8 +152,13 @@
       margin: 20px;
       padding: 15px;
       font-size: 13px;
-      display: inline-block;
+      display: block;
       background: white;
+      width: 80%;
+      max-height: 300px;
+      overflow: auto;
+      word-wrap: break-word;
+      text-align: left;
     }
   }
 

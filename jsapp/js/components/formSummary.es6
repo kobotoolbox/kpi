@@ -292,9 +292,11 @@ class FormSummary extends React.Component {
         <bem.FormView__cell m='label'>
           {t('Team members')}
         </bem.FormView__cell>
-        <a onClick={this.sharingModal} className='team-sharing-button'>
-          <i className="k-icon-share" />
-        </a>
+        {this.userCan('change_asset', this.state) && 
+          <a onClick={this.sharingModal} className='team-sharing-button'>
+            <i className="k-icon-share" />
+          </a>
+        }
         <bem.FormView__cell m={['box', 'padding']}>
           { team.map((username, ind) => 
             <bem.UserRow key={ind}>

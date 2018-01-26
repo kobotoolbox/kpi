@@ -23,11 +23,23 @@
 }
 
 .form-view__sidetabs + .form-view,
-.form-view__sidetabs + .report-view {
+.form-view__sidetabs + .report-view,
+.form-view__sidetabs + .loading {
   width: calc(100% - 170px);
   height: calc(100% - 48px);
   overflow: auto;
   overflow-x: hidden;
+}
+
+.form-view__sidetabs + .loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+
+  .loading__inner code {
+    margin: 20px auto;
+  }
 }
 
 .form-view__sidetabs + .form-view--table {

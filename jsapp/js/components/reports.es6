@@ -12,6 +12,7 @@ import Select from 'react-select';
 import ui from '../ui';
 import DocumentTitle from 'react-document-title';
 import { txtid } from '../../xlform/src/model.utils';
+import alertify from 'alertifyjs';
 
 import ReportViewItem from './reportViewItem';
 
@@ -487,7 +488,7 @@ class ReportContents extends React.Component {
             return (
                 <bem.ReportView__item key={i}>
                   <ReportViewItem 
-                      {...rowContent} 
+                      {...rowContent}
                       translations={this.props.parentState.translations} 
                       translationIndex={translationIndex} 
                       triggerQuestionSettings={this.props.triggerQuestionSettings} />
@@ -562,6 +563,7 @@ class ReportStyleSettings extends React.Component {
         reportStyle = this.state.reportStyle;
 
     var groupByList = [];
+
     for (var key in rows) {
       if (rows.hasOwnProperty(key) 
           && rows[key].hasOwnProperty('type')
@@ -572,7 +574,7 @@ class ReportStyleSettings extends React.Component {
 
     var tabs = [t('Chart Type'), t('Colors')];
 
-    if (groupByList.length > 1) {
+    if (groupByList.length > 0) {
       tabs.push(t('Group By'));
     }
 
@@ -617,7 +619,7 @@ class ReportStyleSettings extends React.Component {
                   onChange={this.reportSizeChange} />
               </div>
             }
-            {this.state.activeModalTab === 2 && groupByList.length > 1 && 
+            {this.state.activeModalTab === 2 && groupByList.length > 0 && 
               <div className="graph-tab__groupby" id="graph-labels">
                 <label htmlFor={'groupby-00'} key='00'>
                   <input type="radio" name="group_by" 
@@ -744,7 +746,7 @@ class Reports extends React.Component {
           rowsByIdentifier[$identifier] = r;
         });
 
-        dataInterface.getReportData({uid: uid, identifiers: names, group_by: groupBy}).done((data)=>{
+        dataInterface.getReportData({uid: uid, identifiers: names, group_by: groupBy}).done((data)=> {
           var dataWithResponses = [];
 
           data.list.forEach(function(row){
@@ -772,9 +774,20 @@ class Reports extends React.Component {
             error: false
           });
         }).fail((err)=> {
-          this.setState({
-            error: err
-          });
+          if (groupBy && !this.state.currentCustomReport && reportStyles.default.groupDataBy !== undefined) {
+            // reset default report groupBy if it fails and notify user
+            reportStyles.default.groupDataBy = [];
+            this.setState({
+              reportStyles: reportStyles
+            });
+            alertify.error(t('Could not load grouped results via "##". Will attempt to load the ungrouped report.').replace('##', groupBy));
+            this.loadReportData();
+          } else {
+            this.setState({
+              error: err,
+              asset: asset
+            });
+          }
         });
       } else {
         // Redundant?
@@ -816,6 +829,7 @@ class Reports extends React.Component {
         error: false
       });
     }).fail((err)=> {
+      alertify.error(t('Could not refresh report.'));
       this.setState({
         error: err
       });
@@ -1015,16 +1029,24 @@ class Reports extends React.Component {
   }
 
   render () {
-    if (this.state.asset === undefined) {
+    if (!this.state.asset) {
       return (
-        <bem.ReportView>
           <bem.Loading>
+            {this.state.error ? 
+              <bem.Loading__inner>
+                {t('This report cannot be loaded.')}
+                <br/>
+                <code>
+                  {this.state.error.statusText + ': ' + this.state.error.responseText}
+                </code>
+              </bem.Loading__inner>
+            : 
               <bem.Loading__inner>
                 <i />
                 {t('loading...')}
               </bem.Loading__inner>
+            }
           </bem.Loading>
-        </bem.ReportView>
       );
     }
 
@@ -1053,24 +1075,22 @@ class Reports extends React.Component {
 
     if (this.state.reportData === undefined) {
       return (
-        <bem.ReportView>
-          <bem.Loading>
-            {this.state.error === false ?
-              <bem.Loading__inner>
-                <i />
-                {t('loading...')}
-              </bem.Loading__inner>
-              : 
-              <bem.Loading__inner>
-                {t('This report cannot be loaded.')}
-                <br/>
-                <code>
-                  {this.state.error.statusText + ': ' + this.state.error.responseText}
-                </code>
-              </bem.Loading__inner>
-            }
-          </bem.Loading>
-        </bem.ReportView>
+        <bem.Loading>
+          {this.state.error ? 
+            <bem.Loading__inner>
+              {t('This report cannot be loaded.')}
+              <br/>
+              <code>
+                {this.state.error.statusText + ': ' + this.state.error.responseText}
+              </code>
+            </bem.Loading__inner>
+          : 
+            <bem.Loading__inner>
+              <i />
+              {t('loading...')}
+            </bem.Loading__inner>
+          }
+        </bem.Loading>
       );
     }
 
@@ -1092,38 +1112,29 @@ class Reports extends React.Component {
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.ReportView>
           {this.renderReportButtons()}
-          {this.state.asset ?
-            <bem.ReportView__wrap>
-              <bem.PrintOnly>
-                <h3>{asset.name}</h3>
-              </bem.PrintOnly>
-              {this.state.reportLimit && reportData.length && this.state.reportData.length > this.state.reportLimit &&
-                <bem.FormView__cell m={['centered', 'reportLimit']}>
-                  <div>
-                    {t('For performance reasons, this report only includes the first ## questions.').replace('##', this.state.reportLimit)}
-                  </div>
-                  <button className="mdl-button mdl-button--colored" onClick={this.resetReportLimit}>
-                    {t('Show all (##)').replace('##', this.state.reportData.length)}
-                  </button>
-                </bem.FormView__cell>
-              }
 
-              <bem.ReportView__warning>
-                <h4>{t('Warning')}</h4>
-                <p>{t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. ')}</p>
-              </bem.ReportView__warning>
+          <bem.ReportView__wrap>
+            <bem.PrintOnly>
+              <h3>{asset.name}</h3>
+            </bem.PrintOnly>
+            {this.state.reportLimit && reportData.length && this.state.reportData.length > this.state.reportLimit &&
+              <bem.FormView__cell m={['centered', 'reportLimit']}>
+                <div>
+                  {t('For performance reasons, this report only includes the first ## questions.').replace('##', this.state.reportLimit)}
+                </div>
+                <button className="mdl-button mdl-button--colored" onClick={this.resetReportLimit}>
+                  {t('Show all (##)').replace('##', this.state.reportData.length)}
+                </button>
+              </bem.FormView__cell>
+            }
 
-              <ReportContents parentState={this.state} reportData={reportData} triggerQuestionSettings={this.triggerQuestionSettings} />
+            <bem.ReportView__warning>
+              <h4>{t('Warning')}</h4>
+              <p>{t('This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. ')}</p>
+            </bem.ReportView__warning>
+            <ReportContents parentState={this.state} reportData={reportData} triggerQuestionSettings={this.triggerQuestionSettings} />
+          </bem.ReportView__wrap>
 
-            </bem.ReportView__wrap>
-          :
-            <bem.Loading>
-              <bem.Loading__inner>
-                <i />
-                {t('loading...')}
-              </bem.Loading__inner>
-            </bem.Loading>
-          }
           {this.state.showReportGraphSettings &&
             <ui.Modal open onClose={this.toggleReportGraphSettings} title={t('Edit Report Style')}>
               <ReportStyleSettings parentState={this.state} />
