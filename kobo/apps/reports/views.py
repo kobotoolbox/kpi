@@ -3,6 +3,7 @@ from rest_framework import viewsets, mixins
 from .serializers import ReportsListSerializer, ReportsDetailSerializer
 
 from kpi.models import AssetVersion, Asset
+from kpi.models.object_permission import get_objects_for_user
 
 
 class ReportsViewSet(mixins.ListModelMixin,
@@ -17,9 +18,10 @@ class ReportsViewSet(mixins.ListModelMixin,
             return ReportsDetailSerializer
 
     def get_queryset(self):
-        # could be combined into a single query
-        avs = set(AssetVersion.objects.filter(asset__owner=self.request.user,
-                                              deployed=True,
-                                              ).values_list('asset_id',
-                                                            flat=True))
-        return Asset.objects.filter(id__in=avs)
+        
+        # Retrieve all deployed assets first.
+        deployed_assets = Asset.objects.filter(asset_versions__deployed=True).distinct()
+        # Then retrieve all assets user is allowed to view (user must have 'view_submissions' on Asset objects)
+        assets = get_objects_for_user(self.request.user, 'view_submissions', deployed_assets)
+
+        return assets
