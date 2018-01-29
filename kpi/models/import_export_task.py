@@ -416,7 +416,9 @@ class ExportTask(ImportExportTask):
             # Unsure if DRF exceptions make sense here since we're not
             # returning a HTTP response
             raise exceptions.PermissionDenied(
-                'user cannot export this %s' % source._meta.model_name)
+                u'{user} cannot export {source}'.format(
+                    user=self.user, source=source)
+            )
         if not source.has_deployment:
             raise Exception('the source must be deployed prior to export')
         export_type = self.data.get('type', '').lower()

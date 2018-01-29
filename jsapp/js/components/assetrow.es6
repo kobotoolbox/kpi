@@ -89,6 +89,12 @@ class AssetRow extends React.Component {
       clearPopover: true,
     });
   }
+  onDrop (files) {
+    if (files.length === 0)
+      return;
+
+    this.dropFiles(files, [], {url: this.props.url});
+  }
   render () {
     var selfowned = this.props.owner__username === this.props.currentUsername;
 
@@ -285,7 +291,7 @@ class AssetRow extends React.Component {
                 </bem.PopoverMenu__link>
               }
               { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit &&
-                <Dropzone onDrop={this.dropFiles}
+                <Dropzone onDrop={this.onDrop}
                           multiple={false} 
                           className='dropzone'
                           accept={validFileTypes()}>
