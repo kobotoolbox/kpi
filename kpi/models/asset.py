@@ -468,6 +468,7 @@ class Asset(ObjectPermissionMixin,
             ('delete_submissions', _('Can delete submitted data for asset')),
             ('share_submissions', _("Can change sharing settings for "
                                     "asset's submitted data")),
+            ('validate_submissions', _("Can validate submitted data asset")),
             # TEMPORARY Issue #1161: A flag to indicate that permissions came
             # solely from `sync_kobocat_xforms` and not from any user
             # interaction with KPI
@@ -480,7 +481,8 @@ class Asset(ObjectPermissionMixin,
         'change_asset',
         'add_submissions',
         'view_submissions',
-        'change_submissions'
+        'change_submissions',
+        'validate_submissions',
     )
     # Calculated permissions that are neither directly assignable nor stored
     # in the database, but instead implied by assignable permissions
@@ -501,15 +503,21 @@ class Asset(ObjectPermissionMixin,
         'change_asset': ('view_asset',),
         'add_submissions': ('view_asset',),
         'view_submissions': ('view_asset',),
-        'change_submissions': ('view_submissions',)
+        'change_submissions': ('view_submissions',),
+        'validate_submissions': ('view_submissions',)
     }
     # Some permissions must be copied to KC
     KC_PERMISSIONS_MAP = { # keys are KC's codenames, values are KPI's
         'change_submissions': 'change_xform', # "Can Edit" in KC UI
         'view_submissions': 'view_xform', # "Can View" in KC UI
         'add_submissions': 'report_xform', # "Can submit to" in KC UI
+        'validate_submissions': 'validate_xform',  # "Can Validate" in KC UI
     }
     KC_CONTENT_TYPE_KWARGS = {'app_label': 'logger', 'model': 'xform'}
+    # KC records anonymous access as flags on the `XForm`
+    KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS = {
+        'view_submissions': {'shared': True, 'shared_data': True}
+    }
 
     # todo: test and implement this method
     # def restore_version(self, uid):

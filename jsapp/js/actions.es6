@@ -219,6 +219,12 @@ actions.resources = Reflux.createActions({
   updateAsset: {
     asyncResult: true
   },
+  updateSubmissionValidationStatus: {
+    children: [
+      'completed',
+      'failed'
+    ],
+  },
   notFound: {}
 });
 
@@ -699,6 +705,15 @@ actions.resources.listQuestionsAndBlocks.listen(function(){
   dataInterface.listQuestionsAndBlocks()
       .done(actions.resources.listAssets.completed)
       .fail(actions.resources.listAssets.failed);
+});
+
+actions.resources.updateSubmissionValidationStatus.listen(function(uid, sid, data){
+  dataInterface.updateSubmissionValidationStatus(uid, sid, data).done((result) => {
+    actions.resources.updateSubmissionValidationStatus.completed(result, sid);
+  }).fail((error)=>{
+    console.error(error);
+    actions.resources.updateSubmissionValidationStatus.failed(error);
+  });
 });
 
 module.exports = actions;

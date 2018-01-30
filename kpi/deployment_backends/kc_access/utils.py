@@ -1,3 +1,4 @@
+import logging
 import json
 import logging
 from collections import Iterable
@@ -136,10 +137,11 @@ def _get_content_type_kwargs(obj):
 
 def _get_applicable_kc_permissions(obj, kpi_codenames):
     r"""
-        Given one KPI permission codename as a single string, or many codenames
-        as an iterable, return the corresponding KC permissions as a list of
-        `Permission` objects.
+        Given a KPI object and one KPI permission codename as a single string,
+        or many codenames as an iterable, return the corresponding KC
+        permissions as a list of `Permission` objects.
         :param obj: Object with `KC_PERMISSIONS_MAP` dictionary attribute
+        :param kpi_codenames: One or more codenames for KPI permissions
         :type kpi_codenames: str or list(str)
         :rtype list(:py:class:`Permission`)
     """
@@ -149,6 +151,8 @@ def _get_applicable_kc_permissions(obj, kpi_codenames):
         perm_map = obj.KC_PERMISSIONS_MAP
     except AttributeError:
         # This model doesn't have any associated KC permissions
+        logging.warning(
+            '{} object missing KC_PERMISSIONS_MAP'.format(type(obj)))
         return []
     if isinstance(kpi_codenames, basestring):
         kpi_codenames = [kpi_codenames]
@@ -171,6 +175,45 @@ def _get_xform_id_for_asset(asset):
         return None
     return asset.deployment.backend_response['formid']
 
+def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
+                                             remove=False):
+    r"""
+        Given a KPI object, one or more KPI permission codenames and the PK of
+        a KC `XForm`, assume the KPI permisisons have been assigned to or
+        removed from the anonymous user. Then, modify any corresponding flags
+        on the `XForm` accordingly.
+        :param obj: Object with `KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS`
+            dictionary attribute
+        :param kpi_codenames: One or more codenames for KPI permissions
+        :type kpi_codenames: str or list(str)
+        :param xform_id: PK of the KC `XForm` associated with `obj`
+        :param remove: If `True`, apply the Boolean `not` operator to each
+            value in `KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS`
+    """
+    if not settings.KOBOCAT_URL or not settings.KOBOCAT_INTERNAL_URL:
+        return
+    try:
+        perms_to_flags = obj.KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS
+    except AttributeError:
+        logging.warning(
+            '{} object missing KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS'.format(
+                type(obj)))
+        return
+    if isinstance(kpi_codenames, basestring):
+        kpi_codenames = [kpi_codenames]
+    # Find which KC `XForm` flags need to be switched
+    xform_updates = {}
+    for kpi_codename in kpi_codenames:
+        try:
+            flags = perms_to_flags[kpi_codename]
+        except KeyError:
+            # This permission doesn't map to anything in KC
+            continue
+        if remove:
+            flags = {flag: not value for flag, value in flags.iteritems()}
+        xform_updates.update(flags)
+    # Write to the KC database
+    _models.XForm.objects.filter(pk=xform_id).update(**xform_updates)
 
 @transaction.atomic()
 def assign_applicable_kc_permissions(obj, user, kpi_codenames):
@@ -191,6 +234,9 @@ def assign_applicable_kc_permissions(obj, user, kpi_codenames):
     xform_id = _get_xform_id_for_asset(obj)
     if not xform_id:
         return
+    if user.is_anonymous() or user.pk == settings.ANONYMOUS_USER_ID:
+        return set_kc_anonymous_permissions_xform_flags(
+            obj, kpi_codenames, xform_id)
     xform_content_type = ContentType.objects.get(**obj.KC_CONTENT_TYPE_KWARGS)
     kc_permissions_already_assigned = UserObjectPermission.objects.filter(
         user=user, permission__in=permissions, object_pk=xform_id,
@@ -229,6 +275,9 @@ def remove_applicable_kc_permissions(obj, user, kpi_codenames):
     xform_id = _get_xform_id_for_asset(obj)
     if not xform_id:
         return
+    if user.is_anonymous() or user.pk == settings.ANONYMOUS_USER_ID:
+        return set_kc_anonymous_permissions_xform_flags(
+            obj, kpi_codenames, xform_id, remove=True)
     content_type_kwargs = _get_content_type_kwargs(obj)
     # Do NOT try to `print` or do anything else that would `repr()` this
     # queryset, or you'll be greeted by

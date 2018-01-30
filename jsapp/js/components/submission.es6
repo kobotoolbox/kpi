@@ -1,18 +1,26 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
+import Reflux from 'reflux';
 import {dataInterface} from '../dataInterface';
+import actions from '../actions';
+import reactMixin from 'react-mixin';
 import bem from '../bem';
 import {t, notify, isAValidUrl} from '../utils';
 import stores from '../stores';
 import ui from '../ui';
 import alertify from 'alertifyjs';
 import icons from '../../xlform/src/view.icons';
+import Select from 'react-select';
+import {
+  VALIDATION_STATUSES
+} from '../constants';
+
 
 class Submission extends React.Component {
   constructor(props) {
     super(props);
-    console.log(props);
+
     this.state = {
       submission: {},
       loading: true,
@@ -26,6 +34,14 @@ class Submission extends React.Component {
   }
   componentDidMount() {
     this.getSubmission(this.props.asset.uid, this.state.sid);
+    this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmission);
+  }
+
+  refreshSubmission(result, sid) {
+    if (result.uid) {
+      this.state.submission._validation_status = result;
+      this.setState({submission: this.state.submission});
+    }
   }
 
   getSubmission(assetUid, sid) {
@@ -131,6 +147,10 @@ class Submission extends React.Component {
     });
   }
 
+  validationStatusChange(e) {
+    const data = {"validation_status__uid": e.value};
+    actions.resources.updateSubmissionValidationStatus(this.props.asset.uid, this.state.sid, data);
+  }
   render () {
     if (this.state.loading) {
       return (
@@ -161,38 +181,51 @@ class Submission extends React.Component {
 
     return (
       <bem.FormModal>
-        <div className="submission-pager">
-          {this.state.previous > -1 &&
-            <a onClick={this.switchSubmission}
-                  className="mdl-button mdl-button--colored"
-                  data-sid={this.state.previous}>
-              <i className="k-icon-prev" />
-              {t('Previous')}
-            </a>
-          }
+        <bem.FormModal__group m='validation-status'>
+          <label>{t('Validation status')}</label>
+          <Select 
+            clearable={false}
+            value={s._validation_status ? s._validation_status.uid : ''}
+            options={VALIDATION_STATUSES}
+            onChange={this.validationStatusChange}>
+          </Select>
+        </bem.FormModal__group>
+        <bem.FormModal__group>
+          <div className="submission-pager">
+            {this.state.previous > -1 &&
+              <a onClick={this.switchSubmission}
+                    className="mdl-button mdl-button--colored"
+                    data-sid={this.state.previous}>
+                <i className="k-icon-prev" />
+                {t('Previous')}
+              </a>
+            }
 
-          {this.state.next > -1 &&
-            <a onClick={this.switchSubmission}
-                  className="mdl-button mdl-button--colored"
-                  data-sid={this.state.next}>
-              {t('Next')}
-              <i className="k-icon-next" />
-            </a>
-          }
-        </div>
+            {this.state.next > -1 &&
+              <a onClick={this.switchSubmission}
+                    className="mdl-button mdl-button--colored"
+                    data-sid={this.state.next}>
+                {t('Next')}
+                <i className="k-icon-next" />
+              </a>
+            }
+          </div>
 
-        {this.state.enketoEditLink &&
-          <a href={this.state.enketoEditLink}
-             target="_blank"
-             className="mdl-button mdl-button--raised mdl-button--colored">
-            {t('Edit')}
-          </a>
-        }
-        <a onClick={this.deleteSubmission}
-                className="mdl-button mdl-button--icon mdl-button--colored mdl-button--danger right-tooltip"
-                data-tip={t('Delete submission')}>
-          <i className="k-icon-trash" />
-        </a>
+          <div className="submission-actions">
+            {this.state.enketoEditLink &&
+              <a href={this.state.enketoEditLink}
+                 target="_blank"
+                 className="mdl-button mdl-button--raised mdl-button--colored">
+                {t('Edit')}
+              </a>
+            }
+            <a onClick={this.deleteSubmission}
+                    className="mdl-button mdl-button--icon mdl-button--colored mdl-button--danger right-tooltip"
+                    data-tip={t('Delete submission')}>
+              <i className="k-icon-trash" />
+            </a>
+          </div>
+        </bem.FormModal__group>
 
         <table>
           <thead>
@@ -279,5 +312,7 @@ class Submission extends React.Component {
     );
   }
 };
+
+reactMixin(Submission.prototype, Reflux.ListenerMixin);
 
 export default Submission;

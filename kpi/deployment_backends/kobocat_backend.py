@@ -17,7 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 from pyxform.xls2json_backends import xls_to_dict
 from rest_framework import exceptions, status, serializers
 from rest_framework.authtoken.models import Token
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import detail_route, list_route
 
 from base_backend import BaseDeploymentBackend
 from .kc_access.utils import instance_count, last_submission_time
@@ -447,6 +447,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             xform_id_string=id_string, user_id=self.asset.owner.pk)
 
 
+    def get_submission_validation_status_url(self, submission_pk):
+        url = '{detail_url}/validation_status'.format(
+            detail_url=self.get_submission_detail_url(submission_pk)
+        )
+        return url
+
 class KobocatDataProxyViewSetMixin(object):
     '''
     List, retrieve, and delete submission data for a deployed asset via the
@@ -524,7 +530,7 @@ class KobocatDataProxyViewSetMixin(object):
         kc_response = self._kobocat_proxy_request(kpi_request, kc_request)
         return self._requests_response_to_django_response(kc_response)
 
-    @detail_route(methods=['get'])
+    @detail_route(methods=['GET'])
     def edit(self, kpi_request, pk, *args, **kwargs):
         deployment = self._get_deployment(kpi_request)
         kc_url = deployment.get_submission_edit_url(pk)
@@ -534,4 +540,45 @@ class KobocatDataProxyViewSetMixin(object):
             params=kpi_request.GET
         )
         kc_response = self._kobocat_proxy_request(kpi_request, kc_request)
+        return self._requests_response_to_django_response(kc_response)
+
+    @detail_route(methods=["GET", "PATCH"])
+    def validation_status(self, kpi_request, pk, *args, **kwargs):
+        deployment = self._get_deployment(kpi_request)
+        kc_url = deployment.get_submission_validation_status_url(pk)
+
+        requests_params = {
+            "method": kpi_request.method,
+            "url": kc_url
+        }
+
+        # According to HTTP method,
+        # params are passed to Request object in different ways.
+        http_method_params = {}
+        if kpi_request.method == "PATCH":
+            http_method_params = {"json": kpi_request.data}
+        else:
+            http_method_params = {"params": kpi_request.GET}
+
+        requests_params.update(http_method_params)
+        kc_request = requests.Request(**requests_params)
+        kc_response = self._kobocat_proxy_request(kpi_request, kc_request)
+
+        return self._requests_response_to_django_response(kc_response)
+
+
+    @list_route(methods=["PATCH"])
+    def validation_statuses(self, kpi_request, *args, **kwargs):
+        deployment = self._get_deployment(kpi_request)
+        kc_url = deployment.submission_list_url
+
+        requests_params = {
+            "method": kpi_request.method,
+            "url": kc_url,
+            "json": kpi_request.data
+        }
+
+        kc_request = requests.Request(**requests_params)
+        kc_response = self._kobocat_proxy_request(kpi_request, kc_request)
+
         return self._requests_response_to_django_response(kc_response)

@@ -68,6 +68,8 @@ class LazyModelGroup:
             xls = models.FileField(null=True)
             xml = models.TextField()
             user = models.ForeignKey(User, related_name='xforms', null=True)
+            shared = models.BooleanField(default=False)
+            shared_data = models.BooleanField(default=False)
             downloadable = models.BooleanField(default=True)
             id_string = models.SlugField()
             title = models.CharField(max_length=XFORM_TITLE_LENGTH)

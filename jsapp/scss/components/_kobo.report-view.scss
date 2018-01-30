@@ -44,9 +44,11 @@
   padding: 10px 24px;
   border-left: 5px solid $cool-green;
   border-bottom: 1px solid #CCC;
+  position: relative;
 
   h2 {
     margin: 0px;
+    margin-right: 60px;
     color: $cool-green;
     font-size: 16px;
     font-weight: normal;
@@ -56,10 +58,18 @@
   .report-view__headingMeta {
     opacity: 0.6;
     font-size: 11px;
+    margin-right: 60px;
 
     .type {
       text-transform: uppercase;
     }
+  }
+
+  .report-button__question-settings {
+    overflow: visible;
+    position: absolute;
+    right: 15px;
+    top: 6px;
   }
 }
 
@@ -308,10 +318,6 @@
   }
 }
 
-.graph-settings__question {
-  padding: 5px 0px;
-}
-
 .custom-report--title {
   padding-bottom: 30px;
 
@@ -319,6 +325,22 @@
     width: 100%;
     font-size: 20px;
     font-weight: 300;
+  }
+}
+
+.custom-report--questions {
+  height: 300px;
+  margin: 10px 0px;
+  overflow: auto;
+  width: 100%;
+
+  .graph-settings__question {
+    width: 100%;
+    padding: 5px 10px;
+
+    input[type="checkbox"] + label {
+      display: inline-block;
+    }
   }
 }
 

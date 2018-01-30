@@ -131,6 +131,7 @@ ANONYMOUS_USER_ID = -1
 ALLOWED_ANONYMOUS_PERMISSIONS = (
     'kpi.view_collection',
     'kpi.view_asset',
+    'kpi.view_submissions',
 )
 
 # run heavy migration scripts by default

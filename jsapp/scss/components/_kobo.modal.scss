@@ -107,7 +107,15 @@
   text-align: right;
 
   button {
-    @extend .mdl-button, .mdl-button--colored, .mdl-button--raised;
+    @extend .mdl-button;
+
+    &.primary {
+      @extend .mdl-button--colored, .mdl-button--raised;
+    }
+
+    &.reset {
+      @extend .mdl-button--colored, .mdl-button--danger;
+    }
 
     text-transform: uppercase;
     padding-left: 40px;
@@ -139,9 +147,27 @@
     overflow: visible;
   }
 
-  .submission-pager {
-    text-align: center;
+  .form-modal__group {
+    display: flex;
+    justify-content: space-between;
 
+    &--validation-status {
+      justify-content: flex-end;
+      align-items: center;
+      margin-bottom: 20px;
+
+      input {
+        min-width: 100px;
+      }
+
+      .Select {
+        margin-left: 10px;
+        text-align: left;
+      }
+    }
+  }
+
+  .submission-pager {
     a {
       display: inline-block;
       cursor: pointer;

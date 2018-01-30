@@ -163,6 +163,7 @@ bem.GraphSettings__radio = bem.GraphSettings.__('radio');
 bem.FormModal = bem('form-modal');
 bem.FormModal__form = bem.FormModal.__('form', '<form>');
 bem.FormModal__item = bem.FormModal.__('item');
+bem.FormModal__group = bem.FormModal.__('group');
 
 bem.PopoverMenu = bem('popover-menu');
 bem.PopoverMenu__content = bem.PopoverMenu.__('content');
@@ -199,6 +200,7 @@ bem.UserRow__avatar = bem.UserRow.__('avatar');
 bem.UserRow__name = bem.UserRow.__('name');
 bem.UserRow__email = bem.UserRow.__('email');
 bem.UserRow__role = bem.UserRow.__('role');
+bem.UserRow__cancel = bem.UserRow.__('cancel');
 
 bem.uiPanel = BEM('ui-panel');
 bem.uiPanel__body = bem.uiPanel.__('body');
