@@ -50,6 +50,8 @@ export class FormLanding extends React.Component {
     });
   }
   renderFormInfo () {
+    const userCanEdit = this.userCan('change_asset', this.state);
+
     var dvcount = this.state.deployed_versions.count;
     var undeployedVersion = undefined;
 
@@ -78,7 +80,7 @@ export class FormLanding extends React.Component {
             </bem.FormView__cell>
           </bem.FormView__cell>
           <bem.FormView__cell m='buttons'>
-            {this.state.userCanEdit && 
+            {userCanEdit && 
               <a
                 className="mdl-button mdl-button--raised mdl-button--colored"
                 onClick={this.deployAsset}>
@@ -243,7 +245,7 @@ export class FormLanding extends React.Component {
               </ui.PopoverMenu>
             </bem.FormView__cell>
             <bem.FormView__cell>
-              {chosenMethod != 'iframe_url' && chosenMethod != 'android' &&
+              {chosenMethod != 'iframe_url' && chosenMethod != 'android' && this.state.deployment__links[chosenMethod] &&
                 <CopyToClipboard text={this.state.deployment__links[chosenMethod]} onCopy={() => notify('copied to clipboard')}>
                   <button className="copy mdl-button mdl-button--colored">{t('Copy')}</button>
                 </CopyToClipboard>
@@ -314,6 +316,7 @@ export class FormLanding extends React.Component {
     );
   }
   renderButtons () {
+    const userCanEdit = this.userCan('change_asset', this.state);
     var downloadable = false;
     var downloads = [];
     if (this.state.downloads) {
@@ -323,7 +326,7 @@ export class FormLanding extends React.Component {
 
     return (
         <bem.FormView__group m='buttons'>
-          {this.state.userCanEdit ? 
+          {userCanEdit ? 
             <Link to={`/forms/${this.state.uid}/edit`} 
                   className="form-view__link form-view__link--edit"
                   data-tip={t('edit')}>
@@ -341,7 +344,7 @@ export class FormLanding extends React.Component {
             data-tip={t('Preview')}>
             <i className="k-icon-view" />
           </bem.FormView__link>
-          {this.state.userCanEdit && 
+          {userCanEdit && 
             <Dropzone onDrop={this.dropFiles} 
                           multiple={false} 
                           className='dropzone' 
@@ -365,7 +368,7 @@ export class FormLanding extends React.Component {
                     </bem.PopoverMenu__link>
                   );
               })}
-              {this.state.userCanEdit && 
+              {userCanEdit && 
                 <bem.PopoverMenu__link onClick={this.sharingModal}>
                   <i className="k-icon-share"/>
                   {t('Share this project')}
@@ -437,6 +440,7 @@ export class FormLanding extends React.Component {
 };
 
 reactMixin(FormLanding.prototype, mixins.droppable);
+reactMixin(FormLanding.prototype, mixins.permissions);
 reactMixin(FormLanding.prototype, mixins.dmix);
 reactMixin(FormLanding.prototype, Reflux.ListenerMixin);
 

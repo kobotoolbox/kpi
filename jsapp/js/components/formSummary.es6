@@ -26,26 +26,27 @@ class FormSummary extends React.Component {
       subsCurrentPeriod: '',
       subsPreviousPeriod: '',
       lastSubmission: false,
-      submissionsChart: false,
+      chartVisible: false,
       chart: {},
       chartPeriod: 'week'
     };
+    this.submissionsChart = false;
     autoBind(this);
   }
-  componentDidMount() {
-    this.createChart();
-    this.getLatestSubmissionTime(this.props.params.assetid);
-    this.prepSubmissions(this.props.params.assetid);
-  }
-  componentWillReceiveProps(nextProps) {
-    this.getLatestSubmissionTime(nextProps.params.assetid);
-    this.prepSubmissions(nextProps.params.assetid);
-  }
   componentDidUpdate(prevProps, prevState) {
-    if (prevState.chartPeriod != this.state.chartPeriod) {
-      this.getLatestSubmissionTime(this.props.params.assetid);
-      this.prepSubmissions(this.props.params.assetid);
+    if(!this.submissionsChart) {
+      this.createChart();
+      this.prep();
     }
+    if ((prevState.chartPeriod != this.state.chartPeriod) || (this.props.params != prevProps.params)) {
+      if (this.state.permissions && this.userCan('view_submissions', this.state)) {
+        this.prep();
+      }
+    }
+  }
+  prep() {
+    this.getLatestSubmissionTime(this.props.params.assetid);
+    this.prepSubmissions(this.props.params.assetid);    
   }
   createChart() {
     Chart.defaults.global.elements.rectangle.backgroundColor = 'rgba(61, 194, 212, 0.6)';
@@ -116,7 +117,7 @@ class FormSummary extends React.Component {
         this.setState({
           subsPreviousPeriod: d.length - subsCurrentPeriod,
           subsCurrentPeriod: subsCurrentPeriod,
-          submissionsChart: subsCurrentPeriod ? true : false
+          chartVisible: subsCurrentPeriod ? true : false
         });
       });
     });
@@ -149,7 +150,10 @@ class FormSummary extends React.Component {
               </a>
             </bem.FormView__cell>
             <bem.FormView__cell m={`summary-chart`} className={this.state.subsCurrentPeriod ? 'active' : 'inactive'}>
-              <canvas ref="canvas" className={this.state.submissionsChart ? 'visible' : ''}/>
+              <canvas ref="canvas" className={this.state.chartVisible ? 'visible' : ''}/>
+            </bem.FormView__cell>
+            <bem.FormView__cell m={`chart-no-data`}>
+              <span>{t('No chart data available for current period.')}</span>
             </bem.FormView__cell>
           </bem.FormView__cell>
           <bem.FormView__group m={['submission-stats']}>
@@ -203,21 +207,25 @@ class FormSummary extends React.Component {
             {t('Collect data')}
             <i className='fa fa-angle-right' />
         </Link>
-        <bem.PopoverMenu__link onClick={this.sharingModal}>
-          <i className="k-icon-share"/>
-          {t('Share form')}
-          <i className='fa fa-angle-right' />
-        </bem.PopoverMenu__link>
-        <Link 
-          to={`/forms/${this.state.uid}/edit`}
-          key={'edit'} 
-          className={`form-view__tab`}
-          data-path={`/forms/${this.state.uid}/edit`}
-          onClick={this.triggerRefresh}>
-            <i className='k-icon-edit' />
-            {t('Edit form')}
+        {this.userCan('change_asset', this.state) &&
+          <bem.PopoverMenu__link onClick={this.sharingModal}>
+            <i className="k-icon-share"/>
+            {t('Share form')}
             <i className='fa fa-angle-right' />
-        </Link>
+          </bem.PopoverMenu__link>
+        }
+        {this.userCan('change_asset', this.state) &&
+          <Link 
+            to={`/forms/${this.state.uid}/edit`}
+            key={'edit'} 
+            className={`form-view__tab`}
+            data-path={`/forms/${this.state.uid}/edit`}
+            onClick={this.triggerRefresh}>
+              <i className='k-icon-edit' />
+              {t('Edit form')}
+              <i className='fa fa-angle-right' />
+          </Link>
+        }
         <bem.PopoverMenu__link onClick={this.enketoPreviewModal}>
           <i className="k-icon-view" />
           {t('Preview form')}
@@ -270,21 +278,25 @@ class FormSummary extends React.Component {
     });
   }
   renderTeam() {
-
     var team = [];
     this.state.permissions.forEach(function(p){
-      if (!team.includes(p.user__username))
+      if (p.user__username && !team.includes(p.user__username) && p.user__username != 'AnonymousUser')
         team.push(p.user__username);
     });
+
+    if (team.length < 2)
+      return false;
 
     return (
       <bem.FormView__row m='team'>
         <bem.FormView__cell m='label'>
           {t('Team members')}
         </bem.FormView__cell>
-        <a onClick={this.sharingModal} className='team-sharing-button'>
-          <i className="k-icon-share" />
-        </a>
+        {this.userCan('change_asset', this.state) && 
+          <a onClick={this.sharingModal} className='team-sharing-button'>
+            <i className="k-icon-share" />
+          </a>
+        }
         <bem.FormView__cell m={['box', 'padding']}>
           { team.map((username, ind) => 
             <bem.UserRow key={ind}>
@@ -301,6 +313,30 @@ class FormSummary extends React.Component {
   }
   render () {
     let docTitle = this.state.name || t('Untitled');
+
+    if (!this.state.permissions) {
+      return (
+        <bem.Loading>
+          <bem.Loading__inner>
+            <i />
+            {t('loading...')}
+          </bem.Loading__inner>
+        </bem.Loading>
+      );
+    }
+
+    if (!this.userCan('view_submissions', this.state)) {
+      return (
+        <bem.Loading>
+          <bem.Loading__inner>
+            <h3>
+              {t('Access Denied')}
+            </h3>
+            {t('You do not have permission to view this page.')}
+          </bem.Loading__inner>
+        </bem.Loading>
+      );
+    }
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
@@ -396,9 +432,7 @@ class FormSummary extends React.Component {
                 </bem.FormView__cell>
               </bem.FormView__row>
             }
-            {this.state.permissions &&
-              this.renderTeam()
-            }  
+            {this.renderTeam()}
 
           </bem.FormView__column>
         </bem.FormView>
@@ -409,6 +443,7 @@ class FormSummary extends React.Component {
 }
 
 reactMixin(FormSummary.prototype, mixins.dmix);
+reactMixin(FormSummary.prototype, mixins.permissions);
 reactMixin(FormSummary.prototype, Reflux.ListenerMixin);
 
 export default FormSummary;

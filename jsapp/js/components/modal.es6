@@ -91,7 +91,6 @@ class Modal extends React.Component {
   }
   enketoSnapshotCreation (data) {
     if (data.success) {
-      // var uid = this.props.params.assetid;
       this.setState({
         enketopreviewlink: data.enketopreviewlink
       });
@@ -104,10 +103,12 @@ class Modal extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    this.setState({
-      title: t('Record #') + nextProps.params.sid,
-      sid: nextProps.params.sid
-    });
+    if (nextProps.params && nextProps.params.sid) {
+      this.setState({
+        title: t('Record #') + nextProps.params.sid,
+        sid: nextProps.params.sid
+      });
+    }
   }
   render() {
   	return (

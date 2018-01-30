@@ -86,10 +86,11 @@
   .form-view__cell {
     background: #F8F8FA;
     padding: 20px;
-    flex: 1;
+    flex: 2;
     margin-right: 10px;
 
     &:last-child {
+      flex: 1;
       margin-right: 0px;
     }
   }
@@ -171,12 +172,31 @@
   height: 0px;
   overflow: hidden;
 
+  + .form-view__cell--chart-no-data {
+    height: 100px;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    background: #F8F8FA;
+
+    span {
+      font-size: 16px;
+      color: $cool-gray;
+      margin: 10px;
+    }
+  }
+
   &.active {
     height: 275px;
     overflow: visible;
 
     canvas {
       height: 250px;
+    }
+
+    + .form-view__cell--chart-no-data {
+      height: 0px;
+      overflow: hidden;
     }
   }
 }
@@ -186,7 +206,7 @@
     display: flex;
 
     .form-view__column--left {
-      width: 75%;
+      width: 65%;
 
       .form-view__row {
         margin-right: 0px;
@@ -194,12 +214,24 @@
     }
 
     .form-view__column--right {
-      width: 25%;
+      width: 35%;
 
       .form-view__row {
         margin-left: 30px;
         margin-right: 40px;
       }
+    }
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .form-view--summary {
+    .form-view__column--left {
+      width: 70%;
+    }
+
+    .form-view__column--right {
+      width: 30%;
     }
   }
 }

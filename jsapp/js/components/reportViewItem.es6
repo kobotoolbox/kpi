@@ -85,32 +85,35 @@ class ReportViewItem extends React.Component {
     this.state = {
       reportTable: false
     };
+    this.itemChart = false;
     autoBind(this);
   }
   componentDidMount () {
-    if (this.props.data.show_graph) {
-      var opts = this.buildChartOptions();
-
-      var canvas = ReactDOM.findDOMNode(this.refs.canvas);
-      var itemChart = new Chart(canvas, opts);
-      this.setState({itemChart: itemChart});
-    }
     this.prepareTable(this.props.data);
+    if (this.props.data.show_graph) {
+      this.loadChart();
+    }
   }
   componentWillReceiveProps(nextProps) {
     if (this.props.data != nextProps.data) {
       this.prepareTable(nextProps.data);
     }
   }
-  componentDidUpdate () {
+  componentDidUpdate (prevProps) {
+    // refreshes a chart right after render()
+    // TODO: ideally this shouldn't refresh a chart if it hasn't changed
     if (this.props.data.show_graph) {
-      var canvas = ReactDOM.findDOMNode(this.refs.canvas);
-      var opts = this.buildChartOptions();
-      let itemChart = this.state.itemChart;
-      if (itemChart !== undefined) {
-        itemChart.destroy();
-      }
-      itemChart = new Chart(canvas, opts);
+      this.loadChart();
+    }
+  }
+  loadChart() {
+    var canvas = ReactDOM.findDOMNode(this.refs.canvas);
+    var opts = this.buildChartOptions();
+    if (this.itemChart) {
+      this.itemChart.destroy();
+      this.itemChart = new Chart(canvas, opts);
+    } else {
+      this.itemChart = new Chart(canvas, opts);
     }
   }
   prepareTable(d) {
@@ -131,8 +134,7 @@ class ReportViewItem extends React.Component {
   buildChartOptions () {
     var data = this.props.data;
     var chartType = this.props.style.report_type || 'bar';
-    // if (this.props.name == 'What_is_your_favorite_TV_Show')
-    //   chartType = 'area';
+
     var maxPercentage = 100;
     var barPercentage = 0.5;
     var showLegend = false;
@@ -202,8 +204,7 @@ class ReportViewItem extends React.Component {
           datasets: datasets
       },
       options: {
-        responsive: true,
-        events: [''],
+        // events: [''],
         legend: {
           display: showLegend
         },

@@ -11,11 +11,7 @@ import actions from '../actions';
 import {dataInterface} from '../dataInterface';
 import searches from '../searches';
 import stores from '../stores';
-import AssetRow from './assetrow';
-import {
-  parsePermissions,
-  t,
-} from '../utils';
+import {t} from '../utils';
 
 class ListSearch extends React.Component {
   constructor(props) {

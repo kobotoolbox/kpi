@@ -15,6 +15,7 @@ import alertify from 'alertifyjs';
 
 import ReactTable from 'react-table'
 import Select from 'react-select';
+import {DebounceInput} from 'react-debounce-input';
 
 import {
   VALIDATION_STATUSES
@@ -50,9 +51,7 @@ export class DataTable extends React.Component {
       fetchState: false
     };
     autoBind(this);    
-    this.fetchData = this.fetchData.bind(this);
   }
-
   requestData(instance) {
     let pageSize = instance.state.pageSize, 
         page = instance.state.page * instance.state.pageSize, 
@@ -63,7 +62,7 @@ export class DataTable extends React.Component {
     if (filter.length) {
       filterQuery = `&query={`;
       filter.forEach(function(f, i) {
-        filterQuery += `"${f.id}":"${f.value}"`;
+        filterQuery += `"${f.id}":{"$regex":"${f.value}"}`;
         if (i < filter.length - 1)
           filterQuery += ',';
       });
@@ -106,7 +105,6 @@ export class DataTable extends React.Component {
         this.setState({error: t('Error: could not load data.'), loading: false});
     });
   }
-
   validationStatusChange(sid, index) {
     var _this = this;
 
@@ -124,7 +122,6 @@ export class DataTable extends React.Component {
       });
     }
   }
-
   _prepColumns(data) {
 		var uniqueKeys = Object.keys(data.reduce(function(result, obj) {
 		  return Object.assign(result, obj);
@@ -134,32 +131,37 @@ export class DataTable extends React.Component {
     let showGroups = this.state.showGroups;
     let maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);
 
-		var columns = [{
-      Header: row => (
-          <div className="table-header-checkbox">
+    var columns = [];
+
+    if (this.userCan('validate_submissions', this.props.asset)) {
+      columns.push({
+        Header: row => (
+            <div className="table-header-checkbox">
+              <input type="checkbox"
+                id={`ch-head`}
+                checked={Object.keys(this.state.selectedRows).length === maxPageRes ? true : false}
+                onChange={this.bulkSelectAllRows} />
+              <label htmlFor={`ch-head`}></label>
+            </div>
+          ),
+        accessor: 'sub-checkbox',
+        index: '__0',
+        minWidth: 45,
+        filterable: false,
+        sortable: false,
+        Cell: row => (
+          <div>
             <input type="checkbox"
-              id={`ch-head`}
-              checked={Object.keys(this.state.selectedRows).length === maxPageRes ? true : false}
-              onChange={this.bulkSelectAllRows} />
-            <label htmlFor={`ch-head`}></label>
+                id={`ch-${row.row._id}`}
+                checked={this.state.selectedRows[row.row._id] ? true : false}
+                onChange={this.bulkUpdateChange} data-sid={row.row._id} />
+            <label htmlFor={`ch-${row.row._id}`}></label>
           </div>
-        ),
-      accessor: 'sub-checkbox',
-      index: '__0',
-      minWidth: 45,
-      filterable: false,
-      sortable: false,
-      Cell: row => (
-        <div>
-          <input type="checkbox"
-              id={`ch-${row.row._id}`}
-              checked={this.state.selectedRows[row.row._id] ? true : false}
-              onChange={this.bulkUpdateChange} data-sid={row.row._id} />
-          <label htmlFor={`ch-${row.row._id}`}></label>
-        </div>
-      )
-    },
-    {
+        )
+      });
+    }
+
+    columns.push({
       Header: '',
       accessor: 'sub-link',
       index: '__1',
@@ -172,12 +174,13 @@ export class DataTable extends React.Component {
           {t('Open')}
         </span>
       )
-    },
-    {
+    });
+
+    columns.push({
       Header: t('Validation status'),
       accessor: '_validation_status__uid',
       index: '__2',
-      minWidth: 150,
+      minWidth: 130,
       className: 'rt-status',
       Filter: ({ filter, onChange }) =>
         <select
@@ -193,13 +196,14 @@ export class DataTable extends React.Component {
         </select>,
       Cell: row => (
         <Select 
+          disabled={!this.userCan('validate_submissions', this.props.asset)}
           clearable={false}
           value={this.state.tableData[row.index]._validation_status}
           options={VALIDATION_STATUSES}
           onChange={this.validationStatusChange(row.row._id, row.index)}>
         </Select>
       )
-    }];
+    });
 
     var excludes = ['_xform_id_string', '_attachments', '_notes', '_bamboo_dataset_id', '_status',
                     'formhub/uuid', '_tags', '_geolocation', '_submitted_by', 'meta/instanceID','_validation_status'];
@@ -219,6 +223,9 @@ export class DataTable extends React.Component {
       } else {
         q = survey.find(o => o.name === key || o.$autoname == key);
       }
+
+      if (q && q.type === 'begin_repeat')
+        return false;
 
       var index = key;
 
@@ -327,6 +334,11 @@ export class DataTable extends React.Component {
       if (col.question && (col.question.type === 'text' || col.question.type === 'integer'
           || col.question.type === 'decimal')) {
         columns[ind].filterable = true;
+        columns[ind].Filter = ({ filter, onChange }) =>
+          <DebounceInput
+            debounceTimeout={750}
+            onChange={event => onChange(event.target.value)}
+            style={{ width: "100%" }}/>;
       }
     })
 
@@ -395,7 +407,11 @@ export class DataTable extends React.Component {
     } else {
       delete selectedRows[sid];
     }
-    this.setState({selectedRows: selectedRows});
+
+    this.setState({
+      selectedRows: selectedRows,
+      selectAll: false
+    });
   }
   bulkSelectAllRows(evt) {
     var s = this.state.selectedRows,
@@ -443,13 +459,15 @@ export class DataTable extends React.Component {
     }
 
     let dialog = alertify.dialog('confirm');
+    const sel = this.state.selectAll ? this.state.resultsTotal : Object.keys(this.state.selectedRows).length;
     let opts = {
       title: t('Update status of selected submissions'),
-      message: t('You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.').replace('##', Object.keys(this.state.selectedRows).length),
+      message: t('You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.').replace('##', sel),
       labels: {ok: t('Update Validation Status'), cancel: t('Cancel')},
       onok: (evt, val) => {
         dataInterface.patchSubmissions(this.props.asset.uid, d).done((res) => {
           this.fetchData(this.state.fetchState, this.state.fetchInstance);
+          this.setState({loading: true});
         }).fail((jqxhr)=> {
           console.error(jqxhr);
           alertify.error(t('Failed to update status.'));
@@ -495,37 +513,35 @@ export class DataTable extends React.Component {
     const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1), 
           res1 = (currentPage * pageSize) + 1, 
           res2 = Math.min((currentPage + 1) * pageSize, resultsTotal), 
-          showingResults = `${res1} - ${res2} ${t('of')} ${resultsTotal} ${t('results')}`,
+          showingResults = `${res1} - ${res2} ${t('of')} ${resultsTotal} ${t('results')}. `,
           selected = this.state.selectedRows,
           maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);;
 
-    if (Object.keys(selected).length == maxPageRes && resultsTotal > pageSize) {
-      return (
-        <bem.FormView__item m='table-meta'>
+          // 
+    return (
+      <bem.FormView__item m='table-meta'>
+        {showingResults}
         {this.state.selectAll ? 
           <span>
-            {t('All ## submissions are selected. ').replace('##', resultsTotal)}
+            {t('All ## selected. ').replace('##', resultsTotal)}
             <a className="select-all" onClick={this.clearSelection}>
               {t('Clear selection')}
             </a>
           </span>
         :
           <span>
-            {t('## submissions are selected. ').replace('##', Object.keys(selected).length)}
-            <a className="select-all" onClick={this.bulkSelectAll}>
-              {t('Select all ##').replace('##', resultsTotal)}
-            </a>
+            {Object.keys(selected).length > 0 &&
+              t('## selected. ').replace('##', Object.keys(selected).length)
+            }
+            {Object.keys(selected).length == maxPageRes && resultsTotal > pageSize &&
+              <a className="select-all" onClick={this.bulkSelectAll}>
+                {t('Select all ##').replace('##', resultsTotal)}
+              </a>
+            }
           </span>
         }
-        </bem.FormView__item>
-      );
-    } else {
-      return (
-        <bem.FormView__item m='table-meta'>
-          {showingResults}
-        </bem.FormView__item>
-      );
-    }
+      </bem.FormView__item>
+    );
   }
   render () {
     if (this.state.error) {
@@ -555,7 +571,7 @@ export class DataTable extends React.Component {
             </button>
 
             {Object.keys(this.state.selectedRows).length > 0 &&
-              <ui.PopoverMenu type='bulkUpdate-menu' triggerLabel={t('Update Selected')} >
+              <ui.PopoverMenu type='bulkUpdate-menu' triggerLabel={t('Update selected')} >
                 <bem.PopoverMenu__heading>
                   {t('Updated status to:')}
                 </bem.PopoverMenu__heading>
@@ -620,4 +636,5 @@ export class DataTable extends React.Component {
 };
 
 reactMixin(DataTable.prototype, Reflux.ListenerMixin);
+reactMixin(DataTable.prototype, mixins.permissions);
 export default DataTable;

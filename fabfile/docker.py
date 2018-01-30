@@ -82,7 +82,7 @@ def deploy(deployment_name, branch='master'):
     with cd(env.static_path):
         # Write the date and running commit to a publicly-accessible file
         sudo("(date; echo) > '{}'".format(UPDATE_STATIC_FILE))
-        files.append(UPDATE_STATIC_FILE, running_commit, use_sudo=True)
+        files.append(UPDATE_STATIC_FILE, running_commit.decode('utf-8'), use_sudo=True)
     if running_commit != cloned_commit:
         raise Exception(
             'The running commit does not match the tip of the cloned'

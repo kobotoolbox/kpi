@@ -19,10 +19,6 @@ class FormViewTabs extends Reflux.Component {
   constructor(props){
     super(props);
     this.state = {};
-    this.stores = [
-      stores.session,
-      stores.pageState
-    ];
     autoBind(this);
   }
   componentDidMount() {
@@ -37,15 +33,6 @@ class FormViewTabs extends Reflux.Component {
       }
     ));
   }
-  userCanEditAsset() {
-    if (stores.session.currentAccount && this.state.asset) {
-      const currentAccount = stores.session.currentAccount;
-      if (currentAccount.is_superuser || currentAccount.username == this.state.asset.owner__username || this.state.asset.access.change[currentAccount.username])
-        return true;
-    }
-
-    return false;
-  }
   triggerRefresh (evt) {
     if ($(evt.target).hasClass('active')) {
       hashHistory.push(`/forms/${this.state.assetid}/reset`);
@@ -59,9 +46,14 @@ class FormViewTabs extends Reflux.Component {
     }
   }
   renderTopTabs () {
+    if (this.state.asset === undefined)
+      return false;
+
+    let a = this.state.asset;
+
     return (
       <bem.FormView__toptabs>
-        { this.state.asset && this.state.asset.deployment__identifier != undefined && this.state.asset.has_deployment &&
+        { a.deployment__identifier != undefined && a.has_deployment && this.userCan('view_submissions', a) && 
           <Link 
             to={`/forms/${this.state.assetid}/summary`}
             className='form-view__tab'
@@ -78,7 +70,7 @@ class FormViewTabs extends Reflux.Component {
         <bem.FormView__tab className="is-edge" m='summary'>
           {t('Summary')}
         </bem.FormView__tab>
-        { this.state.asset && this.state.asset.deployment__identifier != undefined && this.state.asset.has_deployment && this.state.asset.deployment__submission_count > 0 && 
+        { a.deployment__identifier != undefined && a.has_deployment && a.deployment__submission_count > 0 && this.userCan('view_submissions', a) && 
           <Link 
             to={`/forms/${this.state.assetid}/data`}
             className='form-view__tab'
@@ -86,7 +78,7 @@ class FormViewTabs extends Reflux.Component {
             {t('Data')}
           </Link>
         }
-        {this.userCanEditAsset() && 
+        {this.userCan('change_asset', a) && 
           <Link 
             to={`/forms/${this.state.assetid}/settings`}
             className='form-view__tab'
@@ -94,7 +86,6 @@ class FormViewTabs extends Reflux.Component {
             {t('Settings')}
           </Link>
         }
-
         <Link 
           to={`/forms`}
           className='form-view__link form-view__link--close'>
@@ -167,6 +158,7 @@ class FormViewTabs extends Reflux.Component {
 
 reactMixin(FormViewTabs.prototype, Reflux.ListenerMixin);
 reactMixin(FormViewTabs.prototype, mixins.contextRouter);
+reactMixin(FormViewTabs.prototype, mixins.permissions);
 
 FormViewTabs.contextTypes = {
   router: PropTypes.object

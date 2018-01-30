@@ -249,17 +249,10 @@ class MainHeader extends Reflux.Component {
     }, 1500);
 
   }
-  userCanEditAsset() {
-    if (stores.session.currentAccount && this.state.asset) {
-      const currentAccount = stores.session.currentAccount;
-      if (currentAccount.is_superuser || currentAccount.username == this.state.asset.owner__username || this.state.asset.access.change[currentAccount.username])
-        return true;
-    }
-
-    return false;
-  }
   render () {
-    var userCanEditAsset = this.userCanEditAsset();
+    var userCanEditAsset = false;
+    if (this.state.asset)
+      userCanEditAsset = this.userCan('change_asset', this.state.asset);
 
     return (
         <header className="mdl-layout__header">
@@ -289,10 +282,10 @@ class MainHeader extends Reflux.Component {
                 :
                   <i className="k-icon-drafts" />
                 }
-                <bem.FormTitle__name data-tip={t('click to edit')}>
+                <bem.FormTitle__name>
                   <input type="text"
                         name="title"
-                        placeholder={userCanEditAsset ? t('Project title') : ''}
+                        placeholder={t('Project title')}
                         value={this.state.asset.name ? this.state.asset.name : ''}
                         onChange={this.assetTitleChange}
                         disabled={!userCanEditAsset}
@@ -319,6 +312,7 @@ class MainHeader extends Reflux.Component {
 
 reactMixin(MainHeader.prototype, Reflux.ListenerMixin);
 reactMixin(MainHeader.prototype, mixins.contextRouter);
+reactMixin(MainHeader.prototype, mixins.permissions);
 
 MainHeader.contextTypes = {
   router: PropTypes.object
