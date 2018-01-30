@@ -392,6 +392,12 @@ var dataInterface;
         method: 'GET'
       });
     },
+    getSubmissionsQuery(uid, query='') {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions?${query}`,
+        method: 'GET'
+      });
+    },
     deleteSubmission(uid, sid) {
       return $ajax({
         url: `${rootUrl}/assets/${uid}/submissions/${sid}`,

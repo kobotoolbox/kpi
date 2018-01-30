@@ -101,7 +101,7 @@ class AssetRow extends React.Component {
     var isPublic = this.props.owner__username === anonUsername;
     var _rc = this.props.summary && this.props.summary.row_count || 0;
 
-    var hrefTo = `/forms/${this.props.uid}`,
+    var hrefTo = (this.props.has_deployment && this.props.deployment__active) ? `/forms/${this.props.uid}/summary` : `/forms/${this.props.uid}`,
         linkClassName = this.props.name ? 'asset-row__celllink--titled' : 'asset-row__celllink--untitled',
         tags = this.props.tags || [],
         ownedCollections = [], 

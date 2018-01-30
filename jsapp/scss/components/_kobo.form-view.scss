@@ -232,6 +232,14 @@
     background: #E6E6E8;
   }
 
+  &--thin-label {
+    color: $cool-gray;
+    opacity: 0.6;
+    font-size: 12px;
+    line-height: 18px;
+    margin-bottom: 10px;
+  }
+
   &--questions {
     align-items: flex-start;
 
@@ -394,7 +402,17 @@
       }
     }
 
-    &:hover {
+    .form-view__link {
+      opacity: 0.4;
+    }
+  }
+
+  &--headings {
+    font-weight: 600;
+  }
+
+  &--deployments {
+    .form-view__group--items:hover {
       background: $hover-asset-row;
     }
   }
