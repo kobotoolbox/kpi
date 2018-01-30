@@ -447,6 +447,12 @@ actions.reports = Reflux.createActions({
       'completed',
       'failed',
     ]
+  },
+  setCustom: {
+    children: [
+      'completed',
+      'failed',
+    ]
   }
 });
 
@@ -455,6 +461,13 @@ actions.reports.setStyle.listen(function(assetId, details){
     report_styles: JSON.stringify(details),
   }).done(actions.reports.setStyle.completed)
     .fail(actions.reports.setStyle.failed);
+});
+
+actions.reports.setCustom.listen(function(assetId, details){
+  dataInterface.patchAsset(assetId, {
+    report_custom: JSON.stringify(details),
+  }).done(actions.reports.setCustom.completed)
+    .fail(actions.reports.setCustom.failed);
 });
 
 actions.resources.createResource.listen(function(details){
