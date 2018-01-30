@@ -178,11 +178,10 @@ def _get_xform_id_for_asset(asset):
 def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
                                              remove=False):
     r"""
-        Given a KPI object, one KPI permission codename as a single string (or
-        many codenames as an iterable), and the PK of a KC `XForm`, assume the
-        KPI codenames have been assigned to (or removed from) the anonymous
-        user and modify any corresponding flags on the `XForm` accordingly.
-        `obj.`
+        Given a KPI object, one or more KPI permission codenames and the PK of
+        a KC `XForm`, assume the KPI permisisons have been assigned to or
+        removed from the anonymous user. Then, modify any corresponding flags
+        on the `XForm` accordingly.
         :param obj: Object with `KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS`
             dictionary attribute
         :param kpi_codenames: One or more codenames for KPI permissions
