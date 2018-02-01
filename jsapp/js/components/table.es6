@@ -295,7 +295,8 @@ export class DataTable extends React.Component {
                 var labels = [];
                 values.forEach(function(v) {
                   let choice = choices.find(o => o.list_name == q.select_from_list_name && (o.name === v || o.$autoname == v));
-                  labels.push(choice.label[0]);
+                  if (choice && choice.label && choice.label[0])
+                    labels.push(choice.label[0]);
                 });
 
                 return labels.join(", ");
