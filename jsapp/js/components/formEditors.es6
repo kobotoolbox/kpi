@@ -258,7 +258,8 @@ export class ProjectDownloads extends React.Component {
       lang: '_default',
       hierInLabels: false,
       groupSep: '/',
-      exports: false
+      exports: false,
+      formSubmitDisabled: false
     };
 
     autoBind(this);
@@ -282,6 +283,14 @@ export class ProjectDownloads extends React.Component {
   groupSepChange (e) {this.handleChange(e, 'groupSep');}
   handleSubmit (e) {
     e.preventDefault();
+    this.setState({
+      formSubmitDisabled: true
+    });
+
+    setTimeout(function() { 
+      if(!this._calledComponentWillUnmount)
+        this.setState({'formSubmitDisabled': false});
+    }.bind(this), 5000);
 
     if (this.state.type.indexOf('_legacy') < 0) {
       let url = this.props.asset.deployment__data_download_links[
@@ -302,7 +311,7 @@ export class ProjectDownloads extends React.Component {
           data: postData
         }).done((data) => {
           $.ajax({url: data.url}).then((taskData) => {
-            this.checkForFastExport(data.url);
+            // this.checkForFastExport(data.url);
             this.getExports();
           }).fail((taskFail) => {
             alertify.error(t('Failed to retrieve the export task.'));
@@ -338,35 +347,39 @@ export class ProjectDownloads extends React.Component {
     });
   }
 
-  checkForFastExport(exportUrl) {
-    // Save the user some time and an extra click if their export completes
-    // very quickly
-    const maxChecks = 3;
-    const checkDelay = 500;
+  // checkForFastExport(exportUrl) {
+  //   // Save the user some time and an extra click if their export completes
+  //   // very quickly
+  //   const maxChecks = 3;
+  //   const checkDelay = 500;
 
-    let checksDone = 0;
-    let checkInterval;
-    let checkFunc = () => {
-      $.ajax({url: exportUrl}).then((data) => {
-        if(++checksDone >= maxChecks || (data.status !== 'created' &&
-                                         data.status !== 'processing'))
-        {
-          clearInterval(checkInterval);
-          if(data.status === 'complete') {
-            redirectTo(data.result);
-          }
-        }
-      });
-    };
-    checkInterval = setInterval(checkFunc, checkDelay);
-  }
+  //   let checksDone = 0;
+  //   let checkInterval;
+  //   let checkFunc = () => {
+  //     $.ajax({url: exportUrl}).then((data) => {
+  //       if(++checksDone >= maxChecks || (data.status !== 'created' &&
+  //                                        data.status !== 'processing'))
+  //       {
+  //         clearInterval(checkInterval);
+  //         if(data.status === 'complete') {
+  //           redirectTo(data.result);
+  //         }
+  //       }
+  //     });
+  //   };
+  //   checkInterval = setInterval(checkFunc, checkDelay);
+  // }
 
   getExports() {
     clearInterval(this.pollingInterval);
 
     dataInterface.getAssetExports(this.props.asset.uid).done((data)=>{
       if (data.count > 0) {
-        this.setState({exports: data.results.reverse()});
+        data.results.reverse();
+        if (this.state.formSubmitDisabled) {
+          data.results[0].animation = true;
+        }
+        this.setState({exports: data.results});
 
         // Start a polling Interval if there is at least one export is not yet complete
         data.results.every((item) => {
@@ -397,7 +410,7 @@ export class ProjectDownloads extends React.Component {
               <bem.FormView__cell m={['box', 'padding']}>
                 <bem.FormModal__form onSubmit={this.handleSubmit}>
                   {[
-                    <bem.FormModal__item key={'t'}>
+                    <bem.FormModal__item key={'t'} m='export-type'>
                       <label htmlFor="type">{t('Select export type')}</label>
                       <select name="type" value={this.state.type}
                           onChange={this.typeChange}>
@@ -412,7 +425,7 @@ export class ProjectDownloads extends React.Component {
                       </select>
                     </bem.FormModal__item>
                   , this.state.type == 'xls' || this.state.type == 'csv' ? [
-                      <bem.FormModal__item key={'x'}>
+                      <bem.FormModal__item key={'x'} m='export-format'>
                         <label htmlFor="lang">{t('Value and header format')}</label>
                         <select name="lang" value={this.state.lang}
                             onChange={this.langChange}>
@@ -429,7 +442,7 @@ export class ProjectDownloads extends React.Component {
                           }
                         </select>
                       </bem.FormModal__item>,
-                      <bem.FormModal__item key={'h'}>
+                      <bem.FormModal__item key={'h'} m='export-group-headers'>
                         <input type="checkbox" id="hierarchy_in_labels"
                           value={this.state.hierInLabels}
                           onChange={this.hierInLabelsChange}
@@ -457,10 +470,11 @@ export class ProjectDownloads extends React.Component {
                       </iframe>
                     </bem.FormModal__item>
                   :
-                    <bem.FormModal__item key={'s'}>
+                    <bem.FormModal__item key={'s'} m='export-submit'>
                       <input type="submit" 
                              value={t('Export')} 
-                             className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"/>
+                             className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                             disabled={this.state.formSubmitDisabled}/>
                     </bem.FormModal__item>
                   ]}
                 </bem.FormModal__form>
@@ -469,7 +483,7 @@ export class ProjectDownloads extends React.Component {
           {this.state.exports && 
             <bem.FormView__row>
                 <bem.FormView__cell m='label'>
-                  {t('Previous Exports')}
+                  {t('Exports')}
                 </bem.FormView__cell>
                 <bem.FormView__cell m={['box', 'exports-table']}>
                   <bem.FormView__group m={['items', 'headings']}>
@@ -481,7 +495,8 @@ export class ProjectDownloads extends React.Component {
                   </bem.FormView__group>
                   {this.state.exports.map((item, n) => {
                     return (
-                      <bem.FormView__group m="items" key={n} >
+                      <bem.FormView__group m="items" key={n} 
+                          className={(item.animation && item.status != 'error' && item.status != 'complete') ? 'animate' : ''}>
                         <bem.FormView__label m='type'>
                           {item.data.type}
                         </bem.FormView__label>
@@ -496,7 +511,8 @@ export class ProjectDownloads extends React.Component {
                         </bem.FormView__label>
                         <bem.FormView__label m='action'>
                           {item.status == 'complete' &&
-                            <a className="form-view__link" href={item.result} data-tip={t('Download')}>
+                            <a className="form-view__link form-view__link--export-download" 
+                               href={item.result} data-tip={t('Download')}>
                               <i className="k-icon-download" />
                             </a>
                           }
@@ -506,8 +522,9 @@ export class ProjectDownloads extends React.Component {
                             </span>
                           }
                           {item.status != 'error' && item.status != 'complete' &&
-                            <span>{t('processing...')}</span>
+                            <span className="animate-processing">{t('processing...')}</span>
                           }
+
                         </bem.FormView__label>
                       </bem.FormView__group>
                     );
