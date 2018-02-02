@@ -305,7 +305,7 @@ export class DataTable extends React.Component {
                 return formatTimeDate(row.value);
               }
             }
-            return row.value;
+            return typeof(row.value) == "object" ? '' : row.value;
           }
       });
 
