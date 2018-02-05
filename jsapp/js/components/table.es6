@@ -109,7 +109,7 @@ export class DataTable extends React.Component {
     var _this = this;
 
     return function(selection) {
-      const data = {"validation_status__uid": selection.value};
+      const data = {"validation_status.uid": selection.value};
       dataInterface.updateSubmissionValidationStatus(_this.props.asset.uid, sid, data).done((result) => {
         if (result.uid) {
           _this.state.tableData[index]._validation_status = result.uid;
@@ -178,7 +178,7 @@ export class DataTable extends React.Component {
 
     columns.push({
       Header: t('Validation status'),
-      accessor: '_validation_status__uid',
+      accessor: '_validation_status.uid',
       index: '__2',
       minWidth: 130,
       className: 'rt-status',
@@ -438,22 +438,22 @@ export class DataTable extends React.Component {
     if (!selectAll) {
       d = {
         submissions_ids: Object.keys(this.state.selectedRows),
-        validation_status__uid: val
+        "validation_status.uid": val
       }
     } else {
       const f = this.state.fetchState.filtered;
       if (f.length) {
         d = {
           query: {},
-          validation_status__uid: val
-        }
+          "validation_status.uid": val
+        };
         f.forEach(function(z) {
           d.query[z.id] = z.value;
         });
       } else {
         d = {
           confirm: true,
-          validation_status__uid: val
+          "validation_status.uid": val
         }
       }
     }
