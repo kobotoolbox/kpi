@@ -439,7 +439,7 @@ export class DataTable extends React.Component {
       d = {
         submissions_ids: Object.keys(this.state.selectedRows),
         "validation_status.uid": val
-      }
+      };
     } else {
       const f = this.state.fetchState.filtered;
       if (f.length) {
@@ -454,7 +454,7 @@ export class DataTable extends React.Component {
         d = {
           confirm: true,
           "validation_status.uid": val
-        }
+        };
       }
     }
 
