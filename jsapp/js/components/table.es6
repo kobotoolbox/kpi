@@ -280,7 +280,7 @@ export class DataTable extends React.Component {
             return lbl;
           },
         id: key,
-        accessor: a => a[key],
+        accessor: row => row[key],
         index: index,
         question: q,
         filterable: false,
