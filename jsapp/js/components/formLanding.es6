@@ -188,6 +188,10 @@ export class FormLanding extends React.Component {
           label: t('Online-Only (multiple submissions)'),
           desc: t('This is the best option when entering many records at once on a computer, e.g. for transcribing paper records')
         }],
+        ['single_url', {
+          label: t('Online-Offline (single submission)'),
+          desc: t('This allows a single submission, and can be paired with the "returnURL" parameter to redirect the user to a URL of your choice after the form has been submitted.')
+        }],
         ['iframe_url', {
           label: t('Embeddable web form code'),
           desc: t('Use this html5 code snippet to integrate your form on your own website using smaller margins. ')

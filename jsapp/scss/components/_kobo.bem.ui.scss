@@ -403,17 +403,19 @@
   }
 
   .popover-menu__content {
-    min-width: 520px;
-    max-width: 660px;
+    min-width: 550px;
+    max-width: 780px;
     top: auto;
-    bottom: -100px;
+    bottom: -150px;
     right: auto;
-    left: 10px;
+    left: 30px;
+    max-height: 400px;
+    overflow: auto;
 
     .popover-menu__link {
       max-width: 100%;
       white-space: normal;
-      padding: 16px;
+      padding: 12px;
       border-bottom: 1px solid $divider-color;
       border-left: 2px solid transparent;
 
@@ -427,7 +429,8 @@
       }
 
       .collect-data-desc {
-        font-size: 13px;
+        font-size: 12px;
+        line-height: 16px;
       }
 
       &:hover {
