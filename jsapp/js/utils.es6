@@ -168,8 +168,8 @@ export function isLibrary(router) {
 }
 
 export function stringToColor(str, prc) {
-  // Check for lightness/darkness
-  var prc = typeof prc === 'number' ? prc : 5;
+  // Higher prc = lighter color, lower = darker
+  var prc = typeof prc === 'number' ? prc : 0.1;
   var hash = function(word) {
       var h = 0;
       for (var i = 0; i < word.length; i++) {
