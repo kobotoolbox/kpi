@@ -277,9 +277,12 @@ export default assign({
       evt.preventDefault();
     }
 
-    if (this.state.settings__style) {
+    if (this.state.settings__style)
       this.app.survey.settings.set('style', this.state.settings__style);
-    }
+
+    if (this.state.name)
+      this.app.survey.settings.set('title', this.state.name);
+
     var params = {
       source: surveyToValidJson(this.app.survey),
     };
@@ -289,9 +292,7 @@ export default assign({
     if (this.state.asset && this.state.asset.url) {
       params.asset = this.state.asset.url;
     }
-    if (this.state.name !== this.state.savedName) {
-      params.name = this.state.name;
-    }
+
     dataInterface.createAssetSnapshot(params).done((content) => {
       this.setState({
         enketopreviewOverlay: content.enketopreviewlink,
