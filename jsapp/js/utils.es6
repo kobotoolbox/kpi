@@ -120,7 +120,7 @@ export function t(str) {
 // these values may appear in transifex (esp. email) and need to
 // be replaced in all the translations before removing this hard
 // coded value.
-const originalSupportEmail = 'support@kobotoolbox.org';
+const originalSupportEmail = 'help@kobotoolbox.org';
 const originalSupportUrl = 'http://help.kobotoolbox.org';
 
 let supportDetails = {
