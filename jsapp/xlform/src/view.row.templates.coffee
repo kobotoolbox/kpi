@@ -263,7 +263,7 @@ module.exports = do ->
     """
     <div class="card card--error">
       #{_t("Row could not be displayed:")} <pre>#{atts}</pre>
-      <em>#{replaceSupportEmail(_t("This question could not be imported. Please re-create it manually. Please contact us at support@kobotoolbox.org so we can fix this bug!"))}</em>
+      <em>#{replaceSupportEmail(_t("This question could not be imported. Please re-create it manually. Please contact us at help@kobotoolbox.org so we can fix this bug!"))}</em>
     </div>
     #{expandingSpacerHtml}
     """

@@ -120,7 +120,7 @@ export function t(str) {
 // these values may appear in transifex (esp. email) and need to
 // be replaced in all the translations before removing this hard
 // coded value.
-const originalSupportEmail = 'support@kobotoolbox.org';
+const originalSupportEmail = 'help@kobotoolbox.org';
 const originalSupportUrl = 'http://help.kobotoolbox.org';
 
 let supportDetails = {
@@ -168,8 +168,8 @@ export function isLibrary(router) {
 }
 
 export function stringToColor(str, prc) {
-  // Check for lightness/darkness
-  var prc = typeof prc === 'number' ? prc : 5;
+  // Higher prc = lighter color, lower = darker
+  var prc = typeof prc === 'number' ? prc : 0.1;
   var hash = function(word) {
       var h = 0;
       for (var i = 0; i < word.length; i++) {
