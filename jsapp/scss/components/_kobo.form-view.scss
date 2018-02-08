@@ -392,20 +392,17 @@
   }
 }
 
-@keyframes pulse {
+@keyframes recent {
   0% {
     background-color: #FFF;
-    transform: scale(1);
   }
 
-  50% {
-    background-color: lighten($cool-blue, 35%);
-    transform: scale(1.01);
+  10% {
+    background-color: lighten($cool-blue, 20%);
   }
 
   100% {
-    background-color: #FFF;
-    transform: scale(1);
+    background-color: lighten($cool-blue, 40%);
   }
 }
 
@@ -459,8 +456,9 @@
       font-size: 42px;
     }
 
-    &.animate {
-      animation: pulse 0.3s 5;
+    &.recent {
+      background-color: lighten($cool-blue, 40%);
+      animation: recent 5s 1;
     }
 
     .animate-processing {

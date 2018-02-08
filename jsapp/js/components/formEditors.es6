@@ -7,6 +7,7 @@ import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import editableFormMixin from '../editorMixins/editableForm';
 import Select from 'react-select';
+import moment from 'moment';
 import ui from '../ui';
 import bem from '../bem';
 import DocumentTitle from 'react-document-title';
@@ -376,9 +377,6 @@ export class ProjectDownloads extends React.Component {
     dataInterface.getAssetExports(this.props.asset.uid).done((data)=>{
       if (data.count > 0) {
         data.results.reverse();
-        if (this.state.formSubmitDisabled) {
-          data.results[0].animation = true;
-        }
         this.setState({exports: data.results});
 
         // Start a polling Interval if there is at least one export is not yet complete
@@ -399,7 +397,6 @@ export class ProjectDownloads extends React.Component {
   render () {
     let translations = this.props.asset.content.translations;
     var docTitle = this.props.asset.name || t('Untitled');
-
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m='form-data-downloads'>
@@ -494,9 +491,10 @@ export class ProjectDownloads extends React.Component {
                     <bem.FormView__label></bem.FormView__label>
                   </bem.FormView__group>
                   {this.state.exports.map((item, n) => {
+                    let timediff = moment().diff(moment(item.date_created), 'seconds');
                     return (
-                      <bem.FormView__group m="items" key={n} 
-                          className={(item.animation && item.status != 'error' && item.status != 'complete') ? 'animate' : ''}>
+                      <bem.FormView__group m="items" key={item.uid}
+                        className={timediff < 45 ? 'recent' : ''}>
                         <bem.FormView__label m='type'>
                           {item.data.type}
                         </bem.FormView__label>
