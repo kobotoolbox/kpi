@@ -392,6 +392,38 @@
   }
 }
 
+@keyframes recent {
+  0% {
+    background-color: #FFF;
+  }
+
+  10% {
+    background-color: lighten($cool-blue, 20%);
+  }
+
+  100% {
+    background-color: lighten($cool-blue, 40%);
+  }
+}
+
+@keyframes processing {
+  0% {
+    opacity: 1;
+  }
+
+  25% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
 .form-view__group {
   .dropzone {
     display: inline;
@@ -416,7 +448,21 @@
     }
 
     .form-view__link {
-      opacity: 0.4;
+      opacity: 0.8;
+    }
+
+    .form-view__link--export-download {
+      opacity: 0.9;
+      font-size: 42px;
+    }
+
+    &.recent {
+      background-color: lighten($cool-blue, 40%);
+      animation: recent 5s 1;
+    }
+
+    .animate-processing {
+      animation: processing 1.5s infinite;
     }
   }
 
@@ -468,11 +514,27 @@
     &:last-child {
       margin-bottom: 0px;
     }
+
+    &--export-type,
+    &--export-format {
+      width: 48%;
+      float: left;
+    }
+
+    &--export-format {
+      margin-left: 2%;
+    }
+
+    &--export-group-headers,
+    &--export-submit {
+      clear: both;
+    }
   }
 
   .form-view__cell--exports-table {
     .form-view__label {
       text-align: left;
+      padding: 4px 10px;
 
       &--type {
         width: 10%;
@@ -482,6 +544,7 @@
       &--action {
         flex-grow: 1;
         text-align: right;
+        line-height: 40px;
       }
 
       &--lang {
@@ -490,6 +553,8 @@
     }
 
     .form-view__group--headings {
+      padding: 8px 0px;
+
       .form-view__label--type {
         text-transform: none;
       }
