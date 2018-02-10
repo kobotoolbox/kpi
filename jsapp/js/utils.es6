@@ -169,7 +169,7 @@ export function isLibrary(router) {
 
 export function stringToColor(str, prc) {
   // Higher prc = lighter color, lower = darker
-  var prc = typeof prc === 'number' ? prc : 0.1;
+  var prc = typeof prc === 'number' ? prc : -15;
   var hash = function(word) {
       var h = 0;
       for (var i = 0; i < word.length; i++) {
