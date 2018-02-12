@@ -298,7 +298,7 @@ export class ProjectDownloads extends React.Component {
         this.state.type
       ];
       if (this.state.type == 'xls' || this.state.type == 'csv') {
-        url = `/exports/`; // TODO: have the backend pass the URL in the asset
+        url = `${dataInterface.rootUrl}/exports/`; // TODO: have the backend pass the URL in the asset
         let postData = {
           source: this.props.asset.url,
           type: this.state.type,

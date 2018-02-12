@@ -462,12 +462,18 @@ class ExportTask(ImportExportTask):
                         prefix='export_xlsx', mode='rb'
                 ) as xlsx_output_file:
                     export.to_xlsx(xlsx_output_file.name, submission_stream)
+                    # TODO: chunk again once
+                    # https://github.com/jschneier/django-storages/issues/449
+                    # is fixed
+                    '''
                     while True:
                         chunk = xlsx_output_file.read(5 * 1024 * 1024)
                         if chunk:
                             output_file.write(chunk)
                         else:
                             break
+                    '''
+                    output_file.write(xlsx_output_file.read())
 
         # Restore the FileField to its typical state
         self.result.open('rb')
