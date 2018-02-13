@@ -36,7 +36,7 @@
     "extract-text-webpack-plugin": "^1.0.1",
     "file-loader": "^0.8.5",
     "font-awesome": "^4.4.0",
-    "gulp": "^3.9.0",
+    "gulp": "^3.9.1",
     "gulp-clean": "^0.3.1",
     "gulp-coffeeify": "^0.1.8",
     "gulp-mocha-phantomjs": "^0.10.1",

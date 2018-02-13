@@ -68,11 +68,7 @@ RUN mkdir "${BUILD_DIR}" && \
     # FIXME: Move `webpack-stats.json` to some build target directory so these ad-hoc workarounds don't continue to accumulate.
     ln -s "${WEBPACK_STATS_PATH}" webpack-stats.json
 
-RUN cp -r ./node_modules/font-awesome/fonts/* ${KPI_SRC_DIR}/jsapp/fonts
-RUN cp -r ./node_modules/roboto-fontface/fonts/*.wof* ${KPI_SRC_DIR}/jsapp/fonts
-RUN cp -r ./jsapp/scss/fonts/k-icons/* ${KPI_SRC_DIR}/jsapp/fonts
-
-RUN npm run build
+RUN gulp copy && npm run build
 
 ###############################################
 # Copy over this directory in its current state. #
