@@ -49,18 +49,6 @@ RUN if ! diff "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json; then \
     ; fi
 
 
-##########################################
-# Install any additional Bower packages. #
-##########################################
-
-COPY ./bower.json ./.bowerrc "${KPI_SRC_DIR}/"
-# Only install if the current versions of `bower.json` or `.bowerrc` differ from the ones used in the base image.
-RUN if ! diff "${KPI_SRC_DIR}/bower.json" /srv/tmp/base_bower.json && \
-            ! diff "${KPI_SRC_DIR}/.bowerrc" /srv/tmp/base_bowerrc; then \
-        bower install --quiet --allow-root --config.interactive=false \
-    ; fi
-
-
 ######################
 # Build client code. #
 ######################
@@ -80,8 +68,11 @@ RUN mkdir "${BUILD_DIR}" && \
     # FIXME: Move `webpack-stats.json` to some build target directory so these ad-hoc workarounds don't continue to accumulate.
     ln -s "${WEBPACK_STATS_PATH}" webpack-stats.json
 
-RUN gulp copy && npm run build
+RUN cp -r ./node_modules/font-awesome/fonts/* ${KPI_SRC_DIR}/jsapp/fonts
+RUN cp -r ./node_modules/roboto-fontface/fonts/*.wof* ${KPI_SRC_DIR}/jsapp/fonts
+RUN cp -r ./jsapp/scss/fonts/k-icons/* ${KPI_SRC_DIR}/jsapp/fonts
 
+RUN npm run build
 
 ###############################################
 # Copy over this directory in its current state. #
@@ -92,7 +83,6 @@ COPY . "${KPI_SRC_DIR}"
 
 # Restore the backed-up package installation directories.
 RUN ln -s "${KPI_NODE_PATH}" "${KPI_SRC_DIR}/node_modules" && \
-    ln -s "${BOWER_COMPONENTS_DIR}/" "${KPI_SRC_DIR}/jsapp/xlform/components" && \
     ln -s "${BUILD_DIR}" "${KPI_SRC_DIR}/jsapp/compiled" && \
     ln -s "${FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts" && \
     ln -s "${WEBPACK_STATS_PATH}" webpack-stats.json
