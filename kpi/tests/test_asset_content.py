@@ -490,6 +490,47 @@ def kobomatrix_content_with_custom_fields():
     return _content
 
 
+def reverse_str(s):
+    return ''.join(reversed(s))
+
+
+def kobomatrix_content_with_translations():
+    _content = kobomatrix_content()
+    for _s in ['survey', 'choices']:
+        _sheet = _content[_s]
+        for _row in _sheet:
+            try:
+                _label = _row['label']
+            except KeyError:
+                continue
+            _row['label::English'] = _label
+            _row['label::' + reverse_str('English')] = reverse_str(_label)
+            del _row['label']
+    return _content
+
+
+def kobomatrix_content_with_missing_translations():
+    _content = kobomatrix_content_with_translations()
+    for _s in ['survey', 'choices']:
+        _sheet = _content[_s]
+        found_first_translation = False
+        for _row in _sheet:
+            try:
+                _label = _row['label::English']
+            except KeyError:
+                continue
+            if not found_first_translation:
+                # leave the first translation alone
+                found_first_translation = True
+                continue
+            _row['label::' + reverse_str('English')] = None
+    return _content
+
+
+def _span_display_none(item):
+    return '<span style="display:none">{}</span>'.format(item)
+
+
 def test_kobomatrix_content():
     content = _compile_asset_content(kobomatrix_content())
     pattern = ['w7', 'w1', 'w2', 'w2', 'w2', '']
@@ -557,27 +598,81 @@ def test_kobomatrix_content():
                            '**Number**',
                            ]
 
-    def _span(item):
-        return '<span style="display:none">{}</span>'.format(item)
-
     assert _labls[7:11] == ['##### Car',
-                            _span('car-Possess?'),
-                            _span('car-Necessary?'),
-                            _span('car-Number'),
+                            _span_display_none('car-Possess?'),
+                            _span_display_none('car-Necessary?'),
+                            _span_display_none('car-Number'),
                             ]
     assert _labls[13:17] == ['##### Bike',
-                             _span('bike-Possess?'),
-                             _span('bike-Necessary?'),
-                             _span('bike-Number'),
+                             _span_display_none('bike-Possess?'),
+                             _span_display_none('bike-Necessary?'),
+                             _span_display_none('bike-Number'),
                              ]
     assert _labls[19:23] == ['##### TV',
-                             _span('tv-Possess?'),
-                             _span('tv-Necessary?'),
-                             _span('tv-Number'),
+                             _span_display_none('tv-Possess?'),
+                             _span_display_none('tv-Necessary?'),
+                             _span_display_none('tv-Number'),
                              ]
     assert _reqds == [None, False, False, False, False, None] + (
                         [None, False, True, True, True, None] * 3
                     )
+
+
+def test_kobomatrix_labels_with_translations():
+    content = _compile_asset_content(
+        kobomatrix_content_with_translations())
+    labels = [r.get('label', [None]) for r in content['survey']]
+
+    expected_labels = [
+        '**It\xe9ms**',
+        '**Possess?**',
+        '**Necessary?**',
+        '**Number**'
+    ]
+    assert labels[1:5] == [[l, reverse_str(l)] for l in expected_labels]
+
+    def _make_expected_labels(row):
+        labels = [['##### ' + row, '##### ' + reverse_str(row)]]
+        for col in ['Possess?', 'Necessary?', 'Number']:
+            labels.append([
+                _span_display_none(row.lower() + '-' + col),
+                _span_display_none(row.lower() + '-' + reverse_str(col))
+            ])
+        return labels
+
+    assert labels[7:11] == _make_expected_labels('Car')
+    assert labels[13:17] == _make_expected_labels('Bike')
+    assert labels[19:23] == _make_expected_labels('TV')
+
+
+def test_kobomatrix_labels_with_missing_translations():
+    content = _compile_asset_content(
+        kobomatrix_content_with_missing_translations())
+    labels = [r.get('label', [None]) for r in content['survey']]
+    assert labels[1:5] == [
+        ['**It\xe9ms**', '**sm\xe9tI**'],
+        ['**Possess?**', None],
+        ['**Necessary?**', None],
+        ['**Number**', None]
+    ]
+    assert labels[7:11] == [
+        ['##### Car', '##### raC'],
+        [_span_display_none('car-Possess?'), None],
+        [_span_display_none('car-Necessary?'), None],
+        [_span_display_none('car-Number'), None]
+    ]
+    assert labels[13:17] == [
+        ['##### Bike', None],
+        [_span_display_none('bike-Possess?'), None],
+        [_span_display_none('bike-Necessary?'), None],
+        [_span_display_none('bike-Number'), None]
+    ]
+    assert labels[19:23] == [
+        ['##### TV', None],
+        [_span_display_none('tv-Possess?'), None],
+        [_span_display_none('tv-Necessary?'), None],
+        [_span_display_none('tv-Number'), None]
+    ]
 
 
 def test_xpath_fields_in_kobomatrix_are_preserved():
