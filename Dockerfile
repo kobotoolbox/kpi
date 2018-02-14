@@ -31,6 +31,7 @@ RUN if ! diff "${KPI_SRC_DIR}/dependencies/apt_requirements.txt" /srv/tmp/base__
 ###########################
 
 COPY ./dependencies/pip/external_services.txt "${KPI_SRC_DIR}/dependencies/pip/"
+WORKDIR ${PIP_DIR}/
 # Only install if the current version of `dependencies/pip/external_services.txt` differs from the one used in the base image.
 RUN if ! diff "${KPI_SRC_DIR}/dependencies/pip/external_services.txt" /srv/tmp/base__external_services.txt; then \
         pip-sync "${KPI_SRC_DIR}/dependencies/pip/external_services.txt" 1>/dev/null \
@@ -42,6 +43,7 @@ RUN if ! diff "${KPI_SRC_DIR}/dependencies/pip/external_services.txt" /srv/tmp/b
 ##########################################
 
 COPY ./package.json "${KPI_SRC_DIR}/"
+WORKDIR ${KPI_SRC_DIR}/
 # Only install if the current version of `package.json` differs from the one used in the base image.
 RUN if ! diff "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json; then \
         # Try error-prone `npm install` step twice.
