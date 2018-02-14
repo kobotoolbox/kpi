@@ -7,6 +7,7 @@ FROM kobotoolbox/base-kobos:latest
 ENV KPI_SRC_DIR=/srv/src/kpi \
     KPI_NODE_PATH=/srv/node_modules \
     BOWER_COMPONENTS_DIR=/srv/bower_components
+    PIP_DIR=/srv/pip
 
 
 ###############################
@@ -31,6 +32,7 @@ RUN bash /tmp/setup_6.x.bash && \
 # Install `pip` packages. #
 ###########################
 
+WORKDIR ${PIP_DIR}/
 RUN pip install --quiet --upgrade pip && \
     pip install --quiet pip-tools
 COPY ./dependencies/pip/external_services.txt /srv/tmp/base__external_services.txt
