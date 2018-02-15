@@ -272,7 +272,7 @@ class CustomReportForm extends React.Component {
               data-name={q.name}
               id={'q-' + q.name} />
             <label htmlFor={'q-' + q.name}>
-              {q.row.label ? q.row.label[0] : t('Untitled') }
+              {q.row.label ? q.row.label[0] : t('Unlabeled') }
             </label>
         </div>
       );

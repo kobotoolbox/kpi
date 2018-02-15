@@ -300,7 +300,7 @@ class ReportViewItem extends React.Component {
     var questionLabel = r.label;
 
     if (this.props.translations) {
-      questionLabel = r.label && r.label[this.props.translationIndex] ? r.label[this.props.translationIndex] : t('Untitled');
+      questionLabel = r.label && r.label[this.props.translationIndex] ? r.label[this.props.translationIndex] : t('Unlabeled');
     }
 
     return (
