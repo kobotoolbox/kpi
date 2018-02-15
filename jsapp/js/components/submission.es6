@@ -7,7 +7,7 @@ import actions from '../actions';
 import reactMixin from 'react-mixin';
 import mixins from '../mixins';
 import bem from '../bem';
-import {t, notify, isAValidUrl} from '../utils';
+import {t, notify} from '../utils';
 import stores from '../stores';
 import ui from '../ui';
 import alertify from 'alertifyjs';
@@ -108,33 +108,28 @@ class Submission extends React.Component {
   }
 
   renderAttachment(filename, type) {
-    const s = this.state.submission;
-    var download_url = null;
+    const s = this.state.submission, originalFilename = filename;
+    var attachmentUrl = null;
 
-    s._attachments.forEach(function(a) {
-      if (a.download_url.includes(encodeURI(filename))) {
-        download_url = a.download_url;
+    // Match filename with full filename in attachment list
+    // TODO: find a better way to do this, this works but seems inefficient
+    s._attachments.some(function(a) {
+      if (a.filename.includes(filename)) {
+        filename = a.filename;
       }
     });
 
     var kc_server = document.createElement('a');
     kc_server.href = this.props.asset.deployment__identifier;
-    var kobocollect_url = kc_server.origin;
-    if (type === 'image') {
-      if (download_url && isAValidUrl(download_url))
-        return <img src={download_url} />
-      else if (download_url)
-        return <img src={`${kobocollect_url}/${download_url}`} />
-      else
-        return filename;
-    } else {
-      if (download_url && isAValidUrl(download_url))
-        return <a href={download_url}>{filename}</a>
-      else if (download_url)
-        return <a href={download_url}>{filename}</a>
-      else
-        return filename;
+    var kc_base = kc_server.origin;
 
+    // build media attachment URL using the KC endpoint
+    attachmentUrl = `${kc_base}/attachment/original?media_file=${encodeURI(filename)}`;
+
+    if (type === 'image') {
+      return <img src={attachmentUrl} />
+    } else {
+      return <a href={attachmentUrl} target="_blank">{originalFilename}</a>
     }
   }
 
