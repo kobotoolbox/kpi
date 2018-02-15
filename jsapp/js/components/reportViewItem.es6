@@ -298,8 +298,9 @@ class ReportViewItem extends React.Component {
     _type = JSON.stringify(_type);
 
     var questionLabel = r.label;
+
     if (this.props.translations) {
-      questionLabel = r.label[this.props.translationIndex];
+      questionLabel = r.label && r.label[this.props.translationIndex] ? r.label[this.props.translationIndex] : t('Unlabeled');
     }
 
     return (
