@@ -147,6 +147,115 @@ class Submission extends React.Component {
     const data = {"validation_status.uid": e.value};
     actions.resources.updateSubmissionValidationStatus(this.props.asset.uid, this.state.sid, data);
   }
+
+  responseDisplayHelper(q, s, overrideValue = false) {
+    if (!q) return false;
+    const name = q.name || q.$autoname,
+          choices = this.props.asset.content.choices;
+
+    var submissionValue = s[name];
+
+    if(overrideValue)
+      submissionValue = overrideValue;
+
+    switch(q.type) {
+      case 'select_one':
+        const choice = choices.find(x => x.list_name == q.select_from_list_name && x.name === submissionValue);
+        if (choice && choice.label  && choice.label[0])
+          return choice.label[0];
+        break;
+      case 'select_multiple':
+        var responses = submissionValue.split(' ');
+        var list = responses.map((r)=> {
+          const choice = choices.find(x => x.list_name == q.select_from_list_name && x.name === r);
+          if (choice && choice.label)
+            return <li key={r}>{choice.label[0]}</li>;
+        })
+        return <ul>{list}</ul>;
+        break;
+      case 'image':
+      case 'audio':
+      case 'video':
+        return this.renderAttachment(submissionValue, q.type);
+        break;
+      default:
+        return submissionValue;
+        break;
+    }
+  }
+  renderRows() {
+    const s = this.state.submission,
+          survey = this.props.asset.content.survey,
+          _this = this;
+
+    console.log(s);
+    console.log(survey);
+
+    return survey.map((q)=> {
+      const name = q.name || q.$autoname;
+      if (q.type === 'begin_repeat') { 
+        return (
+          <tr key={`row-${name}`}>
+            <td colSpan="3" className="submission--repeat-group">
+              <h4>
+                {t('Repeat group: ')}
+                {q.label[0]}
+              </h4>
+              {s[name].map((repQ, i)=> {
+                var response = [];
+                for (var pN in repQ) {
+                  var qName = pN.split('/').pop(-1);
+                  const subQ = survey.find(x => x.name == qName || x.$autoname == qName);
+
+                  const icon = icons._byId[subQ.type];
+                  var type = q.type;
+                  if (icon)
+                    type = <i className={`fa fa-${icon.attributes.faClass}`} title={q.type}/>
+
+                  response.push(
+                    <tr key={`row-${pN}`}>
+                      <td className="submission--question-type">{type}</td>
+                      <td className="submission--question">
+                        {subQ.label &&
+                          subQ.label[0]
+                        }
+                      </td>
+                      <td className="submission--response">
+                        {_this.responseDisplayHelper(subQ, s, repQ[pN])}
+                      </td>
+                    </tr>      
+                  );
+                }
+                return (
+                  <table key={`repeat-${i}`}>
+                    <tbody>
+                      {response}
+                    </tbody>
+                  </table>
+                );
+              })}
+            </td>
+          </tr>
+        );
+      }
+
+      if (q.label == undefined || s[name] == undefined) { return false;}
+      const response = this.responseDisplayHelper(q, s);
+
+      const icon = icons._byId[q.type];
+      var type = q.type;
+      if (icon)
+        type = <i className={`fa fa-${icon.attributes.faClass}`} title={q.type}/>
+
+      return (
+        <tr key={`row-${name}`}>
+          <td className="submission--question-type">{type}</td>
+          <td className="submission--question">{q.label[0]}</td>
+          <td className="submission--response">{response}</td>
+        </tr>      
+      );
+    });
+  }
   render () {
     if (this.state.loading) {
       return (
@@ -172,9 +281,6 @@ class Submission extends React.Component {
     }
 
     const s = this.state.submission;
-    const survey = this.props.asset.content.survey;
-    const choices = this.props.asset.content.choices;
-
     return (
       <bem.FormModal>
         <bem.FormModal__group m='validation-status'>
@@ -249,46 +355,9 @@ class Submission extends React.Component {
                 <td>{s.end}</td>
               </tr>
             }
-            {survey.map((q)=> {
-              const name = q.name || q.$autoname;
-              if (q.label == undefined) { return false;}
-              var response = s[name];
 
-              if (q.type=="select_one" && s[name]) {
-                const choice = choices.find(x => x.list_name == q.select_from_list_name && x.name === s[name]);
-                if (choice && choice.label)
-                  response = choice.label[0];
-              }
+            {this.renderRows()}
 
-              if (q.type === 'select_multiple' && s[name]) {
-                var responses = s[name].split(' ');
-                var list = responses.map((r)=> {
-                  const choice = choices.find(x => x.list_name == q.select_from_list_name && x.name === r);
-                  if (choice && choice.label)
-                    return <li key={r}>{choice.label[0]}</li>;
-                })
-                response = <ul>{list}</ul>;
-              }
-
-              if (s[name] && (q.type === 'image' || q.type === 'audio' || q.type === 'video')) {
-                response = this.renderAttachment(s[name], q.type);
-              }
-
-              var icon = icons._byId[q.type];
-              var type = q.type;
-              if (icon) {
-                type = <i className={`fa fa-${icon.attributes.faClass}`}
-                          title={q.type}/>
-              }
-
-              return (
-                <tr key={`row-${name}`}>
-                  <td className="submission--question-type">{type}</td>
-                  <td className="submission--question">{q.label[0]}</td>
-                  <td className="submission--response">{response}</td>
-                </tr>      
-              );
-            })}
             {s.__version__ &&
               <tr>
                 <td></td>
