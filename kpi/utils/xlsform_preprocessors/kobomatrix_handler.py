@@ -112,7 +112,7 @@ class KoboMatrixGroupHandler(GroupHandler):
 
     def _format_all_labels(self, labels, template):
         return [
-            template.format(_l) for _l in labels
+            template.format(_l) if _l is not None else None for _l in labels
         ]
 
     def _header(self, name, items_label, cols,
@@ -173,13 +173,16 @@ class KoboMatrixGroupHandler(GroupHandler):
                 _appearance.append('horizontal-compact')
             else:
                 _appearance.append('no-label')
+            _labels = []
+            for _label in col.get('label'):
+                if _label is not None:
+                    _labels.append('-'.join([_item_name, _label]))
+                else:
+                    _labels.append(None)
             out = {'type': _type,
                    'name': '_'.join([_base_name, col['name']]),
                    'appearance': ' '.join(_appearance),
-                   'label': self._format_all_labels([
-                       '-'.join([_item_name, _label])
-                       for _label in col.get('label')
-                   ], self.span_wrap),
+                   'label': self._format_all_labels(_labels, self.span_wrap),
                    'required': col.get('required', False),
                    }
             for key in ['relevant', 'constraint', 'required']:

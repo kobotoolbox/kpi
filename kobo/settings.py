@@ -107,6 +107,12 @@ MIDDLEWARE_CLASSES = (
     'hub.middleware.OtherFormBuilderRedirectMiddleware',
 )
 
+# Warn developers to use `pytest` instead of `./manage.py test`
+class DoNotUseRunner(object):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError('Please run tests with `pytest` instead')
+TEST_RUNNER = __name__ + '.DoNotUseRunner'
+
 # used in kpi.models.sitewide_messages
 MARKITUP_FILTER = ('markdown.markdown', {'safe_mode': False})
 
