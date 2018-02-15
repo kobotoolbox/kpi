@@ -188,9 +188,6 @@ class Submission extends React.Component {
           survey = this.props.asset.content.survey,
           _this = this;
 
-    console.log(s);
-    console.log(survey);
-
     return survey.map((q)=> {
       const name = q.name || q.$autoname;
       if (q.type === 'begin_repeat') { 
