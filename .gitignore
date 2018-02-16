@@ -23,3 +23,5 @@ staticfiles
 webpack-stats.json
 sensitive_data.json
 test/compiled/*
+env/*
+dependencies/pip
