@@ -860,6 +860,9 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     def get_projects_url(self, obj):
         return '/'.join((settings.KOBOCAT_URL, obj.username))
 
+    def get_close_url(self, obj):
+        return 'http://www.asimov.cl/'
+
     def get_support(self, obj):
         return {
             'email': settings.KOBO_SUPPORT_EMAIL,

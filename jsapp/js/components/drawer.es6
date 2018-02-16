@@ -67,10 +67,10 @@ class FormSidebar extends Reflux.Component {
       <bem.FormSidebar__wrapper>
         {this.state.currentAssetId}
         <ui.PopoverMenu type='new-menu' 
-            triggerLabel={t('new')}>
+            triggerLabel={t('nuevo')}>
             <bem.PopoverMenu__link onClick={this.newFormModal}>
               <i className="k-icon-projects" />
-              {t('Project')}
+              {t('Proyecto')}
             </bem.PopoverMenu__link>
             <Dropzone onDrop={this.dropFiles} 
                       multiple={false} 
@@ -78,7 +78,7 @@ class FormSidebar extends Reflux.Component {
                       accept={validFileTypes()}>
               <bem.PopoverMenu__link>
                 <i className="k-icon-upload" />
-                {t('upload')}
+                {t('subir')}
               </bem.PopoverMenu__link>
             </Dropzone>
         </ui.PopoverMenu>
@@ -158,8 +158,8 @@ class Drawer extends Reflux.Component {
     return (
       <bem.Drawer className='k-drawer'>
         <nav className='k-drawer__icons'>
-          <DrawerLink label={t('Projects')} linkto='/forms' ki-icon='projects' class='projects'/>
-          <DrawerLink label={t('Library')} linkto='/library' ki-icon='library' class='library' />
+          <DrawerLink label={t('Proyectos')} linkto='/forms' ki-icon='projects' class='projects'/>
+          <DrawerLink label={t('Biblioteca')} linkto='/library' ki-icon='library' class='library' />
         </nav>
 
         <div className="drawer__sidebar">
@@ -177,13 +177,10 @@ class Drawer extends Reflux.Component {
             <a href={stores.session.currentAccount.projects_url} 
                className='k-drawer__link' 
                target="_blank"
-               data-tip={t('Projects (legacy)')}>
+               data-tip={t('Proyectos (legado)')}>
               <i className="k-icon k-icon-globe" />
             </a>
           }
-          <a href='https://github.com/kobotoolbox/' className='k-drawer__link' target="_blank" data-tip={t('source')}>
-            <i className="k-icon k-icon-github" />
-          </a>
           { stores.session.currentAccount &&
             <a href={supportUrl()} className='k-drawer__link' target="_blank" data-tip={t('help')}>
               <i className="k-icon k-icon-help" />

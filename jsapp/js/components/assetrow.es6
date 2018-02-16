@@ -178,7 +178,7 @@ class AssetRow extends React.Component {
               }
               { this.props.asset_type != 'survey' &&
                 <span>
-                {selfowned ? t('me') : this.props.owner__username}
+                {selfowned ? t('yo') : this.props.owner__username}
                 </span>
               }
             </bem.AssetRow__cell>
@@ -222,7 +222,7 @@ class AssetRow extends React.Component {
                   m='edit' 
                   key='edit'
                   data-action='edit' 
-                  data-tip={t('Edit')}
+                  data-tip={t('Editar')}
                   data-asset-type={this.props.kind} 
                   data-disabled={false}
                   >
@@ -233,7 +233,7 @@ class AssetRow extends React.Component {
               <bem.AssetRow__actionIcon
                   m='tagsToggle'
                   onClick={this.clickTagsToggle}
-                  data-tip= {t('Tags')}
+                  data-tip= {t('Etiquetas')}
                   >
                 <i className='k-icon-tag' />
               </bem.AssetRow__actionIcon>
@@ -244,7 +244,7 @@ class AssetRow extends React.Component {
                   key='sharing'
                   data-action='sharing'
                   data-asset-type={this.props.kind} 
-                  data-tip= {t('Share')}
+                  data-tip= {t('Compartir')}
                   data-disabled={false}
                   >
                 <i className='k-icon-share' />
@@ -254,7 +254,7 @@ class AssetRow extends React.Component {
                 m='clone'
                 key='clone'
                 data-action='clone'
-                data-tip={t('Clone')}
+                data-tip={t('Clonar')}
                 data-asset-type={this.props.kind}
                 data-asset-name={this.props.name}
                 data-disabled={false}
@@ -278,7 +278,7 @@ class AssetRow extends React.Component {
             } 
             <ui.PopoverMenu type='assetrow-menu' 
                         triggerLabel={<i className="k-icon-more" />} 
-                        triggerTip={t('More Actions')}
+                        triggerTip={t('Más Acciones')}
                         clearPopover={this.state.clearPopover}>
 
               { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit && isDeployable &&
@@ -287,7 +287,7 @@ class AssetRow extends React.Component {
                     data-action={'deploy'} 
                     data-asset-type={this.props.kind}>
                   <i className="k-icon-deploy" />
-                  {this.props.deployed_version_id === null ? t('Deploy this project') : t('Redeploy this project')}
+                  {this.props.deployed_version_id === null ? t('Implementar este proyecto') : t('Volver a implementar este proyecto')}
                 </bem.PopoverMenu__link>
               }
               { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit &&
@@ -301,7 +301,7 @@ class AssetRow extends React.Component {
                         data-asset-type={this.props.kind}
                       >
                     <i className="k-icon-replace" />
-                    {t('Replace with XLS')}
+                    {t('Reemplazar con XLS')}
                   </bem.PopoverMenu__link>
                 </Dropzone>
               }
@@ -310,7 +310,7 @@ class AssetRow extends React.Component {
                     <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
                         key={`dl-${dl.format}`}>
                       <i className={`k-icon-${dl.format}-file`}/>
-                      {t('Download')}&nbsp;
+                      {t('Descargar')}&nbsp;
                       {dl.format.toString().toUpperCase()}
                     </bem.PopoverMenu__link>
                   );
@@ -318,7 +318,7 @@ class AssetRow extends React.Component {
 
               { this.props.asset_type && this.props.asset_type != 'survey' && ownedCollections.length > 0 &&
                 <bem.PopoverMenu__heading>
-                  {t('Move to')}
+                  {t('Mover a')}
                 </bem.PopoverMenu__heading>
               }
               { this.props.asset_type && this.props.asset_type != 'survey' && ownedCollections.length > 0 &&
@@ -350,7 +350,7 @@ class AssetRow extends React.Component {
                       data-asset-type={this.props.kind}
                     >
                   <i className="k-icon-archived" />
-                  {t('Archive')}
+                  {t('Archivar')}
                 </bem.PopoverMenu__link>
               }
 
@@ -361,7 +361,7 @@ class AssetRow extends React.Component {
                       data-asset-type={this.props.kind}
                     >
                   <i className="k-icon-trash" />
-                  {t('Delete')}
+                  {t('Eliminar')}
                 </bem.PopoverMenu__link>
               }
             </ui.PopoverMenu>

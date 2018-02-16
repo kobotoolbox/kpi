@@ -34,20 +34,20 @@ class Modal extends React.Component {
     switch(type) {
       case 'sharing':
         this.setState({
-          title: t('Sharing Permissions')
+          title: t('Compartir permisos')
         });
         break;
       case 'uploading-xls':
         var filename = this.props.params.file.name || '';
         this.setState({
-          title: t('Uploading XLS file'),
-          message: t('Uploading: ') + filename
+          title: t('Subiendo archivo XLS'),
+          message: t('Cargando: ') + filename
         });
         break;
 
       case 'new-form':
         this.setState({
-          title: t('Create New Project from Scratch')
+          title: t('Crear nuevo proyecto desde cero')
         });
         break;
       case 'enketo-preview':
@@ -132,7 +132,7 @@ class Modal extends React.Component {
               <bem.Loading>
                 <bem.Loading__inner>
                   <i />
-                  {t('loading...')}
+                  {t('cargando...')}
                 </bem.Loading__inner>
               </bem.Loading>
             }

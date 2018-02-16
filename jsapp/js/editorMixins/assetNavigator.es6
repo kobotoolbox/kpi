@@ -264,7 +264,7 @@ class AssetNavigator extends Reflux.Component {
               </bem.LibNav__logo>
               <bem.LibNav__search>
                 <ListSearch
-                    placeholder={t('search library')}
+                    placeholder={t('biblioteca de búsqueda')}
                     searchContext={this.state.searchContext}
                   />
               </bem.LibNav__search>

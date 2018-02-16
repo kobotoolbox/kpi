@@ -63,22 +63,22 @@ export class FormLanding extends React.Component {
             <bem.FormView__cell m='version'>
               {dvcount > 0 ? `v${dvcount}` : ''}
             </bem.FormView__cell>
-            {undeployedVersion && 
+            {undeployedVersion &&
               <bem.FormView__cell m='undeployed'>
                 &nbsp;{undeployedVersion}
               </bem.FormView__cell>
             }
             <bem.FormView__cell m='date'>
-              {t('Last Modified')}&nbsp;:&nbsp;
+              {t('Última modificación')}&nbsp;:&nbsp;
               {formatTime(this.state.date_modified)}&nbsp;-&nbsp;
               <span className="question-count">
                 {this.state.summary.row_count || '0'}&nbsp;
-                {t('questions')}
+                {t('preguntas')}
                 </span>
             </bem.FormView__cell>
           </bem.FormView__cell>
           <bem.FormView__cell m='buttons'>
-            {this.state.userCanEdit && 
+            {this.state.userCanEdit &&
               <a
                 className="mdl-button mdl-button--raised mdl-button--colored"
                 onClick={this.deployAsset}>
@@ -92,10 +92,10 @@ export class FormLanding extends React.Component {
   renderFormLanguages () {
     return (
       <bem.FormView__cell m={['padding', 'bordertop', 'languages']}>
-        {t('Languages')}
+        {t('Lenguajes')}
         {this.state.summary.languages.map((l, i)=>{
           return (
-              <bem.FormView__cell key={`lang-${i}`} m='langButton' 
+              <bem.FormView__cell key={`lang-${i}`} m='langButton'
                 className={this.state.questionLanguageIndex == i ? 'active' : ''}
                 onClick={this.updateQuestionListLanguage}
                 data-index={i}>
@@ -117,7 +117,7 @@ export class FormLanding extends React.Component {
   sharingModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
-      type: 'sharing', 
+      type: 'sharing',
       assetid: this.state.uid
     });
   }
@@ -127,24 +127,24 @@ export class FormLanding extends React.Component {
       <bem.FormView__row className={this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'}>
         <bem.FormView__cell m={['columns', 'history-label']}>
           <bem.FormView__cell m='label'>
-            {t('Form history')}
+            {t('Historial de formularios')}
           </bem.FormView__cell>
         </bem.FormView__cell>
         <bem.FormView__cell m={['box', 'history-table']}>
           <bem.FormView__group m="deployments">
             <bem.FormView__group m={['items', 'headings']}>
               <bem.FormView__label m='version'>{t('Version')}</bem.FormView__label>
-              <bem.FormView__label m='date'>{t('Last Modified')}</bem.FormView__label>
-              <bem.FormView__label m='clone'>{t('Clone')}</bem.FormView__label>
+              <bem.FormView__label m='date'>{t('Última modificación')}</bem.FormView__label>
+              <bem.FormView__label m='clone'>{t('Clonar')}</bem.FormView__label>
             </bem.FormView__group>
             {this.state.deployed_versions.results.map((item, n) => {
               return (
                 <bem.FormView__group m="items" key={n} >
                   <bem.FormView__label m='version'>
                     {`v${dvcount-n}`}
-                    {item.uid === this.state.deployed_version_id && this.state.deployment__active && 
+                    {item.uid === this.state.deployed_version_id && this.state.deployment__active &&
                       <bem.FormView__cell m='deployed'>
-                        {t('Deployed')}
+                        {t('Desplegada')}
                       </bem.FormView__cell>
                     }
                   </bem.FormView__label>
@@ -154,7 +154,7 @@ export class FormLanding extends React.Component {
                   <bem.FormView__label m='clone' className="right-tooltip">
                       <bem.FormView__link m='clone'
                           data-version-id={item.uid}
-                          data-tip={t('Clone this version as a new project')}
+                          data-tip={t('Clonar esta versión como un nuevo proyecto')}
                           onClick={this.saveCloneAs}>
                         <i className="k-icon-clone" />
                       </bem.FormView__link>
@@ -167,7 +167,7 @@ export class FormLanding extends React.Component {
         {this.state.deployed_versions.count > 1 &&
           <bem.FormView__cell m={['centered']}>
             <button className="mdl-button mdl-button--colored" onClick={this.toggleDeploymentHistory}>
-              {this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
+              {this.state.historyExpanded ? t('Ocultar historial completo') : t('Mostrar historial completo')}
             </button>
           </bem.FormView__cell>
         }
@@ -180,23 +180,23 @@ export class FormLanding extends React.Component {
     var available_links = new Map([
         ['offline_url', {
           label: t('Online-Offline (multiple submission)'),
-          desc: t('This allows online and offline submissions and is the best option for collecting data in the field. ')
+          desc: t('Esto permite envíos en línea y fuera de línea y es la mejor opción para recopilar datos en el campo. ')
         }],
         ['url', {
           label: t('Online-Only (multiple submissions)'),
-          desc: t('This is the best option when entering many records at once on a computer, e.g. for transcribing paper records')
+          desc: t('Esta es la mejor opción al ingresar muchos registros a la vez en una computadora, p. para transcribir registros en papel')
         }],
         ['iframe_url', {
           label: t('Embeddable web form code'),
-          desc: t('Use this html5 code snippet to integrate your form on your own website using smaller margins. ')
+          desc: t('Utilice este fragmento de código html5 para integrar su formulario en su propio sitio web utilizando márgenes más pequeños. ')
         }],
         ['preview_url', {
-          label: t('View only'),
-          desc: t('Use this version for testing, getting feedback. Does not allow submitting data. ')
+          label: t('Solo vista'),
+          desc: t('Use esta versión para probar, obtener comentarios. No permite enviar datos. ')
         }],
         ['android', {
-          label: t('Android application'),
-          desc: t('Use this option to collect data in the field with your Android device.')
+          label: t('Aplicación de Android'),
+          desc: t('Utilice esta opción para recopilar datos en el campo con su dispositivo Android.')
         }],
     ]);
 
@@ -221,7 +221,7 @@ export class FormLanding extends React.Component {
       <bem.FormView__row>
         <bem.FormView__cell m='columns'>
           <bem.FormView__cell m='label'>
-              {t('Collect data')}
+              {t('Recolectar datos')}
           </bem.FormView__cell>
         </bem.FormView__cell>
         <bem.FormView__cell m='box'>
@@ -230,7 +230,7 @@ export class FormLanding extends React.Component {
               <ui.PopoverMenu type='collectData-menu' triggerLabel={available_links.get(chosenMethod).label}>
                 {deployment__links_list.map((c)=>{
                   return (
-                      <bem.PopoverMenu__link m={['collect-row']} 
+                      <bem.PopoverMenu__link m={['collect-row']}
                                              key={`c-${c.key}`}
                                              data-method={c.key}
                                              onClick={this.setCollectMethod}>
@@ -245,25 +245,25 @@ export class FormLanding extends React.Component {
             <bem.FormView__cell>
               {chosenMethod != 'iframe_url' && chosenMethod != 'android' &&
                 <CopyToClipboard text={this.state.deployment__links[chosenMethod]} onCopy={() => notify('copied to clipboard')}>
-                  <button className="copy mdl-button mdl-button--colored">{t('Copy')}</button>
+                  <button className="copy mdl-button mdl-button--colored">{t('Copiar')}</button>
                 </CopyToClipboard>
               }
               {chosenMethod != 'iframe_url' && chosenMethod != 'android' &&
-                <a className="collect-link mdl-button mdl-button--colored" 
-                   target="_blank" 
+                <a className="collect-link mdl-button mdl-button--colored"
+                   target="_blank"
                    href={this.state.deployment__links[chosenMethod]}>
-                  {t('Open')}
+                  {t('Abrir')}
                 </a>
               }
               { chosenMethod == 'android' &&
-                <a className="collect-link mdl-button mdl-button--colored" 
-                   target="_blank" 
+                <a className="collect-link mdl-button mdl-button--colored"
+                   target="_blank"
                    href='https://play.google.com/store/apps/details?id=org.koboc.collect.android&hl=en'>
-                   {t('Download KoboCollect')}
+                   {t('Descargar KoboCollect')}
                 </a>
               }
               {chosenMethod == 'iframe_url' &&
-                <CopyToClipboard text={`<iframe src=${this.state.deployment__links[chosenMethod]} width="800" height="600"></iframe>`} 
+                <CopyToClipboard text={`<iframe src=${this.state.deployment__links[chosenMethod]} width="800" height="600"></iframe>`}
                                  onCopy={() => notify('copied to clipboard')}>
                   <button className="copy mdl-button mdl-button--colored">{t('Copy')}</button>
                 </CopyToClipboard>
@@ -323,13 +323,13 @@ export class FormLanding extends React.Component {
 
     return (
         <bem.FormView__group m='buttons'>
-          {this.state.userCanEdit ? 
-            <Link to={`/forms/${this.state.uid}/edit`} 
+          {this.state.userCanEdit ?
+            <Link to={`/forms/${this.state.uid}/edit`}
                   className="form-view__link form-view__link--edit"
                   data-tip={t('edit')}>
               <i className="k-icon-edit" />
             </Link>
-          : 
+          :
             <bem.FormView__link m={['edit', 'disabled']}
               className="right-tooltip"
               data-tip={t('Editing capabilities not granted, you can only view this form')}>
@@ -341,10 +341,10 @@ export class FormLanding extends React.Component {
             data-tip={t('Preview')}>
             <i className="k-icon-view" />
           </bem.FormView__link>
-          {this.state.userCanEdit && 
-            <Dropzone onDrop={this.dropFiles} 
-                          multiple={false} 
-                          className='dropzone' 
+          {this.state.userCanEdit &&
+            <Dropzone onDrop={this.dropFiles}
+                          multiple={false}
+                          className='dropzone'
                           accept={validFileTypes()}>
               <bem.FormView__link m='upload' data-tip={t('Replace with XLS')}>
                 <i className="k-icon-replace" />
@@ -352,8 +352,8 @@ export class FormLanding extends React.Component {
             </Dropzone>
           }
 
-          <ui.PopoverMenu type='formLanding-menu' 
-                      triggerLabel={<i className="k-icon-more" />} 
+          <ui.PopoverMenu type='formLanding-menu'
+                      triggerLabel={<i className="k-icon-more" />}
                       triggerTip={t('More Actions')}>
               {downloads.map((dl)=>{
                 return (
@@ -365,7 +365,7 @@ export class FormLanding extends React.Component {
                     </bem.PopoverMenu__link>
                   );
               })}
-              {this.state.userCanEdit && 
+              {this.state.userCanEdit &&
                 <bem.PopoverMenu__link onClick={this.sharingModal}>
                   <i className="k-icon-share"/>
                   {t('Share this project')}
@@ -388,7 +388,7 @@ export class FormLanding extends React.Component {
           <bem.Loading>
             <bem.Loading__inner>
               <i />
-              {t('loading...')}
+              {t('cargando...')}
             </bem.Loading__inner>
           </bem.Loading>
         </ui.Panel>
@@ -396,14 +396,14 @@ export class FormLanding extends React.Component {
     }
 
     return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <DocumentTitle title={`${docTitle}`}>
         <bem.FormView m='form'>
           <bem.FormView__row>
             <bem.FormView__cell m={['columns', 'first']}>
               <bem.FormView__cell m='label'>
-                {this.state.deployment__active ? t('Current version') :
-                  this.state.has_deployment ? t('Archived version') :
-                    t('Draft version')}
+                {this.state.deployment__active ? t('Versión actual') :
+                  this.state.has_deployment ? t('Versión Archivada') :
+                    t('Versión preliminar')}
               </bem.FormView__cell>
               <bem.FormView__cell>
                 {this.renderButtons()}
@@ -411,14 +411,14 @@ export class FormLanding extends React.Component {
             </bem.FormView__cell>
             <bem.FormView__cell m='box'>
               {this.state.deployed_versions.count > 0 &&
-                this.state.deployed_version_id != this.state.version_id && this.state.deployment__active && 
+                this.state.deployed_version_id != this.state.version_id && this.state.deployment__active &&
                 <bem.FormView__cell m='warning'>
                   <i className="k-icon-alert" />
                   {t('If you want to make these changes public, you must deploy this form.')}
                 </bem.FormView__cell>
               }
               {this.renderFormInfo()}
-              {this.state.summary && this.state.summary.languages && this.state.summary.languages[0] != null && 
+              {this.state.summary && this.state.summary.languages && this.state.summary.languages[0] != null &&
                 this.renderFormLanguages()
               }
             </bem.FormView__cell>
@@ -429,7 +429,7 @@ export class FormLanding extends React.Component {
           {this.state.deployed_versions.count > 0 && this.state.deployment__active &&
             this.renderCollectData()
           }
-        </bem.FormView> 
+        </bem.FormView>
       </DocumentTitle>
       );
   }

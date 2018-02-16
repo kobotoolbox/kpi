@@ -22,9 +22,9 @@ class SearchCollectionList extends Reflux.Component {
   constructor(props) {
     super(props);
     var selectedCategories = {
-      'Draft': true,
-      'Deployed': true, 
-      'Archived': true
+      'Borrador': true,
+      'Desplegada': true,
+      'Archivado': true
     };
     this.state = {
       selectedCategories: selectedCategories,
@@ -107,7 +107,7 @@ class SearchCollectionList extends Reflux.Component {
     return [
       (
         <bem.List__heading key='1'>
-          <span className={this.state.parentName ? 'parent' : ''}>{t('My Library')}</span>
+          <span className={this.state.parentName ? 'parent' : ''}>{t('Mi biblioteca')}</span>
           {this.state.parentName &&
             <span>
               <i className="k-icon-next" />
@@ -119,13 +119,13 @@ class SearchCollectionList extends Reflux.Component {
       (
         <bem.AssetListSorts className="mdl-grid" key='2'>
           <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--8-col mdl-cell--4-col-tablet mdl-cell--2-col-phone">
-            {t('Name')}
+            {t('Nombre')}
           </bem.AssetListSorts__item>
           <bem.AssetListSorts__item m={'owner'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone">
-            {t('Owner')}
+            {t('Propietario')}
           </bem.AssetListSorts__item>
           <bem.AssetListSorts__item m={'modified'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone">
-            {t('Last Modified')}
+            {t('Última modificación')}
           </bem.AssetListSorts__item>
         </bem.AssetListSorts>
       )];
@@ -134,19 +134,19 @@ class SearchCollectionList extends Reflux.Component {
     return (
         <bem.AssetListSorts className="mdl-grid" style={{width: this.state.fixedHeadingsWidth}}>
           <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--5-col mdl-cell--4-col-tablet mdl-cell--2-col-phone">
-            {t('Name')}
+            {t('Nombre')}
           </bem.AssetListSorts__item>
           <bem.AssetListSorts__item m={'owner'} className="mdl-cell mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--hide-phone">
-            {t('Shared by')}
+            {t('Compartido por')}
           </bem.AssetListSorts__item>
           <bem.AssetListSorts__item m={'created'} className="mdl-cell mdl-cell--2-col mdl-cell--hide-tablet mdl-cell--hide-phone">
-            {t('Created')}
+            {t('Creado')}
           </bem.AssetListSorts__item>
           <bem.AssetListSorts__item m={'modified'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone">
-            {t('Last Modified')}
+            {t('Última modificación')}
           </bem.AssetListSorts__item>
           <bem.AssetListSorts__item m={'submissions'} className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--1-col-phone" >
-              {t('Submissions')}
+              {t('Presentaciones')}
           </bem.AssetListSorts__item>
         </bem.AssetListSorts>
       );
@@ -156,7 +156,7 @@ class SearchCollectionList extends Reflux.Component {
     if (this.state.searchResultsDisplayed)
       searchResultsBucket = 'searchResultsCategorizedResultsLists';
 
-    var results = ['Deployed', 'Draft', 'Archived'].map(
+    var results = ['Desplegada', 'Borrador', 'Archivado'].map(
       (category, i) => {
         if (this.state[searchResultsBucket][category].length < 1) {
           return []
@@ -180,7 +180,7 @@ class SearchCollectionList extends Reflux.Component {
 
     return [
       <bem.List__heading key="h1" className="is-edge">
-        {t('Active Projects')}
+        {t('Proyectos Activos')}
       </bem.List__heading>,
       results];
   }
@@ -190,13 +190,13 @@ class SearchCollectionList extends Reflux.Component {
     var docTitle = '';
     if (this.props.searchContext.store.filterTags == 'asset_type:survey') {
       var display = 'grouped';
-      docTitle = t('Projects');
+      docTitle = t('Proyectos');
     } else {
       var display = 'regular';
-      docTitle = t('Library');
+      docTitle = t('Biblioteca');
     }
     return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <DocumentTitle title={`${docTitle}`}>
         <bem.List m={display} onScroll={this.handleScroll}>
           {
             (()=>{
@@ -214,7 +214,7 @@ class SearchCollectionList extends Reflux.Component {
                     <bem.Loading>
                       <bem.Loading__inner>
                         <i />
-                        {t('loading...')} 
+                        {t('cargando...')}
                       </bem.Loading__inner>
                     </bem.Loading>
                   );
@@ -231,7 +231,7 @@ class SearchCollectionList extends Reflux.Component {
                     <bem.Loading>
                       <bem.Loading__inner>
                         <i />
-                        {t('loading...')} 
+                        {t('cargando...')}
                       </bem.Loading__inner>
                     </bem.Loading>
                   );
@@ -241,7 +241,7 @@ class SearchCollectionList extends Reflux.Component {
                       return (
                         <bem.Loading>
                           <bem.Loading__inner>
-                            {t("Let's get started by creating your first project. Click the New button to create a new form.")} 
+                            {t("Comencemos creando tu primer proyecto. Haga clic en el botón Nuevo para crear una nuevo formulario.")}
                           </bem.Loading__inner>
                         </bem.Loading>
                       );
@@ -249,7 +249,7 @@ class SearchCollectionList extends Reflux.Component {
                       return (
                         <bem.Loading>
                           <bem.Loading__inner>
-                            {t("Let's get started by creating your first library question or question block. Click the New button to create a new question or block.")} 
+                            {t("Comencemos creando su primera pregunta de biblioteca o bloque de preguntas. Haga clic en el botón Nuevo para crear una nueva pregunta o bloque.")}
                           </bem.Loading__inner>
                         </bem.Loading>
                       );

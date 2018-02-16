@@ -21,9 +21,9 @@ class SidebarFormsList extends Reflux.Component {
   constructor(props) {
     super(props);
     var selectedCategories = {
-      'Draft': false,
-      'Deployed': false, 
-      'Archived': false
+      'Borrador': false,
+      'Desplegada': false,
+      'Archivado': false
     }
     this.state = {
       selectedCategories: selectedCategories,
@@ -87,7 +87,7 @@ class SidebarFormsList extends Reflux.Component {
         <bem.Loading>
           <bem.Loading__inner>
             <i />
-            {t('loading...')} 
+            {t('cargando...')}
           </bem.Loading__inner>
         </bem.Loading>
       );
@@ -99,7 +99,7 @@ class SidebarFormsList extends Reflux.Component {
           s.defaultQueryState === 'done' && 
           <bem.FormSidebar__label m={'active-projects'} className="is-edge">
             <i className="k-icon-projects" />
-            {t('Active Projects')}
+            {t('Proyectos activos')}
           </bem.FormSidebar__label>
         }
         {
@@ -109,12 +109,12 @@ class SidebarFormsList extends Reflux.Component {
                 <bem.Loading>
                   <bem.Loading__inner>
                     <i />
-                    {t('loading...')} 
+                    {t('cargando...')}
                   </bem.Loading__inner>
                 </bem.Loading>
               );
             } else if (s.defaultQueryState === 'done') {
-              return ['Deployed', 'Draft', 'Archived' /*, 'Deleted'*/].map(
+              return ['Desplegada', 'Borrador', 'Archivado' /*, 'Deleted'*/].map(
                 (category) => {
                   var categoryVisible = this.state.selectedCategories[category];
                   if (s[activeItems][category].length < 1) {
@@ -142,7 +142,7 @@ class SidebarFormsList extends Reflux.Component {
         }
         <bem.FormSidebar__label className="is-edge">
           <i className="k-icon-trash" />
-          {t('Deleted')} (#)
+          {t('Eliminar')} (#)
         </bem.FormSidebar__label>
       </bem.FormSidebar>
     );

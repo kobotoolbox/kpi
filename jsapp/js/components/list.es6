@@ -45,7 +45,7 @@ class ListSearch extends React.Component {
 
 ListSearch.defaultProps = {
   searchContext: 'default',
-  placeholderText: t('Search...')
+  placeholderText: t('Buscar...')
 };
 
 reactMixin(ListSearch.prototype, searches.common);
@@ -303,14 +303,14 @@ class ListSearchSummary extends React.Component {
           messages.push(t('tagged with [___]').replace('___', tagString));
         }
       }
-      messages.push(t('found ## results').replace('##', s.searchResultsCount));
+      messages.push(t('encontró ## resultados').replace('##', s.searchResultsCount));
       modifier = 'done';
     } else {
       if (s.defaultQueryState === 'loading') {
         modifier = 'loading';
       } else if (s.defaultQueryState === 'done') {
         var desc = s.defaultQueryCount === 1 ? this.props.assetDescriptor : this.props.assetDescriptorPlural;
-        messages.push(t('## ___ available').replace('##', s.defaultQueryCount).replace('___', desc));
+        messages.push(t('## ___ disponible').replace('##', s.defaultQueryCount).replace('___', desc));
         modifier = 'done';
       }
     }

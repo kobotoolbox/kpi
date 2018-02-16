@@ -71,7 +71,7 @@ export default {
       s.cascadeReadySurvey = tmpSurvey;
       s.cascadeMessage = {
         msgType: 'ready',
-        addCascadeMessage: t('add cascade with # questions').replace('#', rowCount),
+        addCascadeMessage: t('agregar cascada con # preguntas').replace('#', rowCount),
       };
     } catch (err) {
       s.cascadeReady = false;

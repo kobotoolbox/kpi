@@ -37,14 +37,14 @@ var dmix = {
   },
   saveCloneAs (evt) {
     let version_id = evt.currentTarget.dataset.versionId;
-    let name = `${t('Clone of')} ${this.state.name}`;
+    let name = `${t('Clon de')} ${this.state.name}`;
 
     let dialog = alertify.dialog('prompt');
     let opts = {
-      title: t('Clone form'),
-      message: t('Enter the name of the cloned form'),
+      title: t('Clonar formulario'),
+      message: t('Ingrese el nombre del formulario clonado'),
       value: name,
-      labels: {ok: t('Ok'), cancel: t('Cancel')},
+      labels: {ok: t('Ok'), cancel: t('Cancelar')},
       onok: (evt, value) => {
         let uid = this.props.params.assetid;
         actions.resources.cloneAsset({
@@ -71,18 +71,18 @@ var dmix = {
   reDeployConfirm (asset, onComplete) {
     let dialog = alertify.dialog('confirm');
     let opts = {
-      title: t('Overwrite existing deployment'),
-      message: t('This form has already been deployed. Are you sure you ' +
-                 'want overwrite the existing deployment? ' +
-                 '<br/><br/><strong>This action cannot be undone.</strong>'),
-      labels: {ok: t('Ok'), cancel: t('Cancel')},
+      title: t('Sobrescribir la implementación existente\n'),
+      message: t('Esta forma ya ha sido implementada. ¿Estás seguro de que tú ' +
+                 'desea sobrescribir la implementación existente? ' +
+                 '<br/><br/><strong>Esta acción no se puede deshacer.</strong>'),
+      labels: {ok: t('De acuerdo'), cancel: t('Cancelar')},
       onok: (evt, val) => {
         let ok_button = dialog.elements.buttons.primary.firstChild;
         ok_button.disabled = true;
-        ok_button.innerText = t('Deploying...');
+        ok_button.innerText = t('Despliegue...');
         actions.resources.deployAsset(asset, true, dialog, {
           onComplete: () => {
-            notify(t('redeployed form'));
+            notify(t('redeployed formulario'));
             actions.resources.loadAsset({id: asset.uid});
           }
         });
@@ -292,7 +292,7 @@ mixins.droppable = {
     });
 
     rejectedFiles.map((rej) => {
-      var errMsg = t('Upload error: could not recognize Excel file.');
+      var errMsg = t('Error de carga: no se pudo reconocer el archivo de Excel.');
       alertify.error(errMsg);
     });
   }
@@ -321,13 +321,13 @@ mixins.clickAssets = {
   click: {
     asset: {
       clone: function(uid, name){
-        let newName = `${t('Clone of')} ${name}`;
+        let newName = `${t('Clon de')} ${name}`;
         let dialog = alertify.dialog('prompt');
         let opts = {
-          title: t('Clone form'),
-          message: t('Enter the name of the cloned form'),
+          title: t('Clonar formulario'),
+          message: t('Ingrese el nombre del formulario clonado'),
           value: newName,
-          labels: {ok: t('Ok'), cancel: t('Cancel')},
+          labels: {ok: t('De acuerdo'), cancel: t('Cancelar')},
           onok: (evt, value) => {
             actions.resources.cloneAsset({
               uid: uid,
@@ -357,10 +357,10 @@ mixins.clickAssets = {
       },
       delete: function(uid){
         let asset = stores.selectedAsset.asset;
-        var assetTypeLabel = t('project');
+        var assetTypeLabel = t('proyecto');
 
         if (asset.asset_type != 'survey') {
-          assetTypeLabel = t('library item');
+          assetTypeLabel = t('elemento de la biblioteca');
         }
 
         let dialog = alertify.dialog('confirm');
@@ -370,7 +370,7 @@ mixins.clickAssets = {
           actions.resources.deleteAsset({uid: uid}, {
             onComplete: ()=> {
               this.refreshSearch && this.refreshSearch();
-              notify(`${assetTypeLabel} ${t('deleted permanently')}`);
+              notify(`${assetTypeLabel} ${t('eliminar permanentemente')}`);
               $('.alertify-toggle input').prop("checked", false);
             }
           });
@@ -378,16 +378,16 @@ mixins.clickAssets = {
 
         if (!deployed) {
           if (asset.asset_type != 'survey')
-            msg = t('You are about to permanently delete this item from your library.');
+            msg = t('Está a punto de eliminar permanentemente este elemento de su biblioteca.');
           else
-            msg = t('You are about to permanently delete this draft.');
+            msg = t('Está a punto de eliminar permanentemente este borrador.');
         } else {
           msg = `
-            ${t('You are about to permanently delete this form.')}
-            <div class="alertify-toggle"><input type="checkbox" id="dt1"/> <label for="dt1">${t('All data gathered for this form will be deleted.')}</label></div>
-            <div class="alertify-toggle"><input type="checkbox" id="dt2"/> <label for="dt2">${t('All questions created for this form will be deleted.')}</label></div>
-            <div class="alertify-toggle"><input type="checkbox" id="dt3"/> <label for="dt3">${t('The form associated with this project will be deleted.')}</label></div>
-            <div class="alertify-toggle alertify-toggle-important"><input type="checkbox" id="dt4"/> <label for="dt4">${t('I understand that if I delete this project I will not be able to recover it.')}</label></div>
+            ${t('Está a punto de eliminar definitivamente este formulario.')}
+            <div class="alertify-toggle"><input type="checkbox" id="dt1"/> <label for="dt1">${t('Todos los datos recopilados para este formulario serán eliminados.')}</label></div>
+            <div class="alertify-toggle"><input type="checkbox" id="dt2"/> <label for="dt2">${t('Todas las preguntas creadas para este formulario serán borradas.')}</label></div>
+            <div class="alertify-toggle"><input type="checkbox" id="dt3"/> <label for="dt3">${t('La forma asociada con este proyecto será eliminada.')}</label></div>
+            <div class="alertify-toggle alertify-toggle-important"><input type="checkbox" id="dt4"/> <label for="dt4">${t('Entiendo que si elimino este proyecto no podré recuperarlo.')}</label></div>
           `;
           onshow = (evt) => {
             let ok_button = dialog.elements.buttons.primary.firstChild;
@@ -404,11 +404,11 @@ mixins.clickAssets = {
           };
         }
         let opts = {
-          title: `${t('Delete')} ${assetTypeLabel}`,
+          title: `${t('Eliminar')} ${assetTypeLabel}`,
           message: msg,
           labels: {
-            ok: t('Delete'),
-            cancel: t('Cancel')
+            ok: t('Eliminar'),
+            cancel: t('Cancelar')
           },
           onshow: onshow,
           onok: onok,
@@ -427,10 +427,10 @@ mixins.clickAssets = {
         let asset = stores.selectedAsset.asset;
         let dialog = alertify.dialog('confirm');
         let opts = {
-          title: t('Archive Project'),
-          message: `${t('Are you sure you want to archive this project?')} <br/><br/>
-                     <strong>${t('Your form will not accept submissions while it is archived.')}</strong>`,
-          labels: {ok: t('Archive'), cancel: t('Cancel')},
+          title: t('Archivar Proyecto'),
+          message: `${t('¿Seguro que quieres archivar este proyecto?')} <br/><br/>
+                     <strong>${t('Su formulario no aceptará envíos mientras está archivado.')}</strong>`,
+          labels: {ok: t('Archivar'), cancel: t('Cancelar')},
           onok: (evt, val) => {
             actions.resources.setDeploymentActive(
               {
@@ -439,7 +439,7 @@ mixins.clickAssets = {
               },
               {onComplete: ()=> {
                 this.refreshSearch && this.refreshSearch();
-                notify(t('archived project'));
+                notify(t('archivar proyecto'));
               }}
             );
           },

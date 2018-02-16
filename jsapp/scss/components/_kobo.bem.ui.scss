@@ -112,7 +112,8 @@
   opacity: .75;
 }
 
-.message {}
+.message {
+}
 
 .message--error {
   text-decoration: uppercase;
@@ -317,6 +318,10 @@
   .popover-menu__content {
     right: 0px;
     width: 100%;
+  }
+
+  .popover-menu__toggle {
+    background-color: #00B955;
   }
 }
 

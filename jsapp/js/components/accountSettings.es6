@@ -65,15 +65,15 @@ export class AccountSettings extends React.Component {
       genderChoices: [
         {
           value: 'male',
-          label: t('Male')
+          label: t('Masculino')
         },
         {
           value: 'female',
-          label: t('Female')
+          label: t('Femenino')
         },
         {
           value: 'other',
-          label: t('Other')
+          label: t('Otro')
         },
       ]
     };
@@ -138,7 +138,7 @@ export class AccountSettings extends React.Component {
         <ui.Panel>
           <bem.AccountSettings>
             <bem.AccountSettings__item>
-              {t('loading...')}
+              {t('cargando...')}
             </bem.AccountSettings__item>
           </bem.AccountSettings>
         </ui.Panel>
@@ -151,7 +151,7 @@ export class AccountSettings extends React.Component {
     };
 
     return (
-      <DocumentTitle title={`${accountName} | KoboToolbox`}>
+      <DocumentTitle title={`${accountName}`}>
       <ui.Panel>
         <bem.AccountSettings>
           <bem.AccountSettings__item m={'column'}>
@@ -346,7 +346,7 @@ export class ChangePassword extends React.Component {
   }
   validateRequired (what) {
     if (!this.state[what]) {
-      this.errors[what] = t('This field is required.');
+      this.errors[what] = t('Este campo es requerido.');
     }
   }
   changePassword () {
@@ -389,7 +389,7 @@ export class ChangePassword extends React.Component {
         <ui.Panel>
           <bem.AccountSettings>
             <bem.AccountSettings__item>
-              {t('loading...')}
+              {t('cargando...')}
             </bem.AccountSettings__item>
           </bem.AccountSettings>
         </ui.Panel>
@@ -427,7 +427,7 @@ export class ChangePassword extends React.Component {
             </bem.ChangePassword__item>
             <bem.ChangePassword__item>
               <label>
-                {t('New Password')}
+                {t('Nueva contraseña')}
                 <input type="password" value={this.state.newPassword}
                   onChange={this.newPasswordChange} />
                 {this.state.errors.newPassword}

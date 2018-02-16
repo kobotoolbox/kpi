@@ -200,7 +200,7 @@ export class FormMap extends React.Component {
         }
       );
     } else {
-      this.setState({error: t('Error: could not load data.'), loading: false});
+      this.setState({error: t('Error: no pudo cargar datos.'), loading: false});
     }
   }
 
@@ -381,13 +381,13 @@ export class FormMap extends React.Component {
     const fields = this.state.fields;
     const langIndex = this.state.langIndex;
     const langs = this.props.asset.content.translations.length > 1 ? this.props.asset.content.translations : [];
-    var label = t('Disaggregate by survey responses');
+    var label = t('Desagregar por respuestas de la encuesta');
     const viewby = this.props.viewby;
 
     if (viewby) {
       fields.forEach(function(f){
         if(viewby === f.name || viewby === f.$autoname)
-          label = `${t('Disaggregated using:')} ${f.label[langIndex]}`;
+          label = `${t('Desagregado usando:')} ${f.label[langIndex]}`;
       });
     }
 
@@ -454,7 +454,7 @@ export class FormMap extends React.Component {
                         {m.count}
                       </span>
                       <span className={`map-marker-label`}>
-                        {m.labels ? m.labels[langIndex] : t('not set')}
+                        {m.labels ? m.labels[langIndex] : t('no establecido')}
                       </span>
                     </div>
                   );

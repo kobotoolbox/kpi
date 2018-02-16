@@ -51,7 +51,7 @@ export class DataTable extends React.Component {
         })
         this._prepColumns(data);
       } else {
-        this.setState({error: t('Error: could not load data.'), loading: false});
+        this.setState({error: t('Error: no pudo cargar datos.'), loading: false});
       }
 
     }).fail((error)=>{
@@ -60,7 +60,7 @@ export class DataTable extends React.Component {
       else if (error.statusText)
         this.setState({error: error.statusText, loading: false});
       else
-        this.setState({error: t('Error: could not load data.'), loading: false});
+        this.setState({error: t('Error: no pudo cargar datos.'), loading: false});
     });
   }
 
@@ -80,7 +80,7 @@ export class DataTable extends React.Component {
       Cell: row => (
         <span onClick={this.launchSubmissionModal} data-sid={row.row._id}
               className='rt-link'>
-          {t('Open')}
+          {t('Abrir')}
         </span>
       )
     }];
@@ -281,31 +281,31 @@ export class DataTable extends React.Component {
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
           <bem.FormView__item m='table-meta'>
             {`${showingResults} `}
-            {t('of')}
+            {t('de')}
             {` ${this.props.asset.deployment__submission_count} `}
-            {t('results')}
+            {t('resultados')}
           </bem.FormView__item>
           <bem.FormView__item m='table-buttons'>
             <button className="mdl-button mdl-button--icon report-button__print is-edge" 
                     onClick={this.launchPrinting} 
-                    data-tip={t('Print')}>
+                    data-tip={t('Imprimir')}>
               <i className="k-icon-print" />
             </button>
 
             <button className="mdl-button mdl-button--icon report-button__expand"
                     onClick={this.toggleExpandedTable} 
-                    data-tip={this.state.showExpandedTable ? t('Contract') : t('Expand')}>
+                    data-tip={this.state.showExpandedTable ? t('Contraer') : t('Expandir')}>
               <i className="k-icon-expand" />
             </button>   
 
             <ui.PopoverMenu type='formTable-menu' 
                         triggerLabel={<i className="k-icon-more" />} 
-                        triggerTip={t('More Actions')}>
+                        triggerTip={t('Más Accioness')}>
                 <bem.PopoverMenu__link onClick={this.toggleLabels}>
-                  {t('Toggle labels / XML values')}
+                  {t('Alternar etiquetas / valores XML')}
                 </bem.PopoverMenu__link>
                 <bem.PopoverMenu__link onClick={this.toggleGroups}>
-                  {t('Show/hide question groups')}
+                  {t('Mostrar/ocultar grupos de preguntas')}
                 </bem.PopoverMenu__link>
             </ui.PopoverMenu>
 
@@ -323,18 +323,18 @@ export class DataTable extends React.Component {
           manual
           onFetchData={this.fetchData}
           loading={loading}
-          previousText={t('Prev')}
-          nextText={t('Next')}
+          previousText={t('Anterior')}
+          nextText={t('Siguiente')}
           loadingText={
             <span>
               <i className="fa k-spin fa-circle-o-notch" />
-              {t('Loading...')}
+              {t('Cargando...')}
             </span>
           }
-          noDataText={t('No rows found')} // TODO: fix display
-          pageText={t('Page')}
-          ofText={t('of')}
-          rowsText={t('rows')}
+          noDataText={t('No se encontraron filas')} // TODO: fix display
+          pageText={t('Página')}
+          ofText={t('de')}
+          rowsText={t('filas')}
 		  		/>
       </bem.FormView>
     );

@@ -59,8 +59,8 @@ class LibrarySearchableList extends React.Component {
           />
 
         <ListSearchSummary
-            assetDescriptor={t('library item')}
-            assetDescriptorPlural={t('library items')}
+            assetDescriptor={t('elemento de la biblioteca')}
+            assetDescriptorPlural={t('elementos de biblioteca')}
             searchContext={this.state.searchContext}
           />
       </bem.Library>

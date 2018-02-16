@@ -108,9 +108,9 @@ class LibrarySidebar extends Reflux.Component {
   createCollection () {
     let dialog = alertify.dialog('prompt');
     let opts = {
-      title: t('Create collection'),
-      message: t('Please enter the name of your new Collection. Collections can help you better organize your library, and it is possible to share each collection with different people.'),
-      labels: {ok: t('Create collection'), cancel: t('Cancel')},
+      title: t('Crear colección'),
+      message: t('Por favor ingrese el nombre de su nueva Colección. Las colecciones pueden ayudarlo a organizar mejor su biblioteca, y es posible compartir cada colección con diferentes personas.'),
+      labels: {ok: t('Crear colección'), cancel: t('Cancelar')},
       onok: (evt, val) => {
         dataInterface.createCollection({
           name: val,
@@ -134,15 +134,15 @@ class LibrarySidebar extends Reflux.Component {
     var collectionUid = $(evt.currentTarget).data('collection-uid');
     let dialog = alertify.dialog('confirm');
     let opts = {
-      title: t('Delete collection'),
-      message: t('are you sure you want to delete this collection? this action is not reversible'),
-      labels: {ok: t('Delete'), cancel: t('Cancel')},
+      title: t('Eliminar colección'),
+      message: t('¿Seguro que quieres eliminar esta colección? Esta acción no es reversible'),
+      labels: {ok: t('Eliminar'), cancel: t('Cancelar')},
       onok: (evt, val) => {
         dataInterface.deleteCollection({uid: collectionUid}).then((data)=> {
           this.queryCollections();
           dialog.destroy();
         }).fail((jqxhr)=> {
-          alertify.error(t('Failed to delete collection.'));
+          alertify.error(t('Error al eliminar la colección.'));
         });
       },
       oncancel: () => {
@@ -158,10 +158,10 @@ class LibrarySidebar extends Reflux.Component {
 
     let dialog = alertify.dialog('prompt');
     let opts = {
-      title: t('Rename collection'),
-      message: t('Please enter the name of your new collection.'),
+      title: t('Cambiar el nombre de la colección'),
+      message: t('Por favor ingrese el nombre de su nueva colección.'),
       value: collectionName,
-      labels: {ok: t('Ok'), cancel: t('Cancel')},
+      labels: {ok: t('De acuerdo'), cancel: t('Cancelar')},
       onok: (evt, val) => {
         actions.resources.updateCollection.triggerAsync(collectionUid, {name: val}).then(
           (data) => {
@@ -250,10 +250,10 @@ class LibrarySidebar extends Reflux.Component {
     return (
       <bem.CollectionsWrapper>
         <ui.PopoverMenu type='new-menu' 
-            triggerLabel={t('new')}>
+            triggerLabel={t('nuevo')}>
             <Link to={`/library/new`} className='popover-menu__link'>
               <i className="k-icon-question" />
-              {t('Question')}
+              {t('Pregunta')}
             </Link>
             <Dropzone onDrop={this.dropFiles} 
                           multiple={false} 
@@ -261,12 +261,12 @@ class LibrarySidebar extends Reflux.Component {
                           accept={validFileTypes()}>
               <bem.PopoverMenu__link>
                 <i className="k-icon-upload" />
-                {t('upload')}
+                {t('subir')}
               </bem.PopoverMenu__link>
             </Dropzone>
             <bem.PopoverMenu__link onClick={this.createCollection}>
               <i className="k-icon-folder" />
-              {t('collection')}
+              {t('colección')}
           </bem.PopoverMenu__link>
         </ui.PopoverMenu>
 
@@ -277,7 +277,7 @@ class LibrarySidebar extends Reflux.Component {
               m={{selected: !this.state.publicCollectionsVisible}} 
               onClick={this.clickFilterByCollection}>
                   <i className="k-icon-library" />
-                  {t('My Library')}
+                  {t('Mi biblioteca')}
               <bem.FormSidebar__labelCount>
                 {this.state.sidebarCollections.length}
               </bem.FormSidebar__labelCount>
@@ -317,7 +317,7 @@ class LibrarySidebar extends Reflux.Component {
                                 onClick={this.setCollectionDiscoverability(false, collection)}
                                 >
                               <i className="k-icon-globe" />
-                              {t('Make Private')}
+                              {t('Hazlo privado')}
                             </bem.PopoverMenu__link>
                           }
                           { collection.access_type === 'owned' && !collection.discoverable_when_public &&
@@ -326,7 +326,7 @@ class LibrarySidebar extends Reflux.Component {
                                 onClick={this.setCollectionDiscoverability(true, collection)}
                                 >
                               <i className="k-icon-globe" />
-                              {t('Make Public')}
+                              {t('Hazlo público')}
                             </bem.PopoverMenu__link>
                           }
                           { collection.access_type !== 'subscribed' &&
@@ -336,7 +336,7 @@ class LibrarySidebar extends Reflux.Component {
                                 data-collection-uid={collection.uid}
                                 >
                               <i className="k-icon-share" />
-                              {t('Share')}
+                              {t('Compartir')}
                             </bem.PopoverMenu__link>
                           }
 
@@ -348,7 +348,7 @@ class LibrarySidebar extends Reflux.Component {
                                 data-collection-name={collection.name}
                                 >
                               <i className="k-icon-edit" />
-                              {t('Rename')}
+                              {t('Renombrar')}
                             </bem.PopoverMenu__link>
                           }
                           { collection.access_type !== 'subscribed' &&
@@ -358,7 +358,7 @@ class LibrarySidebar extends Reflux.Component {
                                 data-collection-uid={collection.uid}
                                 >
                               <i className="k-icon-trash" />
-                              {t('Delete')}
+                              {t('Eliminar')}
                             </bem.PopoverMenu__link>
                           }
                           { collection.access_type === 'subscribed' &&
@@ -369,7 +369,7 @@ class LibrarySidebar extends Reflux.Component {
                                 data-collection-uid={collection.uid}
                                 >
                               <i className="k-icon-trash" />
-                              {t('Unsubscribe')}
+                              {t('Darse de baja')}
                             </bem.PopoverMenu__link>
                           }
 
@@ -384,7 +384,7 @@ class LibrarySidebar extends Reflux.Component {
               m={{selected: this.state.publicCollectionsVisible}} 
               onClick={this.clickShowPublicCollections}>
               <i className="k-icon-globe" />
-              {t('Public Collections')}
+              {t('Colecciones públicas')}
               <bem.FormSidebar__labelCount>
                 {this.state.sidebarPublicCollections.length}
               </bem.FormSidebar__labelCount>
@@ -410,7 +410,7 @@ class LibrarySidebar extends Reflux.Component {
                           <bem.FormSidebar__iteminner>
                             {collection.name}
                             <bem.FormSidebar__itembyline>
-                              {t('by ___').replace('___', collection.owner__username)}
+                              {t('por ___').replace('___', collection.owner__username)}
                             </bem.FormSidebar__itembyline>
                           </bem.FormSidebar__iteminner>
                       </bem.FormSidebar__itemlink>
@@ -422,14 +422,14 @@ class LibrarySidebar extends Reflux.Component {
                                   onClick={this.unsubscribeCollection}
                                   data-collection-uid={collection.uid}>
                                   <i className="k-icon-next" />
-                                  {t('unsubscribe')}
+                                  {t('darse de baja')}
                                 </bem.PopoverMenu__link>
                               :
                                 <bem.PopoverMenu__link href={'#'}
                                   onClick={this.subscribeCollection}
                                   data-collection-uid={collection.uid}>
                                   <i className="k-icon-next" />
-                                  {t('subscribe')}
+                                  {t('suscribir')}
                                 </bem.PopoverMenu__link>
                             }
                           </ui.PopoverMenu>

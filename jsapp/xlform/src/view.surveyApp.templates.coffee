@@ -3,12 +3,12 @@ module.exports = do ->
 
   surveyTemplateApp = () ->
       """
-          <button class="btn js-start-survey">#{_t("Start from Scratch")}</button>
-          <span class="or">#{_t("or")}</span>
+          <button class="btn js-start-survey">#{_t("Empezar desde el principio")}</button>
+          <span class="or">#{_t("o")}</span>
           <hr>
           <form action="/import_survey_draft" class="btn btn--fileupload js-import-fileupload">
             <span class="fileinput-button">
-              <span>#{_t("Import XLS")}</span>
+              <span>#{_t("Importar XLS")}</span>
               <input type="file" name="files">
             </span>
           </form>
@@ -41,12 +41,12 @@ module.exports = do ->
       """
         <div class="sub-header-bar">
           <div class="container__wide">
-            <button class="btn btn--utility survey-editor__action--multiquestion" id="settings"><i class="fa fa-cog"></i> #{_t("Form Settings")}</button>
-            <button class="btn btn--utility" id="save"><i class="fa fa-check-circle green"></i> #{_t("Save and Exit")} #{_t(type_name)}</button>
-            <button class="btn btn--utility" id="xlf-preview"><i class="fa fa-eye"></i> #{_t("Preview")} #{_t(type_name)}</button>
-            <button class="btn btn--utility survey-editor__action--multiquestion js-expand-multioptions--all" ><i class="fa fa-caret-right"></i> #{_t("Show All Responses")}</button>
+            <button class="btn btn--utility survey-editor__action--multiquestion" id="settings"><i class="fa fa-cog"></i> #{_t("Configuración de formulario")}</button>
+            <button class="btn btn--utility" id="save"><i class="fa fa-check-circle green"></i> #{_t("Guardar y Salir")} #{_t(type_name)}</button>
+            <button class="btn btn--utility" id="xlf-preview"><i class="fa fa-eye"></i> #{_t("Previsualizar")} #{_t(type_name)}</button>
+            <button class="btn btn--utility survey-editor__action--multiquestion js-expand-multioptions--all" ><i class="fa fa-caret-right"></i> #{_t("Mostrar todas las respuestas")}</button>
             <button class="btn btn--utility survey-editor__action--multiquestion btn--group-questions btn--disabled js-group-rows">#{_t("Group Questions")}</button>
-          <button class="btn btn--utility pull-right survey-editor__action--multiquestion rowselector_toggle-library" id="question-library"><i class="fa fa-folder"></i> #{_t("Question Library")}</button>
+          <button class="btn btn--utility pull-right survey-editor__action--multiquestion rowselector_toggle-library" id="question-library"><i class="fa fa-folder"></i> #{_t("Biblioteca de preguntas")}</button>
           </div>
         </div>
         <div class="container__fixed">
@@ -54,14 +54,14 @@ module.exports = do ->
             <div class="form__settings">
 
               <div class="form__settings__field form__settings__field--form_id">
-                <label>#{_t("Form ID")}</label>
-                <span class="poshytip" title="#{_t("Unique form name")}">?</span>
+                <label>#{_t("ID de Formulario")}</label>
+                <span class="poshytip" title="#{_t("Nombre de forma única")}">?</span>
                 <input type="text">
               </div>
 
               <div class="form__settings__field form__settings__field--style form__settings__field--appearance">
-                <label class="">#{_t("Web form style (Optional)")}</label>
-                <span class="poshytip" title="#{_t("This allows using different Enketo styles, e.g. 'theme-grid'")}">?</span>
+                <label class="">#{_t("Estilo de formulario web (opcional)")}</label>
+                <span class="poshytip" title="#{_t("Esto permite usar diferentes estilos de Enketo, p. 'rejilla del tema'")}">?</span>
                 <p>
                   <select>
                     <option value="">#{_t("Default - single page")}</option>
@@ -73,15 +73,15 @@ module.exports = do ->
               </div>
 
               <div class="form__settings__field form__settings__field--version">
-                <label class="">#{_t("Version (Optional)")}</label>
-                <span class="poshytip" title="#{_t("A version ID of the form")}">?</span>
+                <label class="">#{_t("Version (Opcional)")}</label>
+                <span class="poshytip" title="#{_t("Una versión ID del formulario")}">?</span>
                 <input type="text">
               </div>
 
               <div class="form__settings-meta__questions">
-                <h4 class="form__settings-meta__questions-title">#{_t("Hidden meta questions to include in your form to help with analysis")}</h4>
+                <h4 class="form__settings-meta__questions-title">#{_t("Preguntas meta ocultas para incluir en su formulario para ayudar con el análisis")}</h4>
                 <div class="stats  row-details settings__first-meta" id="additional-options"></div>
-                <h4 class="form__settings-meta__questions-title">#{_t("Meta questions for collecting with cell phones")}</h4>
+                <h4 class="form__settings-meta__questions-title">#{_t("Meta preguntas para coleccionar con teléfonos celulares")}</h4>
                 <div class="stats  row-details settings__second-meta" id="additional-options"></div>
               </div>
 
@@ -115,8 +115,8 @@ module.exports = do ->
           <ul class="-form-editor survey-editor__list">
             <li class="survey-editor__null-top-row empty">
               <p class="survey-editor__message well">
-                <b>#{_t("This form is currently empty.")}</b><br>
-                #{_t("You can add questions, notes, prompts, or other fields by clicking on the '+' sign below.")}
+                <b>#{_t("Esta forma está actualmente vacía.")}</b><br>
+                #{_t("Puede agregar preguntas, notas, indicaciones u otros campos haciendo clic en el signo '+' a continuación.")}
               </p>
               <div class="survey__row__spacer  expanding-spacer-between-rows expanding-spacer-between-rows--depr">
                 <div class="btn btn--block btn--addrow js-expand-row-selector   add-row-btn add-row-btn--depr">

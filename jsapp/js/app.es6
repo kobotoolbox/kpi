@@ -230,7 +230,7 @@ class FormNotFound extends React.Component {
         <ui.Panel>
           <bem.Loading>
             <bem.Loading__inner>
-              {t('path not found / recognized')}
+              {t('ruta no encontrada / reconocida')}
             </bem.Loading__inner>
           </bem.Loading>
         </ui.Panel>

@@ -279,13 +279,13 @@ function SearchContext(opts={}) {
         defaultQueryResultsList: data.results,
         defaultQueryCount: count,
         defaultQueryCategorizedResultsLists: {
-          'Deployed': data.results.filter((asset) => {
+          'Desplegada': data.results.filter((asset) => {
             return asset.has_deployment && asset.deployment__active;
           }),
-          'Draft': data.results.filter((asset) => {
+          'Borrador': data.results.filter((asset) => {
             return !asset.has_deployment;
           }),
-          'Archived': data.results.filter((asset) => {
+          'Archivado': data.results.filter((asset) => {
             return asset.has_deployment && !asset.deployment__active;
           }),
           'Deleted': [], // not implemented yet
@@ -307,13 +307,13 @@ function SearchContext(opts={}) {
         searchResultsDisplayed: true,
         searchResultsSuccess: count > 0,
         searchResultsCategorizedResultsLists: {
-          'Deployed': data.results.filter((asset) => {
+          'Desplegada': data.results.filter((asset) => {
             return asset.has_deployment && asset.deployment__active;
           }),
-          'Draft': data.results.filter((asset) => {
+          'Borrador': data.results.filter((asset) => {
             return !asset.has_deployment;
           }),
-          'Archived': data.results.filter((asset) => {
+          'Archivado': data.results.filter((asset) => {
             return asset.has_deployment && !asset.deployment__active;
           }),
           'Deleted': [], // not implemented yet

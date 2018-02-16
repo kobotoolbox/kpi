@@ -37,15 +37,15 @@
       vertical-align: middle;
     }
 
-    &--Deployed i {
+    &--Desplegada i {
       @extend .k-icon-deploy;
     }
 
-    &--Draft i {
+    &--Borrador i {
       @extend .k-icon-drafts;
     }
 
-    &--Archived i {
+    &--Archivado i {
       @extend .k-icon-archived;
     }
   }

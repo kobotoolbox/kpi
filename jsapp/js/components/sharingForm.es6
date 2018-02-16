@@ -54,8 +54,8 @@ class UserPermDiv extends React.Component {
     }
 
     var availablePermissions = [
-      {value: 'view', label: t('Can View')},
-      {value: 'change', label: t('Can Edit')}
+      {value: 'view', label: t('Puede Ver')},
+      {value: 'change', label: t('Puede Editar')}
     ];
 
     return (
@@ -114,11 +114,11 @@ class PublicPermDiv extends React.Component {
                 checked={this.props.publicPerm ? true : false} 
                 onChange={this.togglePerms} 
                 id="share-by-link"/>
-        <label htmlFor="share-by-link">{t('Share by link')}</label>
+        <label htmlFor="share-by-link">{t('Compartir por enlace')}</label>
         { this.props.publicPerm && 
           <bem.FormModal__item m='shareable-link'>
             <label>
-              {t('Shareable link')}
+              {t('Enlace compartible')}
             </label>
             <input type="text" value={url} readOnly />
           </bem.FormModal__item>
@@ -220,7 +220,7 @@ class SharingForm extends React.Component {
           <bem.Loading>
             <bem.Loading__inner>
               <i />
-              {t('loading...')}
+              {t('cargando...')}
             </bem.Loading__inner>
           </bem.Loading>
         );
@@ -242,8 +242,8 @@ class SharingForm extends React.Component {
     var btnKls = classNames('mdl-button','mdl-js-button', 'mdl-button--raised', inpStatus === 'success' ? 'mdl-button--colored' : 'mdl-button--disabled');
 
     var availablePermissions = [
-      {value: 'view', label: t('Can View')},
-      {value: 'change', label: t('Can Edit')}
+      {value: 'view', label: t('Puede Ver')},
+      {value: 'change', label: t('Puede Editar')}
     ];
 
     var uid = this.state.asset.uid;
@@ -265,7 +265,7 @@ class SharingForm extends React.Component {
       <bem.FormModal>
         <bem.FormModal__item>
           <bem.FormView__cell m='label'>
-            {t('Who has access')}
+            {t('Quién tiene acceso')}
           </bem.FormView__cell>
           <bem.UserRow>
             <bem.UserRow__avatar>
@@ -276,7 +276,7 @@ class SharingForm extends React.Component {
             <bem.UserRow__name>
               <div>{this.state.asset.owner__username}</div>
             </bem.UserRow__name>
-            <bem.UserRow__role>{t('is owner')}</bem.UserRow__role>
+            <bem.UserRow__role>{t('es dueño')}</bem.UserRow__role>
           </bem.UserRow>
 
           {perms.map((perm)=> {
@@ -287,13 +287,13 @@ class SharingForm extends React.Component {
 
         <bem.FormModal__form onSubmit={this.addInitialUserPermission} className="sharing-form__user">
             <bem.FormView__cell m='label'>
-              {t('Invite collaborators')}
+              {t('Invita a colaboradores')}
             </bem.FormView__cell>
             <bem.FormModal__item m='perms-user'>
               <input type="text"
                   id="permsUser" 
                   ref='usernameInput'
-                  placeholder={t('Enter a username')}
+                  placeholder={t('Introduzca un nombre de usuario')}
                   onKeyUp={this.usernameCheck}
                   onChange={this.usernameCheck}
               />
@@ -306,7 +306,7 @@ class SharingForm extends React.Component {
                   onChange={this.updatePermInput}
               />
               <button className={btnKls}>
-                  {t('invite')}
+                  {t('invitar')}
               </button>
           </bem.FormModal__item>
         </bem.FormModal__form>
@@ -314,7 +314,7 @@ class SharingForm extends React.Component {
         { kind != 'collection' && asset_type == 'survey' && 
           <bem.FormView__cell>
             <bem.FormView__cell m='label'>
-              {t('Select share settings')}
+              {t('Seleccione la configuración de compartir')}
             </bem.FormView__cell>
             <PublicPermDiv 
               uid={uid}

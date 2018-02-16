@@ -59,7 +59,7 @@ class Submission extends React.Component {
       else if (error.statusText)
         this.setState({error: error.statusText, loading: false});
       else
-        this.setState({error: t('Error: could not load data.'), loading: false});
+        this.setState({error: t('Error: no pudo cargar datos.'), loading: false});
     });    
   }
 
@@ -74,13 +74,13 @@ class Submission extends React.Component {
   deleteSubmission() {
     let dialog = alertify.dialog('confirm');
     let opts = {
-      title: t('Delete submission?'),
-      message: `${t('Are you sure you want to delete this submission?')} ${t('This action cannot be undone')}.`,
-      labels: {ok: t('Delete'), cancel: t('Cancel')},
+      title: t('¿Eliminar la presentación?'),
+      message: `${t('¿Seguro que quieres eliminar este envío?')} ${t('Esta acción no se puede deshacer')}.`,
+      labels: {ok: t('Eliminar'), cancel: t('Cancelar')},
       onok: (evt, val) => {
         dataInterface.deleteSubmission(this.props.asset.uid, this.props.sid).done((data) => {
           stores.pageState.hideModal();
-          notify(t('submission deleted'));
+          notify(t('presentación eliminada'));
         });
       },
       oncancel: () => {
@@ -137,7 +137,7 @@ class Submission extends React.Component {
         <bem.Loading>
           <bem.Loading__inner>
             <i />
-            {t('loading...')}
+            {t('cargando...')}
           </bem.Loading__inner>
         </bem.Loading>
       );
@@ -167,7 +167,7 @@ class Submission extends React.Component {
                   className="mdl-button mdl-button--colored"
                   data-sid={this.state.previous}>
               <i className="k-icon-prev" />
-              {t('Previous')}
+              {t('Anterior')}
             </a>
           }
 
@@ -175,7 +175,7 @@ class Submission extends React.Component {
             <a onClick={this.switchSubmission}
                   className="mdl-button mdl-button--colored"
                   data-sid={this.state.next}>
-              {t('Next')}
+              {t('Siguiente')}
               <i className="k-icon-next" />
             </a>
           }
@@ -185,35 +185,35 @@ class Submission extends React.Component {
           <a href={this.state.enketoEditLink}
              target="_blank"
              className="mdl-button mdl-button--raised mdl-button--colored">
-            {t('Edit')}
+            {t('Editar')}
           </a>
         }
         <a onClick={this.deleteSubmission}
                 className="mdl-button mdl-button--icon mdl-button--colored mdl-button--danger right-tooltip"
-                data-tip={t('Delete submission')}>
+                data-tip={t('Eliminar la presentación')}>
           <i className="k-icon-trash" />
         </a>
 
         <table>
           <thead>
           <tr>
-            <th className="submission--question-type">{t('Type')}</th>
-            <th className="submission--question">{t('Question')}</th>
-            <th className="submission--response">{t('Response')}</th>
+            <th className="submission--question-type">{t('Tipo')}</th>
+            <th className="submission--question">{t('Pregunta')}</th>
+            <th className="submission--response">{t('Respuesta')}</th>
           </tr>
           </thead>
           <tbody>
             {s.start &&
               <tr>
                 <td></td>
-                <td>{t('start')}</td>
+                <td>{t('iniciar')}</td>
                 <td>{s.start}</td>
               </tr>
             }
             {s.end &&
               <tr>
                 <td></td>
-                <td>{t('end')}</td>
+                <td>{t('fin')}</td>
                 <td>{s.end}</td>
               </tr>
             }

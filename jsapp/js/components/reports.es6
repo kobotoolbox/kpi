@@ -371,9 +371,9 @@ class Reports extends React.Component {
 
         {groupByList.length > 1 && 
           <ui.PopoverMenu type='groupby-menu' 
-              triggerLabel={t('Group By')}>
+              triggerLabel={t('Agrupar por')}>
               <bem.PopoverMenu__link key='default' data-name='' onClick={this.groupDataBy}>
-                  {t("No grouping")}
+                  {t("Sin agrupamiento")}
               </bem.PopoverMenu__link>
 
               {groupByList.map((row, i)=>{
@@ -545,7 +545,7 @@ class Reports extends React.Component {
             {this.state.error === false ?
               <bem.Loading__inner>
                 <i />
-                {t('loading...')}
+                {t('cargando...')}
               </bem.Loading__inner>
               : 
               <bem.Loading__inner>
@@ -563,7 +563,7 @@ class Reports extends React.Component {
 
     if (this.state.reportData && reportData.length === 0) {
       return (
-        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+        <DocumentTitle title={`${docTitle}`}>
           <bem.ReportView>
             <bem.Loading>
               <bem.Loading__inner>
@@ -576,7 +576,7 @@ class Reports extends React.Component {
     }
 
     return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <DocumentTitle title={`${docTitle}`}>
         <bem.ReportView>
           {this.renderReportButtons()}
           {this.state.asset ?
@@ -621,7 +621,7 @@ class Reports extends React.Component {
             <bem.Loading>
               <bem.Loading__inner>
                 <i />
-                {t('loading...')}
+                {t('cargando...')}
               </bem.Loading__inner>
             </bem.Loading>
           }

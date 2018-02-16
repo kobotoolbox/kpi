@@ -156,7 +156,7 @@ class SidebarAssetName extends React.Component {
   render () {
     return (
         <BemSidebarAssetName m={{noname: !this.props.name}}>
-          {this.props.name || t('No name')}
+          {this.props.name || t('Sin nombre')}
         </BemSidebarAssetName>
       );
   }
@@ -177,13 +177,13 @@ class AssetName extends React.Component {
       name = summary.labels ? summary.labels[0] : false;
       if (!name) {
         isEmpty = true;
-        name = t('no name');
+        name = t('sin nombre');
       }
       if (row_count) {
         if (row_count === 2) {
-          extra = <small>{t('and one other question')}</small>;
+          extra = <small>{t('y otra pregunta')}</small>;
         } else if (row_count > 2) {
-          extra = <small>{t('and ## other questions').replace('##', row_count - 1)}</small>;
+          extra = <small>{t('y ## otras preguntas').replace('##', row_count - 1)}</small>;
         }
       }
     }

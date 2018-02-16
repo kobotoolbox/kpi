@@ -99,7 +99,7 @@ export class FormSubScreens extends React.Component {
     var docTitle = this.state.name || t('Untitled');
 
     return (
-        <DocumentTitle title={`${docTitle} | KoboToolbox`}>      
+        <DocumentTitle title={`${docTitle}`}>
           <bem.FormView>
             <bem.FormView__cell m='iframe'>
               <iframe src={iframeUrl} />
@@ -111,7 +111,7 @@ export class FormSubScreens extends React.Component {
   renderSharing() {
     var docTitle = this.state.name || t('Untitled');
     return (
-        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+        <DocumentTitle title={`${docTitle}`}>
           <bem.FormView m={'settings-sharing'}>
             <SharingForm />
           </bem.FormView>
@@ -121,7 +121,7 @@ export class FormSubScreens extends React.Component {
   renderSettingsEditor(iframeUrl) {
     var docTitle = this.state.name || t('Untitled');
     return (
-        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+        <DocumentTitle title={`${docTitle}`}>
           <bem.FormView m='form-settings'>
             <ProjectSettingsEditor asset={this.state} iframeUrl={iframeUrl} />
           </bem.FormView>
@@ -131,7 +131,7 @@ export class FormSubScreens extends React.Component {
   renderProjectDownloads() {
     var docTitle = this.state.name || t('Untitled');
     return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <DocumentTitle title={`${docTitle}`}>
         <ProjectDownloads asset={this.state} />
       </DocumentTitle>
     );
@@ -141,7 +141,7 @@ export class FormSubScreens extends React.Component {
       <bem.Loading>
         <bem.Loading__inner>
           <i />
-          {t('loading...')}
+          {t('cargando...')}
         </bem.Loading__inner>
       </bem.Loading>
     );

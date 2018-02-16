@@ -96,7 +96,7 @@ export class ProjectSettings extends React.Component {
           <bem.Loading>
             <bem.Loading__inner>
               <i />
-              {t('loading...')}
+              {t('cargando...')}
             </bem.Loading__inner>
           </bem.Loading>
         )
@@ -385,10 +385,10 @@ export class ProjectDownloads extends React.Component {
 
   render () {
     let translations = this.props.asset.content.translations;
-    var docTitle = this.props.asset.name || t('Untitled');
+    var docTitle = this.props.asset.name || t('Sin Título');
 
     return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <DocumentTitle title={`${docTitle}`}>
         <bem.FormView m='form-data-downloads'>
           <bem.FormView__row>
               <bem.FormView__cell m='label'>

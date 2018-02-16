@@ -32,12 +32,21 @@ $headerAccountTextColor: #dbedf7;
 
   .mdl-layout-title {
     width: 244px;
+    top: -7px;
   }
 
   .header__logo {
-    width: 175px;
-    height: 40px;
+    width: 190px;
+    height: 51px;
     background: url("../img/logo.svg") no-repeat left bottom;
+    background-size: contain;
+    display: block;
+  }
+
+  .header__close {
+    width: 190px;
+    height: 38px;
+    background: url("../img/close.png") no-repeat right;
     background-size: contain;
     display: block;
   }
@@ -99,17 +108,17 @@ $headerAccountTextColor: #dbedf7;
 
   .search {
     ::-webkit-input-placeholder {
-      color: #FFF;
+      color: #575757;
     }
 
     :-ms-input-placeholder {
-      color: #FFF;
+      color: #575757;
     }
 
     .k-search__input {
-      color: #FFF;
-      border: none;
-      border-radius: 0px;
+      color: #575757;
+      border-radius: 0;
+      border: 1px solid #DDDDDD;
       padding: 10px 12px;
       padding-left: 42px;
       background-color: rgba(255, 255, 255, 0.1);
@@ -124,7 +133,7 @@ $headerAccountTextColor: #dbedf7;
       position: absolute;
       top: 11px;
       left: 12px;
-      color: #FFF;
+      color: $black;
 
       &:before {
         font-size: 18px;
@@ -342,11 +351,11 @@ $headerAccountTextColor: #dbedf7;
 
     // keep these pseudo-states separate
     &::-webkit-input-placeholder {
-      color: darken($cool-gray, 10%);
+      color: darken($cool-gray, 20%);
     }
 
     &:-ms-input-placeholder {
-      color: darken($cool-gray, 10%);
+      color: darken($cool-gray, 20%);
     }
 
     &:hover {
@@ -405,7 +414,7 @@ $headerAccountTextColor: #dbedf7;
     }
 
     .header__logo {
-      background: url("../img/kobologoS.svg") no-repeat left center;
+      background: url("../img/logoS.svg") no-repeat left center;
       background-size: 125%;
       width: 40px;
     }

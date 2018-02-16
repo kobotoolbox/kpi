@@ -166,7 +166,7 @@ class FormSettingsBox extends React.Component {
     }).join(', ');
 
     if (metaData === '') {
-      metaData = t('none (0 metadata specified)');
+      metaData = t('ninguno (0 de los metadatos especificado)');
     }
 
     var metaContent;
@@ -243,7 +243,7 @@ export default assign({
   }, 75),
   preventClosingTab () {
     $(window).on('beforeunload.noclosetab', function(){
-      return t('you have unsaved changes');
+      return t('Tiene cambios sin guardar');
     });
   },
   unpreventClosingTab () {
@@ -347,9 +347,9 @@ export default assign({
           alertify.defaults.theme.ok = "ajs-cancel";
           let dialog = alertify.dialog('alert');
           let opts = {
-            title: t('Error saving form'),
+            title: t('Error al guardar el formulario'),
             message: errorMsg,
-            label: t('Dismiss'),
+            label: t('Despedir'),
           };
           dialog.set(opts).show();
 
@@ -402,11 +402,11 @@ export default assign({
       ooo.styleValue = this.state.settings__style;
     }
     if (this.state.editorState === 'new') {
-      ooo.saveButtonText = t('create');
+      ooo.saveButtonText = t('crear');
     } else if (this.state.surveySaveFail) {
-      ooo.saveButtonText = `${t('save')} (${t('retry')}) `;
+      ooo.saveButtonText = `${t('guardar')} (${t('reintentar')}) `;
     } else {
-      ooo.saveButtonText = t('save');
+      ooo.saveButtonText = t('guardar');
     }
     return ooo;
   },
@@ -488,7 +488,7 @@ export default assign({
                     groupable: groupable
                   }]} onClick={this.groupQuestions}
                   disabled={!groupable}
-                  data-tip={groupable ? t('Create group with selected questions') : t('Grouping disabled. Please select at least one question.')}>
+                  data-tip={groupable ? t('Crear grupo con preguntas seleccionadas') : t('Agrupación desactivada. Por favor seleccione al menos una pregunta.')}>
                 <i className="k-icon-group" />
               </bem.FormBuilderHeader__button>
               <bem.FormBuilderHeader__button m={['download']}
@@ -542,7 +542,7 @@ export default assign({
             <bem.FormBuilderHeader__cell m={'library-toggle'} >
               <bem.FormBuilderHeader__button m={['showLibrary']}
                                              onClick={this.toggleLibraryNav} >
-                {t('Search Library')}
+                {t('Buscar Librería')}
               </bem.FormBuilderHeader__button>
             </bem.FormBuilderHeader__cell>
           </bem.FormBuilderHeader__row>
@@ -556,9 +556,9 @@ export default assign({
               </FormStyle__panelheader>
               <FormStyle__paneltext>
                 { hasSettings ?
-                 t('select the form style that you would like to use. this will only affect web forms.')
+                 t('seleccione el estilo de formulario que le gustaría usar. esto solo afectará a los formularios web.')
                 : 
-                 t('select the form style. this will only affect the Enketo preview, and it will not be saved with the question or block.')
+                 t('selecciona el estilo del formulario. esto solo afectará la vista previa de Enketo, y no se guardará con la pregunta o el bloque.')
                 }
 
               </FormStyle__paneltext>
@@ -602,7 +602,7 @@ export default assign({
         <bem.Loading>
           <bem.Loading__inner>
             <i />
-            {t('loading...')} 
+            {t('cargando...')}
           </bem.Loading__inner>
         </bem.Loading>
       );
@@ -678,9 +678,9 @@ export default assign({
     } else {
       let dialog = alertify.dialog('confirm');
       let opts = {
-        title: t('you have unsaved changes. leave form without saving?'),
+        title: t('¿Tiene cambios sin guardar. dejar formulario sin guardar?'),
         message: '',
-        labels: {ok: t('Yes, leave form'), cancel: t('Cancel')},
+        labels: {ok: t('Sí, deja el formulario'), cancel: t('Cancelar')},
         onok: (evt, val) => {
           hashHistory.push(backRoute);
         },
@@ -696,7 +696,7 @@ export default assign({
     var isSurvey = this.app && this.state.backRoute === '/forms';
     var docTitle = this.state.name || t('Untitled');
     return (
-        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+        <DocumentTitle title={`${docTitle}`}>
           <ui.Panel m={'transparent'}>
             <AssetNavigator />
             <bem.FormBuilder m={this.state.formStylePanelDisplayed ? 'formStyleDisplayed': null }>
