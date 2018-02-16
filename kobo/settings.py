@@ -141,7 +141,7 @@ SKIP_HEAVY_MIGRATIONS = os.environ.get('SKIP_HEAVY_MIGRATIONS', 'False') == 'Tru
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 DATABASES = {
-    'test': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
+    'default': dj_database_url.config(default="sqlite:///%s/db.sqlite3" % BASE_DIR),
     #'default': dj_database_url.config(default="postgres://kobo:kobo@localhost:5444/kobotoolbox"),
 }
 # This project does not use GIS (yet). Change the database engine accordingly
