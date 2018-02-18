@@ -172,7 +172,7 @@ class Drawer extends Reflux.Component {
           }
         </div>
 
-        <div className='k-drawer__icons-bottom'>
+        {/*<div className='k-drawer__icons-bottom'>
           { stores.session.currentAccount &&
             <a href={stores.session.currentAccount.projects_url} 
                className='k-drawer__link' 
@@ -186,7 +186,7 @@ class Drawer extends Reflux.Component {
               <i className="k-icon k-icon-help" />
             </a>
           }
-        </div>
+        </div>*/}
       </bem.Drawer>
       );
   }

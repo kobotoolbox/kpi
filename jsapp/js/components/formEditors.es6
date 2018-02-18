@@ -148,8 +148,8 @@ export class ProjectSettings extends React.Component {
           </bem.FormModal__item>
           <bem.FormModal__item>
             <label className="long">
-              {t('Please specify the country and the sector where this project will be deployed. ')}
-              {t('This information will be used to help you filter results on the project list page.')}
+              {t('Especifique el país y el sector donde se implementará este proyecto. ')}
+              {t('Esta información se usará para ayudarlo a filtrar resultados en la página de lista de proyectos.')}
             </label>
           </bem.FormModal__item>
 
@@ -182,9 +182,9 @@ export class ProjectSettings extends React.Component {
                 onChange={this.shareMetadataChange}
               />
             <label htmlFor="share-metadata">
-              {t('Help KoboToolbox improve this product by sharing the sector and country where this project will be deployed.')}
+              {t('Ayuda a Asimov a mejorar este producto compartiendo el sector y el país donde se implementará este proyecto.')}
               &nbsp;
-              {t('All the information is submitted anonymously, and will not include the project name or description listed above.')}
+              {t('Toda la información se envía de forma anónima y no incluirá el nombre o la descripción del proyecto enumerados anteriormente.')}
             </label>
           </bem.FormModal__item>
 

@@ -119,7 +119,7 @@ class Modal extends React.Component {
             { this.props.params.type == 'new-form' &&
               <ProjectSettings
                 onSubmit={this.createNewForm}
-                submitButtonValue={t('Create project')}
+                submitButtonValue={t('Crear proyecto')}
                 context='newForm'
               />
             }
