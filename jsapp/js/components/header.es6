@@ -150,7 +150,7 @@ class MainHeader extends Reflux.Component {
     renderAccountNavMenu() {
         var langs = [];
 
-        console.log(stores.session);
+        //console.log(stores.session);
 
         return (
             <a href="http://ciren.asimov.cl">
@@ -221,7 +221,8 @@ class MainHeader extends Reflux.Component {
     renderGitRevInfo() {
         if (stores.session.currentAccount && stores.session.currentAccount.git_rev) {
             var gitRev = stores.session.currentAccount.git_rev;
-            return (
+
+            /*return (
                 <bem.GitRev>
                     <bem.GitRev__item>
                         branch: {gitRev.branch}
@@ -230,7 +231,7 @@ class MainHeader extends Reflux.Component {
                         commit: {gitRev.short}
                     </bem.GitRev__item>
                 </bem.GitRev>
-            );
+            );*/
         }
 
         return false;
