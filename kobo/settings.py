@@ -30,7 +30,7 @@ BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
-X_FRAME_OPTIONS = 'ALLOW-FROM ciren.asimov.cl'
+X_FRAME_OPTIONS = 'ALLOW-FROM http://ciren.asimov.cl'
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # Secret key must match that used by KoBoCAT when sharing sessions

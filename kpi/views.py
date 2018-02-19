@@ -7,6 +7,7 @@ import datetime
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate
 from django.db import transaction
 from django.db.models import Q, Count
 from django.forms import model_to_dict
@@ -25,7 +26,10 @@ from rest_framework import (
     renderers,
     status,
     exceptions,
+    authentication,
+    exceptions
 )
+
 from rest_framework.decorators import api_view
 from rest_framework.decorators import renderer_classes
 from rest_framework.decorators import detail_route
@@ -56,7 +60,7 @@ from .models import (
     AuthorizedApplication,
     OneTimeAuthenticationKey,
     UserCollectionSubscription,
-    )
+)
 from .models.object_permission import get_anonymous_user, get_objects_for_user
 from .models.authorized_application import ApplicationTokenAuthentication
 from .models.import_export_task import _resolve_url_to_asset_or_collection
@@ -71,7 +75,7 @@ from .renderers import (
     SSJsonRenderer,
     XFormRenderer,
     AssetSnapshotXFormRenderer,
-    XlsRenderer,)
+    XlsRenderer, )
 from .serializers import (
     AssetSerializer, AssetListSerializer,
     AssetVersionListSerializer,
@@ -88,14 +92,13 @@ from .serializers import (
     AuthorizedApplicationUserSerializer,
     OneTimeAuthenticationKeySerializer,
     DeploymentSerializer,
-    UserCollectionSubscriptionSerializer,)
+    UserCollectionSubscriptionSerializer, )
 from .utils.gravatar_url import gravatar_url
 from .utils.kobo_to_xlsform import to_xlsform_structure
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from .tasks import import_in_background, export_in_background
 from deployment_backends.backends import DEPLOYMENT_BACKENDS
 from deployment_backends.kobocat_backend import KobocatDataProxyViewSetMixin
-
 
 CLONE_ARG_NAME = 'clone_from'
 COLLECTION_CLONE_FIELDS = {'name'}
@@ -128,7 +131,7 @@ class ObjectPermissionViewSet(NoUpdateModelViewSet):
     queryset = ObjectPermission.objects.all()
     serializer_class = ObjectPermissionSerializer
     lookup_field = 'uid'
-    filter_backends = (KpiAssignedObjectPermissionsFilter, )
+    filter_backends = (KpiAssignedObjectPermissionsFilter,)
 
     def _requesting_user_can_share(self, affected_object, codename):
         r"""
@@ -179,6 +182,7 @@ class ObjectPermissionViewSet(NoUpdateModelViewSet):
                 instance.permission.codename
             )
 
+
 class CollectionViewSet(viewsets.ModelViewSet):
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
     queryset = Collection.objects.select_related(
@@ -198,22 +202,22 @@ class CollectionViewSet(viewsets.ModelViewSet):
     def _clone(self):
         # Clone an existing collection.
         original_uid = self.request.data[CLONE_ARG_NAME]
-        original_collection= get_object_or_404(Collection, uid=original_uid)
-        view_perm= get_perm_name('view', original_collection)
+        original_collection = get_object_or_404(Collection, uid=original_uid)
+        view_perm = get_perm_name('view', original_collection)
         if not self.request.user.has_perm(view_perm, original_collection):
             raise Http404
         else:
             # Copy the essential data from the original collection.
-            original_data= model_to_dict(original_collection)
-            cloned_data= {keep_field: original_data[keep_field]
-                          for keep_field in COLLECTION_CLONE_FIELDS}
+            original_data = model_to_dict(original_collection)
+            cloned_data = {keep_field: original_data[keep_field]
+                           for keep_field in COLLECTION_CLONE_FIELDS}
             if original_collection.tag_string:
-                cloned_data['tag_string']= original_collection.tag_string
+                cloned_data['tag_string'] = original_collection.tag_string
 
             # Pull any additionally provided parameters/overrides from the
             # request.
             for param in self.request.data:
-                cloned_data[param]= self.request.data[param]
+                cloned_data[param] = self.request.data[param]
             serializer = self.get_serializer(data=cloned_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
@@ -238,7 +242,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
         if (self.request.user != original_collection.owner and
                 'discoverable_when_public' in serializer.validated_data and
                 (serializer.validated_data['discoverable_when_public'] !=
-                    original_collection.discoverable_when_public)
+                 original_collection.discoverable_when_public)
         ):
             raise exceptions.PermissionDenied()
 
@@ -256,7 +260,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
                     serializer, *args, **kwargs)
 
         return super(CollectionViewSet, self).perform_update(
-                serializer, *args, **kwargs)
+            serializer, *args, **kwargs)
 
     def perform_destroy(self, instance):
         instance.delete_with_deferred_indexing()
@@ -291,8 +295,8 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
                 taggit_taggeditem_items__content_type__model=content_type_name)
             same_id = Q(
                 taggit_taggeditem_items__object_id__in=avail_items.
-                values_list('id'))
-            return Tag.objects.filter(same_content_type & same_id).distinct().\
+                    values_list('id'))
+            return Tag.objects.filter(same_content_type & same_id).distinct(). \
                 values_list('id', flat=True)
 
         accessible_collections = get_objects_for_user(
@@ -311,6 +315,37 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
             return TagListSerializer
         else:
             return TagSerializer
+
+@api_view(["GET"])
+def custom_login(request):
+    username = request.GET.get("username")
+    password = request.GET.get("password")
+
+    user = authenticate(username=username, password=password)
+    if not user:
+        return Response({"error": "Login Failed"})
+
+    request.session.set_expiry(86400)  # sets the exp. value of the session
+    login(request, user)  # the user is now logged in
+
+    return HttpResponseRedirect(redirect_to='/')
+    #token, _ = Token.objects.get_or_create(user=user)
+    #return Response({"token": token.key})
+
+class CustomLoginViewSet(viewsets.ModelViewSet):
+    """
+    A viewset for viewing and editing user instances.
+    """
+    serializer_class = CreateUserSerializer
+    queryset = User.objects.all()
+
+
+class CustomCreateUserViewSet(viewsets.ModelViewSet):
+    """
+    A viewset for viewing and editing user instances.
+    """
+    serializer_class = CreateUserSerializer
+    queryset = User.objects.all()
 
 
 class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
@@ -344,6 +379,7 @@ class AuthorizedApplicationUserViewSet(mixins.CreateModelMixin,
     queryset = User.objects.all()
     serializer_class = CreateUserSerializer
     lookup_field = 'username'
+
     def create(self, request, *args, **kwargs):
         if type(request.auth) is not AuthorizedApplication:
             # Only specially-authorized applications are allowed to create
@@ -391,12 +427,13 @@ def authorized_application_authenticate_user(request):
 
 
 class OneTimeAuthenticationKeyViewSet(
-        mixins.CreateModelMixin,
-        viewsets.GenericViewSet
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
 ):
     authentication_classes = [ApplicationTokenAuthentication]
     queryset = OneTimeAuthenticationKey.objects.none()
     serializer_class = OneTimeAuthenticationKeySerializer
+
     def create(self, request, *args, **kwargs):
         if type(request.auth) is not AuthorizedApplication:
             # Only specially-authorized applications are allowed to create
@@ -462,7 +499,7 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
             return ImportTask.objects.none()
         else:
             return ImportTask.objects.filter(
-                        user=self.request.user).order_by('date_created')
+                user=self.request.user).order_by('date_created')
 
     def create(self, request, *args, **kwargs):
         if self.request.user.is_anonymous():
@@ -533,7 +570,7 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
             'group_sep',
             'lang',
             'hierarchy_in_labels',
-            'async', # HACK to simplify ES6, see HACK below
+            'async',  # HACK to simplify ES6, see HACK below
         )
         task_data = {}
         for opt in valid_options:
@@ -593,7 +630,7 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
             if not user.is_anonymous():
                 owned_snapshots = queryset.filter(owner=user)
             return owned_snapshots | RelatedAssetPermissionsFilter(
-                ).filter_queryset(self.request, queryset, view=self)
+            ).filter_queryset(self.request, queryset, view=self)
 
     @detail_route(renderer_classes=[renderers.TemplateHTMLRenderer])
     def xform(self, request, *args, **kwargs):
@@ -617,14 +654,14 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
         snapshot = self.get_object()
         if snapshot.details.get('status') == 'success':
             preview_url = "{}{}?form={}".format(
-                              settings.ENKETO_SERVER,
-                              settings.ENKETO_PREVIEW_URI,
-                              reverse(viewname='assetsnapshot-detail',
-                                      format='xml',
-                                      kwargs={'uid': snapshot.uid},
-                                      request=request,
-                                      ),
-                            )
+                settings.ENKETO_SERVER,
+                settings.ENKETO_PREVIEW_URI,
+                reverse(viewname='assetsnapshot-detail',
+                        format='xml',
+                        kwargs={'uid': snapshot.uid},
+                        request=request,
+                        ),
+            )
             return HttpResponseRedirect(preview_url)
         else:
             response_data = copy.copy(snapshot.details)
@@ -639,12 +676,13 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
     '''
     parent_model = Asset
 
+
 class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     model = AssetVersion
     lookup_field = 'uid'
     filter_backends = (
-            AssetOwnerFilterBackend,
-        )
+        AssetOwnerFilterBackend,
+    )
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -737,7 +775,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         if CLONE_ARG_NAME in request.data:
-            serializer= self._get_clone_serializer()
+            serializer = self._get_clone_serializer()
         else:
             serializer = self.get_serializer(data=request.data)
 
@@ -837,7 +875,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 raise exceptions.MethodNotAllowed(
                     method=request.method,
                     detail='Use PATCH to update an existing deployment'
-                    )
+                )
             serializer = DeploymentSerializer(
                 data=request.data,
                 context={'asset': asset}
