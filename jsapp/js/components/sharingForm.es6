@@ -60,9 +60,10 @@ class UserPermDiv extends React.Component {
     };
 
     var cans = [];
-    for(var key in this.props.can) {
-      var perm = availablePermissions.find(function (d) {return d.value === key}).label;
-      cans.push(perm);
+    for (var key in this.props.can) {
+      let perm = availablePermissions.find(function (d) {return d.value === key});
+      if (perm && perm.label)
+        cans.push(perm.label);
     }
 
     return (
