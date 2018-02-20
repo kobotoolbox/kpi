@@ -1,0 +1,9 @@
+[run]
+source =
+    hub
+    kpi
+    kobo
+omit =
+    */tests/*
+    */migrations/*
+    */management/commands/*
