@@ -25,7 +25,7 @@ before_script:
 script:
   - gulp copy
   - npm run build
-  - coverage run --source='hub,kpi,kobo' --omit='*/tests/*,*/migrations/*,*/management/commands/*' pytest
+  - pytest -vv
   - npm run test
 after_script:
   - coverage xml && python-codacy-coverage -r coverage.xml
@@ -54,4 +54,4 @@ install:
   - pip install --upgrade 'pip>=8.0' wheel
   - pip install pip-tools
   - pip-sync dependencies/pip/requirements.txt
-  - pip install coverage codacy-coverage python-coveralls
+  - pip install coverage codacy-coverage python-coveralls pytest-cov
