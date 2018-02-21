@@ -294,7 +294,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 }
             }
         )
-        payload = {u'downloadable': active}
+        payload = {
+            u'downloadable': active,
+            u'title': self.asset.name
+        }
         files = {'xls_file': (u'{}.xls'.format(id_string), xls_io)}
         try:
             json_response = self._kobocat_request(
