@@ -25,7 +25,6 @@ import {
   t,
   redirectTo,
   assign,
-  notify,
   formatTime
 } from '../utils';
 
@@ -394,6 +393,28 @@ export class ProjectDownloads extends React.Component {
     });
   }
 
+  deleteExport(evt) {
+    let el = $(evt.target).closest('[data-euid]').get(0);
+    let euid = el.getAttribute('data-euid');
+
+    let dialog = alertify.dialog('confirm');
+    let opts = {
+      title: t('Delete export?'),
+      message: t('Are you sure you want to delete this export? This action is not reversible.'),
+      labels: {ok: t('Delete'), cancel: t('Cancel')},
+      onok: () => {
+        dataInterface.deleteAssetExport(euid).then(()=> {
+          this.getExports();
+        }).fail((jqxhr)=> {
+          alertify.error(t('Failed to delete export.'));
+        });
+      },
+      oncancel: () => {dialog.destroy()}
+    };
+    dialog.set(opts).show();
+
+  }
+
   render () {
     let translations = this.props.asset.content.translations;
     var docTitle = this.props.asset.name || t('Untitled');
@@ -522,6 +543,10 @@ export class ProjectDownloads extends React.Component {
                           {item.status != 'error' && item.status != 'complete' &&
                             <span className="animate-processing">{t('processing...')}</span>
                           }
+                          <a className="form-view__link form-view__link--export-delete"
+                             onClick={this.deleteExport} data-euid={item.uid} data-tip={t('Delete')}>
+                            <i className="k-icon-trash" />
+                          </a>
 
                         </bem.FormView__label>
                       </bem.FormView__group>
