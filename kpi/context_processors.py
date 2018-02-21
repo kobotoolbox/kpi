@@ -4,12 +4,12 @@ from hub.models import SitewideMessage
 
 def external_service_tokens(request):
     out = {}
-    if settings.TRACKJS_TOKEN:
-        out['trackjs_token'] = settings.TRACKJS_TOKEN
     if settings.GOOGLE_ANALYTICS_TOKEN:
         out['google_analytics_token'] = settings.GOOGLE_ANALYTICS_TOKEN
     if settings.INTERCOM_APP_ID:
         out['intercom_app_id'] = settings.INTERCOM_APP_ID
+    if settings.SENTRY_DSN_ID:
+        out['sentry_dsn_id'] = settings.SENTRY_DSN_ID
     return out
 
 
