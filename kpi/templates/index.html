@@ -12,7 +12,7 @@
     {% if sentry_dsn_id %}
       <script src="https://cdn.ravenjs.com/3.22.3/raven.min.js" crossorigin="anonymous"></script>
       <script>
-        Raven.config('http://{{sentry_dsn_id}}@sentry.kbtdev.org/7').install()
+        Raven.config('https://{{sentry_dsn_id}}@sentry.kbtdev.org/7').install()
       </script>
     {% endif %}
 
