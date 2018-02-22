@@ -9,6 +9,13 @@
     <meta name="kpi-root-url" content="{% url 'kpi-root' %}">
     {% if csrf_token %}<meta name="csrf-token" content="{{csrf_token}}">{% endif %}
 
+    {% if raven_js_dsn %}
+      <script src="https://cdn.ravenjs.com/3.22.3/raven.min.js" crossorigin="anonymous"></script>
+      <script>
+        Raven.config('{{raven_js_dsn}}').install()
+      </script>
+    {% endif %}
+
     {% load render_bundle from webpack_loader %}
     {% load staticfiles %}
 
@@ -68,11 +75,6 @@
       {% render_bundle 'app' 'js' %}
 
     {% endblock footer %}
-
-    {% if trackjs_token %}
-    <script type="text/javascript" src="//d2zah9y47r7bi2.cloudfront.net/releases/current/tracker.js"
-      data-token="{{trackjs_token}}" defer></script>
-    {% endif %}
 
     {% if google_analytics_token %}
     <script>
