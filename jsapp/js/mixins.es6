@@ -376,7 +376,7 @@ mixins.clickAssets = {
       },
       deploy: function(uid){
         let asset = stores.selectedAsset.asset;
-        dmix.deployAsset(asset);
+        mixins.dmix.deployAsset(asset);
       },
       archive: function(uid) {
         let asset = stores.selectedAsset.asset;
