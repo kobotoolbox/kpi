@@ -8,8 +8,8 @@ def external_service_tokens(request):
         out['google_analytics_token'] = settings.GOOGLE_ANALYTICS_TOKEN
     if settings.INTERCOM_APP_ID:
         out['intercom_app_id'] = settings.INTERCOM_APP_ID
-    if settings.SENTRY_DSN_ID:
-        out['sentry_dsn_id'] = settings.SENTRY_DSN_ID
+    if settings.RAVEN_JS_DSN:
+        out['raven_js_dsn'] = settings.RAVEN_JS_DSN
     return out
 
 
