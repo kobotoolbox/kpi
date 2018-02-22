@@ -22,6 +22,7 @@ import {
 } from '../components/formEditors';
 
 import FormMap from '../components/map';
+import RESTServices from '../components/RESTServices';
 
 import {
   assign,
@@ -87,16 +88,23 @@ export class FormSubScreens extends React.Component {
         case `/forms/${this.state.uid}/data/map/${this.props.params.viewby}`:
           return <FormMap asset={this.state} viewby={this.props.params.viewby}/>;
           break;
-        // case `/forms/${this.state.uid}/settings/kobocat`:
-        //   iframeUrl = deployment__identifier+'/form_settings';
-        //   break;
         case `/forms/${this.state.uid}/data/downloads`:
           return this.renderProjectDownloads();
           break;
         case `/forms/${this.state.uid}/settings`:
-          if (deployment__identifier != '')
-            iframeUrl = deployment__identifier+'/form_settings';
-          return this.renderSettingsEditor(iframeUrl);
+          return this.renderSettingsEditor();
+          break;
+        case `/forms/${this.state.uid}/settings/media`:
+          iframeUrl = deployment__identifier+'/form_settings';
+          break;
+        case `/forms/${this.state.uid}/settings/sharing`:
+          return this.renderSharing();
+          break;
+        case `/forms/${this.state.uid}/settings/rest`:
+          return <RESTServices asset={this.state} />;
+          break;
+        case `/forms/${this.state.uid}/settings/kobocat`:
+          iframeUrl = deployment__identifier+'/form_settings';
           break;
         case `/forms/${this.state.uid}/reset`:
           return this.renderReset();
@@ -116,12 +124,12 @@ export class FormSubScreens extends React.Component {
         </DocumentTitle>
       );
   }
-  renderSettingsEditor(iframeUrl) {
+  renderSettingsEditor() {
     var docTitle = this.state.name || t('Untitled');
     return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
           <bem.FormView m='form-settings'>
-            <ProjectSettingsEditor asset={this.state} iframeUrl={iframeUrl} />
+            <ProjectSettingsEditor asset={this.state} />
           </bem.FormView>
         </DocumentTitle>
     );
@@ -134,6 +142,20 @@ export class FormSubScreens extends React.Component {
       </DocumentTitle>
     );
   }
+  renderSharing() {
+    return (
+      <bem.FormView m='form-settings-sharing'>
+        <SharingForm uid={this.props.params.assetid} />
+      </bem.FormView>
+    );
+  }
+  // renderREST() {
+  //   return (
+  //     <bem.FormView m='form-settings-rest'>
+        
+  //     </bem.FormView>
+  //   );
+  // }
   renderReset() {
     return (
       <bem.Loading>

@@ -16,6 +16,7 @@ import {
 } from '../utils';
 
 import {ProjectSettings} from '../components/formEditors';
+import {RESTServiceForm} from '../components/RESTServices';
 import SharingForm from '../components/sharingForm';
 import Submission from '../components/submission';
 
@@ -71,6 +72,12 @@ class Modal extends React.Component {
           sid: this.props.params.sid
         });
       break;
+      case 'RESTservice':
+        console.log(this.props.params);
+        this.setState({
+          title: t('New REST Service')
+        });
+        break;
 
 		}  	
   }
@@ -155,6 +162,12 @@ class Modal extends React.Component {
 
             { this.props.params.type == 'submission' && this.state.sid && 
               <Submission sid={this.state.sid} asset={this.props.params.asset} ids={this.props.params.ids} />
+            }
+
+            { this.props.params.type == 'RESTservice' && !this.props.params.sid && 
+              <div>
+                <RESTServiceForm />
+              </div>
             }
 
 	        </ui.Modal.Body>

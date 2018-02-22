@@ -292,8 +292,10 @@ export var routes = (
 
         <Route path="settings">
           <IndexRoute component={FormSubScreens} />
-          <Route path="kobocat" component={FormSubScreens} />
+          <Route path="media" component={FormSubScreens} />
           <Route path="sharing" component={FormSubScreens} />
+          <Route path="rest" component={FormSubScreens} />
+          <Route path="kobocat" component={FormSubScreens} />
         </Route>
 
         {/* used to force refresh form screens */}

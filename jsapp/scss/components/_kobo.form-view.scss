@@ -505,8 +505,6 @@
 }
 
 .form-view.form-view--form-settings {
-  overflow: initial;
-
   .form-modal__form {
     height: 100%;
 
@@ -517,6 +515,39 @@
       .form-view__cell--iframe {
         height: 820px;
       }
+    }
+  }
+}
+
+.form-view.form-view--form-settings-sharing {
+  .form-modal {
+    background: white;
+    padding: 40px;
+    height: 100%;
+    overflow: auto;
+  }
+}
+
+.form-view.form-view--form-settings-REST {
+  background: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  .empty {
+    text-align: center;
+
+    i {
+      font-size: 156px;
+      opacity: 0.25;
+    }
+
+    h2 {
+      font-weight: 400;
+    }
+
+    .mdl-button {
+      margin-top: 30px;
     }
   }
 }
