@@ -344,14 +344,6 @@ class FormpackXLSFormUtils(object):
 
 
 class XlsExportable(object):
-    def flattened_content_copy(self):
-        _c = self.standardized_content_copy()
-        flatten_content(_c, in_place=True)
-        return to_xlsform_structure(_c, move_autonames=True)
-
-    def valid_xlsform_content(self):
-        return self.flattened_content_copy()
-
     def ordered_xlsform_content(self,
                                 kobo_specific_types=False,
                                 append=None):
