@@ -89,7 +89,7 @@ module.exports = do ->
       name_detail.set 'value', name_detail.deduplicate(survey)
 
     _ensure_row_list_is_copied: (row)->
-      if rowlist = row.getList()
+      if !row.rows && rowlist = row.getList()
         @choices.add(name: rowlist.get("name"), options: rowlist.options.toJSON())
 
     insertSurvey: (survey, index=-1)->
@@ -101,7 +101,7 @@ module.exports = do ->
           group = row
           if group.forEachRow
             group.forEachRow(((r)=> @_ensure_row_list_is_copied(r)), includeGroups: true)
-          @rows.add(group, at: index_incr)
+          @_insertRowInPlace group, {'index': index_incr, 'noDetach': true}
         else
           @_ensure_row_list_is_copied(row)
           # its a group
@@ -198,9 +198,11 @@ module.exports = do ->
       rowCount: rowCount
       hasGps: hasGps
     _insertRowInPlace: (row, opts={})->
-      if row._parent
+      if row._parent && !opts.noDetach
         row.detach(silent: true)
       index = 0
+      if opts.index
+        index = opts.index
       previous = opts.previous
       parent = opts.parent
       if previous
