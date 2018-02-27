@@ -1,4 +1,4 @@
-# Base image to take care of `apt`, `pip`, `npm`, and `bower dependencies. Packages are
+# Base image to take care of `apt`, `pip`, and `npm` dependencies. Packages are
 #   stored outside the source directory so it can be overwritten in development scenarios.
 
 FROM kobotoolbox/base-kobos:latest
@@ -6,7 +6,6 @@ FROM kobotoolbox/base-kobos:latest
 
 ENV KPI_SRC_DIR=/srv/src/kpi \
     KPI_NODE_PATH=/srv/node_modules \
-    BOWER_COMPONENTS_DIR=/srv/bower_components \
     PIP_DIR=/srv/pip
 
 
@@ -64,15 +63,3 @@ RUN mkdir -p "${KPI_NODE_PATH}" && \
 ENV PATH $PATH:${KPI_NODE_PATH}/.bin
 
 
-#############################
-# Install `bower` packages. #
-#############################
-
-COPY ./bower.json ./.bowerrc ${KPI_SRC_DIR}/
-RUN mkdir -p "${BOWER_COMPONENTS_DIR}" && \
-    mkdir -p "${KPI_SRC_DIR}/jsapp/xlform/" && \
-    ln -s "${BOWER_COMPONENTS_DIR}/" "${KPI_SRC_DIR}/jsapp/xlform/components" && \
-    bower install --quiet --allow-root --config.interactive=false && \
-    bower cache clean --allow-root && \
-    mv "${KPI_SRC_DIR}/bower.json" /srv/tmp/base_bower.json && \
-    mv "${KPI_SRC_DIR}/.bowerrc" /srv/tmp/base_bowerrc
