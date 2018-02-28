@@ -115,6 +115,24 @@ class KoboMatrixGroupHandler(GroupHandler):
             template.format(_l) if _l is not None else None for _l in labels
         ]
 
+    @staticmethod
+    def _name_or_autoname(col):
+        name = col.get('name')
+        if not name:
+            name = col.get('$autoname')
+        if not name:
+            raise Exception('Column has neither `name` nor `$autoname`')
+        return name
+
+    @staticmethod
+    def _name_or_autovalue(item):
+        name = item.get('name')
+        if not name:
+            name = item.get('$autovalue')
+        if not name:
+            raise Exception('Item has neither `name` nor `$autovalue`')
+        return name
+
     def _header(self, name, items_label, cols,
                 total_width,
                 first_column_width='w1',
@@ -137,7 +155,7 @@ class KoboMatrixGroupHandler(GroupHandler):
              'appearance': 'w{}'.format(col.get('_column_width')),
              'required': False,
              'label': self._format_all_labels(col.get('label'), self.header_wrap),
-             'name': '_'.join([header_name, col.get('name')])
+             'name': '_'.join([header_name, self._name_or_autoname(col)])
              }
             for col in cols
         ]
@@ -147,7 +165,7 @@ class KoboMatrixGroupHandler(GroupHandler):
                        total_width,
                        first_column_width='w1',
                        ):
-        _item_name = item.get('name')
+        _item_name = self._name_or_autovalue(item)
         _base_name = '_'.join([name, _item_name])
         start = [{'type': 'begin_group',
                   'name': _base_name,
@@ -180,7 +198,7 @@ class KoboMatrixGroupHandler(GroupHandler):
                 else:
                     _labels.append(None)
             out = {'type': _type,
-                   'name': '_'.join([_base_name, col['name']]),
+                   'name': '_'.join([_base_name, self._name_or_autoname(col)]),
                    'appearance': ' '.join(_appearance),
                    'label': self._format_all_labels(_labels, self.span_wrap),
                    'required': col.get('required', False),

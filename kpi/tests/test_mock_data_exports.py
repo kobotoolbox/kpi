@@ -276,8 +276,7 @@ class MockDataExports(TestCase):
         self.run_csv_export_test(expected_lines, export_options)
 
     def test_csv_export_english_labels_group_sep(self):
-        # Even though we are skipping the `hierarchy_in_labels` tests, we can
-        # still check `group_sep` by looking at the `select_multiple` question
+        # Check `group_sep` by looking at the `select_multiple` question
         export_options = {
             'lang': 'English',
             'group_sep': '%',
@@ -291,7 +290,6 @@ class MockDataExports(TestCase):
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
-    @unittest.skip('Enable after fixing formpack#136')
     def test_csv_export_hierarchy_in_labels(self):
         export_options = {'hierarchy_in_labels': 'true'}
         expected_lines = [
