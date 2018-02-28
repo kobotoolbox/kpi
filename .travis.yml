@@ -25,7 +25,7 @@ before_script:
 script:
   - gulp copy
   - npm run build
-  - pytest -vv
+  - pytest -vv --cov
   - npm run test
 after_script:
   - coverage xml && python-codacy-coverage -r coverage.xml
