@@ -196,7 +196,7 @@ class MainHeader extends Reflux.Component {
     }
 
     return (
-          <span>{t('not logged in')}</span>
+          <span>{t('n/a')}</span>
     );
   }
   renderGitRevInfo () {
