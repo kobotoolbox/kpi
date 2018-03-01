@@ -29,7 +29,8 @@ class Submission extends React.Component {
       enketoEditLink: false,
       previous: -1, 
       next: -1,
-      sid: props.sid
+      sid: props.sid,
+      showBetaFieldsWarning: false
     };
     autoBind(this);
   }
@@ -47,10 +48,9 @@ class Submission extends React.Component {
 
   getSubmission(assetUid, sid) {
     dataInterface.getSubmission(assetUid, sid).done((data) => {
-      this.setState({
-        submission: data,
-        loading: false
-      });
+      var prev = -1, next = -1;
+      const survey = this.props.asset.content.survey;
+
       dataInterface.getEnketoEditLink(assetUid, sid).done((data) => {
         if (data.url)
           this.setState({enketoEditLink: data.url});
@@ -58,18 +58,22 @@ class Submission extends React.Component {
 
       if (this.props.ids && sid) {
         const c = this.props.ids.findIndex(k => k==sid);
-
         if (c > 0)
-          this.setState({previous: this.props.ids[c - 1]});
-        else
-          this.setState({previous: -1});
-
+          prev = this.props.ids[c - 1];
         if (c < this.props.ids.length)
-          this.setState({next: this.props.ids[c + 1]});
-        else
-          this.setState({next: -1});
+          next = this.props.ids[c + 1];
       }
 
+      const betaQuestions = ['begin_kobomatrix'];
+      const hasBetaQuestion = survey.find(q => betaQuestions.includes(q.type)) || false;
+
+      this.setState({
+        submission: data,
+        loading: false,
+        next: next,
+        previous: prev,
+        hasBetaQuestion: hasBetaQuestion
+      });
     }).fail((error)=>{
       if (error.responseText)
         this.setState({error: error.responseText, loading: false});
@@ -148,14 +152,13 @@ class Submission extends React.Component {
     actions.resources.updateSubmissionValidationStatus(this.props.asset.uid, this.state.sid, data);
   }
 
-  responseDisplayHelper(q, s, overrideValue = false) {
+  responseDisplayHelper(q, s, overrideValue = false, name) {
     if (!q) return false;
-    const name = q.name || q.$autoname,
-          choices = this.props.asset.content.choices;
+    const choices = this.props.asset.content.choices;
 
     var submissionValue = s[name];
 
-    if(overrideValue)
+    if (overrideValue)
       submissionValue = overrideValue;
 
     switch(q.type) {
@@ -187,18 +190,21 @@ class Submission extends React.Component {
     const s = this.state.submission,
           survey = this.props.asset.content.survey,
           _this = this;
+    var parentGroup = false;
+    const groupTypes = ['begin_score', 'begin_rank', 'begin_group'];
+    const groupTypesEnd = ['end_score', 'end_rank', 'end_group'];
 
     return survey.map((q)=> {
-      const name = q.name || q.$autoname;
+      var name = q.name || q.$autoname || q.$kuid;
       if (q.type === 'begin_repeat') { 
         return (
           <tr key={`row-${name}`}>
             <td colSpan="3" className="submission--repeat-group">
               <h4>
                 {t('Repeat group: ')}
-                {q.label[0]}
+                {q.label[0] || t('Unlabelled')}
               </h4>
-              {s[name].map((repQ, i)=> {
+              {s[name] && s[name].map((repQ, i)=> {
                 var response = [];
                 for (var pN in repQ) {
                   var qName = pN.split('/').pop(-1);
@@ -213,12 +219,10 @@ class Submission extends React.Component {
                     <tr key={`row-${pN}`}>
                       <td className="submission--question-type">{type}</td>
                       <td className="submission--question">
-                        {subQ.label &&
-                          subQ.label[0]
-                        }
+                        {subQ.label && subQ.label[0]}
                       </td>
                       <td className="submission--response">
-                        {_this.responseDisplayHelper(subQ, s, repQ[pN])}
+                        {_this.responseDisplayHelper(subQ, s, repQ[pN], pN)}
                       </td>
                     </tr>      
                   );
@@ -236,9 +240,37 @@ class Submission extends React.Component {
         );
       }
 
-      if (q.label == undefined || s[name] == undefined) { return false;}
-      const response = this.responseDisplayHelper(q, s);
+      if (q.type === 'end_repeat')
+        return false;
 
+      if (groupTypes.includes(q.type)) {
+        parentGroup = name;
+        return (
+          <tr key={`row-${name}`}>
+            <td colSpan="3" className="submission--group">
+              <h4>
+                {q.label[0] || t('Unlabelled')}
+              </h4>
+            </td>
+          </tr>
+        );
+      }
+
+      if (groupTypesEnd.includes(q.type)) {
+        parentGroup = false;
+        return (
+          <tr key={`row-${name}-end`}>
+            <td colSpan="3" className="submission--end-group"></td>
+          </tr>
+        );
+      }
+
+      if (parentGroup)
+        name = `${parentGroup}/${name}`;
+
+      if (q.label == undefined || s[name] == undefined) { return false;}
+
+      const response = this.responseDisplayHelper(q, s, false, name);
       const icon = icons._byId[q.type];
       var type = q.type;
       if (icon)
@@ -280,6 +312,13 @@ class Submission extends React.Component {
     const s = this.state.submission;
     return (
       <bem.FormModal>
+        {this.state.hasBetaQuestion &&
+          <div className='submission--warning'>
+            <i className="k-icon-alert" />
+            <span>{t('Responses from a Question Matrix are not displayed in this screen.')}</span>
+          </div>
+        }
+
         <bem.FormModal__group m='validation-status'>
           <label>{t('Validation status')}</label>
           <Select 
@@ -328,7 +367,6 @@ class Submission extends React.Component {
             }
           </div>
         </bem.FormModal__group>
-
         <table>
           <thead>
           <tr>
@@ -338,6 +376,11 @@ class Submission extends React.Component {
           </tr>
           </thead>
           <tbody>
+            {this.renderRows()}
+            <tr key={`row-meta`}>
+              <td colSpan="3" className="submission--end-group"></td>
+            </tr>
+
             {s.start &&
               <tr>
                 <td></td>
@@ -352,9 +395,6 @@ class Submission extends React.Component {
                 <td>{s.end}</td>
               </tr>
             }
-
-            {this.renderRows()}
-
             {s.__version__ &&
               <tr>
                 <td></td>
