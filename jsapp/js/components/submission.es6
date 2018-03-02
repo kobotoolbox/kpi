@@ -202,7 +202,7 @@ class Submission extends React.Component {
             <td colSpan="3" className="submission--repeat-group">
               <h4>
                 {t('Repeat group: ')}
-                {q.label[0] || t('Unlabelled')}
+                {q.label[0] || t('Unlabeled')}
               </h4>
               {s[name] && s[name].map((repQ, i)=> {
                 var response = [];
@@ -249,7 +249,7 @@ class Submission extends React.Component {
           <tr key={`row-${name}`}>
             <td colSpan="3" className="submission--group">
               <h4>
-                {q.label[0] || t('Unlabelled')}
+                {q.label[0] || t('Unlabeled')}
               </h4>
             </td>
           </tr>
