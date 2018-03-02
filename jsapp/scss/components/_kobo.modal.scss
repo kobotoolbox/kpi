@@ -182,6 +182,10 @@
     margin: 20px 0px;
     text-align: left;
 
+    thead tr {
+      border-bottom: 1px solid $divider-color;
+    }
+
     thead th {
       font-weight: 600;
       padding: 8px 12px;
@@ -227,6 +231,43 @@
       table {
         background: #FFF;
       }
+    }
+
+    .submission--group {
+      background: #F8F8F8;
+
+      h4 {
+        margin: 0px;
+      }
+    }
+
+    .submission--end-group {
+      background: $divider-color;
+      padding-top: 1px;
+      padding-bottom: 0px;
+    }
+  }
+
+  .submission--warning {
+    margin-bottom: 30px;
+    padding: 10px;
+    background: lighten(yellow, 42%);
+    text-align: center;
+    line-height: 1em;
+
+    i {
+      color: #FFB775;
+      font-size: 40px;
+      margin-right: 10px;
+      vertical-align: middle;
+      display: inline-block;
+    }
+
+    span {
+      line-height: 1.4em;
+      display: inline-block;
+      vertical-align: middle;
+      width: calc(100% - 60px);
     }
   }
 }

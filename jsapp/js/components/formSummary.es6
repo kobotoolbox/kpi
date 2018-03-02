@@ -36,7 +36,6 @@ class FormSummary extends React.Component {
   componentDidUpdate(prevProps, prevState) {
     if(!this.submissionsChart) {
       this.createChart();
-      this.prep();
     }
     if ((prevState.chartPeriod != this.state.chartPeriod) || (this.props.params != prevProps.params)) {
       if (this.state.permissions && this.userCan('view_submissions', this.state)) {
@@ -75,6 +74,7 @@ class FormSummary extends React.Component {
     const canvas = ReactDOM.findDOMNode(this.refs.canvas);
     if (canvas) {
       this.submissionsChart = new Chart(canvas, opts);
+      this.prep();
     }
   }
   prepSubmissions(assetid) {
@@ -109,9 +109,11 @@ class FormSummary extends React.Component {
             day = day.clone().add(1, 'd');
           }
 
-          this.submissionsChart.data.labels = dayLabels;
-          this.submissionsChart.data.datasets = [{data: subsPerDay}];
-          this.submissionsChart.update();
+          if (this.submissionsChart.data) {
+            this.submissionsChart.data.labels = dayLabels;
+            this.submissionsChart.data.datasets = [{data: subsPerDay}];
+            this.submissionsChart.update();
+          }
         }
 
         this.setState({

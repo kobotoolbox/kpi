@@ -451,6 +451,9 @@ mixins.permissions = {
     if (!asset.permissions)
       return false;
 
+    if (!stores.session.currentAccount)
+      return false;
+
     const currentUsername = stores.session.currentAccount.username;
     if (asset.owner__username === currentUsername)
       return true
