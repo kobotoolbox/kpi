@@ -164,14 +164,14 @@ class Submission extends React.Component {
     switch(q.type) {
       case 'select_one':
         const choice = choices.find(x => x.list_name == q.select_from_list_name && x.name === submissionValue);
-        if (choice && choice.label  && choice.label[0])
+        if (choice && choice.label && choice.label[0])
           return choice.label[0];
         break;
       case 'select_multiple':
         var responses = submissionValue.split(' ');
         var list = responses.map((r)=> {
           const choice = choices.find(x => x.list_name == q.select_from_list_name && x.name === r);
-          if (choice && choice.label)
+          if (choice && choice.label && choice.label[0])
             return <li key={r}>{choice.label[0]}</li>;
         })
         return <ul>{list}</ul>;
@@ -202,7 +202,7 @@ class Submission extends React.Component {
             <td colSpan="3" className="submission--repeat-group">
               <h4>
                 {t('Repeat group: ')}
-                {q.label[0] || t('Unlabeled')}
+                {q.label && q.label[0] ? q.label[0] : t('Unlabelled')}
               </h4>
               {s[name] && s[name].map((repQ, i)=> {
                 var response = [];
@@ -249,7 +249,7 @@ class Submission extends React.Component {
           <tr key={`row-${name}`}>
             <td colSpan="3" className="submission--group">
               <h4>
-                {q.label[0] || t('Unlabeled')}
+                {q.label && q.label[0] ? q.label[0] : t('Unlabelled')}
               </h4>
             </td>
           </tr>
@@ -279,7 +279,7 @@ class Submission extends React.Component {
       return (
         <tr key={`row-${name}`}>
           <td className="submission--question-type">{type}</td>
-          <td className="submission--question">{q.label[0]}</td>
+          <td className="submission--question">{q.label[0] || t('Unlabelled')}</td>
           <td className="submission--response">{response}</td>
         </tr>      
       );
