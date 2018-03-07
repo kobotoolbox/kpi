@@ -428,7 +428,7 @@ var dataInterface;
     },
     getEnketoEditLink(uid, sid) {
       return $ajax({
-        url: `${rootUrl}/assets/${uid}/submissions/${sid}/edit?return_url=url`,
+        url: `${rootUrl}/assets/${uid}/submissions/${sid}/edit?return_url=false`,
         method: 'GET'
       });
     },
