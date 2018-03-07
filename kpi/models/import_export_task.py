@@ -362,22 +362,14 @@ class ExportTask(ImportExportTask):
             'hierarchy_in_labels', ''
         ).lower() == 'true'
         group_sep = self.data.get('group_sep', '/')
-        fields_from_all_versions = self.data.get(
-            'fields_from_all_versions', 'true'
-        ).lower() == 'true'
         translations = pack.available_translations
         lang = self.data.get('lang', None) or next(iter(translations), None)
         if lang == '_default':
             lang = formpack.constants.UNTRANSLATED
         tag_cols_for_header = self.data.get('tag_cols_for_header', ['hxl'])
 
-        if fields_from_all_versions:
-            versions = pack.versions.keys()
-        else:
-            versions = -1
-
         return {
-            'versions': versions,
+            'versions': pack.versions.keys(),
             'group_sep': group_sep,
             'lang': lang,
             'hierarchy_in_labels': hierarchy_in_labels,
@@ -420,9 +412,11 @@ class ExportTask(ImportExportTask):
         if not source_url:
             raise Exception('no source specified for the export')
         source_type, source = _resolve_url_to_asset_or_collection(source_url)
+
         if source_type != 'asset':
             raise NotImplementedError(
                 'only an `Asset` may be exported at this time')
+
         if not source.has_perm(self.user, 'view_submissions'):
             # Unsure if DRF exceptions make sense here since we're not
             # returning a HTTP response
@@ -430,12 +424,18 @@ class ExportTask(ImportExportTask):
                 u'{user} cannot export {source}'.format(
                     user=self.user, source=source)
             )
+
         if not source.has_deployment:
             raise Exception('the source must be deployed prior to export')
+
         export_type = self.data.get('type', '').lower()
         if export_type not in ('xls', 'csv'):
             raise NotImplementedError(
                 'only `xls` and `csv` are valid export types')
+
+        fields_from_all_versions = self.data.get(
+            'fields_from_all_versions', 'true'
+        ).lower() == 'true'
 
         # Take this opportunity to do some housekeeping
         self.log_and_mark_stuck_as_errored(self.user, source_url)
@@ -447,11 +447,14 @@ class ExportTask(ImportExportTask):
         else:
             submission_stream = None
 
-        pack, submission_stream = build_formpack(source, submission_stream)
+        pack, submission_stream = build_formpack(
+            source, submission_stream, fields_from_all_versions)
+
         # Wrap the submission stream in a generator that records the most
         # recent timestamp
         submission_stream = self._record_last_submission_time(
             submission_stream)
+
         options = self._build_export_options(pack)
         export = pack.export(**options)
         extension = 'xlsx' if export_type == 'xls' else export_type
