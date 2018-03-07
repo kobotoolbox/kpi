@@ -30,7 +30,8 @@ class Submission extends React.Component {
       previous: -1, 
       next: -1,
       sid: props.sid,
-      showBetaFieldsWarning: false
+      showBetaFieldsWarning: false,
+      promptRefresh: false
     };
     autoBind(this);
   }
@@ -135,6 +136,19 @@ class Submission extends React.Component {
     } else {
       return <a href={attachmentUrl} target="_blank">{originalFilename}</a>
     }
+  }
+
+  promptRefresh() {
+    this.setState({
+      promptRefresh: true
+    });
+  }
+
+  triggerRefresh() {
+    this.getSubmission(this.props.asset.uid, this.props.sid);
+    this.setState({
+      promptRefresh: false
+    });    
   }
 
   switchSubmission(evt) {
@@ -319,6 +333,15 @@ class Submission extends React.Component {
           </div>
         }
 
+        {this.state.promptRefresh &&
+          <div className='submission--warning'>
+            <p>{t('Click on the button below to load the most recent data for this submission. ')}</p>
+            <a onClick={this.triggerRefresh} className="mdl-button mdl-button--raised mdl-button--colored">
+              {t('Refresh submission')}
+            </a>
+          </div>
+        }
+
         <bem.FormModal__group m='validation-status'>
           <label>{t('Validation status')}</label>
           <Select 
@@ -353,6 +376,7 @@ class Submission extends React.Component {
           <div className="submission-actions">
             {this.userCan('change_submissions', this.props.asset) && this.state.enketoEditLink &&
               <a href={this.state.enketoEditLink}
+                   onClick={this.promptRefresh}
                  target="_blank"
                  className="mdl-button mdl-button--raised mdl-button--colored">
                 {t('Edit')}
@@ -412,7 +436,6 @@ class Submission extends React.Component {
 
           </tbody>
         </table>
-
       </bem.FormModal>
     );
   }
