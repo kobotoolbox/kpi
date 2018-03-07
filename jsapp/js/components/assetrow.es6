@@ -296,6 +296,16 @@ class AssetRow extends React.Component {
                   {t('Deploy this project')}
                 </bem.PopoverMenu__link>
               }
+              { this.props.asset_type && this.props.asset_type === 'survey' && this.props.has_deployment && !this.props.deployment__active && userCanEdit &&
+                <bem.PopoverMenu__link
+                      m={'unarchive'}
+                      data-action={'unarchive'}
+                      data-asset-type={this.props.kind}
+                    >
+                  <i className="k-icon-archived" />
+                  {t('Unarchive')}
+                </bem.PopoverMenu__link>
+              }
               { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit &&
                 <Dropzone onDrop={this.onDrop}
                           multiple={false} 
@@ -321,7 +331,6 @@ class AssetRow extends React.Component {
                     </bem.PopoverMenu__link>
                   );
               })}
-
               { this.props.asset_type && this.props.asset_type != 'survey' && ownedCollections.length > 0 &&
                 <bem.PopoverMenu__heading>
                   {t('Move to')}
@@ -348,7 +357,6 @@ class AssetRow extends React.Component {
                   })}
                 </bem.PopoverMenu__moveTo>
               }
-
               { this.props.asset_type && this.props.asset_type === 'survey' && this.props.has_deployment && this.props.deployment__active && userCanEdit &&
                 <bem.PopoverMenu__link
                       m={'archive'}
@@ -359,18 +367,6 @@ class AssetRow extends React.Component {
                   {t('Archive')}
                 </bem.PopoverMenu__link>
               }
-
-              { this.props.asset_type && this.props.asset_type === 'survey' && this.props.has_deployment && !this.props.deployment__active && userCanEdit &&
-                <bem.PopoverMenu__link
-                      m={'unarchive'}
-                      data-action={'unarchive'}
-                      data-asset-type={this.props.kind}
-                    >
-                  <i className="k-icon-archived" />
-                  {t('Unarchive')}
-                </bem.PopoverMenu__link>
-              }
-
               {userCanEdit &&
                 <bem.PopoverMenu__link
                       m={'delete'}
