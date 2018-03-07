@@ -119,6 +119,9 @@ mixins.dmix = {
       this.reDeployConfirm(asset, onComplete);
     }
   },
+  unarchiveAsset () {
+    mixins.clickAssets.click.asset.unarchive.call(this, this.state);
+  },
   toggleDeploymentHistory () {
     this.setState({
       historyExpanded: !this.state.historyExpanded,
@@ -403,7 +406,32 @@ mixins.clickAssets = {
           }
         };
         dialog.set(opts).show();
-
+      },
+      unarchive: function(assetOrUid) {
+        let asset = (typeof assetOrUid == 'object') ? assetOrUid : stores.selectedAsset.asset;
+        let dialog = alertify.dialog('confirm');
+        let opts = {
+          title: t('Unarchive Project'),
+          message: `${t('Are you sure you want to unarchive this project?')}`,
+          labels: {ok: t('Unarchive'), cancel: t('Cancel')},
+          onok: (evt, val) => {
+            actions.resources.setDeploymentActive(
+              {
+                asset: asset,
+                active: true
+              },
+              {onComplete: ()=> {
+                actions.resources.loadAsset({id: asset.uid});
+                this.refreshSearch && this.refreshSearch();
+                notify(t('unarchived project'));
+              }}
+            );
+          },
+          oncancel: () => {
+            dialog.destroy();
+          }
+        };
+        dialog.set(opts).show();
       },
       sharing: function(uid){
         stores.pageState.showModal({

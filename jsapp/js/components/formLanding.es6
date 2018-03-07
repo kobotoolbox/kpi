@@ -80,11 +80,25 @@ export class FormLanding extends React.Component {
             </bem.FormView__cell>
           </bem.FormView__cell>
           <bem.FormView__cell m='buttons'>
-            {userCanEdit && 
+            {userCanEdit && this.state.has_deployment && this.state.deployment__active &&
               <a
                 className="mdl-button mdl-button--raised mdl-button--colored"
                 onClick={this.deployAsset}>
-                  {this.state.has_deployment ? t('redeploy') : t('deploy')}
+                  {t('redeploy')}
+              </a>
+            }
+            {userCanEdit && !this.state.has_deployment && !this.state.deployment__active &&
+              <a
+                className="mdl-button mdl-button--raised mdl-button--colored"
+                onClick={this.deployAsset}>
+                  {t('deploy')}
+              </a>
+            }
+            {userCanEdit && this.state.has_deployment && !this.state.deployment__active &&
+              <a
+                className="mdl-button mdl-button--raised mdl-button--colored"
+                onClick={this.unarchiveAsset}>
+                  {t('unarchive')}
               </a>
             }
           </bem.FormView__cell>
