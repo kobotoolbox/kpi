@@ -304,6 +304,9 @@ class ExportTask(ImportExportTask):
                              `group_sep`. Defaults to `False`
     * `group_sep`: optional; separator to use when labels contain group
                    hierarchy. Defaults to `/`
+    * `fields_from_all_versions`: optional; defaults to `True`. When `False`,
+                                  only fields from the latest deployed version
+                                  are included
     * `tag_cols_for_header`: optional; a list of tag columns in the form
         definition to include as header rows in the export. For example, given
         the following form definition:
@@ -359,14 +362,22 @@ class ExportTask(ImportExportTask):
             'hierarchy_in_labels', ''
         ).lower() == 'true'
         group_sep = self.data.get('group_sep', '/')
+        fields_from_all_versions = self.data.get(
+            'fields_from_all_versions', 'true'
+        ).lower() == 'true'
         translations = pack.available_translations
         lang = self.data.get('lang', None) or next(iter(translations), None)
         if lang == '_default':
             lang = formpack.constants.UNTRANSLATED
         tag_cols_for_header = self.data.get('tag_cols_for_header', ['hxl'])
 
+        if fields_from_all_versions:
+            versions = pack.versions.keys()
+        else:
+            versions = -1
+
         return {
-            'versions': pack.versions.keys(),
+            'versions': versions,
             'group_sep': group_sep,
             'lang': lang,
             'hierarchy_in_labels': hierarchy_in_labels,
