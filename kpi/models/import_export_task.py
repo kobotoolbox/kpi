@@ -21,6 +21,7 @@ from pyxform import xls2json_backends
 from private_storage.fields import PrivateFileField
 from kobo.apps.reports.report_data import build_formpack
 from formpack import FormPack
+from formpack.utils.string import ellipsize
 import formpack.constants
 from ..fields import KpiUidField
 from ..models import Collection, Asset
@@ -331,27 +332,51 @@ class ExportTask(ImportExportTask):
 
     COPY_FIELDS = ('_id', '_uuid', '_submission_time')
     TIMESTAMP_KEY = '_submission_time'
+    # Above 244 seems to cause 'Download error' in Chrome 64/Linux
+    MAXIMUM_FILENAME_LENGTH = 240
 
-    @staticmethod
-    def _build_export_filename(export, extension):
+    @property
+    def _fields_from_all_versions(self):
+        return self.data.get(
+            'fields_from_all_versions', 'true'
+        ).lower() == 'true'
+
+    def _build_export_filename(self, export, extension):
         '''
         Internal method to build the export filename based on the export title
         (which should be set when calling the `FormPack()` constructor),
-        the label language, the current date and time, and the given
-        `extension`
+        whether the latest or all versions are included, the label language,
+        the current date and time, and the given `extension`
         '''
-        form_type = 'labels'
-        if not export.lang:
-            form_type = "values"
-        elif export.lang != "_default":
-            form_type = export.lang
+        if export.lang == formpack.constants.UNTRANSLATED:
+            lang = 'labels'
+        else:
+            lang = export.lang
 
-        return u"{title} - {form_type} - {date:%Y-%m-%d-%H-%M}.{ext}".format(
-            form_type=form_type,
-            date=datetime.datetime.utcnow(),
-            title=export.title,
-            ext=extension
+        # TODO: translate this? Would we have to delegate to the front end?
+        if self._fields_from_all_versions:
+            version = 'all versions'
+        else:
+            version = 'latest version'
+
+        filename_template = (
+            u'{{title}} - {version} - {{lang}} - {date:%Y-%m-%d-%H-%M-%S}'
+            u'.{ext}'.format(
+                version=version,
+                date=datetime.datetime.utcnow(),
+                ext=extension
+            )
         )
+        title = export.title
+        filename = filename_template.format(title=title, lang=lang)
+        overrun = len(filename) - self.MAXIMUM_FILENAME_LENGTH
+        if overrun <= 0:
+            return filename
+        # TODO: trim the title in a right-to-left-friendly way
+        # TODO: deal with excessively long language names
+        title = ellipsize(title, len(title) - overrun)
+        filename = filename_template.format(title=title, lang=lang)
+        return filename
 
     def _build_export_options(self, pack):
         '''
@@ -433,10 +458,6 @@ class ExportTask(ImportExportTask):
             raise NotImplementedError(
                 'only `xls` and `csv` are valid export types')
 
-        fields_from_all_versions = self.data.get(
-            'fields_from_all_versions', 'true'
-        ).lower() == 'true'
-
         # Take this opportunity to do some housekeeping
         self.log_and_mark_stuck_as_errored(self.user, source_url)
 
@@ -448,7 +469,7 @@ class ExportTask(ImportExportTask):
             submission_stream = None
 
         pack, submission_stream = build_formpack(
-            source, submission_stream, fields_from_all_versions)
+            source, submission_stream, self._fields_from_all_versions)
 
         # Wrap the submission stream in a generator that records the most
         # recent timestamp
