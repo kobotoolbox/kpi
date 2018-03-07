@@ -109,7 +109,7 @@ class AssetRow extends React.Component {
         ownedCollections = [], 
         parent = undefined;
 
-    var isDeployable = this.props.asset_type && this.props.asset_type === 'survey';
+    var isDeployable = this.props.asset_type && this.props.asset_type === 'survey' && this.props.deployed_version_id === null;
 
     const userCanEdit = this.userCan('change_asset', this.props);
   
@@ -293,7 +293,7 @@ class AssetRow extends React.Component {
                     data-action={'deploy'} 
                     data-asset-type={this.props.kind}>
                   <i className="k-icon-deploy" />
-                  {this.props.deployed_version_id === null ? t('Deploy this project') : t('Redeploy this project')}
+                  {t('Deploy this project')}
                 </bem.PopoverMenu__link>
               }
               { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit &&
@@ -357,6 +357,17 @@ class AssetRow extends React.Component {
                     >
                   <i className="k-icon-archived" />
                   {t('Archive')}
+                </bem.PopoverMenu__link>
+              }
+
+              { this.props.asset_type && this.props.asset_type === 'survey' && this.props.has_deployment && !this.props.deployment__active && userCanEdit &&
+                <bem.PopoverMenu__link
+                      m={'unarchive'}
+                      data-action={'unarchive'}
+                      data-asset-type={this.props.kind}
+                    >
+                  <i className="k-icon-archived" />
+                  {t('Unarchive')}
                 </bem.PopoverMenu__link>
               }
 
