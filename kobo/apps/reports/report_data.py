@@ -42,18 +42,27 @@ def get_instances_for_userform_id(userform_id, submission=None):
     return (_decode_from_mongo(instance) for instance in instances)
 
 
-def build_formpack(asset, submission_stream=None):
+def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
     '''
     Return a tuple containing a `FormPack` instance and the iterable stream of
-    submissions for the given `asset`
+    submissions for the given `asset`. If `use_all_form_versions` is `False`,
+    then only the newest version of the form is considered, and all submissions
+    are assumed to have been collected with that version of the form.
     '''
     FUZZY_VERSION_ID_KEY = '_version_'
     INFERRED_VERSION_ID_KEY = '__inferred_version__'
 
-    _versions = asset.deployed_versions
+    if not asset.has_deployment:
+        raise Exception('Cannot build formpack for asset without deployment')
+
+    if use_all_form_versions:
+        _versions = asset.deployed_versions
+    else:
+        _versions = [asset.deployed_versions.first()]
+
     schemas = []
     version_ids_newest_first = []
-    for v in asset.deployed_versions:
+    for v in _versions:
         try:
             fp_schema = v.to_formpack_schema()
         # FIXME: should FormPack validation errors have their own
@@ -71,6 +80,11 @@ def build_formpack(asset, submission_stream=None):
             version_ids_newest_first.append(v.uid)
             if v.uid_aliases:
                 version_ids_newest_first.extend(v.uid_aliases)
+
+    if not schemas:
+        raise Exception('Cannot build formpack without any schemas')
+
+    # FormPack() expects the versions to be ordered from oldest to newest
     pack = FormPack(versions=reversed(schemas), title=asset.name, id_string=asset.uid)
 
     # Find the AssetVersion UID for each deprecated reversion ID
@@ -84,28 +98,32 @@ def build_formpack(asset, submission_stream=None):
     # version id (see https://github.com/kobotoolbox/kpi/issues/1465). To cope,
     # assume that the newest version of this asset whose id appears in the
     # submission is the proper one to use
-    def _infer_version_id(result):
-        result_version_ids = [
-            val for key, val in result.iteritems()
+    def _infer_version_id(submission):
+        if not use_all_form_versions:
+            submission[INFERRED_VERSION_ID_KEY] = version_ids_newest_first[0]
+            return submission
+
+        submission_version_ids = [
+            val for key, val in submission.iteritems()
                 if FUZZY_VERSION_ID_KEY in key
         ]
         # Replace any deprecated reversion IDs with the UIDs of their
         # corresponding AssetVersions
-        result_version_ids = [
+        submission_version_ids = [
             _reversion_ids[x] if x in _reversion_ids
-                else x for x in result_version_ids
+                else x for x in submission_version_ids
         ]
         inferred_version_id = None
         for extant_version_id in version_ids_newest_first:
-            if extant_version_id in result_version_ids:
+            if extant_version_id in submission_version_ids:
                 inferred_version_id = extant_version_id
                 break
         if not inferred_version_id:
             # Fall back on the latest version
             # TODO: log a warning?
             inferred_version_id = version_ids_newest_first[0]
-        result[INFERRED_VERSION_ID_KEY] = inferred_version_id
-        return result
+        submission[INFERRED_VERSION_ID_KEY] = inferred_version_id
+        return submission
 
     if submission_stream is None:
         _userform_id = asset.deployment.mongo_userform_id
@@ -114,7 +132,7 @@ def build_formpack(asset, submission_stream=None):
         submission_stream = get_instances_for_userform_id(_userform_id)
 
     submission_stream = (
-        _infer_version_id(result) for result in submission_stream
+        _infer_version_id(submission) for submission in submission_stream
     )
 
     return pack, submission_stream
