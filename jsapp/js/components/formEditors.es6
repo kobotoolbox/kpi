@@ -548,7 +548,11 @@ export class ProjectDownloads extends React.Component {
                           {item.data.hierarchy_in_labels === "false" ? t('No') : t("Yes")}
                         </bem.FormView__label>
                         <bem.FormView__label m='multi-versioned'>
-                          {item.data.fields_from_all_versions === "true" ? t('Yes') : t('No')}
+                          {
+                            // Old exports won't have this field, and we should
+                            // assume they *were* multi-versioned
+                            item.data.fields_from_all_versions === "false" ? t('No') : t('Yes')
+                          }
                         </bem.FormView__label>
                         <bem.FormView__label m='action'>
                           {item.status == 'complete' &&
