@@ -5,7 +5,7 @@
 #    pip-compile --output-file dependencies/pip/requirements.txt dependencies/pip/requirements.in
 #
 -e git+https://github.com/dimagi/django-digest@0eb1c921329dd187c343b61acfbec4e98450136e#egg=django_digest
--e git+https://github.com/kobotoolbox/formpack.git@b4637a9cb3ff2887ab3ac901c683a048006f98cb#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@86cbb33#egg=formpack
 -e git+https://github.com/kobotoolbox/pyxform.git@2.018.06#egg=pyxform
 amqp==1.4.9
 anyjson==0.3.3
