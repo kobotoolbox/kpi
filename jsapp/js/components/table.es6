@@ -249,6 +249,7 @@ export class DataTable extends React.Component {
             index = 'z6';
             break;
         case '__version__':
+        case '_version_':
             index = 'z7';
             break;
         case '_id':
@@ -263,7 +264,7 @@ export class DataTable extends React.Component {
         default:
           survey.map(function(x, i) {
             if (x.name === key || x.$autoname === key) {
-              index = 'f' + i.toString();
+              index = i.toString();
             }
           });
       }
@@ -313,7 +314,7 @@ export class DataTable extends React.Component {
     });
 
     columns.sort(function(a, b) {
-      return a.index.localeCompare(b.index);
+      return a.index.localeCompare(b.index, 'en', {numeric: true});
     })
 
     columns.forEach(function(col, ind) {
