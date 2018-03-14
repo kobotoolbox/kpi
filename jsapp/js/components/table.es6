@@ -216,10 +216,10 @@ export class DataTable extends React.Component {
         return false;
 
       var q = undefined;
-      var groupQ = [];
-      if (key.includes('/')) {
-        groupQ = key.split('/');
-        q = survey.find(o => o.name === groupQ[1] || o.$autoname == groupQ[1]);
+      var qParentG = [];
+      if (key.includes('/') && key !== 'meta/instanceID') {
+        qParentG = key.split('/');
+        q = survey.find(o => o.name === qParentG[qParentG.length - 1] || o.$autoname == qParentG[qParentG.length - 1]);
       } else {
         q = survey.find(o => o.name === key || o.$autoname == key);
       }
@@ -227,8 +227,10 @@ export class DataTable extends React.Component {
       if (q && q.type === 'begin_repeat')
         return false;
 
-      var index = key;
+      // sets location of columns for questions not in current survey version
+      var index = 'y_' + key;
 
+      // place meta question columns at the very end
       switch(key) {
         case 'username':
             index = 'z1';
@@ -262,8 +264,14 @@ export class DataTable extends React.Component {
             index = 'z91';
             break;
         default:
+          // set index for questions in current version of survey (including questions in groups)
           survey.map(function(x, i) {
-            if (x.name === key || x.$autoname === key) {
+            var k = key;
+            if (key.includes('/')) {
+              var kArray = k.split('/');
+              k = kArray[kArray.length - 1];
+            }
+            if (x.name === k || x.$autoname === k) {
               index = i.toString();
             }
           });
@@ -271,12 +279,30 @@ export class DataTable extends React.Component {
 
     	columns.push({
 	    	Header: h => {
-            var lbl = key.includes('/') ? key.split('/')[1] : key;
+            var lbl = key;
+
+            if (key.includes('/')) {
+              var splitK = key.split('/');
+              lbl = splitK[splitK.length - 1];
+            }
             if (q && q.label && showLabels)
               lbl = q.label[0];
             // show Groups in labels, when selected
-            if (showGroups && groupQ && key.includes('/') && key !== 'meta/instanceID')
-              lbl = `${groupQ[0]} / ${lbl}`;
+            if (showGroups && qParentG && key.includes('/')) {
+              var gLabels = qParentG.join(' / ');
+
+              if (showLabels) {
+                var gT = qParentG.map(function(g) {
+                  var x = survey.find(o => o.name === g || o.$autoname == g);
+                  if (x && x.label && x.label[0])
+                    return x.label[0];
+
+                  return '';
+                });
+                gLabels = gT.join(' / ');
+              }
+              return gLabels;
+            }
 
             return lbl;
           },
