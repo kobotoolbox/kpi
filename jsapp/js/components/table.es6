@@ -376,6 +376,11 @@ export class DataTable extends React.Component {
 		})
   }
   toggleExpandedTable () {
+    if (this.state.showExpandedTable) {
+      // load asset again to restore header title and submission count after exiting expanded report
+      actions.resources.loadAsset({id: this.props.asset.uid});
+    }
+
     stores.pageState.hideDrawerAndHeader(!this.state.showExpandedTable);
     this.setState({
       showExpandedTable: !this.state.showExpandedTable,
