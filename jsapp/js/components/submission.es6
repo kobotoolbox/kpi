@@ -50,12 +50,13 @@ class Submission extends React.Component {
   getSubmission(assetUid, sid) {
     dataInterface.getSubmission(assetUid, sid).done((data) => {
       var prev = -1, next = -1;
-      const survey = this.props.asset.content.survey;
 
-      dataInterface.getEnketoEditLink(assetUid, sid).done((data) => {
-        if (data.url)
-          this.setState({enketoEditLink: data.url});
-      });
+      if (this.props.asset.deployment__active) {
+        dataInterface.getEnketoEditLink(assetUid, sid).done((editData) => {
+          if (editData.url)
+            this.setState({enketoEditLink: editData.url});
+        });
+      }
 
       if (this.props.ids && sid) {
         const c = this.props.ids.findIndex(k => k==sid);
@@ -65,6 +66,7 @@ class Submission extends React.Component {
           next = this.props.ids[c + 1];
       }
 
+      const survey = this.props.asset.content.survey;
       const betaQuestions = ['begin_kobomatrix'];
       const hasBetaQuestion = survey.find(q => betaQuestions.includes(q.type)) || false;
 
@@ -87,7 +89,8 @@ class Submission extends React.Component {
 
   componentWillReceiveProps(nextProps) {
     this.setState({
-      sid: nextProps.sid
+      sid: nextProps.sid,
+      promptRefresh: false
     });
 
     this.getSubmission(nextProps.asset.uid, nextProps.sid);
@@ -342,16 +345,18 @@ class Submission extends React.Component {
           </div>
         }
 
-        <bem.FormModal__group m='validation-status'>
-          <label>{t('Validation status')}</label>
-          <Select 
-            disabled={!this.userCan('validate_submissions', this.props.asset)}
-            clearable={false}
-            value={s._validation_status ? s._validation_status.uid : ''}
-            options={VALIDATION_STATUSES}
-            onChange={this.validationStatusChange}>
-          </Select>
-        </bem.FormModal__group>
+        {this.props.asset.deployment__active &&
+          <bem.FormModal__group m='validation-status'>
+            <label>{t('Validation status')}</label>
+            <Select 
+              disabled={!this.userCan('validate_submissions', this.props.asset)}
+              clearable={false}
+              value={s._validation_status ? s._validation_status.uid : ''}
+              options={VALIDATION_STATUSES}
+              onChange={this.validationStatusChange}>
+            </Select>
+          </bem.FormModal__group>
+        }
         <bem.FormModal__group>
           <div className="submission-pager">
             {this.state.previous > -1 &&
