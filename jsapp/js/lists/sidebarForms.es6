@@ -47,7 +47,7 @@ class SidebarFormsList extends Reflux.Component {
   renderMiniAssetRow (asset) {
     var href = `/forms/${asset.uid}`;
 
-    if (this.userCan('view_submissions', asset) && asset.has_deployment && asset.deployment__active)
+    if (this.userCan('view_submissions', asset) && asset.has_deployment && asset.deployment__submission_count)
       href = href + '/summary';
 
     return (

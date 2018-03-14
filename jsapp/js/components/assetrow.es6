@@ -113,7 +113,7 @@ class AssetRow extends React.Component {
 
     const userCanEdit = this.userCan('change_asset', this.props);
   
-    if (this.props.has_deployment && this.props.deployment__active && 
+    if (this.props.has_deployment && this.props.deployment__submission_count && 
         this.userCan('view_submissions', this.props)) {
       hrefTo = `/forms/${this.props.uid}/summary`;
     } 
