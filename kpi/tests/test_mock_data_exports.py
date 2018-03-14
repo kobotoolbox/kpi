@@ -345,6 +345,7 @@ class MockDataExports(TestCase):
         export_task.run()
         self.assertEqual(export_task.status, ExportTask.COMPLETE)
         result = export_task.result
+        self.assertTrue(result.storage.exists(result.name))
         # Make an excessive amount of additional exports
         excess_count = 5 + settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM
         for _ in range(excess_count):
@@ -364,7 +365,7 @@ class MockDataExports(TestCase):
         export_task.run()
         self.assertEqual(export_task.status, ExportTask.COMPLETE)
         # Verify the cleanup
-        self.assertFalse(result.storage.exists(result.path))
+        self.assertFalse(result.storage.exists(result.name))
         self.assertListEqual( # assertSequenceEqual isn't working...
             list(export_tasks_to_keep.values_list('pk', flat=True)),
             list(ExportTask._filter_by_source_kludge(
