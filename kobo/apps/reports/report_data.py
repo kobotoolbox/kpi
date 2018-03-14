@@ -10,6 +10,8 @@ from django.utils.translation import ugettext as _
 from formpack import FormPack
 from rest_framework import serializers
 
+from kpi.utils.mongo_helper import MongoDecodingHelper
+
 from .constants import (SPECIFIC_REPORTS_KEY, DEFAULT_REPORTS_KEY
                         )
 
@@ -18,28 +20,11 @@ def get_instances_for_userform_id(userform_id, submission=None):
     query = {'_userform_id': userform_id, '_deleted_at': {'$exists': False}}
     if submission:
         query['_id'] = submission
-
-    def _decode_from_mongo(instance):
-        '''
-        Dots are not allowed in Mongo keys, so KC encodes them with Base64.
-        They must be decoded before passing to formpack; see
-        https://github.com/kobotoolbox/kpi/issues/1348.
-        If there are future problems with this, note that KC has more complex
-        decoding logic. See
-        * onadata.apps.viewer.models.parsed_instance._decode_from_mongo()
-        * onadata.libs.utils.export_tools.ExportBuilder.decode_mongo_encoded_fields()
-        * onadata.libs.utils.export_tools.ExportBuilder.decode_mongo_encoded_section_names()
-        '''
-        base64_encoded_dot = 'Lg=='
-        for key in instance.keys():
-            if base64_encoded_dot in key:
-                new_key = key.replace(base64_encoded_dot, '.')
-                instance[new_key] = instance[key]
-                del instance[key]
-        return instance
-
     instances = settings.MONGO_DB.instances.find(query)
-    return (_decode_from_mongo(instance) for instance in instances)
+    return (
+        MongoDecodingHelper.to_readable_dict(instance)
+            for instance in instances
+    )
 
 
 def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
