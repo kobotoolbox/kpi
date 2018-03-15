@@ -5,7 +5,7 @@
 #    pip-compile --output-file dependencies/pip/external_services.txt dependencies/pip/external_services.in
 #
 -e git+https://github.com/dimagi/django-digest@0eb1c921329dd187c343b61acfbec4e98450136e#egg=django_digest
--e git+https://github.com/kobotoolbox/formpack.git@86cbb33#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@34496f7ab6e409cc2c2bd569c61b053be6ef2862#egg=formpack
 -e git+https://github.com/kobotoolbox/pyxform.git@2.018.06#egg=pyxform
 amqp==1.4.9
 anyjson==0.3.3
