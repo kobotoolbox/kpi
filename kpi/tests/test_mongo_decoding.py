@@ -34,51 +34,117 @@ class MongoBase64Decoding(TestCase):
     def setUp(self):
         self.maxDiff = None
         self.original_mongo_db = settings.MONGO_DB
-        self.encoded_results = [{
-            u'__version__': u'vPtjMxE37b4kgqoCBFEkeb',
-            u'_attachments': [],
-            u'_bamboo_dataset_id': u'',
-            u'_geolocation': [None, None],
-            u'_id': 190,
-            u'_notes': [],
-            u'_status': u'submitted_via_web',
-            u'_submission_time': u'2017-12-20T07:19:38',
-            u'_submitted_by': None,
-            u'_tags': [],
-            u'_userform_id': u'someuser_afgNxNby4VxHJ4STM2LmVz',
-            u'_uuid': u'f9753a6e-abd3-47e3-a218-9ad1adfa2688',
-            u'_xform_id_string': u'afgNxNby4VxHJ4STM2LmVz',
-            u'dotLg==dotLg==dot': u'<<< THIS IS THE IMPORTANT ONE!!!',
-            u'formhub/uuid': u'c1aae157497d477aa3443b2ca9306e2e',
-            u'meta/instanceID': u'uuid:f9753a6e-abd3-47e3-a218-9ad1adfa2688',
-            u'regular': u'1.3'
-        }]
-        self.decoded_results = [{
-            u'__version__': u'vPtjMxE37b4kgqoCBFEkeb',
-            u'_attachments': [],
-            u'_bamboo_dataset_id': u'',
-            u'_geolocation': [None, None],
-            u'_id': 190,
-            u'_notes': [],
-            u'_status': u'submitted_via_web',
-            u'_submission_time': u'2017-12-20T07:19:38',
-            u'_submitted_by': None,
-            u'_tags': [],
-            u'_userform_id': u'someuser_afgNxNby4VxHJ4STM2LmVz',
-            u'_uuid': u'f9753a6e-abd3-47e3-a218-9ad1adfa2688',
-            u'_xform_id_string': u'afgNxNby4VxHJ4STM2LmVz',
-            u'dot.dot.dot': u'<<< THIS IS THE IMPORTANT ONE!!!',
-            u'formhub/uuid': u'c1aae157497d477aa3443b2ca9306e2e',
-            u'meta/instanceID': u'uuid:f9753a6e-abd3-47e3-a218-9ad1adfa2688',
-            u'regular': u'1.3'
-        }]
-        settings.MONGO_DB = FakeMongoDB(self.encoded_results)
 
     def tearDown(self):
         settings.MONGO_DB = self.original_mongo_db
 
     def test_decoding_base64_dots(self):
+        encoded_results = [{
+            '__version__': 'vPtjMxE37b4kgqoCBFEkeb',
+            '_attachments': [],
+            '_bamboo_dataset_id': '',
+            '_geolocation': [None, None],
+            '_id': 190,
+            '_notes': [],
+            '_status': 'submitted_via_web',
+            '_submission_time': '2017-12-20T07:19:38',
+            '_submitted_by': None,
+            '_tags': [],
+            '_userform_id': 'someuser_afgNxNby4VxHJ4STM2LmVz',
+            '_uuid': 'f9753a6e-abd3-47e3-a218-9ad1adfa2688',
+            '_xform_id_string': 'afgNxNby4VxHJ4STM2LmVz',
+            'dotLg==dotLg==dot': '<<< THIS IS THE IMPORTANT ONE!!!',
+            'formhub/uuid': 'c1aae157497d477aa3443b2ca9306e2e',
+            'meta/instanceID': 'uuid:f9753a6e-abd3-47e3-a218-9ad1adfa2688',
+            'regular': '1.3'
+        }]
+        decoded_results = [{
+            '__version__': 'vPtjMxE37b4kgqoCBFEkeb',
+            '_attachments': [],
+            '_bamboo_dataset_id': '',
+            '_geolocation': [None, None],
+            '_id': 190,
+            '_notes': [],
+            '_status': 'submitted_via_web',
+            '_submission_time': '2017-12-20T07:19:38',
+            '_submitted_by': None,
+            '_tags': [],
+            '_userform_id': 'someuser_afgNxNby4VxHJ4STM2LmVz',
+            '_uuid': 'f9753a6e-abd3-47e3-a218-9ad1adfa2688',
+            '_xform_id_string': 'afgNxNby4VxHJ4STM2LmVz',
+            'dot.dot.dot': '<<< THIS IS THE IMPORTANT ONE!!!',
+            'formhub/uuid': 'c1aae157497d477aa3443b2ca9306e2e',
+            'meta/instanceID': 'uuid:f9753a6e-abd3-47e3-a218-9ad1adfa2688',
+            'regular': '1.3'
+        }]
+        settings.MONGO_DB = FakeMongoDB(encoded_results)
         decoded = list(report_data.get_instances_for_userform_id(
             '_userform_id is ignored by FakeMongoDB'))
-        expected_results = self.decoded_results
+        expected_results = decoded_results
+        self.assertEqual(decoded, expected_results)
+
+    def test_decoding_base64_dots_in_repeating_groups(self):
+        encoded_results = [{
+            '__version__': 'vPtjMxE37b4kgqoCBFEkeb',
+            '_attachments': [],
+            '_bamboo_dataset_id': '',
+            '_geolocation': [None, None],
+            '_id': 190,
+            '_notes': [],
+            '_status': 'submitted_via_web',
+            '_submission_time': '2017-12-20T07:19:38',
+            '_submitted_by': None,
+            '_tags': [],
+            '_userform_id': 'someuser_afgNxNby4VxHJ4STM2LmVz',
+            '_uuid': 'f9753a6e-abd3-47e3-a218-9ad1adfa2688',
+            '_xform_id_string': 'afgNxNby4VxHJ4STM2LmVz',
+            # Important portion follows #
+            'dottyLg==dotLg==group': [
+                {
+                  'dottyLg==dotLg==group/dottyLg==dotLg==inLg==aLg==group':
+                      'greetings'
+                },
+                {
+                    'dottyLg==dotLg==group/dottyLg==dotLg==inLg==aLg==group':
+                        'and'
+                },
+                {
+                    'dottyLg==dotLg==group/dottyLg==dotLg==inLg==aLg==group':
+                    'salutations'
+                },
+            ],
+            #############################
+            'formhub/uuid': 'c1aae157497d477aa3443b2ca9306e2e',
+            'meta/instanceID': 'uuid:f9753a6e-abd3-47e3-a218-9ad1adfa2688',
+            'regular': '1.3'
+        }]
+        decoded_results = [{
+            '__version__': 'vPtjMxE37b4kgqoCBFEkeb',
+            '_attachments': [],
+            '_bamboo_dataset_id': '',
+            '_geolocation': [None, None],
+            '_id': 190,
+            '_notes': [],
+            '_status': 'submitted_via_web',
+            '_submission_time': '2017-12-20T07:19:38',
+            '_submitted_by': None,
+            '_tags': [],
+            '_userform_id': 'someuser_afgNxNby4VxHJ4STM2LmVz',
+            '_uuid': 'f9753a6e-abd3-47e3-a218-9ad1adfa2688',
+            '_xform_id_string': 'afgNxNby4VxHJ4STM2LmVz',
+            # Important portion follows #
+            'dotty.dot.group': [
+                {'dotty.dot.group/dotty.dot.in.a.group': 'greetings'},
+                {'dotty.dot.group/dotty.dot.in.a.group': 'and'},
+                {'dotty.dot.group/dotty.dot.in.a.group': 'salutations'},
+            ],
+            #############################
+            'formhub/uuid': 'c1aae157497d477aa3443b2ca9306e2e',
+            'meta/instanceID': 'uuid:f9753a6e-abd3-47e3-a218-9ad1adfa2688',
+            'regular': '1.3'
+        }]
+        settings.MONGO_DB = FakeMongoDB(encoded_results)
+        decoded = list(report_data.get_instances_for_userform_id(
+            '_userform_id is ignored by FakeMongoDB'))
+        expected_results = decoded_results
         self.assertEqual(decoded, expected_results)

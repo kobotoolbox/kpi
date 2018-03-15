@@ -113,8 +113,10 @@ module.exports = do ->
 
       question = @model._get_question()
       if (question._isSelectQuestion())
-        response_value = _.find(question.getList().options.models, (option) ->
-          option.get('name') == response_value).cid
+        rV = _.find(question.getList().options.models, (option) ->
+          option.get('name') == response_value)
+        if (rV && rV.cid)
+          response_value = rV.cid
 
       @view.response_value_view.val response_value
       response_view.$el.trigger('change')
@@ -391,7 +393,7 @@ module.exports = do ->
     constructor: (@criteria, @builder, @view_factory, @context) ->
       @$parent = $('<div>')
       @textarea = @view_factory.create_textarea @criteria, 'skiplogic__handcode-edit'
-      @button = @view_factory.create_button 'x', 'skiplogic-handcode__cancel'
+      @button = @view_factory.create_button '<i class="fa fa-trash-o"></i>', 'skiplogic-handcode__cancel'
 
   class skipLogicHelpers.SkipLogicModeSelectorHelper
     render: ($destination) ->
@@ -457,39 +459,40 @@ module.exports = do ->
       equality_operator_type: 'basic'
       response_type: 'integer'
       name: 'integer'
-    rank:
-      operators: [
-        ops.EX #1
-        ops.EQ #2
-      ]
-      equality_operator_type: 'select_multiple'
-      response_type: 'dropdown'
-      name: 'rank'
-    rank__item:
-      operators: [
-        ops.EX #1
-        ops.EQ #2
-      ]
-      equality_operator_type: 'select_multiple'
-      response_type: 'dropdown'
-      name: 'rank_item'
 
-    score:
-      operators: [
-        ops.EX #1
-        ops.EQ #2
-      ]
-      equality_operator_type: 'select_multiple'
-      response_type: 'dropdown'
-      name: 'score'
-    score__row:
-      operators: [
-        ops.EX #1
-        ops.EQ #2
-      ]
-      equality_operator_type: 'select_multiple'
-      response_type: 'dropdown'
-      name: 'score_row'
+    # rank:
+    #   operators: [
+    #     ops.EX #1
+    #     ops.EQ #2
+    #   ]
+    #   equality_operator_type: 'select_multiple'
+    #   response_type: 'dropdown'
+    #   name: 'rank'
+    # rank__item:
+    #   operators: [
+    #     ops.EX #1
+    #     ops.EQ #2
+    #   ]
+    #   equality_operator_type: 'select_multiple'
+    #   response_type: 'dropdown'
+    #   name: 'rank_item'
+
+    # score:
+    #   operators: [
+    #     ops.EX #1
+    #     ops.EQ #2
+    #   ]
+    #   equality_operator_type: 'select_multiple'
+    #   response_type: 'dropdown'
+    #   name: 'score'
+    # score__row:
+    #   operators: [
+    #     ops.EX #1
+    #     ops.EQ #2
+    #   ]
+    #   equality_operator_type: 'select_multiple'
+    #   response_type: 'dropdown'
+    #   name: 'score_row'
 
     barcode:
       operators: [

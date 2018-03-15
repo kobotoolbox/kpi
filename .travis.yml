@@ -25,7 +25,7 @@ before_script:
 script:
   - gulp copy
   - npm run build
-  - pytest -vv
+  - pytest -vv --cov
   - npm run test
 after_script:
   - coverage xml && python-codacy-coverage -r coverage.xml
@@ -50,7 +50,6 @@ install:
         nvm install $TRAVIS_NODE_VERSION
   - npm install -g install npm@latest
   - npm config set strict-ssl false && npm install --save-dev
-  - bower install
   - pip install --upgrade 'pip>=8.0' wheel
   - pip install pip-tools
   - pip-sync dependencies/pip/requirements.txt

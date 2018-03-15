@@ -709,6 +709,95 @@ def test_xpath_fields_in_kobomatrix_are_preserved():
     ])
 
 
+def test_kobomatrix_missing_or_empty_names():
+    '''
+    Test a mixture of survey elements containing:
+        * An `$autoname` but no `name`;
+        * An `$autoname` and an empty `name`;
+        * An `$autovalue` and an empty `name`;
+        * An `$autovalue` and no `name`.
+    '''
+    content = {
+        'survey': [
+            {'type': 'begin_kobomatrix', 'kobo--matrix_list': 'matrix_qt2dy33',
+             'label': ['Which of the following do you have in this Community'],
+             'appearance': 'field-list', '$autoname': 'group_za0zh02',
+             '$kuid': '22ddef30', 'name': 'group_za0zh02'},
+            {'type': 'text', 'hint': [''], 'label': ['Yes'],
+             'appearance': 'w1', '$autoname': 'Yes', '$kuid': '369ccabe',
+             'required': False},
+            {'type': 'text', 'hint': [''], 'label': ['No'], 'appearance': 'w1',
+             '$autoname': 'No', '$kuid': 'ea3ddb55', 'required': False},
+            {'type': 'text', 'hint': [''], 'label': ["Don't Know"],
+             'appearance': 'w1', '$autoname': 'Don_t_Know',
+             '$kuid': '86f5ce6e', 'required': False, 'name': ''},
+            {'type': 'end_kobomatrix', '$kuid': 'ab229229'},
+        ],
+        'choices': [
+            {'label': ['Local Market'], 'list_name': 'matrix_qt2dy33',
+             '$autovalue': 'Local_Market', '$kuid': 'jw0bj37', 'name': ''},
+            {'label': ['Primary school'], 'list_name': 'matrix_qt2dy33',
+             '$autovalue': 'Primary_school', '$kuid': 'tm79f82', 'name': ''},
+            {'label': ['Secondary school'], 'list_name': 'matrix_qt2dy33',
+             '$autovalue': 'Secondary_school', '$kuid': 'pv5yb79',
+             'name': ''},
+            {'label': ['Health Centre'], 'list_name': 'matrix_qt2dy33',
+             '$autovalue': 'Health_Centre', '$kuid': 'rt02z25'},
+            {'label': ['Public Tap Water '], 'list_name': 'matrix_qt2dy33',
+             '$autovalue': 'Public_Tap_Water_', '$kuid': 'iz2kb60'},
+            {'label': ['Bank'], 'list_name': 'matrix_qt2dy33',
+             '$autovalue': 'Bank', '$kuid': 'gm98s12'},
+        ]
+    }
+    standardized = _compile_asset_content(content)
+    types_names = [(x['type'], x.get('name')) for x in standardized['survey']]
+    expected_types_names = [
+        ('begin_group', 'group_za0zh02_header'),
+        ('note', 'group_za0zh02_header_note'),
+        ('note', 'group_za0zh02_header_Yes'),
+        ('note', 'group_za0zh02_header_No'),
+        ('note', 'group_za0zh02_header_Don_t_Know'),
+        ('end_group', None),
+        ('begin_group', 'group_za0zh02_Local_Market'),
+        ('note', 'group_za0zh02_Local_Market_note'),
+        ('text', 'group_za0zh02_Local_Market_Yes'),
+        ('text', 'group_za0zh02_Local_Market_No'),
+        ('text', 'group_za0zh02_Local_Market_Don_t_Know'),
+        ('end_group', None),
+        ('begin_group', 'group_za0zh02_Primary_school'),
+        ('note', 'group_za0zh02_Primary_school_note'),
+        ('text', 'group_za0zh02_Primary_school_Yes'),
+        ('text', 'group_za0zh02_Primary_school_No'),
+        ('text', 'group_za0zh02_Primary_school_Don_t_Know'),
+        ('end_group', None),
+        ('begin_group', 'group_za0zh02_Secondary_school'),
+        ('note', 'group_za0zh02_Secondary_school_note'),
+        ('text', 'group_za0zh02_Secondary_school_Yes'),
+        ('text', 'group_za0zh02_Secondary_school_No'),
+        ('text', 'group_za0zh02_Secondary_school_Don_t_Know'),
+        ('end_group', None),
+        ('begin_group', 'group_za0zh02_Health_Centre'),
+        ('note', 'group_za0zh02_Health_Centre_note'),
+        ('text', 'group_za0zh02_Health_Centre_Yes'),
+        ('text', 'group_za0zh02_Health_Centre_No'),
+        ('text', 'group_za0zh02_Health_Centre_Don_t_Know'),
+        ('end_group', None),
+        ('begin_group', 'group_za0zh02_Public_Tap_Water_'),
+        ('note', 'group_za0zh02_Public_Tap_Water__note'),
+        ('text', 'group_za0zh02_Public_Tap_Water__Yes'),
+        ('text', 'group_za0zh02_Public_Tap_Water__No'),
+        ('text', 'group_za0zh02_Public_Tap_Water__Don_t_Know'),
+        ('end_group', None),
+        ('begin_group', 'group_za0zh02_Bank'),
+        ('note', 'group_za0zh02_Bank_note'),
+        ('text', 'group_za0zh02_Bank_Yes'),
+        ('text', 'group_za0zh02_Bank_No'),
+        ('text', 'group_za0zh02_Bank_Don_t_Know'),
+        ('end_group', None)
+    ]
+    assert types_names == expected_types_names
+
+
 def test_required_value_can_be_a_string():
     content = _compile_asset_content({
         'survey': [

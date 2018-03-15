@@ -205,13 +205,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def mongo_userform_id(self):
-        try:
-            backend_response = self.asset._deployment_data['backend_response']
-            users = backend_response['users']
-            owner = filter(lambda u: u['role'] == 'owner', users)[0]['user']
-            return '{}_{}'.format(owner, self.xform_id_string)
-        except KeyError:
-            return None
+        return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
 
     def connect(self, identifier=None, active=False):
         '''

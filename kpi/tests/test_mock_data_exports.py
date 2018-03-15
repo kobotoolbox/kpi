@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import os
 import xlrd
 import datetime
 import unittest
@@ -276,8 +277,7 @@ class MockDataExports(TestCase):
         self.run_csv_export_test(expected_lines, export_options)
 
     def test_csv_export_english_labels_group_sep(self):
-        # Even though we are skipping the `hierarchy_in_labels` tests, we can
-        # still check `group_sep` by looking at the `select_multiple` question
+        # Check `group_sep` by looking at the `select_multiple` question
         export_options = {
             'lang': 'English',
             'group_sep': '%',
@@ -291,7 +291,6 @@ class MockDataExports(TestCase):
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
-    @unittest.skip('Enable after fixing formpack#136')
     def test_csv_export_hierarchy_in_labels(self):
         export_options = {'hierarchy_in_labels': 'true'}
         expected_lines = [
@@ -332,7 +331,7 @@ class MockDataExports(TestCase):
             self.assertEqual(result_row, expected_row)
             row_index += 1
 
-    def test_remove_excess(self):
+    def test_remove_excess_exports(self):
         task_data = {
             'source': reverse('asset-detail', args=[self.asset.uid]),
             'type': 'csv',
@@ -346,6 +345,7 @@ class MockDataExports(TestCase):
         export_task.run()
         self.assertEqual(export_task.status, ExportTask.COMPLETE)
         result = export_task.result
+        self.assertTrue(result.storage.exists(result.name))
         # Make an excessive amount of additional exports
         excess_count = 5 + settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM
         for _ in range(excess_count):
@@ -365,7 +365,7 @@ class MockDataExports(TestCase):
         export_task.run()
         self.assertEqual(export_task.status, ExportTask.COMPLETE)
         # Verify the cleanup
-        self.assertFalse(result.storage.exists(result.path))
+        self.assertFalse(result.storage.exists(result.name))
         self.assertListEqual( # assertSequenceEqual isn't working...
             list(export_tasks_to_keep.values_list('pk', flat=True)),
             list(ExportTask._filter_by_source_kludge(
@@ -375,7 +375,7 @@ class MockDataExports(TestCase):
             ).order_by('-date_created').values_list('pk', flat=True))
         )
 
-    def test_log_and_mark_stuck_as_errored(self):
+    def test_log_and_mark_stuck_exports_as_errored(self):
         task_data = {
             'source': reverse('asset-detail', args=[self.asset.uid]),
             'type': 'csv',
@@ -420,3 +420,74 @@ class MockDataExports(TestCase):
                 task_data['source']
             ).order_by('pk').values_list('status', flat=True)
         )
+
+    def test_export_long_form_title(self):
+        what_a_title = (
+            'the quick brown fox jumped over the lazy dog and jackdaws love '
+            'my big sphinx of quartz and pack my box with five dozen liquor '
+            'jugs dum cornelia legit flavia scribit et laeta est flavia quod '
+            'cornelia iam in villa habitat et cornelia et flavia sunt amicae'
+        )
+        assert len(what_a_title) > ExportTask.MAXIMUM_FILENAME_LENGTH
+        self.asset.name = what_a_title
+        self.asset.save()
+        task_data = {
+            'source': reverse('asset-detail', args=[self.asset.uid]),
+            'type': 'csv',
+        }
+        export_task = ExportTask()
+        export_task.user = self.user
+        export_task.data = task_data
+        export_task.save()
+        export_task.run()
+
+        assert (
+            len(os.path.basename(export_task.result.name)) ==
+                ExportTask.MAXIMUM_FILENAME_LENGTH
+        )
+
+    def test_export_latest_version_only(self):
+        new_survey_content = [{
+            'label': ['Do you descend... new label',
+                      '\xbfDesciende de... etiqueta nueva'],
+            'name': 'Do_you_descend_from_unicellular_organism',
+            'required': False,
+            'type': 'text'
+        }]
+        # Re-fetch from the database to avoid modifying self.form_content
+        self.asset = Asset.objects.get(pk=self.asset.pk)
+        self.asset.content['survey'] = new_survey_content
+        self.asset.save()
+        self.asset.deploy(backend='mock', active=True)
+        expected_lines = [
+            '"¿Desciende de... etiqueta nueva";"_id";"_uuid";"_submission_time";"_index"',
+            '"no";"61";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"1"',
+            '"no";"62";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"2"',
+            '"yes";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"3"'
+        ]
+        self.run_csv_export_test(
+            expected_lines, {'fields_from_all_versions': 'false'})
+
+    def test_temporary_test_of_formpack_issue_163_patch(self):
+
+        # FIXME: Flesh this out and move it into formpack
+
+        from formpack import FormPack
+
+        schemas = [
+         {'content': {u'schema': u'1',
+           u'survey': [{u'label': [u'first but not one'],
+             'name': u'first_but_not_one',
+             u'type': u'text'},
+            {u'label': [u'one'], 'name': u'one', u'type': u'text'},
+            {u'label': [u'third'], 'name': u'third', u'type': u'text'}]},
+          'version': u'v8wZaeXndV3KpfYkaHLjxC'},
+         {'content': {u'schema': u'1',
+           u'survey': [{u'label': [u'one'], 'name': u'one', u'type': u'text'}]},
+          'version': u'vwjRCb6B7Mje2iRbeW2iyQ'}
+        ]
+
+        fp = FormPack(schemas)
+
+        # Will raise IndexError if patch is not applied
+        fp.get_fields_for_versions(fp.versions.keys())

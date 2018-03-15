@@ -568,6 +568,7 @@
       margin-left: 2%;
     }
 
+    &--export-fields-from-all-versions,
     &--export-group-headers,
     &--export-submit {
       clear: both;
@@ -605,7 +606,8 @@
 
     @media screen and (max-width: 980px) {
       .form-view__label--date,
-      .form-view__label--include-groups {
+      .form-view__label--include-groups,
+      .form-view__label--multi-versioned {
         display: none;
       }
     }

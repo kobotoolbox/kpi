@@ -533,7 +533,7 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
             'group_sep',
             'lang',
             'hierarchy_in_labels',
-            'async', # HACK to simplify ES6, see HACK below
+            'fields_from_all_versions',
         )
         task_data = {}
         for opt in valid_options:

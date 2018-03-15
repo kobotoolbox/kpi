@@ -25,12 +25,6 @@ if [[ ! -L "${KPI_SRC_DIR}/node_modules" ]] || [[ ! -d "${KPI_SRC_DIR}/node_modu
     ln -s "${KPI_NODE_PATH}" "${KPI_SRC_DIR}/node_modules"
 fi
 
-if [[ ! -L "${KPI_SRC_DIR}/jsapp/xlform/components" ]] || [[ ! -d "${KPI_SRC_DIR}/jsapp/xlform/components" ]]; then
-    echo "Restoring \`bower\` components to \`${KPI_SRC_DIR}/jsapp/xlform/components\`."
-    rm -rf "${KPI_SRC_DIR}/jsapp/xlform/components"
-    ln -s "${BOWER_COMPONENTS_DIR}/" "${KPI_SRC_DIR}/jsapp/xlform/components"
-fi
-
 if [[ ! -L "${KPI_SRC_DIR}/jsapp/compiled" ]] || [[ ! -d "${KPI_SRC_DIR}/jsapp/compiled" ]]; then
     echo "Restoring build directory to \`${KPI_SRC_DIR}/jsapp/compiled\`."
     rm -rf "${KPI_SRC_DIR}/jsapp/compiled"

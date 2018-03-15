@@ -85,7 +85,6 @@ def deploy_ref(deployment_name, ref, force=False):
 
     with cd(env.kpi_path):
         with kobo_workon(env.kpi_virtualenv_name):
-            run("bower install")
             run("npm install")
             run("gulp copy")
             run("npm run build")
