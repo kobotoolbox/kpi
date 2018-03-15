@@ -467,27 +467,3 @@ class MockDataExports(TestCase):
         ]
         self.run_csv_export_test(
             expected_lines, {'fields_from_all_versions': 'false'})
-
-    def test_temporary_test_of_formpack_issue_163_patch(self):
-
-        # FIXME: Flesh this out and move it into formpack
-
-        from formpack import FormPack
-
-        schemas = [
-         {'content': {u'schema': u'1',
-           u'survey': [{u'label': [u'first but not one'],
-             'name': u'first_but_not_one',
-             u'type': u'text'},
-            {u'label': [u'one'], 'name': u'one', u'type': u'text'},
-            {u'label': [u'third'], 'name': u'third', u'type': u'text'}]},
-          'version': u'v8wZaeXndV3KpfYkaHLjxC'},
-         {'content': {u'schema': u'1',
-           u'survey': [{u'label': [u'one'], 'name': u'one', u'type': u'text'}]},
-          'version': u'vwjRCb6B7Mje2iRbeW2iyQ'}
-        ]
-
-        fp = FormPack(schemas)
-
-        # Will raise IndexError if patch is not applied
-        fp.get_fields_for_versions(fp.versions.keys())
