@@ -73,7 +73,6 @@ class Modal extends React.Component {
         });
       break;
       case 'RESTservice':
-        console.log(this.props.params);
         this.setState({
           title: t('New REST Service')
         });
@@ -166,7 +165,7 @@ class Modal extends React.Component {
 
             { this.props.params.type == 'RESTservice' && !this.props.params.sid && 
               <div>
-                <RESTServiceForm />
+                <RESTServiceForm asset={this.props.params.asset} sid={this.props.params.sid} />
               </div>
             }
 

@@ -495,6 +495,21 @@ iframe {
       margin-bottom: 10px;
       font-size: 14px;
     }
+
+    &.radio-label {
+      color: $black;
+      font-size: 14px;
+      padding: 4px 0px;
+
+      input {
+        margin-right: 8px;
+        vertical-align: middle;
+      }
+
+      span {
+        vertical-align: middle;
+      }
+    }
   }
 
   label:not(.inline) {
@@ -530,6 +545,12 @@ iframe {
     overflow: hidden;
     resize: none;
     height: auto;
+
+    &.questions {
+      height: 60px;
+      overflow: auto;
+      font-size: 13px;
+    }
   }
 
   input[type="checkbox"] {
@@ -569,6 +590,7 @@ iframe {
 
     .Select-input {
       height: 33px;
+      padding-left: 0px;
 
       > input {
         padding-bottom: 10px;
