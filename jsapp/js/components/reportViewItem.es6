@@ -289,25 +289,18 @@ class ReportViewItem extends React.Component {
       name = p.name;
 
     if (!_type) {
-      console.error('No type given for row: ', this.props);
+      console.error('No type given for row: ', p);
       return <p className='error'>{'Error displaying row: '}<code>{p.kuid}</code></p>;
     }
     if (_type.select_one || _type.select_multiple) {
       _type = _.keys(_type)[0];
     }
     _type = JSON.stringify(_type);
-
-    var questionLabel = r.label;
-
-    if (this.props.translations) {
-      questionLabel = r.label && r.label[this.props.translationIndex] ? r.label[this.props.translationIndex] : t('Unlabeled');
-    }
-
     return (
       <div>
         <bem.ReportView__itemHeading>
           <h2>
-            {questionLabel}
+            {p.label}
           </h2>
           <bem.ReportView__headingMeta>
             <span className="type">

@@ -446,16 +446,21 @@ class ReportContents extends React.Component {
     }
   }
   render () {
-    var translationIndex = 0;
+    var tnslIndex = 0;
     let customReport = this.props.parentState.currentCustomReport, 
-        defaultRS = this.props.parentState.reportStyles;
+        defaultRS = this.props.parentState.reportStyles,
+        asset = this.props.parentState.asset;
 
     if (customReport) {
       if (customReport.reportStyle && customReport.reportStyle.translationIndex)
-        translationIndex = parseInt(customReport.reportStyle.translationIndex);
+        tnslIndex = parseInt(customReport.reportStyle.translationIndex);
     } else {
-      translationIndex = this.props.parentState.reportStyles.default.translationIndex || 0;      
+      tnslIndex = defaultRS.default.translationIndex || 0;      
     }
+
+    // reset to first language if trnslt index cannot be found
+    if (asset.content.translations && !asset.content.translations[tnslIndex])
+      tnslIndex = 0;
 
     var reportData = this.props.reportData;
 
@@ -485,12 +490,12 @@ class ReportContents extends React.Component {
       <div>
         {
           reportData.map((rowContent, i)=>{
+            var label = (rowContent.row.label && rowContent.row.label[tnslIndex]) ? rowContent.row.label[tnslIndex] : t('Unlabeled');
             return (
                 <bem.ReportView__item key={i}>
                   <ReportViewItem 
                       {...rowContent}
-                      translations={this.props.parentState.translations} 
-                      translationIndex={translationIndex} 
+                      label={label} 
                       triggerQuestionSettings={this.props.triggerQuestionSettings} />
                 </bem.ReportView__item>
               );
