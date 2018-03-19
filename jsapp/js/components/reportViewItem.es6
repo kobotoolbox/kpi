@@ -120,7 +120,7 @@ class ReportViewItem extends React.Component {
     var reportTable = [];
     if (d.percentages && d.responses && d.frequencies) {
       reportTable = _.zip(
-          d.responses,
+          d.responseLabels || d.responses,
           d.frequencies,
           d.percentages,
         );
@@ -170,9 +170,9 @@ class ReportViewItem extends React.Component {
     var datasets = [];
 
     if (data.values != undefined) {
-      data.responses = data.values[0][1].responses;
+      data.responseLabels = data.values[0][1].responses;
       data.graphLabels = [];
-      data.responses.forEach(function(r, i){
+      data.responseLabels.forEach(function(r, i){
         data.graphLabels[i] = r.length > 25 ? r.substring(0,22) + '...' : r;
       });
       var allPercentages = [];
@@ -191,16 +191,23 @@ class ReportViewItem extends React.Component {
     } else {
       maxPercentage = Math.max.apply(Math, data.percentages);
       datasets.push({data: data.percentages});
-      data.responses.forEach(function(r, i){
-        data.responses[i] = r.length > 25 ? r.substring(0,22) + '...' : r;
-      });
+      if (data.responseLabels) {
+        data.responseLabels.forEach(function(r, i){
+          data.responseLabels[i] = r.length > 25 ? r.substring(0,22) + '...' : r;
+        });
+      }
+      if (data.responses) {
+        data.responses.forEach(function(r, i){
+          data.responses[i] = r.length > 25 ? r.substring(0,22) + '...' : r;
+        });
+      }
     }
 
     maxPercentage = maxPercentage < 85 ? ((parseInt(maxPercentage/10, 10)+1)*10) : 100;
     var opts = {
       type: chartType,
       data: {
-          labels: data.graphLabels || data.responses,
+          labels: data.graphLabels || data.responseLabels || data.responses,
           datasets: datasets
       },
       options: {

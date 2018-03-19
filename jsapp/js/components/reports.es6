@@ -455,7 +455,7 @@ class ReportContents extends React.Component {
       if (customReport.reportStyle && customReport.reportStyle.translationIndex)
         tnslIndex = parseInt(customReport.reportStyle.translationIndex);
     } else {
-      tnslIndex = defaultRS.default.translationIndex || 0;      
+      tnslIndex = defaultRS.default.translationIndex || 0;
     }
 
     // reset to first language if trnslt index cannot be found
@@ -464,8 +464,10 @@ class ReportContents extends React.Component {
 
     var reportData = this.props.reportData;
 
-    for (var i = reportData.length - 1; i >= 0; i--) {
-      let _qn = reportData[i].name;
+    for (var i = reportData.length - 1; i > -1; i--) {
+      let _qn = reportData[i].name,
+          _type = reportData[i].row.type || null;
+
       var _defSpec = undefined;
 
       if (customReport) {
@@ -484,6 +486,18 @@ class ReportContents extends React.Component {
           reportData[i].style = defaultRS.default;
         }
       }
+
+      if (_type == 'select_one' || _type == 'select_multiple') {
+        let resps = reportData[i].data.responses;
+        reportData[i].data.responseLabels = [];
+        for (var j = resps.length - 1; j >= 0; j--) {
+          var lbl = asset.content.choices.find(o => o.name === resps[j] || o.$autoname == resps[j]);
+          if (lbl && lbl.label && lbl.label[tnslIndex])
+            reportData[i].data.responseLabels.unshift(lbl.label[tnslIndex]);
+          else
+            reportData[i].data.responseLabels.unshift(resps[j]);
+        }
+      }
     }
 
     return (
@@ -495,7 +509,7 @@ class ReportContents extends React.Component {
                 <bem.ReportView__item key={i}>
                   <ReportViewItem 
                       {...rowContent}
-                      label={label} 
+                      label={label}
                       triggerQuestionSettings={this.props.triggerQuestionSettings} />
                 </bem.ReportView__item>
               );
@@ -1080,6 +1094,7 @@ class Reports extends React.Component {
       if (this.state.reportLimit && reportData.length > this.state.reportLimit) {
         reportData = reportData.slice(0, this.state.reportLimit);
       }
+
     }
 
     if (this.state.reportData === undefined) {
