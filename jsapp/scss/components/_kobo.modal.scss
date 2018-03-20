@@ -150,21 +150,39 @@
   .form-modal__group {
     display: flex;
     justify-content: space-between;
+    margin-bottom: 20px;
 
-    &--validation-status {
-      justify-content: flex-end;
-      align-items: center;
-      margin-bottom: 20px;
+    .switch--label-language,
+    .switch--validation-status {
+      width: 50%;
+      text-align: left;
 
-      input {
-        min-width: 100px;
+      label, div.Select {
+        display: inline-block;
+        vertical-align: middle;
       }
 
-      .Select {
-        margin-left: 10px;
-        text-align: left;
-        min-width: 120px;
+      label {
+        margin-right: 12px;
       }
+    }
+
+    .switch--validation-status {
+      width: 100%;
+      text-align: right;
+    }
+
+    .switch--label-language + .switch--validation-status {
+      width: 50%;
+    }
+
+    input {
+      min-width: 100px;
+    }
+
+    .Select {
+      text-align: left;
+      min-width: 120px;
     }
   }
 
@@ -172,6 +190,10 @@
     a {
       display: inline-block;
       cursor: pointer;
+
+      &:first-child {
+        padding-left: 0px !important;
+      }
     }
   }
 
