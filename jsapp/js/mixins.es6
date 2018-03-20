@@ -152,7 +152,6 @@ mixins.dmix = {
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid,
       asset = data[uid];
     if (asset) {
-      console.log(asset.content);
       this.setState(assign({}, data[uid]));
     }
   },

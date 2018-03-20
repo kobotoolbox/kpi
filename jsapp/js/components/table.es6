@@ -44,6 +44,7 @@ export class DataTable extends React.Component {
       currentPage: 0,
       error: false,
       showLabels: true,
+      translationIndex: 0,
       showGroups: true,
       resultsTotal: 0,
       selectedRows: {},
@@ -127,9 +128,10 @@ export class DataTable extends React.Component {
 		  return Object.assign(result, obj);
 		}, {}))
 
-    let showLabels = this.state.showLabels;
-    let showGroups = this.state.showGroups;
-    let maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);
+    let showLabels = this.state.showLabels,
+        showGroups = this.state.showGroups,
+        translationIndex = this.state.translationIndex,
+        maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);
 
     var columns = [];
 
@@ -285,8 +287,8 @@ export class DataTable extends React.Component {
               var splitK = key.split('/');
               lbl = splitK[splitK.length - 1];
             }
-            if (q && q.label && showLabels)
-              lbl = q.label[0];
+            if (q && q.label && showLabels && q.label[translationIndex])
+              lbl = q.label[translationIndex];
             // show Groups in labels, when selected
             if (showGroups && qParentG && key.includes('/')) {
               var gLabels = qParentG.join(' / ');
@@ -294,8 +296,8 @@ export class DataTable extends React.Component {
               if (showLabels) {
                 var gT = qParentG.map(function(g) {
                   var x = survey.find(o => o.name === g || o.$autoname == g);
-                  if (x && x.label && x.label[0])
-                    return x.label[0];
+                  if (x && x.label && x.label[translationIndex])
+                    return x.label[translationIndex];
 
                   return '';
                 });
@@ -316,15 +318,15 @@ export class DataTable extends React.Component {
               // show proper labels for choice questions
               if (q.type == 'select_one') {
                 let choice = choices.find(o => o.list_name == q.select_from_list_name && (o.name === row.value || o.$autoname == row.value));
-                return choice && choice.label ? choice.label[0] : row.value;
+                return choice && choice.label && choice.label[translationIndex] ? choice.label[translationIndex] : row.value;
               }
               if (q.type == 'select_multiple' && row.value) {
                 let values = row.value.split(" ");
                 var labels = [];
                 values.forEach(function(v) {
                   let choice = choices.find(o => o.list_name == q.select_from_list_name && (o.name === v || o.$autoname == v));
-                  if (choice && choice.label && choice.label[0])
-                    labels.push(choice.label[0]);
+                  if (choice && choice.label && choice.label[translationIndex])
+                    labels.push(choice.label[translationIndex]);
                 });
 
                 return labels.join(", ");
@@ -513,14 +515,25 @@ export class DataTable extends React.Component {
     };
     dialog.set(opts).show();
   }
-  toggleLabels() {
+  showXMLValues() {
     this.setState({
-      showLabels: !this.state.showLabels
+      showLabels: false
     });
 
     window.setTimeout(()=>{
       this._prepColumns(this.state.tableData);
-    }, 300);
+    }, 200);
+  }
+  showTranslation(evt) {
+    const index = evt.target.getAttribute('data-index');
+    this.setState({
+      showLabels: true,
+      translationIndex: index
+    });
+
+    window.setTimeout(()=>{
+      this._prepColumns(this.state.tableData);
+    }, 200);
   }
   toggleGroups () {
     this.setState({
@@ -529,7 +542,7 @@ export class DataTable extends React.Component {
 
     window.setTimeout(()=>{
       this._prepColumns(this.state.tableData);
-    }, 300);
+    }, 200);
   }
   bulkSelectAll() {
     this.setState({selectAll: true});
@@ -592,7 +605,7 @@ export class DataTable extends React.Component {
 
     const { tableData, columns, defaultPageSize, loading, pageSize, currentPage, resultsTotal } = this.state;
     const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1);
-
+    let asset = this.props.asset;
     return (
       <bem.FormView m='table'>
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
@@ -627,13 +640,31 @@ export class DataTable extends React.Component {
 
             <ui.PopoverMenu type='formTable-menu' 
                         triggerLabel={<i className="k-icon-more" />} 
-                        triggerTip={t('More Actions')}>
-                <bem.PopoverMenu__link onClick={this.toggleLabels}>
-                  {t('Toggle labels / XML values')}
+                        triggerTip={t('Display options')}>
+                <bem.PopoverMenu__link
+                  onClick={this.showXMLValues}
+                  className={!this.state.showLabels ? 'active': ''}>
+                  {t('Show XML values')}
                 </bem.PopoverMenu__link>
-                <bem.PopoverMenu__link onClick={this.toggleGroups}>
-                  {t('Show/hide question groups')}
-                </bem.PopoverMenu__link>
+                {asset.content.translations.map((trns, n) => {
+                    return (
+                      <bem.PopoverMenu__link
+                        onClick={this.showTranslation} data-index={n} key={n}
+                        className={this.state.showLabels && this.state.translationIndex == n ? 'active': ''}>
+                        {t('Show labels')}
+                        {trns ? ` - ${trns}` : null}
+                      </bem.PopoverMenu__link>
+                    )
+                })}
+                {this.state.showGroups ?
+                  <bem.PopoverMenu__link onClick={this.toggleGroups} className="divider">
+                    {t('Hide question groups')}
+                  </bem.PopoverMenu__link>
+                :
+                  <bem.PopoverMenu__link onClick={this.toggleGroups} className="divider">
+                    {t('Show question groups')}
+                  </bem.PopoverMenu__link>
+                }
             </ui.PopoverMenu>
 
           </bem.FormView__item>
