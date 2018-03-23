@@ -166,6 +166,18 @@ body .leaflet-control-layers,
 
   .map-marker-item {
     padding: 4px 6px;
+
+    &.selected {
+      background: #F5F5F5;
+    }
+
+    &.unselected {
+      opacity: 0.5;
+
+      &:hover {
+        opacity: 0.8;
+      }
+    }
   }
 
   span {
@@ -203,6 +215,7 @@ body .leaflet-control-layers,
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    cursor: pointer;
   }
 }
 
@@ -235,90 +248,46 @@ body .leaflet-control-layers,
   background: rgba(255, 50, 0, 0.4);
   border: 1px solid #FFF;
   border-radius: 30px;
+  position: relative;
+
+  &.unselected {
+    visibility: hidden;
+  }
 }
 
-.map-marker {
-  &-0, &-0:after {
-    background: rgba(255, 50, 0, 0.4);
+// OLD COLOR LIST
+// $color-collection: rgba(255, 50, 0, 0.4), rgba(78, 203, 255, 0.4), rgba(255, 180, 50, 0.4), rgba(113, 230, 33, 0.4), rgba(253, 35, 4, 0.4), rgba(33, 231, 184, 0.4), rgba(55, 40, 210, 0.4), rgba(200, 80, 246, 0.4), rgba(208, 165, 50, 0.4), rgba(232, 65, 14, 0.4), rgba(216, 150, 216, 0.4), rgba(200, 233, 150, 0.4), rgba(200, 233, 150, 0.4), rgba(122, 187, 200, 0.4), rgba(90, 90, 90, 0.4), rgba(60, 223, 219, 0.4), rgba(52, 106, 200, 0.4), rgba(88, 20, 100, 0.4), rgba(50, 90, 10, 0.4), rgba(10, 180, 80, 0.4), rgba(230, 175, 25, 0.4);
+
+$color-collection: rgba(93, 89, 139, 0.5), rgba(201, 195, 0, 0.5), rgba(0, 115, 221, 0.5), rgba(255, 179, 44, 0.5), rgba(53, 75, 165, 0.5), rgba(171, 212, 78, 0.5), rgba(142, 147, 255, 0.5), rgba(140, 143, 0, 0.5), rgba(255, 136, 223, 0.5), rgba(44, 108, 0, 0.5), rgba(190, 0, 63, 0.5), rgba(1, 201, 176, 0.5), rgba(239, 61, 57, 0.5), rgba(1, 188, 251, 0.5), rgba(192, 62, 0, 0.5), rgba(1, 92, 158, 0.5), rgba(190, 207, 109, 0.5), rgba(147, 46, 64, 0.5), rgba(161, 212, 142, 0.5), rgba(255, 161, 196, 0.5), rgba(158, 182, 128, 0.5), rgba(193, 193, 254, 0.5), rgba(255, 136, 102, 0.5), rgba(252, 183, 142, 0.5);
+$class-slug: map-marker !default;
+
+$colorLength: length($color-collection);
+
+@for $i from 1 through $colorLength {
+  .#{$class-slug}-#{$i},
+  .#{$class-slug}-#{$i + $colorLength},
+  .#{$class-slug}-#{$i + $colorLength * 2},
+  .#{$class-slug}-#{$i + $colorLength * 3},
+  .#{$class-slug}-#{$i + $colorLength * 4} {
+    background: nth($color-collection, $i);
   }
 
-  &-1, &-1:after {
-    background: rgba(78, 203, 255, 0.4);
+  .#{$class-slug}-#{$i + $colorLength} {
+    border-radius: 0px;
   }
 
-  &-2, &-2:after {
-    background: rgba(255, 180, 50, 0.4);
+  .#{$class-slug}-#{$i + $colorLength * 2} {
+    background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.4) 50%, transparent 50%), linear-gradient(rgba(255, 255, 255, 0.4) 50%, transparent 50%);
+    background-size: 4px 4px;
+    background-position: center center;
   }
 
-  &-3, &-3:after {
-    background: rgba(252, 74, 124, 0.4);
+  .#{$class-slug}-#{$i + $colorLength * 3} {
+    border-radius: 0px;
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255, 255, 255, 0.5) 5px, rgba(255, 255, 255, 0.5) 10px);
   }
 
-  &-4, &-4:after {
-    background: rgba(113, 230, 33, 0.4);
-  }
-
-  &-5, &-5:after {
-    background: rgba(253, 35, 4, 0.4);
-  }
-
-  &-6, &-6:after {
-    background: rgba(33, 231, 184, 0.4);
-  }
-
-  &-7, &-7:after {
-    background: rgba(55, 40, 210, 0.4);
-  }
-
-  &-8, &-8:after {
-    background: rgba(200, 80, 246, 0.4);
-  }
-
-  &-9, &-9:after {
-    background: rgba(208, 165, 50, 0.4);
-  }
-
-  &-10, &-10:after {
-    background: rgba(232, 65, 14, 0.4);
-  }
-
-  &-11, &-11:after {
-    background: rgba(216, 150, 216, 0.4);
-  }
-
-  &-12, &-12:after {
-    background: rgba(200, 233, 150, 0.4);
-  }
-
-  &-13, &-13:after {
-    background: rgba(122, 187, 200, 0.4);
-  }
-
-  &-14, &-14:after {
-    background: rgba(90, 90, 90, 0.4);
-  }
-
-  &-15, &-15:after {
-    background: rgba(60, 223, 219, 0.4);
-  }
-
-  &-16, &-16:after {
-    background: rgba(52, 106, 200, 0.4);
-  }
-
-  &-17, &-17:after {
-    background: rgba(88, 20, 100, 0.4);
-  }
-
-  &-18, &-18:after {
-    background: rgba(50, 90, 10, 0.4);
-  }
-
-  &-19, &-19:after {
-    background: rgba(10, 180, 80, 0.4);
-  }
-
-  &-20, &-20:after {
-    background: rgba(230, 175, 25, 0.4);
+  .#{$class-slug}-#{$i + $colorLength * 4} {
+    background-image: repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(255, 255, 255, 0.5) 3px, rgba(255, 255, 255, 0.5) 6px);
   }
 }

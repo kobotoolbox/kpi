@@ -49,7 +49,8 @@ export class FormMap extends React.Component {
       error: false,
       showExpandedMap: false,
       showExpandedLegend: true,
-      langIndex: 0
+      langIndex: 0,
+      filteredByMarker: false
     };
 
     autoBind(this);    
@@ -180,7 +181,13 @@ export class FormMap extends React.Component {
             iconSize: [20, 20],
           });
         }
-        prepPoints.push(L.marker(item._geolocation, {icon: icon, sId: item._id}));
+        prepPoints.push(
+          L.marker(item._geolocation, {
+            icon: icon, 
+            sId: item._id, 
+            typeId: viewby && mapMarkers ? mapMarkers[itemId].id : null
+          })
+        );
       }
     });
 
@@ -284,6 +291,7 @@ export class FormMap extends React.Component {
       this.setState({markersVisible: true});
     }
     if (this.props.viewby != nextProps.viewby) {
+      this.setState({filteredByMarker: false});
       var map = this.state.map;
       var markers = this.state.markers;
       var heatmap = this.state.heatmap;
@@ -322,7 +330,26 @@ export class FormMap extends React.Component {
     this.setState({
       showExpandedLegend: !this.state.showExpandedLegend,
     });
+  }
 
+  filterByMarker(evt) {
+    let markers = this.state.markers;
+    let id = evt.target.getAttribute('data-id');
+
+    if (this.state.filteredByMarker == id) {
+      this.setState({filteredByMarker: false});
+      markers.eachLayer( function(layer) {
+        layer._icon.classList.remove("unselected");
+      });
+    } else {
+      this.setState({filteredByMarker: id});
+      markers.eachLayer( function(layer) {
+        if (layer.options.typeId != id)
+          layer._icon.classList.add("unselected");
+        else
+          layer._icon.classList.remove("unselected");
+      });
+    }
   }
 
   nameOfFieldInGroup(fieldName) {
@@ -448,12 +475,17 @@ export class FormMap extends React.Component {
           <bem.FormView__mapList className={this.state.showExpandedLegend ? 'expanded' : 'collapsed'}>
             <div className='maplist-contents'>
               {this.state.markerMap.map((m, i)=>{
+                var markerItemClass = 'map-marker-item ';
+                if (this.state.filteredByMarker)
+                  markerItemClass += this.state.filteredByMarker == m.id ? 'selected' : 'unselected';
+
                 return (
-                    <div key={`m-${i}`} className="map-marker-item">
+                    <div key={`m-${i}`} className={markerItemClass}>
                       <span className={`map-marker map-marker-${m.id}`}>
                         {m.count}
                       </span>
-                      <span className={`map-marker-label`}>
+                      <span className={`map-marker-label`} 
+                            onClick={this.filterByMarker} data-id={m.id}>
                         {m.labels ? m.labels[langIndex] : t('not set')}
                       </span>
                     </div>
