@@ -12,10 +12,19 @@ class ReportTable extends React.Component {
   constructor(props) {
     super(props);
   }
+  formatNumber(x) {
+    if (isNaN(x))
+      return x;
+    return x.toFixed(2);
+  }
   render () {
     let th = [''], rows = [];
     if (this.props.type === 'numerical') {
       th = [t('Mean'), t('Median'), t('Mode'), t('Standard deviation')];
+      if (this.props.rows)
+        th.unshift('');
+      if (this.props.values)
+        var v = this.props.values
       return (
         <table>
           <thead>
@@ -25,14 +34,31 @@ class ReportTable extends React.Component {
               })}
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>{this.props.rows.mean || t('N/A')}</td>
-              <td>{this.props.rows.median || t('N/A')}</td>
-              <td>{this.props.rows.mode || t('N/A')}</td>
-              <td>{this.props.rows.stdev || t('N/A')}</td>
-            </tr>
-          </tbody>
+          {this.props.values &&
+            <tbody>
+              <tr>
+                <td>{this.formatNumber(v.mean) || t('N/A')}</td>
+                <td>{this.formatNumber(v.median) || t('N/A')}</td>
+                <td>{this.formatNumber(v.mode) || t('N/A')}</td>
+                <td>{this.formatNumber(v.stdev) || t('N/A')}</td>
+              </tr>
+            </tbody>
+          }
+          {this.props.rows &&
+            <tbody>
+              {this.props.rows.map((r)=>{
+                return (
+                    <tr key={r[0]}>
+                      <td>{r[0]}</td>
+                      <td>{this.formatNumber(r[1].mean) || t('N/A')}</td>
+                      <td>{this.formatNumber(r[1].median) || t('N/A')}</td>
+                      <td>{this.formatNumber(r[1].mode) || t('N/A')}</td>
+                      <td>{this.formatNumber(r[1].stdev) || t('N/A')}</td>
+                    </tr>
+                  );
+              })}
+            </tbody>
+          }
         </table>
       );
     }
@@ -41,9 +67,12 @@ class ReportTable extends React.Component {
       rows = this.props.rows;
     } else {
       if (this.props.rows.length > 0) {
-        th = th.concat(this.props.rows[0][1].responses);
+        if (this.props.responseLabels)
+          th = th.concat(this.props.responseLabels);
+        else
+          th = th.concat(this.props.rows[0][1].responses);
         this.props.rows.map((row, i)=> {
-          var rowitem = [row[0]];
+          var rowitem = row[2] ? [row[2]] : [row[0]];
           rowitem = rowitem.concat(row[1].percentages);
           rows.push(rowitem);
         });
@@ -95,9 +124,7 @@ class ReportViewItem extends React.Component {
     }
   }
   componentWillReceiveProps(nextProps) {
-    if (this.props.data != nextProps.data) {
-      this.prepareTable(nextProps.data);
-    }
+    this.prepareTable(nextProps.data);
   }
   componentDidUpdate (prevProps) {
     // refreshes a chart right after render()
@@ -170,15 +197,14 @@ class ReportViewItem extends React.Component {
     var datasets = [];
 
     if (data.values != undefined) {
-      data.responseLabels = data.values[0][1].responses;
-      data.graphLabels = [];
       data.responseLabels.forEach(function(r, i){
-        data.graphLabels[i] = r.length > 25 ? r.substring(0,22) + '...' : r;
+        data.responseLabels[i] = r.length > 25 ? r.substring(0,22) + '...' : r;
       });
       var allPercentages = [];
       data.values.forEach(function(val, i){
         var item = {};
-        item.label = val[0].length > 20 ? val[0].substring(0,17) + '...' : val[0];
+        var choiceLabel = val[2] || val[0];
+        item.label = choiceLabel.length > 20 ? choiceLabel.substring(0,17) + '...' : choiceLabel;
         item.data = val[1].percentages;
         allPercentages = [...new Set([...allPercentages ,...val[1].percentages])];
         item.backgroundColor = colors[i];
@@ -207,7 +233,7 @@ class ReportViewItem extends React.Component {
     var opts = {
       type: chartType,
       data: {
-          labels: data.graphLabels || data.responseLabels || data.responses,
+          labels: data.responseLabels || data.responses,
           datasets: datasets
       },
       options: {
@@ -344,14 +370,17 @@ class ReportViewItem extends React.Component {
               <canvas ref="canvas" />
             </bem.ReportView__chart>
           }
-          {d.values &&
-            <ReportTable rows={d.values} type='disaggregated' />
-          }
-          {this.state.reportTable &&
+          {this.state.reportTable && ! d.values &&
             <ReportTable rows={this.state.reportTable} type='regular'/>
           }
+          {d.values && d.values[0][1].percentages &&
+            <ReportTable rows={d.values} responseLabels={d.responseLabels} type='disaggregated' />
+          }
+          {d.values && d.values[0][1].mean &&
+            <ReportTable rows={d.values} type='numerical' />
+          }
           {d.mean &&
-            <ReportTable rows={d} type='numerical'/>
+            <ReportTable values={d} type='numerical'/>
           }
         </bem.ReportView__itemContent>
       </div>

@@ -487,15 +487,35 @@ class ReportContents extends React.Component {
         }
       }
 
-      if (_type == 'select_one' || _type == 'select_multiple') {
-        let resps = reportData[i].data.responses;
-        reportData[i].data.responseLabels = [];
-        for (var j = resps.length - 1; j >= 0; j--) {
-          var lbl = asset.content.choices.find(o => o.name === resps[j] || o.$autoname == resps[j]);
-          if (lbl && lbl.label && lbl.label[tnslIndex])
-            reportData[i].data.responseLabels.unshift(lbl.label[tnslIndex]);
-          else
-            reportData[i].data.responseLabels.unshift(resps[j]);
+      if (this.props.parentState.translations) {
+        if (_type == 'select_one' || _type == 'select_multiple') {
+          let resps = reportData[i].data.responses;
+          if (resps) {
+            reportData[i].data.responseLabels = [];
+            for (var j = resps.length - 1; j >= 0; j--) {
+              var lbl = asset.content.choices.find(o => o.name === resps[j] || o.$autoname == resps[j]);
+              if (lbl && lbl.label && lbl.label[tnslIndex])
+                reportData[i].data.responseLabels.unshift(lbl.label[tnslIndex]);
+              else
+                reportData[i].data.responseLabels.unshift(resps[j]);
+            }
+          } else {
+            const vals = reportData[i].data.values;
+            if (vals) {
+              var respValues = vals[0][1].responses;
+              reportData[i].data.responseLabels = [];
+              respValues.forEach(function(r, ind){
+                var choice = asset.content.choices.find(o => o.name === r || o.$autoname == r);
+                reportData[i].data.responseLabels[ind] = (choice && choice.label && choice.label[tnslIndex]) ? choice.label[tnslIndex] : r;
+              });
+
+              // TODO: use a better way to store translated labels per row
+              for (var vD = vals.length - 1; vD >= 0; vD--) {
+                var choice = asset.content.choices.find(o => o.name === vals[vD][0] || o.$autoname == vals[vD][0]);
+                vals[vD][2] = (choice && choice.label && choice.label[tnslIndex]) ? choice.label[tnslIndex] : vals[vD][0];
+              }
+            }
+          }
         }
       }
     }
