@@ -243,11 +243,11 @@ body .leaflet-control-layers,
 // marker colors
 
 .map-marker {
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   background: rgba(255, 50, 0, 0.4);
   border: 1px solid #FFF;
-  border-radius: 30px;
+  border-radius: 50%;
   position: relative;
 
   &.unselected {
@@ -272,22 +272,22 @@ $colorLength: length($color-collection);
     background: nth($color-collection, $i);
   }
 
-  .#{$class-slug}-#{$i + $colorLength} {
-    border-radius: 0px;
-  }
-
   .#{$class-slug}-#{$i + $colorLength * 2} {
     background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.4) 50%, transparent 50%), linear-gradient(rgba(255, 255, 255, 0.4) 50%, transparent 50%);
-    background-size: 4px 4px;
+    background-size: 6px 6px;
     background-position: center center;
   }
 
+  .#{$class-slug}-#{$i + $colorLength} {
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255, 255, 255, 0.3) 3px, rgba(255, 255, 255, 0.3) 6px);
+  }
+
   .#{$class-slug}-#{$i + $colorLength * 3} {
-    border-radius: 0px;
-    background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255, 255, 255, 0.5) 5px, rgba(255, 255, 255, 0.5) 10px);
+    background-image: repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(255, 255, 255, 0.3) 3px, rgba(255, 255, 255, 0.3) 6px);
   }
 
   .#{$class-slug}-#{$i + $colorLength * 4} {
-    background-image: repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(255, 255, 255, 0.5) 3px, rgba(255, 255, 255, 0.5) 6px);
+    background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.1) 50%, transparent 50%), linear-gradient(rgba(0, 0, 0, 0.1) 50%, transparent 50%);
+    background-size: 6px 6px;
   }
 }
