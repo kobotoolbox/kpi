@@ -214,7 +214,7 @@ export class FormMap extends React.Component {
   prepFilteredMarkers (data, viewby) {
     var markerMap = new Object();
     var vb = this.nameOfFieldInGroup(viewby);
-    var idcounter = 0;
+    var idcounter = 1;
 
     data.forEach(function(listitem, i) {
       var m = listitem[vb];
