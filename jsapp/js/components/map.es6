@@ -61,8 +61,9 @@ export class FormMap extends React.Component {
       return false;
 
     var fields = [];
+    let fieldTypes = ['select_one', 'select_multiple', 'integer', 'decimal', 'text'];
     this.props.asset.content.survey.forEach(function(q){
-      if (q.type == 'select_one' || q.type == 'select_multiple') {
+      if (fieldTypes.includes(q.type)) {
         fields.push(q);
       }
     });
@@ -159,7 +160,8 @@ export class FormMap extends React.Component {
         mM.push({
           count: mapMarkers[m].count,
           id: mapMarkers[m].id,
-          labels: lbl ? lbl.label : undefined
+          labels: lbl ? lbl.label : undefined,
+          value: m != "undefined" ? m : undefined
         });
       });
 
@@ -466,7 +468,7 @@ export class FormMap extends React.Component {
                     data-name={name} key={`f-${name}`} 
                     onClick={this.filterMap}
                     className={viewby == name ? 'active': ''}>
-                    {f.label[langIndex]}
+                    {f.label ? f.label[langIndex] : t('Question label not set')}
                   </bem.PopoverMenu__link>
                 );
             })}
@@ -478,15 +480,15 @@ export class FormMap extends React.Component {
                 var markerItemClass = 'map-marker-item ';
                 if (this.state.filteredByMarker)
                   markerItemClass += this.state.filteredByMarker == m.id ? 'selected' : 'unselected';
-
+                let label = m.labels ? m.labels[langIndex] : m.value ? m.value : t('not set');
                 return (
                     <div key={`m-${i}`} className={markerItemClass}>
                       <span className={`map-marker map-marker-${m.id}`}>
                         {m.count}
                       </span>
                       <span className={`map-marker-label`} 
-                            onClick={this.filterByMarker} data-id={m.id}>
-                        {m.labels ? m.labels[langIndex] : t('not set')}
+                            onClick={this.filterByMarker} data-id={m.id} title={label}>
+                        {label}
                       </span>
                     </div>
                   );
