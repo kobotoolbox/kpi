@@ -17,7 +17,6 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat/dist/leaflet-heat';
 import 'leaflet.markercluster/dist/leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
-import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 
 import {
   assign,
@@ -68,7 +67,11 @@ export class FormMap extends React.Component {
       }
     });
 
-    var map = L.map('data-map', {maxZoom: 17});
+    var map = L.map('data-map', {
+      maxZoom: 17,
+      scrollWheelZoom: false,
+      preferCanvas: true
+    });
 
     var streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -197,7 +200,25 @@ export class FormMap extends React.Component {
       if (viewby) {
         var markers = L.featureGroup(prepPoints);
       } else {
-        var markers = L.markerClusterGroup({maxClusterRadius: this.calculateClusterRadius, disableClusteringAtZoom: 16});
+        var markers = L.markerClusterGroup({
+          maxClusterRadius: this.calculateClusterRadius, 
+          disableClusteringAtZoom: 16,
+          iconCreateFunction: function(cluster) {
+            var childCount = cluster.getChildCount();
+
+            var c = ' marker-cluster-';
+            if (childCount < 10) {
+              c += 'small';
+            } else if (childCount < 100) {
+              c += 'medium';
+            } else {
+              c += 'large';
+            }
+
+            return new L.divIcon({ html: '<div><span>' + childCount + '</span></div>', className: 'marker-cluster' + c, iconSize: new L.Point(30, 30) });
+          }
+        });
+
         markers.addLayers(prepPoints);
       }
 

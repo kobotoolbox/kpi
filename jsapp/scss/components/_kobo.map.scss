@@ -297,3 +297,50 @@ $colorLength: length($color-collection);
     background-size: 6px 6px;
   }
 }
+
+// ClusterMarker overrides
+
+.marker-cluster-small {
+  background-color: rgba(253, 187, 132, 0.4);
+}
+
+.marker-cluster-small div {
+  background-color: rgba(253, 187, 132, 0.5);
+}
+
+.marker-cluster-medium {
+  background-color: rgba(252, 141, 89, 0.4);
+}
+
+.marker-cluster-medium div {
+  background-color: rgba(252, 141, 89, 0.5);
+}
+
+.marker-cluster-large {
+  background-color: rgba(239, 101, 72, 0.4);
+}
+
+.marker-cluster-large div {
+  background-color: rgba(239, 101, 72, 0.5);
+}
+
+.marker-cluster {
+  background-clip: padding-box;
+  border-radius: 50%;
+}
+
+.marker-cluster div {
+  font-size: 12px;
+  font-family: $font;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin-left: 5px;
+  margin-top: 5px;
+  text-align: center;
+  color: $black;
+}
+
+.marker-cluster span {
+  line-height: 20px;
+}
