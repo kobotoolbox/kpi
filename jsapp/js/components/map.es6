@@ -155,11 +155,16 @@ export class FormMap extends React.Component {
 
     if (viewby) {
       var mapMarkers = this.prepFilteredMarkers(this.state.submissions, this.props.viewby);
-      var mM = [];
-      let choices = this.props.asset.content.choices;
+      var mM = [], lbl = undefined;
+      let choices = this.props.asset.content.choices,
+          survey = this.props.asset.content.survey;
+
+      let q = survey.find(z => z.name === viewby || z.$autoname === viewby);
 
       Object.keys(mapMarkers).map(function(m, i) {
-        var lbl = choices.find(o => o.name === m || o.$autoname == m);
+        if (q && q.type == 'select_one') {
+          lbl = choices.find(o => o.list_name === q.select_from_list_name && (o.name === m || o.$autoname === m));
+        }
         mM.push({
           count: mapMarkers[m].count,
           id: mapMarkers[m].id,
