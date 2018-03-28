@@ -67,11 +67,14 @@ class ReportTable extends React.Component {
       rows = this.props.rows;
     } else {
       if (this.props.rows.length > 0) {
-        if (this.props.responseLabels)
+        let rowsB = this.props.rows;
+        if (this.props.responseLabels) {
           th = th.concat(this.props.responseLabels);
-        else
-          th = th.concat(this.props.rows[0][1].responses);
-        this.props.rows.map((row, i)=> {
+        } else {
+          if (rowsB[0] && rowsB[0][1] && rowsB[0][1].responses)
+            th = th.concat(rowsB[0][1].responses);
+        }
+        rowsB.map((row, i)=> {
           var rowitem = row[2] ? [row[2]] : [row[0]];
           rowitem = rowitem.concat(row[1].percentages);
           rows.push(rowitem);
@@ -375,10 +378,10 @@ class ReportViewItem extends React.Component {
           {this.state.reportTable && ! d.values &&
             <ReportTable rows={this.state.reportTable} type='regular'/>
           }
-          {d.values && d.values[0][1].percentages &&
+          {d.values && d.values[0] && d.values[0][1] && d.values[0][1].percentages &&
             <ReportTable rows={d.values} responseLabels={d.responseLabels} type='disaggregated' />
           }
-          {d.values && d.values[0][1].mean &&
+          {d.values && d.values[0] && d.values[0][1] && d.values[0][1].mean &&
             <ReportTable rows={d.values} type='numerical' />
           }
           {d.mean &&

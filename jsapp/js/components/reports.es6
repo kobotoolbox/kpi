@@ -495,7 +495,7 @@ class ReportContents extends React.Component {
           if (resps) {
             reportData[i].data.responseLabels = [];
             for (var j = resps.length - 1; j >= 0; j--) {
-              var choice = asset.content.choices.find(o => o.list_name === question.select_from_list_name && (o.name === resps[j] || o.$autoname == resps[j]));
+              var choice = asset.content.choices.find(o => question && o.list_name === question.select_from_list_name && (o.name === resps[j] || o.$autoname == resps[j]));
               if (choice && choice.label && choice.label[tnslIndex])
                 reportData[i].data.responseLabels.unshift(choice.label[tnslIndex]);
               else
@@ -508,13 +508,13 @@ class ReportContents extends React.Component {
               reportData[i].data.responseLabels = [];
               let qGB = asset.content.survey.find(z => z.name === groupBy || z.$autoname === groupBy);
               respValues.forEach(function(r, ind){
-                var choice = asset.content.choices.find(o => o.list_name === qGB.select_from_list_name && (o.name === r || o.$autoname == r));
+                var choice = asset.content.choices.find(o => qGB && o.list_name === qGB.select_from_list_name && (o.name === r || o.$autoname == r));
                 reportData[i].data.responseLabels[ind] = (choice && choice.label && choice.label[tnslIndex]) ? choice.label[tnslIndex] : r;
               });
 
               // TODO: use a better way to store translated labels per row
               for (var vD = vals.length - 1; vD >= 0; vD--) {
-                var choice = asset.content.choices.find(o => o.list_name === question.select_from_list_name && (o.name === vals[vD][0] || o.$autoname == vals[vD][0]));
+                var choice = asset.content.choices.find(o => question && o.list_name === question.select_from_list_name && (o.name === vals[vD][0] || o.$autoname == vals[vD][0]));
                 vals[vD][2] = (choice && choice.label && choice.label[tnslIndex]) ? choice.label[tnslIndex] : vals[vD][0];
               }
             }
