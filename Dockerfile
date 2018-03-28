@@ -55,6 +55,7 @@ RUN if ! diff "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json; then \
 # Build client code. #
 ######################
 
+COPY ./scripts/copy_fonts.py ${KPI_SRC_DIR}/scripts/copy_fonts.py
 COPY ./webpack ${KPI_SRC_DIR}/webpack
 COPY ./.eslintrc ${KPI_SRC_DIR}/.eslintrc
 COPY ./test ${KPI_SRC_DIR}/test
