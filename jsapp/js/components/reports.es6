@@ -449,7 +449,8 @@ class ReportContents extends React.Component {
     var tnslIndex = 0;
     let customReport = this.props.parentState.currentCustomReport, 
         defaultRS = this.props.parentState.reportStyles,
-        asset = this.props.parentState.asset;
+        asset = this.props.parentState.asset,
+        groupBy = this.props.parentState.groupBy;
 
     if (customReport) {
       if (customReport.reportStyle && customReport.reportStyle.translationIndex)
@@ -489,29 +490,31 @@ class ReportContents extends React.Component {
 
       if (this.props.parentState.translations) {
         if (_type == 'select_one' || _type == 'select_multiple') {
+          let question = asset.content.survey.find(z => z.name === _qn || z.$autoname === _qn);
           let resps = reportData[i].data.responses;
           if (resps) {
             reportData[i].data.responseLabels = [];
             for (var j = resps.length - 1; j >= 0; j--) {
-              var lbl = asset.content.choices.find(o => o.name === resps[j] || o.$autoname == resps[j]);
-              if (lbl && lbl.label && lbl.label[tnslIndex])
-                reportData[i].data.responseLabels.unshift(lbl.label[tnslIndex]);
+              var choice = asset.content.choices.find(o => o.list_name === question.select_from_list_name && (o.name === resps[j] || o.$autoname == resps[j]));
+              if (choice && choice.label && choice.label[tnslIndex])
+                reportData[i].data.responseLabels.unshift(choice.label[tnslIndex]);
               else
                 reportData[i].data.responseLabels.unshift(resps[j]);
             }
           } else {
             const vals = reportData[i].data.values;
             if (vals) {
+              let qGB = asset.content.survey.find(z => z.name === groupBy || z.$autoname === groupBy);
               var respValues = vals[0][1].responses;
               reportData[i].data.responseLabels = [];
               respValues.forEach(function(r, ind){
-                var choice = asset.content.choices.find(o => o.name === r || o.$autoname == r);
+                var choice = asset.content.choices.find(o => o.list_name === qGB.select_from_list_name && (o.name === r || o.$autoname == r));
                 reportData[i].data.responseLabels[ind] = (choice && choice.label && choice.label[tnslIndex]) ? choice.label[tnslIndex] : r;
               });
 
               // TODO: use a better way to store translated labels per row
               for (var vD = vals.length - 1; vD >= 0; vD--) {
-                var choice = asset.content.choices.find(o => o.name === vals[vD][0] || o.$autoname == vals[vD][0]);
+                var choice = asset.content.choices.find(o => o.list_name === question.select_from_list_name && (o.name === vals[vD][0] || o.$autoname == vals[vD][0]));
                 vals[vD][2] = (choice && choice.label && choice.label[tnslIndex]) ? choice.label[tnslIndex] : vals[vD][0];
               }
             }
