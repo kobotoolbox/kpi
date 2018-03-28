@@ -96,7 +96,7 @@
     "watch": "node webpack/dev.server.js",
     "test-server": "node webpack/test.server.js",
     "test": "webpack --config webpack/test.config.js --progress --colors && mocha-phantomjs test/tests.html",
-    "copy": "python ./scripts/copy_fonts.py"
+    "copy-fonts": "python ./scripts/copy_fonts.py"
   },
   "repository": "https://github.com/kobotoolbox/kpi.git",
   "author": "alex.dorey@kobotoolbox.org, esmail.fadae@kobotoolbox.org, john.milner@kobotoolbox.org",
