@@ -503,10 +503,10 @@ class ReportContents extends React.Component {
             }
           } else {
             const vals = reportData[i].data.values;
-            if (vals) {
-              let qGB = asset.content.survey.find(z => z.name === groupBy || z.$autoname === groupBy);
+            if (vals && vals[0] && vals[0][1] && vals[0][1].responses) {
               var respValues = vals[0][1].responses;
               reportData[i].data.responseLabels = [];
+              let qGB = asset.content.survey.find(z => z.name === groupBy || z.$autoname === groupBy);
               respValues.forEach(function(r, ind){
                 var choice = asset.content.choices.find(o => o.list_name === qGB.select_from_list_name && (o.name === r || o.$autoname == r));
                 reportData[i].data.responseLabels[ind] = (choice && choice.label && choice.label[tnslIndex]) ? choice.label[tnslIndex] : r;
