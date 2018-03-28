@@ -49,7 +49,8 @@ export class FormMap extends React.Component {
       showExpandedMap: false,
       showExpandedLegend: true,
       langIndex: 0,
-      filteredByMarker: false
+      filteredByMarker: false,
+      componentRefreshed: false
     };
 
     autoBind(this);    
@@ -228,7 +229,9 @@ export class FormMap extends React.Component {
       }
 
       markers.on('click', this.launchSubmissionModal).addTo(map);
-      map.fitBounds(markers.getBounds());
+
+      if (!viewby || !this.state.componentRefreshed)
+        map.fitBounds(markers.getBounds());
 
       this.setState({
           markers: markers
@@ -319,7 +322,7 @@ export class FormMap extends React.Component {
       this.setState({markersVisible: true});
     }
     if (this.props.viewby != nextProps.viewby) {
-      this.setState({filteredByMarker: false});
+      this.setState({filteredByMarker: false, componentRefreshed: true});
       var map = this.state.map;
       var markers = this.state.markers;
       var heatmap = this.state.heatmap;
