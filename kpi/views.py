@@ -477,14 +477,26 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
                 'filename': request.POST.get('name', None),
                 'destination': request.POST.get('destination', None),
             }
-            import_task = ImportTask.objects.create(user=request.user,
-                                                    data=itask_data)
-            # Have Celery run the import in the background
-            import_in_background.delay(import_task_uid=import_task.uid)
-            return Response({
-                'uid': import_task.uid,
-                'status': ImportTask.PROCESSING
-            }, status.HTTP_201_CREATED)
+        elif 'url' in request.POST:
+            itask_data = {
+                'url': request.POST['url'],
+                'name': request.POST.get('name', False),
+            }
+            if 'destination' in request.POST:
+                # TODO: support collections as destinations; see
+                # `import_from_url` management command
+                raise NotImplementedError
+        else:
+            raise exceptions.ValidationError(
+                'Either base64Encoded or url is required')
+        import_task = ImportTask.objects.create(user=request.user,
+                                                data=itask_data)
+        # Have Celery run the import in the background
+        import_in_background.delay(import_task_uid=import_task.uid)
+        return Response({
+            'uid': import_task.uid,
+            'status': ImportTask.PROCESSING
+        }, status.HTTP_201_CREATED)
 
 
 class ExportTaskViewSet(NoUpdateModelViewSet):
