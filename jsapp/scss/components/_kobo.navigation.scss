@@ -136,6 +136,7 @@ $headerAccountTextColor: #dbedf7;
 .popover-menu--account-menu {
   .popover-menu__content {
     min-width: 240px;
+    z-index: 1001;
   }
 }
 
