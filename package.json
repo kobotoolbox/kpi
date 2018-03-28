@@ -2,7 +2,6 @@
   "name": "kpi",
   "version": "0.1.1",
   "description": "kobotoolbox api dashboard",
-  "main": "gulpfile.js",
   "devDependencies": {
     "alertifyjs": "^1.9.0",
     "async": "^1.4.2",
@@ -36,10 +35,6 @@
     "extract-text-webpack-plugin": "^1.0.1",
     "file-loader": "^0.8.5",
     "font-awesome": "^4.4.0",
-    "gulp": "^3.9.1",
-    "gulp-clean": "^0.3.1",
-    "gulp-coffeeify": "^0.1.8",
-    "gulp-mocha-phantomjs": "^0.10.1",
     "immutable": "^3.4.7",
     "jquery": "^2.2.3",
     "jquery-ui": "1.12.1",
@@ -100,16 +95,12 @@
     "build-production": "npm run build && echo 'WARNING: npm run build-production DEPRECATED! PLEASE USE npm run build INSTEAD'",
     "watch": "node webpack/dev.server.js",
     "test-server": "node webpack/test.server.js",
-    "test": "webpack --config webpack/test.config.js --progress --colors && mocha-phantomjs test/tests.html"
+    "test": "webpack --config webpack/test.config.js --progress --colors && mocha-phantomjs test/tests.html",
+    "copy": "python ./scripts/copy_fonts.py"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/kobotoolbox/kpi.git"
-  },
+  "repository": "https://github.com/kobotoolbox/kpi.git",
   "author": "alex.dorey@kobotoolbox.org, esmail.fadae@kobotoolbox.org, john.milner@kobotoolbox.org",
   "license": "AGPL-3.0",
-  "bugs": {
-    "url": "https://github.com/kobotoolbox/kpi/issues"
-  },
+  "bugs": "https://github.com/kobotoolbox/kpi/issues",
   "homepage": "https://github.com/kobotoolbox/kpi"
 }
