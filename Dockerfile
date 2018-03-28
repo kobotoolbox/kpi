@@ -55,7 +55,7 @@ RUN if ! diff "${KPI_SRC_DIR}/package.json" /srv/tmp/base_package.json; then \
 # Build client code. #
 ######################
 
-COPY ./gulpfile.js ${KPI_SRC_DIR}/gulpfile.js
+COPY ./scripts/copy_fonts.py ${KPI_SRC_DIR}/scripts/copy_fonts.py
 COPY ./webpack ${KPI_SRC_DIR}/webpack
 COPY ./.eslintrc ${KPI_SRC_DIR}/.eslintrc
 COPY ./test ${KPI_SRC_DIR}/test
@@ -70,7 +70,7 @@ RUN mkdir "${BUILD_DIR}" && \
     # FIXME: Move `webpack-stats.json` to some build target directory so these ad-hoc workarounds don't continue to accumulate.
     ln -s "${WEBPACK_STATS_PATH}" webpack-stats.json
 
-RUN gulp copy && npm run build
+RUN npm run copy-fonts && npm run build
 
 ###############################################
 # Copy over this directory in its current state. #
