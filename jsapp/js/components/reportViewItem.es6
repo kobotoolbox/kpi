@@ -197,9 +197,11 @@ class ReportViewItem extends React.Component {
     var datasets = [];
 
     if (data.values != undefined) {
-      data.responseLabels.forEach(function(r, i){
-        data.responseLabels[i] = r.length > 25 ? r.substring(0,22) + '...' : r;
-      });
+      if (data.responseLabels) {
+        data.responseLabels.forEach(function(r, i){
+          data.responseLabels[i] = r.length > 25 ? r.substring(0,22) + '...' : r;
+        });
+      }
       var allPercentages = [];
       data.values.forEach(function(val, i){
         var item = {};
