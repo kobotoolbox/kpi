@@ -66,22 +66,9 @@ class FormSidebar extends Reflux.Component {
     return (
       <bem.FormSidebar__wrapper>
         {this.state.currentAssetId}
-        <ui.PopoverMenu type='new-menu' 
-            triggerLabel={t('new')}>
-            <bem.PopoverMenu__link onClick={this.newFormModal}>
-              <i className="k-icon-projects" />
-              {t('Project')}
-            </bem.PopoverMenu__link>
-            <Dropzone onDrop={this.dropFiles} 
-                      multiple={false} 
-                      className='dropzone'
-                      accept={validFileTypes()}>
-              <bem.PopoverMenu__link>
-                <i className="k-icon-upload" />
-                {t('upload')}
-              </bem.PopoverMenu__link>
-            </Dropzone>
-        </ui.PopoverMenu>
+        <button onClick={this.newFormModal} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+          {t('new')}
+        </button>
         <SidebarFormsList/>
       </bem.FormSidebar__wrapper>
     );

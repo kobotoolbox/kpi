@@ -12,6 +12,8 @@ import ui from '../ui';
 import bem from '../bem';
 import DocumentTitle from 'react-document-title';
 import TextareaAutosize from 'react-autosize-textarea';
+import stores from '../stores';
+import {hashHistory} from 'react-router';
 
 import {session} from '../stores';
 
@@ -42,12 +44,21 @@ export class ProjectSettings extends React.Component {
       sector: '',
       country: '',
       'share-metadata': false,
+      showUrlImportForm: false,
+      url: ''
     }
     if (this.props.initialData !== undefined) {
       assign(state, this.props.initialData);
     }
     this.state = state;
     autoBind(this);
+  }
+  componentDidMount () {
+    this.listenTo(session, (session) => {
+      this.setState({
+        sessionLoaded: true,
+      });
+    });
   }
   nameChange (evt) {
     this.setState({
@@ -74,13 +85,65 @@ export class ProjectSettings extends React.Component {
       'share-metadata': evt.target.checked
     });
   }
-  componentDidMount () {
-    this.listenTo(session, (session) => {
-      this.setState({
-        sessionLoaded: true,
-      });
+  urlChange (evt) {
+    this.setState({
+      url: evt.target.value
+    });
+  }
+  goToFormBuilder() {
+    hashHistory.push(`/forms/${this.props.newFormAsset.uid}/edit`);
+    stores.pageState.hideModal();    
+  }
+  displayImportUrlForm() {
+    this.setState({
+      showUrlImportForm: true,
+    });    
+  }
+  importFromURL() {
+    console.log(this.state.url);
+    let asset = this.props.newFormAsset;
+    console.log(asset);
+
+    dataInterface.postCreateURLImport(assign({
+        url: this.state.url,
+        name: asset.name,
+        library: false,
+        destination: asset.url
+      }
+    )).then((data)=> {
+      window.setTimeout((()=>{
+        dataInterface.getImportDetails({
+          uid: data.uid,
+        }).done((importData/*, status, jqxhr*/) => {
+          if (importData.status === 'complete') {
+            alertify.warning(t('Import completed correctly.'));
+            console.log(data.uid);
+            // hashHistory.push(`/forms/${data.uid}`);
+          }
+          // If the import task didn't complete immediately, inform the user accordingly.
+          else if (importData.status === 'processing') {
+            alertify.warning(t('Your upload is being processed. This may take a few moments.'));
+          } else if (importData.status === 'created') {
+            alertify.warning(t('Your upload is queued for processing. This may take a few moments.'));
+          } else if (importData.status === 'error')  {
+            var error_message= `<strong>Import Error.</strong><br><code><strong>${importData.messages.error_type}</strong><br>${importData.messages.error}</code>`
+            alertify.error(t(error_message));
+          } else {
+            alertify.error(t('Import Failure.'));
+          }
+        }).fail((failData)=>{
+          alertify.error(t('Import Failed.'));
+          log('import failed', failData);
+        });
+
+        // stores.pageState.hideModal();
+      }), 2500);
+    }).fail((jqxhr)=> {
+      log('Failed to create import: ', jqxhr);
+      alertify.error(t('Failed to create import.'));
     });
 
+    return false;
   }
   onSubmit (evt) {
     evt.preventDefault();
@@ -116,95 +179,135 @@ export class ProjectSettings extends React.Component {
       });
     }
 
-    return (
-      <bem.FormModal__form onSubmit={this.onSubmit}>
-        {this.props.context == 'existingForm' && 
-          <bem.FormModal__item m={['actions', 'fixed']}>
-            <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-              {this.props.submitButtonValue}
-            </button>
-          </bem.FormModal__item>
-        }
-        <bem.FormModal__item m='wrapper'>
-          <bem.FormModal__item>
-            <label htmlFor="name">
-              {t('Project Name')}
-            </label>
-            <input type="text"
-                id="name"
-                placeholder={t('Enter title of project here')}
-                value={this.state.name}
-                onChange={this.nameChange}
-              />
-          </bem.FormModal__item>
-          <bem.FormModal__item>
-            <label htmlFor="description">
-              {t('Description')}
-            </label>
-            <TextareaAutosize 
-              onChange={this.descriptionChange} 
-              value={this.state.description} 
-              placeholder={t('Enter short description here')} />
-          </bem.FormModal__item>
-          <bem.FormModal__item>
-            <label className="long">
-              {t('Please specify the country and the sector where this project will be deployed. ')}
-              {t('This information will be used to help you filter results on the project list page.')}
-            </label>
-          </bem.FormModal__item>
-
-          <bem.FormModal__item m='sector'>
-            <label htmlFor="sector">
-              {t('Sector')}
-            </label>
-            <Select
-                id="sector"
-                value={this.state.sector}
-                onChange={this.sectorChange}
-                options={sectors}
-              />
-          </bem.FormModal__item>
-          <bem.FormModal__item  m='country'>
-            <label htmlFor="country">
-              {t('Country')}
-            </label>
-            <Select
-              id="country"
-              value={this.state.country}
-              onChange={this.countryChange}
-              options={countries}
-            />
-          </bem.FormModal__item>
-          <bem.FormModal__item m='metadata-share'>
-            <input type="checkbox"
-                id="share-metadata"
-                checked={this.state['share-metadata']}
-                onChange={this.shareMetadataChange}
-              />
-            <label htmlFor="share-metadata">
-              {t('Help KoboToolbox improve this product by sharing the sector and country where this project will be deployed.')}
-              &nbsp;
-              {t('All the information is submitted anonymously, and will not include the project name or description listed above.')}
-            </label>
-          </bem.FormModal__item>
-
-          {this.props.context != 'existingForm' &&
-            <bem.FormModal__item m='actions'>
+    if (!this.props.newFormAsset) {
+      return (
+        <bem.FormModal__form onSubmit={this.onSubmit}>
+          {this.props.context == 'existingForm' && 
+            <bem.FormModal__item m={['actions', 'fixed']}>
               <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
                 {this.props.submitButtonValue}
               </button>
             </bem.FormModal__item>
           }
+          <bem.FormModal__item m='wrapper'>
+            <bem.FormModal__item>
+              <label htmlFor="name">
+                {t('Project Name')}
+              </label>
+              <input type="text"
+                  id="name"
+                  placeholder={t('Enter title of project here')}
+                  value={this.state.name}
+                  onChange={this.nameChange}
+                />
+            </bem.FormModal__item>
+            <bem.FormModal__item>
+              <label htmlFor="description">
+                {t('Description')}
+              </label>
+              <TextareaAutosize 
+                onChange={this.descriptionChange} 
+                value={this.state.description} 
+                placeholder={t('Enter short description here')} />
+            </bem.FormModal__item>
+            <bem.FormModal__item>
+              <label className="long">
+                {t('Please specify the country and the sector where this project will be deployed. ')}
+                {t('This information will be used to help you filter results on the project list page.')}
+              </label>
+            </bem.FormModal__item>
 
-          {this.props.context == 'existingForm' && this.props.iframeUrl &&
-            <bem.FormView__cell m='iframe'>
-              <iframe src={this.props.iframeUrl} />
-            </bem.FormView__cell>
+            <bem.FormModal__item m='sector'>
+              <label htmlFor="sector">
+                {t('Sector')}
+              </label>
+              <Select
+                  id="sector"
+                  value={this.state.sector}
+                  onChange={this.sectorChange}
+                  options={sectors}
+                />
+            </bem.FormModal__item>
+            <bem.FormModal__item  m='country'>
+              <label htmlFor="country">
+                {t('Country')}
+              </label>
+              <Select
+                id="country"
+                value={this.state.country}
+                onChange={this.countryChange}
+                options={countries}
+              />
+            </bem.FormModal__item>
+            <bem.FormModal__item m='metadata-share'>
+              <input type="checkbox"
+                  id="share-metadata"
+                  checked={this.state['share-metadata']}
+                  onChange={this.shareMetadataChange}
+                />
+              <label htmlFor="share-metadata">
+                {t('Help KoboToolbox improve this product by sharing the sector and country where this project will be deployed.')}
+                &nbsp;
+                {t('All the information is submitted anonymously, and will not include the project name or description listed above.')}
+              </label>
+            </bem.FormModal__item>
 
-          }
-        </bem.FormModal__item>
-      </bem.FormModal__form>
-    );
+            {this.props.context != 'existingForm' &&
+              <bem.FormModal__item m='actions'>
+                <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                  {this.props.submitButtonValue}
+                </button>
+              </bem.FormModal__item>
+            }
+
+            {this.props.context == 'existingForm' && this.props.iframeUrl &&
+              <bem.FormView__cell m='iframe'>
+                <iframe src={this.props.iframeUrl} />
+              </bem.FormView__cell>
+
+            }
+          </bem.FormModal__item>
+        </bem.FormModal__form>
+      );
+    } else {
+      return (
+        <bem.FormModal__form>
+          <bem.FormModal__item m='wrapper newForm-confirmation'>
+            <bem.FormModal__item>
+              Your form has been created. You have now three options:  
+            </bem.FormModal__item>
+            <bem.FormModal__item className={this.state.showUrlImportForm ? 'inactive' : 'active'}>
+              <div>1. Design your form in the Form Builder</div>
+              <button onClick={this.goToFormBuilder} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                {t('Launch Form Builder')}
+              </button>              
+            </bem.FormModal__item>
+            <bem.FormModal__item className={this.state.showUrlImportForm ? 'inactive' : 'active'}>
+              <div>2. Import an XLS form from your computer or device</div>
+              <button className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                {t('Upload file')}
+              </button>
+            </bem.FormModal__item>
+            <bem.FormModal__item onClick={this.displayImportUrlForm}>
+              3. Import a form by URL ( from Google Sheets, Dropbox, etc.)
+              <bem.FormModal__item>
+                <label htmlFor="url">
+                  {t('URL')}
+                </label>
+                <input type="text"
+                    id="url"
+                    value={this.state.url}
+                    onChange={this.urlChange}/>
+                <button onClick={this.importFromURL} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                  {t('Import from URL')}
+                </button>
+              </bem.FormModal__item>
+
+            </bem.FormModal__item>
+          </bem.FormModal__item>
+        </bem.FormModal__form>
+      );
+    }
   }
 };
 

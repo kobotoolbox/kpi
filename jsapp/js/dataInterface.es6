@@ -365,6 +365,21 @@ var dataInterface;
       Object.keys(contents).forEach(function(key){
         formData.append(key, contents[key]);
       });
+      console.log(contents);
+      return $.ajax({
+        method: 'POST',
+        url: `${rootUrl}/imports/`,
+        data: formData,
+        processData: false,
+        contentType: false
+      });
+    },
+    postCreateURLImport (contents) {
+      var formData = new FormData();
+      Object.keys(contents).forEach(function(key){
+        formData.append(key, contents[key]);
+      });
+      console.log(contents);
       return $.ajax({
         method: 'POST',
         url: `${rootUrl}/imports/`,

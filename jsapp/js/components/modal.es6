@@ -25,7 +25,8 @@ class Modal extends React.Component {
     this.state = {
       enketopreviewlink: false,
       error: false,
-      modalClass: false
+      modalClass: false,
+      newFormAsset: false
     };
     autoBind(this);
   }
@@ -85,8 +86,11 @@ class Modal extends React.Component {
       }),
       asset_type: 'survey',
     }).done((asset) => {
-      hashHistory.push(`/forms/${asset.uid}/edit`);
-      stores.pageState.hideModal();
+      this.setState({
+        newFormAsset: asset
+      });
+      // hashHistory.push(`/forms/${asset.uid}/edit`);
+      // stores.pageState.hideModal();
     });
   }
   enketoSnapshotCreation (data) {
@@ -122,6 +126,7 @@ class Modal extends React.Component {
                 onSubmit={this.createNewForm}
                 submitButtonValue={t('Create project')}
                 context='newForm'
+                newFormAsset={this.state.newFormAsset}
               />
             }
             { this.props.params.type == 'enketo-preview' && this.state.enketopreviewlink &&
