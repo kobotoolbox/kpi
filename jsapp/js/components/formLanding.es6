@@ -333,6 +333,19 @@ export class FormLanding extends React.Component {
       }
     );
   }
+  replaceViaURL(evt) {
+    let params = {
+      destination: this.state.url,
+      url: 'https://docs.google.com/feeds/download/spreadsheets/Export?key=1glfeLWBJS10Fy0TXLTG1n0K5HuvCyou3-uD2jQOcCEU&exportFormat=xlsx'
+    };
+    this._forEachDroppedFile(params);
+  }
+  onDrop(files, rejectedFiles) {
+    if (files.length === 0)
+      return;
+
+    this.dropFiles(files, [], {destination: this.state.url});
+  }
   renderButtons () {
     const userCanEdit = this.userCan('change_asset', this.state);
     var downloadable = false;
@@ -363,7 +376,7 @@ export class FormLanding extends React.Component {
             <i className="k-icon-view" />
           </bem.FormView__link>
           {userCanEdit && 
-            <Dropzone onDrop={this.dropFiles} 
+            <Dropzone onDrop={this.onDrop} 
                           multiple={false} 
                           className='dropzone' 
                           accept={validFileTypes()}>
@@ -372,7 +385,14 @@ export class FormLanding extends React.Component {
               </bem.FormView__link>
             </Dropzone>
           }
-
+          {userCanEdit && 
+            <bem.FormView__link m='upload' 
+                                onClick={this.replaceViaURL} 
+                                data-tip={t('Replace via URL')}
+                                className="is-edge">
+              <i className="k-icon-replace" />
+            </bem.FormView__link>
+          }
           <ui.PopoverMenu type='formLanding-menu' 
                       triggerLabel={<i className="k-icon-more" />} 
                       triggerTip={t('More Actions')}>

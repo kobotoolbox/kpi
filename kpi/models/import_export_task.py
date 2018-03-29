@@ -202,8 +202,21 @@ class ImportTask(ImportExportTask):
                 item._orm = create_assets(item.get_type(), extra_args)
             elif item.get_type() == 'asset':
                 kontent = xls2json_backends.xls_to_dict(item.readable)
-                extra_args['content'] = _strip_header_keys(kontent)
-                item._orm = create_assets(item.get_type(), extra_args)
+                if not destination:
+                    extra_args['content'] = _strip_header_keys(kontent)
+                    item._orm = create_assets(item.get_type(), extra_args)
+                else:
+                    # The below is copied from `_parse_b64_upload` pretty much as is
+                    # TODO: review and test carefully
+                    asset = destination
+                    asset.content = kontent
+                    asset.save()
+                    messages['updated'].append({
+                            'uid': asset.uid,
+                            'kind': 'asset',
+                            'owner__username': self.user.username,
+                        })
+
             if item.parent:
                 collections_to_assign.append([
                     item._orm,

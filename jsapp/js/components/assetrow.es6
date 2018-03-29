@@ -97,7 +97,7 @@ class AssetRow extends React.Component {
     if (files.length === 0)
       return;
 
-    this.dropFiles(files, [], {url: this.props.url});
+    this.dropFiles(files, [], {destination: this.props.url});
   }
   render () {
     var selfowned = this.props.owner__username === this.props.currentUsername;

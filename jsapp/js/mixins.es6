@@ -171,25 +171,20 @@ mixins.dmix = {
 };
 
 mixins.droppable = {
-  _forEachDroppedFile (evt, file, params={}) {
+  _forEachDroppedFile (params={}) {
     var library = this.context.router.isActive('library');
-    var url = params.url || this.state.url;
+    params = assign({library: library}, params);
 
-    stores.pageState.showModal({
-      type: 'uploading-xls',
-      file: file,
-      url: url
-    });
+    if (params.base64Encoded) {
+      stores.pageState.showModal({
+        type: 'uploading-xls',
+        filename: params.name
+      });
+      let destination = params.destination || this.state.url;
+      params = assign({destination: destination}, params);
+    } 
 
-    dataInterface.postCreateBase64EncodedImport(assign({
-        base64Encoded: evt.target.result,
-        name: file.name,
-        library: library,
-        lastModified: file.lastModified,
-      }, url ? {
-        destination: url,
-      } : null
-    )).then((data)=> {
+    dataInterface.postCreateImport(params).then((data)=> {
       window.setTimeout((()=>{
         dataInterface.getImportDetails({
           uid: data.uid,
@@ -209,18 +204,14 @@ mixins.droppable = {
               } else {
                 hashHistory.push(`/forms/${assetUid}`);
               }
-              if (url) {
-                notify(t('Replace operation completed'));
-              } else {
-                notify(t('XLS Upload completed'));
-              }
+              notify(t('XLS Import completed'));
             }
           }
           // If the import task didn't complete immediately, inform the user accordingly.
           else if (importData.status === 'processing') {
-            alertify.warning(t('Your library assets have uploaded and are being processed. This may take a few moments.'));
+            alertify.warning(t('Your upload is being processed. This may take a few moments.'));
           } else if (importData.status === 'created') {
-            alertify.warning(t('Your library assets have uploaded and are queued for processing. This may take a few moments.'));
+            alertify.warning(t('Your upload is queued for processing. This may take a few moments.'));
           } else if (importData.status === 'error')  {
             var error_message= `<strong>Import Error.</strong><br><code><strong>${importData.messages.error_type}</strong><br>${importData.messages.error}</code>`
             alertify.error(t(error_message));
@@ -231,7 +222,6 @@ mixins.droppable = {
           alertify.error(t('Import Failed.'));
           log('import failed', failData);
         });
-
         stores.pageState.hideModal();
       }), 2500);
     }).fail((jqxhr)=> {
@@ -239,12 +229,17 @@ mixins.droppable = {
       alertify.error(t('Failed to create import.'));
     });
   },
-  dropFiles (files, rejectedFiles, params={}) {
+  dropFiles (files, rejectedFiles, pms={}) {
     files.map((file) => {
       var reader = new FileReader();
-      reader.onload = (e)=>{
-        var f = this.forEachDroppedFile || this._forEachDroppedFile;
-        f.call(this, e, file, params);
+      reader.onload = (e)=> {
+        let params = assign({
+          base64Encoded: e.target.result,
+          name: file.name,
+          lastModified: file.lastModified,
+        }, pms); 
+
+        this._forEachDroppedFile(params);
       };
       reader.readAsDataURL(file);
     });

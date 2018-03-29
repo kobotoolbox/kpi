@@ -324,6 +324,54 @@
   cursor: pointer;
 }
 
+// new modal, newForm-confirmation
+
+.form-modal__item--newForm-step2 {
+  text-align: center;
+
+  label {
+    text-align: left;
+  }
+
+  .dropzone {
+    background: #F5F5F5;
+    padding: 30px 10px;
+    border: 2px dashed $divider-color;
+    cursor: pointer;
+
+    &:hover {
+      border-color: $cool-blue;
+    }
+
+    &.dropzone-active {
+      border-color: $cool-blue;
+    }
+
+    &.dropzone-reject {
+      border-color: $cool-red;
+    }
+  }
+
+  .step2-intro {
+    font-size: 18px;
+    opacity: 0.7;
+    padding-bottom: 20px;
+  }
+
+  .form-modal__item--form-design {
+    margin-bottom: 40px;
+  }
+
+  .form-modal__item--url-import {
+    text-align: right;
+    margin-top: 30px;
+
+    button {
+      margin-top: 20px;
+    }
+  }
+}
+
 // alertify overrides
 
 .alertify .ajs-dimmer {

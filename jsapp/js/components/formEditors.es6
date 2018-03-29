@@ -7,6 +7,7 @@ import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import editableFormMixin from '../editorMixins/editableForm';
 import Select from 'react-select';
+import Dropzone from 'react-dropzone';
 import moment from 'moment';
 import ui from '../ui';
 import bem from '../bem';
@@ -16,6 +17,7 @@ import stores from '../stores';
 import {hashHistory} from 'react-router';
 
 import {session} from '../stores';
+import mixins from '../mixins';
 
 let newFormMixins = [
     Reflux.ListenerMixin,
@@ -27,7 +29,8 @@ import {
   t,
   redirectTo,
   assign,
-  formatTime
+  formatTime,
+  validFileTypes
 } from '../utils';
 
 import {
@@ -45,7 +48,9 @@ export class ProjectSettings extends React.Component {
       country: '',
       'share-metadata': false,
       showUrlImportForm: false,
-      url: ''
+      importUrl: '',
+      importUrlButtonEnabled: false,
+      importUrlButton: t('Import an XLS form by URL')
     }
     if (this.props.initialData !== undefined) {
       assign(state, this.props.initialData);
@@ -85,9 +90,10 @@ export class ProjectSettings extends React.Component {
       'share-metadata': evt.target.checked
     });
   }
-  urlChange (evt) {
+  importUrlChange (evt) {
     this.setState({
-      url: evt.target.value
+      importUrl: evt.target.value,
+      importUrlButtonEnabled: evt.target.value.length > 6 ? true : false
     });
   }
   goToFormBuilder() {
@@ -99,52 +105,30 @@ export class ProjectSettings extends React.Component {
       showUrlImportForm: true,
     });    
   }
-  importFromURL() {
-    console.log(this.state.url);
+  importFromURL(evt) {
+    evt.preventDefault();
+
     let asset = this.props.newFormAsset;
-    console.log(asset);
+    let params = {
+      destination: asset.url,
+      url: this.state.importUrl,
+      name: asset.name
+    };
+    this._forEachDroppedFile(params);
 
-    dataInterface.postCreateURLImport(assign({
-        url: this.state.url,
-        name: asset.name,
-        library: false,
-        destination: asset.url
-      }
-    )).then((data)=> {
-      window.setTimeout((()=>{
-        dataInterface.getImportDetails({
-          uid: data.uid,
-        }).done((importData/*, status, jqxhr*/) => {
-          if (importData.status === 'complete') {
-            alertify.warning(t('Import completed correctly.'));
-            console.log(data.uid);
-            // hashHistory.push(`/forms/${data.uid}`);
-          }
-          // If the import task didn't complete immediately, inform the user accordingly.
-          else if (importData.status === 'processing') {
-            alertify.warning(t('Your upload is being processed. This may take a few moments.'));
-          } else if (importData.status === 'created') {
-            alertify.warning(t('Your upload is queued for processing. This may take a few moments.'));
-          } else if (importData.status === 'error')  {
-            var error_message= `<strong>Import Error.</strong><br><code><strong>${importData.messages.error_type}</strong><br>${importData.messages.error}</code>`
-            alertify.error(t(error_message));
-          } else {
-            alertify.error(t('Import Failure.'));
-          }
-        }).fail((failData)=>{
-          alertify.error(t('Import Failed.'));
-          log('import failed', failData);
-        });
-
-        // stores.pageState.hideModal();
-      }), 2500);
-    }).fail((jqxhr)=> {
-      log('Failed to create import: ', jqxhr);
-      alertify.error(t('Failed to create import.'));
-    });
-
-    return false;
+    this.setState({
+      importUrlButtonEnabled: false,
+      importUrlButton: t('Retrieving form by URL, please wait...')
+    });    
   }
+  onDrop (files) {
+    if (files.length === 0)
+      return;
+
+    let asset = this.props.newFormAsset;
+    this.dropFiles(files, [], {destination: asset.url});
+  }
+
   onSubmit (evt) {
     evt.preventDefault();
     if (!this.state.name.trim()) {
@@ -260,6 +244,15 @@ export class ProjectSettings extends React.Component {
               </bem.FormModal__item>
             }
 
+            {this.props.context != 'existingForm' &&
+              <bem.FormModal__item m='upload-note'>
+                <label className="long">
+                  {t('Note: ')}
+                  {t('You will be able to upload an XLS Form in the next step.')}
+                </label>
+              </bem.FormModal__item>
+            }
+
             {this.props.context == 'existingForm' && this.props.iframeUrl &&
               <bem.FormView__cell m='iframe'>
                 <iframe src={this.props.iframeUrl} />
@@ -272,37 +265,44 @@ export class ProjectSettings extends React.Component {
     } else {
       return (
         <bem.FormModal__form>
-          <bem.FormModal__item m='wrapper newForm-confirmation'>
-            <bem.FormModal__item>
-              Your form has been created. You have now three options:  
-            </bem.FormModal__item>
-            <bem.FormModal__item className={this.state.showUrlImportForm ? 'inactive' : 'active'}>
-              <div>1. Design your form in the Form Builder</div>
+          <bem.FormModal__item m='newForm-step2'>
+            <div className="step2-intro">
+              {t('Your project has been created. You can now')}
+            </div>
+            <bem.FormModal__item m='form-design'>
               <button onClick={this.goToFormBuilder} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-                {t('Launch Form Builder')}
+                {t('Design your Form in the Form Builder')}
               </button>              
             </bem.FormModal__item>
-            <bem.FormModal__item className={this.state.showUrlImportForm ? 'inactive' : 'active'}>
-              <div>2. Import an XLS form from your computer or device</div>
-              <button className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-                {t('Upload file')}
-              </button>
+            <div className="step2-intro">
+              {t('or import')}
+            </div>
+            <bem.FormModal__item m='xls-upload'>
+              <label>{t('via upload')}</label>
+              <Dropzone onDrop={this.onDrop.bind(this)} 
+                            multiple={false} 
+                            className='dropzone' 
+                            activeClassName='dropzone-active'
+                            rejectClassName='dropzone-reject'
+                            accept={validFileTypes()}>
+                {t(' Drag and drop an XLSForm file here or click to browse')}
+              </Dropzone>
             </bem.FormModal__item>
-            <bem.FormModal__item onClick={this.displayImportUrlForm}>
-              3. Import a form by URL ( from Google Sheets, Dropbox, etc.)
-              <bem.FormModal__item>
-                <label htmlFor="url">
-                  {t('URL')}
-                </label>
-                <input type="text"
-                    id="url"
-                    value={this.state.url}
-                    onChange={this.urlChange}/>
-                <button onClick={this.importFromURL} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-                  {t('Import from URL')}
-                </button>
-              </bem.FormModal__item>
 
+            <bem.FormModal__item onClick={this.displayImportUrlForm} m='url-import'>
+              <label htmlFor="url">
+                {t('via URL')}
+              </label>
+              <input type="text"
+                  id="importUrl"
+                  value={this.state.importUrl}
+                  placeholder={t('Enter XLS Form URL (from Google Sheets, Dropbox, etc.)')}
+                  onChange={this.importUrlChange}/>
+              <button onClick={this.importFromURL} 
+                      disabled={!this.state.importUrlButtonEnabled}
+                      className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                {this.state.importUrlButton}
+              </button>
             </bem.FormModal__item>
           </bem.FormModal__item>
         </bem.FormModal__form>
@@ -312,6 +312,11 @@ export class ProjectSettings extends React.Component {
 };
 
 reactMixin(ProjectSettings.prototype, Reflux.ListenerMixin);
+reactMixin(ProjectSettings.prototype, mixins.droppable);
+
+ProjectSettings.contextTypes = {
+  router: PropTypes.object
+};
 
 export class ProjectSettingsEditor extends React.Component {
   constructor(props){

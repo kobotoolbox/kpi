@@ -315,21 +315,21 @@
   }
 }
 
-.popover-menu--new-menu {
-  width: 100%;
-  margin-bottom: 10px;
+// .popover-menu--new-menu {
+//   width: 100%;
+//   margin-bottom: 10px;
 
-  .popover-menu__content {
-    right: 0px;
-    width: 100%;
-  }
-}
+//   .popover-menu__content {
+//     right: 0px;
+//     width: 100%;
+//   }
+// }
 
-.popover-menu--new-menu .popover-menu__toggle {
-  @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
+// .popover-menu--new-menu .popover-menu__toggle {
+//   @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
 
-  width: 100%;
-}
+//   width: 100%;
+// }
 
 .popover-menu--bulkUpdate-menu .popover-menu__toggle {
   @extend .mdl-button, .mdl-button--colored;

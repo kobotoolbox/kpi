@@ -39,7 +39,7 @@ class Modal extends React.Component {
         });
         break;
       case 'uploading-xls':
-        var filename = this.props.params.file.name || '';
+        var filename = this.props.params.filename || '';
         this.setState({
           title: t('Uploading XLS file'),
           message: t('Uploading: ') + filename
@@ -48,7 +48,7 @@ class Modal extends React.Component {
 
       case 'new-form':
         this.setState({
-          title: t('Create New Project from Scratch')
+          title: t('Step 1: Create New Project')
         });
         break;
       case 'enketo-preview':
@@ -87,7 +87,8 @@ class Modal extends React.Component {
       asset_type: 'survey',
     }).done((asset) => {
       this.setState({
-        newFormAsset: asset
+        newFormAsset: asset,
+        title: t('Step 2: Design your form or import a file')
       });
       // hashHistory.push(`/forms/${asset.uid}/edit`);
       // stores.pageState.hideModal();
@@ -112,6 +113,14 @@ class Modal extends React.Component {
         title: t('Record #') + nextProps.params.sid,
         sid: nextProps.params.sid
       });
+    }
+
+    if (this.props.params.type != nextProps.params.type && nextProps.params.type === 'uploading-xls') {
+      var filename = nextProps.params.filename || '';
+      this.setState({
+        title: t('Uploading XLS file'),
+        message: t('Uploading: ') + filename
+      });      
     }
   }
   render() {

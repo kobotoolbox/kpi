@@ -481,11 +481,14 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
             itask_data = {
                 'url': request.POST['url'],
                 'name': request.POST.get('name', False),
+                'destination': request.POST.get('destination', None),
             }
-            if 'destination' in request.POST:
-                # TODO: support collections as destinations; see
-                # `import_from_url` management command
-                raise NotImplementedError
+            # TODO: support collections as destinations; see
+            # `import_from_url` management command
+
+            # PM disabled check for destination below
+            # if 'destination' in request.POST:
+                # raise NotImplementedError
         else:
             raise exceptions.ValidationError(
                 'Either base64Encoded or url is required')
