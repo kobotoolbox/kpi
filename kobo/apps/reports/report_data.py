@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import logging
 import itertools
 from collections import OrderedDict
 from copy import deepcopy
