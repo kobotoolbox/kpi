@@ -3,6 +3,7 @@
 # 😬
 
 import re
+import sys
 import copy
 import json
 import logging
@@ -402,8 +403,13 @@ class XlsExportable(object):
                 cur_sheet = workbook.add_sheet(sheet_name)
                 _add_contents_to_sheet(cur_sheet, contents)
         except Exception as e:
-            raise Exception("asset.content improperly formatted for XLS "
-                            "export: %s" % repr(e))
+            six.reraise(
+                Exception,
+                "asset.content improperly formatted for XLS "
+                "export: %s" % repr(e),
+                sys.exc_info()[2]
+            )
+
         string_io = StringIO.StringIO()
         workbook.save(string_io)
         string_io.seek(0)
