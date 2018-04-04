@@ -364,23 +364,32 @@ export class FormMap extends React.Component {
   }
 
   filterByMarker(evt) {
-    let markers = this.state.markers;
-    let id = evt.target.getAttribute('data-id');
+    let markers = this.state.markers,
+        id = evt.target.getAttribute('data-id'),
+        filteredByMarker = this.state.filteredByMarker;
 
-    if (this.state.filteredByMarker == id) {
-      this.setState({filteredByMarker: false});
-      markers.eachLayer( function(layer) {
+    if (!filteredByMarker)
+      filteredByMarker = [id];
+    else if (!filteredByMarker.includes(id))
+      filteredByMarker.push(id);
+    else
+      filteredByMarker = filteredByMarker.filter(l => l !== id);
+
+    this.setState({filteredByMarker: filteredByMarker});
+    markers.eachLayer( function(layer) {
+      if (!filteredByMarker.includes(layer.options.typeId.toString()))
+        layer._icon.classList.add("unselected");
+      else
         layer._icon.classList.remove("unselected");
-      });
-    } else {
-      this.setState({filteredByMarker: id});
-      markers.eachLayer( function(layer) {
-        if (layer.options.typeId != id)
-          layer._icon.classList.add("unselected");
-        else
-          layer._icon.classList.remove("unselected");
-      });
-    }
+    });
+  }
+
+  resetFilterByMarker() {
+    let markers = this.state.markers;
+    this.setState({filteredByMarker: false});
+    markers.eachLayer( function(layer) {
+      layer._icon.classList.remove("unselected");
+    });
   }
 
   nameOfFieldInGroup(fieldName) {
@@ -505,10 +514,15 @@ export class FormMap extends React.Component {
         {this.state.markerMap && this.state.markersVisible && 
           <bem.FormView__mapList className={this.state.showExpandedLegend ? 'expanded' : 'collapsed'}>
             <div className='maplist-contents'>
+              {this.state.filteredByMarker &&
+                <div key='m-reset' className='map-marker-item map-marker-reset' onClick={this.resetFilterByMarker}>
+                  {t('Reset')}
+                </div>
+              }
               {this.state.markerMap.map((m, i)=>{
                 var markerItemClass = 'map-marker-item ';
                 if (this.state.filteredByMarker)
-                  markerItemClass += this.state.filteredByMarker == m.id ? 'selected' : 'unselected';
+                  markerItemClass += this.state.filteredByMarker.includes(m.id.toString()) ? 'selected' : 'unselected';
                 let label = m.labels ? m.labels[langIndex] : m.value ? m.value : t('not set');
                 return (
                     <div key={`m-${i}`} className={markerItemClass}>
