@@ -19,6 +19,7 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.translation import ugettext_lazy as _
 
+
 from rest_framework import (
     viewsets,
     mixins,
@@ -639,6 +640,7 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
     '''
     parent_model = Asset
 
+
 class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     model = AssetVersion
     lookup_field = 'uid'
@@ -864,6 +866,24 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             # TODO: Understand why this 404s when `serializer.data` is not
             # coerced to a dict
             return Response(dict(serializer.data))
+
+    @detail_route(methods=["PATCH"], renderer_classes=[renderers.JSONRenderer])
+    def permissions(self, request, uid):
+        target_asset = self.get_object()
+        source_asset = get_object_or_404(Asset, uid=request.data.get("clone_from"))
+        user = request.user
+        response = {}
+        http_status = status.HTTP_204_NO_CONTENT
+
+        if user.has_perm('share_asset', target_asset) and \
+            user.has_perm('view_asset', source_asset):
+            if not target_asset.copy_permissions_from(source_asset):
+                http_status = status.HTTP_400_BAD_REQUEST
+                response = {"detail": "Source and destination objects don't seem to have the same type"}
+        else:
+            raise exceptions.PermissionDenied()
+
+        return Response(response, status=http_status)
 
     def perform_create(self, serializer):
         # Check if the user is anonymous. The

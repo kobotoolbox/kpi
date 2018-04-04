@@ -142,11 +142,11 @@ class PermissionsTestCase(BasePermissionsTestCase):
     fixtures= ['test_data']
 
     def setUp(self):
-        self.admin= User.objects.get(username='admin')
-        self.someuser= User.objects.get(username='someuser')
+        self.admin = User.objects.get(username='admin')
+        self.someuser = User.objects.get(username='someuser')
 
-        self.admin_collection= Collection.objects.create(owner=self.admin)
-        self.admin_asset= Asset.objects.create(content={'survey': [
+        self.admin_collection = Collection.objects.create(owner=self.admin)
+        self.admin_asset = Asset.objects.create(content={'survey': [
             {'type': 'text', 'label': 'Question 1', 'name': 'q1', 'kuid': 'abc'},
             {'type': 'text', 'label': 'Question 2', 'name': 'q2', 'kuid': 'def'},
         ]}, owner=self.admin)
@@ -475,3 +475,37 @@ class PermissionsTestCase(BasePermissionsTestCase):
         self.assertIn(self.admin_collection, admin_collections)
         self.assertNotIn(self.admin_asset, someuser_assets)
         self.assertNotIn(self.admin_collection, someuser_collections)
+
+    def test_copy_permissions_between_objects(self):
+
+        new_admin_asset_1 = Asset.objects.create(content={'survey': [
+            {'type': 'text', 'label': 'Question 3', 'name': 'q3', 'kuid': 'ghi'},
+            {'type': 'text', 'label': 'Question 4', 'name': 'q4', 'kuid': 'ijk'},
+        ]}, owner=self.admin)
+
+        new_admin_asset_2 = Asset.objects.create(content={'survey': [
+            {'type': 'text', 'label': 'Question 5', 'name': 'q5', 'kuid': 'lmn'},
+            {'type': 'text', 'label': 'Question 6', 'name': 'q6', 'kuid': 'opq'},
+        ]}, owner=self.admin)
+
+        expected_permissions = [
+            'change_asset',
+            'share_asset',
+            'view_asset'
+        ]
+
+        # Assign permissions to 1st asset.
+        for expected_permission in expected_permissions:
+            if expected_permission in Asset.ASSIGNABLE_PERMISSIONS:
+                new_admin_asset_1.assign_perm(self.someuser, expected_permission)
+
+        # Assign permissions to 2nd asset.
+        new_admin_asset_2.assign_perm(self.someuser, 'view_asset')
+        new_admin_asset_2.assign_perm(self.someuser, 'view_submissions')
+        new_admin_asset_2.assign_perm(self.someuser, 'change_submissions')
+
+        # Copy permissions from 1st to 2nd asset.
+        new_admin_asset_2.copy_permissions_from(new_admin_asset_1)
+
+        self.assertListEqual(
+            sorted(new_admin_asset_2.get_perms(self.someuser)), expected_permissions)
