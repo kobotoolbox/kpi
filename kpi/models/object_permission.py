@@ -270,6 +270,7 @@ class ObjectPermissionMixin(object):
         else:
             return False
 
+    @transaction.atomic
     def save(self, *args, **kwargs):
         # Make sure we exist in the database before proceeding
         super(ObjectPermissionMixin, self).save(*args, **kwargs)
