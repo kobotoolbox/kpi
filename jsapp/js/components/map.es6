@@ -156,20 +156,22 @@ export class FormMap extends React.Component {
 
     if (viewby) {
       var mapMarkers = this.prepFilteredMarkers(this.state.submissions, this.props.viewby);
-      var mM = [], lbl = undefined;
+      var mM = [], choice = undefined;
       let choices = this.props.asset.content.choices,
           survey = this.props.asset.content.survey;
 
-      let q = survey.find(z => z.name === viewby || z.$autoname === viewby);
+      let question = survey.find(s => s.name === viewby || s.$autoname === viewby);
 
       Object.keys(mapMarkers).map(function(m, i) {
-        if (q && q.type == 'select_one') {
-          lbl = choices.find(o => o.list_name === q.select_from_list_name && (o.name === m || o.$autoname === m));
+        if (question && question.type == 'select_one') {
+          // only return a choice from the current question's choice list
+          choice = choices.find(ch => ch.list_name === question.select_from_list_name && (ch.name === m || ch.$autoname === m));
         }
+
         mM.push({
           count: mapMarkers[m].count,
           id: mapMarkers[m].id,
-          labels: lbl ? lbl.label : undefined,
+          labels: choice ? choice.label : undefined,
           value: m != "undefined" ? m : undefined
         });
       });
@@ -212,16 +214,16 @@ export class FormMap extends React.Component {
           iconCreateFunction: function(cluster) {
             var childCount = cluster.getChildCount();
 
-            var c = ' marker-cluster-';
+            var markerClass = 'marker-cluster marker-cluster-';
             if (childCount < 10) {
-              c += 'small';
+              markerClass += 'small';
             } else if (childCount < 100) {
-              c += 'medium';
+              markerClass += 'medium';
             } else {
-              c += 'large';
+              markerClass += 'large';
             }
 
-            return new L.divIcon({ html: '<div><span>' + childCount + '</span></div>', className: 'marker-cluster' + c, iconSize: new L.Point(30, 30) });
+            return new L.divIcon({ html: '<div><span>' + childCount + '</span></div>', className: markerClass, iconSize: new L.Point(30, 30) });
           }
         });
 
@@ -366,7 +368,8 @@ export class FormMap extends React.Component {
   filterByMarker(evt) {
     let markers = this.state.markers,
         id = evt.target.getAttribute('data-id'),
-        filteredByMarker = this.state.filteredByMarker;
+        filteredByMarker = this.state.filteredByMarker,
+        unselectedClass = "unselected";
 
     if (!filteredByMarker)
       filteredByMarker = [id];
@@ -378,9 +381,9 @@ export class FormMap extends React.Component {
     this.setState({filteredByMarker: filteredByMarker});
     markers.eachLayer( function(layer) {
       if (!filteredByMarker.includes(layer.options.typeId.toString()))
-        layer._icon.classList.add("unselected");
+        layer._icon.classList.add(unselectedClass);
       else
-        layer._icon.classList.remove("unselected");
+        layer._icon.classList.remove(unselectedClass);
     });
   }
 
@@ -388,7 +391,7 @@ export class FormMap extends React.Component {
     let markers = this.state.markers;
     this.setState({filteredByMarker: false});
     markers.eachLayer( function(layer) {
-      layer._icon.classList.remove("unselected");
+      layer._icon.classList.remove(unselectedClass);
     });
   }
 
