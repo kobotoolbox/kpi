@@ -45,9 +45,8 @@ class FormsSearchableList extends React.Component {
   render () {
     return (
       <SearchCollectionList
-          showDefault={true}
-          searchContext={this.state.searchContext}
-        />
+        showDefault
+        searchContext={this.state.searchContext} />
       );
   }
 };

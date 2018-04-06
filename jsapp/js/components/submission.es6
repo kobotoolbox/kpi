@@ -353,8 +353,7 @@ class Submission extends React.Component {
               clearable={false}
               value={s._validation_status ? s._validation_status.uid : ''}
               options={VALIDATION_STATUSES}
-              onChange={this.validationStatusChange}>
-            </Select>
+              onChange={this.validationStatusChange} />
           </bem.FormModal__group>
         }
         <bem.FormModal__group>
