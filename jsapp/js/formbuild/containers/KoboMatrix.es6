@@ -398,7 +398,7 @@ class KoboMatrix extends React.Component {
                   <Select value={this.getCol(expandedCol, 'type')}
                     clearable={false}
                     options={this.state.typeChoices}
-                    onChange={this.colChangeType}></Select>
+                    onChange={this.colChangeType} />
                 </label>
                 <label>
                   <span>{t('Label')}</span>
