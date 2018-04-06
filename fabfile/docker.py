@@ -1,12 +1,13 @@
 import json
 import os
 
-from fabric.api import cd, env, run, sudo
+from fabric.api import cd, env, run, sudo, hide, settings
 from fabric.contrib import files
 
 
 SERVICE_NAME = 'kpi'
 GIT_REPO = 'https://github.com/kobotoolbox/{}.git'.format(SERVICE_NAME)
+DOCKER_HUB_REPO = 'kobotoolbox/{}'.format(SERVICE_NAME)
 CONTAINER_SRC_DIR_ENV_VAR = '{}_SRC_DIR'.format(SERVICE_NAME.upper())
 UPDATE_STATIC_FILE = '{}/LAST_UPDATE.txt'.format(SERVICE_NAME)
 # These must be defined in deployments.json
@@ -38,7 +39,7 @@ def sudo_no_pty(*args, **kwargs):
     return sudo(*args, **kwargs)
 
 
-def setup_env(deployment_name):
+def setup_env(deployment_name, required_settings=REQUIRED_SETTINGS):
     deployment = DEPLOYMENTS.get(deployment_name, {})
 
     if deployment_name in IMPORTED_DEPLOYMENTS:
@@ -46,7 +47,7 @@ def setup_env(deployment_name):
 
     env.update(deployment)
 
-    for required_setting in REQUIRED_SETTINGS:
+    for required_setting in required_settings:
         if required_setting not in env:
             raise Exception('Please define {} in {} and try again'.format(
                 required_setting, deployments_file))
@@ -89,3 +90,45 @@ def deploy(deployment_name, branch='master'):
             'branch! Make sure docker-compose.yml is set to build from '
             '{}'.format(build_dir)
         )
+
+
+def publish_docker_image(tag, deployment_name='_image_builder'):
+    def _get_commit_from_docker_image(image_name):
+        with hide('output'):
+            return run_no_pty(
+                "docker run --rm {image_name} bash -c '"
+                "cd \"${src_dir_var}\" && git show --no-patch'".format(
+                    image_name=image_name,
+                    src_dir_var=CONTAINER_SRC_DIR_ENV_VAR
+                )
+            )
+
+    setup_env(deployment_name, required_settings=('host_string', 'build_root'))
+    build_dir = os.path.join(env.build_root, SERVICE_NAME, tag)
+    image_name = '{}:{}'.format(DOCKER_HUB_REPO, tag)
+
+    run("mkdir -p '{}'".format(build_dir))
+    with cd(build_dir):
+        # Start from scratch
+        run("find -delete")
+        # Shallow clone the requested tag to a temporary directory
+        with hide('output'):
+            run("git clone --quiet --depth=1 --branch='{}' '{}' .".format(
+                tag, GIT_REPO))
+        # Note which commit is at the tip of the cloned tag
+        cloned_commit = run_no_pty("git show --no-patch")
+        # Check if a suitable image was built already
+        with settings(warn_only=True):
+            commit_inside_image = _get_commit_from_docker_image(image_name)
+        if commit_inside_image != cloned_commit:
+            # Build the image
+            run("docker build -t '{}' .".format(image_name))
+            # Make sure the resulting image has the expected code
+            commit_inside_image = _get_commit_from_docker_image(image_name)
+            if commit_inside_image != cloned_commit:
+                raise Exception(
+                    'The code inside the built image does not match the'
+                    'specified tag. This script is probably broken.'
+                )
+    # Push the image to Docker Hub
+    run_no_pty("docker push '{}'".format(image_name))
