@@ -200,8 +200,7 @@ export class DataTable extends React.Component {
           clearable={false}
           value={this.state.tableData[row.index]._validation_status}
           options={VALIDATION_STATUSES}
-          onChange={this.validationStatusChange(row.row._id, row.index)}>
-        </Select>
+          onChange={this.validationStatusChange(row.row._id, row.index)} />
       )
     });
 

@@ -405,7 +405,7 @@ class LibrarySidebar extends Reflux.Component {
                       <bem.FormSidebar__itemlink
                         onClick={this.clickFilterByCollection}
                         data-collection-uid={collection.uid}
-                        data-public-collection={true}>
+                        data-public-collection>
                           <i className="k-icon-folder-public" />
                           <bem.FormSidebar__iteminner>
                             {collection.name}
