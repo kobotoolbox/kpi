@@ -20,7 +20,7 @@ class SearchCollectionList extends Reflux.Component {
     super(props);
     var selectedCategories = {
       'Draft': true,
-      'Deployed': true, 
+      'Deployed': true,
       'Archived': true
     };
     this.state = {
@@ -209,12 +209,20 @@ class SearchCollectionList extends Reflux.Component {
                     <bem.Loading>
                       <bem.Loading__inner>
                         <i />
-                        {t('loading...')} 
+                        {t('loading...')}
                       </bem.Loading__inner>
                     </bem.Loading>
                   );
                 } else if (s.searchState === 'done') {
-                  if (display == 'grouped') {
+                  if (s.searchResultsCount === 0) {
+                    return (
+                      <bem.Loading>
+                        <bem.Loading__inner>
+                          {t('Your search returned no results.')}
+                        </bem.Loading__inner>
+                      </bem.Loading>
+                    );
+                  } else if (display == 'grouped') {
                     return this.renderGroupedResults();
                   } else {
                     return s.searchResultsList.map(this.renderAssetRow);
@@ -226,7 +234,7 @@ class SearchCollectionList extends Reflux.Component {
                     <bem.Loading>
                       <bem.Loading__inner>
                         <i />
-                        {t('loading...')} 
+                        {t('loading...')}
                       </bem.Loading__inner>
                     </bem.Loading>
                   );
@@ -236,7 +244,7 @@ class SearchCollectionList extends Reflux.Component {
                       return (
                         <bem.Loading>
                           <bem.Loading__inner>
-                            {t("Let's get started by creating your first project. Click the New button to create a new form.")} 
+                            {t("Let's get started by creating your first project. Click the New button to create a new form.")}
                           </bem.Loading__inner>
                         </bem.Loading>
                       );
@@ -244,7 +252,7 @@ class SearchCollectionList extends Reflux.Component {
                       return (
                         <bem.Loading>
                           <bem.Loading__inner>
-                            {t("Let's get started by creating your first library question or question block. Click the New button to create a new question or block.")} 
+                            {t("Let's get started by creating your first library question or question block. Click the New button to create a new question or block.")}
                           </bem.Loading__inner>
                         </bem.Loading>
                       );
