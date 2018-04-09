@@ -149,6 +149,13 @@
       text-align: center;
       vertical-align: middle;
       height: 75px;
+      cursor: pointer;
+      
+      @extend .mdl-button, .mdl-button--icon;
+      
+      &:hover {
+          background-color: darken($cool-green, 10%);
+      }
 
       i {
         color: #FFF;

@@ -433,7 +433,7 @@ export default assign({
         <bem.FormBuilderHeader>
           <bem.FormBuilderHeader__row m={['first', allButtonsDisabled ? 'disabled' : null]}>
 
-            <bem.FormBuilderHeader__cell m={'project-icon'} >
+            <bem.FormBuilderHeader__cell m={'project-icon'} onClick={this.navigateBack}>
               <i className="k-icon-projects" />
             </bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__cell m={'name'} >
