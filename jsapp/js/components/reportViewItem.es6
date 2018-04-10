@@ -66,6 +66,7 @@ class ReportTable extends React.Component {
       th = [t('Value'), t('Frequency'), t('Percentage')];
       rows = this.props.rows;
     } else {
+      // prepare table data for disaggregated rows
       if (this.props.rows.length > 0) {
         let rowsB = this.props.rows;
         if (this.props.responseLabels) {
@@ -161,9 +162,13 @@ class ReportViewItem extends React.Component {
 
     this.setState({reportTable: reportTable});
   }
+  truncateLabel(label, length = 25) {
+    return label.length > length ? label.substring(0,length - 3) + '...' : label;
+  }
   buildChartOptions () {
     var data = this.props.data;
     var chartType = this.props.style.report_type || 'bar';
+    let _this = this;
 
     var maxPercentage = 100;
     var barPercentage = 0.5;
@@ -202,14 +207,14 @@ class ReportViewItem extends React.Component {
     if (data.values != undefined) {
       if (data.responseLabels) {
         data.responseLabels.forEach(function(r, i){
-          data.responseLabels[i] = r.length > 25 ? r.substring(0,22) + '...' : r;
+          data.responseLabels[i] = _this.truncateLabel(r);
         });
       }
       var allPercentages = [];
       data.values.forEach(function(val, i){
         var item = {};
         var choiceLabel = val[2] || val[0];
-        item.label = choiceLabel.length > 20 ? choiceLabel.substring(0,17) + '...' : choiceLabel;
+        item.label = _this.truncateLabel(choiceLabel, 20);
         item.data = val[1].percentages;
         allPercentages = [...new Set([...allPercentages ,...val[1].percentages])];
         item.backgroundColor = colors[i];
@@ -224,12 +229,12 @@ class ReportViewItem extends React.Component {
       datasets.push({data: data.percentages});
       if (data.responseLabels) {
         data.responseLabels.forEach(function(r, i){
-          data.responseLabels[i] = r.length > 25 ? r.substring(0,22) + '...' : r;
+          data.responseLabels[i] = _this.truncateLabel(r);
         });
       }
       if (data.responses) {
         data.responses.forEach(function(r, i){
-          data.responses[i] = r.length > 25 ? r.substring(0,22) + '...' : r;
+          data.responses[i] = _this.truncateLabel(r);
         });
       }
     }
