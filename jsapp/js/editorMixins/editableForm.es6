@@ -433,7 +433,10 @@ export default assign({
         <bem.FormBuilderHeader>
           <bem.FormBuilderHeader__row m={['first', allButtonsDisabled ? 'disabled' : null]}>
 
-            <bem.FormBuilderHeader__cell m={'project-icon'} onClick={this.navigateBack}>
+            <bem.FormBuilderHeader__cell m={'project-icon'}
+              data-tip={t('Return to list')}
+              className="left-tooltip"
+              onClick={this.safeNavigateToFormsList}>
               <i className="k-icon-projects" />
             </bem.FormBuilderHeader__cell>
             <bem.FormBuilderHeader__cell m={'name'} >
@@ -460,7 +463,7 @@ export default assign({
 
               <bem.FormBuilderHeader__close m={[{
                     'close-warning': this.needsSave(),
-                  }]} onClick={this.navigateBack}>
+                  }]} onClick={this.safeNavigateToForm}>
                 <i className="k-icon-close"></i>
               </bem.FormBuilderHeader__close>
 
@@ -668,22 +671,17 @@ export default assign({
       enketopreviewError: false,
     });
   },
-  navigateBack() {
-    var backRoute = this.state.backRoute;
-    if (this.state.backRoute == '/forms') {
-      backRoute = `/forms/${this.state.asset_uid}`;
-    }
-
+  safeNavigateToRoute(route) {
     if (!this.needsSave()) {
-      hashHistory.push(backRoute);
+      hashHistory.push(route);
     } else {
       let dialog = alertify.dialog('confirm');
       let opts = {
-        title: t('you have unsaved changes. leave form without saving?'),
+        title: t('You have unsaved changes. Leave form without saving?'),
         message: '',
         labels: {ok: t('Yes, leave form'), cancel: t('Cancel')},
         onok: (evt, val) => {
-          hashHistory.push(backRoute);
+          hashHistory.push(route);
         },
         oncancel: () => {
           dialog.destroy();
@@ -691,6 +689,16 @@ export default assign({
       };
       dialog.set(opts).show();
     }
+  },
+  safeNavigateToFormsList() {
+    this.safeNavigateToRoute('/forms/');
+  },
+  safeNavigateToForm() {
+    var backRoute = this.state.backRoute;
+    if (this.state.backRoute == '/forms') {
+      backRoute = `/forms/${this.state.asset_uid}`;
+    }
+    this.safeNavigateToRoute(backRoute);
   },
 
   render () {

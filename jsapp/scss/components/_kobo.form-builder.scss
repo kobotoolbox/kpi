@@ -150,8 +150,7 @@
       vertical-align: middle;
       height: 75px;
       cursor: pointer;
-      
-      @extend .mdl-button, .mdl-button--icon;
+      transition: background-color 0.2s, color 0.2s;
       
       &:hover {
           background-color: darken($cool-green, 10%);
