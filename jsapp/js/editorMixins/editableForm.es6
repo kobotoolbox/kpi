@@ -570,7 +570,7 @@ export default assign({
                 value={styleValue}
                 onChange={this.onStyleChange}
                 addLabelText={t('custom form style: "{label}"')}
-                allowCreate={true}
+                allowCreate
                 placeholder={AVAILABLE_FORM_STYLES[0].label}
                 options={AVAILABLE_FORM_STYLES}
               />

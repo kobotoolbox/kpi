@@ -253,7 +253,7 @@ class FormSummary extends React.Component {
             to={item.path}
             key={ind} 
             activeClassName='active'
-            onlyActiveOnIndex={true}
+            onlyActiveOnIndex
             className={`form-view__tab ${item.className || ''}`}
             data-path={item.path}
             onClick={this.triggerRefresh}>

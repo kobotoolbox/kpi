@@ -383,8 +383,7 @@ class Submission extends React.Component {
                   clearable={false}
                   value={translationOptions[this.state.translationIndex]}
                   options={translationOptions}
-                  onChange={this.languageChange}>
-                </Select>
+                  onChange={this.languageChange} />
               </div>
             }
             <div className="switch--validation-status">
@@ -394,8 +393,7 @@ class Submission extends React.Component {
                 clearable={false}
                 value={s._validation_status ? s._validation_status.uid : ''}
                 options={VALIDATION_STATUSES}
-                onChange={this.validationStatusChange}>
-              </Select>
+                onChange={this.validationStatusChange} />
             </div>
           </bem.FormModal__group>
         }
