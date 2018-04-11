@@ -162,11 +162,6 @@ export var randString = function () {
   return Math.random().toString(36).match(/\.(\S{6}).*/)[1];
 };
 
-export function isLibrary(router) {
-  return false;
-  // return !!router.getCurrentPathname().match(/library/);
-}
-
 export function stringToColor(str, prc) {
   // Higher prc = lighter color, lower = darker
   var prc = typeof prc === 'number' ? prc : -15;
