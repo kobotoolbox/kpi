@@ -65,7 +65,7 @@ export class FormLanding extends React.Component {
             <bem.FormView__cell m='version'>
               {dvcount > 0 ? `v${dvcount}` : ''}
             </bem.FormView__cell>
-            {undeployedVersion && 
+            {undeployedVersion && userCanEdit &&
               <bem.FormView__cell m='undeployed'>
                 &nbsp;{undeployedVersion}
               </bem.FormView__cell>
@@ -431,7 +431,7 @@ export class FormLanding extends React.Component {
               </bem.FormView__cell>
             </bem.FormView__cell>
             <bem.FormView__cell m='box'>
-              {this.state.deployed_versions.count > 0 &&
+              {this.userCan('change_asset', this.state) && this.state.deployed_versions.count > 0 &&
                 this.state.deployed_version_id != this.state.version_id && this.state.deployment__active && 
                 <bem.FormView__cell m='warning'>
                   <i className="k-icon-alert" />

@@ -491,8 +491,8 @@ mixins.permissions = {
     //   return true;
 
     // if permission is granted publicly, then grant to current user
-    const anonymousPermissions = getAnonymousUserPermission(asset.permissions);
-    if (anonymousPermissions.permission === permName)
+    const anonAccess = getAnonymousUserPermission(asset.permissions);
+    if (anonAccess && anonAccess.permission === permName)
       return true;
 
     const userPerms = asset.permissions.filter(perm => perm.user__username === currentUsername);
