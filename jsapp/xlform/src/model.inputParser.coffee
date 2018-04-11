@@ -88,7 +88,7 @@ module.exports = do ->
     if grpStack.length isnt 1
       throw new Error(JSON.stringify({
           message: "unclosed groupable set",
-          counts: counts 
+          counts: counts
         }))
 
     _curGrp().export().__rows

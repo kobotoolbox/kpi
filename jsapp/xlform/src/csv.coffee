@@ -304,7 +304,7 @@ module.exports = do ->
     if param instanceof SheetedCsv then param else new SheetedCsv param, opts
 
   # typically, most rows of a sheeted csv begin with an empty cell.
-  # 
+  #
   # *Note: When a sheet id is repeated, the contents are appended to the original sheet*
 
   parseSheetedCsv = (shcsv, cb=false)->

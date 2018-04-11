@@ -131,4 +131,3 @@ describe " translations set proper values ", ->
       )
     # run()
     expect(run).toThrow('translations need to be reordered')
-
