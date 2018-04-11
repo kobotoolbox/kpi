@@ -52,7 +52,7 @@ export class FormMap extends React.Component {
       langIndex: 0
     };
 
-    autoBind(this);    
+    autoBind(this);
   }
 
   componentDidMount () {
@@ -131,11 +131,11 @@ export class FormMap extends React.Component {
       else
         this.setState({error: t('Error: could not load data.'), loading: false});
     });
-  } 
+  }
 
   calculateClusterRadius(zoom) {
-   if(zoom >=12) {return 12;}
-   return 20;
+    if(zoom >=12) {return 12;}
+    return 20;
   }
 
   buildMarkers(map) {
@@ -276,7 +276,7 @@ export class FormMap extends React.Component {
     this.setState({
         langIndex: index
       }
-    );    
+    );
   }
 
   componentWillReceiveProps (nextProps) {
@@ -363,7 +363,7 @@ export class FormMap extends React.Component {
             </bem.Loading__inner>
           </bem.Loading>
         </ui.Panel>
-      );      
+      );
     }
 
     if (this.state.error) {
@@ -393,20 +393,20 @@ export class FormMap extends React.Component {
 
     return (
       <bem.FormView m='map' className="right-tooltip">
-        <bem.FormView__mapButton m={'expand'} 
+        <bem.FormView__mapButton m={'expand'}
           onClick={this.toggleExpandedMap}
           data-tip={t('Toggle Fullscreen')}
           className={this.state.toggleExpandedMap ? 'active': ''}>
           <i className="k-icon-expand" />
         </bem.FormView__mapButton>
-        <bem.FormView__mapButton m={'markers'} 
+        <bem.FormView__mapButton m={'markers'}
           onClick={this.showMarkers}
           data-tip={t('Show as points')}
           className={this.state.markersVisible ? 'active': ''}>
           <i className="k-icon-pins" />
         </bem.FormView__mapButton>
-        {!viewby && 
-          <bem.FormView__mapButton m={'heatmap'} 
+        {!viewby &&
+          <bem.FormView__mapButton m={'heatmap'}
             onClick={this.showHeatmap}
             data-tip={t('Show as heatmap')}
             className={!this.state.markersVisible ? 'active': ''}>
@@ -414,14 +414,14 @@ export class FormMap extends React.Component {
           </bem.FormView__mapButton>
         }
         <ui.PopoverMenu type='viewby-menu' triggerLabel={label} m={'above'}>
-            {langs.length > 1 && 
+            {langs.length > 1 &&
               <bem.PopoverMenu__heading>
                 {t('Language')}
               </bem.PopoverMenu__heading>
             }
             {langs.map((l,i)=> {
               return (
-                  <bem.PopoverMenu__link 
+                  <bem.PopoverMenu__link
                     data-index={i} className={this.state.langIndex == i ? 'active': ''}
                     key={`l-${i}`} onClick={this.filterLanguage}>
                     {l ? l : t('Default')}
@@ -435,8 +435,8 @@ export class FormMap extends React.Component {
               const name = f.name || f.$autoname;
 
               return (
-                  <bem.PopoverMenu__link 
-                    data-name={name} key={`f-${name}`} 
+                  <bem.PopoverMenu__link
+                    data-name={name} key={`f-${name}`}
                     onClick={this.filterMap}
                     className={viewby == name ? 'active': ''}>
                     {f.label[langIndex]}
@@ -444,7 +444,7 @@ export class FormMap extends React.Component {
                 );
             })}
         </ui.PopoverMenu>
-        {this.state.markerMap && this.state.markersVisible && 
+        {this.state.markerMap && this.state.markersVisible &&
           <bem.FormView__mapList className={this.state.showExpandedLegend ? 'expanded' : 'collapsed'}>
             <div className='maplist-contents'>
               {this.state.markerMap.map((m, i)=>{
@@ -465,7 +465,7 @@ export class FormMap extends React.Component {
             </div>
           </bem.FormView__mapList>
         }
-        {!this.state.markers && !this.state.heatmap && 
+        {!this.state.markers && !this.state.heatmap &&
           <bem.Loading>
             <bem.Loading__inner>
               <i />

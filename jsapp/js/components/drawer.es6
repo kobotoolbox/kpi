@@ -66,14 +66,14 @@ class FormSidebar extends Reflux.Component {
     return (
       <bem.FormSidebar__wrapper>
         {this.state.currentAssetId}
-        <ui.PopoverMenu type='new-menu' 
+        <ui.PopoverMenu type='new-menu'
             triggerLabel={t('new')}>
             <bem.PopoverMenu__link onClick={this.newFormModal}>
               <i className="k-icon-projects" />
               {t('Project')}
             </bem.PopoverMenu__link>
-            <Dropzone onDrop={this.dropFiles} 
-                      multiple={false} 
+            <Dropzone onDrop={this.dropFiles}
+                      multiple={false}
                       className='dropzone'
                       accept={validFileTypes()}>
               <bem.PopoverMenu__link>
@@ -174,10 +174,10 @@ class Drawer extends Reflux.Component {
 
         <div className='k-drawer__icons-bottom'>
           { stores.session.currentAccount &&
-            <a href={stores.session.currentAccount.projects_url} 
-               className='k-drawer__link' 
-               target="_blank"
-               data-tip={t('Projects (legacy)')}>
+            <a href={stores.session.currentAccount.projects_url}
+              className='k-drawer__link'
+              target="_blank"
+              data-tip={t('Projects (legacy)')}>
               <i className="k-icon k-icon-globe" />
             </a>
           }

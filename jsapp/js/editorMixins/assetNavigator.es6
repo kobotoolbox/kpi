@@ -103,7 +103,7 @@ class AssetNavigatorListView extends React.Component {
                 var modifiers = [item.asset_type];
                 var summ = item.summary;
                 if (summ.row_count == undefined) {
-                	return false;
+                  return false;
                 }
                 return (
                     <bem.LibList__item m={modifiers} key={item.uid} data-uid={item.uid}>
@@ -257,7 +257,7 @@ class AssetNavigator extends Reflux.Component {
               deactivated: !this.state.assetNavIsOpen,
               visible: this.state.assetNavIsOpen
             }}>
-          {this.state.assetNavIsOpen && 
+          {this.state.assetNavIsOpen &&
             <bem.LibNav__header>
               <bem.LibNav__logo onClick={this.toggleOpen}>
                 <i />
@@ -273,7 +273,7 @@ class AssetNavigator extends Reflux.Component {
               <ListExpandToggle searchContext={this.state.searchContext} />
             </bem.LibNav__header>
           }
-          {this.state.assetNavIsOpen && 
+          {this.state.assetNavIsOpen &&
             <bem.LibNav__content>
               <AssetNavigatorListView searchContext={this.state.searchContext} />
             </bem.LibNav__content>
