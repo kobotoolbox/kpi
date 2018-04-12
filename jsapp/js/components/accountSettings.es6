@@ -227,8 +227,7 @@ export class AccountSettings extends React.Component {
                   {t('Primary Sector')}
                   <Select value={this.state.primarySector}
                     options={this.state.sectorChoices}
-                    onChange={this.primarySectorChange}>
-                  </Select>
+                    onChange={this.primarySectorChange} />
                 </label>
                 <bem.AccountSettings__desc>
                   {t('Select the primary sector in which you work. ')}
@@ -239,8 +238,7 @@ export class AccountSettings extends React.Component {
                   {t('Gender')}
                   <Select value={this.state.gender}
                     options={this.state.genderChoices}
-                    onChange={this.genderChange}>
-                  </Select>
+                    onChange={this.genderChange} />
                 </label>
               </bem.AccountSettings__item>
               <bem.AccountSettings__item>
@@ -276,8 +274,7 @@ export class AccountSettings extends React.Component {
                   {t('Country')}
                   <Select value={this.state.country}
                     options={this.state.countryChoices}
-                    onChange={this.countryChange}>
-                  </Select>
+                    onChange={this.countryChange} />
                 </label>
               </bem.AccountSettings__item>
               <bem.AccountSettings__item className="is-edge">
@@ -285,8 +282,7 @@ export class AccountSettings extends React.Component {
                   {t('Default Form Language')}
                   <Select value={this.state.defaultLanguage}
                     options={this.state.languageChoices}
-                    onChange={this.defaultLanguageChange}>
-                  </Select>
+                    onChange={this.defaultLanguageChange} />
                 </label>
               </bem.AccountSettings__item>
               <bem.AccountSettings__item m='social'>
