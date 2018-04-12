@@ -423,8 +423,10 @@ class Asset(ObjectPermissionMixin,
     summary = JSONField(null=True, default=dict)
     report_styles = JSONBField(default=dict)
     report_custom = JSONBField(default=dict)
-    map_styles = JSONBField(default=dict)
-    map_custom = JSONBField(default=dict)
+    # `default=None, null=True` on new fields avoids Postgres having to rewrite
+    # each row in the table when migrating
+    map_styles = JSONBField(default=None, null=True)
+    map_custom = JSONBField(default=None, null=True)
     asset_type = models.CharField(
         choices=ASSET_TYPES, max_length=20, default='survey')
     parent = models.ForeignKey(
