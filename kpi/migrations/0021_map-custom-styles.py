@@ -2,10 +2,6 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
-import jsonfield.fields
-import private_storage.fields
-import kpi.models.import_export_task
-import private_storage.storage.s3boto3
 import kpi.fields
 
 
