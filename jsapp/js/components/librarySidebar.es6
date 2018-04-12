@@ -139,6 +139,12 @@ class LibrarySidebar extends Reflux.Component {
       labels: {ok: t('Delete'), cancel: t('Cancel')},
       onok: (evt, val) => {
         dataInterface.deleteCollection({uid: collectionUid}).then((data)=> {
+          this.quietUpdateStore({
+            parentUid: false,
+            parentName: false,
+            allPublic: false
+          });
+          this.searchValue();
           this.queryCollections();
           dialog.destroy();
         }).fail((jqxhr)=> {
