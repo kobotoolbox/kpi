@@ -172,7 +172,9 @@ mixins.dmix = {
 
 mixins.droppable = {
   _forEachDroppedFile (params={}) {
-    var library = this.context.router.isActive('library');
+    let router = this.context.router;
+    var library = router.isActive('library');
+    let isXLSReplaceInForm = this.props.context == 'replaceXLS' && router.isActive('forms') && router.params.assetid != undefined;
     params = assign({library: library}, params);
 
     if (params.base64Encoded) {
@@ -191,13 +193,13 @@ mixins.droppable = {
         }).done((importData/*, status, jqxhr*/) => {
           if (importData.status === 'complete') {
             var assetData = importData.messages.updated || importData.messages.created;
-            var assetUid = assetData && assetData.length > 0 && assetData[0].uid,
-                isCurrentPage = this.state.uid === assetUid;
+            var assetUid = assetData && assetData.length > 0 && assetData[0].uid;
  
             if (!assetUid) {
-              alertify.error(t('Could not redirect to asset.'));
+              // TODO: use a more specific error message here
+              alertify.error(t('XLSForm Import failed'));
             } else {
-              if (isCurrentPage) {
+              if (isXLSReplaceInForm) {
                 actions.resources.loadAsset({id: assetUid});
               } else if (library) {
                 this.searchDefault();
@@ -434,6 +436,12 @@ mixins.clickAssets = {
           assetid: uid
         });
       },
+      refresh: function(uid) {
+        stores.pageState.showModal({
+          type: 'replace-xls',
+          asset: stores.selectedAsset.asset
+        });
+      }
 
     }
   },

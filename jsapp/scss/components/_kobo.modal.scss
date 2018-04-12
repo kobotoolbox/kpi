@@ -324,20 +324,83 @@
   cursor: pointer;
 }
 
-// new modal, newForm-confirmation
+// create new project modal steps
+.form-modal__item--upload-note {
+  background: #F8F8F8;
+  padding: 10px;
+
+  i {
+    margin-right: 5px;
+    font-size: 32px;
+    vertical-align: middle;
+  }
+}
 
 .form-modal__item--newForm-step2 {
-  text-align: center;
-
-  label {
+  .intro {
+    padding-bottom: 20px;
     text-align: left;
   }
 
+  .form-modal__item--new-project--buttons {
+    margin-bottom: 40px;
+    display: flex;
+    justify-content: space-around;
+
+    button {
+      border: 1px solid $divider-color;
+      padding: 20px 10px;
+      background: #F8F8F8;
+      border-radius: 4px;
+      color: $cool-gray;
+      cursor: pointer;
+      margin: 0px 10px;
+      flex-basis: 0;
+      flex-grow: 1;
+
+      @media screen and (min-width: 768px) {
+        min-width: 200px;
+      }
+
+      @media screen and (min-width: 960px) {
+        min-width: 250px;
+        padding: 20px;
+      }
+
+      i {
+        display: block;
+        margin: 0 auto;
+        font-size: 48px;
+      }
+
+      &:hover {
+        color: $cool-blue;
+        border-color: $cool-blue;
+
+        i {
+          color: $cool-blue;
+        }
+      }
+    }
+  }
+}
+
+.form-modal__item--newForm-step3 {
   .dropzone {
     background: #F5F5F5;
-    padding: 30px 10px;
+    margin: 20px 0px 40px 0;
+    padding: 30px;
     border: 2px dashed $divider-color;
     cursor: pointer;
+    border-radius: 6px;
+    text-align: center;
+
+    i {
+      display: block;
+      margin: 0 auto;
+      font-size: 72px;
+      opacity: 0.5;
+    }
 
     &:hover {
       border-color: $cool-blue;
@@ -352,22 +415,22 @@
     }
   }
 
-  .step2-intro {
-    font-size: 18px;
-    opacity: 0.7;
-    padding-bottom: 20px;
-  }
-
-  .form-modal__item--form-design {
-    margin-bottom: 40px;
-  }
-
   .form-modal__item--url-import {
-    text-align: right;
-    margin-top: 30px;
+    margin: 30px 0px;
 
     button {
       margin-top: 20px;
+      float: right;
+    }
+  }
+
+  .form-view__link--step3-back {
+    font-size: 14px;
+    color: $cool-blue;
+    opacity: 1;
+
+    &:hover {
+      opacity: 0.8;
     }
   }
 }

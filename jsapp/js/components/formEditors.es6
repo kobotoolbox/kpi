@@ -1,6 +1,6 @@
 import $ from 'jquery';
 import React from 'react';
-import PropTypes from 'prop-types'
+import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
@@ -15,6 +15,7 @@ import DocumentTitle from 'react-document-title';
 import TextareaAutosize from 'react-autosize-textarea';
 import stores from '../stores';
 import {hashHistory} from 'react-router';
+import {DebounceInput} from 'react-debounce-input';
 
 import {session} from '../stores';
 import mixins from '../mixins';
@@ -30,7 +31,8 @@ import {
   redirectTo,
   assign,
   formatTime,
-  validFileTypes
+  validFileTypes,
+  isAValidUrl
 } from '../utils';
 
 import {
@@ -47,10 +49,10 @@ export class ProjectSettings extends React.Component {
       sector: '',
       country: '',
       'share-metadata': false,
-      showUrlImportForm: false,
+      step3: false,
       importUrl: '',
       importUrlButtonEnabled: false,
-      importUrlButton: t('Import an XLS form by URL')
+      importUrlButton: t('Import')
     }
     if (this.props.initialData !== undefined) {
       assign(state, this.props.initialData);
@@ -90,36 +92,46 @@ export class ProjectSettings extends React.Component {
       'share-metadata': evt.target.checked
     });
   }
-  importUrlChange (evt) {
+  importUrlChange (value) {
     this.setState({
-      importUrl: evt.target.value,
-      importUrlButtonEnabled: evt.target.value.length > 6 ? true : false
+      importUrl: value,
+      importUrlButtonEnabled: value.length > 6 ? true : false,
+      importUrlButton: t('Import')
     });
   }
   goToFormBuilder() {
     hashHistory.push(`/forms/${this.props.newFormAsset.uid}/edit`);
     stores.pageState.hideModal();    
   }
-  displayImportUrlForm() {
-    this.setState({
-      showUrlImportForm: true,
-    });    
+  displayUpload() {
+    this.setState({step3: 'upload'});
+  }
+  displayImport() {
+    this.setState({step3: 'import'});
+  }
+  resetStep3() {
+    this.setState({step3: false});
   }
   importFromURL(evt) {
     evt.preventDefault();
+    let validUrl = isAValidUrl(this.state.importUrl);
 
-    let asset = this.props.newFormAsset;
-    let params = {
-      destination: asset.url,
-      url: this.state.importUrl,
-      name: asset.name
-    };
-    this._forEachDroppedFile(params);
+    if (!validUrl) {
+      alertify.error(t('Please enter a valid URL'));
+    } else {
+      let asset = this.props.newFormAsset;
+      let params = {
+        destination: asset.url,
+        url: this.state.importUrl,
+        name: asset.name
+      };
+      this._forEachDroppedFile(params);
 
-    this.setState({
-      importUrlButtonEnabled: false,
-      importUrlButton: t('Retrieving form by URL, please wait...')
-    });    
+      this.setState({
+        importUrlButtonEnabled: false,
+        importUrlButton: t('Retrieving form, please wait...')
+      });
+    }
   }
   onDrop (files) {
     if (files.length === 0)
@@ -247,8 +259,8 @@ export class ProjectSettings extends React.Component {
             {this.props.context != 'existingForm' &&
               <bem.FormModal__item m='upload-note'>
                 <label className="long">
-                  {t('Note: ')}
-                  {t('You will be able to upload an XLS Form in the next step.')}
+                  <i className="k-icon-alert" />
+                  {t('You will be able to upload an XLSForm in the next step.')}
                 </label>
               </bem.FormModal__item>
             }
@@ -265,46 +277,79 @@ export class ProjectSettings extends React.Component {
     } else {
       return (
         <bem.FormModal__form>
-          <bem.FormModal__item m='newForm-step2'>
-            <div className="step2-intro">
-              {t('Your project has been created. You can now')}
-            </div>
-            <bem.FormModal__item m='form-design'>
-              <button onClick={this.goToFormBuilder} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-                {t('Design your Form in the Form Builder')}
-              </button>              
+          {!this.state.step3 &&
+            <bem.FormModal__item m='newForm-step2'>
+              {this.props.context !== 'replaceXLS' &&
+                <div className="intro">
+                  {t('Your project has been created. How would you like to proceed?')}
+                </div>
+              }
+              <bem.FormModal__item m='new-project--buttons'>
+                {this.props.context !== 'replaceXLS' &&
+                  <button onClick={this.goToFormBuilder}>
+                    <i className="k-icon-edit" />
+                    {t('Design in Form Builder')}
+                  </button>
+                }
+                <button onClick={this.displayUpload}>
+                  <i className="k-icon-upload" />
+                  {t('Upload an XLSForm')}
+                </button>
+                <button onClick={this.displayImport}>
+                  <i className="k-icon-link" />
+                  {t('Import an XLSForm via URL')}
+                </button>
+              </bem.FormModal__item>
             </bem.FormModal__item>
-            <div className="step2-intro">
-              {t('or import')}
-            </div>
-            <bem.FormModal__item m='xls-upload'>
-              <label>{t('via upload')}</label>
+          }
+          {this.state.step3 == 'upload' &&
+            <bem.FormModal__item m='newForm-step3'>
+              <div className="intro">
+                {t('Import an XLSForm from your computer.')}
+              </div>
               <Dropzone onDrop={this.onDrop.bind(this)} 
                             multiple={false} 
                             className='dropzone' 
                             activeClassName='dropzone-active'
                             rejectClassName='dropzone-reject'
                             accept={validFileTypes()}>
-                {t(' Drag and drop an XLSForm file here or click to browse')}
+                <i className="k-icon-xls-file" />
+                {t(' Drag and drop the XLSForm file here or click to browse')}
               </Dropzone>
+              <bem.FormView__link m='step3-back' onClick={this.resetStep3}>
+                {t('back')}
+              </bem.FormView__link>
             </bem.FormModal__item>
-
-            <bem.FormModal__item onClick={this.displayImportUrlForm} m='url-import'>
-              <label htmlFor="url">
-                {t('via URL')}
-              </label>
-              <input type="text"
+          }
+          {this.state.step3 == 'import' &&
+            <bem.FormModal__item m='newForm-step3'>
+              <div className="intro">
+                {t('Paste a valid XLSForm URL (from Google Sheets, Dropbox, etc.) in the field below.')}
+              </div>
+              <bem.FormModal__item m='url-import'>
+                <label htmlFor="url">
+                  {t('URL')}
+                </label>
+                <DebounceInput
+                  type="text"
                   id="importUrl"
+                  debounceTimeout={300}
                   value={this.state.importUrl}
-                  placeholder={t('Enter XLS Form URL (from Google Sheets, Dropbox, etc.)')}
-                  onChange={this.importUrlChange}/>
-              <button onClick={this.importFromURL} 
-                      disabled={!this.state.importUrlButtonEnabled}
-                      className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-                {this.state.importUrlButton}
-              </button>
+                  placeholder='https://'
+                  onChange={event => this.importUrlChange(event.target.value)} />
+                <button onClick={this.importFromURL} 
+                        disabled={!this.state.importUrlButtonEnabled}
+                        className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                  {this.state.importUrlButton}
+                </button>
+              </bem.FormModal__item>
+
+              <bem.FormView__link m='step3-back' onClick={this.resetStep3}>
+                {t('Back')}
+              </bem.FormView__link>
             </bem.FormModal__item>
-          </bem.FormModal__item>
+          }
+
         </bem.FormModal__form>
       );
     }

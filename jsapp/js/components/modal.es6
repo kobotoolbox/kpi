@@ -48,7 +48,7 @@ class Modal extends React.Component {
 
       case 'new-form':
         this.setState({
-          title: t('Step 1: Create New Project')
+          title: t('Create New Project')
         });
         break;
       case 'enketo-preview':
@@ -72,6 +72,11 @@ class Modal extends React.Component {
           sid: this.props.params.sid
         });
       break;
+      case 'replace-xls':
+        this.setState({
+          title: t('Replace with XLS')
+        });
+        break;
 
 		}  	
   }
@@ -87,11 +92,8 @@ class Modal extends React.Component {
       asset_type: 'survey',
     }).done((asset) => {
       this.setState({
-        newFormAsset: asset,
-        title: t('Step 2: Design your form or import a file')
+        newFormAsset: asset
       });
-      // hashHistory.push(`/forms/${asset.uid}/edit`);
-      // stores.pageState.hideModal();
     });
   }
   enketoSnapshotCreation (data) {
@@ -138,6 +140,13 @@ class Modal extends React.Component {
                 newFormAsset={this.state.newFormAsset}
               />
             }
+            { this.props.params.type == 'replace-xls' &&
+              <ProjectSettings
+                context='replaceXLS'
+                newFormAsset={this.props.params.asset}
+              />
+            }
+
             { this.props.params.type == 'enketo-preview' && this.state.enketopreviewlink &&
               <div className='enketo-holder'>
                 <iframe src={this.state.enketopreviewlink} />
