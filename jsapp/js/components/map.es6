@@ -386,8 +386,9 @@ export class FormMap extends React.Component {
 
     if (viewby) {
       fields.forEach(function(f){
-        if(viewby === f.name || viewby === f.$autoname)
+        if(viewby === f.name || viewby === f.$autoname) {
           label = `${t('Disaggregated using:')} ${f.label[langIndex]}`;
+        }
       });
     }
 
@@ -453,7 +454,7 @@ export class FormMap extends React.Component {
                       <span className={`map-marker map-marker-${m.id}`}>
                         {m.count}
                       </span>
-                      <span className={`map-marker-label`}>
+                      <span className={`map-marker-label`} title={m.labels ? m.labels[langIndex] : ''}>
                         {m.labels ? m.labels[langIndex] : t('not set')}
                       </span>
                     </div>
