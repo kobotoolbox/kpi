@@ -68,10 +68,19 @@
   }
 
   // right aligned tooltips
-
   .right-tooltip [data-tip]:after,
   .right-tooltip[data-tip]:after {
-    transform: translate(-95%, 0);
+    left: auto;
+    right: calc(50% - 10px);
+    transform: translate(0);
+  }
+
+  // left aligned tooltips
+  .left-tooltip [data-tip]:after,
+  .left-tooltip[data-tip]:after {
+    left: calc(50% - 10px);
+    right: auto;
+    transform: translate(0);
   }
 
   // more actions in asset-row adjustment

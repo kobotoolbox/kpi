@@ -22,7 +22,6 @@ import {
   t,
   assign,
   notify,
-  isLibrary,
   stringToColor
 } from './utils';
 

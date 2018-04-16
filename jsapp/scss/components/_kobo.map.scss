@@ -66,6 +66,10 @@
   .popover-menu__toggle {
     min-width: 180px;
     background: #FFF;
+    max-width: 340px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 
     @include box-shadow;
 

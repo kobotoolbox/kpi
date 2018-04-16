@@ -456,8 +456,9 @@ export class FormMap extends React.Component {
 
     if (viewby) {
       fields.forEach(function(f){
-        if(viewby === f.name || viewby === f.$autoname)
+        if(viewby === f.name || viewby === f.$autoname) {
           label = `${t('Disaggregated using:')} ${f.label[langIndex]}`;
+        }
       });
     }
 
