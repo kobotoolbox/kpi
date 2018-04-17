@@ -196,8 +196,8 @@ export class FormMap extends React.Component {
         }
         prepPoints.push(
           L.marker(item._geolocation, {
-            icon: icon, 
-            sId: item._id, 
+            icon: icon,
+            sId: item._id,
             typeId: viewby && mapMarkers ? mapMarkers[itemId].id : null
           })
         );
@@ -209,7 +209,7 @@ export class FormMap extends React.Component {
         var markers = L.featureGroup(prepPoints);
       } else {
         var markers = L.markerClusterGroup({
-          maxClusterRadius: this.calculateClusterRadius, 
+          maxClusterRadius: this.calculateClusterRadius,
           disableClusteringAtZoom: 16,
           iconCreateFunction: function(cluster) {
             var childCount = cluster.getChildCount();
@@ -391,7 +391,7 @@ export class FormMap extends React.Component {
     let markers = this.state.markers;
     this.setState({filteredByMarker: false});
     markers.eachLayer( function(layer) {
-      layer._icon.classList.remove(unselectedClass);
+      layer._icon.classList.remove("unselected");
     });
   }
 
@@ -533,7 +533,7 @@ export class FormMap extends React.Component {
                       <span className={`map-marker map-marker-${m.id}`}>
                         {m.count}
                       </span>
-                      <span className={`map-marker-label`} 
+                      <span className={`map-marker-label`}
                             onClick={this.filterByMarker} data-id={m.id} title={label}>
                         {label}
                       </span>
