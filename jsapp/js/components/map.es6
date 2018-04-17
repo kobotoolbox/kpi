@@ -17,7 +17,6 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat/dist/leaflet-heat';
 import 'leaflet.markercluster/dist/leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
-import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 
 import {
   assign,
@@ -49,7 +48,9 @@ export class FormMap extends React.Component {
       error: false,
       showExpandedMap: false,
       showExpandedLegend: true,
-      langIndex: 0
+      langIndex: 0,
+      filteredByMarker: false,
+      componentRefreshed: false
     };
 
     autoBind(this);    
@@ -60,13 +61,18 @@ export class FormMap extends React.Component {
       return false;
 
     var fields = [];
+    let fieldTypes = ['select_one', 'select_multiple', 'integer', 'decimal', 'text'];
     this.props.asset.content.survey.forEach(function(q){
-      if (q.type == 'select_one' || q.type == 'select_multiple') {
+      if (fieldTypes.includes(q.type)) {
         fields.push(q);
       }
     });
 
-    var map = L.map('data-map', {maxZoom: 17});
+    var map = L.map('data-map', {
+      maxZoom: 17,
+      scrollWheelZoom: false,
+      preferCanvas: true
+    });
 
     var streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -150,15 +156,23 @@ export class FormMap extends React.Component {
 
     if (viewby) {
       var mapMarkers = this.prepFilteredMarkers(this.state.submissions, this.props.viewby);
-      var mM = [];
-      let choices = this.props.asset.content.choices;
+      var mM = [], choice = undefined;
+      let choices = this.props.asset.content.choices,
+          survey = this.props.asset.content.survey;
+
+      let question = survey.find(s => s.name === viewby || s.$autoname === viewby);
 
       Object.keys(mapMarkers).map(function(m, i) {
-        var lbl = choices.find(o => o.name === m || o.$autoname == m);
+        if (question && question.type == 'select_one') {
+          // only return a choice from the current question's choice list
+          choice = choices.find(ch => ch.list_name === question.select_from_list_name && (ch.name === m || ch.$autoname === m));
+        }
+
         mM.push({
           count: mapMarkers[m].count,
           id: mapMarkers[m].id,
-          labels: lbl ? lbl.label : undefined
+          labels: choice ? choice.label : undefined,
+          value: m != "undefined" ? m : undefined
         });
       });
 
@@ -180,7 +194,13 @@ export class FormMap extends React.Component {
             iconSize: [20, 20],
           });
         }
-        prepPoints.push(L.marker(item._geolocation, {icon: icon, sId: item._id}));
+        prepPoints.push(
+          L.marker(item._geolocation, {
+            icon: icon, 
+            sId: item._id, 
+            typeId: viewby && mapMarkers ? mapMarkers[itemId].id : null
+          })
+        );
       }
     });
 
@@ -188,12 +208,32 @@ export class FormMap extends React.Component {
       if (viewby) {
         var markers = L.featureGroup(prepPoints);
       } else {
-        var markers = L.markerClusterGroup({maxClusterRadius: this.calculateClusterRadius, disableClusteringAtZoom: 16});
+        var markers = L.markerClusterGroup({
+          maxClusterRadius: this.calculateClusterRadius, 
+          disableClusteringAtZoom: 16,
+          iconCreateFunction: function(cluster) {
+            var childCount = cluster.getChildCount();
+
+            var markerClass = 'marker-cluster marker-cluster-';
+            if (childCount < 10) {
+              markerClass += 'small';
+            } else if (childCount < 100) {
+              markerClass += 'medium';
+            } else {
+              markerClass += 'large';
+            }
+
+            return new L.divIcon({ html: '<div><span>' + childCount + '</span></div>', className: markerClass, iconSize: new L.Point(30, 30) });
+          }
+        });
+
         markers.addLayers(prepPoints);
       }
 
       markers.on('click', this.launchSubmissionModal).addTo(map);
-      map.fitBounds(markers.getBounds());
+
+      if (!viewby || !this.state.componentRefreshed)
+        map.fitBounds(markers.getBounds());
 
       this.setState({
           markers: markers
@@ -207,7 +247,7 @@ export class FormMap extends React.Component {
   prepFilteredMarkers (data, viewby) {
     var markerMap = new Object();
     var vb = this.nameOfFieldInGroup(viewby);
-    var idcounter = 0;
+    var idcounter = 1;
 
     data.forEach(function(listitem, i) {
       var m = listitem[vb];
@@ -284,6 +324,7 @@ export class FormMap extends React.Component {
       this.setState({markersVisible: true});
     }
     if (this.props.viewby != nextProps.viewby) {
+      this.setState({filteredByMarker: false, componentRefreshed: true});
       var map = this.state.map;
       var markers = this.state.markers;
       var heatmap = this.state.heatmap;
@@ -322,7 +363,36 @@ export class FormMap extends React.Component {
     this.setState({
       showExpandedLegend: !this.state.showExpandedLegend,
     });
+  }
 
+  filterByMarker(evt) {
+    let markers = this.state.markers,
+        id = evt.target.getAttribute('data-id'),
+        filteredByMarker = this.state.filteredByMarker,
+        unselectedClass = "unselected";
+
+    if (!filteredByMarker)
+      filteredByMarker = [id];
+    else if (!filteredByMarker.includes(id))
+      filteredByMarker.push(id);
+    else
+      filteredByMarker = filteredByMarker.filter(l => l !== id);
+
+    this.setState({filteredByMarker: filteredByMarker});
+    markers.eachLayer( function(layer) {
+      if (!filteredByMarker.includes(layer.options.typeId.toString()))
+        layer._icon.classList.add(unselectedClass);
+      else
+        layer._icon.classList.remove(unselectedClass);
+    });
+  }
+
+  resetFilterByMarker() {
+    let markers = this.state.markers;
+    this.setState({filteredByMarker: false});
+    markers.eachLayer( function(layer) {
+      layer._icon.classList.remove(unselectedClass);
+    });
   }
 
   nameOfFieldInGroup(fieldName) {
@@ -440,7 +510,7 @@ export class FormMap extends React.Component {
                     data-name={name} key={`f-${name}`} 
                     onClick={this.filterMap}
                     className={viewby == name ? 'active': ''}>
-                    {f.label[langIndex]}
+                    {f.label ? f.label[langIndex] : t('Question label not set')}
                   </bem.PopoverMenu__link>
                 );
             })}
@@ -448,14 +518,24 @@ export class FormMap extends React.Component {
         {this.state.markerMap && this.state.markersVisible && 
           <bem.FormView__mapList className={this.state.showExpandedLegend ? 'expanded' : 'collapsed'}>
             <div className='maplist-contents'>
+              {this.state.filteredByMarker &&
+                <div key='m-reset' className='map-marker-item map-marker-reset' onClick={this.resetFilterByMarker}>
+                  {t('Reset')}
+                </div>
+              }
               {this.state.markerMap.map((m, i)=>{
+                var markerItemClass = 'map-marker-item ';
+                if (this.state.filteredByMarker)
+                  markerItemClass += this.state.filteredByMarker.includes(m.id.toString()) ? 'selected' : 'unselected';
+                let label = m.labels ? m.labels[langIndex] : m.value ? m.value : t('not set');
                 return (
-                    <div key={`m-${i}`} className="map-marker-item">
+                    <div key={`m-${i}`} className={markerItemClass}>
                       <span className={`map-marker map-marker-${m.id}`}>
                         {m.count}
                       </span>
-                      <span className={`map-marker-label`} title={m.labels ? m.labels[langIndex] : ''}>
-                        {m.labels ? m.labels[langIndex] : t('not set')}
+                      <span className={`map-marker-label`} 
+                            onClick={this.filterByMarker} data-id={m.id} title={label}>
+                        {label}
                       </span>
                     </div>
                   );
