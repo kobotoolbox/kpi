@@ -69,7 +69,7 @@ const reactCreateBemElement = function(base, el='div'){
 
       // allows modifiers to be a string, an array, or undefined (ignored)
       let modifier = [].concat(props.m)
-                       .reduce(reduceModify, {});
+                      .reduce(reduceModify, {});
       delete props.m;
 
       // builds the bem classNames, and allows additional classNames

@@ -26,7 +26,6 @@ import {
 import Select from 'react-select';
 import moment from 'moment';
 
-import searches from './searches';
 import actions from './actions';
 
 import stores from './stores';
