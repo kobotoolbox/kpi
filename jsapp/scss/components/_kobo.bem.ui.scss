@@ -262,6 +262,10 @@
   &.active {
     color: $cool-blue;
   }
+
+  &.divider {
+    border-top: 1px solid lighten($cool-gray, 25%);
+  }
 }
 
 .popover-menu__moveTo {

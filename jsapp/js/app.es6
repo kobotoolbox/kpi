@@ -56,7 +56,6 @@ import {
   log,
   t,
   assign,
-  isLibrary,
   currentLang
 } from './utils';
 

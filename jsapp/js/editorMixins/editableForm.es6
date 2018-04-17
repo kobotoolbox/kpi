@@ -592,11 +592,6 @@ export default assign({
             <p>
               {this.state.surveyLoadError}
             </p>
-            <div>
-              <a onClick={hashHistory.goBack} href='#'>
-                {t('Back')}
-              </a>
-            </div>
           </ErrorMessage>
         );
     }
