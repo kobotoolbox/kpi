@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import migrations
-import jsonbfield.fields
+from django.db import migrations, models
+import kpi.fields
 
 
 class Migration(migrations.Migration):
@@ -15,11 +15,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='asset',
             name='map_custom',
-            field=jsonbfield.fields.JSONField(default=dict, null=True),
+            field=kpi.fields.LazyDefaultJSONBField(default=dict),
         ),
         migrations.AddField(
             model_name='asset',
             name='map_styles',
-            field=jsonbfield.fields.JSONField(default=dict, null=True),
+            field=kpi.fields.LazyDefaultJSONBField(default=dict),
         ),
     ]
