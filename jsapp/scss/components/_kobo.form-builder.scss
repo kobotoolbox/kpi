@@ -149,6 +149,12 @@
       text-align: center;
       vertical-align: middle;
       height: 75px;
+      cursor: pointer;
+      transition: background-color 0.2s, color 0.2s;
+      
+      &:hover {
+          background-color: darken($cool-green, 10%);
+      }
 
       i {
         color: #FFF;

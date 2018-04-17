@@ -214,7 +214,15 @@ class SearchCollectionList extends Reflux.Component {
                     </bem.Loading>
                   );
                 } else if (s.searchState === 'done') {
-                  if (display == 'grouped') {
+                  if (s.searchResultsCount === 0) {
+                    return (
+                      <bem.Loading>
+                        <bem.Loading__inner>
+                          {t('Your search returned no results.')}
+                        </bem.Loading__inner>
+                      </bem.Loading>
+                    );
+                  } else if (display == 'grouped') {
                     return this.renderGroupedResults();
                   } else {
                     return s.searchResultsList.map(this.renderAssetRow);

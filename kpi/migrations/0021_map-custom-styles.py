@@ -15,11 +15,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='asset',
             name='map_custom',
-            field=jsonbfield.fields.JSONField(default=dict),
+            field=jsonbfield.fields.JSONField(default=dict, null=True),
         ),
         migrations.AddField(
             model_name='asset',
             name='map_styles',
-            field=jsonbfield.fields.JSONField(default=dict),
+            field=jsonbfield.fields.JSONField(default=dict, null=True),
         ),
     ]
