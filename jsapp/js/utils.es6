@@ -144,7 +144,6 @@ export function currentLang() {
   return cookie.load(LANGUAGE_COOKIE_NAME) || 'en';
 }
 
-
 log.t = function () {
   let _t = {};
   __strings.forEach(function(str){ _t[str] = str; })
@@ -161,11 +160,6 @@ export var newId = function(prefix='id') {
 export var randString = function () {
   return Math.random().toString(36).match(/\.(\S{6}).*/)[1];
 };
-
-export function isLibrary(router) {
-  return false;
-  // return !!router.getCurrentPathname().match(/library/);
-}
 
 export function stringToColor(str, prc) {
   // Higher prc = lighter color, lower = darker
