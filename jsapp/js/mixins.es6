@@ -172,9 +172,9 @@ mixins.dmix = {
 
 mixins.droppable = {
   _forEachDroppedFile (params={}) {
+    let isXLSReplaceInForm = this.props.context == 'replaceXLS' && router.isActive('forms') && router.params.assetid != undefined;
     let router = this.context.router;
     var library = router.isActive('library');
-    let isXLSReplaceInForm = this.props.context == 'replaceXLS' && router.isActive('forms') && router.params.assetid != undefined;
     params = assign({library: library}, params);
 
     if (params.base64Encoded) {
@@ -182,6 +182,9 @@ mixins.droppable = {
         type: 'uploading-xls',
         filename: params.name
       });
+    }
+
+    if (!library && params.base64Encoded) {
       let destination = params.destination || this.state.url;
       params = assign({destination: destination}, params);
     } 
