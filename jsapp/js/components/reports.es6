@@ -446,21 +446,29 @@ class ReportContents extends React.Component {
     }
   }
   render () {
-    var translationIndex = 0;
+    var tnslIndex = 0;
     let customReport = this.props.parentState.currentCustomReport, 
-        defaultRS = this.props.parentState.reportStyles;
+        defaultRS = this.props.parentState.reportStyles,
+        asset = this.props.parentState.asset,
+        groupBy = this.props.parentState.groupBy;
 
     if (customReport) {
       if (customReport.reportStyle && customReport.reportStyle.translationIndex)
-        translationIndex = parseInt(customReport.reportStyle.translationIndex);
+        tnslIndex = parseInt(customReport.reportStyle.translationIndex);
     } else {
-      translationIndex = this.props.parentState.reportStyles.default.translationIndex || 0;      
+      tnslIndex = defaultRS.default.translationIndex || 0;
     }
+
+    // reset to first language if trnslt index cannot be found
+    if (asset.content.translations && !asset.content.translations[tnslIndex])
+      tnslIndex = 0;
 
     var reportData = this.props.reportData;
 
-    for (var i = reportData.length - 1; i >= 0; i--) {
-      let _qn = reportData[i].name;
+    for (var i = reportData.length - 1; i > -1; i--) {
+      let _qn = reportData[i].name,
+          _type = reportData[i].row.type || null;
+
       var _defSpec = undefined;
 
       if (customReport) {
@@ -479,18 +487,50 @@ class ReportContents extends React.Component {
           reportData[i].style = defaultRS.default;
         }
       }
+
+      if (this.props.parentState.translations && (_type == 'select_one' || _type == 'select_multiple')) {
+        let question = asset.content.survey.find(z => z.name === _qn || z.$autoname === _qn);
+        let resps = reportData[i].data.responses;
+        if (resps) {
+          reportData[i].data.responseLabels = [];
+          for (var j = resps.length - 1; j >= 0; j--) {
+            var choice = asset.content.choices.find(o => question && o.list_name === question.select_from_list_name && (o.name === resps[j] || o.$autoname == resps[j]));
+            if (choice && choice.label && choice.label[tnslIndex])
+              reportData[i].data.responseLabels.unshift(choice.label[tnslIndex]);
+            else
+              reportData[i].data.responseLabels.unshift(resps[j]);
+          }
+        } else {
+          const vals = reportData[i].data.values;
+          if (vals && vals[0] && vals[0][1] && vals[0][1].responses) {
+            var respValues = vals[0][1].responses;
+            reportData[i].data.responseLabels = [];
+            let qGB = asset.content.survey.find(z => z.name === groupBy || z.$autoname === groupBy);
+            respValues.forEach(function(r, ind){
+              var choice = asset.content.choices.find(o => qGB && o.list_name === qGB.select_from_list_name && (o.name === r || o.$autoname == r));
+              reportData[i].data.responseLabels[ind] = (choice && choice.label && choice.label[tnslIndex]) ? choice.label[tnslIndex] : r;
+            });
+
+            // TODO: use a better way to store translated labels per row
+            for (var vD = vals.length - 1; vD >= 0; vD--) {
+              var choice = asset.content.choices.find(o => question && o.list_name === question.select_from_list_name && (o.name === vals[vD][0] || o.$autoname == vals[vD][0]));
+              vals[vD][2] = (choice && choice.label && choice.label[tnslIndex]) ? choice.label[tnslIndex] : vals[vD][0];
+            }
+          }
+        }
+      }
     }
 
     return (
       <div>
         {
           reportData.map((rowContent, i)=>{
+            var label = (rowContent.row.label && rowContent.row.label[tnslIndex]) ? rowContent.row.label[tnslIndex] : t('Unlabeled');
             return (
                 <bem.ReportView__item key={i}>
                   <ReportViewItem 
                       {...rowContent}
-                      translations={this.props.parentState.translations} 
-                      translationIndex={translationIndex} 
+                      label={label}
                       triggerQuestionSettings={this.props.triggerQuestionSettings} />
                 </bem.ReportView__item>
               );
@@ -1075,6 +1115,7 @@ class Reports extends React.Component {
       if (this.state.reportLimit && reportData.length > this.state.reportLimit) {
         reportData = reportData.slice(0, this.state.reportLimit);
       }
+
     }
 
     if (this.state.reportData === undefined) {

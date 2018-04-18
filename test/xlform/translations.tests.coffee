@@ -130,5 +130,5 @@ describe " translations set proper values ", ->
         translations: ["L2", null]
       )
     # run()
-    expect(run).toThrow('translations need to be reordered')
+    expect(run).toThrow('There is an unnamed translation in your form definition')
 

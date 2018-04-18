@@ -67,7 +67,7 @@ class Modal extends React.Component {
         break;
       case 'submission':
         this.setState({
-          title: t('Record #') + this.props.params.sid,
+          title: t('Submission Record'),
           modalClass: 'modal-large modal-submission',
           sid: this.props.params.sid
         });
@@ -112,7 +112,7 @@ class Modal extends React.Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.params && nextProps.params.sid) {
       this.setState({
-        title: t('Record #') + nextProps.params.sid,
+        title: t('Submission Record'),
         sid: nextProps.params.sid
       });
     }
