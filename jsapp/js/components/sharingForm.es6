@@ -17,6 +17,7 @@ import {
   stringToColor,
   anonUsername
 } from '../utils';
+import CopyTeamPermissions from './sharingForm_copyTeamPermissions';
 
 var availablePermissions = [
   {value: 'view', label: t('View Form')},
@@ -347,6 +348,7 @@ class SharingForm extends React.Component {
               objectUrl={objectUrl}
               deploymentActive={this.state.asset.deployment__active}
             />
+            <CopyTeamPermissions/>
           </bem.FormView__cell>
         }
       </bem.FormModal>
