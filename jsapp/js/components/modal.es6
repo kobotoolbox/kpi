@@ -13,6 +13,7 @@ import {hashHistory} from 'react-router';
 import {
   t,
   assign,
+  notify
 } from '../utils';
 
 import {ProjectSettings} from '../components/formEditors';
@@ -94,6 +95,8 @@ class Modal extends React.Component {
       this.setState({
         newFormAsset: asset
       });
+    }).fail(function(r){
+      notify(t('Error: new project could not be created.') + ` (code: ${r.statusText})`);
     });
   }
   enketoSnapshotCreation (data) {
