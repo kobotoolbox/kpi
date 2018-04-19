@@ -7,7 +7,7 @@
 }
 
 .survey__row--selected {
-    .card--selectquestion__expansion, 
+    .card--selectquestion__expansion,
     .card__settings {
         border-left-color: $linkColor;
         border-right-color: $linkColor;
@@ -39,7 +39,7 @@
             display: block;
         }
 
-        .card__buttons__multioptions, 
+        .card__buttons__multioptions,
         .card__buttons__multioptions + .card__header-title {
             color: $indicatorColor;
         }
@@ -79,7 +79,7 @@
         position: relative;
         min-height: 18px;
         cursor:move;
-        span {cursor:text;} 
+        span {cursor:text;}
         .editable-input input {
             line-height: 1em;
             vertical-align: middle;

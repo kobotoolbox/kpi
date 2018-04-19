@@ -218,7 +218,7 @@ class PopoverMenu extends React.Component {
   toggle(evt) {
     var isBlur = evt.type === 'blur',
         $popoverMenu;
-    
+
 
     if (this.state.popoverVisible || isBlur) {
         $popoverMenu = $(evt.target).parents('.popover-menu').find('.popover-menu__content');
@@ -248,7 +248,7 @@ class PopoverMenu extends React.Component {
       if ($assetListHeight - $assetRowOffset < 150) {
         this.setState({
           placement: 'above',
-        });        
+        });
       }
     }
   }

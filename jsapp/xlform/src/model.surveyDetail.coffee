@@ -36,6 +36,6 @@ module.exports = do ->
         dtobj.set("value", true)
       else
         throw new Error("SurveyDetail `#{key}` not loaded from schema. [Aliases have not been implemented]")
-  
+
   SurveyDetails: SurveyDetails
   SurveyDetail: SurveyDetail

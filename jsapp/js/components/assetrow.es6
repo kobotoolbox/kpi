@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import $ from 'jquery';
-import { Link } from 'react-router'; 
+import { Link } from 'react-router';
 import bem from '../bem';
 import ui from '../ui';
 import stores from '../stores';
@@ -35,7 +35,7 @@ class AssetRow extends React.Component {
   //   evt.nativeEvent.preventDefault();
   //   evt.nativeEvent.stopImmediatePropagation();
   //   evt.preventDefault();
- 
+
   //   // if no asset is selected, then this asset
   //   // otherwise, toggle selection (unselect if already selected)
   //   // let forceSelect = (stores.selectedAsset.uid === false);
@@ -71,7 +71,7 @@ class AssetRow extends React.Component {
 
     if (parent == 'true') {
       collid = null;
-    } 
+    }
 
     dataInterface.patchAsset(uid, {
       parent: collid,
@@ -99,17 +99,17 @@ class AssetRow extends React.Component {
     var hrefTo = `/forms/${this.props.uid}`,
         linkClassName = this.props.name ? 'asset-row__celllink--titled' : 'asset-row__celllink--untitled',
         tags = this.props.tags || [],
-        ownedCollections = [], 
+        ownedCollections = [],
         parent = undefined;
 
     var isDeployable = this.props.asset_type && this.props.asset_type === 'survey' && this.props.deployed_version_id === null;
 
     const userCanEdit = this.userCan('change_asset', this.props);
-  
-    if (this.props.has_deployment && this.props.deployment__submission_count && 
+
+    if (this.props.has_deployment && this.props.deployment__submission_count &&
         this.userCan('view_submissions', this.props)) {
       hrefTo = `/forms/${this.props.uid}/summary`;
-    } 
+    }
 
     if (this.isLibrary()) {
       hrefTo = `/library/${this.props.uid}/edit`;
@@ -143,8 +143,8 @@ class AssetRow extends React.Component {
               onClick={this.clickAssetButton}
               data-asset-type={this.props.kind}
               >
-            <bem.AssetRow__cell m={'title'} 
-                className={['mdl-cell', 
+            <bem.AssetRow__cell m={'title'}
+                className={['mdl-cell',
                     this.props.asset_type == 'survey' ? 'mdl-cell--5-col mdl-cell--4-col-tablet mdl-cell--2-col-phone' : 'mdl-cell--8-col mdl-cell--5-col-tablet mdl-cell--2-col-phone']}>
               { this.props.asset_type && (this.props.asset_type == 'block' || this.props.asset_type == 'question') &&
                 <i className={`row-icon ${_rc > 1 ? 'block' : 'question'}`}>
@@ -167,7 +167,7 @@ class AssetRow extends React.Component {
             </bem.AssetRow__cell>
             <bem.AssetRow__cell m={'userlink'}
                 key={'userlink'}
-                  className={['mdl-cell', 
+                  className={['mdl-cell',
                   this.props.asset_type == 'survey' ? 'mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--hide-phone' : 'mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone']}>
               { this.props.asset_type == 'survey' &&
                 <span>
@@ -213,21 +213,21 @@ class AssetRow extends React.Component {
               <TagInput uid={this.props.uid} tags={this.props.tags} />
             </bem.AssetRow__cell>
           }
- 
+
           <bem.AssetRow__buttons onClick={this.clickAssetButton}>
-            {userCanEdit && 
+            {userCanEdit &&
               <bem.AssetRow__actionIcon
-                  m='edit' 
+                  m='edit'
                   key='edit'
-                  data-action='edit' 
+                  data-action='edit'
                   data-tip={t('Edit')}
-                  data-asset-type={this.props.kind} 
+                  data-asset-type={this.props.kind}
                   data-disabled={false}
                   >
                 <i className='k-icon-edit' />
               </bem.AssetRow__actionIcon>
-            } 
-            {userCanEdit && 
+            }
+            {userCanEdit &&
               <bem.AssetRow__actionIcon
                   m='tagsToggle'
                   onClick={this.clickTagsToggle}
@@ -236,12 +236,12 @@ class AssetRow extends React.Component {
                 <i className='k-icon-tag' />
               </bem.AssetRow__actionIcon>
             }
-            {userCanEdit && 
+            {userCanEdit &&
               <bem.AssetRow__actionIcon
                   m='sharing'
                   key='sharing'
                   data-action='sharing'
-                  data-asset-type={this.props.kind} 
+                  data-asset-type={this.props.kind}
                   data-tip= {t('Share')}
                   data-disabled={false}
                   >
@@ -273,17 +273,17 @@ class AssetRow extends React.Component {
                       </bem.AssetRow__actionIcon>
                     );
               })
-            } 
-            <ui.PopoverMenu type='assetrow-menu' 
-                        triggerLabel={<i className="k-icon-more" />} 
+            }
+            <ui.PopoverMenu type='assetrow-menu'
+                        triggerLabel={<i className="k-icon-more" />}
                         triggerTip={t('More Actions')}
                         clearPopover={this.state.clearPopover}
                         popoverSetVisible={this.popoverSetVisible}>
 
               { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit && isDeployable &&
-                <bem.PopoverMenu__link 
+                <bem.PopoverMenu__link
                     m={'deploy'}
-                    data-action={'deploy'} 
+                    data-action={'deploy'}
                     data-asset-type={this.props.kind}>
                   <i className="k-icon-deploy" />
                   {t('Deploy this project')}
@@ -328,15 +328,15 @@ class AssetRow extends React.Component {
                   {ownedCollections.map((col)=>{
                     return (
                         <bem.PopoverMenu__item
-                         onClick={this.moveToCollection}
-                         data-collid={col.value} 
-                         data-parent={col.hasParent ? 'true' : 'false'} 
-                         key={col.value}
-                         title={col.label}
-                         m='move-coll-item'>
+                          onClick={this.moveToCollection}
+                          data-collid={col.value}
+                          data-parent={col.hasParent ? 'true' : 'false'}
+                          key={col.value}
+                          title={col.label}
+                          m='move-coll-item'>
                             <i className="k-icon-folder" />
                             {col.label}
-                            {col.hasParent && 
+                            {col.hasParent &&
                               <span className="has-parent">&bull;</span>
                             }
                         </bem.PopoverMenu__item>

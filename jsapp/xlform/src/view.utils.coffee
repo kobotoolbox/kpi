@@ -143,7 +143,7 @@ module.exports = do ->
       $("<div>", class: "js-click-remove-iframe")
 
     launch = (previewUrl, options={})->
-      _loadConfigs(options) 
+      _loadConfigs(options)
       console.log options
       $(".enketo-holder").append $("<iframe>", src: buildUrl(previewUrl))
       $(".enketo-holder iframe").load ()->
@@ -172,11 +172,11 @@ module.exports = do ->
       holder.appendTo('body')
       wrap.appendTo('body')
 
-      wrap.click ()-> 
+      wrap.click ()->
         wrap.remove()
         holder.remove()
 
-      $('.enketo-holder .enketo-iframe-icon').click ()-> 
+      $('.enketo-holder .enketo-iframe-icon').click ()->
         wrap.remove()
         holder.remove()
 

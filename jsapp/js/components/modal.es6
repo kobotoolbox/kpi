@@ -32,7 +32,7 @@ class Modal extends React.Component {
     autoBind(this);
   }
   componentDidMount () {
-  	var type = this.props.params.type;
+    var type = this.props.params.type;
     switch(type) {
       case 'sharing':
         this.setState({
@@ -78,8 +78,7 @@ class Modal extends React.Component {
           title: t('Replace with XLS')
         });
         break;
-
-		}  	
+		}
   }
   createNewForm (settingsComponent) {
     dataInterface.createResource({
@@ -125,7 +124,7 @@ class Modal extends React.Component {
       this.setState({
         title: t('Uploading XLS file'),
         message: t('Uploading: ') + filename
-      });      
+      });
     }
   }
   render() {
@@ -163,12 +162,12 @@ class Modal extends React.Component {
                 </bem.Loading__inner>
               </bem.Loading>
             }
-            { this.props.params.type == 'enketo-preview' && this.state.error && 
+            { this.props.params.type == 'enketo-preview' && this.state.error &&
               <div>
                 {this.state.message}
               </div>
             }
-            { this.props.params.type == 'uploading-xls' && 
+            { this.props.params.type == 'uploading-xls' &&
               <div>
                 <bem.Loading>
                   <bem.Loading__inner>
@@ -179,13 +178,12 @@ class Modal extends React.Component {
               </div>
             }
 
-            { this.props.params.type == 'submission' && this.state.sid && 
+            { this.props.params.type == 'submission' && this.state.sid &&
               <Submission sid={this.state.sid} asset={this.props.params.asset} ids={this.props.params.ids} />
             }
-
-	        </ui.Modal.Body>
-	      </ui.Modal>
-  		)
+        </ui.Modal.Body>
+      </ui.Modal>
+    )
   }
 
 };

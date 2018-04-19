@@ -26,7 +26,7 @@ import {
 } from './utils';
 
 import icons from '../xlform/src/view.icons';
-  
+
 var mixins = {};
 
 mixins.dmix = {
@@ -70,9 +70,11 @@ mixins.dmix = {
     let dialog = alertify.dialog('confirm');
     let opts = {
       title: t('Overwrite existing deployment'),
-      message: t('This form has already been deployed. Are you sure you ' +
-                 'want overwrite the existing deployment? ' +
-                 '<br/><br/><strong>This action cannot be undone.</strong>'),
+      message: t(
+        'This form has already been deployed. Are you sure you ' +
+        'want overwrite the existing deployment? ' +
+        '<br/><br/><strong>This action cannot be undone.</strong>'
+      ),
       labels: {ok: t('Ok'), cancel: t('Cancel')},
       onok: (evt, val) => {
         let ok_button = dialog.elements.buttons.primary.firstChild;
@@ -157,7 +159,7 @@ mixins.dmix = {
   },
   componentDidMount () {
     this.listenTo(stores.asset, this.dmixAssetStoreChange);
- 
+
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
     if (this.props.randdelay && uid) {
       window.setTimeout(()=>{
@@ -186,7 +188,7 @@ mixins.droppable = {
     if (!library && params.base64Encoded) {
       let destination = params.destination || this.state.url;
       params = assign({destination: destination}, params);
-    } 
+    }
 
     dataInterface.postCreateImport(params).then((data)=> {
       window.setTimeout((()=>{
@@ -196,7 +198,6 @@ mixins.droppable = {
           if (importData.status === 'complete') {
             var assetData = importData.messages.updated || importData.messages.created;
             var assetUid = assetData && assetData.length > 0 && assetData[0].uid;
- 
             if (!assetUid) {
               // TODO: use a more specific error message here
               alertify.error(t('XLSForm Import failed'));
@@ -241,7 +242,7 @@ mixins.droppable = {
           base64Encoded: e.target.result,
           name: file.name,
           lastModified: file.lastModified,
-        }, pms); 
+        }, pms);
 
         this._forEachDroppedFile(params);
       };
@@ -253,8 +254,8 @@ mixins.droppable = {
       alertify.error(errMsg);
     });
   }
-}; 
- 
+};
+
 mixins.collectionList = {
   getInitialState () {
     // initial state is a copy of "stores.collections.initialState"
@@ -270,7 +271,7 @@ mixins.collectionList = {
     this.setState(collections);
   },
 };
- 
+
 mixins.clickAssets = {
   onActionButtonClick (action, uid, name) {
     this.click.asset[action].call(this, uid, name);
@@ -386,7 +387,7 @@ mixins.clickAssets = {
         let opts = {
           title: t('Archive Project'),
           message: `${t('Are you sure you want to archive this project?')} <br/><br/>
-                     <strong>${t('Your form will not accept submissions while it is archived.')}</strong>`,
+            <strong>${t('Your form will not accept submissions while it is archived.')}</strong>`,
           labels: {ok: t('Archive'), cancel: t('Cancel')},
           onok: (evt, val) => {
             actions.resources.setDeploymentActive(
@@ -434,7 +435,7 @@ mixins.clickAssets = {
       },
       sharing: function(uid){
         stores.pageState.showModal({
-          type: 'sharing', 
+          type: 'sharing',
           assetid: uid
         });
       },
@@ -491,7 +492,7 @@ mixins.permissions = {
     if (asset.owner__username === currentUsername)
       return true
 
-    // TODO: should super user always have access to all UI? 
+    // TODO: should super user always have access to all UI?
     // if (stores.session.currentAccount.is_superuser)
     //   return true;
 
@@ -518,8 +519,8 @@ mixins.contextRouter = {
   },
   isFormBuilder () {
     if (this.context.router.isActive(`/library/new`))
-      return true; 
-    
+      return true;
+
     if (this.context.router.params.assetid == undefined)
       return false
 

@@ -101,7 +101,7 @@ export class ProjectSettings extends React.Component {
   }
   goToFormBuilder() {
     hashHistory.push(`/forms/${this.props.newFormAsset.uid}/edit`);
-    stores.pageState.hideModal();    
+    stores.pageState.hideModal();
   }
   displayUpload() {
     this.setState({step3: 'upload'});
@@ -178,7 +178,7 @@ export class ProjectSettings extends React.Component {
     if (!this.props.newFormAsset) {
       return (
         <bem.FormModal__form onSubmit={this.onSubmit}>
-          {this.props.context == 'existingForm' && 
+          {this.props.context == 'existingForm' &&
             <bem.FormModal__item m={['actions', 'fixed']}>
               <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
                 {this.props.submitButtonValue}
@@ -201,9 +201,9 @@ export class ProjectSettings extends React.Component {
               <label htmlFor="description">
                 {t('Description')}
               </label>
-              <TextareaAutosize 
-                onChange={this.descriptionChange} 
-                value={this.state.description} 
+              <TextareaAutosize
+                onChange={this.descriptionChange}
+                value={this.state.description}
                 placeholder={t('Enter short description here')} />
             </bem.FormModal__item>
             <bem.FormModal__item>
@@ -307,9 +307,9 @@ export class ProjectSettings extends React.Component {
               <div className="intro">
                 {t('Import an XLSForm from your computer.')}
               </div>
-              <Dropzone onDrop={this.onDrop.bind(this)} 
-                            multiple={false} 
-                            className='dropzone' 
+              <Dropzone onDrop={this.onDrop.bind(this)}
+                            multiple={false}
+                            className='dropzone'
                             activeClassName='dropzone-active'
                             rejectClassName='dropzone-reject'
                             accept={validFileTypes()}>
@@ -337,7 +337,7 @@ export class ProjectSettings extends React.Component {
                   value={this.state.importUrl}
                   placeholder='https://'
                   onChange={event => this.importUrlChange(event.target.value)} />
-                <button onClick={this.importFromURL} 
+                <button onClick={this.importFromURL}
                         disabled={!this.state.importUrlButtonEnabled}
                         className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
                   {this.state.importUrlButton}
@@ -445,7 +445,7 @@ export class ProjectDownloads extends React.Component {
       formSubmitDisabled: true
     });
 
-    setTimeout(function() { 
+    setTimeout(function() {
       if(!this._calledComponentWillUnmount)
         this.setState({'formSubmitDisabled': false});
     }.bind(this), 5000);
@@ -495,7 +495,7 @@ export class ProjectDownloads extends React.Component {
   }
 
   componentWillUnmount() {
-     clearInterval(this.pollingInterval);
+    clearInterval(this.pollingInterval);
   }
 
   refreshExport(url) {
@@ -660,10 +660,10 @@ export class ProjectDownloads extends React.Component {
                     </bem.FormModal__item>
                   :
                     <bem.FormModal__item key={'s'} m='export-submit'>
-                      <input type="submit" 
-                             value={t('Export')} 
-                             className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
-                             disabled={this.state.formSubmitDisabled}/>
+                      <input type="submit"
+                        value={t('Export')}
+                        className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                        disabled={this.state.formSubmitDisabled}/>
                     </bem.FormModal__item>
                   ]}
                 </bem.FormModal__form>
@@ -709,8 +709,8 @@ export class ProjectDownloads extends React.Component {
                         </bem.FormView__label>
                         <bem.FormView__label m='action'>
                           {item.status == 'complete' &&
-                            <a className="form-view__link form-view__link--export-download" 
-                               href={item.result} data-tip={t('Download')}>
+                            <a className="form-view__link form-view__link--export-download"
+                              href={item.result} data-tip={t('Download')}>
                               <i className="k-icon-download" />
                             </a>
                           }
@@ -723,7 +723,7 @@ export class ProjectDownloads extends React.Component {
                             <span className="animate-processing">{t('processing...')}</span>
                           }
                           <a className="form-view__link form-view__link--export-delete"
-                             onClick={this.deleteExport} data-euid={item.uid} data-tip={t('Delete')}>
+                            onClick={this.deleteExport} data-euid={item.uid} data-tip={t('Delete')}>
                             <i className="k-icon-trash" />
                           </a>
 

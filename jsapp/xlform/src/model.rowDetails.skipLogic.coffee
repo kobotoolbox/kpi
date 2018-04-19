@@ -259,4 +259,3 @@ class rowDetailsSkipLogic.DateResponseModel extends rowDetailsSkipLogic.Response
     @set('value', value, validate: true)
 
 module.exports = rowDetailsSkipLogic
-

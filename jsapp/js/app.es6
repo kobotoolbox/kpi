@@ -26,7 +26,6 @@ import {
 import Select from 'react-select';
 import moment from 'moment';
 
-import searches from './searches';
 import actions from './actions';
 
 import stores from './stores';
@@ -94,7 +93,7 @@ class App extends React.Component {
     return (
       <DocumentTitle title="KoBoToolbox">
         <div className="mdl-wrapper">
-          { !this.isFormBuilder() && !this.state.pageState.headerHidden && 
+          { !this.isFormBuilder() && !this.state.pageState.headerHidden &&
             <div className="k-header__bar"></div>
           }
           <bem.PageWrapper m={{
@@ -107,7 +106,7 @@ class App extends React.Component {
                 <Modal params={this.state.pageState.modal} />
               }
 
-              { !this.isFormBuilder() && !this.state.pageState.headerHidden && 
+              { !this.isFormBuilder() && !this.state.pageState.headerHidden &&
                 <MainHeader assetid={assetid}/>
               }
               { !this.isFormBuilder() && !this.state.pageState.drawerHidden &&
@@ -164,7 +163,7 @@ class FormJson extends React.Component {
             <code>
               { this.state.assetcontent ?
                 JSON.stringify(this.state.assetcontent, null, 4)
-             : null }
+                : null }
             </code>
             </pre>
           </bem.FormView>
@@ -264,7 +263,7 @@ export var routes = (
     <Route path="forms" >
       <IndexRoute component={FormsSearchableList} />
 
-      <Route path="/forms/:assetid"> 
+      <Route path="/forms/:assetid">
         {/*<Route name="form-download" path="download" component={FormDownload} />*/}
         <Route path="json" component={FormJson} />
         <Route path="xform" component={FormXform} />

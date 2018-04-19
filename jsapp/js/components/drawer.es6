@@ -160,10 +160,10 @@ class Drawer extends Reflux.Component {
 
         <div className='k-drawer__icons-bottom'>
           { stores.session.currentAccount &&
-            <a href={stores.session.currentAccount.projects_url} 
-               className='k-drawer__link' 
-               target="_blank"
-               data-tip={t('Projects (legacy)')}>
+            <a href={stores.session.currentAccount.projects_url}
+              className='k-drawer__link'
+              target="_blank"
+              data-tip={t('Projects (legacy)')}>
               <i className="k-icon k-icon-globe" />
             </a>
           }

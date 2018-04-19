@@ -61,7 +61,7 @@ module.exports = do ->
       # to the element are reflected in the model (with transformFn
       # applied)
       el = opts.el || @$('input').get(0)
-      
+
       $el = $(el)
       transformFn = opts.transformFn || false
       inputType = opts.inputType
