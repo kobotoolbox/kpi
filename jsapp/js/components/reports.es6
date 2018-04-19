@@ -10,6 +10,7 @@ import bem from '../bem';
 import stores from '../stores';
 import Select from 'react-select';
 import ui from '../ui';
+import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import { txtid } from '../../xlform/src/model.utils';
 import alertify from 'alertifyjs';
@@ -1001,11 +1002,13 @@ class Reports extends React.Component {
                 );
               })
             }
-            <bem.PopoverMenu__link
-              key='new'
-              onClick={this.toggleCustomReportModal}>
-                {t("Create New Report")}
-            </bem.PopoverMenu__link>
+            {this.userCan('change_asset', this.state.asset) &&
+              <bem.PopoverMenu__link
+                key='new'
+                onClick={this.toggleCustomReportModal}>
+                  {t("Create New Report")}
+              </bem.PopoverMenu__link>
+            }
         </ui.PopoverMenu>
 
         {this.state.currentCustomReport &&
@@ -1028,12 +1031,13 @@ class Reports extends React.Component {
           <i className="k-icon-print" />
         </button>
 
-        <button className="mdl-button mdl-button--icon report-button__settings"
-                onClick={this.toggleReportGraphSettings}
-                data-tip={t('Configure Report Style')}>
-          <i className="k-icon-settings" />
-        </button>
-
+        {this.userCan('change_asset', this.state.asset) &&
+          <button className="mdl-button mdl-button--icon report-button__settings"
+                  onClick={this.toggleReportGraphSettings}
+                  data-tip={t('Configure Report Style')}>
+            <i className="k-icon-settings" />
+          </button>
+        }
       </bem.FormView__reportButtons>
     );
   }
@@ -1205,6 +1209,7 @@ class Reports extends React.Component {
 
 }
 
+reactMixin(Reports.prototype, mixins.permissions);
 reactMixin(Reports.prototype, Reflux.ListenerMixin);
 
 export default Reports;
