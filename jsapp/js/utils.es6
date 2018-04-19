@@ -1,4 +1,3 @@
-
 import moment from 'moment';
 import alertify from 'alertifyjs';
 import $ from 'jquery';

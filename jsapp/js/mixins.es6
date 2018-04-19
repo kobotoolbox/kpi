@@ -14,7 +14,6 @@ import ui from './ui';
 import $ from 'jquery';
 
 import {
-  getAnonymousUserPermission,
   anonUsername,
   formatTime,
   currentLang,
@@ -27,7 +26,7 @@ import {
 } from './utils';
 
 import icons from '../xlform/src/view.icons';
-  
+
 var mixins = {};
 
 mixins.dmix = {
@@ -158,7 +157,7 @@ mixins.dmix = {
   },
   componentDidMount () {
     this.listenTo(stores.asset, this.dmixAssetStoreChange);
- 
+
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
     if (this.props.randdelay && uid) {
       window.setTimeout(()=>{
@@ -198,7 +197,7 @@ mixins.droppable = {
             var assetData = importData.messages.updated || importData.messages.created;
             var assetUid = assetData && assetData.length > 0 && assetData[0].uid,
                 isCurrentPage = this.state.uid === assetUid;
- 
+
             if (!assetUid) {
               alertify.error(t('Could not redirect to asset.'));
             } else {
@@ -254,8 +253,8 @@ mixins.droppable = {
       alertify.error(errMsg);
     });
   }
-}; 
- 
+};
+
 mixins.collectionList = {
   getInitialState () {
     // initial state is a copy of "stores.collections.initialState"
@@ -271,7 +270,7 @@ mixins.collectionList = {
     this.setState(collections);
   },
 };
- 
+
 mixins.clickAssets = {
   onActionButtonClick (action, uid, name) {
     this.click.asset[action].call(this, uid, name);
@@ -435,7 +434,7 @@ mixins.clickAssets = {
       },
       sharing: function(uid){
         stores.pageState.showModal({
-          type: 'sharing', 
+          type: 'sharing',
           assetid: uid
         });
       },
@@ -486,13 +485,13 @@ mixins.permissions = {
     if (asset.owner__username === currentUsername)
       return true;
 
-    // TODO: should super user always have access to all UI? 
+    // TODO: should super user always have access to all UI?
     // if (stores.session.currentAccount.is_superuser)
     //   return true;
 
-    // if permission is granted publicly, then grant to current user
-    const anonAccess = getAnonymousUserPermission(asset.permissions);
-    if (anonAccess && anonAccess.permission === permName)
+    // if permission is granted publicly, then grant it to current user
+    const anonAccess = asset.permissions.some(perm => perm.user__username === 'AnonymousUser' && perm.permission === permName);
+    if (anonAccess)
       return true;
 
     const userPerms = asset.permissions.filter(perm => perm.user__username === currentUsername);
@@ -518,8 +517,8 @@ mixins.contextRouter = {
   },
   isFormBuilder () {
     if (this.context.router.isActive(`/library/new`))
-      return true; 
-    
+      return true;
+
     if (this.context.router.params.assetid == undefined)
       return false
 
