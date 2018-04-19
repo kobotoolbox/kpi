@@ -7,7 +7,7 @@ import Reflux from 'reflux';
 import _ from 'underscore';
 import bem from '../bem';
 import stores from '../stores';
-import { Link, hashHistory } from 'react-router'; 
+import { Link, hashHistory } from 'react-router';
 import mixins from '../mixins';
 
 import {
@@ -36,7 +36,7 @@ class FormViewTabs extends Reflux.Component {
   triggerRefresh (evt) {
     if ($(evt.target).hasClass('active')) {
       hashHistory.push(`/forms/${this.state.assetid}/reset`);
-      
+
       var path = evt.target.getAttribute('data-path');
       window.setTimeout(function(){
         hashHistory.push(path);
@@ -53,15 +53,15 @@ class FormViewTabs extends Reflux.Component {
 
     return (
       <bem.FormView__toptabs>
-        { a.deployment__identifier != undefined && a.has_deployment && this.userCan('view_submissions', a) && 
-          <Link 
+        { a.deployment__identifier != undefined && a.has_deployment && this.userCan('view_submissions', a) &&
+          <Link
             to={`/forms/${this.state.assetid}/summary`}
             className='form-view__tab'
             activeClassName='active'>
             {t('Summary')}
           </Link>
         }
-        <Link 
+        <Link
           to={`/forms/${this.state.assetid}/landing`}
           className='form-view__tab'
           activeClassName='active'>
@@ -70,23 +70,23 @@ class FormViewTabs extends Reflux.Component {
         <bem.FormView__tab className="is-edge" m='summary'>
           {t('Summary')}
         </bem.FormView__tab>
-        { a.deployment__identifier != undefined && a.has_deployment && a.deployment__submission_count > 0 && this.userCan('view_submissions', a) && 
-          <Link 
+        { a.deployment__identifier != undefined && a.has_deployment && a.deployment__submission_count > 0 && this.userCan('view_submissions', a) &&
+          <Link
             to={`/forms/${this.state.assetid}/data`}
             className='form-view__tab'
             activeClassName='active'>
             {t('Data')}
           </Link>
         }
-        {this.userCan('change_asset', a) && 
-          <Link 
+        {this.userCan('change_asset', a) &&
+          <Link
             to={`/forms/${this.state.assetid}/settings`}
             className='form-view__tab'
             activeClassName='active'>
             {t('Settings')}
           </Link>
         }
-        <Link 
+        <Link
           to={`/forms`}
           className='form-view__link form-view__link--close'>
           <i className="k-icon-close" />
@@ -99,7 +99,7 @@ class FormViewTabs extends Reflux.Component {
     var sideTabs = [];
 
     if (this.state.asset && this.state.asset.has_deployment && this.isActiveRoute(`/forms/${this.state.assetid}/data`)) {
-     sideTabs = [
+      sideTabs = [
         {label: t('Reports'), icon: 'k-icon-report', path: `/forms/${this.state.assetid}/data/report`},
         {label: t('Reports (legacy)'), icon: 'k-icon-report', path: `/forms/${this.state.assetid}/data/report-legacy`, className: 'is-edge'},
         {label: t('Table'), icon: 'k-icon-table', path: `/forms/${this.state.assetid}/data/table`},
@@ -110,20 +110,20 @@ class FormViewTabs extends Reflux.Component {
     }
 
     // if (this.state.asset && this.state.asset.deployment__active && this.isActiveRoute(`/forms/${this.state.assetid}/settings`)) {
-       // sideTabs = [
-       //    {label: t('General settings'), icon: 'k-icon-information', path: `/forms/${this.state.assetid}/settings`},
-       //    {label: t('Sharing'), icon: 'k-icon-share', path: `/forms/${this.state.assetid}/settings/sharing`},
-       //    {label: t('Kobocat settings'), icon: 'k-icon-projects', path: `/forms/${this.state.assetid}/settings/kobocat`}
-       //  ];
+    //   sideTabs = [
+    //     {label: t('General settings'), icon: 'k-icon-information', path: `/forms/${this.state.assetid}/settings`},
+    //     {label: t('Sharing'), icon: 'k-icon-share', path: `/forms/${this.state.assetid}/settings/sharing`},
+    //     {label: t('Kobocat settings'), icon: 'k-icon-projects', path: `/forms/${this.state.assetid}/settings/kobocat`}
+    //   ];
     // }
 
     if (sideTabs.length > 0) {
-    	return (
-    		<bem.FormView__sidetabs> 
-          { sideTabs.map((item, ind) => 
-            <Link 
+      return (
+        <bem.FormView__sidetabs>
+          { sideTabs.map((item, ind) =>
+            <Link
               to={item.path}
-              key={ind} 
+              key={ind}
               activeClassName='active'
               onlyActiveOnIndex
               className={`form-view__tab ${item.className}`}
@@ -133,8 +133,8 @@ class FormViewTabs extends Reflux.Component {
                 {item.label}
             </Link>
           )}
-    		</bem.FormView__sidetabs>
-    	);
+        </bem.FormView__sidetabs>
+      );
     }
 
     return false;
@@ -142,16 +142,16 @@ class FormViewTabs extends Reflux.Component {
   render() {
     if (!this.props.show)
       return false;
-  	if (this.props.type == 'top') {
-  		return (
-  			this.renderTopTabs()
-	  	);
-	  }
-  	if (this.props.type == 'side') {
-  		return (
-  			this.renderFormSideTabs()
-	  	);
-	  }
+    if (this.props.type == 'top') {
+      return (
+        this.renderTopTabs()
+      );
+    }
+    if (this.props.type == 'side') {
+      return (
+        this.renderFormSideTabs()
+      );
+    }
   }
 
 };

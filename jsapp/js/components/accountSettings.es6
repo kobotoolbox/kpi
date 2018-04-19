@@ -174,7 +174,7 @@ export class AccountSettings extends React.Component {
                 </label>
               </bem.AccountSettings__item>
               <bem.AccountSettings__item>
-                <input type="checkbox" 
+                <input type="checkbox"
                   id="requireAuth"
                   checked={this.state.requireAuth}
                   onChange={this.requireAuthChange} />

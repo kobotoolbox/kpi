@@ -26,7 +26,7 @@ return (function () {
             }
         };
 
-    
+
     var Validator = function (options) {
         this.options = options;
     };
@@ -50,7 +50,7 @@ return (function () {
     };
 
     return singleton;
-    
+
 } ());
 
 })();

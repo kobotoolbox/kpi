@@ -45,7 +45,7 @@ class FormSummary extends React.Component {
   }
   prep() {
     this.getLatestSubmissionTime(this.props.params.assetid);
-    this.prepSubmissions(this.props.params.assetid);    
+    this.prepSubmissions(this.props.params.assetid);
   }
   createChart() {
     Chart.defaults.global.elements.rectangle.backgroundColor = 'rgba(61, 194, 212, 0.6)';
@@ -104,7 +104,7 @@ class FormSummary extends React.Component {
           var day = wkStart;
           var today = moment();
 
-          while (day <= today) {            
+          while (day <= today) {
             dayLabels.push(day.format('DD MMM'));
             day = day.clone().add(1, 'd');
           }
@@ -124,14 +124,14 @@ class FormSummary extends React.Component {
       });
     });
 
-  } 
+  }
   getLatestSubmissionTime(assetid) {
     const fq = ['_id', 'end'];
     const sort = [{id: '_id', desc: true}];
     dataInterface.getSubmissions(assetid, 1, 0, sort, fq).done((data) => {
       if (data.length)
         this.setState({lastSubmission: data[0]['end']});
-      else 
+      else
         this.setState({lastSubmission: false});
     });
   }
@@ -162,10 +162,10 @@ class FormSummary extends React.Component {
             <bem.FormView__cell>
               <span className="subs-graph-number">{this.state.subsCurrentPeriod}</span>
               <bem.FormView__label>
-                {this.state.chartPeriod=='week' && 
+                {this.state.chartPeriod=='week' &&
                   `${t('Today')} - ${formatDate(moment().subtract(6, 'days'))}`
                 }
-                {this.state.chartPeriod!='week' && 
+                {this.state.chartPeriod!='week' &&
                   `${t('Today')} - ${formatDate(moment().subtract(30, 'days'))}`
                 }
               </bem.FormView__label>
@@ -173,10 +173,10 @@ class FormSummary extends React.Component {
             <bem.FormView__cell>
               <span className="subs-graph-number">{this.state.subsPreviousPeriod}</span>
               <bem.FormView__label>
-                {this.state.chartPeriod=='week' && 
+                {this.state.chartPeriod=='week' &&
                   `${formatDate(moment().subtract(7, 'days'))} - ${formatDate(moment().subtract(13, 'days'))}`
                 }
-                {this.state.chartPeriod!='week' && 
+                {this.state.chartPeriod!='week' &&
                   `${formatDate(moment().subtract(31, 'days'))} - ${formatDate(moment().subtract(60, 'days'))}`
                 }
               </bem.FormView__label>
@@ -198,10 +198,10 @@ class FormSummary extends React.Component {
   }
   renderQuickLinks() {
     return (
-      <bem.FormView__cell m='data-tabs'> 
-        <Link 
+      <bem.FormView__cell m='data-tabs'>
+        <Link
           to={`/forms/${this.state.uid}/landing`}
-          key={'landing'} 
+          key={'landing'}
           className={`form-view__tab`}
           data-path={`/forms/${this.state.uid}/landing`}
           onClick={this.triggerRefresh}>
@@ -217,9 +217,9 @@ class FormSummary extends React.Component {
           </bem.PopoverMenu__link>
         }
         {this.userCan('change_asset', this.state) &&
-          <Link 
+          <Link
             to={`/forms/${this.state.uid}/edit`}
-            key={'edit'} 
+            key={'edit'}
             className={`form-view__tab`}
             data-path={`/forms/${this.state.uid}/edit`}
             onClick={this.triggerRefresh}>
@@ -247,11 +247,11 @@ class FormSummary extends React.Component {
     ];
 
     return (
-      <bem.FormView__cell m='data-tabs'> 
-        { sideTabs.map((item, ind) => 
-          <Link 
+      <bem.FormView__cell m='data-tabs'>
+        { sideTabs.map((item, ind) =>
+          <Link
             to={item.path}
-            key={ind} 
+            key={ind}
             activeClassName='active'
             onlyActiveOnIndex
             className={`form-view__tab ${item.className || ''}`}
@@ -268,7 +268,7 @@ class FormSummary extends React.Component {
   sharingModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
-      type: 'sharing', 
+      type: 'sharing',
       assetid: this.state.uid
     });
   }
@@ -294,13 +294,13 @@ class FormSummary extends React.Component {
         <bem.FormView__cell m='label'>
           {t('Team members')}
         </bem.FormView__cell>
-        {this.userCan('change_asset', this.state) && 
+        {this.userCan('change_asset', this.state) &&
           <a onClick={this.sharingModal} className='team-sharing-button'>
             <i className="k-icon-share" />
           </a>
         }
         <bem.FormView__cell m={['box', 'padding']}>
-          { team.map((username, ind) => 
+          { team.map((username, ind) =>
             <bem.UserRow key={ind}>
               <bem.UserRow__avatar data-tip={username}>
                 <bem.AccountBox__initials style={{background: `#${stringToColor(username)}`}}>
@@ -311,7 +311,7 @@ class FormSummary extends React.Component {
           )}
         </bem.FormView__cell>
       </bem.FormView__row>
-    );    
+    );
   }
   render () {
     let docTitle = this.state.name || t('Untitled');
@@ -344,21 +344,21 @@ class FormSummary extends React.Component {
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m='summary'>
           <bem.FormView__column m='left'>
-            {(this.state.settings && (this.state.settings.country || this.state.settings.sector || this.state.settings.description)) && 
+            {(this.state.settings && (this.state.settings.country || this.state.settings.sector || this.state.settings.description)) &&
               <bem.FormView__row m='summary-description'>
                 <bem.FormView__cell m='label'>
                   {t('Description')}
                 </bem.FormView__cell>
                 <bem.FormView__cell m={['box']}>
-                  {(this.state.settings.country || this.state.settings.sector) && 
+                  {(this.state.settings.country || this.state.settings.sector) &&
                     <bem.FormView__group m={['items', 'description-cols']}>
-                      {this.state.settings.country && 
+                      {this.state.settings.country &&
                         <bem.FormView__cell>
                           <bem.FormView__label m='country'>{t('Project country')}</bem.FormView__label>
                           {this.state.settings.country.label}
                         </bem.FormView__cell>
                       }
-                      {this.state.settings.sector && 
+                      {this.state.settings.sector &&
                         <bem.FormView__cell>
                           <bem.FormView__label m='sector'>{t('Sector')}</bem.FormView__label>
                           {this.state.settings.sector.label}
@@ -366,7 +366,7 @@ class FormSummary extends React.Component {
                       }
                     </bem.FormView__group>
                   }
-                  {this.state.settings.description && 
+                  {this.state.settings.description &&
                     <bem.FormView__cell m='description'>
                       {this.state.settings.description}
                     </bem.FormView__cell>
@@ -375,7 +375,7 @@ class FormSummary extends React.Component {
               </bem.FormView__row>
             }
             {this.renderSubmissionsGraph()}
-           </bem.FormView__column>
+          </bem.FormView__column>
 
           <bem.FormView__column m='right'>
             <bem.FormView__row m='quick-links'>
