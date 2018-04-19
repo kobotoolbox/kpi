@@ -349,12 +349,23 @@
 // create new project modal steps
 .form-modal__item--upload-note {
   background: #F8F8F8;
-  padding: 10px;
+  padding: 20px 30px 10px 30px;
+  margin: -30px -35px;
+  margin-bottom: 20px;
 
   i {
-    margin-right: 5px;
+    margin-right: 10px;
+    margin-top: 2px;
     font-size: 32px;
+    vertical-align: top;
+    display: inline-block;
+  }
+
+  label.long {
+    font-size: 15px;
     vertical-align: middle;
+    display: inline-block;
+    width: calc(100% - 48px);
   }
 }
 
@@ -365,7 +376,7 @@
   }
 
   .form-modal__item--new-project--buttons {
-    margin-bottom: 40px;
+    margin: 30px 0px 20px 0px;
     display: flex;
     justify-content: space-around;
 
@@ -385,7 +396,7 @@
       }
 
       @media screen and (min-width: 960px) {
-        min-width: 250px;
+        min-width: 220px;
         padding: 20px;
       }
 

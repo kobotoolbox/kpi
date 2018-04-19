@@ -173,8 +173,8 @@ mixins.dmix = {
 
 mixins.droppable = {
   _forEachDroppedFile (params={}) {
-    let isXLSReplaceInForm = this.props.context == 'replaceXLS' && router.isActive('forms') && router.params.assetid != undefined;
     let router = this.context.router;
+    let isXLSReplaceInForm = this.props.context == 'replaceXLS' && router.isActive('forms') && router.params.assetid != undefined;
     var library = router.isActive('library');
     params = assign({library: library}, params);
 
@@ -200,7 +200,9 @@ mixins.droppable = {
             var assetUid = assetData && assetData.length > 0 && assetData[0].uid;
             if (!assetUid) {
               // TODO: use a more specific error message here
-              alertify.error(t('XLSForm Import failed'));
+              alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace with XLS" icon.'));
+              if (params.assetUid)
+                hashHistory.push(`/forms/${params.assetUid}`);
             } else {
               if (isXLSReplaceInForm) {
                 actions.resources.loadAsset({id: assetUid});

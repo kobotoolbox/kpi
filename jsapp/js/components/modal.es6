@@ -49,7 +49,7 @@ class Modal extends React.Component {
 
       case 'new-form':
         this.setState({
-          title: t('Create New Project')
+          title: `${t('Create New Project')} (${t('step 1 of 2')})`
         });
         break;
       case 'enketo-preview':
@@ -92,7 +92,8 @@ class Modal extends React.Component {
       asset_type: 'survey',
     }).done((asset) => {
       this.setState({
-        newFormAsset: asset
+        newFormAsset: asset,
+        title: `${t('Create New Project')} (${t('step 2 of 2')})`
       });
     }).fail(function(r){
       notify(t('Error: new project could not be created.') + ` (code: ${r.statusText})`);
@@ -137,7 +138,7 @@ class Modal extends React.Component {
             { this.props.params.type == 'new-form' &&
               <ProjectSettings
                 onSubmit={this.createNewForm}
-                submitButtonValue={t('Create project')}
+                submitButtonValue={t('Create Project')}
                 context='newForm'
                 newFormAsset={this.state.newFormAsset}
               />

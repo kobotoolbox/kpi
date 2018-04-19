@@ -123,7 +123,8 @@ export class ProjectSettings extends React.Component {
       let params = {
         destination: asset.url,
         url: this.state.importUrl,
-        name: asset.name
+        name: asset.name,
+        assetUid: asset.uid
       };
       this._forEachDroppedFile(params);
 
@@ -178,6 +179,15 @@ export class ProjectSettings extends React.Component {
     if (!this.props.newFormAsset) {
       return (
         <bem.FormModal__form onSubmit={this.onSubmit}>
+          {this.props.context != 'existingForm' &&
+            <bem.FormModal__item m='upload-note'>
+              <i className="k-icon-alert" />
+              <label className="long">
+                {t('Enter your project details below. In the next step, you can import an XLSForm (via upload or URL) or design the form from scratch in the Form Builder. ')}
+              </label>
+            </bem.FormModal__item>
+          }
+
           {this.props.context == 'existingForm' &&
             <bem.FormModal__item m={['actions', 'fixed']}>
               <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
@@ -209,7 +219,7 @@ export class ProjectSettings extends React.Component {
             <bem.FormModal__item>
               <label className="long">
                 {t('Please specify the country and the sector where this project will be deployed. ')}
-                {t('This information will be used to help you filter results on the project list page.')}
+                {/*t('This information will be used to help you filter results on the project list page.')*/}
               </label>
             </bem.FormModal__item>
 
@@ -256,15 +266,6 @@ export class ProjectSettings extends React.Component {
               </bem.FormModal__item>
             }
 
-            {this.props.context != 'existingForm' &&
-              <bem.FormModal__item m='upload-note'>
-                <label className="long">
-                  <i className="k-icon-alert" />
-                  {t('You will be able to upload an XLSForm in the next step.')}
-                </label>
-              </bem.FormModal__item>
-            }
-
             {this.props.context == 'existingForm' && this.props.iframeUrl &&
               <bem.FormView__cell m='iframe'>
                 <iframe src={this.props.iframeUrl} />
@@ -280,9 +281,11 @@ export class ProjectSettings extends React.Component {
           {!this.state.step3 &&
             <bem.FormModal__item m='newForm-step2'>
               {this.props.context !== 'replaceXLS' &&
-                <div className="intro">
-                  {t('Your project has been created. How would you like to proceed?')}
-                </div>
+                <bem.FormModal__item m='upload-note'>
+                  <label className="long">
+                    {t('Project "##" has been created. Choose one of the options below to continue.').replace('##', this.props.newFormAsset.name)}
+                  </label>
+                </bem.FormModal__item>
               }
               <bem.FormModal__item m='new-project--buttons'>
                 {this.props.context !== 'replaceXLS' &&
