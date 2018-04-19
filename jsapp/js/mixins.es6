@@ -21,7 +21,6 @@ import {
   t,
   assign,
   notify,
-  isLibrary,
   stringToColor
 } from './utils';
 
@@ -70,9 +69,11 @@ mixins.dmix = {
     let dialog = alertify.dialog('confirm');
     let opts = {
       title: t('Overwrite existing deployment'),
-      message: t('This form has already been deployed. Are you sure you ' +
-                 'want overwrite the existing deployment? ' +
-                 '<br/><br/><strong>This action cannot be undone.</strong>'),
+      message: t(
+        'This form has already been deployed. Are you sure you ' +
+        'want overwrite the existing deployment? ' +
+        '<br/><br/><strong>This action cannot be undone.</strong>'
+      ),
       labels: {ok: t('Ok'), cancel: t('Cancel')},
       onok: (evt, val) => {
         let ok_button = dialog.elements.buttons.primary.firstChild;
@@ -386,7 +387,7 @@ mixins.clickAssets = {
         let opts = {
           title: t('Archive Project'),
           message: `${t('Are you sure you want to archive this project?')} <br/><br/>
-                     <strong>${t('Your form will not accept submissions while it is archived.')}</strong>`,
+            <strong>${t('Your form will not accept submissions while it is archived.')}</strong>`,
           labels: {ok: t('Archive'), cancel: t('Cancel')},
           onok: (evt, val) => {
             actions.resources.setDeploymentActive(

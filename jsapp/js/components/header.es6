@@ -44,7 +44,7 @@ class MainHeader extends Reflux.Component {
   constructor(props){
     super(props);
     this.state = assign({
-      dataPopoverShowing: false, 
+      dataPopoverShowing: false,
       asset: false,
       currentLang: currentLang(),
       libraryFiltersContext: searches.getSearchContext('library', {
@@ -75,7 +75,7 @@ class MainHeader extends Reflux.Component {
     });
 
     return assign({
-      dataPopoverShowing: false, 
+      dataPopoverShowing: false,
       asset: false,
       currentLang: currentLang(),
       libraryFiltersContext: searches.getSearchContext('library', {
@@ -153,16 +153,16 @@ class MainHeader extends Reflux.Component {
       return (
         <bem.AccountBox>
           {/*<bem.AccountBox__notifications className="is-edge">
-            <i className="fa fa-bell"></i> 
+            <i className="fa fa-bell"></i>
             <bem.AccountBox__notifications__count> 2 </bem.AccountBox__notifications__count>
           </bem.AccountBox__notifications>*/}
-          <ui.PopoverMenu type='account-menu' 
-                          triggerLabel={accountMenuLabel} 
+          <ui.PopoverMenu type='account-menu'
+                          triggerLabel={accountMenuLabel}
                           buttonType='text'>
               <bem.AccountBox__menu>
                 <bem.AccountBox__menuLI key='1'>
                   <bem.AccountBox__menuItem m={'avatar'}>
-                    {accountMenuLabel} 
+                    {accountMenuLabel}
                   </bem.AccountBox__menuItem>
                   <bem.AccountBox__menuItem m={'mini-profile'}>
                     <span className="account-username">{accountName}</span>
@@ -176,7 +176,7 @@ class MainHeader extends Reflux.Component {
                 </bem.AccountBox__menuLI>
                 <bem.AccountBox__menuLI m={'lang'} key='2'>
                   <bem.AccountBox__menuLink>
-                    <i className="k-icon-language" /> 
+                    <i className="k-icon-language" />
                     {t('Language')}
                   </bem.AccountBox__menuLink>
                   <ul>
@@ -185,7 +185,7 @@ class MainHeader extends Reflux.Component {
                 </bem.AccountBox__menuLI>
                 <bem.AccountBox__menuLI m={'logout'} key='3'>
                   <bem.AccountBox__menuLink onClick={this.logout}>
-                    <i className="k-icon-logout" /> 
+                    <i className="k-icon-logout" />
                     {t('Logout')}
                   </bem.AccountBox__menuLink>
                 </bem.AccountBox__menuLI>
@@ -232,7 +232,7 @@ class MainHeader extends Reflux.Component {
 
     clearTimeout(typingTimer);
 
-    typingTimer = setTimeout(() => { 
+    typingTimer = setTimeout(() => {
       if (!this.state.asset.name.trim()) {
         alertify.error(t('Please enter a title for your project'));
       } else {
@@ -265,12 +265,12 @@ class MainHeader extends Reflux.Component {
                 <bem.Header__logo />
               </a>
             </span>
-            { this.isFormList() && 
+            { this.isFormList() &&
               <div className="mdl-layout__header-searchers">
                 <ListSearch searchContext={this.state.formFiltersContext} placeholderText={t('Search Projects')} />
               </div>
             }
-            { this.isLibrary() && 
+            { this.isLibrary() &&
               <div className="mdl-layout__header-searchers">
                 <ListSearch searchContext={this.state.libraryFiltersContext} placeholderText={t('Search Library')} />
               </div>

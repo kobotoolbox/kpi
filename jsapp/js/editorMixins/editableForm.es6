@@ -340,8 +340,7 @@ export default assign({
           });
         })
         .catch((resp) => {
-          var errorMsg = `${t('Your changes could not be saved, likely because of a lost internet connection.')}&nbsp;
-                         ${t('Keep this window open and try saving again while using a better connection.')}`;
+          var errorMsg = `${t('Your changes could not be saved, likely because of a lost internet connection.')}&nbsp;${t('Keep this window open and try saving again while using a better connection.')}`;
           if (resp.statusText != 'error')
             errorMsg = resp.statusText;
 
@@ -482,7 +481,7 @@ export default assign({
               { showAllAvailable ?
                 <bem.FormBuilderHeader__button m={['show-all', {
                       open: showAllOpen,
-                    }]} 
+                    }]}
                     onClick={this.showAll}
                     data-tip={t('Expand / collapse questions')}>
                   <i className="k-icon-view-all" />
@@ -496,7 +495,7 @@ export default assign({
                 <i className="k-icon-group" />
               </bem.FormBuilderHeader__button>
               <bem.FormBuilderHeader__button m={['download']}
-                  data-tip={t('Download form')} 
+                  data-tip={t('Download form')}
                   className="is-edge">
                 <i className="k-icon-download" />
               </bem.FormBuilderHeader__button>
@@ -505,7 +504,7 @@ export default assign({
                 <bem.FormBuilderHeader__button m={{
                   formstyle: true,
                   formstyleactive: this.state.formStylePanelDisplayed,
-                }} onClick={this.openFormStylePanel} 
+                }} onClick={this.openFormStylePanel}
                   data-tip={t('Web form layout')} >
                   <i className="k-icon-grid" />
                   <span>{t('Layout')}</span>
@@ -545,7 +544,7 @@ export default assign({
             <bem.FormBuilderHeader__cell m={'spacer'} />
             <bem.FormBuilderHeader__cell m={'library-toggle'} >
               <bem.FormBuilderHeader__button m={['showLibrary']}
-                                             onClick={this.toggleLibraryNav} >
+                onClick={this.toggleLibraryNav} >
                 {t('Search Library')}
               </bem.FormBuilderHeader__button>
             </bem.FormBuilderHeader__cell>
@@ -560,9 +559,9 @@ export default assign({
               </FormStyle__panelheader>
               <FormStyle__paneltext>
                 { hasSettings ?
-                 t('select the form style that you would like to use. this will only affect web forms.')
-                : 
-                 t('select the form style. this will only affect the Enketo preview, and it will not be saved with the question or block.')
+                  t('select the form style that you would like to use. this will only affect web forms.')
+                  :
+                  t('select the form style. this will only affect the Enketo preview, and it will not be saved with the question or block.')
                 }
 
               </FormStyle__paneltext>
@@ -593,11 +592,6 @@ export default assign({
             <p>
               {this.state.surveyLoadError}
             </p>
-            <div>
-              <a onClick={hashHistory.goBack} href='#'>
-                {t('Back')}
-              </a>
-            </div>
           </ErrorMessage>
         );
     }
@@ -606,7 +600,7 @@ export default assign({
         <bem.Loading>
           <bem.Loading__inner>
             <i />
-            {t('loading...')} 
+            {t('loading...')}
           </bem.Loading__inner>
         </bem.Loading>
       );

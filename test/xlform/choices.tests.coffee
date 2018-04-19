@@ -150,9 +150,7 @@ module.exports = do ->
         expect(row2.getList().getList).toBeDefined()
         expect(row2.getList().getList()).not.toBe(null)
         expect(row2.getList().getList().get("name")).toBe("county")
-        expect(row2.getList()
-                   .getList()
-                   .getList().get("name")).toBe("state")
+        expect(row2.getList().getList().getList().get("name")).toBe("state")
         # console.log($survey.Survey.load(survey.toSsStructure())
         #                                         .toSsStructure())
 

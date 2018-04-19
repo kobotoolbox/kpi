@@ -33,7 +33,7 @@ from kpi.utils.standardize_content import (standardize_content,
 from kpi.utils.autoname import (autoname_fields_in_place,
                                 autovalue_choices_in_place)
 from .object_permission import ObjectPermission, ObjectPermissionMixin
-from ..fields import KpiUidField
+from ..fields import KpiUidField, LazyDefaultJSONBField
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
 from ..utils.sluggify import sluggify_label
 from ..utils.kobo_to_xlsform import (to_xlsform_structure,
@@ -423,8 +423,8 @@ class Asset(ObjectPermissionMixin,
     summary = JSONField(null=True, default=dict)
     report_styles = JSONBField(default=dict)
     report_custom = JSONBField(default=dict)
-    map_styles = JSONBField(default=dict)
-    map_custom = JSONBField(default=dict)
+    map_styles = LazyDefaultJSONBField(default=dict)
+    map_custom = LazyDefaultJSONBField(default=dict)
     asset_type = models.CharField(
         choices=ASSET_TYPES, max_length=20, default='survey')
     parent = models.ForeignKey(

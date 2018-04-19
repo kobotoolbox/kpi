@@ -377,4 +377,3 @@ module.exports = do ->
     comparator: (m)-> m.ordinal
 
   surveyFragment
-

@@ -88,7 +88,7 @@ module.exports = do ->
     if grpStack.length isnt 1
       throw new Error(JSON.stringify({
           message: "unclosed groupable set",
-          counts: counts 
+          counts: counts
         }))
 
     _curGrp().export().__rows
@@ -108,9 +108,8 @@ module.exports = do ->
         translations[0] = null
       else if translations.indexOf(null) > 0
         throw new Error("""
-                        unnamed translation must be the first (primary) translation
-                        translations need to be reordered or unnamed translation needs
-                        to be given a name
+                        There is an unnamed translation in your form definition.
+                        Please give a name to all translations in your form.
                         """)
       else if _existing_active_translation_name # there is already an active null translation
         o._active_translation_name = _existing_active_translation_name
