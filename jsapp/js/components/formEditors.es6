@@ -39,6 +39,8 @@ import {
   update_states,
 } from '../constants';
 
+var formViaUrlHelpLink = 'http://help.kobotoolbox.org/creating-forms/importing-an-xlsform-via-url';
+
 export class ProjectSettings extends React.Component {
   constructor(props){
     super(props);
@@ -327,7 +329,11 @@ export class ProjectSettings extends React.Component {
           {this.state.step3 == 'import' &&
             <bem.FormModal__item m='newForm-step3'>
               <div className="intro">
-                {t('Paste a valid XLSForm URL (from Google Sheets, Dropbox, etc.) in the field below.')}
+                {t('Enter a valid XLSForm URL in the field below.')}<br/>
+                <a href={formViaUrlHelpLink}
+                  target="_blank">
+                  {t('Having issues? See this help article.')}
+                </a>
               </div>
               <bem.FormModal__item m='url-import'>
                 <label htmlFor="url">
