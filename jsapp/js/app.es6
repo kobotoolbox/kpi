@@ -82,6 +82,9 @@ class App extends React.Component {
     // slide out drawer overlay on every page change (better mobile experience)
     if (this.state.pageState.showFixedDrawer)
       stores.pageState.setState({showFixedDrawer: false});
+    // hide modal on every page change
+    if (this.state.pageState.modal)
+      stores.pageState.hideModal();
   }
   handleHotkey (e) {
     if (e.altKey && (e.keyCode == '69' || e.keyCode == '186')) {
