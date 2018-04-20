@@ -17,7 +17,9 @@ import {
   stringToColor,
   anonUsername
 } from '../utils';
-import CopyTeamPermissions from './sharingForm_copyTeamPermissions';
+
+// parts
+import CopyTeamPermissions from './sharingForm/copyTeamPermissions';
 
 var availablePermissions = [
   {value: 'view', label: t('View Form')},

@@ -1,10 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import autoBind from 'react-autobind';
-import bem from "../bem";
+import bem from "../../bem";
 import classNames from 'classnames';
 import Select from 'react-select';
-import { t } from "../utils";
+import { t } from "../../utils";
 
 class CopyTeamPermissions extends React.Component {
   constructor(props) {

@@ -171,8 +171,9 @@ $s-gray-row-spacing: 10px;
     width: calc(100% - #{$s-gray-row-button-width + $s-gray-row-spacing});
     margin-right: $s-gray-row-spacing;
     
-    // override menu position, because select is at the end of scrollable area
-    // see: https://github.com/JedWatson/react-select/issues/404
+    // HACK FIX: override menu position, because select is near the end 
+    // of scrollable container area, see: 
+    // https://github.com/JedWatson/react-select/issues/404
     .Select-menu-outer {
       @include box-shadow-reversed;
       top: auto;
