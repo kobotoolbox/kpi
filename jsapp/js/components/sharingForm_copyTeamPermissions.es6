@@ -37,7 +37,11 @@ class CopyTeamPermissions extends React.Component {
       {value: 'option_1', label: t('Option one')},
       {value: 'option_2', label: t('Second option')},
       {value: 'option_3', label: t('This is the fourth option available')},
-      {value: 'option_4', label: t('Third')}
+      {value: 'option_4', label: t('Third')},
+      {value: 'option_5', label: t('Option one')},
+      {value: 'option_6', label: t('Second option')},
+      {value: 'option_7', label: t('This is the fourth option available')},
+      {value: 'option_8', label: t('Third')}
     ];
 
     return (

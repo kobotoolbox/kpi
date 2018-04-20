@@ -170,6 +170,14 @@ $s-gray-row-spacing: 10px;
   .Select {
     width: calc(100% - #{$s-gray-row-button-width + $s-gray-row-spacing});
     margin-right: $s-gray-row-spacing;
+    
+    // override menu position, because select is at the end of scrollable area
+    // see: https://github.com/JedWatson/react-select/issues/404
+    .Select-menu-outer {
+      @include box-shadow-reversed;
+      top: auto;
+      bottom: 100%;
+    }
   }
 }
 
@@ -179,4 +187,13 @@ $s-gray-row-spacing: 10px;
 
 .form-modal__item--copy-team-permissions-opener {
   color: $cool-blue;
+  cursor: pointer;
+  
+  &:hover {
+    color: lighten($cool-blue, 10%);
+  }
+  
+  &:active {
+    color: lighten($cool-blue, 20%);
+  }
 }
