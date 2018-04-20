@@ -1,3 +1,8 @@
+$s-gray-row-button-width: 100px;
+$s-gray-row-select-width: 200px;
+$s-gray-row-width: 560px;
+$s-gray-row-spacing: 10px;
+
 .user-row {
   display: flex;
   min-height: 50px;
@@ -84,24 +89,25 @@
   margin: 30px 0px;
 }
 
-.form-modal__item--perms-user {
+// -----------------------------------------------------------------------------
+// common parts
+// -----------------------------------------------------------------------------
+
+.form-modal__item--gray-row {
   position: relative;
   background: #F8F8F8;
   padding: 15px;
 
   input[type="text"] {
-    width: calc(100% - 320px);
+    @include box-shadow;
     border-bottom: 0px;
     display: inline-block;
-    padding: 10px;
+    padding: $s-gray-row-spacing;
     vertical-align: middle;
-
-    @include box-shadow;
-
-    margin-right: 10px;
   }
 
   button {
+    min-width: $s-gray-row-button-width;
     vertical-align: middle;
     text-transform: uppercase;
     margin-top: 1px;
@@ -109,32 +115,30 @@
 
   .Select {
     display: inline-block;
-    width: 200px;
     vertical-align: middle;
-    margin-right: 10px;
   }
 
   .Select-control {
-    padding: 4px 10px;
-
     @include box-shadow;
-
+    padding: 4px $s-gray-row-spacing;
     border-bottom: 0px;
-    padding-left: 10px;
 
     .Select-input {
       padding-left: 0px;
       margin-left: -2px;
     }
 
-    .Select-value {
-      line-height: 40px;
-      padding-left: 10px;
-    }
-
+    .Select-value, 
     .Select-placeholder {
-      padding-left: 10px;
+      line-height: 40px;
+      padding-left: $s-gray-row-spacing;
     }
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .form-modal__item--gray-row {
+    min-width: $s-gray-row-width;
   }
 }
 
@@ -142,8 +146,37 @@
   margin-top: 10px;
 }
 
-@media screen and (min-width: 768px) {
-  .form-modal__item--perms-user {
-    min-width: 560px;
+// -----------------------------------------------------------------------------
+// Invite collaborators parts
+// -----------------------------------------------------------------------------
+
+.form-modal__item--invite-collaborators {
+  input[type="text"] {
+    width: calc(100% - #{$s-gray-row-button-width + $s-gray-row-select-width + $s-gray-row-spacing * 2});
+    margin-right: $s-gray-row-spacing;
   }
+
+  .Select {
+    width: $s-gray-row-select-width;
+    margin-right: $s-gray-row-spacing;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// copy team permissions parts
+// -----------------------------------------------------------------------------
+
+.form-modal__item--copy-team-permissions {
+  .Select {
+    width: calc(100% - #{$s-gray-row-button-width + $s-gray-row-spacing});
+    margin-right: $s-gray-row-spacing;
+  }
+}
+
+.form-view__cell--copy-team-permissions {
+  margin-top: 30px;
+}
+
+.form-modal__item--copy-team-permissions-opener {
+  color: $cool-blue;
 }

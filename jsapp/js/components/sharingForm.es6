@@ -314,7 +314,7 @@ class SharingForm extends React.Component {
             <bem.FormView__cell m='label'>
               {t('Invite collaborators')}
             </bem.FormView__cell>
-            <bem.FormModal__item m='perms-user'>
+            <bem.FormModal__item m={['gray-row', 'invite-collaborators']}>
               <input type="text"
                   id="permsUser" 
                   ref='usernameInput'
@@ -348,9 +348,12 @@ class SharingForm extends React.Component {
               objectUrl={objectUrl}
               deploymentActive={this.state.asset.deployment__active}
             />
-            <CopyTeamPermissions/>
           </bem.FormView__cell>
         }
+
+        <bem.FormView__cell m='copy-team-permissions'>
+          <CopyTeamPermissions/>
+        </bem.FormView__cell>
       </bem.FormModal>
     );
   }
