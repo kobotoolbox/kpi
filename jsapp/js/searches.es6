@@ -80,7 +80,6 @@ function SearchContext(opts={}) {
     },
     onDeleteAssetCompleted (asset) {
       var filterOutDeletedAsset = ({listName}) => {
-        // TODO: look into why sometimes this.state[listName] is not defined
         if (this.state[listName] != undefined) {
           let uid = asset.uid;
           let listLength = this.state[listName].length;
@@ -94,7 +93,22 @@ function SearchContext(opts={}) {
           }
         }
       };
+      var filterOutDeletedAssetFromCategorizedList = () => {
+        let list = this.state.defaultQueryCategorizedResultsLists;
+        if (list != undefined) {
+          var l = {};
+          for (var category in list) {
+            l[category] = list[category].filter(function(result){
+              return result.uid !== asset.uid;
+            });
+          }
+          let o = {};
+          o.defaultQueryCategorizedResultsLists = l;
+          this.update(o);
+        }
+      };
       filterOutDeletedAsset({listName: 'defaultQueryResultsList'});
+      filterOutDeletedAssetFromCategorizedList();
       if (this.state.searchResultsList && this.state.searchResultsList.length > 0) {
         filterOutDeletedAsset({listName: 'searchResultsList'});
       }
