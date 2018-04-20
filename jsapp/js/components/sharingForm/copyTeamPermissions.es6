@@ -65,6 +65,7 @@ class CopyTeamPermissions extends React.Component {
                 ref='teamPermissionsInput'
                 value={this.state.teamPermissionsInput}
                 clearable={false}
+                placeholder={t('Select source project…')}
                 options={availableOptions}
                 onChange={this.updateTeamPermissionsInput}
               />
