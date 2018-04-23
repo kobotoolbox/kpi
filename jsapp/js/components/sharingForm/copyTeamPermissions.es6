@@ -4,6 +4,7 @@ import autoBind from "react-autobind";
 import bem from "../../bem";
 import classNames from "classnames";
 import Select from "react-select";
+import alertify from 'alertifyjs';
 import stores from "../../stores";
 import { t } from "../../utils";
 
@@ -26,12 +27,24 @@ class CopyTeamPermissions extends React.Component {
     this.setState({ sourceAssetUid: asset.value });
   }
   
-  copyPermissionsFrom() {
+  safeCopyPermissionsFrom() {
     if (this.state.sourceAssetUid) {
-      actions.permissions.copyPermissionsFrom({
-        targetAssetUid: this.currentAssetID(),
-        sourceAssetUid: this.state.sourceAssetUid
-      });
+      const sourceName = stores.allAssets.byUid[this.state.sourceAssetId].name;
+      const targetName = stores.allAssets.byUid[this.currentAssetID()].name;
+      const dialog = alertify.dialog("confirm");
+      let dialogOptions = {
+        title: t('Are you sure you want to copy permissions?'),
+        message: t(`You are about to copy permissions from ${sourceName} to ${targetName}. This action cannot be undone.`),
+        labels: {ok: t('Import'), cancel: t('Cancel')},
+        onok: () => {
+          console.log("TODO start importing!");
+          // dataInterface.copyPermissionsFrom()
+          
+          // actions.permissions.copyPermissionsFrom();
+        },
+        oncancel: () => {dialog.destroy()}
+      };
+      dialog.set(dialogOptions).show();
     }
   }
 
@@ -83,7 +96,7 @@ class CopyTeamPermissions extends React.Component {
               />
               <button 
                 className={importButtonCssClasses}
-                onClick={this.copyPermissionsFrom}
+                onClick={this.safeCopyPermissionsFrom}
               >{t("import")}</button>
             </bem.FormModal__item>
           </bem.FormView__cell>
