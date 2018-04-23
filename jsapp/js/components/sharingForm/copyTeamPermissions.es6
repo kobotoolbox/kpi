@@ -1,5 +1,5 @@
 import React from "react";
-import ReactDOM from "react-dom";
+import reactMixin from 'react-mixin';
 import autoBind from "react-autobind";
 import bem from "../../bem";
 import classNames from "classnames";
@@ -12,8 +12,7 @@ class CopyTeamPermissions extends React.Component {
     super(props);
     this.state = {
       isCopyFormVisible: false,
-      hasUserInput: false,
-      teamPermissionsInput: null
+      sourceAssetUid: null
     };
     this.store = stores.allAssets;
     autoBind(this);
@@ -24,8 +23,16 @@ class CopyTeamPermissions extends React.Component {
   }
 
   updateTeamPermissionsInput(asset) {
-    console.log("updateTeamPermissionsInput", asset, this);
-    this.setState({ teamPermissionsInput: asset.value });
+    this.setState({ sourceAssetUid: asset.value });
+  }
+  
+  copyPermissionsFrom() {
+    if (this.state.sourceAssetUid) {
+      actions.permissions.copyPermissionsFrom({
+        targetAssetUid: this.currentAssetID(),
+        sourceAssetUid: this.state.sourceAssetUid
+      });
+    }
   }
 
   render() {
@@ -33,7 +40,7 @@ class CopyTeamPermissions extends React.Component {
       "mdl-button",
       "mdl-js-button",
       "mdl-button--raised",
-      this.state.hasUserInput ? "mdl-button--colored" : "mdl-button--disabled"
+      this.state.sourceAssetUid ? "mdl-button--colored" : "mdl-button--disabled"
     );
 
     const availableOptions = [];
@@ -67,14 +74,17 @@ class CopyTeamPermissions extends React.Component {
             <bem.FormModal__item m={["gray-row", "copy-team-permissions"]}>
               <Select
                 id="teamPermissions"
-                ref="teamPermissionsInput"
-                value={this.state.teamPermissionsInput}
+                ref="sourceAssetUid"
+                value={this.state.sourceAssetUid}
                 clearable={false}
                 placeholder={t("Select source project…")}
                 options={availableOptions}
                 onChange={this.updateTeamPermissionsInput}
               />
-              <button className={importButtonCssClasses}>{t("import")}</button>
+              <button 
+                className={importButtonCssClasses}
+                onClick={this.copyPermissionsFrom}
+              >{t("import")}</button>
             </bem.FormModal__item>
           </bem.FormView__cell>
         )}
@@ -82,5 +92,7 @@ class CopyTeamPermissions extends React.Component {
     );
   }
 }
+
+reactMixin(SidebarFormsList.prototype, mixins.contextRouter);
 
 export default CopyTeamPermissions;

@@ -163,6 +163,15 @@ var dataInterface;
         url: permUrl
       });
     },
+    copyPermissionsFrom(sourceAssetId, targetAssetId) {
+      return $ajax({
+        url: `${rootUrl}/permissions/`,
+        method: "PATCH",
+        data: {
+          
+        }
+      })
+    },
     assignPerm (creds) {
       // Do we already have these URLs stored somewhere?
       var objectUrl = creds.objectUrl || `${rootUrl}/${creds.kind}s/${creds.uid}/`;
