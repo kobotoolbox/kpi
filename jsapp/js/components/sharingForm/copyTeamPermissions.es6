@@ -39,7 +39,6 @@ class CopyTeamPermissions extends React.Component {
         onok: () => {
           console.log("TODO start importing!");
           // dataInterface.copyPermissionsFrom()
-          
           // actions.permissions.copyPermissionsFrom();
         },
         oncancel: () => {dialog.destroy()}
@@ -106,6 +105,6 @@ class CopyTeamPermissions extends React.Component {
   }
 }
 
-reactMixin(SidebarFormsList.prototype, mixins.contextRouter);
+reactMixin(CopyTeamPermissions.prototype, mixins.contextRouter);
 
 export default CopyTeamPermissions;
