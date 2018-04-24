@@ -48,6 +48,8 @@ def last_submission_time(xform_id_string, user_id):
 
 @safe_kc_read
 def get_kc_profile_data(user_id):
+    profile = None
+
     '''
     Retrieve all fields from the user's KC profile and  return them in a
     dictionary
@@ -60,6 +62,9 @@ def get_kc_profile_data(user_id):
         except _KoboCatProfileException:
             logging.exception('Failed to create KoBoCAT user profile')
             return {}
+
+    if profile is None:
+        return {}
     fields = [
         # Use a (kc_name, new_name) tuple to rename a field
         'name',
