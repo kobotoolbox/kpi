@@ -25,11 +25,4 @@
 
 {% block footer %}
  {{ block.super }}
-  <script>
-  $(function () {
-    $('form.registration input#id_username').attr('placeholder', 'Username');
-    $('form.registration input#id_password').attr('placeholder', 'Password');
-    $('form.registration > p > label').addClass('hidden');
-  });
-</script>
 {% endblock footer %}

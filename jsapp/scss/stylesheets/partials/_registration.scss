@@ -16,9 +16,29 @@
     margin: 0 auto;
     margin-top: 40px;
     position: relative;
-    max-width: 380px;
+    max-width: 400px;
     background: rgba(0, 0, 0, 0.65);
-    padding: 20px;
+    padding: 30px;
+
+    a {
+      color: lighten($cool-blue, 20%);
+
+      &:hover {
+        color: $cool-blue;
+      }
+
+      &.registration__forgot {
+        position: absolute;
+        right: 65px;
+        font-size: 14px;
+        margin-top: -45px;
+        color: $cool-blue;
+
+        &:hover {
+          color: darken($cool-blue, 10%);
+        }
+      }
+    }
   }
 
   .registration--logo {
@@ -31,10 +51,24 @@
     img {
       max-width: 100%;
     }
+
+    h1 {
+      font-weight: 400;
+      font-size: 1.9em;
+      line-height: 1.2em;
+      margin: 1em 0;
+    }
   }
 
   input {
-    color: black;
+    color: $layout-text-color;
+  }
+
+  span.helptext {
+    opacity: 0.8;
+    font-size: 12px;
+    display: block;
+    margin-top: 2px;
   }
 }
 
@@ -49,8 +83,13 @@
   padding: 8px;
   border: none;
   border-radius: 0px;
-  font-size: 13px;
-  border-bottom: 2px solid #CBD0D7;
+  font-size: 14px;
+  border-bottom: 3px solid #CBD0D7;
+  margin-top: 4px;
+
+  &:focus {
+    border-bottom-color: $cool-blue;
+  }
 
   &.registration__action {
     font-size: 14px;
@@ -73,8 +112,17 @@
 }
 
 .registration select {
-  color: black;
-  background-color: white;
+  color: $layout-text-color;
+  background-color: rgba(255, 255, 255, 0.8);
+  max-width: 310px;
+
+  &:hover, &:focus {
+    background: white;
+  }
+}
+
+.registration input[type="password"] {
+  max-width: 280px;
 }
 
 .registration .passwordreset__cancel {
@@ -99,11 +147,11 @@
   display: inline-block;
 }
 
-.registration__forgot {
-  position: absolute;
-  right: 60px;
-  font-size: 12px;
-  margin-top: -42px;
+.registration--login {
+  input[type="password"] {
+    max-width: 100%;
+    padding-right: 75px;
+  }
 }
 
 .registration__footer {
@@ -116,10 +164,10 @@
 }
 
 .registration .errorlist {
-  /* Rename this class with BEM */
+  margin-top: -6px;
   margin-bottom: 12px;
   font-size: 14px;
-  text-align: center;
+  color: $cool-red;
 }
 
 .error-message {
@@ -139,6 +187,11 @@
   }
 }
 
+.registration__message {
+  font-size: 16px;
+  text-align: center;
+}
+
 @media screen and (min-width: 780px) {
   .registration__bg {
     form.registration {
@@ -148,17 +201,18 @@
     }
 
     // two-column
-    form.registration--register {
+    form.registration--register,
+    form.registration--complete {
       min-width: 780px;
     }
 
     .registration__first-half {
-      width: 45%;
+      width: 50%;
       float: left;
     }
 
     .registration__second-half {
-      width: 55%;
+      width: 50%;
       float: left;
 
       > * {
