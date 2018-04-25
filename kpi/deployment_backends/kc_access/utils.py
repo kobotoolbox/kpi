@@ -19,17 +19,6 @@ class _KoboCatProfileException(Exception):
     pass
 
 
-class Dict2Object(object):
-
-    def __init__(self, dict_):
-        self.__dict = dict_
-        self.__map_properties()
-
-    def __map_properties(self):
-        for key, value in self.__dict.items():
-            setattr(self, key, value)
-
-
 def _trigger_kc_profile_creation(user):
     '''
     Get the user's profile via the KC API, causing KC to create a KC
