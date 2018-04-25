@@ -18,6 +18,18 @@ from .shadow_models import _models, safe_kc_read
 class _KoboCatProfileException(Exception):
     pass
 
+
+class Dict2Object(object):
+
+    def __init__(self, dict_):
+        self.__dict = dict_
+        self.__map_properties()
+
+    def __map_properties(self):
+        for key, value in self.__dict.items():
+            setattr(self, key, value)
+
+
 def _trigger_kc_profile_creation(user):
     '''
     Get the user's profile via the KC API, causing KC to create a KC
@@ -53,13 +65,19 @@ def get_kc_profile_data(user_id):
     dictionary
     '''
     try:
-        profile = _models.UserProfile.objects.get(user_id=user_id)
+        profile_model = _models.UserProfile.objects.get(user_id=user_id)
+        # Use a dict instead of the object in case we enter the next exception.
+        # The response will return a json.
+        # We want the variable to have the same type in both cases.
+        profile = profile_model.__dict__
     except _models.UserProfile.DoesNotExist:
         try:
-            _trigger_kc_profile_creation(User.objects.get(pk=user_id))
+            response = _trigger_kc_profile_creation(User.objects.get(pk=user_id))
+            profile = response.json()
         except _KoboCatProfileException:
             logging.exception('Failed to create KoBoCAT user profile')
             return {}
+
     fields = [
         # Use a (kc_name, new_name) tuple to rename a field
         'name',
@@ -74,18 +92,23 @@ def get_kc_profile_data(user_id):
         'twitter',
         'metadata',
     ]
+
     result = {}
+
     for field in fields:
+
         if isinstance(field, tuple):
             kc_name, field = field
         else:
             kc_name = field
-        value = getattr(profile, kc_name)
+
+        value = profile.get(kc_name)
         # When a field contains JSON (e.g. `metadata`), it gets loaded as a
         # `dict`. Convert it back to a string representation
         if isinstance(value, dict):
             value = json.dumps(value)
         result[field] = value
+
     return result
 
 
