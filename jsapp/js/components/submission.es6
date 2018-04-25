@@ -21,8 +21,8 @@ import {
 class Submission extends React.Component {
   constructor(props) {
     super(props);
-    let translations = this.props.asset.content.translations, 
-        translationOptions = []; 
+    let translations = this.props.asset.content.translations,
+        translationOptions = [];
 
     if (translations.length > 1) {
       translationOptions = translations.map((trns, i) => {
@@ -39,7 +39,7 @@ class Submission extends React.Component {
       loading: true,
       error: false,
       enketoEditLink: false,
-      previous: -1, 
+      previous: -1,
       next: -1,
       sid: props.sid,
       showBetaFieldsWarning: false,
@@ -98,7 +98,7 @@ class Submission extends React.Component {
         this.setState({error: error.statusText, loading: false});
       else
         this.setState({error: t('Error: could not load data.'), loading: false});
-    });    
+    });
   }
 
   componentWillReceiveProps(nextProps) {
@@ -165,7 +165,7 @@ class Submission extends React.Component {
     this.getSubmission(this.props.asset.uid, this.props.sid);
     this.setState({
       promptRefresh: false
-    });    
+    });
   }
 
   switchSubmission(evt) {
@@ -240,7 +240,7 @@ class Submission extends React.Component {
 
     return survey.map((q)=> {
       var name = q.name || q.$autoname || q.$kuid;
-      if (q.type === 'begin_repeat') { 
+      if (q.type === 'begin_repeat') {
         return (
           <tr key={`row-${name}`}>
             <td colSpan="3" className="submission--repeat-group">
@@ -268,7 +268,7 @@ class Submission extends React.Component {
                       <td className="submission--response">
                         {_this.responseDisplayHelper(subQ, s, repQ[pN], pN)}
                       </td>
-                    </tr>      
+                    </tr>
                   );
                 }
                 return (
@@ -325,7 +325,7 @@ class Submission extends React.Component {
           <td className="submission--question-type">{type}</td>
           <td className="submission--question">{q.label[translationIndex] || t('Unlabelled')}</td>
           <td className="submission--response">{response}</td>
-        </tr>      
+        </tr>
       );
     });
   }
@@ -379,7 +379,7 @@ class Submission extends React.Component {
             {translationOptions.length > 1 &&
               <div className="switch--label-language">
                 <label>{t('Language:')}</label>
-                <Select 
+                <Select
                   clearable={false}
                   value={translationOptions[this.state.translationIndex]}
                   options={translationOptions}
@@ -388,7 +388,7 @@ class Submission extends React.Component {
             }
             <div className="switch--validation-status">
               <label>{t('Validation status:')}</label>
-              <Select 
+              <Select
                 disabled={!this.userCan('validate_submissions', this.props.asset)}
                 clearable={false}
                 value={s._validation_status ? s._validation_status.uid : ''}
@@ -421,9 +421,9 @@ class Submission extends React.Component {
           <div className="submission-actions">
             {this.userCan('change_submissions', this.props.asset) && this.state.enketoEditLink &&
               <a href={this.state.enketoEditLink}
-                   onClick={this.promptRefresh}
-                 target="_blank"
-                 className="mdl-button mdl-button--raised mdl-button--colored">
+                onClick={this.promptRefresh}
+                target="_blank"
+                className="mdl-button mdl-button--raised mdl-button--colored">
                 {t('Edit')}
               </a>
             }

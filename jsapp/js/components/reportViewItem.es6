@@ -175,7 +175,7 @@ class ReportViewItem extends React.Component {
     var showLegend = false;
 
     // TODO: set as default globally in a higher level (PM)
-    var colors = this.buildChartColors(); 
+    var colors = this.buildChartColors();
 
     var baseColor = colors[0];
     Chart.defaults.global.elements.rectangle.backgroundColor = baseColor;
@@ -364,7 +364,7 @@ class ReportViewItem extends React.Component {
               }
             </span>
           </bem.ReportView__headingMeta>
-          {d.show_graph && 
+          {d.show_graph &&
             <button className="mdl-button mdl-button--icon report-button__question-settings"
                   onClick={this.props.triggerQuestionSettings}
                   data-question={name}
@@ -374,7 +374,7 @@ class ReportViewItem extends React.Component {
           }
         </bem.ReportView__itemHeading>
         <bem.ReportView__itemContent>
-          {d.show_graph && 
+          {d.show_graph &&
             <bem.ReportView__chart
                 style={{width: this.props.style.graphWidth + 'px'}}>
               <canvas ref="canvas" />

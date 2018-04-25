@@ -18,7 +18,7 @@ class SidebarFormsList extends Reflux.Component {
     super(props);
     var selectedCategories = {
       'Draft': false,
-      'Deployed': false, 
+      'Deployed': false,
       'Archived': false
     }
     this.state = {
@@ -73,9 +73,9 @@ class SidebarFormsList extends Reflux.Component {
 
     // sync sidebar with main list when it is not a search query, allows for deletes to update the sidebar as well
     // this is a temporary fix, a proper fix needs to update defaultQueryCategorizedResultsLists when deleting/archiving/cloning
-    if (s.searchState === 'done' && 
+    if (s.searchState === 'done' &&
         (s.searchString === false || s.searchString === "") &&
-        s.searchResultsFor && 
+        s.searchResultsFor &&
         s.searchResultsFor.assetType === 'asset_type:survey')
       activeItems = 'searchResultsCategorizedResultsLists';
 
@@ -84,7 +84,7 @@ class SidebarFormsList extends Reflux.Component {
         <bem.Loading>
           <bem.Loading__inner>
             <i />
-            {t('loading...')} 
+            {t('loading...')}
           </bem.Loading__inner>
         </bem.Loading>
       );
@@ -92,8 +92,8 @@ class SidebarFormsList extends Reflux.Component {
 
     return (
       <bem.FormSidebar>
-        { 
-          s.defaultQueryState === 'done' && 
+        {
+          s.defaultQueryState === 'done' &&
           <bem.FormSidebar__label m={'active-projects'} className="is-edge">
             <i className="k-icon-projects" />
             {t('Active Projects')}
@@ -106,7 +106,7 @@ class SidebarFormsList extends Reflux.Component {
                 <bem.Loading>
                   <bem.Loading__inner>
                     <i />
-                    {t('loading...')} 
+                    {t('loading...')}
                   </bem.Loading__inner>
                 </bem.Loading>
               );
@@ -118,7 +118,7 @@ class SidebarFormsList extends Reflux.Component {
                     categoryVisible = false;
                   }
                   return [
-                    <bem.FormSidebar__label m={[category, categoryVisible ? 'visible' : 'collapsed']} 
+                    <bem.FormSidebar__label m={[category, categoryVisible ? 'visible' : 'collapsed']}
                                             onClick={this.toggleCategory(category)}>
                       <i />
                       {t(category)}

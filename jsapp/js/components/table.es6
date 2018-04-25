@@ -33,9 +33,9 @@ export class DataTable extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-    	loading: true,
-    	tableData: [],
-    	columns: [],
+      loading: true,
+      tableData: [],
+      columns: [],
       sids: [],
       showExpandedTable: false,
       defaultPageSize: 30,
@@ -51,14 +51,14 @@ export class DataTable extends React.Component {
       selectAll: false,
       fetchState: false
     };
-    autoBind(this);    
+    autoBind(this);
   }
   requestData(instance) {
-    let pageSize = instance.state.pageSize, 
-        page = instance.state.page * instance.state.pageSize, 
-        sort = instance.state.sorted, 
-        filter = instance.state.filtered, 
-        filterQuery = '';
+    let pageSize = instance.state.pageSize,
+      page = instance.state.page * instance.state.pageSize,
+      sort = instance.state.sorted,
+      filter = instance.state.filtered,
+      filterQuery = '';
 
     if (filter.length) {
       filterQuery = `&query={`;
@@ -124,9 +124,9 @@ export class DataTable extends React.Component {
     }
   }
   _prepColumns(data) {
-		var uniqueKeys = Object.keys(data.reduce(function(result, obj) {
-		  return Object.assign(result, obj);
-		}, {}))
+    var uniqueKeys = Object.keys(data.reduce(function(result, obj) {
+      return Object.assign(result, obj);
+    }, {}))
 
     let showLabels = this.state.showLabels,
         showGroups = this.state.showGroups,
@@ -197,7 +197,7 @@ export class DataTable extends React.Component {
           })}
         </select>,
       Cell: row => (
-        <Select 
+        <Select
           disabled={!this.userCan('validate_submissions', this.props.asset)}
           clearable={false}
           value={this.state.tableData[row.index]._validation_status}
@@ -213,7 +213,7 @@ export class DataTable extends React.Component {
     let choices = this.props.asset.content.choices;
 
     uniqueKeys.forEach(function(key){
-      if (excludes.includes(key)) 
+      if (excludes.includes(key))
         return false;
 
       var q = undefined;
@@ -278,35 +278,35 @@ export class DataTable extends React.Component {
           });
       }
 
-    	columns.push({
-	    	Header: h => {
-            var lbl = key;
+      columns.push({
+        Header: h => {
+          var lbl = key;
 
-            if (key.includes('/')) {
-              var splitK = key.split('/');
-              lbl = splitK[splitK.length - 1];
+          if (key.includes('/')) {
+            var splitK = key.split('/');
+            lbl = splitK[splitK.length - 1];
+          }
+          if (q && q.label && showLabels && q.label[translationIndex])
+            lbl = q.label[translationIndex];
+          // show Groups in labels, when selected
+          if (showGroups && qParentG && key.includes('/')) {
+            var gLabels = qParentG.join(' / ');
+
+            if (showLabels) {
+              var gT = qParentG.map(function(g) {
+                var x = survey.find(o => o.name === g || o.$autoname == g);
+                if (x && x.label && x.label[translationIndex])
+                  return x.label[translationIndex];
+
+                return '';
+              });
+              gLabels = gT.join(' / ');
             }
-            if (q && q.label && showLabels && q.label[translationIndex])
-              lbl = q.label[translationIndex];
-            // show Groups in labels, when selected
-            if (showGroups && qParentG && key.includes('/')) {
-              var gLabels = qParentG.join(' / ');
+            return gLabels;
+          }
 
-              if (showLabels) {
-                var gT = qParentG.map(function(g) {
-                  var x = survey.find(o => o.name === g || o.$autoname == g);
-                  if (x && x.label && x.label[translationIndex])
-                    return x.label[translationIndex];
-
-                  return '';
-                });
-                gLabels = gT.join(' / ');
-              }
-              return gLabels;
-            }
-
-            return lbl;
-          },
+          return lbl;
+        },
         id: key,
         accessor: row => row[key],
         index: index,
@@ -372,9 +372,9 @@ export class DataTable extends React.Component {
       }
     })
 
-		this.setState({
-			columns: columns
-		})
+    this.setState({
+      columns: columns
+    })
   }
   toggleExpandedTable () {
     if (this.state.showExpandedTable) {
@@ -409,7 +409,7 @@ export class DataTable extends React.Component {
     window.print();
   }
   fetchData(state, instance) {
-    this.setState({ 
+    this.setState({
       loading: true,
       pageSize: instance.state.pageSize,
       currentPage: instance.state.page,
@@ -556,18 +556,18 @@ export class DataTable extends React.Component {
 
     const { pageSize, currentPage, resultsTotal } = this.state;
 
-    const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1), 
-          res1 = (currentPage * pageSize) + 1, 
-          res2 = Math.min((currentPage + 1) * pageSize, resultsTotal), 
+    const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1),
+          res1 = (currentPage * pageSize) + 1,
+          res2 = Math.min((currentPage + 1) * pageSize, resultsTotal),
           showingResults = `${res1} - ${res2} ${t('of')} ${resultsTotal} ${t('results')}. `,
           selected = this.state.selectedRows,
           maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);;
 
-          // 
+          //
     return (
       <bem.FormView__item m='table-meta'>
         {showingResults}
-        {this.state.selectAll ? 
+        {this.state.selectAll ?
           <span>
             {t('All ## selected. ').replace('##', resultsTotal)}
             <a className="select-all" onClick={this.clearSelection}>
@@ -610,8 +610,8 @@ export class DataTable extends React.Component {
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
           {this.bulkSelectUI()}
           <bem.FormView__item m='table-buttons'>
-            <button className="mdl-button mdl-button--icon report-button__print is-edge" 
-                    onClick={this.launchPrinting} 
+            <button className="mdl-button mdl-button--icon report-button__print is-edge"
+                    onClick={this.launchPrinting}
                     data-tip={t('Print')}>
               <i className="k-icon-print" />
             </button>
@@ -632,13 +632,13 @@ export class DataTable extends React.Component {
             }
 
             <button className="mdl-button mdl-button--icon report-button__expand"
-                    onClick={this.toggleExpandedTable} 
+                    onClick={this.toggleExpandedTable}
                     data-tip={this.state.showExpandedTable ? t('Contract') : t('Expand')}>
               <i className="k-icon-expand" />
             </button>
 
-            <ui.PopoverMenu type='formTable-menu' 
-                        triggerLabel={<i className="k-icon-more" />} 
+            <ui.PopoverMenu type='formTable-menu'
+                        triggerLabel={<i className="k-icon-more" />}
                         triggerTip={t('Display options')}>
                 <bem.PopoverMenu__link
                   onClick={this.showXMLValues}
@@ -669,9 +669,9 @@ export class DataTable extends React.Component {
           </bem.FormView__item>
         </bem.FormView__group>
 
-	  		<ReactTable
-  	  		data={tableData}
-    			columns={columns}
+        <ReactTable
+          data={tableData}
+          columns={columns}
           defaultPageSize={defaultPageSize}
           pageSizeOptions={[10, 30, 50, 100, 200, 500]}
           minRows={1}
@@ -692,8 +692,7 @@ export class DataTable extends React.Component {
           pageText={t('Page')}
           ofText={t('of')}
           rowsText={t('rows')}
-          filterable
-		  		/>
+          filterable/>
       </bem.FormView>
     );
   }

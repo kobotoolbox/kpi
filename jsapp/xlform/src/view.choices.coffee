@@ -137,8 +137,7 @@ module.exports = do ->
         _t_opt = @model.get("label::#{_translation_2}")
         if !_t_opt
           _no_t = _t("No translation")
-          _klss = ["card__option-translation",
-                   "card__option-translation--empty"].join(" ")
+          _klss = ["card__option-translation", "card__option-translation--empty"].join(" ")
           _t_opt = """<span class="#{_klss}">#{_no_t}</span>"""
         $("<small>", {className: 'secondary-translation'}).html("""
             <span>+&nbsp;</span>

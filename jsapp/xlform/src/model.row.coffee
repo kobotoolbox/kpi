@@ -154,7 +154,7 @@ module.exports = do ->
 
         r2 = new row.Row(attributes, options)
         r2._isCloned = true
-  
+
         if rr._rankRows
           # if rr is a rank question
           for rankRow in rr._rankRows.models

@@ -139,6 +139,12 @@ class LibrarySidebar extends Reflux.Component {
       labels: {ok: t('Delete'), cancel: t('Cancel')},
       onok: (evt, val) => {
         dataInterface.deleteCollection({uid: collectionUid}).then((data)=> {
+          this.quietUpdateStore({
+            parentUid: false,
+            parentName: false,
+            allPublic: false
+          });
+          this.searchValue();
           this.queryCollections();
           dialog.destroy();
         }).fail((jqxhr)=> {
@@ -201,7 +207,7 @@ class LibrarySidebar extends Reflux.Component {
     evt.preventDefault();
     var collectionUid = $(evt.currentTarget).data('collection-uid');
     stores.pageState.showModal({
-      type: 'sharing', 
+      type: 'sharing',
       assetid: collectionUid
     });
   }
@@ -249,15 +255,15 @@ class LibrarySidebar extends Reflux.Component {
   render () {
     return (
       <bem.CollectionsWrapper>
-        <ui.PopoverMenu type='new-menu' 
+        <ui.PopoverMenu type='new-menu'
             triggerLabel={t('new')}>
             <Link to={`/library/new`} className='popover-menu__link'>
               <i className="k-icon-question" />
               {t('Question')}
             </Link>
-            <Dropzone onDrop={this.dropFiles} 
-                          multiple={false} 
-                          className='dropzone' 
+            <Dropzone onDrop={this.dropFiles}
+                          multiple={false}
+                          className='dropzone'
                           accept={validFileTypes()}>
               <bem.PopoverMenu__link>
                 <i className="k-icon-upload" />
@@ -274,7 +280,7 @@ class LibrarySidebar extends Reflux.Component {
           <bem.FormSidebar>
             <bem.FormSidebar__label
               key='allitems'
-              m={{selected: !this.state.publicCollectionsVisible}} 
+              m={{selected: !this.state.publicCollectionsVisible}}
               onClick={this.clickFilterByCollection}>
                   <i className="k-icon-library" />
                   {t('My Library')}
@@ -303,13 +309,13 @@ class LibrarySidebar extends Reflux.Component {
                       }}>
                       <bem.FormSidebar__itemlink
                         onClick={this.clickFilterByCollection}
-                        data-collection-uid={collection.uid} 
+                        data-collection-uid={collection.uid}
                         data-collection-name={collection.name}>
                         <i className={iconClass} />
                         {collection.name}
                       </bem.FormSidebar__itemlink>
                       { !this.state.filteredByPublicCollection && this.state.filteredCollectionUid === collection.uid &&
-                        <ui.PopoverMenu type='collectionSidebarPublic-menu' 
+                        <ui.PopoverMenu type='collectionSidebarPublic-menu'
                             triggerLabel={<i className="k-icon-more" />}>
                           { collection.access_type === 'owned' && collection.discoverable_when_public &&
                             <bem.PopoverMenu__link
@@ -381,7 +387,7 @@ class LibrarySidebar extends Reflux.Component {
             </bem.FormSidebar__grouping>
             <bem.FormSidebar__label
               key='public'
-              m={{selected: this.state.publicCollectionsVisible}} 
+              m={{selected: this.state.publicCollectionsVisible}}
               onClick={this.clickShowPublicCollections}>
               <i className="k-icon-globe" />
               {t('Public Collections')}
@@ -401,7 +407,7 @@ class LibrarySidebar extends Reflux.Component {
                             collection.uid &&
                           this.state.filteredByPublicCollection,
                       }}
-                    > 
+                    >
                       <bem.FormSidebar__itemlink
                         onClick={this.clickFilterByCollection}
                         data-collection-uid={collection.uid}
@@ -414,8 +420,8 @@ class LibrarySidebar extends Reflux.Component {
                             </bem.FormSidebar__itembyline>
                           </bem.FormSidebar__iteminner>
                       </bem.FormSidebar__itemlink>
-                      {this.state.filteredCollectionUid === collection.uid && this.state.filteredByPublicCollection && 
-                        <ui.PopoverMenu type='collectionSidebar-menu' 
+                      {this.state.filteredCollectionUid === collection.uid && this.state.filteredByPublicCollection &&
+                        <ui.PopoverMenu type='collectionSidebar-menu'
                             triggerLabel={<i className="k-icon-more" />}>
                             { collection.access_type === 'subscribed' ?
                                 <bem.PopoverMenu__link href={'#'}

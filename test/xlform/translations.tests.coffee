@@ -131,4 +131,3 @@ describe " translations set proper values ", ->
       )
     # run()
     expect(run).toThrow('There is an unnamed translation in your form definition')
-

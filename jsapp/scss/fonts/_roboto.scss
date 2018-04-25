@@ -1,11 +1,11 @@
 /* ==========================================================================
-   Fonts
-   ========================================================================== */
+ * Fonts
+ * ========================================================================== */
 
 @font-face {
   font-family: 'Roboto';
   src:  local('Roboto Thin'),
-  			local('Roboto-Thin'),
+        local('Roboto-Thin'),
         url('../fonts/Roboto-Thin.woff2') format('woff2'),
         url('../fonts/Roboto-Thin.woff') format('woff');
   font-weight: 100;
@@ -15,7 +15,7 @@
 @font-face {
   font-family: 'Roboto';
   src:  local('Roboto Light'),
-  			local('Roboto-Light')
+        local('Roboto-Light'),
         url('../fonts/Roboto-Light.woff2') format('woff2'),
         url('../fonts/Roboto-Light.woff') format('woff');
   font-weight: 300;
@@ -26,7 +26,7 @@
 @font-face {
   font-family: 'Roboto';
   src:  local('Roboto LightItalic'),
-  			local('Roboto-LightItalic'),
+        local('Roboto-LightItalic'),
         url('../fonts/Roboto-LightItalic.woff2') format('woff2'),
         url('../fonts/Roboto-LightItalic.woff') format('woff');
   font-weight: 300;
@@ -36,7 +36,7 @@
 @font-face {
   font-family: 'Roboto';
   src:  local('Roboto Regular'),
-  			local('Roboto-Regular'),
+        local('Roboto-Regular'),
         url('../fonts/Roboto-Regular.woff2') format('woff2'),
         url('../fonts/Roboto-Regular.woff') format('woff');
   font-weight: 400;
@@ -46,7 +46,7 @@
 @font-face {
   font-family: 'Roboto';
   src:  local('Roboto RegularItalic'),
-  			local('Roboto-RegularItalic'),
+        local('Roboto-RegularItalic'),
         url('../fonts/Roboto-RegularItalic.woff2') format('woff2'),
         url('../fonts/Roboto-RegularItalic.woff') format('woff');
   font-weight: 400;
