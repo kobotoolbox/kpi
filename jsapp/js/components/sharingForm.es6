@@ -354,7 +354,7 @@ class SharingForm extends React.Component {
         }
 
         <bem.FormView__cell m='copy-team-permissions'>
-          <CopyTeamPermissions/>
+          <CopyTeamPermissions uid={uid}/>
         </bem.FormView__cell>
       </bem.FormModal>
     );

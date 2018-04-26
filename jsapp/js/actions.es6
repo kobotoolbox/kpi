@@ -583,10 +583,11 @@ actions.permissions.assignPerm.completed.listen(function(val){
   actions.resources.loadAsset({url: val.content_object});
 });
 
-actions.permissions.copyPermissionsFrom.listen(function(sourceAssetId, targetAssetId) {
-  dataInterface.copyPermissionsFrom(sourceAssetId, targetAssetId)
+// copies permissions from one asset to other
+actions.permissions.copyPermissionsFrom.listen(function(sourceUid, targetUid) {
+  dataInterface.copyPermissionsFrom(sourceUid, targetUid)
     .done((response) => {
-      console.log("permissions copied", sourceAssetId, targetAssetId, response);
+      console.log("permissions copied", sourceUid, targetUid, response);
     })
     .fail(actions.permissions.copyPermissionsFrom.failed);
 });

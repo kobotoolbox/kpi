@@ -163,12 +163,12 @@ var dataInterface;
         url: permUrl
       });
     },
-    copyPermissionsFrom(sourceAssetId, targetAssetId) {
+    copyPermissionsFrom(sourceUid, targetUid) {
       return $ajax({
-        url: `${rootUrl}/assets/${targetAssetId}/permissions`,
+        url: `${rootUrl}/assets/${targetUid}/permissions`,
         method: "PATCH",
         data: {
-          clone_frome: sourceAssetId
+          clone_frome: sourceUid
         }
       })
     },
