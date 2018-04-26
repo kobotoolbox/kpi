@@ -13,7 +13,10 @@ class CopyTeamPermissions extends React.Component {
     super(props);
     this.state = {
       isCopyFormVisible: false,
-      sourceUid: null
+      sourceUid: null,
+      sourceName: null,
+      targetUid: this.props.uid,
+      targetName: stores.allAssets.byUid[this.props.uid].name
     };
     this.store = stores.allAssets;
     autoBind(this);
@@ -24,24 +27,27 @@ class CopyTeamPermissions extends React.Component {
   }
 
   updateTeamPermissionsInput(asset) {
-    this.setState({ sourceUid: asset.value });
+    this.setState({ 
+      sourceUid: asset.value,
+      sourceName: stores.allAssets.byUid[asset.value].name
+    });
   }
 
   safeCopyPermissionsFrom() {
-    const targetUid = this.props.uid;
-
     if (this.state.sourceUid) {
-      const sourceName = stores.allAssets.byUid[this.state.sourceUid].name;
-      const targetName = stores.allAssets.byUid[targetUid].name;
       const dialog = alertify.dialog("confirm");
+      const finalMessage = t('You are about to copy permissions from ##source to ##target. This action cannot be undone.')
+        .replace('##source', `<strong>${this.state.sourceName}</strong>`)
+        .replace('##target', `<strong>${this.state.targetName}</strong>`);
       let dialogOptions = {
         title: t("Are you sure you want to copy permissions?"),
-        message: t(
-          `You are about to copy permissions from ${sourceName} to ${targetName}. This action cannot be undone.`
-        ),
+        message: finalMessage,
         labels: { ok: t("Import"), cancel: t("Cancel") },
         onok: () => {
-          actions.permissions.copyPermissionsFrom(this.state.sourceUid, targetUid);
+          actions.permissions.copyPermissionsFrom(
+            this.state.sourceUid,
+            this.state.targetUid
+          );
         },
         oncancel: () => {
           dialog.destroy();
@@ -62,10 +68,13 @@ class CopyTeamPermissions extends React.Component {
     const availableOptions = [];
     for (const assetUid in stores.allAssets.byUid) {
       if (stores.allAssets.byUid.hasOwnProperty(assetUid)) {
-        availableOptions.push({
-          value: assetUid,
-          label: stores.allAssets.byUid[assetUid].name
-        });
+        // because choosing itself doesn't make sense
+        if (assetUid !== this.state.targetUid) {
+          availableOptions.push({
+            value: assetUid,
+            label: stores.allAssets.byUid[assetUid].name
+          });
+        }
       }
     }
 

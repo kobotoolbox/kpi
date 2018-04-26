@@ -164,6 +164,7 @@ class SharingForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      currentAssetName: stores.allAssets.byUid[this.props.uid].name,
       userInputStatus: false,
       permInput: 'view'
     };
@@ -291,6 +292,9 @@ class SharingForm extends React.Component {
     return (
       <bem.FormModal>
         <bem.FormModal__item>
+          <bem.FormView__cell m='thin-label'>
+            {this.state.currentAssetName}
+          </bem.FormView__cell>
           <bem.FormView__cell m='label'>
             {t('Who has access')}
           </bem.FormView__cell>
@@ -353,9 +357,11 @@ class SharingForm extends React.Component {
           </bem.FormView__cell>
         }
 
-        <bem.FormView__cell m='copy-team-permissions'>
-          <CopyTeamPermissions uid={uid}/>
-        </bem.FormView__cell>
+        { Object.keys(stores.allAssets.byUid).length >= 2 && 
+          <bem.FormView__cell m='copy-team-permissions'>
+            <CopyTeamPermissions uid={uid}/>
+          </bem.FormView__cell>
+        }
       </bem.FormModal>
     );
   }
