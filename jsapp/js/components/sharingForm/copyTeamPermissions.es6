@@ -41,7 +41,6 @@ class CopyTeamPermissions extends React.Component {
         ),
         labels: { ok: t("Import"), cancel: t("Cancel") },
         onok: () => {
-          console.log("TODO start importing!");
           actions.permissions.copyPermissionsFrom(this.state.sourceUid, targetUid);
         },
         oncancel: () => {
@@ -53,7 +52,7 @@ class CopyTeamPermissions extends React.Component {
   }
 
   render() {
-    const importButtonCssClasses = classNames(
+    const importButtonClassName = classNames(
       "mdl-button",
       "mdl-js-button",
       "mdl-button--raised",
@@ -101,7 +100,7 @@ class CopyTeamPermissions extends React.Component {
                 onChange={this.updateTeamPermissionsInput}
               />
               <button
-                className={importButtonCssClasses}
+                className={importButtonClassName}
                 onClick={this.safeCopyPermissionsFrom}
               >
                 {t("import")}
