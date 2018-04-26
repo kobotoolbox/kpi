@@ -242,7 +242,7 @@ actions.permissions = Reflux.createActions({
     ]
   },
   copyPermissionsFrom: {
-    childre: [
+    children: [
       'completed',
       'failed'
     ]
@@ -586,7 +586,7 @@ actions.permissions.assignPerm.completed.listen(function(val){
 actions.permissions.copyPermissionsFrom.listen(function(sourceAssetId, targetAssetId) {
   dataInterface.copyPermissionsFrom(sourceAssetId, targetAssetId)
     .done((response) => {
-      console.log("permissions copied", response);
+      console.log("permissions copied", sourceAssetId, targetAssetId, response);
     })
     .fail(actions.permissions.copyPermissionsFrom.failed);
 });

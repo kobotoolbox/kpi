@@ -165,10 +165,10 @@ var dataInterface;
     },
     copyPermissionsFrom(sourceAssetId, targetAssetId) {
       return $ajax({
-        url: `${rootUrl}/permissions/`,
+        url: `${rootUrl}/assets/${targetAssetId}/permissions`,
         method: "PATCH",
         data: {
-          
+          clone_frome: sourceAssetId
         }
       })
     },
