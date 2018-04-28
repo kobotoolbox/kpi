@@ -488,7 +488,7 @@ class ReportContents extends React.Component {
         }
       }
 
-      if (this.props.parentState.translations && (_type == 'select_one' || _type == 'select_multiple')) {
+      if (_type == 'select_one' || _type == 'select_multiple') {
         let question = asset.content.survey.find(z => z.name === _qn || z.$autoname === _qn);
         let resps = reportData[i].data.responses;
         if (resps) {
@@ -526,6 +526,10 @@ class ReportContents extends React.Component {
         {
           reportData.map((rowContent, i)=>{
             var label = (rowContent.row.label && rowContent.row.label[tnslIndex]) ? rowContent.row.label[tnslIndex] : t('Unlabeled');
+
+            if (!rowContent.data.provided)
+              return false;
+
             return (
                 <bem.ReportView__item key={i}>
                   <ReportViewItem
@@ -679,7 +683,7 @@ class ReportStyleSettings extends React.Component {
                           onChange={this.groupDataBy}
                           checked={reportStyle.groupDataBy === val ? true : false}
                           id={'groupby-' + i} />
-                          {this.props.parentState.translations ? row.label[reportStyle.translationIndex] : row.label}
+                          {translations ? row.label[reportStyle.translationIndex] : row.label}
                       </label>
                     );
                   })

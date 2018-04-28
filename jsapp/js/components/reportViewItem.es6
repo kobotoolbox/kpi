@@ -140,6 +140,7 @@ class ReportViewItem extends React.Component {
   loadChart() {
     var canvas = ReactDOM.findDOMNode(this.refs.canvas);
     var opts = this.buildChartOptions();
+
     if (this.itemChart) {
       this.itemChart.destroy();
       this.itemChart = new Chart(canvas, opts);
@@ -205,6 +206,7 @@ class ReportViewItem extends React.Component {
     var datasets = [];
 
     if (data.values != undefined) {
+
       if (data.responseLabels) {
         data.responseLabels.forEach(function(r, i){
           data.responseLabels[i] = _this.truncateLabel(r);
