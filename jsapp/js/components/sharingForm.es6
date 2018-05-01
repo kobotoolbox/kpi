@@ -214,7 +214,6 @@ class SharingForm extends React.Component {
       if (result === undefined) {
         actions.misc.checkUsername(username);
       } else {
-        log(result ? 'success' : 'error');
         this.setState({
           userInputStatus: result ? 'success' : 'error'
         });
@@ -363,7 +362,7 @@ class SharingForm extends React.Component {
           </bem.FormView__cell>
         }
 
-        { Object.keys(stores.allAssets.byUid).length >= 2 && 
+        { Object.keys(stores.allAssets.byUid).length >= 2 &&
           <bem.FormView__cell m='copy-team-permissions'>
             <CopyTeamPermissions uid={uid}/>
           </bem.FormView__cell>
