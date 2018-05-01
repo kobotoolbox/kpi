@@ -9,7 +9,7 @@ import alertify from "alertifyjs";
 import stores from "../../stores";
 import actions from "../../actions";
 import mixins from "../../mixins";
-import { t } from "../../utils";
+import { t, notify } from "../../utils";
 
 class CopyTeamPermissions extends React.Component {
   constructor(props) {
@@ -28,16 +28,24 @@ class CopyTeamPermissions extends React.Component {
 
   componentDidMount() {
     this.listenTo(stores.asset, this.onAssetChange);
+    this.listenTo(actions.permissions.copyPermissionsFrom.completed, this.onPermissionsCopied);
+  }
+
+  onPermissionsCopied() {
+    notify(t('permissions were copied successfully'));
   }
 
   onAssetChange(data) {
     if (data[this.state.targetUid] && this.state.isAwaitingAssetChange) {
-      this.setState({ isAwaitingAssetChange: false });
+      this.setState({
+        isAwaitingAssetChange: false,
+        isCopyFormVisible: false
+      });
     }
   }
 
-  showCopyForm() {
-    this.setState({ isCopyFormVisible: true });
+  toggleCopyForm() {
+    this.setState({ isCopyFormVisible: !this.state.isCopyFormVisible });
   }
 
   updateTeamPermissionsInput(asset) {
@@ -58,7 +66,7 @@ class CopyTeamPermissions extends React.Component {
       let dialogOptions = {
         title: t("Are you sure you want to copy permissions?"),
         message: finalMessage,
-        labels: { ok: t("Import"), cancel: t("Cancel") },
+        labels: { ok: t("Proceed"), cancel: t("Cancel") },
         onok: () => {
           this.setState({ isAwaitingAssetChange: true });
           actions.permissions.copyPermissionsFrom(
@@ -100,19 +108,15 @@ class CopyTeamPermissions extends React.Component {
 
     return (
       <bem.FormView__cell>
-        {!this.state.isCopyFormVisible && (
-          <bem.FormModal__item
-            m="copy-team-permissions-opener"
-            onClick={this.showCopyForm}
-          >
-            {t("Copy team from another project")}
-          </bem.FormModal__item>
-        )}
+        <bem.FormModal__item
+          m="copy-team-permissions-opener"
+          onClick={this.toggleCopyForm}
+        >
+          {t("Copy team from another project")}
+        </bem.FormModal__item>
+
         {this.state.isCopyFormVisible && (
           <bem.FormView__cell>
-            <bem.FormView__cell m="label">
-              {t("Copy team and permissions from another project")}
-            </bem.FormView__cell>
             <bem.FormModal__item>
               {t(
                 "This will overwrite any existing sharing settings defined in this project."
@@ -134,7 +138,7 @@ class CopyTeamPermissions extends React.Component {
                 disabled={!isImportButtonEnabled}
                 onClick={this.safeCopyPermissionsFrom}
               >
-                {t("import")}
+                {t("copy")}
               </button>
             </bem.FormModal__item>
           </bem.FormView__cell>

@@ -3,6 +3,15 @@ $s-gray-row-select-width: 200px;
 $s-gray-row-width: 560px;
 $s-gray-row-spacing: 10px;
 
+.form-view__cell--asset-name {
+  background: #F8F8F8;
+  margin: -30px -35px;
+  margin-bottom: 20px;
+  padding: 20px 30px;
+  font-size: 18px;
+  color: lighten($black, 40%);
+}
+
 .user-row {
   display: flex;
   min-height: 50px;
@@ -100,14 +109,11 @@ $s-gray-row-spacing: 10px;
 
   input[type="text"] {
     @include box-shadow;
+
     border-bottom: 0px;
     display: inline-block;
     padding: $s-gray-row-spacing;
     vertical-align: middle;
-
-
-
-
   }
 
   button {
@@ -119,25 +125,21 @@ $s-gray-row-spacing: 10px;
 
   .Select {
     display: inline-block;
-
     vertical-align: middle;
-
   }
 
   .Select-control {
-
-
     @include box-shadow;
+
     padding: 4px $s-gray-row-spacing;
     border-bottom: 0px;
-
 
     .Select-input {
       padding-left: 0px;
       margin-left: -2px;
     }
 
-    .Select-value, 
+    .Select-value,
     .Select-placeholder {
       line-height: 40px;
       padding-left: $s-gray-row-spacing;
@@ -179,12 +181,13 @@ $s-gray-row-spacing: 10px;
   .Select {
     width: calc(100% - #{$s-gray-row-button-width + $s-gray-row-spacing});
     margin-right: $s-gray-row-spacing;
-    
-    // HACK FIX: override menu position, because select is near the end 
-    // of scrollable container area, see: 
+
+    // HACK FIX: override menu position, because select is near the end
+    // of scrollable container area, see:
     // https://github.com/JedWatson/react-select/issues/404
     .Select-menu-outer {
       @include box-shadow-reversed;
+
       top: auto;
       bottom: 100%;
     }
@@ -193,16 +196,18 @@ $s-gray-row-spacing: 10px;
 
 .form-view__cell--copy-team-permissions {
   margin-top: 30px;
+  border-top: 1px solid $divider-color;
+  padding-top: 20px;
 }
 
 .form-modal__item--copy-team-permissions-opener {
   color: $cool-blue;
   cursor: pointer;
-  
+
   &:hover {
     color: lighten($cool-blue, 10%);
   }
-  
+
   &:active {
     color: lighten($cool-blue, 20%);
   }

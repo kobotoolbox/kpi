@@ -297,7 +297,7 @@ class SharingForm extends React.Component {
     return (
       <bem.FormModal>
         <bem.FormModal__item>
-          <bem.FormView__cell m='thin-label'>
+          <bem.FormView__cell m='asset-name'>
             {this.state.currentAssetName}
           </bem.FormView__cell>
           <bem.FormView__cell m='label'>

@@ -588,6 +588,7 @@ actions.permissions.copyPermissionsFrom.listen(function(sourceUid, targetUid) {
   dataInterface.copyPermissionsFrom(sourceUid, targetUid)
     .done((response) => {
       actions.resources.loadAsset({id: targetUid});
+      actions.permissions.copyPermissionsFrom.completed();
     })
     .fail(actions.permissions.copyPermissionsFrom.failed);
 });
