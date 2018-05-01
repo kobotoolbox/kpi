@@ -15,7 +15,6 @@ class CopyTeamPermissions extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isImportButtonEnabled: false,
       isAwaitingAssetChange: false,
       isCopyFormVisible: false,
       sourceUid: null,
@@ -34,15 +33,7 @@ class CopyTeamPermissions extends React.Component {
   onAssetChange(data) {
     if (data[this.state.targetUid] && this.state.isAwaitingAssetChange) {
       this.setState({ isAwaitingAssetChange: false });
-      this.refreshImportButton();
     }
-  }
-
-  refreshImportButton() {
-    this.setState({
-      isImportButtonEnabled:
-        this.state.sourceUid !== null && !this.state.isAwaitingAssetChange
-    });
   }
 
   showCopyForm() {
@@ -55,7 +46,6 @@ class CopyTeamPermissions extends React.Component {
         sourceUid: asset.value,
         sourceName: stores.allAssets.byUid[asset.value].name
       });
-      this.refreshImportButton();
     }
   }
 
@@ -71,8 +61,6 @@ class CopyTeamPermissions extends React.Component {
         labels: { ok: t("Import"), cancel: t("Cancel") },
         onok: () => {
           this.setState({ isAwaitingAssetChange: true });
-          // disable button until it's done
-          this.refreshImportButton();
           actions.permissions.copyPermissionsFrom(
             this.state.sourceUid,
             this.state.targetUid
@@ -87,11 +75,14 @@ class CopyTeamPermissions extends React.Component {
   }
 
   render() {
-    const importButtonClassName = classNames(
+    let isImportButtonEnabled =
+      this.state.sourceUid !== null && !this.state.isAwaitingAssetChange;
+
+    const importButtonClasses = classNames(
       "mdl-button",
       "mdl-js-button",
       "mdl-button--raised",
-      this.state.sourceUid ? "mdl-button--colored" : "mdl-button--disabled"
+      isImportButtonEnabled ? "mdl-button--colored" : "mdl-button--disabled"
     );
 
     const availableOptions = [];
@@ -138,8 +129,9 @@ class CopyTeamPermissions extends React.Component {
                 onChange={this.updateTeamPermissionsInput}
               />
               <button
-                className={importButtonClassName}
-                disabled={!this.state.isImportButtonEnabled}
+                id="copyTeamPermissionsImportButton"
+                className={importButtonClasses}
+                disabled={!isImportButtonEnabled}
                 onClick={this.safeCopyPermissionsFrom}
               >
                 {t("import")}
