@@ -150,7 +150,7 @@ do ->
         ]
         for str in invalid_xml
           expect($utils.isValidXmlTag(str)).not.toBeTruthy()
- 
+
       it 'handles a number of strings consistenly', ->
         inp_exps = [
             [["asdf jkl"],              "asdf_jkl"],
@@ -164,4 +164,4 @@ do ->
           [str, additionals] = inps
           _out = $utils.sluggifyLabel(str, additionals)
           expect(_out).toBe(exps)
- 
+

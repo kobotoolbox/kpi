@@ -104,6 +104,10 @@ $s-gray-row-spacing: 10px;
     display: inline-block;
     padding: $s-gray-row-spacing;
     vertical-align: middle;
+
+
+
+
   }
 
   button {
@@ -115,13 +119,18 @@ $s-gray-row-spacing: 10px;
 
   .Select {
     display: inline-block;
+
     vertical-align: middle;
+
   }
 
   .Select-control {
+
+
     @include box-shadow;
     padding: 4px $s-gray-row-spacing;
     border-bottom: 0px;
+
 
     .Select-input {
       padding-left: 0px;

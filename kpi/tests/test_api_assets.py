@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import copy
 import json
 import requests
 
@@ -199,22 +200,44 @@ class AssetsDetailApiTests(APITestCase):
             PAGE_LENGTH
         )
 
-    def test_report_custom_field(self):
+    def check_asset_writable_json_field(self, field_name, **kwargs):
+        expected_default = kwargs.get('expected_default', {})
+        test_data = kwargs.get(
+            'test_data',
+            {'test_field': 'test value for {}'.format(field_name)}
+        )
         # Check the default value
         response = self.client.get(self.asset_url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['report_custom'], {})
+        self.assertEqual(response.data[field_name], expected_default)
         # Update
-        test_data = {'some_report': 'my insightful report'}
         response = self.client.patch(
             self.asset_url, format='json',
-            data={'report_custom': json.dumps(test_data)}
+            data={field_name: json.dumps(test_data)}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Verify
         response = self.client.get(self.asset_url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['report_custom'], test_data)
+        self.assertEqual(response.data[field_name], test_data)
+
+    def test_report_custom_field(self):
+        self.check_asset_writable_json_field('report_custom')
+
+    def test_report_styles_field(self):
+        test_data = copy.deepcopy(self.asset.report_styles)
+        test_data['default'] = {'report_type': 'vertical'}
+        self.check_asset_writable_json_field(
+            'report_styles',
+            expected_default=self.asset.report_styles,
+            test_data=test_data
+        )
+
+    def test_map_styles_field(self):
+        self.check_asset_writable_json_field('map_styles')
+
+    def test_map_custom_field(self):
+        self.check_asset_writable_json_field('map_custom')
 
 
 class AssetsXmlExportApiTests(KpiTestCase):
