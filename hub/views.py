@@ -1,3 +1,4 @@
+import constance
 from django.contrib.auth.decorators import login_required
 from django.core.management import call_command
 from django.db import transaction
@@ -46,6 +47,11 @@ def switch_builder(request):
 
 
 class ExtraDetailRegistrationView(RegistrationView):
+    def registration_allowed(self, *args, **kwargs):
+        return constance.config.REGISTRATION_OPEN and super(
+            ExtraDetailRegistrationView, self).registration_allowed(
+                *args, **kwargs)
+
     def register(self, request, form, *args, **kwargs):
         ''' Save all the fields not included in the standard `RegistrationForm`
         into the JSON `data` field of an `ExtraUserDetail` object '''

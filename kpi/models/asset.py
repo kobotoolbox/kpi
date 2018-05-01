@@ -3,6 +3,7 @@
 # 😬
 
 import re
+import sys
 import copy
 import json
 import logging
@@ -33,7 +34,7 @@ from kpi.utils.standardize_content import (standardize_content,
 from kpi.utils.autoname import (autoname_fields_in_place,
                                 autovalue_choices_in_place)
 from .object_permission import ObjectPermission, ObjectPermissionMixin
-from ..fields import KpiUidField
+from ..fields import KpiUidField, LazyDefaultJSONBField
 from ..utils.asset_content_analyzer import AssetContentAnalyzer
 from ..utils.sluggify import sluggify_label
 from ..utils.kobo_to_xlsform import (to_xlsform_structure,
@@ -402,8 +403,13 @@ class XlsExportable(object):
                 cur_sheet = workbook.add_sheet(sheet_name)
                 _add_contents_to_sheet(cur_sheet, contents)
         except Exception as e:
-            raise Exception("asset.content improperly formatted for XLS "
-                            "export: %s" % repr(e))
+            six.reraise(
+                Exception,
+                "asset.content improperly formatted for XLS "
+                "export: %s" % repr(e),
+                sys.exc_info()[2]
+            )
+
         string_io = StringIO.StringIO()
         workbook.save(string_io)
         string_io.seek(0)
@@ -423,6 +429,8 @@ class Asset(ObjectPermissionMixin,
     summary = JSONField(null=True, default=dict)
     report_styles = JSONBField(default=dict)
     report_custom = JSONBField(default=dict)
+    map_styles = LazyDefaultJSONBField(default=dict)
+    map_custom = LazyDefaultJSONBField(default=dict)
     asset_type = models.CharField(
         choices=ASSET_TYPES, max_length=20, default='survey')
     parent = models.ForeignKey(

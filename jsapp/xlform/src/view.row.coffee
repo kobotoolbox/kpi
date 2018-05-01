@@ -16,7 +16,7 @@ module.exports = do ->
     tagName: "li"
     className: "survey__row  xlf-row-view xlf-row-view--depr"
     events:
-     "drop": "drop"
+      "drop": "drop"
 
     initialize: (opts)->
       @options = opts

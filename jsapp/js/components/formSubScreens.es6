@@ -51,12 +51,12 @@ export class FormSubScreens extends React.Component {
     if (!this.state.permissions)
       return false;
 
-    if (this.props.location.pathname != `/forms/${this.state.uid}/settings` && 
+    if (this.props.location.pathname != `/forms/${this.state.uid}/settings` &&
         !this.userCan('view_submissions', this.state)) {
       return this.renderDenied();
     }
 
-    if (this.props.location.pathname == `/forms/${this.state.uid}/settings` && 
+    if (this.props.location.pathname == `/forms/${this.state.uid}/settings` &&
         !this.userCan('change_asset', this.state)) {
       return this.renderDenied();
     }
@@ -107,7 +107,7 @@ export class FormSubScreens extends React.Component {
     var docTitle = this.state.name || t('Untitled');
 
     return (
-        <DocumentTitle title={`${docTitle} | KoboToolbox`}>      
+        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
           <bem.FormView>
             <bem.FormView__cell m='iframe'>
               <iframe src={iframeUrl} />
