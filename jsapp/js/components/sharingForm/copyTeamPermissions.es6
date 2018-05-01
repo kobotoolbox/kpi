@@ -1,4 +1,6 @@
 import React from "react";
+import Reflux from "reflux";
+import reactMixin from "react-mixin";
 import autoBind from "react-autobind";
 import bem from "../../bem";
 import classNames from "classnames";
@@ -6,12 +8,15 @@ import Select from "react-select";
 import alertify from "alertifyjs";
 import stores from "../../stores";
 import actions from "../../actions";
+import mixins from "../../mixins";
 import { t } from "../../utils";
 
 class CopyTeamPermissions extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      isImportButtonEnabled: false,
+      isAwaitingAssetChange: false,
       isCopyFormVisible: false,
       sourceUid: null,
       sourceName: null,
@@ -22,28 +27,52 @@ class CopyTeamPermissions extends React.Component {
     autoBind(this);
   }
 
+  componentDidMount() {
+    this.listenTo(stores.asset, this.onAssetChange);
+  }
+
+  onAssetChange(data) {
+    if (data[this.state.targetUid] && this.state.isAwaitingAssetChange) {
+      this.setState({ isAwaitingAssetChange: false });
+      this.refreshImportButton();
+    }
+  }
+
+  refreshImportButton() {
+    this.setState({
+      isImportButtonEnabled:
+        this.state.sourceUid !== null && !this.state.isAwaitingAssetChange
+    });
+  }
+
   showCopyForm() {
-    this.setState({ isCopyFormVisible: !this.state.isCopyFormVisible });
+    this.setState({ isCopyFormVisible: true });
   }
 
   updateTeamPermissionsInput(asset) {
-    this.setState({ 
-      sourceUid: asset.value,
-      sourceName: stores.allAssets.byUid[asset.value].name
-    });
+    if (asset !== null) {
+      this.setState({
+        sourceUid: asset.value,
+        sourceName: stores.allAssets.byUid[asset.value].name
+      });
+      this.refreshImportButton();
+    }
   }
 
   safeCopyPermissionsFrom() {
     if (this.state.sourceUid) {
       const dialog = alertify.dialog("confirm");
-      const finalMessage = t('You are about to copy permissions from ##source to ##target. This action cannot be undone.')
-        .replace('##source', `<strong>${this.state.sourceName}</strong>`)
-        .replace('##target', `<strong>${this.state.targetName}</strong>`);
+      const finalMessage = t("You are about to copy permissions from ##source to ##target. This action cannot be undone.")
+        .replace("##source", `<strong>${this.state.sourceName}</strong>`)
+        .replace("##target", `<strong>${this.state.targetName}</strong>`);
       let dialogOptions = {
         title: t("Are you sure you want to copy permissions?"),
         message: finalMessage,
         labels: { ok: t("Import"), cancel: t("Cancel") },
         onok: () => {
+          this.setState({ isAwaitingAssetChange: true });
+          // disable button until it's done
+          this.refreshImportButton();
           actions.permissions.copyPermissionsFrom(
             this.state.sourceUid,
             this.state.targetUid
@@ -110,6 +139,7 @@ class CopyTeamPermissions extends React.Component {
               />
               <button
                 className={importButtonClassName}
+                disabled={!this.state.isImportButtonEnabled}
                 onClick={this.safeCopyPermissionsFrom}
               >
                 {t("import")}
@@ -121,5 +151,7 @@ class CopyTeamPermissions extends React.Component {
     );
   }
 }
+
+reactMixin(CopyTeamPermissions.prototype, Reflux.ListenerMixin);
 
 export default CopyTeamPermissions;
