@@ -1,5 +1,6 @@
 .form-view--table {
   padding: 0px 30px;
+  position: relative;
 
   .form-view__group--table-header {
     padding: 10px 0px 0px 0px;
@@ -137,8 +138,16 @@
     }
 
     .rt-link {
-      color: $cool-blue;
       cursor: pointer;
+
+      &:hover {
+        color: $cool-blue;
+      }
+
+      i {
+        font-size: 32px;
+        vertical-align: middle;
+      }
     }
 
     .-pagination {
@@ -183,6 +192,34 @@
 
     &.-highlight .rt-tbody .rt-tr:not(.-padRow):hover {
       background: rgba($cool-green, 0.1);
+    }
+  }
+
+  .form-view__cell--table-warning {
+    position: absolute;
+    width: calc(100% - 60px);
+    background: lighten(#FFB775, 20%);
+    padding: 5px;
+    top: 10px;
+    z-index: 99;
+
+    i.k-icon-alert {
+      font-size: 32px;
+      vertical-align: middle;
+      color: #FFB775;
+    }
+
+    a {
+      cursor: pointer;
+    }
+
+    i.k-icon-close {
+      position: absolute;
+      right: 10px;
+      font-size: 24px;
+      top: 10px;
+      background: lighten(#FFB775, 20%);
+      cursor: pointer;
     }
   }
 }

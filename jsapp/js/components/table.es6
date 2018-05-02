@@ -40,7 +40,6 @@ export class DataTable extends React.Component {
       showExpandedTable: false,
       defaultPageSize: 30,
       pageSize: 30,
-      pages: null,
       currentPage: 0,
       error: false,
       showLabels: true,
@@ -49,7 +48,9 @@ export class DataTable extends React.Component {
       resultsTotal: 0,
       selectedRows: {},
       selectAll: false,
-      fetchState: false
+      fetchState: false,
+      promptRefresh: false,
+      submissionPager: false
     };
     autoBind(this);
   }
@@ -79,11 +80,18 @@ export class DataTable extends React.Component {
 
     dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort, [], filterQuery).done((data) => {
       if (data && data.length > 0) {
+        if (this.state.submissionPager == 'next') {
+          this.submissionModalProcessing(data[0]._id, data);
+        }
+        if (this.state.submissionPager == 'prev') {
+          this.submissionModalProcessing(data[data.length - 1]._id, data);
+        }
         this.setState({
           loading: false,
           selectedRows: {},
           selectAll: false,
-          tableData: data
+          tableData: data,
+          submissionPager: false
         })
         this._prepColumns(data);
       } else {
@@ -163,18 +171,29 @@ export class DataTable extends React.Component {
       });
     }
 
+    let userCanSeeEditIcon = this.props.asset.deployment__active && this.userCan('change_submissions', this.props.asset);
+
     columns.push({
       Header: '',
       accessor: 'sub-link',
       index: '__1',
-      minWidth: 50,
+      minWidth: userCanSeeEditIcon ? 75 : 45,
       filterable: false,
       sortable: false,
       Cell: row => (
-        <span onClick={this.launchSubmissionModal} data-sid={row.row._id}
-              className='rt-link'>
-          {t('Open')}
-        </span>
+        <div>
+          <span onClick={this.launchSubmissionModal} data-sid={row.row._id}
+                className='rt-link' title={t('Open')}>
+            <i className="k-icon k-icon-view"></i>
+          </span>
+
+          {userCanSeeEditIcon &&
+            <span onClick={this.launchEditSubmission} data-sid={row.row._id}
+                  className='rt-link' title={t('Edit')}>
+              <i className="k-icon k-icon-edit"></i>
+            </span>
+          }
+        </div>
       )
     });
 
@@ -389,6 +408,7 @@ export class DataTable extends React.Component {
   }
   componentDidMount() {
     this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmission);
+    this.listenTo(stores.pageState, this.onPageStateUpdate);
   }
   componentWillUnmount() {
     if (this.state.showExpandedTable)
@@ -419,10 +439,15 @@ export class DataTable extends React.Component {
     this.requestData(instance);
   }
   launchSubmissionModal (evt) {
-    const sid = evt.target.getAttribute('data-sid');
-    const td = this.state.tableData;
-    var ids = [];
-    td.forEach(function(r) {
+    let el = $(evt.target).closest('[data-sid]').get(0);
+    const sid = el.getAttribute('data-sid');
+
+    this.submissionModalProcessing(sid, this.state.tableData);
+  }
+  submissionModalProcessing(sid, tableData) {
+    let ids = [];
+
+    tableData.forEach(function(r) {
       ids.push(r._id);
     })
 
@@ -430,8 +455,59 @@ export class DataTable extends React.Component {
       type: 'submission',
       sid: sid,
       asset: this.props.asset,
-      ids: ids
+      ids: ids,
+      tableInfo: {
+        currentPage: this.state.currentPage,
+        pageSize: this.state.pageSize,
+        resultsTotal: this.state.resultsTotal
+      }
     });
+  }
+  launchEditSubmission (evt) {
+    let el = $(evt.target).closest('[data-sid]').get(0),
+        uid = this.props.asset.uid,
+        newWin = window.open('', '_blank');
+    const sid = el.getAttribute('data-sid');
+
+    dataInterface.getEnketoEditLink(uid, sid).done((editData) => {
+      this.setState({ promptRefresh: true });
+      if (editData.url) {
+        newWin.location = editData.url;
+      } else {
+        newWin.close();
+        notify(t('There was an error loading Enketo.'));
+      }
+    });
+  }
+  onPageStateUpdate(pageState) {
+    if (!pageState.modal)
+      return false;
+
+    let params = pageState.modal,
+        page = 0;
+    if(!params.sid) {
+      let fetchInstance = this.state.fetchInstance;
+      if (params.page == 'next')
+        page = this.state.currentPage + 1;
+      if (params.page == 'prev')
+        page = this.state.currentPage - 1;
+
+      fetchInstance.setState({ page: page });
+      this.setState({
+        fetchInstance: fetchInstance,
+        submissionPager: params.page
+      }, function() {
+        this.fetchData(this.state.fetchState, this.state.fetchInstance);
+      });
+    }
+
+  }
+  refreshTable() {
+    this.fetchData(this.state.fetchState, this.state.fetchInstance);
+    this.setState({ promptRefresh: false });
+  }
+  clearPromptRefresh() {
+    this.setState({ promptRefresh: false });
   }
   bulkUpdateChange(evt) {
     const sid = evt.target.getAttribute('data-sid');
@@ -607,6 +683,17 @@ export class DataTable extends React.Component {
     let asset = this.props.asset;
     return (
       <bem.FormView m='table'>
+        {this.state.promptRefresh &&
+          <bem.FormView__cell m='table-warning'>
+            <i className="k-icon-alert" />
+            {t('The data below may be out of date. ')}
+            <a className="select-all" onClick={this.refreshTable}>
+              {t('Refresh')}
+            </a>
+
+            <i className="k-icon-close" onClick={this.clearPromptRefresh} />
+          </bem.FormView__cell>
+        }
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
           {this.bulkSelectUI()}
           <bem.FormView__item m='table-buttons'>

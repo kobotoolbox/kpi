@@ -66,7 +66,7 @@ class Modal extends React.Component {
         break;
       case 'submission':
         this.setState({
-          title: t('Submission Record'),
+          title: this.submissionTitle(this.props),
           modalClass: 'modal-large modal-submission',
           sid: this.props.params.sid
         });
@@ -100,14 +100,31 @@ class Modal extends React.Component {
       });
     }
   }
-
   componentWillReceiveProps(nextProps) {
     if (nextProps.params && nextProps.params.sid) {
       this.setState({
-        title: t('Submission Record'),
+        title: this.submissionTitle(nextProps),
         sid: nextProps.params.sid
       });
     }
+    if (nextProps.params && !nextProps.params.sid) {
+      this.setState({ sid: false });
+    }
+  }
+  submissionTitle(props) {
+    let title = t('Submission Record'),
+        p = props.params,
+        sid = parseInt(p.sid);
+
+    if (p.tableInfo) {
+      let index = p.ids.indexOf(sid) + (p.tableInfo.pageSize * p.tableInfo.currentPage) + 1;
+      title =  `${t('Submission Record')} (${index} ${t('of')} ${p.tableInfo.resultsTotal})`;
+    } else {
+      let index = p.ids.indexOf(sid);
+      title =  `${t('Submission Record')} (${index} ${t('of')} ${p.ids.length})`;
+    }
+
+    return title;
   }
   render() {
     return (
@@ -153,9 +170,21 @@ class Modal extends React.Component {
           }
 
           { this.props.params.type == 'submission' && this.state.sid &&
-            <Submission sid={this.state.sid} asset={this.props.params.asset} ids={this.props.params.ids} />
+            <Submission sid={this.state.sid}
+                        asset={this.props.params.asset}
+                        ids={this.props.params.ids}
+                        tableInfo={this.props.params.tableInfo || false} />
           }
 
+          { this.props.params.type == 'submission' && !this.state.sid &&
+            <div>
+              <bem.Loading>
+                <bem.Loading__inner>
+                  <i />
+                </bem.Loading__inner>
+              </bem.Loading>
+            </div>
+          }
         </ui.Modal.Body>
       </ui.Modal>
     )
