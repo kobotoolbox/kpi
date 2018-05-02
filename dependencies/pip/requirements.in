@@ -28,6 +28,7 @@ celery
 dj-static
 dj-database-url
 django-braces
+django-constance[database]
 django-debug-toolbar
 django-extensions
 django-jsonbfield
@@ -57,6 +58,7 @@ pytest-django
 python-dateutil
 pytz
 requests
+responses
 shortuuid
 six
 sqlparse

@@ -171,7 +171,6 @@ class SharingForm extends React.Component {
       asset = data[uid];
 
     if (asset) {
-
       this.setState({
         asset: asset,
         permissions: asset.permissions,
@@ -284,6 +283,13 @@ class SharingForm extends React.Component {
     var initialsStyle = {
       background: `#${stringToColor(this.state.asset.owner__username)}`
     };
+
+    if (asset_type != 'survey') {
+      availablePermissions = [
+        {value: 'view', label: t('View')},
+        {value: 'change', label: t('Edit')},
+      ];
+    }
 
     return (
       <bem.FormModal>

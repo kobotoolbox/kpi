@@ -100,6 +100,7 @@ class ImportExportTask(models.Model):
             self._run_task(msgs)
             self.status = self.COMPLETE
         except Exception, err:
+            raise
             msgs['error_type'] = type(err).__name__
             msgs['error'] = err.message
             self.status = self.ERROR
@@ -152,7 +153,18 @@ class ImportTask(ImportExportTask):
                 destination_kls=dest_kls,
                 has_necessary_perm=has_necessary_perm,
             )
-        elif 'base64Encoded' in self.data:
+            return
+
+        if 'single_xls_url' in self.data:
+            # TODO: merge with `url` handling above; currently kept separate
+            # because `_load_assets_from_url()` uses complex logic to deal with
+            # multiple XLS files in a directory structure within a ZIP archive
+            response = requests.get(self.data['single_xls_url'])
+            response.raise_for_status()
+            encoded_xls = base64.b64encode(response.content)
+            self.data['base64Encoded'] = encoded_xls
+
+        if 'base64Encoded' in self.data:
             self._parse_b64_upload(
                 base64_encoded_upload=self.data['base64Encoded'],
                 filename=self.data.get('filename', None),
@@ -162,10 +174,12 @@ class ImportTask(ImportExportTask):
                 destination_kls=dest_kls,
                 has_necessary_perm=has_necessary_perm,
             )
-        else:
-            raise Exception(
-                'ImportTask data must contain `base64Encoded` or `url`'
-            )
+            return
+
+        raise Exception(
+            'ImportTask data must contain `base64Encoded`, `url`, or '
+            '`single_xls_url`'
+        )
 
     def _load_assets_from_url(self, url, messages, **kwargs):
         destination = kwargs.get('destination', False)
@@ -225,7 +239,12 @@ class ImportTask(ImportExportTask):
             orm_obj.save()
 
     def _parse_b64_upload(self, base64_encoded_upload, messages, **kwargs):
-        filename = splitext(kwargs.get('filename', ''))[0]
+        filename = kwargs.get('filename', False)
+        # don't try to splitext() on None, False, etc.
+        if filename:
+            filename = splitext(filename)[0]
+        else:
+            filename = ''
         library = kwargs.get('library')
         survey_dict = _b64_xls_to_dict(base64_encoded_upload)
         survey_dict_keys = survey_dict.keys()
