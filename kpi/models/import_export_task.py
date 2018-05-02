@@ -151,7 +151,6 @@ class ImportTask(ImportExportTask):
                 destination=dest_item,
                 destination_kls=dest_kls,
                 has_necessary_perm=has_necessary_perm,
-                name=self.data.get('name', False),
             )
         elif 'base64Encoded' in self.data:
             self._parse_b64_upload(
@@ -190,13 +189,6 @@ class ImportTask(ImportExportTask):
                 'owner': self.user,
                 'name': item._name_base,
             }
-
-            # quick and dirty solution to allow the frontend to specify a name
-            # for single-asset url imports
-            if len(fif._parsed) == 1:
-                name = kwargs.get('name', False)
-                if name:
-                    extra_args['name'] = name
 
             if item.get_type() == 'collection':
                 item._orm = create_assets(item.get_type(), extra_args)
