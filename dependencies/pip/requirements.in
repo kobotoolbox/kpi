@@ -58,6 +58,7 @@ pytest-django
 python-dateutil
 pytz
 requests
+responses
 shortuuid
 six
 sqlparse
