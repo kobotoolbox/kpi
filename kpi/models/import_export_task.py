@@ -100,7 +100,6 @@ class ImportExportTask(models.Model):
             self._run_task(msgs)
             self.status = self.COMPLETE
         except Exception, err:
-            raise
             msgs['error_type'] = type(err).__name__
             msgs['error'] = err.message
             self.status = self.ERROR
