@@ -172,8 +172,8 @@ module.exports = do ->
           criteria.push @build_empty_criterion()
 
       catch e
-        trackJs?.console.log("SkipLogic cell: #{serialized_criteria}")
-        Raven?.captureException("could not parse skip logic. falling back to hand-coded")
+        Raven?.captureException new Error('could not parse skip logic. falling back to hand-coded'), extra:
+          criteria: serialized_criteria
         return false
       return [criteria, parsed.operator]
 

@@ -29,9 +29,10 @@ module.exports = do ->
 
       _s = (i)-> JSON.stringify(i)
       if _s(rIds) isnt _s(elIds)
-        trackJs?.console.log _s(rIds)
-        trackJs?.console.log _s(elIds)
-        Raven?.captureException("Row model does not match view")
+        Raven?.captureException new Error('Row model does not match view'), extra:
+          rIds: _s(rIds)
+          elIds: _s(elIds)
+
         false
       else
         true
