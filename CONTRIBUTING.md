@@ -52,15 +52,20 @@ For more details please check our linter configurations and `.editorconfig` file
 
 Basic workflow (for frontend):
 
-1.  kobo-docker `docker-compose up`
-2.  kobo-docker `docker-compose build kpi`
-3.  kpi `npm run watch`
-4.  open `http://<your IP>:8000`
+1. kobo-docker `docker-compose build kpi`
+2. kobo-docker `docker-compose up`
+3. kpi `npm run watch`
+4. open `http://<your IP>:8000`
+
+After switching branches sometimes you need to rebuild KPI:
+
+1. kobo-docker `docker-compose build kpi`
+2. kobo-docker `docker-compose up` (`up` always goes after `build kpi`)
 
 Restarting:
 
-1.  kobo-docker `docker-compose stop`
-2.  kobo-docker `docker-compose up -d`
+1. kobo-docker `docker-compose stop`
+2. kobo-docker `docker-compose up -d`
 
 ## Managing
 
