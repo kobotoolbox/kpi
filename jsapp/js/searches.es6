@@ -95,7 +95,7 @@ function SearchContext(opts={}) {
       };
       var filterOutDeletedAssetFromCategorizedList = () => {
         let list = this.state.defaultQueryCategorizedResultsLists;
-        if (list != undefined) {
+        if (list) {
           var l = {};
           for (var category in list) {
             l[category] = list[category].filter(function(result){
