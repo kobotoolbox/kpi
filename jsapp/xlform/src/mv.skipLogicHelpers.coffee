@@ -173,7 +173,7 @@ module.exports = do ->
 
       catch e
         trackJs?.console.log("SkipLogic cell: #{serialized_criteria}")
-        trackJs?.console.error("could not parse skip logic. falling back to hand-coded")
+        Raven?.captureException("could not parse skip logic. falling back to hand-coded")
         return false
       return [criteria, parsed.operator]
 
@@ -338,7 +338,7 @@ module.exports = do ->
         @$add_new_criterion_button?.hide()
 
       if !@$add_new_criterion_button
-        trackJs?.console.error("@$add_new_criterion_button is not defined. cannot call #{action} [inside of determine_add_new_criterion_visibility]")
+        Raven?.captureException("@$add_new_criterion_button is not defined. cannot call #{action} [inside of determine_add_new_criterion_visibility]")
 
     constructor: (@presenters, separator, @builder, @view_factory, @context) ->
       @view = @view_factory.create_criterion_builder_view()
