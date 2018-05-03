@@ -478,6 +478,10 @@ module.exports = do ->
           stop: sortable_stop
           activate: sortable_activate_deactivate
           deactivate: sortable_activate_deactivate
+          activate: (evt, ui) =>
+            @formEditorEl.addClass("ui-sortable-active")
+          deactivate: (evt, ui) =>
+            @formEditorEl.removeClass("ui-sortable-active")
           receive: (evt, ui) =>
             if ui.sender.hasClass('group__rows')
               return
