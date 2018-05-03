@@ -335,10 +335,8 @@ actions.resources.listTags.listen(function(data){
 });
 
 actions.resources.listTags.completed.listen(function(results){
-  if (results.next) {
-    if (window.Raven) {
-      Raven.captureMessage('MAX_TAGS_EXCEEDED: Too many tags');
-    }
+  if (results.next && window.Raven) {
+    Raven.captureMessage('MAX_TAGS_EXCEEDED: Too many tags');
   }
 });
 
