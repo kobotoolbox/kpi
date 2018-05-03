@@ -488,7 +488,7 @@ class ReportContents extends React.Component {
         }
       }
 
-      if (_type == 'select_one' || _type == 'select_multiple') {
+      if (_type === 'select_one' || _type === 'select_multiple') {
         let question = asset.content.survey.find(z => z.name === _qn || z.$autoname === _qn);
         let resps = reportData[i].data.responses;
         if (resps) {
