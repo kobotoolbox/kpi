@@ -220,8 +220,10 @@ mixins.droppable = {
           } else if (importData.status === 'created') {
             alertify.warning(t('Your upload is queued for processing. This may take a few moments.'));
           } else if (importData.status === 'error')  {
-            var error_message= `<strong>Import Error.</strong><br><code><strong>${importData.messages.error_type}</strong><br>${importData.messages.error}</code>`
-            alertify.error(t(error_message));
+            let error_message = t('Import Failure.');
+            if (importData.messages.error)
+              error_message = `<strong>${t('Import Failure.')}</strong><br><code><strong>${importData.messages.error_type}</strong><br>${importData.messages.error}</code>`;
+            alertify.error(error_message);
           } else {
             alertify.error(t('Import Failure.'));
           }
