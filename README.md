@@ -61,4 +61,4 @@ There are several types of data reports available to superusers.
 
 Admin panel
 -----------
-There is an admin panel you can access at `/admin`.
+There is an admin panel at `<kpi base url>/admin`, where you can configure i.a. Authorization, Access and Refresh Tokens, Groups, and Users.
