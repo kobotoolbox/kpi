@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import Dropzone from 'react-dropzone';
 import $ from 'jquery';
 import { Link } from 'react-router';
 import bem from '../bem';
@@ -92,12 +91,6 @@ class AssetRow extends React.Component {
   }
   popoverSetVisible () {
     this.setState({popoverVisible: true});
-  }
-  onDrop (files) {
-    if (files.length === 0)
-      return;
-
-    this.dropFiles(files, [], {url: this.props.url});
   }
   render () {
     var selfowned = this.props.owner__username === this.props.currentUsername;
@@ -307,19 +300,13 @@ class AssetRow extends React.Component {
                 </bem.PopoverMenu__link>
               }
               { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit &&
-                <Dropzone onDrop={this.onDrop}
-                          multiple={false}
-                          className='dropzone'
-                          accept={validFileTypes()}>
-                  <bem.PopoverMenu__link
-                        m={'refresh'}
-                        data-action={'refresh'}
-                        data-asset-type={this.props.kind}
-                      >
-                    <i className="k-icon-replace" />
-                    {t('Replace with XLS')}
-                  </bem.PopoverMenu__link>
-                </Dropzone>
+                <bem.PopoverMenu__link
+                      m={'refresh'}
+                      data-action={'refresh'}
+                      data-asset-type={this.props.kind}>
+                  <i className="k-icon-replace" />
+                  {t('Replace with XLS')}
+                </bem.PopoverMenu__link>
               }
               {this.props.downloads.map((dl)=>{
                 return (
