@@ -328,7 +328,6 @@ mixins.clickAssets = {
         let onok = (evt, val) => {
           actions.resources.deleteAsset({uid: uid}, {
             onComplete: ()=> {
-              this.refreshSearch && this.refreshSearch();
               notify(`${assetTypeLabel} ${t('deleted permanently')}`);
               $('.alertify-toggle input').prop("checked", false);
             }
