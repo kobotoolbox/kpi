@@ -8,6 +8,7 @@ import requests
 import unicodecsv
 import urlparse
 import posixpath
+import cgi
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
@@ -290,7 +291,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
         payload = {
             u'downloadable': active,
-            u'title': self.asset.name
+            u'title': cgi.escape(self.asset.name)
         }
         files = {'xls_file': (u'{}.xls'.format(id_string), xls_io)}
         try:
