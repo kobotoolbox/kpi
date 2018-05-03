@@ -241,6 +241,12 @@ actions.permissions = Reflux.createActions({
       'failed'
     ]
   },
+  copyPermissionsFrom: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
   assignPublicPerm: {
     children: [
       'completed',
@@ -573,6 +579,16 @@ actions.permissions.assignPerm.listen(function(creds){
 });
 actions.permissions.assignPerm.completed.listen(function(val){
   actions.resources.loadAsset({url: val.content_object});
+});
+
+// copies permissions from one asset to other
+actions.permissions.copyPermissionsFrom.listen(function(sourceUid, targetUid) {
+  dataInterface.copyPermissionsFrom(sourceUid, targetUid)
+    .done((response) => {
+      actions.resources.loadAsset({id: targetUid});
+      actions.permissions.copyPermissionsFrom.completed();
+    })
+    .fail(actions.permissions.copyPermissionsFrom.failed);
 });
 
 actions.permissions.removePerm.listen(function(details){
