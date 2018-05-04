@@ -23,7 +23,7 @@
     <div class="registration--logo mobile-only">
       <a href="/"><img src="{% static 'img/kobologo.svg' %}" /></a>
     </div>
-    <h1>Create an account</h1>
+    <h1>{% trans "Create an account" %}</h1>
       {% csrf_token %}
       {% for field in form %}
           <div class="field {{ field.name }}">
@@ -41,7 +41,7 @@
       {% endfor %}
       <input type="submit" value="Create Account" class="registration__action" />
       <div class="registration__orlogin">
-          or <a href="{% url 'auth_login' %}">login</a>
+        {% trans "or" %} <a href="{% url 'auth_login' %}">{% trans "login" %}</a>
       </div>
   </div>
 

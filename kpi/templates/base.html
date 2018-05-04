@@ -30,13 +30,14 @@
 <script src="{{livereload_address}}"></script>
 {% endif %}
 
+{% load i18n %}
 {% block foot %}
   <div class="registration__footer">
     <div class="registration__legal">
-      <a href="#">Terms and Conditions</a> |
-      <a href="#">Privacy Policy</a>
+      <a href="#">{% trans "Terms and Conditions" %}</a> |
+      <a href="#">{% trans "Privacy Policy" %}</a>
     </div>
-    <div class="registration__credit"><a href="https://flic.kr/p/9v4mC5" title="Muhkjar refugee camp" target="_blank">Photo</a> by UNAMID / <a href="https://creativecommons.org/licenses/by-nc-nd/2.0/" target="_blank">by-nc-nd</a></div>
+    <div class="registration__credit"><a href="https://flic.kr/p/9v4mC5" title="Muhkjar refugee camp" target="_blank">{% trans "Photo" %}</a> {% trans "by" %} UNAMID / <a href="https://creativecommons.org/licenses/by-nc-nd/2.0/" target="_blank">by-nc-nd</a></div>
   </div>
 {% endblock %}
 </div>
