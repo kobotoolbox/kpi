@@ -1,10 +1,5 @@
 // form_builder miscellaneous rules
 
-// hide message during sorting/dropping with ui-sortable
-.ui-sortable-active .survey-editor__message {
-  display: none;
-}
-
 .survey-editor__message {
   border: $cardBorderStyle;
   padding: 20px;
