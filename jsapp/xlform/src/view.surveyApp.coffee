@@ -478,8 +478,6 @@ module.exports = do ->
           stop: sortable_stop
           activate: sortable_activate_deactivate
           deactivate: sortable_activate_deactivate
-          dropOnEmpty: true
-          forcePlaceholderSize: false
           activate: (evt, ui) =>
             @formEditorEl.addClass("ui-sortable-active")
           deactivate: (evt, ui) =>
