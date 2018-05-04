@@ -57,29 +57,14 @@
   }
 }
 
-.formBuilder__contents {
-  display: flex;
-  flex-direction: column;
-}
-
-.formBuilder__contents > .form-wrap,
-.formBuilder__contents > .form-wrap > .formbuilder-wrap,
-.formBuilder__contents > .form-wrap > .formbuilder-wrap > .survey-editor,
-.formBuilder__contents > .form-wrap > .formbuilder-wrap > .survey-editor > .survey-editor__list  {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  width: 100%;
-}
-
-.survey-editor__list {
-  background: greenyellow;
-}
-
 .form-wrap {
   padding: 0px 75px;
   width: 100%;
-  background: yellow;
+
+  > .formbuilder-wrap > .survey-editor > .survey-editor__list {
+    // height of viewport minus (form-meta box + formbuilder header)
+    min-height: calc(100vh - 190px);
+  }
 
   .survey-header, .sub-header-bar {
     display: none;
@@ -470,7 +455,6 @@
     visibility: visible !important;
     min-height: 80px;
     padding: 0px;
-    flex: 1; // make it take all possible space
   }
 }
 
