@@ -24,11 +24,23 @@
 {% block head %}{% endblock %}
 </head>
 <body>
+<div class="registration__bg">
 {% block content %}{% endblock %}
 {% if livereload_address %}
 <script src="{{livereload_address}}"></script>
 {% endif %}
-{% block foot %}{% endblock %}
+
+{% block foot %}
+  <div class="registration__footer">
+    <div class="registration__legal">
+      <a href="#">Terms and Conditions</a> |
+      <a href="#">Privacy Policy</a>
+    </div>
+    <div class="registration__credit"><a href="https://flic.kr/p/9v4mC5" title="Muhkjar refugee camp" target="_blank">Photo</a> by UNAMID / <a href="https://creativecommons.org/licenses/by-nc-nd/2.0/" target="_blank">by-nc-nd</a></div>
+  </div>
+{% endblock %}
+</div>
+
 {% if google_analytics_token %}
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

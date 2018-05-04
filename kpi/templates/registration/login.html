@@ -2,7 +2,6 @@
 {% load staticfiles %}
 
 {% block content %}
-<div class="registration__bg">
   <form method="post" action="." class="registration registration--login">
     <div class="registration--logo"><a href="/"><img src="{% static 'img/kobologo.svg' %}"/></a></div>
     {% csrf_token %}
@@ -16,13 +15,4 @@
       or <a href="{% url 'registration_register' %}">create an account</a>
     </div>
   </form>
-
-  <div class="registration__credit"><a href="https://flic.kr/p/9v4mC5" title="Muhkjar refugee camp" target="_blank">Photo</a> by UNAMID / <a href="https://creativecommons.org/licenses/by-nc-nd/2.0/" target="_blank">by-nc-nd</a></div>
-</div>
-
-
 {% endblock %}
-
-{% block footer %}
- {{ block.super }}
-{% endblock footer %}
