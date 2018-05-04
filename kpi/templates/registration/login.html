@@ -13,8 +13,10 @@
     <input type="submit" value="Login" class="registration__action" />
     <input type="hidden" name="next" value="{{ next }}" />
 
-    <div class="registration__footer">
-      {% trans "or" %} <a href="{% url 'registration_register' %}">{% trans "create an account" %}</a>
-    </div>
+    {% if config.REGISTRATION_OPEN %}
+      <div class="registration__footer">
+        {% trans "or" %} <a href="{% url 'registration_register' %}">{% trans "create an account" %}</a>
+      </div>
+    {% endif %}
   </form>
 {% endblock %}

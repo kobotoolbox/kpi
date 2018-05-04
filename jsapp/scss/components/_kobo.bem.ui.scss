@@ -469,7 +469,7 @@ iframe {
 
 // modal forms
 .form-modal__item {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 
   &--sector, &--country {
     width: 50%;
@@ -518,7 +518,7 @@ iframe {
   select,
   textarea {
     width: 100%;
-    padding: 6px 0px;
+    padding: 4px 0px;
     font-size: 15px;
     border: 1px solid transparent;
     border-bottom-color: $divider-color;
