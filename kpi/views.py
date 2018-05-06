@@ -33,7 +33,6 @@ from rest_framework.decorators import renderer_classes
 from rest_framework.decorators import detail_route
 from rest_framework.decorators import authentication_classes
 from rest_framework.parsers import MultiPartParser
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.authtoken.models import Token
@@ -1015,7 +1014,6 @@ class TokenView(APIView):
 
 class EnvironmentView(APIView):
     ''' GET-only view for certain server-provided configuration data '''
-    permission_classes = (IsAuthenticated,)
     def get(self, request, *args, **kwargs):
         return Response({
             'terms_of_service_url': constance.config.TERMS_OF_SERVICE_URL,

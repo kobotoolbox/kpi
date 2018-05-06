@@ -8,17 +8,18 @@ class EnvironmentTests(APITestCase):
 
     def setUp(self):
         self.url = reverse('environment')
-
-    def test_anonymous_forbidden(self):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-    def test_authenticated_succeeds(self):
-        expected_dict = {
+        self.expected_dict = {
             'terms_of_service_url': constance.config.TERMS_OF_SERVICE_URL,
             'privacy_policy_url': constance.config.PRIVACY_POLICY_URL,
         }
+
+    def test_anonymous_succeeds(self):
+        response = self.client.get(self.url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertDictEqual(response.data, self.expected_dict)
+
+    def test_authenticated_succeeds(self):
         self.client.login(username='admin', password='pass')
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertDictEqual(response.data, expected_dict)
+        self.assertDictEqual(response.data, self.expected_dict)
