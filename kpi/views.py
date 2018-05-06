@@ -33,12 +33,14 @@ from rest_framework.decorators import renderer_classes
 from rest_framework.decorators import detail_route
 from rest_framework.decorators import authentication_classes
 from rest_framework.parsers import MultiPartParser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+import constance
 from taggit.models import Tag
 
 from .filters import KpiAssignedObjectPermissionsFilter
@@ -1009,3 +1011,13 @@ class TokenView(APIView):
             token = get_object_or_404(Token, user=user)
             token.delete()
         return Response({}, status=status.HTTP_204_NO_CONTENT)
+
+
+class EnvironmentView(APIView):
+    ''' GET-only view for certain server-provided configuration data '''
+    permission_classes = (IsAuthenticated,)
+    def get(self, request, *args, **kwargs):
+        return Response({
+            'terms_of_service_url': constance.config.TERMS_OF_SERVICE_URL,
+            'privacy_policy_url': constance.config.PRIVACY_POLICY_URL,
+        })

@@ -22,6 +22,7 @@ from kpi.views import (
     OneTimeAuthenticationKeyViewSet,
     UserCollectionSubscriptionViewSet,
     TokenView,
+    EnvironmentView,
 )
 
 from kpi.views import home, one_time_login, browser_tests
@@ -94,6 +95,7 @@ urlpatterns = [
     url(r'^jsi18n/$', javascript_catalog, js_info_dict, name='javascript-catalog'),
     # url(r'^.*', home),
     url(r'^token/$', TokenView.as_view(), name='token'),
+    url(r'^environment/$', EnvironmentView.as_view(), name='environment'),
     url(r'^private-media/', include(private_storage.urls)),
     # Statistics for superusers
     url(r'^superuser_stats/user_report/$',

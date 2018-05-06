@@ -115,6 +115,10 @@ MIDDLEWARE_CLASSES = (
 CONSTANCE_CONFIG = {
     'REGISTRATION_OPEN': (True, 'Whether or not to allow registration of new '
                                 'accounts'),
+    'TERMS_OF_SERVICE_URL': ('http://www.kobotoolbox.org/terms',
+                            'URL for terms of service document'),
+    'PRIVACY_POLICY_URL': ('http://www.kobotoolbox.org/privacy',
+                          'URL for privacy policy'),
 }
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
