@@ -53,8 +53,6 @@ if os.environ.get('CSRF_COOKIE_DOMAIN'):
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = (os.environ.get('DJANGO_DEBUG', 'True') == 'True')
 
-TEMPLATE_DEBUG = (os.environ.get('TEMPLATE_DEBUG', 'True') == 'True')
-
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(' ')
 
 LOGIN_REDIRECT_URL = '/'
@@ -90,6 +88,8 @@ INSTALLED_APPS = (
     'django_digest',
     'kobo.apps.superuser_stats',
     'kobo.apps.service_health',
+    'constance',
+    'constance.backends.database',
     'guardian', # For access to KC permissions ONLY
 )
 
@@ -106,6 +106,18 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'hub.middleware.OtherFormBuilderRedirectMiddleware',
 )
+
+# Configuration options that superusers can modify in the Django admin
+# interface. Please note that it's not as simple as moving a setting into the
+# `CONSTANCE_CONFIG` dictionary: each place where the setting's value is needed
+# must use `constance.config.THE_SETTING` instead of
+# `django.conf.settings.THE_SETTING`
+CONSTANCE_CONFIG = {
+    'REGISTRATION_OPEN': (True, 'Whether or not to allow registration of new '
+                                'accounts'),
+}
+# Tell django-constance to use a database model instead of Redis
+CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 
 # Warn developers to use `pytest` instead of `./manage.py test`
 class DoNotUseRunner(object):
@@ -247,11 +259,32 @@ REST_FRAMEWORK = {
     ],
 }
 
-TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
-    'kpi.context_processors.external_service_tokens',
-    'kpi.context_processors.email',
-    'kpi.context_processors.sitewide_messages',
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                # Default processors per
+                # https://docs.djangoproject.com/en/1.8/ref/templates/upgrading/#the-templates-settings
+                'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
+                'django.contrib.messages.context_processors.messages',
+                # Additional processors
+                'constance.context_processors.config',
+                'kpi.context_processors.external_service_tokens',
+                'kpi.context_processors.email',
+                'kpi.context_processors.sitewide_messages',
+            ],
+            'debug': os.environ.get('TEMPLATE_DEBUG', 'True') == 'True',
+        },
+    },
+]
 
 # This is very brittle (can't handle references to missing images in CSS);
 # TODO: replace later with grunt gzipping?

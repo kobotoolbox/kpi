@@ -1,19 +1,24 @@
 import $ from 'jquery';
 import React from 'react';
-import PropTypes from 'prop-types'
+import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import editableFormMixin from '../editorMixins/editableForm';
 import Select from 'react-select';
+import Dropzone from 'react-dropzone';
 import moment from 'moment';
 import ui from '../ui';
 import bem from '../bem';
 import DocumentTitle from 'react-document-title';
 import TextareaAutosize from 'react-autosize-textarea';
+import stores from '../stores';
+import {hashHistory} from 'react-router';
+import {DebounceInput} from 'react-debounce-input';
 
 import {session} from '../stores';
+import mixins from '../mixins';
 
 let newFormMixins = [
     Reflux.ListenerMixin,
@@ -25,12 +30,16 @@ import {
   t,
   redirectTo,
   assign,
-  formatTime
+  formatTime,
+  validFileTypes,
+  isAValidUrl
 } from '../utils';
 
 import {
   update_states,
 } from '../constants';
+
+var formViaUrlHelpLink = 'http://help.kobotoolbox.org/creating-forms/importing-an-xlsform-via-url';
 
 export class ProjectSettings extends React.Component {
   constructor(props){
@@ -42,12 +51,23 @@ export class ProjectSettings extends React.Component {
       sector: '',
       country: '',
       'share-metadata': false,
+      step3: false,
+      importUrl: '',
+      importUrlButtonEnabled: false,
+      importUrlButton: t('Import')
     }
     if (this.props.initialData !== undefined) {
       assign(state, this.props.initialData);
     }
     this.state = state;
     autoBind(this);
+  }
+  componentDidMount () {
+    this.listenTo(session, (session) => {
+      this.setState({
+        sessionLoaded: true,
+      });
+    });
   }
   nameChange (evt) {
     this.setState({
@@ -74,14 +94,56 @@ export class ProjectSettings extends React.Component {
       'share-metadata': evt.target.checked
     });
   }
-  componentDidMount () {
-    this.listenTo(session, (session) => {
-      this.setState({
-        sessionLoaded: true,
-      });
+  importUrlChange (value) {
+    this.setState({
+      importUrl: value,
+      importUrlButtonEnabled: value.length > 6 ? true : false,
+      importUrlButton: t('Import')
     });
-
   }
+  goToFormBuilder() {
+    hashHistory.push(`/forms/${this.props.newFormAsset.uid}/edit`);
+    stores.pageState.hideModal();
+  }
+  displayUpload() {
+    this.setState({step3: 'upload'});
+  }
+  displayImport() {
+    this.setState({step3: 'import'});
+  }
+  resetStep3() {
+    this.setState({step3: false});
+  }
+  importFromURL(evt) {
+    evt.preventDefault();
+    let validUrl = isAValidUrl(this.state.importUrl);
+
+    if (!validUrl) {
+      alertify.error(t('Please enter a valid URL'));
+    } else {
+      let asset = this.props.newFormAsset;
+      let params = {
+        destination: asset.url,
+        url: this.state.importUrl,
+        name: asset.name,
+        assetUid: asset.uid
+      };
+      this._forEachDroppedFile(params);
+
+      this.setState({
+        importUrlButtonEnabled: false,
+        importUrlButton: t('Retrieving form, please wait...')
+      });
+    }
+  }
+  onDrop (files) {
+    if (files.length === 0)
+      return;
+
+    let asset = this.props.newFormAsset;
+    this.dropFiles(files, [], {destination: asset.url});
+  }
+
   onSubmit (evt) {
     evt.preventDefault();
     if (!this.state.name.trim()) {
@@ -116,99 +178,199 @@ export class ProjectSettings extends React.Component {
       });
     }
 
-    return (
-      <bem.FormModal__form onSubmit={this.onSubmit}>
-        {this.props.context == 'existingForm' && 
-          <bem.FormModal__item m={['actions', 'fixed']}>
-            <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-              {this.props.submitButtonValue}
-            </button>
-          </bem.FormModal__item>
-        }
-        <bem.FormModal__item m='wrapper'>
-          <bem.FormModal__item>
-            <label htmlFor="name">
-              {t('Project Name')}
-            </label>
-            <input type="text"
-                id="name"
-                placeholder={t('Enter title of project here')}
-                value={this.state.name}
-                onChange={this.nameChange}
-              />
-          </bem.FormModal__item>
-          <bem.FormModal__item>
-            <label htmlFor="description">
-              {t('Description')}
-            </label>
-            <TextareaAutosize 
-              onChange={this.descriptionChange} 
-              value={this.state.description} 
-              placeholder={t('Enter short description here')} />
-          </bem.FormModal__item>
-          <bem.FormModal__item>
-            <label className="long">
-              {t('Please specify the country and the sector where this project will be deployed. ')}
-              {t('This information will be used to help you filter results on the project list page.')}
-            </label>
-          </bem.FormModal__item>
-
-          <bem.FormModal__item m='sector'>
-            <label htmlFor="sector">
-              {t('Sector')}
-            </label>
-            <Select
-                id="sector"
-                value={this.state.sector}
-                onChange={this.sectorChange}
-                options={sectors}
-              />
-          </bem.FormModal__item>
-          <bem.FormModal__item  m='country'>
-            <label htmlFor="country">
-              {t('Country')}
-            </label>
-            <Select
-              id="country"
-              value={this.state.country}
-              onChange={this.countryChange}
-              options={countries}
-            />
-          </bem.FormModal__item>
-          <bem.FormModal__item m='metadata-share'>
-            <input type="checkbox"
-                id="share-metadata"
-                checked={this.state['share-metadata']}
-                onChange={this.shareMetadataChange}
-              />
-            <label htmlFor="share-metadata">
-              {t('Help KoboToolbox improve this product by sharing the sector and country where this project will be deployed.')}
-              &nbsp;
-              {t('All the information is submitted anonymously, and will not include the project name or description listed above.')}
-            </label>
-          </bem.FormModal__item>
-
+    if (!this.props.newFormAsset) {
+      return (
+        <bem.FormModal__form onSubmit={this.onSubmit}>
           {this.props.context != 'existingForm' &&
-            <bem.FormModal__item m='actions'>
+            <bem.FormModal__item m='upload-note'>
+              <i className="k-icon-alert" />
+              <label className="long">
+                {t('Enter your project details below. In the next step, you can import an XLSForm (via upload or URL) or design the form from scratch in the Form Builder. ')}
+              </label>
+            </bem.FormModal__item>
+          }
+
+          {this.props.context == 'existingForm' &&
+            <bem.FormModal__item m={['actions', 'fixed']}>
               <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
                 {this.props.submitButtonValue}
               </button>
             </bem.FormModal__item>
           }
+          <bem.FormModal__item m='wrapper'>
+            <bem.FormModal__item>
+              <label htmlFor="name">
+                {t('Project Name')}
+              </label>
+              <input type="text"
+                  id="name"
+                  placeholder={t('Enter title of project here')}
+                  value={this.state.name}
+                  onChange={this.nameChange}
+                />
+            </bem.FormModal__item>
+            <bem.FormModal__item>
+              <label htmlFor="description">
+                {t('Description')}
+              </label>
+              <TextareaAutosize
+                onChange={this.descriptionChange}
+                value={this.state.description}
+                placeholder={t('Enter short description here')} />
+            </bem.FormModal__item>
+            <bem.FormModal__item>
+              <label className="long">
+                {t('Please specify the country and the sector where this project will be deployed. ')}
+                {/*t('This information will be used to help you filter results on the project list page.')*/}
+              </label>
+            </bem.FormModal__item>
 
-          {this.props.context == 'existingForm' && this.props.iframeUrl &&
-            <bem.FormView__cell m='iframe'>
-              <iframe src={this.props.iframeUrl} />
-            </bem.FormView__cell>
+            <bem.FormModal__item m='sector'>
+              <label htmlFor="sector">
+                {t('Sector')}
+              </label>
+              <Select
+                  id="sector"
+                  value={this.state.sector}
+                  onChange={this.sectorChange}
+                  options={sectors}
+                />
+            </bem.FormModal__item>
+            <bem.FormModal__item  m='country'>
+              <label htmlFor="country">
+                {t('Country')}
+              </label>
+              <Select
+                id="country"
+                value={this.state.country}
+                onChange={this.countryChange}
+                options={countries}
+              />
+            </bem.FormModal__item>
+            <bem.FormModal__item m='metadata-share'>
+              <input type="checkbox"
+                  id="share-metadata"
+                  checked={this.state['share-metadata']}
+                  onChange={this.shareMetadataChange}
+                />
+              <label htmlFor="share-metadata">
+                {t('Help KoboToolbox improve this product by sharing the sector and country where this project will be deployed.')}
+                &nbsp;
+                {t('All the information is submitted anonymously, and will not include the project name or description listed above.')}
+              </label>
+            </bem.FormModal__item>
 
+            {this.props.context != 'existingForm' &&
+              <bem.FormModal__item m='actions'>
+                <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                  {this.props.submitButtonValue}
+                </button>
+              </bem.FormModal__item>
+            }
+
+            {this.props.context == 'existingForm' && this.props.iframeUrl &&
+              <bem.FormView__cell m='iframe'>
+                <iframe src={this.props.iframeUrl} />
+              </bem.FormView__cell>
+
+            }
+          </bem.FormModal__item>
+        </bem.FormModal__form>
+      );
+    } else {
+      return (
+        <bem.FormModal__form>
+          {!this.state.step3 &&
+            <bem.FormModal__item m='newForm-step2'>
+              {this.props.context !== 'replaceXLS' &&
+                <bem.FormModal__item m='upload-note'>
+                  <label className="long">
+                    {t('Project "##" has been created. Choose one of the options below to continue.').replace('##', this.props.newFormAsset.name)}
+                  </label>
+                </bem.FormModal__item>
+              }
+              <bem.FormModal__item m='new-project--buttons'>
+                {this.props.context !== 'replaceXLS' &&
+                  <button onClick={this.goToFormBuilder}>
+                    <i className="k-icon-edit" />
+                    {t('Design in Form Builder')}
+                  </button>
+                }
+                <button onClick={this.displayUpload}>
+                  <i className="k-icon-upload" />
+                  {t('Upload an XLSForm')}
+                </button>
+                <button onClick={this.displayImport}>
+                  <i className="k-icon-link" />
+                  {t('Import an XLSForm via URL')}
+                </button>
+              </bem.FormModal__item>
+            </bem.FormModal__item>
           }
-        </bem.FormModal__item>
-      </bem.FormModal__form>
-    );
+          {this.state.step3 == 'upload' &&
+            <bem.FormModal__item m='newForm-step3'>
+              <div className="intro">
+                {t('Import an XLSForm from your computer.')}
+              </div>
+              <Dropzone onDrop={this.onDrop.bind(this)}
+                            multiple={false}
+                            className='dropzone'
+                            activeClassName='dropzone-active'
+                            rejectClassName='dropzone-reject'
+                            accept={validFileTypes()}>
+                <i className="k-icon-xls-file" />
+                {t(' Drag and drop the XLSForm file here or click to browse')}
+              </Dropzone>
+              <bem.FormView__link m='step3-back' onClick={this.resetStep3}>
+                {t('back')}
+              </bem.FormView__link>
+            </bem.FormModal__item>
+          }
+          {this.state.step3 == 'import' &&
+            <bem.FormModal__item m='newForm-step3'>
+              <div className="intro">
+                {t('Enter a valid XLSForm URL in the field below.')}<br/>
+                <a href={formViaUrlHelpLink}
+                  target="_blank">
+                  {t('Having issues? See this help article.')}
+                </a>
+              </div>
+              <bem.FormModal__item m='url-import'>
+                <label htmlFor="url">
+                  {t('URL')}
+                </label>
+                <DebounceInput
+                  type="text"
+                  id="importUrl"
+                  debounceTimeout={300}
+                  value={this.state.importUrl}
+                  placeholder='https://'
+                  onChange={event => this.importUrlChange(event.target.value)} />
+                <button onClick={this.importFromURL}
+                        disabled={!this.state.importUrlButtonEnabled}
+                        className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+                  {this.state.importUrlButton}
+                </button>
+              </bem.FormModal__item>
+
+              <bem.FormView__link m='step3-back' onClick={this.resetStep3}>
+                {t('Back')}
+              </bem.FormView__link>
+            </bem.FormModal__item>
+          }
+
+        </bem.FormModal__form>
+      );
+    }
   }
 };
 
 reactMixin(ProjectSettings.prototype, Reflux.ListenerMixin);
+reactMixin(ProjectSettings.prototype, mixins.droppable);
+
+ProjectSettings.contextTypes = {
+  router: PropTypes.object
+};
 
 export class ProjectSettingsEditor extends React.Component {
   constructor(props){
@@ -292,7 +454,7 @@ export class ProjectDownloads extends React.Component {
       formSubmitDisabled: true
     });
 
-    setTimeout(function() { 
+    setTimeout(function() {
       if(!this._calledComponentWillUnmount)
         this.setState({'formSubmitDisabled': false});
     }.bind(this), 5000);
@@ -342,7 +504,7 @@ export class ProjectDownloads extends React.Component {
   }
 
   componentWillUnmount() {
-     clearInterval(this.pollingInterval);
+    clearInterval(this.pollingInterval);
   }
 
   refreshExport(url) {
@@ -507,10 +669,10 @@ export class ProjectDownloads extends React.Component {
                     </bem.FormModal__item>
                   :
                     <bem.FormModal__item key={'s'} m='export-submit'>
-                      <input type="submit" 
-                             value={t('Export')} 
-                             className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
-                             disabled={this.state.formSubmitDisabled}/>
+                      <input type="submit"
+                        value={t('Export')}
+                        className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                        disabled={this.state.formSubmitDisabled}/>
                     </bem.FormModal__item>
                   ]}
                 </bem.FormModal__form>
@@ -556,8 +718,8 @@ export class ProjectDownloads extends React.Component {
                         </bem.FormView__label>
                         <bem.FormView__label m='action'>
                           {item.status == 'complete' &&
-                            <a className="form-view__link form-view__link--export-download" 
-                               href={item.result} data-tip={t('Download')}>
+                            <a className="form-view__link form-view__link--export-download"
+                              href={item.result} data-tip={t('Download')}>
                               <i className="k-icon-download" />
                             </a>
                           }
@@ -570,7 +732,7 @@ export class ProjectDownloads extends React.Component {
                             <span className="animate-processing">{t('processing...')}</span>
                           }
                           <a className="form-view__link form-view__link--export-delete"
-                             onClick={this.deleteExport} data-euid={item.uid} data-tip={t('Delete')}>
+                            onClick={this.deleteExport} data-euid={item.uid} data-tip={t('Delete')}>
                             <i className="k-icon-trash" />
                           </a>
 

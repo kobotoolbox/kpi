@@ -13,10 +13,7 @@ module.exports = do ->
 
   model = {}
 
-  _.extend(model,
-                 $survey,
-                 $row,
-                 )
+  _.extend(model, $survey, $row)
 
   model._keys = _.keys(model)
   model.rowDetailsSkipLogic = $rowDetailsSkipLogic

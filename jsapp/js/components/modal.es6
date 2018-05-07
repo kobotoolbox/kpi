@@ -13,6 +13,7 @@ import {hashHistory} from 'react-router';
 import {
   t,
   assign,
+  notify
 } from '../utils';
 
 import {ProjectSettings} from '../components/formEditors';
@@ -26,12 +27,13 @@ class Modal extends React.Component {
     this.state = {
       enketopreviewlink: false,
       error: false,
-      modalClass: false
+      modalClass: false,
+      newFormAsset: false
     };
     autoBind(this);
   }
   componentDidMount () {
-  	var type = this.props.params.type;
+    var type = this.props.params.type;
     switch(type) {
       case 'sharing':
         this.setState({
@@ -39,7 +41,7 @@ class Modal extends React.Component {
         });
         break;
       case 'uploading-xls':
-        var filename = this.props.params.file.name || '';
+        var filename = this.props.params.filename || '';
         this.setState({
           title: t('Uploading XLS file'),
           message: t('Uploading: ') + filename
@@ -48,7 +50,7 @@ class Modal extends React.Component {
 
       case 'new-form':
         this.setState({
-          title: t('Create New Project from Scratch')
+          title: `${t('Create New Project')} (${t('step 1 of 2')})`
         });
         break;
       case 'enketo-preview':
@@ -67,7 +69,7 @@ class Modal extends React.Component {
         break;
       case 'submission':
         this.setState({
-          title: t('Record #') + this.props.params.sid,
+          title: t('Submission Record'),
           modalClass: 'modal-large modal-submission',
           sid: this.props.params.sid
         });
@@ -77,8 +79,12 @@ class Modal extends React.Component {
           title: t('New REST Service')
         });
         break;
-
-		}  	
+      case 'replace-xls':
+        this.setState({
+          title: t('Replace with XLS')
+        });
+        break;
+    }
   }
   createNewForm (settingsComponent) {
     dataInterface.createResource({
@@ -91,8 +97,12 @@ class Modal extends React.Component {
       }),
       asset_type: 'survey',
     }).done((asset) => {
-      hashHistory.push(`/forms/${asset.uid}/edit`);
-      stores.pageState.hideModal();
+      this.setState({
+        newFormAsset: asset,
+        title: `${t('Create New Project')} (${t('step 2 of 2')})`
+      });
+    }).fail(function(r){
+      notify(t('Error: new project could not be created.') + ` (code: ${r.statusText})`);
     });
   }
   enketoSnapshotCreation (data) {
@@ -111,25 +121,41 @@ class Modal extends React.Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.params && nextProps.params.sid) {
       this.setState({
-        title: t('Record #') + nextProps.params.sid,
+        title: t('Submission Record'),
         sid: nextProps.params.sid
+      });
+    }
+
+    if (this.props.params.type != nextProps.params.type && nextProps.params.type === 'uploading-xls') {
+      var filename = nextProps.params.filename || '';
+      this.setState({
+        title: t('Uploading XLS file'),
+        message: t('Uploading: ') + filename
       });
     }
   }
   render() {
-  	return (
-	      <ui.Modal open onClose={()=>{stores.pageState.hideModal()}} title={this.state.title} className={this.state.modalClass}>
-	        <ui.Modal.Body>
-	        	{ this.props.params.type == 'sharing' &&
-	          	<SharingForm uid={this.props.params.assetid} />
-	        	}
+    return (
+        <ui.Modal open onClose={()=>{stores.pageState.hideModal()}} title={this.state.title} className={this.state.modalClass}>
+          <ui.Modal.Body>
+            { this.props.params.type == 'sharing' &&
+              <SharingForm uid={this.props.params.assetid} />
+            }
             { this.props.params.type == 'new-form' &&
               <ProjectSettings
                 onSubmit={this.createNewForm}
-                submitButtonValue={t('Create project')}
+                submitButtonValue={t('Create Project')}
                 context='newForm'
+                newFormAsset={this.state.newFormAsset}
               />
             }
+            { this.props.params.type == 'replace-xls' &&
+              <ProjectSettings
+                context='replaceXLS'
+                newFormAsset={this.props.params.asset}
+              />
+            }
+
             { this.props.params.type == 'enketo-preview' && this.state.enketopreviewlink &&
               <div className='enketo-holder'>
                 <iframe src={this.state.enketopreviewlink} />
@@ -143,12 +169,12 @@ class Modal extends React.Component {
                 </bem.Loading__inner>
               </bem.Loading>
             }
-            { this.props.params.type == 'enketo-preview' && this.state.error && 
+            { this.props.params.type == 'enketo-preview' && this.state.error &&
               <div>
                 {this.state.message}
               </div>
             }
-            { this.props.params.type == 'uploading-xls' && 
+            { this.props.params.type == 'uploading-xls' &&
               <div>
                 <bem.Loading>
                   <bem.Loading__inner>
@@ -159,19 +185,19 @@ class Modal extends React.Component {
               </div>
             }
 
-            { this.props.params.type == 'submission' && this.state.sid && 
+            { this.props.params.type == 'submission' && this.state.sid &&
               <Submission sid={this.state.sid} asset={this.props.params.asset} ids={this.props.params.ids} />
             }
 
-            { this.props.params.type == 'RESTservice' && !this.props.params.sid && 
+            { this.props.params.type == 'RESTservice' && !this.props.params.sid &&
               <div>
                 <RESTServiceForm asset={this.props.params.asset} sid={this.props.params.sid} />
               </div>
             }
 
-	        </ui.Modal.Body>
-	      </ui.Modal>
-  		)
+          </ui.Modal.Body>
+        </ui.Modal>
+      )
   }
 
 };

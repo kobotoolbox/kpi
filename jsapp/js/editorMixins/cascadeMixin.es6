@@ -106,7 +106,7 @@ export default {
 
             {choiceListHelpUrl ?
               <div className="cascade-help right-tooltip">
-                <a href={choiceListHelpUrl} 
+                <a href={choiceListHelpUrl}
                   target="_blank"
                   data-tip={t('Learn more about importing cascading lists from Excel')}>
                     <i className="k-icon-help" />

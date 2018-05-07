@@ -2,6 +2,7 @@ from distutils.util import strtobool
 from itertools import chain
 import copy
 import json
+import base64
 import datetime
 
 from django.contrib.auth import login
@@ -18,6 +19,7 @@ from django.conf import settings
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.translation import ugettext_lazy as _
+
 
 from rest_framework import (
     viewsets,
@@ -467,24 +469,35 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
     def create(self, request, *args, **kwargs):
         if self.request.user.is_anonymous():
             raise exceptions.NotAuthenticated()
+        itask_data = {
+            'library': request.POST.get('library') not in ['false', False],
+            # NOTE: 'filename' here comes from 'name' (!) in the POST data
+            'filename': request.POST.get('name', None),
+            'destination': request.POST.get('destination', None),
+        }
         if 'base64Encoded' in request.POST:
             encoded_str = request.POST['base64Encoded']
             encoded_substr = encoded_str[encoded_str.index('base64') + 7:]
-            itask_data = {
-                'base64Encoded': encoded_substr,
-                # NOTE: 'filename' here comes from 'name' (!) in the POST data
-                'library': request.POST.get('library') not in ['false', False],
-                'filename': request.POST.get('name', None),
-                'destination': request.POST.get('destination', None),
-            }
-            import_task = ImportTask.objects.create(user=request.user,
-                                                    data=itask_data)
-            # Have Celery run the import in the background
-            import_in_background.delay(import_task_uid=import_task.uid)
-            return Response({
-                'uid': import_task.uid,
-                'status': ImportTask.PROCESSING
-            }, status.HTTP_201_CREATED)
+            itask_data['base64Encoded'] = encoded_substr
+        elif 'file' in request.data:
+            encoded_xls = base64.b64encode(request.data['file'].read())
+            itask_data['base64Encoded'] = encoded_xls
+            if 'filename' not in itask_data:
+                itask_data['filename'] = request.data['file'].name
+        elif 'url' in request.POST:
+            itask_data['single_xls_url'] = request.POST['url']
+        import_task = ImportTask.objects.create(user=request.user,
+                                                data=itask_data)
+        # Have Celery run the import in the background
+        import_in_background.delay(import_task_uid=import_task.uid)
+        return Response({
+            'uid': import_task.uid,
+            'url': reverse(
+                'importtask-detail',
+                kwargs={'uid': import_task.uid},
+                request=request),
+            'status': ImportTask.PROCESSING
+        }, status.HTTP_201_CREATED)
 
 
 class ExportTaskViewSet(NoUpdateModelViewSet):
@@ -638,6 +651,7 @@ class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
     KoBoCAT
     '''
     parent_model = Asset
+
 
 class AssetVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     model = AssetVersion
@@ -864,6 +878,24 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             # TODO: Understand why this 404s when `serializer.data` is not
             # coerced to a dict
             return Response(dict(serializer.data))
+
+    @detail_route(methods=["PATCH"], renderer_classes=[renderers.JSONRenderer])
+    def permissions(self, request, uid):
+        target_asset = self.get_object()
+        source_asset = get_object_or_404(Asset, uid=request.data.get("clone_from"))
+        user = request.user
+        response = {}
+        http_status = status.HTTP_204_NO_CONTENT
+
+        if user.has_perm('share_asset', target_asset) and \
+            user.has_perm('view_asset', source_asset):
+            if not target_asset.copy_permissions_from(source_asset):
+                http_status = status.HTTP_400_BAD_REQUEST
+                response = {"detail": "Source and destination objects don't seem to have the same type"}
+        else:
+            raise exceptions.PermissionDenied()
+
+        return Response(response, status=http_status)
 
     def perform_create(self, serializer):
         # Check if the user is anonymous. The

@@ -241,6 +241,12 @@ actions.permissions = Reflux.createActions({
       'failed'
     ]
   },
+  copyPermissionsFrom: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
   assignPublicPerm: {
     children: [
       'completed',
@@ -292,7 +298,7 @@ actions.misc.updateProfile.failed.listen(function(){
 
 actions.resources.createImport.listen(function(contents){
   if (contents.base64Encoded) {
-    dataInterface.postCreateBase64EncodedImport(contents)
+    dataInterface.postCreateImport(contents)
       .done(actions.resources.createImport.completed)
       .fail(actions.resources.createImport.failed);
   } else if (contents.content) {
@@ -335,10 +341,8 @@ actions.resources.listTags.listen(function(data){
 });
 
 actions.resources.listTags.completed.listen(function(results){
-  if (results.next) {
-    if (window.trackJs) {
-      window.trackJs.track('MAX_TAGS_EXCEEDED: Too many tags');
-    }
+  if (results.next && window.Raven) {
+    Raven.captureMessage('MAX_TAGS_EXCEEDED: Too many tags');
   }
 });
 
@@ -575,6 +579,16 @@ actions.permissions.assignPerm.listen(function(creds){
 });
 actions.permissions.assignPerm.completed.listen(function(val){
   actions.resources.loadAsset({url: val.content_object});
+});
+
+// copies permissions from one asset to other
+actions.permissions.copyPermissionsFrom.listen(function(sourceUid, targetUid) {
+  dataInterface.copyPermissionsFrom(sourceUid, targetUid)
+    .done((response) => {
+      actions.resources.loadAsset({id: targetUid});
+      actions.permissions.copyPermissionsFrom.completed();
+    })
+    .fail(actions.permissions.copyPermissionsFrom.failed);
 });
 
 actions.permissions.removePerm.listen(function(details){
