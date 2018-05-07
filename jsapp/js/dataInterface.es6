@@ -441,6 +441,16 @@ var dataInterface;
         method: 'GET'
       });
     },
+    setLanguage(data) {
+      return $ajax({
+        url: `${rootUrl}/i18n/setlang/`,
+        method: 'POST',
+        data: data
+      });
+    },
+    environment() {
+      return $ajax({url: `${rootUrl}/environment/`,method: 'GET'});
+    },
     login: (creds)=> {
       return $ajax({ url: `${rootUrl}/api-auth/login/?next=/me/`, data: creds, method: 'POST'});
     }
