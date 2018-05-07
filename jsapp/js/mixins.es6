@@ -14,7 +14,6 @@ import ui from './ui';
 import $ from 'jquery';
 
 import {
-  getAnonymousUserPermission,
   anonUsername,
   formatTime,
   currentLang,
@@ -493,11 +492,16 @@ mixins.permissions = {
 
     const currentUsername = stores.session.currentAccount.username;
     if (asset.owner__username === currentUsername)
-      return true
+      return true;
 
     // TODO: should super user always have access to all UI?
     // if (stores.session.currentAccount.is_superuser)
     //   return true;
+
+    // if permission is granted publicly, then grant it to current user
+    const anonAccess = asset.permissions.some(perm => perm.user__username === 'AnonymousUser' && perm.permission === permName);
+    if (anonAccess)
+      return true;
 
     const userPerms = asset.permissions.filter(perm => perm.user__username === currentUsername);
     return userPerms.some(p => p.permission === permName);

@@ -18,6 +18,9 @@ import {
   anonUsername
 } from '../utils';
 
+// parts
+import CopyTeamPermissions from './sharingForm/copyTeamPermissions';
+
 var availablePermissions = [
   {value: 'view', label: t('View Form')},
   {value: 'change', label: t('Edit Form')},
@@ -161,6 +164,7 @@ class SharingForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      currentAssetName: stores.allAssets.byUid[this.props.uid].name,
       userInputStatus: false,
       permInput: 'view'
     };
@@ -210,7 +214,6 @@ class SharingForm extends React.Component {
       if (result === undefined) {
         actions.misc.checkUsername(username);
       } else {
-        log(result ? 'success' : 'error');
         this.setState({
           userInputStatus: result ? 'success' : 'error'
         });
@@ -294,6 +297,9 @@ class SharingForm extends React.Component {
     return (
       <bem.FormModal>
         <bem.FormModal__item>
+          <bem.FormView__cell m='asset-name'>
+            {this.state.currentAssetName}
+          </bem.FormView__cell>
           <bem.FormView__cell m='label'>
             {t('Who has access')}
           </bem.FormView__cell>
@@ -319,7 +325,7 @@ class SharingForm extends React.Component {
             <bem.FormView__cell m='label'>
               {t('Invite collaborators')}
             </bem.FormView__cell>
-            <bem.FormModal__item m='perms-user'>
+            <bem.FormModal__item m={['gray-row', 'invite-collaborators']}>
               <input type="text"
                   id="permsUser"
                   ref='usernameInput'
@@ -353,6 +359,12 @@ class SharingForm extends React.Component {
               objectUrl={objectUrl}
               deploymentActive={this.state.asset.deployment__active}
             />
+          </bem.FormView__cell>
+        }
+
+        { Object.keys(stores.allAssets.byUid).length >= 2 &&
+          <bem.FormView__cell m='copy-team-permissions'>
+            <CopyTeamPermissions uid={uid}/>
           </bem.FormView__cell>
         }
       </bem.FormModal>
