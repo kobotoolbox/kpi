@@ -23,6 +23,7 @@ from .fields import PaginatedApiField
 from .models import Asset
 from .models import AssetSnapshot
 from .models import AssetVersion
+from .models import AssetFile
 from .models import Collection
 from .models import CollectionChildrenQuerySet
 from .models import UserCollectionSubscription
@@ -375,6 +376,38 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
                   'details',
                   'source',
                   )
+
+
+class AssetFileSerializer(serializers.ModelSerializer):
+    uid = serializers.ReadOnlyField()
+    url = serializers.SerializerMethodField()
+    asset = RelativePrefixHyperlinkedRelatedField(
+        view_name='asset-detail', lookup_field='uid', read_only=True)
+    user = RelativePrefixHyperlinkedRelatedField(
+        view_name='user-detail', lookup_field='username', read_only=True)
+    user__username = serializers.ReadOnlyField(source='user.username')
+    file_type = serializers.ChoiceField(choices=AssetFile.TYPE_CHOICES)
+    name = serializers.CharField()
+    date_created = serializers.ReadOnlyField()
+    content = serializers.FileField()
+
+    def get_url(self, obj):
+        return reverse('asset-file-detail', args=(obj.asset.uid, obj.uid),
+                       request=self.context.get('request', None))
+
+    class Meta:
+        model = AssetFile
+        fields = (
+            'uid',
+            'url',
+            'asset',
+            'user',
+            'user__username',
+            'file_type',
+            'name',
+            'date_created',
+            'content'
+        )
 
 
 class AssetVersionListSerializer(serializers.Serializer):

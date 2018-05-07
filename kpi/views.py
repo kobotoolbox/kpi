@@ -52,6 +52,7 @@ from .models import (
     Asset,
     AssetVersion,
     AssetSnapshot,
+    AssetFile,
     ImportTask,
     ExportTask,
     ObjectPermission,
@@ -78,6 +79,7 @@ from .serializers import (
     AssetSerializer, AssetListSerializer,
     AssetVersionListSerializer,
     AssetVersionSerializer,
+    AssetFileSerializer,
     AssetSnapshotSerializer,
     SitewideMessageSerializer,
     CollectionSerializer, CollectionListSerializer,
@@ -642,6 +644,26 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
         else:
             response_data = copy.copy(snapshot.details)
             return Response(response_data, template_name='preview_error.html')
+
+
+class AssetFileViewSet(NestedViewSetMixin, NoUpdateModelViewSet):
+    model = AssetFile
+    lookup_field = 'uid'
+    filter_backends = (RelatedAssetPermissionsFilter,)
+    serializer_class = AssetFileSerializer
+
+    def get_queryset(self):
+        _asset_uid = self.get_parents_query_dict()['asset']
+        _queryset = self.model.objects.filter(asset__uid=_asset_uid)
+        _queryset = _queryset.filter(asset__uid=_asset_uid)
+        return _queryset
+
+    def perform_create(self, serializer):
+        _asset_uid = self.get_parents_query_dict()['asset']
+        serializer.save(
+            asset=Asset.objects.get(uid=_asset_uid),
+            user=self.request.user
+        )
 
 
 class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
