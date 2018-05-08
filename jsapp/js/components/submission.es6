@@ -156,7 +156,10 @@ class Submission extends React.Component {
 
     var kc_server = document.createElement('a');
     kc_server.href = this.props.asset.deployment__identifier;
-    var kc_base = kc_server.origin;
+    // if this has more components than /{username}/forms/{uid}, it's safe to assume kobocat is running under a
+    // KOBOCAT_ROOT_URI_PREFIX
+    const kc_prefix = kc_server.pathname.split('/').length > 4 ? '/' + kc_server.pathname.split('/')[1] : '';
+    var kc_base = `${kc_server.origin}${kc_prefix}`;
 
     // build media attachment URL using the KC endpoint
     attachmentUrl = `${kc_base}/attachment/original?media_file=${encodeURI(filename)}`;

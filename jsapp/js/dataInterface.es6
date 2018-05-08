@@ -360,7 +360,7 @@ var dataInterface;
         }
       });
     },
-    postCreateBase64EncodedImport (contents) {
+    postCreateImport (contents) {
       var formData = new FormData();
       Object.keys(contents).forEach(function(key){
         formData.append(key, contents[key]);

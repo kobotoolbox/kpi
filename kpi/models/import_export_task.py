@@ -152,7 +152,18 @@ class ImportTask(ImportExportTask):
                 destination_kls=dest_kls,
                 has_necessary_perm=has_necessary_perm,
             )
-        elif 'base64Encoded' in self.data:
+            return
+
+        if 'single_xls_url' in self.data:
+            # TODO: merge with `url` handling above; currently kept separate
+            # because `_load_assets_from_url()` uses complex logic to deal with
+            # multiple XLS files in a directory structure within a ZIP archive
+            response = requests.get(self.data['single_xls_url'])
+            response.raise_for_status()
+            encoded_xls = base64.b64encode(response.content)
+            self.data['base64Encoded'] = encoded_xls
+
+        if 'base64Encoded' in self.data:
             self._parse_b64_upload(
                 base64_encoded_upload=self.data['base64Encoded'],
                 filename=self.data.get('filename', None),
@@ -162,10 +173,12 @@ class ImportTask(ImportExportTask):
                 destination_kls=dest_kls,
                 has_necessary_perm=has_necessary_perm,
             )
-        else:
-            raise Exception(
-                'ImportTask data must contain `base64Encoded` or `url`'
-            )
+            return
+
+        raise Exception(
+            'ImportTask data must contain `base64Encoded`, `url`, or '
+            '`single_xls_url`'
+        )
 
     def _load_assets_from_url(self, url, messages, **kwargs):
         destination = kwargs.get('destination', False)
@@ -194,8 +207,21 @@ class ImportTask(ImportExportTask):
                 item._orm = create_assets(item.get_type(), extra_args)
             elif item.get_type() == 'asset':
                 kontent = xls2json_backends.xls_to_dict(item.readable)
-                extra_args['content'] = _strip_header_keys(kontent)
-                item._orm = create_assets(item.get_type(), extra_args)
+                if not destination:
+                    extra_args['content'] = _strip_header_keys(kontent)
+                    item._orm = create_assets(item.get_type(), extra_args)
+                else:
+                    # The below is copied from `_parse_b64_upload` pretty much as is
+                    # TODO: review and test carefully
+                    asset = destination
+                    asset.content = kontent
+                    asset.save()
+                    messages['updated'].append({
+                            'uid': asset.uid,
+                            'kind': 'asset',
+                            'owner__username': self.user.username,
+                        })
+
             if item.parent:
                 collections_to_assign.append([
                     item._orm,
@@ -212,7 +238,12 @@ class ImportTask(ImportExportTask):
             orm_obj.save()
 
     def _parse_b64_upload(self, base64_encoded_upload, messages, **kwargs):
-        filename = splitext(kwargs.get('filename', ''))[0]
+        filename = kwargs.get('filename', False)
+        # don't try to splitext() on None, False, etc.
+        if filename:
+            filename = splitext(filename)[0]
+        else:
+            filename = ''
         library = kwargs.get('library')
         survey_dict = _b64_xls_to_dict(base64_encoded_upload)
         survey_dict_keys = survey_dict.keys()

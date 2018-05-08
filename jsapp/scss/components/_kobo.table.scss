@@ -236,6 +236,21 @@
   }
 }
 
+.tableColumn-modal {
+  ul {
+    margin: 30px 0px 20px 0px;
+
+    li {
+      margin-bottom: 10px;
+    }
+  }
+
+  &--footer {
+    text-align: right;
+    padding: 10px 0px;
+  }
+}
+
 @media screen and (max-width: 767px) {
   .form-view--table {
     padding: 0px 20px;

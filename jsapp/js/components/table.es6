@@ -36,6 +36,7 @@ export class DataTable extends React.Component {
       loading: true,
       tableData: [],
       columns: [],
+      selectedColumns: false,
       sids: [],
       showExpandedTable: false,
       defaultPageSize: 30,
@@ -132,14 +133,20 @@ export class DataTable extends React.Component {
     }
   }
   _prepColumns(data) {
+    var excludes = ['_xform_id_string', '_attachments', '_notes', '_bamboo_dataset_id', '_status',
+                    'formhub/uuid', '_tags', '_geolocation', '_submitted_by', 'meta/instanceID', 'meta/deprecatedID', '_validation_status'];
+
     var uniqueKeys = Object.keys(data.reduce(function(result, obj) {
       return Object.assign(result, obj);
-    }, {}))
+    }, {}));
+
+    uniqueKeys = uniqueKeys.filter((el, ind, arr) => excludes.includes(el) === false);
 
     let showLabels = this.state.showLabels,
         showGroups = this.state.showGroups,
         translationIndex = this.state.translationIndex,
-        maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);
+        maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length),
+        _this = this;
 
     var columns = [];
 
@@ -156,6 +163,7 @@ export class DataTable extends React.Component {
           ),
         accessor: 'sub-checkbox',
         index: '__0',
+        id: '__SubmissionCheckbox',
         minWidth: 45,
         filterable: false,
         sortable: false,
@@ -177,6 +185,7 @@ export class DataTable extends React.Component {
       Header: '',
       accessor: 'sub-link',
       index: '__1',
+      id: '__SubmissionLinks',
       minWidth: userCanSeeEditIcon ? 75 : 45,
       filterable: false,
       sortable: false,
@@ -201,6 +210,7 @@ export class DataTable extends React.Component {
       Header: t('Validation status'),
       accessor: '_validation_status.uid',
       index: '__2',
+      id: '__ValidationStatus',
       minWidth: 130,
       className: 'rt-status',
       Filter: ({ filter, onChange }) =>
@@ -225,19 +235,13 @@ export class DataTable extends React.Component {
       )
     });
 
-    var excludes = ['_xform_id_string', '_attachments', '_notes', '_bamboo_dataset_id', '_status',
-                    'formhub/uuid', '_tags', '_geolocation', '_submitted_by', 'meta/instanceID','_validation_status'];
-
     let survey = this.props.asset.content.survey;
     let choices = this.props.asset.content.choices;
 
     uniqueKeys.forEach(function(key){
-      if (excludes.includes(key))
-        return false;
-
       var q = undefined;
       var qParentG = [];
-      if (key.includes('/') && key !== 'meta/instanceID') {
+      if (key.includes('/')) {
         qParentG = key.split('/');
         q = survey.find(o => o.name === qParentG[qParentG.length - 1] || o.$autoname == qParentG[qParentG.length - 1]);
       } else {
@@ -299,32 +303,7 @@ export class DataTable extends React.Component {
 
       columns.push({
         Header: h => {
-          var lbl = key;
-
-          if (key.includes('/')) {
-            var splitK = key.split('/');
-            lbl = splitK[splitK.length - 1];
-          }
-          if (q && q.label && showLabels && q.label[translationIndex])
-            lbl = q.label[translationIndex];
-          // show Groups in labels, when selected
-          if (showGroups && qParentG && key.includes('/')) {
-            var gLabels = qParentG.join(' / ');
-
-            if (showLabels) {
-              var gT = qParentG.map(function(g) {
-                var x = survey.find(o => o.name === g || o.$autoname == g);
-                if (x && x.label && x.label[translationIndex])
-                  return x.label[translationIndex];
-
-                return '';
-              });
-              gLabels = gT.join(' / ');
-            }
-            return gLabels;
-          }
-
-          return lbl;
+          return _this.getColumnLabel(key, q, qParentG);
         },
         id: key,
         accessor: row => row[key],
@@ -391,9 +370,60 @@ export class DataTable extends React.Component {
       }
     })
 
+    // prepare list of selected columns, if available
+    let settings = this.props.asset.settings,
+        selectedColumns = false;
+
+    if (settings['data-table'] && settings['data-table']['selected-columns']) {
+      const selCos = settings['data-table']['selected-columns'];
+      selectedColumns = columns.filter((el) => selCos.includes(el.id) !== false);
+    }
+
     this.setState({
-      columns: columns
+      columns: columns,
+      selectedColumns: selectedColumns
     })
+  }
+  getColumnLabel(key, q, qParentG) {
+    switch(key) {
+      case '__SubmissionCheckbox':
+        return t('Multi-select checkboxes column');
+      case '__SubmissionLinks':
+        return t('Preview and edit links column');
+      case '__ValidationStatus':
+        return t('Validation status');
+    }
+
+    var label = key;
+    let showLabels = this.state.showLabels,
+        showGroups = this.state.showGroups,
+        translationIndex = this.state.translationIndex,
+        survey = this.props.asset.content.survey;
+
+    if (key.includes('/')) {
+      var splitK = key.split('/');
+      label = splitK[splitK.length - 1];
+    }
+    if (q && q.label && showLabels && q.label[translationIndex])
+      label = q.label[translationIndex];
+    // show Groups in labels, when selected
+    if (showGroups && qParentG && key.includes('/')) {
+      var gLabels = qParentG.join(' / ');
+
+      if (showLabels) {
+        var gT = qParentG.map(function(g) {
+          var x = survey.find(o => o.name === g || o.$autoname == g);
+          if (x && x.label && x.label[translationIndex])
+            return x.label[translationIndex];
+
+          return g;
+        });
+        gLabels = gT.join(' / ');
+      }
+      return gLabels;
+    }
+
+    return label;
   }
   toggleExpandedTable () {
     if (this.state.showExpandedTable) {
@@ -408,6 +438,7 @@ export class DataTable extends React.Component {
   }
   componentDidMount() {
     this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmission);
+    this.listenTo(actions.table.updateSettings.completed, this.tableSettingsUpdated);
     this.listenTo(stores.pageState, this.onPageStateUpdate);
   }
   componentWillUnmount() {
@@ -424,6 +455,10 @@ export class DataTable extends React.Component {
         this._prepColumns(newData);
       }
     }
+  }
+  tableSettingsUpdated() {
+    stores.pageState.hideModal();
+    this.refreshTable();
   }
   launchPrinting () {
     window.print();
@@ -461,6 +496,15 @@ export class DataTable extends React.Component {
         pageSize: this.state.pageSize,
         resultsTotal: this.state.resultsTotal
       }
+    });
+  }
+  launchTableColumnsModal () {
+    stores.pageState.showModal({
+      type: 'table-columns',
+      settings: this.props.asset.settings,
+      columns: this.state.columns,
+      uid: this.props.asset.uid,
+      getColumnLabel: this.getColumnLabel
     });
   }
   launchEditSubmission (evt) {
@@ -678,7 +722,7 @@ export class DataTable extends React.Component {
         )
     }
 
-    const { tableData, columns, defaultPageSize, loading, pageSize, currentPage, resultsTotal } = this.state;
+    const { tableData, columns, selectedColumns, defaultPageSize, loading, pageSize, currentPage, resultsTotal } = this.state;
     const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1);
     let asset = this.props.asset;
     return (
@@ -727,28 +771,66 @@ export class DataTable extends React.Component {
             <ui.PopoverMenu type='formTable-menu'
                         triggerLabel={<i className="k-icon-more" />}
                         triggerTip={t('Display options')}>
-                <bem.PopoverMenu__link
-                  onClick={this.showXMLValues}
-                  className={!this.state.showLabels ? 'active': ''}>
-                  {t('Show XML values')}
-                </bem.PopoverMenu__link>
+                <bem.PopoverMenu__item m='currently'>
+                  <span>{t('Showing:')}</span>
+                  {this.state.selectedColumns ?
+                    <span>{t('Selected columns')}</span>
+                    :
+                    <span>{t('All columns')}</span>
+                  }
+                </bem.PopoverMenu__item>
+
+                {this.userCan('change_submissions', this.props.asset) &&
+                  <bem.PopoverMenu__link
+                    onClick={this.launchTableColumnsModal}>
+                    {t('Show/hide table columns')}
+                  </bem.PopoverMenu__link>
+                }
+                <bem.PopoverMenu__item m='currently'>
+                  <span>{t('Showing:')}</span>
+                  {this.state.showLabels ?
+                    <span>
+                      {t('Labels')}&nbsp;
+                      {asset.content.translations.length > 1 &&
+                        ` - ${asset.content.translations[this.state.translationIndex]}`
+                      }
+                    </span>
+                  :
+                    <span>{t('XML Values')}</span>
+                  }
+                </bem.PopoverMenu__item>
+
+                {this.state.showLabels &&
+                  <bem.PopoverMenu__link onClick={this.showXMLValues}>
+                    {t('Show XML values')}
+                  </bem.PopoverMenu__link>
+                }
                 {asset.content.translations.map((trns, n) => {
                     return (
                       <bem.PopoverMenu__link
                         onClick={this.showTranslation} data-index={n} key={n}
-                        className={this.state.showLabels && this.state.translationIndex == n ? 'active': ''}>
+                        className={this.state.showLabels && this.state.translationIndex == n ? 'hidden': ''}>
                         {t('Show labels')}
                         {trns ? ` - ${trns}` : null}
                       </bem.PopoverMenu__link>
                     )
                 })}
+                <bem.PopoverMenu__item m='currently'>
+                  <span>{t('Showing:')}</span>
+                  {this.state.showGroups ?
+                    <span>{t('Groups in headings')}</span>
+                  :
+                    <span>{t('No groups in headings')}</span>
+                  }
+                </bem.PopoverMenu__item>
+
                 {this.state.showGroups ?
                   <bem.PopoverMenu__link onClick={this.toggleGroups} className="divider">
-                    {t('Hide question groups')}
+                    {t('Hide groups in headings')}
                   </bem.PopoverMenu__link>
                 :
                   <bem.PopoverMenu__link onClick={this.toggleGroups} className="divider">
-                    {t('Show question groups')}
+                    {t('Show groups in headings')}
                   </bem.PopoverMenu__link>
                 }
             </ui.PopoverMenu>
@@ -758,7 +840,7 @@ export class DataTable extends React.Component {
 
         <ReactTable
           data={tableData}
-          columns={columns}
+          columns={selectedColumns || columns}
           defaultPageSize={defaultPageSize}
           pageSizeOptions={[10, 30, 50, 100, 200, 500]}
           minRows={1}

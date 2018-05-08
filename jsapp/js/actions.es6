@@ -292,7 +292,7 @@ actions.misc.updateProfile.failed.listen(function(){
 
 actions.resources.createImport.listen(function(contents){
   if (contents.base64Encoded) {
-    dataInterface.postCreateBase64EncodedImport(contents)
+    dataInterface.postCreateImport(contents)
       .done(actions.resources.createImport.completed)
       .fail(actions.resources.createImport.failed);
   } else if (contents.content) {
@@ -474,6 +474,22 @@ actions.reports.setCustom.listen(function(assetId, details){
     report_custom: JSON.stringify(details),
   }).done(actions.reports.setCustom.completed)
     .fail(actions.reports.setCustom.failed);
+});
+
+actions.table = Reflux.createActions({
+  updateSettings: {
+    children: [
+      'completed',
+      'failed',
+    ]
+  }
+});
+
+actions.table.updateSettings.listen(function(assetId, settings){
+  dataInterface.patchAsset(assetId, {
+    settings: JSON.stringify(settings),
+  }).done(actions.table.updateSettings.completed)
+    .fail(actions.table.updateSettings.failed);
 });
 
 actions.resources.createResource.listen(function(details){

@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import Dropzone from 'react-dropzone';
 import Map from 'es6-map';
 import _ from 'underscore';
 import { Link } from 'react-router';
@@ -23,8 +22,7 @@ import {
   assign,
   t,
   log,
-  notify,
-  validFileTypes
+  notify
 } from '../utils';
 
 export class FormLanding extends React.Component {
@@ -135,6 +133,13 @@ export class FormLanding extends React.Component {
     stores.pageState.showModal({
       type: 'sharing',
       assetid: this.state.uid
+    });
+  }
+  replaceXLSModal (evt) {
+    evt.preventDefault();
+    stores.pageState.showModal({
+      type: 'replace-xls',
+      asset: this.state
     });
   }
   renderHistory () {
@@ -334,6 +339,12 @@ export class FormLanding extends React.Component {
       }
     );
   }
+  onDrop(files, rejectedFiles) {
+    if (files.length === 0)
+      return;
+
+    this.dropFiles(files, [], {destination: this.state.url});
+  }
   renderButtons () {
     const userCanEdit = this.userCan('change_asset', this.state);
     var downloadable = false;
@@ -364,16 +375,12 @@ export class FormLanding extends React.Component {
             <i className="k-icon-view" />
           </bem.FormView__link>
           {userCanEdit &&
-            <Dropzone onDrop={this.dropFiles}
-                          multiple={false}
-                          className='dropzone'
-                          accept={validFileTypes()}>
-              <bem.FormView__link m='upload' data-tip={t('Replace with XLS')}>
-                <i className="k-icon-replace" />
-              </bem.FormView__link>
-            </Dropzone>
+            <bem.FormView__link m='upload'
+                data-tip={t('Replace with XLS')}
+                onClick={this.replaceXLSModal}>
+              <i className="k-icon-replace" />
+            </bem.FormView__link>
           }
-
           <ui.PopoverMenu type='formLanding-menu'
                       triggerLabel={<i className="k-icon-more" />}
                       triggerTip={t('More Actions')}>

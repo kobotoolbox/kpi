@@ -444,6 +444,34 @@
   }
 }
 
+.popover-menu--formTable-menu {
+  .popover-menu__content {
+    min-width: 260px;
+    max-width: 340px;
+  }
+
+  .popover-menu__item--currently {
+    border-top: 1px solid $divider-color;
+    background-color: lighten($divider-color, 5%);
+    color: $cool-gray;
+    cursor: inherit;
+
+    &:hover {
+      background-color: lighten($divider-color, 5%);
+    }
+
+    span {
+      font-size: 12px;
+      vertical-align: middle;
+
+      &:last-child {
+        margin-left: 5px;
+        color: darken($cool-green, 5%);
+      }
+    }
+  }
+}
+
 @media screen and (max-width: 767px) {
   .popover-menu--collectData-menu {
     .popover-menu__toggle {
@@ -469,7 +497,7 @@ iframe {
 
 // modal forms
 .form-modal__item {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 
   &--sector, &--country {
     width: 50%;
@@ -518,7 +546,7 @@ iframe {
   select,
   textarea {
     width: 100%;
-    padding: 6px 0px;
+    padding: 4px 0px;
     font-size: 15px;
     border: 1px solid transparent;
     border-bottom-color: $divider-color;

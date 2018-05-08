@@ -172,59 +172,58 @@ mixins.dmix = {
 };
 
 mixins.droppable = {
-  _forEachDroppedFile (evt, file, params={}) {
-    var library = this.context.router.isActive('library');
-    var url = params.url || this.state.url;
+  _forEachDroppedFile (params={}) {
+    let router = this.context.router;
+    let isXLSReplaceInForm = this.props.context == 'replaceXLS' && router.isActive('forms') && router.params.assetid != undefined;
+    var library = router.isActive('library');
+    params = assign({library: library}, params);
 
-    stores.pageState.showModal({
-      type: 'uploading-xls',
-      file: file,
-      url: url
-    });
+    if (params.base64Encoded) {
+      stores.pageState.showModal({
+        type: 'uploading-xls',
+        filename: params.name
+      });
+    }
 
-    dataInterface.postCreateBase64EncodedImport(assign({
-        base64Encoded: evt.target.result,
-        name: file.name,
-        library: library,
-        lastModified: file.lastModified,
-      }, url ? {
-        destination: url,
-      } : null
-    )).then((data)=> {
+    if (!library && params.base64Encoded) {
+      let destination = params.destination || this.state.url;
+      params = assign({destination: destination}, params);
+    }
+
+    dataInterface.postCreateImport(params).then((data)=> {
       window.setTimeout((()=>{
         dataInterface.getImportDetails({
           uid: data.uid,
         }).done((importData/*, status, jqxhr*/) => {
           if (importData.status === 'complete') {
             var assetData = importData.messages.updated || importData.messages.created;
-            var assetUid = assetData && assetData.length > 0 && assetData[0].uid,
-                isCurrentPage = this.state.uid === assetUid;
-
+            var assetUid = assetData && assetData.length > 0 && assetData[0].uid;
             if (!assetUid) {
-              alertify.error(t('Could not redirect to asset.'));
+              // TODO: use a more specific error message here
+              alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace with XLS" icon.'));
+              if (params.assetUid)
+                hashHistory.push(`/forms/${params.assetUid}`);
             } else {
-              if (isCurrentPage) {
+              if (isXLSReplaceInForm) {
                 actions.resources.loadAsset({id: assetUid});
               } else if (library) {
                 this.searchDefault();
               } else {
                 hashHistory.push(`/forms/${assetUid}`);
               }
-              if (url) {
-                notify(t('Replace operation completed'));
-              } else {
-                notify(t('XLS Upload completed'));
-              }
+              notify(t('XLS Import completed'));
             }
           }
           // If the import task didn't complete immediately, inform the user accordingly.
           else if (importData.status === 'processing') {
-            alertify.warning(t('Your library assets have uploaded and are being processed. This may take a few moments.'));
+            alertify.warning(t('Your upload is being processed. This may take a few moments.'));
           } else if (importData.status === 'created') {
-            alertify.warning(t('Your library assets have uploaded and are queued for processing. This may take a few moments.'));
+            alertify.warning(t('Your upload is queued for processing. This may take a few moments.'));
           } else if (importData.status === 'error')  {
-            var error_message= `<strong>Import Error.</strong><br><code><strong>${importData.messages.error_type}</strong><br>${importData.messages.error}</code>`
-            alertify.error(t(error_message));
+            let error_message = t('Import Failure.');
+            if (importData.messages.error)
+              error_message = `<strong>${t('Import Failure.')}</strong><br><code><strong>${importData.messages.error_type}</strong><br>${importData.messages.error}</code>`;
+            alertify.error(error_message);
           } else {
             alertify.error(t('Import Failure.'));
           }
@@ -232,7 +231,6 @@ mixins.droppable = {
           alertify.error(t('Import Failed.'));
           log('import failed', failData);
         });
-
         stores.pageState.hideModal();
       }), 2500);
     }).fail((jqxhr)=> {
@@ -240,12 +238,17 @@ mixins.droppable = {
       alertify.error(t('Failed to create import.'));
     });
   },
-  dropFiles (files, rejectedFiles, params={}) {
+  dropFiles (files, rejectedFiles, pms={}) {
     files.map((file) => {
       var reader = new FileReader();
-      reader.onload = (e)=>{
-        var f = this.forEachDroppedFile || this._forEachDroppedFile;
-        f.call(this, e, file, params);
+      reader.onload = (e)=> {
+        let params = assign({
+          base64Encoded: e.target.result,
+          name: file.name,
+          lastModified: file.lastModified,
+        }, pms);
+
+        this._forEachDroppedFile(params);
       };
       reader.readAsDataURL(file);
     });
@@ -328,7 +331,6 @@ mixins.clickAssets = {
         let onok = (evt, val) => {
           actions.resources.deleteAsset({uid: uid}, {
             onComplete: ()=> {
-              this.refreshSearch && this.refreshSearch();
               notify(`${assetTypeLabel} ${t('deleted permanently')}`);
               $('.alertify-toggle input').prop("checked", false);
             }
@@ -440,6 +442,12 @@ mixins.clickAssets = {
           assetid: uid
         });
       },
+      refresh: function(uid) {
+        stores.pageState.showModal({
+          type: 'replace-xls',
+          asset: stores.selectedAsset.asset
+        });
+      }
 
     }
   },
