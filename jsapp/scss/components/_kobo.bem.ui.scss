@@ -601,6 +601,7 @@ iframe {
     color: $black;
     font-size: 14px;
     padding: 4px 0;
+    cursor: pointer;
 
     .form-modal__radioInput,
     .form-modal__radioText {
@@ -609,12 +610,48 @@ iframe {
     }
 
     .form-modal__radioInput {
-      margin-right: 8px;
-      vertical-align: middle;
+      appearance: none;
+      position: relative;
+      margin: 0;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      outline: 0;
+      box-shadow: inset 0 0 2px red;
+      background-color: transparent;
+      color: red;
+
+      &::after {
+          content: "";
+          display: block;
+          position: absolute;
+          top: 5px;
+          left: 5px;
+          border-radius: 50%;
+          width: 10px;
+          height: 10px;
+          background-color: transparent;
+          transition: background-color 250ms;
+      }
+
+      &:checked::after { background-color: red; }
+
+      &:not([disabled]) {
+          &:not(:checked) {
+              &:hover::after { background-color: rgba(red, 0.1); }
+              &:active::after { background-color: rgba(red, 0.2); }
+          }
+
+          &:checked {
+              &:hover::after { background-color: rgba(red, 0.8); }
+              &:active::after { background-color: rgba(red, 0.6); }
+          }
+      }
     }
 
-    .form-modal__radioText {
-      vertical-align: middle;
+    .form-modal__radioInput + .form-modal__radioText {
+      margin-left: 8px;
     }
   }
 }
