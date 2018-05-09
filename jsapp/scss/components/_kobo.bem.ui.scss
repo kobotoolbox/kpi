@@ -609,49 +609,46 @@ iframe {
       vertical-align: middle;
     }
 
+    .form-modal__radioInput + .form-modal__radioText { margin-left: 8px; }
+
     .form-modal__radioInput {
       appearance: none;
       position: relative;
       margin: 0;
-      border: none;
+      border: 2px solid currentColor;
       border-radius: 50%;
       width: 20px;
       height: 20px;
       outline: 0;
-      box-shadow: inset 0 0 2px red;
       background-color: transparent;
-      color: red;
+      color: $cool-green;
 
       &::after {
-          content: "";
-          display: block;
-          position: absolute;
-          top: 5px;
-          left: 5px;
-          border-radius: 50%;
-          width: 10px;
-          height: 10px;
-          background-color: transparent;
-          transition: background-color 250ms;
+        content: "";
+        display: block;
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        border-radius: 50%;
+        width: 10px;
+        height: 10px;
+        background-color: currentColor;
+        opacity: 0;
       }
 
-      &:checked::after { background-color: red; }
+      &:checked::after { opacity: 1; }
 
-      &:not([disabled]) {
-          &:not(:checked) {
-              &:hover::after { background-color: rgba(red, 0.1); }
-              &:active::after { background-color: rgba(red, 0.2); }
-          }
-
-          &:checked {
-              &:hover::after { background-color: rgba(red, 0.8); }
-              &:active::after { background-color: rgba(red, 0.6); }
-          }
-      }
+      &[disabled] { color: $cool-gray; }
     }
 
-    .form-modal__radioInput + .form-modal__radioText {
-      margin-left: 8px;
+    &:hover .form-modal__radioInput:not([disabled]) {
+      &:checked::after { opacity: 0.8; }
+      &:not(:checked)::after { opacity: 0.1; }
+    }
+
+    &:active .form-modal__radioInput:not([disabled]) {
+      &:checked::after { opacity: 0.6; }
+      &:not(:checked)::after { opacity: 0.3; }
     }
   }
 }
