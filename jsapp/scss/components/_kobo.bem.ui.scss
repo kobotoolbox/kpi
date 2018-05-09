@@ -470,9 +470,11 @@ iframe {
   margin-bottom: 15px;
 
   &--half-width {
-    width: calc(50% - 30px);
+    width: 50%;
     float: left;
 
+    // using additional class, because it is possible that mulitple consecutive
+    // half-width paris can occur (so can't use smart & + & selectors)
     &-left { padding-right: 15px; }
     &-left + & { padding-left: 15px; }
   }
