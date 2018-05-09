@@ -162,31 +162,35 @@ export class RESTServicesForm extends React.Component {
               {t('Type')}
             </label>
 
-            <bem.FormModal__radio>
-              <bem.FormModal__radioInput
-                type='radio'
-                value='json'
-                name='type'
-                onChange={this.formItemChange}
-                checked={this.state.type === 'json'}
-              />
-              <bem.FormModal__radioText>
-                {t('JSON')}
-              </bem.FormModal__radioText>
-            </bem.FormModal__radio>
+            <bem.FormModal__item m={['half-width', 'half-width-left']}>
+              <bem.FormModal__radio>
+                <bem.FormModal__radioInput
+                  type='radio'
+                  value='json'
+                  name='type'
+                  onChange={this.formItemChange}
+                  checked={this.state.type === 'json'}
+                />
+                <bem.FormModal__radioText>
+                  {t('JSON')}
+                </bem.FormModal__radioText>
+              </bem.FormModal__radio>
+            </bem.FormModal__item>
 
-            <bem.FormModal__radio>
-              <bem.FormModal__radioInput
-                type='radio'
-                value='xml'
-                name='type'
-                onChange={this.formItemChange}
-                checked={this.state.type === 'xml'}
-              />
-              <bem.FormModal__radioText>
-                {t('XML')}
-              </bem.FormModal__radioText>
-            </bem.FormModal__radio>
+            <bem.FormModal__item m='half-width'>
+              <bem.FormModal__radio>
+                <bem.FormModal__radioInput
+                  type='radio'
+                  value='xml'
+                  name='type'
+                  onChange={this.formItemChange}
+                  checked={this.state.type === 'xml'}
+                />
+                <bem.FormModal__radioText>
+                  {t('XML')}
+                </bem.FormModal__radioText>
+              </bem.FormModal__radio>
+            </bem.FormModal__item>
           </bem.FormModal__item>
 
           <bem.FormModal__item m='security'>

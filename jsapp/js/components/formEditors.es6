@@ -225,7 +225,7 @@ export class ProjectSettings extends React.Component {
               </label>
             </bem.FormModal__item>
 
-            <bem.FormModal__item m='sector'>
+            <bem.FormModal__item m={['half-width', 'half-width-left']}>
               <label htmlFor="sector">
                 {t('Sector')}
               </label>
@@ -236,7 +236,7 @@ export class ProjectSettings extends React.Component {
                   options={sectors}
                 />
             </bem.FormModal__item>
-            <bem.FormModal__item  m='country'>
+            <bem.FormModal__item  m='half-width'>
               <label htmlFor="country">
                 {t('Country')}
               </label>

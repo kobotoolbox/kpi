@@ -469,13 +469,12 @@ iframe {
 .form-modal__item {
   margin-bottom: 15px;
 
-  &--sector, &--country {
-    width: 50%;
+  &--half-width {
+    width: calc(50% - 30px);
     float: left;
-  }
 
-  &--sector .Select {
-    margin-right: 30px;
+    &-left { padding-right: 15px; }
+    &-left + & { padding-left: 15px; }
   }
 
   &--metadata-share {
