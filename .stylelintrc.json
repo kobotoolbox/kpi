@@ -7,9 +7,9 @@
                     "blockless-after-same-name-blockless",
                     "first-nested"
                 ],
-                "ignore": ["after-comment"]
-            },
-            { "severity": "warning" }
+                "ignore": ["after-comment"],
+                "severity": "warning"
+            }
         ],
         "at-rule-name-case": ["lower", { "severity": "warning" }],
         "at-rule-name-space-after": [
@@ -57,18 +57,18 @@
             "always",
             {
                 "except": ["first-nested"],
-                "ignore": ["stylelint-commands"]
-            },
-            { "severity": "warning" }
+                "ignore": ["stylelint-commands"],
+                "severity": "warning"
+            }
         ],
         "comment-whitespace-inside": ["always", { "severity": "warning" }],
         "custom-property-empty-line-before": [
             "always",
             {
                 "except": ["after-custom-property", "first-nested"],
-                "ignore": ["after-comment", "inside-single-line-block"]
-            },
-            { "severity": "warning" }
+                "ignore": ["after-comment", "inside-single-line-block"],
+                "severity": "warning"
+            }
         ],
         "declaration-block-no-duplicate-properties": [
             true,
@@ -110,9 +110,9 @@
             "always",
             {
                 "except": ["after-declaration", "first-nested"],
-                "ignore": ["after-comment", "inside-single-line-block"]
-            },
-            { "severity": "warning" }
+                "ignore": ["after-comment", "inside-single-line-block"],
+                "severity": "warning"
+            }
         ],
         "font-family-no-duplicate-names": true,
         "font-family-no-missing-generic-family-keyword": [
@@ -194,9 +194,9 @@
             "always-multi-line",
             {
                 "except": ["first-nested"],
-                "ignore": ["after-comment"]
-            },
-            { "severity": "warning" }
+                "ignore": ["after-comment"],
+                "severity": "warning"
+            }
         ],
         "selector-pseudo-class-no-unknown": true,
         "selector-pseudo-element-no-unknown": true,
