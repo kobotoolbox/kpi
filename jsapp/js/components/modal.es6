@@ -17,7 +17,7 @@ import {
 } from '../utils';
 
 import {ProjectSettings} from '../components/formEditors';
-import {RESTServiceForm} from '../components/RESTServices';
+import {RESTServicesForm} from '../components/RESTServices';
 import SharingForm from '../components/sharingForm';
 import Submission from '../components/submission';
 
@@ -191,7 +191,7 @@ class Modal extends React.Component {
 
             { this.props.params.type == 'RESTservice' && !this.props.params.sid &&
               <div>
-                <RESTServiceForm asset={this.props.params.asset} sid={this.props.params.sid} />
+                <RESTServicesForm asset={this.props.params.asset} sid={this.props.params.sid} />
               </div>
             }
 

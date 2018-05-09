@@ -31,7 +31,7 @@ export default class RESTServices extends React.Component {
 
   newServiceModal() {
     stores.pageState.showModal({
-      type: 'RESTservice', 
+      type: 'RESTservice',
       sid: false
     });
   }
@@ -39,36 +39,40 @@ export default class RESTServices extends React.Component {
   render () {
     var docTitle = this.props.asset.name || t('Untitled');
     return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>        
+      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m={this.state.services ? 'form-settings-REST' : 'form-settings-REST-empty'}>
           {this.state.services &&
             <div className="REST-services-list-wrapper">
-              <RESTServiceList/>
-              <button className="mdl-button mdl-button--raised mdl-button--colored"
-                      onClick={this.newServiceModal}>
+              <RESTServicesList/>
+              <button
+                className="mdl-button mdl-button--raised mdl-button--colored"
+                onClick={this.newServiceModal}
+              >
                 {t('Register a New Service')}
               </button>
             </div>
           }
 
           {!this.state.services &&
-        	<bem.Empty>
-        		<bem.Empty__inner>
-        			<i className="k-icon-settings" />
-        			<h2>{t('This project does not have any REST services yet!')}</h2>
-        			<p>
-        				{t('You can use REST services to automatically post submissions to a third-party application.')}
-        				&nbsp;
-        				<a href="">
-        					{t('Learn more')}
-        				</a>
-        			</p>
-        			<button className="mdl-button mdl-button--raised mdl-button--colored"
-        							onClick={this.newServiceModal}>
-        				{t('Register a New Service')}
-        			</button>
-        		</bem.Empty__inner>
-        	</bem.Empty>
+          <bem.Empty>
+            <bem.Empty__inner>
+              <i className="k-icon-settings" />
+              <h2>{t('This project does not have any REST services yet!')}</h2>
+              <p>
+                {t('You can use REST services to automatically post submissions to a third-party application.')}
+                &nbsp;
+                <a href="">
+                  {t('Learn more')}
+                </a>
+              </p>
+              <button
+                className="mdl-button mdl-button--raised mdl-button--colored"
+                onClick={this.newServiceModal}
+              >
+                {t('Register a New Service')}
+              </button>
+            </bem.Empty__inner>
+          </bem.Empty>
           }
         </bem.FormView>
       </DocumentTitle>
@@ -76,7 +80,7 @@ export default class RESTServices extends React.Component {
   }
 };
 
-export class RESTServiceForm extends React.Component {
+export class RESTServicesForm extends React.Component {
   constructor(props){
     super(props);
     this.state = {
@@ -121,73 +125,89 @@ export class RESTServiceForm extends React.Component {
   }
 
   render() {
-  	return (
+    return (
       <bem.FormModal__form onSubmit={this.onSubmit}>
         <bem.FormModal__item m='wrapper'>
+
           <bem.FormModal__item>
-            <label htmlFor="name">
+            <label htmlFor="rest-service-form--name">
               {t('Name')}
             </label>
-            <input type="text"
-                name="name"
-                placeholder={t('Service Name')}
-                value={this.state.name}
-                onChange={this.formItemChange}
-              />
+            <input
+              type="text"
+              id="rest-service-form--name"
+              name="name"
+              placeholder={t('Service Name')}
+              value={this.state.name}
+              onChange={this.formItemChange}
+            />
           </bem.FormModal__item>
+
           <bem.FormModal__item>
-            <label htmlFor="url">
+            <label htmlFor="rest-service-form--url">
               {t('Endpoint URL')}
             </label>
-            <input type="text"
-                name="url"
-                placeholder={t('https://')}
-                value={this.state.url}
-                onChange={this.formItemChange}
-              />
+            <input
+              type="text"
+              id="rest-service-form--url"
+              name="url"
+              placeholder={t('https://')}
+              value={this.state.url}
+              onChange={this.formItemChange}
+            />
           </bem.FormModal__item>
 
           <bem.FormModal__item m='type'>
-            <label htmlFor="url">
+            <label>
               {t('Type')}
             </label>
-        		<label className="radio-label">
-              <input type="radio" value="json" 
-                     name="type" onChange={this.formItemChange}
-                     checked={this.state.type === 'json'} />
+            <label className="radio-label">
+              <input
+                type="radio"
+                value="json"
+                name="type"
+                onChange={this.formItemChange}
+                checked={this.state.type === 'json'}
+              />
               <span>{t('JSON')}</span>
             </label>
-        		<label className="radio-label">
-              <input type="radio" value="xml" 
-                     name="type" onChange={this.formItemChange} 
-                     checked={this.state.type === 'xml'} />
+            <label className="radio-label">
+              <input
+                type="radio"
+                value="xml"
+                name="type"
+                onChange={this.formItemChange}
+                checked={this.state.type === 'xml'}
+              />
               <span>{t('XML')}</span>
             </label>
           </bem.FormModal__item>
 
-
           <bem.FormModal__item m='security'>
-            <label htmlFor="security">
+            <label htmlFor="rest-service-form--security">
               {t('Security')}
             </label>
             <Select
-                name="securityType"
-                value={this.state.securityType}
-                onChange={this.formItemChange}
-                options={this.state.securityOptions}
-              />
+              id="rest-service-form--security"
+              name="securityType"
+              value={this.state.securityType}
+              onChange={this.formItemChange}
+              options={this.state.securityOptions}
+            />
           </bem.FormModal__item>
 
           {this.state.securityType && this.state.securityType.value == 'auth_header' &&
             <bem.FormModal__item>
-              <label htmlFor="url">
+              <label htmlFor="rest-service-form--authorization-header">
                 {t('Authorization Header')}
               </label>
-              <input type="text"
-                  name="auth_header"
-                  value={this.state.auth_header}
-                  onChange={this.formItemChange}
-                />
+              <input
+                type="text"
+                id="rest-service-form--authorization-header"
+                name="auth_header"
+                value={this.state.auth_header}
+                onChange={this.formItemChange}
+              />
             </bem.FormModal__item>
           }
 
@@ -195,10 +215,11 @@ export class RESTServiceForm extends React.Component {
             <label className="long">
               {t('Advanced Users')}
             </label>
-            <label htmlFor="fields">
+            <label htmlFor="rest-service-form--fields">
               {t('Post selected questions only (use question names, comma-delimited)')}
             </label>
             <textarea
+              id="rest-service-form--fields"
               className="questions"
               name="questions"
               value={this.state.questions}
@@ -207,18 +228,20 @@ export class RESTServiceForm extends React.Component {
           </bem.FormModal__item>
 
           <bem.FormModal__item m='actions'>
-            <button onClick={this.onSubmit} className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+            <button
+              onClick={this.onSubmit}
+              className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+            >
               {t('Create')}
             </button>
           </bem.FormModal__item>
         </bem.FormModal__item>
       </bem.FormModal__form>
-
-  	);
+    );
   }
 };
 
-export class RESTServiceList extends React.Component {
+export class RESTServicesList extends React.Component {
   constructor(props){
     super(props);
     this.state = {};
