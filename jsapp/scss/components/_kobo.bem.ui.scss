@@ -112,8 +112,6 @@
   opacity: .75;
 }
 
-.message {}
-
 .message--error {
   text-decoration: uppercase;
 }
@@ -346,9 +344,9 @@
     text-transform: uppercase;
     padding-left: 0px;
 
-    &:after {
-      content: '\f107';
-      font-family: 'FontAwesome';
+    &::after {
+      content: "\f107";
+      font-family: "FontAwesome";
       font-size: 18px;
       margin-left: 5px;
     }
@@ -362,9 +360,9 @@
     text-transform: uppercase;
     padding-left: 0px;
 
-    &:after {
-      content: '\f107';
-      font-family: 'FontAwesome';
+    &::after {
+      content: "\f107";
+      font-family: "FontAwesome";
       font-size: 18px;
       margin-left: 5px;
     }
@@ -396,12 +394,12 @@
       color: $cool-gray;
     }
 
-    &:after {
+    &::after {
       position: absolute;
       right: 10px;
       top: 8px;
-      content: '\f0d7';
-      font-family: 'FontAwesome';
+      content: "\f0d7";
+      font-family: "FontAwesome";
       font-size: 16px;
     }
   }
@@ -499,21 +497,6 @@ iframe {
       margin-bottom: 10px;
       font-size: 14px;
     }
-
-    &.radio-label {
-      color: $black;
-      font-size: 14px;
-      padding: 4px 0px;
-
-      input {
-        margin-right: 8px;
-        vertical-align: middle;
-      }
-
-      span {
-        vertical-align: middle;
-      }
-    }
   }
 
   label:not(.inline) {
@@ -562,12 +545,6 @@ iframe {
     vertical-align: top;
   }
 
-  .Select.is-focused {
-    .Select-control {
-      box-shadow: none;
-    }
-  }
-
   .Select-control {
     border: none;
     border-bottom: 1px solid $divider-color;
@@ -575,6 +552,10 @@ iframe {
     padding-left: 0px;
     height: 33px;
     font-size: 15px;
+
+    .Select.is-focused & {
+      box-shadow: none;
+    }
 
     .Select-placeholder {
       padding-left: 0px;
@@ -612,6 +593,28 @@ iframe {
   &--actions {
     text-align: right;
     padding-top: 10px;
+  }
+
+  // radio inputs
+  .form-modal__radio {
+    color: $black;
+    font-size: 14px;
+    padding: 4px 0;
+
+    .form-modal__radioInput,
+    .form-modal__radioText {
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    .form-modal__radioInput {
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    .form-modal__radioText {
+      vertical-align: middle;
+    }
   }
 }
 
@@ -713,7 +716,7 @@ span.svg-icon {
 
   + label:before,
   + label:after {
-    content: '';
+    content: "";
     left: 0;
     position: absolute;
 
@@ -761,7 +764,7 @@ span.svg-icon {
       transform-origin: 100% 100%;
     }
 
-    + label:after {
+    + label::after {
       top: 0;
       width: 20px;
       height: 20px;
