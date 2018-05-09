@@ -74,7 +74,7 @@ class Modal extends React.Component {
           sid: this.props.params.sid
         });
       break;
-      case 'RESTservice':
+      case 'rest-services':
         this.setState({
           title: t('New REST Service')
         });
@@ -189,7 +189,7 @@ class Modal extends React.Component {
               <Submission sid={this.state.sid} asset={this.props.params.asset} ids={this.props.params.ids} />
             }
 
-            { this.props.params.type == 'RESTservice' && !this.props.params.sid &&
+            { this.props.params.type == 'rest-services' && !this.props.params.sid &&
               <div>
                 <RESTServicesForm asset={this.props.params.asset} sid={this.props.params.sid} />
               </div>

@@ -166,6 +166,9 @@ bem.GraphSettings__radio = bem.GraphSettings.__('radio');
 bem.FormModal = bem('form-modal');
 bem.FormModal__form = bem.FormModal.__('form', '<form>');
 bem.FormModal__item = bem.FormModal.__('item');
+bem.FormModal__radio = bem.FormModal.__('radio', '<label>');
+bem.FormModal__radioInput = bem.FormModal.__('radioInput', '<input>');
+bem.FormModal__radioText = bem.FormModal.__('radioText', '<span>');
 bem.FormModal__group = bem.FormModal.__('group');
 
 bem.PopoverMenu = bem('popover-menu');

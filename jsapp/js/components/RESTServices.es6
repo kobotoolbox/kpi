@@ -31,7 +31,7 @@ export default class RESTServices extends React.Component {
 
   newServiceModal() {
     stores.pageState.showModal({
-      type: 'RESTservice',
+      type: 'rest-services',
       sid: false
     });
   }
@@ -42,10 +42,10 @@ export default class RESTServices extends React.Component {
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m={this.state.services ? 'form-settings-REST' : 'form-settings-REST-empty'}>
           {this.state.services &&
-            <div className="REST-services-list-wrapper">
+            <div className='REST-services-list-wrapper'>
               <RESTServicesList/>
               <button
-                className="mdl-button mdl-button--raised mdl-button--colored"
+                className='mdl-button mdl-button--raised mdl-button--colored'
                 onClick={this.newServiceModal}
               >
                 {t('Register a New Service')}
@@ -56,17 +56,17 @@ export default class RESTServices extends React.Component {
           {!this.state.services &&
           <bem.Empty>
             <bem.Empty__inner>
-              <i className="k-icon-settings" />
+              <i className='k-icon-settings' />
               <h2>{t('This project does not have any REST services yet!')}</h2>
               <p>
                 {t('You can use REST services to automatically post submissions to a third-party application.')}
                 &nbsp;
-                <a href="">
+                <a href='#TODO'>
                   {t('Learn more')}
                 </a>
               </p>
               <button
-                className="mdl-button mdl-button--raised mdl-button--colored"
+                className='mdl-button mdl-button--raised mdl-button--colored'
                 onClick={this.newServiceModal}
               >
                 {t('Register a New Service')}
@@ -130,13 +130,13 @@ export class RESTServicesForm extends React.Component {
         <bem.FormModal__item m='wrapper'>
 
           <bem.FormModal__item>
-            <label htmlFor="rest-service-form--name">
+            <label htmlFor='rest-service-form--name'>
               {t('Name')}
             </label>
             <input
-              type="text"
-              id="rest-service-form--name"
-              name="name"
+              type='text'
+              id='rest-service-form--name'
+              name='name'
               placeholder={t('Service Name')}
               value={this.state.name}
               onChange={this.formItemChange}
@@ -144,13 +144,13 @@ export class RESTServicesForm extends React.Component {
           </bem.FormModal__item>
 
           <bem.FormModal__item>
-            <label htmlFor="rest-service-form--url">
+            <label htmlFor='rest-service-form--url'>
               {t('Endpoint URL')}
             </label>
             <input
-              type="text"
-              id="rest-service-form--url"
-              name="url"
+              type='text'
+              id='rest-service-form--url'
+              name='url'
               placeholder={t('https://')}
               value={this.state.url}
               onChange={this.formItemChange}
@@ -161,35 +161,41 @@ export class RESTServicesForm extends React.Component {
             <label>
               {t('Type')}
             </label>
-            <label className="radio-label">
-              <input
-                type="radio"
-                value="json"
-                name="type"
+
+            <bem.FormModal__radio>
+              <bem.FormModal__radioInput
+                type='radio'
+                value='json'
+                name='type'
                 onChange={this.formItemChange}
                 checked={this.state.type === 'json'}
               />
-              <span>{t('JSON')}</span>
-            </label>
-            <label className="radio-label">
-              <input
-                type="radio"
-                value="xml"
-                name="type"
+              <bem.FormModal__radioText>
+                {t('JSON')}
+              </bem.FormModal__radioText>
+            </bem.FormModal__radio>
+
+            <bem.FormModal__radio>
+              <bem.FormModal__radioInput
+                type='radio'
+                value='xml'
+                name='type'
                 onChange={this.formItemChange}
                 checked={this.state.type === 'xml'}
               />
-              <span>{t('XML')}</span>
-            </label>
+              <bem.FormModal__radioText>
+                {t('XML')}
+              </bem.FormModal__radioText>
+            </bem.FormModal__radio>
           </bem.FormModal__item>
 
           <bem.FormModal__item m='security'>
-            <label htmlFor="rest-service-form--security">
+            <label htmlFor='rest-service-form--security'>
               {t('Security')}
             </label>
             <Select
-              id="rest-service-form--security"
-              name="securityType"
+              id='rest-service-form--security'
+              name='securityType'
               value={this.state.securityType}
               onChange={this.formItemChange}
               options={this.state.securityOptions}
@@ -198,13 +204,13 @@ export class RESTServicesForm extends React.Component {
 
           {this.state.securityType && this.state.securityType.value == 'auth_header' &&
             <bem.FormModal__item>
-              <label htmlFor="rest-service-form--authorization-header">
+              <label htmlFor='rest-service-form--authorization-header'>
                 {t('Authorization Header')}
               </label>
               <input
-                type="text"
-                id="rest-service-form--authorization-header"
-                name="auth_header"
+                type='text'
+                id='rest-service-form--authorization-header'
+                name='auth_header'
                 value={this.state.auth_header}
                 onChange={this.formItemChange}
               />
@@ -212,16 +218,16 @@ export class RESTServicesForm extends React.Component {
           }
 
           <bem.FormModal__item m='fields'>
-            <label className="long">
+            <label className='long'>
               {t('Advanced Users')}
             </label>
-            <label htmlFor="rest-service-form--fields">
+            <label htmlFor='rest-service-form--fields'>
               {t('Post selected questions only (use question names, comma-delimited)')}
             </label>
             <textarea
-              id="rest-service-form--fields"
-              className="questions"
-              name="questions"
+              id='rest-service-form--fields'
+              className='questions'
+              name='questions'
               value={this.state.questions}
               onChange={this.formItemChange}
             />
@@ -230,7 +236,7 @@ export class RESTServicesForm extends React.Component {
           <bem.FormModal__item m='actions'>
             <button
               onClick={this.onSubmit}
-              className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+              className='mdl-button mdl-js-button mdl-button--raised mdl-button--colored'
             >
               {t('Create')}
             </button>
@@ -265,7 +271,7 @@ export class RESTServicesList extends React.Component {
     ];
     return (
       <bem.FormView__cell m='REST-services-list'>
-        <bem.FormView__group m="headings">
+        <bem.FormView__group m='headings'>
           <bem.FormView__cell m='label'>
             X Services
           </bem.FormView__cell>
@@ -280,7 +286,7 @@ export class RESTServicesList extends React.Component {
 
             {services.map((item, n) => {
               return (
-                <bem.FormView__group m="items" key={n} >
+                <bem.FormView__group m='items' key={n} >
                   <bem.FormView__label m='name'>
                     {item.name}
                   </bem.FormView__label>
