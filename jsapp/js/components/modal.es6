@@ -132,7 +132,6 @@ class Modal extends React.Component {
         message: t('Uploading: ') + filename
       });
     }
-
     if (nextProps.params && !nextProps.params.sid) {
       this.setState({ sid: false });
     }

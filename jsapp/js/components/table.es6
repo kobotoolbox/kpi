@@ -4,6 +4,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import _ from 'underscore';
+import $ from 'jquery';
 import {dataInterface} from '../dataInterface';
 
 import actions from '../actions';
@@ -37,6 +38,7 @@ export class DataTable extends React.Component {
       tableData: [],
       columns: [],
       selectedColumns: false,
+      frozenColumn: false,
       sids: [],
       showExpandedTable: false,
       defaultPageSize: 30,
@@ -342,15 +344,23 @@ export class DataTable extends React.Component {
       return a.index.localeCompare(b.index, 'en', {numeric: true});
     })
 
+    let settings = this.props.asset.settings,
+        selectedColumns = false,
+        frozenColumn = false,
+        textFilterQuestionTypes = ['text', 'integer', 'decimal'];
+
+    if (settings['data-table'] && settings['data-table']['frozen-column']) {
+      frozenColumn = settings['data-table']['frozen-column'];
+    }
+
     columns.forEach(function(col, ind) {
       // TODO: see if this can work for select_multiple too
       if (col.question && col.question.type === 'select_one') {
-        columns[ind].filterable = true;
-        columns[ind].Filter = ({ filter, onChange }) =>
-          <select
-            onChange={event => onChange(event.target.value)}
-            style={{ width: "100%" }}
-            value={filter ? filter.value : ""}>
+        col.filterable = true;
+        col.Filter = ({ filter, onChange }) =>
+          <select onChange={event => onChange(event.target.value)}
+                  style={{ width: "100%" }}
+                  value={filter ? filter.value : ""}>
             <option value="">Show All</option>
             {choices.filter(c => c.list_name === col.question.select_from_list_name).map((item, n) => {
               return (
@@ -359,37 +369,46 @@ export class DataTable extends React.Component {
             })}
           </select>;
       }
-      if (col.question && (col.question.type === 'text' || col.question.type === 'integer'
-          || col.question.type === 'decimal')) {
-        columns[ind].filterable = true;
-        columns[ind].Filter = ({ filter, onChange }) =>
+      if (col.question && textFilterQuestionTypes.includes(col.question.type)) {
+        col.filterable = true;
+        col.Filter = ({ filter, onChange }) =>
           <DebounceInput
             debounceTimeout={750}
             onChange={event => onChange(event.target.value)}
             style={{ width: "100%" }}/>;
       }
+
+      if (frozenColumn === col.id) {
+        col.className = col.className ? `frozen ${col.className}` : 'frozen';
+        col.headerClassName = 'frozen';
+      }
     })
 
-    // prepare list of selected columns, if available
-    let settings = this.props.asset.settings,
-        selectedColumns = false;
-
+    // prepare list of selected columns, if configured
     if (settings['data-table'] && settings['data-table']['selected-columns']) {
       const selCos = settings['data-table']['selected-columns'];
-      selectedColumns = columns.filter((el) => selCos.includes(el.id) !== false);
+      selectedColumns = columns.filter((el) => {
+        if (el.id == '__SubmissionLinks')
+          return true;
+
+        return selCos.includes(el.id) !== false}
+      );
     }
 
+    console.log(selectedColumns);
+    console.log(settings);
     this.setState({
       columns: columns,
-      selectedColumns: selectedColumns
-    })
+      selectedColumns: selectedColumns,
+      frozenColumn: frozenColumn
+    });
+
+    this.onTableResizeChange(false);
   }
   getColumnLabel(key, q, qParentG) {
     switch(key) {
       case '__SubmissionCheckbox':
         return t('Multi-select checkboxes column');
-      case '__SubmissionLinks':
-        return t('Preview and edit links column');
       case '__ValidationStatus':
         return t('Validation status');
     }
@@ -709,6 +728,20 @@ export class DataTable extends React.Component {
       </bem.FormView__item>
     );
   }
+  onTableResizeChange(params) {
+    let frozenCol = this.state.frozenColumn,
+        padLeft = 0;
+
+    if (frozenCol) {
+      if (params && params[0].id === frozenCol) {
+        padLeft = params[0].value;
+      } else {
+        padLeft = $('.ReactTable .rt-th.frozen').width();
+      }
+
+      $('.ReactTable .rt-tr').css('padding-left', padLeft);
+    }
+  }
   render () {
     if (this.state.error) {
       return (
@@ -724,7 +757,9 @@ export class DataTable extends React.Component {
 
     const { tableData, columns, selectedColumns, defaultPageSize, loading, pageSize, currentPage, resultsTotal } = this.state;
     const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1);
-    let asset = this.props.asset;
+    let asset = this.props.asset,
+        tableClasses = this.state.frozenColumn ? '-striped -highlight has-frozen-column' : '-striped -highlight';
+
     return (
       <bem.FormView m='table'>
         {this.state.promptRefresh &&
@@ -844,10 +879,11 @@ export class DataTable extends React.Component {
           defaultPageSize={defaultPageSize}
           pageSizeOptions={[10, 30, 50, 100, 200, 500]}
           minRows={1}
-          className={"-striped -highlight"}
+          className={tableClasses}
           pages={pages}
           manual
           onFetchData={this.fetchData}
+          onResizedChange={_.debounce(this.onTableResizeChange, 50)}
           loading={loading}
           previousText={t('Prev')}
           nextText={t('Next')}
@@ -869,4 +905,5 @@ export class DataTable extends React.Component {
 
 reactMixin(DataTable.prototype, Reflux.ListenerMixin);
 reactMixin(DataTable.prototype, mixins.permissions);
+
 export default DataTable;

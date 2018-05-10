@@ -3,7 +3,7 @@ from rest_framework import viewsets, mixins
 from .serializers import ReportsListSerializer, ReportsDetailSerializer
 
 from kpi.models import AssetVersion, Asset
-from kpi.models.object_permission import get_objects_for_user
+from kpi.models.object_permission import get_objects_for_user, get_anonymous_user
 
 
 class ReportsViewSet(mixins.ListModelMixin,
@@ -22,6 +22,7 @@ class ReportsViewSet(mixins.ListModelMixin,
         # Retrieve all deployed assets first.
         deployed_assets = Asset.objects.filter(asset_versions__deployed=True).distinct()
         # Then retrieve all assets user is allowed to view (user must have 'view_submissions' on Asset objects)
-        assets = get_objects_for_user(self.request.user, 'view_submissions', deployed_assets)
+        user_assets = get_objects_for_user(self.request.user, 'view_submissions', deployed_assets)
+        publicly_shared_assets = get_objects_for_user(get_anonymous_user(), 'view_submissions', deployed_assets)
 
-        return assets
+        return user_assets | publicly_shared_assets

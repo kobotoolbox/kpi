@@ -139,7 +139,7 @@ def commit_pull_and_deploy(tag):
         if local('git diff', capture=True):
             # Commit the change
             local("git add '{}'".format(local_compose_file))
-            local("git commit -am 'Updated {service} to {tag}'".format(
+            local("git commit -am 'Upgrade {service} to {tag}'".format(
                 service=SERVICE_NAME, tag=tag)
             )
             # Push the commit

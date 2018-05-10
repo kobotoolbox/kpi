@@ -13,7 +13,7 @@ module.exports = do ->
     getValue: ()->
       v = @serialize()
       if v is "undefined"
-        trackJs?.console.error("Serialized value is returning a string, undefined")
+        Raven?.captureException("Serialized value is returning a string, undefined")
         v = ""
       v
 
@@ -40,7 +40,7 @@ module.exports = do ->
     getValue: () ->
       v = @serialize()
       if v is "undefined"
-        trackJs?.console.error("Serialized value is returning a string, undefined")
+        Raven?.captureException("Serialized value is returning a string, undefined")
         v = ""
       v
 

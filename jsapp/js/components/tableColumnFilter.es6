@@ -27,6 +27,10 @@ export class TableColumnFilter extends React.Component {
       this.state.selectedColumns = props.settings['data-table']['selected-columns'];
     }
 
+    if (props.settings['data-table'] && props.settings['data-table']['frozen-column']) {
+      this.state.frozenColumn = props.settings['data-table']['frozen-column'];
+    }
+
     autoBind(this);
   }
   componentDidMount() {
@@ -48,26 +52,28 @@ export class TableColumnFilter extends React.Component {
     })
   }
   saveTableColumns() {
-    if (this.state.selectedColumns.length === 0) {
-      notify(t('You must select at least one column.'));
-      return false;
-    }
+    let s = this.state;
     let settings = this.props.settings;
     if (!settings['data-table']) {
       settings['data-table'] = {
-        'selected-columns': this.state.selectedColumns
+        'selected-columns': s.selectedColumns,
+        'frozen-column': s.frozenColumn
       };
     } else {
-      settings['data-table']['selected-columns'] = this.state.selectedColumns;
+      settings['data-table']['selected-columns'] = s.selectedColumns.length > 0 ? s.selectedColumns : null;
+      settings['data-table']['frozen-column'] = s.frozenColumn;
     }
 
     actions.table.updateSettings(this.props.uid, settings);
   }
-
+  setFrozenColumn(col) {
+    this.setState({
+      frozenColumn: col && col.value ? col.value : false
+    })
+  }
   settingsUpdateFailed() {
     notify(t('There was an error, table settings could not be saved.'));
   }
-
   resetTableSettings() {
     let settings = this.props.settings;
     if (settings['data-table'])
@@ -75,42 +81,55 @@ export class TableColumnFilter extends React.Component {
 
     actions.table.updateSettings(this.props.uid, settings);
   }
+  listColumns() {
+    let colsArray = this.props.columns.reduce((acc, col) => {
+      if (col.id) {
+        let qParentGroup = [];
+        if (col.id.includes('/')) {
+          qParentGroup = col.id.split('/');
+        }
 
+        acc.push({
+          value: col.id,
+          label: this.props.getColumnLabel(col.id, col.question, qParentGroup)
+        });
+      }
+      return acc;
+    }, []);
+
+    return colsArray;
+  }
   render () {
     let _this = this;
 
     return (
       <div className="tableColumn-modal">
-        {t('Select which columns to include in the table display and press Save below to store your changes.')}&nbsp;
-        <strong>{t('Note: only users who can edit this project can see this screen and show/hide table columns.')}</strong>
+        {t('Select columns to be included in the table display.')}<br/>
+        <label>{t('Note: only users with edit permissions can see this screen.')}</label>
         <ul>
-          {
-            this.props.columns.map(function(col, ind) {
-              if (col.id) {
-                let qParentGroup = [];
-                if (col.id.includes('/')) {
-                  qParentGroup = col.id.split('/');
-                }
+          {this.listColumns().map(function(col) {
+            return (
+              <li key={col.value}>
+                <input
+                  type="checkbox"
+                  value={col.value}
+                  checked={_this.state.selectedColumns.includes(col.value)}
+                  onChange={_this.toggleCheckboxChange}
+                  id={`colcheck-${col.value}`}
+                />
 
-                return (
-                  <li className="checkbox" key={col.id}>
-                    <input
-                      type="checkbox"
-                      value={col.id}
-                      checked={_this.state.selectedColumns.includes(col.id)}
-                      onChange={_this.toggleCheckboxChange}
-                      id={`colcheck-${col.id}`}
-                    />
-
-                    <label htmlFor={`colcheck-${col.id}`}>
-                      {_this.props.getColumnLabel(col.id, col.question, qParentGroup)}
-                    </label>
-                  </li>
-                );
-              }
-            })
-          }
+                <label htmlFor={`colcheck-${col.value}`}>
+                  {col.label}
+                </label>
+              </li>
+            );
+          })}
         </ul>
+        {t('Select a column to be displayed as the first, frozen column in the table.')}
+        <Select
+          value={this.state.frozenColumn}
+          options={this.listColumns()}
+          onChange={this.setFrozenColumn} />
         <div className='tableColumn-modal--footer'>
           <button className="mdl-button mdl-button--colored" onClick={this.resetTableSettings}>
             {t('Reset')}

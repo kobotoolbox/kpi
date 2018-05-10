@@ -60,7 +60,11 @@
 .form-wrap {
   padding: 0px 75px;
   width: 100%;
-  min-height: 200px;
+
+  > .formbuilder-wrap > .survey-editor > .survey-editor__list {
+    // height of viewport minus (form-meta box + formbuilder header)
+    min-height: calc(100vh - 200px);
+  }
 
   .survey-header, .sub-header-bar {
     display: none;

@@ -85,7 +85,7 @@
     }
 
     .rt-tr-group {
-      max-height: 50px;
+      max-height: 36px;
     }
 
     .rt-tr {
@@ -193,6 +193,25 @@
     &.-highlight .rt-tbody .rt-tr:not(.-padRow):hover {
       background: rgba($cool-green, 0.1);
     }
+
+    &.has-frozen-column {
+      position: relative;
+
+      .frozen {
+        position: absolute;
+        left: 1px;
+        background: #F7F7F7;
+      }
+
+      .rt-th.frozen {
+        height: 34px;
+        z-index: 2;
+      }
+
+      .rt-td.frozen {
+        height: 36px;
+      }
+    }
   }
 
   .form-view__cell--table-warning {
@@ -238,10 +257,19 @@
 
 .tableColumn-modal {
   ul {
-    margin: 30px 0px 20px 0px;
+    margin: 10px 0px 20px 0px;
+    max-height: 250px;
+    overflow: auto;
+    border: 1px solid $divider-color;
+    padding: 10px;
 
     li {
       margin-bottom: 10px;
+      max-width: 100%;
+
+      label {
+        display: inline-block;
+      }
     }
   }
 

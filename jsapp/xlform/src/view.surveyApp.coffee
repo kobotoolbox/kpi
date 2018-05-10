@@ -29,9 +29,10 @@ module.exports = do ->
 
       _s = (i)-> JSON.stringify(i)
       if _s(rIds) isnt _s(elIds)
-        trackJs?.console.log _s(rIds)
-        trackJs?.console.log _s(elIds)
-        trackJs?.console.error("Row model does not match view")
+        Raven?.captureException new Error('Row model does not match view'), extra:
+          rIds: _s(rIds)
+          elIds: _s(elIds)
+
         false
       else
         true
@@ -644,7 +645,7 @@ module.exports = do ->
           if parent.constructor.kls == "Group" && parent.rows.length == 0
             parent_view = @__rowViews.get(parent.cid)
             if !parent_view
-              trackJs?.console.error("parent view is not defined", matchingRow.get('name').get('value'))
+              Raven?.captureException("parent view is not defined", matchingRow.get('name').get('value'))
             parent_view._deleteGroup()
         @set_multioptions_label()
 
