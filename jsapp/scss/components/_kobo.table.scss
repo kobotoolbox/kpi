@@ -195,21 +195,24 @@
     }
 
     &.has-frozen-column {
-      position: relative;
+      .rt-tr {
+        position: relative;
+      }
 
       .frozen {
         position: absolute;
-        left: 1px;
+        left: 0px;
         background: #F7F7F7;
+        z-index: 2;
+        height: 36px;
+
+        &:hover {
+          background: #F1F1F1;
+        }
       }
 
       .rt-th.frozen {
         height: 34px;
-        z-index: 2;
-      }
-
-      .rt-td.frozen {
-        height: 36px;
       }
     }
   }

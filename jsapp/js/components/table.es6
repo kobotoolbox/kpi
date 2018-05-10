@@ -55,6 +55,8 @@ export class DataTable extends React.Component {
       promptRefresh: false,
       submissionPager: false
     };
+
+    this.tableScrollTop = 0;
     autoBind(this);
   }
   requestData(instance) {
@@ -734,10 +736,10 @@ export class DataTable extends React.Component {
       if (params && params[0].id === frozenCol) {
         padLeft = params[0].value;
       } else {
-        padLeft = $('.ReactTable .rt-th.frozen').width();
+        padLeft = $('.ReactTable .rt-th.frozen').width() + 10;
       }
 
-      $('.ReactTable .rt-tr').css('padding-left', padLeft);
+      $('.ReactTable .rt-tr').css('padding-left', padLeft + 10);
     }
   }
   render () {
@@ -881,7 +883,7 @@ export class DataTable extends React.Component {
           pages={pages}
           manual
           onFetchData={this.fetchData}
-          onResizedChange={_.debounce(this.onTableResizeChange, 50)}
+          onResizedChange={_.debounce(this.onTableResizeChange, 10)}
           loading={loading}
           previousText={t('Prev')}
           nextText={t('Next')}
@@ -895,6 +897,20 @@ export class DataTable extends React.Component {
           pageText={t('Page')}
           ofText={t('of')}
           rowsText={t('rows')}
+          getTableProps={() => {
+            return {
+              onScroll: (e) => {
+                if (this.state.frozenColumn) {
+                  if (this.tableScrollTop === e.target.scrollTop) {
+                    let left = e.target.scrollLeft > 0 ? e.target.scrollLeft - 12 : e.target.scrollLeft;
+                    $('.ReactTable .rt-tr .frozen').css({left: left});
+                  } else {
+                    this.tableScrollTop = e.target.scrollTop;
+                  }
+                }
+              }
+            };
+          }}
           filterable/>
       </bem.FormView>
     );
