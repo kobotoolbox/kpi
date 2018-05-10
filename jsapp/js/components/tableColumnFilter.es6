@@ -56,7 +56,7 @@ export class TableColumnFilter extends React.Component {
     let settings = this.props.settings;
     if (!settings['data-table']) {
       settings['data-table'] = {
-        'selected-columns': s.selectedColumns,
+        'selected-columns': s.selectedColumns.length > 0 ? s.selectedColumns : null,
         'frozen-column': s.frozenColumn
       };
     } else {

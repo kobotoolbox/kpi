@@ -395,8 +395,6 @@ export class DataTable extends React.Component {
       );
     }
 
-    console.log(selectedColumns);
-    console.log(settings);
     this.setState({
       columns: columns,
       selectedColumns: selectedColumns,
