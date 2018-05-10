@@ -444,34 +444,6 @@
   }
 }
 
-.popover-menu--formTable-menu {
-  .popover-menu__content {
-    min-width: 260px;
-    max-width: 340px;
-  }
-
-  .popover-menu__item--currently {
-    border-top: 1px solid $divider-color;
-    background-color: lighten($divider-color, 5%);
-    color: $cool-gray;
-    cursor: inherit;
-
-    &:hover {
-      background-color: lighten($divider-color, 5%);
-    }
-
-    span {
-      font-size: 12px;
-      vertical-align: middle;
-
-      &:last-child {
-        margin-left: 5px;
-        color: darken($cool-green, 5%);
-      }
-    }
-  }
-}
-
 @media screen and (max-width: 767px) {
   .popover-menu--collectData-menu {
     .popover-menu__toggle {

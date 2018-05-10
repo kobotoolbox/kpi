@@ -20,21 +20,40 @@ export class TableColumnFilter extends React.Component {
     super(props);
     this.state = {
       selectedColumns: [],
-      frozenColumn: false
+      frozenColumn: false,
+      showGroupName: true,
+      translationIndex: 0
     };
 
-    if (props.settings['data-table'] && props.settings['data-table']['selected-columns']) {
-      this.state.selectedColumns = props.settings['data-table']['selected-columns'];
-    }
-
-    if (props.settings['data-table'] && props.settings['data-table']['frozen-column']) {
-      this.state.frozenColumn = props.settings['data-table']['frozen-column'];
+    if (props.settings['data-table']) {
+      if (props.settings['data-table']['selected-columns'])
+        this.state.selectedColumns = props.settings['data-table']['selected-columns'];
+      if (props.settings['data-table']['frozen-column'])
+        this.state.frozenColumn = props.settings['data-table']['frozen-column'];
+      if (props.settings['data-table']['show-group-name'])
+        this.state.showGroupName = props.settings['data-table']['show-group-name'];
+      if (props.settings['data-table']['translation-index'])
+        this.state.translationIndex = props.settings['data-table']['translation-index'];
     }
 
     autoBind(this);
   }
   componentDidMount() {
     this.listenTo(actions.table.updateSettings.failed, this.settingsUpdateFailed);
+  }
+  saveTableColumns() {
+    let s = this.state;
+    let settings = this.props.settings;
+    if (!settings['data-table']) {
+      settings['data-table'] = {};
+    }
+
+    settings['data-table']['selected-columns'] = s.selectedColumns.length > 0 ? s.selectedColumns : null;
+    settings['data-table']['frozen-column'] = s.frozenColumn;
+    settings['data-table']['show-group-name'] = s.showGroupName;
+    settings['data-table']['translation-index'] = s.translationIndex;
+
+    actions.table.updateSettings(this.props.uid, settings);
   }
   toggleCheckboxChange(evt) {
     let selectedColumns = this.state.selectedColumns,
@@ -51,24 +70,19 @@ export class TableColumnFilter extends React.Component {
       selectedColumns: selectedColumns
     })
   }
-  saveTableColumns() {
-    let s = this.state;
-    let settings = this.props.settings;
-    if (!settings['data-table']) {
-      settings['data-table'] = {
-        'selected-columns': s.selectedColumns.length > 0 ? s.selectedColumns : null,
-        'frozen-column': s.frozenColumn
-      };
-    } else {
-      settings['data-table']['selected-columns'] = s.selectedColumns.length > 0 ? s.selectedColumns : null;
-      settings['data-table']['frozen-column'] = s.frozenColumn;
-    }
-
-    actions.table.updateSettings(this.props.uid, settings);
-  }
   setFrozenColumn(col) {
     this.setState({
       frozenColumn: col && col.value ? col.value : false
+    })
+  }
+  updateGroupHeaderDisplay(e) {
+    this.setState({
+      showGroupName: e.target.checked
+    })
+  }
+  onLabelChange(e) {
+    this.setState({
+      translationIndex: e.target.value
     })
   }
   settingsUpdateFailed() {
@@ -83,7 +97,7 @@ export class TableColumnFilter extends React.Component {
   }
   listColumns() {
     let colsArray = this.props.columns.reduce((acc, col) => {
-      if (col.id) {
+      if (col.id && col.id !== '__SubmissionLinks') {
         let qParentGroup = [];
         if (col.id.includes('/')) {
           qParentGroup = col.id.split('/');
@@ -104,32 +118,78 @@ export class TableColumnFilter extends React.Component {
 
     return (
       <div className="tableColumn-modal">
-        {t('Select columns to be included in the table display.')}<br/>
-        <label>{t('Note: only users with edit permissions can see this screen.')}</label>
-        <ul>
-          {this.listColumns().map(function(col) {
-            return (
-              <li key={col.value}>
-                <input
-                  type="checkbox"
-                  value={col.value}
-                  checked={_this.state.selectedColumns.includes(col.value)}
-                  onChange={_this.toggleCheckboxChange}
-                  id={`colcheck-${col.value}`}
-                />
+        <bem.FormModal__item m='translation-radios'>
+          <bem.FormView__cell m='label'>
+            {t('Display labels or XML values?')}
+          </bem.FormView__cell>
+          <div>
+            <label htmlFor={`trnsl-xml`}>
+              <input type='radio' name='translation'
+                     value='-1' id={`trnsl-xml`}
+                     checked={this.state.translationIndex == '-1'}
+                     onChange={this.onLabelChange} />
+              {t('XML Values')}
+            </label>
 
-                <label htmlFor={`colcheck-${col.value}`}>
-                  {col.label}
-                </label>
-              </li>
-            );
-          })}
-        </ul>
-        {t('Select a column to be displayed as the first, frozen column in the table.')}
-        <Select
-          value={this.state.frozenColumn}
-          options={this.listColumns()}
-          onChange={this.setFrozenColumn} />
+            {
+              this.props.translations.map((trns, n) => {
+                return (
+                  <label htmlFor={`trnsl-${n}`} key={n}>
+                    <input type='radio' name='translation'
+                           value={n} id={`trnsl-${n}`}
+                           checked={this.state.translationIndex == n}
+                           onChange={this.onLabelChange} />
+                    {t('Labels')} {trns ? ` - ${trns}` : null}
+                  </label>
+                )
+              })
+            }
+
+          </div>
+        </bem.FormModal__item>
+        <bem.FormModal__item>
+          <bem.FormView__cell m='label'>
+            {t('Set one column as a frozen first column in the table.')}
+          </bem.FormView__cell>
+          <Select
+            value={this.state.frozenColumn}
+            options={this.listColumns()}
+            onChange={this.setFrozenColumn} />
+        </bem.FormModal__item>
+        <bem.FormModal__item>
+          <bem.FormView__cell m='label'>
+            {t('Choose which columns to include in the table display (by default, all columns are shown).')}
+          </bem.FormView__cell>
+          <ul>
+            {this.listColumns().map(function(col) {
+              return (
+                <li key={col.value}>
+                  <input
+                    type="checkbox"
+                    value={col.value}
+                    checked={_this.state.selectedColumns.includes(col.value)}
+                    onChange={_this.toggleCheckboxChange}
+                    id={`colcheck-${col.value}`}
+                  />
+
+                  <label htmlFor={`colcheck-${col.value}`}>
+                    {col.label}
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+        </bem.FormModal__item>
+        <bem.FormModal__item m='group-headings'>
+          <input
+            type="checkbox"
+            checked={this.state.showGroupName}
+            onChange={this.updateGroupHeaderDisplay}
+            id='check-group-headings'/>
+          <label htmlFor='check-group-headings'>
+            {t('Show group names in table headers')}
+          </label>
+        </bem.FormModal__item>
         <div className='tableColumn-modal--footer'>
           <button className="mdl-button mdl-button--colored" onClick={this.resetTableSettings}>
             {t('Reset')}

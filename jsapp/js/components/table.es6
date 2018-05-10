@@ -148,12 +148,21 @@ export class DataTable extends React.Component {
 
     let showLabels = this.state.showLabels,
         showGroups = this.state.showGroups,
+        settings = this.props.asset.settings,
         translationIndex = this.state.translationIndex,
         maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length),
         _this = this;
 
-    var columns = [];
+    if (settings['data-table'] && settings['data-table']['translation-index'] != null) {
+      translationIndex = settings['data-table']['translation-index'];
+      showLabels = translationIndex > -1 ? true : false;
+    }
 
+    if (settings['data-table'] && settings['data-table']['show-group-name'] != null) {
+      showGroups = settings['data-table']['show-group-name'];
+    }
+
+    var columns = [];
     if (this.userCan('validate_submissions', this.props.asset)) {
       columns.push({
         Header: row => (
@@ -193,16 +202,17 @@ export class DataTable extends React.Component {
       minWidth: userCanSeeEditIcon ? 75 : 45,
       filterable: false,
       sortable: false,
+      className: 'rt-link',
       Cell: row => (
         <div>
           <span onClick={this.launchSubmissionModal} data-sid={row.row._id}
-                className='rt-link' title={t('Open')}>
+                className='table-link' data-tip={t('Open')}>
             <i className="k-icon k-icon-view"></i>
           </span>
 
           {userCanSeeEditIcon &&
             <span onClick={this.launchEditSubmission} data-sid={row.row._id}
-                  className='rt-link' title={t('Edit')}>
+                  className='table-link' data-tip={t('Edit')}>
               <i className="k-icon k-icon-edit"></i>
             </span>
           }
@@ -346,8 +356,7 @@ export class DataTable extends React.Component {
       return a.index.localeCompare(b.index, 'en', {numeric: true});
     })
 
-    let settings = this.props.asset.settings,
-        selectedColumns = false,
+    let selectedColumns = false,
         frozenColumn = false,
         textFilterQuestionTypes = ['text', 'integer', 'decimal'];
 
@@ -390,6 +399,7 @@ export class DataTable extends React.Component {
     if (settings['data-table'] && settings['data-table']['selected-columns']) {
       const selCos = settings['data-table']['selected-columns'];
       selectedColumns = columns.filter((el) => {
+        // always include edit/preview links column
         if (el.id == '__SubmissionLinks')
           return true;
 
@@ -400,7 +410,10 @@ export class DataTable extends React.Component {
     this.setState({
       columns: columns,
       selectedColumns: selectedColumns,
-      frozenColumn: frozenColumn
+      frozenColumn: frozenColumn,
+      translationIndex: translationIndex,
+      showLabels: showLabels,
+      showGroups: showGroups
     });
 
     this.onTableResizeChange(false);
@@ -523,7 +536,8 @@ export class DataTable extends React.Component {
       settings: this.props.asset.settings,
       columns: this.state.columns,
       uid: this.props.asset.uid,
-      getColumnLabel: this.getColumnLabel
+      getColumnLabel: this.getColumnLabel,
+      translations: this.props.asset.content.translations || false
     });
   }
   launchEditSubmission (evt) {
@@ -653,35 +667,6 @@ export class DataTable extends React.Component {
     };
     dialog.set(opts).show();
   }
-  showXMLValues() {
-    this.setState({
-      showLabels: false
-    });
-
-    window.setTimeout(()=>{
-      this._prepColumns(this.state.tableData);
-    }, 200);
-  }
-  showTranslation(evt) {
-    const index = evt.target.getAttribute('data-index');
-    this.setState({
-      showLabels: true,
-      translationIndex: index
-    });
-
-    window.setTimeout(()=>{
-      this._prepColumns(this.state.tableData);
-    }, 200);
-  }
-  toggleGroups () {
-    this.setState({
-      showGroups: !this.state.showGroups
-    });
-
-    window.setTimeout(()=>{
-      this._prepColumns(this.state.tableData);
-    }, 200);
-  }
   bulkSelectAll() {
     this.setState({selectAll: true});
   }
@@ -740,6 +725,8 @@ export class DataTable extends React.Component {
       }
 
       $('.ReactTable .rt-tr').css('padding-left', padLeft + 10);
+    } else {
+      $('.ReactTable .rt-tr').css('padding-left', 0);
     }
   }
   render () {
@@ -803,73 +790,13 @@ export class DataTable extends React.Component {
               <i className="k-icon-expand" />
             </button>
 
-            <ui.PopoverMenu type='formTable-menu'
-                        triggerLabel={<i className="k-icon-more" />}
-                        triggerTip={t('Display options')}>
-                <bem.PopoverMenu__item m='currently'>
-                  <span>{t('Showing:')}</span>
-                  {this.state.selectedColumns ?
-                    <span>{t('Selected columns')}</span>
-                    :
-                    <span>{t('All columns')}</span>
-                  }
-                </bem.PopoverMenu__item>
-
-                {this.userCan('change_submissions', this.props.asset) &&
-                  <bem.PopoverMenu__link
-                    onClick={this.launchTableColumnsModal}>
-                    {t('Show/hide table columns')}
-                  </bem.PopoverMenu__link>
-                }
-                <bem.PopoverMenu__item m='currently'>
-                  <span>{t('Showing:')}</span>
-                  {this.state.showLabels ?
-                    <span>
-                      {t('Labels')}&nbsp;
-                      {asset.content.translations.length > 1 &&
-                        ` - ${asset.content.translations[this.state.translationIndex]}`
-                      }
-                    </span>
-                  :
-                    <span>{t('XML Values')}</span>
-                  }
-                </bem.PopoverMenu__item>
-
-                {this.state.showLabels &&
-                  <bem.PopoverMenu__link onClick={this.showXMLValues}>
-                    {t('Show XML values')}
-                  </bem.PopoverMenu__link>
-                }
-                {asset.content.translations.map((trns, n) => {
-                    return (
-                      <bem.PopoverMenu__link
-                        onClick={this.showTranslation} data-index={n} key={n}
-                        className={this.state.showLabels && this.state.translationIndex == n ? 'hidden': ''}>
-                        {t('Show labels')}
-                        {trns ? ` - ${trns}` : null}
-                      </bem.PopoverMenu__link>
-                    )
-                })}
-                <bem.PopoverMenu__item m='currently'>
-                  <span>{t('Showing:')}</span>
-                  {this.state.showGroups ?
-                    <span>{t('Groups in headings')}</span>
-                  :
-                    <span>{t('No groups in headings')}</span>
-                  }
-                </bem.PopoverMenu__item>
-
-                {this.state.showGroups ?
-                  <bem.PopoverMenu__link onClick={this.toggleGroups} className="divider">
-                    {t('Hide groups in headings')}
-                  </bem.PopoverMenu__link>
-                :
-                  <bem.PopoverMenu__link onClick={this.toggleGroups} className="divider">
-                    {t('Show groups in headings')}
-                  </bem.PopoverMenu__link>
-                }
-            </ui.PopoverMenu>
-
+            {this.userCan('change_submissions', this.props.asset) &&
+              <button className="mdl-button mdl-button--icon report-button__expand"
+                      onClick={this.launchTableColumnsModal}
+                      data-tip={t('Display options')}>
+                <i className="k-icon-settings" />
+              </button>
+            }
           </bem.FormView__item>
         </bem.FormView__group>
 

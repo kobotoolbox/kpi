@@ -81,7 +81,7 @@ class Modal extends React.Component {
         break;
       case 'table-columns':
         this.setState({
-          title: t('Configure table columns')
+          title: t('Table display options')
         });
       break;
 		}
@@ -221,7 +221,8 @@ class Modal extends React.Component {
               <TableColumnFilter settings={this.props.params.settings}
                                  columns={this.props.params.columns}
                                  uid={this.props.params.uid}
-                                 getColumnLabel={this.props.params.getColumnLabel} />
+                                 getColumnLabel={this.props.params.getColumnLabel}
+                                 translations={this.props.params.translations} />
             }
         </ui.Modal.Body>
       </ui.Modal>
