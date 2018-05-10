@@ -23,6 +23,7 @@ def get_response(url_):
         failure = True
     else:
         # Response can be something else than 200. We need to validate this.
+        # For example: if domain name doesn't match, nginx returns a 204 status code.
         status_code = response_.status_code
         if status_code != 200:
             response_ = None
