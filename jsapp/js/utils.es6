@@ -123,8 +123,10 @@ const originalSupportEmail = 'help@kobotoolbox.org';
 const originalSupportUrl = 'http://help.kobotoolbox.org';
 
 let supportDetails = {
+  /* jnm: let's prefer showing nothing over showing the wrong information
   url: originalSupportUrl,
   email: originalSupportEmail,
+  */
 };
 
 export function setSupportDetails(details) {

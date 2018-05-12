@@ -134,7 +134,8 @@ class Drawer extends Reflux.Component {
     this.state = assign(stores.session, stores.pageState);
     this.stores = [
       stores.session,
-      stores.pageState
+      stores.pageState,
+      stores.serverEnvironment,
     ];
   }
   toggleFixedDrawer() {
@@ -163,18 +164,23 @@ class Drawer extends Reflux.Component {
             <a href={stores.session.currentAccount.projects_url}
               className='k-drawer__link'
               target="_blank"
-              data-tip={t('Projects (legacy)')}>
+              data-tip={t('Projects (legacy)')}
+            >
               <i className="k-icon k-icon-globe" />
             </a>
           }
-          { stores.session.currentAccount &&
-              stores.session.currentAccount.source_code_url &&
-            <a href='https://github.com/kobotoolbox/' className='k-drawer__link' target="_blank" data-tip={t('source')}>
+          { stores.serverEnvironment &&
+            stores.serverEnvironment.state.source_code_url &&
+            <a href={stores.serverEnvironment.state.source_code_url}
+              className='k-drawer__link' target="_blank" data-tip={t('source')}
+            >
               <i className="k-icon k-icon-github" />
             </a>
           }
-          { stores.session.currentAccount && supportUrl() &&
-            <a href={supportUrl()} className='k-drawer__link' target="_blank" data-tip={t('help')}>
+          { supportUrl() &&
+            <a href={supportUrl()} className='k-drawer__link' target="_blank"
+              data-tip={t('help')}
+            >
               <i className="k-icon k-icon-help" />
             </a>
           }
