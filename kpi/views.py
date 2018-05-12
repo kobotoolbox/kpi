@@ -39,6 +39,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+import constance
 from taggit.models import Tag
 
 from .filters import KpiAssignedObjectPermissionsFilter
@@ -1009,3 +1010,12 @@ class TokenView(APIView):
             token = get_object_or_404(Token, user=user)
             token.delete()
         return Response({}, status=status.HTTP_204_NO_CONTENT)
+
+
+class EnvironmentView(APIView):
+    ''' GET-only view for certain server-provided configuration data '''
+    def get(self, request, *args, **kwargs):
+        return Response({
+            'terms_of_service_url': constance.config.TERMS_OF_SERVICE_URL,
+            'privacy_policy_url': constance.config.PRIVACY_POLICY_URL,
+        })
