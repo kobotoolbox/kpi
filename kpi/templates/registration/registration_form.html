@@ -2,9 +2,9 @@
 <div class="registration__bg">
 
     <form action="." method="post" class="registration registration--register">
-        <div class="registration--logo">
-            <a href="/"><img src="{% static 'img/kobologo.svg' %}" /></a>
-        </div>
+        <div class="registration--logo"><a href="/">
+        {% block logo %}{{ block.super }}{% endblock %}
+        </a></div>
 
         <div class="registration__first-half">
             {% csrf_token%} {{ form.as_p }}
@@ -24,7 +24,9 @@
         <div style="clear:both;"></div>
     </form>
 
-    <div class="registration__credit"><a href="https://flic.kr/p/9v4mC5" title="Muhkjar refugee camp" target="_blank">Photo</a> by UNAMID / <a href="https://creativecommons.org/licenses/by-nc-nd/2.0/" target="_blank">by-nc-nd</a></div>
+    {% block background_credit %}
+    {{ block.super }}
+    {% endblock %}
 </div>
 
 
