@@ -297,10 +297,10 @@ TEMPLATES = [
                 'django.template.context_processors.tz',
                 'django.contrib.messages.context_processors.messages',
                 # Additional processors
-                'constance.context_processors.config',
                 'kpi.context_processors.external_service_tokens',
                 'kpi.context_processors.email',
                 'kpi.context_processors.sitewide_messages',
+                'kpi.context_processors.config',
             ],
             'debug': os.environ.get('TEMPLATE_DEBUG', 'True') == 'True',
         },

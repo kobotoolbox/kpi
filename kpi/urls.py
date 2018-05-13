@@ -31,6 +31,11 @@ from kobo.apps.superuser_stats.views import user_report, retrieve_user_report
 from kpi.views import authorized_application_authenticate_user
 from kpi.forms import RegistrationForm
 from hub.views import switch_builder
+from hub.models import ConfigurationFile
+
+# TODO: Give other apps their own `urls.py` files instead of importing their
+# views directly! See
+# https://docs.djangoproject.com/en/1.8/intro/tutorial03/#namespacing-url-names
 
 router = ExtendedDefaultRouter()
 asset_routes = router.register(r'assets', AssetViewSet)
@@ -96,6 +101,8 @@ urlpatterns = [
     # url(r'^.*', home),
     url(r'^token/$', TokenView.as_view(), name='token'),
     url(r'^environment/$', EnvironmentView.as_view(), name='environment'),
+    url(r'^configurationfile/(?P<slug>[^/]+)/?',
+        ConfigurationFile.redirect_view, name='configurationfile'),
     url(r'^private-media/', include(private_storage.urls)),
     # Statistics for superusers
     url(r'^superuser_stats/user_report/$',
