@@ -132,6 +132,12 @@ actions.resources = Reflux.createActions({
       'failed'
     ]
   },
+  registerRESTService: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
   loadAsset: {
     children: [
       'completed',
@@ -665,6 +671,28 @@ actions.auth.changePassword.completed.listen(() => {
 });
 actions.auth.changePassword.failed.listen(() => {
   notify(t('failed to change password'), 'error');
+});
+
+actions.resources.registerRESTService.listen((assetUid, details) => {
+  dataInterface.registerRESTService({
+    // TODO: adjust to real endpoint
+    parent_asset_uid: assetUid,
+    service_name: details.name,
+    service_url: details.url,
+    service_type: details.type
+    // ENDTODO
+  })
+    .done((response) => {
+      actions.resources.loadAsset({id: assetUid});
+      actions.resources.registerRESTService.completed();
+    })
+    .fail(actions.resources.registerRESTService.failed);
+});
+actions.resources.registerRESTService.completed.listen(() => {
+  notify(t('REST Service registered successfully'));
+});
+actions.resources.registerRESTService.failed.listen(() => {
+  notify(t('failed to register REST service'), 'error');
 });
 
 actions.resources.loadAsset.listen(function(params){

@@ -1,21 +1,14 @@
 import $ from 'jquery';
 import React from 'react';
-import PropTypes from 'prop-types'
+import Reflux from "reflux";
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import alertify from 'alertifyjs';
-import moment from 'moment';
-import ui from '../ui';
 import bem from '../bem';
 import actions from '../actions';
 import stores from '../stores';
 import Select from 'react-select';
-import {dataInterface} from '../dataInterface';
 import {
-  t,
-  redirectTo,
-  assign,
-  formatTime
+  t
 } from '../utils';
 
 import DocumentTitle from 'react-document-title';
@@ -24,9 +17,24 @@ export default class RESTServices extends React.Component {
   constructor(props){
     super(props);
     this.state = {
+      currentAsset: this.props.asset,
       services: false
     };
     autoBind(this);
+  }
+
+  componentDidMount() {
+    console.log(this.state);
+    this.listenTo(stores.asset, this.onAssetChange);
+  }
+
+  onAssetChange(data) {
+    if (data.assetUid === this.state.currentAsset.uid) {
+      this.setState({
+        isAwaitingAssetChange: false,
+        isCopyFormVisible: false
+      });
+    }
   }
 
   newServiceModal() {
@@ -79,11 +87,13 @@ export default class RESTServices extends React.Component {
     );
   }
 };
+reactMixin(RESTServices.prototype, Reflux.ListenerMixin);
 
 export class RESTServicesForm extends React.Component {
   constructor(props){
     super(props);
     this.state = {
+      currentAssetUid: "TODO",
       name: '',
       url: 'https://',
       type: 'json',
@@ -119,8 +129,11 @@ export class RESTServicesForm extends React.Component {
 
   onSubmit(evt) {
     evt.preventDefault();
-    console.log(this.state);
-    // TODO: send request to Backend
+    actions.resources.registerRESTService(this.state.currentAssetUid, {
+      name: this.state.name,
+      url: this.state.url,
+      type: this.state.type
+    })
     return false;
   }
 

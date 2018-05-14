@@ -111,6 +111,13 @@ var dataInterface;
         data: data
       });
     },
+    registerRESTService (data) {
+      return $ajax({
+        url: `${rootUrl}/TODO/`,
+        method: 'POST',
+        data: data
+      });
+    },
     getReportData (data) {
       let identifierString;
       if (data.identifiers) {
