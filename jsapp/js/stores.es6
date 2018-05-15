@@ -10,7 +10,6 @@ import {
   t,
   notify,
   assign,
-  setSupportDetails,
 } from './utils';
 
 function changes(orig_obj, new_obj) {
@@ -597,10 +596,6 @@ var serverEnvironmentStore = Reflux.createStore({
     }
   },
   updateEnvironment(response) {
-    let support = {};
-    if(response.support_url) {support.url = response.support_url};
-    if(response.support_email) {support.email = response.support_email};
-    setSupportDetails(support);
     this.setState(response);
   },
 });
