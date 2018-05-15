@@ -218,11 +218,10 @@ class Modal extends React.Component {
               </div>
             }
             { this.props.params.type == 'table-columns' &&
-              <TableColumnFilter settings={this.props.params.settings}
+              <TableColumnFilter asset={this.props.params.asset}
                                  columns={this.props.params.columns}
-                                 uid={this.props.params.uid}
                                  getColumnLabel={this.props.params.getColumnLabel}
-                                 translations={this.props.params.translations} />
+                                 overrideLabelsAndGroups={this.props.params.overrideLabelsAndGroups} />
             }
         </ui.Modal.Body>
       </ui.Modal>

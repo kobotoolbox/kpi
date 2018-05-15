@@ -25,15 +25,16 @@ export class TableColumnFilter extends React.Component {
       translationIndex: 0
     };
 
-    if (props.settings['data-table']) {
-      if (props.settings['data-table']['selected-columns'])
-        this.state.selectedColumns = props.settings['data-table']['selected-columns'];
-      if (props.settings['data-table']['frozen-column'])
-        this.state.frozenColumn = props.settings['data-table']['frozen-column'];
-      if (props.settings['data-table']['show-group-name'])
-        this.state.showGroupName = props.settings['data-table']['show-group-name'];
-      if (props.settings['data-table']['translation-index'])
-        this.state.translationIndex = props.settings['data-table']['translation-index'];
+    let _sett = props.asset.settings;
+    if (_sett['data-table']) {
+      if (_sett['data-table']['selected-columns'])
+        this.state.selectedColumns = _sett['data-table']['selected-columns'];
+      if (_sett['data-table']['frozen-column'])
+        this.state.frozenColumn = _sett['data-table']['frozen-column'];
+      if (_sett['data-table']['show-group-name'])
+        this.state.showGroupName = _sett['data-table']['show-group-name'];
+      if (_sett['data-table']['translation-index'])
+        this.state.translationIndex = _sett['data-table']['translation-index'];
     }
 
     autoBind(this);
@@ -43,17 +44,27 @@ export class TableColumnFilter extends React.Component {
   }
   saveTableColumns() {
     let s = this.state;
-    let settings = this.props.settings;
+    let settings = this.props.asset.settings;
     if (!settings['data-table']) {
       settings['data-table'] = {};
     }
 
-    settings['data-table']['selected-columns'] = s.selectedColumns.length > 0 ? s.selectedColumns : null;
-    settings['data-table']['frozen-column'] = s.frozenColumn;
-    settings['data-table']['show-group-name'] = s.showGroupName;
-    settings['data-table']['translation-index'] = s.translationIndex;
+    if (this.userCan('change_asset', this.props.asset)) {
+      settings['data-table']['selected-columns'] = s.selectedColumns.length > 0 ? s.selectedColumns : null;
+      settings['data-table']['frozen-column'] = s.frozenColumn;
+      settings['data-table']['show-group-name'] = s.showGroupName;
+      settings['data-table']['translation-index'] = s.translationIndex;
 
-    actions.table.updateSettings(this.props.uid, settings);
+      actions.table.updateSettings(this.props.asset.uid, settings);
+    } else {
+      console.log('just update the state, since user cannot save settings');
+      let overrides = {
+        showGroupName: s.showGroupName,
+        translationIndex: s.translationIndex
+      }
+
+      this.props.overrideLabelsAndGroups(overrides);
+    }
   }
   toggleCheckboxChange(evt) {
     let selectedColumns = this.state.selectedColumns,
@@ -89,15 +100,19 @@ export class TableColumnFilter extends React.Component {
     notify(t('There was an error, table settings could not be saved.'));
   }
   resetTableSettings() {
-    let settings = this.props.settings;
+    let settings = this.props.asset.settings;
     if (settings['data-table'])
       delete settings['data-table'];
 
-    actions.table.updateSettings(this.props.uid, settings);
+    actions.table.updateSettings(this.props.asset.uid, settings);
   }
   listColumns() {
+    let stateOverrides = {
+      showGroupName: this.state.showGroupName,
+      translationIndex: this.state.translationIndex
+    }
     let colsArray = this.props.columns.reduce((acc, col) => {
-      if (col.id && col.id !== '__SubmissionLinks') {
+      if (col.id && col.id !== '__SubmissionLinks' && col.id !== '__SubmissionCheckbox') {
         let qParentGroup = [];
         if (col.id.includes('/')) {
           qParentGroup = col.id.split('/');
@@ -105,7 +120,7 @@ export class TableColumnFilter extends React.Component {
 
         acc.push({
           value: col.id,
-          label: this.props.getColumnLabel(col.id, col.question, qParentGroup)
+          label: this.props.getColumnLabel(col.id, col.question, qParentGroup, stateOverrides)
         });
       }
       return acc;
@@ -130,9 +145,8 @@ export class TableColumnFilter extends React.Component {
                      onChange={this.onLabelChange} />
               {t('XML Values')}
             </label>
-
             {
-              this.props.translations.map((trns, n) => {
+              this.props.asset.content.translations.map((trns, n) => {
                 return (
                   <label htmlFor={`trnsl-${n}`} key={n}>
                     <input type='radio' name='translation'
@@ -144,41 +158,7 @@ export class TableColumnFilter extends React.Component {
                 )
               })
             }
-
           </div>
-        </bem.FormModal__item>
-        <bem.FormModal__item>
-          <bem.FormView__cell m='label'>
-            {t('Set one column as a frozen first column in the table.')}
-          </bem.FormView__cell>
-          <Select
-            value={this.state.frozenColumn}
-            options={this.listColumns()}
-            onChange={this.setFrozenColumn} />
-        </bem.FormModal__item>
-        <bem.FormModal__item>
-          <bem.FormView__cell m='label'>
-            {t('Choose which columns to include in the table display (by default, all columns are shown).')}
-          </bem.FormView__cell>
-          <ul>
-            {this.listColumns().map(function(col) {
-              return (
-                <li key={col.value}>
-                  <input
-                    type="checkbox"
-                    value={col.value}
-                    checked={_this.state.selectedColumns.includes(col.value)}
-                    onChange={_this.toggleCheckboxChange}
-                    id={`colcheck-${col.value}`}
-                  />
-
-                  <label htmlFor={`colcheck-${col.value}`}>
-                    {col.label}
-                  </label>
-                </li>
-              );
-            })}
-          </ul>
         </bem.FormModal__item>
         <bem.FormModal__item m='group-headings'>
           <input
@@ -190,10 +170,53 @@ export class TableColumnFilter extends React.Component {
             {t('Show group names in table headers')}
           </label>
         </bem.FormModal__item>
+        {this.userCan('change_asset', this.props.asset) &&
+          <bem.FormModal__item m='advanced-table-options'>
+            <bem.FormView__cell m='note'>
+              {t('Note: Only users with the "edit form" permission can see the following two options. If other users can view submissions on this project, their table view will be restricted by the choices made below.')}
+            </bem.FormView__cell>
+            <bem.FormModal__item>
+              <bem.FormView__cell m='label'>
+                {t('Set a frozen first column in the table.')}
+              </bem.FormView__cell>
+              <Select
+                value={this.state.frozenColumn}
+                options={this.listColumns()}
+                onChange={this.setFrozenColumn} />
+            </bem.FormModal__item>
+            <bem.FormModal__item>
+              <bem.FormView__cell m='label'>
+                {t('Restrict the visible columns in the table display')}
+                <span>{t('All columns are visible by default')}</span>
+              </bem.FormView__cell>
+              <ul>
+                {this.listColumns().map(function(col) {
+                  return (
+                    <li key={col.value}>
+                      <input
+                        type="checkbox"
+                        value={col.value}
+                        checked={_this.state.selectedColumns.includes(col.value)}
+                        onChange={_this.toggleCheckboxChange}
+                        id={`colcheck-${col.value}`}
+                      />
+
+                      <label htmlFor={`colcheck-${col.value}`}>
+                        {col.label}
+                      </label>
+                    </li>
+                  );
+                })}
+              </ul>
+            </bem.FormModal__item>
+          </bem.FormModal__item>
+        }
         <div className='tableColumn-modal--footer'>
-          <button className="mdl-button mdl-button--colored" onClick={this.resetTableSettings}>
-            {t('Reset')}
-          </button>
+          {this.userCan('change_asset', this.props.asset) &&
+            <button className="mdl-button mdl-button--colored" onClick={this.resetTableSettings}>
+              {t('Reset')}
+            </button>
+          }
 
           <button className="mdl-button mdl-button--raised mdl-button--colored"
                   onClick={this.saveTableColumns}>
@@ -207,5 +230,6 @@ export class TableColumnFilter extends React.Component {
 }
 
 reactMixin(TableColumnFilter.prototype, Reflux.ListenerMixin);
+reactMixin(TableColumnFilter.prototype, mixins.permissions);
 
 export default TableColumnFilter;

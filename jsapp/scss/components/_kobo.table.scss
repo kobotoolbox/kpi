@@ -281,7 +281,21 @@
   }
 
   .form-modal__item {
-    margin-bottom: 25px;
+    margin-bottom: 20px;
+
+    &--advanced-table-options {
+      border: 1px solid $divider-color;
+      padding: 20px;
+      background: #F8F8F8;
+
+      .form-view__cell--note {
+        padding-bottom: 20px;
+      }
+
+      .form-modal__item:last-child {
+        margin-bottom: 0px;
+      }
+    }
   }
 
   .form-modal__item--translation-radios {
@@ -301,6 +315,7 @@
     overflow: auto;
     border: 1px solid $divider-color;
     padding: 10px;
+    background: #FFF;
 
     li {
       margin-bottom: 5px;

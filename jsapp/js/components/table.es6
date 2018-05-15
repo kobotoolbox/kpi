@@ -47,13 +47,14 @@ export class DataTable extends React.Component {
       error: false,
       showLabels: true,
       translationIndex: 0,
-      showGroups: true,
+      showGroupName: true,
       resultsTotal: 0,
       selectedRows: {},
       selectAll: false,
       fetchState: false,
       promptRefresh: false,
-      submissionPager: false
+      submissionPager: false,
+      overrideLabelsAndGroups: null
     };
 
     this.tableScrollTop = 0;
@@ -147,7 +148,7 @@ export class DataTable extends React.Component {
     uniqueKeys = uniqueKeys.filter((el, ind, arr) => excludes.includes(el) === false);
 
     let showLabels = this.state.showLabels,
-        showGroups = this.state.showGroups,
+        showGroupName = this.state.showGroupName,
         settings = this.props.asset.settings,
         translationIndex = this.state.translationIndex,
         maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length),
@@ -159,7 +160,15 @@ export class DataTable extends React.Component {
     }
 
     if (settings['data-table'] && settings['data-table']['show-group-name'] != null) {
-      showGroups = settings['data-table']['show-group-name'];
+      showGroupName = settings['data-table']['show-group-name'];
+    }
+
+    // check for overrides by users with view permissions only
+    // see tableColumnFilter.es6's saveTableColumns()
+    if (this.state.overrideLabelsAndGroups !== null) {
+      showGroupName = this.state.overrideLabelsAndGroups.showGroupName;
+      translationIndex = this.state.overrideLabelsAndGroups.translationIndex;
+      showLabels = translationIndex > -1 ? true : false;
     }
 
     var columns = [];
@@ -183,10 +192,10 @@ export class DataTable extends React.Component {
         Cell: row => (
           <div>
             <input type="checkbox"
-                id={`ch-${row.row._id}`}
-                checked={this.state.selectedRows[row.row._id] ? true : false}
-                onChange={this.bulkUpdateChange} data-sid={row.row._id} />
-            <label htmlFor={`ch-${row.row._id}`}></label>
+                id={`ch-${row.original._id}`}
+                checked={this.state.selectedRows[row.original._id] ? true : false}
+                onChange={this.bulkUpdateChange} data-sid={row.original._id} />
+            <label htmlFor={`ch-${row.original._id}`}></label>
           </div>
         )
       });
@@ -205,13 +214,13 @@ export class DataTable extends React.Component {
       className: 'rt-link',
       Cell: row => (
         <div>
-          <span onClick={this.launchSubmissionModal} data-sid={row.row._id}
+          <span onClick={this.launchSubmissionModal} data-sid={row.original._id}
                 className='table-link' data-tip={t('Open')}>
             <i className="k-icon k-icon-view"></i>
           </span>
 
           {userCanSeeEditIcon &&
-            <span onClick={this.launchEditSubmission} data-sid={row.row._id}
+            <span onClick={this.launchEditSubmission} data-sid={row.original._id}
                   className='table-link' data-tip={t('Edit')}>
               <i className="k-icon k-icon-edit"></i>
             </span>
@@ -245,7 +254,7 @@ export class DataTable extends React.Component {
           clearable={false}
           value={this.state.tableData[row.index]._validation_status}
           options={VALIDATION_STATUSES}
-          onChange={this.validationStatusChange(row.row._id, row.index)} />
+          onChange={this.validationStatusChange(row.original._id, row.index)} />
       )
     });
 
@@ -398,9 +407,19 @@ export class DataTable extends React.Component {
     // prepare list of selected columns, if configured
     if (settings['data-table'] && settings['data-table']['selected-columns']) {
       const selCos = settings['data-table']['selected-columns'];
+
+      // always include frozenColumn, if set
+      if (frozenColumn && !selCos.includes(frozenColumn))
+        selCos.unshift(frozenColumn);
+
       selectedColumns = columns.filter((el) => {
         // always include edit/preview links column
         if (el.id == '__SubmissionLinks')
+          return true;
+
+        // include multi-select checkboxes if validation status is visible
+        // TODO: update this when enabling bulk deleting submissions
+        if (el.id == '__SubmissionCheckbox' && selCos.includes('__ValidationStatus'))
           return true;
 
         return selCos.includes(el.id) !== false}
@@ -413,12 +432,12 @@ export class DataTable extends React.Component {
       frozenColumn: frozenColumn,
       translationIndex: translationIndex,
       showLabels: showLabels,
-      showGroups: showGroups
+      showGroupName: showGroupName
     });
 
     this.onTableResizeChange(false);
   }
-  getColumnLabel(key, q, qParentG) {
+  getColumnLabel(key, q, qParentG, stateOverrides = false) {
     switch(key) {
       case '__SubmissionCheckbox':
         return t('Multi-select checkboxes column');
@@ -428,9 +447,14 @@ export class DataTable extends React.Component {
 
     var label = key;
     let showLabels = this.state.showLabels,
-        showGroups = this.state.showGroups,
+        showGroupName = this.state.showGroupName,
         translationIndex = this.state.translationIndex,
         survey = this.props.asset.content.survey;
+
+    if (stateOverrides) {
+      showGroupName = stateOverrides.showGroupName;
+      translationIndex = stateOverrides.translationIndex;
+    }
 
     if (key.includes('/')) {
       var splitK = key.split('/');
@@ -439,7 +463,7 @@ export class DataTable extends React.Component {
     if (q && q.label && showLabels && q.label[translationIndex])
       label = q.label[translationIndex];
     // show Groups in labels, when selected
-    if (showGroups && qParentG && key.includes('/')) {
+    if (showGroupName && qParentG && key.includes('/')) {
       var gLabels = qParentG.join(' / ');
 
       if (showLabels) {
@@ -456,6 +480,14 @@ export class DataTable extends React.Component {
     }
 
     return label;
+  }
+  overrideLabelsAndGroups(overrides) {
+    stores.pageState.hideModal();
+    this.setState({
+      overrideLabelsAndGroups: overrides
+    }, function() {
+      this._prepColumns(this.state.tableData);
+    });
   }
   toggleExpandedTable () {
     if (this.state.showExpandedTable) {
@@ -490,7 +522,7 @@ export class DataTable extends React.Component {
   }
   tableSettingsUpdated() {
     stores.pageState.hideModal();
-    this.refreshTable();
+    this._prepColumns(this.state.tableData);
   }
   launchPrinting () {
     window.print();
@@ -533,11 +565,10 @@ export class DataTable extends React.Component {
   launchTableColumnsModal () {
     stores.pageState.showModal({
       type: 'table-columns',
-      settings: this.props.asset.settings,
+      asset: this.props.asset,
       columns: this.state.columns,
-      uid: this.props.asset.uid,
       getColumnLabel: this.getColumnLabel,
-      translations: this.props.asset.content.translations || false
+      overrideLabelsAndGroups: this.overrideLabelsAndGroups
     });
   }
   launchEditSubmission (evt) {
@@ -562,7 +593,8 @@ export class DataTable extends React.Component {
 
     let params = pageState.modal,
         page = 0;
-    if(!params.sid) {
+
+    if (params.type !== 'table-columns' && !params.sid) {
       let fetchInstance = this.state.fetchInstance;
       if (params.page == 'next')
         page = this.state.currentPage + 1;
@@ -790,13 +822,11 @@ export class DataTable extends React.Component {
               <i className="k-icon-expand" />
             </button>
 
-            {this.userCan('change_submissions', this.props.asset) &&
-              <button className="mdl-button mdl-button--icon report-button__expand"
-                      onClick={this.launchTableColumnsModal}
-                      data-tip={t('Display options')}>
-                <i className="k-icon-settings" />
-              </button>
-            }
+            <button className="mdl-button mdl-button--icon report-button__expand"
+                    onClick={this.launchTableColumnsModal}
+                    data-tip={t('Display options')}>
+              <i className="k-icon-settings" />
+            </button>
           </bem.FormView__item>
         </bem.FormView__group>
 
