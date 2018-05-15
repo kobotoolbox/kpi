@@ -1,5 +1,6 @@
+import constance
 from django.conf import settings
-from hub.models import SitewideMessage
+from hub.models import SitewideMessage, ConfigurationFile
 
 
 def external_service_tokens(request):
@@ -34,3 +35,36 @@ def sitewide_messages(request):
         except SitewideMessage.DoesNotExist as e:
             return {}
     return {}
+
+
+class CombinedConfig(object):
+    '''
+    An object that gets its attributes from both a dictionary (`extra_config`)
+    AND a django-constance LazyConfig object
+    '''
+    def __init__(self, constance_config, extra_config):
+        '''
+        constance_config: LazyConfig object
+        extra_config: dictionary
+        '''
+        self.constance_config = constance_config
+        self.extra_config = extra_config
+
+    def __getattr__(self, key):
+        try:
+            return self.extra_config[key]
+        except KeyError:
+            return getattr(self.constance_config, key)
+
+
+def config(request):
+    '''
+    Merges django-constance configuration field names and values with
+    slugs and URLs for each hub.ConfigurationFile. Example use in a template:
+
+        Please visit our <a href="{{ config.SUPPORT_URL }}">help page</a>.
+        <img src="{{ config.logo }}">
+
+    '''
+    conf_files = {f.slug: f.url for f in ConfigurationFile.objects.all()}
+    return {'config': CombinedConfig(constance.config, conf_files)}

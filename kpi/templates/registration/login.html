@@ -3,7 +3,9 @@
 {% load i18n %}
 {% block content %}
   <form method="post" action="." class="registration registration--login">
-    <div class="registration--logo"><a href="/"><img src="{% static 'img/kobologo.svg' %}"/></a></div>
+    <div class="registration--logo"><a href="/">
+    {% block logo %}{{ block.super }}{% endblock %}
+    </a></div>
     {% csrf_token %}
     {{ form.as_p }}
     <a href="{% url 'auth_password_reset' %}" class="registration__forgot">
@@ -20,3 +22,4 @@
     {% endif %}
   </form>
 {% endblock %}
+

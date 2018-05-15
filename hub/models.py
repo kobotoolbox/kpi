@@ -1,6 +1,9 @@
 from django.db import models
 from django.db.models.signals import post_save
 from django.conf import settings
+from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
 from markitup.fields import MarkupField
 from jsonfield import JSONField
 
@@ -10,6 +13,37 @@ class SitewideMessage(models.Model):
     body = MarkupField()
     def __str__(self):
         return self.slug
+
+
+class ConfigurationFile(models.Model):
+    LOGO = 'logo'
+    LOGO_SMALL = 'logo_small'
+    LOGIN_BACKGROUND = 'login_background'
+
+    SLUG_CHOICES = (
+        (LOGO, LOGO),
+        (LOGO_SMALL, LOGO_SMALL),
+        (LOGIN_BACKGROUND, LOGIN_BACKGROUND),
+    )
+
+    slug = models.CharField(max_length=32, choices=SLUG_CHOICES, unique=True)
+    content = models.FileField()
+
+    def __str__(self):
+        return self.slug
+
+    @classmethod
+    def redirect_view(cls, request, slug):
+        '''
+        When using storage with URLs that expire (e.g. Amazon S3), this view
+        allows for persistent URLs--which then redirect to the temporary URLs
+        '''
+        obj = get_object_or_404(cls, slug=slug)
+        return HttpResponseRedirect(obj.content.url)
+
+    @property
+    def url(self):
+        return reverse('configurationfile', kwargs={'slug': self.slug})
 
 
 class FormBuilderPreference(models.Model):

@@ -1,7 +1,10 @@
 import constance
-from rest_framework.test import APITestCase
+from django.http import HttpRequest
 from django.core.urlresolvers import reverse
+from django.template import Template, RequestContext
 from rest_framework import status
+from rest_framework.test import APITestCase
+
 
 class EnvironmentTests(APITestCase):
     fixtures = ['test_data']
@@ -26,3 +29,10 @@ class EnvironmentTests(APITestCase):
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertDictEqual(response.data, self.expected_dict)
+
+    def test_template_context_processor(self):
+        ''' Not an API test, but hey: nevermind the hobgoblins '''
+        context = RequestContext(HttpRequest()) # NB: empty request
+        template = Template('{{ config.TERMS_OF_SERVICE_URL }}')
+        result = template.render(context)
+        self.assertEqual(result, constance.config.TERMS_OF_SERVICE_URL)

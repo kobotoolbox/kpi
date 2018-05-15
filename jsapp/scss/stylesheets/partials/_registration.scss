@@ -51,10 +51,6 @@
     margin-bottom: 15px;
     max-width: 100%;
 
-    &.mobile-only {
-      display: none;
-    }
-
     img {
       max-width: 170px;
       height: auto;
@@ -70,6 +66,7 @@
 
   input[type=text],
   input[type=password],
+  input[type=email],
   select {
     color: $layout-text-color;
   }
@@ -295,7 +292,12 @@
       padding: 30px;
 
       .registration--logo {
-        margin-top: -8px;
+        width: 48%;
+        float: right;
+
+        > * {
+          padding-left: 60px;
+        }
       }
     }
 
@@ -306,7 +308,7 @@
 
     .registration__second-half {
       width: 48%;
-      float: left;
+      float: right;
 
       > * {
         padding-left: 60px;
@@ -316,6 +318,10 @@
         font-size: 15px;
         line-height: 1.3em;
       }
+    }
+
+    .registration--logo img {
+      max-height: 100px;
     }
   }
 
@@ -333,7 +339,7 @@
         margin-top: 0.5em;
       }
 
-      .registration--logo.mobile-only {
+      .registration--logo {
         display: block;
         text-align: center;
       }
