@@ -1,6 +1,8 @@
 import requests
+from django.http import HttpRequest
 from django.test import LiveServerTestCase
 from django.core.files.base import ContentFile
+from django.template import Template, RequestContext
 
 from hub.models import ConfigurationFile
 
@@ -51,3 +53,11 @@ class ConfigurationFileTestCase(LiveServerTestCase):
         response = requests.get(absolute_url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content, sample_svg)
+
+    def test_template_context_processor(self):
+        context = RequestContext(HttpRequest()) # NB: empty request
+        template = Template(
+            '{{{{ config.{logo} }}}}'.format(logo=self.cfg_file.LOGO)
+        )
+        result = template.render(context)
+        self.assertEqual(result, self.cfg_file.url)
