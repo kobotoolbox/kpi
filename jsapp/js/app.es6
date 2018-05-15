@@ -86,6 +86,9 @@ class App extends React.Component {
     if (this.state.pageState.modal)
       stores.pageState.hideModal();
   }
+  componentDidMount () {
+    actions.misc.getServerEnvironment();
+  }
   handleHotkey (e) {
     if (e.altKey && (e.keyCode == '69' || e.keyCode == '186')) {
       document.body.classList.toggle('hide-edge');
