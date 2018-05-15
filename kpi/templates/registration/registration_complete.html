@@ -1,22 +1,17 @@
 {% extends "registration.html" %}
 {% load staticfiles %}
-
+{% load i18n %}
 {% block content %}
-<div class="registration__bg">
-
-  <form action="." method="post" class="registration">
-    <div class="registration--logo"><a href="/">
-    {% block logo %}{{ block.super }}{% endblock %}
-    </a></div>
-
-    <p class="registration__message  registration__message--complete">Thanks for creating a KoBoToolbox account.</p>
-    <p class="registration__message  registration__message--complete">Please click the activation link in the email just sent to you.</p>
-
-  </form>
-
-  {% block background_credit %}
-  {{ block.super }}
-  {% endblock %}
-</div>
-
+<form action="." method="post" class="registration registration--complete">
+  <div class="registration--logo">
+    <a href="/"><img src="{% static 'img/kobologo.svg' %}"/></a>
+    <h1>{% trans "Account created!" %}</h1>
+  </div>
+  <p class="registration__message registration__message--complete">
+    {% trans "Thanks for creating a KoBoToolbox account." %}
+  </p>
+  <p class="registration__message registration__message--complete">
+    {% trans "Please click the activation link in the email just sent to you." %}
+  </p>
+</form>
 {% endblock %}

@@ -197,6 +197,16 @@ $headerAccountTextColor: #dbedf7;
         color: $cool-blue;
       }
     }
+
+    &.environment-links {
+      text-align: right;
+
+      a {
+        display: inline-block;
+        margin-left: 15px;
+        font-size: 12px;
+      }
+    }
   }
 
   .account-box__menu-li--lang {

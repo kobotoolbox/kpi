@@ -21,7 +21,6 @@ import {
   t,
   assign,
   anonUsername,
-  supportUrl,
   validFileTypes
 } from '../utils';
 
@@ -172,15 +171,14 @@ class Drawer extends Reflux.Component {
           { stores.serverEnvironment &&
             stores.serverEnvironment.state.source_code_url &&
             <a href={stores.serverEnvironment.state.source_code_url}
-              className='k-drawer__link' target="_blank" data-tip={t('source')}
-            >
+              className='k-drawer__link' target="_blank" data-tip={t('source')}>
               <i className="k-icon k-icon-github" />
             </a>
           }
-          { supportUrl() &&
-            <a href={supportUrl()} className='k-drawer__link' target="_blank"
-              data-tip={t('help')}
-            >
+          { stores.serverEnvironment &&
+            stores.serverEnvironment.state.support_url &&
+            <a href={stores.serverEnvironment.state.support_url}
+              className='k-drawer__link' target="_blank" data-tip={t('help')}>
               <i className="k-icon k-icon-help" />
             </a>
           }
