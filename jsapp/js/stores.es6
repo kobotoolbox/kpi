@@ -10,7 +10,6 @@ import {
   t,
   notify,
   assign,
-  setSupportDetails,
 } from './utils';
 
 function changes(orig_obj, new_obj) {
@@ -314,9 +313,6 @@ var sessionStore = Reflux.createStore({
         localStorage.removeItem('downtimeNoticeSeen');
       }
     }
-    if (acct.support) {
-      setSupportDetails(acct.support)
-    }
     var nestedArrToChoiceObjs = function (_s) {
       return {
         value: _s[0],
@@ -586,6 +582,24 @@ stores.collections = Reflux.createStore({
   }
 });
 
+var serverEnvironmentStore = Reflux.createStore({
+  init() {
+    this.state = {};
+    this.listenTo(actions.misc.getServerEnvironment.completed,
+                  this.updateEnvironment);
+  },
+  setState (state) {
+    var chz = changes(this.state, state);
+    if (chz) {
+      assign(this.state, state);
+      this.trigger(chz);
+    }
+  },
+  updateEnvironment(response) {
+    this.setState(response);
+  },
+});
+
 if (window.Intercom) {
   var IntercomStore = Reflux.createStore({
     init () {
@@ -631,6 +645,7 @@ assign(stores, {
   session: sessionStore,
   userExists: userExistsStore,
   surveyState: surveyStateStore,
+  serverEnvironment: serverEnvironmentStore,
 });
 
 module.exports = stores;

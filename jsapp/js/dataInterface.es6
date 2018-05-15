@@ -27,6 +27,7 @@ var dataInterface;
 
   assign(this, {
     selfProfile: ()=> $ajax({ url: `${rootUrl}/me/` }),
+    serverEnvironment: ()=> $ajax({ url: `${rootUrl}/environment/` }),
     queryUserExistence: (username)=> {
       var d = new $.Deferred();
       $ajax({ url: `${rootUrl}/users/${username}/` })

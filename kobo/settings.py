@@ -107,14 +107,35 @@ MIDDLEWARE_CLASSES = (
     'hub.middleware.OtherFormBuilderRedirectMiddleware',
 )
 
+if os.environ.get('DEFAULT_FROM_EMAIL'):
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
+    SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
 # Configuration options that superusers can modify in the Django admin
 # interface. Please note that it's not as simple as moving a setting into the
 # `CONSTANCE_CONFIG` dictionary: each place where the setting's value is needed
 # must use `constance.config.THE_SETTING` instead of
 # `django.conf.settings.THE_SETTING`
 CONSTANCE_CONFIG = {
-    'REGISTRATION_OPEN': (True, 'Whether or not to allow registration of new '
-                                'accounts'),
+    'REGISTRATION_OPEN': (True, 'Allow new users to register accounts for '
+                                'themselves'),
+    'TERMS_OF_SERVICE_URL': ('http://www.kobotoolbox.org/terms',
+                            'URL for terms of service document'),
+    'PRIVACY_POLICY_URL': ('http://www.kobotoolbox.org/privacy',
+                          'URL for privacy policy'),
+    'SOURCE_CODE_URL': ('https://github.com/kobotoolbox/',
+                        'URL of source code repository. When empty, a link '
+                        'will not be shown in the user interface'),
+    'SUPPORT_URL': (os.environ.get('KOBO_SUPPORT_URL',
+                                   'http://help.kobotoolbox.org/'),
+                    'URL of user support portal. When empty, a link will not '
+                    'be shown in the user interface'),
+    'SUPPORT_EMAIL': (os.environ.get('KOBO_SUPPORT_EMAIL') or
+                        os.environ.get('DEFAULT_FROM_EMAIL',
+                                       'help@kobotoolbox.org'),
+                      'Email address for users to contact, e.g. when they '
+                      'encounter unhandled errors in the application'),
+
 }
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
@@ -443,13 +464,6 @@ if os.environ.get('EMAIL_PORT'):
 
 if os.environ.get('EMAIL_USE_TLS'):
     EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS')
-
-if os.environ.get('DEFAULT_FROM_EMAIL'):
-    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
-    SERVER_EMAIL = DEFAULT_FROM_EMAIL
-
-KOBO_SUPPORT_URL = os.environ.get('KOBO_SUPPORT_URL', 'http://help.kobotoolbox.org/')
-KOBO_SUPPORT_EMAIL = os.environ.get('KOBO_SUPPORT_EMAIL') or os.environ.get('DEFAULT_FROM_EMAIL', 'help@kobotoolbox.org')
 
 if os.environ.get('AWS_ACCESS_KEY_ID'):
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
