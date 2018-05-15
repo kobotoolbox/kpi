@@ -19,12 +19,12 @@
 </form>
 
 <form action="." method="post" class="registration registration--register">
+  <div class="registration--logo">
+    <a href="/">
+      {% block logo %}{{ block.super }}{% endblock %}
+    </a>
+  </div>
   <div class="registration__first-half">
-    <div class="registration--logo mobile-only">
-      <a href="/">
-        {% block logo %}{{ block.super }}{% endblock %}
-      </a>
-    </div>
     <h1>{% trans "Create an account" %}</h1>
       {% csrf_token %}
       {% for field in form %}
@@ -48,9 +48,6 @@
   </div>
 
   <div class="registration__second-half">
-    <div class="registration--logo">
-      <a href="/"><img src="{% static 'img/kobologo.svg' %}" /></a>
-    </div>
 
       {% if welcome_message %} {{ welcome_message|safe }} {% else %}
       <p>KoBoToolbox is an integrated set of tools for building forms and collecting interview responses. It is built by the Harvard Humanitarian Initiative for easy and reliable use in difficult field settings, such as humanitarian emergencies or

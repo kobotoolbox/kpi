@@ -4,7 +4,7 @@
 {% block content %}
 <form action="." method="post" class="registration registration--complete">
   <div class="registration--logo">
-    <a href="/"><img src="{% static 'img/kobologo.svg' %}"/></a>
+    <a href="/">{% block logo %}{{ block.super }}{% endblock %}</a>
     <h1>{% trans "Account created!" %}</h1>
   </div>
   <p class="registration__message registration__message--complete">

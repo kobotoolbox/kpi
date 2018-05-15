@@ -7,6 +7,7 @@
     {% load staticfiles %}
     {% load render_bundle from webpack_loader %}
     {% render_bundle 'app' 'css' %}
+    {% render_bundle 'app' 'js' %}
 
 <link rel="stylesheet" href="{% static 'css/normalize.min.css' %}">
 <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
@@ -41,7 +42,9 @@
       <a href="{{config.PRIVACY_POLICY_URL}}" target="_blank">{% trans "Privacy Policy" %}</a>
       {% endif %}
     </div>
-    <div class="registration__credit"><a href="https://flic.kr/p/9v4mC5" title="Muhkjar refugee camp" target="_blank">{% trans "Photo" %}</a> {% trans "by" %} UNAMID / <a href="https://creativecommons.org/licenses/by-nc-nd/2.0/" target="_blank">by-nc-nd</a></div>
+    {% block background_credit %}
+      {{ block.super }}
+    {% endblock %}
   </div>
 {% endblock %}
 </div>
