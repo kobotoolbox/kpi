@@ -280,7 +280,13 @@ actions.misc = Reflux.createActions({
       'completed',
       'failed'
     ]
-  }
+  },
+  getServerEnvironment: {
+    children: [
+      'completed',
+      'failed',
+    ]
+  },
 });
 
 
@@ -300,6 +306,12 @@ actions.misc.updateProfile.completed.listen(function(){
 });
 actions.misc.updateProfile.failed.listen(function(){
   notify(t('failed to update profile'), 'error');
+});
+
+actions.misc.getServerEnvironment.listen(function(){
+  dataInterface.serverEnvironment()
+    .done(actions.misc.getServerEnvironment.completed)
+    .fail(actions.misc.getServerEnvironment.failed);
 });
 
 actions.resources.createImport.listen(function(contents){
