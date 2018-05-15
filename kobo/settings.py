@@ -340,7 +340,7 @@ HAYSTACK_SIGNAL_PROCESSOR = 'kpi.haystack_utils.SignalProcessor'
 ENKETO_SERVER = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
 ENKETO_SERVER= ENKETO_SERVER + '/' if not ENKETO_SERVER.endswith('/') else ENKETO_SERVER
 ENKETO_VERSION= os.environ.get('ENKETO_VERSION', 'Legacy').lower()
-ENKETO_INTERNAL_URL = os.environ.get('ENKETO_INTERNAL_URL', 'http://enketo_express')
+ENKETO_INTERNAL_URL = os.environ.get('ENKETO_INTERNAL_URL', ENKETO_SERVER)
 
 assert ENKETO_VERSION in ['legacy', 'express']
 ENKETO_PREVIEW_URI = 'webform/preview' if ENKETO_VERSION == 'legacy' else 'preview'
