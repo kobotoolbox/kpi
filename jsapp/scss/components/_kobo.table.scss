@@ -205,7 +205,7 @@
     }
 
     &.has-frozen-column {
-      .rt-tr {
+      .rt-tr-group, .rt-thead .rt-tr {
         position: relative;
       }
 
