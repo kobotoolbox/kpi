@@ -217,7 +217,7 @@ export function koboMatrixParser(params) {
       content.survey[i].type = 'begin_kobomatrix';
       content.survey[i].appearance = 'field-list';
       surveyLength++;
-      content.survey.splice(i + 1, 0, {type: "end_kobomatrix", "$kuid": `/${content.survey[i].$kuid}`});
+      content.survey.splice(i + 1, 0, {type: 'end_kobomatrix', '$kuid': `/${content.survey[i].$kuid}`});
     }
   }
 

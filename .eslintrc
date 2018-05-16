@@ -24,12 +24,12 @@
   "rules": {
     "strict": 0,
     "curly": 0,
-    "quotes": 0,
+    "quotes": [1, "single"],
     "no-underscore-dangle": 0,
     "camelcase": [0],
     "new-cap": 0,
     "react/jsx-boolean-value": 2,
-    "jsx-quotes": 0,
+    "jsx-quotes": [1, "prefer-single"],
     "react/jsx-no-undef": 2,
     "react/jsx-sort-props": 0,
     "react/jsx-sort-prop-types": 0,
@@ -43,7 +43,7 @@
     "react/react-in-jsx-scope": 2,
     "react/self-closing-comp": 2,
     "react/wrap-multilines": 0,
-    "no-trailing-spaces":0,
+    "no-trailing-spaces": 0,
     "no-irregular-whitespace": 0,
     "no-mixed-spaces-and-tabs": 0,
     "no-unused-expressions": 0,
@@ -56,15 +56,14 @@
     "no-undef": 0,
     "eqeqeq": 0,
     "no-multi-spaces": 0,
-    "no-extend-native":0,
-    "no-script-url":0,
-    "no-extra-bind":0,
-    "semi-spacing":0,
-    "no-extra-semi":0,
-    "no-extra-strict":0,
-    "no-new-object":0,
-    "no-debugger":0
-
+    "no-extend-native": 0,
+    "no-script-url": 0,
+    "no-extra-bind": 0,
+    "semi-spacing": 0,
+    "no-extra-semi": 0,
+    "no-extra-strict": 0,
+    "no-new-object": 0,
+    "no-debugger": 0
   },
   "globals": {
     "inject": false,
@@ -78,7 +77,7 @@
     "expect": false,
     "window": false,
     "document": false,
-    "Parse":false
+    "Parse": false
   },
   "plugins": [
     "react"
