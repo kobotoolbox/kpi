@@ -189,6 +189,8 @@ export class DataTable extends React.Component {
         minWidth: 45,
         filterable: false,
         sortable: false,
+        resizable: false,
+        className: 'rt-checkbox',
         Cell: row => (
           <div>
             <input type="checkbox"
@@ -434,8 +436,6 @@ export class DataTable extends React.Component {
       showLabels: showLabels,
       showGroupName: showGroupName
     });
-
-    this.onTableResizeChange(false);
   }
   getColumnLabel(key, q, qParentG, stateOverrides = false) {
     switch(key) {
@@ -745,22 +745,6 @@ export class DataTable extends React.Component {
       </bem.FormView__item>
     );
   }
-  onTableResizeChange(params) {
-    let frozenCol = this.state.frozenColumn,
-        padLeft = 0;
-
-    if (frozenCol) {
-      if (params && params[0].id === frozenCol) {
-        padLeft = params[0].value;
-      } else {
-        padLeft = $('.ReactTable .rt-th.frozen').width() + 10;
-      }
-
-      $('.ReactTable .rt-tr').css('padding-left', padLeft + 10);
-    } else {
-      $('.ReactTable .rt-tr').css('padding-left', 0);
-    }
-  }
   render () {
     if (this.state.error) {
       return (
@@ -840,7 +824,6 @@ export class DataTable extends React.Component {
           pages={pages}
           manual
           onFetchData={this.fetchData}
-          onResizedChange={_.debounce(this.onTableResizeChange, 10)}
           loading={loading}
           previousText={t('Prev')}
           nextText={t('Next')}
@@ -859,7 +842,7 @@ export class DataTable extends React.Component {
               onScroll: (e) => {
                 if (this.state.frozenColumn) {
                   if (this.tableScrollTop === e.target.scrollTop) {
-                    let left = e.target.scrollLeft > 0 ? e.target.scrollLeft - 12 : e.target.scrollLeft;
+                    let left = e.target.scrollLeft > 0 ? e.target.scrollLeft : 0;
                     $('.ReactTable .rt-tr .frozen').css({left: left});
                   } else {
                     this.tableScrollTop = e.target.scrollTop;
@@ -868,7 +851,8 @@ export class DataTable extends React.Component {
               }
             };
           }}
-          filterable/>
+          filterable
+        />
       </bem.FormView>
     );
   }

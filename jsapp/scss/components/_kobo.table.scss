@@ -45,12 +45,6 @@
 
     .rt-tbody, .rt-thead {
       overflow-x: hidden;
-      overflow-y: scroll;
-      direction: rtl;
-
-      > div {
-        direction: ltr;
-      }
 
       .table-header-checkbox {
         min-height: 24px;
@@ -66,10 +60,6 @@
       &.-filters select {
         margin-top: 2px;
         margin-right: 2px;
-      }
-
-      .rt-th {
-        position: static;
       }
 
       .rt-th:hover,
@@ -88,12 +78,9 @@
       }
     }
 
-    .rt-tr-group {
-      max-height: 36px;
-    }
-
     .rt-tr {
       align-items: stretch;
+      max-height: 36px;
     }
 
     .rt-th, .rt-td {
@@ -205,18 +192,18 @@
     }
 
     &.has-frozen-column {
-      .rt-tr-group, .rt-thead .rt-tr {
-        position: relative;
-      }
-
       .frozen {
-        position: absolute;
-        left: 0px;
+        order: -1;
+        position: relative;
+        left: 0;
         background: #F8F8F8;
         height: 36px;
         transition: left 0.2s;
-        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-        border-bottom: solid 1px rgba(0, 0, 0, 0.05);
+        margin-right: 6px;
+
+        &:not(.rt-status) {
+          z-index: 2;
+        }
       }
 
       &.-striped .rt-tr.-odd .frozen {
@@ -228,7 +215,6 @@
       }
 
       .rt-th.frozen {
-        z-index: 2;
         height: 34px;
       }
     }
