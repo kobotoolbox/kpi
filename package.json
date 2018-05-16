@@ -95,18 +95,15 @@
   },
   "scripts": {
     "build": "webpack --config webpack/prod.config.js --progress --colors",
-    "build-production":
-      "npm run build && echo 'WARNING: npm run build-production DEPRECATED! PLEASE USE npm run build INSTEAD'",
+    "build-production": "npm run build && echo 'WARNING: npm run build-production DEPRECATED! PLEASE USE npm run build INSTEAD'",
     "watch": "node webpack/dev.server.js",
     "test-server": "node webpack/test.server.js",
-    "test":
-      "webpack --config webpack/test.config.js --progress --colors && mocha-phantomjs test/tests.html",
+    "test": "webpack --config webpack/test.config.js --progress --colors && mocha-phantomjs test/tests.html",
     "copy-fonts": "python ./scripts/copy_fonts.py",
     "precommit": "pretty-quick --staged"
   },
   "repository": "https://github.com/kobotoolbox/kpi.git",
-  "author":
-    "alex.dorey@kobotoolbox.org, esmail.fadae@kobotoolbox.org, john.milner@kobotoolbox.org",
+  "author": "alex.dorey@kobotoolbox.org, esmail.fadae@kobotoolbox.org, john.milner@kobotoolbox.org",
   "license": "AGPL-3.0",
   "bugs": "https://github.com/kobotoolbox/kpi/issues",
   "homepage": "https://github.com/kobotoolbox/kpi"
