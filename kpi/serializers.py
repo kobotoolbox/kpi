@@ -391,6 +391,7 @@ class AssetFileSerializer(serializers.ModelSerializer):
     date_created = serializers.ReadOnlyField()
     content = serializers.FileField()
     content_url = serializers.SerializerMethodField()
+    metadata = WritableJSONField(required=False)
 
     def get_url(self, obj):
         return reverse('asset-file-detail', args=(obj.asset.uid, obj.uid),
@@ -413,6 +414,7 @@ class AssetFileSerializer(serializers.ModelSerializer):
             'date_created',
             'content',
             'content_url',
+            'metadata',
         )
 
 

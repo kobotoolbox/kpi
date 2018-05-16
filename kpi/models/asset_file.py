@@ -2,6 +2,7 @@ import posixpath
 from django.db import models
 from django.utils import timezone
 from private_storage.fields import PrivateFileField
+from jsonbfield.fields import JSONField as JSONBField
 
 from ..fields import KpiUidField
 
@@ -34,3 +35,4 @@ class AssetFile(models.Model):
     # TODO: Handle deletion! The file won't be deleted automatically when the
     # object is removed from the database
     content = PrivateFileField(upload_to=upload_to, max_length=380)
+    metadata = JSONBField(default=dict)
