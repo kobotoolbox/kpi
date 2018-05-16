@@ -665,6 +665,11 @@ class AssetFileViewSet(NestedViewSetMixin, NoUpdateModelViewSet):
             user=self.request.user
         )
 
+    @detail_route(methods=['get'])
+    def redirect(self, *args, **kwargs):
+        af = self.get_object()
+        return HttpResponseRedirect(af.content.url)
+
 
 class SubmissionViewSet(NestedViewSetMixin, viewsets.ViewSet,
                         KobocatDataProxyViewSetMixin):
