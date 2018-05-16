@@ -390,9 +390,14 @@ class AssetFileSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     date_created = serializers.ReadOnlyField()
     content = serializers.FileField()
+    content_url = serializers.SerializerMethodField()
 
     def get_url(self, obj):
         return reverse('asset-file-detail', args=(obj.asset.uid, obj.uid),
+                       request=self.context.get('request', None))
+
+    def get_content_url(self, obj):
+        return reverse('asset-file-content', args=(obj.asset.uid, obj.uid),
                        request=self.context.get('request', None))
 
     class Meta:
@@ -406,7 +411,8 @@ class AssetFileSerializer(serializers.ModelSerializer):
             'file_type',
             'name',
             'date_created',
-            'content'
+            'content',
+            'content_url',
         )
 
 

@@ -666,7 +666,7 @@ class AssetFileViewSet(NestedViewSetMixin, NoUpdateModelViewSet):
         )
 
     @detail_route(methods=['get'])
-    def redirect(self, *args, **kwargs):
+    def content(self, *args, **kwargs):
         af = self.get_object()
         return HttpResponseRedirect(af.content.url)
 
