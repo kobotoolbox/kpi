@@ -24,6 +24,12 @@
     height: calc(100% - 102px);
     margin-right: 18px;
   }
+
+  > .dropzone,
+  > .library > .dropzone {
+    height: 100%;
+    overflow: hidden;
+  }
 }
 
 @media screen and (max-width: 767px) {
@@ -109,10 +115,11 @@
 
 .text-small {
   font-size: 0.85em;
-  opacity: .75;
+  opacity: 0.75;
 }
 
-.message {}
+.message {
+}
 
 .message--error {
   text-decoration: uppercase;
@@ -147,6 +154,8 @@
     display: table-cell;
     vertical-align: middle;
     text-align: center;
+    padding-left: 20px;
+    padding-right: 20px;
 
     code {
       margin: 20px;
@@ -199,7 +208,7 @@
   min-width: 160px;
   max-width: 300px;
   text-align: left;
-  background: #FFF;
+  background: #fff;
   box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.06), 0 8px 8px 0 rgba(0, 0, 0, 0.12);
   z-index: 10;
   right: -10px;
@@ -232,7 +241,7 @@
 
 .popover-menu__link,
 .popover-menu__item {
-  background-color: #FFF;
+  background-color: #fff;
   display: block;
   padding: 6px 10px;
   padding-right: 16px;
@@ -272,12 +281,12 @@
   max-height: 120px;
   overflow: auto;
   overflow-x: hidden;
-  background-color: #F9F9F9;
+  background-color: #f9f9f9;
   border-bottom: 1px solid lighten($cool-gray, 25%);
 }
 
 .popover-menu__item--move-coll-item {
-  background-color: #F9F9F9;
+  background-color: #f9f9f9;
   position: relative;
   text-align: left;
   padding-right: 35px;
@@ -306,7 +315,7 @@
   padding: 8px 15px;
   color: $cool-gray;
   border-top: 1px solid lighten($cool-gray, 25%);
-  background-color: #F9F9F9;
+  background-color: #f9f9f9;
   margin: 0px;
 }
 
@@ -387,7 +396,7 @@
   .popover-menu__toggle {
     padding: 8px 12px;
     padding-right: 90px;
-    background: #F8F8F8;
+    background: #f8f8f8;
     position: relative;
 
     @include box-shadow;
@@ -471,7 +480,8 @@ iframe {
 .form-modal__item {
   margin-bottom: 15px;
 
-  &--sector, &--country {
+  &--sector,
+  &--country {
     width: 50%;
     float: left;
   }
@@ -484,7 +494,7 @@ iframe {
     padding-top: 20px;
     clear: both;
 
-    input[type="checkbox"] {
+    input[type='checkbox'] {
       margin-top: 8px;
     }
   }
@@ -512,9 +522,9 @@ iframe {
     vertical-align: top;
   }
 
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
+  input[type='text'],
+  input[type='email'],
+  input[type='password'],
   select,
   textarea {
     width: 100%;
@@ -536,7 +546,7 @@ iframe {
     height: auto;
   }
 
-  input[type="checkbox"] {
+  input[type='checkbox'] {
     font-size: 20px;
     vertical-align: top;
   }
@@ -597,12 +607,12 @@ iframe {
   .form-modal__item {
     select {
       max-width: 90%;
-      background: #DEDEDE;
+      background: #dedede;
     }
   }
 }
 
-.ajs-content input[type="text"],
+.ajs-content input[type='text'],
 .ajs-content textarea {
   width: 100%;
   padding: 6px 0px;
@@ -643,29 +653,72 @@ span.svg-icon {
 }
 
 ::-webkit-scrollbar-track {
-  background-color: #DEDEDE;
+  background-color: #dedede;
   background-color: transparent;
   border-radius: 8px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #DEDEDE;
+  background-color: #dedede;
   outline: none;
   border-radius: 8px;
+}
+
+// active dropzone element (above list while dragging)
+.dropzone-active-overlay {
+  display: none;
+}
+
+.dropzone-active {
+  position: relative;
+  min-height: calc(100% - 4px);
+
+  &:after {
+    width: calc(100% - 4px);
+    height: calc(100% - 4px);
+    position: absolute;
+    left: 0;
+    top: 0;
+    content: '';
+    background: rgba(255, 255, 255, 0.7);
+    border: 2px solid $cool-blue;
+    z-index: 1;
+  }
+
+  .dropzone-active-overlay {
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 120px;
+    top: 50%;
+    margin-top: -60px;
+    left: 0;
+    z-index: 2;
+    text-align: center;
+    font-size: 18px;
+
+    i {
+      font-size: 64px;
+      display: block;
+      margin: 0 auto;
+      margin-bottom: 10px;
+      color: $cool-blue;
+    }
+  }
 }
 
 // Checkboxes
 
 // Remove default checkbox
-[type="checkbox"]:not(:checked),
-[type="checkbox"]:checked {
+[type='checkbox']:not(:checked),
+[type='checkbox']:checked {
   position: absolute;
   left: -9999px;
   opacity: 0;
 }
 
 // Checkbox Styles
-[type="checkbox"] {
+[type='checkbox'] {
   + label {
     position: relative;
     padding-left: 35px;
@@ -696,7 +749,8 @@ span.svg-icon {
     position: absolute;
 
     /* .1s delay is for check animation */
-    transition: border .25s, background-color .25s, width .20s .1s, height .20s .1s, top .20s .1s, left .20s .1s;
+    transition: border 0.25s, background-color 0.25s, width 0.2s 0.1s,
+      height 0.2s 0.1s, top 0.2s 0.1s, left 0.2s 0.1s;
     z-index: 1;
   }
 
@@ -731,8 +785,8 @@ span.svg-icon {
       height: 11px;
       border-top: 2px solid transparent;
       border-left: 2px solid transparent;
-      border-right: 2px solid #FFF;
-      border-bottom: 2px solid #FFF;
+      border-right: 2px solid #fff;
+      border-bottom: 2px solid #fff;
       -webkit-transform: rotateZ(37deg);
       transform: rotateZ(37deg);
       -webkit-transform-origin: 100% 100%;
