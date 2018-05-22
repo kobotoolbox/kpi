@@ -12,8 +12,9 @@ import bem from '../bem';
 import AssetRow from './assetrow';
 import DocumentTitle from 'react-document-title';
 import $ from 'jquery';
+import Dropzone from 'react-dropzone';
 
-import { t } from '../utils';
+import { t, validFileTypes } from '../utils';
 
 class SearchCollectionList extends Reflux.Component {
   constructor(props) {
@@ -222,86 +223,99 @@ class SearchCollectionList extends Reflux.Component {
     }
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <bem.List m={display} onScroll={this.handleScroll}>
-          {(() => {
-            if (display == 'regular') {
-              return this.renderHeadings();
-            }
-          })()}
-          <bem.AssetList m={this.state.fixedHeadings}>
+        <Dropzone
+          onDrop={this.dropFiles}
+          disableClick
+          multiple
+          className="dropzone"
+          activeClassName="dropzone-active"
+          accept={validFileTypes()}
+        >
+          <bem.List m={display} onScroll={this.handleScroll}>
             {(() => {
-              if (s.searchResultsDisplayed) {
-                if (s.searchState === 'loading') {
-                  return (
-                    <bem.Loading>
-                      <bem.Loading__inner>
-                        <i />
-                        {t('loading...')}
-                      </bem.Loading__inner>
-                    </bem.Loading>
-                  );
-                } else if (s.searchState === 'done') {
-                  if (s.searchResultsCount === 0) {
+              if (display == 'regular') {
+                return this.renderHeadings();
+              }
+            })()}
+            <bem.AssetList m={this.state.fixedHeadings}>
+              {(() => {
+                if (s.searchResultsDisplayed) {
+                  if (s.searchState === 'loading') {
                     return (
                       <bem.Loading>
                         <bem.Loading__inner>
-                          {t('Your search returned no results.')}
+                          <i />
+                          {t('loading...')}
                         </bem.Loading__inner>
                       </bem.Loading>
                     );
-                  } else if (display == 'grouped') {
-                    return this.renderGroupedResults();
-                  } else {
-                    return s.searchResultsList.map(this.renderAssetRow);
-                  }
-                }
-              } else {
-                if (s.defaultQueryState === 'loading') {
-                  return (
-                    <bem.Loading>
-                      <bem.Loading__inner>
-                        <i />
-                        {t('loading...')}
-                      </bem.Loading__inner>
-                    </bem.Loading>
-                  );
-                } else if (s.defaultQueryState === 'done') {
-                  if (s.defaultQueryCount < 1) {
-                    if (s.defaultQueryFor.assetType == 'asset_type:survey') {
+                  } else if (s.searchState === 'done') {
+                    if (s.searchResultsCount === 0) {
                       return (
                         <bem.Loading>
                           <bem.Loading__inner>
-                            {t(
-                              "Let's get started by creating your first project. Click the New button to create a new form."
-                            )}
+                            {t('Your search returned no results.')}
                           </bem.Loading__inner>
                         </bem.Loading>
                       );
+                    } else if (display == 'grouped') {
+                      return this.renderGroupedResults();
                     } else {
-                      return (
-                        <bem.Loading>
-                          <bem.Loading__inner>
-                            {t(
-                              "Let's get started by creating your first library question or question block. Click the New button to create a new question or block."
-                            )}
-                          </bem.Loading__inner>
-                        </bem.Loading>
-                      );
+                      return s.searchResultsList.map(this.renderAssetRow);
                     }
                   }
+                } else {
+                  if (s.defaultQueryState === 'loading') {
+                    return (
+                      <bem.Loading>
+                        <bem.Loading__inner>
+                          <i />
+                          {t('loading...')}
+                        </bem.Loading__inner>
+                      </bem.Loading>
+                    );
+                  } else if (s.defaultQueryState === 'done') {
+                    if (s.defaultQueryCount < 1) {
+                      if (s.defaultQueryFor.assetType == 'asset_type:survey') {
+                        return (
+                          <bem.Loading>
+                            <bem.Loading__inner>
+                              {t(
+                                "Let's get started by creating your first project. Click the New button to create a new form."
+                              )}
+                            </bem.Loading__inner>
+                          </bem.Loading>
+                        );
+                      } else {
+                        return (
+                          <bem.Loading>
+                            <bem.Loading__inner>
+                              {t(
+                                "Let's get started by creating your first library question or question block. Click the New button to create a new question or block."
+                              )}
+                            </bem.Loading__inner>
+                          </bem.Loading>
+                        );
+                      }
+                    }
 
-                  if (display == 'grouped') {
-                    return this.renderGroupedResults();
-                  } else {
-                    return s.defaultQueryResultsList.map(this.renderAssetRow);
+                    if (display == 'grouped') {
+                      return this.renderGroupedResults();
+                    } else {
+                      return s.defaultQueryResultsList.map(this.renderAssetRow);
+                    }
                   }
                 }
-              }
-              // it shouldn't get to this point
-              return false;
-            })()}
-          </bem.AssetList>
-        </bem.List>
+                // it shouldn't get to this point
+                return false;
+              })()}
+            </bem.AssetList>
+            <div className="dropzone-active-overlay">
+              <i className="k-icon-upload" />
+              {t('Drop files to upload')}
+            </div>
+          </bem.List>
+        </Dropzone>
       </DocumentTitle>
     );
   }
@@ -318,6 +332,7 @@ SearchCollectionList.contextTypes = {
 
 reactMixin(SearchCollectionList.prototype, searches.common);
 reactMixin(SearchCollectionList.prototype, mixins.clickAssets);
+reactMixin(SearchCollectionList.prototype, mixins.droppable);
 reactMixin(SearchCollectionList.prototype, Reflux.ListenerMixin);
 
 export default SearchCollectionList;
