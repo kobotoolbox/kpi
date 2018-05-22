@@ -189,6 +189,12 @@
     color: $black;
     font-weight: 500;
     padding-bottom: 20px;
+
+    span {
+      display: block;
+      color: $cool-gray;
+      font-size: 12px;
+    }
   }
 
   &--first {

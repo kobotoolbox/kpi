@@ -15,6 +15,7 @@ import { t, assign, notify } from '../utils';
 import { ProjectSettings } from '../components/formEditors';
 import SharingForm from '../components/sharingForm';
 import Submission from '../components/submission';
+import TableColumnFilter from '../components/tableColumnFilter';
 
 class Modal extends React.Component {
   constructor(props) {
@@ -64,7 +65,7 @@ class Modal extends React.Component {
         break;
       case 'submission':
         this.setState({
-          title: t('Submission Record'),
+          title: this.submissionTitle(this.props),
           modalClass: 'modal-large modal-submission',
           sid: this.props.params.sid
         });
@@ -72,6 +73,11 @@ class Modal extends React.Component {
       case 'replace-xls':
         this.setState({
           title: t('Replace with XLS')
+        });
+        break;
+      case 'table-columns':
+        this.setState({
+          title: t('Table display options')
         });
         break;
     }
@@ -113,11 +119,10 @@ class Modal extends React.Component {
       });
     }
   }
-
   componentWillReceiveProps(nextProps) {
     if (nextProps.params && nextProps.params.sid) {
       this.setState({
-        title: t('Submission Record'),
+        title: this.submissionTitle(nextProps),
         sid: nextProps.params.sid
       });
     }
@@ -132,6 +137,27 @@ class Modal extends React.Component {
         message: t('Uploading: ') + filename
       });
     }
+    if (nextProps.params && !nextProps.params.sid) {
+      this.setState({ sid: false });
+    }
+  }
+  submissionTitle(props) {
+    let title = t('Submission Record'),
+      p = props.params,
+      sid = parseInt(p.sid);
+
+    if (p.tableInfo) {
+      let index =
+        p.ids.indexOf(sid) + p.tableInfo.pageSize * p.tableInfo.currentPage + 1;
+      title = `${t('Submission Record')} (${index} ${t('of')} ${
+        p.tableInfo.resultsTotal
+      })`;
+    } else {
+      let index = p.ids.indexOf(sid);
+      title = `${t('Submission Record')} (${index} ${t('of')} ${p.ids.length})`;
+    }
+
+    return title;
   }
   render() {
     return (
@@ -196,8 +222,29 @@ class Modal extends React.Component {
                 sid={this.state.sid}
                 asset={this.props.params.asset}
                 ids={this.props.params.ids}
+                tableInfo={this.props.params.tableInfo || false}
               />
             )}
+          {this.props.params.type == 'submission' &&
+            !this.state.sid && (
+              <div>
+                <bem.Loading>
+                  <bem.Loading__inner>
+                    <i />
+                  </bem.Loading__inner>
+                </bem.Loading>
+              </div>
+            )}
+          {this.props.params.type == 'table-columns' && (
+            <TableColumnFilter
+              asset={this.props.params.asset}
+              columns={this.props.params.columns}
+              getColumnLabel={this.props.params.getColumnLabel}
+              overrideLabelsAndGroups={
+                this.props.params.overrideLabelsAndGroups
+              }
+            />
+          )}
         </ui.Modal.Body>
       </ui.Modal>
     );

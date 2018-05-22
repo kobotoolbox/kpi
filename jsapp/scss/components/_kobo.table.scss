@@ -1,5 +1,6 @@
 .form-view--table {
   padding: 0px 30px;
+  position: relative;
 
   .form-view__group--table-header {
     padding: 10px 0px 0px 0px;
@@ -45,12 +46,6 @@
     .rt-tbody,
     .rt-thead {
       overflow-x: hidden;
-      overflow-y: scroll;
-      direction: rtl;
-
-      > div {
-        direction: ltr;
-      }
 
       .table-header-checkbox {
         min-height: 24px;
@@ -84,12 +79,9 @@
       }
     }
 
-    .rt-tr-group {
-      max-height: 50px;
-    }
-
     .rt-tr {
       align-items: stretch;
+      max-height: 36px;
     }
 
     .rt-th,
@@ -139,8 +131,22 @@
     }
 
     .rt-link {
-      color: $cool-blue;
-      cursor: pointer;
+      overflow: visible;
+
+      .table-link {
+        cursor: pointer;
+        display: inline-block;
+        min-height: 28px;
+
+        &:hover {
+          color: $cool-blue;
+        }
+
+        i {
+          font-size: 32px;
+          vertical-align: middle;
+        }
+      }
     }
 
     .-pagination {
@@ -186,6 +192,62 @@
     &.-highlight .rt-tbody .rt-tr:not(.-padRow):hover {
       background: rgba($cool-green, 0.1);
     }
+
+    &.has-frozen-column {
+      .frozen {
+        order: -1;
+        position: relative;
+        left: 0;
+        background: #f8f8f8;
+        height: 36px;
+        transition: left 0.2s;
+        margin-right: 6px;
+
+        &:not(.rt-status) {
+          z-index: 2;
+        }
+      }
+
+      &.-striped .rt-tr.-odd .frozen {
+        background: #f1f1f1;
+      }
+
+      &.-striped .rt-tr:hover .frozen {
+        background: #edf9fa;
+      }
+
+      .rt-th.frozen {
+        height: 34px;
+      }
+    }
+  }
+
+  .form-view__cell--table-warning {
+    position: absolute;
+    width: calc(100% - 60px);
+    background: lighten(#ffb775, 20%);
+    padding: 5px;
+    top: 10px;
+    z-index: 99;
+
+    i.k-icon-alert {
+      font-size: 32px;
+      vertical-align: middle;
+      color: #ffb775;
+    }
+
+    a {
+      cursor: pointer;
+    }
+
+    i.k-icon-close {
+      position: absolute;
+      right: 10px;
+      font-size: 24px;
+      top: 10px;
+      background: lighten(#ffb775, 20%);
+      cursor: pointer;
+    }
   }
 }
 
@@ -198,6 +260,68 @@
     .form-view__group--table-header {
       padding-top: 0px;
     }
+  }
+}
+
+.tableColumn-modal {
+  .form-view__cell--label {
+    padding-bottom: 10px;
+  }
+
+  .form-modal__item {
+    margin-bottom: 20px;
+
+    &--advanced-table-options {
+      border: 1px solid $divider-color;
+      padding: 20px;
+      background: #f8f8f8;
+
+      .form-view__cell--note {
+        padding-bottom: 20px;
+      }
+
+      .form-modal__item:last-child {
+        margin-bottom: 0px;
+      }
+    }
+  }
+
+  .form-modal__item--translation-radios {
+    label {
+      display: inline-block;
+      margin-right: 10px;
+      font-size: 13px;
+
+      input {
+        margin-right: 4px;
+      }
+    }
+  }
+
+  ul {
+    max-height: 160px;
+    overflow: auto;
+    border: 1px solid $divider-color;
+    padding: 10px;
+    background: #fff;
+
+    li {
+      margin-bottom: 5px;
+      max-width: 100%;
+
+      label {
+        display: inline-block;
+      }
+
+      input[type='checkbox']:checked + label {
+        color: darken($cool-gray, 10%);
+      }
+    }
+  }
+
+  &--footer {
+    text-align: right;
+    padding: 10px 0px;
   }
 }
 

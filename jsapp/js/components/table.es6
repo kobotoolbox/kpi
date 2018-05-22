@@ -4,6 +4,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import _ from 'underscore';
+import $ from 'jquery';
 import { dataInterface } from '../dataInterface';
 
 import actions from '../actions';
@@ -28,21 +29,27 @@ export class DataTable extends React.Component {
       loading: true,
       tableData: [],
       columns: [],
+      selectedColumns: false,
+      frozenColumn: false,
       sids: [],
       showExpandedTable: false,
       defaultPageSize: 30,
       pageSize: 30,
-      pages: null,
       currentPage: 0,
       error: false,
       showLabels: true,
       translationIndex: 0,
-      showGroups: true,
+      showGroupName: true,
       resultsTotal: 0,
       selectedRows: {},
       selectAll: false,
-      fetchState: false
+      fetchState: false,
+      promptRefresh: false,
+      submissionPager: false,
+      overrideLabelsAndGroups: null
     };
+
+    this.tableScrollTop = 0;
     autoBind(this);
   }
   requestData(instance) {
@@ -91,25 +98,42 @@ export class DataTable extends React.Component {
       )
       .done(data => {
         if (data && data.length > 0) {
+          if (this.state.submissionPager == 'next') {
+            this.submissionModalProcessing(data[0]._id, data);
+          }
+          if (this.state.submissionPager == 'prev') {
+            this.submissionModalProcessing(data[data.length - 1]._id, data);
+          }
           this.setState({
             loading: false,
             selectedRows: {},
             selectAll: false,
-            tableData: data
+            tableData: data,
+            submissionPager: false
           });
           this._prepColumns(data);
         } else {
           if (filterQuery.length) {
             this.setState({
-              loading: false
+              loading: false,
+              selectedRows: {},
+              selectAll: false,
+              tableData: data
             });
-            // TODO: debounce the queries and then enable this notification
-            notify(t('The query did not return any results.'));
+            this._prepColumns(data);
           } else {
-            this.setState({
-              error: t('Error: could not load data.'),
-              loading: false
-            });
+            if (filterQuery.length) {
+              this.setState({
+                loading: false
+              });
+              // TODO: debounce the queries and then enable this notification
+              notify(t('The query did not return any results.'));
+            } else {
+              this.setState({
+                error: t('Error: could not load data.'),
+                loading: false
+              });
+            }
           }
         }
       })
@@ -146,19 +170,62 @@ export class DataTable extends React.Component {
     };
   }
   _prepColumns(data) {
+    var excludes = [
+      '_xform_id_string',
+      '_attachments',
+      '_notes',
+      '_bamboo_dataset_id',
+      '_status',
+      'formhub/uuid',
+      '_tags',
+      '_geolocation',
+      '_submitted_by',
+      'meta/instanceID',
+      'meta/deprecatedID',
+      '_validation_status'
+    ];
+
     var uniqueKeys = Object.keys(
       data.reduce(function(result, obj) {
         return Object.assign(result, obj);
       }, {})
     );
 
+    uniqueKeys = uniqueKeys.filter(
+      (el, ind, arr) => excludes.includes(el) === false
+    );
+
     let showLabels = this.state.showLabels,
-      showGroups = this.state.showGroups,
+      showGroupName = this.state.showGroupName,
+      settings = this.props.asset.settings,
       translationIndex = this.state.translationIndex,
-      maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);
+      maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length),
+      _this = this;
+
+    if (
+      settings['data-table'] &&
+      settings['data-table']['translation-index'] != null
+    ) {
+      translationIndex = settings['data-table']['translation-index'];
+      showLabels = translationIndex > -1 ? true : false;
+    }
+
+    if (
+      settings['data-table'] &&
+      settings['data-table']['show-group-name'] != null
+    ) {
+      showGroupName = settings['data-table']['show-group-name'];
+    }
+
+    // check for overrides by users with view permissions only
+    // see tableColumnFilter.es6's saveTableColumns()
+    if (this.state.overrideLabelsAndGroups !== null) {
+      showGroupName = this.state.overrideLabelsAndGroups.showGroupName;
+      translationIndex = this.state.overrideLabelsAndGroups.translationIndex;
+      showLabels = translationIndex > -1 ? true : false;
+    }
 
     var columns = [];
-
     if (this.userCan('validate_submissions', this.props.asset)) {
       columns.push({
         Header: row => (
@@ -178,39 +245,62 @@ export class DataTable extends React.Component {
         ),
         accessor: 'sub-checkbox',
         index: '__0',
+        id: '__SubmissionCheckbox',
         minWidth: 45,
         filterable: false,
         sortable: false,
+        resizable: false,
+        className: 'rt-checkbox',
         Cell: row => (
           <div>
             <input
               type="checkbox"
-              id={`ch-${row.row._id}`}
-              checked={this.state.selectedRows[row.row._id] ? true : false}
+              id={`ch-${row.original._id}`}
+              checked={this.state.selectedRows[row.original._id] ? true : false}
               onChange={this.bulkUpdateChange}
-              data-sid={row.row._id}
+              data-sid={row.original._id}
             />
-            <label htmlFor={`ch-${row.row._id}`} />
+            <label htmlFor={`ch-${row.original._id}`} />
           </div>
         )
       });
     }
 
+    let userCanSeeEditIcon =
+      this.props.asset.deployment__active &&
+      this.userCan('change_submissions', this.props.asset);
+
     columns.push({
       Header: '',
       accessor: 'sub-link',
       index: '__1',
-      minWidth: 50,
+      id: '__SubmissionLinks',
+      minWidth: userCanSeeEditIcon ? 75 : 45,
       filterable: false,
       sortable: false,
+      className: 'rt-link',
       Cell: row => (
-        <span
-          onClick={this.launchSubmissionModal}
-          data-sid={row.row._id}
-          className="rt-link"
-        >
-          {t('Open')}
-        </span>
+        <div>
+          <span
+            onClick={this.launchSubmissionModal}
+            data-sid={row.original._id}
+            className="table-link"
+            data-tip={t('Open')}
+          >
+            <i className="k-icon k-icon-view" />
+          </span>
+
+          {userCanSeeEditIcon && (
+            <span
+              onClick={this.launchEditSubmission}
+              data-sid={row.original._id}
+              className="table-link"
+              data-tip={t('Edit')}
+            >
+              <i className="k-icon k-icon-edit" />
+            </span>
+          )}
+        </div>
       )
     });
 
@@ -218,6 +308,7 @@ export class DataTable extends React.Component {
       Header: t('Validation status'),
       accessor: '_validation_status.uid',
       index: '__2',
+      id: '__ValidationStatus',
       minWidth: 130,
       className: 'rt-status',
       Filter: ({ filter, onChange }) => (
@@ -242,34 +333,18 @@ export class DataTable extends React.Component {
           clearable={false}
           value={this.state.tableData[row.index]._validation_status}
           options={VALIDATION_STATUSES}
-          onChange={this.validationStatusChange(row.row._id, row.index)}
+          onChange={this.validationStatusChange(row.original._id, row.index)}
         />
       )
     });
-
-    var excludes = [
-      '_xform_id_string',
-      '_attachments',
-      '_notes',
-      '_bamboo_dataset_id',
-      '_status',
-      'formhub/uuid',
-      '_tags',
-      '_geolocation',
-      '_submitted_by',
-      'meta/instanceID',
-      '_validation_status'
-    ];
 
     let survey = this.props.asset.content.survey;
     let choices = this.props.asset.content.choices;
 
     uniqueKeys.forEach(function(key) {
-      if (excludes.includes(key)) return false;
-
       var q = undefined;
       var qParentG = [];
-      if (key.includes('/') && key !== 'meta/instanceID') {
+      if (key.includes('/')) {
         qParentG = key.split('/');
         q = survey.find(
           o =>
@@ -334,32 +409,7 @@ export class DataTable extends React.Component {
 
       columns.push({
         Header: h => {
-          var lbl = key;
-
-          if (key.includes('/')) {
-            var splitK = key.split('/');
-            lbl = splitK[splitK.length - 1];
-          }
-          if (q && q.label && showLabels && q.label[translationIndex])
-            lbl = q.label[translationIndex];
-          // show Groups in labels, when selected
-          if (showGroups && qParentG && key.includes('/')) {
-            var gLabels = qParentG.join(' / ');
-
-            if (showLabels) {
-              var gT = qParentG.map(function(g) {
-                var x = survey.find(o => o.name === g || o.$autoname == g);
-                if (x && x.label && x.label[translationIndex])
-                  return x.label[translationIndex];
-
-                return '';
-              });
-              gLabels = gT.join(' / ');
-            }
-            return gLabels;
-          }
-
-          return lbl;
+          return _this.getColumnLabel(key, q, qParentG);
         },
         id: key,
         accessor: row => row[key],
@@ -411,11 +461,19 @@ export class DataTable extends React.Component {
       return a.index.localeCompare(b.index, 'en', { numeric: true });
     });
 
+    let selectedColumns = false,
+      frozenColumn = false,
+      textFilterQuestionTypes = ['text', 'integer', 'decimal'];
+
+    if (settings['data-table'] && settings['data-table']['frozen-column']) {
+      frozenColumn = settings['data-table']['frozen-column'];
+    }
+
     columns.forEach(function(col, ind) {
       // TODO: see if this can work for select_multiple too
       if (col.question && col.question.type === 'select_one') {
-        columns[ind].filterable = true;
-        columns[ind].Filter = ({ filter, onChange }) => (
+        col.filterable = true;
+        col.Filter = ({ filter, onChange }) => (
           <select
             onChange={event => onChange(event.target.value)}
             style={{ width: '100%' }}
@@ -434,14 +492,9 @@ export class DataTable extends React.Component {
           </select>
         );
       }
-      if (
-        col.question &&
-        (col.question.type === 'text' ||
-          col.question.type === 'integer' ||
-          col.question.type === 'decimal')
-      ) {
-        columns[ind].filterable = true;
-        columns[ind].Filter = ({ filter, onChange }) => (
+      if (col.question && textFilterQuestionTypes.includes(col.question.type)) {
+        col.filterable = true;
+        col.Filter = ({ filter, onChange }) => (
           <DebounceInput
             debounceTimeout={750}
             onChange={event => onChange(event.target.value)}
@@ -449,11 +502,100 @@ export class DataTable extends React.Component {
           />
         );
       }
+
+      if (frozenColumn === col.id) {
+        col.className = col.className ? `frozen ${col.className}` : 'frozen';
+        col.headerClassName = 'frozen';
+      }
     });
 
+    // prepare list of selected columns, if configured
+    if (settings['data-table'] && settings['data-table']['selected-columns']) {
+      const selCos = settings['data-table']['selected-columns'];
+
+      // always include frozenColumn, if set
+      if (frozenColumn && !selCos.includes(frozenColumn))
+        selCos.unshift(frozenColumn);
+
+      selectedColumns = columns.filter(el => {
+        // always include edit/preview links column
+        if (el.id == '__SubmissionLinks') return true;
+
+        // include multi-select checkboxes if validation status is visible
+        // TODO: update this when enabling bulk deleting submissions
+        if (
+          el.id == '__SubmissionCheckbox' &&
+          selCos.includes('__ValidationStatus')
+        )
+          return true;
+
+        return selCos.includes(el.id) !== false;
+      });
+    }
+
     this.setState({
-      columns: columns
+      columns: columns,
+      selectedColumns: selectedColumns,
+      frozenColumn: frozenColumn,
+      translationIndex: translationIndex,
+      showLabels: showLabels,
+      showGroupName: showGroupName
     });
+  }
+  getColumnLabel(key, q, qParentG, stateOverrides = false) {
+    switch (key) {
+      case '__SubmissionCheckbox':
+        return t('Multi-select checkboxes column');
+      case '__ValidationStatus':
+        return t('Validation status');
+    }
+
+    var label = key;
+    let showLabels = this.state.showLabels,
+      showGroupName = this.state.showGroupName,
+      translationIndex = this.state.translationIndex,
+      survey = this.props.asset.content.survey;
+
+    if (stateOverrides) {
+      showGroupName = stateOverrides.showGroupName;
+      translationIndex = stateOverrides.translationIndex;
+    }
+
+    if (key.includes('/')) {
+      var splitK = key.split('/');
+      label = splitK[splitK.length - 1];
+    }
+    if (q && q.label && showLabels && q.label[translationIndex])
+      label = q.label[translationIndex];
+    // show Groups in labels, when selected
+    if (showGroupName && qParentG && key.includes('/')) {
+      var gLabels = qParentG.join(' / ');
+
+      if (showLabels) {
+        var gT = qParentG.map(function(g) {
+          var x = survey.find(o => o.name === g || o.$autoname == g);
+          if (x && x.label && x.label[translationIndex])
+            return x.label[translationIndex];
+
+          return g;
+        });
+        gLabels = gT.join(' / ');
+      }
+      return gLabels;
+    }
+
+    return label;
+  }
+  overrideLabelsAndGroups(overrides) {
+    stores.pageState.hideModal();
+    this.setState(
+      {
+        overrideLabelsAndGroups: overrides
+      },
+      function() {
+        this._prepColumns(this.state.tableData);
+      }
+    );
   }
   toggleExpandedTable() {
     if (this.state.showExpandedTable) {
@@ -471,6 +613,11 @@ export class DataTable extends React.Component {
       actions.resources.updateSubmissionValidationStatus.completed,
       this.refreshSubmission
     );
+    this.listenTo(
+      actions.table.updateSettings.completed,
+      this.tableSettingsUpdated
+    );
+    this.listenTo(stores.pageState, this.onPageStateUpdate);
   }
   componentWillUnmount() {
     if (this.state.showExpandedTable)
@@ -489,6 +636,10 @@ export class DataTable extends React.Component {
       }
     }
   }
+  tableSettingsUpdated() {
+    stores.pageState.hideModal();
+    this._prepColumns(this.state.tableData);
+  }
   launchPrinting() {
     window.print();
   }
@@ -503,10 +654,17 @@ export class DataTable extends React.Component {
     this.requestData(instance);
   }
   launchSubmissionModal(evt) {
-    const sid = evt.target.getAttribute('data-sid');
-    const td = this.state.tableData;
-    var ids = [];
-    td.forEach(function(r) {
+    let el = $(evt.target)
+      .closest('[data-sid]')
+      .get(0);
+    const sid = el.getAttribute('data-sid');
+
+    this.submissionModalProcessing(sid, this.state.tableData);
+  }
+  submissionModalProcessing(sid, tableData) {
+    let ids = [];
+
+    tableData.forEach(function(r) {
       ids.push(r._id);
     });
 
@@ -514,8 +672,70 @@ export class DataTable extends React.Component {
       type: 'submission',
       sid: sid,
       asset: this.props.asset,
-      ids: ids
+      ids: ids,
+      tableInfo: {
+        currentPage: this.state.currentPage,
+        pageSize: this.state.pageSize,
+        resultsTotal: this.state.resultsTotal
+      }
     });
+  }
+  launchTableColumnsModal() {
+    stores.pageState.showModal({
+      type: 'table-columns',
+      asset: this.props.asset,
+      columns: this.state.columns,
+      getColumnLabel: this.getColumnLabel,
+      overrideLabelsAndGroups: this.overrideLabelsAndGroups
+    });
+  }
+  launchEditSubmission(evt) {
+    let el = $(evt.target)
+        .closest('[data-sid]')
+        .get(0),
+      uid = this.props.asset.uid,
+      newWin = window.open('', '_blank');
+    const sid = el.getAttribute('data-sid');
+
+    dataInterface.getEnketoEditLink(uid, sid).done(editData => {
+      this.setState({ promptRefresh: true });
+      if (editData.url) {
+        newWin.location = editData.url;
+      } else {
+        newWin.close();
+        notify(t('There was an error loading Enketo.'));
+      }
+    });
+  }
+  onPageStateUpdate(pageState) {
+    if (!pageState.modal) return false;
+
+    let params = pageState.modal,
+      page = 0;
+
+    if (params.type !== 'table-columns' && !params.sid) {
+      let fetchInstance = this.state.fetchInstance;
+      if (params.page == 'next') page = this.state.currentPage + 1;
+      if (params.page == 'prev') page = this.state.currentPage - 1;
+
+      fetchInstance.setState({ page: page });
+      this.setState(
+        {
+          fetchInstance: fetchInstance,
+          submissionPager: params.page
+        },
+        function() {
+          this.fetchData(this.state.fetchState, this.state.fetchInstance);
+        }
+      );
+    }
+  }
+  refreshTable() {
+    this.fetchData(this.state.fetchState, this.state.fetchInstance);
+    this.setState({ promptRefresh: false });
+  }
+  clearPromptRefresh() {
+    this.setState({ promptRefresh: false });
   }
   bulkUpdateChange(evt) {
     const sid = evt.target.getAttribute('data-sid');
@@ -605,35 +825,6 @@ export class DataTable extends React.Component {
     };
     dialog.set(opts).show();
   }
-  showXMLValues() {
-    this.setState({
-      showLabels: false
-    });
-
-    window.setTimeout(() => {
-      this._prepColumns(this.state.tableData);
-    }, 200);
-  }
-  showTranslation(evt) {
-    const index = evt.target.getAttribute('data-index');
-    this.setState({
-      showLabels: true,
-      translationIndex: index
-    });
-
-    window.setTimeout(() => {
-      this._prepColumns(this.state.tableData);
-    }, 200);
-  }
-  toggleGroups() {
-    this.setState({
-      showGroups: !this.state.showGroups
-    });
-
-    window.setTimeout(() => {
-      this._prepColumns(this.state.tableData);
-    }, 200);
-  }
   bulkSelectAll() {
     this.setState({ selectAll: true });
   }
@@ -696,6 +887,7 @@ export class DataTable extends React.Component {
     const {
       tableData,
       columns,
+      selectedColumns,
       defaultPageSize,
       loading,
       pageSize,
@@ -703,9 +895,24 @@ export class DataTable extends React.Component {
       resultsTotal
     } = this.state;
     const pages = Math.floor((resultsTotal - 1) / pageSize + 1);
-    let asset = this.props.asset;
+    let asset = this.props.asset,
+      tableClasses = this.state.frozenColumn
+        ? '-striped -highlight has-frozen-column'
+        : '-striped -highlight';
+
     return (
       <bem.FormView m="table">
+        {this.state.promptRefresh && (
+          <bem.FormView__cell m="table-warning">
+            <i className="k-icon-alert" />
+            {t('The data below may be out of date. ')}
+            <a className="select-all" onClick={this.refreshTable}>
+              {t('Refresh')}
+            </a>
+
+            <i className="k-icon-close" onClick={this.clearPromptRefresh} />
+          </bem.FormView__cell>
+        )}
         <bem.FormView__group
           m={[
             'table-header',
@@ -754,60 +961,23 @@ export class DataTable extends React.Component {
               <i className="k-icon-expand" />
             </button>
 
-            <ui.PopoverMenu
-              type="formTable-menu"
-              triggerLabel={<i className="k-icon-more" />}
-              triggerTip={t('Display options')}
+            <button
+              className="mdl-button mdl-button--icon report-button__expand"
+              onClick={this.launchTableColumnsModal}
+              data-tip={t('Display options')}
             >
-              <bem.PopoverMenu__link
-                onClick={this.showXMLValues}
-                className={!this.state.showLabels ? 'active' : ''}
-              >
-                {t('Show XML values')}
-              </bem.PopoverMenu__link>
-              {asset.content.translations.map((trns, n) => {
-                return (
-                  <bem.PopoverMenu__link
-                    onClick={this.showTranslation}
-                    data-index={n}
-                    key={n}
-                    className={
-                      this.state.showLabels && this.state.translationIndex == n
-                        ? 'active'
-                        : ''
-                    }
-                  >
-                    {t('Show labels')}
-                    {trns ? ` - ${trns}` : null}
-                  </bem.PopoverMenu__link>
-                );
-              })}
-              {this.state.showGroups ? (
-                <bem.PopoverMenu__link
-                  onClick={this.toggleGroups}
-                  className="divider"
-                >
-                  {t('Hide question groups')}
-                </bem.PopoverMenu__link>
-              ) : (
-                <bem.PopoverMenu__link
-                  onClick={this.toggleGroups}
-                  className="divider"
-                >
-                  {t('Show question groups')}
-                </bem.PopoverMenu__link>
-              )}
-            </ui.PopoverMenu>
+              <i className="k-icon-settings" />
+            </button>
           </bem.FormView__item>
         </bem.FormView__group>
 
         <ReactTable
           data={tableData}
-          columns={columns}
+          columns={selectedColumns || columns}
           defaultPageSize={defaultPageSize}
           pageSizeOptions={[10, 30, 50, 100, 200, 500]}
           minRows={1}
-          className={'-striped -highlight'}
+          className={tableClasses}
           pages={pages}
           manual
           onFetchData={this.fetchData}
@@ -825,6 +995,21 @@ export class DataTable extends React.Component {
           ofText={t('of')}
           rowsText={t('rows')}
           filterable
+          getTableProps={() => {
+            return {
+              onScroll: e => {
+                if (this.state.frozenColumn) {
+                  if (this.tableScrollTop === e.target.scrollTop) {
+                    let left =
+                      e.target.scrollLeft > 0 ? e.target.scrollLeft : 0;
+                    $('.ReactTable .rt-tr .frozen').css({ left: left });
+                  } else {
+                    this.tableScrollTop = e.target.scrollTop;
+                  }
+                }
+              }
+            };
+          }}
         />
       </bem.FormView>
     );
@@ -833,4 +1018,5 @@ export class DataTable extends React.Component {
 
 reactMixin(DataTable.prototype, Reflux.ListenerMixin);
 reactMixin(DataTable.prototype, mixins.permissions);
+
 export default DataTable;

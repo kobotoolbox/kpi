@@ -43,6 +43,7 @@ class Submission extends React.Component {
       translationIndex: 0,
       translationOptions: translationOptions
     };
+
     autoBind(this);
   }
   componentDidMount() {
@@ -71,6 +72,26 @@ class Submission extends React.Component {
           dataInterface.getEnketoEditLink(assetUid, sid).done(editData => {
             if (editData.url) this.setState({ enketoEditLink: editData.url });
           });
+        }
+
+        if (this.props.ids && sid) {
+          const c = this.props.ids.findIndex(k => k == sid);
+          let tableInfo = this.props.tableInfo || false,
+            nextAvailable = false;
+          if (this.props.ids[c - 1]) prev = this.props.ids[c - 1];
+          if (this.props.ids[c + 1]) next = this.props.ids[c + 1];
+
+          // table submissions pagination
+          if (tableInfo) {
+            const nextAvailable =
+              tableInfo.resultsTotal >
+              (tableInfo.currentPage + 1) * tableInfo.pageSize;
+            if (c + 1 === this.props.ids.length && nextAvailable) {
+              next = -2;
+            }
+
+            if (tableInfo.currentPage > 0 && prev == -1) prev = -2;
+          }
         }
 
         if (this.props.ids && sid) {
@@ -190,12 +211,34 @@ class Submission extends React.Component {
   }
 
   switchSubmission(evt) {
+    this.setState({ loading: true });
     const sid = evt.target.getAttribute('data-sid');
     stores.pageState.showModal({
       type: 'submission',
       sid: sid,
       asset: this.props.asset,
-      ids: this.props.ids
+      ids: this.props.ids,
+      tableInfo: this.props.tableInfo || false
+    });
+  }
+
+  prevTablePage() {
+    this.setState({ loading: true });
+
+    stores.pageState.showModal({
+      type: 'submission',
+      sid: false,
+      page: 'prev'
+    });
+  }
+
+  nextTablePage() {
+    this.setState({ loading: true });
+
+    stores.pageState.showModal({
+      type: 'submission',
+      sid: false,
+      page: 'next'
     });
   }
 
@@ -329,7 +372,7 @@ class Submission extends React.Component {
               <h4>
                 {q.label && q.label[translationIndex]
                   ? q.label[translationIndex]
-                  : t('Unlabelled')}
+                  : t('Unlabelled group')}
               </h4>
             </td>
           </tr>
@@ -464,11 +507,31 @@ class Submission extends React.Component {
               </a>
             )}
 
+            {this.state.previous == -2 && (
+              <a
+                onClick={this.prevTablePage}
+                className="mdl-button mdl-button--colored"
+              >
+                <i className="k-icon-prev" />
+                {t('Previous')}
+              </a>
+            )}
+
             {this.state.next > -1 && (
               <a
                 onClick={this.switchSubmission}
                 className="mdl-button mdl-button--colored"
                 data-sid={this.state.next}
+              >
+                {t('Next')}
+                <i className="k-icon-next" />
+              </a>
+            )}
+
+            {this.state.next == -2 && (
+              <a
+                onClick={this.nextTablePage}
+                className="mdl-button mdl-button--colored"
               >
                 {t('Next')}
                 <i className="k-icon-next" />

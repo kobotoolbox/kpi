@@ -187,7 +187,6 @@ mixins.droppable = {
         filename: params.name
       });
     }
-
     if (!library && params.base64Encoded) {
       let destination = params.destination || this.state.url;
       params = assign({ destination: destination }, params);
