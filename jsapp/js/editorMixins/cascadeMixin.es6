@@ -6,30 +6,28 @@ import _ from 'underscore';
 import stores from '../stores';
 
 var CascadePopup = bem.create('cascade-popup'),
-    CascadePopup__message = bem.create('cascade-popup__message'),
-    CascadePopup__buttonWrapper = bem.create('cascade-popup__buttonWrapper'),
-    CascadePopup__button = bem.create('cascade-popup__button', '<button>');
+  CascadePopup__message = bem.create('cascade-popup__message'),
+  CascadePopup__buttonWrapper = bem.create('cascade-popup__buttonWrapper'),
+  CascadePopup__button = bem.create('cascade-popup__button', '<button>');
 
-var choiceListHelpUrl = 'http://support.kobotoolbox.org/customer/en/portal/articles/1682856';
+var choiceListHelpUrl =
+  'http://support.kobotoolbox.org/customer/en/portal/articles/1682856';
 
-import {
-  surveyToValidJson,
-  notify,
-  assign,
-  t,
-} from '../utils';
+import { surveyToValidJson, notify, assign, t } from '../utils';
 
 export default {
-  toggleCascade () {
+  toggleCascade() {
     var lastSelectedRow = _.last(this.app.selectedRows()),
-        lastSelectedRowIndex = lastSelectedRow ? this.app.survey.rows.indexOf(lastSelectedRow) : -1;
+      lastSelectedRowIndex = lastSelectedRow
+        ? this.app.survey.rows.indexOf(lastSelectedRow)
+        : -1;
     this.setState({
       showCascadePopup: !this.state.showCascadePopup,
       cascadeTextareaValue: '',
-      cascadeLastSelectedRowIndex: lastSelectedRowIndex,
+      cascadeLastSelectedRowIndex: lastSelectedRowIndex
     });
   },
-  cancelCascade () {
+  cancelCascade() {
     this.setState({
       cascadeError: false,
       cascadeReady: false,
@@ -37,13 +35,13 @@ export default {
       addCascadePopup: false,
       cascadeTextareaValue: '',
       cascadeStr: '',
-      showCascadePopup: false,
+      showCascadePopup: false
     });
   },
-  cascadePopopChange (evt) {
+  cascadePopopChange(evt) {
     var s = {
-      cascadeTextareaValue: ReactDOM.findDOMNode(this.refs.cascade).value,
-    }
+      cascadeTextareaValue: ReactDOM.findDOMNode(this.refs.cascade).value
+    };
     // if (s.cascadeTextareaValue.length === 0) {
     //   return this.cancelCascade();
     // }
@@ -54,7 +52,9 @@ export default {
         choices: inp
       });
       if (tmpSurvey.choices.length === 0) {
-        throw new Error(t('Paste your formatted table from excel in the box below.'));
+        throw new Error(
+          t('Paste your formatted table from excel in the box below.')
+        );
       }
       tmpSurvey.choices.at(0).create_corresponding_rows();
       /*
@@ -65,67 +65,81 @@ export default {
       */
       var rowCount = tmpSurvey.rows.length;
       if (rowCount === 0) {
-        throw new Error(t('Paste your formatted table from excel in the box below.'));
+        throw new Error(
+          t('Paste your formatted table from excel in the box below.')
+        );
       }
       s.cascadeReady = true;
       s.cascadeReadySurvey = tmpSurvey;
       s.cascadeMessage = {
         msgType: 'ready',
-        addCascadeMessage: t('add cascade with # questions').replace('#', rowCount),
+        addCascadeMessage: t('add cascade with # questions').replace(
+          '#',
+          rowCount
+        )
       };
     } catch (err) {
       s.cascadeReady = false;
       s.cascadeMessage = {
         msgType: 'warning',
-        message: err.message,
-      }
+        message: err.message
+      };
     }
     this.setState(s);
   },
-  renderCascadePopup () {
+  renderCascadePopup() {
     return (
-          <CascadePopup>
-            {this.state.cascadeMessage ?
-              <CascadePopup__message m={this.state.cascadeMessage.msgType}>
-                {this.state.cascadeMessage.message}
-              </CascadePopup__message>
-            :
-              <CascadePopup__message m="instructions">
-                {t('Paste your formatted table from excel in the box below.')}
-              </CascadePopup__message>
-            }
+      <CascadePopup>
+        {this.state.cascadeMessage ? (
+          <CascadePopup__message m={this.state.cascadeMessage.msgType}>
+            {this.state.cascadeMessage.message}
+          </CascadePopup__message>
+        ) : (
+          <CascadePopup__message m="instructions">
+            {t('Paste your formatted table from excel in the box below.')}
+          </CascadePopup__message>
+        )}
 
-            {this.state.cascadeReady ?
-              <CascadePopup__message m="ready">
-                {t('OK')}
-              </CascadePopup__message>
-            : null}
+        {this.state.cascadeReady ? (
+          <CascadePopup__message m="ready">{t('OK')}</CascadePopup__message>
+        ) : null}
 
-            <textarea ref="cascade" onChange={this.cascadePopopChange}
-              value={this.state.cascadeTextareaValue} />
+        <textarea
+          ref="cascade"
+          onChange={this.cascadePopopChange}
+          value={this.state.cascadeTextareaValue}
+        />
 
-            {choiceListHelpUrl ?
-              <div className="cascade-help right-tooltip">
-                <a href={choiceListHelpUrl}
-                  target="_blank"
-                  data-tip={t('Learn more about importing cascading lists from Excel')}>
-                    <i className="k-icon-help" />
-                </a>
-              </div>
-            : null}
+        {choiceListHelpUrl ? (
+          <div className="cascade-help right-tooltip">
+            <a
+              href={choiceListHelpUrl}
+              target="_blank"
+              data-tip={t(
+                'Learn more about importing cascading lists from Excel'
+              )}
+            >
+              <i className="k-icon-help" />
+            </a>
+          </div>
+        ) : null}
 
-            <CascadePopup__buttonWrapper>
-              <CascadePopup__button disabled={!this.state.cascadeReady}
-                onClick={()=>{
-                  var survey = this.app.survey;
-                  survey.insertSurvey(this.state.cascadeReadySurvey,
-                    this.state.cascadeLastSelectedRowIndex);
-                  this.cancelCascade();
-                }}>
-                {t('DONE')}
-              </CascadePopup__button>
-            </CascadePopup__buttonWrapper>
-          </CascadePopup>
-      );
+        <CascadePopup__buttonWrapper>
+          <CascadePopup__button
+            disabled={!this.state.cascadeReady}
+            onClick={() => {
+              var survey = this.app.survey;
+              survey.insertSurvey(
+                this.state.cascadeReadySurvey,
+                this.state.cascadeLastSelectedRowIndex
+              );
+              this.cancelCascade();
+            }}
+          >
+            {t('DONE')}
+          </CascadePopup__button>
+        </CascadePopup__buttonWrapper>
+      </CascadePopup>
+    );
   }
 };

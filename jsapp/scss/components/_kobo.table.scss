@@ -38,11 +38,12 @@
 
     .rt-table {
       border: 1px solid $divider-color;
-      background-color: #FFF;
+      background-color: #fff;
       font-size: 13px;
     }
 
-    .rt-tbody, .rt-thead {
+    .rt-tbody,
+    .rt-thead {
       overflow-x: hidden;
       overflow-y: scroll;
       direction: rtl;
@@ -91,7 +92,8 @@
       align-items: stretch;
     }
 
-    .rt-th, .rt-td {
+    .rt-th,
+    .rt-td {
       padding: 2px;
       padding-left: 6px;
       border-right: 1px solid rgba(0, 0, 0, 0.03);
@@ -164,7 +166,7 @@
     }
 
     .-loading {
-      background: #F8F8F8;
+      background: #f8f8f8;
 
       .-loading-inner {
         display: block;

@@ -2,21 +2,17 @@ import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import {dataInterface} from '../dataInterface';
+import { dataInterface } from '../dataInterface';
 import actions from '../actions';
 import bem from '../bem';
 import ui from '../ui';
 import stores from '../stores';
 import mixins from '../mixins';
-import {hashHistory} from 'react-router';
+import { hashHistory } from 'react-router';
 
-import {
-  t,
-  assign,
-  notify
-} from '../utils';
+import { t, assign, notify } from '../utils';
 
-import {ProjectSettings} from '../components/formEditors';
+import { ProjectSettings } from '../components/formEditors';
 import SharingForm from '../components/sharingForm';
 import Submission from '../components/submission';
 
@@ -31,9 +27,9 @@ class Modal extends React.Component {
     };
     autoBind(this);
   }
-  componentDidMount () {
+  componentDidMount() {
     var type = this.props.params.type;
-    switch(type) {
+    switch (type) {
       case 'sharing':
         this.setState({
           title: t('Sharing Permissions')
@@ -54,9 +50,9 @@ class Modal extends React.Component {
         break;
       case 'enketo-preview':
         var uid = this.props.params.assetid;
-        stores.allAssets.whenLoaded(uid, function(asset){
+        stores.allAssets.whenLoaded(uid, function(asset) {
           actions.resources.createSnapshot({
-            asset: asset.url,
+            asset: asset.url
           });
         });
         this.listenTo(stores.snapshots, this.enketoSnapshotCreation);
@@ -72,34 +68,40 @@ class Modal extends React.Component {
           modalClass: 'modal-large modal-submission',
           sid: this.props.params.sid
         });
-      break;
+        break;
       case 'replace-xls':
         this.setState({
           title: t('Replace with XLS')
         });
         break;
-		}
+    }
   }
-  createNewForm (settingsComponent) {
-    dataInterface.createResource({
-      name: settingsComponent.state.name,
-      settings: JSON.stringify({
-        description: settingsComponent.state.description,
-        sector: settingsComponent.state.sector,
-        country: settingsComponent.state.country,
-        'share-metadata': settingsComponent.state['share-metadata']
-      }),
-      asset_type: 'survey',
-    }).done((asset) => {
-      this.setState({
-        newFormAsset: asset,
-        title: `${t('Create New Project')} (${t('step 2 of 2')})`
+  createNewForm(settingsComponent) {
+    dataInterface
+      .createResource({
+        name: settingsComponent.state.name,
+        settings: JSON.stringify({
+          description: settingsComponent.state.description,
+          sector: settingsComponent.state.sector,
+          country: settingsComponent.state.country,
+          'share-metadata': settingsComponent.state['share-metadata']
+        }),
+        asset_type: 'survey'
+      })
+      .done(asset => {
+        this.setState({
+          newFormAsset: asset,
+          title: `${t('Create New Project')} (${t('step 2 of 2')})`
+        });
+      })
+      .fail(function(r) {
+        notify(
+          t('Error: new project could not be created.') +
+            ` (code: ${r.statusText})`
+        );
       });
-    }).fail(function(r){
-      notify(t('Error: new project could not be created.') + ` (code: ${r.statusText})`);
-    });
   }
-  enketoSnapshotCreation (data) {
+  enketoSnapshotCreation(data) {
     if (data.success) {
       this.setState({
         enketopreviewlink: data.enketopreviewlink
@@ -120,7 +122,10 @@ class Modal extends React.Component {
       });
     }
 
-    if (this.props.params.type != nextProps.params.type && nextProps.params.type === 'uploading-xls') {
+    if (
+      this.props.params.type != nextProps.params.type &&
+      nextProps.params.type === 'uploading-xls'
+    ) {
       var filename = nextProps.params.filename || '';
       this.setState({
         title: t('Uploading XLS file'),
@@ -129,65 +134,75 @@ class Modal extends React.Component {
     }
   }
   render() {
-  	return (
-	      <ui.Modal open onClose={()=>{stores.pageState.hideModal()}} title={this.state.title} className={this.state.modalClass}>
-	        <ui.Modal.Body>
-	        	{ this.props.params.type == 'sharing' &&
-	          	<SharingForm uid={this.props.params.assetid} />
-	        	}
-            { this.props.params.type == 'new-form' &&
-              <ProjectSettings
-                onSubmit={this.createNewForm}
-                submitButtonValue={t('Create Project')}
-                context='newForm'
-                newFormAsset={this.state.newFormAsset}
-              />
-            }
-            { this.props.params.type == 'replace-xls' &&
-              <ProjectSettings
-                context='replaceXLS'
-                newFormAsset={this.props.params.asset}
-              />
-            }
+    return (
+      <ui.Modal
+        open
+        onClose={() => {
+          stores.pageState.hideModal();
+        }}
+        title={this.state.title}
+        className={this.state.modalClass}
+      >
+        <ui.Modal.Body>
+          {this.props.params.type == 'sharing' && (
+            <SharingForm uid={this.props.params.assetid} />
+          )}
+          {this.props.params.type == 'new-form' && (
+            <ProjectSettings
+              onSubmit={this.createNewForm}
+              submitButtonValue={t('Create Project')}
+              context="newForm"
+              newFormAsset={this.state.newFormAsset}
+            />
+          )}
+          {this.props.params.type == 'replace-xls' && (
+            <ProjectSettings
+              context="replaceXLS"
+              newFormAsset={this.props.params.asset}
+            />
+          )}
 
-            { this.props.params.type == 'enketo-preview' && this.state.enketopreviewlink &&
-              <div className='enketo-holder'>
+          {this.props.params.type == 'enketo-preview' &&
+            this.state.enketopreviewlink && (
+              <div className="enketo-holder">
                 <iframe src={this.state.enketopreviewlink} />
               </div>
-            }
-            { this.props.params.type == 'enketo-preview' && !this.state.enketopreviewlink &&
+            )}
+          {this.props.params.type == 'enketo-preview' &&
+            !this.state.enketopreviewlink && (
               <bem.Loading>
                 <bem.Loading__inner>
                   <i />
                   {t('loading...')}
                 </bem.Loading__inner>
               </bem.Loading>
-            }
-            { this.props.params.type == 'enketo-preview' && this.state.error &&
-              <div>
-                {this.state.message}
-              </div>
-            }
-            { this.props.params.type == 'uploading-xls' &&
-              <div>
-                <bem.Loading>
-                  <bem.Loading__inner>
-                    <i />
-                    <bem.Loading__msg>{this.state.message}</bem.Loading__msg>
-                  </bem.Loading__inner>
-                </bem.Loading>
-              </div>
-            }
+            )}
+          {this.props.params.type == 'enketo-preview' &&
+            this.state.error && <div>{this.state.message}</div>}
+          {this.props.params.type == 'uploading-xls' && (
+            <div>
+              <bem.Loading>
+                <bem.Loading__inner>
+                  <i />
+                  <bem.Loading__msg>{this.state.message}</bem.Loading__msg>
+                </bem.Loading__inner>
+              </bem.Loading>
+            </div>
+          )}
 
-            { this.props.params.type == 'submission' && this.state.sid &&
-              <Submission sid={this.state.sid} asset={this.props.params.asset} ids={this.props.params.ids} />
-            }
+          {this.props.params.type == 'submission' &&
+            this.state.sid && (
+              <Submission
+                sid={this.state.sid}
+                asset={this.props.params.asset}
+                ids={this.props.params.ids}
+              />
+            )}
         </ui.Modal.Body>
       </ui.Modal>
-    )
+    );
   }
-
-};
+}
 
 reactMixin(Modal.prototype, Reflux.ListenerMixin);
 

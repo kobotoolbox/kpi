@@ -376,7 +376,6 @@ class SharingForm extends React.Component {
               />
             </bem.FormView__cell>
           )}
-
         {kind != 'collection' &&
           Object.keys(stores.allAssets.byUid).length >= 2 && (
             <bem.FormView__cell m="copy-team-permissions">
