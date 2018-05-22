@@ -1,38 +1,38 @@
-@import "./libs/mdl";
+@import './libs/mdl';
 
-@import "./fonts/roboto";
-@import "./fonts/k-icons/k-icons";
-@import "~font-awesome/scss/font-awesome";
-@import "~select2/select2.css";
-@import "~react-table/react-table.css";
+@import './fonts/roboto';
+@import './fonts/k-icons/k-icons';
+@import '~font-awesome/scss/font-awesome';
+@import '~select2/select2.css';
+@import '~react-table/react-table.css';
 
-@import "./libs/alertify";
-@import "./libs/react-tagsinput";
-@import "./libs/react-select";
+@import './libs/alertify';
+@import './libs/react-tagsinput';
+@import './libs/react-select';
 
-@import "./components/kobo.bem.ui";
-@import "./components/kobo.modal";
-@import "./components/kobo.tooltips";
-@import "./components/kobo.navigation";
-@import "./components/kobo.drawer";
-@import "./components/kobo.drawer.lists";
-@import "./kobo";
-@import "./components/kobo.form-builder";
-@import "./components/kobo.collection-asset-list";
-@import "./components/kobo.list-view";
-@import "./components/kobo.asset-name";
-@import "./components/kobo.asset-row";
-@import "./components/kobo.lib-nav";
-@import "./components/kobo.lib-list";
-@import "./components/kobo.form-view";
-@import "./components/kobo.form-summary";
-@import "./components/kobo.report-view";
-@import "./components/kobo.table";
-@import "./components/kobo.account-settings";
-@import "./components/kobo.sharing-modal";
-@import "./components/kobo.map";
+@import './components/kobo.bem.ui';
+@import './components/kobo.modal';
+@import './components/kobo.tooltips';
+@import './components/kobo.navigation';
+@import './components/kobo.drawer';
+@import './components/kobo.drawer.lists';
+@import './kobo';
+@import './components/kobo.form-builder';
+@import './components/kobo.collection-asset-list';
+@import './components/kobo.list-view';
+@import './components/kobo.asset-name';
+@import './components/kobo.asset-row';
+@import './components/kobo.lib-nav';
+@import './components/kobo.lib-list';
+@import './components/kobo.form-view';
+@import './components/kobo.form-summary';
+@import './components/kobo.report-view';
+@import './components/kobo.table';
+@import './components/kobo.account-settings';
+@import './components/kobo.sharing-modal';
+@import './components/kobo.map';
 
-@import "./formbuild/kobomatrix";
+@import './formbuild/kobomatrix';
 
 .k-invisible {
   visibility: hidden;
@@ -43,4 +43,4 @@ body.hide-edge .is-edge {
 }
 
 // Print stylesheet
-@import "./libs/print";
+@import './libs/print';

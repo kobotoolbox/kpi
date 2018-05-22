@@ -19,7 +19,7 @@
   width: 100%;
   height: calc(100% - 48px);
   overflow-y: auto;
-  background: #F8F8F8;
+  background: #f8f8f8;
 }
 
 .form-view__sidetabs + .form-view,
@@ -125,7 +125,7 @@
   .form-view__sidetabs + .report-view {
     width: calc(100% - 1px);
     height: 100%;
-    background: #F8F8F8;
+    background: #f8f8f8;
   }
 
   .form-view__toptabs {
@@ -167,7 +167,7 @@
   &--box {
     @include box-shadow;
 
-    background-color: #FFF;
+    background-color: #fff;
   }
 
   &--columns {
@@ -177,7 +177,7 @@
   }
 
   &--bordertop {
-    border-top: 1px solid #DDD;
+    border-top: 1px solid #ddd;
   }
 
   &--padding {
@@ -242,7 +242,7 @@
   }
 
   &--langButton.active {
-    background: #E6E6E8;
+    background: #e6e6e8;
   }
 
   &--thin-label {
@@ -310,12 +310,12 @@
   &--warning {
     margin: 10px 20px;
     margin-top: 0px;
-    border-top: 15px solid #FFF;
+    border-top: 15px solid #fff;
     padding: 10px;
-    background: #F8F8F8;
+    background: #f8f8f8;
 
     i {
-      color: #FFB775;
+      color: #ffb775;
       font-size: 32px;
       margin-right: 10px;
       vertical-align: middle;
@@ -342,7 +342,7 @@
     }
 
     &:hover {
-      background: #F2F2F3;
+      background: #f2f2f3;
     }
 
     a.copy {
@@ -360,15 +360,15 @@
     }
 
     + .form-view__cell--collect-row {
-      border-top: 1px solid #DDD;
+      border-top: 1px solid #ddd;
     }
 
     code {
       display: block;
-      background: #F8F8F8;
+      background: #f8f8f8;
       padding: 10px;
       margin-top: 15px;
-      border: 1px solid #DDD;
+      border: 1px solid #ddd;
       font-size: 0.9em;
     }
   }
@@ -387,14 +387,15 @@
     color: $cool-blue;
   }
 
-  &--disabled, &--disabled:hover {
+  &--disabled,
+  &--disabled:hover {
     color: lighten($cool-gray, 15%);
   }
 }
 
 @keyframes recent {
   0% {
-    background-color: #FFF;
+    background-color: #fff;
   }
 
   10% {
@@ -500,7 +501,7 @@
 
 .form-view--form-settings,
 .form-view--settings-sharing {
-  background: #FFF;
+  background: #fff;
   padding: 40px;
 }
 
@@ -609,7 +610,7 @@
     margin: 10px 0px;
     padding: 10px;
     border: 1px solid $divider-color;
-    background: #F8F8F8;
+    background: #f8f8f8;
     font-size: 13px;
     white-space: normal;
   }
@@ -635,7 +636,7 @@
   code {
     padding: 4px;
     border: 1px solid $divider-color;
-    background: #F8F8F8;
+    background: #f8f8f8;
     margin-left: 5px;
     margin-right: 5px;
   }
@@ -677,7 +678,8 @@
     }
   }
 
-  .form-view__sidetabs + .form-view, .form-view__sidetabs + .report-view {
+  .form-view__sidetabs + .form-view,
+  .form-view__sidetabs + .report-view {
     width: calc(100% - 50px);
     overflow-x: hidden;
   }

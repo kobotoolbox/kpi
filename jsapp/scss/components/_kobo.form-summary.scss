@@ -59,7 +59,7 @@
 
       &.active {
         color: $cool-gray;
-        background: #F8F8F8;
+        background: #f8f8f8;
         position: relative;
 
         &:after {
@@ -67,7 +67,7 @@
           height: 0;
           border-left: 10px solid transparent;
           border-right: 10px solid transparent;
-          border-top: 10px solid #F8F8F8;
+          border-top: 10px solid #f8f8f8;
           content: '';
           position: absolute;
           bottom: -9px;
@@ -84,7 +84,7 @@
   display: flex;
 
   .form-view__cell {
-    background: #F8F8FA;
+    background: #f8f8fa;
     padding: 20px;
     flex: 2;
     margin-right: 10px;
@@ -115,7 +115,7 @@
     }
 
     &:hover {
-      background: #F8F8FA;
+      background: #f8f8fa;
     }
 
     i {
@@ -177,7 +177,7 @@
     justify-content: center;
     align-items: center;
     display: flex;
-    background: #F8F8FA;
+    background: #f8f8fa;
 
     span {
       font-size: 16px;

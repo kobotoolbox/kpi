@@ -9,7 +9,7 @@
 }
 
 .report-view__warning {
-  background-color: #FFF;
+  background-color: #fff;
 
   @include box-shadow;
 
@@ -33,7 +33,7 @@
 }
 
 .report-view__item {
-  background-color: #FFF;
+  background-color: #fff;
 
   @include box-shadow;
 
@@ -43,7 +43,7 @@
 .report-view__itemHeading {
   padding: 10px 24px;
   border-left: 5px solid $cool-green;
-  border-bottom: 1px solid #CCC;
+  border-bottom: 1px solid #ccc;
   position: relative;
 
   h2 {
@@ -98,7 +98,7 @@
     }
 
     tbody tr td {
-      border-bottom: 1px solid #CCC;
+      border-bottom: 1px solid #ccc;
       padding: 8px;
       text-align: right;
 
@@ -190,7 +190,8 @@
 
 // report graph settings
 
-.graph-settings__charttype, .graph-settings__colors {
+.graph-settings__charttype,
+.graph-settings__colors {
   padding: 20px 10px;
 
   &:after {
@@ -229,27 +230,27 @@
   }
 
   &--vertical {
-    background-image: url("~../img/chart-vertical.png");
+    background-image: url('~../img/chart-vertical.png');
   }
 
   &--horizontal {
-    background-image: url("~../img/chart-horizontal.png");
+    background-image: url('~../img/chart-horizontal.png');
   }
 
   &--donut {
-    background-image: url("~../img/chart-donut.png");
+    background-image: url('~../img/chart-donut.png');
   }
 
   &--area {
-    background-image: url("~../img/chart-area.png");
+    background-image: url('~../img/chart-area.png');
   }
 
   &--pie {
-    background-image: url("~../img/chart-pie.png");
+    background-image: url('~../img/chart-pie.png');
   }
 
   &--line {
-    background-image: url("~../img/chart-line.png");
+    background-image: url('~../img/chart-line.png');
   }
 }
 
@@ -338,7 +339,7 @@
     width: 100%;
     padding: 5px 10px;
 
-    input[type="checkbox"] + label {
+    input[type='checkbox'] + label {
       display: inline-block;
     }
   }

@@ -1,15 +1,14 @@
-import {
-  parsePermissions,
-  assign,
-} from './utils';
+import { parsePermissions, assign } from './utils';
 
-function parseTags (asset) {
+function parseTags(asset) {
   return {
-    tags: asset.tag_string.split(',').filter((tg) => { return tg.length > 1; })
+    tags: asset.tag_string.split(',').filter(tg => {
+      return tg.length > 1;
+    })
   };
 }
 
-function parseResponsePermissions (resp) {
+function parseResponsePermissions(resp) {
   var out = {};
   parsePermissions(resp.owner__username, resp.permissions);
   // TODO: simplify the call to parse Permissions, here we only need to include user__username for each permission
@@ -36,7 +35,7 @@ function parseResponsePermissions (resp) {
   return out;
 }
 
-function parseSettings (asset) {
+function parseSettings(asset) {
   var settings = asset.content && asset.content.settings;
   if (settings) {
     if (settings.length) {
@@ -46,22 +45,24 @@ function parseSettings (asset) {
       unparsed__settings: settings,
       settings__style: settings.style,
       settings__form_id: settings.form_id,
-      settings__title: settings.title,
+      settings__title: settings.title
     };
   } else {
     return {};
   }
 }
 
-function parsed (asset) {
-  return assign(asset,
-      parseSettings(asset),
-      parseResponsePermissions(asset),
-      parseTags(asset));
+function parsed(asset) {
+  return assign(
+    asset,
+    parseSettings(asset),
+    parseResponsePermissions(asset),
+    parseTags(asset)
+  );
 }
 
 module.exports = {
   parseResponsePermissions: parseResponsePermissions,
   parseTags: parseTags,
-  parsed: parsed,
+  parsed: parsed
 };

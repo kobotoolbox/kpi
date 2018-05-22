@@ -40,7 +40,7 @@ import assign from 'object-assign';
 /* eslint-disable no-console */
 var bemClasses = false;
 // bemClasses is overridden to {} if a user wants to use a simpler syntax
-var reactCreateBemElement = function(base, el='div'){
+var reactCreateBemElement = function(base, el = 'div') {
   var elUnwrap;
   if (el.match) {
     elUnwrap = el.match(/\<(\w+)\s?\/?\>/);
@@ -49,9 +49,9 @@ var reactCreateBemElement = function(base, el='div'){
     }
   }
 
-  var reduceModify = function (s, modifier){
+  var reduceModify = function(s, modifier) {
     if (Object.prototype.toString.call(modifier) === '[object Object]') {
-      Object.keys(modifier).forEach(function(key){
+      Object.keys(modifier).forEach(function(key) {
         if (modifier[key]) {
           s[`${base}--${key}`] = true;
         }
@@ -63,30 +63,33 @@ var reactCreateBemElement = function(base, el='div'){
   };
 
   class c extends React.Component {
-    render () {
+    render() {
       var props = assign({}, this.props);
 
       // allows modifiers to be a string, an array, or undefined (ignored)
-      var modifier = [].concat(this.props.m || this.props.modifier)
-                        .reduce(reduceModify, {});
+      var modifier = []
+        .concat(this.props.m || this.props.modifier)
+        .reduce(reduceModify, {});
       delete props.m;
       delete props.modifier;
 
       // builds the bem classNames, and allows additional classNames
       // to be specified in an object (props.classNames) or normal string
-      props.className = classNames(base,
-                                    modifier,
-                                    this.props.classNames,
-                                    this.props.className);
+      props.className = classNames(
+        base,
+        modifier,
+        this.props.classNames,
+        this.props.className
+      );
       delete props.classNames;
 
       // logClassNames.on && logClassNames(`.${props.className.replace(/\s+/,'.')} { }`);
       // passes remaining props to the children
       return React.createElement(el, props);
     }
-  };
+  }
   c.displayName = `BEM.${base}`;
-  c.__createBemChildElement = c.__ = function(addition, _el='div') {
+  c.__createBemChildElement = c.__ = function(addition, _el = 'div') {
     return reactCreateBemElement(`${base}__${addition}`, _el);
   };
   if (bemClasses) {
@@ -96,13 +99,12 @@ var reactCreateBemElement = function(base, el='div'){
   return c;
 };
 
-
 // BEM.init() and BEM.stop() are optional additoins that let you use an alternative
 // syntax where the modules are not built from the parent block's object, but built
 // separately
 var klasses = {};
-reactCreateBemElement.init = function () {
-  bemClasses = function (klsStr, modifiers=false) {
+reactCreateBemElement.init = function() {
+  bemClasses = function(klsStr, modifiers = false) {
     if (klasses[klsStr]) {
       return klasses[klsStr];
     }
@@ -119,32 +121,37 @@ reactCreateBemElement.init = function () {
   return bemClasses;
 };
 
-reactCreateBemElement.stop = function () {
+reactCreateBemElement.stop = function() {
   bemClasses = false;
   klasses = false;
 };
 
-var logClassNames = assign(function(...args){
-  if (!logClassNames.on) {
-    return false;
-  }
-  if (!logClassNames.group) {
-    console.log(console.group('bem'));
-    logClassNames.group = true;
-  }
-  window.setTimeout((() => {
-    console.groupEnd('bem');
-    logClassNames.group = false;
-  }), 0);
+var logClassNames = assign(
+  function(...args) {
+    if (!logClassNames.on) {
+      return false;
+    }
+    if (!logClassNames.group) {
+      console.log(console.group('bem'));
+      logClassNames.group = true;
+    }
+    window.setTimeout(() => {
+      console.groupEnd('bem');
+      logClassNames.group = false;
+    }, 0);
 
-  if (logClassNames.on) { console.log.apply(console, args); }
-}, {
-  on: false,
-  group: false
-});
+    if (logClassNames.on) {
+      console.log.apply(console, args);
+    }
+  },
+  {
+    on: false,
+    group: false
+  }
+);
 
 // spits out all the empty CSS rules into the log
-reactCreateBemElement.logClassNames = function(tf){
+reactCreateBemElement.logClassNames = function(tf) {
   // no params turns it on, any falsy param turns it off;
   logClassNames.on = tf === undefined ? true : !!tf;
   return reactCreateBemElement;

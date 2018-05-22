@@ -9,12 +9,10 @@ import mixins from '../mixins';
 import stores from '../stores';
 import bem from '../bem';
 import ui from '../ui';
-import {dataInterface} from '../dataInterface';
+import { dataInterface } from '../dataInterface';
 import SearchCollectionList from '../components/searchcollectionlist';
-import {
-  ListSearchSummary,
-} from '../components/list';
-import {t} from '../utils';
+import { ListSearchSummary } from '../components/list';
+import { t } from '../utils';
 
 class LibrarySearchableList extends React.Component {
   constructor(props) {
@@ -22,21 +20,21 @@ class LibrarySearchableList extends React.Component {
     this.state = {
       searchContext: searches.getSearchContext('library', {
         filterParams: {
-          assetType: 'asset_type:question OR asset_type:block',
+          assetType: 'asset_type:question OR asset_type:block'
         },
-        filterTags: 'asset_type:question OR asset_type:block',
+        filterTags: 'asset_type:question OR asset_type:block'
       })
     };
     autoBind(this);
   }
-  queryCollections () {
-    dataInterface.listCollections().then((collections)=>{
+  queryCollections() {
+    dataInterface.listCollections().then(collections => {
       this.setState({
-        sidebarCollections: collections.results,
+        sidebarCollections: collections.results
       });
     });
   }
-  componentDidMount () {
+  componentDidMount() {
     this.searchDefault();
     this.queryCollections();
   }
@@ -50,21 +48,23 @@ class LibrarySearchableList extends React.Component {
     });
   },
   */
-  render () {
+  render() {
     return (
       <bem.Library>
         <SearchCollectionList
-            showDefault
-            searchContext={this.state.searchContext} />
+          showDefault
+          searchContext={this.state.searchContext}
+        />
 
         <ListSearchSummary
-            assetDescriptor={t('library item')}
-            assetDescriptorPlural={t('library items')}
-            searchContext={this.state.searchContext} />
+          assetDescriptor={t('library item')}
+          assetDescriptorPlural={t('library items')}
+          searchContext={this.state.searchContext}
+        />
       </bem.Library>
-      );
+    );
   }
-};
+}
 
 LibrarySearchableList.contextTypes = {
   router: PropTypes.object

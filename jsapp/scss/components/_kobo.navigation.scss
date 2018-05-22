@@ -37,7 +37,7 @@ $headerAccountTextColor: #dbedf7;
   .header__logo {
     width: 175px;
     height: 40px;
-    background: url("../img/kobologo.svg") no-repeat left bottom;
+    background: url('../img/kobologo.svg') no-repeat left bottom;
     background-size: contain;
     display: block;
   }
@@ -62,7 +62,7 @@ $headerAccountTextColor: #dbedf7;
   }
 
   .account-box__notifications__count {
-    background-color: #FF5469;
+    background-color: #ff5469;
     color: white;
     padding: 1px 5px;
     font-weight: bold;
@@ -99,15 +99,15 @@ $headerAccountTextColor: #dbedf7;
 
   .search {
     ::-webkit-input-placeholder {
-      color: #FFF;
+      color: #fff;
     }
 
     :-ms-input-placeholder {
-      color: #FFF;
+      color: #fff;
     }
 
     .k-search__input {
-      color: #FFF;
+      color: #fff;
       border: none;
       border-radius: 0px;
       padding: 10px 12px;
@@ -124,7 +124,7 @@ $headerAccountTextColor: #dbedf7;
       position: absolute;
       top: 11px;
       left: 12px;
-      color: #FFF;
+      color: #fff;
 
       &:before {
         font-size: 18px;
@@ -208,7 +208,7 @@ $headerAccountTextColor: #dbedf7;
       position: absolute;
       right: 100%;
       top: 0px;
-      background-color: #FFF;
+      background-color: #fff;
       color: $cool-gray;
       min-width: 140px;
       transition: all 0.5s;
@@ -253,7 +253,7 @@ $headerAccountTextColor: #dbedf7;
       display: block;
       margin-right: 8px;
       padding: 0px;
-      color: #FFF;
+      color: #fff;
 
       i {
         line-height: 1.5em;
@@ -303,7 +303,7 @@ $headerAccountTextColor: #dbedf7;
     font-size: 38px;
     vertical-align: middle;
     width: 38px;
-    color: #FFF;
+    color: #fff;
     opacity: 0.25;
   }
 
@@ -327,7 +327,7 @@ $headerAccountTextColor: #dbedf7;
     line-height: 24px;
     font-size: 14px;
     opacity: 0.6;
-    color: #FFF;
+    color: #fff;
   }
 
   input {
@@ -361,7 +361,7 @@ $headerAccountTextColor: #dbedf7;
   }
 
   input[name='title'] {
-    color: #FFF;
+    color: #fff;
     font-size: 18px;
     min-width: 100%;
   }
@@ -406,7 +406,7 @@ $headerAccountTextColor: #dbedf7;
     }
 
     .header__logo {
-      background: url("../img/kobologoS.svg") no-repeat left center;
+      background: url('../img/kobologoS.svg') no-repeat left center;
       background-size: 125%;
       width: 40px;
     }
@@ -423,7 +423,7 @@ $headerAccountTextColor: #dbedf7;
   display: inline-block;
   vertical-align: middle;
   font-size: 16px;
-  color: #FFF;
+  color: #fff;
 }
 
 .account-box__menu-item--avatar {
