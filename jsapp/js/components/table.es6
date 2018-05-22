@@ -4,7 +4,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import _ from 'underscore';
-import {dataInterface} from '../dataInterface';
+import { dataInterface } from '../dataInterface';
 
 import actions from '../actions';
 import bem from '../bem';
@@ -13,24 +13,16 @@ import stores from '../stores';
 import mixins from '../mixins';
 import alertify from 'alertifyjs';
 
-import ReactTable from 'react-table'
+import ReactTable from 'react-table';
 import Select from 'react-select';
-import {DebounceInput} from 'react-debounce-input';
+import { DebounceInput } from 'react-debounce-input';
 
-import {
-  VALIDATION_STATUSES
-} from '../constants';
+import { VALIDATION_STATUSES } from '../constants';
 
-import {
-  assign,
-  t,
-  log,
-  notify,
-  formatTimeDate
-} from '../utils';
+import { assign, t, log, notify, formatTimeDate } from '../utils';
 
 export class DataTable extends React.Component {
-  constructor(props){
+  constructor(props) {
     super(props);
     this.state = {
       loading: true,
@@ -64,88 +56,126 @@ export class DataTable extends React.Component {
       filterQuery = `&query={`;
       filter.forEach(function(f, i) {
         filterQuery += `"${f.id}":{"$regex":"${f.value}"}`;
-        if (i < filter.length - 1)
-          filterQuery += ',';
+        if (i < filter.length - 1) filterQuery += ',';
       });
       filterQuery += `}`;
-      dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort, [], filterQuery, true).done((data) => {
-        if (data.count) {
-          this.setState({resultsTotal: data.count});
-        }
-      });
+      dataInterface
+        .getSubmissions(
+          this.props.asset.uid,
+          pageSize,
+          page,
+          sort,
+          [],
+          filterQuery,
+          true
+        )
+        .done(data => {
+          if (data.count) {
+            this.setState({ resultsTotal: data.count });
+          }
+        });
     } else {
-      this.setState({resultsTotal: this.props.asset.deployment__submission_count});
+      this.setState({
+        resultsTotal: this.props.asset.deployment__submission_count
+      });
     }
 
-    dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort, [], filterQuery).done((data) => {
-      if (data && data.length > 0) {
-        this.setState({
-          loading: false,
-          selectedRows: {},
-          selectAll: false,
-          tableData: data
-        })
-        this._prepColumns(data);
-      } else {
-        if (filterQuery.length) {
+    dataInterface
+      .getSubmissions(
+        this.props.asset.uid,
+        pageSize,
+        page,
+        sort,
+        [],
+        filterQuery
+      )
+      .done(data => {
+        if (data && data.length > 0) {
           this.setState({
+            loading: false,
+            selectedRows: {},
+            selectAll: false,
+            tableData: data
+          });
+          this._prepColumns(data);
+        } else {
+          if (filterQuery.length) {
+            this.setState({
+              loading: false
+            });
+            // TODO: debounce the queries and then enable this notification
+            notify(t('The query did not return any results.'));
+          } else {
+            this.setState({
+              error: t('Error: could not load data.'),
+              loading: false
+            });
+          }
+        }
+      })
+      .fail(error => {
+        if (error.responseText)
+          this.setState({ error: error.responseText, loading: false });
+        else if (error.statusText)
+          this.setState({ error: error.statusText, loading: false });
+        else
+          this.setState({
+            error: t('Error: could not load data.'),
             loading: false
           });
-          // TODO: debounce the queries and then enable this notification
-          notify(t('The query did not return any results.'));
-        } else {
-          this.setState({error: t('Error: could not load data.'), loading: false});
-        }
-      }
-    }).fail((error)=>{
-      if (error.responseText)
-        this.setState({error: error.responseText, loading: false});
-      else if (error.statusText)
-        this.setState({error: error.statusText, loading: false});
-      else
-        this.setState({error: t('Error: could not load data.'), loading: false});
-    });
+      });
   }
   validationStatusChange(sid, index) {
     var _this = this;
 
     return function(selection) {
-      const data = {"validation_status.uid": selection.value};
-      dataInterface.updateSubmissionValidationStatus(_this.props.asset.uid, sid, data).done((result) => {
-        if (result.uid) {
-          _this.state.tableData[index]._validation_status = result.uid;
-          _this.setState({tableData: _this.state.tableData});
-        } else {
-          console.error('error updating validation status');
-        }
-      }).fail((error)=>{
-        console.error(error);
-      });
-    }
+      const data = { 'validation_status.uid': selection.value };
+      dataInterface
+        .updateSubmissionValidationStatus(_this.props.asset.uid, sid, data)
+        .done(result => {
+          if (result.uid) {
+            _this.state.tableData[index]._validation_status = result.uid;
+            _this.setState({ tableData: _this.state.tableData });
+          } else {
+            console.error('error updating validation status');
+          }
+        })
+        .fail(error => {
+          console.error(error);
+        });
+    };
   }
   _prepColumns(data) {
-    var uniqueKeys = Object.keys(data.reduce(function(result, obj) {
-      return Object.assign(result, obj);
-    }, {}))
+    var uniqueKeys = Object.keys(
+      data.reduce(function(result, obj) {
+        return Object.assign(result, obj);
+      }, {})
+    );
 
     let showLabels = this.state.showLabels,
-        showGroups = this.state.showGroups,
-        translationIndex = this.state.translationIndex,
-        maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);
+      showGroups = this.state.showGroups,
+      translationIndex = this.state.translationIndex,
+      maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);
 
     var columns = [];
 
     if (this.userCan('validate_submissions', this.props.asset)) {
       columns.push({
         Header: row => (
-            <div className="table-header-checkbox">
-              <input type="checkbox"
-                id={`ch-head`}
-                checked={Object.keys(this.state.selectedRows).length === maxPageRes ? true : false}
-                onChange={this.bulkSelectAllRows} />
-              <label htmlFor={`ch-head`}></label>
-            </div>
-          ),
+          <div className="table-header-checkbox">
+            <input
+              type="checkbox"
+              id={`ch-head`}
+              checked={
+                Object.keys(this.state.selectedRows).length === maxPageRes
+                  ? true
+                  : false
+              }
+              onChange={this.bulkSelectAllRows}
+            />
+            <label htmlFor={`ch-head`} />
+          </div>
+        ),
         accessor: 'sub-checkbox',
         index: '__0',
         minWidth: 45,
@@ -153,11 +183,14 @@ export class DataTable extends React.Component {
         sortable: false,
         Cell: row => (
           <div>
-            <input type="checkbox"
-                id={`ch-${row.row._id}`}
-                checked={this.state.selectedRows[row.row._id] ? true : false}
-                onChange={this.bulkUpdateChange} data-sid={row.row._id} />
-            <label htmlFor={`ch-${row.row._id}`}></label>
+            <input
+              type="checkbox"
+              id={`ch-${row.row._id}`}
+              checked={this.state.selectedRows[row.row._id] ? true : false}
+              onChange={this.bulkUpdateChange}
+              data-sid={row.row._id}
+            />
+            <label htmlFor={`ch-${row.row._id}`} />
           </div>
         )
       });
@@ -171,8 +204,11 @@ export class DataTable extends React.Component {
       filterable: false,
       sortable: false,
       Cell: row => (
-        <span onClick={this.launchSubmissionModal} data-sid={row.row._id}
-              className='rt-link'>
+        <span
+          onClick={this.launchSubmissionModal}
+          data-sid={row.row._id}
+          className="rt-link"
+        >
           {t('Open')}
         </span>
       )
@@ -184,86 +220,104 @@ export class DataTable extends React.Component {
       index: '__2',
       minWidth: 130,
       className: 'rt-status',
-      Filter: ({ filter, onChange }) =>
+      Filter: ({ filter, onChange }) => (
         <select
           onChange={event => onChange(event.target.value)}
-          style={{ width: "100%" }}
-          value={filter ? filter.value : ""}>
+          style={{ width: '100%' }}
+          value={filter ? filter.value : ''}
+        >
           <option value="">Show All</option>
           {VALIDATION_STATUSES.map((item, n) => {
             return (
-              <option value={item.value} key={n}>{item.label}</option>
+              <option value={item.value} key={n}>
+                {item.label}
+              </option>
             );
           })}
-        </select>,
+        </select>
+      ),
       Cell: row => (
         <Select
           disabled={!this.userCan('validate_submissions', this.props.asset)}
           clearable={false}
           value={this.state.tableData[row.index]._validation_status}
           options={VALIDATION_STATUSES}
-          onChange={this.validationStatusChange(row.row._id, row.index)} />
+          onChange={this.validationStatusChange(row.row._id, row.index)}
+        />
       )
     });
 
-    var excludes = ['_xform_id_string', '_attachments', '_notes', '_bamboo_dataset_id', '_status',
-                    'formhub/uuid', '_tags', '_geolocation', '_submitted_by', 'meta/instanceID','_validation_status'];
+    var excludes = [
+      '_xform_id_string',
+      '_attachments',
+      '_notes',
+      '_bamboo_dataset_id',
+      '_status',
+      'formhub/uuid',
+      '_tags',
+      '_geolocation',
+      '_submitted_by',
+      'meta/instanceID',
+      '_validation_status'
+    ];
 
     let survey = this.props.asset.content.survey;
     let choices = this.props.asset.content.choices;
 
-    uniqueKeys.forEach(function(key){
-      if (excludes.includes(key))
-        return false;
+    uniqueKeys.forEach(function(key) {
+      if (excludes.includes(key)) return false;
 
       var q = undefined;
       var qParentG = [];
       if (key.includes('/') && key !== 'meta/instanceID') {
         qParentG = key.split('/');
-        q = survey.find(o => o.name === qParentG[qParentG.length - 1] || o.$autoname == qParentG[qParentG.length - 1]);
+        q = survey.find(
+          o =>
+            o.name === qParentG[qParentG.length - 1] ||
+            o.$autoname == qParentG[qParentG.length - 1]
+        );
       } else {
         q = survey.find(o => o.name === key || o.$autoname == key);
       }
 
-      if (q && q.type === 'begin_repeat')
-        return false;
+      if (q && q.type === 'begin_repeat') return false;
 
       // sets location of columns for questions not in current survey version
       var index = 'y_' + key;
 
       // place meta question columns at the very end
-      switch(key) {
+      switch (key) {
         case 'username':
-            index = 'z1';
-            break;
+          index = 'z1';
+          break;
         case 'simserial':
-            index = 'z2';
-            break;
+          index = 'z2';
+          break;
         case 'subscriberid':
-            index = 'z3';
-            break;
+          index = 'z3';
+          break;
         case 'deviceid':
-            index = 'z4';
-            break;
+          index = 'z4';
+          break;
         case 'phonenumber':
-            index = 'z5';
-            break;
+          index = 'z5';
+          break;
         case 'today':
-            index = 'z6';
-            break;
+          index = 'z6';
+          break;
         case '__version__':
         case '_version_':
-            index = 'z7';
-            break;
+          index = 'z7';
+          break;
         case '_id':
-            index = 'z8';
-            break;
+          index = 'z8';
+          break;
         case '_uuid':
-            index = 'z9';
-            break;
+          index = 'z9';
+          break;
         case '_submission_time':
-            index = 'z91';
-            break;
+          index = 'z91';
+          break;
         default:
           // set index for questions in current version of survey (including questions in groups)
           survey.map(function(x, i) {
@@ -313,82 +367,110 @@ export class DataTable extends React.Component {
         question: q,
         filterable: false,
         Cell: row => {
-            if (showLabels && q && q.type && row.value) {
-              // show proper labels for choice questions
-              if (q.type == 'select_one') {
-                let choice = choices.find(o => o.list_name == q.select_from_list_name && (o.name === row.value || o.$autoname == row.value));
-                return choice && choice.label && choice.label[translationIndex] ? choice.label[translationIndex] : row.value;
-              }
-              if (q.type == 'select_multiple' && row.value) {
-                let values = row.value.split(" ");
-                var labels = [];
-                values.forEach(function(v) {
-                  let choice = choices.find(o => o.list_name == q.select_from_list_name && (o.name === v || o.$autoname == v));
-                  if (choice && choice.label && choice.label[translationIndex])
-                    labels.push(choice.label[translationIndex]);
-                });
-
-                return labels.join(", ");
-              }
-              if (q.type == 'start' || q.type == 'end' || q.type == '_submission_time') {
-                return formatTimeDate(row.value);
-              }
+          if (showLabels && q && q.type && row.value) {
+            // show proper labels for choice questions
+            if (q.type == 'select_one') {
+              let choice = choices.find(
+                o =>
+                  o.list_name == q.select_from_list_name &&
+                  (o.name === row.value || o.$autoname == row.value)
+              );
+              return choice && choice.label && choice.label[translationIndex]
+                ? choice.label[translationIndex]
+                : row.value;
             }
-            return typeof(row.value) == "object" ? '' : row.value;
-          }
-      });
+            if (q.type == 'select_multiple' && row.value) {
+              let values = row.value.split(' ');
+              var labels = [];
+              values.forEach(function(v) {
+                let choice = choices.find(
+                  o =>
+                    o.list_name == q.select_from_list_name &&
+                    (o.name === v || o.$autoname == v)
+                );
+                if (choice && choice.label && choice.label[translationIndex])
+                  labels.push(choice.label[translationIndex]);
+              });
 
+              return labels.join(', ');
+            }
+            if (
+              q.type == 'start' ||
+              q.type == 'end' ||
+              q.type == '_submission_time'
+            ) {
+              return formatTimeDate(row.value);
+            }
+          }
+          return typeof row.value == 'object' ? '' : row.value;
+        }
+      });
     });
 
     columns.sort(function(a, b) {
-      return a.index.localeCompare(b.index, 'en', {numeric: true});
-    })
+      return a.index.localeCompare(b.index, 'en', { numeric: true });
+    });
 
     columns.forEach(function(col, ind) {
       // TODO: see if this can work for select_multiple too
       if (col.question && col.question.type === 'select_one') {
         columns[ind].filterable = true;
-        columns[ind].Filter = ({ filter, onChange }) =>
+        columns[ind].Filter = ({ filter, onChange }) => (
           <select
             onChange={event => onChange(event.target.value)}
-            style={{ width: "100%" }}
-            value={filter ? filter.value : ""}>
+            style={{ width: '100%' }}
+            value={filter ? filter.value : ''}
+          >
             <option value="">Show All</option>
-            {choices.filter(c => c.list_name === col.question.select_from_list_name).map((item, n) => {
-              return (
-                <option value={item.name} key={n}>{item.label[0]}</option>
-              );
-            })}
-          </select>;
+            {choices
+              .filter(c => c.list_name === col.question.select_from_list_name)
+              .map((item, n) => {
+                return (
+                  <option value={item.name} key={n}>
+                    {item.label[0]}
+                  </option>
+                );
+              })}
+          </select>
+        );
       }
-      if (col.question && (col.question.type === 'text' || col.question.type === 'integer'
-          || col.question.type === 'decimal')) {
+      if (
+        col.question &&
+        (col.question.type === 'text' ||
+          col.question.type === 'integer' ||
+          col.question.type === 'decimal')
+      ) {
         columns[ind].filterable = true;
-        columns[ind].Filter = ({ filter, onChange }) =>
+        columns[ind].Filter = ({ filter, onChange }) => (
           <DebounceInput
             debounceTimeout={750}
             onChange={event => onChange(event.target.value)}
-            style={{ width: "100%" }}/>;
+            style={{ width: '100%' }}
+          />
+        );
       }
-    })
+    });
 
     this.setState({
       columns: columns
-    })
+    });
   }
-  toggleExpandedTable () {
+  toggleExpandedTable() {
     if (this.state.showExpandedTable) {
       // load asset again to restore header title and submission count after exiting expanded report
-      actions.resources.loadAsset({id: this.props.asset.uid});
+      actions.resources.loadAsset({ id: this.props.asset.uid });
     }
 
     stores.pageState.hideDrawerAndHeader(!this.state.showExpandedTable);
     this.setState({
-      showExpandedTable: !this.state.showExpandedTable,
+      showExpandedTable: !this.state.showExpandedTable
     });
   }
   componentDidMount() {
-    this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmission);
+    this.listenTo(
+      actions.resources.updateSubmissionValidationStatus.completed,
+      this.refreshSubmission
+    );
   }
   componentWillUnmount() {
     if (this.state.showExpandedTable)
@@ -396,16 +478,18 @@ export class DataTable extends React.Component {
   }
   refreshSubmission(result, sid) {
     if (sid) {
-      var subIndex = this.state.tableData.findIndex(x => x._id === parseInt(sid));
-      if (typeof subIndex !== "undefined" && this.state.tableData[subIndex]) {
+      var subIndex = this.state.tableData.findIndex(
+        x => x._id === parseInt(sid)
+      );
+      if (typeof subIndex !== 'undefined' && this.state.tableData[subIndex]) {
         var newData = this.state.tableData;
         newData[subIndex]._validation_status = result;
-        this.setState({tableData: newData});
+        this.setState({ tableData: newData });
         this._prepColumns(newData);
       }
     }
   }
-  launchPrinting () {
+  launchPrinting() {
     window.print();
   }
   fetchData(state, instance) {
@@ -418,13 +502,13 @@ export class DataTable extends React.Component {
     });
     this.requestData(instance);
   }
-  launchSubmissionModal (evt) {
+  launchSubmissionModal(evt) {
     const sid = evt.target.getAttribute('data-sid');
     const td = this.state.tableData;
     var ids = [];
     td.forEach(function(r) {
       ids.push(r._id);
-    })
+    });
 
     stores.pageState.showModal({
       type: 'submission',
@@ -450,7 +534,7 @@ export class DataTable extends React.Component {
   }
   bulkSelectAllRows(evt) {
     var s = this.state.selectedRows,
-        selectAll = this.state.selectAll;
+      selectAll = this.state.selectAll;
 
     this.state.tableData.forEach(function(r) {
       if (evt.target.checked) {
@@ -458,7 +542,7 @@ export class DataTable extends React.Component {
       } else {
         delete s[r._id];
       }
-    })
+    });
 
     this.setState({
       selectedRows: s,
@@ -467,20 +551,20 @@ export class DataTable extends React.Component {
   }
   bulkUpdateStatus(evt) {
     const val = evt.target.getAttribute('data-value'),
-          selectAll = this.state.selectAll;
+      selectAll = this.state.selectAll;
     var d = null;
 
     if (!selectAll) {
       d = {
         submissions_ids: Object.keys(this.state.selectedRows),
-        "validation_status.uid": val
+        'validation_status.uid': val
       };
     } else {
       const f = this.state.fetchState.filtered;
       if (f.length) {
         d = {
           query: {},
-          "validation_status.uid": val
+          'validation_status.uid': val
         };
         f.forEach(function(z) {
           d.query[z.id] = z.value;
@@ -488,25 +572,32 @@ export class DataTable extends React.Component {
       } else {
         d = {
           confirm: true,
-          "validation_status.uid": val
+          'validation_status.uid': val
         };
       }
     }
 
     let dialog = alertify.dialog('confirm');
-    const sel = this.state.selectAll ? this.state.resultsTotal : Object.keys(this.state.selectedRows).length;
+    const sel = this.state.selectAll
+      ? this.state.resultsTotal
+      : Object.keys(this.state.selectedRows).length;
     let opts = {
       title: t('Update status of selected submissions'),
-      message: t('You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.').replace('##', sel),
-      labels: {ok: t('Update Validation Status'), cancel: t('Cancel')},
+      message: t(
+        'You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.'
+      ).replace('##', sel),
+      labels: { ok: t('Update Validation Status'), cancel: t('Cancel') },
       onok: (evt, val) => {
-        dataInterface.patchSubmissions(this.props.asset.uid, d).done((res) => {
-          this.fetchData(this.state.fetchState, this.state.fetchInstance);
-          this.setState({loading: true});
-        }).fail((jqxhr)=> {
-          console.error(jqxhr);
-          alertify.error(t('Failed to update status.'));
-        });
+        dataInterface
+          .patchSubmissions(this.props.asset.uid, d)
+          .done(res => {
+            this.fetchData(this.state.fetchState, this.state.fetchInstance);
+            this.setState({ loading: true });
+          })
+          .fail(jqxhr => {
+            console.error(jqxhr);
+            alertify.error(t('Failed to update status.'));
+          });
       },
       oncancel: () => {
         dialog.destroy();
@@ -519,7 +610,7 @@ export class DataTable extends React.Component {
       showLabels: false
     });
 
-    window.setTimeout(()=>{
+    window.setTimeout(() => {
       this._prepColumns(this.state.tableData);
     }, 200);
   }
@@ -530,24 +621,24 @@ export class DataTable extends React.Component {
       translationIndex: index
     });
 
-    window.setTimeout(()=>{
+    window.setTimeout(() => {
       this._prepColumns(this.state.tableData);
     }, 200);
   }
-  toggleGroups () {
+  toggleGroups() {
     this.setState({
       showGroups: !this.state.showGroups
     });
 
-    window.setTimeout(()=>{
+    window.setTimeout(() => {
       this._prepColumns(this.state.tableData);
     }, 200);
   }
   bulkSelectAll() {
-    this.setState({selectAll: true});
+    this.setState({ selectAll: true });
   }
   clearSelection() {
-    this.setState({selectAll: false, selectedRows: {}});
+    this.setState({ selectAll: false, selectedRows: {} });
   }
   bulkSelectUI() {
     if (!this.state.tableData.length) {
@@ -556,116 +647,157 @@ export class DataTable extends React.Component {
 
     const { pageSize, currentPage, resultsTotal } = this.state;
 
-    const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1),
-          res1 = (currentPage * pageSize) + 1,
-          res2 = Math.min((currentPage + 1) * pageSize, resultsTotal),
-          showingResults = `${res1} - ${res2} ${t('of')} ${resultsTotal} ${t('results')}. `,
-          selected = this.state.selectedRows,
-          maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);;
+    const pages = Math.floor((resultsTotal - 1) / pageSize + 1),
+      res1 = currentPage * pageSize + 1,
+      res2 = Math.min((currentPage + 1) * pageSize, resultsTotal),
+      showingResults = `${res1} - ${res2} ${t('of')} ${resultsTotal} ${t(
+        'results'
+      )}. `,
+      selected = this.state.selectedRows,
+      maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);
 
-          //
+    //
     return (
-      <bem.FormView__item m='table-meta'>
+      <bem.FormView__item m="table-meta">
         {showingResults}
-        {this.state.selectAll ?
+        {this.state.selectAll ? (
           <span>
             {t('All ## selected. ').replace('##', resultsTotal)}
             <a className="select-all" onClick={this.clearSelection}>
               {t('Clear selection')}
             </a>
           </span>
-        :
+        ) : (
           <span>
             {Object.keys(selected).length > 0 &&
-              t('## selected. ').replace('##', Object.keys(selected).length)
-            }
-            {Object.keys(selected).length == maxPageRes && resultsTotal > pageSize &&
-              <a className="select-all" onClick={this.bulkSelectAll}>
-                {t('Select all ##').replace('##', resultsTotal)}
-              </a>
-            }
+              t('## selected. ').replace('##', Object.keys(selected).length)}
+            {Object.keys(selected).length == maxPageRes &&
+              resultsTotal > pageSize && (
+                <a className="select-all" onClick={this.bulkSelectAll}>
+                  {t('Select all ##').replace('##', resultsTotal)}
+                </a>
+              )}
           </span>
-        }
+        )}
       </bem.FormView__item>
     );
   }
-  render () {
+  render() {
     if (this.state.error) {
       return (
         <ui.Panel>
           <bem.Loading>
-            <bem.Loading__inner>
-              {this.state.error}
-            </bem.Loading__inner>
+            <bem.Loading__inner>{this.state.error}</bem.Loading__inner>
           </bem.Loading>
         </ui.Panel>
-        )
+      );
     }
 
-    const { tableData, columns, defaultPageSize, loading, pageSize, currentPage, resultsTotal } = this.state;
-    const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1);
+    const {
+      tableData,
+      columns,
+      defaultPageSize,
+      loading,
+      pageSize,
+      currentPage,
+      resultsTotal
+    } = this.state;
+    const pages = Math.floor((resultsTotal - 1) / pageSize + 1);
     let asset = this.props.asset;
     return (
-      <bem.FormView m='table'>
-        <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
+      <bem.FormView m="table">
+        <bem.FormView__group
+          m={[
+            'table-header',
+            this.state.loading ? 'table-loading' : 'table-loaded'
+          ]}
+        >
           {this.bulkSelectUI()}
-          <bem.FormView__item m='table-buttons'>
-            <button className="mdl-button mdl-button--icon report-button__print is-edge"
-                    onClick={this.launchPrinting}
-                    data-tip={t('Print')}>
+          <bem.FormView__item m="table-buttons">
+            <button
+              className="mdl-button mdl-button--icon report-button__print is-edge"
+              onClick={this.launchPrinting}
+              data-tip={t('Print')}
+            >
               <i className="k-icon-print" />
             </button>
 
-            {Object.keys(this.state.selectedRows).length > 0 &&
-              <ui.PopoverMenu type='bulkUpdate-menu' triggerLabel={t('Update selected')} >
+            {Object.keys(this.state.selectedRows).length > 0 && (
+              <ui.PopoverMenu
+                type="bulkUpdate-menu"
+                triggerLabel={t('Update selected')}
+              >
                 <bem.PopoverMenu__heading>
                   {t('Updated status to:')}
                 </bem.PopoverMenu__heading>
                 {VALIDATION_STATUSES.map((item, n) => {
                   return (
-                    <bem.PopoverMenu__link onClick={this.bulkUpdateStatus} data-value={item.value} key={n}>
+                    <bem.PopoverMenu__link
+                      onClick={this.bulkUpdateStatus}
+                      data-value={item.value}
+                      key={n}
+                    >
                       {item.label}
-                      </bem.PopoverMenu__link>
+                    </bem.PopoverMenu__link>
                   );
                 })}
               </ui.PopoverMenu>
-            }
+            )}
 
-            <button className="mdl-button mdl-button--icon report-button__expand"
-                    onClick={this.toggleExpandedTable}
-                    data-tip={this.state.showExpandedTable ? t('Contract') : t('Expand')}>
+            <button
+              className="mdl-button mdl-button--icon report-button__expand"
+              onClick={this.toggleExpandedTable}
+              data-tip={
+                this.state.showExpandedTable ? t('Contract') : t('Expand')
+              }
+            >
               <i className="k-icon-expand" />
             </button>
 
-            <ui.PopoverMenu type='formTable-menu'
-                        triggerLabel={<i className="k-icon-more" />}
-                        triggerTip={t('Display options')}>
+            <ui.PopoverMenu
+              type="formTable-menu"
+              triggerLabel={<i className="k-icon-more" />}
+              triggerTip={t('Display options')}
+            >
+              <bem.PopoverMenu__link
+                onClick={this.showXMLValues}
+                className={!this.state.showLabels ? 'active' : ''}
+              >
+                {t('Show XML values')}
+              </bem.PopoverMenu__link>
+              {asset.content.translations.map((trns, n) => {
+                return (
+                  <bem.PopoverMenu__link
+                    onClick={this.showTranslation}
+                    data-index={n}
+                    key={n}
+                    className={
+                      this.state.showLabels && this.state.translationIndex == n
+                        ? 'active'
+                        : ''
+                    }
+                  >
+                    {t('Show labels')}
+                    {trns ? ` - ${trns}` : null}
+                  </bem.PopoverMenu__link>
+                );
+              })}
+              {this.state.showGroups ? (
                 <bem.PopoverMenu__link
-                  onClick={this.showXMLValues}
-                  className={!this.state.showLabels ? 'active': ''}>
-                  {t('Show XML values')}
+                  onClick={this.toggleGroups}
+                  className="divider"
+                >
+                  {t('Hide question groups')}
                 </bem.PopoverMenu__link>
-                {asset.content.translations.map((trns, n) => {
-                    return (
-                      <bem.PopoverMenu__link
-                        onClick={this.showTranslation} data-index={n} key={n}
-                        className={this.state.showLabels && this.state.translationIndex == n ? 'active': ''}>
-                        {t('Show labels')}
-                        {trns ? ` - ${trns}` : null}
-                      </bem.PopoverMenu__link>
-                    )
-                })}
-                {this.state.showGroups ?
-                  <bem.PopoverMenu__link onClick={this.toggleGroups} className="divider">
-                    {t('Hide question groups')}
-                  </bem.PopoverMenu__link>
-                :
-                  <bem.PopoverMenu__link onClick={this.toggleGroups} className="divider">
-                    {t('Show question groups')}
-                  </bem.PopoverMenu__link>
-                }
+              ) : (
+                <bem.PopoverMenu__link
+                  onClick={this.toggleGroups}
+                  className="divider"
+                >
+                  {t('Show question groups')}
+                </bem.PopoverMenu__link>
+              )}
             </ui.PopoverMenu>
-
           </bem.FormView__item>
         </bem.FormView__group>
 
@@ -675,7 +807,7 @@ export class DataTable extends React.Component {
           defaultPageSize={defaultPageSize}
           pageSizeOptions={[10, 30, 50, 100, 200, 500]}
           minRows={1}
-          className={"-striped -highlight"}
+          className={'-striped -highlight'}
           pages={pages}
           manual
           onFetchData={this.fetchData}
@@ -692,11 +824,12 @@ export class DataTable extends React.Component {
           pageText={t('Page')}
           ofText={t('of')}
           rowsText={t('rows')}
-          filterable/>
+          filterable
+        />
       </bem.FormView>
     );
   }
-};
+}
 
 reactMixin(DataTable.prototype, Reflux.ListenerMixin);
 reactMixin(DataTable.prototype, mixins.permissions);

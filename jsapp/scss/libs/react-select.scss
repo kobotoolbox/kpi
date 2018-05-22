@@ -80,7 +80,8 @@
 
 .is-focused:not(.is-open) > .Select-control {
   border-color: #007eff;
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 0 3px rgba(0, 126, 255, 0.1);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075),
+    0 0 0 3px rgba(0, 126, 255, 0.1);
 }
 
 .Select-placeholder,
@@ -101,20 +102,38 @@
 }
 
 .has-value.Select--single > .Select-control .Select-value .Select-value-label,
-.has-value.is-pseudo-focused.Select--single > .Select-control .Select-value .Select-value-label {
+.has-value.is-pseudo-focused.Select--single
+  > .Select-control
+  .Select-value
+  .Select-value-label {
   color: #333;
 }
 
 .has-value.Select--single > .Select-control .Select-value a.Select-value-label,
-.has-value.is-pseudo-focused.Select--single > .Select-control .Select-value a.Select-value-label {
+.has-value.is-pseudo-focused.Select--single
+  > .Select-control
+  .Select-value
+  a.Select-value-label {
   cursor: pointer;
   text-decoration: none;
 }
 
-.has-value.Select--single > .Select-control .Select-value a.Select-value-label:hover,
-.has-value.is-pseudo-focused.Select--single > .Select-control .Select-value a.Select-value-label:hover,
-.has-value.Select--single > .Select-control .Select-value a.Select-value-label:focus,
-.has-value.is-pseudo-focused.Select--single > .Select-control .Select-value a.Select-value-label:focus {
+.has-value.Select--single
+  > .Select-control
+  .Select-value
+  a.Select-value-label:hover,
+.has-value.is-pseudo-focused.Select--single
+  > .Select-control
+  .Select-value
+  a.Select-value-label:hover,
+.has-value.Select--single
+  > .Select-control
+  .Select-value
+  a.Select-value-label:focus,
+.has-value.is-pseudo-focused.Select--single
+  > .Select-control
+  .Select-value
+  a.Select-value-label:focus {
   color: #007eff;
   outline: none;
   text-decoration: underline;
@@ -195,7 +214,7 @@
 }
 
 .Select-clear-zone:hover {
-  color: #D0021B;
+  color: #d0021b;
 }
 
 .Select-clear {
@@ -256,7 +275,6 @@
   }
 }
 
-
 @keyframes Select-animation-fadeIn {
   from {
     opacity: 0;
@@ -265,7 +283,6 @@
     opacity: 1;
   }
 }
-
 
 .Select-menu-outer {
   border-bottom-right-radius: 4px;
@@ -426,7 +443,6 @@
     transform: rotate(1turn);
   }
 }
-
 
 @-webkit-keyframes Select-animation-spin {
   to {

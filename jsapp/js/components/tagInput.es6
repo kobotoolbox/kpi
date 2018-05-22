@@ -3,12 +3,12 @@ import autoBind from 'react-autobind';
 import TagsInput from 'react-tagsinput';
 import stores from '../stores';
 import actions from '../actions';
-import {t} from '../utils';
+import { t } from '../utils';
 
 class TagInput extends React.Component {
   constructor(props) {
-    super(props)
-    this.state = {tags: props.tags, tag: ''}
+    super(props);
+    this.state = { tags: props.tags, tag: '' };
     autoBind(this);
   }
 
@@ -17,17 +17,16 @@ class TagInput extends React.Component {
       // Behavior should match KpiTaggableManager.add()
       return tag.trim().replace(/ /g, '-');
     });
-    this.setState({tags: transformed});
+    this.setState({ tags: transformed });
 
     var uid = this.props.uid;
     actions.resources.updateAsset(uid, {
       tag_string: transformed.join(',')
     });
-
   }
 
   handleChangeInput(tag) {
-    this.setState({tag})
+    this.setState({ tag });
   }
 
   render() {
@@ -42,7 +41,7 @@ class TagInput extends React.Component {
         inputProps={inputProps}
         onChangeInput={this.handleChangeInput.bind(this)}
       />
-    )
+    );
   }
 }
 

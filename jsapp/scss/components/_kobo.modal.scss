@@ -21,7 +21,7 @@
 }
 
 .modal-content {
-  background-color: #FFF;
+  background-color: #fff;
   padding: 15px 20px;
 }
 
@@ -70,7 +70,7 @@
   min-height: 70px;
   margin: -15px -20px 0;
   background: $cool-blue;
-  color: #FFF;
+  color: #fff;
 }
 
 .modal-body {
@@ -91,7 +91,7 @@
   right: 0;
   padding: 20px;
   font-size: 20px;
-  color: #FFF;
+  color: #fff;
   cursor: pointer;
 
   i {
@@ -125,11 +125,11 @@
 
 .modal-submission {
   .modal-open {
-    background-color: #FFF;
+    background-color: #fff;
   }
 
   .modal-header {
-    background-color: #F8F8F8;
+    background-color: #f8f8f8;
     color: $layout-text-color;
   }
 
@@ -157,7 +157,8 @@
       width: 50%;
       text-align: left;
 
-      label, div.Select {
+      label,
+      div.Select {
         display: inline-block;
         vertical-align: middle;
       }
@@ -198,7 +199,7 @@
   }
 
   table {
-    border: 1px solid #F6F6F6;
+    border: 1px solid #f6f6f6;
     border-collapse: collapse;
     width: 100%;
     margin: 20px 0px;
@@ -211,7 +212,7 @@
     thead th {
       font-weight: 600;
       padding: 8px 12px;
-      background-color: #F6F6F6;
+      background-color: #f6f6f6;
       text-align: left;
     }
 
@@ -247,16 +248,16 @@
     }
 
     .submission--repeat-group {
-      background: #F8F8F8;
+      background: #f8f8f8;
       padding: 0px 30px;
 
       table {
-        background: #FFF;
+        background: #fff;
       }
     }
 
     .submission--group {
-      background: #F8F8F8;
+      background: #f8f8f8;
 
       h4 {
         margin: 0px;
@@ -273,12 +274,12 @@
   .submission--warning {
     margin-bottom: 30px;
     padding: 10px;
-    background: #F5F5F5;
+    background: #f5f5f5;
     text-align: center;
     line-height: 1em;
 
     i {
-      color: #FFB775;
+      color: #ffb775;
       font-size: 40px;
       margin-right: 10px;
       vertical-align: middle;
@@ -302,7 +303,7 @@
 // modal tabs
 .modal-tabs {
   background: $cool-blue;
-  color: #FFF;
+  color: #fff;
   margin: 0px -20px;
 }
 
@@ -317,7 +318,7 @@
     }
 
     i:before {
-      color: #3FA2EE;
+      color: #3fa2ee;
       font-size: 20px;
     }
   }
@@ -333,8 +334,8 @@
 
 .enketo-iframe-icon {
   color: #fff;
-  background-image: url("~/jquery-ui/themes/humanity/images/ui-icons_ffffff_256x240.png");
-  background-color: #C6CBD0;
+  background-image: url('~/jquery-ui/themes/humanity/images/ui-icons_ffffff_256x240.png');
+  background-color: #c6cbd0;
   background-position: -81px -129px;
   position: absolute;
   right: 6px;
@@ -348,7 +349,7 @@
 
 // create new project modal steps
 .form-modal__item--upload-note {
-  background: #F8F8F8;
+  background: #f8f8f8;
   padding: 20px 30px 10px 30px;
   margin: -30px -35px;
   margin-bottom: 20px;
@@ -383,7 +384,7 @@
     button {
       border: 1px solid $divider-color;
       padding: 20px 10px;
-      background: #F8F8F8;
+      background: #f8f8f8;
       border-radius: 4px;
       color: $cool-gray;
       cursor: pointer;
@@ -420,7 +421,7 @@
 
 .form-modal__item--newForm-step3 {
   .dropzone {
-    background: #F5F5F5;
+    background: #f5f5f5;
     margin: 20px 0px 40px 0;
     padding: 30px;
     border: 2px dashed $divider-color;
@@ -471,7 +472,7 @@
 // alertify overrides
 
 .alertify .ajs-dimmer {
-  background-color: #FFF;
+  background-color: #fff;
   opacity: 0.55;
 }
 
@@ -556,7 +557,8 @@
     &.ajs-cancel {
       @extend .mdl-button--colored;
 
-      &:focus, &:focus:not(:active) {
+      &:focus,
+      &:focus:not(:active) {
         background: transparent;
       }
     }
@@ -610,7 +612,7 @@
     margin-top: 20px;
     padding-top: 20px;
     padding-bottom: 20px;
-    border-top: 1px solid #EDEDED;
+    border-top: 1px solid #ededed;
     font-weight: bold;
   }
 }

@@ -19,7 +19,8 @@
     }
   }
 
-  &__label, &__grouping {
+  &__label,
+  &__grouping {
     color: lighten($black, 40%);
     cursor: pointer;
 
@@ -61,14 +62,13 @@
       padding: 2px 3px;
       width: 32px;
       border-radius: 40px;
-      background: #E6E6E8;
+      background: #e6e6e8;
       text-align: center;
     }
 
     // &--visible, &--selected {
     //   color: lighten($black, 10%);
     // }
-
   }
 
   &__grouping {

@@ -9,11 +9,11 @@ import $ from 'jquery';
 
 import stores from './stores';
 import actions from './actions';
-import {dataInterface} from './dataInterface';
-import {assign} from './utils';
+import { dataInterface } from './dataInterface';
+import { assign } from './utils';
 import assetParserUtils from './assetParserUtils';
 
-var searchDataInterface = (function(){
+var searchDataInterface = (function() {
   return {
     assets: function(data) {
       // raise limit temporarily to 200
@@ -40,50 +40,51 @@ const clearSearchState = {
   searchResultsCount: 0,
   parentUid: false,
   parentName: false,
-  allPublic: false,
+  allPublic: false
 };
-const initialState = assign({
-  cleared: false,
+const initialState = assign(
+  {
+    cleared: false,
 
-  defaultQueryState: 'none',
-  defaultQueryFor: '',
-  defaultQueryDebug: '',
-  defaultQueryFilterParams: {},
-  defaultQueryResults: '',
-  defaultQueryResultsList: [],
-  defaultQueryCount: 0,
-}, clearSearchState);
+    defaultQueryState: 'none',
+    defaultQueryFor: '',
+    defaultQueryDebug: '',
+    defaultQueryFilterParams: {},
+    defaultQueryResults: '',
+    defaultQueryResultsList: [],
+    defaultQueryCount: 0
+  },
+  clearSearchState
+);
 
-function SearchContext(opts={}) {
+function SearchContext(opts = {}) {
   var ctx = this;
   var debounceTime = opts.debounceTime || 500;
   var jqxhrs = {};
 
   var search = Reflux.createAction({
-    children: [
-      'completed',
-      'failed',
-      'cancel',
-      'refresh',
-    ]
+    children: ['completed', 'failed', 'cancel', 'refresh']
   });
   var latestSearchData;
 
-  var searchStore = ctx.store = Reflux.createStore({
-    init () {
+  var searchStore = (ctx.store = Reflux.createStore({
+    init() {
       this.filterParams = {};
       this.state = {
-        searchState: 'none',
+        searchState: 'none'
       };
 
-      this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
+      this.listenTo(
+        actions.resources.deleteAsset.completed,
+        this.onDeleteAssetCompleted
+      );
     },
-    onDeleteAssetCompleted (asset) {
-      var filterOutDeletedAsset = ({listName}) => {
+    onDeleteAssetCompleted(asset) {
+      var filterOutDeletedAsset = ({ listName }) => {
         if (this.state[listName] != undefined) {
           let uid = asset.uid;
           let listLength = this.state[listName].length;
-          let l = this.state[listName].filter(function(result){
+          let l = this.state[listName].filter(function(result) {
             return result.uid !== uid;
           });
           if (l.length !== listLength) {
@@ -98,7 +99,7 @@ function SearchContext(opts={}) {
         if (list) {
           var l = {};
           for (var category in list) {
-            l[category] = list[category].filter(function(result){
+            l[category] = list[category].filter(function(result) {
               return result.uid !== asset.uid;
             });
           }
@@ -107,36 +108,39 @@ function SearchContext(opts={}) {
           this.update(o);
         }
       };
-      filterOutDeletedAsset({listName: 'defaultQueryResultsList'});
+      filterOutDeletedAsset({ listName: 'defaultQueryResultsList' });
       filterOutDeletedAssetFromCategorizedList();
-      if (this.state.searchResultsList && this.state.searchResultsList.length > 0) {
-        filterOutDeletedAsset({listName: 'searchResultsList'});
+      if (
+        this.state.searchResultsList &&
+        this.state.searchResultsList.length > 0
+      ) {
+        filterOutDeletedAsset({ listName: 'searchResultsList' });
       }
     },
-    update (items) {
+    update(items) {
       this.quietUpdate(items);
       this.triggerState();
     },
-    triggerState () {
+    triggerState() {
       this.trigger(this.state);
     },
-    quietUpdate (items) {
+    quietUpdate(items) {
       if (!items.cleared) {
         items.cleared = false;
       }
       assign(this.state, items);
     },
-    filterTagQueryData () {
+    filterTagQueryData() {
       if (this.filterTags) {
         return {
-          q: this.filterTags,
+          q: this.filterTags
         };
       }
     },
-    removeItem (key) {
+    removeItem(key) {
       delete this.state[key];
     },
-    toDataObject () {
+    toDataObject() {
       var params = {};
       if (this.state.searchTags) {
         params.tags = this.state.searchTags;
@@ -155,27 +159,27 @@ function SearchContext(opts={}) {
       }
       return assign({}, this.filterParams, params);
     },
-    toQueryData (dataObject) {
+    toQueryData(dataObject) {
       var searchParams = dataObject || this.toDataObject(),
-          // _searchParamsClone = assign({}, searchParams),
-          paramGroups = [],
-          queryData = {};
+        // _searchParamsClone = assign({}, searchParams),
+        paramGroups = [],
+        queryData = {};
 
       if ('tags' in searchParams) {
         if (searchParams.tags && searchParams.tags.length > 0) {
           paramGroups.push(
-              searchParams.tags.map(function(t){
+            searchParams.tags
+              .map(function(t) {
                 return `tag:"${t.value}"`;
-              }).join(' AND ')
-            );
+              })
+              .join(' AND ')
+          );
         }
         delete searchParams.tags;
       }
       if ('string' in searchParams) {
         if (searchParams.string && searchParams.string.length > 0) {
-          paramGroups.push(
-              searchParams.string
-            );
+          paramGroups.push(searchParams.string);
         }
         delete searchParams.string;
       }
@@ -194,17 +198,19 @@ function SearchContext(opts={}) {
       }
       paramGroups = paramGroups.concat(_.values(searchParams));
       if (paramGroups.length > 1) {
-        queryData.q = paramGroups.map(function(s){
-          return `(${s})`;
-        }).join(' AND ');
+        queryData.q = paramGroups
+          .map(function(s) {
+            return `(${s})`;
+          })
+          .join(' AND ');
       } else if (paramGroups.length === 1) {
         queryData.q = paramGroups[0];
       }
       return queryData;
-    },
-  });
+    }
+  }));
 
-  search.listen(function(_opts={}){
+  search.listen(function(_opts = {}) {
     /*
     search will query whatever values are in the store
     and will pass the values back to the store to be reflected
@@ -238,44 +244,46 @@ function SearchContext(opts={}) {
         jqxhrs.search = false;
       }
     }
-    latestSearchData = {params: qData, dataObject: dataObject};
-    var req = searchDataInterface.assets(qData)
-      .done(function(data){
+    latestSearchData = { params: qData, dataObject: dataObject };
+    var req = searchDataInterface
+      .assets(qData)
+      .done(function(data) {
         search.completed(dataObject, data, {
-          cacheAsDefaultSearch: _opts.cacheAsDefaultSearch,
+          cacheAsDefaultSearch: _opts.cacheAsDefaultSearch
         });
       })
-      .fail(function(xhr){
+      .fail(function(xhr) {
         search.failed(xhr, dataObject);
       });
 
-    jqxhrs[ isSearch ? 'search' : 'default' ] = req;
+    jqxhrs[isSearch ? 'search' : 'default'] = req;
 
     if (isSearch) {
       searchStore.update({
         searchState: 'loading',
-        searchFor: _dataObjectClone,
+        searchFor: _dataObjectClone
       });
     } else {
       searchStore.update({
         defaultQueryState: 'loading',
-        defaultQueryFor: _dataObjectClone,
+        defaultQueryFor: _dataObjectClone
       });
     }
   });
-  search.refresh.listen(function(){
-    searchDataInterface.assets(latestSearchData.params)
-      .done(function(data){
+  search.refresh.listen(function() {
+    searchDataInterface
+      .assets(latestSearchData.params)
+      .done(function(data) {
         search.completed(latestSearchData.dataObject, data, {
-          cacheAsDefaultSearch: false,
+          cacheAsDefaultSearch: false
         });
       })
-      .fail(function(xhr){
+      .fail(function(xhr) {
         search.failed(xhr, latestSearchData.dataObject);
       });
   });
 
-  search.completed.listen(function(searchParams, data, _opts){
+  search.completed.listen(function(searchParams, data, _opts) {
     data.results = data.results.map(assetParserUtils.parsed);
     data.results.forEach(stores.allAssets.registerAssetOrCollection);
 
@@ -293,16 +301,16 @@ function SearchContext(opts={}) {
         defaultQueryResultsList: data.results,
         defaultQueryCount: count,
         defaultQueryCategorizedResultsLists: {
-          'Deployed': data.results.filter((asset) => {
+          Deployed: data.results.filter(asset => {
             return asset.has_deployment && asset.deployment__active;
           }),
-          'Draft': data.results.filter((asset) => {
+          Draft: data.results.filter(asset => {
             return !asset.has_deployment;
           }),
-          'Archived': data.results.filter((asset) => {
+          Archived: data.results.filter(asset => {
             return asset.has_deployment && !asset.deployment__active;
           }),
-          'Deleted': [], // not implemented yet
+          Deleted: [] // not implemented yet
         }
       };
     } else {
@@ -321,22 +329,22 @@ function SearchContext(opts={}) {
         searchResultsDisplayed: true,
         searchResultsSuccess: count > 0,
         searchResultsCategorizedResultsLists: {
-          'Deployed': data.results.filter((asset) => {
+          Deployed: data.results.filter(asset => {
             return asset.has_deployment && asset.deployment__active;
           }),
-          'Draft': data.results.filter((asset) => {
+          Draft: data.results.filter(asset => {
             return !asset.has_deployment;
           }),
-          'Archived': data.results.filter((asset) => {
+          Archived: data.results.filter(asset => {
             return asset.has_deployment && !asset.deployment__active;
           }),
-          'Deleted': [], // not implemented yet
+          Deleted: [] // not implemented yet
         }
       };
     }
     searchStore.update(newState);
   });
-  search.failed.listen(function(/*xhr, searchParams*/){
+  search.failed.listen(function(/*xhr, searchParams*/) {
     // if (xhr.searchAborted) {
     //   log('search was canceled because a new search came up')
     // }
@@ -344,52 +352,62 @@ function SearchContext(opts={}) {
     //   searchState: 'failed',
     // })
   });
-  search.cancel.listen(function(){
+  search.cancel.listen(function() {
     if (jqxhrs.search) {
       jqxhrs.search.abort();
     }
-    searchStore.update(assign({
-      cleared: true
-    }, clearSearchState));
+    searchStore.update(
+      assign(
+        {
+          cleared: true
+        },
+        clearSearchState
+      )
+    );
   });
   this.mixin = {
-    debouncedSearch: ( debounceTime ? _.debounce(search, debounceTime) : search ),
+    debouncedSearch: debounceTime ? _.debounce(search, debounceTime) : search,
     searchValue: search,
-    updateStore (vals) {
+    updateStore(vals) {
       searchStore.update(vals);
     },
-    quietUpdateStore (vals) {
+    quietUpdateStore(vals) {
       searchStore.quietUpdate(vals);
     },
     searchStore: searchStore,
-    searchDefault: function () {
-      searchStore.quietUpdate(assign({
-        cleared: true,
-        searchString: false,
-      }, clearSearchState));
+    searchDefault: function() {
+      searchStore.quietUpdate(
+        assign(
+          {
+            cleared: true,
+            searchString: false
+          },
+          clearSearchState
+        )
+      );
 
       search({
         cacheAsDefaultSearch: true
       });
     },
-    getSearchActions: function(){
+    getSearchActions: function() {
       return {
-        search: search,
+        search: search
       };
-    },
+    }
   };
 }
 
 var commonMethods = {
-  getInitialState () {
+  getInitialState() {
     return initialState;
   },
-  componentDidMount () {
+  componentDidMount() {
     this.extendSearchContext();
   },
-  extendSearchContext () {
+  extendSearchContext() {
     var ctx,
-        passedCtx = this.props.searchContext || this.state.searchContext;
+      passedCtx = this.props.searchContext || this.state.searchContext;
     if (passedCtx instanceof SearchContext) {
       ctx = passedCtx;
     } else {
@@ -397,41 +415,41 @@ var commonMethods = {
     }
     assign(this, ctx.mixin);
   },
-  searchTagsChange (tags) {
+  searchTagsChange(tags) {
     this.quietUpdateStore({
       searchTags: tags
     });
     this.searchValue();
   },
-  searchCollectionChange (collectionUid) {
+  searchCollectionChange(collectionUid) {
     this.quietUpdateStore({
       parentUid: collectionUid
     });
     this.searchValue();
   },
-  searchChangeEvent (evt) {
+  searchChangeEvent(evt) {
     this.quietUpdateStore({
-      searchString: evt.target.value,
+      searchString: evt.target.value
     });
     this.debouncedSearch();
   },
-  refreshSearch () {
+  refreshSearch() {
     this.debouncedSearch();
   },
-  searchClear () {
+  searchClear() {
     this.searchStore.removeItem('searchString');
     this.searchStore.removeItem('searchTags');
     this.getSearchActions().search.cancel();
-  },
+  }
 };
 
-function isSearchContext (ctx) {
-  return (ctx instanceof SearchContext);
+function isSearchContext(ctx) {
+  return ctx instanceof SearchContext;
 }
 
 var contexts = {};
 
-function getSearchContext(name, opts={}) {
+function getSearchContext(name, opts = {}) {
   if (!contexts[name]) {
     contexts[name] = new SearchContext();
   }
@@ -450,5 +468,5 @@ function getSearchContext(name, opts={}) {
 module.exports = {
   getSearchContext: getSearchContext,
   common: commonMethods,
-  isSearchContext: isSearchContext,
+  isSearchContext: isSearchContext
 };

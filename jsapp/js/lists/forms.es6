@@ -10,12 +10,8 @@ import bem from '../bem';
 import ui from '../ui';
 import SearchCollectionList from '../components/searchcollectionlist';
 
-import {
-  ListSearchSummary,
-} from '../components/list';
-import {
-  t,
-} from '../utils';
+import { ListSearchSummary } from '../components/list';
+import { t } from '../utils';
 
 class FormsSearchableList extends React.Component {
   constructor(props) {
@@ -23,13 +19,13 @@ class FormsSearchableList extends React.Component {
     this.state = {
       searchContext: searches.getSearchContext('forms', {
         filterParams: {
-          assetType: 'asset_type:survey',
+          assetType: 'asset_type:survey'
         },
-        filterTags: 'asset_type:survey',
+        filterTags: 'asset_type:survey'
       })
     };
   }
-  componentDidMount () {
+  componentDidMount() {
     this.searchDefault();
   }
   /*
@@ -42,14 +38,15 @@ class FormsSearchableList extends React.Component {
     });
   },
   */
-  render () {
+  render() {
     return (
       <SearchCollectionList
         showDefault
-        searchContext={this.state.searchContext} />
-      );
+        searchContext={this.state.searchContext}
+      />
+    );
   }
-};
+}
 
 FormsSearchableList.contextTypes = {
   router: PropTypes.object
