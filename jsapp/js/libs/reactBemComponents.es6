@@ -41,7 +41,7 @@ import classNames from 'classnames';
 import assign from 'object-assign';
 import PropTypes from 'prop-types';
 
-const reactCreateBemElement = function(base, el='div'){
+const reactCreateBemElement = function(base, el = 'div') {
   let elUnwrap;
   if (el.match) {
     elUnwrap = el.match(/\<(\w+)\s?\/?\>/);
@@ -50,9 +50,9 @@ const reactCreateBemElement = function(base, el='div'){
     }
   }
 
-  let reduceModify = function (s, modifier){
+  let reduceModify = function(s, modifier) {
     if (Object.prototype.toString.call(modifier) === '[object Object]') {
-      Object.keys(modifier).forEach(function(key){
+      Object.keys(modifier).forEach(function(key) {
         if (modifier[key]) {
           s[`${base}--${key}`] = true;
         }
@@ -64,43 +64,46 @@ const reactCreateBemElement = function(base, el='div'){
   };
 
   class c extends React.Component {
-    render () {
+    render() {
       let props = assign({}, this.props);
 
       // allows modifiers to be a string, an array, or undefined (ignored)
-      let modifier = [].concat(props.m)
-                      .reduce(reduceModify, {});
+      let modifier = [].concat(props.m).reduce(reduceModify, {});
       delete props.m;
 
       // builds the bem classNames, and allows additional classNames
       // to be specified in an object (props.classNames) or normal string
-      props.className = classNames(base,
-                                    modifier,
-                                    props.classNames,
-                                    props.className);
+      props.className = classNames(
+        base,
+        modifier,
+        props.classNames,
+        props.className
+      );
       delete props.classNames;
 
       return React.createElement(el, props);
     }
-  };
+  }
   c.propTypes = {
     m: PropTypes.any,
     className: PropTypes.string,
-    classNames: PropTypes.any,
+    classNames: PropTypes.any
   };
   c.displayName = `BEM.${base}`;
   return c;
 };
 
-export function bemComponents (obj) {
+export function bemComponents(obj) {
   let keys = Object.keys(obj);
-  return Object.freeze(keys.reduce(function(hsh, key){
-    let val = obj[key];
-    if (val instanceof Array) {
-      hsh[key] = reactCreateBemElement.apply(null, val);
-    } else {
-      hsh[key] = reactCreateBemElement(val);
-    }
-    return hsh;
-  }, {}));
+  return Object.freeze(
+    keys.reduce(function(hsh, key) {
+      let val = obj[key];
+      if (val instanceof Array) {
+        hsh[key] = reactCreateBemElement.apply(null, val);
+      } else {
+        hsh[key] = reactCreateBemElement(val);
+      }
+      return hsh;
+    }, {})
+  );
 }

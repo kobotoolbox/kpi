@@ -5,7 +5,7 @@ import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import _ from 'underscore';
 import $ from 'jquery';
-import {dataInterface} from '../dataInterface';
+import { dataInterface } from '../dataInterface';
 
 import actions from '../actions';
 import bem from '../bem';
@@ -14,24 +14,16 @@ import stores from '../stores';
 import mixins from '../mixins';
 import alertify from 'alertifyjs';
 
-import ReactTable from 'react-table'
+import ReactTable from 'react-table';
 import Select from 'react-select';
-import {DebounceInput} from 'react-debounce-input';
+import { DebounceInput } from 'react-debounce-input';
 
-import {
-  VALIDATION_STATUSES
-} from '../constants';
+import { VALIDATION_STATUSES } from '../constants';
 
-import {
-  assign,
-  t,
-  log,
-  notify,
-  formatTimeDate
-} from '../utils';
+import { assign, t, log, notify, formatTimeDate } from '../utils';
 
 export class DataTable extends React.Component {
-  constructor(props){
+  constructor(props) {
     super(props);
     this.state = {
       loading: true,
@@ -71,95 +63,157 @@ export class DataTable extends React.Component {
       filterQuery = `&query={`;
       filter.forEach(function(f, i) {
         filterQuery += `"${f.id}":{"$regex":"${f.value}"}`;
-        if (i < filter.length - 1)
-          filterQuery += ',';
+        if (i < filter.length - 1) filterQuery += ',';
       });
       filterQuery += `}`;
-      dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort, [], filterQuery, true).done((data) => {
-        if (data.count) {
-          this.setState({resultsTotal: data.count});
-        }
-      });
+      dataInterface
+        .getSubmissions(
+          this.props.asset.uid,
+          pageSize,
+          page,
+          sort,
+          [],
+          filterQuery,
+          true
+        )
+        .done(data => {
+          if (data.count) {
+            this.setState({ resultsTotal: data.count });
+          }
+        });
     } else {
-      this.setState({resultsTotal: this.props.asset.deployment__submission_count});
+      this.setState({
+        resultsTotal: this.props.asset.deployment__submission_count
+      });
     }
 
-    dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort, [], filterQuery).done((data) => {
-      if (data && data.length > 0) {
-        if (this.state.submissionPager == 'next') {
-          this.submissionModalProcessing(data[0]._id, data);
-        }
-        if (this.state.submissionPager == 'prev') {
-          this.submissionModalProcessing(data[data.length - 1]._id, data);
-        }
-        this.setState({
-          loading: false,
-          selectedRows: {},
-          selectAll: false,
-          tableData: data,
-          submissionPager: false
-        })
-        this._prepColumns(data);
-      } else {
-        if (filterQuery.length) {
+    dataInterface
+      .getSubmissions(
+        this.props.asset.uid,
+        pageSize,
+        page,
+        sort,
+        [],
+        filterQuery
+      )
+      .done(data => {
+        if (data && data.length > 0) {
+          if (this.state.submissionPager == 'next') {
+            this.submissionModalProcessing(data[0]._id, data);
+          }
+          if (this.state.submissionPager == 'prev') {
+            this.submissionModalProcessing(data[data.length - 1]._id, data);
+          }
           this.setState({
+            loading: false,
+            selectedRows: {},
+            selectAll: false,
+            tableData: data,
+            submissionPager: false
+          });
+          this._prepColumns(data);
+        } else {
+          if (filterQuery.length) {
+            this.setState({
+              loading: false,
+              selectedRows: {},
+              selectAll: false,
+              tableData: data
+            });
+            this._prepColumns(data);
+          } else {
+            if (filterQuery.length) {
+              this.setState({
+                loading: false
+              });
+              // TODO: debounce the queries and then enable this notification
+              notify(t('The query did not return any results.'));
+            } else {
+              this.setState({
+                error: t('Error: could not load data.'),
+                loading: false
+              });
+            }
+          }
+        }
+      })
+      .fail(error => {
+        if (error.responseText)
+          this.setState({ error: error.responseText, loading: false });
+        else if (error.statusText)
+          this.setState({ error: error.statusText, loading: false });
+        else
+          this.setState({
+            error: t('Error: could not load data.'),
             loading: false
           });
-          // TODO: debounce the queries and then enable this notification
-          notify(t('The query did not return any results.'));
-        } else {
-          this.setState({error: t('Error: could not load data.'), loading: false});
-        }
-      }
-    }).fail((error)=>{
-      if (error.responseText)
-        this.setState({error: error.responseText, loading: false});
-      else if (error.statusText)
-        this.setState({error: error.statusText, loading: false});
-      else
-        this.setState({error: t('Error: could not load data.'), loading: false});
-    });
+      });
   }
   validationStatusChange(sid, index) {
     var _this = this;
 
     return function(selection) {
-      const data = {"validation_status.uid": selection.value};
-      dataInterface.updateSubmissionValidationStatus(_this.props.asset.uid, sid, data).done((result) => {
-        if (result.uid) {
-          _this.state.tableData[index]._validation_status = result.uid;
-          _this.setState({tableData: _this.state.tableData});
-        } else {
-          console.error('error updating validation status');
-        }
-      }).fail((error)=>{
-        console.error(error);
-      });
-    }
+      const data = { 'validation_status.uid': selection.value };
+      dataInterface
+        .updateSubmissionValidationStatus(_this.props.asset.uid, sid, data)
+        .done(result => {
+          if (result.uid) {
+            _this.state.tableData[index]._validation_status = result.uid;
+            _this.setState({ tableData: _this.state.tableData });
+          } else {
+            console.error('error updating validation status');
+          }
+        })
+        .fail(error => {
+          console.error(error);
+        });
+    };
   }
   _prepColumns(data) {
-    var excludes = ['_xform_id_string', '_attachments', '_notes', '_bamboo_dataset_id', '_status',
-                    'formhub/uuid', '_tags', '_geolocation', '_submitted_by', 'meta/instanceID', 'meta/deprecatedID', '_validation_status'];
+    var excludes = [
+      '_xform_id_string',
+      '_attachments',
+      '_notes',
+      '_bamboo_dataset_id',
+      '_status',
+      'formhub/uuid',
+      '_tags',
+      '_geolocation',
+      '_submitted_by',
+      'meta/instanceID',
+      'meta/deprecatedID',
+      '_validation_status'
+    ];
 
-    var uniqueKeys = Object.keys(data.reduce(function(result, obj) {
-      return Object.assign(result, obj);
-    }, {}));
+    var uniqueKeys = Object.keys(
+      data.reduce(function(result, obj) {
+        return Object.assign(result, obj);
+      }, {})
+    );
 
-    uniqueKeys = uniqueKeys.filter((el, ind, arr) => excludes.includes(el) === false);
+    uniqueKeys = uniqueKeys.filter(
+      (el, ind, arr) => excludes.includes(el) === false
+    );
 
     let showLabels = this.state.showLabels,
-        showGroupName = this.state.showGroupName,
-        settings = this.props.asset.settings,
-        translationIndex = this.state.translationIndex,
-        maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length),
-        _this = this;
+      showGroupName = this.state.showGroupName,
+      settings = this.props.asset.settings,
+      translationIndex = this.state.translationIndex,
+      maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length),
+      _this = this;
 
-    if (settings['data-table'] && settings['data-table']['translation-index'] != null) {
+    if (
+      settings['data-table'] &&
+      settings['data-table']['translation-index'] != null
+    ) {
       translationIndex = settings['data-table']['translation-index'];
       showLabels = translationIndex > -1 ? true : false;
     }
 
-    if (settings['data-table'] && settings['data-table']['show-group-name'] != null) {
+    if (
+      settings['data-table'] &&
+      settings['data-table']['show-group-name'] != null
+    ) {
       showGroupName = settings['data-table']['show-group-name'];
     }
 
@@ -175,14 +229,20 @@ export class DataTable extends React.Component {
     if (this.userCan('validate_submissions', this.props.asset)) {
       columns.push({
         Header: row => (
-            <div className="table-header-checkbox">
-              <input type="checkbox"
-                id={`ch-head`}
-                checked={Object.keys(this.state.selectedRows).length === maxPageRes ? true : false}
-                onChange={this.bulkSelectAllRows} />
-              <label htmlFor={`ch-head`}></label>
-            </div>
-          ),
+          <div className="table-header-checkbox">
+            <input
+              type="checkbox"
+              id={`ch-head`}
+              checked={
+                Object.keys(this.state.selectedRows).length === maxPageRes
+                  ? true
+                  : false
+              }
+              onChange={this.bulkSelectAllRows}
+            />
+            <label htmlFor={`ch-head`} />
+          </div>
+        ),
         accessor: 'sub-checkbox',
         index: '__0',
         id: '__SubmissionCheckbox',
@@ -193,17 +253,22 @@ export class DataTable extends React.Component {
         className: 'rt-checkbox',
         Cell: row => (
           <div>
-            <input type="checkbox"
-                id={`ch-${row.original._id}`}
-                checked={this.state.selectedRows[row.original._id] ? true : false}
-                onChange={this.bulkUpdateChange} data-sid={row.original._id} />
-            <label htmlFor={`ch-${row.original._id}`}></label>
+            <input
+              type="checkbox"
+              id={`ch-${row.original._id}`}
+              checked={this.state.selectedRows[row.original._id] ? true : false}
+              onChange={this.bulkUpdateChange}
+              data-sid={row.original._id}
+            />
+            <label htmlFor={`ch-${row.original._id}`} />
           </div>
         )
       });
     }
 
-    let userCanSeeEditIcon = this.props.asset.deployment__active && this.userCan('change_submissions', this.props.asset);
+    let userCanSeeEditIcon =
+      this.props.asset.deployment__active &&
+      this.userCan('change_submissions', this.props.asset);
 
     columns.push({
       Header: '',
@@ -216,17 +281,25 @@ export class DataTable extends React.Component {
       className: 'rt-link',
       Cell: row => (
         <div>
-          <span onClick={this.launchSubmissionModal} data-sid={row.original._id}
-                className='table-link' data-tip={t('Open')}>
-            <i className="k-icon k-icon-view"></i>
+          <span
+            onClick={this.launchSubmissionModal}
+            data-sid={row.original._id}
+            className="table-link"
+            data-tip={t('Open')}
+          >
+            <i className="k-icon k-icon-view" />
           </span>
 
-          {userCanSeeEditIcon &&
-            <span onClick={this.launchEditSubmission} data-sid={row.original._id}
-                  className='table-link' data-tip={t('Edit')}>
-              <i className="k-icon k-icon-edit"></i>
+          {userCanSeeEditIcon && (
+            <span
+              onClick={this.launchEditSubmission}
+              data-sid={row.original._id}
+              className="table-link"
+              data-tip={t('Edit')}
+            >
+              <i className="k-icon k-icon-edit" />
             </span>
-          }
+          )}
         </div>
       )
     });
@@ -238,80 +311,88 @@ export class DataTable extends React.Component {
       id: '__ValidationStatus',
       minWidth: 130,
       className: 'rt-status',
-      Filter: ({ filter, onChange }) =>
+      Filter: ({ filter, onChange }) => (
         <select
           onChange={event => onChange(event.target.value)}
-          style={{ width: "100%" }}
-          value={filter ? filter.value : ""}>
+          style={{ width: '100%' }}
+          value={filter ? filter.value : ''}
+        >
           <option value="">Show All</option>
           {VALIDATION_STATUSES.map((item, n) => {
             return (
-              <option value={item.value} key={n}>{item.label}</option>
+              <option value={item.value} key={n}>
+                {item.label}
+              </option>
             );
           })}
-        </select>,
+        </select>
+      ),
       Cell: row => (
         <Select
           disabled={!this.userCan('validate_submissions', this.props.asset)}
           clearable={false}
           value={this.state.tableData[row.index]._validation_status}
           options={VALIDATION_STATUSES}
-          onChange={this.validationStatusChange(row.original._id, row.index)} />
+          onChange={this.validationStatusChange(row.original._id, row.index)}
+        />
       )
     });
 
     let survey = this.props.asset.content.survey;
     let choices = this.props.asset.content.choices;
 
-    uniqueKeys.forEach(function(key){
+    uniqueKeys.forEach(function(key) {
       var q = undefined;
       var qParentG = [];
       if (key.includes('/')) {
         qParentG = key.split('/');
-        q = survey.find(o => o.name === qParentG[qParentG.length - 1] || o.$autoname == qParentG[qParentG.length - 1]);
+        q = survey.find(
+          o =>
+            o.name === qParentG[qParentG.length - 1] ||
+            o.$autoname == qParentG[qParentG.length - 1]
+        );
       } else {
         q = survey.find(o => o.name === key || o.$autoname == key);
       }
 
-      if (q && q.type === 'begin_repeat')
-        return false;
+      if (q && q.type === 'begin_repeat') return false;
 
       // sets location of columns for questions not in current survey version
       var index = 'y_' + key;
 
       // place meta question columns at the very end
-      switch(key) {
+      switch (key) {
         case 'username':
-            index = 'z1';
-            break;
+          index = 'z1';
+          break;
         case 'simserial':
-            index = 'z2';
-            break;
+          index = 'z2';
+          break;
         case 'subscriberid':
-            index = 'z3';
-            break;
+          index = 'z3';
+          break;
         case 'deviceid':
-            index = 'z4';
-            break;
+          index = 'z4';
+          break;
         case 'phonenumber':
-            index = 'z5';
-            break;
+          index = 'z5';
+          break;
         case 'today':
-            index = 'z6';
-            break;
+          index = 'z6';
+          break;
         case '__version__':
         case '_version_':
-            index = 'z7';
-            break;
+          index = 'z7';
+          break;
         case '_id':
-            index = 'z8';
-            break;
+          index = 'z8';
+          break;
         case '_uuid':
-            index = 'z9';
-            break;
+          index = 'z9';
+          break;
         case '_submission_time':
-            index = 'z91';
-            break;
+          index = 'z91';
+          break;
         default:
           // set index for questions in current version of survey (including questions in groups)
           survey.map(function(x, i) {
@@ -336,40 +417,53 @@ export class DataTable extends React.Component {
         question: q,
         filterable: false,
         Cell: row => {
-            if (showLabels && q && q.type && row.value) {
-              // show proper labels for choice questions
-              if (q.type == 'select_one') {
-                let choice = choices.find(o => o.list_name == q.select_from_list_name && (o.name === row.value || o.$autoname == row.value));
-                return choice && choice.label && choice.label[translationIndex] ? choice.label[translationIndex] : row.value;
-              }
-              if (q.type == 'select_multiple' && row.value) {
-                let values = row.value.split(" ");
-                var labels = [];
-                values.forEach(function(v) {
-                  let choice = choices.find(o => o.list_name == q.select_from_list_name && (o.name === v || o.$autoname == v));
-                  if (choice && choice.label && choice.label[translationIndex])
-                    labels.push(choice.label[translationIndex]);
-                });
-
-                return labels.join(", ");
-              }
-              if (q.type == 'start' || q.type == 'end' || q.type == '_submission_time') {
-                return formatTimeDate(row.value);
-              }
+          if (showLabels && q && q.type && row.value) {
+            // show proper labels for choice questions
+            if (q.type == 'select_one') {
+              let choice = choices.find(
+                o =>
+                  o.list_name == q.select_from_list_name &&
+                  (o.name === row.value || o.$autoname == row.value)
+              );
+              return choice && choice.label && choice.label[translationIndex]
+                ? choice.label[translationIndex]
+                : row.value;
             }
-            return typeof(row.value) == "object" ? '' : row.value;
-          }
-      });
+            if (q.type == 'select_multiple' && row.value) {
+              let values = row.value.split(' ');
+              var labels = [];
+              values.forEach(function(v) {
+                let choice = choices.find(
+                  o =>
+                    o.list_name == q.select_from_list_name &&
+                    (o.name === v || o.$autoname == v)
+                );
+                if (choice && choice.label && choice.label[translationIndex])
+                  labels.push(choice.label[translationIndex]);
+              });
 
+              return labels.join(', ');
+            }
+            if (
+              q.type == 'start' ||
+              q.type == 'end' ||
+              q.type == '_submission_time'
+            ) {
+              return formatTimeDate(row.value);
+            }
+          }
+          return typeof row.value == 'object' ? '' : row.value;
+        }
+      });
     });
 
     columns.sort(function(a, b) {
-      return a.index.localeCompare(b.index, 'en', {numeric: true});
-    })
+      return a.index.localeCompare(b.index, 'en', { numeric: true });
+    });
 
     let selectedColumns = false,
-        frozenColumn = false,
-        textFilterQuestionTypes = ['text', 'integer', 'decimal'];
+      frozenColumn = false,
+      textFilterQuestionTypes = ['text', 'integer', 'decimal'];
 
     if (settings['data-table'] && settings['data-table']['frozen-column']) {
       frozenColumn = settings['data-table']['frozen-column'];
@@ -379,32 +473,41 @@ export class DataTable extends React.Component {
       // TODO: see if this can work for select_multiple too
       if (col.question && col.question.type === 'select_one') {
         col.filterable = true;
-        col.Filter = ({ filter, onChange }) =>
-          <select onChange={event => onChange(event.target.value)}
-                  style={{ width: "100%" }}
-                  value={filter ? filter.value : ""}>
+        col.Filter = ({ filter, onChange }) => (
+          <select
+            onChange={event => onChange(event.target.value)}
+            style={{ width: '100%' }}
+            value={filter ? filter.value : ''}
+          >
             <option value="">Show All</option>
-            {choices.filter(c => c.list_name === col.question.select_from_list_name).map((item, n) => {
-              return (
-                <option value={item.name} key={n}>{item.label[0]}</option>
-              );
-            })}
-          </select>;
+            {choices
+              .filter(c => c.list_name === col.question.select_from_list_name)
+              .map((item, n) => {
+                return (
+                  <option value={item.name} key={n}>
+                    {item.label[0]}
+                  </option>
+                );
+              })}
+          </select>
+        );
       }
       if (col.question && textFilterQuestionTypes.includes(col.question.type)) {
         col.filterable = true;
-        col.Filter = ({ filter, onChange }) =>
+        col.Filter = ({ filter, onChange }) => (
           <DebounceInput
             debounceTimeout={750}
             onChange={event => onChange(event.target.value)}
-            style={{ width: "100%" }}/>;
+            style={{ width: '100%' }}
+          />
+        );
       }
 
       if (frozenColumn === col.id) {
         col.className = col.className ? `frozen ${col.className}` : 'frozen';
         col.headerClassName = 'frozen';
       }
-    })
+    });
 
     // prepare list of selected columns, if configured
     if (settings['data-table'] && settings['data-table']['selected-columns']) {
@@ -414,18 +517,20 @@ export class DataTable extends React.Component {
       if (frozenColumn && !selCos.includes(frozenColumn))
         selCos.unshift(frozenColumn);
 
-      selectedColumns = columns.filter((el) => {
+      selectedColumns = columns.filter(el => {
         // always include edit/preview links column
-        if (el.id == '__SubmissionLinks')
-          return true;
+        if (el.id == '__SubmissionLinks') return true;
 
         // include multi-select checkboxes if validation status is visible
         // TODO: update this when enabling bulk deleting submissions
-        if (el.id == '__SubmissionCheckbox' && selCos.includes('__ValidationStatus'))
+        if (
+          el.id == '__SubmissionCheckbox' &&
+          selCos.includes('__ValidationStatus')
+        )
           return true;
 
-        return selCos.includes(el.id) !== false}
-      );
+        return selCos.includes(el.id) !== false;
+      });
     }
 
     this.setState({
@@ -438,7 +543,7 @@ export class DataTable extends React.Component {
     });
   }
   getColumnLabel(key, q, qParentG, stateOverrides = false) {
-    switch(key) {
+    switch (key) {
       case '__SubmissionCheckbox':
         return t('Multi-select checkboxes column');
       case '__ValidationStatus':
@@ -447,9 +552,9 @@ export class DataTable extends React.Component {
 
     var label = key;
     let showLabels = this.state.showLabels,
-        showGroupName = this.state.showGroupName,
-        translationIndex = this.state.translationIndex,
-        survey = this.props.asset.content.survey;
+      showGroupName = this.state.showGroupName,
+      translationIndex = this.state.translationIndex,
+      survey = this.props.asset.content.survey;
 
     if (stateOverrides) {
       showGroupName = stateOverrides.showGroupName;
@@ -483,26 +588,35 @@ export class DataTable extends React.Component {
   }
   overrideLabelsAndGroups(overrides) {
     stores.pageState.hideModal();
-    this.setState({
-      overrideLabelsAndGroups: overrides
-    }, function() {
-      this._prepColumns(this.state.tableData);
-    });
+    this.setState(
+      {
+        overrideLabelsAndGroups: overrides
+      },
+      function() {
+        this._prepColumns(this.state.tableData);
+      }
+    );
   }
-  toggleExpandedTable () {
+  toggleExpandedTable() {
     if (this.state.showExpandedTable) {
       // load asset again to restore header title and submission count after exiting expanded report
-      actions.resources.loadAsset({id: this.props.asset.uid});
+      actions.resources.loadAsset({ id: this.props.asset.uid });
     }
 
     stores.pageState.hideDrawerAndHeader(!this.state.showExpandedTable);
     this.setState({
-      showExpandedTable: !this.state.showExpandedTable,
+      showExpandedTable: !this.state.showExpandedTable
     });
   }
   componentDidMount() {
-    this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmission);
-    this.listenTo(actions.table.updateSettings.completed, this.tableSettingsUpdated);
+    this.listenTo(
+      actions.resources.updateSubmissionValidationStatus.completed,
+      this.refreshSubmission
+    );
+    this.listenTo(
+      actions.table.updateSettings.completed,
+      this.tableSettingsUpdated
+    );
     this.listenTo(stores.pageState, this.onPageStateUpdate);
   }
   componentWillUnmount() {
@@ -511,11 +625,13 @@ export class DataTable extends React.Component {
   }
   refreshSubmission(result, sid) {
     if (sid) {
-      var subIndex = this.state.tableData.findIndex(x => x._id === parseInt(sid));
-      if (typeof subIndex !== "undefined" && this.state.tableData[subIndex]) {
+      var subIndex = this.state.tableData.findIndex(
+        x => x._id === parseInt(sid)
+      );
+      if (typeof subIndex !== 'undefined' && this.state.tableData[subIndex]) {
         var newData = this.state.tableData;
         newData[subIndex]._validation_status = result;
-        this.setState({tableData: newData});
+        this.setState({ tableData: newData });
         this._prepColumns(newData);
       }
     }
@@ -524,7 +640,7 @@ export class DataTable extends React.Component {
     stores.pageState.hideModal();
     this._prepColumns(this.state.tableData);
   }
-  launchPrinting () {
+  launchPrinting() {
     window.print();
   }
   fetchData(state, instance) {
@@ -537,8 +653,10 @@ export class DataTable extends React.Component {
     });
     this.requestData(instance);
   }
-  launchSubmissionModal (evt) {
-    let el = $(evt.target).closest('[data-sid]').get(0);
+  launchSubmissionModal(evt) {
+    let el = $(evt.target)
+      .closest('[data-sid]')
+      .get(0);
     const sid = el.getAttribute('data-sid');
 
     this.submissionModalProcessing(sid, this.state.tableData);
@@ -548,7 +666,7 @@ export class DataTable extends React.Component {
 
     tableData.forEach(function(r) {
       ids.push(r._id);
-    })
+    });
 
     stores.pageState.showModal({
       type: 'submission',
@@ -562,7 +680,7 @@ export class DataTable extends React.Component {
       }
     });
   }
-  launchTableColumnsModal () {
+  launchTableColumnsModal() {
     stores.pageState.showModal({
       type: 'table-columns',
       asset: this.props.asset,
@@ -571,13 +689,15 @@ export class DataTable extends React.Component {
       overrideLabelsAndGroups: this.overrideLabelsAndGroups
     });
   }
-  launchEditSubmission (evt) {
-    let el = $(evt.target).closest('[data-sid]').get(0),
-        uid = this.props.asset.uid,
-        newWin = window.open('', '_blank');
+  launchEditSubmission(evt) {
+    let el = $(evt.target)
+        .closest('[data-sid]')
+        .get(0),
+      uid = this.props.asset.uid,
+      newWin = window.open('', '_blank');
     const sid = el.getAttribute('data-sid');
 
-    dataInterface.getEnketoEditLink(uid, sid).done((editData) => {
+    dataInterface.getEnketoEditLink(uid, sid).done(editData => {
       this.setState({ promptRefresh: true });
       if (editData.url) {
         newWin.location = editData.url;
@@ -588,28 +708,27 @@ export class DataTable extends React.Component {
     });
   }
   onPageStateUpdate(pageState) {
-    if (!pageState.modal)
-      return false;
+    if (!pageState.modal) return false;
 
     let params = pageState.modal,
-        page = 0;
+      page = 0;
 
     if (params.type !== 'table-columns' && !params.sid) {
       let fetchInstance = this.state.fetchInstance;
-      if (params.page == 'next')
-        page = this.state.currentPage + 1;
-      if (params.page == 'prev')
-        page = this.state.currentPage - 1;
+      if (params.page == 'next') page = this.state.currentPage + 1;
+      if (params.page == 'prev') page = this.state.currentPage - 1;
 
       fetchInstance.setState({ page: page });
-      this.setState({
-        fetchInstance: fetchInstance,
-        submissionPager: params.page
-      }, function() {
-        this.fetchData(this.state.fetchState, this.state.fetchInstance);
-      });
+      this.setState(
+        {
+          fetchInstance: fetchInstance,
+          submissionPager: params.page
+        },
+        function() {
+          this.fetchData(this.state.fetchState, this.state.fetchInstance);
+        }
+      );
     }
-
   }
   refreshTable() {
     this.fetchData(this.state.fetchState, this.state.fetchInstance);
@@ -635,7 +754,7 @@ export class DataTable extends React.Component {
   }
   bulkSelectAllRows(evt) {
     var s = this.state.selectedRows,
-        selectAll = this.state.selectAll;
+      selectAll = this.state.selectAll;
 
     this.state.tableData.forEach(function(r) {
       if (evt.target.checked) {
@@ -643,7 +762,7 @@ export class DataTable extends React.Component {
       } else {
         delete s[r._id];
       }
-    })
+    });
 
     this.setState({
       selectedRows: s,
@@ -652,20 +771,20 @@ export class DataTable extends React.Component {
   }
   bulkUpdateStatus(evt) {
     const val = evt.target.getAttribute('data-value'),
-          selectAll = this.state.selectAll;
+      selectAll = this.state.selectAll;
     var d = null;
 
     if (!selectAll) {
       d = {
         submissions_ids: Object.keys(this.state.selectedRows),
-        "validation_status.uid": val
+        'validation_status.uid': val
       };
     } else {
       const f = this.state.fetchState.filtered;
       if (f.length) {
         d = {
           query: {},
-          "validation_status.uid": val
+          'validation_status.uid': val
         };
         f.forEach(function(z) {
           d.query[z.id] = z.value;
@@ -673,25 +792,32 @@ export class DataTable extends React.Component {
       } else {
         d = {
           confirm: true,
-          "validation_status.uid": val
+          'validation_status.uid': val
         };
       }
     }
 
     let dialog = alertify.dialog('confirm');
-    const sel = this.state.selectAll ? this.state.resultsTotal : Object.keys(this.state.selectedRows).length;
+    const sel = this.state.selectAll
+      ? this.state.resultsTotal
+      : Object.keys(this.state.selectedRows).length;
     let opts = {
       title: t('Update status of selected submissions'),
-      message: t('You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.').replace('##', sel),
-      labels: {ok: t('Update Validation Status'), cancel: t('Cancel')},
+      message: t(
+        'You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.'
+      ).replace('##', sel),
+      labels: { ok: t('Update Validation Status'), cancel: t('Cancel') },
       onok: (evt, val) => {
-        dataInterface.patchSubmissions(this.props.asset.uid, d).done((res) => {
-          this.fetchData(this.state.fetchState, this.state.fetchInstance);
-          this.setState({loading: true});
-        }).fail((jqxhr)=> {
-          console.error(jqxhr);
-          alertify.error(t('Failed to update status.'));
-        });
+        dataInterface
+          .patchSubmissions(this.props.asset.uid, d)
+          .done(res => {
+            this.fetchData(this.state.fetchState, this.state.fetchInstance);
+            this.setState({ loading: true });
+          })
+          .fail(jqxhr => {
+            console.error(jqxhr);
+            alertify.error(t('Failed to update status.'));
+          });
       },
       oncancel: () => {
         dialog.destroy();
@@ -700,10 +826,10 @@ export class DataTable extends React.Component {
     dialog.set(opts).show();
   }
   bulkSelectAll() {
-    this.setState({selectAll: true});
+    this.setState({ selectAll: true });
   }
   clearSelection() {
-    this.setState({selectAll: false, selectedRows: {}});
+    this.setState({ selectAll: false, selectedRows: {} });
   }
   bulkSelectUI() {
     if (!this.state.tableData.length) {
@@ -712,61 +838,72 @@ export class DataTable extends React.Component {
 
     const { pageSize, currentPage, resultsTotal } = this.state;
 
-    const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1),
-          res1 = (currentPage * pageSize) + 1,
-          res2 = Math.min((currentPage + 1) * pageSize, resultsTotal),
-          showingResults = `${res1} - ${res2} ${t('of')} ${resultsTotal} ${t('results')}. `,
-          selected = this.state.selectedRows,
-          maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);;
+    const pages = Math.floor((resultsTotal - 1) / pageSize + 1),
+      res1 = currentPage * pageSize + 1,
+      res2 = Math.min((currentPage + 1) * pageSize, resultsTotal),
+      showingResults = `${res1} - ${res2} ${t('of')} ${resultsTotal} ${t(
+        'results'
+      )}. `,
+      selected = this.state.selectedRows,
+      maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);
 
-          //
+    //
     return (
-      <bem.FormView__item m='table-meta'>
+      <bem.FormView__item m="table-meta">
         {showingResults}
-        {this.state.selectAll ?
+        {this.state.selectAll ? (
           <span>
             {t('All ## selected. ').replace('##', resultsTotal)}
             <a className="select-all" onClick={this.clearSelection}>
               {t('Clear selection')}
             </a>
           </span>
-        :
+        ) : (
           <span>
             {Object.keys(selected).length > 0 &&
-              t('## selected. ').replace('##', Object.keys(selected).length)
-            }
-            {Object.keys(selected).length == maxPageRes && resultsTotal > pageSize &&
-              <a className="select-all" onClick={this.bulkSelectAll}>
-                {t('Select all ##').replace('##', resultsTotal)}
-              </a>
-            }
+              t('## selected. ').replace('##', Object.keys(selected).length)}
+            {Object.keys(selected).length == maxPageRes &&
+              resultsTotal > pageSize && (
+                <a className="select-all" onClick={this.bulkSelectAll}>
+                  {t('Select all ##').replace('##', resultsTotal)}
+                </a>
+              )}
           </span>
-        }
+        )}
       </bem.FormView__item>
     );
   }
-  render () {
+  render() {
     if (this.state.error) {
       return (
         <ui.Panel>
           <bem.Loading>
-            <bem.Loading__inner>
-              {this.state.error}
-            </bem.Loading__inner>
+            <bem.Loading__inner>{this.state.error}</bem.Loading__inner>
           </bem.Loading>
         </ui.Panel>
-        )
+      );
     }
 
-    const { tableData, columns, selectedColumns, defaultPageSize, loading, pageSize, currentPage, resultsTotal } = this.state;
-    const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1);
+    const {
+      tableData,
+      columns,
+      selectedColumns,
+      defaultPageSize,
+      loading,
+      pageSize,
+      currentPage,
+      resultsTotal
+    } = this.state;
+    const pages = Math.floor((resultsTotal - 1) / pageSize + 1);
     let asset = this.props.asset,
-        tableClasses = this.state.frozenColumn ? '-striped -highlight has-frozen-column' : '-striped -highlight';
+      tableClasses = this.state.frozenColumn
+        ? '-striped -highlight has-frozen-column'
+        : '-striped -highlight';
 
     return (
-      <bem.FormView m='table'>
-        {this.state.promptRefresh &&
-          <bem.FormView__cell m='table-warning'>
+      <bem.FormView m="table">
+        {this.state.promptRefresh && (
+          <bem.FormView__cell m="table-warning">
             <i className="k-icon-alert" />
             {t('The data below may be out of date. ')}
             <a className="select-all" onClick={this.refreshTable}>
@@ -775,40 +912,60 @@ export class DataTable extends React.Component {
 
             <i className="k-icon-close" onClick={this.clearPromptRefresh} />
           </bem.FormView__cell>
-        }
-        <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
+        )}
+        <bem.FormView__group
+          m={[
+            'table-header',
+            this.state.loading ? 'table-loading' : 'table-loaded'
+          ]}
+        >
           {this.bulkSelectUI()}
-          <bem.FormView__item m='table-buttons'>
-            <button className="mdl-button mdl-button--icon report-button__print is-edge"
-                    onClick={this.launchPrinting}
-                    data-tip={t('Print')}>
+          <bem.FormView__item m="table-buttons">
+            <button
+              className="mdl-button mdl-button--icon report-button__print is-edge"
+              onClick={this.launchPrinting}
+              data-tip={t('Print')}
+            >
               <i className="k-icon-print" />
             </button>
 
-            {Object.keys(this.state.selectedRows).length > 0 &&
-              <ui.PopoverMenu type='bulkUpdate-menu' triggerLabel={t('Update selected')} >
+            {Object.keys(this.state.selectedRows).length > 0 && (
+              <ui.PopoverMenu
+                type="bulkUpdate-menu"
+                triggerLabel={t('Update selected')}
+              >
                 <bem.PopoverMenu__heading>
                   {t('Updated status to:')}
                 </bem.PopoverMenu__heading>
                 {VALIDATION_STATUSES.map((item, n) => {
                   return (
-                    <bem.PopoverMenu__link onClick={this.bulkUpdateStatus} data-value={item.value} key={n}>
+                    <bem.PopoverMenu__link
+                      onClick={this.bulkUpdateStatus}
+                      data-value={item.value}
+                      key={n}
+                    >
                       {item.label}
-                      </bem.PopoverMenu__link>
+                    </bem.PopoverMenu__link>
                   );
                 })}
               </ui.PopoverMenu>
-            }
+            )}
 
-            <button className="mdl-button mdl-button--icon report-button__expand"
-                    onClick={this.toggleExpandedTable}
-                    data-tip={this.state.showExpandedTable ? t('Contract') : t('Expand')}>
+            <button
+              className="mdl-button mdl-button--icon report-button__expand"
+              onClick={this.toggleExpandedTable}
+              data-tip={
+                this.state.showExpandedTable ? t('Contract') : t('Expand')
+              }
+            >
               <i className="k-icon-expand" />
             </button>
 
-            <button className="mdl-button mdl-button--icon report-button__expand"
-                    onClick={this.launchTableColumnsModal}
-                    data-tip={t('Display options')}>
+            <button
+              className="mdl-button mdl-button--icon report-button__expand"
+              onClick={this.launchTableColumnsModal}
+              data-tip={t('Display options')}
+            >
               <i className="k-icon-settings" />
             </button>
           </bem.FormView__item>
@@ -837,13 +994,15 @@ export class DataTable extends React.Component {
           pageText={t('Page')}
           ofText={t('of')}
           rowsText={t('rows')}
+          filterable
           getTableProps={() => {
             return {
-              onScroll: (e) => {
+              onScroll: e => {
                 if (this.state.frozenColumn) {
                   if (this.tableScrollTop === e.target.scrollTop) {
-                    let left = e.target.scrollLeft > 0 ? e.target.scrollLeft : 0;
-                    $('.ReactTable .rt-tr .frozen').css({left: left});
+                    let left =
+                      e.target.scrollLeft > 0 ? e.target.scrollLeft : 0;
+                    $('.ReactTable .rt-tr .frozen').css({ left: left });
                   } else {
                     this.tableScrollTop = e.target.scrollTop;
                   }
@@ -851,12 +1010,11 @@ export class DataTable extends React.Component {
               }
             };
           }}
-          filterable
         />
       </bem.FormView>
     );
   }
-};
+}
 
 reactMixin(DataTable.prototype, Reflux.ListenerMixin);
 reactMixin(DataTable.prototype, mixins.permissions);

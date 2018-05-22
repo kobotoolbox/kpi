@@ -12,13 +12,13 @@ alertify.defaults.notifier.delay = 10;
 alertify.defaults.notifier.position = 'bottom-left';
 alertify.defaults.notifier.closeButton = true;
 
-export function notify(msg, atype='success') {
+export function notify(msg, atype = 'success') {
   alertify.notify(msg, atype);
 }
 
 export function formatTime(timeStr) {
   var _m = moment(timeStr);
-  return _m.calendar(null, {sameElse: 'LL'});
+  return _m.calendar(null, { sameElse: 'LL' });
 }
 
 export function formatTimeDate(timeStr) {
@@ -33,7 +33,7 @@ export function formatDate(timeStr) {
 
 export var anonUsername = 'AnonymousUser';
 export function getAnonymousUserPermission(permissions) {
-  return permissions.filter(function(perm){
+  return permissions.filter(function(perm) {
     if (perm.user__username === undefined) {
       perm.user__username = perm.user.match(/\/users\/(.*)\//)[1];
     }
@@ -59,23 +59,30 @@ export function parsePermissions(owner, permissions) {
   if (!permissions) {
     return [];
   }
-  permissions.map((perm) => {
-    perm.user__username = perm.user.match(/\/users\/(.*)\//)[1];
-    return perm;
-  }).filter((perm)=> {
-    return ( perm.user__username !== owner && perm.user__username !== anonUsername);
-  }).forEach((perm)=> {
-    if(users.indexOf(perm.user__username) === -1) {
-      users.push(perm.user__username);
-      perms[perm.user__username] = [];
-    }
-    perms[perm.user__username].push(perm);
-  });
-  return users.map((username)=>{
+  permissions
+    .map(perm => {
+      perm.user__username = perm.user.match(/\/users\/(.*)\//)[1];
+      return perm;
+    })
+    .filter(perm => {
+      return (
+        perm.user__username !== owner && perm.user__username !== anonUsername
+      );
+    })
+    .forEach(perm => {
+      if (users.indexOf(perm.user__username) === -1) {
+        users.push(perm.user__username);
+        perms[perm.user__username] = [];
+      }
+      perms[perm.user__username].push(perm);
+    });
+  return users.map(username => {
     return {
       username: username,
-      can: perms[username].reduce((cans, perm)=> {
-        var permCode = perm.permission.includes('_submissions') ? perm.permission : perm.permission.split('_')[0];
+      can: perms[username].reduce((cans, perm) => {
+        var permCode = perm.permission.includes('_submissions')
+          ? perm.permission
+          : perm.permission.split('_')[0];
         cans[permCode] = perm;
         return cans;
       }, {})
@@ -83,15 +90,14 @@ export function parsePermissions(owner, permissions) {
   });
 }
 
-
-export var log = (function(){
+export var log = (function() {
   var _log = function(...args) {
     console.log.apply(console, args);
     return args[0];
   };
-  _log.profileSeconds = function(n=1) {
+  _log.profileSeconds = function(n = 1) {
     console.profile();
-    window.setTimeout(function(){
+    window.setTimeout(function() {
       console.profileEnd();
     }, n * 1000);
   };
@@ -99,22 +105,19 @@ export var log = (function(){
 })();
 window.log = log;
 
-
 var __strings = [];
-
 
 /*global gettext*/
 if (window.gettext) {
   var _gettext = window.gettext;
 } else {
-  var _gettext = function(s){
+  var _gettext = function(s) {
     return s;
   };
 }
 export function t(str) {
   return _gettext(str);
-};
-
+}
 
 const originalSupportEmail = 'help@kobotoolbox.org';
 
@@ -127,51 +130,59 @@ export function currentLang() {
   return cookie.load(LANGUAGE_COOKIE_NAME) || 'en';
 }
 
-log.t = function () {
+log.t = function() {
   let _t = {};
-  __strings.forEach(function(str){ _t[str] = str; })
+  __strings.forEach(function(str) {
+    _t[str] = str;
+  });
   console.log(JSON.stringify(_t, null, 4));
 };
 
 // unique id for forms with inputs and labels
 let lastId = 0;
-export var newId = function(prefix='id') {
+export var newId = function(prefix = 'id') {
   lastId++;
   return `${prefix}${lastId}`;
 };
 
-export var randString = function () {
-  return Math.random().toString(36).match(/\.(\S{6}).*/)[1];
+export var randString = function() {
+  return Math.random()
+    .toString(36)
+    .match(/\.(\S{6}).*/)[1];
 };
 
 export function stringToColor(str, prc) {
   // Higher prc = lighter color, lower = darker
   var prc = typeof prc === 'number' ? prc : -15;
   var hash = function(word) {
-      var h = 0;
-      for (var i = 0; i < word.length; i++) {
-          h = word.charCodeAt(i) + ((h << 5) - h);
-      }
-      return h;
+    var h = 0;
+    for (var i = 0; i < word.length; i++) {
+      h = word.charCodeAt(i) + ((h << 5) - h);
+    }
+    return h;
   };
   var shade = function(color, prc) {
-      var num = parseInt(color, 16),
-          amt = Math.round(2.55 * prc),
-          R = (num >> 16) + amt,
-          G = (num >> 8 & 0x00FF) + amt,
-          B = (num & 0x0000FF) + amt;
-      return (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
-          (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
-          (B < 255 ? B < 1 ? 0 : B : 255))
-          .toString(16)
-          .slice(1);
+    var num = parseInt(color, 16),
+      amt = Math.round(2.55 * prc),
+      R = (num >> 16) + amt,
+      G = ((num >> 8) & 0x00ff) + amt,
+      B = (num & 0x0000ff) + amt;
+    return (
+      0x1000000 +
+      (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+      (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
+      (B < 255 ? (B < 1 ? 0 : B) : 255)
+    )
+      .toString(16)
+      .slice(1);
   };
   var int_to_rgba = function(i) {
-      var color = ((i >> 24) & 0xFF).toString(16) +
-          ((i >> 16) & 0xFF).toString(16) +
-          ((i >> 8) & 0xFF).toString(16) +
-          (i & 0xFF).toString(16);
-      return color;
+    var color =
+      ((i >> 24) & 0xff).toString(16) +
+      ((i >> 16) & 0xff).toString(16) +
+      ((i >> 8) & 0xff).toString(16) +
+      (i & 0xff).toString(16);
+    return color;
   };
   return shade(int_to_rgba(hash(str)), prc);
 }
@@ -180,7 +191,7 @@ export function isAValidUrl(url) {
   try {
     new URL(url);
     return true;
-  } catch(e) {
+  } catch (e) {
     return false;
   }
 }
@@ -200,13 +211,10 @@ export function validFileTypes() {
 }
 
 export function koboMatrixParser(params) {
-  if (params.content)
-    var content = JSON.parse(params.content);
-  if (params.source)
-    var content = JSON.parse(params.source);
+  if (params.content) var content = JSON.parse(params.content);
+  if (params.source) var content = JSON.parse(params.source);
 
-  if (!content.survey)
-    return params;
+  if (!content.survey) return params;
 
   var hasMatrix = false;
   var surveyLength = content.survey.length;
@@ -217,7 +225,10 @@ export function koboMatrixParser(params) {
       content.survey[i].type = 'begin_kobomatrix';
       content.survey[i].appearance = 'field-list';
       surveyLength++;
-      content.survey.splice(i + 1, 0, {type: "end_kobomatrix", "$kuid": `/${content.survey[i].$kuid}`});
+      content.survey.splice(i + 1, 0, {
+        type: 'end_kobomatrix',
+        $kuid: `/${content.survey[i].$kuid}`
+      });
     }
   }
 
@@ -226,7 +237,9 @@ export function koboMatrixParser(params) {
     if (content.survey[i].type === 'begin_kobomatrix') {
       var j = i;
       hasMatrix = true;
-      var matrix = localStorage.getItem(`koboMatrix.${content.survey[i].$kuid}`);
+      var matrix = localStorage.getItem(
+        `koboMatrix.${content.survey[i].$kuid}`
+      );
 
       if (matrix != null) {
         matrix = JSON.parse(matrix);
@@ -245,10 +258,8 @@ export function koboMatrixParser(params) {
   }
 
   if (hasMatrix) {
-    if (params.content)
-      params.content = JSON.stringify(content);
-    if (params.source)
-      params.source = JSON.stringify(content);
+    if (params.content) params.content = JSON.stringify(content);
+    if (params.source) params.source = JSON.stringify(content);
   }
   return params;
 }

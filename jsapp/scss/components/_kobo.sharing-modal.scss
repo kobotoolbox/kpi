@@ -4,7 +4,7 @@ $s-gray-row-width: 560px;
 $s-gray-row-spacing: 10px;
 
 .form-view__cell--asset-name {
-  background: #F8F8F8;
+  background: #f8f8f8;
   margin: -30px -35px;
   margin-bottom: 20px;
   padding: 20px 30px;
@@ -16,7 +16,7 @@ $s-gray-row-spacing: 10px;
   display: flex;
   min-height: 50px;
   max-height: 50px;
-  border-bottom: 1px solid #DDD;
+  border-bottom: 1px solid #ddd;
   margin-bottom: 5px;
   padding-bottom: 5px;
   padding-top: 5px;
@@ -60,7 +60,7 @@ $s-gray-row-spacing: 10px;
     font-size: 24px;
     line-height: 1.2em;
     cursor: pointer;
-    color: #D08B8C;
+    color: #d08b8c;
     margin-right: -4px;
   }
 
@@ -104,10 +104,10 @@ $s-gray-row-spacing: 10px;
 
 .form-modal__item--gray-row {
   position: relative;
-  background: #F8F8F8;
+  background: #f8f8f8;
   padding: 15px;
 
-  input[type="text"] {
+  input[type='text'] {
     @include box-shadow;
 
     border-bottom: 0px;
@@ -162,8 +162,11 @@ $s-gray-row-spacing: 10px;
 // -----------------------------------------------------------------------------
 
 .form-modal__item--invite-collaborators {
-  input[type="text"] {
-    width: calc(100% - #{$s-gray-row-button-width + $s-gray-row-select-width + $s-gray-row-spacing * 2});
+  input[type='text'] {
+    width: calc(
+      100% - #{$s-gray-row-button-width + $s-gray-row-select-width +
+        $s-gray-row-spacing * 2}
+    );
     margin-right: $s-gray-row-spacing;
   }
 

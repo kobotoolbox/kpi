@@ -19,7 +19,7 @@
   flex-direction: column;
   width: 58px;
   height: 100%;
-  border-right: 1px solid #D9DADD;
+  border-right: 1px solid #d9dadd;
 }
 
 .k-drawer__link {
@@ -73,7 +73,8 @@
     display: none;
   }
 
-  .form-sidebar__wrapper, .collections-wrapper {
+  .form-sidebar__wrapper,
+  .collections-wrapper {
     height: 100%;
   }
 
@@ -88,7 +89,7 @@
     z-index: 4;
     left: -274px;
     transition: left 0.5s;
-    background-color: #FFF;
+    background-color: #fff;
 
     @include box-shadow;
   }

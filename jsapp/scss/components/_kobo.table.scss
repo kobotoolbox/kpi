@@ -39,11 +39,12 @@
 
     .rt-table {
       border: 1px solid $divider-color;
-      background-color: #FFF;
+      background-color: #fff;
       font-size: 13px;
     }
 
-    .rt-tbody, .rt-thead {
+    .rt-tbody,
+    .rt-thead {
       overflow-x: hidden;
 
       .table-header-checkbox {
@@ -83,7 +84,8 @@
       max-height: 36px;
     }
 
-    .rt-th, .rt-td {
+    .rt-th,
+    .rt-td {
       padding: 2px;
       padding-left: 6px;
       border-right: 1px solid rgba(0, 0, 0, 0.03);
@@ -170,7 +172,7 @@
     }
 
     .-loading {
-      background: #F8F8F8;
+      background: #f8f8f8;
 
       .-loading-inner {
         display: block;
@@ -196,7 +198,7 @@
         order: -1;
         position: relative;
         left: 0;
-        background: #F8F8F8;
+        background: #f8f8f8;
         height: 36px;
         transition: left 0.2s;
         margin-right: 6px;
@@ -207,7 +209,7 @@
       }
 
       &.-striped .rt-tr.-odd .frozen {
-        background: #F1F1F1;
+        background: #f1f1f1;
       }
 
       &.-striped .rt-tr:hover .frozen {
@@ -223,7 +225,7 @@
   .form-view__cell--table-warning {
     position: absolute;
     width: calc(100% - 60px);
-    background: lighten(#FFB775, 20%);
+    background: lighten(#ffb775, 20%);
     padding: 5px;
     top: 10px;
     z-index: 99;
@@ -231,7 +233,7 @@
     i.k-icon-alert {
       font-size: 32px;
       vertical-align: middle;
-      color: #FFB775;
+      color: #ffb775;
     }
 
     a {
@@ -243,7 +245,7 @@
       right: 10px;
       font-size: 24px;
       top: 10px;
-      background: lighten(#FFB775, 20%);
+      background: lighten(#ffb775, 20%);
       cursor: pointer;
     }
   }
@@ -272,7 +274,7 @@
     &--advanced-table-options {
       border: 1px solid $divider-color;
       padding: 20px;
-      background: #F8F8F8;
+      background: #f8f8f8;
 
       .form-view__cell--note {
         padding-bottom: 20px;
@@ -301,7 +303,7 @@
     overflow: auto;
     border: 1px solid $divider-color;
     padding: 10px;
-    background: #FFF;
+    background: #fff;
 
     li {
       margin-bottom: 5px;
@@ -311,7 +313,7 @@
         display: inline-block;
       }
 
-      input[type="checkbox"]:checked + label {
+      input[type='checkbox']:checked + label {
         color: darken($cool-gray, 10%);
       }
     }

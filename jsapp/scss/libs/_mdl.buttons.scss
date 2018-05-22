@@ -48,7 +48,7 @@
   }
 }
 
-input.mdl-button[type="submit"] {
+input.mdl-button[type='submit'] {
   -webkit-appearance: none;
 }
 
@@ -62,11 +62,11 @@ input.mdl-button[type="submit"] {
 
   &.mdl-button--colored {
     background: $cool-blue;
-    color: #FFF;
+    color: #fff;
 
     &:hover {
       background-color: darken($cool-blue, 5%);
-      color: #FFF;
+      color: #fff;
     }
   }
 }
@@ -85,7 +85,7 @@ input.mdl-button[type="submit"] {
 
 // Tab buttons
 .mdl-button--tab {
-  color: #FFF;
+  color: #fff;
   opacity: 0.7;
   border-radius: 0;
   border-bottom: 2px solid transparent;
@@ -97,7 +97,7 @@ input.mdl-button[type="submit"] {
 
   &:hover {
     opacity: 1;
-    color: #FFF;
+    color: #fff;
     transition: opacity 0.2s;
   }
 
@@ -122,7 +122,7 @@ input.mdl-button[type="submit"] {
     // Bump up specificity by using [disabled] twice.
     &[disabled][disabled],
     &.mdl-button--disabled.mdl-button--disabled {
-      background-color: #DDD;
+      background-color: #ddd;
       color: #999;
       box-shadow: none;
     }

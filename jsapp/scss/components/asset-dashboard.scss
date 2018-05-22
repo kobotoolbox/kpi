@@ -47,7 +47,8 @@ $permEditorColor: #999;
   }
 }
 
-.k-history {}
+.k-history {
+}
 
 .k-history--empty {
   opacity: 0.4;
@@ -227,13 +228,13 @@ $permEditorColor: #999;
 
 .icon--asset {
   .fa-stack-2x {
-    color: #364F62;
+    color: #364f62;
   }
 }
 
 .icon--collection {
   .fa-stack-2x {
-    color: #A165AB;
+    color: #a165ab;
   }
 }
 
@@ -259,7 +260,7 @@ $permEditorColor: #999;
   width: 70px;
   height: 60px;
   text-align: center;
-  background-image: url("../img/kobosquare-small.png");
+  background-image: url('../img/kobosquare-small.png');
   background-position: center;
   background-repeat: no-repeat;
   opacity: 0.3;

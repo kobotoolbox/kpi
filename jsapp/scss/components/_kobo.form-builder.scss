@@ -5,7 +5,7 @@
       content: ' ';
       width: 100%;
       height: 75px;
-      background-color: #FFF;
+      background-color: #fff;
       position: fixed;
       right: 0;
       z-index: -1;
@@ -20,14 +20,14 @@
       right: 0;
       z-index: -1;
       top: 75px;
-      background-color: #F1F1F1;
+      background-color: #f1f1f1;
       box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.22);
     }
   }
 }
 
 .formBuilder {
-  background-color: #FFF;
+  background-color: #fff;
 }
 
 .formBuilder-header {
@@ -66,11 +66,13 @@
     min-height: calc(100vh - 200px);
   }
 
-  .survey-header, .sub-header-bar {
+  .survey-header,
+  .sub-header-bar {
     display: none;
   }
 
-  input, textarea {
+  input,
+  textarea {
     box-shadow: none;
 
     &:focus {
@@ -135,13 +137,13 @@
     flex-wrap: nowrap;
 
     &--first {
-      background-color: #FFF;
+      background-color: #fff;
       height: 75px;
       position: relative;
     }
 
     &--second {
-      background-color: #F1F1F1;
+      background-color: #f1f1f1;
       box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.22);
     }
   }
@@ -157,11 +159,11 @@
       transition: background-color 0.2s, color 0.2s;
 
       &:hover {
-          background-color: darken($cool-green, 10%);
+        background-color: darken($cool-green, 10%);
       }
 
       i {
-        color: #FFF;
+        color: #fff;
         font-size: 48px;
         padding-top: 14px;
         display: inline-block;
@@ -232,7 +234,9 @@
         vertical-align: middle;
         padding: 0px 4px;
 
-        &:hover, &:focus, &:focus:not(:active) {
+        &:hover,
+        &:focus,
+        &:focus:not(:active) {
           background-color: transparent;
         }
 
@@ -317,7 +321,8 @@
     }
   }
 
-  &.formBuilder-header__button--savefailed:after, &.formBuilder-header__button--saveneeded:after {
+  &.formBuilder-header__button--savefailed:after,
+  &.formBuilder-header__button--saveneeded:after {
     content: '*';
     color: white;
   }
@@ -328,13 +333,13 @@
 
     @extend .mdl-button--raised;
 
-    background: #8595A1;
+    background: #8595a1;
     color: white;
   }
 
   &.formBuilder-header__button--showLibrary {
-    border: 1px solid #5D6971;
-    color: #5D6971;
+    border: 1px solid #5d6971;
+    color: #5d6971;
   }
 
   &[disabled] {
@@ -382,7 +387,7 @@
 }
 
 .form-meta__button--metasummary {
-  background-color: #F7F7F7;
+  background-color: #f7f7f7;
   width: calc(100% - 80px);
   text-align: left;
   text-transform: uppercase;
@@ -395,7 +400,7 @@
 }
 
 .form-meta__button--expand {
-  background-color: #F0F0F0;
+  background-color: #f0f0f0;
 
   @extend .mdl-button;
 
@@ -427,7 +432,7 @@
 
   .cascade-popup__message {
     &--warning {
-      color: #FF5469;
+      color: #ff5469;
     }
 
     &--ready {
@@ -574,7 +579,8 @@
         width: 24%;
       }
 
-      span, .editable-container {
+      span,
+      .editable-container {
         padding-right: 2px;
         width: 64%;
         overflow: hidden;
@@ -602,15 +608,15 @@
     }
 
     .settings__input {
-      input[type="text"] {
-        border: 1px solid #DDD;
+      input[type='text'] {
+        border: 1px solid #ddd;
       }
     }
   }
 
   .questiontypelist__item {
     text-align: center;
-    background: #F8F8F8;
+    background: #f8f8f8;
 
     i {
       display: block;

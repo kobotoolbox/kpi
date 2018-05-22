@@ -1,36 +1,39 @@
-import {log, t} from '../utils';
+import { log, t } from '../utils';
 
 export class Sheeted {
-  constructor ([sheetNames, sheets]) {
+  constructor([sheetNames, sheets]) {
     this.__keys = sheetNames;
-    Object.keys(sheets).map((key)=> {
+    Object.keys(sheets).map(key => {
       this[key] = new Sheeted.Sheet(sheets[key], key);
     });
   }
-  toArray (opts={}) {
+  toArray(opts = {}) {
     var o = {};
     opts.compact = true;
     if (opts.compact) {
-      return [this.__keys, ...this.__keys.map((name, i) => {
-        log(name);
-        return this[name].toArray(opts);
-      })]
+      return [
+        this.__keys,
+        ...this.__keys.map((name, i) => {
+          log(name);
+          return this[name].toArray(opts);
+        })
+      ];
     }
     this.__keys.forEach((name, i) => {
       o[name] = this[name].toArray();
     });
-    return [this.__keys, o]
+    return [this.__keys, o];
   }
-  toJSON (opts={}) {
+  toJSON(opts = {}) {
     let spaces = opts.spaces;
     return JSON.stringify(this.toArray(), null, spaces);
   }
-  log () {
+  log() {
     log(this);
   }
 }
 Sheeted.Sheet = class Sheet {
-  constructor (rows, sheetName) {
+  constructor(rows, sheetName) {
     this.rows = rows;
     this.sheetName = sheetName;
     var cols = [];
@@ -39,7 +42,7 @@ Sheeted.Sheet = class Sheet {
         cols = row;
         return;
       } else {
-        return Object.keys(row).map((c) => {
+        return Object.keys(row).map(c => {
           if (cols.indexOf(c) === -1) {
             cols.push(c);
           }
@@ -48,18 +51,21 @@ Sheeted.Sheet = class Sheet {
     });
     this.__cols = cols;
   }
-  toArray (opts={}) {
+  toArray(opts = {}) {
     var outRows;
     opts.compact = true;
     if (opts.compact) {
-      return [this.__cols, ...this.rows.map((item, i)=>{
-        var outRow = [];
-        this.__cols.forEach(function(col){
-          outRow.push(item[col]);
-        });
-        return outRow;
-      })]
+      return [
+        this.__cols,
+        ...this.rows.map((item, i) => {
+          var outRow = [];
+          this.__cols.forEach(function(col) {
+            outRow.push(item[col]);
+          });
+          return outRow;
+        })
+      ];
     }
-    return [this.cols, this.rows]
+    return [this.cols, this.rows];
   }
-}
+};
