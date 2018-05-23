@@ -164,7 +164,6 @@ class SharingForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      currentAssetName: stores.allAssets.byUid[this.props.uid].name,
       userInputStatus: false,
       permInput: 'view'
     };
@@ -272,10 +271,11 @@ class SharingForm extends React.Component {
 
     var btnKls = classNames('mdl-button','mdl-js-button', 'mdl-button--raised', inpStatus === 'success' ? 'mdl-button--colored' : 'mdl-button--disabled');
 
-    var uid = this.state.asset.uid;
-    var kind = this.state.asset.kind;
-    var asset_type = this.state.asset.asset_type;
-    var objectUrl = this.state.asset.url;
+    let uid = this.state.asset.uid,
+        kind = this.state.asset.kind,
+        asset_type = this.state.asset.asset_type,
+        objectUrl = this.state.asset.url,
+        name = this.state.asset.name;
 
     if (!perms) {
       return (
@@ -298,7 +298,7 @@ class SharingForm extends React.Component {
       <bem.FormModal>
         <bem.FormModal__item>
           <bem.FormView__cell m='asset-name'>
-            {this.state.currentAssetName}
+            {name}
           </bem.FormView__cell>
           <bem.FormView__cell m='label'>
             {t('Who has access')}
@@ -362,7 +362,7 @@ class SharingForm extends React.Component {
           </bem.FormView__cell>
         }
 
-        { Object.keys(stores.allAssets.byUid).length >= 2 &&
+        { kind != 'collection' && Object.keys(stores.allAssets.byUid).length >= 2 &&
           <bem.FormView__cell m='copy-team-permissions'>
             <CopyTeamPermissions uid={uid}/>
           </bem.FormView__cell>
