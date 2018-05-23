@@ -175,42 +175,52 @@ mixins.droppable = {
     let router = this.context.router;
     let isXLSReplaceInForm = this.props.context == 'replaceXLS' && router.isActive('forms') && router.params.assetid != undefined;
     var library = router.isActive('library');
+    var multipleFiles = params.totalFiles > 1 ? true : false;
     params = assign({library: library}, params);
 
     if (params.base64Encoded) {
       stores.pageState.showModal({
         type: 'uploading-xls',
-        filename: params.name
+        filename: multipleFiles ? t('## files').replace('##', params.totalFiles) : params.name
       });
     }
 
+    delete params.totalFiles;
+
     if (!library && params.base64Encoded) {
       let destination = params.destination || this.state.url;
-      params = assign({destination: destination}, params);
+      if (destination) {
+        params = assign({ destination: destination }, params);
+      }
     }
 
     dataInterface.postCreateImport(params).then((data)=> {
       window.setTimeout((()=>{
         dataInterface.getImportDetails({
           uid: data.uid,
-        }).done((importData/*, status, jqxhr*/) => {
+        }).done((importData) => {
           if (importData.status === 'complete') {
             var assetData = importData.messages.updated || importData.messages.created;
             var assetUid = assetData && assetData.length > 0 && assetData[0].uid;
-            if (!assetUid) {
-              // TODO: use a more specific error message here
-              alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace with XLS" icon.'));
-              if (params.assetUid)
-                hashHistory.push(`/forms/${params.assetUid}`);
+            if (multipleFiles) {
+              this.searchDefault();
+              // No message shown for multiple files when successful, to avoid overloading screen
             } else {
-              if (isXLSReplaceInForm) {
-                actions.resources.loadAsset({id: assetUid});
-              } else if (library) {
-                this.searchDefault();
+              if (!assetUid) {
+                // TODO: use a more specific error message here
+                alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace with XLS" icon.'));
+                if (params.assetUid)
+                  hashHistory.push(`/forms/${params.assetUid}`);
               } else {
-                hashHistory.push(`/forms/${assetUid}`);
+                if (isXLSReplaceInForm) {
+                  actions.resources.loadAsset({id: assetUid});
+                } else if (library) {
+                  this.searchDefault();
+                } else {
+                  hashHistory.push(`/forms/${assetUid}`);
+                }
+                notify(t('XLS Import completed'));
               }
-              notify(t('XLS Import completed'));
             }
           }
           // If the import task didn't complete immediately, inform the user accordingly.
@@ -237,7 +247,7 @@ mixins.droppable = {
       alertify.error(t('Failed to create import.'));
     });
   },
-  dropFiles (files, rejectedFiles, pms={}) {
+  dropFiles (files, rejectedFiles, evt, pms={}) {
     files.map((file) => {
       var reader = new FileReader();
       reader.onload = (e)=> {
@@ -245,6 +255,7 @@ mixins.droppable = {
           base64Encoded: e.target.result,
           name: file.name,
           lastModified: file.lastModified,
+          totalFiles: files.length
         }, pms);
 
         this._forEachDroppedFile(params);

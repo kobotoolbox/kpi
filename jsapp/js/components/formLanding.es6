@@ -339,12 +339,6 @@ export class FormLanding extends React.Component {
       }
     );
   }
-  onDrop(files, rejectedFiles) {
-    if (files.length === 0)
-      return;
-
-    this.dropFiles(files, [], {destination: this.state.url});
-  }
   renderButtons () {
     const userCanEdit = this.userCan('change_asset', this.state);
     var downloadable = false;
@@ -465,7 +459,6 @@ export class FormLanding extends React.Component {
 
 };
 
-reactMixin(FormLanding.prototype, mixins.droppable);
 reactMixin(FormLanding.prototype, mixins.permissions);
 reactMixin(FormLanding.prototype, mixins.dmix);
 reactMixin(FormLanding.prototype, Reflux.ListenerMixin);
