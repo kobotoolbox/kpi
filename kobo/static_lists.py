@@ -505,9 +505,14 @@ LANGUAGES = (
     ('zu', _('Zulu')),
 )
 
-# Django itself does not support all languages, so we cannot always rely upon
-# `django.utils.translation.get_language_info()` to provide native language
-# names for our translations
-NATIVE_LANGUAGE_NAMES = {
-    u'ku': u'\u0643\u0648\u0631\u062f\u06cc',
+# Whenever we add a translation that Django itself does not support, add
+# information about the language here. This dictionary will be used to update
+# `django.conf.locale.LANG_INFO`
+EXTRA_LANG_INFO = {
+    'ku': {
+        'bidi': True,
+        'code': 'ku',
+        'name': 'Kurdish',
+        'name_local': 'كوردی',
+    },
 }
