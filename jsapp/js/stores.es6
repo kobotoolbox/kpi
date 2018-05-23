@@ -10,7 +10,6 @@ import {
   t,
   notify,
   assign,
-  setSupportDetails,
 } from './utils';
 
 function changes(orig_obj, new_obj) {
@@ -265,6 +264,7 @@ var assetStore = Reflux.createStore({
 
 var sessionStore = Reflux.createStore({
   init () {
+    this.listenTo(actions.auth.getEnvironment.completed, this.triggerEnv);
     this.listenTo(actions.auth.login.loggedin, this.triggerLoggedIn);
     this.listenTo(actions.auth.login.passwordfail, ()=> {
 
@@ -280,9 +280,8 @@ var sessionStore = Reflux.createStore({
       log('login not verified', xhr.status, xhr.statusText);
     });
     actions.auth.verifyLogin();
-    // dataInterface.selfProfile().then(function success(acct){
-    //   actions.auth.login.completed(acct);
-    // });
+    actions.auth.getEnvironment();
+
   },
   getInitialState () {
     return {
@@ -291,6 +290,9 @@ var sessionStore = Reflux.createStore({
     };
   },
   triggerAnonymous (/*data*/) {},
+  triggerEnv (environment) {
+    this.environment = environment;
+  },
   triggerLoggedIn (acct) {
     this.currentAccount = acct;
     if (acct.upcoming_downtime) {
@@ -313,9 +315,6 @@ var sessionStore = Reflux.createStore({
       if ('downtimeNoticeSeen' in window.localStorage) {
         localStorage.removeItem('downtimeNoticeSeen');
       }
-    }
-    if (acct.support) {
-      setSupportDetails(acct.support)
     }
     var nestedArrToChoiceObjs = function (_s) {
       return {
@@ -586,6 +585,24 @@ stores.collections = Reflux.createStore({
   }
 });
 
+var serverEnvironmentStore = Reflux.createStore({
+  init() {
+    this.state = {};
+    this.listenTo(actions.misc.getServerEnvironment.completed,
+                  this.updateEnvironment);
+  },
+  setState (state) {
+    var chz = changes(this.state, state);
+    if (chz) {
+      assign(this.state, state);
+      this.trigger(chz);
+    }
+  },
+  updateEnvironment(response) {
+    this.setState(response);
+  },
+});
+
 if (window.Intercom) {
   var IntercomStore = Reflux.createStore({
     init () {
@@ -631,6 +648,7 @@ assign(stores, {
   session: sessionStore,
   userExists: userExistsStore,
   surveyState: surveyStateStore,
+  serverEnvironment: serverEnvironmentStore,
 });
 
 module.exports = stores;

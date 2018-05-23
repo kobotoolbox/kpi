@@ -13,6 +13,7 @@ import multiprocessing
 import os
 import subprocess
 
+import django.conf.locale
 from django.conf import global_settings
 from django.conf.global_settings import LOGIN_URL
 from django.utils.translation import get_language_info
@@ -20,7 +21,7 @@ import dj_database_url
 
 from pymongo import MongoClient
 
-from static_lists import NATIVE_LANGUAGE_NAMES
+from static_lists import EXTRA_LANG_INFO
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -107,14 +108,35 @@ MIDDLEWARE_CLASSES = (
     'hub.middleware.OtherFormBuilderRedirectMiddleware',
 )
 
+if os.environ.get('DEFAULT_FROM_EMAIL'):
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
+    SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
 # Configuration options that superusers can modify in the Django admin
 # interface. Please note that it's not as simple as moving a setting into the
 # `CONSTANCE_CONFIG` dictionary: each place where the setting's value is needed
 # must use `constance.config.THE_SETTING` instead of
 # `django.conf.settings.THE_SETTING`
 CONSTANCE_CONFIG = {
-    'REGISTRATION_OPEN': (True, 'Whether or not to allow registration of new '
-                                'accounts'),
+    'REGISTRATION_OPEN': (True, 'Allow new users to register accounts for '
+                                'themselves'),
+    'TERMS_OF_SERVICE_URL': ('http://www.kobotoolbox.org/terms',
+                            'URL for terms of service document'),
+    'PRIVACY_POLICY_URL': ('http://www.kobotoolbox.org/privacy',
+                          'URL for privacy policy'),
+    'SOURCE_CODE_URL': ('https://github.com/kobotoolbox/',
+                        'URL of source code repository. When empty, a link '
+                        'will not be shown in the user interface'),
+    'SUPPORT_URL': (os.environ.get('KOBO_SUPPORT_URL',
+                                   'http://help.kobotoolbox.org/'),
+                    'URL of user support portal. When empty, a link will not '
+                    'be shown in the user interface'),
+    'SUPPORT_EMAIL': (os.environ.get('KOBO_SUPPORT_EMAIL') or
+                        os.environ.get('DEFAULT_FROM_EMAIL',
+                                       'help@kobotoolbox.org'),
+                      'Email address for users to contact, e.g. when they '
+                      'encounter unhandled errors in the application'),
+
 }
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
@@ -171,20 +193,10 @@ for db in DATABASES.values():
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
-def get_native_language_name(lang_code):
-    try:
-        return get_language_info(lang_code)['name_local']
-    except KeyError:
-        pass
-    try:
-        return NATIVE_LANGUAGE_NAMES[lang_code]
-    except KeyError:
-        raise KeyError(u'Please add an entry for {} to '
-                       u'kobo.static_lists.NATIVE_LANGUAGE_NAMES and try '
-                       u'again.'.format(lang_code))
+django.conf.locale.LANG_INFO.update(EXTRA_LANG_INFO)
 
 LANGUAGES = [
-    (lang_code, get_native_language_name(lang_code))
+    (lang_code, get_language_info(lang_code)['name_local'])
         for lang_code in os.environ.get(
             'DJANGO_LANGUAGE_CODES', 'en').split(' ')
 ]
@@ -276,10 +288,10 @@ TEMPLATES = [
                 'django.template.context_processors.tz',
                 'django.contrib.messages.context_processors.messages',
                 # Additional processors
-                'constance.context_processors.config',
                 'kpi.context_processors.external_service_tokens',
                 'kpi.context_processors.email',
                 'kpi.context_processors.sitewide_messages',
+                'kpi.context_processors.config',
             ],
             'debug': os.environ.get('TEMPLATE_DEBUG', 'True') == 'True',
         },
@@ -340,6 +352,8 @@ HAYSTACK_SIGNAL_PROCESSOR = 'kpi.haystack_utils.SignalProcessor'
 ENKETO_SERVER = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
 ENKETO_SERVER= ENKETO_SERVER + '/' if not ENKETO_SERVER.endswith('/') else ENKETO_SERVER
 ENKETO_VERSION= os.environ.get('ENKETO_VERSION', 'Legacy').lower()
+ENKETO_INTERNAL_URL = os.environ.get('ENKETO_INTERNAL_URL', ENKETO_SERVER)
+
 assert ENKETO_VERSION in ['legacy', 'express']
 ENKETO_PREVIEW_URI = 'webform/preview' if ENKETO_VERSION == 'legacy' else 'preview'
 # The number of hours to keep a kobo survey preview (generated for enketo)
@@ -443,13 +457,6 @@ if os.environ.get('EMAIL_PORT'):
 
 if os.environ.get('EMAIL_USE_TLS'):
     EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS')
-
-if os.environ.get('DEFAULT_FROM_EMAIL'):
-    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
-    SERVER_EMAIL = DEFAULT_FROM_EMAIL
-
-KOBO_SUPPORT_URL = os.environ.get('KOBO_SUPPORT_URL', 'http://help.kobotoolbox.org/')
-KOBO_SUPPORT_EMAIL = os.environ.get('KOBO_SUPPORT_EMAIL') or os.environ.get('DEFAULT_FROM_EMAIL', 'help@kobotoolbox.org')
 
 if os.environ.get('AWS_ACCESS_KEY_ID'):
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')

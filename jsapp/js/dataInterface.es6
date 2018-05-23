@@ -27,6 +27,7 @@ var dataInterface;
 
   assign(this, {
     selfProfile: ()=> $ajax({ url: `${rootUrl}/me/` }),
+    serverEnvironment: ()=> $ajax({ url: `${rootUrl}/environment/` }),
     queryUserExistence: (username)=> {
       var d = new $.Deferred();
       $ajax({ url: `${rootUrl}/users/${username}/` })
@@ -440,6 +441,16 @@ var dataInterface;
         url: `${rootUrl}/assets/${uid}/submissions/${sid}/edit?return_url=false`,
         method: 'GET'
       });
+    },
+    setLanguage(data) {
+      return $ajax({
+        url: `${rootUrl}/i18n/setlang/`,
+        method: 'POST',
+        data: data
+      });
+    },
+    environment() {
+      return $ajax({url: `${rootUrl}/environment/`,method: 'GET'});
     },
     login: (creds)=> {
       return $ajax({ url: `${rootUrl}/api-auth/login/?next=/me/`, data: creds, method: 'POST'});

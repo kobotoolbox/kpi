@@ -4,6 +4,7 @@ import json
 import pytz
 from collections import OrderedDict
 
+import constance
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
@@ -863,7 +864,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     server_time = serializers.SerializerMethodField()
     date_joined = serializers.SerializerMethodField()
     projects_url = serializers.SerializerMethodField()
-    support = serializers.SerializerMethodField()
     gravatar = serializers.SerializerMethodField()
     languages = serializers.SerializerMethodField()
     extra_details = WritableJSONField(source='extra_details.data')
@@ -881,7 +881,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'server_time',
             'date_joined',
             'projects_url',
-            'support',
             'is_superuser',
             'gravatar',
             'is_staff',
@@ -904,12 +903,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 
     def get_projects_url(self, obj):
         return '/'.join((settings.KOBOCAT_URL, obj.username))
-
-    def get_support(self, obj):
-        return {
-            'email': settings.KOBO_SUPPORT_EMAIL,
-            'url': settings.KOBO_SUPPORT_URL,
-        }
 
     def get_gravatar(self, obj):
         return gravatar_url(obj.email)

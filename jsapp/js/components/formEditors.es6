@@ -136,12 +136,12 @@ export class ProjectSettings extends React.Component {
       });
     }
   }
-  onDrop (files) {
+  onDrop (files, rejectedFiles, evt) {
     if (files.length === 0)
       return;
 
     let asset = this.props.newFormAsset;
-    this.dropFiles(files, [], {destination: asset.url});
+    this.dropFiles(files, [], evt, { destination: asset.url });
   }
 
   onSubmit (evt) {
