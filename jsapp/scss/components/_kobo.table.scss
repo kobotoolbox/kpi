@@ -78,9 +78,12 @@
       }
     }
 
+    .rt-tr-group {
+      max-height: 36px;
+    }
+
     .rt-tr {
       align-items: stretch;
-      max-height: 36px;
     }
 
     .rt-th, .rt-td {
