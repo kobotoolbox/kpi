@@ -13,6 +13,7 @@ import multiprocessing
 import os
 import subprocess
 
+import django.conf.locale
 from django.conf import global_settings
 from django.conf.global_settings import LOGIN_URL
 from django.utils.translation import get_language_info
@@ -20,7 +21,7 @@ import dj_database_url
 
 from pymongo import MongoClient
 
-from static_lists import NATIVE_LANGUAGE_NAMES
+from static_lists import EXTRA_LANG_INFO
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -192,20 +193,10 @@ for db in DATABASES.values():
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
-def get_native_language_name(lang_code):
-    try:
-        return get_language_info(lang_code)['name_local']
-    except KeyError:
-        pass
-    try:
-        return NATIVE_LANGUAGE_NAMES[lang_code]
-    except KeyError:
-        raise KeyError(u'Please add an entry for {} to '
-                       u'kobo.static_lists.NATIVE_LANGUAGE_NAMES and try '
-                       u'again.'.format(lang_code))
+django.conf.locale.LANG_INFO.update(EXTRA_LANG_INFO)
 
 LANGUAGES = [
-    (lang_code, get_native_language_name(lang_code))
+    (lang_code, get_language_info(lang_code)['name_local'])
         for lang_code in os.environ.get(
             'DJANGO_LANGUAGE_CODES', 'en').split(' ')
 ]
@@ -297,10 +288,10 @@ TEMPLATES = [
                 'django.template.context_processors.tz',
                 'django.contrib.messages.context_processors.messages',
                 # Additional processors
-                'constance.context_processors.config',
                 'kpi.context_processors.external_service_tokens',
                 'kpi.context_processors.email',
                 'kpi.context_processors.sitewide_messages',
+                'kpi.context_processors.config',
             ],
             'debug': os.environ.get('TEMPLATE_DEBUG', 'True') == 'True',
         },

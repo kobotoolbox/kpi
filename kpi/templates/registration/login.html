@@ -1,37 +1,25 @@
 {% extends "registration.html" %}
 {% load staticfiles %}
-
+{% load i18n %}
 {% block content %}
-<div class="registration__bg">
   <form method="post" action="." class="registration registration--login">
-    <div class="registration--logo"><a href="/"><img src="{% static 'img/kobologo.svg' %}"/></a></div>
+    <div class="registration--logo"><a href="/">
+    {% block logo %}{{ block.super }}{% endblock %}
+    </a></div>
     {% csrf_token %}
     {{ form.as_p }}
-    <a href="{% url 'auth_password_reset' %}" class="registration__forgot">Forgot?</a>
+    <a href="{% url 'auth_password_reset' %}" class="registration__forgot">
+      {% trans "Forgot?" %}
+    </a>
 
     <input type="submit" value="Login" class="registration__action" />
     <input type="hidden" name="next" value="{{ next }}" />
 
     {% if config.REGISTRATION_OPEN %}
       <div class="registration__footer">
-        or <a href="{% url 'registration_register' %}">create an account</a>
+        {% trans "or" %} <a href="{% url 'registration_register' %}">{% trans "create an account" %}</a>
       </div>
     {% endif %}
   </form>
-
-  <div class="registration__credit"><a href="https://flic.kr/p/9v4mC5" title="Muhkjar refugee camp" target="_blank">Photo</a> by UNAMID / <a href="https://creativecommons.org/licenses/by-nc-nd/2.0/" target="_blank">by-nc-nd</a></div>
-</div>
-
-
 {% endblock %}
 
-{% block footer %}
- {{ block.super }}
-  <script>
-  $(function () {
-    $('form.registration input#id_username').attr('placeholder', 'Username');
-    $('form.registration input#id_password').attr('placeholder', 'Password');
-    $('form.registration > p > label').addClass('hidden');
-  });
-</script>
-{% endblock footer %}

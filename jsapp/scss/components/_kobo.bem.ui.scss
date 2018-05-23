@@ -558,6 +558,8 @@ iframe {
     .Select-control {
       box-shadow: none;
     }
+
+    z-index: 5;
   }
 
   .Select-control {
@@ -569,14 +571,12 @@ iframe {
     font-size: 15px;
 
     .Select-placeholder {
-      padding-left: 0px;
       color: $cool-gray;
       font-size: 15px;
     }
 
     .Select-value {
       color: $cool-gray;
-      padding-left: 0px;
       font-size: 15px;
     }
 
