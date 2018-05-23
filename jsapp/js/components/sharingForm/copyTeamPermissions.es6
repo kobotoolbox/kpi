@@ -100,7 +100,7 @@ class CopyTeamPermissions extends React.Component {
         if (assetUid !== this.state.targetUid) {
           availableOptions.push({
             value: assetUid,
-            label: stores.allAssets.byUid[assetUid].name
+            label: stores.allAssets.byUid[assetUid].name || t('Unlabelled')
           });
         }
       }
