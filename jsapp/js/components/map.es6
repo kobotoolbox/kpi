@@ -8,9 +8,10 @@ import {dataInterface} from '../dataInterface';
 import {hashHistory} from 'react-router';
 import bem from '../bem';
 import stores from '../stores';
+import actions from '../actions';
 import ui from '../ui';
-import alertify from 'alertifyjs';
 import classNames from 'classnames';
+import omnivore from 'leaflet-omnivore';
 
 import L from 'leaflet/dist/leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -23,7 +24,36 @@ import {
   t,
   log,
   notify,
+  checkLatLng
 } from '../utils';
+
+import MapSettings from './mapSettings';
+
+var streets = L.tileLayer(
+  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    subdomains: ['a', 'b', 'c']
+  }
+);
+
+var baseLayers = {
+  OpenStreetMap: streets,
+  OpenTopoMap: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+    attribution: 'Map data: &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+  }),
+  'ESRI World Imagery': L.tileLayer(
+    'http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+  }),
+  Humanitarian: L.tileLayer(
+    'https://tile-{s}.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+      attribution: 'Tiles &copy; Humanitarian OpenStreetMap Team &mdash; &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  })
+};
+
+var controls = L.control.layers(baseLayers);
+
 
 export class FormMap extends React.Component {
   constructor(props){
@@ -50,7 +80,8 @@ export class FormMap extends React.Component {
       showExpandedLegend: true,
       langIndex: 0,
       filteredByMarker: false,
-      componentRefreshed: false
+      componentRefreshed: false,
+      showMapSettings: false
     };
 
     autoBind(this);
@@ -68,40 +99,19 @@ export class FormMap extends React.Component {
       }
     });
 
+    L.Marker.prototype.options.icon = L.divIcon({
+      className: 'map-marker default-overlay-marker',
+      iconSize: [15, 15]
+    });
+
     var map = L.map('data-map', {
       maxZoom: 17,
       scrollWheelZoom: false,
       preferCanvas: true
     });
 
-    var streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        subdomains: ['a', 'b', 'c']
-    });
     streets.addTo(map);
-
-    var outdoors = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-        attribution: 'Map data: &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
-    });
-
-    var satellite = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-      }
-    );
-
-    var humanitarian = L.tileLayer('https://tile-{s}.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-        attribution: 'Tiles &copy; Humanitarian OpenStreetMap Team &mdash; &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-      }
-    );
-
-    var baseLayers = {
-        "OpenStreetMap": streets,
-        "OpenTopoMap": outdoors,
-        "ESRI World Imagery": satellite,
-        "Humanitarian": humanitarian
-    };
-
-    L.control.layers(baseLayers).addTo(map);
+    controls.addTo(map);
 
     this.setState({
         map: map,
@@ -114,18 +124,89 @@ export class FormMap extends React.Component {
     }
 
     this.requestData(map, this.props.viewby);
+    this.listenTo(actions.map.setMapSettings, this.mapSettingsListener);
+    this.listenTo(
+      actions.resources.getAssetFiles.completed,
+      this.updateOverlayList
+    );
+    actions.resources.getAssetFiles(this.props.asset.uid);
+  }
+  loadOverlayLayers(map) {
+    dataInterface.getAssetFiles(this.props.asset.uid).done(data => {});
+  }
+  updateOverlayList(data) {
+    let map = this.state.map;
+    var overlays = [];
+
+    if (data.results) {
+      // remove layers from controls if they are no longer in asset files
+      controls._layers.forEach(function(controlLayer) {
+        if (controlLayer.overlay) {
+          let layerMatch = data.results.filter(
+            result => result.name === controlLayer.name
+          );
+          if (!layerMatch.length) {
+            controls.removeLayer(controlLayer.layer);
+          }
+        }
+      });
+
+      // add new layers to controls (if they haven't beed added already)
+      data.results.forEach(function(layer) {
+        if (layer.file_type !== 'map_layer') return false;
+        let layerMatch = controls._layers.filter(
+          controlLayer => controlLayer.name === layer.name
+        );
+        if (layerMatch.length) return false;
+
+        switch (layer.metadata.type) {
+          case 'kml':
+            controls.addOverlay(omnivore.kml(layer.content_url), layer.name);
+            break;
+          case 'csv':
+            controls.addOverlay(omnivore.csv(layer.content_url), layer.name);
+            break;
+          case 'json':
+          case 'geojson':
+            controls.addOverlay(
+              omnivore.geojson(layer.content_url),
+              layer.name
+            );
+            break;
+          case 'wkt':
+            controls.addOverlay(omnivore.wkt(layer.content_url), layer.name);
+            break;
+        }
+      });
+    }
+  }
+  mapSettingsListener(uid, changes) {
+    let map = this.refreshMap();
+    this.setState({ filteredByMarker: false, componentRefreshed: true });
+    this.requestData(map, this.props.viewby);
   }
 
   requestData(map, nextViewBy = '') {
+    let mapSettings = this.props.asset.map_styles,
+      GeoPointQuestion = this.props.asset.map_styles.GeoPointQuestion || null;
     var fq = ['_id', '_geolocation'];
-    if (nextViewBy) {
-      fq.push(this.nameOfFieldInGroup(nextViewBy));
-    }
+    if (GeoPointQuestion) fq.push(GeoPointQuestion);
+    if (nextViewBy) fq.push(this.nameOfFieldInGroup(nextViewBy));
 
     const sort = [{id: '_id', desc: true}];
 
     // TODO: handle forms with over 5000 results
     dataInterface.getSubmissions(this.props.asset.uid, 5000, 0, sort, fq).done((data) => {
+      if (GeoPointQuestion) {
+        data.forEach(function(row, i) {
+          if (row[GeoPointQuestion]) {
+            var coordsArray = row[GeoPointQuestion].split(' ');
+            data[i]._geolocation[0] = coordsArray[0];
+            data[i]._geolocation[1] = coordsArray[1];
+          }
+        });
+      }
+
       this.setState({submissions: data});
       this.buildMarkers(map);
       this.buildHeatMap(map);
@@ -185,12 +266,13 @@ export class FormMap extends React.Component {
     }
 
     this.state.submissions.forEach(function(item){
-      if (item._geolocation && item._geolocation[0] && item._geolocation[1]) {
+      if (checkLatLng(item._geolocation)) {
         if (viewby && mapMarkers != undefined) {
           var vb = _this.nameOfFieldInGroup(viewby);
           var itemId = item[vb];
+          let index = mM.findIndex(m => m.value === itemId);
           icon = L.divIcon({
-            className: `map-marker map-marker-${mapMarkers[itemId].id}`,
+            className: `map-marker map-marker-${index + 1}`,
             iconSize: [20, 20],
           });
         }
@@ -266,7 +348,7 @@ export class FormMap extends React.Component {
   buildHeatMap (map) {
     var heatmapPoints = [];
     this.state.submissions.forEach(function(item){
-      if (item._geolocation && item._geolocation[0] && item._geolocation[1])
+      if (checkLatLng(item._geolocation))
         heatmapPoints.push([item._geolocation[0], item._geolocation[1], 1]);
     });
     var heatmap = L.heatLayer(heatmapPoints, {
@@ -301,7 +383,6 @@ export class FormMap extends React.Component {
       }
     );
   }
-
   filterMap (evt) {
     let name = evt.target.getAttribute('data-name') || undefined;
     if (name != undefined) {
@@ -310,7 +391,6 @@ export class FormMap extends React.Component {
       hashHistory.push(`/forms/${this.props.asset.uid}/data/map`);
     }
   }
-
   filterLanguage (evt) {
     let index = evt.target.getAttribute('data-index');
     this.setState({
@@ -318,22 +398,22 @@ export class FormMap extends React.Component {
       }
     );
   }
-
   componentWillReceiveProps (nextProps) {
     if (this.props.viewby != undefined) {
       this.setState({markersVisible: true});
     }
     if (this.props.viewby != nextProps.viewby) {
       this.setState({filteredByMarker: false, componentRefreshed: true});
-      var map = this.state.map;
-      var markers = this.state.markers;
-      var heatmap = this.state.heatmap;
-      map.removeLayer(markers);
-      map.removeLayer(heatmap);
+      let map = this.refreshMap();
       this.requestData(map, nextProps.viewby);
     }
   }
-
+  refreshMap() {
+    var map = this.state.map;
+    map.removeLayer(this.state.markers);
+    map.removeLayer(this.state.heatmap);
+    return map;
+  }
   launchSubmissionModal (evt) {
     const td = this.state.submissions;
     var ids = [];
@@ -348,7 +428,11 @@ export class FormMap extends React.Component {
       ids: ids
     });
   }
-
+  toggleMapSettings(evt) {
+    this.setState({
+      showMapSettings: !this.state.showMapSettings
+    });
+  }
   toggleExpandedMap () {
     stores.pageState.hideDrawerAndHeader(!this.state.showExpandedMap);
     this.setState({
@@ -476,6 +560,12 @@ export class FormMap extends React.Component {
           className={this.state.markersVisible ? 'active': ''}>
           <i className="k-icon-pins" />
         </bem.FormView__mapButton>
+        <bem.FormView__mapButton
+          m={'map-settings'}
+          onClick={this.toggleMapSettings}
+          data-tip={t('Map display settings')}>
+          <i className="k-icon-settings" />
+        </bem.FormView__mapButton>
         {!viewby &&
           <bem.FormView__mapButton m={'heatmap'}
             onClick={this.showHeatmap}
@@ -530,7 +620,7 @@ export class FormMap extends React.Component {
                 let label = m.labels ? m.labels[langIndex] : m.value ? m.value : t('not set');
                 return (
                     <div key={`m-${i}`} className={markerItemClass}>
-                      <span className={`map-marker map-marker-${m.id}`}>
+                      <span className={`map-marker map-marker-${i + 1}`}>
                         {m.count}
                       </span>
                       <span className={`map-marker-label`}
@@ -553,6 +643,19 @@ export class FormMap extends React.Component {
             </bem.Loading__inner>
           </bem.Loading>
         }
+
+        {this.state.showMapSettings && (
+          <ui.Modal
+            open
+            onClose={this.toggleMapSettings}
+            title={t('Map Settings')}>
+            <MapSettings
+              asset={this.props.asset}
+              toggleMapSettings={this.toggleMapSettings}
+            />
+          </ui.Modal>
+        )}
+
         <div id="data-map"></div>
       </bem.FormView>
       );
