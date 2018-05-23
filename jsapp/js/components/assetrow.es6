@@ -154,6 +154,7 @@ class AssetRow extends React.Component {
               <Link to={hrefTo}
                     data-kind={this.props.kind}
                     data-asset-type={this.props.kind}
+                    draggable={false}
                     className={`asset-row__celllink asset-row__celllink-name ${linkClassName}`}>
                 <bem.AssetRow__name>
                   <ui.AssetName {...this.props} />

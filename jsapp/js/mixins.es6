@@ -263,10 +263,16 @@ mixins.droppable = {
       reader.readAsDataURL(file);
     });
 
-    rejectedFiles.map((rej) => {
-      var errMsg = t('Upload error: could not recognize Excel file.');
-      alertify.error(errMsg);
-    });
+    for (var i = 0; i < rejectedFiles.length; i++) {
+      if (rejectedFiles[i].type && rejectedFiles[i].name) {
+        var errMsg = t('Upload error: could not recognize Excel file.');
+        errMsg += ` (${t('Uploaded file name: ')} ${rejectedFiles[i].name})`;
+        alertify.error(errMsg);
+      } else {
+        alertify.error(t('Could not recognize the dropped item(s).'));
+        break;
+      }
+    }
   }
 };
 
