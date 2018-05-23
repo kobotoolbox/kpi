@@ -498,6 +498,22 @@ actions.reports.setCustom.listen(function(assetId, details){
     .fail(actions.reports.setCustom.failed);
 });
 
+actions.table = Reflux.createActions({
+  updateSettings: {
+    children: [
+      'completed',
+      'failed',
+    ]
+  }
+});
+
+actions.table.updateSettings.listen(function(assetId, settings){
+  dataInterface.patchAsset(assetId, {
+    settings: JSON.stringify(settings),
+  }).done(actions.table.updateSettings.completed)
+    .fail(actions.table.updateSettings.failed);
+});
+
 actions.resources.createResource.listen(function(details){
   dataInterface.createResource(details)
     .done(function(asset){
