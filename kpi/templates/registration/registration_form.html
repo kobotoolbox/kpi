@@ -41,7 +41,7 @@
             {{ field.errors }}
           </div>
       {% endfor %}
-      <input type="submit" value="Create Account" class="registration__action" />
+      <input type="submit" value="{% trans 'Create Account' %}" class="registration__action" />
       <div class="registration__orlogin">
         {% trans "or" %} <a href="{% url 'auth_login' %}">{% trans "login" %}</a>
       </div>
