@@ -51,6 +51,12 @@ actions.auth = Reflux.createActions({
       'failed'
     ]
   },
+  getEnvironment: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
 });
 
 actions.survey = Reflux.createActions({
@@ -678,6 +684,18 @@ actions.auth.changePassword.completed.listen(() => {
 actions.auth.changePassword.failed.listen(() => {
   notify(t('failed to change password'), 'error');
 });
+
+actions.auth.getEnvironment.listen(function(){
+  dataInterface.environment()
+    .done((data)=>{
+      actions.auth.getEnvironment.completed(data);
+    })
+    .fail(actions.auth.getEnvironment.failed);
+});
+actions.auth.getEnvironment.failed.listen(() => {
+  notify(t('failed to load environment data'), 'error');
+});
+
 
 actions.resources.loadAsset.listen(function(params){
   var dispatchMethodName;

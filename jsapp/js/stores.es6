@@ -264,6 +264,7 @@ var assetStore = Reflux.createStore({
 
 var sessionStore = Reflux.createStore({
   init () {
+    this.listenTo(actions.auth.getEnvironment.completed, this.triggerEnv);
     this.listenTo(actions.auth.login.loggedin, this.triggerLoggedIn);
     this.listenTo(actions.auth.login.passwordfail, ()=> {
 
@@ -279,9 +280,8 @@ var sessionStore = Reflux.createStore({
       log('login not verified', xhr.status, xhr.statusText);
     });
     actions.auth.verifyLogin();
-    // dataInterface.selfProfile().then(function success(acct){
-    //   actions.auth.login.completed(acct);
-    // });
+    actions.auth.getEnvironment();
+
   },
   getInitialState () {
     return {
@@ -290,6 +290,9 @@ var sessionStore = Reflux.createStore({
     };
   },
   triggerAnonymous (/*data*/) {},
+  triggerEnv (environment) {
+    this.environment = environment;
+  },
   triggerLoggedIn (acct) {
     this.currentAccount = acct;
     if (acct.upcoming_downtime) {
