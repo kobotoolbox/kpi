@@ -187,8 +187,7 @@ export class FormMap extends React.Component {
   }
 
   requestData(map, nextViewBy = '') {
-    let mapSettings = this.props.asset.map_styles,
-      GeoPointQuestion = this.props.asset.map_styles.GeoPointQuestion || null;
+    let GeoPointQuestion = this.props.asset.map_styles.GeoPointQuestion || null;
     var fq = ['_id', '_geolocation'];
     if (GeoPointQuestion) fq.push(GeoPointQuestion);
     if (nextViewBy) fq.push(this.nameOfFieldInGroup(nextViewBy));
@@ -224,14 +223,13 @@ export class FormMap extends React.Component {
     if(zoom >=12) {return 12;}
     return 20;
   }
-
   buildMarkers(map) {
     var _this = this;
     var prepPoints = [];
-    var icon = L.divIcon({
-      className: 'map-marker',
-      iconSize: [20, 20],
-    });
+    // var icon = L.divIcon({
+    //   className: 'map-marker',
+    //   iconSize: [20, 20],
+    // });
 
     var viewby = this.props.viewby || undefined;
 
@@ -265,24 +263,29 @@ export class FormMap extends React.Component {
       this.setState({markerMap: false});
     }
 
+    console.log(mM);
     this.state.submissions.forEach(function(item){
+      var markerProps = {};
       if (checkLatLng(item._geolocation)) {
-        if (viewby && mapMarkers != undefined) {
+        if (viewby && mM) {
           var vb = _this.nameOfFieldInGroup(viewby);
           var itemId = item[vb];
           let index = mM.findIndex(m => m.value === itemId);
-          icon = L.divIcon({
-            className: `map-marker map-marker-${index + 1}`,
-            iconSize: [20, 20],
-          });
-        }
-        prepPoints.push(
-          L.marker(item._geolocation, {
-            icon: icon,
+
+          markerProps = {
+            icon: _this.buildIcon(index+1),
             sId: item._id,
-            typeId: viewby && mapMarkers ? mapMarkers[itemId].id : null
-          })
-        );
+            typeId: mapMarkers[itemId].id
+          };
+        } else {
+          markerProps = {
+            icon: _this.buildIcon(),
+            sId: item._id,
+            typeId: null
+          };
+        }
+
+        prepPoints.push(L.marker(item._geolocation, markerProps));
       }
     });
 
@@ -324,6 +327,15 @@ export class FormMap extends React.Component {
     } else {
       this.setState({error: t('Error: could not load data.'), loading: false});
     }
+  }
+  buildIcon(index = false) {
+    let colorSet = this.props.asset.map_styles.colorSet || 'a';
+    let iconClass = index ? `map-marker-${colorSet}${index}` : `map-marker-${colorSet}`;
+
+    return L.divIcon({
+      className: `map-marker ${iconClass}`,
+      iconSize: [20, 20],
+    });
   }
 
   prepFilteredMarkers (data, viewby) {
@@ -537,6 +549,7 @@ export class FormMap extends React.Component {
     const langs = this.props.asset.content.translations.length > 1 ? this.props.asset.content.translations : [];
     var label = t('Disaggregate by survey responses');
     const viewby = this.props.viewby;
+    let colorSet = this.props.asset.map_styles.colorSet || 'a';
 
     if (viewby) {
       fields.forEach(function(f){
@@ -620,7 +633,7 @@ export class FormMap extends React.Component {
                 let label = m.labels ? m.labels[langIndex] : m.value ? m.value : t('not set');
                 return (
                     <div key={`m-${i}`} className={markerItemClass}>
-                      <span className={`map-marker map-marker-${i + 1}`}>
+                      <span className={`map-marker map-marker-${colorSet}${i + 1}`}>
                         {m.count}
                       </span>
                       <span className={`map-marker-label`}

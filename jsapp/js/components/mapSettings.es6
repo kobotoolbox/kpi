@@ -12,6 +12,62 @@ import { dataInterface } from '../dataInterface';
 import Dropzone from 'react-dropzone';
 import alertify from 'alertifyjs';
 
+let colorSets = ['a', 'b', 'c', 'd', 'e'];
+// see kobo.map.marker-colors.scss for styling details of each set
+
+class MapColorPicker extends React.Component {
+  constructor(props) {
+    super(props);
+    autoBind(this);
+
+    this.state = {
+      selected: props.mapSettings.colorSet ? props.mapSettings.colorSet : 'a'
+    };
+
+  }
+  onChange (e) {
+    this.props.onChange(e.currentTarget.value);
+    this.setState({
+      selected: e.currentTarget.value
+    });
+  }
+  defaultValue (set) {
+    return this.state.selected === set;
+  }
+  colorRows(set, length = 10) {
+    let colorRows = [];
+    for (let i = 1; i < length; i++) {
+      colorRows.push(<span key={i} className={`map-marker map-marker-${set}${i}`} />);
+    }
+    return colorRows;
+  }
+  render () {
+    var radioButtons = colorSets.map(function(set, index){
+      var length = 10;
+      if (set === 'a') length = 16;
+      if (set === 'd') length = 12;
+      if (set === 'e') length = 12;
+      return (
+        <bem.GraphSettings__radio key={index}>
+          <input type="radio" name="chart_colors"
+            value={set}
+            checked={this.defaultValue(set)}
+            onChange={this.onChange}
+            id={'c-' + index} />
+          <label htmlFor={'c-' + index}>
+            {this.colorRows(set, length)}
+          </label>
+        </bem.GraphSettings__radio>
+      );
+    }, this);
+
+    return (
+      <bem.GraphSettings__colors>{radioButtons}</bem.GraphSettings__colors>
+    );
+  }
+};
+
+
 class MapSettings extends React.Component {
   constructor(props) {
     super(props);
@@ -31,7 +87,7 @@ class MapSettings extends React.Component {
     this.state = {
       activeModalTab: geoPointQuestions.length > 1 ? 'geoquestion' : 'overlays',
       geoPointQuestions: geoPointQuestions,
-      defaultMapSettings: this.props.asset.map_styles,
+      mapSettings: this.props.asset.map_styles,
       files: [],
       layerName: ''
     };
@@ -50,12 +106,16 @@ class MapSettings extends React.Component {
     });
   }
   geoPointQuestionChange(evt) {
-    let settings = this.state.defaultMapSettings;
-    settings.GeoPointQuestion = evt.target.value;
-    this.setState({ defaultMapSettings: settings });
+    let settings = this.state.mapSettings;
+    settings.selectedQuestion = evt.target.value;
+    this.setState({ mapSettings: settings });
+  }
+  resetMapSettings() {
+    actions.map.setMapSettings(this.props.asset.uid, {});
+    this.props.toggleMapSettings();
   }
   saveMapSettings() {
-    let settings = this.state.defaultMapSettings,
+    let settings = this.state.mapSettings,
       assetUid = this.props.asset.uid;
 
     actions.map.setMapSettings(assetUid, settings);
@@ -132,17 +192,15 @@ class MapSettings extends React.Component {
       case 'overlays':
         return t('Overlays');
       case 'colors':
-        return t('Colors');
+        return t('Marker Colors');
       case 'geoquestion':
-        return t('Geopoint question to display');
+        return t('Geopoint question');
     }
   }
-  colorRows() {
-    let colorRows = [];
-    for (let i = 1; i < 20; i++) {
-      colorRows.push(<span key={i} className={`map-marker map-marker-${i}`} />);
-    }
-    return colorRows;
+  colorChange(val) {
+    let settings = this.state.mapSettings;
+    settings.colorSet = val;
+    this.setState({ mapSettings: settings });
   }
   render() {
     let asset = this.props.asset,
@@ -190,7 +248,7 @@ class MapSettings extends React.Component {
                         value={question.value}
                         onChange={this.geoPointQuestionChange}
                         checked={
-                          this.state.defaultMapSettings.GeoPointQuestion ===
+                          this.state.mapSettings.selectedQuestion ===
                           question.value
                             ? true
                             : false
@@ -230,9 +288,7 @@ class MapSettings extends React.Component {
                 )}
                 <bem.FormModal__item m="layer-upload">
                   <label htmlFor="name">
-                    {t(
-                      'Use the form below to upload files with map data in one of these formats: CSV, KML, WKT or GEOJSON. The data will be made available as layers for display on the map.'
-                    )}
+                    {t('Use the form below to upload files with map data in one of these formats: CSV, KML, WKT or GEOJSON. The data will be made available as layers for display on the map.')}
                   </label>
                   <input
                     type="text"
@@ -256,23 +312,28 @@ class MapSettings extends React.Component {
             )}
             {activeTab === 'colors' && (
               <div className="map-settings__colors">
-                <div className="map-color-style s1">{this.colorRows()}</div>
-                <div className="map-color-style s2">{this.colorRows()}</div>
+                {t('Choose the color scheme to use on the disaggregated map markers.')}
+                <MapColorPicker onChange={this.colorChange} mapSettings={this.state.mapSettings}/>
               </div>
             )}
           </div>
         </ui.Modal.Body>
 
-        {activeTab === 'geoquestion' && (
+        {(activeTab === 'geoquestion' || activeTab === 'colors') ?
           <ui.Modal.Footer>
             <button
+              className="mdl-button mdl-button--colored"
+              onClick={this.resetMapSettings}>
+              {t('Reset')}
+            </button>
+            <button
               className="mdl-button primary"
-              onClick={this.saveMapSettings}
-            >
+              onClick={this.saveMapSettings}>
               {t('Save')}
             </button>
           </ui.Modal.Footer>
-        )}
+          : null
+        }
       </bem.GraphSettings>
     );
   }
