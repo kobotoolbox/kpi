@@ -44,20 +44,28 @@ class MapColorPicker extends React.Component {
   render () {
     var radioButtons = colorSets.map(function(set, index){
       var length = 10;
+      var label = false;
       if (set === 'a') length = 16;
-      if (set === 'd') length = 12;
-      if (set === 'e') length = 12;
+      if (set === 'a') label = t('Best for qualitative data');
+      if (set === 'b') label = t('Best for sequential data');
+      if (set === 'd') label = t('Best for diverging data');
       return (
-        <bem.GraphSettings__radio key={index}>
-          <input type="radio" name="chart_colors"
-            value={set}
-            checked={this.defaultValue(set)}
-            onChange={this.onChange}
-            id={'c-' + index} />
-          <label htmlFor={'c-' + index}>
-            {this.colorRows(set, length)}
-          </label>
-        </bem.GraphSettings__radio>
+        <bem.FormModal__item m='map-color-item' key={index}>
+          {label &&
+            <label>{label}</label>
+          }
+          <bem.GraphSettings__radio>
+            <input type="radio" name="chart_colors"
+              value={set}
+              checked={this.defaultValue(set)}
+              onChange={this.onChange}
+              id={'c-' + index} />
+            <label htmlFor={'c-' + index}>
+              {this.colorRows(set, length)}
+            </label>
+          </bem.GraphSettings__radio>
+        </bem.FormModal__item>
+
       );
     }, this);
 
@@ -311,10 +319,12 @@ class MapSettings extends React.Component {
               </div>
             )}
             {activeTab === 'colors' && (
-              <div className="map-settings__colors">
-                {t('Choose the color scheme to use on the disaggregated map markers.')}
-                <MapColorPicker onChange={this.colorChange} mapSettings={this.state.mapSettings}/>
-              </div>
+              <bem.FormModal__item>
+                <div className="map-settings__colors">
+                  {t('Choose the color set for the disaggregated map markers.')}
+                  <MapColorPicker onChange={this.colorChange} mapSettings={this.state.mapSettings}/>
+                </div>
+              </bem.FormModal__item>
             )}
           </div>
         </ui.Modal.Body>

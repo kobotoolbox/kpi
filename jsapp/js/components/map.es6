@@ -226,25 +226,20 @@ export class FormMap extends React.Component {
   buildMarkers(map) {
     var _this = this;
     var prepPoints = [];
-    // var icon = L.divIcon({
-    //   className: 'map-marker',
-    //   iconSize: [20, 20],
-    // });
-
     var viewby = this.props.viewby || undefined;
+    let ms = this.props.asset.map_styles;
 
     if (viewby) {
       var mapMarkers = this.prepFilteredMarkers(this.state.submissions, this.props.viewby);
-      var mM = [], choice = undefined;
+      var mM = [];
       let choices = this.props.asset.content.choices,
           survey = this.props.asset.content.survey;
 
       let question = survey.find(s => s.name === viewby || s.$autoname === viewby);
-
+      let currentQuestionChoices = choices.filter(ch => ch.list_name === question.select_from_list_name);
       Object.keys(mapMarkers).map(function(m, i) {
         if (question && question.type == 'select_one') {
-          // only return a choice from the current question's choice list
-          choice = choices.find(ch => ch.list_name === question.select_from_list_name && (ch.name === m || ch.$autoname === m));
+          var choice = currentQuestionChoices.find(ch => ch.name === m || ch.$autoname === m);
         }
 
         mM.push({
@@ -255,15 +250,32 @@ export class FormMap extends React.Component {
         });
       });
 
-      mM.sort(function(a, b) {
-        return a.count - b.count;
-      }).reverse();
+      if (ms.colorSet !== undefined && ms.colorSet !== 'a' && question && question.type == 'select_one') {
+        // sort by question choice order, when using any other color set (only makes sense for select_ones)
+        // TODO: evaluate whether this should be a user choice in map settings
+        mM.sort(function(a, b) {
+          var aIndex = currentQuestionChoices.findIndex(ch => ch.name === a.value);
+          var bIndex = currentQuestionChoices.findIndex(ch => ch.name === b.value);
+          return aIndex - bIndex;
+        });
+      } else {
+        // sort by occurrence count
+        mM.sort(function(a, b) {
+          return a.count - b.count;
+        }).reverse();
+      }
+
+      // move elements with no data in submission for the disaggregated question to end of marker list
+      var emptyEl = mM.find(m => m.value === undefined);
+      if (emptyEl) {
+        mM = mM.filter(m => m !== emptyEl);
+        mM.push(emptyEl);
+      }
       this.setState({markerMap: mM});
     } else {
       this.setState({markerMap: false});
     }
 
-    console.log(mM);
     this.state.submissions.forEach(function(item){
       var markerProps = {};
       if (checkLatLng(item._geolocation)) {
@@ -271,6 +283,11 @@ export class FormMap extends React.Component {
           var vb = _this.nameOfFieldInGroup(viewby);
           var itemId = item[vb];
           let index = mM.findIndex(m => m.value === itemId);
+
+          // spread indexes to use full colorset gamut if necessary
+          if (ms.colorSet !== undefined && ms.colorSet !== 'a') {
+            index = _this.calculateIconIndex(index, mM);
+          }
 
           markerProps = {
             icon: _this.buildIcon(index+1),
@@ -328,9 +345,28 @@ export class FormMap extends React.Component {
       this.setState({error: t('Error: could not load data.'), loading: false});
     }
   }
+
+  calculateIconIndex(index, mM) {
+    // use neutral color for items with no set value
+    if (mM[index] && mM[index].value == undefined)
+      return '-novalue';
+
+    // if there are submissions with unset values, reset the local marker array
+    // this helps us use the full gamut of colors in the set
+    var emptyEl = mM.find(m => m.value === undefined);
+    if (emptyEl) mM = mM.filter(m => m !== emptyEl);
+
+    // return regular index for list >= 9 items
+    if (mM.length >= 9) return index;
+
+    // spread index fairly evenly from 1 to 9 when less than 9 items in list
+    var num = (index / mM.length) * 9.5;
+    return Math.round(num);
+  }
+
   buildIcon(index = false) {
-    let colorSet = this.props.asset.map_styles.colorSet || 'a';
-    let iconClass = index ? `map-marker-${colorSet}${index}` : `map-marker-${colorSet}`;
+    let colorSet = this.props.asset.map_styles.colorSet;
+    let iconClass = index ? `map-marker-${colorSet}${index}` : `map-marker-a`;
 
     return L.divIcon({
       className: `map-marker ${iconClass}`,
@@ -544,12 +580,13 @@ export class FormMap extends React.Component {
         )
     }
 
-    const fields = this.state.fields;
-    const langIndex = this.state.langIndex;
-    const langs = this.props.asset.content.translations.length > 1 ? this.props.asset.content.translations : [];
-    var label = t('Disaggregate by survey responses');
-    const viewby = this.props.viewby;
+    const fields = this.state.fields,
+          langIndex = this.state.langIndex,
+          langs = this.props.asset.content.translations.length > 1 ? this.props.asset.content.translations : [],
+          viewby = this.props.viewby;
+
     let colorSet = this.props.asset.map_styles.colorSet || 'a';
+    var label = t('Disaggregate by survey responses');
 
     if (viewby) {
       fields.forEach(function(f){
@@ -631,9 +668,15 @@ export class FormMap extends React.Component {
                 if (this.state.filteredByMarker)
                   markerItemClass += this.state.filteredByMarker.includes(m.id.toString()) ? 'selected' : 'unselected';
                 let label = m.labels ? m.labels[langIndex] : m.value ? m.value : t('not set');
+                var index = i;
+                if (colorSet !== undefined && colorSet !== 'a') {
+                  index = this.calculateIconIndex(index, this.state.markerMap);
+                }
+
+
                 return (
                     <div key={`m-${i}`} className={markerItemClass}>
-                      <span className={`map-marker map-marker-${colorSet}${i + 1}`}>
+                      <span className={`map-marker map-marker-${colorSet}${index + 1}`}>
                         {m.count}
                       </span>
                       <span className={`map-marker-label`}

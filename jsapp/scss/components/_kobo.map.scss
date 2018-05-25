@@ -240,6 +240,8 @@ body .leaflet-control-layers,
     height: 24px;
     padding: 0px 3px;
     position: relative;
+    text-shadow: 0px 0px 1px #FFF;
+    color: $black;
 
     &:after {
       position: absolute;
@@ -283,7 +285,7 @@ body .leaflet-control-layers,
 }
 
 .map-settings {
-  label {
+  .form-modal__item--layer-upload label {
     display: block;
     padding: 8px 0px;
     position: relative;
@@ -358,8 +360,12 @@ body .leaflet-control-layers,
 
   .map-marker {
     display: inline-block;
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
+  }
+
+  .form-modal__item--map-color-item {
+    margin-bottom: 0px;
   }
 }
 
