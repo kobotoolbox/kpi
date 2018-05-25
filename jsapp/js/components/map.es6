@@ -365,7 +365,7 @@ export class FormMap extends React.Component {
   }
 
   buildIcon(index = false) {
-    let colorSet = this.props.asset.map_styles.colorSet;
+    let colorSet = this.props.asset.map_styles.colorSet || 'a';
     let iconClass = index ? `map-marker-${colorSet}${index}` : `map-marker-a`;
 
     return L.divIcon({
