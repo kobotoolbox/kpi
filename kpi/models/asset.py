@@ -65,6 +65,7 @@ ASSET_TYPES = [
     ('survey', 'survey'),           # has name, settings
 
     ('empty', 'empty'),             # useless, probably should be pruned
+    ('template', 'template'),       # quite same as survey, but can't be deployed, no submissions
 ]
 
 
@@ -563,7 +564,7 @@ class Asset(ObjectPermissionMixin,
                 settings['id_string'] = id_string
             if not _title:
                 _title = filename
-        if self.asset_type != 'survey':
+        if not self.asset_type in ['survey', 'template']:
             # instead of deleting the settings, simply clear them out
             self.content['settings'] = {}
 

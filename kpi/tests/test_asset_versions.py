@@ -6,6 +6,7 @@ from formpack.utils.expand_content import SCHEMA_VERSION
 
 from ..models import Asset
 from ..models import AssetVersion
+from kpi.exceptions import BadAssetTypeException
 
 
 class AssetVersionTestCase(TestCase):
@@ -67,3 +68,17 @@ class AssetVersionTestCase(TestCase):
         # v2 now has 'deployed=True'
         v2_ = AssetVersion.objects.get(uid=v2.uid)
         self.assertEqual(v2_.deployed, True)
+
+    def test_template_asset_deployment(self):
+        self.template_asset = Asset.objects.create(asset_type='template')
+        self.assertEqual(self.template_asset.asset_versions.count(), 1)
+        self.assertEqual(self.template_asset.latest_version.deployed, False)
+        self.template_asset.save()
+        self.assertEqual(self.template_asset.asset_versions.count(), 2)
+        self.assertEqual(self.template_asset.latest_version.deployed, False)
+
+        def _bad_deployment():
+            self.template_asset.deploy(backend='mock', active=True)
+
+        self.assertRaises(BadAssetTypeException, _bad_deployment)
+

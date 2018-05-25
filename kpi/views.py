@@ -98,6 +98,7 @@ from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from .tasks import import_in_background, export_in_background
 from deployment_backends.backends import DEPLOYMENT_BACKENDS
 from deployment_backends.kobocat_backend import KobocatDataProxyViewSetMixin
+from kpi.exceptions import BadAssetTypeException
 
 
 CLONE_ARG_NAME = 'clone_from'
@@ -825,6 +826,10 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         '''
         asset = self.get_object()
 
+        print("######################")
+        print("ON est dans deploynment du ViewSet")
+        print("######################")
+
         # TODO: Require the client to provide a fully-qualified identifier,
         # otherwise provide less kludgy solution
         if 'identifier' not in request.data and 'id_string' in request.data:
@@ -848,37 +853,44 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 # coerced to a dict
                 return Response(dict(serializer.data))
         elif request.method == 'POST':
-            if asset.has_deployment:
-                raise exceptions.MethodNotAllowed(
-                    method=request.method,
-                    detail='Use PATCH to update an existing deployment'
-                    )
-            serializer = DeploymentSerializer(
-                data=request.data,
-                context={'asset': asset}
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            # TODO: Understand why this 404s when `serializer.data` is not
-            # coerced to a dict
-            return Response(dict(serializer.data))
-        elif request.method == 'PATCH':
-            if not asset.has_deployment:
-                raise exceptions.MethodNotAllowed(
-                    method=request.method,
-                    detail='Use POST to create a new deployment'
+            if not asset.can_be_deployed:
+                raise BadAssetTypeException(u"A form template can't be deployed")
+            else:
+                if asset.has_deployment:
+                    raise exceptions.MethodNotAllowed(
+                        method=request.method,
+                        detail='Use PATCH to update an existing deployment'
+                        )
+                serializer = DeploymentSerializer(
+                    data=request.data,
+                    context={'asset': asset}
                 )
-            serializer = DeploymentSerializer(
-                asset.deployment,
-                data=request.data,
-                context={'asset': asset},
-                partial=True
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            # TODO: Understand why this 404s when `serializer.data` is not
-            # coerced to a dict
-            return Response(dict(serializer.data))
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                # TODO: Understand why this 404s when `serializer.data` is not
+                # coerced to a dict
+                return Response(dict(serializer.data))
+
+        elif request.method == 'PATCH':
+            if not asset.can_be_deployed:
+                raise BadAssetTypeException(u"A form template can't be deployed")
+            else:
+                if not asset.has_deployment:
+                    raise exceptions.MethodNotAllowed(
+                        method=request.method,
+                        detail='Use POST to create a new deployment'
+                    )
+                serializer = DeploymentSerializer(
+                    asset.deployment,
+                    data=request.data,
+                    context={'asset': asset},
+                    partial=True
+                )
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                # TODO: Understand why this 404s when `serializer.data` is not
+                # coerced to a dict
+                return Response(dict(serializer.data))
 
     @detail_route(methods=["PATCH"], renderer_classes=[renderers.JSONRenderer])
     def permissions(self, request, uid):
