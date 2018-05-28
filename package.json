@@ -73,7 +73,7 @@
     "react-mixin": "^3.0.5",
     "react-router": "^3.0.3",
     "react-select": "^1.1.1",
-    "react-shortcuts": "^1.6.2",
+    "react-shortcuts": "^2.0.0",
     "react-table": "^6.8.1",
     "react-tagsinput": "^3.15.1",
     "reflux": "^6.4.1",
