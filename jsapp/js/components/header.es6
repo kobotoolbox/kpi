@@ -21,15 +21,12 @@ import {
   stringToColor,
 } from '../utils';
 import searches from '../searches';
-import cookie from 'react-cookie';
 
 import {
   ListSearch,
   ListTagFilter,
 } from '../components/list';
 
-var leaveBetaUrl = stores.pageState.leaveBetaUrl;
-var cookieDomain = stores.pageState.cookieDomain;
 let typingTimer;
 
 function langsToValues (langs) {
