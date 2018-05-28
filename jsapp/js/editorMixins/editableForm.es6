@@ -322,7 +322,11 @@ export default assign({
     params = koboMatrixParser(params);
 
     if (this.state.editorState === 'new') {
-      params.asset_type = 'block';
+      if (this.state.desiredAssetType) {
+        params.asset_type = this.state.desiredAssetType;
+      } else {
+        params.asset_type = 'block';
+      }
       actions.resources.createResource.triggerAsync(params)
         .then((asset) => {
           hashHistory.push(`/library`);
@@ -620,11 +624,11 @@ export default assign({
       _state.savedName = _state.name;
     }
 
-      let isEmptySurvey = (
-          survey &&
-          Object.keys(survey.settings).length === 0 &&
-          survey.survey.length === 0
-        );
+    let isEmptySurvey = (
+        survey &&
+        Object.keys(survey.settings).length === 0 &&
+        survey.survey.length === 0
+      );
 
     try {
       if (!survey) {

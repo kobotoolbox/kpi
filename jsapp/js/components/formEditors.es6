@@ -762,6 +762,11 @@ export class AddToLibrary extends React.Component {
       editorState: 'new',
       backRoute: '/library'
     };
+
+    if (this.props.location.pathname === '/library/new/template') {
+      this.state.desiredAssetType = 'template';
+    }
+
     autoBind(this);
   }
 }

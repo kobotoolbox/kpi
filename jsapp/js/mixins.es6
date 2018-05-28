@@ -545,6 +545,9 @@ mixins.contextRouter = {
     if (this.context.router.isActive(`/library/new`))
       return true;
 
+    if (this.context.router.isActive(`/library/new/template`))
+      return true;
+
     if (this.context.router.params.assetid == undefined)
       return false
 
@@ -553,7 +556,6 @@ mixins.contextRouter = {
       return true;
 
     return this.context.router.isActive(`/forms/${assetid}/edit`);
-  },
-
+  }
 }
 export default mixins;

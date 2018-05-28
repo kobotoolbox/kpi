@@ -127,7 +127,6 @@ class LibrarySidebar extends Reflux.Component {
       }
     };
     dialog.set(opts).show();
-
   }
   deleteCollection (evt) {
     evt.preventDefault();
@@ -156,7 +155,6 @@ class LibrarySidebar extends Reflux.Component {
       }
     };
     dialog.set(opts).show();
-
   }
   renameCollection (evt) {
     var collectionUid = $(evt.currentTarget).data('collection-uid');
@@ -183,7 +181,6 @@ class LibrarySidebar extends Reflux.Component {
       }
     };
     dialog.set(opts).show();
-
   }
   subscribeCollection (evt) {
     evt.preventDefault();
@@ -255,24 +252,35 @@ class LibrarySidebar extends Reflux.Component {
   render () {
     return (
       <bem.CollectionsWrapper>
-        <ui.PopoverMenu type='new-menu'
-            triggerLabel={t('new')}>
-            <Link to={`/library/new`} className='popover-menu__link'>
-              <i className="k-icon-question" />
-              {t('Question')}
-            </Link>
-            <Dropzone onDrop={this.dropFiles}
-                          multiple={false}
-                          className='dropzone'
-                          accept={validFileTypes()}>
-              <bem.PopoverMenu__link>
-                <i className="k-icon-upload" />
-                {t('upload')}
-              </bem.PopoverMenu__link>
-            </Dropzone>
-            <bem.PopoverMenu__link onClick={this.createCollection}>
-              <i className="k-icon-folder" />
-              {t('collection')}
+        <ui.PopoverMenu
+          type='new-menu'
+          triggerLabel={t('new')}
+        >
+          <Link to={`/library/new`} className='popover-menu__link'>
+            <i className="k-icon-question" />
+            {t('Question')}
+          </Link>
+
+          <Link to={`/library/new/template`} className='popover-menu__link'>
+            <i className="k-icon-template" />
+            {t('Form Template')}
+          </Link>
+
+          <Dropzone
+            onDrop={this.dropFiles}
+            multiple={false}
+            className='dropzone'
+            accept={validFileTypes()}
+          >
+            <bem.PopoverMenu__link>
+              <i className="k-icon-upload" />
+              {t('upload')}
+            </bem.PopoverMenu__link>
+          </Dropzone>
+
+          <bem.PopoverMenu__link onClick={this.createCollection}>
+            <i className="k-icon-folder" />
+            {t('collection')}
           </bem.PopoverMenu__link>
         </ui.PopoverMenu>
 
