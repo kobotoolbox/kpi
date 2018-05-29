@@ -56,6 +56,7 @@ $hover-asset-row: #F2F2F3;
     padding: 4px 0px;
   }
 
+  // default row-icon styles are meant for "--question"
   .row-icon {
     vertical-align: middle;
     border: 1px solid $cool-green;
@@ -68,9 +69,14 @@ $hover-asset-row: #F2F2F3;
     text-align: center;
     font-style: normal;
 
-    &.block {
+    &.row-icon--block {
       color: white;
       background: $cool-green;
+    }
+
+    &.row-icon--template {
+      border-style: dashed;
+      border-radius: 1px;
     }
   }
 

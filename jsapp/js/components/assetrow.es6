@@ -138,16 +138,17 @@ class AssetRow extends React.Component {
                         onMouseLeave={this.clearPopover}
                       >
           <bem.AssetRow__cell
-              m={'asset-details'}
-              key={'asset-details'}
-              onClick={this.clickAssetButton}
-              data-asset-type={this.props.kind}
-              >
-            <bem.AssetRow__cell m={'title'}
-                className={['mdl-cell',
-                    this.props.asset_type == 'survey' ? 'mdl-cell--5-col mdl-cell--4-col-tablet mdl-cell--2-col-phone' : 'mdl-cell--8-col mdl-cell--5-col-tablet mdl-cell--2-col-phone']}>
-              { this.props.asset_type && (this.props.asset_type == 'block' || this.props.asset_type == 'question') &&
-                <i className={`row-icon ${_rc > 1 ? 'block' : 'question'}`}>
+            m={'asset-details'}
+            key={'asset-details'}
+            onClick={this.clickAssetButton}
+            data-asset-type={this.props.kind}
+          >
+            <bem.AssetRow__cell
+              m={'title'}
+              className={['mdl-cell', this.props.asset_type == 'survey' ? 'mdl-cell--5-col mdl-cell--4-col-tablet mdl-cell--2-col-phone' : 'mdl-cell--8-col mdl-cell--5-col-tablet mdl-cell--2-col-phone']}
+            >
+              { this.props.asset_type && (this.props.asset_type == 'template' || this.props.asset_type == 'block' || this.props.asset_type == 'question') &&
+                <i className={`row-icon row-icon--${this.props.asset_type}`}>
                   {_rc}
                 </i>
               }
