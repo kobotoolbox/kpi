@@ -62,15 +62,6 @@ var dataInterface;
         url: `${rootUrl}/assets/?q=asset_type:block`
       });
     },
-    listQuestionsAndBlocks() {
-      return $ajax({
-        url: `${rootUrl}/assets/`,
-        data: {
-          q: 'asset_type:question OR asset_type:block'
-        },
-        method: 'GET'
-      });
-    },
     listSurveys() {
       return $ajax({
         url: `${rootUrl}/assets/`,
@@ -201,7 +192,7 @@ var dataInterface;
       return $ajax({
         url: `${rootUrl}/assets/`,
         data: {
-          q: 'asset_type:question OR asset_type:block'
+          q: 'asset_type:question OR asset_type:block OR asset_type:template'
         },
         method: 'GET'
       });

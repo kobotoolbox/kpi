@@ -120,12 +120,6 @@ actions.resources = Reflux.createActions({
       'failed'
     ]
   },
-  listQuestionsAndBlocks: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
   createAsset: {
     children: [
       'completed',
@@ -759,12 +753,6 @@ actions.resources.listCollections.listen(function(){
   dataInterface.listCollections()
       .done(actions.resources.listCollections.completed)
       .fail(actions.resources.listCollections.failed);
-});
-
-actions.resources.listQuestionsAndBlocks.listen(function(){
-  dataInterface.listQuestionsAndBlocks()
-      .done(actions.resources.listAssets.completed)
-      .fail(actions.resources.listAssets.failed);
 });
 
 actions.resources.updateSubmissionValidationStatus.listen(function(uid, sid, data){

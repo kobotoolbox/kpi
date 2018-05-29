@@ -26,7 +26,8 @@ class SearchCollectionList extends Reflux.Component {
       selectedCategories: selectedCategories,
       ownedCollections: [],
       fixedHeadings: '',
-      fixedHeadingsWidth: 'auto'
+      fixedHeadingsWidth: 'auto',
+      typeFilter: 'all'
     };
     this.store = stores.selectedAsset;
     autoBind(this);
@@ -40,8 +41,17 @@ class SearchCollectionList extends Reflux.Component {
     if (searchStoreState.searchState === 'done')
       this.queryCollections();
   }
+  onTypeFilterChange(evt) {
+    console.log('onTypeFilterChange');
+
+    let newValue = 'all';
+    if (evt.target) {
+      newValue = evt.target.value;
+    }
+    this.setState({'typeFilter': newValue});
+  }
   queryCollections () {
-    if (this.props.searchContext.store.filterTags != 'asset_type:survey') {
+    if (this.props.searchContext.store.filterTags !== 'asset_type:survey') {
       dataInterface.listCollections().then((collections)=>{
         this.setState({
           ownedCollections: collections.results.filter((value) => {
@@ -78,15 +88,15 @@ class SearchCollectionList extends Reflux.Component {
     var ownedCollections = this.state.ownedCollections;
 
     return (
-        <this.props.assetRowClass key={resource.uid}
-                      currentUsername={currentUsername}
-                      onActionButtonClick={this.onActionButtonClick}
-                      isSelected={isSelected}
-                      ownedCollections={ownedCollections}
-                      deleting={resource.deleting}
-                      {...resource}
-                        />
-      );
+      <this.props.assetRowClass key={resource.uid}
+        currentUsername={currentUsername}
+        onActionButtonClick={this.onActionButtonClick}
+        isSelected={isSelected}
+        ownedCollections={ownedCollections}
+        deleting={resource.deleting}
+        {...resource}
+      />
+    );
   }
   toggleCategory(c) {
     return function (e) {
@@ -101,7 +111,23 @@ class SearchCollectionList extends Reflux.Component {
     return [
       (
         <bem.List__heading key='1'>
-          <span className={this.state.parentName ? 'parent' : ''}>{t('My Library')}</span>
+          <span className={this.state.parentName ? 'parent' : ''}>
+            {t('My Library')}
+          </span>
+
+          <label htmlFor="type_filter">{t('Filter by type')}</label>
+          <select
+            id="type_filter"
+            name="type_filter"
+            value={this.state.typeFilter}
+            onChange={this.onTypeFilterChange}
+          >
+            <option value="all">{t('Show All')}</option>
+            <option value="question">{t('Questions')}</option>
+            <option value="block">{t('Blocks')}</option>
+            <option value="template">{t('Templates')}</option>
+          </select>
+
           {this.state.parentName &&
             <span>
               <i className="k-icon-next" />
@@ -112,8 +138,11 @@ class SearchCollectionList extends Reflux.Component {
       ),
       (
         <bem.AssetListSorts className="mdl-grid" key='2'>
-          <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--8-col mdl-cell--4-col-tablet mdl-cell--2-col-phone">
+          <bem.AssetListSorts__item m={'name'} className="mdl-cell mdl-cell--6-col mdl-cell--3-col-tablet mdl-cell--1-col-phone">
             {t('Name')}
+          </bem.AssetListSorts__item>
+          <bem.AssetListSorts__item m={'type'} className="mdl-cell mdl-cell--2-col mdl-cell--1-col-tablet mdl-cell--1-col-phone">
+            {t('Type')}
           </bem.AssetListSorts__item>
           <bem.AssetListSorts__item m={'owner'} className="mdl-cell mdl-cell--2-col mdl-cell--2-col-tablet mdl-cell--1-col-phone">
             {t('Owner')}
@@ -140,7 +169,7 @@ class SearchCollectionList extends Reflux.Component {
             {t('Last Modified')}
           </bem.AssetListSorts__item>
           <bem.AssetListSorts__item m={'submissions'} className="mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--1-col-phone" >
-              {t('Submissions')}
+            {t('Submissions')}
           </bem.AssetListSorts__item>
         </bem.AssetListSorts>
       );

@@ -64,9 +64,9 @@ class LibrarySidebar extends Reflux.Component {
       publicCollectionsVisible: false,
       searchContext: searches.getSearchContext('library', {
         filterParams: {
-          assetType: 'asset_type:question OR asset_type:block',
+          assetType: 'asset_type:question OR asset_type:block OR asset_type:template',
         },
-        filterTags: 'asset_type:question OR asset_type:block',
+        filterTags: 'asset_type:question OR asset_type:block OR asset_type:template',
       })
     });
   }
