@@ -191,13 +191,13 @@ module.exports = function (options) {
       }
     },
     module: {
-      preLoaders: [
-        {
-          test: /\.(js|jsx|es6)$/,
-          exclude: /(node_modules|bower_components)/,
-          loader: 'eslint-loader'
-        }
-      ],
+      // preLoaders: [
+      //   {
+      //     test: /\.(js|jsx|es6)$/,
+      //     exclude: /(node_modules|bower_components)/,
+      //     loader: 'eslint-loader'
+      //   }
+      // ],
       loaders: loaders
     },
     plugins: plugins,

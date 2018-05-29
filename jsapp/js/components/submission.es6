@@ -342,7 +342,7 @@ class Submission extends React.Component {
         parentGroup = false;
         return (
           <tr key={`row-${name}-end`}>
-            <td colSpan="3" className="submission--end-group"></td>
+            <td colSpan="3" className="submission--end-group"/>
           </tr>
         );
       }
@@ -502,33 +502,33 @@ class Submission extends React.Component {
           <tbody>
             {this.renderRows()}
             <tr key={`row-meta`}>
-              <td colSpan="3" className="submission--end-group"></td>
+              <td colSpan="3" className="submission--end-group"/>
             </tr>
 
             {s.start &&
               <tr>
-                <td></td>
+                <td/>
                 <td>{t('start')}</td>
                 <td>{s.start}</td>
               </tr>
             }
             {s.end &&
               <tr>
-                <td></td>
+                <td/>
                 <td>{t('end')}</td>
                 <td>{s.end}</td>
               </tr>
             }
             {s.__version__ &&
               <tr>
-                <td></td>
+                <td/>
                 <td>{t('__version__')}</td>
                 <td>{s.__version__}</td>
               </tr>
             }
             {s['meta/instanceID'] &&
               <tr>
-                <td></td>
+                <td/>
                 <td>{t('instanceID')}</td>
                 <td>{s['meta/instanceID']}</td>
               </tr>

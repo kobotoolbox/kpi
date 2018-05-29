@@ -93,7 +93,7 @@ class Modal extends React.Component {
             <div className="modal-header">
               {this.renderTitle()}
               <a className="modal-x" type="button" onClick={this.props.onClose}>
-                <i className="k-icon-close"></i>
+                <i className="k-icon-close"/>
               </a>
             </div>
             {this.props.children}

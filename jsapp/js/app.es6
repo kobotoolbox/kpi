@@ -115,7 +115,7 @@ class App extends React.Component {
           global>
 
           { !this.isFormBuilder() && !this.state.pageState.headerHidden &&
-            <div className="k-header__bar"></div>
+            <div className="k-header__bar" />
           }
           <bem.PageWrapper m={{
               'fixed-drawer': this.state.pageState.showFixedDrawer,

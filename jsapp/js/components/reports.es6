@@ -171,8 +171,7 @@ class ChartColorsPicker extends React.Component {
           {
             reportColorSets[index].colors.map(function(color, i){
               return (
-                <div style={{backgroundColor: color}} key={i}>
-                </div>
+                <div style={{backgroundColor: color}} key={i} />
               );
             }, this)
           }
@@ -1070,9 +1069,7 @@ class Reports extends React.Component {
   renderQuestionSettings () {
     return (
       <bem.GraphSettings>
-        <ui.Modal.Body>
-
-        </ui.Modal.Body>
+        <ui.Modal.Body/>
       </bem.GraphSettings>
     );
   }

@@ -1,18 +1,19 @@
-// you should not need to edit this file.
-// make edits to the corresponding '.config' file
-var configs = require('./dev.server.config');
+const path = require('path');
+const webpack = require('webpack');
+const WebpackCommon = require('./webpack.common');
+var publicPath = 'http://localhost:3000/static/compiled/';
 
-var WebpackDevServer = require('webpack-dev-server');
-var webpack = require('webpack');
-var port = configs.port || 3000;
-var host = configs.host || '0.0.0.0';
-
-module.exports = new WebpackDevServer(
-      webpack(configs.forWebpack),
-      configs.forWebpackDevServer
-    ).listen(port, host, function (err, result) {
-  if (err) {
-    console.log(err);
+module.exports = WebpackCommon({
+  mode: "development",
+  output: {
+    path: path.resolve(__dirname, '../jsapp/compiled/'),
+    publicPath: publicPath,
+    filename: "[name]-[hash].js"
+  },
+  devServer: {
+    publicPath: publicPath,
+    disableHostCheck: true,
+    headers: {'Access-Control-Allow-Origin': '*'},
+    port: 3000
   }
-  console.log('Listening at '+host+':'+port);
 });
