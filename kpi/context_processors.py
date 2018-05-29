@@ -1,9 +1,8 @@
 import constance
 from django.conf import settings
-from django.db.models import Q
-from django.db.models.functions import Length
-from django.utils.translation import get_language
-from hub.models import SitewideMessage, ConfigurationFile
+
+from hub.models import ConfigurationFile
+from hub.utils.i18n import I18nUtils
 
 
 def external_service_tokens(request):
@@ -30,20 +29,10 @@ def sitewide_messages(request):
     custom text in django templates
     """
     if request.path_info.endswith("accounts/register/"):
-        # Let's retrieve messages where slug is either:
-        #  - "welcome_message_<locale>"
-        #  - "welcome_message"
-        # We order the result by the length of the slug to be sure
-        # localized version comes first.
-        sitewide_message = SitewideMessage.objects\
-            .filter(
-                Q(slug="welcome_message_{}".format(get_language())) |
-                Q(slug="welcome_message"))\
-            .order_by(Length("slug").desc())\
-            .first()
 
+        sitewide_message = I18nUtils.get_sitewide_message()
         if sitewide_message is not None:
-            return {"welcome_message": sitewide_message.body}
+            return {"welcome_message": sitewide_message}
 
     return {}
 
