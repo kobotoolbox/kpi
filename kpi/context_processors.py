@@ -1,5 +1,8 @@
 import constance
 from django.conf import settings
+from django.db.models import Q
+from django.db.models.functions import Length
+from django.utils.translation import get_language
 from hub.models import SitewideMessage, ConfigurationFile
 
 
@@ -22,18 +25,26 @@ def email(request):
 
 
 def sitewide_messages(request):
-    '''
+    """
     required in the context for any pages that need to display
     custom text in django templates
-    '''
+    """
     if request.path_info.endswith("accounts/register/"):
-        try:
-            return {
-                'welcome_message': SitewideMessage.objects.get(
-                    slug='welcome_message').body
-            }
-        except SitewideMessage.DoesNotExist as e:
-            return {}
+        # Let's retrieve messages where slug is either:
+        #  - "welcome_message_<locale>"
+        #  - "welcome_message"
+        # We order the result by the length of the slug to be sure
+        # localized version comes first.
+        sitewide_message = SitewideMessage.objects\
+            .filter(
+                Q(slug="welcome_message_{}".format(get_language())) |
+                Q(slug="welcome_message"))\
+            .order_by(Length("slug").desc())\
+            .first()
+
+        if sitewide_message is not None:
+            return {"welcome_message": sitewide_message.body}
+
     return {}
 
 
