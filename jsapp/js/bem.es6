@@ -80,6 +80,7 @@ bem.Library_breadcrumb = bem.Library.__('breadcrumb');
 bem.List = bem('list');
 bem.List__heading = bem.List.__('heading');
 bem.List__subheading = bem.List.__('subheading');
+bem.List__headingAside = bem.List.__('heading-aside');
 
 bem.AssetList = bem('asset-list');
 bem.AssetItems = bem('asset-items', '<ul>');

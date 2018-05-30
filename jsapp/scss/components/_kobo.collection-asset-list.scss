@@ -65,6 +65,12 @@
   font-weight: 600;
 }
 
+.list__heading-aside {
+  float: right;
+  margin-left: 10px;
+  font-size: 13px;
+}
+
 .list__heading.is-edge + .list__subheading {
   margin-top: 0px;
 }
@@ -90,8 +96,10 @@ div.library {
   }
 
   .asset-row > .asset-row__buttons {
-    width: 33%;
+    width: 50%;
     top: 10px;
+    // make it disappear immediately to avoid visual glitch from buttons background
+    transition: none;
   }
 
   .asset-list, .asset-list-sorts {
