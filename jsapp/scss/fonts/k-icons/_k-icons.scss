@@ -1,7 +1,10 @@
 @font-face {
   font-family: 'k-icons';
   src: url("../fonts/k-icons.eot?70811610");
-  src: url("../fonts/k-icons.eot?70811610#iefix") format("embedded-opentype"), url("../fonts/k-icons.woff2?70811610") format("woff2"), url("../fonts/k-icons.woff?70811610") format("woff"), url("../fonts/k-icons.ttf?70811610") format("truetype"), url("../fonts/k-icons.svg?70811610#k-icons") format("svg");
+  src: url("../fonts/k-icons.eot?70811610#iefix") format("embedded-opentype"),
+    url("../fonts/k-icons.woff?70811610") format("woff"),
+    url("../fonts/k-icons.ttf?70811610") format("truetype"),
+    url("../fonts/k-icons.svg?70811610#k-icons") format("svg");
   font-weight: normal;
   font-style: normal;
 }
@@ -44,6 +47,7 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.k-icon-template:before { content: "\e900"; }
 .k-icon-alert:before { content: '\e81c'; } /* '' */
 .k-icon-archived:before { content: '\e800'; } /* '' */
 .k-icon-arrow-first:before { content: '\e81e'; } /* '' */

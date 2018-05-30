@@ -263,7 +263,7 @@ class LibrarySidebar extends Reflux.Component {
 
           <Link to={`/library/new/template`} className='popover-menu__link'>
             <i className="k-icon-template" />
-            {t('Form Template')}
+            {t('Template')}
           </Link>
 
           <Dropzone
