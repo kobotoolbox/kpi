@@ -24,6 +24,8 @@ let newFormMixins = [
     Reflux.ListenerMixin,
     editableFormMixin
 ];
+import TemplatesList from './formEditors/templatesList';
+
 import actions from '../actions';
 import {dataInterface} from '../dataInterface';
 import {
@@ -55,8 +57,8 @@ export class ProjectSettings extends React.Component {
       importUrl: '',
       importUrlButtonEnabled: false,
       importUrlButton: t('Import'),
-      selectTemplateButtonEnabled: false,
-      selectTemplateButton: t('Choose')
+      chooseTemplateButtonEnabled: false,
+      chooseTemplateButton: t('Choose')
     }
     if (this.props.initialData !== undefined) {
       assign(state, this.props.initialData);
@@ -118,6 +120,9 @@ export class ProjectSettings extends React.Component {
   }
   resetStep3() {
     this.setState({step3: false});
+  }
+  chooseTemplate(evt) {
+    console.debug('chooseTemplate', evt);
   }
   importFromURL(evt) {
     evt.preventDefault();
@@ -321,14 +326,14 @@ export class ProjectSettings extends React.Component {
           {this.state.step3 == 'template' &&
             <bem.FormModal__item m='newForm-step3'>
               <bem.FormModal__item m='template'>
-                <div>list of templates</div>
+                <TemplatesList/>
 
                 <button
-                  onClick={this.selectTemplate}
-                  disabled={!this.state.selectTemplateButtonEnabled}
+                  onClick={this.chooseTemplate}
+                  disabled={!this.state.chooseTemplateButtonEnabled}
                   className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
                 >
-                  {this.state.selectTemplateButton}
+                  {this.state.chooseTemplateButton}
                 </button>
               </bem.FormModal__item>
 

@@ -62,6 +62,11 @@ var dataInterface;
         url: `${rootUrl}/assets/?q=asset_type:block`
       });
     },
+    listTemplates () {
+      return $ajax({
+        url: `${rootUrl}/assets/?q=asset_type:template`
+      });
+    },
     listSurveys() {
       return $ajax({
         url: `${rootUrl}/assets/`,
