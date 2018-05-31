@@ -31,7 +31,6 @@ class TemplatesList extends React.Component {
   fetchTemplates() {
     this.setState({isLoading: true});
     dataInterface.listTemplates().then((data) => {
-      console.log('fetchTemplates success', data);
       this.setState({
         templates: data.results,
         templatesCount: data.count,
@@ -64,7 +63,7 @@ class TemplatesList extends React.Component {
     } else {
       return (
         <bem.TemplatesList>
-          <bem.TemplatesList__header>
+          <bem.TemplatesList__header className={['templates-list__row']}>
             <bem.TemplatesList__column m='name'>
               {t('Template name')}
             </bem.TemplatesList__column>
@@ -82,16 +81,8 @@ class TemplatesList extends React.Component {
               <bem.TemplatesList__template
                 key={template.uid}
                 htmlFor={htmlId}
+                className={['templates-list__row']}
               >
-                <bem.TemplatesList__templateRadio
-                  type='radio'
-                  name='selected_template'
-                  id={htmlId}
-                  value={template.uid}
-                  checked={this.state.selectedTemplateUid === template.uid}
-                  onChange={this.onSelectedTemplateChange}
-                ></bem.TemplatesList__templateRadio>
-
                 <bem.TemplatesList__column m='name'>
                   {template.name}
                 </bem.TemplatesList__column>
@@ -101,6 +92,15 @@ class TemplatesList extends React.Component {
                 <bem.TemplatesList__column m='questions'>
                   {template.summary.row_count}
                 </bem.TemplatesList__column>
+
+                <bem.TemplatesList__templateRadio
+                  type='radio'
+                  name='selected_template'
+                  id={htmlId}
+                  value={template.uid}
+                  checked={this.state.selectedTemplateUid === template.uid}
+                  onChange={this.onSelectedTemplateChange}
+                ></bem.TemplatesList__templateRadio>
               </bem.TemplatesList__template>
             )
           })}
