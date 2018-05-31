@@ -54,7 +54,9 @@ export class ProjectSettings extends React.Component {
       step3: false,
       importUrl: '',
       importUrlButtonEnabled: false,
-      importUrlButton: t('Import')
+      importUrlButton: t('Import'),
+      selectTemplateButtonEnabled: false,
+      selectTemplateButton: t('Choose')
     }
     if (this.props.initialData !== undefined) {
       assign(state, this.props.initialData);
@@ -104,6 +106,9 @@ export class ProjectSettings extends React.Component {
   goToFormBuilder() {
     hashHistory.push(`/forms/${this.props.newFormAsset.uid}/edit`);
     stores.pageState.hideModal();
+  }
+  displayChooseTemplate() {
+    this.setState({step3: 'template'});
   }
   displayUpload() {
     this.setState({step3: 'upload'});
@@ -289,11 +294,17 @@ export class ProjectSettings extends React.Component {
                   </label>
                 </bem.FormModal__item>
               }
-              <bem.FormModal__item m='new-project--buttons'>
+              <bem.FormModal__item m='new-project-buttons'>
                 {this.props.context !== 'replaceXLS' &&
                   <button onClick={this.goToFormBuilder}>
                     <i className="k-icon-edit" />
                     {t('Design in Form Builder')}
+                  </button>
+                }
+                {this.props.context !== 'replaceXLS' &&
+                  <button onClick={this.displayChooseTemplate}>
+                    <i className="k-icon-template" />
+                    {t('Use a Template')}
                   </button>
                 }
                 <button onClick={this.displayUpload}>
@@ -305,6 +316,25 @@ export class ProjectSettings extends React.Component {
                   {t('Import an XLSForm via URL')}
                 </button>
               </bem.FormModal__item>
+            </bem.FormModal__item>
+          }
+          {this.state.step3 == 'template' &&
+            <bem.FormModal__item m='newForm-step3'>
+              <bem.FormModal__item m='template'>
+                <div>list of templates</div>
+
+                <button
+                  onClick={this.selectTemplate}
+                  disabled={!this.state.selectTemplateButtonEnabled}
+                  className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                >
+                  {this.state.selectTemplateButton}
+                </button>
+              </bem.FormModal__item>
+
+              <bem.FormView__link m='step3-back' onClick={this.resetStep3}>
+                {t('back')}
+              </bem.FormView__link>
             </bem.FormModal__item>
           }
           {this.state.step3 == 'upload' &&

@@ -40,6 +40,7 @@ class Modal extends React.Component {
           title: t('Sharing Permissions')
         });
         break;
+
       case 'uploading-xls':
         var filename = this.props.params.filename || '';
         this.setState({
@@ -50,9 +51,10 @@ class Modal extends React.Component {
 
       case 'new-form':
         this.setState({
-          title: `${t('Create New Project')} (${t('step 1 of 2')})`
+          title: `${t('Create New Project')}: ${t('Define Project')}`
         });
         break;
+
       case 'enketo-preview':
         var uid = this.props.params.assetid;
         stores.allAssets.whenLoaded(uid, function(asset){
@@ -67,24 +69,30 @@ class Modal extends React.Component {
           modalClass: 'modal-large'
         });
         break;
+
       case 'submission':
         this.setState({
           title: this.submissionTitle(this.props),
           modalClass: 'modal-large modal-submission',
           sid: this.props.params.sid
         });
-      break;
+        break;
+
       case 'replace-xls':
         this.setState({
           title: t('Replace with XLS')
         });
         break;
+
       case 'table-columns':
         this.setState({
           title: t('Table display options')
         });
-      break;
-		}
+        break;
+
+      default:
+        console.error(`Unknown modal type: "${type}"!`);
+    }
   }
   createNewForm (settingsComponent) {
     dataInterface.createResource({
@@ -99,7 +107,7 @@ class Modal extends React.Component {
     }).done((asset) => {
       this.setState({
         newFormAsset: asset,
-        title: `${t('Create New Project')} (${t('step 2 of 2')})`
+        title: `${t('Create New Project')}: ${t('Form Source')}`
       });
     }).fail(function(r){
       notify(t('Error: new project could not be created.') + ` (code: ${r.statusText})`);
@@ -152,12 +160,17 @@ class Modal extends React.Component {
     return title;
   }
   render() {
-  	return (
-      <ui.Modal open onClose={()=>{stores.pageState.hideModal()}} title={this.state.title} className={this.state.modalClass}>
+    return (
+      <ui.Modal
+        open
+        onClose={()=>{stores.pageState.hideModal()}}
+        title={this.state.title}
+        className={this.state.modalClass}
+      >
         <ui.Modal.Body>
-	        	{ this.props.params.type == 'sharing' &&
-	          	<SharingForm uid={this.props.params.assetid} />
-	        	}
+            { this.props.params.type == 'sharing' &&
+              <SharingForm uid={this.props.params.assetid} />
+            }
             { this.props.params.type == 'new-form' &&
               <ProjectSettings
                 onSubmit={this.createNewForm}
@@ -172,7 +185,6 @@ class Modal extends React.Component {
                 newFormAsset={this.props.params.asset}
               />
             }
-
             { this.props.params.type == 'enketo-preview' && this.state.enketopreviewlink &&
               <div className='enketo-holder'>
                 <iframe src={this.state.enketopreviewlink} />
@@ -201,7 +213,6 @@ class Modal extends React.Component {
                 </bem.Loading>
               </div>
             }
-
             { this.props.params.type == 'submission' && this.state.sid &&
               <Submission sid={this.state.sid}
                           asset={this.props.params.asset}
