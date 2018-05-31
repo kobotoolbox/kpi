@@ -279,8 +279,8 @@ var sessionStore = Reflux.createStore({
     this.listenTo(actions.auth.verifyLogin.failed, (xhr)=> {
       log('login not verified', xhr.status, xhr.statusText);
     });
-    // actions.auth.verifyLogin();
-    // actions.auth.getEnvironment();
+    actions.auth.verifyLogin();
+    actions.auth.getEnvironment();
 
   },
   getInitialState () {

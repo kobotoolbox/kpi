@@ -4,22 +4,23 @@ const BundleTracker = require('webpack-bundle-tracker');
 var merge = require('lodash.merge');
 
 var defaultOptions = {
-  entry: {app: './jsapp/js/main.es6'},
+  entry: {app: ['react-hot-loader/patch', './jsapp/js/main.es6']},
   module: {
     rules: [
-      // {
-      //   enforce: "pre",
-      //   test: /\.(js|jsx|es6)$/,
-      //   exclude: /node_modules/,
-      //   loader: 'eslint-loader',
-      // },
+      {
+        enforce: "pre",
+        test: /\.(js|jsx|es6)$/,
+        exclude: /node_modules/,
+        loader: 'eslint-loader',
+      },
       {
         test: /\.(js|jsx|es6)$/,
         exclude: /node_modules/,
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ["@babel/preset-env","@babel/preset-react"]
+            presets: ["env","es2015","react"],
+            plugins: ["add-module-exports", "react-hot-loader/babel"]
           }
         }
       },

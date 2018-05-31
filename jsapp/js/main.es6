@@ -1,5 +1,5 @@
 import RunRoutes, {routes} from './app';
-// import { AppContainer } from 'react-hot-loader'
+import {AppContainer} from 'react-hot-loader'
 import $ from 'jquery';
 import cookie from 'react-cookie';
 import React from 'react';
@@ -31,12 +31,12 @@ if (document.head.querySelector('meta[name=kpi-root-url]')) {
 
   render(<RunRoutes routes={routes} />, el);
 
-  // if (module.hot) {
-  //   module.hot.accept('./app', () => {
-  //     let RunRoutes = require('./app').default;
-  //     render(<AppContainer><RunRoutes routes={routes} /></AppContainer>, el);
-  //   });
-  // }
+  if (module.hot) {
+    module.hot.accept('./app', () => {
+      let RunRoutes = require('./app').default;
+      render(<AppContainer><RunRoutes routes={routes} /></AppContainer>, el);
+    });
+  }
 } else {
   console.error('no kpi-root-url meta tag set. skipping react-router init');
 }
