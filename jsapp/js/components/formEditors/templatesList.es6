@@ -10,7 +10,11 @@ import stores from "../../stores";
 import actions from "../../actions";
 import mixins from "../../mixins";
 import {dataInterface} from '../../dataInterface';
-import { t, notify } from "../../utils";
+import {
+  t,
+  formatTime,
+  notify
+} from "../../utils";
 
 class TemplatesList extends React.Component {
   constructor(props) {
@@ -87,7 +91,7 @@ class TemplatesList extends React.Component {
                   {template.name}
                 </bem.TemplatesList__column>
                 <bem.TemplatesList__column m='date'>
-                  {template.date_modified}
+                  {formatTime(template.date_modified)}
                 </bem.TemplatesList__column>
                 <bem.TemplatesList__column m='questions'>
                   {template.summary.row_count}

@@ -514,7 +514,9 @@ iframe {
     }
   }
 
-  label:not(.inline) {
+  // styling elements is ultimately inferior to styling more precise selectors
+  // on <label>, until this is removed we need to blacklist some selectors
+  label:not(.inline):not(.templates-list__row) {
     display: block;
   }
 

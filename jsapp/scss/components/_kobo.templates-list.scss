@@ -1,13 +1,16 @@
 .templates-list {
+  font-size: 14px;
+  width: 600px;
+  max-width: 100%;
+
   .templates-list__header {
-    font-weight: 700;
+    font-weight: 600;
   }
 
-  .templates-list__row,
-  // `label` needed to win specificity war with `label:not(.inline)`
-  label.templates-list__row {
+  .templates-list__row {
     display: flex;
     box-shadow: 0 0 0 1px silver;
+    padding: 10px;
 
     &:not(:first-child) {
       margin-top: 1px;
@@ -15,19 +18,16 @@
   }
 
   .templates-list__column {
-    &:not(:first-child) {
-      margin-left: 10px;
-    }
-    &.templates-list__column--name {
-      flex: 1;
-    }
-    &.templates-list__column--date,
-    &.templates-list__column--questions {
-      width: 25%;
-    }
+    padding: 10px;
+    box-sizing: border-box;
+
+    &.templates-list__column--name {flex: 1;}
+    &.templates-list__column--date {width: 30%}
+    &.templates-list__column--questions {width: 20%;}
   }
 
   .templates-list__template {
+    font-size: inherit;
     position: relative;
   }
 
@@ -39,15 +39,20 @@
     width: 100%;
     height: 100%;
     margin: 0;
-
-    &:hover {
-      z-index: 2;
-      box-shadow: 0 0 0 1px green;
-    }
+    cursor: pointer;
 
     &:checked {
       z-index: 1;
-      box-shadow: 0 0 0 1px red;
+      box-shadow: 0 0 0 1px $cool-blue;
+    }
+
+    &:hover {
+      z-index: 2;
+      box-shadow: 0 0 0 1px lighten($cool-blue, 15%);
+    }
+
+    &:active {
+      box-shadow: 0 0 0 1px lighten($cool-blue, 30%);
     }
   }
 }
