@@ -54,6 +54,12 @@ bem.LibNav__count = bem.LibNav.__('count');
 bem.LibNav__expandedToggle = bem.LibNav.__('expandedToggle');
 bem.LibNav__logo = bem.LibNav.__('logo');
 
+bem.TemplatesList = BEM('templates-list');
+bem.TemplatesList__header = bem.TemplatesList.__('header');
+bem.TemplatesList__column = bem.TemplatesList.__('column');
+bem.TemplatesList__template = bem.TemplatesList.__('template', '<label>');
+bem.TemplatesList__templateRadio = bem.TemplatesList.__('template-radio', '<input>');
+
 bem.LibList = BEM('lib-list', '<ul>');
 bem.LibList__item = bem.LibList.__('item', '<li>');
 bem.LibList__tags = bem.LibList.__('tags');

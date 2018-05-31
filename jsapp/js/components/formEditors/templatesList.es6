@@ -16,12 +16,11 @@ class TemplatesList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isLoading: true,
-      templates: null,
-      templatesCount: null,
+      isLoading: false,
+      templates: [],
+      templatesCount: 0,
       selectedTemplateUid: null
     };
-    this.store = stores.allAssets;
     autoBind(this);
   }
 
@@ -30,6 +29,7 @@ class TemplatesList extends React.Component {
   }
 
   fetchTemplates() {
+    this.setState({isLoading: true});
     dataInterface.listTemplates().then((data) => {
       console.log('fetchTemplates success', data);
       this.setState({
@@ -38,6 +38,11 @@ class TemplatesList extends React.Component {
         isLoading: false
       });
     });
+  }
+
+  onSelectedTemplateChange(evt) {
+    this.setState({selectedTemplateUid: evt.target.value});
+    console.log('onSelectedTemplateChange', evt);
   }
 
   render() {
@@ -58,9 +63,48 @@ class TemplatesList extends React.Component {
       )
     } else {
       return (
-        <bem.FormView__cell>
-          {this.state.templatesCount}
-        </bem.FormView__cell>
+        <bem.TemplatesList>
+          <bem.TemplatesList__header>
+            <bem.TemplatesList__column m='name'>
+              {t('Template name')}
+            </bem.TemplatesList__column>
+            <bem.TemplatesList__column m='date'>
+              {t('Last modified')}
+            </bem.TemplatesList__column>
+            <bem.TemplatesList__column m='questions'>
+              {t('Questions')}
+            </bem.TemplatesList__column>
+          </bem.TemplatesList__header>
+
+          {this.state.templates.map((template) => {
+            const htmlId = `selected_template_${template.uid}`;
+            return (
+              <bem.TemplatesList__template
+                key={template.uid}
+                htmlFor={htmlId}
+              >
+                <bem.TemplatesList__templateRadio
+                  type='radio'
+                  name='selected_template'
+                  id={htmlId}
+                  value={template.uid}
+                  checked={this.state.selectedTemplateUid === template.uid}
+                  onChange={this.onSelectedTemplateChange}
+                ></bem.TemplatesList__templateRadio>
+
+                <bem.TemplatesList__column m='name'>
+                  {template.name}
+                </bem.TemplatesList__column>
+                <bem.TemplatesList__column m='date'>
+                  {template.date_modified}
+                </bem.TemplatesList__column>
+                <bem.TemplatesList__column m='questions'>
+                  {template.summary.row_count}
+                </bem.TemplatesList__column>
+              </bem.TemplatesList__template>
+            )
+          })}
+        </bem.TemplatesList>
       );
     }
   }
