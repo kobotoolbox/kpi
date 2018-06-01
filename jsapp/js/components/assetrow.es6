@@ -388,6 +388,16 @@ class AssetRow extends React.Component {
                   {t('Archive')}
                 </bem.PopoverMenu__link>
               }
+              { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit &&
+                <bem.PopoverMenu__link
+                  m={'saveAsTemplate'}
+                  data-action={'saveAsTemplate'}
+                  data-asset-type={this.props.kind}
+                >
+                  <i className="k-icon-template" />
+                  {t('Save as Template')}
+                </bem.PopoverMenu__link>
+              }
               {userCanEdit &&
                 <bem.PopoverMenu__link
                       m={'delete'}

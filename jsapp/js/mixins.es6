@@ -400,6 +400,10 @@ mixins.clickAssets = {
         let asset = stores.selectedAsset.asset;
         mixins.dmix.deployAsset(asset);
       },
+      saveAsTemplate: function(uid) {
+        console.debug('saveAsTemplate', uid);
+        // TODO: call backend to create a template
+      },
       archive: function(uid) {
         let asset = stores.selectedAsset.asset;
         let dialog = alertify.dialog('confirm');

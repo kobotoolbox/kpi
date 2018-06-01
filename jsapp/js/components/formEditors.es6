@@ -123,7 +123,10 @@ export class ProjectSettings extends React.Component {
     this.setState({step3: false});
   }
   chooseTemplate(evt) {
+    evt.preventDefault();
     console.debug('chooseTemplate', evt);
+    // TODO: call backend to apply template to created asset
+    // TODO: open asset landing page after creation (loading promise?)
   }
   handleTemplateSelected(templateUid) {
     this.setState({
