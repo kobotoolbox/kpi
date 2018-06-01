@@ -9,7 +9,7 @@
 
   .templates-list__row {
     display: flex;
-    box-shadow: 0 0 0 1px silver;
+    box-shadow: 0 0 0 1px $divider-color;
     padding: 10px;
 
     &:not(:first-child) {
@@ -29,6 +29,10 @@
   .templates-list__template {
     font-size: inherit;
     position: relative;
+
+    &:hover {
+      background: rgba($divider-color, 0.2);
+    }
   }
 
   .templates-list__template-radio {
@@ -40,19 +44,11 @@
     height: 100%;
     margin: 0;
     cursor: pointer;
+    background: transparent;
 
     &:checked {
       z-index: 1;
       box-shadow: 0 0 0 1px $cool-blue;
-    }
-
-    &:hover {
-      z-index: 2;
-      box-shadow: 0 0 0 1px lighten($cool-blue, 15%);
-    }
-
-    &:active {
-      box-shadow: 0 0 0 1px lighten($cool-blue, 30%);
     }
   }
 }

@@ -450,10 +450,12 @@
     }
   }
 
+  .form-modal__item--url-import {
+    margin: 30px 0px;
+  }
+
   .form-modal__item--url-import,
   .form-modal__item--template {
-    margin: 30px 0px;
-
     button {
       margin-top: 20px;
       float: right;
