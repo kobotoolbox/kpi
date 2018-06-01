@@ -63,7 +63,6 @@ mixins.dmix = {
       }
     };
     dialog.set(opts).show();
-
   },
   reDeployConfirm (asset, onComplete) {
     let dialog = alertify.dialog('confirm');
@@ -406,7 +405,25 @@ mixins.clickAssets = {
       },
       createProjectFromTemplate: function(uid) {
         console.debug('createProjectFromTemplate', uid);
-        // TODO: call backend to create a project from template
+
+        const dialog = alertify.dialog('prompt');
+        const opts = {
+          title: t('Create project from template'),
+          message: t('Enter the name of the project'),
+          value: name,
+          labels: {
+            ok: t('Create'),
+            cancel: t('Cancel')
+          },
+          onok: (evt, calue) => {
+            // TODO: call backend to create a project from template
+            console.log('on ok');
+          },
+          oncancel: (evt, calue) => {
+            dialog.destroy();
+          }
+        };
+        dialog.set(opts).show();
       },
       archive: function(uid) {
         let asset = stores.selectedAsset.asset;
