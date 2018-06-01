@@ -19,7 +19,6 @@ actions.navigation = Reflux.createActions([
     'transitionEnd',
     'historyPush',
     'routeUpdate',
-
     'documentTitleUpdate'
   ]);
 

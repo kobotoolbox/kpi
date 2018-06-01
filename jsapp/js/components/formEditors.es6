@@ -58,7 +58,8 @@ export class ProjectSettings extends React.Component {
       importUrlButtonEnabled: false,
       importUrlButton: t('Import'),
       chooseTemplateButtonEnabled: false,
-      chooseTemplateButton: t('Choose')
+      chooseTemplateButton: t('Choose'),
+      chosenTemplateUid: null
     }
     if (this.props.initialData !== undefined) {
       assign(state, this.props.initialData);
@@ -123,6 +124,12 @@ export class ProjectSettings extends React.Component {
   }
   chooseTemplate(evt) {
     console.debug('chooseTemplate', evt);
+  }
+  handleTemplateSelected(templateUid) {
+    this.setState({
+      chooseTemplateButtonEnabled: true,
+      chosenTemplateUid: templateUid
+    });
   }
   importFromURL(evt) {
     evt.preventDefault();
@@ -326,7 +333,7 @@ export class ProjectSettings extends React.Component {
           {this.state.step3 == 'template' &&
             <bem.FormModal__item m='newForm-step3'>
               <bem.FormModal__item m='template'>
-                <TemplatesList/>
+                <TemplatesList onSelectTemplate={this.handleTemplateSelected}/>
 
                 <button
                   onClick={this.chooseTemplate}

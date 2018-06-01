@@ -45,7 +45,7 @@ class TemplatesList extends React.Component {
 
   onSelectedTemplateChange(evt) {
     this.setState({selectedTemplateUid: evt.target.value});
-    console.log('onSelectedTemplateChange', evt);
+    this.props.onSelectTemplate(evt.target.value);
   }
 
   render() {
