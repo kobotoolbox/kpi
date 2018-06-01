@@ -390,12 +390,12 @@ class AssetRow extends React.Component {
               }
               { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit &&
                 <bem.PopoverMenu__link
-                  m={'saveAsTemplate'}
-                  data-action={'saveAsTemplate'}
+                  m={'createTemplate'}
+                  data-action={'createTemplate'}
                   data-asset-type={this.props.kind}
                 >
                   <i className="k-icon-template" />
-                  {t('Save as Template')}
+                  {t('Create template')}
                 </bem.PopoverMenu__link>
               }
               {userCanEdit &&
