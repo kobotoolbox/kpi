@@ -54,7 +54,7 @@ class TestCloning(KpiTestCase):
         self.another_user_password = 'anotheruser'
 
     def _clone_asset(self, original_asset, **kwargs):
-        #destination_type = kwargs.pop("destination_type", None)
+
         kwargs.update({'clone_from': original_asset.uid})
         expected_status_code = kwargs.pop('expected_status_code',
                                           status.HTTP_201_CREATED)
@@ -70,7 +70,7 @@ class TestCloning(KpiTestCase):
                                  original_asset.__dict__[field])
 
             self.assertEqual(cloned_asset.asset_type,
-                             kwargs.get("destination_type", original_asset.asset_type))
+                             kwargs.get(ASSET_TYPE_ARG_NAME, original_asset.asset_type))
 
             original_asset_tags = set(original_asset.tag_string.split(','))
             cloned_asset_tags = set(cloned_asset.tag_string.split(','))
@@ -123,7 +123,7 @@ class TestCloning(KpiTestCase):
         }
         original_asset = self.create_asset(
             'cloning_asset', settings=json.dumps(settings))
-        template_asset = self._clone_asset(original_asset, destination_type=ASSET_TYPE_TEMPLATE)
+        template_asset = self._clone_asset(original_asset, asset_type=ASSET_TYPE_TEMPLATE)
 
         settings.pop("share-metadata", None)
         self.assertEqual(template_asset.asset_type, ASSET_TYPE_TEMPLATE)
@@ -148,7 +148,7 @@ class TestCloning(KpiTestCase):
 
         self.assertEqual(original_asset.asset_type, ASSET_TYPE_TEMPLATE)
 
-        survey_asset = self._clone_asset(original_asset, destination_type=ASSET_TYPE_SURVEY)
+        survey_asset = self._clone_asset(original_asset, asset_type=ASSET_TYPE_SURVEY)
 
         settings.pop("share-metadata", None)
         self.assertEqual(survey_asset.asset_type, ASSET_TYPE_SURVEY)
@@ -170,7 +170,7 @@ class TestCloning(KpiTestCase):
         }
         original_asset = self.create_asset(
             'cloning_template', settings=json.dumps(settings))
-        block_asset = self._clone_asset(original_asset, destination_type=ASSET_TYPE_BLOCK)
+        block_asset = self._clone_asset(original_asset, asset_type=ASSET_TYPE_BLOCK)
         self.assertEqual(block_asset.asset_type, ASSET_TYPE_BLOCK)
         self.assertEqual(block_asset.settings, {})
 
@@ -180,7 +180,7 @@ class TestCloning(KpiTestCase):
             'cloning_template', asset_type=ASSET_TYPE_TEMPLATE)
 
         def _bad_clone():
-            self._clone_asset(original_asset, destination_type=ASSET_TYPE_QUESTION)
+            self._clone_asset(original_asset, asset_type=ASSET_TYPE_QUESTION)
 
         self.assertRaises(BadAssetTypeException, _bad_clone)
 

@@ -97,7 +97,7 @@ from .utils.kobo_to_xlsform import to_xlsform_structure
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from .tasks import import_in_background, export_in_background
 from .constants import CLONE_ARG_NAME, CLONE_FROM_VERSION_ID_ARG_NAME, \
-    COLLECTION_CLONE_FIELDS, DEST_TYPE_ARG_NAME, CLONE_COMPATIBLE_TYPES, \
+    COLLECTION_CLONE_FIELDS, ASSET_TYPE_ARG_NAME, CLONE_COMPATIBLE_TYPES, \
     ASSET_TYPE_TEMPLATE, ASSET_TYPE_SURVEY, ASSET_TYPES
 from deployment_backends.backends import DEPLOYMENT_BACKENDS
 from deployment_backends.kobocat_backend import KobocatDataProxyViewSetMixin
@@ -688,6 +688,130 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     * Assign a asset to a collection <span class='label label-warning'>partially implemented</span>
     * Run a partial update of a asset <span class='label label-danger'>TODO</span>
+
+    <span class='label label-danger'>TODO</span> Complete documentation
+
+    ## List of asset endpoints
+
+    Lists the asset endpoints accessible to requesting user, for anonymous access
+    a list of public data endpoints is returned.
+
+    <pre class="prettyprint">
+    <b>GET</b> /assets/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi-url]/assets/
+
+    ## CRUD
+
+    * `uid` - is the unique identifier of a specific asset
+
+    Retrieves current asset
+    <pre class="prettyprint">
+    <b>GET</b> /assets/<code>{uid}</code>/
+    </pre>
+
+
+    > Example
+    >
+    >       curl -X GET https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/
+
+    Creates or clones an asset.
+    <pre class="prettyprint">
+    <b>POST</b> /assets/
+    </pre>
+
+
+    > Example
+    >
+    >       curl -X POST https://[kpi-url]/assets/
+
+
+    > **Payload to create a new asset**
+    >
+    >        {
+    >           "name": {string},
+    >           "settings": {
+    >               "description": {string},
+    >               "sector": {string},
+    >               "country": {string},
+    >               "share-metadata": {boolean}
+    >           },
+    >           "asset_type": {string}
+    >        }
+
+    > **Payload to clone an asset**
+    >
+    >       {
+    >           "clone_from": {string},
+    >           "name": {string},
+    >           "asset_type": {string}
+    >       }
+
+    where `asset_type` must be one of these values:
+
+    * block (can be cloned to `block`, `question`, `survey`, `template`)
+    * question (can be cloned to `question`, `survey`, `template`)
+    * survey (can be cloned to `block`, `question`, `survey`, `template`)
+    * template (can be cloned to `survey`, `template`)
+
+    Settings are never cloned except when cloning a `survey` to `template` (or vice-versa).
+    In that case, `share-metadata` is not preserved.
+
+    When creating a new `block` or `question` asset, settings are not saved either.
+
+    ### Deployment
+
+    Retrieves the existing deployment, if any.
+    <pre class="prettyprint">
+    <b>GET</b> /assets/{uid}/deployment
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/deployment
+
+    Creates a new deployment, but only if a deployment does not exist already.
+    <pre class="prettyprint">
+    <b>POST</b> /assets/{uid}/deployment
+    </pre>
+
+    > Example
+    >
+    >       curl -X POST https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/deployment
+
+    Updates the `active` field of the existing deployment.
+    <pre class="prettyprint">
+    <b>PATCH</b> /assets/{uid}/deployment
+    </pre>
+
+    > Example
+    >
+    >       curl -X PATCH https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/deployment
+
+    Overwrites the entire deployment, including the form contents, but does not change the deployment's identifier
+    <pre class="prettyprint">
+    <b>PUT</b> /assets/{uid}/deployment
+    </pre>
+
+    > Example
+    >
+    >       curl -X PUT https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/deployment
+
+
+    ### Permissions
+    Updates permissions of the specific asset
+    <pre class="prettyprint">
+    <b>PATCH</b> /assets/{uid}/permissions
+    </pre>
+
+    > Example
+    >
+    >       curl -X PATCH https://[kpi-url]/assets/aSAvYreNzVEkrWg5Gdcvg/permissions
+
+    ### CURRENT ENDPOINT
     """
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
     queryset = Asset.objects.select_related(
@@ -764,7 +888,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 cloned_data.update(self.request.data.items())
 
             # Change asset_type if needed.
-            cloned_data["asset_type"] = self.request.data.get(DEST_TYPE_ARG_NAME, original_asset.asset_type)
+            cloned_data["asset_type"] = self.request.data.get(ASSET_TYPE_ARG_NAME, original_asset.asset_type)
 
             # We need to keep the settings without shared-metadata when cloning a template to a survey
             # or a survey to a template
@@ -790,8 +914,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         """
         is_valid = True
 
-        if DEST_TYPE_ARG_NAME in self.request.data:
-            destination_type = self.request.data.get(DEST_TYPE_ARG_NAME)
+        if CLONE_ARG_NAME in self.request.data and ASSET_TYPE_ARG_NAME in self.request.data:
+            destination_type = self.request.data.get(ASSET_TYPE_ARG_NAME)
             if destination_type in dict(ASSET_TYPES).values():
                 source_type = original_asset_.asset_type
                 is_valid = destination_type in CLONE_COMPATIBLE_TYPES.get(source_type)
