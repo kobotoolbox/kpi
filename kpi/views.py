@@ -96,13 +96,12 @@ from .utils.gravatar_url import gravatar_url
 from .utils.kobo_to_xlsform import to_xlsform_structure
 from .utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from .tasks import import_in_background, export_in_background
+from .constants import CLONE_ARG_NAME, CLONE_FROM_VERSION_ID_ARG_NAME, \
+    COLLECTION_CLONE_FIELDS, DEST_TYPE_ARG_NAME, CLONE_COMPATIBLE_TYPES, \
+    ASSET_TYPE_TEMPLATE, ASSET_TYPE_SURVEY, ASSET_TYPES
 from deployment_backends.backends import DEPLOYMENT_BACKENDS
 from deployment_backends.kobocat_backend import KobocatDataProxyViewSetMixin
 from kpi.exceptions import BadAssetTypeException
-
-
-CLONE_ARG_NAME = 'clone_from'
-COLLECTION_CLONE_FIELDS = {'name'}
 
 
 @login_required
@@ -202,8 +201,8 @@ class CollectionViewSet(viewsets.ModelViewSet):
     def _clone(self):
         # Clone an existing collection.
         original_uid = self.request.data[CLONE_ARG_NAME]
-        original_collection= get_object_or_404(Collection, uid=original_uid)
-        view_perm= get_perm_name('view', original_collection)
+        original_collection = get_object_or_404(Collection, uid=original_uid)
+        view_perm = get_perm_name('view', original_collection)
         if not self.request.user.has_perm(view_perm, original_collection):
             raise Http404
         else:
@@ -217,7 +216,7 @@ class CollectionViewSet(viewsets.ModelViewSet):
             # Pull any additionally provided parameters/overrides from the
             # request.
             for param in self.request.data:
-                cloned_data[param]= self.request.data[param]
+                cloned_data[param] = self.request.data[param]
             serializer = self.get_serializer(data=cloned_data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
@@ -733,8 +732,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def _get_clone_serializer(self):
         original_uid = self.request.data[CLONE_ARG_NAME]
         original_asset = get_object_or_404(Asset, uid=original_uid)
-        if 'clone_from_version_id' in self.request.data:
-            original_version_id = self.request.data['clone_from_version_id']
+        if CLONE_FROM_VERSION_ID_ARG_NAME in self.request.data:
+            original_version_id = self.request.data.get(CLONE_FROM_VERSION_ID_ARG_NAME)
             source_version = get_object_or_404(
                 original_asset.asset_versions, uid=original_version_id)
         else:
@@ -743,13 +742,63 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         view_perm = get_perm_name('view', original_asset)
         if not self.request.user.has_perm(view_perm, original_asset):
             raise Http404
-        # TODO: Duplicate permissions if a user is cloning their own asset.
-        cloned_data = original_asset.to_clone_dict(version_uid=source_version.uid)
-        for key, val in self.request.data.iteritems():
-            cloned_data.update(self.request.data.items())
-        # until we get content passed as a dict, transform the content obj to a str
-        cloned_data['content'] = json.dumps(cloned_data['content'])
-        return self.get_serializer(data=cloned_data)
+
+        cloned_data = self._prepare_cloned_data(original_asset, source_version)
+        if cloned_data:
+            return self.get_serializer(data=cloned_data)
+        else:
+            raise BadAssetTypeException("Destination type is not compatible with source type")
+
+    def _prepare_cloned_data(self, original_asset, source_version):
+        """
+        Some business rules must be applied when cloning an asset to another with a different type.
+        It prepares the data to be cloned accordingly.
+
+        :param source_version: AssetVersion
+        :return: dict|None
+        """
+        if self._validate_destination_type(original_asset):
+            cloned_data = original_asset.to_clone_dict(version=source_version)
+
+            for key, val in self.request.data.iteritems():
+                cloned_data.update(self.request.data.items())
+
+            # Change asset_type if needed.
+            cloned_data["asset_type"] = self.request.data.get(DEST_TYPE_ARG_NAME, original_asset.asset_type)
+
+            # We need to keep the settings without shared-metadata when cloning a template to a survey
+            # or a survey to a template
+            if (original_asset.asset_type == ASSET_TYPE_TEMPLATE and
+                cloned_data.get("asset_type") == ASSET_TYPE_SURVEY) or \
+                    (original_asset.asset_type == ASSET_TYPE_SURVEY and
+                     cloned_data.get("asset_type") == ASSET_TYPE_TEMPLATE):
+                settings = original_asset.settings
+                settings.pop("share-metadata", None)
+                cloned_data.update({"settings": json.dumps(settings)})
+
+            # until we get content passed as a dict, transform the content obj to a str
+            cloned_data["content"] = json.dumps(cloned_data.get("content"))
+            return cloned_data
+        else:
+            return None
+
+    def _validate_destination_type(self, original_asset_):
+        """
+        Validates if destination asset can be cloned from source asset.
+        :param original_asset_ Asset: Source
+        :return: Boolean
+        """
+        is_valid = True
+
+        if DEST_TYPE_ARG_NAME in self.request.data:
+            destination_type = self.request.data.get(DEST_TYPE_ARG_NAME)
+            if destination_type in dict(ASSET_TYPES).values():
+                source_type = original_asset_.asset_type
+                is_valid = destination_type in CLONE_COMPATIBLE_TYPES.get(source_type)
+            else:
+                is_valid = False
+
+        return is_valid
 
     def create(self, request, *args, **kwargs):
         if CLONE_ARG_NAME in request.data:
@@ -825,10 +874,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             contents, but does not change the deployment's identifier
         '''
         asset = self.get_object()
-
-        print("######################")
-        print("ON est dans deploynment du ViewSet")
-        print("######################")
 
         # TODO: Require the client to provide a fully-qualified identifier,
         # otherwise provide less kludgy solution

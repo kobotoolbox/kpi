@@ -1,6 +1,8 @@
 import constance
 from django.conf import settings
-from hub.models import SitewideMessage, ConfigurationFile
+
+from hub.models import ConfigurationFile
+from hub.utils.i18n import I18nUtils
 
 
 def external_service_tokens(request):
@@ -22,18 +24,16 @@ def email(request):
 
 
 def sitewide_messages(request):
-    '''
+    """
     required in the context for any pages that need to display
     custom text in django templates
-    '''
+    """
     if request.path_info.endswith("accounts/register/"):
-        try:
-            return {
-                'welcome_message': SitewideMessage.objects.get(
-                    slug='welcome_message').body
-            }
-        except SitewideMessage.DoesNotExist as e:
-            return {}
+
+        sitewide_message = I18nUtils.get_sitewide_message()
+        if sitewide_message is not None:
+            return {"welcome_message": sitewide_message}
+
     return {}
 
 
