@@ -400,9 +400,13 @@ mixins.clickAssets = {
         let asset = stores.selectedAsset.asset;
         mixins.dmix.deployAsset(asset);
       },
-      createTemplate: function(uid) {
-        console.debug('createTemplate', uid);
+      createTemplateFromProject: function(uid) {
+        console.debug('createTemplateFromProject', uid);
         // TODO: call backend to create a template
+      },
+      createProjectFromTemplate: function(uid) {
+        console.debug('createProjectFromTemplate', uid);
+        // TODO: call backend to create a project from template
       },
       archive: function(uid) {
         let asset = stores.selectedAsset.asset;

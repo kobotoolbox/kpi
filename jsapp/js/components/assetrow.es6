@@ -308,12 +308,22 @@ class AssetRow extends React.Component {
                     );
               })
             }
-            <ui.PopoverMenu type='assetrow-menu'
-                        triggerLabel={<i className="k-icon-more" />}
-                        triggerTip={t('More Actions')}
-                        clearPopover={this.state.clearPopover}
-                        popoverSetVisible={this.popoverSetVisible}>
-
+            <ui.PopoverMenu
+              type='assetrow-menu'
+              triggerLabel={<i className="k-icon-more" />}
+              triggerTip={t('More Actions')}
+              clearPopover={this.state.clearPopover}
+              popoverSetVisible={this.popoverSetVisible}
+            >
+              { this.props.asset_type && this.props.asset_type === 'template' && userCanEdit &&
+                <bem.PopoverMenu__link
+                    m={'createProjectFromTemplate'}
+                    data-action={'createProjectFromTemplate'}
+                    data-asset-type={this.props.kind}>
+                  <i className="k-icon-projects" />
+                  {t('Create project')}
+                </bem.PopoverMenu__link>
+              }
               { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit && isDeployable &&
                 <bem.PopoverMenu__link
                     m={'deploy'}
@@ -390,8 +400,8 @@ class AssetRow extends React.Component {
               }
               { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit &&
                 <bem.PopoverMenu__link
-                  m={'createTemplate'}
-                  data-action={'createTemplate'}
+                  m={'createTemplateFromProject'}
+                  data-action={'createTemplateFromProject'}
                   data-asset-type={this.props.kind}
                 >
                   <i className="k-icon-template" />
