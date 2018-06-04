@@ -404,8 +404,6 @@ mixins.clickAssets = {
         // TODO: call backend to create a template
       },
       createProjectFromTemplate: function(uid) {
-        console.debug('createProjectFromTemplate', uid);
-
         const dialog = alertify.dialog('prompt');
         const opts = {
           title: t('Create project from template'),
