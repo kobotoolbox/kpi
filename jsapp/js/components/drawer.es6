@@ -137,9 +137,6 @@ class Drawer extends Reflux.Component {
       stores.serverEnvironment,
     ];
   }
-  toggleFixedDrawer() {
-    stores.pageState.toggleFixedDrawer();
-  }
   render () {
     return (
       <bem.Drawer className='k-drawer'>
@@ -149,9 +146,6 @@ class Drawer extends Reflux.Component {
         </nav>
 
         <div className="drawer__sidebar">
-          <button className="mdl-button mdl-button--icon k-drawer__close" onClick={this.toggleFixedDrawer}>
-            <i className="k-icon-close"></i>
-          </button>
           { this.isLibrary()
             ? <LibrarySidebar />
             : <FormSidebar />
