@@ -129,16 +129,13 @@ var dataInterface;
         }
       });
     },
-    cloneAsset ({uid, name, version_id}) {
+    cloneAsset ({uid, name, version_id, new_asset_type}) {
       let data = {
         clone_from: uid,
       };
-      if (name) {
-        data.name = name;
-      }
-      if (version_id) {
-        data.clone_from_version_id = version_id;
-      }
+      if (name) { data.name = name; }
+      if (version_id) { data.clone_from_version_id = version_id; }
+      if (new_asset_type) { data.asset_type = new_asset_type; }
       return $ajax({
         method: 'POST',
         url: `${rootUrl}/assets/`,
