@@ -292,12 +292,12 @@ mixins.collectionList = {
 };
 
 // helper function for clickAsset methods
-const cloneAssetAsNewType = ({
+const cloneAssetAsNewType = function ({
   sourceUid,
   targetType,
   promptTitle,
   promptMessage
-}) => {
+}) {
   const dialog = alertify.dialog('prompt');
   const opts = {
     title: promptTitle,
@@ -371,7 +371,7 @@ mixins.clickAssets = {
         dialog.set(opts).show();
       },
       cloneAsTemplate: function(sourceUid, sourceName) {
-        cloneAssetAsNewType({
+        cloneAssetAsNewType.call(this, {
             sourceUid: sourceUid,
             targetType: 'template',
             promptTitle: t('Create new template'),
@@ -379,7 +379,7 @@ mixins.clickAssets = {
         });
       },
       cloneAsSurvey: function(sourceUid, sourceName) {
-        cloneAssetAsNewType({
+        cloneAssetAsNewType.call(this, {
             sourceUid: sourceUid,
             targetType: 'survey',
             promptTitle: t('Create new project'),
