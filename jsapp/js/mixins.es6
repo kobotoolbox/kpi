@@ -291,6 +291,51 @@ mixins.collectionList = {
   },
 };
 
+// helper function for clickAsset methods
+const cloneAssetAsNewType = ({
+  sourceUid,
+  targetType,
+  promptTitle,
+  promptMessage
+}) => {
+  const dialog = alertify.dialog('prompt');
+  const opts = {
+    title: promptTitle,
+    message: promptMessage,
+    value: name,
+    labels: {ok: t('Create'), cancel: t('Cancel')},
+    onok: (evt, value) => {
+      // disable buttons
+      dialog.elements.buttons.primary.children[0].setAttribute('disabled', true);
+      dialog.elements.buttons.primary.children[0].innerText = t('Creating…');
+      dialog.elements.buttons.primary.children[1].setAttribute('disabled', true);
+
+      actions.resources.cloneAsset({
+        uid: sourceUid,
+        name: value,
+        new_asset_type: targetType
+      }, {
+        onComplete: (asset) => {
+          dialog.destroy();
+          notify(t('New ## has been created.').replace('##', targetType));
+          this.refreshSearch && this.refreshSearch();
+        },
+        onFailed: (asset) => {
+          dialog.destroy();
+          alertify.error(t('Failed to create new ##!').replace('##', targetType));
+        }
+      });
+
+      // keep the dialog open
+      return false;
+    },
+    oncancel: (evt, value) => {
+      dialog.destroy();
+    }
+  };
+  dialog.set(opts).show();
+};
+
 mixins.clickAssets = {
   onActionButtonClick (action, uid, name) {
     this.click.asset[action].call(this, uid, name);
@@ -324,7 +369,22 @@ mixins.clickAssets = {
           }
         };
         dialog.set(opts).show();
-
+      },
+      cloneAsTemplate: function(sourceUid, sourceName) {
+        cloneAssetAsNewType({
+            sourceUid: sourceUid,
+            targetType: 'template',
+            promptTitle: t('Create new template'),
+            promptMessage: t('Enter new name or leave blank to use "##"').replace('##', sourceName)
+        });
+      },
+      cloneAsSurvey: function(sourceUid, sourceName) {
+        cloneAssetAsNewType({
+            sourceUid: sourceUid,
+            targetType: 'survey',
+            promptTitle: t('Create new project'),
+            promptMessage: t('Enter new name or leave blank to use "##"').replace('##', sourceName)
+        });
       },
       edit: function (uid) {
         if (this.context.router.isActive('library'))
@@ -398,84 +458,6 @@ mixins.clickAssets = {
       deploy: function(uid){
         let asset = stores.selectedAsset.asset;
         mixins.dmix.deployAsset(asset);
-      },
-      createTemplateFromProject: function(sourceUid, sourceName) {
-        const dialog = alertify.dialog('prompt');
-        const opts = {
-          title: t('Create template from project'),
-          message: t('Enter the name of the template or leave empty to use Project name.'),
-          value: name,
-          labels: {
-            ok: t('Create'),
-            cancel: t('Cancel')
-          },
-          onok: (evt, value) => {
-            // disable buttons
-            dialog.elements.buttons.primary.children[0].setAttribute('disabled', true);
-            dialog.elements.buttons.primary.children[0].innerText = t('Creating…');
-            dialog.elements.buttons.primary.children[1].setAttribute('disabled', true);
-
-            actions.resources.cloneAsset({
-              uid: sourceUid,
-              name: value,
-              new_asset_type: 'template'
-            }, {
-              onComplete: (asset) => {
-                dialog.destroy();
-                notify(t('Template "##" has been created.').replace('##', asset.name));
-              },
-              onFailed: (asset) => {
-                dialog.destroy();
-                alertify.error(t('Failed to create template from project!'));
-              }
-            });
-            // keep the dialog open
-            return false;
-          },
-          oncancel: (evt, value) => {
-            dialog.destroy();
-          }
-        };
-        dialog.set(opts).show();
-      },
-      createProjectFromTemplate: function(sourceUid, sourceName) {
-        const dialog = alertify.dialog('prompt');
-        const opts = {
-          title: t('Create project from template'),
-          message: t('Enter the name of the project or leave empty to use Template name.'),
-          value: name,
-          labels: {
-            ok: t('Create'),
-            cancel: t('Cancel')
-          },
-          onok: (evt, value) => {
-            // disable buttons
-            dialog.elements.buttons.primary.children[0].setAttribute('disabled', true);
-            dialog.elements.buttons.primary.children[0].innerText = t('Creating…');
-            dialog.elements.buttons.primary.children[1].setAttribute('disabled', true);
-
-            actions.resources.cloneAsset({
-              uid: sourceUid,
-              name: value,
-              new_asset_type: 'survey'
-            }, {
-              onComplete: (asset) => {
-                dialog.destroy();
-                notify(t('Project "##" has been created.').replace('##', asset.name));
-              },
-              onFailed: (asset) => {
-                dialog.destroy();
-                alertify.error(t('Failed to create project from template!'));
-              }
-            });
-            // keep the dialog open
-            return false;
-          },
-          oncancel: (evt, value) => {
-            dialog.destroy();
-          }
-        };
-        dialog.set(opts).show();
       },
       archive: function(uid) {
         let asset = stores.selectedAsset.asset;

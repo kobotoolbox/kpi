@@ -317,9 +317,11 @@ class AssetRow extends React.Component {
             >
               { this.props.asset_type && this.props.asset_type === 'template' && userCanEdit &&
                 <bem.PopoverMenu__link
-                    m={'createProjectFromTemplate'}
-                    data-action={'createProjectFromTemplate'}
-                    data-asset-type={this.props.kind}>
+                  m={'cloneAsSurvey'}
+                  data-action={'cloneAsSurvey'}
+                  data-asset-type={this.props.kind}
+                  data-asset-name={this.props.name}
+                >
                   <i className="k-icon-projects" />
                   {t('Create project')}
                 </bem.PopoverMenu__link>
@@ -400,9 +402,10 @@ class AssetRow extends React.Component {
               }
               { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit &&
                 <bem.PopoverMenu__link
-                  m={'createTemplateFromProject'}
-                  data-action={'createTemplateFromProject'}
+                  m={'cloneAsTemplate'}
+                  data-action={'cloneAsTemplate'}
                   data-asset-type={this.props.kind}
+                  data-asset-name={this.props.name}
                 >
                   <i className="k-icon-template" />
                   {t('Create template')}
