@@ -400,8 +400,43 @@ mixins.clickAssets = {
         mixins.dmix.deployAsset(asset);
       },
       createTemplateFromProject: function(uid) {
-        console.debug('createTemplateFromProject', uid);
-        // TODO: call backend to create a template
+        const dialog = alertify.dialog('prompt');
+        const opts = {
+          title: t('Create template from project'),
+          message: t('Enter the name of the template or leave empty to use Project name.'),
+          value: name,
+          labels: {
+            ok: t('Create'),
+            cancel: t('Cancel')
+          },
+          onok: (evt, value) => {
+            // disable buttons
+            dialog.elements.buttons.primary.children[0].setAttribute('disabled', true);
+            dialog.elements.buttons.primary.children[0].innerText = t('Creating…');
+            dialog.elements.buttons.primary.children[1].setAttribute('disabled', true);
+
+            actions.resources.cloneAsset({
+              uid: uid,
+              name: value,
+              new_asset_type: 'template'
+            }, {
+              onComplete: (asset) => {
+                dialog.destroy();
+                notify(t('Template "##" has been created.').replace('##', asset.name));
+              },
+              onFailed: (asset) => {
+                dialog.destroy();
+                alertify.error(t('Failed to create template from project!'));
+              }
+            });
+            // keep the dialog open
+            return false;
+          },
+          oncancel: (evt, value) => {
+            dialog.destroy();
+          }
+        };
+        dialog.set(opts).show();
       },
       createProjectFromTemplate: function(uid) {
         const dialog = alertify.dialog('prompt');
