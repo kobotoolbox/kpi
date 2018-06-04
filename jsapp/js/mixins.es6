@@ -399,7 +399,7 @@ mixins.clickAssets = {
         let asset = stores.selectedAsset.asset;
         mixins.dmix.deployAsset(asset);
       },
-      createTemplateFromProject: function(uid) {
+      createTemplateFromProject: function(sourceUid, sourceName) {
         const dialog = alertify.dialog('prompt');
         const opts = {
           title: t('Create template from project'),
@@ -416,7 +416,7 @@ mixins.clickAssets = {
             dialog.elements.buttons.primary.children[1].setAttribute('disabled', true);
 
             actions.resources.cloneAsset({
-              uid: uid,
+              uid: sourceUid,
               name: value,
               new_asset_type: 'template'
             }, {
@@ -438,7 +438,7 @@ mixins.clickAssets = {
         };
         dialog.set(opts).show();
       },
-      createProjectFromTemplate: function(uid) {
+      createProjectFromTemplate: function(sourceUid, sourceName) {
         const dialog = alertify.dialog('prompt');
         const opts = {
           title: t('Create project from template'),
@@ -455,7 +455,7 @@ mixins.clickAssets = {
             dialog.elements.buttons.primary.children[1].setAttribute('disabled', true);
 
             actions.resources.cloneAsset({
-              uid: uid,
+              uid: sourceUid,
               name: value,
               new_asset_type: 'survey'
             }, {
