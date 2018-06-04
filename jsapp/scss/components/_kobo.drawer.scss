@@ -69,10 +69,6 @@
   height: 100%;
   padding: 20px 14px;
 
-  .k-drawer__close {
-    display: none;
-  }
-
   .form-sidebar__wrapper, .collections-wrapper {
     height: 100%;
   }
@@ -100,23 +96,6 @@
 
   .mdl-layout__content {
     margin-left: 0px;
-  }
-
-  .drawer__sidebar {
-    .k-drawer__close {
-      font-size: 16px;
-      opacity: 1;
-      position: absolute;
-      right: 8px;
-      top: 8px;
-      display: block;
-      color: $layout-drawer-nav-link-color;
-
-      &:hover {
-        background-color: transparent;
-        opacity: 0.6;
-      }
-    }
   }
 }
 
