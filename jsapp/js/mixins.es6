@@ -409,17 +409,36 @@ mixins.clickAssets = {
         const dialog = alertify.dialog('prompt');
         const opts = {
           title: t('Create project from template'),
-          message: t('Enter the name of the project'),
+          message: t('Enter the name of the project or leave empty to use Template name.'),
           value: name,
           labels: {
             ok: t('Create'),
             cancel: t('Cancel')
           },
-          onok: (evt, calue) => {
-            // TODO: call backend to create a project from template
-            console.log('on ok');
+          onok: (evt, value) => {
+            // disable buttons
+            dialog.elements.buttons.primary.children[0].setAttribute('disabled', true);
+            dialog.elements.buttons.primary.children[0].innerText = t('Creating…');
+            dialog.elements.buttons.primary.children[1].setAttribute('disabled', true);
+
+            actions.resources.cloneAsset({
+              uid: uid,
+              name: value,
+              new_asset_type: 'survey'
+            }, {
+              onComplete: (asset) => {
+                dialog.destroy();
+                notify(t('Project "##" has been created.').replace('##', asset.name));
+              },
+              onFailed: (asset) => {
+                dialog.destroy();
+                alertify.error(t('Failed to create project from template!'));
+              }
+            });
+            // keep the dialog open
+            return false;
           },
-          oncancel: (evt, calue) => {
+          oncancel: (evt, value) => {
             dialog.destroy();
           }
         };
