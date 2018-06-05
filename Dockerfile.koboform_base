@@ -10,10 +10,10 @@ ENV KPI_SRC_DIR=/srv/src/kpi \
 
 
 ###############################
-# Prepare to install Node 6.x #
+# Prepare to install Node 8.x #
 ###############################
 
-ADD https://deb.nodesource.com/setup_6.x /tmp/setup_6.x.bash
+ADD https://deb.nodesource.com/setup_8.x /tmp/setup_8.x.bash
 
 
 ###########################
@@ -21,7 +21,7 @@ ADD https://deb.nodesource.com/setup_6.x /tmp/setup_6.x.bash
 ###########################
 
 COPY ./dependencies/apt_requirements.txt /srv/tmp/base__apt_requirements.txt
-RUN bash /tmp/setup_6.x.bash && \
+RUN bash /tmp/setup_8.x.bash && \
     apt-get update -qq && \
     apt-get install -qqy $(cat /srv/tmp/base__apt_requirements.txt) && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
