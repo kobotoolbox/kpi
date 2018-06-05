@@ -113,5 +113,21 @@
             "created": "2017-05-09 10:49:34.273769-04",
             "user": 3
         }
+    },
+    {
+        "model": "hub.sitewidemessage",
+        "pk": 1,
+        "fields": {
+            "slug": "welcome_message",
+            "body": "Global welcome message"
+        }
+    },
+    {
+        "model": "hub.sitewidemessage",
+        "pk": 2,
+        "fields": {
+            "slug": "welcome_message_fr",
+            "body": "Le message de bienvenue"
+        }
     }
 ]

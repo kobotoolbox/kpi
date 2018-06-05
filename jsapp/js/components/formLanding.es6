@@ -316,7 +316,7 @@ export class FormLanding extends React.Component {
                   &nbsp;
                   {t('on your Android device.')}
                 </li>
-                <li>{t('Click on')} <i className="fa fa-ellipsis-v"></i> {t('to open settings.')}</li>
+                <li>{t('Click on')} <i className="fa fa-ellipsis-v"/> {t('to open settings.')}</li>
                 <li>
                   {t('Enter the server URL')}&nbsp;
                   <code>{kobocollect_url}</code>&nbsp;

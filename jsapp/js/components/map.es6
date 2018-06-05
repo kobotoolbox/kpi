@@ -54,7 +54,6 @@ var baseLayers = {
 
 var controls = L.control.layers(baseLayers);
 
-
 export class FormMap extends React.Component {
   constructor(props){
     super(props);
@@ -138,47 +137,50 @@ export class FormMap extends React.Component {
     let map = this.state.map;
     var overlays = [];
 
-    if (data.results) {
-      // remove layers from controls if they are no longer in asset files
-      controls._layers.forEach(function(controlLayer) {
-        if (controlLayer.overlay) {
-          let layerMatch = data.results.filter(
-            result => result.name === controlLayer.name
-          );
-          if (!layerMatch.length) {
-            controls.removeLayer(controlLayer.layer);
-          }
-        }
-      });
-
-      // add new layers to controls (if they haven't beed added already)
-      data.results.forEach(function(layer) {
-        if (layer.file_type !== 'map_layer') return false;
-        let layerMatch = controls._layers.filter(
-          controlLayer => controlLayer.name === layer.name
+    // remove layers from controls if they are no longer in asset files
+    controls._layers.forEach(function(controlLayer) {
+      if (controlLayer.overlay) {
+        let layerMatch = data.results.filter(
+          result => result.name === controlLayer.name
         );
-        if (layerMatch.length) return false;
-
-        switch (layer.metadata.type) {
-          case 'kml':
-            controls.addOverlay(omnivore.kml(layer.content_url), layer.name);
-            break;
-          case 'csv':
-            controls.addOverlay(omnivore.csv(layer.content_url), layer.name);
-            break;
-          case 'json':
-          case 'geojson':
-            controls.addOverlay(
-              omnivore.geojson(layer.content_url),
-              layer.name
-            );
-            break;
-          case 'wkt':
-            controls.addOverlay(omnivore.wkt(layer.content_url), layer.name);
-            break;
+        if (!layerMatch.length) {
+          controls.removeLayer(controlLayer.layer);
+          map.removeLayer(controlLayer.layer);
         }
-      });
-    }
+      }
+    });
+
+    // add new layers to controls (if they haven't been added already)
+    data.results.forEach(function(layer) {
+      if (layer.file_type !== 'map_layer') return false;
+      let layerMatch = controls._layers.filter(
+        controlLayer => controlLayer.name === layer.name
+      );
+      if (layerMatch.length) return false;
+
+      var overlayLayer = false;
+      switch (layer.metadata.type) {
+        case 'kml':
+          overlayLayer = omnivore.kml(layer.content_url);
+          break;
+        case 'csv':
+          overlayLayer = omnivore.csv(layer.content_url);
+          break;
+        case 'json':
+        case 'geojson':
+          overlayLayer = omnivore.geojson(layer.content_url);
+          break;
+        case 'wkt':
+          overlayLayer = omnivore.wkt(layer.content_url);
+          break;
+      }
+
+      if (overlayLayer) {
+        overlayLayer.options = {interactive: false};
+        controls.addOverlay(overlayLayer, layer.name);
+        overlayLayer.addTo(map);
+      }
+    });
   }
   mapSettingsListener(uid, changes) {
     let map = this.refreshMap();
@@ -421,6 +423,10 @@ export class FormMap extends React.Component {
     );
   }
 
+  showLayerControls() {
+    controls.expand();
+  }
+
   showHeatmap () {
     var map = this.state.map;
 
@@ -610,6 +616,11 @@ export class FormMap extends React.Component {
           className={this.state.markersVisible ? 'active': ''}>
           <i className="k-icon-pins" />
         </bem.FormView__mapButton>
+        <bem.FormView__mapButton m={'layers'}
+          onClick={this.showLayerControls}
+          data-tip={t('Toggle layers')}>
+          <i className="k-icon-layer" />
+        </bem.FormView__mapButton>
         <bem.FormView__mapButton
           m={'map-settings'}
           onClick={this.toggleMapSettings}
@@ -712,7 +723,7 @@ export class FormMap extends React.Component {
           </ui.Modal>
         )}
 
-        <div id="data-map"></div>
+        <div id="data-map" />
       </bem.FormView>
       );
   }

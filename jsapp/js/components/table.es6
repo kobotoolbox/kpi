@@ -180,7 +180,7 @@ export class DataTable extends React.Component {
                 id={`ch-head`}
                 checked={Object.keys(this.state.selectedRows).length === maxPageRes ? true : false}
                 onChange={this.bulkSelectAllRows} />
-              <label htmlFor={`ch-head`}></label>
+              <label htmlFor={`ch-head`} />
             </div>
           ),
         accessor: 'sub-checkbox',
@@ -197,7 +197,7 @@ export class DataTable extends React.Component {
                 id={`ch-${row.original._id}`}
                 checked={this.state.selectedRows[row.original._id] ? true : false}
                 onChange={this.bulkUpdateChange} data-sid={row.original._id} />
-            <label htmlFor={`ch-${row.original._id}`}></label>
+            <label htmlFor={`ch-${row.original._id}`} />
           </div>
         )
       });
@@ -218,13 +218,13 @@ export class DataTable extends React.Component {
         <div>
           <span onClick={this.launchSubmissionModal} data-sid={row.original._id}
                 className='table-link' data-tip={t('Open')}>
-            <i className="k-icon k-icon-view"></i>
+            <i className="k-icon k-icon-view"/>
           </span>
 
           {userCanSeeEditIcon &&
             <span onClick={this.launchEditSubmission} data-sid={row.original._id}
                   className='table-link' data-tip={t('Edit')}>
-              <i className="k-icon k-icon-edit"></i>
+              <i className="k-icon k-icon-edit"/>
             </span>
           }
         </div>

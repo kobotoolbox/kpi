@@ -184,9 +184,6 @@ def build_and_deploy(branch):
     with cd(env.docker_config_path):
         # Build the image
         run("docker-compose build '{}'".format(SERVICE_NAME))
-        # Run the new image
-        run("docker-compose stop '{}'".format(SERVICE_NAME))
-        run("docker-compose rm -f '{}'".format(SERVICE_NAME))
         # Don't specify a service name to avoid "Cannot link to a non running
         # container"
         run("docker-compose up -d")

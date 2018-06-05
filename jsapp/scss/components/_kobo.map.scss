@@ -35,6 +35,12 @@
       z-index: 699;
     }
 
+    &--layers {
+      top: 12px;
+      right: 68px;
+      z-index: 701;
+    }
+
     &--expand {
       top: 12px;
       z-index: 701;
@@ -61,6 +67,14 @@
   margin-right: 56px;
 
   // right margin plus icon size
+}
+
+.leaflet-control-layers-toggle {
+  display: none;
+
+  &.leaflet-control-layers-expanded {
+    display: block;
+  }
 }
 
 .popover-menu--viewby-menu {
