@@ -158,11 +158,14 @@ class MapSettings extends React.Component {
       dataInterface.uploadAssetFile(uid, data).done(result => {
         _this.setState({ layerName: '' });
         actions.resources.getAssetFiles(this.props.asset.uid);
+      }).fail((jqxhr) => {
+        var errMsg = t('Upload error: ##error_message##.').replace('##error_message##', jqxhr.statusText);
+        alertify.error(errMsg);
       });
     });
 
     rejectedFiles.map(rej => {
-      var errMsg = t('Upload error: could not recognize Excel file.');
+      var errMsg = t('Upload error: not a valid map overlay format.');
       alertify.error(errMsg);
     });
   }
