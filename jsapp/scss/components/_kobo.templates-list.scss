@@ -7,6 +7,9 @@
     font-weight: 600;
   }
 
+  // HACK: because of stronger selectors in `_kobo.bem.ui.scss`
+  label.templates-list__row {display: flex;}
+
   .templates-list__row {
     display: flex;
     box-shadow: 0 0 0 1px $divider-color;
