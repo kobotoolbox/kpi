@@ -110,6 +110,10 @@ export class ProjectSettings extends React.Component {
     hashHistory.push(`/forms/${this.props.newFormAsset.uid}/edit`);
     stores.pageState.hideModal();
   }
+  goToFormLanding() {
+    hashHistory.push(`/forms/${this.props.newFormAsset.uid}/landing`);
+    stores.pageState.hideModal();
+  }
   displayChooseTemplate() {
     this.setState({step3: 'template'});
   }
@@ -124,9 +128,26 @@ export class ProjectSettings extends React.Component {
   }
   chooseTemplate(evt) {
     evt.preventDefault();
-    console.debug('chooseTemplate', evt);
-    // TODO: call backend to apply template to created asset
-    // TODO: open asset landing page after creation (loading promise?)
+
+    this.setState({
+      chooseTemplateButtonEnabled: false,
+      chooseTemplateButton: t('Creating…')
+    });
+
+    dataInterface.patchAsset(this.props.newFormAsset.uid, {
+      clone_from: this.state.chosenTemplateUid,
+      asset_type: 'template'
+    }).done(() => {
+      // open created project
+      this.goToFormLanding();
+    }).fail((data) => {
+      // reset button and display error notification
+      this.setState({
+        chooseTemplateButtonEnabled: true,
+        chooseTemplateButton: t('Choose')
+      });
+      alertify.error(t('Could not create project!'));
+    });
   }
   handleTemplateSelected(templateUid) {
     this.setState({
@@ -348,7 +369,7 @@ export class ProjectSettings extends React.Component {
               </bem.FormModal__item>
 
               <bem.FormView__link m='step3-back' onClick={this.resetStep3}>
-                {t('back')}
+                {t('Back')}
               </bem.FormView__link>
             </bem.FormModal__item>
           }
