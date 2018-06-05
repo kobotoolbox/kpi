@@ -7,8 +7,8 @@ module.exports = WebpackCommon({
   mode: "development",
   entry: path.resolve(__dirname, '../test/index.js'),
   output: {
-    library: 'KPI Tests',
+    library: 'tests',
     path: path.resolve(__dirname, '../test/compiled/'),
-    filename: "[name].js"
+    filename: "app.js"
   }
 });

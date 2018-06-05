@@ -50,8 +50,8 @@ var defaultOptions = {
     ]
   },
   resolve: {
-  extensions: ['.jsx', '.js', '.es6', '.coffee'],
-  alias: {
+    extensions: ['.jsx', '.js', '.es6', '.coffee'],
+    alias: {
       app: path.join(__dirname, '../app'),
       js: path.join(__dirname, '../jsapp/js'),
       utils: path.join(__dirname, '../jsapp/js/utils'),
