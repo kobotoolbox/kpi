@@ -33,6 +33,7 @@
     "file-loader": "^1.1.11",
     "font-awesome": "^4.4.0",
     "immutable": "^3.4.7",
+    "jszip": "^3.1.5",
     "jquery": "^3.3.1",
     "jquery-ui": "1.12.1",
     "jquery.scrollto": "^2.1.0",

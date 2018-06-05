@@ -299,7 +299,7 @@ class MapSettings extends React.Component {
                 )}
                 <bem.FormModal__item m="layer-upload">
                   <label htmlFor="name">
-                    {t('Use the form below to upload files with map data in one of these formats: CSV, KML, WKT or GEOJSON. The data will be made available as layers for display on the map.')}
+                    {t('Use the form below to upload files with map data in one of these formats: CSV, KML, KMZ, WKT or GEOJSON. The data will be made available as layers for display on the map.')}
                   </label>
                   <input
                     type="text"
@@ -312,7 +312,7 @@ class MapSettings extends React.Component {
                     onDrop={this.dropFiles}
                     multiple={false}
                     className="dropzone"
-                    accept={'.csv,.kml,.geojson,.wkt,.json'}
+                    accept={'.csv,.kml,.geojson,.wkt,.json,.kmz'}
                   >
                     <button className="mdl-button mdl-button--raised mdl-button--colored">
                       {t('Upload')}

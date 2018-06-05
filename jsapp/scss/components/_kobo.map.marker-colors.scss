@@ -5,8 +5,6 @@
 }
 
 .map-marker {
-  // width: 24px;
-  // height: 24px;
   border: 1px solid #FFF;
   border-radius: 50%;
   position: relative;
@@ -16,9 +14,10 @@
   }
 
   &.default-overlay-marker {
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.7);
     border: none;
-    cursor: default;
+    cursor: grab;
+    border-radius: 0;
   }
 }
 

@@ -12,6 +12,7 @@ import actions from '../actions';
 import ui from '../ui';
 import classNames from 'classnames';
 import omnivore from 'leaflet-omnivore';
+import JSZip from 'jszip';
 
 import L from 'leaflet/dist/leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -100,7 +101,7 @@ export class FormMap extends React.Component {
 
     L.Marker.prototype.options.icon = L.divIcon({
       className: 'map-marker default-overlay-marker',
-      iconSize: [15, 15]
+      iconSize: [12, 12]
     });
 
     var map = L.map('data-map', {
@@ -172,6 +173,27 @@ export class FormMap extends React.Component {
           break;
         case 'wkt':
           overlayLayer = omnivore.wkt(layer.content_url);
+          break;
+        case 'kmz':
+          // unzip the KMZ file in the browser and feed the resulting text to map and controls
+          fetch(layer.content)
+          .then(function (response) {
+            if (response.status === 200 || response.status === 0) {
+              return Promise.resolve(response.blob());
+            } else {
+              return Promise.reject(new Error(response.statusText));
+            }
+          })
+          .then(JSZip.loadAsync)
+          .then(function (zip) {
+            return zip.file("doc.kml").async("string");
+          })
+          .then(function success(kml) {
+            overlayLayer = omnivore.kml.parse(kml);
+            overlayLayer.options = {interactive: false};
+            controls.addOverlay(overlayLayer, layer.name);
+            overlayLayer.addTo(map);
+          });
           break;
       }
 
