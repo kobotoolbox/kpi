@@ -463,7 +463,7 @@ export default assign({
               <bem.FormBuilderHeader__close m={[{
                     'close-warning': this.needsSave(),
                   }]} onClick={this.safeNavigateToForm}>
-                <i className="k-icon-close"></i>
+                <i className="k-icon-close"/>
               </bem.FormBuilderHeader__close>
 
             </bem.FormBuilderHeader__cell>
@@ -554,7 +554,7 @@ export default assign({
               <FormStyle__panelheader>
                 {t('form style')}
                 <a href={webformStylesSupportUrl} target="_blank" data-tip={t('Read more about form styles')}>
-                  <i className="k-icon-help"></i>
+                  <i className="k-icon-help"/>
                 </a>
               </FormStyle__panelheader>
               <FormStyle__paneltext>
