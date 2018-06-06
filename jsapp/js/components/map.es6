@@ -553,7 +553,7 @@ export class FormMap extends React.Component {
             </bem.Loading__inner>
           </bem.Loading>
         }
-        <div id="data-map"></div>
+        <div id="data-map" />
       </bem.FormView>
       );
   }
