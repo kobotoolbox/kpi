@@ -8,6 +8,7 @@ import ui from '../ui';
 import { assign, t, validFileTypes } from '../utils';
 import autoBind from 'react-autobind';
 import actions from '../actions';
+import mixins from '../mixins';
 import { dataInterface } from '../dataInterface';
 import Dropzone from 'react-dropzone';
 import alertify from 'alertifyjs';
@@ -75,7 +76,6 @@ class MapColorPicker extends React.Component {
   }
 };
 
-
 class MapSettings extends React.Component {
   constructor(props) {
     super(props);
@@ -92,8 +92,12 @@ class MapSettings extends React.Component {
       }
     });
 
+    let defaultActiveTab = 'colors';
+    if (this.userCan('change_asset', this.props.asset)) defaultActiveTab = 'overlays';
+    if (geoPointQuestions.length > 1) defaultActiveTab = 'geoquestion';
+
     this.state = {
-      activeModalTab: geoPointQuestions.length > 1 ? 'geoquestion' : 'overlays',
+      activeModalTab: defaultActiveTab,
       geoPointQuestions: geoPointQuestions,
       mapSettings: this.props.asset.map_styles,
       files: [],
@@ -126,7 +130,13 @@ class MapSettings extends React.Component {
     let settings = this.state.mapSettings,
       assetUid = this.props.asset.uid;
 
-    actions.map.setMapSettings(assetUid, settings);
+    if (this.userCan('change_asset', this.props.asset)) {
+      actions.map.setMapSettings(assetUid, settings);
+    } else {
+      // pass settings to parent component directly
+      // for users with no permission to edit asset
+      this.props.overrideStyles(settings);
+    }
     this.props.toggleMapSettings();
   }
   updateFileList(data) {
@@ -218,11 +228,10 @@ class MapSettings extends React.Component {
       geoPointQuestions = this.state.geoPointQuestions,
       activeTab = this.state.activeModalTab;
 
-    var tabs = ['overlays', 'colors'];
+    var tabs = ['colors'];
 
-    if (geoPointQuestions.length > 1) {
-      tabs.unshift('geoquestion');
-    }
+    if (this.userCan('change_asset', asset)) tabs.unshift('overlays');
+    if (geoPointQuestions.length > 1) tabs.unshift('geoquestion');
 
     var modalTabs = tabs.map(function(tab, i) {
       return (
@@ -334,11 +343,13 @@ class MapSettings extends React.Component {
 
         {(activeTab === 'geoquestion' || activeTab === 'colors') ?
           <ui.Modal.Footer>
-            <button
-              className="mdl-button mdl-button--colored"
-              onClick={this.resetMapSettings}>
-              {t('Reset')}
-            </button>
+            {this.userCan('change_asset', this.props.asset) &&
+              <button
+                className="mdl-button mdl-button--colored"
+                onClick={this.resetMapSettings}>
+                {t('Reset')}
+              </button>
+            }
             <button
               className="mdl-button primary"
               onClick={this.saveMapSettings}>
@@ -353,5 +364,6 @@ class MapSettings extends React.Component {
 }
 
 reactMixin(MapSettings.prototype, Reflux.ListenerMixin);
+reactMixin(MapSettings.prototype, mixins.permissions);
 
 export default MapSettings;

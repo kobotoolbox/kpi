@@ -81,7 +81,8 @@ export class FormMap extends React.Component {
       langIndex: 0,
       filteredByMarker: false,
       componentRefreshed: false,
-      showMapSettings: false
+      showMapSettings: false,
+      overridenStyles: false
     };
 
     autoBind(this);
@@ -205,7 +206,15 @@ export class FormMap extends React.Component {
     });
   }
   mapSettingsListener(uid, changes) {
+    console.log(changes);
     let map = this.refreshMap();
+
+    if (Object.keys(changes).length === 0) {
+      this.setState({
+        overridenStyles: {colorSet: 'a'}
+      });
+    }
+
     this.setState({ filteredByMarker: false, componentRefreshed: true });
     this.requestData(map, this.props.viewby);
   }
@@ -242,16 +251,25 @@ export class FormMap extends React.Component {
         this.setState({error: t('Error: could not load data.'), loading: false});
     });
   }
-
   calculateClusterRadius(zoom) {
     if(zoom >=12) {return 12;}
     return 20;
+  }
+  calcColorSet() {
+    if (this.state.overridenStyles && this.state.overridenStyles.colorSet) {
+      var colorSet = this.state.overridenStyles.colorSet;
+    } else {
+      let ms = this.props.asset.map_styles;
+      var colorSet = ms.colorSet ? ms.colorSet : undefined;
+    }
+
+    return colorSet;
   }
   buildMarkers(map) {
     var _this = this;
     var prepPoints = [];
     var viewby = this.props.viewby || undefined;
-    let ms = this.props.asset.map_styles;
+    var colorSet = this.calcColorSet();
 
     if (viewby) {
       var mapMarkers = this.prepFilteredMarkers(this.state.submissions, this.props.viewby);
@@ -274,9 +292,9 @@ export class FormMap extends React.Component {
         });
       });
 
-      if (ms.colorSet !== undefined && ms.colorSet !== 'a' && question && question.type == 'select_one') {
+      if (colorSet !== undefined && colorSet !== 'a' && question && question.type == 'select_one') {
         // sort by question choice order, when using any other color set (only makes sense for select_ones)
-        // TODO: evaluate whether this should be a user choice in map settings
+        // TODO: should we expose this for users to choose in map settings?
         mM.sort(function(a, b) {
           var aIndex = currentQuestionChoices.findIndex(ch => ch.name === a.value);
           var bIndex = currentQuestionChoices.findIndex(ch => ch.name === b.value);
@@ -309,7 +327,7 @@ export class FormMap extends React.Component {
           let index = mM.findIndex(m => m.value === itemId);
 
           // spread indexes to use full colorset gamut if necessary
-          if (ms.colorSet !== undefined && ms.colorSet !== 'a') {
+          if (colorSet !== undefined && colorSet !== 'a') {
             index = _this.calculateIconIndex(index, mM);
           }
 
@@ -389,7 +407,7 @@ export class FormMap extends React.Component {
   }
 
   buildIcon(index = false) {
-    let colorSet = this.props.asset.map_styles.colorSet || 'a';
+    let colorSet = this.calcColorSet() || 'a';
     let iconClass = index ? `map-marker-${colorSet}${index}` : `map-marker-a`;
 
     return L.divIcon({
@@ -504,10 +522,20 @@ export class FormMap extends React.Component {
       ids: ids
     });
   }
-  toggleMapSettings(evt) {
+  toggleMapSettings() {
     this.setState({
       showMapSettings: !this.state.showMapSettings
     });
+  }
+  overrideStyles(settings) {
+    this.setState({
+      filteredByMarker: false,
+      componentRefreshed: true,
+      overridenStyles: settings
+    });
+
+    let map = this.refreshMap();
+    this.requestData(map, this.props.viewby);
   }
   toggleExpandedMap () {
     stores.pageState.hideDrawerAndHeader(!this.state.showExpandedMap);
@@ -613,7 +641,7 @@ export class FormMap extends React.Component {
           langs = this.props.asset.content.translations.length > 1 ? this.props.asset.content.translations : [],
           viewby = this.props.viewby;
 
-    let colorSet = this.props.asset.map_styles.colorSet || 'a';
+    let colorSet = this.calcColorSet() || 'a';
     var label = t('Disaggregate by survey responses');
 
     if (viewby) {
@@ -741,6 +769,7 @@ export class FormMap extends React.Component {
             <MapSettings
               asset={this.props.asset}
               toggleMapSettings={this.toggleMapSettings}
+              overrideStyles={this.overrideStyles}
             />
           </ui.Modal>
         )}
