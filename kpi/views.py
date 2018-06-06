@@ -1108,25 +1108,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             user = get_anonymous_user()
         serializer.save(owner=user)
 
-    # def partial_update(self, request, *args, **kwargs):
-    #     if CLONE_ARG_NAME in request.data:
-    #         serializer= self._get_clone_serializer()
-    #     else:
-    #         serializer = self.get_serializer(data=request.data)
-    #
-    #     # serializer.is_valid(raise_exception=True)
-    #     self.perform_update(serializer)
-    #     print("JE SUIS DANS PARTIAL UPDATE")
-    #     print(request)
-    #     print(kwargs)
-    #     print(args)
-    #     headers = self.get_success_headers(serializer.data)
-    #     return Response(serializer.data, status=status.HTTP_200_OK,
-    #                     headers=headers)
-    #def partial_update(self, request, *args, **kwargs):
-    #    print("PARTIAL_UPDATE")
-    #    return super(AssetViewSet, self).partial_update(request, *args, **kwargs)
-
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
 
