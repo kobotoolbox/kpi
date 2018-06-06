@@ -99,7 +99,7 @@ class DrawerLink extends React.Component {
   }
   render () {
     var icon_class = (this.props['ki-icon'] == undefined ? `fa fa-globe` : `k-icon-${this.props['ki-icon']}`);
-    var icon = (<i className={icon_class}></i>);
+    var icon = (<i className={icon_class}/>);
     var classNames = [this.props.class, 'k-drawer__link'];
 
     var link;

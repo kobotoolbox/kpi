@@ -119,14 +119,16 @@ class SidebarFormsList extends Reflux.Component {
                   }
                   return [
                     <bem.FormSidebar__label m={[category, categoryVisible ? 'visible' : 'collapsed']}
-                                            onClick={this.toggleCategory(category)}>
+                                            onClick={this.toggleCategory(category)}
+                                            key={`${category}-label`}>
                       <i />
                       {t(category)}
                       <bem.FormSidebar__labelCount>
                         {s[activeItems][category].length}
                       </bem.FormSidebar__labelCount>
                     </bem.FormSidebar__label>,
-                    <bem.FormSidebar__grouping m={[category, categoryVisible ? 'visible' : 'collapsed']}>
+                    <bem.FormSidebar__grouping m={[category, categoryVisible ? 'visible' : 'collapsed']}
+                                               key={`${category}-group`}>
                       {
                         s[activeItems][category].map(this.renderMiniAssetRow)
                       }

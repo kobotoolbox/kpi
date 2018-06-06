@@ -1,10 +1,9 @@
 import RunRoutes, {routes} from './app';
-import { AppContainer } from 'react-hot-loader'
+import {AppContainer} from 'react-hot-loader'
 import $ from 'jquery';
 import cookie from 'react-cookie';
 import React from 'react';
 import {render} from 'react-dom';
-import "babel-polyfill";
 
 require('../scss/main.scss');
 
@@ -30,7 +29,7 @@ $.ajaxSetup({
 
 if (document.head.querySelector('meta[name=kpi-root-url]')) {
 
-  render(<AppContainer><RunRoutes routes={routes} /></AppContainer>, el);
+  render(<RunRoutes routes={routes} />, el);
 
   if (module.hot) {
     module.hot.accept('./app', () => {

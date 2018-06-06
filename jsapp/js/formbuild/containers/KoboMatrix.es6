@@ -371,7 +371,7 @@ class KoboMatrix extends React.Component {
     return (
         <bem.Matrix>
           <bem.MatrixCols m={'header'}>
-            <bem.MatrixCols__col m={'label'} key={'label'}></bem.MatrixCols__col>
+            <bem.MatrixCols__col m={'label'} key={'label'}/>
             {
               cols.map(function(colKuid, n) {
                 let col = data.get(colKuid);
@@ -423,7 +423,7 @@ class KoboMatrix extends React.Component {
                     onChange={this.colChange}
                     className="js-cancel-sort"
                     data-type='required' />
-                  <label htmlFor={`required-${expandedCol}`}></label>
+                  <label htmlFor={`required-${expandedCol}`}/>
                 </label>
                 {this.getCol(expandedCol, 'select_from_list_name') &&
                   <div className="matrix-cols__options">

@@ -21,15 +21,12 @@ import {
   stringToColor,
 } from '../utils';
 import searches from '../searches';
-import cookie from 'react-cookie';
 
 import {
   ListSearch,
   ListTagFilter,
 } from '../components/list';
 
-var leaveBetaUrl = stores.pageState.leaveBetaUrl;
-var cookieDomain = stores.pageState.cookieDomain;
 let typingTimer;
 
 function langsToValues (langs) {
@@ -242,7 +239,7 @@ class MainHeader extends Reflux.Component {
         <header className="mdl-layout__header">
           <div className="mdl-layout__header-row">
             <button className="mdl-button mdl-button--icon" onClick={this.toggleFixedDrawer}>
-              <i className="fa fa-bars"></i>
+              <i className="fa fa-bars" />
             </button>
             <span className='mdl-layout-title'>
               <a href='/'>
