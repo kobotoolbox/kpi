@@ -239,7 +239,7 @@ class MainHeader extends Reflux.Component {
         <header className="mdl-layout__header">
           <div className="mdl-layout__header-row">
             <button className="mdl-button mdl-button--icon" onClick={this.toggleFixedDrawer}>
-              <i className="fa fa-bars"></i>
+              <i className="fa fa-bars" />
             </button>
             <span className='mdl-layout-title'>
               <a href='/'>
