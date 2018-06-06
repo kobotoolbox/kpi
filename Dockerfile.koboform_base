@@ -33,8 +33,8 @@ RUN apt-get update -qq && \
 ###########################
 
 WORKDIR ${PIP_DIR}/
-RUN pip install --quiet --upgrade pip && \
-    pip install --quiet pip-tools
+RUN pip install --quiet 'pip>=9,<10' && \
+    pip install --quiet 'pip-tools>=1.11,<2'
 COPY ./dependencies/pip/external_services.txt /srv/tmp/base__external_services.txt
 RUN pip-sync /srv/tmp/base__external_services.txt 1>/dev/null && \
     rm -rf ~/.cache/pip
