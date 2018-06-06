@@ -8,9 +8,6 @@ import bem from './bem';
 import {t, assign} from './utils';
 import classNames from 'classnames';
 
-var hotkey = require('react-hotkey');
-hotkey.activate();
-
 class SearchBox extends React.Component {
   constructor (props) {
     super(props);
@@ -52,11 +49,6 @@ class Modal extends React.Component {
   constructor (props) {
     super(props);
     autoBind(this);
-  }
-  handleHotkey (evt) {
-    if (evt.keyCode === 27) {
-      this.props.onClose.call(evt);
-    }
   }
   backdropClick (evt) {
     if (evt.currentTarget === evt.target) {
@@ -111,8 +103,6 @@ class Modal extends React.Component {
     );
   }
 };
-
-reactMixin(Modal.prototype, hotkey.Mixin('handleHotkey'));
 
 class Footer extends React.Component {
   constructor(props) {
