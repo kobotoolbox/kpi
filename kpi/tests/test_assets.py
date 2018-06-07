@@ -390,7 +390,6 @@ class AssetSettingsTests(AssetsTestCase):
         self.assertEqual(a1.name, 'abcxyz')
 
 
-
 class AssetScoreTestCase(TestCase):
     fixtures = ['test_data']
 

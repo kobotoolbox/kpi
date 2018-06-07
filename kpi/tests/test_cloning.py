@@ -16,7 +16,8 @@ from ..views import (
 )
 from .kpi_test_case import KpiTestCase
 from .test_assets import AssetsTestCase
-from kpi.constants import *
+from kpi.constants import ASSET_TYPE_ARG_NAME, ASSET_TYPE_SURVEY,\
+    ASSET_TYPE_TEMPLATE, ASSET_TYPE_BLOCK, ASSET_TYPE_QUESTION
 from kpi.exceptions import BadAssetTypeException
 
 

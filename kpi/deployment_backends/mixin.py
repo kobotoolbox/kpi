@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from backends import DEPLOYMENT_BACKENDS
 from kpi.exceptions import BadAssetTypeException
+from kpi.constants import ASSET_TYPE_SURVEY
 
 
 class DeployableMixin:
@@ -26,7 +27,8 @@ class DeployableMixin:
                 self.deployment.redeploy(active=active)
             self._mark_latest_version_as_deployed()
         else:
-            raise BadAssetTypeException("A form template can't be deployed")
+            raise BadAssetTypeException("Only surveys may be deployed, but this asset is a {}".format(
+                self.asset_type))
 
     def _mark_latest_version_as_deployed(self):
         ''' `sync_kobocat_xforms` calls this, since it manipulates
@@ -52,4 +54,4 @@ class DeployableMixin:
 
     @property
     def can_be_deployed(self):
-        return self.asset_type and self.asset_type != 'template'
+        return self.asset_type and self.asset_type == ASSET_TYPE_SURVEY
