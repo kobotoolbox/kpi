@@ -5,6 +5,8 @@ $viewWidgets = require './view.widgets'
 $skipLogicHelpers = require './mv.skipLogicHelpers'
 _t = require('utils').t
 
+PLACEHOLDER_VALUE = 'placeholderVal'
+
 module.exports = do ->
   viewRowDetailSkipLogic = {}
 
@@ -69,13 +71,22 @@ module.exports = do ->
       @$el.toggleClass("skiplogic__criterion--unspecified-question", not is_specified)
 
     bind_question_picker: () ->
-      @mark_question_specified +@$question_picker.val() != -1
+      questionVal = @$question_picker.val()
 
-      @$question_picker.on 'change', (e) =>
-        @mark_question_specified true
-        # @presenter.change_question @$question_picker.val()
-        # replaced with e.val because of select2
-        @presenter.change_question e.val
+      @mark_question_specified(questionVal isnt PLACEHOLDER_VALUE)
+
+      if questionVal isnt PLACEHOLDER_VALUE and questionVal isnt ''
+        @question_picker_view.disable_placeholder_option()
+
+      @$question_picker.on('change', (e) =>
+        if e.val is PLACEHOLDER_VALUE
+          console.error("Changing question to #{PLACEHOLDER_VALUE} should not happen!")
+
+        @mark_question_specified(e.val isnt PLACEHOLDER_VALUE)
+        @presenter.change_question(e.val)
+        return
+      )
+      return
 
     bind_operator_picker: () ->
       @$operator_picker.on 'change', () =>
@@ -132,10 +143,20 @@ module.exports = do ->
     className: 'skiplogic__rowselect'
 
     render: () ->
-      super
-      @$el.on 'change', () =>
-        @$el.children(':first').prop('disabled', true)
-      @
+      super()
+
+      # HACK disable placeholder option on load and after change
+      if @$el.val() isnt PLACEHOLDER_VALUE
+        @disable_placeholder_option()
+      @$el.on('change', @disable_placeholder_option.bind(@))
+
+      return @
+
+    disable_placeholder_option: ->
+      $firstChild = @$el.children(':first')
+      if $firstChild.val() is PLACEHOLDER_VALUE
+        $firstChild.prop('disabled', true)
+      return
 
     attach_to: (target) ->
       target.find('.skiplogic__rowselect').remove()
@@ -182,17 +203,27 @@ module.exports = do ->
         return @$el.val()
 
     _set_style: () -> #violates LSP
-      @$el.toggleClass 'skiplogic__expressionselect--no-response-value', +@$el.val() in [-1, 1]
-      absolute_value = if @$el.val() >= 0 then +@$el.val() else -@$el.val()
-      if absolute_value == 0
+      numValue = Number(@$el.val())
+
+      @$el.toggleClass('skiplogic__expressionselect--no-response-value', numValue in [-1, 1])
+
+      absolute_value = Math.abs(numValue)
+
+      if absolute_value is 0
         return
 
-      operator = _.find @operators, (operator) ->
-        operator.id == absolute_value
+      operator = _.find(@operators, (operator) ->
+        return operator.id == absolute_value
+      )
 
-      abbreviated_label = operator['abbreviated_' + (if +@$el.val() < 0 then 'negated_' else '') + 'label']
+      if numValue < 0
+        abbreviated_label = operator['abbreviated_negated_label']
+      else
+        abbreviated_label = operator['abbreviated_label']
+
       chosen_element = @$el.parents('.skiplogic__criterion').find('.select2-container.skiplogic__expressionselect .select2-chosen')
       chosen_element.text(abbreviated_label)
+      return
 
     constructor: (@operators) ->
       super()
@@ -278,18 +309,29 @@ module.exports = do ->
     constructor: (@survey) ->
     create_question_picker: (target_question) ->
       model = new $viewWidgets.DropDownModel()
-      set_options = () =>
-        options = _.map target_question.selectableRows(), (row) ->
-          value: row.cid
-          text: row.getValue("label")
 
-        options.unshift value: -1, text: _t('Select question from list')
-        model.set 'options', options
+      set_options = () =>
+        options = _.map(target_question.selectableRows(), (row) ->
+          return {
+            value: row.cid
+            text: row.getValue("label")
+          }
+        )
+
+        # add placeholder message/option
+        options.unshift({
+          value: PLACEHOLDER_VALUE
+          text: _t('Select question from list')
+        })
+
+        model.set('options', options)
+        return
 
       set_options()
-      @survey.on 'sortablestop', set_options
+      @survey.on('sortablestop', set_options)
 
-      new viewRowDetailSkipLogic.QuestionPicker model
+      return new viewRowDetailSkipLogic.QuestionPicker(model)
+
     create_operator_picker: (question_type) ->
       operators = if question_type? then _.filter($skipLogicHelpers.operator_types, (op_type) -> op_type.id in question_type.operators) else []
       new viewRowDetailSkipLogic.OperatorPicker operators
