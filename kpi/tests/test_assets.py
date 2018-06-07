@@ -63,6 +63,7 @@ class AssetsTestCase(TestCase):
         ]}, owner=self.user, asset_type='survey')
         self.sa = self.asset
 
+
 class CreateAssetVersions(AssetsTestCase):
 
     def test_asset_with_versions(self):
@@ -357,6 +358,17 @@ class AssetSettingsTests(AssetsTestCase):
         self.assertTrue('settings' in a1.content)
         self.assertEqual(a1.content['settings'].get('style'), 'pages')
 
+    def test_templates_retain_settings(self):
+        _content = self._content()
+        _content['settings'] = {
+            'style': 'pages',
+        }
+        a1 = Asset.objects.create(content=_content, owner=self.user,
+                                  asset_type='template')
+        self.assertEqual(a1.asset_type, 'template')
+        self.assertTrue('settings' in a1.content)
+        self.assertEqual(a1.content['settings'].get('style'), 'pages')
+
     def test_surveys_move_form_title_to_name(self):
         a1 = Asset.objects.create(content=self._content('abcxyz'),
                                   owner=self.user,
@@ -367,6 +379,15 @@ class AssetSettingsTests(AssetsTestCase):
         self.assertTrue('form_title' not in settings)
         self.assertEqual(a1.name, 'abcxyz')
 
+    def test_templates_move_form_title_to_name(self):
+        a1 = Asset.objects.create(content=self._content('abcxyz'),
+                                  owner=self.user,
+                                  asset_type='template')
+        # settingslist
+        settings = a1.content['settings']
+        self.assertEqual(a1.asset_type, 'template')
+        self.assertTrue('form_title' not in settings)
+        self.assertEqual(a1.name, 'abcxyz')
 
 
 class AssetScoreTestCase(TestCase):
