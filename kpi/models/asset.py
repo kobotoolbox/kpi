@@ -686,11 +686,6 @@ class Asset(ObjectPermissionMixin,
     def _snapshot(self, regenerate=True):
         asset_version = self.asset_versions.first()
 
-        _note = None
-        if self.can_be_deployed:
-            _note = "Note: Only surveys may be deployed, but this asset is a {}".format(
-                self.asset_type)
-
         try:
             snapshot = AssetSnapshot.objects.get(asset=self,
                                                  asset_version=asset_version)
