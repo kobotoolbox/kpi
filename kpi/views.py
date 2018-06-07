@@ -894,8 +894,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if self._validate_destination_type(original_asset):
             cloned_data = original_asset.to_clone_dict(version=source_version)
 
-            for key, val in self.request.data.iteritems():
-                cloned_data.update(self.request.data.items())
+            # Merge cloned_data with user's request data.
+            cloned_data.update(self.request.data.items())
 
             if partial_update:
                 # Because we're updating an asset from another which can have another type,
