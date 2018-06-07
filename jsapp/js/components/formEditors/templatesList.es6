@@ -110,7 +110,7 @@ class TemplatesList extends React.Component {
                   value={template.uid}
                   checked={this.state.selectedTemplateUid === template.uid}
                   onChange={this.onSelectedTemplateChange}
-                ></bem.TemplatesList__templateRadio>
+                 />
               </bem.TemplatesList__template>
             )
           })}
