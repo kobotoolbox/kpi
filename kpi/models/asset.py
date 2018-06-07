@@ -687,9 +687,9 @@ class Asset(ObjectPermissionMixin,
         asset_version = self.asset_versions.first()
 
         _note = None
-        if self.asset_type in [ASSET_TYPE_QUESTION, ASSET_TYPE_BLOCK]:
-            _note = ('Note: This item is a {} and must be included in '
-                     'a form before deploying'.format(self.asset_type))
+        if self.can_be_deployed:
+            _note = "Note: Only surveys may be deployed, but this asset is a {}".format(
+                self.asset_type)
 
         try:
             snapshot = AssetSnapshot.objects.get(asset=self,

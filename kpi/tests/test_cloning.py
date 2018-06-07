@@ -16,7 +16,8 @@ from ..views import (
 )
 from .kpi_test_case import KpiTestCase
 from .test_assets import AssetsTestCase
-from kpi.constants import *
+from kpi.constants import ASSET_TYPE_ARG_NAME, ASSET_TYPE_SURVEY,\
+    ASSET_TYPE_TEMPLATE, ASSET_TYPE_BLOCK, ASSET_TYPE_QUESTION
 from kpi.exceptions import BadAssetTypeException
 
 
@@ -53,15 +54,25 @@ class TestCloning(KpiTestCase):
         self.another_user = User.objects.get(username='anotheruser')
         self.another_user_password = 'anotheruser'
 
-    def _clone_asset(self, original_asset, **kwargs):
+    def _clone_asset(self, original_asset, partial_update=False, **kwargs):
 
         kwargs.update({'clone_from': original_asset.uid})
+        status_code = status.HTTP_201_CREATED
+        endpoint = reverse("asset-list")
+        action = self.client.post
+
+        if partial_update:
+            status_code = status.HTTP_200_OK
+            uid = kwargs.pop("uid", None)
+            action = self.client.patch
+            endpoint = reverse("asset-detail", kwargs={"uid": uid})
+
         expected_status_code = kwargs.pop('expected_status_code',
-                                          status.HTTP_201_CREATED)
-        response = self.client.post(reverse('asset-list'), kwargs)
+                                          status_code)
+        response = action(endpoint, kwargs)
         self.assertEqual(response.status_code, expected_status_code)
 
-        if expected_status_code != status.HTTP_201_CREATED:
+        if expected_status_code != status_code:
             return
         else:
             cloned_asset = self.url_to_obj(response.data['url'])
@@ -183,6 +194,54 @@ class TestCloning(KpiTestCase):
             self._clone_asset(original_asset, asset_type=ASSET_TYPE_QUESTION)
 
         self.assertRaises(BadAssetTypeException, _bad_clone)
+
+    def test_clone_template_to_existing_asset(self):
+        self.login(self.someuser.username, self.someuser_password)
+        survey_settings = {
+            "sector": {
+                "value": "Arts, Entertainment, and Recreation",
+                "label": "Arts, Entertainment, and Recreation"
+            },
+            "country": {
+                "value": "ALB",
+                "label": "Albania"
+            },
+            "share-metadata": True,
+            "description": "This survey will be modified"
+        }
+        survey_asset = self.create_asset(
+            "survey_asset",
+            settings=json.dumps(survey_settings),
+            asset_type=ASSET_TYPE_SURVEY
+        )
+
+        template_settings = {
+            "sector": {
+                "value": "Public Administration",
+                "label": "Public Administration"
+            },
+            "country": {
+                "value": "CAN",
+                "label": "Canada"
+            },
+            "share-metadata": True,
+            "description": "A template to be cloned"
+        }
+        template_asset = self.create_asset(
+            'template_asset', 
+            settings=json.dumps(template_settings),
+            asset_type=ASSET_TYPE_TEMPLATE
+        )
+
+        modified_survey_asset = self._clone_asset(template_asset,
+                                                  partial_update=True,
+                                                  uid=survey_asset.uid,
+                                                  asset_type=survey_asset.asset_type)
+
+        self.assertEqual(survey_asset.content.get("survey"), [])
+        self.assertEqual(modified_survey_asset.settings.get("description"), "A template to be cloned")
+        self.assertEqual(modified_survey_asset.settings.get("country").get("value"), "CAN")
+        self.assertEqual(modified_survey_asset.asset_type, survey_asset.asset_type)
 
 # TODO
 #     def test_clone_collection(self):

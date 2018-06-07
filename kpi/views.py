@@ -757,7 +757,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     * survey (can be cloned to `block`, `question`, `survey`, `template`)
     * template (can be cloned to `survey`, `template`)
 
-    Settings are never cloned except when cloning a `survey` to `template` (or vice-versa).
+    Settings are cloned only when type of assets are `survey` or `template`.
     In that case, `share-metadata` is not preserved.
 
     When creating a new `block` or `question` asset, settings are not saved either.
@@ -853,7 +853,12 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             queryset = queryset.defer('content')
         return queryset
 
-    def _get_clone_serializer(self):
+    def _get_clone_serializer(self, current_asset=None):
+        """
+        Gets the serializer from cloned object
+        :param current_asset: Asset. Asset to be updated.
+        :return: AssetSerializer
+        """
         original_uid = self.request.data[CLONE_ARG_NAME]
         original_asset = get_object_or_404(Asset, uid=original_uid)
         if CLONE_FROM_VERSION_ID_ARG_NAME in self.request.data:
@@ -867,19 +872,24 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if not self.request.user.has_perm(view_perm, original_asset):
             raise Http404
 
-        cloned_data = self._prepare_cloned_data(original_asset, source_version)
-        if cloned_data:
-            return self.get_serializer(data=cloned_data)
+        partial_update = isinstance(current_asset, Asset)
+        cloned_data = self._prepare_cloned_data(original_asset, source_version, partial_update)
+        if partial_update:
+            return self.get_serializer(current_asset, data=cloned_data, partial=True)
         else:
-            raise BadAssetTypeException("Destination type is not compatible with source type")
+            return self.get_serializer(data=cloned_data)
 
-    def _prepare_cloned_data(self, original_asset, source_version):
+    def _prepare_cloned_data(self, original_asset, source_version, partial_update):
         """
         Some business rules must be applied when cloning an asset to another with a different type.
         It prepares the data to be cloned accordingly.
 
+        It raises an exception if source and destination are not compatible for cloning.
+
+        :param original_asset: Asset
         :param source_version: AssetVersion
-        :return: dict|None
+        :param partial_update: Boolean
+        :return: dict
         """
         if self._validate_destination_type(original_asset):
             cloned_data = original_asset.to_clone_dict(version=source_version)
@@ -887,24 +897,33 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             for key, val in self.request.data.iteritems():
                 cloned_data.update(self.request.data.items())
 
-            # Change asset_type if needed.
-            cloned_data["asset_type"] = self.request.data.get(ASSET_TYPE_ARG_NAME, original_asset.asset_type)
+            if partial_update:
+                # Because we're updating an asset from another which can have another type,
+                # we need to remove `asset_type` from clone data to ensure it's not updated
+                # when serializer is initialized.
+                cloned_data.pop("asset_type", None)
+            else:
+                # Change asset_type if needed.
+                cloned_data["asset_type"] = self.request.data.get(ASSET_TYPE_ARG_NAME, original_asset.asset_type)
 
-            # We need to keep the settings without shared-metadata when cloning a template to a survey
-            # or a survey to a template
-            if (original_asset.asset_type == ASSET_TYPE_TEMPLATE and
-                cloned_data.get("asset_type") == ASSET_TYPE_SURVEY) or \
-                    (original_asset.asset_type == ASSET_TYPE_SURVEY and
-                     cloned_data.get("asset_type") == ASSET_TYPE_TEMPLATE):
+            cloned_asset_type = cloned_data.get("asset_type")
+            # Settings are: Country, Description, Sector and Share-metadata
+            # Copy settings only when original_asset is `survey` or `template`
+            # and `asset_type` property of `cloned_data` is `survey` or `template`
+            # or None (partial_update)
+            if cloned_asset_type in [None, ASSET_TYPE_TEMPLATE, ASSET_TYPE_SURVEY] and \
+                original_asset.asset_type in [ASSET_TYPE_TEMPLATE, ASSET_TYPE_SURVEY]:
+
                 settings = original_asset.settings
                 settings.pop("share-metadata", None)
                 cloned_data.update({"settings": json.dumps(settings)})
 
             # until we get content passed as a dict, transform the content obj to a str
+            # TODO, verify whether `Asset.content.settings.id_string` should be cleared out.
             cloned_data["content"] = json.dumps(cloned_data.get("content"))
             return cloned_data
         else:
-            return None
+            raise BadAssetTypeException("Destination type is not compatible with source type")
 
     def _validate_destination_type(self, original_asset_):
         """
@@ -926,7 +945,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         if CLONE_ARG_NAME in request.data:
-            serializer= self._get_clone_serializer()
+            serializer = self._get_clone_serializer()
         else:
             serializer = self.get_serializer(data=request.data)
 
@@ -1023,7 +1042,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 return Response(dict(serializer.data))
         elif request.method == 'POST':
             if not asset.can_be_deployed:
-                raise BadAssetTypeException(u"A form template can't be deployed")
+                raise BadAssetTypeException("Only surveys may be deployed, but this asset is a {}".format(
+                    self.asset_type))
             else:
                 if asset.has_deployment:
                     raise exceptions.MethodNotAllowed(
@@ -1042,7 +1062,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         elif request.method == 'PATCH':
             if not asset.can_be_deployed:
-                raise BadAssetTypeException(u"A form template can't be deployed")
+                raise BadAssetTypeException("Only surveys may be deployed, but this asset is a {}".format(
+                    self.asset_type))
             else:
                 if not asset.has_deployment:
                     raise exceptions.MethodNotAllowed(
@@ -1064,7 +1085,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     @detail_route(methods=["PATCH"], renderer_classes=[renderers.JSONRenderer])
     def permissions(self, request, uid):
         target_asset = self.get_object()
-        source_asset = get_object_or_404(Asset, uid=request.data.get("clone_from"))
+        source_asset = get_object_or_404(Asset, uid=request.data.get(CLONE_ARG_NAME))
         user = request.user
         response = {}
         http_status = status.HTTP_204_NO_CONTENT
@@ -1087,6 +1108,18 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if user.is_anonymous():
             user = get_anonymous_user()
         serializer.save(owner=user)
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        if CLONE_ARG_NAME in request.data:
+            serializer = self._get_clone_serializer(instance)
+        else:
+            serializer = self.get_serializer(instance, data=request.data, partial=True)
+
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
     def perform_destroy(self, instance):
         if hasattr(instance, 'has_deployment') and instance.has_deployment:
