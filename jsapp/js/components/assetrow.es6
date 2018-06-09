@@ -261,6 +261,7 @@ class AssetRow extends React.Component {
                 <i className='k-icon-edit' />
               </bem.AssetRow__actionIcon>
             }
+
             {userCanEdit &&
               <bem.AssetRow__actionIcon
                   m='tagsToggle'
@@ -270,6 +271,7 @@ class AssetRow extends React.Component {
                 <i className='k-icon-tag' />
               </bem.AssetRow__actionIcon>
             }
+
             {userCanEdit &&
               <bem.AssetRow__actionIcon
                   m='sharing'
@@ -282,6 +284,7 @@ class AssetRow extends React.Component {
                 <i className='k-icon-share' />
               </bem.AssetRow__actionIcon>
             }
+
             <bem.AssetRow__actionIcon
                 m='clone'
                 key='clone'
@@ -293,6 +296,21 @@ class AssetRow extends React.Component {
                 >
               <i className='k-icon-clone' />
             </bem.AssetRow__actionIcon>
+
+            { this.props.asset_type && this.props.asset_type === 'template' && userCanEdit &&
+              <bem.AssetRow__actionIcon
+                m={'cloneAsSurvey'}
+                key='cloneAsSurvey'
+                data-action={'cloneAsSurvey'}
+                data-tip={t('Create project')}
+                data-asset-type={this.props.kind}
+                data-asset-name={this.props.name}
+                data-disabled={false}
+              >
+                <i className="k-icon-projects" />
+              </bem.AssetRow__actionIcon>
+            }
+
             { this.props.kind === 'collection' &&
               [/*'view',*/ 'sharing'].map((actn)=>{
                 return (
@@ -315,17 +333,6 @@ class AssetRow extends React.Component {
               clearPopover={this.state.clearPopover}
               popoverSetVisible={this.popoverSetVisible}
             >
-              { this.props.asset_type && this.props.asset_type === 'template' && userCanEdit &&
-                <bem.PopoverMenu__link
-                  m={'cloneAsSurvey'}
-                  data-action={'cloneAsSurvey'}
-                  data-asset-type={this.props.kind}
-                  data-asset-name={this.props.name}
-                >
-                  <i className="k-icon-projects" />
-                  {t('Create project')}
-                </bem.PopoverMenu__link>
-              }
               { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit && isDeployable &&
                 <bem.PopoverMenu__link
                     m={'deploy'}
