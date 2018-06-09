@@ -337,12 +337,10 @@ export class ProjectSettings extends React.Component {
                     {t('Design in Form Builder')}
                   </button>
                 }
-                {this.props.context !== 'replaceProject' &&
-                  <button onClick={this.displayChooseTemplate}>
-                    <i className="k-icon-template" />
-                    {t('Use a Template')}
-                  </button>
-                }
+                <button onClick={this.displayChooseTemplate}>
+                  <i className="k-icon-template" />
+                  {t('Use a Template')}
+                </button>
                 <button onClick={this.displayUpload}>
                   <i className="k-icon-upload" />
                   {t('Upload an XLSForm')}

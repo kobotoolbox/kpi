@@ -375,23 +375,26 @@
     text-align: left;
   }
 
+  $buttons-spacing: 10px;
+
   .form-modal__item--new-project-buttons {
-    margin: 30px auto 20px;
+    margin: 3*$buttons-spacing auto 2*$buttons-spacing;
     max-width: 600px;
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-around;
+    justify-content: center;
 
     button {
       border: 1px solid $divider-color;
-      padding: 20px 10px;
+      padding: 2*$buttons-spacing $buttons-spacing;
       background: #F8F8F8;
       border-radius: 4px;
       color: $cool-gray;
       cursor: pointer;
-      margin: 10px;
+      margin: $buttons-spacing;
       flex-basis: 0;
       flex-grow: 1;
+      max-width: calc(50% - #{2 * $buttons-spacing});
 
       @media screen and (min-width: 768px) {
         min-width: 200px;
@@ -399,7 +402,7 @@
 
       @media screen and (min-width: 960px) {
         min-width: 220px;
-        padding: 20px;
+        padding: 2*$buttons-spacing;
       }
 
       i {
@@ -412,9 +415,7 @@
         color: $cool-blue;
         border-color: $cool-blue;
 
-        i {
-          color: $cool-blue;
-        }
+        i {color: $cool-blue;}
       }
     }
   }
