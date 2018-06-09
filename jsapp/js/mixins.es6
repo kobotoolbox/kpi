@@ -317,12 +317,23 @@ const cloneAssetAsNewType = function ({
       }, {
         onComplete: (asset) => {
           dialog.destroy();
-          notify(t('New ## has been created.').replace('##', targetType));
+
           this.refreshSearch && this.refreshSearch();
+
+          switch (asset.asset_type) {
+            case 'survey':
+              hashHistory.push(`/forms/${asset.uid}/landing`);
+              break;
+            case 'template':
+            case 'block':
+            case 'question':
+              hashHistory.push(`/library`);
+              break;
+          }
         },
         onFailed: (asset) => {
           dialog.destroy();
-          alertify.error(t('Failed to create new ##!').replace('##', targetType));
+          alertify.error(t('Failed to create new asset!'));
         }
       });
 
