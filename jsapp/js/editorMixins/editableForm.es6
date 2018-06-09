@@ -172,25 +172,24 @@ class FormSettingsBox extends React.Component {
     var metaContent;
     if (!this.state.formSettingsExpanded) {
       metaContent = (
-          <bem.FormMeta__button m={'metasummary'} onClick={this.toggleSettingsEdit}>
-            {t('metadata:')}
-            {metaData}
-          </bem.FormMeta__button>
-        );
+        <bem.FormMeta__button m={'metasummary'} onClick={this.toggleSettingsEdit}>
+          {t('metadata:')}
+          {metaData}
+        </bem.FormMeta__button>
+      );
     } else {
       metaContent = (
-          <FormSettingsEditor {...this.state} onCheckboxChange={this.onCheckboxChange}
-            />
-        );
+        <FormSettingsEditor {...this.state} onCheckboxChange={this.onCheckboxChange} />
+      );
     }
     return (
-        <bem.FormMeta>
-          <bem.FormMeta__button m='expand' onClick={this.toggleSettingsEdit}>
-            <i />
-          </bem.FormMeta__button>
-          {metaContent}
-        </bem.FormMeta>
-      );
+      <bem.FormMeta>
+        <bem.FormMeta__button m='expand' onClick={this.toggleSettingsEdit}>
+          <i />
+        </bem.FormMeta__button>
+        {metaContent}
+      </bem.FormMeta>
+    );
   }
 };
 
@@ -700,28 +699,37 @@ export default assign({
   },
 
   render () {
-    var isSurvey = this.app && this.state.backRoute === '/forms';
+    const isFormSettingsBoxVisible = (
+      this.app &&
+      this.state.asset_type === 'survey' ||
+      this.state.asset_type === 'template' ||
+      this.state.desiredAssetType === 'template'
+    );
+
     var docTitle = this.state.name || t('Untitled');
+
+    // TODO: refactor this to not use ternery operators so heavily
     return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
           <ui.Panel m={'transparent'}>
             <AssetNavigator />
+
             <bem.FormBuilder m={this.state.formStylePanelDisplayed ? 'formStyleDisplayed': null }>
               {this.renderSaveAndPreviewButtons()}
 
               <bem.FormBuilder__contents>
-
-                { isSurvey ?
+                {isFormSettingsBoxVisible &&
                   <FormSettingsBox survey={this.app.survey} {...this.state} />
-                : null }
-                  <div ref="form-wrap" className='form-wrap'>
-                    { (!this.state.surveyAppRendered) ?
-                        this.renderNotLoadedMessage()
-                    : null }
-                  </div>
+                }
+                <div ref="form-wrap" className='form-wrap'>
+                  {!this.state.surveyAppRendered &&
+                    this.renderNotLoadedMessage()
+                  }
+                </div>
               </bem.FormBuilder__contents>
             </bem.FormBuilder>
-            { this.state.enketopreviewOverlay ?
+
+            {this.state.enketopreviewOverlay &&
               <ui.Modal open large
                   onClose={this.hidePreview} title={t('Form Preview')}>
                 <ui.Modal.Body>
@@ -730,26 +738,27 @@ export default assign({
                   </div>
                 </ui.Modal.Body>
               </ui.Modal>
-
-            : (
-                this.state.enketopreviewError ?
-                  <ui.Modal open error
-                      onClose={this.clearPreviewError} title={t('Error generating preview')}>
-                    <ui.Modal.Body>
-                      {this.state.enketopreviewError}
-                    </ui.Modal.Body>
-                  </ui.Modal>
-                : null
-              ) }
-            {this.state.showCascadePopup ?
-              <ui.Modal open onClose={this.hideCascade} title={t('Import Cascading Select Questions')}>
-                <ui.Modal.Body>
-                  {this.renderCascadePopup()}
-                </ui.Modal.Body>
+            }
+            {!this.state.enketopreviewOverlay && this.state.enketopreviewError &&
+              <ui.Modal
+                open
+                error
+                onClose={this.clearPreviewError}
+                title={t('Error generating preview')}
+              >
+                <ui.Modal.Body>{this.state.enketopreviewError}</ui.Modal.Body>
               </ui.Modal>
+            }
 
-            : null}
-
+            {this.state.showCascadePopup &&
+              <ui.Modal
+                open
+                onClose={this.hideCascade}
+                title={t('Import Cascading Select Questions')}
+              >
+                <ui.Modal.Body>{this.renderCascadePopup()}</ui.Modal.Body>
+              </ui.Modal>
+            }
           </ui.Panel>
         </DocumentTitle>
       );
