@@ -323,7 +323,7 @@ export class ProjectSettings extends React.Component {
         <bem.FormModal__form>
           {!this.state.step3 &&
             <bem.FormModal__item m='newForm-step2'>
-              {this.props.context !== 'replaceXLS' &&
+              {this.props.context !== 'replaceProject' &&
                 <bem.FormModal__item m='upload-note'>
                   <label className="long">
                     {t('Project "##" has been created. Choose one of the options below to continue.').replace('##', this.props.newFormAsset.name)}
@@ -331,13 +331,13 @@ export class ProjectSettings extends React.Component {
                 </bem.FormModal__item>
               }
               <bem.FormModal__item m='new-project-buttons'>
-                {this.props.context !== 'replaceXLS' &&
+                {this.props.context !== 'replaceProject' &&
                   <button onClick={this.goToFormBuilder}>
                     <i className="k-icon-edit" />
                     {t('Design in Form Builder')}
                   </button>
                 }
-                {this.props.context !== 'replaceXLS' &&
+                {this.props.context !== 'replaceProject' &&
                   <button onClick={this.displayChooseTemplate}>
                     <i className="k-icon-template" />
                     {t('Use a Template')}

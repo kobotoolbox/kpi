@@ -354,11 +354,12 @@ class AssetRow extends React.Component {
               }
               { this.props.asset_type && this.props.asset_type === 'survey' && userCanEdit &&
                 <bem.PopoverMenu__link
-                      m={'refresh'}
-                      data-action={'refresh'}
-                      data-asset-type={this.props.kind}>
+                  m={'refresh'}
+                  data-action={'refresh'}
+                  data-asset-type={this.props.kind}
+                >
                   <i className="k-icon-replace" />
-                  {t('Replace with XLS')}
+                  {t('Replace project')}
                 </bem.PopoverMenu__link>
               }
               {this.props.downloads.map((dl)=>{

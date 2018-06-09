@@ -183,7 +183,11 @@ mixins.dmix = {
 mixins.droppable = {
   _forEachDroppedFile (params={}) {
     let router = this.context.router;
-    let isXLSReplaceInForm = this.props.context == 'replaceXLS' && router.isActive('forms') && router.params.assetid != undefined;
+    let isProjectReplaceInForm = (
+      this.props.context == 'replaceProject'
+      && router.isActive('forms')
+      && router.params.assetid != undefined
+    );
     var library = router.isActive('library');
     var multipleFiles = params.totalFiles > 1 ? true : false;
     params = assign({library: library}, params);
@@ -218,11 +222,11 @@ mixins.droppable = {
             } else {
               if (!assetUid) {
                 // TODO: use a more specific error message here
-                alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace with XLS" icon.'));
+                alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace project" icon.'));
                 if (params.assetUid)
                   hashHistory.push(`/forms/${params.assetUid}`);
               } else {
-                if (isXLSReplaceInForm) {
+                if (isProjectReplaceInForm) {
                   actions.resources.loadAsset({id: assetUid});
                 } else if (library) {
                   this.searchDefault();
@@ -485,7 +489,7 @@ mixins.clickAssets = {
       },
       refresh: function(uid) {
         stores.pageState.showModal({
-          type: 'replace-xls',
+          type: 'replace-project',
           asset: stores.selectedAsset.asset
         });
       }

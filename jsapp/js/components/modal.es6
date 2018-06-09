@@ -78,9 +78,9 @@ class Modal extends React.Component {
         });
         break;
 
-      case 'replace-xls':
+      case 'replace-project':
         this.setState({
-          title: t('Replace with XLS')
+          title: t('Replace project')
         });
         break;
 
@@ -179,9 +179,9 @@ class Modal extends React.Component {
                 newFormAsset={this.state.newFormAsset}
               />
             }
-            { this.props.params.type == 'replace-xls' &&
+            { this.props.params.type == 'replace-project' &&
               <ProjectSettings
-                context='replaceXLS'
+                context='replaceProject'
                 newFormAsset={this.props.params.asset}
               />
             }

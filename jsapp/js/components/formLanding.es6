@@ -135,10 +135,10 @@ export class FormLanding extends React.Component {
       assetid: this.state.uid
     });
   }
-  replaceXLSModal (evt) {
+  showReplaceProjectModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
-      type: 'replace-xls',
+      type: 'replace-project',
       asset: this.state
     });
   }
@@ -363,18 +363,23 @@ export class FormLanding extends React.Component {
             <i className="k-icon-edit" />
           </bem.FormView__link>
         }
+
         <bem.FormView__link m='preview'
           onClick={this.enketoPreviewModal}
           data-tip={t('Preview')}>
           <i className="k-icon-view" />
         </bem.FormView__link>
+
         {userCanEdit &&
-          <bem.FormView__link m='upload'
-              data-tip={t('Replace with XLS')}
-              onClick={this.replaceXLSModal}>
+          <bem.FormView__link
+            m='upload'
+            data-tip={t('Replace project')}
+            onClick={this.showReplaceProjectModal}
+          >
             <i className="k-icon-replace" />
           </bem.FormView__link>
         }
+
         <ui.PopoverMenu
           type='formLanding-menu'
           triggerLabel={<i className="k-icon-more" />}
