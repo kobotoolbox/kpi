@@ -3,6 +3,8 @@ import alertify from 'alertifyjs';
 import $ from 'jquery';
 import cookie from 'react-cookie';
 import Promise from 'es6-promise';
+import {hashHistory} from 'react-router';
+import actions from './actions';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
@@ -252,3 +254,58 @@ export function koboMatrixParser(params) {
   }
   return params;
 }
+
+export function cloneAssetAsNewType({
+  sourceUid,
+  targetType,
+  promptTitle,
+  promptMessage
+}) {
+  const dialog = alertify.dialog('prompt');
+  const opts = {
+    title: promptTitle,
+    message: promptMessage,
+    value: name,
+    labels: {ok: t('Create'), cancel: t('Cancel')},
+    onok: (evt, value) => {
+      // disable buttons
+      dialog.elements.buttons.primary.children[0].setAttribute('disabled', true);
+      dialog.elements.buttons.primary.children[0].innerText = t('Creating…');
+      dialog.elements.buttons.primary.children[1].setAttribute('disabled', true);
+
+      actions.resources.cloneAsset({
+        uid: sourceUid,
+        name: value,
+        new_asset_type: targetType
+      }, {
+        onComplete: (asset) => {
+          dialog.destroy();
+
+          this.refreshSearch && this.refreshSearch();
+
+          switch (asset.asset_type) {
+            case 'survey':
+              hashHistory.push(`/forms/${asset.uid}/landing`);
+              break;
+            case 'template':
+            case 'block':
+            case 'question':
+              hashHistory.push(`/library`);
+              break;
+          }
+        },
+        onFailed: (asset) => {
+          dialog.destroy();
+          alertify.error(t('Failed to create new asset!'));
+        }
+      });
+
+      // keep the dialog open
+      return false;
+    },
+    oncancel: (evt, value) => {
+      dialog.destroy();
+    }
+  };
+  dialog.set(opts).show();
+};

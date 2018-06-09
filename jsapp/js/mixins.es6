@@ -21,7 +21,8 @@ import {
   t,
   assign,
   notify,
-  stringToColor
+  stringToColor,
+  cloneAssetAsNewType
 } from './utils';
 
 import icons from '../xlform/src/view.icons';
@@ -63,6 +64,16 @@ mixins.dmix = {
       }
     };
     dialog.set(opts).show();
+  },
+  cloneAsTemplate: function(evt) {
+    const sourceUid = evt.currentTarget.dataset.assetUid;
+    const sourceName = evt.currentTarget.dataset.assetName;
+    cloneAssetAsNewType.call(this, {
+        sourceUid: sourceUid,
+        targetType: 'template',
+        promptTitle: t('Create new template'),
+        promptMessage: t('Enter the name of your new template (or leave blank to use "##" as the project name)').replace('##', sourceName)
+    });
   },
   reDeployConfirm (asset, onComplete) {
     let dialog = alertify.dialog('confirm');
@@ -289,62 +300,6 @@ mixins.collectionList = {
   collectionsChanged (collections) {
     this.setState(collections);
   },
-};
-
-// helper function for clickAsset methods
-const cloneAssetAsNewType = function ({
-  sourceUid,
-  targetType,
-  promptTitle,
-  promptMessage
-}) {
-  const dialog = alertify.dialog('prompt');
-  const opts = {
-    title: promptTitle,
-    message: promptMessage,
-    value: name,
-    labels: {ok: t('Create'), cancel: t('Cancel')},
-    onok: (evt, value) => {
-      // disable buttons
-      dialog.elements.buttons.primary.children[0].setAttribute('disabled', true);
-      dialog.elements.buttons.primary.children[0].innerText = t('Creating…');
-      dialog.elements.buttons.primary.children[1].setAttribute('disabled', true);
-
-      actions.resources.cloneAsset({
-        uid: sourceUid,
-        name: value,
-        new_asset_type: targetType
-      }, {
-        onComplete: (asset) => {
-          dialog.destroy();
-
-          this.refreshSearch && this.refreshSearch();
-
-          switch (asset.asset_type) {
-            case 'survey':
-              hashHistory.push(`/forms/${asset.uid}/landing`);
-              break;
-            case 'template':
-            case 'block':
-            case 'question':
-              hashHistory.push(`/library`);
-              break;
-          }
-        },
-        onFailed: (asset) => {
-          dialog.destroy();
-          alertify.error(t('Failed to create new asset!'));
-        }
-      });
-
-      // keep the dialog open
-      return false;
-    },
-    oncancel: (evt, value) => {
-      dialog.destroy();
-    }
-  };
-  dialog.set(opts).show();
 };
 
 mixins.clickAssets = {
