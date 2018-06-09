@@ -375,7 +375,7 @@ mixins.clickAssets = {
             sourceUid: sourceUid,
             targetType: 'template',
             promptTitle: t('Create new template'),
-            promptMessage: t('Enter new name or leave blank to use "##"').replace('##', sourceName)
+            promptMessage: t('Enter the name of your new template (or leave blank to use "##" as the project name)').replace('##', sourceName)
         });
       },
       cloneAsSurvey: function(sourceUid, sourceName) {
@@ -383,7 +383,7 @@ mixins.clickAssets = {
             sourceUid: sourceUid,
             targetType: 'survey',
             promptTitle: t('Create new project'),
-            promptMessage: t('Enter new name or leave blank to use "##"').replace('##', sourceName)
+            promptMessage: t('Enter the name of your new project (or leave blank to use "##" as the project name)').replace('##', sourceName)
         });
       },
       edit: function (uid) {
