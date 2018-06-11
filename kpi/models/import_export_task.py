@@ -1,35 +1,35 @@
-# FIXME: clean up these imports!
-import base64
-import datetime
-import logging
-import posixpath
 import re
+import pytz
+import base64
+import logging
+import datetime
+import requests
 import tempfile
-from collections import defaultdict
+import posixpath
+import dateutil.parser
 from io import BytesIO
 from os.path import splitext
+from collections import defaultdict
 
-import dateutil.parser
-import pytz
-import requests
+from jsonfield import JSONField
+from django.conf import settings
+from rest_framework import exceptions
+from django.db import models, transaction
+from django.core.files.base import ContentFile
+from private_storage.fields import PrivateFileField
+from django.core.urlresolvers import Resolver404, resolve
+from django.utils.six.moves.urllib import parse as urlparse
 
 import formpack.constants
-from django.conf import settings
-from django.core.files.base import ContentFile
-from django.core.urlresolvers import Resolver404, resolve
-from django.db import models, transaction
-from django.utils.six.moves.urllib import parse as urlparse
-from jsonfield import JSONField
-from kobo.apps.reports.report_data import build_formpack
-from private_storage.fields import PrivateFileField
-from formpack.utils.string import ellipsize
 from pyxform import xls2json_backends
-from rest_framework import exceptions
+from formpack.utils.string import ellipsize
+from kobo.apps.reports.report_data import build_formpack
 
 from ..fields import KpiUidField
-from ..model_utils import _load_library_content, create_assets
-from ..models import Asset, Collection
+from ..models import Collection, Asset
 from ..zip_importer import HttpContentParse
+from ..model_utils import create_assets, _load_library_content, \
+                          remove_string_prefix
 
 
 def _resolve_url_to_asset_or_collection(item_path):
@@ -38,9 +38,9 @@ def _resolve_url_to_asset_or_collection(item_path):
     try:
         match = resolve(item_path)
     except Resolver404:
-        # in case the app is mounted in uwsgi under a path (settings.KPI_PREFIX), we try to remove the prefix so
-        # item_path can be resolved
-        match = resolve(item_path.replace(settings.KPI_PREFIX, '', 1))
+        # If the app is mounted in uWSGI with a path prefix, try to resolve
+        # again after removing the prefix
+        match = resolve(remove_string_prefix(item_path, settings.KPI_PREFIX))
 
     uid = match.kwargs.get('uid')
     if match.url_name == 'asset-detail':
